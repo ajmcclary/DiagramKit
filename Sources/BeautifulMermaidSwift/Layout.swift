@@ -35,16 +35,19 @@ public struct GraphLayout {
             case .erDiagram:
                 guard case let .erDiagram(parsed) = graph.payload else {
                     _reportMermaidIssue("GraphLayout.layout found mismatched ER diagram payload.")
-                    return PositionedGraph(diagram: graph, content: .erDiagram(entities: [], relationships: []))
+                    return PositionedGraph(diagram: graph, content: .erDiagram(entities: [], relationships: [], accTitle: nil, accDescr: nil, diagramTitle: nil))
                 }
-                let positioned = try layoutErDiagramSync(parsed)
+                let positioned = try layoutErDiagramSync(parsed, config: parsed.config)
                 return PositionedGraph(
                     diagram: graph,
                     width: positioned.width,
                     height: positioned.height,
                     content: .erDiagram(
                         entities: positioned.entities,
-                        relationships: positioned.relationships
+                        relationships: positioned.relationships,
+                        accTitle: positioned.accTitle,
+                        accDescr: positioned.accDescr,
+                        diagramTitle: positioned.diagramTitle
                     )
                 )
             case .sequenceDiagram:

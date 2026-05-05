@@ -32,51 +32,112 @@ extension DiagramRenderer {
             // Entity boxes
             for entity in entities {
                 let box = CGRect(x: entity.x, y: entity.y, width: entity.width, height: entity.height)
-                ctx.setFillColor(self.theme.effectiveSurface().cgColor)
+
+                // Check for per-entity fill/stroke from cssStyles
+                let effectiveStyles = entity.cssCompiledStyles + entity.cssStyles
+                let entityFill = _extractCGStyleValue(effectiveStyles, property: "fill")
+                let entityStroke = _extractCGStyleValue(effectiveStyles, property: "stroke")
+                let entityText = _extractCGStyleValue(effectiveStyles, property: "color")
+
+                if let f = entityFill {
+                    ctx.setFillColor(f)
+                } else {
+                    ctx.setFillColor(self.theme.effectiveSurface().cgColor)
+                }
                 ctx.fill(box)
-                ctx.setStrokeColor(self.theme.effectiveBorder().cgColor)
+
+                if let s = entityStroke {
+                    ctx.setStrokeColor(s)
+                } else {
+                    ctx.setStrokeColor(self.theme.effectiveBorder().cgColor)
+                }
                 ctx.setLineWidth(config.strokeWidthOuterBox)
                 ctx.stroke(box)
 
                 let headerRect = CGRect(x: entity.x, y: entity.y, width: entity.width, height: entity.headerHeight)
                 ctx.setFillColor(self.theme.subgraphHeaderColor().cgColor)
                 ctx.fill(headerRect)
-                ctx.setStrokeColor(self.theme.effectiveBorder().cgColor)
+                if let s = entityStroke {
+                    ctx.setStrokeColor(s)
+                } else {
+                    ctx.setStrokeColor(self.theme.effectiveBorder().cgColor)
+                }
                 ctx.stroke(headerRect)
 
+                // Use alias label if present
+                let displayLabel = entity.alias.isEmpty ? entity.label : entity.alias
                 let nameFont = BMFont.systemFont(ofSize: config.fontSizeNodeLabel, weight: .bold)
                 self._drawTextInFlipped(
-                    entity.label,
+                    displayLabel,
                     at: CGPoint(x: entity.x + entity.width / 2, y: entity.y + entity.headerHeight / 2),
                     context: ctx, contentHeight: ch,
-                    color: self.theme.foreground,
+                    color: entityText.map { BMColor(cgColor: $0) ?? self.theme.foreground } ?? self.theme.foreground,
                     font: nameFont,
                     alignment: .center
                 )
 
+                if entity.attributes.isEmpty {
+                    // Simple rectangle — no attribute section, no "(no attributes)" text
+                    continue
+                }
+
                 let attrTop = entity.y + entity.headerHeight
-                ctx.setStrokeColor(self.theme.effectiveBorder().cgColor)
+                if let s = entityStroke {
+                    ctx.setStrokeColor(s)
+                } else {
+                    ctx.setStrokeColor(self.theme.effectiveBorder().cgColor)
+                }
                 ctx.setLineWidth(config.strokeWidthInnerBox)
                 ctx.move(to: CGPoint(x: entity.x, y: attrTop))
                 ctx.addLine(to: CGPoint(x: entity.x + entity.width, y: attrTop))
                 ctx.strokePath()
 
                 let monoFont = self._monoFont(size: config.erAttrFontSize)
-                if entity.attributes.isEmpty {
-                    // Empty attribute placeholder
-                    let italicFont = self._italicSystemFont(size: config.erAttrFontSize, weight: 0.0)
-                    self._drawTextInFlipped(
-                        "(no attributes)",
-                        at: CGPoint(x: entity.x + entity.width / 2, y: attrTop + entity.rowHeight / 2),
-                        context: ctx, contentHeight: ch,
-                        color: self.theme.effectiveTextFaint(),
-                        font: italicFont,
-                        alignment: .center
-                    )
+
+                // Compute max key width for column alignment
+                var maxKeyW: CGFloat = 0
+                for attr in entity.attributes where !attr.keys.isEmpty {
+                    let kt = attr.keys.joined(separator: ",")
+                    let w = config.estimateTextWidth(kt, fontSize: 9, fontWeight: 600) + 8
+                    maxKeyW = max(maxKeyW, w)
                 }
+
+                // Compute comment column position
+                var maxCommentW: CGFloat = 0
+                for attr in entity.attributes where !attr.comment.isEmpty {
+                    let w = config.estimateTextWidth(attr.comment, fontSize: 9, fontWeight: 400)
+                    maxCommentW = max(maxCommentW, w + 12)
+                }
+
+                let keyColRight = maxKeyW > 0 ? entity.x + 6 + maxKeyW + 14 : -1
+                let commentColLeft = maxCommentW > 0 ? entity.width - maxCommentW - 8 : -1
+
+                // Vertical column dividers
+                if keyColRight > 0 {
+                    ctx.setStrokeColor(self.theme.effectiveInnerStroke().cgColor)
+                    ctx.setLineWidth(0.5)
+                    ctx.move(to: CGPoint(x: keyColRight, y: attrTop))
+                    ctx.addLine(to: CGPoint(x: keyColRight, y: entity.y + entity.height))
+                    ctx.strokePath()
+                }
+                if commentColLeft > 0 {
+                    let dividerX = entity.x + commentColLeft
+                    ctx.setStrokeColor(self.theme.effectiveInnerStroke().cgColor)
+                    ctx.setLineWidth(0.5)
+                    ctx.move(to: CGPoint(x: dividerX, y: attrTop))
+                    ctx.addLine(to: CGPoint(x: dividerX, y: entity.y + entity.height))
+                    ctx.strokePath()
+                }
+
                 for i in 0..<entity.attributes.count {
                     let attr = entity.attributes[i]
                     let rowY = attrTop + CGFloat(i) * entity.rowHeight + entity.rowHeight / 2
+
+                    // Row striping background
+                    if i % 2 == 1 {
+                        ctx.setFillColor(self.theme.effectiveSurface().cgColor.copy(alpha: 0.15) ?? self.theme.effectiveSurface().cgColor)
+                        ctx.fill(CGRect(x: entity.x, y: attrTop + CGFloat(i) * entity.rowHeight, width: entity.width, height: entity.rowHeight))
+                    }
 
                     // Key badges
                     if !attr.keys.isEmpty {
@@ -92,12 +153,20 @@ extension DiagramRenderer {
                         self._drawTextInFlipped(keyText, at: CGPoint(x: entity.x + 6 + keyWidth / 2, y: rowY), context: ctx, contentHeight: ch, color: self.theme.effectiveTextSecondary(), font: keyFont, alignment: .center)
                     }
 
-                    // Type (left)
-                    let typeX = entity.x + 8 + (attr.keys.isEmpty ? 0 : config.estimateTextWidth(attr.keys.joined(separator: ","), fontSize: 9, fontWeight: 600) + 14)
+                    // Type (left, after key column)
+                    let typeX = keyColRight > 0 ? keyColRight + 6 : entity.x + 8
                     self._drawTextInFlipped(attr.type, at: CGPoint(x: typeX, y: rowY), context: ctx, contentHeight: ch, color: self.theme.effectiveMuted(), font: monoFont, alignment: .left)
 
-                    // Name (right)
-                    self._drawTextInFlipped(attr.name, at: CGPoint(x: entity.x + entity.width - 8, y: rowY), context: ctx, contentHeight: ch, color: self.theme.effectiveTextSecondary(), font: monoFont, alignment: .right)
+                    // Name — positioned before comment column if present
+                    let nameEndX = commentColLeft > 0 ? entity.x + commentColLeft - 8 : entity.x + entity.width - 8
+                    self._drawTextInFlipped(attr.name, at: CGPoint(x: nameEndX, y: rowY), context: ctx, contentHeight: ch, color: self.theme.effectiveTextSecondary(), font: monoFont, alignment: .right)
+
+                    // Comment column
+                    if !attr.comment.isEmpty, commentColLeft > 0 {
+                        let commentX = entity.x + commentColLeft + 4
+                        let commentFont = self._monoFont(size: 9)
+                        self._drawTextInFlipped(attr.comment, at: CGPoint(x: commentX, y: rowY), context: ctx, contentHeight: ch, color: self.theme.effectiveTextFaint(), font: commentFont, alignment: .left)
+                    }
                 }
             }
 
@@ -131,6 +200,29 @@ extension DiagramRenderer {
         }
     }
 
+    private func _extractCGStyleValue(_ styles: [String], property: String) -> CGColor? {
+        for style in styles.reversed() {
+            let parts = style.split(separator: ":", maxSplits: 1).map { $0.trimmingCharacters(in: .whitespaces) }
+            if parts.count == 2, parts[0] == property {
+                return _parseCGColor(String(parts[1]))
+            }
+        }
+        return nil
+    }
+
+    private func _parseCGColor(_ hex: String) -> CGColor? {
+        let hex = hex.trimmingCharacters(in: CharacterSet(charactersIn: "#"))
+        if hex.count == 6 {
+            var rgb: UInt64 = 0
+            Scanner(string: hex).scanHexInt64(&rgb)
+            return CGColor(red: CGFloat((rgb >> 16) & 0xFF) / 255.0,
+                           green: CGFloat((rgb >> 8) & 0xFF) / 255.0,
+                           blue: CGFloat(rgb & 0xFF) / 255.0,
+                           alpha: 1.0)
+        }
+        return nil
+    }
+
     private func _drawCrowsFoot(point: CGPoint, toward: CGPoint, cardinality: String, in context: CGContext) {
         let sw = self.config.strokeWidthConnector + 0.25
         let dx = point.x - toward.x, dy = point.y - toward.y
@@ -141,13 +233,28 @@ extension DiagramRenderer {
 
         let tipX = point.x - ux * 4, tipY = point.y - uy * 4
 
-        let hasOneLine = cardinality == "one" || cardinality == "zero-one"
-        let hasCrowsFoot = cardinality == "many" || cardinality == "zero-many"
-        let hasCircle = cardinality == "zero-one" || cardinality == "zero-many"
+        let upper = cardinality.uppercased()
+        let hasOneLine = upper == "ONLY_ONE" || upper == "ZERO_OR_ONE" || upper == "ONE" || upper == "ZERO-ONE"
+        let hasCrowsFoot = upper == "ONE_OR_MORE" || upper == "ZERO_OR_MORE" || upper == "MANY" || upper == "ZERO-MANY"
+        let hasCircle = upper == "ZERO_OR_ONE" || upper == "ZERO_OR_MORE" || upper == "ZERO-ONE" || upper == "ZERO-MANY"
+        let isParent = upper == "MD_PARENT"
 
         context.saveGState()
         context.setStrokeColor(theme.effectiveLine().cgColor)
         context.setLineWidth(sw)
+
+        if isParent {
+            let diamondSize: CGFloat = 6
+            let offsetX = tipX - ux * 8
+            let offsetY = tipY - uy * 8
+            context.move(to: CGPoint(x: offsetX, y: offsetY - diamondSize))
+            context.addLine(to: CGPoint(x: offsetX + diamondSize, y: offsetY))
+            context.addLine(to: CGPoint(x: offsetX, y: offsetY + diamondSize))
+            context.addLine(to: CGPoint(x: offsetX - diamondSize, y: offsetY))
+            context.closePath()
+            context.setFillColor(theme.effectiveLine().cgColor)
+            context.fillPath()
+        }
 
         if hasOneLine {
             let halfW: CGFloat = 6

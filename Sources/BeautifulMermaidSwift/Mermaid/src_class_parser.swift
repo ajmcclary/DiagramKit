@@ -322,17 +322,23 @@ public struct ClassPoint: Sendable {
 
 public struct DiagramFrontmatter: Sendable {
     public var title: String?
+    public var diagramTitle: String?
     public var classConfig: ClassConfig?
     public var flowchartConfig: original_src_types.FlowchartConfig?
+    public var erConfig: ErDiagramConfig?
 
     public init(
         title: String? = nil,
+        diagramTitle: String? = nil,
         classConfig: ClassConfig? = nil,
-        flowchartConfig: original_src_types.FlowchartConfig? = nil
+        flowchartConfig: original_src_types.FlowchartConfig? = nil,
+        erConfig: ErDiagramConfig? = nil
     ) {
         self.title = title
+        self.diagramTitle = diagramTitle ?? title
         self.classConfig = classConfig
         self.flowchartConfig = flowchartConfig
+        self.erConfig = erConfig
     }
 }
 

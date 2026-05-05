@@ -29,7 +29,7 @@ public enum MermaidParser {
                 return MermaidGraph(payload: .classDiagram(parsed))
             }
             if firstLine.hasPrefix("erdiagram") {
-                let parsed = try parseErDiagram(lines)
+                let parsed = try parseErDiagram(lines, frontmatter: frontmatter)
                 return MermaidGraph(payload: .erDiagram(parsed))
             }
             if firstLine.hasPrefix("xychart") {

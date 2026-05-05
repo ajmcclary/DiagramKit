@@ -178,14 +178,15 @@ private enum AsciiErRenderError: Error, LocalizedError {
 }
 
 private func _toAsciiCardinality(_ raw: String) throws -> AsciiErCardinality {
-    switch raw {
-    case AsciiErCardinality.one.rawValue:
+    let upper = raw.uppercased()
+    switch upper {
+    case AsciiErCardinality.one.rawValue, "ONLY_ONE", "ONE":
         return .one
-    case AsciiErCardinality.zeroOne.rawValue:
+    case AsciiErCardinality.zeroOne.rawValue, "ZERO_OR_ONE", "ZERO-ONE":
         return .zeroOne
-    case AsciiErCardinality.many.rawValue:
+    case AsciiErCardinality.many.rawValue, "ONE_OR_MORE", "MANY":
         return .many
-    case AsciiErCardinality.zeroMany.rawValue:
+    case AsciiErCardinality.zeroMany.rawValue, "ZERO_OR_MORE", "ZERO-MANY":
         return .zeroMany
     default:
         throw AsciiErRenderError.invalidCardinality(raw)

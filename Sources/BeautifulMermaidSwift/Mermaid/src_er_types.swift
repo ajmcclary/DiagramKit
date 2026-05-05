@@ -14,51 +14,57 @@ open class original_src_er_types {
         type: String,
         name: String,
         keys: [String] = [],
-        comment: String? = nil
+        comment: String = ""
     ) -> ErAttribute {
         ErAttribute(type: type, name: name, keys: keys, comment: comment)
     }
 
     public static func makeEntity(
-        id: String,
+        key: String,
+        nodeId: String? = nil,
         label: String,
-        attributes: [ErAttribute] = []
+        alias: String = "",
+        attributes: [ErAttribute] = [],
+        shape: String = "erBox",
+        look: String = "default",
+        cssClasses: String = "default"
     ) -> ErEntity {
-        ErEntity(id: id, label: label, attributes: attributes)
+        ErEntity(
+            key: key,
+            nodeId: nodeId,
+            label: label,
+            alias: alias,
+            attributes: attributes,
+            shape: shape,
+            look: look,
+            cssClasses: cssClasses
+        )
     }
 
     public static func makeRelationship(
         entity1: String,
         entity2: String,
-        cardinality1: Cardinality,
-        cardinality2: Cardinality,
-        label: String,
-        identifying: Bool
+        entityAId: String,
+        entityBId: String,
+        roleA: String,
+        relSpec: ErRelSpec
     ) -> ErRelationship {
         ErRelationship(
             entity1: entity1,
             entity2: entity2,
-            cardinality1: cardinality1,
-            cardinality2: cardinality2,
-            label: label,
-            identifying: identifying
+            entityAId: entityAId,
+            entityBId: entityBId,
+            roleA: roleA,
+            relSpec: relSpec
         )
     }
 
     public static func makeDiagram(
         entities: [ErEntity] = [],
-        relationships: [ErRelationship] = []
+        relationships: [ErRelationship] = [],
+        classes: [String: ErEntityClass] = [:],
+        direction: ErDirection = .tb
     ) -> ErDiagram {
-        ErDiagram(entities: entities, relationships: relationships)
+        ErDiagram(entities: entities, relationships: relationships, classes: classes, direction: direction)
     }
-
-    // Export inventory from TypeScript source:
-    // - export interface ErDiagram
-    // - export interface ErEntity
-    // - export interface ErAttribute
-    // - export type Cardinality
-    // - export interface ErRelationship
-    // - export interface PositionedErDiagram
-    // - export interface PositionedErEntity
-    // - export interface PositionedErRelationship
 }

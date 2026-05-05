@@ -144,8 +144,8 @@ func _renderMermaidSVG(
         let positioned = try layoutClassDiagramSync(diagram, options: options)
         return try renderClassSvg(positioned, colors, font, transparent)
     case .er:
-        let diagram = try parseErDiagram(lines)
-        let positioned = try layoutErDiagramSync(diagram, options: options)
+        let diagram = try parseErDiagram(lines, frontmatter: fm)
+        let positioned = try layoutErDiagramSync(diagram, options: options, config: diagram.config)
         return try renderErSvg(positioned, colors, font, transparent)
     case .xychart:
         let chart = parseXYChart(lines)

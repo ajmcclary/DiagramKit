@@ -53,13 +53,30 @@ private struct _ElkNode {
     var edges: [_ElkEdge]?
 }
 
+private func _mapDirection(_ dir: ErDirection) -> String {
+    switch dir {
+    case .tb: return "DOWN"
+    case .bt: return "UP"
+    case .lr: return "RIGHT"
+    case .rl: return "LEFT"
+    }
+}
+
 private func _buildErElkGraph(
     _ diagram: ErDiagram,
-    _ options: RenderOptions
+    _ options: RenderOptions,
+    _ config: ErDiagramConfig?
 ) -> (elkGraph: _ElkNode, entitySizes: EntitySizeMap) {
     _ = options
     var entitySizes: EntitySizeMap = [:]
 
+    let padX = config?.entityPadding ?? ER.boxPadX
+    let minW = config?.minEntityWidth ?? ER.minWidth
+    let minH = config?.minEntityHeight
+    let hdrH = ER.headerHeight
+    let rowH = ER.rowHeight
+
+    // Use nodeId for entity identity in the layout graph
     for entity in diagram.entities {
         let headerTextWidth = original_src_styles.estimateTextWidth(
             entity.label,
@@ -70,22 +87,30 @@ private func _buildErElkGraph(
         var maxAttrWidth = 0.0
         for attr in entity.attributes {
             let keyPart = attr.keys.isEmpty ? "" : "  " + attr.keys.joined(separator: ",")
-            let attrText = "\(attr.type)  \(attr.name)\(keyPart)"
+            let commentPart = attr.comment.isEmpty ? "" : "  \"\(attr.comment)\""
+            let attrText = "\(attr.type)  \(attr.name)\(keyPart)\(commentPart)"
             let width = original_src_styles.estimateMonoTextWidth(attrText, ER.attrFontSize)
             maxAttrWidth = max(maxAttrWidth, width)
         }
 
-        let width = max(ER.minWidth, headerTextWidth + ER.boxPadX * 2, maxAttrWidth + ER.boxPadX * 2)
-        let height = ER.headerHeight + Double(max(entity.attributes.count, 1)) * ER.rowHeight
-        entitySizes[entity.id] = (width, height)
+        let width = max(minW, headerTextWidth + padX * 2, maxAttrWidth + padX * 2)
+        let attrCount = max(entity.attributes.count, entity.attributes.isEmpty ? 0 : 1)
+        let bodyHeight = Double(attrCount) * rowH + (entity.attributes.isEmpty ? 0 : 0)
+        let height: Double
+        if entity.attributes.isEmpty {
+            height = hdrH
+        } else {
+            height = hdrH + bodyHeight
+        }
+        entitySizes[entity.nodeId] = (width, max(height, minH ?? height))
     }
 
     var children: [_ElkNode] = []
     for entity in diagram.entities {
-        let size = entitySizes[entity.id] ?? (ER.minWidth, ER.headerHeight + ER.rowHeight)
+        let size = entitySizes[entity.nodeId] ?? (minW, hdrH + rowH)
         children.append(
             _ElkNode(
-                id: entity.id,
+                id: entity.nodeId,
                 width: size.width,
                 height: size.height,
                 x: nil,
@@ -101,20 +126,20 @@ private func _buildErElkGraph(
     for (idx, rel) in diagram.relationships.enumerated() {
         var edge = _ElkEdge(
             id: "e\(idx)",
-            sources: [rel.entity1],
-            targets: [rel.entity2],
+            sources: [rel.entityAId],
+            targets: [rel.entityBId],
             labels: nil,
             sections: nil
         )
-        if !rel.label.isEmpty {
+        if !rel.roleA.isEmpty {
             let metrics = original_src_text_metrics.measureMultilineText(
-                rel.label,
+                rel.roleA,
                 fontSize: original_src_styles.FONT_SIZES.edgeLabel,
                 fontWeight: original_src_styles.FONT_WEIGHTS.edgeLabel
             )
             edge.labels = [
                 _ElkLabel(
-                    text: rel.label,
+                    text: rel.roleA,
                     width: metrics.width + 8,
                     height: metrics.height + 6,
                     x: nil,
@@ -125,6 +150,11 @@ private func _buildErElkGraph(
         edges.append(edge)
     }
 
+    let directionStr = _mapDirection(config?.layoutDirection ?? diagram.direction)
+    let ns = config?.nodeSpacing ?? ER.nodeSpacing
+    let ls = config?.rankSpacing ?? ER.layerSpacing
+    let pad = config?.diagramPadding ?? ER.padding
+
     let elkGraph = _ElkNode(
         id: "root",
         width: nil,
@@ -133,10 +163,10 @@ private func _buildErElkGraph(
         y: nil,
         layoutOptions: [
             "elk.algorithm": "layered",
-            "elk.direction": "RIGHT",
-            "elk.spacing.nodeNode": String(ER.nodeSpacing),
-            "elk.layered.spacing.nodeNodeBetweenLayers": String(ER.layerSpacing),
-            "elk.padding": "[top=\(ER.padding),left=\(ER.padding),bottom=\(ER.padding),right=\(ER.padding)]",
+            "elk.direction": directionStr,
+            "elk.spacing.nodeNode": String(ns),
+            "elk.layered.spacing.nodeNodeBetweenLayers": String(ls),
+            "elk.padding": "[top=\(pad),left=\(pad),bottom=\(pad),right=\(pad)]",
             "elk.edgeRouting": "ORTHOGONAL",
             "elk.edgeLabels.placement": "CENTER",
         ],
@@ -150,19 +180,21 @@ private func _buildErElkGraph(
 private func _extractErLayout(
     _ result: _ElkNode,
     _ diagram: ErDiagram,
-    _ entitySizes: EntitySizeMap
+    _ entitySizes: EntitySizeMap,
+    _ config: ErDiagramConfig?
 ) -> PositionedErDiagram {
-    let entityLookup = Dictionary(diagram.entities.map { ($0.id, $0) }, uniquingKeysWith: { _, last in last })
+    let entityLookup = Dictionary(diagram.entities.map { ($0.nodeId, $0) }, uniquingKeysWith: { _, last in last })
 
     var positionedEntities: [PositionedErEntity] = []
     for child in result.children ?? [] {
         guard let entity = entityLookup[child.id] else {
             continue
         }
-        let fallback = entitySizes[entity.id] ?? (ER.minWidth, ER.headerHeight + ER.rowHeight)
+        let fallback = entitySizes[entity.nodeId] ?? (ER.minWidth, ER.headerHeight + ER.rowHeight)
         positionedEntities.append(
             PositionedErEntity(
-                id: entity.id,
+                id: entity.key,
+                nodeId: entity.nodeId,
                 label: entity.label,
                 attributes: entity.attributes,
                 x: child.x ?? 0,
@@ -170,7 +202,13 @@ private func _extractErLayout(
                 width: child.width ?? fallback.width,
                 height: child.height ?? fallback.height,
                 headerHeight: ER.headerHeight,
-                rowHeight: ER.rowHeight
+                rowHeight: ER.rowHeight,
+                cssClasses: entity.cssClasses,
+                cssStyles: entity.cssStyles,
+                cssCompiledStyles: entity.cssCompiledStyles,
+                look: entity.look,
+                alias: entity.alias,
+                labelType: entity.labelType
             )
         )
     }
@@ -194,11 +232,14 @@ private func _extractErLayout(
             PositionedErRelationship(
                 entity1: rel.entity1,
                 entity2: rel.entity2,
+                entityAId: rel.entityAId,
+                entityBId: rel.entityBId,
                 cardinality1: rel.cardinality1,
                 cardinality2: rel.cardinality2,
-                label: rel.label,
+                label: rel.roleA,
                 identifying: rel.identifying,
-                points: points
+                points: points,
+                relSpec: rel.relSpec
             )
         )
     }
@@ -207,7 +248,11 @@ private func _extractErLayout(
         width: result.width ?? 600,
         height: result.height ?? 400,
         entities: positionedEntities,
-        relationships: relationships
+        relationships: relationships,
+        accTitle: diagram.accTitle,
+        accDescr: diagram.accDescr,
+        diagramTitle: diagram.diagramTitle,
+        config: config
     )
 }
 
@@ -355,33 +400,51 @@ private func _layoutEngineSync(_ graph: _ElkNode) throws -> _ElkNode {
 
 public func layoutErDiagramSync(
     _ diagram: ErDiagram,
-    options: RenderOptions = RenderOptions()
+    options: RenderOptions = RenderOptions(),
+    config: ErDiagramConfig? = nil
 ) throws -> PositionedErDiagram {
-    try _layoutErDiagramSyncEntry(diagram, options: options)
+    try _layoutErDiagramSyncEntry(diagram, options: options, config: config)
 }
 
 private func _layoutErDiagramSyncEntry(
     _ diagram: ErDiagram,
-    options: RenderOptions
+    options: RenderOptions,
+    config: ErDiagramConfig?
 ) throws -> PositionedErDiagram {
+    let effectiveConfig = config ?? diagram.config
     if diagram.entities.isEmpty {
-        return PositionedErDiagram(width: 0, height: 0, entities: [], relationships: [])
+        return PositionedErDiagram(
+            width: 0,
+            height: 0,
+            entities: [],
+            relationships: [],
+            accTitle: diagram.accTitle,
+            accDescr: diagram.accDescr,
+            diagramTitle: diagram.diagramTitle,
+            config: effectiveConfig
+        )
     }
 
-    let built = _buildErElkGraph(diagram, options)
+    let built = _buildErElkGraph(diagram, options, effectiveConfig)
     let result = try _layoutEngineSync(built.elkGraph)
-    return _extractErLayout(result, diagram, built.entitySizes)
+    return _extractErLayout(result, diagram, built.entitySizes, effectiveConfig)
 }
 
 open class original_src_er_layout {
     public init() {}
 
-    // Export inventory from TypeScript source:
-    // - export function layoutErDiagramSync
     public static func layoutErDiagramSync(
         _ diagram: ErDiagram,
         options: RenderOptions = RenderOptions()
     ) throws -> PositionedErDiagram {
-        try _layoutErDiagramSyncEntry(diagram, options: options)
+        try _layoutErDiagramSyncEntry(diagram, options: options, config: nil)
+    }
+
+    public static func layoutErDiagramSync(
+        _ diagram: ErDiagram,
+        options: RenderOptions = RenderOptions(),
+        config: ErDiagramConfig? = nil
+    ) throws -> PositionedErDiagram {
+        try _layoutErDiagramSyncEntry(diagram, options: options, config: config)
     }
 }

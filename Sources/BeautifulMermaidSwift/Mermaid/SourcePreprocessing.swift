@@ -13,10 +13,60 @@ func _mermaidSourceLines(
 ) -> [String] {
     let processed = _preprocessMermaidSource(source)
     let joined = _joinMultiLineBlocks(processed.source)
-    return joined
-        .components(separatedBy: separators)
+    return _splitMermaidStatements(joined, separatedBy: separators)
         .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
         .filter { !$0.isEmpty && !$0.hasPrefix("%%") }
+}
+
+private func _splitMermaidStatements(_ source: String, separatedBy separators: CharacterSet) -> [String] {
+    var parts: [String] = []
+    var current = ""
+    var inQuote = false
+    var quoteChar: Character?
+    var isEscaped = false
+
+    for ch in source {
+        if inQuote {
+            current.append(ch)
+            if isEscaped {
+                isEscaped = false
+                continue
+            }
+            if ch == "\\" {
+                isEscaped = true
+                continue
+            }
+            if ch == quoteChar {
+                inQuote = false
+                quoteChar = nil
+            }
+            continue
+        }
+
+        if ch == "\"" || ch == "'" {
+            inQuote = true
+            quoteChar = ch
+            current.append(ch)
+            continue
+        }
+
+        if _isMermaidStatementSeparator(ch, separators) {
+            parts.append(current)
+            current = ""
+        } else {
+            current.append(ch)
+        }
+    }
+
+    parts.append(current)
+    return parts
+}
+
+private func _isMermaidStatementSeparator(_ ch: Character, _ separators: CharacterSet) -> Bool {
+    guard ch.unicodeScalars.count == 1, let scalar = ch.unicodeScalars.first else {
+        return false
+    }
+    return separators.contains(scalar)
 }
 
 /// Parse YAML-like frontmatter from a source string.
@@ -46,18 +96,18 @@ func _parseFrontMatterAndStripped(_ source: String) -> _PreprocessResult {
 }
 
 /// Extended YAML parser for Mermaid frontmatter.
-/// Handles: title, class.*, config.class.*, config.flowchart.*
+/// Handles: title, class.*, config.class.*, config.flowchart.*, config.er.*, config.layout, config.look, config.htmlLabels
 private func _parseYamlFrontmatter(_ lines: [String]) -> DiagramFrontmatter? {
     var frontmatter = DiagramFrontmatter()
     var flowchartConfig = original_src_types.FlowchartConfig()
     var hasFlowchartSection = false
     var classConfig = ClassConfig()
     var hasClassSection = false
+    var erConfig = ErDiagramConfig()
+    var hasErSection = false
     var hasAnyContent = false
 
-    var currentPath: [String] = []
-    // Track the last depth to know if we're going deeper or staying at same level
-    var lastDepth = -1
+    var pathStack: [(depth: Int, key: String)] = []
 
     for line in lines {
         let trimmed = line.trimmingCharacters(in: .whitespaces)
@@ -66,7 +116,6 @@ private func _parseYamlFrontmatter(_ lines: [String]) -> DiagramFrontmatter? {
         let indent = line.prefix(while: { $0 == " " }).count
         let bare = trimmed
 
-        // Remove the part after "#" (comment)
         let commentStripped: String
         if let hashIdx = bare.firstIndex(of: "#") {
             if let quoteIdx = bare.firstIndex(of: "\""), quoteIdx < hashIdx,
@@ -84,23 +133,19 @@ private func _parseYamlFrontmatter(_ lines: [String]) -> DiagramFrontmatter? {
         let rawValue = String(commentStripped[commentStripped.index(after: colonIdx)...]).trimmingCharacters(in: .whitespaces)
         let value = _unquote(rawValue)
 
-        // Track nesting level
         let depth = indent / 2
-        while currentPath.count > depth { currentPath.removeLast() }
-        // Only remove the previous entry at this depth if we're at the SAME level (not child/parent)
-        if currentPath.count == depth && depth > 0 && depth <= lastDepth {
-            currentPath.removeLast()
+        while let last = pathStack.last, last.depth >= depth {
+            pathStack.removeLast()
         }
-        currentPath.append(key)
-        lastDepth = depth
+        pathStack.append((depth: depth, key: key))
 
-        let fullPath = currentPath.joined(separator: ".")
+        let fullPath = pathStack.map(\.key).joined(separator: ".")
 
         hasAnyContent = true
 
-        // title at root level
         if fullPath == "title" && !value.isEmpty {
             frontmatter.title = value
+            frontmatter.diagramTitle = value
             continue
         }
 
@@ -120,7 +165,6 @@ private func _parseYamlFrontmatter(_ lines: [String]) -> DiagramFrontmatter? {
             continue
         }
 
-        // config.class.* (alternative nesting)
         if fullPath.hasPrefix("config.class.") {
             hasClassSection = true
             let subKey = fullPath.replacingOccurrences(of: "config.class.", with: "")
@@ -136,7 +180,7 @@ private func _parseYamlFrontmatter(_ lines: [String]) -> DiagramFrontmatter? {
             continue
         }
 
-        // flowchart config (backward compatible)
+        // flowchart config
         if fullPath.hasPrefix("config.flowchart.") || (fullPath == "flowchart" && value.isEmpty) {
             hasFlowchartSection = true
             if !value.isEmpty {
@@ -155,10 +199,55 @@ private func _parseYamlFrontmatter(_ lines: [String]) -> DiagramFrontmatter? {
             hasFlowchartSection = true
             flowchartConfig.curve = value.isEmpty ? nil : value
         }
+
+        // ER config — config.er.*
+        if fullPath.hasPrefix("config.er.") {
+            hasErSection = true
+            let subKey = fullPath.replacingOccurrences(of: "config.er.", with: "")
+            switch subKey {
+            case "titleTopMargin": erConfig.titleTopMargin = Double(value)
+            case "diagramPadding": erConfig.diagramPadding = Double(value)
+            case "layoutDirection":
+                erConfig.layoutDirection = ErDirection(rawValue: value.uppercased())
+            case "minEntityWidth": erConfig.minEntityWidth = Double(value)
+            case "minEntityHeight": erConfig.minEntityHeight = Double(value)
+            case "entityPadding": erConfig.entityPadding = Double(value)
+            case "nodeSpacing": erConfig.nodeSpacing = Double(value)
+            case "rankSpacing": erConfig.rankSpacing = Double(value)
+            case "stroke": erConfig.stroke = value
+            case "fill": erConfig.fill = value
+            case "fontSize": erConfig.fontSize = Double(value)
+            case "useMaxWidth": erConfig.useMaxWidth = (value.lowercased() == "true")
+            default: break
+            }
+            continue
+        }
+
+        // Global config.layout (for dagre/elk selection)
+        if fullPath == "config.layout" {
+            hasErSection = true
+            erConfig.layout = value
+            continue
+        }
+
+        // Global config.look
+        if fullPath == "config.look" {
+            hasErSection = true
+            erConfig.look = value
+            continue
+        }
+
+        // Global config.htmlLabels
+        if fullPath == "config.htmlLabels" {
+            hasErSection = true
+            erConfig.htmlLabels = (value.lowercased() == "true")
+            continue
+        }
     }
 
     if hasFlowchartSection { frontmatter.flowchartConfig = flowchartConfig }
     if hasClassSection { frontmatter.classConfig = classConfig }
+    if hasErSection { frontmatter.erConfig = erConfig }
 
     return hasAnyContent ? frontmatter : nil
 }

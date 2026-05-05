@@ -134,7 +134,10 @@ public enum PositionedContent: Sendable {
     )
     case erDiagram(
         entities: [PositionedErEntity],
-        relationships: [PositionedErRelationship]
+        relationships: [PositionedErRelationship],
+        accTitle: String? = nil,
+        accDescr: String? = nil,
+        diagramTitle: String? = nil
     )
     case xyChart(PositionedXYChart)
 }
@@ -177,7 +180,7 @@ public struct PositionedGraph: Sendable {
         case .classDiagram:
             self.content = .classDiagram(classes: [], relationships: [], namespaces: [], notes: [], accTitle: nil, accDescr: nil, diagramTitle: nil)
         case .erDiagram:
-            self.content = .erDiagram(entities: [], relationships: [])
+            self.content = .erDiagram(entities: [], relationships: [], accTitle: nil, accDescr: nil, diagramTitle: nil)
         case .xyChart:
             self.content = .xyChart(.empty)
         }
@@ -325,13 +328,13 @@ public struct PositionedGraph: Sendable {
 
     public var erEntities: [PositionedErEntity]? {
         switch content {
-        case .erDiagram(let entities, _): return entities
+        case .erDiagram(let entities, _, _, _, _): return entities
         default: return nil
         }
     }
     public var erRelationships: [PositionedErRelationship]? {
         switch content {
-        case .erDiagram(_, let relationships): return relationships
+        case .erDiagram(_, let relationships, _, _, _): return relationships
         default: return nil
         }
     }
