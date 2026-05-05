@@ -36,6 +36,40 @@ public class NodeShapeRenderer {
             return
         }
 
+        if shape == "state-divider" {
+            let y = bounds.midY
+            let grey = theme.effectiveBorder()
+            context.setStrokeColor(grey.cgColor)
+            context.setAlpha(0.6)
+            context.setLineWidth(1)
+            context.setLineDash(phase: 0, lengths: [5, 5])
+            context.move(to: CGPoint(x: bounds.minX, y: y))
+            context.addLine(to: CGPoint(x: bounds.maxX, y: y))
+            context.strokePath()
+            context.restoreGState()
+            return
+        }
+
+        if shape == "fork" || shape == "join" {
+            context.setFillColor(theme.foreground.cgColor)
+            context.addPath(roundedRectPath(bounds, cornerRadius: 2))
+            context.fillPath()
+            context.restoreGState()
+            return
+        }
+
+        if shape == "rounded-with-title" {
+            _drawRoundedWithTitle(bounds, context: context, theme: theme, inlineStyles: inlineStyles)
+            context.restoreGState()
+            return
+        }
+
+        if shape == "rect-with-title" {
+            _drawRectWithTitle(bounds, context: context, theme: theme, inlineStyles: inlineStyles)
+            context.restoreGState()
+            return
+        }
+
         let fillColor = theme.nodeFillColor(for: inlineStyles)
         let strokeColor = theme.nodeStrokeColor(for: inlineStyles)
         let path = shapePath(for: shape, in: bounds)
@@ -58,7 +92,7 @@ public class NodeShapeRenderer {
         switch shape {
         case "rectangle", "entity", "invisible":
             return CGPath(rect: bounds, transform: nil)
-        case "rounded", "state-note":
+        case "rounded":
             return roundedRectPath(bounds, cornerRadius: 6)
         case "stadium":
             return roundedRectPath(bounds, cornerRadius: bounds.height / 2)
@@ -66,6 +100,14 @@ public class NodeShapeRenderer {
             return CGPath(ellipseIn: bounds, transform: nil)
         case "state-start", "state-end":
             return trueCirclePath(bounds)
+        case "state-divider":
+            return CGPath(rect: bounds, transform: nil)
+        case "state-note":
+            return roundedRectPath(bounds, cornerRadius: 4)
+        case "rounded-with-title":
+            return roundedRectPath(bounds, cornerRadius: 8)
+        case "rect-with-title":
+            return roundedRectPath(bounds, cornerRadius: 4)
         case "diamond", "rhombus":
             return diamondPath(bounds)
         case "hexagon":
@@ -567,5 +609,57 @@ public class NodeShapeRenderer {
         default:
             break
         }
+    }
+
+    private func _drawRoundedWithTitle(_ bounds: CGRect, context: CGContext, theme: DiagramTheme, inlineStyles: [String: String]) {
+        let titleHeight: CGFloat = 35
+        let fillColor = theme.nodeFillColor(for: inlineStyles)
+        let strokeColor = theme.nodeStrokeColor(for: inlineStyles)
+        let headerColor = theme.subgraphHeaderColor()
+
+        let path = roundedRectPath(bounds, cornerRadius: 8)
+        context.setFillColor(fillColor.cgColor)
+        context.addPath(path)
+        context.fillPath()
+
+        context.setFillColor(headerColor.cgColor)
+        context.addPath(roundedRectPath(CGRect(x: bounds.minX, y: bounds.minY, width: bounds.width, height: titleHeight), cornerRadius: 8))
+        context.fillPath()
+
+        context.setStrokeColor(strokeColor.cgColor)
+        context.setLineWidth(config.strokeWidthInnerBox)
+        context.addPath(path)
+        context.strokePath()
+    }
+
+    private func _drawRectWithTitle(_ bounds: CGRect, context: CGContext, theme: DiagramTheme, inlineStyles: [String: String]) {
+        let titleHeight: CGFloat = 24
+        let fillColor = theme.nodeFillColor(for: inlineStyles)
+        let strokeColor = theme.nodeStrokeColor(for: inlineStyles)
+        let headerColor = theme.subgraphHeaderColor()
+
+        let path = roundedRectPath(bounds, cornerRadius: 4)
+        context.setFillColor(fillColor.cgColor)
+        context.addPath(path)
+        context.fillPath()
+
+        let titleRect = CGRect(x: bounds.minX, y: bounds.minY, width: bounds.width, height: titleHeight)
+        let titlePath = CGMutablePath()
+        titlePath.addRoundedRect(in: titleRect, cornerWidth: 4, cornerHeight: 4)
+        context.setFillColor(headerColor.cgColor)
+        context.addPath(titlePath)
+        context.fillPath()
+
+        let divY = bounds.minY + titleHeight
+        context.setStrokeColor(strokeColor.cgColor)
+        context.setLineWidth(config.strokeWidthInnerBox)
+        context.move(to: CGPoint(x: bounds.minX, y: divY))
+        context.addLine(to: CGPoint(x: bounds.maxX, y: divY))
+        context.strokePath()
+
+        context.setStrokeColor(strokeColor.cgColor)
+        context.setLineWidth(config.strokeWidthInnerBox)
+        context.addPath(path)
+        context.strokePath()
     }
 }

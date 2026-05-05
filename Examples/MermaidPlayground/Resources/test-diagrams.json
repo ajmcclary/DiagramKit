@@ -189,6 +189,54 @@
       "source": "stateDiagram-v2\n  [*] --> 空闲\n  空闲 --> 处理中 : 提交\n  处理中 --> 完成 : 成功\n  处理中 --> 错误 : 失败\n  错误 --> 空闲 : 重试\n  完成 --> [*]"
     },
     {
+      "id": "state-5-standalone",
+      "category": "state",
+      "name": "Standalone State Declarations",
+      "source": "stateDiagram-v2\n  stateId\n  state anotherState\n  state \"Labeled State\" as LS\n  LS : This is a description\n  LS : Second description line"
+    },
+    {
+      "id": "state-6-choice-fork",
+      "category": "state",
+      "name": "Choice, Fork, Join Pseudo-Nodes",
+      "source": "stateDiagram-v2\n  [*] --> Start\n  state if_state <<choice>>\n  state fork_state <<fork>>\n  state join_state <<join>>\n  Start --> if_state\n  if_state --> fork_state : option1\n  if_state --> End : option2\n  fork_state --> join_state\n  join_state --> End"
+    },
+    {
+      "id": "state-7-concurrency",
+      "category": "state",
+      "name": "Concurrent Composite States",
+      "source": "stateDiagram-v2\n  [*] --> Active\n  state Active {\n    [*] --> NumLockOff\n    NumLockOff --> NumLockOn : EvNumLockPressed\n    NumLockOn --> NumLockOff : EvNumLockPressed\n    --\n    [*] --> CapsLockOff\n    CapsLockOff --> CapsLockOn : EvCapsLockPressed\n    CapsLockOn --> CapsLockOff : EvCapsLockPressed\n  }"
+    },
+    {
+      "id": "state-8-notes",
+      "category": "state",
+      "name": "Notes (Left, Right, Floating)",
+      "source": "stateDiagram-v2\n  [*] --> Idle\n  note right of Idle : This is a note\n  note left of Idle : Left side note\n  note \"Floating note\" as N1"
+    },
+    {
+      "id": "state-9-styled",
+      "category": "state",
+      "name": "Styled States (classDef, class, style)",
+      "source": "stateDiagram-v2\n  [*] --> Idle\n  Idle --> Active : start\n  Active --> Done : complete\n  Done --> [*]\n  classDef highlight fill:#f9f,stroke:#333,stroke-width:4px\n  classDef subdued fill:#eee,color:#999\n  class Active highlight\n  class Idle,Done subdued\n  style Idle fill:#ffd"
+    },
+    {
+      "id": "state-10-click",
+      "category": "state",
+      "name": "Click Links",
+      "source": "stateDiagram-v2\n  [*] --> Home\n  Home --> About : go\n  About --> Home : back\n  click Home href \"https://example.com\"\n  click Home \"https://example.com\" \"Go to Example\""
+    },
+    {
+      "id": "state-11-accessibility",
+      "category": "state",
+      "name": "Accessibility and Directives",
+      "source": "stateDiagram-v2\n  accTitle: My State Diagram\n  accDescr: This diagram shows state transitions\n  hide empty description\n  [*] --> Idle\n  Idle --> Active : start\n  Active --> Idle : stop"
+    },
+    {
+      "id": "state-12-complex",
+      "category": "state",
+      "name": "Complex State Diagram (All Features)",
+      "source": "stateDiagram-v2\n  [*] --> Idle\n  Idle --> Processing : submit\n  state Processing {\n    [*] --> Queued\n    Queued --> Running : dequeue\n    state if_state <<choice>>\n    Running --> if_state\n    if_state --> Done : success\n    if_state --> Failed : error\n    --\n    note right of Running : This is the active job\n  }\n  Processing --> Complete : done\n  Processing --> Error : fail\n  Error --> Idle : retry\n  Complete --> [*]\n  classDef highlight fill:#f9f\n  class Processing highlight"
+    },
+    {
       "id": "seq-1-basic",
       "category": "sequence",
       "name": "Basic Messages",
@@ -806,10 +854,10 @@
     }
   ],
   "metadata": {
-    "totalCount": 132,
+    "totalCount": 140,
     "categories": {
       "flowchart": 27,
-      "state": 4,
+      "state": 12,
       "sequence": 16,
       "class": 61,
       "er": 14,

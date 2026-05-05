@@ -15,6 +15,7 @@ public struct _PositionedPointPayload: Sendable {
 public struct _PositionedNodePayload: Sendable {
     public var id: String
     public var label: String
+    public var descriptions: [String]
     public var shape: String
     public var x: Double
     public var y: Double
@@ -74,9 +75,18 @@ private func _mapDirection(_ direction: original_src_types.Direction) -> String 
     }
 }
 
-private func _nodeSize(_ node: _ParsedNode) -> (width: Double, height: Double) {
+private func _nodeSize(
+    _ node: _ParsedNode,
+    hideEmptyDescription: Bool = false
+) -> (width: Double, height: Double) {
+    let labelForMetrics: String
+    if node.shape == .rectWithTitle, node.descriptions.count > 1 {
+        labelForMetrics = node.descriptions.joined(separator: "\n")
+    } else {
+        labelForMetrics = node.label
+    }
     let metrics = original_src_text_metrics.measureMultilineText(
-        node.label,
+        labelForMetrics,
         fontSize: original_src_styles.FONT_SIZES.nodeLabel,
         fontWeight: original_src_styles.FONT_WEIGHTS.nodeLabel
     )
@@ -111,7 +121,33 @@ private func _nodeSize(_ node: _ParsedNode) -> (width: Double, height: Double) {
     case .stateStart, .stateEnd:
         return (28, 28)
     case .fork, .join:
-        height = max(height, 20)
+        return (70, 7)
+    case .choice:
+        let side = max(width, height) + 16
+        width = side; height = side
+    case .stateDivider:
+        width = max(width, 60); height = 12
+    case .stateNote:
+        width = max(width, 80); height = max(height, 40)
+    case .rectWithTitle:
+        if node.descriptions.count > 1 {
+            let title = original_src_text_metrics.measureMultilineText(
+                node.descriptions[0],
+                fontSize: original_src_styles.FONT_SIZES.nodeLabel,
+                fontWeight: original_src_styles.FONT_WEIGHTS.nodeLabel
+            )
+            let body = original_src_text_metrics.measureMultilineText(
+                node.descriptions.dropFirst().joined(separator: "\n"),
+                fontSize: original_src_styles.FONT_SIZES.nodeLabel,
+                fontWeight: original_src_styles.FONT_WEIGHTS.nodeLabel
+            )
+            width = max(title.width, body.width) + 40
+            height = title.height + body.height + 44
+        } else if !hideEmptyDescription {
+            height += 26
+        }
+    case .roundedWithTitle:
+        height += 37
     case .document, .linedDocument, .taggedDocument, .stackedDocument:
         height += 10
     case .triangle:
@@ -160,7 +196,7 @@ private func _buildElkGraph(_ graph: _ParsedGraph) -> _ElkNode {
         // Fast path: flat graph
         var children: [[String: Any]] = []
         for entry in graph.nodesInOrder {
-            let size = _nodeSize(entry.node)
+            let size = _nodeSize(entry.node, hideEmptyDescription: graph.stateConfig.hideEmptyDescription)
             children.append([
                 "id": entry.id,
                 "width": size.width,
@@ -312,7 +348,7 @@ private func _buildElkGraph(_ graph: _ParsedGraph) -> _ElkNode {
         var children: [[String: Any]] = []
         for nodeId in directNodeIds {
             guard let node = nodeById[nodeId] else { continue }
-            let size = _nodeSize(node)
+            let size = _nodeSize(node, hideEmptyDescription: graph.stateConfig.hideEmptyDescription)
             children.append([
                 "id": nodeId,
                 "width": size.width,
@@ -370,7 +406,7 @@ private func _buildElkGraph(_ graph: _ParsedGraph) -> _ElkNode {
     var rootChildren: [[String: Any]] = []
     for entry in graph.nodesInOrder {
         if !allClaimedNodes.contains(entry.id) {
-            let size = _nodeSize(entry.node)
+            let size = _nodeSize(entry.node, hideEmptyDescription: graph.stateConfig.hideEmptyDescription)
             rootChildren.append([
                 "id": entry.id,
                 "width": size.width,
@@ -996,6 +1032,17 @@ private func _findSubgraphLabel(_ id: String, in subs: [original_src_types.Merma
     return nil
 }
 
+private func _scaleGroups(_ groups: inout [_PositionedGroupPayload], by factor: Double) {
+    for index in groups.indices {
+        groups[index].x *= factor
+        groups[index].y *= factor
+        groups[index].width *= factor
+        groups[index].height *= factor
+        groups[index].headerHeight *= factor
+        _scaleGroups(&groups[index].children, by: factor)
+    }
+}
+
 private func _resolveInlineStyle(_ id: String, _ graph: _ParsedGraph) -> [String: String] {
     var style: [String: String] = [:]
     if let className = graph.classAssignments[id], let classStyle = graph.classDefs[className] {
@@ -1053,8 +1100,9 @@ private func _extractPositionedGraph(
             let id = _asString(child["id"]),
             let original = nodeById[id]
         else { return nil }
-        let w = _asDouble(child["width"]) ?? _nodeSize(original).width
-        let h = _asDouble(child["height"]) ?? _nodeSize(original).height
+        let fallbackSize = _nodeSize(original, hideEmptyDescription: source.stateConfig.hideEmptyDescription)
+        let w = _asDouble(child["width"]) ?? fallbackSize.width
+        let h = _asDouble(child["height"]) ?? fallbackSize.height
         let rawX = (_asDouble(child["x"]) ?? 0) + parentOffset.x
         let rawY = (_asDouble(child["y"]) ?? 0) + parentOffset.y
         let effectiveLabel = original.properties?.label ?? original.label
@@ -1063,6 +1111,7 @@ private func _extractPositionedGraph(
         return _PositionedNodePayload(
             id: id,
             label: effectiveLabel,
+            descriptions: original.descriptions,
             shape: effectiveShape.rawValue,
             x: rawX,
             y: rawY,
@@ -1242,6 +1291,36 @@ private func _extractPositionedGraph(
         maxY += shiftY
     }
 
+    var finalWidth = maxX
+    var finalHeight = maxY
+    if diagramType == .stateDiagram,
+       let scaleWidth = source.stateConfig.scaleWidth,
+       scaleWidth > 0,
+       maxX > 0
+    {
+        let factor = Double(scaleWidth) / maxX
+        for i in nodes.indices {
+            nodes[i].x *= factor
+            nodes[i].y *= factor
+            nodes[i].width *= factor
+            nodes[i].height *= factor
+        }
+        for i in edges.indices {
+            for j in edges[i].points.indices {
+                edges[i].points[j].x *= factor
+                edges[i].points[j].y *= factor
+            }
+            if var labelPosition = edges[i].labelPosition {
+                labelPosition.x *= factor
+                labelPosition.y *= factor
+                edges[i].labelPosition = labelPosition
+            }
+        }
+        _scaleGroups(&groups, by: factor)
+        finalWidth = Double(scaleWidth)
+        finalHeight = maxY * factor
+    }
+
     let content: PositionedContent
     switch diagramType {
     case .stateDiagram:
@@ -1251,8 +1330,8 @@ private func _extractPositionedGraph(
     }
     return PositionedGraph(
         diagram: MermaidGraph(payload: diagramType == .stateDiagram ? .stateDiagram(source) : .flowchart(source)),
-        width: maxX,
-        height: maxY,
+        width: finalWidth,
+        height: finalHeight,
         content: content
     )
 }
@@ -1394,7 +1473,7 @@ private func _buildElkGraphNoCrossEdges(_ graph: _ParsedGraph) -> _ElkNode {
         var children: [[String: Any]] = []
         for nodeId in directNodeIds {
             guard let node = nodeById[nodeId] else { continue }
-            let size = _nodeSize(node)
+            let size = _nodeSize(node, hideEmptyDescription: graph.stateConfig.hideEmptyDescription)
             children.append(["id": nodeId, "width": size.width, "height": size.height, "labels": [["text": node.label]]])
         }
         for child in sub.children { children.append(buildSubgraphNode(child)) }
@@ -1438,7 +1517,7 @@ private func _buildElkGraphNoCrossEdges(_ graph: _ParsedGraph) -> _ElkNode {
     var rootChildren: [[String: Any]] = []
     for entry in graph.nodesInOrder {
         if !allClaimedNodes.contains(entry.id) {
-            let size = _nodeSize(entry.node)
+            let size = _nodeSize(entry.node, hideEmptyDescription: graph.stateConfig.hideEmptyDescription)
             rootChildren.append(["id": entry.id, "width": size.width, "height": size.height, "labels": [["text": entry.node.label]]])
         }
     }
@@ -1474,7 +1553,7 @@ private func _buildElkGraphNoCrossEdges(_ graph: _ParsedGraph) -> _ElkNode {
 private func _buildFlatElkGraph(_ graph: _ParsedGraph) -> _ElkNode {
     var children: [[String: Any]] = []
     for entry in graph.nodesInOrder {
-        let size = _nodeSize(entry.node)
+        let size = _nodeSize(entry.node, hideEmptyDescription: graph.stateConfig.hideEmptyDescription)
         children.append([
             "id": entry.id,
             "width": size.width,

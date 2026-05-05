@@ -310,7 +310,7 @@ open class original_src_theme {
         let widthStr = _formatNumber(width)
         let heightStr = _formatNumber(height)
 
-        return "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 \(widthStr) \(heightStr)\" " +
+        return "<svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" viewBox=\"0 0 \(widthStr) \(heightStr)\" " +
             "width=\"\(widthStr)\" height=\"\(heightStr)\" style=\"\(styleVars)\(bgStyle)\">"
     }
 

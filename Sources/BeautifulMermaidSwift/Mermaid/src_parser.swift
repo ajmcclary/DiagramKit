@@ -10,6 +10,15 @@ private typealias ParsedEdge = original_src_types.MermaidEdge
 private typealias ParsedSubgraph = original_src_types.MermaidSubgraph
 private typealias ParsedGraph = original_src_types.MermaidGraph
 
+private struct _StateNodeMeta {
+    var descriptions: [String] = []
+    var stateClasses: [String] = []
+    var stateTextStyles: [String] = []
+    var note: original_src_types.ParsedStateNote? = nil
+    var stateType: original_src_types.ParsedStateType? = nil
+    var labelType: String = "markdown"
+}
+
 private enum _ParserEntryError: Error, LocalizedError, _MermaidRecoverableError {
     case emptyDiagram
     case invalidHeader(String)
@@ -43,6 +52,12 @@ private struct _WorkingGraph {
     var edgeClassAssignments: [String: String] = [:]
     var defaultClassDef: [String: String]? = nil
     var edgeProperties: [String: original_src_types.NodeProperties] = [:]
+    var stateNodeMeta: [String: _StateNodeMeta] = [:]
+    var stateClassAssignments: [String: [String]] = [:]
+    var nodeTextStyles: [String: [String]] = [:]
+    var hideEmptyDescription: Bool = false
+    var scaleWidth: Int? = nil
+    var stateConfig: original_src_types.StateConfig = original_src_types.StateConfig()
 
     mutating func upsertNode(_ node: ParsedNode) {
         if nodesById[node.id] == nil {
@@ -60,8 +75,37 @@ private struct _WorkingGraph {
     }
 
     func toParsedGraph() -> ParsedGraph {
+        var resolvedNodesById = nodesById
+        for (id, meta) in stateNodeMeta {
+            if var node = resolvedNodesById[id] {
+                if !meta.descriptions.isEmpty {
+                    node.descriptions = meta.descriptions
+                    if meta.descriptions.count > 1 {
+                        node.shape = .rectWithTitle
+                        node.label = meta.descriptions[0]
+                    } else {
+                        node.label = meta.descriptions[0]
+                    }
+                }
+                if let stateType = meta.stateType {
+                    switch stateType {
+                    case .choice:
+                        node.shape = .choice
+                        node.label = ""
+                    case .fork:
+                        node.shape = .fork
+                        node.label = ""
+                    case .join:
+                        node.shape = .join
+                        node.label = ""
+                    case .divider: node.shape = .stateDivider
+                    }
+                }
+                resolvedNodesById[id] = node
+            }
+        }
         let nodesInOrder: [(id: String, node: ParsedNode)] = nodeOrder.compactMap { id in
-            guard let node = nodesById[id] else { return nil }
+            guard let node = resolvedNodesById[id] else { return nil }
             return (id: id, node: node)
         }
         return ParsedGraph(
@@ -80,7 +124,8 @@ private struct _WorkingGraph {
             nodeInteractions: nodeInteractions,
             edgeClassAssignments: edgeClassAssignments,
             defaultClassDef: defaultClassDef,
-            edgeProperties: edgeProperties
+            edgeProperties: edgeProperties,
+            stateConfig: stateConfig
         )
     }
 }
@@ -394,16 +439,80 @@ private func _parseStateDiagram(_ lines: [String]) throws -> ParsedGraph {
     var compositeStateIds = Set<String>()
     var startCount = 0
     var endCount = 0
+    var dividerCount = 0
+
+    // Build regex patterns with embedded state ID character class
+    let SID = #"[^\n\s\-\{\}\:\-\-\>]+"#
+    func sPat(_ tmpl: String) -> String {
+        tmpl.replacingOccurrences(of: "{{SID}}", with: SID)
+    }
+
+    func isStateKeyword(_ s: String) -> Bool {
+        let lower = s.lowercased()
+        let keywords: Set<String> = ["state", "note", "class", "classdef", "style", "click", "direction", "hide", "scale", "end", "left", "right", "of", "href"]
+        return keywords.contains(lower)
+    }
+    func isValidStateID(_ s: String) -> Bool {
+        !s.isEmpty && !isStateKeyword(s)
+    }
 
     if lines.count <= 1 {
         return graph.toParsedGraph()
     }
 
-    for line in lines.dropFirst() {
-        if let dirMatch = _regexGroups(#"^direction\s+(TD|TB|LR|BT|RL)\s*$"#, line, caseInsensitive: true),
-           let dirToken = dirMatch[safe: 1],
-           let direction = _parseDirection(dirToken)
-        {
+    // Pre-scan: multiline note/accDescr joining + inline %% stripping
+    var preprocessed: [String] = []
+    var i = 1
+    while i < lines.count {
+        var line = lines[i]
+        if let idx = line.range(of: "%%") {
+            line = String(line[..<idx.lowerBound]).trimmingCharacters(in: .whitespacesAndNewlines)
+        }
+        guard !line.isEmpty else { i += 1; continue }
+
+        // multiline note: "note left/right of <id>" followed by lines until "end note"
+        if let noteMatch = _regexGroups(sPat("^note\\s+(left|right)\\s+of\\s+{{SID}}$"), line),
+           noteMatch[safe: 1] != nil {
+            var noteLines: [String] = [line]
+            i += 1
+            while i < lines.count && !_regexTest(#"^\s*end\s+note\s*$"#, lines[i], caseInsensitive: true) {
+                var nl = lines[i]
+                if let idx = nl.range(of: "%%") {
+                    nl = String(nl[..<idx.lowerBound]).trimmingCharacters(in: .whitespacesAndNewlines)
+                }
+                if !nl.isEmpty { noteLines.append(nl) }
+                i += 1
+            }
+            i += 1 // skip "end note"
+            preprocessed.append(noteLines.joined(separator: "\n"))
+            continue
+        }
+
+        // multiline accDescr
+        if _regexTest(#"^accDescr\s*\{\s*$"#, line) {
+            var descrLines: [String] = []
+            i += 1
+            while i < lines.count && !_regexTest(#"^\}\s*$"#, lines[i]) {
+                var nl = lines[i]
+                if let idx = nl.range(of: "%%") {
+                    nl = String(nl[..<idx.lowerBound]).trimmingCharacters(in: .whitespacesAndNewlines)
+                }
+                if !nl.isEmpty { descrLines.append(nl) }
+                i += 1
+            }
+            i += 1 // skip "}"
+            preprocessed.append("accDescr: " + descrLines.joined(separator: " "))
+            continue
+        }
+
+        preprocessed.append(line)
+        i += 1
+    }
+
+    for line in preprocessed {
+        // --- direction ---
+        if let dm = _regexGroups(#"^direction\s+(TD|TB|LR|BT|RL)\s*$"#, line, caseInsensitive: true),
+           let dirToken = dm[safe: 1], let direction = _parseDirection(dirToken) {
             if !compositeStack.isEmpty {
                 compositeStack[compositeStack.count - 1].direction = direction
             } else {
@@ -412,11 +521,9 @@ private func _parseStateDiagram(_ lines: [String]) throws -> ParsedGraph {
             continue
         }
 
-        // --- linkStyle in state diagrams ---
-        if let lsMatch = _regexGroups(#"^linkStyle\s+(default|[\d,\s]+)\s+(.+)$"#, line),
-           let target = lsMatch[safe: 1],
-           let propsRaw = lsMatch[safe: 2]
-        {
+        // --- linkStyle ---
+        if let ls = _regexGroups(#"^linkStyle\s+(default|[\d,\s]+)\s+(.+)$"#, line),
+           let target = ls[safe: 1], let propsRaw = ls[safe: 2] {
             let props = _parseStyleProps(propsRaw)
             if target.trimmingCharacters(in: .whitespacesAndNewlines) == "default" {
                 var merged = graph.linkStyles[-1] ?? [:]
@@ -433,11 +540,70 @@ private func _parseStateDiagram(_ lines: [String]) throws -> ParsedGraph {
             continue
         }
 
-        if let compositeMatch = _regexGroups(#"^state\s+(?:\"([^\"]+)\"\s+as\s+)?([\w\p{L}]+)\s*\{$"#, line),
-           let id = compositeMatch[safe: 2]
-        {
-            let raw1 = compositeMatch[safe: 1]
-            let label = (raw1?.isEmpty == false) ? raw1! : id
+        // --- scale ---
+        if let sm = _regexGroups(#"^scale\s+(\d+)\s*(width)?$"#, line),
+           let sv = sm[safe: 1], let w = Int(sv) { graph.scaleWidth = w; graph.stateConfig.scaleWidth = w; continue }
+
+        // --- hide empty description ---
+        if _regexTest(#"^hide\s+empty\s+description$"#, line) {
+            graph.hideEmptyDescription = true
+            graph.stateConfig.hideEmptyDescription = true
+            continue
+        }
+
+        // --- accTitle ---
+        if let am = _regexGroups(#"^accTitle\s*:\s*(.+)$"#, line),
+           let title = am[safe: 1]?.trimmingCharacters(in: .whitespaces) { graph.accTitle = title; continue }
+
+        // --- accDescr ---
+        if let ad = _regexGroups(#"^accDescr\s*:\s*(.+)$"#, line),
+           let descr = ad[safe: 1]?.trimmingCharacters(in: .whitespaces) { graph.accDescr = descr; continue }
+
+        // --- click ---
+        if let cm = _regexGroups(sPat("^click\\s+({{SID}})\\s+(.+)$"), line),
+           let idRaw = cm[safe: 1], isValidStateID(idRaw) {
+            if let interaction = _parseClickRest(cm[safe: 2] ?? "") {
+                graph.nodeInteractions[idRaw] = interaction
+            }
+            continue
+        }
+
+        // --- classDef ---
+        if let cdm = _regexGroups(#"^classDef\s+(default|\w+)\s+(.+)$"#, line),
+           let name = cdm[safe: 1], let propsStr = cdm[safe: 2] {
+            let props = _parseStyleProps(propsStr)
+            if name == "default" { graph.defaultClassDef = props }
+            else { graph.classDefs[name] = props }
+            continue
+        }
+
+        // --- class ---
+        if let clm = _regexGroups(sPat("^class\\s+({{SID}}(?:\\s*,\\s*{{SID}})*)\\s+(\\w+)$"), line),
+           let idsRaw = clm[safe: 1], let className = clm[safe: 2] {
+            for id in idsRaw.split(separator: ",").map({ $0.trimmingCharacters(in: .whitespacesAndNewlines) }) where !id.isEmpty {
+                if let firstChar = id.first, firstChar == "e", Int(id.dropFirst()) != nil {
+                    graph.edgeClassAssignments[id] = className
+                } else {
+                    graph.classAssignments[id] = className
+                }
+            }
+            continue
+        }
+
+        // --- style ---
+        if let stm = _regexGroups(sPat("^style\\s+({{SID}}(?:\\s*,\\s*{{SID}})*)\\s+(.+)$"), line),
+           let idsRaw = stm[safe: 1], let propsRaw = stm[safe: 2] {
+            let props = _parseStyleProps(propsRaw)
+            for id in idsRaw.split(separator: ",").map({ $0.trimmingCharacters(in: .whitespacesAndNewlines) }) where !id.isEmpty {
+                graph.mergeNodeStyle(id, props)
+            }
+            continue
+        }
+
+        // --- composite state open ---
+        if let comp = _regexGroups(sPat(#"^state\s+(?:\"([^\"]+)\"\s+as\s+)?({{SID}})\s*\{$"#), line),
+           let id = comp[safe: 2], isValidStateID(id) {
+            let label = comp[safe: 1]?.isEmpty == false ? comp[safe: 1]! : id
             compositeStack.append(ParsedSubgraph(id: id, label: label, nodeIds: [], children: [], direction: nil))
             compositeStateIds.insert(id)
             graph.nodesById.removeValue(forKey: id)
@@ -445,9 +611,9 @@ private func _parseStateDiagram(_ lines: [String]) throws -> ParsedGraph {
             continue
         }
 
+        // --- composite state close ---
         if line == "}" {
-            let completed = compositeStack.popLast()
-            if let completed {
+            if let completed = compositeStack.popLast() {
                 if !compositeStack.isEmpty {
                     compositeStack[compositeStack.count - 1].children.append(completed)
                 } else {
@@ -457,61 +623,140 @@ private func _parseStateDiagram(_ lines: [String]) throws -> ParsedGraph {
             continue
         }
 
-        if let aliasMatch = _regexGroups(#"^state\s+\"([^\"]+)\"\s+as\s+([\w\p{L}]+)\s*$"#, line),
-           let labelRaw = aliasMatch[safe: 1],
-           let id = aliasMatch[safe: 2]
-        {
+        // --- concurrency divider ---
+        if _regexTest(#"^--$"#, line), !compositeStack.isEmpty {
+            dividerCount += 1
+            let dividerId = "_divider_\(dividerCount)"
+            var meta = graph.stateNodeMeta[dividerId] ?? _StateNodeMeta()
+            meta.stateType = .divider
+            graph.stateNodeMeta[dividerId] = meta
+            _registerStateNode(&graph, &compositeStack, ParsedNode(id: dividerId, label: "", shape: .stateDivider))
+            continue
+        }
+
+        // --- state alias ---
+        if let am2 = _regexGroups(sPat(#"^state\s+\"([^\"]+)\"\s+as\s+({{SID}})\s*$"#), line),
+           let labelRaw = am2[safe: 1], let id = am2[safe: 2], isValidStateID(id) {
             let label = original_src_multiline_utils.normalizeBrTags(labelRaw)
             _registerStateNode(&graph, &compositeStack, ParsedNode(id: id, label: label, shape: .rounded))
             continue
         }
 
-        if let transitionMatch = _regexGroups(#"^(\[\*\]|[\w\p{L}-]+)\s*(-->)\s*(\[\*\]|[\w\p{L}-]+)(?:\s*:\s*(.+))?$"#, line),
-           let sourceRaw = transitionMatch[safe: 1],
-           let targetRaw = transitionMatch[safe: 3]
-        {
+        // --- <<choice>> / <<fork>> / <<join>> ---
+        if let pm = _regexGroups(sPat(#"^state\s+({{SID}})\s*<<(choice|fork|join)>>\s*$"#), line),
+           let id = pm[safe: 1], isValidStateID(id), let typeName = pm[safe: 2] {
+            let (st, sh): (original_src_types.ParsedStateType, ParsedNodeShape) = {
+                switch typeName {
+                case "choice": return (.choice, .choice)
+                case "fork": return (.fork, .fork)
+                case "join": return (.join, .join)
+                default: return (.choice, .choice)
+                }
+            }()
+            var meta = graph.stateNodeMeta[id] ?? _StateNodeMeta()
+            meta.stateType = st
+            graph.stateNodeMeta[id] = meta
+            _registerStateNode(&graph, &compositeStack, ParsedNode(id: id, label: id, shape: sh))
+            continue
+        }
+        // Legacy bracket pseudo-node syntax: `state id [[choice]]`
+        if let pm = _regexGroups(sPat(#"^state\s+({{SID}})\s*\[\[(choice|fork|join)\]\]\s*$"#), line),
+           let id = pm[safe: 1], isValidStateID(id), let typeName = pm[safe: 2] {
+            let (st, sh): (original_src_types.ParsedStateType, ParsedNodeShape) = {
+                switch typeName {
+                case "choice": return (.choice, .choice)
+                case "fork": return (.fork, .fork)
+                case "join": return (.join, .join)
+                default: return (.choice, .choice)
+                }
+            }()
+            var meta = graph.stateNodeMeta[id] ?? _StateNodeMeta()
+            meta.stateType = st
+            graph.stateNodeMeta[id] = meta
+            _registerStateNode(&graph, &compositeStack, ParsedNode(id: id, label: id, shape: sh))
+            continue
+        }
+
+        // --- note (single-line or multiline-joined) ---
+        if let nm = _regexGroups(sPat(#"^note\s+(left|right)\s+of\s+({{SID}})\s*:\s*(.+)$"#), line),
+           let pos = nm[safe: 1], let targetId = nm[safe: 2], let noteText = nm[safe: 3] {
+            _addStateNote(&graph, targetId: targetId, position: pos, text: noteText.trimmingCharacters(in: .whitespacesAndNewlines))
+            continue
+        }
+        // multiline note body already joined in pre-pass; match the joined form
+        if let nm2 = _regexGroups(sPat(#"^note\s+(left|right)\s+of\s+({{SID}})\n([\s\S]+)$"#), line),
+           let pos = nm2[safe: 1], let targetId = nm2[safe: 2], let noteText = nm2[safe: 3] {
+            _addStateNote(&graph, targetId: targetId, position: pos, text: noteText.trimmingCharacters(in: .whitespacesAndNewlines))
+            continue
+        }
+
+        // --- floating note ---
+        if let fn = _regexGroups(sPat(#"^note\s+\"([^\"]+)\"\s+as\s+({{SID}})\s*$"#), line),
+           let noteText = fn[safe: 1], let noteId = fn[safe: 2], isValidStateID(noteId) {
+            _registerStateNode(&graph, &compositeStack, ParsedNode(id: noteId, label: noteText, shape: .stateNote))
+            continue
+        }
+
+        // --- transitions with optional ::: ---
+        if let tm = _regexGroups(sPat(#"^(\[\*\]|{{SID}})(?::::(\w+))?\s*(-->)\s*(\[\*\]|{{SID}})(?::::(\w+))?(?:\s*:\s*(.+))?$"#), line),
+           let sourceRaw = tm[safe: 1], let targetRaw = tm[safe: 4] {
+            let sourceClass = tm[safe: 2]
+            let targetClass = tm[safe: 5]
+
             var sourceId = sourceRaw
             var targetId = targetRaw
-            let rawLabel = transitionMatch[safe: 4]?.trimmingCharacters(in: .whitespacesAndNewlines)
+            let rawLabel = tm[safe: 6]?.trimmingCharacters(in: .whitespacesAndNewlines)
             let edgeLabel = (rawLabel?.isEmpty == false) ? original_src_multiline_utils.normalizeBrTags(rawLabel!) : nil
 
+            let parentID = compositeStack.last?.id ?? "root"
             if sourceId == "[*]" {
                 startCount += 1
-                sourceId = startCount > 1 ? "_start\(startCount)" : "_start"
+                sourceId = "\(parentID)_start"
                 _registerStateNode(&graph, &compositeStack, ParsedNode(id: sourceId, label: "", shape: .stateStart))
-            } else if !compositeStateIds.contains(sourceId) {
+            } else if !compositeStateIds.contains(sourceId), isValidStateID(sourceId) {
                 _ensureStateNode(&graph, &compositeStack, sourceId)
             }
-
             if targetId == "[*]" {
                 endCount += 1
-                targetId = endCount > 1 ? "_end\(endCount)" : "_end"
+                targetId = "\(parentID)_end"
                 _registerStateNode(&graph, &compositeStack, ParsedNode(id: targetId, label: "", shape: .stateEnd))
-            } else if !compositeStateIds.contains(targetId) {
+            } else if !compositeStateIds.contains(targetId), isValidStateID(targetId) {
                 _ensureStateNode(&graph, &compositeStack, targetId)
             }
 
-            graph.edges.append(
-                ParsedEdge(
-                    source: sourceId,
-                    target: targetId,
-                    label: edgeLabel,
-                    style: .solid,
-                    arrowHeadStart: .none,
-                    arrowHeadEnd: .arrow
-                )
-            )
+            if let sc = sourceClass, !sc.isEmpty { graph.classAssignments[sourceId] = sc }
+            if let tc = targetClass, !tc.isEmpty { graph.classAssignments[targetId] = tc }
+
+            graph.edges.append(ParsedEdge(
+                source: sourceId, target: targetId, label: edgeLabel,
+                style: .solid, arrowHeadStart: .none, arrowHeadEnd: .arrow
+            ))
             continue
         }
 
-        if let descMatch = _regexGroups(#"^([\w\p{L}-]+)\s*:\s*(.+)$"#, line),
-           let id = descMatch[safe: 1],
-           let labelRaw = descMatch[safe: 2]
-        {
+        // --- description: id : label ---
+        if let dm2 = _regexGroups(sPat(#"^({{SID}})\s*:\s*(.+)$"#), line),
+           let id = dm2[safe: 1], isValidStateID(id), let labelRaw = dm2[safe: 2] {
             let label = original_src_multiline_utils.normalizeBrTags(labelRaw.trimmingCharacters(in: .whitespacesAndNewlines))
-            _registerStateNode(&graph, &compositeStack, ParsedNode(id: id, label: label, shape: .rounded))
+            var meta = graph.stateNodeMeta[id] ?? _StateNodeMeta()
+            if meta.descriptions.isEmpty {
+                meta.descriptions = [label]
+                _registerStateNode(&graph, &compositeStack, ParsedNode(id: id, label: label, shape: .rectangle))
+            } else {
+                meta.descriptions.append(label)
+                _registerStateNode(&graph, &compositeStack, ParsedNode(id: id, label: meta.descriptions[0], shape: .rectWithTitle))
+            }
+            graph.stateNodeMeta[id] = meta
             continue
         }
+
+        // --- standalone state declaration ---
+        if let sm2 = _regexGroups(sPat(#"^({{SID}})\s*$"#), line),
+           let id = sm2[safe: 1], isValidStateID(id) { _ensureStateNode(&graph, &compositeStack, id); continue }
+
+        // --- standalone: state <id> ---
+        if let sim = _regexGroups(sPat(#"^state\s+({{SID}})\s*$"#), line),
+           let id = sim[safe: 1], isValidStateID(id) { _ensureStateNode(&graph, &compositeStack, id); continue }
     }
 
     return graph.toParsedGraph()
@@ -539,6 +784,27 @@ private func _ensureStateNode(_ graph: inout _WorkingGraph, _ compositeStack: in
             current.nodeIds.append(id)
         }
     }
+}
+
+private func _addStateNote(_ graph: inout _WorkingGraph, targetId: String, position: String, text: String) {
+    let normalizedText = original_src_multiline_utils.normalizeBrTags(text)
+    let posEnum: original_src_types.ParsedStateNote.Position = position.lowercased() == "right" ? .right : .left
+    var meta = graph.stateNodeMeta[targetId] ?? _StateNodeMeta()
+    meta.note = original_src_types.ParsedStateNote(position: posEnum, text: normalizedText)
+    graph.stateNodeMeta[targetId] = meta
+
+    // Create note node directly
+    let noteId = "\(targetId)----note"
+    graph.upsertNode(ParsedNode(id: noteId, label: normalizedText, shape: .stateNote))
+
+    // Create dotted note edge
+    let edge: ParsedEdge
+    if posEnum == .right {
+        edge = ParsedEdge(source: targetId, target: noteId, label: nil, style: .dotted, arrowHeadStart: .none, arrowHeadEnd: .none)
+    } else {
+        edge = ParsedEdge(source: noteId, target: targetId, label: nil, style: .dotted, arrowHeadStart: .none, arrowHeadEnd: .none)
+    }
+    graph.edges.append(edge)
 }
 
 private func _parseStyleProps(_ propsStr: String) -> [String: String] {
@@ -580,7 +846,7 @@ private func _parseClickRest(_ rest: String) -> ParsedNodeInteraction? {
         if let callMatch = _regexGroups(#"^(\w+)\s*\(\s*\)\s*(?:"([^"]*)"\s*)?$"#, afterCall),
            let funcName = callMatch[safe: 1]
         {
-            let tooltip = callMatch[safe: 2]
+            let tooltip = _emptyToNil(callMatch[safe: 2])
             return ParsedNodeInteraction(type: .call(funcName, ""), tooltip: tooltip)
         }
     }
@@ -593,21 +859,36 @@ private func _parseClickRest(_ rest: String) -> ParsedNodeInteraction? {
             afterHref
         ), let url = hrefMatch[safe: 1]
         {
-            let tooltip = hrefMatch[safe: 2]
-            let target = hrefMatch[safe: 3]
+            let tooltip = _emptyToNil(hrefMatch[safe: 2])
+            let target = _emptyToNil(hrefMatch[safe: 3])
             return ParsedNodeInteraction(type: .href(url), tooltip: tooltip, target: target)
         }
+    }
+
+    // state diagram URL signature: "url" "tooltip"
+    if let quotedUrlMatch = _regexGroups(
+        #"^"([^"]+)"\s+"([^"]*)"\s*(?:\s*(_self|_blank|_parent|_top))?\s*$"#,
+        r
+    ), let url = quotedUrlMatch[safe: 1] {
+        let tooltip = _emptyToNil(quotedUrlMatch[safe: 2])
+        let target = _emptyToNil(quotedUrlMatch[safe: 3])
+        return ParsedNodeInteraction(type: .href(url), tooltip: tooltip, target: target)
     }
 
     // bare callback: callbackName [ "tooltip" ]
     if let cbMatch = _regexGroups(#"^(\w+)\s*(?:"([^"]*)"\s*)?$"#, r),
        let name = cbMatch[safe: 1]
     {
-        let tooltip = cbMatch[safe: 2]
+        let tooltip = _emptyToNil(cbMatch[safe: 2])
         return ParsedNodeInteraction(type: .callback(name), tooltip: tooltip)
     }
 
     return nil
+}
+
+private func _emptyToNil(_ value: String?) -> String? {
+    guard let value, !value.isEmpty else { return nil }
+    return value
 }
 
 private func _parseEdgeLine(_ line: String, graph: inout _WorkingGraph, subgraphStack: inout [ParsedSubgraph]) {

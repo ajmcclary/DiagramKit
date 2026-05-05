@@ -72,6 +72,29 @@ extension DiagramRenderer {
                 guard !node.label.isEmpty else { continue }
                 let textColor = self.theme.nodeTextColor(for: node.inlineStyle)
                 let nodeFont = self.config.nodeLabelFont()
+                if node.shape == "rect-with-title", node.descriptions.count > 1 {
+                    let titleCenter = CGPoint(x: node.x + node.width / 2, y: node.y + 12)
+                    self._drawTextInFlipped(
+                        node.descriptions[0],
+                        at: titleCenter,
+                        context: ctx,
+                        contentHeight: ch,
+                        color: textColor,
+                        font: nodeFont,
+                        alignment: .center
+                    )
+                    let bodyRect = CGRect(x: node.x, y: node.y + 24, width: node.width, height: node.height - 24)
+                    let inset = bodyRect.insetBy(dx: 4, dy: 2)
+                    self.labelRenderer.drawMultilineText(
+                        node.descriptions.dropFirst().joined(separator: "\n"),
+                        in: inset,
+                        context: ctx,
+                        color: textColor,
+                        font: nodeFont,
+                        alignment: .center
+                    )
+                    continue
+                }
                 if node.label.contains("\n") {
                     let rect = CGRect(x: node.x, y: node.y, width: node.width, height: node.height)
                     let inset = rect.insetBy(dx: 4, dy: 2)

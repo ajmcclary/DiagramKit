@@ -27,6 +27,9 @@ open class original_src_types {
         case trapezoidAlt = "trapezoid-alt"
         case stateStart = "state-start"
         case stateEnd = "state-end"
+        case stateDivider = "state-divider"
+        case stateNote = "state-note"
+        case roundedWithTitle = "rounded-with-title"
         case ellipse
         case parallelogram
         case parallelogramAlt = "parallelogram-alt"
@@ -138,6 +141,9 @@ open class original_src_types {
             case "state": return .state
             case "choice": return .choice
             case "note": return .note
+            case "state-note": return .stateNote
+            case "state-divider": return .stateDivider
+            case "rounded-with-title": return .roundedWithTitle
             case "rect-with-title": return .rectWithTitle
             case "label-rect": return .labelRect
             case "anchor": return .anchor
@@ -210,12 +216,20 @@ open class original_src_types {
     public struct MermaidNode: Sendable {
         public var id: String
         public var label: String
+        public var descriptions: [String]
         public var shape: NodeShape
         public var properties: NodeProperties?
 
-        public init(id: String, label: String, shape: NodeShape, properties: NodeProperties? = nil) {
+        public init(
+            id: String,
+            label: String,
+            shape: NodeShape,
+            properties: NodeProperties? = nil,
+            descriptions: [String] = []
+        ) {
             self.id = id
             self.label = label
+            self.descriptions = descriptions
             self.shape = shape
             self.properties = properties
         }
@@ -326,6 +340,7 @@ open class original_src_types {
         public var edgeClassAssignments: [String: String]
         public var defaultClassDef: [String: String]?
         public var edgeProperties: [String: NodeProperties]
+        public var stateConfig: StateConfig
 
         public init(
             direction: Direction,
@@ -343,7 +358,8 @@ open class original_src_types {
             nodeInteractions: [String: NodeInteraction] = [:],
             edgeClassAssignments: [String: String] = [:],
             defaultClassDef: [String: String]? = nil,
-            edgeProperties: [String: NodeProperties] = [:]
+            edgeProperties: [String: NodeProperties] = [:],
+            stateConfig: StateConfig = StateConfig()
         ) {
             self.direction = direction
             self.nodesInOrder = nodesInOrder
@@ -361,6 +377,7 @@ open class original_src_types {
             self.edgeClassAssignments = edgeClassAssignments
             self.defaultClassDef = defaultClassDef
             self.edgeProperties = edgeProperties
+            self.stateConfig = stateConfig
         }
 
         public var nodesById: [String: MermaidNode] {
@@ -411,9 +428,59 @@ open class original_src_types {
         }
     }
 
+    public enum ParsedStateType: String, Sendable {
+        case choice
+        case fork
+        case join
+        case divider
+    }
+
+    public struct ParsedStateNote: Sendable {
+        public enum Position: String, Sendable {
+            case left
+            case right
+        }
+        public var position: Position
+        public var text: String
+
+        public init(position: Position, text: String) {
+            self.position = position
+            self.text = text
+        }
+    }
+
+    public struct StateConfig: Sendable {
+        public var titleTopMargin: Double = 25
+        public var useMaxWidth: Bool = true
+        public var defaultRenderer: String = "dagre-wrapper"
+        public var arrowMarkerAbsolute: Bool = false
+        public var dividerMargin: Double = 10
+        public var sizeUnit: Double = 5
+        public var padding: Double = 8
+        public var textHeight: Double = 10
+        public var titleShift: Double = -15
+        public var noteMargin: Double = 10
+        public var nodeSpacing: Int = 50
+        public var rankSpacing: Int = 50
+        public var forkWidth: Double = 70
+        public var forkHeight: Double = 7
+        public var miniPadding: Double = 2
+        public var fontSizeFactor: Double = 5.02
+        public var fontSize: Double = 24
+        public var labelHeight: Double = 16
+        public var edgeLengthFactor: String = "20"
+        public var compositTitleSize: Double = 35
+        public var radius: Double = 5
+        public var scaleWidth: Int?
+        public var hideEmptyDescription: Bool = false
+
+        public init() {}
+    }
+
     public struct PositionedNode: Sendable {
         public var id: String
         public var label: String
+        public var descriptions: [String]
         public var shape: NodeShape
         public var x: Double
         public var y: Double
@@ -431,12 +498,14 @@ open class original_src_types {
             y: Double,
             width: Double,
             height: Double,
+            descriptions: [String] = [],
             inlineStyle: [String: String]? = nil,
             properties: NodeProperties? = nil,
             interaction: NodeInteraction? = nil
         ) {
             self.id = id
             self.label = label
+            self.descriptions = descriptions
             self.shape = shape
             self.x = x
             self.y = y

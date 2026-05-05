@@ -9,12 +9,14 @@ private struct _SvgPoint {
 private struct _SvgNode {
     var id: String
     var label: String
+    var descriptions: [String]
     var shape: String
     var x: Double
     var y: Double
     var width: Double
     var height: Double
     var inlineStyle: [String: String]
+    var interaction: original_src_types.NodeInteraction?
 }
 
 private struct _SvgEdge {
@@ -79,6 +81,13 @@ private func _renderSvgEntry(
     )
 
     parts.append(original_src_theme.svgOpenTag(model.width, model.height, themeColors, transparent))
+    let accessibility = _graphAccessibility(graph.diagram)
+    if let title = accessibility.title, !title.isEmpty {
+        parts.append("<title>\(original_src_multiline_utils.escapeXml(title))</title>")
+    }
+    if let descr = accessibility.descr, !descr.isEmpty {
+        parts.append("<desc>\(original_src_multiline_utils.escapeXml(descr))</desc>")
+    }
     parts.append(original_src_theme.buildStyleBlock(font, false))
     parts.append("<defs>")
     parts.append(_arrowMarkerDefs())
@@ -377,7 +386,33 @@ private func _renderNode(_ node: _SvgNode, _ font: String) -> String {
         parts.append("  \(label.replacingOccurrences(of: "\n", with: "\n  "))")
     }
     parts.append("</g>")
-    return parts.joined(separator: "\n")
+    let group = parts.joined(separator: "\n")
+    guard let anchorAttributes = _nodeAnchorAttributes(node) else {
+        return group
+    }
+    return "<a \(anchorAttributes)>\n" +
+        "  \(group.replacingOccurrences(of: "\n", with: "\n  "))\n" +
+        "</a>"
+}
+
+private func _nodeAnchorAttributes(_ node: _SvgNode) -> String? {
+    guard let interaction = node.interaction else { return nil }
+    let url: String
+    switch interaction.type {
+    case .href(let href):
+        url = href
+    default:
+        return nil
+    }
+    let target = (interaction.target?.isEmpty == false) ? interaction.target! : "_blank"
+    var attrs = [
+        #"xlink:href="\#(_escapeAttr(url))""#,
+        #"target="\#(_escapeAttr(target))""#,
+    ]
+    if let tooltip = interaction.tooltip, !tooltip.isEmpty {
+        attrs.append(#"title="\#(_escapeAttr(tooltip))""#)
+    }
+    return attrs.joined(separator: " ")
 }
 
 private func _renderNodeShape(_ node: _SvgNode) -> String {
@@ -434,7 +469,7 @@ private func _renderNodeShape(_ node: _SvgNode) -> String {
     case "framed-circle":
         return _renderFramedCircle(x: x, y: y, w: width, h: height, fill: fill, stroke: stroke, sw: sw)
     case "fork", "join":
-        return _renderRect(x: x, y: y, w: width, h: height, fill: fill, stroke: stroke, sw: sw)
+        return _renderForkJoinBar(x: x, y: y, w: width, h: height)
     case "text", "invisible":
         return _renderRect(x: x, y: y, w: width, h: height, fill: "none", stroke: "none", sw: "1")
     case "crossed-circle":
@@ -489,11 +524,22 @@ private func _renderNodeShape(_ node: _SvgNode) -> String {
         return _renderBraceR(x: x, y: y, w: width, h: height, fill: fill, stroke: stroke, sw: sw)
     case "braces":
         return _renderBraces(x: x, y: y, w: width, h: height, fill: fill, stroke: stroke, sw: sw)
-    case "icon-square", "icon-circle", "icon", "icon-rounded", "image-square", "state", "choice", "note", "rect-with-title", "label-rect", "anchor":
+    case "icon-square", "icon-circle", "icon", "icon-rounded", "image-square", "state", "note":
         return _renderRect(x: x, y: y, w: width, h: height, fill: fill, stroke: stroke, sw: sw)
-    default:
-        return _renderRect(x: x, y: y, w: width, h: height, fill: fill, stroke: stroke, sw: sw)
+    case "choice":
+        return _renderDiamond(x: x, y: y, w: width, h: height, fill: fill, stroke: stroke, sw: sw)
+    case "rect-with-title":
+        return _renderRectWithTitle(x: x, y: y, w: width, h: height, fill: fill, stroke: stroke, sw: sw)
+    case "rounded-with-title":
+        return _renderRoundedWithTitle(x: x, y: y, w: width, h: height, fill: fill, stroke: stroke, sw: sw)
+    case "state-divider":
+        return _renderStateDivider(x: x, y: y, w: width, h: height, stroke: stroke)
+    case "state-note":
+        return _renderRoundedRect(x: x, y: y, w: width, h: height, fill: fill, stroke: stroke, sw: sw)
+    case "label-rect", "anchor": break
+    default: break
     }
+    return _renderRect(x: x, y: y, w: width, h: height, fill: fill, stroke: stroke, sw: sw)
 }
 
 private func _renderRect(x: Double, y: Double, w: Double, h: Double, fill: String, stroke: String, sw: String) -> String {
@@ -619,6 +665,33 @@ private func _renderStateEnd(x: Double, y: Double, w: Double, h: Double) -> Stri
     let innerR = outerR - 4
     return "<circle cx=\"\(cx)\" cy=\"\(cy)\" r=\"\(outerR)\" fill=\"none\" stroke=\"var(--_text)\" stroke-width=\"\(original_src_styles.STROKE_WIDTHS.innerBox * 2)\" />\n" +
         "<circle cx=\"\(cx)\" cy=\"\(cy)\" r=\"\(innerR)\" fill=\"var(--_text)\" stroke=\"none\" />"
+}
+
+private func _renderRectWithTitle(x: Double, y: Double, w: Double, h: Double, fill: String, stroke: String, sw: String) -> String {
+    let titleH: Double = 24
+    var parts: [String] = []
+    parts.append("<rect x=\"\(x)\" y=\"\(y)\" width=\"\(w)\" height=\"\(h)\" rx=\"4\" ry=\"4\" fill=\"\(fill)\" stroke=\"\(stroke)\" stroke-width=\"\(sw)\" />")
+    parts.append("<rect x=\"\(x)\" y=\"\(y)\" width=\"\(w)\" height=\"\(titleH)\" rx=\"4\" ry=\"4\" fill=\"var(--_surface)\" stroke=\"none\" />")
+    parts.append("<line x1=\"\(x)\" y1=\"\(y + titleH)\" x2=\"\(x + w)\" y2=\"\(y + titleH)\" stroke=\"\(stroke)\" stroke-width=\"\(sw)\" />")
+    return parts.joined(separator: "\n")
+}
+
+private func _renderRoundedWithTitle(x: Double, y: Double, w: Double, h: Double, fill: String, stroke: String, sw: String) -> String {
+    let titleH: Double = 35
+    var parts: [String] = []
+    parts.append("<rect x=\"\(x)\" y=\"\(y)\" width=\"\(w)\" height=\"\(h)\" rx=\"8\" ry=\"8\" fill=\"\(fill)\" stroke=\"\(stroke)\" stroke-width=\"\(sw)\" />")
+    parts.append("<rect x=\"\(x)\" y=\"\(y)\" width=\"\(w)\" height=\"\(titleH)\" rx=\"8\" ry=\"8\" fill=\"var(--_surface)\" stroke=\"none\" />")
+    parts.append("<rect x=\"\(x)\" y=\"\(y + titleH - 8)\" width=\"\(w)\" height=\"8\" fill=\"var(--_surface)\" stroke=\"none\" />")
+    return parts.joined(separator: "\n")
+}
+
+private func _renderStateDivider(x: Double, y: Double, w: Double, h: Double, stroke: String) -> String {
+    let cy = y + h / 2
+    return "<line x1=\"\(x)\" y1=\"\(cy)\" x2=\"\(x + w)\" y2=\"\(cy)\" stroke=\"\(stroke)\" stroke-width=\"1\" stroke-dasharray=\"5,5\" opacity=\"0.6\" />"
+}
+
+private func _renderForkJoinBar(x: Double, y: Double, w: Double, h: Double) -> String {
+    "<rect x=\"\(x)\" y=\"\(y)\" width=\"\(w)\" height=\"\(h)\" rx=\"2\" ry=\"2\" fill=\"var(--_text)\" stroke=\"none\" />"
 }
 
 private func _renderParallel(x: Double, y: Double, w: Double, h: Double, fill: String, stroke: String, sw: String) -> String {
@@ -921,13 +994,33 @@ private func _renderBraces(x: Double, y: Double, w: Double, h: Double, fill: Str
 
 private func _renderNodeLabel(_ node: _SvgNode, _ font: String) -> String {
     _ = font
-    if (node.shape == "state-start" || node.shape == "state-end"), node.label.isEmpty {
+    if (node.shape == "state-start" || node.shape == "state-end" || node.shape == "fork" || node.shape == "join"), node.label.isEmpty {
         return ""
     }
 
     let cx = node.x + node.width / 2
     let cy = node.y + node.height / 2
     let textColor = _escapeAttr(node.inlineStyle["color"] ?? "var(--_text)")
+
+    if node.shape == "rect-with-title", node.descriptions.count > 1 {
+        let titleY = node.y + 12
+        let bodyY = node.y + 24 + (node.height - 24) / 2
+        let title = original_src_multiline_utils.renderMultilineText(
+            node.descriptions[0],
+            cx: cx,
+            cy: titleY,
+            fontSize: original_src_styles.FONT_SIZES.nodeLabel,
+            attrs: "text-anchor=\"middle\" font-size=\"\(original_src_styles.FONT_SIZES.nodeLabel)\" font-weight=\"\(original_src_styles.FONT_WEIGHTS.nodeLabel)\" fill=\"\(textColor)\""
+        )
+        let body = original_src_multiline_utils.renderMultilineText(
+            node.descriptions.dropFirst().joined(separator: "\n"),
+            cx: cx,
+            cy: bodyY,
+            fontSize: original_src_styles.FONT_SIZES.nodeLabel,
+            attrs: "text-anchor=\"middle\" font-size=\"\(original_src_styles.FONT_SIZES.nodeLabel)\" font-weight=\"\(original_src_styles.FONT_WEIGHTS.nodeLabel)\" fill=\"\(textColor)\""
+        )
+        return title + "\n" + body
+    }
 
     return original_src_multiline_utils.renderMultilineText(
         node.label,
@@ -960,12 +1053,14 @@ private func _extractNode(_ any: Any) -> _SvgNode {
     _SvgNode(
         id: _readString(any, label: "id") ?? "",
         label: _readString(any, label: "label") ?? "",
+        descriptions: _readStringArray(any, label: "descriptions"),
         shape: _readString(any, label: "shape") ?? "rectangle",
         x: _readDouble(any, label: "x") ?? 0,
         y: _readDouble(any, label: "y") ?? 0,
         width: _readDouble(any, label: "width") ?? 0,
         height: _readDouble(any, label: "height") ?? 0,
-        inlineStyle: _readStringMap(any, label: "inlineStyle") ?? [:]
+        inlineStyle: _readStringMap(any, label: "inlineStyle") ?? [:],
+        interaction: _readNodeInteraction(any, label: "interaction")
     )
 }
 
@@ -1090,6 +1185,26 @@ private func _readStringMap(_ any: Any, label: String) -> [String: String]? {
         return nil
     }
     return value as? [String: String]
+}
+
+private func _readStringArray(_ any: Any, label: String) -> [String] {
+    guard let value = _readAny(any, label: label) else {
+        return []
+    }
+    return value as? [String] ?? []
+}
+
+private func _readNodeInteraction(_ any: Any, label: String) -> original_src_types.NodeInteraction? {
+    _readAny(any, label: label) as? original_src_types.NodeInteraction
+}
+
+private func _graphAccessibility(_ graph: MermaidGraph) -> (title: String?, descr: String?) {
+    switch graph.payload {
+    case .flowchart(let parsed), .stateDiagram(let parsed):
+        return (parsed.accTitle, parsed.accDescr)
+    default:
+        return (nil, nil)
+    }
 }
 
 open class original_src_renderer {
