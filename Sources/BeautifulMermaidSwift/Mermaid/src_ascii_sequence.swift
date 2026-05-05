@@ -152,7 +152,7 @@ public func renderSequenceAscii(
     }
     let asciiNotes = parsed.notes.map { note in
         AsciiSequenceNote(
-            afterIndex: note.afterIndex,
+            afterIndex: note.afterItemIndex,
             text: note.text,
             position: note.position,
             actorIds: note.actorIds

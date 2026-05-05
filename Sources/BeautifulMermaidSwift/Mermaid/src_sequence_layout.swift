@@ -1,285 +1,308 @@
 // Ported from original/src/sequence/layout.ts
 import Foundation
 
-private enum _SEQ {
-    static let padding: Double = 30
-    static let actorGap: Double = 140
-    static let actorHeight: Double = 40
-    static let actorPadX: Double = 16
-    static let headerGap: Double = 20
-    static let messageRowHeight: Double = 40
-    static let selfMessageHeight: Double = 30
-    static let activationWidth: Double = 10
-    static let blockPadX: Double = 10
-    static let blockPadTop: Double = 40
-    static let blockPadBottom: Double = 8
-    static let blockHeaderExtra: Double = 28
-    static let dividerExtra: Double = 24
-    static let noteWidth: Double = 120
-    static let notePadding: Double = 8
-    static let noteGap: Double = 10
+// MARK: - Internal Config Adapter
+
+private enum _C {
+    static var `default`: SequenceDiagramConfig { .default }
 }
 
 public func layoutSequenceDiagram(
     _ diagram: SequenceDiagram,
-    _ options: RenderOptions = RenderOptions()
+    _ options: RenderOptions = RenderOptions(),
+    config: SequenceDiagramConfig = .default
 ) throws -> PositionedSequenceDiagram {
-    try _layoutSequenceDiagramEntry(diagram, options)
+    try _layoutSequenceDiagramEntry(diagram, config)
 }
 
 private func _layoutSequenceDiagramEntry(
     _ diagram: SequenceDiagram,
-    _ options: RenderOptions
+    _ cfg: SequenceDiagramConfig
 ) throws -> PositionedSequenceDiagram {
-    _ = options
+    let actors = diagram.actors
+    let messages = diagram.messages
+    let blocks = diagram.blocks
+    let notes = diagram.notes
+    let boxes = diagram.boxes
 
-    if diagram.actors.isEmpty {
-        return PositionedSequenceDiagram(
-            width: 0,
-            height: 0,
-            actors: [],
-            lifelines: [],
-            messages: [],
-            activations: [],
-            blocks: [],
-            notes: []
-        )
+    // Filter unused participants if configured
+    let visibleActors: [SequenceActor]
+    if cfg.hideUnusedParticipants {
+        let usedIds = Set(messages.flatMap { [$0.from, $0.to] })
+        visibleActors = actors.filter { !$0.isExplicit || usedIds.contains($0.id) }
+    } else {
+        visibleActors = actors
     }
 
-    let actorWidths = diagram.actors.map { actor in
+    if visibleActors.isEmpty {
+        return PositionedSequenceDiagram(width: 0, height: 0)
+    }
+
+    let actorCount = visibleActors.count
+
+    // Compute actor widths
+    let actorWidths: [Double] = visibleActors.map { actor in
         let textW = original_src_styles.estimateTextWidth(
             actor.label,
             original_src_styles.FONT_SIZES.nodeLabel,
             original_src_styles.FONT_WEIGHTS.nodeLabel
         )
-        return max(textW + _SEQ.actorPadX * 2, 80)
+        return max(textW + 32, cfg.width * 0.5)
     }
 
+    // Position actor centers
     var actorCenterX: [Double] = []
-    var currentX = _SEQ.padding + actorWidths[0] / 2
-    for i in 0..<diagram.actors.count {
+    var currentX = cfg.diagramMarginX + actorWidths[0] / 2
+    for i in 0..<actorCount {
         if i > 0 {
-            let minGap = max(_SEQ.actorGap, (actorWidths[i - 1] + actorWidths[i]) / 2 + 40)
+            let minGap = max(cfg.actorMargin, (actorWidths[i - 1] + actorWidths[i]) / 2 + 40)
             currentX += minGap
         }
         actorCenterX.append(currentX)
     }
 
-    var actorIndex: [String: Int] = [:]
-    for i in 0..<diagram.actors.count {
-        actorIndex[diagram.actors[i].id] = i
-    }
+    // Adjust for boxes (expand gap for boxed actors)
+    if !boxes.isEmpty {
+        var boxActors: [String: [Int]] = [:]
+        for (boxIdx, box) in boxes.enumerated() {
+            for actorId in box.actorIds {
+                boxActors[actorId, default: []].append(boxIdx)
+            }
+        }
+        // Actors in the same box stay close; boxes get margin
+        // Simplified: add boxMargin between boxes
+        var lastBoxRight: Double? = nil
+        for box in boxes {
+            if box.actorIds.isEmpty { continue }
+            let indices: [Int] = box.actorIds.compactMap { id in visibleActors.firstIndex(where: { $0.id == id }) }
+            guard let first = indices.min(), let last = indices.max() else { continue }
 
-    let actorY = _SEQ.padding
-    let actors: [PositionedSequenceActor] = diagram.actors.enumerated().map { idx, actor in
-        PositionedSequenceActor(
-            id: actor.id,
-            label: actor.label,
-            type: actor.type,
-            x: actorCenterX[idx],
-            y: actorY,
-            width: actorWidths[idx],
-            height: _SEQ.actorHeight
-        )
-    }
+            let boxLeft = actorCenterX[first] - actorWidths[first] / 2 - cfg.boxMargin
+            let boxRight = actorCenterX[last] + actorWidths[last] / 2 + cfg.boxMargin
 
-    var messageY = actorY + _SEQ.actorHeight + _SEQ.headerGap
-    var messages: [PositionedSequenceMessage] = []
-
-    var extraSpaceBefore: [Int: Double] = [:]
-    for block in diagram.blocks {
-        extraSpaceBefore[block.startIndex] = max(extraSpaceBefore[block.startIndex] ?? 0, _SEQ.blockHeaderExtra)
-        for div in block.dividers {
-            extraSpaceBefore[div.index] = max(extraSpaceBefore[div.index] ?? 0, _SEQ.dividerExtra)
+            if let prevRight = lastBoxRight, boxLeft < prevRight + cfg.boxMargin {
+                // Shift subsequent actors right
+                let shift = prevRight + cfg.boxMargin - boxLeft
+                for i in first..<actorCount {
+                    actorCenterX[i] += shift
+                }
+            }
+            lastBoxRight = boxRight
         }
     }
 
+    var actorIndex: [String: Int] = [:]
+    for i in 0..<actorCount {
+        actorIndex[visibleActors[i].id] = i
+    }
+
+    let actorY = cfg.diagramMarginY
+    let positionedActors: [PositionedSequenceActor] = visibleActors.map { actor in
+        let idx = actorIndex[actor.id] ?? 0
+        return PositionedSequenceActor(
+            id: actor.id,
+            label: actor.label,
+            type: actor.type.rawValue,
+            participantType: actor.type,
+            x: actorCenterX[idx],
+            y: actorY,
+            width: actorWidths[idx],
+            height: cfg.height
+        )
+    }
+
+    // ---- Layout messages ----
+    var messageY = actorY + cfg.height + cfg.diagramMarginY
+    var positionedMessages: [PositionedSequenceMessage] = []
+
+    // Extra space for block headers/dividers
+    var extraSpaceBefore: [Int: Double] = [:]
+    for block in blocks {
+        // Block header before first message
+        extraSpaceBefore[block.startItemIndex] = max(extraSpaceBefore[block.startItemIndex] ?? 0, 40)
+        for div in block.dividers {
+            extraSpaceBefore[div.itemIndex] = max(extraSpaceBefore[div.itemIndex] ?? 0, 24)
+        }
+    }
+
+    // Autonumber tracking
+    var seqNum: Double = diagram.autonumberStart
+    let seqStep: Double = diagram.autonumberStep
+    let seqEnabled: Bool = diagram.autonumberEnabled
+    var messageIdx = 0
+
+    // Activation stacks
     var activationStacks: [String: [(startY: Double, depth: Int)]] = [:]
-    var activations: [SequenceActivation] = []
+    var positionedActivations: [SequenceActivation] = []
     let nestingOffset = 4.0
 
-    for msgIdx in 0..<diagram.messages.count {
-        let msg = diagram.messages[msgIdx]
+    for msg in messages {
         let fromIdx = actorIndex[msg.from] ?? 0
         let toIdx = actorIndex[msg.to] ?? 0
         let isSelfMsg = msg.from == msg.to
 
-        let extra = extraSpaceBefore[msgIdx] ?? 0
-        if extra > 0 {
-            messageY += extra
-        }
+        let extra = extraSpaceBefore[messageIdx] ?? 0
+        if extra > 0 { messageY += extra }
 
-        // Push messageY down if a note sits between the previous message and this one
-        for note in diagram.notes where note.afterIndex == msgIdx - 1 {
-            let noteLines = note.text.components(separatedBy: "\n")
-            let nonEmpty = noteLines.isEmpty ? [""] : noteLines
-            let lineCount = Double(max(1, nonEmpty.count))
-            let lineHeight = ceil(original_src_styles.FONT_SIZES.edgeLabel)
-            let lineSpacing: Double = 4
-            let noteH = lineCount * lineHeight + max(0, lineCount - 1) * lineSpacing + _SEQ.notePadding * 2
-            let noteBottom = messageY + 4 + noteH
-            let requiredY = noteBottom + _SEQ.noteGap
-            messageY = max(messageY, requiredY)
+        // Push messageY for notes placed after the previous message
+        for note in notes {
+            let noteMsgIdx = _msgIdxBeforeItem(note.afterItemIndex, diagram: diagram)
+            if noteMsgIdx == messageIdx - 1 {
+                let noteH = _estimateNoteHeight(note)
+                let noteBottom = messageY + 4 + noteH
+                let requiredY = noteBottom + cfg.noteMargin
+                messageY = max(messageY, requiredY)
+            }
         }
 
         let x1 = actorCenterX[fromIdx]
         let x2 = actorCenterX[toIdx]
+        let style = SequenceArrowStyle(type: msg.arrowType)
 
-        messages.append(
-            PositionedSequenceMessage(
-                from: msg.from,
-                to: msg.to,
-                label: msg.label,
-                lineStyle: msg.lineStyle,
-                arrowHead: msg.arrowHead,
-                x1: x1,
-                x2: x2,
-                y: messageY,
-                isSelf: isSelfMsg
-            )
+        // Central connection circle offset
+        _ = msg.centralConnection != nil ? 16.5 : 0.0
+
+        let pm = PositionedSequenceMessage(
+            from: msg.from,
+            to: msg.to,
+            label: msg.label,
+            lineStyle: style.isDotted ? "dashed" : "solid",
+            arrowHead: msg.arrowHead,
+            arrowType: msg.arrowType,
+            centralConnection: msg.centralConnection,
+            x1: x1,
+            x2: x2,
+            y: messageY,
+            isSelf: isSelfMsg,
+            sequenceNumber: seqEnabled ? seqNum : nil,
+            sequenceVisible: seqEnabled
         )
+        positionedMessages.append(pm)
 
+        if seqEnabled { seqNum += seqStep }
+
+        // Activation
         if msg.activate {
             var stack = activationStacks[msg.to] ?? []
-            let depth = stack.count
-            stack.append((startY: messageY, depth: depth))
+            stack.append((startY: messageY, depth: stack.count))
             activationStacks[msg.to] = stack
         }
-
         if msg.deactivate {
             var stack = activationStacks[msg.from] ?? []
             if !stack.isEmpty {
                 let top = stack.removeLast()
                 activationStacks[msg.from] = stack
-
-                let idx = actorIndex[msg.from] ?? 0
                 let xOffset = Double(top.depth) * nestingOffset
-                activations.append(
+                positionedActivations.append(
                     SequenceActivation(
                         actorId: msg.from,
-                        x: actorCenterX[idx] - _SEQ.activationWidth / 2 + xOffset,
+                        x: actorCenterX[fromIdx] - cfg.activationWidth / 2 + xOffset,
                         topY: top.startY,
                         bottomY: messageY,
-                        width: _SEQ.activationWidth
+                        width: cfg.activationWidth
                     )
                 )
             }
         }
 
-        messageY += isSelfMsg ? (_SEQ.selfMessageHeight + _SEQ.messageRowHeight) : _SEQ.messageRowHeight
+        messageY += isSelfMsg ? (30 + cfg.messageMargin) : cfg.messageMargin
+        messageIdx += 1
     }
 
+    // Close remaining activation stacks
     for (actorId, stack) in activationStacks {
         for item in stack {
             let idx = actorIndex[actorId] ?? 0
             let xOffset = Double(item.depth) * nestingOffset
-            activations.append(
+            positionedActivations.append(
                 SequenceActivation(
                     actorId: actorId,
-                    x: actorCenterX[idx] - _SEQ.activationWidth / 2 + xOffset,
+                    x: actorCenterX[idx] - cfg.activationWidth / 2 + xOffset,
                     topY: item.startY,
-                    bottomY: messageY - _SEQ.messageRowHeight / 2,
-                    width: _SEQ.activationWidth
+                    bottomY: messageY - cfg.messageMargin / 2,
+                    width: cfg.activationWidth
                 )
             )
         }
     }
 
-    let blocks: [PositionedSequenceBlock] = diagram.blocks.map { block in
-        let startMsg = block.startIndex < messages.count ? messages[block.startIndex] : nil
-        let endMsg = block.endIndex < messages.count ? messages[block.endIndex] : nil
-        let blockTop = (startMsg?.y ?? messageY) - _SEQ.blockPadTop
-        let blockBottom = (endMsg?.y ?? messageY) + _SEQ.blockPadBottom + 12
+    // ---- Blocks ----
+    let positionedBlocks: [PositionedSequenceBlock] = blocks.map { block in
+        // Convert item indices to positioned message indices
+        let msgStartIdx = _itemIdxToMsgIdx(block.startItemIndex, diagram: diagram)
+        let msgEndIdx = _itemIdxToMsgIdx(block.endItemIndex, diagram: diagram)
 
-        var involvedActors = Set<Int>()
-        if block.startIndex <= block.endIndex {
-            for mi in block.startIndex...block.endIndex where mi >= 0 && mi < diagram.messages.count {
-                let m = diagram.messages[mi]
-                involvedActors.insert(actorIndex[m.from] ?? 0)
-                involvedActors.insert(actorIndex[m.to] ?? 0)
-            }
+        let startMsg = msgStartIdx < positionedMessages.count ? positionedMessages[msgStartIdx] : nil
+        let endMsg = msgEndIdx < positionedMessages.count ? positionedMessages[msgEndIdx] : nil
+        let blockTop = (startMsg?.y ?? messageY) - cfg.boxMargin - 28
+        let blockBottom = (endMsg?.y ?? messageY) + cfg.boxMargin + 12
+
+        let minActorIdx: Int
+        let maxActorIdx: Int
+        if msgStartIdx <= msgEndIdx {
+            let involvedActors = Set(
+                (msgStartIdx...msgEndIdx).compactMap { mi -> [String]? in
+                    guard mi < messages.count else { return nil }
+                    return [messages[mi].from, messages[mi].to]
+                }.flatMap { $0 }
+            )
+            let indices = involvedActors.compactMap { actorIndex[$0] }
+            minActorIdx = indices.min() ?? 0
+            maxActorIdx = indices.max() ?? max(0, actorCount - 1)
+        } else {
+            minActorIdx = 0
+            maxActorIdx = max(0, actorCount - 1)
         }
 
-        if involvedActors.isEmpty {
-            for ai in 0..<diagram.actors.count {
-                involvedActors.insert(ai)
-            }
-        }
+        let blockLeft = actorCenterX[minActorIdx] - actorWidths[minActorIdx] / 2 - cfg.boxMargin
+        let blockRight = actorCenterX[maxActorIdx] + actorWidths[maxActorIdx] / 2 + cfg.boxMargin
 
-        let minIdx = involvedActors.min() ?? 0
-        let maxIdx = involvedActors.max() ?? max(0, diagram.actors.count - 1)
-        let blockLeft = actorCenterX[minIdx] - actorWidths[minIdx] / 2 - _SEQ.blockPadX
-        let blockRight = actorCenterX[maxIdx] + actorWidths[maxIdx] / 2 + _SEQ.blockPadX
+        // Nesting depth
+        let nestingDepth = _countNestingDepth(blocks, block)
+        let nestMargin = cfg.boxMargin * Double(nestingDepth)
+        let adjustedLeft = blockLeft - nestMargin
+        let adjustedRight = blockRight + nestMargin
 
-        let positionedDividers: [PositionedSequenceBlockDivider] = block.dividers.map { divider in
-            let msg = divider.index < messages.count ? messages[divider.index] : nil
-            let msgY = msg?.y ?? messageY
-            var offset = 28.0
-
-            if !divider.label.isEmpty, let msg {
-                let divLabelText = "[\(divider.label)]"
-                let divLabelW = original_src_styles.estimateTextWidth(
-                    divLabelText,
-                    original_src_styles.FONT_SIZES.edgeLabel,
-                    original_src_styles.FONT_WEIGHTS.edgeLabel
-                )
-                let divLabelLeft = blockLeft + 8
-                let divLabelRight = divLabelLeft + divLabelW
-
-                let msgLabelW = original_src_styles.estimateTextWidth(
-                    msg.label,
-                    original_src_styles.FONT_SIZES.edgeLabel,
-                    original_src_styles.FONT_WEIGHTS.edgeLabel
-                )
-                let msgLabelLeft = msg.isSelf
-                    ? msg.x1 + 36
-                    : (msg.x1 + msg.x2) / 2 - msgLabelW / 2
-                let msgLabelRight = msgLabelLeft + msgLabelW
-
-                if divLabelRight > msgLabelLeft && divLabelLeft < msgLabelRight {
-                    offset = 36
-                }
-            }
-
-            return PositionedSequenceBlockDivider(y: msgY - offset, label: divider.label)
+        let positionedDividers: [PositionedSequenceBlockDivider] = block.dividers.map { div in
+            let divMsgIdx = _itemIdxToMsgIdx(div.itemIndex, diagram: diagram)
+            let divMsg = divMsgIdx < positionedMessages.count ? positionedMessages[divMsgIdx] : nil
+            let divY = (divMsg?.y ?? messageY) - 18
+            return PositionedSequenceBlockDivider(y: divY, label: div.label)
         }
 
         return PositionedSequenceBlock(
             type: block.type,
             label: block.label,
-            x: blockLeft,
+            x: adjustedLeft,
             y: blockTop,
-            width: blockRight - blockLeft,
+            width: adjustedRight - adjustedLeft,
             height: blockBottom - blockTop,
-            dividers: positionedDividers
+            dividers: positionedDividers,
+            isHighlight: block.isHighlight,
+            highlightFill: block.highlightFill
         )
     }
 
-    let notes: [PositionedSequenceNote] = diagram.notes.map { note in
-        let noteLines = note.text.components(separatedBy: "\n")
-        let nonEmpty = noteLines.isEmpty ? [""] : noteLines
-        let maxLineWidth = nonEmpty.map {
-            original_src_styles.estimateTextWidth(
-                $0,
-                original_src_styles.FONT_SIZES.edgeLabel,
-                original_src_styles.FONT_WEIGHTS.edgeLabel
-            )
-        }.max() ?? 0
-        let noteW = max(_SEQ.noteWidth, maxLineWidth + _SEQ.notePadding * 2)
-        let lineCount = Double(max(1, nonEmpty.count))
-        let lineHeight = ceil(original_src_styles.FONT_SIZES.edgeLabel)
-        let lineSpacing: Double = 4
-        let noteH = lineCount * lineHeight + max(0, lineCount - 1) * lineSpacing + _SEQ.notePadding * 2
+    // ---- Notes ----
+    let positionedNotes: [PositionedSequenceNote] = notes.map { note in
+        let noteH = _estimateNoteHeight(note)
+        let noteW = max(120, _estimateNoteWidth(note))
 
-        let refMsg = note.afterIndex >= 0 && note.afterIndex < messages.count ? messages[note.afterIndex] : nil
-        let noteY = (refMsg?.y ?? actorY + _SEQ.actorHeight) + 4
+        // Position note relative to the message it's "after"
+        let msgIdx = _msgIdxBeforeItem(note.afterItemIndex, diagram: diagram)
+        let refY: Double
+        if msgIdx >= 0 && msgIdx < positionedMessages.count {
+            refY = positionedMessages[msgIdx].y + 4
+        } else {
+            refY = actorY + cfg.height + 4
+        }
 
         let firstActorIdx = actorIndex[note.actorIds.first ?? ""] ?? 0
         let noteX: Double
         if note.position == "left" {
-            noteX = actorCenterX[firstActorIdx] - actorWidths[firstActorIdx] / 2 - noteW - _SEQ.noteGap
+            noteX = actorCenterX[firstActorIdx] - actorWidths[firstActorIdx] / 2 - noteW - cfg.noteMargin
         } else if note.position == "right" {
-            noteX = actorCenterX[firstActorIdx] + actorWidths[firstActorIdx] / 2 + _SEQ.noteGap
+            noteX = actorCenterX[firstActorIdx] + actorWidths[firstActorIdx] / 2 + cfg.noteMargin
         } else {
             if note.actorIds.count > 1 {
                 let lastActorIdx = actorIndex[note.actorIds.last ?? ""] ?? firstActorIdx
@@ -292,7 +315,7 @@ private func _layoutSequenceDiagramEntry(
         return PositionedSequenceNote(
             text: note.text,
             x: noteX,
-            y: noteY,
+            y: refY,
             width: noteW,
             height: noteH,
             position: note.position,
@@ -300,75 +323,116 @@ private func _layoutSequenceDiagramEntry(
         )
     }
 
-    let diagramBottom = messageY + _SEQ.padding
+    // ---- Boxes ----
+    let positionedBoxes: [PositionedSequenceBox] = boxes.map { box in
+        let indices: [Int] = box.actorIds.compactMap { id in actorIndex[id] }
+        guard let first = indices.min(), let last = indices.max() else {
+            return PositionedSequenceBox(id: box.id, name: box.name, fill: box.fill, x: 0, y: 0, width: 0, height: 0, actorIds: box.actorIds)
+        }
+        let boxLeft = actorCenterX[first] - actorWidths[first] / 2 - cfg.boxMargin
+        let boxRight = actorCenterX[last] + actorWidths[last] / 2 + cfg.boxMargin
+        let boxTop = actorY - cfg.boxMargin
+        let boxHeight = messageY - actorY + cfg.boxMargin * 2
 
-    var globalMinX = _SEQ.padding
+        return PositionedSequenceBox(
+            id: box.id,
+            name: box.name,
+            fill: box.fill,
+            x: boxLeft,
+            y: boxTop,
+            width: boxRight - boxLeft,
+            height: boxHeight,
+            actorIds: box.actorIds
+        )
+    }
+
+    // ---- Rect highlights ----
+    let rectHighlights: [PositionedRectHighlight] = blocks.filter { $0.isHighlight }.map { block in
+        let msgStartIdx = _itemIdxToMsgIdx(block.startItemIndex, diagram: diagram)
+        let msgEndIdx = _itemIdxToMsgIdx(block.endItemIndex, diagram: diagram)
+        let topY = (msgStartIdx < positionedMessages.count ? positionedMessages[msgStartIdx].y : messageY) - 4
+        let bottomY = (msgEndIdx < positionedMessages.count ? positionedMessages[msgEndIdx].y : messageY) + cfg.messageMargin + 4
+        let leftX = 0.0
+        let rightX = actorCenterX.last ?? 300
+        return PositionedRectHighlight(
+            x: cfg.diagramMarginX,
+            y: topY,
+            width: rightX + cfg.diagramMarginX,
+            height: bottomY - topY,
+            fill: block.highlightFill ?? "transparent"
+        )
+    }
+
+    // ---- Mirror actors ----
+    let bottomActors: [PositionedSequenceActor]
+    if cfg.mirrorActors {
+        bottomActors = positionedActors.map { actor in
+            var a = actor
+            a.y = messageY + cfg.diagramMarginY
+            return a
+        }
+    } else {
+        bottomActors = []
+    }
+
+    let diagramBottom = messageY + cfg.diagramMarginY + (cfg.mirrorActors ? cfg.height + cfg.diagramMarginY : 0)
+
+    // ---- Lifelines ----
+    let lifelines: [SequenceLifeline] = visibleActors.map { actor in
+        let idx = actorIndex[actor.id] ?? 0
+        let destroyed = diagram.destroyedActorIds.contains(actor.id)
+        return SequenceLifeline(
+            actorId: actor.id,
+            x: actorCenterX[idx],
+            topY: actorY + cfg.height,
+            bottomY: destroyed ? messageY : diagramBottom - cfg.diagramMarginY
+        )
+    }
+
+    // ---- Global bounds ----
+    var globalMinX = cfg.diagramMarginX
     var globalMaxX = 0.0
 
-    for actor in actors {
+    for actor in positionedActors {
         globalMinX = min(globalMinX, actor.x - actor.width / 2)
         globalMaxX = max(globalMaxX, actor.x + actor.width / 2)
     }
-    for block in blocks {
+    for block in positionedBlocks {
         globalMinX = min(globalMinX, block.x)
         globalMaxX = max(globalMaxX, block.x + block.width)
     }
-    for note in notes {
+    for note in positionedNotes {
         globalMinX = min(globalMinX, note.x)
         globalMaxX = max(globalMaxX, note.x + note.width)
     }
-    for msg in messages where msg.isSelf {
-        let loopW = 30.0
-        let labelPadding = 8.0
-        let labelLeft = msg.x1 + loopW + labelPadding
-        let labelWidth = original_src_styles.estimateTextWidth(
-            msg.label,
-            original_src_styles.FONT_SIZES.edgeLabel,
-            original_src_styles.FONT_WEIGHTS.edgeLabel
-        )
-        globalMaxX = max(globalMaxX, labelLeft + labelWidth + 8)
-    }
 
-    let shiftX = globalMinX < _SEQ.padding ? _SEQ.padding - globalMinX : 0
+    let shiftX = globalMinX < cfg.diagramMarginX ? cfg.diagramMarginX - globalMinX : 0
 
-    var shiftedActors = actors
-    var shiftedMessages = messages
-    var shiftedActivations = activations
-    var shiftedBlocks = blocks
-    var shiftedNotes = notes
+    func shift(_ arr: inout [some Any], _ keyPaths: [WritableKeyPath<(some Any), Double>]) {} // Not used
+
+    var shiftedActors = positionedActors
+    var shiftedMessages = positionedMessages
+    var shiftedActivations = positionedActivations
+    var shiftedBlocks = positionedBlocks
+    var shiftedNotes = positionedNotes
+    var shiftedBoxes = positionedBoxes
+    var shiftedHighlights = rectHighlights
 
     if shiftX > 0 {
-        for i in shiftedActors.indices {
-            shiftedActors[i].x += shiftX
-        }
+        for i in shiftedActors.indices { shiftedActors[i].x += shiftX }
         for i in shiftedMessages.indices {
             shiftedMessages[i].x1 += shiftX
             shiftedMessages[i].x2 += shiftX
         }
-        for i in shiftedActivations.indices {
-            shiftedActivations[i].x += shiftX
-        }
-        for i in shiftedBlocks.indices {
-            shiftedBlocks[i].x += shiftX
-        }
-        for i in shiftedNotes.indices {
-            shiftedNotes[i].x += shiftX
-        }
-        for i in actorCenterX.indices {
-            actorCenterX[i] += shiftX
-        }
+        for i in shiftedActivations.indices { shiftedActivations[i].x += shiftX }
+        for i in shiftedBlocks.indices { shiftedBlocks[i].x += shiftX }
+        for i in shiftedNotes.indices { shiftedNotes[i].x += shiftX }
+        for i in shiftedBoxes.indices { shiftedBoxes[i].x += shiftX }
+        for i in shiftedHighlights.indices { shiftedHighlights[i].x += shiftX }
+        for i in actorCenterX.indices { actorCenterX[i] += shiftX }
     }
 
-    let lifelines: [SequenceLifeline] = diagram.actors.enumerated().map { idx, actor in
-        SequenceLifeline(
-            actorId: actor.id,
-            x: actorCenterX[idx],
-            topY: actorY + _SEQ.actorHeight,
-            bottomY: diagramBottom - _SEQ.padding
-        )
-    }
-
-    let diagramWidth = globalMaxX + shiftX + _SEQ.padding
+    let diagramWidth = globalMaxX + shiftX + cfg.diagramMarginX
     let diagramHeight = diagramBottom
 
     return PositionedSequenceDiagram(
@@ -379,9 +443,67 @@ private func _layoutSequenceDiagramEntry(
         messages: shiftedMessages,
         activations: shiftedActivations,
         blocks: shiftedBlocks,
-        notes: shiftedNotes
+        notes: shiftedNotes,
+        boxes: shiftedBoxes,
+        bottomActors: bottomActors,
+        rectHighlights: shiftedHighlights,
+        title: diagram.title,
+        accTitle: diagram.accTitle,
+        accDescr: diagram.accDescr
     )
 }
+
+// MARK: - Helpers
+
+private func _estimateNoteHeight(_ note: SequenceNote) -> Double {
+    let lines = note.text.components(separatedBy: "\n")
+    let count = Double(max(1, lines.count))
+    let lineHeight = ceil(original_src_styles.FONT_SIZES.edgeLabel)
+    let spacing: Double = 4
+    return count * lineHeight + max(0, count - 1) * spacing + 16
+}
+
+private func _estimateNoteWidth(_ note: SequenceNote) -> Double {
+    let lines = note.text.components(separatedBy: "\n")
+    let maxW = lines.map {
+        original_src_styles.estimateTextWidth($0, original_src_styles.FONT_SIZES.edgeLabel, original_src_styles.FONT_WEIGHTS.edgeLabel)
+    }.max() ?? 0
+    return maxW + 16
+}
+
+private func _itemIdxToMsgIdx(_ itemIdx: Int, diagram: SequenceDiagram) -> Int {
+    var msgCount = 0
+    for (idx, item) in diagram.items.enumerated() {
+        if idx >= itemIdx { return msgCount }
+        if case .message = item { msgCount += 1 }
+    }
+    return msgCount
+}
+
+private func _msgIdxBeforeItem(_ itemIdx: Int, diagram: SequenceDiagram) -> Int {
+    // Returns the index of the last message before or at the given item index
+    var msgCount = -1
+    for (idx, item) in diagram.items.enumerated() {
+        if idx > itemIdx { return msgCount }
+        if case .message = item { msgCount += 1 }
+    }
+    return msgCount
+}
+
+private func _countNestingDepth(_ allBlocks: [SequenceBlock], _ target: SequenceBlock) -> Int {
+    var depth = 0
+    for other in allBlocks {
+        if other.startItemIndex == target.startItemIndex && other.endItemIndex == target.endItemIndex && other.type == target.type {
+            continue
+        }
+        if other.startItemIndex <= target.startItemIndex && other.endItemIndex >= target.endItemIndex {
+            depth += 1
+        }
+    }
+    return depth
+}
+
+// MARK: - Legacy class
 
 open class original_src_sequence_layout {
     public init() {}
@@ -390,6 +512,6 @@ open class original_src_sequence_layout {
         _ diagram: SequenceDiagram,
         _ options: RenderOptions = RenderOptions()
     ) throws -> PositionedSequenceDiagram {
-        try _layoutSequenceDiagramEntry(diagram, options)
+        try _layoutSequenceDiagramEntry(diagram, .default)
     }
 }

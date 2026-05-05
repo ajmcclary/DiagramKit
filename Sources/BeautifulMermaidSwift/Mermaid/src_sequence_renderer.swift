@@ -30,200 +30,346 @@ private func _renderSequenceSvgEntry(
     parts.append(original_src_theme.svgOpenTag(diagram.width, diagram.height, themeColors, transparent))
     parts.append(original_src_theme.buildStyleBlock(font, false))
     parts.append("<defs>")
-    parts.append(arrowMarkerDefs())
+    parts.append(_arrowMarkerDefs())
     parts.append("</defs>")
 
+    // Title
+    if let title = diagram.title {
+        parts.append(_renderTitle(title, width: diagram.width))
+    }
+
+    // Accessibility
+    if let accTitle = diagram.accTitle {
+        parts.append("<title>\(escapeXml(accTitle))</title>")
+    }
+    if let accDescr = diagram.accDescr {
+        parts.append("<desc>\(escapeXml(accDescr))</desc>")
+    }
+
+    // Z-order: rect highlights behind everything
+    for rect in diagram.rectHighlights {
+        parts.append(_renderRectHighlight(rect))
+    }
+
+    // Boxes (actor groups)
+    for box in diagram.boxes {
+        parts.append(_renderBox(box))
+    }
+
+    // Blocks
     for block in diagram.blocks {
-        parts.append(renderBlock(block))
+        if !block.isHighlight {
+            parts.append(_renderBlock(block))
+        }
     }
+
+    // Lifelines
     for lifeline in diagram.lifelines {
-        parts.append(renderLifeline(lifeline))
+        parts.append(_renderLifeline(lifeline))
     }
+
+    // Activations
     for activation in diagram.activations {
-        parts.append(renderActivation(activation))
+        parts.append(_renderActivation(activation))
     }
+
+    // Messages
     for message in diagram.messages {
-        parts.append(renderMessage(message))
+        parts.append(_renderMessage(message))
     }
+
+    // Notes
     for note in diagram.notes {
-        parts.append(renderNote(note))
+        parts.append(_renderNote(note))
     }
+
+    // Actor boxes (on top)
     for actor in diagram.actors {
-        parts.append(renderActor(actor))
+        parts.append(_renderActor(actor))
+    }
+
+    // Mirror actors at bottom
+    for actor in diagram.bottomActors {
+        parts.append(_renderActor(actor))
     }
 
     parts.append("</svg>")
     return parts.joined(separator: "\n")
 }
 
-private func arrowMarkerDefs() -> String {
-    let w = original_src_styles.ARROW_HEAD.width
-    let h = original_src_styles.ARROW_HEAD.height
-    return "  <marker id=\"seq-arrow\" markerWidth=\"\(w)\" markerHeight=\"\(h)\" refX=\"\(w)\" refY=\"\(h / 2)\" orient=\"auto-start-reverse\">"
-        + "\n    <polygon points=\"0 0, \(w) \(h / 2), 0 \(h)\" fill=\"var(--_arrow)\" />"
-        + "\n  </marker>"
-        + "\n  <marker id=\"seq-arrow-open\" markerWidth=\"\(w)\" markerHeight=\"\(h)\" refX=\"\(w)\" refY=\"\(h / 2)\" orient=\"auto-start-reverse\">"
-        + "\n    <polyline points=\"0 0, \(w) \(h / 2), 0 \(h)\" fill=\"none\" stroke=\"var(--_arrow)\" stroke-width=\"1\" />"
-        + "\n  </marker>"
+// MARK: - SVG Defs
+
+private func _arrowMarkerDefs() -> String {
+    let w: Double = 8
+    let h: Double = 5
+    var defs: [String] = []
+
+    // filled triangle
+    defs.append("""
+      <marker id="seq-arrow-filled" markerWidth="\(w)" markerHeight="\(h)" refX="\(w)" refY="\(h / 2)" orient="auto-start-reverse">
+        <polygon points="0 0, \(w) \(h / 2), 0 \(h)" fill="var(--_arrow)" />
+      </marker>
+    """)
+
+    // open V
+    defs.append("""
+      <marker id="seq-arrow-open" markerWidth="\(w)" markerHeight="\(h)" refX="\(w)" refY="\(h / 2)" orient="auto-start-reverse">
+        <polyline points="0 0, \(w) \(h / 2), 0 \(h)" fill="none" stroke="var(--_arrow)" stroke-width="1" />
+      </marker>
+    """)
+
+    // cross (X)
+    defs.append("""
+      <marker id="seq-arrow-cross" markerWidth="\(w * 2)" markerHeight="\(h * 2)" refX="\(w * 2)" refY="\(h)" orient="auto-start-reverse">
+        <line x1="\(w)" y1="-\(h)" x2="0" y2="\(h)" stroke="var(--_arrow)" stroke-width="1.5" />
+        <line x1="\(w)" y1="\(h)" x2="0" y2="-\(h)" stroke="var(--_arrow)" stroke-width="1.5" />
+      </marker>
+    """)
+
+    // async open arc
+    defs.append("""
+      <marker id="seq-arrow-async" markerWidth="\(w)" markerHeight="\(h)" refX="\(w)" refY="\(h / 2)" orient="auto-start-reverse">
+        <path d="M 1 \(h / 2) Q \(w / 2) -1, \(w - 1) \(h / 2)" fill="none" stroke="var(--_arrow)" stroke-width="1" />
+      </marker>
+    """)
+
+    // Half arrow top
+    defs.append("""
+      <marker id="seq-arrow-half-top" markerWidth="\(w)" markerHeight="\(h)" refX="\(w)" refY="\(h / 2)" orient="auto-start-reverse">
+        <polygon points="0 0, \(w) \(h / 2), 0 \(h / 2)" fill="var(--_arrow)" />
+      </marker>
+    """)
+
+    // Half arrow bottom
+    defs.append("""
+      <marker id="seq-arrow-half-bottom" markerWidth="\(w)" markerHeight="\(h)" refX="\(w)" refY="\(h / 2)" orient="auto-start-reverse">
+        <polygon points="0 \(h / 2), \(w) \(h / 2), 0 \(h)" fill="var(--_arrow)" />
+      </marker>
+    """)
+
+    // Stick top
+    defs.append("""
+      <marker id="seq-arrow-stick-top" markerWidth="\(w)" markerHeight="\(h)" refX="\(w)" refY="\(h / 2)" orient="auto-start-reverse">
+        <line x1="0" y1="0" x2="0" y2="\(h / 2)" stroke="var(--_arrow)" stroke-width="1.5" />
+        <line x1="\(w)" y1="0" x2="0" y2="0" stroke="var(--_arrow)" stroke-width="1.5" />
+      </marker>
+    """)
+
+    // Stick bottom
+    defs.append("""
+      <marker id="seq-arrow-stick-bottom" markerWidth="\(w)" markerHeight="\(h)" refX="\(w)" refY="\(h / 2)" orient="auto-start-reverse">
+        <line x1="0" y1="\(h / 2)" x2="0" y2="\(h)" stroke="var(--_arrow)" stroke-width="1.5" />
+        <line x1="\(w)" y1="\(h / 2)" x2="0" y2="\(h / 2)" stroke="var(--_arrow)" stroke-width="1.5" />
+      </marker>
+    """)
+
+    return defs.joined(separator: "\n")
 }
 
-private func renderActor(_ actor: PositionedSequenceActor) -> String {
-    let id = actor.id
+// MARK: - Marker ID by arrow type
+
+private func _markerId(for arrowType: SequenceArrowType) -> String? {
+    let style = SequenceArrowStyle(type: arrowType)
+    if style.isCross { return "seq-arrow-cross" }
+    if style.isOpenArrow { return "seq-arrow-async" }
+    if !style.hasArrowEnd { return nil }
+    if style.isHalfArrow {
+        return style.halfArrowStyle == .stick
+            ? (style.halfArrowDirection == .top ? "seq-arrow-stick-top" : "seq-arrow-stick-bottom")
+            : (style.halfArrowDirection == .top ? "seq-arrow-half-top" : "seq-arrow-half-bottom")
+    }
+    return "seq-arrow-filled"
+}
+
+// MARK: - Title
+
+private func _renderTitle(_ title: String, width: Double) -> String {
+    "<text x=\"\(width / 2)\" y=\"18\" text-anchor=\"middle\" font-size=\"16\" font-weight=\"600\" fill=\"var(--_text)\">\(escapeXml(title))</text>"
+}
+
+// MARK: - Rect Highlight
+
+private func _renderRectHighlight(_ rect: PositionedRectHighlight) -> String {
+    "<rect class=\"rect-highlight\" x=\"\(rect.x)\" y=\"\(rect.y)\" width=\"\(max(rect.width, 0))\" height=\"\(max(rect.height, 0))\" fill=\"\(escapeAttr(rect.fill))\" stroke=\"none\" />"
+}
+
+// MARK: - Box
+
+private func _renderBox(_ box: PositionedSequenceBox) -> String {
+    var parts: [String] = []
+    parts.append("<g class=\"box\" data-id=\"\(escapeAttr(box.id))\">")
+    parts.append("  <rect x=\"\(box.x)\" y=\"\(box.y)\" width=\"\(box.width)\" height=\"\(box.height)\" fill=\"\(escapeAttr(box.fill))\" fill-opacity=\"0.1\" stroke=\"\(escapeAttr(box.fill))\" stroke-width=\"1\" stroke-dasharray=\"6 4\" rx=\"4\" ry=\"4\" />")
+    if let name = box.name, !name.isEmpty {
+        parts.append("  <text x=\"\(box.x + 6)\" y=\"\(box.y + 14)\" font-size=\"12\" font-weight=\"500\" fill=\"var(--_text-muted)\">\(escapeXml(name))</text>")
+    }
+    parts.append("</g>")
+    return parts.joined(separator: "\n")
+}
+
+// MARK: - Actor
+
+private func _renderActor(_ actor: PositionedSequenceActor) -> String {
     let x = actor.x
     let y = actor.y
     let width = actor.width
     let height = actor.height
     let label = actor.label
-    let type = actor.type
+    let pType = actor.participantType
 
     var parts: [String] = []
-    parts.append(
-        "<g class=\"actor\" data-id=\"\(escapeAttr(id))\" data-label=\"\(escapeAttr(label))\" data-type=\"\(type)\">"
-    )
+    parts.append("<g class=\"actor\" data-id=\"\(escapeAttr(actor.id))\" data-label=\"\(escapeAttr(label))\" data-type=\"\(escapeAttr(pType.rawValue))\">")
 
-    if type == "actor" {
+    switch pType {
+    case .actor:
         let s = (height / 24) * 0.9
         let tx = x - 12 * s
         let ty = y + (height - 24 * s) / 2
-        let sw = original_src_styles.STROKE_WIDTHS.outerBox / s
+        let sw = max(1.0, original_src_styles.STROKE_WIDTHS.outerBox / s)
         let iconStroke = "var(--_line)"
+        parts.append("""
+          <g transform="translate(\(tx),\(ty)) scale(\(s))">
+            <path d="M21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12Z" fill="none" stroke="\(iconStroke)" stroke-width="\(sw)" />
+            <path d="M15 10C15 11.6569 13.6569 13 12 13C10.3431 13 9 11.6569 9 10C9 8.34315 10.3431 7 12 7C13.6569 7 15 8.34315 15 10Z" fill="none" stroke="\(iconStroke)" stroke-width="\(sw)" />
+            <path d="M5.62842 18.3563C7.08963 17.0398 9.39997 16 12 16C14.6 16 16.9104 17.0398 18.3716 18.3563" fill="none" stroke="\(iconStroke)" stroke-width="\(sw)" />
+          </g>
+        """)
+        parts.append(_textEl(label, cx: x, cy: y + height + 14, fontSize: original_src_styles.FONT_SIZES.nodeLabel, anchor: "middle", cls: "actor-label"))
 
-        parts.append(
-            "  <g transform=\"translate(\(tx),\(ty)) scale(\(s))\">"
-                + "\n    <path d=\"M21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12Z\" fill=\"none\" stroke=\"\(iconStroke)\" stroke-width=\"\(sw)\" />"
-                + "\n    <path d=\"M15 10C15 11.6569 13.6569 13 12 13C10.3431 13 9 11.6569 9 10C9 8.34315 10.3431 7 12 7C13.6569 7 15 8.34315 15 10Z\" fill=\"none\" stroke=\"\(iconStroke)\" stroke-width=\"\(sw)\" />"
-                + "\n    <path d=\"M5.62842 18.3563C7.08963 17.0398 9.39997 16 12 16C14.6 16 16.9104 17.0398 18.3716 18.3563\" fill=\"none\" stroke=\"\(iconStroke)\" stroke-width=\"\(sw)\" />"
-                + "\n  </g>"
-        )
-
-        parts.append(
-            "  " + original_src_multiline_utils.renderMultilineText(
-                label,
-                cx: x,
-                cy: y + height + 14,
-                fontSize: original_src_styles.FONT_SIZES.nodeLabel,
-                attrs: "font-size=\"\(original_src_styles.FONT_SIZES.nodeLabel)\" text-anchor=\"middle\" font-weight=\"\(original_src_styles.FONT_WEIGHTS.nodeLabel)\" fill=\"var(--_text)\""
-            )
-        )
-    } else {
+    case .participant:
         let boxX = x - width / 2
-        parts.append(
-            "  <rect x=\"\(boxX)\" y=\"\(y)\" width=\"\(width)\" height=\"\(height)\" rx=\"4\" ry=\"4\" fill=\"var(--_node-fill)\" stroke=\"var(--_node-stroke)\" stroke-width=\"\(original_src_styles.STROKE_WIDTHS.outerBox)\" />"
-        )
-        parts.append(
-            "  " + original_src_multiline_utils.renderMultilineText(
-                label,
-                cx: x,
-                cy: y + height / 2,
-                fontSize: original_src_styles.FONT_SIZES.nodeLabel,
-                attrs: "font-size=\"\(original_src_styles.FONT_SIZES.nodeLabel)\" text-anchor=\"middle\" font-weight=\"\(original_src_styles.FONT_WEIGHTS.nodeLabel)\" fill=\"var(--_text)\""
-            )
-        )
+        parts.append("<rect x=\"\(boxX)\" y=\"\(y)\" width=\"\(width)\" height=\"\(height)\" rx=\"4\" ry=\"4\" fill=\"var(--_node-fill)\" stroke=\"var(--_node-stroke)\" stroke-width=\"\(original_src_styles.STROKE_WIDTHS.outerBox)\" />")
+        parts.append(_textEl(label, cx: x, cy: y + height / 2, fontSize: original_src_styles.FONT_SIZES.nodeLabel, anchor: "middle", cls: "actor-label"))
+
+    case .boundary:
+        let r = min(width, height) / 2 - 2
+        let cy = y + height / 2
+        parts.append("<circle cx=\"\(x)\" cy=\"\(cy)\" r=\"\(r)\" fill=\"var(--_node-fill)\" stroke=\"var(--_node-stroke)\" stroke-width=\"\(original_src_styles.STROKE_WIDTHS.outerBox)\" />")
+        parts.append("<line x1=\"\(x)\" y1=\"\(cy - r)\" x2=\"\(x)\" y2=\"\(cy + r)\" stroke=\"var(--_node-stroke)\" stroke-width=\"\(original_src_styles.STROKE_WIDTHS.innerBox)\" />")
+        parts.append(_textEl(label, cx: x, cy: y + height + 14, fontSize: original_src_styles.FONT_SIZES.nodeLabel, anchor: "middle", cls: "actor-label"))
+
+    case .control:
+        let r = min(width, height) / 2 - 2
+        let cy = y + height / 2
+        parts.append("<circle cx=\"\(x)\" cy=\"\(cy)\" r=\"\(r)\" fill=\"var(--_node-fill)\" stroke=\"var(--_node-stroke)\" stroke-width=\"\(original_src_styles.STROKE_WIDTHS.outerBox)\" />")
+        // Arrow at top of circle
+        let arTop = cy - r
+        parts.append("<polygon points=\"\(x),\(arTop - 6) \(x - 5),\(arTop) \(x + 5),\(arTop)\" fill=\"var(--_node-stroke)\" />")
+        parts.append(_textEl(label, cx: x, cy: y + height + 14, fontSize: original_src_styles.FONT_SIZES.nodeLabel, anchor: "middle", cls: "actor-label"))
+
+    case .entity:
+        let r = min(width, height) / 2 - 2
+        let cy = y + height / 2
+        parts.append("<circle cx=\"\(x)\" cy=\"\(cy)\" r=\"\(r)\" fill=\"var(--_node-fill)\" stroke=\"var(--_node-stroke)\" stroke-width=\"\(original_src_styles.STROKE_WIDTHS.outerBox)\" />")
+        // Horizontal line at bottom
+        parts.append("<line x1=\"\(x - r)\" y1=\"\(cy + r * 0.6)\" x2=\"\(x + r)\" y2=\"\(cy + r * 0.6)\" stroke=\"var(--_node-stroke)\" stroke-width=\"\(original_src_styles.STROKE_WIDTHS.innerBox)\" />")
+        parts.append(_textEl(label, cx: x, cy: y + height + 14, fontSize: original_src_styles.FONT_SIZES.nodeLabel, anchor: "middle", cls: "actor-label"))
+
+    case .database:
+        let boxX = x - width / 2
+        let ellH = 6.0
+        parts.append("<path d=\"M\(boxX) \(y + ellH) L\(boxX) \(y + height - ellH) A\(width / 2) \(ellH) 0 0 0 \(boxX + width) \(y + height - ellH) L\(boxX + width) \(y + ellH) A\(width / 2) \(ellH) 0 1 1 \(boxX) \(y + ellH)\" fill=\"var(--_node-fill)\" stroke=\"var(--_node-stroke)\" stroke-width=\"\(original_src_styles.STROKE_WIDTHS.outerBox)\" />")
+        parts.append("<ellipse cx=\"\(x)\" cy=\"\(y + ellH)\" rx=\"\(width / 2)\" ry=\"\(ellH)\" fill=\"var(--_node-fill)\" stroke=\"var(--_node-stroke)\" stroke-width=\"\(original_src_styles.STROKE_WIDTHS.outerBox)\" />")
+        parts.append(_textEl(label, cx: x, cy: y + height + 14, fontSize: original_src_styles.FONT_SIZES.nodeLabel, anchor: "middle", cls: "actor-label"))
+
+    case .collections:
+        let boxX = x - width / 2
+        let offsetX = 3.0
+        let offsetY = -3.0
+        parts.append("<rect x=\"\(boxX + offsetX)\" y=\"\(y + offsetY)\" width=\"\(width)\" height=\"\(height)\" rx=\"3\" ry=\"3\" fill=\"var(--_node-fill)\" stroke=\"var(--_node-stroke)\" stroke-width=\"\(original_src_styles.STROKE_WIDTHS.innerBox)\" />")
+        parts.append("<rect x=\"\(boxX)\" y=\"\(y)\" width=\"\(width)\" height=\"\(height)\" rx=\"3\" ry=\"3\" fill=\"var(--_node-fill)\" stroke=\"var(--_node-stroke)\" stroke-width=\"\(original_src_styles.STROKE_WIDTHS.outerBox)\" />")
+        parts.append(_textEl(label, cx: x + offsetX / 2, cy: y + height + 14, fontSize: original_src_styles.FONT_SIZES.nodeLabel, anchor: "middle", cls: "actor-label"))
+
+    case .queue:
+        let boxX = x - width / 2
+        let ellH = 3.0
+        parts.append("<path d=\"M\(boxX) \(y) L\(boxX) \(y + height) L\(boxX + width) \(y + height) A\(width / 2) \(ellH) 0 0 0 \(boxX + width) \(y) Z\" fill=\"var(--_node-fill)\" stroke=\"var(--_node-stroke)\" stroke-width=\"\(original_src_styles.STROKE_WIDTHS.outerBox)\" />")
+        parts.append(_textEl(label, cx: x, cy: y + height + 14, fontSize: original_src_styles.FONT_SIZES.nodeLabel, anchor: "middle", cls: "actor-label"))
     }
 
     parts.append("</g>")
     return parts.joined(separator: "\n")
 }
 
-private func renderLifeline(_ lifeline: SequenceLifeline) -> String {
+// MARK: - Lifeline
+
+private func _renderLifeline(_ lifeline: SequenceLifeline) -> String {
     "<line class=\"lifeline\" data-actor=\"\(escapeAttr(lifeline.actorId))\" x1=\"\(lifeline.x)\" y1=\"\(lifeline.topY)\" x2=\"\(lifeline.x)\" y2=\"\(lifeline.bottomY)\" stroke=\"var(--_line)\" stroke-width=\"0.75\" stroke-dasharray=\"6 4\" />"
 }
 
-private func renderActivation(_ activation: SequenceActivation) -> String {
-    "<rect class=\"activation\" data-actor=\"\(escapeAttr(activation.actorId))\" x=\"\(activation.x)\" y=\"\(activation.topY)\" width=\"\(activation.width)\" height=\"\(activation.bottomY - activation.topY)\" fill=\"var(--_node-fill)\" stroke=\"var(--_node-stroke)\" stroke-width=\"\(original_src_styles.STROKE_WIDTHS.innerBox)\" />"
+// MARK: - Activation
+
+private func _renderActivation(_ activation: SequenceActivation) -> String {
+    "<rect class=\"activation\" data-actor=\"\(escapeAttr(activation.actorId))\" x=\"\(activation.x)\" y=\"\(activation.topY)\" width=\"\(activation.width)\" height=\"\(max(0, activation.bottomY - activation.topY))\" fill=\"var(--_node-fill)\" stroke=\"var(--_node-stroke)\" stroke-width=\"\(original_src_styles.STROKE_WIDTHS.innerBox)\" />"
 }
 
-private func renderMessage(_ msg: PositionedSequenceMessage) -> String {
+// MARK: - Message
+
+private func _renderMessage(_ msg: PositionedSequenceMessage) -> String {
     var parts: [String] = []
     let dashArray = msg.lineStyle == "dashed" ? " stroke-dasharray=\"6 4\"" : ""
-    let markerId = msg.arrowHead == "filled" ? "seq-arrow" : "seq-arrow-open"
+    let markerId = _markerId(for: msg.arrowType)
+    let markerEnd = markerId.map { " marker-end=\"url(#\($0))\"" } ?? ""
 
-    parts.append(
-        "<g class=\"message\" data-from=\"\(escapeAttr(msg.from))\" data-to=\"\(escapeAttr(msg.to))\" data-label=\"\(escapeAttr(msg.label))\" data-line-style=\"\(msg.lineStyle)\" data-arrow-head=\"\(msg.arrowHead)\" data-self=\"\(msg.isSelf)\">"
-    )
+    let style = SequenceArrowStyle(type: msg.arrowType)
+    let markerStart = style.isBidirectional ? markerEnd : ""
+
+    parts.append("<g class=\"message\" data-from=\"\(escapeAttr(msg.from))\" data-to=\"\(escapeAttr(msg.to))\" data-label=\"\(escapeAttr(msg.label))\" data-arrow-type=\"\(escapeAttr(String(msg.arrowType.rawValue)))\" data-self=\"\(msg.isSelf)\">")
+
+    // Sequence number
+    if msg.sequenceVisible, let num = msg.sequenceNumber {
+        let numX = msg.isSelf ? msg.x1 - 18 : min(msg.x1, msg.x2) - 18
+        parts.append("<text x=\"\(numX)\" y=\"\(msg.y - 2)\" font-size=\"\(original_src_styles.FONT_SIZES.edgeLabel)\" text-anchor=\"end\" fill=\"var(--_text-muted)\">\(Int(num))</text>")
+    }
+
+    // Central connection circle at source
+    if let cc = msg.centralConnection, (cc == .source || cc == .both) {
+        let cx = msg.isSelf ? msg.x1 : msg.x1
+        parts.append("<circle cx=\"\(cx)\" cy=\"\(msg.y)\" r=\"5\" fill=\"var(--_bg)\" stroke=\"var(--_line)\" stroke-width=\"1\" />")
+    }
+    // Central connection circle at dest
+    if let cc = msg.centralConnection, (cc == .dest || cc == .both) {
+        let cx = msg.isSelf ? msg.x2 : msg.x2
+        parts.append("<circle cx=\"\(cx)\" cy=\"\(msg.y)\" r=\"5\" fill=\"var(--_bg)\" stroke=\"var(--_line)\" stroke-width=\"1\" />")
+    }
 
     if msg.isSelf {
         let loopW = 30.0
         let loopH = 20.0
         let labelPadding = 8.0
-        parts.append(
-            "  <polyline points=\"\(msg.x1),\(msg.y) \(msg.x1 + loopW),\(msg.y) \(msg.x1 + loopW),\(msg.y + loopH) \(msg.x2),\(msg.y + loopH)\" fill=\"none\" stroke=\"var(--_line)\" stroke-width=\"\(original_src_styles.STROKE_WIDTHS.connector)\"\(dashArray) marker-end=\"url(#\(markerId))\" />"
-        )
-        parts.append(
-            "  " + original_src_multiline_utils.renderMultilineText(
-                msg.label,
-                cx: msg.x1 + loopW + labelPadding,
-                cy: msg.y + loopH / 2,
-                fontSize: original_src_styles.FONT_SIZES.edgeLabel,
-                attrs: "font-size=\"\(original_src_styles.FONT_SIZES.edgeLabel)\" text-anchor=\"start\" font-weight=\"\(original_src_styles.FONT_WEIGHTS.edgeLabel)\" fill=\"var(--_text-muted)\""
-            )
-        )
+        parts.append("<polyline points=\"\(msg.x1),\(msg.y) \(msg.x1 + loopW),\(msg.y) \(msg.x1 + loopW),\(msg.y + loopH) \(msg.x2),\(msg.y + loopH)\" fill=\"none\" stroke=\"var(--_line)\" stroke-width=\"\(original_src_styles.STROKE_WIDTHS.connector)\"\(dashArray)\(markerEnd) />")
+        parts.append(_textEl(msg.label, cx: msg.x1 + loopW + labelPadding, cy: msg.y + loopH / 2, fontSize: original_src_styles.FONT_SIZES.edgeLabel, anchor: "start", cls: "message-text"))
     } else {
-        parts.append(
-            "  <line x1=\"\(msg.x1)\" y1=\"\(msg.y)\" x2=\"\(msg.x2)\" y2=\"\(msg.y)\" stroke=\"var(--_line)\" stroke-width=\"\(original_src_styles.STROKE_WIDTHS.connector)\"\(dashArray) marker-end=\"url(#\(markerId))\" />"
-        )
+        // Bidirectional uses marker-start too
+        let mStart = style.isBidirectional && markerId != nil ? " marker-start=\"url(#\(markerId!))\"" : ""
+        parts.append("<line x1=\"\(msg.x1)\" y1=\"\(msg.y)\" x2=\"\(msg.x2)\" y2=\"\(msg.y)\" stroke=\"var(--_line)\" stroke-width=\"\(original_src_styles.STROKE_WIDTHS.connector)\"\(dashArray)\(markerEnd)\(mStart) />")
         let midX = (msg.x1 + msg.x2) / 2
-        parts.append(
-            "  " + original_src_multiline_utils.renderMultilineText(
-                msg.label,
-                cx: midX,
-                cy: msg.y - 6,
-                fontSize: original_src_styles.FONT_SIZES.edgeLabel,
-                attrs: "font-size=\"\(original_src_styles.FONT_SIZES.edgeLabel)\" text-anchor=\"middle\" font-weight=\"\(original_src_styles.FONT_WEIGHTS.edgeLabel)\" fill=\"var(--_text-muted)\""
-            )
-        )
+        parts.append(_textEl(msg.label, cx: midX, cy: msg.y - 6, fontSize: original_src_styles.FONT_SIZES.edgeLabel, anchor: "middle", cls: "message-text"))
     }
 
     parts.append("</g>")
     return parts.joined(separator: "\n")
 }
 
-private func renderBlock(_ block: PositionedSequenceBlock) -> String {
+// MARK: - Block
+
+private func _renderBlock(_ block: PositionedSequenceBlock) -> String {
     var parts: [String] = []
     let labelAttr = block.label.isEmpty ? "" : " data-label=\"\(escapeAttr(block.label))\""
-
     parts.append("<g class=\"block\" data-type=\"\(escapeAttr(block.type))\"\(labelAttr)>")
-    parts.append(
-        "  <rect x=\"\(block.x)\" y=\"\(block.y)\" width=\"\(block.width)\" height=\"\(block.height)\" rx=\"0\" ry=\"0\" fill=\"none\" stroke=\"var(--_node-stroke)\" stroke-width=\"\(original_src_styles.STROKE_WIDTHS.outerBox)\" />"
-    )
+    parts.append("<rect x=\"\(block.x)\" y=\"\(block.y)\" width=\"\(block.width)\" height=\"\(block.height)\" rx=\"0\" ry=\"0\" fill=\"none\" stroke=\"var(--_node-stroke)\" stroke-width=\"\(original_src_styles.STROKE_WIDTHS.outerBox)\" />")
 
     let labelText = block.label.isEmpty ? block.type : "\(block.type) [\(block.label)]"
     let firstLine = labelText.components(separatedBy: "\n").first ?? labelText
-    let tabWidth = original_src_styles.estimateTextWidth(
-        firstLine,
-        original_src_styles.FONT_SIZES.edgeLabel,
-        original_src_styles.FONT_WEIGHTS.groupHeader
-    ) + 16
+    let tabWidth = original_src_styles.estimateTextWidth(firstLine, original_src_styles.FONT_SIZES.edgeLabel, original_src_styles.FONT_WEIGHTS.groupHeader) + 16
     let tabHeight = 18.0
 
-    parts.append(
-        "  <rect x=\"\(block.x)\" y=\"\(block.y)\" width=\"\(tabWidth)\" height=\"\(tabHeight)\" fill=\"var(--_group-hdr)\" stroke=\"var(--_node-stroke)\" stroke-width=\"\(original_src_styles.STROKE_WIDTHS.outerBox)\" />"
-    )
-
-    parts.append(
-        "  " + original_src_multiline_utils.renderMultilineText(
-            labelText,
-            cx: block.x + 6,
-            cy: block.y + tabHeight / 2,
-            fontSize: original_src_styles.FONT_SIZES.edgeLabel,
-            attrs: "font-size=\"\(original_src_styles.FONT_SIZES.edgeLabel)\" font-weight=\"\(original_src_styles.FONT_WEIGHTS.groupHeader)\" fill=\"var(--_text-sec)\""
-        )
-    )
+    parts.append("<rect x=\"\(block.x)\" y=\"\(block.y)\" width=\"\(tabWidth)\" height=\"\(tabHeight)\" fill=\"var(--_group-hdr)\" stroke=\"var(--_node-stroke)\" stroke-width=\"\(original_src_styles.STROKE_WIDTHS.outerBox)\" />")
+    parts.append(_textEl(labelText, cx: block.x + 6, cy: block.y + tabHeight / 2, fontSize: original_src_styles.FONT_SIZES.edgeLabel, anchor: "start", cls: "block-label", weight: original_src_styles.FONT_WEIGHTS.groupHeader))
 
     for divider in block.dividers {
-        parts.append(
-            "  <line x1=\"\(block.x)\" y1=\"\(divider.y)\" x2=\"\(block.x + block.width)\" y2=\"\(divider.y)\" stroke=\"var(--_line)\" stroke-width=\"0.75\" stroke-dasharray=\"6 4\" />"
-        )
+        parts.append("<line x1=\"\(block.x)\" y1=\"\(divider.y)\" x2=\"\(block.x + block.width)\" y2=\"\(divider.y)\" stroke=\"var(--_line)\" stroke-width=\"0.75\" stroke-dasharray=\"6 4\" />")
         if !divider.label.isEmpty {
-            parts.append(
-                "  " + original_src_multiline_utils.renderMultilineText(
-                    "[\(divider.label)]",
-                    cx: block.x + 8,
-                    cy: divider.y + 14,
-                    fontSize: original_src_styles.FONT_SIZES.edgeLabel,
-                    attrs: "font-size=\"\(original_src_styles.FONT_SIZES.edgeLabel)\" text-anchor=\"start\" font-weight=\"\(original_src_styles.FONT_WEIGHTS.edgeLabel)\" fill=\"var(--_text-muted)\""
-                )
-            )
+            parts.append(_textEl("[\(divider.label)]", cx: block.x + 8, cy: divider.y + 14, fontSize: original_src_styles.FONT_SIZES.edgeLabel, anchor: "start", cls: "divider-label"))
         }
     }
 
@@ -231,23 +377,14 @@ private func renderBlock(_ block: PositionedSequenceBlock) -> String {
     return parts.joined(separator: "\n")
 }
 
-private func renderNote(_ note: PositionedSequenceNote) -> String {
+// MARK: - Note
+
+private func _renderNote(_ note: PositionedSequenceNote) -> String {
     let foldSize = 6.0
     let actorsAttr = note.actors.isEmpty ? "" : " data-actors=\"\(note.actors.map(escapeAttr).joined(separator: ","))\""
     let positionAttr = note.position.isEmpty ? "" : " data-position=\"\(escapeAttr(note.position))\""
 
-    let noteTextAttrs =
-        "font-size=\"\(original_src_styles.FONT_SIZES.edgeLabel)\" "
-        + "text-anchor=\"middle\" "
-        + "font-weight=\"\(original_src_styles.FONT_WEIGHTS.edgeLabel)\" "
-        + "fill=\"var(--_text-muted)\""
-    let noteText = original_src_multiline_utils.renderMultilineText(
-        note.text,
-        cx: note.x + note.width / 2,
-        cy: note.y + note.height / 2,
-        fontSize: original_src_styles.FONT_SIZES.edgeLabel,
-        attrs: noteTextAttrs
-    )
+    let noteText = _textEl(note.text, cx: note.x + note.width / 2, cy: note.y + note.height / 2, fontSize: original_src_styles.FONT_SIZES.edgeLabel, anchor: "middle", cls: "note-text")
 
     return "<g class=\"note\"\(positionAttr)\(actorsAttr)>"
         + "\n  <rect x=\"\(note.x)\" y=\"\(note.y)\" width=\"\(note.width)\" height=\"\(note.height)\" fill=\"var(--_group-hdr)\" stroke=\"var(--_node-stroke)\" stroke-width=\"\(original_src_styles.STROKE_WIDTHS.innerBox)\" />"
@@ -255,6 +392,15 @@ private func renderNote(_ note: PositionedSequenceNote) -> String {
         + "\n  \(noteText)"
         + "\n</g>"
 }
+
+// MARK: - Text Helper
+
+private func _textEl(_ text: String, cx: Double, cy: Double, fontSize: Double, anchor: String, cls: String, weight: Int? = nil) -> String {
+    let w = weight.map { " font-weight=\"\($0)\"" } ?? ""
+    return "<text class=\"\(cls)\" x=\"\(cx)\" y=\"\(cy)\" font-size=\"\(fontSize)\" text-anchor=\"\(anchor)\" fill=\"var(--_text-muted)\"\(w)>\(escapeXml(text))</text>"
+}
+
+// MARK: - XML helpers
 
 private func escapeXml(_ value: String) -> String {
     original_src_multiline_utils.escapeXml(value)
@@ -267,6 +413,8 @@ private func escapeAttr(_ value: String) -> String {
         .replacingOccurrences(of: "<", with: "&lt;")
         .replacingOccurrences(of: ">", with: "&gt;")
 }
+
+// MARK: - Legacy class
 
 open class original_src_sequence_renderer {
     public init() {}

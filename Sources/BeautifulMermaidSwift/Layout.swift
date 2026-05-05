@@ -45,7 +45,7 @@ public struct GraphLayout {
             case .sequenceDiagram:
                 guard case let .sequenceDiagram(parsed) = graph.payload else {
                     _reportMermaidIssue("GraphLayout.layout found mismatched sequence diagram payload.")
-                    return PositionedGraph(diagram: graph, content: .sequenceDiagram(actors: [], messages: [], blocks: [], lifelines: [], activations: [], notes: []))
+                    return PositionedGraph(diagram: graph, content: .sequenceDiagram(actors: [], messages: [], blocks: [], lifelines: [], activations: [], notes: [], boxes: [], bottomActors: [], rectHighlights: [], title: nil, accTitle: nil, accDescr: nil))
                 }
                 let positioned = try layoutSequenceDiagram(parsed)
                 return PositionedGraph(
@@ -58,7 +58,13 @@ public struct GraphLayout {
                         blocks: positioned.blocks,
                         lifelines: positioned.lifelines,
                         activations: positioned.activations,
-                        notes: positioned.notes
+                        notes: positioned.notes,
+                        boxes: positioned.boxes,
+                        bottomActors: positioned.bottomActors,
+                        rectHighlights: positioned.rectHighlights,
+                        title: positioned.title,
+                        accTitle: positioned.accTitle,
+                        accDescr: positioned.accDescr
                     )
                 )
             case .xyChart:
