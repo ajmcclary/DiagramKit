@@ -1,7 +1,7 @@
 import Foundation
 
 /// Result of preprocessing: the stripped diagram source and any parsed frontmatter.
-typealias _PreprocessResult = (source: String, config: original_src_types.FlowchartConfig?)
+typealias _PreprocessResult = (source: String, frontmatter: DiagramFrontmatter?)
 
 func _preprocessMermaidSource(_ source: String) -> _PreprocessResult {
     _parseFrontMatterAndStripped(source)
@@ -20,7 +20,7 @@ func _mermaidSourceLines(
 }
 
 /// Parse YAML-like frontmatter from a source string.
-/// Returns the stripped diagram source and any parsed FlowchartConfig.
+/// Returns the stripped diagram source and any parsed DiagramFrontmatter.
 func _parseFrontMatterAndStripped(_ source: String) -> _PreprocessResult {
     let normalized = source
         .replacingOccurrences(of: "\r\n", with: "\n")
@@ -41,29 +41,34 @@ func _parseFrontMatterAndStripped(_ source: String) -> _PreprocessResult {
 
     let fmLines = Array(lines[(startIdx + 1)..<endIdx])
     let stripped = lines[(endIdx + 1)...].joined(separator: "\n")
-    let config = _parseYamlFlowchartConfig(fmLines)
-    return (stripped, config)
+    let frontmatter = _parseYamlFrontmatter(fmLines)
+    return (stripped, frontmatter)
 }
 
-/// Minimal YAML parser for Mermaid frontmatter.
-/// Handles: title, config.flowchart.curve, config.flowchart.htmlLabels, etc.
-private func _parseYamlFlowchartConfig(_ lines: [String]) -> original_src_types.FlowchartConfig? {
-    var config = original_src_types.FlowchartConfig()
-    var currentPath: [String] = []
+/// Extended YAML parser for Mermaid frontmatter.
+/// Handles: title, class.*, config.class.*, config.flowchart.*
+private func _parseYamlFrontmatter(_ lines: [String]) -> DiagramFrontmatter? {
+    var frontmatter = DiagramFrontmatter()
+    var flowchartConfig = original_src_types.FlowchartConfig()
     var hasFlowchartSection = false
+    var classConfig = ClassConfig()
+    var hasClassSection = false
+    var hasAnyContent = false
+
+    var currentPath: [String] = []
+    // Track the last depth to know if we're going deeper or staying at same level
+    var lastDepth = -1
 
     for line in lines {
         let trimmed = line.trimmingCharacters(in: .whitespaces)
         if trimmed.isEmpty || trimmed.hasPrefix("#") { continue }
 
-        // Simple key: value parsing
         let indent = line.prefix(while: { $0 == " " }).count
         let bare = trimmed
 
         // Remove the part after "#" (comment)
         let commentStripped: String
         if let hashIdx = bare.firstIndex(of: "#") {
-            // Don't strip if # is inside quotes
             if let quoteIdx = bare.firstIndex(of: "\""), quoteIdx < hashIdx,
                let closeIdx = bare[bare.index(after: quoteIdx)...].firstIndex(of: "\""), closeIdx > hashIdx {
                 commentStripped = bare
@@ -82,33 +87,80 @@ private func _parseYamlFlowchartConfig(_ lines: [String]) -> original_src_types.
         // Track nesting level
         let depth = indent / 2
         while currentPath.count > depth { currentPath.removeLast() }
-        if currentPath.count == depth {
-            if !currentPath.isEmpty { currentPath.removeLast() }
+        // Only remove the previous entry at this depth if we're at the SAME level (not child/parent)
+        if currentPath.count == depth && depth > 0 && depth <= lastDepth {
+            currentPath.removeLast()
         }
         currentPath.append(key)
+        lastDepth = depth
 
         let fullPath = currentPath.joined(separator: ".")
 
+        hasAnyContent = true
+
+        // title at root level
+        if fullPath == "title" && !value.isEmpty {
+            frontmatter.title = value
+            continue
+        }
+
+        // class.* config
+        if fullPath.hasPrefix("class.") {
+            hasClassSection = true
+            let subKey = fullPath.replacingOccurrences(of: "class.", with: "")
+            switch subKey {
+            case "hideEmptyMembersBox":
+                classConfig.hideEmptyMembersBox = (value.lowercased() == "true")
+            case "hierarchicalNamespaces":
+                classConfig.hierarchicalNamespaces = (value.lowercased() == "true")
+            case "padding":
+                classConfig.padding = Double(value)
+            default: break
+            }
+            continue
+        }
+
+        // config.class.* (alternative nesting)
+        if fullPath.hasPrefix("config.class.") {
+            hasClassSection = true
+            let subKey = fullPath.replacingOccurrences(of: "config.class.", with: "")
+            switch subKey {
+            case "hideEmptyMembersBox":
+                classConfig.hideEmptyMembersBox = (value.lowercased() == "true")
+            case "hierarchicalNamespaces":
+                classConfig.hierarchicalNamespaces = (value.lowercased() == "true")
+            case "padding":
+                classConfig.padding = Double(value)
+            default: break
+            }
+            continue
+        }
+
+        // flowchart config (backward compatible)
         if fullPath.hasPrefix("config.flowchart.") || (fullPath == "flowchart" && value.isEmpty) {
             hasFlowchartSection = true
             if !value.isEmpty {
                 let subKey = fullPath.replacingOccurrences(of: "config.flowchart.", with: "")
                 switch subKey {
-                case "curve": config.curve = value
-                case "htmlLabels": config.htmlLabels = (value.lowercased() == "true")
-                case "markdownAutoWrap": config.markdownAutoWrap = (value.lowercased() == "true")
-                case "width": config.width = Int(value)
-                case "inheritDir": config.inheritDir = (value.lowercased() == "true")
+                case "curve": flowchartConfig.curve = value
+                case "htmlLabels": flowchartConfig.htmlLabels = (value.lowercased() == "true")
+                case "markdownAutoWrap": flowchartConfig.markdownAutoWrap = (value.lowercased() == "true")
+                case "width": flowchartConfig.width = Int(value)
+                case "inheritDir": flowchartConfig.inheritDir = (value.lowercased() == "true")
                 default: break
                 }
             }
-        } else if fullPath == "flowchart", !value.isEmpty {
+            continue
+        } else if fullPath == "flowchart" && !value.isEmpty {
             hasFlowchartSection = true
-            config.curve = value.isEmpty ? nil : value
+            flowchartConfig.curve = value.isEmpty ? nil : value
         }
     }
 
-    return hasFlowchartSection ? config : nil
+    if hasFlowchartSection { frontmatter.flowchartConfig = flowchartConfig }
+    if hasClassSection { frontmatter.classConfig = classConfig }
+
+    return hasAnyContent ? frontmatter : nil
 }
 
 /// Strip surrounding quotes from a string.

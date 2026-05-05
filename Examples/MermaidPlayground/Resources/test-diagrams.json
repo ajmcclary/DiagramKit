@@ -381,10 +381,280 @@
       "source": "classDiagram\n  class Animal {\n    <<abstract>>\n    +String name\n    +int age\n    +eat() void\n    +sleep() void\n  }\n  class Mammal {\n    +bool warmBlooded\n    +nurse() void\n  }\n  class Bird {\n    +bool canFly\n    +layEggs() void\n  }\n  class Dog {\n    +String breed\n    +bark() void\n  }\n  class Cat {\n    +bool isIndoor\n    +purr() void\n  }\n  class Parrot {\n    +String vocabulary\n    +speak() void\n  }\n  Animal <|-- Mammal\n  Animal <|-- Bird\n  Mammal <|-- Dog\n  Mammal <|-- Cat\n  Bird <|-- Parrot"
     },
     {
+      "id": "class-17-v2-header",
+      "category": "class",
+      "name": "classDiagram-v2 Header",
+      "source": "classDiagram-v2\n    class Animal\n    class Dog\n    Animal <|-- Dog"
+    },
+    {
+      "id": "class-18-square-label",
+      "category": "class",
+      "name": "Square Bracket Label",
+      "source": "classDiagram\n    class Animal[\"Animal with a label\"]\n    class Dog[\"Canis familiaris\"]"
+    },
+    {
+      "id": "class-19-backtick-name",
+      "category": "class",
+      "name": "Backtick Escaped Name",
+      "source": "classDiagram\n    class `Animal Class!`\n    class `Car`\n    `Animal Class!` --> `Car`"
+    },
+    {
+      "id": "class-20-generic-declaration",
+      "category": "class",
+      "name": "Generic Type Declaration",
+      "source": "classDiagram\n    class Box~T~\n    class Pair~K,V~\n    class List~int~\n    Box --> List"
+    },
+    {
+      "id": "class-21-separate-annotation",
+      "category": "class",
+      "name": "Separate-Line Annotation",
+      "source": "classDiagram\n    class Shape\n    <<interface>> Shape\n    class Circle\n    Circle --|> Shape"
+    },
+    {
+      "id": "class-22-inline-annotation",
+      "category": "class",
+      "name": "Inline Annotation",
+      "source": "classDiagram\n    class Shape <<interface>>\n    class Circle <<concrete>>\n    Circle --|> Shape"
+    },
+    {
+      "id": "class-23-multiple-annotations",
+      "category": "class",
+      "name": "Multiple Annotations",
+      "source": "classDiagram\n    <<interface>> Shape\n    <<serializable>> Shape\n    <<abstract>> Shape\n    class Shape"
+    },
+    {
+      "id": "class-24-inline-annotation-members",
+      "category": "class",
+      "name": "Inline Annotation with Members",
+      "source": "classDiagram\n    class Shape <<interface>> {\n        +calculateArea() double\n    }\n    class Circle {\n        -radius double\n        +calculateArea() double\n    }\n    Circle --|> Shape"
+    },
+    {
+      "id": "class-25-generic-member",
+      "category": "class",
+      "name": "Generic Members",
+      "source": "classDiagram\n    class Box~T~ {\n        -content ~T~\n        +getContent() ~T~\n        +setContent(~T~ item)\n    }"
+    },
+    {
+      "id": "class-26-generic-method",
+      "category": "class",
+      "name": "Generic Method Types",
+      "source": "classDiagram\n    class Repository {\n        +findAll() List~T~\n        +findById(id) Optional~T~\n        +saveAll(items) List~T~\n    }"
+    },
+    {
+      "id": "class-27-member-separators",
+      "category": "class",
+      "name": "Member Separators",
+      "source": "classDiagram\n    class Example {\n        +attr1\n        ..\n        +attr2\n        ==\n        +method1()\n        --\n        +method2()\n        __\n        +method3()\n    }"
+    },
+    {
+      "id": "class-28-static-abstract",
+      "category": "class",
+      "name": "Static and Abstract Members",
+      "source": "classDiagram\n    class Animal {\n        +species string\n        +makeSound()* void\n        +count$ int\n        +instanceCount$() int\n    }"
+    },
+    {
+      "id": "class-29-two-ended-extension",
+      "category": "class",
+      "name": "Two-Ended Extension",
+      "source": "classDiagram\n    class A\n    class B\n    A <|--|> B"
+    },
+    {
+      "id": "class-30-two-ended-composition",
+      "category": "class",
+      "name": "Two-Ended Composition",
+      "source": "classDiagram\n    class A\n    class B\n    A *--* B"
+    },
+    {
+      "id": "class-31-two-ended-aggregation",
+      "category": "class",
+      "name": "Two-Ended Aggregation",
+      "source": "classDiagram\n    class A\n    class B\n    A o--o B"
+    },
+    {
+      "id": "class-32-lollipop",
+      "category": "class",
+      "name": "Lollipop Notation",
+      "source": "classDiagram\n    class Shape\n    Shape ()-- Drawable"
+    },
+    {
+      "id": "class-33-dashed-no-arrow",
+      "category": "class",
+      "name": "Dashed No-Arrow Relationship",
+      "source": "classDiagram\n    class A\n    class B\n    A .. B"
+    },
+    {
+      "id": "class-34-solid-no-arrow",
+      "category": "class",
+      "name": "Solid No-Arrow Relationship",
+      "source": "classDiagram\n    class A\n    class B\n    A -- B"
+    },
+    {
+      "id": "class-35-mixed-relation",
+      "category": "class",
+      "name": "Mixed Two-Ended Relations",
+      "source": "classDiagram\n    class A\n    class B\n    class C\n    A <|--* B\n    B o.. C"
+    },
+    {
+      "id": "class-36-dotted-aggregation",
+      "category": "class",
+      "name": "Dotted Aggregation",
+      "source": "classDiagram\n    class A\n    class B\n    A o.. B"
+    },
+    {
+      "id": "class-37-dotted-composition",
+      "category": "class",
+      "name": "Dotted Composition",
+      "source": "classDiagram\n    class A\n    class B\n    A *.. B"
+    },
+    {
+      "id": "class-38-namespace-basic",
+      "category": "class",
+      "name": "Basic Namespace",
+      "source": "classDiagram\n    namespace Company {\n        class Employee\n        class Department\n    }\n    Employee --> Department"
+    },
+    {
+      "id": "class-39-namespace-label",
+      "category": "class",
+      "name": "Namespace with Label",
+      "source": "classDiagram\n    namespace Auth[\"Authentication Service\"] {\n        class User\n        class Token\n    }"
+    },
+    {
+      "id": "class-40-namespace-dotted",
+      "category": "class",
+      "name": "Dot-Notation Namespace",
+      "source": "classDiagram\n    namespace Company.Engineering.Backend {\n        class Server\n        class Database\n    }"
+    },
+    {
+      "id": "class-41-namespace-nested",
+      "category": "class",
+      "name": "Nested Namespaces",
+      "source": "classDiagram\n    namespace A {\n        namespace B {\n            class Foo\n        }\n        class Bar\n    }"
+    },
+    {
+      "id": "class-42-note-general",
+      "category": "class",
+      "name": "General Note",
+      "source": "classDiagram\n    class A\n    class B\n    note \"This is a general note\"\n    A --> B"
+    },
+    {
+      "id": "class-43-note-attached",
+      "category": "class",
+      "name": "Class-Attached Note",
+      "source": "classDiagram\n    class A\n    class B\n    note for A \"This note is for class A\"\n    A --> B"
+    },
+    {
+      "id": "class-44-note-namespace",
+      "category": "class",
+      "name": "Note Inside Namespace",
+      "source": "classDiagram\n    namespace Group {\n        class A\n        note \"Note inside namespace\"\n    }"
+    },
+    {
+      "id": "class-45-style-basic",
+      "category": "class",
+      "name": "Style Directive",
+      "source": "classDiagram\n    class Animal\n    class Dog\n    style Animal fill:#f9f,stroke:#333,stroke-width:4px\n    Animal <|-- Dog"
+    },
+    {
+      "id": "class-46-classdef-basic",
+      "category": "class",
+      "name": "classDef Basic",
+      "source": "classDiagram\n    class Animal\n    class Dog\n    classDef pink fill:#f9f,stroke:#333\n    Animal <|-- Dog"
+    },
+    {
+      "id": "class-47-classdef-default",
+      "category": "class",
+      "name": "classDef Default Style",
+      "source": "classDiagram\n    class Animal\n    classDef default fill:#f9f,color:#fff\n    Animal <|-- Dog"
+    },
+    {
+      "id": "class-48-css-class",
+      "category": "class",
+      "name": "cssClass Directive",
+      "source": "classDiagram\n    class Animal\n    class Dog\n    classDef pink fill:#f9f\n    cssClass \"Animal\" pink"
+    },
+    {
+      "id": "class-49-css-multi",
+      "category": "class",
+      "name": "Multi-class cssClass",
+      "source": "classDiagram\n    class A\n    class B\n    classDef red fill:#f00\n    cssClass \"A,B\" red"
+    },
+    {
+      "id": "class-50-shorthand",
+      "category": "class",
+      "name": ":: Shorthand Style",
+      "source": "classDiagram\n    class Shape\n    classDef exClass fill:#f9f\n    class Shape ::: exClass"
+    },
+    {
+      "id": "class-51-link",
+      "category": "class",
+      "name": "Link Directive",
+      "source": "classDiagram\n    class Animal\n    class Dog\n    link Animal \"https://example.com\" \"Click to learn more\"\n    Animal <|-- Dog"
+    },
+    {
+      "id": "class-52-click-href",
+      "category": "class",
+      "name": "Click href Directive",
+      "source": "classDiagram\n    class Animal\n    class Dog\n    click Animal href \"https://example.com\" \"Animal info\" _blank\n    Animal <|-- Dog"
+    },
+    {
+      "id": "class-53-click-callback",
+      "category": "class",
+      "name": "Click Callback Directive",
+      "source": "classDiagram\n    class Animal\n    class Dog\n    click Animal call callback() \"Click tooltip\"\n    Animal <|-- Dog"
+    },
+    {
+      "id": "class-54-callback",
+      "category": "class",
+      "name": "Callback Directive",
+      "source": "classDiagram\n    class Animal\n    class Dog\n    callback Animal \"myCallback\" \"Tooltip text\"\n    Animal <|-- Dog"
+    },
+    {
+      "id": "class-55-acc-title",
+      "category": "class",
+      "name": "Accessibility Title",
+      "source": "classDiagram\n    accTitle: \"Animal Hierarchy Diagram\"\n    class Animal\n    class Dog\n    Animal <|-- Dog"
+    },
+    {
+      "id": "class-56-acc-descr",
+      "category": "class",
+      "name": "Accessibility Description",
+      "source": "classDiagram\n    accDescr: \"This diagram shows animal class hierarchy\"\n    class Animal\n    class Dog\n    Animal <|-- Dog"
+    },
+    {
+      "id": "class-57-acc-descr-multiline",
+      "category": "class",
+      "name": "Multiline Accessibility Description",
+      "source": "classDiagram\n    accDescr {\n        This diagram shows the animal class hierarchy.\n        Animals have species and sound methods.\n    }\n    class Animal\n    class Dog\n    Animal <|-- Dog"
+    },
+    {
+      "id": "class-58-direction-tb",
+      "category": "class",
+      "name": "Direction TB",
+      "source": "classDiagram\n    direction TB\n    class A\n    class B\n    class C\n    A --> B --> C"
+    },
+    {
+      "id": "class-59-direction-lr",
+      "category": "class",
+      "name": "Direction LR",
+      "source": "classDiagram\n    direction LR\n    class A\n    class B\n    class C\n    A --> B --> C"
+    },
+    {
+      "id": "class-60-frontmatter-title",
+      "category": "class",
+      "name": "Frontmatter Title",
+      "source": "---\ntitle: My Class Diagram\n---\nclassDiagram\n    class Animal\n    class Dog\n    Animal <|-- Dog"
+    },
+    {
+      "id": "class-61-frontmatter-config",
+      "category": "class",
+      "name": "Frontmatter Hide Empty Members",
+      "source": "---\nclass:\n  hideEmptyMembersBox: true\n---\nclassDiagram\n    class Animal {\n        +species string\n    }\n    class Dog\n    Animal <|-- Dog"
+    },
+    {
       "id": "er-1-basic",
       "category": "er",
-      "name": "Basic Relationship",
-      "source": "erDiagram\n  CUSTOMER ||--o{ ORDER : places"
+      "name": "Simple Entity",
+      "source": "erDiagram\n  CUSTOMER {\n    int id\n    string name\n    string email\n  }"
     },
     {
       "id": "er-2-attributes",
@@ -536,12 +806,12 @@
     }
   ],
   "metadata": {
-    "totalCount": 87,
+    "totalCount": 132,
     "categories": {
       "flowchart": 27,
       "state": 4,
       "sequence": 16,
-      "class": 16,
+      "class": 61,
       "er": 14,
       "xychart": 10
     }

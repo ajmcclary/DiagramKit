@@ -125,7 +125,12 @@ public enum PositionedContent: Sendable {
     )
     case classDiagram(
         classes: [PositionedClassNode],
-        relationships: [PositionedClassRelationship]
+        relationships: [PositionedClassRelationship],
+        namespaces: [PositionedClassNamespace],
+        notes: [PositionedClassNote],
+        accTitle: String?,
+        accDescr: String?,
+        diagramTitle: String?
     )
     case erDiagram(
         entities: [PositionedErEntity],
@@ -170,7 +175,7 @@ public struct PositionedGraph: Sendable {
         case .sequenceDiagram:
             self.content = .sequenceDiagram(actors: [], messages: [], blocks: [], lifelines: [], activations: [], notes: [], boxes: [], bottomActors: [], rectHighlights: [], title: nil, accTitle: nil, accDescr: nil)
         case .classDiagram:
-            self.content = .classDiagram(classes: [], relationships: [])
+            self.content = .classDiagram(classes: [], relationships: [], namespaces: [], notes: [], accTitle: nil, accDescr: nil, diagramTitle: nil)
         case .erDiagram:
             self.content = .erDiagram(entities: [], relationships: [])
         case .xyChart:
@@ -277,13 +282,43 @@ public struct PositionedGraph: Sendable {
 
     public var classNodes: [PositionedClassNode]? {
         switch content {
-        case .classDiagram(let classes, _): return classes
+        case .classDiagram(let classes, _, _, _, _, _, _): return classes
         default: return nil
         }
     }
     public var classRelationships: [PositionedClassRelationship]? {
         switch content {
-        case .classDiagram(_, let relationships): return relationships
+        case .classDiagram(_, let relationships, _, _, _, _, _): return relationships
+        default: return nil
+        }
+    }
+    public var classNamespaces: [PositionedClassNamespace]? {
+        switch content {
+        case .classDiagram(_, _, let namespaces, _, _, _, _): return namespaces
+        default: return nil
+        }
+    }
+    public var classNotes: [PositionedClassNote]? {
+        switch content {
+        case .classDiagram(_, _, _, let notes, _, _, _): return notes
+        default: return nil
+        }
+    }
+    public var classAccTitle: String? {
+        switch content {
+        case .classDiagram(_, _, _, _, let accTitle, _, _): return accTitle
+        default: return nil
+        }
+    }
+    public var classAccDescr: String? {
+        switch content {
+        case .classDiagram(_, _, _, _, _, let accDescr, _): return accDescr
+        default: return nil
+        }
+    }
+    public var classDiagramTitle: String? {
+        switch content {
+        case .classDiagram(_, _, _, _, _, _, let diagramTitle): return diagramTitle
         default: return nil
         }
     }

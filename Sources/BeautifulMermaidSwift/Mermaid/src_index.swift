@@ -95,7 +95,7 @@ private func detectDiagramType(_ text: String) -> _DiagramRoutingType {
     if firstLine.range(of: "^sequencediagram\\s*$", options: .regularExpression) != nil {
         return .sequence
     }
-    if firstLine.range(of: "^classdiagram\\s*$", options: .regularExpression) != nil {
+    if firstLine.range(of: #"^classdiagram(-v2)?\s*$"#, options: .regularExpression) != nil {
         return .class
     }
     if firstLine.range(of: "^erdiagram\\s*$", options: .regularExpression) != nil {
@@ -126,7 +126,7 @@ func _renderMermaidSVG(
 ) throws -> String {
     let preprocessed = _preprocessMermaidSource(_decodeXML(text))
     let decodedText = preprocessed.source
-    let fmConfig = preprocessed.config
+    let fm = preprocessed.frontmatter
     let colors = buildColors(options)
     let font = options.font ?? "Inter"
     let transparent = options.transparent ?? false
@@ -140,7 +140,7 @@ func _renderMermaidSVG(
         let positioned = try layoutSequenceDiagram(diagram, options)
         return try renderSequenceSvg(positioned, colors, font, transparent)
     case .class:
-        let diagram = try parseClassDiagram(lines)
+        let diagram = try parseClassDiagram(lines, frontmatter: fm)
         let positioned = try layoutClassDiagramSync(diagram, options: options)
         return try renderClassSvg(positioned, colors, font, transparent)
     case .er:
@@ -152,7 +152,7 @@ func _renderMermaidSVG(
         let positioned = layoutXYChart(chart, options)
         return renderXYChartSvg(positioned, colors, font, transparent, interactive: options.interactive ?? false)
     case .flowchart:
-        let graph = try parseMermaid(decodedText, config: fmConfig)
+        let graph = try parseMermaid(decodedText, config: fm?.flowchartConfig)
         let positioned = try layoutGraphSync(graph, options)
         return try renderSvg(positioned, colors, font, transparent)
     }

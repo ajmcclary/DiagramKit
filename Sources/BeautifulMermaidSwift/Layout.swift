@@ -15,7 +15,7 @@ public struct GraphLayout {
             case .classDiagram:
                 guard case let .classDiagram(parsed) = graph.payload else {
                     _reportMermaidIssue("GraphLayout.layout found mismatched class diagram payload.")
-                    return PositionedGraph(diagram: graph, content: .classDiagram(classes: [], relationships: []))
+                    return PositionedGraph(diagram: graph, content: .classDiagram(classes: [], relationships: [], namespaces: [], notes: [], accTitle: nil, accDescr: nil, diagramTitle: nil))
                 }
                 let positioned = try layoutClassDiagramSync(parsed)
                 return PositionedGraph(
@@ -24,7 +24,12 @@ public struct GraphLayout {
                     height: positioned.height,
                     content: .classDiagram(
                         classes: positioned.classes,
-                        relationships: positioned.relationships
+                        relationships: positioned.relationships,
+                        namespaces: positioned.namespaces,
+                        notes: positioned.notes,
+                        accTitle: positioned.accTitle,
+                        accDescr: positioned.accDescription,
+                        diagramTitle: positioned.diagramTitle
                     )
                 )
             case .erDiagram:

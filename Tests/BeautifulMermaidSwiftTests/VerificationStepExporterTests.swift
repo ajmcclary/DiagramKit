@@ -200,18 +200,43 @@ final class VerificationStepExporterTests: XCTestCase {
     }
 
     private func serializeClassParsed(_ diagram: ClassDiagram) -> [String: Any] {
-        [
+        let relTypeStr: (ClassRelationEndpoint) -> String = { rel in
+            let t = rel.type1 != ClassRelationType.none.rawValue ? rel.type1 : rel.type2
+            switch t {
+            case ClassRelationType.inheritance.rawValue: return "inheritance"
+            case ClassRelationType.composition.rawValue: return "composition"
+            case ClassRelationType.aggregation.rawValue: return "aggregation"
+            case ClassRelationType.dependency.rawValue: return "association"
+            case ClassRelationType.lollipop.rawValue: return "lollipop"
+            default: return "association"
+            }
+        }
+        let markerAtStr: (ClassRelationEndpoint) -> String = { rel in
+            rel.type1 != ClassRelationType.none.rawValue ? "from" : "to"
+        }
+        return [
             "classes": diagram.classes.map { ["id": $0.id, "label": $0.label] },
             "relationships": diagram.relationships.map {
                 [
-                    "from": $0.from, "to": $0.to, "type": $0.type, "markerAt": $0.markerAt, "label": $0.label as Any,
+                    "from": $0.id1, "to": $0.id2, "type": relTypeStr($0.relation), "markerAt": markerAtStr($0.relation), "label": $0.title as Any,
                 ] as [String: Any]
             },
         ]
     }
 
     private func serializeClassPositioned(_ diagram: PositionedClassDiagram) -> [String: Any] {
-        [
+        let relTypeStr: (ClassRelationEndpoint) -> String = { rel in
+            let t = rel.type1 != ClassRelationType.none.rawValue ? rel.type1 : rel.type2
+            switch t {
+            case ClassRelationType.inheritance.rawValue: return "inheritance"
+            case ClassRelationType.composition.rawValue: return "composition"
+            case ClassRelationType.aggregation.rawValue: return "aggregation"
+            case ClassRelationType.dependency.rawValue: return "association"
+            case ClassRelationType.lollipop.rawValue: return "lollipop"
+            default: return "association"
+            }
+        }
+        return [
             "graphWidth": diagram.width,
             "graphHeight": diagram.height,
             "classes": diagram.classes.map {
@@ -221,7 +246,7 @@ final class VerificationStepExporterTests: XCTestCase {
             },
             "relationships": diagram.relationships.map {
                 [
-                    "from": $0.from, "to": $0.to, "type": $0.type,
+                    "from": $0.from, "to": $0.to, "type": relTypeStr($0.relation),
                     "points": $0.points.map { ["x": $0.x, "y": $0.y] },
                 ] as [String: Any]
             },
@@ -231,7 +256,21 @@ final class VerificationStepExporterTests: XCTestCase {
     /// Detailed serialization matching the OSS repo's format for comparison.
     /// Includes headerHeight, attrHeight, methodHeight, label positions, etc.
     private func serializeClassPositionedDetailed(_ diagram: PositionedClassDiagram) -> [String: Any] {
-        [
+        let relTypeStr: (ClassRelationEndpoint) -> String = { rel in
+            let t = rel.type1 != ClassRelationType.none.rawValue ? rel.type1 : rel.type2
+            switch t {
+            case ClassRelationType.inheritance.rawValue: return "inheritance"
+            case ClassRelationType.composition.rawValue: return "composition"
+            case ClassRelationType.aggregation.rawValue: return "aggregation"
+            case ClassRelationType.dependency.rawValue: return "association"
+            case ClassRelationType.lollipop.rawValue: return "lollipop"
+            default: return "association"
+            }
+        }
+        let markerAtStr: (ClassRelationEndpoint) -> String = { rel in
+            rel.type1 != ClassRelationType.none.rawValue ? "from" : "to"
+        }
+        return [
             "width": diagram.width,
             "height": diagram.height,
             "classes": diagram.classes.map { cls -> [String: Any] in
@@ -246,7 +285,7 @@ final class VerificationStepExporterTests: XCTestCase {
                     "attrHeight": cls.attrHeight,
                     "methodHeight": cls.methodHeight,
                 ]
-                if let annotation = cls.annotation {
+                if let annotation = cls.annotations.first {
                     dict["annotation"] = annotation
                 }
                 return dict
@@ -255,11 +294,11 @@ final class VerificationStepExporterTests: XCTestCase {
                 var dict: [String: Any] = [
                     "from": rel.from,
                     "to": rel.to,
-                    "type": rel.type,
-                    "markerAt": rel.markerAt,
+                    "type": relTypeStr(rel.relation),
+                    "markerAt": markerAtStr(rel.relation),
                     "points": rel.points.map { ["x": $0.x, "y": $0.y] },
                 ]
-                if let label = rel.label {
+                if let label = rel.title {
                     dict["label"] = label
                 }
                 if let lp = rel.labelPosition {

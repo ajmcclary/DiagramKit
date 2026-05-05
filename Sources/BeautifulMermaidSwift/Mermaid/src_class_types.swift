@@ -23,14 +23,30 @@ open class original_src_class_types {
         isMethod: Bool = false,
         params: String? = nil
     ) -> ClassMember {
-        ClassMember(
+        // Build the text based on old API
+        let classifier = isAbstract ? "*" : (isStatic ? "$" : "")
+        let memberType: ClassMember.ClassMemberType = isMethod ? .method : .attribute
+        let text: String = {
+            let vis = visibility.isEmpty ? "" : "\(visibility) "
+            let genName = parseGenericTypes(name)
+            let genType = type.map { parseGenericTypes($0) } ?? ""
+            if isMethod {
+                let genParams = params.map { parseGenericTypes($0) } ?? ""
+                return "\(vis)\(genName)(\(genParams))\(genType.isEmpty ? "" : " : \(genType)")"
+            }
+            return "\(vis)\(genName)\(genType.isEmpty ? "" : " \(genType)")"
+        }()
+        let cssStyle = isAbstract ? "font-style:italic;" : (isStatic ? "text-decoration:underline;" : "")
+
+        return ClassMember(
+            id: name,
             visibility: visibility,
-            name: name,
-            type: type,
-            isStatic: isStatic,
-            isAbstract: isAbstract,
-            isMethod: isMethod,
-            params: params
+            classifier: classifier,
+            memberType: memberType,
+            parameters: params ?? "",
+            returnType: type ?? "",
+            text: text,
+            cssStyle: cssStyle
         )
     }
 
@@ -41,7 +57,12 @@ open class original_src_class_types {
         methods: [ClassMember] = [],
         annotation: String? = nil
     ) -> ClassNode {
-        ClassNode(id: id, label: label, attributes: attributes, methods: methods, annotation: annotation)
+        let annotations = annotation.map { [$0] } ?? []
+        return ClassNode(
+            id: id, label: label,
+            attributes: attributes, methods: methods,
+            annotations: annotations
+        )
     }
 
     public static func makeRelationship(
@@ -53,14 +74,38 @@ open class original_src_class_types {
         fromCardinality: String? = nil,
         toCardinality: String? = nil
     ) -> ClassRelationship {
-        ClassRelationship(
-            from: from,
-            to: to,
-            type: type,
-            markerAt: markerAt,
-            label: label,
-            fromCardinality: fromCardinality,
-            toCardinality: toCardinality
+        // Convert old-style type+markerAt to new two-ended model
+        let isInheritance = type.lowercased() == "inheritance" || type.lowercased() == "realization"
+        let isComposition = type.lowercased() == "composition"
+        let isAggregation = type.lowercased() == "aggregation"
+        let isDependency = type.lowercased() == "dependency" || type.lowercased() == "association"
+        let isDashed = type.lowercased() == "dependency" || type.lowercased() == "realization"
+
+        let relType: Int
+        switch true {
+        case isInheritance: relType = ClassRelationType.inheritance.rawValue
+        case isComposition: relType = ClassRelationType.composition.rawValue
+        case isAggregation: relType = ClassRelationType.aggregation.rawValue
+        case isDependency: relType = ClassRelationType.dependency.rawValue
+        default: relType = ClassRelationType.none.rawValue
+        }
+
+        let type1 = (markerAt == "from") ? relType : ClassRelationType.none.rawValue
+        let type2 = (markerAt == "to") ? relType : ClassRelationType.none.rawValue
+
+        return ClassRelationship(
+            id1: from,
+            id2: to,
+            relationTitle1: fromCardinality ?? "",
+            relationTitle2: toCardinality ?? "",
+            title: label ?? "",
+            text: "",
+            style: [],
+            relation: ClassRelationEndpoint(
+                type1: type1,
+                type2: type2,
+                lineType: isDashed ? ClassLineType.dotted.rawValue : ClassLineType.solid.rawValue
+            )
         )
     }
 
@@ -70,33 +115,54 @@ open class original_src_class_types {
                 AsciiClassNode(
                     id: node.id,
                     label: node.label,
-                    annotation: node.annotation,
+                    annotation: node.annotations.first,
                     attributes: node.attributes.map {
                         AsciiClassMember(
                             visibility: $0.visibility.isEmpty ? nil : $0.visibility,
-                            name: $0.isMethod ? "\($0.name)(\($0.params ?? ""))" : $0.name,
-                            type: $0.type
+                            name: $0.memberType == .method ? "\($0.id)(\($0.parameters))" : $0.id,
+                            type: $0.returnType.isEmpty ? nil : $0.returnType
                         )
                     },
                     methods: node.methods.map {
                         AsciiClassMember(
                             visibility: $0.visibility.isEmpty ? nil : $0.visibility,
-                            name: $0.isMethod ? "\($0.name)(\($0.params ?? ""))" : $0.name,
-                            type: $0.type
+                            name: $0.memberType == .method ? "\($0.id)(\($0.parameters))" : $0.id,
+                            type: $0.returnType.isEmpty ? nil : $0.returnType
                         )
                     }
                 )
             },
             relationships: diagram.relationships.compactMap { rel in
-                guard let relType = AsciiClassRelationshipType(rawValue: rel.type.lowercased()) else {
-                    return nil
-                }
+                // Convert from two-ended to old-style type for ASCII
+                let relTypeFrom = rel.relation.type1 != ClassRelationType.none.rawValue ? rel.relation.type1 : rel.relation.type2
+                let typeStr: String = {
+                    switch relTypeFrom {
+                    case ClassRelationType.inheritance.rawValue: return "inheritance"
+                    case ClassRelationType.composition.rawValue: return "composition"
+                    case ClassRelationType.aggregation.rawValue: return "aggregation"
+                    case ClassRelationType.dependency.rawValue: return "dependency"
+                    default: return "association"
+                    }
+                }()
+
+                let markerAt = rel.relation.type1 != ClassRelationType.none.rawValue ? "from" : "to"
+
+                guard let relType = AsciiClassRelationshipType(rawValue: typeStr) else { return nil }
+
+                // If dotted and type is general, map to realization or dependency
+                let finalType: AsciiClassRelationshipType = {
+                    if rel.relation.lineType == ClassLineType.dotted.rawValue && relType == .association {
+                        return .dependency
+                    }
+                    return relType
+                }()
+
                 return AsciiClassRelationship(
-                    from: rel.from,
-                    to: rel.to,
-                    type: relType,
-                    markerAt: rel.markerAt,
-                    label: rel.label
+                    from: rel.id1,
+                    to: rel.id2,
+                    type: finalType,
+                    markerAt: markerAt,
+                    label: rel.title.isEmpty ? nil : rel.title
                 )
             }
         )

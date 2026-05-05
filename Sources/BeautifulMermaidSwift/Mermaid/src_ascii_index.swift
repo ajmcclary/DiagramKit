@@ -465,7 +465,7 @@ open class original_src_ascii_index {
     private static func parseMermaid(_ text: String) throws -> ParsedMermaid {
         let preprocessed = _preprocessMermaidSource(text)
         let preprocessedText = preprocessed.source
-        let parsed = try _bmParseMermaid(preprocessedText, config: preprocessed.config)
+        let parsed = try _bmParseMermaid(preprocessedText, config: preprocessed.frontmatter?.flowchartConfig)
         let lines = _mermaidSourceLines(from: preprocessedText, separatedBy: .newlines)
         let header = (lines.first ?? "").uppercased()
 

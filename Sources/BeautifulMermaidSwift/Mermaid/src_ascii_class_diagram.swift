@@ -164,7 +164,7 @@ private func _toAsciiClassNode(_ cls: ClassNode) -> AsciiClassNode {
     AsciiClassNode(
         id: cls.id,
         label: cls.label,
-        annotation: cls.annotation,
+        annotation: cls.annotations.first,
         attributes: cls.attributes.map(_toAsciiClassMember),
         methods: cls.methods.map(_toAsciiClassMember)
     )
@@ -180,21 +180,33 @@ private func _toAsciiClassMember(_ member: ClassMember) -> AsciiClassMember {
 
     return AsciiClassMember(
         visibility: visibility,
-        name: member.isMethod ? "\(member.name)(\(member.params ?? ""))" : member.name,
-        type: member.type
+        name: member.memberType == .method ? "\(member.id)(\(member.parameters))" : member.id,
+        type: member.returnType.isEmpty ? nil : member.returnType
     )
 }
 
 private func _toAsciiClassRelationship(_ rel: ClassRelationship) -> AsciiClassRelationship? {
-    guard let type = AsciiClassRelationshipType(rawValue: rel.type.lowercased()) else {
+    let relTypeFrom = rel.relation.type1 != ClassRelationType.none.rawValue ? rel.relation.type1 : rel.relation.type2
+    let typeStr: String = {
+        switch relTypeFrom {
+        case ClassRelationType.inheritance.rawValue: return "inheritance"
+        case ClassRelationType.composition.rawValue: return "composition"
+        case ClassRelationType.aggregation.rawValue: return "aggregation"
+        case ClassRelationType.dependency.rawValue: return "dependency"
+        default: return "association"
+        }
+    }()
+    let markerAt = rel.relation.type1 != ClassRelationType.none.rawValue ? "from" : "to"
+
+    guard let type = AsciiClassRelationshipType(rawValue: typeStr) else {
         return nil
     }
     return AsciiClassRelationship(
-        from: rel.from,
-        to: rel.to,
+        from: rel.id1,
+        to: rel.id2,
         type: type,
-        markerAt: rel.markerAt,
-        label: rel.label
+        markerAt: markerAt,
+        label: rel.title.isEmpty ? nil : rel.title
     )
 }
 
