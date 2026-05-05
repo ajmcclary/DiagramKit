@@ -21,6 +21,8 @@ public struct _PositionedNodePayload: Sendable {
     public var width: Double
     public var height: Double
     public var inlineStyle: [String: String]
+    public var properties: original_src_types.NodeProperties?
+    public var interaction: original_src_types.NodeInteraction?
 }
 
 public struct _PositionedEdgePayload: Sendable {
@@ -28,11 +30,17 @@ public struct _PositionedEdgePayload: Sendable {
     public var target: String
     public var label: String?
     public var style: String
-    public var hasArrowStart: Bool
-    public var hasArrowEnd: Bool
+    public var arrowHeadStart: original_src_types.ArrowHeadType
+    public var arrowHeadEnd: original_src_types.ArrowHeadType
     public var points: [_PositionedPointPayload]
     public var labelPosition: _PositionedPointPayload?
     public var inlineStyle: [String: String]?
+    public var edgeId: String?
+    public var properties: original_src_types.NodeProperties?
+    public var animate: Bool?
+    public var animationSpeed: String?
+    public var classes: [String]?
+    public var curve: String?
 }
 
 private func _asDict(_ value: Any?) -> [String: Any]? {
@@ -78,24 +86,38 @@ private func _nodeSize(_ node: _ParsedNode) -> (width: Double, height: Double) {
 
     switch node.shape {
     case .diamond:
-        let side = max(width, height) + 24  // TS diamondExtra=24
+        let side = max(width, height) + 24
         width = side; height = side
-    case .circle:
+    case .circle, .ellipse, .smallCircle, .filledCircle, .framedCircle, .crossedCircle, .bang:
         let d = ceil(sqrt(width * width + height * height)) + 8
         width = d; height = d
     case .doublecircle:
         let d = ceil(sqrt(width * width + height * height)) + 8 + 12
         width = d; height = d
-    case .hexagon:
-        width += 20  // TS adds NODE_PADDING.horizontal
-    case .trapezoid, .trapezoidAlt:
+    case .hexagon, .notchedPentagon:
         width += 20
-    case .asymmetric:
+    case .trapezoid, .trapezoidAlt, .parallelogram, .parallelogramAlt, .curvedTrapezoid, .slopedRectangle:
+        width += 20
+    case .asymmetric, .flippedTriangle:
         width += 12
-    case .cylinder:
+    case .cylinder, .horizontalCylinder, .linedCylinder:
         height += 14
+    case .dataStore:
+        height += 14; width += 10
+    case .hourglass, .lightningBolt:
+        width += 8; height += 8
+    case .bowTieRectangle:
+        width += 12
     case .stateStart, .stateEnd:
         return (28, 28)
+    case .fork, .join:
+        height = max(height, 20)
+    case .document, .linedDocument, .taggedDocument, .stackedDocument:
+        height += 10
+    case .triangle:
+        width += 10; height += 10
+    case .text:
+        width += 4; height += 4
     default: break
     }
 
@@ -978,6 +1000,8 @@ private func _resolveInlineStyle(_ id: String, _ graph: _ParsedGraph) -> [String
     var style: [String: String] = [:]
     if let className = graph.classAssignments[id], let classStyle = graph.classDefs[className] {
         for (k, v) in classStyle { style[k] = v }
+    } else if let defaultStyle = graph.defaultClassDef {
+        for (k, v) in defaultStyle { style[k] = v }
     }
     if let nodeStyle = graph.nodeStyles[id] {
         for (k, v) in nodeStyle { style[k] = v }
@@ -985,9 +1009,10 @@ private func _resolveInlineStyle(_ id: String, _ graph: _ParsedGraph) -> [String
     return style
 }
 
-/// Resolve inline styles for an edge from linkStyles map.
-/// Default link style (key -1) is applied first, then index-specific overrides.
-private func _resolveEdgeStyle(edgeIndex: Int, graph: _ParsedGraph) -> [String: String]? {
+/// Resolve inline styles for an edge from linkStyles map and edge class assignments.
+/// Default link style (key -1) is applied first, then index-specific overrides,
+/// then edge-class styles, then inline styles from properties.
+private func _resolveEdgeStyle(edgeIndex: Int, edgeId: String?, graph: _ParsedGraph) -> [String: String]? {
     var result: [String: String]?
     if let defaultStyle = graph.linkStyles[-1] {
         result = defaultStyle
@@ -998,6 +1023,14 @@ private func _resolveEdgeStyle(edgeIndex: Int, graph: _ParsedGraph) -> [String: 
             result = r
         } else {
             result = indexStyle
+        }
+    }
+    if let eid = edgeId, let className = graph.edgeClassAssignments[eid], let classStyle = graph.classDefs[className] {
+        if var r = result {
+            for (k, v) in classStyle { r[k] = v }
+            result = r
+        } else {
+            result = classStyle
         }
     }
     return result
@@ -1024,15 +1057,20 @@ private func _extractPositionedGraph(
         let h = _asDouble(child["height"]) ?? _nodeSize(original).height
         let rawX = (_asDouble(child["x"]) ?? 0) + parentOffset.x
         let rawY = (_asDouble(child["y"]) ?? 0) + parentOffset.y
+        let effectiveLabel = original.properties?.label ?? original.label
+        let effectiveShape: original_src_types.NodeShape = original.properties?.shape
+            .flatMap { original_src_types.NodeShape.resolve(alias: $0) } ?? original.shape
         return _PositionedNodePayload(
             id: id,
-            label: original.label,
-            shape: original.shape.rawValue,
+            label: effectiveLabel,
+            shape: effectiveShape.rawValue,
             x: rawX,
             y: rawY,
             width: w,
             height: h,
-            inlineStyle: _resolveInlineStyle(id, source)
+            inlineStyle: _resolveInlineStyle(id, source),
+            properties: original.properties,
+            interaction: source.nodeInteractions[id]
         )
     }
 
@@ -1114,11 +1152,17 @@ private func _extractPositionedGraph(
                 target: edge.target,
                 label: edge.label,
                 style: edge.style.rawValue,
-                hasArrowStart: edge.hasArrowStart,
-                hasArrowEnd: edge.hasArrowEnd,
+                arrowHeadStart: edge.arrowHeadStart,
+                arrowHeadEnd: edge.arrowHeadEnd,
                 points: points,
                 labelPosition: finalLabelPos,
-                inlineStyle: _resolveEdgeStyle(edgeIndex: idx, graph: source)
+                inlineStyle: _resolveEdgeStyle(edgeIndex: idx, edgeId: edge.id, graph: source),
+                edgeId: edge.id,
+                properties: edge.properties,
+                animate: edge.animate,
+                animationSpeed: edge.animationSpeed,
+                classes: edge.classes,
+                curve: edge.curve
             )
         )
     }

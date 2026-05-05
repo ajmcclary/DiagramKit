@@ -4,6 +4,7 @@ import Foundation
 private typealias ParsedDirection = original_src_types.Direction
 private typealias ParsedNodeShape = original_src_types.NodeShape
 private typealias ParsedEdgeStyle = original_src_types.EdgeStyle
+private typealias ParsedArrowHeadType = original_src_types.ArrowHeadType
 private typealias ParsedNode = original_src_types.MermaidNode
 private typealias ParsedEdge = original_src_types.MermaidEdge
 private typealias ParsedSubgraph = original_src_types.MermaidSubgraph
@@ -25,6 +26,7 @@ private enum _ParserEntryError: Error, LocalizedError, _MermaidRecoverableError 
 
 private struct _WorkingGraph {
     var direction: ParsedDirection
+    var rendererType: String? = nil
     var nodesById: [String: ParsedNode] = [:]
     var nodeOrder: [String] = []
     var edges: [ParsedEdge] = []
@@ -33,8 +35,14 @@ private struct _WorkingGraph {
     var classDefs: [String: [String: String]] = [:]
     var classAssignments: [String: String] = [:]
     var nodeStyles: [String: [String: String]] = [:]
-    /// Maps edge indices (or -1 for 'default') to inline styles from `linkStyle` directives
     var linkStyles: [Int: [String: String]] = [:]
+    var accTitle: String? = nil
+    var accDescr: String? = nil
+    var config: original_src_types.FlowchartConfig? = nil
+    var nodeInteractions: [String: original_src_types.NodeInteraction] = [:]
+    var edgeClassAssignments: [String: String] = [:]
+    var defaultClassDef: [String: String]? = nil
+    var edgeProperties: [String: original_src_types.NodeProperties] = [:]
 
     mutating func upsertNode(_ node: ParsedNode) {
         if nodesById[node.id] == nil {
@@ -64,7 +72,15 @@ private struct _WorkingGraph {
             classDefs: classDefs,
             classAssignments: classAssignments,
             nodeStyles: nodeStyles,
-            linkStyles: linkStyles
+            linkStyles: linkStyles,
+            accTitle: accTitle,
+            accDescr: accDescr,
+            config: config,
+            rendererType: rendererType,
+            nodeInteractions: nodeInteractions,
+            edgeClassAssignments: edgeClassAssignments,
+            defaultClassDef: defaultClassDef,
+            edgeProperties: edgeProperties
         )
     }
 }
@@ -87,37 +103,36 @@ private func _regex(_ pattern: String) -> NSRegularExpression {
     return regex
 }
 
-private let _arrowRegex = _regex(#"^(<)?(-->|-.->|==>|---|-\.-|===)(?:\|([^|]*)\|)?"#)
-
 /// Text-embedded label regex — matches "-- label -->", "-. label .->", "== label ==>" syntax.
-/// Group 1: optional `<` for bidirectional
-/// Group 2: opening prefix (`--`, `-.`, `==`)
-/// Group 3: label text
-/// Group 4: closing arrow/line (`-->`, `---`, `.->`, `-.-`, `==>`, `===`)
+/// Used as fallback when the edge tokenizer doesn't capture a label.
 private let _textEmbeddedArrowRegex = _regex(#"^(<)?(--|-\.|==)\s+(.+?)\s+(-->|---|\.\->|-\.\-|==>|===)"#)
-private let _bareNodeRegex = _regex(#"^([\w-]+)"#)
+private let _bareNodeRegex = _regex(#"^([\w\p{L}.-]+)"#)
 private let _classShorthandRegex = _regex(#"^:::([\w][\w-]*)"#)
+private let _clickRegex = _regex(#"^click\s+([\w\p{L}.-]+)\s+(.+)$"#)
 
 private let _nodePatterns: [(regex: NSRegularExpression, shape: ParsedNodeShape)] = [
-    (_regex(#"^([\w-]+)\(\(\((.+?)\)\)\)"#), .doublecircle),
-    (_regex(#"^([\w-]+)\(\[(.+?)\]\)"#), .stadium),
-    (_regex(#"^([\w-]+)\(\((.+?)\)\)"#), .circle),
-    (_regex(#"^([\w-]+)\[\[(.+?)\]\]"#), .subroutine),
-    (_regex(#"^([\w-]+)\[\((.+?)\)\]"#), .cylinder),
-    (_regex(#"^([\w-]+)\[\/(.+?)\\\]"#), .trapezoid),
-    (_regex(#"^([\w-]+)\[\\(.+?)\/\]"#), .trapezoidAlt),
-    (_regex(#"^([\w-]+)>(.+?)\]"#), .asymmetric),
-    (_regex(#"^([\w-]+)\{\{(.+?)\}\}"#), .hexagon),
-    (_regex(#"^([\w-]+)\[(.+?)\]"#), .rectangle),
-    (_regex(#"^([\w-]+)\((.+?)\)"#), .rounded),
-    (_regex(#"^([\w-]+)\{(.+?)\}"#), .diamond),
+    (_regex(#"^([\w\p{L}.-]+)\(\(\((.+?)\)\)\)"#), .doublecircle),
+    (_regex(#"^([\w\p{L}.-]+)\(\[(.+?)\]\)"#), .stadium),
+    (_regex(#"^([\w\p{L}.-]+)\(\((.+?)\)\)"#), .circle),
+    (_regex(#"^([\w\p{L}.-]+)\(-([^-]*?)-\)"#), .ellipse),
+    (_regex(#"^([\w\p{L}.-]+)\[\[(.+?)\]\]"#), .subroutine),
+    (_regex(#"^([\w\p{L}.-]+)\[\((.+?)\)\]"#), .cylinder),
+    (_regex(#"^([\w\p{L}.-]+)\[\/(.+?)\\\]"#), .trapezoid),
+    (_regex(#"^([\w\p{L}.-]+)\[\\(.+?)\/\]"#), .trapezoidAlt),
+    (_regex(#"^([\w\p{L}.-]+)\[\/(.+?)\/\]"#), .parallelogram),
+    (_regex(#"^([\w\p{L}.-]+)\[\\(.+?)\\\]"#), .parallelogramAlt),
+    (_regex(#"^([\w\p{L}.-]+)>(.+?)\]"#), .asymmetric),
+    (_regex(#"^([\w\p{L}.-]+)\{\{(.+?)\}\}"#), .hexagon),
+    (_regex(#"^([\w\p{L}.-]+)\[(.+?)\]"#), .rectangle),
+    (_regex(#"^([\w\p{L}.-]+)\((.+?)\)"#), .rounded),
+    (_regex(#"^([\w\p{L}.-]+)\{(.+?)\}"#), .diamond),
 ]
 
-public func parseMermaid(_ text: String) throws -> MermaidGraph {
-    try _parseMermaidEntry(text)
+public func parseMermaid(_ text: String, config: original_src_types.FlowchartConfig? = nil) throws -> MermaidGraph {
+    try _parseMermaidEntry(text, config: config)
 }
 
-private func _parseMermaidEntry(_ text: String) throws -> MermaidGraph {
+private func _parseMermaidEntry(_ text: String, config: original_src_types.FlowchartConfig? = nil) throws -> MermaidGraph {
     let lines = _mermaidSourceLines(from: text)
 
     guard !lines.isEmpty else {
@@ -132,26 +147,34 @@ private func _parseMermaidEntry(_ text: String) throws -> MermaidGraph {
         parsed = try _parseStateDiagram(lines)
         diagramType = .stateDiagram
     } else {
-        parsed = try _parseFlowchart(lines)
+        parsed = try _parseFlowchart(lines, config: config)
         diagramType = .flowchart
     }
 
     return MermaidGraph(payload: diagramType == .stateDiagram ? .stateDiagram(parsed) : .flowchart(parsed))
 }
 
-private func _parseFlowchart(_ lines: [String]) throws -> ParsedGraph {
+private func _parseFlowchart(_ lines: [String], config: original_src_types.FlowchartConfig? = nil) throws -> ParsedGraph {
     guard let header = lines.first else {
         throw _ParserEntryError.invalidHeader("")
     }
 
-    guard let match = _regexGroups(#"^(?:graph|flowchart)\s+(TD|TB|LR|BT|RL)\s*$"#, header, caseInsensitive: true),
-          let dirToken = match[safe: 1],
-          let direction = _parseDirection(dirToken)
-    else {
+    // Fetch renderer type and direction from header
+    let rendererType: String?
+    let direction: ParsedDirection
+
+    if let match = _regexGroups(#"^(?:graph|flowchart|flowchart-elk)(?:\s+(TD|TB|LR|BT|RL|BR|<|>|\^|v))?\s*$"#, header, caseInsensitive: true) {
+        rendererType = header.lowercased().hasPrefix("flowchart-elk") ? "elk" : nil
+        if let dirToken = match[safe: 1] {
+            direction = _parseDirection(dirToken) ?? .TB
+        } else {
+            direction = .TB  // Default: top-to-bottom
+        }
+    } else {
         throw _ParserEntryError.invalidHeader(header)
     }
 
-    var graph = _WorkingGraph(direction: direction)
+    var graph = _WorkingGraph(direction: direction, rendererType: rendererType, config: config)
     var subgraphStack: [ParsedSubgraph] = []
 
     if lines.count <= 1 {
@@ -179,20 +202,33 @@ private func _parseFlowchart(_ lines: [String]) throws -> ParsedGraph {
     }
 
     for line in lines.dropFirst() {
-        if let classDefMatch = _regexGroups(#"^classDef\s+(\w+)\s+(.+)$"#, line),
-           let name = classDefMatch[safe: 1],
+        if let classDefMatch = _regexGroups(#"^classDef\s+([\w\s,]+)\s+(.+)$"#, line),
+           let namesRaw = classDefMatch[safe: 1],
            let propsStr = classDefMatch[safe: 2]
         {
-            graph.classDefs[name] = _parseStyleProps(propsStr)
+            let names = namesRaw.split(separator: ",").map { $0.trimmingCharacters(in: .whitespaces) }
+            let props = _parseStyleProps(propsStr)
+            for name in names where !name.isEmpty {
+                if name == "default" {
+                    graph.defaultClassDef = props
+                } else {
+                    graph.classDefs[name] = props
+                }
+            }
             continue
         }
 
-        if let classAssignMatch = _regexGroups(#"^class\s+([\w,-]+)\s+(\w+)$"#, line),
+        if let classAssignMatch = _regexGroups(#"^class\s+([\w\p{L}.-]+(?:\s*,\s*[\w\p{L}.-]+)*)\s+(\w+)$"#, line),
            let idsRaw = classAssignMatch[safe: 1],
            let className = classAssignMatch[safe: 2]
         {
             for id in idsRaw.split(separator: ",").map({ $0.trimmingCharacters(in: .whitespacesAndNewlines) }) where !id.isEmpty {
-                graph.classAssignments[id] = className
+                let firstChar = String(id.prefix(1))
+                if firstChar == "e", Int(id.dropFirst()) != nil {
+                    graph.edgeClassAssignments[id] = className
+                } else {
+                    graph.classAssignments[id] = className
+                }
             }
             continue
         }
@@ -209,18 +245,42 @@ private func _parseFlowchart(_ lines: [String]) throws -> ParsedGraph {
         }
 
         // --- linkStyle: `linkStyle 0 stroke:#f00` or `linkStyle default stroke:#f00` ---
+        // Also supports: `linkStyle 0 interpolate basis`
         if let lsMatch = _regexGroups(#"^linkStyle\s+(default|[\d,\s]+)\s+(.+)$"#, line),
            let target = lsMatch[safe: 1],
            let propsRaw = lsMatch[safe: 2]
         {
+            let targetTrimmed = target.trimmingCharacters(in: .whitespacesAndNewlines)
+
+            // Check for interpolate syntax: `linkStyle 0 interpolate basis`
+            if let interpMatch = _regexGroups(#"^interpolate\s+(\S+)\s*$"#, propsRaw),
+               let curveType = interpMatch[safe: 1]
+            {
+                if targetTrimmed == "default" {
+                    var merged = graph.linkStyles[-1] ?? [:]
+                    merged["curve"] = curveType
+                    graph.linkStyles[-1] = merged
+                } else {
+                    for part in targetTrimmed.split(separator: ",") {
+                        if let idx = Int(part.trimmingCharacters(in: .whitespaces)) {
+                            var merged = graph.linkStyles[idx] ?? [:]
+                            merged["curve"] = curveType
+                            graph.linkStyles[idx] = merged
+                        }
+                    }
+                }
+                continue
+            }
+
+            // Standard style props
             let props = _parseStyleProps(propsRaw)
-            if target.trimmingCharacters(in: .whitespacesAndNewlines) == "default" {
+            if targetTrimmed == "default" {
                 var merged = graph.linkStyles[-1] ?? [:]
                 for (k, v) in props { merged[k] = v }
                 graph.linkStyles[-1] = merged
             } else {
-                for part in target.split(separator: ",") {
-                    if let idx = Int(part.trimmingCharacters(in: .whitespacesAndNewlines)) {
+                for part in targetTrimmed.split(separator: ",") {
+                    if let idx = Int(part.trimmingCharacters(in: .whitespaces)) {
                         var merged = graph.linkStyles[idx] ?? [:]
                         for (k, v) in props { merged[k] = v }
                         graph.linkStyles[idx] = merged
@@ -230,7 +290,34 @@ private func _parseFlowchart(_ lines: [String]) throws -> ParsedGraph {
             continue
         }
 
-        if let dirMatch = _regexGroups(#"^direction\s+(TD|TB|LR|BT|RL)\s*$"#, line, caseInsensitive: true),
+        // --- click: `click nodeId callback`, `click nodeId href "url"`, etc. ---
+        if let clickMatch = _regexMatch(_clickRegex, line),
+           let nodeIdRaw = clickMatch[safe: 1],
+           let restRaw = clickMatch[safe: 2]
+        {
+            let nodeId = nodeIdRaw.trimmingCharacters(in: .whitespaces)
+            let rest = restRaw.trimmingCharacters(in: .whitespacesAndNewlines)
+            if let interaction = _parseClickRest(rest) {
+                graph.nodeInteractions[nodeId] = interaction
+            }
+            continue
+        }
+
+        // --- accTitle / accDescr directives ---
+        if let accTitleMatch = _regexGroups(#"^accTitle\s*:\s*(.+)$"#, line),
+           let title = accTitleMatch[safe: 1]
+        {
+            graph.accTitle = title.trimmingCharacters(in: .whitespaces)
+            continue
+        }
+        if let accDescrMatch = _regexGroups(#"^accDescr\s*:\s*(.+)$"#, line),
+           let descr = accDescrMatch[safe: 1]
+        {
+            graph.accDescr = descr.trimmingCharacters(in: .whitespaces)
+            continue
+        }
+
+        if let dirMatch = _regexGroups(#"^direction\s+(TD|TB|LR|BT|RL|<|>|\^|v)\s*$"#, line, caseInsensitive: true),
            let dirToken = dirMatch[safe: 1],
            let dir = _parseDirection(dirToken),
            !subgraphStack.isEmpty
@@ -264,6 +351,14 @@ private func _parseFlowchart(_ lines: [String]) throws -> ParsedGraph {
             continue
         }
 
+        // Anonymous subgraph (bare "subgraph" keyword)
+        if line.trimmingCharacters(in: .whitespaces) == "subgraph" {
+            let autoId = "subgraph_\(graph.subgraphIds.count)"
+            graph.subgraphIds.insert(autoId)
+            subgraphStack.append(ParsedSubgraph(id: autoId, label: "", nodeIds: [], children: [], direction: nil))
+            continue
+        }
+
         if line == "end" {
             let completed = subgraphStack.popLast()
             if let completed {
@@ -273,6 +368,16 @@ private func _parseFlowchart(_ lines: [String]) throws -> ParsedGraph {
                     graph.subgraphs.append(completed)
                 }
             }
+            continue
+        }
+
+        // Standalone edge metadata: e1@{ animate: true, curve: basis }
+        if let mdMatch = _regexGroups(#"^(e\d+)@\{(.+)$"#, line),
+           let edgeId = mdMatch[safe: 1],
+           let rest = mdMatch[safe: 2],
+           let (props, _) = _parseMetadataBlock("@{" + rest)
+        {
+            graph.edgeProperties[edgeId] = props
             continue
         }
 
@@ -392,8 +497,8 @@ private func _parseStateDiagram(_ lines: [String]) throws -> ParsedGraph {
                     target: targetId,
                     label: edgeLabel,
                     style: .solid,
-                    hasArrowStart: false,
-                    hasArrowEnd: true
+                    arrowHeadStart: .none,
+                    arrowHeadEnd: .arrow
                 )
             )
             continue
@@ -437,11 +542,14 @@ private func _ensureStateNode(_ graph: inout _WorkingGraph, _ compositeStack: in
 }
 
 private func _parseStyleProps(_ propsStr: String) -> [String: String] {
-    // Strip trailing semicolons — Mermaid tolerates them (e.g. `stroke:#f00;`)
+    // Strip trailing semicolons
     let cleaned = propsStr.replacingOccurrences(of: #";[\s]*$"#, with: "", options: .regularExpression)
+    // Handle escaped commas: \, → placeholder, split, then restore
+    let escaped = cleaned.replacingOccurrences(of: #"\\,"#, with: "\u{0001}")
     var props: [String: String] = [:]
-    for pair in cleaned.split(separator: ",", omittingEmptySubsequences: false) {
-        let item = String(pair)
+    for pair in escaped.split(separator: ",", omittingEmptySubsequences: false) {
+        let restored = String(pair).replacingOccurrences(of: "\u{0001}", with: ",")
+        let item = restored.trimmingCharacters(in: .whitespaces)
         guard let idx = item.firstIndex(of: ":") else { continue }
         let key = item[..<idx].trimmingCharacters(in: .whitespacesAndNewlines)
         let value = item[item.index(after: idx)...].trimmingCharacters(in: .whitespacesAndNewlines)
@@ -450,6 +558,56 @@ private func _parseStyleProps(_ propsStr: String) -> [String: String] {
         }
     }
     return props
+}
+
+private typealias ParsedNodeInteraction = original_src_types.NodeInteraction
+
+private func _parseClickRest(_ rest: String) -> ParsedNodeInteraction? {
+    // Mermaid click syntax variants:
+    //   click A callback
+    //   click A callback "tooltip"
+    //   click A call callback()
+    //   click A call callback() "tooltip"
+    //   click A href "url"
+    //   click A href "url" "tooltip"
+    //   click A href "url" "tooltip" _blank
+    //   click A href "url" _blank
+    let r = rest.trimmingCharacters(in: .whitespaces)
+
+    // call signature: call funcName() [ "tooltip" ]
+    if r.hasPrefix("call ") {
+        let afterCall = String(r.dropFirst(5)).trimmingCharacters(in: .whitespaces)
+        if let callMatch = _regexGroups(#"^(\w+)\s*\(\s*\)\s*(?:"([^"]*)"\s*)?$"#, afterCall),
+           let funcName = callMatch[safe: 1]
+        {
+            let tooltip = callMatch[safe: 2]
+            return ParsedNodeInteraction(type: .call(funcName, ""), tooltip: tooltip)
+        }
+    }
+
+    // href signature: href "url" [ "tooltip" ] [ _target ]
+    if r.hasPrefix("href ") {
+        let afterHref = String(r.dropFirst(5)).trimmingCharacters(in: .whitespaces)
+        if let hrefMatch = _regexGroups(
+            #"^"([^"]+)"\s*(?:"([^"]*)"\s*)?(?:\s*(_self|_blank|_parent|_top))?\s*$"#,
+            afterHref
+        ), let url = hrefMatch[safe: 1]
+        {
+            let tooltip = hrefMatch[safe: 2]
+            let target = hrefMatch[safe: 3]
+            return ParsedNodeInteraction(type: .href(url), tooltip: tooltip, target: target)
+        }
+    }
+
+    // bare callback: callbackName [ "tooltip" ]
+    if let cbMatch = _regexGroups(#"^(\w+)\s*(?:"([^"]*)"\s*)?$"#, r),
+       let name = cbMatch[safe: 1]
+    {
+        let tooltip = cbMatch[safe: 2]
+        return ParsedNodeInteraction(type: .callback(name), tooltip: tooltip)
+    }
+
+    return nil
 }
 
 private func _parseEdgeLine(_ line: String, graph: inout _WorkingGraph, subgraphStack: inout [ParsedSubgraph]) {
@@ -462,36 +620,42 @@ private func _parseEdgeLine(_ line: String, graph: inout _WorkingGraph, subgraph
     var prevGroupIds = firstGroup.ids
 
     while !remaining.isEmpty {
-        var hasArrowStart = false
-        var edgeLabel: String?
-        var style: ParsedEdgeStyle
-        var hasArrowEnd: Bool
+        // Use the edge tokenizer to scan the edge operator
+        guard let edgeOp = _scanEdgeOp(remaining) else { break }
+        var edgeLabel = edgeOp.label
+        var edgeId = edgeOp.edgeId
+        var arrowHeadStart = edgeOp.arrowHeadStart
+        var arrowHeadEnd = edgeOp.arrowHeadEnd
+        var style = edgeOp.style
+        var minlen = edgeOp.minlen
+        var edgeProps: original_src_types.NodeProperties?
 
-        if let arrowMatch = _regexMatch(_arrowRegex, remaining),
-           let full = arrowMatch[safe: 0],
-           let op = arrowMatch[safe: 2]
+        remaining = String(remaining.dropFirst(edgeOp.consumedLength)).trimmingCharacters(in: .whitespacesAndNewlines)
+
+        // Fallback: text-embedded label regex (if tokenizer didn't catch it)
+        if edgeLabel == nil, let teMatch = _regexMatch(_textEmbeddedArrowRegex, remaining),
+           let full = teMatch[safe: 0],
+           let openOp = teMatch[safe: 2],
+           let labelText = teMatch[safe: 3],
+           let closeOp = teMatch[safe: 4]
         {
-            hasArrowStart = !(arrowMatch[safe: 1] ?? "").isEmpty
-            let rawLabel = arrowMatch[safe: 3]?.trimmingCharacters(in: .whitespacesAndNewlines)
-            edgeLabel = (rawLabel?.isEmpty == false) ? original_src_multiline_utils.normalizeBrTags(rawLabel!) : nil
-            remaining = String(remaining.dropFirst(full.count)).trimmingCharacters(in: .whitespacesAndNewlines)
-            style = _arrowStyleFromOp(op)
-            hasArrowEnd = op.hasSuffix(">")
-        } else if let teMatch = _regexMatch(_textEmbeddedArrowRegex, remaining),
-                  let full = teMatch[safe: 0],
-                  let openOp = teMatch[safe: 2],
-                  let labelText = teMatch[safe: 3],
-                  let closeOp = teMatch[safe: 4]
-        {
-            // Fallback: text-embedded label syntax (-- Yes -->, -. Maybe .->, == Sure ==>)
-            hasArrowStart = !(teMatch[safe: 1] ?? "").isEmpty
+            arrowHeadStart = (teMatch[safe: 1] ?? "").isEmpty ? .none : .arrow
             let trimmedLabel = labelText.trimmingCharacters(in: .whitespacesAndNewlines)
             edgeLabel = trimmedLabel.isEmpty ? nil : original_src_multiline_utils.normalizeBrTags(trimmedLabel)
             remaining = String(remaining.dropFirst(full.count)).trimmingCharacters(in: .whitespacesAndNewlines)
             style = _textArrowStyleFromOps(openOp, closeOp)
-            hasArrowEnd = closeOp.hasSuffix(">")
-        } else {
-            break
+            arrowHeadEnd = closeOp.hasSuffix(">") ? .arrow : .none
+        }
+
+        // Check for inline edge metadata: @{ ... }
+        if let (props, rem) = _parseMetadataBlock(remaining) {
+            edgeProps = props
+            remaining = rem.trimmingCharacters(in: .whitespacesAndNewlines)
+        }
+
+        // Apply standalone edge metadata (from e1@{...} line) as fallback
+        if edgeProps == nil, let eid = edgeId {
+            edgeProps = graph.edgeProperties[eid]
         }
 
         guard let nextGroup = _consumeNodeGroup(remaining, graph: &graph, subgraphStack: &subgraphStack), !nextGroup.ids.isEmpty else {
@@ -508,8 +672,14 @@ private func _parseEdgeLine(_ line: String, graph: inout _WorkingGraph, subgraph
                         target: targetId,
                         label: edgeLabel,
                         style: style,
-                        hasArrowStart: hasArrowStart,
-                        hasArrowEnd: hasArrowEnd
+                        id: edgeId,
+                        arrowHeadStart: arrowHeadStart,
+                        arrowHeadEnd: arrowHeadEnd,
+                        properties: edgeProps,
+                        animate: edgeProps?.animate,
+                        animationSpeed: edgeProps?.animation,
+                        curve: edgeProps?.curve,
+                        minlen: minlen
                     )
                 )
             }
@@ -575,6 +745,15 @@ private func _consumeNode(_ text: String, graph: inout _WorkingGraph, subgraphSt
         return nil
     }
 
+    // Check for inline @{ ... } metadata suffix
+    if let (props, rem) = _parseMetadataBlock(remaining),
+       var node = graph.nodesById[nodeId]
+    {
+        node.properties = props
+        graph.upsertNode(node)
+        remaining = rem
+    }
+
     if let classMatch = _regexMatch(_classShorthandRegex, remaining),
        let full = classMatch[safe: 0],
        let className = classMatch[safe: 1]
@@ -609,18 +788,15 @@ private func _textArrowStyleFromOps(_ openOp: String, _ closeOp: String) -> Pars
     return .solid
 }
 
-private func _arrowStyleFromOp(_ op: String) -> ParsedEdgeStyle {
-    if op == "-.->" || op == "-.-" {
-        return .dotted
-    }
-    if op == "==>" || op == "===" {
-        return .thick
-    }
-    return .solid
-}
-
 private func _parseDirection(_ token: String) -> ParsedDirection? {
-    ParsedDirection(rawValue: token.uppercased())
+    switch token.uppercased() {
+    case "TD", "TB", "V": return .TB
+    case "BT", "^": return .BT
+    case "LR", ">": return .LR
+    case "RL", "<": return .RL
+    case "BR": return .BT  // Bottom-Right = Bottom-to-Top
+    default: return ParsedDirection(rawValue: token.uppercased())
+    }
 }
 
 private func _regexTest(_ pattern: String, _ input: String, caseInsensitive: Bool = false) -> Bool {

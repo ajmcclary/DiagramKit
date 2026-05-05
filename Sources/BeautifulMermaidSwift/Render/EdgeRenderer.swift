@@ -141,7 +141,7 @@ public class EdgeRenderer {
 extension LineStyle {
     public var dashPattern: [CGFloat]? {
         switch self {
-        case .solid, .thick: return nil
+        case .solid, .thick, .invisible: return nil
         case .dotted: return [2, 4]
         case .dashed: return [8, 4]
         }

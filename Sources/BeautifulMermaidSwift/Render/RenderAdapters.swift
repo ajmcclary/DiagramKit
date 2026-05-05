@@ -4,10 +4,10 @@ import CoreGraphics
 // MARK: - Edge Style Parsing
 
 enum EdgeStyleParser {
-    static func parse(from styleString: String, hasArrowStart: Bool, hasArrowEnd: Bool) -> EdgeStyle {
-        var lineStyle: LineStyle = .solid
-        let sourceArrow: ArrowHead = hasArrowStart ? .arrow : .none
-        let targetArrow: ArrowHead = hasArrowEnd ? .arrow : .none
+    static func parse(from styleString: String, arrowHeadStart: ArrowHead, arrowHeadEnd: ArrowHead) -> EdgeStyle {
+        var lineStyle: LineStyle
+        let sourceArrow: ArrowHead = arrowHeadStart
+        let targetArrow: ArrowHead = arrowHeadEnd
 
         switch styleString.lowercased() {
         case "dotted":
@@ -16,6 +16,8 @@ enum EdgeStyleParser {
             lineStyle = .dashed
         case "thick":
             lineStyle = .thick
+        case "invisible":
+            lineStyle = .invisible
         default:
             lineStyle = .solid
         }

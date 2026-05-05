@@ -295,6 +295,7 @@ public enum LineStyle: String, CaseIterable, Sendable {
     case dotted
     case dashed
     case thick
+    case invisible
 }
 
 public enum ArrowHead: String, CaseIterable, Sendable {

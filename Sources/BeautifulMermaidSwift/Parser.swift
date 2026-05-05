@@ -15,8 +15,9 @@ public enum MermaidParser {
 
     public static func parse(_ source: String) throws -> MermaidGraph {
         try _withMermaidIssueReporting(operation: "MermaidParser.parse") {
-            let decoded = _preprocessMermaidSource(_decodeXMLEntities(source))
-            let lines = _diagramLines(from: decoded)
+            let decoded = _decodeXMLEntities(source)
+            let (processed, frontmatterConfig) = _parseFrontMatterAndStripped(decoded)
+            let lines = _mermaidSourceLines(from: processed, separatedBy: .newlines)
             let firstLine = lines.first?.lowercased() ?? ""
 
             if firstLine.hasPrefix("sequencediagram") {
@@ -36,8 +37,8 @@ public enum MermaidParser {
                 return MermaidGraph(payload: .xyChart(chart))
             }
 
-            // Flowchart + stateDiagram-v2 share the same parser entry in the original TS.
-            let parsed = try parseMermaid(decoded)
+            // Flowchart + stateDiagram-v2 — pass frontmatter config
+            let parsed = try parseMermaid(processed, config: frontmatterConfig)
             let parsedType: DiagramType = firstLine.hasPrefix("statediagram") ? .stateDiagram : .flowchart
             switch parsed.payload {
             case .flowchart(let model), .stateDiagram(let model):

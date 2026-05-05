@@ -1,8 +1,8 @@
 // Ported from original/src/ascii/index.ts
 import Foundation
 
-private func _bmParseMermaid(_ text: String) throws -> MermaidGraph {
-    try original_src_parser.parseMermaid(text)
+private func _bmParseMermaid(_ text: String, config: original_src_types.FlowchartConfig? = nil) throws -> MermaidGraph {
+    try parseMermaid(text, config: config)
 }
 
 private func _bmConvertToAsciiGraph(
@@ -341,7 +341,7 @@ open class original_src_ascii_index {
     /// Detect the diagram type from the mermaid source text.
     /// Mirrors src/index.ts ASCII renderer detection logic.
     public static func detectDiagramType(_ text: String) -> String {
-        switch detectDiagramTypeInternal(_preprocessMermaidSource(text)) {
+        switch detectDiagramTypeInternal(_preprocessMermaidSource(text).source) {
         case .sequence:
             return "sequence"
         case .class:
@@ -361,7 +361,8 @@ open class original_src_ascii_index {
         _ text: String,
         options: AsciiRenderOptions = AsciiRenderOptions()
     ) throws -> String {
-        let preprocessedText = _preprocessMermaidSource(text)
+        let preprocessed = _preprocessMermaidSource(text)
+        let preprocessedText = preprocessed.source
         var config = AsciiConfig(
             useAscii: options.useAscii ?? false,
             paddingX: options.paddingX ?? 5,
@@ -462,8 +463,9 @@ open class original_src_ascii_index {
     // MARK: - Downstream call sites (explicit placeholders)
 
     private static func parseMermaid(_ text: String) throws -> ParsedMermaid {
-        let preprocessedText = _preprocessMermaidSource(text)
-        let parsed = try _bmParseMermaid(preprocessedText)
+        let preprocessed = _preprocessMermaidSource(text)
+        let preprocessedText = preprocessed.source
+        let parsed = try _bmParseMermaid(preprocessedText, config: preprocessed.config)
         let lines = _mermaidSourceLines(from: preprocessedText, separatedBy: .newlines)
         let header = (lines.first ?? "").uppercased()
 

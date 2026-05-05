@@ -124,7 +124,9 @@ func _renderMermaidSVG(
     _ text: String,
     _ options: RenderOptions = RenderOptions()
 ) throws -> String {
-    let decodedText = _preprocessMermaidSource(_decodeXML(text))
+    let preprocessed = _preprocessMermaidSource(_decodeXML(text))
+    let decodedText = preprocessed.source
+    let fmConfig = preprocessed.config
     let colors = buildColors(options)
     let font = options.font ?? "Inter"
     let transparent = options.transparent ?? false
@@ -150,7 +152,7 @@ func _renderMermaidSVG(
         let positioned = layoutXYChart(chart, options)
         return renderXYChartSvg(positioned, colors, font, transparent, interactive: options.interactive ?? false)
     case .flowchart:
-        let graph = try parseMermaid(decodedText)
+        let graph = try parseMermaid(decodedText, config: fmConfig)
         let positioned = try layoutGraphSync(graph, options)
         return try renderSvg(positioned, colors, font, transparent)
     }

@@ -1,6 +1,19 @@
 import Foundation
 import CoreGraphics
 
+private typealias ParsedArrowHeadType = original_src_types.ArrowHeadType
+
+private func _mapArrowHead(_ type: ParsedArrowHeadType) -> ArrowHead {
+    switch type {
+    case .none: return .none
+    case .arrow: return .arrow
+    case .open: return .open
+    case .circle: return .circle
+    case .cross: return .cross
+    case .diamond: return .diamond
+    }
+}
+
 /// Parse a CSS length value like "2px", "1.5", "3pt" into a CGFloat.
 func _parseCSSLength(_ value: String) -> CGFloat? {
     let stripped = value.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -31,7 +44,8 @@ extension DiagramRenderer {
             // 2. Draw edges (lines only)
             for edge in edges {
                 let pts = edge.points.map { CGPoint(x: $0.x, y: $0.y) }
-                var style = EdgeStyleParser.parse(from: edge.style, hasArrowStart: edge.hasArrowStart, hasArrowEnd: edge.hasArrowEnd)
+                var style = EdgeStyleParser.parse(from: edge.style, arrowHeadStart: _mapArrowHead(edge.arrowHeadStart), arrowHeadEnd: _mapArrowHead(edge.arrowHeadEnd))
+                if style.lineStyle == .invisible { continue }
                 style.color = edge.inlineStyle?["stroke"]
                 style.strokeWidth = edge.inlineStyle?["stroke-width"].flatMap { _parseCSSLength($0) }
                 self.edgeRenderer.drawEdgePath(points: pts, style: style, in: ctx, theme: self.theme)
@@ -40,7 +54,8 @@ extension DiagramRenderer {
             // 3. Draw arrow heads
             for edge in edges {
                 let pts = edge.points.map { CGPoint(x: $0.x, y: $0.y) }
-                var style = EdgeStyleParser.parse(from: edge.style, hasArrowStart: edge.hasArrowStart, hasArrowEnd: edge.hasArrowEnd)
+                var style = EdgeStyleParser.parse(from: edge.style, arrowHeadStart: _mapArrowHead(edge.arrowHeadStart), arrowHeadEnd: _mapArrowHead(edge.arrowHeadEnd))
+                if style.lineStyle == .invisible { continue }
                 style.color = edge.inlineStyle?["stroke"]
                 style.strokeWidth = edge.inlineStyle?["stroke-width"].flatMap { _parseCSSLength($0) }
                 self.edgeRenderer.drawArrowHeads(points: pts, style: style, in: ctx, theme: self.theme)

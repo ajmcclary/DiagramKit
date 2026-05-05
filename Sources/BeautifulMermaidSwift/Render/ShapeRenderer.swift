@@ -86,10 +86,70 @@ public class NodeShapeRenderer {
             return CGPath(rect: bounds, transform: nil)
         case "asymmetric":
             return asymmetricPath(bounds)
+        case "ellipse":
+            return CGPath(ellipseIn: bounds, transform: nil)
+        case "parallelogram":
+            return parallelogramPath(bounds)
+        case "parallelogram-alt":
+            return parallelogramAltPath(bounds)
         case "state-fork":
             return CGPath(rect: bounds, transform: nil)
         case "class-box":
             return roundedRectPath(bounds, cornerRadius: 4)
+        case "triangle", "notched-pentagon":
+            return trianglePath(bounds)
+        case "bang":
+            return trueCirclePath(bounds)
+        case "small-circle", "filled-circle":
+            return trueCirclePath(bounds)
+        case "framed-circle":
+            return trueCirclePath(bounds)  // outer ring drawn in details
+        case "fork", "join":
+            return roundedRectPath(bounds, cornerRadius: 2)
+        case "text":
+            return CGPath(rect: bounds, transform: nil)
+        case "cloud":
+            return cloudPath(bounds)
+        case "document", "tagged-document", "lined-document", "stacked-document":
+            return documentPath(bounds)
+        case "crossed-circle":
+            return trueCirclePath(bounds)
+        case "delay":
+            return delayPath(bounds)
+        case "notched-rectangle", "tagged-rectangle":
+            return CGPath(rect: bounds, transform: nil)
+        case "window-pane":
+            return CGPath(rect: bounds, transform: nil)
+        case "divided-rectangle":
+            return CGPath(rect: bounds, transform: nil)
+        case "hourglass":
+            return hourglassPath(bounds)
+        case "lightning-bolt":
+            return lightningBoltPath(bounds)
+        case "stacked-rectangle":
+            return CGPath(rect: bounds, transform: nil)
+        case "brace-l", "brace-r", "braces":
+            return CGPath(rect: bounds, transform: nil)
+        case "flag":
+            return flagPath(bounds)
+        case "bow-tie-rectangle":
+            return bowTiePath(bounds)
+        case "horizontal-cylinder", "lined-cylinder", "data-store":
+            let ry = config.cylinderEllipseRadius
+            let bodyRect = CGRect(x: bounds.minX, y: bounds.minY + ry, width: bounds.width, height: bounds.height - 2 * ry)
+            return CGPath(rect: bodyRect, transform: nil)
+        case "flipped-triangle", "sloped-rectangle":
+            return CGPath(rect: bounds, transform: nil)
+        case "brace-l", "brace-r", "braces":
+            return CGPath(rect: bounds, transform: nil)
+        case "notched-rectangle", "tagged-rectangle":
+            return notchedRectPath(bounds)
+        case "lined-rectangle":
+            return CGPath(rect: bounds, transform: nil)
+        case "lined-document":
+            return documentPath(bounds)
+        case "icon-square", "icon-circle", "icon", "icon-rounded", "image-square":
+            return CGPath(rect: bounds, transform: nil)
         default:
             return CGPath(rect: bounds, transform: nil)
         }
@@ -191,6 +251,164 @@ public class NodeShapeRenderer {
         return path
     }
 
+    private func trianglePath(_ bounds: CGRect) -> CGPath {
+        let path = CGMutablePath()
+        path.move(to: CGPoint(x: bounds.midX, y: bounds.minY))
+        path.addLine(to: CGPoint(x: bounds.maxX, y: bounds.maxY))
+        path.addLine(to: CGPoint(x: bounds.minX, y: bounds.maxY))
+        path.closeSubpath()
+        return path
+    }
+
+    private func cloudPath(_ bounds: CGRect) -> CGPath {
+        let path = CGMutablePath()
+        let w = bounds.width, h = bounds.height
+        let r = min(w, h) * 0.12
+        let midX = bounds.midX, midY = bounds.midY
+        path.move(to: CGPoint(x: midX, y: bounds.minY + r * 0.5))
+        path.addCurve(to: CGPoint(x: bounds.maxX - r, y: bounds.minY + r),
+                      control1: CGPoint(x: midX + r * 2, y: bounds.minY - r * 0.3),
+                      control2: CGPoint(x: bounds.maxX, y: bounds.minY - r * 0.2))
+        path.addCurve(to: CGPoint(x: bounds.maxX - r * 0.5, y: midY),
+                      control1: CGPoint(x: bounds.maxX + r, y: bounds.minY + r * 2),
+                      control2: CGPoint(x: bounds.maxX + r, y: midY - r))
+        path.addCurve(to: CGPoint(x: bounds.maxX - r, y: bounds.maxY - r),
+                      control1: CGPoint(x: bounds.maxX + r, y: midY + r),
+                      control2: CGPoint(x: bounds.maxX + r, y: bounds.maxY - r))
+        path.addCurve(to: CGPoint(x: midX, y: bounds.maxY),
+                      control1: CGPoint(x: bounds.maxX - r * 2, y: bounds.maxY + r * 0.3),
+                      control2: CGPoint(x: midX + r * 2, y: bounds.maxY + r * 0.5))
+        path.addCurve(to: CGPoint(x: bounds.minX + r, y: bounds.maxY - r),
+                      control1: CGPoint(x: midX - r * 2, y: bounds.maxY + r * 0.5),
+                      control2: CGPoint(x: bounds.minX, y: bounds.maxY + r * 0.3))
+        path.addCurve(to: CGPoint(x: bounds.minX + r * 0.5, y: midY),
+                      control1: CGPoint(x: bounds.minX - r, y: bounds.maxY - r * 2),
+                      control2: CGPoint(x: bounds.minX - r, y: midY + r))
+        path.addCurve(to: CGPoint(x: bounds.minX + r, y: bounds.minY + r),
+                      control1: CGPoint(x: bounds.minX - r, y: midY - r),
+                      control2: CGPoint(x: bounds.minX - r, y: bounds.minY + r))
+        path.addCurve(to: CGPoint(x: midX, y: bounds.minY + r * 0.5),
+                      control1: CGPoint(x: bounds.minX + r * 2, y: bounds.minY - r * 0.3),
+                      control2: CGPoint(x: midX - r, y: bounds.minY - r))
+        path.closeSubpath()
+        return path
+    }
+
+    private func documentPath(_ bounds: CGRect) -> CGPath {
+        let path = CGMutablePath()
+        let w = bounds.width, h = bounds.height
+        let waveDepth = h * 0.15
+        let waveSegments = 5
+        path.move(to: CGPoint(x: bounds.minX, y: bounds.minY))
+        path.addLine(to: CGPoint(x: bounds.maxX, y: bounds.minY))
+        path.addLine(to: CGPoint(x: bounds.maxX, y: bounds.maxY - waveDepth))
+        let segWidth = w / CGFloat(waveSegments)
+        for i in 0..<waveSegments {
+            let sx = bounds.maxX - CGFloat(i) * segWidth
+            let ex = bounds.maxX - CGFloat(i + 1) * segWidth
+            let dir = i % 2 == 0 ? 1.0 : -1.0
+            path.addCurve(to: CGPoint(x: ex, y: bounds.maxY - waveDepth),
+                          control1: CGPoint(x: sx - segWidth * 0.25, y: bounds.maxY + waveDepth * dir),
+                          control2: CGPoint(x: ex + segWidth * 0.25, y: bounds.maxY - waveDepth * 1.5))
+        }
+        path.addLine(to: CGPoint(x: bounds.minX, y: bounds.maxY - waveDepth))
+        path.closeSubpath()
+        return path
+    }
+
+    private func delayPath(_ bounds: CGRect) -> CGPath {
+        let w = bounds.width, h = bounds.height
+        let r = h / 2
+        return roundedRectPath(
+            CGRect(x: bounds.minX, y: bounds.minY, width: w + r, height: h),
+            cornerRadius: r
+        )
+    }
+
+    private func hourglassPath(_ bounds: CGRect) -> CGPath {
+        let path = CGMutablePath()
+        let w = bounds.width, h = bounds.height
+        let midX = bounds.midX, midY = bounds.midY
+        let pinch = w * 0.15
+        path.move(to: CGPoint(x: bounds.minX, y: bounds.minY))
+        path.addLine(to: CGPoint(x: bounds.maxX, y: bounds.minY))
+        path.addLine(to: CGPoint(x: midX + pinch, y: midY))
+        path.addLine(to: CGPoint(x: bounds.maxX, y: bounds.maxY))
+        path.addLine(to: CGPoint(x: bounds.minX, y: bounds.maxY))
+        path.addLine(to: CGPoint(x: midX - pinch, y: midY))
+        path.closeSubpath()
+        return path
+    }
+
+    private func lightningBoltPath(_ bounds: CGRect) -> CGPath {
+        let path = CGMutablePath()
+        let w = bounds.width, h = bounds.height
+        path.move(to: CGPoint(x: bounds.minX + w * 0.4, y: bounds.minY))
+        path.addLine(to: CGPoint(x: bounds.minX + w * 0.25, y: bounds.midY - h * 0.1))
+        path.addLine(to: CGPoint(x: bounds.minX + w * 0.55, y: bounds.midY - h * 0.1))
+        path.addLine(to: CGPoint(x: bounds.minX + w * 0.35, y: bounds.midY + h * 0.1))
+        path.addLine(to: CGPoint(x: bounds.minX + w * 0.75, y: bounds.maxY))
+        path.addLine(to: CGPoint(x: bounds.minX + w * 0.5, y: bounds.midY + h * 0.1))
+        path.addLine(to: CGPoint(x: bounds.minX + w * 0.2, y: bounds.midY + h * 0.1))
+        path.closeSubpath()
+        return path
+    }
+
+    private func flagPath(_ bounds: CGRect) -> CGPath {
+        let path = CGMutablePath()
+        let w = bounds.width, h = bounds.height
+        let inset = w * 0.15
+        path.move(to: CGPoint(x: bounds.minX, y: bounds.minY))
+        path.addLine(to: CGPoint(x: bounds.maxX - inset, y: bounds.minY))
+        path.addLine(to: CGPoint(x: bounds.maxX, y: bounds.midY))
+        path.addLine(to: CGPoint(x: bounds.maxX - inset, y: bounds.maxY))
+        path.addLine(to: CGPoint(x: bounds.minX, y: bounds.maxY))
+        path.closeSubpath()
+        return path
+    }
+
+    private func bowTiePath(_ bounds: CGRect) -> CGPath {
+        let path = CGMutablePath()
+        let m = bounds.center
+        path.move(to: CGPoint(x: bounds.minX, y: bounds.minY))
+        path.addLine(to: CGPoint(x: m.x, y: m.y))
+        path.addLine(to: CGPoint(x: bounds.maxX, y: bounds.minY))
+        path.addLine(to: CGPoint(x: m.x, y: m.y))
+        path.addLine(to: CGPoint(x: bounds.maxX, y: bounds.maxY))
+        path.addLine(to: CGPoint(x: m.x, y: m.y))
+        path.addLine(to: CGPoint(x: bounds.minX, y: bounds.maxY))
+        path.closeSubpath()
+        return path
+    }
+
+    private func curvedTrapezoidPath(_ bounds: CGRect) -> CGPath {
+        let path = CGMutablePath()
+        let inset = bounds.width * 0.15
+        let cpOffset = bounds.height * 0.2
+        path.move(to: CGPoint(x: bounds.minX + inset, y: bounds.minY))
+        path.addCurve(to: CGPoint(x: bounds.maxX, y: bounds.maxY),
+                      control1: CGPoint(x: bounds.maxX - inset, y: bounds.minY),
+                      control2: CGPoint(x: bounds.maxX, y: bounds.maxY - cpOffset))
+        path.addLine(to: CGPoint(x: bounds.minX, y: bounds.maxY))
+        path.addCurve(to: CGPoint(x: bounds.minX + inset, y: bounds.minY),
+                      control1: CGPoint(x: bounds.minX, y: bounds.maxY - cpOffset),
+                      control2: CGPoint(x: bounds.minX + inset + cpOffset, y: bounds.minY + cpOffset))
+        path.closeSubpath()
+        return path
+    }
+
+    private func notchedRectPath(_ bounds: CGRect) -> CGPath {
+        let path = CGMutablePath()
+        let n: CGFloat = 10
+        path.move(to: CGPoint(x: bounds.minX, y: bounds.minY))
+        path.addLine(to: CGPoint(x: bounds.maxX - n, y: bounds.minY))
+        path.addLine(to: CGPoint(x: bounds.maxX, y: bounds.minY + n))
+        path.addLine(to: CGPoint(x: bounds.maxX, y: bounds.maxY))
+        path.addLine(to: CGPoint(x: bounds.minX, y: bounds.maxY))
+        path.closeSubpath()
+        return path
+    }
+
     // MARK: - Shape Details
 
     private func drawShapeDetails(_ shape: String, in bounds: CGRect, context: CGContext, theme: DiagramTheme, inlineStyles: [String: String]) {
@@ -250,6 +468,101 @@ public class NodeShapeRenderer {
             context.setStrokeColor(strokeColor.cgColor)
             context.addPath(topPath)
             context.strokePath()
+
+        case "bang":
+            // Center vertical line from top to bottom
+            context.setStrokeColor(theme.nodeStrokeColor(for: inlineStyles).cgColor)
+            context.setLineWidth(config.strokeWidthInnerBox)
+            context.move(to: CGPoint(x: bounds.midX, y: bounds.minY))
+            context.addLine(to: CGPoint(x: bounds.midX, y: bounds.maxY))
+            context.strokePath()
+
+        case "framed-circle":
+            let outerBounds = bounds.insetBy(dx: -4, dy: -4)
+            context.setStrokeColor(theme.nodeStrokeColor(for: inlineStyles).cgColor)
+            context.setLineWidth(config.strokeWidthInnerBox * 1.5)
+            context.addPath(CGPath(ellipseIn: outerBounds, transform: nil))
+            context.strokePath()
+
+        case "crossed-circle":
+            let cx = bounds.midX, cy = bounds.midY
+            let r = min(bounds.width, bounds.height) / 2
+            context.setStrokeColor(theme.nodeStrokeColor(for: inlineStyles).cgColor)
+            context.setLineWidth(config.strokeWidthInnerBox)
+            context.move(to: CGPoint(x: cx - r * 0.5, y: cy - r * 0.5))
+            context.addLine(to: CGPoint(x: cx + r * 0.5, y: cy + r * 0.5))
+            context.strokePath()
+            context.move(to: CGPoint(x: cx + r * 0.5, y: cy - r * 0.5))
+            context.addLine(to: CGPoint(x: cx - r * 0.5, y: cy + r * 0.5))
+            context.strokePath()
+
+        case "divided-rectangle":
+            context.setStrokeColor(theme.nodeStrokeColor(for: inlineStyles).cgColor)
+            context.setLineWidth(config.strokeWidthInnerBox)
+            context.move(to: CGPoint(x: bounds.minX, y: bounds.midY))
+            context.addLine(to: CGPoint(x: bounds.maxX, y: bounds.midY))
+            context.strokePath()
+
+        case "window-pane":
+            let inset = bounds.width * 0.2
+            let paneRect = CGRect(x: bounds.maxX - inset - 4, y: bounds.minY + 4,
+                                  width: inset, height: bounds.height - 8)
+            context.setStrokeColor(theme.nodeStrokeColor(for: inlineStyles).cgColor)
+            context.setLineWidth(config.strokeWidthInnerBox)
+            context.addPath(CGPath(rect: paneRect, transform: nil))
+            context.strokePath()
+
+        case "stacked-document":
+            let offset: CGFloat = 4
+            let backRect = bounds.offsetBy(dx: -offset, dy: -offset)
+            context.saveGState()
+            context.setStrokeColor(theme.nodeStrokeColor(for: inlineStyles).cgColor)
+            context.setLineWidth(config.strokeWidthInnerBox)
+            context.setAlpha(0.4)
+            context.addPath(documentPath(backRect))
+            context.strokePath()
+            context.restoreGState()
+
+        case "stacked-rectangle":
+            let offset: CGFloat = 4
+            let backRect = bounds.offsetBy(dx: -offset, dy: -offset)
+            context.saveGState()
+            context.setStrokeColor(theme.nodeStrokeColor(for: inlineStyles).cgColor)
+            context.setLineWidth(config.strokeWidthInnerBox)
+            context.setAlpha(0.4)
+            context.addPath(CGPath(rect: backRect, transform: nil))
+            context.strokePath()
+            context.restoreGState()
+
+        case "notched-rectangle":
+            let notchSize: CGFloat = 10
+            context.setFillColor(theme.nodeFillColor(for: inlineStyles).cgColor)
+            let path = CGMutablePath()
+            path.move(to: CGPoint(x: bounds.minX, y: bounds.minY))
+            path.addLine(to: CGPoint(x: bounds.maxX - notchSize, y: bounds.minY))
+            path.addLine(to: CGPoint(x: bounds.maxX, y: bounds.minY + notchSize))
+            path.addLine(to: CGPoint(x: bounds.maxX, y: bounds.maxY))
+            path.addLine(to: CGPoint(x: bounds.minX, y: bounds.maxY))
+            path.closeSubpath()
+            context.addPath(path)
+            context.fillPath()
+
+        case "tagged-document", "tagged-rectangle":
+            let notchSize: CGFloat = 10
+            context.setStrokeColor(theme.nodeStrokeColor(for: inlineStyles).cgColor)
+            context.setLineWidth(config.strokeWidthInnerBox)
+            context.move(to: CGPoint(x: bounds.maxX - notchSize, y: bounds.minY))
+            context.addLine(to: CGPoint(x: bounds.maxX - notchSize, y: bounds.minY + notchSize))
+            context.addLine(to: CGPoint(x: bounds.maxX, y: bounds.minY + notchSize))
+            context.strokePath()
+            let tagPath = CGMutablePath()
+            tagPath.move(to: CGPoint(x: bounds.maxX - notchSize, y: bounds.minY))
+            tagPath.addLine(to: CGPoint(x: bounds.maxX - notchSize, y: bounds.minY + notchSize))
+            tagPath.addLine(to: CGPoint(x: bounds.maxX, y: bounds.minY + notchSize))
+            tagPath.closeSubpath()
+            context.setFillColor(theme.nodeFillColor(for: inlineStyles).cgColor)
+            context.addPath(tagPath)
+            context.fillPath()
 
         default:
             break
