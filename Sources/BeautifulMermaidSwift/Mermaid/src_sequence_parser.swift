@@ -41,26 +41,26 @@ public enum SequenceParserError: Error, LocalizedError, _MermaidRecoverableError
 private let _arrowPatterns: [(pattern: String, type: SequenceArrowType)] = [
     ("<<-->>", .bidirectionalDotted),
     ("<<->>", .bidirectionalSolid),
-    ("--\\|", .solidArrowTopDotted),
-    ("--\\|/", .solidArrowBottomDotted),
+    ("--|\\", .solidArrowTopDotted),
+    ("--|/", .solidArrowBottomDotted),
     ("--\\\\", .stickArrowTopDotted),
     ("--//", .stickArrowBottomDotted),
-    ("/\\|--", .solidArrowTopReverseDotted),
-    ("\\\\|--", .solidArrowBottomReverseDotted),
+    ("/|--", .solidArrowTopReverseDotted),
+    ("\\|--", .solidArrowBottomReverseDotted),
     ("//--", .stickArrowTopReverseDotted),
-    ("\\\\\\\\--", .stickArrowBottomReverseDotted),
+    ("\\\\--", .stickArrowBottomReverseDotted),
     ("-->>", .dotted),
     ("--x", .dottedCross),
     ("--)", .dottedPoint),
     ("-->", .dottedOpen),
-    ("-\\|", .solidArrowTop),
-    ("-\\|/", .solidArrowBottom),
+    ("-|\\", .solidArrowTop),
+    ("-|/", .solidArrowBottom),
     ("-\\\\", .stickArrowTop),
     ("-//", .stickArrowBottom),
-    ("/\\|-", .solidArrowTopReverse),
-    ("\\\\|-", .solidArrowBottomReverse),
+    ("/|-", .solidArrowTopReverse),
+    ("\\|-", .solidArrowBottomReverse),
     ("//-", .stickArrowTopReverse),
-    ("\\\\\\\\-", .stickArrowBottomReverse),
+    ("\\\\-", .stickArrowBottomReverse),
     ("->>", .solid),
     ("-x", .solidCross),
     ("-)", .solidPoint),
@@ -145,9 +145,6 @@ private func _parseSequenceDiagramEntry(_ lines: [String]) throws -> SequenceDia
         // --- Participant / Actor with optional config ---
         if let result = _parseParticipantDeclaration(line) {
             let id = result.id
-            if actorIds.contains(id) {
-                throw SequenceParserError.duplicateActor(id)
-            }
             actorIds.insert(id)
             let actor = SequenceActor(
                 id: id,
@@ -275,6 +272,13 @@ private func _parseSequenceDiagramEntry(_ lines: [String]) throws -> SequenceDia
             items.append(.message(msg))
             continue
         }
+    }
+
+    if let cid = lastCreatedId {
+        throw SequenceParserError.createWithoutMessage(cid)
+    }
+    if let did = lastDestroyedId {
+        throw SequenceParserError.destroyWithoutMessage(did)
     }
 
     return SequenceDiagram(items: items)

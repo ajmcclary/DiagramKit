@@ -134,7 +134,7 @@ final class SequenceParserTests: XCTestCase {
     func testArrowHalfArrowTop() throws {
         let diagram = try parseSequenceDiagram(lines("""
         sequenceDiagram
-            A-\\|B: half top
+            A-|\\B: half top
         """))
         let style = SequenceArrowStyle(type: diagram.messages.first!.arrowType)
         XCTAssertTrue(style.isHalfArrow)

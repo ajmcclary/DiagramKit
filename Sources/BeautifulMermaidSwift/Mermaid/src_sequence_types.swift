@@ -20,22 +20,61 @@ public struct SequenceDiagram: Sendable {
     // MARK: Derived arrays
 
     public var actors: [SequenceActor] {
-        var seen = Set<String>()
-        var result: [SequenceActor] = []
-        // Include actors from box sections too
+        var order: [String] = []
+        var actorsById: [String: SequenceActor] = [:]
+
+        func upsert(_ actor: SequenceActor) {
+            if actorsById[actor.id] == nil {
+                order.append(actor.id)
+                actorsById[actor.id] = actor
+                return
+            }
+
+            var existing = actorsById[actor.id]!
+            existing.label = actor.label
+            existing.type = actor.type
+            existing.config = actor.config ?? existing.config
+            existing.boxId = actor.boxId ?? existing.boxId
+            existing.links.merge(actor.links) { _, new in new }
+            existing.properties.merge(actor.properties) { _, new in new }
+            existing.detailsElementId = actor.detailsElementId ?? existing.detailsElementId
+            existing.createdAtMessageIndex = actor.createdAtMessageIndex ?? existing.createdAtMessageIndex
+            existing.destroyedAtMessageIndex = actor.destroyedAtMessageIndex ?? existing.destroyedAtMessageIndex
+            existing.isExplicit = existing.isExplicit || actor.isExplicit
+            existing.wrap = actor.wrap ?? existing.wrap
+            actorsById[actor.id] = existing
+        }
+
+        func ensure(_ id: String) {
+            if actorsById[id] != nil { return }
+            upsert(SequenceActor(id: id, label: id, type: .participant, isExplicit: false))
+        }
+
         for item in items {
             switch item {
             case .actor(let a):
-                if seen.insert(a.id).inserted { result.append(a) }
+                upsert(a)
             case .createParticipant(let a):
-                if seen.insert(a.id).inserted { result.append(a) }
+                upsert(a)
             case .message(let m):
-                if seen.insert(m.from).inserted { result.append(SequenceActor(id: m.from, label: m.from, type: .participant)) }
-                if seen.insert(m.to).inserted { result.append(SequenceActor(id: m.to, label: m.to, type: .participant)) }
+                ensure(m.from)
+                ensure(m.to)
+            case .link(let actorId, let label, let url):
+                ensure(actorId)
+                actorsById[actorId]?.links[label] = url
+            case .links(let actorId, let json):
+                ensure(actorId)
+                actorsById[actorId]?.links.merge(_sequenceStringMap(fromJSON: json)) { _, new in new }
+            case .properties(let actorId, let json):
+                ensure(actorId)
+                actorsById[actorId]?.properties.merge(_sequenceStringMap(fromJSON: json)) { _, new in new }
+            case .details(let actorId, let elementId):
+                ensure(actorId)
+                actorsById[actorId]?.detailsElementId = elementId
             default: break
             }
         }
-        return result
+        return order.compactMap { actorsById[$0] }
     }
 
     public var messages: [SequenceMessage] {
@@ -47,12 +86,19 @@ public struct SequenceDiagram: Sendable {
 
     public var blocks: [SequenceBlock] {
         var result: [SequenceBlock] = []
-        var stack: [(type: String, label: String, startItemIndex: Int)] = []
+        var stack: [(type: String, label: String, startItemIndex: Int, isHighlight: Bool, highlightFill: String?)] = []
         var pendingDividers: [SequenceBlockDivider] = []
         for (idx, item) in items.enumerated() {
             switch item {
             case .blockStart(let type, let label):
-                stack.append((type: type, label: label, startItemIndex: idx))
+                let isHighlight = type == "rect"
+                stack.append((
+                    type: type,
+                    label: isHighlight ? "" : label,
+                    startItemIndex: idx,
+                    isHighlight: isHighlight,
+                    highlightFill: isHighlight ? label : nil
+                ))
             case .blockDivider(_, let label):
                 pendingDividers.append(SequenceBlockDivider(itemIndex: idx, label: label))
             case .blockEnd:
@@ -62,7 +108,9 @@ public struct SequenceDiagram: Sendable {
                     label: top.label,
                     startItemIndex: top.startItemIndex,
                     endItemIndex: idx,
-                    dividers: pendingDividers
+                    dividers: pendingDividers,
+                    isHighlight: top.isHighlight,
+                    highlightFill: top.highlightFill
                 ))
                 pendingDividers = []
             default:
@@ -189,6 +237,25 @@ public struct SequenceDiagram: Sendable {
         for n in legacyNotes { items.append(.note(n)) }
         self.items = items
     }
+}
+
+private func _sequenceStringMap(fromJSON json: String) -> [String: String] {
+    guard let data = json.data(using: .utf8),
+          let object = try? JSONSerialization.jsonObject(with: data),
+          let dictionary = object as? [String: Any]
+    else {
+        return [:]
+    }
+
+    var result: [String: String] = [:]
+    for (key, value) in dictionary {
+        if let string = value as? String {
+            result[key] = string
+        } else {
+            result[key] = String(describing: value)
+        }
+    }
+    return result
 }
 
 // MARK: - SequenceItem — Ordered timeline

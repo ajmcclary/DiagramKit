@@ -97,7 +97,7 @@ private func _layoutSequenceDiagramEntry(
     }
 
     let actorY = cfg.diagramMarginY
-    let positionedActors: [PositionedSequenceActor] = visibleActors.map { actor in
+    var positionedActors: [PositionedSequenceActor] = visibleActors.map { actor in
         let idx = actorIndex[actor.id] ?? 0
         return PositionedSequenceActor(
             id: actor.id,
@@ -127,22 +127,55 @@ private func _layoutSequenceDiagramEntry(
 
     // Autonumber tracking
     var seqNum: Double = diagram.autonumberStart
-    let seqStep: Double = diagram.autonumberStep
-    let seqEnabled: Bool = diagram.autonumberEnabled
+    var seqStep: Double = diagram.autonumberStep
+    var seqEnabled: Bool = diagram.autonumberEnabled
     var messageIdx = 0
 
     // Activation stacks
     var activationStacks: [String: [(startY: Double, depth: Int)]] = [:]
     var positionedActivations: [SequenceActivation] = []
     let nestingOffset = 4.0
+    let lifecycle = _sequenceLifecycleMessageIndices(diagram)
 
-    for msg in messages {
+    for (itemIndex, item) in diagram.items.enumerated() {
+        let extra = extraSpaceBefore[itemIndex] ?? 0
+        if extra > 0 { messageY += extra }
+
+        switch item {
+        case .autonumberEvent(let start, let step, let visible):
+            seqEnabled = visible
+            if visible {
+                seqNum = start
+                seqStep = step
+            }
+
+        case .activationStart(let actorId):
+            guard actorIndex[actorId] != nil else { break }
+            var stack = activationStacks[actorId] ?? []
+            stack.append((startY: messageY, depth: stack.count))
+            activationStacks[actorId] = stack
+
+        case .activationEnd(let actorId):
+            guard let actorIdx = actorIndex[actorId] else { break }
+            var stack = activationStacks[actorId] ?? []
+            guard !stack.isEmpty else { break }
+            let top = stack.removeLast()
+            activationStacks[actorId] = stack
+            let xOffset = Double(top.depth) * nestingOffset
+            positionedActivations.append(
+                SequenceActivation(
+                    actorId: actorId,
+                    x: actorCenterX[actorIdx] - cfg.activationWidth / 2 + xOffset,
+                    topY: top.startY,
+                    bottomY: max(messageY, top.startY + cfg.messageMargin),
+                    width: cfg.activationWidth
+                )
+            )
+
+        case .message(let msg):
         let fromIdx = actorIndex[msg.from] ?? 0
         let toIdx = actorIndex[msg.to] ?? 0
         let isSelfMsg = msg.from == msg.to
-
-        let extra = extraSpaceBefore[messageIdx] ?? 0
-        if extra > 0 { messageY += extra }
 
         // Push messageY for notes placed after the previous message
         for note in notes {
@@ -207,6 +240,18 @@ private func _layoutSequenceDiagramEntry(
 
         messageY += isSelfMsg ? (30 + cfg.messageMargin) : cfg.messageMargin
         messageIdx += 1
+
+        default:
+            break
+        }
+    }
+
+    for i in positionedActors.indices {
+        let actorId = positionedActors[i].id
+        guard let createMessageIndex = lifecycle.created[actorId],
+              createMessageIndex < positionedMessages.count
+        else { continue }
+        positionedActors[i].y = max(actorY, positionedMessages[createMessageIndex].y - cfg.height / 2)
     }
 
     // Close remaining activation stacks
@@ -352,7 +397,6 @@ private func _layoutSequenceDiagramEntry(
         let msgEndIdx = _itemIdxToMsgIdx(block.endItemIndex, diagram: diagram)
         let topY = (msgStartIdx < positionedMessages.count ? positionedMessages[msgStartIdx].y : messageY) - 4
         let bottomY = (msgEndIdx < positionedMessages.count ? positionedMessages[msgEndIdx].y : messageY) + cfg.messageMargin + 4
-        let leftX = 0.0
         let rightX = actorCenterX.last ?? 300
         return PositionedRectHighlight(
             x: cfg.diagramMarginX,
@@ -380,12 +424,26 @@ private func _layoutSequenceDiagramEntry(
     // ---- Lifelines ----
     let lifelines: [SequenceLifeline] = visibleActors.map { actor in
         let idx = actorIndex[actor.id] ?? 0
-        let destroyed = diagram.destroyedActorIds.contains(actor.id)
+        let topY: Double
+        if lifecycle.created[actor.id] != nil {
+            topY = positionedActors[idx].y + positionedActors[idx].height
+        } else {
+            topY = actorY + cfg.height
+        }
+
+        let bottomY: Double
+        if let destroyedMessageIndex = lifecycle.destroyed[actor.id],
+           destroyedMessageIndex < positionedMessages.count {
+            bottomY = positionedMessages[destroyedMessageIndex].y
+        } else {
+            bottomY = diagramBottom - cfg.diagramMarginY
+        }
+
         return SequenceLifeline(
             actorId: actor.id,
             x: actorCenterX[idx],
-            topY: actorY + cfg.height,
-            bottomY: destroyed ? messageY : diagramBottom - cfg.diagramMarginY
+            topY: topY,
+            bottomY: bottomY
         )
     }
 
@@ -417,6 +475,8 @@ private func _layoutSequenceDiagramEntry(
     var shiftedNotes = positionedNotes
     var shiftedBoxes = positionedBoxes
     var shiftedHighlights = rectHighlights
+    var shiftedLifelines = lifelines
+    var shiftedBottomActors = bottomActors
 
     if shiftX > 0 {
         for i in shiftedActors.indices { shiftedActors[i].x += shiftX }
@@ -429,6 +489,8 @@ private func _layoutSequenceDiagramEntry(
         for i in shiftedNotes.indices { shiftedNotes[i].x += shiftX }
         for i in shiftedBoxes.indices { shiftedBoxes[i].x += shiftX }
         for i in shiftedHighlights.indices { shiftedHighlights[i].x += shiftX }
+        for i in shiftedLifelines.indices { shiftedLifelines[i].x += shiftX }
+        for i in shiftedBottomActors.indices { shiftedBottomActors[i].x += shiftX }
         for i in actorCenterX.indices { actorCenterX[i] += shiftX }
     }
 
@@ -439,13 +501,13 @@ private func _layoutSequenceDiagramEntry(
         width: max(diagramWidth, 200),
         height: max(diagramHeight, 100),
         actors: shiftedActors,
-        lifelines: lifelines,
+        lifelines: shiftedLifelines,
         messages: shiftedMessages,
         activations: shiftedActivations,
         blocks: shiftedBlocks,
         notes: shiftedNotes,
         boxes: shiftedBoxes,
-        bottomActors: bottomActors,
+        bottomActors: shiftedBottomActors,
         rectHighlights: shiftedHighlights,
         title: diagram.title,
         accTitle: diagram.accTitle,
@@ -501,6 +563,37 @@ private func _countNestingDepth(_ allBlocks: [SequenceBlock], _ target: Sequence
         }
     }
     return depth
+}
+
+private func _sequenceLifecycleMessageIndices(_ diagram: SequenceDiagram) -> (created: [String: Int], destroyed: [String: Int]) {
+    var created: [String: Int] = [:]
+    var destroyed: [String: Int] = [:]
+    var pendingCreate: String?
+    var pendingDestroy: String?
+    var messageIndex = 0
+
+    for item in diagram.items {
+        switch item {
+        case .createParticipant(let actor):
+            pendingCreate = actor.id
+        case .destroyParticipant(let actorId):
+            pendingDestroy = actorId
+        case .message(let message):
+            if let actorId = pendingCreate, message.to == actorId {
+                created[actorId] = messageIndex
+                pendingCreate = nil
+            }
+            if let actorId = pendingDestroy, message.from == actorId || message.to == actorId {
+                destroyed[actorId] = messageIndex
+                pendingDestroy = nil
+            }
+            messageIndex += 1
+        default:
+            break
+        }
+    }
+
+    return (created, destroyed)
 }
 
 // MARK: - Legacy class
