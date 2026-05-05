@@ -1,0 +1,79 @@
+import Foundation
+
+public struct GraphLayout {
+    public var config: LayoutConfig
+
+    public init(config: LayoutConfig = LayoutConfig()) {
+        self.config = config
+    }
+
+    public func layout(_ graph: MermaidGraph) throws -> PositionedGraph {
+        try _withMermaidIssueReporting(operation: "GraphLayout.layout") {
+            switch graph.type {
+            case .flowchart, .stateDiagram:
+                return try layoutGraphSync(graph, config: config)
+            case .classDiagram:
+                guard case let .classDiagram(parsed) = graph.payload else {
+                    _reportMermaidIssue("GraphLayout.layout found mismatched class diagram payload.")
+                    return PositionedGraph(diagram: graph, content: .classDiagram(classes: [], relationships: []))
+                }
+                let positioned = try layoutClassDiagramSync(parsed)
+                return PositionedGraph(
+                    diagram: graph,
+                    width: positioned.width,
+                    height: positioned.height,
+                    content: .classDiagram(
+                        classes: positioned.classes,
+                        relationships: positioned.relationships
+                    )
+                )
+            case .erDiagram:
+                guard case let .erDiagram(parsed) = graph.payload else {
+                    _reportMermaidIssue("GraphLayout.layout found mismatched ER diagram payload.")
+                    return PositionedGraph(diagram: graph, content: .erDiagram(entities: [], relationships: []))
+                }
+                let positioned = try layoutErDiagramSync(parsed)
+                return PositionedGraph(
+                    diagram: graph,
+                    width: positioned.width,
+                    height: positioned.height,
+                    content: .erDiagram(
+                        entities: positioned.entities,
+                        relationships: positioned.relationships
+                    )
+                )
+            case .sequenceDiagram:
+                guard case let .sequenceDiagram(parsed) = graph.payload else {
+                    _reportMermaidIssue("GraphLayout.layout found mismatched sequence diagram payload.")
+                    return PositionedGraph(diagram: graph, content: .sequenceDiagram(actors: [], messages: [], blocks: [], lifelines: [], activations: [], notes: []))
+                }
+                let positioned = try layoutSequenceDiagram(parsed)
+                return PositionedGraph(
+                    diagram: graph,
+                    width: positioned.width,
+                    height: positioned.height,
+                    content: .sequenceDiagram(
+                        actors: positioned.actors,
+                        messages: positioned.messages,
+                        blocks: positioned.blocks,
+                        lifelines: positioned.lifelines,
+                        activations: positioned.activations,
+                        notes: positioned.notes
+                    )
+                )
+            case .xyChart:
+                guard case let .xyChart(chart) = graph.payload else {
+                    _reportMermaidIssue("GraphLayout.layout found mismatched XY chart payload.")
+                    return PositionedGraph(diagram: graph, content: .xyChart(PositionedXYChart.empty))
+                }
+                let positioned = layoutXYChart(chart)
+                return PositionedGraph(
+                    diagram: graph,
+                    width: positioned.width,
+                    height: positioned.height,
+                    content: .xyChart(positioned)
+                )
+            }
+        }
+    }
+}

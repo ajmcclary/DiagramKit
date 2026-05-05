@@ -1,0 +1,8 @@
+.build/
+.swiftpm/
+.DS_Store
+xcuserdata/
+__pycache__/
+*.pyc
+visual-report.html
+Package.resolved
