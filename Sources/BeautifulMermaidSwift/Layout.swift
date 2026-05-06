@@ -175,6 +175,18 @@ public struct GraphLayout {
                     height: positioned.height,
                     content: .mindmap(positioned)
                 )
+            case .timeline:
+                guard case let .timeline(diagram) = graph.payload else {
+                    _reportMermaidIssue("GraphLayout.layout found mismatched timeline payload.")
+                    return PositionedGraph(diagram: graph, content: .timeline(.empty))
+                }
+                let positioned = layoutTimelineDiagram(diagram)
+                return PositionedGraph(
+                    diagram: graph,
+                    width: positioned.width,
+                    height: positioned.height,
+                    content: .timeline(positioned)
+                )
             }
         }
     }

@@ -84,6 +84,7 @@ private enum _DiagramRoutingType {
     case requirement
     case gitgraph
     case mindmap
+    case timeline
 }
 
 private func _decodeXML(_ text: String) -> String {
@@ -131,6 +132,9 @@ private func detectDiagramType(_ text: String) -> _DiagramRoutingType {
     }
     if firstLine.hasPrefix("mindmap") {
         return .mindmap
+    }
+    if firstLine.hasPrefix("timeline") {
+        return .timeline
     }
 
     return .flowchart
@@ -236,6 +240,19 @@ func _renderMermaidSVG(
         let positioned = try layoutMindmap(diagram)
         let diagramId = UUID().uuidString
         return renderMindmapSvg(positioned, diagramId: diagramId, colors, font, transparent)
+    case .timeline:
+        let timelineLines = decodedText.split(separator: "\n", omittingEmptySubsequences: false).map(String.init)
+        var diagram = try parseTimelineDiagram(timelineLines, frontmatter: fm)
+        if let fmc = fm?.timelineConfig { diagram.config = fmc }
+        if let fmt = fm?.timelineTheme { diagram.theme = fmt }
+        if diagram.diagramTitle == nil, let fmTitle = fm?.title {
+            diagram.diagramTitle = fmTitle
+        }
+        diagram.themeName = fm?.theme
+        diagram.look = fm?.look
+        let positioned = layoutTimelineDiagram(diagram)
+        let diagramId = UUID().uuidString
+        return try renderTimelineSvg(positioned, diagramId: diagramId, colors, font, transparent)
     }
 }
 

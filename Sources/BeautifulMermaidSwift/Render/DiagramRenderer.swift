@@ -58,6 +58,8 @@ public final class DiagramRenderer {
             _drawGitGraph(positioned, in: context, bounds: bounds)
         case .mindmap:
             _drawMindmap(positioned, in: context, bounds: bounds)
+        case .timeline:
+            _drawTimeline(positioned, in: context, bounds: bounds)
         }
     }
 

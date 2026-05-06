@@ -145,6 +145,11 @@ private func _parseYamlFrontmatter(_ lines: [String]) -> DiagramFrontmatter? {
     var mindmapConfig = MindmapConfig()
     var hasMindmapSection = false
 
+    var timelineConfig = TimelineDiagramConfig()
+    var timelineTheme = TimelineThemeConfig.default
+    var hasTimelineSection = false
+    var hasTimelineTheme = false
+
     var pathStack: [(depth: Int, key: String)] = []
 
     for line in lines {
@@ -550,6 +555,14 @@ private func _parseYamlFrontmatter(_ lines: [String]) -> DiagramFrontmatter? {
             continue
         }
 
+        // Timeline theme variables (before GitGraph to avoid shared key conflicts)
+        if let subKey = _timelineThemeSubKey(from: fullPath) {
+            if _applyTimelineThemeValue(subKey, value: value, theme: &timelineTheme) {
+                hasTimelineTheme = true
+            }
+            continue
+        }
+
         // GitGraph theme — config.themeVariables.git* and themeVariables.git*
         if let subKey = _gitGraphThemeSubKey(from: fullPath) {
             if _applyGitGraphThemeValue(subKey, value: value, theme: &gitGraphTheme) {
@@ -570,8 +583,8 @@ private func _parseYamlFrontmatter(_ lines: [String]) -> DiagramFrontmatter? {
             if _isQuadrantThemeKey(subKey) {
                 hasQuadrantChartTheme = true
                 _ = _applyQuadrantThemeValue(subKey, value: value, theme: &quadrantChartTheme)
+                continue
             }
-            continue
         }
 
         // Top-level displayMode routing for Gantt compact mode
@@ -620,6 +633,26 @@ private func _parseYamlFrontmatter(_ lines: [String]) -> DiagramFrontmatter? {
             case "maxNodeWidth": mindmapConfig.maxNodeWidth = Double(value) ?? mindmapConfig.maxNodeWidth
             case "useMaxWidth": mindmapConfig.useMaxWidth = (value.lowercased() == "true")
             case "layoutAlgorithm": mindmapConfig.layoutAlgorithm = value
+            default: break
+            }
+            continue
+        }
+
+        // Timeline config — config.timeline.*
+        if fullPath.hasPrefix("config.timeline.") {
+            hasTimelineSection = true
+            let subKey = fullPath.replacingOccurrences(of: "config.timeline.", with: "")
+            switch subKey {
+            case "disableMulticolor": timelineConfig.disableMulticolor = (value.lowercased() == "true")
+            case "leftMargin": timelineConfig.leftMargin = Double(value) ?? timelineConfig.leftMargin
+            case "padding": timelineConfig.padding = Double(value) ?? timelineConfig.padding
+            case "useMaxWidth": timelineConfig.useMaxWidth = (value.lowercased() == "true")
+            case "useWidth": timelineConfig.useWidth = Double(value)
+            case "taskFontSize": timelineConfig.taskFontSize = Double(value) ?? timelineConfig.taskFontSize
+            case "taskFontFamily": timelineConfig.taskFontFamily = value
+            case "textPlacement": timelineConfig.textPlacement = value
+            case "width": timelineConfig.width = Double(value) ?? timelineConfig.width
+            case "height": timelineConfig.height = Double(value) ?? timelineConfig.height
             default: break
             }
             continue
@@ -685,6 +718,8 @@ private func _parseYamlFrontmatter(_ lines: [String]) -> DiagramFrontmatter? {
     if hasGitGraphSection { frontmatter.gitGraphConfig = gitGraphConfig }
     if hasGitGraphTheme { frontmatter.gitGraphTheme = gitGraphTheme }
     if hasMindmapSection { frontmatter.mindmapConfig = mindmapConfig }
+    if hasTimelineSection { frontmatter.timelineConfig = timelineConfig }
+    if hasTimelineTheme { frontmatter.timelineTheme = timelineTheme }
 
     return hasAnyContent ? frontmatter : nil
 }
@@ -978,4 +1013,87 @@ private func _parseYamlStringArray(_ value: String) -> [String]? {
 
     items.append(_unquote(current))
     return items
+}
+
+// MARK: - Timeline Theme helpers
+
+private func _timelineThemeSubKey(from fullPath: String) -> String? {
+    for prefix in ["config.themeVariables.", "themeVariables."] {
+        if fullPath.hasPrefix(prefix) {
+            let subKey = String(fullPath.dropFirst(prefix.count))
+            return _isTimelineThemeKey(subKey) ? subKey : nil
+        }
+    }
+    return nil
+}
+
+private func _isTimelineThemeKey(_ key: String) -> Bool {
+    switch key {
+    case "cScale0", "cScale1", "cScale2", "cScale3", "cScale4", "cScale5",
+         "cScale6", "cScale7", "cScale8", "cScale9", "cScale10", "cScale11",
+         "cScaleLabel0", "cScaleLabel1", "cScaleLabel2", "cScaleLabel3",
+         "cScaleLabel4", "cScaleLabel5", "cScaleLabel6", "cScaleLabel7",
+         "cScaleLabel8", "cScaleLabel9", "cScaleLabel10", "cScaleLabel11",
+         "cScaleInv0", "cScaleInv1", "cScaleInv2", "cScaleInv3",
+         "cScaleInv4", "cScaleInv5", "cScaleInv6", "cScaleInv7",
+         "cScaleInv8", "cScaleInv9", "cScaleInv10", "cScaleInv11",
+         "THEME_COLOR_LIMIT", "fontFamily", "fontSize",
+         "mainBkg", "nodeBorder", "borderColorArray",
+         "useGradient", "gradientStart", "gradientStop", "dropShadow":
+        return true
+    default:
+        return false
+    }
+}
+
+private func _applyTimelineThemeValue(_ key: String, value: String, theme: inout TimelineThemeConfig) -> Bool {
+    switch key {
+    case "cScale0": theme.cScale[0] = value
+    case "cScale1": theme.cScale[1] = value
+    case "cScale2": theme.cScale[2] = value
+    case "cScale3": theme.cScale[3] = value
+    case "cScale4": theme.cScale[4] = value
+    case "cScale5": theme.cScale[5] = value
+    case "cScale6": theme.cScale[6] = value
+    case "cScale7": theme.cScale[7] = value
+    case "cScale8": theme.cScale[8] = value
+    case "cScale9": theme.cScale[9] = value
+    case "cScale10": theme.cScale[10] = value
+    case "cScale11": theme.cScale[11] = value
+    case "cScaleLabel0": theme.cScaleLabel[0] = value
+    case "cScaleLabel1": theme.cScaleLabel[1] = value
+    case "cScaleLabel2": theme.cScaleLabel[2] = value
+    case "cScaleLabel3": theme.cScaleLabel[3] = value
+    case "cScaleLabel4": theme.cScaleLabel[4] = value
+    case "cScaleLabel5": theme.cScaleLabel[5] = value
+    case "cScaleLabel6": theme.cScaleLabel[6] = value
+    case "cScaleLabel7": theme.cScaleLabel[7] = value
+    case "cScaleLabel8": theme.cScaleLabel[8] = value
+    case "cScaleLabel9": theme.cScaleLabel[9] = value
+    case "cScaleLabel10": theme.cScaleLabel[10] = value
+    case "cScaleLabel11": theme.cScaleLabel[11] = value
+    case "cScaleInv0": theme.cScaleInv[0] = value
+    case "cScaleInv1": theme.cScaleInv[1] = value
+    case "cScaleInv2": theme.cScaleInv[2] = value
+    case "cScaleInv3": theme.cScaleInv[3] = value
+    case "cScaleInv4": theme.cScaleInv[4] = value
+    case "cScaleInv5": theme.cScaleInv[5] = value
+    case "cScaleInv6": theme.cScaleInv[6] = value
+    case "cScaleInv7": theme.cScaleInv[7] = value
+    case "cScaleInv8": theme.cScaleInv[8] = value
+    case "cScaleInv9": theme.cScaleInv[9] = value
+    case "cScaleInv10": theme.cScaleInv[10] = value
+    case "cScaleInv11": theme.cScaleInv[11] = value
+    case "THEME_COLOR_LIMIT": theme.themeColorLimit = Int(value) ?? theme.themeColorLimit
+    case "fontFamily": theme.fontFamily = value
+    case "fontSize": theme.fontSize = Double(value) ?? theme.fontSize
+    case "mainBkg": theme.mainBkg = value
+    case "nodeBorder": theme.nodeBorder = value
+    case "useGradient": theme.useGradient = (value.lowercased() == "true")
+    case "gradientStart": theme.gradientStart = value
+    case "gradientStop": theme.gradientStop = value
+    case "dropShadow": theme.dropShadow = value
+    default: return false
+    }
+    return true
 }

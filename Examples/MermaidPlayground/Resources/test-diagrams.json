@@ -1319,10 +1319,76 @@
       "category": "mindmap",
       "name": "Comments and Whitespace",
       "source": "---\nconfig:\n  layout: tidy-tree\n---\nmindmap\n  root(Root)\n    Child(Child)\n      a(a)\n\n      %% This is a comment\n      b[New Stuff]\n\n      c"
+    },
+    {
+      "id": "timeline-1-basic",
+      "category": "timeline",
+      "name": "Basic No-Section Social Media Timeline",
+      "source": "timeline\n    title History of Social Media Platform\n    2002 : LinkedIn\n    2004 : Facebook : Google\n    2005 : YouTube\n    2006 : Twitter"
+    },
+    {
+      "id": "timeline-2-sectioned-industrial",
+      "category": "timeline",
+      "name": "Sectioned Industrial Revolution",
+      "source": "timeline\n    title Industrial Revolution\n    section 18th Century\n        1760 : Steam Engine\n        1769 : Water Frame\n        1775 : Spinning Mule\n    section 19th Century\n        1804 : Steam Locomotive\n        1831 : Electric Generator\n        1876 : Telephone"
+    },
+    {
+      "id": "timeline-3-br-tags",
+      "category": "timeline",
+      "name": "Timeline with BR Tags and Continuations",
+      "source": "timeline\n    title History of England\n    section Age of<br>Industrialization\n        1760 : James<br>Watt\n            : Steam<br>Engine\n    section Age of<br>Empire\n        1815 : Battle of Waterloo\n        1837 : Queen Victoria"
+    },
+    {
+      "id": "timeline-4-section-br",
+      "category": "timeline",
+      "name": "Timeline with Section BR Labels",
+      "source": "timeline\n    section 2023 Q1 <br> Release Personal Tier\n        Bullet 1 : sub-point 1a : sub-point 1b\n            : sub-point 1c"
+    },
+    {
+      "id": "timeline-5-td-basic",
+      "category": "timeline",
+      "name": "Vertical TD Timeline Basic",
+      "source": "timeline TD\n    title My Timeline\n    2020 : Event A\n    2021 : Event B\n    2022 : Event C"
+    },
+    {
+      "id": "timeline-6-td-sectioned",
+      "category": "timeline",
+      "name": "Vertical TD Sectioned Timeline",
+      "source": "timeline TD\n    section Phase 1\n        2020 : Milestone A\n        2021 : Milestone B\n    section Phase 2\n        2022 : Milestone C\n        2023 : Milestone D"
+    },
+    {
+      "id": "timeline-7-disable-multicolor",
+      "category": "timeline",
+      "name": "Disable Multicolor No Sections",
+      "source": "---\nconfig:\n  timeline:\n    disableMulticolor: true\n---\ntimeline\n    2020 : Event A\n    2021 : Event B\n    2022 : Event C"
+    },
+    {
+      "id": "timeline-8-cscale-override",
+      "category": "timeline",
+      "name": "cScale Theme Variable Override",
+      "source": "---\nconfig:\n  themeVariables:\n    cScale0: \"#FF0000\"\n    cScaleLabel0: \"#FFFFFF\"\n    cScale1: \"#00FF00\"\n---\ntimeline\n    2020 : Event A\n    2021 : Event B"
+    },
+    {
+      "id": "timeline-9-many-events",
+      "category": "timeline",
+      "name": "Long Event Stacks",
+      "source": "timeline\n    2020 : E1 : E2 : E3 : E4 : E5 : E6 : E7\n    2021 : F1 : F2 : F3 : F4 : F5"
+    },
+    {
+      "id": "timeline-10-continuation-events",
+      "category": "timeline",
+      "name": "Continuation Events",
+      "source": "timeline\n    section Era\n        2020 : Event A\n            : Event B\n            : Event C\n            : Event D\n            : Event E\n        2021 : Event F\n            : Event G"
+    },
+    {
+      "id": "timeline-11-accessibility",
+      "category": "timeline",
+      "name": "Accessible Timeline",
+      "source": "timeline\n    accTitle: My Accessible Timeline\n    accDescr {\n    A timeline showing\n    key historical events\n    }\n    2020 : Event A\n    2021 : Event B"
     }
   ],
   "metadata": {
-    "totalCount": 205,
+    "totalCount": 216,
     "categories": {
       "flowchart": 27,
       "state": 12,
@@ -1336,7 +1402,8 @@
       "quadrantChart": 12,
       "requirement": 14,
       "gitGraph": 14,
-      "mindmap": 8
+      "mindmap": 8,
+      "timeline": 11
     }
   }
 }

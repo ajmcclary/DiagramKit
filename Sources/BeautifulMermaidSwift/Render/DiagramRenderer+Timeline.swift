@@ -1,0 +1,183 @@
+import Foundation
+import CoreGraphics
+
+extension DiagramRenderer {
+
+    func _drawTimeline(_ positioned: PositionedGraph, in context: CGContext, bounds: CGRect) {
+        guard let timeline = positioned.timelineData, !timeline.tasks.isEmpty else { return }
+
+        _withFittedContext(context, bounds: bounds,
+                           contentWidth: max(1, timeline.width),
+                           contentHeight: max(1, timeline.height)) { ctx in
+            let ch = max(1, timeline.height)
+            let theme = timeline.theme
+            let fontSize = CGFloat(timeline.config.taskFontSize)
+            let font = BMFont.systemFont(ofSize: fontSize, weight: .regular)
+            let titleFont = BMFont.systemFont(ofSize: 18, weight: .bold)
+
+            // 1. Section nodes
+            for section in timeline.sections {
+                let sectionRect = CGRect(x: section.x, y: section.y, width: section.width, height: section.height)
+                let path = BMBezierPath(roundedRect: sectionRect, cornerRadius: 3)
+
+                let colorIdx = section.colorIndex % max(1, theme.cScale.count)
+                if let fillColor = _thexToCGColor(theme.cScale[colorIdx]) {
+                    ctx.setFillColor(fillColor)
+                } else {
+                    ctx.setFillColor(self.theme.effectiveSurface().cgColor)
+                }
+                ctx.addPath(path.bm_cgPath)
+                ctx.fillPath()
+
+                let textColor = _thexToColor(theme.cScaleLabel[colorIdx]) ?? self.theme.foreground
+                self._drawTextInFlipped(
+                    section.text,
+                    at: CGPoint(x: section.x + section.width / 2, y: section.y + section.height / 2),
+                    context: ctx, contentHeight: ch,
+                    color: textColor,
+                    font: font,
+                    alignment: .center
+                )
+            }
+
+            // 2. Task nodes
+            for task in timeline.tasks {
+                let taskRect = CGRect(x: task.x, y: task.y, width: task.width, height: task.height)
+                let path = BMBezierPath(roundedRect: taskRect, cornerRadius: 3)
+
+                let colorIdx = task.colorIndex % max(1, theme.cScale.count)
+                if let fillColor = _thexToCGColor(theme.cScale[colorIdx]) {
+                    ctx.setFillColor(fillColor)
+                } else {
+                    ctx.setFillColor(self.theme.effectiveSurface().cgColor)
+                }
+                ctx.addPath(path.bm_cgPath)
+                ctx.fillPath()
+
+                // Bottom accent line
+                if let lineColor = _thexToCGColor(theme.cScaleInv[colorIdx]) {
+                    ctx.setStrokeColor(lineColor)
+                    ctx.setLineWidth(3)
+                    ctx.move(to: CGPoint(x: task.x, y: task.y + task.height))
+                    ctx.addLine(to: CGPoint(x: task.x + task.width, y: task.y + task.height))
+                    ctx.strokePath()
+                }
+
+                let textColor = _thexToColor(theme.cScaleLabel[colorIdx]) ?? self.theme.foreground
+                self._drawTextInFlipped(
+                    task.text,
+                    at: CGPoint(x: task.x + task.width / 2, y: task.y + task.height / 2),
+                    context: ctx, contentHeight: ch,
+                    color: textColor,
+                    font: font,
+                    alignment: .center
+                )
+            }
+
+            // 3. Event nodes (with brightness via lighter fill)
+            for event in timeline.events {
+                let eventRect = CGRect(x: event.x, y: event.y, width: event.width, height: event.height)
+                let path = BMBezierPath(roundedRect: eventRect, cornerRadius: 3)
+
+                let colorIdx = event.colorIndex % max(1, theme.cScale.count)
+                if let baseColor = _thexToCGColor(theme.cScale[colorIdx]) {
+                    let lightened = _brightenColor(baseColor, factor: 1.2)
+                    ctx.setFillColor(lightened)
+                } else {
+                    ctx.setFillColor(self.theme.effectiveSurface().cgColor)
+                }
+                ctx.addPath(path.bm_cgPath)
+                ctx.fillPath()
+
+                self._drawTextInFlipped(
+                    event.text,
+                    at: CGPoint(x: event.x + event.width / 2, y: event.y + event.height / 2),
+                    context: ctx, contentHeight: ch,
+                    color: self.theme.foreground,
+                    font: font,
+                    alignment: .center
+                )
+            }
+
+            // 4. Connectors (dashed lines)
+            ctx.saveGState()
+            ctx.setStrokeColor(self.theme.effectiveMuted().cgColor)
+            ctx.setLineWidth(1)
+            ctx.setLineDash(phase: 0, lengths: [5, 5])
+            for connector in timeline.connectors {
+                switch connector.kind {
+                case .verticalLR(let x1, let y1, let x2, let y2):
+                    ctx.move(to: CGPoint(x: x1, y: y1))
+                    ctx.addLine(to: CGPoint(x: x2, y: y2))
+                case .horizontalTD(let x1, let y1, let x2, let y2):
+                    ctx.move(to: CGPoint(x: x1, y: y1))
+                    ctx.addLine(to: CGPoint(x: x2, y: y2))
+                }
+            }
+            ctx.strokePath()
+            ctx.restoreGState()
+
+            // 5. Activity line with arrowhead
+            ctx.saveGState()
+            ctx.setStrokeColor(self.theme.effectiveLine().cgColor)
+            ctx.setLineWidth(4)
+            let line = timeline.activityLine
+            ctx.move(to: CGPoint(x: line.x1, y: line.y1))
+            ctx.addLine(to: CGPoint(x: line.x2, y: line.y2))
+            ctx.strokePath()
+
+            ctx.setFillColor(self.theme.effectiveLine().cgColor)
+            if timeline.direction == .LR {
+                ctx.move(to: CGPoint(x: line.x2, y: line.y2))
+                ctx.addLine(to: CGPoint(x: line.x2 + 6, y: line.y2 - 2))
+                ctx.addLine(to: CGPoint(x: line.x2 + 6, y: line.y2 + 2))
+            } else {
+                ctx.move(to: CGPoint(x: line.x2, y: line.y2))
+                ctx.addLine(to: CGPoint(x: line.x2 - 2, y: line.y2 + 6))
+                ctx.addLine(to: CGPoint(x: line.x2 + 2, y: line.y2 + 6))
+            }
+            ctx.closePath()
+            ctx.fillPath()
+            ctx.restoreGState()
+
+            // 6. Title
+            if let title = timeline.title, !title.text.isEmpty {
+                self._drawTextInFlipped(
+                    title.text,
+                    at: CGPoint(x: title.x, y: title.y),
+                    context: ctx, contentHeight: ch,
+                    color: self.theme.foreground,
+                    font: titleFont,
+                    alignment: .left
+                )
+            }
+        }
+    }
+
+    // MARK: - Color helpers
+
+    private func _thexToCGColor(_ hex: String) -> CGColor? {
+        let cleaned = hex.trimmingCharacters(in: CharacterSet(charactersIn: "#"))
+        guard cleaned.count == 6 else { return nil }
+        var rgb: UInt64 = 0
+        Scanner(string: cleaned).scanHexInt64(&rgb)
+        return CGColor(red: CGFloat((rgb >> 16) & 0xFF) / 255.0,
+                       green: CGFloat((rgb >> 8) & 0xFF) / 255.0,
+                       blue: CGFloat(rgb & 0xFF) / 255.0,
+                       alpha: 1.0)
+    }
+
+    private func _thexToColor(_ hex: String) -> BMColor? {
+        guard let cg = _thexToCGColor(hex) else { return nil }
+        return BMColor(cgColor: cg)
+    }
+
+    private func _brightenColor(_ color: CGColor, factor: CGFloat) -> CGColor {
+        guard let components = color.components, components.count >= 3 else { return color }
+        let r = min(components[0] * factor, 1.0)
+        let g = min(components[1] * factor, 1.0)
+        let b = min(components[2] * factor, 1.0)
+        let a = components.count >= 4 ? components[3] : 1.0
+        return CGColor(red: r, green: g, blue: b, alpha: a)
+    }
+}

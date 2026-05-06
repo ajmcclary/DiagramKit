@@ -93,6 +93,11 @@ public enum MermaidParser {
                 let parsed = try parseMindmap(rawLines, frontmatter: frontmatter)
                 return MermaidGraph(payload: .mindmap(parsed))
             }
+            if firstLine.hasPrefix("timeline") {
+                let timelineLines = processed.split(separator: "\n", omittingEmptySubsequences: false).map(String.init)
+                let parsed = try parseTimelineDiagram(timelineLines, frontmatter: frontmatter)
+                return MermaidGraph(payload: .timeline(parsed))
+            }
 
             // Flowchart + stateDiagram-v2 — pass frontmatter flowchart config
             let parsed = try parseMermaid(processed, config: frontmatter?.flowchartConfig)

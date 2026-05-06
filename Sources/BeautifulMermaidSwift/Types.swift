@@ -15,6 +15,7 @@ public enum DiagramType: String, CaseIterable, Sendable {
     case requirement
     case gitGraph
     case mindmap
+    case timeline
 }
 
 /// The parsed graph model for flowcharts and state diagrams.
@@ -35,6 +36,7 @@ public enum DiagramPayload: Sendable {
     case requirement(RequirementDiagram)
     case gitGraph(GitGraphDiagram)
     case mindmap(MindmapDiagram)
+    case timeline(TimelineDiagram)
 
     public var type: DiagramType {
         switch self {
@@ -64,6 +66,8 @@ public enum DiagramPayload: Sendable {
             return .gitGraph
         case .mindmap:
             return .mindmap
+        case .timeline:
+            return .timeline
         }
     }
 }
@@ -120,6 +124,8 @@ public struct MermaidGraph: Sendable {
             self.payload = .gitGraph(GitGraphDiagram())
         case .mindmap:
             self.payload = .mindmap(MindmapDiagram.empty)
+        case .timeline:
+            self.payload = .timeline(TimelineDiagram.empty)
         }
     }
 
@@ -189,6 +195,7 @@ public enum PositionedContent: Sendable {
     case requirement(PositionedRequirementDiagram)
     case gitGraph(PositionedGitGraphDiagram)
     case mindmap(PositionedMindmapDiagram)
+    case timeline(PositionedTimelineDiagram)
 }
 
 public struct PositionedGraph: Sendable {
@@ -246,6 +253,8 @@ public struct PositionedGraph: Sendable {
             self.content = .gitGraph(.empty)
         case .mindmap:
             self.content = .mindmap(.empty)
+        case .timeline:
+            self.content = .timeline(.empty)
         }
     }
 
@@ -433,6 +442,13 @@ public struct PositionedGraph: Sendable {
     public var mindmapData: PositionedMindmapDiagram? {
         switch content {
         case .mindmap(let data): return data
+        default: return nil
+        }
+    }
+
+    public var timelineData: PositionedTimelineDiagram? {
+        switch content {
+        case .timeline(let data): return data
         default: return nil
         }
     }

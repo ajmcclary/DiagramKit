@@ -340,6 +340,8 @@ public struct DiagramFrontmatter: Sendable {
     public var gitGraphConfig: GitGraphConfig?
     public var gitGraphTheme: GitGraphThemeConfig?
     public var mindmapConfig: MindmapConfig?
+    public var timelineConfig: TimelineDiagramConfig?
+    public var timelineTheme: TimelineThemeConfig?
 
     public var layout: String?      // Shared global config.layout
     public var look: String?         // Shared global config.look
@@ -368,6 +370,8 @@ public struct DiagramFrontmatter: Sendable {
         gitGraphConfig: GitGraphConfig? = nil,
         gitGraphTheme: GitGraphThemeConfig? = nil,
         mindmapConfig: MindmapConfig? = nil,
+        timelineConfig: TimelineDiagramConfig? = nil,
+        timelineTheme: TimelineThemeConfig? = nil,
         layout: String? = nil,
         look: String? = nil,
         theme: String? = nil,
@@ -394,6 +398,8 @@ public struct DiagramFrontmatter: Sendable {
         self.gitGraphConfig = gitGraphConfig
         self.gitGraphTheme = gitGraphTheme
         self.mindmapConfig = mindmapConfig
+        self.timelineConfig = timelineConfig
+        self.timelineTheme = timelineTheme
         self.layout = layout
         self.look = look
         self.theme = theme
