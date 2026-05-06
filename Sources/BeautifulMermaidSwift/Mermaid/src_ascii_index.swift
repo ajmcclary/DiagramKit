@@ -283,6 +283,7 @@ open class original_src_ascii_index {
         case `class`
         case er
         case xychart
+        case journey
     }
 
     struct AsciiConfig {
@@ -350,6 +351,8 @@ open class original_src_ascii_index {
             return "er"
         case .xychart:
             return "xychart"
+        case .journey:
+            return "journey"
         case .flowchart:
             return "flowchart"
         }
@@ -403,6 +406,9 @@ open class original_src_ascii_index {
             )
             return renderXYChartAscii(preprocessedText, mappedConfig, mappedColorMode, mappedTheme)
 
+        case .journey:
+            throw BeautifulMermaidError.notYetImplemented("ASCII rendering for User Journey diagrams")
+
         case .flowchart:
             let parsed = try parseMermaid(preprocessedText)
 
@@ -455,6 +461,9 @@ open class original_src_ascii_index {
         }
         if firstLine.hasPrefix("xychart") {
             return .xychart
+        }
+        if firstLine.hasPrefix("journey") {
+            return .journey
         }
 
         return .flowchart

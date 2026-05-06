@@ -75,6 +75,19 @@ public struct GraphLayout {
                         accDescr: positioned.accDescr
                     )
                 )
+            case .journey:
+                guard case let .journey(parsed) = graph.payload else {
+                    _reportMermaidIssue("GraphLayout.layout found mismatched journey payload.")
+                    return PositionedGraph(diagram: graph, content: .journey(.empty))
+                }
+                let config = parsed.config ?? .default
+                let positioned = layoutJourneyDiagram(parsed, options: RenderOptions(), config: config)
+                return PositionedGraph(
+                    diagram: graph,
+                    width: positioned.width,
+                    height: positioned.height,
+                    content: .journey(positioned)
+                )
             case .xyChart:
                 guard case let .xyChart(chart) = graph.payload else {
                     _reportMermaidIssue("GraphLayout.layout found mismatched XY chart payload.")

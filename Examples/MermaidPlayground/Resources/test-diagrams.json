@@ -893,17 +893,36 @@
       "category": "xychart",
       "name": "Linear X-Axis",
       "source": "xychart\n    x-axis \"Temperature\" 0 --> 100\n    line [10, 30, 50, 70, 90]"
+    },
+    {
+      "id": "journey-1",
+      "category": "journey",
+      "name": "My Working Day",
+      "source": "journey\n    title My working day\n    section Go to work\n      Make tea: 5: Me\n      Go upstairs: 3: Me\n      Do work: 1: Me, Cat\n    section Go home\n      Go downstairs: 5: Me\n      Sit down: 5: Me"
+    },
+    {
+      "id": "journey-2",
+      "category": "journey",
+      "name": "E-Commerce Journey",
+      "source": "journey\n    title E-Commerce\n    section Order from website\n      Add to cart: 5: Me\n    section Checkout from website\n      Add payment details: 5: Me"
+    },
+    {
+      "id": "journey-3",
+      "category": "journey",
+      "name": "Long Label Journey",
+      "source": "journey\n    title Web hook life cycle\n    section Darkoob\n      Make preBuilt: 5: Darkoob user\n      register slug: 5: Darkoob userf deliberately increasing the size of this label to check if distance between legend and diagram is maintained\n      Map slug to a Prebuilt Job: 5: Darkoob user\n    section External Service\n      set Darkoob slug as hook for an Event: 5: admin Exjjjnjjjj qwerty\n      listen to the events: 5: External Service\n      call darkoob endpoint: 5: External Service\n    section Darkoob\n      check for inputs: 5: DarkoobAPI\n      run the prebuilt job: 5: DarkoobAPI"
     }
   ],
   "metadata": {
-    "totalCount": 147,
+    "totalCount": 150,
     "categories": {
       "flowchart": 27,
       "state": 12,
       "sequence": 16,
       "class": 61,
       "er": 14,
-      "xychart": 17
+      "xychart": 17,
+      "journey": 3
     }
   }
 }

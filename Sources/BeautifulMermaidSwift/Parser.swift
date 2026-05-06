@@ -20,6 +20,11 @@ public enum MermaidParser {
             let lines = _mermaidSourceLines(from: processed, separatedBy: .newlines)
             let firstLine = lines.first?.lowercased() ?? ""
 
+            if firstLine.hasPrefix("journey") {
+                let journeyLines = _mermaidSourceLines(from: processed)
+                let parsed = try parseJourneyDiagram(journeyLines, frontmatter: frontmatter)
+                return MermaidGraph(payload: .journey(parsed))
+            }
             if firstLine.hasPrefix("sequencediagram") {
                 let parsed = try parseSequenceDiagram(lines)
                 return MermaidGraph(payload: .sequenceDiagram(parsed))

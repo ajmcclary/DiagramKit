@@ -118,6 +118,9 @@ private func _parseYamlFrontmatter(_ lines: [String]) -> DiagramFrontmatter? {
     var stateConfig = original_src_types.StateConfig()
     var hasStateSection = false
 
+    var journeyConfig = JourneyDiagramConfig()
+    var hasJourneySection = false
+
     var pathStack: [(depth: Int, key: String)] = []
 
     for line in lines {
@@ -127,17 +130,7 @@ private func _parseYamlFrontmatter(_ lines: [String]) -> DiagramFrontmatter? {
         let indent = line.prefix(while: { $0 == " " }).count
         let bare = trimmed
 
-        let commentStripped: String
-        if let hashIdx = bare.firstIndex(of: "#") {
-            if let quoteIdx = bare.firstIndex(of: "\""), quoteIdx < hashIdx,
-               let closeIdx = bare[bare.index(after: quoteIdx)...].firstIndex(of: "\""), closeIdx > hashIdx {
-                commentStripped = bare
-            } else {
-                commentStripped = String(bare[..<hashIdx]).trimmingCharacters(in: .whitespaces)
-            }
-        } else {
-            commentStripped = bare
-        }
+        let commentStripped = _stripYamlComment(bare)
 
         guard let colonIdx = commentStripped.firstIndex(of: ":") else { continue }
         let key = String(commentStripped[..<colonIdx]).trimmingCharacters(in: .whitespaces)
@@ -389,6 +382,50 @@ private func _parseYamlFrontmatter(_ lines: [String]) -> DiagramFrontmatter? {
             continue
         }
 
+        // Journey config — config.journey.*
+        if fullPath.hasPrefix("config.journey.") {
+            hasJourneySection = true
+            let subKey = fullPath.replacingOccurrences(of: "config.journey.", with: "")
+            switch subKey {
+            case "diagramMarginX": journeyConfig.diagramMarginX = Double(value) ?? journeyConfig.diagramMarginX
+            case "diagramMarginY": journeyConfig.diagramMarginY = Double(value) ?? journeyConfig.diagramMarginY
+            case "leftMargin": journeyConfig.leftMargin = Double(value) ?? journeyConfig.leftMargin
+            case "maxLabelWidth": journeyConfig.maxLabelWidth = Double(value) ?? journeyConfig.maxLabelWidth
+            case "width": journeyConfig.width = Double(value) ?? journeyConfig.width
+            case "height": journeyConfig.height = Double(value) ?? journeyConfig.height
+            case "boxMargin": journeyConfig.boxMargin = Double(value) ?? journeyConfig.boxMargin
+            case "boxTextMargin": journeyConfig.boxTextMargin = Double(value) ?? journeyConfig.boxTextMargin
+            case "noteMargin": journeyConfig.noteMargin = Double(value) ?? journeyConfig.noteMargin
+            case "messageMargin": journeyConfig.messageMargin = Double(value) ?? journeyConfig.messageMargin
+            case "messageAlign": journeyConfig.messageAlign = value
+            case "bottomMarginAdj": journeyConfig.bottomMarginAdj = Double(value) ?? journeyConfig.bottomMarginAdj
+            case "useMaxWidth": journeyConfig.useMaxWidth = (value.lowercased() == "true")
+            case "rightAngles": journeyConfig.rightAngles = (value.lowercased() == "true")
+            case "taskFontSize": journeyConfig.taskFontSize = Double(value) ?? journeyConfig.taskFontSize
+            case "taskFontFamily": journeyConfig.taskFontFamily = value
+            case "taskMargin": journeyConfig.taskMargin = Double(value) ?? journeyConfig.taskMargin
+            case "activationWidth": journeyConfig.activationWidth = Double(value) ?? journeyConfig.activationWidth
+            case "textPlacement": journeyConfig.textPlacement = value
+            case "actorColours":
+                if let values = _parseYamlStringArray(value) {
+                    journeyConfig.actorColours = values
+                }
+            case "sectionFills":
+                if let values = _parseYamlStringArray(value) {
+                    journeyConfig.sectionFills = values
+                }
+            case "sectionColours":
+                if let values = _parseYamlStringArray(value) {
+                    journeyConfig.sectionColours = values
+                }
+            case "titleColor": journeyConfig.titleColor = value
+            case "titleFontFamily": journeyConfig.titleFontFamily = value
+            case "titleFontSize": journeyConfig.titleFontSize = value
+            default: break
+            }
+            continue
+        }
+
         // Global config.layout (for dagre/elk selection)
         if fullPath == "config.layout" {
             hasErSection = true
@@ -418,6 +455,7 @@ private func _parseYamlFrontmatter(_ lines: [String]) -> DiagramFrontmatter? {
     if hasXYChartTheme { frontmatter.xyChartTheme = xyChartTheme }
     if hasSequenceSection { frontmatter.sequenceConfig = sequenceConfig }
     if hasStateSection { frontmatter.stateConfig = stateConfig }
+    if hasJourneySection { frontmatter.journeyConfig = journeyConfig }
 
     return hasAnyContent ? frontmatter : nil
 }
@@ -432,4 +470,95 @@ private func _unquote(_ s: String) -> String {
         return String(trimmed[start..<end])
     }
     return trimmed
+}
+
+private func _stripYamlComment(_ line: String) -> String {
+    var inQuote = false
+    var quoteChar: Character?
+    var isEscaped = false
+
+    for idx in line.indices {
+        let ch = line[idx]
+        if inQuote {
+            if isEscaped {
+                isEscaped = false
+                continue
+            }
+            if ch == "\\" && quoteChar == "\"" {
+                isEscaped = true
+                continue
+            }
+            if ch == quoteChar {
+                inQuote = false
+                quoteChar = nil
+            }
+            continue
+        }
+
+        if ch == "\"" || ch == "'" {
+            inQuote = true
+            quoteChar = ch
+            continue
+        }
+
+        if ch == "#" {
+            return String(line[..<idx]).trimmingCharacters(in: .whitespaces)
+        }
+    }
+
+    return line
+}
+
+private func _parseYamlStringArray(_ value: String) -> [String]? {
+    let trimmed = value.trimmingCharacters(in: .whitespaces)
+    guard trimmed.hasPrefix("[") && trimmed.hasSuffix("]") else { return nil }
+
+    let innerStart = trimmed.index(after: trimmed.startIndex)
+    let innerEnd = trimmed.index(before: trimmed.endIndex)
+    let inner = String(trimmed[innerStart..<innerEnd])
+    if inner.trimmingCharacters(in: .whitespaces).isEmpty {
+        return []
+    }
+
+    var items: [String] = []
+    var current = ""
+    var inQuote = false
+    var quoteChar: Character?
+    var isEscaped = false
+
+    for ch in inner {
+        if inQuote {
+            current.append(ch)
+            if isEscaped {
+                isEscaped = false
+                continue
+            }
+            if ch == "\\" && quoteChar == "\"" {
+                isEscaped = true
+                continue
+            }
+            if ch == quoteChar {
+                inQuote = false
+                quoteChar = nil
+            }
+            continue
+        }
+
+        if ch == "\"" || ch == "'" {
+            inQuote = true
+            quoteChar = ch
+            current.append(ch)
+            continue
+        }
+
+        if ch == "," {
+            items.append(_unquote(current))
+            current = ""
+        } else {
+            current.append(ch)
+        }
+    }
+
+    items.append(_unquote(current))
+    return items
 }

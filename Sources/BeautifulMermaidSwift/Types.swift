@@ -8,6 +8,7 @@ public enum DiagramType: String, CaseIterable, Sendable {
     case classDiagram
     case erDiagram
     case xyChart
+    case journey
 }
 
 /// The parsed graph model for flowcharts and state diagrams.
@@ -21,6 +22,7 @@ public enum DiagramPayload: Sendable {
     case classDiagram(ClassDiagram)
     case erDiagram(ErDiagram)
     case xyChart(XYChart)
+    case journey(JourneyDiagram)
 
     public var type: DiagramType {
         switch self {
@@ -36,6 +38,8 @@ public enum DiagramPayload: Sendable {
             return .erDiagram
         case .xyChart:
             return .xyChart
+        case .journey:
+            return .journey
         }
     }
 }
@@ -78,6 +82,8 @@ public struct MermaidGraph: Sendable {
             self.payload = .erDiagram(ErDiagram(entities: [], relationships: []))
         case .xyChart:
             self.payload = .xyChart(XYChart())
+        case .journey:
+            self.payload = .journey(JourneyDiagram())
         }
     }
 
@@ -140,6 +146,7 @@ public enum PositionedContent: Sendable {
         diagramTitle: String? = nil
     )
     case xyChart(PositionedXYChart)
+    case journey(PositionedJourneyDiagram)
 }
 
 public struct PositionedGraph: Sendable {
@@ -183,6 +190,8 @@ public struct PositionedGraph: Sendable {
             self.content = .erDiagram(entities: [], relationships: [], accTitle: nil, accDescr: nil, diagramTitle: nil)
         case .xyChart:
             self.content = .xyChart(.empty)
+        case .journey:
+            self.content = .journey(.empty)
         }
     }
 
@@ -342,6 +351,13 @@ public struct PositionedGraph: Sendable {
     public var xyChartData: PositionedXYChart? {
         switch content {
         case .xyChart(let chart): return chart
+        default: return nil
+        }
+    }
+
+    public var journeyData: PositionedJourneyDiagram? {
+        switch content {
+        case .journey(let data): return data
         default: return nil
         }
     }
