@@ -48,6 +48,12 @@ public enum MermaidParser {
                 }
                 return MermaidGraph(payload: .xyChart(chart))
             }
+            if firstLine.hasPrefix("gantt") {
+                let ganttLines = _mermaidSourceLines(from: processed,
+                    separatedBy: CharacterSet(charactersIn: "\n"))
+                let parsed = try parseGanttDiagram(ganttLines, frontmatter: frontmatter)
+                return MermaidGraph(payload: .gantt(parsed))
+            }
 
             // Flowchart + stateDiagram-v2 — pass frontmatter flowchart config
             let parsed = try parseMermaid(processed, config: frontmatter?.flowchartConfig)

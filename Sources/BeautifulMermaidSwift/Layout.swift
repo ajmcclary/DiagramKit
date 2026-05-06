@@ -100,6 +100,21 @@ public struct GraphLayout {
                     height: positioned.height,
                     content: .xyChart(positioned)
                 )
+            case .gantt:
+                guard case let .gantt(parsed) = graph.payload else {
+                    _reportMermaidIssue("GraphLayout.layout found mismatched Gantt payload.")
+                    return PositionedGraph(diagram: graph, content: .gantt(.empty))
+                }
+                let config = parsed.config ?? .default
+                var merged = parsed
+                merged.config = config
+                let positioned = layoutGanttDiagram(merged)
+                return PositionedGraph(
+                    diagram: graph,
+                    width: positioned.width,
+                    height: positioned.height,
+                    content: .gantt(positioned)
+                )
             }
         }
     }

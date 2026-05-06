@@ -331,6 +331,7 @@ public struct DiagramFrontmatter: Sendable {
     public var sequenceConfig: SequenceDiagramConfig?
     public var stateConfig: original_src_types.StateConfig?
     public var journeyConfig: JourneyDiagramConfig?
+    public var ganttConfig: GanttDiagramConfig?
 
     public init(
         title: String? = nil,
@@ -342,7 +343,8 @@ public struct DiagramFrontmatter: Sendable {
         xyChartTheme: XYChartThemeConfig? = nil,
         sequenceConfig: SequenceDiagramConfig? = nil,
         stateConfig: original_src_types.StateConfig? = nil,
-        journeyConfig: JourneyDiagramConfig? = nil
+        journeyConfig: JourneyDiagramConfig? = nil,
+        ganttConfig: GanttDiagramConfig? = nil
     ) {
         self.title = title
         self.diagramTitle = diagramTitle ?? title
@@ -354,6 +356,7 @@ public struct DiagramFrontmatter: Sendable {
         self.sequenceConfig = sequenceConfig
         self.stateConfig = stateConfig
         self.journeyConfig = journeyConfig
+        self.ganttConfig = ganttConfig
     }
 }
 

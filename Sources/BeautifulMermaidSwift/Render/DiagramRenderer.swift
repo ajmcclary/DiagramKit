@@ -46,6 +46,8 @@ public final class DiagramRenderer {
             _drawXYChart(positioned, in: context, bounds: bounds)
         case .journey:
             _drawJourney(positioned, in: context, bounds: bounds)
+        case .gantt:
+            _drawGantt(positioned, in: context, bounds: bounds)
         }
     }
 

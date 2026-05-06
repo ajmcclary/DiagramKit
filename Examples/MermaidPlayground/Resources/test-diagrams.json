@@ -911,10 +911,52 @@
       "category": "journey",
       "name": "Long Label Journey",
       "source": "journey\n    title Web hook life cycle\n    section Darkoob\n      Make preBuilt: 5: Darkoob user\n      register slug: 5: Darkoob userf deliberately increasing the size of this label to check if distance between legend and diagram is maintained\n      Map slug to a Prebuilt Job: 5: Darkoob user\n    section External Service\n      set Darkoob slug as hook for an Event: 5: admin Exjjjnjjjj qwerty\n      listen to the events: 5: External Service\n      call darkoob endpoint: 5: External Service\n    section Darkoob\n      check for inputs: 5: DarkoobAPI\n      run the prebuilt job: 5: DarkoobAPI"
+    },
+    {
+      "id": "gantt-1-basic",
+      "category": "gantt",
+      "name": "Basic Project Schedule",
+      "source": "gantt\n    title A Gantt Diagram\n    dateFormat YYYY-MM-DD\n    section Section\n        A task       :a1, 2014-01-01, 30d\n        Another task :after a1, 20d"
+    },
+    {
+      "id": "gantt-2-full-syntax",
+      "category": "gantt",
+      "name": "Full Syntax with Tags",
+      "source": "gantt\n    title Full Gantt Example\n    dateFormat YYYY-MM-DD\n    section Planning\n        Research     :done, crit, r1, 2024-01-01, 2024-01-10\n        Design       :active, d1, after r1, 5d\n    section Development\n        Implement    :i1, 2024-01-15, 10d\n        Testing      :milestone, t1, after i1, 3d"
+    },
+    {
+      "id": "gantt-3-compact",
+      "category": "gantt",
+      "name": "Compact Display Mode",
+      "source": "gantt\n    title Compact Gantt\n    dateFormat YYYY-MM-DD\n    section Tasks\n        Task A :a, 2024-01-01, 10d\n        Task B :b, 2024-01-05, 10d\n        Task C :c, 2024-01-10, 10d"
+    },
+    {
+      "id": "gantt-4-excludes",
+      "category": "gantt",
+      "name": "Excludes and Weekends",
+      "source": "gantt\n    title Project with Excludes\n    dateFormat YYYY-MM-DD\n    excludes weekends\n    section Work\n        Task 1 :t1, 2024-01-01, 14d\n        Task 2 :t2, after t1, 10d"
+    },
+    {
+      "id": "gantt-5-milestones",
+      "category": "gantt",
+      "name": "Milestones and Vert Markers",
+      "source": "gantt\n    title Milestones\n    dateFormat YYYY-MM-DD\n    section Phase 1\n        Start      :milestone, m1, 2024-01-01, 0d\n        Work       :w1, 2024-01-01, 30d\n        Mid Check  :milestone, m2, 2024-01-15, 0d\n        End        :milestone, m3, 2024-01-31, 0d"
+    },
+    {
+      "id": "gantt-6-click",
+      "category": "gantt",
+      "name": "Click Links and Callbacks",
+      "source": "gantt\n    title Interactive Gantt\n    dateFormat YYYY-MM-DD\n    section Tasks\n        Alpha :a1, 2024-01-01, 10d\n        Beta  :b1, after a1, 15d\n    click a1 href \"https://example.com\"\n    click b1 call myCallback()"
+    },
+    {
+      "id": "gantt-7-accessibility",
+      "category": "gantt",
+      "name": "Accessibility Metadata",
+      "source": "gantt\n    accTitle: My Gantt Chart\n    accDescr: A project schedule showing task dependencies\n    dateFormat YYYY-MM-DD\n    section Main\n        Task 1 :t1, 2024-01-01, 7d"
     }
   ],
   "metadata": {
-    "totalCount": 150,
+    "totalCount": 157,
     "categories": {
       "flowchart": 27,
       "state": 12,
@@ -922,7 +964,8 @@
       "class": 61,
       "er": 14,
       "xychart": 17,
-      "journey": 3
+      "journey": 3,
+      "gantt": 7
     }
   }
 }

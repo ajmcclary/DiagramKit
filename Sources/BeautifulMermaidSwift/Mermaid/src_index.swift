@@ -78,6 +78,7 @@ private enum _DiagramRoutingType {
     case er
     case xychart
     case journey
+    case gantt
 }
 
 private func _decodeXML(_ text: String) -> String {
@@ -107,6 +108,9 @@ private func detectDiagramType(_ text: String) -> _DiagramRoutingType {
     }
     if firstLine.hasPrefix("journey") {
         return .journey
+    }
+    if firstLine.hasPrefix("gantt") {
+        return .gantt
     }
 
     return .flowchart
@@ -168,6 +172,16 @@ func _renderMermaidSVG(
         merged.config = config
         let positioned = layoutJourneyDiagram(merged, options: options, config: config)
         return try renderJourneySvg(positioned, colors, font, transparent)
+    case .gantt:
+        let ganttLines = _mermaidSourceLines(from: decodedText,
+            separatedBy: CharacterSet(charactersIn: "\n"))
+        let diagram = try parseGanttDiagram(ganttLines, frontmatter: fm)
+        let config = fm?.ganttConfig ?? .default
+        var merged = diagram
+        merged.config = config
+        let positioned = layoutGanttDiagram(merged)
+        let diagramId = UUID().uuidString
+        return try renderGanttSvg(positioned, diagramId: diagramId, colors, font, transparent)
     case .flowchart:
         let graph = try parseMermaid(decodedText, config: fm?.flowchartConfig, stateConfig: fm?.stateConfig)
         let positioned = try layoutGraphSync(graph, options)

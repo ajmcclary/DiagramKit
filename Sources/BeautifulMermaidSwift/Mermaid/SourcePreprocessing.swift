@@ -121,6 +121,9 @@ private func _parseYamlFrontmatter(_ lines: [String]) -> DiagramFrontmatter? {
     var journeyConfig = JourneyDiagramConfig()
     var hasJourneySection = false
 
+    var ganttConfig = GanttDiagramConfig()
+    var hasGanttSection = false
+
     var pathStack: [(depth: Int, key: String)] = []
 
     for line in lines {
@@ -426,6 +429,40 @@ private func _parseYamlFrontmatter(_ lines: [String]) -> DiagramFrontmatter? {
             continue
         }
 
+        // Gantt config — config.gantt.*
+        if fullPath.hasPrefix("config.gantt.") {
+            hasGanttSection = true
+            let subKey = fullPath.replacingOccurrences(of: "config.gantt.", with: "")
+            switch subKey {
+            case "titleTopMargin": ganttConfig.titleTopMargin = Double(value) ?? ganttConfig.titleTopMargin
+            case "barHeight": ganttConfig.barHeight = Double(value) ?? ganttConfig.barHeight
+            case "barGap": ganttConfig.barGap = Double(value) ?? ganttConfig.barGap
+            case "topPadding": ganttConfig.topPadding = Double(value) ?? ganttConfig.topPadding
+            case "rightPadding": ganttConfig.rightPadding = Double(value) ?? ganttConfig.rightPadding
+            case "leftPadding": ganttConfig.leftPadding = Double(value) ?? ganttConfig.leftPadding
+            case "gridLineStartPadding": ganttConfig.gridLineStartPadding = Double(value) ?? ganttConfig.gridLineStartPadding
+            case "fontSize": ganttConfig.fontSize = Double(value) ?? ganttConfig.fontSize
+            case "sectionFontSize": ganttConfig.sectionFontSize = Double(value) ?? ganttConfig.sectionFontSize
+            case "numberSectionStyles": ganttConfig.numberSectionStyles = Int(value) ?? ganttConfig.numberSectionStyles
+            case "axisFormat": ganttConfig.axisFormat = value
+            case "tickInterval": ganttConfig.tickInterval = value
+            case "topAxis": ganttConfig.topAxis = (value.lowercased() == "true")
+            case "displayMode": ganttConfig.displayMode = value
+            case "weekday": ganttConfig.weekday = value
+            case "useMaxWidth": ganttConfig.useMaxWidth = (value.lowercased() == "true")
+            case "useWidth": ganttConfig.useWidth = Double(value)
+            default: break
+            }
+            continue
+        }
+
+        // Top-level displayMode routing for Gantt compact mode
+        if fullPath == "displayMode" && value.lowercased() == "compact" {
+            hasGanttSection = true
+            ganttConfig.displayMode = "compact"
+            continue
+        }
+
         // Global config.layout (for dagre/elk selection)
         if fullPath == "config.layout" {
             hasErSection = true
@@ -456,6 +493,7 @@ private func _parseYamlFrontmatter(_ lines: [String]) -> DiagramFrontmatter? {
     if hasSequenceSection { frontmatter.sequenceConfig = sequenceConfig }
     if hasStateSection { frontmatter.stateConfig = stateConfig }
     if hasJourneySection { frontmatter.journeyConfig = journeyConfig }
+    if hasGanttSection { frontmatter.ganttConfig = ganttConfig }
 
     return hasAnyContent ? frontmatter : nil
 }
