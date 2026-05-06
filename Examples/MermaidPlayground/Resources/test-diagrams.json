@@ -1385,10 +1385,64 @@
       "category": "timeline",
       "name": "Accessible Timeline",
       "source": "timeline\n    accTitle: My Accessible Timeline\n    accDescr {\n    A timeline showing\n    key historical events\n    }\n    2020 : Event A\n    2021 : Event B"
+    },
+    {
+      "id": "sankey-1-minimal",
+      "category": "sankey",
+      "name": "Minimal Sankey",
+      "source": "sankey\nA,B,10"
+    },
+    {
+      "id": "sankey-2-beta-header",
+      "category": "sankey",
+      "name": "Sankey-beta Header",
+      "source": "sankey-beta\nA,B,10"
+    },
+    {
+      "id": "sankey-3-energy-flow",
+      "category": "sankey",
+      "name": "Energy Flow",
+      "source": "sankey\nElectricity grid,Over generation / exports,104.453\nElectricity grid,Heating and cooling - homes,113.726\nElectricity grid,H2 conversion,27.14\nElectricity grid,Industry,342.165\nElectricity grid,Losses,56.691\nElectricity grid,National navigation,10.186\nElectricity grid,Rail transport,7.863\nElectricity grid,Lighting & appliances - commercial,90.008\nElectricity grid,Lighting & appliances - homes,93.494\nElectricity grid,Other,82.233\nElectricity grid,Agriculture,3.64\nOver generation / exports,National navigation,104.453\nHeating and cooling - homes,District heating,79.329\nHeating and cooling - homes,Residential,34.397\nH2 conversion,Road transport,27.14\nLosses,National navigation,56.691\nIndustry,Agriculture,342.165\nNational navigation,Bio-conversion,180.193\nNational navigation,Freight,127.365\nNational navigation,Road transport,7.423\nRail transport,Public lighting,7.863\nLighting & appliances - commercial,Public lighting,90.008\nLighting & appliances - homes,Residential,79.279\nLighting & appliances - homes,Public lighting,14.215\nOther,Road transport,82.233"
+    },
+    {
+      "id": "sankey-4-label-outlined",
+      "category": "sankey",
+      "name": "Label Style: Outlined",
+      "source": "---\nconfig:\n  sankey:\n    labelStyle: outlined\n---\nsankey\nElectricity grid,Over generation / exports,104.453\nElectricity grid,Heating and cooling - homes,113.726\nElectricity grid,H2 conversion,27.14\nElectricity grid,Industry,342.165\nElectricity grid,Losses,56.691"
+    },
+    {
+      "id": "sankey-5-link-color-source",
+      "category": "sankey",
+      "name": "Link Color: Source",
+      "source": "---\nconfig:\n  sankey:\n    linkColor: source\n---\nsankey\nElectricity grid,Over generation / exports,104.453\nElectricity grid,Heating and cooling - homes,113.726\nElectricity grid,H2 conversion,27.14"
+    },
+    {
+      "id": "sankey-6-node-alignment-left",
+      "category": "sankey",
+      "name": "Node Alignment: Left",
+      "source": "---\nconfig:\n  sankey:\n    nodeAlignment: left\n---\nsankey\nElectricity grid,Over generation / exports,104.453\nElectricity grid,Heating and cooling - homes,113.726\nElectricity grid,H2 conversion,27.14\nElectricity grid,Industry,342.165"
+    },
+    {
+      "id": "sankey-7-showvalues-prefix-suffix",
+      "category": "sankey",
+      "name": "ShowValues + Prefix/Suffix",
+      "source": "---\nconfig:\n  sankey:\n    showValues: true\n    prefix: $\n    suffix: k\n---\nsankey\nElectricity grid,Over generation / exports,104.453\nElectricity grid,H2 conversion,27.14\nElectricity grid,Industry,342.165"
+    },
+    {
+      "id": "sankey-8-custom-node-colors",
+      "category": "sankey",
+      "name": "Custom Node Colors",
+      "source": "---\nconfig:\n  sankey:\n    nodeColors:\n      Electricity grid: \"#4e79a7\"\n      Industry: \"#e15759\"\n---\nsankey\nElectricity grid,Industry,342.165\nElectricity grid,Losses,56.691"
+    },
+    {
+      "id": "sankey-9-comments-and-spacing",
+      "category": "sankey",
+      "name": "Comments and Spacing",
+      "source": "sankey\n\n%% This is a comment\nA,B,10\n\nC,D,20\n\nE,F,30"
     }
   ],
   "metadata": {
-    "totalCount": 216,
+    "totalCount": 225,
     "categories": {
       "flowchart": 27,
       "state": 12,
@@ -1403,7 +1457,8 @@
       "requirement": 14,
       "gitGraph": 14,
       "mindmap": 8,
-      "timeline": 11
+      "timeline": 11,
+      "sankey": 9
     }
   }
 }

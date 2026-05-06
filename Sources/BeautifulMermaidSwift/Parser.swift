@@ -98,6 +98,11 @@ public enum MermaidParser {
                 let parsed = try parseTimelineDiagram(timelineLines, frontmatter: frontmatter)
                 return MermaidGraph(payload: .timeline(parsed))
             }
+            if firstLine.hasPrefix("sankey") {
+                let sankeyLines = _mermaidSourceLines(from: processed)
+                let parsed = try parseSankeyDiagram(sankeyLines, frontmatter: frontmatter)
+                return MermaidGraph(payload: .sankey(parsed))
+            }
 
             // Flowchart + stateDiagram-v2 — pass frontmatter flowchart config
             let parsed = try parseMermaid(processed, config: frontmatter?.flowchartConfig)

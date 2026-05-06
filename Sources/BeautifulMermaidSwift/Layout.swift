@@ -187,6 +187,18 @@ public struct GraphLayout {
                     height: positioned.height,
                     content: .timeline(positioned)
                 )
+            case .sankey:
+                guard case let .sankey(diagram) = graph.payload else {
+                    _reportMermaidIssue("GraphLayout.layout found mismatched sankey payload.")
+                    return PositionedGraph(diagram: graph, content: .sankey(.empty))
+                }
+                let positioned = layoutSankeyDiagram(diagram)
+                return PositionedGraph(
+                    diagram: graph,
+                    width: positioned.width,
+                    height: positioned.height,
+                    content: .sankey(positioned)
+                )
             }
         }
     }

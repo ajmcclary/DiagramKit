@@ -150,6 +150,9 @@ private func _parseYamlFrontmatter(_ lines: [String]) -> DiagramFrontmatter? {
     var hasTimelineSection = false
     var hasTimelineTheme = false
 
+    var sankeyConfig = SankeyDiagramConfig()
+    var hasSankeySection = false
+
     var pathStack: [(depth: Int, key: String)] = []
 
     for line in lines {
@@ -624,6 +627,40 @@ private func _parseYamlFrontmatter(_ lines: [String]) -> DiagramFrontmatter? {
             continue
         }
 
+        // Sankey config — config.sankey.*
+        if fullPath.hasPrefix("config.sankey.") {
+            hasSankeySection = true
+            let subKey = fullPath.replacingOccurrences(of: "config.sankey.", with: "")
+            if subKey.hasPrefix("nodeColors.") {
+                let nodeID = _unquote(subKey.replacingOccurrences(of: "nodeColors.", with: ""))
+                sankeyConfig.nodeColors[nodeID] = value
+            } else {
+                switch subKey {
+                case "width": sankeyConfig.width = Double(value) ?? sankeyConfig.width
+                case "height": sankeyConfig.height = Double(value) ?? sankeyConfig.height
+                case "linkColor":
+                    switch value.lowercased() {
+                    case "source": sankeyConfig.linkColor = .source
+                    case "target": sankeyConfig.linkColor = .target
+                    case "gradient": sankeyConfig.linkColor = .gradient
+                    default: sankeyConfig.linkColor = .fixed(value)
+                    }
+                case "nodeAlignment":
+                    if let a = SankeyNodeAlignment(rawValue: value.lowercased()) { sankeyConfig.nodeAlignment = a }
+                case "useMaxWidth": sankeyConfig.useMaxWidth = (value.lowercased() == "true")
+                case "showValues": sankeyConfig.showValues = (value.lowercased() == "true")
+                case "prefix": sankeyConfig.prefix = value
+                case "suffix": sankeyConfig.suffix = value
+                case "nodeWidth": sankeyConfig.nodeWidth = Double(value) ?? sankeyConfig.nodeWidth
+                case "nodePadding": sankeyConfig.nodePadding = Double(value) ?? sankeyConfig.nodePadding
+                case "labelStyle":
+                    if let s = SankeyLabelStyle(rawValue: value.lowercased()) { sankeyConfig.labelStyle = s }
+                default: break
+                }
+            }
+            continue
+        }
+
         // Mindmap config — config.mindmap.*
         if fullPath.hasPrefix("config.mindmap.") {
             hasMindmapSection = true
@@ -720,6 +757,7 @@ private func _parseYamlFrontmatter(_ lines: [String]) -> DiagramFrontmatter? {
     if hasMindmapSection { frontmatter.mindmapConfig = mindmapConfig }
     if hasTimelineSection { frontmatter.timelineConfig = timelineConfig }
     if hasTimelineTheme { frontmatter.timelineTheme = timelineTheme }
+    if hasSankeySection { frontmatter.sankeyConfig = sankeyConfig }
 
     return hasAnyContent ? frontmatter : nil
 }

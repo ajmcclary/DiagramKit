@@ -291,6 +291,7 @@ open class original_src_ascii_index {
         case gitgraph
         case mindmap
         case timeline
+        case sankey
     }
 
     struct AsciiConfig {
@@ -374,6 +375,8 @@ open class original_src_ascii_index {
             return "mindmap"
         case .timeline:
             return "timeline"
+        case .sankey:
+            return "sankey"
         case .flowchart:
             return "flowchart"
         }
@@ -451,6 +454,9 @@ open class original_src_ascii_index {
         case .timeline:
             throw BeautifulMermaidError.notYetImplemented("Timeline ASCII rendering")
 
+        case .sankey:
+            throw BeautifulMermaidError.notYetImplemented("Sankey ASCII rendering")
+
         case .flowchart:
             let parsed = try parseMermaid(preprocessedText)
 
@@ -527,6 +533,9 @@ open class original_src_ascii_index {
         }
         if firstLine.hasPrefix("timeline") {
             return .timeline
+        }
+        if firstLine.hasPrefix("sankey") {
+            return .sankey
         }
 
         return .flowchart

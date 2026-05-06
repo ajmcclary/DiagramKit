@@ -60,6 +60,8 @@ public final class DiagramRenderer {
             _drawMindmap(positioned, in: context, bounds: bounds)
         case .timeline:
             _drawTimeline(positioned, in: context, bounds: bounds)
+        case .sankey:
+            _drawSankey(positioned, in: context, bounds: bounds)
         }
     }
 
