@@ -343,6 +343,7 @@ public struct DiagramFrontmatter: Sendable {
     public var timelineConfig: TimelineDiagramConfig?
     public var timelineTheme: TimelineThemeConfig?
     public var sankeyConfig: SankeyDiagramConfig?
+    public var blockConfig: BlockDiagramConfig?
 
     public var layout: String?      // Shared global config.layout
     public var look: String?         // Shared global config.look
@@ -374,6 +375,7 @@ public struct DiagramFrontmatter: Sendable {
         timelineConfig: TimelineDiagramConfig? = nil,
         timelineTheme: TimelineThemeConfig? = nil,
         sankeyConfig: SankeyDiagramConfig? = nil,
+        blockConfig: BlockDiagramConfig? = nil,
         layout: String? = nil,
         look: String? = nil,
         theme: String? = nil,
@@ -403,6 +405,7 @@ public struct DiagramFrontmatter: Sendable {
         self.timelineConfig = timelineConfig
         self.timelineTheme = timelineTheme
         self.sankeyConfig = sankeyConfig
+        self.blockConfig = blockConfig
         self.layout = layout
         self.look = look
         self.theme = theme

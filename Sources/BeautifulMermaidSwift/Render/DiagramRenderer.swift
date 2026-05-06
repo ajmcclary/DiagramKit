@@ -62,6 +62,8 @@ public final class DiagramRenderer {
             _drawTimeline(positioned, in: context, bounds: bounds)
         case .sankey:
             _drawSankey(positioned, in: context, bounds: bounds)
+        case .block:
+            _drawBlock(positioned, in: context, bounds: bounds)
         }
     }
 

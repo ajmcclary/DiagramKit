@@ -153,6 +153,9 @@ private func _parseYamlFrontmatter(_ lines: [String]) -> DiagramFrontmatter? {
     var sankeyConfig = SankeyDiagramConfig()
     var hasSankeySection = false
 
+    var blockConfig = BlockDiagramConfig()
+    var hasBlockSection = false
+
     var pathStack: [(depth: Int, key: String)] = []
 
     for line in lines {
@@ -675,6 +678,18 @@ private func _parseYamlFrontmatter(_ lines: [String]) -> DiagramFrontmatter? {
             continue
         }
 
+        // Block config — config.block.*
+        if fullPath.hasPrefix("config.block.") {
+            hasBlockSection = true
+            let subKey = fullPath.replacingOccurrences(of: "config.block.", with: "")
+            switch subKey {
+            case "padding": blockConfig.padding = Double(value) ?? 8
+            case "useMaxWidth": blockConfig.useMaxWidth = (value.lowercased() == "true")
+            default: break
+            }
+            continue
+        }
+
         // Timeline config — config.timeline.*
         if fullPath.hasPrefix("config.timeline.") {
             hasTimelineSection = true
@@ -758,6 +773,7 @@ private func _parseYamlFrontmatter(_ lines: [String]) -> DiagramFrontmatter? {
     if hasTimelineSection { frontmatter.timelineConfig = timelineConfig }
     if hasTimelineTheme { frontmatter.timelineTheme = timelineTheme }
     if hasSankeySection { frontmatter.sankeyConfig = sankeyConfig }
+    if hasBlockSection { frontmatter.blockConfig = blockConfig }
 
     return hasAnyContent ? frontmatter : nil
 }

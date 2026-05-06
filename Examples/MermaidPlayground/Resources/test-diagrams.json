@@ -1439,10 +1439,52 @@
       "category": "sankey",
       "name": "Comments and Spacing",
       "source": "sankey\n\n%% This is a comment\nA,B,10\n\nC,D,20\n\nE,F,30"
+    },
+    {
+      "id": "block-1-simple",
+      "category": "block",
+      "name": "Simple Blocks",
+      "source": "block\n  a b c"
+    },
+    {
+      "id": "block-2-columns",
+      "category": "block",
+      "name": "Columns",
+      "source": "block\n  columns 3\n  A[\"A\"] B[\"B\"]:2 C[\"C\"]"
+    },
+    {
+      "id": "block-3-nested",
+      "category": "block",
+      "name": "Nested Composite",
+      "source": "block\n  block:group[\"Group\"]\n    columns 2\n    x y\n  end"
+    },
+    {
+      "id": "block-4-arrow",
+      "category": "block",
+      "name": "Block Arrow",
+      "source": "block\n  columns 3\n  A arrow<[\"sync\"]>(right) B"
+    },
+    {
+      "id": "block-5-edges",
+      "category": "block",
+      "name": "Edge Variants",
+      "source": "block\n  columns 2\n  A B\n  C D\n  A --- B\n  C --> D\n  A -- \"label\" --> D"
+    },
+    {
+      "id": "block-6-style",
+      "category": "block",
+      "name": "Style and Class",
+      "source": "block\n  classDef blue fill:#6cf,stroke:#333\n  A[\"Styled\"]\n  class A blue"
+    },
+    {
+      "id": "block-7-architecture",
+      "category": "block",
+      "name": "Architecture",
+      "source": "block\n  columns 3\n  block:frontend[\"Frontend\"]\n    columns 1\n    WebApp\n    MobileApp\n  end\n  block:backend[\"Backend\"]\n    columns 1\n    API\n    Workers\n  end\n  block:data[\"Data\"]\n    columns 1\n    DB\n    Cache\n  end\n  frontend --> backend --> data"
     }
   ],
   "metadata": {
-    "totalCount": 225,
+    "totalCount": 232,
     "categories": {
       "flowchart": 27,
       "state": 12,
@@ -1458,7 +1500,8 @@
       "gitGraph": 14,
       "mindmap": 8,
       "timeline": 11,
-      "sankey": 9
+      "sankey": 9,
+      "block": 7
     }
   }
 }

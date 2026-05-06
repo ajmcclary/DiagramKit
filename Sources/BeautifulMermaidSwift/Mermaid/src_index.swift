@@ -86,6 +86,7 @@ private enum _DiagramRoutingType {
     case mindmap
     case timeline
     case sankey
+    case block
 }
 
 private func _decodeXML(_ text: String) -> String {
@@ -139,6 +140,9 @@ private func detectDiagramType(_ text: String) -> _DiagramRoutingType {
     }
     if firstLine.hasPrefix("sankey") {
         return .sankey
+    }
+    if firstLine.hasPrefix("block") {
+        return .block
     }
 
     return .flowchart
@@ -263,6 +267,14 @@ func _renderMermaidSVG(
         if let fmc = fm?.sankeyConfig { diagram.config = fmc }
         let positioned = layoutSankeyDiagram(diagram)
         return renderSankeySvg(positioned, colors, font, transparent)
+    case .block:
+        let blockLines = _mermaidSourceLines(from: decodedText, separatedBy: CharacterSet(charactersIn: "\n"))
+        var diagram = try parseBlockDiagramLines(blockLines)
+        if let fmc = fm?.blockConfig { diagram.config = fmc }
+        if let title = fm?.diagramTitle { diagram.diagramTitle = title }
+        let positioned = try layoutBlockDiagram(diagram)
+        let diagramId = UUID().uuidString
+        return try renderBlockSvg(positioned, diagramId: diagramId, colors: colors, fontFamily: font, transparent: transparent)
     }
 }
 

@@ -292,6 +292,7 @@ open class original_src_ascii_index {
         case mindmap
         case timeline
         case sankey
+        case block
     }
 
     struct AsciiConfig {
@@ -377,6 +378,8 @@ open class original_src_ascii_index {
             return "timeline"
         case .sankey:
             return "sankey"
+        case .block:
+            return "block"
         case .flowchart:
             return "flowchart"
         }
@@ -457,6 +460,9 @@ open class original_src_ascii_index {
         case .sankey:
             throw BeautifulMermaidError.notYetImplemented("Sankey ASCII rendering")
 
+        case .block:
+            throw BeautifulMermaidError.notYetImplemented("Block Diagram ASCII rendering")
+
         case .flowchart:
             let parsed = try parseMermaid(preprocessedText)
 
@@ -536,6 +542,9 @@ open class original_src_ascii_index {
         }
         if firstLine.hasPrefix("sankey") {
             return .sankey
+        }
+        if firstLine.hasPrefix("block") {
+            return .block
         }
 
         return .flowchart

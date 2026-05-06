@@ -199,6 +199,18 @@ public struct GraphLayout {
                     height: positioned.height,
                     content: .sankey(positioned)
                 )
+            case .block:
+                guard case let .block(diagram) = graph.payload else {
+                    _reportMermaidIssue("GraphLayout.layout found mismatched block payload.")
+                    return PositionedGraph(diagram: graph, content: .block(.empty))
+                }
+                let positioned = try layoutBlockDiagram(diagram)
+                return PositionedGraph(
+                    diagram: graph,
+                    width: positioned.width,
+                    height: positioned.height,
+                    content: .block(positioned)
+                )
             }
         }
     }

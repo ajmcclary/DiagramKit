@@ -103,6 +103,10 @@ public enum MermaidParser {
                 let parsed = try parseSankeyDiagram(sankeyLines, frontmatter: frontmatter)
                 return MermaidGraph(payload: .sankey(parsed))
             }
+            if firstLine.hasPrefix("block") {
+                let parsed = try parseBlockDiagram(processed, frontmatter: frontmatter)
+                return MermaidGraph(payload: .block(parsed))
+            }
 
             // Flowchart + stateDiagram-v2 — pass frontmatter flowchart config
             let parsed = try parseMermaid(processed, config: frontmatter?.flowchartConfig)
