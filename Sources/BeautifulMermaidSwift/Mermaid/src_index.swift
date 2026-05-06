@@ -87,6 +87,7 @@ private enum _DiagramRoutingType {
     case timeline
     case sankey
     case block
+    case packet
 }
 
 private func _decodeXML(_ text: String) -> String {
@@ -143,6 +144,9 @@ private func detectDiagramType(_ text: String) -> _DiagramRoutingType {
     }
     if firstLine.hasPrefix("block") {
         return .block
+    }
+    if firstLine.hasPrefix("packet") {
+        return .packet
     }
 
     return .flowchart
@@ -275,6 +279,20 @@ func _renderMermaidSVG(
         let positioned = try layoutBlockDiagram(diagram)
         let diagramId = UUID().uuidString
         return try renderBlockSvg(positioned, diagramId: diagramId, colors: colors, fontFamily: font, transparent: transparent)
+    case .packet:
+        let packetLines = _mermaidSourceLines(from: decodedText)
+        var diagram = try parsePacketDiagram(packetLines, frontmatter: fm)
+        if diagram.diagramTitle == nil, let title = fm?.diagramTitle {
+            diagram.diagramTitle = title
+        }
+        let positioned = layoutPacketDiagram(diagram)
+        return renderPacketSvg(
+            positioned,
+            colors,
+            font,
+            transparent,
+            theme: diagram.theme
+        )
     }
 }
 

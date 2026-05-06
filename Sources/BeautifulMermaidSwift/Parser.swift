@@ -107,6 +107,11 @@ public enum MermaidParser {
                 let parsed = try parseBlockDiagram(processed, frontmatter: frontmatter)
                 return MermaidGraph(payload: .block(parsed))
             }
+            if firstLine.hasPrefix("packet") {
+                let packetLines = _mermaidSourceLines(from: processed)
+                let parsed = try parsePacketDiagram(packetLines, frontmatter: frontmatter)
+                return MermaidGraph(payload: .packet(parsed))
+            }
 
             // Flowchart + stateDiagram-v2 — pass frontmatter flowchart config
             let parsed = try parseMermaid(processed, config: frontmatter?.flowchartConfig)

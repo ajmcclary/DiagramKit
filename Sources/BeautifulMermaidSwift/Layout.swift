@@ -211,6 +211,18 @@ public struct GraphLayout {
                     height: positioned.height,
                     content: .block(positioned)
                 )
+            case .packet:
+                guard case let .packet(diagram) = graph.payload else {
+                    _reportMermaidIssue("GraphLayout.layout found mismatched packet payload.")
+                    return PositionedGraph(diagram: graph, content: .packet(.empty))
+                }
+                let positioned = layoutPacketDiagram(diagram)
+                return PositionedGraph(
+                    diagram: graph,
+                    width: positioned.width,
+                    height: positioned.height,
+                    content: .packet(positioned)
+                )
             }
         }
     }

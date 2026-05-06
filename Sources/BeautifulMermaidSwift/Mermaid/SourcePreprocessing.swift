@@ -156,6 +156,11 @@ private func _parseYamlFrontmatter(_ lines: [String]) -> DiagramFrontmatter? {
     var blockConfig = BlockDiagramConfig()
     var hasBlockSection = false
 
+    var packetConfig = PacketDiagramConfig.default
+    var packetTheme = PacketThemeConfig.default
+    var hasPacketSection = false
+    var hasPacketTheme = false
+
     var pathStack: [(depth: Int, key: String)] = []
 
     for line in lines {
@@ -690,6 +695,31 @@ private func _parseYamlFrontmatter(_ lines: [String]) -> DiagramFrontmatter? {
             continue
         }
 
+        // Packet config — config.packet.*
+        if fullPath.hasPrefix("config.packet.") {
+            hasPacketSection = true
+            let subKey = fullPath.replacingOccurrences(of: "config.packet.", with: "")
+            switch subKey {
+            case "rowHeight": packetConfig.rowHeight = Double(value) ?? packetConfig.rowHeight
+            case "bitWidth": packetConfig.bitWidth = Double(value) ?? packetConfig.bitWidth
+            case "bitsPerRow": packetConfig.bitsPerRow = Int(value) ?? packetConfig.bitsPerRow
+            case "showBits": packetConfig.showBits = (value.lowercased() == "true")
+            case "paddingX": packetConfig.paddingX = Double(value) ?? packetConfig.paddingX
+            case "paddingY": packetConfig.paddingY = Double(value) ?? packetConfig.paddingY
+            case "useMaxWidth": packetConfig.useMaxWidth = (value.lowercased() == "true")
+            default: break
+            }
+            continue
+        }
+
+        // Packet theme variables — config.themeVariables.packet.* or themeVariables.packet.*
+        if let subKey = _packetThemeSubKey(from: fullPath) {
+            if _applyPacketThemeValue(subKey, value: value, theme: &packetTheme) {
+                hasPacketTheme = true
+            }
+            continue
+        }
+
         // Timeline config — config.timeline.*
         if fullPath.hasPrefix("config.timeline.") {
             hasTimelineSection = true
@@ -774,6 +804,8 @@ private func _parseYamlFrontmatter(_ lines: [String]) -> DiagramFrontmatter? {
     if hasTimelineTheme { frontmatter.timelineTheme = timelineTheme }
     if hasSankeySection { frontmatter.sankeyConfig = sankeyConfig }
     if hasBlockSection { frontmatter.blockConfig = blockConfig }
+    if hasPacketSection { frontmatter.packetConfig = packetConfig }
+    if hasPacketTheme { frontmatter.packetTheme = packetTheme }
 
     return hasAnyContent ? frontmatter : nil
 }
@@ -1147,6 +1179,34 @@ private func _applyTimelineThemeValue(_ key: String, value: String, theme: inout
     case "gradientStart": theme.gradientStart = value
     case "gradientStop": theme.gradientStop = value
     case "dropShadow": theme.dropShadow = value
+    default: return false
+    }
+    return true
+}
+
+// MARK: - Packet Theme helpers
+
+private func _packetThemeSubKey(from fullPath: String) -> String? {
+    for prefix in ["config.themeVariables.packet.", "themeVariables.packet."] {
+        if fullPath.hasPrefix(prefix) {
+            return String(fullPath.dropFirst(prefix.count))
+        }
+    }
+    return nil
+}
+
+private func _applyPacketThemeValue(_ key: String, value: String, theme: inout PacketThemeConfig) -> Bool {
+    switch key {
+    case "byteFontSize": theme.byteFontSize = value
+    case "startByteColor": theme.startByteColor = value
+    case "endByteColor": theme.endByteColor = value
+    case "labelColor": theme.labelColor = value
+    case "labelFontSize": theme.labelFontSize = value
+    case "titleColor": theme.titleColor = value
+    case "titleFontSize": theme.titleFontSize = value
+    case "blockStrokeColor": theme.blockStrokeColor = value
+    case "blockStrokeWidth": theme.blockStrokeWidth = value
+    case "blockFillColor": theme.blockFillColor = value
     default: return false
     }
     return true

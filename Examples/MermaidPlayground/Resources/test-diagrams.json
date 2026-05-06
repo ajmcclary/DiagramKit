@@ -1481,10 +1481,40 @@
       "category": "block",
       "name": "Architecture",
       "source": "block\n  columns 3\n  block:frontend[\"Frontend\"]\n    columns 1\n    WebApp\n    MobileApp\n  end\n  block:backend[\"Backend\"]\n    columns 1\n    API\n    Workers\n  end\n  block:data[\"Data\"]\n    columns 1\n    DB\n    Cache\n  end\n  frontend --> backend --> data"
+    },
+    {
+      "id": "packet-1-tcp",
+      "category": "packet",
+      "name": "TCP Packet",
+      "source": "---\ntitle: \"TCP Packet\"\n---\npacket\n0-15: \"Source Port\"\n16-31: \"Destination Port\"\n32-63: \"Sequence Number\"\n64-95: \"Acknowledgment Number\"\n96-99: \"Data Offset\"\n100-105: \"Reserved\"\n106: \"URG\"\n107: \"ACK\"\n108: \"PSH\"\n109: \"RST\"\n110: \"SYN\"\n111: \"FIN\"\n112-127: \"Window\"\n128-143: \"Checksum\"\n144-159: \"Urgent Pointer\"\n160-191: \"(Options and Padding)\"\n192-255: \"Data (variable length)\""
+    },
+    {
+      "id": "packet-2-udp",
+      "category": "packet",
+      "name": "UDP Packet (bit counts)",
+      "source": "packet\ntitle UDP Packet\n+16: \"Source Port\"\n+16: \"Destination Port\"\n32-47: \"Length\"\n48-63: \"Checksum\"\n64-127: \"Data\""
+    },
+    {
+      "id": "packet-3-nobits",
+      "category": "packet",
+      "name": "No Bit Numbers",
+      "source": "---\nconfig:\n  packet:\n    showBits: false\n---\npacket\n0-15: \"Source Port\"\n16-31: \"Destination Port\"\n32-63: \"Sequence Number\""
+    },
+    {
+      "id": "packet-4-longsplit",
+      "category": "packet",
+      "name": "Long Field Split",
+      "source": "packet\n0-10: \"Short\"\n11-90: \"Long field spanning multiple rows\"\n91-95: \"End\""
+    },
+    {
+      "id": "packet-5-empty",
+      "category": "packet",
+      "name": "Empty Packet",
+      "source": "packet"
     }
   ],
   "metadata": {
-    "totalCount": 232,
+    "totalCount": 237,
     "categories": {
       "flowchart": 27,
       "state": 12,
@@ -1501,7 +1531,8 @@
       "mindmap": 8,
       "timeline": 11,
       "sankey": 9,
-      "block": 7
+      "block": 7,
+      "packet": 5
     }
   }
 }

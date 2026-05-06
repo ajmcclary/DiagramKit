@@ -64,6 +64,8 @@ public final class DiagramRenderer {
             _drawSankey(positioned, in: context, bounds: bounds)
         case .block:
             _drawBlock(positioned, in: context, bounds: bounds)
+        case .packet:
+            _drawPacket(positioned, in: context, bounds: bounds)
         }
     }
 
