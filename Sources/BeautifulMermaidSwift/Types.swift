@@ -8,6 +8,7 @@ public enum DiagramType: String, CaseIterable, Sendable {
     case classDiagram
     case erDiagram
     case xyChart
+    case pie
     case journey
     case gantt
 }
@@ -23,6 +24,7 @@ public enum DiagramPayload: Sendable {
     case classDiagram(ClassDiagram)
     case erDiagram(ErDiagram)
     case xyChart(XYChart)
+    case pie(PieChart)
     case journey(JourneyDiagram)
     case gantt(GanttDiagram)
 
@@ -40,6 +42,8 @@ public enum DiagramPayload: Sendable {
             return .erDiagram
         case .xyChart:
             return .xyChart
+        case .pie:
+            return .pie
         case .journey:
             return .journey
         case .gantt:
@@ -86,6 +90,8 @@ public struct MermaidGraph: Sendable {
             self.payload = .erDiagram(ErDiagram(entities: [], relationships: []))
         case .xyChart:
             self.payload = .xyChart(XYChart())
+        case .pie:
+            self.payload = .pie(PieChart())
         case .journey:
             self.payload = .journey(JourneyDiagram())
         case .gantt:
@@ -152,6 +158,7 @@ public enum PositionedContent: Sendable {
         diagramTitle: String? = nil
     )
     case xyChart(PositionedXYChart)
+    case pie(PositionedPieChart)
     case journey(PositionedJourneyDiagram)
     case gantt(PositionedGanttDiagram)
 }
@@ -197,6 +204,8 @@ public struct PositionedGraph: Sendable {
             self.content = .erDiagram(entities: [], relationships: [], accTitle: nil, accDescr: nil, diagramTitle: nil)
         case .xyChart:
             self.content = .xyChart(.empty)
+        case .pie:
+            self.content = .pie(.empty)
         case .journey:
             self.content = .journey(.empty)
         case .gantt:
@@ -360,6 +369,13 @@ public struct PositionedGraph: Sendable {
     public var xyChartData: PositionedXYChart? {
         switch content {
         case .xyChart(let chart): return chart
+        default: return nil
+        }
+    }
+
+    public var pieData: PositionedPieChart? {
+        switch content {
+        case .pie(let chart): return chart
         default: return nil
         }
     }

@@ -112,6 +112,11 @@ private func _parseYamlFrontmatter(_ lines: [String]) -> DiagramFrontmatter? {
     var hasXYChartConfig = false
     var hasXYChartTheme = false
 
+    var pieConfig = PieChartConfig()
+    var pieTheme = PieChartThemeConfig()
+    var hasPieConfig = false
+    var hasPieTheme = false
+
     var sequenceConfig = SequenceDiagramConfig()
     var hasSequenceSection = false
 
@@ -303,6 +308,27 @@ private func _parseYamlFrontmatter(_ lines: [String]) -> DiagramFrontmatter? {
             continue
         }
 
+        // Pie Chart config — config.pie.*
+        if fullPath.hasPrefix("config.pie.") {
+            hasPieConfig = true
+            let subKey = fullPath.replacingOccurrences(of: "config.pie.", with: "")
+            switch subKey {
+            case "textPosition": pieConfig.textPosition = Double(value) ?? pieConfig.textPosition
+            case "useWidth": pieConfig.useWidth = Double(value) ?? pieConfig.useWidth
+            case "useMaxWidth": pieConfig.useMaxWidth = (value.lowercased() == "true")
+            default: break
+            }
+            continue
+        }
+
+        // Pie Chart theme — Mermaid supports flat themeVariables.pie1 and nested themeVariables.pie.pie1.
+        if let subKey = _pieThemeSubKey(from: fullPath) {
+            if _applyPieThemeValue(subKey, value: value, theme: &pieTheme) {
+                hasPieTheme = true
+            }
+            continue
+        }
+
         // Sequence config — config.sequence.*
         if fullPath.hasPrefix("config.sequence.") {
             hasSequenceSection = true
@@ -490,12 +516,76 @@ private func _parseYamlFrontmatter(_ lines: [String]) -> DiagramFrontmatter? {
     if hasErSection { frontmatter.erConfig = erConfig }
     if hasXYChartConfig { frontmatter.xyChartConfig = xyChartConfig }
     if hasXYChartTheme { frontmatter.xyChartTheme = xyChartTheme }
+    if hasPieConfig { frontmatter.pieConfig = pieConfig }
+    if hasPieTheme { frontmatter.pieTheme = pieTheme }
     if hasSequenceSection { frontmatter.sequenceConfig = sequenceConfig }
     if hasStateSection { frontmatter.stateConfig = stateConfig }
     if hasJourneySection { frontmatter.journeyConfig = journeyConfig }
     if hasGanttSection { frontmatter.ganttConfig = ganttConfig }
 
     return hasAnyContent ? frontmatter : nil
+}
+
+private func _pieThemeSubKey(from fullPath: String) -> String? {
+    for prefix in ["config.themeVariables.pie.", "themeVariables.pie."] {
+        if fullPath.hasPrefix(prefix) {
+            return String(fullPath.dropFirst(prefix.count))
+        }
+    }
+    for prefix in ["config.themeVariables.", "themeVariables."] {
+        if fullPath.hasPrefix(prefix) {
+            let subKey = String(fullPath.dropFirst(prefix.count))
+            return _isPieThemeKey(subKey) ? subKey : nil
+        }
+    }
+    return nil
+}
+
+private func _isPieThemeKey(_ key: String) -> Bool {
+    switch key {
+    case "pie1", "pie2", "pie3", "pie4", "pie5", "pie6",
+         "pie7", "pie8", "pie9", "pie10", "pie11", "pie12",
+         "pieTitleTextSize", "pieTitleTextColor",
+         "pieSectionTextSize", "pieSectionTextColor",
+         "pieLegendTextSize", "pieLegendTextColor",
+         "pieStrokeColor", "pieStrokeWidth",
+         "pieOuterStrokeWidth", "pieOuterStrokeColor",
+         "pieOpacity", "fontFamily":
+        return true
+    default:
+        return false
+    }
+}
+
+private func _applyPieThemeValue(_ key: String, value: String, theme: inout PieChartThemeConfig) -> Bool {
+    switch key {
+    case "pie1": theme.pie1 = value
+    case "pie2": theme.pie2 = value
+    case "pie3": theme.pie3 = value
+    case "pie4": theme.pie4 = value
+    case "pie5": theme.pie5 = value
+    case "pie6": theme.pie6 = value
+    case "pie7": theme.pie7 = value
+    case "pie8": theme.pie8 = value
+    case "pie9": theme.pie9 = value
+    case "pie10": theme.pie10 = value
+    case "pie11": theme.pie11 = value
+    case "pie12": theme.pie12 = value
+    case "pieTitleTextSize": theme.pieTitleTextSize = value
+    case "pieTitleTextColor": theme.pieTitleTextColor = value
+    case "pieSectionTextSize": theme.pieSectionTextSize = value
+    case "pieSectionTextColor": theme.pieSectionTextColor = value
+    case "pieLegendTextSize": theme.pieLegendTextSize = value
+    case "pieLegendTextColor": theme.pieLegendTextColor = value
+    case "pieStrokeColor": theme.pieStrokeColor = value
+    case "pieStrokeWidth": theme.pieStrokeWidth = value
+    case "pieOuterStrokeWidth": theme.pieOuterStrokeWidth = value
+    case "pieOuterStrokeColor": theme.pieOuterStrokeColor = value
+    case "pieOpacity": theme.pieOpacity = value
+    case "fontFamily": theme.fontFamily = value
+    default: return false
+    }
+    return true
 }
 
 /// Strip surrounding quotes from a string.

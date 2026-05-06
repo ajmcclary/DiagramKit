@@ -283,6 +283,7 @@ open class original_src_ascii_index {
         case `class`
         case er
         case xychart
+        case pie
         case journey
         case gantt
     }
@@ -352,6 +353,8 @@ open class original_src_ascii_index {
             return "er"
         case .xychart:
             return "xychart"
+        case .pie:
+            return "pie"
         case .journey:
             return "journey"
         case .gantt:
@@ -408,6 +411,9 @@ open class original_src_ascii_index {
                 graphDirection: config.graphDirection
             )
             return renderXYChartAscii(preprocessedText, mappedConfig, mappedColorMode, mappedTheme)
+
+        case .pie:
+            throw BeautifulMermaidError.notYetImplemented("Pie Chart ASCII rendering")
 
         case .journey:
             throw BeautifulMermaidError.notYetImplemented("ASCII rendering for User Journey diagrams")
@@ -467,6 +473,9 @@ open class original_src_ascii_index {
         }
         if firstLine.hasPrefix("xychart") {
             return .xychart
+        }
+        if firstLine.hasPrefix("pie") {
+            return .pie
         }
         if firstLine.hasPrefix("journey") {
             return .journey

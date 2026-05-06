@@ -953,10 +953,94 @@
       "category": "gantt",
       "name": "Accessibility Metadata",
       "source": "gantt\n    accTitle: My Gantt Chart\n    accDescr: A project schedule showing task dependencies\n    dateFormat YYYY-MM-DD\n    section Main\n        Task 1 :t1, 2024-01-01, 7d"
+    },
+    {
+      "id": "pie-1-basic",
+      "category": "pie",
+      "name": "Basic Pie Chart",
+      "source": "pie\n    \"Dogs\": 386\n    \"Cats\": 85\n    \"Rats\": 15"
+    },
+    {
+      "id": "pie-2-showData",
+      "category": "pie",
+      "name": "Pie Chart with showData",
+      "source": "pie showData\n    \"A\": 60\n    \"B\": 40"
+    },
+    {
+      "id": "pie-3-title-inline",
+      "category": "pie",
+      "name": "Pie Chart with Inline Title",
+      "source": "pie title My Chart\n    \"A\": 50\n    \"B\": 50"
+    },
+    {
+      "id": "pie-4-title-newline",
+      "category": "pie",
+      "name": "Pie Chart with Title on New Line",
+      "source": "pie\n    title My Chart\n    \"A\": 50\n    \"B\": 50"
+    },
+    {
+      "id": "pie-5-accTitle-inline",
+      "category": "pie",
+      "name": "Pie Chart with accTitle",
+      "source": "pie accTitle: Test\n    \"A\": 100"
+    },
+    {
+      "id": "pie-6-accDescr-inline",
+      "category": "pie",
+      "name": "Pie Chart with accDescr",
+      "source": "pie accDescr: A test chart\n    \"A\": 100"
+    },
+    {
+      "id": "pie-7-accTitle-subsequent",
+      "category": "pie",
+      "name": "Pie Chart with Subsequent accTitle",
+      "source": "pie\n    accTitle: Test\n    \"A\": 100"
+    },
+    {
+      "id": "pie-8-accDescr-multiline",
+      "category": "pie",
+      "name": "Pie Chart with Multiline accDescr",
+      "source": "pie accDescr { A test\nchart }\n    \"A\": 100"
+    },
+    {
+      "id": "pie-9-decimal",
+      "category": "pie",
+      "name": "Pie Chart with Decimal Values",
+      "source": "pie\n    \"Ash\": 60.67\n    \"Bat\": 40.12"
+    },
+    {
+      "id": "pie-10-zero",
+      "category": "pie",
+      "name": "Pie Chart with Zero Value",
+      "source": "pie\n    \"Dogs\": 0\n    \"Cats\": 40.12"
+    },
+    {
+      "id": "pie-11-all-zero",
+      "category": "pie",
+      "name": "Pie Chart All Zero",
+      "source": "pie\n    \"A\": 0\n    \"B\": 0"
+    },
+    {
+      "id": "pie-12-single-quoted",
+      "category": "pie",
+      "name": "Pie Chart Single-Quoted Labels",
+      "source": "pie\n    'Dogs': 386\n    'Cats': 85"
+    },
+    {
+      "id": "pie-13-many",
+      "category": "pie",
+      "name": "Pie Chart 14 Sections",
+      "source": "pie\n    \"S1\": 10\n    \"S2\": 20\n    \"S3\": 30\n    \"S4\": 40\n    \"S5\": 50\n    \"S6\": 60\n    \"S7\": 70\n    \"S8\": 80\n    \"S9\": 90\n    \"S10\": 100\n    \"S11\": 110\n    \"S12\": 120\n    \"S13\": 130\n    \"S14\": 140"
+    },
+    {
+      "id": "pie-14-config",
+      "category": "pie",
+      "name": "Pie Chart with Config",
+      "source": "---\nconfig:\n  pie:\n    textPosition: 0.5\n  themeVariables:\n    pie:\n      pieOuterStrokeWidth: \"5px\"\n---\npie\n    \"A\": 50\n    \"B\": 50"
     }
   ],
   "metadata": {
-    "totalCount": 157,
+    "totalCount": 171,
     "categories": {
       "flowchart": 27,
       "state": 12,
@@ -964,6 +1048,7 @@
       "class": 61,
       "er": 14,
       "xychart": 17,
+      "pie": 14,
       "journey": 3,
       "gantt": 7
     }

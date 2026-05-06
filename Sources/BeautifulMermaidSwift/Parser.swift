@@ -48,6 +48,17 @@ public enum MermaidParser {
                 }
                 return MermaidGraph(payload: .xyChart(chart))
             }
+            if firstLine.hasPrefix("pie") {
+                var chart = try parsePieChart(lines, frontmatter: frontmatter)
+                if let fm = frontmatter {
+                    if let cfg = fm.pieConfig { chart.config = cfg }
+                    if let theme = fm.pieTheme { chart.theme = theme }
+                    if chart.diagramTitle == nil, let fmTitle = fm.diagramTitle {
+                        chart.diagramTitle = fmTitle
+                    }
+                }
+                return MermaidGraph(payload: .pie(chart))
+            }
             if firstLine.hasPrefix("gantt") {
                 let ganttLines = _mermaidSourceLines(from: processed,
                     separatedBy: CharacterSet(charactersIn: "\n"))

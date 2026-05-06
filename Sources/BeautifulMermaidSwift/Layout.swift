@@ -100,6 +100,18 @@ public struct GraphLayout {
                     height: positioned.height,
                     content: .xyChart(positioned)
                 )
+            case .pie:
+                guard case let .pie(chart) = graph.payload else {
+                    _reportMermaidIssue("GraphLayout.layout found mismatched pie chart payload.")
+                    return PositionedGraph(diagram: graph, content: .pie(.empty))
+                }
+                let positioned = layoutPieChart(chart)
+                return PositionedGraph(
+                    diagram: graph,
+                    width: positioned.width,
+                    height: positioned.height,
+                    content: .pie(positioned)
+                )
             case .gantt:
                 guard case let .gantt(parsed) = graph.payload else {
                     _reportMermaidIssue("GraphLayout.layout found mismatched Gantt payload.")

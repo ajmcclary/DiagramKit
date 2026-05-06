@@ -294,7 +294,9 @@ open class original_src_theme {
         _ width: Double,
         _ height: Double,
         _ colors: DiagramColors,
-        _ transparent: Bool? = nil
+        _ transparent: Bool? = nil,
+        viewBoxX: Double = 0,
+        viewBoxY: Double = 0
     ) -> String {
         let styleVars = [
             "--bg:\(colors.bg)",
@@ -309,8 +311,10 @@ open class original_src_theme {
         let bgStyle = (transparent ?? false) ? "" : ";background:var(--bg)"
         let widthStr = _formatNumber(width)
         let heightStr = _formatNumber(height)
+        let viewBoxXStr = _formatNumber(viewBoxX)
+        let viewBoxYStr = _formatNumber(viewBoxY)
 
-        return "<svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" viewBox=\"0 0 \(widthStr) \(heightStr)\" " +
+        return "<svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" viewBox=\"\(viewBoxXStr) \(viewBoxYStr) \(widthStr) \(heightStr)\" " +
             "width=\"\(widthStr)\" height=\"\(heightStr)\" style=\"\(styleVars)\(bgStyle)\">"
     }
 

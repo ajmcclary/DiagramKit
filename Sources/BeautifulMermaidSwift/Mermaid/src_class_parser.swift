@@ -328,6 +328,8 @@ public struct DiagramFrontmatter: Sendable {
     public var erConfig: ErDiagramConfig?
     public var xyChartConfig: XYChartConfig?
     public var xyChartTheme: XYChartThemeConfig?
+    public var pieConfig: PieChartConfig?
+    public var pieTheme: PieChartThemeConfig?
     public var sequenceConfig: SequenceDiagramConfig?
     public var stateConfig: original_src_types.StateConfig?
     public var journeyConfig: JourneyDiagramConfig?
@@ -341,6 +343,8 @@ public struct DiagramFrontmatter: Sendable {
         erConfig: ErDiagramConfig? = nil,
         xyChartConfig: XYChartConfig? = nil,
         xyChartTheme: XYChartThemeConfig? = nil,
+        pieConfig: PieChartConfig? = nil,
+        pieTheme: PieChartThemeConfig? = nil,
         sequenceConfig: SequenceDiagramConfig? = nil,
         stateConfig: original_src_types.StateConfig? = nil,
         journeyConfig: JourneyDiagramConfig? = nil,
@@ -353,6 +357,8 @@ public struct DiagramFrontmatter: Sendable {
         self.erConfig = erConfig
         self.xyChartConfig = xyChartConfig
         self.xyChartTheme = xyChartTheme
+        self.pieConfig = pieConfig
+        self.pieTheme = pieTheme
         self.sequenceConfig = sequenceConfig
         self.stateConfig = stateConfig
         self.journeyConfig = journeyConfig

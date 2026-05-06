@@ -77,6 +77,7 @@ private enum _DiagramRoutingType {
     case `class`
     case er
     case xychart
+    case pie
     case journey
     case gantt
 }
@@ -105,6 +106,9 @@ private func detectDiagramType(_ text: String) -> _DiagramRoutingType {
     }
     if firstLine.hasPrefix("xychart") {
         return .xychart
+    }
+    if firstLine.hasPrefix("pie") {
+        return .pie
     }
     if firstLine.hasPrefix("journey") {
         return .journey
@@ -165,6 +169,10 @@ func _renderMermaidSVG(
         }
         let positioned = layoutXYChart(mutatedChart, options)
         return renderXYChartSvg(positioned, colors, font, transparent, interactive: options.interactive ?? false)
+    case .pie:
+        let chart = try parsePieChart(lines, frontmatter: fm)
+        let positioned = layoutPieChart(chart)
+        return renderPieSvg(positioned, colors, font, transparent)
     case .journey:
         let diagram = try parseJourneyDiagram(lines, frontmatter: fm)
         let config = fm?.journeyConfig ?? .default
