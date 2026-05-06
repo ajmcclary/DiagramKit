@@ -26,6 +26,24 @@ private enum TIP {
     static let pointerSize: Double = 6
 }
 
+// MARK: - Color resolution helpers
+
+private func _resolveColor(_ themeColor: String?, _ fallback: String) -> String {
+    if let c = themeColor, !c.isEmpty { return c }
+    return fallback
+}
+
+private func _resolvePlotColor(_ index: Int, _ theme: XYChartThemeConfig, _ accentHex: String?, _ bgHex: String?) -> String {
+    if let palette = theme.plotColorPalette, !palette.isEmpty {
+        let colors = palette.split(separator: ",").map { $0.trimmingCharacters(in: .whitespaces) }
+        if !colors.isEmpty {
+            return colors[index % colors.count]
+        }
+    }
+    if index == 0 { return accentHex ?? CHART_ACCENT_FALLBACK }
+    return getSeriesColor(index, accentHex ?? CHART_ACCENT_FALLBACK, bgHex)
+}
+
 // MARK: - Public entry point
 
 public func renderXYChartSvg(
@@ -36,6 +54,12 @@ public func renderXYChartSvg(
     interactive: Bool = false
 ) -> String {
     var parts: [String] = []
+    let native = chart.nativeEnhancements
+    let config = chart.config
+    let theme = chart.theme
+
+    let accentHex = colors.accent ?? CHART_ACCENT_FALLBACK
+    let bgHex = colors.bg
 
     let maxColorIdx = max(
         0,
@@ -46,58 +70,90 @@ public func renderXYChartSvg(
     var svgTag = original_src_theme.svgOpenTag(chart.width, chart.height, themeColors, transparent)
     svgTag = svgTag.replacingOccurrences(of: "<svg ", with: "<svg data-xychart-colors=\"\(maxColorIdx)\" ")
     parts.append(svgTag)
+
+    // Accessibility
+    if let accTitle = chart.accTitle {
+        parts.append("<title>\(_escapeXml(accTitle))</title>")
+    }
+    if let accDescr = chart.accDescr {
+        parts.append("<desc>\(_escapeXml(accDescr))</desc>")
+    }
+
     parts.append(original_src_theme.buildStyleBlock(font, false))
 
     let maxLinePoints = chart.lines.map(\.points.count).max() ?? 0
     let sparse = maxLinePoints > 0 && maxLinePoints <= 12
 
-    let chartCss = _chartStyles(chart, interactive, sparse, colors.accent, colors.bg)
+    let chartCss = _chartStyles(chart, interactive && native, sparse, accentHex, bgHex)
     parts.append(chartCss.style)
 
-    // 1. Dot grid
-    let plotArea = chart.plotArea
-    let xTickPositions = chart.xAxis.ticks.map(\.x)
-    let yVals = chart.horizontal
-        ? chart.yAxis.ticks.map(\.y)
-        : chart.gridLines.map(\.y1)
-    let xBaseRaw = xTickPositions.count > 1 ? abs(xTickPositions[1] - xTickPositions[0]) : plotArea.width / 6
-    let yBaseRaw = yVals.count > 1 ? abs(yVals[1] - yVals[0]) : plotArea.height / 6
-    let xBase = (xBaseRaw.isFinite && abs(xBaseRaw) < 1e15) ? xBaseRaw : plotArea.width / 6
-    let yBase = (yBaseRaw.isFinite && abs(yBaseRaw) < 1e15) ? yBaseRaw : plotArea.height / 6
-    let xGap = xBase / Double(max(1, Int((xBase / 20).rounded())))
-    let yGap = yBase / Double(max(1, Int((yBase / 20).rounded())))
-    let xAnchor = xTickPositions.first ?? plotArea.x
-    let yAnchor = yVals.first ?? plotArea.y
-    let xStart = xAnchor - ceil((xAnchor - plotArea.x) / xGap) * xGap
-    let yStart = yAnchor - ceil((yAnchor - plotArea.y) / yGap) * yGap
+    // Background rect
+    let bgColor = _resolveColor(theme.backgroundColor, "var(--bg)")
+    parts.append("<rect width=\"\(_r(chart.width))\" height=\"\(_r(chart.height))\" fill=\"\(bgColor)\" class=\"xychart-background\"/>")
 
-    var y = yStart
-    while y <= plotArea.y + plotArea.height + 0.5 {
-        var x = xStart
-        while x <= plotArea.x + plotArea.width + 0.5 {
-            parts.append("<circle cx=\"\(_r(x))\" cy=\"\(_r(y))\" r=\"1.5\" class=\"xychart-grid\"/>")
-            x += xGap
+    let plotArea = chart.plotArea
+
+    // 1. Dot grid (native only)
+    if native {
+        let xTickPositions = chart.xAxis.ticks.map(\.x)
+        let yVals = chart.horizontal
+            ? chart.yAxis.ticks.map(\.y)
+            : chart.gridLines.map(\.y1)
+        let xBaseRaw = xTickPositions.count > 1 ? abs(xTickPositions[1] - xTickPositions[0]) : plotArea.width / 6
+        let yBaseRaw = yVals.count > 1 ? abs(yVals[1] - yVals[0]) : plotArea.height / 6
+        let xBase = (xBaseRaw.isFinite && abs(xBaseRaw) < 1e15) ? xBaseRaw : plotArea.width / 6
+        let yBase = (yBaseRaw.isFinite && abs(yBaseRaw) < 1e15) ? yBaseRaw : plotArea.height / 6
+        let xGap = xBase / Double(max(1, Int((xBase / 20).rounded())))
+        let yGap = yBase / Double(max(1, Int((yBase / 20).rounded())))
+        let xAnchor = xTickPositions.first ?? plotArea.x
+        let yAnchor = yVals.first ?? plotArea.y
+        let xStart = xAnchor - ceil((xAnchor - plotArea.x) / xGap) * xGap
+        let yStart = yAnchor - ceil((yAnchor - plotArea.y) / yGap) * yGap
+
+        var y = yStart
+        while y <= plotArea.y + plotArea.height + 0.5 {
+            var x = xStart
+            while x <= plotArea.x + plotArea.width + 0.5 {
+                parts.append("<circle cx=\"\(_r(x))\" cy=\"\(_r(y))\" r=\"1.5\" class=\"xychart-grid\"/>")
+                x += xGap
+            }
+            y += yGap
         }
-        y += yGap
     }
 
     // 2. Bars
     var barOverlay: [String] = []
     for bar in chart.bars {
         let dataAttrs = " data-value=\"\(bar.value)\"\(bar.label.map { " data-label=\"\(_escapeXml($0))\"" } ?? "")"
-        let barPath = chart.horizontal
-            ? _roundedRightBarPath(bar.x, bar.y, bar.width, bar.height, ChartFont.barRadius)
-            : _roundedTopBarPath(bar.x, bar.y, bar.width, bar.height, ChartFont.barRadius)
-        parts.append("<path d=\"\(barPath)\" class=\"xychart-bar xychart-color-\(bar.colorIndex)\"\(dataAttrs)/>")
+        let plotColor = _resolvePlotColor(bar.colorIndex, theme, accentHex, bgHex)
 
-        if interactive {
+        if native {
+            let barPath = chart.horizontal
+                ? _roundedRightBarPath(bar.x, bar.y, bar.width, bar.height, ChartFont.barRadius)
+                : _roundedTopBarPath(bar.x, bar.y, bar.width, bar.height, ChartFont.barRadius)
+            parts.append("<path d=\"\(barPath)\" class=\"xychart-bar xychart-color-\(bar.colorIndex)\"\(dataAttrs) fill=\"color-mix(in srgb, var(--bg) 75%, \(plotColor) 25%)\" stroke=\"\(plotColor)\"/>")
+        } else {
+            // Mermaid-parity: render as rect
+            parts.append("<rect x=\"\(_r(bar.x))\" y=\"\(_r(bar.y))\" width=\"\(_r(bar.width))\" height=\"\(_r(bar.height))\" fill=\"\(plotColor)\" class=\"xychart-bar-rect xychart-color-\(bar.colorIndex)\"\(dataAttrs)/>")
+        }
+
+        // Data labels
+        if let dl = bar.dataLabel {
+            let labelColor = _resolveColor(theme.dataLabelColor, "var(--_text)")
+            parts.append(
+                "<text x=\"\(dl.x)\" y=\"\(dl.y)\" text-anchor=\"\(dl.textAnchor)\" " +
+                "font-size=\"\(dl.fontSize)\" " +
+                "dy=\"\(original_src_styles.TEXT_BASELINE_SHIFT)\" " +
+                "fill=\"\(labelColor)\" class=\"xychart-data-label\">\(_escapeXml(dl.text))</text>"
+            )
+        }
+
+        if interactive && native {
             let tipText = _formatTipValue(bar.value)
-            let tipTitle = bar.label.map { "\($0): \(tipText)" } ?? tipText
             let tip = _tooltipAbove(bar.x + bar.width / 2, bar.y, tipText)
             barOverlay.append(
                 "<g class=\"xychart-bar-group\">" +
                 "<rect x=\"\(_r(bar.x))\" y=\"\(_r(bar.y))\" width=\"\(_r(bar.width))\" height=\"\(_r(bar.height))\" fill=\"transparent\"/>" +
-                "<title>\(_escapeXml(tipTitle))</title>" +
                 tip + "</g>"
             )
         }
@@ -106,14 +162,22 @@ public func renderXYChartSvg(
     // 3. Lines
     for line in chart.lines {
         if line.points.isEmpty { continue }
-        let d = _smoothCurvePath(line.points)
-        parts.append("<path d=\"\(d)\" class=\"xychart-line-shadow xychart-color-\(line.colorIndex)\" transform=\"translate(0,2)\"/>")
-        parts.append("<path d=\"\(d)\" class=\"xychart-line xychart-color-\(line.colorIndex)\"/>")
+        let plotColor = _resolvePlotColor(line.colorIndex, theme, accentHex, bgHex)
+        let d: String
+
+        if native {
+            d = _smoothCurvePath(line.points)
+            parts.append("<path d=\"\(d)\" class=\"xychart-line-shadow xychart-color-\(line.colorIndex)\" transform=\"translate(0,2)\" stroke=\"\(plotColor)\"/>")
+        } else {
+            // Mermaid-parity: straight segments
+            d = _straightLinePath(line.points)
+        }
+        parts.append("<path d=\"\(d)\" class=\"xychart-line xychart-color-\(line.colorIndex)\" fill=\"none\" stroke=\"\(plotColor)\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/>")
     }
 
-    // 4. Dots
+    // 4. Dots (native only)
     var dotOverlay: [String] = []
-    if interactive || sparse {
+    if native && (interactive || sparse) {
         var columns: [String: [(x: Double, y: Double, value: Double, label: String?, seriesIndex: Int, colorIndex: Int)]] = [:]
         for line in chart.lines {
             for p in line.points {
@@ -126,7 +190,6 @@ public func renderXYChartSvg(
             guard let first = entries.first else { continue }
 
             if !interactive {
-                // Sparse, not interactive: static dots
                 for e in entries {
                     let dataAttrs = " data-value=\"\(e.value)\"\(e.label.map { " data-label=\"\(_escapeXml($0))\"" } ?? "")"
                     parts.append("<circle cx=\"\(_r(e.x))\" cy=\"\(_r(e.y))\" r=\"\(ChartFont.dotRadius)\" class=\"xychart-dot xychart-color-\(e.colorIndex)\"\(dataAttrs)/>")
@@ -140,102 +203,133 @@ public func renderXYChartSvg(
                     (text: _formatTipValue(e.value), legendLabel: "Line \(e.seriesIndex + 1)")
                 }
                 let tip = _multiTooltipAbove(first.x, topY - ChartFont.dotRadius, first.label ?? "", tipEntries)
-                let valStrs = tipEntries.map(\.text)
-                let titleText = first.label.map { "\($0): \(valStrs.joined(separator: " · "))" } ?? valStrs.joined(separator: " · ")
-
                 var group = "<g class=\"xychart-dot-group\">\(hitArea)"
                 for e in entries {
                     let dataAttrs = " data-value=\"\(e.value)\"\(e.label.map { " data-label=\"\(_escapeXml($0))\"" } ?? "")"
                     group += "<circle cx=\"\(_r(e.x))\" cy=\"\(_r(e.y))\" r=\"\(ChartFont.dotRadius)\" class=\"xychart-dot xychart-color-\(e.colorIndex)\"\(dataAttrs)/>"
                 }
-                group += "<title>\(_escapeXml(titleText))</title>\(tip)</g>"
+                group += "\(tip)</g>"
                 dotOverlay.append(group)
             } else {
                 let e = first
                 let dataAttrs = " data-value=\"\(e.value)\"\(e.label.map { " data-label=\"\(_escapeXml($0))\"" } ?? "")"
                 let tipText = _formatTipValue(e.value)
-                let tipTitle = e.label.map { "\($0): \(tipText)" } ?? tipText
                 let tip = _tooltipAbove(first.x, e.y - ChartFont.dotRadius, tipText)
-                let hitArea = sparse
-                    ? "<circle cx=\"\(_r(first.x))\" cy=\"\(_r(e.y))\" r=\"\(ChartFont.dotRadius * 3)\" fill=\"transparent\" class=\"xychart-hit\"/>"
-                    : ""
                 dotOverlay.append(
-                    "<g class=\"xychart-dot-group\">\(hitArea)" +
+                    "<g class=\"xychart-dot-group\">" +
                     "<circle cx=\"\(_r(e.x))\" cy=\"\(_r(e.y))\" r=\"\(ChartFont.dotRadius)\" class=\"xychart-dot xychart-color-\(e.colorIndex)\"\(dataAttrs)/>" +
-                    "<title>\(_escapeXml(tipTitle))</title>\(tip)</g>"
+                    "\(tip)</g>"
                 )
             }
         }
     }
 
-    // 5. Axis labels
+    // 5. Axis lines (Mermaid-parity)
+    if config.xAxis.showAxisLine {
+        let xLineColor = _resolveColor(theme.xAxisLineColor, "var(--_text-muted)")
+        parts.append("<line x1=\"\(_r(chart.xAxis.line.x1))\" y1=\"\(_r(chart.xAxis.line.y1))\" x2=\"\(_r(chart.xAxis.line.x2))\" y2=\"\(_r(chart.xAxis.line.y2))\" stroke=\"\(xLineColor)\" stroke-width=\"\(config.xAxis.axisLineWidth)\" class=\"xychart-axis-line\"/>")
+    }
+    if config.yAxis.showAxisLine {
+        let yLineColor = _resolveColor(theme.yAxisLineColor, "var(--_text-muted)")
+        parts.append("<line x1=\"\(_r(chart.yAxis.line.x1))\" y1=\"\(_r(chart.yAxis.line.y1))\" x2=\"\(_r(chart.yAxis.line.x2))\" y2=\"\(_r(chart.yAxis.line.y2))\" stroke=\"\(yLineColor)\" stroke-width=\"\(config.yAxis.axisLineWidth)\" class=\"xychart-axis-line\"/>")
+    }
+
+    // 6. Tick marks (Mermaid-parity)
+    let xTickColor = _resolveColor(theme.xAxisTickColor, "var(--_text-muted)")
+    let yTickColor = _resolveColor(theme.yAxisTickColor, "var(--_text-muted)")
+    if config.xAxis.showTick {
+        for tick in chart.xAxis.tickLines {
+            parts.append("<line x1=\"\(_r(tick.x1))\" y1=\"\(_r(tick.y1))\" x2=\"\(_r(tick.x2))\" y2=\"\(_r(tick.y2))\" stroke=\"\(xTickColor)\" stroke-width=\"\(config.xAxis.tickWidth)\" class=\"xychart-tick\"/>")
+        }
+    }
+    if config.yAxis.showTick {
+        for tick in chart.yAxis.tickLines {
+            parts.append("<line x1=\"\(_r(tick.x1))\" y1=\"\(_r(tick.y1))\" x2=\"\(_r(tick.x2))\" y2=\"\(_r(tick.y2))\" stroke=\"\(yTickColor)\" stroke-width=\"\(config.yAxis.tickWidth)\" class=\"xychart-tick\"/>")
+        }
+    }
+
+    // 7. Axis labels
     let TEXT_BASELINE = original_src_styles.TEXT_BASELINE_SHIFT
-    for tick in chart.xAxis.ticks {
-        parts.append(
-            "<text x=\"\(tick.labelX)\" y=\"\(tick.labelY)\" text-anchor=\"\(tick.textAnchor)\" " +
-            "font-size=\"\(ChartFont.labelSize)\" font-weight=\"\(ChartFont.labelWeight)\" " +
-            "dy=\"\(TEXT_BASELINE)\" class=\"xychart-label\">\(_escapeXml(tick.label))</text>"
-        )
-    }
-    for tick in chart.yAxis.ticks {
-        parts.append(
-            "<text x=\"\(tick.labelX)\" y=\"\(tick.labelY)\" text-anchor=\"\(tick.textAnchor)\" " +
-            "font-size=\"\(ChartFont.labelSize)\" font-weight=\"\(ChartFont.labelWeight)\" " +
-            "dy=\"\(TEXT_BASELINE)\" class=\"xychart-label\">\(_escapeXml(tick.label))</text>"
-        )
-    }
-
-    // 6. Axis titles
-    if let t = chart.xAxis.title {
-        let transform = t.rotate.map { " transform=\"rotate(\($0),\(t.x),\(t.y))\"" } ?? ""
-        parts.append(
-            "<text x=\"\(t.x)\" y=\"\(t.y)\" text-anchor=\"middle\"\(transform) " +
-            "font-size=\"\(ChartFont.axisTitleSize)\" font-weight=\"\(ChartFont.axisTitleWeight)\" " +
-            "dy=\"\(TEXT_BASELINE)\" class=\"xychart-axis-title\">\(_escapeXml(t.text))</text>"
-        )
-    }
-    if let t = chart.yAxis.title {
-        let transform = t.rotate.map { " transform=\"rotate(\($0),\(t.x),\(t.y))\"" } ?? ""
-        parts.append(
-            "<text x=\"\(t.x)\" y=\"\(t.y)\" text-anchor=\"middle\"\(transform) " +
-            "font-size=\"\(ChartFont.axisTitleSize)\" font-weight=\"\(ChartFont.axisTitleWeight)\" " +
-            "dy=\"\(TEXT_BASELINE)\" class=\"xychart-axis-title\">\(_escapeXml(t.text))</text>"
-        )
-    }
-
-    // 7. Chart title
-    if let title = chart.title {
-        parts.append(
-            "<text x=\"\(title.x)\" y=\"\(title.y)\" text-anchor=\"middle\" " +
-            "font-size=\"\(ChartFont.titleSize)\" font-weight=\"\(ChartFont.titleWeight)\" " +
-            "dy=\"\(TEXT_BASELINE)\" class=\"xychart-title\">\(_escapeXml(title.text))</text>"
-        )
-    }
-
-    // 8. Legend — swatches centered on item.y (matches TS)
-    for item in chart.legend {
-        let swatchW: Double = 12, swatchH: Double = 10, gap: Double = 5
-        if item.type == .bar {
+    if config.xAxis.showLabel {
+        let xLabelColor = _resolveColor(theme.xAxisLabelColor, "var(--_text-muted)")
+        for tick in chart.xAxis.ticks {
             parts.append(
-                "<rect x=\"\(item.x)\" y=\"\(item.y - swatchH / 2)\" width=\"\(swatchW)\" height=\"\(swatchH)\" rx=\"2\" " +
-                "class=\"xychart-bar xychart-color-\(item.colorIndex)\"/>"
-            )
-        } else {
-            parts.append(
-                "<line x1=\"\(item.x)\" y1=\"\(item.y)\" x2=\"\(item.x + swatchW)\" y2=\"\(item.y)\" " +
-                "stroke-width=\"\(ChartFont.lineWidth)\" stroke-linecap=\"round\" class=\"xychart-legend-line xychart-color-\(item.colorIndex)\"/>"
+                "<text x=\"\(tick.labelX)\" y=\"\(tick.labelY)\" text-anchor=\"\(tick.textAnchor)\" " +
+                "font-size=\"\(_r(config.xAxis.labelFontSize))\" font-weight=\"\(ChartFont.labelWeight)\" " +
+                "fill=\"\(xLabelColor)\" dy=\"\(TEXT_BASELINE)\" class=\"xychart-label\">\(_escapeXml(tick.label))</text>"
             )
         }
+    }
+    if config.yAxis.showLabel {
+        let yLabelColor = _resolveColor(theme.yAxisLabelColor, "var(--_text-muted)")
+        for tick in chart.yAxis.ticks {
+            parts.append(
+                "<text x=\"\(tick.labelX)\" y=\"\(tick.labelY)\" text-anchor=\"\(tick.textAnchor)\" " +
+                "font-size=\"\(_r(config.yAxis.labelFontSize))\" font-weight=\"\(ChartFont.labelWeight)\" " +
+                "fill=\"\(yLabelColor)\" dy=\"\(TEXT_BASELINE)\" class=\"xychart-label\">\(_escapeXml(tick.label))</text>"
+            )
+        }
+    }
+
+    // 8. Axis titles
+    let xTitleColor = _resolveColor(theme.xAxisTitleColor, "var(--_text-sec)")
+    let yTitleColor = _resolveColor(theme.yAxisTitleColor, "var(--_text-sec)")
+    if let t = chart.xAxis.title, config.xAxis.showTitle {
+        let transform = t.rotate.map { " transform=\"rotate(\($0),\(t.x),\(t.y))\"" } ?? ""
         parts.append(
-            "<text x=\"\(item.x + swatchW + gap)\" y=\"\(item.y)\" text-anchor=\"start\" " +
-            "font-size=\"\(ChartFont.legendSize)\" font-weight=\"\(ChartFont.legendWeight)\" " +
-            "dy=\"\(TEXT_BASELINE)\" class=\"xychart-legend-text\">\(_escapeXml(item.label))</text>"
+            "<text x=\"\(t.x)\" y=\"\(t.y)\" text-anchor=\"middle\"\(transform) " +
+            "font-size=\"\(_r(config.xAxis.titleFontSize))\" font-weight=\"\(ChartFont.axisTitleWeight)\" " +
+            "fill=\"\(xTitleColor)\" dy=\"\(TEXT_BASELINE)\" class=\"xychart-axis-title\">\(_escapeXml(t.text))</text>"
+        )
+    }
+    if let t = chart.yAxis.title, config.yAxis.showTitle {
+        let transform = t.rotate.map { " transform=\"rotate(\($0),\(t.x),\(t.y))\"" } ?? ""
+        parts.append(
+            "<text x=\"\(t.x)\" y=\"\(t.y)\" text-anchor=\"middle\"\(transform) " +
+            "font-size=\"\(_r(config.yAxis.titleFontSize))\" font-weight=\"\(ChartFont.axisTitleWeight)\" " +
+            "fill=\"\(yTitleColor)\" dy=\"\(TEXT_BASELINE)\" class=\"xychart-axis-title\">\(_escapeXml(t.text))</text>"
         )
     }
 
-    // 9. Interactive overlay
-    for g in barOverlay { parts.append(g) }
-    for g in dotOverlay { parts.append(g) }
+    // 9. Chart title
+    if let title = chart.title, config.showTitle {
+        let titleColor = _resolveColor(theme.titleColor, "var(--_text)")
+        parts.append(
+            "<text x=\"\(title.x)\" y=\"\(title.y)\" text-anchor=\"middle\" " +
+            "font-size=\"\(_r(config.titleFontSize))\" font-weight=\"600\" " +
+            "fill=\"\(titleColor)\" dy=\"\(TEXT_BASELINE)\" class=\"xychart-title\">\(_escapeXml(title.text))</text>"
+        )
+    }
+
+    // 10. Legend (native only)
+    if native {
+        for item in chart.legend {
+            let swatchW: Double = 12, swatchH: Double = 10, gap: Double = 5
+            let pColor = _resolvePlotColor(item.colorIndex, theme, accentHex, bgHex)
+            if item.type == .bar {
+                parts.append(
+                    "<rect x=\"\(item.x)\" y=\"\(item.y - swatchH / 2)\" width=\"\(swatchW)\" height=\"\(swatchH)\" rx=\"2\" " +
+                    "class=\"xychart-bar xychart-color-\(item.colorIndex)\" fill=\"color-mix(in srgb, var(--bg) 75%, \(pColor) 25%)\" stroke=\"\(pColor)\"/>"
+                )
+            } else {
+                parts.append(
+                    "<line x1=\"\(item.x)\" y1=\"\(item.y)\" x2=\"\(item.x + swatchW)\" y2=\"\(item.y)\" " +
+                    "stroke=\"\(pColor)\" stroke-width=\"\(ChartFont.lineWidth)\" stroke-linecap=\"round\" class=\"xychart-legend-line\"/>"
+                )
+            }
+            parts.append(
+                "<text x=\"\(item.x + swatchW + gap)\" y=\"\(item.y)\" text-anchor=\"start\" " +
+                "font-size=\"\(ChartFont.legendSize)\" font-weight=\"\(ChartFont.legendWeight)\" " +
+                "dy=\"\(TEXT_BASELINE)\" fill=\"var(--_text-muted)\" class=\"xychart-legend-text\">\(_escapeXml(item.label))</text>"
+            )
+        }
+    }
+
+    // 11. Interactive overlay (native only)
+    if native {
+        for g in barOverlay { parts.append(g) }
+        for g in dotOverlay { parts.append(g) }
+    }
 
     parts.append("</svg>")
     return parts.joined(separator: "\n")
@@ -284,15 +378,20 @@ private func _chartStyles(
 
     let style = """
     <style>
+      .xychart-background { }
+      .xychart-axis-line { }
+      .xychart-tick { }
+      .xychart-data-label { font-family: var(--font); }
       .xychart-grid { fill: var(--_inner-stroke); stroke: none; opacity: 0.65; }
       .xychart-bar { stroke-width: 1.5; }
-      .xychart-line { fill: none; stroke-width: \(ChartFont.lineWidth); stroke-linecap: round; stroke-linejoin: round; }
-      .xychart-line-shadow { fill: none; stroke-width: 5; stroke-linecap: round; stroke-linejoin: round; opacity: 0.12; }
+      .xychart-bar-rect { stroke: none; }
+      .xychart-line { }
+      .xychart-line-shadow { opacity: 0.12; }
       .xychart-dot { stroke: var(--bg); stroke-width: 2; }
-      .xychart-label { fill: var(--_text-muted); }
-      .xychart-legend-text { fill: var(--_text-muted); }
-      .xychart-axis-title { fill: var(--_text-sec); }
-      .xychart-title { fill: var(--_text); }\(colorVarsBlock)
+      .xychart-label { font-family: var(--font); }
+      .xychart-legend-text { font-family: var(--font); }
+      .xychart-axis-title { font-family: var(--font); }
+      .xychart-title { font-family: var(--font); }\(colorVarsBlock)
     \(seriesRules.joined(separator: "\n"))\(tipRules)
     </style>
     """
@@ -300,7 +399,20 @@ private func _chartStyles(
     return (style, "")
 }
 
-// MARK: - Bar paths
+// MARK: - Straight line path (Mermaid parity)
+
+private func _straightLinePath(_ points: [LinePoint]) -> String {
+    if points.isEmpty { return "" }
+    if points.count == 1 { return "M\(_r(points[0].x)),\(_r(points[0].y))" }
+
+    var path = "M\(_r(points[0].x)),\(_r(points[0].y))"
+    for i in 1..<points.count {
+        path += " L\(_r(points[i].x)),\(_r(points[i].y))"
+    }
+    return path
+}
+
+// MARK: - Bar paths (native only)
 
 private func _roundedTopBarPath(_ x: Double, _ y: Double, _ w: Double, _ h: Double, _ radius: Double) -> String {
     let rr = min(radius, w / 2, h / 2)
@@ -339,7 +451,7 @@ private func _roundedRightBarPath(_ x: Double, _ y: Double, _ w: Double, _ h: Do
     ].joined(separator: " ")
 }
 
-// MARK: - Smooth curve (natural cubic spline)
+// MARK: - Smooth curve (native only)
 
 private func _smoothCurvePath(_ points: [LinePoint]) -> String {
     if points.isEmpty { return "" }
@@ -398,7 +510,7 @@ private func _smoothCurvePath(_ points: [LinePoint]) -> String {
     return path
 }
 
-// MARK: - Tooltips
+// MARK: - Tooltips (native only)
 
 private func _tooltipAbove(_ cx: Double, _ topY: Double, _ text: String) -> String {
     let textW = original_src_styles.estimateTextWidth(text, TIP.fontSize, TIP.fontWeight)

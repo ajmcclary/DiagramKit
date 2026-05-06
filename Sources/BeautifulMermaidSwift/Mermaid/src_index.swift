@@ -148,8 +148,14 @@ func _renderMermaidSVG(
         let positioned = try layoutErDiagramSync(diagram, options: options, config: diagram.config)
         return try renderErSvg(positioned, colors, font, transparent)
     case .xychart:
-        let chart = parseXYChart(lines)
-        let positioned = layoutXYChart(chart, options)
+        let chart = try parseXYChart(lines)
+        var mutatedChart = chart
+        if let fmc = fm?.xyChartConfig { mutatedChart.config = fmc }
+        if let fmt = fm?.xyChartTheme { mutatedChart.theme = fmt }
+        if mutatedChart.titleText == nil, let fmTitle = fm?.diagramTitle {
+            mutatedChart.diagramTitle = fmTitle
+        }
+        let positioned = layoutXYChart(mutatedChart, options)
         return renderXYChartSvg(positioned, colors, font, transparent, interactive: options.interactive ?? false)
     case .flowchart:
         let graph = try parseMermaid(decodedText, config: fm?.flowchartConfig)

@@ -107,7 +107,7 @@ final class VerificationStepExporterTests: XCTestCase {
             ]
 
         case "xychart":
-            let parsed = parseXYChart(lines)
+            let parsed = try parseXYChart(lines)
             let positioned = layoutXYChart(parsed)
             return [
                 ["diagramId": diagram.id, "step": "1-parsed", "timestamp": timestamp, "data": serializeXYChartParsed(parsed)],
@@ -344,13 +344,21 @@ final class VerificationStepExporterTests: XCTestCase {
         var data: [String: Any] = [
             "horizontal": chart.horizontal,
             "series": chart.series.map {
-                ["type": $0.type.rawValue, "data": $0.data] as [String: Any]
+                var s: [String: Any] = ["type": $0.type.rawValue, "data": $0.data]
+                if !$0.title.text.isEmpty { s["title"] = $0.title.text }
+                return s
             },
         ]
         if let title = chart.title { data["title"] = title }
+        if let t = chart.titleText { data["titleKind"] = t.kind.rawValue }
         if let cats = chart.xAxis.categories { data["xCategories"] = cats }
         if let t = chart.xAxis.title { data["xTitle"] = t }
         if let t = chart.yAxis.title { data["yTitle"] = t }
+        if let acc = chart.accTitle { data["accTitle"] = acc }
+        if let acc = chart.accDescr { data["accDescr"] = acc }
+        if let dt = chart.diagramTitle { data["diagramTitle"] = dt }
+        data["xAxisKind"] = chart.xAxis.kind.rawValue
+        data["yAxisKind"] = chart.yAxis.kind.rawValue
         return data
     }
 
@@ -359,7 +367,11 @@ final class VerificationStepExporterTests: XCTestCase {
             "graphWidth": chart.width,
             "graphHeight": chart.height,
             "bars": chart.bars.map {
-                ["x": $0.x, "y": $0.y, "width": $0.width, "height": $0.height, "value": $0.value, "colorIndex": $0.colorIndex] as [String: Any]
+                var b: [String: Any] = ["x": $0.x, "y": $0.y, "width": $0.width, "height": $0.height, "value": $0.value, "colorIndex": $0.colorIndex]
+                if let dl = $0.dataLabel {
+                    b["dataLabel"] = ["text": dl.text, "x": dl.x, "y": dl.y, "anchor": dl.textAnchor, "fontSize": dl.fontSize]
+                }
+                return b
             },
             "lines": chart.lines.map {
                 ["points": $0.points.map { ["x": $0.x, "y": $0.y, "value": $0.value] as [String: Any] }, "colorIndex": $0.colorIndex] as [String: Any]
@@ -368,6 +380,12 @@ final class VerificationStepExporterTests: XCTestCase {
         if let title = chart.title {
             data["title"] = ["text": title.text, "x": title.x, "y": title.y] as [String: Any]
         }
+        if let acc = chart.accTitle { data["accTitle"] = acc }
+        if let acc = chart.accDescr { data["accDescr"] = acc }
+        if let dt = chart.diagramTitle { data["diagramTitle"] = dt }
+        data["configWidth"] = chart.config.width
+        data["configHeight"] = chart.config.height
+        data["showDataLabel"] = chart.config.showDataLabel
         return data
     }
 

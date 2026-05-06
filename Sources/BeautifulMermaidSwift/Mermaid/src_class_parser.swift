@@ -326,19 +326,25 @@ public struct DiagramFrontmatter: Sendable {
     public var classConfig: ClassConfig?
     public var flowchartConfig: original_src_types.FlowchartConfig?
     public var erConfig: ErDiagramConfig?
+    public var xyChartConfig: XYChartConfig?
+    public var xyChartTheme: XYChartThemeConfig?
 
     public init(
         title: String? = nil,
         diagramTitle: String? = nil,
         classConfig: ClassConfig? = nil,
         flowchartConfig: original_src_types.FlowchartConfig? = nil,
-        erConfig: ErDiagramConfig? = nil
+        erConfig: ErDiagramConfig? = nil,
+        xyChartConfig: XYChartConfig? = nil,
+        xyChartTheme: XYChartThemeConfig? = nil
     ) {
         self.title = title
         self.diagramTitle = diagramTitle ?? title
         self.classConfig = classConfig
         self.flowchartConfig = flowchartConfig
         self.erConfig = erConfig
+        self.xyChartConfig = xyChartConfig
+        self.xyChartTheme = xyChartTheme
     }
 }
 

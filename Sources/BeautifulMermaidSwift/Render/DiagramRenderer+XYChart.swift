@@ -16,8 +16,9 @@ extension DiagramRenderer {
 
         _withFittedContext(context, bounds: bounds, contentWidth: max(1, chart.width), contentHeight: max(1, chart.height)) { ctx in
             let ch = chart.height
-            // Flip to y=0-at-bottom: XY chart uses CTLineDraw which requires y-up,
-            // and fy() maps SVG coordinates assuming y=0-at-bottom.
+            let native = chart.nativeEnhancements
+            let config = chart.config
+
             ctx.translateBy(x: 0, y: ch)
             ctx.scaleBy(x: 1, y: -1)
             func fy(_ y: Double) -> Double { ch - y }
@@ -31,101 +32,172 @@ extension DiagramRenderer {
             let textColor = self.theme.foreground.cgColor
             let mutedColor = self.theme.effectiveMuted().cgColor
             let bgColor = self.theme.background.cgColor
+            let accentHex = _hex(self.theme.effectiveAccent()) ?? "#3b82f6"
+            let bgHex = _hex(self.theme.background)
 
-            // Grid dots
-            let plotArea = chart.plotArea
-            let xTicks = chart.xAxis.ticks.map(\.x)
-            let yVals = chart.horizontal
-                ? chart.yAxis.ticks.map(\.y)
-                : chart.gridLines.map(\.y1)
-            let xBase = xTicks.count > 1 ? abs(xTicks[1] - xTicks[0]) : plotArea.width / 6
-            let yBase = yVals.count > 1 ? abs(yVals[1] - yVals[0]) : plotArea.height / 6
-            let xGap = xBase / Double(max(1, Int((xBase / 20).rounded())))
-            let yGap = yBase / Double(max(1, Int((yBase / 20).rounded())))
-            let xAnchor = xTicks.first ?? plotArea.x
-            let yAnchor = yVals.first ?? plotArea.y
-            let xStart = xAnchor - ceil((xAnchor - plotArea.x) / xGap) * xGap
-            let yStart = yAnchor - ceil((yAnchor - plotArea.y) / yGap) * yGap
+            // Grid dots (native only)
+            if native {
+                let plotArea = chart.plotArea
+                let xTicks = chart.xAxis.ticks.map(\.x)
+                let yVals = chart.horizontal
+                    ? chart.yAxis.ticks.map(\.y)
+                    : chart.gridLines.map(\.y1)
+                let xBase = xTicks.count > 1 ? abs(xTicks[1] - xTicks[0]) : plotArea.width / 6
+                let yBase = yVals.count > 1 ? abs(yVals[1] - yVals[0]) : plotArea.height / 6
+                let xGap = xBase / Double(max(1, Int((xBase / 20).rounded())))
+                let yGap = yBase / Double(max(1, Int((yBase / 20).rounded())))
+                let xAnchor = xTicks.first ?? plotArea.x
+                let yAnchor = yVals.first ?? plotArea.y
+                let xStart = xAnchor - ceil((xAnchor - plotArea.x) / xGap) * xGap
+                let yStart = yAnchor - ceil((yAnchor - plotArea.y) / yGap) * yGap
 
-            ctx.setFillColor(mutedColor)
-            ctx.setAlpha(0.3)
-            var dotY = yStart
-            while dotY <= plotArea.y + plotArea.height + 0.5 {
-                var dotX = xStart
-                while dotX <= plotArea.x + plotArea.width + 0.5 {
-                    ctx.fillEllipse(in: CGRect(x: dotX - 1.5, y: fy(dotY) - 1.5, width: 3, height: 3))
-                    dotX += xGap
+                ctx.setFillColor(mutedColor)
+                ctx.setAlpha(0.3)
+                var dotY = yStart
+                while dotY <= plotArea.y + plotArea.height + 0.5 {
+                    var dotX = xStart
+                    while dotX <= plotArea.x + plotArea.width + 0.5 {
+                        ctx.fillEllipse(in: CGRect(x: dotX - 1.5, y: fy(dotY) - 1.5, width: 3, height: 3))
+                        dotX += xGap
+                    }
+                    dotY += yGap
                 }
-                dotY += yGap
+                ctx.setAlpha(1.0)
             }
-            ctx.setAlpha(1.0)
+
+            // Axis lines (Mermaid-parity)
+            if config.xAxis.showAxisLine {
+                ctx.setStrokeColor(mutedColor)
+                ctx.setLineWidth(config.xAxis.axisLineWidth)
+                ctx.move(to: CGPoint(x: chart.xAxis.line.x1, y: fy(chart.xAxis.line.y1)))
+                ctx.addLine(to: CGPoint(x: chart.xAxis.line.x2, y: fy(chart.xAxis.line.y2)))
+                ctx.strokePath()
+            }
+            if config.yAxis.showAxisLine {
+                ctx.setStrokeColor(mutedColor)
+                ctx.setLineWidth(config.yAxis.axisLineWidth)
+                ctx.move(to: CGPoint(x: chart.yAxis.line.x1, y: fy(chart.yAxis.line.y1)))
+                ctx.addLine(to: CGPoint(x: chart.yAxis.line.x2, y: fy(chart.yAxis.line.y2)))
+                ctx.strokePath()
+            }
+
+            // Tick marks (Mermaid-parity)
+            if config.xAxis.showTick {
+                ctx.setStrokeColor(mutedColor)
+                ctx.setLineWidth(config.xAxis.tickWidth)
+                for tick in chart.xAxis.tickLines {
+                    ctx.move(to: CGPoint(x: tick.x1, y: fy(tick.y1)))
+                    ctx.addLine(to: CGPoint(x: tick.x2, y: fy(tick.y2)))
+                    ctx.strokePath()
+                }
+            }
+            if config.yAxis.showTick {
+                ctx.setStrokeColor(mutedColor)
+                ctx.setLineWidth(config.yAxis.tickWidth)
+                for tick in chart.yAxis.tickLines {
+                    ctx.move(to: CGPoint(x: tick.x1, y: fy(tick.y1)))
+                    ctx.addLine(to: CGPoint(x: tick.x2, y: fy(tick.y2)))
+                    ctx.strokePath()
+                }
+            }
 
             // Bars
             for bar in chart.bars {
-                let seriesColor = self._xySeriesColor(bar.colorIndex, accentHex: _hex(self.theme.effectiveAccent()), bgHex: _hex(self.theme.background))
-                let fillColor = self._mixCGColors(bgColor, seriesColor, ratio: 0.25)
+                let seriesColor = self._xySeriesColor(bar.colorIndex, accentHex: accentHex, bgHex: bgHex)
                 let barRect = CGRect(x: bar.x, y: fy(bar.y + bar.height), width: bar.width, height: bar.height)
-                let cr = min(8, bar.width / 2, bar.height / 2)
-                let barPath = CGPath(roundedRect: barRect, cornerWidth: cr, cornerHeight: cr, transform: nil)
-                ctx.addPath(barPath)
-                ctx.setFillColor(fillColor)
-                ctx.fillPath()
-                ctx.setStrokeColor(seriesColor)
-                ctx.setLineWidth(1.5)
-                ctx.addPath(barPath)
-                ctx.strokePath()
+
+                if native {
+                    let fillColor = self._mixCGColors(bgColor, seriesColor, ratio: 0.25)
+                    let cr = min(8, bar.width / 2, bar.height / 2)
+                    let barPath = CGPath(roundedRect: barRect, cornerWidth: cr, cornerHeight: cr, transform: nil)
+                    ctx.addPath(barPath)
+                    ctx.setFillColor(fillColor)
+                    ctx.fillPath()
+                    ctx.setStrokeColor(seriesColor)
+                    ctx.setLineWidth(1.5)
+                    ctx.addPath(barPath)
+                    ctx.strokePath()
+                } else {
+                    // Mermaid-parity: simple rect
+                    ctx.setFillColor(seriesColor)
+                    ctx.fill(barRect)
+                }
+
+                // Data labels
+                if let dl = bar.dataLabel {
+                    let labelFont = BMFont.systemFont(ofSize: CGFloat(dl.fontSize), weight: .regular)
+                    let anchor: NSTextAlignment = dl.textAnchor == "end" ? .right : dl.textAnchor == "start" ? .left : .center
+                    self._drawTextXY(ctx, dl.text, x: dl.x, y: fy(dl.y), font: labelFont, color: textColor, align: anchor)
+                }
             }
 
             // Lines
             for line in chart.lines {
                 if line.points.isEmpty { continue }
-                let seriesColor = self._xySeriesColor(line.colorIndex, accentHex: _hex(self.theme.effectiveAccent()), bgHex: _hex(self.theme.background))
+                let seriesColor = self._xySeriesColor(line.colorIndex, accentHex: accentHex, bgHex: bgHex)
                 let flipped = line.points.map { LinePoint(x: $0.x, y: fy($0.y), value: $0.value, label: $0.label) }
 
-                // Shadow
-                ctx.saveGState()
-                ctx.setStrokeColor(seriesColor)
-                ctx.setLineWidth(5)
-                ctx.setAlpha(0.12)
-                self._addCurvePath(ctx, flipped, offsetY: -2)
-                ctx.strokePath()
-                ctx.restoreGState()
+                if native {
+                    ctx.saveGState()
+                    ctx.setStrokeColor(seriesColor)
+                    ctx.setLineWidth(5)
+                    ctx.setAlpha(0.12)
+                    self._addCurvePath(ctx, flipped, offsetY: -2)
+                    ctx.strokePath()
+                    ctx.restoreGState()
 
-                // Main line
-                ctx.setStrokeColor(seriesColor)
-                ctx.setLineWidth(2.5)
-                ctx.setLineCap(.round)
-                ctx.setLineJoin(.round)
-                self._addCurvePath(ctx, flipped)
-                ctx.strokePath()
+                    ctx.setStrokeColor(seriesColor)
+                    ctx.setLineWidth(2.5)
+                    ctx.setLineCap(.round)
+                    ctx.setLineJoin(.round)
+                    self._addCurvePath(ctx, flipped)
+                    ctx.strokePath()
 
-                // Dots for sparse lines
-                if flipped.count <= 12 {
-                    for p in flipped {
-                        ctx.setFillColor(seriesColor)
-                        ctx.fillEllipse(in: CGRect(x: p.x - 5, y: p.y - 5, width: 10, height: 10))
-                        ctx.setFillColor(bgColor)
-                        ctx.fillEllipse(in: CGRect(x: p.x - 3, y: p.y - 3, width: 6, height: 6))
-                        ctx.setFillColor(seriesColor)
-                        ctx.fillEllipse(in: CGRect(x: p.x - 2, y: p.y - 2, width: 4, height: 4))
+                    if flipped.count <= 12 {
+                        for p in flipped {
+                            ctx.setFillColor(seriesColor)
+                            ctx.fillEllipse(in: CGRect(x: p.x - 5, y: p.y - 5, width: 10, height: 10))
+                            ctx.setFillColor(bgColor)
+                            ctx.fillEllipse(in: CGRect(x: p.x - 3, y: p.y - 3, width: 6, height: 6))
+                            ctx.setFillColor(seriesColor)
+                            ctx.fillEllipse(in: CGRect(x: p.x - 2, y: p.y - 2, width: 4, height: 4))
+                        }
+                    }
+                } else {
+                    // Mermaid-parity: straight line segments
+                    ctx.setStrokeColor(seriesColor)
+                    ctx.setLineWidth(2)
+                    ctx.setLineCap(.round)
+                    ctx.setLineJoin(.round)
+                    if !flipped.isEmpty {
+                        ctx.move(to: CGPoint(x: flipped[0].x, y: flipped[0].y))
+                        for i in 1..<flipped.count {
+                            ctx.addLine(to: CGPoint(x: flipped[i].x, y: flipped[i].y))
+                        }
+                        ctx.strokePath()
                     }
                 }
             }
 
-            // Axis labels (muted color, matching edge labels in flowcharts)
-            let labelFont = BMFont.systemFont(ofSize: 12, weight: .regular)
-            for tick in chart.xAxis.ticks {
-                let anchor: NSTextAlignment = tick.textAnchor == "end" ? .right : tick.textAnchor == "start" ? .left : .center
-                self._drawTextXY(ctx, tick.label, x: tick.labelX, y: fy(tick.labelY), font: labelFont, color: mutedColor, align: anchor)
+            // Axis labels
+            if config.xAxis.showLabel {
+                let labelFont = BMFont.systemFont(ofSize: CGFloat(config.xAxis.labelFontSize), weight: .regular)
+                for tick in chart.xAxis.ticks {
+                    let anchor: NSTextAlignment = tick.textAnchor == "end" ? .right : tick.textAnchor == "start" ? .left : .center
+                    self._drawTextXY(ctx, tick.label, x: tick.labelX, y: fy(tick.labelY), font: labelFont, color: mutedColor, align: anchor)
+                }
             }
-            for tick in chart.yAxis.ticks {
-                let anchor: NSTextAlignment = tick.textAnchor == "end" ? .right : tick.textAnchor == "start" ? .left : .center
-                self._drawTextXY(ctx, tick.label, x: tick.labelX, y: fy(tick.labelY), font: labelFont, color: mutedColor, align: anchor)
+            if config.yAxis.showLabel {
+                let labelFont = BMFont.systemFont(ofSize: CGFloat(config.yAxis.labelFontSize), weight: .regular)
+                for tick in chart.yAxis.ticks {
+                    let anchor: NSTextAlignment = tick.textAnchor == "end" ? .right : tick.textAnchor == "start" ? .left : .center
+                    self._drawTextXY(ctx, tick.label, x: tick.labelX, y: fy(tick.labelY), font: labelFont, color: mutedColor, align: anchor)
+                }
             }
 
             // Axis titles
-            let axisTitleFont = BMFont.systemFont(ofSize: 15, weight: .medium)
-            if let t = chart.xAxis.title {
+            if let t = chart.xAxis.title, config.xAxis.showTitle {
+                let axisTitleFont = BMFont.systemFont(ofSize: CGFloat(config.xAxis.titleFontSize), weight: .medium)
                 if let rotate = t.rotate {
                     ctx.saveGState()
                     ctx.translateBy(x: CGFloat(t.x), y: CGFloat(fy(t.y)))
@@ -136,7 +208,8 @@ extension DiagramRenderer {
                     self._drawTextXY(ctx, t.text, x: t.x, y: fy(t.y), font: axisTitleFont, color: textColor, align: .center)
                 }
             }
-            if let t = chart.yAxis.title {
+            if let t = chart.yAxis.title, config.yAxis.showTitle {
+                let axisTitleFont = BMFont.systemFont(ofSize: CGFloat(config.yAxis.titleFontSize), weight: .medium)
                 if let rotate = t.rotate {
                     ctx.saveGState()
                     ctx.translateBy(x: CGFloat(t.x), y: CGFloat(fy(t.y)))
@@ -148,39 +221,40 @@ extension DiagramRenderer {
                 }
             }
 
-            // Chart title (smaller font, centered at top)
-            if let title = chart.title {
-                let titleFont = BMFont.systemFont(ofSize: 16, weight: .semibold)
+            // Chart title
+            if let title = chart.title, config.showTitle {
+                let titleFont = BMFont.systemFont(ofSize: CGFloat(config.titleFontSize), weight: .semibold)
                 self._drawTextXY(ctx, title.text, x: title.x, y: fy(title.y), font: titleFont, color: textColor, align: .center)
             }
 
-            // Legend
-            let legendFont = BMFont.systemFont(ofSize: 12, weight: .regular)
-
-            for item in chart.legend {
-                let seriesColor = self._xySeriesColor(item.colorIndex, accentHex: _hex(self.theme.effectiveAccent()), bgHex: _hex(self.theme.background))
-                let iy = fy(item.y)
-                let sy = iy  // swatch center matches text visual center
-                if item.type == .bar {
-                    let fillColor = self._mixCGColors(bgColor, seriesColor, ratio: 0.25)
-                    let swatchRect = CGRect(x: item.x, y: sy - 5, width: 12, height: 10)
-                    let swatchPath = CGPath(roundedRect: swatchRect, cornerWidth: 2, cornerHeight: 2, transform: nil)
-                    ctx.addPath(swatchPath)
-                    ctx.setFillColor(fillColor)
-                    ctx.fillPath()
-                    ctx.addPath(swatchPath)
-                    ctx.setStrokeColor(seriesColor)
-                    ctx.setLineWidth(1.5)
-                    ctx.strokePath()
-                } else {
-                    ctx.setStrokeColor(seriesColor)
-                    ctx.setLineWidth(2.5)
-                    ctx.setLineCap(.round)
-                    ctx.move(to: CGPoint(x: item.x, y: sy))
-                    ctx.addLine(to: CGPoint(x: item.x + 12, y: sy))
-                    ctx.strokePath()
+            // Legend (native only)
+            if native {
+                let legendFont = BMFont.systemFont(ofSize: 12, weight: .regular)
+                for item in chart.legend {
+                    let seriesColor = self._xySeriesColor(item.colorIndex, accentHex: accentHex, bgHex: bgHex)
+                    let iy = fy(item.y)
+                    let sy = iy
+                    if item.type == .bar {
+                        let fillColor = self._mixCGColors(bgColor, seriesColor, ratio: 0.25)
+                        let swatchRect = CGRect(x: item.x, y: sy - 5, width: 12, height: 10)
+                        let swatchPath = CGPath(roundedRect: swatchRect, cornerWidth: 2, cornerHeight: 2, transform: nil)
+                        ctx.addPath(swatchPath)
+                        ctx.setFillColor(fillColor)
+                        ctx.fillPath()
+                        ctx.addPath(swatchPath)
+                        ctx.setStrokeColor(seriesColor)
+                        ctx.setLineWidth(1.5)
+                        ctx.strokePath()
+                    } else {
+                        ctx.setStrokeColor(seriesColor)
+                        ctx.setLineWidth(2.5)
+                        ctx.setLineCap(.round)
+                        ctx.move(to: CGPoint(x: item.x, y: sy))
+                        ctx.addLine(to: CGPoint(x: item.x + 12, y: sy))
+                        ctx.strokePath()
+                    }
+                    self._drawTextXY(ctx, item.label, x: item.x + 17, y: iy, font: legendFont, color: mutedColor, align: .left)
                 }
-                self._drawTextXY(ctx, item.label, x: item.x + 17, y: iy, font: legendFont, color: mutedColor, align: .left)
             }
         }
     }
@@ -273,9 +347,6 @@ extension DiagramRenderer {
         case .right: drawX = CGFloat(x) - textBounds.width
         default: drawX = CGFloat(x)
         }
-        // Vertically center: baseline positioned so text midpoint aligns with y
-        // In CGContext (y-up), text center = baseline + (ascent - descent)/2,
-        // so baseline = y - (ascent - descent)/2
         let drawY = CGFloat(y) - (ascent - descent) / 2
 
         ctx.saveGState()

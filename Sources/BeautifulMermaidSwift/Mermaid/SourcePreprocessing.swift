@@ -107,6 +107,11 @@ private func _parseYamlFrontmatter(_ lines: [String]) -> DiagramFrontmatter? {
     var hasErSection = false
     var hasAnyContent = false
 
+    var xyChartConfig = XYChartConfig()
+    var xyChartTheme = XYChartThemeConfig()
+    var hasXYChartConfig = false
+    var hasXYChartTheme = false
+
     var pathStack: [(depth: Int, key: String)] = []
 
     for line in lines {
@@ -223,6 +228,79 @@ private func _parseYamlFrontmatter(_ lines: [String]) -> DiagramFrontmatter? {
             continue
         }
 
+        // XY Chart config — config.xyChart.*
+        if fullPath.hasPrefix("config.xyChart.") {
+            hasXYChartConfig = true
+            let subKey = fullPath.replacingOccurrences(of: "config.xyChart.", with: "")
+            switch subKey {
+            case "width": xyChartConfig.width = Double(value) ?? xyChartConfig.width
+            case "height": xyChartConfig.height = Double(value) ?? xyChartConfig.height
+            case "titleFontSize": xyChartConfig.titleFontSize = Double(value) ?? xyChartConfig.titleFontSize
+            case "titlePadding": xyChartConfig.titlePadding = Double(value) ?? xyChartConfig.titlePadding
+            case "showTitle": xyChartConfig.showTitle = (value.lowercased() == "true")
+            case "showDataLabel": xyChartConfig.showDataLabel = (value.lowercased() == "true")
+            case "showDataLabelOutsideBar": xyChartConfig.showDataLabelOutsideBar = (value.lowercased() == "true")
+            case "chartOrientation": xyChartConfig.chartOrientation = value
+            case "plotReservedSpacePercent": xyChartConfig.plotReservedSpacePercent = Double(value) ?? xyChartConfig.plotReservedSpacePercent
+            case let s where s.hasPrefix("xAxis."):
+                let axisKey = s.replacingOccurrences(of: "xAxis.", with: "")
+                switch axisKey {
+                case "showLabel": xyChartConfig.xAxis.showLabel = (value.lowercased() == "true")
+                case "labelFontSize": xyChartConfig.xAxis.labelFontSize = Double(value) ?? xyChartConfig.xAxis.labelFontSize
+                case "labelPadding": xyChartConfig.xAxis.labelPadding = Double(value) ?? xyChartConfig.xAxis.labelPadding
+                case "showTitle": xyChartConfig.xAxis.showTitle = (value.lowercased() == "true")
+                case "titleFontSize": xyChartConfig.xAxis.titleFontSize = Double(value) ?? xyChartConfig.xAxis.titleFontSize
+                case "titlePadding": xyChartConfig.xAxis.titlePadding = Double(value) ?? xyChartConfig.xAxis.titlePadding
+                case "showTick": xyChartConfig.xAxis.showTick = (value.lowercased() == "true")
+                case "tickLength": xyChartConfig.xAxis.tickLength = Double(value) ?? xyChartConfig.xAxis.tickLength
+                case "tickWidth": xyChartConfig.xAxis.tickWidth = Double(value) ?? xyChartConfig.xAxis.tickWidth
+                case "showAxisLine": xyChartConfig.xAxis.showAxisLine = (value.lowercased() == "true")
+                case "axisLineWidth": xyChartConfig.xAxis.axisLineWidth = Double(value) ?? xyChartConfig.xAxis.axisLineWidth
+                default: break
+                }
+            case let s where s.hasPrefix("yAxis."):
+                let axisKey = s.replacingOccurrences(of: "yAxis.", with: "")
+                switch axisKey {
+                case "showLabel": xyChartConfig.yAxis.showLabel = (value.lowercased() == "true")
+                case "labelFontSize": xyChartConfig.yAxis.labelFontSize = Double(value) ?? xyChartConfig.yAxis.labelFontSize
+                case "labelPadding": xyChartConfig.yAxis.labelPadding = Double(value) ?? xyChartConfig.yAxis.labelPadding
+                case "showTitle": xyChartConfig.yAxis.showTitle = (value.lowercased() == "true")
+                case "titleFontSize": xyChartConfig.yAxis.titleFontSize = Double(value) ?? xyChartConfig.yAxis.titleFontSize
+                case "titlePadding": xyChartConfig.yAxis.titlePadding = Double(value) ?? xyChartConfig.yAxis.titlePadding
+                case "showTick": xyChartConfig.yAxis.showTick = (value.lowercased() == "true")
+                case "tickLength": xyChartConfig.yAxis.tickLength = Double(value) ?? xyChartConfig.yAxis.tickLength
+                case "tickWidth": xyChartConfig.yAxis.tickWidth = Double(value) ?? xyChartConfig.yAxis.tickWidth
+                case "showAxisLine": xyChartConfig.yAxis.showAxisLine = (value.lowercased() == "true")
+                case "axisLineWidth": xyChartConfig.yAxis.axisLineWidth = Double(value) ?? xyChartConfig.yAxis.axisLineWidth
+                default: break
+                }
+            default: break
+            }
+            continue
+        }
+
+        // XY Chart theme — config.themeVariables.xyChart.*
+        if fullPath.hasPrefix("config.themeVariables.xyChart.") {
+            hasXYChartTheme = true
+            let subKey = fullPath.replacingOccurrences(of: "config.themeVariables.xyChart.", with: "")
+            switch subKey {
+            case "backgroundColor": xyChartTheme.backgroundColor = value
+            case "titleColor": xyChartTheme.titleColor = value
+            case "dataLabelColor": xyChartTheme.dataLabelColor = value
+            case "xAxisLabelColor": xyChartTheme.xAxisLabelColor = value
+            case "xAxisTitleColor": xyChartTheme.xAxisTitleColor = value
+            case "xAxisTickColor": xyChartTheme.xAxisTickColor = value
+            case "xAxisLineColor": xyChartTheme.xAxisLineColor = value
+            case "yAxisLabelColor": xyChartTheme.yAxisLabelColor = value
+            case "yAxisTitleColor": xyChartTheme.yAxisTitleColor = value
+            case "yAxisTickColor": xyChartTheme.yAxisTickColor = value
+            case "yAxisLineColor": xyChartTheme.yAxisLineColor = value
+            case "plotColorPalette": xyChartTheme.plotColorPalette = value
+            default: break
+            }
+            continue
+        }
+
         // Global config.layout (for dagre/elk selection)
         if fullPath == "config.layout" {
             hasErSection = true
@@ -248,6 +326,8 @@ private func _parseYamlFrontmatter(_ lines: [String]) -> DiagramFrontmatter? {
     if hasFlowchartSection { frontmatter.flowchartConfig = flowchartConfig }
     if hasClassSection { frontmatter.classConfig = classConfig }
     if hasErSection { frontmatter.erConfig = erConfig }
+    if hasXYChartConfig { frontmatter.xyChartConfig = xyChartConfig }
+    if hasXYChartTheme { frontmatter.xyChartTheme = xyChartTheme }
 
     return hasAnyContent ? frontmatter : nil
 }

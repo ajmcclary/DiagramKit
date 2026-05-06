@@ -1,7 +1,7 @@
 // Ported from original/src/xychart/layout.ts
 import Foundation
 
-// MARK: - Layout constants
+// MARK: - Layout constants (defaults, overridden by config)
 
 private enum XY {
     static let plotWidth: Double = 600
@@ -35,16 +35,21 @@ private enum XY {
 // MARK: - Public entry point
 
 public func layoutXYChart(_ chart: XYChart, _ options: RenderOptions = RenderOptions()) -> PositionedXYChart {
-    if chart.horizontal { return _layoutHorizontal(chart) }
-    return _layoutVertical(chart)
+    let config = chart.config ?? XYChartConfig()
+    let theme = chart.theme ?? XYChartThemeConfig()
+    let horizontal = config.chartOrientation == "horizontal" || chart.horizontal
+
+    if horizontal { return _layoutHorizontal(chart, config, theme) }
+    return _layoutVertical(chart, config, theme)
 }
 
 // MARK: - Vertical layout
 
-private func _layoutVertical(_ chart: XYChart) -> PositionedXYChart {
-    let hasTitle = chart.title != nil
-    let hasXTitle = chart.xAxis.title != nil
-    let hasYTitle = chart.yAxis.title != nil
+private func _layoutVertical(_ chart: XYChart, _ config: XYChartConfig, _ theme: XYChartThemeConfig) -> PositionedXYChart {
+    let resolvedTitle = chart.title ?? chart.diagramTitle
+    let hasTitle = resolvedTitle != nil && config.showTitle
+    let hasXTitle = chart.xAxis.title != nil && config.xAxis.showTitle
+    let hasYTitle = chart.yAxis.title != nil && config.yAxis.showTitle
     let hasLegend = chart.series.count > 1
 
     guard let yRange = chart.yAxis.range else {
@@ -52,21 +57,43 @@ private func _layoutVertical(_ chart: XYChart) -> PositionedXYChart {
     }
     let yTicks = _niceTickValues(yRange.min, yRange.max)
     let maxYLabelWidth = max(
-        yTicks.map({ original_src_styles.estimateTextWidth(_formatTickValue($0), XY.axisLabelFontSize, XY.axisLabelFontWeight) }).max() ?? 0,
+        yTicks.map({ original_src_styles.estimateTextWidth(_formatTickValue($0), config.yAxis.labelFontSize, Int(config.yAxis.labelFontSize > 14 ? 600 : 400)) }).max() ?? 0,
         XY.yLabelWidth
     )
 
-    let top = XY.padding + (hasTitle ? XY.titleHeight : 0) + (hasLegend ? XY.legendHeight : 0) + (hasTitle || hasLegend ? XY.headerBottomPad : 0)
-    let bottom = XY.padding + XY.xLabelHeight + (hasXTitle ? XY.axisTitlePad : 0)
-    let left = XY.padding + maxYLabelWidth + XY.yLabelGap + (hasYTitle ? XY.axisTitlePad : 0)
-    let right = XY.padding
+    let titleFontSize = config.titleFontSize
+    let titleHeight = config.showTitle ? titleFontSize * 2 + config.titlePadding : 0
+    let axisLabelFontSize = config.xAxis.labelFontSize
+    let tickLen = config.xAxis.tickLength
+    let xLabelHeight = config.xAxis.showLabel ? axisLabelFontSize * 2 + config.xAxis.labelPadding : 0
+    let yLabelWidth = config.yAxis.showLabel ? maxYLabelWidth : 0
+    let yTitleHeight = config.yAxis.showTitle ? config.yAxis.titleFontSize + config.yAxis.titlePadding : 0
 
-    let plotW = XY.plotWidth
-    let plotH = XY.plotHeight
-    let totalW = left + plotW + right
-    let totalH = top + plotH + bottom
+    let totalW = config.width
+    let totalH = config.height
+    let insets = _adjustInsetsForReservedPlotSpace(
+        totalW: totalW,
+        totalH: totalH,
+        left: XY.padding + yLabelWidth + XY.yLabelGap + yTitleHeight,
+        right: XY.padding,
+        top: XY.padding + (hasTitle ? titleHeight : 0) + (hasLegend ? XY.legendHeight : 0) + (hasTitle || hasLegend ? XY.headerBottomPad : 0),
+        bottom: XY.padding + xLabelHeight + (hasXTitle ? XY.axisTitlePad : 0) + (config.xAxis.showTick ? config.xAxis.tickLength : 0),
+        config: config
+    )
+    let top = insets.top
+    let bottom = insets.bottom
+    let left = insets.left
+    let right = insets.right
 
-    let plotArea = XYPlotArea(x: left, y: top, width: plotW, height: plotH)
+    let plotArea = XYPlotArea(
+        x: left,
+        y: top,
+        width: totalW - left - right,
+        height: totalH - top - bottom
+    )
+
+    let plotW = plotArea.width
+    let plotH = plotArea.height
 
     let dataCount = _getDataCount(chart)
     let bandWidth = plotW / Double(dataCount)
@@ -77,13 +104,13 @@ private func _layoutVertical(_ chart: XYChart) -> PositionedXYChart {
     }
 
     let catLabels = _getCategoryLabels(chart, dataCount)
-    let xTicks = _buildXTicks(chart, xScale, top + plotH, bandWidth)
+    let xTicks = _buildXTicks(chart, config, xScale, top + plotH, bandWidth)
 
     let yAxisTicks: [XYAxisTick] = yTicks.map { v in
         XYAxisTick(
             label: _formatTickValue(v),
             x: left, y: yScale(v),
-            tx: left - XY.tickLength, ty: yScale(v),
+            tx: left - tickLen, ty: yScale(v),
             labelX: left - XY.yLabelGap, labelY: yScale(v),
             textAnchor: "end"
         )
@@ -95,39 +122,54 @@ private func _layoutVertical(_ chart: XYChart) -> PositionedXYChart {
 
     let colorMap = chart.series.indices.map { $0 }
 
-    let bars = _layoutBars(chart, xScale, yScale, bandWidth, yRange.min, catLabels, colorMap)
+    let bars = _layoutBars(chart, config, xScale, yScale, bandWidth, yRange.min, catLabels, colorMap)
     let lines = _layoutLines(chart, xScale, yScale, catLabels, colorMap)
 
-    let legendY = XY.padding + (hasTitle ? XY.titleHeight : 0) + XY.legendHeight / 2
-    let legend = hasLegend ? _buildLegendItems(chart, totalW / 2, legendY, colorMap) : []
+    let legendY = XY.padding + (hasTitle ? titleHeight : 0) + XY.legendHeight / 2
+    let legend = hasLegend ? _buildLegendItems(chart, config, totalW / 2, legendY, colorMap) : []
 
     let xAxisLine = AxisLine(x1: left, y1: top + plotH, x2: left + plotW, y2: top + plotH)
     let yAxisLine = AxisLine(x1: left, y1: top, x2: left, y2: top + plotH)
 
-    let xAxisObj = PositionedXYAxis(
-        title: chart.xAxis.title.map { AxisTitle(text: $0, x: left + plotW / 2, y: totalH - XY.padding) },
-        ticks: xTicks, line: xAxisLine
-    )
-    let yAxisObj = PositionedXYAxis(
-        title: chart.yAxis.title.map { AxisTitle(text: $0, x: XY.padding + 4, y: top + plotH / 2, rotate: -90) },
-        ticks: yAxisTicks, line: yAxisLine
-    )
+    // Tick lines
+    var yTickLines: [PositionedTick] = []
+    if config.yAxis.showTick {
+        yTickLines = yAxisTicks.map { tick in
+            PositionedTick(x1: tick.tx, y1: tick.ty, x2: tick.x, y2: tick.y)
+        }
+    }
+    var xTickLines: [PositionedTick] = []
+    if config.xAxis.showTick {
+        xTickLines = xTicks.map { tick in
+            PositionedTick(x1: tick.tx, y1: tick.ty, x2: tick.x, y2: tick.y)
+        }
+    }
 
-    let titleObj = chart.title.map { PositionedTitle(text: $0, x: totalW / 2, y: XY.padding + XY.titleFontSize) }
+    let xAxisTitle = hasXTitle ? AxisTitle(text: chart.xAxis.title ?? "", x: left + plotW / 2, y: totalH - XY.padding) : nil
+    let yAxisTitle = hasYTitle ? AxisTitle(text: chart.yAxis.title ?? "", x: XY.padding + 4, y: top + plotH / 2, rotate: -90) : nil
+
+    let xAxisObj = PositionedXYAxis(title: xAxisTitle, ticks: xTicks, tickLines: xTickLines, line: xAxisLine)
+    let yAxisObj = PositionedXYAxis(title: yAxisTitle, ticks: yAxisTicks, tickLines: yTickLines, line: yAxisLine)
+
+    let titleObj = resolvedTitle.map { PositionedTitle(text: $0, x: totalW / 2, y: XY.padding + titleFontSize) }
 
     return PositionedXYChart(
         width: totalW, height: totalH, title: titleObj,
         xAxis: xAxisObj, yAxis: yAxisObj, plotArea: plotArea,
-        bars: bars, lines: lines, gridLines: gridLines, legend: legend
+        bars: bars, lines: lines, gridLines: gridLines, legend: legend,
+        accTitle: chart.accTitle, accDescr: chart.accDescr,
+        diagramTitle: chart.diagramTitle,
+        config: config, theme: theme
     )
 }
 
 // MARK: - Horizontal layout
 
-private func _layoutHorizontal(_ chart: XYChart) -> PositionedXYChart {
-    let hasTitle = chart.title != nil
-    let hasXTitle = chart.xAxis.title != nil
-    let hasYTitle = chart.yAxis.title != nil
+private func _layoutHorizontal(_ chart: XYChart, _ config: XYChartConfig, _ theme: XYChartThemeConfig) -> PositionedXYChart {
+    let resolvedTitle = chart.title ?? chart.diagramTitle
+    let hasTitle = resolvedTitle != nil && config.showTitle
+    let hasXTitle = chart.xAxis.title != nil && config.xAxis.showTitle
+    let hasYTitle = chart.yAxis.title != nil && config.yAxis.showTitle
     let hasLegend = chart.series.count > 1
 
     guard let yRange = chart.yAxis.range else {
@@ -137,22 +179,44 @@ private func _layoutHorizontal(_ chart: XYChart) -> PositionedXYChart {
 
     let dataCount = _getDataCount(chart)
     let catLabels = _getCategoryLabels(chart, dataCount)
+    let axisLabelFontSize = config.xAxis.labelFontSize
     let maxCatLabelWidth = max(
-        catLabels.map({ original_src_styles.estimateTextWidth($0, XY.axisLabelFontSize, XY.axisLabelFontWeight) }).max() ?? 0,
+        catLabels.map({ original_src_styles.estimateTextWidth($0, axisLabelFontSize, 400) }).max() ?? 0,
         40
     )
 
-    let top = XY.padding + (hasTitle ? XY.titleHeight : 0) + (hasLegend ? XY.legendHeight : 0) + (hasTitle || hasLegend ? XY.headerBottomPad : 0)
-    let bottom = XY.padding + XY.xLabelHeight + (hasYTitle ? XY.axisTitlePad : 0)
-    let left = XY.padding + maxCatLabelWidth + XY.yLabelGap + (hasXTitle ? XY.axisTitlePad : 0)
-    let right = XY.padding
+    let titleFontSize = config.titleFontSize
+    let titleHeight = config.showTitle ? titleFontSize * 2 + config.titlePadding : 0
+    let xLabelHeight = config.xAxis.showLabel ? config.xAxis.labelFontSize * 2 + config.xAxis.labelPadding : 0
+    let yLabelWidth = config.yAxis.showLabel ? maxCatLabelWidth : 0
+    let xTitleHeight = config.xAxis.showTitle ? config.xAxis.titleFontSize + config.xAxis.titlePadding : 0
+    let tickLen = config.xAxis.tickLength
 
-    let plotW = XY.plotWidth
-    let plotH = XY.plotHeight
-    let totalW = left + plotW + right
-    let totalH = top + plotH + bottom
+    let totalW = config.width
+    let totalH = config.height
+    let insets = _adjustInsetsForReservedPlotSpace(
+        totalW: totalW,
+        totalH: totalH,
+        left: XY.padding + yLabelWidth + XY.yLabelGap + xTitleHeight,
+        right: XY.padding,
+        top: XY.padding + (hasTitle ? titleHeight : 0) + (hasLegend ? XY.legendHeight : 0) + (hasTitle || hasLegend ? XY.headerBottomPad : 0),
+        bottom: XY.padding + xLabelHeight + (hasYTitle ? XY.axisTitlePad : 0) + (config.yAxis.showTick ? tickLen : 0),
+        config: config
+    )
+    let top = insets.top
+    let bottom = insets.bottom
+    let left = insets.left
+    let right = insets.right
 
-    let plotArea = XYPlotArea(x: left, y: top, width: plotW, height: plotH)
+    let plotArea = XYPlotArea(
+        x: left,
+        y: top,
+        width: totalW - left - right,
+        height: totalH - top - bottom
+    )
+
+    let plotW = plotArea.width
+    let plotH = plotArea.height
 
     let valueScale: (Double) -> Double = { v in
         let t = (v - yRange.min) / (yRange.max - yRange.min == 0 ? 1 : yRange.max - yRange.min)
@@ -164,7 +228,7 @@ private func _layoutHorizontal(_ chart: XYChart) -> PositionedXYChart {
     let xTicks: [XYAxisTick] = valueTicks.map { v in
         XYAxisTick(
             label: _formatTickValue(v), x: valueScale(v), y: top + plotH,
-            tx: valueScale(v), ty: top + plotH + XY.tickLength,
+            tx: valueScale(v), ty: top + plotH + tickLen,
             labelX: valueScale(v), labelY: top + plotH + 18,
             textAnchor: "middle"
         )
@@ -173,7 +237,7 @@ private func _layoutHorizontal(_ chart: XYChart) -> PositionedXYChart {
     let yTicks: [XYAxisTick] = catLabels.enumerated().map { i, label in
         XYAxisTick(
             label: label, x: left, y: catScale(i),
-            tx: left - XY.tickLength, ty: catScale(i),
+            tx: left - tickLen, ty: catScale(i),
             labelX: left - XY.yLabelGap, labelY: catScale(i),
             textAnchor: "end"
         )
@@ -204,12 +268,26 @@ private func _layoutHorizontal(_ chart: XYChart) -> PositionedXYChart {
                 let by = groupTop + Double(bIdx) * (singleBarH + XY.barGroupGap)
                 let valX = valueScale(max(s.data[i], yRange.min))
                 let baseX = valueScale(max(0, yRange.min))
-                bars.append(PositionedBar(
+                var bar = PositionedBar(
                     x: min(baseX, valX), y: by,
                     width: abs(valX - baseX), height: singleBarH,
                     value: s.data[i], label: catLabels[i],
                     seriesIndex: bIdx, colorIndex: colorMap[seriesArrayIdx]
-                ))
+                )
+
+                if config.showDataLabel && bar.width > 0 && bar.height > 0 {
+                    let valStr = _formatTickValue(s.data[i])
+                    let outside = config.showDataLabelOutsideBar
+                    bar.dataLabel = PositionedDataLabel(
+                        text: valStr,
+                        x: outside ? bar.x + bar.width + 10 : bar.x + bar.width - 10,
+                        y: bar.y + bar.height / 2,
+                        textAnchor: outside ? "start" : "end",
+                        fontSize: max(1, min(config.yAxis.labelFontSize, bar.height * 0.7))
+                    )
+                }
+
+                bars.append(bar)
             }
             bIdx += 1
         }
@@ -231,24 +309,37 @@ private func _layoutHorizontal(_ chart: XYChart) -> PositionedXYChart {
     let xAxisLine = AxisLine(x1: left, y1: top + plotH, x2: left + plotW, y2: top + plotH)
     let yAxisLine = AxisLine(x1: left, y1: top, x2: left, y2: top + plotH)
 
-    let xAxisObj = PositionedXYAxis(
-        title: chart.yAxis.title.map { AxisTitle(text: $0, x: left + plotW / 2, y: totalH - XY.padding) },
-        ticks: xTicks, line: xAxisLine
-    )
-    let yAxisObj = PositionedXYAxis(
-        title: chart.xAxis.title.map { AxisTitle(text: $0, x: XY.padding + 4, y: top + plotH / 2, rotate: -90) },
-        ticks: yTicks, line: yAxisLine
-    )
+    var xTickLines: [PositionedTick] = []
+    if config.xAxis.showTick {
+        xTickLines = xTicks.map { tick in
+            PositionedTick(x1: tick.tx, y1: tick.ty, x2: tick.x, y2: tick.y)
+        }
+    }
+    var yTickLines: [PositionedTick] = []
+    if config.yAxis.showTick {
+        yTickLines = yTicks.map { tick in
+            PositionedTick(x1: tick.tx, y1: tick.ty, x2: tick.x, y2: tick.y)
+        }
+    }
 
-    let titleObj = chart.title.map { PositionedTitle(text: $0, x: totalW / 2, y: XY.padding + XY.titleFontSize) }
+    let xAxisTitle = hasYTitle ? AxisTitle(text: chart.yAxis.title ?? "", x: left + plotW / 2, y: totalH - XY.padding) : nil
+    let yAxisTitle = hasXTitle ? AxisTitle(text: chart.xAxis.title ?? "", x: XY.padding + 4, y: top + plotH / 2, rotate: -90) : nil
 
-    let legendY = XY.padding + (hasTitle ? XY.titleHeight : 0) + XY.legendHeight / 2
-    let legend = hasLegend ? _buildLegendItems(chart, totalW / 2, legendY, colorMap) : []
+    let xAxisObj = PositionedXYAxis(title: xAxisTitle, ticks: xTicks, tickLines: xTickLines, line: xAxisLine)
+    let yAxisObj = PositionedXYAxis(title: yAxisTitle, ticks: yTicks, tickLines: yTickLines, line: yAxisLine)
+
+    let titleObj = resolvedTitle.map { PositionedTitle(text: $0, x: totalW / 2, y: XY.padding + titleFontSize) }
+
+    let legendY = XY.padding + (hasTitle ? titleHeight : 0) + XY.legendHeight / 2
+    let legend = hasLegend ? _buildLegendItems(chart, config, totalW / 2, legendY, colorMap) : []
 
     return PositionedXYChart(
         width: totalW, height: totalH, horizontal: true, title: titleObj,
         xAxis: xAxisObj, yAxis: yAxisObj, plotArea: plotArea,
-        bars: bars, lines: lines, gridLines: gridLines, legend: legend
+        bars: bars, lines: lines, gridLines: gridLines, legend: legend,
+        accTitle: chart.accTitle, accDescr: chart.accDescr,
+        diagramTitle: chart.diagramTitle,
+        config: config, theme: theme
     )
 }
 
@@ -301,21 +392,63 @@ func _formatTickValue(_ v: Double) -> String {
 
 // MARK: - Private helpers
 
-private func _buildXTicks(_ chart: XYChart, _ xScale: (Int) -> Double, _ axisY: Double, _ bandWidth: Double) -> [XYAxisTick] {
+private func _buildXTicks(_ chart: XYChart, _ config: XYChartConfig, _ xScale: (Int) -> Double, _ axisY: Double, _ bandWidth: Double) -> [XYAxisTick] {
     let count = _getDataCount(chart)
     let labels = _getCategoryLabels(chart, count)
     return labels.enumerated().map { i, label in
         XYAxisTick(
             label: label, x: xScale(i), y: axisY,
-            tx: xScale(i), ty: axisY + XY.tickLength,
+            tx: xScale(i), ty: axisY + config.xAxis.tickLength,
             labelX: xScale(i), labelY: axisY + 18,
             textAnchor: "middle"
         )
     }
 }
 
+private func _adjustInsetsForReservedPlotSpace(
+    totalW: Double,
+    totalH: Double,
+    left: Double,
+    right: Double,
+    top: Double,
+    bottom: Double,
+    config: XYChartConfig
+) -> (left: Double, right: Double, top: Double, bottom: Double) {
+    var left = left
+    var right = right
+    var top = top
+    var bottom = bottom
+    let reserved = min(max(config.plotReservedSpacePercent, 0), 100) / 100
+    let minPlotW = floor(totalW * reserved)
+    let minPlotH = floor(totalH * reserved)
+
+    let currentPlotW = totalW - left - right
+    if currentPlotW < minPlotW {
+        var overflow = minPlotW - currentPlotW
+        let reduceLeft = min(overflow, left)
+        left -= reduceLeft
+        overflow -= reduceLeft
+        if overflow > 0 {
+            right = max(0, right - overflow)
+        }
+    }
+
+    let currentPlotH = totalH - top - bottom
+    if currentPlotH < minPlotH {
+        var overflow = minPlotH - currentPlotH
+        let reduceBottom = min(overflow, bottom)
+        bottom -= reduceBottom
+        overflow -= reduceBottom
+        if overflow > 0 {
+            top = max(0, top - overflow)
+        }
+    }
+
+    return (left, right, top, bottom)
+}
+
 private func _layoutBars(
-    _ chart: XYChart, _ xScale: (Int) -> Double, _ yScale: (Double) -> Double,
+    _ chart: XYChart, _ config: XYChartConfig, _ xScale: (Int) -> Double, _ yScale: (Double) -> Double,
     _ bandWidth: Double, _ yMin: Double, _ catLabels: [String], _ colorMap: [Int]
 ) -> [PositionedBar] {
     let barSeries = chart.series.filter { $0.type == .bar }
@@ -337,12 +470,45 @@ private func _layoutBars(
             let bx = groupLeft + Double(bIdx) * (singleBarW + XY.barGroupGap)
             let valY = yScale(s.data[i])
             let baseY = yScale(max(0, yMin))
-            bars.append(PositionedBar(
-                x: bx, y: min(valY, baseY),
-                width: singleBarW, height: abs(baseY - valY),
+            let barX = bx
+            let barY = min(valY, baseY)
+            let barW = singleBarW
+            let barH = abs(baseY - valY)
+
+            var bar = PositionedBar(
+                x: barX, y: barY,
+                width: barW, height: barH,
                 value: s.data[i], label: catLabels[i],
                 seriesIndex: bIdx, colorIndex: colorMap[seriesArrayIdx]
-            ))
+            )
+
+            // Data labels
+            if config.showDataLabel && barH > 0 && barW > 0 {
+                let valStr = _formatTickValue(s.data[i])
+                let outside = config.showDataLabelOutsideBar
+                let labelFontSize = min(config.xAxis.labelFontSize, barW * 0.35)
+
+                if outside {
+                    let outsideY = valY <= baseY ? barY - 4 : barY + barH + 4
+                    bar.dataLabel = PositionedDataLabel(
+                        text: valStr,
+                        x: barX + barW / 2,
+                        y: outsideY,
+                        textAnchor: "middle",
+                        fontSize: labelFontSize
+                    )
+                } else {
+                    bar.dataLabel = PositionedDataLabel(
+                        text: valStr,
+                        x: barX + barW / 2,
+                        y: barY + barH / 2,
+                        textAnchor: "middle",
+                        fontSize: labelFontSize
+                    )
+                }
+            }
+
+            bars.append(bar)
         }
         bIdx += 1
     }
@@ -367,7 +533,7 @@ private func _layoutLines(
     return lines
 }
 
-private func _buildLegendItems(_ chart: XYChart, _ centerX: Double, _ y: Double, _ colorMap: [Int]) -> [XYLegendItem] {
+private func _buildLegendItems(_ chart: XYChart, _ config: XYChartConfig, _ centerX: Double, _ y: Double, _ colorMap: [Int]) -> [XYLegendItem] {
     var items: [XYLegendItem] = []
     var barIdx = 0, lineIdx = 0
     for si in 0..<chart.series.count {

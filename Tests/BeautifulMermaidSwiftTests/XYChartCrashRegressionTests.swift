@@ -44,14 +44,15 @@ final class XYChartCrashRegressionTests: XCTestCase {
         let svg1 = try await renderMermaidSVG(infSource, RenderOptions())
         XCTAssertFalse(svg1.isEmpty)
 
-        // Values past 1e300 will overflow when multiplied by scaling factors.
+        // Very large Mermaid-valid decimal literals can overflow when multiplied by scaling factors.
+        let huge = String(repeating: "9", count: 400)
         let overflowSource = """
         xychart-beta
             title "Overflow coords"
             x-axis [A, B, C]
-            y-axis "v" 0 --> 1e308
-            bar [1e300, 2e300, 3e300]
-            line [1e300, 2e300, 3e300]
+            y-axis "v" 0 --> \(huge)
+            bar [\(huge), \(huge), \(huge)]
+            line [\(huge), \(huge), \(huge)]
         """
         let svg2 = try await renderMermaidSVG(overflowSource, RenderOptions())
         XCTAssertFalse(svg2.isEmpty)

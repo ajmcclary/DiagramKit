@@ -33,7 +33,14 @@ public enum MermaidParser {
                 return MermaidGraph(payload: .erDiagram(parsed))
             }
             if firstLine.hasPrefix("xychart") {
-                let chart = parseXYChart(lines)
+                var chart = try parseXYChart(lines)
+                if let fm = frontmatter {
+                    chart.config = fm.xyChartConfig
+                    chart.theme = fm.xyChartTheme
+                    if chart.titleText == nil, let fmTitle = fm.diagramTitle {
+                        chart.diagramTitle = fmTitle
+                    }
+                }
                 return MermaidGraph(payload: .xyChart(chart))
             }
 

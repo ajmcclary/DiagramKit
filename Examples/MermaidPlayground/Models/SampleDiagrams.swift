@@ -381,6 +381,21 @@ public struct TestDiagrams {
         TestDiagram(id: "xychart-7-numeric-x", category: "xychart", name: "Numeric X-Axis",
                     source: "xychart-beta\n    title \"Distribution Curve\"\n    x-axis 0 --> 100\n    line [4, 7, 13, 21, 31, 43, 58, 71, 84, 91, 95, 91, 84, 71, 58, 43, 31, 21, 13, 7, 4]"),
         TestDiagram(id: "xychart-10-burndown", category: "xychart", name: "Sprint Burndown",
-                    source: "xychart-beta\n    title \"Sprint Burndown\"\n    x-axis [D1, D2, D3, D4, D5, D6, D7, D8, D9, D10]\n    y-axis \"Story Points\" 0 --> 80\n    line [72, 65, 58, 50, 45, 38, 30, 22, 12, 0]\n    line [72, 65, 58, 50, 43, 36, 29, 22, 14, 0]")
+                    source: "xychart-beta\n    title \"Sprint Burndown\"\n    x-axis [D1, D2, D3, D4, D5, D6, D7, D8, D9, D10]\n    y-axis \"Story Points\" 0 --> 80\n    line [72, 65, 58, 50, 45, 38, 30, 22, 12, 0]\n    line [72, 65, 58, 50, 43, 36, 29, 22, 14, 0]"),
+        // New XY Chart parity examples
+        TestDiagram(id: "xychart-11-simplest", category: "xychart", name: "Simplest Line Chart",
+                    source: "xychart\n    line [1.3, .6, 2.4, -.34]"),
+        TestDiagram(id: "xychart-12-unquoted-title", category: "xychart", name: "Unquoted Title",
+                    source: "xychart\n    title SalesRevenue\n    x-axis [Q1, Q2, Q3, Q4]\n    bar [100, 200, 150, 300]"),
+        TestDiagram(id: "xychart-13-titled-series", category: "xychart", name: "Titled Series",
+                    source: "xychart\n    title \"Product Comparison\"\n    x-axis [A, B, C, D]\n    line LineA [1, 2, 3, 4]\n    bar BarB [4, 5, 6, 7]"),
+        TestDiagram(id: "xychart-14-quoted-cats", category: "xychart", name: "Quoted Categories",
+                    source: "xychart\n    title \"Sales by Region\"\n    x-axis [\"North America\", \"Europe\", \"Asia\", \"South America\"]\n    bar [450, 320, 580, 210]"),
+        TestDiagram(id: "xychart-15-accessibility", category: "xychart", name: "Accessibility Chart",
+                    source: "xychart\n    accTitle: Quarterly Revenue Overview\n    accDescr: This chart shows quarterly revenue across four quarters\n    title \"Q4 Revenue\"\n    x-axis [Q1, Q2, Q3, Q4]\n    bar [100, 200, 150, 300]\n    line [120, 180, 160, 280]"),
+        TestDiagram(id: "xychart-16-vertical-explicit", category: "xychart", name: "Explicit Vertical",
+                    source: "xychart vertical\n    x-axis [A, B, C]\n    bar [10, 20, 30]"),
+        TestDiagram(id: "xychart-17-numeric-x-axis", category: "xychart", name: "Linear X-Axis",
+                    source: "xychart\n    x-axis \"Temperature\" 0 --> 100\n    line [10, 30, 50, 70, 90]"),
     ]
 }
