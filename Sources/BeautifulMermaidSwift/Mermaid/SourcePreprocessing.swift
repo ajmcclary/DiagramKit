@@ -134,6 +134,9 @@ private func _parseYamlFrontmatter(_ lines: [String]) -> DiagramFrontmatter? {
     var hasQuadrantChartConfig = false
     var hasQuadrantChartTheme = false
 
+    var requirementConfig = RequirementDiagramConfig()
+    var hasRequirementSection = false
+
     var pathStack: [(depth: Int, key: String)] = []
 
     for line in lines {
@@ -487,6 +490,29 @@ private func _parseYamlFrontmatter(_ lines: [String]) -> DiagramFrontmatter? {
             continue
         }
 
+        // Requirement config — config.requirement.*
+        if fullPath.hasPrefix("config.requirement.") {
+            hasRequirementSection = true
+            let subKey = fullPath.replacingOccurrences(of: "config.requirement.", with: "")
+            switch subKey {
+            case "useMaxWidth": requirementConfig.useMaxWidth = (value.lowercased() == "true")
+            case "useWidth": requirementConfig.useWidth = Double(value)
+            case "rect_fill": requirementConfig.rect_fill = value
+            case "text_color": requirementConfig.text_color = value
+            case "rect_border_size": requirementConfig.rect_border_size = value
+            case "rect_border_color": requirementConfig.rect_border_color = value
+            case "rect_min_width": requirementConfig.rect_min_width = Double(value)
+            case "rect_min_height": requirementConfig.rect_min_height = Double(value)
+            case "fontSize": requirementConfig.fontSize = Double(value)
+            case "rect_padding": requirementConfig.rect_padding = Double(value)
+            case "line_height": requirementConfig.line_height = Double(value)
+            case "nodeSpacing": requirementConfig.nodeSpacing = Double(value) ?? 50
+            case "rankSpacing": requirementConfig.rankSpacing = Double(value) ?? 50
+            default: break
+            }
+            continue
+        }
+
         // Quadrant Chart config — config.quadrantChart.*
         if fullPath.hasPrefix("config.quadrantChart.") {
             hasQuadrantChartConfig = true
@@ -574,6 +600,7 @@ private func _parseYamlFrontmatter(_ lines: [String]) -> DiagramFrontmatter? {
     if hasGanttSection { frontmatter.ganttConfig = ganttConfig }
     if hasQuadrantChartConfig { frontmatter.quadrantChartConfig = quadrantChartConfig }
     if hasQuadrantChartTheme { frontmatter.quadrantChartTheme = quadrantChartTheme }
+    if hasRequirementSection { frontmatter.requirementConfig = requirementConfig }
 
     return hasAnyContent ? frontmatter : nil
 }

@@ -52,6 +52,8 @@ public final class DiagramRenderer {
             _drawGantt(positioned, in: context, bounds: bounds)
         case .quadrantChart:
             _drawQuadrant(positioned, in: context, bounds: bounds)
+        case .requirement:
+            _drawRequirement(positioned, in: context, bounds: bounds)
         }
     }
 

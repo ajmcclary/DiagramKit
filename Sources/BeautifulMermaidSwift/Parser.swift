@@ -79,6 +79,10 @@ public enum MermaidParser {
                 }
                 return MermaidGraph(payload: .quadrantChart(chart))
             }
+            if firstLine.hasPrefix("requirement") {
+                let diagram = try parseRequirementDiagram(lines, frontmatter: frontmatter)
+                return MermaidGraph(payload: .requirement(diagram))
+            }
 
             // Flowchart + stateDiagram-v2 — pass frontmatter flowchart config
             let parsed = try parseMermaid(processed, config: frontmatter?.flowchartConfig)

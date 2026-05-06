@@ -287,6 +287,7 @@ open class original_src_ascii_index {
         case journey
         case gantt
         case quadrant
+        case requirement
     }
 
     struct AsciiConfig {
@@ -362,6 +363,8 @@ open class original_src_ascii_index {
             return "gantt"
         case .quadrant:
             return "quadrantChart"
+        case .requirement:
+            return "requirement"
         case .flowchart:
             return "flowchart"
         }
@@ -427,6 +430,9 @@ open class original_src_ascii_index {
         case .quadrant:
             throw BeautifulMermaidError.notYetImplemented("Quadrant Chart ASCII rendering")
 
+        case .requirement:
+            throw BeautifulMermaidError.notYetImplemented("Requirement Diagram ASCII rendering")
+
         case .flowchart:
             let parsed = try parseMermaid(preprocessedText)
 
@@ -491,6 +497,9 @@ open class original_src_ascii_index {
         }
         if firstLine.hasPrefix("quadrantchart") {
             return .quadrant
+        }
+        if firstLine.hasPrefix("requirement") {
+            return .requirement
         }
 
         return .flowchart

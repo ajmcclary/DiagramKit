@@ -139,6 +139,18 @@ public struct GraphLayout {
                     height: positioned.height,
                     content: .quadrantChart(positioned)
                 )
+            case .requirement:
+                guard case let .requirement(diagram) = graph.payload else {
+                    _reportMermaidIssue("GraphLayout.layout found mismatched requirement payload.")
+                    return PositionedGraph(diagram: graph, content: .requirement(PositionedRequirementDiagram(width: 0, height: 0, nodes: [], edges: [], config: RequirementDiagramConfig())))
+                }
+                let positioned = try layoutRequirementDiagram(diagram)
+                return PositionedGraph(
+                    diagram: graph,
+                    width: positioned.width,
+                    height: positioned.height,
+                    content: .requirement(positioned)
+                )
             }
         }
     }

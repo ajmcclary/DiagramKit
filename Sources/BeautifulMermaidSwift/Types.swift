@@ -12,6 +12,7 @@ public enum DiagramType: String, CaseIterable, Sendable {
     case journey
     case gantt
     case quadrantChart
+    case requirement
 }
 
 /// The parsed graph model for flowcharts and state diagrams.
@@ -29,6 +30,7 @@ public enum DiagramPayload: Sendable {
     case journey(JourneyDiagram)
     case gantt(GanttDiagram)
     case quadrantChart(QuadrantChart)
+    case requirement(RequirementDiagram)
 
     public var type: DiagramType {
         switch self {
@@ -52,6 +54,8 @@ public enum DiagramPayload: Sendable {
             return .gantt
         case .quadrantChart:
             return .quadrantChart
+        case .requirement:
+            return .requirement
         }
     }
 }
@@ -102,6 +106,8 @@ public struct MermaidGraph: Sendable {
             self.payload = .gantt(GanttDiagram.empty)
         case .quadrantChart:
             self.payload = .quadrantChart(QuadrantChart())
+        case .requirement:
+            self.payload = .requirement(RequirementDiagram(requirements: [], elements: [], relationships: [], classDefs: [], direction: .TB, config: RequirementDiagramConfig()))
         }
     }
 
@@ -168,6 +174,7 @@ public enum PositionedContent: Sendable {
     case journey(PositionedJourneyDiagram)
     case gantt(PositionedGanttDiagram)
     case quadrantChart(PositionedQuadrantChart)
+    case requirement(PositionedRequirementDiagram)
 }
 
 public struct PositionedGraph: Sendable {
@@ -219,6 +226,8 @@ public struct PositionedGraph: Sendable {
             self.content = .gantt(.empty)
         case .quadrantChart:
             self.content = .quadrantChart(.empty)
+        case .requirement:
+            self.content = .requirement(PositionedRequirementDiagram(width: 0, height: 0, nodes: [], edges: [], config: RequirementDiagramConfig()))
         }
     }
 

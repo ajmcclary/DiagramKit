@@ -1109,10 +1109,88 @@
       "category": "pie",
       "name": "Pie Chart with Config",
       "source": "---\nconfig:\n  pie:\n    textPosition: 0.5\n  themeVariables:\n    pie:\n      pieOuterStrokeWidth: \"5px\"\n---\npie\n    \"A\": 50\n    \"B\": 50"
+    },
+    {
+      "id": "req-1-basic",
+      "category": "requirement",
+      "name": "Basic Requirement",
+      "source": "requirementDiagram\n\nrequirement test_req {\n  id: 1\n  text: the test text.\n  risk: high\n  verifymethod: test\n}\n\nelement test_entity {\n  type: simulation\n}\n\ntest_entity - satisfies -> test_req"
+    },
+    {
+      "id": "req-2-all-requirement-types",
+      "category": "requirement",
+      "name": "All Requirement Types",
+      "source": "requirementDiagram\n\nrequirement req1 {\n  id: 1\n  text: basic requirement\n}\n\nfunctionalRequirement req2 {\n  id: 2\n  text: functional\n}\n\ninterfaceRequirement req3 {\n  id: 3\n  text: interface\n}\n\nperformanceRequirement req4 {\n  id: 4\n  text: performance\n}\n\nphysicalRequirement req5 {\n  id: 5\n  text: physical\n}\n\ndesignConstraint req6 {\n  id: 6\n  text: design constraint\n}"
+    },
+    {
+      "id": "req-3-all-risk-levels",
+      "category": "requirement",
+      "name": "All Risk Levels",
+      "source": "requirementDiagram\n\nrequirement low_req {\n  id: 1\n  risk: low\n}\n\nrequirement med_req {\n  id: 2\n  risk: medium\n}\n\nrequirement high_req {\n  id: 3\n  risk: high\n}"
+    },
+    {
+      "id": "req-4-all-verify-methods",
+      "category": "requirement",
+      "name": "All Verify Methods",
+      "source": "requirementDiagram\n\nrequirement a_req {\n  id: 1\n  verifymethod: analysis\n}\n\nrequirement d_req {\n  id: 2\n  verifymethod: demonstration\n}\n\nrequirement i_req {\n  id: 3\n  verifymethod: inspection\n}\n\nrequirement t_req {\n  id: 4\n  verifymethod: test\n}"
+    },
+    {
+      "id": "req-5-empty-bodies",
+      "category": "requirement",
+      "name": "Empty Bodies",
+      "source": "requirementDiagram\n\nrequirement empty_req {\n}\n\nelement empty_el {\n}"
+    },
+    {
+      "id": "req-6-all-relationships",
+      "category": "requirement",
+      "name": "All Relationship Types",
+      "source": "requirementDiagram\n\nrequirement A {\n  id: 1\n}\n\nrequirement B {\n  id: 2\n}\n\nA - contains -> B\nA - copies -> B\nA - derives -> B\nA - satisfies -> B\nA - verifies -> B\nA - refines -> B\nA - traces -> B"
+    },
+    {
+      "id": "req-7-reverse-relationships",
+      "category": "requirement",
+      "name": "Reverse Relationships",
+      "source": "requirementDiagram\n\nrequirement A {\n  id: 1\n}\n\nrequirement B {\n  id: 2\n}\n\nB <- satisfies - A\nB <- contains - A"
+    },
+    {
+      "id": "req-8-directions",
+      "category": "requirement",
+      "name": "Directions",
+      "source": "requirementDiagram\n\ndirection LR\n\nrequirement A {\n  id: 1\n}\n\nrequirement B {\n  id: 2\n}\n\nA - satisfies -> B"
+    },
+    {
+      "id": "req-9-accessibility",
+      "category": "requirement",
+      "name": "Accessibility",
+      "source": "requirementDiagram\n\naccTitle: Requirement Diagram\naccDescr {\n  This diagram shows requirements.\n  It has one requirement and one element.\n}\n\nrequirement A {\n  id: 1\n}\n\nelement B {\n  type: test\n}\n\nA - satisfies -> B"
+    },
+    {
+      "id": "req-10-styles",
+      "category": "requirement",
+      "name": "Styles",
+      "source": "requirementDiagram\n\nrequirement A {\n  id: 1\n}\n\nrequirement B {\n  id: 2\n}\n\nstyle A fill:#f9f,stroke:#333,stroke-width:4px\nstyle B fill:#bbf"
+    },
+    {
+      "id": "req-11-classDef-and-class",
+      "category": "requirement",
+      "name": "ClassDef and Class",
+      "source": "requirementDiagram\n\nclassDef important fill:#f96,stroke:#333,stroke-width:2px\nclassDef critical fill:#f44,stroke:#f00\n\nrequirement A {\n  id: 1\n}\n\nrequirement B {\n  id: 2\n}\n\nclass A important\nclass B critical"
+    },
+    {
+      "id": "req-12-shorthand-classes",
+      "category": "requirement",
+      "name": "Shorthand Classes",
+      "source": "requirementDiagram\n\nclassDef imp fill:#f96\n\nrequirement A:::imp {\n  id: 1\n}\n\nrequirement B {\n  id: 2\n}\n\nB:::imp"
+    },
+    {
+      "id": "req-13-full-sysml",
+      "category": "requirement",
+      "name": "Full SysML Example",
+      "source": "requirementDiagram\n\naccTitle: System Requirements\naccDescr: Full SysML-style requirement diagram\n\nrequirement SRD-001 {\n  id: SRD-001\n  text: The system shall respond within 100ms.\n  risk: high\n  verifymethod: test\n}\n\nfunctionalRequirement FUNC-001 {\n  id: FUNC-001\n  text: Process user input.\n  risk: medium\n  verifymethod: demonstration\n}\n\ndesignConstraint CONST-001 {\n  id: CONST-001\n  text: Must use standard protocols.\n  risk: low\n  verifymethod: inspection\n}\n\nelement test_suite {\n  type: verification\n  docref: test-plan-v2\n}\n\nelement simulator {\n  type: simulation\n  docref: sim-spec\n}\n\ntest_suite - verifies -> SRD-001\nSRD-001 - satisfies -> FUNC-001\nFUNC-001 - derives -> CONST-001\ntest_suite - contains -> simulator"
     }
   ],
   "metadata": {
-    "totalCount": 183,
+    "totalCount": 197,
     "categories": {
       "flowchart": 27,
       "state": 12,
@@ -1123,7 +1201,8 @@
       "pie": 14,
       "journey": 3,
       "gantt": 7,
-      "quadrantChart": 12
+      "quadrantChart": 12,
+      "requirement": 14
     }
   }
 }
