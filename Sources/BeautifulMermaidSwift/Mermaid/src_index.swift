@@ -82,6 +82,7 @@ private enum _DiagramRoutingType {
     case gantt
     case quadrant
     case requirement
+    case gitgraph
 }
 
 private func _decodeXML(_ text: String) -> String {
@@ -123,6 +124,9 @@ private func detectDiagramType(_ text: String) -> _DiagramRoutingType {
     }
     if firstLine.hasPrefix("requirement") {
         return .requirement
+    }
+    if firstLine.hasPrefix("gitgraph") {
+        return .gitgraph
     }
 
     return .flowchart
@@ -217,6 +221,11 @@ func _renderMermaidSVG(
         let graph = try parseMermaid(decodedText, config: fm?.flowchartConfig, stateConfig: fm?.stateConfig)
         let positioned = try layoutGraphSync(graph, options)
         return try renderSvg(positioned, colors, font, transparent)
+    case .gitgraph:
+        let gitLines = _mermaidSourceLines(from: decodedText)
+        let diagram = try parseGitGraph(gitLines, frontmatter: fm)
+        let positioned = layoutGitGraph(diagram)
+        return renderGitGraphSvg(positioned)
     }
 }
 

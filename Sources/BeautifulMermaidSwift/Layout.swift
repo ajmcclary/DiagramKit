@@ -151,6 +151,18 @@ public struct GraphLayout {
                     height: positioned.height,
                     content: .requirement(positioned)
                 )
+            case .gitGraph:
+                guard case let .gitGraph(diagram) = graph.payload else {
+                    _reportMermaidIssue("GraphLayout.layout found mismatched gitGraph payload.")
+                    return PositionedGraph(diagram: graph, content: .gitGraph(.empty))
+                }
+                let positioned = layoutGitGraph(diagram)
+                return PositionedGraph(
+                    diagram: graph,
+                    width: positioned.width,
+                    height: positioned.height,
+                    content: .gitGraph(positioned)
+                )
             }
         }
     }

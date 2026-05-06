@@ -288,6 +288,7 @@ open class original_src_ascii_index {
         case gantt
         case quadrant
         case requirement
+        case gitgraph
     }
 
     struct AsciiConfig {
@@ -365,6 +366,8 @@ open class original_src_ascii_index {
             return "quadrantChart"
         case .requirement:
             return "requirement"
+        case .gitgraph:
+            return "gitGraph"
         case .flowchart:
             return "flowchart"
         }
@@ -433,6 +436,9 @@ open class original_src_ascii_index {
         case .requirement:
             throw BeautifulMermaidError.notYetImplemented("Requirement Diagram ASCII rendering")
 
+        case .gitgraph:
+            throw BeautifulMermaidError.notYetImplemented("GitGraph ASCII rendering")
+
         case .flowchart:
             let parsed = try parseMermaid(preprocessedText)
 
@@ -500,6 +506,9 @@ open class original_src_ascii_index {
         }
         if firstLine.hasPrefix("requirement") {
             return .requirement
+        }
+        if firstLine.hasPrefix("gitgraph") {
+            return .gitgraph
         }
 
         return .flowchart

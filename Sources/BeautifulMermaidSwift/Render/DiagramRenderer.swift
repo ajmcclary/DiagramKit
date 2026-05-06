@@ -54,6 +54,8 @@ public final class DiagramRenderer {
             _drawQuadrant(positioned, in: context, bounds: bounds)
         case .requirement:
             _drawRequirement(positioned, in: context, bounds: bounds)
+        case .gitGraph:
+            _drawGitGraph(positioned, in: context, bounds: bounds)
         }
     }
 

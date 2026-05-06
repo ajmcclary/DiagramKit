@@ -137,6 +137,11 @@ private func _parseYamlFrontmatter(_ lines: [String]) -> DiagramFrontmatter? {
     var requirementConfig = RequirementDiagramConfig()
     var hasRequirementSection = false
 
+    var gitGraphConfig = GitGraphConfig()
+    var gitGraphTheme = GitGraphThemeConfig()
+    var hasGitGraphSection = false
+    var hasGitGraphTheme = false
+
     var pathStack: [(depth: Int, key: String)] = []
 
     for line in lines {
@@ -542,6 +547,14 @@ private func _parseYamlFrontmatter(_ lines: [String]) -> DiagramFrontmatter? {
             continue
         }
 
+        // GitGraph theme — config.themeVariables.git* and themeVariables.git*
+        if let subKey = _gitGraphThemeSubKey(from: fullPath) {
+            if _applyGitGraphThemeValue(subKey, value: value, theme: &gitGraphTheme) {
+                hasGitGraphTheme = true
+            }
+            continue
+        }
+
         // Quadrant Chart theme — config.themeVariables.quadrant*
         if fullPath.hasPrefix("config.themeVariables.") || fullPath.hasPrefix("themeVariables.") {
             let prefix: String
@@ -562,6 +575,36 @@ private func _parseYamlFrontmatter(_ lines: [String]) -> DiagramFrontmatter? {
         if fullPath == "displayMode" && value.lowercased() == "compact" {
             hasGanttSection = true
             ganttConfig.displayMode = "compact"
+            continue
+        }
+
+        // GitGraph config — config.gitGraph.*
+        if fullPath.hasPrefix("config.gitGraph.") {
+            hasGitGraphSection = true
+            let subKey = fullPath.replacingOccurrences(of: "config.gitGraph.", with: "")
+            switch subKey {
+            case "titleTopMargin": gitGraphConfig.titleTopMargin = Double(value) ?? gitGraphConfig.titleTopMargin
+            case "diagramPadding": gitGraphConfig.diagramPadding = Double(value) ?? gitGraphConfig.diagramPadding
+            case "mainBranchName": gitGraphConfig.mainBranchName = value
+            case "mainBranchOrder": gitGraphConfig.mainBranchOrder = Int(value) ?? gitGraphConfig.mainBranchOrder
+            case "showCommitLabel": gitGraphConfig.showCommitLabel = (value.lowercased() == "true")
+            case "showBranches": gitGraphConfig.showBranches = (value.lowercased() == "true")
+            case "rotateCommitLabel": gitGraphConfig.rotateCommitLabel = (value.lowercased() == "true")
+            case "parallelCommits": gitGraphConfig.parallelCommits = (value.lowercased() == "true")
+            case "arrowMarkerAbsolute": gitGraphConfig.arrowMarkerAbsolute = (value.lowercased() == "true")
+            case "useMaxWidth": gitGraphConfig.useMaxWidth = (value.lowercased() == "true")
+            case "useWidth": gitGraphConfig.useWidth = Double(value)
+            case let s where s.hasPrefix("nodeLabel."):
+                let nodeKey = s.replacingOccurrences(of: "nodeLabel.", with: "")
+                switch nodeKey {
+                case "width": gitGraphConfig.nodeLabel.width = Double(value) ?? gitGraphConfig.nodeLabel.width
+                case "height": gitGraphConfig.nodeLabel.height = Double(value) ?? gitGraphConfig.nodeLabel.height
+                case "x": gitGraphConfig.nodeLabel.x = Double(value) ?? gitGraphConfig.nodeLabel.x
+                case "y": gitGraphConfig.nodeLabel.y = Double(value) ?? gitGraphConfig.nodeLabel.y
+                default: break
+                }
+            default: break
+            }
             continue
         }
 
@@ -601,8 +644,98 @@ private func _parseYamlFrontmatter(_ lines: [String]) -> DiagramFrontmatter? {
     if hasQuadrantChartConfig { frontmatter.quadrantChartConfig = quadrantChartConfig }
     if hasQuadrantChartTheme { frontmatter.quadrantChartTheme = quadrantChartTheme }
     if hasRequirementSection { frontmatter.requirementConfig = requirementConfig }
+    if hasGitGraphSection { frontmatter.gitGraphConfig = gitGraphConfig }
+    if hasGitGraphTheme { frontmatter.gitGraphTheme = gitGraphTheme }
 
     return hasAnyContent ? frontmatter : nil
+}
+
+private func _gitGraphThemeSubKey(from fullPath: String) -> String? {
+    for prefix in ["config.themeVariables.gitGraph.", "themeVariables.gitGraph."] {
+        if fullPath.hasPrefix(prefix) {
+            return String(fullPath.dropFirst(prefix.count))
+        }
+    }
+    for prefix in ["config.themeVariables.", "themeVariables."] {
+        if fullPath.hasPrefix(prefix) {
+            let subKey = String(fullPath.dropFirst(prefix.count))
+            return _isGitGraphThemeKey(subKey) ? subKey : nil
+        }
+    }
+    return nil
+}
+
+private func _isGitGraphThemeKey(_ key: String) -> Bool {
+    switch key {
+    case "git0", "git1", "git2", "git3", "git4", "git5", "git6", "git7",
+         "gitInv0", "gitInv1", "gitInv2", "gitInv3", "gitInv4", "gitInv5", "gitInv6", "gitInv7",
+         "gitBranchLabel0", "gitBranchLabel1", "gitBranchLabel2", "gitBranchLabel3",
+         "gitBranchLabel4", "gitBranchLabel5", "gitBranchLabel6", "gitBranchLabel7",
+         "commitLabelColor", "commitLabelBackground", "commitLabelFontSize",
+         "tagLabelColor", "tagLabelBackground", "tagLabelBorder", "tagLabelFontSize",
+         "nodeBorder", "mainBkg", "strokeWidth", "useGradient", "gradientStart",
+         "gradientStop", "dropShadow", "filterColor", "fontFamily", "textColor",
+         "primaryColor", "secondaryColor", "tertiaryColor", "primaryTextColor",
+         "labelTextColor", "lineColor", "noteFontWeight":
+        return true
+    default:
+        return false
+    }
+}
+
+private func _applyGitGraphThemeValue(_ key: String, value: String, theme: inout GitGraphThemeConfig) -> Bool {
+    switch key {
+    case "git0": theme.git0 = value
+    case "git1": theme.git1 = value
+    case "git2": theme.git2 = value
+    case "git3": theme.git3 = value
+    case "git4": theme.git4 = value
+    case "git5": theme.git5 = value
+    case "git6": theme.git6 = value
+    case "git7": theme.git7 = value
+    case "gitInv0": theme.gitInv0 = value
+    case "gitInv1": theme.gitInv1 = value
+    case "gitInv2": theme.gitInv2 = value
+    case "gitInv3": theme.gitInv3 = value
+    case "gitInv4": theme.gitInv4 = value
+    case "gitInv5": theme.gitInv5 = value
+    case "gitInv6": theme.gitInv6 = value
+    case "gitInv7": theme.gitInv7 = value
+    case "gitBranchLabel0": theme.gitBranchLabel0 = value
+    case "gitBranchLabel1": theme.gitBranchLabel1 = value
+    case "gitBranchLabel2": theme.gitBranchLabel2 = value
+    case "gitBranchLabel3": theme.gitBranchLabel3 = value
+    case "gitBranchLabel4": theme.gitBranchLabel4 = value
+    case "gitBranchLabel5": theme.gitBranchLabel5 = value
+    case "gitBranchLabel6": theme.gitBranchLabel6 = value
+    case "gitBranchLabel7": theme.gitBranchLabel7 = value
+    case "commitLabelColor": theme.commitLabelColor = value
+    case "commitLabelBackground": theme.commitLabelBackground = value
+    case "commitLabelFontSize": theme.commitLabelFontSize = value
+    case "tagLabelColor": theme.tagLabelColor = value
+    case "tagLabelBackground": theme.tagLabelBackground = value
+    case "tagLabelBorder": theme.tagLabelBorder = value
+    case "tagLabelFontSize": theme.tagLabelFontSize = value
+    case "nodeBorder": theme.nodeBorder = value
+    case "mainBkg": theme.mainBkg = value
+    case "strokeWidth": theme.strokeWidth = value
+    case "useGradient": theme.useGradient = (value.lowercased() == "true")
+    case "gradientStart": theme.gradientStart = value
+    case "gradientStop": theme.gradientStop = value
+    case "dropShadow": theme.dropShadow = value
+    case "filterColor": theme.filterColor = value
+    case "fontFamily": theme.fontFamily = value
+    case "textColor": theme.textColor = value
+    case "primaryColor": theme.primaryColor = value
+    case "secondaryColor": theme.secondaryColor = value
+    case "tertiaryColor": theme.tertiaryColor = value
+    case "primaryTextColor": theme.primaryTextColor = value
+    case "labelTextColor": theme.labelTextColor = value
+    case "lineColor": theme.lineColor = value
+    case "noteFontWeight": theme.noteFontWeight = value
+    default: return false
+    }
+    return true
 }
 
 private func _pieThemeSubKey(from fullPath: String) -> String? {

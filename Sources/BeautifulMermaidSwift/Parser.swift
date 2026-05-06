@@ -79,6 +79,11 @@ public enum MermaidParser {
                 }
                 return MermaidGraph(payload: .quadrantChart(chart))
             }
+            if firstLine.hasPrefix("gitgraph") {
+                let gitGraphLines = _mermaidSourceLines(from: processed)
+                let parsed = try parseGitGraph(gitGraphLines, frontmatter: frontmatter)
+                return MermaidGraph(payload: .gitGraph(parsed))
+            }
             if firstLine.hasPrefix("requirement") {
                 let diagram = try parseRequirementDiagram(lines, frontmatter: frontmatter)
                 return MermaidGraph(payload: .requirement(diagram))

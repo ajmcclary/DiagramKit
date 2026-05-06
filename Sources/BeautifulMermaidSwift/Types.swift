@@ -13,6 +13,7 @@ public enum DiagramType: String, CaseIterable, Sendable {
     case gantt
     case quadrantChart
     case requirement
+    case gitGraph
 }
 
 /// The parsed graph model for flowcharts and state diagrams.
@@ -31,6 +32,7 @@ public enum DiagramPayload: Sendable {
     case gantt(GanttDiagram)
     case quadrantChart(QuadrantChart)
     case requirement(RequirementDiagram)
+    case gitGraph(GitGraphDiagram)
 
     public var type: DiagramType {
         switch self {
@@ -56,6 +58,8 @@ public enum DiagramPayload: Sendable {
             return .quadrantChart
         case .requirement:
             return .requirement
+        case .gitGraph:
+            return .gitGraph
         }
     }
 }
@@ -108,6 +112,8 @@ public struct MermaidGraph: Sendable {
             self.payload = .quadrantChart(QuadrantChart())
         case .requirement:
             self.payload = .requirement(RequirementDiagram(requirements: [], elements: [], relationships: [], classDefs: [], direction: .TB, config: RequirementDiagramConfig()))
+        case .gitGraph:
+            self.payload = .gitGraph(GitGraphDiagram())
         }
     }
 
@@ -175,6 +181,7 @@ public enum PositionedContent: Sendable {
     case gantt(PositionedGanttDiagram)
     case quadrantChart(PositionedQuadrantChart)
     case requirement(PositionedRequirementDiagram)
+    case gitGraph(PositionedGitGraphDiagram)
 }
 
 public struct PositionedGraph: Sendable {
@@ -228,6 +235,8 @@ public struct PositionedGraph: Sendable {
             self.content = .quadrantChart(.empty)
         case .requirement:
             self.content = .requirement(PositionedRequirementDiagram(width: 0, height: 0, nodes: [], edges: [], config: RequirementDiagramConfig()))
+        case .gitGraph:
+            self.content = .gitGraph(.empty)
         }
     }
 
@@ -401,6 +410,13 @@ public struct PositionedGraph: Sendable {
     public var journeyData: PositionedJourneyDiagram? {
         switch content {
         case .journey(let data): return data
+        default: return nil
+        }
+    }
+
+    public var gitGraphData: PositionedGitGraphDiagram? {
+        switch content {
+        case .gitGraph(let data): return data
         default: return nil
         }
     }

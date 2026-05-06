@@ -1187,6 +1187,90 @@
       "category": "requirement",
       "name": "Full SysML Example",
       "source": "requirementDiagram\n\naccTitle: System Requirements\naccDescr: Full SysML-style requirement diagram\n\nrequirement SRD-001 {\n  id: SRD-001\n  text: The system shall respond within 100ms.\n  risk: high\n  verifymethod: test\n}\n\nfunctionalRequirement FUNC-001 {\n  id: FUNC-001\n  text: Process user input.\n  risk: medium\n  verifymethod: demonstration\n}\n\ndesignConstraint CONST-001 {\n  id: CONST-001\n  text: Must use standard protocols.\n  risk: low\n  verifymethod: inspection\n}\n\nelement test_suite {\n  type: verification\n  docref: test-plan-v2\n}\n\nelement simulator {\n  type: simulation\n  docref: sim-spec\n}\n\ntest_suite - verifies -> SRD-001\nSRD-001 - satisfies -> FUNC-001\nFUNC-001 - derives -> CONST-001\ntest_suite - contains -> simulator"
+    },
+    {
+      "id": "git-1-basic",
+      "category": "gitGraph",
+      "name": "Basic Commits",
+      "source": "gitGraph\n   commit\n   commit\n   commit"
+    },
+    {
+      "id": "git-2-branch",
+      "category": "gitGraph",
+      "name": "Branch and Merge",
+      "source": "gitGraph\n   commit\n   branch develop\n   commit\n   commit\n   checkout main\n   merge develop"
+    },
+    {
+      "id": "git-3-orientation-TB",
+      "category": "gitGraph",
+      "name": "TB Orientation",
+      "source": "gitGraph TB:\n   commit\n   branch feature\n   commit\n   checkout main\n   merge feature"
+    },
+    {
+      "id": "git-4-orientation-BT",
+      "category": "gitGraph",
+      "name": "BT Orientation",
+      "source": "gitGraph BT:\n   commit\n   commit\n   branch hotfix\n   commit\n   checkout main\n   merge hotfix"
+    },
+    {
+      "id": "git-5-commit-properties",
+      "category": "gitGraph",
+      "name": "Commit Properties",
+      "source": "gitGraph\n   commit id:\"Alpha\" type:HIGHLIGHT tag:\"v1.0\" msg:\"Initial release\"\n   commit id:\"Beta\" type:REVERSE tag:\"RC1\""
+    },
+    {
+      "id": "git-6-multiple-tags",
+      "category": "gitGraph",
+      "name": "Multiple Tags",
+      "source": "gitGraph\n   commit id:\"c1\" tag:\"t1\" tag:\"t2\" tag:\"t3\"\n   commit"
+    },
+    {
+      "id": "git-7-quoted-branches",
+      "category": "gitGraph",
+      "name": "Quoted Branches",
+      "source": "gitGraph\n   branch \"cherry-pick\"\n   commit\n   checkout main\n   merge \"cherry-pick\""
+    },
+    {
+      "id": "git-8-branch-order",
+      "category": "gitGraph",
+      "name": "Branch Order",
+      "source": "gitGraph\n   branch first order:1\n   commit\n   branch second order:0\n   commit\n   checkout first\n   merge second"
+    },
+    {
+      "id": "git-9-cherry-pick",
+      "category": "gitGraph",
+      "name": "Cherry Pick",
+      "source": "gitGraph\n   commit id:\"A\"\n   branch feature\n   commit id:\"B\"\n   checkout main\n   cherry-pick id:\"B\""
+    },
+    {
+      "id": "git-10-cherry-pick-merge",
+      "category": "gitGraph",
+      "name": "Cherry Pick Merge",
+      "source": "gitGraph\n   commit id:\"ZERO\"\n   branch develop\n   commit id:\"A\"\n   checkout main\n   commit id:\"ONE\"\n   checkout develop\n   commit id:\"B\"\n   checkout main\n   merge develop id:\"MERGE\"\n   branch release\n   cherry-pick id:\"MERGE\" parent:\"B\""
+    },
+    {
+      "id": "git-11-title-acc",
+      "category": "gitGraph",
+      "name": "Title and Accessibility",
+      "source": "gitGraph\n   title My Git Flow\n   accTitle: Git branch visualization\n   accDescr: Shows main and feature branches\n   commit\n   branch develop\n   commit"
+    },
+    {
+      "id": "git-12-multiline-accDescr",
+      "category": "gitGraph",
+      "name": "Multiline accDescr",
+      "source": "gitGraph\n   accDescr { Git graph showing\n   multiple branches }\n   commit\n   commit"
+    },
+    {
+      "id": "git-13-switch",
+      "category": "gitGraph",
+      "name": "Switch Command",
+      "source": "gitGraph\n   branch dev\n   commit\n   switch main\n   commit\n   switch dev\n   commit"
+    },
+    {
+      "id": "git-14-complex",
+      "category": "gitGraph",
+      "name": "Complex Git Flow",
+      "source": "gitGraph\n   commit\n   commit\n   branch develop\n   checkout develop\n   commit\n   commit\n   checkout main\n   merge develop\n   branch feature\n   checkout feature\n   commit\n   commit\n   checkout main\n   merge feature\n   commit"
     }
   ],
   "metadata": {
@@ -1202,7 +1286,8 @@
       "journey": 3,
       "gantt": 7,
       "quadrantChart": 12,
-      "requirement": 14
+      "requirement": 14,
+      "gitGraph": 14
     }
   }
 }
