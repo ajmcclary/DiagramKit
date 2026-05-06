@@ -190,8 +190,12 @@ public class NodeShapeRenderer {
             return CGPath(rect: bounds, transform: nil)
         case "lined-document":
             return documentPath(bounds)
-        case "icon-square", "icon-circle", "icon", "icon-rounded", "image-square":
+        case "icon-square", "icon", "image-square":
             return CGPath(rect: bounds, transform: nil)
+        case "icon-circle":
+            return trueCirclePath(bounds)
+        case "icon-rounded":
+            return roundedRectPath(bounds, cornerRadius: 6)
         default:
             return CGPath(rect: bounds, transform: nil)
         }

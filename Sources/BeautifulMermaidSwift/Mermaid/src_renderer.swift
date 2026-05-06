@@ -17,6 +17,8 @@ private struct _SvgNode {
     var height: Double
     var inlineStyle: [String: String]
     var interaction: original_src_types.NodeInteraction?
+    var icon: String?
+    var img: String?
 }
 
 private struct _SvgEdge {
@@ -102,6 +104,19 @@ private func _renderSvgEntry(
         parts.append(_arrowMarkerDefsForColor(color))
     }
     parts.append("</defs>")
+
+    // Edge animation CSS (Mermaid parity: animated edges use stroke-dashoffset)
+    parts.append(
+        "<style>" +
+        ".edge-animated {" +
+        "  animation: edge-dash 1.5s linear infinite;" +
+        "  stroke-dasharray: 8 4;" +
+        "}" +
+        "@keyframes edge-dash {" +
+        "  to { stroke-dashoffset: -24; }" +
+        "}" +
+        "</style>"
+    )
 
     for group in model.groups {
         parts.append(_renderGroup(group, font))
@@ -255,7 +270,6 @@ private func _renderEdge(_ edge: _SvgEdge) -> String {
     // Invisible edges don't render stroke
     let isInvisible = edge.style == "invisible" || edge.inlineStyle?["stroke"] == "none"
 
-    let pathData = _pointsToPolylinePath(edge.points)
     let dashArray = edge.style == "dotted" ? " stroke-dasharray=\"4 4\"" : ""
     let baseStrokeWidth = edge.style == "thick"
         ? original_src_styles.STROKE_WIDTHS.connector * 2
@@ -263,7 +277,52 @@ private func _renderEdge(_ edge: _SvgEdge) -> String {
     let strokeColor = isInvisible ? "none" : _escapeAttr(edge.inlineStyle?["stroke"] ?? "var(--_line)")
     let strokeWidth = isInvisible ? "0" : _escapeAttr(edge.inlineStyle?["stroke-width"] ?? "\(baseStrokeWidth)")
 
-    // Select marker type based on arrowhead style
+    // Use curved path when curve interpolation is specified
+    let curveType = edge.curve ?? ""
+    let useCurvedPath = !curveType.isEmpty && curveType != "linear"
+    let pathElement: String
+    if useCurvedPath {
+        let d = _curvePathData(points: edge.points, curveType: curveType)
+        pathElement = "path"
+        let dataAttrs = _edgeDataAttrs(edge)
+        let animClass = edge.animate == true ? " edge-animated" : ""
+        return "<\(pathElement) \(dataAttrs) class=\"edge\(animClass)\" d=\"\(d)\" fill=\"none\" stroke=\"\(strokeColor)\" " +
+            "stroke-width=\"\(strokeWidth)\"\(dashArray)\(_edgeMarkers(edge, isInvisible: isInvisible)) />"
+    } else {
+        let pathData = _pointsToPolylinePath(edge.points)
+        pathElement = "polyline"
+        let dataAttrs = _edgeDataAttrs(edge)
+        let pointsAttr = "points=\"\(pathData)\""
+        let animClass = edge.animate == true ? " edge-animated" : ""
+        return "<\(pathElement) \(dataAttrs) class=\"edge\(animClass)\" \(pointsAttr) fill=\"none\" stroke=\"\(strokeColor)\" " +
+            "stroke-width=\"\(strokeWidth)\"\(dashArray)\(_edgeMarkers(edge, isInvisible: isInvisible)) />"
+    }
+}
+
+private func _edgeDataAttrs(_ edge: _SvgEdge) -> String {
+    var dataAttrs: [String] = [
+        "data-from=\"\(_escapeAttr(edge.source))\"",
+        "data-to=\"\(_escapeAttr(edge.target))\"",
+        "data-style=\"\(_escapeAttr(edge.style))\"",
+        "data-arrow-start=\"\(edge.arrowHeadStart != .none)\"",
+        "data-arrow-end=\"\(edge.arrowHeadEnd != .none)\"",
+    ]
+    if let label = edge.label {
+        dataAttrs.append("data-label=\"\(_escapeAttr(label))\"")
+    }
+    if let edgeId = edge.edgeId {
+        dataAttrs.append("data-edge-id=\"\(_escapeAttr(edgeId))\"")
+    }
+    if let curve = edge.curve {
+        dataAttrs.append("data-curve=\"\(_escapeAttr(curve))\"")
+    }
+    if edge.animate == true {
+        dataAttrs.append("data-animate=\"true\"")
+    }
+    return dataAttrs.joined(separator: " ")
+}
+
+private func _edgeMarkers(_ edge: _SvgEdge, isInvisible: Bool) -> String {
     func markerId(_ arrowHead: ArrowHead, isStart: Bool) -> String? {
         let suffix: String
         if let strokeColor = edge.inlineStyle?["stroke"], !isInvisible {
@@ -291,21 +350,47 @@ private func _renderEdge(_ edge: _SvgEdge) -> String {
     if let mid = markerId(edge.arrowHeadStart, isStart: true) {
         markers += " marker-start=\"url(#\(mid))\""
     }
+    return markers
+}
 
-    var dataAttrs: [String] = [
-        "class=\"edge\"",
-        "data-from=\"\(_escapeAttr(edge.source))\"",
-        "data-to=\"\(_escapeAttr(edge.target))\"",
-        "data-style=\"\(_escapeAttr(edge.style))\"",
-        "data-arrow-start=\"\(edge.arrowHeadStart != .none)\"",
-        "data-arrow-end=\"\(edge.arrowHeadEnd != .none)\"",
-    ]
-    if let label = edge.label {
-        dataAttrs.append("data-label=\"\(_escapeAttr(label))\"")
+private func _curvePathData(points: [_SvgPoint], curveType: String) -> String {
+    guard points.count >= 2 else { return "" }
+    var parts: [String] = []
+    parts.append("M\(points[0].x),\(points[0].y)")
+
+    if curveType == "step" || curveType == "stepBefore" {
+        for i in 1..<points.count {
+            parts.append("V\(points[i].y)")
+            parts.append("H\(points[i].x)")
+        }
+    } else if curveType == "stepAfter" {
+        for i in 1..<points.count {
+            parts.append("H\(points[i].x)")
+            parts.append("V\(points[i].y)")
+        }
+    } else if curveType == "basis" || curveType == "natural" {
+        // Catmull-Rom to cubic Bezier conversion for smooth curves
+        let pts = points
+        let n = pts.count - 1
+        for i in 0..<n {
+            let p0 = pts[max(0, i - 1)]
+            let p1 = pts[i]
+            let p2 = pts[i + 1]
+            let p3 = pts[min(pts.count - 1, i + 2)]
+            let tension: Double = curveType == "basis" ? 1.0 / 6.0 : 1.0 / 2.0
+            let cp1x = p1.x + (p2.x - p0.x) * tension
+            let cp1y = p1.y + (p2.y - p0.y) * tension
+            let cp2x = p2.x - (p3.x - p1.x) * tension
+            let cp2y = p2.y - (p3.y - p1.y) * tension
+            parts.append("C\(cp1x),\(cp1y) \(cp2x),\(cp2y) \(p2.x),\(p2.y)")
+        }
+    } else {
+        // Default to linear
+        for i in 1..<points.count {
+            parts.append("L\(points[i].x),\(points[i].y)")
+        }
     }
-
-    return "<polyline \(dataAttrs.joined(separator: " ")) points=\"\(pathData)\" fill=\"none\" stroke=\"\(strokeColor)\" " +
-        "stroke-width=\"\(strokeWidth)\"\(dashArray)\(markers) />"
+    return parts.joined(separator: " ")
 }
 
 private func _pointsToPolylinePath(_ points: [_SvgPoint]) -> String {
@@ -524,7 +609,17 @@ private func _renderNodeShape(_ node: _SvgNode) -> String {
         return _renderBraceR(x: x, y: y, w: width, h: height, fill: fill, stroke: stroke, sw: sw)
     case "braces":
         return _renderBraces(x: x, y: y, w: width, h: height, fill: fill, stroke: stroke, sw: sw)
-    case "icon-square", "icon-circle", "icon", "icon-rounded", "image-square", "state", "note":
+    case "icon-square":
+        return _renderIconSquare(x: x, y: y, w: width, h: height, fill: fill, stroke: stroke, sw: sw, icon: node.icon, img: node.img)
+    case "icon-circle":
+        return _renderIconCircle(x: x, y: y, w: width, h: height, fill: fill, stroke: stroke, sw: sw, icon: node.icon, img: node.img)
+    case "icon":
+        return _renderIconDefault(x: x, y: y, w: width, h: height, fill: fill, stroke: stroke, sw: sw, icon: node.icon, img: node.img)
+    case "icon-rounded":
+        return _renderIconRounded(x: x, y: y, w: width, h: height, fill: fill, stroke: stroke, sw: sw, icon: node.icon, img: node.img)
+    case "image-square":
+        return _renderImageRect(x: x, y: y, w: width, h: height, fill: fill, stroke: stroke, sw: sw, img: node.img)
+    case "state", "note":
         return _renderRect(x: x, y: y, w: width, h: height, fill: fill, stroke: stroke, sw: sw)
     case "choice":
         return _renderDiamond(x: x, y: y, w: width, h: height, fill: fill, stroke: stroke, sw: sw)
@@ -992,6 +1087,51 @@ private func _renderBraces(x: Double, y: Double, w: Double, h: Double, fill: Str
         _renderBraceR(x: x, y: y, w: w, h: h, fill: fill, stroke: stroke, sw: sw)
 }
 
+// MARK: - Icon and image node rendering
+
+private func _renderIconContent(icon: String?, img: String?, x: Double, y: Double, w: Double, h: Double) -> String {
+    if let imageUrl = img, !imageUrl.isEmpty {
+        let pad: Double = 4
+        return "<image x=\"\(x + pad)\" y=\"\(y + pad)\" width=\"\(w - pad * 2)\" height=\"\(h - pad * 2)\" xlink:href=\"\(_escapeAttr(imageUrl))\" preserveAspectRatio=\"xMidYMid meet\" />"
+    }
+    if let iconName = icon, !iconName.isEmpty {
+        let trimmed = iconName.hasPrefix("fa:") ? String(iconName.dropFirst(3)) : iconName
+        let fontSize = min(w, h) * 0.5
+        return "<text x=\"\(x + w / 2)\" y=\"\(y + h / 2)\" text-anchor=\"middle\" dominant-baseline=\"central\" font-size=\"\(fontSize)\" fill=\"currentColor\" class=\"icon-label\">\(original_src_multiline_utils.escapeXml(trimmed))</text>"
+    }
+    return ""
+}
+
+private func _renderIconSquare(x: Double, y: Double, w: Double, h: Double, fill: String, stroke: String, sw: String, icon: String?, img: String?) -> String {
+    let rect = _renderRect(x: x, y: y, w: w, h: h, fill: fill, stroke: stroke, sw: sw)
+    let content = _renderIconContent(icon: icon, img: img, x: x, y: y, w: w, h: h)
+    return content.isEmpty ? rect : "\(rect)\n\(content)"
+}
+
+private func _renderIconCircle(x: Double, y: Double, w: Double, h: Double, fill: String, stroke: String, sw: String, icon: String?, img: String?) -> String {
+    let circle = _renderCircle(x: x, y: y, w: w, h: h, fill: fill, stroke: stroke, sw: sw)
+    let content = _renderIconContent(icon: icon, img: img, x: x, y: y, w: w, h: h)
+    return content.isEmpty ? circle : "\(circle)\n\(content)"
+}
+
+private func _renderIconDefault(x: Double, y: Double, w: Double, h: Double, fill: String, stroke: String, sw: String, icon: String?, img: String?) -> String {
+    let rect = _renderRect(x: x, y: y, w: w, h: h, fill: fill, stroke: stroke, sw: sw)
+    let content = _renderIconContent(icon: icon, img: img, x: x, y: y, w: w, h: h)
+    return content.isEmpty ? rect : "\(rect)\n\(content)"
+}
+
+private func _renderIconRounded(x: Double, y: Double, w: Double, h: Double, fill: String, stroke: String, sw: String, icon: String?, img: String?) -> String {
+    let rect = _renderRoundedRect(x: x, y: y, w: w, h: h, fill: fill, stroke: stroke, sw: sw)
+    let content = _renderIconContent(icon: icon, img: img, x: x, y: y, w: w, h: h)
+    return content.isEmpty ? rect : "\(rect)\n\(content)"
+}
+
+private func _renderImageRect(x: Double, y: Double, w: Double, h: Double, fill: String, stroke: String, sw: String, img: String?) -> String {
+    let rect = _renderRect(x: x, y: y, w: w, h: h, fill: fill, stroke: stroke, sw: sw)
+    let content = _renderIconContent(icon: nil, img: img, x: x, y: y, w: w, h: h)
+    return content.isEmpty ? rect : "\(rect)\n\(content)"
+}
+
 private func _renderNodeLabel(_ node: _SvgNode, _ font: String) -> String {
     _ = font
     if (node.shape == "state-start" || node.shape == "state-end" || node.shape == "fork" || node.shape == "join"), node.label.isEmpty {
@@ -1050,7 +1190,8 @@ private func _extractSvgGraphModel(_ graph: PositionedGraph) -> _SvgGraphModel {
 }
 
 private func _extractNode(_ any: Any) -> _SvgNode {
-    _SvgNode(
+    let props = _readNodeProperties(any, label: "properties")
+    return _SvgNode(
         id: _readString(any, label: "id") ?? "",
         label: _readString(any, label: "label") ?? "",
         descriptions: _readStringArray(any, label: "descriptions"),
@@ -1060,7 +1201,9 @@ private func _extractNode(_ any: Any) -> _SvgNode {
         width: _readDouble(any, label: "width") ?? 0,
         height: _readDouble(any, label: "height") ?? 0,
         inlineStyle: _readStringMap(any, label: "inlineStyle") ?? [:],
-        interaction: _readNodeInteraction(any, label: "interaction")
+        interaction: _readNodeInteraction(any, label: "interaction"),
+        icon: props?.icon,
+        img: props?.img
     )
 }
 
@@ -1192,6 +1335,10 @@ private func _readStringArray(_ any: Any, label: String) -> [String] {
         return []
     }
     return value as? [String] ?? []
+}
+
+private func _readNodeProperties(_ any: Any, label: String) -> original_src_types.NodeProperties? {
+    _readAny(any, label: label) as? original_src_types.NodeProperties
 }
 
 private func _readNodeInteraction(_ any: Any, label: String) -> original_src_types.NodeInteraction? {

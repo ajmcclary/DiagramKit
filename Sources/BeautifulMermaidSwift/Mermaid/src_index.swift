@@ -137,7 +137,7 @@ func _renderMermaidSVG(
     switch diagramType {
     case .sequence:
         let diagram = try parseSequenceDiagram(lines)
-        let positioned = try layoutSequenceDiagram(diagram, options)
+        let positioned = try layoutSequenceDiagram(diagram, options, config: fm?.sequenceConfig ?? .default)
         return try renderSequenceSvg(positioned, colors, font, transparent)
     case .class:
         let diagram = try parseClassDiagram(lines, frontmatter: fm)
@@ -158,7 +158,7 @@ func _renderMermaidSVG(
         let positioned = layoutXYChart(mutatedChart, options)
         return renderXYChartSvg(positioned, colors, font, transparent, interactive: options.interactive ?? false)
     case .flowchart:
-        let graph = try parseMermaid(decodedText, config: fm?.flowchartConfig)
+        let graph = try parseMermaid(decodedText, config: fm?.flowchartConfig, stateConfig: fm?.stateConfig)
         let positioned = try layoutGraphSync(graph, options)
         return try renderSvg(positioned, colors, font, transparent)
     }

@@ -67,6 +67,15 @@ extension DiagramRenderer {
                 self.shapeRenderer.drawShape(node.shape, bounds: rect, inlineStyles: node.inlineStyle, in: ctx, theme: self.theme)
             }
 
+            // 4b. Draw icon/image content inside nodes
+            for node in nodes {
+                guard let props = node.properties else { continue }
+                let iconShapes = Set(["icon-square", "icon-circle", "icon", "icon-rounded", "image-square"])
+                guard iconShapes.contains(node.shape) else { continue }
+                let rect = CGRect(x: node.x, y: node.y, width: node.width, height: node.height)
+                self._drawIconOrImage(props: props, bounds: rect, in: ctx, contentHeight: ch)
+            }
+
             // 5. Draw node labels
             for node in nodes {
                 guard !node.label.isEmpty else { continue }
@@ -265,5 +274,23 @@ extension DiagramRenderer {
             font: edgeFont,
             alignment: .center
         )
+    }
+
+    func _drawIconOrImage(props: original_src_types.NodeProperties, bounds: CGRect, in context: CGContext, contentHeight ch: CGFloat) {
+        if let iconName = props.icon, !iconName.isEmpty {
+            let trimmed = iconName.hasPrefix("fa:") ? String(iconName.dropFirst(3)) : iconName
+            let fontSize = CGFloat(min(bounds.width, bounds.height) * 0.4)
+            let iconFont = BMFont.systemFont(ofSize: fontSize)
+            let textColor = theme.nodeTextColor(for: [:])
+            _drawTextInFlipped(
+                trimmed,
+                at: CGPoint(x: bounds.midX, y: bounds.midY),
+                context: context,
+                contentHeight: ch,
+                color: textColor,
+                font: iconFont,
+                alignment: .center
+            )
+        }
     }
 }

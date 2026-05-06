@@ -107,7 +107,10 @@ private func _layoutSequenceDiagramEntry(
             x: actorCenterX[idx],
             y: actorY,
             width: actorWidths[idx],
-            height: cfg.height
+            height: cfg.height,
+            links: actor.links,
+            properties: actor.properties,
+            detailsElementId: actor.detailsElementId
         )
     }
 

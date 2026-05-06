@@ -112,6 +112,12 @@ private func _parseYamlFrontmatter(_ lines: [String]) -> DiagramFrontmatter? {
     var hasXYChartConfig = false
     var hasXYChartTheme = false
 
+    var sequenceConfig = SequenceDiagramConfig()
+    var hasSequenceSection = false
+
+    var stateConfig = original_src_types.StateConfig()
+    var hasStateSection = false
+
     var pathStack: [(depth: Int, key: String)] = []
 
     for line in lines {
@@ -301,6 +307,88 @@ private func _parseYamlFrontmatter(_ lines: [String]) -> DiagramFrontmatter? {
             continue
         }
 
+        // Sequence config — config.sequence.*
+        if fullPath.hasPrefix("config.sequence.") {
+            hasSequenceSection = true
+            let subKey = fullPath.replacingOccurrences(of: "config.sequence.", with: "")
+            switch subKey {
+            case "diagramMarginX": sequenceConfig.diagramMarginX = Double(value) ?? sequenceConfig.diagramMarginX
+            case "diagramMarginY": sequenceConfig.diagramMarginY = Double(value) ?? sequenceConfig.diagramMarginY
+            case "actorMargin": sequenceConfig.actorMargin = Double(value) ?? sequenceConfig.actorMargin
+            case "width": sequenceConfig.width = Double(value) ?? sequenceConfig.width
+            case "height": sequenceConfig.height = Double(value) ?? sequenceConfig.height
+            case "boxMargin": sequenceConfig.boxMargin = Double(value) ?? sequenceConfig.boxMargin
+            case "boxTextMargin": sequenceConfig.boxTextMargin = Double(value) ?? sequenceConfig.boxTextMargin
+            case "noteMargin": sequenceConfig.noteMargin = Double(value) ?? sequenceConfig.noteMargin
+            case "messageMargin": sequenceConfig.messageMargin = Double(value) ?? sequenceConfig.messageMargin
+            case "activationWidth": sequenceConfig.activationWidth = Double(value) ?? sequenceConfig.activationWidth
+            case "messageAlign":
+                if let align = SequenceDiagramConfig.TextAlign(rawValue: value.lowercased()) {
+                    sequenceConfig.messageAlign = align
+                }
+            case "noteAlign":
+                if let align = SequenceDiagramConfig.TextAlign(rawValue: value.lowercased()) {
+                    sequenceConfig.noteAlign = align
+                }
+            case "bottomMarginAdj": sequenceConfig.bottomMarginAdj = Double(value) ?? sequenceConfig.bottomMarginAdj
+            case "useMaxWidth": sequenceConfig.useMaxWidth = (value.lowercased() == "true")
+            case "mirrorActors": sequenceConfig.mirrorActors = (value.lowercased() == "true")
+            case "hideUnusedParticipants": sequenceConfig.hideUnusedParticipants = (value.lowercased() == "true")
+            case "rightAngles": sequenceConfig.rightAngles = (value.lowercased() == "true")
+            case "showSequenceNumbers": sequenceConfig.showSequenceNumbers = (value.lowercased() == "true")
+            case "forceMenus": sequenceConfig.forceMenus = (value.lowercased() == "true")
+            case "arrowMarkerAbsolute": sequenceConfig.arrowMarkerAbsolute = (value.lowercased() == "true")
+            case "wrap": sequenceConfig.wrap = (value.lowercased() == "true")
+            case "wrapPadding": sequenceConfig.wrapPadding = Double(value) ?? sequenceConfig.wrapPadding
+            case "labelBoxWidth": sequenceConfig.labelBoxWidth = Double(value) ?? sequenceConfig.labelBoxWidth
+            case "labelBoxHeight": sequenceConfig.labelBoxHeight = Double(value) ?? sequenceConfig.labelBoxHeight
+            case "actorFontFamily": sequenceConfig.actorFontFamily = value
+            case "actorFontSize": sequenceConfig.actorFontSize = Double(value)
+            case "actorFontWeight": sequenceConfig.actorFontWeight = value
+            case "messageFontFamily": sequenceConfig.messageFontFamily = value
+            case "messageFontSize": sequenceConfig.messageFontSize = Double(value)
+            case "messageFontWeight": sequenceConfig.messageFontWeight = value
+            case "noteFontFamily": sequenceConfig.noteFontFamily = value
+            case "noteFontSize": sequenceConfig.noteFontSize = Double(value)
+            case "noteFontWeight": sequenceConfig.noteFontWeight = value
+            default: break
+            }
+            continue
+        }
+
+        // State Diagram config — config.state.*
+        if fullPath.hasPrefix("config.state.") {
+            hasStateSection = true
+            let subKey = fullPath.replacingOccurrences(of: "config.state.", with: "")
+            switch subKey {
+            case "titleTopMargin": stateConfig.titleTopMargin = Double(value) ?? stateConfig.titleTopMargin
+            case "useMaxWidth": stateConfig.useMaxWidth = (value.lowercased() == "true")
+            case "defaultRenderer": stateConfig.defaultRenderer = value
+            case "arrowMarkerAbsolute": stateConfig.arrowMarkerAbsolute = (value.lowercased() == "true")
+            case "dividerMargin": stateConfig.dividerMargin = Double(value) ?? stateConfig.dividerMargin
+            case "sizeUnit": stateConfig.sizeUnit = Double(value) ?? stateConfig.sizeUnit
+            case "padding": stateConfig.padding = Double(value) ?? stateConfig.padding
+            case "textHeight": stateConfig.textHeight = Double(value) ?? stateConfig.textHeight
+            case "titleShift": stateConfig.titleShift = Double(value) ?? stateConfig.titleShift
+            case "noteMargin": stateConfig.noteMargin = Double(value) ?? stateConfig.noteMargin
+            case "nodeSpacing": stateConfig.nodeSpacing = Int(value) ?? stateConfig.nodeSpacing
+            case "rankSpacing": stateConfig.rankSpacing = Int(value) ?? stateConfig.rankSpacing
+            case "forkWidth": stateConfig.forkWidth = Double(value) ?? stateConfig.forkWidth
+            case "forkHeight": stateConfig.forkHeight = Double(value) ?? stateConfig.forkHeight
+            case "miniPadding": stateConfig.miniPadding = Double(value) ?? stateConfig.miniPadding
+            case "fontSizeFactor": stateConfig.fontSizeFactor = Double(value) ?? stateConfig.fontSizeFactor
+            case "fontSize": stateConfig.fontSize = Double(value) ?? stateConfig.fontSize
+            case "labelHeight": stateConfig.labelHeight = Double(value) ?? stateConfig.labelHeight
+            case "edgeLengthFactor": stateConfig.edgeLengthFactor = value
+            case "compositTitleSize": stateConfig.compositTitleSize = Double(value) ?? stateConfig.compositTitleSize
+            case "radius": stateConfig.radius = Double(value) ?? stateConfig.radius
+            case "scaleWidth": stateConfig.scaleWidth = Int(value)
+            case "hideEmptyDescription": stateConfig.hideEmptyDescription = (value.lowercased() == "true")
+            default: break
+            }
+            continue
+        }
+
         // Global config.layout (for dagre/elk selection)
         if fullPath == "config.layout" {
             hasErSection = true
@@ -328,6 +416,8 @@ private func _parseYamlFrontmatter(_ lines: [String]) -> DiagramFrontmatter? {
     if hasErSection { frontmatter.erConfig = erConfig }
     if hasXYChartConfig { frontmatter.xyChartConfig = xyChartConfig }
     if hasXYChartTheme { frontmatter.xyChartTheme = xyChartTheme }
+    if hasSequenceSection { frontmatter.sequenceConfig = sequenceConfig }
+    if hasStateSection { frontmatter.stateConfig = stateConfig }
 
     return hasAnyContent ? frontmatter : nil
 }

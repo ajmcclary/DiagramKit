@@ -50,7 +50,7 @@ private func _layoutVertical(_ chart: XYChart, _ config: XYChartConfig, _ theme:
     let hasTitle = resolvedTitle != nil && config.showTitle
     let hasXTitle = chart.xAxis.title != nil && config.xAxis.showTitle
     let hasYTitle = chart.yAxis.title != nil && config.yAxis.showTitle
-    let hasLegend = chart.series.count > 1
+    let hasLegend = false
 
     guard let yRange = chart.yAxis.range else {
         return PositionedXYChart(width: 0, height: 0, title: nil, xAxis: PositionedXYAxis(title: nil, ticks: [], line: AxisLine(x1: 0, y1: 0, x2: 0, y2: 0)), yAxis: PositionedXYAxis(title: nil, ticks: [], line: AxisLine(x1: 0, y1: 0, x2: 0, y2: 0)), plotArea: XYPlotArea(x: 0, y: 0, width: 0, height: 0), bars: [], lines: [], gridLines: [], legend: [])
@@ -170,7 +170,7 @@ private func _layoutHorizontal(_ chart: XYChart, _ config: XYChartConfig, _ them
     let hasTitle = resolvedTitle != nil && config.showTitle
     let hasXTitle = chart.xAxis.title != nil && config.xAxis.showTitle
     let hasYTitle = chart.yAxis.title != nil && config.yAxis.showTitle
-    let hasLegend = chart.series.count > 1
+    let hasLegend = false
 
     guard let yRange = chart.yAxis.range else {
         return PositionedXYChart(width: 0, height: 0, title: nil, xAxis: PositionedXYAxis(title: nil, ticks: [], line: AxisLine(x1: 0, y1: 0, x2: 0, y2: 0)), yAxis: PositionedXYAxis(title: nil, ticks: [], line: AxisLine(x1: 0, y1: 0, x2: 0, y2: 0)), plotArea: XYPlotArea(x: 0, y: 0, width: 0, height: 0), bars: [], lines: [], gridLines: [], legend: [])

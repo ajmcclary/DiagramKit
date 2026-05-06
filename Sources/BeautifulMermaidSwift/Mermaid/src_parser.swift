@@ -173,11 +173,11 @@ private let _nodePatterns: [(regex: NSRegularExpression, shape: ParsedNodeShape)
     (_regex(#"^([\w\p{L}.-]+)\{(.+?)\}"#), .diamond),
 ]
 
-public func parseMermaid(_ text: String, config: original_src_types.FlowchartConfig? = nil) throws -> MermaidGraph {
-    try _parseMermaidEntry(text, config: config)
+public func parseMermaid(_ text: String, config: original_src_types.FlowchartConfig? = nil, stateConfig: original_src_types.StateConfig? = nil) throws -> MermaidGraph {
+    try _parseMermaidEntry(text, config: config, stateConfig: stateConfig)
 }
 
-private func _parseMermaidEntry(_ text: String, config: original_src_types.FlowchartConfig? = nil) throws -> MermaidGraph {
+private func _parseMermaidEntry(_ text: String, config: original_src_types.FlowchartConfig? = nil, stateConfig: original_src_types.StateConfig? = nil) throws -> MermaidGraph {
     let lines = _mermaidSourceLines(from: text)
 
     guard !lines.isEmpty else {
@@ -189,7 +189,7 @@ private func _parseMermaidEntry(_ text: String, config: original_src_types.Flowc
     let diagramType: DiagramType
 
     if _regexTest(#"^stateDiagram(-v2)?\s*$"#, header, caseInsensitive: true) {
-        parsed = try _parseStateDiagram(lines)
+        parsed = try _parseStateDiagram(lines, stateConfig: stateConfig)
         diagramType = .stateDiagram
     } else {
         parsed = try _parseFlowchart(lines, config: config)
@@ -246,7 +246,37 @@ private func _parseFlowchart(_ lines: [String], config: original_src_types.Flowc
         }
     }
 
-    for line in lines.dropFirst() {
+    // Pre-scan: multiline accDescr joining + inline %% stripping
+    var processedLines: [String] = []
+    var idx = 1
+    while idx < lines.count {
+        var line = lines[idx]
+        if let commentIdx = line.range(of: "%%") {
+            line = String(line[..<commentIdx.lowerBound]).trimmingCharacters(in: .whitespacesAndNewlines)
+        }
+        guard !line.isEmpty else { idx += 1; continue }
+
+        if _regexTest(#"^accDescr\s*\{\s*$"#, line) {
+            var descrLines: [String] = []
+            idx += 1
+            while idx < lines.count && !_regexTest(#"^\}\s*$"#, lines[idx]) {
+                var nl = lines[idx]
+                if let commentIdx = nl.range(of: "%%") {
+                    nl = String(nl[..<commentIdx.lowerBound]).trimmingCharacters(in: .whitespacesAndNewlines)
+                }
+                if !nl.isEmpty { descrLines.append(nl) }
+                idx += 1
+            }
+            idx += 1 // skip "}"
+            processedLines.append("accDescr: " + descrLines.joined(separator: "\n"))
+            continue
+        }
+
+        processedLines.append(line)
+        idx += 1
+    }
+
+    for line in processedLines {
         if let classDefMatch = _regexGroups(#"^classDef\s+([\w\s,]+)\s+(.+)$"#, line),
            let namesRaw = classDefMatch[safe: 1],
            let propsStr = classDefMatch[safe: 2]
@@ -432,8 +462,9 @@ private func _parseFlowchart(_ lines: [String], config: original_src_types.Flowc
     return graph.toParsedGraph()
 }
 
-private func _parseStateDiagram(_ lines: [String]) throws -> ParsedGraph {
+private func _parseStateDiagram(_ lines: [String], stateConfig: original_src_types.StateConfig? = nil) throws -> ParsedGraph {
     var graph = _WorkingGraph(direction: .TD)
+    if let sc = stateConfig { graph.stateConfig = sc }
 
     var compositeStack: [ParsedSubgraph] = []
     var compositeStateIds = Set<String>()

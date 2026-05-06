@@ -328,6 +328,8 @@ public struct DiagramFrontmatter: Sendable {
     public var erConfig: ErDiagramConfig?
     public var xyChartConfig: XYChartConfig?
     public var xyChartTheme: XYChartThemeConfig?
+    public var sequenceConfig: SequenceDiagramConfig?
+    public var stateConfig: original_src_types.StateConfig?
 
     public init(
         title: String? = nil,
@@ -336,7 +338,9 @@ public struct DiagramFrontmatter: Sendable {
         flowchartConfig: original_src_types.FlowchartConfig? = nil,
         erConfig: ErDiagramConfig? = nil,
         xyChartConfig: XYChartConfig? = nil,
-        xyChartTheme: XYChartThemeConfig? = nil
+        xyChartTheme: XYChartThemeConfig? = nil,
+        sequenceConfig: SequenceDiagramConfig? = nil,
+        stateConfig: original_src_types.StateConfig? = nil
     ) {
         self.title = title
         self.diagramTitle = diagramTitle ?? title
@@ -345,6 +349,8 @@ public struct DiagramFrontmatter: Sendable {
         self.erConfig = erConfig
         self.xyChartConfig = xyChartConfig
         self.xyChartTheme = xyChartTheme
+        self.sequenceConfig = sequenceConfig
+        self.stateConfig = stateConfig
     }
 }
 
@@ -941,6 +947,7 @@ private func _parseClassDiagramEntry(_ lines: [String], frontmatter: DiagramFron
         if let groups = _groups(#"^link\s+(\S+?)\s+"([^"]*)"(?:\s+"([^"]*)")?(?:\s+(.+))?$"#, rawLine) {
             let classId = groups[safe: 1] ?? ""
             let url = groups[safe: 2] ?? ""
+            guard !_isUnsafeURL(url) else { continue }
             let tooltip = groups[safe: 3]
             let target = groups[safe: 4].flatMap { $0.isEmpty ? nil : $0 }
             var cls = _ensureClass(&classMap, &classOrder, classId)
@@ -955,6 +962,7 @@ private func _parseClassDiagramEntry(_ lines: [String], frontmatter: DiagramFron
         if let groups = _groups(#"^click\s+(\S+?)\s+href\s+"([^"]*)"(?:\s+"([^"]*)")?(?:\s+(.+))?$"#, rawLine) {
             let classId = groups[safe: 1] ?? ""
             let url = groups[safe: 2] ?? ""
+            guard !_isUnsafeURL(url) else { continue }
             let tooltip = groups[safe: 3]
             let target = groups[safe: 4].flatMap { $0.isEmpty ? nil : $0 }
             var cls = _ensureClass(&classMap, &classOrder, classId)
@@ -1431,6 +1439,17 @@ private extension String {
         if !current.isEmpty { parts.append(current) }
         return parts
     }
+}
+
+// MARK: - URL Security Validation
+
+private func _isUnsafeURL(_ url: String) -> Bool {
+    let lower = url.trimmingCharacters(in: .whitespaces).lowercased()
+    let dangerousPrefixes = ["javascript:", "data:", "vbscript:", "file:"]
+    for prefix in dangerousPrefixes {
+        if lower.hasPrefix(prefix) { return true }
+    }
+    return false
 }
 
 // MARK: - Wrapper class

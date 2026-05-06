@@ -771,8 +771,11 @@ public struct PositionedSequenceActor: Sendable {
     public var y: Double
     public var width: Double
     public var height: Double
+    public var links: [String: String]
+    public var properties: [String: String]
+    public var detailsElementId: String?
 
-    public init(id: String, label: String, type: String = "participant", participantType: ParticipantType = .participant, x: Double, y: Double, width: Double, height: Double) {
+    public init(id: String, label: String, type: String = "participant", participantType: ParticipantType = .participant, x: Double, y: Double, width: Double, height: Double, links: [String: String] = [:], properties: [String: String] = [:], detailsElementId: String? = nil) {
         self.id = id
         self.label = label
         self.type = type
@@ -781,6 +784,9 @@ public struct PositionedSequenceActor: Sendable {
         self.y = y
         self.width = width
         self.height = height
+        self.links = links
+        self.properties = properties
+        self.detailsElementId = detailsElementId
     }
 }
 

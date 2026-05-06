@@ -92,7 +92,38 @@ private func _parseSequenceDiagramEntry(_ lines: [String]) throws -> SequenceDia
 
     if lines.count <= 1 { return SequenceDiagram(items: []) }
 
-    for rawLine in lines.dropFirst() {
+    // Pre-scan: multiline accDescr/accTitle joining
+    var processedLines: [String] = []
+    var i = 1
+    while i < lines.count {
+        let raw = lines[i].trimmingCharacters(in: .whitespaces)
+        if _match(#"^accDescr\s*\{\s*$"#, raw, caseInsensitive: true) != nil {
+            var descrLines: [String] = []
+            i += 1
+            while i < lines.count && _match(#"^\}\s*$"#, lines[i].trimmingCharacters(in: .whitespaces), caseInsensitive: true) == nil {
+                descrLines.append(lines[i].trimmingCharacters(in: .whitespaces))
+                i += 1
+            }
+            i += 1 // skip "}"
+            processedLines.append("accDescr: " + descrLines.joined(separator: "\n"))
+            continue
+        }
+        if _match(#"^accTitle\s*\{\s*$"#, raw, caseInsensitive: true) != nil {
+            var titleLines: [String] = []
+            i += 1
+            while i < lines.count && _match(#"^\}\s*$"#, lines[i].trimmingCharacters(in: .whitespaces), caseInsensitive: true) == nil {
+                titleLines.append(lines[i].trimmingCharacters(in: .whitespaces))
+                i += 1
+            }
+            i += 1 // skip "}"
+            processedLines.append("accTitle: " + titleLines.joined(separator: "\n"))
+            continue
+        }
+        processedLines.append(lines[i])
+        i += 1
+    }
+
+    for rawLine in processedLines {
         let line = _preprocessLine(rawLine)
         if line.isEmpty { continue }
 

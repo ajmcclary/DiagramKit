@@ -217,7 +217,17 @@ private func _renderActor(_ actor: PositionedSequenceActor) -> String {
     let pType = actor.participantType
 
     var parts: [String] = []
-    parts.append("<g class=\"actor\" data-id=\"\(escapeAttr(actor.id))\" data-label=\"\(escapeAttr(label))\" data-type=\"\(escapeAttr(pType.rawValue))\">")
+    var dataAttrs = "data-id=\"\(escapeAttr(actor.id))\" data-label=\"\(escapeAttr(label))\" data-type=\"\(escapeAttr(pType.rawValue))\""
+    for (key, url) in actor.links {
+        dataAttrs += " data-link-\(escapeAttr(key))=\"\(escapeAttr(url))\""
+    }
+    for (key, value) in actor.properties {
+        dataAttrs += " data-prop-\(escapeAttr(key))=\"\(escapeAttr(value))\""
+    }
+    if let detailsId = actor.detailsElementId {
+        dataAttrs += " data-details=\"\(escapeAttr(detailsId))\""
+    }
+    parts.append("<g class=\"actor\" \(dataAttrs)>")
 
     switch pType {
     case .actor:
