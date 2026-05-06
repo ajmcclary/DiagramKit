@@ -14,6 +14,7 @@ public enum DiagramType: String, CaseIterable, Sendable {
     case quadrantChart
     case requirement
     case gitGraph
+    case mindmap
 }
 
 /// The parsed graph model for flowcharts and state diagrams.
@@ -33,6 +34,7 @@ public enum DiagramPayload: Sendable {
     case quadrantChart(QuadrantChart)
     case requirement(RequirementDiagram)
     case gitGraph(GitGraphDiagram)
+    case mindmap(MindmapDiagram)
 
     public var type: DiagramType {
         switch self {
@@ -60,6 +62,8 @@ public enum DiagramPayload: Sendable {
             return .requirement
         case .gitGraph:
             return .gitGraph
+        case .mindmap:
+            return .mindmap
         }
     }
 }
@@ -114,6 +118,8 @@ public struct MermaidGraph: Sendable {
             self.payload = .requirement(RequirementDiagram(requirements: [], elements: [], relationships: [], classDefs: [], direction: .TB, config: RequirementDiagramConfig()))
         case .gitGraph:
             self.payload = .gitGraph(GitGraphDiagram())
+        case .mindmap:
+            self.payload = .mindmap(MindmapDiagram.empty)
         }
     }
 
@@ -182,6 +188,7 @@ public enum PositionedContent: Sendable {
     case quadrantChart(PositionedQuadrantChart)
     case requirement(PositionedRequirementDiagram)
     case gitGraph(PositionedGitGraphDiagram)
+    case mindmap(PositionedMindmapDiagram)
 }
 
 public struct PositionedGraph: Sendable {
@@ -237,6 +244,8 @@ public struct PositionedGraph: Sendable {
             self.content = .requirement(PositionedRequirementDiagram(width: 0, height: 0, nodes: [], edges: [], config: RequirementDiagramConfig()))
         case .gitGraph:
             self.content = .gitGraph(.empty)
+        case .mindmap:
+            self.content = .mindmap(.empty)
         }
     }
 
@@ -417,6 +426,13 @@ public struct PositionedGraph: Sendable {
     public var gitGraphData: PositionedGitGraphDiagram? {
         switch content {
         case .gitGraph(let data): return data
+        default: return nil
+        }
+    }
+
+    public var mindmapData: PositionedMindmapDiagram? {
+        switch content {
+        case .mindmap(let data): return data
         default: return nil
         }
     }

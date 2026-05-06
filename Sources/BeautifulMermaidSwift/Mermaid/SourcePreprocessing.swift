@@ -142,6 +142,9 @@ private func _parseYamlFrontmatter(_ lines: [String]) -> DiagramFrontmatter? {
     var hasGitGraphSection = false
     var hasGitGraphTheme = false
 
+    var mindmapConfig = MindmapConfig()
+    var hasMindmapSection = false
+
     var pathStack: [(depth: Int, key: String)] = []
 
     for line in lines {
@@ -608,10 +611,25 @@ private func _parseYamlFrontmatter(_ lines: [String]) -> DiagramFrontmatter? {
             continue
         }
 
-        // Global config.layout (for dagre/elk selection)
+        // Mindmap config — config.mindmap.*
+        if fullPath.hasPrefix("config.mindmap.") {
+            hasMindmapSection = true
+            let subKey = fullPath.replacingOccurrences(of: "config.mindmap.", with: "")
+            switch subKey {
+            case "padding": mindmapConfig.padding = Double(value) ?? mindmapConfig.padding
+            case "maxNodeWidth": mindmapConfig.maxNodeWidth = Double(value) ?? mindmapConfig.maxNodeWidth
+            case "useMaxWidth": mindmapConfig.useMaxWidth = (value.lowercased() == "true")
+            case "layoutAlgorithm": mindmapConfig.layoutAlgorithm = value
+            default: break
+            }
+            continue
+        }
+
+        // Global config.layout (shared across all diagram families)
         if fullPath == "config.layout" {
             hasErSection = true
             erConfig.layout = value
+            frontmatter.layout = value
             continue
         }
 
@@ -619,6 +637,7 @@ private func _parseYamlFrontmatter(_ lines: [String]) -> DiagramFrontmatter? {
         if fullPath == "config.look" {
             hasErSection = true
             erConfig.look = value
+            frontmatter.look = value
             continue
         }
 
@@ -626,6 +645,25 @@ private func _parseYamlFrontmatter(_ lines: [String]) -> DiagramFrontmatter? {
         if fullPath == "config.htmlLabels" {
             hasErSection = true
             erConfig.htmlLabels = (value.lowercased() == "true")
+            frontmatter.htmlLabels = (value.lowercased() == "true")
+            continue
+        }
+
+        // Global config.theme
+        if fullPath == "config.theme" {
+            frontmatter.theme = value
+            continue
+        }
+
+        // Global config.fontSize
+        if fullPath == "config.fontSize" {
+            frontmatter.fontSize = Double(value)
+            continue
+        }
+
+        // Global config.securityLevel
+        if fullPath == "config.securityLevel" {
+            frontmatter.securityLevel = value
             continue
         }
     }
@@ -646,6 +684,7 @@ private func _parseYamlFrontmatter(_ lines: [String]) -> DiagramFrontmatter? {
     if hasRequirementSection { frontmatter.requirementConfig = requirementConfig }
     if hasGitGraphSection { frontmatter.gitGraphConfig = gitGraphConfig }
     if hasGitGraphTheme { frontmatter.gitGraphTheme = gitGraphTheme }
+    if hasMindmapSection { frontmatter.mindmapConfig = mindmapConfig }
 
     return hasAnyContent ? frontmatter : nil
 }

@@ -88,6 +88,11 @@ public enum MermaidParser {
                 let diagram = try parseRequirementDiagram(lines, frontmatter: frontmatter)
                 return MermaidGraph(payload: .requirement(diagram))
             }
+            if firstLine.hasPrefix("mindmap") {
+                let rawLines = processed.split(separator: "\n", omittingEmptySubsequences: false).map(String.init)
+                let parsed = try parseMindmap(rawLines, frontmatter: frontmatter)
+                return MermaidGraph(payload: .mindmap(parsed))
+            }
 
             // Flowchart + stateDiagram-v2 — pass frontmatter flowchart config
             let parsed = try parseMermaid(processed, config: frontmatter?.flowchartConfig)

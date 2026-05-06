@@ -339,6 +339,14 @@ public struct DiagramFrontmatter: Sendable {
     public var requirementConfig: RequirementDiagramConfig?
     public var gitGraphConfig: GitGraphConfig?
     public var gitGraphTheme: GitGraphThemeConfig?
+    public var mindmapConfig: MindmapConfig?
+
+    public var layout: String?      // Shared global config.layout
+    public var look: String?         // Shared global config.look
+    public var theme: String?        // Shared global config.theme
+    public var htmlLabels: Bool?     // Shared global config.htmlLabels
+    public var fontSize: Double?     // Shared global config.fontSize
+    public var securityLevel: String? // Shared global config.securityLevel
 
     public init(
         title: String? = nil,
@@ -358,7 +366,14 @@ public struct DiagramFrontmatter: Sendable {
         quadrantChartTheme: QuadrantChartThemeConfig? = nil,
         requirementConfig: RequirementDiagramConfig? = nil,
         gitGraphConfig: GitGraphConfig? = nil,
-        gitGraphTheme: GitGraphThemeConfig? = nil
+        gitGraphTheme: GitGraphThemeConfig? = nil,
+        mindmapConfig: MindmapConfig? = nil,
+        layout: String? = nil,
+        look: String? = nil,
+        theme: String? = nil,
+        htmlLabels: Bool? = nil,
+        fontSize: Double? = nil,
+        securityLevel: String? = nil
     ) {
         self.title = title
         self.diagramTitle = diagramTitle ?? title
@@ -378,6 +393,13 @@ public struct DiagramFrontmatter: Sendable {
         self.requirementConfig = requirementConfig
         self.gitGraphConfig = gitGraphConfig
         self.gitGraphTheme = gitGraphTheme
+        self.mindmapConfig = mindmapConfig
+        self.layout = layout
+        self.look = look
+        self.theme = theme
+        self.htmlLabels = htmlLabels
+        self.fontSize = fontSize
+        self.securityLevel = securityLevel
     }
 }
 

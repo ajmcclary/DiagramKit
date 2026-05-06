@@ -163,6 +163,18 @@ public struct GraphLayout {
                     height: positioned.height,
                     content: .gitGraph(positioned)
                 )
+            case .mindmap:
+                guard case let .mindmap(diagram) = graph.payload else {
+                    _reportMermaidIssue("GraphLayout.layout found mismatched mindmap payload.")
+                    return PositionedGraph(diagram: graph, content: .mindmap(.empty))
+                }
+                let positioned = try layoutMindmap(diagram)
+                return PositionedGraph(
+                    diagram: graph,
+                    width: positioned.width,
+                    height: positioned.height,
+                    content: .mindmap(positioned)
+                )
             }
         }
     }

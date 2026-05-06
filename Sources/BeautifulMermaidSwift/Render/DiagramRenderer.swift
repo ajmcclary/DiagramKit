@@ -56,6 +56,8 @@ public final class DiagramRenderer {
             _drawRequirement(positioned, in: context, bounds: bounds)
         case .gitGraph:
             _drawGitGraph(positioned, in: context, bounds: bounds)
+        case .mindmap:
+            _drawMindmap(positioned, in: context, bounds: bounds)
         }
     }
 

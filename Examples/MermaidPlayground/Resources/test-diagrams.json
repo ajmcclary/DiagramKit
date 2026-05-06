@@ -1271,10 +1271,58 @@
       "category": "gitGraph",
       "name": "Complex Git Flow",
       "source": "gitGraph\n   commit\n   commit\n   branch develop\n   checkout develop\n   commit\n   commit\n   checkout main\n   merge develop\n   branch feature\n   checkout feature\n   commit\n   commit\n   checkout main\n   merge feature\n   commit"
+    },
+    {
+      "id": "mindmap-1-simple",
+      "category": "mindmap",
+      "name": "Simple Root",
+      "source": "---\nconfig:\n  layout: tidy-tree\n---\nmindmap\n  root((mindmap))\n    A\n    B"
+    },
+    {
+      "id": "mindmap-2-shapes",
+      "category": "mindmap",
+      "name": "All Shapes",
+      "source": "---\nconfig:\n  layout: tidy-tree\n---\nmindmap\n  root((All Shapes))\n    Square Branch\n      sq[Square Node]\n    Rounded Branch\n      rd(Rounded Node)\n    Circle Branch\n      ci((Circle Node))\n    Bang Branch\n      bg))Bang Node((\n    Cloud Branch\n      cl)Cloud Node(\n    Hexagon Branch\n      hx{{Hexagon Node}}\n    Default Branch\n      df Default Node"
+    },
+    {
+      "id": "mindmap-3-icons",
+      "category": "mindmap",
+      "name": "Icons and Classes",
+      "source": "---\nconfig:\n  layout: tidy-tree\n---\nmindmap\n  root((mindmap))\n    Origins\n      Long history\n      ::icon(fa fa-book)\n      Popularisation\n        British popular psychology author Tony Buzan\n    Research\n      On effectiveness<br/>and features\n    Tools\n      Pen and paper\n      Mermaid"
+    },
+    {
+      "id": "mindmap-4-deep",
+      "category": "mindmap",
+      "name": "Deep Hierarchy",
+      "source": "---\nconfig:\n  layout: tidy-tree\n---\nmindmap\n  root\n    child1\n      grandchild1\n        greatgrandchild1\n      grandchild2\n    child2\n      grandchild3\n      grandchild4\n    child3\n      grandchild5\n      grandchild6"
+    },
+    {
+      "id": "mindmap-5-markdown",
+      "category": "mindmap",
+      "name": "Markdown Strings",
+      "source": "---\nconfig:\n  layout: tidy-tree\n---\nmindmap\n  id1[**Root** with\na second line]\n    id2[The dog in **the** hog]\n    id3[Regular labels still works]"
+    },
+    {
+      "id": "mindmap-6-unclear",
+      "category": "mindmap",
+      "name": "Unclear Indentation",
+      "source": "---\nconfig:\n  layout: tidy-tree\n---\nmindmap\n  root\n        B\n      C"
+    },
+    {
+      "id": "mindmap-7-siblings",
+      "category": "mindmap",
+      "name": "Many Siblings",
+      "source": "---\nconfig:\n  layout: tidy-tree\n---\nmindmap\n  root\n    Node1\n    Node2\n    Node3\n    Node4\n    Node5\n    Node6\n    Node7\n    Node8\n    Node9\n    Node10\n    Node11\n    Node12\n    Node13\n    Node14\n    Node15"
+    },
+    {
+      "id": "mindmap-8-comments",
+      "category": "mindmap",
+      "name": "Comments and Whitespace",
+      "source": "---\nconfig:\n  layout: tidy-tree\n---\nmindmap\n  root(Root)\n    Child(Child)\n      a(a)\n\n      %% This is a comment\n      b[New Stuff]\n\n      c"
     }
   ],
   "metadata": {
-    "totalCount": 197,
+    "totalCount": 205,
     "categories": {
       "flowchart": 27,
       "state": 12,
@@ -1287,7 +1335,8 @@
       "gantt": 7,
       "quadrantChart": 12,
       "requirement": 14,
-      "gitGraph": 14
+      "gitGraph": 14,
+      "mindmap": 8
     }
   }
 }
