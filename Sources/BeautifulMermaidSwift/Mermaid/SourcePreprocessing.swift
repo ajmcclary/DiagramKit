@@ -129,6 +129,11 @@ private func _parseYamlFrontmatter(_ lines: [String]) -> DiagramFrontmatter? {
     var ganttConfig = GanttDiagramConfig()
     var hasGanttSection = false
 
+    var quadrantChartConfig = QuadrantChartConfig()
+    var quadrantChartTheme = QuadrantChartThemeConfig()
+    var hasQuadrantChartConfig = false
+    var hasQuadrantChartTheme = false
+
     var pathStack: [(depth: Int, key: String)] = []
 
     for line in lines {
@@ -482,6 +487,51 @@ private func _parseYamlFrontmatter(_ lines: [String]) -> DiagramFrontmatter? {
             continue
         }
 
+        // Quadrant Chart config — config.quadrantChart.*
+        if fullPath.hasPrefix("config.quadrantChart.") {
+            hasQuadrantChartConfig = true
+            let subKey = fullPath.replacingOccurrences(of: "config.quadrantChart.", with: "")
+            switch subKey {
+            case "chartWidth": quadrantChartConfig.chartWidth = Double(value) ?? quadrantChartConfig.chartWidth
+            case "chartHeight": quadrantChartConfig.chartHeight = Double(value) ?? quadrantChartConfig.chartHeight
+            case "titlePadding": quadrantChartConfig.titlePadding = Double(value) ?? quadrantChartConfig.titlePadding
+            case "titleFontSize": quadrantChartConfig.titleFontSize = Double(value) ?? quadrantChartConfig.titleFontSize
+            case "quadrantPadding": quadrantChartConfig.quadrantPadding = Double(value) ?? quadrantChartConfig.quadrantPadding
+            case "quadrantTextTopPadding": quadrantChartConfig.quadrantTextTopPadding = Double(value) ?? quadrantChartConfig.quadrantTextTopPadding
+            case "quadrantLabelFontSize": quadrantChartConfig.quadrantLabelFontSize = Double(value) ?? quadrantChartConfig.quadrantLabelFontSize
+            case "quadrantInternalBorderStrokeWidth": quadrantChartConfig.quadrantInternalBorderStrokeWidth = Double(value) ?? quadrantChartConfig.quadrantInternalBorderStrokeWidth
+            case "quadrantExternalBorderStrokeWidth": quadrantChartConfig.quadrantExternalBorderStrokeWidth = Double(value) ?? quadrantChartConfig.quadrantExternalBorderStrokeWidth
+            case "xAxisLabelPadding": quadrantChartConfig.xAxisLabelPadding = Double(value) ?? quadrantChartConfig.xAxisLabelPadding
+            case "xAxisLabelFontSize": quadrantChartConfig.xAxisLabelFontSize = Double(value) ?? quadrantChartConfig.xAxisLabelFontSize
+            case "xAxisPosition": quadrantChartConfig.xAxisPosition = value
+            case "yAxisLabelPadding": quadrantChartConfig.yAxisLabelPadding = Double(value) ?? quadrantChartConfig.yAxisLabelPadding
+            case "yAxisLabelFontSize": quadrantChartConfig.yAxisLabelFontSize = Double(value) ?? quadrantChartConfig.yAxisLabelFontSize
+            case "yAxisPosition": quadrantChartConfig.yAxisPosition = value
+            case "pointTextPadding": quadrantChartConfig.pointTextPadding = Double(value) ?? quadrantChartConfig.pointTextPadding
+            case "pointLabelFontSize": quadrantChartConfig.pointLabelFontSize = Double(value) ?? quadrantChartConfig.pointLabelFontSize
+            case "pointRadius": quadrantChartConfig.pointRadius = Double(value) ?? quadrantChartConfig.pointRadius
+            case "useMaxWidth": quadrantChartConfig.useMaxWidth = (value.lowercased() == "true")
+            default: break
+            }
+            continue
+        }
+
+        // Quadrant Chart theme — config.themeVariables.quadrant*
+        if fullPath.hasPrefix("config.themeVariables.") || fullPath.hasPrefix("themeVariables.") {
+            let prefix: String
+            if fullPath.hasPrefix("config.themeVariables.") {
+                prefix = "config.themeVariables."
+            } else {
+                prefix = "themeVariables."
+            }
+            let subKey = String(fullPath.dropFirst(prefix.count))
+            if _isQuadrantThemeKey(subKey) {
+                hasQuadrantChartTheme = true
+                _ = _applyQuadrantThemeValue(subKey, value: value, theme: &quadrantChartTheme)
+            }
+            continue
+        }
+
         // Top-level displayMode routing for Gantt compact mode
         if fullPath == "displayMode" && value.lowercased() == "compact" {
             hasGanttSection = true
@@ -522,6 +572,8 @@ private func _parseYamlFrontmatter(_ lines: [String]) -> DiagramFrontmatter? {
     if hasStateSection { frontmatter.stateConfig = stateConfig }
     if hasJourneySection { frontmatter.journeyConfig = journeyConfig }
     if hasGanttSection { frontmatter.ganttConfig = ganttConfig }
+    if hasQuadrantChartConfig { frontmatter.quadrantChartConfig = quadrantChartConfig }
+    if hasQuadrantChartTheme { frontmatter.quadrantChartTheme = quadrantChartTheme }
 
     return hasAnyContent ? frontmatter : nil
 }
@@ -583,6 +635,44 @@ private func _applyPieThemeValue(_ key: String, value: String, theme: inout PieC
     case "pieOuterStrokeColor": theme.pieOuterStrokeColor = value
     case "pieOpacity": theme.pieOpacity = value
     case "fontFamily": theme.fontFamily = value
+    default: return false
+    }
+    return true
+}
+
+// MARK: - Quadrant Chart theme helpers
+
+private func _isQuadrantThemeKey(_ key: String) -> Bool {
+    switch key {
+    case "quadrant1Fill", "quadrant2Fill", "quadrant3Fill", "quadrant4Fill",
+         "quadrant1TextFill", "quadrant2TextFill", "quadrant3TextFill", "quadrant4TextFill",
+         "quadrantPointFill", "quadrantPointTextFill",
+         "quadrantXAxisTextFill", "quadrantYAxisTextFill",
+         "quadrantInternalBorderStrokeFill", "quadrantExternalBorderStrokeFill",
+         "quadrantTitleFill":
+        return true
+    default:
+        return false
+    }
+}
+
+private func _applyQuadrantThemeValue(_ key: String, value: String, theme: inout QuadrantChartThemeConfig) -> Bool {
+    switch key {
+    case "quadrant1Fill": theme.quadrant1Fill = value
+    case "quadrant2Fill": theme.quadrant2Fill = value
+    case "quadrant3Fill": theme.quadrant3Fill = value
+    case "quadrant4Fill": theme.quadrant4Fill = value
+    case "quadrant1TextFill": theme.quadrant1TextFill = value
+    case "quadrant2TextFill": theme.quadrant2TextFill = value
+    case "quadrant3TextFill": theme.quadrant3TextFill = value
+    case "quadrant4TextFill": theme.quadrant4TextFill = value
+    case "quadrantPointFill": theme.quadrantPointFill = value
+    case "quadrantPointTextFill": theme.quadrantPointTextFill = value
+    case "quadrantXAxisTextFill": theme.quadrantXAxisTextFill = value
+    case "quadrantYAxisTextFill": theme.quadrantYAxisTextFill = value
+    case "quadrantInternalBorderStrokeFill": theme.quadrantInternalBorderStrokeFill = value
+    case "quadrantExternalBorderStrokeFill": theme.quadrantExternalBorderStrokeFill = value
+    case "quadrantTitleFill": theme.quadrantTitleFill = value
     default: return false
     }
     return true

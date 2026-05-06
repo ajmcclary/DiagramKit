@@ -127,6 +127,18 @@ public struct GraphLayout {
                     height: positioned.height,
                     content: .gantt(positioned)
                 )
+            case .quadrantChart:
+                guard case let .quadrantChart(chart) = graph.payload else {
+                    _reportMermaidIssue("GraphLayout.layout found mismatched quadrant chart payload.")
+                    return PositionedGraph(diagram: graph, content: .quadrantChart(.empty))
+                }
+                let positioned = layoutQuadrantChart(chart)
+                return PositionedGraph(
+                    diagram: graph,
+                    width: positioned.width,
+                    height: positioned.height,
+                    content: .quadrantChart(positioned)
+                )
             }
         }
     }

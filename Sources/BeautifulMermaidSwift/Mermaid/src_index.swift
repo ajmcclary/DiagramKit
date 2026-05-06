@@ -80,6 +80,7 @@ private enum _DiagramRoutingType {
     case pie
     case journey
     case gantt
+    case quadrant
 }
 
 private func _decodeXML(_ text: String) -> String {
@@ -115,6 +116,9 @@ private func detectDiagramType(_ text: String) -> _DiagramRoutingType {
     }
     if firstLine.hasPrefix("gantt") {
         return .gantt
+    }
+    if firstLine.hasPrefix("quadrantchart") {
+        return .quadrant
     }
 
     return .flowchart
@@ -190,6 +194,17 @@ func _renderMermaidSVG(
         let positioned = layoutGanttDiagram(merged)
         let diagramId = UUID().uuidString
         return try renderGanttSvg(positioned, diagramId: diagramId, colors, font, transparent)
+    case .quadrant:
+        let chart = try parseQuadrantChart(lines, frontmatter: fm)
+        var mutatedChart = chart
+        if let fmc = fm?.quadrantChartConfig { mutatedChart.config = fmc }
+        if let fmt = fm?.quadrantChartTheme { mutatedChart.theme = fmt }
+        if mutatedChart.titleText == nil, let fmTitle = fm?.diagramTitle {
+            mutatedChart.titleText = fmTitle
+            mutatedChart.diagramTitle = fmTitle
+        }
+        let positioned = layoutQuadrantChart(mutatedChart)
+        return renderQuadrantSvg(positioned, colors, font, transparent)
     case .flowchart:
         let graph = try parseMermaid(decodedText, config: fm?.flowchartConfig, stateConfig: fm?.stateConfig)
         let positioned = try layoutGraphSync(graph, options)

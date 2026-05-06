@@ -65,6 +65,20 @@ public enum MermaidParser {
                 let parsed = try parseGanttDiagram(ganttLines, frontmatter: frontmatter)
                 return MermaidGraph(payload: .gantt(parsed))
             }
+            if firstLine.hasPrefix("quadrantchart") {
+                var chart = try parseQuadrantChart(lines, frontmatter: frontmatter)
+                if let fm = frontmatter {
+                    if let cfg = fm.quadrantChartConfig { chart.config = cfg }
+                    if let theme = fm.quadrantChartTheme { chart.theme = theme }
+                    if chart.diagramTitle == nil, let fmTitle = fm.diagramTitle {
+                        chart.diagramTitle = fmTitle
+                    }
+                }
+                if chart.titleText == nil, let dt = chart.diagramTitle {
+                    chart.titleText = dt
+                }
+                return MermaidGraph(payload: .quadrantChart(chart))
+            }
 
             // Flowchart + stateDiagram-v2 — pass frontmatter flowchart config
             let parsed = try parseMermaid(processed, config: frontmatter?.flowchartConfig)

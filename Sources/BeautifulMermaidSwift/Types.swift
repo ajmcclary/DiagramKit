@@ -11,6 +11,7 @@ public enum DiagramType: String, CaseIterable, Sendable {
     case pie
     case journey
     case gantt
+    case quadrantChart
 }
 
 /// The parsed graph model for flowcharts and state diagrams.
@@ -27,6 +28,7 @@ public enum DiagramPayload: Sendable {
     case pie(PieChart)
     case journey(JourneyDiagram)
     case gantt(GanttDiagram)
+    case quadrantChart(QuadrantChart)
 
     public var type: DiagramType {
         switch self {
@@ -48,6 +50,8 @@ public enum DiagramPayload: Sendable {
             return .journey
         case .gantt:
             return .gantt
+        case .quadrantChart:
+            return .quadrantChart
         }
     }
 }
@@ -96,6 +100,8 @@ public struct MermaidGraph: Sendable {
             self.payload = .journey(JourneyDiagram())
         case .gantt:
             self.payload = .gantt(GanttDiagram.empty)
+        case .quadrantChart:
+            self.payload = .quadrantChart(QuadrantChart())
         }
     }
 
@@ -161,6 +167,7 @@ public enum PositionedContent: Sendable {
     case pie(PositionedPieChart)
     case journey(PositionedJourneyDiagram)
     case gantt(PositionedGanttDiagram)
+    case quadrantChart(PositionedQuadrantChart)
 }
 
 public struct PositionedGraph: Sendable {
@@ -210,6 +217,8 @@ public struct PositionedGraph: Sendable {
             self.content = .journey(.empty)
         case .gantt:
             self.content = .gantt(.empty)
+        case .quadrantChart:
+            self.content = .quadrantChart(.empty)
         }
     }
 

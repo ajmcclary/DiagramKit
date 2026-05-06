@@ -955,6 +955,78 @@
       "source": "gantt\n    accTitle: My Gantt Chart\n    accDescr: A project schedule showing task dependencies\n    dateFormat YYYY-MM-DD\n    section Main\n        Task 1 :t1, 2024-01-01, 7d"
     },
     {
+      "id": "quadrant-1-empty",
+      "category": "quadrantChart",
+      "name": "Empty Quadrant Chart",
+      "source": "quadrantChart"
+    },
+    {
+      "id": "quadrant-2-docs-example",
+      "category": "quadrantChart",
+      "name": "Canonical Docs Example",
+      "source": "quadrantChart\n    title Reach and engagement of campaigns\n    x-axis Low Reach --> High Reach\n    y-axis Low Engagement --> High Engagement\n    quadrant-1 We should expand\n    quadrant-2 Need to promote\n    quadrant-3 Re-evaluate\n    quadrant-4 May be improved\n    Campaign A: [0.3, 0.6]\n    Campaign B: [0.45, 0.23]\n    Campaign C: [0.57, 0.69]\n    Campaign D: [0.78, 0.34]\n    Campaign E: [0.40, 0.34]\n    Campaign F: [0.35, 0.78]"
+    },
+    {
+      "id": "quadrant-3-single-axis",
+      "category": "quadrantChart",
+      "name": "Single Axis Labels",
+      "source": "quadrantChart\n    x-axis Low\n    y-axis Low\n    quadrant-1 Plan\n    quadrant-2 Do"
+    },
+    {
+      "id": "quadrant-4-trailing-delimiter",
+      "category": "quadrantChart",
+      "name": "Trailing Delimiters",
+      "source": "quadrantChart\n    x-axis Low -->\n    y-axis Low -->\n    quadrant-1 Plan"
+    },
+    {
+      "id": "quadrant-5-no-points",
+      "category": "quadrantChart",
+      "name": "No Points (Centered Text)",
+      "source": "quadrantChart\n    x-axis Urgent --> Not Urgent\n    y-axis Not Important --> Important\n    quadrant-1 Plan\n    quadrant-2 Do\n    quadrant-3 Delegate\n    quadrant-4 Delete"
+    },
+    {
+      "id": "quadrant-6-with-points",
+      "category": "quadrantChart",
+      "name": "With Points (Text Moves Top)",
+      "source": "quadrantChart\n    x-axis Urgent --> Not Urgent\n    y-axis Not Important --> Important\n    quadrant-1 Plan\n    quadrant-2 Do\n    quadrant-3 Delegate\n    quadrant-4 Delete\n    Task A: [0.2, 0.8]\n    Task B: [0.7, 0.3]"
+    },
+    {
+      "id": "quadrant-7-point-styles",
+      "category": "quadrantChart",
+      "name": "Point Styling",
+      "source": "quadrantChart\n    x-axis Low --> High\n    y-axis Low --> High\n    quadrant-1 Plan\n    Point A: [0.3, 0.6] radius: 10, color: #ff0000, stroke-color: #0000ff, stroke-width: 2px\n    Point B: [0.7, 0.4] radius: 7, color: #00ff00"
+    },
+    {
+      "id": "quadrant-8-class-styles",
+      "category": "quadrantChart",
+      "name": "Class Styling",
+      "source": "quadrantChart\n    x-axis Low --> High\n    y-axis Low --> High\n    classDef primary color: #ff0000, radius: 10\n    classDef secondary color: #0000ff, radius: 7\n    quadrant-1 Plan\n    Point A:::primary: [0.3, 0.6]\n    Point B:::secondary: [0.7, 0.4]"
+    },
+    {
+      "id": "quadrant-9-unicode",
+      "category": "quadrantChart",
+      "name": "Unicode Labels (CJK)",
+      "source": "quadrantChart\n    x-axis 低覆盖率 --> 高覆盖率\n    y-axis 低参与度 --> 高参与度\n    quadrant-1 需要扩展\n    quadrant-2 需要推广\n    quadrant-3 重新评估\n    quadrant-4 可以改进\n    产品A: [0.3, 0.6]\n    产品B: [0.7, 0.4]"
+    },
+    {
+      "id": "quadrant-10-frontmatter",
+      "category": "quadrantChart",
+      "name": "Config via Frontmatter",
+      "source": "---\nconfig:\n  quadrantChart:\n    chartWidth: 400\n    chartHeight: 400\n  themeVariables:\n    quadrant1Fill: \"#ff0000\"\n---\nquadrantChart\n    x-axis Urgent --> Not Urgent\n    y-axis Not Important --> Important\n    quadrant-1 Plan\n    quadrant-2 Do\n    quadrant-3 Delegate\n    quadrant-4 Delete"
+    },
+    {
+      "id": "quadrant-11-edge-coords",
+      "category": "quadrantChart",
+      "name": "Edge Coordinates",
+      "source": "quadrantChart\n    x-axis Low --> High\n    y-axis Low --> High\n    quadrant-1 TR\n    quadrant-2 TL\n    quadrant-3 BL\n    quadrant-4 BR\n    TL: [0, 1]\n    TR: [1, 1]\n    BL: [0, 0]\n    BR: [1, 0]"
+    },
+    {
+      "id": "quadrant-12-accessibility",
+      "category": "quadrantChart",
+      "name": "Accessibility Metadata",
+      "source": "quadrantChart\n    accTitle: Quadrant Chart\n    accDescr: A 2x2 matrix showing task distribution\n    x-axis Urgent --> Not Urgent\n    y-axis Not Important --> Important\n    quadrant-1 Plan"
+    },
+    {
       "id": "pie-1-basic",
       "category": "pie",
       "name": "Basic Pie Chart",
@@ -1040,7 +1112,7 @@
     }
   ],
   "metadata": {
-    "totalCount": 171,
+    "totalCount": 183,
     "categories": {
       "flowchart": 27,
       "state": 12,
@@ -1050,7 +1122,8 @@
       "xychart": 17,
       "pie": 14,
       "journey": 3,
-      "gantt": 7
+      "gantt": 7,
+      "quadrantChart": 12
     }
   }
 }

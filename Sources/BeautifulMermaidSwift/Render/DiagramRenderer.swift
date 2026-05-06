@@ -50,6 +50,8 @@ public final class DiagramRenderer {
             _drawJourney(positioned, in: context, bounds: bounds)
         case .gantt:
             _drawGantt(positioned, in: context, bounds: bounds)
+        case .quadrantChart:
+            _drawQuadrant(positioned, in: context, bounds: bounds)
         }
     }
 
