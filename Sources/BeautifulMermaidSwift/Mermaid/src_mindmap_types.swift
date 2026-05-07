@@ -125,7 +125,7 @@ public struct MindmapConfig: Sendable, Equatable {
         padding: Double = 10,
         maxNodeWidth: Double = 200,
         useMaxWidth: Bool = true,
-        layoutAlgorithm: String = "cose-bilkent",
+        layoutAlgorithm: String = "tidy-tree",
         layout: String? = nil,
         look: String? = nil,
         theme: String? = nil,

@@ -173,40 +173,75 @@ extension DiagramRenderer {
         let w = rect.size.width
         let h = rect.size.height
 
+        // Mermaid cloud: arc-based bumpy contour starting at (0,0).
+        // Approximated with bezier curves for Core Graphics parity.
         context.beginPath()
-        context.move(to: CGPoint(x: x + w * 0.3, y: y + h * 0.7))
-        context.addCurve(to: CGPoint(x: x + w * 0.2, y: y + h * 0.25), control1: CGPoint(x: x + w * 0.1, y: y + h * 0.65), control2: CGPoint(x: x + w * 0.05, y: y + h * 0.4))
-        context.addCurve(to: CGPoint(x: x + w * 0.5, y: y + h * 0.15), control1: CGPoint(x: x + w * 0.05, y: y + h * 0.05), control2: CGPoint(x: x + w * 0.35, y: y + h * 0.0))
-        context.addCurve(to: CGPoint(x: x + w * 0.85, y: y + h * 0.25), control1: CGPoint(x: x + w * 0.65, y: y + h * 0.0), control2: CGPoint(x: x + w * 0.85, y: y + h * 0.05))
-        context.addCurve(to: CGPoint(x: x + w * 0.75, y: y + h * 0.65), control1: CGPoint(x: x + w * 0.95, y: y + h * 0.35), control2: CGPoint(x: x + w * 0.9, y: y + h * 0.55))
-        context.addCurve(to: CGPoint(x: x + w * 0.5, y: y + h * 0.85), control1: CGPoint(x: x + w * 0.85, y: y + h * 0.85), control2: CGPoint(x: x + w * 0.65, y: y + h * 0.95))
-        context.addCurve(to: CGPoint(x: x + w * 0.3, y: y + h * 0.7), control1: CGPoint(x: x + w * 0.35, y: y + h * 0.95), control2: CGPoint(x: x + w * 0.15, y: y + h * 0.85))
+        context.move(to: CGPoint(x: x, y: y))
+        // Top-right bump
+        context.addCurve(to: CGPoint(x: x + w*0.65, y: y - h*0.05),
+                         control1: CGPoint(x: x + w*0.15, y: y - h*0.18),
+                         control2: CGPoint(x: x + w*0.4, y: y - h*0.15))
+        // Top-center bump
+        context.addCurve(to: CGPoint(x: x + w, y: y + h*0.2),
+                         control1: CGPoint(x: x + w*0.82, y: y - h*0.05),
+                         control2: CGPoint(x: x + w, y: y + h*0.05))
+        // Right-upper bump
+        context.addCurve(to: CGPoint(x: x + w*0.9, y: y + h*0.5),
+                         control1: CGPoint(x: x + w, y: y + h*0.35),
+                         control2: CGPoint(x: x + w*0.95, y: y + h*0.42))
+        // Right-lower bump
+        context.addCurve(to: CGPoint(x: x + w*0.7, y: y + h*0.85),
+                         control1: CGPoint(x: x + w*0.85, y: y + h*0.65),
+                         control2: CGPoint(x: x + w*0.78, y: y + h*0.78))
+        // Bottom-right
+        context.addCurve(to: CGPoint(x: x + w*0.4, y: y + h),
+                         control1: CGPoint(x: x + w*0.58, y: y + h*0.95),
+                         control2: CGPoint(x: x + w*0.48, y: y + h))
+        // Bottom-left
+        context.addCurve(to: CGPoint(x: x + w*0.1, y: y + h*0.8),
+                         control1: CGPoint(x: x + w*0.25, y: y + h), control2: CGPoint(x: x + w*0.15, y: y + h*0.9))
+        // Left-lower
+        context.addCurve(to: CGPoint(x: x - w*0.05, y: y + h*0.45),
+                         control1: CGPoint(x: x + w*0.02, y: y + h*0.65), control2: CGPoint(x: x - w*0.05, y: y + h*0.55))
+        // Left-upper
+        context.addCurve(to: CGPoint(x: x, y: y + h*0.15),
+                         control1: CGPoint(x: x - w*0.05, y: y + h*0.3), control2: CGPoint(x: x - w*0.02, y: y + h*0.2))
+        // Top-left back to origin
+        context.addCurve(to: CGPoint(x: x, y: y),
+                         control1: CGPoint(x: x + w*0.05, y: y + h*0.08), control2: CGPoint(x: x + w*0.02, y: y + h*0.03))
         context.closePath()
     }
 
     private func _drawBangShape(rect: CGRect, context: CGContext) {
-        let cx = rect.midX
-        let cy = rect.midY
-        let r = min(rect.width, rect.height) / 2
+        let x = rect.origin.x
+        let y = rect.origin.y
+        let w = rect.size.width
+        let h = rect.size.height
 
+        // Mermaid bang: arc-based exclamation silhouette starting at (0,0).
+        // Approximated with curves for Core Graphics.
         context.beginPath()
-        for i in 0..<5 {
-            let angle = CGFloat(i) * 2 * .pi / 5 - .pi / 2
-            let nextAngle = angle + 2 * .pi / 5
-            let x1 = cx + r * cos(angle)
-            let y1 = cy + r * sin(angle)
-            let x2 = cx + r * 0.55 * cos(angle + .pi / 10)
-            let y2 = cy + r * 0.55 * sin(angle + .pi / 10)
-            let x3 = cx + r * cos(nextAngle)
-            let y3 = cy + r * sin(nextAngle)
-            let x4 = cx + r * 0.55 * cos(nextAngle - .pi / 10)
-            let y4 = cy + r * 0.55 * sin(nextAngle - .pi / 10)
-
-            if i == 0 {
-                context.move(to: CGPoint(x: x1, y: y1))
-            }
-            context.addCurve(to: CGPoint(x: x3, y: y3), control1: CGPoint(x: x2, y: y2), control2: CGPoint(x: x4, y: y4))
-        }
+        context.move(to: CGPoint(x: x, y: y))
+        // Top section: flared outward from center, narrowing to middle pinch
+        context.addCurve(to: CGPoint(x: x + w*0.25, y: y - h*0.05), control1: CGPoint(x: x + w*0.05, y: y - h*0.05), control2: CGPoint(x: x + w*0.15, y: y - h*0.08))
+        context.addCurve(to: CGPoint(x: x + w*0.5, y: y + h*0.05), control1: CGPoint(x: x + w*0.38, y: y), control2: CGPoint(x: x + w*0.45, y: y + h*0.02))
+        context.addCurve(to: CGPoint(x: x + w*0.75, y: y + h*0.0), control1: CGPoint(x: x + w*0.6, y: y + h*0.05), control2: CGPoint(x: x + w*0.68, y: y + h*0.02))
+        context.addCurve(to: CGPoint(x: x + w, y: y + h*0.1), control1: CGPoint(x: x + w*0.85, y: y + h*0.0), control2: CGPoint(x: x + w*0.95, y: y + h*0.05))
+        // Right side: widening out
+        context.addCurve(to: CGPoint(x: x + w*0.85, y: y + h*0.4), control1: CGPoint(x: x + w, y: y + h*0.2), control2: CGPoint(x: x + w*0.92, y: y + h*0.3))
+        // Right lower flare
+        context.addCurve(to: CGPoint(x: x + w*0.6, y: y + h*0.65), control1: CGPoint(x: x + w*0.78, y: y + h*0.5), control2: CGPoint(x: x + w*0.7, y: y + h*0.58))
+        // Mid-bottom pinch
+        context.addCurve(to: CGPoint(x: x + w*0.5, y: y + h*0.85), control1: CGPoint(x: x + w*0.55, y: y + h*0.72), control2: CGPoint(x: x + w*0.52, y: y + h*0.78))
+        // Bottom curve
+        context.addCurve(to: CGPoint(x: x + w*0.4, y: y + h), control1: CGPoint(x: x + w*0.48, y: y + h*0.95), control2: CGPoint(x: x + w*0.44, y: y + h))
+        // Left side back up
+        context.addCurve(to: CGPoint(x: x + w*0.15, y: y + h*0.65), control1: CGPoint(x: x + w*0.3, y: y + h), control2: CGPoint(x: x + w*0.22, y: y + h*0.8))
+        context.addCurve(to: CGPoint(x: x, y: y + h*0.4), control1: CGPoint(x: x + w*0.08, y: y + h*0.55), control2: CGPoint(x: x, y: y + h*0.48))
+        // Top-left section back to origin
+        context.addCurve(to: CGPoint(x: x + w*0.05, y: y + h*0.15), control1: CGPoint(x: x, y: y + h*0.3), control2: CGPoint(x: x + w*0.02, y: y + h*0.22))
+        context.addCurve(to: CGPoint(x: x + w*0.1, y: y + h*0.08), control1: CGPoint(x: x + w*0.06, y: y + h*0.12), control2: CGPoint(x: x + w*0.08, y: y + h*0.1))
+        context.addCurve(to: CGPoint(x: x, y: y), control1: CGPoint(x: x + w*0.05, y: y + h*0.04), control2: CGPoint(x: x + w*0.02, y: y + h*0.02))
         context.closePath()
     }
 
@@ -305,13 +340,40 @@ extension DiagramRenderer {
     }
 
     private func _iconPlaceholder(_ icon: String) -> String {
-        if icon.contains("bomb") { return "\u{1F4A3}" }
-        if icon.contains("book") { return "\u{1F4D6}" }
-        if icon.contains("fire") { return "\u{1F525}" }
-        if icon.contains("star") { return "\u{2B50}" }
-        if icon.contains("heart") { return "\u{2764}" }
-        if icon.contains("check") { return "\u{2705}" }
-        if icon.contains("gear") || icon.contains("cog") { return "\u{2699}" }
+        let lower = icon.lowercased()
+        if lower.contains("bomb") { return "\u{1F4A3}" }
+        if lower.contains("book") { return "\u{1F4D6}" }
+        if lower.contains("fire") { return "\u{1F525}" }
+        if lower.contains("star") { return "\u{2B50}" }
+        if lower.contains("heart") { return "\u{2764}" }
+        if lower.contains("check") { return "\u{2705}" }
+        if lower.contains("gear") || lower.contains("cog") { return "\u{2699}" }
+        if lower.contains("user") { return "\u{1F464}" }
+        if lower.contains("home") || lower.contains("house") { return "\u{1F3E0}" }
+        if lower.contains("envelope") || lower.contains("mail") { return "\u{2709}" }
+        if lower.contains("phone") || lower.contains("mobile") { return "\u{1F4F1}" }
+        if lower.contains("calendar") { return "\u{1F4C5}" }
+        if lower.contains("clock") || lower.contains("time") { return "\u{1F552}" }
+        if lower.contains("map") || lower.contains("location") { return "\u{1F4CD}" }
+        if lower.contains("cloud") { return "\u{2601}" }
+        if lower.contains("lock") || lower.contains("key") { return "\u{1F511}" }
+        if lower.contains("tag") || lower.contains("label") { return "\u{1F3F7}" }
+        if lower.contains("camera") || lower.contains("photo") { return "\u{1F4F7}" }
+        if lower.contains("music") || lower.contains("note") { return "\u{1F3B5}" }
+        if lower.contains("film") || lower.contains("video") { return "\u{1F3AC}" }
+        if lower.contains("flag") { return "\u{1F3F4}" }
+        if lower.contains("wrench") || lower.contains("tool") { return "\u{1F527}" }
+        if lower.contains("pencil") || lower.contains("edit") { return "\u{270F}" }
+        if lower.contains("trash") || lower.contains("delete") { return "\u{1F5D1}" }
+        if lower.contains("folder") { return "\u{1F4C1}" }
+        if lower.contains("file") { return "\u{1F4C4}" }
+        if lower.contains("globe") || lower.contains("world") { return "\u{1F310}" }
+        if lower.contains("comment") || lower.contains("chat") { return "\u{1F4AC}" }
+        if lower.contains("lightbulb") || lower.contains("idea") { return "\u{1F4A1}" }
+        if lower.contains("rocket") { return "\u{1F680}" }
+        if lower.contains("shopping") || lower.contains("cart") { return "\u{1F6D2}" }
+        if lower.contains("database") { return "\u{1F5C4}" }
+        if lower.contains("shield") || lower.contains("security") { return "\u{1F6E1}" }
         return "\u{1F517}"
     }
 

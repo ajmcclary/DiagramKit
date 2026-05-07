@@ -42,7 +42,7 @@ func renderMindmapSvg(
     parts.append(_generateMindmapCSS(theme: positioned.theme, svgId: svgId))
     parts.append("</style>")
 
-    parts.append("<g class=\"mindmap\">")
+    parts.append("<g class=\"mindmap\"\(positioned.config.look == "neo" ? " data-look=\"neo\"" : "")>")
 
     parts.append("<g class=\"edges\">")
     for edge in positioned.edges {
@@ -86,10 +86,12 @@ private func _drawMindmapNodeShape(node: PositionedMindmapNode, theme: MindmapTh
             let lineColor = node.section.map { theme.cScaleInv(for: $0) } ?? theme.cScaleInv0
             let lineClass = node.section.map { "node-line-\($0)" } ?? "node-line-0"
             var result: [String] = []
-            if isRoot {                result.append("<rect class=\"node-bkg\" fill=\"\(fill)\" x=\"0\" y=\"0\" width=\"\(w)\" height=\"\(h)\" rx=\"5\" stroke=\"\(stroke)\" stroke-width=\"\(strokeW)\"/>")
-            } else {
-                result.append("<path class=\"node-bkg node-no-border\" fill=\"\(fill)\" d=\"M0,\(h) L0,10 Q0,0 10,0 L\(w - 10),0 Q\(w),0 \(w),10 L\(w),\(h) Z\"/>")
-            }
+            let rd = 5
+            let cw = Double(w)
+            let ch = Double(h)
+            let bottomLineY = ch - Double(rd)
+            let pathD = "M0 \(bottomLineY) v\(-ch + 2 * Double(rd)) q0,-\(rd) \(rd),-\(rd) h\(cw - 2 * Double(rd)) q\(rd),0 \(rd),\(rd) v\(bottomLineY) H0 Z"
+            result.append("<path class=\"node-bkg node-no-border\" fill=\"\(fill)\" d=\"\(pathD)\"/>")
             result.append("<line class=\"\(lineClass)\" x1=\"0\" y1=\"\(h)\" x2=\"\(w)\" y2=\"\(h)\" stroke=\"\(lineColor)\" stroke-width=\"2\"/>")
             return result
         }
@@ -133,51 +135,60 @@ private func _drawMindmapNodeShape(node: PositionedMindmapNode, theme: MindmapTh
 private func _cloudPath(w: Int, h: Int, fill: String, stroke: String, strokeWidth: Double) -> String {
     let cw = Double(w)
     let ch = Double(h)
-    var d = "M\(cw * 0.3),\(ch * 0.7)"
-
-    d += " C\(cw * 0.1),\(ch * 0.65) \(cw * 0.05),\(ch * 0.4) \(cw * 0.2),\(ch * 0.25)"
-    d += " C\(cw * 0.05),\(ch * 0.05) \(cw * 0.35),\(ch * 0.0) \(cw * 0.5),\(ch * 0.15)"
-    d += " C\(cw * 0.65),\(ch * 0.0) \(cw * 0.85),\(ch * 0.05) \(cw * 0.85),\(ch * 0.25)"
-    d += " C\(cw * 0.95),\(ch * 0.35) \(cw * 0.9),\(ch * 0.55) \(cw * 0.75),\(ch * 0.65)"
-    d += " C\(cw * 0.85),\(ch * 0.85) \(cw * 0.65),\(ch * 0.95) \(cw * 0.5),\(ch * 0.85)"
-    d += " C\(cw * 0.35),\(ch * 0.95) \(cw * 0.15),\(ch * 0.85) \(cw * 0.3),\(ch * 0.7) Z"
-
+    let r1 = 0.15 * cw
+    let r2 = 0.25 * cw
+    let r3 = 0.35 * cw
+    let r4 = 0.20 * cw
+    var d = "M0 0"
+    d += " a\(_fmt(r1)),\(_fmt(r1)) 0 0,1 \(_fmt(cw * 0.25)),\(_fmt(-cw * 0.1))"
+    d += " a\(_fmt(r3)),\(_fmt(r3)) 1 0,1 \(_fmt(cw * 0.4)),\(_fmt(-cw * 0.1))"
+    d += " a\(_fmt(r2)),\(_fmt(r2)) 1 0,1 \(_fmt(cw * 0.35)),\(_fmt(cw * 0.2))"
+    d += " a\(_fmt(r1)),\(_fmt(r1)) 1 0,1 \(_fmt(cw * 0.15)),\(_fmt(ch * 0.35))"
+    d += " a\(_fmt(r4)),\(_fmt(r4)) 1 0,1 \(_fmt(-cw * 0.15)),\(_fmt(ch * 0.65))"
+    d += " a\(_fmt(r2)),\(_fmt(r1)) 1 0,1 \(_fmt(-cw * 0.25)),\(_fmt(cw * 0.15))"
+    d += " a\(_fmt(r3)),\(_fmt(r3)) 1 0,1 \(_fmt(-cw * 0.5)),0"
+    d += " a\(_fmt(r1)),\(_fmt(r1)) 1 0,1 \(_fmt(-cw * 0.25)),\(_fmt(-cw * 0.15))"
+    d += " a\(_fmt(r1)),\(_fmt(r1)) 1 0,1 \(_fmt(-cw * 0.1)),\(_fmt(-ch * 0.35))"
+    d += " a\(_fmt(r4)),\(_fmt(r4)) 1 0,1 \(_fmt(cw * 0.1)),\(_fmt(-ch * 0.65))"
+    d += " H0 V0 Z"
     return "<path class=\"node-bkg cloud\" fill=\"\(fill)\" stroke=\"\(stroke)\" stroke-width=\"\(strokeWidth)\" d=\"\(d)\"/>"
 }
 
 private func _bangPath(w: Int, h: Int, fill: String, stroke: String, strokeWidth: Double) -> String {
     let cw = Double(w)
     let ch = Double(h)
-    let cx = cw / 2
-    let cy = ch / 2
-    let r = min(cw, ch) / 2
-
-    var d = ""
-    var first = true
-
-    for i in 0..<5 {
-        let angle = Double(i) * 2 * .pi / 5 - .pi / 2
-        let nextAngle = angle + 2 * .pi / 5 - .pi / 2
-
-        let x1 = cx + r * cos(angle)
-        let y1 = cy + r * sin(angle)
-        let x2 = cx + r * 0.55 * cos(angle + .pi / 10)
-        let y2 = cy + r * 0.55 * sin(angle + .pi / 10)
-        let x3 = cx + r * cos(nextAngle)
-        let y3 = cy + r * sin(nextAngle)
-        let x4 = cx + r * 0.55 * cos(nextAngle - .pi / 10)
-        let y4 = cy + r * 0.55 * sin(nextAngle - .pi / 10)
-
-        if first {
-            d = "M\(x1),\(y1) C\(x2),\(y2) \(x4),\(y4) \(x3),\(y3)"
-            first = false
-        } else {
-            d += " C\(x2),\(y2) \(x4),\(y4) \(x3),\(y3)"
-        }
-    }
-    d += " Z"
-
+    let r = 0.15 * cw
+    let r08 = r * 0.8
+    var d = "M0 0"
+    d += " a\(_fmt(r)),\(_fmt(r)) 1 0,0 \(_fmt(cw * 0.25)),\(_fmt(-ch * 0.1))"
+    d += " a\(_fmt(r)),\(_fmt(r)) 1 0,0 \(_fmt(cw * 0.25)),0"
+    d += " a\(_fmt(r)),\(_fmt(r)) 1 0,0 \(_fmt(cw * 0.25)),0"
+    d += " a\(_fmt(r)),\(_fmt(r)) 1 0,0 \(_fmt(cw * 0.25)),\(_fmt(ch * 0.1))"
+    d += " a\(_fmt(r)),\(_fmt(r)) 1 0,0 \(_fmt(cw * 0.15)),\(_fmt(ch * 0.33))"
+    d += " a\(_fmt(r08)),\(_fmt(r08)) 1 0,0 0,\(_fmt(ch * 0.34))"
+    d += " a\(_fmt(r)),\(_fmt(r)) 1 0,0 \(_fmt(-cw * 0.15)),\(_fmt(ch * 0.33))"
+    d += " a\(_fmt(r)),\(_fmt(r)) 1 0,0 \(_fmt(-cw * 0.25)),\(_fmt(ch * 0.15))"
+    d += " a\(_fmt(r)),\(_fmt(r)) 1 0,0 \(_fmt(-cw * 0.25)),0"
+    d += " a\(_fmt(r)),\(_fmt(r)) 1 0,0 \(_fmt(-cw * 0.25)),0"
+    d += " a\(_fmt(r)),\(_fmt(r)) 1 0,0 \(_fmt(-cw * 0.25)),\(_fmt(-ch * 0.15))"
+    d += " a\(_fmt(r)),\(_fmt(r)) 1 0,0 \(_fmt(-cw * 0.1)),\(_fmt(-ch * 0.33))"
+    d += " a\(_fmt(r08)),\(_fmt(r08)) 1 0,0 0,\(_fmt(-ch * 0.34))"
+    d += " a\(_fmt(r)),\(_fmt(r)) 1 0,0 \(_fmt(cw * 0.1)),\(_fmt(-ch * 0.33))"
+    d += " H0 V0 Z"
     return "<path class=\"node-bkg bang\" fill=\"\(fill)\" stroke=\"\(stroke)\" stroke-width=\"\(strokeWidth)\" d=\"\(d)\"/>"
+}
+
+private func _fmt(_ v: Double) -> String {
+    let rounded = (v * 100).rounded() / 100
+    let s = String(format: "%.2f", rounded)
+    // Strip trailing zeros while preserving at least one decimal digit
+    var result = s
+    while result.hasSuffix("0") && result.contains(".") {
+        let before = String(result.dropLast())
+        if before.hasSuffix(".") { break }
+        result = before
+    }
+    return result
 }
 
 private func _drawMindmapNodeLabel(node: PositionedMindmapNode, theme: MindmapThemeConfig, config: MindmapConfig) -> [String] {
@@ -191,10 +202,23 @@ private func _drawMindmapNodeLabel(node: PositionedMindmapNode, theme: MindmapTh
     var result: [String] = []
 
     if hasIcon {
-        let iconClass = "node-icon-\(node.section ?? 0)"
-        result.append("<foreignObject x=\"5\" y=\"\(h / 2 - 20)\" width=\"40\" height=\"40\">")
-        result.append("<div class=\"icon-container\"><i class=\"\(_svgAttrEscape(iconClass + " " + node.icon!))\"></i></div>")
-        result.append("</foreignObject>")
+        let section = node.section ?? 0
+        let iconClass = "node-icon-\(section)"
+        if isCircle {
+            // Mermaid: foreignObject width=node.width height="50px" style="text-align:center;"
+            // Icon placed at top, text below
+            let foW = Int(node.width)
+            result.append("<foreignObject x=\"0\" y=\"0\" width=\"\(foW)\" height=\"50\" style=\"text-align: center;\">")
+            result.append("<div class=\"icon-container\"><i class=\"\(_svgAttrEscape(iconClass + " " + node.icon!))\"></i></div>")
+            result.append("</foreignObject>")
+        } else {
+            // Mermaid: foreignObject width="60px" height=node.height with margin-top
+            let orgHeight = Int(node.height)
+            let foW = 60
+            result.append("<foreignObject x=\"0\" y=\"0\" width=\"\(foW)\" height=\"\(orgHeight)\" style=\"text-align: center;\">")
+            result.append("<div class=\"icon-container\"><i class=\"\(_svgAttrEscape(iconClass + " " + node.icon!))\"></i></div>")
+            result.append("</foreignObject>")
+        }
     }
 
     let label = _normalizeMindmapLabelBreaks(node.descr)
@@ -213,7 +237,9 @@ private func _drawMindmapNodeLabel(node: PositionedMindmapNode, theme: MindmapTh
                 textX = w / 2
             }
             let textY = startY + Double(idx) * lineHeight
-            result.append("<text class=\"mindmap-node-label\" x=\"\(textX)\" y=\"\(Int(textY))\" fill=\"\(fillColor)\" font-family=\"\(theme.fontFamily)\" font-size=\"\(Int(fontSize))\" text-anchor=\"middle\">\(_svgEscape(String(line)))</text>")
+            result.append(_renderMarkdownTextSVG(
+                String(line), x: textX, y: Int(textY), fill: fillColor, fontFamily: theme.fontFamily, fontSize: Int(fontSize)
+            ))
         }
     } else {
         let textX: Int
@@ -223,7 +249,9 @@ private func _drawMindmapNodeLabel(node: PositionedMindmapNode, theme: MindmapTh
             textX = w / 2
         }
         let textY = h / 2 + Int(fontSize) / 3
-        result.append("<text class=\"mindmap-node-label\" x=\"\(textX)\" y=\"\(textY)\" fill=\"\(fillColor)\" font-family=\"\(theme.fontFamily)\" font-size=\"\(Int(fontSize))\" text-anchor=\"middle\" dominant-baseline=\"middle\">\(_svgEscape(label))</text>")
+        result.append(_renderMarkdownTextSVG(
+            label, x: textX, y: textY, fill: fillColor, fontFamily: theme.fontFamily, fontSize: Int(fontSize), dominantBaseline: true
+        ))
     }
 
     return result
@@ -265,22 +293,40 @@ private func _edgeStrokeWidth(edge: PositionedMindmapEdge, config: MindmapConfig
 
 private func _generateMindmapCSS(theme: MindmapThemeConfig, svgId: String) -> String {
     var css = """
-    .mindmap-node { cursor: pointer; }
+    .edge { fill: none; }
     .mindmap-node-label { font-family: \(theme.fontFamily); dominant-baseline: middle; }
+    .icon-container { height: 100%; display: flex; justify-content: center; align-items: center; }
     """
 
-    for i in 0...11 {
-        css += "\n.section-\(i) .mindmap-node-label { fill: \(theme.cScaleLabel(for: i)); }"
-        css += "\n.section-edge-\(i) { stroke: \(theme.cScale(for: i)); }"
-        css += "\n.node-line-\(i) { stroke: \(theme.cScaleInv(for: i)); }"
-        css += "\n.node-icon-\(i) { color: \(theme.cScaleLabel(for: i)); }"
+    for i in 0..<12 {
+        let si = i - 1
+        let sectionLabel = si >= 0 ? ".section-\(si)" : ".section-root"
+        let idx = min(max(i, 0), 11)
+        let labelColor = theme.cScaleLabel(for: idx)
+        let scaleColor = theme.cScale(for: idx)
+        let invColor = theme.cScaleInv(for: idx)
+
+        css += "\n\(sectionLabel) .mindmap-node-label { fill: \(labelColor); }"
+        css += "\n.section-edge-\(si) { stroke: \(scaleColor); }"
+        css += "\n.node-line-\(si) { stroke: \(invColor); }"
+        css += "\n.node-icon-\(si) { font-size: 40px; color: \(labelColor); }"
     }
 
     css += "\n.section-root .mindmap-node-label { fill: \(theme.gitBranchLabel0); }"
-    css += "\n.section-root { fill: \(theme.git0); }"
+    css += "\n.section-root rect, .section-root path, .section-root circle, .section-root polygon { fill: \(theme.git0); }"
+
+    if theme.dropShadow {
+        css += "\n[data-look=\"neo\"] .mindmap-node { filter: url(#\(svgId)-drop-shadow); }"
+    }
 
     if theme.useGradient {
-        css += "\n.edge { stroke: url(#\(svgId)-gradient); }"
+        css += "\n[data-look=\"neo\"] .mindmap-node rect, [data-look=\"neo\"] .mindmap-node path, " +
+               "[data-look=\"neo\"] .mindmap-node circle, [data-look=\"neo\"] .mindmap-node polygon { " +
+               "stroke: url(#\(svgId)-gradient); fill: \(theme.mainBkg); }"
+        for i in 0..<12 {
+            let si = i - 1
+            css += "\n.section-\(si) line { stroke-width: 0; }"
+        }
     }
 
     return css
@@ -304,4 +350,67 @@ private func _normalizeMindmapLabelBreaks(_ text: String) -> String {
         with: "\n",
         options: .regularExpression
     )
+}
+
+/// Splits text into segments of plain and formatted (bold/italic) spans.
+struct _MarkdownSegment {
+    let text: String
+    let bold: Bool
+    let italic: Bool
+}
+
+func _parseMarkdownSegments(_ text: String) -> [_MarkdownSegment] {
+    var segments: [_MarkdownSegment] = []
+    var remaining = text
+    while !remaining.isEmpty {
+        // Bold: **text**
+        if let boldMatch = try? NSRegularExpression(pattern: "\\*\\*(.+?)\\*\\*").firstMatch(in: remaining, range: NSRange(remaining.startIndex..., in: remaining)) {
+            let preRange = remaining.startIndex..<Range(boldMatch.range(at: 0), in: remaining)!.lowerBound
+            if preRange.lowerBound < preRange.upperBound {
+                segments.append(_MarkdownSegment(text: String(remaining[preRange]), bold: false, italic: false))
+            }
+            let boldRange = Range(boldMatch.range(at: 1), in: remaining)!
+            segments.append(_MarkdownSegment(text: String(remaining[boldRange]), bold: true, italic: false))
+            remaining = String(remaining[Range(boldMatch.range(at: 0), in: remaining)!.upperBound...])
+            continue
+        }
+        // Italic: *text* (but not **)
+        if let italicMatch = try? NSRegularExpression(pattern: "(?<!\\*)\\*([^*]+)\\*(?!\\*)").firstMatch(in: remaining, range: NSRange(remaining.startIndex..., in: remaining)) {
+            let preRange = remaining.startIndex..<Range(italicMatch.range(at: 0), in: remaining)!.lowerBound
+            if preRange.lowerBound < preRange.upperBound {
+                segments.append(_MarkdownSegment(text: String(remaining[preRange]), bold: false, italic: false))
+            }
+            let italicRange = Range(italicMatch.range(at: 1), in: remaining)!
+            segments.append(_MarkdownSegment(text: String(remaining[italicRange]), bold: false, italic: true))
+            remaining = String(remaining[Range(italicMatch.range(at: 0), in: remaining)!.upperBound...])
+            continue
+        }
+        // Plain text remainder
+        segments.append(_MarkdownSegment(text: remaining, bold: false, italic: false))
+        break
+    }
+    return segments
+}
+
+private func _renderMarkdownTextSVG(_ text: String, x: Int, y: Int, fill: String, fontFamily: String, fontSize: Int, dominantBaseline: Bool = false) -> String {
+    let segments = _parseMarkdownSegments(text)
+    if segments.count == 1 && !segments[0].bold && !segments[0].italic {
+        let db = dominantBaseline ? " dominant-baseline=\"middle\"" : ""
+        return "<text class=\"mindmap-node-label\" x=\"\(x)\" y=\"\(y)\" fill=\"\(fill)\" font-family=\"\(fontFamily)\" font-size=\"\(fontSize)\" text-anchor=\"middle\"\(db)>\(_svgEscape(segments[0].text))</text>"
+    }
+    var parts = ["<text class=\"mindmap-node-label\" x=\"\(x)\" y=\"\(y)\" fill=\"\(fill)\" font-family=\"\(fontFamily)\" font-size=\"\(fontSize)\" text-anchor=\"middle\">"]
+    for seg in segments {
+        var attrs = ""
+        let escaped = _svgEscape(seg.text)
+        if seg.bold && seg.italic {
+            attrs = " font-weight=\"bold\" font-style=\"italic\""
+        } else if seg.bold {
+            attrs = " font-weight=\"bold\""
+        } else if seg.italic {
+            attrs = " font-style=\"italic\""
+        }
+        parts.append("<tspan\(attrs)>\(escaped)</tspan>")
+    }
+    parts.append("</text>")
+    return parts.joined()
 }

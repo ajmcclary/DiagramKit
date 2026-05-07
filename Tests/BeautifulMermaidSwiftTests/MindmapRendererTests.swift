@@ -32,8 +32,9 @@ final class MindmapRendererTests: XCTestCase {
         }
     }
 
-    func test_pipelineParseLayoutRender_tidyTree() async throws {
-        let source = "---\nconfig:\n  layout: tidy-tree\n---\nmindmap\n  root((mindmap))\n    A\n    B"
+    func test_pipelineParseLayoutRender_defaultLayout() async throws {
+        // No frontmatter — default tidy-tree layout takes effect.
+        let source = "mindmap\n  root((mindmap))\n    A\n    B"
         let svg = try await renderMermaidSVG(source)
         XCTAssertTrue(svg.contains("<svg"))
         XCTAssertTrue(svg.contains("mindmapDiagram"))
@@ -72,7 +73,8 @@ final class MindmapRendererTests: XCTestCase {
     }
 
     func test_layoutDispatch_usesMindmapLayout() throws {
-        let source = "---\nconfig:\n  layout: tidy-tree\n---\nmindmap\n  root\n    A"
+        // Default layout resolves to tidy-tree; no frontmatter needed.
+        let source = "mindmap\n  root\n    A"
         let graph = try MermaidParser.parse(source)
         let layout = GraphLayout()
         let positioned = try layout.layout(graph)

@@ -9,6 +9,9 @@ private let LAYOUT_DATA_RANK_SPACING: Double = 50
 func layoutMindmap(_ diagram: MindmapDiagram) throws -> PositionedMindmapDiagram {
     let resolvedLayout = diagram.config.resolvedLayout
 
+    if resolvedLayout == "cose-bilkent" {
+        throw BeautifulMermaidError.notYetImplemented("Mindmap cose-bilkent layout (set config.layout: tidy-tree for native mindmap rendering)")
+    }
     if resolvedLayout != "tidy-tree" {
         throw BeautifulMermaidError.notYetImplemented("Mindmap \(resolvedLayout) layout")
     }
@@ -65,6 +68,7 @@ func layoutMindmap(_ diagram: MindmapDiagram) throws -> PositionedMindmapDiagram
                 n.height += 50
             } else {
                 n.width += 50
+                n.height = max(n.height, 60)
             }
         }
 

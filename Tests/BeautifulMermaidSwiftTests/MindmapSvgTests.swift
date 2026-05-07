@@ -5,8 +5,7 @@ final class MindmapSvgTests: XCTestCase {
 
     private func renderSvg(_ source: String) throws -> String {
         let rawLines = source.split(separator: "\n", omittingEmptySubsequences: false).map(String.init)
-        var diagram = try parseMindmap(rawLines, frontmatter: nil)
-        diagram.config.layout = "tidy-tree"
+        let diagram = try parseMindmap(rawLines, frontmatter: nil)
         let positioned = try layoutMindmap(diagram)
         let colors = DiagramColors(bg: "#FFFFFF", fg: "#27272A")
         return renderMindmapSvg(positioned, diagramId: "test-id", colors, "Inter", false)
@@ -100,8 +99,7 @@ final class MindmapSvgTests: XCTestCase {
     }
 
     func test_accessibilityTitlePresent() throws {
-        var diagram = try parseMindmap(["mindmap", "accTitle: Test Title", "  root"], frontmatter: nil)
-        diagram.config.layout = "tidy-tree"
+        let diagram = try parseMindmap(["mindmap", "accTitle: Test Title", "  root"], frontmatter: nil)
         let positioned = try layoutMindmap(diagram)
         let colors = DiagramColors(bg: "#FFFFFF", fg: "#27272A")
         let svg = renderMindmapSvg(positioned, diagramId: "test-id", colors, "Inter", false)
@@ -110,12 +108,56 @@ final class MindmapSvgTests: XCTestCase {
     }
 
     func test_accessibilityDescrPresent() throws {
-        var diagram = try parseMindmap(["mindmap", "accDescr: Test Desc", "  root"], frontmatter: nil)
-        diagram.config.layout = "tidy-tree"
+        let diagram = try parseMindmap(["mindmap", "accDescr: Test Desc", "  root"], frontmatter: nil)
         let positioned = try layoutMindmap(diagram)
         let colors = DiagramColors(bg: "#FFFFFF", fg: "#27272A")
         let svg = renderMindmapSvg(positioned, diagramId: "test-id", colors, "Inter", false)
         XCTAssertTrue(svg.contains("<desc>"))
         XCTAssertTrue(svg.contains("Test Desc"))
+    }
+
+    func test_markdownBoldRendersAsBoldTspan() throws {
+        let svg = try renderSvg("mindmap\n  root[\"`**bold** text`\"]")
+        XCTAssertTrue(svg.contains("font-weight=\"bold\""))
+        XCTAssertTrue(svg.contains("bold"))
+        XCTAssertTrue(svg.contains("<tspan"))
+    }
+
+    func test_markdownItalicRendersAsItalicTspan() throws {
+        let svg = try renderSvg("mindmap\n  root[\"`*italic* text`\"]")
+        XCTAssertTrue(svg.contains("font-style=\"italic\""))
+        XCTAssertTrue(svg.contains("italic"))
+        XCTAssertTrue(svg.contains("<tspan"))
+    }
+
+    func test_markdownPlainTextNoTspan() throws {
+        let svg = try renderSvg("mindmap\n  root[plain text]")
+        XCTAssertFalse(svg.contains("<tspan"))
+        XCTAssertTrue(svg.contains("plain text"))
+    }
+
+    func test_markdownNeoLookDataAttribute() throws {
+        var diagram = try parseMindmap(["mindmap", "  root", "    A"], frontmatter: nil)
+        diagram.config.look = "neo"
+        let positioned = try layoutMindmap(diagram)
+        let colors = DiagramColors(bg: "#FFFFFF", fg: "#27272A")
+        let svg = renderMindmapSvg(positioned, diagramId: "test-id", colors, "Inter", false)
+        XCTAssertTrue(svg.contains("data-look=\"neo\""))
+    }
+
+    func test_iconContainerCssPresent() throws {
+        let svg = try renderSvg("mindmap\n  root\n    A\n    ::icon(fa fa-book)")
+        XCTAssertTrue(svg.contains("icon-container"))
+    }
+
+    func test_gradientNeoStrokeRule() throws {
+        let diagram = try parseMindmap(["mindmap", "  root", "    A"], frontmatter: nil)
+        var configured = diagram
+        configured.config.look = "neo"
+        configured.theme.useGradient = true
+        let positioned = try layoutMindmap(configured)
+        let colors = DiagramColors(bg: "#FFFFFF", fg: "#27272A")
+        let svg = renderMindmapSvg(positioned, diagramId: "test-id", colors, "Inter", false)
+        XCTAssertTrue(svg.contains("stroke: url(#mindmap-test-id-gradient)"))
     }
 }
