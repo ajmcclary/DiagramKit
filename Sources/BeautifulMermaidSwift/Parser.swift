@@ -204,6 +204,18 @@ public enum MermaidParser {
                 let diagram = try parseIshikawaDiagram(rawLines, frontmatter: frontmatter)
                 return MermaidGraph(payload: .ishikawa(diagram))
             }
+            if firstLine.hasPrefix("eventmodeling") {
+                let rawLines = rawLineArray(processed)
+                var diagram = try parseEventModeling(rawLines, frontmatter: frontmatter)
+                if let fm = frontmatter {
+                    if let cfg = fm.eventmodelingConfig { diagram.config = cfg }
+                    if let theme = fm.eventmodelingThemeVariables { diagram.themeVariables = theme }
+                    if diagram.diagramTitle == nil, let fmTitle = fm.diagramTitle {
+                        diagram.diagramTitle = fmTitle
+                    }
+                }
+                return MermaidGraph(payload: .eventModeling(diagram))
+            }
 
             // Flowchart + stateDiagram-v2 — pass frontmatter flowchart config
             let parsed = try parseMermaid(processed, config: frontmatter?.flowchartConfig)

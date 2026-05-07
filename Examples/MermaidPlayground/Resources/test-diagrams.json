@@ -1841,10 +1841,82 @@
       "category": "treeView",
       "name": "TreeView - Empty Tree",
       "source": "treeView-beta"
+    },
+    {
+      "id": "eventmodeling-simple-state-change",
+      "category": "eventmodeling",
+      "name": "Event Modeling - Simple State Change",
+      "source": "eventmodeling\ntf 01 ui CartUI\ntf 02 cmd AddItem\ntf 03 evt ItemAdded"
+    },
+    {
+      "id": "eventmodeling-relaxed-notation",
+      "category": "eventmodeling",
+      "name": "Event Modeling - Relaxed Notation",
+      "source": "eventmodeling\ntimeframe 01 ui CartUI\ntimeframe 02 command AddItem\ntimeframe 03 event ItemAdded"
+    },
+    {
+      "id": "eventmodeling-reset-frame",
+      "category": "eventmodeling",
+      "name": "Event Modeling - Reset Frame",
+      "source": "eventmodeling\ntf 01 ui CartUI\ntf 02 cmd AddItem\ntf 03 evt ItemAdded\nrf 04 evt External.InventoryChanged\ntf 05 pcr InventoryProcessor\ntf 06 cmd ChangeInventory\ntf 07 evt Cart.InventoryChanged"
+    },
+    {
+      "id": "eventmodeling-multi-relation",
+      "category": "eventmodeling",
+      "name": "Event Modeling - Multi-Relation",
+      "source": "eventmodeling\nrf 02 evt CartCreated\nrf 03 evt ItemAdded\nrf 04 evt ItemRemoved\nrf 05 evt CartCleared\ntf 01 rmo CartUI ->> 02 ->> 03 ->> 04 ->> 05"
+    },
+    {
+      "id": "eventmodeling-data-blocks",
+      "category": "eventmodeling",
+      "name": "Event Modeling - Data Blocks",
+      "source": "eventmodeling\ntf 01 ui CartUI\ntf 02 cmd AddItem [[AddItem01]]\ntf 03 evt ItemAdded [[ItemAdded]]\n\ndata AddItem01 {\n  description: 'john'\n  price: 20.4\n}\n\ndata ItemAdded {\n  description: string\n  price: number\n}"
+    },
+    {
+      "id": "eventmodeling-inline-data",
+      "category": "eventmodeling",
+      "name": "Event Modeling - Inline Data",
+      "source": "eventmodeling\ntf 01 ui CartUI\ntf 02 cmd AddItem { description: string }\ntf 03 evt ItemAdded { description: string }"
+    },
+    {
+      "id": "eventmodeling-namespaces",
+      "category": "eventmodeling",
+      "name": "Event Modeling - Namespaces",
+      "source": "eventmodeling\nrf 01 evt Inventory.InventoryChanged\nrf 02 evt External.InventoryChanged\ntf 03 rmo Inventory.CartItems\ntf 04 ui CartUI"
+    },
+    {
+      "id": "eventmodeling-gwt",
+      "category": "eventmodeling",
+      "name": "Event Modeling - GWT",
+      "source": "eventmodeling\nentity CartUI\nentity AddItem\nentity ItemAdded\ntf 02 cmd AddItem\ngwt 02 given ui CartUI when cmd AddItem then evt ItemAdded"
+    },
+    {
+      "id": "eventmodeling-title-accessibility",
+      "category": "eventmodeling",
+      "name": "Event Modeling - Title and Accessibility",
+      "source": "eventmodeling\ntitle Shopping Cart\naccTitle: Cart event flow\naccDescr: Event modeling of shopping cart use case\ntf 01 ui CartUI\ntf 02 cmd AddItem\ntf 03 evt ItemAdded"
+    },
+    {
+      "id": "eventmodeling-frontmatter-config",
+      "category": "eventmodeling",
+      "name": "Event Modeling - Frontmatter Config",
+      "source": "---\nconfig:\n  eventmodeling:\n    padding: 50\n  themeVariables:\n    emCommandFill: '#e3f2fd'\n    emCommandStroke: '#1565c0'\n    emEventFill: '#fff3e0'\n    emEventStroke: '#e65100'\n---\neventmodeling\ntf 01 ui CartUI\ntf 02 cmd AddItem\ntf 03 evt ItemAdded"
+    },
+    {
+      "id": "eventmodeling-all-entity-types",
+      "category": "eventmodeling",
+      "name": "Event Modeling - All Entity Types",
+      "source": "eventmodeling\ntf 01 ui UI\ntf 02 cmd Command\ntf 03 evt Event\ntf 04 pcr Processor\ntf 05 rmo ReadModel"
+    },
+    {
+      "id": "eventmodeling-state-view",
+      "category": "eventmodeling",
+      "name": "Event Modeling - State View Pattern",
+      "source": "eventmodeling\ntf 03 evt ItemAdded\ntf 02 rmo CartItems\ntf 04 ui CartUI"
     }
   ],
   "metadata": {
-    "totalCount": 292,
+    "totalCount": 304,
     "categories": {
       "flowchart": 27,
       "state": 12,
@@ -1869,7 +1941,8 @@
       "treemap": 10,
       "venn": 8,
       "ishikawa": 7,
-      "treeView": 10
+      "treeView": 10,
+      "eventmodeling": 12
     }
   }
 }

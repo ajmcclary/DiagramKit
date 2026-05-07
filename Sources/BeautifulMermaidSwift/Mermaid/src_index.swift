@@ -95,6 +95,7 @@ private enum _DiagramRoutingType {
     case venn
     case ishikawa
     case treeView
+    case eventmodeling
 }
 
 private func _decodeXML(_ text: String) -> String {
@@ -175,6 +176,9 @@ private func detectDiagramType(_ text: String) -> _DiagramRoutingType {
     }
     if firstStatement == "treeView-beta" || firstStatement.hasPrefix("treeView-beta ") || firstStatement.hasPrefix("treeView-beta\t") {
         return .treeView
+    }
+    if firstLine.hasPrefix("eventmodeling") {
+        return .eventmodeling
     }
 
     return .flowchart
@@ -325,6 +329,8 @@ private func _renderPreprocessedMermaidSVG(
         return try _renderIshikawaSvgCase(source: decodedText, fm: fm, colors: colors, font: font, transparent: transparent)
     case .treeView:
         return try _renderTreeViewSvgCase(source: decodedText, fm: fm, colors: colors, font: font, transparent: transparent)
+    case .eventmodeling:
+        return try _renderEventModelingSvgCase(source: decodedText, fm: fm, colors: colors, font: font, transparent: transparent)
     }
 }
 
@@ -551,6 +557,19 @@ private func _renderTreeViewSvgCase(source: String, fm: DiagramFrontmatter?, col
     let positioned = layoutTreeViewDiagram(diagram)
     let diagramId = UUID().uuidString
     return renderTreeViewSvg(positioned, diagramId: diagramId, font: font)
+}
+
+private func _renderEventModelingSvgCase(source: String, fm: DiagramFrontmatter?, colors: DiagramColors, font: String, transparent: Bool) throws -> String {
+    let rawLines = _rawDiagramLines(from: source)
+    var diagram = try parseEventModeling(rawLines, frontmatter: fm)
+    if let fmc = fm?.eventmodelingConfig { diagram.config = fmc }
+    if let theme = fm?.eventmodelingThemeVariables { diagram.themeVariables = theme }
+    if diagram.diagramTitle == nil, let fmTitle = fm?.diagramTitle {
+        diagram.diagramTitle = fmTitle
+    }
+    let positioned = layoutEventModeling(diagram)
+    let diagramId = UUID().uuidString
+    return renderEventModelingSvg(positioned, diagramId: diagramId, colors: colors, font: font, transparent: transparent)
 }
 
 private func _rawDiagramLines(from source: String) -> [String] {

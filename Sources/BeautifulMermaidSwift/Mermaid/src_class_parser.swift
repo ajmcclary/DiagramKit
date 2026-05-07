@@ -358,6 +358,8 @@ public struct DiagramFrontmatter: Sendable {
     public var ishikawaConfig: IshikawaDiagramConfig?
     public var treeViewConfig: TreeViewDiagramConfig?
     public var treeViewTheme: TreeViewThemeVariables?
+    public var eventmodelingConfig: EventModelingDiagramConfig?
+    public var eventmodelingThemeVariables: EventModelingThemeVariables?
 
     public var layout: String?      // Shared global config.layout
     public var look: String?         // Shared global config.look
@@ -404,6 +406,8 @@ public struct DiagramFrontmatter: Sendable {
         ishikawaConfig: IshikawaDiagramConfig? = nil,
         treeViewConfig: TreeViewDiagramConfig? = nil,
         treeViewTheme: TreeViewThemeVariables? = nil,
+        eventmodelingConfig: EventModelingDiagramConfig? = nil,
+        eventmodelingThemeVariables: EventModelingThemeVariables? = nil,
         layout: String? = nil,
         look: String? = nil,
         theme: String? = nil,
@@ -448,6 +452,8 @@ public struct DiagramFrontmatter: Sendable {
         self.ishikawaConfig = ishikawaConfig
         self.treeViewConfig = treeViewConfig
         self.treeViewTheme = treeViewTheme
+        self.eventmodelingConfig = eventmodelingConfig
+        self.eventmodelingThemeVariables = eventmodelingThemeVariables
         self.layout = layout
         self.look = look
         self.theme = theme

@@ -26,6 +26,7 @@ public enum DiagramType: String, CaseIterable, Sendable {
     case venn
     case ishikawa
     case treeView
+    case eventModeling
 }
 
 /// The parsed graph model for flowcharts and state diagrams.
@@ -57,6 +58,7 @@ public enum DiagramPayload: Sendable {
     case venn(VennDiagram)
     case ishikawa(IshikawaDiagram)
     case treeView(TreeViewDiagram)
+    case eventModeling(EventModelingDiagram)
 
     public var type: DiagramType {
         switch self {
@@ -108,6 +110,8 @@ public enum DiagramPayload: Sendable {
             return .ishikawa
         case .treeView:
             return .treeView
+        case .eventModeling:
+            return .eventModeling
         }
     }
 }
@@ -186,6 +190,8 @@ public struct MermaidGraph: Sendable {
             self.payload = .ishikawa(IshikawaDiagram.empty)
         case .treeView:
             self.payload = .treeView(TreeViewDiagram.empty)
+        case .eventModeling:
+            self.payload = .eventModeling(EventModelingDiagram.empty)
         }
     }
 
@@ -266,6 +272,7 @@ public enum PositionedContent: Sendable {
     case venn(PositionedVennDiagram)
     case ishikawa(PositionedIshikawaDiagram)
     case treeView(PositionedTreeViewDiagram)
+    case eventModeling(PositionedEventModelingDiagram)
 }
 
 public struct PositionedGraph: Sendable {
@@ -345,6 +352,8 @@ public struct PositionedGraph: Sendable {
             self.content = .ishikawa(.empty)
         case .treeView:
             self.content = .treeView(.empty)
+        case .eventModeling:
+            self.content = .eventModeling(.empty)
         }
     }
 
@@ -609,6 +618,13 @@ public struct PositionedGraph: Sendable {
     public var treeViewData: PositionedTreeViewDiagram? {
         switch content {
         case .treeView(let data): return data
+        default: return nil
+        }
+    }
+
+    public var eventModelingData: PositionedEventModelingDiagram? {
+        switch content {
+        case .eventModeling(let data): return data
         default: return nil
         }
     }

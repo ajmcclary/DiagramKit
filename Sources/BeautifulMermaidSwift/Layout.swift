@@ -307,6 +307,18 @@ public struct GraphLayout {
                     height: positioned.viewBoxHeight,
                     content: .treeView(positioned)
                 )
+            case .eventModeling:
+                guard case let .eventModeling(diagram) = graph.payload else {
+                    _reportMermaidIssue("GraphLayout.layout found mismatched eventModeling payload.")
+                    return PositionedGraph(diagram: graph, content: .eventModeling(.empty))
+                }
+                let positioned = layoutEventModeling(diagram)
+                return PositionedGraph(
+                    diagram: graph,
+                    width: positioned.width,
+                    height: positioned.height,
+                    content: .eventModeling(positioned)
+                )
             }
         }
     }

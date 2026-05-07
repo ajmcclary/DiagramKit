@@ -588,8 +588,8 @@ struct RadarParserTests {
         #expect(diagram.options.max == 200)
     }
 
-    @Test("End-to-end parsing applies init directive radar config and theme")
-    func endToEndWithInitDirectiveConfigAndTheme() throws {
+    @Test("Init directive frontmatter parsing preserves radar config and theme")
+    func initDirectiveFrontmatterParsing() throws {
         let source = """
         %%{init: {'radar': {'marginTop': 80, 'axisLabelFactor': 1.25}, 'theme': 'base', 'themeVariables': {'fontSize': 10, 'cScale0': '#123456', 'radar': {'axisColor': '#FF0000'}}}}%%
         radar-beta
@@ -599,12 +599,25 @@ struct RadarParserTests {
 
         let (processed, frontmatter) = _parseFrontMatterAndStripped(source)
         #expect(processed.trimmingCharacters(in: .whitespacesAndNewlines).hasPrefix("radar-beta"))
-        #expect(frontmatter?.theme == "base")
-        #expect(frontmatter?.radarConfig?.marginTop == 80)
-        #expect(frontmatter?.radarConfig?.axisLabelFactor == 1.25)
-        #expect(frontmatter?.radarTheme?.fontSize == 10)
-        #expect(frontmatter?.radarTheme?.cScale[0] == "#123456")
-        #expect(frontmatter?.radarTheme?.axisColor == "#FF0000")
+        let parsedFrontmatter = try #require(frontmatter)
+        let radarConfig = try #require(parsedFrontmatter.radarConfig)
+        let radarTheme = try #require(parsedFrontmatter.radarTheme)
+        #expect(parsedFrontmatter.theme == "base")
+        #expect(radarConfig.marginTop == 80)
+        #expect(radarConfig.axisLabelFactor == 1.25)
+        #expect(radarTheme.fontSize == 10)
+        #expect(radarTheme.cScale[0] == "#123456")
+        #expect(radarTheme.axisColor == "#FF0000")
+    }
+
+    @Test("End-to-end parsing applies init directive radar config and theme")
+    func endToEndWithInitDirectiveConfigAndTheme() throws {
+        let source = """
+        %%{init: {'radar': {'marginTop': 80, 'axisLabelFactor': 1.25}, 'theme': 'base', 'themeVariables': {'fontSize': 10, 'cScale0': '#123456', 'radar': {'axisColor': '#FF0000'}}}}%%
+        radar-beta
+          axis A,B,C
+          curve mycurve{1,2,3}
+        """
 
         let graph = try MermaidParser.parse(source)
         guard case .radar(let diagram) = graph.payload else {

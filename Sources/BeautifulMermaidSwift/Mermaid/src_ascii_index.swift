@@ -301,6 +301,7 @@ open class original_src_ascii_index {
     case venn
     case ishikawa
     case treeView
+    case eventmodeling
 }
 
     struct AsciiConfig {
@@ -404,6 +405,8 @@ open class original_src_ascii_index {
             return "ishikawa"
         case .treeView:
             return "treeView"
+        case .eventmodeling:
+            return "eventmodeling"
         case .flowchart:
             return "flowchart"
         }
@@ -510,6 +513,9 @@ open class original_src_ascii_index {
 
         case .treeView:
             throw BeautifulMermaidError.notYetImplemented("TreeView ASCII rendering")
+
+        case .eventmodeling:
+            throw BeautifulMermaidError.notYetImplemented("Event Modeling ASCII rendering")
 
         case .flowchart:
             let parsed = try parseMermaid(preprocessedText)
@@ -618,6 +624,9 @@ open class original_src_ascii_index {
         }
         if firstStatement == "treeView-beta" || firstStatement.hasPrefix("treeView-beta ") || firstStatement.hasPrefix("treeView-beta\t") {
             return .treeView
+        }
+        if firstLine.hasPrefix("eventmodeling") {
+            return .eventmodeling
         }
 
         return .flowchart

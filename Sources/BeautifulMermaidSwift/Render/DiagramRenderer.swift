@@ -80,6 +80,8 @@ public final class DiagramRenderer {
             _drawIshikawa(positioned, in: context, bounds: bounds)
         case .treeView:
             _drawTreeView(positioned, in: context, bounds: bounds)
+        case .eventModeling:
+            _drawEventModeling(positioned, in: context, bounds: bounds)
         }
     }
 

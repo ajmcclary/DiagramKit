@@ -185,10 +185,14 @@ private func _applyInitDirectivePayload(_ payload: String, to frontmatter: inout
         if let treeView = config["treeView"] as? [String: Any] {
             applied = _applyTreeViewInitConfig(treeView, to: &frontmatter) || applied
         }
+        if let eventmodeling = config["eventmodeling"] as? [String: Any] {
+            applied = _applyEventModelingInitConfig(eventmodeling, to: &frontmatter) || applied
+        }
         if let themeVariables = config["themeVariables"] as? [String: Any] {
             applied = _applyRadarInitTheme(themeVariables, to: &frontmatter) || applied
             applied = _applyVennInitTheme(themeVariables, to: &frontmatter) || applied
             applied = _applyTreeViewInitTheme(themeVariables, to: &frontmatter) || applied
+            applied = _applyEventModelingInitTheme(themeVariables, to: &frontmatter) || applied
         }
     }
 
@@ -212,10 +216,15 @@ private func _applyInitDirectivePayload(_ payload: String, to frontmatter: inout
         applied = _applyTreeViewInitConfig(treeView, to: &frontmatter) || applied
     }
 
+    if let eventmodeling = object["eventmodeling"] as? [String: Any] {
+        applied = _applyEventModelingInitConfig(eventmodeling, to: &frontmatter) || applied
+    }
+
         if let themeVariables = object["themeVariables"] as? [String: Any] {
             applied = _applyRadarInitTheme(themeVariables, to: &frontmatter) || applied
             applied = _applyVennInitTheme(themeVariables, to: &frontmatter) || applied
             applied = _applyTreeViewInitTheme(themeVariables, to: &frontmatter) || applied
+            applied = _applyEventModelingInitTheme(themeVariables, to: &frontmatter) || applied
         }
 
     return applied
@@ -301,6 +310,63 @@ private func _applyTreeViewInitConfig(_ object: [String: Any], to frontmatter: i
 
     if applied {
         frontmatter.treeViewConfig = config
+    }
+    return applied
+}
+
+@discardableResult
+private func _applyEventModelingInitConfig(_ object: [String: Any], to frontmatter: inout DiagramFrontmatter) -> Bool {
+    var config = frontmatter.eventmodelingConfig ?? EventModelingDiagramConfig()
+    var applied = false
+
+    for (key, value) in object {
+        switch key {
+        case "padding":
+            if let v = _jsonDouble(value) { config.padding = v; applied = true }
+        case "rowHeight":
+            if let v = _jsonDouble(value) { config.rowHeight = v; applied = true }
+        case "useMaxWidth":
+            if let v = _jsonBool(value) { config.useMaxWidth = v; applied = true }
+        default:
+            break
+        }
+    }
+
+    if applied {
+        frontmatter.eventmodelingConfig = config
+    }
+    return applied
+}
+
+@discardableResult
+private func _applyEventModelingInitTheme(_ object: [String: Any], to frontmatter: inout DiagramFrontmatter) -> Bool {
+    var theme = frontmatter.eventmodelingThemeVariables ?? EventModelingThemeVariables()
+    var applied = false
+
+    for (key, value) in object {
+        if let stringValue = _jsonScalarString(value) {
+            switch key {
+            case "emUiFill": theme.emUiFill = stringValue; applied = true
+            case "emUiStroke": theme.emUiStroke = stringValue; applied = true
+            case "emProcessorFill": theme.emProcessorFill = stringValue; applied = true
+            case "emProcessorStroke": theme.emProcessorStroke = stringValue; applied = true
+            case "emReadModelFill": theme.emReadModelFill = stringValue; applied = true
+            case "emReadModelStroke": theme.emReadModelStroke = stringValue; applied = true
+            case "emCommandFill": theme.emCommandFill = stringValue; applied = true
+            case "emCommandStroke": theme.emCommandStroke = stringValue; applied = true
+            case "emEventFill": theme.emEventFill = stringValue; applied = true
+            case "emEventStroke": theme.emEventStroke = stringValue; applied = true
+            case "emSwimlaneBackgroundOdd": theme.emSwimlaneBackgroundOdd = stringValue; applied = true
+            case "emSwimlaneBackgroundStroke": theme.emSwimlaneBackgroundStroke = stringValue; applied = true
+            case "emRelationStroke": theme.emRelationStroke = stringValue; applied = true
+            case "emArrowhead": theme.emArrowhead = stringValue; applied = true
+            default: break
+            }
+        }
+    }
+
+    if applied {
+        frontmatter.eventmodelingThemeVariables = theme
     }
     return applied
 }
@@ -651,6 +717,10 @@ private final class _StackSafeYamlFrontmatterParser {
     var treeViewTheme = TreeViewThemeVariables.default
     var hasTreeViewSection = false
     var hasTreeViewTheme = false
+    var eventmodelingConfig = EventModelingDiagramConfig()
+    var eventmodelingThemeVariables = EventModelingThemeVariables()
+    var hasEventModelingSection = false
+    var hasEventModelingTheme = false
 
     func parse(_ lines: [String]) -> DiagramFrontmatter? {
         for entry in _flattenYamlFrontmatterLines(lines) {
@@ -693,6 +763,7 @@ private final class _StackSafeYamlFrontmatterParser {
         if applyVenn(path, value) { return }
         if applyIshikawa(path, value) { return }
         if applyTreeView(path, value) { return }
+        if applyEventModeling(path, value) { return }
         _ = applyGlobal(path, value)
     }
 
@@ -1329,6 +1400,67 @@ private final class _StackSafeYamlFrontmatterParser {
         return false
     }
 
+    private func applyEventModeling(_ path: String, _ value: String) -> Bool {
+        if path.hasPrefix("config.eventmodeling.") {
+            hasEventModelingSection = true
+            let key = path.replacingOccurrences(of: "config.eventmodeling.", with: "")
+            switch key {
+            case "padding": eventmodelingConfig.padding = Double(value) ?? eventmodelingConfig.padding
+            case "rowHeight": eventmodelingConfig.rowHeight = Double(value) ?? eventmodelingConfig.rowHeight
+            case "useMaxWidth": eventmodelingConfig.useMaxWidth = (value.lowercased() == "true")
+            default: break
+            }
+            return true
+        }
+        if _isEventModelingThemeKey(path) {
+            _applyEventModelingThemeValue(path, value: value)
+            hasEventModelingTheme = true
+            return true
+        }
+        return false
+    }
+
+    private func _isEventModelingThemeKey(_ path: String) -> Bool {
+        let emKeys: Set<String> = [
+            "config.themeVariables.emUiFill",
+            "config.themeVariables.emUiStroke",
+            "config.themeVariables.emProcessorFill",
+            "config.themeVariables.emProcessorStroke",
+            "config.themeVariables.emReadModelFill",
+            "config.themeVariables.emReadModelStroke",
+            "config.themeVariables.emCommandFill",
+            "config.themeVariables.emCommandStroke",
+            "config.themeVariables.emEventFill",
+            "config.themeVariables.emEventStroke",
+            "config.themeVariables.emSwimlaneBackgroundOdd",
+            "config.themeVariables.emSwimlaneBackgroundStroke",
+            "config.themeVariables.emRelationStroke",
+            "config.themeVariables.emArrowhead",
+        ]
+        return emKeys.contains(path)
+    }
+
+    private func _applyEventModelingThemeValue(_ path: String, value: String) {
+        let key = path.replacingOccurrences(of: "config.themeVariables.", with: "")
+        switch key {
+        case "emUiFill": eventmodelingThemeVariables.emUiFill = value
+        case "emUiStroke": eventmodelingThemeVariables.emUiStroke = value
+        case "emProcessorFill": eventmodelingThemeVariables.emProcessorFill = value
+        case "emProcessorStroke": eventmodelingThemeVariables.emProcessorStroke = value
+        case "emReadModelFill": eventmodelingThemeVariables.emReadModelFill = value
+        case "emReadModelStroke": eventmodelingThemeVariables.emReadModelStroke = value
+        case "emCommandFill": eventmodelingThemeVariables.emCommandFill = value
+        case "emCommandStroke": eventmodelingThemeVariables.emCommandStroke = value
+        case "emEventFill": eventmodelingThemeVariables.emEventFill = value
+        case "emEventStroke": eventmodelingThemeVariables.emEventStroke = value
+        case "emSwimlaneBackgroundOdd": eventmodelingThemeVariables.emSwimlaneBackgroundOdd = value
+        case "emSwimlaneBackgroundStroke": eventmodelingThemeVariables.emSwimlaneBackgroundStroke = value
+        case "emRelationStroke": eventmodelingThemeVariables.emRelationStroke = value
+        case "emArrowhead": eventmodelingThemeVariables.emArrowhead = value
+        default: break
+        }
+    }
+
     private func applyGlobal(_ path: String, _ value: String) -> Bool {
         switch path {
         case "config.layout":
@@ -1391,6 +1523,8 @@ private final class _StackSafeYamlFrontmatterParser {
         if hasIshikawaSection { frontmatter.ishikawaConfig = ishikawaConfig }
         if hasTreeViewSection { frontmatter.treeViewConfig = treeViewConfig }
         if hasTreeViewTheme { frontmatter.treeViewTheme = treeViewTheme }
+        if hasEventModelingSection { frontmatter.eventmodelingConfig = eventmodelingConfig }
+        if hasEventModelingTheme { frontmatter.eventmodelingThemeVariables = eventmodelingThemeVariables }
     }
 }
 
@@ -1477,6 +1611,10 @@ private final class _YamlFrontmatterParser {
     var hasVennTheme = false
     var ishikawaConfig = IshikawaDiagramConfig()
     var hasIshikawaSection = false
+    var eventmodelingConfig = EventModelingDiagramConfig()
+    var eventmodelingThemeVariables = EventModelingThemeVariables()
+    var hasEventModelingSection = false
+    var hasEventModelingTheme = false
 
     func parse(_ lines: [String]) -> DiagramFrontmatter? {
     var pathStack: [(depth: Int, key: String)] = []
@@ -2185,6 +2323,43 @@ private final class _YamlFrontmatterParser {
             continue
         }
 
+        // EventModeling config — config.eventmodeling.*
+        if fullPath.hasPrefix("config.eventmodeling.") {
+            hasEventModelingSection = true
+            let subKey = fullPath.replacingOccurrences(of: "config.eventmodeling.", with: "")
+            switch subKey {
+            case "padding": eventmodelingConfig.padding = Double(value) ?? eventmodelingConfig.padding
+            case "rowHeight": eventmodelingConfig.rowHeight = Double(value) ?? eventmodelingConfig.rowHeight
+            case "useMaxWidth": eventmodelingConfig.useMaxWidth = (value.lowercased() == "true")
+            default: break
+            }
+            continue
+        }
+
+        // EventModeling theme variables
+        if _isEMThemePath(fullPath) {
+            let subKey = fullPath.replacingOccurrences(of: "config.themeVariables.", with: "").replacingOccurrences(of: "themeVariables.", with: "")
+            switch subKey {
+            case "emUiFill": eventmodelingThemeVariables.emUiFill = value
+            case "emUiStroke": eventmodelingThemeVariables.emUiStroke = value
+            case "emProcessorFill": eventmodelingThemeVariables.emProcessorFill = value
+            case "emProcessorStroke": eventmodelingThemeVariables.emProcessorStroke = value
+            case "emReadModelFill": eventmodelingThemeVariables.emReadModelFill = value
+            case "emReadModelStroke": eventmodelingThemeVariables.emReadModelStroke = value
+            case "emCommandFill": eventmodelingThemeVariables.emCommandFill = value
+            case "emCommandStroke": eventmodelingThemeVariables.emCommandStroke = value
+            case "emEventFill": eventmodelingThemeVariables.emEventFill = value
+            case "emEventStroke": eventmodelingThemeVariables.emEventStroke = value
+            case "emSwimlaneBackgroundOdd": eventmodelingThemeVariables.emSwimlaneBackgroundOdd = value
+            case "emSwimlaneBackgroundStroke": eventmodelingThemeVariables.emSwimlaneBackgroundStroke = value
+            case "emRelationStroke": eventmodelingThemeVariables.emRelationStroke = value
+            case "emArrowhead": eventmodelingThemeVariables.emArrowhead = value
+            default: break
+            }
+            hasEventModelingTheme = true
+            continue
+        }
+
         // Global config.layout (shared across all diagram families)
         if fullPath == "config.layout" {
             hasErSection = true
@@ -2261,6 +2436,8 @@ private final class _YamlFrontmatterParser {
     if hasVennSection { frontmatter.vennConfig = vennConfig }
     if hasVennTheme { frontmatter.vennThemeVariables = vennThemeVariables }
     if hasIshikawaSection { frontmatter.ishikawaConfig = ishikawaConfig }
+    if hasEventModelingSection { frontmatter.eventmodelingConfig = eventmodelingConfig }
+    if hasEventModelingTheme { frontmatter.eventmodelingThemeVariables = eventmodelingThemeVariables }
 
     return hasAnyContent ? frontmatter : nil
 }
@@ -2889,5 +3066,32 @@ private func _applyTreeViewThemeValue(_ key: String, value: String, theme: inout
     case "highlightBg": theme.highlightBg = value
     case "highlightStroke": theme.highlightStroke = value
     default: break
+    }
+}
+
+// MARK: - EventModeling theme helpers
+
+private func _isEMThemePath(_ fullPath: String) -> Bool {
+    for prefix in ["config.themeVariables.", "themeVariables."] {
+        if fullPath.hasPrefix(prefix) {
+            let subKey = String(fullPath.dropFirst(prefix.count))
+            return _isEMThemeKey(subKey)
+        }
+    }
+    return false
+}
+
+private func _isEMThemeKey(_ key: String) -> Bool {
+    switch key {
+    case "emUiFill", "emUiStroke",
+         "emProcessorFill", "emProcessorStroke",
+         "emReadModelFill", "emReadModelStroke",
+         "emCommandFill", "emCommandStroke",
+         "emEventFill", "emEventStroke",
+         "emSwimlaneBackgroundOdd", "emSwimlaneBackgroundStroke",
+         "emRelationStroke", "emArrowhead":
+        return true
+    default:
+        return false
     }
 }
