@@ -173,6 +173,15 @@ public enum MermaidParser {
                 }
                 return MermaidGraph(payload: .venn(diagram))
             }
+            if _isIshikawaDiagramHeader(processed) {
+                let rawLines = processed
+                    .replacingOccurrences(of: "\r\n", with: "\n")
+                    .replacingOccurrences(of: "\r", with: "\n")
+                    .split(separator: "\n", omittingEmptySubsequences: false)
+                    .map(String.init)
+                let diagram = try parseIshikawaDiagram(rawLines, frontmatter: frontmatter)
+                return MermaidGraph(payload: .ishikawa(diagram))
+            }
 
             // Flowchart + stateDiagram-v2 — pass frontmatter flowchart config
             let parsed = try parseMermaid(processed, config: frontmatter?.flowchartConfig)

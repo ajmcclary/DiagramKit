@@ -298,8 +298,9 @@ open class original_src_ascii_index {
         case architecture
         case radar
         case treemap
-        case venn
-    }
+    case venn
+    case ishikawa
+}
 
     struct AsciiConfig {
         var useAscii: Bool
@@ -398,6 +399,8 @@ open class original_src_ascii_index {
             return "treemap"
         case .venn:
             return "venn"
+        case .ishikawa:
+            return "ishikawa"
         case .flowchart:
             return "flowchart"
         }
@@ -499,6 +502,9 @@ open class original_src_ascii_index {
         case .venn:
             throw BeautifulMermaidError.notYetImplemented("Venn Diagram ASCII rendering")
 
+        case .ishikawa:
+            throw BeautifulMermaidError.notYetImplemented("Ishikawa Diagram ASCII rendering")
+
         case .flowchart:
             let parsed = try parseMermaid(preprocessedText)
 
@@ -599,6 +605,9 @@ open class original_src_ascii_index {
         }
         if firstLine.hasPrefix("venn-beta") {
             return .venn
+        }
+        if firstLine.range(of: #"^ishikawa(-beta)?\b"#, options: [.regularExpression, .caseInsensitive]) != nil {
+            return .ishikawa
         }
 
         return .flowchart

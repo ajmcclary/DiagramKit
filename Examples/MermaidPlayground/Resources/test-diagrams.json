@@ -1739,10 +1739,52 @@
       "category": "venn",
       "name": "Venn - Frontmatter Config and Theme",
       "source": "---\nconfig:\n  venn:\n    width: 1000\n    height: 600\n    padding: 20\n  theme: base\n  themeVariables:\n    venn1: \"#ff6b6b\"\n    venn2: \"#4ecdc4\"\n    vennSetTextColor: \"#222222\"\n---\nvenn-beta\n  title Skills Overlap\n  set Frontend[\"Frontend\"]:20\n  set Backend[\"Backend\"]:12\n  union Frontend,Backend[\"Fullstack\"]:3"
+    },
+    {
+      "id": "ishikawa-simple",
+      "category": "ishikawa",
+      "name": "Ishikawa - Simple Fishbone",
+      "source": "ishikawa-beta\nBlurry Photo\n    Process\n        Out of focus\n    User\n        Shaky hands"
+    },
+    {
+      "id": "ishikawa-root-only",
+      "category": "ishikawa",
+      "name": "Ishikawa - Root Only",
+      "source": "ishikawa-beta\nProblem"
+    },
+    {
+      "id": "ishikawa-unindented-root",
+      "category": "ishikawa",
+      "name": "Ishikawa - Unindented Root with Nested Causes",
+      "source": "ishikawa\nProblem\nCause A\n  Subcause A1\nCause B"
+    },
+    {
+      "id": "ishikawa-deep-nesting",
+      "category": "ishikawa",
+      "name": "Ishikawa - Deep Nesting",
+      "source": "ishikawa-beta\nEffect\n    Cause A\n        Sub A1\n            SubSub A1a\n                Leaf"
+    },
+    {
+      "id": "ishikawa-leading-comments",
+      "category": "ishikawa",
+      "name": "Ishikawa - Leading Comments",
+      "source": "%% leading comment\nishikawa-beta\nProblem\n    Cause A\n%% separator comment\n    Cause B"
+    },
+    {
+      "id": "ishikawa-frontmatter-config",
+      "category": "ishikawa",
+      "name": "Ishikawa - Frontmatter Config",
+      "source": "---\nconfig:\n  ishikawa:\n    diagramPadding: 50\n    useMaxWidth: true\n---\nishikawa-beta\nProblem\n    Cause A"
+    },
+    {
+      "id": "ishikawa-dark-theme",
+      "category": "ishikawa",
+      "name": "Ishikawa - Dark Theme",
+      "source": "---\nconfig:\n  theme: dark\n---\nishikawa-beta\nProblem\n    Cause A"
     }
   ],
   "metadata": {
-    "totalCount": 275,
+    "totalCount": 282,
     "categories": {
       "flowchart": 27,
       "state": 12,
@@ -1765,7 +1807,8 @@
       "architecture": 7,
       "radar": 10,
       "treemap": 10,
-      "venn": 8
+      "venn": 8,
+      "ishikawa": 7
     }
   }
 }

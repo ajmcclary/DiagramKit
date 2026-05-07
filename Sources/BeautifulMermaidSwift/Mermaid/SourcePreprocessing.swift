@@ -179,6 +179,9 @@ private func _applyInitDirectivePayload(_ payload: String, to frontmatter: inout
         if let venn = config["venn"] as? [String: Any] {
             applied = _applyVennInitConfig(venn, to: &frontmatter) || applied
         }
+        if let ishikawa = config["ishikawa"] as? [String: Any] {
+            applied = _applyIshikawaInitConfig(ishikawa, to: &frontmatter) || applied
+        }
         if let themeVariables = config["themeVariables"] as? [String: Any] {
             applied = _applyRadarInitTheme(themeVariables, to: &frontmatter) || applied
             applied = _applyVennInitTheme(themeVariables, to: &frontmatter) || applied
@@ -195,6 +198,10 @@ private func _applyInitDirectivePayload(_ payload: String, to frontmatter: inout
 
     if let venn = object["venn"] as? [String: Any] {
         applied = _applyVennInitConfig(venn, to: &frontmatter) || applied
+    }
+
+    if let ishikawa = object["ishikawa"] as? [String: Any] {
+        applied = _applyIshikawaInitConfig(ishikawa, to: &frontmatter) || applied
     }
 
     if let themeVariables = object["themeVariables"] as? [String: Any] {
@@ -234,6 +241,28 @@ private func _applySharedInitValues(_ object: [String: Any], to frontmatter: ino
         applied = true
     }
 
+    return applied
+}
+
+@discardableResult
+private func _applyIshikawaInitConfig(_ object: [String: Any], to frontmatter: inout DiagramFrontmatter) -> Bool {
+    var config = frontmatter.ishikawaConfig ?? IshikawaDiagramConfig()
+    var applied = false
+
+    for (key, value) in object {
+        switch key {
+        case "diagramPadding":
+            if let v = _jsonDouble(value) { config.diagramPadding = v; applied = true }
+        case "useMaxWidth":
+            if let v = _jsonBool(value) { config.useMaxWidth = v; applied = true }
+        default:
+            break
+        }
+    }
+
+    if applied {
+        frontmatter.ishikawaConfig = config
+    }
     return applied
 }
 
@@ -549,6 +578,8 @@ private final class _StackSafeYamlFrontmatterParser {
     var vennThemeVariables: [String: String] = [:]
     var hasVennSection = false
     var hasVennTheme = false
+    var ishikawaConfig = IshikawaDiagramConfig()
+    var hasIshikawaSection = false
 
     func parse(_ lines: [String]) -> DiagramFrontmatter? {
         for entry in _flattenYamlFrontmatterLines(lines) {
@@ -589,6 +620,7 @@ private final class _StackSafeYamlFrontmatterParser {
         if applyRadar(path, value) { return }
         if applyTreemap(path, value) { return }
         if applyVenn(path, value) { return }
+        if applyIshikawa(path, value) { return }
         _ = applyGlobal(path, value)
     }
 
@@ -1190,6 +1222,18 @@ private final class _StackSafeYamlFrontmatterParser {
         return false
     }
 
+    private func applyIshikawa(_ path: String, _ value: String) -> Bool {
+        guard path.hasPrefix("config.ishikawa.") else { return false }
+        hasIshikawaSection = true
+        let key = path.replacingOccurrences(of: "config.ishikawa.", with: "")
+        switch key {
+        case "diagramPadding": ishikawaConfig.diagramPadding = Double(value) ?? ishikawaConfig.diagramPadding
+        case "useMaxWidth": ishikawaConfig.useMaxWidth = (value.lowercased() == "true")
+        default: break
+        }
+        return true
+    }
+
     private func applyGlobal(_ path: String, _ value: String) -> Bool {
         switch path {
         case "config.layout":
@@ -1249,6 +1293,7 @@ private final class _StackSafeYamlFrontmatterParser {
         if hasTreemapTheme { frontmatter.treemapThemeVariables = treemapThemeVariables }
         if hasVennSection { frontmatter.vennConfig = vennConfig }
         if hasVennTheme { frontmatter.vennThemeVariables = vennThemeVariables }
+        if hasIshikawaSection { frontmatter.ishikawaConfig = ishikawaConfig }
     }
 }
 
@@ -1333,6 +1378,8 @@ private final class _YamlFrontmatterParser {
     var vennThemeVariables: [String: String] = [:]
     var hasVennSection = false
     var hasVennTheme = false
+    var ishikawaConfig = IshikawaDiagramConfig()
+    var hasIshikawaSection = false
 
     func parse(_ lines: [String]) -> DiagramFrontmatter? {
     var pathStack: [(depth: Int, key: String)] = []
@@ -2029,6 +2076,18 @@ private final class _YamlFrontmatterParser {
             continue
         }
 
+        // Ishikawa config — config.ishikawa.*
+        if fullPath.hasPrefix("config.ishikawa.") {
+            hasIshikawaSection = true
+            let subKey = fullPath.replacingOccurrences(of: "config.ishikawa.", with: "")
+            switch subKey {
+            case "diagramPadding": ishikawaConfig.diagramPadding = Double(value) ?? ishikawaConfig.diagramPadding
+            case "useMaxWidth": ishikawaConfig.useMaxWidth = (value.lowercased() == "true")
+            default: break
+            }
+            continue
+        }
+
         // Global config.layout (shared across all diagram families)
         if fullPath == "config.layout" {
             hasErSection = true
@@ -2104,6 +2163,7 @@ private final class _YamlFrontmatterParser {
     if hasTreemapTheme { frontmatter.treemapThemeVariables = treemapThemeVariables }
     if hasVennSection { frontmatter.vennConfig = vennConfig }
     if hasVennTheme { frontmatter.vennThemeVariables = vennThemeVariables }
+    if hasIshikawaSection { frontmatter.ishikawaConfig = ishikawaConfig }
 
     return hasAnyContent ? frontmatter : nil
 }

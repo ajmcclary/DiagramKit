@@ -93,6 +93,7 @@ private enum _DiagramRoutingType {
     case radar
     case treemap
     case venn
+    case ishikawa
 }
 
 private func _decodeXML(_ text: String) -> String {
@@ -166,6 +167,9 @@ private func detectDiagramType(_ text: String) -> _DiagramRoutingType {
     }
     if firstLine.hasPrefix("venn-beta") {
         return .venn
+    }
+    if firstLine.range(of: #"^ishikawa(-beta)?\b"#, options: [.regularExpression, .caseInsensitive]) != nil {
+        return .ishikawa
     }
 
     return .flowchart
@@ -312,6 +316,8 @@ private func _renderPreprocessedMermaidSVG(
         return try _renderTreemapSvgCase(source: decodedText, fm: fm, colors: colors, font: font, transparent: transparent)
     case .venn:
         return try _renderVennSvgCase(source: decodedText, fm: fm, colors: colors, font: font, transparent: transparent)
+    case .ishikawa:
+        return try _renderIshikawaSvgCase(source: decodedText, fm: fm, colors: colors, font: font, transparent: transparent)
     }
 }
 
@@ -511,6 +517,20 @@ private func _renderVennSvgCase(source: String, fm: DiagramFrontmatter?, colors:
     let positioned = layoutVennDiagram(diagram)
     let diagramId = UUID().uuidString
     return renderVennSvg(positioned, diagramId: diagramId, colors, font, transparent)
+}
+
+private func _renderIshikawaSvgCase(source: String, fm: DiagramFrontmatter?, colors: DiagramColors, font: String, transparent: Bool) throws -> String {
+    let rawLines = _rawDiagramLines(from: source)
+    var diagram = try parseIshikawaDiagram(rawLines, frontmatter: fm)
+    if let fmc = fm?.ishikawaConfig { diagram.config = fmc }
+    if let theme = fm?.theme { diagram.themeName = theme }
+    if let look = fm?.look { diagram.look = look }
+    if diagram.diagramTitle == nil, let fmTitle = fm?.diagramTitle {
+        diagram.diagramTitle = fmTitle
+    }
+    let positioned = layoutIshikawaDiagram(diagram)
+    let diagramId = UUID().uuidString
+    return renderIshikawaSvg(positioned, diagramId: diagramId, colors: colors, fontFamily: font, transparent: transparent)
 }
 
 private func _rawDiagramLines(from source: String) -> [String] {

@@ -283,6 +283,18 @@ public struct GraphLayout {
                     height: positioned.height,
                     content: .venn(positioned)
                 )
+            case .ishikawa:
+                guard case let .ishikawa(diagram) = graph.payload else {
+                    _reportMermaidIssue("GraphLayout.layout found mismatched ishikawa payload.")
+                    return PositionedGraph(diagram: graph, content: .ishikawa(.empty))
+                }
+                let positioned = layoutIshikawaDiagram(diagram)
+                return PositionedGraph(
+                    diagram: graph,
+                    width: positioned.width,
+                    height: positioned.height,
+                    content: .ishikawa(positioned)
+                )
             }
         }
     }

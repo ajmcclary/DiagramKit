@@ -76,6 +76,8 @@ public final class DiagramRenderer {
             _drawTreemap(positioned, in: context, bounds: bounds)
         case .venn:
             _drawVenn(positioned, in: context, bounds: bounds)
+        case .ishikawa:
+            _drawIshikawa(positioned, in: context, bounds: bounds)
         }
     }
 
