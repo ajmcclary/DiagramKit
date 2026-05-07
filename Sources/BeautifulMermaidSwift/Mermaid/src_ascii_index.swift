@@ -67,8 +67,10 @@ private func _bmConvertToAsciiGraph(
     }
     let subgraphs = tsGraph.subgraphs.map { convertSubgraph($0) }
 
-    // Map class assignments: [String: String] → [(nodeId, className)]
-    let classAssignments: [(nodeId: String, className: String)] = tsGraph.classAssignments.map { ($0.key, $0.value) }
+    // Map class assignments: [String: [String]] → [(nodeId, className)]
+    let classAssignments: [(nodeId: String, className: String)] = tsGraph.classAssignments.flatMap { (nodeId, classNames) in
+        classNames.map { (nodeId: nodeId, className: $0) }
+    }
 
     let converterInput = original_src_ascii_converter.MermaidGraphInput(
         nodes: nodes,

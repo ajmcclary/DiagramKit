@@ -1668,7 +1668,10 @@ private final class _StackSafeYamlFrontmatterParser {
         if hasPieConfig { frontmatter.pieConfig = pieConfig }
         if hasPieTheme { frontmatter.pieTheme = pieTheme }
         if hasSequenceSection { frontmatter.sequenceConfig = sequenceConfig }
-        if hasStateSection { frontmatter.stateConfig = stateConfig }
+        if hasStateSection || frontmatter.securityLevel != nil {
+            if let sl = frontmatter.securityLevel { stateConfig.securityLevel = sl }
+            frontmatter.stateConfig = stateConfig
+        }
         if hasJourneySection { frontmatter.journeyConfig = journeyConfig }
         if hasGanttSection { frontmatter.ganttConfig = ganttConfig }
         if hasQuadrantChartConfig { frontmatter.quadrantChartConfig = quadrantChartConfig }
@@ -2588,7 +2591,10 @@ private final class _YamlFrontmatterParser {
     if hasPieConfig { frontmatter.pieConfig = pieConfig }
     if hasPieTheme { frontmatter.pieTheme = pieTheme }
     if hasSequenceSection { frontmatter.sequenceConfig = sequenceConfig }
-    if hasStateSection { frontmatter.stateConfig = stateConfig }
+        if hasStateSection || frontmatter.securityLevel != nil {
+            if let sl = frontmatter.securityLevel { stateConfig.securityLevel = sl }
+            frontmatter.stateConfig = stateConfig
+        }
     if hasJourneySection { frontmatter.journeyConfig = journeyConfig }
     if hasGanttSection { frontmatter.ganttConfig = ganttConfig }
     if hasQuadrantChartConfig { frontmatter.quadrantChartConfig = quadrantChartConfig }

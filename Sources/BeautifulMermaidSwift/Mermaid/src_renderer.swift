@@ -45,6 +45,8 @@ private struct _SvgGroup {
     var width: Double
     var height: Double
     var children: [_SvgGroup]
+    var shape: String?
+    var altBkg: Bool = false
 }
 
 private struct _SvgGraphModel {
@@ -54,6 +56,7 @@ private struct _SvgGraphModel {
     var edges: [_SvgEdge]
     var groups: [_SvgGroup]
     var securityLevel: String?
+    var isStateDiagram: Bool = false
 }
 
 public func renderSvg(
@@ -108,24 +111,59 @@ private func _renderSvgEntry(
     parts.append("</defs>")
 
     // Edge animation CSS (Mermaid parity: animated edges use stroke-dashoffset)
-    parts.append(
-        "<style>" +
-        ".edge-animated {" +
-        "  animation: edge-dash 1.5s linear infinite;" +
-        "  stroke-dasharray: 8 4;" +
-        "}" +
-        "@keyframes edge-dash {" +
-        "  to { stroke-dashoffset: -24; }" +
-        "}" +
-        "</style>"
-    )
+    var styleParts: [String] = []
+    styleParts.append(".edge-animated {")
+    styleParts.append("  animation: edge-dash 1.5s linear infinite;")
+    styleParts.append("  stroke-dasharray: 8 4;")
+    styleParts.append("}")
+    styleParts.append("@keyframes edge-dash {")
+    styleParts.append("  to { stroke-dashoffset: -24; }")
+    styleParts.append("}")
+    if model.isStateDiagram {
+        styleParts.append(".statediagram-state rect {")
+        styleParts.append("  fill: var(--_node-fill);")
+        styleParts.append("  stroke: var(--_node-stroke);")
+        styleParts.append("}")
+        styleParts.append(".statediagram-cluster rect {")
+        styleParts.append("  fill: var(--_group-fill);")
+        styleParts.append("  stroke: var(--_node-stroke);")
+        styleParts.append("}")
+        styleParts.append(".statediagram-cluster rect.outer {")
+        styleParts.append("  rx: 5px;")
+        styleParts.append("  ry: 5px;")
+        styleParts.append("}")
+        styleParts.append(".statediagram-cluster.statediagram-cluster-alt rect {")
+        styleParts.append("  fill: var(--_surface);")
+        styleParts.append("}")
+        styleParts.append(".statediagram-note rect {")
+        styleParts.append("  fill: var(--_note-bkg);")
+        styleParts.append("  stroke: var(--_note-border);")
+        styleParts.append("  stroke-width: 1px;")
+        styleParts.append("  rx: 6;")
+        styleParts.append("  ry: 6;")
+        styleParts.append("}")
+        styleParts.append(".statediagram-note text {")
+        styleParts.append("  fill: var(--_text);")
+        styleParts.append("}")
+        styleParts.append(".note-edge {")
+        styleParts.append("  stroke-dasharray: 5;")
+        styleParts.append("}")
+        styleParts.append(".transition {")
+        styleParts.append("  stroke: var(--_line);")
+        styleParts.append("}")
+        styleParts.append("[data-look=\"neo\"].statediagram-cluster rect {")
+        styleParts.append("  rx: 12px;")
+        styleParts.append("  ry: 12px;")
+        styleParts.append("}")
+    }
+    parts.append("<style>\n" + styleParts.joined(separator: "\n") + "\n</style>")
 
     for group in model.groups {
         parts.append(_renderGroup(group, font))
     }
 
     for edge in model.edges {
-        parts.append(_renderEdge(edge))
+        parts.append(_renderEdge(edge, isStateDiagram: model.isStateDiagram))
     }
 
     for edge in model.edges where edge.label != nil {
@@ -133,7 +171,7 @@ private func _renderSvgEntry(
     }
 
     for node in model.nodes {
-        parts.append(_renderNode(node, font))
+        parts.append(_renderNode(node, font, isStateDiagram: model.isStateDiagram))
     }
 
     parts.append("</svg>")
@@ -234,27 +272,49 @@ private func _markerSuffix(_ color: String) -> String {
 
 private func _renderGroup(_ group: _SvgGroup, _ font: String) -> String {
     _ = font
-    let headerHeight = original_src_styles.FONT_SIZES.groupHeader + 16
+    let isStateComposite = group.shape == "rounded-with-title"
+    let clusterClass = isStateComposite
+        ? (group.altBkg ? "statediagram-cluster statediagram-cluster-alt" : "statediagram-cluster")
+        : "subgraph"
     var parts: [String] = []
 
-    parts.append("<g class=\"subgraph\" data-id=\"\(_escapeAttr(group.id))\" data-label=\"\(_escapeAttr(group.label))\">")
-    parts.append(
-        "  <rect x=\"\(group.x)\" y=\"\(group.y)\" width=\"\(group.width)\" height=\"\(group.height)\" " +
-            "rx=\"0\" ry=\"0\" fill=\"var(--_group-fill)\" stroke=\"var(--_node-stroke)\" stroke-width=\"\(original_src_styles.STROKE_WIDTHS.outerBox)\" />"
-    )
-    parts.append(
-        "  <rect x=\"\(group.x)\" y=\"\(group.y)\" width=\"\(group.width)\" height=\"\(headerHeight)\" " +
-            "rx=\"0\" ry=\"0\" fill=\"var(--_group-hdr)\" stroke=\"var(--_node-stroke)\" stroke-width=\"\(original_src_styles.STROKE_WIDTHS.outerBox)\" />"
-    )
-
-    let header = original_src_multiline_utils.renderMultilineText(
-        group.label,
-        cx: group.x + 12,
-        cy: group.y + headerHeight / 2,
-        fontSize: original_src_styles.FONT_SIZES.groupHeader,
-        attrs: "font-size=\"\(original_src_styles.FONT_SIZES.groupHeader)\" font-weight=\"\(original_src_styles.FONT_WEIGHTS.groupHeader)\" fill=\"var(--_text-sec)\""
-    )
-    parts.append("  \(header)")
+    if isStateComposite {
+        parts.append("<g class=\"\(clusterClass)\" data-id=\"\(_escapeAttr(group.id))\" data-label=\"\(_escapeAttr(group.label))\">")
+        let titleH: Double = 35
+        let fill = "var(--_group-fill)"
+        let stroke = "var(--_node-stroke)"
+        let sw = "\(original_src_styles.STROKE_WIDTHS.outerBox)"
+        parts.append("  <rect x=\"\(group.x)\" y=\"\(group.y)\" width=\"\(group.width)\" height=\"\(group.height)\" rx=\"8\" ry=\"8\" fill=\"\(fill)\" stroke=\"\(stroke)\" stroke-width=\"\(sw)\" />")
+        parts.append("  <rect x=\"\(group.x)\" y=\"\(group.y)\" width=\"\(group.width)\" height=\"\(titleH)\" rx=\"8\" ry=\"8\" fill=\"var(--_surface)\" stroke=\"none\" />")
+        parts.append("  <rect x=\"\(group.x)\" y=\"\(group.y + titleH - 8)\" width=\"\(group.width)\" height=\"8\" fill=\"var(--_surface)\" stroke=\"none\" />")
+        let titleText = original_src_multiline_utils.renderMultilineText(
+            group.label,
+            cx: group.x + group.width / 2,
+            cy: group.y + titleH / 2,
+            fontSize: original_src_styles.FONT_SIZES.groupHeader,
+            attrs: "text-anchor=\"middle\" font-size=\"\(original_src_styles.FONT_SIZES.groupHeader)\" font-weight=\"\(original_src_styles.FONT_WEIGHTS.groupHeader)\" fill=\"var(--_text-sec)\""
+        )
+        parts.append("  \(titleText)")
+    } else {
+        let headerHeight = original_src_styles.FONT_SIZES.groupHeader + 16
+        parts.append("<g class=\"subgraph\" data-id=\"\(_escapeAttr(group.id))\" data-label=\"\(_escapeAttr(group.label))\">")
+        parts.append(
+            "  <rect x=\"\(group.x)\" y=\"\(group.y)\" width=\"\(group.width)\" height=\"\(group.height)\" " +
+                "rx=\"0\" ry=\"0\" fill=\"var(--_group-fill)\" stroke=\"var(--_node-stroke)\" stroke-width=\"\(original_src_styles.STROKE_WIDTHS.outerBox)\" />"
+        )
+        parts.append(
+            "  <rect x=\"\(group.x)\" y=\"\(group.y)\" width=\"\(group.width)\" height=\"\(headerHeight)\" " +
+                "rx=\"0\" ry=\"0\" fill=\"var(--_group-hdr)\" stroke=\"var(--_node-stroke)\" stroke-width=\"\(original_src_styles.STROKE_WIDTHS.outerBox)\" />"
+        )
+        let header = original_src_multiline_utils.renderMultilineText(
+            group.label,
+            cx: group.x + 12,
+            cy: group.y + headerHeight / 2,
+            fontSize: original_src_styles.FONT_SIZES.groupHeader,
+            attrs: "font-size=\"\(original_src_styles.FONT_SIZES.groupHeader)\" font-weight=\"\(original_src_styles.FONT_WEIGHTS.groupHeader)\" fill=\"var(--_text-sec)\""
+        )
+        parts.append("  \(header)")
+    }
 
     for child in group.children {
         parts.append(_renderGroup(child, font))
@@ -264,7 +324,7 @@ private func _renderGroup(_ group: _SvgGroup, _ font: String) -> String {
     return parts.joined(separator: "\n")
 }
 
-private func _renderEdge(_ edge: _SvgEdge) -> String {
+private func _renderEdge(_ edge: _SvgEdge, isStateDiagram: Bool = false) -> String {
     if edge.points.count < 2 {
         return ""
     }
@@ -279,6 +339,16 @@ private func _renderEdge(_ edge: _SvgEdge) -> String {
     let strokeColor = isInvisible ? "none" : _escapeAttr(edge.inlineStyle?["stroke"] ?? "var(--_line)")
     let strokeWidth = isInvisible ? "0" : _escapeAttr(edge.inlineStyle?["stroke-width"] ?? "\(baseStrokeWidth)")
 
+    // Compute edge CSS class
+    var edgeClass = "edge"
+    if edge.animate == true { edgeClass += " edge-animated" }
+    if isStateDiagram {
+        edgeClass += " transition"
+        if edge.style == "dotted" {
+            edgeClass += " note-edge"
+        }
+    }
+
     // Use curved path when curve interpolation is specified
     let curveType = edge.curve ?? ""
     let useCurvedPath = !curveType.isEmpty && curveType != "linear"
@@ -287,16 +357,14 @@ private func _renderEdge(_ edge: _SvgEdge) -> String {
         let d = _curvePathData(points: edge.points, curveType: curveType)
         pathElement = "path"
         let dataAttrs = _edgeDataAttrs(edge)
-        let animClass = edge.animate == true ? " edge-animated" : ""
-        return "<\(pathElement) \(dataAttrs) class=\"edge\(animClass)\" d=\"\(d)\" fill=\"none\" stroke=\"\(strokeColor)\" " +
+        return "<\(pathElement) \(dataAttrs) class=\"\(edgeClass)\" d=\"\(d)\" fill=\"none\" stroke=\"\(strokeColor)\" " +
             "stroke-width=\"\(strokeWidth)\"\(dashArray)\(_edgeMarkers(edge, isInvisible: isInvisible)) />"
     } else {
         let pathData = _pointsToPolylinePath(edge.points)
         pathElement = "polyline"
         let dataAttrs = _edgeDataAttrs(edge)
         let pointsAttr = "points=\"\(pathData)\""
-        let animClass = edge.animate == true ? " edge-animated" : ""
-        return "<\(pathElement) \(dataAttrs) class=\"edge\(animClass)\" \(pointsAttr) fill=\"none\" stroke=\"\(strokeColor)\" " +
+        return "<\(pathElement) \(dataAttrs) class=\"\(edgeClass)\" \(pointsAttr) fill=\"none\" stroke=\"\(strokeColor)\" " +
             "stroke-width=\"\(strokeWidth)\"\(dashArray)\(_edgeMarkers(edge, isInvisible: isInvisible)) />"
     }
 }
@@ -462,12 +530,21 @@ private func _dist(_ a: _SvgPoint, _ b: _SvgPoint) -> Double {
     return (dx * dx + dy * dy).squareRoot()
 }
 
-private func _renderNode(_ node: _SvgNode, _ font: String) -> String {
+private func _renderNode(_ node: _SvgNode, _ font: String, isStateDiagram: Bool = false) -> String {
     let shape = _renderNodeShape(node)
     let label = _renderNodeLabel(node, font)
 
+    var nodeClass = "node"
+    if isStateDiagram {
+        if node.shape == "state-note" {
+            nodeClass += " statediagram-note"
+        } else if node.shape != "text", node.shape != "invisible" {
+            nodeClass += " statediagram-state"
+        }
+    }
+
     var parts: [String] = []
-    parts.append("<g class=\"node\" data-id=\"\(_escapeAttr(node.id))\" data-label=\"\(_escapeAttr(node.label))\" data-shape=\"\(_escapeAttr(node.shape))\">")
+    parts.append("<g class=\"\(nodeClass)\" data-id=\"\(_escapeAttr(node.id))\" data-label=\"\(_escapeAttr(node.label))\" data-shape=\"\(_escapeAttr(node.shape))\">")
     parts.append("  \(shape.replacingOccurrences(of: "\n", with: "\n  "))")
     if !label.isEmpty {
         parts.append("  \(label.replacingOccurrences(of: "\n", with: "\n  "))")
@@ -633,7 +710,9 @@ private func _renderNodeShape(_ node: _SvgNode) -> String {
     case "state-divider":
         return _renderStateDivider(x: x, y: y, w: width, h: height, stroke: stroke)
     case "state-note":
-        return _renderRoundedRect(x: x, y: y, w: width, h: height, fill: fill, stroke: stroke, sw: sw)
+        let noteFill = _escapeAttr(inlineStyle["fill"] ?? "var(--_note-bkg)")
+        let noteStroke = _escapeAttr(inlineStyle["stroke"] ?? "var(--_note-border)")
+        return _renderRoundedRect(x: x, y: y, w: width, h: height, fill: noteFill, stroke: noteStroke, sw: sw)
     case "label-rect", "anchor": break
     default: break
     }
@@ -1189,13 +1268,19 @@ private func _escapeAttr(_ value: String) -> String {
 
 private func _extractSvgGraphModel(_ graph: PositionedGraph) -> _SvgGraphModel {
     let secLevel = _graphSecurityLevel(graph.diagram)
+    let isState: Bool
+    switch graph.diagram.payload {
+    case .stateDiagram: isState = true
+    default: isState = false
+    }
     return _SvgGraphModel(
         width: graph.width,
         height: graph.height,
         nodes: (graph.flowchartNodes ?? []).map { $0 as Any }.map { _extractNode($0, securityLevel: secLevel) },
         edges: (graph.flowchartEdges ?? []).map { $0 as Any }.map(_extractEdge),
         groups: (graph.flowchartGroups ?? []).map { $0 as Any }.map(_extractGroup),
-        securityLevel: secLevel
+        securityLevel: secLevel,
+        isStateDiagram: isState
     )
 }
 
@@ -1252,7 +1337,9 @@ private func _extractGroup(_ any: Any) -> _SvgGroup {
         y: _readDouble(any, label: "y") ?? 0,
         width: _readDouble(any, label: "width") ?? 0,
         height: _readDouble(any, label: "height") ?? 0,
-        children: _readArray(any, label: "children").map(_extractGroup)
+        children: _readArray(any, label: "children").map(_extractGroup),
+        shape: _readOptionalString(any, label: "shape"),
+        altBkg: _readBool(any, label: "altBkg") ?? false
     )
 }
 
@@ -1369,8 +1456,8 @@ private func _graphSecurityLevel(_ graph: MermaidGraph) -> String? {
     switch graph.payload {
     case .flowchart(let parsed):
         return parsed.config?.securityLevel
-    case .stateDiagram:
-        return nil
+    case .stateDiagram(let parsed):
+        return parsed.stateConfig.securityLevel
     default:
         return nil
     }

@@ -305,19 +305,25 @@ open class original_src_types {
         public var nodeIds: [String]
         public var children: [MermaidSubgraph]
         public var direction: Direction?
+        public var shape: NodeShape?
+        public var altBkg: Bool
 
         public init(
             id: String,
             label: String,
             nodeIds: [String],
             children: [MermaidSubgraph] = [],
-            direction: Direction? = nil
+            direction: Direction? = nil,
+            shape: NodeShape? = nil,
+            altBkg: Bool = false
         ) {
             self.id = id
             self.label = label
             self.nodeIds = nodeIds
             self.children = children
             self.direction = direction
+            self.shape = shape
+            self.altBkg = altBkg
         }
     }
 
@@ -328,7 +334,7 @@ open class original_src_types {
         public var edges: [MermaidEdge]
         public var subgraphs: [MermaidSubgraph]
         public var classDefs: [String: [String: String]]
-        public var classAssignments: [String: String]
+        public var classAssignments: [String: [String]]
         public var nodeStyles: [String: [String: String]]
         /// Maps edge indices (or -1 for 'default') to inline styles from `linkStyle` directives
         public var linkStyles: [Int: [String: String]]
@@ -348,7 +354,7 @@ open class original_src_types {
             edges: [MermaidEdge],
             subgraphs: [MermaidSubgraph] = [],
             classDefs: [String: [String: String]] = [:],
-            classAssignments: [String: String] = [:],
+            classAssignments: [String: [String]] = [:],
             nodeStyles: [String: [String: String]] = [:],
             linkStyles: [Int: [String: String]] = [:],
             accTitle: String? = nil,
@@ -476,6 +482,7 @@ open class original_src_types {
         public var radius: Double = 5
         public var scaleWidth: Int?
         public var hideEmptyDescription: Bool = false
+        public var securityLevel: String?
 
         public init() {}
     }

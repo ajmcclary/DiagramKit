@@ -42,7 +42,7 @@ private struct _WorkingGraph {
     var subgraphs: [ParsedSubgraph] = []
     var subgraphIds: Set<String> = []
     var classDefs: [String: [String: String]] = [:]
-    var classAssignments: [String: String] = [:]
+    var classAssignments: [String: [String]] = [:]
     var nodeStyles: [String: [String: String]] = [:]
     var linkStyles: [Int: [String: String]] = [:]
     var accTitle: String? = nil
@@ -302,7 +302,9 @@ private func _parseFlowchart(_ lines: [String], config: original_src_types.Flowc
                 if firstChar == "e", Int(id.dropFirst()) != nil {
                     graph.edgeClassAssignments[id] = className
                 } else {
-                    graph.classAssignments[id] = className
+                    if graph.classAssignments[id]?.contains(className) != true {
+                        graph.classAssignments[id, default: []].append(className)
+                    }
                 }
             }
             continue
@@ -615,7 +617,9 @@ private func _parseStateDiagram(_ lines: [String], stateConfig: original_src_typ
                 if let firstChar = id.first, firstChar == "e", Int(id.dropFirst()) != nil {
                     graph.edgeClassAssignments[id] = className
                 } else {
-                    graph.classAssignments[id] = className
+                    if graph.classAssignments[id]?.contains(className) != true {
+                        graph.classAssignments[id, default: []].append(className)
+                    }
                 }
             }
             continue
@@ -635,7 +639,8 @@ private func _parseStateDiagram(_ lines: [String], stateConfig: original_src_typ
         if let comp = _regexGroups(sPat(#"^state\s+(?:\"([^\"]+)\"\s+as\s+)?({{SID}})\s*\{$"#), line),
            let id = comp[safe: 2], isValidStateID(id) {
             let label = comp[safe: 1]?.isEmpty == false ? comp[safe: 1]! : id
-            compositeStack.append(ParsedSubgraph(id: id, label: label, nodeIds: [], children: [], direction: nil))
+            let isAlt = (compositeStack.count % 2) == 1
+            compositeStack.append(ParsedSubgraph(id: id, label: label, nodeIds: [], children: [], direction: nil, shape: .roundedWithTitle, altBkg: isAlt))
             compositeStateIds.insert(id)
             graph.nodesById.removeValue(forKey: id)
             graph.nodeOrder.removeAll { $0 == id }
@@ -645,10 +650,11 @@ private func _parseStateDiagram(_ lines: [String], stateConfig: original_src_typ
         // --- composite state close ---
         if line == "}" {
             if let completed = compositeStack.popLast() {
+                let processed = _splitConcurrentRegions(completed, &graph)
                 if !compositeStack.isEmpty {
-                    compositeStack[compositeStack.count - 1].children.append(completed)
+                    compositeStack[compositeStack.count - 1].children.append(processed)
                 } else {
-                    graph.subgraphs.append(completed)
+                    graph.subgraphs.append(processed)
                 }
             }
             continue
@@ -711,13 +717,13 @@ private func _parseStateDiagram(_ lines: [String], stateConfig: original_src_typ
         // --- note (single-line or multiline-joined) ---
         if let nm = _regexGroups(sPat(#"^note\s+(left|right)\s+of\s+({{SID}})\s*:\s*(.+)$"#), line),
            let pos = nm[safe: 1], let targetId = nm[safe: 2], let noteText = nm[safe: 3] {
-            _addStateNote(&graph, targetId: targetId, position: pos, text: noteText.trimmingCharacters(in: .whitespacesAndNewlines))
+            _addStateNote(&graph, compositeStack: &compositeStack, targetId: targetId, position: pos, text: noteText.trimmingCharacters(in: .whitespacesAndNewlines))
             continue
         }
         // multiline note body already joined in pre-pass; match the joined form
         if let nm2 = _regexGroups(sPat(#"^note\s+(left|right)\s+of\s+({{SID}})\n([\s\S]+)$"#), line),
            let pos = nm2[safe: 1], let targetId = nm2[safe: 2], let noteText = nm2[safe: 3] {
-            _addStateNote(&graph, targetId: targetId, position: pos, text: noteText.trimmingCharacters(in: .whitespacesAndNewlines))
+            _addStateNote(&graph, compositeStack: &compositeStack, targetId: targetId, position: pos, text: noteText.trimmingCharacters(in: .whitespacesAndNewlines))
             continue
         }
 
@@ -755,8 +761,16 @@ private func _parseStateDiagram(_ lines: [String], stateConfig: original_src_typ
                 _ensureStateNode(&graph, &compositeStack, targetId)
             }
 
-            if let sc = sourceClass, !sc.isEmpty { graph.classAssignments[sourceId] = sc }
-            if let tc = targetClass, !tc.isEmpty { graph.classAssignments[targetId] = tc }
+            if let sc = sourceClass, !sc.isEmpty {
+                if graph.classAssignments[sourceId]?.contains(sc) != true {
+                    graph.classAssignments[sourceId, default: []].append(sc)
+                }
+            }
+            if let tc = targetClass, !tc.isEmpty {
+                if graph.classAssignments[targetId]?.contains(tc) != true {
+                    graph.classAssignments[targetId, default: []].append(tc)
+                }
+            }
 
             graph.edges.append(ParsedEdge(
                 source: sourceId, target: targetId, label: edgeLabel,
@@ -817,16 +831,79 @@ private func _ensureStateNode(_ graph: inout _WorkingGraph, _ compositeStack: in
     }
 }
 
-private func _addStateNote(_ graph: inout _WorkingGraph, targetId: String, position: String, text: String) {
+private func _splitConcurrentRegions(_ subgraph: ParsedSubgraph, _ graph: inout _WorkingGraph) -> ParsedSubgraph {
+    let dividerIds = subgraph.nodeIds.filter { id in
+        graph.stateNodeMeta[id]?.stateType == .divider
+    }
+    if dividerIds.isEmpty { return subgraph }
+
+    for dividerId in dividerIds {
+        graph.nodesById.removeValue(forKey: dividerId)
+        graph.nodeOrder.removeAll { $0 == dividerId }
+        graph.stateNodeMeta.removeValue(forKey: dividerId)
+    }
+
+    var regions: [[String]] = []
+    var currentRegion: [String] = []
+    for nodeId in subgraph.nodeIds {
+        if dividerIds.contains(nodeId) {
+            if !currentRegion.isEmpty {
+                regions.append(currentRegion)
+                currentRegion = []
+            }
+            continue
+        }
+        currentRegion.append(nodeId)
+    }
+    if !currentRegion.isEmpty {
+        regions.append(currentRegion)
+    }
+    if regions.count <= 1 {
+        var result = subgraph
+        result.nodeIds = regions.first ?? []
+        return result
+    }
+
+    var regionSubgraphs: [ParsedSubgraph] = []
+    for (i, regionNodeIds) in regions.enumerated() {
+        let regionSub = ParsedSubgraph(
+            id: "\(subgraph.id)_region_\(i)",
+            label: "",
+            nodeIds: regionNodeIds,
+            children: [],
+            direction: subgraph.direction,
+            shape: nil,
+            altBkg: false
+        )
+        regionSubgraphs.append(regionSub)
+    }
+
+    var result = subgraph
+    result.nodeIds = []
+    result.children = regionSubgraphs + subgraph.children
+    return result
+}
+
+private func _addStateNote(_ graph: inout _WorkingGraph, compositeStack: inout [ParsedSubgraph], targetId: String, position: String, text: String) {
     let normalizedText = original_src_multiline_utils.normalizeBrTags(text)
     let posEnum: original_src_types.ParsedStateNote.Position = position.lowercased() == "right" ? .right : .left
     var meta = graph.stateNodeMeta[targetId] ?? _StateNodeMeta()
     meta.note = original_src_types.ParsedStateNote(position: posEnum, text: normalizedText)
     graph.stateNodeMeta[targetId] = meta
 
-    // Create note node directly
+    // Ensure the target state exists (note may appear before state declaration)
+    if graph.nodesById[targetId] == nil {
+        _registerStateNode(&graph, &compositeStack, ParsedNode(id: targetId, label: targetId, shape: .rounded))
+    } else if !compositeStack.isEmpty {
+        // Ensure target is tracked in current composite if it exists
+        if !compositeStack[compositeStack.count - 1].nodeIds.contains(targetId) {
+            compositeStack[compositeStack.count - 1].nodeIds.append(targetId)
+        }
+    }
+
+    // Create note node and register in composite scope
     let noteId = "\(targetId)----note"
-    graph.upsertNode(ParsedNode(id: noteId, label: normalizedText, shape: .stateNote))
+    _registerStateNode(&graph, &compositeStack, ParsedNode(id: noteId, label: normalizedText, shape: .stateNote))
 
     // Create dotted note edge
     let edge: ParsedEdge
@@ -1087,7 +1164,9 @@ private func _consumeNode(_ text: String, graph: inout _WorkingGraph, subgraphSt
        let full = classMatch[safe: 0],
        let className = classMatch[safe: 1]
     {
-        graph.classAssignments[nodeId] = className
+        if graph.classAssignments[nodeId]?.contains(className) != true {
+            graph.classAssignments[nodeId, default: []].append(className)
+        }
         remaining = String(remaining.dropFirst(full.count))
     }
 

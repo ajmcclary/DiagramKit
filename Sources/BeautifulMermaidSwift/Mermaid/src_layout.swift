@@ -482,6 +482,8 @@ public struct _PositionedGroupPayload: Sendable {
     public var height: Double
     public var headerHeight: Double = 28
     public var children: [_PositionedGroupPayload]
+    public var shape: String?
+    public var altBkg: Bool = false
 }
 
 /// Collect all leaf-node children from the ELK result, including those nested inside compound nodes.
@@ -995,7 +997,8 @@ private func _extractSubgraphGroups(
     _ elkNode: [String: Any],
     source: _ParsedGraph,
     graphHeight: Double,
-    parentOffset: (x: Double, y: Double) = (0, 0)
+    parentOffset: (x: Double, y: Double) = (0, 0),
+    depth: Int = 0
 ) -> [_PositionedGroupPayload] {
     let subgraphIds = Set(_allSubgraphIds(source.subgraphs))
     var groups: [_PositionedGroupPayload] = []
@@ -1005,16 +1008,22 @@ private func _extractSubgraphGroups(
         let rawY = (_asDouble(child["y"]) ?? 0) + parentOffset.y
         let w = _asDouble(child["width"]) ?? 0
         let h = _asDouble(child["height"]) ?? 0
-        let label = _findSubgraphLabel(id, in: source.subgraphs) ?? id
+        let sub = _findSubgraph(id, in: source.subgraphs)
+        let label = sub?.label ?? id
+        let shape = sub?.shape?.rawValue
+        let altBkg = sub?.altBkg ?? false
         let childGroups = _extractSubgraphGroups(
             child, source: source, graphHeight: graphHeight,
-            parentOffset: (rawX, rawY)
+            parentOffset: (rawX, rawY),
+            depth: depth + 1
         )
         groups.append(_PositionedGroupPayload(
             id: id, label: label,
             x: rawX, y: rawY,
             width: w, height: h,
-            children: childGroups
+            children: childGroups,
+            shape: shape,
+            altBkg: altBkg
         ))
     }
     return groups
@@ -1024,12 +1033,16 @@ private func _allSubgraphIds(_ subs: [original_src_types.MermaidSubgraph]) -> [S
     subs.flatMap { [$0.id] + _allSubgraphIds($0.children) }
 }
 
-private func _findSubgraphLabel(_ id: String, in subs: [original_src_types.MermaidSubgraph]) -> String? {
+private func _findSubgraph(_ id: String, in subs: [original_src_types.MermaidSubgraph]) -> original_src_types.MermaidSubgraph? {
     for sub in subs {
-        if sub.id == id { return sub.label }
-        if let found = _findSubgraphLabel(id, in: sub.children) { return found }
+        if sub.id == id { return sub }
+        if let found = _findSubgraph(id, in: sub.children) { return found }
     }
     return nil
+}
+
+private func _findSubgraphLabel(_ id: String, in subs: [original_src_types.MermaidSubgraph]) -> String? {
+    _findSubgraph(id, in: subs)?.label
 }
 
 private func _scaleGroups(_ groups: inout [_PositionedGroupPayload], by factor: Double) {
@@ -1045,8 +1058,13 @@ private func _scaleGroups(_ groups: inout [_PositionedGroupPayload], by factor: 
 
 private func _resolveInlineStyle(_ id: String, _ graph: _ParsedGraph) -> [String: String] {
     var style: [String: String] = [:]
-    if let className = graph.classAssignments[id], let classStyle = graph.classDefs[className] {
-        for (k, v) in classStyle { style[k] = v }
+    let classNames = graph.classAssignments[id] ?? []
+    if !classNames.isEmpty {
+        for className in classNames {
+            if let classStyle = graph.classDefs[className] {
+                for (k, v) in classStyle { style[k] = v }
+            }
+        }
     } else if let defaultStyle = graph.defaultClassDef {
         for (k, v) in defaultStyle { style[k] = v }
     }
