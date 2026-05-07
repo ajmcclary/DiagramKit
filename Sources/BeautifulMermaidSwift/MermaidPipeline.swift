@@ -40,6 +40,22 @@ public actor MermaidPipeline {
         }
     }
 
+    /// Synchronous preparation entry point for execution on a non-cooperative thread.
+    ///
+    /// The layout pipeline can exhaust the small stacks (~512 KB) used by Swift's
+    /// cooperative thread pool. Call this from a `DispatchQueue` thread instead.
+    nonisolated func prepareSync(
+        source: String,
+        theme: DiagramTheme = .default,
+        layoutConfig: LayoutConfig = LayoutConfig()
+    ) throws -> PreparedDiagram {
+        try _withMermaidIssueReporting(operation: "MermaidPipeline.prepareSync") {
+            let graph = try MermaidParser.parse(source)
+            let positioned = try GraphLayout(config: layoutConfig).layout(graph)
+            return PreparedDiagram(positioned: positioned, theme: theme)
+        }
+    }
+
     public func renderSVG(
         source: String,
         theme: DiagramTheme = .default
