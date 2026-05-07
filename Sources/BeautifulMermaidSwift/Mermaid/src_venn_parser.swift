@@ -14,10 +14,7 @@ public func parseVennDiagram(_ rawLines: [String], frontmatter: DiagramFrontmatt
     var inIndentMode = false
     var headerFound = false
 
-    for var line in rawLines {
-        var originalLine = line
-        var indent: Int = 0
-
+    for line in rawLines {
         if !headerFound {
             // Trim leading/trailing whitespace for header detection
             let trimmed = line.trimmingCharacters(in: .whitespaces)
@@ -37,7 +34,7 @@ public func parseVennDiagram(_ rawLines: [String], frontmatter: DiagramFrontmatt
             continue
         }
 
-        indent = line.prefix(while: { $0 == " " || $0 == "\t" }).count
+        let indent = line.prefix(while: { $0 == " " || $0 == "\t" }).count
 
         let stripped = trimmedLeading
         let lowerStripped = stripped.lowercased()
@@ -304,7 +301,7 @@ private func _parseExplicitTextStatement(_ line: String) -> (VennTextNode?, Venn
 }
 
 private func _parseIndentedTextStatement(_ line: String, currentSets: [String]?) -> (VennTextNode?, VennParserError?) {
-    var rest = String(line.dropFirst(5)).trimmingCharacters(in: .whitespaces)
+    let rest = String(line.dropFirst(5)).trimmingCharacters(in: .whitespaces)
 
     guard let css = currentSets, !css.isEmpty else {
         return (nil, .textRequiresSet)

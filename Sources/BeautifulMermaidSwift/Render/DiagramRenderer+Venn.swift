@@ -214,7 +214,7 @@ extension DiagramRenderer {
         }
 
         // Draw intersection path
-        if let pathSpec = area.pathSpec, !area.circles.isEmpty == false || area.sets.count >= 2 {
+        if let pathSpec = area.pathSpec, area.sets.count >= 2 {
             let path = _makeVennCGPath(from: pathSpec)
             if let path = path {
                 let fillColor = BMColor(hex: area.fillColor).withAlphaComponent(CGFloat(area.fillOpacity))

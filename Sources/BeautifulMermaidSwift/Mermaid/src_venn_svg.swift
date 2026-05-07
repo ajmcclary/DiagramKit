@@ -31,7 +31,7 @@ func renderVennSvg(
     svg += "<g transform=\"translate(0, \(Int(positioned.titleHeight)))\">\n"
 
     for area in positioned.areas {
-        svg += renderVennAreaSvg(area, font: font, scale: positioned.scale, themeVariables: positioned.themeVariables)
+        svg += renderVennAreaSvg(area, font: font)
     }
 
     if !positioned.textNodes.isEmpty {
@@ -53,23 +53,23 @@ func renderVennSvg(
     return svg
 }
 
-private func renderVennAreaSvg(_ area: PositionedVennArea, font: String, scale: Double, themeVariables: [String: String]?) -> String {
+private func renderVennAreaSvg(_ area: PositionedVennArea, font: String) -> String {
     var result = ""
 
     if area.isSingleSet {
-        result += renderVennCircleSvg(area, font: font, scale: scale)
+        result += renderVennCircleSvg(area, font: font)
     } else {
-        result += renderVennIntersectionSvg(area, font: font, scale: scale)
+        result += renderVennIntersectionSvg(area, font: font)
     }
 
     return result
 }
 
-private func renderVennCircleSvg(_ area: PositionedVennArea, font: String, scale: Double) -> String {
+private func renderVennCircleSvg(_ area: PositionedVennArea, font: String) -> String {
     var result = ""
     let fmt: (Double) -> String = { String(format: "%.2f", $0) }
 
-    for (i, circle) in area.circles.enumerated() {
+    for circle in area.circles {
         result += "<g class=\"venn-circle \(area.colorClass)\">\n"
 
         let fillOpacity = area.fillOpacity
@@ -92,7 +92,7 @@ private func renderVennCircleSvg(_ area: PositionedVennArea, font: String, scale
     return result
 }
 
-private func renderVennIntersectionSvg(_ area: PositionedVennArea, font: String, scale: Double) -> String {
+private func renderVennIntersectionSvg(_ area: PositionedVennArea, font: String) -> String {
     var result = ""
     let fmt: (Double) -> String = { String(format: "%.2f", $0) }
 
