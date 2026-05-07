@@ -342,9 +342,9 @@ extension DiagramRenderer {
         context.saveGState()
         context.addPath(path)
         // Note color: light yellow
-        let noteColor = CGColor(red: 0.96, green: 0.94, blue: 0.78, alpha: 1.0)
+        let noteColor = theme.noteBackgroundColor().cgColor
         context.setFillColor(noteColor)
-        context.setStrokeColor(theme.effectiveLine().cgColor)
+        context.setStrokeColor(theme.noteBorderColor().cgColor)
         context.setLineWidth(1.5)
         context.drawPath(using: .fillStroke)
 

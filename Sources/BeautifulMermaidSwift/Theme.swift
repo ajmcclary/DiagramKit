@@ -16,6 +16,8 @@ public struct DiagramTheme: @unchecked Sendable, Equatable {
     public var muted: BMColor?
     public var surface: BMColor?
     public var border: BMColor?
+    public var noteBkg: BMColor?
+    public var noteBorder: BMColor?
     public var font: BMFont
     public var lineWidth: CGFloat
     public var cornerRadius: CGFloat
@@ -59,6 +61,8 @@ public struct DiagramTheme: @unchecked Sendable, Equatable {
     ///   - muted: Secondary text color (edge labels). Defaults to a 40% blend.
     ///   - surface: Node fill color. Defaults to a 3% blend.
     ///   - border: Node stroke color. Defaults to a 20% blend.
+    ///   - noteBkg: Note background color. Defaults to UML note yellow (#F5F0C8).
+    ///   - noteBorder: Note border color. Defaults to (#E0DEB5).
     ///   - font: Font used for all labels. Defaults to the system font at 14 pt.
     ///   - lineWidth: Stroke width for edges and borders. Defaults to 1.5.
     ///   - cornerRadius: Corner radius for rounded node shapes. Defaults to 8.
@@ -71,6 +75,8 @@ public struct DiagramTheme: @unchecked Sendable, Equatable {
         muted: BMColor? = nil,
         surface: BMColor? = nil,
         border: BMColor? = nil,
+        noteBkg: BMColor? = nil,
+        noteBorder: BMColor? = nil,
         font: BMFont = BMFont.systemFont(ofSize: 14),
         lineWidth: CGFloat = 1.5,
         cornerRadius: CGFloat = 8,
@@ -83,6 +89,8 @@ public struct DiagramTheme: @unchecked Sendable, Equatable {
         self.muted = muted
         self.surface = surface
         self.border = border
+        self.noteBkg = noteBkg
+        self.noteBorder = noteBorder
         self.font = font
         self.lineWidth = lineWidth
         self.cornerRadius = cornerRadius
@@ -131,6 +139,9 @@ public struct DiagramTheme: @unchecked Sendable, Equatable {
     public func keyBadgeColor() -> BMColor {
         background.mixed(with: foreground, amount: ColorMix.keyBadge)
     }
+
+    public func noteBackgroundColor() -> BMColor { noteBkg ?? BMColor(hex: "#F5F0C8") }
+    public func noteBorderColor() -> BMColor { noteBorder ?? BMColor(hex: "#E0DEB5") }
 
     // MARK: - Per-Element Colors
 

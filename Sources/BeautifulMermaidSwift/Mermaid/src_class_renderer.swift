@@ -13,16 +13,18 @@ public func renderClassSvg(
     _ diagram: PositionedClassDiagram,
     _ colors: DiagramColors,
     _ font: String = "Inter",
-    _ transparent: Bool = false
+    _ transparent: Bool = false,
+    securityLevel: String? = nil
 ) throws -> String {
-    try _renderClassSvgEntry(diagram, colors, font, transparent)
+    try _renderClassSvgEntry(diagram, colors, font, transparent, securityLevel: securityLevel)
 }
 
 private func _renderClassSvgEntry(
     _ diagram: PositionedClassDiagram,
     _ colors: DiagramColors,
     _ font: String,
-    _ transparent: Bool
+    _ transparent: Bool,
+    securityLevel: String? = nil
 ) throws -> String {
     var parts: [String] = []
 
@@ -33,7 +35,9 @@ private func _renderClassSvgEntry(
         accent: colors.accent,
         muted: colors.muted,
         surface: colors.surface,
-        border: colors.border
+        border: colors.border,
+        noteBkg: colors.noteBkg,
+        noteBorder: colors.noteBorder
     )
 
     parts.append(original_src_theme.svgOpenTag(diagram.width, diagram.height, themedColors, transparent))
@@ -72,7 +76,7 @@ private func _renderClassSvgEntry(
 
     // Render class boxes
     for cls in diagram.classes {
-        parts.append(_renderClassBox(cls))
+        parts.append(_renderClassBox(cls, securityLevel: securityLevel))
     }
 
     // Render relationship labels on top
@@ -86,19 +90,19 @@ private func _renderClassSvgEntry(
 }
 
 private func _relationshipMarkerDefs() -> String {
-    "  <marker id=\"cls-inherit\" markerWidth=\"12\" markerHeight=\"10\" refX=\"12\" refY=\"5\" orient=\"auto-start-reverse\">\n" +
+    "  <marker id=\"extension\" markerWidth=\"12\" markerHeight=\"10\" refX=\"12\" refY=\"5\" orient=\"auto-start-reverse\">\n" +
         "    <polygon points=\"0 0, 12 5, 0 10\" fill=\"var(--bg)\" stroke=\"var(--_arrow)\" stroke-width=\"1.5\" />\n" +
         "  </marker>\n" +
-        "  <marker id=\"cls-composition\" markerWidth=\"12\" markerHeight=\"10\" refX=\"0\" refY=\"5\" orient=\"auto-start-reverse\">\n" +
+        "  <marker id=\"composition\" markerWidth=\"12\" markerHeight=\"10\" refX=\"0\" refY=\"5\" orient=\"auto-start-reverse\">\n" +
         "    <polygon points=\"6 0, 12 5, 6 10, 0 5\" fill=\"var(--_arrow)\" stroke=\"var(--_arrow)\" stroke-width=\"1\" />\n" +
         "  </marker>\n" +
-        "  <marker id=\"cls-aggregation\" markerWidth=\"12\" markerHeight=\"10\" refX=\"0\" refY=\"5\" orient=\"auto-start-reverse\">\n" +
+        "  <marker id=\"aggregation\" markerWidth=\"12\" markerHeight=\"10\" refX=\"0\" refY=\"5\" orient=\"auto-start-reverse\">\n" +
         "    <polygon points=\"6 0, 12 5, 6 10, 0 5\" fill=\"var(--bg)\" stroke=\"var(--_arrow)\" stroke-width=\"1.5\" />\n" +
         "  </marker>\n" +
-        "  <marker id=\"cls-arrow\" markerWidth=\"8\" markerHeight=\"6\" refX=\"8\" refY=\"3\" orient=\"auto-start-reverse\">\n" +
+        "  <marker id=\"dependency\" markerWidth=\"8\" markerHeight=\"6\" refX=\"8\" refY=\"3\" orient=\"auto-start-reverse\">\n" +
         "    <polyline points=\"0 0, 8 3, 0 6\" fill=\"none\" stroke=\"var(--_arrow)\" stroke-width=\"1.5\" />\n" +
         "  </marker>\n" +
-        "  <marker id=\"cls-lollipop\" markerWidth=\"10\" markerHeight=\"10\" refX=\"5\" refY=\"5\">\n" +
+        "  <marker id=\"lollipop\" markerWidth=\"10\" markerHeight=\"10\" refX=\"5\" refY=\"5\">\n" +
         "    <circle cx=\"5\" cy=\"5\" r=\"5\" fill=\"var(--bg)\" stroke=\"var(--_line)\" stroke-width=\"1.5\" />\n" +
         "  </marker>"
 }
@@ -142,7 +146,7 @@ private func _parseClassSvgStyle(_ styles: [String]?) -> _ClassSvgStyle {
     return parsed
 }
 
-private func _renderClassBox(_ cls: PositionedClassNode) -> String {
+private func _renderClassBox(_ cls: PositionedClassNode, securityLevel: String? = nil) -> String {
     let x = cls.x
     let y = cls.y
     let width = cls.width
@@ -165,9 +169,11 @@ private func _renderClassBox(_ cls: PositionedClassNode) -> String {
     let dividerStrokeWidth = parsedStyle.strokeWidth.map(_escapeAttr) ?? "\(original_src_styles.STROKE_WIDTHS.innerBox)"
     let dashAttr = parsedStyle.strokeDasharray.map { " stroke-dasharray=\"\(_escapeAttr($0))\"" } ?? ""
     let textFill = parsedStyle.color.map(_escapeAttr) ?? "var(--_text)"
-    let linkAttr = cls.link.map { " data-link=\"\(_escapeAttr($0))\"" } ?? ""
-    let linkTargetAttr = cls.linkTarget.map { " data-link-target=\"\(_escapeAttr($0))\"" } ?? ""
-    let tooltipAttr = cls.tooltip.map { " data-tooltip=\"\(_escapeAttr($0))\"" } ?? ""
+
+    let isSandbox = securityLevel?.lowercased() == "sandbox" || securityLevel?.lowercased() == "strict"
+    let linkAttr = (!isSandbox && cls.link != nil) ? " data-link=\"\(_escapeAttr(cls.link!))\"" : ""
+    let linkTargetAttr = (!isSandbox && cls.linkTarget != nil) ? " data-link-target=\"\(_escapeAttr(cls.linkTarget!))\"" : ""
+    let tooltipAttr = (!isSandbox && cls.tooltip != nil) ? " data-tooltip=\"\(_escapeAttr(cls.tooltip!))\"" : ""
 
     parts.append(
         "<g class=\"class-node\(cssClasses)\" data-id=\"\(_escapeAttr(cls.id))\" data-label=\"\(_escapeAttr(cls.label))\"\(linkAttr)\(linkTargetAttr)\(tooltipAttr)\(styleAttr)>"
@@ -310,11 +316,11 @@ private func _renderRelationship(_ rel: PositionedClassRelationship) -> String {
 
 private func _getMarkerDefId(forRelationType type: Int) -> String? {
     switch type {
-    case ClassRelationType.inheritance.rawValue: return "cls-inherit"
-    case ClassRelationType.composition.rawValue: return "cls-composition"
-    case ClassRelationType.aggregation.rawValue: return "cls-aggregation"
-    case ClassRelationType.dependency.rawValue: return "cls-arrow"
-    case ClassRelationType.lollipop.rawValue: return "cls-lollipop"
+    case ClassRelationType.inheritance.rawValue: return "extension"
+    case ClassRelationType.composition.rawValue: return "composition"
+    case ClassRelationType.aggregation.rawValue: return "aggregation"
+    case ClassRelationType.dependency.rawValue: return "dependency"
+    case ClassRelationType.lollipop.rawValue: return "lollipop"
     default: return nil
     }
 }
@@ -438,7 +444,7 @@ private func _renderNote(_ note: PositionedClassNote) -> String {
 
     parts.append(
         "  <path d=\"\(pathParts.joined(separator: " "))\" " +
-            "fill=\"#F5F0C8\" stroke=\"var(--_line)\" stroke-width=\"1.5\" />"
+            "fill=\"var(--_note-bkg)\" stroke=\"var(--_note-border)\" stroke-width=\"1.5\" />"
     )
 
     // Folded corner line

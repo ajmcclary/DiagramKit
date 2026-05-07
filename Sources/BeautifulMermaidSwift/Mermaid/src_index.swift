@@ -46,6 +46,8 @@ public struct DiagramColors: Sendable {
     public var muted: String?
     public var surface: String?
     public var border: String?
+    public var noteBkg: String?
+    public var noteBorder: String?
 
     public init(
         bg: String,
@@ -54,7 +56,9 @@ public struct DiagramColors: Sendable {
         accent: String? = nil,
         muted: String? = nil,
         surface: String? = nil,
-        border: String? = nil
+        border: String? = nil,
+        noteBkg: String? = nil,
+        noteBorder: String? = nil
     ) {
         self.bg = bg
         self.fg = fg
@@ -63,6 +67,8 @@ public struct DiagramColors: Sendable {
         self.muted = muted
         self.surface = surface
         self.border = border
+        self.noteBkg = noteBkg
+        self.noteBorder = noteBorder
     }
 }
 
@@ -349,7 +355,7 @@ private func _renderSequenceSvgCase(lines: [String], fm: DiagramFrontmatter?, op
 private func _renderClassSvgCase(lines: [String], fm: DiagramFrontmatter?, options: RenderOptions, colors: DiagramColors, font: String, transparent: Bool) throws -> String {
     let diagram = try parseClassDiagram(lines, frontmatter: fm)
     let positioned = try layoutClassDiagramSync(diagram, options: options)
-    return try renderClassSvg(positioned, colors, font, transparent)
+    return try renderClassSvg(positioned, colors, font, transparent, securityLevel: fm?.securityLevel)
 }
 
 private func _renderErSvgCase(lines: [String], fm: DiagramFrontmatter?, options: RenderOptions, colors: DiagramColors, font: String, transparent: Bool) throws -> String {

@@ -40,8 +40,8 @@ final class ClassReviewFindingRegressionTests: XCTestCase {
 
         let positioned = try layoutClassDiagramSync(diagram)
         let svg = try renderClassSvg(positioned, DiagramColors(bg: "#fff", fg: "#000"))
-        XCTAssertTrue(svg.contains("cls-lollipop"))
-        XCTAssertTrue(svg.contains("marker-start=\"url(#cls-lollipop)\""))
+        XCTAssertTrue(svg.contains("lollipop"))
+        XCTAssertTrue(svg.contains("marker-start=\"url(#lollipop)\""))
     }
 
     func testStyleAndClassDefAffectRenderedClassBox() throws {

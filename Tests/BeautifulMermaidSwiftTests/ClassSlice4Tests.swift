@@ -88,6 +88,83 @@ final class ClassSlice4Tests: XCTestCase {
         XCTAssertEqual(rel.relation.type1, ClassRelationType.inheritance.rawValue)
         XCTAssertEqual(rel.relation.type2, ClassRelationType.composition.rawValue)
     }
+
+    func test_two_ended_markers_in_svg() throws {
+        let source = "classDiagram\nclass A\nclass B\nA <|--|> B"
+        let diagram = try parseClassDiagram(source.splitByNewlines)
+        let positioned = try layoutClassDiagramSync(diagram)
+        let svg = try renderClassSvg(positioned, DiagramColors(bg: "#fff", fg: "#000"))
+        XCTAssertTrue(svg.contains("marker-start=\"url(#extension)\""))
+        XCTAssertTrue(svg.contains("marker-end=\"url(#extension)\""))
+    }
+
+    func test_lollipop_marker_in_svg() throws {
+        let source = "classDiagram\nbar ()-- foo"
+        let diagram = try parseClassDiagram(source.splitByNewlines)
+        let positioned = try layoutClassDiagramSync(diagram)
+        let svg = try renderClassSvg(positioned, DiagramColors(bg: "#fff", fg: "#000"))
+        XCTAssertTrue(svg.contains("lollipop"))
+        XCTAssertTrue(svg.contains("marker-start=\"url(#lollipop)\""))
+    }
+
+    func test_dotted_inheritance() throws {
+        let source = "classDiagram\nclass A\nclass B\nA <|.. B"
+        let diagram = try parseClassDiagram(source.splitByNewlines)
+        let rel = diagram.relationships[0]
+        XCTAssertEqual(rel.relation.type1, ClassRelationType.inheritance.rawValue)
+        XCTAssertEqual(rel.relation.type2, ClassRelationType.none.rawValue)
+        XCTAssertEqual(rel.relation.lineType, ClassLineType.dotted.rawValue)
+    }
+
+    func test_dotted_target_inheritance() throws {
+        let source = "classDiagram\nclass A\nclass B\nA ..|> B"
+        let diagram = try parseClassDiagram(source.splitByNewlines)
+        let rel = diagram.relationships[0]
+        XCTAssertEqual(rel.relation.type2, ClassRelationType.inheritance.rawValue)
+        XCTAssertEqual(rel.relation.lineType, ClassLineType.dotted.rawValue)
+    }
+
+    func test_dotted_aggregation() throws {
+        let source = "classDiagram\nclass A\nclass B\nA o.. B"
+        let diagram = try parseClassDiagram(source.splitByNewlines)
+        let rel = diagram.relationships[0]
+        XCTAssertEqual(rel.relation.type1, ClassRelationType.aggregation.rawValue)
+        XCTAssertEqual(rel.relation.lineType, ClassLineType.dotted.rawValue)
+    }
+
+    func test_dotted_composition() throws {
+        let source = "classDiagram\nclass A\nclass B\nA *.. B"
+        let diagram = try parseClassDiagram(source.splitByNewlines)
+        let rel = diagram.relationships[0]
+        XCTAssertEqual(rel.relation.type1, ClassRelationType.composition.rawValue)
+        XCTAssertEqual(rel.relation.lineType, ClassLineType.dotted.rawValue)
+    }
+
+    func test_reverse_lollipop() throws {
+        let source = "classDiagram\nfoo --() Bar"
+        let diagram = try parseClassDiagram(source.splitByNewlines)
+        let rel = diagram.relationships.first
+        XCTAssertNotNil(rel)
+        XCTAssertEqual(rel?.relation.type2, ClassRelationType.lollipop.rawValue)
+    }
+
+    func test_dotted_two_ended_aggregation() throws {
+        let source = "classDiagram\nclass A\nclass B\nA o..o B"
+        let diagram = try parseClassDiagram(source.splitByNewlines)
+        let rel = diagram.relationships[0]
+        XCTAssertEqual(rel.relation.type1, ClassRelationType.aggregation.rawValue)
+        XCTAssertEqual(rel.relation.type2, ClassRelationType.aggregation.rawValue)
+        XCTAssertEqual(rel.relation.lineType, ClassLineType.dotted.rawValue)
+    }
+
+    func test_dotted_two_ended_composition() throws {
+        let source = "classDiagram\nclass A\nclass B\nA *..* B"
+        let diagram = try parseClassDiagram(source.splitByNewlines)
+        let rel = diagram.relationships[0]
+        XCTAssertEqual(rel.relation.type1, ClassRelationType.composition.rawValue)
+        XCTAssertEqual(rel.relation.type2, ClassRelationType.composition.rawValue)
+        XCTAssertEqual(rel.relation.lineType, ClassLineType.dotted.rawValue)
+    }
 }
 
 private extension String {

@@ -12,6 +12,8 @@ open class original_src_theme {
         public var muted: String?
         public var surface: String?
         public var border: String?
+        public var noteBkg: String?
+        public var noteBorder: String?
 
         public init(
             bg: String,
@@ -20,7 +22,9 @@ open class original_src_theme {
             accent: String? = nil,
             muted: String? = nil,
             surface: String? = nil,
-            border: String? = nil
+            border: String? = nil,
+            noteBkg: String? = nil,
+            noteBorder: String? = nil
         ) {
             self.bg = bg
             self.fg = fg
@@ -29,6 +33,8 @@ open class original_src_theme {
             self.muted = muted
             self.surface = surface
             self.border = border
+            self.noteBkg = noteBkg
+            self.noteBorder = noteBorder
         }
     }
 
@@ -274,6 +280,8 @@ open class original_src_theme {
             --_group-hdr:     color-mix(in srgb, var(--fg) \(MIX.groupHeader)%, var(--bg));
             --_inner-stroke:  color-mix(in srgb, var(--fg) \(MIX.innerStroke)%, var(--bg));
             --_key-badge:     color-mix(in srgb, var(--fg) \(MIX.keyBadge)%, var(--bg));
+            --_note-bkg:      var(--note-bkg, #F5F0C8);
+            --_note-border:   var(--note-border, #E0DEB5);
         """
 
         var lines: [String] = [
@@ -298,15 +306,17 @@ open class original_src_theme {
         viewBoxX: Double = 0,
         viewBoxY: Double = 0
     ) -> String {
-        let styleVars = [
-            "--bg:\(colors.bg)",
-            "--fg:\(colors.fg)",
-            colors.line.map { "--line:\($0)" } ?? "",
-            colors.accent.map { "--accent:\($0)" } ?? "",
-            colors.muted.map { "--muted:\($0)" } ?? "",
-            colors.surface.map { "--surface:\($0)" } ?? "",
-            colors.border.map { "--border:\($0)" } ?? "",
-        ].filter { !$0.isEmpty }.joined(separator: ";")
+        var styleVarParts: [String] = []
+        styleVarParts.append("--bg:\(colors.bg)")
+        styleVarParts.append("--fg:\(colors.fg)")
+        if let line = colors.line { styleVarParts.append("--line:\(line)") }
+        if let accent = colors.accent { styleVarParts.append("--accent:\(accent)") }
+        if let muted = colors.muted { styleVarParts.append("--muted:\(muted)") }
+        if let surface = colors.surface { styleVarParts.append("--surface:\(surface)") }
+        if let border = colors.border { styleVarParts.append("--border:\(border)") }
+        if let noteBkg = colors.noteBkg { styleVarParts.append("--note-bkg:\(noteBkg)") }
+        if let noteBorder = colors.noteBorder { styleVarParts.append("--note-border:\(noteBorder)") }
+        let styleVars = styleVarParts.joined(separator: ";")
 
         let bgStyle = (transparent ?? false) ? "" : ";background:var(--bg)"
         let widthStr = _formatNumber(width)

@@ -485,26 +485,20 @@ public enum ClassParserError: Error, LocalizedError, _MermaidRecoverableError {
 // MARK: - Generic Type Helpers (Slice 1)
 
 public func parseGenericTypes(_ input: String) -> String {
-    var result = ""
-    var i = input.startIndex
-    while i < input.endIndex {
-        if input[i] == "~" {
-            result.append("<")
-            i = input.index(after: i)
-            while i < input.endIndex && input[i] != "~" {
-                if input[i] == "," {
-                    result.append(", ")
-                } else {
-                    result.append(input[i])
-                }
-                i = input.index(after: i)
-            }
-            if i < input.endIndex { i = input.index(after: i) }
-            result.append(">")
-        } else {
-            result.append(input[i])
-            i = input.index(after: i)
+    guard input.contains("~") else { return input }
+    var result = input
+    while let openRange = result.range(of: "~") {
+        let afterOpen = result[openRange.upperBound...]
+        guard let closeRange = afterOpen.range(of: "~") else { break }
+        let inner = String(afterOpen[..<closeRange.lowerBound])
+        var processedInner = inner
+        if inner.contains(",") {
+            processedInner = inner.split(separator: ",")
+                .map { $0.trimmingCharacters(in: .whitespaces) }
+                .joined(separator: ", ")
         }
+        let fullRange = openRange.lowerBound..<closeRange.upperBound
+        result.replaceSubrange(fullRange, with: "<\(processedInner)>")
     }
     return result
 }
@@ -592,6 +586,8 @@ private func _parseClassDiagramEntry(_ lines: [String], frontmatter: DiagramFron
         diagram.diagramTitle = fm.title
         diagram.config = fm.classConfig
     }
+
+    let securityLevel = frontmatter?.securityLevel?.lowercased()
 
     let bodyLines = Array(lines[(headerIdx + 1)...])
 
@@ -1065,10 +1061,16 @@ private func _parseClassDiagramEntry(_ lines: [String], frontmatter: DiagramFron
             guard !_isUnsafeURL(url) else { continue }
             let tooltip = groups[safe: 3]
             let target = groups[safe: 4].flatMap { $0.isEmpty ? nil : $0 }
+            let effectiveTarget: String
+            if securityLevel == "sandbox" {
+                effectiveTarget = "_top"
+            } else {
+                effectiveTarget = target ?? "_self"
+            }
             var cls = _ensureClass(&classMap, &classOrder, classId)
             cls.link = url
             cls.tooltip = tooltip
-            cls.linkTarget = target ?? "_self"
+            cls.linkTarget = effectiveTarget
             cls.cssClasses += " clickable"
             classMap[classId] = cls
             continue
@@ -1080,10 +1082,16 @@ private func _parseClassDiagramEntry(_ lines: [String], frontmatter: DiagramFron
             guard !_isUnsafeURL(url) else { continue }
             let tooltip = groups[safe: 3]
             let target = groups[safe: 4].flatMap { $0.isEmpty ? nil : $0 }
+            let effectiveTarget: String
+            if securityLevel == "sandbox" {
+                effectiveTarget = "_top"
+            } else {
+                effectiveTarget = target ?? "_self"
+            }
             var cls = _ensureClass(&classMap, &classOrder, classId)
             cls.link = url
             cls.tooltip = tooltip
-            cls.linkTarget = target ?? "_self"
+            cls.linkTarget = effectiveTarget
             cls.cssClasses += " clickable"
             classMap[classId] = cls
             continue

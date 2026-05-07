@@ -74,6 +74,23 @@ final class ClassSlice3Tests: XCTestCase {
         let attr = cls.attributes[0]
         XCTAssertTrue(attr.text.hasPrefix("+ "))
     }
+
+    func test_nested_generic_member() throws {
+        let source = "classDiagram\nclass Repository {\n    +findAll() List~T~\n}"
+        let diagram = try parseClassDiagram(source.splitByNewlines)
+        let cls = diagram.classes[0]
+        let method = cls.methods.first!
+        XCTAssertTrue(method.text.contains("<T>"), "Expected generic <T> conversion in: \(method.text)")
+    }
+
+    func test_generic_method_name() throws {
+        let source = "classDiagram\nclass Service {\n    getTime~T~(T value, int seconds) DateTime\n}"
+        let diagram = try parseClassDiagram(source.splitByNewlines)
+        let cls = diagram.classes[0]
+        let method = cls.methods[0]
+        XCTAssertEqual(method.memberType, .method)
+        XCTAssertTrue(method.text.contains("getTime<T>"), "Expected method name with generic 'getTime<T>' in: \(method.text)")
+    }
 }
 
 private extension String {
