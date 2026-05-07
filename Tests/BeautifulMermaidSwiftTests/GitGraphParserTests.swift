@@ -273,4 +273,49 @@ final class GitGraphParserTests: XCTestCase {
         let secondCommit = diagram.commits[1]
         XCTAssertEqual(secondCommit.branch, "develop")
     }
+
+    // MARK: - Prototype-hazard names (G4)
+
+    func testProtoAsBranchName() throws {
+        let diagram = try parse("gitGraph\n   branch __proto__\n   checkout __proto__\n   commit")
+        XCTAssertTrue(diagram.branches.contains("__proto__"))
+        XCTAssertEqual(diagram.currentBranch, "__proto__")
+    }
+
+    func testConstructorAsCommitId() throws {
+        let diagram = try parse("gitGraph\n   commit id:\"constructor\"")
+        XCTAssertEqual(diagram.commits.count, 1)
+        XCTAssertEqual(diagram.commits[0].id, "constructor")
+    }
+
+    func testConstructorAndProtoBranchMerge() throws {
+        let diagram = try parse("gitGraph\n   commit\n   branch constructor\n   commit\n   checkout main\n   merge constructor")
+        XCTAssertEqual(diagram.commits.count, 3)
+        XCTAssertTrue(diagram.branches.contains("constructor"))
+    }
+
+    // MARK: - Duplicate commit ID warnings (G3)
+
+    func testDuplicateCommitIdWarning() throws {
+        let diagram = try parse("gitGraph\n   commit id:\"dup\"\n   commit id:\"dup\"")
+        XCTAssertFalse(diagram.warnings.isEmpty)
+        XCTAssertTrue(diagram.warnings[0].contains("already exists"))
+    }
+
+    // MARK: - mainBranchName config (G7)
+
+    func testMainBranchNameFromConfig() throws {
+        var config = GitGraphConfig()
+        config.mainBranchName = "trunk"
+        let diagram = try parseGitGraph(lines("gitGraph\n   commit"), frontmatter: DiagramFrontmatter(gitGraphConfig: config))
+        XCTAssertEqual(diagram.currentBranch, "trunk")
+        XCTAssertEqual(diagram.commits[0].branch, "trunk")
+    }
+
+    func testMainBranchOrderFromConfig() throws {
+        var config = GitGraphConfig()
+        config.mainBranchOrder = 99
+        let diagram = try parseGitGraph(lines("gitGraph\n   branch dev\n   commit"), frontmatter: DiagramFrontmatter(gitGraphConfig: config))
+        XCTAssertEqual(diagram.branches, ["dev", "main"])
+    }
 }

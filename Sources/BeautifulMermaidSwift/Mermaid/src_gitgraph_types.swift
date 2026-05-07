@@ -136,6 +136,9 @@ public struct GitGraphDiagram: Sendable, Equatable {
     public var accDescr: String?
     public var config: GitGraphConfig
     public var theme: GitGraphThemeConfig
+    public var warnings: [String]
+    public var look: String?
+    public var themeName: String?
 
     public init(
         statements: [GitGraphStatement] = [],
@@ -148,7 +151,10 @@ public struct GitGraphDiagram: Sendable, Equatable {
         accTitle: String? = nil,
         accDescr: String? = nil,
         config: GitGraphConfig = GitGraphConfig(),
-        theme: GitGraphThemeConfig = GitGraphThemeConfig()
+        theme: GitGraphThemeConfig = GitGraphThemeConfig(),
+        warnings: [String] = [],
+        look: String? = nil,
+        themeName: String? = nil
     ) {
         self.statements = statements
         self.commits = commits
@@ -161,6 +167,9 @@ public struct GitGraphDiagram: Sendable, Equatable {
         self.accDescr = accDescr
         self.config = config
         self.theme = theme
+        self.warnings = warnings
+        self.look = look
+        self.themeName = themeName
     }
 }
 
@@ -391,6 +400,9 @@ public struct PositionedGitGraphDiagram: Sendable {
     public var diagramTitle: String?
     public var config: GitGraphConfig
     public var theme: GitGraphThemeConfig
+    public var look: String?
+    public var themeName: String?
+    public var direction: GitGraphOrientation
 
     public init(
         width: Double = 0,
@@ -404,7 +416,10 @@ public struct PositionedGitGraphDiagram: Sendable {
         accDescr: String? = nil,
         diagramTitle: String? = nil,
         config: GitGraphConfig = GitGraphConfig(),
-        theme: GitGraphThemeConfig = GitGraphThemeConfig()
+        theme: GitGraphThemeConfig = GitGraphThemeConfig(),
+        look: String? = nil,
+        themeName: String? = nil,
+        direction: GitGraphOrientation = .LR
     ) {
         self.width = width
         self.height = height
@@ -418,6 +433,9 @@ public struct PositionedGitGraphDiagram: Sendable {
         self.diagramTitle = diagramTitle
         self.config = config
         self.theme = theme
+        self.look = look
+        self.themeName = themeName
+        self.direction = direction
     }
 
     public static var empty: PositionedGitGraphDiagram {
@@ -675,4 +693,44 @@ public enum GitGraphDBError: Error, LocalizedError {
             return "Incorrect usage of \"cherryPick\". Source commit id should exist and provided"
         }
     }
+}
+
+// MARK: - Theme-set constants (mirrors gitGraphRenderer.ts + styles.js)
+
+public let _GitGraphReduxGeometryThemes: Set<String> = ["redux", "redux-dark", "redux-color", "redux-dark-color"]
+public let _GitGraphColorThemes: Set<String> = ["redux-color", "redux-dark-color"]
+public let _GitGraphDarkThemes: Set<String> = ["dark", "redux-dark", "redux-dark-color", "neo-dark"]
+public let _GitGraphNeoThemes: Set<String> = ["neo", "neo-dark"]
+public let _GitGraphNeoColorGenThemes: Set<String> = ["redux", "redux-dark", "redux-color", "redux-dark-color", "neo", "neo-dark"]
+
+public func _gitGraphIsReduxGeometry(_ themeName: String?) -> Bool {
+    guard let t = themeName else { return false }
+    return _GitGraphReduxGeometryThemes.contains(t)
+}
+
+public func _gitGraphIsColorTheme(_ themeName: String?) -> Bool {
+    guard let t = themeName else { return false }
+    return _GitGraphColorThemes.contains(t)
+}
+
+public func _gitGraphIsDark(_ themeName: String?) -> Bool {
+    guard let t = themeName else { return false }
+    return _GitGraphDarkThemes.contains(t)
+}
+
+public func _gitGraphIsNeo(_ themeName: String?) -> Bool {
+    guard let t = themeName else { return false }
+    return _GitGraphNeoThemes.contains(t)
+}
+
+public func _gitGraphIsNeoColorGen(_ themeName: String?) -> Bool {
+    guard let t = themeName else { return false }
+    return _GitGraphNeoColorGenThemes.contains(t)
+}
+
+public func _gitGraphCalcColorIndex(_ rawIndex: Int, limit: Int, avoidDefaultColor: Bool) -> Int {
+    if avoidDefaultColor && rawIndex > 0 {
+        return ((rawIndex - 1) % (limit - 1)) + 1
+    }
+    return rawIndex % limit
 }

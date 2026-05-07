@@ -218,4 +218,35 @@ final class GitGraphModelTests: XCTestCase {
         XCTAssertTrue(branches.contains("test2"))
         XCTAssertTrue(branches.contains("test3"))
     }
+
+    // MARK: - Duplicate commit ID (G3)
+
+    func testDuplicateCommitIdWarningEmitted() throws {
+        let diagram = try parse("gitGraph\n   commit id:\"dup\"\n   commit id:\"dup\"")
+        XCTAssertFalse(diagram.warnings.isEmpty)
+        XCTAssertTrue(diagram.warnings[0].contains("already exists"))
+    }
+
+    // MARK: - mainBranchName (G7)
+
+    func testMainBranchNameChangesInitialBranch() throws {
+        var config = GitGraphConfig()
+        config.mainBranchName = "trunk"
+        let diagram = try parseGitGraph(lines("gitGraph\n   commit"), frontmatter: DiagramFrontmatter(gitGraphConfig: config))
+        XCTAssertEqual(diagram.currentBranch, "trunk")
+        XCTAssertEqual(diagram.branches.first, "trunk")
+    }
+
+    // MARK: - mainBranchOrder (G19)
+
+    func testMainBranchOrderAffectsSorting() throws {
+        var config = GitGraphConfig()
+        config.mainBranchOrder = 5
+        let diagram = try parseGitGraph(lines("gitGraph\n   branch dev\n   commit"),
+            frontmatter: DiagramFrontmatter(gitGraphConfig: config))
+        if let mainIdx = diagram.branches.firstIndex(of: "main"),
+           let devIdx = diagram.branches.firstIndex(of: "dev") {
+            XCTAssertGreaterThan(mainIdx, devIdx)
+        }
+    }
 }

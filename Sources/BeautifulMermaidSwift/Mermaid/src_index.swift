@@ -438,7 +438,8 @@ private func _renderGitGraphSvgCase(source: String, fm: DiagramFrontmatter?) thr
     let gitLines = _sourceStatementsNoPreprocess(from: source)
     let diagram = try parseGitGraph(gitLines, frontmatter: fm)
     let positioned = layoutGitGraph(diagram)
-    return renderGitGraphSvg(positioned)
+    let diagramId = UUID().uuidString
+    return renderGitGraphSvg(positioned, diagramId: diagramId)
 }
 
 private func _renderMindmapSvgCase(source: String, fm: DiagramFrontmatter?, colors: DiagramColors, font: String, transparent: Bool) throws -> String {

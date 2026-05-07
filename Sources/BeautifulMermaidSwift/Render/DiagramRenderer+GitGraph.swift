@@ -22,6 +22,15 @@ extension DiagramRenderer {
 
         _withFittedContext(context, bounds: bounds, contentWidth: max(1, contentWidth), contentHeight: max(1, contentHeight)) { ctx in
 
+            let useReduxGeometry = _gitGraphIsReduxGeometry(pg.themeName)
+            let bulletRadius: CGFloat = useReduxGeometry ? 7 : 10
+            let innerRadius: CGFloat = useReduxGeometry ? 5 : 6
+            let crossConst: CGFloat = useReduxGeometry ? 4 : 5
+            let highlightOuterSize: CGFloat = useReduxGeometry ? 14 : 20
+            let highlightInnerSize: CGFloat = useReduxGeometry ? 8 : 12
+            let highlightOuterOffset: CGFloat = useReduxGeometry ? 3 : 0
+            let highlightInnerOffset: CGFloat = useReduxGeometry ? 2 : 0
+
             // Title
             if let title = pg.title {
                 ctx.saveGState()
@@ -84,21 +93,22 @@ extension DiagramRenderer {
 
                 switch effectiveType {
                 case .highlight:
-                    let outerRect = CGRect(x: cx - 10, y: cy - 10, width: 20, height: 20)
+                    let outerRect = CGRect(x: cx - 10 + highlightOuterOffset, y: cy - 10 + highlightOuterOffset, width: highlightOuterSize, height: highlightOuterSize)
                     ctx.setFillColor(CGColor(gray: 0.3, alpha: 1))
                     ctx.fill(outerRect)
-                    let innerRect = CGRect(x: cx - 6, y: cy - 6, width: 12, height: 12)
+                    let innerRect = CGRect(x: cx - 6 + highlightInnerOffset, y: cy - 6 + highlightInnerOffset, width: highlightInnerSize, height: highlightInnerSize)
                     ctx.setFillColor(CGColor(gray: 0.7, alpha: 1))
                     ctx.fill(innerRect)
 
                 case .cherryPick:
                     ctx.setFillColor(CGColor(gray: 0.3, alpha: 1))
-                    ctx.addArc(center: CGPoint(x: cx, y: cy), radius: 10, startAngle: 0, endAngle: .pi * 2, clockwise: true)
+                    ctx.addArc(center: CGPoint(x: cx, y: cy), radius: bulletRadius, startAngle: 0, endAngle: .pi * 2, clockwise: true)
                     ctx.fillPath()
                     ctx.setFillColor(.white)
-                    ctx.addArc(center: CGPoint(x: cx - 3, y: cy + 2), radius: 3, startAngle: 0, endAngle: .pi * 2, clockwise: true)
+                    let dotR: CGFloat = useReduxGeometry ? 2.5 : 2.75
+                    ctx.addArc(center: CGPoint(x: cx - 3, y: cy + 2), radius: dotR, startAngle: 0, endAngle: .pi * 2, clockwise: true)
                     ctx.fillPath()
-                    ctx.addArc(center: CGPoint(x: cx + 3, y: cy + 2), radius: 3, startAngle: 0, endAngle: .pi * 2, clockwise: true)
+                    ctx.addArc(center: CGPoint(x: cx + 3, y: cy + 2), radius: dotR, startAngle: 0, endAngle: .pi * 2, clockwise: true)
                     ctx.fillPath()
                     ctx.setStrokeColor(.white)
                     ctx.setLineWidth(1.5)
@@ -111,27 +121,27 @@ extension DiagramRenderer {
 
                 case .merge:
                     ctx.setFillColor(CGColor(gray: 0.3, alpha: 1))
-                    ctx.addArc(center: CGPoint(x: cx, y: cy), radius: 10, startAngle: 0, endAngle: .pi * 2, clockwise: true)
+                    ctx.addArc(center: CGPoint(x: cx, y: cy), radius: bulletRadius, startAngle: 0, endAngle: .pi * 2, clockwise: true)
                     ctx.fillPath()
                     ctx.setFillColor(.white)
-                    ctx.addArc(center: CGPoint(x: cx, y: cy), radius: 6, startAngle: 0, endAngle: .pi * 2, clockwise: true)
+                    ctx.addArc(center: CGPoint(x: cx, y: cy), radius: innerRadius, startAngle: 0, endAngle: .pi * 2, clockwise: true)
                     ctx.fillPath()
 
                 case .reverse:
                     ctx.setStrokeColor(CGColor(gray: 0.3, alpha: 1))
                     ctx.setLineWidth(2)
-                    ctx.addArc(center: CGPoint(x: cx, y: cy), radius: 10, startAngle: 0, endAngle: .pi * 2, clockwise: true)
+                    ctx.addArc(center: CGPoint(x: cx, y: cy), radius: bulletRadius, startAngle: 0, endAngle: .pi * 2, clockwise: true)
                     ctx.strokePath()
-                    ctx.move(to: CGPoint(x: cx - 4, y: cy - 4))
-                    ctx.addLine(to: CGPoint(x: cx + 4, y: cy + 4))
+                    ctx.move(to: CGPoint(x: cx - crossConst, y: cy - crossConst))
+                    ctx.addLine(to: CGPoint(x: cx + crossConst, y: cy + crossConst))
                     ctx.strokePath()
-                    ctx.move(to: CGPoint(x: cx + 4, y: cy - 4))
-                    ctx.addLine(to: CGPoint(x: cx - 4, y: cy + 4))
+                    ctx.move(to: CGPoint(x: cx + crossConst, y: cy - crossConst))
+                    ctx.addLine(to: CGPoint(x: cx - crossConst, y: cy + crossConst))
                     ctx.strokePath()
 
                 default:
                     ctx.setFillColor(CGColor(gray: 0.3, alpha: 1))
-                    ctx.addArc(center: CGPoint(x: cx, y: cy), radius: 10, startAngle: 0, endAngle: .pi * 2, clockwise: true)
+                    ctx.addArc(center: CGPoint(x: cx, y: cy), radius: bulletRadius, startAngle: 0, endAngle: .pi * 2, clockwise: true)
                     ctx.fillPath()
                 }
 

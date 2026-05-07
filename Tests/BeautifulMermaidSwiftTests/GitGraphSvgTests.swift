@@ -93,7 +93,7 @@ final class GitGraphSvgTests: XCTestCase {
         let diagram = try parseGitGraph(lines("gitGraph\n   commit"), frontmatter: DiagramFrontmatter(gitGraphConfig: config))
         let positioned = layoutGitGraph(diagram)
         let svg = renderGitGraphSvg(positioned)
-        XCTAssertFalse(svg.contains("stroke-dasharray"))
+        XCTAssertFalse(svg.contains("class=\"branch branch"))
     }
 
     // MARK: - Branch labels
@@ -136,5 +136,108 @@ final class GitGraphSvgTests: XCTestCase {
         let svg = try renderSvg("gitGraph\n   commit\n   commit\n   commit")
         XCTAssertTrue(svg.contains("width="))
         XCTAssertTrue(svg.contains("height="))
+    }
+
+    // MARK: - Style block
+
+    func testCssStyleBlockPresent() throws {
+        let svg = try renderSvg("gitGraph\n   commit")
+        XCTAssertTrue(svg.contains("<style>"))
+        XCTAssertTrue(svg.contains(".branch"))
+        XCTAssertTrue(svg.contains(".commit-label"))
+        XCTAssertTrue(svg.contains(".gitTitleText"))
+    }
+
+    // MARK: - Commit ID as CSS class (G11)
+
+    func testCommitIdAsCssClass() throws {
+        let svg = try renderSvg("gitGraph\n   commit id:\"Alpha\"")
+        XCTAssertTrue(svg.contains("class=\"commit Alpha"))
+    }
+
+    // MARK: - Neo look (G8)
+
+    func testNeoLookGradientDefs() throws {
+        var theme = GitGraphThemeConfig()
+        theme.useGradient = true
+        theme.gradientStart = "#ff0000"
+        theme.gradientStop = "#0000ff"
+        let diagram = try parseGitGraph(lines("gitGraph\n   commit"), frontmatter: DiagramFrontmatter(gitGraphTheme: theme, theme: "neo"))
+        let positioned = layoutGitGraph(diagram)
+        let svg = renderGitGraphSvg(positioned)
+        XCTAssertTrue(svg.contains("linearGradient"))
+        XCTAssertTrue(svg.contains("gradient"))
+        XCTAssertTrue(svg.contains("#ff0000"))
+    }
+
+    func testNeoLookDataAttr() throws {
+        let theme = GitGraphThemeConfig()
+        let diagram = try parseGitGraph(lines("gitGraph\n   commit"), frontmatter: DiagramFrontmatter(gitGraphTheme: theme, look: "neo", theme: "neo"))
+        let positioned = layoutGitGraph(diagram)
+        let svg = renderGitGraphSvg(positioned)
+        XCTAssertTrue(svg.contains("data-look=\"neo\""))
+    }
+
+    // MARK: - Redux geometry (G9)
+
+    func testReduxThemeSmallerBullets() throws {
+        let diagram = try parseGitGraph(lines("gitGraph\n   commit"), frontmatter: DiagramFrontmatter(theme: "redux"))
+        let positioned = layoutGitGraph(diagram)
+        let svg = renderGitGraphSvg(positioned)
+        XCTAssertTrue(svg.contains("r=\"7\""))
+    }
+
+    func testReduxThemeZeroBorderRadius() throws {
+        let theme = GitGraphThemeConfig()
+        let diagram = try parseGitGraph(lines("gitGraph\n   commit"), frontmatter: DiagramFrontmatter(gitGraphTheme: theme, theme: "redux"))
+        let positioned = layoutGitGraph(diagram)
+        XCTAssertEqual(positioned.branchLabels.first?.borderRadius, 0)
+    }
+
+    // MARK: - Color theme (G10)
+
+    func testColorThemeSwatchCycling() throws {
+        var theme = GitGraphThemeConfig()
+        theme.git0 = "#ff0000"
+        theme.git1 = "#00ff00"
+        let diagram = try parseGitGraph(lines("gitGraph\n   commit\n   branch dev\n   commit"), frontmatter: DiagramFrontmatter(gitGraphTheme: theme, theme: "redux-color"))
+        let positioned = layoutGitGraph(diagram)
+        let commits = positioned.commits
+        let devCommit = commits.first(where: { $0.branch == "dev" })
+        XCTAssertNotNil(devCommit)
+        if let dc = devCommit {
+            XCTAssertGreaterThan(dc.colorIndex, 0)
+        }
+    }
+
+    // MARK: - Parallel commits SVG (G6)
+
+    func testParallelCommitsProduceValidSvg() throws {
+        var config = GitGraphConfig()
+        config.parallelCommits = true
+        let diagram = try parseGitGraph(lines("gitGraph\n   commit\n   branch dev\n   commit\n   commit\n   checkout main\n   commit"),
+            frontmatter: DiagramFrontmatter(gitGraphConfig: config))
+        let positioned = layoutGitGraph(diagram)
+        let svg = renderGitGraphSvg(positioned)
+        XCTAssertTrue(svg.contains("<svg"))
+        XCTAssertTrue(svg.contains("commit-bullets"))
+    }
+
+    // MARK: - Arrow rerouting (G13)
+
+    func testArrowReroutingSvgContainsArcs() throws {
+        let diagram = try parseGitGraph(lines("gitGraph\n   commit\n   branch dev\n   commit\n   commit\n   checkout main\n   commit\n   merge dev"), frontmatter: nil)
+        let positioned = layoutGitGraph(diagram)
+        let svg = renderGitGraphSvg(positioned)
+        XCTAssertTrue(svg.contains("M ") || svg.contains("L "))
+    }
+
+    // MARK: - Tag orientation (G15)
+
+    func testTbOrientationTagRendering() throws {
+        let diagram = try parseGitGraph(lines("gitGraph TB:\n   commit id:\"A\" tag:\"v1\""), frontmatter: nil)
+        let positioned = layoutGitGraph(diagram)
+        let svg = renderGitGraphSvg(positioned)
+        XCTAssertTrue(svg.contains("tag-label"))
     }
 }

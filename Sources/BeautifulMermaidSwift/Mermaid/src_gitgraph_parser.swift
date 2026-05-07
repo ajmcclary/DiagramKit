@@ -751,6 +751,8 @@ public func parseGitGraph(_ lines: [String], frontmatter: DiagramFrontmatter?) t
     }
 
     let theme = frontmatter?.gitGraphTheme ?? GitGraphThemeConfig()
+    let look = frontmatter?.look
+    let themeName = frontmatter?.theme
 
     var publicBranchHeads: [String: String?] = [:]
     for branchName in dbState.branchInsertionOrder {
@@ -768,6 +770,9 @@ public func parseGitGraph(_ lines: [String], frontmatter: DiagramFrontmatter?) t
         accTitle: accTitle,
         accDescr: accDescr,
         config: config,
-        theme: theme
+        theme: theme,
+        warnings: dbState.warnings,
+        look: look,
+        themeName: themeName
     )
 }

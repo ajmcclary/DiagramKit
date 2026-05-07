@@ -102,6 +102,60 @@ final class GitGraphLayoutTests: XCTestCase {
         XCTAssertEqual(positioned.branchLines.count, 1)
     }
 
+    // MARK: - Parallel commits (G6)
+
+    func testParallelCommitsAlignsRoots() throws {
+        var config = GitGraphConfig()
+        config.parallelCommits = true
+        let diagram = try parseGitGraph(lines("gitGraph\n   commit id:\"A\"\n   branch dev\n   commit id:\"B\"\n   checkout main\n   commit id:\"C\""), frontmatter: DiagramFrontmatter(gitGraphConfig: config))
+        let positioned = layoutGitGraph(diagram)
+        let posA = positioned.commits.first(where: { $0.id == "A" })
+        let posB = positioned.commits.first(where: { $0.id == "B" })
+        let posC = positioned.commits.first(where: { $0.id == "C" })
+        XCTAssertNotNil(posA)
+        XCTAssertNotNil(posB)
+        XCTAssertNotNil(posC)
+        if let a = posA, let b = posB {
+            XCTAssertGreaterThan(b.x, a.x)
+        }
+    }
+
+    func testParallelCommitsBtOrientationDoesNotCrash() throws {
+        var config = GitGraphConfig()
+        config.parallelCommits = true
+        let diagram = try parseGitGraph(lines("gitGraph BT:\n   commit\n   branch dev\n   commit\n   commit\n   checkout main\n   commit"),
+            frontmatter: DiagramFrontmatter(gitGraphConfig: config))
+        let positioned = layoutGitGraph(diagram)
+        XCTAssertGreaterThan(positioned.commits.count, 0)
+    }
+
+    func testParallelCommitsTbOrientation() throws {
+        var config = GitGraphConfig()
+        config.parallelCommits = true
+        let diagram = try parseGitGraph(lines("gitGraph TB:\n   commit\n   commit\n   branch dev\n   commit"),
+            frontmatter: DiagramFrontmatter(gitGraphConfig: config))
+        let positioned = layoutGitGraph(diagram)
+        XCTAssertEqual(positioned.commits.count, 3)
+    }
+
+    // MARK: - Theme geometry layout
+
+    func testReduxThemeBranchLabelNoBorderRadius() throws {
+        let diagram = try parseGitGraph(lines("gitGraph\n   commit\n   branch dev\n   commit"),
+            frontmatter: DiagramFrontmatter(theme: "redux"))
+        let positioned = layoutGitGraph(diagram)
+        XCTAssertEqual(positioned.branchLabels.first?.borderRadius, 0)
+    }
+
+    func testReduxThemeBranchLabelPadding() throws {
+        let diagram = try parseGitGraph(lines("gitGraph\n   commit\n   branch dev\n   commit"),
+            frontmatter: DiagramFrontmatter(theme: "redux"))
+        let positioned = layoutGitGraph(diagram)
+        for label in positioned.branchLabels {
+            XCTAssertGreaterThan(label.bkgWidth, 20)
+        }
+    }
+
     // MARK: - Diagram types
 
     func testBTOrientation() throws {

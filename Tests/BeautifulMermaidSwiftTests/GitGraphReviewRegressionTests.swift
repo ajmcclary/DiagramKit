@@ -43,7 +43,7 @@ final class GitGraphReviewRegressionTests: XCTestCase {
         let fixture = try JSONDecoder().decode(PlaygroundFixture.self, from: data)
         let gitGraphs = fixture.diagrams.filter { $0.category == "gitGraph" }
 
-        XCTAssertEqual(gitGraphs.count, 14)
+        XCTAssertEqual(gitGraphs.count, 18)
         XCTAssertEqual(gitGraphs.first?.id, "git-1-basic")
         XCTAssertTrue(gitGraphs.allSatisfy { $0.source.hasPrefix("gitGraph") })
     }

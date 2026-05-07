@@ -455,7 +455,7 @@
     {
       "id": "class-14-observer",
       "category": "class",
-      "name": "Design Pattern \u2014 Observer",
+      "name": "Design Pattern — Observer",
       "source": "classDiagram\n  class Subject {\n    <<interface>>\n    +attach(Observer) void\n    +detach(Observer) void\n    +notify() void\n  }\n  class Observer {\n    <<interface>>\n    +update() void\n  }\n  class EventEmitter {\n    -List~Observer~ observers\n    +attach(Observer) void\n    +detach(Observer) void\n    +notify() void\n  }\n  class Logger {\n    +update() void\n  }\n  class Alerter {\n    +update() void\n  }\n  Subject <|.. EventEmitter\n  Observer <|.. Logger\n  Observer <|.. Alerter\n  EventEmitter --> Observer"
     },
     {
@@ -895,70 +895,90 @@
       "category": "xychart",
       "name": "Simple Bar Chart",
       "source": "xychart-beta\n    title \"Product Sales\"\n    x-axis [Widgets, Gadgets, Gizmos, Doodads, Thingamajigs]\n    bar [150, 230, 180, 95, 310]",
-      "options": { "interactive": true }
+      "options": {
+        "interactive": true
+      }
     },
     {
       "id": "xychart-2-line",
       "category": "xychart",
       "name": "Line Chart",
       "source": "xychart-beta\n    title \"Revenue Growth\"\n    x-axis [2018, 2019, 2020, 2021, 2022, 2023, 2024, 2025]\n    line [320, 420, 540, 680, 820, 950, 1080, 1200]",
-      "options": { "interactive": true }
+      "options": {
+        "interactive": true
+      }
     },
     {
       "id": "xychart-3-bar-line",
       "category": "xychart",
       "name": "Bar and Line Overlay",
       "source": "xychart-beta\n    title \"Monthly Revenue\"\n    x-axis \"Month\" [Jan, Feb, Mar, Apr, May, Jun, Jul, Aug, Sep, Oct, Nov, Dec]\n    y-axis \"Revenue (USD)\" 0 --> 10000\n    bar [4200, 5000, 5800, 6200, 5500, 7000, 7800, 7200, 8400, 8100, 9000, 9200]\n    line [4200, 5000, 5800, 6200, 5500, 7000, 7800, 7200, 8400, 8100, 9000, 9200]",
-      "options": { "interactive": true }
+      "options": {
+        "interactive": true
+      }
     },
     {
       "id": "xychart-4-horizontal",
       "category": "xychart",
       "name": "Horizontal Bars",
       "source": "xychart-beta horizontal\n    title \"Language Popularity\"\n    x-axis [Python, JavaScript, Java, Go, Rust]\n    bar [30, 25, 20, 12, 8]",
-      "options": { "interactive": true }
+      "options": {
+        "interactive": true
+      }
     },
     {
       "id": "xychart-5-multi-bar",
       "category": "xychart",
       "name": "Multiple Bar Series",
       "source": "xychart-beta\n    title \"2023 vs 2024 Sales\"\n    x-axis [Q1, Q2, Q3, Q4]\n    bar [200, 250, 300, 280]\n    bar [230, 280, 320, 350]",
-      "options": { "interactive": true }
+      "options": {
+        "interactive": true
+      }
     },
     {
       "id": "xychart-6-dual-lines",
       "category": "xychart",
       "name": "Dual Lines",
       "source": "xychart-beta\n    title \"Planned vs Actual\"\n    x-axis [Jan, Feb, Mar, Apr, May, Jun, Jul, Aug]\n    line [100, 145, 190, 240, 280, 320, 360, 400]\n    line [90, 130, 185, 235, 275, 340, 380, 420]",
-      "options": { "interactive": true }
+      "options": {
+        "interactive": true
+      }
     },
     {
       "id": "xychart-7-numeric-x",
       "category": "xychart",
       "name": "Numeric X-Axis",
       "source": "xychart-beta\n    title \"Distribution Curve\"\n    x-axis 0 --> 100\n    line [4, 7, 13, 21, 31, 43, 58, 71, 84, 91, 95, 91, 84, 71, 58, 43, 31, 21, 13, 7, 4]",
-      "options": { "interactive": true }
+      "options": {
+        "interactive": true
+      }
     },
     {
       "id": "xychart-8-12month",
       "category": "xychart",
       "name": "12-Month Dataset",
       "source": "xychart-beta\n    title \"Monthly Active Users (2024)\"\n    x-axis [Jan, Feb, Mar, Apr, May, Jun, Jul, Aug, Sep, Oct, Nov, Dec]\n    y-axis \"Users\" 0 --> 30000\n    bar [12000, 13500, 15200, 16800, 18500, 20100, 19800, 21500, 23000, 24200, 25800, 28000]\n    line [12000, 13500, 15200, 16800, 18500, 20100, 19800, 21500, 23000, 24200, 25800, 28000]",
-      "options": { "interactive": true }
+      "options": {
+        "interactive": true
+      }
     },
     {
       "id": "xychart-9-horizontal-combined",
       "category": "xychart",
       "name": "Horizontal Combined",
       "source": "xychart-beta horizontal\n    title \"Budget vs Actual\"\n    x-axis [Eng, Sales, Marketing, Product, Ops, HR, Finance, Legal]\n    bar [500, 350, 250, 200, 150, 120, 100, 80]\n    line [480, 380, 230, 180, 160, 110, 95, 75]",
-      "options": { "interactive": true }
+      "options": {
+        "interactive": true
+      }
     },
     {
       "id": "xychart-10-burndown",
       "category": "xychart",
       "name": "Sprint Burndown",
       "source": "xychart-beta\n    title \"Sprint Burndown\"\n    x-axis [D1, D2, D3, D4, D5, D6, D7, D8, D9, D10]\n    y-axis \"Story Points\" 0 --> 80\n    line [72, 65, 58, 50, 45, 38, 30, 22, 12, 0]\n    line [72, 65, 58, 50, 43, 36, 29, 22, 14, 0]",
-      "options": { "interactive": true }
+      "options": {
+        "interactive": true
+      }
     },
     {
       "id": "xychart-11-simplest",
@@ -1457,6 +1477,30 @@
       "category": "gitGraph",
       "name": "Complex Git Flow",
       "source": "gitGraph\n   commit\n   commit\n   branch develop\n   checkout develop\n   commit\n   commit\n   checkout main\n   merge develop\n   branch feature\n   checkout feature\n   commit\n   commit\n   checkout main\n   merge feature\n   commit"
+    },
+    {
+      "id": "git-15-neo-look",
+      "category": "gitGraph",
+      "name": "Neo Look",
+      "source": "gitGraph\n   commit id:\"A\"\n   commit id:\"B\"\n   branch develop\n   checkout develop\n   commit\n   checkout main\n   merge develop"
+    },
+    {
+      "id": "git-16-redux-theme",
+      "category": "gitGraph",
+      "name": "Redux Theme Commit Types",
+      "source": "gitGraph\n   commit id:\"Normal\" type:NORMAL\n   commit id:\"Reverse\" type:REVERSE\n   commit id:\"Highlight\" type:HIGHLIGHT"
+    },
+    {
+      "id": "git-17-parallel-commits",
+      "category": "gitGraph",
+      "name": "Parallel Commits",
+      "source": "gitGraph\n   commit id:\"A\"\n   branch dev\n   commit id:\"B\"\n   commit id:\"C\"\n   checkout main\n   commit id:\"D\""
+    },
+    {
+      "id": "git-18-branch-order-complex",
+      "category": "gitGraph",
+      "name": "Complex Branch Ordering",
+      "source": "gitGraph\n   branch alpha order:2\n   commit\n   branch beta order:1\n   commit\n   branch gamma\n   commit\n   checkout main\n   commit"
     },
     {
       "id": "mindmap-1-simple",
