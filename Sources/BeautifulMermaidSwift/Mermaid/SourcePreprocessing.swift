@@ -170,6 +170,9 @@ private func _applyInitDirectivePayload(_ payload: String, to frontmatter: inout
 
     if let config = object["config"] as? [String: Any] {
         applied = _applySharedInitValues(config, to: &frontmatter) || applied
+        if let requirement = config["requirement"] as? [String: Any] {
+            applied = _applyRequirementInitConfig(requirement, to: &frontmatter) || applied
+        }
         if let radar = config["radar"] as? [String: Any] {
             applied = _applyRadarInitConfig(radar, to: &frontmatter) || applied
         }
@@ -195,6 +198,7 @@ private func _applyInitDirectivePayload(_ payload: String, to frontmatter: inout
             applied = _applyWardleyInitConfig(wardley, to: &frontmatter) || applied
         }
         if let themeVariables = config["themeVariables"] as? [String: Any] {
+            applied = _applyRequirementInitTheme(themeVariables, to: &frontmatter) || applied
             applied = _applyRadarInitTheme(themeVariables, to: &frontmatter) || applied
             applied = _applyVennInitTheme(themeVariables, to: &frontmatter) || applied
             applied = _applyTreeViewInitTheme(themeVariables, to: &frontmatter) || applied
@@ -275,6 +279,84 @@ private func _applySharedInitValues(_ object: [String: Any], to frontmatter: ino
         applied = true
     }
 
+    return applied
+}
+
+@discardableResult
+private func _applyRequirementInitConfig(_ object: [String: Any], to frontmatter: inout DiagramFrontmatter) -> Bool {
+    var config = frontmatter.requirementConfig ?? RequirementDiagramConfig()
+    var applied = false
+
+    for (key, value) in object {
+        switch key {
+        case "useMaxWidth":
+            if let v = _jsonBool(value) { config.useMaxWidth = v; applied = true }
+        case "useWidth":
+            if let v = _jsonDouble(value) { config.useWidth = v; applied = true }
+        case "rect_fill":
+            if let v = _jsonString(value) { config.rect_fill = v; applied = true }
+        case "text_color":
+            if let v = _jsonString(value) { config.text_color = v; applied = true }
+        case "rect_border_size":
+            if let v = _jsonString(value) { config.rect_border_size = v; applied = true }
+        case "rect_border_color":
+            if let v = _jsonString(value) { config.rect_border_color = v; applied = true }
+        case "rect_min_width":
+            if let v = _jsonDouble(value) { config.rect_min_width = v; applied = true }
+        case "rect_min_height":
+            if let v = _jsonDouble(value) { config.rect_min_height = v; applied = true }
+        case "fontSize":
+            if let v = _jsonDouble(value) { config.fontSize = v; applied = true }
+        case "rect_padding":
+            if let v = _jsonDouble(value) { config.rect_padding = v; applied = true }
+        case "line_height":
+            if let v = _jsonDouble(value) { config.line_height = v; applied = true }
+        case "nodeSpacing":
+            if let v = _jsonDouble(value) { config.nodeSpacing = v; applied = true }
+        case "rankSpacing":
+            if let v = _jsonDouble(value) { config.rankSpacing = v; applied = true }
+        case "htmlLabels":
+            if let v = _jsonBool(value) { config.htmlLabels = v; applied = true }
+        default:
+            break
+        }
+    }
+
+    if applied {
+        frontmatter.requirementConfig = config
+    }
+    return applied
+}
+
+@discardableResult
+private func _applyRequirementInitTheme(_ object: [String: Any], to frontmatter: inout DiagramFrontmatter) -> Bool {
+    var theme = frontmatter.requirementTheme ?? RequirementThemeVariables()
+    var applied = false
+
+    for (key, value) in object {
+        if let stringValue = _jsonScalarString(value) {
+            switch key {
+            case "requirementBackground": theme.requirementBackground = stringValue; applied = true
+            case "requirementBorderColor": theme.requirementBorderColor = stringValue; applied = true
+            case "requirementBorderSize": theme.requirementBorderSize = stringValue; applied = true
+            case "requirementTextColor": theme.requirementTextColor = stringValue; applied = true
+            case "relationColor": theme.relationColor = stringValue; applied = true
+            case "relationLabelBackground": theme.relationLabelBackground = stringValue; applied = true
+            case "relationLabelColor": theme.relationLabelColor = stringValue; applied = true
+            case "requirementEdgeLabelBackground": theme.requirementEdgeLabelBackground = stringValue; applied = true
+            case "strokeWidth": theme.strokeWidth = stringValue; applied = true
+            case "nodeTextColor": theme.nodeTextColor = stringValue; applied = true
+            case "textColor": theme.textColor = stringValue; applied = true
+            case "nodeBorder": theme.nodeBorder = stringValue; applied = true
+            case "edgeLabelBackground": theme.edgeLabelBackground = stringValue; applied = true
+            default: break
+            }
+        }
+    }
+
+    if applied {
+        frontmatter.requirementTheme = theme
+    }
     return applied
 }
 
@@ -821,7 +903,9 @@ private final class _StackSafeYamlFrontmatterParser {
     var hasQuadrantChartConfig = false
     var hasQuadrantChartTheme = false
     var requirementConfig = RequirementDiagramConfig()
+    var requirementTheme = RequirementThemeVariables()
     var hasRequirementSection = false
+    var hasRequirementTheme = false
     var gitGraphConfig = GitGraphConfig()
     var gitGraphTheme = GitGraphThemeConfig()
     var hasGitGraphSection = false
@@ -894,6 +978,7 @@ private final class _StackSafeYamlFrontmatterParser {
         if applyJourney(path, value) { return }
         if applyGantt(path, value) { return }
         if applyRequirement(path, value) { return }
+        if applyRequirementTheme(path, value) { return }
         if applyQuadrant(path, value) { return }
         if applyTimeline(path, value) { return }
         if applyTimelineTheme(path, value) { return }
@@ -1227,7 +1312,38 @@ private final class _StackSafeYamlFrontmatterParser {
         case "line_height": requirementConfig.line_height = Double(value)
         case "nodeSpacing": requirementConfig.nodeSpacing = Double(value) ?? 50
         case "rankSpacing": requirementConfig.rankSpacing = Double(value) ?? 50
+        case "htmlLabels": requirementConfig.htmlLabels = (value.lowercased() == "true")
         default: break
+        }
+        return true
+    }
+
+    private func applyRequirementTheme(_ path: String, _ value: String) -> Bool {
+        guard path.hasPrefix("config.themeVariables.") else { return false }
+        let key = path.replacingOccurrences(of: "config.themeVariables.", with: "")
+        if _applyRequirementThemeKey(key, value: value) {
+            hasRequirementTheme = true
+            return true
+        }
+        return false
+    }
+
+    private func _applyRequirementThemeKey(_ key: String, value: String) -> Bool {
+        switch key {
+        case "requirementBackground": requirementTheme.requirementBackground = value
+        case "requirementBorderColor": requirementTheme.requirementBorderColor = value
+        case "requirementBorderSize": requirementTheme.requirementBorderSize = value
+        case "requirementTextColor": requirementTheme.requirementTextColor = value
+        case "relationColor": requirementTheme.relationColor = value
+        case "relationLabelBackground": requirementTheme.relationLabelBackground = value
+        case "relationLabelColor": requirementTheme.relationLabelColor = value
+        case "requirementEdgeLabelBackground": requirementTheme.requirementEdgeLabelBackground = value
+        case "strokeWidth": requirementTheme.strokeWidth = value
+        case "nodeTextColor": requirementTheme.nodeTextColor = value
+        case "textColor": requirementTheme.textColor = value
+        case "nodeBorder": requirementTheme.nodeBorder = value
+        case "edgeLabelBackground": requirementTheme.edgeLabelBackground = value
+        default: return false
         }
         return true
     }
@@ -1679,6 +1795,7 @@ private final class _StackSafeYamlFrontmatterParser {
         if hasQuadrantChartConfig { frontmatter.quadrantChartConfig = quadrantChartConfig }
         if hasQuadrantChartTheme { frontmatter.quadrantChartTheme = quadrantChartTheme }
         if hasRequirementSection { frontmatter.requirementConfig = requirementConfig }
+        if hasRequirementTheme { frontmatter.requirementTheme = requirementTheme }
         if hasGitGraphSection { frontmatter.gitGraphConfig = gitGraphConfig }
         if hasGitGraphTheme { frontmatter.gitGraphTheme = gitGraphTheme }
         if hasMindmapSection { frontmatter.mindmapConfig = mindmapConfig }
@@ -1745,7 +1862,9 @@ private final class _YamlFrontmatterParser {
     var hasQuadrantChartTheme = false
 
     var requirementConfig = RequirementDiagramConfig()
+    var requirementTheme = RequirementThemeVariables()
     var hasRequirementSection = false
+    var hasRequirementTheme = false
 
     var gitGraphConfig = GitGraphConfig()
     var gitGraphTheme = GitGraphThemeConfig()

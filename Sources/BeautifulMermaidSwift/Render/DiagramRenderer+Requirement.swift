@@ -12,7 +12,18 @@ extension DiagramRenderer {
 
             // Title
             if let title = diagram.diagramTitle, !title.isEmpty {
-                self._drawTextInFlipped(title, at: CGPoint(x: diagram.width / 2, y: 15), context: ctx, contentHeight: ch, color: self.theme.foreground, font: BMFont.systemFont(ofSize: 16, weight: .bold), alignment: .center)
+                let attr = MarkdownLabelRenderer.render(title, config: MarkdownLabelRenderer.Config(fontSize: 16, textColor: self.theme.foreground))
+                let bounding = attr.boundingRect(with: CGSize(width: 300, height: CGFloat.greatestFiniteMagnitude), options: [.usesLineFragmentOrigin, .usesFontLeading])
+                let drawRect = CGRect(
+                    x: diagram.width / 2 - bounding.width / 2,
+                    y: 15 - bounding.height / 2,
+                    width: bounding.width, height: bounding.height
+                )
+                #if os(macOS)
+                attr.draw(in: drawRect)
+                #else
+                attr.draw(with: drawRect, options: [.usesLineFragmentOrigin, .usesFontLeading], context: nil)
+                #endif
             }
 
             // Edges
@@ -30,11 +41,10 @@ extension DiagramRenderer {
                 ctx.strokePath()
                 ctx.restoreGState()
 
-                // Markers
-                if edge.startMarker == "requirement_contains" {
+                if edge.startMarker != nil {
                     _drawReqContainsStartMarker(ctx, at: pts[0], toward: pts[1])
                 }
-                if edge.endMarker == "requirement_arrow" {
+                if edge.endMarker != nil {
                     _drawReqArrowEndMarker(ctx, at: pts[pts.count - 1], toward: pts[pts.count - 2])
                 }
             }
@@ -54,7 +64,14 @@ extension DiagramRenderer {
                 ctx.setLineWidth(0.5)
                 ctx.addPath(bgPath.bm_cgPath)
                 ctx.strokePath()
-                self._drawTextInFlipped(edge.labelText, at: lp, context: ctx, contentHeight: ch, color: self.theme.effectiveMuted(), font: labelFont, alignment: .center)
+                let attr = MarkdownLabelRenderer.render(edge.labelText, config: MarkdownLabelRenderer.Config(fontSize: config.fontSizeEdgeLabel, textColor: self.theme.effectiveMuted()))
+                let bnds = attr.boundingRect(with: CGSize(width: 500, height: CGFloat.greatestFiniteMagnitude), options: [.usesLineFragmentOrigin, .usesFontLeading])
+                let dr = CGRect(x: lp.x - bnds.width / 2, y: lp.y - bnds.height / 2, width: bnds.width, height: bnds.height)
+                #if os(macOS)
+                attr.draw(in: dr)
+                #else
+                attr.draw(with: dr, options: [.usesLineFragmentOrigin, .usesFontLeading], context: nil)
+                #endif
             }
 
             // Nodes
@@ -77,10 +94,30 @@ extension DiagramRenderer {
                 let smallFont = BMFont.systemFont(ofSize: 11, weight: .regular)
                 self._drawTextInFlipped(stereotypeText, at: CGPoint(x: node.x + node.width / 2, y: stereotypeY), context: ctx, contentHeight: ch, color: self.theme.effectiveMuted(), font: smallFont, alignment: .center)
 
-                // Name
+                // Name — markdown rendered as attributed string
                 let nameY = stereotypeY + 20
-                let nameFont = BMFont.systemFont(ofSize: 13, weight: .bold)
-                self._drawTextInFlipped(node.id, at: CGPoint(x: node.x + node.width / 2, y: nameY), context: ctx, contentHeight: ch, color: self.theme.foreground, font: nameFont, alignment: .center)
+                let nameAttr = MarkdownLabelRenderer.render(node.id, config: MarkdownLabelRenderer.Config(fontSize: 13, textColor: self.theme.foreground))
+                // Apply bold overlay to name text (requirement box convention)
+                let mutable = NSMutableAttributedString(attributedString: nameAttr)
+                mutable.enumerateAttributes(in: NSRange(location: 0, length: mutable.length), options: []) { attrs, range, _ in
+                    var newAttrs = attrs
+                    if let existingFont = attrs[.font] as? BMFont {
+                        let boldFont = BMFont.boldSystemFont(ofSize: existingFont.pointSize)
+                        newAttrs[.font] = boldFont
+                    }
+                    mutable.setAttributes(newAttrs, range: range)
+                }
+                let nameBounds = mutable.boundingRect(with: CGSize(width: node.width - 10, height: CGFloat.greatestFiniteMagnitude), options: [.usesLineFragmentOrigin, .usesFontLeading])
+                let nameRect = CGRect(
+                    x: node.x + node.width / 2 - nameBounds.width / 2,
+                    y: nameY - nameBounds.height / 2,
+                    width: nameBounds.width, height: nameBounds.height
+                )
+                #if os(macOS)
+                mutable.draw(in: nameRect)
+                #else
+                mutable.draw(with: nameRect, options: [.usesLineFragmentOrigin, .usesFontLeading], context: nil)
+                #endif
 
                 // Body
                 let bodyLines = _reqBodyLines(node)
@@ -92,12 +129,21 @@ extension DiagramRenderer {
                     ctx.addLine(to: CGPoint(x: node.x + node.width - 4, y: dividerY))
                     ctx.strokePath()
 
-                    let bodyFont = BMFont.systemFont(ofSize: 11, weight: .regular)
                     let bodyStartY = dividerY + 16
                     for (idx, line) in bodyLines.enumerated() {
                         let rowY = bodyStartY + Double(idx) * 18
-                        let textColor = idx == 0 ? self.theme.effectiveTextSecondary() : self.theme.effectiveTextSecondary()
-                        self._drawTextInFlipped(line, at: CGPoint(x: node.x + node.width / 2, y: rowY), context: ctx, contentHeight: ch, color: textColor, font: bodyFont, alignment: .center)
+                        let bodyAttr = MarkdownLabelRenderer.render(line, config: MarkdownLabelRenderer.Config(fontSize: 11, textColor: self.theme.effectiveTextSecondary()))
+                        let bnds = bodyAttr.boundingRect(with: CGSize(width: node.width - 10, height: CGFloat.greatestFiniteMagnitude), options: [.usesLineFragmentOrigin, .usesFontLeading])
+                        let dr = CGRect(
+                            x: node.x + node.width / 2 - bnds.width / 2,
+                            y: rowY - bnds.height / 2,
+                            width: bnds.width, height: bnds.height
+                        )
+                        #if os(macOS)
+                        bodyAttr.draw(in: dr)
+                        #else
+                        bodyAttr.draw(with: dr, options: [.usesLineFragmentOrigin, .usesFontLeading], context: nil)
+                        #endif
                     }
                 }
             }
@@ -106,23 +152,36 @@ extension DiagramRenderer {
 
     private func _drawReqContainsStartMarker(_ ctx: CGContext, at point: CGPoint, toward: CGPoint) {
         ctx.saveGState()
-        ctx.setFillColor(self.theme.effectiveLine().cgColor)
+        ctx.setStrokeColor(self.theme.effectiveLine().cgColor)
+        ctx.setLineWidth(1)
         let dx = point.x - toward.x
         let dy = point.y - toward.y
         let len = sqrt(dx * dx + dy * dy)
         guard len > 0 else { ctx.restoreGState(); return }
         let ux = dx / len
         let uy = dy / len
-        let cx = point.x + ux * 3
-        let cy = point.y + uy * 3
-        let r: CGFloat = 3
-        ctx.fillEllipse(in: CGRect(x: cx - r, y: cy - r, width: r * 2, height: r * 2))
+        let cx = point.x + ux * 9
+        let cy = point.y + uy * 9
+        let r: CGFloat = 9
+        let px = -uy
+        let py = ux
+        // Circle
+        ctx.strokeEllipse(in: CGRect(x: cx - r, y: cy - r, width: r * 2, height: r * 2))
+        // Cross horizontal
+        ctx.move(to: CGPoint(x: cx + px * (-r), y: cy + py * (-r)))
+        ctx.addLine(to: CGPoint(x: cx + px * r, y: cy + py * r))
+        ctx.strokePath()
+        // Cross vertical
+        ctx.move(to: CGPoint(x: cx + ux * (-r), y: cy + uy * (-r)))
+        ctx.addLine(to: CGPoint(x: cx + ux * r, y: cy + uy * r))
+        ctx.strokePath()
         ctx.restoreGState()
     }
 
     private func _drawReqArrowEndMarker(_ ctx: CGContext, at point: CGPoint, toward: CGPoint) {
         ctx.saveGState()
-        ctx.setFillColor(self.theme.effectiveLine().cgColor)
+        ctx.setStrokeColor(self.theme.effectiveLine().cgColor)
+        ctx.setLineWidth(1)
         let dx = point.x - toward.x
         let dy = point.y - toward.y
         let len = sqrt(dx * dx + dy * dy)
@@ -131,16 +190,19 @@ extension DiagramRenderer {
         let uy = dy / len
         let px = -uy
         let py = ux
-        let tipX = point.x
-        let tipY = point.y
-        let backX = point.x - ux * 10
-        let backY = point.y - uy * 10
-        let wing: CGFloat = 5
-        ctx.move(to: CGPoint(x: tipX, y: tipY))
-        ctx.addLine(to: CGPoint(x: backX + px * wing, y: backY + py * wing))
-        ctx.addLine(to: CGPoint(x: backX - px * wing, y: backY - py * wing))
-        ctx.closePath()
-        ctx.fillPath()
+        let wing: CGFloat = 10
+        let backX = point.x - ux * 20
+        let backY = point.y - uy * 20
+        let leftX = backX - px * wing
+        let leftY = backY - py * wing
+        let rightX = backX + px * wing
+        let rightY = backY + py * wing
+        ctx.move(to: CGPoint(x: point.x, y: point.y))
+        ctx.addLine(to: CGPoint(x: leftX, y: leftY))
+        ctx.strokePath()
+        ctx.move(to: CGPoint(x: point.x, y: point.y))
+        ctx.addLine(to: CGPoint(x: rightX, y: rightY))
+        ctx.strokePath()
         ctx.restoreGState()
     }
 

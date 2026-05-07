@@ -417,9 +417,15 @@ private func _renderQuadrantSvgCase(lines: [String], fm: DiagramFrontmatter?, co
 }
 
 private func _renderRequirementSvgCase(lines: [String], fm: DiagramFrontmatter?, options: RenderOptions, colors: DiagramColors, font: String, transparent: Bool) throws -> String {
-    let diagram = try parseRequirementDiagram(lines, frontmatter: fm)
+    var diagram = try parseRequirementDiagram(lines, frontmatter: fm)
+    if let fmTheme = fm?.requirementTheme { diagram.config.theme = fmTheme }
     let positioned = try layoutRequirementDiagram(diagram, options: options)
-    return try renderRequirementSvg(positioned, colors, font, transparent)
+    let dId = UUID().uuidString
+    return try renderRequirementSvg(positioned, colors, font, transparent,
+        diagramId: dId,
+        look: fm?.look,
+        theme: fm?.requirementTheme,
+        htmlLabels: fm?.htmlLabels)
 }
 
 private func _renderFlowchartSvgCase(source: String, fm: DiagramFrontmatter?, options: RenderOptions, colors: DiagramColors, font: String, transparent: Bool) throws -> String {

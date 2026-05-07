@@ -337,6 +337,7 @@ public struct DiagramFrontmatter: Sendable {
     public var quadrantChartConfig: QuadrantChartConfig?
     public var quadrantChartTheme: QuadrantChartThemeConfig?
     public var requirementConfig: RequirementDiagramConfig?
+    public var requirementTheme: RequirementThemeVariables?
     public var gitGraphConfig: GitGraphConfig?
     public var gitGraphTheme: GitGraphThemeConfig?
     public var mindmapConfig: MindmapConfig?
@@ -387,6 +388,7 @@ public struct DiagramFrontmatter: Sendable {
         quadrantChartConfig: QuadrantChartConfig? = nil,
         quadrantChartTheme: QuadrantChartThemeConfig? = nil,
         requirementConfig: RequirementDiagramConfig? = nil,
+        requirementTheme: RequirementThemeVariables? = nil,
         gitGraphConfig: GitGraphConfig? = nil,
         gitGraphTheme: GitGraphThemeConfig? = nil,
         mindmapConfig: MindmapConfig? = nil,
@@ -435,6 +437,7 @@ public struct DiagramFrontmatter: Sendable {
         self.quadrantChartConfig = quadrantChartConfig
         self.quadrantChartTheme = quadrantChartTheme
         self.requirementConfig = requirementConfig
+        self.requirementTheme = requirementTheme
         self.gitGraphConfig = gitGraphConfig
         self.gitGraphTheme = gitGraphTheme
         self.mindmapConfig = mindmapConfig

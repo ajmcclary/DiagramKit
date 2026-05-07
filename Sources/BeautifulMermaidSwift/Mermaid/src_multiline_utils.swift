@@ -96,7 +96,7 @@ open class original_src_multiline_utils {
         return "\(rect)\n\(textEl)"
     }
 
-    private static func renderLineContent(_ line: String) -> String {
+    public static func renderLineContent(_ line: String) -> String {
         if !hasFormatTags(line) {
             return escapeXml(line)
         }

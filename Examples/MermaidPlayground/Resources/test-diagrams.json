@@ -1357,6 +1357,24 @@
       "source": "requirementDiagram\n\naccTitle: System Requirements\naccDescr: Full SysML-style requirement diagram\n\nrequirement SRD-001 {\n  id: SRD-001\n  text: The system shall respond within 100ms.\n  risk: high\n  verifymethod: test\n}\n\nfunctionalRequirement FUNC-001 {\n  id: FUNC-001\n  text: Process user input.\n  risk: medium\n  verifymethod: demonstration\n}\n\ndesignConstraint CONST-001 {\n  id: CONST-001\n  text: Must use standard protocols.\n  risk: low\n  verifymethod: inspection\n}\n\nelement test_suite {\n  type: verification\n  docref: test-plan-v2\n}\n\nelement simulator {\n  type: simulation\n  docref: sim-spec\n}\n\ntest_suite - verifies -> SRD-001\nSRD-001 - satisfies -> FUNC-001\nFUNC-001 - derives -> CONST-001\ntest_suite - contains -> simulator"
     },
     {
+      "id": "req-15-neo-look",
+      "category": "requirement",
+      "name": "Neo Look with Contains and Satisfies",
+      "source": "---\nconfig:\n  look: neo\n---\nrequirementDiagram\n\nrequirement sys_req {\n  id: 1\n  text: the system shall perform the action.\n  risk: high\n  verifymethod: test\n}\n\nfunctionalRequirement func_req {\n  id: 1.1\n  text: the system shall respond within 100ms.\n  risk: medium\n  verifymethod: demonstration\n}\n\nelement hw_element {\n  type: hardware\n  docref: specs/hw_spec.pdf\n}\n\nelement sw_element {\n  type: software\n  docref: github.com/org/repo\n}\n\nhw_element - satisfies -> sys_req\nsw_element - verifies -> func_req\nsys_req - contains -> func_req"
+    },
+    {
+      "id": "req-16-neo-theme",
+      "category": "requirement",
+      "name": "Neo Look with Custom Theme Variables",
+      "source": "%%{init: {\"look\": \"neo\", \"themeVariables\": {\"requirementBackground\": \"#e8f4f8\", \"requirementBorderColor\": \"#2b6cb0\", \"requirementTextColor\": \"#1a365d\", \"relationColor\": \"#e53e3e\", \"relationLabelColor\": \"#2d3748\", \"strokeWidth\": \"3\"}}}%%\nrequirementDiagram\n\nrequirement themed_req {\n  id: 1\n  text: requirement with custom theme.\n  risk: high\n  verifymethod: test\n}\n\nelement themed_elem {\n  type: test component\n  docref: spec-v3\n}\n\nthemed_elem - verifies -> themed_req"
+    },
+    {
+      "id": "req-17-markdown-labels",
+      "category": "requirement",
+      "name": "Markdown Labels in Text Fields",
+      "source": "requirementDiagram\n\nrequirement md_req {\n  id: MD-01\n  text: the **system** shall *respond* within `<100ms>`.\n  risk: high\n  verifymethod: test\n}\n\nelement md_elem {\n  type: **bold** type\n  docref: spec.md\n}\n\nmd_elem - satisfies -> md_req"
+    },
+    {
       "id": "git-1-basic",
       "category": "gitGraph",
       "name": "Basic Commits",
@@ -2168,7 +2186,7 @@
       "journey": 3,
       "gantt": 7,
       "quadrantChart": 12,
-      "requirement": 14,
+      "requirement": 17,
       "gitGraph": 14,
       "mindmap": 8,
       "timeline": 11,

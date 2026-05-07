@@ -98,6 +98,26 @@ public struct RequirementDiagramConfig: Sendable, Equatable {
     public var line_height: Double?
     public var nodeSpacing: Double = 50
     public var rankSpacing: Double = 50
+    public var theme: RequirementThemeVariables?
+    public var htmlLabels: Bool?
+}
+
+public struct RequirementThemeVariables: Sendable, Equatable {
+    public var requirementBackground: String?
+    public var requirementBorderColor: String?
+    public var requirementBorderSize: String?
+    public var requirementTextColor: String?
+    public var relationColor: String?
+    public var relationLabelBackground: String?
+    public var relationLabelColor: String?
+    public var requirementEdgeLabelBackground: String?
+    public var strokeWidth: String?
+    public var borderColorArray: [String]?
+    public var bkgColorArray: [String]?
+    public var nodeTextColor: String?
+    public var textColor: String?
+    public var nodeBorder: String?
+    public var edgeLabelBackground: String?
 }
 
 // MARK: - Positioned Types
