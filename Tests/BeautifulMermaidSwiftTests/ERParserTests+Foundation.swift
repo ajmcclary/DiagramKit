@@ -504,4 +504,268 @@ struct ERParserFoundationTests {
         #expect(rel.cardinality1 == "ONLY_ONE")
         #expect(rel.cardinality2 == "ONLY_ONE")
     }
+
+    // MARK: - Cardinality Edge Cases (Phase 1)
+
+    @Test("parses u parent marker cardinality before operator")
+    func parsesUParentMarkerCardinality() throws {
+        let diagram = try parseErDiagram(["erDiagram", "PROJECT u--o{ TEAM_MEMBER : assigned"])
+        let rel = try #require(diagram.relationships.first)
+        #expect(rel.cardinality1 == "MD_PARENT")
+        #expect(rel.cardinality2 == "ZERO_OR_MORE")
+        #expect(rel.identifying)
+    }
+
+    @Test("parses u as standalone entity name")
+    func parsesUAsStandaloneEntity() throws {
+        let diagram = try parseErDiagram(["erDiagram", "u"])
+        #expect(diagram.entities.count == 1)
+        #expect(diagram.entities[0].key == "u")
+    }
+
+    @Test("parses u as entity in relationship")
+    func parsesUAsEntityInRelationship() throws {
+        let diagram = try parseErDiagram(["erDiagram", "u ||--|| OTHER : label"])
+        #expect(diagram.entities.count == 2)
+        #expect(diagram.relationships.count == 1)
+        #expect(diagram.entities.map { $0.key }.contains("u"))
+        #expect(diagram.entities.map { $0.key }.contains("OTHER"))
+    }
+
+    @Test("parses 1 shorthand cardinality before identification operator")
+    func parses1ShorthandCardinality() throws {
+        let diagram = try parseErDiagram(["erDiagram", "CUSTOMER 1--1 ORDER : places"])
+        let rel = try #require(diagram.relationships.first)
+        #expect(rel.cardinality1 == "ONLY_ONE")
+        #expect(rel.cardinality2 == "ONLY_ONE")
+        #expect(rel.identifying)
+    }
+
+    @Test("parses 1 cardinality alias before long-form cardinality")
+    func parses1BeforeLongFormCardinality() throws {
+        let diagram = try parseErDiagram(["erDiagram", "CUSTOMER 1 to zero or more ORDER : places"])
+        let rel = try #require(diagram.relationships.first)
+        #expect(rel.cardinality1 == "ONLY_ONE")
+        #expect(rel.cardinality2 == "ZERO_OR_MORE")
+        #expect(rel.identifying)
+    }
+
+    @Test("parses decimal entity name in relationship")
+    func parsesDecimalEntityName() throws {
+        let diagram = try parseErDiagram(["erDiagram", "1.0 ||--|{ ORDER : contains"])
+        #expect(diagram.entities.count == 2)
+        #expect(diagram.relationships.count == 1)
+        #expect(diagram.entities.map { $0.key }.contains("1.0"))
+    }
+
+    @Test("rejects 1 that is not followed by valid cardinality context")
+    func rejectsAmbiguous1() throws {
+        let lines = ["erDiagram", "CUSTOMER 1 2.5 ORDER : label"]
+        // "1 2.5" in cardinality position: 1 is ONLY_ONE cardinality,
+        // 2.5 is a number (not an identification operator) — invalid syntax.
+        #expect(throws: ErParserError.self) {
+            _ = try parseErDiagram(lines)
+        }
+    }
+
+    // MARK: - Inline Title Directive (Phase 2)
+
+    @Test("parses inline title directive")
+    func parsesInlineTitle() throws {
+        let lines = ["erDiagram", "title: My ER Diagram", "CUSTOMER"]
+        let diagram = try parseErDiagram(lines)
+        #expect(diagram.diagramTitle == "My ER Diagram")
+    }
+
+    @Test("inline title does not interfere with accTitle")
+    func inlineTitleAndAccTitle() throws {
+        let lines = ["erDiagram", "title: Visual Title", "accTitle: Screen Reader Title", "CUSTOMER"]
+        let diagram = try parseErDiagram(lines)
+        #expect(diagram.diagramTitle == "Visual Title")
+        #expect(diagram.accTitle == "Screen Reader Title")
+    }
+
+    // MARK: - Attribute Validation (Phase 2)
+
+    @Test("parses asterisk-prefixed attribute name")
+    func asteriskPrefixedAttributeName() throws {
+        let lines = ["erDiagram", "CUSTOMER {", "string *id", "}"]
+        let diagram = try parseErDiagram(lines)
+        #expect(diagram.entities[0].attributes[0].name == "*id")
+    }
+
+    @Test("rejects digit-first attribute type")
+    func rejectsDigitFirstAttributeType() throws {
+        let lines = ["erDiagram", "CUSTOMER {", "123type name", "}"]
+        let diagram = try parseErDiagram(lines)
+        // Attribute with digit-first type is invalid per Mermaid ATTRIBUTE_WORD pattern
+        // Entity should exist but attribute should be skipped
+        #expect(diagram.entities[0].attributes.isEmpty)
+    }
+
+    // MARK: - Broad Cypress-Equivalent Coverage (Phase 5)
+
+    @Test("parses cyclical relationships")
+    func parsesCyclicalRelationships() throws {
+        let lines = [
+            "erDiagram",
+            "A ||--|| B : a_to_b",
+            "B ||--|| C : b_to_c",
+            "C ||--|| A : c_to_a",
+        ]
+        let diagram = try parseErDiagram(lines)
+        #expect(diagram.entities.count == 3)
+        #expect(diagram.relationships.count == 3)
+    }
+
+    @Test("parses multiple relationships between same entities")
+    func parsesMultipleRelationshipsBetweenSameEntities() throws {
+        let lines = [
+            "erDiagram",
+            "CUSTOMER ||--o{ ADDRESS : primary",
+            "CUSTOMER ||--o{ ADDRESS : secondary",
+        ]
+        let diagram = try parseErDiagram(lines)
+        #expect(diagram.entities.count == 2)
+        #expect(diagram.relationships.count == 2)
+    }
+
+    @Test("parses empty quoted label")
+    func parsesEmptyQuotedLabel() throws {
+        let diagram = try parseErDiagram(["erDiagram", #"A ||--|| B : """#])
+        #expect(diagram.relationships[0].label.isEmpty)
+    }
+
+    @Test("parses blank quoted label with spaces")
+    func parsesBlankQuotedLabel() throws {
+        let diagram = try parseErDiagram(["erDiagram", #"A ||--|| B : "  ""#])
+        #expect(diagram.relationships[0].label.isEmpty)
+    }
+
+    @Test("parses label with br tag")
+    func parsesLabelWithBrTag() throws {
+        let diagram = try parseErDiagram(["erDiagram", #"A ||--|| B : "line1<br />line2""#])
+        #expect(diagram.relationships[0].label.contains("<br>") || diagram.relationships[0].label.contains("\n"))
+    }
+
+    @Test("parses 1 dash dot 1 cardinality variant")
+    func parses1DashDot1() throws {
+        let diagram = try parseErDiagram(["erDiagram", "A 1.-1 B : has"])
+        let rel = try #require(diagram.relationships.first)
+        #expect(rel.cardinality1 == "ONLY_ONE")
+        #expect(rel.cardinality2 == "ONLY_ONE")
+        #expect(!rel.identifying)
+    }
+
+    @Test("parses 1 dot dash 1 cardinality variant")
+    func parses1DotDash1() throws {
+        let diagram = try parseErDiagram(["erDiagram", "A 1-.1 B : has"])
+        let rel = try #require(diagram.relationships.first)
+        #expect(rel.cardinality1 == "ONLY_ONE")
+        #expect(rel.cardinality2 == "ONLY_ONE")
+        #expect(!rel.identifying)
+    }
+
+    @Test("parses style on comma-separated nodes")
+    func parsesStyleOnMultipleNodes() throws {
+        let diagram = try parseErDiagram([
+            "erDiagram",
+            "CUSTOMER {", "string name", "}",
+            "ORDER {", "int id", "}",
+            "style CUSTOMER,ORDER fill:#f9f",
+        ])
+        #expect(!diagram.entities[0].cssStyles.isEmpty)
+        #expect(!diagram.entities[1].cssStyles.isEmpty)
+    }
+
+    @Test("parses classDef with comma-separated names")
+    func parsesClassDefWithCommaSeparatedNames() throws {
+        let diagram = try parseErDiagram([
+            "erDiagram",
+            "classDef firstClass,secondClass fill:red",
+        ])
+        #expect(diagram.classes["firstClass"] != nil)
+        #expect(diagram.classes["secondClass"] != nil)
+    }
+
+    @Test("parses varchar limited-length attribute type")
+    func parsesVarcharType() throws {
+        let lines = ["erDiagram", "CUSTOMER {", "varchar(99) name", "}"]
+        let diagram = try parseErDiagram(lines)
+        #expect(diagram.entities[0].attributes[0].type == "varchar(99)")
+    }
+
+    @Test("parses string array attribute type")
+    func parsesStringArrayType() throws {
+        let lines = ["erDiagram", "CUSTOMER {", "string[] tags", "}"]
+        let diagram = try parseErDiagram(lines)
+        #expect(diagram.entities[0].attributes[0].type == "string[]")
+    }
+
+    @Test("parses numeric entity name 1")
+    func parsesNumericEntityName1() throws {
+        let diagram = try parseErDiagram(["erDiagram", "1"])
+        #expect(diagram.entities.count == 1)
+        #expect(diagram.entities[0].key == "1")
+    }
+
+    @Test("parses numeric entity name with decimal")
+    func parsesDecimalStandaloneEntityName() throws {
+        let diagram = try parseErDiagram(["erDiagram", "2.5"])
+        #expect(diagram.entities.count == 1)
+        #expect(diagram.entities[0].key == "2.5")
+    }
+
+    @Test("parses numeric entity with attribute block")
+    func parsesNumericEntityWithAttributes() throws {
+        let lines = ["erDiagram", "1 {", "string name", "}"]
+        let diagram = try parseErDiagram(lines)
+        #expect(diagram.entities[0].key == "1")
+        #expect(diagram.entities[0].attributes.first?.name == "name")
+    }
+
+    @Test("parses quoted Unicode entity name")
+    func parsesQuotedUnicodeEntityName() throws {
+        let diagram = try parseErDiagram(["erDiagram", "\"Blo~rf\" ||--|| OTHER : label"])
+        #expect(diagram.entities.count == 2)
+        #expect(diagram.entities.map { $0.key }.contains("Blo~rf"))
+    }
+
+    @Test("parses 1 as entity in both positions")
+    func parses1AsBothEntities() throws {
+        let diagram = try parseErDiagram(["erDiagram", "1 ||--|| 1 : self"])
+        #expect(diagram.entities.count == 1)
+        #expect(diagram.relationships.count == 1)
+        #expect(diagram.relationships[0].entity1 == "1")
+    }
+
+    @Test("labelType set to text when htmlLabels is false")
+    func labelTypeTextWhenHtmlLabelsFalse() throws {
+        let graph = try MermaidParser.parse("""
+            ---
+            config:
+              htmlLabels: false
+            ---
+            erDiagram
+              CUSTOMER
+            """)
+        guard case let .erDiagram(diagram) = graph.payload else {
+            Issue.record("Expected ER diagram payload")
+            return
+        }
+        #expect(diagram.entities.first?.labelType == "text")
+    }
+
+    @Test("labelType set to markdown by default")
+    func labelTypeMarkdownByDefault() throws {
+        let graph = try MermaidParser.parse("""
+            erDiagram
+              CUSTOMER
+            """)
+        guard case let .erDiagram(diagram) = graph.payload else {
+            Issue.record("Expected ER diagram payload")
+            return
+        }
+        #expect(diagram.entities.first?.labelType == "markdown")
+    }
 }

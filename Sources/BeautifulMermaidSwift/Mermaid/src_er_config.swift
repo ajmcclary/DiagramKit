@@ -24,6 +24,7 @@ public struct ErDiagramConfig: Sendable {
     public var layout: String?
     public var look: String?
     public var htmlLabels: Bool?
+    public var erEdgeLabelBackground: String?
 
     public init(
         titleTopMargin: Double? = nil,
@@ -40,7 +41,8 @@ public struct ErDiagramConfig: Sendable {
         useMaxWidth: Bool? = nil,
         layout: String? = nil,
         look: String? = nil,
-        htmlLabels: Bool? = nil
+        htmlLabels: Bool? = nil,
+        erEdgeLabelBackground: String? = nil
     ) {
         self.titleTopMargin = titleTopMargin
         self.diagramPadding = diagramPadding
@@ -57,6 +59,7 @@ public struct ErDiagramConfig: Sendable {
         self.layout = layout
         self.look = look
         self.htmlLabels = htmlLabels
+        self.erEdgeLabelBackground = erEdgeLabelBackground
     }
 }
 

@@ -825,6 +825,72 @@
       "source": "erDiagram\n  STUDENT {\n    int id PK\n    string name\n    date dob\n    string grade\n  }\n  TEACHER {\n    int id PK\n    string name\n    string department\n  }\n  COURSE {\n    int id PK\n    string title\n    int teacher_id FK\n    int credits\n  }\n  ENROLLMENT {\n    int id PK\n    int student_id FK\n    int course_id FK\n    string semester\n    float grade\n  }\n  TEACHER ||--o{ COURSE : teaches\n  STUDENT ||--o{ ENROLLMENT : enrolled\n  COURSE ||--o{ ENROLLMENT : has"
     },
     {
+      "id": "er-15-standalone",
+      "category": "er",
+      "name": "Standalone Entities",
+      "source": "erDiagram\n  ISLAND\n  MAINLAND\n  PENINSULA"
+    },
+    {
+      "id": "er-16-aliases",
+      "category": "er",
+      "name": "Entity Aliases",
+      "source": "erDiagram\n  p[Person] {\n    string name\n  }\n  c[\"Customer Account\"] {\n    int id PK\n    string email\n  }\n  p ||--o{ c : owns"
+    },
+    {
+      "id": "er-17-quoted-names",
+      "category": "er",
+      "name": "Quoted Entity Names",
+      "source": "erDiagram\n  \"This has spaces\" ||--|| \"Another Space\" : connects\n  \"Blo~rf\" ||--o{ \"Blah Blah\" : labels"
+    },
+    {
+      "id": "er-18-long-cardinality",
+      "category": "er",
+      "name": "Long-Form Cardinality",
+      "source": "erDiagram\n  CUSTOMER one or zero to one or more ORDER : places\n  USER zero or more optionally to only one PROFILE : has"
+    },
+    {
+      "id": "er-19-to-optionally",
+      "category": "er",
+      "name": "to / optionally to Relationships",
+      "source": "erDiagram\n  A one to many B : has\n  C many optionally to one D : belongs-to"
+    },
+    {
+      "id": "er-20-cycles",
+      "category": "er",
+      "name": "Cyclical Relationships",
+      "source": "erDiagram\n  A ||--|| B : a_to_b\n  B ||--|| C : b_to_c\n  C ||--|| A : c_to_a"
+    },
+    {
+      "id": "er-21-multi-rel",
+      "category": "er",
+      "name": "Multiple Relationships Same Pair",
+      "source": "erDiagram\n  CUSTOMER ||--o{ ADDRESS : primary\n  CUSTOMER ||--o{ ADDRESS : secondary"
+    },
+    {
+      "id": "er-22-styles",
+      "category": "er",
+      "name": "Style, ClassDef, and Shorthand",
+      "source": "erDiagram\n  classDef important fill:#f9f,stroke:#333\n  CUSTOMER:::important { string name }\n  class CUSTOMER important\n  style ORDER fill:#eef"
+    },
+    {
+      "id": "er-23-neo-look",
+      "category": "er",
+      "name": "Neo Look",
+      "source": "---\nconfig:\n  look: neo\n---\nerDiagram\n  CUSTOMER ||--o{ ORDER : places"
+    },
+    {
+      "id": "er-24-numeric-entities",
+      "category": "er",
+      "name": "Numeric Entity Names",
+      "source": "erDiagram\n  1 ||--|| 2 : pairs\n  2.5 ||--o{ 3.14 : decimals"
+    },
+    {
+      "id": "er-25-parent-marker",
+      "category": "er",
+      "name": "Parent Marker (u)",
+      "source": "erDiagram\n  PROJECT u--o{ TEAM_MEMBER : assigned\n  TEAM_MEMBER ||--|| PROJECT : leads"
+    },
+    {
       "id": "xychart-1-bar",
       "category": "xychart",
       "name": "Simple Bar Chart",

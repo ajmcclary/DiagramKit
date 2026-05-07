@@ -453,6 +453,12 @@ private func _parseErDiagramEntry(_ lines: [String], frontmatter: DiagramFrontma
             continue
         }
 
+        // Inline title directive (Mermaid grammar: title title_value)
+        if let diagTitle = _parseInlineTitle(rawLine) {
+            diagram.diagramTitle = diagTitle
+            continue
+        }
+
         // Direction
         if let dir = _parseDirection(rawLine) {
             diagram.direction = dir
@@ -801,10 +807,29 @@ private func _parseAttribute(_ line: String) -> ErAttribute? {
         return nil
     }
 
+    // Validate attribute tokens match Mermaid's ATTRIBUTE_WORD pattern:
+    // must start with *, letter, underscore, or Unicode ≥ U+00C0 (not digit-first)
+    if !_isAttributeWord(type) || !_isAttributeWord(nameRaw) {
+        return nil
+    }
+
     let rest = groups[safe: 3]?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
     let (keys, comment) = _parseKeyAndComment(rest)
 
     return ErAttribute(type: type, name: nameRaw, keys: keys, comment: comment)
+}
+
+/// Mermaid erDiagram.jison ATTRIBUTE_WORD: first char must be *, letter, _, or Unicode ≥ U+00C0
+private func _isAttributeWord(_ text: String) -> Bool {
+    guard let first = text.first else { return false }
+    if first == "*" { return true }
+    if first.isLetter { return true }
+    if first == "_" { return true }
+    // Unicode characters ≥ U+00C0
+    if let scalar = first.unicodeScalars.first, scalar.value >= 0x00C0 {
+        return true
+    }
+    return false
 }
 
 private func _parseAttributeRest(_ rest: String) -> (name: String, keys: [String], comment: String) {
@@ -865,6 +890,17 @@ private func _parseAccDescrMultilineStart(_ line: String) -> String? {
     guard let groups = _groups(#"^accDescr\s*\{\s*(.*)$"#, line, caseInsensitive: true),
           let value = groups[safe: 1] else { return nil }
     return value.trimmingCharacters(in: .whitespacesAndNewlines)
+}
+
+private func _parseInlineTitle(_ line: String) -> String? {
+    // Mermaid grammar: title title_value (inline title directive)
+    // Does NOT match accTitle: or accDescr: or accDescr { — those are handled separately
+    if line.lowercased().hasPrefix("acctitle") || line.lowercased().hasPrefix("accdescr") {
+        return nil
+    }
+    guard let groups = _groups(#"^title:\s*(.+)$"#, line, caseInsensitive: true),
+          let value = groups[safe: 1] else { return nil }
+    return _stripQuotes(value.trimmingCharacters(in: .whitespaces))
 }
 
 // MARK: - Style Parsing
@@ -1189,10 +1225,18 @@ private func _parseCardinalityTokens(_ tokens: [String], _ idx: inout Int) -> Er
         return card
     }
 
-    // Try parent marker 'u' — must be followed by identification operator
+    // Try parent marker 'u' — must be followed by identification operator or cardinality symbol
+    // Mermaid erDiagram.jison: u(?=[\.\-\|]) — only match when followed by ., -, |
     if token == "u" || token.lowercased() == "u" {
-        idx += 1
-        return .mdParent
+        if idx + 1 < tokens.count {
+            let next = tokens[idx + 1]
+            if _isIdentificationOp(next) || next.hasPrefix("|") || next.hasPrefix(".") {
+                idx += 1
+                return .mdParent
+            }
+        }
+        // Not a parent marker in this context — could be an entity name
+        return nil
     }
 
     // Long-form aliases that span multiple tokens
@@ -1200,17 +1244,22 @@ private func _parseCardinalityTokens(_ tokens: [String], _ idx: inout Int) -> Er
         return card
     }
 
-    // "1" as cardinality — check context
+    // "1" as cardinality — check context (Mermaid erDiagram.jison lookahead rules)
     if token == "1" {
         if idx + 1 < tokens.count {
             let next = tokens[idx + 1]
-            if _isIdentificationOp(next) || next == "one" || next == "zero" || next == "many" || next == "only" {
-                idx += 1
-                return .onlyOne
+            // Mermaid: 1(?=(\-\-|\.\.|\.\-|\-\.)) → ONLY_ONE before identification operator
+            if _isIdentificationOp(next) { idx += 1; return .onlyOne }
+            // Mermaid: 1(?=\s+[A-Za-z_"']) or followed by cardinality keyword
+            if next == "one" || next == "zero" || next == "many" || next == "only"
+                || next.range(of: #"^[A-Za-z_\u00C0-\uFFFF]"#, options: .regularExpression) != nil
+                || next.hasPrefix("\"") || next.hasPrefix("'") {
+                idx += 1; return .onlyOne
             }
+            // Mermaid: 1(?=\s+[0-9]) → ONLY_ONE followed by number
+            if Double(next) != nil { idx += 1; return .onlyOne }
         }
-        idx += 1
-        return .onlyOne
+        // Ambiguous — could be an entity name. Fall through.
     }
 
     // Numeric entity names like "2.5" — these are entity names, not cardinalities

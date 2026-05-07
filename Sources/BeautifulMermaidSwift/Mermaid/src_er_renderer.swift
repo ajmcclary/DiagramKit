@@ -99,23 +99,31 @@ private func _toThemeColors(_ colors: DiagramColors) -> original_src_theme.Diagr
 // MARK: - Marker Definitions
 
 private func _renderErMarkerDefs(_ config: ErDiagramConfig?) -> String {
-    // Shared marker IDs matching Mermaid's edgeMarker.ts convention
+    // Mermaid edgeMarker.ts paths (exact parity)
+    let onlyOne    = "M 0,0 L 8.4,-4.2 L 8.4,4.2 Z"
+    let zeroOrOne  = "M 8.4,0 A 4.2,4.2 0 1,0 8.4,0.01 Z"
+    let oneOrMore  = "M 0,0 L 8.4,-4.2 L 0,0 L 8.4,4.2 Z M 8.4,-4.2 L 8.4,4.2"
+    let zeroOrMore = "M 8.4,0 A 4.2,4.2 0 1,0 8.4,0.01 Z M 0,0 L 8.4,-4.2 L 0,0 L 8.4,4.2 Z M 8.4,-4.2 L 8.4,4.2"
+    let look = config?.look ?? "default"
+    let suffix = (look == "neo") ? "_neo" : ""
+
     var parts: [String] = []
-    parts.append(_renderMarkerDef("er-onlyOne", "M 0,0 L 12,-6 L 12,6 Z", config))
-    parts.append(_renderMarkerDef("er-zeroOrOne", "M 12,0 A 6,6 0 1,0 12,0.01 Z", config))
-    parts.append(_renderMarkerDef("er-oneOrMore", "M 0,0 L 12,-6 L 0,0 L 12,6 Z M 12,-6 L 12,6", config))
-    parts.append(_renderMarkerDef("er-zeroOrMore", "M 12,0 A 6,6 0 1,0 12,0.01 Z M 0,0 L 12,-6 L 0,0 L 12,6 Z M 12,-6 L 12,6", config))
+    parts.append(_renderMarkerDef("er-onlyOne\(suffix)", onlyOne, config, look: look))
+    parts.append(_renderMarkerDef("er-zeroOrOne\(suffix)", zeroOrOne, config, look: look))
+    parts.append(_renderMarkerDef("er-oneOrMore\(suffix)", oneOrMore, config, look: look))
+    parts.append(_renderMarkerDef("er-zeroOrMore\(suffix)", zeroOrMore, config, look: look))
     return parts.joined(separator: "\n")
 }
 
-private func _renderMarkerDef(_ id: String, _ path: String, _ config: ErDiagramConfig?) -> String {
+private func _renderMarkerDef(_ id: String, _ path: String, _ config: ErDiagramConfig?, look: String = "default") -> String {
     let stroke = _escapeAttr(config?.stroke ?? "var(--_line)")
+    let sw = (look == "neo") ? "2" : "1"
     return """
-    <marker id="\(id)Start" viewBox="0 -10 24 20" refX="12" refY="0" markerWidth="24" markerHeight="20" orient="auto-start-reverse">
-      <path d="\(path)" fill="\(stroke)" stroke="\(stroke)" stroke-width="1" />
+    <marker id="\(id)Start" viewBox="0 -7 17 14" refX="8.4" refY="0" markerWidth="17" markerHeight="14" orient="auto-start-reverse">
+      <path d="\(path)" fill="\(stroke)" stroke="\(stroke)" stroke-width="\(sw)" />
     </marker>
-    <marker id="\(id)End" viewBox="0 -10 24 20" refX="12" refY="0" markerWidth="24" markerHeight="20" orient="auto">
-      <path d="\(path)" fill="\(stroke)" stroke="\(stroke)" stroke-width="1" />
+    <marker id="\(id)End" viewBox="0 -7 17 14" refX="8.4" refY="0" markerWidth="17" markerHeight="14" orient="auto">
+      <path d="\(path)" fill="\(stroke)" stroke="\(stroke)" stroke-width="\(sw)" />
     </marker>
     """
 }
@@ -158,16 +166,25 @@ private func _renderEntityBox(_ entity: PositionedErEntity, _ config: ErDiagramC
             "stroke-width=\"\(_escapeAttr(strokeW))\" />"
     )
 
-    parts.append(
-        "  " + original_src_multiline_utils.renderMultilineText(
-            label,
-            cx: x + width / 2,
-            cy: y + headerHeight / 2,
-            fontSize: labelFontSize,
-            attrs: "text-anchor=\"middle\" font-size=\"\(labelFontSize)\" " +
-                "font-weight=\"700\" fill=\"\(_escapeAttr(textFill))\""
+    if entity.labelType == "text" {
+        // Plain text label — no markdown formatting (htmlLabels: false behavior)
+        parts.append(
+            "<text x=\"\(x + width / 2)\" y=\"\(y + headerHeight / 2)\" text-anchor=\"middle\" " +
+                "font-size=\"\(labelFontSize)\" font-weight=\"700\" fill=\"\(_escapeAttr(textFill))\" " +
+                "dy=\"\(original_src_styles.TEXT_BASELINE_SHIFT)\">\(original_src_multiline_utils.escapeXml(label))</text>"
         )
-    )
+    } else {
+        parts.append(
+            "  " + original_src_multiline_utils.renderMultilineText(
+                label,
+                cx: x + width / 2,
+                cy: y + headerHeight / 2,
+                fontSize: labelFontSize,
+                attrs: "text-anchor=\"middle\" font-size=\"\(labelFontSize)\" " +
+                    "font-weight=\"700\" fill=\"\(_escapeAttr(textFill))\""
+            )
+        )
+    }
 
     if attrs.isEmpty {
         // Simple rectangle — no attribute section, no "(no attributes)" text
@@ -357,8 +374,9 @@ private func _renderRelationshipLabel(_ rel: PositionedErRelationship, _ config:
     let bgW = metrics.width + 8
     let bgH = metrics.height + 6
 
+    let labelBgFill = config?.erEdgeLabelBackground ?? "var(--bg)"
     return "<rect x=\"\(mid.x - bgW / 2)\" y=\"\(mid.y - bgH / 2)\" width=\"\(bgW)\" height=\"\(bgH)\" rx=\"2\" ry=\"2\" " +
-        "fill=\"var(--bg)\" stroke=\"var(--_inner-stroke)\" stroke-width=\"0.5\" />\n" +
+        "fill=\"\(_escapeAttr(labelBgFill))\" stroke=\"var(--_inner-stroke)\" stroke-width=\"0.5\" />\n" +
         original_src_multiline_utils.renderMultilineText(
             rel.label,
             cx: mid.x,

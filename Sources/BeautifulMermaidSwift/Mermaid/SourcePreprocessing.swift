@@ -976,6 +976,7 @@ private final class _StackSafeYamlFrontmatterParser {
         case "fill": erConfig.fill = value
         case "fontSize": erConfig.fontSize = Double(value)
         case "useMaxWidth": erConfig.useMaxWidth = (value.lowercased() == "true")
+        case "erEdgeLabelBackground": erConfig.erEdgeLabelBackground = value
         default: break
         }
         return true
@@ -1895,6 +1896,7 @@ private final class _YamlFrontmatterParser {
             case "fill": erConfig.fill = value
             case "fontSize": erConfig.fontSize = Double(value)
             case "useMaxWidth": erConfig.useMaxWidth = (value.lowercased() == "true")
+            case "erEdgeLabelBackground": erConfig.erEdgeLabelBackground = value
             default: break
             }
             continue
