@@ -13,12 +13,22 @@ public enum MermaidParser {
          .replacingOccurrences(of: "&#39;", with: "'")
     }
 
+    private static func rawLineArray(_ source: String) -> [String] {
+        source
+            .replacingOccurrences(of: "\r\n", with: "\n")
+            .replacingOccurrences(of: "\r", with: "\n")
+            .split(separator: "\n", omittingEmptySubsequences: false)
+            .map(String.init)
+    }
+
     public static func parse(_ source: String) throws -> MermaidGraph {
         try _withMermaidIssueReporting(operation: "MermaidParser.parse") {
             let decoded = _decodeXMLEntities(source)
             let (processed, frontmatter) = _parseFrontMatterAndStripped(decoded)
             let lines = _mermaidSourceLines(from: processed, separatedBy: .newlines)
-            let firstLine = lines.first?.lowercased() ?? ""
+            let rawLines = rawLineArray(processed)
+            let firstLineRaw = rawLines.first(where: { !$0.trimmingCharacters(in: .whitespaces).isEmpty })?.trimmingCharacters(in: .whitespaces) ?? ""
+            let firstLine = firstLineRaw.lowercased()
 
             if firstLine.hasPrefix("journey") {
                 let journeyLines = _mermaidSourceLines(from: processed)
@@ -172,6 +182,18 @@ public enum MermaidParser {
                     }
                 }
                 return MermaidGraph(payload: .venn(diagram))
+            }
+            if _isTreeViewHeader(rawLines: rawLineArray(processed)) {
+                let rawLines = rawLineArray(processed)
+                var diagram = try parseTreeViewDiagram(rawLines, frontmatter: frontmatter)
+                if let fm = frontmatter {
+                    if let cfg = fm.treeViewConfig { diagram.config = cfg }
+                    if let theme = fm.treeViewTheme { diagram.theme = theme }
+                    if diagram.diagramTitle == nil, let fmTitle = fm.diagramTitle {
+                        diagram.diagramTitle = fmTitle
+                    }
+                }
+                return MermaidGraph(payload: .treeView(diagram))
             }
             if _isIshikawaDiagramHeader(processed) {
                 let rawLines = processed

@@ -182,9 +182,13 @@ private func _applyInitDirectivePayload(_ payload: String, to frontmatter: inout
         if let ishikawa = config["ishikawa"] as? [String: Any] {
             applied = _applyIshikawaInitConfig(ishikawa, to: &frontmatter) || applied
         }
+        if let treeView = config["treeView"] as? [String: Any] {
+            applied = _applyTreeViewInitConfig(treeView, to: &frontmatter) || applied
+        }
         if let themeVariables = config["themeVariables"] as? [String: Any] {
             applied = _applyRadarInitTheme(themeVariables, to: &frontmatter) || applied
             applied = _applyVennInitTheme(themeVariables, to: &frontmatter) || applied
+            applied = _applyTreeViewInitTheme(themeVariables, to: &frontmatter) || applied
         }
     }
 
@@ -200,14 +204,19 @@ private func _applyInitDirectivePayload(_ payload: String, to frontmatter: inout
         applied = _applyVennInitConfig(venn, to: &frontmatter) || applied
     }
 
-    if let ishikawa = object["ishikawa"] as? [String: Any] {
+        if let ishikawa = object["ishikawa"] as? [String: Any] {
         applied = _applyIshikawaInitConfig(ishikawa, to: &frontmatter) || applied
     }
 
-    if let themeVariables = object["themeVariables"] as? [String: Any] {
-        applied = _applyRadarInitTheme(themeVariables, to: &frontmatter) || applied
-        applied = _applyVennInitTheme(themeVariables, to: &frontmatter) || applied
+    if let treeView = object["treeView"] as? [String: Any] {
+        applied = _applyTreeViewInitConfig(treeView, to: &frontmatter) || applied
     }
+
+        if let themeVariables = object["themeVariables"] as? [String: Any] {
+            applied = _applyRadarInitTheme(themeVariables, to: &frontmatter) || applied
+            applied = _applyVennInitTheme(themeVariables, to: &frontmatter) || applied
+            applied = _applyTreeViewInitTheme(themeVariables, to: &frontmatter) || applied
+        }
 
     return applied
 }
@@ -262,6 +271,64 @@ private func _applyIshikawaInitConfig(_ object: [String: Any], to frontmatter: i
 
     if applied {
         frontmatter.ishikawaConfig = config
+    }
+    return applied
+}
+
+@discardableResult
+private func _applyTreeViewInitConfig(_ object: [String: Any], to frontmatter: inout DiagramFrontmatter) -> Bool {
+    var config = frontmatter.treeViewConfig ?? TreeViewDiagramConfig()
+    var applied = false
+
+    for (key, value) in object {
+        switch key {
+        case "rowIndent":
+            if let v = _jsonDouble(value) { config.rowIndent = v; applied = true }
+        case "paddingX":
+            if let v = _jsonDouble(value) { config.paddingX = v; applied = true }
+        case "paddingY":
+            if let v = _jsonDouble(value) { config.paddingY = v; applied = true }
+        case "lineThickness":
+            if let v = _jsonDouble(value) { config.lineThickness = v; applied = true }
+        case "showIcons":
+            if let v = _jsonBool(value) { config.showIcons = v; applied = true }
+        case "useMaxWidth":
+            if let v = _jsonBool(value) { config.useMaxWidth = v; applied = true }
+        default:
+            break
+        }
+    }
+
+    if applied {
+        frontmatter.treeViewConfig = config
+    }
+    return applied
+}
+
+@discardableResult
+private func _applyTreeViewInitTheme(_ object: [String: Any], to frontmatter: inout DiagramFrontmatter) -> Bool {
+    var theme = frontmatter.treeViewTheme ?? TreeViewThemeVariables()
+    var applied = false
+
+    for (key, value) in object {
+        if key == "treeView", let nested = value as? [String: Any] {
+            for (nestedKey, nestedValue) in nested {
+                if let stringValue = _jsonScalarString(nestedValue) {
+                    _applyTreeViewThemeValue(nestedKey, value: stringValue, theme: &theme)
+                    applied = true
+                }
+            }
+            continue
+        }
+
+        if let stringValue = _jsonScalarString(value) {
+            _applyTreeViewThemeValue(key, value: stringValue, theme: &theme)
+            applied = true
+        }
+    }
+
+    if applied {
+        frontmatter.treeViewTheme = theme
     }
     return applied
 }
@@ -580,6 +647,10 @@ private final class _StackSafeYamlFrontmatterParser {
     var hasVennTheme = false
     var ishikawaConfig = IshikawaDiagramConfig()
     var hasIshikawaSection = false
+    var treeViewConfig = TreeViewDiagramConfig()
+    var treeViewTheme = TreeViewThemeVariables.default
+    var hasTreeViewSection = false
+    var hasTreeViewTheme = false
 
     func parse(_ lines: [String]) -> DiagramFrontmatter? {
         for entry in _flattenYamlFrontmatterLines(lines) {
@@ -621,6 +692,7 @@ private final class _StackSafeYamlFrontmatterParser {
         if applyTreemap(path, value) { return }
         if applyVenn(path, value) { return }
         if applyIshikawa(path, value) { return }
+        if applyTreeView(path, value) { return }
         _ = applyGlobal(path, value)
     }
 
@@ -1234,6 +1306,29 @@ private final class _StackSafeYamlFrontmatterParser {
         return true
     }
 
+    private func applyTreeView(_ path: String, _ value: String) -> Bool {
+        if path.hasPrefix("config.treeView.") {
+            hasTreeViewSection = true
+            let key = path.replacingOccurrences(of: "config.treeView.", with: "")
+            switch key {
+            case "rowIndent": treeViewConfig.rowIndent = Double(value) ?? treeViewConfig.rowIndent
+            case "paddingX": treeViewConfig.paddingX = Double(value) ?? treeViewConfig.paddingX
+            case "paddingY": treeViewConfig.paddingY = Double(value) ?? treeViewConfig.paddingY
+            case "lineThickness": treeViewConfig.lineThickness = Double(value) ?? treeViewConfig.lineThickness
+            case "showIcons": treeViewConfig.showIcons = (value.lowercased() == "true")
+            case "useMaxWidth": treeViewConfig.useMaxWidth = (value.lowercased() == "true")
+            default: break
+            }
+            return true
+        }
+        if let subKey = _treeViewThemeSubKey(from: path) {
+            _applyTreeViewThemeValue(subKey, value: value, theme: &treeViewTheme)
+            hasTreeViewTheme = true
+            return true
+        }
+        return false
+    }
+
     private func applyGlobal(_ path: String, _ value: String) -> Bool {
         switch path {
         case "config.layout":
@@ -1294,6 +1389,8 @@ private final class _StackSafeYamlFrontmatterParser {
         if hasVennSection { frontmatter.vennConfig = vennConfig }
         if hasVennTheme { frontmatter.vennThemeVariables = vennThemeVariables }
         if hasIshikawaSection { frontmatter.ishikawaConfig = ishikawaConfig }
+        if hasTreeViewSection { frontmatter.treeViewConfig = treeViewConfig }
+        if hasTreeViewTheme { frontmatter.treeViewTheme = treeViewTheme }
     }
 }
 
@@ -2748,5 +2845,49 @@ private func _isVennThemeKey(_ key: String) -> Bool {
     switch key {
     case "vennTitleTextColor", "vennSetTextColor": return true
     default: return false
+    }
+}
+
+// MARK: - TreeView Theme Helpers
+
+private func _treeViewThemeSubKey(from fullPath: String) -> String? {
+    let prefixes = ["config.themeVariables.", "themeVariables."]
+    for prefix in prefixes {
+        if fullPath.hasPrefix(prefix) {
+            let subKey = String(fullPath.dropFirst(prefix.count))
+            if _isTreeViewThemeKey(subKey) {
+                return subKey
+            }
+            if subKey.hasPrefix("treeView.") {
+                let inner = String(subKey.dropFirst(9))
+                if _isTreeViewThemeKey(inner) {
+                    return inner
+                }
+            }
+        }
+    }
+    return nil
+}
+
+private func _isTreeViewThemeKey(_ key: String) -> Bool {
+    switch key {
+    case "labelFontSize", "labelColor", "lineColor", "iconColor",
+         "descriptionColor", "highlightBg", "highlightStroke":
+        return true
+    default:
+        return false
+    }
+}
+
+private func _applyTreeViewThemeValue(_ key: String, value: String, theme: inout TreeViewThemeVariables) {
+    switch key {
+    case "labelFontSize": theme.labelFontSize = value
+    case "labelColor": theme.labelColor = value
+    case "lineColor": theme.lineColor = value
+    case "iconColor": theme.iconColor = value
+    case "descriptionColor": theme.descriptionColor = value
+    case "highlightBg": theme.highlightBg = value
+    case "highlightStroke": theme.highlightStroke = value
+    default: break
     }
 }

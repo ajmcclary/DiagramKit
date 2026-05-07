@@ -78,6 +78,8 @@ public final class DiagramRenderer {
             _drawVenn(positioned, in: context, bounds: bounds)
         case .ishikawa:
             _drawIshikawa(positioned, in: context, bounds: bounds)
+        case .treeView:
+            _drawTreeView(positioned, in: context, bounds: bounds)
         }
     }
 

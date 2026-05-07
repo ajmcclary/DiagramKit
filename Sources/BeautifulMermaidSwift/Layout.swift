@@ -295,6 +295,18 @@ public struct GraphLayout {
                     height: positioned.height,
                     content: .ishikawa(positioned)
                 )
+            case .treeView:
+                guard case let .treeView(diagram) = graph.payload else {
+                    _reportMermaidIssue("GraphLayout.layout found mismatched treeView payload.")
+                    return PositionedGraph(diagram: graph, content: .treeView(.empty))
+                }
+                let positioned = layoutTreeViewDiagram(diagram)
+                return PositionedGraph(
+                    diagram: graph,
+                    width: positioned.viewBoxWidth,
+                    height: positioned.viewBoxHeight,
+                    content: .treeView(positioned)
+                )
             }
         }
     }

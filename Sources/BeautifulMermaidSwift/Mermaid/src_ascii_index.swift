@@ -300,6 +300,7 @@ open class original_src_ascii_index {
         case treemap
     case venn
     case ishikawa
+    case treeView
 }
 
     struct AsciiConfig {
@@ -401,6 +402,8 @@ open class original_src_ascii_index {
             return "venn"
         case .ishikawa:
             return "ishikawa"
+        case .treeView:
+            return "treeView"
         case .flowchart:
             return "flowchart"
         }
@@ -505,6 +508,9 @@ open class original_src_ascii_index {
         case .ishikawa:
             throw BeautifulMermaidError.notYetImplemented("Ishikawa Diagram ASCII rendering")
 
+        case .treeView:
+            throw BeautifulMermaidError.notYetImplemented("TreeView ASCII rendering")
+
         case .flowchart:
             let parsed = try parseMermaid(preprocessedText)
 
@@ -544,7 +550,8 @@ open class original_src_ascii_index {
     // MARK: - Internal detection
 
     private static func detectDiagramTypeInternal(_ text: String) -> DetectedDiagramType {
-        let firstLine = _mermaidSourceLines(from: text).first?.lowercased() ?? ""
+        let firstStatement = _mermaidSourceLines(from: text).first ?? ""
+        let firstLine = firstStatement.lowercased()
 
         if firstLine.range(of: #"^sequencediagram\s*$"#, options: .regularExpression) != nil {
             return .sequence
@@ -608,6 +615,9 @@ open class original_src_ascii_index {
         }
         if firstLine.range(of: #"^ishikawa(-beta)?\b"#, options: [.regularExpression, .caseInsensitive]) != nil {
             return .ishikawa
+        }
+        if firstStatement == "treeView-beta" || firstStatement.hasPrefix("treeView-beta ") || firstStatement.hasPrefix("treeView-beta\t") {
+            return .treeView
         }
 
         return .flowchart

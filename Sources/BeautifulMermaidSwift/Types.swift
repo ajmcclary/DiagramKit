@@ -25,6 +25,7 @@ public enum DiagramType: String, CaseIterable, Sendable {
     case treemap
     case venn
     case ishikawa
+    case treeView
 }
 
 /// The parsed graph model for flowcharts and state diagrams.
@@ -55,6 +56,7 @@ public enum DiagramPayload: Sendable {
     case treemap(TreemapDiagram)
     case venn(VennDiagram)
     case ishikawa(IshikawaDiagram)
+    case treeView(TreeViewDiagram)
 
     public var type: DiagramType {
         switch self {
@@ -104,6 +106,8 @@ public enum DiagramPayload: Sendable {
             return .venn
         case .ishikawa:
             return .ishikawa
+        case .treeView:
+            return .treeView
         }
     }
 }
@@ -180,6 +184,8 @@ public struct MermaidGraph: Sendable {
             self.payload = .venn(VennDiagram())
         case .ishikawa:
             self.payload = .ishikawa(IshikawaDiagram.empty)
+        case .treeView:
+            self.payload = .treeView(TreeViewDiagram.empty)
         }
     }
 
@@ -259,6 +265,7 @@ public enum PositionedContent: Sendable {
     case treemap(PositionedTreemapDiagram)
     case venn(PositionedVennDiagram)
     case ishikawa(PositionedIshikawaDiagram)
+    case treeView(PositionedTreeViewDiagram)
 }
 
 public struct PositionedGraph: Sendable {
@@ -336,6 +343,8 @@ public struct PositionedGraph: Sendable {
             self.content = .venn(.empty)
         case .ishikawa:
             self.content = .ishikawa(.empty)
+        case .treeView:
+            self.content = .treeView(.empty)
         }
     }
 
@@ -593,6 +602,13 @@ public struct PositionedGraph: Sendable {
     public var ishikawaData: PositionedIshikawaDiagram? {
         switch content {
         case .ishikawa(let data): return data
+        default: return nil
+        }
+    }
+
+    public var treeViewData: PositionedTreeViewDiagram? {
+        switch content {
+        case .treeView(let data): return data
         default: return nil
         }
     }

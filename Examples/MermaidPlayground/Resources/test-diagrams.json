@@ -1781,10 +1781,70 @@
       "category": "ishikawa",
       "name": "Ishikawa - Dark Theme",
       "source": "---\nconfig:\n  theme: dark\n---\nishikawa-beta\nProblem\n    Cause A"
+    },
+    {
+      "id": "treeview-basic-tree",
+      "category": "treeView",
+      "name": "TreeView - Basic File Tree",
+      "source": "treeView-beta\n    src/\n        index.js\n    package.json\n    README.md"
+    },
+    {
+      "id": "treeview-icons",
+      "category": "treeView",
+      "name": "TreeView - File Tree with Icons",
+      "source": "treeView-beta\n    src/\n        App.tsx\n        index.js\n        utils.py\n        config.json\n    Dockerfile\n    package.json\n    .gitignore"
+    },
+    {
+      "id": "treeview-annotations",
+      "category": "treeView",
+      "name": "TreeView - Annotations",
+      "source": "treeView-beta\n    src/\n        App.tsx :::highlight icon(react) ## main component\n        index.js ## entry point\n    .env ## environment variables\n    Dockerfile"
+    },
+    {
+      "id": "treeview-custom-config",
+      "category": "treeView",
+      "name": "TreeView - Custom Config",
+      "source": "---\nconfig:\n  treeView:\n    rowIndent: 80\n    lineThickness: 3\n  themeVariables:\n    treeView:\n      labelFontSize: '20px'\n      labelColor: '#FF0000'\n      lineColor: '#00FF00'\n---\ntreeView-beta\n  \"folder1\"\n    \"file1.js\""
+    },
+    {
+      "id": "treeview-icon-suppression",
+      "category": "treeView",
+      "name": "TreeView - Icon Suppression",
+      "source": "treeView-beta\n    icon(none)-suppressed/\n        no-icon-file.js\n    \"explicit icon\" icon(database)\n    empty-icon icon()"
+    },
+    {
+      "id": "treeview-multiple-roots",
+      "category": "treeView",
+      "name": "TreeView - Multiple Roots",
+      "source": "treeView-beta\n    frontend/\n        App.tsx\n    backend/\n        server.js\n    package.json\n    README.md"
+    },
+    {
+      "id": "treeview-accessibility",
+      "category": "treeView",
+      "name": "TreeView - Accessibility Metadata",
+      "source": "treeView-beta\ntitle Project Tree\naccTitle: Project files\naccDescr: Directory structure for the project\n\"Root\"\n  \"Child\""
+    },
+    {
+      "id": "treeview-special-files",
+      "category": "treeView",
+      "name": "TreeView - Special Filenames",
+      "source": "treeView-beta\n    .env\n    .env.local\n    .env.production\n    .gitignore\n    .eslintrc\n    Dockerfile\n    docker-compose.yml\n    Makefile\n    LICENSE\n    tsconfig.json\n    package-lock.json"
+    },
+    {
+      "id": "treeview-deep-nesting",
+      "category": "treeView",
+      "name": "TreeView - Deep Nesting",
+      "source": "treeView-beta\n    a/\n        b/\n            c/\n                d/\n                    file.js"
+    },
+    {
+      "id": "treeview-empty",
+      "category": "treeView",
+      "name": "TreeView - Empty Tree",
+      "source": "treeView-beta"
     }
   ],
   "metadata": {
-    "totalCount": 282,
+    "totalCount": 292,
     "categories": {
       "flowchart": 27,
       "state": 12,
@@ -1808,7 +1868,8 @@
       "radar": 10,
       "treemap": 10,
       "venn": 8,
-      "ishikawa": 7
+      "ishikawa": 7,
+      "treeView": 10
     }
   }
 }

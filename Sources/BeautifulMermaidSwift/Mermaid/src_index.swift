@@ -94,6 +94,7 @@ private enum _DiagramRoutingType {
     case treemap
     case venn
     case ishikawa
+    case treeView
 }
 
 private func _decodeXML(_ text: String) -> String {
@@ -106,7 +107,8 @@ private func _decodeXML(_ text: String) -> String {
 }
 
 private func detectDiagramType(_ text: String) -> _DiagramRoutingType {
-    let firstLine = _firstDiagramStatement(in: text).lowercased()
+    let firstStatement = _firstDiagramStatement(in: text)
+    let firstLine = firstStatement.lowercased()
 
     if firstLine.range(of: "^sequencediagram\\s*$", options: .regularExpression) != nil {
         return .sequence
@@ -170,6 +172,9 @@ private func detectDiagramType(_ text: String) -> _DiagramRoutingType {
     }
     if firstLine.range(of: #"^ishikawa(-beta)?\b"#, options: [.regularExpression, .caseInsensitive]) != nil {
         return .ishikawa
+    }
+    if firstStatement == "treeView-beta" || firstStatement.hasPrefix("treeView-beta ") || firstStatement.hasPrefix("treeView-beta\t") {
+        return .treeView
     }
 
     return .flowchart
@@ -318,6 +323,8 @@ private func _renderPreprocessedMermaidSVG(
         return try _renderVennSvgCase(source: decodedText, fm: fm, colors: colors, font: font, transparent: transparent)
     case .ishikawa:
         return try _renderIshikawaSvgCase(source: decodedText, fm: fm, colors: colors, font: font, transparent: transparent)
+    case .treeView:
+        return try _renderTreeViewSvgCase(source: decodedText, fm: fm, colors: colors, font: font, transparent: transparent)
     }
 }
 
@@ -531,6 +538,19 @@ private func _renderIshikawaSvgCase(source: String, fm: DiagramFrontmatter?, col
     let positioned = layoutIshikawaDiagram(diagram)
     let diagramId = UUID().uuidString
     return renderIshikawaSvg(positioned, diagramId: diagramId, colors: colors, fontFamily: font, transparent: transparent)
+}
+
+private func _renderTreeViewSvgCase(source: String, fm: DiagramFrontmatter?, colors: DiagramColors, font: String, transparent: Bool) throws -> String {
+    let rawLines = _rawDiagramLines(from: source)
+    var diagram = try parseTreeViewDiagram(rawLines, frontmatter: fm)
+    if let fmc = fm?.treeViewConfig { diagram.config = fmc }
+    if let theme = fm?.treeViewTheme { diagram.theme = theme }
+    if diagram.diagramTitle == nil, let fmTitle = fm?.diagramTitle {
+        diagram.diagramTitle = fmTitle
+    }
+    let positioned = layoutTreeViewDiagram(diagram)
+    let diagramId = UUID().uuidString
+    return renderTreeViewSvg(positioned, diagramId: diagramId, font: font)
 }
 
 private func _rawDiagramLines(from source: String) -> [String] {
