@@ -225,6 +225,15 @@ struct GanttRendererTests {
         #expect(svg.contains("data-callback=\"myCallback\""))
         #expect(svg.contains("data-callback-args=\"a,b,c\""))
     }
+
+    @Test("SVG grid text has fill stroke and font-size styling")
+    func svgGridTextStyling() throws {
+        let positioned = _basicPositionedDiagram()
+        let svg = try renderGanttSvg(positioned, diagramId: "test", _defaultColors(), "Inter", false)
+        #expect(svg.contains("fill=\"#000\""))
+        #expect(svg.contains("stroke=\"none\""))
+        #expect(svg.contains("font-size=\"10\""))
+    }
 }
 
 private func _defaultColors() -> DiagramColors {

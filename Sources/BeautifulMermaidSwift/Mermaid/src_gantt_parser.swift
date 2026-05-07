@@ -621,9 +621,10 @@ private func _isInvalidDate(_ date: Date, dateFormat: String, excludes: [String]
     let df = _dateFormatter(for: dateFormat)
     let formattedDate = df.string(from: date)
 
-    let isoFormatter = ISO8601DateFormatter()
-    isoFormatter.formatOptions = [.withFullDate]
-    let dateOnly = isoFormatter.string(from: date)
+    let dateOnlyFmt = DateFormatter()
+    dateOnlyFmt.locale = Locale(identifier: "en_US_POSIX")
+    dateOnlyFmt.dateFormat = "yyyy-MM-dd"
+    let dateOnly = dateOnlyFmt.string(from: date)
 
     if includes.contains(formattedDate) || includes.contains(dateOnly) {
         return false
@@ -659,7 +660,7 @@ private func _checkTaskDates(_ rawTask: inout GanttRawTask, dateFormat: String, 
           let endTime = rawTask.endTime else { return }
 
     let cal = Calendar.current
-    var checkDate = cal.date(byAdding: .day, value: 1, to: startTime) ?? startTime
+    var checkDate = startTime
     var adjustedEnd = endTime
     var renderEndTime: Date? = nil
     var previousDateWasInvalid = false
@@ -851,7 +852,7 @@ private func _cleanCallbackArg(_ value: String) -> String {
 private func _sanitizeGanttUrl(_ href: String) -> String? {
     let trimmed = href.trimmingCharacters(in: .whitespacesAndNewlines)
     let lowered = trimmed.lowercased()
-    if lowered.hasPrefix("javascript:") || lowered.hasPrefix("data:") {
+    if lowered.hasPrefix("javascript:") || lowered.hasPrefix("data:") || lowered.hasPrefix("vbscript:") || lowered.hasPrefix("file:") {
         return nil
     }
     return trimmed

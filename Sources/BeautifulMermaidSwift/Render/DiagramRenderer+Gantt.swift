@@ -25,17 +25,19 @@ extension DiagramRenderer {
             }
 
             // 2. Grid lines and axis ticks
+            let gridY = gantt.height - config.gridLineStartPadding
+            let gridLineHeight = gantt.gridLineHeight > 0 ? gantt.gridLineHeight : config.gridLineStartPadding
             for tick in gantt.axisTicks {
                 ctx.setStrokeColor(self._hexToCGColor(theme.gridColor) ?? self.theme.effectiveMuted().cgColor)
                 ctx.setLineWidth(0.5)
-                ctx.move(to: CGPoint(x: tick.x, y: gantt.height - 50))
-                ctx.addLine(to: CGPoint(x: tick.x, y: gantt.height))
+                ctx.move(to: CGPoint(x: tick.x, y: gridY))
+                ctx.addLine(to: CGPoint(x: tick.x, y: gridY + gridLineHeight))
                 ctx.strokePath()
 
                 let tickFont = BMFont.systemFont(ofSize: 10, weight: .regular)
                 self._drawTextInFlipped(
                     tick.label,
-                    at: CGPoint(x: tick.x, y: gantt.height - 35),
+                    at: CGPoint(x: tick.x, y: gridY + 15),
                     context: ctx, contentHeight: ch,
                     color: self.theme.foreground,
                     font: tickFont,
@@ -45,17 +47,18 @@ extension DiagramRenderer {
 
             // Top axis
             if let topTicks = gantt.topAxisTicks {
+                let topGridLineHeight = gridLineHeight - config.topPadding + config.gridLineStartPadding
                 for tick in topTicks {
                     ctx.setStrokeColor(self._hexToCGColor(theme.gridColor) ?? self.theme.effectiveMuted().cgColor)
                     ctx.setLineWidth(0.5)
                     ctx.move(to: CGPoint(x: tick.x, y: config.topPadding))
-                    ctx.addLine(to: CGPoint(x: tick.x, y: config.topPadding + 50))
+                    ctx.addLine(to: CGPoint(x: tick.x, y: config.topPadding + topGridLineHeight))
                     ctx.strokePath()
 
                     let tickFont = BMFont.systemFont(ofSize: 10, weight: .regular)
                     self._drawTextInFlipped(
                         tick.label,
-                        at: CGPoint(x: tick.x, y: config.topPadding + 65),
+                        at: CGPoint(x: tick.x, y: config.topPadding + 15 + topGridLineHeight),
                         context: ctx, contentHeight: ch,
                         color: self.theme.foreground,
                         font: tickFont,

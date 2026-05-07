@@ -312,6 +312,7 @@ public struct PositionedGanttDiagram: Sendable {
     public var todayMarkerStyle: String?
     public var axisTicks: [GanttAxisTick] = []
     public var topAxisTicks: [GanttAxisTick]? = nil
+    public var gridLineHeight: Double = 0
     public var config: GanttDiagramConfig = .default
     public var categories: [String] = []
     public var categoryHeights: [String: Int] = [:]

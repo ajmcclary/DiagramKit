@@ -97,25 +97,24 @@ public func renderGanttSvg(
     }
 
     // 2. Grid / axis
-    svg += #"<g class="grid" transform="translate(\#(config.leftPadding), \#(h - 50))">"#
-    svg += "\n"
+    let gridY = h - config.gridLineStartPadding
+    let gridLineHeight = positioned.gridLineHeight > 0 ? positioned.gridLineHeight : config.gridLineStartPadding
+    svg += "<g class=\"grid\" transform=\"translate(\(config.leftPadding), \(gridY))\">\n"
     for tick in positioned.axisTicks {
-        svg += #"<line x1="\#(tick.x - config.leftPadding)" x2="\#(tick.x - config.leftPadding)" y1="0" y2="50"/>"#
-        svg += "\n"
-        svg += #"<text x="\#(tick.x - config.leftPadding)" y="15" dy="1em" text-anchor="middle" font-size="10">\#(_escapeXml(tick.label))</text>"#
-        svg += "\n"
+        let relX = tick.x - config.leftPadding
+        svg += "<line x1=\"\(relX)\" x2=\"\(relX)\" y1=\"0\" y2=\"\(gridLineHeight)\"/>\n"
+        svg += "<text x=\"\(relX)\" y=\"15\" dy=\"1em\" text-anchor=\"middle\" fill=\"#000\" stroke=\"none\" font-size=\"10\">\(_escapeXml(tick.label))</text>\n"
     }
     svg += "</g>\n"
 
     // Top axis
     if let topTicks = positioned.topAxisTicks, !topTicks.isEmpty {
-        svg += #"<g class="grid top-grid" transform="translate(\#(config.leftPadding), \#(config.topPadding))">"#
-        svg += "\n"
+        let topGridLineHeight = gridLineHeight - config.topPadding + config.gridLineStartPadding
+        svg += "<g class=\"grid top-grid\" transform=\"translate(\(config.leftPadding), \(config.topPadding))\">\n"
         for tick in topTicks {
-            svg += #"<line x1="\#(tick.x - config.leftPadding)" x2="\#(tick.x - config.leftPadding)" y1="0" y2="50"/>"#
-            svg += "\n"
-            svg += #"<text x="\#(tick.x - config.leftPadding)" y="15" dy="1em" text-anchor="middle" font-size="10">\#(_escapeXml(tick.label))</text>"#
-            svg += "\n"
+            let relX = tick.x - config.leftPadding
+            svg += "<line x1=\"\(relX)\" x2=\"\(relX)\" y1=\"0\" y2=\"\(topGridLineHeight)\"/>\n"
+            svg += "<text x=\"\(relX)\" y=\"15\" dy=\"1em\" text-anchor=\"middle\" fill=\"#000\" stroke=\"none\" font-size=\"10\">\(_escapeXml(tick.label))</text>\n"
         }
         svg += "</g>\n"
     }

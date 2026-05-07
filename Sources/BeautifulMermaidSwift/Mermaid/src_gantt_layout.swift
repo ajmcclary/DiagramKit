@@ -142,6 +142,8 @@ public func layoutGanttDiagram(_ diagram: GanttDiagram) -> PositionedGanttDiagra
         let barY: Double
         if isVert {
             barY = config.gridLineStartPadding
+        } else if isMilestone {
+            barY = Double(row) * gap + config.topPadding + gap / 2 - config.barHeight / 2
         } else {
             barY = Double(row) * gap + config.topPadding
         }
@@ -291,6 +293,9 @@ public func layoutGanttDiagram(_ diagram: GanttDiagram) -> PositionedGanttDiagra
         todayLineX = scale(today)
     }
 
+    // Grid line height: spans full chart area between top and bottom padding
+    let gridLineHeight = height - config.topPadding - config.gridLineStartPadding
+
     // Axis ticks
     let axisFormat = diagram.axisFormat ?? config.axisFormat ?? _deriveAxisFormat(from: diagram.dateFormat)
     let tickWeekday = diagram.weekday != "sunday" ? diagram.weekday : config.weekday
@@ -320,9 +325,10 @@ public func layoutGanttDiagram(_ diagram: GanttDiagram) -> PositionedGanttDiagra
         tasks: positionedTasks,
         excludedRanges: excludedRanges,
         todayLineX: todayLineX,
-        todayMarkerStyle: diagram.todayMarker.isEmpty ? nil : diagram.todayMarker,
+            todayMarkerStyle: diagram.todayMarker.isEmpty ? nil : diagram.todayMarker.replacingOccurrences(of: ",", with: ";"),
         axisTicks: axisTicks,
         topAxisTicks: topAxisTicks,
+        gridLineHeight: gridLineHeight,
         config: config,
         categories: diagram.sections.map { $0.name },
         categoryHeights: _computeCategoryHeights(diagram.sections, positionedTasks: positionedTasks)
@@ -365,8 +371,10 @@ private func _deriveAxisFormat(from dateFormat: String) -> String {
 private func _ganttIsInvalidDate(_ date: Date, dateFormat: String, excludes: [String], includes: [String], weekend: String) -> Bool {
     let df = DateFormatter()
     df.locale = Locale(identifier: "en_US_POSIX")
+    df.timeZone = TimeZone.current
     df.dateFormat = _translateDayjsFormatToSwift(dateFormat)
-    let formattedDate = df.string(from: date).lowercased()
+    let formattedDate = df.string(from: date)
+
     df.dateFormat = "yyyy-MM-dd"
     let dateOnly = df.string(from: date)
 
@@ -409,6 +417,12 @@ private func _makeExcludedRange(
     )
 }
 
+private enum _GanttTickStep {
+    case seconds(Double)
+    case calendar(Calendar.Component, Int)
+    case week(Int, String)
+}
+
 private func _generateAxisTicks(
     minTime: Date,
     maxTime: Date,
@@ -422,62 +436,125 @@ private func _generateAxisTicks(
     let cal = Calendar.current
     let span = maxTime.timeIntervalSince(minTime)
 
-    // Determine tick interval
-    enum TickStep {
-        case seconds(Double)
-        case calendar(Calendar.Component, Int)
-        case week(Int, String)
-    }
-
-    var step: TickStep = .calendar(.day, 7)
-    var approximateSeconds = 86400.0 * 7
+    var step: _GanttTickStep
+    var approximateSeconds: Double
+    var firstTick: Date
+    let maxTickCount = 10000.0
 
     if let tickStr = tickInterval {
         let pattern = try? NSRegularExpression(pattern: #"^([1-9]\d*)(millisecond|second|minute|hour|day|week|month)$"#)
-        if let match = pattern?.firstMatch(in: tickStr, range: NSRange(tickStr.startIndex..<tickStr.endIndex, in: tickStr)) {
-            if let valRange = Range(match.range(at: 1), in: tickStr),
-               let unitRange = Range(match.range(at: 2), in: tickStr) {
-                let value = Int(tickStr[valRange]) ?? 1
-                let unit = String(tickStr[unitRange])
-                switch unit {
-                case "millisecond":
-                    approximateSeconds = Double(value) / 1000.0
-                    step = .seconds(approximateSeconds)
-                case "second":
-                    approximateSeconds = Double(value)
-                    step = .seconds(approximateSeconds)
-                case "minute":
-                    approximateSeconds = Double(value) * 60
-                    step = .seconds(approximateSeconds)
-                case "hour":
-                    approximateSeconds = Double(value) * 3600
-                    step = .seconds(approximateSeconds)
-                case "day":
-                    approximateSeconds = Double(value) * 86400
-                    step = .calendar(.day, value)
-                case "week":
-                    approximateSeconds = Double(value) * 86400 * 7
-                    step = .week(value, weekday)
-                case "month":
-                    approximateSeconds = Double(value) * 86400 * 30
-                    step = .calendar(.month, value)
-                default: break
-                }
+        if let match = pattern?.firstMatch(in: tickStr, range: NSRange(tickStr.startIndex..<tickStr.endIndex, in: tickStr)),
+           let valRange = Range(match.range(at: 1), in: tickStr),
+           let unitRange = Range(match.range(at: 2), in: tickStr) {
+            let value = Int(tickStr[valRange]) ?? 1
+            let unit = String(tickStr[unitRange])
+            switch unit {
+            case "millisecond":
+                approximateSeconds = Double(value) / 1000.0
+                step = _GanttTickStep.seconds(approximateSeconds)
+                firstTick = minTime
+            case "second":
+                approximateSeconds = Double(value)
+                step = _GanttTickStep.seconds(approximateSeconds)
+                firstTick = minTime
+            case "minute":
+                approximateSeconds = Double(value) * 60
+                step = _GanttTickStep.seconds(approximateSeconds)
+                firstTick = minTime
+            case "hour":
+                approximateSeconds = Double(value) * 3600
+                step = _GanttTickStep.seconds(approximateSeconds)
+                firstTick = minTime
+            case "day":
+                approximateSeconds = Double(value) * 86400
+                step = _GanttTickStep.calendar(.day, value)
+                firstTick = cal.startOfDay(for: minTime)
+            case "week":
+                approximateSeconds = Double(value) * 86400 * 7
+                step = _GanttTickStep.week(value, weekday)
+                firstTick = _alignToWeekday(cal.startOfDay(for: minTime), weekday: weekday)
+            case "month":
+                approximateSeconds = Double(value) * 86400 * 30
+                step = _GanttTickStep.calendar(.month, value)
+                var comps = cal.dateComponents([.year, .month], from: minTime)
+                comps.day = 1
+                firstTick = cal.date(from: comps) ?? minTime
+            default:
+                approximateSeconds = 86400 * 7
+                step = _GanttTickStep.calendar(.day, 7)
+                firstTick = cal.startOfDay(for: minTime)
             }
+        } else {
+            approximateSeconds = 86400 * 7
+            step = _GanttTickStep.calendar(.day, 7)
+            firstTick = cal.startOfDay(for: minTime)
         }
-    }
 
-    // Cap tick count
-    let ticks = approximateSeconds > 0 ? span / approximateSeconds : Double.infinity
-    let cap = 10000.0
-    if ticks > cap {
-        approximateSeconds = max(span / cap, 0.001)
-        step = .seconds(approximateSeconds)
+        // Cap tick count
+        let estimatedTicks = approximateSeconds > 0 ? span / approximateSeconds : Double.infinity
+        if estimatedTicks > maxTickCount {
+            approximateSeconds = max(span / maxTickCount, 0.001)
+            step = _GanttTickStep.seconds(approximateSeconds)
+            firstTick = minTime
+        }
+    } else {
+        // D3-inspired default tick generation when no tickInterval is specified
+        let availableWidth = width - config.leftPadding - config.rightPadding
+        let targetTickCount = max(2.0, min(availableWidth / 80.0, 20.0))
+        let rawStep = span / targetTickCount
+
+        // Snap to nice time units
+        let second = 1.0
+        let minute = 60.0
+        let hour = 3600.0
+        let day = 86400.0
+
+        func niceSpan(_ rough: Double) -> (Double, _GanttTickStep) {
+            let steps: [Double] = [0.001, 0.005, 0.01, 0.05, 0.1, 0.5,
+                                   1, 5, 10, 30,
+                                   minute, minute * 5, minute * 15, minute * 30,
+                                   hour, hour * 3, hour * 6, hour * 12,
+                                   day, day * 2, day * 3, day * 5, day * 7,
+                                   day * 14, day * 30, day * 90, day * 365]
+            for s in steps where s >= rough { return (s, _stepForSeconds(s, weekday: weekday)) }
+            return (day * 365, _GanttTickStep.calendar(.year, 1))
+        }
+
+        let (niceStep, tickStep) = niceSpan(rawStep)
+        approximateSeconds = niceStep
+        step = tickStep
+
+        // Align start to nice boundary
+        switch tickStep {
+        case .calendar(.month, let value):
+            var comps = cal.dateComponents([.year, .month], from: minTime)
+            comps.day = 1
+            comps.hour = 0; comps.minute = 0; comps.second = 0
+            firstTick = cal.date(from: comps) ?? minTime
+            step = _GanttTickStep.calendar(.month, value)
+        case .calendar(.day, let value):
+            firstTick = cal.startOfDay(for: minTime)
+            step = _GanttTickStep.calendar(.day, value >= 1 ? value : 1)
+        case .week(let value, _):
+            firstTick = _alignToWeekday(cal.startOfDay(for: minTime), weekday: weekday)
+            step = _GanttTickStep.week(value, weekday)
+        case .calendar(.year, let value):
+            var comps = cal.dateComponents([.year], from: minTime)
+            comps.month = 1; comps.day = 1
+            comps.hour = 0; comps.minute = 0; comps.second = 0
+            firstTick = cal.date(from: comps) ?? minTime
+            step = _GanttTickStep.calendar(.year, value)
+        case .seconds(let s):
+            firstTick = minTime
+            step = _GanttTickStep.seconds(s)
+        default:
+            firstTick = cal.startOfDay(for: minTime)
+        }
     }
 
     // Generate ticks
     var result: [GanttAxisTick] = []
-    var currentDate = minTime
+    var currentDate = firstTick
 
     let df = DateFormatter()
     df.locale = Locale(identifier: "en_US_POSIX")
@@ -493,19 +570,28 @@ private func _generateAxisTicks(
             nextDate = currentDate.addingTimeInterval(seconds)
         case .calendar(let component, let value):
             nextDate = cal.date(byAdding: component, value: value, to: currentDate)
-        case .week(let value, let weekday):
-            let aligned = _alignToWeekday(currentDate, weekday: weekday)
-            if aligned > currentDate {
-                nextDate = aligned
-            } else {
-                nextDate = cal.date(byAdding: .day, value: value * 7, to: currentDate)
-            }
+        case .week(let value, let wkday):
+            var comps = cal.dateComponents([.yearForWeekOfYear, .weekOfYear], from: currentDate)
+            nextDate = cal.date(byAdding: .weekOfYear, value: value, to: cal.date(from: comps) ?? currentDate)
         }
         guard let nextDate, nextDate > currentDate else { break }
         currentDate = nextDate
     }
 
     return result
+}
+
+private func _stepForSeconds(_ seconds: Double, weekday: String) -> _GanttTickStep {
+    switch seconds {
+    case 0.0..<1: return _GanttTickStep.seconds(seconds)
+    case 1.0..<60: return _GanttTickStep.seconds(seconds)
+    case 60.0..<3600: return _GanttTickStep.seconds(seconds)
+    case 3600.0..<86400: return _GanttTickStep.seconds(seconds)
+    case 86400.0..<(86400 * 7): return _GanttTickStep.calendar(.day, max(1, Int(seconds / 86400)))
+    case (86400 * 7)..<(86400 * 30): return _GanttTickStep.week(max(1, Int(seconds / (86400 * 7))), weekday)
+    case (86400 * 30)..<(86400 * 365): return _GanttTickStep.calendar(.month, max(1, Int(seconds / (86400 * 30))))
+    default: return _GanttTickStep.calendar(.year, max(1, Int(seconds / (86400 * 365))))
+    }
 }
 
 private func _translateDayjsFormatToSwift(_ format: String) -> String {

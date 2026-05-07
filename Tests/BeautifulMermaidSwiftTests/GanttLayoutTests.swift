@@ -301,6 +301,83 @@ struct GanttLayoutTests {
         #expect(positioned.axisTicks.count >= 3)
         #expect(positioned.axisTicks.count < 20)
     }
+
+    @Test("Default ticks use nice time intervals for month-span data")
+    func defaultTicksUseNiceIntervals() throws {
+        let config = GanttDiagramConfig.default
+        let task = GanttTask(
+            id: "t1", task: "Task", section: "S1", type: "S1",
+            startTime: _date(2024, 1, 1), endTime: _date(2024, 3, 31),
+            order: 0
+        )
+        let diagram = GanttDiagram(
+            dateFormat: "YYYY-MM-DD", sections: [GanttSection(name: "S1", index: 0)],
+            tasks: [task], config: config
+        )
+        let positioned = layoutGanttDiagram(diagram)
+        #expect(!positioned.axisTicks.isEmpty)
+        let labels = positioned.axisTicks.map(\.label)
+        #expect(positioned.axisTicks.count > 3)
+        #expect(positioned.axisTicks.count <= 15)
+        #expect(labels.contains("2024-01-07") || labels.contains("2024-01-01"))
+    }
+
+    @Test("Grid line height matches chart dimensions")
+    func gridLineHeightMatchesChart() throws {
+        let config = GanttDiagramConfig.default
+        let task = GanttTask(
+            id: "t1", task: "Task", section: "S1", type: "S1",
+            startTime: _date(2024, 1, 1), endTime: _date(2024, 1, 31),
+            order: 0
+        )
+        let diagram = GanttDiagram(
+            dateFormat: "YYYY-MM-DD", sections: [GanttSection(name: "S1", index: 0)],
+            tasks: [task], config: config
+        )
+        let positioned = layoutGanttDiagram(diagram)
+        let expected = positioned.height - config.topPadding - config.gridLineStartPadding
+        #expect(abs(positioned.gridLineHeight - expected) < 1.0)
+    }
+
+    @Test("Milestone bar is vertically centered within its row")
+    func milestoneVerticalCentering() throws {
+        let config = GanttDiagramConfig.default
+        let task = GanttTask(
+            id: "m1", task: "Milestone", section: "S1", type: "S1",
+            tags: .milestone,
+            startTime: _date(2024, 1, 15), endTime: _date(2024, 1, 15),
+            order: 0
+        )
+        let diagram = GanttDiagram(
+            dateFormat: "YYYY-MM-DD", sections: [GanttSection(name: "S1", index: 0)],
+            tasks: [task], config: config
+        )
+        let positioned = layoutGanttDiagram(diagram)
+        let gap = config.barHeight + config.barGap
+        let expectedCenterY = gap / 2 + config.topPadding
+        let actualCenterY = positioned.tasks[0].barRect.midY
+        #expect(abs(actualCenterY - expectedCenterY) < 1.0)
+    }
+
+    @Test("Compact mode section label centered across multi-row section")
+    func compactSectionLabelCentering() throws {
+        var config = GanttDiagramConfig.default
+        config.displayMode = "compact"
+        let tasks = [
+            GanttTask(id: "a", task: "A", section: "S1", type: "S1", startTime: _date(2024, 1, 1), endTime: _date(2024, 1, 10), order: 0),
+            GanttTask(id: "b", task: "B", section: "S1", type: "S1", startTime: _date(2024, 1, 5), endTime: _date(2024, 1, 15), order: 1),
+        ]
+        let diagram = GanttDiagram(
+            dateFormat: "YYYY-MM-DD",
+            sections: [GanttSection(name: "S1", index: 0)],
+            tasks: tasks,
+            config: config
+        )
+        let positioned = layoutGanttDiagram(diagram)
+        #expect(positioned.sections.count == 1)
+        let sectionRect = positioned.sections[0].backgroundRect
+        #expect(sectionRect.height > config.barHeight)
+    }
 }
 
 private func _basicDiagram(taskCount: Int) -> GanttDiagram {

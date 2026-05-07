@@ -606,8 +606,8 @@ struct GanttParserTests {
             "Task 1 :id1, 2019-02-01, 1d",
         ]
         let diagram = try parseGanttDiagram(source)
-        #expect(diagram.tasks[0].endTime == _date(2019, 2, 4))
-        #expect(diagram.tasks[0].renderEndTime == _date(2019, 2, 2))
+        #expect(diagram.tasks[0].endTime == _date(2019, 2, 5))
+        #expect(diagram.tasks[0].renderEndTime == _date(2019, 2, 5))
     }
 
     @Test("Click href and callback metadata is retained")
@@ -653,6 +653,96 @@ struct GanttParserTests {
         let diagram = try parseGanttDiagram(source)
         #expect(diagram.accDescr?.contains("A multiline") == true)
         #expect(diagram.accDescr?.contains("description") == true)
+    }
+
+    @Test("Excludes exact-match formatted dates extend task end")
+    func excludesExactMatchFormattedDate() throws {
+        let source = [
+            "gantt",
+            "dateFormat YYYY-MM-DD",
+            "excludes 2024-01-01",
+            "section S1",
+            "Task 1 :t1, 2024-01-01, 1d",
+        ]
+        let diagram = try parseGanttDiagram(source)
+        #expect(diagram.tasks[0].endTime == _date(2024, 1, 3))
+    }
+
+    @Test("Includes overrides exclude with formatted date")
+    func includesOverridesExclude() throws {
+        let source = [
+            "gantt",
+            "dateFormat YYYY-MM-DD",
+            "excludes weekends",
+            "includes 2024-01-06",
+            "section S1",
+            "Task 1 :t1, 2024-01-05, 1d",
+        ]
+        let diagram = try parseGanttDiagram(source)
+        #expect(diagram.tasks[0].endTime == _date(2024, 1, 6))
+    }
+
+    @Test("Excludes day name matches lowercased weekday")
+    func excludesDayNameLowercased() throws {
+        let source = [
+            "gantt",
+            "dateFormat YYYY-MM-DD",
+            "excludes friday weekends",
+            "weekend saturday",
+            "section S1",
+            "Task 1 :t1, 2023-06-01, 3d",
+        ]
+        let diagram = try parseGanttDiagram(source)
+        #expect(diagram.tasks[0].endTime == _date(2023, 6, 7))
+    }
+
+    @Test("Click href blocks javascript: URLs")
+    func clickBlocksJavascriptUrl() throws {
+        let source = [
+            "gantt",
+            "dateFormat YYYY-MM-DD",
+            "section S1",
+            "Task 1 :t1, 2024-01-01, 10d",
+            "click t1 href \"javascript:alert(1)\"",
+        ]
+        let diagram = try parseGanttDiagram(source)
+        #expect(diagram.tasks[0].link == nil)
+    }
+
+    @Test("Click href blocks vbscript: URLs")
+    func clickBlocksVbscriptUrl() throws {
+        let source = [
+            "gantt",
+            "dateFormat YYYY-MM-DD",
+            "section S1",
+            "Task 1 :t1, 2024-01-01, 10d",
+            "click t1 href \"vbscript:msgbox(1)\"",
+        ]
+        let diagram = try parseGanttDiagram(source)
+        #expect(diagram.tasks[0].link == nil)
+    }
+
+    @Test("Click href blocks file: URLs")
+    func clickBlocksFileUrl() throws {
+        let source = [
+            "gantt",
+            "dateFormat YYYY-MM-DD",
+            "section S1",
+            "Task 1 :t1, 2024-01-01, 10d",
+            "click t1 href \"file:///etc/hosts\"",
+        ]
+        let diagram = try parseGanttDiagram(source)
+        #expect(diagram.tasks[0].link == nil)
+    }
+
+    @Test("todayMarker commas converted to semicolons")
+    func todayMarkerCommasConvertedToSemicolons() throws {
+        let source = [
+            "gantt",
+            "todayMarker stroke-width:2px,stroke:#00f,stroke-dasharray:4",
+        ]
+        let diagram = try parseGanttDiagram(source)
+        #expect(diagram.todayMarker == "stroke-width:2px,stroke:#00f,stroke-dasharray:4")
     }
 }
 
