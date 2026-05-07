@@ -1003,6 +1003,66 @@
       "source": "xychart\n    x-axis \"Temperature\" 0 --> 100\n    line [10, 30, 50, 70, 90]"
     },
     {
+      "id": "xychart-18-config-size",
+      "category": "xychart",
+      "name": "Custom Size Config",
+      "source": "---\nconfig:\n  xyChart:\n    width: 900\n    height: 600\n---\nxychart\n    x-axis [A, B, C]\n    y-axis 0 --> 50\n    bar [10, 20, 30]"
+    },
+    {
+      "id": "xychart-19-data-labels",
+      "category": "xychart",
+      "name": "Inside Data Labels",
+      "source": "---\nconfig:\n  xyChart:\n    showDataLabel: true\n---\nxychart\n    x-axis [Q1, Q2, Q3, Q4]\n    y-axis 0 --> 100\n    bar [25, 50, 75, 90]\n    bar [10, 30, 60, 80]"
+    },
+    {
+      "id": "xychart-20-data-labels-outside",
+      "category": "xychart",
+      "name": "Outside Data Labels",
+      "source": "---\nconfig:\n  xyChart:\n    showDataLabel: true\n    showDataLabelOutsideBar: true\n---\nxychart\n    x-axis [A, B, C, D]\n    y-axis 0 --> 50\n    bar [10, 20, 30, 40]"
+    },
+    {
+      "id": "xychart-21-horizontal-data-labels",
+      "category": "xychart",
+      "name": "Horizontal Data Labels",
+      "source": "---\nconfig:\n  xyChart:\n    chartOrientation: horizontal\n    showDataLabel: true\n---\nxychart\n    x-axis [Python, JavaScript, Java, Go, Rust]\n    bar [30, 25, 20, 12, 8]"
+    },
+    {
+      "id": "xychart-22-theme-palette",
+      "category": "xychart",
+      "name": "Custom Color Palette",
+      "source": "---\nconfig:\n  themeVariables:\n    xyChart:\n      plotColorPalette: \"#F28E2B, #4E79A7, #59A14F, #E15759\"\n---\nxychart\n    title \"Sales by Quarter\"\n    x-axis [Q1, Q2, Q3, Q4]\n    bar [200, 250, 300, 280]\n    bar [230, 280, 320, 350]\n    line [220, 260, 310, 300]"
+    },
+    {
+      "id": "xychart-23-hidden-axis-elements",
+      "category": "xychart",
+      "name": "Hidden Axis Elements",
+      "source": "---\nconfig:\n  xyChart:\n    xAxis:\n      showTick: false\n      showAxisLine: false\n    yAxis:\n      showLabel: false\n      showTitle: false\n---\nxychart\n    x-axis \"Quarter\" [A, B, C]\n    y-axis \"Revenue\" 0 --> 50\n    bar [10, 20, 30]"
+    },
+    {
+      "id": "xychart-24-multi-line-data",
+      "category": "xychart",
+      "name": "Linear Axis Lines",
+      "source": "xychart\n    x-axis 0 --> 100\n    line [4, 7, 13, 21, 31, 43, 58, 71, 84, 91, 95, 91, 84, 71, 58, 43, 31, 21, 13, 7, 4]"
+    },
+    {
+      "id": "xychart-25-multiline-accdescr",
+      "category": "xychart",
+      "name": "Multiline Accessibility",
+      "source": "xychart\n    accTitle: Annual Revenue Overview\n    accDescr {\n      This chart shows the annual revenue\n      broken down by quarter with both\n      bar and line representations.\n    }\n    title \"Annual Revenue\"\n    x-axis [Q1, Q2, Q3, Q4]\n    bar [100, 200, 150, 300]\n    line [120, 180, 160, 280]"
+    },
+    {
+      "id": "xychart-26-negative-values",
+      "category": "xychart",
+      "name": "Negative Value Chart",
+      "source": "xychart\n    x-axis [A, B, C, D, E]\n    y-axis -50 --> 50\n    bar [20, -15, 30, -25, 10]\n    line [10, -20, 25, -30, 15]"
+    },
+    {
+      "id": "xychart-27-full-config",
+      "category": "xychart",
+      "name": "Full Config + Theme",
+      "source": "---\nconfig:\n  xyChart:\n    width: 800\n    height: 550\n    showTitle: true\n    showDataLabel: true\n    titleFontSize: 24\n    xAxis:\n      showAxisLine: true\n      showTick: true\n      labelFontSize: 16\n      titleFontSize: 18\n---\nconfig:\n  themeVariables:\n    xyChart:\n      backgroundColor: \"#f8f8f8\"\n      titleColor: \"#2c3e50\"\n      xAxisLabelColor: \"#7f8c8d\"\n      yAxisLabelColor: \"#7f8c8d\"\n      plotColorPalette: \"#3498db, #e74c3c\"\n---\nxychart\n    accTitle: Full Config Demo\n    accDescr: Demonstrating all XY Chart config options\n    title \"Full Configuration Demo\"\n    x-axis \"Quarter\" [Q1, Q2, Q3, Q4]\n    y-axis \"Revenue (USD)\" 0 --> 100\n    bar [30, 50, 70, 90]\n    line [35, 55, 65, 85]"
+    },
+    {
       "id": "journey-1",
       "category": "journey",
       "name": "My Working Day",
@@ -2103,7 +2163,7 @@
       "sequence": 16,
       "class": 61,
       "er": 14,
-      "xychart": 17,
+      "xychart": 27,
       "pie": 14,
       "journey": 3,
       "gantt": 7,

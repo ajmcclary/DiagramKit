@@ -74,4 +74,84 @@ final class XYChartLayoutTests: XCTestCase {
         let firstLabel = try XCTUnwrap(firstBar.dataLabel)
         XCTAssertLessThan(firstLabel.y, firstBar.y)
     }
+
+    // MARK: - Linear X-axis behavior (Mermaid parity: always band for positioning)
+
+    func test_layout_linearXAxis_generatesInterpolatedLabels() throws {
+        let source = "xychart\nx-axis 0 --> 100\nline [10, 30, 50, 70, 90]"
+        let lines = source.split(separator: "\n").map(String.init)
+        let chart = try parseXYChart(lines)
+        XCTAssertEqual(chart.xAxis.kind, .linear)
+        let positioned = layoutXYChart(chart)
+        let labels = positioned.xAxis.ticks.map(\.label)
+        XCTAssertEqual(labels, ["0", "25", "50", "75", "100"])
+    }
+
+    func test_layout_linearXAxis_dataPointsEvenlySpaced() throws {
+        let source = "xychart\nx-axis 0 --> 100\nline [10, 30, 50, 70, 90]"
+        let lines = source.split(separator: "\n").map(String.init)
+        let chart = try parseXYChart(lines)
+        let positioned = layoutXYChart(chart)
+        let line = try XCTUnwrap(positioned.lines.first)
+        XCTAssertEqual(line.points.count, 5, "Expected 5 line points")
+        let xGaps = zip(line.points, line.points.dropFirst()).map { $1.x - $0.x }
+        XCTAssertTrue(xGaps.allSatisfy { abs($0 - xGaps[0]) < 1 }, "Expected evenly spaced x-positions for linear x-axis line")
+    }
+
+    func test_layout_linearXAxis_barsEvenlySpaced() throws {
+        let source = "xychart\nx-axis 10 --> 50\nbar [100, 200, 300]"
+        let lines = source.split(separator: "\n").map(String.init)
+        let chart = try parseXYChart(lines)
+        let positioned = layoutXYChart(chart)
+        XCTAssertEqual(positioned.bars.count, 3, "Expected 3 bars")
+        let xGaps = zip(positioned.bars, positioned.bars.dropFirst()).map { $1.x - $0.x }
+        XCTAssertTrue(xGaps.allSatisfy { abs($0 - xGaps[0]) < 1 }, "Expected evenly spaced x-positions for linear x-axis bars")
+    }
+
+    func test_layout_bandXAxis_usesCategoricalLabels() throws {
+        let source = "xychart\nx-axis [A, B, C]\nbar [10, 20, 30]"
+        let lines = source.split(separator: "\n").map(String.init)
+        let chart = try parseXYChart(lines)
+        XCTAssertEqual(chart.xAxis.kind, .band)
+        let positioned = layoutXYChart(chart)
+        let labels = positioned.xAxis.ticks.map(\.label)
+        XCTAssertEqual(labels, ["A", "B", "C"])
+    }
+
+    func test_layout_noXAxis_usesLinear1toN() throws {
+        let source = "xychart\nline [10, 20, 30, 40]"
+        let lines = source.split(separator: "\n").map(String.init)
+        let chart = try parseXYChart(lines)
+        XCTAssertEqual(chart.xAxis.kind, .linear)
+        XCTAssertEqual(chart.xAxis.range?.min, 1)
+        XCTAssertEqual(chart.xAxis.range?.max, 4)
+    }
+
+    func test_layout_noYAxis_usesExactMinMax() throws {
+        let source = "xychart\nx-axis [A, B]\nbar [10.5, 30.2]"
+        let lines = source.split(separator: "\n").map(String.init)
+        let chart = try parseXYChart(lines)
+        XCTAssertEqual(chart.yAxis.range?.min, 10.5)
+        XCTAssertEqual(chart.yAxis.range?.max, 30.2)
+    }
+
+    // MARK: - textKind threading
+
+    func test_layout_titleTextKind_preserved() throws {
+        let source = "xychart\ntitle \"`**Sales**`\"\nline [1,2,3]"
+        let lines = source.split(separator: "\n").map(String.init)
+        let chart = try parseXYChart(lines)
+        XCTAssertEqual(chart.titleText?.kind, .markdown)
+        let positioned = layoutXYChart(chart)
+        XCTAssertEqual(positioned.title?.textKind, .markdown)
+    }
+
+    func test_layout_axisTitleTextKind_preserved() throws {
+        let source = "xychart\nx-axis \"`**Quarter**`\" [A, B, C]\nbar [10, 20, 30]"
+        let lines = source.split(separator: "\n").map(String.init)
+        let chart = try parseXYChart(lines)
+        XCTAssertEqual(chart.xAxis.titleText?.kind, .markdown)
+        let positioned = layoutXYChart(chart)
+        XCTAssertEqual(positioned.xAxis.title?.textKind, .markdown)
+    }
 }

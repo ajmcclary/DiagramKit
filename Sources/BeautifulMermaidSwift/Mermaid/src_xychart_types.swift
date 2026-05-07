@@ -302,6 +302,7 @@ public struct PositionedTitle: Sendable {
     public var text: String
     public var x: Double
     public var y: Double
+    public var textKind: XYTextType?
 }
 
 public struct PositionedXYAxis: Sendable {
@@ -323,6 +324,7 @@ public struct AxisTitle: Sendable {
     public var x: Double
     public var y: Double
     public var rotate: Double?
+    public var textKind: XYTextType?
 }
 
 public struct AxisLine: Sendable {
@@ -363,6 +365,7 @@ public struct PositionedDataLabel: Sendable {
     public var y: Double
     public var textAnchor: String
     public var fontSize: Double
+    public var textKind: XYTextType?
 }
 
 public struct PositionedBar: Sendable {

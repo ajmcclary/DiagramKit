@@ -145,13 +145,13 @@ private func _layoutVertical(_ chart: XYChart, _ config: XYChartConfig, _ theme:
         }
     }
 
-    let xAxisTitle = hasXTitle ? AxisTitle(text: chart.xAxis.title ?? "", x: left + plotW / 2, y: totalH - XY.padding) : nil
-    let yAxisTitle = hasYTitle ? AxisTitle(text: chart.yAxis.title ?? "", x: XY.padding + 4, y: top + plotH / 2, rotate: -90) : nil
+    let xAxisTitle = hasXTitle ? AxisTitle(text: chart.xAxis.title ?? "", x: left + plotW / 2, y: totalH - XY.padding, textKind: chart.xAxis.titleText?.kind) : nil
+    let yAxisTitle = hasYTitle ? AxisTitle(text: chart.yAxis.title ?? "", x: XY.padding + 4, y: top + plotH / 2, rotate: -90, textKind: chart.yAxis.titleText?.kind) : nil
 
     let xAxisObj = PositionedXYAxis(title: xAxisTitle, ticks: xTicks, tickLines: xTickLines, line: xAxisLine)
     let yAxisObj = PositionedXYAxis(title: yAxisTitle, ticks: yAxisTicks, tickLines: yTickLines, line: yAxisLine)
 
-    let titleObj = resolvedTitle.map { PositionedTitle(text: $0, x: totalW / 2, y: XY.padding + titleFontSize) }
+    let titleObj = resolvedTitle.map { PositionedTitle(text: $0, x: totalW / 2, y: XY.padding + titleFontSize, textKind: chart.titleText?.kind) }
 
     return PositionedXYChart(
         width: totalW, height: totalH, title: titleObj,
@@ -291,6 +291,37 @@ private func _layoutHorizontal(_ chart: XYChart, _ config: XYChartConfig, _ them
             }
             bIdx += 1
         }
+
+        // Mermaid parity: compute uniform font size across all horizontal bars
+        if config.showDataLabel && !config.showDataLabelOutsideBar {
+            let rightMargin: Double = 10
+            let charWidthFactor: Double = 0.7
+
+            var candidateSizes: [Double] = []
+            for bar in bars {
+                guard bar.width > 0, bar.height > 0 else { continue }
+                let labelStr = _formatTickValue(bar.value)
+                let labelLen = Double(labelStr.count)
+                if labelLen == 0 { continue }
+
+                var fontSize = bar.height * 0.7
+                while fontSize > 0 {
+                    let textWidth = fontSize * labelLen * charWidthFactor
+                    if textWidth <= bar.width - rightMargin { break }
+                    fontSize -= 1
+                }
+                candidateSizes.append(max(1, fontSize))
+            }
+
+            if let uniformSize = candidateSizes.min(), uniformSize > 0 {
+                let clampedSize = min(uniformSize, config.yAxis.labelFontSize)
+                for i in 0..<bars.count {
+                    if let _ = bars[i].dataLabel {
+                        bars[i].dataLabel?.fontSize = clampedSize
+                    }
+                }
+            }
+        }
     }
 
     // Lines (horizontal)
@@ -322,13 +353,13 @@ private func _layoutHorizontal(_ chart: XYChart, _ config: XYChartConfig, _ them
         }
     }
 
-    let xAxisTitle = hasYTitle ? AxisTitle(text: chart.yAxis.title ?? "", x: left + plotW / 2, y: totalH - XY.padding) : nil
-    let yAxisTitle = hasXTitle ? AxisTitle(text: chart.xAxis.title ?? "", x: XY.padding + 4, y: top + plotH / 2, rotate: -90) : nil
+    let xAxisTitle = hasYTitle ? AxisTitle(text: chart.yAxis.title ?? "", x: left + plotW / 2, y: totalH - XY.padding, textKind: chart.yAxis.titleText?.kind) : nil
+    let yAxisTitle = hasXTitle ? AxisTitle(text: chart.xAxis.title ?? "", x: XY.padding + 4, y: top + plotH / 2, rotate: -90, textKind: chart.xAxis.titleText?.kind) : nil
 
     let xAxisObj = PositionedXYAxis(title: xAxisTitle, ticks: xTicks, tickLines: xTickLines, line: xAxisLine)
     let yAxisObj = PositionedXYAxis(title: yAxisTitle, ticks: yTicks, tickLines: yTickLines, line: yAxisLine)
 
-    let titleObj = resolvedTitle.map { PositionedTitle(text: $0, x: totalW / 2, y: XY.padding + titleFontSize) }
+    let titleObj = resolvedTitle.map { PositionedTitle(text: $0, x: totalW / 2, y: XY.padding + titleFontSize, textKind: chart.titleText?.kind) }
 
     let legendY = XY.padding + (hasTitle ? titleHeight : 0) + XY.legendHeight / 2
     let legend = hasLegend ? _buildLegendItems(chart, config, totalW / 2, legendY, colorMap) : []
@@ -486,10 +517,10 @@ private func _layoutBars(
             if config.showDataLabel && barH > 0 && barW > 0 {
                 let valStr = _formatTickValue(s.data[i])
                 let outside = config.showDataLabelOutsideBar
-                let labelFontSize = min(config.xAxis.labelFontSize, barW * 0.35)
 
                 if outside {
                     let outsideY = valY <= baseY ? barY - 4 : barY + barH + 4
+                    let labelFontSize = min(config.xAxis.labelFontSize, barW * 0.35)
                     bar.dataLabel = PositionedDataLabel(
                         text: valStr,
                         x: barX + barW / 2,
@@ -498,6 +529,7 @@ private func _layoutBars(
                         fontSize: labelFontSize
                     )
                 } else {
+                    let labelFontSize = min(config.xAxis.labelFontSize, barW * 0.35)
                     bar.dataLabel = PositionedDataLabel(
                         text: valStr,
                         x: barX + barW / 2,
@@ -512,6 +544,43 @@ private func _layoutBars(
         }
         bIdx += 1
     }
+
+    // Mermaid parity: compute uniform font size across all bars
+    if config.showDataLabel && !config.showDataLabelOutsideBar {
+        let yOffset: Double = 10
+        let charWidthFactor: Double = 0.7
+
+        var candidateSizes: [Double] = []
+        for bar in bars {
+            guard bar.height > 0, bar.width > 0 else { continue }
+            let labelStr = _formatTickValue(bar.value)
+            let labelLen = Double(labelStr.count)
+            if labelLen == 0 { continue }
+
+            var fontSize = bar.width / (labelLen * charWidthFactor)
+            while fontSize > 0 {
+                let textWidth = fontSize * labelLen * charWidthFactor
+                let centerX = bar.x + bar.width / 2
+                let leftEdge = centerX - textWidth / 2
+                let rightEdge = centerX + textWidth / 2
+                let horizontalFits = leftEdge >= bar.x && rightEdge <= bar.x + bar.width
+                let verticalFits = bar.y + yOffset + fontSize <= bar.y + bar.height
+                if horizontalFits && verticalFits { break }
+                fontSize -= 1
+            }
+            candidateSizes.append(max(1, fontSize))
+        }
+
+        if let uniformSize = candidateSizes.min(), uniformSize > 0 {
+            let clampedSize = min(uniformSize, config.xAxis.labelFontSize)
+            for i in 0..<bars.count {
+                if let _ = bars[i].dataLabel {
+                    bars[i].dataLabel?.fontSize = clampedSize
+                }
+            }
+        }
+    }
+
     return bars
 }
 

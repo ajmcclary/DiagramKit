@@ -18,6 +18,7 @@ extension DiagramRenderer {
             let ch = chart.height
             let native = chart.nativeEnhancements
             let config = chart.config
+            let themeConfig = chart.theme
 
             ctx.translateBy(x: 0, y: ch)
             ctx.scaleBy(x: 1, y: -1)
@@ -103,7 +104,7 @@ extension DiagramRenderer {
 
             // Bars
             for bar in chart.bars {
-                let seriesColor = self._xySeriesColor(bar.colorIndex, accentHex: accentHex, bgHex: bgHex)
+                let seriesColor = self._xySeriesColor(bar.colorIndex, accentHex: accentHex, bgHex: bgHex, themeConfig: themeConfig)
                 let barRect = CGRect(x: bar.x, y: fy(bar.y + bar.height), width: bar.width, height: bar.height)
 
                 if native {
@@ -134,7 +135,7 @@ extension DiagramRenderer {
             // Lines
             for line in chart.lines {
                 if line.points.isEmpty { continue }
-                let seriesColor = self._xySeriesColor(line.colorIndex, accentHex: accentHex, bgHex: bgHex)
+                let seriesColor = self._xySeriesColor(line.colorIndex, accentHex: accentHex, bgHex: bgHex, themeConfig: themeConfig)
                 let flipped = line.points.map { LinePoint(x: $0.x, y: fy($0.y), value: $0.value, label: $0.label) }
 
                 if native {
@@ -231,7 +232,7 @@ extension DiagramRenderer {
             if native {
                 let legendFont = BMFont.systemFont(ofSize: 12, weight: .regular)
                 for item in chart.legend {
-                    let seriesColor = self._xySeriesColor(item.colorIndex, accentHex: accentHex, bgHex: bgHex)
+                    let seriesColor = self._xySeriesColor(item.colorIndex, accentHex: accentHex, bgHex: bgHex, themeConfig: themeConfig)
                     let iy = fy(item.y)
                     let sy = iy
                     if item.type == .bar {
@@ -259,7 +260,13 @@ extension DiagramRenderer {
         }
     }
 
-    private func _xySeriesColor(_ index: Int, accentHex: String?, bgHex: String?) -> CGColor {
+    private func _xySeriesColor(_ index: Int, accentHex: String?, bgHex: String?, themeConfig: XYChartThemeConfig) -> CGColor {
+        if let palette = themeConfig.plotColorPalette, !palette.isEmpty {
+            let colors = palette.split(separator: ",").map { $0.trimmingCharacters(in: .whitespaces) }
+            if !colors.isEmpty {
+                return BMColor(hex: colors[index % colors.count]).cgColor
+            }
+        }
         if index == 0 { return theme.effectiveAccent().cgColor }
         let hex = getSeriesColor(index, accentHex ?? _hex(theme.effectiveAccent()) ?? "#3b82f6", bgHex)
         return BMColor(hex: hex).cgColor
