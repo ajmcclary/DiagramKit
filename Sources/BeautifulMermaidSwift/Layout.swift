@@ -235,6 +235,18 @@ public struct GraphLayout {
                     height: positioned.height,
                     content: .kanban(positioned)
                 )
+            case .architecture:
+                guard case let .architecture(diagram) = graph.payload else {
+                    _reportMermaidIssue("GraphLayout.layout found mismatched architecture payload.")
+                    return PositionedGraph(diagram: graph, content: .architecture(.empty))
+                }
+                let positioned = layoutArchitectureDiagram(diagram)
+                return PositionedGraph(
+                    diagram: graph,
+                    width: positioned.width,
+                    height: positioned.height,
+                    content: .architecture(positioned)
+                )
             }
         }
     }

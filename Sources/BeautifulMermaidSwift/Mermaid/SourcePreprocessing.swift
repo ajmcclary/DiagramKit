@@ -164,6 +164,11 @@ private func _parseYamlFrontmatter(_ lines: [String]) -> DiagramFrontmatter? {
     var kanbanConfig = KanbanDiagramConfig()
     var hasKanbanSection = false
 
+    var archConfig = ArchitectureDiagramConfig()
+    var archTheme = ArchitectureThemeConfig()
+    var hasArchSection = false
+    var hasArchTheme = false
+
     var pathStack: [(depth: Int, key: String)] = []
 
     for line in lines {
@@ -737,6 +742,29 @@ private func _parseYamlFrontmatter(_ lines: [String]) -> DiagramFrontmatter? {
             continue
         }
 
+        // Architecture config — config.architecture.*
+        if fullPath.hasPrefix("config.architecture.") {
+            hasArchSection = true
+            let subKey = fullPath.replacingOccurrences(of: "config.architecture.", with: "")
+            switch subKey {
+            case "padding": archConfig.padding = Double(value) ?? archConfig.padding
+            case "iconSize": archConfig.iconSize = Double(value) ?? archConfig.iconSize
+            case "fontSize": archConfig.fontSize = Double(value) ?? archConfig.fontSize
+            case "randomize": archConfig.randomize = (value.lowercased() == "true")
+            case "useMaxWidth": archConfig.useMaxWidth = (value.lowercased() == "true")
+            default: break
+            }
+            continue
+        }
+
+        // Architecture theme — config.themeVariables.arch* and themeVariables.arch*
+        if let subKey = _archThemeSubKey(from: fullPath) {
+            if _applyArchThemeValue(subKey, value: value, theme: &archTheme) {
+                hasArchTheme = true
+            }
+            continue
+        }
+
         // Timeline config — config.timeline.*
         if fullPath.hasPrefix("config.timeline.") {
             hasTimelineSection = true
@@ -824,6 +852,8 @@ private func _parseYamlFrontmatter(_ lines: [String]) -> DiagramFrontmatter? {
     if hasPacketSection { frontmatter.packetConfig = packetConfig }
     if hasPacketTheme { frontmatter.packetTheme = packetTheme }
     if hasKanbanSection { frontmatter.kanbanConfig = kanbanConfig }
+    if hasArchSection { frontmatter.archConfig = archConfig }
+    if hasArchTheme { frontmatter.archTheme = archTheme }
 
     return hasAnyContent ? frontmatter : nil
 }
@@ -1225,6 +1255,42 @@ private func _applyPacketThemeValue(_ key: String, value: String, theme: inout P
     case "blockStrokeColor": theme.blockStrokeColor = value
     case "blockStrokeWidth": theme.blockStrokeWidth = value
     case "blockFillColor": theme.blockFillColor = value
+    default: return false
+    }
+    return true
+}
+
+// MARK: - Architecture Theme helpers
+
+private func _archThemeSubKey(from fullPath: String) -> String? {
+    for prefix in ["config.themeVariables.", "themeVariables."] {
+        if fullPath.hasPrefix(prefix) {
+            let subKey = String(fullPath.dropFirst(prefix.count))
+            if _isArchThemeKey(subKey) {
+                return subKey
+            }
+        }
+    }
+    return nil
+}
+
+private func _isArchThemeKey(_ key: String) -> Bool {
+    switch key {
+    case "archEdgeColor", "archEdgeArrowColor", "archEdgeWidth",
+         "archGroupBorderColor", "archGroupBorderWidth":
+        return true
+    default:
+        return false
+    }
+}
+
+private func _applyArchThemeValue(_ key: String, value: String, theme: inout ArchitectureThemeConfig) -> Bool {
+    switch key {
+    case "archEdgeColor": theme.archEdgeColor = value
+    case "archEdgeArrowColor": theme.archEdgeArrowColor = value
+    case "archEdgeWidth": theme.archEdgeWidth = value
+    case "archGroupBorderColor": theme.archGroupBorderColor = value
+    case "archGroupBorderWidth": theme.archGroupBorderWidth = value
     default: return false
     }
     return true

@@ -68,6 +68,8 @@ public final class DiagramRenderer {
             _drawPacket(positioned, in: context, bounds: bounds)
         case .kanban:
             _drawKanban(positioned, in: context, bounds: bounds)
+        case .architecture:
+            _drawArchitecture(positioned, in: context, bounds: bounds)
         }
     }
 

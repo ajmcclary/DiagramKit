@@ -117,6 +117,18 @@ public enum MermaidParser {
                 let parsed = try parseKanbanDiagram(rawLines, frontmatter: frontmatter)
                 return MermaidGraph(payload: .kanban(parsed))
             }
+            if firstLine.hasPrefix("architecture") {
+                let rawLines = processed.split(separator: "\n", omittingEmptySubsequences: false).map(String.init)
+                var diagram = try parseArchitectureDiagram(rawLines, frontmatter: frontmatter)
+                if let fm = frontmatter {
+                    if let cfg = fm.archConfig { diagram.config = cfg }
+                    if let theme = fm.archTheme { diagram.theme = theme }
+                    if diagram.diagramTitle == nil, let fmTitle = fm.diagramTitle {
+                        diagram.diagramTitle = fmTitle
+                    }
+                }
+                return MermaidGraph(payload: .architecture(diagram))
+            }
 
             // Flowchart + stateDiagram-v2 — pass frontmatter flowchart config
             let parsed = try parseMermaid(processed, config: frontmatter?.flowchartConfig)

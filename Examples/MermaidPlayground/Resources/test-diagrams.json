@@ -1529,10 +1529,52 @@
       "category": "kanban",
       "name": "Kanban - Decorations",
       "source": "kanban\n  root[\"String containing []\"]\n    child1[\"String containing ()\"]\n    child2[Ticketed]@{\n      ticket: MC-2038\n      assigned: K.Sveidqvist\n      priority: High\n    }\n    :::m-4 p-8\n    ::icon(bomb)"
+    },
+    {
+      "id": "architecture-basic",
+      "category": "architecture",
+      "name": "Architecture - Basic",
+      "source": "architecture-beta\n    group api(cloud)[API]\n    service db(database)[Database] in api\n    service server(server)[Server] in api\n    db:L -- R:server"
+    },
+    {
+      "id": "architecture-nested",
+      "category": "architecture",
+      "name": "Architecture - Nested Groups",
+      "source": "architecture-beta\n    group core(cloud)[Core]\n    group storage(database)[Storage] in core\n    service disk(disk)[Disk] in storage\n    service cache(server)[Cache] in storage\n    group compute(server)[Compute] in core\n    service worker(disk)[Worker] in compute\n    cache:R --> L:disk"
+    },
+    {
+      "id": "architecture-junctions",
+      "category": "architecture",
+      "name": "Architecture - Junctions",
+      "source": "architecture-beta\n    service left_disk(disk)[Disk]\n    service top_disk(disk)[Disk]\n    service bottom_disk(disk)[Disk]\n    junction junctionCenter\n    junction junctionRight\n    left_disk:R -- L:junctionCenter\n    top_disk:B -- T:junctionCenter\n    bottom_disk:T -- B:junctionCenter\n    junctionCenter:R --> L:junctionRight"
+    },
+    {
+      "id": "architecture-edge-labels",
+      "category": "architecture",
+      "name": "Architecture - Edge Labels and Arrows",
+      "source": "architecture-beta\n    group api(cloud)[API]\n    service db(database)[Database] in api\n    service server(server)[Server] in api\n    service ext(internet)[External] in api\n    db:R --> L:server\n    ext:R -[HTTPS]- L:server"
+    },
+    {
+      "id": "architecture-group-boundary",
+      "category": "architecture",
+      "name": "Architecture - Group Boundary",
+      "source": "architecture-beta\n    group groupOne(cloud)[Group One]\n    group groupTwo(cloud)[Group Two]\n    service server(server)[Server] in groupOne\n    service subnet(server)[Subnet] in groupTwo\n    server{group}:B --> T:subnet{group}"
+    },
+    {
+      "id": "architecture-title-accessibility",
+      "category": "architecture",
+      "name": "Architecture - Title and Accessibility",
+      "source": "architecture-beta title Simple Architecture\n    accTitle: Architecture Example\n    accDescr {Architecture diagram showing API group with database and server services}\n    group api(cloud)[API]\n    service db(database)[Database] in api\n    service server(server)[Server] in api\n    db:L -- R:server"
+    },
+    {
+      "id": "architecture-minimal",
+      "category": "architecture",
+      "name": "Architecture - Minimal",
+      "source": "architecture-beta\n    service srv[Service]"
     }
   ],
   "metadata": {
-    "totalCount": 240,
+    "totalCount": 247,
     "categories": {
       "flowchart": 27,
       "state": 12,
@@ -1551,7 +1593,8 @@
       "sankey": 9,
       "block": 7,
       "packet": 5,
-      "kanban": 3
+      "kanban": 3,
+      "architecture": 7
     }
   }
 }

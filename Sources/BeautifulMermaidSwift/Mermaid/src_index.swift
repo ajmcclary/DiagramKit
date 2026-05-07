@@ -89,6 +89,7 @@ private enum _DiagramRoutingType {
     case block
     case packet
     case kanban
+    case architecture
 }
 
 private func _decodeXML(_ text: String) -> String {
@@ -150,6 +151,9 @@ private func detectDiagramType(_ text: String) -> _DiagramRoutingType {
     }
     if firstLine.hasPrefix("kanban") {
         return .kanban
+    }
+    if firstLine.hasPrefix("architecture") {
+        return .architecture
     }
 
     return .flowchart
@@ -302,6 +306,17 @@ func _renderMermaidSVG(
         let positioned = layoutKanbanDiagram(diagram)
         let diagramId = UUID().uuidString
         return try renderKanbanSvg(positioned, diagramId: diagramId, colors, font, transparent)
+    case .architecture:
+        let rawLines = decodedText.split(separator: "\n", omittingEmptySubsequences: false).map(String.init)
+        var diagram = try parseArchitectureDiagram(rawLines, frontmatter: fm)
+        if let fmc = fm?.archConfig { diagram.config = fmc }
+        if let fmt = fm?.archTheme { diagram.theme = fmt }
+        if diagram.diagramTitle == nil, let fmTitle = fm?.diagramTitle {
+            diagram.diagramTitle = fmTitle
+        }
+        let positioned = layoutArchitectureDiagram(diagram)
+        let diagramId = UUID().uuidString
+        return try renderArchitectureSvg(positioned, diagramId: diagramId, colors, font, transparent)
     }
 }
 
