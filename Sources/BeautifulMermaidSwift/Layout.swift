@@ -247,6 +247,18 @@ public struct GraphLayout {
                     height: positioned.height,
                     content: .architecture(positioned)
                 )
+            case .radar:
+                guard case let .radar(diagram) = graph.payload else {
+                    _reportMermaidIssue("GraphLayout.layout found mismatched radar payload.")
+                    return PositionedGraph(diagram: graph, content: .radar(.empty))
+                }
+                let positioned = layoutRadarDiagram(diagram)
+                return PositionedGraph(
+                    diagram: graph,
+                    width: positioned.width,
+                    height: positioned.height,
+                    content: .radar(positioned)
+                )
             }
         }
     }

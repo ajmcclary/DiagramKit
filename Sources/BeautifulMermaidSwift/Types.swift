@@ -21,6 +21,7 @@ public enum DiagramType: String, CaseIterable, Sendable {
     case packet
     case kanban
     case architecture
+    case radar
 }
 
 /// The parsed graph model for flowcharts and state diagrams.
@@ -47,6 +48,7 @@ public enum DiagramPayload: Sendable {
     case packet(PacketDiagram)
     case kanban(KanbanDiagram)
     case architecture(ArchitectureDiagram)
+    case radar(RadarDiagram)
 
     public var type: DiagramType {
         switch self {
@@ -88,6 +90,8 @@ public enum DiagramPayload: Sendable {
             return .kanban
         case .architecture:
             return .architecture
+        case .radar:
+            return .radar
         }
     }
 }
@@ -156,6 +160,8 @@ public struct MermaidGraph: Sendable {
             self.payload = .kanban(KanbanDiagram(nodes: [], sections: [], config: KanbanDiagramConfig()))
         case .architecture:
             self.payload = .architecture(ArchitectureDiagram.empty)
+        case .radar:
+            self.payload = .radar(RadarDiagram())
         }
     }
 
@@ -231,6 +237,7 @@ public enum PositionedContent: Sendable {
     case packet(PositionedPacketDiagram)
     case kanban(PositionedKanbanDiagram)
     case architecture(PositionedArchitectureDiagram)
+    case radar(PositionedRadarDiagram)
 }
 
 public struct PositionedGraph: Sendable {
@@ -300,6 +307,8 @@ public struct PositionedGraph: Sendable {
             self.content = .kanban(.empty)
         case .architecture:
             self.content = .architecture(.empty)
+        case .radar:
+            self.content = .radar(.empty)
         }
     }
 
@@ -529,6 +538,13 @@ public struct PositionedGraph: Sendable {
     public var architectureData: PositionedArchitectureDiagram? {
         switch content {
         case .architecture(let data): return data
+        default: return nil
+        }
+    }
+
+    public var radarData: PositionedRadarDiagram? {
+        switch content {
+        case .radar(let data): return data
         default: return nil
         }
     }

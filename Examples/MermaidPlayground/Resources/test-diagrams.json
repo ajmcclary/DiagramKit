@@ -1571,10 +1571,70 @@
       "category": "architecture",
       "name": "Architecture - Minimal",
       "source": "architecture-beta\n    service srv[Service]"
+    },
+    {
+      "id": "radar-empty",
+      "category": "radar",
+      "name": "Radar - Empty",
+      "source": "radar-beta"
+    },
+    {
+      "id": "radar-simple",
+      "category": "radar",
+      "name": "Radar - Simple",
+      "source": "radar-beta\n  axis A,B,C\n  curve mycurve{1,2,3}"
+    },
+    {
+      "id": "radar-labeled-axes",
+      "category": "radar",
+      "name": "Radar - Labeled Axes",
+      "source": "radar-beta\n  axis A[\"Axis A\"], B[\"Axis B\"], C[\"Axis C\"]\n  curve c1[\"Curve 1\"]{1,2,3}"
+    },
+    {
+      "id": "radar-detailed-entries",
+      "category": "radar",
+      "name": "Radar - Detailed Entries",
+      "source": "radar-beta\n  axis A,B,C\n  curve c1{ C: 3, A: 1, B: 2 }"
+    },
+    {
+      "id": "radar-polygon-graticule",
+      "category": "radar",
+      "name": "Radar - Polygon Graticule",
+      "source": "radar-beta\n  axis A,B,C,D\n  curve c1{1,2,3,4}\n  graticule polygon"
+    },
+    {
+      "id": "radar-options",
+      "category": "radar",
+      "name": "Radar - With Options",
+      "source": "radar-beta\n  axis A,B,C\n  curve c1{1,2,3}\n  ticks 10\n  showLegend false\n  min 0\n  max 10"
+    },
+    {
+      "id": "radar-multi-curve",
+      "category": "radar",
+      "name": "Radar - Multiple Curves",
+      "source": "radar-beta\n  axis A,B,C,D,E\n  curve c1{1,2,3,4,5}\n  curve c2{5,4,3,2,1}"
+    },
+    {
+      "id": "radar-accessibility",
+      "category": "radar",
+      "name": "Radar - Accessibility Metadata",
+      "source": "radar-beta\n  title Radar\n  accTitle: Radar Title\n  accDescr: Description\n  axis A,B\n  curve c1{1,2}"
+    },
+    {
+      "id": "radar-student-grades",
+      "category": "radar",
+      "name": "Radar - Student Grades",
+      "source": "radar-beta\n  title Student Grades\n  accTitle: Student Grades Title\n  accDescr: A radar chart showing student grades across subjects\n  axis Math[\"Math\"], English[\"English\"], Science[\"Science\"], History[\"History\"], Art[\"Art\"]\n  curve Alice[\"Alice\"]{90,85,92,78,95}\n  curve Bob[\"Bob\"]{75,88,82,90,80}"
+    },
+    {
+      "id": "radar-frontmatter",
+      "category": "radar",
+      "name": "Radar - Config via Frontmatter",
+      "source": "---\nconfig:\n  radar:\n    axisScaleFactor: 0.25\n    curveTension: 0.1\n  theme: base\n  themeVariables:\n    cScale0: \"#FF0000\"\n    cScale1: \"#00FF00\"\n    radar:\n      curveOpacity: 0\n---\nradar-beta\n  axis A, B, C, D, E\n  curve c1{1,2,3,4,5}\n  curve c2{5,4,3,2,1}"
     }
   ],
   "metadata": {
-    "totalCount": 247,
+    "totalCount": 257,
     "categories": {
       "flowchart": 27,
       "state": 12,
@@ -1594,7 +1654,8 @@
       "block": 7,
       "packet": 5,
       "kanban": 3,
-      "architecture": 7
+      "architecture": 7,
+      "radar": 10
     }
   }
 }

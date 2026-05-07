@@ -70,6 +70,8 @@ public final class DiagramRenderer {
             _drawKanban(positioned, in: context, bounds: bounds)
         case .architecture:
             _drawArchitecture(positioned, in: context, bounds: bounds)
+        case .radar:
+            _drawRadar(positioned, in: context, bounds: bounds)
         }
     }
 

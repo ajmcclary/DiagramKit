@@ -349,6 +349,8 @@ public struct DiagramFrontmatter: Sendable {
     public var kanbanConfig: KanbanDiagramConfig?
     public var archConfig: ArchitectureDiagramConfig?
     public var archTheme: ArchitectureThemeConfig?
+    public var radarConfig: RadarDiagramConfig?
+    public var radarTheme: RadarThemeConfig?
 
     public var layout: String?      // Shared global config.layout
     public var look: String?         // Shared global config.look
@@ -386,6 +388,8 @@ public struct DiagramFrontmatter: Sendable {
         kanbanConfig: KanbanDiagramConfig? = nil,
         archConfig: ArchitectureDiagramConfig? = nil,
         archTheme: ArchitectureThemeConfig? = nil,
+        radarConfig: RadarDiagramConfig? = nil,
+        radarTheme: RadarThemeConfig? = nil,
         layout: String? = nil,
         look: String? = nil,
         theme: String? = nil,
@@ -421,6 +425,8 @@ public struct DiagramFrontmatter: Sendable {
         self.kanbanConfig = kanbanConfig
         self.archConfig = archConfig
         self.archTheme = archTheme
+        self.radarConfig = radarConfig
+        self.radarTheme = radarTheme
         self.layout = layout
         self.look = look
         self.theme = theme

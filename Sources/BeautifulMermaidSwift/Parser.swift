@@ -129,6 +129,17 @@ public enum MermaidParser {
                 }
                 return MermaidGraph(payload: .architecture(diagram))
             }
+            if firstLine.hasPrefix("radar-beta") || firstLine == "radar-beta" || firstLine == "radar-beta:" {
+                var diagram = try parseRadarDiagram(source: processed, frontmatter: frontmatter)
+                if let fm = frontmatter {
+                    if let cfg = fm.radarConfig { diagram.config = cfg }
+                    if let theme = fm.radarTheme { diagram.theme = theme }
+                    if diagram.diagramTitle == nil, let fmTitle = fm.diagramTitle {
+                        diagram.diagramTitle = fmTitle
+                    }
+                }
+                return MermaidGraph(payload: .radar(diagram))
+            }
 
             // Flowchart + stateDiagram-v2 — pass frontmatter flowchart config
             let parsed = try parseMermaid(processed, config: frontmatter?.flowchartConfig)

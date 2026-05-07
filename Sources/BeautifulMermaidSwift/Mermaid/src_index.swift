@@ -90,6 +90,7 @@ private enum _DiagramRoutingType {
     case packet
     case kanban
     case architecture
+    case radar
 }
 
 private func _decodeXML(_ text: String) -> String {
@@ -154,6 +155,9 @@ private func detectDiagramType(_ text: String) -> _DiagramRoutingType {
     }
     if firstLine.hasPrefix("architecture") {
         return .architecture
+    }
+    if firstLine.hasPrefix("radar-beta") {
+        return .radar
     }
 
     return .flowchart
@@ -317,6 +321,16 @@ func _renderMermaidSVG(
         let positioned = layoutArchitectureDiagram(diagram)
         let diagramId = UUID().uuidString
         return try renderArchitectureSvg(positioned, diagramId: diagramId, colors, font, transparent)
+    case .radar:
+        let rawSource = decodedText
+        var diagram = try parseRadarDiagram(source: rawSource, frontmatter: fm)
+        if let fmc = fm?.radarConfig { diagram.config = fmc }
+        if let fmt = fm?.radarTheme { diagram.theme = fmt }
+        if diagram.diagramTitle == nil, let fmTitle = fm?.diagramTitle {
+            diagram.diagramTitle = fmTitle
+        }
+        let positioned = layoutRadarDiagram(diagram)
+        return renderRadarSvg(positioned, colors: colors, font: font, transparent: transparent)
     }
 }
 
