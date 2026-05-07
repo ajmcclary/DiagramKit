@@ -4,21 +4,22 @@ public func renderJourneySvg(
     _ diagram: PositionedJourneyDiagram,
     _ colors: DiagramColors,
     _ font: String = "Inter",
-    _ transparent: Bool = false
+    _ transparent: Bool = false,
+    diagramId: String = "mermaid-0"
 ) throws -> String {
-    try _renderJourneySvgEntry(diagram, colors, font, transparent)
+    try _renderJourneySvgEntry(diagram, colors, font, transparent, diagramId: diagramId)
 }
 
 private func _renderJourneySvgEntry(
     _ diagram: PositionedJourneyDiagram,
     _ colors: DiagramColors,
     _ font: String,
-    _ transparent: Bool
+    _ transparent: Bool,
+    diagramId: String
 ) throws -> String {
     var parts: [String] = []
 
     let conf = diagram.config ?? .default
-    let diagramId = "mermaid-0"
 
     let widthStr = _formatNum(diagram.width)
     let heightStr = _formatNum(diagram.height)
@@ -74,6 +75,12 @@ private func _renderJourneySvgEntry(
 
     parts.append(original_src_theme.buildStyleBlock(font, true))
 
+    // Journey-specific CSS classes (matching Mermaid styles.js)
+    let journeyCSS = _journeyCSSBlock(conf: conf, colors: colors)
+    if !journeyCSS.isEmpty {
+        parts.append(journeyCSS)
+    }
+
     // Arrowhead marker definition
     parts.append("<defs>")
     parts.append("<marker id=\"\(diagramId)-arrowhead\" refX=\"5\" refY=\"2\" markerWidth=\"6\" markerHeight=\"4\" orient=\"auto\">")
@@ -106,7 +113,6 @@ private func _renderJourneySvgEntry(
 
     // Section rectangles
     for section in diagram.sections {
-        let escapedLabel = original_src_multiline_utils.escapeXml(section.name)
         let sx = _fmt(section.x)
         let sy = _fmt(section.y)
         let sw = _fmt(section.width)
@@ -120,43 +126,34 @@ private func _renderJourneySvgEntry(
         // Section label
         let textX = _fmt(section.x + section.width / 2)
         let textY = _fmt(section.y + section.height / 2)
-        let labelLines = original_src_multiline_utils.normalizeBrTags(section.name).components(separatedBy: "\n")
         let textPlacement = conf.textPlacement
+        let rawLabel = section.name
+        let escapedRawLabel = original_src_multiline_utils.escapeXml(rawLabel)
+        let brLines = original_src_multiline_utils.normalizeBrTags(rawLabel).components(separatedBy: "\n")
 
-        if labelLines.count == 1 {
-            switch textPlacement {
-            case "old":
-                parts.append("""
-                <text x="\(textX)" y="\(textY)" text-anchor="middle" dominant-baseline="central" fill="\(section.colour)" font-size="\(_fmt(conf.taskFontSize))">\(escapedLabel)</text>
-                """)
-            case "tspan":
-                parts.append("""
-                <text x="\(textX)" y="\(textY)" text-anchor="middle" dominant-baseline="central" fill="\(section.colour)" font-size="\(_fmt(conf.taskFontSize))"><tspan>\(escapedLabel)</tspan></text>
-                """)
-            default: // "fo"
+        if textPlacement == "old" || textPlacement == "fo" {
+            // old + fo: render raw text without <br> splitting (matching Mermaid svgDraw)
+            if textPlacement == "fo" {
                 let labelH = conf.taskFontSize * 1.5
                 let foY = _fmt(section.y + (section.height - labelH) / 2)
                 parts.append("""
-                <switch><foreignObject x="\(sx)" y="\(foY)" width="\(sw)" height="\(_fmt(labelH))"><xhtml:div xmlns:xhtml="http://www.w3.org/1999/xhtml" style="display:table;width:100%;height:100%;text-align:center;color:\(section.colour);font-size:\(_fmt(conf.taskFontSize))px"><xhtml:span style="display:table-cell;vertical-align:middle">\(escapedLabel)</xhtml:span></xhtml:div></foreignObject><text x="\(textX)" y="\(textY)" text-anchor="middle" dominant-baseline="central" fill="\(section.colour)" font-size="\(_fmt(conf.taskFontSize))"><tspan>\(escapedLabel)</tspan></text></switch>
+                <switch><foreignObject x="\(sx)" y="\(foY)" width="\(sw)" height="\(_fmt(labelH))"><xhtml:div xmlns:xhtml="http://www.w3.org/1999/xhtml" style="display:table;width:100%;height:100%;text-align:center;color:\(section.colour);font-size:\(_fmt(conf.taskFontSize))px"><xhtml:span style="display:table-cell;vertical-align:middle">\(escapedRawLabel)</xhtml:span></xhtml:div></foreignObject><text x="\(textX)" y="\(textY)" text-anchor="middle" dominant-baseline="central" fill="\(section.colour)" font-size="\(_fmt(conf.taskFontSize))"><tspan>\(escapedRawLabel)</tspan></text></switch>
+                """)
+            } else {
+                parts.append("""
+                <text x="\(textX)" y="\(textY)" text-anchor="middle" dominant-baseline="central" fill="\(section.colour)" font-size="\(_fmt(conf.taskFontSize))">\(escapedRawLabel)</text>
                 """)
             }
         } else {
-            switch textPlacement {
-            case "old":
+            // tspan: split on <br> (Mermaid's byTspan behavior)
+            if brLines.count == 1 {
                 parts.append("""
-                <text x="\(textX)" y="\(textY)" text-anchor="middle" dominant-baseline="central" fill="\(section.colour)" font-size="\(_fmt(conf.taskFontSize))">\(escapedLabel)</text>
+                <text x="\(textX)" y="\(textY)" text-anchor="middle" dominant-baseline="central" fill="\(section.colour)" font-size="\(_fmt(conf.taskFontSize))"><tspan>\(escapedRawLabel)</tspan></text>
                 """)
-            case "tspan":
-                let tspanLines = labelLines.map { "<tspan x=\"\(textX)\">\(original_src_multiline_utils.escapeXml($0))</tspan>" }.joined(separator: "\n")
+            } else {
+                let tspanLines = brLines.map { "<tspan x=\"\(textX)\">\(original_src_multiline_utils.escapeXml($0))</tspan>" }.joined(separator: "\n")
                 parts.append("""
                 <text x="\(textX)" y="\(textY)" text-anchor="middle" dominant-baseline="central" fill="\(section.colour)" font-size="\(_fmt(conf.taskFontSize))">\(tspanLines)</text>
-                """)
-            default:
-                let labelH = conf.taskFontSize * 1.5 * Double(labelLines.count)
-                let foY = _fmt(section.y + (section.height - labelH) / 2)
-                let divContent = labelLines.map { "<xhtml:div>\(original_src_multiline_utils.escapeXml($0))</xhtml:div>" }.joined()
-                parts.append("""
-                <switch><foreignObject x="\(sx)" y="\(foY)" width="\(sw)" height="\(_fmt(labelH))"><xhtml:div xmlns:xhtml="http://www.w3.org/1999/xhtml" style="display:table;width:100%;height:100%;text-align:center;color:\(section.colour);font-size:\(_fmt(conf.taskFontSize))px"><xhtml:span style="display:table-cell;vertical-align:middle">\(divContent)</xhtml:span></xhtml:div></foreignObject><text x="\(textX)" y="\(textY)" text-anchor="middle" dominant-baseline="central" fill="\(section.colour)" font-size="\(_fmt(conf.taskFontSize))"><tspan>\(escapedLabel)</tspan></text></switch>
                 """)
             }
         }
@@ -170,52 +167,43 @@ private func _renderJourneySvgEntry(
         let ty = _fmt(task.y)
         let trw = _fmt(task.rectWidth)
         let trh = _fmt(task.rectHeight)
-        let escapedLabel = original_src_multiline_utils.escapeXml(task.task)
 
         parts.append("""
         <g class="task task-type-\(task.num)">
         <rect x="\(tx)" y="\(ty)" width="\(trw)" height="\(trh)" fill="\(task.fill)" rx="3" ry="3"/>
         """)
 
+        let taskRawLabel = task.task
+        let escapedTaskLabel = original_src_multiline_utils.escapeXml(taskRawLabel)
+        let taskBrLines = original_src_multiline_utils.normalizeBrTags(taskRawLabel).components(separatedBy: "\n")
+
         // Task label
         let taskTextX = _fmt(task.x + task.rectWidth / 2)
         let taskTextY = _fmt(task.y + task.rectHeight / 2)
-        let taskLabelLines = original_src_multiline_utils.normalizeBrTags(task.task).components(separatedBy: "\n")
 
-        if taskLabelLines.count == 1 {
-            switch conf.textPlacement {
-            case "old":
-                parts.append("""
-                <text x="\(taskTextX)" y="\(taskTextY)" text-anchor="middle" dominant-baseline="central" fill="\(task.colour)" font-size="\(_fmt(conf.taskFontSize))">\(escapedLabel)</text>
-                """)
-            case "tspan":
-                parts.append("""
-                <text x="\(taskTextX)" y="\(taskTextY)" text-anchor="middle" dominant-baseline="central" fill="\(task.colour)" font-size="\(_fmt(conf.taskFontSize))"><tspan>\(escapedLabel)</tspan></text>
-                """)
-            default:
+        if conf.textPlacement == "old" || conf.textPlacement == "fo" {
+            // old + fo: render raw text without <br> splitting
+            if conf.textPlacement == "fo" {
                 let labelH = conf.taskFontSize * 1.5
                 let foY = _fmt(task.y + (task.rectHeight - labelH) / 2)
                 parts.append("""
-                <switch><foreignObject x="\(tx)" y="\(foY)" width="\(trw)" height="\(_fmt(labelH))"><xhtml:div xmlns:xhtml="http://www.w3.org/1999/xhtml" style="display:table;width:100%;height:100%;text-align:center;color:\(task.colour);font-size:\(_fmt(conf.taskFontSize))px"><xhtml:span style="display:table-cell;vertical-align:middle">\(escapedLabel)</xhtml:span></xhtml:div></foreignObject><text x="\(taskTextX)" y="\(taskTextY)" text-anchor="middle" dominant-baseline="central" fill="\(task.colour)" font-size="\(_fmt(conf.taskFontSize))"><tspan>\(escapedLabel)</tspan></text></switch>
+                <switch><foreignObject x="\(tx)" y="\(foY)" width="\(trw)" height="\(_fmt(labelH))"><xhtml:div xmlns:xhtml="http://www.w3.org/1999/xhtml" style="display:table;width:100%;height:100%;text-align:center;color:\(task.colour);font-size:\(_fmt(conf.taskFontSize))px"><xhtml:span style="display:table-cell;vertical-align:middle">\(escapedTaskLabel)</xhtml:span></xhtml:div></foreignObject><text x="\(taskTextX)" y="\(taskTextY)" text-anchor="middle" dominant-baseline="central" fill="\(task.colour)" font-size="\(_fmt(conf.taskFontSize))"><tspan>\(escapedTaskLabel)</tspan></text></switch>
+                """)
+            } else {
+                parts.append("""
+                <text x="\(taskTextX)" y="\(taskTextY)" text-anchor="middle" dominant-baseline="central" fill="\(task.colour)" font-size="\(_fmt(conf.taskFontSize))">\(escapedTaskLabel)</text>
                 """)
             }
         } else {
-            switch conf.textPlacement {
-            case "old":
+            // tspan: split on <br>
+            if taskBrLines.count == 1 {
                 parts.append("""
-                <text x="\(taskTextX)" y="\(taskTextY)" text-anchor="middle" dominant-baseline="central" fill="\(task.colour)" font-size="\(_fmt(conf.taskFontSize))">\(escapedLabel)</text>
+                <text x="\(taskTextX)" y="\(taskTextY)" text-anchor="middle" dominant-baseline="central" fill="\(task.colour)" font-size="\(_fmt(conf.taskFontSize))"><tspan>\(escapedTaskLabel)</tspan></text>
                 """)
-            case "tspan":
-                let tspanLines = taskLabelLines.map { "<tspan x=\"\(taskTextX)\">\(original_src_multiline_utils.escapeXml($0))</tspan>" }.joined(separator: "\n")
+            } else {
+                let tspanLines = taskBrLines.map { "<tspan x=\"\(taskTextX)\">\(original_src_multiline_utils.escapeXml($0))</tspan>" }.joined(separator: "\n")
                 parts.append("""
                 <text x="\(taskTextX)" y="\(taskTextY)" text-anchor="middle" dominant-baseline="central" fill="\(task.colour)" font-size="\(_fmt(conf.taskFontSize))">\(tspanLines)</text>
-                """)
-            default:
-                let labelH = conf.taskFontSize * 1.5 * Double(taskLabelLines.count)
-                let foY = _fmt(task.y + (task.rectHeight - labelH) / 2)
-                let divContent = taskLabelLines.map { "<xhtml:div>\(original_src_multiline_utils.escapeXml($0))</xhtml:div>" }.joined()
-                parts.append("""
-                <switch><foreignObject x="\(tx)" y="\(foY)" width="\(trw)" height="\(_fmt(labelH))"><xhtml:div xmlns:xhtml="http://www.w3.org/1999/xhtml" style="display:table;width:100%;height:100%;text-align:center;color:\(task.colour);font-size:\(_fmt(conf.taskFontSize))px"><xhtml:span style="display:table-cell;vertical-align:middle">\(divContent)</xhtml:span></xhtml:div></foreignObject><text x="\(taskTextX)" y="\(taskTextY)" text-anchor="middle" dominant-baseline="central" fill="\(task.colour)" font-size="\(_fmt(conf.taskFontSize))"><tspan>\(escapedLabel)</tspan></text></switch>
                 """)
             }
         }
@@ -231,7 +219,7 @@ private func _renderJourneySvgEntry(
                     let actorColor = _journeySvgPaletteValue(conf.actorColours, index: actorIdx, fallback: "#8FBC8F")
                     let escapedPerson = original_src_multiline_utils.escapeXml(person)
                     parts.append("""
-                    <circle class="actor-\(actorIdx)" cx="\(_fmt(dotX))" cy="\(ty)" r="5" fill="\(actorColor)"><title>\(escapedPerson)</title></circle>
+                    <circle class="actor-\(actorIdx)" cx="\(_fmt(dotX))" cy="\(ty)" r="7" fill="\(actorColor)"><title>\(escapedPerson)</title></circle>
                     """)
                 }
             }
@@ -249,7 +237,7 @@ private func _renderJourneySvgEntry(
         let clampedScore = Swift.max(1, Swift.min(5, task.score))
         parts.append("""
         <g class="face">
-        <circle cx="\(_fmt(faceCX))" cy="\(_fmt(faceCY))" r="15" class="face" fill="#FFF8DC" stroke="var(--line, #999)" stroke-width="2"/>
+        <circle cx="\(_fmt(faceCX))" cy="\(_fmt(faceCY))" r="15" class="face" fill="\(conf.faceColor)" stroke="var(--line, #999)" stroke-width="2"/>
         <circle cx="\(_fmt(faceCX - 5))" cy="\(_fmt(faceCY - 5))" r="1.5" fill="var(--fg, #666)" stroke="var(--fg, #666)" stroke-width="2"/>
         <circle cx="\(_fmt(faceCX + 5))" cy="\(_fmt(faceCY - 5))" r="1.5" fill="var(--fg, #666)" stroke="var(--fg, #666)" stroke-width="2"/>
         """)
@@ -284,7 +272,7 @@ private func _renderJourneySvgEntry(
     let lineX2 = diagram.width - 4
     let lineY = diagram.activityLineY
     parts.append("""
-    <line x1="\(_fmt(lineX1))" y1="\(_fmt(lineY))" x2="\(_fmt(lineX2))" y2="\(_fmt(lineY))" stroke="var(--line, #000)" stroke-width="2" marker-end="url(#\(diagramId)-arrowhead)"/>
+    <line x1="\(_fmt(lineX1))" y1="\(_fmt(lineY))" x2="\(_fmt(lineX2))" y2="\(_fmt(lineY))" stroke="var(--line, #000)" stroke-width="4" marker-end="url(#\(diagramId)-arrowhead)"/>
     """)
 
     parts.append("</svg>")
@@ -310,4 +298,31 @@ private func _formatNum(_ value: Double) -> String {
 private func _journeySvgPaletteValue(_ palette: [String], index: Int, fallback: String) -> String {
     guard !palette.isEmpty else { return fallback }
     return palette[index % palette.count]
+}
+
+private func _journeyCSSBlock(conf: JourneyDiagramConfig, colors: DiagramColors) -> String {
+    var rules: [String] = []
+
+    rules.append("<style>")
+    rules.append(".label { font-family: \(conf.taskFontFamily); color: var(--fg, #333); }")
+    rules.append(".mouth { stroke: var(--fg, #666); }")
+    rules.append("line { stroke: var(--fg, #666); }")
+    rules.append(".legend { fill: var(--fg, #666); font-family: \(conf.taskFontFamily); }")
+    rules.append(".face { fill: \(conf.faceColor); stroke: #999; }")
+    rules.append(".arrowheadPath { fill: var(--line, #666); }")
+
+    // Task and section type fills (0-7)
+    for i in 0..<8 {
+        let fillVar = "--fill-type-\(i): \(i < conf.sectionFills.count ? conf.sectionFills[i] : "#191970")"
+        rules.append(".task-type-\(i), .section-type-\(i) { fill: var(\(fillVar)); }")
+    }
+
+    // Actor colors (0-5)
+    for i in 0..<6 {
+        let actorColor = i < conf.actorColours.count ? conf.actorColours[i] : "#8FBC8F"
+        rules.append(".actor-\(i) { fill: \(actorColor); }")
+    }
+
+    rules.append("</style>")
+    return rules.joined(separator: "\n")
 }

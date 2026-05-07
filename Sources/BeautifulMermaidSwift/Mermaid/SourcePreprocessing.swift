@@ -1173,6 +1173,7 @@ private final class _StackSafeYamlFrontmatterParser {
         case "titleColor": journeyConfig.titleColor = value
         case "titleFontFamily": journeyConfig.titleFontFamily = value
         case "titleFontSize": journeyConfig.titleFontSize = value
+        case "faceColor": journeyConfig.faceColor = value
         default: break
         }
         return true
@@ -2117,6 +2118,7 @@ private final class _YamlFrontmatterParser {
             case "titleColor": journeyConfig.titleColor = value
             case "titleFontFamily": journeyConfig.titleFontFamily = value
             case "titleFontSize": journeyConfig.titleFontSize = value
+            case "faceColor": journeyConfig.faceColor = value
             default: break
             }
             continue

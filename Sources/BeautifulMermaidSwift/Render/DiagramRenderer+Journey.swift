@@ -11,6 +11,8 @@ extension DiagramRenderer {
                            contentHeight: max(1, journey.height)) { ctx in
             let ch = max(1, journey.height)
 
+            let config = journey.config ?? .default
+
             // 1. Actor legend
             for actor in journey.actors {
                 let circleRect = CGRect(x: actor.circleCenter.x - 7, y: actor.circleCenter.y - 7, width: 14, height: 14)
@@ -25,7 +27,7 @@ extension DiagramRenderer {
                 ctx.setLineWidth(1)
                 ctx.strokeEllipse(in: circleRect)
 
-                let legendFont = BMFont.systemFont(ofSize: 12, weight: .regular)
+                let legendFont = BMFont.systemFont(ofSize: CGFloat(config.taskFontSize), weight: .regular)
                 for (li, line) in actor.lines.enumerated() {
                     let textY = actor.labelOrigin.y + Double(li) * 16
                     self._drawTextInFlipped(
@@ -38,8 +40,6 @@ extension DiagramRenderer {
                     )
                 }
             }
-
-            let config = journey.config ?? .default
 
             // 2. Section rectangles
             for section in journey.sections {
@@ -55,7 +55,15 @@ extension DiagramRenderer {
                 ctx.fillPath()
 
                 let sectionFont = BMFont.systemFont(ofSize: CGFloat(config.taskFontSize), weight: .regular)
-                let labelLines = original_src_multiline_utils.normalizeBrTags(section.name).components(separatedBy: "\n")
+                let splitsBr: Bool
+                if config.textPlacement == "old" || config.textPlacement == "fo" {
+                    splitsBr = false
+                } else {
+                    splitsBr = true
+                }
+                let labelLines = splitsBr
+                    ? original_src_multiline_utils.normalizeBrTags(section.name).components(separatedBy: "\n")
+                    : [section.name]
                 let totalTextHeight = CGFloat(labelLines.count) * CGFloat(config.taskFontSize * 1.3)
                 let startY = section.y + (section.height - Double(totalTextHeight)) / 2 + Double(config.taskFontSize * 0.6)
 
@@ -85,7 +93,15 @@ extension DiagramRenderer {
                 ctx.fillPath()
 
                 let taskFont = BMFont.systemFont(ofSize: CGFloat(config.taskFontSize), weight: .regular)
-                let taskLabelLines = original_src_multiline_utils.normalizeBrTags(task.task).components(separatedBy: "\n")
+                let taskSplitsBr: Bool
+                if config.textPlacement == "old" || config.textPlacement == "fo" {
+                    taskSplitsBr = false
+                } else {
+                    taskSplitsBr = true
+                }
+                let taskLabelLines = taskSplitsBr
+                    ? original_src_multiline_utils.normalizeBrTags(task.task).components(separatedBy: "\n")
+                    : [task.task]
                 let taskTextHeight = CGFloat(taskLabelLines.count) * CGFloat(config.taskFontSize * 1.3)
                 let taskStartY = task.y + (task.rectHeight - Double(taskTextHeight)) / 2 + Double(config.taskFontSize * 0.6)
 
@@ -109,7 +125,7 @@ extension DiagramRenderer {
                         if let actorIdx = journey.actors.firstIndex(where: { $0.name == person }) {
                             let dotX = startX + Double(di) * spacing
                             let dotY = task.y
-                            let dotRect = CGRect(x: dotX - 4, y: dotY - 4, width: 8, height: 8)
+                            let dotRect = CGRect(x: dotX - 7, y: dotY - 7, width: 14, height: 14)
                             let actorColor = _journeyCGPaletteValue(config.actorColours, index: actorIdx, fallback: "#8FBC8F")
                             if let cgColor = _hexToCGColor(actorColor) {
                                 ctx.setFillColor(cgColor)
@@ -142,7 +158,11 @@ extension DiagramRenderer {
 
                 // Face circle
                 let faceRect = CGRect(x: faceCX - 15, y: faceCY - 15, width: 30, height: 30)
-                ctx.setFillColor(CGColor(red: 1.0, green: 0.97, blue: 0.85, alpha: 1.0)) // #FFF8DC
+                if let faceCGColor = _hexToCGColor(config.faceColor) {
+                    ctx.setFillColor(faceCGColor)
+                } else {
+                    ctx.setFillColor(CGColor(red: 1.0, green: 0.97, blue: 0.85, alpha: 1.0))
+                }
                 ctx.fillEllipse(in: faceRect)
                 ctx.setStrokeColor(self.theme.effectiveBorder().cgColor)
                 ctx.setLineWidth(2)
@@ -175,12 +195,26 @@ extension DiagramRenderer {
 
             // 4. Title
             if let title = journey.title, !title.isEmpty {
-                let titleFont = BMFont.systemFont(ofSize: 18, weight: .bold)
+                let titleFontSize: CGFloat
+                let sizeStr = config.titleFontSize
+                let numericPart = sizeStr.trimmingCharacters(in: CharacterSet(charactersIn: "0123456789.").inverted)
+                if let parsed = Double(numericPart), parsed > 0 {
+                    titleFontSize = CGFloat(parsed)
+                } else {
+                    titleFontSize = 18
+                }
+                let titleFont = BMFont.systemFont(ofSize: titleFontSize, weight: .bold)
+                let titleColor: BMColor
+                if !config.titleColor.isEmpty, let cg = _hexToCGColor(config.titleColor), let nsColor = BMColor(cgColor: cg) {
+                    titleColor = nsColor
+                } else {
+                    titleColor = self.theme.foreground
+                }
                 self._drawTextInFlipped(
                     title,
                     at: CGPoint(x: journey.effectiveLeftMargin, y: 25),
                     context: ctx, contentHeight: ch,
-                    color: self.theme.foreground,
+                    color: titleColor,
                     font: titleFont,
                     alignment: .left
                 )
@@ -193,7 +227,7 @@ extension DiagramRenderer {
 
             ctx.saveGState()
             ctx.setStrokeColor(self.theme.effectiveLine().cgColor)
-            ctx.setLineWidth(2)
+            ctx.setLineWidth(4)
             ctx.move(to: CGPoint(x: lineX1, y: lineY))
             ctx.addLine(to: CGPoint(x: lineX2, y: lineY))
             ctx.strokePath()

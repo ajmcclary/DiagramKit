@@ -250,4 +250,19 @@ final class JourneyLayoutTests: XCTestCase {
         XCTAssertEqual(positioned.sections.count, 0)
         XCTAssertGreaterThanOrEqual(positioned.width, 0)
     }
+
+    func test_nonNumericScoreFaceClampedToScore1() throws {
+        let source = """
+        journey
+            section Test
+            A task: 0: Me
+        """
+        let diagram = try parsedDiagram(source)
+        let positioned = layoutJourneyDiagram(diagram)
+        XCTAssertEqual(positioned.tasks.count, 1)
+        // Score 0 stored as-is, but faceY clamped as score=1
+        XCTAssertEqual(positioned.tasks[0].score, 0)
+        let expectedFaceY = 300.0 + (5.0 - 1.0) * 30.0
+        XCTAssertEqual(positioned.tasks[0].faceY, expectedFaceY)
+    }
 }

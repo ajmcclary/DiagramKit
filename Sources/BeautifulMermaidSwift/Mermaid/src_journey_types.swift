@@ -35,6 +35,7 @@ public struct JourneyDiagramConfig: Sendable {
     public var titleColor: String = ""
     public var titleFontFamily: String = "\"trebuchet ms\", verdana, arial, sans-serif"
     public var titleFontSize: String = "4ex"
+    public var faceColor: String = "#FFF8DC"
 
     public static let `default` = JourneyDiagramConfig()
 }

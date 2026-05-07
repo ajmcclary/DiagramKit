@@ -274,4 +274,53 @@ final class JourneyParserTests: XCTestCase {
         XCTAssertEqual(diagram.config?.sectionFills, ["#aaaaaa", "#bbbbbb"])
         XCTAssertEqual(diagram.config?.sectionColours, ["#ffffff", "#000000"])
     }
+
+    // MARK: - Score edge cases
+
+    func test_nonNumericScoreFallbackToZero() throws {
+        let source = """
+        journey
+            section Test
+            A task: abc: Me
+        """
+        let diagram = try parseJourneyDiagram(lines(source))
+        XCTAssertEqual(diagram.tasks.count, 1)
+        XCTAssertEqual(diagram.tasks[0].task, "A task")
+        XCTAssertEqual(diagram.tasks[0].score, 0)
+        XCTAssertEqual(diagram.tasks[0].people, ["Me"])
+    }
+
+    func test_emptyScoreFallsToZero() throws {
+        let source = """
+        journey
+            section Test
+            A task: : Me
+        """
+        let diagram = try parseJourneyDiagram(lines(source))
+        XCTAssertEqual(diagram.tasks.count, 1)
+        XCTAssertEqual(diagram.tasks[0].score, 0)
+        XCTAssertEqual(diagram.tasks[0].people, ["Me"])
+    }
+
+    func test_negativeScorePreservedInModel() throws {
+        let source = """
+        journey
+            section Test
+            A task: -5: Me
+        """
+        let diagram = try parseJourneyDiagram(lines(source))
+        XCTAssertEqual(diagram.tasks.count, 1)
+        XCTAssertEqual(diagram.tasks[0].score, -5)
+    }
+
+    func test_largeScorePreservedInModel() throws {
+        let source = """
+        journey
+            section Test
+            A task: 100: Me
+        """
+        let diagram = try parseJourneyDiagram(lines(source))
+        XCTAssertEqual(diagram.tasks.count, 1)
+        XCTAssertEqual(diagram.tasks[0].score, 100)
+    }
 }

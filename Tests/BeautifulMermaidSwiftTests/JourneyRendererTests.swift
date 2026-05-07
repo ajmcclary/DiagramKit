@@ -199,4 +199,124 @@ final class JourneyRendererTests: XCTestCase {
         // Score 5 = smile arc (clockwise from pi/2 to 3pi/2)
         XCTAssertTrue(svg.contains("class=\"mouth\""))
     }
+
+    // MARK: - Phase A: activity line stroke, actor dot radius
+
+    func test_activityLineStrokeWidthIs4() throws {
+        let positioned = try positionedFromSource(basicDiagramSource())
+        let svg = try renderJourneySvg(positioned, defaultColors)
+        XCTAssertTrue(svg.contains("stroke-width=\"4\""))
+    }
+
+    func test_svgActorDotRadiusIs7() throws {
+        let source = """
+        journey
+            section Go
+            Do thing: 5: Alice
+        """
+        let positioned = try positionedFromSource(source)
+        let svg = try renderJourneySvg(positioned, defaultColors)
+        // Actor dots on task rects should have r="7"
+        XCTAssertTrue(svg.contains("r=\"7\""))
+    }
+
+    // MARK: - Phase B: text placement modes
+
+    func test_oldModeDoesNotSplitBr() throws {
+        let source = """
+        journey
+            section Go<br>Home
+            Do thing: 5: Me
+        """
+        var config = JourneyDiagramConfig()
+        config.textPlacement = "old"
+        let positioned = try positionedFromSource(source, config: config)
+        let svg = try renderJourneySvg(positioned, defaultColors)
+        // "old" mode should render raw text without <br> splitting
+        // <br> tags are XML-escaped in the output
+        XCTAssertFalse(svg.contains("<tspan"))
+        XCTAssertTrue(svg.contains("Go&lt;br&gt;Home"))
+    }
+
+    func test_foModeRendersRawTextInSingleDiv() throws {
+        let source = """
+        journey
+            section Test
+            Do thing<br>multi: 5: Me
+        """
+        let positioned = try positionedFromSource(source)
+        let svg = try renderJourneySvg(positioned, defaultColors)
+        // Default "fo" mode: <br> text appears raw in foreignObject (XML-escaped)
+        XCTAssertTrue(svg.contains("<foreignObject"))
+        XCTAssertTrue(svg.contains("Do thing&lt;br&gt;multi"))
+    }
+
+    func test_tspanModeSplitsBrIntoTspans() throws {
+        let source = """
+        journey
+            section Test
+            Do thing<br>multi: 5: Me
+        """
+        var config = JourneyDiagramConfig()
+        config.textPlacement = "tspan"
+        let positioned = try positionedFromSource(source, config: config)
+        let svg = try renderJourneySvg(positioned, defaultColors)
+        XCTAssertTrue(svg.contains("<tspan"))
+        XCTAssertTrue(svg.contains(">Do thing</tspan>"))
+        XCTAssertTrue(svg.contains(">multi</tspan>"))
+    }
+
+    // MARK: - Phase C: CSS block and faceColor
+
+    func test_cssBlockContainsTaskTypeClasses() throws {
+        let positioned = try positionedFromSource(basicDiagramSource())
+        let svg = try renderJourneySvg(positioned, defaultColors)
+        XCTAssertTrue(svg.contains(".task-type-0"))
+        XCTAssertTrue(svg.contains(".section-type-0"))
+    }
+
+    func test_cssBlockContainsActorClasses() throws {
+        let positioned = try positionedFromSource(basicDiagramSource())
+        let svg = try renderJourneySvg(positioned, defaultColors)
+        XCTAssertTrue(svg.contains(".actor-0"))
+    }
+
+    func test_cssBlockContainsFaceClass() throws {
+        let positioned = try positionedFromSource(basicDiagramSource())
+        let svg = try renderJourneySvg(positioned, defaultColors)
+        XCTAssertTrue(svg.contains(".face {"))
+    }
+
+    func test_faceColorFromConfigApplied() throws {
+        var config = JourneyDiagramConfig()
+        config.faceColor = "#FFE4B5"
+        let positioned = try positionedFromSource(basicDiagramSource(), config: config)
+        let svg = try renderJourneySvg(positioned, defaultColors)
+        XCTAssertTrue(svg.contains("fill=\"#FFE4B5\""))
+    }
+
+    func test_faceColorDefaultWheat() throws {
+        let positioned = try positionedFromSource(basicDiagramSource())
+        let svg = try renderJourneySvg(positioned, defaultColors)
+        XCTAssertTrue(svg.contains("fill=\"#FFF8DC\""))
+    }
+
+    // MARK: - Phase E: multi-diagram ID scoping
+
+    func test_twoConsecutiveRendersProduceUniqueTaskIDs() throws {
+        let source = """
+        journey
+            section Go
+            TaskA: 5: Me
+            TaskB: 3: Me
+        """
+        let positioned1 = try positionedFromSource(source)
+        let positioned2 = try positionedFromSource(source)
+        let svg1 = try renderJourneySvg(positioned1, defaultColors, diagramId: "diagram-a")
+        let svg2 = try renderJourneySvg(positioned2, defaultColors, diagramId: "diagram-b")
+        XCTAssertTrue(svg1.contains("id=\"diagram-a-task0\""))
+        XCTAssertTrue(svg2.contains("id=\"diagram-b-task0\""))
+        XCTAssertFalse(svg1.contains("diagram-b-task"))
+        XCTAssertFalse(svg2.contains("diagram-a-task"))
+    }
 }
