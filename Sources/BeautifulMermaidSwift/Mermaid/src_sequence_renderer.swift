@@ -69,13 +69,14 @@ private func _renderSequenceSvgEntry(
     }
 
     // Activations
-    for activation in diagram.activations {
-        parts.append(_renderActivation(activation))
+    for (idx, activation) in diagram.activations.enumerated() {
+        let altClass = " activation\(idx % 3)"
+        parts.append(_renderActivation(activation, altClass: altClass))
     }
 
     // Messages
-    for message in diagram.messages {
-        parts.append(_renderMessage(message))
+    for (idx, message) in diagram.messages.enumerated() {
+        parts.append(_renderMessage(message, index: idx))
     }
 
     // Notes
@@ -84,14 +85,37 @@ private func _renderSequenceSvgEntry(
     }
 
     // Actor boxes (on top)
-    for actor in diagram.actors {
-        parts.append(_renderActor(actor))
+    for (idx, actor) in diagram.actors.enumerated() {
+        parts.append(_renderActor(actor, index: idx))
+    }
+
+    // Popup menus (hidden unless forceMenus)
+    for (idx, actor) in diagram.actors.enumerated() {
+        if !actor.links.isEmpty {
+            parts.append(_renderPopup(actor, index: idx, forceMenus: false))
+        }
     }
 
     // Mirror actors at bottom
-    for actor in diagram.bottomActors {
-        parts.append(_renderActor(actor))
+    for (idx, actor) in diagram.bottomActors.enumerated() {
+        let bottomIdx = diagram.actors.count + idx
+        parts.append(_renderActor(actor, index: bottomIdx))
+        if !actor.links.isEmpty {
+            parts.append(_renderPopup(actor, index: bottomIdx, forceMenus: false))
+        }
     }
+
+    // Popup menu toggle script
+    parts.append("""
+    <script type="text/javascript">
+    function popupMenuToggle(popId) {
+      var pop = document.getElementById(popId);
+      if (!pop) return;
+      var vis = pop.getAttribute('visibility') === 'visible' ? 'hidden' : 'visible';
+      pop.setAttribute('visibility', vis);
+    }
+    </script>
+    """)
 
     parts.append("</svg>")
     return parts.joined(separator: "\n")
@@ -163,6 +187,67 @@ private func _arrowMarkerDefs() -> String {
       </marker>
     """)
 
+    // Reverse: Half arrow top (mirrored)
+    defs.append("""
+      <marker id="seq-arrow-half-top-rev" markerWidth="\(w)" markerHeight="\(h)" refX="\(w)" refY="\(h / 2)" orient="auto-start-reverse">
+        <polygon points="0 \(h / 2), \(w) 0, 0 0" fill="var(--_arrow)" />
+      </marker>
+    """)
+
+    // Reverse: Half arrow bottom (mirrored)
+    defs.append("""
+      <marker id="seq-arrow-half-bottom-rev" markerWidth="\(w)" markerHeight="\(h)" refX="\(w)" refY="\(h / 2)" orient="auto-start-reverse">
+        <polygon points="0 \(h / 2), \(w) \(h), 0 \(h)" fill="var(--_arrow)" />
+      </marker>
+    """)
+
+    // Reverse: Stick top (mirrored)
+    defs.append("""
+      <marker id="seq-arrow-stick-top-rev" markerWidth="\(w)" markerHeight="\(h)" refX="\(w)" refY="\(h / 2)" orient="auto-start-reverse">
+        <line x1="0" y1="0" x2="0" y2="\(h / 2)" stroke="var(--_arrow)" stroke-width="1.5" />
+        <line x1="\(w)" y1="\(h / 2)" x2="0" y2="\(h / 2)" stroke="var(--_arrow)" stroke-width="1.5" />
+      </marker>
+    """)
+
+    // Reverse: Stick bottom (mirrored)
+    defs.append("""
+      <marker id="seq-arrow-stick-bottom-rev" markerWidth="\(w)" markerHeight="\(h)" refX="\(w)" refY="\(h / 2)" orient="auto-start-reverse">
+        <line x1="0" y1="\(h / 2)" x2="0" y2="\(h)" stroke="var(--_arrow)" stroke-width="1.5" />
+        <line x1="\(w)" y1="0" x2="0" y2="0" stroke="var(--_arrow)" stroke-width="1.5" />
+      </marker>
+    """)
+
+    // Dotted reverse variants use same geometry, marker ID suffices for identification
+    // Reverse dotted: Half arrow top
+    defs.append("""
+      <marker id="seq-arrow-half-top-rev-dot" markerWidth="\(w)" markerHeight="\(h)" refX="\(w)" refY="\(h / 2)" orient="auto-start-reverse">
+        <polygon points="0 \(h / 2), \(w) 0, 0 0" fill="var(--_arrow)" />
+      </marker>
+    """)
+
+    // Reverse dotted: Half arrow bottom
+    defs.append("""
+      <marker id="seq-arrow-half-bottom-rev-dot" markerWidth="\(w)" markerHeight="\(h)" refX="\(w)" refY="\(h / 2)" orient="auto-start-reverse">
+        <polygon points="0 \(h / 2), \(w) \(h), 0 \(h)" fill="var(--_arrow)" />
+      </marker>
+    """)
+
+    // Reverse dotted: Stick top
+    defs.append("""
+      <marker id="seq-arrow-stick-top-rev-dot" markerWidth="\(w)" markerHeight="\(h)" refX="\(w)" refY="\(h / 2)" orient="auto-start-reverse">
+        <line x1="0" y1="0" x2="0" y2="\(h / 2)" stroke="var(--_arrow)" stroke-width="1.5" />
+        <line x1="\(w)" y1="\(h / 2)" x2="0" y2="\(h / 2)" stroke="var(--_arrow)" stroke-width="1.5" />
+      </marker>
+    """)
+
+    // Reverse dotted: Stick bottom
+    defs.append("""
+      <marker id="seq-arrow-stick-bottom-rev-dot" markerWidth="\(w)" markerHeight="\(h)" refX="\(w)" refY="\(h / 2)" orient="auto-start-reverse">
+        <line x1="0" y1="\(h / 2)" x2="0" y2="\(h)" stroke="var(--_arrow)" stroke-width="1.5" />
+        <line x1="\(w)" y1="0" x2="0" y2="0" stroke="var(--_arrow)" stroke-width="1.5" />
+      </marker>
+    """)
+
     return defs.joined(separator: "\n")
 }
 
@@ -174,9 +259,11 @@ private func _markerId(for arrowType: SequenceArrowType) -> String? {
     if style.isOpenArrow { return "seq-arrow-async" }
     if !style.hasArrowEnd { return nil }
     if style.isHalfArrow {
-        return style.halfArrowStyle == .stick
-            ? (style.halfArrowDirection == .top ? "seq-arrow-stick-top" : "seq-arrow-stick-bottom")
-            : (style.halfArrowDirection == .top ? "seq-arrow-half-top" : "seq-arrow-half-bottom")
+        let suffix = style.isReversed ? "-rev" : ""
+        let dotSuffix = style.isDotted ? "-dot" : ""
+        let dir = style.halfArrowDirection == .top ? "top" : "bottom"
+        let kind = style.halfArrowStyle == .stick ? "stick" : "half"
+        return "seq-arrow-\(kind)-\(dir)\(suffix)\(dotSuffix)"
     }
     return "seq-arrow-filled"
 }
@@ -206,15 +293,49 @@ private func _renderBox(_ box: PositionedSequenceBox) -> String {
     return parts.joined(separator: "\n")
 }
 
+// MARK: - Popup Menu
+
+private func _renderPopup(_ actor: PositionedSequenceActor, index: Int, forceMenus: Bool) -> String {
+    let links = actor.links
+    guard !links.isEmpty else { return "" }
+    var parts: [String] = []
+    let popId = "actor\(index)_popup"
+    let vis = forceMenus ? "visible" : "hidden"
+
+    // Measure text widths for menu sizing
+    let labelWidths = links.keys.map { original_src_styles.estimateTextWidth($0, 10, 400) + 20 }
+    let menuWidth = max(100, (labelWidths.max() ?? 100) + 24)
+    let lineHeight = 16.0
+    let menuHeight = lineHeight * Double(links.count) + 16
+
+    let menuX = actor.x - menuWidth / 2
+    let menuY = actor.y + actor.height + 6
+
+    parts.append("<g class=\"popup\" id=\"\(popId)\" visibility=\"\(vis)\" data-actors=\"\(escapeAttr(actor.id))\">")
+    parts.append("  <rect x=\"\(menuX)\" y=\"\(menuY)\" width=\"\(menuWidth)\" height=\"\(menuHeight)\" fill=\"var(--_node-fill)\" stroke=\"var(--_node-stroke)\" stroke-width=\"1\" rx=\"4\" ry=\"4\" />")
+
+    var linkY = menuY + 14
+    for (label, url) in links {
+        parts.append("  <a xlink:href=\"\(escapeAttr(url))\" target=\"_blank\">")
+        parts.append("    <text x=\"\(menuX + 12)\" y=\"\(linkY)\" font-size=\"10\" fill=\"var(--_text-muted)\">\(escapeXml(label))</text>")
+        parts.append("  </a>")
+        linkY += lineHeight
+    }
+
+    parts.append("</g>")
+    return parts.joined(separator: "\n")
+}
+
 // MARK: - Actor
 
-private func _renderActor(_ actor: PositionedSequenceActor) -> String {
+private func _renderActor(_ actor: PositionedSequenceActor, index: Int) -> String {
     let x = actor.x
     let y = actor.y
     let width = actor.width
     let height = actor.height
     let label = actor.label
     let pType = actor.participantType
+    let hasLinks = !actor.links.isEmpty
 
     var parts: [String] = []
     var dataAttrs = "data-id=\"\(escapeAttr(actor.id))\" data-label=\"\(escapeAttr(label))\" data-type=\"\(escapeAttr(pType.rawValue))\""
@@ -227,7 +348,8 @@ private func _renderActor(_ actor: PositionedSequenceActor) -> String {
     if let detailsId = actor.detailsElementId {
         dataAttrs += " data-details=\"\(escapeAttr(detailsId))\""
     }
-    parts.append("<g class=\"actor\" \(dataAttrs)>")
+    let interactive = hasLinks ? " onclick=\"popupMenuToggle('actor\(index)_popup')\" cursor=\"pointer\"" : ""
+    parts.append("<g class=\"actor\"\(dataAttrs)\(interactive)>")
 
     switch pType {
     case .actor:
@@ -303,18 +425,18 @@ private func _renderActor(_ actor: PositionedSequenceActor) -> String {
 // MARK: - Lifeline
 
 private func _renderLifeline(_ lifeline: SequenceLifeline) -> String {
-    "<line class=\"lifeline\" data-actor=\"\(escapeAttr(lifeline.actorId))\" x1=\"\(lifeline.x)\" y1=\"\(lifeline.topY)\" x2=\"\(lifeline.x)\" y2=\"\(lifeline.bottomY)\" stroke=\"var(--_line)\" stroke-width=\"0.75\" stroke-dasharray=\"6 4\" />"
+    "<line class=\"lifeline actor-line\" data-actor=\"\(escapeAttr(lifeline.actorId))\" x1=\"\(lifeline.x)\" y1=\"\(lifeline.topY)\" x2=\"\(lifeline.x)\" y2=\"\(lifeline.bottomY)\" stroke=\"var(--_line)\" stroke-width=\"0.75\" stroke-dasharray=\"6 4\" />"
 }
 
 // MARK: - Activation
 
-private func _renderActivation(_ activation: SequenceActivation) -> String {
-    "<rect class=\"activation\" data-actor=\"\(escapeAttr(activation.actorId))\" x=\"\(activation.x)\" y=\"\(activation.topY)\" width=\"\(activation.width)\" height=\"\(max(0, activation.bottomY - activation.topY))\" fill=\"var(--_node-fill)\" stroke=\"var(--_node-stroke)\" stroke-width=\"\(original_src_styles.STROKE_WIDTHS.innerBox)\" />"
+private func _renderActivation(_ activation: SequenceActivation, altClass: String = "") -> String {
+    "<rect class=\"activation\(altClass)\" data-actor=\"\(escapeAttr(activation.actorId))\" x=\"\(activation.x)\" y=\"\(activation.topY)\" width=\"\(activation.width)\" height=\"\(max(0, activation.bottomY - activation.topY))\" fill=\"var(--_node-fill)\" stroke=\"var(--_node-stroke)\" stroke-width=\"\(original_src_styles.STROKE_WIDTHS.innerBox)\" />"
 }
 
 // MARK: - Message
 
-private func _renderMessage(_ msg: PositionedSequenceMessage) -> String {
+private func _renderMessage(_ msg: PositionedSequenceMessage, index: Int = 0) -> String {
     var parts: [String] = []
     let dashArray = msg.lineStyle == "dashed" ? " stroke-dasharray=\"6 4\"" : ""
     let markerId = _markerId(for: msg.arrowType)
@@ -322,13 +444,14 @@ private func _renderMessage(_ msg: PositionedSequenceMessage) -> String {
 
     let style = SequenceArrowStyle(type: msg.arrowType)
     let markerStart = style.isBidirectional ? markerEnd : ""
+    let lineClass = "messageLine\(index % 2)"
 
     parts.append("<g class=\"message\" data-from=\"\(escapeAttr(msg.from))\" data-to=\"\(escapeAttr(msg.to))\" data-label=\"\(escapeAttr(msg.label))\" data-arrow-type=\"\(escapeAttr(String(msg.arrowType.rawValue)))\" data-self=\"\(msg.isSelf)\">")
 
     // Sequence number
     if msg.sequenceVisible, let num = msg.sequenceNumber {
         let numX = msg.isSelf ? msg.x1 - 18 : min(msg.x1, msg.x2) - 18
-        parts.append("<text x=\"\(numX)\" y=\"\(msg.y - 2)\" font-size=\"\(original_src_styles.FONT_SIZES.edgeLabel)\" text-anchor=\"end\" fill=\"var(--_text-muted)\">\(Int(num))</text>")
+        parts.append("<text class=\"sequenceNumber\" x=\"\(numX)\" y=\"\(msg.y - 2)\" font-size=\"\(original_src_styles.FONT_SIZES.edgeLabel)\" text-anchor=\"end\" fill=\"var(--_text-muted)\">\(Int(num))</text>")
     }
 
     // Central connection circle at source
@@ -346,14 +469,14 @@ private func _renderMessage(_ msg: PositionedSequenceMessage) -> String {
         let loopW = 30.0
         let loopH = 20.0
         let labelPadding = 8.0
-        parts.append("<polyline points=\"\(msg.x1),\(msg.y) \(msg.x1 + loopW),\(msg.y) \(msg.x1 + loopW),\(msg.y + loopH) \(msg.x2),\(msg.y + loopH)\" fill=\"none\" stroke=\"var(--_line)\" stroke-width=\"\(original_src_styles.STROKE_WIDTHS.connector)\"\(dashArray)\(markerEnd) />")
-        parts.append(_textEl(msg.label, cx: msg.x1 + loopW + labelPadding, cy: msg.y + loopH / 2, fontSize: original_src_styles.FONT_SIZES.edgeLabel, anchor: "start", cls: "message-text"))
+        parts.append("<polyline class=\"\(lineClass)\" points=\"\(msg.x1),\(msg.y) \(msg.x1 + loopW),\(msg.y) \(msg.x1 + loopW),\(msg.y + loopH) \(msg.x2),\(msg.y + loopH)\" fill=\"none\" stroke=\"var(--_line)\" stroke-width=\"\(original_src_styles.STROKE_WIDTHS.connector)\"\(dashArray)\(markerEnd) />")
+        parts.append(_textEl(msg.label, cx: msg.x1 + loopW + labelPadding, cy: msg.y + loopH / 2, fontSize: original_src_styles.FONT_SIZES.edgeLabel, anchor: "start", cls: "messageText"))
     } else {
         // Bidirectional uses marker-start too
         let mStart = style.isBidirectional && markerId != nil ? " marker-start=\"url(#\(markerId!))\"" : ""
-        parts.append("<line x1=\"\(msg.x1)\" y1=\"\(msg.y)\" x2=\"\(msg.x2)\" y2=\"\(msg.y)\" stroke=\"var(--_line)\" stroke-width=\"\(original_src_styles.STROKE_WIDTHS.connector)\"\(dashArray)\(markerEnd)\(mStart) />")
+        parts.append("<line class=\"\(lineClass)\" x1=\"\(msg.x1)\" y1=\"\(msg.y)\" x2=\"\(msg.x2)\" y2=\"\(msg.y)\" stroke=\"var(--_line)\" stroke-width=\"\(original_src_styles.STROKE_WIDTHS.connector)\"\(dashArray)\(markerEnd)\(mStart) />")
         let midX = (msg.x1 + msg.x2) / 2
-        parts.append(_textEl(msg.label, cx: midX, cy: msg.y - 6, fontSize: original_src_styles.FONT_SIZES.edgeLabel, anchor: "middle", cls: "message-text"))
+        parts.append(_textEl(msg.label, cx: midX, cy: msg.y - 6, fontSize: original_src_styles.FONT_SIZES.edgeLabel, anchor: "middle", cls: "messageText"))
     }
 
     parts.append("</g>")
@@ -366,15 +489,15 @@ private func _renderBlock(_ block: PositionedSequenceBlock) -> String {
     var parts: [String] = []
     let labelAttr = block.label.isEmpty ? "" : " data-label=\"\(escapeAttr(block.label))\""
     parts.append("<g class=\"block\" data-type=\"\(escapeAttr(block.type))\"\(labelAttr)>")
-    parts.append("<rect x=\"\(block.x)\" y=\"\(block.y)\" width=\"\(block.width)\" height=\"\(block.height)\" rx=\"0\" ry=\"0\" fill=\"none\" stroke=\"var(--_node-stroke)\" stroke-width=\"\(original_src_styles.STROKE_WIDTHS.outerBox)\" />")
+    parts.append("<rect class=\"loopLine\" x=\"\(block.x)\" y=\"\(block.y)\" width=\"\(block.width)\" height=\"\(block.height)\" rx=\"0\" ry=\"0\" fill=\"none\" stroke=\"var(--_node-stroke)\" stroke-width=\"\(original_src_styles.STROKE_WIDTHS.outerBox)\" />")
 
     let labelText = block.label.isEmpty ? block.type : "\(block.type) [\(block.label)]"
     let firstLine = labelText.components(separatedBy: "\n").first ?? labelText
     let tabWidth = original_src_styles.estimateTextWidth(firstLine, original_src_styles.FONT_SIZES.edgeLabel, original_src_styles.FONT_WEIGHTS.groupHeader) + 16
     let tabHeight = 18.0
 
-    parts.append("<rect x=\"\(block.x)\" y=\"\(block.y)\" width=\"\(tabWidth)\" height=\"\(tabHeight)\" fill=\"var(--_group-hdr)\" stroke=\"var(--_node-stroke)\" stroke-width=\"\(original_src_styles.STROKE_WIDTHS.outerBox)\" />")
-    parts.append(_textEl(labelText, cx: block.x + 6, cy: block.y + tabHeight / 2, fontSize: original_src_styles.FONT_SIZES.edgeLabel, anchor: "start", cls: "block-label", weight: original_src_styles.FONT_WEIGHTS.groupHeader))
+    parts.append("<rect class=\"labelBox\" x=\"\(block.x)\" y=\"\(block.y)\" width=\"\(tabWidth)\" height=\"\(tabHeight)\" fill=\"var(--_group-hdr)\" stroke=\"var(--_node-stroke)\" stroke-width=\"\(original_src_styles.STROKE_WIDTHS.outerBox)\" />")
+    parts.append(_textEl(labelText, cx: block.x + 6, cy: block.y + tabHeight / 2, fontSize: original_src_styles.FONT_SIZES.edgeLabel, anchor: "start", cls: "labelText loopText", weight: original_src_styles.FONT_WEIGHTS.groupHeader))
 
     for divider in block.dividers {
         parts.append("<line x1=\"\(block.x)\" y1=\"\(divider.y)\" x2=\"\(block.x + block.width)\" y2=\"\(divider.y)\" stroke=\"var(--_line)\" stroke-width=\"0.75\" stroke-dasharray=\"6 4\" />")
@@ -394,10 +517,10 @@ private func _renderNote(_ note: PositionedSequenceNote) -> String {
     let actorsAttr = note.actors.isEmpty ? "" : " data-actors=\"\(note.actors.map(escapeAttr).joined(separator: ","))\""
     let positionAttr = note.position.isEmpty ? "" : " data-position=\"\(escapeAttr(note.position))\""
 
-    let noteText = _textEl(note.text, cx: note.x + note.width / 2, cy: note.y + note.height / 2, fontSize: original_src_styles.FONT_SIZES.edgeLabel, anchor: "middle", cls: "note-text")
+    let noteText = _textEl(note.text, cx: note.x + note.width / 2, cy: note.y + note.height / 2, fontSize: original_src_styles.FONT_SIZES.edgeLabel, anchor: "middle", cls: "noteText")
 
     return "<g class=\"note\"\(positionAttr)\(actorsAttr)>"
-        + "\n  <rect x=\"\(note.x)\" y=\"\(note.y)\" width=\"\(note.width)\" height=\"\(note.height)\" fill=\"var(--_group-hdr)\" stroke=\"var(--_node-stroke)\" stroke-width=\"\(original_src_styles.STROKE_WIDTHS.innerBox)\" />"
+        + "\n  <rect class=\"note\" x=\"\(note.x)\" y=\"\(note.y)\" width=\"\(note.width)\" height=\"\(note.height)\" fill=\"var(--_group-hdr)\" stroke=\"var(--_node-stroke)\" stroke-width=\"\(original_src_styles.STROKE_WIDTHS.innerBox)\" />"
         + "\n  <polygon points=\"\(note.x + note.width - foldSize),\(note.y) \(note.x + note.width),\(note.y + foldSize) \(note.x + note.width - foldSize),\(note.y + foldSize)\" fill=\"var(--_inner-stroke)\" />"
         + "\n  \(noteText)"
         + "\n</g>"

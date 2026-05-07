@@ -333,6 +333,48 @@
       "source": "sequenceDiagram\n  participant User\n  participant Main as Main Process\n  participant Renderer\n  participant Timer as 3s Fallback Timer\n  User->>Main: CMD+W\n  Main->>Main: event.preventDefault()\n  Main->>Renderer: WINDOW_CLOSE_REQUESTED\n  Main->>Timer: Start 3s timer\n  alt Multiple panels\n    Renderer->>Renderer: closePanel(focusedId)\n    Note over Renderer: Panel removed\n    Note over Renderer: No confirmCloseWindow!\n    Timer-->>Main: 3s elapsed → window.destroy()\n  else Single panel\n    Renderer->>Renderer: closePanel(lastId)\n    Note over Renderer: Stack becomes []\n    Renderer->>Renderer: Auto-select fires → new panel created!\n    Note over Renderer: Panel reopens\n    Timer-->>Main: 3s elapsed → window.destroy()\n  end"
     },
     {
+      "id": "seq-17-reverse-arrows",
+      "category": "sequence",
+      "name": "Reverse Half and Stick Arrows",
+      "source": "sequenceDiagram\n  Alice/\\|-Bob: reverse half top\n  Alice\\|-Bob: reverse half bottom\n  Alice//-Bob: reverse stick top\n  Alice\\\\-Bob: reverse stick bottom\n  Alice/\\|--Bob: reverse half top dotted\n  Alice//--Bob: reverse stick top dotted"
+    },
+    {
+      "id": "seq-18-actor-links",
+      "category": "sequence",
+      "name": "Actor Links and Popups",
+      "source": "sequenceDiagram\n  link Alice: Dashboard @ https://example.com\n  link Alice: Settings @ https://example.com/settings\n  Alice->>Bob: Click here\n  Note over Alice: Click Alice for menu"
+    },
+    {
+      "id": "seq-19-autonumber",
+      "category": "sequence",
+      "name": "Autonumber Messages",
+      "source": "sequenceDiagram\n  autonumber\n  Alice->>Bob: First message\n  Bob->>Charlie: Second message\n  Charlie-->>Alice: Third message\n  autonumber 10 5\n  Alice->>Bob: Restart at 10"
+    },
+    {
+      "id": "seq-20-lifecycle",
+      "category": "sequence",
+      "name": "Create and Destroy",
+      "source": "sequenceDiagram\n  Alice->>Bob: Start\n  create participant Carol\n  Bob->>Carol: Hello Carol\n  Carol-->>Bob: Hi\n  destroy Carol\n  Bob->>Carol: Final message"
+    },
+    {
+      "id": "seq-21-box-groups",
+      "category": "sequence",
+      "name": "Actor Boxes",
+      "source": "sequenceDiagram\n  box rgb(100,200,255) Services\n    participant API\n    participant DB\n  end\n  box rgb(255,200,100) Clients\n    actor User\n  end\n  User->>API: Request\n  API->>DB: Query\n  DB-->>API: Result\n  API-->>User: Response"
+    },
+    {
+      "id": "seq-22-rect-highlight",
+      "category": "sequence",
+      "name": "Rect Background Highlight",
+      "source": "sequenceDiagram\n  Alice->>Bob: Before highlight\n  rect rgb(191, 223, 255)\n    Alice->>Bob: Inside highlight\n    Bob-->>Alice: Response\n  end\n  Alice->>Bob: After highlight"
+    },
+    {
+      "id": "seq-23-wrapping",
+      "category": "sequence",
+      "name": "Wrap and BR Tags",
+      "source": "sequenceDiagram\n  Alice->>Bob: Line1<br>Line2<br>Line3\n  Alice->>Bob: wrap: This is a very long message that should wrap"
+    },
+    {
       "id": "class-1-basic",
       "category": "class",
       "name": "Basic Class",

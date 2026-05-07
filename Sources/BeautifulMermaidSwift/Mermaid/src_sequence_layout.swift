@@ -99,6 +99,7 @@ private func _layoutSequenceDiagramEntry(
     let actorY = cfg.diagramMarginY
     var positionedActors: [PositionedSequenceActor] = visibleActors.map { actor in
         let idx = actorIndex[actor.id] ?? 0
+        let actorH = _estimateActorHeight(actor.label, cfg: cfg)
         return PositionedSequenceActor(
             id: actor.id,
             label: actor.label,
@@ -107,7 +108,7 @@ private func _layoutSequenceDiagramEntry(
             x: actorCenterX[idx],
             y: actorY,
             width: actorWidths[idx],
-            height: cfg.height,
+            height: actorH,
             links: actor.links,
             properties: actor.properties,
             detailsElementId: actor.detailsElementId
@@ -115,7 +116,8 @@ private func _layoutSequenceDiagramEntry(
     }
 
     // ---- Layout messages ----
-    var messageY = actorY + cfg.height + cfg.diagramMarginY
+    let maxActorHeight = positionedActors.map(\.height).max() ?? cfg.height
+    var messageY = actorY + maxActorHeight + cfg.diagramMarginY
     var positionedMessages: [PositionedSequenceMessage] = []
 
     // Extra space for block headers/dividers
@@ -128,10 +130,12 @@ private func _layoutSequenceDiagramEntry(
         }
     }
 
-    // Autonumber tracking
-    var seqNum: Double = diagram.autonumberStart
-    var seqStep: Double = diagram.autonumberStep
-    var seqEnabled: Bool = diagram.autonumberEnabled
+    // Autonumber tracking — config.showSequenceNumbers can force it on
+    // In-diagram autonumber events (including "autonumber off") take precedence
+    var seenAutonumberEvent = false
+    var seqNum: Double = diagram.autonumberEnabled ? diagram.autonumberStart : 1.0
+    var seqStep: Double = diagram.autonumberEnabled ? diagram.autonumberStep : 1.0
+    var seqEnabled: Bool = diagram.autonumberEnabled || cfg.showSequenceNumbers
     var messageIdx = 0
 
     // Activation stacks
@@ -146,6 +150,7 @@ private func _layoutSequenceDiagramEntry(
 
         switch item {
         case .autonumberEvent(let start, let step, let visible):
+            seenAutonumberEvent = true
             seqEnabled = visible
             if visible {
                 seqNum = start
@@ -241,7 +246,7 @@ private func _layoutSequenceDiagramEntry(
             }
         }
 
-        messageY += isSelfMsg ? (30 + cfg.messageMargin) : cfg.messageMargin
+        messageY += _estimateMessageRowHeight(msg.label, cfg: cfg, isSelf: isSelfMsg)
         messageIdx += 1
 
         default:
@@ -254,7 +259,7 @@ private func _layoutSequenceDiagramEntry(
         guard let createMessageIndex = lifecycle.created[actorId],
               createMessageIndex < positionedMessages.count
         else { continue }
-        positionedActors[i].y = max(actorY, positionedMessages[createMessageIndex].y - cfg.height / 2)
+        positionedActors[i].y = max(actorY, positionedMessages[createMessageIndex].y - positionedActors[i].height / 2)
     }
 
     // Close remaining activation stacks
@@ -342,7 +347,7 @@ private func _layoutSequenceDiagramEntry(
         if msgIdx >= 0 && msgIdx < positionedMessages.count {
             refY = positionedMessages[msgIdx].y + 4
         } else {
-            refY = actorY + cfg.height + 4
+            refY = actorY + maxActorHeight + 4
         }
 
         let firstActorIdx = actorIndex[note.actorIds.first ?? ""] ?? 0
@@ -422,7 +427,7 @@ private func _layoutSequenceDiagramEntry(
         bottomActors = []
     }
 
-    let diagramBottom = messageY + cfg.diagramMarginY + (cfg.mirrorActors ? cfg.height + cfg.diagramMarginY : 0)
+    let diagramBottom = messageY + cfg.diagramMarginY + (cfg.mirrorActors ? maxActorHeight + cfg.diagramMarginY : 0)
 
     // ---- Lifelines ----
     let lifelines: [SequenceLifeline] = visibleActors.map { actor in
@@ -431,7 +436,7 @@ private func _layoutSequenceDiagramEntry(
         if lifecycle.created[actor.id] != nil {
             topY = positionedActors[idx].y + positionedActors[idx].height
         } else {
-            topY = actorY + cfg.height
+            topY = actorY + positionedActors[idx].height
         }
 
         let bottomY: Double
@@ -526,6 +531,23 @@ private func _estimateNoteHeight(_ note: SequenceNote) -> Double {
     let lineHeight = ceil(original_src_styles.FONT_SIZES.edgeLabel)
     let spacing: Double = 4
     return count * lineHeight + max(0, count - 1) * spacing + 16
+}
+
+private func _estimateMessageRowHeight(_ label: String, cfg: SequenceDiagramConfig, isSelf: Bool) -> Double {
+    let lines = label.components(separatedBy: "\n")
+    let count = max(1, lines.count)
+    let lineHeight = ceil(original_src_styles.FONT_SIZES.edgeLabel)
+    let textHeight = Double(count) * lineHeight + max(0, Double(count - 1)) * 2
+    let base = isSelf ? (30.0 + cfg.messageMargin) : cfg.messageMargin
+    return max(base, textHeight + 8)
+}
+
+private func _estimateActorHeight(_ label: String, cfg: SequenceDiagramConfig) -> Double {
+    let lines = label.components(separatedBy: "\n")
+    let count = max(1, lines.count)
+    let lineHeight = ceil(original_src_styles.FONT_SIZES.nodeLabel)
+    let textHeight = Double(count) * lineHeight + max(0, Double(count - 1)) * 2
+    return max(cfg.height, textHeight + 20)
 }
 
 private func _estimateNoteWidth(_ note: SequenceNote) -> Double {

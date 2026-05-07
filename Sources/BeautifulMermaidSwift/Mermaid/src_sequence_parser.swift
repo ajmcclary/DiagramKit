@@ -57,7 +57,7 @@ private let _arrowPatterns: [(pattern: String, type: SequenceArrowType)] = [
     ("-|/", .solidArrowBottom),
     ("-\\\\", .stickArrowTop),
     ("-//", .stickArrowBottom),
-    ("/|-", .solidArrowTopReverse),
+    ("/\\|-", .solidArrowTopReverse),
     ("\\|-", .solidArrowBottomReverse),
     ("//-", .stickArrowTopReverse),
     ("\\\\-", .stickArrowBottomReverse),
@@ -137,12 +137,12 @@ private func _parseSequenceDiagramEntry(_ lines: [String]) throws -> SequenceDia
             continue
         }
         // --- accTitle ---
-        if let m = _match(#"^accTitle:\s*(.+)$"#, line, caseInsensitive: true) {
+        if let m = _match(#"^accTitle:\s*([\s\S]+)$"#, line, caseInsensitive: true) {
             items.append(.accTitle(m[1].trimmingCharacters(in: .whitespaces)))
             continue
         }
         // --- accDescr ---
-        if let m = _match(#"^accDescr:\s*(.+)$"#, line, caseInsensitive: true) {
+        if let m = _match(#"^accDescr:\s*([\s\S]+)$"#, line, caseInsensitive: true) {
             items.append(.accDescr(m[1].trimmingCharacters(in: .whitespaces)))
             continue
         }
@@ -421,7 +421,7 @@ private func _parseParticipantDeclaration(_ line: String) -> (id: String, label:
     }
 
     let label = alias ?? id
-    return (id: id, label: _decodeEntities(label), participantType: config?.type ?? pType, config: config, wrap: wrap)
+    return (id: id, label: _brTagsToNewlines(_decodeEntities(label)), participantType: config?.type ?? pType, config: config, wrap: wrap)
 }
 
 private func _parseParticipantConfig(_ json: String) -> ParticipantConfig? {
@@ -555,13 +555,13 @@ private func _extractWrapDecode(_ text: String) -> (cleanedText: String, wrap: B
 
     if let m = _match(#"^:?wrap:(.+)$"#, trimmed) {
         let inner = m[1].trimmingCharacters(in: .whitespaces)
-        return (_decodeEntities(inner), true)
+        return (_brTagsToNewlines(_decodeEntities(inner)), true)
     }
     if let m = _match(#"^:?nowrap:(.+)$"#, trimmed) {
         let inner = m[1].trimmingCharacters(in: .whitespaces)
-        return (_decodeEntities(inner), false)
+        return (_brTagsToNewlines(_decodeEntities(inner)), false)
     }
-    return (_decodeEntities(trimmed), nil)
+    return (_brTagsToNewlines(_decodeEntities(trimmed)), nil)
 }
 
 // MARK: - Arrow Head Type Detection
@@ -669,9 +669,27 @@ private func _parseLink(_ text: String) -> (label: String, url: String)? {
     if let sep = trimmed.firstIndex(of: "@") {
         let label = String(trimmed[..<sep]).trimmingCharacters(in: .whitespaces)
         let url = String(trimmed[trimmed.index(after: sep)...]).trimmingCharacters(in: .whitespaces)
+        guard _isSafeURL(url) else { return nil }
         return (label: label, url: url)
     }
     return nil
+}
+
+private func _isSafeURL(_ url: String) -> Bool {
+    let lowercased = url.lowercased()
+    let unsafePrefixes = ["javascript:", "data:", "vbscript:", "file:"]
+    for prefix in unsafePrefixes {
+        if lowercased.hasPrefix(prefix) { return false }
+    }
+    if lowercased.contains("javascript:") { return false }
+    guard let parsed = URL(string: url) else {
+        return !lowercased.starts(with: "unsafe:")
+    }
+    let allowedSchemes: Set<String> = ["https", "http", "mailto", "tel", "ftp"]
+    if let scheme = parsed.scheme?.lowercased(), !allowedSchemes.contains(scheme) {
+        return false
+    }
+    return true
 }
 
 // MARK: - Helpers

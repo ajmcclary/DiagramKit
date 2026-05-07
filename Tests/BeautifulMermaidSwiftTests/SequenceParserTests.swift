@@ -153,6 +153,44 @@ final class SequenceParserTests: XCTestCase {
         XCTAssertEqual(style.halfArrowStyle, .stick)
     }
 
+    func testArrowReverseHalfTop() throws {
+        // /\|-  — reverse half arrow top
+        let diagram = try parseSequenceDiagram(lines("""
+        sequenceDiagram
+            A/\\|-B: reverse half top
+        """))
+        let style = SequenceArrowStyle(type: diagram.messages.first!.arrowType)
+        XCTAssertTrue(style.isHalfArrow)
+        XCTAssertTrue(style.isReversed)
+        XCTAssertEqual(style.halfArrowDirection, .top)
+        XCTAssertEqual(style.halfArrowStyle, .arrow)
+    }
+
+    func testArrowReverseStickBottom() throws {
+        let diagram = try parseSequenceDiagram(lines("""
+        sequenceDiagram
+            A\\\\-B: reverse stick bottom
+        """))
+        let style = SequenceArrowStyle(type: diagram.messages.first!.arrowType)
+        XCTAssertTrue(style.isHalfArrow)
+        XCTAssertTrue(style.isReversed)
+        XCTAssertEqual(style.halfArrowDirection, .bottom)
+        XCTAssertEqual(style.halfArrowStyle, .stick)
+    }
+
+    func testReverseMarkersInSVG() throws {
+        // Verify SVG output contains reverse marker definitions
+        let diagram = try parseSequenceDiagram(lines("""
+        sequenceDiagram
+            A/\\|-B: rev arrow
+            A\\\\-B: rev stick
+        """))
+        let layout = try layoutSequenceDiagram(diagram)
+        let svg = try renderSequenceSvg(layout, DiagramColors(bg: "#FFFFFF", fg: "#333333"))
+        XCTAssertTrue(svg.contains("seq-arrow-half-top-rev"), "SVG must contain reverse half marker")
+        XCTAssertTrue(svg.contains("seq-arrow-stick-bottom-rev"), "SVG must contain reverse stick marker")
+    }
+
     // MARK: - Central Connection
 
     func testCentralConnectionDest() throws {
@@ -226,6 +264,26 @@ final class SequenceParserTests: XCTestCase {
         """))
         XCTAssertTrue(diagram.messages[0].activate)
         XCTAssertTrue(diagram.messages[1].deactivate)
+    }
+
+    // MARK: - BR Tags
+
+    func testBrTagInMessageLabel() throws {
+        let diagram = try parseSequenceDiagram(lines("""
+        sequenceDiagram
+            A->>B: Line1<br>Line2
+        """))
+        XCTAssertEqual(diagram.messages.first?.label, "Line1\nLine2")
+    }
+
+    func testBrTagInActorLabel() throws {
+        let diagram = try parseSequenceDiagram(lines("""
+        sequenceDiagram
+            participant A as First<br>Second
+            A->>B: Hello
+        """))
+        let a = diagram.actors.first(where: { $0.id == "A" })
+        XCTAssertTrue(a?.label.contains("\n") ?? false)
     }
 
     // MARK: - Autonumber
@@ -431,6 +489,58 @@ final class SequenceParserTests: XCTestCase {
             Alice->>Bob: Heart #9829;
         """))
         XCTAssertEqual(diagram.messages.first?.label, "Heart ♥")
+    }
+
+    // MARK: - URL Sanitization
+
+    func testLinkSanitizationBlocksJavascript() throws {
+        let diagram = try parseSequenceDiagram(lines("""
+        sequenceDiagram
+            link Alice: Bad @ javascript:alert(1)
+            Alice->>Bob: Hello
+        """))
+        let linkItems = diagram.items.filter { if case .link = $0 { true } else { false } }
+        XCTAssertEqual(linkItems.count, 0, "javascript: URLs should be blocked")
+    }
+
+    func testLinkSanitizationBlocksDataUri() throws {
+        let diagram = try parseSequenceDiagram(lines("""
+        sequenceDiagram
+            link Alice: Bad @ data:text/html,<script>alert(1)</script>
+            Alice->>Bob: Hello
+        """))
+        let linkItems = diagram.items.filter { if case .link = $0 { true } else { false } }
+        XCTAssertEqual(linkItems.count, 0, "data: URLs should be blocked")
+    }
+
+    func testLinkSanitizationAllowsHttps() throws {
+        let diagram = try parseSequenceDiagram(lines("""
+        sequenceDiagram
+            link Alice: Dashboard @ https://example.com
+            Alice->>Bob: Hello
+        """))
+        let linkItems = diagram.items.filter { if case .link = $0 { true } else { false } }
+        XCTAssertEqual(linkItems.count, 1, "https: URLs should be allowed")
+    }
+
+    func testLinkSanitizationAllowsMailto() throws {
+        let diagram = try parseSequenceDiagram(lines("""
+        sequenceDiagram
+            link Alice: Email @ mailto:alice@example.com
+            Alice->>Bob: Hello
+        """))
+        let linkItems = diagram.items.filter { if case .link = $0 { true } else { false } }
+        XCTAssertEqual(linkItems.count, 1, "mailto: URLs should be allowed")
+    }
+
+    func testLinkSanitizationBlocksVbscript() throws {
+        let diagram = try parseSequenceDiagram(lines("""
+        sequenceDiagram
+            link Alice: Bad @ vBScript:msgbox(1)
+            Alice->>Bob: Hello
+        """))
+        let linkItems = diagram.items.filter { if case .link = $0 { true } else { false } }
+        XCTAssertEqual(linkItems.count, 0, "vbscript: URLs should be blocked")
     }
 
     // MARK: - Notes
