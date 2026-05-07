@@ -1,0 +1,145 @@
+import Foundation
+import CoreGraphics
+import CoreText
+#if targetEnvironment(macCatalyst)
+import UIKit
+#elseif canImport(UIKit)
+import UIKit
+#elseif canImport(AppKit)
+import AppKit
+#endif
+
+extension DiagramRenderer {
+    func _drawTreemap(_ positioned: PositionedGraph, in context: CGContext, bounds: CGRect) {
+        guard case let .treemap(data) = positioned.content else { return }
+        let theme = self.theme
+
+        if !theme.transparent {
+            context.setFillColor(theme.background.cgColor)
+            context.fill(bounds)
+        }
+
+        let scaleX = bounds.width / CGFloat(data.svgWidth)
+        let scaleY = bounds.height / CGFloat(data.svgHeight)
+        let scale = min(scaleX, scaleY)
+        let offsetX = (bounds.width - CGFloat(data.svgWidth) * scale) / 2
+        let offsetY = (bounds.height - CGFloat(data.svgHeight) * scale) / 2
+
+        context.saveGState()
+        context.translateBy(x: offsetX, y: offsetY)
+        context.scaleBy(x: scale, y: scale)
+
+        if let title = data.title {
+            _drawTreemapTitle(title, in: context, theme: theme)
+        }
+
+        context.saveGState()
+        context.translateBy(x: 0, y: CGFloat(data.titleHeight))
+
+        for section in data.sections {
+            _drawTreemapSection(section, in: context)
+        }
+
+        for leaf in data.leaves {
+            _drawTreemapLeaf(leaf, in: context)
+        }
+
+        context.restoreGState()
+
+        context.restoreGState()
+    }
+
+    private func _drawTreemapTitle(_ title: PositionedTreemapTitle, in context: CGContext, theme: DiagramTheme) {
+        let font = _systemFont(size: 14)
+        let color = theme.foreground
+        let point = CGPoint(x: CGFloat(title.x), y: CGFloat(title.y))
+        _drawTextInFlipped(title.text, at: point, context: context, contentHeight: 1000, color: color, font: font, alignment: .center)
+    }
+
+    private func _drawTreemapSection(_ section: PositionedTreemapSection, in context: CGContext) {
+        guard section.depth > 0 else { return }
+
+        let x = CGFloat(section.x0)
+        let y = CGFloat(section.y0)
+        let w = CGFloat(section.x1 - section.x0)
+        let h = CGFloat(section.y1 - section.y0)
+
+        context.saveGState()
+
+        let fillColor = BMColor(hex: section.fillColor)
+        context.setFillColor(fillColor.withAlphaComponent(0.6).cgColor)
+        let bodyRect = CGRect(x: x, y: y + 25, width: w, height: h - 25)
+        context.fill(bodyRect)
+
+        let strokeColor = BMColor(hex: section.strokeColor)
+        context.setStrokeColor(strokeColor.withAlphaComponent(0.4).cgColor)
+        context.setLineWidth(2.0)
+        context.stroke(bodyRect)
+
+        if let label = section.label, !label.hidden {
+            let font = _boldSystemFont(size: 12)
+            let labelColor = BMColor(hex: label.fillColor)
+            let point = CGPoint(x: x + 6, y: y + 12.5)
+            _drawTextInFlipped(label.text, at: point, context: context, contentHeight: 1000, color: labelColor, font: font, alignment: .left)
+        }
+
+        if let value = section.value, !value.hidden {
+            let font = _italicSystemFont(size: 10, weight: 0)
+            let valueColor = BMColor(hex: value.fillColor)
+            let point = CGPoint(x: x + w - 10, y: y + 12.5)
+            _drawTextInFlipped(value.text, at: point, context: context, contentHeight: 1000, color: valueColor, font: font, alignment: .right)
+        }
+
+        context.restoreGState()
+    }
+
+    private func _drawTreemapLeaf(_ leaf: PositionedTreemapLeaf, in context: CGContext) {
+        let x = CGFloat(leaf.x0)
+        let y = CGFloat(leaf.y0)
+        let w = CGFloat(leaf.x1 - leaf.x0)
+        let h = CGFloat(leaf.y1 - leaf.y0)
+
+        context.saveGState()
+
+        let fillColor = BMColor(hex: leaf.fillColor)
+        context.setFillColor(fillColor.withAlphaComponent(0.3).cgColor)
+        context.fill(CGRect(x: x, y: y, width: w, height: h))
+
+        let strokeColor = BMColor(hex: leaf.strokeColor)
+        context.setStrokeColor(strokeColor.cgColor)
+        context.setLineWidth(3.0)
+        context.stroke(CGRect(x: x, y: y, width: w, height: h))
+
+        if let label = leaf.label, !label.hidden {
+            let font = _systemFont(size: CGFloat(label.fontSize))
+            let labelColor = BMColor(hex: label.fillColor)
+            let point = CGPoint(x: x + w / 2, y: y + CGFloat(label.y))
+            _drawTextInFlipped(label.text, at: point, context: context, contentHeight: 1000, color: labelColor, font: font, alignment: .center)
+        }
+
+        if let valueText = leaf.valueText, !valueText.hidden {
+            let font = _systemFont(size: CGFloat(valueText.fontSize))
+            let valueColor = BMColor(hex: valueText.fillColor)
+            let point = CGPoint(x: x + w / 2, y: y + CGFloat(valueText.y))
+            _drawTextInFlipped(valueText.text, at: point, context: context, contentHeight: 1000, color: valueColor, font: font, alignment: .center)
+        }
+
+        context.restoreGState()
+    }
+
+    private func _systemFont(size: CGFloat) -> BMFont {
+        #if targetEnvironment(macCatalyst) || canImport(UIKit)
+        return BMFont.systemFont(ofSize: size)
+        #elseif canImport(AppKit)
+        return BMFont.systemFont(ofSize: size)
+        #endif
+    }
+
+    private func _boldSystemFont(size: CGFloat) -> BMFont {
+        #if targetEnvironment(macCatalyst) || canImport(UIKit)
+        return BMFont.boldSystemFont(ofSize: size)
+        #elseif canImport(AppKit)
+        return BMFont.boldSystemFont(ofSize: size)
+        #endif
+    }
+}

@@ -259,6 +259,18 @@ public struct GraphLayout {
                     height: positioned.height,
                     content: .radar(positioned)
                 )
+            case .treemap:
+                guard case let .treemap(diagram) = graph.payload else {
+                    _reportMermaidIssue("GraphLayout.layout found mismatched treemap payload.")
+                    return PositionedGraph(diagram: graph, content: .treemap(.empty))
+                }
+                let positioned = layoutTreemapDiagram(diagram)
+                return PositionedGraph(
+                    diagram: graph,
+                    width: positioned.width,
+                    height: positioned.height,
+                    content: .treemap(positioned)
+                )
             }
         }
     }

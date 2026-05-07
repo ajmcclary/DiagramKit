@@ -1631,10 +1631,52 @@
       "category": "radar",
       "name": "Radar - Config via Frontmatter",
       "source": "---\nconfig:\n  radar:\n    axisScaleFactor: 0.25\n    curveTension: 0.1\n  theme: base\n  themeVariables:\n    cScale0: \"#FF0000\"\n    cScale1: \"#00FF00\"\n    radar:\n      curveOpacity: 0\n---\nradar-beta\n  axis A, B, C, D, E\n  curve c1{1,2,3,4,5}\n  curve c2{5,4,3,2,1}"
+    },
+    {
+      "id": "treemap-basic",
+      "category": "treemap",
+      "name": "Treemap - Basic",
+      "source": "treemap-beta\n\"Category A\"\n    \"Item A1\": 10\n    \"Item A2\": 20\n\"Category B\"\n    \"Item B1\": 15\n    \"Item B2\": 25"
+    },
+    {
+      "id": "treemap-hierarchical",
+      "category": "treemap",
+      "name": "Treemap - Hierarchical",
+      "source": "treemap\n\"Electronics\"\n    \"Phones\": 300\n    \"Laptops\": 500\n    \"Tablets\": 200\n\"Clothing\"\n    \"Shirts\": 150\n    \"Pants\": 250\n    \"Shoes\": 180"
+    },
+    {
+      "id": "treemap-comma-separator",
+      "category": "treemap",
+      "name": "Treemap - Comma Separator",
+      "source": "treemap\n\"Root\"\n  \"Child1\" , 100\n  \"Child2\" : 200"
+    },
+    {
+      "id": "treemap-title-accessibility",
+      "category": "treemap",
+      "name": "Treemap - Title and Accessibility",
+      "source": "treemap\n  title Budget Treemap\n  accTitle: Budget allocation\n  accDescr: Nested budget by department\n\"Budget\"\n    \"Engineering\"\n        \"Frontend\": 300000\n        \"Backend\": 400000"
+    },
+    {
+      "id": "treemap-themed-dark",
+      "category": "treemap",
+      "name": "Treemap - Dark Theme via Frontmatter",
+      "source": "---\nconfig:\n  theme: dark\n---\ntreemap-beta\n\"Category A\"\n    \"Item A1\": 10\n    \"Item A2\": 20\n\"Category B\"\n    \"Item B1\": 15"
+    },
+    {
+      "id": "treemap-value-format",
+      "category": "treemap",
+      "name": "Treemap - Dollar Value Format",
+      "source": "---\nconfig:\n  treemap:\n    valueFormat: \"$,.2f\"\n---\ntreemap\n\"Revenue\"\n    \"Q1\": 1250345.75\n    \"Q2\": 1645789.25"
+    },
+    {
+      "id": "treemap-multiline-accdescr",
+      "category": "treemap",
+      "name": "Treemap - Multiline accDescr",
+      "source": "treemap\n  accTitle: Sales\n  accDescr { Sales data by region and product category }\n\"Sales\"\n    \"North\": 1200\n    \"South\": 950\n    \"East\": 1400"
     }
   ],
   "metadata": {
-    "totalCount": 257,
+    "totalCount": 264,
     "categories": {
       "flowchart": 27,
       "state": 12,
@@ -1655,7 +1697,8 @@
       "packet": 5,
       "kanban": 3,
       "architecture": 7,
-      "radar": 10
+      "radar": 10,
+      "treemap": 7
     }
   }
 }

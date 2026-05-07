@@ -72,6 +72,8 @@ public final class DiagramRenderer {
             _drawArchitecture(positioned, in: context, bounds: bounds)
         case .radar:
             _drawRadar(positioned, in: context, bounds: bounds)
+        case .treemap:
+            _drawTreemap(positioned, in: context, bounds: bounds)
         }
     }
 

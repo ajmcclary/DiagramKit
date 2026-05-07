@@ -91,6 +91,7 @@ private enum _DiagramRoutingType {
     case kanban
     case architecture
     case radar
+    case treemap
 }
 
 private func _decodeXML(_ text: String) -> String {
@@ -158,6 +159,9 @@ private func detectDiagramType(_ text: String) -> _DiagramRoutingType {
     }
     if firstLine.hasPrefix("radar-beta") {
         return .radar
+    }
+    if firstLine.hasPrefix("treemap") {
+        return .treemap
     }
 
     return .flowchart
@@ -331,6 +335,21 @@ func _renderMermaidSVG(
         }
         let positioned = layoutRadarDiagram(diagram)
         return renderRadarSvg(positioned, colors: colors, font: font, transparent: transparent)
+    case .treemap:
+        let rawLines = decodedText
+            .replacingOccurrences(of: "\r\n", with: "\n")
+            .replacingOccurrences(of: "\r", with: "\n")
+            .split(separator: "\n", omittingEmptySubsequences: false)
+            .map(String.init)
+        var diagram = try parseTreemapDiagram(rawLines, frontmatter: fm)
+        if let fmc = fm?.treemapConfig { diagram.config = fmc }
+        if let theme = fm?.theme { diagram.themeName = theme }
+        if diagram.diagramTitle == nil, let fmTitle = fm?.diagramTitle {
+            diagram.diagramTitle = fmTitle
+        }
+        let positioned = layoutTreemapDiagram(diagram)
+        let diagramId = UUID().uuidString
+        return renderTreemapSvg(positioned, diagramId: diagramId, colors, font, transparent)
     }
 }
 

@@ -173,6 +173,9 @@ private func _applyInitDirectivePayload(_ payload: String, to frontmatter: inout
         if let radar = config["radar"] as? [String: Any] {
             applied = _applyRadarInitConfig(radar, to: &frontmatter) || applied
         }
+        if let treemap = config["treemap"] as? [String: Any] {
+            applied = _applyTreemapInitConfig(treemap, to: &frontmatter) || applied
+        }
         if let themeVariables = config["themeVariables"] as? [String: Any] {
             applied = _applyRadarInitTheme(themeVariables, to: &frontmatter) || applied
         }
@@ -180,6 +183,10 @@ private func _applyInitDirectivePayload(_ payload: String, to frontmatter: inout
 
     if let radar = object["radar"] as? [String: Any] {
         applied = _applyRadarInitConfig(radar, to: &frontmatter) || applied
+    }
+
+    if let treemap = object["treemap"] as? [String: Any] {
+        applied = _applyTreemapInitConfig(treemap, to: &frontmatter) || applied
     }
 
     if let themeVariables = object["themeVariables"] as? [String: Any] {
@@ -255,6 +262,44 @@ private func _applyRadarInitConfig(_ object: [String: Any], to frontmatter: inou
 
     if applied {
         frontmatter.radarConfig = config
+    }
+    return applied
+}
+
+@discardableResult
+private func _applyTreemapInitConfig(_ object: [String: Any], to frontmatter: inout DiagramFrontmatter) -> Bool {
+    var config = frontmatter.treemapConfig ?? TreemapDiagramConfig()
+    var applied = false
+
+    for (key, value) in object {
+        switch key {
+        case "useMaxWidth":
+            if let v = _jsonBool(value) { config.useMaxWidth = v; applied = true }
+        case "padding":
+            if let v = _jsonDouble(value) { config.padding = v; applied = true }
+        case "diagramPadding":
+            if let v = _jsonDouble(value) { config.diagramPadding = v; applied = true }
+        case "showValues":
+            if let v = _jsonBool(value) { config.showValues = v; applied = true }
+        case "nodeWidth":
+            if let v = _jsonDouble(value) { config.nodeWidth = v; applied = true }
+        case "nodeHeight":
+            if let v = _jsonDouble(value) { config.nodeHeight = v; applied = true }
+        case "borderWidth":
+            if let v = _jsonDouble(value) { config.borderWidth = v; applied = true }
+        case "valueFontSize":
+            if let v = _jsonDouble(value) { config.valueFontSize = v; applied = true }
+        case "labelFontSize":
+            if let v = _jsonDouble(value) { config.labelFontSize = v; applied = true }
+        case "valueFormat":
+            if let v = _jsonString(value) { config.valueFormat = v; applied = true }
+        default:
+            break
+        }
+    }
+
+    if applied {
+        frontmatter.treemapConfig = config
     }
     return applied
 }
@@ -440,6 +485,10 @@ private final class _StackSafeYamlFrontmatterParser {
     var hasArchSection = false
     var hasArchTheme = false
     let radar = _RadarFrontmatterAccumulator()
+    var treemapConfig = TreemapDiagramConfig()
+    var treemapThemeVariables: [String: String] = [:]
+    var hasTreemapSection = false
+    var hasTreemapTheme = false
 
     func parse(_ lines: [String]) -> DiagramFrontmatter? {
         for entry in _flattenYamlFrontmatterLines(lines) {
@@ -478,6 +527,7 @@ private final class _StackSafeYamlFrontmatterParser {
         if applyKanban(path, value) { return }
         if applyArchitecture(path, value) { return }
         if applyRadar(path, value) { return }
+        if applyTreemap(path, value) { return }
         _ = applyGlobal(path, value)
     }
 
@@ -1030,6 +1080,33 @@ private final class _StackSafeYamlFrontmatterParser {
         return true
     }
 
+    private func applyTreemap(_ path: String, _ value: String) -> Bool {
+        if path.hasPrefix("config.treemap.") {
+            hasTreemapSection = true
+            let key = path.replacingOccurrences(of: "config.treemap.", with: "")
+            switch key {
+            case "useMaxWidth": treemapConfig.useMaxWidth = (value.lowercased() == "true")
+            case "padding": treemapConfig.padding = Double(value) ?? treemapConfig.padding
+            case "diagramPadding": treemapConfig.diagramPadding = Double(value) ?? treemapConfig.diagramPadding
+            case "showValues": treemapConfig.showValues = (value.lowercased() == "true")
+            case "nodeWidth": treemapConfig.nodeWidth = Double(value) ?? treemapConfig.nodeWidth
+            case "nodeHeight": treemapConfig.nodeHeight = Double(value) ?? treemapConfig.nodeHeight
+            case "borderWidth": treemapConfig.borderWidth = Double(value) ?? treemapConfig.borderWidth
+            case "valueFontSize": treemapConfig.valueFontSize = Double(value) ?? treemapConfig.valueFontSize
+            case "labelFontSize": treemapConfig.labelFontSize = Double(value) ?? treemapConfig.labelFontSize
+            case "valueFormat": treemapConfig.valueFormat = value
+            default: break
+            }
+            return true
+        }
+        if let subKey = _treemapThemeSubKey(from: path) {
+            treemapThemeVariables[subKey] = value
+            hasTreemapTheme = true
+            return true
+        }
+        return false
+    }
+
     private func applyGlobal(_ path: String, _ value: String) -> Bool {
         switch path {
         case "config.layout":
@@ -1085,6 +1162,8 @@ private final class _StackSafeYamlFrontmatterParser {
         if hasArchTheme { frontmatter.archTheme = archTheme }
         if radar.hasConfig { frontmatter.radarConfig = radar.config }
         if radar.hasTheme { frontmatter.radarTheme = radar.theme }
+        if hasTreemapSection { frontmatter.treemapConfig = treemapConfig }
+        if hasTreemapTheme { frontmatter.treemapThemeVariables = treemapThemeVariables }
     }
 }
 
@@ -1161,6 +1240,10 @@ private final class _YamlFrontmatterParser {
     var hasArchTheme = false
 
     let radar = _RadarFrontmatterAccumulator()
+    var treemapConfig = TreemapDiagramConfig()
+    var treemapThemeVariables: [String: String] = [:]
+    var hasTreemapSection = false
+    var hasTreemapTheme = false
 
     func parse(_ lines: [String]) -> DiagramFrontmatter? {
     var pathStack: [(depth: Int, key: String)] = []
@@ -1808,6 +1891,33 @@ private final class _YamlFrontmatterParser {
             continue
         }
 
+        // Treemap config — config.treemap.*
+        if fullPath.hasPrefix("config.treemap.") {
+            hasTreemapSection = true
+            let subKey = fullPath.replacingOccurrences(of: "config.treemap.", with: "")
+            switch subKey {
+            case "useMaxWidth": treemapConfig.useMaxWidth = (value.lowercased() == "true")
+            case "padding": treemapConfig.padding = Double(value) ?? treemapConfig.padding
+            case "diagramPadding": treemapConfig.diagramPadding = Double(value) ?? treemapConfig.diagramPadding
+            case "showValues": treemapConfig.showValues = (value.lowercased() == "true")
+            case "nodeWidth": treemapConfig.nodeWidth = Double(value) ?? treemapConfig.nodeWidth
+            case "nodeHeight": treemapConfig.nodeHeight = Double(value) ?? treemapConfig.nodeHeight
+            case "borderWidth": treemapConfig.borderWidth = Double(value) ?? treemapConfig.borderWidth
+            case "valueFontSize": treemapConfig.valueFontSize = Double(value) ?? treemapConfig.valueFontSize
+            case "labelFontSize": treemapConfig.labelFontSize = Double(value) ?? treemapConfig.labelFontSize
+            case "valueFormat": treemapConfig.valueFormat = value
+            default: break
+            }
+            continue
+        }
+
+        // Treemap theme variables — config.themeVariables.cScale* etc.
+        if let subKey = _treemapThemeSubKey(from: fullPath) {
+            treemapThemeVariables[subKey] = value
+            hasTreemapTheme = true
+            continue
+        }
+
         // Global config.layout (shared across all diagram families)
         if fullPath == "config.layout" {
             hasErSection = true
@@ -1879,6 +1989,8 @@ private final class _YamlFrontmatterParser {
     if hasArchTheme { frontmatter.archTheme = archTheme }
     if radar.hasConfig { frontmatter.radarConfig = radar.config }
     if radar.hasTheme { frontmatter.radarTheme = radar.theme }
+    if hasTreemapSection { frontmatter.treemapConfig = treemapConfig }
+    if hasTreemapTheme { frontmatter.treemapThemeVariables = treemapThemeVariables }
 
     return hasAnyContent ? frontmatter : nil
 }
@@ -2388,4 +2500,48 @@ private func _applyRadarThemeValue(_ key: String, value: String, theme: inout Ra
     default: return false
     }
     return true
+}
+
+private func _treemapThemeSubKey(from fullPath: String) -> String? {
+    let prefixes = ["config.themeVariables.", "themeVariables."]
+    for prefix in prefixes {
+        if fullPath.hasPrefix(prefix) {
+            let subKey = String(fullPath.dropFirst(prefix.count))
+            if _isTreemapThemeKey(subKey) {
+                return subKey
+            }
+            if subKey.hasPrefix("treemap.") {
+                let inner = String(subKey.dropFirst(8))
+                if _isTreemapThemeKey(inner) {
+                    return inner
+                }
+            }
+        }
+    }
+    return nil
+}
+
+private func _isTreemapThemeKey(_ key: String) -> Bool {
+    if key.hasPrefix("cScale") {
+        let num = String(key.dropFirst(6))
+        if let n = Int(num), n >= 0, n <= 11 {
+            return true
+        }
+    }
+    if key.hasPrefix("cScalePeer") {
+        let num = String(key.dropFirst(10))
+        if let n = Int(num), n >= 0, n <= 11 {
+            return true
+        }
+    }
+    if key.hasPrefix("cScaleLabel") {
+        let num = String(key.dropFirst(11))
+        if let n = Int(num), n >= 0, n <= 11 {
+            return true
+        }
+    }
+    switch key {
+    case "titleColor", "textColor": return true
+    default: return false
+    }
 }

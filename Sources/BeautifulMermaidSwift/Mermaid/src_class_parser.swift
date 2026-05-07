@@ -351,6 +351,8 @@ public struct DiagramFrontmatter: Sendable {
     public var archTheme: ArchitectureThemeConfig?
     public var radarConfig: RadarDiagramConfig?
     public var radarTheme: RadarThemeConfig?
+    public var treemapConfig: TreemapDiagramConfig?
+    public var treemapThemeVariables: [String: String]?
 
     public var layout: String?      // Shared global config.layout
     public var look: String?         // Shared global config.look
@@ -390,6 +392,8 @@ public struct DiagramFrontmatter: Sendable {
         archTheme: ArchitectureThemeConfig? = nil,
         radarConfig: RadarDiagramConfig? = nil,
         radarTheme: RadarThemeConfig? = nil,
+        treemapConfig: TreemapDiagramConfig? = nil,
+        treemapThemeVariables: [String: String]? = nil,
         layout: String? = nil,
         look: String? = nil,
         theme: String? = nil,
@@ -427,6 +431,8 @@ public struct DiagramFrontmatter: Sendable {
         self.archTheme = archTheme
         self.radarConfig = radarConfig
         self.radarTheme = radarTheme
+        self.treemapConfig = treemapConfig
+        self.treemapThemeVariables = treemapThemeVariables
         self.layout = layout
         self.look = look
         self.theme = theme

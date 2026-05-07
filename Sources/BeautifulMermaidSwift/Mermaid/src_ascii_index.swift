@@ -297,6 +297,7 @@ open class original_src_ascii_index {
         case kanban
         case architecture
         case radar
+        case treemap
     }
 
     struct AsciiConfig {
@@ -392,6 +393,8 @@ open class original_src_ascii_index {
             return "architecture"
         case .radar:
             return "radar"
+        case .treemap:
+            return "treemap"
         case .flowchart:
             return "flowchart"
         }
@@ -487,6 +490,9 @@ open class original_src_ascii_index {
         case .radar:
             throw BeautifulMermaidError.notYetImplemented("Radar Chart ASCII rendering")
 
+        case .treemap:
+            throw BeautifulMermaidError.notYetImplemented("Treemap ASCII rendering")
+
         case .flowchart:
             let parsed = try parseMermaid(preprocessedText)
 
@@ -581,6 +587,9 @@ open class original_src_ascii_index {
         }
         if firstLine.hasPrefix("radar-beta") {
             return .radar
+        }
+        if firstLine.hasPrefix("treemap") {
+            return .treemap
         }
 
         return .flowchart
