@@ -11,14 +11,28 @@ public func renderPieSvg(
     var parts: [String] = []
 
     let themeColors = original_src_theme.DiagramColors(bg: colors.bg, fg: colors.fg, line: colors.line, accent: colors.accent, muted: colors.muted, surface: colors.surface, border: colors.border)
-    let svgTag = original_src_theme.svgOpenTag(
-        chart.width,
-        chart.height,
-        themeColors,
-        transparent,
-        viewBoxX: chart.viewBoxX
-    )
-    parts.append(svgTag)
+    let widthStr = _pieR(chart.width)
+    let heightStr = _pieR(chart.height)
+    let viewBoxXStr = _pieR(chart.viewBoxX)
+    let useMaxWidth = chart.config.useMaxWidth
+
+    var styleVarParts: [String] = []
+    styleVarParts.append("--bg:\(colors.bg)")
+    styleVarParts.append("--fg:\(colors.fg)")
+    if let line = colors.line { styleVarParts.append("--line:\(line)") }
+    if let accent = colors.accent { styleVarParts.append("--accent:\(accent)") }
+    if let muted = colors.muted { styleVarParts.append("--muted:\(muted)") }
+    if let surface = colors.surface { styleVarParts.append("--surface:\(surface)") }
+    if let border = colors.border { styleVarParts.append("--border:\(border)") }
+    let bgStyle = (transparent ?? false) ? "" : ";background:var(--bg)"
+
+    if useMaxWidth {
+        let styleVars = (styleVarParts + ["max-width: \(widthStr)px"]).joined(separator: ";")
+        parts.append("<svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" viewBox=\"0 0 \(widthStr) \(heightStr)\" width=\"100%\" preserveAspectRatio=\"xMinYMin meet\" style=\"\(styleVars)\(bgStyle)\">")
+    } else {
+        let styleVars = styleVarParts.joined(separator: ";")
+        parts.append("<svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" viewBox=\"\(viewBoxXStr) 0 \(widthStr) \(heightStr)\" width=\"\(widthStr)\" height=\"\(heightStr)\" style=\"\(styleVars)\(bgStyle)\">")
+    }
 
     // Accessibility
     if let accTitle = chart.accTitle {
@@ -71,9 +85,14 @@ public func renderPieSvg(
         #"<circle cx="0" cy="0" r="\#(_pieR(chart.outerCircle.r))" class="pieOuterCircle"/>"#
     )
 
+    // Resolve base colors for pie palette derivation
+    let basePrimary = colors.accent ?? "#ECECFF"
+    let baseSecondary = PieChartThemeConfig.adjustHSL(basePrimary, hShift: 60, lShift: -10)
+    let baseTertiary = PieChartThemeConfig.adjustHSL(basePrimary, hShift: -60, lShift: -10)
+
     // Pie arcs
     for arc in chart.arcs {
-        let fillColor = chart.theme.pieColor(at: arc.fillColorIndex)
+        let fillColor = chart.theme.resolvedPieColor(at: arc.fillColorIndex, primary: basePrimary, secondary: baseSecondary, tertiary: baseTertiary)
         parts.append(
             #"<path d="\#(_escapePieXml(arc.path))" fill="\#(_escapePieXml(fillColor))" class="pieCircle"/>"#
         )
@@ -97,7 +116,7 @@ public func renderPieSvg(
     if !chart.legend.isEmpty {
         parts.append(#"<g class="legend">"#)
         for entry in chart.legend {
-            let fillColor = chart.theme.pieColor(at: entry.colorIndex)
+            let fillColor = chart.theme.resolvedPieColor(at: entry.colorIndex, primary: basePrimary, secondary: baseSecondary, tertiary: baseTertiary)
             let groupTransform = "translate(\(_pieR(entry.x)), \(_pieR(entry.y)))"
             parts.append(#"<g transform="\#(groupTransform)">"#)
             parts.append(

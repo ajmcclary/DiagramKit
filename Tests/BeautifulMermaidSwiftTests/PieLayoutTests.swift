@@ -38,6 +38,16 @@ final class PieLayoutTests: XCTestCase {
         XCTAssertEqual(legendLabels, ["A", "B"])
     }
 
+    func testLegendSwatchAtOrigin() throws {
+        let chart = try parsePieChart(lines("pie\n\"A\": 100\n\"B\": 50"))
+        let positioned = layoutPieChart(chart)
+
+        for entry in positioned.legend {
+            XCTAssertEqual(entry.swatchX, 0, "Swatch x should be 0 (group-local)")
+            XCTAssertEqual(entry.swatchY, 0, "Swatch y should be 0 (matches Mermaid rect position)")
+        }
+    }
+
     // MARK: - Color indexing
 
     func testColorDomainStability() throws {
@@ -160,6 +170,37 @@ final class PieLayoutTests: XCTestCase {
         let d1 = positioned1.sliceLabels.first.map { sqrt($0.x * $0.x + $0.y * $0.y) } ?? 0
         let d2 = positioned2.sliceLabels.first.map { sqrt($0.x * $0.x + $0.y * $0.y) } ?? 0
         XCTAssertLessThan(d1, d2)
+    }
+
+    func testTextPositionClampedBelowZero() throws {
+        let chart = try parsePieChart(lines("pie\n\"A\": 100"))
+        let cfg = PieChartConfig(textPosition: -0.5)
+        let chartWithConfig = PieChart(
+            sections: chart.sections,
+            config: cfg,
+            theme: chart.theme
+        )
+        let positioned = layoutPieChart(chartWithConfig)
+
+        // textPosition -0.5 should be clamped to 0 (center)
+        let distance = positioned.sliceLabels.first.map { sqrt($0.x * $0.x + $0.y * $0.y) } ?? 0
+        XCTAssertEqual(distance, 0.0, accuracy: 0.01, "Negative textPosition should clamp to 0 (center)")
+    }
+
+    func testTextPositionClampedAboveOne() throws {
+        let chart = try parsePieChart(lines("pie\n\"A\": 100"))
+        let cfg = PieChartConfig(textPosition: 1.5)
+        let chartWithConfig = PieChart(
+            sections: chart.sections,
+            config: cfg,
+            theme: chart.theme
+        )
+        let positioned = layoutPieChart(chartWithConfig)
+
+        // textPosition 1.5 should be clamped to 1.0 (edge)
+        let radius = min(450.0, 450.0) / 2 - 40  // = 185
+        let distance = positioned.sliceLabels.first.map { sqrt($0.x * $0.x + $0.y * $0.y) } ?? 0
+        XCTAssertEqual(distance, radius, accuracy: 0.01, "textPosition >1 should clamp to 1.0 (edge)")
     }
 
     // MARK: - Zero-sum edge cases

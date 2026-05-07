@@ -84,7 +84,7 @@ public func layoutPieChart(_ chart: PieChart) -> PositionedPieChart {
     }
 
     // Slice labels (percentages)
-    let textPosition = config.textPosition
+    let textPosition = max(0.0, min(1.0, config.textPosition))
     var sliceLabels: [PieSliceLabel] = []
     let percentageFormatter = NumberFormatter()
     percentageFormatter.maximumFractionDigits = 0
@@ -249,7 +249,7 @@ private func layoutLegend(
             x: horizontal,
             y: vertical,
             swatchX: 0,
-            swatchY: -(LEGEND_RECT_SIZE / 2),
+            swatchY: 0,
             colorIndex: colorIndexes[section.label] ?? index
         ))
     }
@@ -269,7 +269,7 @@ private func _applyViewBox(_ positioned: inout PositionedPieChart, config: PieCh
         let legendTextWidth = positioned.legend.reduce(0.0) { maxLen, entry in
             let charCount = Double(entry.displayText.count)
             let fontSize = parsePieLength(positioned.theme.pieLegendTextSize) ?? 17
-            let estimated = charCount * fontSize * 0.55
+            let estimated = charCount * fontSize * 0.7
             return max(maxLen, estimated)
         }
 

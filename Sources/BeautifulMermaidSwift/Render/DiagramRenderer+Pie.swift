@@ -36,9 +36,13 @@ extension DiagramRenderer {
             let opacity = CGFloat(Double(chart.theme.pieOpacity.replacingOccurrences(of: "}", with: "").trimmingCharacters(in: CharacterSet(charactersIn: ";"))) ?? 0.7)
             let strokeWidth = parsePieCGFloat(chart.theme.pieStrokeWidth) ?? 2
 
+            let basePrimary = theme.accent?.hexString ?? "#ECECFF"
+            let baseSecondary = PieChartThemeConfig.adjustHSL(basePrimary, hShift: 60, lShift: -10)
+            let baseTertiary = PieChartThemeConfig.adjustHSL(basePrimary, hShift: -60, lShift: -10)
+
             for arc in chart.arcs {
                 let colorIndex = arc.fillColorIndex
-                let resolvedColor = _pieSliceColor(index: colorIndex, theme: chart.theme)
+                let resolvedColor = _pieSliceColor(index: colorIndex, theme: chart.theme, primary: basePrimary, secondary: baseSecondary, tertiary: baseTertiary)
                 ctx.setFillColor(resolvedColor.withAlphaComponent(opacity).cgColor)
                 ctx.setStrokeColor(_pieColor(chart.theme.pieStrokeColor, fallback: resolvedColor).cgColor)
                 ctx.setLineWidth(strokeWidth)
@@ -52,7 +56,7 @@ extension DiagramRenderer {
             // Slice labels
             for label in chart.sliceLabels {
                 let labelX = pieCx + CGFloat(label.x)
-                let labelY = pieCx + CGFloat(label.y)
+                let labelY = pieCy + CGFloat(label.y)
                 let textY = pieHeight - labelY
                 _drawTextInFlipped(
                     label.text,
@@ -86,7 +90,7 @@ extension DiagramRenderer {
                 let swatchY = entryY + CGFloat(entry.swatchY)
 
                 let colorIndex = entry.colorIndex
-                let resolvedColor = _pieSliceColor(index: colorIndex, theme: chart.theme)
+                let resolvedColor = _pieSliceColor(index: colorIndex, theme: chart.theme, primary: basePrimary, secondary: baseSecondary, tertiary: baseTertiary)
 
                 let swatchRect = CGRect(
                     x: entryX + CGFloat(entry.swatchX),
@@ -118,8 +122,8 @@ extension DiagramRenderer {
         ctx.closePath()
     }
 
-    private func _pieSliceColor(index: Int, theme: PieChartThemeConfig) -> BMColor {
-        BMColor(hex: theme.pieColor(at: index))
+    private func _pieSliceColor(index: Int, theme: PieChartThemeConfig, primary: String, secondary: String, tertiary: String) -> BMColor {
+        BMColor(hex: theme.resolvedPieColor(at: index, primary: primary, secondary: secondary, tertiary: tertiary))
     }
 
     private func _pieColor(_ raw: String, fallback: BMColor) -> BMColor {

@@ -59,11 +59,97 @@ public struct PieChartConfig: Sendable, Equatable {
 }
 
 public struct PieChartThemeConfig: Sendable, Equatable {
-    private static let fallbackPieColors = [
-        "#ECECFF", "#C4E3FF", "#FFF2CC", "#D6E6FF",
-        "#B8D6FF", "#E6D6FF", "#FFD6E8", "#D6E8FF",
-        "#E8FFD6", "#FFD6B8", "#FFD6D6", "#D6FFE8",
-    ]
+    // MARK: - HSL color utilities
+
+    private struct HSL {
+        var h: Double
+        var s: Double
+        var l: Double
+    }
+
+    private static func hexToHSL(_ hex: String) -> HSL {
+        let clean = hex.trimmingCharacters(in: CharacterSet(charactersIn: "#"))
+        var int: UInt64 = 0
+        Scanner(string: clean).scanHexInt64(&int)
+        let r = Double((int >> 16) & 0xFF) / 255.0
+        let g = Double((int >> 8) & 0xFF) / 255.0
+        let b = Double(int & 0xFF) / 255.0
+        let maxV = max(r, g, b)
+        let minV = min(r, g, b)
+        let l = (maxV + minV) / 2.0
+        var h: Double = 0
+        var s: Double = 0
+        if maxV != minV {
+            let d = maxV - minV
+            s = l > 0.5 ? d / (2.0 - maxV - minV) : d / (maxV + minV)
+            if maxV == r {
+                h = ((g - b) / d).truncatingRemainder(dividingBy: 6)
+            } else if maxV == g {
+                h = (b - r) / d + 2
+            } else {
+                h = (r - g) / d + 4
+            }
+            h *= 60
+            if h < 0 { h += 360 }
+        }
+        return HSL(h: h, s: s * 100, l: l * 100)
+    }
+
+    private static func hslToHex(_ hsl: HSL) -> String {
+        let s = max(0, min(100, hsl.s)) / 100.0
+        let l = max(0, min(100, hsl.l)) / 100.0
+        let c = (1 - abs(2 * l - 1)) * s
+        let x = c * (1 - abs((hsl.h / 60).truncatingRemainder(dividingBy: 2) - 1))
+        let m = l - c / 2
+        var r: Double = 0
+        var g: Double = 0
+        var b: Double = 0
+        let h = ((hsl.h.truncatingRemainder(dividingBy: 360)) + 360).truncatingRemainder(dividingBy: 360)
+        switch h {
+        case 0..<60:  r = c; g = x; b = 0
+        case 60..<120: r = x; g = c; b = 0
+        case 120..<180: r = 0; g = c; b = x
+        case 180..<240: r = 0; g = x; b = c
+        case 240..<300: r = x; g = 0; b = c
+        default:       r = c; g = 0; b = x
+        }
+        r = min(255, max(0, round((r + m) * 255)))
+        g = min(255, max(0, round((g + m) * 255)))
+        b = min(255, max(0, round((b + m) * 255)))
+        return String(format: "#%02X%02X%02X", Int(r), Int(g), Int(b))
+    }
+
+    static func adjustHSL(_ hex: String, hShift: Double? = nil, lShift: Double? = nil) -> String {
+        var hsl = hexToHSL(hex)
+        if let hs = hShift { hsl.h = (hsl.h + hs).truncatingRemainder(dividingBy: 360); if hsl.h < 0 { hsl.h += 360 } }
+        if let ls = lShift { hsl.l = max(0, min(100, hsl.l + ls)) }
+        return hslToHex(hsl)
+    }
+
+    static func derivedColors(primary: String, secondary: String, tertiary: String) -> [String] {
+        [
+            primary,
+            secondary,
+            adjustHSL(tertiary, lShift: -40),
+            adjustHSL(primary, lShift: -10),
+            adjustHSL(secondary, lShift: -30),
+            adjustHSL(tertiary, lShift: -20),
+            adjustHSL(primary, hShift: 60, lShift: -20),
+            adjustHSL(primary, hShift: -60, lShift: -40),
+            adjustHSL(primary, hShift: 120, lShift: -40),
+            adjustHSL(primary, hShift: 60, lShift: -40),
+            adjustHSL(primary, hShift: -90, lShift: -40),
+            adjustHSL(primary, hShift: 120, lShift: -30),
+        ]
+    }
+
+    private static let defaultPrimary = "#ECECFF"
+    private static let defaultSecondary = "#C4E3FF"
+    private static let defaultTertiary = "#FFF2CC"
+
+    private static let fallbackPieColors: [String] = derivedColors(
+        primary: defaultPrimary, secondary: defaultSecondary, tertiary: defaultTertiary
+    )
 
     public var pie1: String
     public var pie2: String
@@ -151,6 +237,13 @@ public struct PieChartThemeConfig: Sendable, Equatable {
         let wrapped = index % 12
         let color = pieColors[wrapped]
         return color.isEmpty ? Self.fallbackPieColors[wrapped] : color
+    }
+
+    func resolvedPieColor(at index: Int, primary: String, secondary: String, tertiary: String) -> String {
+        guard index >= 0 else { return pie1.isEmpty ? Self.derivedColors(primary: primary, secondary: secondary, tertiary: tertiary)[0] : pie1 }
+        let wrapped = index % 12
+        let color = pieColors[wrapped]
+        return color.isEmpty ? Self.derivedColors(primary: primary, secondary: secondary, tertiary: tertiary)[wrapped] : color
     }
 
     public var resolvedPieTitleTextColor: String { pieTitleTextColor.isEmpty ? "black" : pieTitleTextColor }

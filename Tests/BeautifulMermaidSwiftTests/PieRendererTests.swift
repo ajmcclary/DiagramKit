@@ -62,6 +62,12 @@ final class PieRendererTests: XCTestCase {
         XCTAssertTrue(svg.contains("[40]"))
     }
 
+    func testLegendTextYPosition() throws {
+        let svg = try renderPieSVG("pie\n\"A\": 100\n\"B\": 50")
+        let legendElements = svg.components(separatedBy: "<g class=\"legend\">").last ?? ""
+        XCTAssertTrue(legendElements.contains("y=\"14\"") || legendElements.contains("y=\"14"), "Legend text should have y=14 matching Mermaid")
+    }
+
     // MARK: - Hidden slices
 
     func testHiddenSlicesNotInSvg() throws {
@@ -88,6 +94,33 @@ final class PieRendererTests: XCTestCase {
         let svg = try renderPieSVG("pie\naccDescr: A test description\n\"A\": 100")
         XCTAssertTrue(svg.contains("<desc>"))
         XCTAssertTrue(svg.contains("A test description"))
+    }
+
+    // MARK: - useMaxWidth
+
+    func testUseMaxWidthEnabled() throws {
+        let chart = PieChart(
+            sections: [PieSection(label: "A", value: 100)],
+            config: PieChartConfig(useMaxWidth: true)
+        )
+        let positioned = layoutPieChart(chart)
+        let svg = renderPieSvg(positioned, defaultColors())
+
+        XCTAssertTrue(svg.contains("width=\"100%\""), "useMaxWidth true should produce width=100%")
+        XCTAssertTrue(svg.contains("max-width:"), "useMaxWidth true should produce max-width style")
+    }
+
+    func testUseMaxWidthDisabled() throws {
+        let chart = PieChart(
+            sections: [PieSection(label: "A", value: 100)],
+            config: PieChartConfig(useMaxWidth: false)
+        )
+        let positioned = layoutPieChart(chart)
+        let svg = renderPieSvg(positioned, defaultColors())
+
+        XCTAssertFalse(svg.contains("width=\"100%\""), "useMaxWidth false should NOT produce width=100%")
+        XCTAssertTrue(svg.contains("height=\"450\""), "useMaxWidth false should produce explicit height")
+        XCTAssertFalse(svg.contains("max-width:"), "useMaxWidth false should NOT produce max-width style")
     }
 
     // MARK: - Theme/config parity
@@ -118,7 +151,10 @@ final class PieRendererTests: XCTestCase {
 
     func testSvgUsesNegativeViewBoxOriginForLongTitle() throws {
         let title = String(repeating: "Long title ", count: 20)
-        let svg = try renderPieSVG("pie title \(title)\n\"A\": 100")
+        let chart = try parsePieChart(lines("pie title \(title)\n\"A\": 100"))
+        var positioned = layoutPieChart(chart)
+        positioned.config.useMaxWidth = false
+        let svg = renderPieSvg(positioned, defaultColors())
 
         XCTAssertTrue(svg.contains(#"viewBox="-"#), "Expected negative viewBox origin for long title")
     }
