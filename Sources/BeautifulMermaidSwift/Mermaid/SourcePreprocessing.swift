@@ -161,6 +161,9 @@ private func _parseYamlFrontmatter(_ lines: [String]) -> DiagramFrontmatter? {
     var hasPacketSection = false
     var hasPacketTheme = false
 
+    var kanbanConfig = KanbanDiagramConfig()
+    var hasKanbanSection = false
+
     var pathStack: [(depth: Int, key: String)] = []
 
     for line in lines {
@@ -720,6 +723,20 @@ private func _parseYamlFrontmatter(_ lines: [String]) -> DiagramFrontmatter? {
             continue
         }
 
+        // Kanban config — config.kanban.*
+        if fullPath.hasPrefix("config.kanban.") {
+            hasKanbanSection = true
+            let subKey = fullPath.replacingOccurrences(of: "config.kanban.", with: "")
+            switch subKey {
+            case "padding": kanbanConfig.padding = Double(value) ?? kanbanConfig.padding
+            case "sectionWidth": kanbanConfig.sectionWidth = Double(value) ?? kanbanConfig.sectionWidth
+            case "ticketBaseUrl": kanbanConfig.ticketBaseUrl = value
+            case "useMaxWidth": kanbanConfig.useMaxWidth = (value.lowercased() == "true")
+            default: break
+            }
+            continue
+        }
+
         // Timeline config — config.timeline.*
         if fullPath.hasPrefix("config.timeline.") {
             hasTimelineSection = true
@@ -806,6 +823,7 @@ private func _parseYamlFrontmatter(_ lines: [String]) -> DiagramFrontmatter? {
     if hasBlockSection { frontmatter.blockConfig = blockConfig }
     if hasPacketSection { frontmatter.packetConfig = packetConfig }
     if hasPacketTheme { frontmatter.packetTheme = packetTheme }
+    if hasKanbanSection { frontmatter.kanbanConfig = kanbanConfig }
 
     return hasAnyContent ? frontmatter : nil
 }

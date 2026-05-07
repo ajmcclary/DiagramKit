@@ -66,6 +66,8 @@ public final class DiagramRenderer {
             _drawBlock(positioned, in: context, bounds: bounds)
         case .packet:
             _drawPacket(positioned, in: context, bounds: bounds)
+        case .kanban:
+            _drawKanban(positioned, in: context, bounds: bounds)
         }
     }
 

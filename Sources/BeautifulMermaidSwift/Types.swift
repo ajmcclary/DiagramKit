@@ -19,6 +19,7 @@ public enum DiagramType: String, CaseIterable, Sendable {
     case sankey
     case block
     case packet
+    case kanban
 }
 
 /// The parsed graph model for flowcharts and state diagrams.
@@ -43,6 +44,7 @@ public enum DiagramPayload: Sendable {
     case sankey(SankeyDiagram)
     case block(BlockDiagram)
     case packet(PacketDiagram)
+    case kanban(KanbanDiagram)
 
     public var type: DiagramType {
         switch self {
@@ -80,6 +82,8 @@ public enum DiagramPayload: Sendable {
             return .block
         case .packet:
             return .packet
+        case .kanban:
+            return .kanban
         }
     }
 }
@@ -144,6 +148,8 @@ public struct MermaidGraph: Sendable {
             self.payload = .block(BlockDiagram.empty)
         case .packet:
             self.payload = .packet(PacketDiagram.empty)
+        case .kanban:
+            self.payload = .kanban(KanbanDiagram(nodes: [], sections: [], config: KanbanDiagramConfig()))
         }
     }
 
@@ -217,6 +223,7 @@ public enum PositionedContent: Sendable {
     case sankey(PositionedSankeyDiagram)
     case block(PositionedBlockDiagram)
     case packet(PositionedPacketDiagram)
+    case kanban(PositionedKanbanDiagram)
 }
 
 public struct PositionedGraph: Sendable {
@@ -282,6 +289,8 @@ public struct PositionedGraph: Sendable {
             self.content = .block(.empty)
         case .packet:
             self.content = .packet(.empty)
+        case .kanban:
+            self.content = .kanban(.empty)
         }
     }
 
@@ -497,6 +506,13 @@ public struct PositionedGraph: Sendable {
     public var packetData: PositionedPacketDiagram? {
         switch content {
         case .packet(let data): return data
+        default: return nil
+        }
+    }
+
+    public var kanbanData: PositionedKanbanDiagram? {
+        switch content {
+        case .kanban(let data): return data
         default: return nil
         }
     }

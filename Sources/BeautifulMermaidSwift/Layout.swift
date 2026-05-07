@@ -223,6 +223,18 @@ public struct GraphLayout {
                     height: positioned.height,
                     content: .packet(positioned)
                 )
+            case .kanban:
+                guard case let .kanban(diagram) = graph.payload else {
+                    _reportMermaidIssue("GraphLayout.layout found mismatched kanban payload.")
+                    return PositionedGraph(diagram: graph, content: .kanban(.empty))
+                }
+                let positioned = layoutKanbanDiagram(diagram)
+                return PositionedGraph(
+                    diagram: graph,
+                    width: positioned.width,
+                    height: positioned.height,
+                    content: .kanban(positioned)
+                )
             }
         }
     }

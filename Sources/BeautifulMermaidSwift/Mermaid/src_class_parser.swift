@@ -346,6 +346,7 @@ public struct DiagramFrontmatter: Sendable {
     public var blockConfig: BlockDiagramConfig?
     public var packetConfig: PacketDiagramConfig?
     public var packetTheme: PacketThemeConfig?
+    public var kanbanConfig: KanbanDiagramConfig?
 
     public var layout: String?      // Shared global config.layout
     public var look: String?         // Shared global config.look
@@ -380,6 +381,7 @@ public struct DiagramFrontmatter: Sendable {
         blockConfig: BlockDiagramConfig? = nil,
         packetConfig: PacketDiagramConfig? = nil,
         packetTheme: PacketThemeConfig? = nil,
+        kanbanConfig: KanbanDiagramConfig? = nil,
         layout: String? = nil,
         look: String? = nil,
         theme: String? = nil,
@@ -412,6 +414,7 @@ public struct DiagramFrontmatter: Sendable {
         self.blockConfig = blockConfig
         self.packetConfig = packetConfig
         self.packetTheme = packetTheme
+        self.kanbanConfig = kanbanConfig
         self.layout = layout
         self.look = look
         self.theme = theme

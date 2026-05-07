@@ -112,6 +112,11 @@ public enum MermaidParser {
                 let parsed = try parsePacketDiagram(packetLines, frontmatter: frontmatter)
                 return MermaidGraph(payload: .packet(parsed))
             }
+            if firstLine.hasPrefix("kanban") {
+                let rawLines = processed.split(separator: "\n", omittingEmptySubsequences: false).map(String.init)
+                let parsed = try parseKanbanDiagram(rawLines, frontmatter: frontmatter)
+                return MermaidGraph(payload: .kanban(parsed))
+            }
 
             // Flowchart + stateDiagram-v2 — pass frontmatter flowchart config
             let parsed = try parseMermaid(processed, config: frontmatter?.flowchartConfig)

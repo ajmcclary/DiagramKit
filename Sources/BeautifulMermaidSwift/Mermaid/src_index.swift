@@ -88,10 +88,10 @@ private enum _DiagramRoutingType {
     case sankey
     case block
     case packet
+    case kanban
 }
 
 private func _decodeXML(_ text: String) -> String {
-    // Aligns with TS decodeXML intent for markdown-escaped Mermaid source.
     text
         .replacingOccurrences(of: "&lt;", with: "<")
         .replacingOccurrences(of: "&gt;", with: ">")
@@ -147,6 +147,9 @@ private func detectDiagramType(_ text: String) -> _DiagramRoutingType {
     }
     if firstLine.hasPrefix("packet") {
         return .packet
+    }
+    if firstLine.hasPrefix("kanban") {
+        return .kanban
     }
 
     return .flowchart
@@ -293,6 +296,12 @@ func _renderMermaidSVG(
             transparent,
             theme: diagram.theme
         )
+    case .kanban:
+        let rawLines = decodedText.split(separator: "\n", omittingEmptySubsequences: false).map(String.init)
+        let diagram = try parseKanbanDiagram(rawLines, frontmatter: fm)
+        let positioned = layoutKanbanDiagram(diagram)
+        let diagramId = UUID().uuidString
+        return try renderKanbanSvg(positioned, diagramId: diagramId, colors, font, transparent)
     }
 }
 

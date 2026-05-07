@@ -294,6 +294,7 @@ open class original_src_ascii_index {
         case sankey
         case block
         case packet
+        case kanban
     }
 
     struct AsciiConfig {
@@ -383,6 +384,8 @@ open class original_src_ascii_index {
             return "block"
         case .packet:
             return "packet"
+        case .kanban:
+            return "kanban"
         case .flowchart:
             return "flowchart"
         }
@@ -469,6 +472,9 @@ open class original_src_ascii_index {
         case .packet:
             throw BeautifulMermaidError.notYetImplemented("Packet ASCII rendering is not yet implemented.")
 
+        case .kanban:
+            throw BeautifulMermaidError.notYetImplemented("Kanban ASCII rendering")
+
         case .flowchart:
             let parsed = try parseMermaid(preprocessedText)
 
@@ -554,6 +560,9 @@ open class original_src_ascii_index {
         }
         if firstLine.hasPrefix("packet") {
             return .packet
+        }
+        if firstLine.hasPrefix("kanban") {
+            return .kanban
         }
 
         return .flowchart

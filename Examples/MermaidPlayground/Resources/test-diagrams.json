@@ -1511,10 +1511,28 @@
       "category": "packet",
       "name": "Empty Packet",
       "source": "packet"
+    },
+    {
+      "id": "kanban-simple",
+      "category": "kanban",
+      "name": "Kanban - Simple Board",
+      "source": "kanban\n  Todo\n    [Create Documentation]\n    docs[Create Blog about the new diagram]\n  id7[In progress]\n    id8[Design grammar]@{ assigned: 'knsv' }"
+    },
+    {
+      "id": "kanban-metadata",
+      "category": "kanban",
+      "name": "Kanban - With Metadata",
+      "source": "kanban\n  Backlog\n    task1[Fix login bug]@{ ticket: MC-2038, assigned: 'K.Sveidqvist', priority: 'High' }\n    task2[Refactor parser]@{ priority: 'Medium' }\n  In Progress\n    task3[Write tests]\n  Done\n    task4[Release v1.0]"
+    },
+    {
+      "id": "kanban-decorations",
+      "category": "kanban",
+      "name": "Kanban - Decorations",
+      "source": "kanban\n  root[\"String containing []\"]\n    child1[\"String containing ()\"]\n    child2[Ticketed]@{\n      ticket: MC-2038\n      assigned: K.Sveidqvist\n      priority: High\n    }\n    :::m-4 p-8\n    ::icon(bomb)"
     }
   ],
   "metadata": {
-    "totalCount": 237,
+    "totalCount": 240,
     "categories": {
       "flowchart": 27,
       "state": 12,
@@ -1532,7 +1550,8 @@
       "timeline": 11,
       "sankey": 9,
       "block": 7,
-      "packet": 5
+      "packet": 5,
+      "kanban": 3
     }
   }
 }
