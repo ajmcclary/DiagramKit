@@ -176,8 +176,12 @@ private func _applyInitDirectivePayload(_ payload: String, to frontmatter: inout
         if let treemap = config["treemap"] as? [String: Any] {
             applied = _applyTreemapInitConfig(treemap, to: &frontmatter) || applied
         }
+        if let venn = config["venn"] as? [String: Any] {
+            applied = _applyVennInitConfig(venn, to: &frontmatter) || applied
+        }
         if let themeVariables = config["themeVariables"] as? [String: Any] {
             applied = _applyRadarInitTheme(themeVariables, to: &frontmatter) || applied
+            applied = _applyVennInitTheme(themeVariables, to: &frontmatter) || applied
         }
     }
 
@@ -189,8 +193,13 @@ private func _applyInitDirectivePayload(_ payload: String, to frontmatter: inout
         applied = _applyTreemapInitConfig(treemap, to: &frontmatter) || applied
     }
 
+    if let venn = object["venn"] as? [String: Any] {
+        applied = _applyVennInitConfig(venn, to: &frontmatter) || applied
+    }
+
     if let themeVariables = object["themeVariables"] as? [String: Any] {
         applied = _applyRadarInitTheme(themeVariables, to: &frontmatter) || applied
+        applied = _applyVennInitTheme(themeVariables, to: &frontmatter) || applied
     }
 
     return applied
@@ -225,6 +234,53 @@ private func _applySharedInitValues(_ object: [String: Any], to frontmatter: ino
         applied = true
     }
 
+    return applied
+}
+
+@discardableResult
+private func _applyVennInitConfig(_ object: [String: Any], to frontmatter: inout DiagramFrontmatter) -> Bool {
+    var config = frontmatter.vennConfig ?? VennDiagramConfig()
+    var applied = false
+
+    for (key, value) in object {
+        switch key {
+        case "useMaxWidth":
+            if let v = _jsonBool(value) { config.useMaxWidth = v; applied = true }
+        case "width":
+            if let v = _jsonDouble(value) { config.width = v; applied = true }
+        case "height":
+            if let v = _jsonDouble(value) { config.height = v; applied = true }
+        case "padding":
+            if let v = _jsonDouble(value) { config.padding = v; applied = true }
+        case "useDebugLayout":
+            if let v = _jsonBool(value) { config.useDebugLayout = v; applied = true }
+        default:
+            break
+        }
+    }
+
+    if applied {
+        frontmatter.vennConfig = config
+    }
+    return applied
+}
+
+@discardableResult
+private func _applyVennInitTheme(_ object: [String: Any], to frontmatter: inout DiagramFrontmatter) -> Bool {
+    var vars = frontmatter.vennThemeVariables ?? [:]
+    var applied = false
+
+    for (key, value) in object {
+        if let stringValue = _jsonScalarString(value),
+           _isVennThemeKey(key) {
+            vars[key] = stringValue
+            applied = true
+        }
+    }
+
+    if applied {
+        frontmatter.vennThemeVariables = vars
+    }
     return applied
 }
 
@@ -489,6 +545,10 @@ private final class _StackSafeYamlFrontmatterParser {
     var treemapThemeVariables: [String: String] = [:]
     var hasTreemapSection = false
     var hasTreemapTheme = false
+    var vennConfig = VennDiagramConfig()
+    var vennThemeVariables: [String: String] = [:]
+    var hasVennSection = false
+    var hasVennTheme = false
 
     func parse(_ lines: [String]) -> DiagramFrontmatter? {
         for entry in _flattenYamlFrontmatterLines(lines) {
@@ -528,6 +588,7 @@ private final class _StackSafeYamlFrontmatterParser {
         if applyArchitecture(path, value) { return }
         if applyRadar(path, value) { return }
         if applyTreemap(path, value) { return }
+        if applyVenn(path, value) { return }
         _ = applyGlobal(path, value)
     }
 
@@ -1107,6 +1168,28 @@ private final class _StackSafeYamlFrontmatterParser {
         return false
     }
 
+    private func applyVenn(_ path: String, _ value: String) -> Bool {
+        if path.hasPrefix("config.venn.") {
+            hasVennSection = true
+            let key = path.replacingOccurrences(of: "config.venn.", with: "")
+            switch key {
+            case "useMaxWidth": vennConfig.useMaxWidth = (value.lowercased() == "true")
+            case "width": vennConfig.width = Double(value) ?? vennConfig.width
+            case "height": vennConfig.height = Double(value) ?? vennConfig.height
+            case "padding": vennConfig.padding = Double(value) ?? vennConfig.padding
+            case "useDebugLayout": vennConfig.useDebugLayout = (value.lowercased() == "true")
+            default: break
+            }
+            return true
+        }
+        if let subKey = _vennThemeSubKey(from: path) {
+            vennThemeVariables[subKey] = value
+            hasVennTheme = true
+            return true
+        }
+        return false
+    }
+
     private func applyGlobal(_ path: String, _ value: String) -> Bool {
         switch path {
         case "config.layout":
@@ -1164,6 +1247,8 @@ private final class _StackSafeYamlFrontmatterParser {
         if radar.hasTheme { frontmatter.radarTheme = radar.theme }
         if hasTreemapSection { frontmatter.treemapConfig = treemapConfig }
         if hasTreemapTheme { frontmatter.treemapThemeVariables = treemapThemeVariables }
+        if hasVennSection { frontmatter.vennConfig = vennConfig }
+        if hasVennTheme { frontmatter.vennThemeVariables = vennThemeVariables }
     }
 }
 
@@ -1244,6 +1329,10 @@ private final class _YamlFrontmatterParser {
     var treemapThemeVariables: [String: String] = [:]
     var hasTreemapSection = false
     var hasTreemapTheme = false
+    var vennConfig = VennDiagramConfig()
+    var vennThemeVariables: [String: String] = [:]
+    var hasVennSection = false
+    var hasVennTheme = false
 
     func parse(_ lines: [String]) -> DiagramFrontmatter? {
     var pathStack: [(depth: Int, key: String)] = []
@@ -1918,6 +2007,28 @@ private final class _YamlFrontmatterParser {
             continue
         }
 
+        // Venn config — config.venn.*
+        if fullPath.hasPrefix("config.venn.") {
+            hasVennSection = true
+            let subKey = fullPath.replacingOccurrences(of: "config.venn.", with: "")
+            switch subKey {
+            case "useMaxWidth": vennConfig.useMaxWidth = (value.lowercased() == "true")
+            case "width": vennConfig.width = Double(value) ?? vennConfig.width
+            case "height": vennConfig.height = Double(value) ?? vennConfig.height
+            case "padding": vennConfig.padding = Double(value) ?? vennConfig.padding
+            case "useDebugLayout": vennConfig.useDebugLayout = (value.lowercased() == "true")
+            default: break
+            }
+            continue
+        }
+
+        // Venn theme variables
+        if let subKey = _vennThemeSubKey(from: fullPath) {
+            vennThemeVariables[subKey] = value
+            hasVennTheme = true
+            continue
+        }
+
         // Global config.layout (shared across all diagram families)
         if fullPath == "config.layout" {
             hasErSection = true
@@ -1991,6 +2102,8 @@ private final class _YamlFrontmatterParser {
     if radar.hasTheme { frontmatter.radarTheme = radar.theme }
     if hasTreemapSection { frontmatter.treemapConfig = treemapConfig }
     if hasTreemapTheme { frontmatter.treemapThemeVariables = treemapThemeVariables }
+    if hasVennSection { frontmatter.vennConfig = vennConfig }
+    if hasVennTheme { frontmatter.vennThemeVariables = vennThemeVariables }
 
     return hasAnyContent ? frontmatter : nil
 }
@@ -2542,6 +2655,38 @@ private func _isTreemapThemeKey(_ key: String) -> Bool {
     }
     switch key {
     case "titleColor", "textColor": return true
+    default: return false
+    }
+}
+
+private func _vennThemeSubKey(from fullPath: String) -> String? {
+    let prefixes = ["config.themeVariables.", "themeVariables."]
+    for prefix in prefixes {
+        if fullPath.hasPrefix(prefix) {
+            let subKey = String(fullPath.dropFirst(prefix.count))
+            if _isVennThemeKey(subKey) {
+                return subKey
+            }
+            if subKey.hasPrefix("venn.") {
+                let inner = String(subKey.dropFirst(5))
+                if _isVennThemeKey(inner) {
+                    return inner
+                }
+            }
+        }
+    }
+    return nil
+}
+
+private func _isVennThemeKey(_ key: String) -> Bool {
+    if key.hasPrefix("venn"), key.count >= 5 {
+        let numStr = String(key.dropFirst(4))
+        if let n = Int(numStr), n >= 1, n <= 8 {
+            return true
+        }
+    }
+    switch key {
+    case "vennTitleTextColor", "vennSetTextColor": return true
     default: return false
     }
 }

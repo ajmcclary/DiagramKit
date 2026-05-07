@@ -92,6 +92,7 @@ private enum _DiagramRoutingType {
     case architecture
     case radar
     case treemap
+    case venn
 }
 
 private func _decodeXML(_ text: String) -> String {
@@ -104,7 +105,7 @@ private func _decodeXML(_ text: String) -> String {
 }
 
 private func detectDiagramType(_ text: String) -> _DiagramRoutingType {
-    let firstLine = _mermaidSourceLines(from: text).first?.lowercased() ?? ""
+    let firstLine = _firstDiagramStatement(in: text).lowercased()
 
     if firstLine.range(of: "^sequencediagram\\s*$", options: .regularExpression) != nil {
         return .sequence
@@ -163,8 +164,73 @@ private func detectDiagramType(_ text: String) -> _DiagramRoutingType {
     if firstLine.hasPrefix("treemap") {
         return .treemap
     }
+    if firstLine.hasPrefix("venn-beta") {
+        return .venn
+    }
 
     return .flowchart
+}
+
+private func _firstDiagramStatement(in text: String) -> String {
+    _sourceStatementsNoPreprocess(from: text).first ?? ""
+}
+
+private func _sourceStatementsNoPreprocess(
+    from source: String,
+    separatedBy separators: CharacterSet = CharacterSet(charactersIn: "\n;")
+) -> [String] {
+    let normalized = source
+        .replacingOccurrences(of: "\r\n", with: "\n")
+        .replacingOccurrences(of: "\r", with: "\n")
+    var parts: [String] = []
+    var current = ""
+    var inQuote = false
+    var quoteChar: Character?
+    var isEscaped = false
+
+    for ch in normalized {
+        if inQuote {
+            current.append(ch)
+            if isEscaped {
+                isEscaped = false
+                continue
+            }
+            if ch == "\\" {
+                isEscaped = true
+                continue
+            }
+            if ch == quoteChar {
+                inQuote = false
+                quoteChar = nil
+            }
+            continue
+        }
+
+        if ch == "\"" || ch == "'" {
+            inQuote = true
+            quoteChar = ch
+            current.append(ch)
+            continue
+        }
+
+        if ch.unicodeScalars.count == 1,
+           let scalar = ch.unicodeScalars.first,
+           separators.contains(scalar) {
+            let trimmed = current.trimmingCharacters(in: .whitespacesAndNewlines)
+            if !trimmed.isEmpty, !trimmed.hasPrefix("%%") {
+                parts.append(trimmed)
+            }
+            current = ""
+        } else {
+            current.append(ch)
+        }
+    }
+
+    let trimmed = current.trimmingCharacters(in: .whitespacesAndNewlines)
+    if !trimmed.isEmpty, !trimmed.hasPrefix("%%") {
+        parts.append(trimmed)
+    }
+    return parts
 }
 
 private func buildColors(_ options: RenderOptions) -> DiagramColors {
@@ -184,173 +250,275 @@ func _renderMermaidSVG(
     _ options: RenderOptions = RenderOptions()
 ) throws -> String {
     let preprocessed = _preprocessMermaidSource(_decodeXML(text))
-    let decodedText = preprocessed.source
-    let fm = preprocessed.frontmatter
+    return try _renderPreprocessedMermaidSVG(
+        preprocessed.source,
+        frontmatter: preprocessed.frontmatter,
+        options: options
+    )
+}
+
+private func _renderPreprocessedMermaidSVG(
+    _ decodedText: String,
+    frontmatter fm: DiagramFrontmatter?,
+    options: RenderOptions
+) throws -> String {
     let colors = buildColors(options)
     let font = options.font ?? "Inter"
     let transparent = options.transparent ?? false
     let diagramType = detectDiagramType(decodedText)
 
-    let lines = _mermaidSourceLines(from: decodedText)
+    let lines = _sourceStatementsNoPreprocess(from: decodedText)
 
     switch diagramType {
     case .sequence:
-        let diagram = try parseSequenceDiagram(lines)
-        let positioned = try layoutSequenceDiagram(diagram, options, config: fm?.sequenceConfig ?? .default)
-        return try renderSequenceSvg(positioned, colors, font, transparent)
+        return try _renderSequenceSvgCase(lines: lines, fm: fm, options: options, colors: colors, font: font, transparent: transparent)
     case .class:
-        let diagram = try parseClassDiagram(lines, frontmatter: fm)
-        let positioned = try layoutClassDiagramSync(diagram, options: options)
-        return try renderClassSvg(positioned, colors, font, transparent)
+        return try _renderClassSvgCase(lines: lines, fm: fm, options: options, colors: colors, font: font, transparent: transparent)
     case .er:
-        let diagram = try parseErDiagram(lines, frontmatter: fm)
-        let positioned = try layoutErDiagramSync(diagram, options: options, config: diagram.config)
-        return try renderErSvg(positioned, colors, font, transparent)
+        return try _renderErSvgCase(lines: lines, fm: fm, options: options, colors: colors, font: font, transparent: transparent)
     case .xychart:
-        let chart = try parseXYChart(lines)
-        var mutatedChart = chart
-        if let fmc = fm?.xyChartConfig { mutatedChart.config = fmc }
-        if let fmt = fm?.xyChartTheme { mutatedChart.theme = fmt }
-        if mutatedChart.titleText == nil, let fmTitle = fm?.diagramTitle {
-            mutatedChart.diagramTitle = fmTitle
-        }
-        let positioned = layoutXYChart(mutatedChart, options)
-        return renderXYChartSvg(positioned, colors, font, transparent, interactive: options.interactive ?? false)
+        return try _renderXYChartSvgCase(lines: lines, fm: fm, options: options, colors: colors, font: font, transparent: transparent)
     case .pie:
-        let chart = try parsePieChart(lines, frontmatter: fm)
-        let positioned = layoutPieChart(chart)
-        return renderPieSvg(positioned, colors, font, transparent)
+        return try _renderPieSvgCase(lines: lines, fm: fm, colors: colors, font: font, transparent: transparent)
     case .journey:
-        let diagram = try parseJourneyDiagram(lines, frontmatter: fm)
-        let config = fm?.journeyConfig ?? .default
-        var merged = diagram
-        merged.config = config
-        let positioned = layoutJourneyDiagram(merged, options: options, config: config)
-        return try renderJourneySvg(positioned, colors, font, transparent)
+        return try _renderJourneySvgCase(lines: lines, fm: fm, options: options, colors: colors, font: font, transparent: transparent)
     case .gantt:
-        let ganttLines = _mermaidSourceLines(from: decodedText,
-            separatedBy: CharacterSet(charactersIn: "\n"))
-        let diagram = try parseGanttDiagram(ganttLines, frontmatter: fm)
-        let config = fm?.ganttConfig ?? .default
-        var merged = diagram
-        merged.config = config
-        let positioned = layoutGanttDiagram(merged)
-        let diagramId = UUID().uuidString
-        return try renderGanttSvg(positioned, diagramId: diagramId, colors, font, transparent)
+        return try _renderGanttSvgCase(source: decodedText, fm: fm, colors: colors, font: font, transparent: transparent)
     case .quadrant:
-        let chart = try parseQuadrantChart(lines, frontmatter: fm)
-        var mutatedChart = chart
-        if let fmc = fm?.quadrantChartConfig { mutatedChart.config = fmc }
-        if let fmt = fm?.quadrantChartTheme { mutatedChart.theme = fmt }
-        if mutatedChart.titleText == nil, let fmTitle = fm?.diagramTitle {
-            mutatedChart.titleText = fmTitle
-            mutatedChart.diagramTitle = fmTitle
-        }
-        let positioned = layoutQuadrantChart(mutatedChart)
-        return renderQuadrantSvg(positioned, colors, font, transparent)
+        return try _renderQuadrantSvgCase(lines: lines, fm: fm, colors: colors, font: font, transparent: transparent)
     case .requirement:
-        let diagram = try parseRequirementDiagram(lines, frontmatter: fm)
-        let positioned = try layoutRequirementDiagram(diagram, options: options)
-        return try renderRequirementSvg(positioned, colors, font, transparent)
+        return try _renderRequirementSvgCase(lines: lines, fm: fm, options: options, colors: colors, font: font, transparent: transparent)
     case .flowchart:
-        let graph = try parseMermaid(decodedText, config: fm?.flowchartConfig, stateConfig: fm?.stateConfig)
-        let positioned = try layoutGraphSync(graph, options)
-        return try renderSvg(positioned, colors, font, transparent)
+        return try _renderFlowchartSvgCase(source: decodedText, fm: fm, options: options, colors: colors, font: font, transparent: transparent)
     case .gitgraph:
-        let gitLines = _mermaidSourceLines(from: decodedText)
-        let diagram = try parseGitGraph(gitLines, frontmatter: fm)
-        let positioned = layoutGitGraph(diagram)
-        return renderGitGraphSvg(positioned)
+        return try _renderGitGraphSvgCase(source: decodedText, fm: fm)
     case .mindmap:
-        let rawLines = decodedText.split(separator: "\n", omittingEmptySubsequences: false).map(String.init)
-        let diagram = try parseMindmap(rawLines, frontmatter: fm)
-        let positioned = try layoutMindmap(diagram)
-        let diagramId = UUID().uuidString
-        return renderMindmapSvg(positioned, diagramId: diagramId, colors, font, transparent)
+        return try _renderMindmapSvgCase(source: decodedText, fm: fm, colors: colors, font: font, transparent: transparent)
     case .timeline:
-        let timelineLines = decodedText.split(separator: "\n", omittingEmptySubsequences: false).map(String.init)
-        var diagram = try parseTimelineDiagram(timelineLines, frontmatter: fm)
-        if let fmc = fm?.timelineConfig { diagram.config = fmc }
-        if let fmt = fm?.timelineTheme { diagram.theme = fmt }
-        if diagram.diagramTitle == nil, let fmTitle = fm?.title {
-            diagram.diagramTitle = fmTitle
-        }
-        diagram.themeName = fm?.theme
-        diagram.look = fm?.look
-        let positioned = layoutTimelineDiagram(diagram)
-        let diagramId = UUID().uuidString
-        return try renderTimelineSvg(positioned, diagramId: diagramId, colors, font, transparent)
+        return try _renderTimelineSvgCase(source: decodedText, fm: fm, colors: colors, font: font, transparent: transparent)
     case .sankey:
-        let sankeyLines = _mermaidSourceLines(from: decodedText)
-        var diagram = try parseSankeyDiagram(sankeyLines, frontmatter: fm)
-        if let fmc = fm?.sankeyConfig { diagram.config = fmc }
-        let positioned = layoutSankeyDiagram(diagram)
-        return renderSankeySvg(positioned, colors, font, transparent)
+        return try _renderSankeySvgCase(source: decodedText, fm: fm, colors: colors, font: font, transparent: transparent)
     case .block:
-        let blockLines = _mermaidSourceLines(from: decodedText, separatedBy: CharacterSet(charactersIn: "\n"))
-        var diagram = try parseBlockDiagramLines(blockLines)
-        if let fmc = fm?.blockConfig { diagram.config = fmc }
-        if let title = fm?.diagramTitle { diagram.diagramTitle = title }
-        let positioned = try layoutBlockDiagram(diagram)
-        let diagramId = UUID().uuidString
-        return try renderBlockSvg(positioned, diagramId: diagramId, colors: colors, fontFamily: font, transparent: transparent)
+        return try _renderBlockSvgCase(source: decodedText, fm: fm, colors: colors, font: font, transparent: transparent)
     case .packet:
-        let packetLines = _mermaidSourceLines(from: decodedText)
-        var diagram = try parsePacketDiagram(packetLines, frontmatter: fm)
-        if diagram.diagramTitle == nil, let title = fm?.diagramTitle {
-            diagram.diagramTitle = title
-        }
-        let positioned = layoutPacketDiagram(diagram)
-        return renderPacketSvg(
-            positioned,
-            colors,
-            font,
-            transparent,
-            theme: diagram.theme
-        )
+        return try _renderPacketSvgCase(source: decodedText, fm: fm, colors: colors, font: font, transparent: transparent)
     case .kanban:
-        let rawLines = decodedText.split(separator: "\n", omittingEmptySubsequences: false).map(String.init)
-        let diagram = try parseKanbanDiagram(rawLines, frontmatter: fm)
-        let positioned = layoutKanbanDiagram(diagram)
-        let diagramId = UUID().uuidString
-        return try renderKanbanSvg(positioned, diagramId: diagramId, colors, font, transparent)
+        return try _renderKanbanSvgCase(source: decodedText, fm: fm, colors: colors, font: font, transparent: transparent)
     case .architecture:
-        let rawLines = decodedText.split(separator: "\n", omittingEmptySubsequences: false).map(String.init)
-        var diagram = try parseArchitectureDiagram(rawLines, frontmatter: fm)
-        if let fmc = fm?.archConfig { diagram.config = fmc }
-        if let fmt = fm?.archTheme { diagram.theme = fmt }
-        if diagram.diagramTitle == nil, let fmTitle = fm?.diagramTitle {
-            diagram.diagramTitle = fmTitle
-        }
-        let positioned = layoutArchitectureDiagram(diagram)
-        let diagramId = UUID().uuidString
-        return try renderArchitectureSvg(positioned, diagramId: diagramId, colors, font, transparent)
+        return try _renderArchitectureSvgCase(source: decodedText, fm: fm, colors: colors, font: font, transparent: transparent)
     case .radar:
-        let rawSource = decodedText
-        var diagram = try parseRadarDiagram(source: rawSource, frontmatter: fm)
-        if let fmc = fm?.radarConfig { diagram.config = fmc }
-        if let fmt = fm?.radarTheme { diagram.theme = fmt }
-        if diagram.diagramTitle == nil, let fmTitle = fm?.diagramTitle {
-            diagram.diagramTitle = fmTitle
-        }
-        let positioned = layoutRadarDiagram(diagram)
-        return renderRadarSvg(positioned, colors: colors, font: font, transparent: transparent)
+        return try _renderRadarSvgCase(source: decodedText, fm: fm, colors: colors, font: font, transparent: transparent)
     case .treemap:
-        let rawLines = decodedText
-            .replacingOccurrences(of: "\r\n", with: "\n")
-            .replacingOccurrences(of: "\r", with: "\n")
-            .split(separator: "\n", omittingEmptySubsequences: false)
-            .map(String.init)
-        var diagram = try parseTreemapDiagram(rawLines, frontmatter: fm)
-        if let fmc = fm?.treemapConfig { diagram.config = fmc }
-        if let theme = fm?.theme { diagram.themeName = theme }
-        if diagram.diagramTitle == nil, let fmTitle = fm?.diagramTitle {
-            diagram.diagramTitle = fmTitle
-        }
-        let positioned = layoutTreemapDiagram(diagram)
-        let diagramId = UUID().uuidString
-        return renderTreemapSvg(positioned, diagramId: diagramId, colors, font, transparent)
+        return try _renderTreemapSvgCase(source: decodedText, fm: fm, colors: colors, font: font, transparent: transparent)
+    case .venn:
+        return try _renderVennSvgCase(source: decodedText, fm: fm, colors: colors, font: font, transparent: transparent)
     }
+}
+
+private func _renderSequenceSvgCase(lines: [String], fm: DiagramFrontmatter?, options: RenderOptions, colors: DiagramColors, font: String, transparent: Bool) throws -> String {
+    let diagram = try parseSequenceDiagram(lines)
+    let positioned = try layoutSequenceDiagram(diagram, options, config: fm?.sequenceConfig ?? .default)
+    return try renderSequenceSvg(positioned, colors, font, transparent)
+}
+
+private func _renderClassSvgCase(lines: [String], fm: DiagramFrontmatter?, options: RenderOptions, colors: DiagramColors, font: String, transparent: Bool) throws -> String {
+    let diagram = try parseClassDiagram(lines, frontmatter: fm)
+    let positioned = try layoutClassDiagramSync(diagram, options: options)
+    return try renderClassSvg(positioned, colors, font, transparent)
+}
+
+private func _renderErSvgCase(lines: [String], fm: DiagramFrontmatter?, options: RenderOptions, colors: DiagramColors, font: String, transparent: Bool) throws -> String {
+    let diagram = try parseErDiagram(lines, frontmatter: fm)
+    let positioned = try layoutErDiagramSync(diagram, options: options, config: diagram.config)
+    return try renderErSvg(positioned, colors, font, transparent)
+}
+
+private func _renderXYChartSvgCase(lines: [String], fm: DiagramFrontmatter?, options: RenderOptions, colors: DiagramColors, font: String, transparent: Bool) throws -> String {
+    let chart = try parseXYChart(lines)
+    var mutatedChart = chart
+    if let fmc = fm?.xyChartConfig { mutatedChart.config = fmc }
+    if let fmt = fm?.xyChartTheme { mutatedChart.theme = fmt }
+    if mutatedChart.titleText == nil, let fmTitle = fm?.diagramTitle {
+        mutatedChart.diagramTitle = fmTitle
+    }
+    let positioned = layoutXYChart(mutatedChart, options)
+    return renderXYChartSvg(positioned, colors, font, transparent, interactive: options.interactive ?? false)
+}
+
+private func _renderPieSvgCase(lines: [String], fm: DiagramFrontmatter?, colors: DiagramColors, font: String, transparent: Bool) throws -> String {
+    let chart = try parsePieChart(lines, frontmatter: fm)
+    let positioned = layoutPieChart(chart)
+    return renderPieSvg(positioned, colors, font, transparent)
+}
+
+private func _renderJourneySvgCase(lines: [String], fm: DiagramFrontmatter?, options: RenderOptions, colors: DiagramColors, font: String, transparent: Bool) throws -> String {
+    let diagram = try parseJourneyDiagram(lines, frontmatter: fm)
+    let config = fm?.journeyConfig ?? .default
+    var merged = diagram
+    merged.config = config
+    let positioned = layoutJourneyDiagram(merged, options: options, config: config)
+    return try renderJourneySvg(positioned, colors, font, transparent)
+}
+
+private func _renderGanttSvgCase(source: String, fm: DiagramFrontmatter?, colors: DiagramColors, font: String, transparent: Bool) throws -> String {
+    let ganttLines = _sourceStatementsNoPreprocess(from: source, separatedBy: CharacterSet(charactersIn: "\n"))
+    let diagram = try parseGanttDiagram(ganttLines, frontmatter: fm)
+    let config = fm?.ganttConfig ?? .default
+    var merged = diagram
+    merged.config = config
+    let positioned = layoutGanttDiagram(merged)
+    let diagramId = UUID().uuidString
+    return try renderGanttSvg(positioned, diagramId: diagramId, colors, font, transparent)
+}
+
+private func _renderQuadrantSvgCase(lines: [String], fm: DiagramFrontmatter?, colors: DiagramColors, font: String, transparent: Bool) throws -> String {
+    let chart = try parseQuadrantChart(lines, frontmatter: fm)
+    var mutatedChart = chart
+    if let fmc = fm?.quadrantChartConfig { mutatedChart.config = fmc }
+    if let fmt = fm?.quadrantChartTheme { mutatedChart.theme = fmt }
+    if mutatedChart.titleText == nil, let fmTitle = fm?.diagramTitle {
+        mutatedChart.titleText = fmTitle
+        mutatedChart.diagramTitle = fmTitle
+    }
+    let positioned = layoutQuadrantChart(mutatedChart)
+    return renderQuadrantSvg(positioned, colors, font, transparent)
+}
+
+private func _renderRequirementSvgCase(lines: [String], fm: DiagramFrontmatter?, options: RenderOptions, colors: DiagramColors, font: String, transparent: Bool) throws -> String {
+    let diagram = try parseRequirementDiagram(lines, frontmatter: fm)
+    let positioned = try layoutRequirementDiagram(diagram, options: options)
+    return try renderRequirementSvg(positioned, colors, font, transparent)
+}
+
+private func _renderFlowchartSvgCase(source: String, fm: DiagramFrontmatter?, options: RenderOptions, colors: DiagramColors, font: String, transparent: Bool) throws -> String {
+    let graph = try parseMermaid(source, config: fm?.flowchartConfig, stateConfig: fm?.stateConfig)
+    let positioned = try layoutGraphSync(graph, options)
+    return try renderSvg(positioned, colors, font, transparent)
+}
+
+private func _renderGitGraphSvgCase(source: String, fm: DiagramFrontmatter?) throws -> String {
+    let gitLines = _sourceStatementsNoPreprocess(from: source)
+    let diagram = try parseGitGraph(gitLines, frontmatter: fm)
+    let positioned = layoutGitGraph(diagram)
+    return renderGitGraphSvg(positioned)
+}
+
+private func _renderMindmapSvgCase(source: String, fm: DiagramFrontmatter?, colors: DiagramColors, font: String, transparent: Bool) throws -> String {
+    let rawLines = _rawDiagramLines(from: source)
+    let diagram = try parseMindmap(rawLines, frontmatter: fm)
+    let positioned = try layoutMindmap(diagram)
+    let diagramId = UUID().uuidString
+    return renderMindmapSvg(positioned, diagramId: diagramId, colors, font, transparent)
+}
+
+private func _renderTimelineSvgCase(source: String, fm: DiagramFrontmatter?, colors: DiagramColors, font: String, transparent: Bool) throws -> String {
+    let timelineLines = _rawDiagramLines(from: source)
+    var diagram = try parseTimelineDiagram(timelineLines, frontmatter: fm)
+    if let fmc = fm?.timelineConfig { diagram.config = fmc }
+    if let fmt = fm?.timelineTheme { diagram.theme = fmt }
+    if diagram.diagramTitle == nil, let fmTitle = fm?.title {
+        diagram.diagramTitle = fmTitle
+    }
+    diagram.themeName = fm?.theme
+    diagram.look = fm?.look
+    let positioned = layoutTimelineDiagram(diagram)
+    let diagramId = UUID().uuidString
+    return try renderTimelineSvg(positioned, diagramId: diagramId, colors, font, transparent)
+}
+
+private func _renderSankeySvgCase(source: String, fm: DiagramFrontmatter?, colors: DiagramColors, font: String, transparent: Bool) throws -> String {
+    let sankeyLines = _sourceStatementsNoPreprocess(from: source)
+    var diagram = try parseSankeyDiagram(sankeyLines, frontmatter: fm)
+    if let fmc = fm?.sankeyConfig { diagram.config = fmc }
+    let positioned = layoutSankeyDiagram(diagram)
+    return renderSankeySvg(positioned, colors, font, transparent)
+}
+
+private func _renderBlockSvgCase(source: String, fm: DiagramFrontmatter?, colors: DiagramColors, font: String, transparent: Bool) throws -> String {
+    let blockLines = _sourceStatementsNoPreprocess(from: source, separatedBy: CharacterSet(charactersIn: "\n"))
+    var diagram = try parseBlockDiagramLines(blockLines)
+    if let fmc = fm?.blockConfig { diagram.config = fmc }
+    if let title = fm?.diagramTitle { diagram.diagramTitle = title }
+    let positioned = try layoutBlockDiagram(diagram)
+    let diagramId = UUID().uuidString
+    return try renderBlockSvg(positioned, diagramId: diagramId, colors: colors, fontFamily: font, transparent: transparent)
+}
+
+private func _renderPacketSvgCase(source: String, fm: DiagramFrontmatter?, colors: DiagramColors, font: String, transparent: Bool) throws -> String {
+    let packetLines = _sourceStatementsNoPreprocess(from: source)
+    var diagram = try parsePacketDiagram(packetLines, frontmatter: fm)
+    if diagram.diagramTitle == nil, let title = fm?.diagramTitle {
+        diagram.diagramTitle = title
+    }
+    let positioned = layoutPacketDiagram(diagram)
+    return renderPacketSvg(positioned, colors, font, transparent, theme: diagram.theme)
+}
+
+private func _renderKanbanSvgCase(source: String, fm: DiagramFrontmatter?, colors: DiagramColors, font: String, transparent: Bool) throws -> String {
+    let rawLines = _rawDiagramLines(from: source)
+    let diagram = try parseKanbanDiagram(rawLines, frontmatter: fm)
+    let positioned = layoutKanbanDiagram(diagram)
+    let diagramId = UUID().uuidString
+    return try renderKanbanSvg(positioned, diagramId: diagramId, colors, font, transparent)
+}
+
+private func _renderArchitectureSvgCase(source: String, fm: DiagramFrontmatter?, colors: DiagramColors, font: String, transparent: Bool) throws -> String {
+    let rawLines = _rawDiagramLines(from: source)
+    var diagram = try parseArchitectureDiagram(rawLines, frontmatter: fm)
+    if let fmc = fm?.archConfig { diagram.config = fmc }
+    if let fmt = fm?.archTheme { diagram.theme = fmt }
+    if diagram.diagramTitle == nil, let fmTitle = fm?.diagramTitle {
+        diagram.diagramTitle = fmTitle
+    }
+    let positioned = layoutArchitectureDiagram(diagram)
+    let diagramId = UUID().uuidString
+    return try renderArchitectureSvg(positioned, diagramId: diagramId, colors, font, transparent)
+}
+
+private func _renderRadarSvgCase(source: String, fm: DiagramFrontmatter?, colors: DiagramColors, font: String, transparent: Bool) throws -> String {
+    var diagram = try parseRadarDiagram(source: source, frontmatter: fm)
+    if let fmc = fm?.radarConfig { diagram.config = fmc }
+    if let fmt = fm?.radarTheme { diagram.theme = fmt }
+    if diagram.diagramTitle == nil, let fmTitle = fm?.diagramTitle {
+        diagram.diagramTitle = fmTitle
+    }
+    let positioned = layoutRadarDiagram(diagram)
+    return renderRadarSvg(positioned, colors: colors, font: font, transparent: transparent)
+}
+
+private func _renderTreemapSvgCase(source: String, fm: DiagramFrontmatter?, colors: DiagramColors, font: String, transparent: Bool) throws -> String {
+    let rawLines = _rawDiagramLines(from: source)
+    var diagram = try parseTreemapDiagram(rawLines, frontmatter: fm)
+    if let fmc = fm?.treemapConfig { diagram.config = fmc }
+    if let theme = fm?.theme { diagram.themeName = theme }
+    if diagram.diagramTitle == nil, let fmTitle = fm?.diagramTitle {
+        diagram.diagramTitle = fmTitle
+    }
+    let positioned = layoutTreemapDiagram(diagram)
+    let diagramId = UUID().uuidString
+    return renderTreemapSvg(positioned, diagramId: diagramId, colors, font, transparent)
+}
+
+private func _renderVennSvgCase(source: String, fm: DiagramFrontmatter?, colors: DiagramColors, font: String, transparent: Bool) throws -> String {
+    let rawLines = _rawDiagramLines(from: source)
+    var diagram = try parseVennDiagram(rawLines, frontmatter: fm)
+    if let fmc = fm?.vennConfig { diagram.config = fmc }
+    if let theme = fm?.theme { diagram.themeName = theme }
+    if let tv = fm?.vennThemeVariables { diagram.themeVariables = tv }
+    if diagram.diagramTitle == nil, let fmTitle = fm?.diagramTitle {
+        diagram.diagramTitle = fmTitle
+    }
+    let positioned = layoutVennDiagram(diagram)
+    let diagramId = UUID().uuidString
+    return renderVennSvg(positioned, diagramId: diagramId, colors, font, transparent)
+}
+
+private func _rawDiagramLines(from source: String) -> [String] {
+    source
+        .replacingOccurrences(of: "\r\n", with: "\n")
+        .replacingOccurrences(of: "\r", with: "\n")
+        .split(separator: "\n", omittingEmptySubsequences: false)
+        .map(String.init)
 }
 
 public func renderMermaidSVGAsync(

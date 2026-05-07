@@ -353,6 +353,8 @@ public struct DiagramFrontmatter: Sendable {
     public var radarTheme: RadarThemeConfig?
     public var treemapConfig: TreemapDiagramConfig?
     public var treemapThemeVariables: [String: String]?
+    public var vennConfig: VennDiagramConfig?
+    public var vennThemeVariables: [String: String]?
 
     public var layout: String?      // Shared global config.layout
     public var look: String?         // Shared global config.look
@@ -394,6 +396,8 @@ public struct DiagramFrontmatter: Sendable {
         radarTheme: RadarThemeConfig? = nil,
         treemapConfig: TreemapDiagramConfig? = nil,
         treemapThemeVariables: [String: String]? = nil,
+        vennConfig: VennDiagramConfig? = nil,
+        vennThemeVariables: [String: String]? = nil,
         layout: String? = nil,
         look: String? = nil,
         theme: String? = nil,
@@ -433,6 +437,8 @@ public struct DiagramFrontmatter: Sendable {
         self.radarTheme = radarTheme
         self.treemapConfig = treemapConfig
         self.treemapThemeVariables = treemapThemeVariables
+        self.vennConfig = vennConfig
+        self.vennThemeVariables = vennThemeVariables
         self.layout = layout
         self.look = look
         self.theme = theme

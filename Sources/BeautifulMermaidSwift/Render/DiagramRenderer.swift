@@ -74,6 +74,8 @@ public final class DiagramRenderer {
             _drawRadar(positioned, in: context, bounds: bounds)
         case .treemap:
             _drawTreemap(positioned, in: context, bounds: bounds)
+        case .venn:
+            _drawVenn(positioned, in: context, bounds: bounds)
         }
     }
 

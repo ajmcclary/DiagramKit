@@ -271,6 +271,18 @@ public struct GraphLayout {
                     height: positioned.height,
                     content: .treemap(positioned)
                 )
+            case .venn:
+                guard case let .venn(diagram) = graph.payload else {
+                    _reportMermaidIssue("GraphLayout.layout found mismatched venn payload.")
+                    return PositionedGraph(diagram: graph, content: .venn(.empty))
+                }
+                let positioned = layoutVennDiagram(diagram)
+                return PositionedGraph(
+                    diagram: graph,
+                    width: positioned.width,
+                    height: positioned.height,
+                    content: .venn(positioned)
+                )
             }
         }
     }

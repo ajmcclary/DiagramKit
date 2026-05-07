@@ -156,6 +156,23 @@ public enum MermaidParser {
                 }
                 return MermaidGraph(payload: .treemap(diagram))
             }
+            if firstLine.hasPrefix("venn-beta") {
+                let rawLines = processed
+                    .replacingOccurrences(of: "\r\n", with: "\n")
+                    .replacingOccurrences(of: "\r", with: "\n")
+                    .split(separator: "\n", omittingEmptySubsequences: false)
+                    .map(String.init)
+                var diagram = try parseVennDiagram(rawLines, frontmatter: frontmatter)
+                if let fm = frontmatter {
+                    if let cfg = fm.vennConfig { diagram.config = cfg }
+                    if let theme = fm.theme { diagram.themeName = theme }
+                    if let tv = fm.vennThemeVariables { diagram.themeVariables = tv }
+                    if diagram.diagramTitle == nil, let fmTitle = fm.diagramTitle {
+                        diagram.diagramTitle = fmTitle
+                    }
+                }
+                return MermaidGraph(payload: .venn(diagram))
+            }
 
             // Flowchart + stateDiagram-v2 — pass frontmatter flowchart config
             let parsed = try parseMermaid(processed, config: frontmatter?.flowchartConfig)

@@ -298,6 +298,7 @@ open class original_src_ascii_index {
         case architecture
         case radar
         case treemap
+        case venn
     }
 
     struct AsciiConfig {
@@ -395,6 +396,8 @@ open class original_src_ascii_index {
             return "radar"
         case .treemap:
             return "treemap"
+        case .venn:
+            return "venn"
         case .flowchart:
             return "flowchart"
         }
@@ -493,6 +496,9 @@ open class original_src_ascii_index {
         case .treemap:
             throw BeautifulMermaidError.notYetImplemented("Treemap ASCII rendering")
 
+        case .venn:
+            throw BeautifulMermaidError.notYetImplemented("Venn Diagram ASCII rendering")
+
         case .flowchart:
             let parsed = try parseMermaid(preprocessedText)
 
@@ -590,6 +596,9 @@ open class original_src_ascii_index {
         }
         if firstLine.hasPrefix("treemap") {
             return .treemap
+        }
+        if firstLine.hasPrefix("venn-beta") {
+            return .venn
         }
 
         return .flowchart

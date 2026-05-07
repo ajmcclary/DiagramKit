@@ -1691,10 +1691,58 @@
       "category": "treemap",
       "name": "Treemap - Complex",
       "source": "---\nconfig:\n  treemap:\n    valueFormat: \"$,.0f\"\n---\ntreemap\n  title Department Budget\n  accTitle: Department budget treemap\n  accDescr: Budget allocation by department and program\n\"Company\":::root\n    \"Product\":::product\n        \"Platform\": 1250000:::priority\n        \"Mobile\": 780000\n        \"Research\": 430000\n    \"Operations\":::ops\n        \"Customer Success\": 520000\n        \"Infrastructure\": 610000:::priority\n    \"Go To Market\":::gtm\n        \"Sales\": 910000\n        \"Marketing\": 670000\nclassDef root fill:#f5f7fa,stroke:#506070,color:#1f2933;\nclassDef product fill:#d8ecff,stroke:#2f6f9f,color:#12283a;\nclassDef ops fill:#d7f2df,stroke:#337a45,color:#16351f;\nclassDef gtm fill:#ffe6cc,stroke:#a75b18,color:#3b2008;\nclassDef priority fill:#f8c7cc,stroke:#a53845,color:#4a121a;"
+    },
+    {
+      "id": "venn-simple-two-set",
+      "category": "venn",
+      "name": "Venn - Simple Two Set",
+      "source": "venn-beta\n  set A\n  set B\n  union A,B"
+    },
+    {
+      "id": "venn-three-set",
+      "category": "venn",
+      "name": "Venn - Three Set with Intersections",
+      "source": "venn-beta\n  title \"Three overlapping sets\"\n  set A\n  set B\n  set C\n  union A,B[\"AB\"]\n  union B,C[\"BC\"]\n  union A,C[\"AC\"]\n  union A,B,C[\"ABC\"]"
+    },
+    {
+      "id": "venn-title-labels",
+      "category": "venn",
+      "name": "Venn - Title and Bracket Labels",
+      "source": "venn-beta\n  title \"Team Overlap\"\n  set Frontend[\"Frontend\"]\n  set Backend[\"Backend\"]\n  union Frontend,Backend[\"Fullstack\"]"
+    },
+    {
+      "id": "venn-custom-sizes",
+      "category": "venn",
+      "name": "Venn - Custom Set Sizes",
+      "source": "venn-beta\n  set A[\"Alpha\"]:20\n  set B[\"Beta\"]:12\n  union A,B[\"AB\"]:5.3"
+    },
+    {
+      "id": "venn-quoted-identifiers",
+      "category": "venn",
+      "name": "Venn - Quoted Identifiers",
+      "source": "venn-beta\n  set \"Alpha Team\"\n  set \"Beta Team\"\n  union \"Alpha Team\",\"Beta Team\""
+    },
+    {
+      "id": "venn-text-nodes",
+      "category": "venn",
+      "name": "Venn - Text Nodes",
+      "source": "venn-beta\n  set Frontend[\"Frontend\"]\n    text React[\"React\"]\n    text Design[\"Design Systems\"]\n  set Backend[\"Backend\"]\n    text API[\"REST APIs\"]\n  union Frontend,Backend[\"Shared\"]\n    text OpenAPI[\"OpenAPI Spec\"]"
+    },
+    {
+      "id": "venn-styled",
+      "category": "venn",
+      "name": "Venn - Styled Sets and Intersections",
+      "source": "venn-beta\n  set A\n  set B\n  set C\n  union A,B\n  union B,C\n  union A,C\n  union A,B,C\n  style A fill:#ff6b6b, color:#333\n  style B fill:#4ecdc4\n  style A,B fill:rgba(255, 0, 128, 0.5)\n  style A,B,C fill:white, color:red"
+    },
+    {
+      "id": "venn-frontmatter-theme",
+      "category": "venn",
+      "name": "Venn - Frontmatter Config and Theme",
+      "source": "---\nconfig:\n  venn:\n    width: 1000\n    height: 600\n    padding: 20\n  theme: base\n  themeVariables:\n    venn1: \"#ff6b6b\"\n    venn2: \"#4ecdc4\"\n    vennSetTextColor: \"#222222\"\n---\nvenn-beta\n  title Skills Overlap\n  set Frontend[\"Frontend\"]:20\n  set Backend[\"Backend\"]:12\n  union Frontend,Backend[\"Fullstack\"]:3"
     }
   ],
   "metadata": {
-    "totalCount": 267,
+    "totalCount": 275,
     "categories": {
       "flowchart": 27,
       "state": 12,
@@ -1716,7 +1764,8 @@
       "kanban": 3,
       "architecture": 7,
       "radar": 10,
-      "treemap": 10
+      "treemap": 10,
+      "venn": 8
     }
   }
 }
