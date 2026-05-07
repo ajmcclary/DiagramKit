@@ -140,6 +140,26 @@ public final class DiagramRenderer {
         }
     }
 
+    func _drawAttributedStringInFlipped(
+        _ attrStr: NSAttributedString,
+        in rect: CGRect,
+        context: CGContext,
+        contentHeight: CGFloat,
+        alignment: TextAlignment = .center
+    ) {
+        guard attrStr.length > 0 else { return }
+        let bounding = attrStr.boundingRect(with: CGSize(width: rect.width, height: .greatestFiniteMagnitude),
+                                            options: [.usesLineFragmentOrigin, .usesFontLeading])
+        var drawRect = rect
+        drawRect.size.height = bounding.height
+        drawRect.origin.y = rect.midY - bounding.height / 2
+        #if os(macOS)
+        attrStr.draw(in: drawRect)
+        #else
+        attrStr.draw(with: drawRect, options: [.usesLineFragmentOrigin, .usesFontLeading], context: nil)
+        #endif
+    }
+
     func _withFittedContext(
         _ context: CGContext,
         bounds: CGRect,

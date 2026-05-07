@@ -19,6 +19,7 @@ private struct _SvgNode {
     var interaction: original_src_types.NodeInteraction?
     var icon: String?
     var img: String?
+    var securityLevel: String?
 }
 
 private struct _SvgEdge {
@@ -52,6 +53,7 @@ private struct _SvgGraphModel {
     var nodes: [_SvgNode]
     var edges: [_SvgEdge]
     var groups: [_SvgGroup]
+    var securityLevel: String?
 }
 
 public func renderSvg(
@@ -481,6 +483,7 @@ private func _renderNode(_ node: _SvgNode, _ font: String) -> String {
 }
 
 private func _nodeAnchorAttributes(_ node: _SvgNode) -> String? {
+    if let sl = node.securityLevel, sl.lowercased() == "sandbox" { return nil }
     guard let interaction = node.interaction else { return nil }
     let url: String
     switch interaction.type {
@@ -1091,8 +1094,13 @@ private func _renderBraces(x: Double, y: Double, w: Double, h: Double, fill: Str
 
 private func _renderIconContent(icon: String?, img: String?, x: Double, y: Double, w: Double, h: Double) -> String {
     if let imageUrl = img, !imageUrl.isEmpty {
-        let pad: Double = 4
-        return "<image x=\"\(x + pad)\" y=\"\(y + pad)\" width=\"\(w - pad * 2)\" height=\"\(h - pad * 2)\" xlink:href=\"\(_escapeAttr(imageUrl))\" preserveAspectRatio=\"xMidYMid meet\" />"
+        let lowered = imageUrl.lowercased().trimmingCharacters(in: .whitespaces)
+        let dangerous = ["javascript:", "data:", "vbscript:", "file:"]
+        let isSafe = !dangerous.contains(where: { lowered.hasPrefix($0) })
+        if isSafe {
+            let pad: Double = 4
+            return "<image x=\"\(x + pad)\" y=\"\(y + pad)\" width=\"\(w - pad * 2)\" height=\"\(h - pad * 2)\" xlink:href=\"\(_escapeAttr(imageUrl))\" preserveAspectRatio=\"xMidYMid meet\" />"
+        }
     }
     if let iconName = icon, !iconName.isEmpty {
         let trimmed = iconName.hasPrefix("fa:") ? String(iconName.dropFirst(3)) : iconName
@@ -1180,16 +1188,18 @@ private func _escapeAttr(_ value: String) -> String {
 }
 
 private func _extractSvgGraphModel(_ graph: PositionedGraph) -> _SvgGraphModel {
-    _SvgGraphModel(
+    let secLevel = _graphSecurityLevel(graph.diagram)
+    return _SvgGraphModel(
         width: graph.width,
         height: graph.height,
-        nodes: (graph.flowchartNodes ?? []).map { $0 as Any }.map(_extractNode),
+        nodes: (graph.flowchartNodes ?? []).map { $0 as Any }.map { _extractNode($0, securityLevel: secLevel) },
         edges: (graph.flowchartEdges ?? []).map { $0 as Any }.map(_extractEdge),
-        groups: (graph.flowchartGroups ?? []).map { $0 as Any }.map(_extractGroup)
+        groups: (graph.flowchartGroups ?? []).map { $0 as Any }.map(_extractGroup),
+        securityLevel: secLevel
     )
 }
 
-private func _extractNode(_ any: Any) -> _SvgNode {
+private func _extractNode(_ any: Any, securityLevel: String? = nil) -> _SvgNode {
     let props = _readNodeProperties(any, label: "properties")
     return _SvgNode(
         id: _readString(any, label: "id") ?? "",
@@ -1203,7 +1213,8 @@ private func _extractNode(_ any: Any) -> _SvgNode {
         inlineStyle: _readStringMap(any, label: "inlineStyle") ?? [:],
         interaction: _readNodeInteraction(any, label: "interaction"),
         icon: props?.icon,
-        img: props?.img
+        img: props?.img,
+        securityLevel: securityLevel
     )
 }
 
@@ -1351,6 +1362,17 @@ private func _graphAccessibility(_ graph: MermaidGraph) -> (title: String?, desc
         return (parsed.accTitle, parsed.accDescr)
     default:
         return (nil, nil)
+    }
+}
+
+private func _graphSecurityLevel(_ graph: MermaidGraph) -> String? {
+    switch graph.payload {
+    case .flowchart(let parsed):
+        return parsed.config?.securityLevel
+    case .stateDiagram:
+        return nil
+    default:
+        return nil
     }
 }
 

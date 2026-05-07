@@ -859,6 +859,17 @@ private func _parseStyleProps(_ propsStr: String) -> [String: String] {
 
 private typealias ParsedNodeInteraction = original_src_types.NodeInteraction
 
+private let _dangerousURLPrefixes = ["javascript:", "data:", "vbscript:", "file:"]
+
+private func _validateURL(_ url: String) -> Bool {
+    let lowered = url.lowercased().trimmingCharacters(in: .whitespaces)
+    guard !lowered.isEmpty else { return false }
+    for prefix in _dangerousURLPrefixes {
+        if lowered.hasPrefix(prefix) { return false }
+    }
+    return true
+}
+
 private func _parseClickRest(_ rest: String) -> ParsedNodeInteraction? {
     // Mermaid click syntax variants:
     //   click A callback
@@ -890,6 +901,7 @@ private func _parseClickRest(_ rest: String) -> ParsedNodeInteraction? {
             afterHref
         ), let url = hrefMatch[safe: 1]
         {
+            guard _validateURL(url) else { return nil }
             let tooltip = _emptyToNil(hrefMatch[safe: 2])
             let target = _emptyToNil(hrefMatch[safe: 3])
             return ParsedNodeInteraction(type: .href(url), tooltip: tooltip, target: target)
@@ -901,6 +913,7 @@ private func _parseClickRest(_ rest: String) -> ParsedNodeInteraction? {
         #"^"([^"]+)"\s+"([^"]*)"\s*(?:\s*(_self|_blank|_parent|_top))?\s*$"#,
         r
     ), let url = quotedUrlMatch[safe: 1] {
+        guard _validateURL(url) else { return nil }
         let tooltip = _emptyToNil(quotedUrlMatch[safe: 2])
         let target = _emptyToNil(quotedUrlMatch[safe: 3])
         return ParsedNodeInteraction(type: .href(url), tooltip: tooltip, target: target)
@@ -1062,6 +1075,10 @@ private func _consumeNode(_ text: String, graph: inout _WorkingGraph, subgraphSt
        var node = graph.nodesById[nodeId]
     {
         node.properties = props
+        if let shapeStr = props.shape,
+           let resolvedShape = original_src_types.NodeShape.resolve(alias: shapeStr) {
+            node.shape = resolvedShape
+        }
         graph.upsertNode(node)
         remaining = rem
     }

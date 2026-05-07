@@ -1,5 +1,10 @@
 import Foundation
 import CoreGraphics
+#if canImport(AppKit)
+import AppKit
+#elseif canImport(UIKit)
+import UIKit
+#endif
 
 private typealias ParsedArrowHeadType = original_src_types.ArrowHeadType
 
@@ -48,7 +53,8 @@ extension DiagramRenderer {
                 if style.lineStyle == .invisible { continue }
                 style.color = edge.inlineStyle?["stroke"]
                 style.strokeWidth = edge.inlineStyle?["stroke-width"].flatMap { _parseCSSLength($0) }
-                self.edgeRenderer.drawEdgePath(points: pts, style: style, in: ctx, theme: self.theme)
+                let curve = edge.curve?.isEmpty == false ? edge.curve : nil
+                self.edgeRenderer.drawEdgePath(points: pts, style: style, in: ctx, theme: self.theme, curveType: curve)
             }
 
             // 3. Draw arrow heads
@@ -81,6 +87,11 @@ extension DiagramRenderer {
                 guard !node.label.isEmpty else { continue }
                 let textColor = self.theme.nodeTextColor(for: node.inlineStyle)
                 let nodeFont = self.config.nodeLabelFont()
+                let hasMarkdown = node.label.contains("**") || node.label.contains("*") || node.label.contains("`")
+                let pos = node.properties?.pos
+
+                // Label positioned relative to node when pos is set on icon/image shapes
+                let labelCenter = _labelCenterForNode(node, pos: pos)
                 if node.shape == "rect-with-title", node.descriptions.count > 1 {
                     let titleCenter = CGPoint(x: node.x + node.width / 2, y: node.y + 12)
                     self._drawTextInFlipped(
@@ -104,6 +115,14 @@ extension DiagramRenderer {
                     )
                     continue
                 }
+                if hasMarkdown {
+                    let mdConfig = MarkdownLabelRenderer.Config(fontSize: nodeFont.pointSize, textColor: textColor)
+                    let attrStr = MarkdownLabelRenderer.render(node.label, config: mdConfig)
+                    let rect = CGRect(x: node.x, y: node.y, width: node.width, height: node.height)
+                    let inset = rect.insetBy(dx: 4, dy: 2)
+                    self._drawAttributedStringInFlipped(attrStr, in: inset, context: ctx, contentHeight: ch, alignment: .center)
+                    continue
+                }
                 if node.label.contains("\n") {
                     let rect = CGRect(x: node.x, y: node.y, width: node.width, height: node.height)
                     let inset = rect.insetBy(dx: 4, dy: 2)
@@ -116,7 +135,7 @@ extension DiagramRenderer {
                         alignment: .center
                     )
                 } else {
-                    let center = CGPoint(x: node.x + node.width / 2, y: node.y + node.height / 2)
+                    let center = pos != nil ? labelCenter : CGPoint(x: node.x + node.width / 2, y: node.y + node.height / 2)
                     self._drawTextInFlipped(
                         node.label,
                         at: center,
@@ -276,21 +295,65 @@ extension DiagramRenderer {
         )
     }
 
+    private func _labelCenterForNode(_ node: _PositionedNodePayload, pos: String?) -> CGPoint {
+        guard let pos else { return CGPoint(x: node.x + node.width / 2, y: node.y + node.height / 2) }
+        switch pos.lowercased() {
+        case "t":
+            return CGPoint(x: node.x + node.width / 2, y: node.y - 12)
+        case "b":
+            return CGPoint(x: node.x + node.width / 2, y: node.y + node.height + 12)
+        case "l":
+            return CGPoint(x: node.x - 12, y: node.y + node.height / 2)
+        case "r":
+            return CGPoint(x: node.x + node.width + 12, y: node.y + node.height / 2)
+        default:
+            return CGPoint(x: node.x + node.width / 2, y: node.y + node.height / 2)
+        }
+    }
+
     func _drawIconOrImage(props: original_src_types.NodeProperties, bounds: CGRect, in context: CGContext, contentHeight ch: CGFloat) {
         if let iconName = props.icon, !iconName.isEmpty {
-            let trimmed = iconName.hasPrefix("fa:") ? String(iconName.dropFirst(3)) : iconName
-            let fontSize = CGFloat(min(bounds.width, bounds.height) * 0.4)
-            let iconFont = BMFont.systemFont(ofSize: fontSize)
-            let textColor = theme.nodeTextColor(for: [:])
-            _drawTextInFlipped(
-                trimmed,
-                at: CGPoint(x: bounds.midX, y: bounds.midY),
-                context: context,
-                contentHeight: ch,
-                color: textColor,
-                font: iconFont,
-                alignment: .center
-            )
+            let faName = iconName.hasPrefix("fa:") ? String(iconName.dropFirst(3)) : iconName
+            if let sfName = FontAwesomeMap.sfSymbolName(for: faName) {
+                _drawSFIcon(sfName, bounds: bounds.insetBy(dx: 4, dy: 4), in: context, contentHeight: ch)
+            } else {
+                let fontSize = CGFloat(min(bounds.width, bounds.height) * 0.4)
+                let iconFont = BMFont.systemFont(ofSize: fontSize)
+                let textColor = theme.nodeTextColor(for: [:])
+                _drawTextInFlipped(
+                    faName,
+                    at: CGPoint(x: bounds.midX, y: bounds.midY),
+                    context: context,
+                    contentHeight: ch,
+                    color: textColor,
+                    font: iconFont,
+                    alignment: .center
+                )
+            }
         }
+    }
+
+    private func _drawSFIcon(_ sfName: String, bounds: CGRect, in context: CGContext, contentHeight ch: CGFloat) {
+        #if os(macOS)
+        if #available(macOS 11.0, *) {
+            let config = NSImage.SymbolConfiguration(pointSize: min(bounds.width, bounds.height) * 0.6, weight: .regular)
+            guard let image = NSImage(systemSymbolName: sfName, accessibilityDescription: nil) else { return }
+            guard let symbol = image.withSymbolConfiguration(config) else { return }
+            let drawRect = CGRect(
+                x: bounds.midX - bounds.width / 2,
+                y: bounds.midY - bounds.height / 2,
+                width: bounds.width,
+                height: bounds.height
+            )
+            NSGraphicsContext.saveGraphicsState()
+            NSGraphicsContext.current = NSGraphicsContext(cgContext: context, flipped: false)
+            symbol.draw(in: drawRect)
+            NSGraphicsContext.restoreGraphicsState()
+        }
+        #else
+        let config = UIImage.SymbolConfiguration(pointSize: min(bounds.width, bounds.height) * 0.6, weight: .regular)
+        guard let symbol = UIImage(systemName: sfName, withConfiguration: config) else { return }
+        symbol.draw(in: bounds)
+        #endif
     }
 }

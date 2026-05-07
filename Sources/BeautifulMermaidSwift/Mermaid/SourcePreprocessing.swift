@@ -1657,7 +1657,10 @@ private final class _StackSafeYamlFrontmatterParser {
     }
 
     private func finalize() {
-        if hasFlowchartSection { frontmatter.flowchartConfig = flowchartConfig }
+        if hasFlowchartSection || frontmatter.securityLevel != nil {
+            if let sl = frontmatter.securityLevel { flowchartConfig.securityLevel = sl }
+            frontmatter.flowchartConfig = flowchartConfig
+        }
         if hasClassSection { frontmatter.classConfig = classConfig }
         if hasErSection { frontmatter.erConfig = erConfig }
         if hasXYChartConfig { frontmatter.xyChartConfig = xyChartConfig }
@@ -2574,7 +2577,10 @@ private final class _YamlFrontmatterParser {
         }
     }
 
-    if hasFlowchartSection { frontmatter.flowchartConfig = flowchartConfig }
+    if hasFlowchartSection || frontmatter.securityLevel != nil {
+        if let sl = frontmatter.securityLevel { flowchartConfig.securityLevel = sl }
+        frontmatter.flowchartConfig = flowchartConfig
+    }
     if hasClassSection { frontmatter.classConfig = classConfig }
     if hasErSection { frontmatter.erConfig = erConfig }
     if hasXYChartConfig { frontmatter.xyChartConfig = xyChartConfig }

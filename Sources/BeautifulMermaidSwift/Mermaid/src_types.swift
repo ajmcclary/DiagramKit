@@ -412,19 +412,22 @@ open class original_src_types {
         public var markdownAutoWrap: Bool?
         public var width: Int?
         public var inheritDir: Bool?
+        public var securityLevel: String?
 
         public init(
             curve: String? = nil,
             htmlLabels: Bool? = nil,
             markdownAutoWrap: Bool? = nil,
             width: Int? = nil,
-            inheritDir: Bool? = nil
+            inheritDir: Bool? = nil,
+            securityLevel: String? = nil
         ) {
             self.curve = curve
             self.htmlLabels = htmlLabels
             self.markdownAutoWrap = markdownAutoWrap
             self.width = width
             self.inheritDir = inheritDir
+            self.securityLevel = securityLevel
         }
     }
 
