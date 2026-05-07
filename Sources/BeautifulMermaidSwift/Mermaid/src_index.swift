@@ -96,6 +96,7 @@ private enum _DiagramRoutingType {
     case ishikawa
     case treeView
     case eventmodeling
+    case wardley
 }
 
 private func _decodeXML(_ text: String) -> String {
@@ -179,6 +180,9 @@ private func detectDiagramType(_ text: String) -> _DiagramRoutingType {
     }
     if firstLine.hasPrefix("eventmodeling") {
         return .eventmodeling
+    }
+    if firstLine.hasPrefix("wardley-beta") {
+        return .wardley
     }
 
     return .flowchart
@@ -331,6 +335,8 @@ private func _renderPreprocessedMermaidSVG(
         return try _renderTreeViewSvgCase(source: decodedText, fm: fm, colors: colors, font: font, transparent: transparent)
     case .eventmodeling:
         return try _renderEventModelingSvgCase(source: decodedText, fm: fm, colors: colors, font: font, transparent: transparent)
+    case .wardley:
+        return try _renderWardleySvgCase(source: decodedText, fm: fm, colors: colors, font: font, transparent: transparent)
     }
 }
 
@@ -570,6 +576,20 @@ private func _renderEventModelingSvgCase(source: String, fm: DiagramFrontmatter?
     let positioned = layoutEventModeling(diagram)
     let diagramId = UUID().uuidString
     return renderEventModelingSvg(positioned, diagramId: diagramId, colors: colors, font: font, transparent: transparent)
+}
+
+private func _renderWardleySvgCase(source: String, fm: DiagramFrontmatter?, colors: DiagramColors, font: String, transparent: Bool) throws -> String {
+    let lines = _rawDiagramLines(from: source)
+    var diagram = try parseWardleyMap(lines, frontmatter: fm)
+    if let fm = fm {
+        if let cfg = fm.wardleyBetaConfig { diagram.config = cfg }
+        if let theme = fm.wardleyTheme { diagram.theme = theme }
+        if diagram.diagramTitle == nil, let fmTitle = fm.diagramTitle {
+            diagram.diagramTitle = fmTitle
+        }
+    }
+    let positioned = layoutWardleyMap(diagram)
+    return renderWardleyMapSvg(positioned, colors: colors, font: font, transparent: transparent)
 }
 
 private func _rawDiagramLines(from source: String) -> [String] {

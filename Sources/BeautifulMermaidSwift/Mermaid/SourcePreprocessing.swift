@@ -188,11 +188,18 @@ private func _applyInitDirectivePayload(_ payload: String, to frontmatter: inout
         if let eventmodeling = config["eventmodeling"] as? [String: Any] {
             applied = _applyEventModelingInitConfig(eventmodeling, to: &frontmatter) || applied
         }
+        if let wardley = config["wardley-beta"] as? [String: Any] {
+            applied = _applyWardleyInitConfig(wardley, to: &frontmatter) || applied
+        }
+        if let wardley = config["wardleyBeta"] as? [String: Any] {
+            applied = _applyWardleyInitConfig(wardley, to: &frontmatter) || applied
+        }
         if let themeVariables = config["themeVariables"] as? [String: Any] {
             applied = _applyRadarInitTheme(themeVariables, to: &frontmatter) || applied
             applied = _applyVennInitTheme(themeVariables, to: &frontmatter) || applied
             applied = _applyTreeViewInitTheme(themeVariables, to: &frontmatter) || applied
             applied = _applyEventModelingInitTheme(themeVariables, to: &frontmatter) || applied
+            applied = _applyWardleyInitTheme(themeVariables, to: &frontmatter) || applied
         }
     }
 
@@ -220,11 +227,20 @@ private func _applyInitDirectivePayload(_ payload: String, to frontmatter: inout
         applied = _applyEventModelingInitConfig(eventmodeling, to: &frontmatter) || applied
     }
 
+    if let wardley = object["wardley-beta"] as? [String: Any] {
+        applied = _applyWardleyInitConfig(wardley, to: &frontmatter) || applied
+    }
+
+    if let wardley = object["wardleyBeta"] as? [String: Any] {
+        applied = _applyWardleyInitConfig(wardley, to: &frontmatter) || applied
+    }
+
         if let themeVariables = object["themeVariables"] as? [String: Any] {
             applied = _applyRadarInitTheme(themeVariables, to: &frontmatter) || applied
             applied = _applyVennInitTheme(themeVariables, to: &frontmatter) || applied
             applied = _applyTreeViewInitTheme(themeVariables, to: &frontmatter) || applied
             applied = _applyEventModelingInitTheme(themeVariables, to: &frontmatter) || applied
+            applied = _applyWardleyInitTheme(themeVariables, to: &frontmatter) || applied
         }
 
     return applied
@@ -367,6 +383,51 @@ private func _applyEventModelingInitTheme(_ object: [String: Any], to frontmatte
 
     if applied {
         frontmatter.eventmodelingThemeVariables = theme
+    }
+    return applied
+}
+
+@discardableResult
+private func _applyWardleyInitConfig(_ object: [String: Any], to frontmatter: inout DiagramFrontmatter) -> Bool {
+    var config = frontmatter.wardleyBetaConfig ?? WardleyDiagramConfig()
+    var applied = false
+
+    for (key, value) in object {
+        if _applyWardleyConfigValue(key, value: value, config: &config) {
+            applied = true
+        }
+    }
+
+    if applied {
+        frontmatter.wardleyBetaConfig = config
+    }
+    return applied
+}
+
+@discardableResult
+private func _applyWardleyInitTheme(_ object: [String: Any], to frontmatter: inout DiagramFrontmatter) -> Bool {
+    var theme = frontmatter.wardleyTheme ?? WardleyThemeVariables()
+    var applied = false
+
+    for (key, value) in object {
+        if key == "wardley", let nested = value as? [String: Any] {
+            for (nestedKey, nestedValue) in nested {
+                if let stringValue = _jsonScalarString(nestedValue),
+                   _applyWardleyThemeValue(nestedKey, value: stringValue, theme: &theme) {
+                    applied = true
+                }
+            }
+            continue
+        }
+
+        if let stringValue = _jsonScalarString(value),
+           _applyWardleyThemeValue(key, value: stringValue, theme: &theme) {
+            applied = true
+        }
+    }
+
+    if applied {
+        frontmatter.wardleyTheme = theme
     }
     return applied
 }
@@ -597,6 +658,89 @@ private func _jsonBool(_ value: Any?) -> Bool? {
     return nil
 }
 
+private func _applyWardleyConfigValue(_ key: String, value: Any, config: inout WardleyDiagramConfig) -> Bool {
+    switch key {
+    case "width":
+        if let v = _jsonDouble(value) { config.width = v; return true }
+    case "height":
+        if let v = _jsonDouble(value) { config.height = v; return true }
+    case "padding":
+        if let v = _jsonDouble(value) { config.padding = v; return true }
+    case "nodeRadius":
+        if let v = _jsonDouble(value) { config.nodeRadius = v; return true }
+    case "nodeLabelOffset":
+        if let v = _jsonDouble(value) { config.nodeLabelOffset = v; return true }
+    case "axisFontSize":
+        if let v = _jsonDouble(value) { config.axisFontSize = v; return true }
+    case "labelFontSize":
+        if let v = _jsonDouble(value) { config.labelFontSize = v; return true }
+    case "showGrid":
+        if let v = _jsonBool(value) { config.showGrid = v; return true }
+    case "useMaxWidth":
+        if let v = _jsonBool(value) { config.useMaxWidth = v; return true }
+    default:
+        break
+    }
+    return false
+}
+
+private func _wardleyThemeSubKey(from fullPath: String) -> String? {
+    for prefix in ["config.themeVariables.", "themeVariables."] {
+        if fullPath.hasPrefix(prefix) {
+            let subKey = String(fullPath.dropFirst(prefix.count))
+            if _isWardleyThemeKey(subKey) {
+                return subKey
+            }
+            if subKey.hasPrefix("wardley.") {
+                let inner = String(subKey.dropFirst("wardley.".count))
+                if _isWardleyThemeKey(inner) {
+                    return inner
+                }
+            }
+        }
+    }
+    return nil
+}
+
+private func _isWardleyThemeKey(_ key: String) -> Bool {
+    switch key {
+    case "backgroundColor", "axisColor", "axisTextColor", "gridColor",
+         "componentFill", "componentStroke", "componentLabelColor",
+         "linkStroke", "evolutionStroke", "annotationStroke",
+         "annotationTextColor", "annotationFill", "evolutionColor",
+         "wardleyEvolutionColor":
+        return true
+    default:
+        return false
+    }
+}
+
+private func _applyWardleyThemeValue(_ key: String, value: String, theme: inout WardleyThemeVariables) -> Bool {
+    switch key {
+    case "backgroundColor": theme.backgroundColor = value
+    case "axisColor": theme.axisColor = value
+    case "axisTextColor": theme.axisTextColor = value
+    case "gridColor": theme.gridColor = value
+    case "componentFill": theme.componentFill = value
+    case "componentStroke": theme.componentStroke = value
+    case "componentLabelColor": theme.componentLabelColor = value
+    case "linkStroke": theme.linkStroke = value
+    case "evolutionStroke": theme.evolutionStroke = value
+    case "annotationStroke": theme.annotationStroke = value
+    case "annotationTextColor": theme.annotationTextColor = value
+    case "annotationFill": theme.annotationFill = value
+    case "evolutionColor":
+        theme.evolutionColor = value
+        theme.evolutionStroke = value
+    case "wardleyEvolutionColor":
+        theme.evolutionColor = value
+        theme.evolutionStroke = value
+    default:
+        return false
+    }
+    return true
+}
+
 private final class _RadarFrontmatterAccumulator {
     var config = RadarDiagramConfig()
     var theme = RadarThemeConfig()
@@ -721,6 +865,10 @@ private final class _StackSafeYamlFrontmatterParser {
     var eventmodelingThemeVariables = EventModelingThemeVariables()
     var hasEventModelingSection = false
     var hasEventModelingTheme = false
+    var wardleyConfig = WardleyDiagramConfig()
+    var wardleyTheme = WardleyThemeVariables()
+    var hasWardleySection = false
+    var hasWardleyTheme = false
 
     func parse(_ lines: [String]) -> DiagramFrontmatter? {
         for entry in _flattenYamlFrontmatterLines(lines) {
@@ -764,6 +912,7 @@ private final class _StackSafeYamlFrontmatterParser {
         if applyIshikawa(path, value) { return }
         if applyTreeView(path, value) { return }
         if applyEventModeling(path, value) { return }
+        if applyWardley(path, value) { return }
         _ = applyGlobal(path, value)
     }
 
@@ -1420,6 +1569,26 @@ private final class _StackSafeYamlFrontmatterParser {
         return false
     }
 
+    private func applyWardley(_ path: String, _ value: String) -> Bool {
+        let configPrefixes = ["config.wardley-beta.", "config.wardleyBeta."]
+        for prefix in configPrefixes {
+            if path.hasPrefix(prefix) {
+                let key = String(path.dropFirst(prefix.count))
+                if _applyWardleyConfigValue(key, value: value, config: &wardleyConfig) {
+                    hasWardleySection = true
+                }
+                return true
+            }
+        }
+        if let subKey = _wardleyThemeSubKey(from: path) {
+            if _applyWardleyThemeValue(subKey, value: value, theme: &wardleyTheme) {
+                hasWardleyTheme = true
+            }
+            return true
+        }
+        return false
+    }
+
     private func _isEventModelingThemeKey(_ path: String) -> Bool {
         let emKeys: Set<String> = [
             "config.themeVariables.emUiFill",
@@ -1525,6 +1694,8 @@ private final class _StackSafeYamlFrontmatterParser {
         if hasTreeViewTheme { frontmatter.treeViewTheme = treeViewTheme }
         if hasEventModelingSection { frontmatter.eventmodelingConfig = eventmodelingConfig }
         if hasEventModelingTheme { frontmatter.eventmodelingThemeVariables = eventmodelingThemeVariables }
+        if hasWardleySection { frontmatter.wardleyBetaConfig = wardleyConfig }
+        if hasWardleyTheme { frontmatter.wardleyTheme = wardleyTheme }
     }
 }
 

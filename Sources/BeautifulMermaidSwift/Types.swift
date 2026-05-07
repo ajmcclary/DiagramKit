@@ -27,6 +27,7 @@ public enum DiagramType: String, CaseIterable, Sendable {
     case ishikawa
     case treeView
     case eventModeling
+    case wardleyBeta
 }
 
 /// The parsed graph model for flowcharts and state diagrams.
@@ -59,6 +60,7 @@ public enum DiagramPayload: Sendable {
     case ishikawa(IshikawaDiagram)
     case treeView(TreeViewDiagram)
     case eventModeling(EventModelingDiagram)
+    case wardleyBeta(WardleyMapDiagram)
 
     public var type: DiagramType {
         switch self {
@@ -112,6 +114,8 @@ public enum DiagramPayload: Sendable {
             return .treeView
         case .eventModeling:
             return .eventModeling
+        case .wardleyBeta:
+            return .wardleyBeta
         }
     }
 }
@@ -192,6 +196,8 @@ public struct MermaidGraph: Sendable {
             self.payload = .treeView(TreeViewDiagram.empty)
         case .eventModeling:
             self.payload = .eventModeling(EventModelingDiagram.empty)
+        case .wardleyBeta:
+            self.payload = .wardleyBeta(WardleyMapDiagram.empty)
         }
     }
 
@@ -273,6 +279,7 @@ public enum PositionedContent: Sendable {
     case ishikawa(PositionedIshikawaDiagram)
     case treeView(PositionedTreeViewDiagram)
     case eventModeling(PositionedEventModelingDiagram)
+    case wardleyBeta(PositionedWardleyMapDiagram)
 }
 
 public struct PositionedGraph: Sendable {
@@ -354,6 +361,8 @@ public struct PositionedGraph: Sendable {
             self.content = .treeView(.empty)
         case .eventModeling:
             self.content = .eventModeling(.empty)
+        case .wardleyBeta:
+            self.content = .wardleyBeta(.empty)
         }
     }
 
@@ -625,6 +634,13 @@ public struct PositionedGraph: Sendable {
     public var eventModelingData: PositionedEventModelingDiagram? {
         switch content {
         case .eventModeling(let data): return data
+        default: return nil
+        }
+    }
+
+    public var wardleyMapData: PositionedWardleyMapDiagram? {
+        switch content {
+        case .wardleyBeta(let data): return data
         default: return nil
         }
     }

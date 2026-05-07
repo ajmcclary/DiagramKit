@@ -82,6 +82,8 @@ public final class DiagramRenderer {
             _drawTreeView(positioned, in: context, bounds: bounds)
         case .eventModeling:
             _drawEventModeling(positioned, in: context, bounds: bounds)
+        case .wardleyBeta:
+            _drawWardley(positioned, in: context, bounds: bounds)
         }
     }
 

@@ -217,6 +217,18 @@ public enum MermaidParser {
                 return MermaidGraph(payload: .eventModeling(diagram))
             }
 
+            if firstLine.hasPrefix("wardley-beta") {
+                var diagram = try parseWardleyMap(rawLines, frontmatter: frontmatter)
+                if let fm = frontmatter {
+                    if let cfg = fm.wardleyBetaConfig { diagram.config = cfg }
+                    if let theme = fm.wardleyTheme { diagram.theme = theme }
+                    if diagram.diagramTitle == nil, let fmTitle = fm.diagramTitle {
+                        diagram.diagramTitle = fmTitle
+                    }
+                }
+                return MermaidGraph(payload: .wardleyBeta(diagram))
+            }
+
             // Flowchart + stateDiagram-v2 — pass frontmatter flowchart config
             let parsed = try parseMermaid(processed, config: frontmatter?.flowchartConfig)
             let parsedType: DiagramType = firstLine.hasPrefix("statediagram") ? .stateDiagram : .flowchart

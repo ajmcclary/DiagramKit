@@ -319,6 +319,18 @@ public struct GraphLayout {
                     height: positioned.height,
                     content: .eventModeling(positioned)
                 )
+            case .wardleyBeta:
+                guard case let .wardleyBeta(diagram) = graph.payload else {
+                    _reportMermaidIssue("GraphLayout.layout found mismatched wardleyBeta payload.")
+                    return PositionedGraph(diagram: graph, content: .wardleyBeta(.empty))
+                }
+                let positioned = layoutWardleyMap(diagram)
+                return PositionedGraph(
+                    diagram: graph,
+                    width: positioned.width,
+                    height: positioned.height,
+                    content: .wardleyBeta(positioned)
+                )
             }
         }
     }

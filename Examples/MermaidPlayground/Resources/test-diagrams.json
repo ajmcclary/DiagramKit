@@ -1913,10 +1913,82 @@
       "category": "eventmodeling",
       "name": "Event Modeling - State View Pattern",
       "source": "eventmodeling\ntf 03 evt ItemAdded\ntf 02 rmo CartItems\ntf 04 ui CartUI"
+    },
+    {
+      "id": "wardley-1-tea-shop",
+      "category": "wardleyBeta",
+      "name": "Wardley Map - Tea Shop Value Chain",
+      "source": "wardley-beta\ntitle Tea Shop Value Chain\nanchor Business [0.95, 0.63]\ncomponent Cup of Tea [0.79, 0.61]\ncomponent Tea [0.63, 0.81]\nBusiness -> Cup of Tea\nCup of Tea -> Tea\nevolve Tea 0.89"
+    },
+    {
+      "id": "wardley-2-coordinates",
+      "category": "wardleyBeta",
+      "name": "Wardley Map - Infrastructure/Product/User-Need",
+      "source": "wardley-beta\ntitle Platform Strategy\ncomponent Infrastructure [0.2, 0.7]\ncomponent Platform [0.5, 0.6]\ncomponent Product [0.7, 0.4]\ncomponent User Need [0.9, 0.2]\nInfrastructure -> Platform\nPlatform -> Product\nProduct -> User Need"
+    },
+    {
+      "id": "wardley-3-decorators",
+      "category": "wardleyBeta",
+      "name": "Wardley Map - Component Decorators",
+      "source": "wardley-beta\ntitle Sourcing Strategy\ncomponent Internal API [0.5, 0.5] (build)\ncomponent Cloud DB [0.4, 0.6] (buy)\ncomponent Payment [0.6, 0.3] (outsource)\ncomponent Email [0.3, 0.8] (market)\nInternal API -> Cloud DB\nCloud DB -> Payment"
+    },
+    {
+      "id": "wardley-4-link-types",
+      "category": "wardleyBeta",
+      "name": "Wardley Map - Link Types",
+      "source": "wardley-beta\ntitle Link Types\ncomponent A [0.1, 0.1]\ncomponent B [0.3, 0.2]\ncomponent C [0.5, 0.3]\ncomponent D [0.7, 0.4]\nA -> B\nB +> C\nC +< D\nA -.-> C\nA +'sync'<> B"
+    },
+    {
+      "id": "wardley-5-evolution",
+      "category": "wardleyBeta",
+      "name": "Wardley Map - Evolution Arrows",
+      "source": "wardley-beta\ntitle Evolution Trends\ncomponent Manual Process [0.3, 0.5]\ncomponent Automated [0.6, 0.5]\ncomponent AI Driven [0.8, 0.5]\nevolve Manual Process 0.65\nevolve Automated 0.85\nManual Process -> Automated\nAutomated -> AI Driven"
+    },
+    {
+      "id": "wardley-6-pipeline",
+      "category": "wardleyBeta",
+      "name": "Wardley Map - Pipeline Evolution",
+      "source": "wardley-beta\ntitle Pipeline Evolution\ncomponent Compute [0.5, 0.6]\npipeline Compute {\n  component Virtual Machine [0.3]\n  component Container [0.55]\n  component Serverless [0.8]\n}\nCompute -> Virtual Machine"
+    },
+    {
+      "id": "wardley-7-custom-stages",
+      "category": "wardleyBeta",
+      "name": "Wardley Map - Custom Evolution Stages",
+      "source": "wardley-beta\ntitle Custom Stages\nevolution Genesis / Concept -> Custom / Emerging -> Product / Converging -> Commodity / Accepted\ncomponent Research [0.15, 0.5]\ncomponent Prototype [0.4, 0.5]\ncomponent Product [0.75, 0.5]"
+    },
+    {
+      "id": "wardley-8-annotations",
+      "category": "wardleyBeta",
+      "name": "Wardley Map - Annotations and Notes",
+      "source": "wardley-beta\ntitle With Annotations\ncomponent API Gateway [0.5, 0.4]\ncomponent Auth Service [0.3, 0.6]\nAPI Gateway -> Auth Service\nannotations [0.1, 0.9]\nannotation 1,[0.5, 0.45] \"Key integration point\"\nannotation 2,[0.3, 0.65] \"Must be HIPAA compliant\"\nnote \"Security boundary\" [0.4, 0.5]"
+    },
+    {
+      "id": "wardley-9-accelerators",
+      "category": "wardleyBeta",
+      "name": "Wardley Map - Accelerators and Deaccelerators",
+      "source": "wardley-beta\ntitle Forces\ncomponent Monolith [0.3, 0.5]\ncomponent Microservices [0.6, 0.5]\naccelerator \"Cloud Migration\" [0.3, 0.8]\ndeaccelerator \"Legacy Contracts\" [0.5, 0.2]\nMonolith -> Microservices\nevolve Monolith 0.7"
+    },
+    {
+      "id": "wardley-10-hyphenated",
+      "category": "wardleyBeta",
+      "name": "Wardley Map - Hyphenated Names",
+      "source": "wardley-beta\ntitle Hyphenated Names\ncomponent real-time processing [0.5, 0.4]\ncomponent end-user [0.8, 0.2]\ncomponent batch-loader [0.3, 0.6]\nreal-time processing -> end-user\nbatch-loader -> real-time processing"
+    },
+    {
+      "id": "wardley-11-platform",
+      "category": "wardleyBeta",
+      "name": "Wardley Map - Software Platform Strategy",
+      "source": "wardley-beta\ntitle Software Platform Strategy\nanchor Customer [0.95, 0.78]\ncomponent Web App [0.82, 0.59]\ncomponent API Gateway [0.72, 0.55]\ncomponent Authentication [0.60, 0.65]\ncomponent Database [0.50, 0.75]\ncomponent Cache [0.55, 0.70]\npipeline Database {\n  component PostgreSQL [0.35]\n  component MongoDB [0.60]\n  component DynamoDB [0.85]\n}\nCustomer -> Web App\nWeb App +> API Gateway\nAPI Gateway -> Authentication\nAuthentication -> Database\nAPI Gateway -> Cache\nCache -> Database\nevolve Database 0.80"
+    },
+    {
+      "id": "wardley-12-minimal",
+      "category": "wardleyBeta",
+      "name": "Wardley Map - Minimal Diagram",
+      "source": "wardley-beta\ncomponent My Service [0.5, 0.5]"
     }
   ],
   "metadata": {
-    "totalCount": 304,
+    "totalCount": 316,
     "categories": {
       "flowchart": 27,
       "state": 12,
@@ -1942,7 +2014,8 @@
       "venn": 8,
       "ishikawa": 7,
       "treeView": 10,
-      "eventmodeling": 12
+      "eventmodeling": 12,
+      "wardleyBeta": 12
     }
   }
 }
