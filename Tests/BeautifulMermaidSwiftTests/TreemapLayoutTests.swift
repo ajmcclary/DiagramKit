@@ -79,6 +79,12 @@ struct TreemapLayoutTests {
         #expect(result == "$1,234")
     }
 
+    @Test("Value formatting: dollar with comma thousands and decimals")
+    func formatDollarCommaDecimals() {
+        #expect(formatTreemapValue(1234.5, format: "$,.2f") == "$1,234.50")
+        #expect(formatTreemapValue(1234.5, format: "$,.0f") == "$1,235")
+    }
+
     @Test("Value formatting: dollar with decimals")
     func formatDollarDecimals() {
         let result = formatTreemapValue(100.5, format: "$.2f")

@@ -372,3 +372,44 @@ public enum TreemapThemeDefaults {
         "#ffffff", "#000000", "#000000", "#000000"
     ]
 }
+
+func _treemapStyleMap(_ styles: [String]?) -> [String: String] {
+    guard let styles else { return [:] }
+    var result: [String: String] = [:]
+    for style in styles {
+        guard let colon = style.firstIndex(of: ":") else { continue }
+        let key = style[..<colon].trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+        let value = style[style.index(after: colon)...].trimmingCharacters(in: .whitespacesAndNewlines)
+        guard _treemapAllowedStyleProperties.contains(key), _treemapIsSafeStyleValue(value) else { continue }
+        result[key] = value
+    }
+    return result
+}
+
+func _treemapStyleDeclarations(_ styles: [String]?, text: Bool = false) -> [String] {
+    _treemapStyleMap(styles)
+        .compactMap { key, value -> String? in
+            let property = text && key == "color" ? "fill" : key
+            guard !text || _treemapAllowedTextStyleProperties.contains(property) else { return nil }
+            return "\(property):\(value)"
+        }
+        .sorted()
+}
+
+private let _treemapAllowedStyleProperties: Set<String> = [
+    "fill", "stroke", "stroke-width", "stroke-dasharray", "color",
+    "font-size", "font-family", "font-weight", "font-style",
+    "opacity", "fill-opacity", "stroke-opacity"
+]
+
+private let _treemapAllowedTextStyleProperties: Set<String> = [
+    "fill", "font-size", "font-family", "font-weight", "font-style", "opacity"
+]
+
+private func _treemapIsSafeStyleValue(_ value: String) -> Bool {
+    let lower = value.lowercased()
+    if lower.contains("url(") || lower.contains("javascript:") || lower.contains("data:") || lower.contains("expression(") {
+        return false
+    }
+    return !value.contains("\"") && !value.contains("'") && !value.contains("<") && !value.contains(">")
+}

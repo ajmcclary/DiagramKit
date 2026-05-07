@@ -127,28 +127,28 @@ func parseTreemapDiagram(_ rawLines: [String], frontmatter: DiagramFrontmatter?)
             continue
         }
 
-        if let (indent, name, value, classSelector) = _parseTreemapLine(line) {
-            while let top = parentStack.last, indent <= top.indent {
-                parentStack.removeLast()
-            }
+        let (indent, name, value, classSelector) = try _parseTreemapLine(line)
+        while let top = parentStack.last, indent <= top.indent {
+            parentStack.removeLast()
+        }
 
-            if let _ = value {
-                let leafNode = _MutableNode(name: name, value: value, classSelector: classSelector)
-                var kids = parentStack[parentStack.count - 1].node.children ?? []
-                kids.append(leafNode)
-                parentStack[parentStack.count - 1].node.children = kids
-            } else {
-                let sectionNode = _MutableNode(name: name, children: [], classSelector: classSelector)
-                var kids = parentStack[parentStack.count - 1].node.children ?? []
-                kids.append(sectionNode)
-                parentStack[parentStack.count - 1].node.children = kids
-                parentStack.append((indent: indent, node: sectionNode))
-            }
+        if let _ = value {
+            let leafNode = _MutableNode(name: name, value: value, classSelector: classSelector)
+            var kids = parentStack[parentStack.count - 1].node.children ?? []
+            kids.append(leafNode)
+            parentStack[parentStack.count - 1].node.children = kids
+        } else {
+            let sectionNode = _MutableNode(name: name, children: [], classSelector: classSelector)
+            var kids = parentStack[parentStack.count - 1].node.children ?? []
+            kids.append(sectionNode)
+            parentStack[parentStack.count - 1].node.children = kids
+            parentStack.append((indent: indent, node: sectionNode))
         }
     }
 
+    let styledNodes = _resolveTreemapClassStyles(root.children?.map { $0.toTreemapNode() } ?? [], classDefs: classDefs)
     return TreemapDiagram(
-        nodes: root.children?.map { $0.toTreemapNode() } ?? [],
+        nodes: styledNodes,
         classDefs: classDefs,
         diagramTitle: diagramTitle,
         accTitle: accTitle,
@@ -159,20 +159,20 @@ func parseTreemapDiagram(_ rawLines: [String], frontmatter: DiagramFrontmatter?)
     )
 }
 
-private func _parseTreemapLine(_ line: String) -> (indent: Int, name: String, value: Double?, classSelector: String?)? {
+private func _parseTreemapLine(_ line: String) throws -> (indent: Int, name: String, value: Double?, classSelector: String?) {
     let indentCount = line.prefix(while: { $0 == " " || $0 == "\t" }).count
     let trimmed = line.trimmingCharacters(in: .whitespaces)
 
-    guard !trimmed.isEmpty, !trimmed.hasPrefix("%%") else { return nil }
+    guard !trimmed.isEmpty, !trimmed.hasPrefix("%%") else {
+        throw TreemapParserError.invalidStatement(line)
+    }
 
     var name: String = ""
-    var value: Double? = nil
-    var classSelector: String? = nil
 
     let sectionRegex = try! NSRegularExpression(pattern: "^(?:\"([^\"]*(?:\\\\.[^\"]*)*)\"|'([^']*(?:\\\\.[^']*)*)')")
 
     guard let match = sectionRegex.firstMatch(in: trimmed, range: NSRange(trimmed.startIndex..., in: trimmed)) else {
-        return nil
+        throw TreemapParserError.missingLabel(trimmed)
     }
 
     let nsString = trimmed as NSString
@@ -183,30 +183,75 @@ private func _parseTreemapLine(_ line: String) -> (indent: Int, name: String, va
     }
     name = _unescapeQuotes(name)
 
-    let afterLabel = nsString.substring(from: match.range.location + match.range.length)
+    var remainder = nsString.substring(from: match.range.location + match.range.length)
+        .trimmingCharacters(in: .whitespaces)
 
-    let classSuffix = try! NSRegularExpression(pattern: ":::([a-zA-Z_][a-zA-Z0-9_]*)")
-    if let classMatch = classSuffix.firstMatch(in: afterLabel, range: NSRange(afterLabel.startIndex..., in: afterLabel)) {
-        classSelector = (afterLabel as NSString).substring(with: classMatch.range(at: 1))
+    if remainder.isEmpty {
+        return (indent: indentCount, name: name, value: nil, classSelector: nil)
     }
 
-    let separatorRegex = try! NSRegularExpression(pattern: "^\\s*[:,\\s]+\\s*")
+    if remainder.hasPrefix(":::") {
+        let selector = try _parseTreemapClassSelector(remainder, originalLine: line)
+        return (indent: indentCount, name: name, value: nil, classSelector: selector)
+    }
+
+    guard let first = remainder.first, first == ":" || first == "," else {
+        throw TreemapParserError.invalidStatement(trimmed)
+    }
+    remainder.removeFirst()
+    remainder = remainder.trimmingCharacters(in: .whitespaces)
+
     let numberRegex = try! NSRegularExpression(pattern: "^([0-9][0-9,._]*)")
-
-    let remainder = classSelector != nil
-        ? (afterLabel as NSString).replacingCharacters(in: (afterLabel as NSString).range(of: ":::" + classSelector!), with: "")
-        : afterLabel
-
-    if let sepMatch = separatorRegex.firstMatch(in: remainder, range: NSRange(remainder.startIndex..., in: remainder)) {
-        let afterSep = String(remainder[remainder.index(remainder.startIndex, offsetBy: sepMatch.range.location + sepMatch.range.length)...])
-        if let numMatch = numberRegex.firstMatch(in: afterSep, range: NSRange(afterSep.startIndex..., in: afterSep)) {
-            let rawValue = (afterSep as NSString).substring(with: numMatch.range(at: 1))
-            let cleaned = rawValue.replacingOccurrences(of: ",", with: "")
-            value = Double(cleaned) ?? 0
-        }
+    guard let numMatch = numberRegex.firstMatch(in: remainder, range: NSRange(remainder.startIndex..., in: remainder)) else {
+        throw TreemapParserError.invalidValue(name, remainder)
     }
 
-    return (indent: indentCount, name: name, value: value, classSelector: classSelector)
+    let rawValue = (remainder as NSString).substring(with: numMatch.range(at: 1))
+    let cleaned = rawValue
+        .replacingOccurrences(of: ",", with: "")
+        .replacingOccurrences(of: "_", with: "")
+    guard let value = Double(cleaned), value.isFinite else {
+        throw TreemapParserError.invalidValue(name, rawValue)
+    }
+
+    let afterValueIndex = remainder.index(remainder.startIndex, offsetBy: numMatch.range.location + numMatch.range.length)
+    let afterValue = String(remainder[afterValueIndex...]).trimmingCharacters(in: .whitespaces)
+    if afterValue.isEmpty {
+        return (indent: indentCount, name: name, value: value, classSelector: nil)
+    }
+    if afterValue.hasPrefix(":::") {
+        let selector = try _parseTreemapClassSelector(afterValue, originalLine: line)
+        return (indent: indentCount, name: name, value: value, classSelector: selector)
+    }
+    throw TreemapParserError.invalidStatement(trimmed)
+}
+
+private func _parseTreemapClassSelector(_ text: String, originalLine: String) throws -> String {
+    let selectorRegex = try! NSRegularExpression(pattern: "^:::([a-zA-Z_][a-zA-Z0-9_]*)\\s*$")
+    guard let match = selectorRegex.firstMatch(in: text, range: NSRange(text.startIndex..., in: text)) else {
+        throw TreemapParserError.invalidStatement(originalLine)
+    }
+    return (text as NSString).substring(with: match.range(at: 1))
+}
+
+private func _resolveTreemapClassStyles(_ nodes: [TreemapNode], classDefs: [TreemapClassDef]) -> [TreemapNode] {
+    var styleMap: [String: [String]] = [:]
+    for classDef in classDefs {
+        styleMap[classDef.className, default: []].append(contentsOf: classDef.styles)
+    }
+
+    func resolve(_ node: TreemapNode) -> TreemapNode {
+        var styled = node
+        if let selector = node.classSelector, let styles = styleMap[selector], !styles.isEmpty {
+            styled.cssCompiledStyles = styles
+        }
+        if let children = node.children {
+            styled.children = children.map(resolve)
+        }
+        return styled
+    }
+
+    return nodes.map(resolve)
 }
 
 private func _unquoteTreemap(_ s: String) -> String {

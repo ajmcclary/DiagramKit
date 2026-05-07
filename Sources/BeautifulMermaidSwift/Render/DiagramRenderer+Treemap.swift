@@ -66,26 +66,26 @@ extension DiagramRenderer {
 
         context.saveGState()
 
-        let fillColor = BMColor(hex: section.fillColor)
+        let fillColor = _treemapStyledColor(section.cssCompiledStyles, keys: ["fill"], fallback: section.fillColor)
         context.setFillColor(fillColor.withAlphaComponent(0.6).cgColor)
         let bodyRect = CGRect(x: x, y: y + 25, width: w, height: h - 25)
         context.fill(bodyRect)
 
-        let strokeColor = BMColor(hex: section.strokeColor)
+        let strokeColor = _treemapStyledColor(section.cssCompiledStyles, keys: ["stroke"], fallback: section.strokeColor)
         context.setStrokeColor(strokeColor.withAlphaComponent(0.4).cgColor)
-        context.setLineWidth(2.0)
+        context.setLineWidth(_treemapStyledLineWidth(section.cssCompiledStyles, fallback: 2.0))
         context.stroke(bodyRect)
 
         if let label = section.label, !label.hidden {
             let font = _boldSystemFont(size: 12)
-            let labelColor = BMColor(hex: label.fillColor)
+            let labelColor = _treemapStyledColor(section.cssCompiledStyles, keys: ["color", "fill"], fallback: label.fillColor)
             let point = CGPoint(x: x + 6, y: y + 12.5)
             _drawTextInFlipped(label.text, at: point, context: context, contentHeight: 1000, color: labelColor, font: font, alignment: .left)
         }
 
         if let value = section.value, !value.hidden {
             let font = _italicSystemFont(size: 10, weight: 0)
-            let valueColor = BMColor(hex: value.fillColor)
+            let valueColor = _treemapStyledColor(section.cssCompiledStyles, keys: ["color", "fill"], fallback: value.fillColor)
             let point = CGPoint(x: x + w - 10, y: y + 12.5)
             _drawTextInFlipped(value.text, at: point, context: context, contentHeight: 1000, color: valueColor, font: font, alignment: .right)
         }
@@ -101,25 +101,25 @@ extension DiagramRenderer {
 
         context.saveGState()
 
-        let fillColor = BMColor(hex: leaf.fillColor)
+        let fillColor = _treemapStyledColor(leaf.cssCompiledStyles, keys: ["fill"], fallback: leaf.fillColor)
         context.setFillColor(fillColor.withAlphaComponent(0.3).cgColor)
         context.fill(CGRect(x: x, y: y, width: w, height: h))
 
-        let strokeColor = BMColor(hex: leaf.strokeColor)
+        let strokeColor = _treemapStyledColor(leaf.cssCompiledStyles, keys: ["stroke"], fallback: leaf.strokeColor)
         context.setStrokeColor(strokeColor.cgColor)
-        context.setLineWidth(3.0)
+        context.setLineWidth(_treemapStyledLineWidth(leaf.cssCompiledStyles, fallback: 3.0))
         context.stroke(CGRect(x: x, y: y, width: w, height: h))
 
         if let label = leaf.label, !label.hidden {
             let font = _systemFont(size: CGFloat(label.fontSize))
-            let labelColor = BMColor(hex: label.fillColor)
+            let labelColor = _treemapStyledColor(leaf.cssCompiledStyles, keys: ["color", "fill"], fallback: label.fillColor)
             let point = CGPoint(x: x + w / 2, y: y + CGFloat(label.y))
             _drawTextInFlipped(label.text, at: point, context: context, contentHeight: 1000, color: labelColor, font: font, alignment: .center)
         }
 
         if let valueText = leaf.valueText, !valueText.hidden {
             let font = _systemFont(size: CGFloat(valueText.fontSize))
-            let valueColor = BMColor(hex: valueText.fillColor)
+            let valueColor = _treemapStyledColor(leaf.cssCompiledStyles, keys: ["color", "fill"], fallback: valueText.fillColor)
             let point = CGPoint(x: x + w / 2, y: y + CGFloat(valueText.y))
             _drawTextInFlipped(valueText.text, at: point, context: context, contentHeight: 1000, color: valueColor, font: font, alignment: .center)
         }
@@ -141,5 +141,20 @@ extension DiagramRenderer {
         #elseif canImport(AppKit)
         return BMFont.boldSystemFont(ofSize: size)
         #endif
+    }
+
+    private func _treemapStyledColor(_ styles: [String]?, keys: [String], fallback: String) -> BMColor {
+        let map = _treemapStyleMap(styles)
+        for key in keys {
+            if let value = map[key] {
+                return BMColor(hex: value)
+            }
+        }
+        return BMColor(hex: fallback)
+    }
+
+    private func _treemapStyledLineWidth(_ styles: [String]?, fallback: CGFloat) -> CGFloat {
+        guard let value = _treemapStyleMap(styles)["stroke-width"] else { return fallback }
+        return _parseCSSLength(value) ?? fallback
     }
 }

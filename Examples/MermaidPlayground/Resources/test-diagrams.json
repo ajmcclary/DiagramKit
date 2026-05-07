@@ -1673,10 +1673,28 @@
       "category": "treemap",
       "name": "Treemap - Multiline accDescr",
       "source": "treemap\n  accTitle: Sales\n  accDescr { Sales data by region and product category }\n\"Sales\"\n    \"North\": 1200\n    \"South\": 950\n    \"East\": 1400"
+    },
+    {
+      "id": "treemap-classdef",
+      "category": "treemap",
+      "name": "Treemap - With classDef Styling",
+      "source": "treemap\n\"Budget\":::department\n    \"Engineering\": 420000:::engineering\n    \"Sales\": 260000:::sales\n    \"Support\": 140000\nclassDef department fill:#eef4fb,stroke:#2b3a42,color:#172026;\nclassDef engineering fill:#6b9bc3,stroke:#24435c,color:#0f2433;\nclassDef sales fill:#f2b880,stroke:#8a4f1d,color:#2c1608;"
+    },
+    {
+      "id": "treemap-theme-forest",
+      "category": "treemap",
+      "name": "Treemap - Forest Theme",
+      "source": "---\nconfig:\n  theme: forest\n---\ntreemap-beta\n\"Habitat\"\n    \"Canopy\": 38\n    \"Understory\": 27\n    \"Forest Floor\": 19\n    \"Wetlands\": 16"
+    },
+    {
+      "id": "treemap-complex",
+      "category": "treemap",
+      "name": "Treemap - Complex",
+      "source": "---\nconfig:\n  treemap:\n    valueFormat: \"$,.0f\"\n---\ntreemap\n  title Department Budget\n  accTitle: Department budget treemap\n  accDescr: Budget allocation by department and program\n\"Company\":::root\n    \"Product\":::product\n        \"Platform\": 1250000:::priority\n        \"Mobile\": 780000\n        \"Research\": 430000\n    \"Operations\":::ops\n        \"Customer Success\": 520000\n        \"Infrastructure\": 610000:::priority\n    \"Go To Market\":::gtm\n        \"Sales\": 910000\n        \"Marketing\": 670000\nclassDef root fill:#f5f7fa,stroke:#506070,color:#1f2933;\nclassDef product fill:#d8ecff,stroke:#2f6f9f,color:#12283a;\nclassDef ops fill:#d7f2df,stroke:#337a45,color:#16351f;\nclassDef gtm fill:#ffe6cc,stroke:#a75b18,color:#3b2008;\nclassDef priority fill:#f8c7cc,stroke:#a53845,color:#4a121a;"
     }
   ],
   "metadata": {
-    "totalCount": 264,
+    "totalCount": 267,
     "categories": {
       "flowchart": 27,
       "state": 12,
@@ -1698,7 +1716,7 @@
       "kanban": 3,
       "architecture": 7,
       "radar": 10,
-      "treemap": 7
+      "treemap": 10
     }
   }
 }

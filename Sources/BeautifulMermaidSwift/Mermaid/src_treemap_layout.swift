@@ -75,8 +75,9 @@ private func _getColorScale(prefix: String, from vars: [String: String], default
     for i in 0..<12 {
         let key = "\(prefix)\(i)"
         if let val = vars[key], !val.isEmpty {
-            if i < scale.count {
-                scale[i] = val
+            let targetIndex = scale.first == "transparent" ? i + 1 : i
+            if targetIndex < scale.count {
+                scale[targetIndex] = val
             } else {
                 scale.append(val)
             }
@@ -162,98 +163,11 @@ private func _layoutSquarified(
         myLabelColor = cScaleLabel[max(0, ci % cScaleLabel.count)]
     }
 
-    children.forEach { _ in
-    }
-
     let sortedChildren = children.sorted { ($0.aggregateValue) > ($1.aggregateValue) }
     let totalValue = sortedChildren.reduce(0.0) { $0 + $1.aggregateValue }
 
-    guard totalValue > 0 else {
-        let chunkW = (x1 - x0) / Double(max(1, sortedChildren.count))
-        var cx = x0
-        for child in sortedChildren {
-            _layoutSquarified(
-                node: child,
-                x0: cx, y0: y0, x1: cx + chunkW, y1: y1,
-                depth: depth + 1,
-                parentFill: myFill, parentStroke: myStroke, parentLabelColor: myLabelColor,
-                cScale: cScale, cScalePeer: cScalePeer, cScaleLabel: cScaleLabel,
-                colorIndex: colorIndex,
-                config: config,
-                sections: &sections,
-                leaves: &leaves,
-                sectionIndex: &sectionIndex,
-                leafIndex: &leafIndex,
-                diagramId: diagramId
-            )
-            cx += chunkW
-        }
-        return
-    }
-
-    var remaining = sortedChildren.map { ($0, $0.aggregateValue) }
-    var currentX = x0, currentY = y0
-    let rectWidth = x1 - x0
-    let rectHeight = y1 - y0
-    let isHorizontal = rectWidth > rectHeight
-
-    while !remaining.isEmpty {
-        let (rowItems, rowValue) = _selectRow(remaining, remainingWidth: isHorizontal ? rectWidth : rectHeight, totalValue: remaining.reduce(0) { $0 + $1.1 })
-        let fraction = rowValue / remaining.reduce(0) { $0 + $1.1 }
-
-        if isHorizontal {
-            let rowW = fraction.isNaN ? rectWidth : rectWidth * fraction
-            let (_, newRemaining) = (Array(remaining.dropFirst(rowItems.count)), Array(remaining.dropFirst(rowItems.count)))
-            var childX = currentX
-            for (child, val) in rowItems {
-                let childW = rowValue > 0 ? rowW * (val / rowValue) : rowW / Double(rowItems.count)
-                _layoutSquarified(
-                    node: child,
-                    x0: childX, y0: currentY, x1: childX + childW, y1: currentY + rectHeight,
-                    depth: depth + 1,
-                    parentFill: myFill, parentStroke: myStroke, parentLabelColor: myLabelColor,
-                    cScale: cScale, cScalePeer: cScalePeer, cScaleLabel: cScaleLabel,
-                    colorIndex: colorIndex,
-                    config: config,
-                    sections: &sections,
-                    leaves: &leaves,
-                    sectionIndex: &sectionIndex,
-                    leafIndex: &leafIndex,
-                    diagramId: diagramId
-                )
-                childX += childW
-            }
-            currentX += rowW
-        } else {
-            let rowH = fraction.isNaN ? rectHeight : rectHeight * fraction
-            var childY = currentY
-            for (child, val) in rowItems {
-                let childH = rowValue > 0 ? rowH * (val / rowValue) : rowH / Double(rowItems.count)
-                _layoutSquarified(
-                    node: child,
-                    x0: currentX, y0: childY, x1: currentX + rectWidth, y1: childY + childH,
-                    depth: depth + 1,
-                    parentFill: myFill, parentStroke: myStroke, parentLabelColor: myLabelColor,
-                    cScale: cScale, cScalePeer: cScalePeer, cScaleLabel: cScaleLabel,
-                    colorIndex: colorIndex,
-                    config: config,
-                    sections: &sections,
-                    leaves: &leaves,
-                    sectionIndex: &sectionIndex,
-                    leafIndex: &leafIndex,
-                    diagramId: diagramId
-                )
-                childY += childH
-            }
-            currentY += rowH
-        }
-
-        remaining = Array(remaining.dropFirst(rowItems.count))
-    }
-
     if depth > 0 && !node.name.isEmpty {
         let sectionW = round(x1 - x0)
-        let sectionH = round(y1 - y0)
         let aggregateVal = node.aggregateValue
         let formattedAgg = formatTreemapValue(aggregateVal, format: config.valueFormat)
         let section = PositionedTreemapSection(
@@ -273,11 +187,195 @@ private func _layoutSquarified(
         sections.append(section)
         sectionIndex += 1
     }
+
+    let contentRect = _treemapChildContentRect(x0: x0, y0: y0, x1: x1, y1: y1)
+
+    guard totalValue > 0 else {
+        let fallbackRects = _treemapEqualSplit(sortedChildren, in: contentRect, innerPadding: config.padding)
+        for (child, rect) in fallbackRects {
+            _layoutSquarified(
+                node: child,
+                x0: rect.x0, y0: rect.y0, x1: rect.x1, y1: rect.y1,
+                depth: depth + 1,
+                parentFill: myFill, parentStroke: myStroke, parentLabelColor: myLabelColor,
+                cScale: cScale, cScalePeer: cScalePeer, cScaleLabel: cScaleLabel,
+                colorIndex: colorIndex,
+                config: config,
+                sections: &sections,
+                leaves: &leaves,
+                sectionIndex: &sectionIndex,
+                leafIndex: &leafIndex,
+                diagramId: diagramId
+            )
+        }
+        return
+    }
+
+    let childRects = _treemapSquarify(sortedChildren, in: contentRect, innerPadding: config.padding)
+    for (child, rect) in childRects {
+        _layoutSquarified(
+            node: child,
+            x0: rect.x0, y0: rect.y0, x1: rect.x1, y1: rect.y1,
+            depth: depth + 1,
+            parentFill: myFill, parentStroke: myStroke, parentLabelColor: myLabelColor,
+            cScale: cScale, cScalePeer: cScalePeer, cScaleLabel: cScaleLabel,
+            colorIndex: colorIndex,
+            config: config,
+            sections: &sections,
+            leaves: &leaves,
+            sectionIndex: &sectionIndex,
+            leafIndex: &leafIndex,
+            diagramId: diagramId
+        )
+    }
 }
 
-private func _selectRow(_ items: [(TreemapNode, Double)], remainingWidth: Double, totalValue: Double) -> ([(TreemapNode, Double)], Double) {
-    guard items.count > 1 else { return (items, items.first?.1 ?? 0) }
-    return (items, items.reduce(0) { $0 + $1.1 })
+private struct _TreemapRect {
+    var x0: Double
+    var y0: Double
+    var x1: Double
+    var y1: Double
+
+    var width: Double { max(0, x1 - x0) }
+    var height: Double { max(0, y1 - y0) }
+    var area: Double { width * height }
+
+    func inset(_ amount: Double) -> _TreemapRect {
+        guard amount > 0, width > amount * 2, height > amount * 2 else { return self }
+        return _TreemapRect(x0: x0 + amount, y0: y0 + amount, x1: x1 - amount, y1: y1 - amount)
+    }
+}
+
+private struct _TreemapWeightedNode {
+    var node: TreemapNode
+    var value: Double
+    var area: Double
+}
+
+private func _treemapChildContentRect(x0: Double, y0: Double, x1: Double, y1: Double) -> _TreemapRect {
+    let content = _TreemapRect(
+        x0: x0 + SECTION_INNER_PADDING,
+        y0: y0 + SECTION_HEADER_HEIGHT + SECTION_INNER_PADDING,
+        x1: x1 - SECTION_INNER_PADDING,
+        y1: y1 - SECTION_INNER_PADDING
+    )
+    if content.width <= 0 || content.height <= 0 {
+        return _TreemapRect(x0: x0, y0: y0, x1: x1, y1: y1)
+    }
+    return content
+}
+
+private func _treemapEqualSplit(_ nodes: [TreemapNode], in rect: _TreemapRect, innerPadding: Double) -> [(TreemapNode, _TreemapRect)] {
+    guard !nodes.isEmpty else { return [] }
+    if nodes.count == 1 { return [(nodes[0], rect)] }
+
+    var results: [(TreemapNode, _TreemapRect)] = []
+    if rect.width >= rect.height {
+        let chunk = rect.width / Double(nodes.count)
+        for (index, node) in nodes.enumerated() {
+            let r = _TreemapRect(
+                x0: rect.x0 + Double(index) * chunk,
+                y0: rect.y0,
+                x1: index == nodes.count - 1 ? rect.x1 : rect.x0 + Double(index + 1) * chunk,
+                y1: rect.y1
+            )
+            results.append((node, _treemapApplyInnerPadding(r, count: nodes.count, innerPadding: innerPadding)))
+        }
+    } else {
+        let chunk = rect.height / Double(nodes.count)
+        for (index, node) in nodes.enumerated() {
+            let r = _TreemapRect(
+                x0: rect.x0,
+                y0: rect.y0 + Double(index) * chunk,
+                x1: rect.x1,
+                y1: index == nodes.count - 1 ? rect.y1 : rect.y0 + Double(index + 1) * chunk
+            )
+            results.append((node, _treemapApplyInnerPadding(r, count: nodes.count, innerPadding: innerPadding)))
+        }
+    }
+    return results
+}
+
+private func _treemapSquarify(_ nodes: [TreemapNode], in rect: _TreemapRect, innerPadding: Double) -> [(TreemapNode, _TreemapRect)] {
+    guard !nodes.isEmpty, rect.area > 0 else { return [] }
+    if nodes.count == 1 { return [(nodes[0], rect)] }
+
+    let total = nodes.reduce(0.0) { $0 + max(0, $1.aggregateValue) }
+    guard total > 0 else { return _treemapEqualSplit(nodes, in: rect, innerPadding: innerPadding) }
+
+    var remaining = nodes.map {
+        _TreemapWeightedNode(node: $0, value: max(0, $0.aggregateValue), area: max(0, $0.aggregateValue) * rect.area / total)
+    }
+    var layoutRect = rect
+    var row: [_TreemapWeightedNode] = []
+    var results: [(TreemapNode, _TreemapRect)] = []
+
+    while !remaining.isEmpty {
+        let candidate = remaining.removeFirst()
+        let side = min(layoutRect.width, layoutRect.height)
+        if row.isEmpty || _treemapWorst(row + [candidate], side: side) <= _treemapWorst(row, side: side) {
+            row.append(candidate)
+        } else {
+            _treemapLayoutRow(row, in: &layoutRect, totalCount: nodes.count, innerPadding: innerPadding, results: &results)
+            row = [candidate]
+        }
+    }
+
+    if !row.isEmpty {
+        _treemapLayoutRow(row, in: &layoutRect, totalCount: nodes.count, innerPadding: innerPadding, results: &results)
+    }
+
+    return results
+}
+
+private func _treemapWorst(_ row: [_TreemapWeightedNode], side: Double) -> Double {
+    guard !row.isEmpty, side > 0 else { return Double.infinity }
+    let areas = row.map { max(0.000_001, $0.area) }
+    let sum = areas.reduce(0, +)
+    guard sum > 0 else { return Double.infinity }
+    let maxArea = areas.max() ?? 0
+    let minArea = areas.min() ?? 0.000_001
+    let sideSquared = side * side
+    return max((sideSquared * maxArea) / (sum * sum), (sum * sum) / (sideSquared * minArea))
+}
+
+private func _treemapLayoutRow(
+    _ row: [_TreemapWeightedNode],
+    in rect: inout _TreemapRect,
+    totalCount: Int,
+    innerPadding: Double,
+    results: inout [(TreemapNode, _TreemapRect)]
+) {
+    guard !row.isEmpty else { return }
+    let rowArea = row.reduce(0.0) { $0 + $1.area }
+    guard rowArea > 0, rect.width > 0, rect.height > 0 else { return }
+
+    if rect.width >= rect.height {
+        let rowHeight = min(rect.height, rowArea / rect.width)
+        var x = rect.x0
+        for (index, item) in row.enumerated() {
+            let itemWidth = index == row.count - 1 ? rect.x1 - x : item.area / max(rowHeight, 0.000_001)
+            let raw = _TreemapRect(x0: x, y0: rect.y0, x1: x + itemWidth, y1: rect.y0 + rowHeight)
+            results.append((item.node, _treemapApplyInnerPadding(raw, count: totalCount, innerPadding: innerPadding)))
+            x += itemWidth
+        }
+        rect.y0 += rowHeight
+    } else {
+        let rowWidth = min(rect.width, rowArea / rect.height)
+        var y = rect.y0
+        for (index, item) in row.enumerated() {
+            let itemHeight = index == row.count - 1 ? rect.y1 - y : item.area / max(rowWidth, 0.000_001)
+            let raw = _TreemapRect(x0: rect.x0, y0: y, x1: rect.x0 + rowWidth, y1: y + itemHeight)
+            results.append((item.node, _treemapApplyInnerPadding(raw, count: totalCount, innerPadding: innerPadding)))
+            y += itemHeight
+        }
+        rect.x0 += rowWidth
+    }
+}
+
+private func _treemapApplyInnerPadding(_ rect: _TreemapRect, count: Int, innerPadding: Double) -> _TreemapRect {
+    guard count > 1 else { return rect }
+    return rect.inset(max(0, innerPadding) / 2)
 }
 
 private func _makeSectionLabel(name: String, width: Double, labelColor: String) -> PositionedTreemapText {
@@ -379,9 +477,17 @@ func formatTreemapValue(_ value: Double, format: String) -> String {
     }
     if fmt.hasPrefix("$") {
         let sub = String(fmt.dropFirst())
-        if sub.hasPrefix(",") || sub.hasPrefix("0") {
-            let numberStr = _commaFormat(value)
+        if sub.contains(",") {
+            let numberStr: String
+            if let digits = _fixedDecimalDigits(in: sub) {
+                numberStr = _commaFormat(value, decimals: digits)
+            } else {
+                numberStr = _commaFormat(value)
+            }
             return "$\(numberStr)"
+        }
+        if sub.hasPrefix("0") {
+            return "$\(_commaFormat(value))"
         }
         if sub.hasPrefix(".") {
             let rest = String(sub.dropFirst())
@@ -426,6 +532,14 @@ func formatTreemapValue(_ value: Double, format: String) -> String {
     }
 
     return _commaFormat(value)
+}
+
+private func _fixedDecimalDigits(in format: String) -> Int? {
+    guard let dotIndex = format.firstIndex(of: ".") else { return nil }
+    let afterDot = format[format.index(after: dotIndex)...]
+    let digits = afterDot.prefix(while: { $0.isNumber })
+    guard !digits.isEmpty, afterDot.dropFirst(digits.count).first == "f" else { return nil }
+    return Int(digits)
 }
 
 private func _commaFormat(_ value: Double, decimals: Int? = nil) -> String {

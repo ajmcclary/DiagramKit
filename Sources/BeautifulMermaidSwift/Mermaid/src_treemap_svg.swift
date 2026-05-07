@@ -9,10 +9,29 @@ func renderTreemapSvg(
 ) -> String {
     var svg = ""
 
-    svg += "<svg viewBox=\"0 0 \(Int(positioned.svgWidth)) \(Int(positioned.svgHeight))\" xmlns=\"http://www.w3.org/2000/svg\">\n"
+    let padding = max(0, positioned.diagramPadding)
+    let viewBoxX = -padding
+    let viewBoxY = -padding
+    let viewBoxWidth = positioned.svgWidth + padding * 2
+    let viewBoxHeight = positioned.svgHeight + padding * 2
+
+    svg += "<svg id=\"\(_escapeXml(diagramId))\" class=\"treemap\" xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\""
+    if positioned.config.useMaxWidth {
+        svg += " width=\"100%\" style=\"max-width: \(_fmtTreemap(viewBoxWidth))px;\" viewBox=\"\(_fmtTreemap(viewBoxX)) \(_fmtTreemap(viewBoxY)) \(_fmtTreemap(viewBoxWidth)) \(_fmtTreemap(viewBoxHeight))\""
+    } else {
+        svg += " width=\"\(_fmtTreemap(viewBoxWidth))\" height=\"\(_fmtTreemap(viewBoxHeight))\" viewBox=\"\(_fmtTreemap(viewBoxX)) \(_fmtTreemap(viewBoxY)) \(_fmtTreemap(viewBoxWidth)) \(_fmtTreemap(viewBoxHeight))\""
+    }
+    svg += ">\n"
+
+    if let accTitle = positioned.accTitle, !accTitle.isEmpty {
+        svg += "<title>\(_escapeXml(accTitle))</title>\n"
+    }
+    if let accDescr = positioned.accDescr, !accDescr.isEmpty {
+        svg += "<desc>\(_escapeXml(accDescr))</desc>\n"
+    }
 
     if !transparent {
-        svg += "<rect width=\"100%\" height=\"100%\" fill=\"\(colors.bg)\" />\n"
+        svg += "<rect x=\"\(_fmtTreemap(viewBoxX))\" y=\"\(_fmtTreemap(viewBoxY))\" width=\"\(_fmtTreemap(viewBoxWidth))\" height=\"\(_fmtTreemap(viewBoxHeight))\" fill=\"\(_escapeXml(colors.bg))\" />\n"
     }
 
     if let title = positioned.title {
@@ -53,16 +72,17 @@ private func _renderSectionSvg(_ section: PositionedTreemapSection, font: String
     result += "<rect width=\"\(clipW)\" height=\"25\" />\n"
     result += "</clipPath>\n"
 
-    result += "<rect class=\"treemapSection section\(section.index)\" width=\"\(w)\" height=\"\(max(0, h - 25))\" x=\"0\" y=\"25\" fill=\"\(section.fillColor)\" fill-opacity=\"0.6\" stroke=\"\(section.strokeColor)\" stroke-width=\"2.0\" stroke-opacity=\"0.4\"\(hiddenStyle)/>\n"
+    let sectionStyle = _styleAttribute(section.cssCompiledStyles, hidden: section.depth == 0)
+    result += "<rect class=\"treemapSection section\(section.index)\" width=\"\(w)\" height=\"\(max(0, h))\" fill=\"\(_escapeXml(section.fillColor))\" fill-opacity=\"0.6\" stroke=\"\(_escapeXml(section.strokeColor))\" stroke-width=\"2.0\" stroke-opacity=\"0.4\"\(sectionStyle)/>\n"
 
     if let label = section.label, !label.hidden {
-        let labelStyle = _textStyle(label, font: font, clipId: section.clipId, hidden: section.depth == 0)
-        result += "<text class=\"treemapSectionLabel\" x=\"6\" y=\"\(Int(SECTION_HEADER_HEIGHT / 2))\" dominant-baseline=\"middle\" font-weight=\"bold\" font-family=\"\(font)\"\(labelStyle)>\(_escapeXml(label.text))</text>\n"
+        let labelStyle = _textStyle(label, font: font, clipId: section.clipId, hidden: section.depth == 0, cssStyles: section.cssCompiledStyles)
+        result += "<text class=\"treemapSectionLabel\" x=\"6\" y=\"\(Int(SECTION_HEADER_HEIGHT / 2))\" dominant-baseline=\"middle\" font-weight=\"bold\" font-family=\"\(_escapeXml(font))\"\(labelStyle)>\(_escapeXml(label.text))</text>\n"
     }
 
     if let value = section.value, !value.hidden, section.depth != 0 {
-        let valueStyle = _textStyle(value, font: font, clipId: section.clipId, hidden: false)
-        result += "<text class=\"treemapSectionValue\" x=\"\(w - 10)\" y=\"\(Int(SECTION_HEADER_HEIGHT / 2))\" text-anchor=\"end\" dominant-baseline=\"middle\" font-style=\"italic\" font-family=\"\(font)\"\(valueStyle)>\(_escapeXml(value.text))</text>\n"
+        let valueStyle = _textStyle(value, font: font, clipId: section.clipId, hidden: false, cssStyles: section.cssCompiledStyles)
+        result += "<text class=\"treemapSectionValue\" x=\"\(w - 10)\" y=\"\(Int(SECTION_HEADER_HEIGHT / 2))\" text-anchor=\"end\" dominant-baseline=\"middle\" font-style=\"italic\" font-family=\"\(_escapeXml(font))\"\(valueStyle)>\(_escapeXml(value.text))</text>\n"
     }
 
     result += "</g>\n"
@@ -75,12 +95,13 @@ private func _renderLeafSvg(_ leaf: PositionedTreemapLeaf, font: String) -> Stri
     let h = Int(leaf.y1 - leaf.y0)
 
     var classes = "treemapNode treemapLeafGroup leaf\(leaf.index)"
-    if let sel = leaf.classSelector { classes += " \(sel)" }
+    if let sel = leaf.classSelector { classes += " \(_escapeXml(sel))" }
 
     var result = ""
     result += "<g class=\"\(classes)\" transform=\"translate(\(Int(leaf.x0)),\(Int(leaf.y0)))\">\n"
 
-    result += "<rect class=\"treemapLeaf\" width=\"\(w)\" height=\"\(h)\" fill=\"\(leaf.fillColor)\" fill-opacity=\"0.3\" stroke=\"\(leaf.strokeColor)\" stroke-width=\"3.0\" />\n"
+    let leafStyle = _styleAttribute(leaf.cssCompiledStyles)
+    result += "<rect class=\"treemapLeaf\" width=\"\(w)\" height=\"\(h)\" fill=\"\(_escapeXml(leaf.fillColor))\" fill-opacity=\"0.3\" stroke=\"\(_escapeXml(leaf.strokeColor))\" stroke-width=\"3.0\"\(leafStyle) />\n"
 
     let clipW = max(0, w - 4)
     let clipH = max(0, h - 4)
@@ -89,13 +110,13 @@ private func _renderLeafSvg(_ leaf: PositionedTreemapLeaf, font: String) -> Stri
     result += "</clipPath>\n"
 
     if let label = leaf.label, !label.hidden {
-        let labelStyle = _textStyle(label, font: font, clipId: leaf.clipId, hidden: false)
-        result += "<text class=\"treemapLabel\" x=\"\(w / 2)\" y=\"\(Int(label.y))\" text-anchor=\"middle\" dominant-baseline=\"middle\" font-family=\"\(font)\"\(labelStyle)>\(_escapeXml(label.text))</text>\n"
+        let labelStyle = _textStyle(label, font: font, clipId: leaf.clipId, hidden: false, cssStyles: leaf.cssCompiledStyles)
+        result += "<text class=\"treemapLabel\" x=\"\(w / 2)\" y=\"\(Int(label.y))\" text-anchor=\"middle\" dominant-baseline=\"middle\" font-family=\"\(_escapeXml(font))\"\(labelStyle)>\(_escapeXml(label.text))</text>\n"
     }
 
     if let valueText = leaf.valueText, !valueText.hidden {
-        let vStyle = _textStyle(valueText, font: font, clipId: leaf.clipId, hidden: false)
-        result += "<text class=\"treemapValue\" x=\"\(w / 2)\" y=\"\(Int(valueText.y))\" text-anchor=\"middle\" dominant-baseline=\"hanging\" font-family=\"\(font)\"\(vStyle)>\(_escapeXml(valueText.text))</text>\n"
+        let vStyle = _textStyle(valueText, font: font, clipId: leaf.clipId, hidden: false, cssStyles: leaf.cssCompiledStyles)
+        result += "<text class=\"treemapValue\" x=\"\(w / 2)\" y=\"\(Int(valueText.y))\" text-anchor=\"middle\" dominant-baseline=\"hanging\" font-family=\"\(_escapeXml(font))\"\(vStyle)>\(_escapeXml(valueText.text))</text>\n"
     }
 
     result += "</g>\n"
@@ -103,7 +124,7 @@ private func _renderLeafSvg(_ leaf: PositionedTreemapLeaf, font: String) -> Stri
     return result
 }
 
-private func _textStyle(_ text: PositionedTreemapText, font: String, clipId: String?, hidden: Bool) -> String {
+private func _textStyle(_ text: PositionedTreemapText, font: String, clipId: String?, hidden: Bool, cssStyles: [String]?) -> String {
     var style = ""
 
     if let fw = text.fontWeight {
@@ -113,17 +134,31 @@ private func _textStyle(_ text: PositionedTreemapText, font: String, clipId: Str
         style += " font-style=\"\(fs)\""
     }
     style += " font-size=\"\(Int(text.fontSize))px\""
-    style += " fill=\"\(text.fillColor)\""
+    style += " fill=\"\(_escapeXml(text.fillColor))\""
 
     if let cid = clipId {
-        style += " clip-path=\"url(#\(cid))\""
+        style += " clip-path=\"url(#\(_escapeXml(cid)))\""
     }
 
-    if hidden {
-        style += " style=\"display:none\""
-    }
+    style += _styleAttribute(cssStyles, hidden: hidden, text: true)
 
     return style
+}
+
+private func _styleAttribute(_ cssStyles: [String]?, hidden: Bool = false, text: Bool = false) -> String {
+    var declarations = _treemapStyleDeclarations(cssStyles, text: text)
+    if hidden {
+        declarations.insert("display:none", at: 0)
+    }
+    guard !declarations.isEmpty else { return "" }
+    return " style=\"\(declarations.map(_escapeXml).joined(separator: ";"))\""
+}
+
+private func _fmtTreemap(_ value: Double) -> String {
+    if value.rounded() == value {
+        return String(Int(value))
+    }
+    return String(format: "%.2f", value)
 }
 
 private func _escapeXml(_ s: String) -> String {
