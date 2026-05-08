@@ -170,6 +170,13 @@ private func _layoutSquarified(
         let sectionW = round(x1 - x0)
         let aggregateVal = node.aggregateValue
         let formattedAgg = formatTreemapValue(aggregateVal, format: config.valueFormat)
+        let sectionLabel = _makeSectionLabel(
+            name: node.name, width: sectionW, labelColor: myLabelColor,
+            showValues: config.showValues, valueText: config.showValues ? formattedAgg : nil
+        )
+        let sectionValue: PositionedTreemapText? = config.showValues
+            ? _makeSectionValue(value: formattedAgg, width: sectionW, labelColor: myLabelColor, sectionLabelText: sectionLabel.text)
+            : nil
         let section = PositionedTreemapSection(
             index: sectionIndex,
             name: node.name,
@@ -178,8 +185,8 @@ private func _layoutSquarified(
             fillColor: myFill, strokeColor: myStroke, labelColor: myLabelColor,
             cssCompiledStyles: node.cssCompiledStyles,
             classSelector: node.classSelector,
-            label: _makeSectionLabel(name: node.name, width: sectionW, labelColor: myLabelColor),
-            value: config.showValues ? _makeSectionValue(value: formattedAgg, width: sectionW, labelColor: myLabelColor) : nil,
+            label: sectionLabel,
+            value: sectionValue,
             clipId: "clip-section-\(diagramId)-\(sectionIndex)",
             aggregateValue: aggregateVal,
             formattedValue: formattedAgg
@@ -378,11 +385,27 @@ private func _treemapApplyInnerPadding(_ rect: _TreemapRect, count: Int, innerPa
     return rect.inset(max(0, innerPadding) / 2)
 }
 
-private func _makeSectionLabel(name: String, width: Double, labelColor: String) -> PositionedTreemapText {
-    PositionedTreemapText(
-        text: name,
-        x: 6, y: SECTION_HEADER_HEIGHT / 2,
-        fontSize: 12,
+private func _makeSectionLabel(name: String, width: Double, labelColor: String, showValues: Bool = false, valueText: String? = nil) -> PositionedTreemapText {
+    let labelFontSize: Double = 12
+    let labelX: Double = 6
+    let labelRightPadding: Double = 6
+
+    var availableWidth = width - labelX - labelRightPadding
+
+    if showValues, let valueStr = valueText, !valueStr.isEmpty {
+        let valueEndsAtX = width - 10
+        let estimatedValueWidth = Double(valueStr.count) * 0.6 * 10
+        let gap = 10.0
+        let labelMustEndBefore = valueEndsAtX - estimatedValueWidth - gap
+        availableWidth = max(15, labelMustEndBefore - labelX)
+    }
+
+    let text = _truncateTreemapLabel(name, fontSize: labelFontSize, availableWidth: availableWidth)
+
+    return PositionedTreemapText(
+        text: text,
+        x: labelX, y: SECTION_HEADER_HEIGHT / 2,
+        fontSize: labelFontSize,
         fontWeight: "bold",
         textAnchor: "start",
         dominantBaseline: "middle",
@@ -390,16 +413,46 @@ private func _makeSectionLabel(name: String, width: Double, labelColor: String) 
     )
 }
 
-private func _makeSectionValue(value: String, width: Double, labelColor: String) -> PositionedTreemapText {
-    PositionedTreemapText(
+private func _makeSectionValue(value: String, width: Double, labelColor: String, sectionLabelText: String? = nil) -> PositionedTreemapText {
+    let valueFontSize: Double = 10
+    let valueX = width - 10
+
+    var availableWidth = width - 10
+    if let labelText = sectionLabelText, !labelText.isEmpty {
+        let estimatedLabelWidth = Double(labelText.count) * 0.6 * 12 + 6
+        availableWidth = max(0, valueX - estimatedLabelWidth - 6)
+    }
+
+    let estimatedValueWidth = Double(value.count) * 0.6 * valueFontSize
+    let hidden = estimatedValueWidth > availableWidth
+
+    return PositionedTreemapText(
         text: value,
-        x: width - 10, y: SECTION_HEADER_HEIGHT / 2,
-        fontSize: 10,
+        x: valueX, y: SECTION_HEADER_HEIGHT / 2,
+        fontSize: valueFontSize,
         fontStyle: "italic",
         textAnchor: "end",
         dominantBaseline: "middle",
-        fillColor: labelColor
+        fillColor: labelColor,
+        hidden: hidden
     )
+}
+
+private func _truncateTreemapLabel(_ text: String, fontSize: Double, availableWidth: Double) -> String {
+    let estimatedWidth = Double(text.count) * 0.6 * fontSize
+    if estimatedWidth <= availableWidth { return text }
+
+    let ellipsis = "..."
+    var truncated = text
+    while !truncated.isEmpty {
+        truncated = String(text.prefix(truncated.count - 1))
+        let candidate = truncated + ellipsis
+        if Double(candidate.count) * 0.6 * fontSize <= availableWidth {
+            return candidate
+        }
+    }
+    let finalEllipsisWidth = Double(ellipsis.count) * 0.6 * fontSize
+    return finalEllipsisWidth <= availableWidth ? ellipsis : ""
 }
 
 private func _fitLeafText(
@@ -410,70 +463,109 @@ private func _fitLeafText(
     cssCompiledStyles: [String]?
 ) -> (label: PositionedTreemapText?, valueText: PositionedTreemapText?) {
 
+    let padding: Double = 4
+    let availableWidth = width - 2 * padding
+    let availableHeight = height - 2 * padding
+
     let minW: Double = 10
     let minH: Double = 10
-    if width < minW || height < minH {
-        let hiddenLabel = PositionedTreemapText(
-            text: name, x: width / 2, y: height / 2, fontSize: 8,
-            textAnchor: "middle", dominantBaseline: "middle",
-            fillColor: labelColor, hidden: true
+    if width < minW || height < minH || availableWidth < minW || availableHeight < minH {
+        return (
+            PositionedTreemapText(
+                text: name, x: width / 2, y: height / 2, fontSize: 8,
+                textAnchor: "middle", dominantBaseline: "middle",
+                fillColor: labelColor, hidden: true
+            ),
+            nil
         )
-        return (hiddenLabel, nil)
     }
 
-    let maxFontSize: Double = 38
-    let minFontSize: Double = 8
+    let maxLabelFontSize: Double = 38
+    let minLabelFontSize: Double = 8
+    let originalValueRelFontSize: Double = 28
+    let valueScaleFactor: Double = 0.6
+    let minValueFontSize: Double = 6
+    let spacingBetweenLabelAndValue: Double = 2
 
-    var fontSize = maxFontSize
-    let charWEstimate: Double = 0.6
-    while fontSize > minFontSize {
-        let textWidth = Double(name.count) * charWEstimate * fontSize
-        if textWidth <= width - 4 { break }
-        fontSize -= 1
+    var currentLabelFontSize = maxLabelFontSize
+
+    while Double(name.count) * 0.6 * currentLabelFontSize > availableWidth && currentLabelFontSize > minLabelFontSize {
+        currentLabelFontSize -= 1
     }
-    fontSize = max(minFontSize, fontSize)
 
-    var labelText = PositionedTreemapText(
-        text: name, x: width / 2, y: height / 2, fontSize: fontSize,
-        textAnchor: "middle", dominantBaseline: "middle",
-        fillColor: labelColor, hidden: false
-    )
-
-    let labelHidden = fontSize < minFontSize || width < minW || height < minH
-    if labelHidden {
-        labelText.hidden = true
-        labelText = PositionedTreemapText(
-            text: name, x: width / 2, y: height / 2, fontSize: 8,
-            textAnchor: "middle", dominantBaseline: "middle",
-            fillColor: labelColor, hidden: true
+    let textWidthEstimate = Double(name.count) * 0.6 * currentLabelFontSize
+    if currentLabelFontSize < minLabelFontSize || textWidthEstimate > availableWidth || availableHeight < currentLabelFontSize {
+        return (
+            PositionedTreemapText(
+                text: name, x: width / 2, y: height / 2, fontSize: max(minLabelFontSize, currentLabelFontSize),
+                textAnchor: "middle", dominantBaseline: "middle",
+                fillColor: labelColor, hidden: true
+            ),
+            nil
         )
-        return (labelText, nil)
     }
 
     if !showValues || formattedValue == nil || formattedValue!.isEmpty {
-        return (labelText, nil)
+        return (
+            PositionedTreemapText(
+                text: name, x: width / 2, y: height / 2, fontSize: currentLabelFontSize,
+                textAnchor: "middle", dominantBaseline: "middle",
+                fillColor: labelColor, hidden: false
+            ),
+            nil
+        )
     }
 
-    let valueFontSize = max(6.0, min(28.0, round(fontSize * 0.6)))
-    let combinedHeight = fontSize + 2 + valueFontSize
-    let valueY = height / 2 + fontSize / 2 + 2
+    var prospectiveValueFontSize = max(minValueFontSize, min(originalValueRelFontSize, round(currentLabelFontSize * valueScaleFactor)))
+    var combinedHeight = currentLabelFontSize + spacingBetweenLabelAndValue + prospectiveValueFontSize
 
-    let valueHidden = combinedHeight > height || valueY + valueFontSize > height
-    let valueText = PositionedTreemapText(
-        text: formattedValue!, x: width / 2, y: valueY,
-        fontSize: valueFontSize,
-        textAnchor: "middle", dominantBaseline: "hanging",
-        fillColor: labelColor, hidden: valueHidden
+    while combinedHeight > availableHeight && currentLabelFontSize > minLabelFontSize {
+        currentLabelFontSize -= 1
+        prospectiveValueFontSize = max(minValueFontSize, min(originalValueRelFontSize, round(currentLabelFontSize * valueScaleFactor)))
+        combinedHeight = currentLabelFontSize + spacingBetweenLabelAndValue + prospectiveValueFontSize
+    }
+
+    if currentLabelFontSize < minLabelFontSize || availableHeight < currentLabelFontSize || textWidthEstimate > availableWidth {
+        return (
+            PositionedTreemapText(
+                text: name, x: width / 2, y: height / 2, fontSize: max(minLabelFontSize, currentLabelFontSize),
+                textAnchor: "middle", dominantBaseline: "middle",
+                fillColor: labelColor, hidden: true
+            ),
+            nil
+        )
+    }
+
+    let labelCenterY = height / 2
+    let valueY = labelCenterY + currentLabelFontSize / 2 + spacingBetweenLabelAndValue
+
+    let valueWidthEstimate = Double(formattedValue!.count) * 0.6 * prospectiveValueFontSize
+    let valueMaxY = height - padding
+    let valueHidden = valueWidthEstimate > availableWidth
+        || valueY + prospectiveValueFontSize > valueMaxY
+        || prospectiveValueFontSize < minValueFontSize
+
+    return (
+        PositionedTreemapText(
+            text: name, x: width / 2, y: labelCenterY, fontSize: currentLabelFontSize,
+            textAnchor: "middle", dominantBaseline: "middle",
+            fillColor: labelColor, hidden: false
+        ),
+        valueHidden ? nil : PositionedTreemapText(
+            text: formattedValue!, x: width / 2, y: valueY,
+            fontSize: prospectiveValueFontSize,
+            textAnchor: "middle", dominantBaseline: "hanging",
+            fillColor: labelColor, hidden: false
+        )
     )
-
-    return (labelText, valueText)
 }
 
 func formatTreemapValue(_ value: Double, format: String) -> String {
     let fmt = format.trimmingCharacters(in: .whitespaces)
+    let positiveSign = fmt.hasPrefix("+")
 
     if fmt == "$" {
-        return "$\(Int(value.rounded()))"
+        return _pos("$\(Int(value.rounded()))", positiveSign)
     }
     if fmt.hasPrefix("$") {
         let sub = String(fmt.dropFirst())
@@ -484,54 +576,105 @@ func formatTreemapValue(_ value: Double, format: String) -> String {
             } else {
                 numberStr = _commaFormat(value)
             }
-            return "$\(numberStr)"
+            return _pos("$\(numberStr)", positiveSign)
         }
         if sub.hasPrefix("0") {
-            return "$\(_commaFormat(value))"
+            return _pos("$\(_commaFormat(value))", positiveSign)
         }
         if sub.hasPrefix(".") {
             let rest = String(sub.dropFirst())
             if rest.hasSuffix("f") {
                 let digits = Int(String(rest.dropLast())) ?? 2
-                return "$\(String(format: "%.\(digits)f", value))"
+                return _pos("$\(String(format: "%.\(digits)f", value))", positiveSign)
             }
             if rest.hasSuffix("%") {
-                return "$\(String(format: "%.1f%%", value * 100))"
+                let pctDigits = _percentDigits(from: rest) ?? 1
+                return _pos("$\(String(format: "%.\(pctDigits)f%%", value * 100))", positiveSign)
             }
-            return "$\(String(format: "%.2f", value))"
+            if rest.hasSuffix("s") {
+                let siDigits = Int(String(rest.dropLast())) ?? 2
+                return _pos("$\(_siFormat(value, digits: siDigits))", positiveSign)
+            }
+            return _pos("$\(String(format: "%.2f", value))", positiveSign)
         }
-        return "$\(_commaFormat(value))"
+        return _pos("$\(_commaFormat(value))", positiveSign)
     }
     if fmt == "," {
-        return _commaFormat(value)
+        return _pos(_commaFormat(value), positiveSign)
     }
     if fmt.hasPrefix(",.") {
         let rest = String(fmt.dropFirst(2))
         if rest.hasSuffix("f") {
             let digits = Int(String(rest.dropLast())) ?? 2
-            return _commaFormat(value, decimals: digits)
+            return _pos(_commaFormat(value, decimals: digits), positiveSign)
+        }
+        if rest.hasSuffix("s") {
+            let siDigits = Int(String(rest.dropLast())) ?? 2
+            return _pos(_siFormat(value, digits: siDigits), positiveSign)
         }
     }
     if fmt.hasPrefix(".") {
         let rest = String(fmt.dropFirst())
         if rest.hasSuffix("f") {
             let digits = Int(String(rest.dropLast())) ?? 2
-            return String(format: "%.\(digits)f", value)
+            return _pos(String(format: "%.\(digits)f", value), positiveSign)
         }
         if rest.hasSuffix("%") {
-            return String(format: "%.1f%%", value * 100)
+            let pctDigits = _percentDigits(from: rest) ?? 1
+            return _pos(String(format: "%.\(pctDigits)f%%", value * 100), positiveSign)
         }
         if rest.hasSuffix("e") {
             let digits = Int(String(rest.dropLast())) ?? 2
-            return String(format: "%.\(digits)e", value)
+            return _pos(String(format: "%.\(digits)e", value), positiveSign)
         }
-        return String(format: "%.2f", value)
+        if rest.hasSuffix("s") {
+            let siDigits = Int(String(rest.dropLast())) ?? 2
+            return _pos(_siFormat(value, digits: siDigits), positiveSign)
+        }
+        return _pos(String(format: "%.2f", value), positiveSign)
     }
     if fmt == "0" {
-        return "\(Int(value.rounded()))"
+        return _pos("\(Int(value.rounded()))", positiveSign)
     }
 
-    return _commaFormat(value)
+    return _pos(_commaFormat(value), positiveSign)
+}
+
+private func _pos(_ s: String, _ positiveSign: Bool) -> String {
+    guard positiveSign else { return s }
+    if s.hasPrefix("-") { return s }
+    return "+\(s)"
+}
+
+private func _percentDigits(from rest: String) -> Int? {
+    let numPart = rest.prefix(while: { $0.isNumber })
+    guard !numPart.isEmpty, rest.dropFirst(numPart.count).hasPrefix("%") else { return nil }
+    return Int(numPart)
+}
+
+private func _siFormat(_ value: Double, digits: Int) -> String {
+    let absVal = abs(value)
+    let sign = value < 0 ? "-" : ""
+    switch absVal {
+    case 1e24...:
+        return "\(sign)\(String(format: "%.\(digits)f", value / 1e24))Y"
+    case 1e21..<1e24:
+        return "\(sign)\(String(format: "%.\(digits)f", value / 1e21))Z"
+    case 1e18..<1e21:
+        return "\(sign)\(String(format: "%.\(digits)f", value / 1e18))E"
+    case 1e15..<1e18:
+        return "\(sign)\(String(format: "%.\(digits)f", value / 1e15))P"
+    case 1e12..<1e15:
+        return "\(sign)\(String(format: "%.\(digits)f", value / 1e12))T"
+    case 1e9..<1e12:
+        return "\(sign)\(String(format: "%.\(digits)f", value / 1e9))G"
+    case 1e6..<1e9:
+        return "\(sign)\(String(format: "%.\(digits)f", value / 1e6))M"
+    case 1e3..<1e6:
+        return "\(sign)\(String(format: "%.\(digits)f", value / 1e3))k"
+    default:
+        return "\(sign)\(String(format: "%.\(digits)f", value))"
+    }
 }
 
 private func _fixedDecimalDigits(in format: String) -> Int? {

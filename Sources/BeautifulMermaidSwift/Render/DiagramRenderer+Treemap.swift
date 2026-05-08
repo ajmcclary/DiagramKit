@@ -21,9 +21,11 @@ extension DiagramRenderer {
 
         let scaleX = bounds.width / CGFloat(data.svgWidth)
         let scaleY = bounds.height / CGFloat(data.svgHeight)
-        let scale = min(scaleX, scaleY)
+        let scale = data.config.useMaxWidth ? scaleX : min(scaleX, scaleY)
         let offsetX = (bounds.width - CGFloat(data.svgWidth) * scale) / 2
-        let offsetY = (bounds.height - CGFloat(data.svgHeight) * scale) / 2
+        let offsetY = data.config.useMaxWidth
+            ? (max(0, bounds.height - CGFloat(data.svgHeight) * scale)) / 2
+            : (bounds.height - CGFloat(data.svgHeight) * scale) / 2
 
         context.saveGState()
         context.translateBy(x: offsetX, y: offsetY)

@@ -180,6 +180,21 @@ struct TreemapParserTests {
         #expect(result.nodes[0].children?[0].cssCompiledStyles?.contains("fill:#ff0000") == true)
     }
 
+    @Test("Applies classDef text styles separately for labels")
+    func classDefTextStylesApplied() throws {
+        let source = """
+        treemap
+        classDef hot fill:#ff0000,stroke:#333,color:#111;
+        "Category":::hot
+            "Item": 10:::hot
+        """
+        let result = try parseTreemapDiagram(source)
+
+        #expect(result.nodes[0].cssCompiledTextStyles?.contains("color:#111") == true)
+        #expect(result.nodes[0].cssCompiledTextStyles?.contains("fill:#ff0000") == true)
+        #expect(result.nodes[0].children?[0].cssCompiledTextStyles?.contains("color:#111") == true)
+    }
+
     @Test("Parses comments")
     func comments() throws {
         let source = """

@@ -236,14 +236,23 @@ private func _parseTreemapClassSelector(_ text: String, originalLine: String) th
 
 private func _resolveTreemapClassStyles(_ nodes: [TreemapNode], classDefs: [TreemapClassDef]) -> [TreemapNode] {
     var styleMap: [String: [String]] = [:]
+    var textStyleMap: [String: [String]] = [:]
     for classDef in classDefs {
         styleMap[classDef.className, default: []].append(contentsOf: classDef.styles)
+        if !classDef.textStyles.isEmpty {
+            textStyleMap[classDef.className, default: []].append(contentsOf: classDef.textStyles)
+        }
     }
 
     func resolve(_ node: TreemapNode) -> TreemapNode {
         var styled = node
-        if let selector = node.classSelector, let styles = styleMap[selector], !styles.isEmpty {
-            styled.cssCompiledStyles = styles
+        if let selector = node.classSelector {
+            if let styles = styleMap[selector], !styles.isEmpty {
+                styled.cssCompiledStyles = styles
+            }
+            if let textStyles = textStyleMap[selector], !textStyles.isEmpty {
+                styled.cssCompiledTextStyles = textStyles
+            }
         }
         if let children = node.children {
             styled.children = children.map(resolve)

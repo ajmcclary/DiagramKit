@@ -39,6 +39,7 @@ public struct TreemapNode: Sendable, Equatable {
     public var value: Double?
     public var classSelector: String?
     public var cssCompiledStyles: [String]?
+    public var cssCompiledTextStyles: [String]?
     public var x0: Double?
     public var x1: Double?
     public var y0: Double?
@@ -49,13 +50,15 @@ public struct TreemapNode: Sendable, Equatable {
         children: [TreemapNode]? = nil,
         value: Double? = nil,
         classSelector: String? = nil,
-        cssCompiledStyles: [String]? = nil
+        cssCompiledStyles: [String]? = nil,
+        cssCompiledTextStyles: [String]? = nil
     ) {
         self.name = name
         self.children = children
         self.value = value
         self.classSelector = classSelector
         self.cssCompiledStyles = cssCompiledStyles
+        self.cssCompiledTextStyles = cssCompiledTextStyles
     }
 
     public var isLeaf: Bool { children == nil && value != nil }

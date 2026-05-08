@@ -97,6 +97,31 @@ struct TreemapLayoutTests {
         #expect(result.contains("25"))
     }
 
+    @Test("Value formatting: percentage reads digits from format")
+    func formatPercentageDigits() {
+        #expect(formatTreemapValue(0.2567, format: ".2%") == "25.67%")
+        #expect(formatTreemapValue(0.2567, format: ".1%") == "25.7%")
+    }
+
+    @Test("Value formatting: SI prefix")
+    func formatSiPrefix() {
+        #expect(formatTreemapValue(1234, format: ".2s") == "1.23k")
+        #expect(formatTreemapValue(1_234_567, format: ".1s") == "1.2M")
+        #expect(formatTreemapValue(100, format: ".2s") == "100.00")
+    }
+
+    @Test("Value formatting: dollar with SI prefix")
+    func formatDollarSiPrefix() {
+        let result = formatTreemapValue(1_234_567, format: "$.1s")
+        #expect(result == "$1.2M")
+    }
+
+    @Test("Value formatting: positive sign")
+    func formatPositiveSign() {
+        #expect(formatTreemapValue(100, format: "+") == "+100")
+        #expect(formatTreemapValue(-100, format: "+") == "-100")
+    }
+
     @Test("Value formatting: scientific")
     func formatScientific() {
         let result = formatTreemapValue(1234, format: ".2e")
@@ -146,15 +171,82 @@ struct TreemapLayoutTests {
         #expect(positioned.width == 1000)
     }
 
-    private func makeDiagram() -> TreemapDiagram {
-        TreemapDiagram(
-            nodes: [
-                TreemapNode(name: "Category", children: [
-                    TreemapNode(name: "Item 1", value: 10),
-                    TreemapNode(name: "Item 2", value: 20)
-                ])
-            ]
-        )
+    @Test("Leaf text shrinks to fit narrow width")
+    func leafShrinksForNarrowWidth() {
+        let diagram = makeDiagram(nodes: [
+            TreemapNode(name: "Category", children: [
+                TreemapNode(name: "A very long item name that should definitely shrink down because it is extremely long", value: 100)
+            ])
+        ])
+        let positioned = layoutTreemapDiagram(diagram)
+        guard let leaf = positioned.leaves.first else { return }
+        #expect(leaf.label != nil)
+        #expect(leaf.label!.fontSize < 38)
+        #expect(!leaf.label!.hidden)
+    }
+
+    @Test("Leaf label+value fit combined height: label shrinks for value")
+    func leafShrinksForValueHeight() {
+        var diagram = makeDiagram(nodes: [
+            TreemapNode(name: "Category", children: [
+                TreemapNode(name: "Item", value: 100),
+                TreemapNode(name: "Another", value: 200)
+            ])
+        ])
+        diagram.config = TreemapDiagramConfig(nodeWidth: 30, nodeHeight: 5)
+        let positioned = layoutTreemapDiagram(diagram)
+        for leaf in positioned.leaves {
+            if let label = leaf.label, !label.hidden {
+                #expect(label.fontSize <= 38)
+            }
+        }
+    }
+
+    @Test("Leaf label+value hidden in tiny cell")
+    func leafHiddenInTinyCell() {
+        var diagram = makeDiagram(nodes: [
+            TreemapNode(name: "Category", children: [
+                TreemapNode(name: "TinyItem", value: 1),
+                TreemapNode(name: "BigItem", value: 10000)
+            ])
+        ])
+        diagram.config = TreemapDiagramConfig(nodeWidth: 10, nodeHeight: 10)
+        let positioned = layoutTreemapDiagram(diagram)
+        let tinyLeaf = positioned.leaves.first(where: { $0.name == "TinyItem" })
+        #expect(tinyLeaf != nil)
+    }
+
+    @Test("Value hidden when showValues is false")
+    func valuesHiddenWhenShowValuesFalse() {
+        var diagram = makeDiagram()
+        diagram.config = TreemapDiagramConfig(showValues: false)
+        let positioned = layoutTreemapDiagram(diagram)
+        for leaf in positioned.leaves {
+            #expect(leaf.valueText == nil)
+            #expect(leaf.formattedValue != nil)
+        }
+    }
+
+    @Test("Nested layout carries depth through section hierarchy")
+    func depthCarriedThrough() throws {
+        let diagram = try parseTreemapDiagram("""
+        treemap
+        "Level 1"
+            "Level 2"
+                "Leaf": 10
+        """)
+        let positioned = layoutTreemapDiagram(diagram)
+        guard let section = positioned.sections.first(where: { $0.name == "Level 1" }) else { return }
+        #expect(section.depth > 0)
+    }
+
+    private func makeDiagram(nodes: [TreemapNode] = [
+        TreemapNode(name: "Category", children: [
+            TreemapNode(name: "Item 1", value: 10),
+            TreemapNode(name: "Item 2", value: 20)
+        ])
+    ]) -> TreemapDiagram {
+        TreemapDiagram(nodes: nodes)
     }
 }
 
