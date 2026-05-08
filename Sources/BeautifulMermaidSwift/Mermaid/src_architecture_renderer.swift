@@ -180,7 +180,7 @@ private func _iconSvg(for iconName: String?, iconText: String?, cx: Double, cy: 
         }
 
         if registry.isExternalIcon(iconName) {
-            if let externalSVG = try? registry.iconSVG(for: iconName) {
+            if let externalSVG = registry.iconSVG(for: iconName) {
                 return _renderExternalIconBody(externalSVG, iconDisplaySize: iconDisplaySize, x: x, y: y)
             }
         }

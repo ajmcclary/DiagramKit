@@ -10,7 +10,6 @@ public func renderPieSvg(
 ) -> String {
     var parts: [String] = []
 
-    let themeColors = original_src_theme.DiagramColors(bg: colors.bg, fg: colors.fg, line: colors.line, accent: colors.accent, muted: colors.muted, surface: colors.surface, border: colors.border)
     let widthStr = _pieR(chart.width)
     let heightStr = _pieR(chart.height)
     let viewBoxXStr = _pieR(chart.viewBoxX)
@@ -24,7 +23,7 @@ public func renderPieSvg(
     if let muted = colors.muted { styleVarParts.append("--muted:\(muted)") }
     if let surface = colors.surface { styleVarParts.append("--surface:\(surface)") }
     if let border = colors.border { styleVarParts.append("--border:\(border)") }
-    let bgStyle = (transparent ?? false) ? "" : ";background:var(--bg)"
+    let bgStyle = transparent ? "" : ";background:var(--bg)"
 
     if useMaxWidth {
         let styleVars = (styleVarParts + ["max-width: \(widthStr)px"]).joined(separator: ";")

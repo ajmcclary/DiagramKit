@@ -70,7 +70,7 @@ public func layoutSankeyDiagram(_ diagram: SankeyDiagram) -> PositionedSankeyDia
     if usedLayerCount > 1 {
         let spacing = (width - nodeWidth) / Double(usedLayerCount - 1)
         var colIdx = 0
-        for (layerIdx, indices) in columns.enumerated() {
+        for (_, indices) in columns.enumerated() {
             if indices.isEmpty { continue }
             let x = Double(colIdx) * spacing
             for i in indices {

@@ -91,7 +91,6 @@ private final class Bounds {
 public func layoutC4Diagram(_ diagram: C4Diagram) -> PositionedC4Diagram {
     let config = diagram.config
     let c4ShapeInRow = config.c4ShapeInRow
-    let c4BoundaryInRow = config.c4BoundaryInRow
 
     var positionedShapes: [PositionedC4Shape] = []
     var positionedBoundaries: [PositionedC4Boundary] = []
@@ -110,7 +109,6 @@ public func layoutC4Diagram(_ diagram: C4Diagram) -> PositionedC4Diagram {
     var globalBoundaryMaxY = config.diagramMarginY
 
     // Process top-level boundaries
-    let rootBoundaries = diagram.boundaries.filter { $0.parentBoundary == "" || $0.alias == "global" }
     let topBoundaries = diagram.boundaries.filter { $0.parentBoundary == "global" && $0.alias != "global" }
 
     // Draw shapes at global level first
@@ -182,7 +180,6 @@ private func _drawInsideBoundary(
         currentBounds.data.widthLimit = (parentBounds.data.widthLimit ?? 6000) / Double(min(c4BoundaryInRow, currentBoundaries.count))
 
         // Measure boundary header
-        var Y: Double = 0
         let labelConf = _boundaryLabelConf(config)
         let labelSize = _measureText(currentBoundary.label, fontSize: labelConf.size + 2, bold: true)
         let labelHeight = labelSize.height + _lineHeight(fontSize: labelConf.size)
@@ -250,7 +247,7 @@ private func _drawInsideBoundary(
         let bw = (currentBounds.data.stopx ?? 0) - (currentBounds.data.startx ?? 0)
         let bh = (currentBounds.data.stopy ?? 0) - (currentBounds.data.starty ?? 0) + headerHeight
 
-        var posBoundary = PositionedC4Boundary(
+        let posBoundary = PositionedC4Boundary(
             alias: currentBoundary.alias,
             label: currentBoundary.label,
             type: currentBoundary.type,
@@ -350,7 +347,7 @@ private func _computeShapePosition(
         Y = descrY + descrH
     }
 
-    var rectH = Y
+    let rectH = Y
     var rectW = labelSize.width
 
     rectW += config.c4ShapePadding * 2

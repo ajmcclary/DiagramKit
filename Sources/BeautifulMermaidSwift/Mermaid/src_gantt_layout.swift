@@ -504,7 +504,6 @@ private func _generateAxisTicks(
         let rawStep = span / targetTickCount
 
         // Snap to nice time units
-        let second = 1.0
         let minute = 60.0
         let hour = 3600.0
         let day = 86400.0
@@ -520,8 +519,7 @@ private func _generateAxisTicks(
             return (day * 365, _GanttTickStep.calendar(.year, 1))
         }
 
-        let (niceStep, tickStep) = niceSpan(rawStep)
-        approximateSeconds = niceStep
+        let (_, tickStep) = niceSpan(rawStep)
         step = tickStep
 
         // Align start to nice boundary
@@ -570,8 +568,8 @@ private func _generateAxisTicks(
             nextDate = currentDate.addingTimeInterval(seconds)
         case .calendar(let component, let value):
             nextDate = cal.date(byAdding: component, value: value, to: currentDate)
-        case .week(let value, let wkday):
-            var comps = cal.dateComponents([.yearForWeekOfYear, .weekOfYear], from: currentDate)
+        case .week(let value, _):
+            let comps = cal.dateComponents([.yearForWeekOfYear, .weekOfYear], from: currentDate)
             nextDate = cal.date(byAdding: .weekOfYear, value: value, to: cal.date(from: comps) ?? currentDate)
         }
         guard let nextDate, nextDate > currentDate else { break }

@@ -52,7 +52,6 @@ extension DiagramRenderer {
             // Edge labels
             for edge in diagram.edges {
                 guard let lp = edge.labelPosition, !edge.labelText.isEmpty else { continue }
-                let labelFont = BMFont.systemFont(ofSize: config.fontSizeEdgeLabel)
                 let textW = config.estimateTextWidth(edge.labelText, fontSize: config.fontSizeEdgeLabel, fontWeight: 400) + 8
                 let textH = config.fontSizeEdgeLabel + 6
                 let bgRect = CGRect(x: lp.x - textW / 2, y: lp.y - textH / 2, width: textW, height: textH)

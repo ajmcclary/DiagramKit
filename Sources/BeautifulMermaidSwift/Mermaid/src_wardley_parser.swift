@@ -126,7 +126,7 @@ private func tokenizeNameWithHyphens(_ text: String) -> [WardleyNameToken] {
         return [.keyword(lower)]
     }
 
-    var chars = Array(text)
+    let chars = Array(text)
     var result: [WardleyNameToken] = []
     var current: [Character] = []
     var i = 0
@@ -172,7 +172,7 @@ private struct LinkArrowInfo {
     var isDashed: Bool
     var flow: WardleyFlowDirection?
     var label: String?
-    var portAtEnd: String?
+    let portAtEnd: String?
     var semicolonLabel: String?
 }
 
@@ -183,7 +183,7 @@ private func detectArrowInLine(_ line: String) -> LinkArrowInfo? {
     var isDashed = false
     var flow: WardleyFlowDirection?
     var label: String?
-    var portAtEnd: String?
+    let portAtEnd: String? = nil
     var semicolonLabel: String?
 
     // Check for labeled flow arrows: +'...'>  +'...'<  +'...'<>
@@ -304,7 +304,6 @@ public func parseWardleyMap(_ lines: [String], frontmatter: DiagramFrontmatter? 
     var headerFound = false
     var currentPipeline: (parent: String, componentLines: [(component: String, evolution: Double, labelOffsetX: Double?, labelOffsetY: Double?)])? = nil
     var inPipeline = false
-    var pipelineDepth = 0
     var skipLines = 0
     var i = 0
 
@@ -400,7 +399,6 @@ public func parseWardleyMap(_ lines: [String], frontmatter: DiagramFrontmatter? 
                 }
                 currentPipeline = nil
                 inPipeline = false
-                pipelineDepth = 0
                 i += 1
                 continue
             }
@@ -419,7 +417,7 @@ public func parseWardleyMap(_ lines: [String], frontmatter: DiagramFrontmatter? 
                 let coordStr = String(compRest[coordMatch])
                 let evolution = try parseSingleCoordinate(coordStr, context: "pipeline component '\(compName)' evolution")
 
-                var afterCoord = String(compRest[coordMatch.upperBound...]).trimmingCharacters(in: .whitespaces)
+                let afterCoord = String(compRest[coordMatch.upperBound...]).trimmingCharacters(in: .whitespaces)
                 var labelOffsetX: Double? = nil
                 var labelOffsetY: Double? = nil
 
@@ -443,7 +441,6 @@ public func parseWardleyMap(_ lines: [String], frontmatter: DiagramFrontmatter? 
                 let parentName = trimmingQuotes(String(rest.dropLast()).trimmingCharacters(in: .whitespaces))
                 currentPipeline = (parent: parentName, componentLines: [])
                 inPipeline = true
-                pipelineDepth = 1
                 i += 1
                 continue
             } else if rest.contains("{") {
@@ -451,7 +448,6 @@ public func parseWardleyMap(_ lines: [String], frontmatter: DiagramFrontmatter? 
                 let parentName = trimmingQuotes(parts[0].trimmingCharacters(in: .whitespaces))
                 currentPipeline = (parent: parentName, componentLines: [])
                 inPipeline = true
-                pipelineDepth = 1
                 i += 1
                 continue
             } else {
@@ -465,7 +461,6 @@ public func parseWardleyMap(_ lines: [String], frontmatter: DiagramFrontmatter? 
                     if nextLine == "{" {
                         currentPipeline = (parent: parentName, componentLines: [])
                         inPipeline = true
-                        pipelineDepth = 1
                         found = true
                         i = j + 1
                         break
@@ -620,7 +615,7 @@ public func parseWardleyMap(_ lines: [String], frontmatter: DiagramFrontmatter? 
             // Can have coordinate values that are int or decimal
             let cleaned = rest.replacingOccurrences(of: "[", with: "").replacingOccurrences(of: "]", with: "")
             let parts = cleaned.split(separator: ",").map { $0.trimmingCharacters(in: .whitespaces) }
-            guard parts.count == 2, let px = Double(parts[0]), let py = Double(parts[1]) else {
+            guard parts.count == 2, let _ = Double(parts[0]), let _ = Double(parts[1]) else {
                 throw WardleyMapParserError.invalidStatement(trimmed)
             }
             let (x, y) = try parseCoordinateValue(rest, context: "Annotations box")
@@ -837,7 +832,7 @@ private func extractNameAndRest(_ text: String) -> (name: String, rest: String) 
 
     // Unquoted name: scan until we find [ or end
     // Handle hyphenated names that stop before ->
-    var chars = Array(trimmed)
+    let chars = Array(trimmed)
     var nameChars: [Character] = []
     var i = 0
     while i < chars.count {
@@ -966,7 +961,7 @@ private func parseDecorator(_ text: String) -> WardleySourceStrategy? {
 
 private func parseEvolutionStages(_ text: String) throws -> ([String], [Double]?) {
     // Split on -> while respecting quoted strings
-    var stages = splitOnArrow(text)
+    let stages = splitOnArrow(text)
     if stages.count < 2 {
         throw WardleyMapParserError.invalidEvolutionStage(text)
     }
@@ -1004,7 +999,7 @@ private func splitOnArrow(_ text: String) -> [String] {
     var parts: [String] = []
     var current: [Character] = []
     var inQuote = false
-    var chars = Array(text)
+    let chars = Array(text)
 
     var i = 0
     while i < chars.count {

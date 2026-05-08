@@ -264,7 +264,7 @@ private func handDrawnHachureForPath(_ pathSpec: String, angle: Double, gap: Dou
 
     for token in tokens {
         let t = String(token)
-        if let v = Double(t) {
+        if Double(t) != nil {
             // Collect alternating x,y values
             continue
         }

@@ -8,6 +8,10 @@ Items intentionally deferred from the May 2026 remediation. Tracked here so the 
 
 Every diagram type has two renderers — a CG renderer at `Sources/BeautifulMermaidSwift/Render/DiagramRenderer+<Type>.swift` and a legacy SVG renderer at `Sources/BeautifulMermaidSwift/Mermaid/src_<type>_renderer.swift`. Text measurement, color resolution, and geometry are computed independently in each path. Now that snapshots are committed, diff every (svg, png) pair for the same `diagram.id` and pick a canonical path per diagram type. Long-term: deprecate one path entirely.
 
+Concrete CG-side gaps surfaced while fixing duplicate `case` warnings in `Sources/BeautifulMermaidSwift/Render/ShapeRenderer.swift`:
+
+- `horizontal-cylinder` and `data-store`: `shapePath(for:in:)` now returns the correct body rect (X-shrink for horizontal-cylinder, Y-shrink for data-store, matching SVG `_renderHorizontalCylinder` / `_renderDataStore`), but `drawShapeDetails(_:in:context:theme:inlineStyles:)` has **no case** for either. Result: only the inner body rect is drawn — no end-cap ellipses for horizontal-cylinder, no top-ellipse / curved-bottom for data-store. Add corresponding cases to `drawShapeDetails` to match the SVG canonical.
+
 ### Renderer consolidation — pick CG-only or SVG-only `[medium]`
 
 Architectural decision blocked by the audit above. CG-only is faster and pixel-perfect on Apple platforms; SVG-only is portable and easier to debug. Supporting both forever doubles maintenance.

@@ -395,8 +395,6 @@ private func _measureTextDimensions(
     fontSize: Double
 ) -> (width: Double, height: Double) {
     let font = CTFontCreateWithName("TrebuchetMS" as CFString, CGFloat(fontSize), nil)
-        ?? CTFontCreateWithName("Trebuchet MS" as CFString, CGFloat(fontSize), nil)
-        ?? CTFontCreateUIFontForLanguage(.system, CGFloat(fontSize), nil)!
 
     let plainText: String
     if hasRenderedData, let data = dataText, !data.isEmpty {

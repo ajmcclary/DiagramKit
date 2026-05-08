@@ -81,7 +81,6 @@ extension DiagramRenderer {
 
             let centerLayer = _centralCGSankeyLayer(diagram)
             for node in diagram.nodes {
-                let nodeColor = nodeColorMap[node.id] ?? defaultColor(node.id)
                 let labelColor = BMColor(hex: "#27272A")
                 let labelText: String
                 if diagram.config.showValues {

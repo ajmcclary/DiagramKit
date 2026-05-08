@@ -1014,11 +1014,6 @@ private func _renderCloud(x: Double, y: Double, w: Double, h: Double, fill: Stri
 
 private func _renderCurvedTrapezoid(x: Double, y: Double, w: Double, h: Double, fill: String, stroke: String, sw: String) -> String {
     let inset = w * 0.15, cp = h * 0.2
-    let points = [
-        "\(x + inset),\(y)",
-        "\(x + w),\(y + h)",
-        "\(x),\(y + h)",
-    ].joined(separator: " ")
     return "<path d=\"M\(x + inset),\(y) Q\(x + w - inset),\(y) \(x + w),\(y + h - cp) L\(x + w),\(y + h) L\(x),\(y + h) Q\(x),\(y + h - cp) \(x + inset),\(y)\" fill=\"\(fill)\" stroke=\"\(stroke)\" stroke-width=\"\(sw)\" />"
 }
 
@@ -1100,13 +1095,13 @@ private func _renderLinedDocument(x: Double, y: Double, w: Double, h: Double, fi
 
 private func _renderLinedCylinder(x: Double, y: Double, w: Double, h: Double, fill: String, stroke: String, sw: String) -> String {
     let cyl = _renderCylinder(x: x, y: y, w: w, h: h, fill: fill, stroke: stroke, sw: sw)
-    let cx = x + w / 2, cy = y + h / 2
-    return cyl + "\n<line x1=\"\(x)\" y1=\"\(cy)\" x2=\"\(x + w)\" y2=\"\(cy)\" stroke=\"\(stroke)\" stroke-width=\"\(sw)\" stroke-dasharray=\"3 3\" opacity=\"0.5\" />"
+    let ly = y + h / 2
+    return cyl + "\n<line x1=\"\(x)\" y1=\"\(ly)\" x2=\"\(x + w)\" y2=\"\(ly)\" stroke=\"\(stroke)\" stroke-width=\"\(sw)\" stroke-dasharray=\"3 3\" opacity=\"0.5\" />"
 }
 
 private func _renderHorizontalCylinder(x: Double, y: Double, w: Double, h: Double, fill: String, stroke: String, sw: String) -> String {
     let rx = 7.0  // ellipse radius on x-axis for horizontal
-    let cx = x + w / 2, cy = y + h / 2
+    let cx = x + w / 2
     return "<rect x=\"\(x + rx)\" y=\"\(y)\" width=\"\(w - 2 * rx)\" height=\"\(h)\" fill=\"\(fill)\" stroke=\"none\" />\n" +
         "<line x1=\"\(x + rx)\" y1=\"\(y)\" x2=\"\(x + w - rx)\" y2=\"\(y)\" stroke=\"\(stroke)\" stroke-width=\"\(sw)\" />\n" +
         "<line x1=\"\(x + rx)\" y1=\"\(y + h)\" x2=\"\(x + w - rx)\" y2=\"\(y + h)\" stroke=\"\(stroke)\" stroke-width=\"\(sw)\" />\n" +

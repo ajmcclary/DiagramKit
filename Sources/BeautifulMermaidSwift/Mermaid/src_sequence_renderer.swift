@@ -443,7 +443,7 @@ private func _renderMessage(_ msg: PositionedSequenceMessage, index: Int = 0) ->
     let markerEnd = markerId.map { " marker-end=\"url(#\($0))\"" } ?? ""
 
     let style = SequenceArrowStyle(type: msg.arrowType)
-    let markerStart = style.isBidirectional ? markerEnd : ""
+    _ = style.isBidirectional
     let lineClass = "messageLine\(index % 2)"
 
     parts.append("<g class=\"message\" data-from=\"\(escapeAttr(msg.from))\" data-to=\"\(escapeAttr(msg.to))\" data-label=\"\(escapeAttr(msg.label))\" data-arrow-type=\"\(escapeAttr(String(msg.arrowType.rawValue)))\" data-self=\"\(msg.isSelf)\">")

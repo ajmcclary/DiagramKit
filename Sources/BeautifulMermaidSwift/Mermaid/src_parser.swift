@@ -859,7 +859,7 @@ private func _splitConcurrentRegions(_ subgraph: ParsedSubgraph, _ graph: inout 
         regions.append(currentRegion)
     }
     if regions.count <= 1 {
-        var result = subgraph
+        let result = subgraph
         result.nodeIds = regions.first ?? []
         return result
     }
@@ -878,7 +878,7 @@ private func _splitConcurrentRegions(_ subgraph: ParsedSubgraph, _ graph: inout 
         regionSubgraphs.append(regionSub)
     }
 
-    var result = subgraph
+    let result = subgraph
     result.nodeIds = []
     result.children = regionSubgraphs + subgraph.children
     return result
@@ -1025,11 +1025,11 @@ private func _parseEdgeLine(_ line: String, graph: inout _WorkingGraph, subgraph
         // Use the edge tokenizer to scan the edge operator
         guard let edgeOp = _scanEdgeOp(remaining) else { break }
         var edgeLabel = edgeOp.label
-        var edgeId = edgeOp.edgeId
+        let edgeId = edgeOp.edgeId
         var arrowHeadStart = edgeOp.arrowHeadStart
         var arrowHeadEnd = edgeOp.arrowHeadEnd
         var style = edgeOp.style
-        var minlen = edgeOp.minlen
+        let minlen = edgeOp.minlen
         var edgeProps: original_src_types.NodeProperties?
 
         remaining = String(remaining.dropFirst(edgeOp.consumedLength)).trimmingCharacters(in: .whitespacesAndNewlines)

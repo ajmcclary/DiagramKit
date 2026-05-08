@@ -68,7 +68,6 @@ private func _gitGraphGenerateStyles(_ options: GitGraphThemeConfig, positioned:
     let themeName = positioned.themeName
     let useNeoColorGen = _gitGraphIsNeoColorGen(themeName)
     let useReduxGeometry = _gitGraphIsReduxGeometry(themeName)
-    let isDark = _gitGraphIsDark(themeName)
     let strokeWidth = _gitGraphResolved(options.strokeWidth, fallback: "2")
     let commitLineColor = _gitGraphResolved(options.lineColor, fallback: "#888888")
     let nodeBorder = _gitGraphResolved(options.nodeBorder, fallback: "#000000")
@@ -213,7 +212,6 @@ public func renderGitGraphSvg(_ positioned: PositionedGitGraphDiagram, diagramId
     let isLookNeo = positioned.look == "neo" || isNeo
     let useReduxGeometry = _gitGraphIsReduxGeometry(positioned.themeName)
     let isDark = _gitGraphIsDark(positioned.themeName)
-    let isColorTheme = _gitGraphIsColorTheme(positioned.themeName)
     let useNeoColorGen = _gitGraphIsNeoColorGen(positioned.themeName)
 
     // Gradient defs for neo look

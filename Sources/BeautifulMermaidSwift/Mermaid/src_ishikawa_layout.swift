@@ -27,7 +27,6 @@ private func _measureIshikawaText(_ lines: [String], fontSize: Double) -> _Ishik
         return _IshikawaTextBounds(width: 0, height: 0, x: 0, y: 0)
     }
     let font = CTFontCreateWithName("Menlo" as CFString, CGFloat(fontSize), nil)
-        ?? CTFontCreateUIFontForLanguage(.system, CGFloat(fontSize), nil)!
     let attr: [NSAttributedString.Key: Any] = [
         .font: font,
         .kern: 0

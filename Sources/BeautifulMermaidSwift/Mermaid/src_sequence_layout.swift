@@ -132,7 +132,6 @@ private func _layoutSequenceDiagramEntry(
 
     // Autonumber tracking — config.showSequenceNumbers can force it on
     // In-diagram autonumber events (including "autonumber off") take precedence
-    var seenAutonumberEvent = false
     var seqNum: Double = diagram.autonumberEnabled ? diagram.autonumberStart : 1.0
     var seqStep: Double = diagram.autonumberEnabled ? diagram.autonumberStep : 1.0
     var seqEnabled: Bool = diagram.autonumberEnabled || cfg.showSequenceNumbers
@@ -150,7 +149,6 @@ private func _layoutSequenceDiagramEntry(
 
         switch item {
         case .autonumberEvent(let start, let step, let visible):
-            seenAutonumberEvent = true
             seqEnabled = visible
             if visible {
                 seqNum = start

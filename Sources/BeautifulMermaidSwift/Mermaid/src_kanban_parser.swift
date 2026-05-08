@@ -393,7 +393,6 @@ func _parseSingleKanbanNode(
         let beforeMeta = String(remaining[..<atIdx.lowerBound]).trimmingCharacters(in: .whitespacesAndNewlines)
         let metaStr = String(remaining[atIdx.lowerBound...])
         let meta = try parseKanbanMetadata(metaStr)
-        let knownKeys: Set<String> = ["label", "icon", "assigned", "ticket", "priority", "shape"]
         var unknown: [String: String] = [:]
         for (k, v) in meta {
             switch k {

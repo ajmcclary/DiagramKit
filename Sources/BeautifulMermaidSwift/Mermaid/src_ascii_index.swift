@@ -50,8 +50,8 @@ private func _bmConvertToAsciiGraph(
             target: e.target,
             label: e.label,
             style: e.style.rawValue,
-            hasArrowStart: e.hasArrowStart,
-            hasArrowEnd: e.hasArrowEnd
+            hasArrowStart: e.arrowHeadStart != .none,
+            hasArrowEnd: e.arrowHeadEnd != .none
         )
     }
 

@@ -130,10 +130,6 @@ public class NodeShapeRenderer {
             return asymmetricPath(bounds)
         case "ellipse":
             return CGPath(ellipseIn: bounds, transform: nil)
-        case "parallelogram":
-            return parallelogramPath(bounds)
-        case "parallelogram-alt":
-            return parallelogramAltPath(bounds)
         case "state-fork":
             return CGPath(rect: bounds, transform: nil)
         case "class-box":
@@ -158,7 +154,9 @@ public class NodeShapeRenderer {
             return trueCirclePath(bounds)
         case "delay":
             return delayPath(bounds)
-        case "notched-rectangle", "tagged-rectangle":
+        case "notched-rectangle":
+            return notchedRectPath(bounds)
+        case "tagged-rectangle":
             return CGPath(rect: bounds, transform: nil)
         case "window-pane":
             return CGPath(rect: bounds, transform: nil)
@@ -176,20 +174,18 @@ public class NodeShapeRenderer {
             return flagPath(bounds)
         case "bow-tie-rectangle":
             return bowTiePath(bounds)
-        case "horizontal-cylinder", "lined-cylinder", "data-store":
+        case "horizontal-cylinder":
+            let rx = config.cylinderEllipseRadius
+            let bodyRect = CGRect(x: bounds.minX + rx, y: bounds.minY, width: bounds.width - 2 * rx, height: bounds.height)
+            return CGPath(rect: bodyRect, transform: nil)
+        case "lined-cylinder", "data-store":
             let ry = config.cylinderEllipseRadius
             let bodyRect = CGRect(x: bounds.minX, y: bounds.minY + ry, width: bounds.width, height: bounds.height - 2 * ry)
             return CGPath(rect: bodyRect, transform: nil)
         case "flipped-triangle", "sloped-rectangle":
             return CGPath(rect: bounds, transform: nil)
-        case "brace-l", "brace-r", "braces":
-            return CGPath(rect: bounds, transform: nil)
-        case "notched-rectangle", "tagged-rectangle":
-            return notchedRectPath(bounds)
         case "lined-rectangle":
             return CGPath(rect: bounds, transform: nil)
-        case "lined-document":
-            return documentPath(bounds)
         case "icon-square", "icon", "image-square":
             return CGPath(rect: bounds, transform: nil)
         case "icon-circle":
@@ -373,7 +369,7 @@ public class NodeShapeRenderer {
 
     private func hourglassPath(_ bounds: CGRect) -> CGPath {
         let path = CGMutablePath()
-        let w = bounds.width, h = bounds.height
+        let w = bounds.width
         let midX = bounds.midX, midY = bounds.midY
         let pinch = w * 0.15
         path.move(to: CGPoint(x: bounds.minX, y: bounds.minY))
@@ -402,7 +398,7 @@ public class NodeShapeRenderer {
 
     private func flagPath(_ bounds: CGRect) -> CGPath {
         let path = CGMutablePath()
-        let w = bounds.width, h = bounds.height
+        let w = bounds.width
         let inset = w * 0.15
         path.move(to: CGPoint(x: bounds.minX, y: bounds.minY))
         path.addLine(to: CGPoint(x: bounds.maxX - inset, y: bounds.minY))

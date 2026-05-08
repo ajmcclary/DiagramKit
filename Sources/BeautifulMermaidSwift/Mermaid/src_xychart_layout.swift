@@ -50,8 +50,6 @@ private func _layoutVertical(_ chart: XYChart, _ config: XYChartConfig, _ theme:
     let hasTitle = resolvedTitle != nil && config.showTitle
     let hasXTitle = chart.xAxis.title != nil && config.xAxis.showTitle
     let hasYTitle = chart.yAxis.title != nil && config.yAxis.showTitle
-    let hasLegend = false
-
     guard let yRange = chart.yAxis.range else {
         return PositionedXYChart(width: 0, height: 0, title: nil, xAxis: PositionedXYAxis(title: nil, ticks: [], line: AxisLine(x1: 0, y1: 0, x2: 0, y2: 0)), yAxis: PositionedXYAxis(title: nil, ticks: [], line: AxisLine(x1: 0, y1: 0, x2: 0, y2: 0)), plotArea: XYPlotArea(x: 0, y: 0, width: 0, height: 0), bars: [], lines: [], gridLines: [], legend: [])
     }
@@ -76,7 +74,7 @@ private func _layoutVertical(_ chart: XYChart, _ config: XYChartConfig, _ theme:
         totalH: totalH,
         left: XY.padding + yLabelWidth + XY.yLabelGap + yTitleHeight,
         right: XY.padding,
-        top: XY.padding + (hasTitle ? titleHeight : 0) + (hasLegend ? XY.legendHeight : 0) + (hasTitle || hasLegend ? XY.headerBottomPad : 0),
+        top: XY.padding + (hasTitle ? titleHeight : 0) + (hasTitle ? XY.headerBottomPad : 0),
         bottom: XY.padding + xLabelHeight + (hasXTitle ? XY.axisTitlePad : 0) + (config.xAxis.showTick ? config.xAxis.tickLength : 0),
         config: config
     )
@@ -125,8 +123,7 @@ private func _layoutVertical(_ chart: XYChart, _ config: XYChartConfig, _ theme:
     let bars = _layoutBars(chart, config, xScale, yScale, bandWidth, yRange.min, catLabels, colorMap)
     let lines = _layoutLines(chart, xScale, yScale, catLabels, colorMap)
 
-    let legendY = XY.padding + (hasTitle ? titleHeight : 0) + XY.legendHeight / 2
-    let legend = hasLegend ? _buildLegendItems(chart, config, totalW / 2, legendY, colorMap) : []
+    let legend: [XYLegendItem] = []
 
     let xAxisLine = AxisLine(x1: left, y1: top + plotH, x2: left + plotW, y2: top + plotH)
     let yAxisLine = AxisLine(x1: left, y1: top, x2: left, y2: top + plotH)
@@ -170,8 +167,6 @@ private func _layoutHorizontal(_ chart: XYChart, _ config: XYChartConfig, _ them
     let hasTitle = resolvedTitle != nil && config.showTitle
     let hasXTitle = chart.xAxis.title != nil && config.xAxis.showTitle
     let hasYTitle = chart.yAxis.title != nil && config.yAxis.showTitle
-    let hasLegend = false
-
     guard let yRange = chart.yAxis.range else {
         return PositionedXYChart(width: 0, height: 0, title: nil, xAxis: PositionedXYAxis(title: nil, ticks: [], line: AxisLine(x1: 0, y1: 0, x2: 0, y2: 0)), yAxis: PositionedXYAxis(title: nil, ticks: [], line: AxisLine(x1: 0, y1: 0, x2: 0, y2: 0)), plotArea: XYPlotArea(x: 0, y: 0, width: 0, height: 0), bars: [], lines: [], gridLines: [], legend: [])
     }
@@ -199,7 +194,7 @@ private func _layoutHorizontal(_ chart: XYChart, _ config: XYChartConfig, _ them
         totalH: totalH,
         left: XY.padding + yLabelWidth + XY.yLabelGap + xTitleHeight,
         right: XY.padding,
-        top: XY.padding + (hasTitle ? titleHeight : 0) + (hasLegend ? XY.legendHeight : 0) + (hasTitle || hasLegend ? XY.headerBottomPad : 0),
+        top: XY.padding + (hasTitle ? titleHeight : 0) + (hasTitle ? XY.headerBottomPad : 0),
         bottom: XY.padding + xLabelHeight + (hasYTitle ? XY.axisTitlePad : 0) + (config.yAxis.showTick ? tickLen : 0),
         config: config
     )
@@ -361,8 +356,7 @@ private func _layoutHorizontal(_ chart: XYChart, _ config: XYChartConfig, _ them
 
     let titleObj = resolvedTitle.map { PositionedTitle(text: $0, x: totalW / 2, y: XY.padding + titleFontSize, textKind: chart.titleText?.kind) }
 
-    let legendY = XY.padding + (hasTitle ? titleHeight : 0) + XY.legendHeight / 2
-    let legend = hasLegend ? _buildLegendItems(chart, config, totalW / 2, legendY, colorMap) : []
+    let legend: [XYLegendItem] = []
 
     return PositionedXYChart(
         width: totalW, height: totalH, horizontal: true, title: titleObj,

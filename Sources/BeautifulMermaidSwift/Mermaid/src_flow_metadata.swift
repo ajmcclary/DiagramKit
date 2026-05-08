@@ -55,7 +55,7 @@ func _joinMultiLineBlocks(_ source: String) -> String {
 /// Parse a metadata block from text starting with "@{".
 /// Returns the parsed NodeProperties and the remaining text after the closing "}".
 func _parseMetadataBlock(_ text: String) -> (props: original_src_types.NodeProperties, remaining: String)? {
-    var t = text.trimmingCharacters(in: .whitespacesAndNewlines)
+    let t = text.trimmingCharacters(in: .whitespacesAndNewlines)
     guard t.hasPrefix("@{") else { return nil }
 
     // Find matching closing brace

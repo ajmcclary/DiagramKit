@@ -45,7 +45,6 @@ public func layoutArchitectureDiagram(_ diagram: ArchitectureDiagram) -> Positio
         let minX = xs.min() ?? 0
         let maxY = ys.max() ?? 0
         let minY = ys.min() ?? 0
-        let maxX = xs.max() ?? 0
         let rows = max(1, maxY - minY + 1)
         let cell = nodeSize + gap
 

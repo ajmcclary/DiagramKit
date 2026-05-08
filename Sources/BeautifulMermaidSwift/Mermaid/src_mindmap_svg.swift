@@ -74,7 +74,6 @@ private func _drawMindmapNodeShape(node: PositionedMindmapNode, theme: MindmapTh
     let stroke = _nodeStrokeColor(node: node, theme: theme, config: config)
     let strokeW = theme.strokeWidth
     let isNeo = config.look == "neo"
-    let isRoot = node.isRoot
 
     switch node.type {
     case .default:

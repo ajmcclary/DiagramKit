@@ -13,8 +13,6 @@ public func layoutKanbanDiagram(_ diagram: KanbanDiagram) -> PositionedKanbanDia
     var sectionObjects: [(section: KanbanNode, idx: Int)] = []
 
     for (idx, section) in diagram.sections.enumerated() {
-        let sectionIdx = idx + 1
-        let x = sectionWidth * Double(sectionIdx) + (Double(sectionIdx - 1) * itemGap) / 2
         sectionObjects.append((section: section, idx: idx))
         maxLabelHeight = max(maxLabelHeight, _measureKanbanLabelHeight(section.label))
     }
@@ -32,7 +30,6 @@ public func layoutKanbanDiagram(_ diagram: KanbanDiagram) -> PositionedKanbanDia
 
         let sectionCards = diagram.nodes.filter { $0.parentId == section.id && !$0.isGroup }
         for card in sectionCards {
-            let cardWidth = sectionWidth - 1.5 * itemGap
             let cardHeight = _measureKanbanCardHeight(card)
             let cardY = y + cardHeight / 2
             cardRects.append((id: card.id, y: cardY, height: cardHeight))
