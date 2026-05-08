@@ -1,0 +1,135 @@
+<svg id="mindmap-77B510FA-E5E5-4921-A7BC-F8BF004890EC" class="mindmapDiagram" width="392" height="312" viewBox="0 0 392 312" xmlns="http://www.w3.org/2000/svg">
+<defs>
+<linearGradient id="mindmap-77B510FA-E5E5-4921-A7BC-F8BF004890EC-gradient" x1="0%" y1="0%" x2="0%" y2="100%">
+<stop offset="0%" stop-color="#ffffff"/>
+<stop offset="100%" stop-color="#f4f4f4"/>
+</linearGradient>
+</defs>
+<rect width="100%" height="100%" fill="#FFFFFF"/>
+<style>
+.edge { fill: none; }
+.mindmap-node-label { font-family: Noto Sans; dominant-baseline: middle; }
+.icon-container { height: 100%; display: flex; justify-content: center; align-items: center; }
+.section-root .mindmap-node-label { fill: #ffffff; }
+.section-edge--1 { stroke: #0052CC; }
+.node-line--1 { stroke: #003380; }
+.node-icon--1 { font-size: 40px; color: #ffffff; }
+.section-0 .mindmap-node-label { fill: #ffffff; }
+.section-edge-0 { stroke: #0065FF; }
+.node-line-0 { stroke: #003D99; }
+.node-icon-0 { font-size: 40px; color: #ffffff; }
+.section-1 .mindmap-node-label { fill: #ffffff; }
+.section-edge-1 { stroke: #2684FF; }
+.node-line-1 { stroke: #1750B3; }
+.node-icon-1 { font-size: 40px; color: #ffffff; }
+.section-2 .mindmap-node-label { fill: #ffffff; }
+.section-edge-2 { stroke: #4C9AFF; }
+.node-line-2 { stroke: #3063B3; }
+.node-icon-2 { font-size: 40px; color: #ffffff; }
+.section-3 .mindmap-node-label { fill: #172B4D; }
+.section-edge-3 { stroke: #84B9FF; }
+.node-line-3 { stroke: #537399; }
+.node-icon-3 { font-size: 40px; color: #172B4D; }
+.section-4 .mindmap-node-label { fill: #172B4D; }
+.section-edge-4 { stroke: #A5CCFF; }
+.node-line-4 { stroke: #6B8099; }
+.node-icon-4 { font-size: 40px; color: #172B4D; }
+.section-5 .mindmap-node-label { fill: #172B4D; }
+.section-edge-5 { stroke: #C6DFFF; }
+.node-line-5 { stroke: #8099B3; }
+.node-icon-5 { font-size: 40px; color: #172B4D; }
+.section-6 .mindmap-node-label { fill: #ffffff; }
+.section-edge-6 { stroke: #0052CC; }
+.node-line-6 { stroke: #003380; }
+.node-icon-6 { font-size: 40px; color: #ffffff; }
+.section-7 .mindmap-node-label { fill: #ffffff; }
+.section-edge-7 { stroke: #0065FF; }
+.node-line-7 { stroke: #003D99; }
+.node-icon-7 { font-size: 40px; color: #ffffff; }
+.section-8 .mindmap-node-label { fill: #ffffff; }
+.section-edge-8 { stroke: #2684FF; }
+.node-line-8 { stroke: #1750B3; }
+.node-icon-8 { font-size: 40px; color: #ffffff; }
+.section-9 .mindmap-node-label { fill: #ffffff; }
+.section-edge-9 { stroke: #4C9AFF; }
+.node-line-9 { stroke: #3063B3; }
+.node-icon-9 { font-size: 40px; color: #ffffff; }
+.section-10 .mindmap-node-label { fill: #172B4D; }
+.section-edge-10 { stroke: #84B9FF; }
+.node-line-10 { stroke: #537399; }
+.node-icon-10 { font-size: 40px; color: #172B4D; }
+.section-root .mindmap-node-label { fill: #ffffff; }
+.section-root rect, .section-root path, .section-root circle, .section-root polygon { fill: #1f2020; }
+</style>
+<g class="mindmap">
+<g class="edges">
+<path class="edge section-edge-0 edge-depth-1" d="M200.19921875,156.0 L170.19921875,156.0 C179.14111328125,156.0 197.02490234375,139.0 205.966796875,139.0 C214.90869140625,139.0 232.79248046875,122.0 241.734375,122.0 L211.734375,122.0" fill="none" stroke-width="14.0" stroke="#0052CC" />
+<path class="edge section-edge-0 edge-depth-3" d="M149.9921875,122.0 L119.9921875,122.0 C132.85205078125,122.0 158.57177734375,88.0 171.431640625,88.0 C184.29150390625,88.0 210.01123046875,54.0 222.87109375,54.0 L192.87109375,54.0" fill="none" stroke-width="8.0" stroke="#0052CC" />
+<path class="edge section-edge-0 edge-depth-5" d="M88.85546875,54.0 L58.85546875,54.0 C76.71435546875,54.0 112.43212890625,105.0 130.291015625,105.0 C148.14990234375,105.0 183.86767578125,156.0 201.7265625,156.0 L171.7265625,156.0" fill="none" stroke-width="2.0" stroke="#0052CC" />
+<path class="edge section-edge-0 edge-depth-3" d="M149.9921875,122.0 L119.9921875,122.0 C132.99169921875,122.0 158.99072265625,122.0 171.990234375,122.0 C184.98974609375,122.0 210.98876953125,122.0 223.98828125,122.0 L193.98828125,122.0" fill="none" stroke-width="8.0" stroke="#0052CC" />
+<path class="edge section-edge-1 edge-depth-1" d="M249.52734375,156.0 L279.52734375,156.0 C270.44580078125,156.0 252.28271484375,156.0 243.201171875,156.0 C234.11962890625,156.0 215.95654296875,156.0 206.875,156.0 L236.875,156.0" fill="none" stroke-width="14.0" stroke="#0065FF" />
+<path class="edge section-edge-1 edge-depth-3" d="M300.8515625,156.0 L330.8515625,156.0 C317.68896484375,156.0 291.36376953125,139.0 278.201171875,139.0 C265.03857421875,139.0 238.71337890625,122.0 225.55078125,122.0 L255.55078125,122.0" fill="none" stroke-width="8.0" stroke="#0065FF" />
+<path class="edge section-edge-1 edge-depth-3" d="M300.8515625,156.0 L330.8515625,156.0 C317.67236328125,156.0 291.31396484375,173.0 278.134765625,173.0 C264.95556640625,173.0 238.59716796875,190.0 225.41796875,190.0 L255.41796875,190.0" fill="none" stroke-width="8.0" stroke="#0065FF" />
+<path class="edge section-edge-2 edge-depth-1" d="M200.19921875,156.0 L170.19921875,156.0 C179.30419921875,156.0 197.51416015625,173.0 206.619140625,173.0 C215.72412109375,173.0 233.93408203125,190.0 243.0390625,190.0 L213.0390625,190.0" fill="none" stroke-width="14.0" stroke="#2684FF" />
+<path class="edge section-edge-2 edge-depth-3" d="M148.6875,190.0 L118.6875,190.0 C131.86474609375,190.0 158.21923828125,190.0 171.396484375,190.0 C184.57373046875,190.0 210.92822265625,190.0 224.10546875,190.0 L194.10546875,190.0" fill="none" stroke-width="8.0" stroke="#2684FF" />
+<path class="edge section-edge-2 edge-depth-3" d="M148.6875,190.0 L118.6875,190.0 C131.88330078125,190.0 158.27490234375,224.0 171.470703125,224.0 C184.66650390625,224.0 211.05810546875,258.0 224.25390625,258.0 L194.25390625,258.0" fill="none" stroke-width="8.0" stroke="#2684FF" />
+</g>
+<g class="nodes">
+<g class="mindmap-node section-root section--1" id="node_0" transform="translate(200,132)">
+<path class="node-bkg node-no-border" fill="#1f2020" d="M0 43.0 v-38.0 q0,-5 5,-5 h39.0 q5,0 5,5 v43.0 H0 Z"/>
+<line class="node-line-0" x1="0" y1="48" x2="49" y2="48" stroke="#003380" stroke-width="2"/>
+<text class="mindmap-node-label" x="24" y="29" fill="#ffffff" font-family="Noto Sans" font-size="16" text-anchor="middle" dominant-baseline="middle">root</text>
+</g>
+<g class="mindmap-node section-0 section-0" id="node_1" transform="translate(149,98)">
+<path class="node-bkg node-no-border" fill="#0052CC" d="M0 43.0 v-38.0 q0,-5 5,-5 h51.0 q5,0 5,5 v43.0 H0 Z"/>
+<line class="node-line-0" x1="0" y1="48" x2="61" y2="48" stroke="#003380" stroke-width="2"/>
+<text class="mindmap-node-label" x="30" y="29" fill="#ffffff" font-family="Noto Sans" font-size="16" text-anchor="middle" dominant-baseline="middle">child1</text>
+</g>
+<g class="mindmap-node section-0 section-0" id="node_2" transform="translate(88,30)">
+<path class="node-bkg node-no-border" fill="#0052CC" d="M0 43.0 v-38.0 q0,-5 5,-5 h94.0 q5,0 5,5 v43.0 H0 Z"/>
+<line class="node-line-0" x1="0" y1="48" x2="104" y2="48" stroke="#003380" stroke-width="2"/>
+<text class="mindmap-node-label" x="52" y="29" fill="#ffffff" font-family="Noto Sans" font-size="16" text-anchor="middle" dominant-baseline="middle">grandchild1</text>
+</g>
+<g class="mindmap-node section-0 section-0" id="node_3" transform="translate(30,132)">
+<path class="node-bkg node-no-border" fill="#0052CC" d="M0 43.0 v-38.0 q0,-5 5,-5 h131.0 q5,0 5,5 v43.0 H0 Z"/>
+<line class="node-line-0" x1="0" y1="48" x2="141" y2="48" stroke="#003380" stroke-width="2"/>
+<text class="mindmap-node-label" x="70" y="29" fill="#ffffff" font-family="Noto Sans" font-size="16" text-anchor="middle" dominant-baseline="middle">greatgrandchild1</text>
+</g>
+<g class="mindmap-node section-0 section-0" id="node_4" transform="translate(87,98)">
+<path class="node-bkg node-no-border" fill="#0052CC" d="M0 43.0 v-38.0 q0,-5 5,-5 h96.0 q5,0 5,5 v43.0 H0 Z"/>
+<line class="node-line-0" x1="0" y1="48" x2="106" y2="48" stroke="#003380" stroke-width="2"/>
+<text class="mindmap-node-label" x="53" y="29" fill="#ffffff" font-family="Noto Sans" font-size="16" text-anchor="middle" dominant-baseline="middle">grandchild2</text>
+</g>
+<g class="mindmap-node section-1 section-1" id="node_5" transform="translate(236,132)">
+<path class="node-bkg node-no-border" fill="#0065FF" d="M0 43.0 v-38.0 q0,-5 5,-5 h53.0 q5,0 5,5 v43.0 H0 Z"/>
+<line class="node-line-1" x1="0" y1="48" x2="63" y2="48" stroke="#003D99" stroke-width="2"/>
+<text class="mindmap-node-label" x="31" y="29" fill="#ffffff" font-family="Noto Sans" font-size="16" text-anchor="middle" dominant-baseline="middle">child2</text>
+</g>
+<g class="mindmap-node section-1 section-1" id="node_6" transform="translate(255,98)">
+<path class="node-bkg node-no-border" fill="#0065FF" d="M0 43.0 v-38.0 q0,-5 5,-5 h96.0 q5,0 5,5 v43.0 H0 Z"/>
+<line class="node-line-1" x1="0" y1="48" x2="106" y2="48" stroke="#003D99" stroke-width="2"/>
+<text class="mindmap-node-label" x="53" y="29" fill="#ffffff" font-family="Noto Sans" font-size="16" text-anchor="middle" dominant-baseline="middle">grandchild3</text>
+</g>
+<g class="mindmap-node section-1 section-1" id="node_7" transform="translate(255,166)">
+<path class="node-bkg node-no-border" fill="#0065FF" d="M0 43.0 v-38.0 q0,-5 5,-5 h96.0 q5,0 5,5 v43.0 H0 Z"/>
+<line class="node-line-1" x1="0" y1="48" x2="106" y2="48" stroke="#003D99" stroke-width="2"/>
+<text class="mindmap-node-label" x="53" y="29" fill="#ffffff" font-family="Noto Sans" font-size="16" text-anchor="middle" dominant-baseline="middle">grandchild4</text>
+</g>
+<g class="mindmap-node section-2 section-2" id="node_8" transform="translate(148,166)">
+<path class="node-bkg node-no-border" fill="#2684FF" d="M0 43.0 v-38.0 q0,-5 5,-5 h54.0 q5,0 5,5 v43.0 H0 Z"/>
+<line class="node-line-2" x1="0" y1="48" x2="64" y2="48" stroke="#1750B3" stroke-width="2"/>
+<text class="mindmap-node-label" x="32" y="29" fill="#ffffff" font-family="Noto Sans" font-size="16" text-anchor="middle" dominant-baseline="middle">child3</text>
+</g>
+<g class="mindmap-node section-2 section-2" id="node_9" transform="translate(87,166)">
+<path class="node-bkg node-no-border" fill="#2684FF" d="M0 43.0 v-38.0 q0,-5 5,-5 h96.0 q5,0 5,5 v43.0 H0 Z"/>
+<line class="node-line-2" x1="0" y1="48" x2="106" y2="48" stroke="#1750B3" stroke-width="2"/>
+<text class="mindmap-node-label" x="53" y="29" fill="#ffffff" font-family="Noto Sans" font-size="16" text-anchor="middle" dominant-baseline="middle">grandchild5</text>
+</g>
+<g class="mindmap-node section-2 section-2" id="node_10" transform="translate(87,234)">
+<path class="node-bkg node-no-border" fill="#2684FF" d="M0 43.0 v-38.0 q0,-5 5,-5 h96.0 q5,0 5,5 v43.0 H0 Z"/>
+<line class="node-line-2" x1="0" y1="48" x2="106" y2="48" stroke="#1750B3" stroke-width="2"/>
+<text class="mindmap-node-label" x="53" y="29" fill="#ffffff" font-family="Noto Sans" font-size="16" text-anchor="middle" dominant-baseline="middle">grandchild6</text>
+</g>
+</g>
+</g>
+</svg>

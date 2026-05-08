@@ -1,0 +1,75 @@
+<svg data-xychart-colors="0" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 700 500" width="700" height="500" style="--bg:#FFFFFF;--fg:#27272A;--line:#939394;--accent:#27272A;--muted:#A9A9AA;--surface:#F9F9F9;--border:#D4D4D4;background:#FFFFFF">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap');
+  text { font-family: 'Inter', system-ui, sans-serif; }
+  svg {    /* Derived from --bg and --fg (overridable via --line, --accent, etc.) */
+    --_text:          #27272A;
+    --_text-sec:      #A9A9AA 60%, #FFFFFF));
+    --_text-muted:    #A9A9AA 40%, #FFFFFF));
+    --_text-faint:    #666666;
+    --_line:          #939394 50%, #FFFFFF));
+    --_arrow:         #27272A 85%, #FFFFFF));
+    --_node-fill:     #F9F9F9 3%, #FFFFFF));
+    --_node-stroke:   #D4D4D4 20%, #FFFFFF));
+    --_group-fill:    #FFFFFF;
+    --_group-hdr:     #666666;
+    --_inner-stroke:  #666666;
+    --_key-badge:     #666666;
+    --_note-bkg:      #F5F0C8;
+    --_note-border:   #E0DEB5;
+  }
+</style>
+<style>
+  .xychart-background { }
+  .xychart-axis-line { }
+  .xychart-tick { }
+  .xychart-data-label { font-family: #666666; }
+  .xychart-grid { fill: #666666; stroke: none; opacity: 0.65; }
+  .xychart-bar { stroke-width: 1.5; }
+  .xychart-bar-rect { stroke: none; }
+  .xychart-line { }
+  .xychart-line-shadow { opacity: 0.12; }
+  .xychart-dot { stroke: #FFFFFF; stroke-width: 2; }
+  .xychart-label { font-family: #666666; }
+  .xychart-legend-text { font-family: #666666; }
+  .xychart-axis-title { font-family: #666666; }
+  .xychart-title { font-family: #666666; }
+  svg {
+    --xychart-color-0: #27272A;
+    --xychart-bar-fill-0: #666666;
+  }
+  .xychart-bar.xychart-color-0 { stroke: #27272A; fill: #666666; }
+  path.xychart-color-0, line.xychart-color-0 { stroke: #27272A; }
+  circle.xychart-color-0 { fill: #27272A; }
+</style>
+<rect width="700" height="500" fill="#FFFFFF" class="xychart-background"/>
+<rect x="168.9" y="207.8" width="40" height="232.2" fill="#27272A" class="xychart-bar-rect xychart-color-0" data-value="450.0" data-label="North America"/>
+<rect x="308.6" y="333.6" width="40" height="106.4" fill="#27272A" class="xychart-bar-rect xychart-color-0" data-value="320.0" data-label="Europe"/>
+<rect x="448.4" y="82" width="40" height="358" fill="#27272A" class="xychart-bar-rect xychart-color-0" data-value="580.0" data-label="Asia"/>
+<rect x="588.1" y="440" width="40" height="0" fill="#27272A" class="xychart-bar-rect xychart-color-0" data-value="210.0" data-label="South America"/>
+<line x1="119" y1="440" x2="678" y2="440" stroke="#A9A9AA 40%, #FFFFFF))" stroke-width="2.0" class="xychart-axis-line"/>
+<line x1="119" y1="82" x2="119" y2="440" stroke="#A9A9AA 40%, #FFFFFF))" stroke-width="2.0" class="xychart-axis-line"/>
+<line x1="188.9" y1="445" x2="188.9" y2="440" stroke="#A9A9AA 40%, #FFFFFF))" stroke-width="2.0" class="xychart-tick"/>
+<line x1="328.6" y1="445" x2="328.6" y2="440" stroke="#A9A9AA 40%, #FFFFFF))" stroke-width="2.0" class="xychart-tick"/>
+<line x1="468.4" y1="445" x2="468.4" y2="440" stroke="#A9A9AA 40%, #FFFFFF))" stroke-width="2.0" class="xychart-tick"/>
+<line x1="608.1" y1="445" x2="608.1" y2="440" stroke="#A9A9AA 40%, #FFFFFF))" stroke-width="2.0" class="xychart-tick"/>
+<line x1="114" y1="401.3" x2="119" y2="401.3" stroke="#A9A9AA 40%, #FFFFFF))" stroke-width="2.0" class="xychart-tick"/>
+<line x1="114" y1="352.9" x2="119" y2="352.9" stroke="#A9A9AA 40%, #FFFFFF))" stroke-width="2.0" class="xychart-tick"/>
+<line x1="114" y1="304.5" x2="119" y2="304.5" stroke="#A9A9AA 40%, #FFFFFF))" stroke-width="2.0" class="xychart-tick"/>
+<line x1="114" y1="256.2" x2="119" y2="256.2" stroke="#A9A9AA 40%, #FFFFFF))" stroke-width="2.0" class="xychart-tick"/>
+<line x1="114" y1="207.8" x2="119" y2="207.8" stroke="#A9A9AA 40%, #FFFFFF))" stroke-width="2.0" class="xychart-tick"/>
+<line x1="114" y1="159.4" x2="119" y2="159.4" stroke="#A9A9AA 40%, #FFFFFF))" stroke-width="2.0" class="xychart-tick"/>
+<line x1="114" y1="111" x2="119" y2="111" stroke="#A9A9AA 40%, #FFFFFF))" stroke-width="2.0" class="xychart-tick"/>
+<text x="188.875" y="458.0" text-anchor="middle" font-size="14" font-weight="400" fill="#A9A9AA 40%, #FFFFFF))" dy="0.35em" class="xychart-label">North America</text>
+<text x="328.625" y="458.0" text-anchor="middle" font-size="14" font-weight="400" fill="#A9A9AA 40%, #FFFFFF))" dy="0.35em" class="xychart-label">Europe</text>
+<text x="468.375" y="458.0" text-anchor="middle" font-size="14" font-weight="400" fill="#A9A9AA 40%, #FFFFFF))" dy="0.35em" class="xychart-label">Asia</text>
+<text x="608.125" y="458.0" text-anchor="middle" font-size="14" font-weight="400" fill="#A9A9AA 40%, #FFFFFF))" dy="0.35em" class="xychart-label">South America</text>
+<text x="101.0" y="401.2972972972973" text-anchor="end" font-size="14" font-weight="400" fill="#A9A9AA 40%, #FFFFFF))" dy="0.35em" class="xychart-label">250</text>
+<text x="101.0" y="352.9189189189189" text-anchor="end" font-size="14" font-weight="400" fill="#A9A9AA 40%, #FFFFFF))" dy="0.35em" class="xychart-label">300</text>
+<text x="101.0" y="304.5405405405405" text-anchor="end" font-size="14" font-weight="400" fill="#A9A9AA 40%, #FFFFFF))" dy="0.35em" class="xychart-label">350</text>
+<text x="101.0" y="256.1621621621622" text-anchor="end" font-size="14" font-weight="400" fill="#A9A9AA 40%, #FFFFFF))" dy="0.35em" class="xychart-label">400</text>
+<text x="101.0" y="207.78378378378378" text-anchor="end" font-size="14" font-weight="400" fill="#A9A9AA 40%, #FFFFFF))" dy="0.35em" class="xychart-label">450</text>
+<text x="101.0" y="159.40540540540542" text-anchor="end" font-size="14" font-weight="400" fill="#A9A9AA 40%, #FFFFFF))" dy="0.35em" class="xychart-label">500</text>
+<text x="101.0" y="111.02702702702703" text-anchor="end" font-size="14" font-weight="400" fill="#A9A9AA 40%, #FFFFFF))" dy="0.35em" class="xychart-label">550</text>
+<text x="350.0" y="42.0" text-anchor="middle" font-size="20" font-weight="600" fill="#27272A" dy="0.35em" class="xychart-title">Sales by Region</text>
+</svg>

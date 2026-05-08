@@ -1,0 +1,60 @@
+<svg id="ADB289F8-0DD9-44F9-95DB-F4C5D5286D04" class="treemap" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="100%" style="max-width: 1016px;" viewBox="-8 -8 1016 416">
+<rect x="-8" y="-8" width="1016" height="416" fill="#FFFFFF" />
+<g class="treemapContainer" transform="translate(0, 0)">
+<g class="treemapSection" transform="translate(15,40)">
+<rect class="treemapSectionHeader" width="970" height="25" fill="none" fill-opacity="0.6" stroke-width="0.6"/>
+<clipPath id="clip-section-137A99E0-CC3B-46CC-B375-62FD51C1D486-0">
+<rect width="958" height="25" />
+</clipPath>
+<rect class="treemapSection section0" width="970" height="215" fill="#1f77b4" fill-opacity="0.6" stroke="#0d4a6c" stroke-width="2.0" stroke-opacity="0.4"/>
+<text class="treemapSectionLabel" x="6" y="12" dominant-baseline="middle" font-weight="bold" font-family="Inter" font-weight="bold" font-size="12px" fill="#ffffff" clip-path="url(#clip-section-137A99E0-CC3B-46CC-B375-62FD51C1D486-0)">Electronics</text>
+<text class="treemapSectionValue" x="960" y="12" text-anchor="end" dominant-baseline="middle" font-style="italic" font-family="Inter" font-style="italic" font-size="10px" fill="#ffffff" clip-path="url(#clip-section-137A99E0-CC3B-46CC-B375-62FD51C1D486-0)">1,000</text>
+</g>
+<g class="treemapSection" transform="translate(15,265)">
+<rect class="treemapSectionHeader" width="970" height="25" fill="none" fill-opacity="0.6" stroke-width="0.6"/>
+<clipPath id="clip-section-137A99E0-CC3B-46CC-B375-62FD51C1D486-1">
+<rect width="958" height="25" />
+</clipPath>
+<rect class="treemapSection section1" width="970" height="120" fill="#9467bd" fill-opacity="0.6" stroke="#5c3a75" stroke-width="2.0" stroke-opacity="0.4"/>
+<text class="treemapSectionLabel" x="6" y="12" dominant-baseline="middle" font-weight="bold" font-family="Inter" font-weight="bold" font-size="12px" fill="#ffffff" clip-path="url(#clip-section-137A99E0-CC3B-46CC-B375-62FD51C1D486-1)">Clothing</text>
+<text class="treemapSectionValue" x="960" y="12" text-anchor="end" dominant-baseline="middle" font-style="italic" font-family="Inter" font-style="italic" font-size="10px" fill="#ffffff" clip-path="url(#clip-section-137A99E0-CC3B-46CC-B375-62FD51C1D486-1)">580</text>
+</g>
+<g class="treemapNode treemapLeafGroup leaf0" transform="translate(30,80)">
+<rect class="treemapLeaf" width="940" height="75" fill="#1f77b4" fill-opacity="0.3" stroke="#0d4a6c" stroke-width="3.0" />
+<clipPath id="clip-137A99E0-CC3B-46CC-B375-62FD51C1D486-0">
+<rect width="936" height="71" />
+</clipPath>
+<text class="treemapLabel" x="470" y="37" text-anchor="middle" dominant-baseline="middle" font-family="Inter" font-size="38px" fill="#ffffff" clip-path="url(#clip-137A99E0-CC3B-46CC-B375-62FD51C1D486-0)">Laptops</text>
+</g>
+<g class="treemapNode treemapLeafGroup leaf1" transform="translate(30,165)">
+<rect class="treemapLeaf" width="940" height="41" fill="#1f77b4" fill-opacity="0.3" stroke="#0d4a6c" stroke-width="3.0" />
+<clipPath id="clip-137A99E0-CC3B-46CC-B375-62FD51C1D486-1">
+<rect width="936" height="37" />
+</clipPath>
+</g>
+<g class="treemapNode treemapLeafGroup leaf2" transform="translate(30,216)">
+<rect class="treemapLeaf" width="940" height="24" fill="#1f77b4" fill-opacity="0.3" stroke="#0d4a6c" stroke-width="3.0" />
+<clipPath id="clip-137A99E0-CC3B-46CC-B375-62FD51C1D486-2">
+<rect width="936" height="20" />
+</clipPath>
+</g>
+<g class="treemapNode treemapLeafGroup leaf3" transform="translate(30,305)">
+<rect class="treemapLeaf" width="940" height="22" fill="#9467bd" fill-opacity="0.3" stroke="#5c3a75" stroke-width="3.0" />
+<clipPath id="clip-137A99E0-CC3B-46CC-B375-62FD51C1D486-3">
+<rect width="936" height="18" />
+</clipPath>
+</g>
+<g class="treemapNode treemapLeafGroup leaf4" transform="translate(30,337)">
+<rect class="treemapLeaf" width="940" height="14" fill="#9467bd" fill-opacity="0.3" stroke="#5c3a75" stroke-width="3.0" />
+<clipPath id="clip-137A99E0-CC3B-46CC-B375-62FD51C1D486-4">
+<rect width="936" height="10" />
+</clipPath>
+</g>
+<g class="treemapNode treemapLeafGroup leaf5" transform="translate(30,361)">
+<rect class="treemapLeaf" width="940" height="9" fill="#9467bd" fill-opacity="0.3" stroke="#5c3a75" stroke-width="3.0" />
+<clipPath id="clip-137A99E0-CC3B-46CC-B375-62FD51C1D486-5">
+<rect width="936" height="5" />
+</clipPath>
+</g>
+</g>
+</svg>

@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="100%" style="max-width: 1026.0px;" viewBox="0 0 1026.0 79.0">
+<rect width="100%" height="100%" fill="#FFFFFF"/>
+<style>
+.packetByte { font-size: 10px; }
+.packetByte.start { fill: black; }
+.packetByte.end { fill: black; }
+.packetLabel { fill: black; font-size: 12px; }
+.packetTitle { fill: black; font-size: 14px; }
+.packetBlock { stroke: black; stroke-width: 1; fill: #efefef; }
+</style><g>
+<rect x="1.0" y="5.0" width="507.0" height="32.0" class="packetBlock"/>
+<text x="254.5" y="21.0" class="packetLabel" dominant-baseline="middle" text-anchor="middle">Source Port</text>
+<rect x="513.0" y="5.0" width="507.0" height="32.0" class="packetBlock"/>
+<text x="766.5" y="21.0" class="packetLabel" dominant-baseline="middle" text-anchor="middle">Destination Port</text>
+</g>
+<g>
+<rect x="1.0" y="42.0" width="1019.0" height="32.0" class="packetBlock"/>
+<text x="510.5" y="58.0" class="packetLabel" dominant-baseline="middle" text-anchor="middle">Sequence Number</text>
+</g>
+</svg>

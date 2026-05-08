@@ -1,0 +1,48 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="100%" preserveAspectRatio="xMinYMin meet" style="max-width: 422.0px" viewBox="0 0 422.0 279.0">
+<defs>
+  <style>
+    .frame-border-outer { fill: #666; }
+    .frame-border-inner { fill: #ffffff; }
+    .frame-header-line { stroke: #666; stroke-width: 1; shape-rendering: crispEdges; }
+    .frame-title { font-family: Helvetica, Verdana, serif; font-size: 16px; font-weight: 600; fill: #222; }
+    .participant-box { fill: #ffffff; stroke: #666; stroke-width: 2; }
+    .participant-label { font-family: Helvetica, Verdana, serif; font-size: 16px; fill: #222; }
+    .lifeline { stroke: #666; stroke-width: 1; stroke-dasharray: 5,5; }
+    .message-line { stroke: #000; stroke-width: 2; shape-rendering: crispEdges; }
+    .message-label { font-family: Helvetica, Verdana, serif; font-size: 14px; fill: #222; }
+    .arrow-head { fill: #000; stroke: #000; stroke-width: 2; }
+    .arrow-open { fill: none; stroke: #000; stroke-width: 2; }
+    .fragment-border { fill: none; stroke: #666; stroke-width: 1; shape-rendering: crispEdges; }
+    .fragment-header { fill: #dedede; fill-opacity: 0.498; stroke: none; shape-rendering: crispEdges; }
+    .fragment-label { font-family: Helvetica, Verdana, serif; font-size: 14px; font-weight: 600; fill: #000; }
+    .return-line { stroke: #000; stroke-width: 2; stroke-dasharray: 6,4; shape-rendering: crispEdges; }
+    .return-label { font-family: Helvetica, Verdana, serif; font-size: 14px; fill: #222; }
+    .divider-bg { fill: #fff5ad; stroke: #aaaa33; stroke-width: 1; }
+    .divider-label { font-family: Helvetica, Verdana, serif; font-size: 14px; fill: #333; }
+    .group-outline { fill: none; stroke: #666; stroke-dasharray: 5,5; stroke-width: 1; }
+    .group-title-text { font-family: Helvetica, Verdana, serif; font-size: 13px; font-weight: 400; fill: #222; }
+    .comment-text { font-family: Helvetica, Verdana, serif; font-size: 13px; fill: #666; font-style: italic; }
+  </style>
+</defs>
+<rect class="frame-border-outer" x="0" y="0" width="422.0" height="279.0" rx="4.0" fill="#666"/>
+<rect class="frame-border-inner" x="1" y="1" width="420.0" height="277.0" rx="3.0" fill="#fff"/>
+<line class="frame-header-line" x1="1" y1="33.5" x2="421.0" y2="33.5"/>
+
+<g transform="translate(11.0, 34.0)">
+<line class="lifeline" x1="70.0" y1="90.0" x2="70.0" y2="274.0" stroke-dasharray="none"/>
+<line class="lifeline" x1="230.0" y1="90.0" x2="230.0" y2="274.0" stroke-dasharray="none"/>
+<rect class="occurrence" x="63.0" y="120.0" width="15.0" height="16.0" rx="2"/>
+<rect class="occurrence" x="223.0" y="120.0" width="15.0" height="16.0" rx="2"/>
+<rect class="participant-box" x="20.0" y="20.0" width="100.0" height="70.0" rx="4"/>
+<text class="participant-label" x="70.0" y="55.0" text-anchor="middle" dominant-baseline="central">_STARTER_</text>
+<rect class="participant-box" x="180.0" y="20.0" width="100.0" height="70.0" rx="4"/>
+<text class="participant-label" x="230.0" y="55.0" text-anchor="middle" dominant-baseline="central">A</text>
+<line class="message-line" x1="80.0" y1="120.0" x2="220.0" y2="120.0"/>
+<polygon class="arrow-head" points="220.0,120.0 212.0,116.0 212.0,124.0"/>
+<text class="message-label" x="150.0" y="112.0" text-anchor="middle" dominant-baseline="central">method()</text>
+<line class="return-line" x1="80.0" y1="166.0" x2="60.0" y2="166.0"/>
+<line class="arrow-open" x1="60.0" y1="166.0" x2="52.0" y2="162.0"/>
+<line class="arrow-open" x1="60.0" y1="166.0" x2="52.0" y2="170.0"/>
+<text class="return-label" x="70.0" y="158.0" text-anchor="middle" dominant-baseline="central">result</text>
+</g>
+</svg>

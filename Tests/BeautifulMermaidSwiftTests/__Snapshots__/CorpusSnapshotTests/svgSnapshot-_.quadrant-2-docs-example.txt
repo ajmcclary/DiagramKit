@@ -1,0 +1,73 @@
+<svg id="graphDiv" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 500" role="graphics-document document" aria-roledescription="quadrant-chart" width="100%" preserveAspectRatio="xMinYMin meet" style="max-width: 500px; background-color: #FFFFFF">
+<g class="main">
+<g class="quadrants">
+<g class="quadrant">
+<rect x="263" y="45" width="232" height="212" fill="#ECECFF"/>
+<text x="0" y="0" fill="#27272A" font-size="16" dominant-baseline="hanging" text-anchor="middle" transform="translate(379, 50) rotate(0)">We should expand</text>
+</g>
+<g class="quadrant">
+<rect x="31" y="45" width="232" height="212" fill="#D6D6FF"/>
+<text x="0" y="0" fill="#343436" font-size="16" dominant-baseline="hanging" text-anchor="middle" transform="translate(147, 50) rotate(0)">Need to promote</text>
+</g>
+<g class="quadrant">
+<rect x="31" y="257" width="232" height="212" fill="#C0C0FF"/>
+<text x="0" y="0" fill="#3F3F42" font-size="16" dominant-baseline="hanging" text-anchor="middle" transform="translate(147, 262) rotate(0)">Re-evaluate</text>
+</g>
+<g class="quadrant">
+<rect x="263" y="257" width="232" height="212" fill="#AAAAFF"/>
+<text x="0" y="0" fill="#4A4A4E" font-size="16" dominant-baseline="hanging" text-anchor="middle" transform="translate(379, 262) rotate(0)">May be improved</text>
+</g>
+</g>
+<g class="border">
+<line x1="30" y1="45" x2="496" y2="45" style="stroke: #A1A1AA; stroke-width: 2;"/>
+<line x1="495" y1="46" x2="495" y2="468" style="stroke: #A1A1AA; stroke-width: 2;"/>
+<line x1="30" y1="469" x2="496" y2="469" style="stroke: #A1A1AA; stroke-width: 2;"/>
+<line x1="31" y1="46" x2="31" y2="468" style="stroke: #A1A1AA; stroke-width: 2;"/>
+<line x1="263" y1="46" x2="263" y2="468" style="stroke: #A1A1AA; stroke-width: 1;"/>
+<line x1="32" y1="257" x2="494" y2="257" style="stroke: #A1A1AA; stroke-width: 1;"/>
+</g>
+<g class="data-points">
+<g class="data-point">
+<circle cx="193.4" cy="138.3" r="5" fill="#C0C0FF" stroke="#C0C0FF" stroke-width="0px"/>
+<text x="0" y="0" fill="#27272A" font-size="12" dominant-baseline="hanging" text-anchor="middle" transform="translate(193.4, 143.3) rotate(0)">Campaign F</text>
+</g>
+<g class="data-point">
+<circle cx="216.6" cy="324.8" r="5" fill="#C0C0FF" stroke="#C0C0FF" stroke-width="0px"/>
+<text x="0" y="0" fill="#27272A" font-size="12" dominant-baseline="hanging" text-anchor="middle" transform="translate(216.6, 329.8) rotate(0)">Campaign E</text>
+</g>
+<g class="data-point">
+<circle cx="392.9" cy="324.8" r="5" fill="#C0C0FF" stroke="#C0C0FF" stroke-width="0px"/>
+<text x="0" y="0" fill="#27272A" font-size="12" dominant-baseline="hanging" text-anchor="middle" transform="translate(392.9, 329.8) rotate(0)">Campaign D</text>
+</g>
+<g class="data-point">
+<circle cx="295.5" cy="176.4" r="5" fill="#C0C0FF" stroke="#C0C0FF" stroke-width="0px"/>
+<text x="0" y="0" fill="#27272A" font-size="12" dominant-baseline="hanging" text-anchor="middle" transform="translate(295.5, 181.4) rotate(0)">Campaign C</text>
+</g>
+<g class="data-point">
+<circle cx="239.8" cy="371.5" r="5" fill="#C0C0FF" stroke="#C0C0FF" stroke-width="0px"/>
+<text x="0" y="0" fill="#27272A" font-size="12" dominant-baseline="hanging" text-anchor="middle" transform="translate(239.8, 376.5) rotate(0)">Campaign B</text>
+</g>
+<g class="data-point">
+<circle cx="170.2" cy="214.6" r="5" fill="#C0C0FF" stroke="#C0C0FF" stroke-width="0px"/>
+<text x="0" y="0" fill="#27272A" font-size="12" dominant-baseline="hanging" text-anchor="middle" transform="translate(170.2, 219.6) rotate(0)">Campaign A</text>
+</g>
+</g>
+<g class="labels">
+<g class="label">
+<text x="0" y="0" fill="#27272A" font-size="16" dominant-baseline="hanging" text-anchor="middle" transform="translate(147, 479) rotate(0)">Low Reach</text>
+</g>
+<g class="label">
+<text x="0" y="0" fill="#27272A" font-size="16" dominant-baseline="hanging" text-anchor="middle" transform="translate(379, 479) rotate(0)">High Reach</text>
+</g>
+<g class="label">
+<text x="0" y="0" fill="#27272A" font-size="16" dominant-baseline="hanging" text-anchor="middle" transform="translate(5, 363) rotate(-90)">Low Engagement</text>
+</g>
+<g class="label">
+<text x="0" y="0" fill="#27272A" font-size="16" dominant-baseline="hanging" text-anchor="middle" transform="translate(5, 151) rotate(-90)">High Engagement</text>
+</g>
+</g>
+<g class="title">
+<text x="0" y="0" fill="#27272A" font-size="20" dominant-baseline="hanging" text-anchor="middle" transform="translate(250, 10) rotate(0)">Reach and engagement of campaigns</text>
+</g>
+</g>
+</svg>

@@ -1,0 +1,24 @@
+┌────────────────────┐      ┌───────────────────┐    
+│ USER               │      │ POST              │    
+├────────────────────┤      ├───────────────────┤    
+│ PK int id          │      │ PK int id         │    
+│ UK string username ││───○╟│    string title   │    
+│ UK string email    │writes│    text content   │    
+│    date joined     │      │ FK int author_id  │    
+└────────────────────┘      │    date published │    
+           │                └───────────────────┘    
+           │                          ╢              
+         ────────────────────────────── tagged-with  
+         │ │                      │   │              
+        ○╟ │                     ○╟   │              
+┌─────────────────┐      ┌────────────────┐          
+│ COMMENT         │      │ TAG            │          
+├─────────────────┤      ├────────────────┤          
+│ PK int id       │      │ PK int id      │          
+│    text body    │      │ UK string name │          
+│ FK int post_id  │      └────────────────┘          
+│ FK int user_id  │                                  
+│    date created │                                  
+└─────────────────┘                                  
+                                                     
+                                                     

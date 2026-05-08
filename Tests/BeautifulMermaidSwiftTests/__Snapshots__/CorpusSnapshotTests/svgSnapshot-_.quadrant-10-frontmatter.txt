@@ -1,0 +1,48 @@
+<svg id="graphDiv" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" role="graphics-document document" aria-roledescription="quadrant-chart" width="100%" preserveAspectRatio="xMinYMin meet" style="max-width: 400px; background-color: #FFFFFF">
+<g class="main">
+<g class="quadrants">
+<g class="quadrant">
+<rect x="213" y="31" width="182" height="182" fill="#ff0000"/>
+<text x="0" y="0" fill="#27272A" font-size="16" dominant-baseline="middle" text-anchor="middle" transform="translate(304, 122) rotate(0)">Plan</text>
+</g>
+<g class="quadrant">
+<rect x="31" y="31" width="182" height="182" fill="#D6D6FF"/>
+<text x="0" y="0" fill="#343436" font-size="16" dominant-baseline="middle" text-anchor="middle" transform="translate(122, 122) rotate(0)">Do</text>
+</g>
+<g class="quadrant">
+<rect x="31" y="213" width="182" height="182" fill="#C0C0FF"/>
+<text x="0" y="0" fill="#3F3F42" font-size="16" dominant-baseline="middle" text-anchor="middle" transform="translate(122, 304) rotate(0)">Delegate</text>
+</g>
+<g class="quadrant">
+<rect x="213" y="213" width="182" height="182" fill="#AAAAFF"/>
+<text x="0" y="0" fill="#4A4A4E" font-size="16" dominant-baseline="middle" text-anchor="middle" transform="translate(304, 304) rotate(0)">Delete</text>
+</g>
+</g>
+<g class="border">
+<line x1="30" y1="31" x2="396" y2="31" style="stroke: #A1A1AA; stroke-width: 2;"/>
+<line x1="395" y1="32" x2="395" y2="394" style="stroke: #A1A1AA; stroke-width: 2;"/>
+<line x1="30" y1="395" x2="396" y2="395" style="stroke: #A1A1AA; stroke-width: 2;"/>
+<line x1="31" y1="32" x2="31" y2="394" style="stroke: #A1A1AA; stroke-width: 2;"/>
+<line x1="213" y1="32" x2="213" y2="394" style="stroke: #A1A1AA; stroke-width: 1;"/>
+<line x1="32" y1="213" x2="394" y2="213" style="stroke: #A1A1AA; stroke-width: 1;"/>
+</g>
+<g class="data-points">
+</g>
+<g class="labels">
+<g class="label">
+<text x="0" y="0" fill="#27272A" font-size="16" dominant-baseline="hanging" text-anchor="middle" transform="translate(122, 5) rotate(0)">Urgent</text>
+</g>
+<g class="label">
+<text x="0" y="0" fill="#27272A" font-size="16" dominant-baseline="hanging" text-anchor="middle" transform="translate(304, 5) rotate(0)">Not Urgent</text>
+</g>
+<g class="label">
+<text x="0" y="0" fill="#27272A" font-size="16" dominant-baseline="hanging" text-anchor="middle" transform="translate(5, 304) rotate(-90)">Not Important</text>
+</g>
+<g class="label">
+<text x="0" y="0" fill="#27272A" font-size="16" dominant-baseline="hanging" text-anchor="middle" transform="translate(5, 122) rotate(-90)">Important</text>
+</g>
+</g>
+<g class="title">
+</g>
+</g>
+</svg>

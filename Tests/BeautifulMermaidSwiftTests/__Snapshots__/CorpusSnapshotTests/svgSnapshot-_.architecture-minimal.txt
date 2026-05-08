@@ -1,0 +1,23 @@
+<svg id="6754D4F5-3886-4BEB-8E99-47321E21E97F" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="100%" style="max-width: 184px;" viewBox="0 0 184 184">
+<rect width="100%" height="100%" fill="#FFFFFF"/>
+<style>
+.edge { stroke-width: 3; stroke: #939394; fill: none; }
+.arrow { fill: #939394; }
+.node-bkg { fill: none; stroke: #000; stroke-width: 2px; stroke-dasharray: 8; }
+.arch-service-label { font-family: Inter; font-size: 16px; fill: #27272A; text-anchor: middle; }
+.arch-group-label { font-family: Inter; font-size: 16px; fill: #27272A; }
+.arch-edge-label { font-family: Inter; font-size: 16px; fill: #27272A; text-anchor: middle; }
+</style>
+<g class="architecture-groups">
+</g>
+<g class="architecture-edges">
+</g>
+<g class="architecture-services">
+<g id="6754D4F5-3886-4BEB-8E99-47321E21E97F-service-srv" class="architecture-service">
+<g id="6754D4F5-3886-4BEB-8E99-47321E21E97F-node-srv" style="color: #27272A">
+<rect x="40" y="40" width="104" height="104" fill="none" stroke="#27272A" stroke-width="1"/>
+</g>
+<text x="92" y="164" class="arch-service-label">Service</text>
+</g>
+</g>
+</svg>

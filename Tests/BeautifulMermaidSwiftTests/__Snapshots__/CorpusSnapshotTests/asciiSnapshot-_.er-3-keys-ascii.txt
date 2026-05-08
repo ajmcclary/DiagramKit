@@ -1,0 +1,12 @@
+┌──────────────────────────┐    
+│ ORDER                    │    
+├──────────────────────────┤    
+│ PK int id                │    
+│ FK int customer_id       │    
+│ UK string invoice_number │    
+│    decimal total         │    
+│    date order_date       │    
+│    string status         │    
+└──────────────────────────┘    
+                                
+                                

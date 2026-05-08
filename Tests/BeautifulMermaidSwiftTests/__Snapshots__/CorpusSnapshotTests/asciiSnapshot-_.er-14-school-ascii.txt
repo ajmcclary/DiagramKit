@@ -1,0 +1,23 @@
+┌─────────────────┐      ┌──────────────────────┐    
+│ STUDENT         │      │ TEACHER              │    
+├─────────────────┤      ├──────────────────────┤    
+│ PK int id       │      │ PK int id            │    
+│    string name  │      │    string name       │    
+│    date dob     │      │    string department │    
+│    string grade │      └──────────────────────┘    
+└─────────────────┘                  │               
+         │                           │               
+         ──enrolled────────────────────teaches       
+         ││                          ││              
+         │╟                          ○╟              
+┌───────────────────┐      ┌────────────────────┐    
+│ COURSE            │      │ ENROLLMENT         │    
+├───────────────────┤      ├────────────────────┤    
+│ PK int id         │      │ PK int id          │    
+│    string title   ││───○╟│ FK int student_id  │    
+│ FK int teacher_id │ has  │ FK int course_id   │    
+│    int credits    │      │    string semester │    
+└───────────────────┘      │    float grade     │    
+                           └────────────────────┘    
+                                                     
+                                                     

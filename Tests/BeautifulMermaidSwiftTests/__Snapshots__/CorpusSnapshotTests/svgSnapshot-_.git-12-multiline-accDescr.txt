@@ -1,0 +1,114 @@
+<svg id="gitgraph-84724CE9-2A93-4392-B311-FCE9D4516BA6" viewBox="0 0 209 136" width="209" height="136" xmlns="http://www.w3.org/2000/svg">
+  <desc>Git graph showing
+multiple branches</desc>
+  <style>
+.branch-label0 { fill: #333; }
+.commit0 { stroke: #333; fill: #333; }
+.commit-highlight0 { stroke: #fff; fill: #fff; }
+.label0 { fill: #333; }
+.arrow0 { stroke: #333; }
+.branch-label1 { fill: #333; }
+.commit1 { stroke: #333; fill: #333; }
+.commit-highlight1 { stroke: #fff; fill: #fff; }
+.label1 { fill: #333; }
+.arrow1 { stroke: #333; }
+.branch-label2 { fill: #333; }
+.commit2 { stroke: #333; fill: #333; }
+.commit-highlight2 { stroke: #fff; fill: #fff; }
+.label2 { fill: #333; }
+.arrow2 { stroke: #333; }
+.branch-label3 { fill: #333; }
+.commit3 { stroke: #333; fill: #333; }
+.commit-highlight3 { stroke: #fff; fill: #fff; }
+.label3 { fill: #333; }
+.arrow3 { stroke: #333; }
+.branch-label4 { fill: #333; }
+.commit4 { stroke: #333; fill: #333; }
+.commit-highlight4 { stroke: #fff; fill: #fff; }
+.label4 { fill: #333; }
+.arrow4 { stroke: #333; }
+.branch-label5 { fill: #333; }
+.commit5 { stroke: #333; fill: #333; }
+.commit-highlight5 { stroke: #fff; fill: #fff; }
+.label5 { fill: #333; }
+.arrow5 { stroke: #333; }
+.branch-label6 { fill: #333; }
+.commit6 { stroke: #333; fill: #333; }
+.commit-highlight6 { stroke: #fff; fill: #fff; }
+.label6 { fill: #333; }
+.arrow6 { stroke: #333; }
+.branch-label7 { fill: #333; }
+.commit7 { stroke: #333; fill: #333; }
+.commit-highlight7 { stroke: #fff; fill: #fff; }
+.label7 { fill: #333; }
+.arrow7 { stroke: #333; }
+.commit-id,
+.commit-msg,
+.branch-label {
+  fill: lightgrey;
+  color: lightgrey;
+  font-family: var(--mermaid-font-family);
+}
+
+.branch {
+  stroke-width: 2;
+  stroke: #888888;
+  stroke-dasharray: 2;
+}
+.commit-label { font-size: 12px; fill: #333333; }
+.commit-label-bkg { font-size: 12px; fill: #f2f2f2; opacity: 0.5; }
+.tag-label { font-size: 10px; fill: #333333; }
+.tag-label-bkg { fill: #eeeeee; stroke: #777777; }
+.tag-hole { fill: #333333; }
+.commit-merge {
+  stroke: #333333;
+  fill: #333333;
+}
+.commit-reverse {
+  stroke: #333333;
+  fill: #333333;
+  stroke-width: 3;
+}
+.commit-highlight-outer {}
+.commit-highlight-inner {
+  stroke: #333333;
+  fill: #333333;
+}
+.arrow {
+  stroke-width: 8;
+  stroke-linecap: round;
+  fill: none;
+}
+.gitTitleText {
+  text-anchor: middle;
+  font-size: 18px;
+  fill: #333333;
+}  </style>
+  <defs>
+    <marker id="arrowhead-84724CE9-2A93-4392-B311-FCE9D4516BA6" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#666" />
+    </marker>
+  </defs>
+  <g class="commit-bullets">
+    <circle cx="40.0" cy="30.0" r="10" class="commit 0-70spz4P commit0 commit-normal" fill="#2f80ed" stroke="#2f80ed" />
+    <circle cx="80.0" cy="30.0" r="10" class="commit 1-LQ8vgKc commit0 commit-normal" fill="#2f80ed" stroke="#2f80ed" />
+  </g>
+  <g class="commit-labels">
+    <g transform="rotate(-45 40.0 30.0)">
+      <rect x="0.0" y="46.0" width="80.0" height="18" class="commit-label-bkg" rx="3" fill="#f2f2f2" />
+      <text x="8.0" y="60.0" class="commit-label" font-size="12" fill="#333333">0-70spz4P</text>
+    </g>
+    <g transform="rotate(-45 80.0 30.0)">
+      <rect x="40.0" y="46.0" width="80.0" height="18" class="commit-label-bkg" rx="3" fill="#f2f2f2" />
+      <text x="48.0" y="60.0" class="commit-label" font-size="12" fill="#333333">1-LQ8vgKc</text>
+    </g>
+  </g>
+  <g class="commit-arrows">
+    <path d="M 40.0 30.0 L 60.0 30.0 L 60.0 30.0 L 80.0 30.0" class="arrow arrow arrow0 branch" fill="none" stroke="#2f80ed" stroke-width="2" marker-end="url(#arrowhead-84724CE9-2A93-4392-B311-FCE9D4516BA6)" />
+  </g>
+<line x1="30.0" y1="28.0" x2="120.0" y2="28.0" class="branch branch0" stroke="#2f80ed" stroke-width="1" stroke-dasharray="2" />
+<g transform="translate(-63.6 28.0)" class="branchLabel label">
+  <rect x="-88.6" y="-14.5" width="53.6" height="29.0" rx="4.0" ry="4.0" class="branchLabelBkg label0" fill="#2f80ed" style="" />
+  <text class="branch-label branch-label0" fill="#ffffff"><tspan x="0" dy="1em">main</tspan></text>
+</g>
+</svg>

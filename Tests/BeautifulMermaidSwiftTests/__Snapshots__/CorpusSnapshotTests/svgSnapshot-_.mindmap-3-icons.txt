@@ -1,0 +1,132 @@
+<svg id="mindmap-7C388FE5-FE62-4CC4-94D6-F10710E51F4E" class="mindmapDiagram" width="547" height="324" viewBox="0 0 547 324" xmlns="http://www.w3.org/2000/svg">
+<defs>
+<linearGradient id="mindmap-7C388FE5-FE62-4CC4-94D6-F10710E51F4E-gradient" x1="0%" y1="0%" x2="0%" y2="100%">
+<stop offset="0%" stop-color="#ffffff"/>
+<stop offset="100%" stop-color="#f4f4f4"/>
+</linearGradient>
+</defs>
+<rect width="100%" height="100%" fill="#FFFFFF"/>
+<style>
+.edge { fill: none; }
+.mindmap-node-label { font-family: Noto Sans; dominant-baseline: middle; }
+.icon-container { height: 100%; display: flex; justify-content: center; align-items: center; }
+.section-root .mindmap-node-label { fill: #ffffff; }
+.section-edge--1 { stroke: #0052CC; }
+.node-line--1 { stroke: #003380; }
+.node-icon--1 { font-size: 40px; color: #ffffff; }
+.section-0 .mindmap-node-label { fill: #ffffff; }
+.section-edge-0 { stroke: #0065FF; }
+.node-line-0 { stroke: #003D99; }
+.node-icon-0 { font-size: 40px; color: #ffffff; }
+.section-1 .mindmap-node-label { fill: #ffffff; }
+.section-edge-1 { stroke: #2684FF; }
+.node-line-1 { stroke: #1750B3; }
+.node-icon-1 { font-size: 40px; color: #ffffff; }
+.section-2 .mindmap-node-label { fill: #ffffff; }
+.section-edge-2 { stroke: #4C9AFF; }
+.node-line-2 { stroke: #3063B3; }
+.node-icon-2 { font-size: 40px; color: #ffffff; }
+.section-3 .mindmap-node-label { fill: #172B4D; }
+.section-edge-3 { stroke: #84B9FF; }
+.node-line-3 { stroke: #537399; }
+.node-icon-3 { font-size: 40px; color: #172B4D; }
+.section-4 .mindmap-node-label { fill: #172B4D; }
+.section-edge-4 { stroke: #A5CCFF; }
+.node-line-4 { stroke: #6B8099; }
+.node-icon-4 { font-size: 40px; color: #172B4D; }
+.section-5 .mindmap-node-label { fill: #172B4D; }
+.section-edge-5 { stroke: #C6DFFF; }
+.node-line-5 { stroke: #8099B3; }
+.node-icon-5 { font-size: 40px; color: #172B4D; }
+.section-6 .mindmap-node-label { fill: #ffffff; }
+.section-edge-6 { stroke: #0052CC; }
+.node-line-6 { stroke: #003380; }
+.node-icon-6 { font-size: 40px; color: #ffffff; }
+.section-7 .mindmap-node-label { fill: #ffffff; }
+.section-edge-7 { stroke: #0065FF; }
+.node-line-7 { stroke: #003D99; }
+.node-icon-7 { font-size: 40px; color: #ffffff; }
+.section-8 .mindmap-node-label { fill: #ffffff; }
+.section-edge-8 { stroke: #2684FF; }
+.node-line-8 { stroke: #1750B3; }
+.node-icon-8 { font-size: 40px; color: #ffffff; }
+.section-9 .mindmap-node-label { fill: #ffffff; }
+.section-edge-9 { stroke: #4C9AFF; }
+.node-line-9 { stroke: #3063B3; }
+.node-icon-9 { font-size: 40px; color: #ffffff; }
+.section-10 .mindmap-node-label { fill: #172B4D; }
+.section-edge-10 { stroke: #84B9FF; }
+.node-line-10 { stroke: #537399; }
+.node-icon-10 { font-size: 40px; color: #172B4D; }
+.section-root .mindmap-node-label { fill: #ffffff; }
+.section-root rect, .section-root path, .section-root circle, .section-root polygon { fill: #1f2020; }
+</style>
+<g class="mindmap">
+<g class="edges">
+<path class="edge section-edge-0 edge-depth-1" d="M240.0,162.0 L210.0,162.0 C219.47607421875,162.0 238.42822265625,145.0 247.904296875,145.0 C257.38037109375,145.0 276.33251953125,128.0 285.80859375,128.0 L255.80859375,128.0" fill="none" stroke-width="14.0" stroke="#0052CC" />
+<path class="edge section-edge-0 edge-depth-3" d="M184.19140625,128.0 L154.19140625,128.0 C171.14599609375,128.0 205.05517578125,94.0 222.009765625,94.0 C238.96435546875,94.0 272.87353515625,60.0 289.828125,60.0 L259.828125,60.0" fill="none" stroke-width="8.0" stroke="#0052CC" />
+<path class="edge section-edge-0 edge-depth-3" d="M184.19140625,128.0 L154.19140625,128.0 C168.841796875,128.0 198.142578125,131.0 212.79296875,131.0 C227.443359375,131.0 256.744140625,134.0 271.39453125,134.0 L241.39453125,134.0" fill="none" stroke-width="8.0" stroke="#0052CC" />
+<path class="edge section-edge-0 edge-depth-5" d="M118.60546875,134.0 L88.60546875,134.0 C112.52978515625,134.0 160.37841796875,148.0 184.302734375,148.0 C208.22705078125,148.0 256.07568359375,162.0 280.0,162.0 L250.0,162.0" fill="none" stroke-width="2.0" stroke="#0052CC" />
+<path class="edge section-edge-1 edge-depth-1" d="M347.3671875,162.0 L377.3671875,162.0 C366.90283203125,162.0 345.97412109375,162.0 335.509765625,162.0 C325.04541015625,162.0 304.11669921875,162.0 293.65234375,162.0 L323.65234375,162.0" fill="none" stroke-width="14.0" stroke="#0065FF" />
+<path class="edge section-edge-1 edge-depth-3" d="M411.08203125,162.0 L441.08203125,162.0 C419.36767578125,162.0 375.93896484375,162.0 354.224609375,162.0 C332.51025390625,162.0 289.08154296875,162.0 267.3671875,162.0 L297.3671875,162.0" fill="none" stroke-width="8.0" stroke="#0065FF" />
+<path class="edge section-edge-2 edge-depth-1" d="M240.0,162.0 L210.0,162.0 C218.646484375,162.0 235.939453125,179.0 244.5859375,179.0 C253.232421875,179.0 270.525390625,196.0 279.171875,196.0 L249.171875,196.0" fill="none" stroke-width="14.0" stroke="#2684FF" />
+<path class="edge section-edge-2 edge-depth-3" d="M190.828125,196.0 L160.828125,196.0 C174.78271484375,196.0 202.69189453125,199.0 216.646484375,199.0 C230.60107421875,199.0 258.51025390625,202.0 272.46484375,202.0 L242.46484375,202.0" fill="none" stroke-width="8.0" stroke="#2684FF" />
+<path class="edge section-edge-2 edge-depth-3" d="M190.828125,196.0 L160.828125,196.0 C172.20703125,196.0 194.96484375,233.0 206.34375,233.0 C217.72265625,233.0 240.48046875,270.0 251.859375,270.0 L221.859375,270.0" fill="none" stroke-width="8.0" stroke="#2684FF" />
+</g>
+<g class="nodes">
+<g class="mindmap-node section-root section--1" id="node_0" transform="translate(240,108)">
+<circle class="node-bkg" fill="#1f2020" cx="53" cy="53" r="53" stroke="#1f2020" stroke-width="1.0"/>
+<text class="mindmap-node-label" x="53" y="58" fill="#ffffff" font-family="Noto Sans" font-size="16" text-anchor="middle" dominant-baseline="middle">mindmap</text>
+</g>
+<g class="mindmap-node section-0 section-0" id="node_1" transform="translate(184,104)">
+<path class="node-bkg node-no-border" fill="#0052CC" d="M0 43.0 v-38.0 q0,-5 5,-5 h61.0 q5,0 5,5 v43.0 H0 Z"/>
+<line class="node-line-0" x1="0" y1="48" x2="71" y2="48" stroke="#003380" stroke-width="2"/>
+<text class="mindmap-node-label" x="35" y="29" fill="#ffffff" font-family="Noto Sans" font-size="16" text-anchor="middle" dominant-baseline="middle">Origins</text>
+</g>
+<g class="mindmap-node section-0 section-0" id="node_2" transform="translate(100,30)">
+<path class="node-bkg node-no-border" fill="#0052CC" d="M0 55.0 v-50.0 q0,-5 5,-5 h149.0 q5,0 5,5 v55.0 H0 Z"/>
+<line class="node-line-0" x1="0" y1="60" x2="159" y2="60" stroke="#003380" stroke-width="2"/>
+<foreignObject x="0" y="0" width="60" height="60" style="text-align: center;">
+<div class="icon-container"><i class="node-icon-0 fa fa-book"></i></div>
+</foreignObject>
+<text class="mindmap-node-label" x="104" y="35" fill="#ffffff" font-family="Noto Sans" font-size="16" text-anchor="middle" dominant-baseline="middle">Long history</text>
+</g>
+<g class="mindmap-node section-0 section-0" id="node_3" transform="translate(118,110)">
+<path class="node-bkg node-no-border" fill="#0052CC" d="M0 43.0 v-38.0 q0,-5 5,-5 h112.0 q5,0 5,5 v43.0 H0 Z"/>
+<line class="node-line-0" x1="0" y1="48" x2="122" y2="48" stroke="#003380" stroke-width="2"/>
+<text class="mindmap-node-label" x="61" y="29" fill="#ffffff" font-family="Noto Sans" font-size="16" text-anchor="middle" dominant-baseline="middle">Popularisation</text>
+</g>
+<g class="mindmap-node section-0 section-0" id="node_4" transform="translate(30,138)">
+<path class="node-bkg node-no-border" fill="#0052CC" d="M0 43.0 v-38.0 q0,-5 5,-5 h210.0 q5,0 5,5 v43.0 H0 Z"/>
+<line class="node-line-0" x1="0" y1="48" x2="220" y2="48" stroke="#003380" stroke-width="2"/>
+<text class="mindmap-node-label" x="110" y="29" fill="#ffffff" font-family="Noto Sans" font-size="16" text-anchor="middle" dominant-baseline="middle">British popular psychology author Tony Buzan</text>
+</g>
+<g class="mindmap-node section-1 section-1" id="node_5" transform="translate(323,138)">
+<path class="node-bkg node-no-border" fill="#0065FF" d="M0 43.0 v-38.0 q0,-5 5,-5 h77.0 q5,0 5,5 v43.0 H0 Z"/>
+<line class="node-line-1" x1="0" y1="48" x2="87" y2="48" stroke="#003D99" stroke-width="2"/>
+<text class="mindmap-node-label" x="43" y="29" fill="#ffffff" font-family="Noto Sans" font-size="16" text-anchor="middle" dominant-baseline="middle">Research</text>
+</g>
+<g class="mindmap-node section-1 section-1" id="node_6" transform="translate(297,138)">
+<path class="node-bkg node-no-border" fill="#0065FF" d="M0 43.0 v-38.0 q0,-5 5,-5 h210.0 q5,0 5,5 v43.0 H0 Z"/>
+<line class="node-line-1" x1="0" y1="48" x2="220" y2="48" stroke="#003D99" stroke-width="2"/>
+<text class="mindmap-node-label" x="110" y="19" fill="#ffffff" font-family="Noto Sans" font-size="16" text-anchor="middle">On effectiveness</text>
+<text class="mindmap-node-label" x="110" y="40" fill="#ffffff" font-family="Noto Sans" font-size="16" text-anchor="middle">and features</text>
+</g>
+<g class="mindmap-node section-2 section-2" id="node_7" transform="translate(190,172)">
+<path class="node-bkg node-no-border" fill="#2684FF" d="M0 43.0 v-38.0 q0,-5 5,-5 h48.0 q5,0 5,5 v43.0 H0 Z"/>
+<line class="node-line-2" x1="0" y1="48" x2="58" y2="48" stroke="#1750B3" stroke-width="2"/>
+<text class="mindmap-node-label" x="29" y="29" fill="#ffffff" font-family="Noto Sans" font-size="16" text-anchor="middle" dominant-baseline="middle">Tools</text>
+</g>
+<g class="mindmap-node section-2 section-2" id="node_8" transform="translate(117,178)">
+<path class="node-bkg node-no-border" fill="#2684FF" d="M0 43.0 v-38.0 q0,-5 5,-5 h114.0 q5,0 5,5 v43.0 H0 Z"/>
+<line class="node-line-2" x1="0" y1="48" x2="124" y2="48" stroke="#1750B3" stroke-width="2"/>
+<text class="mindmap-node-label" x="62" y="29" fill="#ffffff" font-family="Noto Sans" font-size="16" text-anchor="middle" dominant-baseline="middle">Pen and paper</text>
+</g>
+<g class="mindmap-node section-2 section-2" id="node_9" transform="translate(138,246)">
+<path class="node-bkg node-no-border" fill="#2684FF" d="M0 43.0 v-38.0 q0,-5 5,-5 h73.0 q5,0 5,5 v43.0 H0 Z"/>
+<line class="node-line-2" x1="0" y1="48" x2="83" y2="48" stroke="#1750B3" stroke-width="2"/>
+<text class="mindmap-node-label" x="41" y="29" fill="#ffffff" font-family="Noto Sans" font-size="16" text-anchor="middle" dominant-baseline="middle">Mermaid</text>
+</g>
+</g>
+</g>
+</svg>

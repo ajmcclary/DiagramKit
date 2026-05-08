@@ -1,0 +1,95 @@
+<svg id="mindmap-04607C60-2152-4F29-966C-2A4303C6E539" class="mindmapDiagram" width="231" height="254" viewBox="0 0 231 254" xmlns="http://www.w3.org/2000/svg">
+<defs>
+<linearGradient id="mindmap-04607C60-2152-4F29-966C-2A4303C6E539-gradient" x1="0%" y1="0%" x2="0%" y2="100%">
+<stop offset="0%" stop-color="#ffffff"/>
+<stop offset="100%" stop-color="#f4f4f4"/>
+</linearGradient>
+</defs>
+<rect width="100%" height="100%" fill="#FFFFFF"/>
+<style>
+.edge { fill: none; }
+.mindmap-node-label { font-family: Noto Sans; dominant-baseline: middle; }
+.icon-container { height: 100%; display: flex; justify-content: center; align-items: center; }
+.section-root .mindmap-node-label { fill: #ffffff; }
+.section-edge--1 { stroke: #0052CC; }
+.node-line--1 { stroke: #003380; }
+.node-icon--1 { font-size: 40px; color: #ffffff; }
+.section-0 .mindmap-node-label { fill: #ffffff; }
+.section-edge-0 { stroke: #0065FF; }
+.node-line-0 { stroke: #003D99; }
+.node-icon-0 { font-size: 40px; color: #ffffff; }
+.section-1 .mindmap-node-label { fill: #ffffff; }
+.section-edge-1 { stroke: #2684FF; }
+.node-line-1 { stroke: #1750B3; }
+.node-icon-1 { font-size: 40px; color: #ffffff; }
+.section-2 .mindmap-node-label { fill: #ffffff; }
+.section-edge-2 { stroke: #4C9AFF; }
+.node-line-2 { stroke: #3063B3; }
+.node-icon-2 { font-size: 40px; color: #ffffff; }
+.section-3 .mindmap-node-label { fill: #172B4D; }
+.section-edge-3 { stroke: #84B9FF; }
+.node-line-3 { stroke: #537399; }
+.node-icon-3 { font-size: 40px; color: #172B4D; }
+.section-4 .mindmap-node-label { fill: #172B4D; }
+.section-edge-4 { stroke: #A5CCFF; }
+.node-line-4 { stroke: #6B8099; }
+.node-icon-4 { font-size: 40px; color: #172B4D; }
+.section-5 .mindmap-node-label { fill: #172B4D; }
+.section-edge-5 { stroke: #C6DFFF; }
+.node-line-5 { stroke: #8099B3; }
+.node-icon-5 { font-size: 40px; color: #172B4D; }
+.section-6 .mindmap-node-label { fill: #ffffff; }
+.section-edge-6 { stroke: #0052CC; }
+.node-line-6 { stroke: #003380; }
+.node-icon-6 { font-size: 40px; color: #ffffff; }
+.section-7 .mindmap-node-label { fill: #ffffff; }
+.section-edge-7 { stroke: #0065FF; }
+.node-line-7 { stroke: #003D99; }
+.node-icon-7 { font-size: 40px; color: #ffffff; }
+.section-8 .mindmap-node-label { fill: #ffffff; }
+.section-edge-8 { stroke: #2684FF; }
+.node-line-8 { stroke: #1750B3; }
+.node-icon-8 { font-size: 40px; color: #ffffff; }
+.section-9 .mindmap-node-label { fill: #ffffff; }
+.section-edge-9 { stroke: #4C9AFF; }
+.node-line-9 { stroke: #3063B3; }
+.node-icon-9 { font-size: 40px; color: #ffffff; }
+.section-10 .mindmap-node-label { fill: #172B4D; }
+.section-edge-10 { stroke: #84B9FF; }
+.node-line-10 { stroke: #537399; }
+.node-icon-10 { font-size: 40px; color: #172B4D; }
+.section-root .mindmap-node-label { fill: #ffffff; }
+.section-root rect, .section-root path, .section-root circle, .section-root polygon { fill: #1f2020; }
+</style>
+<g class="mindmap">
+<g class="edges">
+<path class="edge section-edge-0 edge-depth-1" d="M138.28125,127.0 L108.28125,127.0 C118.45751953125,127.0 138.81005859375,127.0 148.986328125,127.0 C159.16259765625,127.0 179.51513671875,127.0 189.69140625,127.0 L159.69140625,127.0" fill="none" stroke-width="14.0" stroke="#0052CC" />
+<path class="edge section-edge-0 edge-depth-3" d="M92.55859375,127.0 L62.55859375,127.0 C71.66162109375,127.0 89.86767578125,90.5 98.970703125,90.5 C108.07373046875,90.5 126.27978515625,54.0 135.3828125,54.0 L105.3828125,54.0" fill="none" stroke-width="8.0" stroke="#0052CC" />
+<path class="edge section-edge-0 edge-depth-3" d="M92.55859375,127.0 L62.55859375,127.0 C76.27001953125,127.0 103.69287109375,127.0 117.404296875,127.0 C131.11572265625,127.0 158.53857421875,127.0 172.25,127.0 L142.25,127.0" fill="none" stroke-width="8.0" stroke="#0052CC" />
+<path class="edge section-edge-0 edge-depth-3" d="M92.55859375,127.0 L62.55859375,127.0 C71.12939453125,127.0 88.27099609375,163.5 96.841796875,163.5 C105.41259765625,163.5 122.55419921875,200.0 131.125,200.0 L101.125,200.0" fill="none" stroke-width="8.0" stroke="#0052CC" />
+</g>
+<g class="nodes">
+<g class="mindmap-node section-root section--1" id="node_0" transform="translate(138,103)">
+<rect class="node-bkg" fill="#1f2020" x="0" y="0" width="63" height="48" rx="15" ry="15" stroke="#1f2020" stroke-width="1.0"/>
+<text class="mindmap-node-label" x="31" y="29" fill="#ffffff" font-family="Noto Sans" font-size="16" text-anchor="middle" dominant-baseline="middle">Root</text>
+</g>
+<g class="mindmap-node section-0 section-0" id="node_1" transform="translate(92,103)">
+<rect class="node-bkg" fill="#0052CC" x="0" y="0" width="67" height="48" rx="15" ry="15" stroke="#1f2020" stroke-width="1.0"/>
+<text class="mindmap-node-label" x="33" y="29" fill="#ffffff" font-family="Noto Sans" font-size="16" text-anchor="middle" dominant-baseline="middle">Child</text>
+</g>
+<g class="mindmap-node section-0 section-0" id="node_2" transform="translate(66,30)">
+<rect class="node-bkg" fill="#0052CC" x="0" y="0" width="38" height="48" rx="15" ry="15" stroke="#1f2020" stroke-width="1.0"/>
+<text class="mindmap-node-label" x="19" y="29" fill="#ffffff" font-family="Noto Sans" font-size="16" text-anchor="middle" dominant-baseline="middle">a</text>
+</g>
+<g class="mindmap-node section-0 section-0" id="node_3" transform="translate(30,98)">
+<rect class="node-bkg" fill="#0052CC" x="0" y="0" width="112" height="58" stroke="#1f2020" stroke-width="1.0"/>
+<text class="mindmap-node-label" x="56" y="34" fill="#ffffff" font-family="Noto Sans" font-size="16" text-anchor="middle" dominant-baseline="middle">New Stuff</text>
+</g>
+<g class="mindmap-node section-0 section-0" id="node_4" transform="translate(71,176)">
+<path class="node-bkg node-no-border" fill="#0052CC" d="M0 43.0 v-38.0 q0,-5 5,-5 h20.0 q5,0 5,5 v43.0 H0 Z"/>
+<line class="node-line-0" x1="0" y1="48" x2="30" y2="48" stroke="#003380" stroke-width="2"/>
+<text class="mindmap-node-label" x="15" y="29" fill="#ffffff" font-family="Noto Sans" font-size="16" text-anchor="middle" dominant-baseline="middle">c</text>
+</g>
+</g>
+</g>
+</svg>

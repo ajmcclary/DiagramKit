@@ -1,0 +1,18 @@
+<svg id="97A663F1-1BA4-4D17-86BE-23BAB8326D37" viewBox="0 0 800 450" xmlns="http://www.w3.org/2000/svg">
+<rect width="100%" height="100%" fill="#FFFFFF" />
+<g transform="translate(0, 0)">
+<g class="venn-circle venn-set-0">
+<circle cx="403.12" cy="127.15" r="149.50" fill="#ff6b6b" fill-opacity="0.100" stroke="#ff6b6b" stroke-width="2.50" stroke-opacity="0.950" />
+<text x="403.12" y="127.15" font-size="24px" fill="#994040" text-anchor="middle" dominant-baseline="middle" font-family="Inter">A</text>
+</g>
+<g class="venn-circle venn-set-1">
+<circle cx="401.29" cy="316.92" r="149.50" fill="#4ecdc4" fill-opacity="0.100" stroke="#4ecdc4" stroke-width="2.50" stroke-opacity="0.950" />
+<text x="401.29" y="316.92" font-size="24px" fill="#2E7B75" text-anchor="middle" dominant-baseline="middle" font-family="Inter">B</text>
+</g>
+<g class="venn-intersection">
+<path d="M 286.682 220.924 A 149.500 149.500 0 0 0 517.725 223.146 A 149.500 149.500 0 0 1 286.682 220.924 Z" fill="#45b7d1" fill-opacity="0.000" stroke="#45b7d1" stroke-width="2.50" />
+<text x="402.20" y="222.03" font-size="24px" fill="#296D7D" text-anchor="middle" dominant-baseline="middle" font-family="Inter">A &amp; B</text>
+</g>
+</g>
+<style>#97A663F1-1BA4-4D17-86BE-23BAB8326D37 { max-width: 100%; }</style>
+</svg>

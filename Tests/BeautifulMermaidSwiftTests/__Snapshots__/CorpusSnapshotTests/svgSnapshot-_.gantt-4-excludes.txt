@@ -1,0 +1,72 @@
+<svg id="132DA32B-19AA-4C97-A63C-5C1B12165EA0" class="mermaid" width="100%" height="100%" viewBox="0 0 1200 148" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<style>
+.mermaid-main-font { font-family: Inter; }
+.exclude-range { fill: #eeeeee; }
+.section { stroke: none; opacity: 0.2; }
+.section0 { fill: rgba(102, 102, 255, 0.49); }
+.section1, .section3 { fill: white; opacity: 0.2; }
+.section2 { fill: #fff400; }
+.task { stroke-width: 2; stroke: #534fbc; fill: #8a90dd; }
+.task0, .task1, .task2, .task3 { stroke: #534fbc; fill: #8a90dd; }
+.active0, .active1, .active2, .active3 { stroke: #534fbc; fill: #bfc7ff; }
+.done0, .done1, .done2, .done3 { stroke: grey; fill: lightgrey; }
+.crit0, .crit1, .crit2, .crit3 { stroke: #ff8888; fill: red; }
+.activeCrit0, .activeCrit1, .activeCrit2, .activeCrit3 { stroke: #ff8888; fill: #bfc7ff; }
+.doneCrit0, .doneCrit1, .doneCrit2, .doneCrit3 { stroke: #ff8888; fill: lightgrey; }
+.task.milestone { transform: rotate(45deg); }
+.task.vert { stroke: navy; fill: navy; }
+.taskText { fill: white; text-anchor: middle; font-size: 11.0px; }
+.taskTextOutsideLeft { fill: black; text-anchor: end; font-size: 11.0px; }
+.taskTextOutsideRight { fill: black; text-anchor: start; font-size: 11.0px; }
+.taskText0, .taskText1, .taskText2, .taskText3 { fill: white; }
+.taskTextOutside0, .taskTextOutside1, .taskTextOutside2, .taskTextOutside3 { fill: black; }
+.activeText0, .activeText1, .activeText2, .activeText3, .doneText0, .doneText1, .doneText2, .doneText3, .activeCritText0, .activeCritText1, .activeCritText2, .activeCritText3, .doneCritText0, .doneCritText1, .doneCritText2, .doneCritText3 { fill: black !important; }
+.milestoneText { font-style: italic; }
+.vertText { font-size: 15px; text-anchor: middle; fill: navy !important; }
+.task.clickable { cursor: pointer; }
+.taskText.clickable, .taskTextOutsideLeft.clickable, .taskTextOutsideRight.clickable { cursor: pointer; fill: #003163 !important; font-weight: bold; }
+.grid line { stroke: lightgrey; stroke-dasharray: 4, 2; }
+.grid .tick text { font-size: 10px; }
+.sectionTitle { font-size: 11.0px; fill: black; font-weight: bold; }
+.titleText { text-anchor: middle; font-size: 18px; fill: #27272A; }
+.today { stroke: red; }
+</style>
+<rect id="132DA32B-19AA-4C97-A63C-5C1B12165EA0-exclude-2024-01-06" class="exclude-range" x="239.0625" y="35.0" width="65.62462022569446" height="63.0"/>
+<rect id="132DA32B-19AA-4C97-A63C-5C1B12165EA0-exclude-2024-01-13" class="exclude-range" x="468.75" y="35.0" width="65.62462022569446" height="63.0"/>
+<rect id="132DA32B-19AA-4C97-A63C-5C1B12165EA0-exclude-2024-01-20" class="exclude-range" x="698.4375" y="35.0" width="65.62462022569446" height="63.0"/>
+<rect id="132DA32B-19AA-4C97-A63C-5C1B12165EA0-exclude-2024-01-27" class="exclude-range" x="928.125" y="35.0" width="65.62462022569446" height="63.0"/>
+<g class="grid" transform="translate(75.0, 113.0)">
+<line x1="0.0" x2="0.0" y1="0" y2="63.0"/>
+<text x="0.0" y="15" dy="1em" text-anchor="middle" fill="#000" stroke="none" font-size="10">2024-01-01</text>
+<line x1="98.4375" x2="98.4375" y1="0" y2="63.0"/>
+<text x="98.4375" y="15" dy="1em" text-anchor="middle" fill="#000" stroke="none" font-size="10">2024-01-04</text>
+<line x1="196.875" x2="196.875" y1="0" y2="63.0"/>
+<text x="196.875" y="15" dy="1em" text-anchor="middle" fill="#000" stroke="none" font-size="10">2024-01-07</text>
+<line x1="295.3125" x2="295.3125" y1="0" y2="63.0"/>
+<text x="295.3125" y="15" dy="1em" text-anchor="middle" fill="#000" stroke="none" font-size="10">2024-01-10</text>
+<line x1="393.75" x2="393.75" y1="0" y2="63.0"/>
+<text x="393.75" y="15" dy="1em" text-anchor="middle" fill="#000" stroke="none" font-size="10">2024-01-13</text>
+<line x1="492.1875" x2="492.1875" y1="0" y2="63.0"/>
+<text x="492.1875" y="15" dy="1em" text-anchor="middle" fill="#000" stroke="none" font-size="10">2024-01-16</text>
+<line x1="590.625" x2="590.625" y1="0" y2="63.0"/>
+<text x="590.625" y="15" dy="1em" text-anchor="middle" fill="#000" stroke="none" font-size="10">2024-01-19</text>
+<line x1="689.0625" x2="689.0625" y1="0" y2="63.0"/>
+<text x="689.0625" y="15" dy="1em" text-anchor="middle" fill="#000" stroke="none" font-size="10">2024-01-22</text>
+<line x1="787.5" x2="787.5" y1="0" y2="63.0"/>
+<text x="787.5" y="15" dy="1em" text-anchor="middle" fill="#000" stroke="none" font-size="10">2024-01-25</text>
+<line x1="885.9375" x2="885.9375" y1="0" y2="63.0"/>
+<text x="885.9375" y="15" dy="1em" text-anchor="middle" fill="#000" stroke="none" font-size="10">2024-01-28</text>
+<line x1="984.375" x2="984.375" y1="0" y2="63.0"/>
+<text x="984.375" y="15" dy="1em" text-anchor="middle" fill="#000" stroke="none" font-size="10">2024-01-31</text>
+</g>
+<rect class="section section0" x="0.0" y="48.0" width="1162.5" height="46.0"/>
+<rect id="132DA32B-19AA-4C97-A63C-5C1B12165EA0-t1" class="task task0" x="75.0" y="50.0" width="590.625" height="20.0" rx="3" ry="3"/>
+<text id="132DA32B-19AA-4C97-A63C-5C1B12165EA0-t1-text" class="taskText taskText0 width-31" x="370.3125" y="63.5">Task 1</text>
+<rect id="132DA32B-19AA-4C97-A63C-5C1B12165EA0-t2" class="task task0" x="665.625" y="74.0" width="459.375" height="20.0" rx="3" ry="3"/>
+<text id="132DA32B-19AA-4C97-A63C-5C1B12165EA0-t2-text" class="taskText taskText0 width-35" x="895.3125" y="87.5">Task 2</text>
+<text class="sectionTitle sectionTitle0" x="0.0" y="78.35">Work</text>
+<g class="today">
+<line class="today" x1="28226.7578125" x2="28226.7578125" y1="25.0" y2="123.0" style=""/>
+</g>
+<text class="titleText" x="600.0" y="25.0">Project with Excludes</text>
+</svg>

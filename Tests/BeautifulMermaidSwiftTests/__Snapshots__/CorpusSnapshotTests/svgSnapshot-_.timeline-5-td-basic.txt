@@ -1,0 +1,59 @@
+<svg id="2C0CDDF4-9471-467F-87B6-0423038F3F94" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="670" height="379.3" viewBox="0 0 670 379.3" style="--bg:#FFFFFF;--fg:#27272A;--line:#939394;--accent:#27272A;--muted:#A9A9AA;--surface:#F9F9F9;--border:#D4D4D4;background:#FFFFFF">
+<defs>
+<marker id="2C0CDDF4-9471-467F-87B6-0423038F3F94-arrowhead" refX="5" refY="2" markerWidth="6" markerHeight="4" orient="auto">
+<path d="M 0,0 V 4 L6,2 Z" class="arrowheadPath" fill="#939394"/>
+</marker>
+</defs>
+<g class="taskWrapper">
+<rect class="node-bkg node-0" x="50" y="90" width="200" height="33.1" fill="#0052CC" stroke="#0052CC" stroke-width="1" rx="3" ry="3"/>
+<line class="node-line-0" x1="50" y1="123.1" x2="250" y2="123.1" stroke="#003380" stroke-width="3"/>
+<switch>
+<foreignObject x="50" y="90" width="200" height="33.1" position="fixed"><div xmlns="http://www.w3.org/1999/xhtml" class="label" style="display:table;width:100%;height:100%;text-align:center;font-size:14px;font-family:&quot;Open Sans&quot;, sans-serif;color:#ffffff"><div style="display:table-cell;vertical-align:middle">2020</div></div></foreignObject>
+<text text-anchor="middle" dominant-baseline="central" fill="#ffffff" font-size="14" font-family="&quot;Open Sans&quot;, sans-serif"><tspan x="150" y="106.5">2020</tspan></text>
+</switch>
+</g>
+<g class="taskWrapper">
+<rect class="node-bkg node-1" x="50" y="153.1" width="200" height="33.1" fill="#0065FF" stroke="#0065FF" stroke-width="1" rx="3" ry="3"/>
+<line class="node-line-1" x1="50" y1="186.2" x2="250" y2="186.2" stroke="#003D99" stroke-width="3"/>
+<switch>
+<foreignObject x="50" y="153.1" width="200" height="33.1" position="fixed"><div xmlns="http://www.w3.org/1999/xhtml" class="label" style="display:table;width:100%;height:100%;text-align:center;font-size:14px;font-family:&quot;Open Sans&quot;, sans-serif;color:#ffffff"><div style="display:table-cell;vertical-align:middle">2021</div></div></foreignObject>
+<text text-anchor="middle" dominant-baseline="central" fill="#ffffff" font-size="14" font-family="&quot;Open Sans&quot;, sans-serif"><tspan x="150" y="169.7">2021</tspan></text>
+</switch>
+</g>
+<g class="taskWrapper">
+<rect class="node-bkg node-2" x="50" y="216.2" width="200" height="33.1" fill="#2684FF" stroke="#2684FF" stroke-width="1" rx="3" ry="3"/>
+<line class="node-line-2" x1="50" y1="249.3" x2="250" y2="249.3" stroke="#1750B3" stroke-width="3"/>
+<switch>
+<foreignObject x="50" y="216.2" width="200" height="33.1" position="fixed"><div xmlns="http://www.w3.org/1999/xhtml" class="label" style="display:table;width:100%;height:100%;text-align:center;font-size:14px;font-family:&quot;Open Sans&quot;, sans-serif;color:#ffffff"><div style="display:table-cell;vertical-align:middle">2022</div></div></foreignObject>
+<text text-anchor="middle" dominant-baseline="central" fill="#ffffff" font-size="14" font-family="&quot;Open Sans&quot;, sans-serif"><tspan x="150" y="232.8">2022</tspan></text>
+</switch>
+</g>
+<g class="eventWrapper" filter="brightness(120%)">
+<rect class="node-bkg" x="320" y="90" width="300" height="33.1" fill="#0052CC" stroke="#0052CC" stroke-width="1" rx="3" ry="3"/>
+<switch>
+<foreignObject x="320" y="90" width="300" height="33.1" position="fixed"><div xmlns="http://www.w3.org/1999/xhtml" class="label" style="display:table;width:100%;height:100%;text-align:center;font-size:14px;font-family:&quot;Open Sans&quot;, sans-serif;color:#27272A"><div style="display:table-cell;vertical-align:middle">Event A</div></div></foreignObject>
+<text text-anchor="middle" dominant-baseline="central" fill="#27272A" font-size="14" font-family="&quot;Open Sans&quot;, sans-serif"><tspan x="470" y="106.5">Event A</tspan></text>
+</switch>
+</g>
+<g class="eventWrapper" filter="brightness(120%)">
+<rect class="node-bkg" x="320" y="153.1" width="300" height="33.1" fill="#0065FF" stroke="#0065FF" stroke-width="1" rx="3" ry="3"/>
+<switch>
+<foreignObject x="320" y="153.1" width="300" height="33.1" position="fixed"><div xmlns="http://www.w3.org/1999/xhtml" class="label" style="display:table;width:100%;height:100%;text-align:center;font-size:14px;font-family:&quot;Open Sans&quot;, sans-serif;color:#27272A"><div style="display:table-cell;vertical-align:middle">Event B</div></div></foreignObject>
+<text text-anchor="middle" dominant-baseline="central" fill="#27272A" font-size="14" font-family="&quot;Open Sans&quot;, sans-serif"><tspan x="470" y="169.7">Event B</tspan></text>
+</switch>
+</g>
+<g class="eventWrapper" filter="brightness(120%)">
+<rect class="node-bkg" x="320" y="216.2" width="300" height="33.1" fill="#2684FF" stroke="#2684FF" stroke-width="1" rx="3" ry="3"/>
+<switch>
+<foreignObject x="320" y="216.2" width="300" height="33.1" position="fixed"><div xmlns="http://www.w3.org/1999/xhtml" class="label" style="display:table;width:100%;height:100%;text-align:center;font-size:14px;font-family:&quot;Open Sans&quot;, sans-serif;color:#27272A"><div style="display:table-cell;vertical-align:middle">Event C</div></div></foreignObject>
+<text text-anchor="middle" dominant-baseline="central" fill="#27272A" font-size="14" font-family="&quot;Open Sans&quot;, sans-serif"><tspan x="470" y="232.8">Event C</tspan></text>
+</switch>
+</g>
+<g class="lineWrapper">
+<line x1="270" y1="106.5" x2="320" y2="106.5" stroke="#939394" stroke-dasharray="5,5" stroke-width="2" marker-end="url(#2C0CDDF4-9471-467F-87B6-0423038F3F94-arrowhead)"/>
+<line x1="270" y1="169.7" x2="320" y2="169.7" stroke="#939394" stroke-dasharray="5,5" stroke-width="2" marker-end="url(#2C0CDDF4-9471-467F-87B6-0423038F3F94-arrowhead)"/>
+<line x1="270" y1="232.8" x2="320" y2="232.8" stroke="#939394" stroke-dasharray="5,5" stroke-width="2" marker-end="url(#2C0CDDF4-9471-467F-87B6-0423038F3F94-arrowhead)"/>
+</g>
+<text x="50" y="30" font-size="4ex" font-weight="bold" fill="#27272A">My Timeline</text>
+<line x1="270" y1="62" x2="270" y2="306.3" stroke="#939394" stroke-width="4" marker-end="url(#2C0CDDF4-9471-467F-87B6-0423038F3F94-arrowhead)"/>
+</svg>

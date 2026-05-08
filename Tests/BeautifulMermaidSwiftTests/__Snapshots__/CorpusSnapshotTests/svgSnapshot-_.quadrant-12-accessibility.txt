@@ -1,0 +1,50 @@
+<svg id="graphDiv" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 500" role="graphics-document document" aria-roledescription="quadrant-chart" width="100%" preserveAspectRatio="xMinYMin meet" style="max-width: 500px; background-color: #FFFFFF">
+<title>Quadrant Chart</title>
+<desc>A 2x2 matrix showing task distribution</desc>
+<g class="main">
+<g class="quadrants">
+<g class="quadrant">
+<rect x="263" y="31" width="232" height="232" fill="#ECECFF"/>
+<text x="0" y="0" fill="#27272A" font-size="16" dominant-baseline="middle" text-anchor="middle" transform="translate(379, 147) rotate(0)">Plan</text>
+</g>
+<g class="quadrant">
+<rect x="31" y="31" width="232" height="232" fill="#D6D6FF"/>
+<text x="0" y="0" fill="#343436" font-size="16" dominant-baseline="middle" text-anchor="middle" transform="translate(147, 147) rotate(0)"></text>
+</g>
+<g class="quadrant">
+<rect x="31" y="263" width="232" height="232" fill="#C0C0FF"/>
+<text x="0" y="0" fill="#3F3F42" font-size="16" dominant-baseline="middle" text-anchor="middle" transform="translate(147, 379) rotate(0)"></text>
+</g>
+<g class="quadrant">
+<rect x="263" y="263" width="232" height="232" fill="#AAAAFF"/>
+<text x="0" y="0" fill="#4A4A4E" font-size="16" dominant-baseline="middle" text-anchor="middle" transform="translate(379, 379) rotate(0)"></text>
+</g>
+</g>
+<g class="border">
+<line x1="30" y1="31" x2="496" y2="31" style="stroke: #A1A1AA; stroke-width: 2;"/>
+<line x1="495" y1="32" x2="495" y2="494" style="stroke: #A1A1AA; stroke-width: 2;"/>
+<line x1="30" y1="495" x2="496" y2="495" style="stroke: #A1A1AA; stroke-width: 2;"/>
+<line x1="31" y1="32" x2="31" y2="494" style="stroke: #A1A1AA; stroke-width: 2;"/>
+<line x1="263" y1="32" x2="263" y2="494" style="stroke: #A1A1AA; stroke-width: 1;"/>
+<line x1="32" y1="263" x2="494" y2="263" style="stroke: #A1A1AA; stroke-width: 1;"/>
+</g>
+<g class="data-points">
+</g>
+<g class="labels">
+<g class="label">
+<text x="0" y="0" fill="#27272A" font-size="16" dominant-baseline="hanging" text-anchor="middle" transform="translate(147, 5) rotate(0)">Urgent</text>
+</g>
+<g class="label">
+<text x="0" y="0" fill="#27272A" font-size="16" dominant-baseline="hanging" text-anchor="middle" transform="translate(379, 5) rotate(0)">Not Urgent</text>
+</g>
+<g class="label">
+<text x="0" y="0" fill="#27272A" font-size="16" dominant-baseline="hanging" text-anchor="middle" transform="translate(5, 379) rotate(-90)">Not Important</text>
+</g>
+<g class="label">
+<text x="0" y="0" fill="#27272A" font-size="16" dominant-baseline="hanging" text-anchor="middle" transform="translate(5, 147) rotate(-90)">Important</text>
+</g>
+</g>
+<g class="title">
+</g>
+</g>
+</svg>

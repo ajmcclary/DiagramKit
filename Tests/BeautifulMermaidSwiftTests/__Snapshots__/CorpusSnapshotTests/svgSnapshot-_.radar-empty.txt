@@ -1,0 +1,40 @@
+<svg id="graphDiv" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 700 700" role="graphics-document document" width="100%" preserveAspectRatio="xMinYMin meet" style="max-width: 700px; background-color: #FFFFFF; font-family: Inter">
+<style>
+.radarTitle { font-size: 16px; color: #27272A; dominant-baseline: hanging; text-anchor: middle; }
+.radarAxisLine { stroke: #939394; stroke-width: 2; }
+.radarAxisLabel { dominant-baseline: middle; text-anchor: middle; font-size: 12px; color: #939394; }
+.radarGraticule { fill: #DEDEDE; fill-opacity: 0.3; stroke: #DEDEDE; stroke-width: 1; }
+.radarLegendText { text-anchor: start; font-size: 12px; dominant-baseline: hanging; }
+.radarCurve-0 { color: #0052CC; fill: #0052CC; fill-opacity: 0.5; stroke: #0052CC; stroke-width: 2; }
+.radarLegendBox-0 { fill: #0052CC; fill-opacity: 0.5; stroke: #0052CC; }
+.radarCurve-1 { color: #0065FF; fill: #0065FF; fill-opacity: 0.5; stroke: #0065FF; stroke-width: 2; }
+.radarLegendBox-1 { fill: #0065FF; fill-opacity: 0.5; stroke: #0065FF; }
+.radarCurve-2 { color: #2684FF; fill: #2684FF; fill-opacity: 0.5; stroke: #2684FF; stroke-width: 2; }
+.radarLegendBox-2 { fill: #2684FF; fill-opacity: 0.5; stroke: #2684FF; }
+.radarCurve-3 { color: #4C9AFF; fill: #4C9AFF; fill-opacity: 0.5; stroke: #4C9AFF; stroke-width: 2; }
+.radarLegendBox-3 { fill: #4C9AFF; fill-opacity: 0.5; stroke: #4C9AFF; }
+.radarCurve-4 { color: #84B9FF; fill: #84B9FF; fill-opacity: 0.5; stroke: #84B9FF; stroke-width: 2; }
+.radarLegendBox-4 { fill: #84B9FF; fill-opacity: 0.5; stroke: #84B9FF; }
+.radarCurve-5 { color: #A5CCFF; fill: #A5CCFF; fill-opacity: 0.5; stroke: #A5CCFF; stroke-width: 2; }
+.radarLegendBox-5 { fill: #A5CCFF; fill-opacity: 0.5; stroke: #A5CCFF; }
+.radarCurve-6 { color: #C6DFFF; fill: #C6DFFF; fill-opacity: 0.5; stroke: #C6DFFF; stroke-width: 2; }
+.radarLegendBox-6 { fill: #C6DFFF; fill-opacity: 0.5; stroke: #C6DFFF; }
+.radarCurve-7 { color: #0052CC; fill: #0052CC; fill-opacity: 0.5; stroke: #0052CC; stroke-width: 2; }
+.radarLegendBox-7 { fill: #0052CC; fill-opacity: 0.5; stroke: #0052CC; }
+.radarCurve-8 { color: #0065FF; fill: #0065FF; fill-opacity: 0.5; stroke: #0065FF; stroke-width: 2; }
+.radarLegendBox-8 { fill: #0065FF; fill-opacity: 0.5; stroke: #0065FF; }
+.radarCurve-9 { color: #2684FF; fill: #2684FF; fill-opacity: 0.5; stroke: #2684FF; stroke-width: 2; }
+.radarLegendBox-9 { fill: #2684FF; fill-opacity: 0.5; stroke: #2684FF; }
+.radarCurve-10 { color: #4C9AFF; fill: #4C9AFF; fill-opacity: 0.5; stroke: #4C9AFF; stroke-width: 2; }
+.radarLegendBox-10 { fill: #4C9AFF; fill-opacity: 0.5; stroke: #4C9AFF; }
+.radarCurve-11 { color: #84B9FF; fill: #84B9FF; fill-opacity: 0.5; stroke: #84B9FF; stroke-width: 2; }
+.radarLegendBox-11 { fill: #84B9FF; fill-opacity: 0.5; stroke: #84B9FF; }
+</style>
+<g transform="translate(350, 350)">
+<circle class="radarGraticule" r="60"/>
+<circle class="radarGraticule" r="120"/>
+<circle class="radarGraticule" r="180"/>
+<circle class="radarGraticule" r="240"/>
+<circle class="radarGraticule" r="300"/>
+</g>
+</svg>

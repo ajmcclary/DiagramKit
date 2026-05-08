@@ -1,0 +1,10 @@
+┌────────────────────┐    
+│ CUSTOMER           │    
+├────────────────────┤    
+│ PK int id          │    
+│    string name     │    
+│ UK string email    │    
+│    date created_at │    
+└────────────────────┘    
+                          
+                          

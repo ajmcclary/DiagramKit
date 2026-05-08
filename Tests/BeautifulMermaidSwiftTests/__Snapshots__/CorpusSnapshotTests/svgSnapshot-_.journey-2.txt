@@ -1,0 +1,89 @@
+<svg id="E2C27F6A-DDE8-483C-877A-9225CBAD4F53" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="100%" viewBox="0 0 700 565" preserveAspectRatio="xMinYMin meet" style="max-width: 700px;--bg:#FFFFFF;--fg:#27272A;--line:#939394;--accent:#27272A;--muted:#A9A9AA;--surface:#F9F9F9;--border:#D4D4D4;background:#FFFFFF">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&amp;display=swap');
+  text { font-family: 'Inter', system-ui, sans-serif; }
+  .mono { font-family: 'JetBrains Mono', 'SF Mono', 'Fira Code', ui-monospace, monospace; }
+  svg {    /* Derived from --bg and --fg (overridable via --line, --accent, etc.) */
+    --_text:          #27272A;
+    --_text-sec:      #A9A9AA 60%, #FFFFFF));
+    --_text-muted:    #A9A9AA 40%, #FFFFFF));
+    --_text-faint:    #666666;
+    --_line:          #939394 50%, #FFFFFF));
+    --_arrow:         #27272A 85%, #FFFFFF));
+    --_node-fill:     #F9F9F9 3%, #FFFFFF));
+    --_node-stroke:   #D4D4D4 20%, #FFFFFF));
+    --_group-fill:    #FFFFFF;
+    --_group-hdr:     #666666;
+    --_inner-stroke:  #666666;
+    --_key-badge:     #666666;
+    --_note-bkg:      #F5F0C8;
+    --_note-border:   #E0DEB5;
+  }
+</style>
+<style>
+.label { font-family: "Open Sans", sans-serif; color: #27272A; }
+.mouth { stroke: #27272A; }
+line { stroke: #27272A; }
+.legend { fill: #27272A; font-family: "Open Sans", sans-serif; }
+.face { fill: #FFF8DC; stroke: #999; }
+.arrowheadPath { fill: #939394; }
+.task-type-0, .section-type-0 { fill: #666666; }
+.task-type-1, .section-type-1 { fill: #666666; }
+.task-type-2, .section-type-2 { fill: #666666; }
+.task-type-3, .section-type-3 { fill: #666666; }
+.task-type-4, .section-type-4 { fill: #666666; }
+.task-type-5, .section-type-5 { fill: #666666; }
+.task-type-6, .section-type-6 { fill: #666666; }
+.task-type-7, .section-type-7 { fill: #666666; }
+.actor-0 { fill: #8FBC8F; }
+.actor-1 { fill: #7CFC00; }
+.actor-2 { fill: #00FFFF; }
+.actor-3 { fill: #20B2AA; }
+.actor-4 { fill: #B0E0E6; }
+.actor-5 { fill: #FFFFE0; }
+</style>
+<defs>
+<marker id="E2C27F6A-DDE8-483C-877A-9225CBAD4F53-arrowhead" refX="5" refY="2" markerWidth="6" markerHeight="4" orient="auto">
+<path d="M 0,0 V 4 L6,2 Z" class="arrowheadPath" fill="#939394"/>
+</marker>
+</defs>
+<g class="legend">
+<circle class="actor-0" cx="20" cy="60" r="7" fill="#8FBC8F" stroke="#939394"><title>Me</title></circle>
+<text class="legend" x="40" y="67" fill="#27272A" font-size="14">Me</text>
+</g>
+<g class="journey-section section-type-0">
+<rect x="150" y="50" width="150" height="50" fill="#191970" rx="3" ry="3"/>
+<switch><foreignObject x="150" y="64.5" width="150" height="21"><xhtml:div xmlns:xhtml="http://www.w3.org/1999/xhtml" style="display:table;width:100%;height:100%;text-align:center;color:#fff;font-size:14px"><xhtml:span style="display:table-cell;vertical-align:middle">Order from website</xhtml:span></xhtml:div></foreignObject><text x="225" y="75" text-anchor="middle" dominant-baseline="central" fill="#fff" font-size="14"><tspan>Order from website</tspan></text></switch>
+</g>
+<g class="journey-section section-type-1">
+<rect x="350" y="50" width="150" height="50" fill="#8B008B" rx="3" ry="3"/>
+<switch><foreignObject x="350" y="64.5" width="150" height="21"><xhtml:div xmlns:xhtml="http://www.w3.org/1999/xhtml" style="display:table;width:100%;height:100%;text-align:center;color:#fff;font-size:14px"><xhtml:span style="display:table-cell;vertical-align:middle">Checkout from website</xhtml:span></xhtml:div></foreignObject><text x="425" y="75" text-anchor="middle" dominant-baseline="central" fill="#fff" font-size="14"><tspan>Checkout from website</tspan></text></switch>
+</g>
+<g class="task task-type-0">
+<rect x="150" y="160" width="150" height="50" fill="#191970" rx="3" ry="3"/>
+<switch><foreignObject x="150" y="174.5" width="150" height="21"><xhtml:div xmlns:xhtml="http://www.w3.org/1999/xhtml" style="display:table;width:100%;height:100%;text-align:center;color:#fff;font-size:14px"><xhtml:span style="display:table-cell;vertical-align:middle">Add to cart</xhtml:span></xhtml:div></foreignObject><text x="225" y="185" text-anchor="middle" dominant-baseline="central" fill="#fff" font-size="14"><tspan>Add to cart</tspan></text></switch>
+<circle class="actor-0" cx="160" cy="160" r="7" fill="#8FBC8F"><title>Me</title></circle>
+<line id="E2C27F6A-DDE8-483C-877A-9225CBAD4F53-task0" x1="225" y1="160" x2="225" y2="450" class="task-line" stroke="#939394" stroke-dasharray="4 2" stroke-width="1"/>
+<g class="face">
+<circle cx="225" cy="300" r="15" class="face" fill="#FFF8DC" stroke="#939394" stroke-width="2"/>
+<circle cx="220" cy="295" r="1.5" fill="#27272A" stroke="#27272A" stroke-width="2"/>
+<circle cx="230" cy="295" r="1.5" fill="#27272A" stroke="#27272A" stroke-width="2"/>
+<path class="mouth" d="M 217.5 302 A 7.15 6.82 0 0 0 232.5 302" fill="none" stroke="#27272A" stroke-width="2"/>
+</g>
+</g>
+<g class="task task-type-1">
+<rect x="350" y="160" width="150" height="50" fill="#8B008B" rx="3" ry="3"/>
+<switch><foreignObject x="350" y="174.5" width="150" height="21"><xhtml:div xmlns:xhtml="http://www.w3.org/1999/xhtml" style="display:table;width:100%;height:100%;text-align:center;color:#fff;font-size:14px"><xhtml:span style="display:table-cell;vertical-align:middle">Add payment details</xhtml:span></xhtml:div></foreignObject><text x="425" y="185" text-anchor="middle" dominant-baseline="central" fill="#fff" font-size="14"><tspan>Add payment details</tspan></text></switch>
+<circle class="actor-0" cx="360" cy="160" r="7" fill="#8FBC8F"><title>Me</title></circle>
+<line id="E2C27F6A-DDE8-483C-877A-9225CBAD4F53-task1" x1="425" y1="160" x2="425" y2="450" class="task-line" stroke="#939394" stroke-dasharray="4 2" stroke-width="1"/>
+<g class="face">
+<circle cx="425" cy="300" r="15" class="face" fill="#FFF8DC" stroke="#939394" stroke-width="2"/>
+<circle cx="420" cy="295" r="1.5" fill="#27272A" stroke="#27272A" stroke-width="2"/>
+<circle cx="430" cy="295" r="1.5" fill="#27272A" stroke="#27272A" stroke-width="2"/>
+<path class="mouth" d="M 417.5 302 A 7.15 6.82 0 0 0 432.5 302" fill="none" stroke="#27272A" stroke-width="2"/>
+</g>
+</g>
+<text x="150" y="25" font-size="4ex" font-weight="bold" fill="#27272A" font-family=""trebuchet ms", verdana, arial, sans-serif">E-Commerce</text>
+<line x1="150" y1="200" x2="696" y2="200" stroke="#939394" stroke-width="4" marker-end="url(#E2C27F6A-DDE8-483C-877A-9225CBAD4F53-arrowhead)"/>
+</svg>

@@ -1,0 +1,86 @@
+<svg id="D7BFAE1A-1E50-4B83-84CA-EB22747D1F54" class="treemap" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="100%" style="max-width: 1016px;" viewBox="-8 -8 1016 446">
+<title>Department budget treemap</title>
+<desc>Budget allocation by department and program</desc>
+<rect x="-8" y="-8" width="1016" height="446" fill="#FFFFFF" />
+<text class="treemapTitle" x="500" y="15" text-anchor="middle" dominant-baseline="middle" font-family="Inter" font-size="14px" fill="#27272A">Department Budget</text>
+<g class="treemapContainer" transform="translate(0, 30)">
+<g class="treemapSection" transform="translate(10,35)">
+<rect class="treemapSectionHeader" width="980" height="25" fill="none" fill-opacity="0.6" stroke-width="0.6"/>
+<clipPath id="clip-section-D333412B-AD17-4EC8-889B-905E7883DD98-0">
+<rect width="968" height="25" />
+</clipPath>
+<rect class="treemapSection section0" width="980" height="355" fill="#1f77b4" fill-opacity="0.6" stroke="#0d4a6c" stroke-width="2.0" stroke-opacity="0.4" style="color:#1f2933;fill:#f5f7fa;stroke:#506070"/>
+<text class="treemapSectionLabel" x="6" y="12" dominant-baseline="middle" font-weight="bold" font-family="Inter" font-weight="bold" font-size="12px" fill="#ffffff" clip-path="url(#clip-section-D333412B-AD17-4EC8-889B-905E7883DD98-0)" style="fill:#1f2933;fill:#f5f7fa">Company</text>
+<text class="treemapSectionValue" x="970" y="12" text-anchor="end" dominant-baseline="middle" font-style="italic" font-family="Inter" font-style="italic" font-size="10px" fill="#ffffff" clip-path="url(#clip-section-D333412B-AD17-4EC8-889B-905E7883DD98-0)" style="fill:#1f2933;fill:#f5f7fa">$5,170,000</text>
+</g>
+<g class="treemapSection" transform="translate(25,75)">
+<rect class="treemapSectionHeader" width="950" height="25" fill="none" fill-opacity="0.6" stroke-width="0.6"/>
+<clipPath id="clip-section-D333412B-AD17-4EC8-889B-905E7883DD98-1">
+<rect width="938" height="25" />
+</clipPath>
+<rect class="treemapSection section1" width="950" height="138" fill="#ff7f0e" fill-opacity="0.6" stroke="#944b08" stroke-width="2.0" stroke-opacity="0.4" style="color:#12283a;fill:#d8ecff;stroke:#2f6f9f"/>
+<text class="treemapSectionLabel" x="6" y="12" dominant-baseline="middle" font-weight="bold" font-family="Inter" font-weight="bold" font-size="12px" fill="#ffffff" clip-path="url(#clip-section-D333412B-AD17-4EC8-889B-905E7883DD98-1)" style="fill:#12283a;fill:#d8ecff">Product</text>
+<text class="treemapSectionValue" x="940" y="12" text-anchor="end" dominant-baseline="middle" font-style="italic" font-family="Inter" font-style="italic" font-size="10px" fill="#ffffff" clip-path="url(#clip-section-D333412B-AD17-4EC8-889B-905E7883DD98-1)" style="fill:#12283a;fill:#d8ecff">$2,460,000</text>
+</g>
+<g class="treemapSection" transform="translate(25,223)">
+<rect class="treemapSectionHeader" width="950" height="25" fill="none" fill-opacity="0.6" stroke-width="0.6"/>
+<clipPath id="clip-section-D333412B-AD17-4EC8-889B-905E7883DD98-2">
+<rect width="938" height="25" />
+</clipPath>
+<rect class="treemapSection section2" width="950" height="84" fill="#bcbd22" fill-opacity="0.6" stroke="#6b6e12" stroke-width="2.0" stroke-opacity="0.4" style="color:#3b2008;fill:#ffe6cc;stroke:#a75b18"/>
+<text class="treemapSectionLabel" x="6" y="12" dominant-baseline="middle" font-weight="bold" font-family="Inter" font-weight="bold" font-size="12px" fill="#000000" clip-path="url(#clip-section-D333412B-AD17-4EC8-889B-905E7883DD98-2)" style="fill:#3b2008;fill:#ffe6cc">Go To Market</text>
+<text class="treemapSectionValue" x="940" y="12" text-anchor="end" dominant-baseline="middle" font-style="italic" font-family="Inter" font-style="italic" font-size="10px" fill="#000000" clip-path="url(#clip-section-D333412B-AD17-4EC8-889B-905E7883DD98-2)" style="fill:#3b2008;fill:#ffe6cc">$1,580,000</text>
+</g>
+<g class="treemapSection" transform="translate(25,317)">
+<rect class="treemapSectionHeader" width="950" height="25" fill="none" fill-opacity="0.6" stroke-width="0.6"/>
+<clipPath id="clip-section-D333412B-AD17-4EC8-889B-905E7883DD98-3">
+<rect width="938" height="25" />
+</clipPath>
+<rect class="treemapSection section3" width="950" height="58" fill="#8c564b" fill-opacity="0.6" stroke="#54332a" stroke-width="2.0" stroke-opacity="0.4" style="color:#16351f;fill:#d7f2df;stroke:#337a45"/>
+<text class="treemapSectionLabel" x="6" y="12" dominant-baseline="middle" font-weight="bold" font-family="Inter" font-weight="bold" font-size="12px" fill="#ffffff" clip-path="url(#clip-section-D333412B-AD17-4EC8-889B-905E7883DD98-3)" style="fill:#16351f;fill:#d7f2df">Operations</text>
+<text class="treemapSectionValue" x="940" y="12" text-anchor="end" dominant-baseline="middle" font-style="italic" font-family="Inter" font-style="italic" font-size="10px" fill="#ffffff" clip-path="url(#clip-section-D333412B-AD17-4EC8-889B-905E7883DD98-3)" style="fill:#16351f;fill:#d7f2df">$1,130,000</text>
+</g>
+<g class="treemapNode treemapLeafGroup leaf0 priority" transform="translate(40,115)">
+<rect class="treemapLeaf" width="920" height="37" fill="#ff7f0e" fill-opacity="0.3" stroke="#944b08" stroke-width="3.0" style="color:#4a121a;fill:#f8c7cc;stroke:#a53845" />
+<clipPath id="clip-D333412B-AD17-4EC8-889B-905E7883DD98-0">
+<rect width="916" height="33" />
+</clipPath>
+</g>
+<g class="treemapNode treemapLeafGroup leaf1" transform="translate(40,162)">
+<rect class="treemapLeaf" width="920" height="19" fill="#ff7f0e" fill-opacity="0.3" stroke="#944b08" stroke-width="3.0" />
+<clipPath id="clip-D333412B-AD17-4EC8-889B-905E7883DD98-1">
+<rect width="916" height="15" />
+</clipPath>
+</g>
+<g class="treemapNode treemapLeafGroup leaf2" transform="translate(40,191)">
+<rect class="treemapLeaf" width="920" height="7" fill="#ff7f0e" fill-opacity="0.3" stroke="#944b08" stroke-width="3.0" />
+<clipPath id="clip-D333412B-AD17-4EC8-889B-905E7883DD98-2">
+<rect width="916" height="3" />
+</clipPath>
+</g>
+<g class="treemapNode treemapLeafGroup leaf3" transform="translate(40,263)">
+<rect class="treemapLeaf" width="920" height="12" fill="#bcbd22" fill-opacity="0.3" stroke="#6b6e12" stroke-width="3.0" />
+<clipPath id="clip-D333412B-AD17-4EC8-889B-905E7883DD98-3">
+<rect width="916" height="8" />
+</clipPath>
+</g>
+<g class="treemapNode treemapLeafGroup leaf4" transform="translate(40,285)">
+<rect class="treemapLeaf" width="920" height="7" fill="#bcbd22" fill-opacity="0.3" stroke="#6b6e12" stroke-width="3.0" />
+<clipPath id="clip-D333412B-AD17-4EC8-889B-905E7883DD98-4">
+<rect width="916" height="3" />
+</clipPath>
+</g>
+<g class="treemapNode treemapLeafGroup leaf5 priority" transform="translate(35,352)">
+<rect class="treemapLeaf" width="930" height="7" fill="#8c564b" fill-opacity="0.3" stroke="#54332a" stroke-width="3.0" style="color:#4a121a;fill:#f8c7cc;stroke:#a53845" />
+<clipPath id="clip-D333412B-AD17-4EC8-889B-905E7883DD98-5">
+<rect width="926" height="3" />
+</clipPath>
+</g>
+<g class="treemapNode treemapLeafGroup leaf6" transform="translate(35,359)">
+<rect class="treemapLeaf" width="930" height="6" fill="#8c564b" fill-opacity="0.3" stroke="#54332a" stroke-width="3.0" />
+<clipPath id="clip-D333412B-AD17-4EC8-889B-905E7883DD98-6">
+<rect width="926" height="2" />
+</clipPath>
+</g>
+</g>
+</svg>

@@ -1,0 +1,52 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="100%" preserveAspectRatio="xMinYMin meet" style="max-width: 542.0px" viewBox="0 0 542.0 333.0">
+<defs>
+  <style>
+    .frame-border-outer { fill: #666; }
+    .frame-border-inner { fill: #ffffff; }
+    .frame-header-line { stroke: #666; stroke-width: 1; shape-rendering: crispEdges; }
+    .frame-title { font-family: Helvetica, Verdana, serif; font-size: 16px; font-weight: 600; fill: #222; }
+    .participant-box { fill: #ffffff; stroke: #666; stroke-width: 2; }
+    .participant-label { font-family: Helvetica, Verdana, serif; font-size: 16px; fill: #222; }
+    .lifeline { stroke: #666; stroke-width: 1; stroke-dasharray: 5,5; }
+    .message-line { stroke: #000; stroke-width: 2; shape-rendering: crispEdges; }
+    .message-label { font-family: Helvetica, Verdana, serif; font-size: 14px; fill: #222; }
+    .arrow-head { fill: #000; stroke: #000; stroke-width: 2; }
+    .arrow-open { fill: none; stroke: #000; stroke-width: 2; }
+    .fragment-border { fill: none; stroke: #666; stroke-width: 1; shape-rendering: crispEdges; }
+    .fragment-header { fill: #dedede; fill-opacity: 0.498; stroke: none; shape-rendering: crispEdges; }
+    .fragment-label { font-family: Helvetica, Verdana, serif; font-size: 14px; font-weight: 600; fill: #000; }
+    .return-line { stroke: #000; stroke-width: 2; stroke-dasharray: 6,4; shape-rendering: crispEdges; }
+    .return-label { font-family: Helvetica, Verdana, serif; font-size: 14px; fill: #222; }
+    .divider-bg { fill: #fff5ad; stroke: #aaaa33; stroke-width: 1; }
+    .divider-label { font-family: Helvetica, Verdana, serif; font-size: 14px; fill: #333; }
+    .group-outline { fill: none; stroke: #666; stroke-dasharray: 5,5; stroke-width: 1; }
+    .group-title-text { font-family: Helvetica, Verdana, serif; font-size: 13px; font-weight: 400; fill: #222; }
+    .comment-text { font-family: Helvetica, Verdana, serif; font-size: 13px; fill: #666; font-style: italic; }
+  </style>
+</defs>
+<rect class="frame-border-outer" x="0" y="0" width="542.0" height="333.0" rx="4.0" fill="#666"/>
+<rect class="frame-border-inner" x="1" y="1" width="540.0" height="331.0" rx="3.0" fill="#fff"/>
+<line class="frame-header-line" x1="1" y1="33.5" x2="541.0" y2="33.5"/>
+
+<g transform="translate(11.0, 34.0)">
+<line class="lifeline" x1="70.0" y1="90.0" x2="70.0" y2="328.0" stroke-dasharray="none"/>
+<line class="lifeline" x1="230.0" y1="90.0" x2="230.0" y2="328.0" stroke-dasharray="none"/>
+<line class="lifeline" x1="390.0" y1="90.0" x2="390.0" y2="328.0" stroke-dasharray="none"/>
+<rect class="participant-box" x="20.0" y="20.0" width="100.0" height="70.0" rx="4"/>
+<text class="participant-label" x="70.0" y="55.0" text-anchor="middle" dominant-baseline="central">A</text>
+<rect class="participant-box" x="180.0" y="20.0" width="100.0" height="70.0" rx="4"/>
+<text class="participant-label" x="230.0" y="55.0" text-anchor="middle" dominant-baseline="central">B</text>
+<rect class="participant-box" x="340.0" y="20.0" width="100.0" height="70.0" rx="4"/>
+<text class="participant-label" x="390.0" y="55.0" text-anchor="middle" dominant-baseline="central">C</text>
+<line class="message-line" x1="80.0" y1="120.0" x2="220.0" y2="120.0"/>
+<line class="arrow-open" x1="220.0" y1="120.0" x2="212.0" y2="116.0"/>
+<line class="arrow-open" x1="220.0" y1="120.0" x2="212.0" y2="124.0"/>
+<text class="message-label" x="150.0" y="112.0" text-anchor="middle" dominant-baseline="central">step1</text>
+<line class="message-line" x1="240.0" y1="220.0" x2="380.0" y2="220.0"/>
+<line class="arrow-open" x1="380.0" y1="220.0" x2="372.0" y2="216.0"/>
+<line class="arrow-open" x1="380.0" y1="220.0" x2="372.0" y2="224.0"/>
+<text class="message-label" x="310.0" y="212.0" text-anchor="middle" dominant-baseline="central">step2</text>
+<rect class="divider-bg" x="0" y="154.0" width="480.0" height="24.0" rx="2"/>
+<text class="divider-label" x="240.0" y="166.0" text-anchor="middle" dominant-baseline="central">Phase 2==</text>
+</g>
+</svg>

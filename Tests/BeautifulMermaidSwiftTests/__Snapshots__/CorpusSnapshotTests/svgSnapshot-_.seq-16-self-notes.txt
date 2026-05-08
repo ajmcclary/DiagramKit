@@ -1,0 +1,186 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 656.8910000000001 833" width="656.8910000000001" height="833" style="--bg:#FFFFFF;--fg:#27272A;--line:#939394;--accent:#27272A;--muted:#A9A9AA;--surface:#F9F9F9;--border:#D4D4D4;background:#FFFFFF">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap');
+  text { font-family: 'Inter', system-ui, sans-serif; }
+  svg {    /* Derived from --bg and --fg (overridable via --line, --accent, etc.) */
+    --_text:          #27272A;
+    --_text-sec:      #A9A9AA 60%, #FFFFFF));
+    --_text-muted:    #A9A9AA 40%, #FFFFFF));
+    --_text-faint:    #666666;
+    --_line:          #939394 50%, #FFFFFF));
+    --_arrow:         #27272A 85%, #FFFFFF));
+    --_node-fill:     #F9F9F9 3%, #FFFFFF));
+    --_node-stroke:   #D4D4D4 20%, #FFFFFF));
+    --_group-fill:    #FFFFFF;
+    --_group-hdr:     #666666;
+    --_inner-stroke:  #666666;
+    --_key-badge:     #666666;
+    --_note-bkg:      #F5F0C8;
+    --_note-border:   #E0DEB5;
+  }
+</style>
+<defs>
+  <marker id="seq-arrow-filled" markerWidth="8.0" markerHeight="5.0" refX="8.0" refY="2.5" orient="auto-start-reverse">
+    <polygon points="0 0, 8.0 2.5, 0 5.0" fill="#27272A 85%, #FFFFFF))" />
+  </marker>
+  <marker id="seq-arrow-open" markerWidth="8.0" markerHeight="5.0" refX="8.0" refY="2.5" orient="auto-start-reverse">
+    <polyline points="0 0, 8.0 2.5, 0 5.0" fill="none" stroke="#27272A 85%, #FFFFFF))" stroke-width="1" />
+  </marker>
+  <marker id="seq-arrow-cross" markerWidth="16.0" markerHeight="10.0" refX="16.0" refY="5.0" orient="auto-start-reverse">
+    <line x1="8.0" y1="-5.0" x2="0" y2="5.0" stroke="#27272A 85%, #FFFFFF))" stroke-width="1.5" />
+    <line x1="8.0" y1="5.0" x2="0" y2="-5.0" stroke="#27272A 85%, #FFFFFF))" stroke-width="1.5" />
+  </marker>
+  <marker id="seq-arrow-async" markerWidth="8.0" markerHeight="5.0" refX="8.0" refY="2.5" orient="auto-start-reverse">
+    <path d="M 1 2.5 Q 4.0 -1, 7.0 2.5" fill="none" stroke="#27272A 85%, #FFFFFF))" stroke-width="1" />
+  </marker>
+  <marker id="seq-arrow-half-top" markerWidth="8.0" markerHeight="5.0" refX="8.0" refY="2.5" orient="auto-start-reverse">
+    <polygon points="0 0, 8.0 2.5, 0 2.5" fill="#27272A 85%, #FFFFFF))" />
+  </marker>
+  <marker id="seq-arrow-half-bottom" markerWidth="8.0" markerHeight="5.0" refX="8.0" refY="2.5" orient="auto-start-reverse">
+    <polygon points="0 2.5, 8.0 2.5, 0 5.0" fill="#27272A 85%, #FFFFFF))" />
+  </marker>
+  <marker id="seq-arrow-stick-top" markerWidth="8.0" markerHeight="5.0" refX="8.0" refY="2.5" orient="auto-start-reverse">
+    <line x1="0" y1="0" x2="0" y2="2.5" stroke="#27272A 85%, #FFFFFF))" stroke-width="1.5" />
+    <line x1="8.0" y1="0" x2="0" y2="0" stroke="#27272A 85%, #FFFFFF))" stroke-width="1.5" />
+  </marker>
+  <marker id="seq-arrow-stick-bottom" markerWidth="8.0" markerHeight="5.0" refX="8.0" refY="2.5" orient="auto-start-reverse">
+    <line x1="0" y1="2.5" x2="0" y2="5.0" stroke="#27272A 85%, #FFFFFF))" stroke-width="1.5" />
+    <line x1="8.0" y1="2.5" x2="0" y2="2.5" stroke="#27272A 85%, #FFFFFF))" stroke-width="1.5" />
+  </marker>
+  <marker id="seq-arrow-half-top-rev" markerWidth="8.0" markerHeight="5.0" refX="8.0" refY="2.5" orient="auto-start-reverse">
+    <polygon points="0 2.5, 8.0 0, 0 0" fill="#27272A 85%, #FFFFFF))" />
+  </marker>
+  <marker id="seq-arrow-half-bottom-rev" markerWidth="8.0" markerHeight="5.0" refX="8.0" refY="2.5" orient="auto-start-reverse">
+    <polygon points="0 2.5, 8.0 5.0, 0 5.0" fill="#27272A 85%, #FFFFFF))" />
+  </marker>
+  <marker id="seq-arrow-stick-top-rev" markerWidth="8.0" markerHeight="5.0" refX="8.0" refY="2.5" orient="auto-start-reverse">
+    <line x1="0" y1="0" x2="0" y2="2.5" stroke="#27272A 85%, #FFFFFF))" stroke-width="1.5" />
+    <line x1="8.0" y1="2.5" x2="0" y2="2.5" stroke="#27272A 85%, #FFFFFF))" stroke-width="1.5" />
+  </marker>
+  <marker id="seq-arrow-stick-bottom-rev" markerWidth="8.0" markerHeight="5.0" refX="8.0" refY="2.5" orient="auto-start-reverse">
+    <line x1="0" y1="2.5" x2="0" y2="5.0" stroke="#27272A 85%, #FFFFFF))" stroke-width="1.5" />
+    <line x1="8.0" y1="0" x2="0" y2="0" stroke="#27272A 85%, #FFFFFF))" stroke-width="1.5" />
+  </marker>
+  <marker id="seq-arrow-half-top-rev-dot" markerWidth="8.0" markerHeight="5.0" refX="8.0" refY="2.5" orient="auto-start-reverse">
+    <polygon points="0 2.5, 8.0 0, 0 0" fill="#27272A 85%, #FFFFFF))" />
+  </marker>
+  <marker id="seq-arrow-half-bottom-rev-dot" markerWidth="8.0" markerHeight="5.0" refX="8.0" refY="2.5" orient="auto-start-reverse">
+    <polygon points="0 2.5, 8.0 5.0, 0 5.0" fill="#27272A 85%, #FFFFFF))" />
+  </marker>
+  <marker id="seq-arrow-stick-top-rev-dot" markerWidth="8.0" markerHeight="5.0" refX="8.0" refY="2.5" orient="auto-start-reverse">
+    <line x1="0" y1="0" x2="0" y2="2.5" stroke="#27272A 85%, #FFFFFF))" stroke-width="1.5" />
+    <line x1="8.0" y1="2.5" x2="0" y2="2.5" stroke="#27272A 85%, #FFFFFF))" stroke-width="1.5" />
+  </marker>
+  <marker id="seq-arrow-stick-bottom-rev-dot" markerWidth="8.0" markerHeight="5.0" refX="8.0" refY="2.5" orient="auto-start-reverse">
+    <line x1="0" y1="2.5" x2="0" y2="5.0" stroke="#27272A 85%, #FFFFFF))" stroke-width="1.5" />
+    <line x1="8.0" y1="0" x2="0" y2="0" stroke="#27272A 85%, #FFFFFF))" stroke-width="1.5" />
+  </marker>
+</defs>
+<g class="block" data-type="alt" data-label="Multiple panels">
+<rect class="loopLine" x="159.029" y="257.0" width="447.8620000000001" height="513.0" rx="0" ry="0" fill="none" stroke="#D4D4D4 20%, #FFFFFF))" stroke-width="1.0" />
+<rect class="labelBox" x="159.029" y="257.0" width="115.99000000000002" height="18.0" fill="#666666" stroke="#D4D4D4 20%, #FFFFFF))" stroke-width="1.0" />
+<text class="labelText loopText" x="165.029" y="266.0" font-size="11.0" text-anchor="start" fill="#A9A9AA 40%, #FFFFFF))" font-weight="600">alt [Multiple panels]</text>
+<line x1="159.029" y1="483.0" x2="606.8910000000001" y2="483.0" stroke="#939394 50%, #FFFFFF))" stroke-width="0.75" stroke-dasharray="6 4" />
+<text class="divider-label" x="167.029" y="497.0" font-size="11.0" text-anchor="start" fill="#A9A9AA 40%, #FFFFFF))">[Single panel]</text>
+</g>
+<line class="lifeline actor-line" data-actor="User" x1="87.5" y1="75.0" x2="87.5" y2="823.0" stroke="#939394 50%, #FFFFFF))" stroke-width="0.75" stroke-dasharray="6 4" />
+<line class="lifeline actor-line" data-actor="Main" x1="227.5" y1="75.0" x2="227.5" y2="823.0" stroke="#939394 50%, #FFFFFF))" stroke-width="0.75" stroke-dasharray="6 4" />
+<line class="lifeline actor-line" data-actor="Renderer" x1="371.845" y1="75.0" x2="371.845" y2="823.0" stroke="#939394 50%, #FFFFFF))" stroke-width="0.75" stroke-dasharray="6 4" />
+<line class="lifeline actor-line" data-actor="Timer" x1="527.3050000000001" y1="75.0" x2="527.3050000000001" y2="823.0" stroke="#939394 50%, #FFFFFF))" stroke-width="0.75" stroke-dasharray="6 4" />
+<g class="message" data-from="User" data-to="Main" data-label="CMD+W" data-arrow-type="0" data-self="false">
+<line class="messageLine0" x1="87.5" y1="85.0" x2="227.5" y2="85.0" stroke="#939394 50%, #FFFFFF))" stroke-width="1.0" marker-end="url(#seq-arrow-filled)" />
+<text class="messageText" x="157.5" y="79.0" font-size="11.0" text-anchor="middle" fill="#A9A9AA 40%, #FFFFFF))">CMD+W</text>
+</g>
+<g class="message" data-from="Main" data-to="Main" data-label="event.preventDefault()" data-arrow-type="0" data-self="true">
+<polyline class="messageLine1" points="227.5,120.0 257.5,120.0 257.5,140.0 227.5,140.0" fill="none" stroke="#939394 50%, #FFFFFF))" stroke-width="1.0" marker-end="url(#seq-arrow-filled)" />
+<text class="messageText" x="265.5" y="130.0" font-size="11.0" text-anchor="start" fill="#A9A9AA 40%, #FFFFFF))">event.preventDefault()</text>
+</g>
+<g class="message" data-from="Main" data-to="Renderer" data-label="WINDOW_CLOSE_REQUESTED" data-arrow-type="0" data-self="false">
+<line class="messageLine0" x1="227.5" y1="185.0" x2="371.845" y2="185.0" stroke="#939394 50%, #FFFFFF))" stroke-width="1.0" marker-end="url(#seq-arrow-filled)" />
+<text class="messageText" x="299.6725" y="179.0" font-size="11.0" text-anchor="middle" fill="#A9A9AA 40%, #FFFFFF))">WINDOW_CLOSE_REQUESTED</text>
+</g>
+<g class="message" data-from="Main" data-to="Timer" data-label="Start 3s timer" data-arrow-type="0" data-self="false">
+<line class="messageLine1" x1="227.5" y1="220.0" x2="527.3050000000001" y2="220.0" stroke="#939394 50%, #FFFFFF))" stroke-width="1.0" marker-end="url(#seq-arrow-filled)" />
+<text class="messageText" x="377.40250000000003" y="214.0" font-size="11.0" text-anchor="middle" fill="#A9A9AA 40%, #FFFFFF))">Start 3s timer</text>
+</g>
+<g class="message" data-from="Renderer" data-to="Renderer" data-label="closePanel(focusedId)" data-arrow-type="0" data-self="true">
+<polyline class="messageLine0" points="371.845,295.0 401.845,295.0 401.845,315.0 371.845,315.0" fill="none" stroke="#939394 50%, #FFFFFF))" stroke-width="1.0" marker-end="url(#seq-arrow-filled)" />
+<text class="messageText" x="409.845" y="305.0" font-size="11.0" text-anchor="start" fill="#A9A9AA 40%, #FFFFFF))">closePanel(focusedId)</text>
+</g>
+<g class="message" data-from="Timer" data-to="Main" data-label="3s elapsed → window.destroy()" data-arrow-type="1" data-self="false">
+<line class="messageLine1" x1="527.3050000000001" y1="442.0" x2="227.5" y2="442.0" stroke="#939394 50%, #FFFFFF))" stroke-width="1.0" stroke-dasharray="6 4" marker-end="url(#seq-arrow-filled)" />
+<text class="messageText" x="377.40250000000003" y="436.0" font-size="11.0" text-anchor="middle" fill="#A9A9AA 40%, #FFFFFF))">3s elapsed → window.destroy()</text>
+</g>
+<g class="message" data-from="Renderer" data-to="Renderer" data-label="closePanel(lastId)" data-arrow-type="0" data-self="true">
+<polyline class="messageLine0" points="371.845,501.0 401.845,501.0 401.845,521.0 371.845,521.0" fill="none" stroke="#939394 50%, #FFFFFF))" stroke-width="1.0" marker-end="url(#seq-arrow-filled)" />
+<text class="messageText" x="409.845" y="511.0" font-size="11.0" text-anchor="start" fill="#A9A9AA 40%, #FFFFFF))">closePanel(lastId)</text>
+</g>
+<g class="message" data-from="Renderer" data-to="Renderer" data-label="Auto-select fires → new panel created!" data-arrow-type="0" data-self="true">
+<polyline class="messageLine1" points="371.845,607.0 401.845,607.0 401.845,627.0 371.845,627.0" fill="none" stroke="#939394 50%, #FFFFFF))" stroke-width="1.0" marker-end="url(#seq-arrow-filled)" />
+<text class="messageText" x="409.845" y="617.0" font-size="11.0" text-anchor="start" fill="#A9A9AA 40%, #FFFFFF))">Auto-select fires → new panel created!</text>
+</g>
+<g class="message" data-from="Timer" data-to="Main" data-label="3s elapsed → window.destroy()" data-arrow-type="1" data-self="false">
+<line class="messageLine0" x1="527.3050000000001" y1="713.0" x2="227.5" y2="713.0" stroke="#939394 50%, #FFFFFF))" stroke-width="1.0" stroke-dasharray="6 4" marker-end="url(#seq-arrow-filled)" />
+<text class="messageText" x="377.40250000000003" y="707.0" font-size="11.0" text-anchor="middle" fill="#A9A9AA 40%, #FFFFFF))">3s elapsed → window.destroy()</text>
+</g>
+<g class="note" data-position="over" data-actors="Renderer">
+  <rect class="note" x="311.845" y="299.0" width="120.0" height="27.0" fill="#666666" stroke="#D4D4D4 20%, #FFFFFF))" stroke-width="0.75" />
+  <polygon points="425.845,299.0 431.845,305.0 425.845,305.0" fill="#666666" />
+  <text class="noteText" x="371.845" y="312.5" font-size="11.0" text-anchor="middle" fill="#A9A9AA 40%, #FFFFFF))">Panel removed</text>
+</g>
+<g class="note" data-position="over" data-actors="Renderer">
+  <rect class="note" x="305.40200000000004" y="299.0" width="132.886" height="27.0" fill="#666666" stroke="#D4D4D4 20%, #FFFFFF))" stroke-width="0.75" />
+  <polygon points="432.288,299.0 438.288,305.0 432.288,305.0" fill="#666666" />
+  <text class="noteText" x="371.845" y="312.5" font-size="11.0" text-anchor="middle" fill="#A9A9AA 40%, #FFFFFF))">No confirmCloseWindow!</text>
+</g>
+<g class="note" data-position="over" data-actors="Renderer">
+  <rect class="note" x="311.845" y="505.0" width="120.0" height="27.0" fill="#666666" stroke="#D4D4D4 20%, #FFFFFF))" stroke-width="0.75" />
+  <polygon points="425.845,505.0 431.845,511.0 425.845,511.0" fill="#666666" />
+  <text class="noteText" x="371.845" y="518.5" font-size="11.0" text-anchor="middle" fill="#A9A9AA 40%, #FFFFFF))">Stack becomes []</text>
+</g>
+<g class="note" data-position="over" data-actors="Renderer">
+  <rect class="note" x="311.845" y="611.0" width="120.0" height="27.0" fill="#666666" stroke="#D4D4D4 20%, #FFFFFF))" stroke-width="0.75" />
+  <polygon points="425.845,611.0 431.845,617.0 425.845,617.0" fill="#666666" />
+  <text class="noteText" x="371.845" y="624.5" font-size="11.0" text-anchor="middle" fill="#A9A9AA 40%, #FFFFFF))">Panel reopens</text>
+</g>
+<g class="actor"data-id="User" data-label="User" data-type="participant">
+<rect x="50.0" y="10.0" width="75.0" height="65.0" rx="4" ry="4" fill="#F9F9F9 3%, #FFFFFF))" stroke="#D4D4D4 20%, #FFFFFF))" stroke-width="1.0" />
+<text class="actor-label" x="87.5" y="42.5" font-size="13.0" text-anchor="middle" fill="#A9A9AA 40%, #FFFFFF))">User</text>
+</g>
+<g class="actor"data-id="Main" data-label="Main Process" data-type="participant">
+<rect x="169.029" y="10.0" width="116.942" height="65.0" rx="4" ry="4" fill="#F9F9F9 3%, #FFFFFF))" stroke="#D4D4D4 20%, #FFFFFF))" stroke-width="1.0" />
+<text class="actor-label" x="227.5" y="42.5" font-size="13.0" text-anchor="middle" fill="#A9A9AA 40%, #FFFFFF))">Main Process</text>
+</g>
+<g class="actor"data-id="Renderer" data-label="Renderer" data-type="participant">
+<rect x="325.971" y="10.0" width="91.74799999999999" height="65.0" rx="4" ry="4" fill="#F9F9F9 3%, #FFFFFF))" stroke="#D4D4D4 20%, #FFFFFF))" stroke-width="1.0" />
+<text class="actor-label" x="371.845" y="42.5" font-size="13.0" text-anchor="middle" fill="#A9A9AA 40%, #FFFFFF))">Renderer</text>
+</g>
+<g class="actor"data-id="Timer" data-label="3s Fallback Timer" data-type="participant">
+<rect x="457.71900000000005" y="10.0" width="139.17200000000003" height="65.0" rx="4" ry="4" fill="#F9F9F9 3%, #FFFFFF))" stroke="#D4D4D4 20%, #FFFFFF))" stroke-width="1.0" />
+<text class="actor-label" x="527.3050000000001" y="42.5" font-size="13.0" text-anchor="middle" fill="#A9A9AA 40%, #FFFFFF))">3s Fallback Timer</text>
+</g>
+<g class="actor"data-id="User" data-label="User" data-type="participant">
+<rect x="50.0" y="758.0" width="75.0" height="65.0" rx="4" ry="4" fill="#F9F9F9 3%, #FFFFFF))" stroke="#D4D4D4 20%, #FFFFFF))" stroke-width="1.0" />
+<text class="actor-label" x="87.5" y="790.5" font-size="13.0" text-anchor="middle" fill="#A9A9AA 40%, #FFFFFF))">User</text>
+</g>
+<g class="actor"data-id="Main" data-label="Main Process" data-type="participant">
+<rect x="169.029" y="758.0" width="116.942" height="65.0" rx="4" ry="4" fill="#F9F9F9 3%, #FFFFFF))" stroke="#D4D4D4 20%, #FFFFFF))" stroke-width="1.0" />
+<text class="actor-label" x="227.5" y="790.5" font-size="13.0" text-anchor="middle" fill="#A9A9AA 40%, #FFFFFF))">Main Process</text>
+</g>
+<g class="actor"data-id="Renderer" data-label="Renderer" data-type="participant">
+<rect x="325.971" y="758.0" width="91.74799999999999" height="65.0" rx="4" ry="4" fill="#F9F9F9 3%, #FFFFFF))" stroke="#D4D4D4 20%, #FFFFFF))" stroke-width="1.0" />
+<text class="actor-label" x="371.845" y="790.5" font-size="13.0" text-anchor="middle" fill="#A9A9AA 40%, #FFFFFF))">Renderer</text>
+</g>
+<g class="actor"data-id="Timer" data-label="3s Fallback Timer" data-type="participant">
+<rect x="457.71900000000005" y="758.0" width="139.17200000000003" height="65.0" rx="4" ry="4" fill="#F9F9F9 3%, #FFFFFF))" stroke="#D4D4D4 20%, #FFFFFF))" stroke-width="1.0" />
+<text class="actor-label" x="527.3050000000001" y="790.5" font-size="13.0" text-anchor="middle" fill="#A9A9AA 40%, #FFFFFF))">3s Fallback Timer</text>
+</g>
+<script type="text/javascript">
+function popupMenuToggle(popId) {
+  var pop = document.getElementById(popId);
+  if (!pop) return;
+  var vis = pop.getAttribute('visibility') === 'visible' ? 'hidden' : 'visible';
+  pop.setAttribute('visibility', vis);
+}
+</script>
+</svg>

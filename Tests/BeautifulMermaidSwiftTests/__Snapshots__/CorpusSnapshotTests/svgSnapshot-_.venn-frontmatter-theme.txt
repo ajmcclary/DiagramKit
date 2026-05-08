@@ -1,0 +1,19 @@
+<svg id="C97830EE-42B6-47E4-86E0-F86B1B00D7F2" viewBox="0 0 1000 600" xmlns="http://www.w3.org/2000/svg">
+<rect width="100%" height="100%" fill="#FFFFFF" />
+<text class="venn-title" x="50%" y="20" text-anchor="middle" dominant-baseline="middle" font-family="Inter" font-size="20px" fill="#27272A">Skills Overlap</text>
+<g transform="translate(0, 30)">
+<g class="venn-circle venn-set-0">
+<circle cx="500.57" cy="179.10" r="179.50" fill="#ff6b6b" fill-opacity="0.100" stroke="#ff6b6b" stroke-width="3.12" stroke-opacity="0.950" />
+<text x="500.57" y="179.10" font-size="30px" fill="#994040" text-anchor="middle" dominant-baseline="middle" font-family="Inter">Frontend</text>
+</g>
+<g class="venn-circle venn-set-1">
+<circle cx="500.67" cy="400.40" r="139.04" fill="#4ecdc4" fill-opacity="0.100" stroke="#4ecdc4" stroke-width="3.12" stroke-opacity="0.950" />
+<text x="500.67" y="400.40" font-size="30px" fill="#2E7B75" text-anchor="middle" dominant-baseline="middle" font-family="Inter">Backend</text>
+</g>
+<g class="venn-intersection">
+<path d="M 613.260 318.817 A 139.040 139.040 0 0 0 388.005 318.918 A 179.500 179.500 0 0 1 613.260 318.817 Z" fill="#45b7d1" fill-opacity="0.000" stroke="#45b7d1" stroke-width="3.12" />
+<text x="500.63" y="318.87" font-size="30px" fill="#296D7D" text-anchor="middle" dominant-baseline="middle" font-family="Inter">Fullstack</text>
+</g>
+</g>
+<style>#C97830EE-42B6-47E4-86E0-F86B1B00D7F2 { max-width: 100%; }</style>
+</svg>

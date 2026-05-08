@@ -1,0 +1,160 @@
+<svg id="gitgraph-A21BD477-CCD2-490A-B947-2C759F00F4C0" viewBox="0 0 514 316" width="514" height="316" xmlns="http://www.w3.org/2000/svg">
+  <style>
+.branch-label0 { fill: #333; }
+.commit0 { stroke: #333; fill: #333; }
+.commit-highlight0 { stroke: #fff; fill: #fff; }
+.label0 { fill: #333; }
+.arrow0 { stroke: #333; }
+.branch-label1 { fill: #333; }
+.commit1 { stroke: #333; fill: #333; }
+.commit-highlight1 { stroke: #fff; fill: #fff; }
+.label1 { fill: #333; }
+.arrow1 { stroke: #333; }
+.branch-label2 { fill: #333; }
+.commit2 { stroke: #333; fill: #333; }
+.commit-highlight2 { stroke: #fff; fill: #fff; }
+.label2 { fill: #333; }
+.arrow2 { stroke: #333; }
+.branch-label3 { fill: #333; }
+.commit3 { stroke: #333; fill: #333; }
+.commit-highlight3 { stroke: #fff; fill: #fff; }
+.label3 { fill: #333; }
+.arrow3 { stroke: #333; }
+.branch-label4 { fill: #333; }
+.commit4 { stroke: #333; fill: #333; }
+.commit-highlight4 { stroke: #fff; fill: #fff; }
+.label4 { fill: #333; }
+.arrow4 { stroke: #333; }
+.branch-label5 { fill: #333; }
+.commit5 { stroke: #333; fill: #333; }
+.commit-highlight5 { stroke: #fff; fill: #fff; }
+.label5 { fill: #333; }
+.arrow5 { stroke: #333; }
+.branch-label6 { fill: #333; }
+.commit6 { stroke: #333; fill: #333; }
+.commit-highlight6 { stroke: #fff; fill: #fff; }
+.label6 { fill: #333; }
+.arrow6 { stroke: #333; }
+.branch-label7 { fill: #333; }
+.commit7 { stroke: #333; fill: #333; }
+.commit-highlight7 { stroke: #fff; fill: #fff; }
+.label7 { fill: #333; }
+.arrow7 { stroke: #333; }
+.commit-id,
+.commit-msg,
+.branch-label {
+  fill: lightgrey;
+  color: lightgrey;
+  font-family: var(--mermaid-font-family);
+}
+
+.branch {
+  stroke-width: 2;
+  stroke: #888888;
+  stroke-dasharray: 2;
+}
+.commit-label { font-size: 12px; fill: #333333; }
+.commit-label-bkg { font-size: 12px; fill: #f2f2f2; opacity: 0.5; }
+.tag-label { font-size: 10px; fill: #333333; }
+.tag-label-bkg { fill: #eeeeee; stroke: #777777; }
+.tag-hole { fill: #333333; }
+.commit-merge {
+  stroke: #333333;
+  fill: #333333;
+}
+.commit-reverse {
+  stroke: #333333;
+  fill: #333333;
+  stroke-width: 3;
+}
+.commit-highlight-outer {}
+.commit-highlight-inner {
+  stroke: #333333;
+  fill: #333333;
+}
+.arrow {
+  stroke-width: 8;
+  stroke-linecap: round;
+  fill: none;
+}
+.gitTitleText {
+  text-anchor: middle;
+  font-size: 18px;
+  fill: #333333;
+}  </style>
+  <defs>
+    <marker id="arrowhead-A21BD477-CCD2-490A-B947-2C759F00F4C0" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#666" />
+    </marker>
+  </defs>
+  <g class="commit-bullets">
+    <circle cx="40.0" cy="30.0" r="10" class="commit 0-EMX6Ndw commit0 commit-normal" fill="#2f80ed" stroke="#2f80ed" />
+    <circle cx="80.0" cy="30.0" r="10" class="commit 1-QkSjtog commit0 commit-normal" fill="#2f80ed" stroke="#2f80ed" />
+    <circle cx="120.0" cy="120.0" r="10" class="commit 2-0FYkFXw commit1 commit-normal" fill="#27ae60" stroke="#27ae60" />
+    <circle cx="160.0" cy="120.0" r="10" class="commit 3-Q9TBxR2 commit1 commit-normal" fill="#27ae60" stroke="#27ae60" />
+    <circle cx="200.0" cy="30.0" r="10" class="commit 4-LJ3z8fc commit0 commit-merge" fill="#2f80ed" stroke="#2f80ed" />
+    <circle cx="200.0" cy="30.0" r="6" class="commit commit-merge 4-LJ3z8fc commit0" fill="#ffffff" />
+    <circle cx="240.0" cy="210.0" r="10" class="commit 5-tAXjZZ3 commit2 commit-normal" fill="#f2994a" stroke="#f2994a" />
+    <circle cx="280.0" cy="210.0" r="10" class="commit 6-woYAbep commit2 commit-normal" fill="#f2994a" stroke="#f2994a" />
+    <circle cx="320.0" cy="30.0" r="10" class="commit 7-YfcMczg commit0 commit-merge" fill="#2f80ed" stroke="#2f80ed" />
+    <circle cx="320.0" cy="30.0" r="6" class="commit commit-merge 7-YfcMczg commit0" fill="#ffffff" />
+    <circle cx="360.0" cy="30.0" r="10" class="commit 8-eMDpcDw commit0 commit-normal" fill="#2f80ed" stroke="#2f80ed" />
+  </g>
+  <g class="commit-labels">
+    <g transform="rotate(-45 40.0 30.0)">
+      <rect x="0.0" y="46.0" width="80.0" height="18" class="commit-label-bkg" rx="3" fill="#f2f2f2" />
+      <text x="8.0" y="60.0" class="commit-label" font-size="12" fill="#333333">0-EMX6Ndw</text>
+    </g>
+    <g transform="rotate(-45 80.0 30.0)">
+      <rect x="40.0" y="46.0" width="80.0" height="18" class="commit-label-bkg" rx="3" fill="#f2f2f2" />
+      <text x="48.0" y="60.0" class="commit-label" font-size="12" fill="#333333">1-QkSjtog</text>
+    </g>
+    <g transform="rotate(-45 120.0 120.0)">
+      <rect x="80.0" y="136.0" width="80.0" height="18" class="commit-label-bkg" rx="3" fill="#f2f2f2" />
+      <text x="88.0" y="150.0" class="commit-label" font-size="12" fill="#333333">2-0FYkFXw</text>
+    </g>
+    <g transform="rotate(-45 160.0 120.0)">
+      <rect x="120.0" y="136.0" width="80.0" height="18" class="commit-label-bkg" rx="3" fill="#f2f2f2" />
+      <text x="128.0" y="150.0" class="commit-label" font-size="12" fill="#333333">3-Q9TBxR2</text>
+    </g>
+    <g transform="rotate(-45 240.0 210.0)">
+      <rect x="200.0" y="226.0" width="80.0" height="18" class="commit-label-bkg" rx="3" fill="#f2f2f2" />
+      <text x="208.0" y="240.0" class="commit-label" font-size="12" fill="#333333">5-tAXjZZ3</text>
+    </g>
+    <g transform="rotate(-45 280.0 210.0)">
+      <rect x="240.0" y="226.0" width="80.0" height="18" class="commit-label-bkg" rx="3" fill="#f2f2f2" />
+      <text x="248.0" y="240.0" class="commit-label" font-size="12" fill="#333333">6-woYAbep</text>
+    </g>
+    <g transform="rotate(-45 360.0 30.0)">
+      <rect x="320.0" y="46.0" width="80.0" height="18" class="commit-label-bkg" rx="3" fill="#f2f2f2" />
+      <text x="328.0" y="60.0" class="commit-label" font-size="12" fill="#333333">8-eMDpcDw</text>
+    </g>
+  </g>
+  <g class="commit-arrows">
+    <path d="M 40.0 30.0 L 60.0 30.0 L 60.0 30.0 L 80.0 30.0" class="arrow arrow arrow0 branch" fill="none" stroke="#2f80ed" stroke-width="2" marker-end="url(#arrowhead-A21BD477-CCD2-490A-B947-2C759F00F4C0)" />
+    <path d="M 80.0 30.0 L 100.0 30.0 L 100.0 120.0 L 120.0 120.0" class="arrow arrow arrow1 branch" fill="none" stroke="#27ae60" stroke-width="2" marker-end="url(#arrowhead-A21BD477-CCD2-490A-B947-2C759F00F4C0)" />
+    <path d="M 120.0 120.0 L 140.0 120.0 L 140.0 120.0 L 160.0 120.0" class="arrow arrow arrow1 branch" fill="none" stroke="#27ae60" stroke-width="2" marker-end="url(#arrowhead-A21BD477-CCD2-490A-B947-2C759F00F4C0)" />
+    <path d="M 80.0 30.0 L 140.0 30.0 L 140.0 30.0 L 200.0 30.0" class="arrow arrow arrow0 branch" fill="none" stroke="#2f80ed" stroke-width="2" marker-end="url(#arrowhead-A21BD477-CCD2-490A-B947-2C759F00F4C0)" />
+    <path d="M 160.0 120.0 L 180.0 120.0 L 180.0 30.0 L 200.0 30.0" class="arrow arrow arrow1 branch" fill="none" stroke="#27ae60" stroke-width="2" marker-end="url(#arrowhead-A21BD477-CCD2-490A-B947-2C759F00F4C0)" />
+    <path d="M 200.0 30.0 L 220.0 30.0 L 220.0 210.0 L 240.0 210.0" class="arrow arrow arrow2 branch" fill="none" stroke="#f2994a" stroke-width="2" marker-end="url(#arrowhead-A21BD477-CCD2-490A-B947-2C759F00F4C0)" />
+    <path d="M 240.0 210.0 L 260.0 210.0 L 260.0 210.0 L 280.0 210.0" class="arrow arrow arrow2 branch" fill="none" stroke="#f2994a" stroke-width="2" marker-end="url(#arrowhead-A21BD477-CCD2-490A-B947-2C759F00F4C0)" />
+    <path d="M 200.0 30.0 L 260.0 30.0 L 260.0 30.0 L 320.0 30.0" class="arrow arrow arrow0 branch" fill="none" stroke="#2f80ed" stroke-width="2" marker-end="url(#arrowhead-A21BD477-CCD2-490A-B947-2C759F00F4C0)" />
+    <path d="M 280.0 210.0 L 300.0 210.0 L 300.0 30.0 L 320.0 30.0" class="arrow arrow arrow2 branch" fill="none" stroke="#f2994a" stroke-width="2" marker-end="url(#arrowhead-A21BD477-CCD2-490A-B947-2C759F00F4C0)" />
+    <path d="M 320.0 30.0 L 340.0 30.0 L 340.0 30.0 L 360.0 30.0" class="arrow arrow arrow0 branch" fill="none" stroke="#2f80ed" stroke-width="2" marker-end="url(#arrowhead-A21BD477-CCD2-490A-B947-2C759F00F4C0)" />
+  </g>
+<line x1="30.0" y1="118.0" x2="400.0" y2="118.0" class="branch branch1" stroke="#27ae60" stroke-width="1" stroke-dasharray="2" />
+<line x1="30.0" y1="208.0" x2="400.0" y2="208.0" class="branch branch2" stroke="#f2994a" stroke-width="1" stroke-dasharray="2" />
+<line x1="30.0" y1="28.0" x2="400.0" y2="28.0" class="branch branch0" stroke="#2f80ed" stroke-width="1" stroke-dasharray="2" />
+<g transform="translate(-88.80000000000001 118.0)" class="branchLabel label">
+  <rect x="-113.80000000000001" y="-14.5" width="78.80000000000001" height="29.0" rx="4.0" ry="4.0" class="branchLabelBkg label1" fill="#27ae60" style="" />
+  <text class="branch-label branch-label1" fill="#ffffff"><tspan x="0" dy="1em">develop</tspan></text>
+</g>
+<g transform="translate(-88.80000000000001 208.0)" class="branchLabel label">
+  <rect x="-113.80000000000001" y="-14.5" width="78.80000000000001" height="29.0" rx="4.0" ry="4.0" class="branchLabelBkg label2" fill="#f2994a" style="" />
+  <text class="branch-label branch-label2" fill="#ffffff"><tspan x="0" dy="1em">feature</tspan></text>
+</g>
+<g transform="translate(-63.6 28.0)" class="branchLabel label">
+  <rect x="-88.6" y="-14.5" width="53.6" height="29.0" rx="4.0" ry="4.0" class="branchLabelBkg label0" fill="#2f80ed" style="" />
+  <text class="branch-label branch-label0" fill="#ffffff"><tspan x="0" dy="1em">main</tspan></text>
+</g>
+</svg>

@@ -1,0 +1,83 @@
+<svg id="88909A25-374F-4493-A8C1-3ABB8BB169CB" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="1100" height="379.3" viewBox="0 0 1100 379.3" style="--bg:#FFFFFF;--fg:#27272A;--line:#939394;--accent:#27272A;--muted:#A9A9AA;--surface:#F9F9F9;--border:#D4D4D4;background:#FFFFFF">
+<defs>
+<marker id="88909A25-374F-4493-A8C1-3ABB8BB169CB-arrowhead" refX="5" refY="2" markerWidth="6" markerHeight="4" orient="auto">
+<path d="M 0,0 V 4 L6,2 Z" class="arrowheadPath" fill="#939394"/>
+</marker>
+</defs>
+<g class="taskWrapper">
+<rect class="node-bkg node-0" x="150" y="90" width="150" height="43.1" fill="#0052CC" stroke="#0052CC" stroke-width="1" rx="3" ry="3"/>
+<line class="node-line-0" x1="150" y1="133.1" x2="300" y2="133.1" stroke="#003380" stroke-width="3"/>
+<switch>
+<foreignObject x="150" y="90" width="150" height="43.1" position="fixed"><div xmlns="http://www.w3.org/1999/xhtml" class="label" style="display:table;width:100%;height:100%;text-align:center;font-size:14px;font-family:&quot;Open Sans&quot;, sans-serif;color:#ffffff"><div style="display:table-cell;vertical-align:middle">2002</div></div></foreignObject>
+<text text-anchor="middle" dominant-baseline="central" fill="#ffffff" font-size="14" font-family="&quot;Open Sans&quot;, sans-serif"><tspan x="225" y="111.5">2002</tspan></text>
+</switch>
+</g>
+<g class="taskWrapper">
+<rect class="node-bkg node-1" x="350" y="90" width="150" height="43.1" fill="#0065FF" stroke="#0065FF" stroke-width="1" rx="3" ry="3"/>
+<line class="node-line-1" x1="350" y1="133.1" x2="500" y2="133.1" stroke="#003D99" stroke-width="3"/>
+<switch>
+<foreignObject x="350" y="90" width="150" height="43.1" position="fixed"><div xmlns="http://www.w3.org/1999/xhtml" class="label" style="display:table;width:100%;height:100%;text-align:center;font-size:14px;font-family:&quot;Open Sans&quot;, sans-serif;color:#ffffff"><div style="display:table-cell;vertical-align:middle">2004</div></div></foreignObject>
+<text text-anchor="middle" dominant-baseline="central" fill="#ffffff" font-size="14" font-family="&quot;Open Sans&quot;, sans-serif"><tspan x="425" y="111.5">2004</tspan></text>
+</switch>
+</g>
+<g class="taskWrapper">
+<rect class="node-bkg node-2" x="550" y="90" width="150" height="43.1" fill="#2684FF" stroke="#2684FF" stroke-width="1" rx="3" ry="3"/>
+<line class="node-line-2" x1="550" y1="133.1" x2="700" y2="133.1" stroke="#1750B3" stroke-width="3"/>
+<switch>
+<foreignObject x="550" y="90" width="150" height="43.1" position="fixed"><div xmlns="http://www.w3.org/1999/xhtml" class="label" style="display:table;width:100%;height:100%;text-align:center;font-size:14px;font-family:&quot;Open Sans&quot;, sans-serif;color:#ffffff"><div style="display:table-cell;vertical-align:middle">2005</div></div></foreignObject>
+<text text-anchor="middle" dominant-baseline="central" fill="#ffffff" font-size="14" font-family="&quot;Open Sans&quot;, sans-serif"><tspan x="625" y="111.5">2005</tspan></text>
+</switch>
+</g>
+<g class="taskWrapper">
+<rect class="node-bkg node-3" x="750" y="90" width="150" height="43.1" fill="#4C9AFF" stroke="#4C9AFF" stroke-width="1" rx="3" ry="3"/>
+<line class="node-line-3" x1="750" y1="133.1" x2="900" y2="133.1" stroke="#3063B3" stroke-width="3"/>
+<switch>
+<foreignObject x="750" y="90" width="150" height="43.1" position="fixed"><div xmlns="http://www.w3.org/1999/xhtml" class="label" style="display:table;width:100%;height:100%;text-align:center;font-size:14px;font-family:&quot;Open Sans&quot;, sans-serif;color:#ffffff"><div style="display:table-cell;vertical-align:middle">2006</div></div></foreignObject>
+<text text-anchor="middle" dominant-baseline="central" fill="#ffffff" font-size="14" font-family="&quot;Open Sans&quot;, sans-serif"><tspan x="825" y="111.5">2006</tspan></text>
+</switch>
+</g>
+<g class="eventWrapper" filter="brightness(120%)">
+<rect class="node-bkg" x="150" y="233.1" width="150" height="43.1" fill="#0052CC" stroke="#0052CC" stroke-width="1" rx="3" ry="3"/>
+<switch>
+<foreignObject x="150" y="233.1" width="150" height="43.1" position="fixed"><div xmlns="http://www.w3.org/1999/xhtml" class="label" style="display:table;width:100%;height:100%;text-align:center;font-size:14px;font-family:&quot;Open Sans&quot;, sans-serif;color:#27272A"><div style="display:table-cell;vertical-align:middle">LinkedIn</div></div></foreignObject>
+<text text-anchor="middle" dominant-baseline="central" fill="#27272A" font-size="14" font-family="&quot;Open Sans&quot;, sans-serif"><tspan x="225" y="254.7">LinkedIn</tspan></text>
+</switch>
+</g>
+<g class="eventWrapper" filter="brightness(120%)">
+<rect class="node-bkg" x="350" y="233.1" width="150" height="43.1" fill="#0065FF" stroke="#0065FF" stroke-width="1" rx="3" ry="3"/>
+<switch>
+<foreignObject x="350" y="233.1" width="150" height="43.1" position="fixed"><div xmlns="http://www.w3.org/1999/xhtml" class="label" style="display:table;width:100%;height:100%;text-align:center;font-size:14px;font-family:&quot;Open Sans&quot;, sans-serif;color:#27272A"><div style="display:table-cell;vertical-align:middle">Facebook</div></div></foreignObject>
+<text text-anchor="middle" dominant-baseline="central" fill="#27272A" font-size="14" font-family="&quot;Open Sans&quot;, sans-serif"><tspan x="425" y="254.7">Facebook</tspan></text>
+</switch>
+</g>
+<g class="eventWrapper" filter="brightness(120%)">
+<rect class="node-bkg" x="350" y="286.2" width="150" height="43.1" fill="#0065FF" stroke="#0065FF" stroke-width="1" rx="3" ry="3"/>
+<switch>
+<foreignObject x="350" y="286.2" width="150" height="43.1" position="fixed"><div xmlns="http://www.w3.org/1999/xhtml" class="label" style="display:table;width:100%;height:100%;text-align:center;font-size:14px;font-family:&quot;Open Sans&quot;, sans-serif;color:#27272A"><div style="display:table-cell;vertical-align:middle">Google</div></div></foreignObject>
+<text text-anchor="middle" dominant-baseline="central" fill="#27272A" font-size="14" font-family="&quot;Open Sans&quot;, sans-serif"><tspan x="425" y="307.8">Google</tspan></text>
+</switch>
+</g>
+<g class="eventWrapper" filter="brightness(120%)">
+<rect class="node-bkg" x="550" y="233.1" width="150" height="43.1" fill="#2684FF" stroke="#2684FF" stroke-width="1" rx="3" ry="3"/>
+<switch>
+<foreignObject x="550" y="233.1" width="150" height="43.1" position="fixed"><div xmlns="http://www.w3.org/1999/xhtml" class="label" style="display:table;width:100%;height:100%;text-align:center;font-size:14px;font-family:&quot;Open Sans&quot;, sans-serif;color:#27272A"><div style="display:table-cell;vertical-align:middle">YouTube</div></div></foreignObject>
+<text text-anchor="middle" dominant-baseline="central" fill="#27272A" font-size="14" font-family="&quot;Open Sans&quot;, sans-serif"><tspan x="625" y="254.7">YouTube</tspan></text>
+</switch>
+</g>
+<g class="eventWrapper" filter="brightness(120%)">
+<rect class="node-bkg" x="750" y="233.1" width="150" height="43.1" fill="#4C9AFF" stroke="#4C9AFF" stroke-width="1" rx="3" ry="3"/>
+<switch>
+<foreignObject x="750" y="233.1" width="150" height="43.1" position="fixed"><div xmlns="http://www.w3.org/1999/xhtml" class="label" style="display:table;width:100%;height:100%;text-align:center;font-size:14px;font-family:&quot;Open Sans&quot;, sans-serif;color:#27272A"><div style="display:table-cell;vertical-align:middle">Twitter</div></div></foreignObject>
+<text text-anchor="middle" dominant-baseline="central" fill="#27272A" font-size="14" font-family="&quot;Open Sans&quot;, sans-serif"><tspan x="825" y="254.7">Twitter</tspan></text>
+</switch>
+</g>
+<g class="lineWrapper">
+<line x1="225" y1="133.1" x2="225" y2="233.1" stroke="#939394" stroke-dasharray="5,5" stroke-width="2" marker-end="url(#88909A25-374F-4493-A8C1-3ABB8BB169CB-arrowhead)"/>
+<line x1="425" y1="133.1" x2="425" y2="233.1" stroke="#939394" stroke-dasharray="5,5" stroke-width="2" marker-end="url(#88909A25-374F-4493-A8C1-3ABB8BB169CB-arrowhead)"/>
+<line x1="425" y1="133.1" x2="425" y2="286.2" stroke="#939394" stroke-dasharray="5,5" stroke-width="2" marker-end="url(#88909A25-374F-4493-A8C1-3ABB8BB169CB-arrowhead)"/>
+<line x1="625" y1="133.1" x2="625" y2="233.1" stroke="#939394" stroke-dasharray="5,5" stroke-width="2" marker-end="url(#88909A25-374F-4493-A8C1-3ABB8BB169CB-arrowhead)"/>
+<line x1="825" y1="133.1" x2="825" y2="233.1" stroke="#939394" stroke-dasharray="5,5" stroke-width="2" marker-end="url(#88909A25-374F-4493-A8C1-3ABB8BB169CB-arrowhead)"/>
+</g>
+<text x="150" y="30" font-size="4ex" font-weight="bold" fill="#27272A">History of Social Media Platform</text>
+<line x1="150" y1="183.1" x2="1050" y2="183.1" stroke="#939394" stroke-width="4" marker-end="url(#88909A25-374F-4493-A8C1-3ABB8BB169CB-arrowhead)"/>
+</svg>

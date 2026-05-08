@@ -1,0 +1,36 @@
+<svg id="graphDiv" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 500" role="graphics-document document" aria-roledescription="quadrant-chart" width="100%" preserveAspectRatio="xMinYMin meet" style="max-width: 500px; background-color: #FFFFFF">
+<g class="main">
+<g class="quadrants">
+<g class="quadrant">
+<rect x="250" y="5" width="245" height="245" fill="#ECECFF"/>
+<text x="0" y="0" fill="#27272A" font-size="16" dominant-baseline="middle" text-anchor="middle" transform="translate(372.5, 127.5) rotate(0)"></text>
+</g>
+<g class="quadrant">
+<rect x="5" y="5" width="245" height="245" fill="#D6D6FF"/>
+<text x="0" y="0" fill="#343436" font-size="16" dominant-baseline="middle" text-anchor="middle" transform="translate(127.5, 127.5) rotate(0)"></text>
+</g>
+<g class="quadrant">
+<rect x="5" y="250" width="245" height="245" fill="#C0C0FF"/>
+<text x="0" y="0" fill="#3F3F42" font-size="16" dominant-baseline="middle" text-anchor="middle" transform="translate(127.5, 372.5) rotate(0)"></text>
+</g>
+<g class="quadrant">
+<rect x="250" y="250" width="245" height="245" fill="#AAAAFF"/>
+<text x="0" y="0" fill="#4A4A4E" font-size="16" dominant-baseline="middle" text-anchor="middle" transform="translate(372.5, 372.5) rotate(0)"></text>
+</g>
+</g>
+<g class="border">
+<line x1="4" y1="5" x2="496" y2="5" style="stroke: #A1A1AA; stroke-width: 2;"/>
+<line x1="495" y1="6" x2="495" y2="494" style="stroke: #A1A1AA; stroke-width: 2;"/>
+<line x1="4" y1="495" x2="496" y2="495" style="stroke: #A1A1AA; stroke-width: 2;"/>
+<line x1="5" y1="6" x2="5" y2="494" style="stroke: #A1A1AA; stroke-width: 2;"/>
+<line x1="250" y1="6" x2="250" y2="494" style="stroke: #A1A1AA; stroke-width: 1;"/>
+<line x1="6" y1="250" x2="494" y2="250" style="stroke: #A1A1AA; stroke-width: 1;"/>
+</g>
+<g class="data-points">
+</g>
+<g class="labels">
+</g>
+<g class="title">
+</g>
+</g>
+</svg>

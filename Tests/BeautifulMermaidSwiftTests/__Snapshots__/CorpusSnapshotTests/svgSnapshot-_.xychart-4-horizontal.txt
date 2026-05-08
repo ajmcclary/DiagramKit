@@ -1,0 +1,74 @@
+<svg data-xychart-colors="0" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 700 500" width="700" height="500" style="--bg:#FFFFFF;--fg:#27272A;--line:#939394;--accent:#27272A;--muted:#A9A9AA;--surface:#F9F9F9;--border:#D4D4D4;background:#FFFFFF">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap');
+  text { font-family: 'Inter', system-ui, sans-serif; }
+  svg {    /* Derived from --bg and --fg (overridable via --line, --accent, etc.) */
+    --_text:          #27272A;
+    --_text-sec:      #A9A9AA 60%, #FFFFFF));
+    --_text-muted:    #A9A9AA 40%, #FFFFFF));
+    --_text-faint:    #666666;
+    --_line:          #939394 50%, #FFFFFF));
+    --_arrow:         #27272A 85%, #FFFFFF));
+    --_node-fill:     #F9F9F9 3%, #FFFFFF));
+    --_node-stroke:   #D4D4D4 20%, #FFFFFF));
+    --_group-fill:    #FFFFFF;
+    --_group-hdr:     #666666;
+    --_inner-stroke:  #666666;
+    --_key-badge:     #666666;
+    --_note-bkg:      #F5F0C8;
+    --_note-border:   #E0DEB5;
+  }
+</style>
+<style>
+  .xychart-background { }
+  .xychart-axis-line { }
+  .xychart-tick { }
+  .xychart-data-label { font-family: #666666; }
+  .xychart-grid { fill: #666666; stroke: none; opacity: 0.65; }
+  .xychart-bar { stroke-width: 1.5; }
+  .xychart-bar-rect { stroke: none; }
+  .xychart-line { }
+  .xychart-line-shadow { opacity: 0.12; }
+  .xychart-dot { stroke: #FFFFFF; stroke-width: 2; }
+  .xychart-label { font-family: #666666; }
+  .xychart-legend-text { font-family: #666666; }
+  .xychart-axis-title { font-family: #666666; }
+  .xychart-title { font-family: #666666; }
+  svg {
+    --xychart-color-0: #27272A;
+    --xychart-bar-fill-0: #666666;
+  }
+  .xychart-bar.xychart-color-0 { stroke: #27272A; fill: #666666; }
+  path.xychart-color-0, line.xychart-color-0 { stroke: #27272A; }
+  circle.xychart-color-0 { fill: #27272A; }
+</style>
+<rect width="700" height="500" fill="#FFFFFF" class="xychart-background"/>
+<rect x="131.1" y="97.8" width="546.9" height="40" fill="#27272A" class="xychart-bar-rect xychart-color-0" data-value="30.0" data-label="Python"/>
+<rect x="131.1" y="169.4" width="422.6" height="40" fill="#27272A" class="xychart-bar-rect xychart-color-0" data-value="25.0" data-label="JavaScript"/>
+<rect x="131.1" y="241" width="298.3" height="40" fill="#27272A" class="xychart-bar-rect xychart-color-0" data-value="20.0" data-label="Java"/>
+<rect x="131.1" y="312.6" width="99.4" height="40" fill="#27272A" class="xychart-bar-rect xychart-color-0" data-value="12.0" data-label="Go"/>
+<rect x="131.1" y="384.2" width="0" height="40" fill="#27272A" class="xychart-bar-rect xychart-color-0" data-value="8.0" data-label="Rust"/>
+<line x1="131.1" y1="440" x2="678" y2="440" stroke="#A9A9AA 40%, #FFFFFF))" stroke-width="2.0" class="xychart-axis-line"/>
+<line x1="131.1" y1="82" x2="131.1" y2="440" stroke="#A9A9AA 40%, #FFFFFF))" stroke-width="2.0" class="xychart-axis-line"/>
+<line x1="180.9" y1="445" x2="180.9" y2="440" stroke="#A9A9AA 40%, #FFFFFF))" stroke-width="2.0" class="xychart-tick"/>
+<line x1="305.1" y1="445" x2="305.1" y2="440" stroke="#A9A9AA 40%, #FFFFFF))" stroke-width="2.0" class="xychart-tick"/>
+<line x1="429.4" y1="445" x2="429.4" y2="440" stroke="#A9A9AA 40%, #FFFFFF))" stroke-width="2.0" class="xychart-tick"/>
+<line x1="553.7" y1="445" x2="553.7" y2="440" stroke="#A9A9AA 40%, #FFFFFF))" stroke-width="2.0" class="xychart-tick"/>
+<line x1="678" y1="445" x2="678" y2="440" stroke="#A9A9AA 40%, #FFFFFF))" stroke-width="2.0" class="xychart-tick"/>
+<line x1="126.1" y1="117.8" x2="131.1" y2="117.8" stroke="#A9A9AA 40%, #FFFFFF))" stroke-width="2.0" class="xychart-tick"/>
+<line x1="126.1" y1="189.4" x2="131.1" y2="189.4" stroke="#A9A9AA 40%, #FFFFFF))" stroke-width="2.0" class="xychart-tick"/>
+<line x1="126.1" y1="261" x2="131.1" y2="261" stroke="#A9A9AA 40%, #FFFFFF))" stroke-width="2.0" class="xychart-tick"/>
+<line x1="126.1" y1="332.6" x2="131.1" y2="332.6" stroke="#A9A9AA 40%, #FFFFFF))" stroke-width="2.0" class="xychart-tick"/>
+<line x1="126.1" y1="404.2" x2="131.1" y2="404.2" stroke="#A9A9AA 40%, #FFFFFF))" stroke-width="2.0" class="xychart-tick"/>
+<text x="180.85454545454547" y="458.0" text-anchor="middle" font-size="14" font-weight="400" fill="#A9A9AA 40%, #FFFFFF))" dy="0.35em" class="xychart-label">10</text>
+<text x="305.1409090909091" y="458.0" text-anchor="middle" font-size="14" font-weight="400" fill="#A9A9AA 40%, #FFFFFF))" dy="0.35em" class="xychart-label">15</text>
+<text x="429.4272727272727" y="458.0" text-anchor="middle" font-size="14" font-weight="400" fill="#A9A9AA 40%, #FFFFFF))" dy="0.35em" class="xychart-label">20</text>
+<text x="553.7136363636364" y="458.0" text-anchor="middle" font-size="14" font-weight="400" fill="#A9A9AA 40%, #FFFFFF))" dy="0.35em" class="xychart-label">25</text>
+<text x="678.0" y="458.0" text-anchor="middle" font-size="14" font-weight="400" fill="#A9A9AA 40%, #FFFFFF))" dy="0.35em" class="xychart-label">30</text>
+<text x="113.14000000000001" y="117.8" text-anchor="end" font-size="14" font-weight="400" fill="#A9A9AA 40%, #FFFFFF))" dy="0.35em" class="xychart-label">Python</text>
+<text x="113.14000000000001" y="189.39999999999998" text-anchor="end" font-size="14" font-weight="400" fill="#A9A9AA 40%, #FFFFFF))" dy="0.35em" class="xychart-label">JavaScript</text>
+<text x="113.14000000000001" y="261.0" text-anchor="end" font-size="14" font-weight="400" fill="#A9A9AA 40%, #FFFFFF))" dy="0.35em" class="xychart-label">Java</text>
+<text x="113.14000000000001" y="332.59999999999997" text-anchor="end" font-size="14" font-weight="400" fill="#A9A9AA 40%, #FFFFFF))" dy="0.35em" class="xychart-label">Go</text>
+<text x="113.14000000000001" y="404.2" text-anchor="end" font-size="14" font-weight="400" fill="#A9A9AA 40%, #FFFFFF))" dy="0.35em" class="xychart-label">Rust</text>
+<text x="350.0" y="42.0" text-anchor="middle" font-size="20" font-weight="600" fill="#27272A" dy="0.35em" class="xychart-title">Language Popularity</text>
+</svg>

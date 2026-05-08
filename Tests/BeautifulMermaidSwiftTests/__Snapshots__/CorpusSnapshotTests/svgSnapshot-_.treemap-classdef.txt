@@ -1,0 +1,35 @@
+<svg id="85E459AA-9377-4533-8130-61F970B05916" class="treemap" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="100%" style="max-width: 1016px;" viewBox="-8 -8 1016 416">
+<rect x="-8" y="-8" width="1016" height="416" fill="#FFFFFF" />
+<g class="treemapContainer" transform="translate(0, 0)">
+<g class="treemapSection" transform="translate(10,35)">
+<rect class="treemapSectionHeader" width="980" height="25" fill="none" fill-opacity="0.6" stroke-width="0.6"/>
+<clipPath id="clip-section-6AA65FB7-3CBF-4FCE-8EE9-C93F295D8D34-0">
+<rect width="968" height="25" />
+</clipPath>
+<rect class="treemapSection section0" width="980" height="355" fill="#1f77b4" fill-opacity="0.6" stroke="#0d4a6c" stroke-width="2.0" stroke-opacity="0.4" style="color:#172026;fill:#eef4fb;stroke:#2b3a42"/>
+<text class="treemapSectionLabel" x="6" y="12" dominant-baseline="middle" font-weight="bold" font-family="Inter" font-weight="bold" font-size="12px" fill="#ffffff" clip-path="url(#clip-section-6AA65FB7-3CBF-4FCE-8EE9-C93F295D8D34-0)" style="fill:#172026;fill:#eef4fb">Budget</text>
+<text class="treemapSectionValue" x="970" y="12" text-anchor="end" dominant-baseline="middle" font-style="italic" font-family="Inter" font-style="italic" font-size="10px" fill="#ffffff" clip-path="url(#clip-section-6AA65FB7-3CBF-4FCE-8EE9-C93F295D8D34-0)" style="fill:#172026;fill:#eef4fb">820,000</text>
+</g>
+<g class="treemapNode treemapLeafGroup leaf0 engineering" transform="translate(25,75)">
+<rect class="treemapLeaf" width="950" height="149" fill="#1f77b4" fill-opacity="0.3" stroke="#0d4a6c" stroke-width="3.0" style="color:#0f2433;fill:#6b9bc3;stroke:#24435c" />
+<clipPath id="clip-6AA65FB7-3CBF-4FCE-8EE9-C93F295D8D34-0">
+<rect width="946" height="145" />
+</clipPath>
+<text class="treemapLabel" x="475" y="74" text-anchor="middle" dominant-baseline="middle" font-family="Inter" font-size="38px" fill="#ffffff" clip-path="url(#clip-6AA65FB7-3CBF-4FCE-8EE9-C93F295D8D34-0)" style="fill:#0f2433;fill:#6b9bc3">Engineering</text>
+<text class="treemapValue" x="475" y="95" text-anchor="middle" dominant-baseline="hanging" font-family="Inter" font-size="23px" fill="#ffffff" clip-path="url(#clip-6AA65FB7-3CBF-4FCE-8EE9-C93F295D8D34-0)" style="fill:#0f2433;fill:#6b9bc3">420,000</text>
+</g>
+<g class="treemapNode treemapLeafGroup leaf1 sales" transform="translate(25,234)">
+<rect class="treemapLeaf" width="950" height="88" fill="#1f77b4" fill-opacity="0.3" stroke="#0d4a6c" stroke-width="3.0" style="color:#2c1608;fill:#f2b880;stroke:#8a4f1d" />
+<clipPath id="clip-6AA65FB7-3CBF-4FCE-8EE9-C93F295D8D34-1">
+<rect width="946" height="84" />
+</clipPath>
+<text class="treemapLabel" x="475" y="44" text-anchor="middle" dominant-baseline="middle" font-family="Inter" font-size="38px" fill="#ffffff" clip-path="url(#clip-6AA65FB7-3CBF-4FCE-8EE9-C93F295D8D34-1)" style="fill:#2c1608;fill:#f2b880">Sales</text>
+</g>
+<g class="treemapNode treemapLeafGroup leaf2" transform="translate(25,332)">
+<rect class="treemapLeaf" width="950" height="43" fill="#1f77b4" fill-opacity="0.3" stroke="#0d4a6c" stroke-width="3.0" />
+<clipPath id="clip-6AA65FB7-3CBF-4FCE-8EE9-C93F295D8D34-2">
+<rect width="946" height="39" />
+</clipPath>
+</g>
+</g>
+</svg>

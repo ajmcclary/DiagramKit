@@ -1,0 +1,49 @@
+<svg id="C578675A-9F7D-4FA3-9F50-F9FDA6E954A4" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="550" height="500.9" viewBox="0 0 550 500.9" style="--bg:#FFFFFF;--fg:#27272A;--line:#939394;--accent:#27272A;--muted:#A9A9AA;--surface:#F9F9F9;--border:#D4D4D4;background:#FFFFFF">
+<defs>
+<marker id="C578675A-9F7D-4FA3-9F50-F9FDA6E954A4-arrowhead" refX="5" refY="2" markerWidth="6" markerHeight="4" orient="auto">
+<path d="M 0,0 V 4 L6,2 Z" class="arrowheadPath" fill="#939394"/>
+</marker>
+</defs>
+<g class="timeline-node section-0">
+<rect x="150" y="50" width="150" height="58.5" fill="#0052CC" stroke="#0052CC" stroke-width="1" rx="3" ry="3"/>
+<switch>
+<foreignObject x="150" y="50" width="150" height="58.5" position="fixed"><div xmlns="http://www.w3.org/1999/xhtml" class="label" style="display:table;width:100%;height:100%;text-align:center;font-size:14px;font-family:&quot;Open Sans&quot;, sans-serif;color:#ffffff"><div style="display:table-cell;vertical-align:middle">2023 Q1 <br/> Release Personal Tier</div></div></foreignObject>
+<text text-anchor="middle" dominant-baseline="central" fill="#ffffff" font-size="14" font-family="&quot;Open Sans&quot;, sans-serif"><tspan x="225" y="70.8">2023 Q1 </tspan><tspan x="225" y="87.6"> Release Personal Tier</tspan></text>
+</switch>
+</g>
+<g class="taskWrapper">
+<rect class="node-bkg node-0" x="150" y="158.5" width="150" height="43.1" fill="#0052CC" stroke="#0052CC" stroke-width="1" rx="3" ry="3"/>
+<line class="node-line-0" x1="150" y1="201.6" x2="300" y2="201.6" stroke="#003380" stroke-width="3"/>
+<switch>
+<foreignObject x="150" y="158.5" width="150" height="43.1" position="fixed"><div xmlns="http://www.w3.org/1999/xhtml" class="label" style="display:table;width:100%;height:100%;text-align:center;font-size:14px;font-family:&quot;Open Sans&quot;, sans-serif;color:#ffffff"><div style="display:table-cell;vertical-align:middle">Bullet 1</div></div></foreignObject>
+<text text-anchor="middle" dominant-baseline="central" fill="#ffffff" font-size="14" font-family="&quot;Open Sans&quot;, sans-serif"><tspan x="225" y="180.1">Bullet 1</tspan></text>
+</switch>
+</g>
+<g class="eventWrapper" filter="brightness(120%)">
+<rect class="node-bkg" x="150" y="301.6" width="150" height="43.1" fill="#0052CC" stroke="#0052CC" stroke-width="1" rx="3" ry="3"/>
+<switch>
+<foreignObject x="150" y="301.6" width="150" height="43.1" position="fixed"><div xmlns="http://www.w3.org/1999/xhtml" class="label" style="display:table;width:100%;height:100%;text-align:center;font-size:14px;font-family:&quot;Open Sans&quot;, sans-serif;color:#27272A"><div style="display:table-cell;vertical-align:middle">sub-point 1a</div></div></foreignObject>
+<text text-anchor="middle" dominant-baseline="central" fill="#27272A" font-size="14" font-family="&quot;Open Sans&quot;, sans-serif"><tspan x="225" y="323.2">sub-point 1a</tspan></text>
+</switch>
+</g>
+<g class="eventWrapper" filter="brightness(120%)">
+<rect class="node-bkg" x="150" y="354.7" width="150" height="43.1" fill="#0052CC" stroke="#0052CC" stroke-width="1" rx="3" ry="3"/>
+<switch>
+<foreignObject x="150" y="354.7" width="150" height="43.1" position="fixed"><div xmlns="http://www.w3.org/1999/xhtml" class="label" style="display:table;width:100%;height:100%;text-align:center;font-size:14px;font-family:&quot;Open Sans&quot;, sans-serif;color:#27272A"><div style="display:table-cell;vertical-align:middle">sub-point 1b</div></div></foreignObject>
+<text text-anchor="middle" dominant-baseline="central" fill="#27272A" font-size="14" font-family="&quot;Open Sans&quot;, sans-serif"><tspan x="225" y="376.3">sub-point 1b</tspan></text>
+</switch>
+</g>
+<g class="eventWrapper" filter="brightness(120%)">
+<rect class="node-bkg" x="150" y="407.8" width="150" height="43.1" fill="#0052CC" stroke="#0052CC" stroke-width="1" rx="3" ry="3"/>
+<switch>
+<foreignObject x="150" y="407.8" width="150" height="43.1" position="fixed"><div xmlns="http://www.w3.org/1999/xhtml" class="label" style="display:table;width:100%;height:100%;text-align:center;font-size:14px;font-family:&quot;Open Sans&quot;, sans-serif;color:#27272A"><div style="display:table-cell;vertical-align:middle">sub-point 1c</div></div></foreignObject>
+<text text-anchor="middle" dominant-baseline="central" fill="#27272A" font-size="14" font-family="&quot;Open Sans&quot;, sans-serif"><tspan x="225" y="429.4">sub-point 1c</tspan></text>
+</switch>
+</g>
+<g class="lineWrapper">
+<line x1="225" y1="201.6" x2="225" y2="301.6" stroke="#939394" stroke-dasharray="5,5" stroke-width="2" marker-end="url(#C578675A-9F7D-4FA3-9F50-F9FDA6E954A4-arrowhead)"/>
+<line x1="225" y1="201.6" x2="225" y2="354.7" stroke="#939394" stroke-dasharray="5,5" stroke-width="2" marker-end="url(#C578675A-9F7D-4FA3-9F50-F9FDA6E954A4-arrowhead)"/>
+<line x1="225" y1="201.6" x2="225" y2="407.8" stroke="#939394" stroke-dasharray="5,5" stroke-width="2" marker-end="url(#C578675A-9F7D-4FA3-9F50-F9FDA6E954A4-arrowhead)"/>
+</g>
+<line x1="150" y1="251.6" x2="500" y2="251.6" stroke="#939394" stroke-width="4" marker-end="url(#C578675A-9F7D-4FA3-9F50-F9FDA6E954A4-arrowhead)"/>
+</svg>

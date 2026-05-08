@@ -1,0 +1,109 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="-10 -10 620 420" width="620" height="420" style="--bg:#FFFFFF;--fg:#27272A;--line:#939394;--accent:#27272A;--muted:#A9A9AA;--surface:#F9F9F9;--border:#D4D4D4;background:#FFFFFF" role="graphics-document document" aria-roledescription="sankey">
+<style>
+.node rect { shape-rendering: crispEdges; }
+.node-labels { font-family: Inter, sans-serif; font-size: 14px; fill: #27272A; }
+.sankey-label-bg {
+    stroke: #FFFFFF;
+    stroke-width: 4px;
+    stroke-linejoin: round;
+    paint-order: stroke;
+}
+.sankey-label-fg { fill: #27272A; }
+.link { fill: none; stroke-opacity: 0.5; mix-blend-mode: multiply; }
+</style>
+<g class="sankey sankey-diagram">
+<g class="links">
+<defs>
+<linearGradient id="linearGradient-sankey-5-1" gradientUnits="userSpaceOnUse" x1="10" x2="590">
+<stop offset="0%" stop-color="#4e79a7"/>
+<stop offset="100%" stop-color="#f28e2c"/>
+</linearGradient>
+</defs>
+<g class="link" style="mix-blend-mode: multiply;">
+<path d="M 10,299 C 300,299,300,299,590,299" fill="none" stroke="url(#linearGradient-sankey-5-1)" stroke-width="36.3" stroke-opacity="0.5"/>
+</g>
+<defs>
+<linearGradient id="linearGradient-sankey-5-2" gradientUnits="userSpaceOnUse" x1="10" x2="590">
+<stop offset="0%" stop-color="#4e79a7"/>
+<stop offset="100%" stop-color="#e15759"/>
+</linearGradient>
+</defs>
+<g class="link" style="mix-blend-mode: multiply;">
+<path d="M 10,122.5 C 300,122.5,300,122.5,590,122.5" fill="none" stroke="url(#linearGradient-sankey-5-2)" stroke-width="39.5" stroke-opacity="0.5"/>
+</g>
+<defs>
+<linearGradient id="linearGradient-sankey-5-3" gradientUnits="userSpaceOnUse" x1="10" x2="590">
+<stop offset="0%" stop-color="#4e79a7"/>
+<stop offset="100%" stop-color="#76b7b2"/>
+</linearGradient>
+</defs>
+<g class="link" style="mix-blend-mode: multiply;">
+<path d="M 10,98 C 300,98,300,98,590,98" fill="none" stroke="url(#linearGradient-sankey-5-3)" stroke-width="9.4" stroke-opacity="0.5"/>
+</g>
+<defs>
+<linearGradient id="linearGradient-sankey-5-4" gradientUnits="userSpaceOnUse" x1="10" x2="590">
+<stop offset="0%" stop-color="#4e79a7"/>
+<stop offset="100%" stop-color="#59a14f"/>
+</linearGradient>
+</defs>
+<g class="link" style="mix-blend-mode: multiply;">
+<path d="M 10,201.7 C 300,201.7,300,201.7,590,201.7" fill="none" stroke="url(#linearGradient-sankey-5-4)" stroke-width="118.9" stroke-opacity="0.5"/>
+</g>
+<defs>
+<linearGradient id="linearGradient-sankey-5-5" gradientUnits="userSpaceOnUse" x1="10" x2="590">
+<stop offset="0%" stop-color="#4e79a7"/>
+<stop offset="100%" stop-color="#edc949"/>
+</linearGradient>
+</defs>
+<g class="link" style="mix-blend-mode: multiply;">
+<path d="M 10,271 C 300,271,300,271,590,271" fill="none" stroke="url(#linearGradient-sankey-5-5)" stroke-width="19.7" stroke-opacity="0.5"/>
+</g>
+</g>
+<g class="nodes">
+<g class="node" id="node-sankey-5-6" transform="translate(0,93.3)" x="0" y="93.3)">
+<rect x="0" y="0" width="10" height="306.7" fill="#4e79a7" shape-rendering="crispEdges"/>
+</g>
+<g class="node" id="node-sankey-5-7" transform="translate(590,51.3)" x="590" y="51.3)">
+<rect x="0" y="0" width="10" height="36.3" fill="#f28e2c" shape-rendering="crispEdges"/>
+</g>
+<g class="node" id="node-sankey-5-8" transform="translate(590,108.3)" x="590" y="108.3)">
+<rect x="0" y="0" width="10" height="39.5" fill="#e15759" shape-rendering="crispEdges"/>
+</g>
+<g class="node" id="node-sankey-5-9" transform="translate(590,168.5)" x="590" y="168.5)">
+<rect x="0" y="0" width="10" height="9.4" fill="#76b7b2" shape-rendering="crispEdges"/>
+</g>
+<g class="node" id="node-sankey-5-10" transform="translate(590,187.8)" x="590" y="187.8)">
+<rect x="0" y="0" width="10" height="118.9" fill="#59a14f" shape-rendering="crispEdges"/>
+</g>
+<g class="node" id="node-sankey-5-11" transform="translate(590,287)" x="590" y="287)">
+<rect x="0" y="0" width="10" height="19.7" fill="#edc949" shape-rendering="crispEdges"/>
+</g>
+</g>
+<g class="node-labels">
+<text class="sankey-label-bg" x="16" y="246.6" dy="0" text-anchor="start">Electricity grid
+644.18</text>
+<text class="sankey-label-fg" x="16" y="246.6" dy="0" text-anchor="start">Electricity grid
+644.18</text>
+<text class="sankey-label-bg" x="606" y="69.4" dy="0" text-anchor="start">Over generation / exports
+104.45</text>
+<text class="sankey-label-fg" x="606" y="69.4" dy="0" text-anchor="start">Over generation / exports
+104.45</text>
+<text class="sankey-label-bg" x="606" y="128.1" dy="0" text-anchor="start">Heating and cooling - homes
+113.73</text>
+<text class="sankey-label-fg" x="606" y="128.1" dy="0" text-anchor="start">Heating and cooling - homes
+113.73</text>
+<text class="sankey-label-bg" x="606" y="173.3" dy="0" text-anchor="start">H2 conversion
+27.14</text>
+<text class="sankey-label-fg" x="606" y="173.3" dy="0" text-anchor="start">H2 conversion
+27.14</text>
+<text class="sankey-label-bg" x="606" y="247.3" dy="0" text-anchor="start">Industry
+342.17</text>
+<text class="sankey-label-fg" x="606" y="247.3" dy="0" text-anchor="start">Industry
+342.17</text>
+<text class="sankey-label-bg" x="606" y="296.9" dy="0" text-anchor="start">Losses
+56.69</text>
+<text class="sankey-label-fg" x="606" y="296.9" dy="0" text-anchor="start">Losses
+56.69</text>
+</g>
+</g>
+</svg>

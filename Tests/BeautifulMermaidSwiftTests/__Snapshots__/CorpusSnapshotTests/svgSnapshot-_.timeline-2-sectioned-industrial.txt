@@ -1,0 +1,121 @@
+<svg id="E35333D6-BA6B-4027-BAE2-A8631487DD61" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="1500" height="419.3" viewBox="0 0 1500 419.3" style="--bg:#FFFFFF;--fg:#27272A;--line:#939394;--accent:#27272A;--muted:#A9A9AA;--surface:#F9F9F9;--border:#D4D4D4;background:#FFFFFF">
+<defs>
+<marker id="E35333D6-BA6B-4027-BAE2-A8631487DD61-arrowhead" refX="5" refY="2" markerWidth="6" markerHeight="4" orient="auto">
+<path d="M 0,0 V 4 L6,2 Z" class="arrowheadPath" fill="#939394"/>
+</marker>
+</defs>
+<g class="timeline-node section-0">
+<rect x="150" y="90" width="550" height="43.1" fill="#0052CC" stroke="#0052CC" stroke-width="1" rx="3" ry="3"/>
+<switch>
+<foreignObject x="150" y="90" width="550" height="43.1" position="fixed"><div xmlns="http://www.w3.org/1999/xhtml" class="label" style="display:table;width:100%;height:100%;text-align:center;font-size:14px;font-family:&quot;Open Sans&quot;, sans-serif;color:#ffffff"><div style="display:table-cell;vertical-align:middle">18th Century</div></div></foreignObject>
+<text text-anchor="middle" dominant-baseline="central" fill="#ffffff" font-size="14" font-family="&quot;Open Sans&quot;, sans-serif"><tspan x="425" y="111.5">18th Century</tspan></text>
+</switch>
+</g>
+<g class="timeline-node section-1">
+<rect x="750" y="90" width="550" height="43.1" fill="#0065FF" stroke="#0065FF" stroke-width="1" rx="3" ry="3"/>
+<switch>
+<foreignObject x="750" y="90" width="550" height="43.1" position="fixed"><div xmlns="http://www.w3.org/1999/xhtml" class="label" style="display:table;width:100%;height:100%;text-align:center;font-size:14px;font-family:&quot;Open Sans&quot;, sans-serif;color:#ffffff"><div style="display:table-cell;vertical-align:middle">19th Century</div></div></foreignObject>
+<text text-anchor="middle" dominant-baseline="central" fill="#ffffff" font-size="14" font-family="&quot;Open Sans&quot;, sans-serif"><tspan x="1025" y="111.5">19th Century</tspan></text>
+</switch>
+</g>
+<g class="taskWrapper">
+<rect class="node-bkg node-0" x="150" y="183.1" width="150" height="43.1" fill="#0052CC" stroke="#0052CC" stroke-width="1" rx="3" ry="3"/>
+<line class="node-line-0" x1="150" y1="226.2" x2="300" y2="226.2" stroke="#003380" stroke-width="3"/>
+<switch>
+<foreignObject x="150" y="183.1" width="150" height="43.1" position="fixed"><div xmlns="http://www.w3.org/1999/xhtml" class="label" style="display:table;width:100%;height:100%;text-align:center;font-size:14px;font-family:&quot;Open Sans&quot;, sans-serif;color:#ffffff"><div style="display:table-cell;vertical-align:middle">1760</div></div></foreignObject>
+<text text-anchor="middle" dominant-baseline="central" fill="#ffffff" font-size="14" font-family="&quot;Open Sans&quot;, sans-serif"><tspan x="225" y="204.7">1760</tspan></text>
+</switch>
+</g>
+<g class="taskWrapper">
+<rect class="node-bkg node-0" x="350" y="183.1" width="150" height="43.1" fill="#0052CC" stroke="#0052CC" stroke-width="1" rx="3" ry="3"/>
+<line class="node-line-0" x1="350" y1="226.2" x2="500" y2="226.2" stroke="#003380" stroke-width="3"/>
+<switch>
+<foreignObject x="350" y="183.1" width="150" height="43.1" position="fixed"><div xmlns="http://www.w3.org/1999/xhtml" class="label" style="display:table;width:100%;height:100%;text-align:center;font-size:14px;font-family:&quot;Open Sans&quot;, sans-serif;color:#ffffff"><div style="display:table-cell;vertical-align:middle">1769</div></div></foreignObject>
+<text text-anchor="middle" dominant-baseline="central" fill="#ffffff" font-size="14" font-family="&quot;Open Sans&quot;, sans-serif"><tspan x="425" y="204.7">1769</tspan></text>
+</switch>
+</g>
+<g class="taskWrapper">
+<rect class="node-bkg node-0" x="550" y="183.1" width="150" height="43.1" fill="#0052CC" stroke="#0052CC" stroke-width="1" rx="3" ry="3"/>
+<line class="node-line-0" x1="550" y1="226.2" x2="700" y2="226.2" stroke="#003380" stroke-width="3"/>
+<switch>
+<foreignObject x="550" y="183.1" width="150" height="43.1" position="fixed"><div xmlns="http://www.w3.org/1999/xhtml" class="label" style="display:table;width:100%;height:100%;text-align:center;font-size:14px;font-family:&quot;Open Sans&quot;, sans-serif;color:#ffffff"><div style="display:table-cell;vertical-align:middle">1775</div></div></foreignObject>
+<text text-anchor="middle" dominant-baseline="central" fill="#ffffff" font-size="14" font-family="&quot;Open Sans&quot;, sans-serif"><tspan x="625" y="204.7">1775</tspan></text>
+</switch>
+</g>
+<g class="taskWrapper">
+<rect class="node-bkg node-1" x="750" y="183.1" width="150" height="43.1" fill="#0065FF" stroke="#0065FF" stroke-width="1" rx="3" ry="3"/>
+<line class="node-line-1" x1="750" y1="226.2" x2="900" y2="226.2" stroke="#003D99" stroke-width="3"/>
+<switch>
+<foreignObject x="750" y="183.1" width="150" height="43.1" position="fixed"><div xmlns="http://www.w3.org/1999/xhtml" class="label" style="display:table;width:100%;height:100%;text-align:center;font-size:14px;font-family:&quot;Open Sans&quot;, sans-serif;color:#ffffff"><div style="display:table-cell;vertical-align:middle">1804</div></div></foreignObject>
+<text text-anchor="middle" dominant-baseline="central" fill="#ffffff" font-size="14" font-family="&quot;Open Sans&quot;, sans-serif"><tspan x="825" y="204.7">1804</tspan></text>
+</switch>
+</g>
+<g class="taskWrapper">
+<rect class="node-bkg node-1" x="950" y="183.1" width="150" height="43.1" fill="#0065FF" stroke="#0065FF" stroke-width="1" rx="3" ry="3"/>
+<line class="node-line-1" x1="950" y1="226.2" x2="1100" y2="226.2" stroke="#003D99" stroke-width="3"/>
+<switch>
+<foreignObject x="950" y="183.1" width="150" height="43.1" position="fixed"><div xmlns="http://www.w3.org/1999/xhtml" class="label" style="display:table;width:100%;height:100%;text-align:center;font-size:14px;font-family:&quot;Open Sans&quot;, sans-serif;color:#ffffff"><div style="display:table-cell;vertical-align:middle">1831</div></div></foreignObject>
+<text text-anchor="middle" dominant-baseline="central" fill="#ffffff" font-size="14" font-family="&quot;Open Sans&quot;, sans-serif"><tspan x="1025" y="204.7">1831</tspan></text>
+</switch>
+</g>
+<g class="taskWrapper">
+<rect class="node-bkg node-1" x="1150" y="183.1" width="150" height="43.1" fill="#0065FF" stroke="#0065FF" stroke-width="1" rx="3" ry="3"/>
+<line class="node-line-1" x1="1150" y1="226.2" x2="1300" y2="226.2" stroke="#003D99" stroke-width="3"/>
+<switch>
+<foreignObject x="1150" y="183.1" width="150" height="43.1" position="fixed"><div xmlns="http://www.w3.org/1999/xhtml" class="label" style="display:table;width:100%;height:100%;text-align:center;font-size:14px;font-family:&quot;Open Sans&quot;, sans-serif;color:#ffffff"><div style="display:table-cell;vertical-align:middle">1876</div></div></foreignObject>
+<text text-anchor="middle" dominant-baseline="central" fill="#ffffff" font-size="14" font-family="&quot;Open Sans&quot;, sans-serif"><tspan x="1225" y="204.7">1876</tspan></text>
+</switch>
+</g>
+<g class="eventWrapper" filter="brightness(120%)">
+<rect class="node-bkg" x="150" y="326.2" width="150" height="43.1" fill="#0052CC" stroke="#0052CC" stroke-width="1" rx="3" ry="3"/>
+<switch>
+<foreignObject x="150" y="326.2" width="150" height="43.1" position="fixed"><div xmlns="http://www.w3.org/1999/xhtml" class="label" style="display:table;width:100%;height:100%;text-align:center;font-size:14px;font-family:&quot;Open Sans&quot;, sans-serif;color:#27272A"><div style="display:table-cell;vertical-align:middle">Steam Engine</div></div></foreignObject>
+<text text-anchor="middle" dominant-baseline="central" fill="#27272A" font-size="14" font-family="&quot;Open Sans&quot;, sans-serif"><tspan x="225" y="347.8">Steam Engine</tspan></text>
+</switch>
+</g>
+<g class="eventWrapper" filter="brightness(120%)">
+<rect class="node-bkg" x="350" y="326.2" width="150" height="43.1" fill="#0052CC" stroke="#0052CC" stroke-width="1" rx="3" ry="3"/>
+<switch>
+<foreignObject x="350" y="326.2" width="150" height="43.1" position="fixed"><div xmlns="http://www.w3.org/1999/xhtml" class="label" style="display:table;width:100%;height:100%;text-align:center;font-size:14px;font-family:&quot;Open Sans&quot;, sans-serif;color:#27272A"><div style="display:table-cell;vertical-align:middle">Water Frame</div></div></foreignObject>
+<text text-anchor="middle" dominant-baseline="central" fill="#27272A" font-size="14" font-family="&quot;Open Sans&quot;, sans-serif"><tspan x="425" y="347.8">Water Frame</tspan></text>
+</switch>
+</g>
+<g class="eventWrapper" filter="brightness(120%)">
+<rect class="node-bkg" x="550" y="326.2" width="150" height="43.1" fill="#0052CC" stroke="#0052CC" stroke-width="1" rx="3" ry="3"/>
+<switch>
+<foreignObject x="550" y="326.2" width="150" height="43.1" position="fixed"><div xmlns="http://www.w3.org/1999/xhtml" class="label" style="display:table;width:100%;height:100%;text-align:center;font-size:14px;font-family:&quot;Open Sans&quot;, sans-serif;color:#27272A"><div style="display:table-cell;vertical-align:middle">Spinning Mule</div></div></foreignObject>
+<text text-anchor="middle" dominant-baseline="central" fill="#27272A" font-size="14" font-family="&quot;Open Sans&quot;, sans-serif"><tspan x="625" y="347.8">Spinning Mule</tspan></text>
+</switch>
+</g>
+<g class="eventWrapper" filter="brightness(120%)">
+<rect class="node-bkg" x="750" y="326.2" width="150" height="43.1" fill="#0065FF" stroke="#0065FF" stroke-width="1" rx="3" ry="3"/>
+<switch>
+<foreignObject x="750" y="326.2" width="150" height="43.1" position="fixed"><div xmlns="http://www.w3.org/1999/xhtml" class="label" style="display:table;width:100%;height:100%;text-align:center;font-size:14px;font-family:&quot;Open Sans&quot;, sans-serif;color:#27272A"><div style="display:table-cell;vertical-align:middle">Steam Locomotive</div></div></foreignObject>
+<text text-anchor="middle" dominant-baseline="central" fill="#27272A" font-size="14" font-family="&quot;Open Sans&quot;, sans-serif"><tspan x="825" y="347.8">Steam Locomotive</tspan></text>
+</switch>
+</g>
+<g class="eventWrapper" filter="brightness(120%)">
+<rect class="node-bkg" x="950" y="326.2" width="150" height="43.1" fill="#0065FF" stroke="#0065FF" stroke-width="1" rx="3" ry="3"/>
+<switch>
+<foreignObject x="950" y="326.2" width="150" height="43.1" position="fixed"><div xmlns="http://www.w3.org/1999/xhtml" class="label" style="display:table;width:100%;height:100%;text-align:center;font-size:14px;font-family:&quot;Open Sans&quot;, sans-serif;color:#27272A"><div style="display:table-cell;vertical-align:middle">Electric Generator</div></div></foreignObject>
+<text text-anchor="middle" dominant-baseline="central" fill="#27272A" font-size="14" font-family="&quot;Open Sans&quot;, sans-serif"><tspan x="1025" y="347.8">Electric Generator</tspan></text>
+</switch>
+</g>
+<g class="eventWrapper" filter="brightness(120%)">
+<rect class="node-bkg" x="1150" y="326.2" width="150" height="43.1" fill="#0065FF" stroke="#0065FF" stroke-width="1" rx="3" ry="3"/>
+<switch>
+<foreignObject x="1150" y="326.2" width="150" height="43.1" position="fixed"><div xmlns="http://www.w3.org/1999/xhtml" class="label" style="display:table;width:100%;height:100%;text-align:center;font-size:14px;font-family:&quot;Open Sans&quot;, sans-serif;color:#27272A"><div style="display:table-cell;vertical-align:middle">Telephone</div></div></foreignObject>
+<text text-anchor="middle" dominant-baseline="central" fill="#27272A" font-size="14" font-family="&quot;Open Sans&quot;, sans-serif"><tspan x="1225" y="347.8">Telephone</tspan></text>
+</switch>
+</g>
+<g class="lineWrapper">
+<line x1="225" y1="226.2" x2="225" y2="326.2" stroke="#939394" stroke-dasharray="5,5" stroke-width="2" marker-end="url(#E35333D6-BA6B-4027-BAE2-A8631487DD61-arrowhead)"/>
+<line x1="425" y1="226.2" x2="425" y2="326.2" stroke="#939394" stroke-dasharray="5,5" stroke-width="2" marker-end="url(#E35333D6-BA6B-4027-BAE2-A8631487DD61-arrowhead)"/>
+<line x1="625" y1="226.2" x2="625" y2="326.2" stroke="#939394" stroke-dasharray="5,5" stroke-width="2" marker-end="url(#E35333D6-BA6B-4027-BAE2-A8631487DD61-arrowhead)"/>
+<line x1="825" y1="226.2" x2="825" y2="326.2" stroke="#939394" stroke-dasharray="5,5" stroke-width="2" marker-end="url(#E35333D6-BA6B-4027-BAE2-A8631487DD61-arrowhead)"/>
+<line x1="1025" y1="226.2" x2="1025" y2="326.2" stroke="#939394" stroke-dasharray="5,5" stroke-width="2" marker-end="url(#E35333D6-BA6B-4027-BAE2-A8631487DD61-arrowhead)"/>
+<line x1="1225" y1="226.2" x2="1225" y2="326.2" stroke="#939394" stroke-dasharray="5,5" stroke-width="2" marker-end="url(#E35333D6-BA6B-4027-BAE2-A8631487DD61-arrowhead)"/>
+</g>
+<text x="150" y="30" font-size="4ex" font-weight="bold" fill="#27272A">Industrial Revolution</text>
+<line x1="150" y1="276.2" x2="1450" y2="276.2" stroke="#939394" stroke-width="4" marker-end="url(#E35333D6-BA6B-4027-BAE2-A8631487DD61-arrowhead)"/>
+</svg>

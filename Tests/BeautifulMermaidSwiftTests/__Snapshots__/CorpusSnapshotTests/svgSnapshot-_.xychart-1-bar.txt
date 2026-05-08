@@ -1,0 +1,74 @@
+<svg data-xychart-colors="0" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 700 500" width="700" height="500" style="--bg:#FFFFFF;--fg:#27272A;--line:#939394;--accent:#27272A;--muted:#A9A9AA;--surface:#F9F9F9;--border:#D4D4D4;background:#FFFFFF">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap');
+  text { font-family: 'Inter', system-ui, sans-serif; }
+  svg {    /* Derived from --bg and --fg (overridable via --line, --accent, etc.) */
+    --_text:          #27272A;
+    --_text-sec:      #A9A9AA 60%, #FFFFFF));
+    --_text-muted:    #A9A9AA 40%, #FFFFFF));
+    --_text-faint:    #666666;
+    --_line:          #939394 50%, #FFFFFF));
+    --_arrow:         #27272A 85%, #FFFFFF));
+    --_node-fill:     #F9F9F9 3%, #FFFFFF));
+    --_node-stroke:   #D4D4D4 20%, #FFFFFF));
+    --_group-fill:    #FFFFFF;
+    --_group-hdr:     #666666;
+    --_inner-stroke:  #666666;
+    --_key-badge:     #666666;
+    --_note-bkg:      #F5F0C8;
+    --_note-border:   #E0DEB5;
+  }
+</style>
+<style>
+  .xychart-background { }
+  .xychart-axis-line { }
+  .xychart-tick { }
+  .xychart-data-label { font-family: #666666; }
+  .xychart-grid { fill: #666666; stroke: none; opacity: 0.65; }
+  .xychart-bar { stroke-width: 1.5; }
+  .xychart-bar-rect { stroke: none; }
+  .xychart-line { }
+  .xychart-line-shadow { opacity: 0.12; }
+  .xychart-dot { stroke: #FFFFFF; stroke-width: 2; }
+  .xychart-label { font-family: #666666; }
+  .xychart-legend-text { font-family: #666666; }
+  .xychart-axis-title { font-family: #666666; }
+  .xychart-title { font-family: #666666; }
+  svg {
+    --xychart-color-0: #27272A;
+    --xychart-bar-fill-0: #666666;
+  }
+  .xychart-bar.xychart-color-0 { stroke: #27272A; fill: #666666; }
+  path.xychart-color-0, line.xychart-color-0 { stroke: #27272A; }
+  circle.xychart-color-0 { fill: #27272A; }
+</style>
+<rect width="700" height="500" fill="#FFFFFF" class="xychart-background"/>
+<rect x="154.9" y="348.4" width="40" height="91.6" fill="#27272A" class="xychart-bar-rect xychart-color-0" data-value="150.0" data-label="Widgets"/>
+<rect x="266.7" y="215.2" width="40" height="224.8" fill="#27272A" class="xychart-bar-rect xychart-color-0" data-value="230.0" data-label="Gadgets"/>
+<rect x="378.5" y="298.5" width="40" height="141.5" fill="#27272A" class="xychart-bar-rect xychart-color-0" data-value="180.0" data-label="Gizmos"/>
+<rect x="490.3" y="440" width="40" height="0" fill="#27272A" class="xychart-bar-rect xychart-color-0" data-value="95.0" data-label="Doodads"/>
+<rect x="602.1" y="82" width="40" height="358" fill="#27272A" class="xychart-bar-rect xychart-color-0" data-value="310.0" data-label="Thingamajigs"/>
+<line x1="119" y1="440" x2="678" y2="440" stroke="#A9A9AA 40%, #FFFFFF))" stroke-width="2.0" class="xychart-axis-line"/>
+<line x1="119" y1="82" x2="119" y2="440" stroke="#A9A9AA 40%, #FFFFFF))" stroke-width="2.0" class="xychart-axis-line"/>
+<line x1="174.9" y1="445" x2="174.9" y2="440" stroke="#A9A9AA 40%, #FFFFFF))" stroke-width="2.0" class="xychart-tick"/>
+<line x1="286.7" y1="445" x2="286.7" y2="440" stroke="#A9A9AA 40%, #FFFFFF))" stroke-width="2.0" class="xychart-tick"/>
+<line x1="398.5" y1="445" x2="398.5" y2="440" stroke="#A9A9AA 40%, #FFFFFF))" stroke-width="2.0" class="xychart-tick"/>
+<line x1="510.3" y1="445" x2="510.3" y2="440" stroke="#A9A9AA 40%, #FFFFFF))" stroke-width="2.0" class="xychart-tick"/>
+<line x1="622.1" y1="445" x2="622.1" y2="440" stroke="#A9A9AA 40%, #FFFFFF))" stroke-width="2.0" class="xychart-tick"/>
+<line x1="114" y1="431.7" x2="119" y2="431.7" stroke="#A9A9AA 40%, #FFFFFF))" stroke-width="2.0" class="xychart-tick"/>
+<line x1="114" y1="348.4" x2="119" y2="348.4" stroke="#A9A9AA 40%, #FFFFFF))" stroke-width="2.0" class="xychart-tick"/>
+<line x1="114" y1="265.2" x2="119" y2="265.2" stroke="#A9A9AA 40%, #FFFFFF))" stroke-width="2.0" class="xychart-tick"/>
+<line x1="114" y1="181.9" x2="119" y2="181.9" stroke="#A9A9AA 40%, #FFFFFF))" stroke-width="2.0" class="xychart-tick"/>
+<line x1="114" y1="98.7" x2="119" y2="98.7" stroke="#A9A9AA 40%, #FFFFFF))" stroke-width="2.0" class="xychart-tick"/>
+<text x="174.9" y="458.0" text-anchor="middle" font-size="14" font-weight="400" fill="#A9A9AA 40%, #FFFFFF))" dy="0.35em" class="xychart-label">Widgets</text>
+<text x="286.7" y="458.0" text-anchor="middle" font-size="14" font-weight="400" fill="#A9A9AA 40%, #FFFFFF))" dy="0.35em" class="xychart-label">Gadgets</text>
+<text x="398.5" y="458.0" text-anchor="middle" font-size="14" font-weight="400" fill="#A9A9AA 40%, #FFFFFF))" dy="0.35em" class="xychart-label">Gizmos</text>
+<text x="510.3" y="458.0" text-anchor="middle" font-size="14" font-weight="400" fill="#A9A9AA 40%, #FFFFFF))" dy="0.35em" class="xychart-label">Doodads</text>
+<text x="622.0999999999999" y="458.0" text-anchor="middle" font-size="14" font-weight="400" fill="#A9A9AA 40%, #FFFFFF))" dy="0.35em" class="xychart-label">Thingamajigs</text>
+<text x="101.0" y="431.6744186046512" text-anchor="end" font-size="14" font-weight="400" fill="#A9A9AA 40%, #FFFFFF))" dy="0.35em" class="xychart-label">100</text>
+<text x="101.0" y="348.4186046511628" text-anchor="end" font-size="14" font-weight="400" fill="#A9A9AA 40%, #FFFFFF))" dy="0.35em" class="xychart-label">150</text>
+<text x="101.0" y="265.16279069767444" text-anchor="end" font-size="14" font-weight="400" fill="#A9A9AA 40%, #FFFFFF))" dy="0.35em" class="xychart-label">200</text>
+<text x="101.0" y="181.90697674418607" text-anchor="end" font-size="14" font-weight="400" fill="#A9A9AA 40%, #FFFFFF))" dy="0.35em" class="xychart-label">250</text>
+<text x="101.0" y="98.65116279069764" text-anchor="end" font-size="14" font-weight="400" fill="#A9A9AA 40%, #FFFFFF))" dy="0.35em" class="xychart-label">300</text>
+<text x="350.0" y="42.0" text-anchor="middle" font-size="20" font-weight="600" fill="#27272A" dy="0.35em" class="xychart-title">Product Sales</text>
+</svg>

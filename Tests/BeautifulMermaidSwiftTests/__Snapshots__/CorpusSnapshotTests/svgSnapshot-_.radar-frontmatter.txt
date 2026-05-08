@@ -1,0 +1,60 @@
+<svg id="graphDiv" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 700 700" role="graphics-document document" width="100%" preserveAspectRatio="xMinYMin meet" style="max-width: 700px; background-color: #FFFFFF; font-family: Inter">
+<style>
+.radarTitle { font-size: 16px; color: #27272A; dominant-baseline: hanging; text-anchor: middle; }
+.radarAxisLine { stroke: #939394; stroke-width: 2; }
+.radarAxisLabel { dominant-baseline: middle; text-anchor: middle; font-size: 12px; color: #939394; }
+.radarGraticule { fill: #DEDEDE; fill-opacity: 0.3; stroke: #DEDEDE; stroke-width: 1; }
+.radarLegendText { text-anchor: start; font-size: 12px; dominant-baseline: hanging; }
+.radarCurve-0 { color: #0052CC; fill: #0052CC; fill-opacity: 0; stroke: #0052CC; stroke-width: 2; }
+.radarLegendBox-0 { fill: #0052CC; fill-opacity: 0; stroke: #0052CC; }
+.radarCurve-1 { color: #0065FF; fill: #0065FF; fill-opacity: 0; stroke: #0065FF; stroke-width: 2; }
+.radarLegendBox-1 { fill: #0065FF; fill-opacity: 0; stroke: #0065FF; }
+.radarCurve-2 { color: #2684FF; fill: #2684FF; fill-opacity: 0; stroke: #2684FF; stroke-width: 2; }
+.radarLegendBox-2 { fill: #2684FF; fill-opacity: 0; stroke: #2684FF; }
+.radarCurve-3 { color: #4C9AFF; fill: #4C9AFF; fill-opacity: 0; stroke: #4C9AFF; stroke-width: 2; }
+.radarLegendBox-3 { fill: #4C9AFF; fill-opacity: 0; stroke: #4C9AFF; }
+.radarCurve-4 { color: #84B9FF; fill: #84B9FF; fill-opacity: 0; stroke: #84B9FF; stroke-width: 2; }
+.radarLegendBox-4 { fill: #84B9FF; fill-opacity: 0; stroke: #84B9FF; }
+.radarCurve-5 { color: #A5CCFF; fill: #A5CCFF; fill-opacity: 0; stroke: #A5CCFF; stroke-width: 2; }
+.radarLegendBox-5 { fill: #A5CCFF; fill-opacity: 0; stroke: #A5CCFF; }
+.radarCurve-6 { color: #C6DFFF; fill: #C6DFFF; fill-opacity: 0; stroke: #C6DFFF; stroke-width: 2; }
+.radarLegendBox-6 { fill: #C6DFFF; fill-opacity: 0; stroke: #C6DFFF; }
+.radarCurve-7 { color: #0052CC; fill: #0052CC; fill-opacity: 0; stroke: #0052CC; stroke-width: 2; }
+.radarLegendBox-7 { fill: #0052CC; fill-opacity: 0; stroke: #0052CC; }
+.radarCurve-8 { color: #0065FF; fill: #0065FF; fill-opacity: 0; stroke: #0065FF; stroke-width: 2; }
+.radarLegendBox-8 { fill: #0065FF; fill-opacity: 0; stroke: #0065FF; }
+.radarCurve-9 { color: #2684FF; fill: #2684FF; fill-opacity: 0; stroke: #2684FF; stroke-width: 2; }
+.radarLegendBox-9 { fill: #2684FF; fill-opacity: 0; stroke: #2684FF; }
+.radarCurve-10 { color: #4C9AFF; fill: #4C9AFF; fill-opacity: 0; stroke: #4C9AFF; stroke-width: 2; }
+.radarLegendBox-10 { fill: #4C9AFF; fill-opacity: 0; stroke: #4C9AFF; }
+.radarCurve-11 { color: #84B9FF; fill: #84B9FF; fill-opacity: 0; stroke: #84B9FF; stroke-width: 2; }
+.radarLegendBox-11 { fill: #84B9FF; fill-opacity: 0; stroke: #84B9FF; }
+</style>
+<g transform="translate(350, 350)">
+<circle class="radarGraticule" r="60"/>
+<circle class="radarGraticule" r="120"/>
+<circle class="radarGraticule" r="180"/>
+<circle class="radarGraticule" r="240"/>
+<circle class="radarGraticule" r="300"/>
+<line class="radarAxisLine" x1="0" y1="0" x2="0" y2="-75"/>
+<line class="radarAxisLine" x1="0" y1="0" x2="71.3" y2="-23.2"/>
+<line class="radarAxisLine" x1="0" y1="0" x2="44.1" y2="60.7"/>
+<line class="radarAxisLine" x1="0" y1="0" x2="-44.1" y2="60.7"/>
+<line class="radarAxisLine" x1="0" y1="0" x2="-71.3" y2="-23.2"/>
+<text class="radarAxisLabel" x="0" y="-315" dominant-baseline="middle" text-anchor="middle">A</text>
+<text class="radarAxisLabel" x="299.6" y="-97.3" dominant-baseline="middle" text-anchor="middle">B</text>
+<text class="radarAxisLabel" x="185.2" y="254.8" dominant-baseline="middle" text-anchor="middle">C</text>
+<text class="radarAxisLabel" x="-185.2" y="254.8" dominant-baseline="middle" text-anchor="middle">D</text>
+<text class="radarAxisLabel" x="-299.6" y="-97.3" dominant-baseline="middle" text-anchor="middle">E</text>
+<path class="radarCurve-0" d="M0,-60 C39.944374,-54.437694 103.546647,-57.644345 114.126782,-37.082039 C124.706916,-16.519733 131.32087,122.498447 105.801345,145.623059 C80.281821,168.747671 -101.956631,217.996894 -141.068461,194.164079 C-180.180291,170.331263 -299.423801,-67.28869 -285.316955,-92.705098 C-271.210109,-118.121506 -39.944374,-65.562306 0,-60 Z"/>
+<path class="radarCurve-1" d="M0,-300 C28.531695,-305.562306 217.673429,-118.726385 228.253564,-74.164079 C238.833698,-29.601773 135.680125,128.498447 105.801345,145.623059 C75.922566,162.747671 -54.247757,113.498447 -70.53423,97.082039 C-86.820704,80.665631 -64.116814,21.167184 -57.063391,-18.54102 C-50.009968,-58.249224 -28.531695,-294.437694 0,-300 Z"/>
+<g transform="translate(262.5, -262.5)">
+<rect class="radarLegendBox-0" width="12" height="12"/>
+<text class="radarLegendText" x="16" y="0" dominant-baseline="hanging" text-anchor="start">c1</text>
+</g>
+<g transform="translate(262.5, -242.5)">
+<rect class="radarLegendBox-1" width="12" height="12"/>
+<text class="radarLegendText" x="16" y="0" dominant-baseline="hanging" text-anchor="start">c2</text>
+</g>
+</g>
+</svg>

@@ -1,0 +1,126 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 335.964 350" width="335.964" height="350" style="--bg:#FFFFFF;--fg:#27272A;--line:#939394;--accent:#27272A;--muted:#A9A9AA;--surface:#F9F9F9;--border:#D4D4D4;background:#FFFFFF">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap');
+  text { font-family: 'Inter', system-ui, sans-serif; }
+  svg {    /* Derived from --bg and --fg (overridable via --line, --accent, etc.) */
+    --_text:          #27272A;
+    --_text-sec:      #A9A9AA 60%, #FFFFFF));
+    --_text-muted:    #A9A9AA 40%, #FFFFFF));
+    --_text-faint:    #666666;
+    --_line:          #939394 50%, #FFFFFF));
+    --_arrow:         #27272A 85%, #FFFFFF));
+    --_node-fill:     #F9F9F9 3%, #FFFFFF));
+    --_node-stroke:   #D4D4D4 20%, #FFFFFF));
+    --_group-fill:    #FFFFFF;
+    --_group-hdr:     #666666;
+    --_inner-stroke:  #666666;
+    --_key-badge:     #666666;
+    --_note-bkg:      #F5F0C8;
+    --_note-border:   #E0DEB5;
+  }
+</style>
+<defs>
+  <marker id="seq-arrow-filled" markerWidth="8.0" markerHeight="5.0" refX="8.0" refY="2.5" orient="auto-start-reverse">
+    <polygon points="0 0, 8.0 2.5, 0 5.0" fill="#27272A 85%, #FFFFFF))" />
+  </marker>
+  <marker id="seq-arrow-open" markerWidth="8.0" markerHeight="5.0" refX="8.0" refY="2.5" orient="auto-start-reverse">
+    <polyline points="0 0, 8.0 2.5, 0 5.0" fill="none" stroke="#27272A 85%, #FFFFFF))" stroke-width="1" />
+  </marker>
+  <marker id="seq-arrow-cross" markerWidth="16.0" markerHeight="10.0" refX="16.0" refY="5.0" orient="auto-start-reverse">
+    <line x1="8.0" y1="-5.0" x2="0" y2="5.0" stroke="#27272A 85%, #FFFFFF))" stroke-width="1.5" />
+    <line x1="8.0" y1="5.0" x2="0" y2="-5.0" stroke="#27272A 85%, #FFFFFF))" stroke-width="1.5" />
+  </marker>
+  <marker id="seq-arrow-async" markerWidth="8.0" markerHeight="5.0" refX="8.0" refY="2.5" orient="auto-start-reverse">
+    <path d="M 1 2.5 Q 4.0 -1, 7.0 2.5" fill="none" stroke="#27272A 85%, #FFFFFF))" stroke-width="1" />
+  </marker>
+  <marker id="seq-arrow-half-top" markerWidth="8.0" markerHeight="5.0" refX="8.0" refY="2.5" orient="auto-start-reverse">
+    <polygon points="0 0, 8.0 2.5, 0 2.5" fill="#27272A 85%, #FFFFFF))" />
+  </marker>
+  <marker id="seq-arrow-half-bottom" markerWidth="8.0" markerHeight="5.0" refX="8.0" refY="2.5" orient="auto-start-reverse">
+    <polygon points="0 2.5, 8.0 2.5, 0 5.0" fill="#27272A 85%, #FFFFFF))" />
+  </marker>
+  <marker id="seq-arrow-stick-top" markerWidth="8.0" markerHeight="5.0" refX="8.0" refY="2.5" orient="auto-start-reverse">
+    <line x1="0" y1="0" x2="0" y2="2.5" stroke="#27272A 85%, #FFFFFF))" stroke-width="1.5" />
+    <line x1="8.0" y1="0" x2="0" y2="0" stroke="#27272A 85%, #FFFFFF))" stroke-width="1.5" />
+  </marker>
+  <marker id="seq-arrow-stick-bottom" markerWidth="8.0" markerHeight="5.0" refX="8.0" refY="2.5" orient="auto-start-reverse">
+    <line x1="0" y1="2.5" x2="0" y2="5.0" stroke="#27272A 85%, #FFFFFF))" stroke-width="1.5" />
+    <line x1="8.0" y1="2.5" x2="0" y2="2.5" stroke="#27272A 85%, #FFFFFF))" stroke-width="1.5" />
+  </marker>
+  <marker id="seq-arrow-half-top-rev" markerWidth="8.0" markerHeight="5.0" refX="8.0" refY="2.5" orient="auto-start-reverse">
+    <polygon points="0 2.5, 8.0 0, 0 0" fill="#27272A 85%, #FFFFFF))" />
+  </marker>
+  <marker id="seq-arrow-half-bottom-rev" markerWidth="8.0" markerHeight="5.0" refX="8.0" refY="2.5" orient="auto-start-reverse">
+    <polygon points="0 2.5, 8.0 5.0, 0 5.0" fill="#27272A 85%, #FFFFFF))" />
+  </marker>
+  <marker id="seq-arrow-stick-top-rev" markerWidth="8.0" markerHeight="5.0" refX="8.0" refY="2.5" orient="auto-start-reverse">
+    <line x1="0" y1="0" x2="0" y2="2.5" stroke="#27272A 85%, #FFFFFF))" stroke-width="1.5" />
+    <line x1="8.0" y1="2.5" x2="0" y2="2.5" stroke="#27272A 85%, #FFFFFF))" stroke-width="1.5" />
+  </marker>
+  <marker id="seq-arrow-stick-bottom-rev" markerWidth="8.0" markerHeight="5.0" refX="8.0" refY="2.5" orient="auto-start-reverse">
+    <line x1="0" y1="2.5" x2="0" y2="5.0" stroke="#27272A 85%, #FFFFFF))" stroke-width="1.5" />
+    <line x1="8.0" y1="0" x2="0" y2="0" stroke="#27272A 85%, #FFFFFF))" stroke-width="1.5" />
+  </marker>
+  <marker id="seq-arrow-half-top-rev-dot" markerWidth="8.0" markerHeight="5.0" refX="8.0" refY="2.5" orient="auto-start-reverse">
+    <polygon points="0 2.5, 8.0 0, 0 0" fill="#27272A 85%, #FFFFFF))" />
+  </marker>
+  <marker id="seq-arrow-half-bottom-rev-dot" markerWidth="8.0" markerHeight="5.0" refX="8.0" refY="2.5" orient="auto-start-reverse">
+    <polygon points="0 2.5, 8.0 5.0, 0 5.0" fill="#27272A 85%, #FFFFFF))" />
+  </marker>
+  <marker id="seq-arrow-stick-top-rev-dot" markerWidth="8.0" markerHeight="5.0" refX="8.0" refY="2.5" orient="auto-start-reverse">
+    <line x1="0" y1="0" x2="0" y2="2.5" stroke="#27272A 85%, #FFFFFF))" stroke-width="1.5" />
+    <line x1="8.0" y1="2.5" x2="0" y2="2.5" stroke="#27272A 85%, #FFFFFF))" stroke-width="1.5" />
+  </marker>
+  <marker id="seq-arrow-stick-bottom-rev-dot" markerWidth="8.0" markerHeight="5.0" refX="8.0" refY="2.5" orient="auto-start-reverse">
+    <line x1="0" y1="2.5" x2="0" y2="5.0" stroke="#27272A 85%, #FFFFFF))" stroke-width="1.5" />
+    <line x1="8.0" y1="0" x2="0" y2="0" stroke="#27272A 85%, #FFFFFF))" stroke-width="1.5" />
+  </marker>
+</defs>
+<g class="block" data-type="loop" data-label="Every 30s">
+<rect class="loopLine" x="50.0" y="122.0" width="235.964" height="130.0" rx="0" ry="0" fill="none" stroke="#D4D4D4 20%, #FFFFFF))" stroke-width="1.0" />
+<rect class="labelBox" x="50.0" y="122.0" width="103.45" height="18.0" fill="#666666" stroke="#D4D4D4 20%, #FFFFFF))" stroke-width="1.0" />
+<text class="labelText loopText" x="56.0" y="131.0" font-size="11.0" text-anchor="start" fill="#A9A9AA 40%, #FFFFFF))" font-weight="600">loop [Every 30s]</text>
+</g>
+<line class="lifeline actor-line" data-actor="C" x1="97.5" y1="75.0" x2="97.5" y2="340.0" stroke="#939394 50%, #FFFFFF))" stroke-width="0.75" stroke-dasharray="6 4" />
+<line class="lifeline actor-line" data-actor="S" x1="237.5" y1="75.0" x2="237.5" y2="340.0" stroke="#939394 50%, #FFFFFF))" stroke-width="0.75" stroke-dasharray="6 4" />
+<g class="message" data-from="C" data-to="S" data-label="Connect" data-arrow-type="0" data-self="false">
+<line class="messageLine0" x1="97.5" y1="85.0" x2="237.5" y2="85.0" stroke="#939394 50%, #FFFFFF))" stroke-width="1.0" marker-end="url(#seq-arrow-filled)" />
+<text class="messageText" x="167.5" y="79.0" font-size="11.0" text-anchor="middle" fill="#A9A9AA 40%, #FFFFFF))">Connect</text>
+</g>
+<g class="message" data-from="C" data-to="S" data-label="Heartbeat" data-arrow-type="0" data-self="false">
+<line class="messageLine1" x1="97.5" y1="160.0" x2="237.5" y2="160.0" stroke="#939394 50%, #FFFFFF))" stroke-width="1.0" marker-end="url(#seq-arrow-filled)" />
+<text class="messageText" x="167.5" y="154.0" font-size="11.0" text-anchor="middle" fill="#A9A9AA 40%, #FFFFFF))">Heartbeat</text>
+</g>
+<g class="message" data-from="S" data-to="C" data-label="Ack" data-arrow-type="1" data-self="false">
+<line class="messageLine0" x1="237.5" y1="195.0" x2="97.5" y2="195.0" stroke="#939394 50%, #FFFFFF))" stroke-width="1.0" stroke-dasharray="6 4" marker-end="url(#seq-arrow-filled)" />
+<text class="messageText" x="167.5" y="189.0" font-size="11.0" text-anchor="middle" fill="#A9A9AA 40%, #FFFFFF))">Ack</text>
+</g>
+<g class="message" data-from="C" data-to="S" data-label="Disconnect" data-arrow-type="0" data-self="false">
+<line class="messageLine1" x1="97.5" y1="230.0" x2="237.5" y2="230.0" stroke="#939394 50%, #FFFFFF))" stroke-width="1.0" marker-end="url(#seq-arrow-filled)" />
+<text class="messageText" x="167.5" y="224.0" font-size="11.0" text-anchor="middle" fill="#A9A9AA 40%, #FFFFFF))">Disconnect</text>
+</g>
+<g class="actor"data-id="C" data-label="Client" data-type="participant">
+<rect x="60.0" y="10.0" width="75.0" height="65.0" rx="4" ry="4" fill="#F9F9F9 3%, #FFFFFF))" stroke="#D4D4D4 20%, #FFFFFF))" stroke-width="1.0" />
+<text class="actor-label" x="97.5" y="42.5" font-size="13.0" text-anchor="middle" fill="#A9A9AA 40%, #FFFFFF))">Client</text>
+</g>
+<g class="actor"data-id="S" data-label="Server" data-type="participant">
+<rect x="199.036" y="10.0" width="76.928" height="65.0" rx="4" ry="4" fill="#F9F9F9 3%, #FFFFFF))" stroke="#D4D4D4 20%, #FFFFFF))" stroke-width="1.0" />
+<text class="actor-label" x="237.5" y="42.5" font-size="13.0" text-anchor="middle" fill="#A9A9AA 40%, #FFFFFF))">Server</text>
+</g>
+<g class="actor"data-id="C" data-label="Client" data-type="participant">
+<rect x="60.0" y="275.0" width="75.0" height="65.0" rx="4" ry="4" fill="#F9F9F9 3%, #FFFFFF))" stroke="#D4D4D4 20%, #FFFFFF))" stroke-width="1.0" />
+<text class="actor-label" x="97.5" y="307.5" font-size="13.0" text-anchor="middle" fill="#A9A9AA 40%, #FFFFFF))">Client</text>
+</g>
+<g class="actor"data-id="S" data-label="Server" data-type="participant">
+<rect x="199.036" y="275.0" width="76.928" height="65.0" rx="4" ry="4" fill="#F9F9F9 3%, #FFFFFF))" stroke="#D4D4D4 20%, #FFFFFF))" stroke-width="1.0" />
+<text class="actor-label" x="237.5" y="307.5" font-size="13.0" text-anchor="middle" fill="#A9A9AA 40%, #FFFFFF))">Server</text>
+</g>
+<script type="text/javascript">
+function popupMenuToggle(popId) {
+  var pop = document.getElementById(popId);
+  if (!pop) return;
+  var vis = pop.getAttribute('visibility') === 'visible' ? 'hidden' : 'visible';
+  pop.setAttribute('visibility', vis);
+}
+</script>
+</svg>

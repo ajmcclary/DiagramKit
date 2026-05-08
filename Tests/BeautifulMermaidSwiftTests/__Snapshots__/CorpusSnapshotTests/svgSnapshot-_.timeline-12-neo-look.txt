@@ -1,0 +1,72 @@
+<svg id="873B7B6E-1484-4E51-AE3C-F7BB71DAE0A2" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="900" height="379.3" viewBox="0 0 900 379.3" style="--bg:#FFFFFF;--fg:#27272A;--line:#939394;--accent:#27272A;--muted:#A9A9AA;--surface:#F9F9F9;--border:#D4D4D4;background:#FFFFFF">
+<defs>
+<marker id="873B7B6E-1484-4E51-AE3C-F7BB71DAE0A2-arrowhead" refX="5" refY="2" markerWidth="6" markerHeight="4" orient="auto">
+<path d="M 0,0 V 4 L6,2 Z" class="arrowheadPath" fill="#939394"/>
+</marker>
+</defs>
+<g class="timeline-node section-0">
+<rect x="150" y="50" width="350" height="43.1" fill="#0052CC" stroke="#0052CC" stroke-width="1" rx="3" ry="3"/>
+<switch>
+<foreignObject x="150" y="50" width="350" height="43.1" position="fixed"><div xmlns="http://www.w3.org/1999/xhtml" class="label" style="display:table;width:100%;height:100%;text-align:center;font-size:14px;font-family:&quot;Open Sans&quot;, sans-serif;color:#ffffff"><div style="display:table-cell;vertical-align:middle">Era 1</div></div></foreignObject>
+<text text-anchor="middle" dominant-baseline="central" fill="#ffffff" font-size="14" font-family="&quot;Open Sans&quot;, sans-serif"><tspan x="325" y="71.5">Era 1</tspan></text>
+</switch>
+</g>
+<g class="timeline-node section-1">
+<rect x="550" y="50" width="150" height="43.1" fill="#0065FF" stroke="#0065FF" stroke-width="1" rx="3" ry="3"/>
+<switch>
+<foreignObject x="550" y="50" width="150" height="43.1" position="fixed"><div xmlns="http://www.w3.org/1999/xhtml" class="label" style="display:table;width:100%;height:100%;text-align:center;font-size:14px;font-family:&quot;Open Sans&quot;, sans-serif;color:#ffffff"><div style="display:table-cell;vertical-align:middle">Era 2</div></div></foreignObject>
+<text text-anchor="middle" dominant-baseline="central" fill="#ffffff" font-size="14" font-family="&quot;Open Sans&quot;, sans-serif"><tspan x="625" y="71.5">Era 2</tspan></text>
+</switch>
+</g>
+<g class="taskWrapper">
+<rect class="node-bkg node-0" x="150" y="143.1" width="150" height="43.1" fill="#0052CC" stroke="#0052CC" stroke-width="1" rx="3" ry="3"/>
+<line class="node-line-0" x1="150" y1="186.2" x2="300" y2="186.2" stroke="#003380" stroke-width="3"/>
+<switch>
+<foreignObject x="150" y="143.1" width="150" height="43.1" position="fixed"><div xmlns="http://www.w3.org/1999/xhtml" class="label" style="display:table;width:100%;height:100%;text-align:center;font-size:14px;font-family:&quot;Open Sans&quot;, sans-serif;color:#ffffff"><div style="display:table-cell;vertical-align:middle">2020</div></div></foreignObject>
+<text text-anchor="middle" dominant-baseline="central" fill="#ffffff" font-size="14" font-family="&quot;Open Sans&quot;, sans-serif"><tspan x="225" y="164.7">2020</tspan></text>
+</switch>
+</g>
+<g class="taskWrapper">
+<rect class="node-bkg node-0" x="350" y="143.1" width="150" height="43.1" fill="#0052CC" stroke="#0052CC" stroke-width="1" rx="3" ry="3"/>
+<line class="node-line-0" x1="350" y1="186.2" x2="500" y2="186.2" stroke="#003380" stroke-width="3"/>
+<switch>
+<foreignObject x="350" y="143.1" width="150" height="43.1" position="fixed"><div xmlns="http://www.w3.org/1999/xhtml" class="label" style="display:table;width:100%;height:100%;text-align:center;font-size:14px;font-family:&quot;Open Sans&quot;, sans-serif;color:#ffffff"><div style="display:table-cell;vertical-align:middle">2021</div></div></foreignObject>
+<text text-anchor="middle" dominant-baseline="central" fill="#ffffff" font-size="14" font-family="&quot;Open Sans&quot;, sans-serif"><tspan x="425" y="164.7">2021</tspan></text>
+</switch>
+</g>
+<g class="taskWrapper">
+<rect class="node-bkg node-1" x="550" y="143.1" width="150" height="43.1" fill="#0065FF" stroke="#0065FF" stroke-width="1" rx="3" ry="3"/>
+<line class="node-line-1" x1="550" y1="186.2" x2="700" y2="186.2" stroke="#003D99" stroke-width="3"/>
+<switch>
+<foreignObject x="550" y="143.1" width="150" height="43.1" position="fixed"><div xmlns="http://www.w3.org/1999/xhtml" class="label" style="display:table;width:100%;height:100%;text-align:center;font-size:14px;font-family:&quot;Open Sans&quot;, sans-serif;color:#ffffff"><div style="display:table-cell;vertical-align:middle">2022</div></div></foreignObject>
+<text text-anchor="middle" dominant-baseline="central" fill="#ffffff" font-size="14" font-family="&quot;Open Sans&quot;, sans-serif"><tspan x="625" y="164.7">2022</tspan></text>
+</switch>
+</g>
+<g class="eventWrapper" filter="brightness(120%)">
+<rect class="node-bkg" x="150" y="286.2" width="150" height="43.1" fill="#0052CC" stroke="#0052CC" stroke-width="1" rx="3" ry="3"/>
+<switch>
+<foreignObject x="150" y="286.2" width="150" height="43.1" position="fixed"><div xmlns="http://www.w3.org/1999/xhtml" class="label" style="display:table;width:100%;height:100%;text-align:center;font-size:14px;font-family:&quot;Open Sans&quot;, sans-serif;color:#27272A"><div style="display:table-cell;vertical-align:middle">Milestone A</div></div></foreignObject>
+<text text-anchor="middle" dominant-baseline="central" fill="#27272A" font-size="14" font-family="&quot;Open Sans&quot;, sans-serif"><tspan x="225" y="307.8">Milestone A</tspan></text>
+</switch>
+</g>
+<g class="eventWrapper" filter="brightness(120%)">
+<rect class="node-bkg" x="350" y="286.2" width="150" height="43.1" fill="#0052CC" stroke="#0052CC" stroke-width="1" rx="3" ry="3"/>
+<switch>
+<foreignObject x="350" y="286.2" width="150" height="43.1" position="fixed"><div xmlns="http://www.w3.org/1999/xhtml" class="label" style="display:table;width:100%;height:100%;text-align:center;font-size:14px;font-family:&quot;Open Sans&quot;, sans-serif;color:#27272A"><div style="display:table-cell;vertical-align:middle">Milestone B</div></div></foreignObject>
+<text text-anchor="middle" dominant-baseline="central" fill="#27272A" font-size="14" font-family="&quot;Open Sans&quot;, sans-serif"><tspan x="425" y="307.8">Milestone B</tspan></text>
+</switch>
+</g>
+<g class="eventWrapper" filter="brightness(120%)">
+<rect class="node-bkg" x="550" y="286.2" width="150" height="43.1" fill="#0065FF" stroke="#0065FF" stroke-width="1" rx="3" ry="3"/>
+<switch>
+<foreignObject x="550" y="286.2" width="150" height="43.1" position="fixed"><div xmlns="http://www.w3.org/1999/xhtml" class="label" style="display:table;width:100%;height:100%;text-align:center;font-size:14px;font-family:&quot;Open Sans&quot;, sans-serif;color:#27272A"><div style="display:table-cell;vertical-align:middle">Milestone C</div></div></foreignObject>
+<text text-anchor="middle" dominant-baseline="central" fill="#27272A" font-size="14" font-family="&quot;Open Sans&quot;, sans-serif"><tspan x="625" y="307.8">Milestone C</tspan></text>
+</switch>
+</g>
+<g class="lineWrapper">
+<line x1="225" y1="186.2" x2="225" y2="286.2" stroke="#939394" stroke-dasharray="5,5" stroke-width="2" marker-end="url(#873B7B6E-1484-4E51-AE3C-F7BB71DAE0A2-arrowhead)"/>
+<line x1="425" y1="186.2" x2="425" y2="286.2" stroke="#939394" stroke-dasharray="5,5" stroke-width="2" marker-end="url(#873B7B6E-1484-4E51-AE3C-F7BB71DAE0A2-arrowhead)"/>
+<line x1="625" y1="186.2" x2="625" y2="286.2" stroke="#939394" stroke-dasharray="5,5" stroke-width="2" marker-end="url(#873B7B6E-1484-4E51-AE3C-F7BB71DAE0A2-arrowhead)"/>
+</g>
+<line x1="150" y1="236.2" x2="850" y2="236.2" stroke="#939394" stroke-width="4" marker-end="url(#873B7B6E-1484-4E51-AE3C-F7BB71DAE0A2-arrowhead)"/>
+</svg>

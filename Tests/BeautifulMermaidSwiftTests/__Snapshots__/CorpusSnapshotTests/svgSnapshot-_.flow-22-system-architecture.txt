@@ -1,0 +1,135 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 612.035 525.6" width="612.035" height="525.6" style="--bg:#FFFFFF;--fg:#27272A;--line:#939394;--accent:#27272A;--muted:#A9A9AA;--surface:#F9F9F9;--border:#D4D4D4;background:#FFFFFF">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap');
+  text { font-family: 'Inter', system-ui, sans-serif; }
+  svg {    /* Derived from --bg and --fg (overridable via --line, --accent, etc.) */
+    --_text:          #27272A;
+    --_text-sec:      #A9A9AA 60%, #FFFFFF));
+    --_text-muted:    #A9A9AA 40%, #FFFFFF));
+    --_text-faint:    #666666;
+    --_line:          #939394 50%, #FFFFFF));
+    --_arrow:         #27272A 85%, #FFFFFF));
+    --_node-fill:     #F9F9F9 3%, #FFFFFF));
+    --_node-stroke:   #D4D4D4 20%, #FFFFFF));
+    --_group-fill:    #FFFFFF;
+    --_group-hdr:     #666666;
+    --_inner-stroke:  #666666;
+    --_key-badge:     #666666;
+    --_note-bkg:      #F5F0C8;
+    --_note-border:   #E0DEB5;
+  }
+</style>
+<defs>
+  <marker id="arrowhead" markerWidth="8.0" markerHeight="5.0" refX="7.0" refY="2.5" orient="auto">
+    <polygon points="0 0, 8.0 2.5, 0 5.0" fill="#27272A 85%, #FFFFFF))" stroke="#27272A 85%, #FFFFFF))" stroke-width="0.75" stroke-linejoin="round" />
+  </marker>
+  <marker id="arrowhead-start" markerWidth="8.0" markerHeight="5.0" refX="1" refY="2.5" orient="auto-start-reverse">
+    <polygon points="8.0 0, 0 2.5, 8.0 5.0" fill="#27272A 85%, #FFFFFF))" stroke="#27272A 85%, #FFFFFF))" stroke-width="0.75" stroke-linejoin="round" />
+  </marker>
+  <marker id="circlehead" markerWidth="5.5" markerHeight="3.5" refX="2.75" refY="1.75" orient="auto">
+    <circle cx="1.75" cy="1.75" r="1.25" fill="#27272A 85%, #FFFFFF))" stroke="#27272A 85%, #FFFFFF))" stroke-width="0.75" stroke-linejoin="round" />
+  </marker>
+  <marker id="circlehead-start" markerWidth="5.5" markerHeight="3.5" refX="0.75" refY="1.75" orient="auto-start-reverse">
+    <circle cx="1.75" cy="1.75" r="1.25" fill="#27272A 85%, #FFFFFF))" stroke="#27272A 85%, #FFFFFF))" stroke-width="0.75" stroke-linejoin="round" />
+  </marker>
+  <marker id="crosshead" markerWidth="3.0" markerHeight="3.0" refX="1.5" refY="1.5" orient="auto">
+    <line x1="0" y1="0" x2="3.0" y2="3.0" stroke="#27272A 85%, #FFFFFF))" stroke-width="1.5" />
+    <line x1="3.0" y1="0" x2="0" y2="3.0" stroke="#27272A 85%, #FFFFFF))" stroke-width="1.5" />
+  </marker>
+  <marker id="crosshead-start" markerWidth="3.0" markerHeight="3.0" refX="1.5" refY="1.5" orient="auto-start-reverse">
+    <line x1="0" y1="0" x2="3.0" y2="3.0" stroke="#27272A 85%, #FFFFFF))" stroke-width="1.5" />
+    <line x1="3.0" y1="0" x2="0" y2="3.0" stroke="#27272A 85%, #FFFFFF))" stroke-width="1.5" />
+  </marker>
+  <marker id="diamondhead" markerWidth="9.6" markerHeight="5.0" refX="8.0" refY="2.5" orient="auto">
+    <polygon points="0 2.5, 4.8 0, 9.6 2.5, 4.8 5.0" fill="#27272A 85%, #FFFFFF))" stroke="#27272A 85%, #FFFFFF))" stroke-width="0.75" stroke-linejoin="round" />
+  </marker>
+  <marker id="diamondhead-start" markerWidth="9.6" markerHeight="5.0" refX="1.6" refY="2.5" orient="auto-start-reverse">
+    <polygon points="4.8 2.5, 0 0, 9.6 2.5, 0 5.0" fill="#27272A 85%, #FFFFFF))" stroke="#27272A 85%, #FFFFFF))" stroke-width="0.75" stroke-linejoin="round" />
+  </marker>
+</defs>
+<style>
+.edge-animated {
+  animation: edge-dash 1.5s linear infinite;
+  stroke-dasharray: 8 4;
+}
+@keyframes edge-dash {
+  to { stroke-dashoffset: -24; }
+}
+</style>
+<g class="subgraph" data-id="clients" data-label="Client Layer">
+  <rect x="40.0" y="40.0" width="260.978" height="181.8" rx="0" ry="0" fill="#FFFFFF" stroke="#D4D4D4 20%, #FFFFFF))" stroke-width="1.0" />
+  <rect x="40.0" y="40.0" width="260.978" height="28.0" rx="0" ry="0" fill="#666666" stroke="#D4D4D4 20%, #FFFFFF))" stroke-width="1.0" />
+  <text x="52.0" y="54.0" font-size="12.0" font-weight="600" fill="#A9A9AA 60%, #FFFFFF))" dy="4.199999999999999">Client Layer</text>
+</g>
+<g class="subgraph" data-id="services" data-label="Service Layer">
+  <rect x="40.0" y="249.8" width="454.67499999999995" height="96.9" rx="0" ry="0" fill="#FFFFFF" stroke="#D4D4D4 20%, #FFFFFF))" stroke-width="1.0" />
+  <rect x="40.0" y="249.8" width="454.67499999999995" height="28.0" rx="0" ry="0" fill="#666666" stroke="#D4D4D4 20%, #FFFFFF))" stroke-width="1.0" />
+  <text x="52.0" y="263.8" font-size="12.0" font-weight="600" fill="#A9A9AA 60%, #FFFFFF))" dy="4.199999999999999">Service Layer</text>
+</g>
+<g class="subgraph" data-id="data" data-label="Data Layer">
+  <rect x="40.0" y="374.70000000000005" width="532.035" height="110.9" rx="0" ry="0" fill="#FFFFFF" stroke="#D4D4D4 20%, #FFFFFF))" stroke-width="1.0" />
+  <rect x="40.0" y="374.70000000000005" width="532.035" height="28.0" rx="0" ry="0" fill="#666666" stroke="#D4D4D4 20%, #FFFFFF))" stroke-width="1.0" />
+  <text x="52.0" y="388.70000000000005" font-size="12.0" font-weight="600" fill="#A9A9AA 60%, #FFFFFF))" dy="4.199999999999999">Data Layer</text>
+</g>
+<polyline data-from="A" data-to="B" data-style="solid" data-arrow-start="false" data-arrow-end="true" class="edge" points="102.91,120.9 102.91,144.9 113.65450000000001,144.9 113.65450000000001,168.9" fill="none" stroke="#939394 50%, #FFFFFF))" stroke-width="1.0" marker-end="url(#arrowhead)" />
+<polyline data-from="C" data-to="B" data-style="solid" data-arrow-start="false" data-arrow-end="true" class="edge" points="175.2265,102.45 174.5645,102.45 174.5645,187.35000000000002 171.30900000000003,187.35000000000002" fill="none" stroke="#939394 50%, #FFFFFF))" stroke-width="1.0" marker-end="url(#arrowhead)" />
+
+<polyline data-from="B" data-to="E" data-style="solid" data-arrow-start="false" data-arrow-end="true" class="edge" points="171.30900000000003,187.35000000000002 186.791,187.35000000000002 186.791,312.25 202.27299999999997,312.25" fill="none" stroke="#939394 50%, #FFFFFF))" stroke-width="1.0" marker-end="url(#arrowhead)" />
+<polyline data-from="B" data-to="F" data-style="solid" data-arrow-start="false" data-arrow-end="true" class="edge" points="171.30900000000003,187.35000000000002 186.791,187.35000000000002 186.791,312.25 351.51,312.25" fill="none" stroke="#939394 50%, #FFFFFF))" stroke-width="1.0" marker-end="url(#arrowhead)" />
+
+
+
+
+<g class="node" data-id="A" data-label="Web App" data-shape="stadium">
+  <rect x="56.0" y="84.0" width="93.82" height="36.900000000000006" rx="18.450000000000003" ry="18.450000000000003" fill="#F9F9F9 3%, #FFFFFF))" stroke="#D4D4D4 20%, #FFFFFF))" stroke-width="0.75" />
+  <text x="102.91" y="102.45" text-anchor="middle" font-size="13.0" font-weight="500" fill="#27272A" dy="4.55">Web App</text>
+</g>
+<g class="node" data-id="B" data-label="API Gateway" data-shape="rectangle">
+  <rect x="56.0" y="168.9" width="115.30900000000001" height="36.900000000000006" rx="0" ry="0" fill="#F9F9F9 3%, #FFFFFF))" stroke="#D4D4D4 20%, #FFFFFF))" stroke-width="0.75" />
+  <text x="113.65450000000001" y="187.35000000000002" text-anchor="middle" font-size="13.0" font-weight="500" fill="#27272A" dy="4.55">API Gateway</text>
+</g>
+<g class="node" data-id="C" data-label="Mobile App" data-shape="stadium">
+  <rect x="175.2265" y="84.0" width="107.158" height="36.900000000000006" rx="18.450000000000003" ry="18.450000000000003" fill="#F9F9F9 3%, #FFFFFF))" stroke="#D4D4D4 20%, #FFFFFF))" stroke-width="0.75" />
+  <text x="228.8055" y="102.45" text-anchor="middle" font-size="13.0" font-weight="500" fill="#27272A" dy="4.55">Mobile App</text>
+</g>
+<g class="node" data-id="D" data-label="Auth Service" data-shape="rectangle">
+  <rect x="56.0" y="293.8" width="118.27299999999998" height="36.900000000000006" rx="0" ry="0" fill="#F9F9F9 3%, #FFFFFF))" stroke="#D4D4D4 20%, #FFFFFF))" stroke-width="0.75" />
+  <text x="115.13649999999998" y="312.25" text-anchor="middle" font-size="13.0" font-weight="500" fill="#27272A" dy="4.55">Auth Service</text>
+</g>
+<g class="node" data-id="E" data-label="User Service" data-shape="rectangle">
+  <rect x="202.27299999999997" y="293.8" width="121.23700000000001" height="36.900000000000006" rx="0" ry="0" fill="#F9F9F9 3%, #FFFFFF))" stroke="#D4D4D4 20%, #FFFFFF))" stroke-width="0.75" />
+  <text x="262.89149999999995" y="312.25" text-anchor="middle" font-size="13.0" font-weight="500" fill="#27272A" dy="4.55">User Service</text>
+</g>
+<g class="node" data-id="F" data-label="Order Service" data-shape="rectangle">
+  <rect x="351.51" y="293.8" width="127.16499999999999" height="36.900000000000006" rx="0" ry="0" fill="#F9F9F9 3%, #FFFFFF))" stroke="#D4D4D4 20%, #FFFFFF))" stroke-width="0.75" />
+  <text x="415.0925" y="312.25" text-anchor="middle" font-size="13.0" font-weight="500" fill="#27272A" dy="4.55">Order Service</text>
+</g>
+<g class="node" data-id="G" data-label="Auth DB" data-shape="cylinder">
+  <rect x="56.0" y="425.70000000000005" width="88.633" height="36.900000000000006" fill="#F9F9F9 3%, #FFFFFF))" stroke="none" />
+  <line x1="56.0" y1="425.70000000000005" x2="56.0" y2="462.6" stroke="#D4D4D4 20%, #FFFFFF))" stroke-width="0.75" />
+  <line x1="144.63299999999998" y1="425.70000000000005" x2="144.63299999999998" y2="462.6" stroke="#D4D4D4 20%, #FFFFFF))" stroke-width="0.75" />
+  <ellipse cx="100.31649999999999" cy="462.6" rx="44.3165" ry="7.0" fill="#F9F9F9 3%, #FFFFFF))" stroke="#D4D4D4 20%, #FFFFFF))" stroke-width="0.75" />
+  <ellipse cx="100.31649999999999" cy="425.70000000000005" rx="44.3165" ry="7.0" fill="#F9F9F9 3%, #FFFFFF))" stroke="#D4D4D4 20%, #FFFFFF))" stroke-width="0.75" />
+  <text x="100.31649999999999" y="444.15000000000003" text-anchor="middle" font-size="13.0" font-weight="500" fill="#27272A" dy="4.55">Auth DB</text>
+</g>
+<g class="node" data-id="H" data-label="User DB" data-shape="cylinder">
+  <rect x="175.2265" y="425.70000000000005" width="91.59700000000001" height="36.900000000000006" fill="#F9F9F9 3%, #FFFFFF))" stroke="none" />
+  <line x1="175.2265" y1="425.70000000000005" x2="175.2265" y2="462.6" stroke="#D4D4D4 20%, #FFFFFF))" stroke-width="0.75" />
+  <line x1="266.82349999999997" y1="425.70000000000005" x2="266.82349999999997" y2="462.6" stroke="#D4D4D4 20%, #FFFFFF))" stroke-width="0.75" />
+  <ellipse cx="221.02499999999998" cy="462.6" rx="45.798500000000004" ry="7.0" fill="#F9F9F9 3%, #FFFFFF))" stroke="#D4D4D4 20%, #FFFFFF))" stroke-width="0.75" />
+  <ellipse cx="221.02499999999998" cy="425.70000000000005" rx="45.798500000000004" ry="7.0" fill="#F9F9F9 3%, #FFFFFF))" stroke="#D4D4D4 20%, #FFFFFF))" stroke-width="0.75" />
+  <text x="221.02499999999998" y="444.15000000000003" text-anchor="middle" font-size="13.0" font-weight="500" fill="#27272A" dy="4.55">User DB</text>
+</g>
+<g class="node" data-id="I" data-label="Order DB" data-shape="cylinder">
+  <rect x="292.23" y="425.70000000000005" width="97.525" height="36.900000000000006" fill="#F9F9F9 3%, #FFFFFF))" stroke="none" />
+  <line x1="292.23" y1="425.70000000000005" x2="292.23" y2="462.6" stroke="#D4D4D4 20%, #FFFFFF))" stroke-width="0.75" />
+  <line x1="389.755" y1="425.70000000000005" x2="389.755" y2="462.6" stroke="#D4D4D4 20%, #FFFFFF))" stroke-width="0.75" />
+  <ellipse cx="340.9925" cy="462.6" rx="48.7625" ry="7.0" fill="#F9F9F9 3%, #FFFFFF))" stroke="#D4D4D4 20%, #FFFFFF))" stroke-width="0.75" />
+  <ellipse cx="340.9925" cy="425.70000000000005" rx="48.7625" ry="7.0" fill="#F9F9F9 3%, #FFFFFF))" stroke="#D4D4D4 20%, #FFFFFF))" stroke-width="0.75" />
+  <text x="340.9925" y="444.15000000000003" text-anchor="middle" font-size="13.0" font-weight="500" fill="#27272A" dy="4.55">Order DB</text>
+</g>
+<g class="node" data-id="J" data-label="Message Queue" data-shape="stadium">
+  <rect x="417.755" y="418.70000000000005" width="138.28" height="36.900000000000006" rx="18.450000000000003" ry="18.450000000000003" fill="#F9F9F9 3%, #FFFFFF))" stroke="#D4D4D4 20%, #FFFFFF))" stroke-width="0.75" />
+  <text x="486.895" y="437.15000000000003" text-anchor="middle" font-size="13.0" font-weight="500" fill="#27272A" dy="4.55">Message Queue</text>
+</g>
+</svg>

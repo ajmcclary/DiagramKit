@@ -1,0 +1,92 @@
+<svg id="wardley-D600027E" class="wardley-map" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="900" height="600" viewBox="0 0 900 600" role="graphics-document document">
+<style>
+.wardley-background { fill: #FFFFFF; }
+.wardley-axes { stroke: #000000; stroke-width: 1.5; }
+.wardley-axis-label { font-family: "Inter", sans-serif; font-size: 12px; fill: #222222; }
+.wardley-axis-label-x { text-anchor: middle; }
+.wardley-axis-label-y { text-anchor: middle; }
+.wardley-stage-label { font-family: "Inter", sans-serif; font-size: 10px; fill: #222222; text-anchor: middle; }
+.wardley-grid { stroke: rgba(100, 100, 100, 0.2); stroke-dasharray: 2 6; stroke-width: 1; }
+.wardley-node { font-family: "Inter", sans-serif; }
+.wardley-node--anchor { font-weight: bold; }
+.wardley-node--component { font-weight: normal; }
+.wardley-node--pipeline-component { font-weight: normal; }
+.wardley-node-label { fill: #222222; font-size: 10px; }
+.wardley-link { stroke: #000000; stroke-width: 1; fill: none; }
+.wardley-link--dashed { stroke-dasharray: 6 6; }
+.wardley-link-label { font-family: "Inter", sans-serif; font-size: 8px; fill: #222222; text-anchor: start; }
+.wardley-trend { stroke: #dc3545; stroke-dasharray: 4 4; stroke-width: 1; fill: none; }
+.wardley-annotation-line { stroke: #000000; stroke-dasharray: 4 4; stroke-width: 1; fill: none; }
+.wardley-annotation { fill: #FFFFFF; stroke: #000000; stroke-width: 1; }
+.wardley-annotation-text { font-family: "Inter", sans-serif; font-size: 10px; fill: #222222; text-anchor: middle; dominant-baseline: central; }
+.wardley-annotations-box { fill: #FFFFFF; stroke: #000000; stroke-width: 1; }
+.wardley-annotations-box-text { font-family: "Inter", sans-serif; font-size: 8px; fill: #222222; text-anchor: start; }
+.wardley-notes { font-family: "Inter", sans-serif; font-size: 10px; fill: #222222; font-weight: bold; text-anchor: start; }
+.wardley-accelerators { fill: #FFFFFF; stroke: #000000; stroke-width: 1; }
+.wardley-accelerator-label { font-family: "Inter", sans-serif; font-size: 10px; fill: #222222; font-weight: bold; text-anchor: middle; }
+.wardley-deaccelerators { fill: #FFFFFF; stroke: #000000; stroke-width: 1; }
+.wardley-deaccelerator-label { font-family: "Inter", sans-serif; font-size: 10px; fill: #222222; font-weight: bold; text-anchor: middle; }
+.wardley-pipelines { }
+.wardley-pipeline-box { fill: none; stroke: #000000; stroke-width: 1.5; }
+.wardley-pipeline-evolution-link { fill: none; stroke: #000000; stroke-dasharray: 4 4; stroke-width: 1; }
+.wardley-market-overlay { fill: white; stroke: #000000; stroke-width: 1; }
+.wardley-market-line { stroke: #000000; stroke-width: 1; fill: none; }
+.wardley-market-dot { fill: white; stroke: #000000; stroke-width: 1; }
+.wardley-outsource-overlay { fill: #666; }
+.wardley-buy-overlay { fill: #ccc; }
+.wardley-build-overlay { fill: #eee; stroke: #000; stroke-width: 1; }
+.wardley-inertia { stroke: #000000; stroke-width: 6; stroke-linecap: round; }
+.wardley-title { font-family: "Inter", sans-serif; font-size: 12px; fill: #222222; font-weight: bold; text-anchor: middle; }
+</style>
+<defs>
+<marker id="arrow-wardley-D600027E" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+  <path d="M 0 0 L 10 5 L 0 10 z" fill="#dc3545" />
+</marker>
+<marker id="link-arrow-end-wardley-D600027E" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse">
+  <path d="M 0 0 L 10 5 L 0 10 z" fill="#000000" />
+</marker>
+<marker id="link-arrow-start-wardley-D600027E" viewBox="0 0 10 10" refX="1" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse">
+  <path d="M 10 0 L 0 5 L 10 10 z" fill="#000000" />
+</marker>
+</defs>
+<rect class="wardley-background" x="0" y="0" width="900" height="600" />
+<text class="wardley-title" x="450" y="24">Evolution Trends</text>
+<g class="wardley-axes">
+<line x1="48" y1="552" x2="852" y2="552" />
+<line x1="48" y1="552" x2="48" y2="48" />
+<text class="wardley-axis-label wardley-axis-label-x" x="450" y="588">Evolution</text>
+<text class="wardley-axis-label wardley-axis-label-y" x="12" y="300" transform="rotate(-90, 12, 300)">Visibility</text>
+</g>
+<g class="wardley-stages">
+<line class="wardley-stage-divider" x1="48" y1="48" x2="48" y2="552" stroke="#000000" stroke-dasharray="5 5" opacity="0.8" />
+<text class="wardley-stage-label" x="148" y="576">Genesis</text>
+<line class="wardley-stage-divider" x1="249" y1="48" x2="249" y2="552" stroke="#000000" stroke-dasharray="5 5" opacity="0.8" />
+<text class="wardley-stage-label" x="349" y="576">Custom Built</text>
+<line class="wardley-stage-divider" x1="450" y1="48" x2="450" y2="552" stroke="#000000" stroke-dasharray="5 5" opacity="0.8" />
+<text class="wardley-stage-label" x="550" y="576">Product</text>
+<line class="wardley-stage-divider" x1="651" y1="48" x2="651" y2="552" stroke="#000000" stroke-dasharray="5 5" opacity="0.8" />
+<text class="wardley-stage-label" x="751" y="576">Commodity</text>
+</g>
+<g class="wardley-links">
+<line class="wardley-link" x1="450" y1="394" x2="450" y2="255" />
+<line class="wardley-link" x1="450" y1="243" x2="450" y2="154" />
+</g>
+<g class="wardley-trends">
+<line class="wardley-trend" x1="450" y1="400" x2="562" y2="400" marker-end="url(#arrow-wardley-D600027E)" />
+<line class="wardley-trend" x1="450" y1="249" x2="723" y2="249" marker-end="url(#arrow-wardley-D600027E)" />
+</g>
+<g class="wardley-nodes">
+<g class="wardley-node wardley-node--component">
+<circle class="wardley-node-shape" cx="450" cy="400" r="6" fill="#FFFFFF" stroke="#000000" stroke-width="1" />
+<text class="wardley-node-label" x="458" y="404" text-anchor="start">Manual Process</text>
+</g>
+<g class="wardley-node wardley-node--component">
+<circle class="wardley-node-shape" cx="450" cy="249" r="6" fill="#FFFFFF" stroke="#000000" stroke-width="1" />
+<text class="wardley-node-label" x="458" y="253" text-anchor="start">Automated</text>
+</g>
+<g class="wardley-node wardley-node--component">
+<circle class="wardley-node-shape" cx="450" cy="148" r="6" fill="#FFFFFF" stroke="#000000" stroke-width="1" />
+<text class="wardley-node-label" x="458" y="152" text-anchor="start">AI Driven</text>
+</g>
+</g>
+</svg>

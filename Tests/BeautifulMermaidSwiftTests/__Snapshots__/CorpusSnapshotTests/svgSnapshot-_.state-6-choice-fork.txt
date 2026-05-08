@@ -1,0 +1,125 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 200 411.85" width="200" height="411.85" style="--bg:#FFFFFF;--fg:#27272A;--line:#939394;--accent:#27272A;--muted:#A9A9AA;--surface:#F9F9F9;--border:#D4D4D4;background:#FFFFFF">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap');
+  text { font-family: 'Inter', system-ui, sans-serif; }
+  svg {    /* Derived from --bg and --fg (overridable via --line, --accent, etc.) */
+    --_text:          #27272A;
+    --_text-sec:      #A9A9AA 60%, #FFFFFF));
+    --_text-muted:    #A9A9AA 40%, #FFFFFF));
+    --_text-faint:    #666666;
+    --_line:          #939394 50%, #FFFFFF));
+    --_arrow:         #27272A 85%, #FFFFFF));
+    --_node-fill:     #F9F9F9 3%, #FFFFFF));
+    --_node-stroke:   #D4D4D4 20%, #FFFFFF));
+    --_group-fill:    #FFFFFF;
+    --_group-hdr:     #666666;
+    --_inner-stroke:  #666666;
+    --_key-badge:     #666666;
+    --_note-bkg:      #F5F0C8;
+    --_note-border:   #E0DEB5;
+  }
+</style>
+<defs>
+  <marker id="arrowhead" markerWidth="8.0" markerHeight="5.0" refX="7.0" refY="2.5" orient="auto">
+    <polygon points="0 0, 8.0 2.5, 0 5.0" fill="#27272A 85%, #FFFFFF))" stroke="#27272A 85%, #FFFFFF))" stroke-width="0.75" stroke-linejoin="round" />
+  </marker>
+  <marker id="arrowhead-start" markerWidth="8.0" markerHeight="5.0" refX="1" refY="2.5" orient="auto-start-reverse">
+    <polygon points="8.0 0, 0 2.5, 8.0 5.0" fill="#27272A 85%, #FFFFFF))" stroke="#27272A 85%, #FFFFFF))" stroke-width="0.75" stroke-linejoin="round" />
+  </marker>
+  <marker id="circlehead" markerWidth="5.5" markerHeight="3.5" refX="2.75" refY="1.75" orient="auto">
+    <circle cx="1.75" cy="1.75" r="1.25" fill="#27272A 85%, #FFFFFF))" stroke="#27272A 85%, #FFFFFF))" stroke-width="0.75" stroke-linejoin="round" />
+  </marker>
+  <marker id="circlehead-start" markerWidth="5.5" markerHeight="3.5" refX="0.75" refY="1.75" orient="auto-start-reverse">
+    <circle cx="1.75" cy="1.75" r="1.25" fill="#27272A 85%, #FFFFFF))" stroke="#27272A 85%, #FFFFFF))" stroke-width="0.75" stroke-linejoin="round" />
+  </marker>
+  <marker id="crosshead" markerWidth="3.0" markerHeight="3.0" refX="1.5" refY="1.5" orient="auto">
+    <line x1="0" y1="0" x2="3.0" y2="3.0" stroke="#27272A 85%, #FFFFFF))" stroke-width="1.5" />
+    <line x1="3.0" y1="0" x2="0" y2="3.0" stroke="#27272A 85%, #FFFFFF))" stroke-width="1.5" />
+  </marker>
+  <marker id="crosshead-start" markerWidth="3.0" markerHeight="3.0" refX="1.5" refY="1.5" orient="auto-start-reverse">
+    <line x1="0" y1="0" x2="3.0" y2="3.0" stroke="#27272A 85%, #FFFFFF))" stroke-width="1.5" />
+    <line x1="3.0" y1="0" x2="0" y2="3.0" stroke="#27272A 85%, #FFFFFF))" stroke-width="1.5" />
+  </marker>
+  <marker id="diamondhead" markerWidth="9.6" markerHeight="5.0" refX="8.0" refY="2.5" orient="auto">
+    <polygon points="0 2.5, 4.8 0, 9.6 2.5, 4.8 5.0" fill="#27272A 85%, #FFFFFF))" stroke="#27272A 85%, #FFFFFF))" stroke-width="0.75" stroke-linejoin="round" />
+  </marker>
+  <marker id="diamondhead-start" markerWidth="9.6" markerHeight="5.0" refX="1.6" refY="2.5" orient="auto-start-reverse">
+    <polygon points="4.8 2.5, 0 0, 9.6 2.5, 0 5.0" fill="#27272A 85%, #FFFFFF))" stroke="#27272A 85%, #FFFFFF))" stroke-width="0.75" stroke-linejoin="round" />
+  </marker>
+</defs>
+<style>
+.edge-animated {
+  animation: edge-dash 1.5s linear infinite;
+  stroke-dasharray: 8 4;
+}
+@keyframes edge-dash {
+  to { stroke-dashoffset: -24; }
+}
+.statediagram-state rect {
+  fill: #F9F9F9 3%, #FFFFFF));
+  stroke: #D4D4D4 20%, #FFFFFF));
+}
+.statediagram-cluster rect {
+  fill: #FFFFFF;
+  stroke: #D4D4D4 20%, #FFFFFF));
+}
+.statediagram-cluster rect.outer {
+  rx: 5px;
+  ry: 5px;
+}
+.statediagram-cluster.statediagram-cluster-alt rect {
+  fill: #666666;
+}
+.statediagram-note rect {
+  fill: #F5F0C8;
+  stroke: #E0DEB5;
+  stroke-width: 1px;
+  rx: 6;
+  ry: 6;
+}
+.statediagram-note text {
+  fill: #27272A;
+}
+.note-edge {
+  stroke-dasharray: 5;
+}
+.transition {
+  stroke: #939394 50%, #FFFFFF));
+}
+[data-look="neo"].statediagram-cluster rect {
+  rx: 12px;
+  ry: 12px;
+}
+</style>
+<polyline data-from="root_start" data-to="Start" data-style="solid" data-arrow-start="false" data-arrow-end="true" class="edge transition" points="81.5,68.0 81.5,92.0 102.554,92.0 102.554,116.0" fill="none" stroke="#939394 50%, #FFFFFF))" stroke-width="1.0" marker-end="url(#arrowhead)" />
+<polyline data-from="Start" data-to="if_state" data-style="solid" data-arrow-start="false" data-arrow-end="true" class="edge transition" points="102.554,152.9 102.554,176.9 97.5,176.9 97.5,200.9" fill="none" stroke="#939394 50%, #FFFFFF))" stroke-width="1.0" marker-end="url(#arrowhead)" />
+<polyline data-from="if_state" data-to="fork_state" data-style="solid" data-arrow-start="false" data-arrow-end="true" data-label="option1" class="edge transition" points="97.5,258.85 97.5,282.85 102.5,282.85 102.5,306.85" fill="none" stroke="#939394 50%, #FFFFFF))" stroke-width="1.0" marker-end="url(#arrowhead)" />
+
+<polyline data-from="fork_state" data-to="join_state" data-style="solid" data-arrow-start="false" data-arrow-end="true" class="edge transition" points="102.5,313.85 102.5,337.85 102.5,337.85 102.5,361.85" fill="none" stroke="#939394 50%, #FFFFFF))" stroke-width="1.0" marker-end="url(#arrowhead)" />
+
+<g class="edge-label" data-from="if_state" data-to="fork_state" data-label="option1">
+  <rect x="75.731" y="267.70000000000005" width="48.538000000000004" height="30.3" rx="2" ry="2" fill="#FFFFFF" stroke="#666666" stroke-width="1" />
+  <text x="100.0" y="282.85" text-anchor="middle" font-size="11.0" font-weight="400" fill="#A9A9AA 60%, #FFFFFF))" dy="3.8499999999999996">option1</text>
+</g>
+<g class="edge-label" data-from="if_state" data-to="End" data-label="option2">
+  <rect x="-26.051" y="-15.15" width="52.102" height="30.3" rx="2" ry="2" fill="#FFFFFF" stroke="#666666" stroke-width="1" />
+  <text x="0.0" y="0.0" text-anchor="middle" font-size="11.0" font-weight="400" fill="#A9A9AA 60%, #FFFFFF))" dy="3.8499999999999996">option2</text>
+</g>
+<g class="node statediagram-state" data-id="root_start" data-label="" data-shape="state-start">
+  <circle cx="81.5" cy="54.0" r="12.0" fill="#27272A" stroke="none" />
+</g>
+<g class="node statediagram-state" data-id="Start" data-label="Start" data-shape="rounded">
+  <rect x="67.5" y="116.0" width="70.108" height="36.900000000000006" rx="6" ry="6" fill="#F9F9F9 3%, #FFFFFF))" stroke="#D4D4D4 20%, #FFFFFF))" stroke-width="0.75" />
+  <text x="102.554" y="134.45" text-anchor="middle" font-size="13.0" font-weight="500" fill="#27272A" dy="4.55">Start</text>
+</g>
+<g class="node statediagram-state" data-id="if_state" data-label="" data-shape="choice">
+  <polygon points="97.5,200.9 127.5,229.875 97.5,258.85 67.5,229.875" fill="#F9F9F9 3%, #FFFFFF))" stroke="#D4D4D4 20%, #FFFFFF))" stroke-width="0.75" />
+  <text x="97.5" y="229.875" text-anchor="middle" font-size="13.0" font-weight="500" fill="#27272A" dy="4.55"></text>
+</g>
+<g class="node statediagram-state" data-id="fork_state" data-label="" data-shape="fork">
+  <rect x="67.5" y="306.85" width="70.0" height="7.0" rx="2" ry="2" fill="#27272A" stroke="none" />
+</g>
+<g class="node statediagram-state" data-id="join_state" data-label="" data-shape="join">
+  <rect x="67.5" y="361.85" width="70.0" height="7.0" rx="2" ry="2" fill="#27272A" stroke="none" />
+</g>
+</svg>

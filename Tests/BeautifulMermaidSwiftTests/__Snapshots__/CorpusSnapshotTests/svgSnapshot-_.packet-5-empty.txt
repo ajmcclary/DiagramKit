@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="100%" style="max-width: 1026.0px;" viewBox="0 0 1026.0 15.0">
+<rect width="100%" height="100%" fill="#FFFFFF"/>
+<style>
+.packetByte { font-size: 10px; }
+.packetByte.start { fill: black; }
+.packetByte.end { fill: black; }
+.packetLabel { fill: black; font-size: 12px; }
+.packetTitle { fill: black; font-size: 14px; }
+.packetBlock { stroke: black; stroke-width: 1; fill: #efefef; }
+</style></svg>

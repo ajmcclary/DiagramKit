@@ -1,0 +1,83 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 766.762 196.338" width="766.762" height="196.338" style="--bg:#FFFFFF;--fg:#27272A;--line:#939394;--accent:#27272A;--muted:#A9A9AA;--surface:#F9F9F9;--border:#D4D4D4;background:#FFFFFF">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap');
+  text { font-family: 'Inter', system-ui, sans-serif; }
+  svg {    /* Derived from --bg and --fg (overridable via --line, --accent, etc.) */
+    --_text:          #27272A;
+    --_text-sec:      #A9A9AA 60%, #FFFFFF));
+    --_text-muted:    #A9A9AA 40%, #FFFFFF));
+    --_text-faint:    #666666;
+    --_line:          #939394 50%, #FFFFFF));
+    --_arrow:         #27272A 85%, #FFFFFF));
+    --_node-fill:     #F9F9F9 3%, #FFFFFF));
+    --_node-stroke:   #D4D4D4 20%, #FFFFFF));
+    --_group-fill:    #FFFFFF;
+    --_group-hdr:     #666666;
+    --_inner-stroke:  #666666;
+    --_key-badge:     #666666;
+    --_note-bkg:      #F5F0C8;
+    --_note-border:   #E0DEB5;
+  }
+</style>
+<defs>
+  <marker id="arrowhead" markerWidth="8.0" markerHeight="5.0" refX="7.0" refY="2.5" orient="auto">
+    <polygon points="0 0, 8.0 2.5, 0 5.0" fill="#27272A 85%, #FFFFFF))" stroke="#27272A 85%, #FFFFFF))" stroke-width="0.75" stroke-linejoin="round" />
+  </marker>
+  <marker id="arrowhead-start" markerWidth="8.0" markerHeight="5.0" refX="1" refY="2.5" orient="auto-start-reverse">
+    <polygon points="8.0 0, 0 2.5, 8.0 5.0" fill="#27272A 85%, #FFFFFF))" stroke="#27272A 85%, #FFFFFF))" stroke-width="0.75" stroke-linejoin="round" />
+  </marker>
+  <marker id="circlehead" markerWidth="5.5" markerHeight="3.5" refX="2.75" refY="1.75" orient="auto">
+    <circle cx="1.75" cy="1.75" r="1.25" fill="#27272A 85%, #FFFFFF))" stroke="#27272A 85%, #FFFFFF))" stroke-width="0.75" stroke-linejoin="round" />
+  </marker>
+  <marker id="circlehead-start" markerWidth="5.5" markerHeight="3.5" refX="0.75" refY="1.75" orient="auto-start-reverse">
+    <circle cx="1.75" cy="1.75" r="1.25" fill="#27272A 85%, #FFFFFF))" stroke="#27272A 85%, #FFFFFF))" stroke-width="0.75" stroke-linejoin="round" />
+  </marker>
+  <marker id="crosshead" markerWidth="3.0" markerHeight="3.0" refX="1.5" refY="1.5" orient="auto">
+    <line x1="0" y1="0" x2="3.0" y2="3.0" stroke="#27272A 85%, #FFFFFF))" stroke-width="1.5" />
+    <line x1="3.0" y1="0" x2="0" y2="3.0" stroke="#27272A 85%, #FFFFFF))" stroke-width="1.5" />
+  </marker>
+  <marker id="crosshead-start" markerWidth="3.0" markerHeight="3.0" refX="1.5" refY="1.5" orient="auto-start-reverse">
+    <line x1="0" y1="0" x2="3.0" y2="3.0" stroke="#27272A 85%, #FFFFFF))" stroke-width="1.5" />
+    <line x1="3.0" y1="0" x2="0" y2="3.0" stroke="#27272A 85%, #FFFFFF))" stroke-width="1.5" />
+  </marker>
+  <marker id="diamondhead" markerWidth="9.6" markerHeight="5.0" refX="8.0" refY="2.5" orient="auto">
+    <polygon points="0 2.5, 4.8 0, 9.6 2.5, 4.8 5.0" fill="#27272A 85%, #FFFFFF))" stroke="#27272A 85%, #FFFFFF))" stroke-width="0.75" stroke-linejoin="round" />
+  </marker>
+  <marker id="diamondhead-start" markerWidth="9.6" markerHeight="5.0" refX="1.6" refY="2.5" orient="auto-start-reverse">
+    <polygon points="4.8 2.5, 0 0, 9.6 2.5, 0 5.0" fill="#27272A 85%, #FFFFFF))" stroke="#27272A 85%, #FFFFFF))" stroke-width="0.75" stroke-linejoin="round" />
+  </marker>
+</defs>
+<style>
+.edge-animated {
+  animation: edge-dash 1.5s linear infinite;
+  stroke-dasharray: 8 4;
+}
+@keyframes edge-dash {
+  to { stroke-dashoffset: -24; }
+}
+</style>
+<polyline data-from="A" data-to="B" data-style="solid" data-arrow-start="false" data-arrow-end="true" class="edge" points="141.23,58.45 165.23,58.45 165.23,58.45 189.23,58.45" fill="none" stroke="#939394 50%, #FFFFFF))" stroke-width="1.0" marker-end="url(#arrowhead)" />
+<polyline data-from="B" data-to="C" data-style="solid" data-arrow-start="false" data-arrow-end="true" class="edge" points="284.532,58.45 308.532,58.45 308.532,98.169 332.532,98.169" fill="none" stroke="#939394 50%, #FFFFFF))" stroke-width="1.0" marker-end="url(#arrowhead)" />
+<polyline data-from="C" data-to="D" data-style="solid" data-arrow-start="false" data-arrow-end="true" class="edge" points="448.86999999999995,98.169 472.87,98.169 472.87,58.45 496.87,58.45" fill="none" stroke="#939394 50%, #FFFFFF))" stroke-width="1.0" marker-end="url(#arrowhead)" />
+<polyline data-from="D" data-to="E" data-style="solid" data-arrow-start="false" data-arrow-end="true" class="edge" points="584.762,58.45 608.762,58.45 608.762,87.0 632.762,87.0" fill="none" stroke="#939394 50%, #FFFFFF))" stroke-width="1.0" marker-end="url(#arrowhead)" />
+<g class="node" data-id="A" data-label="Rectangle" data-shape="rectangle">
+  <rect x="40.0" y="40.0" width="101.22999999999999" height="36.900000000000006" rx="0" ry="0" fill="#F9F9F9 3%, #FFFFFF))" stroke="#D4D4D4 20%, #FFFFFF))" stroke-width="0.75" />
+  <text x="90.615" y="58.45" text-anchor="middle" font-size="13.0" font-weight="500" fill="#27272A" dy="4.55">Rectangle</text>
+</g>
+<g class="node" data-id="B" data-label="Rounded" data-shape="rounded">
+  <rect x="189.23" y="40.0" width="95.30199999999999" height="36.900000000000006" rx="6" ry="6" fill="#F9F9F9 3%, #FFFFFF))" stroke="#D4D4D4 20%, #FFFFFF))" stroke-width="0.75" />
+  <text x="236.88099999999997" y="58.45" text-anchor="middle" font-size="13.0" font-weight="500" fill="#27272A" dy="4.55">Rounded</text>
+</g>
+<g class="node" data-id="C" data-label="Diamond" data-shape="diamond">
+  <polygon points="390.70099999999996,40.0 448.86999999999995,98.169 390.70099999999996,156.338 332.532,98.169" fill="#F9F9F9 3%, #FFFFFF))" stroke="#D4D4D4 20%, #FFFFFF))" stroke-width="0.75" />
+  <text x="390.70099999999996" y="98.169" text-anchor="middle" font-size="13.0" font-weight="500" fill="#27272A" dy="4.55">Diamond</text>
+</g>
+<g class="node" data-id="D" data-label="Stadium" data-shape="stadium">
+  <rect x="496.87" y="40.0" width="87.892" height="36.900000000000006" rx="18.450000000000003" ry="18.450000000000003" fill="#F9F9F9 3%, #FFFFFF))" stroke="#D4D4D4 20%, #FFFFFF))" stroke-width="0.75" />
+  <text x="540.816" y="58.45" text-anchor="middle" font-size="13.0" font-weight="500" fill="#27272A" dy="4.55">Stadium</text>
+</g>
+<g class="node" data-id="E" data-label="Circle" data-shape="circle">
+  <circle cx="679.762" cy="87.0" r="47.0" fill="#F9F9F9 3%, #FFFFFF))" stroke="#D4D4D4 20%, #FFFFFF))" stroke-width="0.75" />
+  <text x="679.762" y="87.0" text-anchor="middle" font-size="13.0" font-weight="500" fill="#27272A" dy="4.55">Circle</text>
+</g>
+</svg>

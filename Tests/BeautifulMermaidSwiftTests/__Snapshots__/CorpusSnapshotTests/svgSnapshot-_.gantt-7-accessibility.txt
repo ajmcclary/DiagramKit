@@ -1,0 +1,61 @@
+<svg id="A6454972-4A3E-4479-9C3B-70EE7DFEB9E2" class="mermaid" width="100%" height="100%" viewBox="0 0 1200 124" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<style>
+.mermaid-main-font { font-family: Inter; }
+.exclude-range { fill: #eeeeee; }
+.section { stroke: none; opacity: 0.2; }
+.section0 { fill: rgba(102, 102, 255, 0.49); }
+.section1, .section3 { fill: white; opacity: 0.2; }
+.section2 { fill: #fff400; }
+.task { stroke-width: 2; stroke: #534fbc; fill: #8a90dd; }
+.task0, .task1, .task2, .task3 { stroke: #534fbc; fill: #8a90dd; }
+.active0, .active1, .active2, .active3 { stroke: #534fbc; fill: #bfc7ff; }
+.done0, .done1, .done2, .done3 { stroke: grey; fill: lightgrey; }
+.crit0, .crit1, .crit2, .crit3 { stroke: #ff8888; fill: red; }
+.activeCrit0, .activeCrit1, .activeCrit2, .activeCrit3 { stroke: #ff8888; fill: #bfc7ff; }
+.doneCrit0, .doneCrit1, .doneCrit2, .doneCrit3 { stroke: #ff8888; fill: lightgrey; }
+.task.milestone { transform: rotate(45deg); }
+.task.vert { stroke: navy; fill: navy; }
+.taskText { fill: white; text-anchor: middle; font-size: 11.0px; }
+.taskTextOutsideLeft { fill: black; text-anchor: end; font-size: 11.0px; }
+.taskTextOutsideRight { fill: black; text-anchor: start; font-size: 11.0px; }
+.taskText0, .taskText1, .taskText2, .taskText3 { fill: white; }
+.taskTextOutside0, .taskTextOutside1, .taskTextOutside2, .taskTextOutside3 { fill: black; }
+.activeText0, .activeText1, .activeText2, .activeText3, .doneText0, .doneText1, .doneText2, .doneText3, .activeCritText0, .activeCritText1, .activeCritText2, .activeCritText3, .doneCritText0, .doneCritText1, .doneCritText2, .doneCritText3 { fill: black !important; }
+.milestoneText { font-style: italic; }
+.vertText { font-size: 15px; text-anchor: middle; fill: navy !important; }
+.task.clickable { cursor: pointer; }
+.taskText.clickable, .taskTextOutsideLeft.clickable, .taskTextOutsideRight.clickable { cursor: pointer; fill: #003163 !important; font-weight: bold; }
+.grid line { stroke: lightgrey; stroke-dasharray: 4, 2; }
+.grid .tick text { font-size: 10px; }
+.sectionTitle { font-size: 11.0px; fill: black; font-weight: bold; }
+.titleText { text-anchor: middle; font-size: 18px; fill: #27272A; }
+.today { stroke: red; }
+</style>
+<title>My Gantt Chart</title>
+<desc>A project schedule showing task dependencies</desc>
+<g class="grid" transform="translate(75.0, 89.0)">
+<line x1="0.0" x2="0.0" y1="0" y2="39.0"/>
+<text x="0.0" y="15" dy="1em" text-anchor="middle" fill="#000" stroke="none" font-size="10">2024-01-01</text>
+<line x1="150.0" x2="150.0" y1="0" y2="39.0"/>
+<text x="150.0" y="15" dy="1em" text-anchor="middle" fill="#000" stroke="none" font-size="10">2024-01-02</text>
+<line x1="300.0" x2="300.0" y1="0" y2="39.0"/>
+<text x="300.0" y="15" dy="1em" text-anchor="middle" fill="#000" stroke="none" font-size="10">2024-01-03</text>
+<line x1="450.0" x2="450.0" y1="0" y2="39.0"/>
+<text x="450.0" y="15" dy="1em" text-anchor="middle" fill="#000" stroke="none" font-size="10">2024-01-04</text>
+<line x1="600.0" x2="600.0" y1="0" y2="39.0"/>
+<text x="600.0" y="15" dy="1em" text-anchor="middle" fill="#000" stroke="none" font-size="10">2024-01-05</text>
+<line x1="750.0" x2="750.0" y1="0" y2="39.0"/>
+<text x="750.0" y="15" dy="1em" text-anchor="middle" fill="#000" stroke="none" font-size="10">2024-01-06</text>
+<line x1="900.0" x2="900.0" y1="0" y2="39.0"/>
+<text x="900.0" y="15" dy="1em" text-anchor="middle" fill="#000" stroke="none" font-size="10">2024-01-07</text>
+<line x1="1050.0" x2="1050.0" y1="0" y2="39.0"/>
+<text x="1050.0" y="15" dy="1em" text-anchor="middle" fill="#000" stroke="none" font-size="10">2024-01-08</text>
+</g>
+<rect class="section section0" x="0.0" y="48.0" width="1162.5" height="22.0"/>
+<rect id="A6454972-4A3E-4479-9C3B-70EE7DFEB9E2-t1" class="task task0" x="75.0" y="50.0" width="1050.0" height="20.0" rx="3" ry="3"/>
+<text id="A6454972-4A3E-4479-9C3B-70EE7DFEB9E2-t1-text" class="taskText taskText0 width-31" x="600.0" y="63.5">Task 1</text>
+<text class="sectionTitle sectionTitle0" x="0.0" y="66.35">Main</text>
+<g class="today">
+<line class="today" x1="128768.75" x2="128768.75" y1="25.0" y2="99.0" style=""/>
+</g>
+</svg>

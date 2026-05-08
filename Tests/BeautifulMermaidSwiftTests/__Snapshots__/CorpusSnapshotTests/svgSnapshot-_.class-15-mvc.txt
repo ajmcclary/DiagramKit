@@ -1,0 +1,81 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 282.2 564" width="282.2" height="564" style="--bg:#FFFFFF;--fg:#27272A;--line:#939394;--accent:#27272A;--muted:#A9A9AA;--surface:#F9F9F9;--border:#D4D4D4;background:#FFFFFF">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&amp;display=swap');
+  text { font-family: 'Inter', system-ui, sans-serif; }
+  .mono { font-family: 'JetBrains Mono', 'SF Mono', 'Fira Code', ui-monospace, monospace; }
+  svg {    /* Derived from --bg and --fg (overridable via --line, --accent, etc.) */
+    --_text:          #27272A;
+    --_text-sec:      #A9A9AA 60%, #FFFFFF));
+    --_text-muted:    #A9A9AA 40%, #FFFFFF));
+    --_text-faint:    #666666;
+    --_line:          #939394 50%, #FFFFFF));
+    --_arrow:         #27272A 85%, #FFFFFF));
+    --_node-fill:     #F9F9F9 3%, #FFFFFF));
+    --_node-stroke:   #D4D4D4 20%, #FFFFFF));
+    --_group-fill:    #FFFFFF;
+    --_group-hdr:     #666666;
+    --_inner-stroke:  #666666;
+    --_key-badge:     #666666;
+    --_note-bkg:      #F5F0C8;
+    --_note-border:   #E0DEB5;
+  }
+</style>
+<defs>
+  <marker id="extension" markerWidth="12" markerHeight="10" refX="12" refY="5" orient="auto-start-reverse">
+    <polygon points="0 0, 12 5, 0 10" fill="#FFFFFF" stroke="#27272A 85%, #FFFFFF))" stroke-width="1.5" />
+  </marker>
+  <marker id="composition" markerWidth="12" markerHeight="10" refX="0" refY="5" orient="auto-start-reverse">
+    <polygon points="6 0, 12 5, 6 10, 0 5" fill="#27272A 85%, #FFFFFF))" stroke="#27272A 85%, #FFFFFF))" stroke-width="1" />
+  </marker>
+  <marker id="aggregation" markerWidth="12" markerHeight="10" refX="0" refY="5" orient="auto-start-reverse">
+    <polygon points="6 0, 12 5, 6 10, 0 5" fill="#FFFFFF" stroke="#27272A 85%, #FFFFFF))" stroke-width="1.5" />
+  </marker>
+  <marker id="dependency" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto-start-reverse">
+    <polyline points="0 0, 8 3, 0 6" fill="none" stroke="#27272A 85%, #FFFFFF))" stroke-width="1.5" />
+  </marker>
+  <marker id="lollipop" markerWidth="10" markerHeight="10" refX="5" refY="5">
+    <circle cx="5" cy="5" r="5" fill="#FFFFFF" stroke="#939394 50%, #FFFFFF))" stroke-width="1.5" />
+  </marker>
+</defs>
+<polyline class="class-relationship" data-from="Controller" data-to="Model" data-label="updates" points="141.1,168.0 141.1,198.0 137.8,198.0 137.8,228.0" fill="none" stroke="#939394 50%, #FFFFFF))" stroke-width="1.0" marker-end="url(#dependency)" />
+<polyline class="class-relationship" data-from="Controller" data-to="View" data-label="refreshes" points="141.1,168.0 141.1,292.0 108.1,292.0 108.1,416.0" fill="none" stroke="#939394 50%, #FFFFFF))" stroke-width="1.0" marker-end="url(#dependency)" />
+<polyline class="class-relationship" data-from="View" data-to="Model" data-label="reads" points="108.1,416.0 108.1,386.0 137.8,386.0 137.8,356.0" fill="none" stroke="#939394 50%, #FFFFFF))" stroke-width="1.0" marker-end="url(#dependency)" />
+<polyline class="class-relationship" data-from="Model" data-to="View" data-label="notifies" points="137.8,356.0 137.8,386.0 108.1,386.0 108.1,416.0" fill="none" stroke="#939394 50%, #FFFFFF))" stroke-width="1.0" stroke-dasharray="6 4" marker-end="url(#dependency)" />
+<g class="class-node default" data-id="Model" data-label="Model">
+  <rect x="40.0" y="228.0" width="195.6" height="128.0" rx="0" ry="0" fill="#F9F9F9 3%, #FFFFFF))" stroke="#D4D4D4 20%, #FFFFFF))" stroke-width="1.0" />
+  <rect x="40.0" y="228.0" width="195.6" height="32.0" rx="0" ry="0" fill="#666666" stroke="#D4D4D4 20%, #FFFFFF))" stroke-width="1.0" />
+  <text x="137.8" y="244.0" text-anchor="middle" font-size="13.0" font-weight="700" fill="#27272A" dy="4.55">Model</text>
+  <line x1="40.0" y1="260.0" x2="235.6" y2="260.0" stroke="#D4D4D4 20%, #FFFFFF))" stroke-width="0.75" />
+  <text x="48.0" y="274.0" class="mono" dy="0.35em" font-size="11.0" font-weight="400"><tspan fill="#666666">- </tspan><tspan fill="#A9A9AA 60%, #FFFFFF))">data Map</tspan></text>
+  <line x1="40.0" y1="288.0" x2="235.6" y2="288.0" stroke="#D4D4D4 20%, #FFFFFF))" stroke-width="0.75" />
+  <text x="48.0" y="302.0" class="mono" dy="0.35em" font-size="11.0" font-weight="400"><tspan fill="#666666">+ </tspan><tspan fill="#A9A9AA 60%, #FFFFFF))">getData()</tspan><tspan fill="#666666"> : </tspan><tspan fill="#A9A9AA 40%, #FFFFFF))">Map</tspan></text>
+  <text x="48.0" y="322.0" class="mono" dy="0.35em" font-size="11.0" font-weight="400"><tspan fill="#666666">+ </tspan><tspan fill="#A9A9AA 60%, #FFFFFF))">setData(key, val)</tspan><tspan fill="#666666"> : </tspan><tspan fill="#A9A9AA 40%, #FFFFFF))">void</tspan></text>
+  <text x="48.0" y="342.0" class="mono" dy="0.35em" font-size="11.0" font-weight="400"><tspan fill="#666666">+ </tspan><tspan fill="#A9A9AA 60%, #FFFFFF))">notify()</tspan><tspan fill="#666666"> : </tspan><tspan fill="#A9A9AA 40%, #FFFFFF))">void</tspan></text>
+</g>
+<g class="class-node default" data-id="View" data-label="View">
+  <rect x="40.0" y="416.0" width="136.2" height="108.0" rx="0" ry="0" fill="#F9F9F9 3%, #FFFFFF))" stroke="#D4D4D4 20%, #FFFFFF))" stroke-width="1.0" />
+  <rect x="40.0" y="416.0" width="136.2" height="32.0" rx="0" ry="0" fill="#666666" stroke="#D4D4D4 20%, #FFFFFF))" stroke-width="1.0" />
+  <text x="108.1" y="432.0" text-anchor="middle" font-size="13.0" font-weight="700" fill="#27272A" dy="4.55">View</text>
+  <line x1="40.0" y1="448.0" x2="176.2" y2="448.0" stroke="#D4D4D4 20%, #FFFFFF))" stroke-width="0.75" />
+  <text x="48.0" y="462.0" class="mono" dy="0.35em" font-size="11.0" font-weight="400"><tspan fill="#666666">- </tspan><tspan fill="#A9A9AA 60%, #FFFFFF))">model Model</tspan></text>
+  <line x1="40.0" y1="476.0" x2="176.2" y2="476.0" stroke="#D4D4D4 20%, #FFFFFF))" stroke-width="0.75" />
+  <text x="48.0" y="490.0" class="mono" dy="0.35em" font-size="11.0" font-weight="400"><tspan fill="#666666">+ </tspan><tspan fill="#A9A9AA 60%, #FFFFFF))">render()</tspan><tspan fill="#666666"> : </tspan><tspan fill="#A9A9AA 40%, #FFFFFF))">void</tspan></text>
+  <text x="48.0" y="510.0" class="mono" dy="0.35em" font-size="11.0" font-weight="400"><tspan fill="#666666">+ </tspan><tspan fill="#A9A9AA 60%, #FFFFFF))">update()</tspan><tspan fill="#666666"> : </tspan><tspan fill="#A9A9AA 40%, #FFFFFF))">void</tspan></text>
+</g>
+<g class="class-node default" data-id="Controller" data-label="Controller">
+  <rect x="40.0" y="40.0" width="202.2" height="128.0" rx="0" ry="0" fill="#F9F9F9 3%, #FFFFFF))" stroke="#D4D4D4 20%, #FFFFFF))" stroke-width="1.0" />
+  <rect x="40.0" y="40.0" width="202.2" height="32.0" rx="0" ry="0" fill="#666666" stroke="#D4D4D4 20%, #FFFFFF))" stroke-width="1.0" />
+  <text x="141.1" y="56.0" text-anchor="middle" font-size="13.0" font-weight="700" fill="#27272A" dy="4.55">Controller</text>
+  <line x1="40.0" y1="72.0" x2="242.2" y2="72.0" stroke="#D4D4D4 20%, #FFFFFF))" stroke-width="0.75" />
+  <text x="48.0" y="86.0" class="mono" dy="0.35em" font-size="11.0" font-weight="400"><tspan fill="#666666">- </tspan><tspan fill="#A9A9AA 60%, #FFFFFF))">model Model</tspan></text>
+  <text x="48.0" y="106.0" class="mono" dy="0.35em" font-size="11.0" font-weight="400"><tspan fill="#666666">- </tspan><tspan fill="#A9A9AA 60%, #FFFFFF))">view View</tspan></text>
+  <line x1="40.0" y1="120.0" x2="242.2" y2="120.0" stroke="#D4D4D4 20%, #FFFFFF))" stroke-width="0.75" />
+  <text x="48.0" y="134.0" class="mono" dy="0.35em" font-size="11.0" font-weight="400"><tspan fill="#666666">+ </tspan><tspan fill="#A9A9AA 60%, #FFFFFF))">handleInput(event)</tspan><tspan fill="#666666"> : </tspan><tspan fill="#A9A9AA 40%, #FFFFFF))">void</tspan></text>
+  <text x="48.0" y="154.0" class="mono" dy="0.35em" font-size="11.0" font-weight="400"><tspan fill="#666666">+ </tspan><tspan fill="#A9A9AA 60%, #FFFFFF))">updateModel(data)</tspan><tspan fill="#666666"> : </tspan><tspan fill="#A9A9AA 40%, #FFFFFF))">void</tspan></text>
+</g>
+<text x="139.45" y="190.0" font-size="11.0" text-anchor="middle" font-weight="400" fill="#A9A9AA 40%, #FFFFFF))" dy="3.8499999999999996">updates</text>
+<text x="124.6" y="284.0" font-size="11.0" text-anchor="middle" font-weight="400" fill="#A9A9AA 40%, #FFFFFF))" dy="3.8499999999999996">refreshes</text>
+<text x="122.95" y="378.0" font-size="11.0" text-anchor="middle" font-weight="400" fill="#A9A9AA 40%, #FFFFFF))" dy="3.8499999999999996">reads</text>
+<text x="122.95" y="378.0" font-size="11.0" text-anchor="middle" font-weight="400" fill="#A9A9AA 40%, #FFFFFF))" dy="3.8499999999999996">notifies</text>
+</svg>

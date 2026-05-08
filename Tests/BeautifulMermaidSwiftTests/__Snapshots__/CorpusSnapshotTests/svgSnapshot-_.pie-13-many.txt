@@ -1,0 +1,118 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 763.7 450" width="100%" preserveAspectRatio="xMinYMin meet" style="--bg:#FFFFFF;--fg:#27272A;--line:#939394;--accent:#27272A;--muted:#A9A9AA;--surface:#F9F9F9;--border:#D4D4D4;max-width: 763.7px;background:#FFFFFF">
+<style>
+.pieCircle{
+  stroke: black;
+  stroke-width : 2px;
+  opacity : 0.7;
+}
+.pieOuterCircle{
+  stroke: black;
+  stroke-width: 2px;
+  fill: none;
+}
+.pieTitleText {
+  text-anchor: middle;
+  font-size: 25px;
+  fill: black;
+  font-family: trebuchet ms, verdana, arial, sans-serif;
+}
+.slice {
+  text-anchor: middle;
+  font-family: trebuchet ms, verdana, arial, sans-serif;
+  fill: black;
+  font-size:17px;
+}
+.legend text {
+  fill: black;
+  font-family: trebuchet ms, verdana, arial, sans-serif;
+  font-size: 17px;
+}
+</style>
+<g transform="translate(225, 225)">
+<circle cx="0" cy="0" r="186" class="pieOuterCircle"/>
+<path d="M 0.0,0.0 L 1.1327982892113017e-14,-185.0 A 185.0,185.0 0 0,1 22.299285847234756,-183.65114170814 Z" fill="#100E10" class="pieCircle"/>
+<path d="M 0.0,0.0 L 22.299285847234756,-183.65114170814 A 185.0,185.0 0 0,1 55.03806496321255,-176.62336030408093 Z" fill="#000000" class="pieCircle"/>
+<path d="M 0.0,0.0 L 55.03806496321255,-176.62336030408093 A 185.0,185.0 0 0,1 95.7074956228665,-158.3195353757678 Z" fill="#0E0E10" class="pieCircle"/>
+<path d="M 0.0,0.0 L 95.7074956228665,-158.3195353757678 A 185.0,185.0 0 0,1 138.4744884116537,-122.67769177454711 Z" fill="#000000" class="pieCircle"/>
+<path d="M 0.0,0.0 L 138.4744884116537,-122.67769177454711 A 185.0,185.0 0 0,1 172.97800489680174,-65.60190410286909 Z" fill="#000000" class="pieCircle"/>
+<path d="M 0.0,0.0 L 172.97800489680174,-65.60190410286909 A 185.0,185.0 0 0,1 184.66247753131373,11.170022023122911 Z" fill="#000000" class="pieCircle"/>
+<path d="M 0.0,0.0 L 184.66247753131373,11.170022023122911 A 185.0,185.0 0 0,1 158.3195353757678,95.7074956228665 Z" fill="#000000" class="pieCircle"/>
+<path d="M 0.0,0.0 L 158.3195353757678,95.7074956228665 A 185.0,185.0 0 0,1 85.97378682809719,163.80936474584382 Z" fill="#000000" class="pieCircle"/>
+<path d="M 0.0,0.0 L 85.97378682809719,163.80936474584382 A 185.0,185.0 0 0,1 -22.29928584723473,183.65114170814 Z" fill="#000000" class="pieCircle"/>
+<path d="M 0.0,0.0 L -22.29928584723473,183.65114170814 A 185.0,185.0 0 0,1 -130.81475451951127,130.8147545195113 Z" fill="#000000" class="pieCircle"/>
+<path d="M 0.0,0.0 L -130.81475451951127,130.8147545195113 A 185.0,185.0 0 0,1 -184.66247753131373,11.170022023122891 Z" fill="#000000" class="pieCircle"/>
+<path d="M 0.0,0.0 L -184.66247753131373,11.170022023122891 A 185.0,185.0 0 0,1 -138.47448841165368,-122.67769177454713 Z" fill="#27272A" class="pieCircle"/>
+<path d="M 0.0,0.0 L -138.47448841165368,-122.67769177454713 A 185.0,185.0 0 0,1 -3.398394867633905e-14,-185.0 Z" fill="#100E10" class="pieCircle"/>
+<text transform="translate(8.4, -138.5)" class="slice">2%</text>
+<text transform="translate(29.1, -135.7)" class="slice">3%</text>
+<text transform="translate(56.9, -126.5)" class="slice">4%</text>
+<text transform="translate(88.8, -106.6)" class="slice">5%</text>
+<text transform="translate(118.7, -71.8)" class="slice">6%</text>
+<text transform="translate(137.2, -20.9)" class="slice">7%</text>
+<text transform="translate(132.5, 41.3)" class="slice">8%</text>
+<text transform="translate(95.1, 101)" class="slice">9%</text>
+<text transform="translate(25, 136.5)" class="slice">10%</text>
+<text transform="translate(-60.7, 124.7)" class="slice">10%</text>
+<text transform="translate(-126.5, 56.9)" class="slice">11%</text>
+<text transform="translate(-131.2, -45.3)" class="slice">12%</text>
+<text transform="translate(-56.9, -126.5)" class="slice">13%</text>
+<g class="legend">
+<g transform="translate(216, -154)">
+<rect width="18" height="18" fill="#27272A" stroke="#27272A"/>
+<text x="22" y="14">S1</text>
+</g>
+<g transform="translate(216, -132)">
+<rect width="18" height="18" fill="#100E10" stroke="#100E10"/>
+<text x="22" y="14">S2</text>
+</g>
+<g transform="translate(216, -110)">
+<rect width="18" height="18" fill="#000000" stroke="#000000"/>
+<text x="22" y="14">S3</text>
+</g>
+<g transform="translate(216, -88)">
+<rect width="18" height="18" fill="#0E0E10" stroke="#0E0E10"/>
+<text x="22" y="14">S4</text>
+</g>
+<g transform="translate(216, -66)">
+<rect width="18" height="18" fill="#000000" stroke="#000000"/>
+<text x="22" y="14">S5</text>
+</g>
+<g transform="translate(216, -44)">
+<rect width="18" height="18" fill="#000000" stroke="#000000"/>
+<text x="22" y="14">S6</text>
+</g>
+<g transform="translate(216, -22)">
+<rect width="18" height="18" fill="#000000" stroke="#000000"/>
+<text x="22" y="14">S7</text>
+</g>
+<g transform="translate(216, 0)">
+<rect width="18" height="18" fill="#000000" stroke="#000000"/>
+<text x="22" y="14">S8</text>
+</g>
+<g transform="translate(216, 22)">
+<rect width="18" height="18" fill="#000000" stroke="#000000"/>
+<text x="22" y="14">S9</text>
+</g>
+<g transform="translate(216, 44)">
+<rect width="18" height="18" fill="#000000" stroke="#000000"/>
+<text x="22" y="14">S10</text>
+</g>
+<g transform="translate(216, 66)">
+<rect width="18" height="18" fill="#000000" stroke="#000000"/>
+<text x="22" y="14">S11</text>
+</g>
+<g transform="translate(216, 88)">
+<rect width="18" height="18" fill="#000000" stroke="#000000"/>
+<text x="22" y="14">S12</text>
+</g>
+<g transform="translate(216, 110)">
+<rect width="18" height="18" fill="#27272A" stroke="#27272A"/>
+<text x="22" y="14">S13</text>
+</g>
+<g transform="translate(216, 132)">
+<rect width="18" height="18" fill="#100E10" stroke="#100E10"/>
+<text x="22" y="14">S14</text>
+</g>
+</g>
+</g>
+</svg>

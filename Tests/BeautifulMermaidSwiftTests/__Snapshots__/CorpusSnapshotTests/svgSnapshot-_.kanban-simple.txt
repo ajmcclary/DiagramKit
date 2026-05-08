@@ -1,0 +1,121 @@
+<svg id="1D82403D-D049-4292-B31D-74CB0DD95015" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="100%" style="max-width: 421px;" viewBox="92 -308 421 148">
+<style>
+.node rect,
+.node circle,
+.node ellipse,
+.node polygon,
+.node path {
+  fill: #FFFFFF;
+  stroke: #D4D4D4;
+  stroke-width: 1px;
+}
+.kanban-ticket-link {
+  fill: #FFFFFF;
+  stroke: #D4D4D4;
+  text-decoration: underline;
+}
+.kanban-label {
+  dy: 1em;
+  alignment-baseline: middle;
+  text-anchor: middle;
+  dominant-baseline: middle;
+  text-align: left;
+}
+.section-1 rect, .section-1 path, .section-1 circle, .section-1 polygon {
+  fill: #DBE8F5;
+  stroke: #B4CFE9;
+}
+.section-1 text {
+  fill: #3C5977;
+}
+.section-2 rect, .section-2 path, .section-2 circle, .section-2 polygon {
+  fill: #D1F0EB;
+  stroke: #ABE3DA;
+}
+.section-2 text {
+  fill: #3E746B;
+}
+.section-3 rect, .section-3 path, .section-3 circle, .section-3 polygon {
+  fill: #CAECD6;
+  stroke: #A4DFB8;
+}
+.section-3 text {
+  fill: #407351;
+}
+.section-4 rect, .section-4 path, .section-4 circle, .section-4 polygon {
+  fill: #F0E8D1;
+  stroke: #E3D5AB;
+}
+.section-4 text {
+  fill: #74673E;
+}
+.section-5 rect, .section-5 path, .section-5 circle, .section-5 polygon {
+  fill: #EFDBC8;
+  stroke: #E3C2A0;
+}
+.section-5 text {
+  fill: #77593C;
+}
+.section-6 rect, .section-6 path, .section-6 circle, .section-6 polygon {
+  fill: #F6E4E4;
+  stroke: #EBC2C2;
+}
+.section-6 text {
+  fill: #743E3E;
+}
+.section-7 rect, .section-7 path, .section-7 circle, .section-7 polygon {
+  fill: #EBDEF2;
+  stroke: #D6B9E4;
+}
+.section-7 text {
+  fill: #614171;
+}
+.section-8 rect, .section-8 path, .section-8 circle, .section-8 polygon {
+  fill: #F2DEEB;
+  stroke: #E4B9D6;
+}
+.section-8 text {
+  fill: #714161;
+}
+.section-9 rect, .section-9 path, .section-9 circle, .section-9 polygon {
+  fill: #E6F1F4;
+  stroke: #C6DEE7;
+}
+.section-9 text {
+  fill: #44646F;
+}
+.section-10 rect, .section-10 path, .section-10 circle, .section-10 polygon {
+  fill: #EED7D3;
+  stroke: #E0B6AE;
+}
+.section-10 text {
+  fill: #714941;
+}
+</style>
+<rect x="92" y="-308" width="421" height="148" fill="#FFFFFF"/>
+<g class="sections">
+<g id="1D82403D-D049-4292-B31D-74CB0DD95015-Todo" class="cluster section-1">
+<rect x="100" y="-300" width="200" height="132" rx="5" ry="5" fill="#DBE8F5" stroke="#B4CFE9" stroke-width="1"/>
+<text x="200" y="-275" text-anchor="middle" dominant-baseline="middle" fill="#3C5977" font-family="Inter" font-size="14">Todo</text>
+</g>
+<g id="1D82403D-D049-4292-B31D-74CB0DD95015-id7" class="cluster section-2">
+<rect x="305" y="-300" width="200" height="101" rx="5" ry="5" fill="#D1F0EB" stroke="#ABE3DA" stroke-width="1"/>
+<text x="405" y="-275" text-anchor="middle" dominant-baseline="middle" fill="#3E746B" font-family="Inter" font-size="14">In progress</text>
+</g>
+</g>
+<g class="items">
+<g id="1D82403D-D049-4292-B31D-74CB0DD95015-Create Documentation" class="node">
+<rect class="basic label-container __APA__" x="108" y="-275" width="185" height="46" rx="5" ry="5" fill="#F9F9F9" stroke="#D4D4D4" stroke-width="1"/>
+<text x="118" y="-259" text-anchor="start" fill="#27272A" font-family="Inter" font-size="12" class="kanban-label">Create Documentation</text>
+</g>
+<g id="1D82403D-D049-4292-B31D-74CB0DD95015-docs" class="node">
+<rect class="basic label-container __APA__" x="108" y="-224" width="185" height="46" rx="5" ry="5" fill="#F9F9F9" stroke="#D4D4D4" stroke-width="1"/>
+<text x="118" y="-208" text-anchor="start" fill="#27272A" font-family="Inter" font-size="12" class="kanban-label">Create Blog about the new diagram</text>
+</g>
+<g id="1D82403D-D049-4292-B31D-74CB0DD95015-id8" class="node">
+<rect class="basic label-container __APA__" x="313" y="-275" width="185" height="66" rx="5" ry="5" fill="#F9F9F9" stroke="#D4D4D4" stroke-width="1"/>
+<text x="323" y="-259" text-anchor="start" fill="#27272A" font-family="Inter" font-size="12" class="kanban-label">Design grammar</text>
+<text x="487" y="-217" text-anchor="end" fill="#27272A" font-family="Inter" font-size="10">knsv</text>
+</g>
+</g>
+</svg>
