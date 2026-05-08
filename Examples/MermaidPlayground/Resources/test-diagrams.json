@@ -1731,6 +1731,36 @@
       "source": "block\n  columns 3\n  block:frontend[\"Frontend\"]\n    columns 1\n    WebApp\n    MobileApp\n  end\n  block:backend[\"Backend\"]\n    columns 1\n    API\n    Workers\n  end\n  block:data[\"Data\"]\n    columns 1\n    DB\n    Cache\n  end\n  frontend --> backend --> data"
     },
     {
+      "id": "block-8-widths",
+      "category": "block",
+      "name": "Width Spans and Column Overflow",
+      "source": "block\n  columns 3\n  a[\"A wide one\"] b:2 c:2 d"
+    },
+    {
+      "id": "block-9-arrows-all",
+      "category": "block",
+      "name": "Block Arrows All Directions",
+      "source": "block\n  columns 3\n  space blockArrowId1<[\"down\"]>(down) space\n  blockArrowId2<[\"right\"]>(right) blockArrowId3<[\"Sync\"]>(x, y) blockArrowId4<[\"left\"]>(left)\n  space blockArrowId5<[\"up\"]>(up) space\n  blockArrowId6<[\"x\"]>(x) space blockArrowId7<[\"y\"]>(y)"
+    },
+    {
+      "id": "block-10-edges-all",
+      "category": "block",
+      "name": "All Edge Arrow Types",
+      "source": "block-beta\n  columns 9\n  A space B\n  C space D\n  E space F\n  G space H\n  I space J\n  A --- B\n  C --> D\n  E <--> F\n  G === H\n  I <==> J"
+    },
+    {
+      "id": "block-11-style-default",
+      "category": "block",
+      "name": "Style Class and Default",
+      "source": "block\n  A\n  B\n  classDef blue fill:#66f,stroke:#333,stroke-width:2px\n  class A blue\n  style B fill:#f9F,stroke:#333,stroke-width:4px"
+    },
+    {
+      "id": "block-12-mixed-rows",
+      "category": "block",
+      "name": "Mixed-Height Rows",
+      "source": "block\n  columns 3\n  a:3\n  block:group1:2\n    columns 2\n    h i j k\n  end\n  g\n  block:group2:3\n    l m n o p q r\n  end"
+    },
+    {
       "id": "packet-1-tcp",
       "category": "packet",
       "name": "TCP Packet",
@@ -2253,7 +2283,7 @@
       "mindmap": 8,
       "timeline": 13,
       "sankey": 10,
-      "block": 7,
+      "block": 12,
       "packet": 5,
       "kanban": 3,
       "architecture": 7,

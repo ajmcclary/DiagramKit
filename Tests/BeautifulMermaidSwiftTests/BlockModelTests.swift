@@ -60,4 +60,42 @@ final class BlockModelTests: XCTestCase {
         XCTAssertTrue(pd.blocks.isEmpty)
         XCTAssertTrue(pd.edges.isEmpty)
     }
+
+    func testBlockArrowPointsAllDirectionCombinations() {
+        let dirs: [[BlockDirection]] = [
+            [.right], [.left], [.up], [.down],
+            [.x], [.y],
+            [.right, .left], [.up, .down],
+            [.right, .up], [.right, .down],
+            [.left, .up], [.left, .down],
+            [.right, .left, .up], [.right, .left, .down],
+            [.right, .up, .down], [.left, .up, .down],
+            [.x, .y],
+        ]
+        for dirs in dirs {
+            let points = getBlockArrowPoints(directions: dirs, width: 100, height: 60, padding: 8)
+            XCTAssertGreaterThan(points.count, 1, "Direction combination \(dirs) produced insufficient points")
+            if dirs.count >= 4 || dirs.contains(.x) && dirs.contains(.y) {
+                XCTAssertGreaterThan(points.count, 6, "Four-direction arrow should have 8+ points")
+            }
+        }
+    }
+
+    func testWidthExceedsColumnsLogsWarning() throws {
+        resetBlockWarnings()
+        let source = """
+        block-beta
+          columns 1
+          A:1
+          B:2
+        """
+        let (processed, _) = _parseFrontMatterAndStripped(source)
+        let lines = _mermaidSourceLines(from: processed, separatedBy: CharacterSet(charactersIn: "\n"))
+        let diagram = try parseBlockDiagramLines(lines)
+        _ = try? layoutBlockDiagram(diagram)
+        let warnings = blockWarnings()
+        let found = warnings.contains { $0.contains("B") && $0.contains("exceeds") }
+        XCTAssertTrue(found, "Expected warning about block width exceeding columns, got: \(warnings)")
+        resetBlockWarnings()
+    }
 }

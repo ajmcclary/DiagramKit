@@ -122,7 +122,7 @@ final class BlockSvgTests: XCTestCase {
         let positioned = try layoutBlockDiagram(diagram)
         let colors = DiagramColors(bg: "#FFF", fg: "#000")
         let svg = try renderBlockSvg(positioned, colors: colors, fontFamily: "Inter", transparent: false)
-        XCTAssertTrue(svg.contains("class=\"node blue default\""))
+        XCTAssertTrue(svg.contains("class=\"node blue flowchart-label\""))
         XCTAssertTrue(svg.contains("fill=\"#6cf\""))
         XCTAssertTrue(svg.contains("stroke=\"#333\""))
         XCTAssertTrue(svg.contains("fill=\"#111\"") || svg.contains("fill=\"#000\"") == false)
@@ -205,7 +205,8 @@ final class BlockSvgTests: XCTestCase {
         let svg = try await renderMermaidSVG("block\n  a b c")
         XCTAssertTrue(svg.contains("<svg"))
         XCTAssertTrue(svg.contains("class=\"block\""))
-        XCTAssertFalse(svg.contains("flowchart"))
+        XCTAssertTrue(svg.contains("flowchart-label"))
+        XCTAssertTrue(svg.contains("flowchart-link"))
     }
 
     func testRenderMermaidSVGScopesMarkerIdsPerBlockRender() throws {

@@ -1,5 +1,92 @@
 import Foundation
 
+private final class BlockWarnings: @unchecked Sendable {
+    private var warnings: [String] = []
+    private let lock = NSLock()
+    func append(_ message: String) {
+        lock.lock()
+        defer { lock.unlock() }
+        warnings.append(message)
+    }
+    func all() -> [String] {
+        lock.lock()
+        defer { lock.unlock() }
+        return warnings
+    }
+    func reset() {
+        lock.lock()
+        defer { lock.unlock() }
+        warnings.removeAll()
+    }
+}
+private let _blockWarnings = BlockWarnings()
+
+func blockWarnings() -> [String] { _blockWarnings.all() }
+func resetBlockWarnings() { _blockWarnings.reset() }
+
+private func _blockLogWarning(_ message: String) {
+    _blockWarnings.append(message)
+}
+
+private let BLOCK_FONT_SIZE: Double = 14
+private let BLOCK_FONT_WEIGHT: Int = 400
+
+struct BlockShapeMetrics {
+    let textPaddingX: Double
+    let textPaddingY: Double
+    let minWidth: Double
+    let minHeight: Double
+
+    static func forType(_ type: BlockNodeType) -> BlockShapeMetrics {
+        switch type {
+        case .square, .na, .round:
+            return BlockShapeMetrics(textPaddingX: 20, textPaddingY: 12, minWidth: 40, minHeight: 30)
+        case .circle, .doublecircle:
+            return BlockShapeMetrics(textPaddingX: 24, textPaddingY: 24, minWidth: 40, minHeight: 40)
+        case .diamond:
+            return BlockShapeMetrics(textPaddingX: 28, textPaddingY: 28, minWidth: 50, minHeight: 50)
+        case .hexagon:
+            return BlockShapeMetrics(textPaddingX: 24, textPaddingY: 16, minWidth: 50, minHeight: 34)
+        case .stadium:
+            return BlockShapeMetrics(textPaddingX: 20, textPaddingY: 10, minWidth: 50, minHeight: 30)
+        case .subroutine:
+            return BlockShapeMetrics(textPaddingX: 24, textPaddingY: 12, minWidth: 60, minHeight: 30)
+        case .cylinder:
+            return BlockShapeMetrics(textPaddingX: 20, textPaddingY: 16, minWidth: 40, minHeight: 36)
+        case .leanRight, .leanLeft, .trapezoid, .invTrapezoid:
+            return BlockShapeMetrics(textPaddingX: 24, textPaddingY: 14, minWidth: 50, minHeight: 34)
+        case .rectLeftInvArrow:
+            return BlockShapeMetrics(textPaddingX: 22, textPaddingY: 12, minWidth: 56, minHeight: 30)
+        case .blockArrow:
+            return BlockShapeMetrics(textPaddingX: 24, textPaddingY: 14, minWidth: 60, minHeight: 36)
+        case .composite:
+            return BlockShapeMetrics(textPaddingX: 8, textPaddingY: 8, minWidth: 60, minHeight: 40)
+        case .space, .columnSetting:
+            return BlockShapeMetrics(textPaddingX: 0, textPaddingY: 0, minWidth: 20, minHeight: 30)
+        case .edge, .classDef, .applyClass, .applyStyles:
+            return BlockShapeMetrics(textPaddingX: 0, textPaddingY: 0, minWidth: 0, minHeight: 0)
+        }
+    }
+}
+
+private func measureBlockWidth(_ block: BlockNode) -> Double {
+    let metrics = BlockShapeMetrics.forType(block.type)
+    let textWidth = original_src_text_metrics.measureTextWidth(
+        block.label.isEmpty ? block.id : block.label,
+        fontSize: BLOCK_FONT_SIZE,
+        fontWeight: BLOCK_FONT_WEIGHT
+    )
+    let totalWidth = textWidth + metrics.textPaddingX
+    return max(metrics.minWidth, totalWidth)
+}
+
+private func measureBlockHeight(_ block: BlockNode) -> Double {
+    let metrics = BlockShapeMetrics.forType(block.type)
+    let lineHeight = BLOCK_FONT_SIZE * 1.3
+    let textHeight = lineHeight + metrics.textPaddingY
+    return max(metrics.minHeight, textHeight)
+}
+
 func calculateBlockPosition(columns: Int, position: Int) -> (px: Int, py: Int) {
     if columns == 0 || position < 0 {
         return (px: 0, py: 0)
@@ -58,6 +145,11 @@ private func setBlockSizes(
     for childId in block.children {
         if var child = db[childId] {
             if child.size != nil {
+                let parentCols = block.columns ?? -1
+                let childSpan = child.widthInColumns ?? 1
+                if parentCols > 0 && childSpan > parentCols {
+                    _blockLogWarning("Block \(child.id) width \(childSpan) exceeds configured column width \(parentCols)")
+                }
                 child.size?.width = maxWidth * Double(child.widthInColumns ?? 1) + padding * Double((child.widthInColumns ?? 1) - 1)
                 child.size?.height = effectiveMaxHeight
                 child.size?.x = 0
@@ -210,6 +302,75 @@ private func findBounds(block: BlockNode, db: [String: BlockNode]) -> (minX: Dou
     return (minX, minY, maxX, maxY)
 }
 
+func blockIntersect(
+    center: CGPoint,
+    size: BlockSize,
+    type: BlockNodeType,
+    target: CGPoint
+) -> CGPoint {
+    let dx = target.x - center.x
+    let dy = target.y - center.y
+    let hw = size.width / 2
+    let hh = size.height / 2
+
+    guard dx != 0 || dy != 0 else { return center }
+
+    switch type {
+    case .diamond:
+        let absSlope = abs(dy) / max(abs(dx), 1e-6)
+        if absSlope < hh / hw {
+            let sx = dx > 0 ? hw : -hw
+            return CGPoint(x: center.x + sx, y: center.y + (dy / abs(dx)) * abs(sx) * (hh / hw))
+        } else {
+            let sy = dy > 0 ? hh : -hh
+            return CGPoint(x: center.x + (dx / abs(dy)) * abs(sy) * (hw / hh), y: center.y + sy)
+        }
+    case .hexagon:
+        let absSlope = abs(dy) / max(abs(dx), 1e-6)
+        let qw = size.width / 4
+        let edgeSlope = hh / qw
+        if absSlope < edgeSlope {
+            let sx = dx > 0 ? hw : -hw
+            let yOnEdge = (dy / abs(dx)) * abs(sx)
+            if abs(yOnEdge) <= hh * 0.5 {
+                return CGPoint(x: center.x + sx, y: center.y + yOnEdge * edgeSlope / absSlope)
+            } else {
+                let sy = dy > 0 ? hh : -hh
+                return CGPoint(x: center.x + (dx / abs(dy)) * abs(sy) * (hw - qw/2) / hh, y: center.y + sy)
+            }
+        } else {
+            let sy = dy > 0 ? hh : -hh
+            return CGPoint(x: center.x + (dx / abs(dy)) * abs(sy) * (hw - qw/2) / hh, y: center.y + sy)
+        }
+    case .circle, .doublecircle:
+        let r = (min(size.width, size.height) / 2)
+        let angle = atan2(dy, dx)
+        return CGPoint(x: center.x + r * cos(angle), y: center.y + r * sin(angle))
+    case .stadium:
+        if abs(dy) > abs(dx) {
+            let sy = dy > 0 ? hh : -hh
+            _ = min(hw, hh)
+            return CGPoint(x: center.x, y: center.y + sy)
+        }
+        return rectIntersect(center: center, hw: hw, hh: hh, dx: dx, dy: dy)
+    case .leanRight, .leanLeft, .trapezoid, .invTrapezoid, .rectLeftInvArrow, .blockArrow:
+        fallthrough
+    default:
+        return rectIntersect(center: center, hw: hw, hh: hh, dx: dx, dy: dy)
+    }
+}
+
+private func rectIntersect(center: CGPoint, hw: Double, hh: Double, dx: Double, dy: Double) -> CGPoint {
+    let absSlope = abs(dy) / max(abs(dx), 1e-6)
+    if absSlope < hh / hw {
+        let sx = dx > 0 ? hw : -hw
+        return CGPoint(x: center.x + sx, y: center.y + (dy / abs(dx)) * abs(sx) * (absSlope < hh / hw ? 1 : (hh / hw) / absSlope))
+    } else {
+        let sy = dy > 0 ? hh : -hh
+        return CGPoint(x: center.x + (dx / abs(dy)) * abs(sy) * ((hh / hw) / absSlope), y: center.y + sy)
+    }
+}
+
 func layoutBlockDiagram(_ diagram: BlockDiagram) throws -> PositionedBlockDiagram {
     var db = diagram.blockDatabase
     let padding = diagram.config.padding
@@ -220,10 +381,15 @@ func layoutBlockDiagram(_ diagram: BlockDiagram) throws -> PositionedBlockDiagra
 
     for childId in root.children {
         if var child = db[childId] {
-            if child.size == nil || child.size?.width == 0 {
-                let w = estimateBlockWidth(child)
-                let h = estimateBlockHeight(child)
-                child.size = BlockSize(width: w, height: h, x: 0, y: 0)
+            let needsSize = child.size == nil || (child.size?.width ?? 0) == 0
+            if needsSize {
+                if child.type == .composite && !child.children.isEmpty {
+                    child.size = BlockSize(width: 60, height: 40, x: 0, y: 0)
+                } else {
+                    let w = measureBlockWidth(child)
+                    let h = measureBlockHeight(child)
+                    child.size = BlockSize(width: w, height: h, x: 0, y: 0)
+                }
                 db[childId] = child
             }
         }
@@ -254,6 +420,10 @@ func layoutBlockDiagram(_ diagram: BlockDiagram) throws -> PositionedBlockDiagra
                 styles.append(contentsOf: classDef.styles)
                 labelStyles.append(contentsOf: classDef.textStyles)
             }
+        }
+        if let defaultClassDef = diagram.classes["default"] {
+            styles.append(contentsOf: defaultClassDef.styles)
+            labelStyles.append(contentsOf: defaultClassDef.textStyles)
         }
         styles.append(contentsOf: blk.styles ?? [])
         let size = blk.size ?? BlockSize()
@@ -286,11 +456,15 @@ func layoutBlockDiagram(_ diagram: BlockDiagram) throws -> PositionedBlockDiagra
     for edge in diagram.edges {
         guard let startBlock = db[edge.start], let endBlock = db[edge.end],
               let startSize = startBlock.size, let endSize = endBlock.size else { continue }
-        let points = [
-            CGPoint(x: startSize.x, y: startSize.y),
-            CGPoint(x: startSize.x + (endSize.x - startSize.x) / 2, y: startSize.y + (endSize.y - startSize.y) / 2),
-            CGPoint(x: endSize.x, y: endSize.y),
-        ]
+        let startCenter = CGPoint(x: startSize.x, y: startSize.y)
+        let endCenter = CGPoint(x: endSize.x, y: endSize.y)
+        let startPoint = blockIntersect(center: startCenter, size: startSize, type: startBlock.type, target: endCenter)
+        let endPoint = blockIntersect(center: endCenter, size: endSize, type: endBlock.type, target: startCenter)
+        let midpoint = CGPoint(
+            x: startPoint.x + (endPoint.x - startPoint.x) / 2,
+            y: startPoint.y + (endPoint.y - startPoint.y) / 2
+        )
+        let points = [startPoint, midpoint, endPoint]
         positionedEdges.append(PositionedBlockEdge(
             id: edge.id,
             startId: edge.start,
@@ -316,13 +490,4 @@ func layoutBlockDiagram(_ diagram: BlockDiagram) throws -> PositionedBlockDiagra
     )
 }
 
-private func estimateBlockWidth(_ block: BlockNode) -> Double {
-    let baseWidth = 60.0
-    let charWidth = 8.0
-    let labelLen = Double(block.label.count)
-    return baseWidth + labelLen * charWidth
-}
 
-private func estimateBlockHeight(_ block: BlockNode) -> Double {
-    30.0
-}

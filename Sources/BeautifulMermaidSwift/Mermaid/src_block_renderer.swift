@@ -44,6 +44,8 @@ func renderBlockSvg(
         """
     }
 
+    svg += renderBlockStyles(colors: colors, fontFamily: fontFamily)
+
     svg += """
     <defs>
     <marker id="\(markerIds.point)" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
@@ -77,6 +79,91 @@ func renderBlockSvg(
     return svg
 }
 
+private func renderBlockStyles(colors: DiagramColors, fontFamily: String) -> String {
+    let mainBkg = colors.surface ?? colors.bg
+    let nodeBorder = colors.border ?? colors.line ?? "#333"
+    let nodeTextColor = colors.fg
+    let lineColor = colors.line ?? colors.border ?? "#333"
+    let edgeLabelBg = colors.surface ?? colors.bg
+    let arrowheadColor = colors.line ?? colors.fg
+    let clusterBkg = colors.surface ?? colors.bg
+    let clusterBorder = colors.border ?? "#333"
+    let titleColor = colors.fg
+
+    return """
+    <style>
+    .label {
+        font-family: \(fontFamily);
+        color: \(nodeTextColor);
+    }
+    .cluster-label text {
+        fill: \(titleColor);
+    }
+    .cluster-label span,p {
+        color: \(titleColor);
+    }
+    .label text,span,p {
+        fill: \(nodeTextColor);
+        color: \(nodeTextColor);
+    }
+    .node rect,
+    .node circle,
+    .node ellipse,
+    .node polygon,
+    .node path {
+        fill: \(mainBkg);
+        stroke: \(nodeBorder);
+        stroke-width: 1px;
+    }
+    .flowchart-label text {
+        text-anchor: middle;
+    }
+    .node .label {
+        text-align: center;
+    }
+    .node.clickable {
+        cursor: pointer;
+    }
+    .arrowheadPath {
+        fill: \(arrowheadColor);
+    }
+    .edgePath .path {
+        stroke: \(lineColor);
+        stroke-width: 2.0px;
+    }
+    .flowchart-link {
+        stroke: \(lineColor);
+        fill: none;
+    }
+    .edgeLabel {
+        background-color: \(edgeLabelBg);
+        text-align: center;
+    }
+    .edgeLabel rect {
+        opacity: 0.5;
+        background-color: \(edgeLabelBg);
+        fill: \(edgeLabelBg);
+    }
+    .labelBkg {
+        background-color: \(edgeLabelBg);
+    }
+    .node .cluster {
+        fill: \(clusterBkg);
+        stroke: \(clusterBorder);
+        stroke-width: 1px;
+    }
+    .cluster text {
+        fill: \(titleColor);
+    }
+    .flowchartTitleText {
+        text-anchor: middle;
+        font-size: 18px;
+        fill: \(colors.fg);
+    }
+    </style>
+    """
+}
+
 private struct BlockMarkerIds {
     let point: String
     let circle: String
@@ -93,23 +180,25 @@ private func renderBlockNodeSvg(_ node: PositionedBlockNode, colors: DiagramColo
     if node.type == .space || node.type == .columnSetting { return "" }
 
     let id = node.domId ?? "block-" + node.id
-    var svg = ""
-
     let x = node.x - node.width / 2
     let y = node.y - node.height / 2
     let w = node.width
     let h = node.height
 
-    let fill = resolveBlockFill(node)
-    let stroke = resolveBlockStroke(node, defaultColor: colors.border ?? "#333")
+    let fill = resolveBlockFill(node, defaultFill: colors.surface ?? colors.bg)
+    let stroke = resolveBlockStroke(node, defaultColor: colors.border ?? colors.line ?? "#333")
     let textColor = resolveBlockTextColor(node, defaultColor: colors.fg)
 
-    let classList = (node.classes + ["default"]).joined(separator: " ")
+    let hasExplicitClasses = !node.classes.isEmpty
+    let classList: [String] = hasExplicitClasses ? node.classes : ["default"]
+    let fullClassList = (classList + ["flowchart-label"]).joined(separator: " ")
 
     if node.type == .composite {
-        svg += """
+        let clusterBkg = colors.surface ?? colors.bg
+        let clusterBorder = colors.border ?? "#333"
+        var svg = """
         <g class="cluster" id="\(id)">
-          <rect x="\(x)" y="\(y + 20)" width="\(w)" height="\(max(0, h - 20))" rx="2" ry="2" fill="\(fill.opacity(0.1))" stroke="\(stroke)" stroke-width="1.5"/>
+          <rect x="\(x)" y="\(y + 20)" width="\(w)" height="\(max(0, h - 20))" rx="2" ry="2" fill="\(clusterBkg)" stroke="\(clusterBorder)" stroke-width="1.5"/>
           <text x="\(node.x)" y="\(y + 12)" text-anchor="middle" font-family="\(fontFamily)" font-size="14" font-weight="bold" fill="\(textColor)">\(node.label.escapedXML)</text>
         """
         for child in node.children {
@@ -120,7 +209,7 @@ private func renderBlockNodeSvg(_ node: PositionedBlockNode, colors: DiagramColo
     }
 
     if node.type == .blockArrow {
-        svg += renderBlockArrowSvg(node: node, id: id, fill: fill, stroke: stroke, classList: classList)
+        var svg = renderBlockArrowSvg(node: node, id: id, fill: fill, stroke: stroke, classList: fullClassList)
         svg += renderBlockLabelSvg(label: node.label, x: node.x, y: node.y, color: textColor, fontFamily: fontFamily)
         return svg
     }
@@ -130,8 +219,8 @@ private func renderBlockNodeSvg(_ node: PositionedBlockNode, colors: DiagramColo
     let ry = node.ry ?? 0
     let roundStr = rx > 0 ? " rx=\"\(rx)\" ry=\"\(ry)\"" : ""
 
-    svg += """
-    <g class="node \(classList)" id="\(id)">
+    var svg = """
+    <g class="node \(fullClassList)" id="\(id)">
     """
 
     switch shape {
@@ -215,10 +304,7 @@ private func renderBlockNodeSvg(_ node: PositionedBlockNode, colors: DiagramColo
     }
 
     svg += renderBlockLabelSvg(label: node.label, x: node.x, y: node.y, color: textColor, fontFamily: fontFamily)
-
-    svg += """
-    </g>
-    """
+    svg += "</g>"
     return svg
 }
 
@@ -272,23 +358,24 @@ private func renderBlockEdgeSvg(_ edge: PositionedBlockEdge, colors: DiagramColo
 
     let pathD = "M \(pts[0].x),\(pts[0].y) L \(pts[1].x),\(pts[1].y) L \(pts[2].x),\(pts[2].y)"
 
+    let lineColor = colors.line ?? colors.border ?? "#333"
     var svg = """
     <g class="edgePath \(cssClasses)">
-      <path class="path" d="\(pathD)" fill="none" stroke="\(colors.line ?? "#333")" stroke-width="\(strokeWidth)" style="\(dashArray)"\(markerStart)\(markerEnd)/>
+      <path class="path" d="\(pathD)" fill="none" stroke="\(lineColor)" stroke-width="\(strokeWidth)" style="\(dashArray)"\(markerStart)\(markerEnd)/>
     """
 
     if let label = edge.label, !label.isEmpty {
+        let labelWidth = max(40.0, Double(label.count) * 8.0)
+        let labelBg = colors.surface ?? colors.bg
         svg += """
       <g class="edgeLabel">
-        <rect x="\(pts[1].x - 20)" y="\(pts[1].y - 12)" width="\(max(40, Double(label.count) * 8))" height="20" rx="3" fill="\(colors.surface ?? colors.bg)" stroke="none"/>
+        <rect x="\(pts[1].x - labelWidth / 2)" y="\(pts[1].y - 12)" width="\(labelWidth)" height="20" rx="3" fill="\(labelBg)" opacity="0.5" stroke="none"/>
         <text x="\(pts[1].x)" y="\(pts[1].y + 3)" text-anchor="middle" font-family="\(fontFamily)" font-size="12" fill="\(colors.fg)">\(label.escapedXML)</text>
       </g>
       """
     }
 
-    svg += """
-    </g>
-    """
+    svg += "</g>"
     return svg
 }
 
@@ -327,11 +414,11 @@ func blockNodeShapeName(_ type: BlockNodeType) -> String {
     }
 }
 
-private func resolveBlockFill(_ node: PositionedBlockNode) -> String {
+private func resolveBlockFill(_ node: PositionedBlockNode, defaultFill: String) -> String {
     for style in node.styles.reversed() {
         if style.hasPrefix("fill:") { return style.replacingOccurrences(of: "fill:", with: "").trimmingCharacters(in: .whitespaces) }
     }
-    return "#e8f0fe"
+    return defaultFill
 }
 
 private func resolveBlockStroke(_ node: PositionedBlockNode, defaultColor: String) -> String {
@@ -360,11 +447,5 @@ extension String {
             .replacingOccurrences(of: "<", with: "&lt;")
             .replacingOccurrences(of: ">", with: "&gt;")
             .replacingOccurrences(of: "\"", with: "&quot;")
-    }
-}
-
-extension String {
-    func opacity(_ val: Double) -> String {
-        self
     }
 }
