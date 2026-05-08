@@ -193,4 +193,49 @@ struct IshikawaParserTests {
             }
         }
     }
+
+    // MARK: - Trailing text on header line
+
+    @Test("Parses trailing text after header as root node")
+    func trailingTextOnHeaderLine() throws {
+        let lines = ["ishikawa-beta lingering text", "Problem", "  Cause A"]
+        let result = try parseIshikawaDiagram(lines)
+        #expect(result.root?.text == "lingering text")
+        #expect(result.root?.children.first?.text == "Problem")
+    }
+
+    // MARK: - Whitespace and blank line edge cases
+
+    @Test("Parses with whitespace-only line between statements")
+    func whitespaceOnlyLineBetweenStatements() throws {
+        let lines = ["ishikawa-beta", "Problem", "  Cause A", "   ", "  Cause B"]
+        let result = try parseIshikawaDiagram(lines)
+        #expect(result.root?.children.count == 2)
+        #expect(result.root?.children[0].text == "Cause A")
+        #expect(result.root?.children[1].text == "Cause B")
+    }
+
+    @Test("Parses with multiple consecutive blank lines")
+    func multipleConsecutiveBlankLines() throws {
+        let lines = ["ishikawa-beta", "", "", "Problem", "    Cause A"]
+        let result = try parseIshikawaDiagram(lines)
+        #expect(result.root?.text == "Problem")
+        #expect(result.root?.children.first?.text == "Cause A")
+    }
+
+    @Test("Parses with %% comment immediately after header")
+    func commentImmediatelyAfterHeader() throws {
+        let lines = ["ishikawa-beta", "%% right after header", "Problem", "    Cause A"]
+        let result = try parseIshikawaDiagram(lines)
+        #expect(result.root?.text == "Problem")
+        #expect(result.root?.children.first?.text == "Cause A")
+    }
+
+    @Test("Parses with tab-indented causes")
+    func tabIndentedCauses() throws {
+        let lines = ["ishikawa-beta", "Problem", "\tCause A", "\t\tSub A1"]
+        let result = try parseIshikawaDiagram(lines)
+        #expect(result.root?.children.first?.text == "Cause A")
+        #expect(result.root?.children.first?.children.first?.text == "Sub A1")
+    }
 }

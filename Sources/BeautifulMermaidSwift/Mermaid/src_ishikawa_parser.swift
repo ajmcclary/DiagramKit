@@ -202,6 +202,16 @@ private func _tokenizeIshikawa(_ lines: [String]) -> [IshikawaToken] {
         let range = NSRange(firstWord.startIndex..., in: firstWord)
         if ishikawaHeaderRegex.firstMatch(in: firstWord, range: range) != nil {
             tokens.append(.ishikawa)
+            if let fwRange = trimmed.range(of: firstWord) {
+                let remainderStart = fwRange.upperBound
+                if remainderStart < trimmed.endIndex {
+                    let remainder = String(trimmed[remainderStart...]).trimmingCharacters(in: .whitespaces)
+                    if !remainder.isEmpty {
+                        tokens.append(.spaceList(1))
+                        tokens.append(.text(remainder))
+                    }
+                }
+            }
             continue
         }
 

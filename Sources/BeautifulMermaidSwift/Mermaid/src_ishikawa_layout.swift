@@ -1,5 +1,6 @@
 import Foundation
 import CoreGraphics
+import CoreText
 
 // MARK: - Layout Constants
 
@@ -11,9 +12,8 @@ private let BONE_PER_CHILD: Double = 5
 private let ANGLE_RAD: Double = (82 * .pi) / 180
 private let COS_A: Double = cos(ANGLE_RAD)
 private let SIN_A: Double = sin(ANGLE_RAD)
-private let CHAR_WIDTH_RATIO: Double = 0.6
 
-// MARK: - Text measurement (approximate, mirrors browser getBBox)
+// MARK: - Text measurement (CoreText-based, mirrors browser getBBox)
 
 private struct _IshikawaTextBounds {
     let width: Double
@@ -26,8 +26,19 @@ private func _measureIshikawaText(_ lines: [String], fontSize: Double) -> _Ishik
     guard !lines.isEmpty else {
         return _IshikawaTextBounds(width: 0, height: 0, x: 0, y: 0)
     }
-    let charWidth = fontSize * CHAR_WIDTH_RATIO
-    let maxWidth = lines.map { Double($0.count) * charWidth }.max() ?? 0
+    let font = CTFontCreateWithName("Menlo" as CFString, CGFloat(fontSize), nil)
+        ?? CTFontCreateUIFontForLanguage(.system, CGFloat(fontSize), nil)!
+    let attr: [NSAttributedString.Key: Any] = [
+        .font: font,
+        .kern: 0
+    ]
+    var maxWidth: Double = 0
+    for line in lines {
+        let attrStr = NSAttributedString(string: line, attributes: attr)
+        let ctLine = CTLineCreateWithAttributedString(attrStr)
+        let bounds = CTLineGetBoundsWithOptions(ctLine, .useOpticalBounds)
+        maxWidth = max(maxWidth, Double(bounds.width))
+    }
     let lineHeight = fontSize * 1.05
     let totalHeight = lineHeight * Double(lines.count)
     return _IshikawaTextBounds(width: maxWidth, height: totalHeight, x: 0, y: -totalHeight)
@@ -209,14 +220,14 @@ func _layoutIshikawa(_ diagram: IshikawaDiagram, fontSize: Double) -> Positioned
     var spineX: Double = 0
     var spineY: Double = SPINE_BASE_LENGTH
 
-    let headMaxChars = max(6, Int(floor(110 / (fontSize * CHAR_WIDTH_RATIO))))
+    let headMaxChars = max(6, Int(floor(110 / (fontSize * 0.6))))
     let headLines = _ishikawaWrapText(root.text, maxChars: headMaxChars)
     let headBounds = _measureIshikawaText(headLines, fontSize: fontSize)
     let headW = max(60, headBounds.width + 6)
     let headH = max(40, headBounds.height * 2 + 40)
     let headPath = "M 0 \(-headH / 2) L 0 \(headH / 2) Q \(headW * 2.4) 0 0 \(-headH / 2) Z"
-    let headLabelX = (headW - headBounds.width) / 2 - headBounds.x + 3
-    let headLabelY = -headBounds.y - headBounds.height / 2
+    let headLabelX = headW / 2 + 3
+    let headLabelY = 0.0
 
     let head = PositionedIshikawaHead(
         path: headPath,
@@ -373,12 +384,14 @@ private func _drawBranch(
 
     let causeLines = _ishikawaWrapText(node.text, maxChars: 15)
     let causeBounds = _measureIshikawaText(causeLines, fontSize: fontSize)
+    let lh = fontSize * 1.05
+    let causeY = endY + 11 * Double(direction) - (Double(causeLines.count - 1) * lh) / 2
     let causeTextLeft = endX - causeBounds.width / 2
     let causeLabel = PositionedIshikawaLabel(
         text: node.text,
         lines: causeLines,
         x: endX,
-        y: endY + 11 * Double(direction),
+        y: causeY,
         width: causeBounds.width,
         height: causeBounds.height,
         anchor: .middle,
@@ -388,7 +401,7 @@ private func _drawBranch(
         parentBoneId: branchBone.id,
         box: PositionedIshikawaLabelBox(
             x: causeTextLeft - 20,
-            y: endY + 11 * Double(direction) + causeBounds.y - 2,
+            y: causeY - lh - 2,
             width: causeBounds.width + 40,
             height: causeBounds.height + 4
         )
@@ -439,11 +452,12 @@ private func _drawBranch(
 
             let subLines = e.text
             let subBounds = _measureIshikawaText(subLines, fontSize: fontSize)
+            let subLabelY = y - (Double(subLines.count - 1) * lh) / 2
             let subLabel = PositionedIshikawaLabel(
                 text: subLines.joined(separator: "\n"),
                 lines: subLines,
                 x: bx1,
-                y: y,
+                y: subLabelY,
                 width: subBounds.width,
                 height: subBounds.height,
                 anchor: .end,
@@ -482,11 +496,12 @@ private func _drawBranch(
 
             let subLines = e.text
             let subBounds = _measureIshikawaText(subLines, fontSize: fontSize)
+            let subLabelY = y - (Double(subLines.count - 1) * lh) / 2
             let subLabel = PositionedIshikawaLabel(
                 text: subLines.joined(separator: "\n"),
                 lines: subLines,
                 x: bx1,
-                y: y,
+                y: subLabelY,
                 width: subBounds.width,
                 height: subBounds.height,
                 anchor: .end,

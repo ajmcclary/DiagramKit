@@ -54,10 +54,15 @@ public func renderIshikawaSvg(
     svg += "</marker>"
     svg += "</defs>"
 
+    let cssBlock = _ishikawaCssBlock(lineColor: lineColor, mainBkg: mainBkg, textColor: textColor, fontFamily: fontFamily, fontSize: fontSize)
+    svg += "<style>\n"
+    svg += cssBlock
+    svg += "\n</style>"
+
     if let head = positioned.head {
         svg += "<g class=\"ishikawa-head-group\" transform=\"translate(\(head.x),\(head.y))\">"
-        svg += "<path class=\"ishikawa-head\" d=\"\(head.path)\" fill=\"\(mainBkg)\" stroke=\"\(lineColor)\"/>"
-        svg += "<text class=\"ishikawa-head-label\" text-anchor=\"start\" transform=\"translate(\(head.labelX),\(head.labelY))\" fill=\"\(textColor)\" font-size=\"\(fontSize)\" font-weight=\"600\">"
+        svg += "<path class=\"ishikawa-head\" d=\"\(head.path)\" fill=\"\(mainBkg)\" stroke=\"\(lineColor)\" stroke-width=\"2\"/>"
+        svg += "<text class=\"ishikawa-head-label\" text-anchor=\"middle\" dominant-baseline=\"middle\" transform=\"translate(\(head.labelX),\(head.labelY))\" fill=\"\(textColor)\" font-size=\"\(fontSize)\" font-weight=\"600\">"
         for (i, line) in head.lines.enumerated() {
             let dy = i == 0 ? 0 : fontSize * 1.05
             svg += "<tspan x=\"0.0\" dy=\"\(dy)\">\(_ishikawaSvgEscape(line))</tspan>"
@@ -83,7 +88,7 @@ public func renderIshikawaSvg(
 
             svg += _ishikawaLineSvg(branch, lineColor: lineColor, markerId: markerId)
             for label in positioned.labels where label.labelClass == .cause && label.parentBoneId == branch.id {
-                svg += _ishikawaCauseLabelSvg(label, mainBkg: mainBkg, textColor: textColor, fontSize: fontSize)
+                svg += _ishikawaCauseLabelSvg(label, mainBkg: mainBkg, lineColor: lineColor, textColor: textColor, fontSize: fontSize)
             }
 
             for subBranch in subBranchBones where subBranch.id > branch.id && subBranch.id < nextBranchId {
@@ -106,25 +111,33 @@ public func renderIshikawaSvg(
 private func _ishikawaLineSvg(_ bone: PositionedIshikawaBone, lineColor: String, markerId: String) -> String {
     let markerAttr = bone.marker == .normalArrowAtStart ? " marker-start=\"url(#\(markerId))\"" : ""
     let cls: String
+    let strokeWidth: Int
     switch bone.kind {
-    case .spine: cls = "ishikawa-spine"
-    case .branch: cls = "ishikawa-branch"
-    case .subBranch: cls = "ishikawa-sub-branch"
+    case .spine:
+        cls = "ishikawa-spine"
+        strokeWidth = 2
+    case .branch:
+        cls = "ishikawa-branch"
+        strokeWidth = 2
+    case .subBranch:
+        cls = "ishikawa-sub-branch"
+        strokeWidth = 1
     }
-    return "<line class=\"\(cls)\" x1=\"\(bone.x1)\" y1=\"\(bone.y1)\" x2=\"\(bone.x2)\" y2=\"\(bone.y2)\" stroke=\"\(lineColor)\"\(markerAttr)/>"
+    return "<line class=\"\(cls)\" x1=\"\(bone.x1)\" y1=\"\(bone.y1)\" x2=\"\(bone.x2)\" y2=\"\(bone.y2)\" stroke=\"\(lineColor)\" stroke-width=\"\(strokeWidth)\"\(markerAttr)/>"
 }
 
 private func _ishikawaCauseLabelSvg(
     _ label: PositionedIshikawaLabel,
     mainBkg: String,
+    lineColor: String,
     textColor: String,
     fontSize: Double
 ) -> String {
     var svg = "<g class=\"ishikawa-label-group\">"
     if let box = label.box {
-        svg += "<rect class=\"ishikawa-label-box\" x=\"\(box.x)\" y=\"\(box.y)\" width=\"\(box.width)\" height=\"\(box.height)\" fill=\"\(mainBkg)\" stroke=\"\(mainBkg)\"/>"
+        svg += "<rect class=\"ishikawa-label-box\" x=\"\(box.x)\" y=\"\(box.y)\" width=\"\(box.width)\" height=\"\(box.height)\" fill=\"\(mainBkg)\" stroke=\"\(lineColor)\" stroke-width=\"2\"/>"
     }
-    svg += "<text class=\"ishikawa-label cause\" text-anchor=\"middle\" x=\"\(label.x)\" y=\"\(label.y)\" fill=\"\(textColor)\" font-size=\"\(fontSize)\">"
+    svg += "<text class=\"ishikawa-label cause\" text-anchor=\"middle\" dominant-baseline=\"middle\" x=\"\(label.x)\" y=\"\(label.y)\" fill=\"\(textColor)\" font-size=\"\(fontSize)\">"
     svg += _ishikawaTspans(label.lines, x: label.x, fontSize: fontSize)
     svg += "</text>"
     svg += "</g>"
@@ -138,14 +151,23 @@ private func _ishikawaSubLabelSvg(
 ) -> String {
     let anchor = label.anchor == .start ? "start" : (label.anchor == .end ? "end" : "middle")
     let cls: String
+    let baseline: String
     switch label.labelClass {
-    case .align: cls = "ishikawa-label align"
-    case .up: cls = "ishikawa-label up"
-    case .down: cls = "ishikawa-label down"
-    default: cls = "ishikawa-label"
+    case .align:
+        cls = "ishikawa-label align"
+        baseline = "middle"
+    case .up:
+        cls = "ishikawa-label up"
+        baseline = "baseline"
+    case .down:
+        cls = "ishikawa-label down"
+        baseline = "hanging"
+    default:
+        cls = "ishikawa-label"
+        baseline = "baseline"
     }
 
-    var svg = "<text class=\"\(cls)\" text-anchor=\"\(anchor)\" x=\"\(label.x)\" y=\"\(label.y)\" fill=\"\(textColor)\" font-size=\"\(fontSize)\">"
+    var svg = "<text class=\"\(cls)\" text-anchor=\"\(anchor)\" dominant-baseline=\"\(baseline)\" x=\"\(label.x)\" y=\"\(label.y)\" fill=\"\(textColor)\" font-size=\"\(fontSize)\">"
     svg += _ishikawaTspans(label.lines, x: label.x, fontSize: fontSize)
     svg += "</text>"
     return svg
@@ -166,4 +188,69 @@ private func _ishikawaSvgEscape(_ text: String) -> String {
         .replacingOccurrences(of: "<", with: "&lt;")
         .replacingOccurrences(of: ">", with: "&gt;")
         .replacingOccurrences(of: "\"", with: "&quot;")
+}
+
+private func _ishikawaCssBlock(lineColor: String, mainBkg: String, textColor: String, fontFamily: String, fontSize: Double) -> String {
+    let ff = fontFamily.isEmpty ? "sans-serif" : fontFamily
+    return """
+.ishikawa .ishikawa-spine,
+.ishikawa .ishikawa-branch,
+.ishikawa .ishikawa-sub-branch {
+  stroke: \(lineColor);
+  fill: none;
+}
+.ishikawa .ishikawa-spine,
+.ishikawa .ishikawa-branch {
+  stroke-width: 2;
+}
+.ishikawa .ishikawa-sub-branch {
+  stroke-width: 1;
+}
+.ishikawa .ishikawa-arrow {
+  fill: \(lineColor);
+}
+.ishikawa .ishikawa-head {
+  fill: \(mainBkg);
+  stroke: \(lineColor);
+  stroke-width: 2;
+}
+.ishikawa .ishikawa-label-box {
+  fill: \(mainBkg);
+  stroke: \(lineColor);
+  stroke-width: 2;
+}
+.ishikawa text {
+  font-family: \(ff);
+  font-size: \(formatIshikawaCssFontSize(fontSize));
+  fill: \(textColor);
+}
+.ishikawa .ishikawa-head-label {
+  font-weight: 600;
+  text-anchor: middle;
+  dominant-baseline: middle;
+  font-size: 14px;
+}
+.ishikawa .ishikawa-label {
+  text-anchor: end;
+}
+.ishikawa .ishikawa-label.cause {
+  text-anchor: middle;
+  dominant-baseline: middle;
+}
+.ishikawa .ishikawa-label.align {
+  text-anchor: end;
+  dominant-baseline: middle;
+}
+.ishikawa .ishikawa-label.up {
+  dominant-baseline: baseline;
+}
+.ishikawa .ishikawa-label.down {
+  dominant-baseline: hanging;
+}
+"""
+}
+
+private func formatIshikawaCssFontSize(_ size: Double) -> String {
+    let rounded = round(size * 10) / 10
+    return "\(rounded)px"
 }

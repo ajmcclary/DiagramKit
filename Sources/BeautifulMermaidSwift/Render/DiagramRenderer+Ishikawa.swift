@@ -81,7 +81,7 @@ extension DiagramRenderer {
         let lh = fontSize * 1.05
         for (i, line) in head.lines.enumerated() {
             let y = lh * CGFloat(i)
-            labelRenderer.drawText(line, at: CGPoint(x: CGFloat(head.labelX), y: CGFloat(head.labelY) + y), context: context, color: textColor, font: headFont, alignment: .left)
+            labelRenderer.drawText(line, at: CGPoint(x: CGFloat(head.labelX), y: CGFloat(head.labelY) + y), context: context, color: textColor, font: headFont, alignment: .center)
         }
 
         context.restoreGState()
