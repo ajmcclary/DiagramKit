@@ -152,8 +152,9 @@ private func tokenizeZenUML(_ source: String) -> [ZenUMLToken] {
                 payload.append(source[p])
                 p = source.index(after: p)
             }
-            if !payload.isEmpty {
-                tokens.append(ZenUMLToken(kind: .eventPayload(payload), line: line, column: column))
+            let trimmedPayload = payload.trimmingCharacters(in: .whitespaces)
+            if !trimmedPayload.isEmpty {
+                tokens.append(ZenUMLToken(kind: .eventPayload(trimmedPayload), line: line, column: column))
                 column += payload.count
             }
             pos = p
@@ -428,7 +429,7 @@ private func tokenizeZenUML(_ source: String) -> [ZenUMLToken] {
                 }
                 pos = tp
                 continue
-            case "new", "return", "if", "else", "while", "for", "foreach", "foreach",
+            case "new", "return", "if", "else", "while", "for", "foreach",
                  "loop", "par", "opt", "critical", "section", "frame", "ref", "as",
                  "try", "catch", "finally", "in", "true", "false", "nil", "null",
                  "group", "const", "readonly", "static", "await":
@@ -509,18 +510,6 @@ private final class ZenUMLRecursiveDescentParser {
         let tok = current
         if pos < tokens.count { pos += 1 }
         return tok
-    }
-
-    // Collect comments since last non-comment token
-    private func collectComments() -> String? {
-        var comments: [String] = []
-        let savedPos = pos
-        var scanPos = savedPos
-        // Scan backward for adjacent comments (they were skipped by skipWhitespaceAndComments)
-        // Instead, track the last seen comment and return it
-        // For now, comments are consumed by skipWhitespaceAndComments and lost.
-        // We'll return nil and the caller can use `pendingComment` if we track it.
-        return nil
     }
 
     /// Parse the full program: title? head? block? EOF
@@ -760,7 +749,7 @@ private final class ZenUMLRecursiveDescentParser {
     private func parseBlock() -> ZenUMLASTNode? {
         var statements: [ZenUMLASTNode] = []
         while pos < tokens.count {
-            skipNewlinesAndComments()
+            skipNewlines()
             if case .eof = peek() { break }
             if case .closeBrace = peek() { break }
             if let stmt = parseStatement() {
@@ -774,13 +763,13 @@ private final class ZenUMLRecursiveDescentParser {
     }
 
     private func parseStatement() -> ZenUMLASTNode? {
-        skipNewlinesAndComments()
+        skipNewlines()
 
         switch peek() {
         case .keyword(let kw):
             switch kw {
             case "if": return parseAlt()
-            case "while", "for", "foreach", "foreach", "loop": return parseLoop()
+            case "while", "for", "foreach", "loop": return parseLoop()
             case "par": return parsePar()
             case "opt": return parseOpt()
             case "critical": return parseCritical()
@@ -799,7 +788,13 @@ private final class ZenUMLRecursiveDescentParser {
         case .annotationRet:
             return parseRet()
         case .id, .cstring, .ustring, .emojiShortcode, .annotation:
+            if isReturnArrowStart() {
+                return parseRet()
+            }
             return parseMessageOrCreation()
+        case .comment(let text):
+            advance()
+            return .comment(text: text)
         case .divider:
             let tok = advance()
             if case .divider(let label) = tok.kind { return .divider(label: label) }
@@ -830,17 +825,17 @@ private final class ZenUMLRecursiveDescentParser {
             if let b = parseBlock() { ifBlock = b }
             if case .closeBrace = peek() { advance() }
         }
-        var elseIfs: [ZenUMLASTNode] = []
+        var elseIfs: [ZenUMLAltBranch] = []
         var elseBlock: ZenUMLASTNode? = nil
         while case .keyword(let kw) = peek(), kw == "else" {
             advance()
             skipNewlinesAndComments()
             if case .keyword(let kw2) = peek(), kw2 == "if" {
                 advance()
-                _ = parseParExpr() // condition consumed but stored in AST would need restructuring
+                let elseIfCondition = parseParExpr()
                 var block: ZenUMLASTNode = .block(statements: [])
                 if case .openBrace = peek() { advance(); if let b = parseBlock() { block = b }; if case .closeBrace = peek() { advance() } }
-                elseIfs.append(block)
+                elseIfs.append(ZenUMLAltBranch(condition: elseIfCondition, block: block))
             } else {
                 var block: ZenUMLASTNode = .block(statements: [])
                 if case .openBrace = peek() { advance(); if let b = parseBlock() { block = b }; if case .closeBrace = peek() { advance() } }
@@ -848,7 +843,7 @@ private final class ZenUMLRecursiveDescentParser {
                 break
             }
         }
-        return .alt(ifBlock: ifBlock, elseIfs: elseIfs, elseBlock: elseBlock)
+        return .alt(condition: condition, ifBlock: ifBlock, elseIfs: elseIfs, elseBlock: elseBlock)
     }
 
     private func parseLoop() -> ZenUMLASTNode? {
@@ -946,6 +941,7 @@ private final class ZenUMLRecursiveDescentParser {
     // MARK: - Return parsing
 
     private func parseRet() -> ZenUMLASTNode? {
+        let savedPos = pos
         // `return expr` form
         if case .keyword("return") = peek() {
             advance()
@@ -973,6 +969,7 @@ private final class ZenUMLRecursiveDescentParser {
                     if case .colon = peek() { advance(); if case .eventPayload(let s) = peek() { content = s; advance() } }
                     return .ret(value: nil, async: nil, returnArrow: .returnArrowMessage(from: from, to: to, content: content))
                 }
+                pos = savedPos
             }
             // Bare @return with nothing after
             return .ret(value: nil, async: nil, returnArrow: nil)
@@ -988,23 +985,22 @@ private final class ZenUMLRecursiveDescentParser {
                 return .ret(value: nil, async: nil, returnArrow: arrow)
             }
         }
+        pos = savedPos
         return nil
     }
 
     // MARK: - From/To parsing
 
     private func parseFrom() -> String? {
-        var emoji: String? = nil
-        if case .emojiShortcode(let e) = peek() { emoji = e; advance() }
+        if case .emojiShortcode = peek() { advance() }
         if case .id(let s) = peek() { advance(); return s }
         else if case .cstring(let s) = peek() { advance(); return s }
+        else if case .ustring(let s) = peek() { advance(); return s }
         return nil
     }
 
     private func parseTo() -> String {
-        _ = parseFrom() // consume optional emoji + name
-        // parseFrom already consumed; return empty if already consumed
-        return ""  // handled differently now
+        parseFrom() ?? ""
     }
 
     // MARK: - Message / Creation parsing
@@ -1021,6 +1017,12 @@ private final class ZenUMLRecursiveDescentParser {
             if case .colon = peek() { advance(); if case .eventPayload(let s) = peek() { content = s; advance() } }
             return .asyncMessage(from: from, to: to, content: content)
         }
+        if let to = from, case .colon = peek() {
+            advance()
+            var content: String? = nil
+            if case .eventPayload(let s) = peek() { content = s; advance() }
+            return .asyncMessage(from: nil, to: to, content: content)
+        }
         // Not an async message, backtrack
         pos = savedPos
         return nil
@@ -1028,7 +1030,7 @@ private final class ZenUMLRecursiveDescentParser {
 
     private func parseCreation() -> ZenUMLASTNode? {
         var assignee: String? = nil
-        var creationType: String? = nil
+        let creationType: String? = nil
 
         // Optional assignment: `ret = new B()`
         let savedPos = pos
@@ -1218,6 +1220,30 @@ private final class ZenUMLRecursiveDescentParser {
             }
         }
     }
+
+    private func skipNewlines() {
+        while pos < tokens.count {
+            if case .newline = peek() {
+                advance()
+            } else {
+                return
+            }
+        }
+    }
+
+    private func isReturnArrowStart() -> Bool {
+        var idx = pos
+        if idx < tokens.count, case .emojiShortcode = tokens[idx].kind {
+            idx += 1
+        }
+        guard idx < tokens.count else { return false }
+        switch tokens[idx].kind {
+        case .id, .cstring, .ustring:
+            return idx + 1 < tokens.count && tokens[idx + 1].kind == .returnArrow
+        default:
+            return false
+        }
+    }
 }
 
 // MARK: - Raw AST (Layer 1)
@@ -1233,7 +1259,7 @@ public indirect enum ZenUMLASTNode: Sendable {
     case ret(value: String?, async: ZenUMLASTNode?, returnArrow: ZenUMLASTNode?)
     case returnArrowMessage(from: String, to: String, content: String?)
     case creation(assignee: String?, type: String?, construct: String, params: [String]?, block: ZenUMLASTNode?)
-    case alt(ifBlock: ZenUMLASTNode, elseIfs: [ZenUMLASTNode], elseBlock: ZenUMLASTNode?)
+    case alt(condition: String?, ifBlock: ZenUMLASTNode, elseIfs: [ZenUMLAltBranch], elseBlock: ZenUMLASTNode?)
     case loop(keyword: String, condition: String?, block: ZenUMLASTNode?)
     case par(condition: String?, block: ZenUMLASTNode?)
     case opt(condition: String?, block: ZenUMLASTNode?)
@@ -1242,6 +1268,17 @@ public indirect enum ZenUMLASTNode: Sendable {
     case ref(names: [String])
     case tcf(tryBlock: ZenUMLASTNode, catches: [ZenUMLASTNode], finallyBlock: ZenUMLASTNode?)
     case divider(label: String)
+    case comment(text: String)
+}
+
+public struct ZenUMLAltBranch: Sendable {
+    public var condition: String?
+    public var block: ZenUMLASTNode
+
+    public init(condition: String? = nil, block: ZenUMLASTNode) {
+        self.condition = condition
+        self.block = block
+    }
 }
 
 // MARK: - Semantic Extraction (Layer 1 → Layer 2)
@@ -1335,7 +1372,7 @@ private func extractStatements(from astNodes: [ZenUMLASTNode], participantMap: i
 
     for node in astNodes {
         switch node {
-        case .message(let assignee, _, let from, let to, let signature, let block):
+        case .message(_, _, let from, let to, let signature, let block):
             let resolvedFrom = from ?? starterName()
             let resolvedTo = to.isEmpty ? resolvedFrom : to
             ensureParticipant(resolvedFrom)
@@ -1371,20 +1408,21 @@ private func extractStatements(from astNodes: [ZenUMLASTNode], participantMap: i
                 statements.append(.return(from: s, to: s, value: v, comment: nil))
             }
 
-        case .alt(let ifBlock, let elseIfs, let elseBlock):
+        case .alt(let condition, let ifBlock, let elseIfs, let elseBlock):
             var sections: [ZenUMLFragmentSection] = []
             if case .block(let stmts) = ifBlock {
                 sections.append(ZenUMLFragmentSection(label: "if", statements: extractStatements(from: stmts, participantMap: &participantMap, orderedKeys: &orderedKeys)))
             }
-            for elifNode in elseIfs {
-                if case .block(let stmts) = elifNode {
-                    sections.append(ZenUMLFragmentSection(label: "else if", statements: extractStatements(from: stmts, participantMap: &participantMap, orderedKeys: &orderedKeys)))
+            for branch in elseIfs {
+                if case .block(let stmts) = branch.block {
+                    let label = branch.condition.map { "else if [\($0)]" } ?? "else if"
+                    sections.append(ZenUMLFragmentSection(label: label, statements: extractStatements(from: stmts, participantMap: &participantMap, orderedKeys: &orderedKeys)))
                 }
             }
             if let elseNode = elseBlock, case .block(let stmts) = elseNode {
                 sections.append(ZenUMLFragmentSection(label: "else", statements: extractStatements(from: stmts, participantMap: &participantMap, orderedKeys: &orderedKeys)))
             }
-            statements.append(.fragment(kind: .alt, condition: nil, sections: sections))
+            statements.append(.fragment(kind: .alt, condition: condition, sections: sections))
 
         case .loop(let keyword, let condition, let block):
             var inner: [ZenUMLStatement] = []
@@ -1431,6 +1469,9 @@ private func extractStatements(from astNodes: [ZenUMLASTNode], participantMap: i
 
         case .divider(let label):
             statements.append(.divider(label: label))
+
+        case .comment(let text):
+            statements.append(.comment(text: text))
 
         case .block(let inner):
             statements.append(contentsOf: extractStatements(from: inner, participantMap: &participantMap, orderedKeys: &orderedKeys))

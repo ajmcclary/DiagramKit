@@ -1,10 +1,32 @@
 import Testing
 import Foundation
 import CoreGraphics
+import Dispatch
 @testable import BeautifulMermaid
 
-@Suite("Class Diagram CG Renderer")
+@Suite("Class Diagram CG Renderer", .serialized)
 struct ClassCGRendererTests {
+    private enum RenderError: Error {
+        case contextCreationFailed
+        case missingWorkerResult
+    }
+
+    private final class RenderResultBox: @unchecked Sendable {
+        private let lock = NSLock()
+        private var result: Result<Void, Error>?
+
+        func set(_ result: Result<Void, Error>) {
+            lock.lock()
+            self.result = result
+            lock.unlock()
+        }
+
+        func get() -> Result<Void, Error>? {
+            lock.lock()
+            defer { lock.unlock() }
+            return result
+        }
+    }
 
     private func makeContext(size: CGSize) -> CGContext? {
         CGContext(
@@ -18,19 +40,40 @@ struct ClassCGRendererTests {
         )
     }
 
-    private func render(source: String) throws {
-        let graph = try MermaidParser.parse(source)
-        let positioned = try GraphLayout().layout(graph)
-        let renderer = DiagramRenderer()
-        let size = CGSize(width: CGFloat(positioned.width), height: CGFloat(positioned.height))
-        let bounds = CGRect(origin: .zero, size: size)
-
-        guard let context = makeContext(size: size) else {
-            #expect(Bool(false), "Could not create CGContext")
-            return
+    private func renderOnWorker(_ work: @escaping @Sendable () throws -> Void) throws {
+        let resultBox = RenderResultBox()
+        let semaphore = DispatchSemaphore(value: 0)
+        let thread = Thread {
+            resultBox.set(Result { try work() })
+            semaphore.signal()
         }
-        renderer.render(positioned, in: context, bounds: bounds)
-        #expect(Bool(true))
+        thread.name = "BeautifulMermaid class CG test worker"
+        thread.stackSize = 8 * 1024 * 1024
+        thread.start()
+        semaphore.wait()
+
+        guard let result = resultBox.get() else {
+            throw RenderError.missingWorkerResult
+        }
+        try result.get()
+    }
+
+    private func render(source: String) throws {
+        try renderOnWorker {
+            let graph = try MermaidParser.parse(source)
+            let positioned = try GraphLayout().layout(graph)
+            let renderer = DiagramRenderer()
+            let size = CGSize(
+                width: CGFloat(max(1, positioned.width)),
+                height: CGFloat(max(1, positioned.height))
+            )
+            let bounds = CGRect(origin: .zero, size: size)
+
+            guard let context = makeContext(size: size) else {
+                throw RenderError.contextCreationFailed
+            }
+            renderer.render(positioned, in: context, bounds: bounds)
+        }
     }
 
     // MARK: - Class Boxes
@@ -209,25 +252,14 @@ struct ClassCGRendererTests {
 
     @Test("CG renders with hideEmptyMembersBox config")
     func configHideEmpty() throws {
-        let source = """
+        try render(source: """
         ---
         class:
           hideEmptyMembersBox: true
         ---
         classDiagram
         class Animal
-        """
-        let graph = try MermaidParser.parse(source)
-        let positioned = try GraphLayout().layout(graph)
-        let renderer = DiagramRenderer()
-        let size = CGSize(width: CGFloat(positioned.width), height: CGFloat(positioned.height))
-        let bounds = CGRect(origin: .zero, size: size)
-        guard let context = makeContext(size: size) else {
-            #expect(Bool(false), "Could not create CGContext")
-            return
-        }
-        renderer.render(positioned, in: context, bounds: bounds)
-        #expect(Bool(true))
+        """)
     }
 
     @Test("CG renders with LR direction")
@@ -239,20 +271,7 @@ struct ClassCGRendererTests {
 
     @Test("CG renders empty diagram without crashing")
     func emptyDiagram() throws {
-        let source = "classDiagram"
-        let graph = try MermaidParser.parse(source)
-        let positioned = try GraphLayout().layout(graph)
-        let w = max(1, positioned.width)
-        let h = max(1, positioned.height)
-        let renderer = DiagramRenderer()
-        let size = CGSize(width: CGFloat(w), height: CGFloat(h))
-        let bounds = CGRect(origin: .zero, size: size)
-        guard let context = makeContext(size: size) else {
-            #expect(Bool(false), "Could not create CGContext")
-            return
-        }
-        renderer.render(positioned, in: context, bounds: bounds)
-        #expect(Bool(true))
+        try render(source: "classDiagram")
     }
 
     @Test("CG renders diagram with only relationships")

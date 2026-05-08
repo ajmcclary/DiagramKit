@@ -8,6 +8,11 @@ extension DiagramRenderer {
         guard case let .zenuml(diagram) = positioned.content else { return }
 
         _withFittedContext(context, bounds: bounds, contentWidth: diagram.width, contentHeight: diagram.height) { ctx in
+            // Draw groups behind lifelines and participants
+            for group in diagram.groups {
+                _drawZenUMLGroup(group, in: ctx)
+            }
+
             // Draw lifelines (behind participants)
             for lifeline in diagram.lifelines {
                 _drawZenUMLLifeline(lifeline, in: ctx)
@@ -51,6 +56,11 @@ extension DiagramRenderer {
             // Draw dividers
             for divider in diagram.dividers {
                 _drawZenUMLDivider(divider, in: ctx)
+            }
+
+            // Draw comments
+            for comment in diagram.comments {
+                _drawZenUMLComment(comment, in: ctx)
             }
 
             // Draw title
@@ -122,13 +132,22 @@ extension DiagramRenderer {
             context.strokePath()
 
             // Arrow head
-            context.setFillColor(CGColor.black)
             let ax = isReverse ? toX + arrowSize : toX - arrowSize
-            context.move(to: CGPoint(x: toX, y: m.y))
-            context.addLine(to: CGPoint(x: ax, y: m.y - arrowSize / 2))
-            context.addLine(to: CGPoint(x: ax, y: m.y + arrowSize / 2))
-            context.closePath()
-            context.fillPath()
+            if m.arrowStyle == .open {
+                context.move(to: CGPoint(x: toX, y: m.y))
+                context.addLine(to: CGPoint(x: ax, y: m.y - arrowSize / 2))
+                context.strokePath()
+                context.move(to: CGPoint(x: toX, y: m.y))
+                context.addLine(to: CGPoint(x: ax, y: m.y + arrowSize / 2))
+                context.strokePath()
+            } else {
+                context.setFillColor(CGColor.black)
+                context.move(to: CGPoint(x: toX, y: m.y))
+                context.addLine(to: CGPoint(x: ax, y: m.y - arrowSize / 2))
+                context.addLine(to: CGPoint(x: ax, y: m.y + arrowSize / 2))
+                context.closePath()
+                context.fillPath()
+            }
 
             // Label
             let midX = (fromX + toX) / 2
@@ -211,12 +230,21 @@ extension DiagramRenderer {
         context.strokePath()
         // Arrow head
         let arrowSize: CGFloat = 8
-        context.setFillColor(CGColor.black)
-        context.move(to: CGPoint(x: ux + uw, y: uy))
-        context.addLine(to: CGPoint(x: ux + uw + arrowSize, y: uy - arrowSize/2))
-        context.addLine(to: CGPoint(x: ux + uw + arrowSize, y: uy + arrowSize/2))
-        context.closePath()
-        context.fillPath()
+        if sc.arrowStyle == .open {
+            context.move(to: CGPoint(x: ux + uw, y: uy))
+            context.addLine(to: CGPoint(x: ux + uw + arrowSize, y: uy - arrowSize / 2))
+            context.strokePath()
+            context.move(to: CGPoint(x: ux + uw, y: uy))
+            context.addLine(to: CGPoint(x: ux + uw + arrowSize, y: uy + arrowSize / 2))
+            context.strokePath()
+        } else {
+            context.setFillColor(CGColor.black)
+            context.move(to: CGPoint(x: ux + uw, y: uy))
+            context.addLine(to: CGPoint(x: ux + uw + arrowSize, y: uy - arrowSize / 2))
+            context.addLine(to: CGPoint(x: ux + uw + arrowSize, y: uy + arrowSize / 2))
+            context.closePath()
+            context.fillPath()
+        }
         _drawTextInFlipped(sc.label, at: CGPoint(x: ux + uw / 2, y: uy + uh / 2), context: context, contentHeight: uh, color: .black, font: _monoFont(size: 14))
         context.restoreGState()
     }
@@ -264,5 +292,26 @@ extension DiagramRenderer {
         }
 
         context.restoreGState()
+    }
+
+    private func _drawZenUMLGroup(_ g: PositionedZenUMLGroup, in context: CGContext) {
+        let rect = CGRect(x: g.x, y: g.y, width: g.width, height: g.height)
+
+        context.saveGState()
+        context.setStrokeColor(CGColor(gray: 0.4, alpha: 1))
+        context.setLineWidth(1)
+        context.setLineDash(phase: 0, lengths: [5, 5])
+        context.stroke(rect)
+        context.setLineDash(phase: 0, lengths: [])
+
+        if !g.name.isEmpty {
+            _drawTextInFlipped(g.name, at: CGPoint(x: rect.minX + 5, y: max(10, rect.minY - 5)), context: context, contentHeight: 14, color: .black, font: _monoFont(size: 13))
+        }
+
+        context.restoreGState()
+    }
+
+    private func _drawZenUMLComment(_ comment: PositionedZenUMLComment, in context: CGContext) {
+        _drawTextInFlipped(comment.text, at: CGPoint(x: comment.x, y: comment.y), context: context, contentHeight: 16, color: BMColor(cgColor: CGColor(gray: 0.4, alpha: 1)) ?? .black, font: _italicMonoFont(size: 13))
     }
 }

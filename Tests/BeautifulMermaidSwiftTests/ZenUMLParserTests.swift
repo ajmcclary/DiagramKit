@@ -22,8 +22,14 @@ struct ZenUMLParserTests {
             Issue.record("Expected zenuml payload")
             return
         }
-        #expect(!diagram.statements.isEmpty)
-        #expect(!diagram.participants.isEmpty)
+        guard case .asyncMessage(let from, let to, let content, _) = diagram.statements.first else {
+            Issue.record("Expected async message statement")
+            return
+        }
+        #expect(from == "Alice")
+        #expect(to == "Bob")
+        #expect(content == "Hello")
+        #expect(diagram.participants.map(\.name) == ["Alice", "Bob"])
     }
 
     @Test("Multi-participant async detects all participants")
@@ -111,11 +117,13 @@ struct ZenUMLParserTests {
         let source = "zenuml\nA --> B: result"
         let result = try MermaidParser.parse(source)
         guard case .zenuml(let diagram) = result.payload else { return }
-        var foundReturn = false
-        for stmt in diagram.statements {
-            if case .return = stmt { foundReturn = true; break }
+        guard case .return(let from, let to, let value, _) = diagram.statements.first else {
+            Issue.record("Expected return statement")
+            return
         }
-        #expect(foundReturn)
+        #expect(from == "A")
+        #expect(to == "B")
+        #expect(value == "result")
     }
 
     // MARK: - Fragments
@@ -193,7 +201,25 @@ struct ZenUMLParserTests {
         let source = "zenuml\ngroup Backend { @EC2 svc @RDS db }\nClient->svc: request"
         let result = try MermaidParser.parse(source)
         guard case .zenuml(let diagram) = result.payload else { return }
-        #expect(!diagram.groups.isEmpty)
+        #expect(diagram.groups.first?.id == "Backend")
+        #expect(diagram.groups.first?.participants == ["svc", "db"])
+        #expect(diagram.participants.first(where: { $0.name == "svc" })?.groupId == "Backend")
+    }
+
+    @Test("Message comments are preserved as renderable statements")
+    func messageCommentPreserved() throws {
+        let source = "zenuml\nA->B: start\n// **important** comment\nB->A: finish"
+        let result = try MermaidParser.parse(source)
+        guard case .zenuml(let diagram) = result.payload else { return }
+        guard diagram.statements.count == 3 else {
+            Issue.record("Expected message, comment, message")
+            return
+        }
+        guard case .comment(let text) = diagram.statements[1] else {
+            Issue.record("Expected comment statement")
+            return
+        }
+        #expect(text == "**important** comment")
     }
 
     // MARK: - Divider
@@ -273,6 +299,28 @@ struct ZenUMLParserTests {
             }
         }
         Issue.record("Expected alt fragment with condition x")
+    }
+
+    @Test("Else-if condition preserved in section label")
+    func elseIfConditionPreserved() throws {
+        let source = """
+        zenuml
+        if(x) {
+          A.yes()
+        } else if(y) {
+          A.maybe()
+        } else {
+          A.no()
+        }
+        """
+        let result = try MermaidParser.parse(source)
+        guard case .zenuml(let diagram) = result.payload else { return }
+        guard case .fragment(.alt, let condition, let sections) = diagram.statements.first else {
+            Issue.record("Expected alt fragment")
+            return
+        }
+        #expect(condition == "x")
+        #expect(sections.map(\.label) == ["if", "else if [y]", "else"])
     }
 
     @Test("Loop condition preserved in fragment label")

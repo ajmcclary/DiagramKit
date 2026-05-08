@@ -24,7 +24,7 @@ public func parseC4Diagram(_ lines: [String], frontmatter: DiagramFrontmatter? =
     var boundaryParseStack: [String] = [""]
     var parentBoundaryParse = ""
 
-    var wrapEnabled = diagram.config.wrap
+    let wrapEnabled = diagram.config.wrap
     var c4ShapeInRow = diagram.config.c4ShapeInRow
     var c4BoundaryInRow = diagram.config.c4BoundaryInRow
 
@@ -412,8 +412,8 @@ private func _findMatchingParen(_ s: String, from start: String.Index) -> String
             if ch == "\"" || ch == "'" { inQuote = true; quoteChar = ch }
             else if ch == "(" { depth += 1 }
             else if ch == ")" {
-                if depth == 0 { return idx }
                 depth -= 1
+                if depth == 0 { return idx }
             }
         }
         idx = s.index(after: idx)
@@ -581,7 +581,6 @@ private func _addDeploymentNode(
 
     let link = named["link"]
     let resolvedTags = tags ?? named["tags"]
-    let resolvedSprite = sprite ?? named["sprite"]
     let resolvedType = type ?? "node"
 
     if let idx = boundaries.firstIndex(where: { $0.alias == alias }) {
@@ -635,9 +634,10 @@ private func _addRel(
     let resolvedTags = tags ?? named["tags"]
     let resolvedSprite = sprite ?? named["sprite"]
 
-    if let idx = relationships.firstIndex(where: { $0.from == from && $0.to == to }) {
+    if let idx = relationships.firstIndex(where: { $0.from == from && $0.to == to && $0.kind == kind }) {
         var rel = relationships[idx]
         rel.label = label
+        rel.kind = kind
         if let t = techn { rel.technology = t }
         if let d = descr { rel.description = d }
         if let s = resolvedSprite { rel.sprite = s }

@@ -170,7 +170,7 @@ public class MermaidLayer: CALayer {
         preparationTask = Task { [weak self] in
             do {
                 let prepared = try await withCheckedThrowingContinuation { continuation in
-                    DispatchQueue.global(qos: .userInitiated).async {
+                    let thread = Thread {
                         do {
                             let result = try pipeline.prepareSync(
                                 source: source,
@@ -182,6 +182,9 @@ public class MermaidLayer: CALayer {
                             continuation.resume(throwing: error)
                         }
                     }
+                    thread.name = "BeautifulMermaid layer worker"
+                    thread.stackSize = 8 * 1024 * 1024
+                    thread.start()
                 }
                 guard !Task.isCancelled else { return }
                 self?.preparedDiagram = prepared

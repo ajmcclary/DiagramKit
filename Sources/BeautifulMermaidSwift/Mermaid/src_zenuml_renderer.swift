@@ -8,7 +8,8 @@ public func renderZenUMLSvg(
     _ diagram: PositionedZenUMLDiagram,
     colors: DiagramColors = DiagramColors(bg: "#FFFFFF", fg: "#27272A"),
     font: String = "Helvetica",
-    transparent: Bool = false
+    transparent: Bool = false,
+    useMaxWidth: Bool = true
 ) -> String {
     let padding: Double = 10
     let frameHeaderHeight: Double = 28
@@ -117,6 +118,7 @@ public func renderZenUMLSvg(
         .divider-label { font-family: Helvetica, Verdana, serif; font-size: 14px; fill: #333; }
         .group-outline { fill: none; stroke: #666; stroke-dasharray: 5,5; stroke-width: 1; }
         .group-title-text { font-family: Helvetica, Verdana, serif; font-size: 13px; font-weight: 400; fill: #222; }
+        .comment-text { font-family: Helvetica, Verdana, serif; font-size: 13px; fill: #666; font-style: italic; }
       </style>
     </defs>
     """
@@ -125,7 +127,12 @@ public func renderZenUMLSvg(
     let content = "<g transform=\"translate(\(contentLeftMargin), \(headerLineY))\">\n\(parts.joined(separator: "\n"))\n</g>"
     let innerSvg = "\(style)\n\(frame)\n\(content)"
 
-    let svg = "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"\(viewWidth)\" height=\"\(viewHeight)\" viewBox=\"\(viewBox)\">\n\(innerSvg)\n</svg>"
+    let svg: String
+    if useMaxWidth {
+        svg = "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"100%\" preserveAspectRatio=\"xMinYMin meet\" style=\"max-width: \(viewWidth)px\" viewBox=\"\(viewBox)\">\n\(innerSvg)\n</svg>"
+    } else {
+        svg = "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"\(viewWidth)\" height=\"\(viewHeight)\" viewBox=\"\(viewBox)\">\n\(innerSvg)\n</svg>"
+    }
 
     return svg
 }
@@ -283,7 +290,12 @@ private func renderSelfCall(_ sc: PositionedZenUMLSelfCall) -> String {
     let ux = sc.x; let uy = sc.y; let uw = sc.width; let uh = sc.height
     parts.append("<polyline class=\"message-line\" points=\"\(ux),\(uy) \(ux),\(uy + uh) \(ux + uw),\(uy + uh) \(ux + uw),\(uy)\" fill=\"none\"/>")
     let arrowSize: Double = 8
-    parts.append("<polygon class=\"arrow-head\" points=\"\(ux + uw),\(uy) \(ux + uw + arrowSize),\(uy - arrowSize/2) \(ux + uw + arrowSize),\(uy + arrowSize/2)\"/>")
+    if sc.arrowStyle == .open {
+        parts.append("<line class=\"arrow-open\" x1=\"\(ux + uw)\" y1=\"\(uy)\" x2=\"\(ux + uw + arrowSize)\" y2=\"\(uy - arrowSize / 2)\"/>")
+        parts.append("<line class=\"arrow-open\" x1=\"\(ux + uw)\" y1=\"\(uy)\" x2=\"\(ux + uw + arrowSize)\" y2=\"\(uy + arrowSize / 2)\"/>")
+    } else {
+        parts.append("<polygon class=\"arrow-head\" points=\"\(ux + uw),\(uy) \(ux + uw + arrowSize),\(uy - arrowSize/2) \(ux + uw + arrowSize),\(uy + arrowSize/2)\"/>")
+    }
     parts.append("<text class=\"message-label\" x=\"\(ux + uw / 2)\" y=\"\(uy + uh / 2)\" text-anchor=\"middle\" dominant-baseline=\"central\">\(escXml(sc.label))</text>")
     return parts.joined(separator: "\n")
 }

@@ -45,9 +45,15 @@ import Foundation
     }
 
     @Test func lowercaseHeaderNotRoutedAsC4() throws {
-        let graph = try MermaidParser.parse("c4context\nPerson(customer, \"Customer\")")
-        if case .c4 = graph.payload {
-            #expect(Bool(false), "Lowercase c4context should not route as C4")
+        do {
+            let graph = try MermaidParser.parse("c4context\nPerson(customer, \"Customer\")")
+            if case .c4 = graph.payload {
+                Issue.record("Lowercase c4context should not route as C4")
+            } else {
+                Issue.record("Expected lowercase c4context to be rejected")
+            }
+        } catch {
+            // C4 headers are case-sensitive; falling through to generic parsing should reject this source.
         }
     }
 

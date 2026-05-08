@@ -85,7 +85,6 @@ public func layoutZenUMLDiagram(_ diagram: ZenUMLDiagram) -> PositionedZenUMLDia
 
                 // Recursive inner block
                 if let inner = block {
-                    let savedY = currentY
                     currentY = y
                     let blockBottom = layoutStatements(inner, indentX: fromX - 15, indentWidth: maxContentWidth)
                     y = max(y, blockBottom)
@@ -98,7 +97,7 @@ public func layoutZenUMLDiagram(_ diagram: ZenUMLDiagram) -> PositionedZenUMLDia
                 positionedMessages.append(PositionedZenUMLMessage(fromX: fromX, toX: toX, y: y, label: content ?? "", arrowStyle: .open, isSelf: from == to, isReverse: fromX > toX))
                 y += messageHeight + verticalSpacing
 
-            case .creation(let assignee, _, let construct, let to, _, let block, _):
+            case .creation(_, _, let construct, let to, _, let block, _):
                 let fromX = participantX(for: "_STARTER_")
                 let createX = participantX(for: to)
                 let msg = PositionedZenUMLMessage(fromX: fromX, toX: createX, y: y, label: "new \(construct)()", arrowStyle: .dashed, isSelf: false, isReverse: false)
@@ -107,7 +106,6 @@ public func layoutZenUMLDiagram(_ diagram: ZenUMLDiagram) -> PositionedZenUMLDia
                 y += messageHeight + verticalSpacing
 
                 if let inner = block {
-                    let savedY = currentY
                     currentY = y
                     let blockBottom = layoutStatements(inner, indentX: createX - 15, indentWidth: maxContentWidth)
                     y = max(y, blockBottom)
@@ -128,7 +126,6 @@ public func layoutZenUMLDiagram(_ diagram: ZenUMLDiagram) -> PositionedZenUMLDia
 
                 for section in sections {
                     let secY = maxY
-                    let savedY = currentY
                     currentY = secY
                     let secBottom = layoutStatements(section.statements, indentX: indentX + 10, indentWidth: indentWidth - 20)
                     maxY = max(secBottom, secY + verticalSpacing)
@@ -147,6 +144,10 @@ public func layoutZenUMLDiagram(_ diagram: ZenUMLDiagram) -> PositionedZenUMLDia
             case .divider(let label):
                 positionedDividers.append(PositionedZenUMLDivider(y: y, width: maxContentWidth, label: label))
                 y += 24 + verticalSpacing
+
+            case .comment(let text):
+                positionedComments.append(PositionedZenUMLComment(x: indentX + 8, y: y, text: text))
+                y += 20 + verticalSpacing
             }
         }
         currentY = y
@@ -162,6 +163,26 @@ public func layoutZenUMLDiagram(_ diagram: ZenUMLDiagram) -> PositionedZenUMLDia
         var updated = l
         updated.bottomY = diagramHeight + participantHeight - 28
         return updated
+    }
+
+    positionedGroups = diagram.groups.compactMap { group in
+        let members = group.participants.compactMap { name in
+            positionedParticipants.first(where: { $0.name == name })
+        }
+        guard !members.isEmpty else { return nil }
+        let minX = members.map { $0.x - $0.width / 2 }.min() ?? diagramPadding
+        let maxX = members.map { $0.x + $0.width / 2 }.max() ?? minX
+        let groupX = max(0, minX - 16)
+        let groupY = max(0, diagramPadding - 12)
+        let groupWidth = max(0, maxX - minX + 32)
+        let groupHeight = max(participantHeight + 24, diagramHeight - groupY - diagramPadding)
+        return PositionedZenUMLGroup(
+            name: group.id ?? members.map(\.name).joined(separator: ", "),
+            x: groupX,
+            y: groupY,
+            width: groupWidth,
+            height: groupHeight
+        )
     }
 
     return PositionedZenUMLDiagram(

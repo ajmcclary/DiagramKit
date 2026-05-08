@@ -2,7 +2,7 @@ import Testing
 import Foundation
 @testable import BeautifulMermaid
 
-@Suite("ER Parser Foundation")
+@Suite("ER Parser Foundation", .serialized)
 struct ERParserFoundationTests {
 
     // MARK: - Header
@@ -440,8 +440,8 @@ struct ERParserFoundationTests {
     }
 
     @Test("ER frontmatter reaches public parser model")
-    func erFrontmatterReachesPublicParserModel() throws {
-        let graph = try MermaidParser.parse("""
+    func erFrontmatterReachesPublicParserModel() async throws {
+        let graph = try await MermaidRenderer.parse("""
             ---
             title: Customer ERD
             config:
@@ -740,8 +740,8 @@ struct ERParserFoundationTests {
     }
 
     @Test("labelType set to text when htmlLabels is false")
-    func labelTypeTextWhenHtmlLabelsFalse() throws {
-        let graph = try MermaidParser.parse("""
+    func labelTypeTextWhenHtmlLabelsFalse() async throws {
+        let graph = try await MermaidRenderer.parse("""
             ---
             config:
               htmlLabels: false
@@ -757,8 +757,8 @@ struct ERParserFoundationTests {
     }
 
     @Test("labelType set to markdown by default")
-    func labelTypeMarkdownByDefault() throws {
-        let graph = try MermaidParser.parse("""
+    func labelTypeMarkdownByDefault() async throws {
+        let graph = try await MermaidRenderer.parse("""
             erDiagram
               CUSTOMER
             """)

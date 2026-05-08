@@ -13,13 +13,13 @@ struct TreeViewPipelineTests {
             package.json
         """
 
-        let graph = try MermaidParser.parse(source)
+        let graph = try await MermaidRenderer.parse(source)
         guard case .treeView = graph.payload else {
             Issue.record("Expected TreeView payload, got \(graph.payload)")
             return
         }
 
-        let positioned = try GraphLayout().layout(graph)
+        let positioned = try await MermaidRenderer.layout(source)
         guard case .treeView(let data) = positioned.content else {
             Issue.record("Expected positioned TreeView content, got \(positioned.content)")
             return
@@ -66,14 +66,14 @@ struct TreeViewPipelineTests {
     }
 
     @Test("Init directive applies TreeView config and theme")
-    func initDirectiveAppliesTreeViewConfigAndTheme() throws {
+    func initDirectiveAppliesTreeViewConfigAndTheme() async throws {
         let source = """
         %%{init: {'treeView': {'rowIndent': 24, 'showIcons': false}, 'themeVariables': {'treeView': {'labelColor': '#123456', 'lineColor': '#654321'}}}}%%
         treeView-beta
             file.js
         """
 
-        let graph = try MermaidParser.parse(source)
+        let graph = try await MermaidRenderer.parse(source)
         guard case .treeView(let diagram) = graph.payload else {
             Issue.record("Expected TreeView payload, got \(graph.payload)")
             return

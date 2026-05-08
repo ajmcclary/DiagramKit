@@ -595,8 +595,8 @@ struct RadarParserTests {
     // MARK: - End-to-end MermaidParser.parse tests
 
     @Test("End-to-end parsing through MermaidParser")
-    func endToEndParsing() throws {
-        let graph = try MermaidParser.parse("radar-beta\n  axis A,B\n  curve c1{1,2}")
+    func endToEndParsing() async throws {
+        let graph = try await MermaidRenderer.parse("radar-beta\n  axis A,B\n  curve c1{1,2}")
         guard case .radar(let diagram) = graph.payload else {
             #expect(Bool(false), "Expected .radar payload")
             return
@@ -607,8 +607,8 @@ struct RadarParserTests {
     }
 
     @Test("End-to-end parsing with title and accessibility")
-    func endToEndWithTitleAndAccessibility() throws {
-        let graph = try MermaidParser.parse("radar-beta title My Radar accTitle: AT\n  axis A\n  curve c1{1}")
+    func endToEndWithTitleAndAccessibility() async throws {
+        let graph = try await MermaidRenderer.parse("radar-beta title My Radar accTitle: AT\n  axis A\n  curve c1{1}")
         guard case .radar(let diagram) = graph.payload else {
             #expect(Bool(false), "Expected .radar payload")
             return
@@ -618,8 +618,8 @@ struct RadarParserTests {
     }
 
     @Test("End-to-end parsing with options")
-    func endToEndWithOptions() throws {
-        let graph = try MermaidParser.parse("radar-beta\n  ticks 8\n  showLegend false\n  graticule polygon\n  min 1\n  max 200\n  axis A\n  curve c1{1}")
+    func endToEndWithOptions() async throws {
+        let graph = try await MermaidRenderer.parse("radar-beta\n  ticks 8\n  showLegend false\n  graticule polygon\n  min 1\n  max 200\n  axis A\n  curve c1{1}")
         guard case .radar(let diagram) = graph.payload else {
             #expect(Bool(false), "Expected .radar payload")
             return
@@ -654,7 +654,7 @@ struct RadarParserTests {
     }
 
     @Test("End-to-end parsing applies init directive radar config and theme")
-    func endToEndWithInitDirectiveConfigAndTheme() throws {
+    func endToEndWithInitDirectiveConfigAndTheme() async throws {
         let source = """
         %%{init: {'radar': {'marginTop': 80, 'axisLabelFactor': 1.25}, 'theme': 'base', 'themeVariables': {'fontSize': 10, 'cScale0': '#123456', 'radar': {'axisColor': '#FF0000'}}}}%%
         radar-beta
@@ -662,7 +662,7 @@ struct RadarParserTests {
           curve mycurve{1,2,3}
         """
 
-        let graph = try MermaidParser.parse(source)
+        let graph = try await MermaidRenderer.parse(source)
         guard case .radar(let diagram) = graph.payload else {
             #expect(Bool(false), "Expected .radar payload")
             return
@@ -675,7 +675,7 @@ struct RadarParserTests {
     }
 
     @Test("End-to-end full radar example")
-    func endToEndFullExample() throws {
+    func endToEndFullExample() async throws {
         let source = """
         radar-beta title Sales Performance
           accTitle: Sales Performance Radar
@@ -692,7 +692,7 @@ struct RadarParserTests {
           min 0
           max 100
         """
-        let graph = try MermaidParser.parse(source)
+        let graph = try await MermaidRenderer.parse(source)
         guard case .radar(let diagram) = graph.payload else {
             #expect(Bool(false), "Expected .radar payload")
             return

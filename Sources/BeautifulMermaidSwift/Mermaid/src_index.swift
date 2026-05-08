@@ -651,7 +651,26 @@ public func renderMermaidSVG(
     _ text: String,
     _ options: RenderOptions = RenderOptions()
 ) async throws -> String {
-    try await MermaidPipeline.shared.renderSVG(text, options: options)
+    try await _runMermaidSVGWorker {
+        try MermaidPipeline.shared.renderSVGSync(text, options: options)
+    }
+}
+
+private func _runMermaidSVGWorker<T: Sendable>(
+    _ work: @escaping @Sendable () throws -> T
+) async throws -> T {
+    try await withCheckedThrowingContinuation { continuation in
+        let thread = Thread {
+            do {
+                continuation.resume(returning: try work())
+            } catch {
+                continuation.resume(throwing: error)
+            }
+        }
+        thread.name = "BeautifulMermaid SVG worker"
+        thread.stackSize = 8 * 1024 * 1024
+        thread.start()
+    }
 }
 
 @available(*, unavailable, message: "Use await renderMermaidSVG")
@@ -674,7 +693,8 @@ private func _renderZenUMLSvgCase(source: String, fm: DiagramFrontmatter?, color
     let rawLines = _rawDiagramLines(from: source)
     let diagram = try parseZenUMLDiagram(rawLines, frontmatter: fm)
     let positioned = layoutZenUMLDiagram(diagram)
-    return renderZenUMLSvg(positioned, colors: colors, font: font, transparent: transparent)
+    let useMaxWidth = fm?.sequenceConfig?.useMaxWidth ?? true
+    return renderZenUMLSvg(positioned, colors: colors, font: font, transparent: transparent, useMaxWidth: useMaxWidth)
 }
 
 open class original_src_index {

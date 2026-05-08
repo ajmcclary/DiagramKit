@@ -5,7 +5,7 @@ import Testing
 struct VennEndToEndTests {
 
     @Test("Full pipeline parse → layout → SVG for Venn")
-    func fullPipeline() throws {
+    func fullPipeline() async throws {
         let source = """
         venn-beta
           title "Test"
@@ -13,7 +13,7 @@ struct VennEndToEndTests {
           set B
           union A,B
         """
-        let svg = try _renderMermaidSVG(source)
+        let svg = try await renderMermaidSVG(source)
         #expect(svg.contains("venn-circle"))
         #expect(svg.contains("venn-set-0"))
         #expect(svg.contains("venn-title"))
@@ -26,14 +26,14 @@ struct VennEndToEndTests {
     }
 
     @Test("Venn payload is parsed through MermaidParser")
-    func vennParseThroughParser() throws {
+    func vennParseThroughParser() async throws {
         let source = """
         venn-beta
           set A
           set B
           union A,B
         """
-        let graph = try MermaidParser.parse(source)
+        let graph = try await MermaidRenderer.parse(source)
         guard case .venn(let diagram) = graph.payload else {
             #expect(Bool(false), "Expected .venn payload")
             return
@@ -43,7 +43,7 @@ struct VennEndToEndTests {
     }
 
     @Test("Venn frontmatter config is applied")
-    func vennFrontmatterConfig() throws {
+    func vennFrontmatterConfig() async throws {
         let source = """
         ---
         config:
@@ -57,7 +57,7 @@ struct VennEndToEndTests {
           set B
           union A,B
         """
-        let graph = try MermaidParser.parse(source)
+        let graph = try await MermaidRenderer.parse(source)
         guard case .venn(let diagram) = graph.payload else {
             #expect(Bool(false), "Expected .venn payload")
             return
@@ -67,7 +67,7 @@ struct VennEndToEndTests {
     }
 
     @Test("Venn with theme variables from frontmatter")
-    func vennThemeVariables() throws {
+    func vennThemeVariables() async throws {
         let source = """
         ---
         config:
@@ -81,7 +81,7 @@ struct VennEndToEndTests {
           set Backend
           union Frontend,Backend
         """
-        let graph = try MermaidParser.parse(source)
+        let graph = try await MermaidRenderer.parse(source)
         guard case .venn(let diagram) = graph.payload else {
             #expect(Bool(false), "Expected .venn payload")
             return
@@ -92,23 +92,21 @@ struct VennEndToEndTests {
     }
 
     @Test("Venn SVG detectDiagramType returns venn")
-    func detectDiagramType() {
+    func detectDiagramType() async throws {
         // Verify through the public pipeline that venn-beta is detected
-        let svg = try? _renderMermaidSVG("venn-beta\n  set A\n  set B\n  union A,B")
-        #expect(svg != nil)
-        #expect(svg?.contains("venn-circle") == true)
+        let svg = try await renderMermaidSVG("venn-beta\n  set A\n  set B\n  union A,B")
+        #expect(svg.contains("venn-circle"))
     }
 
     @Test("Venn positioned content from layout")
-    func vennLayoutEndToEnd() throws {
+    func vennLayoutEndToEnd() async throws {
         let source = """
         venn-beta
           set A
           set B
           union A,B
         """
-        let graph = try MermaidParser.parse(source)
-        let positioned = try GraphLayout().layout(graph)
+        let positioned = try await MermaidRenderer.layout(source)
         guard case .venn(let data) = positioned.content else {
             #expect(Bool(false), "Expected .venn positioned content")
             return

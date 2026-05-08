@@ -6,9 +6,9 @@ import Foundation
 struct RadarEndToEndTests {
 
     @Test("MermaidParser.parse routes radar-beta sources to RadarDiagram")
-    func parserRoutesRadarSource() throws {
+    func parserRoutesRadarSource() async throws {
         let source = "radar-beta\n  axis A,B,C\n  curve c1{1,2,3}"
-        let graph = try MermaidParser.parse(source)
+        let graph = try await MermaidRenderer.parse(source)
         #expect(graph.type == .radar)
         switch graph.payload {
         case .radar(let diagram):
@@ -21,9 +21,9 @@ struct RadarEndToEndTests {
     }
 
     @Test("renderMermaidSVG produces valid SVG for radar")
-    func renderMermaidSVGForRadar() throws {
+    func renderMermaidSVGForRadar() async throws {
         let source = "radar-beta\n  axis A,B,C\n  curve c1{1,2,3}"
-        let svg = try _renderMermaidSVG(source)
+        let svg = try await renderMermaidSVG(source)
         #expect(svg.hasPrefix("<svg "))
         #expect(svg.contains("radarGraticule"))
         #expect(svg.contains("radarAxisLine"))
@@ -31,24 +31,23 @@ struct RadarEndToEndTests {
     }
 
     @Test("MermaidParser.parse handles radar-beta: header variant")
-    func parserHandlesRadarColon() throws {
+    func parserHandlesRadarColon() async throws {
         let source = "radar-beta:\n  axis A\n  curve c1{1}"
-        let graph = try MermaidParser.parse(source)
+        let graph = try await MermaidRenderer.parse(source)
         #expect(graph.type == .radar)
     }
 
     @Test("MermaidParser.parse handles radar-beta : header variant")
-    func parserHandlesRadarSpaceColon() throws {
+    func parserHandlesRadarSpaceColon() async throws {
         let source = "radar-beta :\n  axis A\n  curve c1{1}"
-        let graph = try MermaidParser.parse(source)
+        let graph = try await MermaidRenderer.parse(source)
         #expect(graph.type == .radar)
     }
 
     @Test("GraphLayout.layout handles radar type")
-    func layoutHandlesRadar() throws {
+    func layoutHandlesRadar() async throws {
         let source = "radar-beta\n  axis A,B,C\n  curve c1{1,2,3}"
-        let graph = try MermaidParser.parse(source)
-        let positioned = try GraphLayout().layout(graph)
+        let positioned = try await MermaidRenderer.layout(source)
         #expect(positioned.width > 0)
         #expect(positioned.height > 0)
         if case .radar(let data) = positioned.content {
@@ -60,23 +59,23 @@ struct RadarEndToEndTests {
     }
 
     @Test("renderMermaidSVG with showLegend false suppresses legend")
-    func renderMermaidSVGNoLegend() throws {
+    func renderMermaidSVGNoLegend() async throws {
         let source = "radar-beta\n  axis A,B,C\n  curve c1{1,2,3}\n  showLegend false"
-        let svg = try _renderMermaidSVG(source)
+        let svg = try await renderMermaidSVG(source)
         #expect(!svg.contains("radarLegendBox"))
     }
 
     @Test("renderMermaidSVG with polygon graticule")
-    func renderMermaidSVGPolygon() throws {
+    func renderMermaidSVGPolygon() async throws {
         let source = "radar-beta\n  axis A,B,C,D\n  curve c1{1,2,3,4}\n  graticule polygon"
-        let svg = try _renderMermaidSVG(source)
+        let svg = try await renderMermaidSVG(source)
         #expect(svg.contains("<polygon"))
     }
 
     @Test("renderMermaidSVG includes title and accessibility")
-    func renderMermaidSVGWithMetadata() throws {
+    func renderMermaidSVGWithMetadata() async throws {
         let source = "radar-beta\n  title Radar Chart\n  accTitle: Radar Title\n  accDescr: Radar Description\n  axis A\n  curve c1{1}"
-        let svg = try _renderMermaidSVG(source)
+        let svg = try await renderMermaidSVG(source)
         #expect(svg.contains("Radar Chart"))
         #expect(svg.contains("<title>Radar Title</title>"))
     }
@@ -104,15 +103,15 @@ struct RadarEndToEndTests {
     }
 
     @Test("Empty radar diagram produces valid SVG")
-    func emptyRadarSVG() throws {
+    func emptyRadarSVG() async throws {
         let source = "radar-beta"
-        let svg = try _renderMermaidSVG(source)
+        let svg = try await renderMermaidSVG(source)
         #expect(svg.hasPrefix("<svg "))
         #expect(svg.contains("radarGraticule"))
     }
 
     @Test("Multiple curves with options")
-    func multipleCurvesWithOptions() throws {
+    func multipleCurvesWithOptions() async throws {
         let source = """
         radar-beta
           axis A,B,C,D,E
@@ -122,7 +121,7 @@ struct RadarEndToEndTests {
           min 0
           max 10
         """
-        let graph = try MermaidParser.parse(source)
+        let graph = try await MermaidRenderer.parse(source)
         #expect(graph.type == .radar)
         switch graph.payload {
         case .radar(let diagram):
@@ -136,10 +135,10 @@ struct RadarEndToEndTests {
     }
 
     @Test("Labeled axes render in SVG")
-    func labeledAxesRender() throws {
+    func labeledAxesRender() async throws {
         let source = #"radar-beta\n  axis A["Axis A"], B["Axis B"]\n  curve c1{1,2}"#
         let unescaped = source.replacingOccurrences(of: "\\n", with: "\n")
-        let svg = try _renderMermaidSVG(unescaped)
+        let svg = try await renderMermaidSVG(unescaped)
         #expect(svg.contains("Axis A"))
         #expect(svg.contains("Axis B"))
     }

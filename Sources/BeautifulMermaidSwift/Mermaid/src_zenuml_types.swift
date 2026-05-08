@@ -78,6 +78,7 @@ public indirect enum ZenUMLStatement: Sendable {
     case `return`(from: String, to: String, value: String?, comment: String?)
     case fragment(kind: ZenUMLFragmentKind, condition: String?, sections: [ZenUMLFragmentSection])
     case divider(label: String)
+    case comment(text: String)
 }
 
 public struct ZenUMLGroup: Sendable {

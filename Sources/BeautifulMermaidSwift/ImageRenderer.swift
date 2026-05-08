@@ -19,11 +19,15 @@ public final class MermaidImageRenderer {
     }
 
     public func prepare(from source: String) async throws -> PreparedDiagram {
-        try await MermaidPipeline.shared.prepare(
-            source: source,
-            theme: theme,
-            layoutConfig: layoutConfig
-        )
+        let theme = theme
+        let layoutConfig = layoutConfig
+        return try await _runImageRendererWorker {
+            try MermaidPipeline.shared.prepareSync(
+                source: source,
+                theme: theme,
+                layoutConfig: layoutConfig
+            )
+        }
     }
 
     func prepareSync(from source: String) throws -> PreparedDiagram {
@@ -37,11 +41,15 @@ public final class MermaidImageRenderer {
 
     @MainActor
     public func renderImage(from source: String, scale overrideScale: CGFloat? = nil) async throws -> BMImage? {
-        let prepared = try await MermaidPipeline.shared.prepare(
-            source: source,
-            theme: theme,
-            layoutConfig: layoutConfig
-        )
+        let theme = theme
+        let layoutConfig = layoutConfig
+        let prepared = try await _runImageRendererWorker {
+            try MermaidPipeline.shared.prepareSync(
+                source: source,
+                theme: theme,
+                layoutConfig: layoutConfig
+            )
+        }
         let image = _renderPrepared(prepared, scale: overrideScale ?? scale)
         if image == nil {
             _reportMermaidIssue("MermaidImageRenderer.renderImage(from source:) returned nil.")
@@ -63,11 +71,15 @@ public final class MermaidImageRenderer {
 
     @MainActor
     public func renderImage(from source: String, size: CGSize) async throws -> BMImage? {
-        let prepared = try await MermaidPipeline.shared.prepare(
-            source: source,
-            theme: theme,
-            layoutConfig: layoutConfig
-        )
+        let theme = theme
+        let layoutConfig = layoutConfig
+        let prepared = try await _runImageRendererWorker {
+            try MermaidPipeline.shared.prepareSync(
+                source: source,
+                theme: theme,
+                layoutConfig: layoutConfig
+            )
+        }
         let image = _renderPreparedFitted(prepared, size: size)
         if image == nil {
             _reportMermaidIssue("MermaidImageRenderer.renderImage(from source:size:) returned nil.")
@@ -76,7 +88,10 @@ public final class MermaidImageRenderer {
     }
 
     public func renderSVG(from source: String) async throws -> String {
-        try await MermaidPipeline.shared.renderSVG(source: source, theme: theme)
+        let theme = theme
+        return try await _runImageRendererWorker {
+            try MermaidPipeline.shared.renderSVGSync(source: source, theme: theme)
+        }
     }
 
     func renderSVGSync(from source: String) throws -> String {
@@ -100,7 +115,10 @@ public final class MermaidImageRenderer {
 
     @MainActor
     public func renderSVGImage(from source: String) async throws -> BMImage? {
-        let svg = try await MermaidPipeline.shared.renderSVG(source: source, theme: theme)
+        let theme = theme
+        let svg = try await _runImageRendererWorker {
+            try MermaidPipeline.shared.renderSVGSync(source: source, theme: theme)
+        }
         guard let data = svg.data(using: .utf8) else {
             _reportMermaidIssue("MermaidImageRenderer.renderSVGImage could not encode SVG as UTF-8.")
             return nil
@@ -257,6 +275,23 @@ public final class MermaidImageRenderer {
         guard let cgImage = ctx.makeImage() else { return nil }
         return NSImage(cgImage: cgImage, size: size)
         #endif
+    }
+}
+
+private func _runImageRendererWorker<T: Sendable>(
+    _ work: @escaping @Sendable () throws -> T
+) async throws -> T {
+    try await withCheckedThrowingContinuation { continuation in
+        let thread = Thread {
+            do {
+                continuation.resume(returning: try work())
+            } catch {
+                continuation.resume(throwing: error)
+            }
+        }
+        thread.name = "BeautifulMermaid image renderer worker"
+        thread.stackSize = 8 * 1024 * 1024
+        thread.start()
     }
 }
 

@@ -85,24 +85,22 @@ struct TreemapEndToEndTests {
     }
 
     @Test("MermaidParser routes treemap")
-    func parserRoutesTreemap() throws {
+    func parserRoutesTreemap() async throws {
         let source = """
         treemap
         "A": 10
         """
-        let graph = try MermaidParser.parse(source)
+        let graph = try await MermaidRenderer.parse(source)
         #expect(graph.type == .treemap)
     }
 
     @Test("GraphLayout routes treemap")
-    func layoutRoutesTreemap() throws {
+    func layoutRoutesTreemap() async throws {
         let source = """
         treemap
         "A": 10
         """
-        let graph = try MermaidParser.parse(source)
-        let layout = GraphLayout()
-        let positioned = try layout.layout(graph)
+        let positioned = try await MermaidRenderer.layout(source)
         #expect(positioned.diagram.type == .treemap)
     }
 }

@@ -15,7 +15,9 @@ public struct MermaidRenderer {
 
     /// Parse a Mermaid diagram.
     public static func parse(_ source: String) async throws -> MermaidGraph {
-        try await MermaidPipeline.shared.parse(source)
+        try await _runOnWorker {
+            try MermaidPipeline.shared.parseSync(source)
+        }
     }
 
     /// Parse and layout a Mermaid diagram.
@@ -23,7 +25,9 @@ public struct MermaidRenderer {
         _ source: String,
         config: LayoutConfig = LayoutConfig()
     ) async throws -> PositionedGraph {
-        try await MermaidPipeline.shared.layout(source, config: config)
+        try await _runOnWorker {
+            try MermaidPipeline.shared.layoutSync(source, config: config)
+        }
     }
 
     /// Prepare a Mermaid diagram for direct CGContext rendering.
@@ -32,11 +36,13 @@ public struct MermaidRenderer {
         theme: DiagramTheme = .default,
         layoutConfig: LayoutConfig = LayoutConfig()
     ) async throws -> PreparedDiagram {
-        try await MermaidPipeline.shared.prepare(
-            source: source,
-            theme: theme,
-            layoutConfig: layoutConfig
-        )
+        try await _runOnWorker {
+            try MermaidPipeline.shared.prepareSync(
+                source: source,
+                theme: theme,
+                layoutConfig: layoutConfig
+            )
+        }
     }
 
     /// Render directly to a CGContext.
@@ -79,7 +85,9 @@ public struct MermaidRenderer {
         source: String,
         theme: DiagramTheme = .default
     ) async throws -> String {
-        try await MermaidPipeline.shared.renderSVG(source: source, theme: theme)
+        try await _runOnWorker {
+            try MermaidPipeline.shared.renderSVGSync(source: source, theme: theme)
+        }
     }
 
     /// Render a Mermaid diagram to an ASCII/Unicode string.
@@ -87,7 +95,26 @@ public struct MermaidRenderer {
         source: String,
         theme: DiagramTheme = .default
     ) async throws -> String {
-        try await MermaidPipeline.shared.renderASCII(source: source, theme: theme)
+        try await _runOnWorker {
+            try MermaidPipeline.shared.renderASCIISync(source: source, theme: theme)
+        }
+    }
+
+    private static func _runOnWorker<T: Sendable>(
+        _ work: @escaping @Sendable () throws -> T
+    ) async throws -> T {
+        try await withCheckedThrowingContinuation { continuation in
+            let thread = Thread {
+                do {
+                    continuation.resume(returning: try work())
+                } catch {
+                    continuation.resume(throwing: error)
+                }
+            }
+            thread.name = "BeautifulMermaid worker"
+            thread.stackSize = 8 * 1024 * 1024
+            thread.start()
+        }
     }
 }
 

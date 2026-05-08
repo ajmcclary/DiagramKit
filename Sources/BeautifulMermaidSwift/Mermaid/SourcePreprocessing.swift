@@ -75,6 +75,23 @@ func _parseFrontMatterAndStripped(_ source: String) -> _PreprocessResult {
     let normalized = source
         .replacingOccurrences(of: "\r\n", with: "\n")
         .replacingOccurrences(of: "\r", with: "\n")
+    guard normalized.contains("%%{") || _firstNonEmptyLineIsFrontmatterFence(normalized) else {
+        return (source, nil)
+    }
+    return _parseFrontMatterAndStrippedSlow(normalized, originalSource: source)
+}
+
+private func _firstNonEmptyLineIsFrontmatterFence(_ source: String) -> Bool {
+    for line in source.split(separator: "\n", omittingEmptySubsequences: false) {
+        let trimmed = line.trimmingCharacters(in: .whitespacesAndNewlines)
+        if trimmed.isEmpty { continue }
+        return trimmed == "---"
+    }
+    return false
+}
+
+@inline(never)
+private func _parseFrontMatterAndStrippedSlow(_ normalized: String, originalSource source: String) -> _PreprocessResult {
     let lines = normalized.split(separator: "\n", omittingEmptySubsequences: false).map(String.init)
 
     var strippedSource = normalized
@@ -170,6 +187,9 @@ private func _applyInitDirectivePayload(_ payload: String, to frontmatter: inout
 
     if let config = object["config"] as? [String: Any] {
         applied = _applySharedInitValues(config, to: &frontmatter) || applied
+        if let sequence = config["sequence"] as? [String: Any] {
+            applied = _applySequenceInitConfig(sequence, to: &frontmatter) || applied
+        }
         if let requirement = config["requirement"] as? [String: Any] {
             applied = _applyRequirementInitConfig(requirement, to: &frontmatter) || applied
         }
@@ -212,6 +232,10 @@ private func _applyInitDirectivePayload(_ payload: String, to frontmatter: inout
 
     if let radar = object["radar"] as? [String: Any] {
         applied = _applyRadarInitConfig(radar, to: &frontmatter) || applied
+    }
+
+    if let sequence = object["sequence"] as? [String: Any] {
+        applied = _applySequenceInitConfig(sequence, to: &frontmatter) || applied
     }
 
     if let treemap = object["treemap"] as? [String: Any] {
@@ -286,6 +310,98 @@ private func _applySharedInitValues(_ object: [String: Any], to frontmatter: ino
         applied = true
     }
 
+    return applied
+}
+
+@discardableResult
+private func _applySequenceInitConfig(_ object: [String: Any], to frontmatter: inout DiagramFrontmatter) -> Bool {
+    var config = frontmatter.sequenceConfig ?? SequenceDiagramConfig()
+    var applied = false
+
+    for (key, value) in object {
+        switch key {
+        case "diagramMarginX":
+            if let v = _jsonDouble(value) { config.diagramMarginX = v; applied = true }
+        case "diagramMarginY":
+            if let v = _jsonDouble(value) { config.diagramMarginY = v; applied = true }
+        case "actorMargin":
+            if let v = _jsonDouble(value) { config.actorMargin = v; applied = true }
+        case "width":
+            if let v = _jsonDouble(value) { config.width = v; applied = true }
+        case "height":
+            if let v = _jsonDouble(value) { config.height = v; applied = true }
+        case "boxMargin":
+            if let v = _jsonDouble(value) { config.boxMargin = v; applied = true }
+        case "boxTextMargin":
+            if let v = _jsonDouble(value) { config.boxTextMargin = v; applied = true }
+        case "noteMargin":
+            if let v = _jsonDouble(value) { config.noteMargin = v; applied = true }
+        case "messageMargin":
+            if let v = _jsonDouble(value) { config.messageMargin = v; applied = true }
+        case "activationWidth":
+            if let v = _jsonDouble(value) { config.activationWidth = v; applied = true }
+        case "messageAlign":
+            if let v = _jsonString(value),
+               let align = SequenceDiagramConfig.TextAlign(rawValue: v.lowercased()) {
+                config.messageAlign = align
+                applied = true
+            }
+        case "noteAlign":
+            if let v = _jsonString(value),
+               let align = SequenceDiagramConfig.TextAlign(rawValue: v.lowercased()) {
+                config.noteAlign = align
+                applied = true
+            }
+        case "bottomMarginAdj":
+            if let v = _jsonDouble(value) { config.bottomMarginAdj = v; applied = true }
+        case "useMaxWidth":
+            if let v = _jsonBool(value) { config.useMaxWidth = v; applied = true }
+        case "mirrorActors":
+            if let v = _jsonBool(value) { config.mirrorActors = v; applied = true }
+        case "hideUnusedParticipants":
+            if let v = _jsonBool(value) { config.hideUnusedParticipants = v; applied = true }
+        case "rightAngles":
+            if let v = _jsonBool(value) { config.rightAngles = v; applied = true }
+        case "showSequenceNumbers":
+            if let v = _jsonBool(value) { config.showSequenceNumbers = v; applied = true }
+        case "forceMenus":
+            if let v = _jsonBool(value) { config.forceMenus = v; applied = true }
+        case "arrowMarkerAbsolute":
+            if let v = _jsonBool(value) { config.arrowMarkerAbsolute = v; applied = true }
+        case "wrap":
+            if let v = _jsonBool(value) { config.wrap = v; applied = true }
+        case "wrapPadding":
+            if let v = _jsonDouble(value) { config.wrapPadding = v; applied = true }
+        case "labelBoxWidth":
+            if let v = _jsonDouble(value) { config.labelBoxWidth = v; applied = true }
+        case "labelBoxHeight":
+            if let v = _jsonDouble(value) { config.labelBoxHeight = v; applied = true }
+        case "actorFontFamily":
+            if let v = _jsonString(value) { config.actorFontFamily = v; applied = true }
+        case "actorFontSize":
+            if let v = _jsonDouble(value) { config.actorFontSize = v; applied = true }
+        case "actorFontWeight":
+            if let v = _jsonString(value) { config.actorFontWeight = v; applied = true }
+        case "messageFontFamily":
+            if let v = _jsonString(value) { config.messageFontFamily = v; applied = true }
+        case "messageFontSize":
+            if let v = _jsonDouble(value) { config.messageFontSize = v; applied = true }
+        case "messageFontWeight":
+            if let v = _jsonString(value) { config.messageFontWeight = v; applied = true }
+        case "noteFontFamily":
+            if let v = _jsonString(value) { config.noteFontFamily = v; applied = true }
+        case "noteFontSize":
+            if let v = _jsonDouble(value) { config.noteFontSize = v; applied = true }
+        case "noteFontWeight":
+            if let v = _jsonString(value) { config.noteFontWeight = v; applied = true }
+        default:
+            break
+        }
+    }
+
+    if applied {
+        frontmatter.sequenceConfig = config
+    }
     return applied
 }
 
