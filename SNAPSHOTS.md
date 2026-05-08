@@ -80,13 +80,13 @@ When reviewing a snapshot, follow these steps **in order**:
 
 | # | Snapshot | Status | Reviewer Comments |
 |---|----------|--------|-------------------|
-| 1 | `imageSnapshot-_.er-3-keys.png` | 🔴 Pending | |
-| 2 | `imageSnapshot-_.er-14-school.png` | 🔴 Pending | |
-| 3 | `imageSnapshot-_.er-15-standalone.png` | 🔴 Pending | |
-| 4 | `imageSnapshot-_.er-16-aliases.png` | 🔴 Pending | |
-| 5 | `imageSnapshot-_.er-18-long-cardinality.png` | 🔴 Pending | |
-| 6 | `imageSnapshot-_.er-20-cycles.png` | 🔴 Pending | |
-| 7 | `imageSnapshot-_.er-23-neo-look.png` | 🔴 Pending | |
+| 1 | `imageSnapshot-_.er-3-keys.png` | 🔴 Fail | Entity and attribute text are vertically mirrored/upside down; key badges are present. |
+| 2 | `imageSnapshot-_.er-14-school.png` | 🔴 Fail | Diagram is vertically mirrored/upside down, with relationship labels overlapping entity attributes. |
+| 3 | `imageSnapshot-_.er-15-standalone.png` | 🔴 Fail | Standalone entity labels are vertically mirrored/upside down. |
+| 4 | `imageSnapshot-_.er-16-aliases.png` | 🔴 Fail | Diagram is vertically mirrored/upside down; aliases and relationship are otherwise visible. |
+| 5 | `imageSnapshot-_.er-18-long-cardinality.png` | 🔴 Fail | Diagram is vertically mirrored/upside down; long-form cardinality markers are visible. |
+| 6 | `imageSnapshot-_.er-20-cycles.png` | 🔴 Fail | Diagram is vertically mirrored/upside down; middle entity label appears missing/covered by relationship label. |
+| 7 | `imageSnapshot-_.er-23-neo-look.png` | 🔴 Fail | Diagram is vertically mirrored/upside down; relationship and cardinality markers are visible. |
 
 ## Flowcharts (19 files)
 
@@ -278,7 +278,7 @@ When reviewing a snapshot, follow these steps **in order**:
 | Diagram Type | Total | Pending | Pass | Needs Review | Fail |
 |-------------|-------|---------|------|-------------|------|
 | Class | 36 | 0 | 0 | 0 | 36 |
-| ER | 7 | 7 | 0 | 0 | 0 |
+| ER | 7 | 0 | 0 | 0 | 7 |
 | Flowchart | 19 | 19 | 0 | 0 | 0 |
 | Gantt | 3 | 3 | 0 | 0 | 0 |
 | Git | 11 | 11 | 0 | 0 | 0 |
@@ -292,4 +292,4 @@ When reviewing a snapshot, follow these steps **in order**:
 | Treemap | 1 | 1 | 0 | 0 | 0 |
 | Treeview | 2 | 2 | 0 | 0 | 0 |
 | XY Chart | 26 | 26 | 0 | 0 | 0 |
-| **Total** | **161** | **125** | **0** | **0** | **36** |
+| **Total** | **161** | **118** | **0** | **0** | **43** |
