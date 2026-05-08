@@ -116,9 +116,9 @@ When reviewing a snapshot, follow these steps **in order**:
 
 | # | Snapshot | Status | Reviewer Comments |
 |---|----------|--------|-------------------|
-| 1 | `imageSnapshot-_.gantt-1-basic.png` | 🔴 Pending | |
-| 2 | `imageSnapshot-_.gantt-3-compact.png` | 🔴 Pending | |
-| 3 | `imageSnapshot-_.gantt-6-click.png` | 🔴 Pending | |
+| 1 | `imageSnapshot-_.gantt-1-basic.png` | 🔴 Fail | Chart is vertically mirrored/upside down; title, section label, task labels, and date axis invert. |
+| 2 | `imageSnapshot-_.gantt-3-compact.png` | 🔴 Fail | Chart is vertically mirrored/upside down; task bars and dates are present but inverted. |
+| 3 | `imageSnapshot-_.gantt-6-click.png` | 🔴 Fail | Chart is vertically mirrored/upside down; Alpha/Beta bars are present but labels and axis invert. |
 
 ## Git Graphs (11 files)
 
@@ -280,7 +280,7 @@ When reviewing a snapshot, follow these steps **in order**:
 | Class | 36 | 0 | 0 | 0 | 36 |
 | ER | 7 | 0 | 0 | 0 | 7 |
 | Flowchart | 19 | 0 | 0 | 0 | 19 |
-| Gantt | 3 | 3 | 0 | 0 | 0 |
+| Gantt | 3 | 0 | 0 | 0 | 3 |
 | Git | 11 | 11 | 0 | 0 | 0 |
 | Ishikawa | 1 | 1 | 0 | 0 | 0 |
 | Journey | 3 | 3 | 0 | 0 | 0 |
@@ -292,4 +292,4 @@ When reviewing a snapshot, follow these steps **in order**:
 | Treemap | 1 | 1 | 0 | 0 | 0 |
 | Treeview | 2 | 2 | 0 | 0 | 0 |
 | XY Chart | 26 | 26 | 0 | 0 | 0 |
-| **Total** | **161** | **99** | **0** | **0** | **62** |
+| **Total** | **161** | **96** | **0** | **0** | **65** |
