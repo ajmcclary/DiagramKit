@@ -39,42 +39,42 @@ When reviewing a snapshot, follow these steps **in order**:
 
 | # | Snapshot | Status | Reviewer Comments |
 |---|----------|--------|-------------------|
-| 1 | `imageSnapshot-_.class-1-basic.png` | 🔴 Pending | |
-| 2 | `imageSnapshot-_.class-3-interface.png` | 🔴 Pending | |
-| 3 | `imageSnapshot-_.class-4-abstract.png` | 🔴 Pending | |
-| 4 | `imageSnapshot-_.class-5-enum.png` | 🔴 Pending | |
-| 5 | `imageSnapshot-_.class-6-inheritance.png` | 🔴 Pending | |
-| 6 | `imageSnapshot-_.class-7-composition.png` | 🔴 Pending | |
-| 7 | `imageSnapshot-_.class-8-aggregation.png` | 🔴 Pending | |
-| 8 | `imageSnapshot-_.class-9-association.png` | 🔴 Pending | |
-| 9 | `imageSnapshot-_.class-10-dependency.png` | 🔴 Pending | |
-| 10 | `imageSnapshot-_.class-11-realization.png` | 🔴 Pending | |
-| 11 | `imageSnapshot-_.class-14-observer.png` | 🔴 Pending | |
-| 12 | `imageSnapshot-_.class-15-mvc.png` | 🔴 Pending | |
-| 13 | `imageSnapshot-_.class-17-v2-header.png` | 🔴 Pending | |
-| 14 | `imageSnapshot-_.class-18-square-label.png` | 🔴 Pending | |
-| 15 | `imageSnapshot-_.class-20-generic-declaration.png` | 🔴 Pending | |
-| 16 | `imageSnapshot-_.class-22-inline-annotation.png` | 🔴 Pending | |
-| 17 | `imageSnapshot-_.class-23-multiple-annotations.png` | 🔴 Pending | |
-| 18 | `imageSnapshot-_.class-24-inline-annotation-members.png` | 🔴 Pending | |
-| 19 | `imageSnapshot-_.class-26-generic-method.png` | 🔴 Pending | |
-| 20 | `imageSnapshot-_.class-27-member-separators.png` | 🔴 Pending | |
-| 21 | `imageSnapshot-_.class-30-two-ended-composition.png` | 🔴 Pending | |
-| 22 | `imageSnapshot-_.class-32-lollipop.png` | 🔴 Pending | |
-| 23 | `imageSnapshot-_.class-33-dashed-no-arrow.png` | 🔴 Pending | |
-| 24 | `imageSnapshot-_.class-36-dotted-aggregation.png` | 🔴 Pending | |
-| 25 | `imageSnapshot-_.class-39-namespace-label.png` | 🔴 Pending | |
-| 26 | `imageSnapshot-_.class-40-namespace-dotted.png` | 🔴 Pending | |
-| 27 | `imageSnapshot-_.class-45-style-basic.png` | 🔴 Pending | |
-| 28 | `imageSnapshot-_.class-46-classdef-basic.png` | 🔴 Pending | |
-| 29 | `imageSnapshot-_.class-47-classdef-default.png` | 🔴 Pending | |
-| 30 | `imageSnapshot-_.class-48-css-class.png` | 🔴 Pending | |
-| 31 | `imageSnapshot-_.class-49-css-multi.png` | 🔴 Pending | |
-| 32 | `imageSnapshot-_.class-50-shorthand.png` | 🔴 Pending | |
-| 33 | `imageSnapshot-_.class-51-link.png` | 🔴 Pending | |
-| 34 | `imageSnapshot-_.class-55-acc-title.png` | 🔴 Pending | |
-| 35 | `imageSnapshot-_.class-58-direction-tb.png` | 🔴 Pending | |
-| 36 | `imageSnapshot-_.class-60-frontmatter-title.png` | 🔴 Pending | |
+| 1 | `imageSnapshot-_.class-1-basic.png` | 🔴 Fail | Diagram text is vertically mirrored/upside down; class box is otherwise present. |
+| 2 | `imageSnapshot-_.class-3-interface.png` | 🔴 Fail | Annotation and member text are vertically mirrored/upside down. |
+| 3 | `imageSnapshot-_.class-4-abstract.png` | 🔴 Fail | Annotation and member text are vertically mirrored/upside down. |
+| 4 | `imageSnapshot-_.class-5-enum.png` | 🔴 Fail | Enum label and values are vertically mirrored/upside down. |
+| 5 | `imageSnapshot-_.class-6-inheritance.png` | 🔴 Fail | Diagram is vertically mirrored/upside down; inheritance edges are visible. |
+| 6 | `imageSnapshot-_.class-7-composition.png` | 🔴 Fail | Diagram is vertically mirrored/upside down; composition edge/diamond is visible. |
+| 7 | `imageSnapshot-_.class-8-aggregation.png` | 🔴 Fail | Diagram is vertically mirrored/upside down; aggregation edge/diamond is visible. |
+| 8 | `imageSnapshot-_.class-9-association.png` | 🔴 Fail | Diagram is vertically mirrored/upside down; association edge is visible. |
+| 9 | `imageSnapshot-_.class-10-dependency.png` | 🔴 Fail | Diagram is vertically mirrored/upside down; dashed dependency edge is visible. |
+| 10 | `imageSnapshot-_.class-11-realization.png` | 🔴 Fail | Diagram is vertically mirrored/upside down; dashed realization edge is visible. |
+| 11 | `imageSnapshot-_.class-14-observer.png` | 🔴 Fail | Diagram is vertically mirrored/upside down; class boxes and relationships appear present. |
+| 12 | `imageSnapshot-_.class-15-mvc.png` | 🔴 Fail | Diagram is vertically mirrored/upside down; relationship labels are also inverted. |
+| 13 | `imageSnapshot-_.class-17-v2-header.png` | 🔴 Fail | Diagram is vertically mirrored/upside down; inheritance edge is visible. |
+| 14 | `imageSnapshot-_.class-18-square-label.png` | 🔴 Fail | Square-bracket class labels are vertically mirrored/upside down. |
+| 15 | `imageSnapshot-_.class-20-generic-declaration.png` | 🔴 Fail | Generic class labels are vertically mirrored/upside down. |
+| 16 | `imageSnapshot-_.class-22-inline-annotation.png` | 🔴 Fail | Inline annotations and class labels are vertically mirrored/upside down. |
+| 17 | `imageSnapshot-_.class-23-multiple-annotations.png` | 🔴 Fail | Multiple annotations and class label are vertically mirrored/upside down. |
+| 18 | `imageSnapshot-_.class-24-inline-annotation-members.png` | 🔴 Fail | Inline annotation, members, and class labels are vertically mirrored/upside down. |
+| 19 | `imageSnapshot-_.class-26-generic-method.png` | 🔴 Fail | Generic method signatures are vertically mirrored/upside down. |
+| 20 | `imageSnapshot-_.class-27-member-separators.png` | 🔴 Fail | Member text is vertically mirrored/upside down; separator lines are present. |
+| 21 | `imageSnapshot-_.class-30-two-ended-composition.png` | 🔴 Fail | Diagram is vertically mirrored/upside down; two-ended composition markers are visible. |
+| 22 | `imageSnapshot-_.class-32-lollipop.png` | 🔴 Fail | Diagram is vertically mirrored/upside down; lollipop connector is visible. |
+| 23 | `imageSnapshot-_.class-33-dashed-no-arrow.png` | 🔴 Fail | Diagram is vertically mirrored/upside down; dashed no-arrow edge is visible. |
+| 24 | `imageSnapshot-_.class-36-dotted-aggregation.png` | 🔴 Fail | Diagram is vertically mirrored/upside down; dotted aggregation marker is visible. |
+| 25 | `imageSnapshot-_.class-39-namespace-label.png` | 🔴 Fail | Namespace frame and classes are present, but all labels are vertically mirrored/upside down. |
+| 26 | `imageSnapshot-_.class-40-namespace-dotted.png` | 🔴 Fail | Namespace frame and classes are present, but all labels are vertically mirrored/upside down. |
+| 27 | `imageSnapshot-_.class-45-style-basic.png` | 🔴 Fail | Diagram is vertically mirrored/upside down; expected pink style fill is not visible. |
+| 28 | `imageSnapshot-_.class-46-classdef-basic.png` | 🔴 Fail | Diagram is vertically mirrored/upside down; classDef declaration has no visible styling effect. |
+| 29 | `imageSnapshot-_.class-47-classdef-default.png` | 🔴 Fail | Diagram is vertically mirrored/upside down; default classDef fill/color is not visible. |
+| 30 | `imageSnapshot-_.class-48-css-class.png` | 🔴 Fail | Diagram text is vertically mirrored/upside down; cssClass fill is not visible. |
+| 31 | `imageSnapshot-_.class-49-css-multi.png` | 🔴 Fail | Diagram text is vertically mirrored/upside down; multi-class cssClass fill is not visible. |
+| 32 | `imageSnapshot-_.class-50-shorthand.png` | 🔴 Fail | Diagram text is vertically mirrored/upside down; shorthand style fill is not visible. |
+| 33 | `imageSnapshot-_.class-51-link.png` | 🔴 Fail | Diagram is vertically mirrored/upside down; inheritance edge is visible. |
+| 34 | `imageSnapshot-_.class-55-acc-title.png` | 🔴 Fail | Diagram is vertically mirrored/upside down; accessibility title does not render visibly. |
+| 35 | `imageSnapshot-_.class-58-direction-tb.png` | 🔴 Fail | Diagram is vertically mirrored/upside down, and the chained `A --> B --> C` relationship is incomplete. |
+| 36 | `imageSnapshot-_.class-60-frontmatter-title.png` | 🔴 Fail | Diagram is vertically mirrored/upside down; expected frontmatter title is not visible. |
 
 ## ER Diagrams (7 files)
 
@@ -277,7 +277,7 @@ When reviewing a snapshot, follow these steps **in order**:
 
 | Diagram Type | Total | Pending | Pass | Needs Review | Fail |
 |-------------|-------|---------|------|-------------|------|
-| Class | 36 | 36 | 0 | 0 | 0 |
+| Class | 36 | 0 | 0 | 0 | 36 |
 | ER | 7 | 7 | 0 | 0 | 0 |
 | Flowchart | 19 | 19 | 0 | 0 | 0 |
 | Gantt | 3 | 3 | 0 | 0 | 0 |
@@ -292,4 +292,4 @@ When reviewing a snapshot, follow these steps **in order**:
 | Treemap | 1 | 1 | 0 | 0 | 0 |
 | Treeview | 2 | 2 | 0 | 0 | 0 |
 | XY Chart | 26 | 26 | 0 | 0 | 0 |
-| **Total** | **161** | **161** | **0** | **0** | **0** |
+| **Total** | **161** | **125** | **0** | **0** | **36** |
