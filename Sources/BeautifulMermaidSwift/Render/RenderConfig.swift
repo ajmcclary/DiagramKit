@@ -1,5 +1,6 @@
 import Foundation
 import CoreGraphics
+import CoreText
 #if targetEnvironment(macCatalyst)
 import UIKit
 #elseif canImport(UIKit)
@@ -183,11 +184,33 @@ public struct RenderConfig: Sendable {
         return BMFont.systemFont(ofSize: fontSizeGroupHeader, weight: fontWeight(from: fontWeightGroupHeader))
     }
 
+    /// Measure text width using CoreText for accurate, deterministic results.
+    ///
+    /// Uses `CTLineGetBoundsWithOptions(.useOpticalBounds)` which matches the
+    /// measurement used by `NSAttributedString.size()` in `LabelRenderer`,
+    /// ensuring consistent text placement between layout and CG drawing.
     public func estimateTextWidth(_ text: String, fontSize: CGFloat, fontWeight: Int) -> CGFloat {
-        return original_src_text_metrics.measureTextWidth(text, fontSize: Double(fontSize), fontWeight: fontWeight)
+        guard !text.isEmpty else { return 0 }
+        let font = proportionalFont(size: fontSize, weight: fontWeight)
+        let attributes: [NSAttributedString.Key: Any] = [.font: font]
+        let attrStr = NSAttributedString(string: text, attributes: attributes)
+        let line = CTLineCreateWithAttributedString(attrStr)
+        let bounds = CTLineGetBoundsWithOptions(line, .useOpticalBounds)
+        return ceil(bounds.width)
     }
 
+    /// Measure monospace text width using CoreText.
+    ///
+    /// Previously used a crude `charCount * fontSize * 0.6` approximation.
+    /// Now uses actual CoreText measurement for accurate results with
+    /// non-ASCII and fullwidth characters.
     public func estimateMonoTextWidth(_ text: String, fontSize: CGFloat) -> CGFloat {
-        return CGFloat(text.count) * fontSize * 0.6
+        guard !text.isEmpty else { return 0 }
+        let font = defaultFont(size: fontSize)
+        let attributes: [NSAttributedString.Key: Any] = [.font: font]
+        let attrStr = NSAttributedString(string: text, attributes: attributes)
+        let line = CTLineCreateWithAttributedString(attrStr)
+        let bounds = CTLineGetBoundsWithOptions(line, .useOpticalBounds)
+        return ceil(bounds.width)
     }
 }
