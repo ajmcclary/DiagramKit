@@ -334,7 +334,7 @@ public struct PositionedTreemapText: Sendable, Equatable {
 
 // MARK: - Parser Errors
 
-public enum TreemapParserError: Error, LocalizedError {
+public enum TreemapParserError: Error, LocalizedError, _MermaidRecoverableError {
     case invalidHeader(String)
     case missingLabel(String)
     case invalidValue(String, String)

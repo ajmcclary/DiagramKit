@@ -136,7 +136,7 @@ private func _splitTopLevelCommas(_ text: String) -> [String] {
 }
 
 /// Strip surrounding quotes from a string value.
-private func _unquote(_ value: String) -> String {
+func _unquote(_ value: String) -> String {
     let trimmed = value.trimmingCharacters(in: .whitespacesAndNewlines)
     if (trimmed.hasPrefix("\"") && trimmed.hasSuffix("\"")) ||
        (trimmed.hasPrefix("'") && trimmed.hasSuffix("'")) {

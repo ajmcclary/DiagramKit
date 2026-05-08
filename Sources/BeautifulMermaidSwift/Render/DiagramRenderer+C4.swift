@@ -23,7 +23,7 @@ extension DiagramRenderer {
 
             // Draw title
             if let title = diagram.title {
-                _drawTextInFlipped(title, at: CGPoint(x: diagram.width / 2, y: diagram.height + 40), context: ctx, contentHeight: diagram.height, color: .black, font: _monoFont(size: 16))
+                _drawTextInFlipped(title, at: CGPoint(x: diagram.width / 2, y: diagram.height + 40), context: ctx, contentHeight: diagram.height, color: theme.foreground, font: _monoFont(size: 16))
             }
         }
     }
@@ -95,19 +95,19 @@ extension DiagramRenderer {
 
         // Stereotype text
         let stereotype = "\u{00AB}\(shape.typeC4Shape.rawValue)\u{00BB}"
-        _drawTextInFlipped(stereotype, at: CGPoint(x: rect.midX, y: rect.minY + shape.stereotypeY + 10), context: context, contentHeight: rect.height, color: BMColor(cgColor: fontColor) ?? .white, font: _monoFont(size: 12))
+        _drawTextInFlipped(stereotype, at: CGPoint(x: rect.midX, y: rect.minY + shape.stereotypeY + 10), context: context, contentHeight: rect.height, color: BMColor(cgColor: fontColor) ?? theme.background, font: _monoFont(size: 12))
 
         // Label
-        _drawTextInFlipped(shape.label, at: CGPoint(x: rect.midX, y: rect.minY + shape.labelY + shape.labelHeight / 2 + 5), context: context, contentHeight: rect.height, color: BMColor(cgColor: fontColor) ?? .white, font: _monoFont(size: 16))
+        _drawTextInFlipped(shape.label, at: CGPoint(x: rect.midX, y: rect.minY + shape.labelY + shape.labelHeight / 2 + 5), context: context, contentHeight: rect.height, color: BMColor(cgColor: fontColor) ?? theme.background, font: _monoFont(size: 16))
 
         // Technology
         if let techn = shape.technology, !techn.isEmpty, shape.technHeight > 0 {
-            _drawTextInFlipped("[\(techn)]", at: CGPoint(x: rect.midX, y: rect.minY + shape.technY + shape.technHeight / 2 + 5), context: context, contentHeight: rect.height, color: BMColor(cgColor: fontColor) ?? .white, font: _monoFont(size: 14))
+            _drawTextInFlipped("[\(techn)]", at: CGPoint(x: rect.midX, y: rect.minY + shape.technY + shape.technHeight / 2 + 5), context: context, contentHeight: rect.height, color: BMColor(cgColor: fontColor) ?? theme.background, font: _monoFont(size: 14))
         }
 
         // Description
         if let descr = shape.description, !descr.isEmpty, shape.descrHeight > 0 {
-            _drawTextInFlipped(descr, at: CGPoint(x: rect.midX, y: rect.minY + shape.descrY + shape.descrHeight / 2 + 5), context: context, contentHeight: rect.height, color: BMColor(cgColor: fontColor) ?? .white, font: _monoFont(size: 14))
+            _drawTextInFlipped(descr, at: CGPoint(x: rect.midX, y: rect.minY + shape.descrY + shape.descrHeight / 2 + 5), context: context, contentHeight: rect.height, color: BMColor(cgColor: fontColor) ?? theme.background, font: _monoFont(size: 14))
         }
 
         context.restoreGState()
@@ -145,18 +145,18 @@ extension DiagramRenderer {
         context.strokePath()
 
         // Label
-        _drawTextInFlipped(boundary.label, at: CGPoint(x: rect.midX, y: rect.minY + boundary.labelHeight / 2 + 5), context: context, contentHeight: rect.height, color: BMColor(cgColor: fontColor) ?? .black, font: _monoFont(size: 16))
+        _drawTextInFlipped(boundary.label, at: CGPoint(x: rect.midX, y: rect.minY + boundary.labelHeight / 2 + 5), context: context, contentHeight: rect.height, color: BMColor(cgColor: fontColor) ?? theme.foreground, font: _monoFont(size: 16))
 
         // Type
         if let type = boundary.type, !type.isEmpty, boundary.typeHeight > 0 {
             let typeY = rect.minY + boundary.labelHeight + boundary.typeHeight / 2 + 10
-            _drawTextInFlipped("[\(type)]", at: CGPoint(x: rect.midX, y: typeY), context: context, contentHeight: rect.height, color: BMColor(cgColor: fontColor) ?? .black, font: _monoFont(size: 14))
+            _drawTextInFlipped("[\(type)]", at: CGPoint(x: rect.midX, y: typeY), context: context, contentHeight: rect.height, color: BMColor(cgColor: fontColor) ?? theme.foreground, font: _monoFont(size: 14))
         }
 
         // Description
         if let descr = boundary.description, !descr.isEmpty, boundary.descrHeight > 0 {
             let descrY = rect.minY + boundary.labelHeight + boundary.typeHeight + boundary.descrHeight / 2 + 15
-            _drawTextInFlipped(descr, at: CGPoint(x: rect.midX, y: descrY), context: context, contentHeight: rect.height, color: BMColor(cgColor: fontColor) ?? .black, font: _monoFont(size: 12))
+            _drawTextInFlipped(descr, at: CGPoint(x: rect.midX, y: descrY), context: context, contentHeight: rect.height, color: BMColor(cgColor: fontColor) ?? theme.foreground, font: _monoFont(size: 12))
         }
 
         context.restoreGState()
@@ -167,7 +167,7 @@ extension DiagramRenderer {
 
         for (i, rel) in rels.enumerated() {
             let strokeColor = _c4CGColor(from: rel.lineColor ?? "#444444")
-            let textColor = BMColor(cgColor: _c4CGColor(from: rel.textColor ?? "#444444")) ?? .black
+            let textColor = BMColor(cgColor: _c4CGColor(from: rel.textColor ?? "#444444")) ?? theme.foreground
             let ox = CGFloat(rel.offsetX ?? 0)
             let oy = CGFloat(rel.offsetY ?? 0)
 
