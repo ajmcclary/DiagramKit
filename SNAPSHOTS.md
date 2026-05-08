@@ -92,25 +92,25 @@ When reviewing a snapshot, follow these steps **in order**:
 
 | # | Snapshot | Status | Reviewer Comments |
 |---|----------|--------|-------------------|
-| 1 | `imageSnapshot-_.flow-1-simple.png` | 🔴 Pending | |
-| 2 | `imageSnapshot-_.flow-3-batch1-shapes.png` | 🔴 Pending | |
-| 3 | `imageSnapshot-_.flow-4-batch2-shapes.png` | 🔴 Pending | |
-| 4 | `imageSnapshot-_.flow-5-all-12-shapes.png` | 🔴 Pending | |
-| 5 | `imageSnapshot-_.flow-6-edge-styles.png` | 🔴 Pending | |
-| 6 | `imageSnapshot-_.flow-9-bidirectional.png` | 🔴 Pending | |
-| 7 | `imageSnapshot-_.flow-10-parallel.png` | 🔴 Pending | |
-| 8 | `imageSnapshot-_.flow-11-chained.png` | 🔴 Pending | |
-| 9 | `imageSnapshot-_.flow-14-direction-lr.png` | 🔴 Pending | |
-| 10 | `imageSnapshot-_.flow-15-direction-bt.png` | 🔴 Pending | |
-| 11 | `imageSnapshot-_.flow-16-subgraphs.png` | 🔴 Pending | |
-| 12 | `imageSnapshot-_.flow-17-nested-subgraphs.png` | 🔴 Pending | |
-| 13 | `imageSnapshot-_.flow-18-subgraph-direction.png` | 🔴 Pending | |
-| 14 | `imageSnapshot-_.flow-20-inline-style.png` | 🔴 Pending | |
-| 15 | `imageSnapshot-_.flow-22-system-architecture.png` | 🔴 Pending | |
-| 16 | `imageSnapshot-_.flow-23-decision-tree.png` | 🔴 Pending | |
-| 17 | `imageSnapshot-_.flow-24-git-branching.png` | 🔴 Pending | |
-| 18 | `imageSnapshot-_.flow-25-self-loop.png` | 🔴 Pending | |
-| 19 | `imageSnapshot-_.flow-26-self-loop-label.png` | 🔴 Pending | |
+| 1 | `imageSnapshot-_.flow-1-simple.png` | 🔴 Fail | Text is vertically mirrored/upside down; simple node chain and arrows are visible. |
+| 2 | `imageSnapshot-_.flow-3-batch1-shapes.png` | 🔴 Fail | Text is vertically mirrored/upside down; subroutine, double-circle, and hexagon shapes are visible. |
+| 3 | `imageSnapshot-_.flow-4-batch2-shapes.png` | 🔴 Fail | Text is vertically mirrored/upside down; database, flag, and trapezoid-like shapes are visible. |
+| 4 | `imageSnapshot-_.flow-5-all-12-shapes.png` | 🔴 Fail | Text is vertically mirrored/upside down; wide shape chain is visible but rendered very small. |
+| 5 | `imageSnapshot-_.flow-6-edge-styles.png` | 🔴 Fail | Text is vertically mirrored/upside down; target nodes, edge labels, and styled edges are missing. |
+| 6 | `imageSnapshot-_.flow-9-bidirectional.png` | 🔴 Fail | Text is vertically mirrored/upside down; bidirectional edges and the Storage node are missing. |
+| 7 | `imageSnapshot-_.flow-10-parallel.png` | 🔴 Fail | Text is vertically mirrored/upside down; parallel split/merge edges are visible. |
+| 8 | `imageSnapshot-_.flow-11-chained.png` | 🔴 Fail | Text is vertically mirrored/upside down; chained LR edges are visible. |
+| 9 | `imageSnapshot-_.flow-14-direction-lr.png` | 🔴 Fail | Text is vertically mirrored/upside down; left-to-right chain is visible. |
+| 10 | `imageSnapshot-_.flow-15-direction-bt.png` | 🔴 Fail | Text is vertically mirrored/upside down; bottom-to-top layout is affected by the vertical flip. |
+| 11 | `imageSnapshot-_.flow-16-subgraphs.png` | 🔴 Fail | Text is vertically mirrored/upside down; two subgraphs and internal arrows are visible. |
+| 12 | `imageSnapshot-_.flow-17-nested-subgraphs.png` | 🔴 Fail | Text is vertically mirrored/upside down; load balancer connector crosses nested subgraph labels/borders. |
+| 13 | `imageSnapshot-_.flow-18-subgraph-direction.png` | 🔴 Fail | Text is vertically mirrored/upside down; external Source/Sink nodes are not connected to the pipeline. |
+| 14 | `imageSnapshot-_.flow-20-inline-style.png` | 🔴 Fail | Text is vertically mirrored/upside down; inline fill colors appear applied. |
+| 15 | `imageSnapshot-_.flow-22-system-architecture.png` | 🔴 Fail | Text is vertically mirrored/upside down; several expected architecture edges are missing or misrouted. |
+| 16 | `imageSnapshot-_.flow-23-decision-tree.png` | 🔴 Fail | Text is vertically mirrored/upside down; most branch nodes, edge labels, and connectors are missing. |
+| 17 | `imageSnapshot-_.flow-24-git-branching.png` | 🔴 Fail | Text is vertically mirrored/upside down; branch nodes are visible but edge labels are missing. |
+| 18 | `imageSnapshot-_.flow-25-self-loop.png` | 🔴 Fail | Text is vertically mirrored/upside down; expected self-loop edge is missing. |
+| 19 | `imageSnapshot-_.flow-26-self-loop-label.png` | 🔴 Fail | Text is vertically mirrored/upside down; expected retry self-loop and label are missing. |
 
 ## Gantt Charts (3 files)
 
@@ -279,7 +279,7 @@ When reviewing a snapshot, follow these steps **in order**:
 |-------------|-------|---------|------|-------------|------|
 | Class | 36 | 0 | 0 | 0 | 36 |
 | ER | 7 | 0 | 0 | 0 | 7 |
-| Flowchart | 19 | 19 | 0 | 0 | 0 |
+| Flowchart | 19 | 0 | 0 | 0 | 19 |
 | Gantt | 3 | 3 | 0 | 0 | 0 |
 | Git | 11 | 11 | 0 | 0 | 0 |
 | Ishikawa | 1 | 1 | 0 | 0 | 0 |
@@ -292,4 +292,4 @@ When reviewing a snapshot, follow these steps **in order**:
 | Treemap | 1 | 1 | 0 | 0 | 0 |
 | Treeview | 2 | 2 | 0 | 0 | 0 |
 | XY Chart | 26 | 26 | 0 | 0 | 0 |
-| **Total** | **161** | **118** | **0** | **0** | **43** |
+| **Total** | **161** | **99** | **0** | **0** | **62** |
