@@ -248,6 +248,17 @@ public struct TestDiagram: Codable, Identifiable, Sendable {
     public var options: [String: Bool]? = nil
 }
 
+/// A diagram-family category shown in the playground picker.
+public struct TestDiagramCategory: Identifiable, Hashable, Sendable {
+    public let id: String
+    public let title: String
+
+    public init(id: String, title: String) {
+        self.id = id
+        self.title = title
+    }
+}
+
 /// Container for all test diagrams (matches verification/shared/test-diagrams.json)
 public struct TestDiagramsFile: Codable, Sendable {
     public let version: String
@@ -261,9 +272,68 @@ public struct TestDiagrams {
     /// All loaded test diagrams
     public static let all: [TestDiagram] = loadDiagrams()
 
+    /// Diagram families tracked by GAPS.md, in coverage-table order.
+    public static let gapCategories: [TestDiagramCategory] = [
+        TestDiagramCategory(id: "flowchart", title: "Flowchart"),
+        TestDiagramCategory(id: "sequence", title: "Sequence Diagram"),
+        TestDiagramCategory(id: "class", title: "Class Diagram"),
+        TestDiagramCategory(id: "state", title: "State Diagram"),
+        TestDiagramCategory(id: "er", title: "Entity Relationship"),
+        TestDiagramCategory(id: "journey", title: "User Journey"),
+        TestDiagramCategory(id: "gantt", title: "Gantt"),
+        TestDiagramCategory(id: "pie", title: "Pie Chart"),
+        TestDiagramCategory(id: "quadrantChart", title: "Quadrant Chart"),
+        TestDiagramCategory(id: "requirement", title: "Requirement Diagram"),
+        TestDiagramCategory(id: "gitGraph", title: "GitGraph"),
+        TestDiagramCategory(id: "c4", title: "C4 Diagram"),
+        TestDiagramCategory(id: "mindmap", title: "Mindmap"),
+        TestDiagramCategory(id: "timeline", title: "Timeline"),
+        TestDiagramCategory(id: "zenuml", title: "ZenUML"),
+        TestDiagramCategory(id: "sankey", title: "Sankey"),
+        TestDiagramCategory(id: "xychart", title: "XY Chart"),
+        TestDiagramCategory(id: "block", title: "Block Diagram"),
+        TestDiagramCategory(id: "packet", title: "Packet"),
+        TestDiagramCategory(id: "kanban", title: "Kanban"),
+        TestDiagramCategory(id: "architecture", title: "Architecture"),
+        TestDiagramCategory(id: "radar", title: "Radar"),
+        TestDiagramCategory(id: "treemap", title: "Treemap"),
+        TestDiagramCategory(id: "venn", title: "Venn"),
+        TestDiagramCategory(id: "ishikawa", title: "Ishikawa"),
+        TestDiagramCategory(id: "treeView", title: "TreeView"),
+        TestDiagramCategory(id: "eventmodeling", title: "Event Modeling"),
+        TestDiagramCategory(id: "wardleyBeta", title: "Wardley Map"),
+    ]
+
+    /// Categories available in the loaded corpus, ordered by GAPS.md and followed by unknown extras.
+    public static var orderedCategories: [TestDiagramCategory] {
+        let availableCategories = Set(all.map(\.category))
+        let ordered = gapCategories.filter { availableCategories.contains($0.id) }
+        let knownCategoryIDs = Set(gapCategories.map(\.id))
+        let extras = availableCategories
+            .subtracting(knownCategoryIDs)
+            .sorted()
+            .map { TestDiagramCategory(id: $0, title: title(for: $0)) }
+
+        return ordered + extras
+    }
+
     /// Get all unique categories
     public static var categories: [String] {
-        Array(Set(all.map { $0.category })).sorted()
+        orderedCategories.map(\.id)
+    }
+
+    /// Human-readable menu title for a category identifier.
+    public static func title(for category: String) -> String {
+        if let knownCategory = gapCategories.first(where: { $0.id == category }) {
+            return knownCategory.title
+        }
+
+        return category
+            .replacingOccurrences(of: "-", with: " ")
+            .replacingOccurrences(of: "_", with: " ")
+            .split(separator: " ")
+            .map { $0.capitalized }
+            .joined(separator: " ")
     }
 
     /// Get diagrams by category
@@ -279,8 +349,7 @@ public struct TestDiagrams {
     // MARK: - Loading
 
     private static func loadDiagrams() -> [TestDiagram] {
-        // Try to load from bundle first
-        if let bundleURL = Bundle.main.url(forResource: "test-diagrams", withExtension: "json") {
+        for bundleURL in resourceURLs() {
             do {
                 let data = try Data(contentsOf: bundleURL)
                 let file = try JSONDecoder().decode(TestDiagramsFile.self, from: data)
@@ -294,7 +363,42 @@ public struct TestDiagrams {
         return embeddedDiagrams
     }
 
-    /// Embedded subset of diagrams as fallback when JSON file isn't in bundle
+    private static func resourceURLs() -> [URL] {
+        var urls: [URL] = []
+        let bundles = [Bundle.main] + Bundle.allBundles + Bundle.allFrameworks
+
+        for bundle in bundles {
+            if let url = bundle.url(forResource: "test-diagrams", withExtension: "json") {
+                urls.append(url)
+            }
+        }
+
+        if let developmentURL = developmentResourceURL() {
+            urls.append(developmentURL)
+        }
+
+        var seen: Set<String> = []
+        return urls.filter { url in
+            let path = url.standardizedFileURL.path
+            return seen.insert(path).inserted
+        }
+    }
+
+    private static func developmentResourceURL() -> URL? {
+        var directory = URL(fileURLWithPath: #filePath).deletingLastPathComponent()
+
+        while directory.path != "/" {
+            let candidate = directory.appendingPathComponent("Resources/test-diagrams.json")
+            if FileManager.default.fileExists(atPath: candidate.path) {
+                return candidate
+            }
+            directory.deleteLastPathComponent()
+        }
+
+        return nil
+    }
+
+    /// Embedded diagrams as fallback when JSON file isn't available at runtime.
     private static let embeddedDiagrams: [TestDiagram] = [
         // Flowchart
         TestDiagram(id: "flow-1-simple", category: "flowchart", name: "Simple Flow",
@@ -397,5 +501,50 @@ public struct TestDiagrams {
                     source: "xychart vertical\n    x-axis [A, B, C]\n    bar [10, 20, 30]"),
         TestDiagram(id: "xychart-17-numeric-x-axis", category: "xychart", name: "Linear X-Axis",
                     source: "xychart\n    x-axis \"Temperature\" 0 --> 100\n    line [10, 30, 50, 70, 90]"),
+        // Additional GAPS.md families
+        TestDiagram(id: "journey-1", category: "journey", name: "My Working Day",
+                    source: "journey\n    title My working day\n    section Go to work\n      Make tea: 5: Me\n      Go upstairs: 3: Me\n      Do work: 1: Me, Cat\n    section Go home\n      Go downstairs: 5: Me\n      Sit down: 5: Me"),
+        TestDiagram(id: "gantt-1-basic", category: "gantt", name: "Basic Project Schedule",
+                    source: "gantt\n    title A Gantt Diagram\n    dateFormat YYYY-MM-DD\n    section Section\n        A task       :a1, 2014-01-01, 30d\n        Another task :after a1, 20d"),
+        TestDiagram(id: "pie-1-basic", category: "pie", name: "Basic Pie Chart",
+                    source: "pie\n    \"Dogs\": 386\n    \"Cats\": 85\n    \"Rats\": 15"),
+        TestDiagram(id: "quadrant-1-empty", category: "quadrantChart", name: "Empty Quadrant Chart",
+                    source: "quadrantChart"),
+        TestDiagram(id: "req-1-basic", category: "requirement", name: "Basic Requirement",
+                    source: "requirementDiagram\n\nrequirement test_req {\n  id: 1\n  text: the test text.\n  risk: high\n  verifymethod: test\n}\n\nelement test_entity {\n  type: simulation\n}\n\ntest_entity - satisfies -> test_req"),
+        TestDiagram(id: "git-1-basic", category: "gitGraph", name: "Basic Commits",
+                    source: "gitGraph\n   commit\n   commit\n   commit"),
+        TestDiagram(id: "c4-context", category: "c4", name: "C4 System Context",
+                    source: "C4Context\ntitle System Context diagram for Internet Banking System\nEnterprise_Boundary(b0, \"BankBoundary0\") {\n  Person(customerA, \"Banking Customer A\", \"A customer of the bank.\")\n  Person_Ext(customerC, \"Banking Customer C\", \"desc\")\n  System(SystemAA, \"Internet Banking System\", \"Allows customers to view information.\")\n  Enterprise_Boundary(b1, \"BankBoundary\") {\n    SystemDb_Ext(SystemE, \"Mainframe Banking System\")\n    System_Boundary(b2, \"BankBoundary2\") {\n      System(SystemA, \"Banking System A\")\n      System(SystemB, \"Banking System B\")\n    }\n  }\n}\nBiRel(customerA, SystemAA, \"Uses\")\nBiRel(SystemAA, SystemE, \"Uses\")\nRel(SystemAA, SystemC, \"Sends e-mails\", \"SMTP\")\nUpdateElementStyle(customerA, $fontColor=\"red\", $bgColor=\"grey\")"),
+        TestDiagram(id: "mindmap-1-simple", category: "mindmap", name: "Simple Root",
+                    source: "mindmap\n  root((mindmap))\n    A\n    B"),
+        TestDiagram(id: "timeline-1-basic", category: "timeline", name: "Basic No-Section Social Media Timeline",
+                    source: "timeline\n    title History of Social Media Platform\n    2002 : LinkedIn\n    2004 : Facebook : Google\n    2005 : YouTube\n    2006 : Twitter"),
+        TestDiagram(id: "zenuml-1-simple", category: "zenuml", name: "Simple Async",
+                    source: "zenuml\nAlice->Bob: Hello"),
+        TestDiagram(id: "sankey-1-minimal", category: "sankey", name: "Minimal Sankey",
+                    source: "sankey\nA,B,10"),
+        TestDiagram(id: "block-1-simple", category: "block", name: "Simple Blocks",
+                    source: "block\n  a b c"),
+        TestDiagram(id: "packet-1-tcp", category: "packet", name: "TCP Packet",
+                    source: "---\ntitle: \"TCP Packet\"\n---\npacket\n0-15: \"Source Port\"\n16-31: \"Destination Port\"\n32-63: \"Sequence Number\"\n64-95: \"Acknowledgment Number\"\n96-99: \"Data Offset\"\n100-105: \"Reserved\"\n106: \"URG\"\n107: \"ACK\"\n108: \"PSH\"\n109: \"RST\"\n110: \"SYN\"\n111: \"FIN\"\n112-127: \"Window\"\n128-143: \"Checksum\"\n144-159: \"Urgent Pointer\"\n160-191: \"(Options and Padding)\"\n192-255: \"Data (variable length)\""),
+        TestDiagram(id: "kanban-simple", category: "kanban", name: "Kanban - Simple Board",
+                    source: "kanban\n  Todo\n    [Create Documentation]\n    docs[Create Blog about the new diagram]\n  id7[In progress]\n    id8[Design grammar]@{ assigned: 'knsv' }"),
+        TestDiagram(id: "architecture-basic", category: "architecture", name: "Architecture - Basic",
+                    source: "architecture-beta\n    group api(cloud)[API]\n    service db(database)[Database] in api\n    service server(server)[Server] in api\n    db:L -- R:server"),
+        TestDiagram(id: "radar-empty", category: "radar", name: "Radar - Empty",
+                    source: "radar-beta"),
+        TestDiagram(id: "treemap-basic", category: "treemap", name: "Treemap - Basic",
+                    source: "treemap-beta\n\"Category A\"\n    \"Item A1\": 10\n    \"Item A2\": 20\n\"Category B\"\n    \"Item B1\": 15\n    \"Item B2\": 25"),
+        TestDiagram(id: "venn-simple-two-set", category: "venn", name: "Venn - Simple Two Set",
+                    source: "venn-beta\n  set A\n  set B\n  union A,B"),
+        TestDiagram(id: "ishikawa-simple", category: "ishikawa", name: "Ishikawa - Simple Fishbone",
+                    source: "ishikawa-beta\nBlurry Photo\n    Process\n        Out of focus\n    User\n        Shaky hands"),
+        TestDiagram(id: "treeview-basic-tree", category: "treeView", name: "TreeView - Basic File Tree",
+                    source: "treeView-beta\n    src/\n        index.js\n    package.json\n    README.md"),
+        TestDiagram(id: "eventmodeling-simple-state-change", category: "eventmodeling", name: "Event Modeling - Simple State Change",
+                    source: "eventmodeling\ntf 01 ui CartUI\ntf 02 cmd AddItem\ntf 03 evt ItemAdded"),
+        TestDiagram(id: "wardley-1-tea-shop", category: "wardleyBeta", name: "Wardley Map - Tea Shop Value Chain",
+                    source: "wardley-beta\ntitle Tea Shop Value Chain\nanchor Business [0.95, 0.63]\ncomponent Cup of Tea [0.79, 0.61]\ncomponent Tea [0.63, 0.81]\nBusiness -> Cup of Tea\nCup of Tea -> Tea\nevolve Tea 0.89"),
     ]
 }

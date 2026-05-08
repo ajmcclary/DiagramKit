@@ -1,6 +1,6 @@
 {
   "version": "2.0.0",
-  "description": "Mermaid diagram test suite — covers flowchart, state, sequence, class, ER, and XY chart types",
+  "description": "Mermaid diagram test suite — covers all 28 diagram families tracked in GAPS.md",
   "diagrams": [
     {
       "id": "flow-1-simple",

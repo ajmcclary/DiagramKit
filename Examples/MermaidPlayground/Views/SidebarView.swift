@@ -91,10 +91,10 @@ struct SidebarView: View {
 
     private var testDiagramPicker: some View {
         Menu {
-            ForEach(["flowchart", "state", "sequence", "class", "er", "xychart"], id: \.self) { category in
-                let diagrams = TestDiagrams.diagrams(for: category)
+            ForEach(TestDiagrams.orderedCategories) { category in
+                let diagrams = TestDiagrams.diagrams(for: category.id)
                 if !diagrams.isEmpty {
-                    Menu(category.capitalized) {
+                    Menu(category.title) {
                         ForEach(diagrams) { diagram in
                             Button {
                                 selectedDiagramName = diagram.name
