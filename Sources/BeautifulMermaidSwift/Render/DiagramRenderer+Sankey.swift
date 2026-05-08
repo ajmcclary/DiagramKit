@@ -82,12 +82,12 @@ extension DiagramRenderer {
             let centerLayer = _centralCGSankeyLayer(diagram)
             for node in diagram.nodes {
                 let nodeColor = nodeColorMap[node.id] ?? defaultColor(node.id)
-                let labelColor = isDarkColor(nodeColor) ? BMColor(hex: "#ffffff") : BMColor(hex: "#000000")
+                let labelColor = BMColor(hex: "#27272A")
                 let labelText: String
                 if diagram.config.showValues {
                     let prefix = diagram.config.prefix
                     let suffix = diagram.config.suffix
-                    let formatted = String(format: "%.2f", max(0, node.value))
+                    let formatted = _cgSankeyFormatValue(max(0, node.value))
                     labelText = "\(node.id)\n\(prefix)\(formatted)\(suffix)"
                 } else {
                     labelText = node.id
@@ -140,16 +140,20 @@ private func _cgSankeyColorMap(_ diagram: PositionedSankeyDiagram) -> [String: B
     return map
 }
 
-private func isDarkColor(_ color: BMColor) -> Bool {
-    var r: CGFloat = 0, g: CGFloat = 0, b: CGFloat = 0, a: CGFloat = 0
-    color.getRed(&r, green: &g, blue: &b, alpha: &a)
-    let luminance = (0.299 * r + 0.587 * g + 0.114 * b)
-    return luminance < 0.5
-}
-
 private func _centralCGSankeyLayer(_ diagram: PositionedSankeyDiagram) -> Int {
     let maxNode = diagram.nodes.max(by: { $0.value < $1.value })
     return maxNode?.layer ?? 0
+}
+
+private func _cgSankeyFormatValue(_ v: Double) -> String {
+    let rounded = (v * 100).rounded() / 100
+    if !rounded.isFinite { return "0" }
+    if rounded == rounded.rounded() { return String(Int(rounded)) }
+    let str = String(format: "%.2f", rounded)
+    if str.hasSuffix("0") {
+        return String(format: "%.1f", rounded)
+    }
+    return str
 }
 
 private func _sankeyCGFont(size: CGFloat) -> BMFont {

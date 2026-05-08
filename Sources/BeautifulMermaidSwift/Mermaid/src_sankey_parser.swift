@@ -33,7 +33,7 @@ public func parseSankeyDiagram(
     try _withMermaidIssueReporting(operation: "parseSankeyDiagram") {
         let source = lines.joined(separator: "\n")
         let prepared = _prepareSankeyText(source)
-        let preprocessedLines = _mermaidSourceLines(from: prepared)
+        let preprocessedLines = _mermaidSourceLines(from: prepared, separatedBy: CharacterSet(charactersIn: "\n"))
 
         guard let firstNonComment = preprocessedLines.first(where: { !$0.isEmpty && !$0.hasPrefix("%%") }),
               firstNonComment.lowercased().hasPrefix("sankey") else {

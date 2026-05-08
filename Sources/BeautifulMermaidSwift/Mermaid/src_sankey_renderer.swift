@@ -139,7 +139,7 @@ public func renderSankeySvg(
             let nodeHeight = node.y1 - node.y0
             let nodeWidth = node.x1 - node.x0
 
-            parts.append(#"<g class="node" id="\#(nodeId)" transform="translate(\#(_sankeyFmt(node.x0)),\#(_sankeyFmt(node.y0)))">"#)
+            parts.append(#"<g class="node" id="\#(nodeId)" transform="translate(\#(_sankeyFmt(node.x0)),\#(_sankeyFmt(node.y0)))" x="\#(_sankeyFmt(node.x0))" y="\#(_sankeyFmt(node.y0)))">"#)
             parts.append(#"<rect x="0" y="0" width="\#(_sankeyFmt(nodeWidth))" height="\#(_sankeyFmt(nodeHeight))" fill="\#(_sankeyEscapeXml(nodeColor))" shape-rendering="crispEdges"/>"#)
             parts.append("</g>")
         }
@@ -147,13 +147,13 @@ public func renderSankeySvg(
 
         parts.append(#"<g class="node-labels">"#)
         for node in positioned.nodes {
-            let nodeColor = nodeColorMap[node.id] ?? _defaultSankeyColor(for: node.id, allNodes: positioned.nodes)
+            _ = nodeColorMap[node.id] ?? _defaultSankeyColor(for: node.id, allNodes: positioned.nodes)
 
             let labelText: String
             if positioned.config.showValues {
                 let prefix = positioned.config.prefix
                 let suffix = positioned.config.suffix
-                let formatted = String(format: "%.2f", max(0, node.value))
+                let formatted = _sankeyFormatValue(max(0, node.value))
                 labelText = "\(node.id)\n\(prefix)\(formatted)\(suffix)"
             } else {
                 labelText = node.id
@@ -165,12 +165,12 @@ public func renderSankeySvg(
                     let labelX = node.x1 + 6
                     let labelY = node.y0 + (node.y1 - node.y0) / 2
                     let dy = positioned.config.showValues ? "0" : "0.35em"
-                    parts.append(#"<text x="\#(_sankeyFmt(labelX))" y="\#(_sankeyFmt(labelY))" dy="\#(dy)" text-anchor="start" fill="\#(_sankeyEscapeXml(isDarkColor(nodeColor) ? "#ffffff" : "#000000"))">\#(_sankeyEscapeXml(labelText))</text>"#)
+                    parts.append(#"<text x="\#(_sankeyFmt(labelX))" y="\#(_sankeyFmt(labelY))" dy="\#(dy)" text-anchor="start" fill="\#(_sankeyEscapeXml(colors.fg))">\#(_sankeyEscapeXml(labelText))</text>"#)
                 } else {
                     let labelX = node.x0 - 6
                     let labelY = node.y0 + (node.y1 - node.y0) / 2
                     let dy = positioned.config.showValues ? "0" : "0.35em"
-                    parts.append(#"<text x="\#(_sankeyFmt(labelX))" y="\#(_sankeyFmt(labelY))" dy="\#(dy)" text-anchor="end" fill="\#(_sankeyEscapeXml(isDarkColor(nodeColor) ? "#ffffff" : "#000000"))">\#(_sankeyEscapeXml(labelText))</text>"#)
+                    parts.append(#"<text x="\#(_sankeyFmt(labelX))" y="\#(_sankeyFmt(labelY))" dy="\#(dy)" text-anchor="end" fill="\#(_sankeyEscapeXml(colors.fg))">\#(_sankeyEscapeXml(labelText))</text>"#)
                 }
             case .outlined:
                 let isLeftOfCenter = node.layer < centerLayer
@@ -245,14 +245,13 @@ private func _centralNodeLayer(_ positioned: PositionedSankeyDiagram) -> Int {
     return maxNode?.layer ?? 0
 }
 
-private func isDarkColor(_ hex: String) -> Bool {
-    let color = hex.trimmingCharacters(in: CharacterSet(charactersIn: "#"))
-    guard color.count == 6 else { return false }
-    var rgb: UInt64 = 0
-    Scanner(string: color).scanHexInt64(&rgb)
-    let r = Double((rgb >> 16) & 0xFF)
-    let g = Double((rgb >> 8) & 0xFF)
-    let b = Double(rgb & 0xFF)
-    let luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255.0
-    return luminance < 0.5
+private func _sankeyFormatValue(_ v: Double) -> String {
+    let rounded = (v * 100).rounded() / 100
+    if !rounded.isFinite { return "0" }
+    if rounded == rounded.rounded() { return String(Int(rounded)) }
+    let str = String(format: "%.2f", rounded)
+    if str.hasSuffix("0") {
+        return String(format: "%.1f", rounded)
+    }
+    return str
 }

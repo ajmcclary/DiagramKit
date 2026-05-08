@@ -225,4 +225,72 @@ final class SankeyParserTests: XCTestCase {
         XCTAssertFalse(diagram.config.showValues)
         XCTAssertEqual(diagram.config.labelStyle, .outlined)
     }
+
+    func testNegativeValuePreserved() throws {
+        let diagram = try parseSankeyDiagram(lines("sankey\nA,B,-10"))
+        XCTAssertEqual(diagram.links[0].value, -10)
+    }
+
+    func testFullEnergyCsvMatchesMermaid() throws {
+        let source = """
+        sankey
+        Agricultural 'waste',Bio-conversion,124.729
+        Bio-conversion,Liquid,0.597
+        Bio-conversion,Losses,26.862
+        Bio-conversion,Solid,280.322
+        Bio-conversion,Gas,81.144
+        Biofuel imports,Liquid,35
+        Biomass imports,Solid,35
+        Coal imports,Coal,11.606
+        Coal reserves,Coal,63.965
+        Coal,Solid,75.571
+        District heating,Industry,10.639
+        District heating,Heating and cooling - commercial,22.505
+        District heating,Heating and cooling - homes,46.184
+        Electricity grid,Over generation / exports,104.453
+        Electricity grid,Lighting & appliances - commercial,113.726
+        Electricity grid,Lighting & appliances - homes,27.14
+        """
+        let diagram = try parseSankeyDiagram(lines(source))
+        XCTAssertEqual(diagram.nodes.count, 19)
+        XCTAssertEqual(diagram.links.count, 16)
+    }
+
+    func testSpecialCharactersFromEnergyCsv() throws {
+        let source = """
+        sankey
+        Agricultural 'waste',Bio-conversion,124.729
+        Over generation / exports,Lighting & appliances - commercial,10
+        Heating and cooling - homes,Heating and cooling - commercial,20
+        """
+        let diagram = try parseSankeyDiagram(lines(source))
+
+        let apostropheNode = diagram.nodes.first(where: { $0.id == "Agricultural 'waste'" })
+        XCTAssertNotNil(apostropheNode, "Node with apostrophe should parse")
+
+        let slashNode = diagram.nodes.first(where: { $0.id == "Over generation / exports" })
+        XCTAssertNotNil(slashNode, "Node with slash should parse")
+
+        let ampersandNode = diagram.nodes.first(where: { $0.id == "Lighting & appliances - commercial" })
+        XCTAssertNotNil(ampersandNode, "Node with ampersand should parse")
+
+        let hyphenNode = diagram.nodes.first(where: { $0.id == "Heating and cooling - homes" })
+        XCTAssertNotNil(hyphenNode, "Node with hyphen should parse")
+
+        let hyphenTarget = diagram.nodes.first(where: { $0.id == "Heating and cooling - commercial" })
+        XCTAssertNotNil(hyphenTarget, "Target node with hyphen should parse")
+    }
+
+    func testNegativeValuesInEnergyCsvSubset() throws {
+        let diagram = try parseSankeyDiagram(lines("sankey\nA,B,-5.5"))
+        XCTAssertEqual(diagram.links[0].value, -5.5)
+        let positioned = layoutSankeyDiagram(diagram)
+        XCTAssertEqual(positioned.links.count, 1)
+    }
+
+    func testNodeIdWithHtmlEntities() throws {
+        let diagram = try parseSankeyDiagram(lines("sankey\nA&amp;B,C,10"))
+        let node = diagram.nodes.first(where: { $0.id == "A&amp;B" })
+        XCTAssertNotNil(node)
+    }
 }

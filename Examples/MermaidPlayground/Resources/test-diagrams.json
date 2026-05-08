@@ -1683,6 +1683,12 @@
       "source": "sankey\n\n%% This is a comment\nA,B,10\n\nC,D,20\n\nE,F,30"
     },
     {
+      "id": "sankey-10-apple-financial-flow",
+      "category": "sankey",
+      "name": "Apple-style Financial Flow",
+      "source": "---\nconfig:\n  sankey:\n    width: 800\n    height: 500\n    labelStyle: outlined\n    showValues: true\n    prefix: $\n    suffix: B\n    nodeColors:\n      iPhone: \"#6e6e73\"\n      Mac: \"#6e6e73\"\n      iPad: \"#6e6e73\"\n      Wearables: \"#6e6e73\"\n      Products: \"#6e6e73\"\n      Services: \"#6e6e73\"\n      Revenue: \"#424245\"\n      Cost of Revenue: \"#ff3b30\"\n      Gross Profit: \"#34c759\"\n      Op Expenses: \"#ff3b30\"\n      Op Profit: \"#34c759\"\n      Tax: \"#ff3b30\"\n      Net Profit: \"#34c759\"\n---\nsankey\n\niPhone,Products,205\nMac,Products,40\niPad,Products,29\nWearables,Products,41\nProducts,Revenue,315\nServices,Revenue,78\nRevenue,Cost of Revenue,223\nRevenue,Gross Profit,170\nGross Profit,Op Expenses,51\nGross Profit,Op Profit,119\nOp Profit,Tax,19\nOp Profit,Net Profit,100"
+    },
+    {
       "id": "block-1-simple",
       "category": "block",
       "name": "Simple Blocks",
@@ -2246,7 +2252,7 @@
       "gitGraph": 14,
       "mindmap": 8,
       "timeline": 13,
-      "sankey": 9,
+      "sankey": 10,
       "block": 7,
       "packet": 5,
       "kanban": 3,

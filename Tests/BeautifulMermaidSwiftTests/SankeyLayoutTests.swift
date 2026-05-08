@@ -163,4 +163,140 @@ final class SankeyLayoutTests: XCTestCase {
         XCTAssertEqual(positioned.nodes.count, 4)
         XCTAssertEqual(positioned.links.count, 2)
     }
+
+    func testJustifyAlignmentMatchesD3() throws {
+        let source = """
+        sankey
+        a,b,8
+        b,c,8
+        c,d,8
+        d,e,8
+        x,c,4
+        c,y,4
+        """
+        let config = SankeyDiagramConfig(width: 410, nodeAlignment: .justify, useMaxWidth: false)
+        let fm = DiagramFrontmatter(sankeyConfig: config)
+        let diagram = try parseSankeyDiagram(lines(source), frontmatter: fm)
+        let positioned = layoutSankeyDiagram(diagram)
+
+        guard let nodeX = positioned.nodes.first(where: { $0.id == "x" }),
+              let nodeY = positioned.nodes.first(where: { $0.id == "y" }) else {
+            XCTFail("Cross-link nodes x and y not found")
+            return
+        }
+        XCTAssertEqual(nodeX.x0, 0, accuracy: 0.01, "Justify: node x should be at layer 0")
+        XCTAssertEqual(nodeY.x0, 400, accuracy: 0.01, "Justify: node y should be at last layer")
+    }
+
+    func testLeftAlignmentMatchesD3() throws {
+        let source = """
+        sankey
+        a,b,8
+        b,c,8
+        c,d,8
+        d,e,8
+        x,c,4
+        c,y,4
+        """
+        let config = SankeyDiagramConfig(width: 410, nodeAlignment: .left, useMaxWidth: false)
+        let fm = DiagramFrontmatter(sankeyConfig: config)
+        let diagram = try parseSankeyDiagram(lines(source), frontmatter: fm)
+        let positioned = layoutSankeyDiagram(diagram)
+
+        guard let nodeX = positioned.nodes.first(where: { $0.id == "x" }),
+              let nodeY = positioned.nodes.first(where: { $0.id == "y" }) else {
+            XCTFail("Cross-link nodes x and y not found")
+            return
+        }
+        XCTAssertEqual(nodeX.x0, 0, accuracy: 0.01, "Left: node x should be at layer 0")
+        XCTAssertEqual(nodeY.x0, 300, accuracy: 0.01, "Left: node y should be at layer 3")
+    }
+
+    func testRightAlignmentMatchesD3() throws {
+        let source = """
+        sankey
+        a,b,8
+        b,c,8
+        c,d,8
+        d,e,8
+        x,c,4
+        c,y,4
+        """
+        let config = SankeyDiagramConfig(width: 410, nodeAlignment: .right, useMaxWidth: false)
+        let fm = DiagramFrontmatter(sankeyConfig: config)
+        let diagram = try parseSankeyDiagram(lines(source), frontmatter: fm)
+        let positioned = layoutSankeyDiagram(diagram)
+
+        guard let nodeX = positioned.nodes.first(where: { $0.id == "x" }),
+              let nodeY = positioned.nodes.first(where: { $0.id == "y" }) else {
+            XCTFail("Cross-link nodes x and y not found")
+            return
+        }
+        XCTAssertEqual(nodeX.x0, 100, accuracy: 0.01, "Right: node x should be at layer 1")
+        XCTAssertEqual(nodeY.x0, 400, accuracy: 0.01, "Right: node y should be at last layer")
+    }
+
+    func testCenterAlignmentMatchesD3() throws {
+        let source = """
+        sankey
+        a,b,8
+        b,c,8
+        c,d,8
+        d,e,8
+        x,c,4
+        c,y,4
+        """
+        let config = SankeyDiagramConfig(width: 410, nodeAlignment: .center, useMaxWidth: false)
+        let fm = DiagramFrontmatter(sankeyConfig: config)
+        let diagram = try parseSankeyDiagram(lines(source), frontmatter: fm)
+        let positioned = layoutSankeyDiagram(diagram)
+
+        guard let nodeX = positioned.nodes.first(where: { $0.id == "x" }),
+              let nodeY = positioned.nodes.first(where: { $0.id == "y" }) else {
+            XCTFail("Cross-link nodes x and y not found")
+            return
+        }
+        XCTAssertEqual(nodeX.x0, 100, accuracy: 0.01, "Center: node x should be at layer 1")
+        XCTAssertEqual(nodeY.x0, 300, accuracy: 0.01, "Center: node y should be at layer 3")
+    }
+
+    func testFiveLayerChainHasCorrectXSpacing() throws {
+        let source = """
+        sankey
+        a,b,1
+        b,c,1
+        c,d,1
+        d,e,1
+        """
+        let config = SankeyDiagramConfig(width: 410, nodeAlignment: .left)
+        let fm = DiagramFrontmatter(sankeyConfig: config)
+        let diagram = try parseSankeyDiagram(lines(source), frontmatter: fm)
+        let positioned = layoutSankeyDiagram(diagram)
+
+        let sortedNodes = positioned.nodes.sorted(by: { $0.x0 < $1.x0 })
+        XCTAssertEqual(sortedNodes.count, 5)
+        XCTAssertEqual(sortedNodes[0].x0, 0, accuracy: 0.01)
+        XCTAssertEqual(sortedNodes[4].x0, 400, accuracy: 0.01)
+    }
+
+    func testEnergyFlowLayoutDeterministic() throws {
+        let source = """
+        sankey
+        Electricity grid,Over generation / exports,104.453
+        Electricity grid,Heating and cooling - homes,113.726
+        Electricity grid,H2 conversion,27.14
+        Electricity grid,Industry,342.165
+        Electricity grid,Losses,56.691
+        """
+        let diagram = try parseSankeyDiagram(lines(source))
+        let positioned = layoutSankeyDiagram(diagram)
+        XCTAssertEqual(positioned.nodes.count, 6)
+        XCTAssertEqual(positioned.links.count, 5)
+        for node in positioned.nodes {
+            XCTAssertTrue(node.x0.isFinite && node.x0 >= 0)
+            XCTAssertTrue(node.y0.isFinite && node.y0 >= 0)
+            XCTAssertGreaterThan(node.x1, node.x0)
+            XCTAssertGreaterThan(node.y1, node.y0)
+        }
+    }
 }

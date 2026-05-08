@@ -128,7 +128,7 @@ final class SankeySvgTests: XCTestCase {
         let positioned = layoutSankeyDiagram(diagram)
         let colors = DiagramColors(bg: "#FFFFFF", fg: "#27272A")
         let svg = renderSankeySvg(positioned, colors)
-        XCTAssertTrue(svg.contains("$10.00k"), "SVG should contain formatted value")
+        XCTAssertTrue(svg.contains("$10k"), "SVG should contain formatted value without trailing zeros")
     }
 
     func testSvgLegacyLabelStyle() throws {
@@ -198,5 +198,76 @@ final class SankeySvgTests: XCTestCase {
         let svg = try render(source)
         XCTAssertFalse(svg.isEmpty)
         XCTAssertTrue(svg.contains("</svg>"))
+    }
+
+    func testLinkColorHexRendersAsStroke() throws {
+        let config = SankeyDiagramConfig(linkColor: .fixed("#636465"))
+        let positioned = positionedForSvgTests(config: config)
+        let svg = renderSankeySvg(positioned, DiagramColors(bg: "#FFFFFF", fg: "#27272A"))
+        XCTAssertTrue(svg.contains(##"stroke="#636465""##), "Link stroke should use fixed hex color")
+    }
+
+    func testLinkColorSourceUsesSourceNodeColor() throws {
+        let positioned = positionedForSvgTests(config: SankeyDiagramConfig(linkColor: .source))
+        let svg = renderSankeySvg(positioned, DiagramColors(bg: "#FFFFFF", fg: "#27272A"))
+        XCTAssertTrue(svg.contains(##"stroke="#e15759""##), "Source link should use source node (C) color")
+    }
+
+    func testLinkColorTargetUsesTargetNodeColor() throws {
+        let positioned = positionedForSvgTests(config: SankeyDiagramConfig(linkColor: .target))
+        let svg = renderSankeySvg(positioned, DiagramColors(bg: "#FFFFFF", fg: "#27272A"))
+        XCTAssertTrue(svg.contains(##"stroke="#76b7b2""##), "Target link should use target node (D) color")
+    }
+
+    func testLinkColorGradientUsesGradientRef() throws {
+        let positioned = positionedForSvgTests(config: SankeyDiagramConfig(linkColor: .gradient))
+        let svg = renderSankeySvg(positioned, DiagramColors(bg: "#FFFFFF", fg: "#27272A"))
+        XCTAssertTrue(svg.contains("url(#linearGradient-"), "Gradient link should reference a gradient id")
+    }
+
+    func testLegacyLabelDoesNotHaveOutlinedClasses() throws {
+        let config = SankeyDiagramConfig(labelStyle: .legacy)
+        let positioned = positionedForSvgTests(config: config)
+        let svg = renderSankeySvg(positioned, DiagramColors(bg: "#FFFFFF", fg: "#27272A"))
+        XCTAssertFalse(svg.contains(#"class="sankey-label-bg""#), "Legacy labels should not use outlined bg class on elements")
+        XCTAssertFalse(svg.contains(#"class="sankey-label-fg""#), "Legacy labels should not use outlined fg class on elements")
+        XCTAssertTrue(svg.contains("node-labels"), "Legacy labels should still have node-labels group")
+    }
+
+    func testOutlinedLabelHasBothClasses() throws {
+        let config = SankeyDiagramConfig(labelStyle: .outlined)
+        let positioned = positionedForSvgTests(config: config)
+        let svg = renderSankeySvg(positioned, DiagramColors(bg: "#FFFFFF", fg: "#27272A"))
+        XCTAssertTrue(svg.contains("sankey-label-bg"), "Outlined labels should have bg class")
+        XCTAssertTrue(svg.contains("sankey-label-fg"), "Outlined labels should have fg class")
+    }
+
+    func testNodeRectWidthEqualsNodeWidthConfig() throws {
+        let config = SankeyDiagramConfig(useMaxWidth: false, nodeWidth: 20)
+        let fm = DiagramFrontmatter(sankeyConfig: config)
+        let diagram = try parseSankeyDiagram(lines("sankey\nA,B,10"), frontmatter: fm)
+        let positioned = layoutSankeyDiagram(diagram)
+        let svg = renderSankeySvg(positioned, DiagramColors(bg: "#FFFFFF", fg: "#27272A"))
+        XCTAssertTrue(svg.contains(##"width="20""##), "Node rect should respect custom nodeWidth")
+    }
+
+    func testNodeRectDefaultWidthIs10() throws {
+        let positioned = positionedForSvgTests()
+        let svg = renderSankeySvg(positioned, DiagramColors(bg: "#FFFFFF", fg: "#27272A"))
+        XCTAssertTrue(svg.contains(##"width="10""##), "Node rect should use default width of 10")
+    }
+
+    func testCustomNodeColorsOverrideFill() throws {
+        let config = SankeyDiagramConfig(nodeColors: ["C": "#ff0000"])
+        let positioned = positionedForSvgTests(config: config)
+        let svg = renderSankeySvg(positioned, DiagramColors(bg: "#FFFFFF", fg: "#27272A"))
+        XCTAssertTrue(svg.contains(##"fill="#ff0000""##), "Custom node color should override default")
+    }
+
+    func testShowValuesFormattingUsesRounding() throws {
+        let config = SankeyDiagramConfig(showValues: true, prefix: "$", suffix: "k")
+        let positioned = positionedForSvgTests(config: config)
+        let svg = renderSankeySvg(positioned, DiagramColors(bg: "#FFFFFF", fg: "#27272A"))
+        XCTAssertTrue(svg.contains("$5"), "Value 5 should format without trailing zeros")
     }
 }
