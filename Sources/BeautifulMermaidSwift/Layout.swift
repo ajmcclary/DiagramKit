@@ -331,6 +331,18 @@ public struct GraphLayout {
                     height: positioned.height,
                     content: .wardleyBeta(positioned)
                 )
+            case .zenuml:
+                guard case let .zenuml(parsed) = graph.payload else {
+                    _reportMermaidIssue("GraphLayout.layout found mismatched ZenUML payload.")
+                    return PositionedGraph(diagram: graph, content: .zenuml(.empty))
+                }
+                let positioned = layoutZenUMLDiagram(parsed)
+                return PositionedGraph(
+                    diagram: graph,
+                    width: positioned.width,
+                    height: positioned.height,
+                    content: .zenuml(positioned)
+                )
             case .c4:
                 guard case let .c4(parsed) = graph.payload else {
                     _reportMermaidIssue("GraphLayout.layout found mismatched C4 payload.")

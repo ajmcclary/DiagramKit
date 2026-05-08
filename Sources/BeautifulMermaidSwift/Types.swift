@@ -29,6 +29,7 @@ public enum DiagramType: String, CaseIterable, Sendable {
     case eventModeling
     case wardleyBeta
     case c4
+    case zenuml
 }
 
 /// The parsed graph model for flowcharts and state diagrams.
@@ -63,6 +64,7 @@ public enum DiagramPayload: Sendable {
     case eventModeling(EventModelingDiagram)
     case wardleyBeta(WardleyMapDiagram)
     case c4(C4Diagram)
+    case zenuml(ZenUMLDiagram)
 
     public var type: DiagramType {
         switch self {
@@ -120,6 +122,8 @@ public enum DiagramPayload: Sendable {
             return .wardleyBeta
         case .c4:
             return .c4
+        case .zenuml:
+            return .zenuml
         }
     }
 }
@@ -204,6 +208,8 @@ public struct MermaidGraph: Sendable {
             self.payload = .wardleyBeta(WardleyMapDiagram.empty)
         case .c4:
             self.payload = .c4(C4Diagram.empty)
+        case .zenuml:
+            self.payload = .zenuml(ZenUMLDiagram.empty)
         }
     }
 
@@ -287,6 +293,7 @@ public enum PositionedContent: Sendable {
     case eventModeling(PositionedEventModelingDiagram)
     case wardleyBeta(PositionedWardleyMapDiagram)
     case c4(PositionedC4Diagram)
+    case zenuml(PositionedZenUMLDiagram)
 }
 
 public struct PositionedGraph: Sendable {
@@ -372,6 +379,8 @@ public struct PositionedGraph: Sendable {
             self.content = .wardleyBeta(.empty)
         case .c4:
             self.content = .c4(.empty)
+        case .zenuml:
+            self.content = .zenuml(.empty)
         }
     }
 
@@ -657,6 +666,12 @@ public struct PositionedGraph: Sendable {
     public var c4Data: PositionedC4Diagram? {
         switch content {
         case .c4(let data): return data
+        default: return nil
+        }
+    }
+    public var zenumlData: PositionedZenUMLDiagram? {
+        switch content {
+        case .zenuml(let data): return data
         default: return nil
         }
     }

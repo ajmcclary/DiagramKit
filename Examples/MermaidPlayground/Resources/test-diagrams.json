@@ -1,6 +1,6 @@
 {
   "version": "2.0.0",
-  "description": "Mermaid diagram test suite \u2014 covers flowchart, state, sequence, class, ER, and XY chart types",
+  "description": "Mermaid diagram test suite — covers flowchart, state, sequence, class, ER, and XY chart types",
   "diagrams": [
     {
       "id": "flow-1-simple",
@@ -186,7 +186,7 @@
       "id": "state-4-cjk",
       "category": "state",
       "name": "CJK State Names",
-      "source": "stateDiagram-v2\n  [*] --> \u7a7a\u95f2\n  \u7a7a\u95f2 --> \u5904\u7406\u4e2d : \u63d0\u4ea4\n  \u5904\u7406\u4e2d --> \u5b8c\u6210 : \u6210\u529f\n  \u5904\u7406\u4e2d --> \u9519\u8bef : \u5931\u8d25\n  \u9519\u8bef --> \u7a7a\u95f2 : \u91cd\u8bd5\n  \u5b8c\u6210 --> [*]"
+      "source": "stateDiagram-v2\n  [*] --> 空闲\n  空闲 --> 处理中 : 提交\n  处理中 --> 完成 : 成功\n  处理中 --> 错误 : 失败\n  错误 --> 空闲 : 重试\n  完成 --> [*]"
     },
     {
       "id": "state-5-standalone",
@@ -330,7 +330,7 @@
       "id": "seq-16-self-notes",
       "category": "sequence",
       "name": "Self-Messages with Notes",
-      "source": "sequenceDiagram\n  participant User\n  participant Main as Main Process\n  participant Renderer\n  participant Timer as 3s Fallback Timer\n  User->>Main: CMD+W\n  Main->>Main: event.preventDefault()\n  Main->>Renderer: WINDOW_CLOSE_REQUESTED\n  Main->>Timer: Start 3s timer\n  alt Multiple panels\n    Renderer->>Renderer: closePanel(focusedId)\n    Note over Renderer: Panel removed\n    Note over Renderer: No confirmCloseWindow!\n    Timer-->>Main: 3s elapsed \u2192 window.destroy()\n  else Single panel\n    Renderer->>Renderer: closePanel(lastId)\n    Note over Renderer: Stack becomes []\n    Renderer->>Renderer: Auto-select fires \u2192 new panel created!\n    Note over Renderer: Panel reopens\n    Timer-->>Main: 3s elapsed \u2192 window.destroy()\n  end"
+      "source": "sequenceDiagram\n  participant User\n  participant Main as Main Process\n  participant Renderer\n  participant Timer as 3s Fallback Timer\n  User->>Main: CMD+W\n  Main->>Main: event.preventDefault()\n  Main->>Renderer: WINDOW_CLOSE_REQUESTED\n  Main->>Timer: Start 3s timer\n  alt Multiple panels\n    Renderer->>Renderer: closePanel(focusedId)\n    Note over Renderer: Panel removed\n    Note over Renderer: No confirmCloseWindow!\n    Timer-->>Main: 3s elapsed → window.destroy()\n  else Single panel\n    Renderer->>Renderer: closePanel(lastId)\n    Note over Renderer: Stack becomes []\n    Renderer->>Renderer: Auto-select fires → new panel created!\n    Note over Renderer: Panel reopens\n    Timer-->>Main: 3s elapsed → window.destroy()\n  end"
     },
     {
       "id": "seq-17-reverse-arrows",
@@ -455,7 +455,7 @@
     {
       "id": "class-14-observer",
       "category": "class",
-      "name": "Design Pattern \u2014 Observer",
+      "name": "Design Pattern — Observer",
       "source": "classDiagram\n  class Subject {\n    <<interface>>\n    +attach(Observer) void\n    +detach(Observer) void\n    +notify() void\n  }\n  class Observer {\n    <<interface>>\n    +update() void\n  }\n  class EventEmitter {\n    -List~Observer~ observers\n    +attach(Observer) void\n    +detach(Observer) void\n    +notify() void\n  }\n  class Logger {\n    +update() void\n  }\n  class Alerter {\n    +update() void\n  }\n  Subject <|.. EventEmitter\n  Observer <|.. Logger\n  Observer <|.. Alerter\n  EventEmitter --> Observer"
     },
     {
@@ -1194,7 +1194,7 @@
       "id": "quadrant-9-unicode",
       "category": "quadrantChart",
       "name": "Unicode Labels (CJK)",
-      "source": "quadrantChart\n    x-axis \u4f4e\u8986\u76d6\u7387 --> \u9ad8\u8986\u76d6\u7387\n    y-axis \u4f4e\u53c2\u4e0e\u5ea6 --> \u9ad8\u53c2\u4e0e\u5ea6\n    quadrant-1 \u9700\u8981\u6269\u5c55\n    quadrant-2 \u9700\u8981\u63a8\u5e7f\n    quadrant-3 \u91cd\u65b0\u8bc4\u4f30\n    quadrant-4 \u53ef\u4ee5\u6539\u8fdb\n    \u4ea7\u54c1A: [0.3, 0.6]\n    \u4ea7\u54c1B: [0.7, 0.4]"
+      "source": "quadrantChart\n    x-axis 低覆盖率 --> 高覆盖率\n    y-axis 低参与度 --> 高参与度\n    quadrant-1 需要扩展\n    quadrant-2 需要推广\n    quadrant-3 重新评估\n    quadrant-4 可以改进\n    产品A: [0.3, 0.6]\n    产品B: [0.7, 0.4]"
     },
     {
       "id": "quadrant-10-frontmatter",
@@ -2317,30 +2317,119 @@
       "category": "c4",
       "name": "C4 Deployment Diagram",
       "source": "C4Deployment\ntitle Deployment Diagram for Internet Banking System\nDeployment_Node(mob, \"Customer's mobile device\", \"Apple IOS or Android\") {\n  Container(mobile, \"Mobile App\", \"Xamarin\")\n}\nDeployment_Node(comp, \"Customer's computer\", \"Microsoft Windows or Apple macOS\") {\n  Deployment_Node(browser, \"Web Browser\", \"Google Chrome, Mozilla Firefox\") {\n    Container(spa, \"Single Page Application\", \"JavaScript and Angular\")\n  }\n}\nDeployment_Node(plc, \"Big Bank plc\", \"Big Bank plc data center\") {\n  Deployment_Node(dn, \"bigbank-api x8\", \"Ubuntu 16.04 LTS\") {\n    Container(api, \"API Application\", \"Java and Spring MVC\")\n  }\n  Deployment_Node(bb2, \"bigbank-web x4\", \"Ubuntu 16.04 LTS\") {\n    Container(web, \"Web Application\", \"Java and Spring MVC\")\n  }\n  Deployment_Node(bigbankdb01, \"bigbank-db01\", \"Ubuntu 16.04 LTS\") {\n    ContainerDb(db, \"Database\", \"Relational Database Schema\")\n  }\n}\nRel(mobile, api, \"Makes API calls to\", \"json/HTTPS\")\nRel(spa, api, \"Makes API calls to\", \"json/HTTPS\")\nRel(api, db, \"Reads from and writes to\", \"JDBC\")"
+    },
+    {
+      "id": "zenuml-1-simple",
+      "category": "zenuml",
+      "name": "Simple Async",
+      "source": "zenuml\nAlice->Bob: Hello"
+    },
+    {
+      "id": "zenuml-2-sync",
+      "category": "zenuml",
+      "name": "Sync with Nesting",
+      "source": "zenuml\nA.method() { B.process() }"
+    },
+    {
+      "id": "zenuml-3-multi-async",
+      "category": "zenuml",
+      "name": "Multi-Participant Async",
+      "source": "zenuml\nAlice->Bob: hello\nBob->Charlie: process\nCharlie->Bob: result\nBob->Alice: done"
+    },
+    {
+      "id": "zenuml-4-creation",
+      "category": "zenuml",
+      "name": "Creation",
+      "source": "zenuml\nA.method() { new B() }"
+    },
+    {
+      "id": "zenuml-5-return",
+      "category": "zenuml",
+      "name": "Return",
+      "source": "zenuml\nA.method() { return result }"
+    },
+    {
+      "id": "zenuml-6-return-arrow",
+      "category": "zenuml",
+      "name": "Return Arrow",
+      "source": "zenuml\nA --> B: result"
+    },
+    {
+      "id": "zenuml-7-alt",
+      "category": "zenuml",
+      "name": "Alt Fragment",
+      "source": "zenuml\nif(x) { A->B: yes } else { A->B: no }"
+    },
+    {
+      "id": "zenuml-8-loop",
+      "category": "zenuml",
+      "name": "Loop Fragment",
+      "source": "zenuml\nwhile(processing) { A->B: tick }"
+    },
+    {
+      "id": "zenuml-9-tcf",
+      "category": "zenuml",
+      "name": "Try/Catch/Finally",
+      "source": "zenuml\ntry { B.process } catch(error) { C.handle } finally { D.cleanup }"
+    },
+    {
+      "id": "zenuml-10-stereotypes",
+      "category": "zenuml",
+      "name": "Stereotypes",
+      "source": "zenuml\n@Actor Client\n@Database DB\nClient->DB: query"
+    },
+    {
+      "id": "zenuml-11-emoji",
+      "category": "zenuml",
+      "name": "Emoji Participants",
+      "source": "zenuml\n[rocket] Production\nProduction.deploy()"
+    },
+    {
+      "id": "zenuml-12-group",
+      "category": "zenuml",
+      "name": "Group",
+      "source": "zenuml\ngroup Backend { @EC2 svc @RDS db }\nClient->svc: request"
+    },
+    {
+      "id": "zenuml-13-divider",
+      "category": "zenuml",
+      "name": "Divider",
+      "source": "zenuml\nA->B: step1\n==Phase 2==\nB->C: step2"
+    },
+    {
+      "id": "zenuml-14-nested",
+      "category": "zenuml",
+      "name": "Nested Fragments",
+      "source": "zenuml\nA.m { if(x) { loop(y) { B.process() } } }"
+    },
+    {
+      "id": "zenuml-15-title",
+      "category": "zenuml",
+      "name": "Title",
+      "source": "zenuml\ntitle My Diagram\nA->B: hello"
     }
   ],
   "metadata": {
-    "totalCount": 381,
-    "categories": {
+    "counts": {
       "flowchart": 27,
       "state": 12,
-      "sequence": 16,
+      "sequence": 23,
       "class": 61,
-      "er": 14,
+      "er": 25,
       "xychart": 27,
-      "pie": 14,
       "journey": 3,
       "gantt": 7,
       "quadrantChart": 12,
-      "requirement": 17,
-      "gitGraph": 14,
+      "pie": 14,
+      "requirement": 16,
+      "gitGraph": 18,
       "mindmap": 9,
       "timeline": 13,
       "sankey": 10,
       "block": 12,
       "packet": 5,
       "kanban": 4,
-      "architecture": 7,
+      "architecture": 9,
       "radar": 10,
       "treemap": 10,
       "venn": 8,
@@ -2348,7 +2437,8 @@
       "treeView": 10,
       "eventmodeling": 12,
       "wardleyBeta": 12,
-      "c4": 5
+      "c4": 5,
+      "zenuml": 15
     }
   }
 }

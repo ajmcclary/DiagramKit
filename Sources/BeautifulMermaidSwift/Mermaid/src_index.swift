@@ -104,6 +104,7 @@ private enum _DiagramRoutingType {
     case eventmodeling
     case wardley
     case c4
+    case zenuml
 }
 
 private func _decodeXML(_ text: String) -> String {
@@ -190,6 +191,11 @@ private func detectDiagramType(_ text: String) -> _DiagramRoutingType {
     }
     if firstLine.hasPrefix("wardley-beta") {
         return .wardley
+    }
+
+    // ZenUML — case-insensitive header prefix match
+    if firstLine.hasPrefix("zenuml") {
+        return .zenuml
     }
 
     // C4 — case-sensitive full-line header match
@@ -351,6 +357,8 @@ private func _renderPreprocessedMermaidSVG(
         return try _renderWardleySvgCase(source: decodedText, fm: fm, colors: colors, font: font, transparent: transparent)
     case .c4:
         return try _renderC4SvgCase(source: decodedText, fm: fm, colors: colors, font: font, transparent: transparent)
+    case .zenuml:
+        return try _renderZenUMLSvgCase(source: decodedText, fm: fm, colors: colors, font: font, transparent: transparent)
     }
 }
 
@@ -660,6 +668,13 @@ public func renderMermaid(
     _ options: RenderOptions = RenderOptions()
 ) async throws -> String {
     try await renderMermaidSVG(text, options)
+}
+
+private func _renderZenUMLSvgCase(source: String, fm: DiagramFrontmatter?, colors: DiagramColors, font: String, transparent: Bool) throws -> String {
+    let rawLines = _rawDiagramLines(from: source)
+    let diagram = try parseZenUMLDiagram(rawLines, frontmatter: fm)
+    let positioned = layoutZenUMLDiagram(diagram)
+    return renderZenUMLSvg(positioned, colors: colors, font: font, transparent: transparent)
 }
 
 open class original_src_index {

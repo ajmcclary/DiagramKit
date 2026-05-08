@@ -305,6 +305,7 @@ open class original_src_ascii_index {
     case treeView
     case eventmodeling
     case wardley
+    case zenuml
     case c4
 }
 
@@ -413,6 +414,8 @@ open class original_src_ascii_index {
             return "eventmodeling"
         case .wardley:
             return "wardley-beta"
+        case .zenuml:
+            return "zenuml"
         case .c4:
             return "c4"
         case .flowchart:
@@ -527,6 +530,9 @@ open class original_src_ascii_index {
 
         case .wardley:
             throw BeautifulMermaidError.notYetImplemented("Wardley Map ASCII rendering")
+
+        case .zenuml:
+            throw BeautifulMermaidError.notYetImplemented("ZenUML ASCII rendering")
 
         case .c4:
             throw BeautifulMermaidError.notYetImplemented("C4 Diagram ASCII rendering")
@@ -644,6 +650,11 @@ open class original_src_ascii_index {
         }
         if firstLine.hasPrefix("wardley-beta") {
             return .wardley
+        }
+
+        // ZenUML — case-insensitive header prefix match
+        if firstLine.hasPrefix("zenuml") {
+            return .zenuml
         }
 
         // C4 — case-sensitive full-line header match

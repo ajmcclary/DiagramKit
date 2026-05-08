@@ -225,6 +225,13 @@ public enum MermaidParser {
                 return MermaidGraph(payload: .wardleyBeta(diagram))
             }
 
+            // ZenUML — case-insensitive header prefix match
+            if firstLine.hasPrefix("zenuml") {
+                let rawLines = rawLineArray(processed)
+                let parsed = try parseZenUMLDiagram(rawLines, frontmatter: frontmatter)
+                return MermaidGraph(payload: .zenuml(parsed))
+            }
+
             // C4 — case-sensitive full-line header match
             if firstLineRaw.range(of: #"^C4(?:Context|Container|Component|Dynamic|Deployment)\s*$"#, options: .regularExpression) != nil {
                 let c4Lines = rawLineArray(processed)
