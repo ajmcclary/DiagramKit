@@ -31,8 +31,10 @@ extension DiagramRenderer {
         context.scaleBy(x: scale, y: scale)
 
         let textColor = theme.foreground
-        let font = _emFont(size: 14)
-        let boldFont = _emBoldFont(size: 14)
+        let fontSize: CGFloat = 16
+        let font = _emFont(size: fontSize)
+        let boldFont = _emBoldFont(size: fontSize)
+        let monoFont = _emMonoFont(size: fontSize - 2)
 
         // Draw swimlanes
         let swimlaneFill = _emParseColor(data.themeVariables.swimlaneBackgroundOdd)
@@ -51,7 +53,7 @@ extension DiagramRenderer {
 
         // Draw boxes
         for box in data.boxes {
-            _drawEMBox(box, in: context, textColor: textColor, font: font, boldFont: boldFont)
+            _drawEMBox(box, in: context, textColor: textColor, font: font, boldFont: boldFont, monoFont: monoFont)
         }
 
         // Draw relations
@@ -100,7 +102,8 @@ extension DiagramRenderer {
         in context: CGContext,
         textColor: BMColor,
         font: BMFont,
-        boldFont: BMFont
+        boldFont: BMFont,
+        monoFont: BMFont
     ) {
         let rect = CGRect(x: box.x, y: box.y, width: box.width, height: box.height)
 
@@ -118,39 +121,87 @@ extension DiagramRenderer {
         context.addPath(path)
         context.strokePath()
 
-        // Draw text - simplified: just draw the entity name bold
-        // Strip HTML tags for Core Graphics rendering
-        let plainText = box.textContent
-            .replacingOccurrences(of: "<b>", with: "")
-            .replacingOccurrences(of: "</b>", with: "")
-            .replacingOccurrences(of: "<br/>", with: "\n")
-            .replacingOccurrences(of: "<br>", with: "\n")
-            .replacingOccurrences(of: "<code style=\"text-align: left; display: block; max-width:430px\">", with: "")
-            .replacingOccurrences(of: "</code>", with: "")
+        // Parse HTML text content: extract entity name and optional code data
+        var entityName = box.textContent
+        var codeData: String?
+
+        // Extract <b>...</b> entity name
+        if let boldStart = entityName.range(of: "<b>"),
+           let boldEnd = entityName.range(of: "</b>") {
+            let nameRange = boldStart.upperBound..<boldEnd.lowerBound
+            entityName = String(entityName[nameRange])
+        } else if entityName.hasPrefix("<b>") {
+            entityName = String(entityName.dropFirst(3))
+        }
+
+        // Extract <code ...>...</code> data
+        if let codeStart = box.textContent.range(of: "<code"),
+           let codeClose = box.textContent.range(of: "</code>") {
+            let afterCodeTag = box.textContent[codeStart.upperBound...]
+            if let bracketEnd = afterCodeTag.firstIndex(of: ">") {
+                let codeRange = afterCodeTag.index(after: bracketEnd)..<codeClose.lowerBound
+                codeData = String(box.textContent[codeRange])
+            }
+        }
+
+        // Decode HTML entities
+        entityName = _decodeHTMLEntities(entityName)
+        if let cd = codeData {
+            codeData = _decodeHTMLEntities(cd)
+        }
+
+        let lineHeight = boldFont.pointSize * 1.3
+        let monoLineHeight = monoFont.pointSize * 1.3
+
+        // Count lines for centering: entity name lines + separator gap + code lines
+        let nameLines = entityName.split(separator: "\n", omittingEmptySubsequences: true)
+        let codeLines = codeData?.split(separator: "\n", omittingEmptySubsequences: true) ?? []
+        let hasCode = !codeLines.isEmpty
+
+        let nameBlockHeight = CGFloat(nameLines.count) * lineHeight
+        let codeBlockHeight = hasCode ? CGFloat(codeLines.count) * monoLineHeight + lineHeight * 0.5 : 0
+        let totalHeight = nameBlockHeight + codeBlockHeight
+        let startY = rect.midY - totalHeight / 2
+
+        // Draw entity name (bold)
+        for (i, line) in nameLines.enumerated() {
+            let y = startY + CGFloat(i) * lineHeight
+            labelRenderer.drawText(
+                String(line),
+                at: CGPoint(x: rect.midX, y: y),
+                context: context,
+                color: textColor,
+                font: boldFont,
+                alignment: .center
+            )
+        }
+
+        // Draw code data (monospace)
+        if hasCode {
+            let codeStartY = startY + nameBlockHeight + lineHeight * 0.5
+            for (i, line) in codeLines.enumerated() {
+                let y = codeStartY + CGFloat(i) * monoLineHeight
+                labelRenderer.drawText(
+                    String(line),
+                    at: CGPoint(x: rect.midX, y: y),
+                    context: context,
+                    color: textColor,
+                    font: monoFont,
+                    alignment: .center
+                )
+            }
+        }
+    }
+
+    private func _decodeHTMLEntities(_ text: String) -> String {
+        text
             .replacingOccurrences(of: "&nbsp;", with: " ")
             .replacingOccurrences(of: "&amp;", with: "&")
             .replacingOccurrences(of: "&lt;", with: "<")
             .replacingOccurrences(of: "&gt;", with: ">")
             .replacingOccurrences(of: "&quot;", with: "\"")
-
-        let lines = plainText.split(separator: "\n")
-        let lineHeight: CGFloat = 18
-        let totalHeight = CGFloat(lines.count) * lineHeight
-        let startY = box.y + (box.height - totalHeight) / 2 + lineHeight * 0.3
-
-        for (i, line) in lines.enumerated() {
-            let isBold = i == 0 // First line is the entity name
-            let drawFont = isBold ? boldFont : font
-            let y = startY + CGFloat(i) * lineHeight
-            labelRenderer.drawText(
-                String(line),
-                at: CGPoint(x: box.x + box.width / 2, y: y),
-                context: context,
-                color: textColor,
-                font: drawFont,
-                alignment: .center
-            )
-        }
+            .replacingOccurrences(of: "<br/>", with: "\n")
+            .replacingOccurrences(of: "<br>", with: "\n")
     }
 
     private func _drawEMRelation(
@@ -212,18 +263,20 @@ extension DiagramRenderer {
     }
 
     private func _emFont(size: CGFloat) -> BMFont {
-        #if targetEnvironment(macCatalyst) || canImport(UIKit)
-        return BMFont.systemFont(ofSize: size)
-        #elseif canImport(AppKit)
-        return BMFont.systemFont(ofSize: size)
-        #endif
+        BMFont(name: "TrebuchetMS", size: size)
+            ?? BMFont(name: "Trebuchet MS", size: size)
+            ?? BMFont.systemFont(ofSize: size)
     }
 
     private func _emBoldFont(size: CGFloat) -> BMFont {
-        #if targetEnvironment(macCatalyst) || canImport(UIKit)
-        return BMFont.boldSystemFont(ofSize: size)
-        #elseif canImport(AppKit)
-        return BMFont.boldSystemFont(ofSize: size)
-        #endif
+        BMFont(name: "TrebuchetMS-Bold", size: size)
+            ?? BMFont(name: "Trebuchet-BoldMS", size: size)
+            ?? BMFont.boldSystemFont(ofSize: size)
+    }
+
+    private func _emMonoFont(size: CGFloat) -> BMFont {
+        BMFont(name: "Menlo", size: size)
+            ?? BMFont(name: "Courier", size: size)
+            ?? BMFont.monospacedSystemFont(ofSize: size, weight: .regular)
     }
 }

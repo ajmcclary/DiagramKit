@@ -1,5 +1,6 @@
 import Testing
 import Foundation
+import CoreGraphics
 @testable import BeautifulMermaid
 
 struct EventModelingParserTests {
@@ -268,6 +269,37 @@ struct EventModelingLayoutTests {
         let positioned = layoutEventModeling(diagram)
         #expect(positioned.relations.count == 3)
     }
+
+    @Test func layout_implicitRelationSkipsSameSwimlaneBackwardScan() throws {
+        let source = "eventmodeling\ntf 01 ui A\ntf 02 ui B\ntf 03 cmd C"
+        let diagram = try parseEventModeling(rawLines(source))
+        let positioned = layoutEventModeling(diagram)
+        #expect(positioned.relations.count == 1)
+        // C connects to B (most recent different-swimlane box, not A which shares B's swimlane)
+        let rel = positioned.relations[0]
+        #expect(rel.sourceBoxIndex == 1) // box index 1 = frame B
+        #expect(rel.targetBoxIndex == 2) // box index 2 = frame C
+    }
+
+    @Test func layout_implicitRelationNotCreatedForFirstFrame() throws {
+        let source = "eventmodeling\ntf 01 ui A"
+        let diagram = try parseEventModeling(rawLines(source))
+        let positioned = layoutEventModeling(diagram)
+        #expect(positioned.relations.isEmpty)
+    }
+
+    @Test func layout_implicitRelationNotCreatedForResetFrame() throws {
+        let source = "eventmodeling\ntf 01 ui A\nrf 02 cmd B\ntf 03 evt C"
+        let diagram = try parseEventModeling(rawLines(source))
+        let positioned = layoutEventModeling(diagram)
+        // B is a reset frame: relation not created FOR B
+        // C scans backward: finds B at different swimlane → relation B→C
+        // A is first frame: no implicit relation
+        #expect(positioned.relations.count == 1)
+        let rel = positioned.relations[0]
+        #expect(rel.sourceBoxIndex == 1) // B's box
+        #expect(rel.targetBoxIndex == 2) // C's box
+    }
 }
 
 struct EventModelingSvgTests {
@@ -338,6 +370,77 @@ struct EventModelingSvgTests {
         #expect(firstId != nil)
         #expect(secondId != nil)
         #expect(firstId != secondId)
+    }
+
+    // MARK: - Mermaid spec test fixtures
+
+    @Test func svg_spec_simpleDefinition() throws {
+        let src = "eventmodeling\ntf 01 ui UI\ntf 02 cmd RunAction\ntf 03 evt ActionExecuted"
+        let diagram = try parseEventModeling(rawLines(src))
+        let positioned = layoutEventModeling(diagram)
+        let svg = renderEventModelingSvg(positioned, diagramId: "spec1", colors: DiagramColors(bg: "#fff", fg: "#000"), font: "sans-serif", transparent: false)
+        #expect(svg.contains("class=\"em-swimlane\""))
+        #expect(svg.contains("class=\"em-box\""))
+        #expect(svg.contains("class=\"em-relation\""))
+        let boxCount = svg.components(separatedBy: "class=\"em-box\"").count - 1
+        #expect(boxCount == 3)
+    }
+
+    @Test func svg_spec_inlineData() throws {
+        let src = "eventmodeling\ntf 01 cmd AddItem { productId: 7 }\ntf 02 evt ItemAdded { productId: 7 }"
+        let diagram = try parseEventModeling(rawLines(src))
+        let positioned = layoutEventModeling(diagram)
+        let svg = renderEventModelingSvg(positioned, diagramId: "spec2", colors: DiagramColors(bg: "#fff", fg: "#000"), font: "sans-serif", transparent: false)
+        #expect(svg.contains("<code"))
+        #expect(svg.contains("productId"))
+        #expect(svg.contains("</code>"))
+    }
+
+    @Test func svg_spec_dataBlockReferences() throws {
+        let src = "eventmodeling\ntf 01 cmd AddItem\ntf 02 evt ItemAdded [[ItemAddedData]]\n\ndata ItemAddedData\n{\n  productId: 7\n}"
+        let diagram = try parseEventModeling(rawLines(src))
+        let positioned = layoutEventModeling(diagram)
+        let svg = renderEventModelingSvg(positioned, diagramId: "spec3", colors: DiagramColors(bg: "#fff", fg: "#000"), font: "sans-serif", transparent: false)
+        #expect(svg.contains("<code"))
+        #expect(svg.contains("productId"))
+    }
+
+    @Test func svg_spec_qualifiedNames() throws {
+        let src = "eventmodeling\ntf 01 ui CartUI\ntf 02 cmd Inventory.AddItem\ntf 03 evt Inventory.ItemAdded"
+        let diagram = try parseEventModeling(rawLines(src))
+        let positioned = layoutEventModeling(diagram)
+        let svg = renderEventModelingSvg(positioned, diagramId: "spec4", colors: DiagramColors(bg: "#fff", fg: "#000"), font: "sans-serif", transparent: false)
+        #expect(svg.contains("<b>AddItem</b>"))
+        #expect(svg.contains("<b>ItemAdded</b>"))
+    }
+
+    @Test func svg_spec_multipleSourceFrames() throws {
+        let src = "eventmodeling\ntf 01 ui CartUI\ntf 02 cmd AddItem\ntf 03 cmd RemoveItem\ntf 04 evt ItemChanged ->> 02 ->> 03"
+        let diagram = try parseEventModeling(rawLines(src))
+        let positioned = layoutEventModeling(diagram)
+        let svg = renderEventModelingSvg(positioned, diagramId: "spec5", colors: DiagramColors(bg: "#fff", fg: "#000"), font: "sans-serif", transparent: false)
+        let relCount = svg.components(separatedBy: "class=\"em-relation\"").count - 1
+        #expect(relCount >= 2)
+    }
+
+    @Test func svg_spec_resetFrames() throws {
+        let src = "eventmodeling\nrf 01 ui CartUI\nrf 02 cmd AddItem\nrf 03 evt ItemAdded"
+        let diagram = try parseEventModeling(rawLines(src))
+        let positioned = layoutEventModeling(diagram)
+        let svg = renderEventModelingSvg(positioned, diagramId: "spec6", colors: DiagramColors(bg: "#fff", fg: "#000"), font: "sans-serif", transparent: false)
+        let boxCount = svg.components(separatedBy: "class=\"em-box\"").count - 1
+        #expect(boxCount == 3)
+        let relCount = svg.components(separatedBy: "class=\"em-relation\"").count - 1
+        #expect(relCount == 0)
+    }
+
+    @Test func svg_spec_allEntityTypes() throws {
+        let src = "eventmodeling\ntf 01 ui UI\ntf 02 ui UI2\ntf 03 cmd Command\ntf 04 command Command2\ntf 05 evt Event\ntf 06 event Event2\ntf 07 pcr Processor\ntf 08 processor Processor2\ntf 09 rmo ReadModel\ntf 10 readmodel ReadModel2"
+        let diagram = try parseEventModeling(rawLines(src))
+        let positioned = layoutEventModeling(diagram)
+        let svg = renderEventModelingSvg(positioned, diagramId: "spec7", colors: DiagramColors(bg: "#fff", fg: "#000"), font: "sans-serif", transparent: false)
+        let boxCount = svg.components(separatedBy: "class=\"em-box\"").count - 1
+        #expect(boxCount == 10)
     }
 }
 
@@ -417,6 +520,63 @@ struct EventModelingEndToEndTests {
             return
         }
         #expect(positioned.width > 0)
+    }
+
+    @Test func e2e_initDirectiveThemeVariables() throws {
+        let source = """
+        %%{init: { "themeVariables": { "emCommandFill": "#abc123", "emEventStroke": "#def456" } } }%%
+        eventmodeling
+        tf 01 ui CartUI
+        tf 02 cmd AddItem
+        tf 03 evt ItemAdded
+        """
+        let graph = try MermaidParser.parse(source)
+        guard case let .eventModeling(diagram) = graph.payload else {
+            Issue.record("Expected eventModeling payload")
+            return
+        }
+        #expect(diagram.themeVariables.emCommandFill == "#abc123")
+        #expect(diagram.themeVariables.emEventStroke == "#def456")
+    }
+
+    @Test func e2e_initDirectiveConfig() throws {
+        let source = """
+        %%{init: { "config": { "eventmodeling": { "padding": 60 } } } }%%
+        eventmodeling
+        tf 01 ui CartUI
+        tf 02 cmd AddItem
+        """
+        let graph = try MermaidParser.parse(source)
+        guard case let .eventModeling(diagram) = graph.payload else {
+            Issue.record("Expected eventModeling payload")
+            return
+        }
+        #expect(diagram.config.padding == 60)
+    }
+
+    @Test func e2e_cgDoesNotThrow() throws {
+        let source = "eventmodeling\ntf 01 ui CartUI\ntf 02 cmd AddItem\ntf 03 evt ItemAdded"
+        let graph = try MermaidParser.parse(source)
+        let layout = GraphLayout()
+        let positioned = try layout.layout(graph)
+        let renderer = DiagramRenderer(theme: .default)
+        let width = 800
+        let height = 600
+        guard let ctx = CGContext(
+            data: nil,
+            width: width,
+            height: height,
+            bitsPerComponent: 8,
+            bytesPerRow: 0,
+            space: CGColorSpaceCreateDeviceRGB(),
+            bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue
+        ) else {
+            Issue.record("Could not create CGContext")
+            return
+        }
+        renderer.render(positioned, in: ctx, bounds: CGRect(x: 0, y: 0, width: CGFloat(width), height: CGFloat(height)))
+        let image = ctx.makeImage()
+        #expect(image != nil)
     }
 }
 

@@ -1,4 +1,6 @@
 import Foundation
+import CoreGraphics
+import CoreText
 
 // MARK: - Layout Constants
 
@@ -54,7 +56,7 @@ public func layoutEventModeling(_ diagram: EventModelingDiagram) -> PositionedEv
         let swimlaneIndex = frameSwimlaneIndices[i]
         guard var swimlane = swimlanes[swimlaneIndex] else { continue }
 
-        // Compute text content
+        // Compute text content and extract raw data text for measurement
         let entityName = extractEntityName(frame.entityIdentifier)
         let textContent = formatBoxText(
             entityName: entityName,
@@ -62,9 +64,27 @@ public func layoutEventModeling(_ diagram: EventModelingDiagram) -> PositionedEv
             dataEntities: diagram.dataEntities
         )
 
-        // Estimate text dimensions
-        let textWidth = estimateTextWidth(entityName)
-        let textHeight = estimateTextHeight(textContent)
+        let dataText: String?
+        let hasRenderedData: Bool
+        if let inlineValue = frame.dataInlineValue {
+            dataText = stripBraces(inlineValue)
+            hasRenderedData = !(dataText?.isEmpty ?? true)
+        } else if let refName = frame.dataReferenceName,
+                  let dataEntity = diagram.dataEntities.first(where: { $0.name == refName }) {
+            dataText = stripBraces(dataEntity.dataBlockValue)
+            hasRenderedData = !(dataText?.isEmpty ?? true)
+        } else {
+            dataText = nil
+            hasRenderedData = false
+        }
+
+        let (textWidth, textHeight) = _measureTextDimensions(
+            entityName: entityName,
+            hasRenderedData: hasRenderedData,
+            dataText: dataText,
+            maxWidth: EMPDefaults.textMaxWidth,
+            fontSize: EMPDefaults.fontSize
+        )
 
         // Clamp box dimensions
         let boxWidth = max(EMPDefaults.boxMinWidth,
@@ -272,10 +292,14 @@ private func getOrCreateSwimlane(
         if let existing = swimlanes.first(where: { $0.value.namespace == ns && $0.key >= rangeStart && $0.key < rangeEnd }) {
             return existing.value
         }
-        // Assign next available index
-        var nextIdx = defaultIndex
-        while swimlanes[nextIdx] != nil { nextIdx += 1 }
-        if nextIdx >= rangeEnd { nextIdx = defaultIndex }
+        // Assign next available index (Mermaid's max+1 approach)
+        let existingIndices = swimlanes.keys.filter { $0 > defaultIndex && $0 < rangeEnd }
+        let nextIdx: Int
+        if existingIndices.isEmpty {
+            nextIdx = defaultIndex
+        } else {
+            nextIdx = existingIndices.max()! + 1
+        }
 
         let sl = PositionedEventModelingSwimlane(
             index: nextIdx,
@@ -363,14 +387,42 @@ private func sanitizeDataText(_ text: String) -> String {
         .replacingOccurrences(of: " ", with: "&nbsp;")
 }
 
-private func estimateTextWidth(_ text: String) -> Double {
-    // Approximate: each character ~9pt at 16pt font
-    Double(text.count) * 9.0
-}
+private func _measureTextDimensions(
+    entityName: String,
+    hasRenderedData: Bool,
+    dataText: String?,
+    maxWidth: Double,
+    fontSize: Double
+) -> (width: Double, height: Double) {
+    let font = CTFontCreateWithName("TrebuchetMS" as CFString, CGFloat(fontSize), nil)
+        ?? CTFontCreateWithName("Trebuchet MS" as CFString, CGFloat(fontSize), nil)
+        ?? CTFontCreateUIFontForLanguage(.system, CGFloat(fontSize), nil)!
 
-private func estimateTextHeight(_ text: String) -> Double {
-    // Approximate: ~22pt per text line at 16pt font, + extra for data content
-    let baseLines = 1.0
-    let dataLines = text.contains("<br/>") ? 3.0 : 0
-    return (baseLines + dataLines) * 22.0
+    let plainText: String
+    if hasRenderedData, let data = dataText, !data.isEmpty {
+        plainText = entityName + "\n\n" + data
+    } else {
+        plainText = entityName
+    }
+
+    let attr: [NSAttributedString.Key: Any] = [.font: font]
+    let attrStr = NSAttributedString(string: plainText, attributes: attr)
+
+    let framesetter = CTFramesetterCreateWithAttributedString(attrStr)
+    let constraintSize = CGSize(width: CGFloat(maxWidth), height: .greatestFiniteMagnitude)
+    let frameSize = CTFramesetterSuggestFrameSizeWithConstraints(
+        framesetter,
+        CFRange(location: 0, length: 0),
+        nil,
+        constraintSize,
+        nil
+    )
+
+    var width = Double(frameSize.width)
+    if hasRenderedData {
+        width = width / 3.0
+    }
+    let height = Double(frameSize.height)
+
+    return (width, height)
 }
