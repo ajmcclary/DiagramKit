@@ -21,8 +21,17 @@ public func layoutArchitectureDiagram(_ diagram: ArchitectureDiagram) -> Positio
     var positionedEdges: [PositionedArchitectureEdge] = []
 
     let nodeSize = iconSize + fontSize + 8
+    let halfSize = nodeSize / 2
 
     let allNodeIds = diagram.services.map(\.id) + diagram.junctions.map(\.id)
+
+    let nodeIdToGroup: [String: String?] = {
+        var m: [String: String?] = [:]
+        for s in diagram.services { m[s.id] = s.parentGroupId }
+        for j in diagram.junctions { m[j.id] = j.parentGroupId }
+        return m
+    }()
+
     let spatialMaps = _buildSpatialMaps(nodeIds: allNodeIds, edges: diagram.edges)
     var nodePositions: [String: (x: Double, y: Double)] = [:]
     var currentY: Double = padding
@@ -36,6 +45,7 @@ public func layoutArchitectureDiagram(_ diagram: ArchitectureDiagram) -> Positio
         let minX = xs.min() ?? 0
         let maxY = ys.max() ?? 0
         let minY = ys.min() ?? 0
+        let maxX = xs.max() ?? 0
         let rows = max(1, maxY - minY + 1)
         let cell = nodeSize + gap
 
@@ -45,6 +55,23 @@ public func layoutArchitectureDiagram(_ diagram: ArchitectureDiagram) -> Positio
             let y = currentY + Double(maxY - grid.y) * cell + nodeSize / 2
             nodePositions[itemId] = (x: x, y: y)
         }
+
+        _applyAlignmentConstraints(
+            nodePositions: &nodePositions,
+            spatialMap: map,
+            items: items,
+            cell: cell,
+            padding: padding,
+            nodeSize: nodeSize
+        )
+
+        _applyRelativePlacementConstraints(
+            nodePositions: &nodePositions,
+            spatialMap: map,
+            gap: gap,
+            nodeSize: nodeSize,
+            nodeIdToGroup: nodeIdToGroup
+        )
 
         currentY += Double(rows) * cell + gap
     }
@@ -82,26 +109,32 @@ public func layoutArchitectureDiagram(_ diagram: ArchitectureDiagram) -> Positio
         ))
     }
 
+    let isJunction: Set<String> = Set(diagram.junctions.map(\.id))
+
     var edgeIndex = 0
     for edge in diagram.edges {
         let lhsPos = nodePositions[edge.lhsId] ?? (x: 0, y: 0)
         let rhsPos = nodePositions[edge.rhsId] ?? (x: 0, y: 0)
 
-        let halfW = nodeSize / 2
+        let lhsIsJunction = isJunction.contains(edge.lhsId)
+        let rhsIsJunction = isJunction.contains(edge.rhsId)
+
         let (startX, startY) = _portOffset(
             nodeX: lhsPos.x,
             nodeY: lhsPos.y,
             direction: edge.lhsDirection,
-            halfSize: halfW,
+            halfSize: halfSize,
             hasGroupBoundary: edge.lhsGroupBoundary,
+            isJunction: lhsIsJunction,
             padding: padding
         )
         let (endX, endY) = _portOffset(
             nodeX: rhsPos.x,
             nodeY: rhsPos.y,
             direction: edge.rhsDirection,
-            halfSize: halfW,
+            halfSize: halfSize,
             hasGroupBoundary: edge.rhsGroupBoundary,
+            isJunction: rhsIsJunction,
             padding: padding
         )
 
@@ -109,7 +142,8 @@ public func layoutArchitectureDiagram(_ diagram: ArchitectureDiagram) -> Positio
         let midX: Double
         let midY: Double
         if isXY {
-            if (edge.lhsDirection == .L || edge.lhsDirection == .R) && (edge.rhsDirection == .T || edge.rhsDirection == .B) {
+            let srcIsX = (edge.lhsDirection == .L || edge.lhsDirection == .R)
+            if srcIsX {
                 midX = endX
                 midY = startY
             } else {
@@ -377,14 +411,25 @@ private func _portOffset(
     direction: ArchitectureDirection,
     halfSize: Double,
     hasGroupBoundary: Bool,
+    isJunction: Bool,
     padding: Double
 ) -> (Double, Double) {
-    let offset = hasGroupBoundary ? (halfSize + padding + 4) : halfSize
+    let offset: Double
+    if hasGroupBoundary {
+        offset = halfSize + padding + 4
+    } else if isJunction {
+        offset = halfSize
+    } else {
+        offset = halfSize
+    }
+
     switch direction {
     case .L: return (nodeX - offset, nodeY)
     case .R: return (nodeX + offset, nodeY)
     case .T: return (nodeX, nodeY - offset)
-    case .B: return (nodeX, nodeY + offset)
+    case .B:
+        let extraBottom = hasGroupBoundary ? 18.0 : 0.0
+        return (nodeX, nodeY + offset + extraBottom)
     }
 }
 
@@ -392,4 +437,108 @@ private func _isXYEdge(lhsDir: ArchitectureDirection, rhsDir: ArchitectureDirect
     let h: Set<ArchitectureDirection> = [.L, .R]
     let v: Set<ArchitectureDirection> = [.T, .B]
     return (h.contains(lhsDir) && v.contains(rhsDir)) || (v.contains(lhsDir) && h.contains(rhsDir))
+}
+
+private func _applyAlignmentConstraints(
+    nodePositions: inout [String: (x: Double, y: Double)],
+    spatialMap: [String: _ArchitectureGridPosition],
+    items: [String],
+    cell: Double,
+    padding: Double,
+    nodeSize: Double
+) {
+    var horizontalGroups: [Int: [String]] = [:]
+    var verticalGroups: [Int: [String]] = [:]
+
+    for itemId in items {
+        guard let grid = spatialMap[itemId] else { continue }
+        horizontalGroups[grid.y, default: []].append(itemId)
+        verticalGroups[grid.x, default: []].append(itemId)
+    }
+
+    for (_, alignedIds) in horizontalGroups where alignedIds.count > 1 {
+        let ys = alignedIds.compactMap { nodePositions[$0]?.y }
+        guard !ys.isEmpty else { continue }
+        let maxY = ys.max()!
+        for id in alignedIds {
+            nodePositions[id]?.y = maxY
+        }
+    }
+
+    for (_, alignedIds) in verticalGroups where alignedIds.count > 1 {
+        let xs = alignedIds.compactMap { nodePositions[$0]?.x }
+        guard !xs.isEmpty else { continue }
+        let maxX = xs.max()!
+        for id in alignedIds {
+            nodePositions[id]?.x = maxX
+        }
+    }
+}
+
+private func _applyRelativePlacementConstraints(
+    nodePositions: inout [String: (x: Double, y: Double)],
+    spatialMap: [String: _ArchitectureGridPosition],
+    gap: Double,
+    nodeSize: Double,
+    nodeIdToGroup: [String: String?]
+) {
+    let posToStr: (_ArchitectureGridPosition) -> String = { "\($0.x),\($0.y)" }
+    let strToPos: (String) -> _ArchitectureGridPosition = { s in
+        let parts = s.split(separator: ",").compactMap { Int($0) }
+        return _ArchitectureGridPosition(x: parts[0], y: parts[1])
+    }
+
+    var invSpatialMap: [String: String] = [:]
+    for (id, pos) in spatialMap {
+        invSpatialMap[posToStr(pos)] = id
+    }
+
+    let startKey = posToStr(_ArchitectureGridPosition(x: 0, y: 0))
+    guard invSpatialMap[startKey] != nil else { return }
+
+    var queue = [startKey]
+    var visited: Set<String> = []
+
+    let directions: [(ArchitectureDirection, Int, Int)] = [(.L, -1, 0), (.R, 1, 0), (.T, 0, 1), (.B, 0, -1)]
+
+    while !queue.isEmpty {
+        let currKey = queue.removeFirst()
+        guard !visited.contains(currKey) else { continue }
+        visited.insert(currKey)
+
+        guard let currId = invSpatialMap[currKey],
+              let currPos = nodePositions[currId] else { continue }
+
+        for (dir, dx, dy) in directions {
+            let adjKey = posToStr(_ArchitectureGridPosition(
+                x: strToPos(currKey).x + dx,
+                y: strToPos(currKey).y + dy
+            ))
+            guard let adjId = invSpatialMap[adjKey],
+                  !visited.contains(adjKey),
+                  let adjPos = nodePositions[adjId] else { continue }
+
+            let minCenterDist = nodeSize + gap
+            switch dir {
+            case .L where (adjPos.x + minCenterDist) < currPos.x:
+                if nodePositions[adjId] != nil {
+                    nodePositions[adjId]!.x = currPos.x - minCenterDist
+                }
+            case .R where (adjPos.x - minCenterDist) > currPos.x:
+                if nodePositions[adjId] != nil {
+                    nodePositions[adjId]!.x = currPos.x + minCenterDist
+                }
+            case .T where (adjPos.y + minCenterDist) < currPos.y:
+                if nodePositions[adjId] != nil {
+                    nodePositions[adjId]!.y = currPos.y - minCenterDist
+                }
+            case .B where (adjPos.y - minCenterDist) > currPos.y:
+                if nodePositions[adjId] != nil {
+                    nodePositions[adjId]!.y = currPos.y + minCenterDist
+                }
+            default:
+                break
+            }
+        }
+    }
 }

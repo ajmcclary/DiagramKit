@@ -38,6 +38,9 @@ extension DiagramRenderer {
         let edgeWidth = _architectureStrokeWidth(themeCfg?.archEdgeWidth ?? defaultTheme.archEdgeWidth, fallback: 3)
         let groupBorderWidth = _architectureStrokeWidth(themeCfg?.archGroupBorderWidth ?? defaultTheme.archGroupBorderWidth, fallback: 2)
 
+        let iconSize = CGFloat(data.config.iconSize)
+        let cgArrowSize = iconSize / 6
+
         for group in data.groups {
             let rect = CGRect(x: CGFloat(group.x), y: CGFloat(group.y), width: CGFloat(group.width), height: CGFloat(group.height))
             context.setStrokeColor(groupBorderColor.cgColor)
@@ -80,7 +83,7 @@ extension DiagramRenderer {
 
             _drawArchitectureIcon(
                 service.icon,
-                iconText: service.iconText,
+                iconText: _sanitizeIconText(service.iconText),
                 in: CGRect(
                     x: CGFloat(service.x - data.config.iconSize / 2),
                     y: CGFloat(service.y - data.config.iconSize / 2),
@@ -116,14 +119,25 @@ extension DiagramRenderer {
             context.addLine(to: CGPoint(x: CGFloat(edge.endX), y: CGFloat(edge.endY)))
             context.strokePath()
 
-            let arrowSize: CGFloat = 8
             if edge.sourceArrow {
-                let angle = atan2(CGFloat(edge.startY - edge.midY), CGFloat(edge.startX - edge.midX))
-                _drawArrowhead(at: CGPoint(x: CGFloat(edge.startX), y: CGFloat(edge.startY)), direction: angle, size: arrowSize, in: context, fillColor: arrowColor)
+                _drawDirectionArrowhead(
+                    direction: edge.lhsDirection,
+                    at: CGPoint(x: CGFloat(edge.startX), y: CGFloat(edge.startY)),
+                    midpoint: CGPoint(x: CGFloat(edge.midX), y: CGFloat(edge.midY)),
+                    size: cgArrowSize,
+                    in: context,
+                    fillColor: arrowColor
+                )
             }
             if edge.targetArrow {
-                let angle = atan2(CGFloat(edge.endY - edge.midY), CGFloat(edge.endX - edge.midX))
-                _drawArrowhead(at: CGPoint(x: CGFloat(edge.endX), y: CGFloat(edge.endY)), direction: angle, size: arrowSize, in: context, fillColor: arrowColor)
+                _drawDirectionArrowhead(
+                    direction: edge.rhsDirection,
+                    at: CGPoint(x: CGFloat(edge.endX), y: CGFloat(edge.endY)),
+                    midpoint: CGPoint(x: CGFloat(edge.midX), y: CGFloat(edge.midY)),
+                    size: cgArrowSize,
+                    in: context,
+                    fillColor: arrowColor
+                )
             }
 
             if let label = edge.label, !label.isEmpty {
@@ -144,6 +158,51 @@ extension DiagramRenderer {
         }
 
         context.restoreGState()
+    }
+
+    private func _drawDirectionArrowhead(
+        direction: ArchitectureDirection,
+        at point: CGPoint,
+        midpoint: CGPoint,
+        size: CGFloat,
+        in context: CGContext,
+        fillColor: BMColor
+    ) {
+        let halfSize = size / 2
+        context.beginPath()
+        switch direction {
+        case .L:
+            let p1 = CGPoint(x: point.x, y: point.y - halfSize)
+            let p2 = CGPoint(x: point.x, y: point.y + halfSize)
+            let p3 = CGPoint(x: point.x - size, y: point.y)
+            context.move(to: p1)
+            context.addLine(to: p2)
+            context.addLine(to: p3)
+        case .R:
+            let p1 = CGPoint(x: point.x, y: point.y - halfSize)
+            let p2 = CGPoint(x: point.x, y: point.y + halfSize)
+            let p3 = CGPoint(x: point.x + size, y: point.y)
+            context.move(to: p1)
+            context.addLine(to: p2)
+            context.addLine(to: p3)
+        case .T:
+            let p1 = CGPoint(x: point.x - halfSize, y: point.y)
+            let p2 = CGPoint(x: point.x + halfSize, y: point.y)
+            let p3 = CGPoint(x: point.x, y: point.y - size)
+            context.move(to: p1)
+            context.addLine(to: p2)
+            context.addLine(to: p3)
+        case .B:
+            let p1 = CGPoint(x: point.x - halfSize, y: point.y)
+            let p2 = CGPoint(x: point.x + halfSize, y: point.y)
+            let p3 = CGPoint(x: point.x, y: point.y + size)
+            context.move(to: p1)
+            context.addLine(to: p2)
+            context.addLine(to: p3)
+        }
+        context.closePath()
+        context.setFillColor(fillColor.cgColor)
+        context.fillPath()
     }
 
     private func _drawArrowhead(at point: CGPoint, direction: CGFloat, size: CGFloat, in context: CGContext, fillColor: BMColor) {

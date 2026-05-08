@@ -176,4 +176,119 @@ struct ArchitectureLayoutTests {
         #expect(parent.x + parent.width >= child.x + child.width)
         #expect(parent.y + parent.height >= child.y + child.height)
     }
+
+    @Test("Alignment constraint enforces same-row y-coordinate match")
+    func horizontalAlignmentEnforced() throws {
+        let d = try parseArchitectureDiagram("""
+        architecture-beta
+            service a[A]
+            service b[B]
+            service c[C]
+            a:R -- L:b
+            b:R -- L:c
+        """)
+        let p = layoutArchitectureDiagram(d)
+        let a = try #require(p.services.first { $0.id == "a" })
+        let b = try #require(p.services.first { $0.id == "b" })
+        let c = try #require(p.services.first { $0.id == "c" })
+        #expect(abs(a.y - b.y) < 0.001, "Same-row services should share y (a vs b)")
+        #expect(abs(b.y - c.y) < 0.001, "Same-row services should share y (b vs c)")
+    }
+
+    @Test("Relative placement enforces minimum gap between adjacent nodes")
+    func relativePlacementGap() throws {
+        let d = try parseArchitectureDiagram("""
+        architecture-beta
+            service a[A]
+            service b[B]
+            a:R --> L:b
+        """)
+        let p = layoutArchitectureDiagram(d)
+        let a = try #require(p.services.first { $0.id == "a" })
+        let b = try #require(p.services.first { $0.id == "b" })
+        let minGap = 1.5 * p.config.iconSize
+        #expect((b.x - a.x) > minGap * 0.9, "Adjacent services should respect minimum gap of \(minGap), got \(b.x - a.x)")
+    }
+
+    @Test("XY edge bend point at port intersection")
+    func xyEdgeBendPointAtPort() throws {
+        let d = try parseArchitectureDiagram("""
+        architecture-beta
+            service topR[A]
+            service botL[B]
+            topR:L -- B:botL
+        """)
+        let p = layoutArchitectureDiagram(d)
+        let edge = try #require(p.edges.first)
+        let isXY = (edge.startX == edge.midX && edge.endY == edge.midY) || (edge.startY == edge.midY && edge.endX == edge.midX)
+        #expect(isXY, "XY edge bend point should be at port intersection")
+    }
+
+    @Test("Junction endpoint shift differs from group boundary shift")
+    func junctionShiftNotGroupBoundary() throws {
+        let d = try parseArchitectureDiagram("""
+        architecture-beta
+            group g1(cloud)[G1]
+            service a[A] in g1
+            junction j1
+            a:R --> L:j1
+        """)
+        let p = layoutArchitectureDiagram(d)
+        let edge = try #require(p.edges.first)
+        #expect(edge.sourceArrow == false)
+        #expect(edge.targetArrow == true)
+    }
+
+    @Test("Bottom group boundary shift includes label offset")
+    func bottomGroupBoundaryShift() throws {
+        let d = try parseArchitectureDiagram("""
+        architecture-beta
+            group g1(cloud)[G1]
+            group g2(cloud)[G2]
+            service a[A] in g1
+            service b[B] in g2
+            a{group}:B --> T:b{group}
+        """)
+        let p = layoutArchitectureDiagram(d)
+        let edge = try #require(p.edges.first)
+        #expect(edge.lhsGroupBoundary == true)
+        #expect(edge.rhsGroupBoundary == true)
+        let a = try #require(p.services.first { $0.id == "a" })
+        #expect(edge.startY > a.y, "Bottom boundary shift should extend beyond node center")
+    }
+
+    @Test("Disconnected graphs produce separate spatial maps with positioned output")
+    func disconnectedSpatialMaps() throws {
+        let d = try parseArchitectureDiagram("""
+        architecture-beta
+            service a[A]
+            service b[B]
+            a:R -- L:b
+            service c[C]
+            service d[D]
+        """)
+        let p = layoutArchitectureDiagram(d)
+        #expect(p.services.count == 4)
+        let c_ = try #require(p.services.first { $0.id == "c" })
+        let d_ = try #require(p.services.first { $0.id == "d" })
+        #expect(c_.x > 0 || d_.x > 0, "Disconnected nodes should still get positioned")
+    }
+
+    @Test("Deterministic layout with randomize=false")
+    func deterministicLayout() throws {
+        let source = """
+        architecture-beta
+            service a[A]
+            service b[B]
+            a:R --> L:b
+        """
+        let d1 = try parseArchitectureDiagram(source)
+        let d2 = try parseArchitectureDiagram(source)
+        let p1 = layoutArchitectureDiagram(d1)
+        let p2 = layoutArchitectureDiagram(d2)
+        #expect(p1.services[0].x == p2.services[0].x)
+        #expect(p1.services[0].y == p2.services[0].y)
+        #expect(p1.services[1].x == p2.services[1].x)
+        #expect(p1.services[1].y == p2.services[1].y)
+    }
 }

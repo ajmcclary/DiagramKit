@@ -464,4 +464,93 @@ final class ArchitectureSvgRendererTests: XCTestCase {
         XCTAssertTrue(svg.contains("arch-group-icon"))
         XCTAssertTrue(svg.contains("<path"))
     }
+
+    func testDirectionArrowPolygonL() throws {
+        let svg = try renderSvg("architecture-beta\n    service a[A]\n    service b[B]\n    a:R <-- L:b")
+        XCTAssertTrue(svg.contains("arrow"))
+        XCTAssertTrue(svg.contains("polygon"))
+    }
+
+    func testDirectionArrowPolygonT() throws {
+        let svg = try renderSvg("architecture-beta\n    service top[A]\n    service bot[B]\n    top:T <-- B:bot")
+        XCTAssertTrue(svg.contains("arrow"))
+    }
+
+    func testXYEdgeLabelRotated() throws {
+        let svg = try renderSvg("architecture-beta\n    service a[A]\n    service b[B]\n    a:T -[Data]- B:b")
+        XCTAssertTrue(svg.contains("Data"))
+        XCTAssertTrue(svg.contains("rotate"))
+    }
+
+    func testIconTextSanitized() throws {
+        let svg = try renderSvg("architecture-beta\n    service srv(\"<b>bold</b>\")")
+        XCTAssertFalse(svg.contains("<b>"))
+        XCTAssertTrue(svg.contains("&lt;b&gt;"))
+    }
+
+    func testExternalIconRegistered() throws {
+        ArchitectureIconRegistry.shared.register(pack: ArchitectureIconPack(
+            prefix: "logos",
+            icons: ["aws-s3": ArchitectureIconEntry(body: "<circle cx=\"40\" cy=\"40\" r=\"30\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"/>")]
+        ))
+        let svg = try renderSvg("architecture-beta\n    service s3(logos:aws-s3)[Store]")
+        XCTAssertTrue(svg.contains("circle"))
+    }
+
+    func testExternalIconFallsBackToUnknown() throws {
+        let svg = try renderSvg("architecture-beta\n    service x(nonexistent:icon)")
+        XCTAssertTrue(svg.contains("M24 4C13"), "Should render unknown icon path for unrecognized icon")
+    }
+
+    func testJunctionEdgeEndpointShift() throws {
+        let svg = try renderSvg("architecture-beta\n    junction j1\n    service a[A]\n    a:R --> L:j1")
+        XCTAssertTrue(svg.contains("architecture-junction"))
+        XCTAssertTrue(svg.contains("edge"))
+    }
+
+    func testVerticalEdgeLabelRotated() throws {
+        let svg = try renderSvg("architecture-beta\n    service top[A]\n    service bot[B]\n    top:T -[Pipe]- B:bot")
+        XCTAssertTrue(svg.contains("Pipe"))
+        XCTAssertTrue(svg.contains("rotate(-90"))
+    }
+}
+
+final class ArchitectureIconRegistryTests: XCTestCase {
+
+    func testRegisterPack() {
+        let registry = ArchitectureIconRegistry.shared
+        let pack = ArchitectureIconPack(prefix: "test", icons: ["icon1": ArchitectureIconEntry(body: "<rect/>")])
+        registry.register(pack: pack)
+        XCTAssertTrue(registry.isAvailable("test:icon1"))
+    }
+
+    func testLookupByPrefix() {
+        ArchitectureIconRegistry.shared.register(pack: ArchitectureIconPack(
+            prefix: "logos",
+            icons: ["aws-s3": ArchitectureIconEntry(body: "<circle cx=\"40\" cy=\"40\" r=\"30\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"/>")]
+        ))
+        let svg = ArchitectureIconRegistry.shared.iconSVG(for: "logos:aws-s3")
+        XCTAssertNotNil(svg)
+    }
+
+    func testFallbackPrefix() {
+        XCTAssertTrue(ArchitectureIconRegistry.shared.hasBuiltInIcon("server"))
+        XCTAssertTrue(ArchitectureIconRegistry.shared.hasBuiltInIcon("database"))
+    }
+
+    func testSanitizeIconText() {
+        let sanitized = _sanitizeIconText("<script>alert(1)</script>")
+        XCTAssertNotNil(sanitized)
+        XCTAssertFalse(sanitized?.contains("<script>") ?? false)
+        XCTAssertTrue(sanitized?.contains("&lt;script&gt;") ?? false)
+    }
+
+    func testRejectMaliciousSvg() {
+        ArchitectureIconRegistry.shared.register(pack: ArchitectureIconPack(
+            prefix: "evil",
+            icons: ["icon": ArchitectureIconEntry(body: "<script>alert(1)</script>")]
+        ))
+        let svg = ArchitectureIconRegistry.shared.iconSVG(for: "evil:icon")
+        XCTAssertNil(svg, "Malicious SVG should be rejected")
+    }
 }

@@ -1857,6 +1857,18 @@
       "source": "architecture-beta\n    service srv[Service]"
     },
     {
+      "id": "architecture-external-icons",
+      "category": "architecture",
+      "name": "Architecture - External Icons",
+      "source": "architecture-beta\n    group api(cloud)[API]\n    service db(database)[Database] in api\n    service store(logos:aws-s3)[Object Store] in api\n    service edge(server)[Edge] in api\n    db:L -- R:edge"
+    },
+    {
+      "id": "architecture-edge-labels-arrows",
+      "category": "architecture",
+      "name": "Architecture - Edge Labels & Arrows",
+      "source": "architecture-beta\n    group core(cloud)[Core]\n    service db(database)[DB] in core\n    service api(server)[API] in core\n    service ext(internet)[Ext]\n    db:R -[SQL]- L:api\n    api:T <-- B:ext\n    ext:R -[HTTPS]- L:db"
+    },
+    {
       "id": "radar-empty",
       "category": "radar",
       "name": "Radar - Empty",

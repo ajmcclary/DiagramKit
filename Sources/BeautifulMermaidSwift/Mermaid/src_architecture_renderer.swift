@@ -17,6 +17,8 @@ public func renderArchitectureSvg(
     let groupBorderColor = theme?.archGroupBorderColor ?? defaultTheme.archGroupBorderColor
     let groupBorderWidth = theme?.archGroupBorderWidth ?? defaultTheme.archGroupBorderWidth
     let fontSize = positioned.config.fontSize
+    let iconSize = positioned.config.iconSize
+    let arrowSize = iconSize / 6
 
     let w = Int(ceil(positioned.width))
     let h = Int(ceil(positioned.height))
@@ -63,7 +65,8 @@ public func renderArchitectureSvg(
                 iconText: nil,
                 cx: group.x + groupIconSize / 2 + 1,
                 cy: group.y + groupIconSize / 2 + 1,
-                size: groupIconSize
+                size: groupIconSize,
+                iconSize: iconSize
             )
             svg += "</g>\n"
             groupLabelX += groupIconSize
@@ -77,21 +80,50 @@ public func renderArchitectureSvg(
 
     svg += "<g class=\"architecture-edges\">\n"
     for edge in positioned.edges {
-        let edgeClass = edge.label != nil ? "edge" : "edge"
         let d = "M \(_fmt(edge.startX)),\(_fmt(edge.startY)) L \(_fmt(edge.midX)),\(_fmt(edge.midY)) L \(_fmt(edge.endX)),\(_fmt(edge.endY))"
-        svg += "<path id=\"\(_escapeXml(diagramId))-\(_escapeXml(edge.id))\" class=\"\(edgeClass)\" d=\"\(d)\"/>\n"
+        svg += "<path id=\"\(_escapeXml(diagramId))-\(_escapeXml(edge.id))\" class=\"edge\" d=\"\(d)\"/>\n"
 
         if edge.sourceArrow {
-            let angle = atan2(edge.startY - edge.midY, edge.startX - edge.midX)
-            svg += "<polygon class=\"arrow\" points=\"\(_arrowPoints(cx: edge.startX, cy: edge.startY, angle: angle))\" transform=\"translate(\(_fmt(edge.startX)),\(_fmt(edge.startY))) rotate(\(_fmt(angle * 180 / .pi))) translate(\(_fmt(-edge.startX)),\(_fmt(-edge.startY)))\"/>\n"
+            let (polygonPoints, xShift, yShift) = _directionArrowTransform(
+                direction: edge.lhsDirection,
+                anchorX: edge.startX,
+                anchorY: edge.startY,
+                arrowSize: arrowSize,
+                midpointX: edge.midX,
+                midpointY: edge.midY
+            )
+            svg += "<polygon class=\"arrow\" points=\"\(polygonPoints)\" transform=\"translate(\(_fmt(xShift)),\(_fmt(yShift)))\"/>\n"
         }
         if edge.targetArrow {
-            let angle = atan2(edge.endY - edge.midY, edge.endX - edge.midX)
-            svg += "<polygon class=\"arrow\" points=\"\(_arrowPoints(cx: edge.endX, cy: edge.endY, angle: angle))\" transform=\"translate(\(_fmt(edge.endX)),\(_fmt(edge.endY))) rotate(\(_fmt(angle * 180 / .pi))) translate(\(_fmt(-edge.endX)),\(_fmt(-edge.endY)))\"/>\n"
+            let (polygonPoints, xShift, yShift) = _directionArrowTransform(
+                direction: edge.rhsDirection,
+                anchorX: edge.endX,
+                anchorY: edge.endY,
+                arrowSize: arrowSize,
+                midpointX: edge.midX,
+                midpointY: edge.midY
+            )
+            svg += "<polygon class=\"arrow\" points=\"\(polygonPoints)\" transform=\"translate(\(_fmt(xShift)),\(_fmt(yShift)))\"/>\n"
         }
 
         if let label = edge.label, !label.isEmpty {
-            svg += "<text x=\"\(_fmt(edge.midX))\" y=\"\(_fmt(edge.midY - 4))\" class=\"arch-edge-label\">\(_escapeXml(label))</text>\n"
+            let isXY = _isXY(lhsDir: edge.lhsDirection, rhsDir: edge.rhsDirection)
+            if isXY {
+                let (rotation, rotOriginX, rotOriginY) = _xyLabelRotation(
+                    lhsDir: edge.lhsDirection,
+                    rhsDir: edge.rhsDirection,
+                    midX: edge.midX,
+                    midY: edge.midY
+                )
+                svg += "<text x=\"\(_fmt(edge.midX))\" y=\"\(_fmt(edge.midY - 4))\" class=\"arch-edge-label\" transform=\"rotate(\(_fmt(rotation)),\(_fmt(rotOriginX)),\(_fmt(rotOriginY)))\">\(_escapeXml(label))</text>\n"
+            } else {
+                let isVertical = (edge.lhsDirection == .T || edge.lhsDirection == .B) && (edge.rhsDirection == .T || edge.rhsDirection == .B)
+                if isVertical {
+                    svg += "<text x=\"\(_fmt(edge.midX))\" y=\"\(_fmt(edge.midY - 4))\" class=\"arch-edge-label\" transform=\"rotate(-90,\(_fmt(edge.midX)),\(_fmt(edge.midY)))\">\(_escapeXml(label))</text>\n"
+                } else {
+                    svg += "<text x=\"\(_fmt(edge.midX))\" y=\"\(_fmt(edge.midY - 4))\" class=\"arch-edge-label\">\(_escapeXml(label))</text>\n"
+                }
+            }
         }
     }
     svg += "</g>\n"
@@ -103,7 +135,7 @@ public func renderArchitectureSvg(
         svg += "<g id=\"\(_escapeXml(serviceId))\" class=\"architecture-service\">\n"
         svg += "<g id=\"\(_escapeXml(nodeId))\" style=\"color: \(fgColor)\">\n"
         svg += "<rect x=\"\(_fmt(service.x - service.width / 2))\" y=\"\(_fmt(service.y - service.height / 2))\" width=\"\(_fmt(service.width))\" height=\"\(_fmt(service.height))\" fill=\"none\" stroke=\"\(fgColor)\" stroke-width=\"1\"/>\n"
-        svg += _iconSvg(for: service.icon, iconText: service.iconText, cx: service.x, cy: service.y, size: positioned.config.iconSize)
+        svg += _iconSvg(for: service.icon, iconText: service.iconText, cx: service.x, cy: service.y, size: positioned.config.iconSize, iconSize: iconSize)
         svg += "</g>\n"
         if let title = service.title, !title.isEmpty {
             svg += "<text x=\"\(_fmt(service.x))\" y=\"\(_fmt(service.y + service.height / 2 + fontSize + 4))\" class=\"arch-service-label\">\(_escapeXml(title))</text>\n"
@@ -124,22 +156,47 @@ public func renderArchitectureSvg(
     return svg
 }
 
-private func _iconSvg(for iconName: String?, iconText: String?, cx: Double, cy: Double, size: Double) -> String {
-    let iconSize = size * 0.6
-    let halfIcon = iconSize / 2
+private func _iconSvg(for iconName: String?, iconText: String?, cx: Double, cy: Double, size: Double, iconSize: Double) -> String {
+    let iconDisplaySize = size * 0.6
+    let halfIcon = iconDisplaySize / 2
     let x = cx - halfIcon
     let y = cy - halfIcon
-    let path = _builtinIconPath(for: iconName, size: iconSize)
-    var result = ""
+
     if let iconText = iconText, !iconText.isEmpty {
-        result += "<text x=\"\(_fmt(cx))\" y=\"\(_fmt(cy + 4))\" font-size=\"\(Int(size * 0.3))\" text-anchor=\"middle\" fill=\"currentColor\">\(_escapeXml(iconText))</text>\n"
-    } else if let path = path {
-        result += "<path d=\"\(path)\" transform=\"translate(\(_fmt(x)),\(_fmt(y))) scale(\(_fmt(iconSize / 48)))\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"/>\n"
+        return "<text x=\"\(_fmt(cx))\" y=\"\(_fmt(cy + 4))\" font-size=\"\(Int(size * 0.3))\" text-anchor=\"middle\" fill=\"currentColor\">\(_escapeXml(iconText))</text>\n"
     }
-    return result
+
+    if let iconName = iconName?.trimmingCharacters(in: .whitespaces), !iconName.isEmpty {
+        let registry = ArchitectureIconRegistry.shared
+
+        if registry.hasBuiltInIcon(iconName) {
+            if let body = registry.builtInBody(for: iconName) {
+                return _renderExternalIconBody(body, iconDisplaySize: iconDisplaySize, x: x, y: y)
+            }
+            let path = _builtinIconPath(for: iconName)
+            if let path = path {
+                return "<path d=\"\(path)\" transform=\"translate(\(_fmt(x)),\(_fmt(y))) scale(\(_fmt(iconDisplaySize / 48)))\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"/>\n"
+            }
+        }
+
+        if registry.isExternalIcon(iconName) {
+            if let externalSVG = try? registry.iconSVG(for: iconName) {
+                return _renderExternalIconBody(externalSVG, iconDisplaySize: iconDisplaySize, x: x, y: y)
+            }
+        }
+
+        let path = _builtinIconPath(for: iconName) ?? _unknownPath
+        return "<path d=\"\(path)\" transform=\"translate(\(_fmt(x)),\(_fmt(y))) scale(\(_fmt(iconDisplaySize / 48)))\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"/>\n"
+    }
+
+    return ""
 }
 
-private func _builtinIconPath(for iconName: String?, size: Double) -> String? {
+private func _renderExternalIconBody(_ body: String, iconDisplaySize: Double, x: Double, y: Double) -> String {
+    return "<g transform=\"translate(\(_fmt(x)),\(_fmt(y))) scale(\(_fmt(iconDisplaySize / 80)))\">\(body)</g>\n"
+}
+
+private func _builtinIconPath(for iconName: String?) -> String? {
     guard let iconName = iconName?.lowercased().trimmingCharacters(in: .whitespaces) else { return nil }
     switch iconName {
     case "cloud":
@@ -155,6 +212,85 @@ private func _builtinIconPath(for iconName: String?, size: Double) -> String? {
     default:
         return _unknownPath
     }
+}
+
+private func _directionArrowPolygon(direction: ArchitectureDirection, arrowSize: Double) -> String {
+    let s = arrowSize
+    switch direction {
+    case .L:
+        return "\(_fmt(s)),\(_fmt(s / 2)) \(_fmt(0)),\(_fmt(s)) \(_fmt(0)),\(_fmt(0))"
+    case .R:
+        return "\(_fmt(0)),\(_fmt(s / 2)) \(_fmt(s)),\(_fmt(0)) \(_fmt(s)),\(_fmt(s))"
+    case .T:
+        return "\(_fmt(0)),\(_fmt(0)) \(_fmt(s)),\(_fmt(0)) \(_fmt(s / 2)),\(_fmt(s))"
+    case .B:
+        return "\(_fmt(s / 2)),\(_fmt(0)) \(_fmt(s)),\(_fmt(s)) \(_fmt(0)),\(_fmt(s))"
+    }
+}
+
+private func _directionArrowShift(direction: ArchitectureDirection, coord: Double, arrowSize: Double) -> Double {
+    switch direction {
+    case .L, .T:
+        return coord - arrowSize + 2
+    case .R, .B:
+        return coord - 2
+    }
+}
+
+private func _directionArrowTransform(
+    direction: ArchitectureDirection,
+    anchorX: Double,
+    anchorY: Double,
+    arrowSize: Double,
+    midpointX: Double,
+    midpointY: Double
+) -> (polygonPoints: String, xShift: Double, yShift: Double) {
+    let halfArrowSize = arrowSize / 2
+    let xIsDir: Bool
+    switch direction {
+    case .L, .R: xIsDir = true
+    case .T, .B: xIsDir = false
+    }
+
+    let xShift: Double
+    let yShift: Double
+    if xIsDir {
+        xShift = _directionArrowShift(direction: direction, coord: anchorX, arrowSize: arrowSize)
+        yShift = anchorY - halfArrowSize
+    } else {
+        xShift = anchorX - halfArrowSize
+        yShift = _directionArrowShift(direction: direction, coord: anchorY, arrowSize: arrowSize)
+    }
+
+    let polygonPoints = _directionArrowPolygon(direction: direction, arrowSize: arrowSize)
+    return (polygonPoints, xShift, yShift)
+}
+
+private func _xyLabelRotation(
+    lhsDir: ArchitectureDirection,
+    rhsDir: ArchitectureDirection,
+    midX: Double,
+    midY: Double
+) -> (rotation: Double, rotOriginX: Double, rotOriginY: Double) {
+    let factor = _xyFactor(lhsDir: lhsDir, rhsDir: rhsDir)
+    let rotation = -1.0 * factor.0 * factor.1 * 45.0
+    return (rotation, midX, midY)
+}
+
+private func _xyFactor(lhsDir: ArchitectureDirection, rhsDir: ArchitectureDirection) -> (Double, Double) {
+    switch (lhsDir, rhsDir) {
+    case (.L, .T), (.T, .L): return (1, 1)
+    case (.B, .L), (.L, .B): return (1, -1)
+    case (.B, .R), (.R, .B): return (-1, -1)
+    case (.T, .R), (.R, .T): return (-1, 1)
+    default: return (1, 1)
+    }
+}
+
+private func _isXY(lhsDir: ArchitectureDirection, rhsDir: ArchitectureDirection) -> Bool {
+    let h: Set<ArchitectureDirection> = [.L, .R]
+    let v: Set<ArchitectureDirection> = [.T, .B]
+    return (h.contains(lhsDir) && v.contains(rhsDir)) || (v.contains(lhsDir) && h.contains(rhsDir))
 }
 
 private func _arrowPoints(cx: Double, cy: Double, angle: Double) -> String {
