@@ -168,4 +168,99 @@ struct VennSvgTests {
         let svg = renderVennSvg(positioned, diagramId: "test-id", DiagramColors(bg: "#FFF", fg: "#000"), "Inter", false)
         #expect(svg.contains("<desc>accessibility description</desc>"))
     }
+
+    // MARK: - Hand-Drawn Tests
+
+    @Test("Hand-drawn circle uses path with jittered vertices")
+    func handDrawnCircleUsesPath() throws {
+        let area = PositionedVennArea(
+            setsKey: "A", sets: ["A"], label: nil, size: 10,
+            circles: [VennCircle(center: VennPoint(x: 400, y: 225), radius: 50)],
+            pathSpec: nil, textPoint: VennPoint(x: 400, y: 225),
+            fillColor: "#ff6b6b", fillOpacity: 0.1, strokeColor: "#ff6b6b",
+            strokeWidth: 2.5, textColor: "#333", textFontSize: 24,
+            colorClass: "venn-set-0", hasLabel: false, innerRadius: 30
+        )
+        let positioned = PositionedVennDiagram(
+            width: 800, height: 450, titleHeight: 0, title: nil,
+            areas: [area], textNodes: [],
+            accTitle: nil, accDescr: nil, diagramTitle: nil,
+            config: .default, isHandDrawn: true, handDrawnSeed: 42
+        )
+        let svg = renderVennSvg(positioned, diagramId: "test-id", DiagramColors(bg: "#FFF", fg: "#000"), "Inter", false)
+        #expect(svg.contains("venn-circle"))
+        // Hand-drawn should use path, not circle
+        #expect(svg.contains("<path d=\"M "))
+        // Hachure lines should be present for fill
+        #expect(svg.contains("<line x1="))
+        // Should NOT contain a regular circle element (only the debug one might)
+        let circleCount = svg.components(separatedBy: "<circle").count - 1
+        #expect(circleCount <= 1) // Only debug circle if any, no regular circles
+    }
+
+    @Test("Hand-drawn intersection uses cross-hatch when styled")
+    func handDrawnIntersectionCrossHatch() throws {
+        let area = PositionedVennArea(
+            setsKey: "A|B", sets: ["A", "B"], label: "AB", size: 2.5,
+            circles: [],
+            pathSpec: "M 380 225 A 50 50 0 0 0 420 225 A 50 50 0 0 1 380 225 Z",
+            textPoint: VennPoint(x: 400, y: 225),
+            fillColor: "#ff6b6b", fillOpacity: 1.0, strokeColor: "#ff6b6b",
+            strokeWidth: 2.5, textColor: "#333", textFontSize: 24,
+            colorClass: "venn-set-2", hasLabel: true, innerRadius: 20
+        )
+        let positioned = PositionedVennDiagram(
+            width: 800, height: 450, titleHeight: 0, title: nil,
+            areas: [area], textNodes: [],
+            accTitle: nil, accDescr: nil, diagramTitle: nil,
+            config: .default, isHandDrawn: true, handDrawnSeed: 42
+        )
+        let svg = renderVennSvg(positioned, diagramId: "test-id", DiagramColors(bg: "#FFF", fg: "#000"), "Inter", false)
+        #expect(svg.contains("venn-intersection"))
+        // Cross-hatch lines should be present
+        #expect(svg.contains("<line x1="))
+    }
+
+    @Test("Hand-drawn unstyled intersection has no fill")
+    func handDrawnUnstyledIntersectionIsTransparent() throws {
+        let area = PositionedVennArea(
+            setsKey: "A|B", sets: ["A", "B"], label: nil, size: 2.5,
+            circles: [],
+            pathSpec: "M 380 225 A 50 50 0 0 0 420 225 A 50 50 0 0 1 380 225 Z",
+            textPoint: VennPoint(x: 400, y: 225),
+            fillColor: "transparent", fillOpacity: 0.0, strokeColor: "#ff6b6b",
+            strokeWidth: 2.5, textColor: "#333", textFontSize: 24,
+            colorClass: "venn-set-2", hasLabel: false, innerRadius: 20
+        )
+        let positioned = PositionedVennDiagram(
+            width: 800, height: 450, titleHeight: 0, title: nil,
+            areas: [area], textNodes: [],
+            accTitle: nil, accDescr: nil, diagramTitle: nil,
+            config: .default, isHandDrawn: true, handDrawnSeed: 42
+        )
+        let svg = renderVennSvg(positioned, diagramId: "test-id", DiagramColors(bg: "#FFF", fg: "#000"), "Inter", false)
+        #expect(svg.contains("venn-intersection"))
+        // Should still have the path (with transparent/default fill) via non-handdrawn path
+        #expect(svg.contains("<path d="))
+    }
+
+    @Test("Non-hand-drawn uses regular circle elements")
+    func nonHandDrawnUsesCircles() throws {
+        let area = PositionedVennArea(
+            setsKey: "A", sets: ["A"], label: nil, size: 10,
+            circles: [VennCircle(center: VennPoint(x: 400, y: 225), radius: 50)],
+            pathSpec: nil, textPoint: VennPoint(x: 400, y: 225),
+            fillColor: "#ff6b6b", fillOpacity: 0.1, strokeColor: "#ff6b6b",
+            strokeWidth: 2.5, textColor: "#333", textFontSize: 24,
+            colorClass: "venn-set-0", hasLabel: false, innerRadius: 30
+        )
+        let positioned = PositionedVennDiagram(
+            width: 800, height: 450, titleHeight: 0, title: nil,
+            areas: [area], textNodes: [],
+            accTitle: nil, accDescr: nil, diagramTitle: nil,
+            config: .default, isHandDrawn: false, handDrawnSeed: 0
+        )
+        let svg = renderVennSvg(positioned, diagramId: "test-id", DiagramColors(bg: "#FFF", fg: "#000"), "Inter", false)
+        #expect(svg.contains("<circle"))
+    }
 }

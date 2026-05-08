@@ -143,6 +143,8 @@ extension DiagramRenderer {
     func _drawVenn(_ positioned: PositionedGraph, in context: CGContext, bounds: CGRect) {
         guard case let .venn(data) = positioned.content else { return }
         let theme = self.theme
+        let isHandDrawn = data.isHandDrawn
+        let handDrawnSeed = data.handDrawnSeed
 
         if !theme.transparent {
             context.setFillColor(theme.background.cgColor)
@@ -166,8 +168,8 @@ extension DiagramRenderer {
         context.saveGState()
         context.translateBy(x: 0, y: CGFloat(data.titleHeight))
 
-        for area in data.areas {
-            _drawVennArea(area, in: context, debugLayout: data.useDebugLayout)
+        for (i, area) in data.areas.enumerated() {
+            _drawVennArea(area, areaIndex: i, in: context, isHandDrawn: isHandDrawn, handDrawnSeed: handDrawnSeed, debugLayout: data.useDebugLayout)
         }
 
         for node in data.textNodes {
@@ -186,23 +188,40 @@ extension DiagramRenderer {
         _drawTextInFlipped(title.text, at: point, context: context, contentHeight: 1000, color: color, font: font, alignment: .center)
     }
 
-    private func _drawVennArea(_ area: PositionedVennArea, in context: CGContext, debugLayout: Bool) {
+    private func _drawVennArea(_ area: PositionedVennArea, areaIndex: Int, in context: CGContext, isHandDrawn: Bool, handDrawnSeed: Int, debugLayout: Bool) {
         context.saveGState()
 
         // Draw circles for single-set areas
-        for circle in area.circles {
+        for (ci, circle) in area.circles.enumerated() {
             let cx = CGFloat(circle.center.x)
             let cy = CGFloat(circle.center.y)
             let r = CGFloat(circle.radius)
 
-            let fillColor = BMColor(hex: area.fillColor).withAlphaComponent(CGFloat(area.fillOpacity))
-            context.setFillColor(fillColor.cgColor)
-            context.fillEllipse(in: CGRect(x: cx - r, y: cy - r, width: r * 2, height: r * 2))
+            if isHandDrawn {
+                let seed = handDrawnSeed + ci * 137
+                let fillColor = BMColor(hex: area.fillColor).withAlphaComponent(CGFloat(area.fillOpacity))
+                context.setFillColor(fillColor.cgColor)
+                _drawHandDrawnCircleCG(cx: cx, cy: cy, r: r, seed: seed, in: context)
 
-            let strokeColor = BMColor(hex: area.strokeColor).withAlphaComponent(0.95)
-            context.setStrokeColor(strokeColor.cgColor)
-            context.setLineWidth(CGFloat(area.strokeWidth))
-            context.strokeEllipse(in: CGRect(x: cx - r, y: cy - r, width: r * 2, height: r * 2))
+                let strokeColor = BMColor(hex: area.strokeColor).withAlphaComponent(0.95)
+                context.setStrokeColor(strokeColor.cgColor)
+                context.setLineWidth(CGFloat(area.strokeWidth))
+                _drawHandDrawnCircleCG(cx: cx, cy: cy, r: r, seed: seed, in: context)
+                context.strokePath()
+
+                // Hachure fill
+                let hachureAngle = -41.0 + Double(ci) * 60.0
+                _drawHachureLinesCG(cx: cx, cy: cy, r: r * 0.95, seed: seed, angle: hachureAngle, gap: 8, in: context, color: BMColor(hex: area.fillColor).withAlphaComponent(0.4))
+            } else {
+                let fillColor = BMColor(hex: area.fillColor).withAlphaComponent(CGFloat(area.fillOpacity))
+                context.setFillColor(fillColor.cgColor)
+                context.fillEllipse(in: CGRect(x: cx - r, y: cy - r, width: r * 2, height: r * 2))
+
+                let strokeColor = BMColor(hex: area.strokeColor).withAlphaComponent(0.95)
+                context.setStrokeColor(strokeColor.cgColor)
+                context.setLineWidth(CGFloat(area.strokeWidth))
+                context.strokeEllipse(in: CGRect(x: cx - r, y: cy - r, width: r * 2, height: r * 2))
+            }
 
             if debugLayout {
                 context.setStrokeColor(BMColor(hex: "#800080").cgColor)
@@ -217,28 +236,27 @@ extension DiagramRenderer {
         if let pathSpec = area.pathSpec, area.sets.count >= 2 {
             let path = _makeVennCGPath(from: pathSpec)
             if let path = path {
-                let fillColor = BMColor(hex: area.fillColor).withAlphaComponent(CGFloat(area.fillOpacity))
-                context.setFillColor(fillColor.cgColor)
-                context.addPath(path)
-                context.fillPath()
+                if isHandDrawn && area.fillOpacity > 0 && area.fillColor.lowercased() != "transparent" {
+                    _drawHandDrawnIntersectionCG(path: path, fillColor: BMColor(hex: area.fillColor), strokeColor: BMColor(hex: area.strokeColor), strokeWidth: CGFloat(area.strokeWidth), seed: handDrawnSeed, in: context)
+                } else {
+                    let fillColor = BMColor(hex: area.fillColor).withAlphaComponent(CGFloat(area.fillOpacity))
+                    context.setFillColor(fillColor.cgColor)
+                    context.addPath(path)
+                    context.fillPath()
 
-                let strokeColor = BMColor(hex: area.strokeColor).withAlphaComponent(0.95)
-                context.setStrokeColor(strokeColor.cgColor)
-                context.setLineWidth(CGFloat(area.strokeWidth))
-                context.addPath(path)
-                context.strokePath()
+                    let strokeColor = BMColor(hex: area.strokeColor).withAlphaComponent(0.95)
+                    context.setStrokeColor(strokeColor.cgColor)
+                    context.setLineWidth(CGFloat(area.strokeWidth))
+                    context.addPath(path)
+                    context.strokePath()
+                }
             }
         }
 
         // Draw label
         let labelText = area.label ?? area.sets.first ?? ""
         if !labelText.isEmpty {
-            let font: BMFont
-            if area.isSingleSet {
-                font = _systemFont(size: CGFloat(area.textFontSize))
-            } else {
-                font = _systemFont(size: CGFloat(area.textFontSize))
-            }
+            let font = _systemFont(size: CGFloat(area.textFontSize))
             let textColor = BMColor(hex: area.textColor)
             let point = CGPoint(x: CGFloat(area.textPoint.x), y: CGFloat(area.textPoint.y))
             _drawTextInFlipped(labelText, at: point, context: context, contentHeight: 1000, color: textColor, font: font, alignment: .center)
@@ -259,7 +277,7 @@ extension DiagramRenderer {
         let displayText = node.label ?? node.id
 
         let textColor = BMColor(hex: node.textColor)
-        let fontSize: CGFloat = 12
+        let fontSize: CGFloat = CGFloat(node.fontSize)
         let font = _systemFont(size: fontSize)
 
         labelRenderer.drawMultilineText(displayText, in: rect, context: context, color: textColor, font: font, alignment: .center)
@@ -288,5 +306,98 @@ extension DiagramRenderer {
         #elseif canImport(AppKit)
         return BMFont.systemFont(ofSize: size)
         #endif
+    }
+
+    // MARK: - Hand-Drawn CG Helpers
+
+    private func _drawHandDrawnCircleCG(cx: CGFloat, cy: CGFloat, r: CGFloat, seed: Int, in context: CGContext) {
+        let segments = 36
+        var s = seed
+        func nextJitter() -> CGFloat {
+            s += 1
+            var t = UInt64(bitPattern: Int64(s))
+            t ^= t >> 12
+            t ^= t << 25
+            t ^= t >> 27
+            let v = Double((t &* 2685821657736338717) & 0x7FFFFFFF) / Double(0x7FFFFFFF)
+            return CGFloat((v - 0.5) * 0.06) * r
+        }
+
+        let path = CGMutablePath()
+        for i in 0..<segments {
+            let angle = 2.0 * .pi * Double(i) / Double(segments)
+            let jx = cx + cos(CGFloat(angle)) * (r + nextJitter())
+            let jy = cy + sin(CGFloat(angle)) * (r + nextJitter())
+            if i == 0 {
+                path.move(to: CGPoint(x: jx, y: jy))
+            } else {
+                path.addLine(to: CGPoint(x: jx, y: jy))
+            }
+        }
+        path.closeSubpath()
+        context.addPath(path)
+    }
+
+    private func _drawHachureLinesCG(cx: CGFloat, cy: CGFloat, r: CGFloat, seed: Int, angle: Double, gap: Double, in context: CGContext, color: BMColor) {
+        let rad = CGFloat(angle * .pi / 180.0)
+        let cosA = cos(rad)
+        let sinA = sin(rad)
+        let spacing = max(CGFloat(gap), 2)
+        var s = seed
+
+        context.setStrokeColor(color.cgColor)
+        context.setLineWidth(1.0)
+
+        for offset in stride(from: -r * 1.5, through: r * 1.5, by: spacing) {
+            s += 1
+            var t = UInt64(bitPattern: Int64(s))
+            t ^= t >> 12
+            t ^= t << 25
+            t ^= t >> 27
+            let v = Double((t &* 2685821657736338717) & 0x7FFFFFFF) / Double(0x7FFFFFFF)
+            let jitter = CGFloat((v - 0.5) * 0.3) * spacing
+
+            let px = cx - r * 1.5 * cosA + (offset + jitter) * cosA
+            let py = cy - r * 1.5 * sinA + (offset + jitter) * sinA
+
+            let dx0 = px - cx
+            let dy0 = py - cy
+            let a: CGFloat = 1.0
+            let b: CGFloat = 2 * (dx0 * sinA - dy0 * cosA)
+            let c: CGFloat = dx0 * dx0 + dy0 * dy0 - r * r
+
+            let discriminant = b * b - 4 * a * c
+            if discriminant <= 0 { continue }
+
+            let sqrtD = sqrt(discriminant)
+            let t1 = (-b - sqrtD) / (2 * a)
+            let t2 = (-b + sqrtD) / (2 * a)
+
+            let x1 = px + t1 * sinA
+            let y1 = py - t1 * cosA
+            let x2 = px + t2 * sinA
+            let y2 = py - t2 * cosA
+
+            context.move(to: CGPoint(x: x1, y: y1))
+            context.addLine(to: CGPoint(x: x2, y: y2))
+        }
+        context.strokePath()
+    }
+
+    private func _drawHandDrawnIntersectionCG(path: CGPath, fillColor: BMColor, strokeColor: BMColor, strokeWidth: CGFloat, seed: Int, in context: CGContext) {
+        // Cross-hatch: two angles
+        let bounds = path.boundingBoxOfPath
+        let cx = bounds.midX
+        let cy = bounds.midY
+        let r = max(bounds.width, bounds.height) / 2 * 0.9
+
+        _drawHachureLinesCG(cx: cx, cy: cy, r: r, seed: seed, angle: 45, gap: 6, in: context, color: fillColor.withAlphaComponent(0.6))
+        _drawHachureLinesCG(cx: cx, cy: cy, r: r, seed: seed + 100, angle: -45, gap: 6, in: context, color: fillColor.withAlphaComponent(0.4))
+
+        // Stroke outline
+        context.setStrokeColor(strokeColor.cgColor)
+        context.setLineWidth(strokeWidth)
+        context.addPath(path)
+        context.strokePath()
     }
 }

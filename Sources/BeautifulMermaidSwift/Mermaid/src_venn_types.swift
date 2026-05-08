@@ -98,21 +98,29 @@ public struct VennDiagramConfig: Sendable, Equatable {
     public var height: Double
     public var padding: Double
     public var useDebugLayout: Bool
+    public var look: String?
+    public var handDrawnSeed: Int
 
     public static let `default` = VennDiagramConfig()
+
+    public var isHandDrawn: Bool { look == "handDrawn" }
 
     public init(
         useMaxWidth: Bool = true,
         width: Double = 800,
         height: Double = 450,
         padding: Double = 8,
-        useDebugLayout: Bool = false
+        useDebugLayout: Bool = false,
+        look: String? = nil,
+        handDrawnSeed: Int = 0
     ) {
         self.useMaxWidth = useMaxWidth
         self.width = width
         self.height = height
         self.padding = padding
         self.useDebugLayout = useDebugLayout
+        self.look = look
+        self.handDrawnSeed = handDrawnSeed
     }
 }
 
@@ -152,6 +160,8 @@ public struct PositionedVennDiagram: Sendable, Equatable {
     public var themeName: String?
     public var themeVariables: [String: String]?
     public var useDebugLayout: Bool
+    public var isHandDrawn: Bool
+    public var handDrawnSeed: Int
 
     public static var empty: PositionedVennDiagram {
         PositionedVennDiagram(
@@ -169,7 +179,9 @@ public struct PositionedVennDiagram: Sendable, Equatable {
         config: VennDiagramConfig,
         themeName: String? = nil,
         themeVariables: [String: String]? = nil,
-        useDebugLayout: Bool = false
+        useDebugLayout: Bool = false,
+        isHandDrawn: Bool = false,
+        handDrawnSeed: Int = 0
     ) {
         self.width = width
         self.height = height
@@ -184,6 +196,8 @@ public struct PositionedVennDiagram: Sendable, Equatable {
         self.themeName = themeName
         self.themeVariables = themeVariables
         self.useDebugLayout = useDebugLayout
+        self.isHandDrawn = isHandDrawn
+        self.handDrawnSeed = handDrawnSeed
     }
 
     public var scale: Double {
@@ -222,6 +236,8 @@ public struct PositionedVennArea: Sendable, Equatable {
     public var textColor: String
     public var textFontSize: Double
     public var colorClass: String
+    public var hasLabel: Bool
+    public var innerRadius: Double
     public var debugFlags: Bool
 
     public var isSingleSet: Bool { sets.count == 1 }
@@ -231,7 +247,7 @@ public struct PositionedVennArea: Sendable, Equatable {
         circles: [VennCircle], pathSpec: String?, textPoint: VennPoint,
         fillColor: String, fillOpacity: Double, strokeColor: String,
         strokeWidth: Double, textColor: String, textFontSize: Double,
-        colorClass: String, debugFlags: Bool = false
+        colorClass: String, hasLabel: Bool = false, innerRadius: Double = 30, debugFlags: Bool = false
     ) {
         self.setsKey = setsKey
         self.sets = sets
@@ -247,6 +263,8 @@ public struct PositionedVennArea: Sendable, Equatable {
         self.textColor = textColor
         self.textFontSize = textFontSize
         self.colorClass = colorClass
+        self.hasLabel = hasLabel
+        self.innerRadius = innerRadius
         self.debugFlags = debugFlags
     }
 }
@@ -260,12 +278,13 @@ public struct PositionedVennTextNode: Sendable, Equatable {
     public var width: Double
     public var height: Double
     public var textColor: String
+    public var fontSize: Double
     public var debugCell: Bool
 
     public init(
         areaKey: String, id: String, label: String?,
         x: Double, y: Double, width: Double, height: Double,
-        textColor: String, debugCell: Bool = false
+        textColor: String, fontSize: Double = 12, debugCell: Bool = false
     ) {
         self.areaKey = areaKey
         self.id = id
@@ -275,6 +294,7 @@ public struct PositionedVennTextNode: Sendable, Equatable {
         self.width = width
         self.height = height
         self.textColor = textColor
+        self.fontSize = fontSize
         self.debugCell = debugCell
     }
 }
