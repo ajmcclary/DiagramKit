@@ -190,6 +190,14 @@ public func parseKanbanDiagram(_ lines: [String], frontmatter: DiagramFrontmatte
 
     let sanitizedSections = sanitizedNodes.filter { $0.isGroup }
 
+    var seenIds = Set<String>()
+    for node in sanitizedNodes {
+        if seenIds.contains(node.id) {
+            print("[Kanban] Warning: duplicate node ID \"\(node.id)\"")
+        }
+        seenIds.insert(node.id)
+    }
+
     return KanbanDiagram(
         nodes: sanitizedNodes,
         sections: sanitizedSections,
@@ -379,17 +387,26 @@ func _parseSingleKanbanNode(
     var metaTicket: String? = nil
     var metaPriority: String? = nil
     var metaShape: String? = nil
+    var metaUnknown: [String: String]? = nil
 
     if let atIdx = remaining.range(of: "@{") {
         let beforeMeta = String(remaining[..<atIdx.lowerBound]).trimmingCharacters(in: .whitespacesAndNewlines)
         let metaStr = String(remaining[atIdx.lowerBound...])
         let meta = try parseKanbanMetadata(metaStr)
-        metaLabel = meta["label"]
-        metaIcon = meta["icon"]
-        metaAssigned = meta["assigned"]
-        metaTicket = meta["ticket"]
-        metaPriority = meta["priority"]
-        metaShape = meta["shape"]
+        let knownKeys: Set<String> = ["label", "icon", "assigned", "ticket", "priority", "shape"]
+        var unknown: [String: String] = [:]
+        for (k, v) in meta {
+            switch k {
+            case "label": metaLabel = v
+            case "icon": metaIcon = v
+            case "assigned": metaAssigned = v
+            case "ticket": metaTicket = v
+            case "priority": metaPriority = v
+            case "shape": metaShape = v
+            default: unknown[k] = v
+            }
+        }
+        if !unknown.isEmpty { metaUnknown = unknown }
         remaining = beforeMeta
     }
 
@@ -437,7 +454,8 @@ func _parseSingleKanbanNode(
             cssClasses: nil,
             width: 200,
             padding: 8,
-            isGroup: isSection
+            isGroup: isSection,
+            unknownMetadata: metaUnknown
         ),
         decorations: (icon: nil, css: nil)
     )

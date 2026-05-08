@@ -78,12 +78,15 @@ public func layoutKanbanDiagram(_ diagram: KanbanDiagram) -> PositionedKanbanDia
         }
     }
 
-    let totalWidth = sectionWidth * Double(diagram.sections.count) + (Double(diagram.sections.count - 1) * itemGap) / 2 + sectionWidth
+    let maxSectionRight = positionedSections.map { $0.x + $0.width / 2 }.max() ?? sectionWidth
     let maxSectionBottom = positionedSections.map { $0.y + $0.height }.max() ?? sectionWidth * 3
-    let totalHeight = maxSectionBottom + config.padding * 2
+    let maxCardBottom = positionedCards.map { $0.y + $0.height / 2 }.max() ?? maxSectionBottom
+    let contentBottom = max(maxSectionBottom, maxCardBottom)
+    let totalWidth = maxSectionRight + config.padding * 2
+    let totalHeight = contentBottom + config.padding * 2
 
     return PositionedKanbanDiagram(
-        width: totalWidth + config.padding * 2,
+        width: totalWidth,
         height: totalHeight,
         sections: positionedSections,
         cards: positionedCards,

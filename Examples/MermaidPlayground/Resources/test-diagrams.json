@@ -1809,6 +1809,12 @@
       "source": "kanban\n  root[\"String containing []\"]\n    child1[\"String containing ()\"]\n    child2[Ticketed]@{\n      ticket: MC-2038\n      assigned: K.Sveidqvist\n      priority: High\n    }\n    :::m-4 p-8\n    ::icon(bomb)"
     },
     {
+      "id": "kanban-full-board",
+      "category": "kanban",
+      "name": "Kanban - Full Board With Priorities",
+      "source": "kanban\n  Todo\n    [Create Documentation]\n    docs[Create Blog about the new diagram]\n  [In progress]\n    id6[Wrap long text across multiple lines to test layout]@{ priority: 'Very High', assigned: 'alice' }\n  id9[Ready for deploy]\n    id8[Design grammar]@{ assigned: 'knsv' }\n  id10[Ready for test]\n    id4[Create parsing tests]@{ ticket: MC-2038, assigned: 'K.Sveidqvist', priority: 'High' }\n    id66[last item]@{ priority: 'Very Low', assigned: 'knsv' }\n  id11[Done]\n    id5[define getData]\n    id2[Long long long long long title]@{ ticket: MC-2036, priority: 'Medium' }\n    id3[Update DB function]@{ ticket: MC-2037, assigned: knsv, priority: 'Low' }"
+    },
+    {
       "id": "architecture-basic",
       "category": "architecture",
       "name": "Architecture - Basic",
@@ -2285,7 +2291,7 @@
       "sankey": 10,
       "block": 12,
       "packet": 5,
-      "kanban": 3,
+      "kanban": 4,
       "architecture": 7,
       "radar": 10,
       "treemap": 10,

@@ -1,5 +1,7 @@
 import Foundation
 
+private let _kanbanThemeColorLimit = 10
+
 public func renderKanbanSvg(
     _ positioned: PositionedKanbanDiagram,
     diagramId: String,
@@ -12,6 +14,8 @@ public func renderKanbanSvg(
     let borderColor = colors.border ?? "#a1a1aa"
     let surfaceColor = colors.surface ?? bgColor
     let accentColor = colors.accent ?? borderColor
+
+    let sectionPalette = _kanbanSectionColorPalette(accent: accentColor, limit: _kanbanThemeColorLimit)
 
     var svg = ""
 
@@ -36,6 +40,8 @@ public func renderKanbanSvg(
         svg += "<desc>\(_escapeXml(accDescr))</desc>\n"
     }
 
+    svg += _kanbanSvgStyleBlock(bg: bgColor, border: borderColor, fg: fgColor, sectionPalette: sectionPalette, limit: _kanbanThemeColorLimit)
+
     if !transparent {
         svg += "<rect x=\"\(viewBoxX)\" y=\"\(viewBoxY)\" width=\"\(width)\" height=\"\(height)\" fill=\"\(bgColor)\"/>\n"
     }
@@ -48,9 +54,14 @@ public func renderKanbanSvg(
         let sh = Int(ceil(section.height))
         let sectionClass = section.cssClasses.map { "\($0) section-\(section.sectionIndex)" } ?? "section-\(section.sectionIndex)"
 
+        let paletteIdx = (section.sectionIndex - 1) % _kanbanThemeColorLimit
+        let sectionFill = sectionPalette.fill[paletteIdx]
+        let sectionStroke = sectionPalette.stroke[paletteIdx]
+        let sectionTextFill = sectionPalette.text[paletteIdx]
+
         svg += "<g id=\"\(_escapeXml(diagramId))-\(_escapeXml(section.id))\" class=\"cluster \(sectionClass)\">\n"
-        svg += "<rect x=\"\(sx)\" y=\"\(sy)\" width=\"\(sw)\" height=\"\(sh)\" rx=\"5\" ry=\"5\" fill=\"\(surfaceColor)\" stroke=\"\(borderColor)\" stroke-width=\"1\"/>\n"
-        svg += "<text x=\"\(Int(ceil(section.x)))\" y=\"\(sy + 25)\" text-anchor=\"middle\" dominant-baseline=\"middle\" fill=\"\(fgColor)\" font-family=\"\(font)\" font-size=\"14\">\(_escapeXml(section.label))</text>\n"
+        svg += "<rect x=\"\(sx)\" y=\"\(sy)\" width=\"\(sw)\" height=\"\(sh)\" rx=\"5\" ry=\"5\" fill=\"\(sectionFill)\" stroke=\"\(sectionStroke)\" stroke-width=\"1\"/>\n"
+        svg += "<text x=\"\(Int(ceil(section.x)))\" y=\"\(sy + 25)\" text-anchor=\"middle\" dominant-baseline=\"middle\" fill=\"\(sectionTextFill)\" font-family=\"\(font)\" font-size=\"14\">\(_escapeXml(section.label))</text>\n"
         svg += "</g>\n"
     }
     svg += "</g>\n"
@@ -78,7 +89,7 @@ public func renderKanbanSvg(
             svg += "<line x1=\"\(lineX)\" y1=\"\(y1)\" x2=\"\(lineX)\" y2=\"\(y2)\" stroke-width=\"4\" stroke=\"\(stripeColor)\"/>\n"
         }
 
-        svg += "<text x=\"\(cardLeft + 10)\" y=\"\(cardTop + 16)\" text-anchor=\"start\" fill=\"\(fgColor)\" font-family=\"\(font)\" font-size=\"12\" style=\"text-align:left\">\(_escapeXml(card.label))</text>\n"
+        svg += "<text x=\"\(cardLeft + 10)\" y=\"\(cardTop + 16)\" text-anchor=\"start\" fill=\"\(fgColor)\" font-family=\"\(font)\" font-size=\"12\" class=\"kanban-label\">\(_escapeXml(card.label))</text>\n"
 
         if let ticket = card.ticket {
             let baseUrl = positioned.config.ticketBaseUrl
@@ -101,6 +112,116 @@ public func renderKanbanSvg(
 
     svg += "</svg>"
     return svg
+}
+
+// MARK: - Style Block
+
+private struct _KanbanSectionPalette {
+    var fill: [String]
+    var stroke: [String]
+    var text: [String]
+}
+
+private func _kanbanSectionColorPalette(accent: String, limit: Int) -> _KanbanSectionPalette {
+    let baseColors: [(h: Double, s: Double, l: Double)] = [
+        (210, 0.55, 0.85),  // blue
+        (170, 0.50, 0.82),  // teal
+        (140, 0.48, 0.80),  // green
+        (45, 0.50, 0.82),   // amber
+        (30, 0.55, 0.80),   // orange
+        (0, 0.50, 0.88),    // rose
+        (280, 0.45, 0.85),  // violet
+        (320, 0.45, 0.85),  // pink
+        (195, 0.40, 0.88),  // sky
+        (10, 0.45, 0.82),   // coral
+    ]
+
+    var fills: [String] = []
+    var strokes: [String] = []
+    var texts: [String] = []
+
+    for i in 0..<limit {
+        let c = baseColors[i % baseColors.count]
+        let fillL = c.l + 0.06
+        let strokeL = c.l - 0.04
+        let textH = c.h
+        let textS = c.s * 0.6
+        let textL = 0.35
+        fills.append(_hslToHex(h: c.h, s: c.s, l: min(fillL, 0.93)))
+        strokes.append(_hslToHex(h: c.h, s: c.s, l: max(strokeL, 0.50)))
+        texts.append(_hslToHex(h: textH, s: textS, l: textL))
+    }
+
+    return _KanbanSectionPalette(fill: fills, stroke: strokes, text: texts)
+}
+
+private func _hslToHex(h: Double, s: Double, l: Double) -> String {
+    let hue = h / 360.0
+    let c = (1 - abs(2 * l - 1)) * s
+    let x = c * (1 - abs((hue * 6).truncatingRemainder(dividingBy: 2) - 1))
+    let m = l - c / 2
+
+    let (r, g, b): (Double, Double, Double)
+    switch Int(hue * 6) {
+    case 0: (r, g, b) = (c, x, 0)
+    case 1: (r, g, b) = (x, c, 0)
+    case 2: (r, g, b) = (0, c, x)
+    case 3: (r, g, b) = (0, x, c)
+    case 4: (r, g, b) = (x, 0, c)
+    default: (r, g, b) = (c, 0, x)
+    }
+
+    let ri = Int(round((r + m) * 255))
+    let gi = Int(round((g + m) * 255))
+    let bi = Int(round((b + m) * 255))
+
+    return String(format: "#%02X%02X%02X", min(max(ri, 0), 255), min(max(gi, 0), 255), min(max(bi, 0), 255))
+}
+
+private func _kanbanSvgStyleBlock(bg: String, border: String, fg: String, sectionPalette: _KanbanSectionPalette, limit: Int) -> String {
+    var css = "<style>\n"
+
+    css += """
+    .node rect,
+    .node circle,
+    .node ellipse,
+    .node polygon,
+    .node path {
+      fill: \(bg);
+      stroke: \(border);
+      stroke-width: 1px;
+    }
+    .kanban-ticket-link {
+      fill: \(bg);
+      stroke: \(border);
+      text-decoration: underline;
+    }
+    .kanban-label {
+      dy: 1em;
+      alignment-baseline: middle;
+      text-anchor: middle;
+      dominant-baseline: middle;
+      text-align: left;
+    }
+
+    """
+
+    for i in 0..<limit {
+        let idx = i + 1
+        css += """
+        .section-\(idx) rect, .section-\(idx) path, .section-\(idx) circle, .section-\(idx) polygon {
+          fill: \(sectionPalette.fill[i]);
+          stroke: \(sectionPalette.stroke[i]);
+        }
+        .section-\(idx) text {
+          fill: \(sectionPalette.text[i]);
+        }
+
+        """
+    }
+
+    css += "</style>\n"
+    return css
 }
 
 private struct KanbanSvgBounds {

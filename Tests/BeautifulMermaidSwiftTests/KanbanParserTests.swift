@@ -321,6 +321,88 @@ final class KanbanParserTests: XCTestCase {
         XCTAssertEqual(diagram.accDescr, "Board used for release tracking")
     }
 
+    func test_duplicateIdsAreNonFatal() throws {
+        let source = "kanban\n  S\n    card\n  T\n    card"
+        let diagram = try parseKanbanDiagram(rawLines(source), frontmatter: nil)
+        let cards = diagram.nodes.filter { !$0.isGroup }
+        XCTAssertEqual(cards.count, 2)
+    }
+
+    func test_duplicateIdsInSameSectionAreNonFatal() throws {
+        let source = "kanban\n  S\n    card\n    card"
+        let diagram = try parseKanbanDiagram(rawLines(source), frontmatter: nil)
+        let cards = diagram.nodes.filter { !$0.isGroup }
+        XCTAssertEqual(cards.count, 2)
+    }
+
+    func test_unknownMetadataKeyPreserved() throws {
+        let source = "kanban\n  S\n    card1@{ customField: 'myValue', extra: 42 }"
+        let diagram = try parseKanbanDiagram(rawLines(source), frontmatter: nil)
+        let card = diagram.nodes.first { !$0.isGroup }
+        XCTAssertNotNil(card?.unknownMetadata)
+        XCTAssertEqual(card?.unknownMetadata?["customField"], "myValue")
+        XCTAssertEqual(card?.unknownMetadata?["extra"], "42")
+    }
+
+    func test_unknownMetadataIsNilWhenAllKeysAreKnown() throws {
+        let source = "kanban\n  S\n    card1@{ priority: High }"
+        let diagram = try parseKanbanDiagram(rawLines(source), frontmatter: nil)
+        let card = diagram.nodes.first { !$0.isGroup }
+        XCTAssertNil(card?.unknownMetadata)
+    }
+
+    func test_veryHighPriority() throws {
+        let source = "kanban\n  S\n    card1@{ priority: 'Very High' }"
+        let diagram = try parseKanbanDiagram(rawLines(source), frontmatter: nil)
+        let card = diagram.nodes.first { !$0.isGroup }
+        XCTAssertEqual(card?.priority, "Very High")
+    }
+
+    func test_veryLowPriority() throws {
+        let source = "kanban\n  S\n    card1@{ priority: 'Very Low' }"
+        let diagram = try parseKanbanDiagram(rawLines(source), frontmatter: nil)
+        let card = diagram.nodes.first { !$0.isGroup }
+        XCTAssertEqual(card?.priority, "Very Low")
+    }
+
+    func test_mediumPriority() throws {
+        let source = "kanban\n  S\n    card1@{ priority: Medium }"
+        let diagram = try parseKanbanDiagram(rawLines(source), frontmatter: nil)
+        let card = diagram.nodes.first { !$0.isGroup }
+        XCTAssertEqual(card?.priority, "Medium")
+    }
+
+    func test_docsFullExample() throws {
+        let source = """
+        kanban
+          Todo
+            [Create Documentation]
+            docs[Create Blog about the new diagram]
+          [In progress]
+            id6[Create renderer so that it works in all cases. We also add some extra text here for testing purposes. And some more just for the extra flare.]
+          id9[Ready for deploy]
+            id8[Design grammar]@{ assigned: 'knsv' }
+          id10[Ready for test]
+            id4[Create parsing tests]@{ ticket: MC-2038, assigned: 'K.Sveidqvist', priority: 'High' }
+            id66[last item]@{ priority: 'Very Low', assigned: 'knsv' }
+          id11[Done]
+            id5[define getData]
+            id2[Title of diagram is more than 100 chars when user duplicates diagram with 100 char]@{ ticket: MC-2036, priority: 'Very High'}
+            id3[Update DB function]@{ ticket: MC-2037, assigned: knsv, priority: 'High' }
+
+          id12[Can't reproduce]
+            id3[Weird flickering in Firefox]
+        """
+        let diagram = try parseKanbanDiagram(rawLines(source), frontmatter: nil)
+        XCTAssertEqual(diagram.sections.count, 6)
+        let cards = diagram.nodes.filter { !$0.isGroup }
+        XCTAssertEqual(cards.count, 10)
+        let readyForTest = diagram.sections.first { $0.id == "id10" }
+        XCTAssertNotNil(readyForTest)
+        let readyCards = cards.filter { $0.parentId == "id10" }
+        XCTAssertEqual(readyCards.count, 2)
+    }
+
     func test_frontmatterTitleIsPreservedWhenInlineTitleAbsent() throws {
         let source = "kanban\n  Todo"
         var frontmatter = DiagramFrontmatter(title: "Frontmatter Board")

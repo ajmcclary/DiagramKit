@@ -83,6 +83,34 @@ final class KanbanRendererTests: XCTestCase {
         XCTAssertFalse(svg.contains("stroke=\"orange\""))
     }
 
+    func test_veryLowPriorityRendersLightblueStripe() throws {
+        let source = "kanban\n  S\n    card1@{ priority: 'Very Low' }"
+        let diagram = try parseKanbanDiagram(rawLines(source), frontmatter: nil)
+        let positioned = layoutKanbanDiagram(diagram)
+        let colors = DiagramColors(bg: "#fff", fg: "#000")
+        let svg = try renderKanbanSvg(positioned, diagramId: "test", colors, "Inter", false)
+        XCTAssertTrue(svg.contains("lightblue"))
+    }
+
+    func test_mediumPriorityRendersNoStripe() throws {
+        let source = "kanban\n  S\n    card1@{ priority: Medium }"
+        let diagram = try parseKanbanDiagram(rawLines(source), frontmatter: nil)
+        let positioned = layoutKanbanDiagram(diagram)
+        let colors = DiagramColors(bg: "#fff", fg: "#000")
+        let svg = try renderKanbanSvg(positioned, diagramId: "test", colors, "Inter", false)
+        let cardArea = svg.range(of: "class=\"node\"").map { String(svg[$0.lowerBound..<svg.endIndex]) } ?? svg
+        XCTAssertFalse(cardArea.contains("<line"))
+    }
+
+    func test_veryHighPriorityRendersRedStripe() throws {
+        let source = "kanban\n  S\n    card1@{ priority: 'Very High' }"
+        let diagram = try parseKanbanDiagram(rawLines(source), frontmatter: nil)
+        let positioned = layoutKanbanDiagram(diagram)
+        let colors = DiagramColors(bg: "#fff", fg: "#000")
+        let svg = try renderKanbanSvg(positioned, diagramId: "test", colors, "Inter", false)
+        XCTAssertTrue(svg.contains("red"))
+    }
+
     func test_ticketLinkWithBaseUrl() throws {
         var config = KanbanDiagramConfig()
         config.ticketBaseUrl = "https://jira.example.com/browse/#TICKET#"
@@ -137,6 +165,52 @@ final class KanbanRendererTests: XCTestCase {
         XCTAssertFalse(svg.contains("flowchart"))
     }
 
+    func test_svgStyleBlockIsEmitted() throws {
+        let source = "kanban\n  S1\n  S2"
+        let diagram = try parseKanbanDiagram(rawLines(source), frontmatter: nil)
+        let positioned = layoutKanbanDiagram(diagram)
+        let colors = DiagramColors(bg: "#fff", fg: "#000")
+        let svg = try renderKanbanSvg(positioned, diagramId: "test", colors, "Inter", false)
+        XCTAssertTrue(svg.contains("<style>"))
+        XCTAssertTrue(svg.contains(".kanban-ticket-link"))
+        XCTAssertTrue(svg.contains(".kanban-label"))
+        XCTAssertTrue(svg.contains(".node rect"))
+    }
+
+    func test_styleBlockHasPerSectionColors() throws {
+        let source = "kanban\n  S1\n  S2\n  S3"
+        let diagram = try parseKanbanDiagram(rawLines(source), frontmatter: nil)
+        let positioned = layoutKanbanDiagram(diagram)
+        let colors = DiagramColors(bg: "#fff", fg: "#000")
+        let svg = try renderKanbanSvg(positioned, diagramId: "test", colors, "Inter", false)
+        XCTAssertTrue(svg.contains(".section-1 rect"))
+        XCTAssertTrue(svg.contains(".section-2 rect"))
+        XCTAssertTrue(svg.contains(".section-3 rect"))
+    }
+
+    func test_perSectionInlinedFillsAreDistinct() throws {
+        let source = "kanban\n  A\n  B\n  C"
+        let diagram = try parseKanbanDiagram(rawLines(source), frontmatter: nil)
+        let positioned = layoutKanbanDiagram(diagram)
+        let colors = DiagramColors(bg: "#fff", fg: "#000")
+        let svg = try renderKanbanSvg(positioned, diagramId: "test", colors, "Inter", false)
+
+        var fills: [String] = []
+        var searchStart = svg.startIndex
+        while let rectRange = svg.range(of: "cluster section-", range: searchStart..<svg.endIndex) {
+            guard let fillStart = svg.range(of: "fill=\"", range: rectRange.upperBound..<svg.endIndex) else { break }
+            let afterQuote = svg.index(after: fillStart.upperBound)
+            guard let fillEnd = svg.range(of: "\"", range: afterQuote..<svg.endIndex) else { break }
+            fills.append(String(svg[afterQuote..<fillEnd.lowerBound]))
+            searchStart = fillEnd.upperBound
+        }
+
+        XCTAssertEqual(fills.count, 3)
+        XCTAssertNotEqual(fills[0], fills[1])
+        XCTAssertNotEqual(fills[1], fills[2])
+        XCTAssertNotEqual(fills[0], fills[2])
+    }
+
     func test_useMaxWidthAffectsRootSvgSizing() throws {
         var config = KanbanDiagramConfig()
         config.useMaxWidth = true
@@ -164,6 +238,26 @@ final class KanbanRendererTests: XCTestCase {
         XCTAssertFalse(svg.contains("xlink:href"))
         XCTAssertFalse(svg.localizedCaseInsensitiveContains("javascript:"))
         XCTAssertTrue(svg.contains("MC-1234"))
+    }
+
+    func test_fullPipelineMultiSectionEndToEnd() async throws {
+        let source = """
+        kanban
+          Todo
+            [Create Documentation]
+          In Progress
+            [Write Tests]
+        """
+        let svg = try await renderMermaidSVG(source, RenderOptions())
+        XCTAssertTrue(svg.hasPrefix("<svg"))
+        XCTAssertTrue(svg.hasSuffix("</svg>"))
+        XCTAssertTrue(svg.contains("class=\"sections\""))
+        XCTAssertTrue(svg.contains("class=\"items\""))
+        XCTAssertTrue(svg.contains("<style>"))
+        XCTAssertTrue(svg.contains(".section-1"))
+        XCTAssertTrue(svg.contains(".section-2"))
+        XCTAssertFalse(svg.contains("flowchart"))
+        XCTAssertFalse(svg.contains("statediagram"))
     }
 
     func test_coreGraphicsPriorityStripeIsVisible() throws {

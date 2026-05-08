@@ -58,6 +58,25 @@ final class KanbanLayoutTests: XCTestCase {
         XCTAssertGreaterThan(positioned.height, 0)
     }
 
+    func test_totalWidthMatchesContentBounds() throws {
+        let source = "kanban\n  A\n    a\n  B\n    b"
+        let diagram = try parseKanbanDiagram(rawLines(source), frontmatter: nil)
+        let positioned = layoutKanbanDiagram(diagram)
+        let expectedRightEdge = positioned.sections.last!.x + positioned.sections.last!.width / 2
+        let expectedWidth = expectedRightEdge + diagram.config.padding * 2
+        XCTAssertEqual(positioned.width, expectedWidth)
+    }
+
+    func test_totalHeightMatchesContentBounds() throws {
+        let source = "kanban\n  S\n    card1\n    card2\n    card3"
+        let diagram = try parseKanbanDiagram(rawLines(source), frontmatter: nil)
+        let positioned = layoutKanbanDiagram(diagram)
+        let sectionBottom = positioned.sections.map { $0.y + $0.height }.max() ?? 0
+        let cardBottom = positioned.cards.map { $0.y + $0.height / 2 }.max() ?? 0
+        let expectedHeight = max(sectionBottom, cardBottom) + diagram.config.padding * 2
+        XCTAssertEqual(positioned.height, expectedHeight)
+    }
+
     func test_configPaddingDoesNotChangeCardWidthOrColumnGap() throws {
         let source = "kanban\n  A\n    a\n  B\n    b"
         var frontmatterA = DiagramFrontmatter()

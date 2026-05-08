@@ -24,6 +24,7 @@ public struct KanbanNode: Sendable, Equatable {
     public var width: Double
     public var padding: Double
     public var isGroup: Bool
+    public var unknownMetadata: [String: String]?
 }
 
 public struct KanbanDiagram: Sendable, Equatable {
