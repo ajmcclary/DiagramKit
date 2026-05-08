@@ -33,7 +33,7 @@ public struct MermaidDiagram {
         }
 
         do {
-            let prepared = try await MermaidPipeline.shared.prepare(
+            let prepared = try MermaidPipeline.prepare(
                 source: source,
                 theme: theme,
                 layoutConfig: layoutConfig

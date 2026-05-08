@@ -20,6 +20,15 @@ extension DiagramRenderer {
         let contentWidth = pg.width
         let contentHeight = pg.height
 
+        // Theme-derived colors
+        let lineColor = theme.effectiveLine().cgColor
+        let surfaceColor = theme.effectiveSurface().cgColor
+        let borderColor = theme.effectiveBorder().cgColor
+        let accentColor = theme.effectiveAccent().cgColor
+        let mutedColor = theme.effectiveMuted().cgColor
+        let bgColor = theme.background.cgColor
+        let textColor = theme.foreground
+
         _withFittedContext(context, bounds: bounds, contentWidth: max(1, contentWidth), contentHeight: max(1, contentHeight)) { ctx in
 
             let useReduxGeometry = _gitGraphIsReduxGeometry(pg.themeName)
@@ -39,7 +48,7 @@ extension DiagramRenderer {
                     at: CGPoint(x: title.x, y: title.y),
                     context: ctx,
                     contentHeight: contentHeight,
-                    color: .darkGray,
+                    color: textColor,
                     font: _monoFont(size: 18),
                     alignment: .center
                 )
@@ -50,7 +59,7 @@ extension DiagramRenderer {
             if pg.config.showBranches {
                 for bl in pg.branchLines {
                     ctx.saveGState()
-                    ctx.setStrokeColor(CGColor(gray: 0.6, alpha: 1))
+                    ctx.setStrokeColor(mutedColor)
                     ctx.setLineWidth(1)
                     ctx.setLineDash(phase: 0, lengths: [4, 2])
                     ctx.move(to: CGPoint(x: bl.x1, y: bl.y1))
@@ -65,10 +74,10 @@ extension DiagramRenderer {
                 ctx.saveGState()
                 let rect = CGRect(x: bl.x + bl.bkgX, y: bl.y + bl.bkgY, width: bl.bkgWidth, height: bl.bkgHeight)
                 let roundedPath = CGPath(roundedRect: rect, cornerWidth: bl.borderRadius, cornerHeight: bl.borderRadius, transform: nil)
-                ctx.setFillColor(CGColor(gray: 0.95, alpha: 1))
+                ctx.setFillColor(surfaceColor)
                 ctx.addPath(roundedPath)
                 ctx.fillPath()
-                ctx.setStrokeColor(CGColor(gray: 0.7, alpha: 1))
+                ctx.setStrokeColor(borderColor)
                 ctx.addPath(roundedPath)
                 ctx.strokePath()
 
@@ -77,7 +86,7 @@ extension DiagramRenderer {
                     at: CGPoint(x: bl.x, y: bl.y),
                     context: ctx,
                     contentHeight: contentHeight,
-                    color: .darkGray,
+                    color: textColor,
                     font: _monoFont(size: 12),
                     alignment: .center
                 )
@@ -94,23 +103,23 @@ extension DiagramRenderer {
                 switch effectiveType {
                 case .highlight:
                     let outerRect = CGRect(x: cx - 10 + highlightOuterOffset, y: cy - 10 + highlightOuterOffset, width: highlightOuterSize, height: highlightOuterSize)
-                    ctx.setFillColor(CGColor(gray: 0.3, alpha: 1))
+                    ctx.setFillColor(lineColor)
                     ctx.fill(outerRect)
                     let innerRect = CGRect(x: cx - 6 + highlightInnerOffset, y: cy - 6 + highlightInnerOffset, width: highlightInnerSize, height: highlightInnerSize)
-                    ctx.setFillColor(CGColor(gray: 0.7, alpha: 1))
+                    ctx.setFillColor(accentColor)
                     ctx.fill(innerRect)
 
                 case .cherryPick:
-                    ctx.setFillColor(CGColor(gray: 0.3, alpha: 1))
+                    ctx.setFillColor(lineColor)
                     ctx.addArc(center: CGPoint(x: cx, y: cy), radius: bulletRadius, startAngle: 0, endAngle: .pi * 2, clockwise: true)
                     ctx.fillPath()
-                    ctx.setFillColor(.white)
+                    ctx.setFillColor(bgColor)
                     let dotR: CGFloat = useReduxGeometry ? 2.5 : 2.75
                     ctx.addArc(center: CGPoint(x: cx - 3, y: cy + 2), radius: dotR, startAngle: 0, endAngle: .pi * 2, clockwise: true)
                     ctx.fillPath()
                     ctx.addArc(center: CGPoint(x: cx + 3, y: cy + 2), radius: dotR, startAngle: 0, endAngle: .pi * 2, clockwise: true)
                     ctx.fillPath()
-                    ctx.setStrokeColor(.white)
+                    ctx.setStrokeColor(bgColor)
                     ctx.setLineWidth(1.5)
                     ctx.move(to: CGPoint(x: cx + 3, y: cy + 1))
                     ctx.addLine(to: CGPoint(x: cx, y: cy - 5))
@@ -120,15 +129,15 @@ extension DiagramRenderer {
                     ctx.strokePath()
 
                 case .merge:
-                    ctx.setFillColor(CGColor(gray: 0.3, alpha: 1))
+                    ctx.setFillColor(lineColor)
                     ctx.addArc(center: CGPoint(x: cx, y: cy), radius: bulletRadius, startAngle: 0, endAngle: .pi * 2, clockwise: true)
                     ctx.fillPath()
-                    ctx.setFillColor(.white)
+                    ctx.setFillColor(bgColor)
                     ctx.addArc(center: CGPoint(x: cx, y: cy), radius: innerRadius, startAngle: 0, endAngle: .pi * 2, clockwise: true)
                     ctx.fillPath()
 
                 case .reverse:
-                    ctx.setStrokeColor(CGColor(gray: 0.3, alpha: 1))
+                    ctx.setStrokeColor(lineColor)
                     ctx.setLineWidth(2)
                     ctx.addArc(center: CGPoint(x: cx, y: cy), radius: bulletRadius, startAngle: 0, endAngle: .pi * 2, clockwise: true)
                     ctx.strokePath()
@@ -140,7 +149,7 @@ extension DiagramRenderer {
                     ctx.strokePath()
 
                 default:
-                    ctx.setFillColor(CGColor(gray: 0.3, alpha: 1))
+                    ctx.setFillColor(lineColor)
                     ctx.addArc(center: CGPoint(x: cx, y: cy), radius: bulletRadius, startAngle: 0, endAngle: .pi * 2, clockwise: true)
                     ctx.fillPath()
                 }
@@ -156,14 +165,14 @@ extension DiagramRenderer {
                     let lx = commit.x - Double(labelText.count) * 4
                     let ly = commit.y + 20
                     let bgRect = CGRect(x: lx - 4, y: ly - 4, width: Double(labelText.count) * 8 + 8, height: 18)
-                    ctx.setFillColor(CGColor(gray: 0.95, alpha: 1))
+                    ctx.setFillColor(surfaceColor)
                     ctx.fill(bgRect)
                     _drawTextInFlipped(
                         labelText,
                         at: CGPoint(x: lx + 4, y: ly + 10),
                         context: ctx,
                         contentHeight: contentHeight,
-                        color: .darkGray,
+                        color: textColor,
                         font: _monoFont(size: 10),
                         alignment: .left
                     )
@@ -186,10 +195,10 @@ extension DiagramRenderer {
                     tagPath.addLine(to: CGPoint(x: tagX + 18 + Double(tag.count) * 6, y: tagOffsetY + 4))
                     tagPath.addLine(to: CGPoint(x: tagX + 10, y: tagOffsetY + 4))
                     tagPath.addLine(to: CGPoint(x: tagX + 8, y: tagOffsetY))
-                    ctx.setFillColor(CGColor(gray: 0.9, alpha: 1))
+                    ctx.setFillColor(surfaceColor)
                     ctx.addPath(tagPath)
                     ctx.fillPath()
-                    ctx.setStrokeColor(CGColor(gray: 0.6, alpha: 1))
+                    ctx.setStrokeColor(borderColor)
                     ctx.setLineWidth(0.5)
                     ctx.addPath(tagPath)
                     ctx.strokePath()
@@ -199,7 +208,7 @@ extension DiagramRenderer {
                         at: CGPoint(x: tagX + 10, y: tagOffsetY),
                         context: ctx,
                         contentHeight: contentHeight,
-                        color: .darkGray,
+                        color: textColor,
                         font: _monoFont(size: 8),
                         alignment: .left
                     )
@@ -211,7 +220,7 @@ extension DiagramRenderer {
             // Arrows
             for arrow in pg.arrows {
                 ctx.saveGState()
-                ctx.setStrokeColor(CGColor(gray: 0.4, alpha: 1))
+                ctx.setStrokeColor(lineColor)
                 ctx.setLineWidth(1.5)
                 var first = true
                 for segment in arrow.segments {

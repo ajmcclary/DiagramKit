@@ -106,6 +106,41 @@ public struct RenderConfig: Sendable {
     public var erMinWidth: CGFloat = 140
     public var erAttrFontSize: CGFloat = 11
 
+    // MARK: - Font Resolution
+
+    /// Default font family name for deterministic rendering.
+    ///
+    /// When a bundled font is available, set this to the PostScript name of the
+    /// embedded font (e.g. "Inter-Regular"). Falls back to the system monospace
+    /// font (Menlo) for predictable glyph metrics across macOS versions.
+    public var defaultFontFamily: String? = nil
+
+    /// Resolves a font for the given size, preferring the bundled family when set.
+    public func defaultFont(size: CGFloat, weight: Int = 400) -> BMFont {
+        if let family = defaultFontFamily,
+           let named = BMFont(name: family, size: size) {
+            return named
+        }
+        #if targetEnvironment(macCatalyst) || canImport(UIKit)
+        return UIFont.monospacedSystemFont(ofSize: size, weight: UIFont.Weight(CGFloat(weight) / 1000.0 * CGFloat(UIFont.Weight.regular.rawValue)))
+        #elseif canImport(AppKit)
+        return NSFont.monospacedSystemFont(ofSize: size, weight: NSFont.Weight(CGFloat(weight) / 1000.0 * CGFloat(NSFont.Weight.regular.rawValue)))
+        #endif
+    }
+
+    /// Resolves a proportional (non-monospace) font for the given size and weight.
+    public func proportionalFont(size: CGFloat, weight: Int = 400) -> BMFont {
+        if let family = defaultFontFamily,
+           let named = BMFont(name: family, size: size) {
+            return named
+        }
+        #if targetEnvironment(macCatalyst) || canImport(UIKit)
+        return UIFont.systemFont(ofSize: size, weight: UIFont.Weight(CGFloat(weight) / 1000.0 * CGFloat(UIFont.Weight.regular.rawValue)))
+        #elseif canImport(AppKit)
+        return NSFont.systemFont(ofSize: size, weight: NSFont.Weight(CGFloat(weight) / 1000.0 * CGFloat(NSFont.Weight.regular.rawValue)))
+        #endif
+    }
+
     // MARK: - Initialization
 
     public init() {}

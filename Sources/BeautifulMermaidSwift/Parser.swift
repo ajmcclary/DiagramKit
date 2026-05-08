@@ -241,7 +241,7 @@ public enum MermaidParser {
 
             // Flowchart + stateDiagram-v2 — pass frontmatter flowchart config
             let parsed = try parseMermaid(processed, config: frontmatter?.flowchartConfig)
-            let parsedType: DiagramType = firstLine.hasPrefix("statediagram") ? .stateDiagram : .flowchart
+            let parsedType: DiagramType = (firstLine.hasPrefix("statediagram") || firstLine == "state") ? .stateDiagram : .flowchart
             switch parsed.payload {
             case .flowchart(let model), .stateDiagram(let model):
                 return MermaidGraph(payload: parsedType == .stateDiagram ? .stateDiagram(model) : .flowchart(model))

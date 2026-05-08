@@ -10,13 +10,22 @@ import AppKit
 
 /// Main entry point for parsing, layout, and rendering Mermaid diagrams.
 public struct MermaidRenderer {
-    public static let version = "0.1.1"
+    /// Library version. Set via the `VERSION` file at the package root or `git describe --tags`.
+    /// To update: edit the `VERSION` file or tag a release commit.
+    public static let version: String = {
+        if let url = Bundle.module.url(forResource: "VERSION", withExtension: nil),
+           let v = try? String(contentsOf: url, encoding: .utf8).trimmingCharacters(in: .whitespacesAndNewlines),
+           !v.isEmpty {
+            return v
+        }
+        return "0.1.1"
+    }()
     public static let supportedDiagramTypes: [DiagramType] = DiagramType.allCases
 
     /// Parse a Mermaid diagram.
     public static func parse(_ source: String) async throws -> MermaidGraph {
         try await _runOnWorker {
-            try MermaidPipeline.shared.parseSync(source)
+            try MermaidPipeline.parse(source)
         }
     }
 
@@ -26,7 +35,7 @@ public struct MermaidRenderer {
         config: LayoutConfig = LayoutConfig()
     ) async throws -> PositionedGraph {
         try await _runOnWorker {
-            try MermaidPipeline.shared.layoutSync(source, config: config)
+            try MermaidPipeline.layout(source, config: config)
         }
     }
 
@@ -37,7 +46,7 @@ public struct MermaidRenderer {
         layoutConfig: LayoutConfig = LayoutConfig()
     ) async throws -> PreparedDiagram {
         try await _runOnWorker {
-            try MermaidPipeline.shared.prepareSync(
+            try MermaidPipeline.prepare(
                 source: source,
                 theme: theme,
                 layoutConfig: layoutConfig
@@ -86,7 +95,7 @@ public struct MermaidRenderer {
         theme: DiagramTheme = .default
     ) async throws -> String {
         try await _runOnWorker {
-            try MermaidPipeline.shared.renderSVGSync(source: source, theme: theme)
+            try MermaidPipeline.renderSVG(source: source, theme: theme)
         }
     }
 
@@ -96,11 +105,11 @@ public struct MermaidRenderer {
         theme: DiagramTheme = .default
     ) async throws -> String {
         try await _runOnWorker {
-            try MermaidPipeline.shared.renderASCIISync(source: source, theme: theme)
+            try MermaidPipeline.renderASCII(source: source, theme: theme)
         }
     }
 
-    private static func _runOnWorker<T: Sendable>(
+    static func _runOnWorker<T: Sendable>(
         _ work: @escaping @Sendable () throws -> T
     ) async throws -> T {
         try await withCheckedThrowingContinuation { continuation in

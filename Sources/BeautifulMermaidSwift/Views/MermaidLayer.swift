@@ -165,14 +165,12 @@ public class MermaidLayer: CALayer {
         let theme = theme
         let layoutConfig = layoutConfig
 
-        let pipeline = MermaidPipeline.shared
-
         preparationTask = Task { [weak self] in
             do {
                 let prepared = try await withCheckedThrowingContinuation { continuation in
                     let thread = Thread {
                         do {
-                            let result = try pipeline.prepareSync(
+                            let result = try MermaidPipeline.prepare(
                                 source: source,
                                 theme: theme,
                                 layoutConfig: layoutConfig

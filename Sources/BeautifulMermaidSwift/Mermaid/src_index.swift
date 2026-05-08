@@ -652,7 +652,7 @@ public func renderMermaidSVG(
     _ options: RenderOptions = RenderOptions()
 ) async throws -> String {
     try await _runMermaidSVGWorker {
-        try MermaidPipeline.shared.renderSVGSync(text, options: options)
+        try MermaidPipeline.renderSVG(text, options: options)
     }
 }
 

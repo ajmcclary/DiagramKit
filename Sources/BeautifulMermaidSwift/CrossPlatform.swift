@@ -102,11 +102,20 @@ extension NSImage {
 // MARK: - BMColor Extensions
 
 extension BMColor {
+    /// Initialize a color from a hex string.
+    ///
+    /// Supported formats: `"#RGB"`, `"#RRGGBB"`, `"#RRGGBBAA"`, with or without the `#` prefix.
+    /// Invalid input defaults to opaque black and reports an issue via `_reportMermaidIssue`.
     public convenience init(hex: String) {
         var raw = hex.trimmingCharacters(in: .whitespacesAndNewlines)
         raw = raw.replacingOccurrences(of: "#", with: "")
         var value: UInt64 = 0
-        Scanner(string: raw).scanHexInt64(&value)
+        let scanned = Scanner(string: raw).scanHexInt64(&value)
+        let valid = scanned && (raw.count == 6 || raw.count == 8)
+
+        if !valid {
+            _reportMermaidIssue("BMColor(hex:) received invalid hex string: \"\(hex)\" — defaulting to opaque black.")
+        }
 
         let r, g, b, a: CGFloat
         switch raw.count {
@@ -135,10 +144,12 @@ extension BMColor {
         getRed(&r1, green: &g1, blue: &b1, alpha: &a1)
         other.getRed(&r2, green: &g2, blue: &b2, alpha: &a2)
         #elseif canImport(AppKit)
-        if let c1 = usingColorSpace(.deviceRGB), let c2 = other.usingColorSpace(.deviceRGB) {
-            c1.getRed(&r1, green: &g1, blue: &b1, alpha: &a1)
-            c2.getRed(&r2, green: &g2, blue: &b2, alpha: &a2)
+        guard let c1 = usingColorSpace(.deviceRGB),
+              let c2 = other.usingColorSpace(.deviceRGB) else {
+            return false
         }
+        c1.getRed(&r1, green: &g1, blue: &b1, alpha: &a1)
+        c2.getRed(&r2, green: &g2, blue: &b2, alpha: &a2)
         #endif
         return r1 == r2 && g1 == g2 && b1 == b2 && a1 == a2
     }
@@ -162,10 +173,12 @@ extension BMColor {
         getRed(&r1, green: &g1, blue: &b1, alpha: &a1)
         other.getRed(&r2, green: &g2, blue: &b2, alpha: &a2)
         #elseif canImport(AppKit)
-        if let c1 = usingColorSpace(.deviceRGB), let c2 = other.usingColorSpace(.deviceRGB) {
-            c1.getRed(&r1, green: &g1, blue: &b1, alpha: &a1)
-            c2.getRed(&r2, green: &g2, blue: &b2, alpha: &a2)
+        guard let c1 = usingColorSpace(.deviceRGB),
+              let c2 = other.usingColorSpace(.deviceRGB) else {
+            return self
         }
+        c1.getRed(&r1, green: &g1, blue: &b1, alpha: &a1)
+        c2.getRed(&r2, green: &g2, blue: &b2, alpha: &a2)
         #endif
 
         let t = max(0, min(1, amount))
