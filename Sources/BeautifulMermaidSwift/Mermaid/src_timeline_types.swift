@@ -366,6 +366,8 @@ public struct PositionedTimelineDiagram: Sendable {
     public var diagramTitle: String?
     public var config: TimelineDiagramConfig
     public var theme: TimelineThemeConfig
+    public var look: String?
+    public var themeName: String?
 
     public init(
         width: Double = 0,
@@ -381,7 +383,9 @@ public struct PositionedTimelineDiagram: Sendable {
         accDescr: String? = nil,
         diagramTitle: String? = nil,
         config: TimelineDiagramConfig = .default,
-        theme: TimelineThemeConfig = .default
+        theme: TimelineThemeConfig = .default,
+        look: String? = nil,
+        themeName: String? = nil
     ) {
         self.width = width
         self.height = height
@@ -397,6 +401,8 @@ public struct PositionedTimelineDiagram: Sendable {
         self.diagramTitle = diagramTitle
         self.config = config
         self.theme = theme
+        self.look = look
+        self.themeName = themeName
     }
 
     public static var empty: PositionedTimelineDiagram {

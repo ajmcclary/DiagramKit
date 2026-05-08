@@ -14,22 +14,32 @@ extension DiagramRenderer {
             let fontSize = CGFloat(timeline.config.taskFontSize)
             let font = BMFont.systemFont(ofSize: fontSize, weight: .regular)
             let titleFont = BMFont.systemFont(ofSize: 18, weight: .bold)
+            let isNeo = timeline.look == "neo"
+            let themeName = timeline.themeName ?? ""
+            let isRedux = themeName.contains("redux")
+            let cornerRadius: CGFloat = isRedux ? 0 : 3
 
             // 1. Section nodes
             for section in timeline.sections {
                 let sectionRect = CGRect(x: section.x, y: section.y, width: section.width, height: section.height)
-                let path = BMBezierPath(roundedRect: sectionRect, cornerRadius: 3)
+                let path = BMBezierPath(roundedRect: sectionRect, cornerRadius: cornerRadius)
 
                 let colorIdx = section.colorIndex % max(1, theme.cScale.count)
-                if let fillColor = _thexToCGColor(theme.cScale[colorIdx]) {
+                let fillHex = isNeo ? theme.mainBkg : theme.cScale[colorIdx]
+                if let fillColor = _thexToCGColor(fillHex) {
                     ctx.setFillColor(fillColor)
                 } else {
                     ctx.setFillColor(self.theme.effectiveSurface().cgColor)
                 }
+
+                if isRedux && isNeo {
+                    ctx.setShadow(offset: CGSize(width: 4, height: 4), blur: 0, color: CGColor(red: 0, green: 0, blue: 0, alpha: 0.06))
+                }
                 ctx.addPath(path.bm_cgPath)
                 ctx.fillPath()
+                ctx.setShadow(offset: .zero, blur: 0, color: nil)
 
-                let textColor = _thexToColor(theme.cScaleLabel[colorIdx]) ?? self.theme.foreground
+                let textColor = _thexToColor(isNeo ? theme.nodeBorder : theme.cScaleLabel[colorIdx]) ?? self.theme.foreground
                 self._drawTextInFlipped(
                     section.text,
                     at: CGPoint(x: section.x + section.width / 2, y: section.y + section.height / 2),
@@ -43,27 +53,35 @@ extension DiagramRenderer {
             // 2. Task nodes
             for task in timeline.tasks {
                 let taskRect = CGRect(x: task.x, y: task.y, width: task.width, height: task.height)
-                let path = BMBezierPath(roundedRect: taskRect, cornerRadius: 3)
+                let path = BMBezierPath(roundedRect: taskRect, cornerRadius: cornerRadius)
 
                 let colorIdx = task.colorIndex % max(1, theme.cScale.count)
-                if let fillColor = _thexToCGColor(theme.cScale[colorIdx]) {
+                let fillHex = isNeo ? theme.mainBkg : theme.cScale[colorIdx]
+                if let fillColor = _thexToCGColor(fillHex) {
                     ctx.setFillColor(fillColor)
                 } else {
                     ctx.setFillColor(self.theme.effectiveSurface().cgColor)
                 }
+
+                if isRedux && isNeo {
+                    ctx.setShadow(offset: CGSize(width: 4, height: 4), blur: 0, color: CGColor(red: 0, green: 0, blue: 0, alpha: 0.06))
+                }
                 ctx.addPath(path.bm_cgPath)
                 ctx.fillPath()
+                ctx.setShadow(offset: .zero, blur: 0, color: nil)
 
-                // Bottom accent line
-                if let lineColor = _thexToCGColor(theme.cScaleInv[colorIdx]) {
-                    ctx.setStrokeColor(lineColor)
-                    ctx.setLineWidth(3)
-                    ctx.move(to: CGPoint(x: task.x, y: task.y + task.height))
-                    ctx.addLine(to: CGPoint(x: task.x + task.width, y: task.y + task.height))
-                    ctx.strokePath()
+                // Bottom accent line (non-redux only)
+                if !isRedux {
+                    if let lineColor = _thexToCGColor(theme.cScaleInv[colorIdx]) {
+                        ctx.setStrokeColor(lineColor)
+                        ctx.setLineWidth(3)
+                        ctx.move(to: CGPoint(x: task.x, y: task.y + task.height))
+                        ctx.addLine(to: CGPoint(x: task.x + task.width, y: task.y + task.height))
+                        ctx.strokePath()
+                    }
                 }
 
-                let textColor = _thexToColor(theme.cScaleLabel[colorIdx]) ?? self.theme.foreground
+                let textColor = _thexToColor(isNeo ? theme.nodeBorder : theme.cScaleLabel[colorIdx]) ?? self.theme.foreground
                 self._drawTextInFlipped(
                     task.text,
                     at: CGPoint(x: task.x + task.width / 2, y: task.y + task.height / 2),
@@ -77,17 +95,23 @@ extension DiagramRenderer {
             // 3. Event nodes (with brightness via lighter fill)
             for event in timeline.events {
                 let eventRect = CGRect(x: event.x, y: event.y, width: event.width, height: event.height)
-                let path = BMBezierPath(roundedRect: eventRect, cornerRadius: 3)
+                let path = BMBezierPath(roundedRect: eventRect, cornerRadius: cornerRadius)
 
                 let colorIdx = event.colorIndex % max(1, theme.cScale.count)
-                if let baseColor = _thexToCGColor(theme.cScale[colorIdx]) {
+                let fillHex = isNeo ? theme.mainBkg : theme.cScale[colorIdx]
+                if let baseColor = _thexToCGColor(fillHex) {
                     let lightened = _brightenColor(baseColor, factor: 1.2)
                     ctx.setFillColor(lightened)
                 } else {
                     ctx.setFillColor(self.theme.effectiveSurface().cgColor)
                 }
+
+                if isRedux && isNeo {
+                    ctx.setShadow(offset: CGSize(width: 4, height: 4), blur: 0, color: CGColor(red: 0, green: 0, blue: 0, alpha: 0.06))
+                }
                 ctx.addPath(path.bm_cgPath)
                 ctx.fillPath()
+                ctx.setShadow(offset: .zero, blur: 0, color: nil)
 
                 self._drawTextInFlipped(
                     event.text,
@@ -99,22 +123,34 @@ extension DiagramRenderer {
                 )
             }
 
-            // 4. Connectors (dashed lines)
+            // 4. Connectors (dashed lines with arrowheads)
             ctx.saveGState()
             ctx.setStrokeColor(self.theme.effectiveMuted().cgColor)
-            ctx.setLineWidth(1)
+            ctx.setFillColor(self.theme.effectiveMuted().cgColor)
+            ctx.setLineWidth(2)
             ctx.setLineDash(phase: 0, lengths: [5, 5])
             for connector in timeline.connectors {
                 switch connector.kind {
                 case .verticalLR(let x1, let y1, let x2, let y2):
                     ctx.move(to: CGPoint(x: x1, y: y1))
+                    ctx.addLine(to: CGPoint(x: x2, y: y2 - 4))
+                    ctx.strokePath()
+                    ctx.move(to: CGPoint(x: x2 - 3, y: y2 - 4))
                     ctx.addLine(to: CGPoint(x: x2, y: y2))
+                    ctx.addLine(to: CGPoint(x: x2 + 3, y: y2 - 4))
+                    ctx.closePath()
+                    ctx.fillPath()
                 case .horizontalTD(let x1, let y1, let x2, let y2):
-                    ctx.move(to: CGPoint(x: x1, y: y1))
+                    ctx.move(to: CGPoint(x: x1 + 4, y: y1))
                     ctx.addLine(to: CGPoint(x: x2, y: y2))
+                    ctx.strokePath()
+                    ctx.move(to: CGPoint(x: x2 - 4, y: y2 - 3))
+                    ctx.addLine(to: CGPoint(x: x2, y: y2))
+                    ctx.addLine(to: CGPoint(x: x2 - 4, y: y2 + 3))
+                    ctx.closePath()
+                    ctx.fillPath()
                 }
             }
-            ctx.strokePath()
             ctx.restoreGState()
 
             // 5. Activity line with arrowhead

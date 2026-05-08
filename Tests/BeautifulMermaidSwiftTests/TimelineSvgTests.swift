@@ -115,6 +115,28 @@ final class TimelineSvgTests: XCTestCase {
         XCTAssertTrue(svg.contains("class=\"lineWrapper\""))
     }
 
+    func test_lrConnectorsHaveArrowheads() throws {
+        let svg = try renderSVG("timeline\n    2020 : E1 : E2")
+        let connectorLines = svg.components(separatedBy: "<line")
+        let connectorsWithMarker = connectorLines.filter { $0.contains("stroke-dasharray") && $0.contains("marker-end") }
+        XCTAssertEqual(connectorsWithMarker.count, 2, "LR connectors should have marker-end arrowheads")
+    }
+
+    func test_tdConnectorsHaveArrowheads() throws {
+        let svg = try renderSVG("timeline TD\n    2020 : E1")
+        let connectorLines = svg.components(separatedBy: "<line")
+        let connectorsWithMarker = connectorLines.filter { $0.contains("stroke-dasharray") && $0.contains("marker-end") }
+        XCTAssertGreaterThanOrEqual(connectorsWithMarker.count, 1, "TD connectors should have marker-end arrowheads")
+    }
+
+    func test_connectorStrokeWidth() throws {
+        let svg = try renderSVG("timeline\n    2020 : Event")
+        let connectorLines = svg.components(separatedBy: "<line")
+        let connectorLine = connectorLines.first { $0.contains("stroke-dasharray") }
+        XCTAssertNotNil(connectorLine)
+        XCTAssertTrue(connectorLine!.contains("stroke-width=\"2\""))
+    }
+
     // MARK: - Activity line
 
     func test_activityLineWithMarkerEnd() throws {
@@ -225,5 +247,66 @@ final class TimelineSvgTests: XCTestCase {
         XCTAssertTrue(svg1.contains("marker-end=\"url(#\(id1)-arrowhead)\""))
         XCTAssertTrue(svg2.contains("id=\"\(id2)-arrowhead\""))
         XCTAssertTrue(svg2.contains("marker-end=\"url(#\(id2)-arrowhead)\""))
+    }
+
+    // MARK: - Neo look
+    private func renderNeoSVG(_ source: String, look: String = "neo", themeName: String = "default", useGradient: Bool = true) throws -> String {
+        let lines = source.split(separator: "\n", omittingEmptySubsequences: false).map(String.init)
+        var diagram = try parseTimelineDiagram(lines, frontmatter: nil)
+        diagram.look = look
+        diagram.themeName = themeName
+        if useGradient {
+            diagram.theme.useGradient = true
+        }
+        let positioned = layoutTimelineDiagram(diagram)
+        return try renderTimelineSvg(positioned, DiagramColors(bg: "#ffffff", fg: "#000000"), "Inter", false)
+    }
+
+    func test_neoLookAddsDataAttribute() throws {
+        let svg = try renderNeoSVG("timeline\n    2020 : Event")
+        XCTAssertTrue(svg.contains("data-look=\"neo\""))
+    }
+
+    func test_neoGradientDefsEmitted() throws {
+        let svg = try renderNeoSVG("timeline\n    2020 : Event")
+        XCTAssertTrue(svg.contains("linearGradient"))
+        XCTAssertTrue(svg.contains("gradient"))
+    }
+
+    func test_neoNoGradientForNeutralTheme() throws {
+        let svg = try renderNeoSVG("timeline\n    2020 : Event", look: "neo", themeName: "neutral", useGradient: true)
+        XCTAssertFalse(svg.contains("linearGradient"))
+    }
+
+    func test_neoDropShadowFilterForRedux() throws {
+        let svg = try renderNeoSVG("timeline\n    2020 : Event", look: "neo", themeName: "redux", useGradient: false)
+        XCTAssertTrue(svg.contains("drop-shadow"))
+        XCTAssertTrue(svg.contains("feDropShadow"))
+    }
+
+    func test_reduxThemeSharpCorners() throws {
+        let svg = try renderNeoSVG("timeline\n    2020 : Event", look: "neo", themeName: "redux", useGradient: false)
+        XCTAssertTrue(svg.contains("rx=\"0\""))
+        XCTAssertTrue(svg.contains("ry=\"0\""))
+    }
+
+    func test_reduxThemeNoNodeLine() throws {
+        let svg = try renderNeoSVG("timeline\n    2020 : Event", look: "neo", themeName: "redux", useGradient: false)
+        XCTAssertFalse(svg.contains("node-line-0"))
+    }
+
+    func test_neoNodesUseMainBkgFill() throws {
+        let svg = try renderNeoSVG("timeline\n    2020 : Event")
+        XCTAssertTrue(svg.contains("fill=\"#ffffff\"")) // mainBkg default
+    }
+
+    func test_neoNodesHaveGradientStroke() throws {
+        let svg = try renderNeoSVG("timeline\n    2020 : Event")
+        XCTAssertTrue(svg.contains("url(#mermaid-0-gradient)"))
+    }
+
+    func test_standardLookNoDataAttribute() throws {
+        let svg = try renderSVG("timeline\n    2020 : Event")
+        XCTAssertFalse(svg.contains("data-look=\"neo\""))
     }
 }

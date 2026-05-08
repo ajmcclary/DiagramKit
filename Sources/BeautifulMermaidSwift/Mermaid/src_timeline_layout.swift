@@ -62,7 +62,7 @@ private func _layoutTimelineLR(_ diagram: TimelineDiagram) -> PositionedTimeline
     if !diagram.sections.isEmpty {
         for (i, sectionName) in diagram.sections.enumerated() {
             let wrapped = _wrapText(sectionName, maxWidth: LR_SECTION_MIN_WIDTH, fontSize: fontSize)
-            let textH = Double(wrapped.count) * fontSize * 1.4
+            let textH = fontSize * 1.1 * (Double(wrapped.count) + 0.5)
             sectionHeights[i] = max(textH + LR_NODE_PADDING, 40)
         }
     }
@@ -72,7 +72,7 @@ private func _layoutTimelineLR(_ diagram: TimelineDiagram) -> PositionedTimeline
     var taskHeights: [Int: Double] = [:]
     for task in diagram.tasks {
         let taskWrapped = _wrapText(task.text, maxWidth: taskWidth, fontSize: fontSize)
-        let taskH = max(Double(taskWrapped.count) * fontSize * 1.4 + LR_NODE_PADDING, 40)
+        let taskH = max(fontSize * 1.1 * (Double(taskWrapped.count) + 0.5) + LR_NODE_PADDING, 40)
         taskHeights[task.id] = taskH
     }
     let maxTaskHeight: Double = taskHeights.values.max() ?? 40
@@ -83,7 +83,7 @@ private func _layoutTimelineLR(_ diagram: TimelineDiagram) -> PositionedTimeline
         var height: Double = 0
         for event in task.events {
             let ew = _wrapText(event.text, maxWidth: taskWidth, fontSize: fontSize)
-            let eh = max(Double(ew.count) * fontSize * 1.4 + LR_NODE_PADDING, 30)
+            let eh = max(fontSize * 1.1 * (Double(ew.count) + 0.5) + LR_NODE_PADDING, 30)
             height += eh + LR_EVENT_SPACING
         }
         if !task.events.isEmpty {
@@ -142,7 +142,7 @@ private func _layoutTimelineLR(_ diagram: TimelineDiagram) -> PositionedTimeline
                 var eventY = taskRowY + maxTaskHeight + LR_TASK_EVENT_GAP
                 for event in task.events {
                     let ew = _wrapText(event.text, maxWidth: taskWidth, fontSize: fontSize)
-                    let eH = max(Double(ew.count) * fontSize * 1.4 + LR_NODE_PADDING, 30)
+                    let eH = max(fontSize * 1.1 * (Double(ew.count) + 0.5) + LR_NODE_PADDING, 30)
                     let eX = taskX
 
                     positionedEvents.append(PositionedTimelineEvent(
@@ -198,7 +198,7 @@ private func _layoutTimelineLR(_ diagram: TimelineDiagram) -> PositionedTimeline
             var eventY = tY + tH + LR_TASK_EVENT_GAP
             for event in task.events {
                 let ew = _wrapText(event.text, maxWidth: taskWidth, fontSize: fontSize)
-                let eH = max(Double(ew.count) * fontSize * 1.4 + LR_NODE_PADDING, 30)
+                let eH = max(fontSize * 1.1 * (Double(ew.count) + 0.5) + LR_NODE_PADDING, 30)
                 let eX = taskX
 
                 positionedEvents.append(PositionedTimelineEvent(
@@ -240,7 +240,7 @@ private func _layoutTimelineLR(_ diagram: TimelineDiagram) -> PositionedTimeline
     if diagram.sections.isEmpty {
         activityY = contentTopY + maxTaskHeight + LR_TASK_EVENT_GAP / 2
     } else {
-        activityY = contentTopY + maxSectionHeight + LR_SECTION_TASK_GAP + maxTaskHeight + LR_TASK_EVENT_GAP / 2
+        activityY = contentTopY + maxSectionHeight + maxTaskHeight + LR_SECTION_TASK_GAP + LR_TASK_EVENT_GAP / 2
     }
 
     let activityLine = PositionedTimelineActivityLine(
@@ -271,7 +271,9 @@ private func _layoutTimelineLR(_ diagram: TimelineDiagram) -> PositionedTimeline
         accDescr: diagram.accDescr,
         diagramTitle: diagram.diagramTitle,
         config: diagram.config,
-        theme: diagram.theme
+        theme: diagram.theme,
+        look: diagram.look,
+        themeName: diagram.themeName
     )
 }
 
@@ -299,7 +301,7 @@ private func _layoutTimelineTD(_ diagram: TimelineDiagram) -> PositionedTimeline
     if !diagram.sections.isEmpty {
         for (i, sectionName) in diagram.sections.enumerated() {
             let wrapped = _wrapText(sectionName, maxWidth: nodeWidth * 2 + TD_EVENT_AXIS_GAP + eventWidth, fontSize: fontSize)
-            let textH = Double(wrapped.count) * fontSize * 1.4
+            let textH = fontSize * 1.1 * (Double(wrapped.count) + 0.5)
             sectionHeights[i] = max(textH + TD_NODE_PADDING * 2, 40)
         }
     }
@@ -308,7 +310,7 @@ private func _layoutTimelineTD(_ diagram: TimelineDiagram) -> PositionedTimeline
     var taskHeights: [Int: Double] = [:]
     for task in diagram.tasks {
         let taskWrapped = _wrapText(task.text, maxWidth: nodeWidth, fontSize: fontSize)
-        let taskH = max(Double(taskWrapped.count) * fontSize * 1.4 + TD_NODE_PADDING * 2, 30)
+        let taskH = max(fontSize * 1.1 * (Double(taskWrapped.count) + 0.5) + TD_NODE_PADDING * 2, 30)
         taskHeights[task.id] = taskH
     }
     // Measure event stack heights
@@ -317,7 +319,7 @@ private func _layoutTimelineTD(_ diagram: TimelineDiagram) -> PositionedTimeline
         var height: Double = 0
         for event in task.events {
             let ew = _wrapText(event.text, maxWidth: eventWidth, fontSize: fontSize)
-            let eh = max(Double(ew.count) * fontSize * 1.4 + TD_NODE_PADDING * 2, 30)
+            let eh = max(fontSize * 1.1 * (Double(ew.count) + 0.5) + TD_NODE_PADDING * 2, 30)
             height += eh + TD_EVENT_SPACING
         }
         if !task.events.isEmpty {
@@ -378,7 +380,7 @@ private func _layoutTimelineTD(_ diagram: TimelineDiagram) -> PositionedTimeline
 
                 for event in task.events {
                     let ew = _wrapText(event.text, maxWidth: eventWidth, fontSize: fontSize)
-                    let eH = max(Double(ew.count) * fontSize * 1.4 + TD_NODE_PADDING * 2, 30)
+                    let eH = max(fontSize * 1.1 * (Double(ew.count) + 0.5) + TD_NODE_PADDING * 2, 30)
 
                     positionedEvents.append(PositionedTimelineEvent(
                         id: event.id,
@@ -433,7 +435,7 @@ private func _layoutTimelineTD(_ diagram: TimelineDiagram) -> PositionedTimeline
 
             for event in task.events {
                 let ew = _wrapText(event.text, maxWidth: eventWidth, fontSize: fontSize)
-                let eH = max(Double(ew.count) * fontSize * 1.4 + TD_NODE_PADDING * 2, 30)
+                let eH = max(fontSize * 1.1 * (Double(ew.count) + 0.5) + TD_NODE_PADDING * 2, 30)
 
                 positionedEvents.append(PositionedTimelineEvent(
                     id: event.id,
@@ -473,11 +475,15 @@ private func _layoutTimelineTD(_ diagram: TimelineDiagram) -> PositionedTimeline
         title = PositionedTimelineTitle(text: t, x: padding, y: titleHeight - 10)
     }
 
+    let contentTopY = titleHeight + LR_MASTER_Y_OFFSET
+    let arrowTopOffset = fontSize * 2
+    let arrowBottomPadding = fontSize * 0.5 + 20
+
     let activityLine = PositionedTimelineActivityLine(
         x1: padding + nodeWidth + TD_TASK_AXIS_GAP,
-        y1: titleHeight,
+        y1: contentTopY - arrowTopOffset,
         x2: padding + nodeWidth + TD_TASK_AXIS_GAP,
-        y2: totalHeight - padding
+        y2: masterY + arrowBottomPadding
     )
 
     return PositionedTimelineDiagram(
@@ -494,7 +500,9 @@ private func _layoutTimelineTD(_ diagram: TimelineDiagram) -> PositionedTimeline
         accDescr: diagram.accDescr,
         diagramTitle: diagram.diagramTitle,
         config: diagram.config,
-        theme: diagram.theme
+        theme: diagram.theme,
+        look: diagram.look,
+        themeName: diagram.themeName
     )
 }
 

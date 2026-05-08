@@ -252,6 +252,26 @@ final class TimelineLayoutTests: XCTestCase {
         XCTAssertLessThan(positioned.activityLine.y1, positioned.activityLine.y2)
     }
 
+    func test_td_activityLineExtendsAboveContent() throws {
+        let source = """
+        timeline TD
+            2020 : Event
+        """
+        let positioned = try parseAndLayout(source)
+        let topY = positioned.tasks.map(\.y).min() ?? 0
+        XCTAssertLessThan(positioned.activityLine.y1, topY, "TD activity line should start above content")
+    }
+
+    func test_td_activityLineExtendsBelowContent() throws {
+        let source = """
+        timeline TD
+            2020 : Event
+        """
+        let positioned = try parseAndLayout(source)
+        let bottomY = (positioned.events.map { $0.y + $0.height }.max() ?? 0)
+        XCTAssertGreaterThan(positioned.activityLine.y2, bottomY, "TD activity line should extend below content")
+    }
+
     func test_td_titlePresent() throws {
         let source = """
         timeline TD

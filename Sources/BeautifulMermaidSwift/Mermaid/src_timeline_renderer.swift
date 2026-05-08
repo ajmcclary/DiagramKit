@@ -83,16 +83,46 @@ private func _renderTimelineSvg(
         parts.append("<desc>\(_tescapeXml(accDescr))</desc>")
     }
 
-    // Defs with arrowhead marker
+    // Defs with arrowhead marker, gradient, and drop-shadow
+    let theme = diagram.theme
+    let isNeo = diagram.look == "neo"
+    let themeName = diagram.themeName ?? ""
+    let isRedux = themeName.contains("redux")
+    let isNeutral = themeName == "neutral"
+
     parts.append("<defs>")
     let arrowheadId = "\(diagramId)-arrowhead"
     parts.append("<marker id=\"\(arrowheadId)\" refX=\"5\" refY=\"2\" markerWidth=\"6\" markerHeight=\"4\" orient=\"auto\">")
     parts.append("<path d=\"M 0,0 V 4 L6,2 Z\" class=\"arrowheadPath\" fill=\"var(--line, #666)\"/>")
     parts.append("</marker>")
+
+    if isNeo && theme.useGradient && !isNeutral {
+        parts.append("""
+        <linearGradient id="\(diagramId)-gradient" gradientUnits="objectBoundingBox" x1="0%" y1="0%" x2="100%" y2="0%">
+        <stop offset="0%" stop-color="\(theme.gradientStart)" stop-opacity="1"/>
+        <stop offset="100%" stop-color="\(theme.gradientStop)" stop-opacity="1"/>
+        </linearGradient>
+        """)
+    }
+
+    if isNeo && isRedux {
+        let isDark = themeName.contains("dark")
+        let floodColor = isDark ? "#FFFFFF" : "#000000"
+        let floodOpacity = isDark ? "0.2" : "0.06"
+        parts.append("""
+        <filter id="\(diagramId)-drop-shadow" height="130%" width="130%">
+        <feDropShadow dx="4" dy="4" stdDeviation="0" flood-opacity="\(floodOpacity)" flood-color="\(floodColor)"/>
+        </filter>
+        """)
+    }
     parts.append("</defs>")
 
-    let theme = diagram.theme
     let taskFontSize = conf.taskFontSize
+    let strokeWidth: Double = isNeo ? 2 : 1
+    let borderRadius: Double = isRedux ? 0 : 3
+    let borderRadiusStr = _tfmt(borderRadius)
+    let neoAttrs = isNeo ? " data-look=\"neo\"" : ""
+    let filterAttr = (isNeo && isRedux) ? " filter=\"url(#\(diagramId)-drop-shadow)\"" : ""
 
     // Section nodes
     for section in diagram.sections {
@@ -101,8 +131,12 @@ private func _renderTimelineSvg(
         let sw = _tfmt(section.width)
         let sh = _tfmt(section.height)
         let colorIdx = section.colorIndex % max(1, theme.cScale.count)
-        let fill = theme.cScale[colorIdx]
-        let textFill = theme.cScaleLabel[colorIdx]
+        let fill = isNeo ? theme.mainBkg : theme.cScale[colorIdx]
+        let textFill = isNeo ? theme.nodeBorder : theme.cScaleLabel[colorIdx]
+        let stroke = isNeo && theme.useGradient && !isNeutral
+            ? "url(#\(diagramId)-gradient)"
+            : theme.cScale[colorIdx]
+
         let label = _trenderTimelineLabel(
             section.text,
             x: section.x,
@@ -116,8 +150,8 @@ private func _renderTimelineSvg(
         )
 
         parts.append("""
-        <g class="timeline-node section-\(section.sectionIndex)">
-        <rect x="\(sx)" y="\(sy)" width="\(sw)" height="\(sh)" fill="\(fill)" rx="3" ry="3"/>
+        <g class="timeline-node section-\(section.sectionIndex)"\(neoAttrs)>
+        <rect x="\(sx)" y="\(sy)" width="\(sw)" height="\(sh)" fill="\(fill)" stroke="\(stroke)" stroke-width="\(_tfmt(strokeWidth))" rx="\(borderRadiusStr)" ry="\(borderRadiusStr)"\(filterAttr)/>
         \(label)
         </g>
         """)
@@ -130,9 +164,13 @@ private func _renderTimelineSvg(
         let tw = _tfmt(task.width)
         let th = _tfmt(task.height)
         let colorIdx = task.colorIndex % max(1, theme.cScale.count)
-        let fill = theme.cScale[colorIdx]
-        let textFill = theme.cScaleLabel[colorIdx]
+        let fill = isNeo ? theme.mainBkg : theme.cScale[colorIdx]
+        let textFill = isNeo ? theme.nodeBorder : theme.cScaleLabel[colorIdx]
         let lineColor = theme.cScaleInv[colorIdx]
+        let stroke = isNeo && theme.useGradient && !isNeutral
+            ? "url(#\(diagramId)-gradient)"
+            : theme.cScale[colorIdx]
+
         let label = _trenderTimelineLabel(
             task.text,
             x: task.x,
@@ -145,13 +183,15 @@ private func _renderTimelineSvg(
             placement: conf.textPlacement
         )
 
-        parts.append("""
-        <g class="taskWrapper">
-        <rect class="node-bkg node-\(task.colorIndex)" x="\(tx)" y="\(ty)" width="\(tw)" height="\(th)" fill="\(fill)" rx="3" ry="3"/>
-        <line class="node-line-\(task.colorIndex)" x1="\(tx)" y1="\(_tfmt(task.y + task.height))" x2="\(_tfmt(task.x + task.width))" y2="\(_tfmt(task.y + task.height))" stroke="\(lineColor)" stroke-width="3"/>
-        \(label)
-        </g>
-        """)
+        var taskParts: [String] = []
+        taskParts.append("<g class=\"taskWrapper\"\(neoAttrs)>")
+        taskParts.append("<rect class=\"node-bkg node-\(task.colorIndex)\" x=\"\(tx)\" y=\"\(ty)\" width=\"\(tw)\" height=\"\(th)\" fill=\"\(fill)\" stroke=\"\(stroke)\" stroke-width=\"\(_tfmt(strokeWidth))\" rx=\"\(borderRadiusStr)\" ry=\"\(borderRadiusStr)\"\(filterAttr)/>")
+        if !isRedux {
+            taskParts.append("<line class=\"node-line-\(task.colorIndex)\" x1=\"\(tx)\" y1=\"\(_tfmt(task.y + task.height))\" x2=\"\(_tfmt(task.x + task.width))\" y2=\"\(_tfmt(task.y + task.height))\" stroke=\"\(lineColor)\" stroke-width=\"3\"/>")
+        }
+        taskParts.append("\(label)")
+        taskParts.append("</g>")
+        parts.append(taskParts.joined(separator: "\n"))
     }
 
     // Event nodes
@@ -161,7 +201,11 @@ private func _renderTimelineSvg(
         let ew = _tfmt(event.width)
         let eh = _tfmt(event.height)
         let colorIdx = event.colorIndex % max(1, theme.cScale.count)
-        let fill = theme.cScale[colorIdx]
+        let fill = isNeo ? theme.mainBkg : theme.cScale[colorIdx]
+        let stroke = isNeo && theme.useGradient && !isNeutral
+            ? "url(#\(diagramId)-gradient)"
+            : theme.cScale[colorIdx]
+
         let label = _trenderTimelineLabel(
             event.text,
             x: event.x,
@@ -175,8 +219,8 @@ private func _renderTimelineSvg(
         )
 
         parts.append("""
-        <g class="eventWrapper" filter="brightness(120%)">
-        <rect class="node-bkg" x="\(ex)" y="\(ey)" width="\(ew)" height="\(eh)" fill="\(fill)" rx="3" ry="3"/>
+        <g class="eventWrapper"\(neoAttrs) filter="brightness(120%)">
+        <rect class="node-bkg" x="\(ex)" y="\(ey)" width="\(ew)" height="\(eh)" fill="\(fill)" stroke="\(stroke)" stroke-width="\(_tfmt(strokeWidth))" rx="\(borderRadiusStr)" ry="\(borderRadiusStr)"\(filterAttr)/>
         \(label)
         </g>
         """)
@@ -188,11 +232,11 @@ private func _renderTimelineSvg(
         switch connector.kind {
         case .verticalLR(let x1, let y1, let x2, let y2):
             parts.append("""
-            <line x1="\(_tfmt(x1))" y1="\(_tfmt(y1))" x2="\(_tfmt(x2))" y2="\(_tfmt(y2))" stroke="var(--line, #666)" stroke-dasharray="5,5" stroke-width="1"/>
+            <line x1="\(_tfmt(x1))" y1="\(_tfmt(y1))" x2="\(_tfmt(x2))" y2="\(_tfmt(y2))" stroke="var(--line, #666)" stroke-dasharray="5,5" stroke-width="2" marker-end="url(#\(arrowheadId))"/>
             """)
         case .horizontalTD(let x1, let y1, let x2, let y2):
             parts.append("""
-            <line x1="\(_tfmt(x1))" y1="\(_tfmt(y1))" x2="\(_tfmt(x2))" y2="\(_tfmt(y2))" stroke="var(--line, #666)" stroke-dasharray="5,5" stroke-width="1"/>
+            <line x1="\(_tfmt(x1))" y1="\(_tfmt(y1))" x2="\(_tfmt(x2))" y2="\(_tfmt(y2))" stroke="var(--line, #666)" stroke-dasharray="5,5" stroke-width="2" marker-end="url(#\(arrowheadId))"/>
             """)
         }
     }
