@@ -26,7 +26,6 @@ extension DiagramRenderer {
         let borderColor = theme.effectiveBorder().cgColor
         let accentColor = theme.effectiveAccent().cgColor
         let mutedColor = theme.effectiveMuted().cgColor
-        let bgColor = theme.background.cgColor
         let textColor = theme.foreground
 
         _withFittedContext(context, bounds: bounds, contentWidth: max(1, contentWidth), contentHeight: max(1, contentHeight)) { ctx in
@@ -113,13 +112,17 @@ extension DiagramRenderer {
                     ctx.setFillColor(lineColor)
                     ctx.addArc(center: CGPoint(x: cx, y: cy), radius: bulletRadius, startAngle: 0, endAngle: .pi * 2, clockwise: true)
                     ctx.fillPath()
-                    ctx.setFillColor(bgColor)
+                    // Knockout color: deliberately fixed white so the inner pips
+                    // and "M" mark read against the dark commit dot in both
+                    // light AND dark themes. Using `bgColor` here would make
+                    // them invisible on dark themes.
+                    ctx.setFillColor(BMColor.white.cgColor)
                     let dotR: CGFloat = useReduxGeometry ? 2.5 : 2.75
                     ctx.addArc(center: CGPoint(x: cx - 3, y: cy + 2), radius: dotR, startAngle: 0, endAngle: .pi * 2, clockwise: true)
                     ctx.fillPath()
                     ctx.addArc(center: CGPoint(x: cx + 3, y: cy + 2), radius: dotR, startAngle: 0, endAngle: .pi * 2, clockwise: true)
                     ctx.fillPath()
-                    ctx.setStrokeColor(bgColor)
+                    ctx.setStrokeColor(BMColor.white.cgColor)
                     ctx.setLineWidth(1.5)
                     ctx.move(to: CGPoint(x: cx + 3, y: cy + 1))
                     ctx.addLine(to: CGPoint(x: cx, y: cy - 5))
@@ -132,7 +135,8 @@ extension DiagramRenderer {
                     ctx.setFillColor(lineColor)
                     ctx.addArc(center: CGPoint(x: cx, y: cy), radius: bulletRadius, startAngle: 0, endAngle: .pi * 2, clockwise: true)
                     ctx.fillPath()
-                    ctx.setFillColor(bgColor)
+                    // Same knockout-vs-theme reasoning as cherry-pick above.
+                    ctx.setFillColor(BMColor.white.cgColor)
                     ctx.addArc(center: CGPoint(x: cx, y: cy), radius: innerRadius, startAngle: 0, endAngle: .pi * 2, clockwise: true)
                     ctx.fillPath()
 

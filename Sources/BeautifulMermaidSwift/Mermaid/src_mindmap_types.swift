@@ -264,7 +264,7 @@ public struct MindmapThemeConfig: Sendable, Equatable {
         gradientStop: String = "#f4f4f4",
         dropShadow: Bool = false,
         fontSize: Double = 16,
-        fontFamily: String = "Inter"
+        fontFamily: String = "Noto Sans"
     ) {
         self.cScale0 = cScale0
         self.cScale1 = cScale1

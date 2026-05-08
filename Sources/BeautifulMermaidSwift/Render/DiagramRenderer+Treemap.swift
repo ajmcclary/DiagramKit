@@ -130,19 +130,21 @@ extension DiagramRenderer {
     }
 
     private func _systemFont(size: CGFloat) -> BMFont {
-        #if targetEnvironment(macCatalyst) || canImport(UIKit)
+        if let family = config.defaultProportionalFontFamily,
+           let bundled = BMFont(name: family, size: size) {
+            return bundled
+        }
         return BMFont.systemFont(ofSize: size)
-        #elseif canImport(AppKit)
-        return BMFont.systemFont(ofSize: size)
-        #endif
     }
 
     private func _boldSystemFont(size: CGFloat) -> BMFont {
-        #if targetEnvironment(macCatalyst) || canImport(UIKit)
+        if let family = config.defaultProportionalFontFamily {
+            let candidates = ["\(family)-Bold", "\(family) Bold"]
+            for name in candidates {
+                if let f = BMFont(name: name, size: size) { return f }
+            }
+        }
         return BMFont.boldSystemFont(ofSize: size)
-        #elseif canImport(AppKit)
-        return BMFont.boldSystemFont(ofSize: size)
-        #endif
     }
 
     private func _treemapStyledColor(_ styles: [String]?, keys: [String], fallback: String) -> BMColor {

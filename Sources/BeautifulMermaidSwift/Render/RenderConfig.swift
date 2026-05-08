@@ -109,37 +109,87 @@ public struct RenderConfig: Sendable {
 
     // MARK: - Font Resolution
 
-    /// Default font family name for deterministic rendering.
+    /// Default monospace font family name for deterministic rendering.
     ///
-    /// When a bundled font is available, set this to the PostScript name of the
-    /// embedded font (e.g. "Inter-Regular"). Falls back to the system monospace
-    /// font (Menlo) for predictable glyph metrics across macOS versions.
-    public var defaultFontFamily: String? = nil
+    /// Defaults to `"Noto Sans Mono"`, which is bundled in
+    /// `Resources/Fonts/noto-sans-mono/` and registered at first render via
+    /// `BeautifulMermaidFontRegistry.registerBundledFontsIfNeeded()`. Set to
+    /// `nil` to fall back to "Menlo" / system monospace.
+    public var defaultFontFamily: String? = "Noto Sans Mono"
 
-    /// Resolves a font for the given size, preferring the bundled family when set.
-    public func defaultFont(size: CGFloat, weight: Int = 400) -> BMFont {
-        if let family = defaultFontFamily,
-           let named = BMFont(name: family, size: size) {
-            return named
+    /// Default proportional (non-monospace) font family name.
+    ///
+    /// Defaults to `"Noto Sans"`, which is bundled in
+    /// `Resources/Fonts/noto-sans/` and registered at first render via
+    /// `BeautifulMermaidFontRegistry.registerBundledFontsIfNeeded()`. Set to
+    /// `nil` to fall back to the system font.
+    public var defaultProportionalFontFamily: String? = "Noto Sans"
+
+    /// Maps a CSS-style numeric weight (100..900) to a `BMFont.Weight`.
+    ///
+    /// The previous implementation —
+    /// `BMFont.Weight(CGFloat(weight) / 1000.0 * CGFloat(BMFont.Weight.regular.rawValue))`
+    /// — was mathematically broken: `BMFont.Weight.regular.rawValue` is `0.0`,
+    /// so the expression always evaluated to `0.0` (= regular weight)
+    /// regardless of input. Bold/heavy weights silently degraded to regular.
+    /// This switch-based mapping matches the documented CSS → Apple weight
+    /// correspondence.
+    public static func bmWeight(forCSS weight: Int) -> BMFont.Weight {
+        switch weight {
+        case ..<150:    return .ultraLight
+        case 150..<250: return .thin
+        case 250..<350: return .light
+        case 350..<450: return .regular
+        case 450..<550: return .medium
+        case 550..<650: return .semibold
+        case 650..<750: return .bold
+        case 750..<850: return .heavy
+        default:        return .black
         }
-        #if targetEnvironment(macCatalyst) || canImport(UIKit)
-        return UIFont.monospacedSystemFont(ofSize: size, weight: UIFont.Weight(CGFloat(weight) / 1000.0 * CGFloat(UIFont.Weight.regular.rawValue)))
-        #elseif canImport(AppKit)
-        return NSFont.monospacedSystemFont(ofSize: size, weight: NSFont.Weight(CGFloat(weight) / 1000.0 * CGFloat(NSFont.Weight.regular.rawValue)))
-        #endif
+    }
+
+    /// Resolves a monospace font, preferring `defaultFontFamily` when set.
+    public func defaultFont(size: CGFloat, weight: Int = 400) -> BMFont {
+        if let family = defaultFontFamily {
+            // Try a weight-suffixed variant first (e.g. "NotoSansMono-Bold"),
+            // then the regular family. CTFontManager will return the closest
+            // match available among registered fonts.
+            if weight >= 550 {
+                let boldCandidates = ["\(family)-Bold", "\(family) Bold"]
+                for name in boldCandidates {
+                    if let f = BMFont(name: name, size: size) { return f }
+                }
+            }
+            if let named = BMFont(name: family, size: size) {
+                return named
+            }
+        }
+        return BMFont.monospacedSystemFont(ofSize: size, weight: Self.bmWeight(forCSS: weight))
     }
 
     /// Resolves a proportional (non-monospace) font for the given size and weight.
     public func proportionalFont(size: CGFloat, weight: Int = 400) -> BMFont {
-        if let family = defaultFontFamily,
-           let named = BMFont(name: family, size: size) {
-            return named
+        if let family = defaultProportionalFontFamily {
+            // Try weight-suffixed variant first.
+            let suffix: String?
+            switch weight {
+            case ..<350:    suffix = nil // Regular catches Light too
+            case 350..<450: suffix = nil
+            case 450..<650: suffix = nil // Medium → Regular (no Medium in bundled Noto Sans)
+            case 650..<850: suffix = "Bold"
+            default:        suffix = "Bold"
+            }
+            if let s = suffix {
+                let candidates = ["\(family)-\(s)", "\(family) \(s)"]
+                for name in candidates {
+                    if let f = BMFont(name: name, size: size) { return f }
+                }
+            }
+            if let named = BMFont(name: family, size: size) {
+                return named
+            }
         }
-        #if targetEnvironment(macCatalyst) || canImport(UIKit)
-        return UIFont.systemFont(ofSize: size, weight: UIFont.Weight(CGFloat(weight) / 1000.0 * CGFloat(UIFont.Weight.regular.rawValue)))
-        #elseif canImport(AppKit)
-        return NSFont.systemFont(ofSize: size, weight: NSFont.Weight(CGFloat(weight) / 1000.0 * CGFloat(NSFont.Weight.regular.rawValue)))
-        #endif
+        return BMFont.systemFont(ofSize: size, weight: Self.bmWeight(forCSS: weight))
     }
 
     // MARK: - Initialization

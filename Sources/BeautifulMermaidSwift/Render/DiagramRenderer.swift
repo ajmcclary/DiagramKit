@@ -18,6 +18,7 @@ public final class DiagramRenderer {
     let labelRenderer: LabelRenderer
 
     public init(theme: DiagramTheme = .default, config: RenderConfig = RenderConfig.shared) {
+        BeautifulMermaidFontRegistry.registerBundledFontsIfNeeded()
         self.theme = theme
         self.config = config
         self.shapeRenderer = NodeShapeRenderer(config: config)
@@ -93,7 +94,15 @@ public final class DiagramRenderer {
 
     // MARK: - Utility
 
+    /// Resolves a monospace font, preferring `RenderConfig.defaultFontFamily`
+    /// (typically the bundled "Noto Sans Mono"), then "Menlo", then the
+    /// system monospaced font. Bundled-font registration happens in `init`,
+    /// so the named lookup succeeds in the snapshot-test path.
     func _monoFont(size: CGFloat) -> BMFont {
+        if let family = config.defaultFontFamily,
+           let bundled = BMFont(name: family, size: size) {
+            return bundled
+        }
         #if targetEnvironment(macCatalyst) || canImport(UIKit)
         return UIFont(name: "Menlo", size: size) ?? UIFont.monospacedSystemFont(ofSize: size, weight: .regular)
         #elseif canImport(AppKit)
@@ -101,7 +110,31 @@ public final class DiagramRenderer {
         #endif
     }
 
+    /// Resolves an italic proportional font, preferring
+    /// `RenderConfig.defaultProportionalFontFamily` (typically "Noto Sans"),
+    /// then the system font with an italic-trait descriptor.
     func _italicSystemFont(size: CGFloat, weight: CGFloat) -> BMFont {
+        if let family = config.defaultProportionalFontFamily {
+            // Try named italic variants first (e.g. "NotoSans-Italic"); fall back
+            // to the regular family with an italic trait applied.
+            let italicCandidates = [
+                "\(family)-Italic",
+                "\(family) Italic",
+            ]
+            for name in italicCandidates {
+                if let f = BMFont(name: name, size: size) { return f }
+            }
+            if let baseFont = BMFont(name: family, size: size) {
+                #if targetEnvironment(macCatalyst) || canImport(UIKit)
+                if let descriptor = baseFont.fontDescriptor.withSymbolicTraits(.traitItalic) {
+                    return BMFont(descriptor: descriptor, size: size)
+                }
+                return baseFont
+                #elseif canImport(AppKit)
+                return NSFontManager.shared.convert(baseFont, toHaveTrait: .italicFontMask)
+                #endif
+            }
+        }
         #if targetEnvironment(macCatalyst) || canImport(UIKit)
         let baseFont = BMFont.systemFont(ofSize: size, weight: UIFont.Weight(weight))
         if let descriptor = baseFont.fontDescriptor.withSymbolicTraits(.traitItalic) {
@@ -115,7 +148,24 @@ public final class DiagramRenderer {
         #endif
     }
 
+    /// Resolves an italic monospace font, preferring an italic variant of
+    /// `RenderConfig.defaultFontFamily`, then "Menlo-Italic", then a synthesized
+    /// italic of the system monospace font (no italic trait → falls back to
+    /// upright mono).
     func _italicMonoFont(size: CGFloat) -> BMFont {
+        if let family = config.defaultFontFamily {
+            let italicCandidates = [
+                "\(family)-Italic",
+                "\(family) Italic",
+            ]
+            for name in italicCandidates {
+                if let f = BMFont(name: name, size: size) { return f }
+            }
+            // Bundled Noto Sans Mono ships only Regular + Bold (no italic). Fall
+            // through to the upright family rather than crashing — italic mono
+            // is a stylistic nicety, not a correctness requirement.
+            if let f = BMFont(name: family, size: size) { return f }
+        }
         #if targetEnvironment(macCatalyst) || canImport(UIKit)
         return UIFont(name: "Menlo-Italic", size: size) ?? UIFont.monospacedSystemFont(ofSize: size, weight: .regular)
         #elseif canImport(AppKit)

@@ -69,7 +69,16 @@ struct CorpusSnapshotTests {
     @MainActor
     func imageSnapshot(_ diagram: DiagramEntry) async throws {
         let image = try #require(await MermaidRenderer.renderImage(source: diagram.source))
-        assertSnapshot(of: image, as: .image(precision: 0.99), named: diagram.id)
+        // Allow a small margin for floating-point differences in CoreText path
+        // rasterization across CPU architectures (Apple Silicon vs Intel) and
+        // OS minor versions. `perceptualPrecision` smooths over imperceptible
+        // sub-pixel-antialiasing drift; `precision` gates the strict-pixel-match
+        // count. Tighten if you need stricter regression catching.
+        assertSnapshot(
+            of: image,
+            as: .image(precision: 0.99, perceptualPrecision: 0.98),
+            named: diagram.id
+        )
     }
 
     // MARK: - ASCII snapshots

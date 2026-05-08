@@ -301,11 +301,11 @@ extension DiagramRenderer {
     }
 
     private func _systemFont(size: CGFloat) -> BMFont {
-        #if targetEnvironment(macCatalyst) || canImport(UIKit)
+        if let family = config.defaultProportionalFontFamily,
+           let bundled = BMFont(name: family, size: size) {
+            return bundled
+        }
         return BMFont.systemFont(ofSize: size)
-        #elseif canImport(AppKit)
-        return BMFont.systemFont(ofSize: size)
-        #endif
     }
 
     // MARK: - Hand-Drawn CG Helpers

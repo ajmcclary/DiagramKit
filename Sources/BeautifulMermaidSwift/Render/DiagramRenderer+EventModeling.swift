@@ -262,20 +262,37 @@ extension DiagramRenderer {
         return BMColor.black
     }
 
+    /// Mermaid's reference SVG output uses Trebuchet MS for EventModeling.
+    /// We honor that as a fallback chain: bundled proportional family →
+    /// Trebuchet MS (variants) → system font.
     private func _emFont(size: CGFloat) -> BMFont {
-        BMFont(name: "TrebuchetMS", size: size)
+        if let family = config.defaultProportionalFontFamily,
+           let bundled = BMFont(name: family, size: size) {
+            return bundled
+        }
+        return BMFont(name: "TrebuchetMS", size: size)
             ?? BMFont(name: "Trebuchet MS", size: size)
             ?? BMFont.systemFont(ofSize: size)
     }
 
     private func _emBoldFont(size: CGFloat) -> BMFont {
-        BMFont(name: "TrebuchetMS-Bold", size: size)
+        if let family = config.defaultProportionalFontFamily {
+            let candidates = ["\(family)-Bold", "\(family) Bold"]
+            for name in candidates {
+                if let f = BMFont(name: name, size: size) { return f }
+            }
+        }
+        return BMFont(name: "TrebuchetMS-Bold", size: size)
             ?? BMFont(name: "Trebuchet-BoldMS", size: size)
             ?? BMFont.boldSystemFont(ofSize: size)
     }
 
     private func _emMonoFont(size: CGFloat) -> BMFont {
-        BMFont(name: "Menlo", size: size)
+        if let family = config.defaultFontFamily,
+           let bundled = BMFont(name: family, size: size) {
+            return bundled
+        }
+        return BMFont(name: "Menlo", size: size)
             ?? BMFont(name: "Courier", size: size)
             ?? BMFont.monospacedSystemFont(ofSize: size, weight: .regular)
     }
