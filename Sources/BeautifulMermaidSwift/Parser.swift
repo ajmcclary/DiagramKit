@@ -225,6 +225,13 @@ public enum MermaidParser {
                 return MermaidGraph(payload: .wardleyBeta(diagram))
             }
 
+            // C4 — case-sensitive full-line header match
+            if firstLineRaw.range(of: #"^C4(?:Context|Container|Component|Dynamic|Deployment)\s*$"#, options: .regularExpression) != nil {
+                let c4Lines = rawLineArray(processed)
+                let parsed = try parseC4Diagram(c4Lines, frontmatter: frontmatter)
+                return MermaidGraph(payload: .c4(parsed))
+            }
+
             // Flowchart + stateDiagram-v2 — pass frontmatter flowchart config
             let parsed = try parseMermaid(processed, config: frontmatter?.flowchartConfig)
             let parsedType: DiagramType = firstLine.hasPrefix("statediagram") ? .stateDiagram : .flowchart

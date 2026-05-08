@@ -28,6 +28,7 @@ public enum DiagramType: String, CaseIterable, Sendable {
     case treeView
     case eventModeling
     case wardleyBeta
+    case c4
 }
 
 /// The parsed graph model for flowcharts and state diagrams.
@@ -61,6 +62,7 @@ public enum DiagramPayload: Sendable {
     case treeView(TreeViewDiagram)
     case eventModeling(EventModelingDiagram)
     case wardleyBeta(WardleyMapDiagram)
+    case c4(C4Diagram)
 
     public var type: DiagramType {
         switch self {
@@ -116,6 +118,8 @@ public enum DiagramPayload: Sendable {
             return .eventModeling
         case .wardleyBeta:
             return .wardleyBeta
+        case .c4:
+            return .c4
         }
     }
 }
@@ -198,6 +202,8 @@ public struct MermaidGraph: Sendable {
             self.payload = .eventModeling(EventModelingDiagram.empty)
         case .wardleyBeta:
             self.payload = .wardleyBeta(WardleyMapDiagram.empty)
+        case .c4:
+            self.payload = .c4(C4Diagram.empty)
         }
     }
 
@@ -280,6 +286,7 @@ public enum PositionedContent: Sendable {
     case treeView(PositionedTreeViewDiagram)
     case eventModeling(PositionedEventModelingDiagram)
     case wardleyBeta(PositionedWardleyMapDiagram)
+    case c4(PositionedC4Diagram)
 }
 
 public struct PositionedGraph: Sendable {
@@ -363,6 +370,8 @@ public struct PositionedGraph: Sendable {
             self.content = .eventModeling(.empty)
         case .wardleyBeta:
             self.content = .wardleyBeta(.empty)
+        case .c4:
+            self.content = .c4(.empty)
         }
     }
 
@@ -641,6 +650,13 @@ public struct PositionedGraph: Sendable {
     public var wardleyMapData: PositionedWardleyMapDiagram? {
         switch content {
         case .wardleyBeta(let data): return data
+        default: return nil
+        }
+    }
+
+    public var c4Data: PositionedC4Diagram? {
+        switch content {
+        case .c4(let data): return data
         default: return nil
         }
     }

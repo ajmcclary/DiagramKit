@@ -331,6 +331,18 @@ public struct GraphLayout {
                     height: positioned.height,
                     content: .wardleyBeta(positioned)
                 )
+            case .c4:
+                guard case let .c4(parsed) = graph.payload else {
+                    _reportMermaidIssue("GraphLayout.layout found mismatched C4 payload.")
+                    return PositionedGraph(diagram: graph, content: .c4(.empty))
+                }
+                let positioned = layoutC4Diagram(parsed)
+                return PositionedGraph(
+                    diagram: graph,
+                    width: positioned.width,
+                    height: positioned.height,
+                    content: .c4(positioned)
+                )
             }
         }
     }

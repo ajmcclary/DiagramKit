@@ -103,6 +103,7 @@ private enum _DiagramRoutingType {
     case treeView
     case eventmodeling
     case wardley
+    case c4
 }
 
 private func _decodeXML(_ text: String) -> String {
@@ -189,6 +190,11 @@ private func detectDiagramType(_ text: String) -> _DiagramRoutingType {
     }
     if firstLine.hasPrefix("wardley-beta") {
         return .wardley
+    }
+
+    // C4 — case-sensitive full-line header match
+    if firstStatement.range(of: #"^C4(?:Context|Container|Component|Dynamic|Deployment)\s*$"#, options: .regularExpression) != nil {
+        return .c4
     }
 
     return .flowchart
@@ -343,7 +349,19 @@ private func _renderPreprocessedMermaidSVG(
         return try _renderEventModelingSvgCase(source: decodedText, fm: fm, colors: colors, font: font, transparent: transparent)
     case .wardley:
         return try _renderWardleySvgCase(source: decodedText, fm: fm, colors: colors, font: font, transparent: transparent)
+    case .c4:
+        return try _renderC4SvgCase(source: decodedText, fm: fm, colors: colors, font: font, transparent: transparent)
     }
+}
+
+private func _renderC4SvgCase(source: String, fm: DiagramFrontmatter?, colors: DiagramColors, font: String, transparent: Bool) throws -> String {
+    let lines = _rawDiagramLines(from: source)
+    let config = fm?.c4Config ?? C4DiagramConfig()
+    var diagram = try parseC4Diagram(lines, frontmatter: fm)
+    diagram.config = config
+    let positioned = layoutC4Diagram(diagram)
+    let diagramId = UUID().uuidString
+    return try renderC4Svg(positioned, diagramId: diagramId, colors, font, transparent)
 }
 
 private func _renderSequenceSvgCase(lines: [String], fm: DiagramFrontmatter?, options: RenderOptions, colors: DiagramColors, font: String, transparent: Bool) throws -> String {

@@ -84,6 +84,8 @@ public final class DiagramRenderer {
             _drawEventModeling(positioned, in: context, bounds: bounds)
         case .wardleyBeta:
             _drawWardley(positioned, in: context, bounds: bounds)
+        case .c4:
+            _drawC4(positioned, in: context, bounds: bounds)
         }
     }
 

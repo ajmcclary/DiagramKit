@@ -185,6 +185,9 @@ private func _applyInitDirectivePayload(_ payload: String, to frontmatter: inout
         if let ishikawa = config["ishikawa"] as? [String: Any] {
             applied = _applyIshikawaInitConfig(ishikawa, to: &frontmatter) || applied
         }
+        if let c4 = config["c4"] as? [String: Any] {
+            applied = _applyC4InitConfig(c4, to: &frontmatter) || applied
+        }
         if let treeView = config["treeView"] as? [String: Any] {
             applied = _applyTreeViewInitConfig(treeView, to: &frontmatter) || applied
         }
@@ -221,6 +224,10 @@ private func _applyInitDirectivePayload(_ payload: String, to frontmatter: inout
 
         if let ishikawa = object["ishikawa"] as? [String: Any] {
         applied = _applyIshikawaInitConfig(ishikawa, to: &frontmatter) || applied
+    }
+
+    if let c4 = object["c4"] as? [String: Any] {
+        applied = _applyC4InitConfig(c4, to: &frontmatter) || applied
     }
 
     if let treeView = object["treeView"] as? [String: Any] {
@@ -378,6 +385,52 @@ private func _applyIshikawaInitConfig(_ object: [String: Any], to frontmatter: i
 
     if applied {
         frontmatter.ishikawaConfig = config
+    }
+    return applied
+}
+
+@discardableResult
+private func _applyC4InitConfig(_ object: [String: Any], to frontmatter: inout DiagramFrontmatter) -> Bool {
+    var config = frontmatter.c4Config ?? C4DiagramConfig()
+    var applied = false
+
+    for (key, value) in object {
+        switch key {
+        case "diagramMarginX":
+            if let v = _jsonDouble(value) { config.diagramMarginX = v; applied = true }
+        case "diagramMarginY":
+            if let v = _jsonDouble(value) { config.diagramMarginY = v; applied = true }
+        case "c4ShapeMargin":
+            if let v = _jsonDouble(value) { config.c4ShapeMargin = v; applied = true }
+        case "c4ShapePadding":
+            if let v = _jsonDouble(value) { config.c4ShapePadding = v; applied = true }
+        case "width":
+            if let v = _jsonDouble(value) { config.width = v; applied = true }
+        case "height":
+            if let v = _jsonDouble(value) { config.height = v; applied = true }
+        case "boxMargin":
+            if let v = _jsonDouble(value) { config.boxMargin = v; applied = true }
+        case "c4ShapeInRow":
+            if let v = value as? Int { config.c4ShapeInRow = v; applied = true }
+            else if let v = _jsonDouble(value) { config.c4ShapeInRow = Int(v); applied = true }
+        case "nextLinePaddingX":
+            if let v = _jsonDouble(value) { config.nextLinePaddingX = v; applied = true }
+        case "c4BoundaryInRow":
+            if let v = value as? Int { config.c4BoundaryInRow = v; applied = true }
+            else if let v = _jsonDouble(value) { config.c4BoundaryInRow = Int(v); applied = true }
+        case "useMaxWidth":
+            if let v = _jsonBool(value) { config.useMaxWidth = v; applied = true }
+        case "wrap":
+            if let v = _jsonBool(value) { config.wrap = v; applied = true }
+        case "wrapPadding":
+            if let v = _jsonDouble(value) { config.wrapPadding = v; applied = true }
+        default:
+            break
+        }
+    }
+
+    if applied {
+        frontmatter.c4Config = config
     }
     return applied
 }

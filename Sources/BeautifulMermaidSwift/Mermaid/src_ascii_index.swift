@@ -305,6 +305,7 @@ open class original_src_ascii_index {
     case treeView
     case eventmodeling
     case wardley
+    case c4
 }
 
     struct AsciiConfig {
@@ -412,6 +413,8 @@ open class original_src_ascii_index {
             return "eventmodeling"
         case .wardley:
             return "wardley-beta"
+        case .c4:
+            return "c4"
         case .flowchart:
             return "flowchart"
         }
@@ -524,6 +527,9 @@ open class original_src_ascii_index {
 
         case .wardley:
             throw BeautifulMermaidError.notYetImplemented("Wardley Map ASCII rendering")
+
+        case .c4:
+            throw BeautifulMermaidError.notYetImplemented("C4 Diagram ASCII rendering")
 
         case .flowchart:
             let parsed = try parseMermaid(preprocessedText)
@@ -638,6 +644,11 @@ open class original_src_ascii_index {
         }
         if firstLine.hasPrefix("wardley-beta") {
             return .wardley
+        }
+
+        // C4 — case-sensitive full-line header match
+        if firstStatement.range(of: #"^C4(?:Context|Container|Component|Dynamic|Deployment)\s*$"#, options: .regularExpression) != nil {
+            return .c4
         }
 
         return .flowchart

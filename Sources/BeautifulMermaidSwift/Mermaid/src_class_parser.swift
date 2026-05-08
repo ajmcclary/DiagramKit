@@ -363,6 +363,7 @@ public struct DiagramFrontmatter: Sendable {
     public var eventmodelingThemeVariables: EventModelingThemeVariables?
     public var wardleyBetaConfig: WardleyDiagramConfig?
     public var wardleyTheme: WardleyThemeVariables?
+    public var c4Config: C4DiagramConfig?
 
     public var layout: String?      // Shared global config.layout
     public var look: String?         // Shared global config.look
@@ -414,6 +415,7 @@ public struct DiagramFrontmatter: Sendable {
         eventmodelingThemeVariables: EventModelingThemeVariables? = nil,
         wardleyBetaConfig: WardleyDiagramConfig? = nil,
         wardleyTheme: WardleyThemeVariables? = nil,
+        c4Config: C4DiagramConfig? = nil,
         layout: String? = nil,
         look: String? = nil,
         theme: String? = nil,
@@ -463,6 +465,7 @@ public struct DiagramFrontmatter: Sendable {
         self.eventmodelingThemeVariables = eventmodelingThemeVariables
         self.wardleyBetaConfig = wardleyBetaConfig
         self.wardleyTheme = wardleyTheme
+        self.c4Config = c4Config
         self.layout = layout
         self.look = look
         self.theme = theme
