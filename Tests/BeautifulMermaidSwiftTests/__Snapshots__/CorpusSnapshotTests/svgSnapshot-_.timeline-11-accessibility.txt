@@ -1,9 +1,9 @@
-<svg id="DBFFFD17-4DC2-4D1A-B828-02C394A0E9D8" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="700" height="286.2" viewBox="0 0 700 286.2" style="--bg:#FFFFFF;--fg:#27272A;--line:#939394;--accent:#27272A;--muted:#A9A9AA;--surface:#F9F9F9;--border:#D4D4D4;background:#FFFFFF">
+<svg id="6E475DD6-F7BD-4363-B874-6F69E105B21B" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="700" height="286.2" viewBox="0 0 700 286.2" style="--bg:#FFFFFF;--fg:#27272A;--line:#939394;--accent:#27272A;--muted:#A9A9AA;--surface:#F9F9F9;--border:#D4D4D4;background:#FFFFFF">
 <title>My Accessible Timeline</title>
 <desc>A timeline showing
 key historical events</desc>
 <defs>
-<marker id="DBFFFD17-4DC2-4D1A-B828-02C394A0E9D8-arrowhead" refX="5" refY="2" markerWidth="6" markerHeight="4" orient="auto">
+<marker id="6E475DD6-F7BD-4363-B874-6F69E105B21B-arrowhead" refX="5" refY="2" markerWidth="6" markerHeight="4" orient="auto">
 <path d="M 0,0 V 4 L6,2 Z" class="arrowheadPath" fill="#939394"/>
 </marker>
 </defs>
@@ -38,8 +38,8 @@ key historical events</desc>
 </switch>
 </g>
 <g class="lineWrapper">
-<line x1="225" y1="93.1" x2="225" y2="193.1" stroke="#939394" stroke-dasharray="5,5" stroke-width="2" marker-end="url(#DBFFFD17-4DC2-4D1A-B828-02C394A0E9D8-arrowhead)"/>
-<line x1="425" y1="93.1" x2="425" y2="193.1" stroke="#939394" stroke-dasharray="5,5" stroke-width="2" marker-end="url(#DBFFFD17-4DC2-4D1A-B828-02C394A0E9D8-arrowhead)"/>
+<line x1="225" y1="93.1" x2="225" y2="193.1" stroke="#939394" stroke-dasharray="5,5" stroke-width="2" marker-end="url(#6E475DD6-F7BD-4363-B874-6F69E105B21B-arrowhead)"/>
+<line x1="425" y1="93.1" x2="425" y2="193.1" stroke="#939394" stroke-dasharray="5,5" stroke-width="2" marker-end="url(#6E475DD6-F7BD-4363-B874-6F69E105B21B-arrowhead)"/>
 </g>
-<line x1="150" y1="143.1" x2="650" y2="143.1" stroke="#939394" stroke-width="4" marker-end="url(#DBFFFD17-4DC2-4D1A-B828-02C394A0E9D8-arrowhead)"/>
+<line x1="150" y1="143.1" x2="650" y2="143.1" stroke="#939394" stroke-width="4" marker-end="url(#6E475DD6-F7BD-4363-B874-6F69E105B21B-arrowhead)"/>
 </svg>

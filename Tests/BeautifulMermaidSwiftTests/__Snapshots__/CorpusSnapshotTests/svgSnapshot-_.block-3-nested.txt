@@ -1,4 +1,4 @@
-<svg id="6D608007-BE5A-457E-A247-ADFEDFCC6966" xmlns="http://www.w3.org/2000/svg" viewBox="-77.0 -33.0 154.0 67.0" width="164" height="67" style="max-width: 100%;"><rect width="100%" height="100%" fill="#FFFFFF"/><style>
+<svg id="B755F1AB-13F9-40CA-8814-D826C04B0CC4" xmlns="http://www.w3.org/2000/svg" viewBox="-77.0 -33.0 154.0 67.0" width="164" height="67" style="max-width: 100%;"><rect width="100%" height="100%" fill="#FFFFFF"/><style>
 .label {
     font-family: Inter;
     color: #27272A;
@@ -68,13 +68,13 @@
     fill: #27272A;
 }
 </style><defs>
-<marker id="6D608007-BE5A-457E-A247-ADFEDFCC6966-block-point" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+<marker id="B755F1AB-13F9-40CA-8814-D826C04B0CC4-block-point" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
   <path d="M 0 0 L 10 5 L 0 10 z" fill="#939394"/>
 </marker>
-<marker id="6D608007-BE5A-457E-A247-ADFEDFCC6966-block-circle" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+<marker id="B755F1AB-13F9-40CA-8814-D826C04B0CC4-block-circle" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
   <circle cx="5" cy="5" r="4" fill="none" stroke="#939394" stroke-width="1"/>
 </marker>
-<marker id="6D608007-BE5A-457E-A247-ADFEDFCC6966-block-cross" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+<marker id="B755F1AB-13F9-40CA-8814-D826C04B0CC4-block-cross" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
   <path d="M 1 1 L 9 9 M 9 1 L 1 9" stroke="#939394" stroke-width="1.5"/>
 </marker>
 </defs><g class="block"><g class="cluster" id="block-group">

@@ -1,6 +1,6 @@
-<svg id="mindmap-940760DC-0E59-4BA3-BC3D-D6E11DA51EFC" class="mindmapDiagram" width="224" height="584" viewBox="0 0 224 584" xmlns="http://www.w3.org/2000/svg">
+<svg id="mindmap-F689915B-E288-43AA-9236-CDF6DACC7EBD" class="mindmapDiagram" width="224" height="584" viewBox="0 0 224 584" xmlns="http://www.w3.org/2000/svg">
 <defs>
-<linearGradient id="mindmap-940760DC-0E59-4BA3-BC3D-D6E11DA51EFC-gradient" x1="0%" y1="0%" x2="0%" y2="100%">
+<linearGradient id="mindmap-F689915B-E288-43AA-9236-CDF6DACC7EBD-gradient" x1="0%" y1="0%" x2="0%" y2="100%">
 <stop offset="0%" stop-color="#ffffff"/>
 <stop offset="100%" stop-color="#f4f4f4"/>
 </linearGradient>

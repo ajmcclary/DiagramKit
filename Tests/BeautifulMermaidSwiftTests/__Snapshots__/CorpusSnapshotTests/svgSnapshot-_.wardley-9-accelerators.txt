@@ -1,4 +1,4 @@
-<svg id="wardley-F7303653" class="wardley-map" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="900" height="600" viewBox="0 0 900 600" role="graphics-document document">
+<svg id="wardley-0ED7AE1F" class="wardley-map" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="900" height="600" viewBox="0 0 900 600" role="graphics-document document">
 <style>
 .wardley-background { fill: #FFFFFF; }
 .wardley-axes { stroke: #000000; stroke-width: 1.5; }
@@ -39,13 +39,13 @@
 .wardley-title { font-family: "Inter", sans-serif; font-size: 12px; fill: #222222; font-weight: bold; text-anchor: middle; }
 </style>
 <defs>
-<marker id="arrow-wardley-F7303653" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+<marker id="arrow-wardley-0ED7AE1F" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
   <path d="M 0 0 L 10 5 L 0 10 z" fill="#dc3545" />
 </marker>
-<marker id="link-arrow-end-wardley-F7303653" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse">
+<marker id="link-arrow-end-wardley-0ED7AE1F" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse">
   <path d="M 0 0 L 10 5 L 0 10 z" fill="#000000" />
 </marker>
-<marker id="link-arrow-start-wardley-F7303653" viewBox="0 0 10 10" refX="1" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse">
+<marker id="link-arrow-start-wardley-0ED7AE1F" viewBox="0 0 10 10" refX="1" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse">
   <path d="M 10 0 L 0 5 L 10 10 z" fill="#000000" />
 </marker>
 </defs>
@@ -71,7 +71,7 @@
 <line class="wardley-link" x1="450" y1="394" x2="450" y2="255" />
 </g>
 <g class="wardley-trends">
-<line class="wardley-trend" x1="450" y1="400" x2="602" y2="400" marker-end="url(#arrow-wardley-F7303653)" />
+<line class="wardley-trend" x1="450" y1="400" x2="602" y2="400" marker-end="url(#arrow-wardley-0ED7AE1F)" />
 </g>
 <g class="wardley-nodes">
 <g class="wardley-node wardley-node--component">

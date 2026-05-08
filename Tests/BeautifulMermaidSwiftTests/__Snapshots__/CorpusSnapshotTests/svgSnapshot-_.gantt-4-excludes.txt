@@ -1,4 +1,4 @@
-<svg id="132DA32B-19AA-4C97-A63C-5C1B12165EA0" class="mermaid" width="100%" height="100%" viewBox="0 0 1200 148" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<svg id="71F66D6D-44C2-43E3-87DA-A3BE1B0B2224" class="mermaid" width="100%" height="100%" viewBox="0 0 1200 148" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <style>
 .mermaid-main-font { font-family: Inter; }
 .exclude-range { fill: #eeeeee; }
@@ -31,10 +31,10 @@
 .titleText { text-anchor: middle; font-size: 18px; fill: #27272A; }
 .today { stroke: red; }
 </style>
-<rect id="132DA32B-19AA-4C97-A63C-5C1B12165EA0-exclude-2024-01-06" class="exclude-range" x="239.0625" y="35.0" width="65.62462022569446" height="63.0"/>
-<rect id="132DA32B-19AA-4C97-A63C-5C1B12165EA0-exclude-2024-01-13" class="exclude-range" x="468.75" y="35.0" width="65.62462022569446" height="63.0"/>
-<rect id="132DA32B-19AA-4C97-A63C-5C1B12165EA0-exclude-2024-01-20" class="exclude-range" x="698.4375" y="35.0" width="65.62462022569446" height="63.0"/>
-<rect id="132DA32B-19AA-4C97-A63C-5C1B12165EA0-exclude-2024-01-27" class="exclude-range" x="928.125" y="35.0" width="65.62462022569446" height="63.0"/>
+<rect id="71F66D6D-44C2-43E3-87DA-A3BE1B0B2224-exclude-2024-01-06" class="exclude-range" x="239.0625" y="35.0" width="65.62462022569446" height="63.0"/>
+<rect id="71F66D6D-44C2-43E3-87DA-A3BE1B0B2224-exclude-2024-01-13" class="exclude-range" x="468.75" y="35.0" width="65.62462022569446" height="63.0"/>
+<rect id="71F66D6D-44C2-43E3-87DA-A3BE1B0B2224-exclude-2024-01-20" class="exclude-range" x="698.4375" y="35.0" width="65.62462022569446" height="63.0"/>
+<rect id="71F66D6D-44C2-43E3-87DA-A3BE1B0B2224-exclude-2024-01-27" class="exclude-range" x="928.125" y="35.0" width="65.62462022569446" height="63.0"/>
 <g class="grid" transform="translate(75.0, 113.0)">
 <line x1="0.0" x2="0.0" y1="0" y2="63.0"/>
 <text x="0.0" y="15" dy="1em" text-anchor="middle" fill="#000" stroke="none" font-size="10">2024-01-01</text>
@@ -60,10 +60,10 @@
 <text x="984.375" y="15" dy="1em" text-anchor="middle" fill="#000" stroke="none" font-size="10">2024-01-31</text>
 </g>
 <rect class="section section0" x="0.0" y="48.0" width="1162.5" height="46.0"/>
-<rect id="132DA32B-19AA-4C97-A63C-5C1B12165EA0-t1" class="task task0" x="75.0" y="50.0" width="590.625" height="20.0" rx="3" ry="3"/>
-<text id="132DA32B-19AA-4C97-A63C-5C1B12165EA0-t1-text" class="taskText taskText0 width-31" x="370.3125" y="63.5">Task 1</text>
-<rect id="132DA32B-19AA-4C97-A63C-5C1B12165EA0-t2" class="task task0" x="665.625" y="74.0" width="459.375" height="20.0" rx="3" ry="3"/>
-<text id="132DA32B-19AA-4C97-A63C-5C1B12165EA0-t2-text" class="taskText taskText0 width-35" x="895.3125" y="87.5">Task 2</text>
+<rect id="71F66D6D-44C2-43E3-87DA-A3BE1B0B2224-t1" class="task task0" x="75.0" y="50.0" width="590.625" height="20.0" rx="3" ry="3"/>
+<text id="71F66D6D-44C2-43E3-87DA-A3BE1B0B2224-t1-text" class="taskText taskText0 width-31" x="370.3125" y="63.5">Task 1</text>
+<rect id="71F66D6D-44C2-43E3-87DA-A3BE1B0B2224-t2" class="task task0" x="665.625" y="74.0" width="459.375" height="20.0" rx="3" ry="3"/>
+<text id="71F66D6D-44C2-43E3-87DA-A3BE1B0B2224-t2-text" class="taskText taskText0 width-35" x="895.3125" y="87.5">Task 2</text>
 <text class="sectionTitle sectionTitle0" x="0.0" y="78.35">Work</text>
 <g class="today">
 <line class="today" x1="28226.7578125" x2="28226.7578125" y1="25.0" y2="123.0" style=""/>

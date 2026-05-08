@@ -14,32 +14,32 @@
 <g class="sankey sankey-diagram">
 <g class="links">
 <defs>
-<linearGradient id="linearGradient-sankey-8-1" gradientUnits="userSpaceOnUse" x1="10" x2="590">
+<linearGradient id="linearGradient-sankey-6-1" gradientUnits="userSpaceOnUse" x1="10" x2="590">
 <stop offset="0%" stop-color="#4e79a7"/>
 <stop offset="100%" stop-color="#e15759"/>
 </linearGradient>
 </defs>
 <g class="link" style="mix-blend-mode: multiply;">
-<path d="M 10,205 C 300,205,300,205,590,205" fill="none" stroke="url(#linearGradient-sankey-8-1)" stroke-width="260" stroke-opacity="0.5"/>
+<path d="M 10,205 C 300,205,300,205,590,205" fill="none" stroke="url(#linearGradient-sankey-6-1)" stroke-width="260" stroke-opacity="0.5"/>
 </g>
 <defs>
-<linearGradient id="linearGradient-sankey-8-2" gradientUnits="userSpaceOnUse" x1="10" x2="590">
+<linearGradient id="linearGradient-sankey-6-2" gradientUnits="userSpaceOnUse" x1="10" x2="590">
 <stop offset="0%" stop-color="#4e79a7"/>
 <stop offset="100%" stop-color="#e15759"/>
 </linearGradient>
 </defs>
 <g class="link" style="mix-blend-mode: multiply;">
-<path d="M 10,356.5 C 300,356.5,300,356.5,590,356.5" fill="none" stroke="url(#linearGradient-sankey-8-2)" stroke-width="43.1" stroke-opacity="0.5"/>
+<path d="M 10,356.5 C 300,356.5,300,356.5,590,356.5" fill="none" stroke="url(#linearGradient-sankey-6-2)" stroke-width="43.1" stroke-opacity="0.5"/>
 </g>
 </g>
 <g class="nodes">
-<g class="node" id="node-sankey-8-3" transform="translate(0,75)" x="0" y="75)">
+<g class="node" id="node-sankey-6-3" transform="translate(0,75)" x="0" y="75)">
 <rect x="0" y="0" width="10" height="325" fill="#4e79a7" shape-rendering="crispEdges"/>
 </g>
-<g class="node" id="node-sankey-8-4" transform="translate(590,63.1)" x="590" y="63.1)">
+<g class="node" id="node-sankey-6-4" transform="translate(590,63.1)" x="590" y="63.1)">
 <rect x="0" y="0" width="10" height="260" fill="#e15759" shape-rendering="crispEdges"/>
 </g>
-<g class="node" id="node-sankey-8-5" transform="translate(590,282)" x="590" y="282)">
+<g class="node" id="node-sankey-6-5" transform="translate(590,282)" x="590" y="282)">
 <rect x="0" y="0" width="10" height="43.1" fill="#e15759" shape-rendering="crispEdges"/>
 </g>
 </g>

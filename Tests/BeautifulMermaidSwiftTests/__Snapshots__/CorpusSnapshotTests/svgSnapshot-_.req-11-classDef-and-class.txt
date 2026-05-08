@@ -24,14 +24,14 @@ text { font-family: 'Inter', system-ui, sans-serif; }
   }
 </style>
 <defs>
-<marker id="8C699FDC-2AD5-4F07-85EC-E8AF190B3F29_requirement-containsStart" refX="0" refY="10" markerWidth="20" markerHeight="20" orient="auto">
+<marker id="588EFA1B-60F7-46DF-B0A3-0760A7B9A99C_requirement-containsStart" refX="0" refY="10" markerWidth="20" markerHeight="20" orient="auto">
   <g>
     <circle cx="10" cy="10" r="9" fill="none" />
     <line x1="1" x2="19" y1="10" y2="10" />
     <line y1="1" y2="19" x1="10" x2="10" />
   </g>
 </marker>
-<marker id="8C699FDC-2AD5-4F07-85EC-E8AF190B3F29_requirement-arrowEnd" refX="20" refY="10" markerWidth="20" markerHeight="20" orient="auto">
+<marker id="588EFA1B-60F7-46DF-B0A3-0760A7B9A99C_requirement-arrowEnd" refX="20" refY="10" markerWidth="20" markerHeight="20" orient="auto">
   <path d="M0,0 L20,10 M20,10 L0,20" />
 </marker>
 </defs>

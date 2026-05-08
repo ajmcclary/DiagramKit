@@ -1,47 +1,47 @@
-<svg id="FF832E72-DF57-4942-ABB7-BF3D3384E339" class="treemap" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="100%" style="max-width: 1016px;" viewBox="-8 -8 1016 416">
+<svg id="E3E7AB2A-A5E2-4BC7-BA9C-C67C4C788E37" class="treemap" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="100%" style="max-width: 1016px;" viewBox="-8 -8 1016 416">
 <rect x="-8" y="-8" width="1016" height="416" fill="#FFFFFF" />
 <g class="treemapContainer" transform="translate(0, 0)">
 <g class="treemapSection" transform="translate(15,40)">
 <rect class="treemapSectionHeader" width="970" height="25" fill="none" fill-opacity="0.6" stroke-width="0.6"/>
-<clipPath id="clip-section-82D9591A-C12B-4E78-9A50-CC39861EF1BA-0">
+<clipPath id="clip-section-1624E4FD-5900-41A5-A87D-32E5E7401B03-0">
 <rect width="958" height="25" />
 </clipPath>
 <rect class="treemapSection section0" width="970" height="193" fill="#d62728" fill-opacity="0.6" stroke="#8a1719" stroke-width="2.0" stroke-opacity="0.4"/>
-<text class="treemapSectionLabel" x="6" y="12" dominant-baseline="middle" font-weight="bold" font-family="Inter" font-weight="bold" font-size="12px" fill="#ffffff" clip-path="url(#clip-section-82D9591A-C12B-4E78-9A50-CC39861EF1BA-0)">Category B</text>
-<text class="treemapSectionValue" x="960" y="12" text-anchor="end" dominant-baseline="middle" font-style="italic" font-family="Inter" font-style="italic" font-size="10px" fill="#ffffff" clip-path="url(#clip-section-82D9591A-C12B-4E78-9A50-CC39861EF1BA-0)">40</text>
+<text class="treemapSectionLabel" x="6" y="12" dominant-baseline="middle" font-weight="bold" font-family="Inter" font-weight="bold" font-size="12px" fill="#ffffff" clip-path="url(#clip-section-1624E4FD-5900-41A5-A87D-32E5E7401B03-0)">Category B</text>
+<text class="treemapSectionValue" x="960" y="12" text-anchor="end" dominant-baseline="middle" font-style="italic" font-family="Inter" font-style="italic" font-size="10px" fill="#ffffff" clip-path="url(#clip-section-1624E4FD-5900-41A5-A87D-32E5E7401B03-0)">40</text>
 </g>
 <g class="treemapSection" transform="translate(15,243)">
 <rect class="treemapSectionHeader" width="970" height="25" fill="none" fill-opacity="0.6" stroke-width="0.6"/>
-<clipPath id="clip-section-82D9591A-C12B-4E78-9A50-CC39861EF1BA-1">
+<clipPath id="clip-section-1624E4FD-5900-41A5-A87D-32E5E7401B03-1">
 <rect width="958" height="25" />
 </clipPath>
 <rect class="treemapSection section1" width="970" height="142" fill="#1f77b4" fill-opacity="0.6" stroke="#0d4a6c" stroke-width="2.0" stroke-opacity="0.4"/>
-<text class="treemapSectionLabel" x="6" y="12" dominant-baseline="middle" font-weight="bold" font-family="Inter" font-weight="bold" font-size="12px" fill="#ffffff" clip-path="url(#clip-section-82D9591A-C12B-4E78-9A50-CC39861EF1BA-1)">Category A</text>
-<text class="treemapSectionValue" x="960" y="12" text-anchor="end" dominant-baseline="middle" font-style="italic" font-family="Inter" font-style="italic" font-size="10px" fill="#ffffff" clip-path="url(#clip-section-82D9591A-C12B-4E78-9A50-CC39861EF1BA-1)">30</text>
+<text class="treemapSectionLabel" x="6" y="12" dominant-baseline="middle" font-weight="bold" font-family="Inter" font-weight="bold" font-size="12px" fill="#ffffff" clip-path="url(#clip-section-1624E4FD-5900-41A5-A87D-32E5E7401B03-1)">Category A</text>
+<text class="treemapSectionValue" x="960" y="12" text-anchor="end" dominant-baseline="middle" font-style="italic" font-family="Inter" font-style="italic" font-size="10px" fill="#ffffff" clip-path="url(#clip-section-1624E4FD-5900-41A5-A87D-32E5E7401B03-1)">30</text>
 </g>
 <g class="treemapNode treemapLeafGroup leaf0" transform="translate(30,80)">
 <rect class="treemapLeaf" width="940" height="82" fill="#d62728" fill-opacity="0.3" stroke="#8a1719" stroke-width="3.0" />
-<clipPath id="clip-82D9591A-C12B-4E78-9A50-CC39861EF1BA-0">
+<clipPath id="clip-1624E4FD-5900-41A5-A87D-32E5E7401B03-0">
 <rect width="936" height="78" />
 </clipPath>
-<text class="treemapLabel" x="470" y="41" text-anchor="middle" dominant-baseline="middle" font-family="Inter" font-size="38px" fill="#ffffff" clip-path="url(#clip-82D9591A-C12B-4E78-9A50-CC39861EF1BA-0)">Item B2</text>
+<text class="treemapLabel" x="470" y="41" text-anchor="middle" dominant-baseline="middle" font-family="Inter" font-size="38px" fill="#ffffff" clip-path="url(#clip-1624E4FD-5900-41A5-A87D-32E5E7401B03-0)">Item B2</text>
 </g>
 <g class="treemapNode treemapLeafGroup leaf1" transform="translate(30,172)">
 <rect class="treemapLeaf" width="940" height="46" fill="#d62728" fill-opacity="0.3" stroke="#8a1719" stroke-width="3.0" />
-<clipPath id="clip-82D9591A-C12B-4E78-9A50-CC39861EF1BA-1">
+<clipPath id="clip-1624E4FD-5900-41A5-A87D-32E5E7401B03-1">
 <rect width="936" height="42" />
 </clipPath>
 </g>
 <g class="treemapNode treemapLeafGroup leaf2" transform="translate(30,283)">
 <rect class="treemapLeaf" width="940" height="55" fill="#1f77b4" fill-opacity="0.3" stroke="#0d4a6c" stroke-width="3.0" />
-<clipPath id="clip-82D9591A-C12B-4E78-9A50-CC39861EF1BA-2">
+<clipPath id="clip-1624E4FD-5900-41A5-A87D-32E5E7401B03-2">
 <rect width="936" height="51" />
 </clipPath>
-<text class="treemapLabel" x="470" y="27" text-anchor="middle" dominant-baseline="middle" font-family="Inter" font-size="27px" fill="#ffffff" clip-path="url(#clip-82D9591A-C12B-4E78-9A50-CC39861EF1BA-2)">Item A2</text>
+<text class="treemapLabel" x="470" y="27" text-anchor="middle" dominant-baseline="middle" font-family="Inter" font-size="27px" fill="#ffffff" clip-path="url(#clip-1624E4FD-5900-41A5-A87D-32E5E7401B03-2)">Item A2</text>
 </g>
 <g class="treemapNode treemapLeafGroup leaf3" transform="translate(30,348)">
 <rect class="treemapLeaf" width="940" height="22" fill="#1f77b4" fill-opacity="0.3" stroke="#0d4a6c" stroke-width="3.0" />
-<clipPath id="clip-82D9591A-C12B-4E78-9A50-CC39861EF1BA-3">
+<clipPath id="clip-1624E4FD-5900-41A5-A87D-32E5E7401B03-3">
 <rect width="936" height="18" />
 </clipPath>
 </g>

@@ -1,4 +1,4 @@
-<svg id="gitgraph-930547E9-AFC3-40B2-90E5-E120DC506B04" viewBox="0 0 209 136" width="209" height="136" xmlns="http://www.w3.org/2000/svg">
+<svg id="gitgraph-7EC541A8-C04D-47FF-ACA8-A909D5D04993" viewBox="0 0 209 136" width="209" height="136" xmlns="http://www.w3.org/2000/svg">
   <style>
 .branch-label0 { fill: #333; }
 .commit0 { stroke: #333; fill: #333; }
@@ -83,7 +83,7 @@
   fill: #333333;
 }  </style>
   <defs>
-    <marker id="arrowhead-930547E9-AFC3-40B2-90E5-E120DC506B04" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+    <marker id="arrowhead-7EC541A8-C04D-47FF-ACA8-A909D5D04993" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
       <path d="M 0 0 L 10 5 L 0 10 z" fill="#666" />
     </marker>
   </defs>
@@ -110,7 +110,7 @@
     <text x="72.5" y="7.0" class="tag-label" font-size="10" fill="#333333">RC1</text>
   </g>
   <g class="commit-arrows">
-    <path d="M 40.0 30.0 L 60.0 30.0 L 60.0 30.0 L 80.0 30.0" class="arrow arrow arrow0 branch" fill="none" stroke="#2f80ed" stroke-width="2" marker-end="url(#arrowhead-930547E9-AFC3-40B2-90E5-E120DC506B04)" />
+    <path d="M 40.0 30.0 L 60.0 30.0 L 60.0 30.0 L 80.0 30.0" class="arrow arrow arrow0 branch" fill="none" stroke="#2f80ed" stroke-width="2" marker-end="url(#arrowhead-7EC541A8-C04D-47FF-ACA8-A909D5D04993)" />
   </g>
 <line x1="30.0" y1="28.0" x2="120.0" y2="28.0" class="branch branch0" stroke="#2f80ed" stroke-width="1" stroke-dasharray="2" />
 <g transform="translate(-63.6 28.0)" class="branchLabel label">

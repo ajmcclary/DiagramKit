@@ -1,6 +1,6 @@
-<svg id="88909A25-374F-4493-A8C1-3ABB8BB169CB" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="1100" height="379.3" viewBox="0 0 1100 379.3" style="--bg:#FFFFFF;--fg:#27272A;--line:#939394;--accent:#27272A;--muted:#A9A9AA;--surface:#F9F9F9;--border:#D4D4D4;background:#FFFFFF">
+<svg id="A3917694-AF71-489B-8344-3DFB711A8F0C" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="1100" height="379.3" viewBox="0 0 1100 379.3" style="--bg:#FFFFFF;--fg:#27272A;--line:#939394;--accent:#27272A;--muted:#A9A9AA;--surface:#F9F9F9;--border:#D4D4D4;background:#FFFFFF">
 <defs>
-<marker id="88909A25-374F-4493-A8C1-3ABB8BB169CB-arrowhead" refX="5" refY="2" markerWidth="6" markerHeight="4" orient="auto">
+<marker id="A3917694-AF71-489B-8344-3DFB711A8F0C-arrowhead" refX="5" refY="2" markerWidth="6" markerHeight="4" orient="auto">
 <path d="M 0,0 V 4 L6,2 Z" class="arrowheadPath" fill="#939394"/>
 </marker>
 </defs>
@@ -72,12 +72,12 @@
 </switch>
 </g>
 <g class="lineWrapper">
-<line x1="225" y1="133.1" x2="225" y2="233.1" stroke="#939394" stroke-dasharray="5,5" stroke-width="2" marker-end="url(#88909A25-374F-4493-A8C1-3ABB8BB169CB-arrowhead)"/>
-<line x1="425" y1="133.1" x2="425" y2="233.1" stroke="#939394" stroke-dasharray="5,5" stroke-width="2" marker-end="url(#88909A25-374F-4493-A8C1-3ABB8BB169CB-arrowhead)"/>
-<line x1="425" y1="133.1" x2="425" y2="286.2" stroke="#939394" stroke-dasharray="5,5" stroke-width="2" marker-end="url(#88909A25-374F-4493-A8C1-3ABB8BB169CB-arrowhead)"/>
-<line x1="625" y1="133.1" x2="625" y2="233.1" stroke="#939394" stroke-dasharray="5,5" stroke-width="2" marker-end="url(#88909A25-374F-4493-A8C1-3ABB8BB169CB-arrowhead)"/>
-<line x1="825" y1="133.1" x2="825" y2="233.1" stroke="#939394" stroke-dasharray="5,5" stroke-width="2" marker-end="url(#88909A25-374F-4493-A8C1-3ABB8BB169CB-arrowhead)"/>
+<line x1="225" y1="133.1" x2="225" y2="233.1" stroke="#939394" stroke-dasharray="5,5" stroke-width="2" marker-end="url(#A3917694-AF71-489B-8344-3DFB711A8F0C-arrowhead)"/>
+<line x1="425" y1="133.1" x2="425" y2="233.1" stroke="#939394" stroke-dasharray="5,5" stroke-width="2" marker-end="url(#A3917694-AF71-489B-8344-3DFB711A8F0C-arrowhead)"/>
+<line x1="425" y1="133.1" x2="425" y2="286.2" stroke="#939394" stroke-dasharray="5,5" stroke-width="2" marker-end="url(#A3917694-AF71-489B-8344-3DFB711A8F0C-arrowhead)"/>
+<line x1="625" y1="133.1" x2="625" y2="233.1" stroke="#939394" stroke-dasharray="5,5" stroke-width="2" marker-end="url(#A3917694-AF71-489B-8344-3DFB711A8F0C-arrowhead)"/>
+<line x1="825" y1="133.1" x2="825" y2="233.1" stroke="#939394" stroke-dasharray="5,5" stroke-width="2" marker-end="url(#A3917694-AF71-489B-8344-3DFB711A8F0C-arrowhead)"/>
 </g>
 <text x="150" y="30" font-size="4ex" font-weight="bold" fill="#27272A">History of Social Media Platform</text>
-<line x1="150" y1="183.1" x2="1050" y2="183.1" stroke="#939394" stroke-width="4" marker-end="url(#88909A25-374F-4493-A8C1-3ABB8BB169CB-arrowhead)"/>
+<line x1="150" y1="183.1" x2="1050" y2="183.1" stroke="#939394" stroke-width="4" marker-end="url(#A3917694-AF71-489B-8344-3DFB711A8F0C-arrowhead)"/>
 </svg>

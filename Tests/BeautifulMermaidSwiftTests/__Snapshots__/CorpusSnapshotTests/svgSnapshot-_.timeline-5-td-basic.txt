@@ -1,6 +1,6 @@
-<svg id="2C0CDDF4-9471-467F-87B6-0423038F3F94" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="670" height="379.3" viewBox="0 0 670 379.3" style="--bg:#FFFFFF;--fg:#27272A;--line:#939394;--accent:#27272A;--muted:#A9A9AA;--surface:#F9F9F9;--border:#D4D4D4;background:#FFFFFF">
+<svg id="82B00FE3-8421-4BB6-B6FE-E70A6A0275B0" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="670" height="379.3" viewBox="0 0 670 379.3" style="--bg:#FFFFFF;--fg:#27272A;--line:#939394;--accent:#27272A;--muted:#A9A9AA;--surface:#F9F9F9;--border:#D4D4D4;background:#FFFFFF">
 <defs>
-<marker id="2C0CDDF4-9471-467F-87B6-0423038F3F94-arrowhead" refX="5" refY="2" markerWidth="6" markerHeight="4" orient="auto">
+<marker id="82B00FE3-8421-4BB6-B6FE-E70A6A0275B0-arrowhead" refX="5" refY="2" markerWidth="6" markerHeight="4" orient="auto">
 <path d="M 0,0 V 4 L6,2 Z" class="arrowheadPath" fill="#939394"/>
 </marker>
 </defs>
@@ -50,10 +50,10 @@
 </switch>
 </g>
 <g class="lineWrapper">
-<line x1="270" y1="106.5" x2="320" y2="106.5" stroke="#939394" stroke-dasharray="5,5" stroke-width="2" marker-end="url(#2C0CDDF4-9471-467F-87B6-0423038F3F94-arrowhead)"/>
-<line x1="270" y1="169.7" x2="320" y2="169.7" stroke="#939394" stroke-dasharray="5,5" stroke-width="2" marker-end="url(#2C0CDDF4-9471-467F-87B6-0423038F3F94-arrowhead)"/>
-<line x1="270" y1="232.8" x2="320" y2="232.8" stroke="#939394" stroke-dasharray="5,5" stroke-width="2" marker-end="url(#2C0CDDF4-9471-467F-87B6-0423038F3F94-arrowhead)"/>
+<line x1="270" y1="106.5" x2="320" y2="106.5" stroke="#939394" stroke-dasharray="5,5" stroke-width="2" marker-end="url(#82B00FE3-8421-4BB6-B6FE-E70A6A0275B0-arrowhead)"/>
+<line x1="270" y1="169.7" x2="320" y2="169.7" stroke="#939394" stroke-dasharray="5,5" stroke-width="2" marker-end="url(#82B00FE3-8421-4BB6-B6FE-E70A6A0275B0-arrowhead)"/>
+<line x1="270" y1="232.8" x2="320" y2="232.8" stroke="#939394" stroke-dasharray="5,5" stroke-width="2" marker-end="url(#82B00FE3-8421-4BB6-B6FE-E70A6A0275B0-arrowhead)"/>
 </g>
 <text x="50" y="30" font-size="4ex" font-weight="bold" fill="#27272A">My Timeline</text>
-<line x1="270" y1="62" x2="270" y2="306.3" stroke="#939394" stroke-width="4" marker-end="url(#2C0CDDF4-9471-467F-87B6-0423038F3F94-arrowhead)"/>
+<line x1="270" y1="62" x2="270" y2="306.3" stroke="#939394" stroke-width="4" marker-end="url(#82B00FE3-8421-4BB6-B6FE-E70A6A0275B0-arrowhead)"/>
 </svg>
