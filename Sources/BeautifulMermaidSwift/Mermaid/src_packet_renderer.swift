@@ -70,15 +70,15 @@ func renderPacketSvg(
                     // Single-bit: center
                     let bitX = block.x + block.width / 2
                     let bitY = block.y - 2
-                    svg += "<text x=\"\(bitX)\" y=\"\(bitY)\" class=\"packetByte start\" text-anchor=\"middle\">\(block.start)</text>\n"
+                    svg += "<text x=\"\(bitX)\" y=\"\(bitY)\" class=\"packetByte start\" dominant-baseline=\"auto\" text-anchor=\"middle\">\(block.start)</text>\n"
                 } else {
                     // Start byte label
                     let startX = block.x
                     let bitY = block.y - 2
-                    svg += "<text x=\"\(startX)\" y=\"\(bitY)\" class=\"packetByte start\" text-anchor=\"start\">\(block.start)</text>\n"
+                    svg += "<text x=\"\(startX)\" y=\"\(bitY)\" class=\"packetByte start\" dominant-baseline=\"auto\" text-anchor=\"start\">\(block.start)</text>\n"
                     // End byte label
                     let endX = block.x + block.width
-                    svg += "<text x=\"\(endX)\" y=\"\(bitY)\" class=\"packetByte end\" text-anchor=\"end\">\(block.end)</text>\n"
+                    svg += "<text x=\"\(endX)\" y=\"\(bitY)\" class=\"packetByte end\" dominant-baseline=\"auto\" text-anchor=\"end\">\(block.end)</text>\n"
                 }
             }
         }

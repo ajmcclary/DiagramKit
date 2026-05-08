@@ -119,43 +119,46 @@ func parsePacketDiagram(_ lines: [String], frontmatter: DiagramFrontmatter? = ni
         // Parse statements
         let lower = trimmed.lowercased()
 
-        // title
-        if lower.hasPrefix("title ") {
-            let titleValue = String(trimmed.dropFirst(6)).trimmingCharacters(in: .whitespaces)
+        // title — keyword followed by space or tab
+        if lower.hasPrefix("title"), _hasWhitespaceAfterKeyword(trimmed, len: 5) {
+            let titleValue = _valueAfterKeyword(trimmed, len: 5)
             diagramTitle = _unquoteString(titleValue)
             i += 1
             continue
         }
 
-        // accTitle
-        if lower.hasPrefix("acctitle:") {
-            let value = String(trimmed.dropFirst(9)).trimmingCharacters(in: .whitespaces)
-            accTitle = _unquoteString(value)
-            i += 1
-            continue
-        }
-        if lower.hasPrefix("acctitle ") {
-            let value = String(trimmed.dropFirst(8)).trimmingCharacters(in: .whitespaces)
+        // accTitle — keyword followed by optional whitespace then colon
+        if lower.hasPrefix("acctitle"), let value = _valueAfterColon(trimmed, keywordLen: 8) {
             accTitle = _unquoteString(value)
             i += 1
             continue
         }
 
-        // accDescr (multiline)
-        if lower.hasPrefix("accdescr {") {
+        // accDescr (multiline with brace)
+        if lower.hasPrefix("accdescr"), let braceContent = _valueInBraces(trimmed, keywordLen: 8) {
+            accDescr = braceContent
+            i += 1
+            continue
+        }
+
+        // accDescr (multiline across lines)
+        if lower.hasPrefix("accdescr"), _hasMultilineOpen(trimmed, len: 8) {
             inAccDescrMultiline = true
             accDescrLines = []
             i += 1
             continue
         }
-        if lower.hasPrefix("accdescr:") {
-            let value = String(trimmed.dropFirst(9)).trimmingCharacters(in: .whitespaces)
+
+        // accDescr — keyword followed by optional whitespace then colon
+        if lower.hasPrefix("accdescr"), let value = _valueAfterColon(trimmed, keywordLen: 8) {
             accDescr = _unquoteString(value)
             i += 1
             continue
         }
-        if lower.hasPrefix("accdescr ") {
-            let value = String(trimmed.dropFirst(8)).trimmingCharacters(in: .whitespaces)
+
+        // accDescr — keyword followed by whitespace without colon (progressive enhancement)
+        if lower.hasPrefix("accdescr"), _hasWhitespaceAfterKeyword(trimmed, len: 8) {
+            let value = _valueAfterKeyword(trimmed, len: 9)
             accDescr = _unquoteString(value)
             i += 1
             continue
@@ -171,8 +174,9 @@ func parsePacketDiagram(_ lines: [String], frontmatter: DiagramFrontmatter? = ni
         throw PacketParserError.missingHeader
     }
 
-    // Build config from frontmatter
-    let config = frontmatter?.packetConfig ?? PacketDiagramConfig.default
+    // Build config from frontmatter, clamped to schema minimums
+    var config = frontmatter?.packetConfig ?? PacketDiagramConfig.default
+    config = config.clampedToMinimums
     let theme = frontmatter?.packetTheme ?? PacketThemeConfig.default
 
     // Normalize blocks (contiguity, defaults, row splitting)
@@ -303,6 +307,52 @@ private func _unquoteString(_ s: String) -> String {
         return String(trimmed[start..<end])
     }
     return trimmed
+}
+
+// MARK: - Whitespace-flexible keyword matchers
+
+private func _hasWhitespaceAfterKeyword(_ s: String, len: Int) -> Bool {
+    guard len < s.count else { return false }
+    let ch = s[s.index(s.startIndex, offsetBy: len)]
+    return ch == " " || ch == "\t"
+}
+
+private func _hasMultilineOpen(_ s: String, len: Int) -> Bool {
+    var idx = s.index(s.startIndex, offsetBy: len)
+    while idx < s.endIndex && (s[idx] == " " || s[idx] == "\t") {
+        idx = s.index(after: idx)
+    }
+    return idx < s.endIndex && s[idx] == "{"
+}
+
+private func _valueInBraces(_ s: String, keywordLen: Int) -> String? {
+    var idx = s.index(s.startIndex, offsetBy: keywordLen)
+    while idx < s.endIndex && (s[idx] == " " || s[idx] == "\t") {
+        idx = s.index(after: idx)
+    }
+    guard idx < s.endIndex, s[idx] == "{" else { return nil }
+    idx = s.index(after: idx)
+    let startIdx = idx
+    while idx < s.endIndex && s[idx] != "}" {
+        idx = s.index(after: idx)
+    }
+    guard idx < s.endIndex, s[idx] == "}" else { return nil }
+    return String(s[startIdx..<idx]).trimmingCharacters(in: .whitespaces)
+}
+
+private func _valueAfterColon(_ s: String, keywordLen: Int) -> String? {
+    var idx = s.index(s.startIndex, offsetBy: keywordLen)
+    while idx < s.endIndex && (s[idx] == " " || s[idx] == "\t") {
+        idx = s.index(after: idx)
+    }
+    guard idx < s.endIndex, s[idx] == ":" else { return nil }
+    idx = s.index(after: idx)
+    return String(s[idx...]).trimmingCharacters(in: .whitespaces)
+}
+
+private func _valueAfterKeyword(_ s: String, len: Int) -> String {
+    let idx = s.index(s.startIndex, offsetBy: len)
+    return String(s[idx...]).trimmingCharacters(in: .whitespaces)
 }
 
 // MARK: - Normalization

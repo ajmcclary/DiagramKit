@@ -147,4 +147,16 @@ final class PacketSvgTests: XCTestCase {
         XCTAssertTrue(svg.contains("stroke-width: 2"))
         XCTAssertTrue(svg.contains("fill: #cccccc"))
     }
+
+    func testSvgBitLabelBaselineAuto() throws {
+        let svg = try parseAndRender("packet\n0-15: \"test\"\n16: \"single\"")
+        let byteTextElements = svg.components(separatedBy: "class=\"packetByte")
+        var autoCount = 0
+        for fragment in byteTextElements.dropFirst() {
+            if fragment.contains("dominant-baseline=\"auto\"") {
+                autoCount += 1
+            }
+        }
+        XCTAssertEqual(autoCount, 3) // 2 for range block (start + end), 1 for single-bit (start only)
+    }
 }

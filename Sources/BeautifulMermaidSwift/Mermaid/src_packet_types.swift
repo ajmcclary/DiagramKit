@@ -55,6 +55,18 @@ public struct PacketDiagramConfig: Sendable, Equatable {
     }
 
     public static let `default` = PacketDiagramConfig()
+
+    public var clampedToMinimums: PacketDiagramConfig {
+        PacketDiagramConfig(
+            rowHeight: max(1, rowHeight),
+            bitWidth: max(1, bitWidth),
+            bitsPerRow: max(1, bitsPerRow),
+            showBits: showBits,
+            paddingX: max(0, paddingX),
+            paddingY: max(0, paddingY),
+            useMaxWidth: useMaxWidth
+        )
+    }
 }
 
 /// Theme variables for Packet SVG/Core Graphics styling.

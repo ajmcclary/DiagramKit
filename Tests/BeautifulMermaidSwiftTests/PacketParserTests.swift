@@ -319,4 +319,123 @@ final class PacketParserTests: XCTestCase {
 
         XCTAssertEqual(diagram.diagramTitle, "Source Packet")
     }
+
+    // MARK: - Config validation (minimum clamping)
+
+    func testZeroConfigRowHeightIsClamped() throws {
+        let source = """
+        ---
+        config:
+          packet:
+            rowHeight: 0
+        ---
+        packet
+        0-10: "test"
+        """
+        let preprocessed = _preprocessMermaidSource(source)
+        let lines = _mermaidSourceLines(from: preprocessed.source)
+        let diagram = try parsePacketDiagram(lines, frontmatter: preprocessed.frontmatter)
+        XCTAssertEqual(diagram.config.rowHeight, 1)
+    }
+
+    func testZeroConfigBitWidthIsClamped() throws {
+        let source = """
+        ---
+        config:
+          packet:
+            bitWidth: 0
+        ---
+        packet
+        0-10: "test"
+        """
+        let preprocessed = _preprocessMermaidSource(source)
+        let lines = _mermaidSourceLines(from: preprocessed.source)
+        let diagram = try parsePacketDiagram(lines, frontmatter: preprocessed.frontmatter)
+        XCTAssertEqual(diagram.config.bitWidth, 1)
+    }
+
+    func testZeroConfigBitsPerRowIsClamped() throws {
+        let source = """
+        ---
+        config:
+          packet:
+            bitsPerRow: 0
+        ---
+        packet
+        0-10: "test"
+        """
+        let preprocessed = _preprocessMermaidSource(source)
+        let lines = _mermaidSourceLines(from: preprocessed.source)
+        let diagram = try parsePacketDiagram(lines, frontmatter: preprocessed.frontmatter)
+        XCTAssertEqual(diagram.config.bitsPerRow, 1)
+    }
+
+    func testNegativePaddingXIsClamped() throws {
+        let source = """
+        ---
+        config:
+          packet:
+            paddingX: -5
+        ---
+        packet
+        0-10: "test"
+        """
+        let preprocessed = _preprocessMermaidSource(source)
+        let lines = _mermaidSourceLines(from: preprocessed.source)
+        let diagram = try parsePacketDiagram(lines, frontmatter: preprocessed.frontmatter)
+        XCTAssertEqual(diagram.config.paddingX, 0)
+    }
+
+    func testNegativePaddingYIsClamped() throws {
+        let source = """
+        ---
+        config:
+          packet:
+            paddingY: -2
+        ---
+        packet
+        0-10: "test"
+        """
+        let preprocessed = _preprocessMermaidSource(source)
+        let lines = _mermaidSourceLines(from: preprocessed.source)
+        let diagram = try parsePacketDiagram(lines, frontmatter: preprocessed.frontmatter)
+        XCTAssertEqual(diagram.config.paddingY, 0)
+    }
+
+    // MARK: - Langium whitespace parity (tab separators)
+
+    func testTitleTabSeparator() throws {
+        let diagram = try parse("packet\ntitle\t\"Tab Title\"\n0-10: \"test\"")
+        XCTAssertEqual(diagram.diagramTitle, "Tab Title")
+        XCTAssertEqual(diagram.rows.first?.first?.label, "test")
+    }
+
+    func testAccTitleTabColonSeparator() throws {
+        let diagram = try parse("packet\naccTitle\t: \"Tab Acc\"\n0-10: \"test\"")
+        XCTAssertEqual(diagram.accTitle, "Tab Acc")
+    }
+
+    func testAccDescrTabColonSeparator() throws {
+        let diagram = try parse("packet\naccDescr\t: \"Tab Desc\"\n0-10: \"test\"")
+        XCTAssertEqual(diagram.accDescr, "Tab Desc")
+    }
+
+    func testAccDescrInlineTabBraces() throws {
+        let diagram = try parse("packet\naccDescr\t{tab desc}\n0-10: \"test\"")
+        XCTAssertEqual(diagram.accDescr, "tab desc")
+    }
+
+    func testAccDescrMultilineTabBrace() throws {
+        let source = """
+        packet
+        accDescr\t{
+        line1
+        line2
+        }
+        0-10: "test"
+        """
+        let diagram = try parse(source)
+        XCTAssertEqual(diagram.accDescr, "line1 line2")
+        XCTAssertEqual(diagram.rows.first?.first?.label, "test")
+    }
 }
