@@ -181,6 +181,13 @@ public final class MermaidImageRenderer {
             ctx.fill(CGRect(origin: .zero, size: pixelSize))
         }
 
+        // Raw AppKit CGContext bitmaps are y-up (origin bottom-left). Renderer
+        // code (esp. LabelRenderer's AppKit branch) assumes a y-down outer
+        // context — the same convention UIGraphicsImageRenderer applies on
+        // UIKit/Catalyst. Flip in pixel space before the diagram-space scale.
+        ctx.translateBy(x: 0, y: pixelSize.height)
+        ctx.scaleBy(x: 1, y: -1)
+
         ctx.scaleBy(x: scale, y: scale)
         ctx.translateBy(x: -diagBounds.minX, y: -diagBounds.minY)
         prepared.render(in: ctx, bounds: diagBounds)
@@ -236,6 +243,11 @@ public final class MermaidImageRenderer {
             ctx.setFillColor(theme.background.cgColor)
             ctx.fill(CGRect(origin: .zero, size: CGSize(width: pixelWidth, height: pixelHeight)))
         }
+
+        // See note in _renderPrepared: AppKit raw CGContext is y-up; the
+        // renderer is written for y-down. Flip in pixel space before scaling.
+        ctx.translateBy(x: 0, y: CGFloat(pixelHeight))
+        ctx.scaleBy(x: 1, y: -1)
 
         ctx.scaleBy(x: scale, y: scale)
 
