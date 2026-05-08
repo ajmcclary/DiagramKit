@@ -8,6 +8,8 @@ public func renderRadarSvg(
 ) -> String {
     var parts: [String] = []
 
+    let effectiveTheme = positioned.theme.withGlobalColors(fg: colors.fg, line: colors.line)
+
     parts.append(_radarSvgOpenTag(positioned, colors: colors, transparent: transparent, font: font))
 
     if let accTitle = positioned.accTitle {
@@ -17,7 +19,7 @@ public func renderRadarSvg(
         parts.append("<desc>\(_escapeRadarXml(accDescr))</desc>")
     }
 
-    parts.append(_radarStyleBlock(positioned.theme, includeLegend: positioned.showLegend))
+    parts.append(_radarStyleBlock(effectiveTheme, includeLegend: positioned.showLegend))
 
     parts.append(#"<g transform="translate(\#(_rN(positioned.centerX)), \#(_rN(positioned.centerY)))">"#)
 

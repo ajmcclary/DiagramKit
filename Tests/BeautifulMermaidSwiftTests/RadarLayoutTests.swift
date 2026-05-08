@@ -83,6 +83,28 @@ struct RadarLayoutTests {
         #expect(radius.isFinite)
     }
 
+    @Test("relativeRadius with non-zero min value produces correct scaling")
+    func relativeRadiusNonZeroMin() {
+        #expect(relativeRadius(5, minValue: 5, maxValue: 10, radius: 100) == 0)
+        #expect(relativeRadius(7.5, minValue: 5, maxValue: 10, radius: 100) == 50)
+        #expect(relativeRadius(10, minValue: 5, maxValue: 10, radius: 100) == 100)
+        #expect(relativeRadius(3, minValue: 5, maxValue: 10, radius: 100) == 0)
+    }
+
+    @Test("empty diagram layout produces finite graticule radii")
+    func emptyDiagramFiniteGraticules() throws {
+        let diagram = RadarDiagram()
+        let positioned = layoutRadarDiagram(diagram)
+        #expect(positioned.graticules.count == 5)
+        for g in positioned.graticules {
+            if case .circle = g.type {
+                let r = try #require(g.radius)
+                #expect(r.isFinite)
+                #expect(r >= 0)
+            }
+        }
+    }
+
     @Test("circle graticule ticks")
     func circleGraticuleTicks() {
         var diagram = RadarDiagram()
@@ -232,6 +254,55 @@ struct RadarLayoutTests {
         let path0 = closedRoundCurveSVGPath(points, tension: 0)
         let path05 = closedRoundCurveSVGPath(points, tension: 0.5)
         #expect(path0 != path05)
+    }
+
+    @Test("SVG path fractional values preserve precision up to 6 decimals")
+    func svgPathFractionalValuesPreservePrecision() {
+        let points = [
+            CGPoint(x: 0.5, y: 0.5),
+            CGPoint(x: 100.5, y: 0.5),
+            CGPoint(x: 100.5, y: 100.5),
+            CGPoint(x: 0.5, y: 100.5)
+        ]
+        let path = closedRoundCurveSVGPath(points, tension: 0)
+        #expect(path.hasPrefix("M0.5,0.5"))
+        #expect(!path.contains(".0,"))
+        #expect(!path.contains(".0 "))
+        #expect(!path.contains(".0C"))
+    }
+
+    @Test("SVG path integral values have no trailing .0")
+    func svgPathIntegralValuesNoDotZero() {
+        let points = [
+            CGPoint(x: 100, y: 0),
+            CGPoint(x: 0, y: 100)
+        ]
+        let path = closedRoundCurveSVGPath(points, tension: 0.5)
+        #expect(!path.contains(".0"))
+        #expect(path.contains("M100,0"))
+    }
+
+    @Test("SVG path negative fractional values formatted correctly")
+    func svgPathNegativeFractionalValues() {
+        let points = [
+            CGPoint(x: -0.5, y: -0.5),
+            CGPoint(x: 0.5, y: -0.5)
+        ]
+        let path = closedRoundCurveSVGPath(points, tension: 0)
+        #expect(path.hasPrefix("M-0.5,-0.5"))
+        #expect(path.contains("0.5,-0.5"))
+    }
+
+    @Test("SVG path very small fractional values produce non-integer output")
+    func svgPathVerySmallFractionalValues() {
+        let points = [
+            CGPoint(x: 0.05, y: 0.15),
+            CGPoint(x: 0.15, y: 0.05)
+        ]
+        let path = closedRoundCurveSVGPath(points, tension: 0)
+        #expect(path.hasPrefix("M0.05,0.15"))
+        #expect(path.contains("C0.05,0.15"))
+        #expect(!path.hasSuffix(".0 Z"))
     }
 
     @Test("effective max from options")

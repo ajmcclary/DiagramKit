@@ -185,6 +185,17 @@ public struct RadarThemeConfig: Sendable, Equatable {
         let limit = max(1, min(themeColorLimit, cScale.count))
         return cScale[index % limit]
     }
+
+    public func withGlobalColors(fg: String, line: String?) -> RadarThemeConfig {
+        var copy = self
+        if copy.titleColor == Self.default.titleColor {
+            copy.titleColor = fg
+        }
+        if let ln = line, copy.axisColor == Self.default.axisColor {
+            copy.axisColor = ln
+        }
+        return copy
+    }
 }
 
 // MARK: - Positioned model
@@ -360,33 +371,54 @@ public struct PositionedRadarTitle: Sendable, Equatable {
 // MARK: - Parser errors
 
 public enum RadarParserError: Error, LocalizedError {
-    case invalidHeader(String)
-    case emptyAxisDeclaration
-    case nonCommaSeparatedAxes(String)
-    case emptyCurveDeclaration
-    case curveWithoutEntries(String)
-    case mixedEntryModes(String)
-    case nonCommaSeparatedEntries(String)
-    case detailedEntriesWithoutDeclaredAxes(String)
-    case missingEntryForDeclaredAxis(String, String)
-    case invalidOption(String)
-    case invalidTicksValue(String)
-    case invalidGraticuleValue(String)
+    case invalidHeader(String, line: Int)
+    case emptyAxisDeclaration(line: Int)
+    case nonCommaSeparatedAxes(String, line: Int)
+    case emptyCurveDeclaration(line: Int)
+    case curveWithoutEntries(String, line: Int)
+    case mixedEntryModes(String, line: Int)
+    case nonCommaSeparatedEntries(String, line: Int)
+    case detailedEntriesWithoutDeclaredAxes(String, line: Int)
+    case missingEntryForDeclaredAxis(String, String, line: Int)
+    case invalidOption(String, line: Int)
+    case invalidTicksValue(String, line: Int)
+    case invalidGraticuleValue(String, line: Int)
+
+    public var line: Int {
+        switch self {
+        case .invalidHeader(_, let line): return line
+        case .emptyAxisDeclaration(let line): return line
+        case .nonCommaSeparatedAxes(_, let line): return line
+        case .emptyCurveDeclaration(let line): return line
+        case .curveWithoutEntries(_, let line): return line
+        case .mixedEntryModes(_, let line): return line
+        case .nonCommaSeparatedEntries(_, let line): return line
+        case .detailedEntriesWithoutDeclaredAxes(_, let line): return line
+        case .missingEntryForDeclaredAxis(_, _, let line): return line
+        case .invalidOption(_, let line): return line
+        case .invalidTicksValue(_, let line): return line
+        case .invalidGraticuleValue(_, let line): return line
+        }
+    }
+
+    private var briefDescription: String {
+        switch self {
+        case .invalidHeader(let msg, _): return msg
+        case .emptyAxisDeclaration: return "Empty axis declaration."
+        case .nonCommaSeparatedAxes(let msg, _): return msg
+        case .emptyCurveDeclaration: return "Empty curve declaration."
+        case .curveWithoutEntries(let msg, _): return msg
+        case .mixedEntryModes(let msg, _): return msg
+        case .nonCommaSeparatedEntries(let msg, _): return msg
+        case .detailedEntriesWithoutDeclaredAxes(let name, _): return "Axes must be populated before curves for reference entries (curve: \(name))."
+        case .missingEntryForDeclaredAxis(let curve, let axis, _): return "Missing entry for axis \(axis) in curve \(curve)."
+        case .invalidOption(let msg, _): return msg
+        case .invalidTicksValue(let msg, _): return msg
+        case .invalidGraticuleValue(let msg, _): return msg
+        }
+    }
 
     public var errorDescription: String? {
-        switch self {
-        case .invalidHeader(let msg): return msg
-        case .emptyAxisDeclaration: return "Empty axis declaration."
-        case .nonCommaSeparatedAxes(let msg): return msg
-        case .emptyCurveDeclaration: return "Empty curve declaration."
-        case .curveWithoutEntries(let msg): return msg
-        case .mixedEntryModes(let msg): return msg
-        case .nonCommaSeparatedEntries(let msg): return msg
-        case .detailedEntriesWithoutDeclaredAxes(let name): return "Axes must be populated before curves for reference entries (curve: \(name))."
-        case .missingEntryForDeclaredAxis(let curve, let axis): return "Missing entry for axis \(axis) in curve \(curve)."
-        case .invalidOption(let msg): return msg
-        case .invalidTicksValue(let msg): return msg
-        case .invalidGraticuleValue(let msg): return msg
-        }
+        "Parse error on line \(line), column ?: \(briefDescription)"
     }
 }

@@ -52,7 +52,7 @@ public func parseRadarDiagram(
                 i += 1
                 continue
             } else {
-                throw RadarParserError.invalidHeader("Expected 'radar-beta', 'radar-beta:', or 'radar-beta :' at line \(i + 1), found '\(trimmed)'")
+                throw RadarParserError.invalidHeader("Expected 'radar-beta', 'radar-beta:', or 'radar-beta :' at line \(i + 1), found '\(trimmed)'", line: i + 1)
             }
         }
 
@@ -95,20 +95,20 @@ public func parseRadarDiagram(
         if lower.hasPrefix("axis") {
             let axisContent = _parseKeywordValue(trimmed, keyword: "axis") ?? ""
             if axisContent.isEmpty {
-                throw RadarParserError.emptyAxisDeclaration
+                throw RadarParserError.emptyAxisDeclaration(line: i + 1)
             }
             let axisParts = _splitTopLevelCommas(axisContent)
             if axisParts.isEmpty || (axisParts.count == 1 && axisParts[0].isEmpty) {
-                throw RadarParserError.emptyAxisDeclaration
+                throw RadarParserError.emptyAxisDeclaration(line: i + 1)
             }
             for part in axisParts {
                 let trimmedPart = part.trimmingCharacters(in: .whitespaces)
                 if trimmedPart.isEmpty {
-                    throw RadarParserError.emptyAxisDeclaration
+                    throw RadarParserError.emptyAxisDeclaration(line: i + 1)
                 }
                 let (name, label) = _parseIdAndLabel(trimmedPart)
                 if name.isEmpty {
-                    throw RadarParserError.emptyAxisDeclaration
+                    throw RadarParserError.emptyAxisDeclaration(line: i + 1)
                 }
                 axes.append(RadarAxis(name: name, label: label))
             }
@@ -120,13 +120,13 @@ public func parseRadarDiagram(
             let curveLineIndex = i
             let curveContent = _parseKeywordValue(trimmed, keyword: "curve") ?? ""
             if curveContent.isEmpty {
-                throw RadarParserError.emptyCurveDeclaration
+                throw RadarParserError.emptyCurveDeclaration(line: i + 1)
             }
             let curveParts = _splitTopLevelCommas(curveContent)
             for part in curveParts {
                 let trimmedPart = part.trimmingCharacters(in: .whitespaces)
                 guard let braceIndex = trimmedPart.firstIndex(of: "{") else {
-                    throw RadarParserError.curveWithoutEntries("Curve '\(trimmedPart)' missing entry block at line \(i + 1)")
+                    throw RadarParserError.curveWithoutEntries("Curve '\(trimmedPart)' missing entry block at line \(i + 1)", line: i + 1)
                 }
                 let nameAndLabel = String(trimmedPart[..<braceIndex]).trimmingCharacters(in: .whitespaces)
                 var (curveName, curveLabel) = _parseIdAndLabel(nameAndLabel)
@@ -155,7 +155,7 @@ public func parseRadarDiagram(
                         i += 1
                     }
                     if !foundClosing {
-                        throw RadarParserError.curveWithoutEntries("Unclosed brace for curve '\(curveName)' at line \(i + 1)")
+                        throw RadarParserError.curveWithoutEntries("Unclosed brace for curve '\(curveName)' at line \(i + 1)", line: i + 1)
                     }
                     let content = braceLines.joined(separator: "\n")
                     let innerContent = _collectUntilClosingBrace(content, lines: [], lineIndex: &i)
@@ -172,7 +172,7 @@ public func parseRadarDiagram(
         if lower.hasPrefix("ticks") {
             let val = _parseKeywordValue(trimmed, keyword: "ticks") ?? ""
             guard let n = Int(val) else {
-                throw RadarParserError.invalidTicksValue("Invalid ticks value at line \(i + 1): '\(val)'")
+                throw RadarParserError.invalidTicksValue("Invalid ticks value at line \(i + 1): '\(val)'", line: i + 1)
             }
             ticks = n
             i += 1
@@ -205,7 +205,7 @@ public func parseRadarDiagram(
             switch val {
             case "circle": graticule = .circle
             case "polygon": graticule = .polygon
-            default: throw RadarParserError.invalidGraticuleValue("Invalid graticule value at line \(i + 1): '\(val)'")
+            default: throw RadarParserError.invalidGraticuleValue("Invalid graticule value at line \(i + 1): '\(val)'", line: i + 1)
             }
             i += 1
             continue
@@ -215,7 +215,7 @@ public func parseRadarDiagram(
     }
 
     if !foundHeader {
-        throw RadarParserError.invalidHeader("No radar-beta header found.")
+        throw RadarParserError.invalidHeader("No radar-beta header found.", line: 0)
     }
 
     var options = RadarOptions()
@@ -271,7 +271,7 @@ func computeCurveEntries(_ entries: [RadarRawEntry], axes: [RadarAxis], curveNam
         }
     case .detailed:
         if axes.isEmpty {
-            throw RadarParserError.detailedEntriesWithoutDeclaredAxes(curveName)
+            throw RadarParserError.detailedEntriesWithoutDeclaredAxes(curveName, line: 0)
         }
         var entryMap: [String: Double] = [:]
         for entry in entries {
@@ -281,7 +281,7 @@ func computeCurveEntries(_ entries: [RadarRawEntry], axes: [RadarAxis], curveNam
         }
         return try axes.map { axis in
             guard let value = entryMap[axis.name] else {
-                throw RadarParserError.missingEntryForDeclaredAxis(curveName, axis.label)
+                throw RadarParserError.missingEntryForDeclaredAxis(curveName, axis.label, line: 0)
             }
             return value
         }
@@ -396,7 +396,7 @@ private func _parseEntries(_ content: String, lineNumber: Int, curveName: String
     let nonEmpty = parts.map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }.filter { !$0.isEmpty }
 
     if nonEmpty.isEmpty {
-        throw RadarParserError.curveWithoutEntries("Curve '\(curveName)' has no entries at line \(lineNumber)")
+        throw RadarParserError.curveWithoutEntries("Curve '\(curveName)' has no entries at line \(lineNumber)", line: lineNumber)
     }
 
     var entries: [RadarRawEntry] = []
@@ -407,11 +407,11 @@ private func _parseEntries(_ content: String, lineNumber: Int, curveName: String
 
         if tokens.count == 1 {
             guard let val = Double(tokens[0]) else {
-                throw RadarParserError.nonCommaSeparatedEntries("Invalid entry '\(part)' at line \(lineNumber)")
+                throw RadarParserError.nonCommaSeparatedEntries("Invalid entry '\(part)' at line \(lineNumber)", line: lineNumber)
             }
             if mode == nil { mode = "numeric" }
             if mode != "numeric" {
-                throw RadarParserError.mixedEntryModes("Mixed entry modes in curve '\(curveName)' at line \(lineNumber)")
+                throw RadarParserError.mixedEntryModes("Mixed entry modes in curve '\(curveName)' at line \(lineNumber)", line: lineNumber)
             }
             entries.append(.numeric(val))
             continue
@@ -419,7 +419,7 @@ private func _parseEntries(_ content: String, lineNumber: Int, curveName: String
 
         if mode == nil { mode = "detailed" }
         if mode != "detailed" {
-            throw RadarParserError.mixedEntryModes("Mixed entry modes in curve '\(curveName)' at line \(lineNumber)")
+            throw RadarParserError.mixedEntryModes("Mixed entry modes in curve '\(curveName)' at line \(lineNumber)", line: lineNumber)
         }
 
         let axisId: String
@@ -434,11 +434,11 @@ private func _parseEntries(_ content: String, lineNumber: Int, curveName: String
             axisId = tokens[0]
             valueStr = tokens[1]
         } else {
-            throw RadarParserError.nonCommaSeparatedEntries("Invalid detailed entry '\(part)' at line \(lineNumber)")
+            throw RadarParserError.nonCommaSeparatedEntries("Invalid detailed entry '\(part)' at line \(lineNumber)", line: lineNumber)
         }
 
         guard let val = Double(valueStr) else {
-            throw RadarParserError.nonCommaSeparatedEntries("Invalid entry value '\(part)' at line \(lineNumber)")
+            throw RadarParserError.nonCommaSeparatedEntries("Invalid entry value '\(part)' at line \(lineNumber)", line: lineNumber)
         }
         entries.append(.detailed(axisId: axisId, value: val))
     }

@@ -14,7 +14,7 @@ public func layoutRadarDiagram(_ diagram: RadarDiagram) -> PositionedRadarDiagra
     let centerY = config.marginTop + config.height / 2
     let radius = min(config.width, config.height) / 2
 
-    let maxValue = options.max ?? curves.flatMap(\.entries).max() ?? 0
+    let maxValue = options.max ?? curves.flatMap(\.entries).max() ?? -Double.infinity
     let minValue = options.min
     let numAxes = axes.count
 
@@ -197,10 +197,13 @@ public func closedRoundCurveSVGPath(
 }
 
 private func _svgNum(_ n: Double) -> String {
-    let rounded = (n * 10).rounded() / 10
-    if rounded.isFinite && rounded == rounded.rounded() {
-        return String(Int(rounded))
+    guard n.isFinite else { return "0" }
+    let nearestInt = n.rounded()
+    if abs(n - nearestInt) < 1e-9 {
+        return String(Int(nearestInt))
     }
-    if !rounded.isFinite { return "0" }
-    return String(format: "%.1f", rounded)
+    var s = String(format: "%.6f", n)
+    while s.hasSuffix("0") { s = String(s.dropLast()) }
+    if s.hasSuffix(".") { s = String(s.dropLast()) }
+    return s
 }

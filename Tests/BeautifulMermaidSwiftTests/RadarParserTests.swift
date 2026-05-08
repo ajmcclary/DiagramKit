@@ -69,17 +69,24 @@ struct RadarParserTests {
         #expect(d.axes.count == 1)
     }
 
-    @Test("Invalid header throws error")
+    @Test("Invalid header throws error with line number")
     func invalidHeader() throws {
-        #expect(throws: RadarParserError.self) {
-            try parse("garbage")
+        do {
+            _ = try parse("garbage")
+            #expect(Bool(false), "Expected error")
+        } catch let error as RadarParserError {
+            #expect(error.line > 0)
+            #expect(error.errorDescription?.contains("line 1") ?? false)
         }
     }
 
-    @Test("No radar-beta header in input throws")
+    @Test("No radar-beta header in input throws with line number")
     func missingHeader() throws {
-        #expect(throws: RadarParserError.self) {
-            try parse("axis A\n  curve c1{1}")
+        do {
+            _ = try parse("axis A\n  curve c1{1}")
+            #expect(Bool(false), "Expected error")
+        } catch let error as RadarParserError {
+            #expect(error.line > 0)
         }
     }
 
@@ -241,24 +248,34 @@ struct RadarParserTests {
         #expect(d.axes.map(\.name) == ["A", "B", "C"])
     }
 
-    @Test("Empty axis declaration throws")
+    @Test("Empty axis declaration throws with line number")
     func emptyAxisDeclaration() throws {
-        #expect(throws: RadarParserError.self) {
-            try parse("radar-beta\n  axis")
+        do {
+            _ = try parse("radar-beta\n  axis")
+            #expect(Bool(false), "Expected error")
+        } catch let error as RadarParserError {
+            #expect(error.line > 0)
+            #expect(error.errorDescription?.contains("line") ?? false)
         }
     }
 
-    @Test("Empty axis with only commas throws")
+    @Test("Empty axis with only commas throws with line number")
     func emptyAxisCommaOnly() throws {
-        #expect(throws: RadarParserError.self) {
-            try parse("radar-beta\n  axis ,")
+        do {
+            _ = try parse("radar-beta\n  axis ,")
+            #expect(Bool(false), "Expected error")
+        } catch let error as RadarParserError {
+            #expect(error.line > 0)
         }
     }
 
-    @Test("Axis with only whitespace throws")
+    @Test("Axis with only whitespace throws with line number")
     func axisWhitespaceOnly() throws {
-        #expect(throws: RadarParserError.self) {
-            try parse("radar-beta\n  axis  ")
+        do {
+            _ = try parse("radar-beta\n  axis  ")
+            #expect(Bool(false), "Expected error")
+        } catch let error as RadarParserError {
+            #expect(error.line > 0)
         }
     }
 
@@ -379,45 +396,65 @@ struct RadarParserTests {
 
     // MARK: - Curve error tests
 
-    @Test("Empty curve declaration throws")
+    @Test("Empty curve declaration throws with line number")
     func emptyCurveDeclaration() throws {
-        #expect(throws: RadarParserError.self) {
-            try parse("radar-beta\n  axis A\n  curve")
+        do {
+            _ = try parse("radar-beta\n  axis A\n  curve")
+            #expect(Bool(false), "Expected error")
+        } catch let error as RadarParserError {
+            #expect(error.line > 0)
         }
     }
 
-    @Test("Curve without entries throws")
+    @Test("Curve without entries throws with line number")
     func curveWithoutEntries() throws {
-        #expect(throws: RadarParserError.self) {
-            try parse("radar-beta\n  axis A\n  curve c1{}")
+        do {
+            _ = try parse("radar-beta\n  axis A\n  curve c1{}")
+            #expect(Bool(false), "Expected error")
+        } catch let error as RadarParserError {
+            #expect(error.line > 0)
         }
     }
 
-    @Test("Mixed numeric and detailed entry modes throws")
+    @Test("Mixed numeric and detailed entry modes throws with line number")
     func mixedEntryModes() throws {
-        #expect(throws: RadarParserError.self) {
-            try parse("radar-beta\n  axis A,B\n  curve c1{1, A: 2}")
+        do {
+            _ = try parse("radar-beta\n  axis A,B\n  curve c1{1, A: 2}")
+            #expect(Bool(false), "Expected error")
+        } catch let error as RadarParserError {
+            #expect(error.line > 0)
         }
     }
 
-    @Test("Mixed entry modes reversed throws")
+    @Test("Mixed entry modes reversed throws with line number")
     func mixedEntryModesReversed() throws {
-        #expect(throws: RadarParserError.self) {
-            try parse("radar-beta\n  axis A,B\n  curve c1{A: 1, 2}")
+        do {
+            _ = try parse("radar-beta\n  axis A,B\n  curve c1{A: 1, 2}")
+            #expect(Bool(false), "Expected error")
+        } catch let error as RadarParserError {
+            #expect(error.line > 0)
         }
     }
 
-    @Test("Detailed entries without declared axes throws")
+    @Test("Detailed entries without declared axes throws with line number")
     func detailedEntriesWithoutAxes() throws {
-        #expect(throws: RadarParserError.self) {
-            try parse("radar-beta\n  curve c1{A: 1, B: 2}")
+        do {
+            _ = try parse("radar-beta\n  curve c1{A: 1, B: 2}")
+            #expect(Bool(false), "Expected error")
+        } catch let error as RadarParserError {
+            #expect(error.line >= 0)
+            #expect(error.errorDescription?.contains("line") ?? false)
         }
     }
 
-    @Test("Missing entry for declared axis throws")
+    @Test("Missing entry for declared axis throws with line number")
     func missingEntryForAxis() throws {
-        #expect(throws: RadarParserError.self) {
-            try parse("radar-beta\n  axis A,B,C\n  curve c1{A: 1, B: 2}")
+        do {
+            _ = try parse("radar-beta\n  axis A,B,C\n  curve c1{A: 1, B: 2}")
+            #expect(Bool(false), "Expected error")
+        } catch let error as RadarParserError {
+            #expect(error.line >= 0)
+            #expect(error.errorDescription?.contains("line") ?? false)
         }
     }
 
@@ -435,10 +472,13 @@ struct RadarParserTests {
         #expect(d.options.ticks == 5)
     }
 
-    @Test("ticks invalid value throws")
+    @Test("ticks invalid value throws with line number")
     func ticksInvalid() throws {
-        #expect(throws: RadarParserError.self) {
-            try parse("radar-beta\n  ticks abc")
+        do {
+            _ = try parse("radar-beta\n  ticks abc")
+            #expect(Bool(false), "Expected error")
+        } catch let error as RadarParserError {
+            #expect(error.line > 0)
         }
     }
 
@@ -478,10 +518,13 @@ struct RadarParserTests {
         #expect(d.options.graticule == .circle)
     }
 
-    @Test("graticule invalid value throws")
+    @Test("graticule invalid value throws with line number")
     func graticuleInvalid() throws {
-        #expect(throws: RadarParserError.self) {
-            try parse("radar-beta\n  graticule invalid")
+        do {
+            _ = try parse("radar-beta\n  graticule invalid")
+            #expect(Bool(false), "Expected error")
+        } catch let error as RadarParserError {
+            #expect(error.line > 0)
         }
     }
 
@@ -783,24 +826,46 @@ struct RadarParserTests {
         #expect(d.options.graticule == .polygon)
     }
 
-    @Test("Unclosed curve brace throws")
+    @Test("Unclosed curve brace throws with line number")
     func unclosedCurveBrace() throws {
-        #expect(throws: RadarParserError.self) {
-            try parse("radar-beta\n  axis A\n  curve c1{1")
+        do {
+            _ = try parse("radar-beta\n  axis A\n  curve c1{1")
+            #expect(Bool(false), "Expected error")
+        } catch let error as RadarParserError {
+            #expect(error.line > 0)
         }
     }
 
-    @Test("Non-numeric entry in numeric mode throws")
+    @Test("Non-numeric entry in numeric mode throws with line number")
     func invalidNumericEntry() throws {
-        #expect(throws: RadarParserError.self) {
-            try parse("radar-beta\n  axis A,B\n  curve c1{1, abc}")
+        do {
+            _ = try parse("radar-beta\n  axis A,B\n  curve c1{1, abc}")
+            #expect(Bool(false), "Expected error")
+        } catch let error as RadarParserError {
+            #expect(error.line > 0)
         }
     }
 
-    @Test("Non-numeric value in detailed mode throws")
+    @Test("Non-numeric value in detailed mode throws with line number")
     func invalidDetailedValue() throws {
-        #expect(throws: RadarParserError.self) {
-            try parse("radar-beta\n  axis A,B\n  curve c1{A: abc, B: 2}")
+        do {
+            _ = try parse("radar-beta\n  axis A,B\n  curve c1{A: abc, B: 2}")
+            #expect(Bool(false), "Expected error")
+        } catch let error as RadarParserError {
+            #expect(error.line > 0)
+        }
+    }
+
+    @Test("Error message includes Parse error on line prefix")
+    func errorMessageFormat() throws {
+        do {
+            _ = try parse("radar-beta\n  axis")
+            #expect(Bool(false), "Expected error")
+        } catch let error as RadarParserError {
+            let desc = try #require(error.errorDescription)
+            #expect(desc.hasPrefix("Parse error on line"))
+            #expect(desc.contains("column ?:"))
+            #expect(desc.contains("Empty axis declaration"))
         }
     }
 
