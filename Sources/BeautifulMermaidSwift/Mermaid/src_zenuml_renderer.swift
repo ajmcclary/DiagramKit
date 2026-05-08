@@ -20,9 +20,19 @@ public func renderZenUMLSvg(
 
     var parts: [String] = []
 
-    // Lifelines
+    // Groups — behind everything
+    for group in diagram.groups {
+        parts.append(renderGroup(group))
+    }
+
+    // Lifelines — behind participants
     for lifeline in diagram.lifelines {
         parts.append(renderLifeline(lifeline))
+    }
+
+    // Occurrences — activation boxes
+    for occurrence in diagram.occurrences {
+        parts.append(renderOccurrence(occurrence))
     }
 
     // Participants
@@ -35,7 +45,17 @@ public func renderZenUMLSvg(
         parts.append(renderMessage(message))
     }
 
-    // Fragments
+    // Self-calls
+    for selfCall in diagram.selfCalls {
+        parts.append(renderSelfCall(selfCall))
+    }
+
+    // Creations
+    for creation in diagram.creations {
+        parts.append(renderCreation(creation))
+    }
+
+    // Fragments — on top of messages
     for fragment in diagram.fragments {
         parts.append(renderFragment(fragment))
     }
@@ -50,9 +70,9 @@ public func renderZenUMLSvg(
         parts.append(renderDivider(divider))
     }
 
-    // Groups
-    for group in diagram.groups {
-        parts.append(renderGroup(group))
+    // Comments
+    for comment in diagram.comments {
+        parts.append(renderComment(comment))
     }
 
     // Frame
@@ -252,6 +272,40 @@ private func renderGroup(_ group: PositionedZenUMLGroup) -> String {
     <rect class="group-outline" x="\(group.x)" y="\(group.y)" width="\(group.width)" height="\(group.height)"/>
     <text class="group-title-text" x="\(group.x + 5)" y="\(group.y - 5)">\(escXml(group.name))</text>
     """
+}
+
+private func renderOccurrence(_ occ: PositionedZenUMLOccurrence) -> String {
+    "<rect class=\"occurrence\" x=\"\(occ.x)\" y=\"\(occ.y)\" width=\"\(occ.width)\" height=\"\(occ.height)\" rx=\"2\"/>"
+}
+
+private func renderSelfCall(_ sc: PositionedZenUMLSelfCall) -> String {
+    var parts: [String] = []
+    let ux = sc.x; let uy = sc.y; let uw = sc.width; let uh = sc.height
+    parts.append("<polyline class=\"message-line\" points=\"\(ux),\(uy) \(ux),\(uy + uh) \(ux + uw),\(uy + uh) \(ux + uw),\(uy)\" fill=\"none\"/>")
+    let arrowSize: Double = 8
+    parts.append("<polygon class=\"arrow-head\" points=\"\(ux + uw),\(uy) \(ux + uw + arrowSize),\(uy - arrowSize/2) \(ux + uw + arrowSize),\(uy + arrowSize/2)\"/>")
+    parts.append("<text class=\"message-label\" x=\"\(ux + uw / 2)\" y=\"\(uy + uh / 2)\" text-anchor=\"middle\" dominant-baseline=\"central\">\(escXml(sc.label))</text>")
+    return parts.joined(separator: "\n")
+}
+
+private func renderCreation(_ creation: PositionedZenUMLCreation) -> String {
+    var parts: [String] = []
+    let p = creation.participant
+    let m = creation.message
+    let boxX = p.x - p.width / 2
+    parts.append("<rect class=\"participant-box\" x=\"\(boxX)\" y=\"\(p.y)\" width=\"\(p.width)\" height=\"\(p.height)\" rx=\"4\"/>")
+    parts.append("<text class=\"participant-label\" x=\"\(p.x)\" y=\"\(p.y + p.height / 2)\" text-anchor=\"middle\" dominant-baseline=\"central\">\(escXml(p.label))</text>")
+    // Dashed creation arrow
+    parts.append("<line class=\"return-line\" x1=\"\(m.fromX)\" y1=\"\(m.y)\" x2=\"\(m.toX)\" y2=\"\(m.y)\"/>")
+    let ax = m.toX - 8
+    parts.append("<line class=\"arrow-open\" x1=\"\(m.toX)\" y1=\"\(m.y)\" x2=\"\(ax)\" y2=\"\(m.y - 4)\"/>")
+    parts.append("<line class=\"arrow-open\" x1=\"\(m.toX)\" y1=\"\(m.y)\" x2=\"\(ax)\" y2=\"\(m.y + 4)\"/>")
+    parts.append("<text class=\"message-label\" x=\"\((m.fromX + m.toX) / 2)\" y=\"\(m.y - 8)\" text-anchor=\"middle\">\(escXml(m.label))</text>")
+    return parts.joined(separator: "\n")
+}
+
+private func renderComment(_ comment: PositionedZenUMLComment) -> String {
+    "<text class=\"comment-text\" x=\"\(comment.x)\" y=\"\(comment.y)\">\(escXml(comment.text))</text>"
 }
 
 // MARK: - XML Escaping

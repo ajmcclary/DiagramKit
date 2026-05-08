@@ -8,14 +8,19 @@ extension DiagramRenderer {
         guard case let .zenuml(diagram) = positioned.content else { return }
 
         _withFittedContext(context, bounds: bounds, contentWidth: diagram.width, contentHeight: diagram.height) { ctx in
+            // Draw lifelines (behind participants)
+            for lifeline in diagram.lifelines {
+                _drawZenUMLLifeline(lifeline, in: ctx)
+            }
+
+            // Draw occurrences (activation boxes)
+            for occurrence in diagram.occurrences {
+                _drawZenUMLOccurrence(occurrence, in: ctx)
+            }
+
             // Draw participants
             for participant in diagram.participants {
                 _drawZenUMLParticipant(participant, in: ctx)
-            }
-
-            // Draw lifelines
-            for lifeline in diagram.lifelines {
-                _drawZenUMLLifeline(lifeline, in: ctx)
             }
 
             // Draw messages
@@ -23,7 +28,17 @@ extension DiagramRenderer {
                 _drawZenUMLMessage(message, in: ctx)
             }
 
-            // Draw fragments
+            // Draw self-calls
+            for selfCall in diagram.selfCalls {
+                _drawZenUMLSelfCall(selfCall, in: ctx)
+            }
+
+            // Draw creations
+            for creation in diagram.creations {
+                _drawZenUMLCreation(creation, in: ctx)
+            }
+
+            // Draw fragments (on top)
             for fragment in diagram.fragments {
                 _drawZenUMLFragment(fragment, in: ctx)
             }
@@ -170,6 +185,66 @@ extension DiagramRenderer {
         context.addLine(to: CGPoint(x: ax, y: r.y + arrowSize / 2))
         context.strokePath()
 
+        context.restoreGState()
+    }
+
+    private func _drawZenUMLOccurrence(_ o: PositionedZenUMLOccurrence, in context: CGContext) {
+        context.saveGState()
+        context.setFillColor(CGColor(red: 0.87, green: 0.87, blue: 0.87, alpha: 1.0))
+        context.setStrokeColor(CGColor(gray: 0.4, alpha: 1))
+        context.setLineWidth(2)
+        let rect = CGRect(x: o.x, y: o.y, width: o.width, height: o.height)
+        context.fill(rect)
+        context.stroke(rect)
+        context.restoreGState()
+    }
+
+    private func _drawZenUMLSelfCall(_ sc: PositionedZenUMLSelfCall, in context: CGContext) {
+        context.saveGState()
+        context.setStrokeColor(CGColor.black)
+        context.setLineWidth(2)
+        let ux = sc.x; let uy = sc.y; let uw = sc.width; let uh = sc.height
+        context.move(to: CGPoint(x: ux, y: uy))
+        context.addLine(to: CGPoint(x: ux, y: uy + uh))
+        context.addLine(to: CGPoint(x: ux + uw, y: uy + uh))
+        context.addLine(to: CGPoint(x: ux + uw, y: uy))
+        context.strokePath()
+        // Arrow head
+        let arrowSize: CGFloat = 8
+        context.setFillColor(CGColor.black)
+        context.move(to: CGPoint(x: ux + uw, y: uy))
+        context.addLine(to: CGPoint(x: ux + uw + arrowSize, y: uy - arrowSize/2))
+        context.addLine(to: CGPoint(x: ux + uw + arrowSize, y: uy + arrowSize/2))
+        context.closePath()
+        context.fillPath()
+        _drawTextInFlipped(sc.label, at: CGPoint(x: ux + uw / 2, y: uy + uh / 2), context: context, contentHeight: uh, color: .black, font: _monoFont(size: 14))
+        context.restoreGState()
+    }
+
+    private func _drawZenUMLCreation(_ c: PositionedZenUMLCreation, in context: CGContext) {
+        let p = c.participant
+        let m = c.message
+        // Participant box
+        _drawZenUMLParticipant(p, in: context)
+        // Dashed arrow
+        context.saveGState()
+        context.setStrokeColor(CGColor.black)
+        context.setLineWidth(2)
+        context.setLineDash(phase: 0, lengths: [6, 4])
+        context.move(to: CGPoint(x: m.fromX, y: m.y))
+        context.addLine(to: CGPoint(x: m.toX, y: m.y))
+        context.strokePath()
+        context.setLineDash(phase: 0, lengths: [])
+        // Open arrow
+        let ax: CGFloat = m.toX - 8
+        context.move(to: CGPoint(x: m.toX, y: m.y))
+        context.addLine(to: CGPoint(x: ax, y: m.y - 4))
+        context.strokePath()
+        context.move(to: CGPoint(x: m.toX, y: m.y))
+        context.addLine(to: CGPoint(x: ax, y: m.y + 4))
+        context.strokePath()
+        let midX = (m.fromX + m.toX) / 2
+        _drawTextInFlipped(m.label, at: CGPoint(x: midX, y: m.y - 8), context: context, contentHeight: 16, color: .black, font: _monoFont(size: 14))
         context.restoreGState()
     }
 
