@@ -267,7 +267,7 @@ private func _parseTreeViewLine(_ line: String) throws -> (level: Int, name: Str
             remainder = String(rest[rest.index(after: closeParen)...]).trimmingCharacters(in: .whitespaces)
         } else if remainder.hasPrefix("##") {
             let rest = String(remainder.dropFirst(2)).trimmingCharacters(in: .whitespaces)
-            description = _sanitizeDescription(rest)
+            description = rest.isEmpty ? nil : _sanitizeDescription(rest)
             remainder = ""
         } else {
             break

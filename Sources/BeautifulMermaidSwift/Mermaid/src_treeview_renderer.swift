@@ -6,7 +6,21 @@ func renderTreeViewSvg(_ positioned: PositionedTreeViewDiagram, diagramId: Strin
 
     var svg = ""
 
-    svg += "<svg id=\"\(_xmlEscape(diagramId))\" viewBox=\"\(positioned.viewBoxX) \(positioned.viewBoxY) \(positioned.viewBoxWidth) \(positioned.viewBoxHeight)\" xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" role=\"graphics-document\">"
+    let viewBoxW = positioned.viewBoxWidth
+    let viewBoxH = positioned.viewBoxHeight
+    var svgAttrs = "id=\"\(_xmlEscape(diagramId))\" viewBox=\"\(positioned.viewBoxX) \(positioned.viewBoxY) \(viewBoxW) \(viewBoxH)\" xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" role=\"graphics-document\""
+    var svgStyle = ""
+    if config.useMaxWidth {
+        svgAttrs += " width=\"100%\""
+        svgStyle = "max-width: \(viewBoxW)px"
+    } else {
+        svgAttrs += " width=\"\(viewBoxW)\""
+    }
+    if !svgStyle.isEmpty {
+        svg += "<svg \(svgAttrs) style=\"\(svgStyle)\">"
+    } else {
+        svg += "<svg \(svgAttrs)>"
+    }
 
     if let accTitle = positioned.accTitle, !accTitle.isEmpty {
         svg += "<title>\(_xmlEscape(accTitle))</title>"

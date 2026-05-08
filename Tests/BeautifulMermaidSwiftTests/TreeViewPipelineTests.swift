@@ -106,4 +106,32 @@ struct TreeViewPipelineTests {
         #expect(svg.contains("fill:#AA0000"))
         #expect(!svg.contains("<use"))
     }
+
+    @Test("SVG applies useMaxWidth when config.useMaxWidth is true")
+    func svgUseMaxWidth() async throws {
+        let source = """
+        ---
+        config:
+          treeView:
+            useMaxWidth: true
+        ---
+        treeView-beta
+            file.js
+        """
+
+        let svg = try await renderMermaidSVG(source)
+        #expect(svg.contains("width=\"100%\""))
+    }
+
+    @Test("SVG uses explicit width when useMaxWidth is false")
+    func svgExplicitWidth() async throws {
+        let source = """
+        treeView-beta
+            file.js
+        """
+
+        let svg = try await renderMermaidSVG(source)
+        #expect(svg.contains("width=\""))
+        #expect(!svg.contains("width=\"100%\""))
+    }
 }

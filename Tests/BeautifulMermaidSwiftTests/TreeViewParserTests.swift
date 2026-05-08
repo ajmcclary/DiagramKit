@@ -360,4 +360,95 @@ struct TreeViewParserTests {
         #expect(result.root.children[0].cssClass == "highlight")
         #expect(result.root.children[0].iconId == "react")
     }
+
+    @Test("Parses bare directory with spaces (no quotes)")
+    func bareDirectoryWithSpaces() throws {
+        let source = """
+        treeView-beta
+            My Documents/
+        """
+        let rawLines = source.split(separator: "\n", omittingEmptySubsequences: false).map(String.init)
+        let result = try parseTreeViewDiagram(rawLines, frontmatter: nil)
+        #expect(result.root.children[0].name == "My Documents")
+        #expect(result.root.children[0].nodeType == .directory)
+        #expect(result.root.children[0].iconId == "folder")
+    }
+
+    @Test("Parses bare directory with spaces and class annotation")
+    func bareDirectoryWithSpacesAndClass() throws {
+        let source = """
+        treeView-beta
+            My Documents/ :::highlight
+        """
+        let rawLines = source.split(separator: "\n", omittingEmptySubsequences: false).map(String.init)
+        let result = try parseTreeViewDiagram(rawLines, frontmatter: nil)
+        #expect(result.root.children[0].name == "My Documents")
+        #expect(result.root.children[0].nodeType == .directory)
+        #expect(result.root.children[0].cssClass == "highlight")
+    }
+
+    @Test("Parses bare file with spaces and description (no quotes)")
+    func bareFileWithSpacesAndDescription() throws {
+        let source = """
+        treeView-beta
+            my file.ts ## some description
+        """
+        let rawLines = source.split(separator: "\n", omittingEmptySubsequences: false).map(String.init)
+        let result = try parseTreeViewDiagram(rawLines, frontmatter: nil)
+        #expect(result.root.children[0].name == "my file.ts")
+        #expect(result.root.children[0].nodeType == .file)
+        #expect(result.root.children[0].iconId == "typescript")
+        #expect(result.root.children[0].description == "some description")
+    }
+
+    @Test("Parses empty ## description as nil")
+    func emptyDescriptionIsNil() throws {
+        let source = """
+        treeView-beta
+            file.txt ##
+        """
+        let rawLines = source.split(separator: "\n", omittingEmptySubsequences: false).map(String.init)
+        let result = try parseTreeViewDiagram(rawLines, frontmatter: nil)
+        #expect(result.root.children[0].name == "file.txt")
+        #expect(result.root.children[0].description == nil)
+    }
+
+    @Test("Parses icon(none) combined with class and description")
+    func iconNoneWithOtherAnnotations() throws {
+        let source = """
+        treeView-beta
+            app.ts icon(none) :::highlight ## entry point
+        """
+        let rawLines = source.split(separator: "\n", omittingEmptySubsequences: false).map(String.init)
+        let result = try parseTreeViewDiagram(rawLines, frontmatter: nil)
+        #expect(result.root.children[0].name == "app.ts")
+        #expect(result.root.children[0].iconId == "none")
+        #expect(result.root.children[0].cssClass == "highlight")
+        #expect(result.root.children[0].description == "entry point")
+    }
+
+    @Test("Parses directory with class annotation")
+    func directoryWithClassAnnotation() throws {
+        let source = """
+        treeView-beta
+            src/ :::highlight
+        """
+        let rawLines = source.split(separator: "\n", omittingEmptySubsequences: false).map(String.init)
+        let result = try parseTreeViewDiagram(rawLines, frontmatter: nil)
+        #expect(result.root.children[0].name == "src")
+        #expect(result.root.children[0].nodeType == .directory)
+        #expect(result.root.children[0].cssClass == "highlight")
+        #expect(result.root.children[0].iconId == "folder")
+    }
+
+    @Test("Parses class annotation with hyphens")
+    func classAnnotationWithHyphens() throws {
+        let source = """
+        treeView-beta
+            file.ts :::my-class
+        """
+        let rawLines = source.split(separator: "\n", omittingEmptySubsequences: false).map(String.init)
+        let result = try parseTreeViewDiagram(rawLines, frontmatter: nil)
+        #expect(result.root.children[0].cssClass == "my-class")
+    }
 }

@@ -165,4 +165,46 @@ struct TreeViewModelTests {
         #expect(getIconPath(iconId: "go").hasPrefix("M2.64,10.33"))
         #expect(getIconPath(iconId: "csharp").contains("13.89,19L14.5,15"))
     }
+
+    @Test("Every resolvable icon ID has its own non-fallback path")
+    func everyResolvableIconHasPath() {
+        var resolvableIds = Set<String>()
+        resolvableIds.insert("folder")
+        resolvableIds.insert("file")
+        let testFiles: [(String, TreeViewNodeType)] = [
+            ("app.js", .file), ("App.tsx", .file), ("utils.ts", .file),
+            ("main.py", .file), ("app.rb", .file), ("main.rs", .file),
+            ("main.go", .file), ("App.java", .file), ("Prog.cs", .file),
+            ("main.cpp", .file), ("main.c", .file), ("data.json", .file),
+            ("conf.yaml", .file), ("conf.toml", .file), ("data.xml", .file),
+            ("index.html", .file), ("styles.css", .file), ("notes.md", .file),
+            ("build.sh", .file), ("logo.svg", .file), ("query.sql", .file),
+            ("some.lock", .file), ("config.env", .file), ("App.vue", .file),
+            ("App.svelte", .file), (".gitignore", .file), ("Dockerfile", .file),
+            ("LICENSE", .file), ("docker-compose.yml", .file),
+            ("package.json", .file), ("package-lock.json", .file),
+            ("yarn.lock", .file), ("pnpm-lock.yaml", .file), ("Makefile", .file),
+            (".env", .file), ("tsconfig.json", .file), ("README.md", .file),
+        ]
+        for (filename, nodeType) in testFiles {
+            resolvableIds.insert(resolveIcon(name: filename, nodeType: nodeType))
+        }
+
+        for iconId in resolvableIds {
+            let path = getIconPath(iconId: iconId)
+            #expect(!path.isEmpty, "icon \"\(iconId)\" should have a non-empty path")
+            if let expectedPath = ICON_PATHS[iconId] {
+                #expect(path == expectedPath, "icon \"\(iconId)\" should use its own path, not the file fallback")
+            } else {
+                Issue.record("icon \"\(iconId)\" has a path but no entry in ICON_PATHS")
+            }
+        }
+    }
+
+    @Test("All 31 icon entries are non-empty SVG paths")
+    func allIconPathsNonEmpty() {
+        for (iconId, path) in ICON_PATHS {
+            #expect(!path.isEmpty, "icon \"\(iconId)\" should have a non-empty path")
+        }
+    }
 }
