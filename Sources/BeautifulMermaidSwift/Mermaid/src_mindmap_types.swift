@@ -113,6 +113,15 @@ public struct MindmapConfig: Sendable, Equatable {
     public var padding: Double
     public var maxNodeWidth: Double
     public var useMaxWidth: Bool
+    /// Layout algorithm name.
+    ///
+    /// **Mermaid parity note**: Mermaid's JSON Schema default is `"cose-bilkent"`
+    /// and `mindmapDb.ts` forces that default at runtime when no user-defined
+    /// `config.layout` is present. The native Swift renderer uses `"tidy-tree"`
+    /// (bidirectional Reingold-Tilford) as its default because cose-bilkent is a
+    /// force-directed Cytoscape.js layout that has not been ported to Swift yet.
+    /// Set `layoutAlgorithm: "cose-bilkent"` (or `config.layout: cose-bilkent`)
+    /// to match Mermaid's default — currently throws `notYetImplemented`.
     public var layoutAlgorithm: String
     public var layout: String?
     public var look: String?

@@ -89,11 +89,49 @@ final class MindmapRendererTests: XCTestCase {
         let fixture = try JSONDecoder().decode(PlaygroundFixture.self, from: data)
         let mindmaps = fixture.diagrams.filter { $0.category == "mindmap" }
 
-        XCTAssertEqual(mindmaps.count, 8)
+        XCTAssertEqual(mindmaps.count, 9)
         for diagram in mindmaps {
             let svg = try await renderMermaidSVG(diagram.source)
             XCTAssertTrue(svg.contains("mindmapDiagram"), diagram.name)
         }
+    }
+
+    // MARK: - Frontmatter-driven pipeline tests
+
+    func test_pipeline_frontmatterLayoutOverride_tidyTree_renders() async throws {
+        // Explicit config.layout: tidy-tree via frontmatter should render
+        let source = """
+        ---
+        config:
+          layout: tidy-tree
+        ---
+        mindmap
+          root((mindmap))
+            A
+            B
+        """
+        let svg = try await renderMermaidSVG(source)
+        XCTAssertTrue(svg.contains("<svg"))
+        XCTAssertTrue(svg.contains("mindmapDiagram"))
+        XCTAssertTrue(svg.contains("mindmap-node"), "Should contain mindmap node markup")
+    }
+
+    func test_pipeline_frontmatterMindmapLayoutAlgorithm_tidyTree_renders() async throws {
+        // Explicit config.mindmap.layoutAlgorithm: tidy-tree via frontmatter should render
+        let source = """
+        ---
+        config:
+          mindmap:
+            layoutAlgorithm: tidy-tree
+        ---
+        mindmap
+          root((mindmap))
+            A
+            B
+        """
+        let svg = try await renderMermaidSVG(source)
+        XCTAssertTrue(svg.contains("<svg"))
+        XCTAssertTrue(svg.contains("mindmapDiagram"))
     }
 
     func test_MermaidGraph_initType() {

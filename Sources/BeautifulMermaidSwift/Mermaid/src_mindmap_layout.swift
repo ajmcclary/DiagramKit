@@ -10,7 +10,12 @@ func layoutMindmap(_ diagram: MindmapDiagram) throws -> PositionedMindmapDiagram
     let resolvedLayout = diagram.config.resolvedLayout
 
     if resolvedLayout == "cose-bilkent" {
-        throw BeautifulMermaidError.notYetImplemented("Mindmap cose-bilkent layout (set config.layout: tidy-tree for native mindmap rendering)")
+        throw BeautifulMermaidError.notYetImplemented(
+            "Mindmap cose-bilkent layout: Mermaid's default mindmap layout is cose-bilkent; " +
+            "the native Swift renderer currently uses tidy-tree. " +
+            "Set config.layout: tidy-tree for native rendering, " +
+            "or config.mindmap.layoutAlgorithm: tidy-tree to change the default."
+        )
     }
     if resolvedLayout != "tidy-tree" {
         throw BeautifulMermaidError.notYetImplemented("Mindmap \(resolvedLayout) layout")

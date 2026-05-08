@@ -98,6 +98,82 @@ final class MindmapLayoutTests: XCTestCase {
         XCTAssertGreaterThan(positioned.height, maxNodeY)
     }
 
+    // MARK: - Frontmatter layoutAlgorithm tests
+
+    func test_frontmatterLayoutAlgorithm_tidyTree_succeeds() throws {
+        // config.mindmap.layoutAlgorithm: tidy-tree should work
+        let fm = DiagramFrontmatter(
+            mindmapConfig: MindmapConfig(padding: 10, maxNodeWidth: 200, layoutAlgorithm: "tidy-tree"),
+            layout: nil
+        )
+        let source = "mindmap\n  root\n    A\n    B"
+        let diagram = try parseMindmap(source.split(separator: "\n", omittingEmptySubsequences: false).map(String.init), frontmatter: fm)
+        let positioned = try layoutMindmap(diagram)
+        XCTAssertTrue(positioned.width > 0)
+        XCTAssertTrue(positioned.height > 0)
+    }
+
+    func test_frontmatterLayoutAlgorithm_coseBilkent_throws() throws {
+        // config.mindmap.layoutAlgorithm: cose-bilkent should throw notYetImplemented
+        let fm = DiagramFrontmatter(
+            mindmapConfig: MindmapConfig(padding: 10, maxNodeWidth: 200, layoutAlgorithm: "cose-bilkent"),
+            layout: nil
+        )
+        let source = "mindmap\n  root\n    A\n    B"
+        let diagram = try parseMindmap(source.split(separator: "\n", omittingEmptySubsequences: false).map(String.init), frontmatter: fm)
+        XCTAssertThrowsError(try layoutMindmap(diagram)) { error in
+            guard let bmError = error as? BeautifulMermaidError else {
+                XCTFail("Expected BeautifulMermaidError, got \(error)")
+                return
+            }
+            if case .notYetImplemented(let msg) = bmError {
+                XCTAssertTrue(msg.contains("cose-bilkent"), "Message should mention cose-bilkent, got: \(msg)")
+                XCTAssertTrue(msg.contains("tidy-tree"), "Message should suggest tidy-tree, got: \(msg)")
+            } else {
+                XCTFail("Expected notYetImplemented, got \(bmError)")
+            }
+        }
+    }
+
+    // MARK: - Global layout precedence tests
+
+    func test_globalLayout_tidyTree_overrides_layoutAlgorithm_coseBilkent() throws {
+        // config.layout: tidy-tree should override config.mindmap.layoutAlgorithm: cose-bilkent
+        let fm = DiagramFrontmatter(
+            mindmapConfig: MindmapConfig(padding: 10, maxNodeWidth: 200, layoutAlgorithm: "cose-bilkent"),
+            layout: "tidy-tree"
+        )
+        let source = "mindmap\n  root\n    A\n    B"
+        let diagram = try parseMindmap(source.split(separator: "\n", omittingEmptySubsequences: false).map(String.init), frontmatter: fm)
+        // resolvedLayout = layout ?? layoutAlgorithm = "tidy-tree"
+        XCTAssertEqual(diagram.config.resolvedLayout, "tidy-tree", "Global layout should override mindmap.layoutAlgorithm")
+        let positioned = try layoutMindmap(diagram)
+        XCTAssertTrue(positioned.width > 0)
+    }
+
+    func test_globalLayout_coseBilkent_overrides_layoutAlgorithm_tidyTree() throws {
+        // config.layout: cose-bilkent should override config.mindmap.layoutAlgorithm: tidy-tree
+        let fm = DiagramFrontmatter(
+            mindmapConfig: MindmapConfig(padding: 10, maxNodeWidth: 200, layoutAlgorithm: "tidy-tree"),
+            layout: "cose-bilkent"
+        )
+        let source = "mindmap\n  root\n    A\n    B"
+        let diagram = try parseMindmap(source.split(separator: "\n", omittingEmptySubsequences: false).map(String.init), frontmatter: fm)
+        // resolvedLayout = layout ?? layoutAlgorithm = "cose-bilkent"
+        XCTAssertEqual(diagram.config.resolvedLayout, "cose-bilkent", "Global layout should override mindmap.layoutAlgorithm")
+        XCTAssertThrowsError(try layoutMindmap(diagram)) { error in
+            guard let bmError = error as? BeautifulMermaidError else {
+                XCTFail("Expected BeautifulMermaidError, got \(error)")
+                return
+            }
+            if case .notYetImplemented(let msg) = bmError {
+                XCTAssertTrue(msg.contains("cose-bilkent"))
+            } else {
+                XCTFail("Expected notYetImplemented, got \(bmError)")
+            }
+        }
+    }
+
     func test_frontmatterTidyTreeLayout() throws {
         let fm = DiagramFrontmatter(
             mindmapConfig: MindmapConfig(padding: 10, maxNodeWidth: 200),
