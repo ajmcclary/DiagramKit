@@ -1257,6 +1257,75 @@ private func _escapeAttr(_ value: String) -> String {
     SVG.escapeAttribute(value)
 }
 
+// MARK: - Typed SVG model adapters (replaces Mirror-based extraction)
+
+private extension _SvgPoint {
+    init(_ point: PositionedPoint) {
+        self.init(x: point.x, y: point.y)
+    }
+}
+
+private extension _SvgNode {
+    init(_ node: PositionedNode, securityLevel: String?) {
+        self.init(
+            id: node.id,
+            label: node.label,
+            descriptions: node.descriptions,
+            shape: node.shape,
+            x: node.x,
+            y: node.y,
+            width: node.width,
+            height: node.height,
+            inlineStyle: node.inlineStyle,
+            interaction: node.interaction,
+            icon: node.properties?.icon,
+            img: node.properties?.img,
+            securityLevel: securityLevel
+        )
+    }
+}
+
+private extension ArrowHead {
+    init(_ type: original_src_types.ArrowHeadType) {
+        self = ArrowHead(rawValue: type.rawValue) ?? .arrow
+    }
+}
+
+private extension _SvgEdge {
+    init(_ edge: PositionedEdge) {
+        self.init(
+            source: edge.source,
+            target: edge.target,
+            label: edge.label,
+            style: edge.style,
+            arrowHeadStart: ArrowHead(edge.arrowHeadStart),
+            arrowHeadEnd: ArrowHead(edge.arrowHeadEnd),
+            points: edge.points.map(_SvgPoint.init),
+            labelPosition: edge.labelPosition.map(_SvgPoint.init),
+            inlineStyle: edge.inlineStyle,
+            edgeId: edge.edgeId,
+            animate: edge.animate,
+            curve: edge.curve
+        )
+    }
+}
+
+private extension _SvgGroup {
+    init(_ group: PositionedGroup) {
+        self.init(
+            id: group.id,
+            label: group.label,
+            x: group.x,
+            y: group.y,
+            width: group.width,
+            height: group.height,
+            children: group.children.map(_SvgGroup.init),
+            shape: group.shape,
+            altBkg: group.altBkg
+        )
+    }
+}
+
 private func _extractSvgGraphModel(_ graph: PositionedGraph) -> _SvgGraphModel {
     let secLevel = _graphSecurityLevel(graph.diagram)
     let isState: Bool
@@ -1264,174 +1333,22 @@ private func _extractSvgGraphModel(_ graph: PositionedGraph) -> _SvgGraphModel {
     case .stateDiagram: isState = true
     default: isState = false
     }
-    return _SvgGraphModel(
-        width: graph.width,
-        height: graph.height,
-        nodes: (graph.flowchartNodes ?? []).map { $0 as Any }.map { _extractNode($0, securityLevel: secLevel) },
-        edges: (graph.flowchartEdges ?? []).map { $0 as Any }.map(_extractEdge),
-        groups: (graph.flowchartGroups ?? []).map { $0 as Any }.map(_extractGroup),
-        securityLevel: secLevel,
-        isStateDiagram: isState
-    )
-}
 
-private func _extractNode(_ any: Any, securityLevel: String? = nil) -> _SvgNode {
-    let props = _readNodeProperties(any, label: "properties")
-    return _SvgNode(
-        id: _readString(any, label: "id") ?? "",
-        label: _readString(any, label: "label") ?? "",
-        descriptions: _readStringArray(any, label: "descriptions"),
-        shape: _readString(any, label: "shape") ?? "rectangle",
-        x: _readDouble(any, label: "x") ?? 0,
-        y: _readDouble(any, label: "y") ?? 0,
-        width: _readDouble(any, label: "width") ?? 0,
-        height: _readDouble(any, label: "height") ?? 0,
-        inlineStyle: _readStringMap(any, label: "inlineStyle") ?? [:],
-        interaction: _readNodeInteraction(any, label: "interaction"),
-        icon: props?.icon,
-        img: props?.img,
-        securityLevel: securityLevel
-    )
-}
-
-private func _extractEdge(_ any: Any) -> _SvgEdge {
-    _SvgEdge(
-        source: _readString(any, label: "source") ?? "",
-        target: _readString(any, label: "target") ?? "",
-        label: _readOptionalString(any, label: "label"),
-        style: _readString(any, label: "style") ?? "solid",
-        arrowHeadStart: _readArrowHead(any, label: "arrowHeadStart") ?? .none,
-        arrowHeadEnd: _readArrowHead(any, label: "arrowHeadEnd") ?? .arrow,
-        points: _readArray(any, label: "points").map(_extractPoint),
-        labelPosition: _readAny(any, label: "labelPosition").map(_extractPoint),
-        inlineStyle: _readStringMap(any, label: "inlineStyle"),
-        edgeId: _readOptionalString(any, label: "edgeId"),
-        animate: _readBool(any, label: "animate"),
-        curve: _readOptionalString(any, label: "curve")
-    )
-}
-
-private func _readArrowHead(_ any: Any, label: String) -> ArrowHead? {
-    guard let value = _readAny(any, label: label) else { return nil }
-    if let str = value as? String {
-        return ArrowHead(rawValue: str)
+    switch graph.content {
+    case let .flowchart(nodes, edges, groups),
+         let .stateDiagram(nodes, edges, groups):
+        return _SvgGraphModel(
+            width: graph.width,
+            height: graph.height,
+            nodes: nodes.map { _SvgNode($0, securityLevel: secLevel) },
+            edges: edges.map(_SvgEdge.init),
+            groups: groups.map(_SvgGroup.init),
+            securityLevel: secLevel,
+            isStateDiagram: isState
+        )
+    default:
+        return _SvgGraphModel(width: graph.width, height: graph.height, nodes: [], edges: [], groups: [], securityLevel: secLevel, isStateDiagram: isState)
     }
-    // Mirror gives back the enum case directly; String(describing:) yields the raw value
-    return ArrowHead(rawValue: String(describing: value))
-}
-
-private func _extractGroup(_ any: Any) -> _SvgGroup {
-    _SvgGroup(
-        id: _readString(any, label: "id") ?? "",
-        label: _readString(any, label: "label") ?? "",
-        x: _readDouble(any, label: "x") ?? 0,
-        y: _readDouble(any, label: "y") ?? 0,
-        width: _readDouble(any, label: "width") ?? 0,
-        height: _readDouble(any, label: "height") ?? 0,
-        children: _readArray(any, label: "children").map(_extractGroup),
-        shape: _readOptionalString(any, label: "shape"),
-        altBkg: _readBool(any, label: "altBkg") ?? false
-    )
-}
-
-private func _extractPoint(_ any: Any) -> _SvgPoint {
-    _SvgPoint(
-        x: _readDouble(any, label: "x") ?? 0,
-        y: _readDouble(any, label: "y") ?? 0
-    )
-}
-
-private func _unboxOptional(_ any: Any) -> Any? {
-    let mirror = Mirror(reflecting: any)
-    guard mirror.displayStyle == .optional else {
-        return any
-    }
-    return mirror.children.first?.value
-}
-
-private func _readAny(_ any: Any, label: String) -> Any? {
-    for child in Mirror(reflecting: any).children where child.label == label {
-        return _unboxOptional(child.value)
-    }
-    return nil
-}
-
-private func _readArray(_ any: Any, label: String) -> [Any] {
-    guard let value = _readAny(any, label: label) else {
-        return []
-    }
-    return value as? [Any] ?? []
-}
-
-private func _readString(_ any: Any, label: String) -> String? {
-    guard let value = _readAny(any, label: label) else {
-        return nil
-    }
-    if let text = value as? String {
-        return text
-    }
-    return String(describing: value)
-}
-
-private func _readOptionalString(_ any: Any, label: String) -> String? {
-    guard let value = _readAny(any, label: label) else {
-        return nil
-    }
-    return value as? String
-}
-
-private func _readDouble(_ any: Any, label: String) -> Double? {
-    guard let value = _readAny(any, label: label) else {
-        return nil
-    }
-    if let number = value as? Double {
-        return number
-    }
-    if let number = value as? Int {
-        return Double(number)
-    }
-    if let number = value as? Float {
-        return Double(number)
-    }
-    if let number = value as? NSNumber {
-        return number.doubleValue
-    }
-    return nil
-}
-
-private func _readBool(_ any: Any, label: String) -> Bool? {
-    guard let value = _readAny(any, label: label) else {
-        return nil
-    }
-    if let b = value as? Bool {
-        return b
-    }
-    if let n = value as? NSNumber {
-        return n.boolValue
-    }
-    return nil
-}
-
-private func _readStringMap(_ any: Any, label: String) -> [String: String]? {
-    guard let value = _readAny(any, label: label) else {
-        return nil
-    }
-    return value as? [String: String]
-}
-
-private func _readStringArray(_ any: Any, label: String) -> [String] {
-    guard let value = _readAny(any, label: label) else {
-        return []
-    }
-    return value as? [String] ?? []
-}
-
-private func _readNodeProperties(_ any: Any, label: String) -> original_src_types.NodeProperties? {
-    _readAny(any, label: label) as? original_src_types.NodeProperties
-}
-
-private func _readNodeInteraction(_ any: Any, label: String) -> original_src_types.NodeInteraction? {
-    _readAny(any, label: label) as? original_src_types.NodeInteraction
 }
 
 private func _graphAccessibility(_ graph: MermaidGraph) -> (title: String?, descr: String?) {
