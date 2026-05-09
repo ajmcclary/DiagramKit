@@ -16,23 +16,11 @@ extension DiagramRenderer {
 
         _withFittedContext(context, bounds: bounds, contentWidth: chart.width, contentHeight: chart.height) { ctx in
 
-            let ch = chart.height
             ctx.translateBy(x: CGFloat(-chart.viewBoxX), y: 0)
-            ctx.translateBy(x: 0, y: ch)
-            ctx.scaleBy(x: 1, y: -1)
 
             let pieCx: CGFloat = 225
             let pieCy: CGFloat = 225
 
-            // Outer circle
-            let outerR = CGFloat(chart.outerCircle.r)
-            ctx.setStrokeColor(_pieColor(chart.theme.pieOuterStrokeColor, fallback: theme.effectiveLine()).cgColor)
-            let outerStrokeWidth = parsePieCGFloat(chart.theme.pieOuterStrokeWidth) ?? 2
-            ctx.setLineWidth(outerStrokeWidth)
-            ctx.addArc(center: CGPoint(x: pieCx, y: pieCy), radius: outerR, startAngle: 0, endAngle: 2 * .pi, clockwise: true)
-            ctx.strokePath()
-
-            // Pie arcs
             let opacity = CGFloat(Double(chart.theme.pieOpacity.replacingOccurrences(of: "}", with: "").trimmingCharacters(in: CharacterSet(charactersIn: ";"))) ?? 0.7)
             let strokeWidth = parsePieCGFloat(chart.theme.pieStrokeWidth) ?? 2
 
@@ -40,6 +28,15 @@ extension DiagramRenderer {
             let baseSecondary = PieChartThemeConfig.adjustHSL(basePrimary, hShift: 60, lShift: -10)
             let baseTertiary = PieChartThemeConfig.adjustHSL(basePrimary, hShift: -60, lShift: -10)
 
+            let outerStrokeWidth = parsePieCGFloat(chart.theme.pieOuterStrokeWidth) ?? 2
+            // Outer circle
+            let outerR = CGFloat(chart.outerCircle.r)
+            ctx.setStrokeColor(_pieColor(chart.theme.pieOuterStrokeColor, fallback: theme.effectiveLine()).cgColor)
+            ctx.setLineWidth(outerStrokeWidth)
+            ctx.addArc(center: CGPoint(x: pieCx, y: pieCy), radius: outerR, startAngle: 0, endAngle: 2 * .pi, clockwise: true)
+            ctx.strokePath()
+
+            // Pie arcs
             for arc in chart.arcs {
                 let colorIndex = arc.fillColorIndex
                 let resolvedColor = _pieSliceColor(index: colorIndex, theme: chart.theme, primary: basePrimary, secondary: baseSecondary, tertiary: baseTertiary)
@@ -57,10 +54,9 @@ extension DiagramRenderer {
             for label in chart.sliceLabels {
                 let labelX = pieCx + CGFloat(label.x)
                 let labelY = pieCy + CGFloat(label.y)
-                let textY = pieHeight - labelY
                 _drawTextInFlipped(
                     label.text,
-                    at: CGPoint(x: labelX, y: textY),
+                    at: CGPoint(x: labelX, y: labelY),
                     context: ctx,
                     contentHeight: pieHeight,
                     color: _pieColor(chart.theme.resolvedPieSectionTextColor, fallback: theme.foreground),
@@ -72,10 +68,9 @@ extension DiagramRenderer {
             if let title = chart.title {
                 let titleX = pieCx + CGFloat(title.x)
                 let titleY = pieCy + CGFloat(title.y)
-                let textY = pieHeight - titleY
                 _drawTextInFlipped(
                     title.text,
-                    at: CGPoint(x: titleX, y: textY),
+                    at: CGPoint(x: titleX, y: titleY),
                     context: ctx,
                     contentHeight: pieHeight,
                     color: _pieColor(chart.theme.resolvedPieTitleTextColor, fallback: theme.foreground),
@@ -102,7 +97,7 @@ extension DiagramRenderer {
                 ctx.fill(swatchRect)
 
                 let textX = entryX + CGFloat(entry.swatchX) + 22
-                let textY = pieHeight - (swatchY + 14)
+                let textY = swatchY + 14
                 _drawTextInFlipped(
                     entry.displayText,
                     at: CGPoint(x: textX, y: textY),

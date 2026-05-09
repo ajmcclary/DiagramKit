@@ -212,7 +212,7 @@ final class PieLayoutTests: XCTestCase {
         XCTAssertEqual(positioned.arcs.count, 0)
         XCTAssertEqual(positioned.sliceLabels.count, 0)
         XCTAssertEqual(positioned.legend.count, 2)
-        XCTAssertEqual(positioned.width, 450)
+        XCTAssertGreaterThan(positioned.width, 450, "Zero-sum charts still render a legend, so the viewBox must expand to fit it")
     }
 
     func testNoSections() throws {

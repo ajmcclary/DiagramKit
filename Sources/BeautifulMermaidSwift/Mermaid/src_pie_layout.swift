@@ -262,10 +262,8 @@ private func layoutLegend(
 private func _applyViewBox(_ positioned: inout PositionedPieChart, config: PieChartConfig) {
     let pieWidth = PIE_WIDTH
 
-    let hasVisibleContent = !positioned.arcs.isEmpty
-
     var chartAndLegendWidth = pieWidth
-    if !positioned.legend.isEmpty && hasVisibleContent {
+    if !positioned.legend.isEmpty {
         let legendTextWidth = positioned.legend.reduce(0.0) { maxLen, entry in
             let charCount = Double(entry.displayText.count)
             let fontSize = parsePieLength(positioned.theme.pieLegendTextSize) ?? 17

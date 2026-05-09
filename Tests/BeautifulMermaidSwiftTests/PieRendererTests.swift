@@ -2,6 +2,12 @@ import XCTest
 import CoreGraphics
 @testable import BeautifulMermaid
 
+#if targetEnvironment(macCatalyst) || canImport(UIKit)
+import UIKit
+#elseif canImport(AppKit)
+import AppKit
+#endif
+
 final class PieRendererTests: XCTestCase {
 
     private func lines(_ source: String) -> [String] {
@@ -265,6 +271,37 @@ final class PieRendererTests: XCTestCase {
         XCTAssertLessThan(pixels[center + 2], 40)
     }
 
+    func testCoreGraphicsPieTitleDrawsUprightInImageRendererCoordinateSystem() throws {
+        let title = "My Chart"
+        let rendered = try renderPiePixels("pie title \(title)\n\"A\": 50\n\"B\": 50")
+
+        let template = renderTitleTemplatePixels(title, width: rendered.width, height: rendered.height)
+        let xRange = 90..<360
+        let yRange = 0..<38
+        let uprightDifference = pixelDifference(
+            rendered.pixels,
+            template,
+            width: rendered.width,
+            xRange: xRange,
+            yRange: yRange,
+            flipTemplateVertically: false
+        )
+        let flippedDifference = pixelDifference(
+            rendered.pixels,
+            template,
+            width: rendered.width,
+            xRange: xRange,
+            yRange: yRange,
+            flipTemplateVertically: true
+        )
+
+        XCTAssertLessThan(
+            uprightDifference,
+            flippedDifference,
+            "The pie title should match the shared upright text renderer more closely than a vertically flipped copy"
+        )
+    }
+
     // MARK: - CSS classes
 
     func testCssClasses() throws {
@@ -305,5 +342,101 @@ final class PieRendererTests: XCTestCase {
         let chart = try parsePieChart(lines(source))
         let positioned = layoutPieChart(chart)
         return renderPieSvg(positioned, defaultColors())
+    }
+
+    private func renderPiePixels(_ source: String) throws -> (pixels: [UInt8], width: Int, height: Int) {
+        let chart = try parsePieChart(lines(source))
+        let positionedPie = layoutPieChart(chart)
+        let graph = MermaidGraph(payload: .pie(chart))
+        let positioned = PositionedGraph(
+            diagram: graph,
+            width: positionedPie.width,
+            height: positionedPie.height,
+            content: .pie(positionedPie)
+        )
+
+        let width = Int(ceil(positionedPie.width))
+        let height = Int(ceil(positionedPie.height))
+        var pixels = [UInt8](repeating: 255, count: width * height * 4)
+        let context = CGContext(
+            data: &pixels,
+            width: width,
+            height: height,
+            bitsPerComponent: 8,
+            bytesPerRow: width * 4,
+            space: CGColorSpaceCreateDeviceRGB(),
+            bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue | CGBitmapInfo.byteOrder32Big.rawValue
+        )
+        guard let context else {
+            XCTFail("Expected bitmap context")
+            return (pixels, width, height)
+        }
+
+        context.setFillColor(BMColor.white.cgColor)
+        context.fill(CGRect(x: 0, y: 0, width: width, height: height))
+        context.translateBy(x: 0, y: CGFloat(height))
+        context.scaleBy(x: 1, y: -1)
+
+        DiagramRenderer().render(positioned, in: context, bounds: CGRect(x: 0, y: 0, width: CGFloat(width), height: CGFloat(height)))
+        return (pixels, width, height)
+    }
+
+    private func renderTitleTemplatePixels(_ title: String, width: Int, height: Int) -> [UInt8] {
+        var pixels = [UInt8](repeating: 255, count: width * height * 4)
+        let context = CGContext(
+            data: &pixels,
+            width: width,
+            height: height,
+            bitsPerComponent: 8,
+            bytesPerRow: width * 4,
+            space: CGColorSpaceCreateDeviceRGB(),
+            bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue | CGBitmapInfo.byteOrder32Big.rawValue
+        )
+        guard let context else { return pixels }
+
+        context.setFillColor(BMColor.white.cgColor)
+        context.fill(CGRect(x: 0, y: 0, width: width, height: height))
+        context.translateBy(x: 0, y: CGFloat(height))
+        context.scaleBy(x: 1, y: -1)
+
+        LabelRenderer().drawText(
+            title,
+            at: CGPoint(x: 225, y: 25),
+            context: context,
+            color: BMColor.black,
+            font: testPieFont(size: 25),
+            alignment: .center
+        )
+        return pixels
+    }
+
+    private func pixelDifference(
+        _ actual: [UInt8],
+        _ template: [UInt8],
+        width: Int,
+        xRange: Range<Int>,
+        yRange: Range<Int>,
+        flipTemplateVertically: Bool
+    ) -> UInt64 {
+        var difference: UInt64 = 0
+        for y in yRange {
+            let templateY = flipTemplateVertically ? (yRange.upperBound - 1 - (y - yRange.lowerBound)) : y
+            for x in xRange {
+                let actualIndex = (y * width + x) * 4
+                let templateIndex = (templateY * width + x) * 4
+                for channel in 0..<3 {
+                    difference += UInt64(abs(Int(actual[actualIndex + channel]) - Int(template[templateIndex + channel])))
+                }
+            }
+        }
+        return difference
+    }
+
+    private func testPieFont(size: CGFloat) -> BMFont {
+        #if targetEnvironment(macCatalyst) || canImport(UIKit)
+        return UIFont.systemFont(ofSize: size)
+        #elseif canImport(AppKit)
+        return NSFont.systemFont(ofSize: size)
+        #endif
     }
 }
