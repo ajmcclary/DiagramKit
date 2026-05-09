@@ -7,7 +7,7 @@
 //
 
 import SwiftUI
-import BeautifulMermaid
+import DiagramKit
 import IssueReporting
 import UniformTypeIdentifiers
 

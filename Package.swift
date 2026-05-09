@@ -71,22 +71,10 @@ let package = Package(
             ]
         ),
 
-        // ↓ Old monolith — shrinks across tasks 3–12, deleted in Task 13.
-        .target(
-            name: "BeautifulMermaid",
-            dependencies: [
-                "DiagramKitCommon",
-                "DiagramKitModel",
-                "DiagramKitRenderingCG",
-                .product(name: "IssueReporting", package: "xctest-dynamic-overlay")
-            ],
-            path: "Sources/BeautifulMermaidSwift"
-        ),
-
         .executableTarget(
             name: "MermaidPlayground",
             dependencies: [
-                "BeautifulMermaid",
+                "DiagramKit",
                 .product(name: "IssueReporting", package: "xctest-dynamic-overlay")
             ],
             path: "Examples/MermaidPlayground",
@@ -99,9 +87,9 @@ let package = Package(
             ]
         ),
         .testTarget(
-            name: "BeautifulMermaidSwiftTests",
+            name: "DiagramKitTests",
             dependencies: [
-                "BeautifulMermaid",
+                "DiagramKit",
                 "DiagramKitCommon",
                 "DiagramKitModel",
                 "DiagramKitRenderingCG",

@@ -6,7 +6,7 @@
 //
 
 import SwiftUI
-import BeautifulMermaid
+import DiagramKit
 
 @available(iOS 26.0, macOS 26.0, macCatalyst 26.0, *)
 struct SourceEditor: View {
