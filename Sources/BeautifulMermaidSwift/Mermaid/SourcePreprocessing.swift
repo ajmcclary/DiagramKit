@@ -200,8 +200,14 @@ private func _activeBindings() -> [any FrontmatterBinding] {
     [
         SequenceFrontmatterBinding(),
         RequirementFrontmatterBinding(),
-        // Additional bindings (Radar, Treemap, Venn, Ishikawa, C4, TreeView,
-        // EventModeling, Wardley) are added here as they are implemented.
+        RadarFrontmatterBinding(),
+        TreemapFrontmatterBinding(),
+        VennFrontmatterBinding(),
+        IshikawaFrontmatterBinding(),
+        C4FrontmatterBinding(),
+        TreeViewFrontmatterBinding(),
+        EventModelingFrontmatterBinding(),
+        WardleyFrontmatterBinding(),
     ]
 }
 
