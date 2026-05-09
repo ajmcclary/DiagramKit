@@ -1,3 +1,5 @@
+// Apple-only target gated by `#if canImport(CoreGraphics)`. On Linux this file is empty.
+#if canImport(CoreGraphics)
 // Helper to read the bundled VERSION resource. Lives in DiagramKitRenderingCG
 // because the Resources/ directory is owned by this target (font bundles +
 // VERSION are co-located).
@@ -16,3 +18,4 @@ public enum DiagramKitVersion {
         return "0.1.1"
     }()
 }
+#endif

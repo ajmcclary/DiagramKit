@@ -1,3 +1,5 @@
+// Apple-only target gated by `#if canImport(CoreGraphics)`. On Linux this file is empty.
+#if canImport(CoreGraphics)
 import Foundation
 import DiagramKitModel
 import CoreGraphics
@@ -157,3 +159,4 @@ private func _pieFont(size: CGFloat) -> BMFont {
     return NSFont.systemFont(ofSize: size)
     #endif
 }
+#endif

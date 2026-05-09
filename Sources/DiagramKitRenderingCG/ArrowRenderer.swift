@@ -1,3 +1,5 @@
+// Apple-only target gated by `#if canImport(CoreGraphics)`. On Linux this file is empty.
+#if canImport(CoreGraphics)
 import Foundation
 import CoreGraphics
 import DiagramKitModel
@@ -49,3 +51,4 @@ public struct ArrowRenderer {
         return path.copy(using: &transform) ?? path
     }
 }
+#endif

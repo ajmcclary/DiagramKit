@@ -1,3 +1,5 @@
+// Apple-only target gated by `#if canImport(CoreGraphics)`. On Linux this file is empty.
+#if canImport(CoreGraphics)
 import Foundation
 import DiagramKitModel
 import CoreGraphics
@@ -363,3 +365,4 @@ extension DiagramRenderer {
         ctx.restoreGState()
     }
 }
+#endif

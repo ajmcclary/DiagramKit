@@ -1,3 +1,5 @@
+// Apple-only target gated by `#if canImport(CoreGraphics)`. On Linux this file is empty.
+#if canImport(CoreGraphics)
 // Extracted from Views/MermaidLayer.swift during Stage 1 module split.
 // PreparedDiagram is the bridge type between layout output and CGContext
 // rendering; it lives in DiagramKitRenderingCG so both BeautifulMermaid
@@ -30,3 +32,4 @@ public struct PreparedDiagram: Sendable {
         DiagramRenderer(theme: theme).render(positioned, in: context, bounds: renderBounds)
     }
 }
+#endif

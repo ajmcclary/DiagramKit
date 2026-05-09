@@ -1,3 +1,5 @@
+// Apple-only target gated by `#if canImport(CoreGraphics)`. On Linux this file is empty.
+#if canImport(CoreGraphics)
 import Foundation
 import DiagramKitModel
 import CoreGraphics
@@ -330,3 +332,4 @@ extension DiagramRenderer {
         _drawTextInFlipped(comment.text, at: CGPoint(x: comment.x, y: comment.y), context: context, contentHeight: 16, color: fgColor, font: _italicMonoFont(size: 13))
     }
 }
+#endif
