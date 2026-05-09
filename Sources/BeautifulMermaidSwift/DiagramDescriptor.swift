@@ -120,6 +120,15 @@ public enum DiagramRegistry {
     /// The number of registered descriptors. Should equal `DiagramType.allCases.count`.
     public static var registeredCount: Int { all.count }
 
+    /// Look up a descriptor by `DiagramType`. Throws `MermaidStructuralError` if
+    /// no descriptor matches the given type.
+    public static func descriptor(for type: DiagramType) throws -> DiagramDescriptor {
+        guard let descriptor = all.first(where: { $0.type == type }) else {
+            throw MermaidStructuralError.payloadMismatch(type)
+        }
+        return descriptor
+    }
+
     /// Validates that every `DiagramType` case has a corresponding descriptor.
     /// Call once at app start or in a test. Returns `true` if the registry is
     /// consistent with the `DiagramType` enum.
@@ -723,7 +732,7 @@ private extension DiagramRegistry {
         type: .stateDiagram,
         matches: { $0.normalized.hasPrefix("statediagram") || $0.normalized == "state" },
         parse: { source, frontmatter in
-            let parsed = try parseMermaid(source, config: frontmatter?.flowchartConfig)
+            let parsed = try parseMermaid(source, config: frontmatter?.flowchartConfig, stateConfig: frontmatter?.stateConfig)
             switch parsed.payload {
             case .flowchart(let model), .stateDiagram(let model):
                 return MermaidGraph(payload: .stateDiagram(model))
@@ -742,7 +751,7 @@ private extension DiagramRegistry {
         type: .flowchart,
         matches: { _ in true },  // catches everything
         parse: { source, frontmatter in
-            let parsed = try parseMermaid(source, config: frontmatter?.flowchartConfig)
+            let parsed = try parseMermaid(source, config: frontmatter?.flowchartConfig, stateConfig: frontmatter?.stateConfig)
             switch parsed.payload {
             case .flowchart(let model), .stateDiagram(let model):
                 return MermaidGraph(payload: .flowchart(model))
