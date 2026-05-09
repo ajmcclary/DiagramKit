@@ -6,8 +6,8 @@ import Foundation
 public enum FrontmatterDocumentParser {
 
     /// Parse YAML-like frontmatter lines into a `DiagramFrontmatter`.
-    /// Currently delegates to the existing `_StackSafeYamlFrontmatterParser`
-    /// in SourcePreprocessing.swift; future work will extract that logic here.
+    /// Delegates to `_parseYamlFrontmatter` which handles global keys inline
+    /// and dispatches diagram-specific config through `FrontmatterBinding`.
     public static func parse(_ lines: [String]) -> DiagramFrontmatter? {
         _parseYamlFrontmatter(lines)
     }

@@ -425,42 +425,9 @@ private func _edgeMarkers(_ edge: _SvgEdge, isInvisible: Bool) -> String {
 
 private func _curvePathData(points: [_SvgPoint], curveType: String) -> String {
     guard points.count >= 2 else { return "" }
-    var parts: [String] = []
-    parts.append("M\(points[0].x),\(points[0].y)")
-
-    if curveType == "step" || curveType == "stepBefore" {
-        for i in 1..<points.count {
-            parts.append("V\(points[i].y)")
-            parts.append("H\(points[i].x)")
-        }
-    } else if curveType == "stepAfter" {
-        for i in 1..<points.count {
-            parts.append("H\(points[i].x)")
-            parts.append("V\(points[i].y)")
-        }
-    } else if curveType == "basis" || curveType == "natural" {
-        // Catmull-Rom to cubic Bezier conversion for smooth curves
-        let pts = points
-        let n = pts.count - 1
-        for i in 0..<n {
-            let p0 = pts[max(0, i - 1)]
-            let p1 = pts[i]
-            let p2 = pts[i + 1]
-            let p3 = pts[min(pts.count - 1, i + 2)]
-            let tension: Double = curveType == "basis" ? 1.0 / 6.0 : 1.0 / 2.0
-            let cp1x = p1.x + (p2.x - p0.x) * tension
-            let cp1y = p1.y + (p2.y - p0.y) * tension
-            let cp2x = p2.x - (p3.x - p1.x) * tension
-            let cp2y = p2.y - (p3.y - p1.y) * tension
-            parts.append("C\(cp1x),\(cp1y) \(cp2x),\(cp2y) \(p2.x),\(p2.y)")
-        }
-    } else {
-        // Default to linear
-        for i in 1..<points.count {
-            parts.append("L\(points[i].x),\(points[i].y)")
-        }
-    }
-    return parts.joined(separator: " ")
+    let cgPoints = points.map { CGPoint(x: $0.x, y: $0.y) }
+    let commands = EdgePathBuilder.commands(points: cgPoints, curveType: curveType)
+    return SVGPathSerializer.serialize(commands)
 }
 
 private func _pointsToPolylinePath(_ points: [_SvgPoint]) -> String {
