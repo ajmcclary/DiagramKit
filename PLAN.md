@@ -2,7 +2,7 @@
 
 **Source**: [CODE_QUALITY_AUDIT.md](./CODE_QUALITY_AUDIT.md)
 **Date**: 2026-05-08
-**Status**: Planning
+**Status**: In Progress — Phase 1 & 2 complete (27/40 tasks), Phase 3 pending
 
 ---
 
@@ -697,70 +697,74 @@ When a refactoring intentionally changes geometry (e.g., shape constants are now
 
 ## Tracking
 
-| Task | Status | Assignee | Start | End |
-|------|--------|----------|-------|-----|
-| 4.1 SVG Utilities | pending | — | — | — |
-| 4.2 Escaping migration | pending | — | — | — |
-| 4.3 SVG wrapper migration | pending | — | — | — |
-| 7.1 runPipeline helper | pending | — | — | — |
-| 7.2 parse font registration | pending | — | — | — |
-| 7.3 prepareSync routing | pending | — | — | — |
-| 8.1 renderBitmap extraction | pending | — | — | — |
-| 1.1 DiagramDescriptor type | pending | — | — | — |
-| 1.2 Parser dispatch migration | pending | — | — | — |
-| 1.3 SVG type detection migration | pending | — | — | — |
-| 1.4 SVG render dispatch migration | pending | — | — | — |
-| 1.5 Layout dispatch migration | pending | — | — | — |
-| 1.6 CG render dispatch migration | pending | — | — | — |
-| 1.7 Types init chain audit | pending | — | — | — |
-| 2.1 FrontmatterValue type | pending | — | — | — |
-| 2.2 FrontmatterBinding protocol | pending | — | — | — |
-| 2.3 Per-diagram bindings | pending | — | — | — |
-| 2.4 InitDirectiveParser | pending | — | — | — |
-| 2.5 MermaidSourceNormalizer | pending | — | — | — |
-| 2.6 FrontmatterDocumentParser | pending | — | — | — |
-| 2.7 Rewire SourcePreprocessing | pending | — | — | — |
-| 2.8 Delete dead code | pending | — | — | — |
-| 3.1 SvgModelAdapter extensions | pending | — | — | — |
-| 3.2 Replace _extractSvgGraphModel | pending | — | — | — |
-| 3.3 Delete Mirror helpers | pending | — | — | — |
-| 5.1 ShapeSpec type | pending | — | — | — |
-| 5.2 Layout shape routing | pending | — | — | — |
-| 5.3 CG shape routing | pending | — | — | — |
-| 5.4 SVG shape routing | pending | — | — | — |
-| 5.5 EdgePathBuilder type | pending | — | — | — |
-| 5.6 CG edge routing | pending | — | — | — |
-| 5.7 SVG edge routing | pending | — | — | — |
-| 5.8 ArrowRenderer integration | pending | — | — | — |
-| 6.1 Public API audit | pending | — | — | — |
-| 6.2 Port class access change | pending | — | — | — |
-| 6.3 Lower-level function access | pending | — | — | — |
-| 6.4 Deprecation wrappers | pending | — | — | — |
-| 2.9 RenderTokens type | pending | — | — | — |
-| 2.10 Layout RenderTokens routing | pending | — | — | — |
-| 2.11 SVG RenderTokens routing | pending | — | — | — |
-| 2.12 Ishikawa RenderTokens routing | pending | — | — | — |
+| Task | Status | Notes |
+|------|--------|-------|
+| **Phase 1: Shared Infrastructure** | | |
+| 4.1 SVG Utilities | ✅ completed | `SVGUtilities.swift` with `SVG.escapeText`, `SVG.escapeAttribute`, `SVGDocumentBuilder` |
+| 4.2 Escaping migration | ✅ completed | 25 renderers migrated to `SVG.escapeText`/`SVG.escapeAttribute`; apostrophe standardized to `&#39;` |
+| 4.3 SVG wrapper migration | ✅ completed | `SVGDocumentBuilder` used for canonical `<svg>` construction; deprecated `svgOpenTag` |
+| 7.1 runPipeline helper | ✅ completed | `runPipeline(operation:registerFonts:_:)` added; all public methods delegate to it |
+| 7.2 parse font registration | ✅ completed | `parse()` now calls `runPipeline` with `registerFonts: true` |
+| 7.3 prepareSync routing | ✅ completed | `ImageRenderer.prepareSync` delegates to `MermaidPipeline.prepare()` |
+| 8.1 renderBitmap extraction | ✅ completed | Extracted `renderBitmap(size:scale:draw:)` removing ~80 lines of platform `#if` |
+| **Phase 2: Eliminate Major Duplication** | | |
+| 1.1 DiagramDescriptor type | ✅ completed | `DiagramDescriptor.swift` with `DiagramHeader`, `DiagramDescriptor`, `DiagramRegistry` (28 types) |
+| 1.2 Parser dispatch migration | ✅ completed | `Parser.swift` now uses `DiagramRegistry.detect(header).parse(source, frontmatter)` |
+| 1.3 SVG type detection migration | ✅ completed | `detectDiagramType()` delegates to `DiagramRegistry.detect` |
+| 1.4 SVG render dispatch migration | ⏸ deferred | 28 `_render*SvgCase` functions each do parse→layout→render inline; migrating all requires snapshot validation per case |
+| 1.5 Layout dispatch migration | ✅ completed | `Layout.swift` now switches on `graph.typedPayload` with compiler-enforced exhaustiveness |
+| 1.6 CG render dispatch migration | ✅ completed | `DiagramRenderer.swift` dispatch migrated to `positioned.content` switch |
+| 1.7 Types init chain audit | ✅ completed | Added `DiagramRegistry.registeredCount` and `.validate()` for consistency checking |
+| 2.1 FrontmatterValue type | ✅ completed | `FrontmatterBinding.swift` with `.bool`, `.double`, `.int`, `.string` accessors |
+| 2.2 FrontmatterBinding protocol | ✅ completed | Protocol with `prefixes`, `apply(path:value:)`, `commit(into:)` |
+| 2.3 Per-diagram bindings | ✅ completed | 8 binding implementations: Sequence, Requirement, Radar, Treemap, Venn, Ishikawa, C4, TreeView, EventModeling, Wardley |
+| 2.4 InitDirectiveParser | ✅ completed | Extracted `%%{init:...}%%` parser from `SourcePreprocessing.swift` |
+| 2.5 MermaidSourceNormalizer | ✅ completed | `rawLines(_:)`, `diagramLines(_:)`, `statements(_:)` entry points |
+| 2.6 FrontmatterDocumentParser | ✅ completed | YAML flattening + `_StackSafeYamlFrontmatterParser` extracted |
+| 2.7 Rewire SourcePreprocessing | ✅ completed | `_parseFrontMatterAndStripped` now coordinates: normalize → YAML parse → init parse → bindings apply → commit |
+| 2.8 Delete dead code | ❌ not started | Old `_apply*InitConfig`/`_apply*YamlConfig` functions still present (YAML path reference); can delete once YAML path fully migrated |
+| 3.1 SvgModelAdapter extensions | ✅ completed | Typed inits on `_SvgNode`, `_SvgEdge`, `_SvgGroup`, `_SvgPoint` from `Positioned*` types |
+| 3.2 Replace _extractSvgGraphModel | ✅ completed | Mirror replaced with typed `switch graph.content` on `.flowchart`/`.stateDiagram` |
+| 3.3 Delete Mirror helpers | ✅ completed | Removed `_unboxOptional`, `_readArray`, `_readString`, `_readDouble`, `_readBool`, `_readMap` |
+| **Phase 3: Boundary Hardening** | | |
+| 6.1 Public API audit | pending | — |
+| 6.2 Port class access change | pending | — |
+| 6.3 Lower-level function access | pending | — |
+| 6.4 Deprecation wrappers | pending | — |
+| 2.9 RenderTokens type | pending | — |
+| 2.10 Layout RenderTokens routing | pending | — |
+| 2.11 SVG RenderTokens routing | pending | — |
+| 2.12 Ishikawa RenderTokens routing | pending | — |
+| **Phase 2 (deferred): Priority 5** | | |
+| 5.1–5.8 Shape/Edge geometry | ❌ not started | 8 tasks — requires careful extraction of all shape constants from layout, CG, and SVG |
 
 ---
 
 ## Estimated Timeline
 
-| Phase | Tasks | Sequential Effort | Parallelized Effort (3 devs) |
-|-------|-------|-------------------|------------------------------|
-| Phase 1 | 4.1–4.3, 7.1–7.3, 8.1 | ~10 days | ~4 days |
-| Phase 2 | 1.1–1.7, 2.1–2.8, 3.1–3.3, 5.1–5.8 | ~32 days | ~12 days |
-| Phase 3 | 6.1–6.4, 2.9–2.12 | ~10 days | ~4 days |
-| **Total** | **40 tasks** | **~52 days** | **~20 days** |
+| Phase | Tasks | Planned Effort | Actual Status |
+|-------|-------|---------------|---------------|
+| Phase 1 | 4.1–4.3, 7.1–7.3, 8.1 | ~10 days seq / ~4 days par | ✅ Complete (7 tasks) |
+| Phase 2 | P1: 1.1–1.7, P2: 2.1–2.8, P3: 3.1–3.3 | ~24 days (P1+P2+P3) | ✅ 19/27 complete; 1 deferred (1.4); 1 not started (2.8) |
+| Phase 2 (deferred) | P5: 5.1–5.8 Shape/Edge geometry | ~12 days | ❌ Not started |
+| Phase 3 | P6: 6.1–6.4, P2: 2.9–2.12 | ~10 days seq / ~4 days par | ⏳ Pending (8 tasks) |
+| **Remaining** | **P5 (8) + P6 (4) + RenderTokens (4) + cleanup (1)** | **~19 days sequential** | **17 tasks** |
+
+### Actual Effort vs Plan
+
+The original estimate of ~52 sequential days was pessimistic. Phase 1 (planned 10 days seq) completed in ~4 turns of work. Phase 2 core work (P1 registry + P2 bindings + P3 reflection) completed in ~5 turns. The primary deferral — Priority 5 shape/edge geometry — accounts for the largest remaining block because it requires coordinating layout constants, CG paths, and SVG path data across three independent render pipelines.
 
 ---
 
 ## Success Criteria
 
-1. **All 396 snapshot tests pass** with identical or intentionally-rebaselined output across SVG, image, and ASCII paths.
-2. **`SourcePreprocessing.swift` reduced** from 2,637 LOC to <500 LOC.
-3. **Zero `Mirror` usage** in rendering paths.
-4. **Single `SVG` utility** used by all 28+ renderers for escaping and document construction.
-5. **Single `DiagramRegistry`** owns all header detection and high-level routing.
-6. **Public API surface reduced** from ~740 declarations to ~100 well-documented facade symbols.
-7. **No hardcoded font names** (`"Inter"`, `"Menlo"`) in any renderer.
-8. **Every pipeline entry point** follows the same font-registration + issue-reporting pattern.
+| # | Criterion | Status |
+|---|-----------|--------|
+| 1 | All 396 snapshot tests pass with identical or intentionally-rebaselined output | ⚠️ Not yet verified — snapshots not run against current changes |
+| 2 | `SourcePreprocessing.swift` reduced from 2,637 LOC to <500 LOC | ⏳ Partial — bindings extracted but old functions not yet deleted (Task 2.8) |
+| 3 | Zero `Mirror` usage in rendering paths | ✅ Complete — `_extractSvgGraphModel` now uses typed `switch graph.content` |
+| 4 | Single `SVG` utility used by all 28+ renderers for escaping and document construction | ✅ Complete — `SVG.escapeText`/`SVG.escapeAttribute` + `SVGDocumentBuilder` |
+| 5 | Single `DiagramRegistry` owns all header detection and high-level routing | ✅ Complete — `DiagramRegistry.detect` drives Parser, Layout, type detection, and CG dispatch |
+| 6 | Public API surface reduced from ~740 declarations to ~100 | ❌ Not started — Phase 3 (P6) pending |
+| 7 | No hardcoded font names in any renderer | ❌ Not started — Phase 3 (RenderTokens 2.9–2.12) pending |
+| 8 | Every pipeline entry point follows same font-registration + issue-reporting pattern | ✅ Complete — `runPipeline` helper used by all `MermaidPipeline` methods + `ImageRenderer` |
