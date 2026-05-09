@@ -186,9 +186,18 @@ public final class DiagramRenderer {
     ) {
         guard !text.isEmpty else { return }
         if text.contains("\n") {
-            // Use a wide rect centered on the point; drawMultilineText will vertically center the text block.
-            let rect = CGRect(x: point.x - 500, y: point.y - 500, width: 1000, height: 1000)
-            labelRenderer.drawMultilineText(text, in: rect, context: context, color: color, font: font, alignment: .center)
+            let width: CGFloat = 1000
+            let x: CGFloat
+            switch alignment {
+            case .left:
+                x = point.x
+            case .center:
+                x = point.x - width / 2
+            case .right:
+                x = point.x - width
+            }
+            let rect = CGRect(x: x, y: point.y - 500, width: width, height: 1000)
+            labelRenderer.drawMultilineText(text, in: rect, context: context, color: color, font: font, alignment: alignment)
         } else {
             labelRenderer.drawText(text, at: point, context: context, color: color, font: font, alignment: alignment)
         }

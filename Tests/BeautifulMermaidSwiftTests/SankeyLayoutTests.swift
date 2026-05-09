@@ -299,4 +299,48 @@ final class SankeyLayoutTests: XCTestCase {
             XCTAssertGreaterThan(node.y1, node.y0)
         }
     }
+
+    func testFullEnergyFlowLayoutStaysInsideConfiguredBounds() throws {
+        let source = """
+        sankey
+        Electricity grid,Over generation / exports,104.453
+        Electricity grid,Heating and cooling - homes,113.726
+        Electricity grid,H2 conversion,27.14
+        Electricity grid,Industry,342.165
+        Electricity grid,Losses,56.691
+        Electricity grid,National navigation,10.186
+        Electricity grid,Rail transport,7.863
+        Electricity grid,Lighting & appliances - commercial,90.008
+        Electricity grid,Lighting & appliances - homes,93.494
+        Electricity grid,Other,82.233
+        Electricity grid,Agriculture,3.64
+        Over generation / exports,National navigation,104.453
+        Heating and cooling - homes,District heating,79.329
+        Heating and cooling - homes,Residential,34.397
+        H2 conversion,Road transport,27.14
+        Losses,National navigation,56.691
+        Industry,Agriculture,342.165
+        National navigation,Bio-conversion,180.193
+        National navigation,Freight,127.365
+        National navigation,Road transport,7.423
+        Rail transport,Public lighting,7.863
+        Lighting & appliances - commercial,Public lighting,90.008
+        Lighting & appliances - homes,Residential,79.279
+        Lighting & appliances - homes,Public lighting,14.215
+        Other,Road transport,82.233
+        """
+        let diagram = try parseSankeyDiagram(lines(source))
+        let positioned = layoutSankeyDiagram(diagram)
+
+        for node in positioned.nodes {
+            XCTAssertGreaterThanOrEqual(node.y0, 0, "\(node.id) starts above the canvas")
+            XCTAssertLessThanOrEqual(node.y1, positioned.height, "\(node.id) extends below the canvas")
+        }
+        for link in positioned.links {
+            XCTAssertGreaterThanOrEqual(link.path.sourceY - link.width / 2, 0, "\(link.sourceID)->\(link.targetID) starts above the canvas")
+            XCTAssertLessThanOrEqual(link.path.sourceY + link.width / 2, positioned.height, "\(link.sourceID)->\(link.targetID) extends below the canvas")
+            XCTAssertGreaterThanOrEqual(link.path.targetY - link.width / 2, 0, "\(link.sourceID)->\(link.targetID) targets above the canvas")
+            XCTAssertLessThanOrEqual(link.path.targetY + link.width / 2, positioned.height, "\(link.sourceID)->\(link.targetID) targets below the canvas")
+        }
+    }
 }

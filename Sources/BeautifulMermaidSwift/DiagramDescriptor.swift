@@ -433,7 +433,13 @@ private extension DiagramRegistry {
                 throw MermaidStructuralError.payloadMismatch(.sankey)
             }
             let positioned = layoutSankeyDiagram(diagram)
-            return PositionedGraph(diagram: graph, width: positioned.width, height: positioned.height, content: .sankey(positioned))
+            let padding = positioned.config.useMaxWidth ? 0.0 : 10.0
+            return PositionedGraph(
+                diagram: graph,
+                width: positioned.width + padding * 2,
+                height: positioned.height + padding * 2,
+                content: .sankey(positioned)
+            )
         }
     )
 

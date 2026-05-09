@@ -14,12 +14,12 @@ extension DiagramRenderer {
     func _drawSankey(_ positioned: PositionedGraph, in context: CGContext, bounds: CGRect) {
         guard case .sankey(let diagram) = positioned.content else { return }
 
-        _withFittedContext(context, bounds: bounds, contentWidth: diagram.width, contentHeight: diagram.height) { ctx in
+        let padding = diagram.config.useMaxWidth ? 0.0 : 10.0
+        let contentWidth = diagram.width + padding * 2
+        let contentHeight = diagram.height + padding * 2
 
-            let ch = diagram.height
-            ctx.saveGState()
-            ctx.translateBy(x: 0, y: ch)
-            ctx.scaleBy(x: 1, y: -1)
+        _withFittedContext(context, bounds: bounds, contentWidth: contentWidth, contentHeight: contentHeight) { ctx in
+            ctx.translateBy(x: padding, y: padding)
 
             let nodeColorMap = _cgSankeyColorMap(diagram)
             let defaultColor: (String) -> BMColor = { id in
@@ -30,7 +30,7 @@ extension DiagramRenderer {
             }
 
             let halfWidth = diagram.width / 2
-            let font = _sankeyCGFont(size: 14)
+            let font = config.proportionalFont(size: 14)
 
             for link in diagram.links {
                 let sourceColor = nodeColorMap[link.sourceID] ?? defaultColor(link.sourceID)
@@ -53,9 +53,10 @@ extension DiagramRenderer {
                     if let gradient = CGGradient(colorsSpace: CGColorSpaceCreateDeviceRGB(),
                                                   colors: colors as CFArray,
                                                   locations: locations) {
+                        ctx.setAlpha(0.5)
                         ctx.drawLinearGradient(gradient,
-                                               start: CGPoint(x: link.path.sourceX, y: ch - link.path.sourceY),
-                                               end: CGPoint(x: link.path.targetX, y: ch - link.path.targetY),
+                                               start: CGPoint(x: link.path.sourceX, y: link.path.sourceY),
+                                               end: CGPoint(x: link.path.targetX, y: link.path.targetY),
                                                options: [])
                     }
                     ctx.restoreGState()
@@ -72,7 +73,7 @@ extension DiagramRenderer {
 
             for node in diagram.nodes {
                 let nodeColor = nodeColorMap[node.id] ?? defaultColor(node.id)
-                let rect = CGRect(x: node.x0, y: ch - node.y1,
+                let rect = CGRect(x: node.x0, y: node.y0,
                                   width: node.x1 - node.x0,
                                   height: node.y1 - node.y0)
                 ctx.setFillColor(nodeColor.cgColor)
@@ -93,38 +94,35 @@ extension DiagramRenderer {
                 }
 
                 let midY = node.y0 + (node.y1 - node.y0) / 2
-                let textY = ch - midY
 
                 switch diagram.config.labelStyle {
                 case .legacy:
                     if node.x0 < halfWidth {
                         let labelX = node.x1 + 6
-                        _drawTextInFlipped(labelText, at: CGPoint(x: labelX, y: textY),
-                                           context: ctx, contentHeight: ch,
+                        _drawTextInFlipped(labelText, at: CGPoint(x: labelX, y: midY),
+                                           context: ctx, contentHeight: diagram.height,
                                            color: labelColor, font: font, alignment: .left)
                     } else {
                         let labelX = node.x0 - 6
-                        _drawTextInFlipped(labelText, at: CGPoint(x: labelX, y: textY),
-                                           context: ctx, contentHeight: ch,
+                        _drawTextInFlipped(labelText, at: CGPoint(x: labelX, y: midY),
+                                           context: ctx, contentHeight: diagram.height,
                                            color: labelColor, font: font, alignment: .right)
                     }
                 case .outlined:
                     let isLeftOfCenter = node.layer < centerLayer
                     if isLeftOfCenter {
                         let labelX = node.x0 - 6
-                        _drawTextInFlipped(labelText, at: CGPoint(x: labelX, y: textY),
-                                           context: ctx, contentHeight: ch,
+                        _drawTextInFlipped(labelText, at: CGPoint(x: labelX, y: midY),
+                                           context: ctx, contentHeight: diagram.height,
                                            color: labelColor, font: font, alignment: .right)
                     } else {
                         let labelX = node.x1 + 6
-                        _drawTextInFlipped(labelText, at: CGPoint(x: labelX, y: textY),
-                                           context: ctx, contentHeight: ch,
+                        _drawTextInFlipped(labelText, at: CGPoint(x: labelX, y: midY),
+                                           context: ctx, contentHeight: diagram.height,
                                            color: labelColor, font: font, alignment: .left)
                     }
                 }
             }
-
-            ctx.restoreGState()
         }
     }
 }
@@ -153,12 +151,4 @@ private func _cgSankeyFormatValue(_ v: Double) -> String {
         return String(format: "%.1f", rounded)
     }
     return str
-}
-
-private func _sankeyCGFont(size: CGFloat) -> BMFont {
-    #if targetEnvironment(macCatalyst) || canImport(UIKit)
-    return UIFont.systemFont(ofSize: size)
-    #elseif canImport(AppKit)
-    return NSFont.systemFont(ofSize: size)
-    #endif
 }

@@ -379,17 +379,28 @@ private func _relaxBreadths(
         _resolveCollisionsInColumn(indices, y0s: &y0s, y1s: &y1s, py: py, height: height, alpha: 1)
     }
 
-    var maxY = 0.0
+    var minY = Double.greatestFiniteMagnitude
+    var maxY = -Double.greatestFiniteMagnitude
     for indices in columns {
         for idx in indices {
+            if y0s[idx] < minY { minY = y0s[idx] }
             if y1s[idx] > maxY { maxY = y1s[idx] }
         }
     }
-    if maxY > height && height > 0 {
-        let scale = height / maxY
+    guard minY.isFinite, maxY.isFinite, height > 0 else { return }
+
+    let span = maxY - minY
+    if span > height, span > 0 {
+        let scale = height / span
         for i in 0..<y0s.count {
-            y0s[i] *= scale
-            y1s[i] *= scale
+            y0s[i] = (y0s[i] - minY) * scale
+            y1s[i] = (y1s[i] - minY) * scale
+        }
+    } else if minY < 0 || maxY > height {
+        let dy = minY < 0 ? -minY : height - maxY
+        for i in 0..<y0s.count {
+            y0s[i] += dy
+            y1s[i] += dy
         }
     }
 }
