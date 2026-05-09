@@ -1,6 +1,5 @@
 // Ported from original/src/ascii/canvas.ts
 import Foundation
-import DiagramKitModel
 
 // Top-level typealiases moved to DiagramKitModel/AsciiTopLevelAliases.swift
 

@@ -51,21 +51,21 @@ final class ClassSlice7Tests: XCTestCase {
 
     func test_frontmatter_config_class_hide_empty() throws {
         let source = "---\nclass:\n  hideEmptyMembersBox: true\n---\nclassDiagram\nclass A"
-        let (processed, fm) = _parseFrontMatterAndStripped(source)
+        let (_, fm) = _parseFrontMatterAndStripped(source)
         XCTAssertNotNil(fm)
         XCTAssertTrue(fm!.classConfig?.hideEmptyMembersBox ?? false)
     }
 
     func test_frontmatter_config_hierarchical() throws {
         let source = "---\nclass:\n  hierarchicalNamespaces: false\n---\nclassDiagram\nclass A"
-        let (processed, fm) = _parseFrontMatterAndStripped(source)
+        let (_, fm) = _parseFrontMatterAndStripped(source)
         XCTAssertNotNil(fm)
         XCTAssertEqual(fm!.classConfig?.hierarchicalNamespaces, false)
     }
 
     func test_frontmatter_padding() throws {
         let source = "---\nclass:\n  padding: 20\n---\nclassDiagram\nclass A"
-        let (processed, fm) = _parseFrontMatterAndStripped(source)
+        let (_, fm) = _parseFrontMatterAndStripped(source)
         XCTAssertNotNil(fm)
         XCTAssertEqual(fm!.classConfig?.padding, 20)
     }

@@ -100,7 +100,7 @@ open class original_src_multiline_utils {
 
     public static func renderLineContent(_ line: String) -> String {
         if !hasFormatTags(line) {
-            return escapeXml(line)
+            return SVG.escapeText(line)
         }
 
         let segments = parseInlineFormatting(line)
@@ -110,11 +110,11 @@ open class original_src_multiline_utils {
 
         let allPlain = segments.allSatisfy { !$0.bold && !$0.italic && !$0.underline && !$0.strikethrough }
         if allPlain {
-            return segments.map { escapeXml($0.text) }.joined()
+            return segments.map { SVG.escapeText($0.text) }.joined()
         }
 
         return segments.map { seg in
-            let escaped = escapeXml(seg.text)
+            let escaped = SVG.escapeText(seg.text)
             if !seg.bold && !seg.italic && !seg.underline && !seg.strikethrough {
                 return escaped
             }

@@ -121,11 +121,8 @@ public enum EdgePathBuilder {
             ])
 
         case .circle:
-            // Circle centered at the tip
-            let r = max(hw, hh) / 2
-            let cx = tip.x - ux * r
-            let cy = tip.y - uy * r
-            return .ellipse  // renderer centers ellipse in bounding box
+            // Circle centered at the tip; renderer centers ellipse in bounding box
+            return .ellipse
 
         case .cross:
             // Cross (×) at the tip

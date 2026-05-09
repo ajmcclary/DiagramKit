@@ -706,17 +706,6 @@ open class original_src_ascii_index {
         _bmDrawGraph(&graph.drawGraph)
     }
 
-    private static func flipCanvasVertically(_ canvas: inout [[Character]]) {
-        // Reverse each column array (Y-axis flip in column-major layout)
-        // then remap directional characters that change meaning after flip
-        flipCanvasVertically(&canvas)
-    }
-
-    private static func flipRoleCanvasVertically(_ roleCanvas: inout RoleCanvas) {
-        // Reverse each column array to match the canvas flip
-        flipRoleCanvasVertically(&roleCanvas)
-    }
-
     private static func canvasToString(
         _ canvas: Canvas,
         roleCanvas: RoleCanvas,
