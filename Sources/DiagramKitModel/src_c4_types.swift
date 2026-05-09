@@ -1,5 +1,4 @@
 import Foundation
-import CoreGraphics
 
 // MARK: - C4 Diagram Kind
 

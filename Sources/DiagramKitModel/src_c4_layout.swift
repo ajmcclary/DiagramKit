@@ -1,5 +1,4 @@
 import Foundation
-import CoreGraphics
 
 // MARK: - C4 Layout Engine (Row-based, mirrors Mermaid's Bounds class)
 

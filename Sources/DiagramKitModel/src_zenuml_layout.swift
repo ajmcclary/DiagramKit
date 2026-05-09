@@ -1,5 +1,4 @@
 import Foundation
-import CoreGraphics
 
 // MARK: - ZenUML Layout Engine
 

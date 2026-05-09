@@ -1,5 +1,4 @@
 import Foundation
-import CoreGraphics
 
 // MARK: - SVG Path Serializer
 

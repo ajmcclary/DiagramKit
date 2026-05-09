@@ -1,5 +1,4 @@
 import Foundation
-import CoreGraphics
 import DiagramKitCommon
 
 // MARK: - Bounds helper

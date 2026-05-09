@@ -1,5 +1,4 @@
 import Foundation
-import CoreGraphics
 
 private func projectX(_ value: Double, padding: Double, chartWidth: Double) -> Double {
     padding + (value / 100.0) * chartWidth
