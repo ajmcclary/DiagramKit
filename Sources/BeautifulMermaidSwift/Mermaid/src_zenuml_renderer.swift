@@ -7,7 +7,7 @@ import Foundation
 public func renderZenUMLSvg(
     _ diagram: PositionedZenUMLDiagram,
     colors: DiagramColors = DiagramColors(bg: "#FFFFFF", fg: "#27272A"),
-    font: String = "Helvetica",
+    font: String = RenderTokens.shared.svgFontFamily,
     transparent: Bool = false,
     useMaxWidth: Bool = true
 ) -> String {
@@ -95,30 +95,31 @@ public func renderZenUMLSvg(
 
     let viewBox = "0 0 \(viewWidth) \(viewHeight)"
 
+    let fontChain = DiagramFontResolver().svgProportionalFamilyChain
     let style = """
     <defs>
       <style>
         .frame-border-outer { fill: #666; }
         .frame-border-inner { fill: #ffffff; }
         .frame-header-line { stroke: #666; stroke-width: 1; shape-rendering: crispEdges; }
-        .frame-title { font-family: Helvetica, Verdana, serif; font-size: 16px; font-weight: 600; fill: #222; }
+        .frame-title { font-family: \(fontChain); font-size: 16px; font-weight: 600; fill: #222; }
         .participant-box { fill: #ffffff; stroke: #666; stroke-width: 2; }
-        .participant-label { font-family: Helvetica, Verdana, serif; font-size: 16px; fill: #222; }
+        .participant-label { font-family: \(fontChain); font-size: 16px; fill: #222; }
         .lifeline { stroke: #666; stroke-width: 1; stroke-dasharray: 5,5; }
         .message-line { stroke: #000; stroke-width: 2; shape-rendering: crispEdges; }
-        .message-label { font-family: Helvetica, Verdana, serif; font-size: 14px; fill: #222; }
+        .message-label { font-family: \(fontChain); font-size: 14px; fill: #222; }
         .arrow-head { fill: #000; stroke: #000; stroke-width: 2; }
         .arrow-open { fill: none; stroke: #000; stroke-width: 2; }
         .fragment-border { fill: none; stroke: #666; stroke-width: 1; shape-rendering: crispEdges; }
         .fragment-header { fill: #dedede; fill-opacity: 0.498; stroke: none; shape-rendering: crispEdges; }
-        .fragment-label { font-family: Helvetica, Verdana, serif; font-size: 14px; font-weight: 600; fill: #000; }
+        .fragment-label { font-family: \(fontChain); font-size: 14px; font-weight: 600; fill: #000; }
         .return-line { stroke: #000; stroke-width: 2; stroke-dasharray: 6,4; shape-rendering: crispEdges; }
-        .return-label { font-family: Helvetica, Verdana, serif; font-size: 14px; fill: #222; }
+        .return-label { font-family: \(fontChain); font-size: 14px; fill: #222; }
         .divider-bg { fill: #fff5ad; stroke: #aaaa33; stroke-width: 1; }
-        .divider-label { font-family: Helvetica, Verdana, serif; font-size: 14px; fill: #333; }
+        .divider-label { font-family: \(fontChain); font-size: 14px; fill: #333; }
         .group-outline { fill: none; stroke: #666; stroke-dasharray: 5,5; stroke-width: 1; }
-        .group-title-text { font-family: Helvetica, Verdana, serif; font-size: 13px; font-weight: 400; fill: #222; }
-        .comment-text { font-family: Helvetica, Verdana, serif; font-size: 13px; fill: #666; font-style: italic; }
+        .group-title-text { font-family: \(fontChain); font-size: 13px; font-weight: 400; fill: #222; }
+        .comment-text { font-family: \(fontChain); font-size: 13px; fill: #666; font-style: italic; }
       </style>
     </defs>
     """

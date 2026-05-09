@@ -19,7 +19,7 @@ private struct EMPDefaults {
     static let boxTextPadding: Double = 10
     static let fontSize: Double = 16
     static let fontWeight: Double = 700
-    static let fontFamily: String = "\"trebuchet ms\", verdana, arial, sans-serif"
+    static var fontFamily: String { DiagramFontResolver().svgProportionalFamilyChain }
 }
 
 // MARK: - Public layout entry point
@@ -390,7 +390,7 @@ private func _measureTextDimensions(
     maxWidth: Double,
     fontSize: Double
 ) -> (width: Double, height: Double) {
-    let font = CTFontCreateWithName("TrebuchetMS" as CFString, CGFloat(fontSize), nil)
+    let font = DiagramFontResolver().proportionalCTFont(size: CGFloat(fontSize))
 
     let plainText: String
     if hasRenderedData, let data = dataText, !data.isEmpty {

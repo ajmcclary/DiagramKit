@@ -16,7 +16,7 @@ extension DiagramRenderer {
             // 1. Actor legend
             for actor in journey.actors {
                 let circleRect = CGRect(x: actor.circleCenter.x - 7, y: actor.circleCenter.y - 7, width: 14, height: 14)
-                if let fillColor = _hexToCGColor(actor.color) {
+                if let fillColor = MermaidColorParser.cgHex(actor.color) {
                     ctx.setFillColor(fillColor)
                 } else {
                     ctx.setFillColor(self.theme.effectiveSurface().cgColor)
@@ -46,7 +46,7 @@ extension DiagramRenderer {
                 let sectionRect = CGRect(x: section.x, y: section.y, width: section.width, height: section.height)
                 let path = BMBezierPath(roundedRect: sectionRect, cornerRadius: 3)
 
-                if let fillColor = _hexToCGColor(section.fill) {
+                if let fillColor = MermaidColorParser.cgHex(section.fill) {
                     ctx.setFillColor(fillColor)
                 } else {
                     ctx.setFillColor(self.theme.effectiveSurface().cgColor)
@@ -72,7 +72,7 @@ extension DiagramRenderer {
                         line,
                         at: CGPoint(x: section.x + section.width / 2, y: startY + Double(li) * config.taskFontSize * 1.3),
                         context: ctx, contentHeight: ch,
-                        color: self._hexToColor(section.colour) ?? self.theme.foreground,
+                        color: MermaidColorParser.hexColor(section.colour) ?? self.theme.foreground,
                         font: sectionFont,
                         alignment: .center
                     )
@@ -84,7 +84,7 @@ extension DiagramRenderer {
                 let taskRect = CGRect(x: task.x, y: task.y, width: task.rectWidth, height: task.rectHeight)
                 let path = BMBezierPath(roundedRect: taskRect, cornerRadius: 3)
 
-                if let fillColor = _hexToCGColor(task.fill) {
+                if let fillColor = MermaidColorParser.cgHex(task.fill) {
                     ctx.setFillColor(fillColor)
                 } else {
                     ctx.setFillColor(self.theme.effectiveSurface().cgColor)
@@ -110,7 +110,7 @@ extension DiagramRenderer {
                         line,
                         at: CGPoint(x: task.x + task.rectWidth / 2, y: taskStartY + Double(li) * config.taskFontSize * 1.3),
                         context: ctx, contentHeight: ch,
-                        color: self._hexToColor(task.colour) ?? self.theme.foreground,
+                        color: MermaidColorParser.hexColor(task.colour) ?? self.theme.foreground,
                         font: taskFont,
                         alignment: .center
                     )
@@ -127,7 +127,7 @@ extension DiagramRenderer {
                             let dotY = task.y
                             let dotRect = CGRect(x: dotX - 7, y: dotY - 7, width: 14, height: 14)
                             let actorColor = _journeyCGPaletteValue(config.actorColours, index: actorIdx, fallback: "#8FBC8F")
-                            if let cgColor = _hexToCGColor(actorColor) {
+                            if let cgColor = MermaidColorParser.cgHex(actorColor) {
                                 ctx.setFillColor(cgColor)
                             } else {
                                 ctx.setFillColor(self.theme.effectiveSurface().cgColor)
@@ -158,7 +158,7 @@ extension DiagramRenderer {
 
                 // Face circle
                 let faceRect = CGRect(x: faceCX - 15, y: faceCY - 15, width: 30, height: 30)
-                if let faceCGColor = _hexToCGColor(config.faceColor) {
+                if let faceCGColor = MermaidColorParser.cgHex(config.faceColor) {
                     ctx.setFillColor(faceCGColor)
                 } else {
                     ctx.setFillColor(CGColor(red: 1.0, green: 0.97, blue: 0.85, alpha: 1.0))
@@ -205,7 +205,7 @@ extension DiagramRenderer {
                 }
                 let titleFont = BMFont.systemFont(ofSize: titleFontSize, weight: .bold)
                 let titleColor: BMColor
-                if !config.titleColor.isEmpty, let cg = _hexToCGColor(config.titleColor), let nsColor = BMColor(cgColor: cg) {
+                if !config.titleColor.isEmpty, let cg = MermaidColorParser.cgHex(config.titleColor), let nsColor = BMColor(cgColor: cg) {
                     titleColor = nsColor
                 } else {
                     titleColor = self.theme.foreground
@@ -245,21 +245,7 @@ extension DiagramRenderer {
 
     // MARK: - Color helpers
 
-    private func _hexToCGColor(_ hex: String) -> CGColor? {
-        let cleaned = hex.trimmingCharacters(in: CharacterSet(charactersIn: "#"))
-        guard cleaned.count == 6 else { return nil }
-        var rgb: UInt64 = 0
-        Scanner(string: cleaned).scanHexInt64(&rgb)
-        return CGColor(red: CGFloat((rgb >> 16) & 0xFF) / 255.0,
-                       green: CGFloat((rgb >> 8) & 0xFF) / 255.0,
-                       blue: CGFloat(rgb & 0xFF) / 255.0,
-                       alpha: 1.0)
-    }
-
-    private func _hexToColor(_ hex: String) -> BMColor? {
-        guard let cg = _hexToCGColor(hex) else { return nil }
-        return BMColor(cgColor: cg)
-    }
+    // _hexToCGColor / _hexToColor → MermaidColorParser.cgHex(_:)
 
     private func _journeyCGPaletteValue(_ palette: [String], index: Int, fallback: String) -> String {
         guard !palette.isEmpty else { return fallback }

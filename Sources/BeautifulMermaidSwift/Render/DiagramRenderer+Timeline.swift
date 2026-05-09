@@ -26,7 +26,7 @@ extension DiagramRenderer {
 
                 let colorIdx = section.colorIndex % max(1, theme.cScale.count)
                 let fillHex = isNeo ? theme.mainBkg : theme.cScale[colorIdx]
-                if let fillColor = _thexToCGColor(fillHex) {
+                if let fillColor = MermaidColorParser.cgHex(fillHex) {
                     ctx.setFillColor(fillColor)
                 } else {
                     ctx.setFillColor(self.theme.effectiveSurface().cgColor)
@@ -39,7 +39,7 @@ extension DiagramRenderer {
                 ctx.fillPath()
                 ctx.setShadow(offset: .zero, blur: 0, color: nil)
 
-                let textColor = _thexToColor(isNeo ? theme.nodeBorder : theme.cScaleLabel[colorIdx]) ?? self.theme.foreground
+                let textColor = MermaidColorParser.hexColor(isNeo ? theme.nodeBorder : theme.cScaleLabel[colorIdx]) ?? self.theme.foreground
                 self._drawTextInFlipped(
                     section.text,
                     at: CGPoint(x: section.x + section.width / 2, y: section.y + section.height / 2),
@@ -57,7 +57,7 @@ extension DiagramRenderer {
 
                 let colorIdx = task.colorIndex % max(1, theme.cScale.count)
                 let fillHex = isNeo ? theme.mainBkg : theme.cScale[colorIdx]
-                if let fillColor = _thexToCGColor(fillHex) {
+                if let fillColor = MermaidColorParser.cgHex(fillHex) {
                     ctx.setFillColor(fillColor)
                 } else {
                     ctx.setFillColor(self.theme.effectiveSurface().cgColor)
@@ -72,7 +72,7 @@ extension DiagramRenderer {
 
                 // Bottom accent line (non-redux only)
                 if !isRedux {
-                    if let lineColor = _thexToCGColor(theme.cScaleInv[colorIdx]) {
+                    if let lineColor = MermaidColorParser.cgHex(theme.cScaleInv[colorIdx]) {
                         ctx.setStrokeColor(lineColor)
                         ctx.setLineWidth(3)
                         ctx.move(to: CGPoint(x: task.x, y: task.y + task.height))
@@ -81,7 +81,7 @@ extension DiagramRenderer {
                     }
                 }
 
-                let textColor = _thexToColor(isNeo ? theme.nodeBorder : theme.cScaleLabel[colorIdx]) ?? self.theme.foreground
+                let textColor = MermaidColorParser.hexColor(isNeo ? theme.nodeBorder : theme.cScaleLabel[colorIdx]) ?? self.theme.foreground
                 self._drawTextInFlipped(
                     task.text,
                     at: CGPoint(x: task.x + task.width / 2, y: task.y + task.height / 2),
@@ -99,7 +99,7 @@ extension DiagramRenderer {
 
                 let colorIdx = event.colorIndex % max(1, theme.cScale.count)
                 let fillHex = isNeo ? theme.mainBkg : theme.cScale[colorIdx]
-                if let baseColor = _thexToCGColor(fillHex) {
+                if let baseColor = MermaidColorParser.cgHex(fillHex) {
                     let lightened = _brightenColor(baseColor, factor: 1.2)
                     ctx.setFillColor(lightened)
                 } else {
@@ -192,21 +192,7 @@ extension DiagramRenderer {
 
     // MARK: - Color helpers
 
-    private func _thexToCGColor(_ hex: String) -> CGColor? {
-        let cleaned = hex.trimmingCharacters(in: CharacterSet(charactersIn: "#"))
-        guard cleaned.count == 6 else { return nil }
-        var rgb: UInt64 = 0
-        Scanner(string: cleaned).scanHexInt64(&rgb)
-        return CGColor(red: CGFloat((rgb >> 16) & 0xFF) / 255.0,
-                       green: CGFloat((rgb >> 8) & 0xFF) / 255.0,
-                       blue: CGFloat(rgb & 0xFF) / 255.0,
-                       alpha: 1.0)
-    }
-
-    private func _thexToColor(_ hex: String) -> BMColor? {
-        guard let cg = _thexToCGColor(hex) else { return nil }
-        return BMColor(cgColor: cg)
-    }
+    // _thexToCGColor / _thexToColor → MermaidColorParser.cgHex(_:)
 
     private func _brightenColor(_ color: CGColor, factor: CGFloat) -> CGColor {
         guard let components = color.components, components.count >= 3 else { return color }

@@ -16,7 +16,7 @@ extension DiagramRenderer {
 
             // 1. Excluded ranges
             for range in gantt.excludedRanges {
-                if let cg = _hexToCGColor(theme.excludeBkgColor) {
+                if let cg = MermaidColorParser.cgHex(theme.excludeBkgColor) {
                     ctx.setFillColor(cg)
                 } else {
                     ctx.setFillColor(self.theme.effectiveSurface().cgColor)
@@ -28,7 +28,7 @@ extension DiagramRenderer {
             let gridY = gantt.height - config.gridLineStartPadding
             let gridLineHeight = gantt.gridLineHeight > 0 ? gantt.gridLineHeight : config.gridLineStartPadding
             for tick in gantt.axisTicks {
-                ctx.setStrokeColor(self._hexToCGColor(theme.gridColor) ?? self.theme.effectiveMuted().cgColor)
+                ctx.setStrokeColor(MermaidColorParser.cgHex(theme.gridColor) ?? self.theme.effectiveMuted().cgColor)
                 ctx.setLineWidth(0.5)
                 ctx.move(to: CGPoint(x: tick.x, y: gridY))
                 ctx.addLine(to: CGPoint(x: tick.x, y: gridY + gridLineHeight))
@@ -49,7 +49,7 @@ extension DiagramRenderer {
             if let topTicks = gantt.topAxisTicks {
                 let topGridLineHeight = gridLineHeight - config.topPadding + config.gridLineStartPadding
                 for tick in topTicks {
-                    ctx.setStrokeColor(self._hexToCGColor(theme.gridColor) ?? self.theme.effectiveMuted().cgColor)
+                    ctx.setStrokeColor(MermaidColorParser.cgHex(theme.gridColor) ?? self.theme.effectiveMuted().cgColor)
                     ctx.setLineWidth(0.5)
                     ctx.move(to: CGPoint(x: tick.x, y: config.topPadding))
                     ctx.addLine(to: CGPoint(x: tick.x, y: config.topPadding + topGridLineHeight))
@@ -77,7 +77,7 @@ extension DiagramRenderer {
                 case 2: fillColor = theme.sectionBkgColor2
                 default: fillColor = theme.sectionBkgColor
                 }
-                if let cg = _hexToCGColor(fillColor) {
+                if let cg = MermaidColorParser.cgHex(fillColor) {
                     ctx.setFillColor(cg)
                 } else {
                     ctx.setFillColor(self.theme.effectiveSurface().cgColor)
@@ -94,7 +94,7 @@ extension DiagramRenderer {
                 let isVert = ptask.task.tags.contains(.vert)
 
                 if isVert {
-                    if let cg = _hexToCGColor(theme.vertLineColor) {
+                    if let cg = MermaidColorParser.cgHex(theme.vertLineColor) {
                         ctx.setFillColor(cg)
                     } else {
                         ctx.setFillColor(self.theme.effectiveLine().cgColor)
@@ -131,14 +131,14 @@ extension DiagramRenderer {
                         strokeHex = theme.taskBorderColor
                     }
 
-                    if let cg = _hexToCGColor(fillHex) {
+                    if let cg = MermaidColorParser.cgHex(fillHex) {
                         ctx.setFillColor(cg)
                     } else {
                         ctx.setFillColor(self.theme.effectiveSurface().cgColor)
                     }
                     ctx.fill(centeredRect)
 
-                    if let cg = _hexToCGColor(strokeHex) {
+                    if let cg = MermaidColorParser.cgHex(strokeHex) {
                         ctx.setStrokeColor(cg)
                     } else {
                         ctx.setStrokeColor(self.theme.effectiveLine().cgColor)
@@ -171,7 +171,7 @@ extension DiagramRenderer {
                         strokeHex = theme.taskBorderColor
                     }
 
-                    if let cg = _hexToCGColor(fillHex) {
+                    if let cg = MermaidColorParser.cgHex(fillHex) {
                         ctx.setFillColor(cg)
                     } else {
                         ctx.setFillColor(self.theme.effectiveSurface().cgColor)
@@ -179,7 +179,7 @@ extension DiagramRenderer {
                     ctx.addPath(path)
                     ctx.fillPath()
 
-                    if let cg = _hexToCGColor(strokeHex) {
+                    if let cg = MermaidColorParser.cgHex(strokeHex) {
                         ctx.setStrokeColor(cg)
                     } else {
                         ctx.setStrokeColor(self.theme.effectiveLine().cgColor)
@@ -193,9 +193,9 @@ extension DiagramRenderer {
                 let taskFont = BMFont.systemFont(ofSize: CGFloat(config.fontSize), weight: .regular)
                 let textColor: BMColor
                 if ptask.labelClass.contains("taskTextOutsideLeft") || ptask.labelClass.contains("taskTextOutsideRight") {
-                    textColor = self._hexToColor(theme.taskTextOutsideColor) ?? self.theme.foreground
+                    textColor = MermaidColorParser.hexColor(theme.taskTextOutsideColor) ?? self.theme.foreground
                 } else {
-                    textColor = self._hexToColor(theme.taskTextColor) ?? self.theme.foreground
+                    textColor = MermaidColorParser.hexColor(theme.taskTextColor) ?? self.theme.foreground
                 }
 
                 let alignment: TextAlignment
@@ -239,7 +239,7 @@ extension DiagramRenderer {
 
             // 7. Today marker
             if let todayX = gantt.todayLineX {
-                ctx.setStrokeColor(self._hexToCGColor(theme.todayLineColor)?.copy(alpha: 0.8) ?? self.theme.effectiveAccent().cgColor)
+                ctx.setStrokeColor(MermaidColorParser.cgHex(theme.todayLineColor)?.copy(alpha: 0.8) ?? self.theme.effectiveAccent().cgColor)
                 ctx.setLineWidth(2)
                 ctx.move(to: CGPoint(x: todayX, y: config.titleTopMargin))
                 ctx.addLine(to: CGPoint(x: todayX, y: gantt.height - config.titleTopMargin))
@@ -263,19 +263,5 @@ extension DiagramRenderer {
 
     // MARK: - Color helpers
 
-    private func _hexToCGColor(_ hex: String) -> CGColor? {
-        let cleaned = hex.trimmingCharacters(in: CharacterSet(charactersIn: "#"))
-        guard cleaned.count == 6 else { return nil }
-        var rgb: UInt64 = 0
-        Scanner(string: cleaned).scanHexInt64(&rgb)
-        return CGColor(red: CGFloat((rgb >> 16) & 0xFF) / 255.0,
-                       green: CGFloat((rgb >> 8) & 0xFF) / 255.0,
-                       blue: CGFloat(rgb & 0xFF) / 255.0,
-                       alpha: 1.0)
-    }
-
-    private func _hexToColor(_ hex: String) -> BMColor? {
-        guard let cg = _hexToCGColor(hex) else { return nil }
-        return BMColor(cgColor: cg)
-    }
+    // _hexToCGColor / _hexToColor → MermaidColorParser.cgHex(_:)
 }
