@@ -11,11 +11,11 @@ public struct FrontmatterValue: Sendable {
         self.raw = raw
     }
 
-    /// Case-insensitive boolean conversion ("true" / "false").
+    /// Case-insensitive boolean conversion ("true" / "false", "1" / "0").
     public var bool: Bool? {
         switch raw.lowercased() {
-        case "true": return true
-        case "false": return false
+        case "true", "1": return true
+        case "false", "0": return false
         default: return nil
         }
     }

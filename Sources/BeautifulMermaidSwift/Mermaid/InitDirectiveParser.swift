@@ -56,6 +56,8 @@ public enum InitDirectiveParser {
                 let rawValue: String
                 if let s = value as? String {
                     rawValue = s
+                } else if let b = value as? Bool {
+                    rawValue = b ? "true" : "false"
                 } else if let n = value as? NSNumber {
                     rawValue = n.stringValue
                 } else {

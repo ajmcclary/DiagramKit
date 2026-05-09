@@ -350,8 +350,16 @@ func _parseYamlFrontmatter(_ lines: [String]) -> DiagramFrontmatter? {
         if var fc = frontmatter.flowchartConfig {
             fc.securityLevel = sl
             frontmatter.flowchartConfig = fc
+        } else {
+            var fc = original_src_types.FlowchartConfig()
+            fc.securityLevel = sl
+            frontmatter.flowchartConfig = fc
         }
         if var sc = frontmatter.stateConfig {
+            sc.securityLevel = sl
+            frontmatter.stateConfig = sc
+        } else {
+            var sc = original_src_types.StateConfig()
             sc.securityLevel = sl
             frontmatter.stateConfig = sc
         }

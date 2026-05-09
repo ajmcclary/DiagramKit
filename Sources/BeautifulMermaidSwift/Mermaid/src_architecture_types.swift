@@ -153,7 +153,7 @@ public struct ArchitectureThemeConfig: Sendable, Equatable {
         archEdgeColor: String = "#777",
         archEdgeArrowColor: String = "#777",
         archEdgeWidth: String = "3",
-        archGroupBorderColor: String = "#000",
+        archGroupBorderColor: String = "#000000",
         archGroupBorderWidth: String = "2px"
     ) {
         self.archEdgeColor = archEdgeColor

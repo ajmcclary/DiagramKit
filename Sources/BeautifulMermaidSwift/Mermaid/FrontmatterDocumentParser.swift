@@ -29,8 +29,14 @@ public enum FrontmatterDocumentParser {
 
             // Split on first colon only
             guard let colonIdx = trimmed.firstIndex(of: ":") else { continue }
-            let key = String(trimmed[..<colonIdx]).trimmingCharacters(in: .whitespaces)
+            var key = String(trimmed[..<colonIdx]).trimmingCharacters(in: .whitespaces)
             let valuePart = String(trimmed[trimmed.index(after: colonIdx)...]).trimmingCharacters(in: .whitespaces)
+
+            // Strip surrounding quotes from keys (e.g. "Electricity grid" → Electricity grid)
+            if (key.hasPrefix("\"") && key.hasSuffix("\"") && key.count >= 2) ||
+               (key.hasPrefix("'") && key.hasSuffix("'") && key.count >= 2) {
+                key = String(key.dropFirst().dropLast())
+            }
 
             // Push the key onto the path regardless of whether there's a value
             currentPath.append(key)

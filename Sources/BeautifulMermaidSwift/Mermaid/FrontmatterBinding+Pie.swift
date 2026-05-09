@@ -6,6 +6,9 @@ public struct PieFrontmatterBinding: FrontmatterBinding {
     public static let prefixes = [
         "config.pie.", "pie.",
         "config.themeVariables.pie.", "themeVariables.pie.",
+        // Fallback: flat theme variable paths (e.g. "themeVariables.pie1")
+        // without the "pie." sub-namespace.
+        "config.themeVariables.", "themeVariables.",
     ]
 
     private var config = PieChartConfig()
@@ -31,6 +34,14 @@ public struct PieFrontmatterBinding: FrontmatterBinding {
         if path.hasPrefix(Self.prefixes[3]) {
             hasTheme = true
             return _applyTheme(key: String(path.dropFirst(Self.prefixes[3].count)), value: value)
+        }
+        if path.hasPrefix(Self.prefixes[4]) {
+            hasTheme = true
+            return _applyTheme(key: String(path.dropFirst(Self.prefixes[4].count)), value: value)
+        }
+        if path.hasPrefix(Self.prefixes[5]) {
+            hasTheme = true
+            return _applyTheme(key: String(path.dropFirst(Self.prefixes[5].count)), value: value)
         }
         return false
     }

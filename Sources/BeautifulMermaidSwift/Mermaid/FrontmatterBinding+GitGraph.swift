@@ -6,6 +6,9 @@ public struct GitGraphFrontmatterBinding: FrontmatterBinding {
     public static let prefixes = [
         "config.gitGraph.", "gitGraph.",
         "config.themeVariables.gitGraph.", "themeVariables.gitGraph.",
+        // Fallback: flat theme variable paths (e.g. "themeVariables.git0")
+        // without the "gitGraph." sub-namespace.
+        "config.themeVariables.", "themeVariables.",
     ]
 
     private var config = GitGraphConfig()
@@ -31,6 +34,14 @@ public struct GitGraphFrontmatterBinding: FrontmatterBinding {
         if path.hasPrefix(Self.prefixes[3]) {
             hasTheme = true
             return _applyTheme(key: String(path.dropFirst(Self.prefixes[3].count)), value: value)
+        }
+        if path.hasPrefix(Self.prefixes[4]) {
+            hasTheme = true
+            return _applyTheme(key: String(path.dropFirst(Self.prefixes[4].count)), value: value)
+        }
+        if path.hasPrefix(Self.prefixes[5]) {
+            hasTheme = true
+            return _applyTheme(key: String(path.dropFirst(Self.prefixes[5].count)), value: value)
         }
         return false
     }
