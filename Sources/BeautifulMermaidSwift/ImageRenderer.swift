@@ -31,12 +31,7 @@ public final class MermaidImageRenderer {
     }
 
     func prepareSync(from source: String) throws -> PreparedDiagram {
-        try _withMermaidIssueReporting(operation: "MermaidImageRenderer.prepareSync") {
-            let graph = try MermaidParser.parse(source)
-            let layout = GraphLayout(config: layoutConfig)
-            let positioned = try layout.layout(graph)
-            return PreparedDiagram(positioned: positioned, theme: theme)
-        }
+        try MermaidPipeline.prepare(source: source, theme: theme, layoutConfig: layoutConfig)
     }
 
     @MainActor
@@ -143,17 +138,20 @@ public final class MermaidImageRenderer {
     }
     #endif
 
+    // MARK: - Platform image rendering
+
+    /// Centralized bitmap/image creation. Accepts a draw closure that receives
+    /// a y-down `CGContext` normalized to diagram space. Handles
+    /// UIKit/AppKit context setup, background fill, and AppKit y-axis flip.
     @MainActor
-    private func _renderPrepared(_ prepared: PreparedDiagram, scale: CGFloat) -> BMImage? {
-        let diagBounds = prepared.bounds
-        guard diagBounds.width > 0, diagBounds.height > 0 else { return nil }
-
-        let size = CGSize(width: diagBounds.width, height: diagBounds.height)
-
+    private func renderBitmap(
+        size: CGSize,
+        scale: CGFloat,
+        draw: (CGContext) -> Void
+    ) -> BMImage? {
         #if targetEnvironment(macCatalyst) || canImport(UIKit)
         let format = UIGraphicsImageRendererFormat()
         format.scale = scale
-
         let uiRenderer = UIGraphicsImageRenderer(size: size, format: format)
         return uiRenderer.image { rendererContext in
             let ctx = rendererContext.cgContext
@@ -161,72 +159,7 @@ public final class MermaidImageRenderer {
                 ctx.setFillColor(theme.background.cgColor)
                 ctx.fill(CGRect(origin: .zero, size: size))
             }
-            ctx.translateBy(x: -diagBounds.minX, y: -diagBounds.minY)
-            prepared.render(in: ctx, bounds: diagBounds)
-        }
-        #elseif canImport(AppKit)
-        let pixelSize = NSSize(width: diagBounds.width * scale, height: diagBounds.height * scale)
-        let width = Int(pixelSize.width)
-        let height = Int(pixelSize.height)
-        guard width > 0, height > 0,
-              let ctx = CGContext(
-                  data: nil, width: width, height: height,
-                  bitsPerComponent: 8, bytesPerRow: 0,
-                  space: CGColorSpaceCreateDeviceRGB(),
-                  bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue | CGBitmapInfo.byteOrder32Big.rawValue
-              ) else { return nil }
-
-        if !theme.transparent {
-            ctx.setFillColor(theme.background.cgColor)
-            ctx.fill(CGRect(origin: .zero, size: pixelSize))
-        }
-
-        // Raw AppKit CGContext bitmaps are y-up (origin bottom-left). Renderer
-        // code (esp. LabelRenderer's AppKit branch) assumes a y-down outer
-        // context — the same convention UIGraphicsImageRenderer applies on
-        // UIKit/Catalyst. Flip in pixel space before the diagram-space scale.
-        ctx.translateBy(x: 0, y: pixelSize.height)
-        ctx.scaleBy(x: 1, y: -1)
-
-        ctx.scaleBy(x: scale, y: scale)
-        ctx.translateBy(x: -diagBounds.minX, y: -diagBounds.minY)
-        prepared.render(in: ctx, bounds: diagBounds)
-
-        guard let cgImage = ctx.makeImage() else { return nil }
-        return NSImage(cgImage: cgImage, size: size)
-        #endif
-    }
-
-    @MainActor
-    private func _renderPreparedFitted(_ prepared: PreparedDiagram, size: CGSize) -> BMImage? {
-        let diagBounds = prepared.bounds
-        guard diagBounds.width > 0, diagBounds.height > 0 else { return nil }
-
-        let scaleX = size.width / diagBounds.width
-        let scaleY = size.height / diagBounds.height
-        let fitScale = min(scaleX, scaleY)
-
-        #if targetEnvironment(macCatalyst) || canImport(UIKit)
-        let format = UIGraphicsImageRendererFormat()
-        format.scale = scale
-
-        let uiRenderer = UIGraphicsImageRenderer(size: size, format: format)
-        return uiRenderer.image { rendererContext in
-            let ctx = rendererContext.cgContext
-            if !theme.transparent {
-                ctx.setFillColor(theme.background.cgColor)
-                ctx.fill(CGRect(origin: .zero, size: size))
-            }
-
-            let scaledWidth = diagBounds.width * fitScale
-            let scaledHeight = diagBounds.height * fitScale
-            let offsetX = (size.width - scaledWidth) / 2
-            let offsetY = (size.height - scaledHeight) / 2
-
-            ctx.translateBy(x: offsetX, y: offsetY)
-            ctx.scaleBy(x: fitScale, y: fitScale)
-            ctx.translateBy(x: -diagBounds.minX, y: -diagBounds.minY)
-            prepared.render(in: ctx, bounds: diagBounds)
+            draw(ctx)
         }
         #elseif canImport(AppKit)
         let pixelWidth = Int(size.width * scale)
@@ -244,26 +177,48 @@ public final class MermaidImageRenderer {
             ctx.fill(CGRect(origin: .zero, size: CGSize(width: pixelWidth, height: pixelHeight)))
         }
 
-        // See note in _renderPrepared: AppKit raw CGContext is y-up; the
-        // renderer is written for y-down. Flip in pixel space before scaling.
+        // Raw AppKit CGContext bitmaps are y-up (origin bottom-left). Renderer
+        // code assumes a y-down outer context — the same convention
+        // UIGraphicsImageRenderer applies on UIKit/Catalyst.
         ctx.translateBy(x: 0, y: CGFloat(pixelHeight))
         ctx.scaleBy(x: 1, y: -1)
-
         ctx.scaleBy(x: scale, y: scale)
 
-        let scaledWidth = diagBounds.width * fitScale
-        let scaledHeight = diagBounds.height * fitScale
-        let offsetX = (size.width - scaledWidth) / 2
-        let offsetY = (size.height - scaledHeight) / 2
-
-        ctx.translateBy(x: offsetX, y: offsetY)
-        ctx.scaleBy(x: fitScale, y: fitScale)
-        ctx.translateBy(x: -diagBounds.minX, y: -diagBounds.minY)
-        prepared.render(in: ctx, bounds: diagBounds)
+        draw(ctx)
 
         guard let cgImage = ctx.makeImage() else { return nil }
         return NSImage(cgImage: cgImage, size: size)
         #endif
+    }
+
+    @MainActor
+    private func _renderPrepared(_ prepared: PreparedDiagram, scale: CGFloat) -> BMImage? {
+        let diagBounds = prepared.bounds
+        guard diagBounds.width > 0, diagBounds.height > 0 else { return nil }
+        let size = CGSize(width: diagBounds.width, height: diagBounds.height)
+        return renderBitmap(size: size, scale: scale) { ctx in
+            ctx.translateBy(x: -diagBounds.minX, y: -diagBounds.minY)
+            prepared.render(in: ctx, bounds: diagBounds)
+        }
+    }
+
+    @MainActor
+    private func _renderPreparedFitted(_ prepared: PreparedDiagram, size: CGSize) -> BMImage? {
+        let diagBounds = prepared.bounds
+        guard diagBounds.width > 0, diagBounds.height > 0 else { return nil }
+        let scaleX = size.width / diagBounds.width
+        let scaleY = size.height / diagBounds.height
+        let fitScale = min(scaleX, scaleY)
+        return renderBitmap(size: size, scale: scale) { ctx in
+            let scaledWidth = diagBounds.width * fitScale
+            let scaledHeight = diagBounds.height * fitScale
+            let offsetX = (size.width - scaledWidth) / 2
+            let offsetY = (size.height - scaledHeight) / 2
+            ctx.translateBy(x: offsetX, y: offsetY)
+            ctx.scaleBy(x: fitScale, y: fitScale)
+            ctx.translateBy(x: -diagBounds.minX, y: -diagBounds.minY)
+            prepared.render(in: ctx, bounds: diagBounds)
+        }
     }
 }
 

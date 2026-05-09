@@ -42,13 +42,11 @@ open class original_src_multiline_utils {
         )
     }
 
+    /// Canonical XML escaping. Delegates to `SVG.escapeAttribute` which escapes
+    /// `&`, `<`, `>`, `"`, and `'` (numeric `&#39;`).
+    @available(*, deprecated, message: "Use SVG.escapeAttribute(_:) or SVG.escapeText(_:) directly.")
     public static func escapeXml(_ text: String) -> String {
-        text
-            .replacingOccurrences(of: "&", with: "&amp;")
-            .replacingOccurrences(of: "<", with: "&lt;")
-            .replacingOccurrences(of: ">", with: "&gt;")
-            .replacingOccurrences(of: "\"", with: "&quot;")
-            .replacingOccurrences(of: "'", with: "&#39;")
+        SVG.escapeAttribute(text)
     }
 
     public static func renderMultilineText(

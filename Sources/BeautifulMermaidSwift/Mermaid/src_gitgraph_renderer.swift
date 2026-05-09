@@ -3,12 +3,7 @@ import Foundation
 // MARK: - SVG Escape
 
 func _gitGraphEscapeXml(_ text: String) -> String {
-    text
-        .replacingOccurrences(of: "&", with: "&amp;")
-        .replacingOccurrences(of: "<", with: "&lt;")
-        .replacingOccurrences(of: ">", with: "&gt;")
-        .replacingOccurrences(of: "\"", with: "&quot;")
-        .replacingOccurrences(of: "'", with: "&apos;")
+    SVG.escapeAttribute(text)
 }
 
 private let _gitGraphFallbackBranchColors = [

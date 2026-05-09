@@ -340,9 +340,5 @@ private func _renderReqEdgeLabel(_ edge: PositionedRequirementEdge) -> String {
 }
 
 private func _escapeReqAttr(_ value: String) -> String {
-    value
-        .replacingOccurrences(of: "&", with: "&amp;")
-        .replacingOccurrences(of: "\"", with: "&quot;")
-        .replacingOccurrences(of: "<", with: "&lt;")
-        .replacingOccurrences(of: ">", with: "&gt;")
+    SVG.escapeAttribute(value)
 }

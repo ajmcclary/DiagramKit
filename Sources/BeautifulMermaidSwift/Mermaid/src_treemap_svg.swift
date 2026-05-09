@@ -162,9 +162,5 @@ private func _fmtTreemap(_ value: Double) -> String {
 }
 
 private func _escapeXml(_ s: String) -> String {
-    s.replacingOccurrences(of: "&", with: "&amp;")
-     .replacingOccurrences(of: "<", with: "&lt;")
-     .replacingOccurrences(of: ">", with: "&gt;")
-     .replacingOccurrences(of: "\"", with: "&quot;")
-     .replacingOccurrences(of: "'", with: "&apos;")
+    SVG.escapeAttribute(s)
 }

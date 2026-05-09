@@ -535,11 +535,7 @@ private func _midpoint(_ points: [ErPoint]) -> ErPoint {
 }
 
 private func _escapeAttr(_ value: String) -> String {
-    value
-        .replacingOccurrences(of: "&", with: "&amp;")
-        .replacingOccurrences(of: "\"", with: "&quot;")
-        .replacingOccurrences(of: "<", with: "&lt;")
-        .replacingOccurrences(of: ">", with: "&gt;")
+    SVG.escapeAttribute(value)
 }
 
 open class original_src_er_renderer {

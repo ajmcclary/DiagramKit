@@ -587,9 +587,5 @@ private func _r(_ n: Double) -> String {
 }
 
 private func _escapeXml(_ text: String) -> String {
-    text
-        .replacingOccurrences(of: "&", with: "&amp;")
-        .replacingOccurrences(of: "<", with: "&lt;")
-        .replacingOccurrences(of: ">", with: "&gt;")
-        .replacingOccurrences(of: "\"", with: "&quot;")
+    SVG.escapeAttribute(text)
 }

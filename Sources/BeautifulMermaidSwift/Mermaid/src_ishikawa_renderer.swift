@@ -183,11 +183,7 @@ private func _ishikawaTspans(_ lines: [String], x: Double, fontSize: Double) -> 
 }
 
 private func _ishikawaSvgEscape(_ text: String) -> String {
-    text
-        .replacingOccurrences(of: "&", with: "&amp;")
-        .replacingOccurrences(of: "<", with: "&lt;")
-        .replacingOccurrences(of: ">", with: "&gt;")
-        .replacingOccurrences(of: "\"", with: "&quot;")
+    SVG.escapeAttribute(text)
 }
 
 private func _ishikawaCssBlock(lineColor: String, mainBkg: String, textColor: String, fontFamily: String, fontSize: Double) -> String {

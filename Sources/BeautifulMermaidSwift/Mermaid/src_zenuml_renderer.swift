@@ -323,8 +323,5 @@ private func renderComment(_ comment: PositionedZenUMLComment) -> String {
 // MARK: - XML Escaping
 
 private func escXml(_ s: String) -> String {
-    s.replacingOccurrences(of: "&", with: "&amp;")
-     .replacingOccurrences(of: "<", with: "&lt;")
-     .replacingOccurrences(of: ">", with: "&gt;")
-     .replacingOccurrences(of: "\"", with: "&quot;")
+    SVG.escapeAttribute(s)
 }

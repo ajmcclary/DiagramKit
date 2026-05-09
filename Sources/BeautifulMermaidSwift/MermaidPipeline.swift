@@ -7,10 +7,26 @@ import Foundation
 /// exceed the cooperative thread pool budget (~512 KB).
 public enum MermaidPipeline {
 
+    // MARK: - Entry-point boundary
+
+    /// Centralized pipeline entry point. Every public method delegates to this
+    /// helper so that font registration and issue reporting are applied
+    /// uniformly.
+    private static func runPipeline<T>(
+        operation: String,
+        registerFonts: Bool = true,
+        _ work: () throws -> T
+    ) throws -> T {
+        if registerFonts {
+            BeautifulMermaidFontRegistry.registerBundledFontsIfNeeded()
+        }
+        return try _withMermaidIssueReporting(operation: operation, work)
+    }
+
     // MARK: - Parse
 
     public static func parse(_ source: String) throws -> MermaidGraph {
-        try _withMermaidIssueReporting(operation: "MermaidPipeline.parse") {
+        try runPipeline(operation: "MermaidPipeline.parse", registerFonts: true) {
             try MermaidParser.parse(source)
         }
     }
@@ -21,8 +37,7 @@ public enum MermaidPipeline {
         _ source: String,
         config: LayoutConfig = LayoutConfig()
     ) throws -> PositionedGraph {
-        BeautifulMermaidFontRegistry.registerBundledFontsIfNeeded()
-        return try _withMermaidIssueReporting(operation: "MermaidPipeline.layout(source:)") {
+        try runPipeline(operation: "MermaidPipeline.layout(source:)") {
             let graph = try MermaidParser.parse(source)
             return try GraphLayout(config: config).layout(graph)
         }
@@ -32,8 +47,7 @@ public enum MermaidPipeline {
         _ graph: MermaidGraph,
         config: LayoutConfig = LayoutConfig()
     ) throws -> PositionedGraph {
-        BeautifulMermaidFontRegistry.registerBundledFontsIfNeeded()
-        return try _withMermaidIssueReporting(operation: "MermaidPipeline.layout(graph:)") {
+        try runPipeline(operation: "MermaidPipeline.layout(graph:)") {
             try GraphLayout(config: config).layout(graph)
         }
     }
@@ -45,8 +59,7 @@ public enum MermaidPipeline {
         theme: DiagramTheme = .default,
         layoutConfig: LayoutConfig = LayoutConfig()
     ) throws -> PreparedDiagram {
-        BeautifulMermaidFontRegistry.registerBundledFontsIfNeeded()
-        return try _withMermaidIssueReporting(operation: "MermaidPipeline.prepare") {
+        try runPipeline(operation: "MermaidPipeline.prepare") {
             let graph = try MermaidParser.parse(source)
             let positioned = try GraphLayout(config: layoutConfig).layout(graph)
             return PreparedDiagram(positioned: positioned, theme: theme)
@@ -59,8 +72,7 @@ public enum MermaidPipeline {
         source: String,
         theme: DiagramTheme = .default
     ) throws -> String {
-        BeautifulMermaidFontRegistry.registerBundledFontsIfNeeded()
-        return try _withMermaidIssueReporting(operation: "MermaidPipeline.renderSVG") {
+        try runPipeline(operation: "MermaidPipeline.renderSVG") {
             try MermaidImageRenderer(theme: theme).renderSVGSync(from: source)
         }
     }
@@ -69,8 +81,7 @@ public enum MermaidPipeline {
         _ text: String,
         options: RenderOptions = RenderOptions()
     ) throws -> String {
-        BeautifulMermaidFontRegistry.registerBundledFontsIfNeeded()
-        return try _withMermaidIssueReporting(operation: "MermaidPipeline.renderSVG(options:)") {
+        try runPipeline(operation: "MermaidPipeline.renderSVG(options:)") {
             try _renderMermaidSVG(text, options)
         }
     }
@@ -81,11 +92,7 @@ public enum MermaidPipeline {
         source: String,
         theme: DiagramTheme = .default
     ) throws -> String {
-        // ASCII path doesn't need fonts, but registering keeps the entry-point
-        // contract uniform — the registry is idempotent and effectively free
-        // after the first call.
-        BeautifulMermaidFontRegistry.registerBundledFontsIfNeeded()
-        return try _withMermaidIssueReporting(operation: "MermaidPipeline.renderASCII") {
+        try runPipeline(operation: "MermaidPipeline.renderASCII") {
             let colors: [String: String] = [
                 "fg": theme.foreground.hexString,
                 "border": (theme.border ?? theme.foreground).hexString,

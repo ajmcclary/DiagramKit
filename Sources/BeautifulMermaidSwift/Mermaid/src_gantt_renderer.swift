@@ -193,12 +193,7 @@ public func renderGanttSvg(
 // MARK: - Helpers
 
 private func _escapeXml(_ text: String) -> String {
-    text
-        .replacingOccurrences(of: "&", with: "&amp;")
-        .replacingOccurrences(of: "<", with: "&lt;")
-        .replacingOccurrences(of: ">", with: "&gt;")
-        .replacingOccurrences(of: "\"", with: "&quot;")
-        .replacingOccurrences(of: "'", with: "&apos;")
+    SVG.escapeAttribute(text)
 }
 
 private func _interactionAttributes(for task: GanttTask) -> String {

@@ -1254,11 +1254,7 @@ private func _renderNodeLabel(_ node: _SvgNode, _ font: String) -> String {
 }
 
 private func _escapeAttr(_ value: String) -> String {
-    value
-        .replacingOccurrences(of: "&", with: "&amp;")
-        .replacingOccurrences(of: "\"", with: "&quot;")
-        .replacingOccurrences(of: "<", with: "&lt;")
-        .replacingOccurrences(of: ">", with: "&gt;")
+    SVG.escapeAttribute(value)
 }
 
 private func _extractSvgGraphModel(_ graph: PositionedGraph) -> _SvgGraphModel {

@@ -332,15 +332,11 @@ private func _generateMindmapCSS(theme: MindmapThemeConfig, svgId: String) -> St
 }
 
 private func _svgEscape(_ text: String) -> String {
-    text
-        .replacingOccurrences(of: "&", with: "&amp;")
-        .replacingOccurrences(of: "<", with: "&lt;")
-        .replacingOccurrences(of: ">", with: "&gt;")
-        .replacingOccurrences(of: "\"", with: "&quot;")
+    SVG.escapeAttribute(text)
 }
 
 private func _svgAttrEscape(_ text: String) -> String {
-    _svgEscape(text).replacingOccurrences(of: "'", with: "&#39;")
+    SVG.escapeAttribute(text)
 }
 
 private func _normalizeMindmapLabelBreaks(_ text: String) -> String {

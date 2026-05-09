@@ -536,15 +536,11 @@ private func _textEl(_ text: String, cx: Double, cy: Double, fontSize: Double, a
 // MARK: - XML helpers
 
 private func escapeXml(_ value: String) -> String {
-    original_src_multiline_utils.escapeXml(value)
+    SVG.escapeText(value)
 }
 
 private func escapeAttr(_ value: String) -> String {
-    value
-        .replacingOccurrences(of: "&", with: "&amp;")
-        .replacingOccurrences(of: "\"", with: "&quot;")
-        .replacingOccurrences(of: "<", with: "&lt;")
-        .replacingOccurrences(of: ">", with: "&gt;")
+    SVG.escapeAttribute(value)
 }
 
 // MARK: - Legacy class
