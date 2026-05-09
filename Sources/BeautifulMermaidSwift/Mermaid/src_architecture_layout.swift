@@ -72,7 +72,8 @@ public func layoutArchitectureDiagram(_ diagram: ArchitectureDiagram) -> Positio
             nodeIdToGroup: nodeIdToGroup
         )
 
-        currentY += Double(rows) * cell + gap
+        let componentHeight = Double(rows - 1) * cell + nodeSize
+        currentY += componentHeight + padding
     }
 
     for nodeId in allNodeIds {
@@ -103,77 +104,9 @@ public func layoutArchitectureDiagram(_ diagram: ArchitectureDiagram) -> Positio
             parentGroupId: junction.parentGroupId,
             x: pos.x,
             y: pos.y,
-            width: nodeSize,
-            height: nodeSize
+            width: 0,
+            height: 0
         ))
-    }
-
-    let isJunction: Set<String> = Set(diagram.junctions.map(\.id))
-
-    var edgeIndex = 0
-    for edge in diagram.edges {
-        let lhsPos = nodePositions[edge.lhsId] ?? (x: 0, y: 0)
-        let rhsPos = nodePositions[edge.rhsId] ?? (x: 0, y: 0)
-
-        let lhsIsJunction = isJunction.contains(edge.lhsId)
-        let rhsIsJunction = isJunction.contains(edge.rhsId)
-
-        let (startX, startY) = _portOffset(
-            nodeX: lhsPos.x,
-            nodeY: lhsPos.y,
-            direction: edge.lhsDirection,
-            halfSize: halfSize,
-            hasGroupBoundary: edge.lhsGroupBoundary,
-            isJunction: lhsIsJunction,
-            padding: padding
-        )
-        let (endX, endY) = _portOffset(
-            nodeX: rhsPos.x,
-            nodeY: rhsPos.y,
-            direction: edge.rhsDirection,
-            halfSize: halfSize,
-            hasGroupBoundary: edge.rhsGroupBoundary,
-            isJunction: rhsIsJunction,
-            padding: padding
-        )
-
-        let isXY = _isXYEdge(lhsDir: edge.lhsDirection, rhsDir: edge.rhsDirection)
-        let midX: Double
-        let midY: Double
-        if isXY {
-            let srcIsX = (edge.lhsDirection == .L || edge.lhsDirection == .R)
-            if srcIsX {
-                midX = endX
-                midY = startY
-            } else {
-                midX = startX
-                midY = endY
-            }
-        } else {
-            midX = (startX + endX) / 2
-            midY = (startY + endY) / 2
-        }
-
-        let edgeId = "L_\(edge.lhsId)_\(edge.rhsId)_\(edgeIndex)"
-        positionedEdges.append(PositionedArchitectureEdge(
-            id: edgeId,
-            lhsId: edge.lhsId,
-            rhsId: edge.rhsId,
-            lhsDirection: edge.lhsDirection,
-            rhsDirection: edge.rhsDirection,
-            sourceArrow: edge.sourceArrow,
-            targetArrow: edge.targetArrow,
-            lhsGroupBoundary: edge.lhsGroupBoundary,
-            rhsGroupBoundary: edge.rhsGroupBoundary,
-            label: edge.label,
-            startX: startX,
-            startY: startY,
-            midX: midX,
-            midY: midY,
-            endX: endX,
-            endY: endY
-        ))
-        edgeIndex += 1
     }
 
     let childGroupsByParent = Dictionary(grouping: diagram.groups, by: { $0.parentGroupId ?? "" })
@@ -188,12 +121,7 @@ public func layoutArchitectureDiagram(_ diagram: ArchitectureDiagram) -> Positio
         for service in services where service.parentGroupId == group.id {
             contentBounds = _unionBounds(
                 contentBounds,
-                _ArchitectureBounds(
-                    x: service.x - service.width / 2,
-                    y: service.y - service.height / 2,
-                    width: service.width,
-                    height: service.height
-                )
+                _serviceVisualBounds(service, fontSize: fontSize)
             )
         }
         for junction in junctions where junction.parentGroupId == group.id {
@@ -221,7 +149,7 @@ public func layoutArchitectureDiagram(_ diagram: ArchitectureDiagram) -> Positio
         return result
     }
 
-    let positionedGroups = diagram.groups.map { group in
+    var positionedGroups = diagram.groups.map { group in
         let bounds = groupBounds(for: group)
         return PositionedArchitectureGroup(
             id: group.id,
@@ -235,35 +163,122 @@ public func layoutArchitectureDiagram(_ diagram: ArchitectureDiagram) -> Positio
         )
     }
 
-    var diagramBounds: _ArchitectureBounds?
-    for service in services {
-        diagramBounds = _unionBounds(diagramBounds, _ArchitectureBounds(
-            x: service.x - service.width / 2,
-            y: service.y - service.height / 2,
-            width: service.width,
-            height: service.height
-        ))
+    let serviceById = Dictionary(uniqueKeysWithValues: services.map { ($0.id, $0) })
+    let junctionById = Dictionary(uniqueKeysWithValues: junctions.map { ($0.id, $0) })
+    let groupById = Dictionary(uniqueKeysWithValues: positionedGroups.map { ($0.id, $0) })
+
+    func nodeCenter(for id: String) -> (x: Double, y: Double) {
+        if let service = serviceById[id] { return (service.x, service.y) }
+        if let junction = junctionById[id] { return (junction.x, junction.y) }
+        return nodePositions[id] ?? (x: 0, y: 0)
     }
-    for junction in junctions {
-        diagramBounds = _unionBounds(diagramBounds, _ArchitectureBounds(
-            x: junction.x - junction.width / 2,
-            y: junction.y - junction.height / 2,
-            width: junction.width,
-            height: junction.height
-        ))
+
+    func parentGroupId(for id: String) -> String? {
+        serviceById[id]?.parentGroupId ?? junctionById[id]?.parentGroupId
     }
-    for group in positionedGroups {
-        diagramBounds = _unionBounds(diagramBounds, _ArchitectureBounds(
-            x: group.x,
-            y: group.y,
-            width: group.width,
-            height: group.height
-        ))
-    }
-    for edge in positionedEdges {
-        for point in [(edge.startX, edge.startY), (edge.midX, edge.midY), (edge.endX, edge.endY)] {
-            diagramBounds = _unionBounds(diagramBounds, _ArchitectureBounds(x: point.0, y: point.1, width: 0, height: 0))
+
+    func endpoint(for id: String, direction: ArchitectureDirection, usesGroupBoundary: Bool) -> (Double, Double) {
+        let center = nodeCenter(for: id)
+        if usesGroupBoundary,
+           let parentId = parentGroupId(for: id),
+           let group = groupById[parentId] {
+            return _groupPortOffset(nodeX: center.x, nodeY: center.y, direction: direction, group: group)
         }
+
+        return _portOffset(
+            nodeX: center.x,
+            nodeY: center.y,
+            direction: direction,
+            halfSize: junctionById[id] == nil ? halfSize : 0,
+            hasGroupBoundary: false,
+            isJunction: junctionById[id] != nil,
+            padding: padding
+        )
+    }
+
+    var edgeIndex = 0
+    for edge in diagram.edges {
+        let (startX, startY) = endpoint(
+            for: edge.lhsId,
+            direction: edge.lhsDirection,
+            usesGroupBoundary: edge.lhsGroupBoundary
+        )
+        let (endX, endY) = endpoint(
+            for: edge.rhsId,
+            direction: edge.rhsDirection,
+            usesGroupBoundary: edge.rhsGroupBoundary
+        )
+        let (midX, midY) = _edgeBendPoint(
+            startX: startX,
+            startY: startY,
+            endX: endX,
+            endY: endY,
+            lhsDir: edge.lhsDirection,
+            rhsDir: edge.rhsDirection
+        )
+
+        let edgeId = "L_\(edge.lhsId)_\(edge.rhsId)_\(edgeIndex)"
+        positionedEdges.append(PositionedArchitectureEdge(
+            id: edgeId,
+            lhsId: edge.lhsId,
+            rhsId: edge.rhsId,
+            lhsDirection: edge.lhsDirection,
+            rhsDirection: edge.rhsDirection,
+            sourceArrow: edge.sourceArrow,
+            targetArrow: edge.targetArrow,
+            lhsGroupBoundary: edge.lhsGroupBoundary,
+            rhsGroupBoundary: edge.rhsGroupBoundary,
+            label: edge.label,
+            startX: startX,
+            startY: startY,
+            midX: midX,
+            midY: midY,
+            endX: endX,
+            endY: endY
+        ))
+        edgeIndex += 1
+    }
+
+    var diagramBounds = _architectureDiagramBounds(
+        services: services,
+        junctions: junctions,
+        groups: positionedGroups,
+        edges: positionedEdges,
+        fontSize: fontSize
+    )
+    let titleReserve = (diagram.diagramTitle?.isEmpty == false) ? fontSize + padding / 2 : 0
+    let minimumOrigin = padding / 2
+    let shiftX = max(0, minimumOrigin - (diagramBounds?.x ?? minimumOrigin))
+    let shiftY = titleReserve + max(0, minimumOrigin - (diagramBounds?.y ?? minimumOrigin))
+    if shiftX != 0 || shiftY != 0 {
+        _translateArchitecture(
+            services: &services,
+            junctions: &junctions,
+            groups: &positionedGroups,
+            edges: &positionedEdges,
+            dx: shiftX,
+            dy: shiftY
+        )
+        diagramBounds = _architectureDiagramBounds(
+            services: services,
+            junctions: junctions,
+            groups: positionedGroups,
+            edges: positionedEdges,
+            fontSize: fontSize
+        )
+    }
+
+    if let title = diagram.diagramTitle, !title.isEmpty {
+        let titleWidth = max(Double(title.count) * fontSize * 0.65, iconSize)
+        diagramBounds = _unionBounds(
+            diagramBounds,
+            _ArchitectureBounds(
+                x: padding,
+                y: padding / 2,
+                width: titleWidth,
+                height: fontSize + 4
+            )
+        )
     }
 
     let maxX = (diagramBounds?.maxX ?? 0) + padding
@@ -320,6 +335,87 @@ private func _unionBounds(_ lhs: _ArchitectureBounds?, _ rhs: _ArchitectureBound
     let maxX = max(lhs.maxX, rhs.maxX)
     let maxY = max(lhs.maxY, rhs.maxY)
     return _ArchitectureBounds(x: minX, y: minY, width: maxX - minX, height: maxY - minY)
+}
+
+private func _serviceVisualBounds(_ service: PositionedArchitectureService, fontSize: Double) -> _ArchitectureBounds {
+    var minX = service.x - service.width / 2
+    var maxX = service.x + service.width / 2
+    let minY = service.y - service.height / 2
+    var maxY = service.y + service.height / 2
+
+    if let title = service.title, !title.isEmpty {
+        let labelWidth = max(service.width, Double(title.count) * fontSize * 0.65)
+        minX = min(minX, service.x - labelWidth / 2)
+        maxX = max(maxX, service.x + labelWidth / 2)
+        maxY = max(maxY, service.y + service.height / 2 + fontSize + 8)
+    }
+
+    return _ArchitectureBounds(x: minX, y: minY, width: maxX - minX, height: maxY - minY)
+}
+
+private func _architectureDiagramBounds(
+    services: [PositionedArchitectureService],
+    junctions: [PositionedArchitectureJunction],
+    groups: [PositionedArchitectureGroup],
+    edges: [PositionedArchitectureEdge],
+    fontSize: Double
+) -> _ArchitectureBounds? {
+    var diagramBounds: _ArchitectureBounds?
+    for service in services {
+        diagramBounds = _unionBounds(diagramBounds, _serviceVisualBounds(service, fontSize: fontSize))
+    }
+    for junction in junctions {
+        diagramBounds = _unionBounds(diagramBounds, _ArchitectureBounds(
+            x: junction.x - junction.width / 2,
+            y: junction.y - junction.height / 2,
+            width: junction.width,
+            height: junction.height
+        ))
+    }
+    for group in groups {
+        diagramBounds = _unionBounds(diagramBounds, _ArchitectureBounds(
+            x: group.x,
+            y: group.y,
+            width: group.width,
+            height: group.height
+        ))
+    }
+    for edge in edges {
+        for point in [(edge.startX, edge.startY), (edge.midX, edge.midY), (edge.endX, edge.endY)] {
+            diagramBounds = _unionBounds(diagramBounds, _ArchitectureBounds(x: point.0, y: point.1, width: 0, height: 0))
+        }
+    }
+    return diagramBounds
+}
+
+private func _translateArchitecture(
+    services: inout [PositionedArchitectureService],
+    junctions: inout [PositionedArchitectureJunction],
+    groups: inout [PositionedArchitectureGroup],
+    edges: inout [PositionedArchitectureEdge],
+    dx: Double,
+    dy: Double
+) {
+    for index in services.indices {
+        services[index].x += dx
+        services[index].y += dy
+    }
+    for index in junctions.indices {
+        junctions[index].x += dx
+        junctions[index].y += dy
+    }
+    for index in groups.indices {
+        groups[index].x += dx
+        groups[index].y += dy
+    }
+    for index in edges.indices {
+        edges[index].startX += dx
+        edges[index].startY += dy
+        edges[index].midX += dx
+        edges[index].midY += dy
+        edges[index].endX += dx
+        edges[index].endY += dy
+    }
 }
 
 private func _buildSpatialMaps(nodeIds: [String], edges: [ArchitectureEdge]) -> [[String: _ArchitectureGridPosition]] {
@@ -430,6 +526,52 @@ private func _portOffset(
         let extraBottom = hasGroupBoundary ? 18.0 : 0.0
         return (nodeX, nodeY + offset + extraBottom)
     }
+}
+
+private func _groupPortOffset(
+    nodeX: Double,
+    nodeY: Double,
+    direction: ArchitectureDirection,
+    group: PositionedArchitectureGroup
+) -> (Double, Double) {
+    switch direction {
+    case .L:
+        return (group.x, min(max(nodeY, group.y), group.y + group.height))
+    case .R:
+        return (group.x + group.width, min(max(nodeY, group.y), group.y + group.height))
+    case .T:
+        return (min(max(nodeX, group.x), group.x + group.width), group.y)
+    case .B:
+        return (min(max(nodeX, group.x), group.x + group.width), group.y + group.height)
+    }
+}
+
+private func _edgeBendPoint(
+    startX: Double,
+    startY: Double,
+    endX: Double,
+    endY: Double,
+    lhsDir: ArchitectureDirection,
+    rhsDir: ArchitectureDirection
+) -> (Double, Double) {
+    if _isXYEdge(lhsDir: lhsDir, rhsDir: rhsDir) {
+        let srcIsX = (lhsDir == .L || lhsDir == .R)
+        return srcIsX ? (endX, startY) : (startX, endY)
+    }
+
+    let lhsHorizontal = lhsDir == .L || lhsDir == .R
+    let rhsHorizontal = rhsDir == .L || rhsDir == .R
+    let misalignedHorizontal = lhsHorizontal && rhsHorizontal && abs(startY - endY) > 0.001
+    let misalignedVertical = !lhsHorizontal && !rhsHorizontal && abs(startX - endX) > 0.001
+
+    if misalignedHorizontal {
+        return (endX, startY)
+    }
+    if misalignedVertical {
+        return (endX, startY)
+    }
+
+    return ((startX + endX) / 2, (startY + endY) / 2)
 }
 
 private func _isXYEdge(lhsDir: ArchitectureDirection, rhsDir: ArchitectureDirection) -> Bool {

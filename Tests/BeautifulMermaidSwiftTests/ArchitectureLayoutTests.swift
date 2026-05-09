@@ -291,4 +291,108 @@ struct ArchitectureLayoutTests {
         #expect(p1.services[1].x == p2.services[1].x)
         #expect(p1.services[1].y == p2.services[1].y)
     }
+
+    @Test("Group bounds include service labels")
+    func groupBoundsIncludeServiceLabels() throws {
+        let d = try parseArchitectureDiagram("""
+        architecture-beta
+            group api(cloud)[API]
+            service db(database)[Database] in api
+            service server(server)[Server] in api
+            db:L -- R:server
+        """)
+        let p = layoutArchitectureDiagram(d)
+        let group = try #require(p.groups.first { $0.id == "api" })
+        let lowestLabelBottom = try #require(p.services
+            .filter { $0.parentGroupId == "api" }
+            .map { $0.y + $0.height / 2 + p.config.fontSize + 8 }
+            .max())
+        #expect(group.y + group.height >= lowestLabelBottom + p.config.padding / 2)
+    }
+
+    @Test("Nested parent groups keep outer padding")
+    func nestedParentGroupsKeepOuterPadding() throws {
+        let d = try parseArchitectureDiagram("""
+        architecture-beta
+            group core(cloud)[Core]
+            group storage(database)[Storage] in core
+            service disk(disk)[Disk] in storage
+            service cache(server)[Cache] in storage
+            cache:R --> L:disk
+        """)
+        let p = layoutArchitectureDiagram(d)
+        let parent = try #require(p.groups.first { $0.id == "core" })
+        #expect(parent.x >= p.config.padding / 2)
+        #expect(parent.y >= p.config.padding / 2)
+    }
+
+    @Test("Group boundary edges land on group rectangles")
+    func groupBoundaryEdgesUseGroupRectPorts() throws {
+        let d = try parseArchitectureDiagram("""
+        architecture-beta
+            group groupOne(cloud)[Group One]
+            group groupTwo(cloud)[Group Two]
+            service server(server)[Server] in groupOne
+            service subnet(server)[Subnet] in groupTwo
+            server{group}:B --> T:subnet{group}
+        """)
+        let p = layoutArchitectureDiagram(d)
+        let edge = try #require(p.edges.first)
+        let groupOne = try #require(p.groups.first { $0.id == "groupOne" })
+        let groupTwo = try #require(p.groups.first { $0.id == "groupTwo" })
+        #expect(abs(edge.startY - (groupOne.y + groupOne.height)) < 0.001)
+        #expect(abs(edge.endY - groupTwo.y) < 0.001)
+    }
+
+    @Test("Junctions use point geometry")
+    func junctionsUsePointGeometry() throws {
+        let d = try parseArchitectureDiagram("""
+        architecture-beta
+            service left_disk(disk)[Disk]
+            junction junctionCenter
+            left_disk:R -- L:junctionCenter
+        """)
+        let p = layoutArchitectureDiagram(d)
+        let junction = try #require(p.junctions.first { $0.id == "junctionCenter" })
+        let edge = try #require(p.edges.first)
+        #expect(junction.width == 0)
+        #expect(junction.height == 0)
+        #expect(abs(edge.endX - junction.x) < 0.001)
+        #expect(abs(edge.endY - junction.y) < 0.001)
+    }
+
+    @Test("Misaligned vertical ports route orthogonally")
+    func misalignedVerticalPortsRouteOrthogonally() throws {
+        let d = try parseArchitectureDiagram("""
+        architecture-beta
+            group core(cloud)[Core]
+            service db(database)[DB] in core
+            service api(server)[API] in core
+            service ext(internet)[Ext]
+            db:R -[SQL]- L:api
+            api:T <-- B:ext
+            ext:R -[HTTPS]- L:db
+        """)
+        let p = layoutArchitectureDiagram(d)
+        let edge = try #require(p.edges.first { $0.lhsId == "api" && $0.rhsId == "ext" })
+        #expect(
+            (abs(edge.startX - edge.midX) < 0.001 && abs(edge.endY - edge.midY) < 0.001)
+                || (abs(edge.startY - edge.midY) < 0.001 && abs(edge.endX - edge.midX) < 0.001),
+            "Misaligned same-axis ports should not create diagonal segments"
+        )
+    }
+
+    @Test("Diagram title reserves top space")
+    func diagramTitleReservesTopSpace() throws {
+        let titled = layoutArchitectureDiagram(try parseArchitectureDiagram("""
+        architecture-beta title Simple Architecture
+            service srv[Service]
+        """))
+        let untitled = layoutArchitectureDiagram(try parseArchitectureDiagram("""
+        architecture-beta
+            service srv[Service]
+        """))
+        #expect(titled.height > untitled.height)
+        #expect((titled.services.first?.y ?? 0) > (untitled.services.first?.y ?? 0))
+    }
 }

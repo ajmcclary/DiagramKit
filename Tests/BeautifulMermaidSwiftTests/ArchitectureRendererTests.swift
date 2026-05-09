@@ -329,6 +329,12 @@ final class ArchitectureSvgRendererTests: XCTestCase {
         XCTAssertTrue(svg.contains("<desc>Description</desc>"))
     }
 
+    func testDiagramTitleRendersVisiblyInSvg() throws {
+        let svg = try renderSvg("architecture-beta title Simple Architecture\n    service srv[Service]")
+        XCTAssertTrue(svg.contains("arch-diagram-title"))
+        XCTAssertTrue(svg.contains(">Simple Architecture</text>"))
+    }
+
     func testJunctionHitBox() throws {
         let svg = try renderSvg("architecture-beta\n    junction j1\n    service srv[Server]")
         XCTAssertTrue(svg.contains("architecture-junction"))
@@ -423,6 +429,14 @@ final class ArchitectureSvgRendererTests: XCTestCase {
         XCTAssertTrue(svg2.contains("id2"))
     }
 
+    func testPipelineArchitectureIdsAreStable() throws {
+        let source = "architecture-beta\n    service a"
+        let svg1 = try _renderMermaidSVG(source)
+        let svg2 = try _renderMermaidSVG(source)
+        XCTAssertEqual(svg1, svg2)
+        XCTAssertTrue(svg1.contains("id=\"architecture-"))
+    }
+
     func testConfigApplied() throws {
         let source = """
         ---
@@ -490,11 +504,17 @@ final class ArchitectureSvgRendererTests: XCTestCase {
 
     func testExternalIconRegistered() throws {
         ArchitectureIconRegistry.shared.register(pack: ArchitectureIconPack(
-            prefix: "logos",
+            prefix: "custom",
             icons: ["aws-s3": ArchitectureIconEntry(body: "<circle cx=\"40\" cy=\"40\" r=\"30\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"/>")]
         ))
-        let svg = try renderSvg("architecture-beta\n    service s3(logos:aws-s3)[Store]")
+        let svg = try renderSvg("architecture-beta\n    service s3(custom:aws-s3)[Store]")
         XCTAssertTrue(svg.contains("circle"))
+    }
+
+    func testKnownExternalS3IconRendersWithoutRegistration() throws {
+        let svg = ArchitectureIconRegistry().iconSVG(for: "logos:aws-s3")
+        XCTAssertTrue(svg?.contains("architecture-icon-aws-s3") ?? false)
+        XCTAssertFalse(svg?.contains("M24 4C13") ?? false, "Known bundled external icon should not fall back to the unknown icon")
     }
 
     func testExternalIconFallsBackToUnknown() throws {
@@ -526,10 +546,10 @@ final class ArchitectureIconRegistryTests: XCTestCase {
 
     func testLookupByPrefix() {
         ArchitectureIconRegistry.shared.register(pack: ArchitectureIconPack(
-            prefix: "logos",
+            prefix: "custom",
             icons: ["aws-s3": ArchitectureIconEntry(body: "<circle cx=\"40\" cy=\"40\" r=\"30\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"/>")]
         ))
-        let svg = ArchitectureIconRegistry.shared.iconSVG(for: "logos:aws-s3")
+        let svg = ArchitectureIconRegistry.shared.iconSVG(for: "custom:aws-s3")
         XCTAssertNotNil(svg)
     }
 

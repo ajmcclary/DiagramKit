@@ -50,7 +50,12 @@ public func renderArchitectureSvg(
     svg += ".arch-service-label { font-family: \(font); font-size: \(Int(fontSize))px; fill: \(fgColor); text-anchor: middle; }\n"
     svg += ".arch-group-label { font-family: \(font); font-size: \(Int(fontSize))px; fill: \(fgColor); }\n"
     svg += ".arch-edge-label { font-family: \(font); font-size: \(Int(fontSize))px; fill: \(fgColor); text-anchor: middle; }\n"
+    svg += ".arch-diagram-title { font-family: \(font); font-size: \(Int(fontSize))px; fill: \(fgColor); text-anchor: middle; font-weight: 600; }\n"
     svg += "</style>\n"
+
+    if let title = positioned.diagramTitle, !title.isEmpty {
+        svg += "<text x=\"\(_fmt(positioned.width / 2))\" y=\"\(_fmt(positioned.config.padding / 2 + fontSize))\" class=\"arch-diagram-title\">\(_escapeXml(title))</text>\n"
+    }
 
     svg += "<g class=\"architecture-groups\">\n"
     for group in positioned.groups {

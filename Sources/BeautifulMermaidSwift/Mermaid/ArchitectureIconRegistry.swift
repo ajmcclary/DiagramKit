@@ -63,6 +63,9 @@ public final class ArchitectureIconRegistry: @unchecked Sendable {
         lock.unlock()
 
         guard let pack = pack, let entry = pack.icons[name] else {
+            if let bundled = _bundledExternalIconBody(forPrefix: effectivePrefix, name: name) {
+                return bundled
+            }
             return nil
         }
 
@@ -125,6 +128,15 @@ public final class ArchitectureIconRegistry: @unchecked Sendable {
     }
 }
 
+private func _bundledExternalIconBody(forPrefix prefix: String, name: String) -> String? {
+    switch (prefix.lowercased(), name.lowercased()) {
+    case ("logos", "aws-s3"):
+        return _awsS3IconBody
+    default:
+        return nil
+    }
+}
+
 public func _sanitizeIconText(_ text: String?) -> String? {
     guard let text else { return nil }
     return SVG.escapeAttribute(text)
@@ -143,3 +155,5 @@ private let _diskIconBody = "<rect x=\"20\" y=\"15\" width=\"40\" height=\"50\" 
 private let _internetIconBody = "<circle cx=\"40\" cy=\"40\" r=\"22.5\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"/><line x1=\"40\" y1=\"17.5\" x2=\"40\" y2=\"62.5\" stroke=\"currentColor\" stroke-width=\"2\"/><line x1=\"17.5\" y1=\"40\" x2=\"62.5\" y2=\"40\" stroke=\"currentColor\" stroke-width=\"2\"/><path d=\"M39.99 17.51c-15.28 11.1-15.28 33.88 0 44.98\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"/><path d=\"M40.01 17.51c15.28 11.1 15.28 33.88 0 44.98\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"/>"
 
 private let _serverIconBody = "<rect x=\"17.5\" y=\"17.5\" width=\"45\" height=\"45\" rx=\"2\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"/><line x1=\"17.5\" y1=\"32.5\" x2=\"62.5\" y2=\"32.5\" stroke=\"currentColor\" stroke-width=\"2\"/><line x1=\"17.5\" y1=\"47.5\" x2=\"62.5\" y2=\"47.5\" stroke=\"currentColor\" stroke-width=\"2\"/><circle cx=\"22.5\" cy=\"25\" r=\".75\" fill=\"currentColor\"/><circle cx=\"27.5\" cy=\"25\" r=\".75\" fill=\"currentColor\"/><circle cx=\"32.5\" cy=\"25\" r=\".75\" fill=\"currentColor\"/><circle cx=\"22.5\" cy=\"40\" r=\".75\" fill=\"currentColor\"/><circle cx=\"27.5\" cy=\"40\" r=\".75\" fill=\"currentColor\"/><circle cx=\"32.5\" cy=\"40\" r=\".75\" fill=\"currentColor\"/><circle cx=\"22.5\" cy=\"55\" r=\".75\" fill=\"currentColor\"/><circle cx=\"27.5\" cy=\"55\" r=\".75\" fill=\"currentColor\"/><circle cx=\"32.5\" cy=\"55\" r=\".75\" fill=\"currentColor\"/>"
+
+private let _awsS3IconBody = "<g class=\"architecture-icon-aws-s3\"><path d=\"M20 24c0-5.52 8.95-10 20-10s20 4.48 20 10v32c0 5.52-8.95 10-20 10s-20-4.48-20-10V24Z\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"/><path d=\"M20 24c0 5.52 8.95 10 20 10s20-4.48 20-10\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"/><path d=\"M20 40c0 5.52 8.95 10 20 10s20-4.48 20-10\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"/><path d=\"M20 56c0 5.52 8.95 10 20 10s20-4.48 20-10\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"/><path d=\"M29 20l11-6 11 6-11 6-11-6Z\" fill=\"currentColor\" opacity=\"0.18\"/></g>"

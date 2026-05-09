@@ -41,6 +41,19 @@ extension DiagramRenderer {
         let iconSize = CGFloat(data.config.iconSize)
         let cgArrowSize = iconSize / 6
 
+        if let title = data.diagramTitle, !title.isEmpty {
+            let font = _monoFont(size: CGFloat(data.config.fontSize))
+            _drawTextInFlipped(
+                title,
+                at: CGPoint(x: bw / 2, y: CGFloat(data.config.padding / 2 + data.config.fontSize)),
+                context: context,
+                contentHeight: bh,
+                color: fgColor,
+                font: font,
+                alignment: .center
+            )
+        }
+
         for group in data.groups {
             let rect = CGRect(x: CGFloat(group.x), y: CGFloat(group.y), width: CGFloat(group.width), height: CGFloat(group.height))
             context.setStrokeColor(groupBorderColor.cgColor)
@@ -266,6 +279,8 @@ extension DiagramRenderer {
             _drawInternetIcon(in: rect, context: context)
         case "server":
             _drawServerIcon(in: rect, context: context)
+        case "logos:aws-s3":
+            _drawS3Icon(in: rect, context: context)
         case .some:
             _drawUnknownIcon(in: rect, context: context, contentHeight: contentHeight, color: color)
         case .none:
@@ -330,6 +345,30 @@ extension DiagramRenderer {
             context.move(to: CGPoint(x: shelf.minX + shelf.width * 0.12, y: shelf.midY))
             context.addLine(to: CGPoint(x: shelf.minX + shelf.width * 0.22, y: shelf.midY))
         }
+        context.strokePath()
+    }
+
+    private func _drawS3Icon(in rect: CGRect, context: CGContext) {
+        let r = rect.insetBy(dx: rect.width * 0.2, dy: rect.height * 0.14)
+        let top = CGRect(x: r.minX, y: r.minY, width: r.width, height: r.height * 0.22)
+        context.addEllipse(in: top)
+        context.move(to: CGPoint(x: r.minX, y: top.midY))
+        context.addLine(to: CGPoint(x: r.minX, y: r.maxY - top.height / 2))
+        context.move(to: CGPoint(x: r.maxX, y: top.midY))
+        context.addLine(to: CGPoint(x: r.maxX, y: r.maxY - top.height / 2))
+        context.addEllipse(in: CGRect(x: r.minX, y: r.maxY - top.height, width: r.width, height: top.height))
+        for factor in [0.42, 0.64] {
+            let y = r.minY + r.height * factor
+            context.move(to: CGPoint(x: r.minX, y: y))
+            context.addCurve(
+                to: CGPoint(x: r.maxX, y: y),
+                control1: CGPoint(x: r.minX + r.width * 0.25, y: y + top.height / 2),
+                control2: CGPoint(x: r.maxX - r.width * 0.25, y: y + top.height / 2)
+            )
+        }
+
+        let cube = CGRect(x: r.midX - r.width * 0.18, y: r.minY - r.height * 0.05, width: r.width * 0.36, height: r.height * 0.18)
+        context.addRect(cube)
         context.strokePath()
     }
 

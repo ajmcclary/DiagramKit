@@ -1,49 +1,50 @@
-<svg id="B524020A-0F61-4CBB-BAF5-544B58E06431" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="100%" style="max-width: 632px;" viewBox="0 0 632 632">
+<svg id="architecture-b82f76e0d7495f82" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="100%" style="max-width: 580px;" viewBox="0 0 580 656">
 <rect width="100%" height="100%" fill="#FFFFFF"/>
 <style>
 .edge { stroke-width: 3; stroke: #939394; fill: none; }
 .arrow { fill: #939394; }
-.node-bkg { fill: none; stroke: #000; stroke-width: 2px; stroke-dasharray: 8; }
-.arch-service-label { font-family: Inter; font-size: 16px; fill: #27272A; text-anchor: middle; }
-.arch-group-label { font-family: Inter; font-size: 16px; fill: #27272A; }
-.arch-edge-label { font-family: Inter; font-size: 16px; fill: #27272A; text-anchor: middle; }
+.node-bkg { fill: none; stroke: #000000; stroke-width: 2px; stroke-dasharray: 8; }
+.arch-service-label { font-family: Noto Sans; font-size: 16px; fill: #27272A; text-anchor: middle; }
+.arch-group-label { font-family: Noto Sans; font-size: 16px; fill: #27272A; }
+.arch-edge-label { font-family: Noto Sans; font-size: 16px; fill: #27272A; text-anchor: middle; }
+.arch-diagram-title { font-family: Noto Sans; font-size: 16px; fill: #27272A; text-anchor: middle; font-weight: 600; }
 </style>
 <g class="architecture-groups">
 </g>
 <g class="architecture-edges">
-<path id="B524020A-0F61-4CBB-BAF5-544B58E06431-L_left_disk_junctionCenter_0" class="edge" d="M 144,316 L 204,316 L 264,316"/>
-<path id="B524020A-0F61-4CBB-BAF5-544B58E06431-L_top_disk_junctionCenter_1" class="edge" d="M 316,144 L 316,204 L 316,264"/>
-<path id="B524020A-0F61-4CBB-BAF5-544B58E06431-L_bottom_disk_junctionCenter_2" class="edge" d="M 316,488 L 316,428 L 316,368"/>
-<path id="B524020A-0F61-4CBB-BAF5-544B58E06431-L_junctionCenter_junctionRight_3" class="edge" d="M 368,316 L 428,316 L 488,316"/>
-<polygon class="arrow" points="13.3,6.7 0,13.3 0,0" transform="translate(476.7,309.3)"/>
+<path id="architecture-b82f76e0d7495f82-L_left_disk_junctionCenter_0" class="edge" d="M 144,316 L 230,316 L 316,316"/>
+<path id="architecture-b82f76e0d7495f82-L_top_disk_junctionCenter_1" class="edge" d="M 316,144 L 316,230 L 316,316"/>
+<path id="architecture-b82f76e0d7495f82-L_bottom_disk_junctionCenter_2" class="edge" d="M 316,488 L 316,402 L 316,316"/>
+<path id="architecture-b82f76e0d7495f82-L_junctionCenter_junctionRight_3" class="edge" d="M 316,316 L 428,316 L 540,316"/>
+<polygon class="arrow" points="13.3,6.7 0,13.3 0,0" transform="translate(528.7,309.3)"/>
 </g>
 <g class="architecture-services">
-<g id="B524020A-0F61-4CBB-BAF5-544B58E06431-service-left_disk" class="architecture-service">
-<g id="B524020A-0F61-4CBB-BAF5-544B58E06431-node-left_disk" style="color: #27272A">
+<g id="architecture-b82f76e0d7495f82-service-left_disk" class="architecture-service">
+<g id="architecture-b82f76e0d7495f82-node-left_disk" style="color: #27272A">
 <rect x="40" y="264" width="104" height="104" fill="none" stroke="#27272A" stroke-width="1"/>
 <g transform="translate(68,292) scale(0.6)"><rect x="20" y="15" width="40" height="50" rx="1" fill="none" stroke="currentColor" stroke-width="2"/><ellipse cx="40" cy="33.75" rx="14" ry="14.58" fill="none" stroke="currentColor" stroke-width="2"/><ellipse cx="40" cy="33.75" rx="4" ry="4.17" fill="currentColor" stroke="currentColor" stroke-width="2"/></g>
 </g>
 <text x="92" y="388" class="arch-service-label">Disk</text>
 </g>
-<g id="B524020A-0F61-4CBB-BAF5-544B58E06431-service-top_disk" class="architecture-service">
-<g id="B524020A-0F61-4CBB-BAF5-544B58E06431-node-top_disk" style="color: #27272A">
+<g id="architecture-b82f76e0d7495f82-service-top_disk" class="architecture-service">
+<g id="architecture-b82f76e0d7495f82-node-top_disk" style="color: #27272A">
 <rect x="264" y="40" width="104" height="104" fill="none" stroke="#27272A" stroke-width="1"/>
 <g transform="translate(292,68) scale(0.6)"><rect x="20" y="15" width="40" height="50" rx="1" fill="none" stroke="currentColor" stroke-width="2"/><ellipse cx="40" cy="33.75" rx="14" ry="14.58" fill="none" stroke="currentColor" stroke-width="2"/><ellipse cx="40" cy="33.75" rx="4" ry="4.17" fill="currentColor" stroke="currentColor" stroke-width="2"/></g>
 </g>
 <text x="316" y="164" class="arch-service-label">Disk</text>
 </g>
-<g id="B524020A-0F61-4CBB-BAF5-544B58E06431-service-bottom_disk" class="architecture-service">
-<g id="B524020A-0F61-4CBB-BAF5-544B58E06431-node-bottom_disk" style="color: #27272A">
+<g id="architecture-b82f76e0d7495f82-service-bottom_disk" class="architecture-service">
+<g id="architecture-b82f76e0d7495f82-node-bottom_disk" style="color: #27272A">
 <rect x="264" y="488" width="104" height="104" fill="none" stroke="#27272A" stroke-width="1"/>
 <g transform="translate(292,516) scale(0.6)"><rect x="20" y="15" width="40" height="50" rx="1" fill="none" stroke="currentColor" stroke-width="2"/><ellipse cx="40" cy="33.75" rx="14" ry="14.58" fill="none" stroke="currentColor" stroke-width="2"/><ellipse cx="40" cy="33.75" rx="4" ry="4.17" fill="currentColor" stroke="currentColor" stroke-width="2"/></g>
 </g>
 <text x="316" y="612" class="arch-service-label">Disk</text>
 </g>
-<g id="B524020A-0F61-4CBB-BAF5-544B58E06431-node-junctionCenter" class="architecture-junction">
-<rect x="264" y="264" width="104" height="104" fill-opacity="0"/>
+<g id="architecture-b82f76e0d7495f82-node-junctionCenter" class="architecture-junction">
+<rect x="276" y="276" width="80" height="80" fill-opacity="0"/>
 </g>
-<g id="B524020A-0F61-4CBB-BAF5-544B58E06431-node-junctionRight" class="architecture-junction">
-<rect x="488" y="264" width="104" height="104" fill-opacity="0"/>
+<g id="architecture-b82f76e0d7495f82-node-junctionRight" class="architecture-junction">
+<rect x="500" y="276" width="80" height="80" fill-opacity="0"/>
 </g>
 </g>
 </svg>

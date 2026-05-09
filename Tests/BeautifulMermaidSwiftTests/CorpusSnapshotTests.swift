@@ -10,7 +10,8 @@ import SnapshotTesting
 ///
 /// ## Recording new baselines
 /// ```bash
-/// SNAPSHOT_TESTING_RECORD=true swift test --filter CorpusSnapshotTests
+/// SNAPSHOT_TESTING_RECORD=all swift test --filter CorpusSnapshotTests
+/// SNAPSHOT_DIAGRAM_IDS=architecture-basic swift test --filter CorpusSnapshotTests/imageSnapshot
 /// ```
 ///
 /// ## Verifying in CI
@@ -52,7 +53,11 @@ struct CorpusSnapshotTests {
             .appendingPathComponent("Examples/MermaidPlayground/Resources/test-diagrams.json")
         let data = try Data(contentsOf: jsonURL)
         let file = try JSONDecoder().decode(DiagramFile.self, from: data)
-        return file.diagrams
+        guard let rawIds = ProcessInfo.processInfo.environment["SNAPSHOT_DIAGRAM_IDS"], !rawIds.isEmpty else {
+            return file.diagrams
+        }
+        let ids = Set(rawIds.split(separator: ",").map { $0.trimmingCharacters(in: .whitespacesAndNewlines) })
+        return file.diagrams.filter { ids.contains($0.id) }
     }
 
     // MARK: - SVG snapshots
