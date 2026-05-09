@@ -649,8 +649,16 @@ private extension DiagramRegistry {
             guard case let .ishikawa(diagram) = graph.payload else {
                 throw MermaidStructuralError.payloadMismatch(.ishikawa)
             }
+            #if canImport(CoreText)
             let positioned = layoutIshikawaDiagram(diagram)
             return PositionedGraph(diagram: graph, width: positioned.width, height: positioned.height, content: .ishikawa(positioned))
+            #else
+            // Linux: layoutIshikawaDiagram requires CoreText for text-bounds
+            // measurement. Unreachable until the portable text-measurement
+            // shim lands (Stage 2.5 follow-up).
+            _ = diagram
+            throw MermaidStructuralError.payloadMismatch(.ishikawa)
+            #endif
         }
     )
 
@@ -675,8 +683,15 @@ private extension DiagramRegistry {
             guard case let .treeView(diagram) = graph.payload else {
                 throw MermaidStructuralError.payloadMismatch(.treeView)
             }
+            #if canImport(UIKit) || canImport(AppKit)
             let positioned = layoutTreeViewDiagram(diagram)
             return PositionedGraph(diagram: graph, width: positioned.viewBoxWidth, height: positioned.viewBoxHeight, content: .treeView(positioned))
+            #else
+            // Linux: layoutTreeViewDiagram depends on BMColor + CTLine.
+            // Unreachable until the portable text-measurement shim lands.
+            _ = diagram
+            throw MermaidStructuralError.payloadMismatch(.treeView)
+            #endif
         }
     )
 
@@ -699,8 +714,16 @@ private extension DiagramRegistry {
             guard case let .eventModeling(diagram) = graph.payload else {
                 throw MermaidStructuralError.payloadMismatch(.eventModeling)
             }
+            #if canImport(CoreText)
             let positioned = layoutEventModeling(diagram)
             return PositionedGraph(diagram: graph, width: positioned.width, height: positioned.height, content: .eventModeling(positioned))
+            #else
+            // Linux: layoutEventModeling requires CoreText for text-bounds
+            // measurement. Unreachable until the portable text-measurement
+            // shim lands.
+            _ = diagram
+            throw MermaidStructuralError.payloadMismatch(.eventModeling)
+            #endif
         }
     )
 
