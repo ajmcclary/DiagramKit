@@ -21,11 +21,7 @@ public struct DiagramHeader: Sendable {
 
     /// Convenience: detect from a preprocessed source string.
     public static func detect(from processedSource: String) -> DiagramHeader {
-        let rawLines = processedSource
-            .replacingOccurrences(of: "\r\n", with: "\n")
-            .replacingOccurrences(of: "\r", with: "\n")
-            .split(separator: "\n", omittingEmptySubsequences: false)
-            .map(String.init)
+        let rawLines = MermaidSourceNormalizer.rawLines(processedSource)
         let firstLine = rawLines.first(where: { !$0.trimmingCharacters(in: .whitespaces).isEmpty })?
             .trimmingCharacters(in: .whitespaces) ?? ""
         return DiagramHeader(raw: firstLine, rawLines: rawLines)

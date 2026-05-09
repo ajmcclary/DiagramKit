@@ -13,60 +13,7 @@ func _mermaidSourceLines(
 ) -> [String] {
     let processed = _preprocessMermaidSource(source)
     let joined = _joinMultiLineBlocks(processed.source)
-    return _splitMermaidStatements(joined, separatedBy: separators)
-        .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
-        .filter { !$0.isEmpty && !$0.hasPrefix("%%") }
-}
-
-private func _splitMermaidStatements(_ source: String, separatedBy separators: CharacterSet) -> [String] {
-    var parts: [String] = []
-    var current = ""
-    var inQuote = false
-    var quoteChar: Character?
-    var isEscaped = false
-
-    for ch in source {
-        if inQuote {
-            current.append(ch)
-            if isEscaped {
-                isEscaped = false
-                continue
-            }
-            if ch == "\\" {
-                isEscaped = true
-                continue
-            }
-            if ch == quoteChar {
-                inQuote = false
-                quoteChar = nil
-            }
-            continue
-        }
-
-        if ch == "\"" || ch == "'" {
-            inQuote = true
-            quoteChar = ch
-            current.append(ch)
-            continue
-        }
-
-        if _isMermaidStatementSeparator(ch, separators) {
-            parts.append(current)
-            current = ""
-        } else {
-            current.append(ch)
-        }
-    }
-
-    parts.append(current)
-    return parts
-}
-
-private func _isMermaidStatementSeparator(_ ch: Character, _ separators: CharacterSet) -> Bool {
-    guard ch.unicodeScalars.count == 1, let scalar = ch.unicodeScalars.first else {
-        return false
-    }
-    return separators.contains(scalar)
+    return MermaidSourceNormalizer.statements(joined, separators: separators)
 }
 
 /// Parse YAML-like frontmatter from a source string.

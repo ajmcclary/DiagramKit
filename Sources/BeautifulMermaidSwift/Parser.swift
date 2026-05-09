@@ -1,20 +1,9 @@
 import Foundation
 
 public enum MermaidParser {
-    private static func _diagramLines(from source: String) -> [String] {
-        _mermaidSourceLines(from: source, separatedBy: .newlines)
-    }
 
     private static func _decodeXMLEntities(_ s: String) -> String {
         _HTMLEntities.decode(s)
-    }
-
-    private static func rawLineArray(_ source: String) -> [String] {
-        source
-            .replacingOccurrences(of: "\r\n", with: "\n")
-            .replacingOccurrences(of: "\r", with: "\n")
-            .split(separator: "\n", omittingEmptySubsequences: false)
-            .map(String.init)
     }
 
     static func parse(_ source: String) throws -> MermaidGraph {
