@@ -1,10 +1,10 @@
 import Foundation
 import IssueReporting
 
-protocol _MermaidRecoverableError: Error {}
+public protocol _MermaidRecoverableError: Error {}
 
 @discardableResult
-func _withMermaidIssueReporting<T>(
+public func _withMermaidIssueReporting<T>(
     operation: String,
     _ work: () throws -> T
 ) throws -> T {
@@ -17,7 +17,7 @@ func _withMermaidIssueReporting<T>(
 }
 
 @discardableResult
-func _withMermaidIssueReporting<T>(
+public func _withMermaidIssueReporting<T>(
     operation: String,
     _ work: () async throws -> T
 ) async throws -> T {
@@ -29,14 +29,14 @@ func _withMermaidIssueReporting<T>(
     }
 }
 
-func _reportMermaidIssueIfNeeded(_ error: any Error, operation: String) {
+public func _reportMermaidIssueIfNeeded(_ error: any Error, operation: String) {
     guard !_isRecoverableMermaidError(error), !(error is CancellationError) else {
         return
     }
     reportIssue("\(operation) failed: \(error.localizedDescription)")
 }
 
-func _reportMermaidIssue(_ message: String) {
+public func _reportMermaidIssue(_ message: String) {
     reportIssue(message)
 }
 

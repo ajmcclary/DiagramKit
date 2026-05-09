@@ -1,7 +1,7 @@
 import Foundation
 
-enum FontAwesomeMap {
-    static let faToSF: [String: String] = [
+public enum FontAwesomeMap {
+    public static let faToSF: [String: String] = [
         "user": "person.fill",
         "twitter": "bird.fill",
         "check": "checkmark",
@@ -112,7 +112,7 @@ enum FontAwesomeMap {
         "chart-area": "chart.xyaxis.line",
     ]
 
-    static func sfSymbolName(for faName: String) -> String? {
+    public static func sfSymbolName(for faName: String) -> String? {
         let cleaned = faName.hasPrefix("fa-") ? String(faName.dropFirst(3)) : faName
         return faToSF[cleaned]
     }

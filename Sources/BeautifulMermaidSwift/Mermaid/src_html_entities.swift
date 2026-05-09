@@ -1,6 +1,6 @@
 import Foundation
 
-enum _HTMLEntities {
+public enum _HTMLEntities {
     private static let namedEntities: [String: String] = [
         "amp": "&",
         "lt": "<",
@@ -19,7 +19,7 @@ enum _HTMLEntities {
         "gt": ">",
     ]
 
-    static func decode(_ text: String) -> String {
+    public static func decode(_ text: String) -> String {
         var result = ""
         var i = text.startIndex
 
