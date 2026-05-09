@@ -1,5 +1,5 @@
 import Testing
-@testable import BeautifulMermaidSwift
+@testable import BeautifulMermaid
 
 @Suite struct SVGUtilitiesTests {
 
