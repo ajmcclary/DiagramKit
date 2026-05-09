@@ -1,7 +1,6 @@
 import Foundation
 
 private let TIDY_TREE_GAP: Double = 20
-private let TIDY_TREE_BOTTOM_PADDING: Double = 40
 private let TIDY_TREE_INTERSECTION_SHIFT: Double = 30
 private let LAYOUT_DATA_NODE_SPACING: Double = 50
 private let LAYOUT_DATA_RANK_SPACING: Double = 50
@@ -35,10 +34,10 @@ func layoutMindmap(_ diagram: MindmapDiagram) throws -> PositionedMindmapDiagram
 
     for i in 0..<positionedNodes.count {
         var n = positionedNodes[i]
-        let textSize = _measureTextSize(text: n.descr, fontSize: fontSize, fontFamily: fontFamily)
+        let textSize = _measureMindmapLabelSize(text: n.descr, fontSize: fontSize, fontFamily: fontFamily)
         let padding = _nodePadding(for: n.type, config: diagram.config)
 
-        let textW = min(textSize.width, diagram.config.maxNodeWidth)
+        let textW = textSize.width
         let textH = textSize.height
 
         switch n.type {
@@ -63,7 +62,6 @@ func layoutMindmap(_ diagram: MindmapDiagram) throws -> PositionedMindmapDiagram
             n.height = textH + padding * 2 + 30
         }
 
-        n.width = min(n.width, diagram.config.maxNodeWidth * 1.5)
         n.width = max(n.width, 30)
         n.height = max(n.height, 20)
 
@@ -81,7 +79,7 @@ func layoutMindmap(_ diagram: MindmapDiagram) throws -> PositionedMindmapDiagram
     }
 
     let tidytreeNode = _makeTidyTreeNode(nodes: positionedNodes, edges: positionedEdges)
-    _ = _tidyTreeLayout(node: tidytreeNode, gap: TIDY_TREE_GAP, bottomPadding: TIDY_TREE_BOTTOM_PADDING)
+    _ = _tidyTreeLayout(node: tidytreeNode, gap: TIDY_TREE_GAP)
 
     for i in 0..<positionedNodes.count {
         let node = positionedNodes[i]
@@ -163,6 +161,22 @@ private func _nodePadding(for type: MindmapNodeType, config: MindmapConfig) -> D
     }
 }
 
+private func _measureMindmapLabelSize(text: String, fontSize: Double, fontFamily: String) -> (width: Double, height: Double) {
+    let normalized = text
+        .replacingOccurrences(of: "<br/>", with: "\n")
+        .replacingOccurrences(of: "<br>", with: "\n")
+    let lines = normalized.split(separator: "\n", omittingEmptySubsequences: false).map(String.init)
+    guard lines.count > 1 else {
+        return _measureTextSize(text: normalized, fontSize: fontSize, fontFamily: fontFamily)
+    }
+
+    let widths = lines.map { _measureTextSize(text: $0, fontSize: fontSize, fontFamily: fontFamily).width }
+    return (
+        width: widths.max() ?? 0,
+        height: Double(lines.count) * fontSize * 1.3
+    )
+}
+
 private func _measureTextSize(text: String, fontSize: Double, fontFamily: String) -> (width: Double, height: Double) {
     let nsString = text as NSString
     let font = BMFont(name: fontFamily, size: CGFloat(fontSize)) ?? BMFont.systemFont(ofSize: CGFloat(fontSize))
@@ -177,8 +191,6 @@ private final class _TidyTreeNodeRef {
     var height: Double
     var x: Double
     var y: Double
-    var relativeX: Double
-    var relativeY: Double
     var children: [_TidyTreeNodeRef]
     var isLeftTree: Bool
 
@@ -188,8 +200,6 @@ private final class _TidyTreeNodeRef {
         self.height = height
         self.x = x
         self.y = y
-        self.relativeX = 0
-        self.relativeY = 0
         self.children = []
         self.isLeftTree = isLeftTree
     }
@@ -197,7 +207,7 @@ private final class _TidyTreeNodeRef {
 
 private func _makeTidyTreeNode(nodes: [PositionedMindmapNode], edges: [PositionedMindmapEdge]) -> _TidyTreeNodeRef? {
     guard let rootNode = nodes.first(where: { $0.isRoot }) else { return nil }
-    let root = _TidyTreeNodeRef(id: rootNode.id, width: rootNode.height, height: rootNode.width)
+    let root = _TidyTreeNodeRef(id: rootNode.id, width: rootNode.width, height: rootNode.height)
 
     let childMap: [Int: [Int]] = {
         var map: [Int: [Int]] = [:]
@@ -222,7 +232,7 @@ private func _makeTidyTreeNode(nodes: [PositionedMindmapNode], edges: [Positione
     func buildSubtree(parentRef: _TidyTreeNodeRef, childIds: [Int], isLeft: Bool) {
         for childId in childIds {
             guard let childNode = nodes.first(where: { $0.id == childId }) else { continue }
-            let child = _TidyTreeNodeRef(id: childNode.id, width: childNode.height, height: childNode.width, isLeftTree: isLeft)
+            let child = _TidyTreeNodeRef(id: childNode.id, width: childNode.width, height: childNode.height, isLeftTree: isLeft)
             parentRef.children.append(child)
             let grandchildIds = childMap[childId] ?? []
             buildSubtree(parentRef: child, childIds: grandchildIds, isLeft: isLeft)
@@ -235,7 +245,7 @@ private func _makeTidyTreeNode(nodes: [PositionedMindmapNode], edges: [Positione
     return root
 }
 
-private func _tidyTreeLayout(node: _TidyTreeNodeRef?, gap: Double, bottomPadding: Double) -> (left: [_TidyTreeNodeRef], right: [_TidyTreeNodeRef])? {
+private func _tidyTreeLayout(node: _TidyTreeNodeRef?, gap: Double) -> (left: [_TidyTreeNodeRef], right: [_TidyTreeNodeRef])? {
     guard let root = node else { return nil }
 
     var leftChildren: [_TidyTreeNodeRef] = []
@@ -249,118 +259,68 @@ private func _tidyTreeLayout(node: _TidyTreeNodeRef?, gap: Double, bottomPadding
         }
     }
 
-    if !leftChildren.isEmpty {
-        _layoutVerticalTree(nodes: leftChildren, gap: gap, bottomPadding: bottomPadding)
-        for child in leftChildren {
-            _applySideTreePositions(node: child, rootWidth: root.width, gap: gap, isLeft: true)
-        }
-    }
-
-    if !rightChildren.isEmpty {
-        _layoutVerticalTree(nodes: rightChildren, gap: gap, bottomPadding: bottomPadding)
-        for child in rightChildren {
-            _applySideTreePositions(node: child, rootWidth: root.width, gap: gap, isLeft: false)
-        }
-    }
-
-    _centerSubtrees(leftNodes: leftChildren, rightNodes: rightChildren)
+    _layoutRootSide(children: leftChildren, root: root, gap: gap, isLeft: true)
+    _layoutRootSide(children: rightChildren, root: root, gap: gap, isLeft: false)
 
     return (leftChildren, rightChildren)
 }
 
-private func _applySideTreePositions(node: _TidyTreeNodeRef, rootWidth: Double, gap: Double, isLeft: Bool) {
-    let distanceFromRoot = node.relativeY + rootWidth / 2 + gap
-    node.x = isLeft ? -distanceFromRoot : distanceFromRoot
-    node.y = node.relativeX
+private func _layoutRootSide(children: [_TidyTreeNodeRef], root: _TidyTreeNodeRef, gap: Double, isLeft: Bool) {
+    guard !children.isEmpty else { return }
+
+    let totalHeight = _subtreeStackHeight(children, gap: gap)
+    var cursorY = -totalHeight / 2
+
+    for child in children {
+        let childHeight = _subtreeHeight(child, gap: gap)
+        _layoutSubtree(
+            child,
+            parent: root,
+            centerY: cursorY + childHeight / 2,
+            gap: gap,
+            isLeft: isLeft
+        )
+        cursorY += childHeight + gap
+    }
+}
+
+private func _layoutSubtree(
+    _ node: _TidyTreeNodeRef,
+    parent: _TidyTreeNodeRef,
+    centerY: Double,
+    gap: Double,
+    isLeft: Bool
+) {
+    let direction: Double = isLeft ? -1 : 1
+    node.x = parent.x + direction * (parent.width / 2 + gap + node.width / 2)
+    node.y = centerY
+
+    guard !node.children.isEmpty else { return }
+
+    let childrenHeight = _subtreeStackHeight(node.children, gap: gap)
+    var cursorY = centerY - childrenHeight / 2
 
     for child in node.children {
-        _applySideTreePositions(node: child, rootWidth: rootWidth, gap: gap, isLeft: isLeft)
+        let childHeight = _subtreeHeight(child, gap: gap)
+        _layoutSubtree(
+            child,
+            parent: node,
+            centerY: cursorY + childHeight / 2,
+            gap: gap,
+            isLeft: isLeft
+        )
+        cursorY += childHeight + gap
     }
 }
 
-private func _layoutVerticalTree(nodes: [_TidyTreeNodeRef], gap: Double, bottomPadding: Double) {
-    guard !nodes.isEmpty else { return }
-
-    struct LayoutState {
-        var y: Double = 0
-        var maxWidth: Double = 0
-    }
-
-    var state = LayoutState()
-
-    func layoutLevel(levelNodes: [(_TidyTreeNodeRef, Int)]) {
-        guard !levelNodes.isEmpty else { return }
-
-        let totalWidth = levelNodes.map(\.0.width).reduce(0, +) + Double(levelNodes.count - 1) * gap
-        let startX = -totalWidth / 2
-        var currentX = startX
-
-        for (node, _) in levelNodes {
-            node.relativeX = currentX + node.width / 2
-            node.relativeY = state.y
-            currentX += node.width + gap
-        }
-
-        state.maxWidth = max(state.maxWidth, totalWidth)
-        state.y += bottomPadding
-
-        var nextLevel: [(_TidyTreeNodeRef, Int)] = []
-        for (node, _) in levelNodes {
-            for (childIdx, child) in node.children.enumerated() {
-                nextLevel.append((child, childIdx))
-            }
-        }
-
-        if !nextLevel.isEmpty {
-            layoutLevel(levelNodes: nextLevel)
-        }
-    }
-
-    let initial: [(_TidyTreeNodeRef, Int)] = nodes.enumerated().map { ($0.element, $0.offset) }
-    layoutLevel(levelNodes: initial)
+private func _subtreeStackHeight(_ nodes: [_TidyTreeNodeRef], gap: Double) -> Double {
+    guard !nodes.isEmpty else { return 0 }
+    return nodes.map { _subtreeHeight($0, gap: gap) }.reduce(0, +) + Double(nodes.count - 1) * gap
 }
 
-private func _centerSubtrees(leftNodes: [_TidyTreeNodeRef], rightNodes: [_TidyTreeNodeRef]) {
-    if leftNodes.isEmpty && rightNodes.isEmpty { return }
-
-    func childrenAtDepth(_ nodes: [_TidyTreeNodeRef], depth: Int) -> [_TidyTreeNodeRef] {
-        if depth == 0 { return nodes }
-        var result: [_TidyTreeNodeRef] = []
-        for node in nodes {
-            result.append(contentsOf: node.children)
-        }
-        return childrenAtDepth(result, depth: depth - 1)
-    }
-
-    let leftFirstLevel = leftNodes
-    let rightFirstLevel = rightNodes
-
-    let leftCenterY = leftFirstLevel.isEmpty ? 0.0 : leftFirstLevel.map(\.y).reduce(0, +) / Double(max(1, leftFirstLevel.count))
-    let rightCenterY = rightFirstLevel.isEmpty ? 0.0 : rightFirstLevel.map(\.y).reduce(0, +) / Double(max(1, rightFirstLevel.count))
-
-    let avgCenterY = (leftCenterY + rightCenterY) / 2
-
-    let leftOffset = avgCenterY - leftCenterY
-    let rightOffset = avgCenterY - rightCenterY
-
-    if !leftFirstLevel.isEmpty {
-        for node in leftFirstLevel {
-            _shiftSubtreeY(node, by: leftOffset)
-        }
-    }
-
-    if !rightFirstLevel.isEmpty {
-        for node in rightFirstLevel {
-            _shiftSubtreeY(node, by: rightOffset)
-        }
-    }
-}
-
-private func _shiftSubtreeY(_ node: _TidyTreeNodeRef, by offset: Double) {
-    node.y += offset
-    for child in node.children {
-        _shiftSubtreeY(child, by: offset)
-    }
+private func _subtreeHeight(_ node: _TidyTreeNodeRef, gap: Double) -> Double {
+    guard !node.children.isEmpty else { return node.height }
+    return max(node.height, _subtreeStackHeight(node.children, gap: gap))
 }
 
 private func _applyTidyTreePositions(node: _TidyTreeNodeRef, rootX: Double, rootY: Double, nodes: inout [PositionedMindmapNode]) {

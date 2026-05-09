@@ -1,6 +1,6 @@
-<svg id="mindmap-99E96CBD-094E-431F-8C37-3DB1DC075297" class="mindmapDiagram" width="178" height="108" viewBox="0 0 178 108" xmlns="http://www.w3.org/2000/svg">
+<svg id="mindmap-mindmap-8e48393c2047961a" class="mindmapDiagram" width="210" height="108" viewBox="0 0 210 108" xmlns="http://www.w3.org/2000/svg">
 <defs>
-<linearGradient id="mindmap-99E96CBD-094E-431F-8C37-3DB1DC075297-gradient" x1="0%" y1="0%" x2="0%" y2="100%">
+<linearGradient id="mindmap-mindmap-8e48393c2047961a-gradient" x1="0%" y1="0%" x2="0%" y2="100%">
 <stop offset="0%" stop-color="#ffffff"/>
 <stop offset="100%" stop-color="#f4f4f4"/>
 </linearGradient>
@@ -63,11 +63,11 @@
 </style>
 <g class="mindmap">
 <g class="edges">
-<path class="edge section-edge-0 edge-depth-1" d="M64.4375,54.0 L34.4375,54.0 C41.408203125,54.0 55.349609375,54.0 62.3203125,54.0 C69.291015625,54.0 83.232421875,54.0 90.203125,54.0 L60.203125,54.0" fill="none" stroke-width="14.0" stroke="#0052CC" />
-<path class="edge section-edge-1 edge-depth-1" d="M113.765625,54.0 L143.765625,54.0 C136.736328125,54.0 122.677734375,54.0 115.6484375,54.0 C108.619140625,54.0 94.560546875,54.0 87.53125,54.0 L117.53125,54.0" fill="none" stroke-width="14.0" stroke="#0065FF" />
+<path class="edge section-edge-0 edge-depth-1" d="M80.203125,54.0 L50.203125,54.0 C55.203125,54.0 65.203125,54.0 70.203125,54.0 C75.203125,54.0 85.203125,54.0 90.203125,54.0 L60.203125,54.0" fill="none" stroke-width="14.0" stroke="#0052CC" />
+<path class="edge section-edge-1 edge-depth-1" d="M129.53125,54.0 L159.53125,54.0 C154.53125,54.0 144.53125,54.0 139.53125,54.0 C134.53125,54.0 124.53125,54.0 119.53125,54.0 L149.53125,54.0" fill="none" stroke-width="14.0" stroke="#0065FF" />
 </g>
 <g class="nodes">
-<g class="mindmap-node section-root section--1" id="node_0" transform="translate(64,30)">
+<g class="mindmap-node section-root section--1" id="node_0" transform="translate(80,30)">
 <path class="node-bkg node-no-border" fill="#1f2020" d="M0 43.0 v-38.0 q0,-5 5,-5 h39.0 q5,0 5,5 v43.0 H0 Z"/>
 <line class="node-line-0" x1="0" y1="48" x2="49" y2="48" stroke="#003380" stroke-width="2"/>
 <text class="mindmap-node-label" x="24" y="29" fill="#ffffff" font-family="Noto Sans" font-size="16" text-anchor="middle" dominant-baseline="middle">root</text>
@@ -77,7 +77,7 @@
 <line class="node-line-0" x1="0" y1="48" x2="30" y2="48" stroke="#003380" stroke-width="2"/>
 <text class="mindmap-node-label" x="15" y="29" fill="#ffffff" font-family="Noto Sans" font-size="16" text-anchor="middle" dominant-baseline="middle">B</text>
 </g>
-<g class="mindmap-node section-1 section-1" id="node_2" transform="translate(117,30)">
+<g class="mindmap-node section-1 section-1" id="node_2" transform="translate(149,30)">
 <path class="node-bkg node-no-border" fill="#0065FF" d="M0 43.0 v-38.0 q0,-5 5,-5 h21.0 q5,0 5,5 v43.0 H0 Z"/>
 <line class="node-line-1" x1="0" y1="48" x2="31" y2="48" stroke="#003D99" stroke-width="2"/>
 <text class="mindmap-node-label" x="15" y="29" fill="#ffffff" font-family="Noto Sans" font-size="16" text-anchor="middle" dominant-baseline="middle">C</text>

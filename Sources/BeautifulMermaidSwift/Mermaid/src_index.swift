@@ -367,7 +367,7 @@ private func _renderMindmapSvgCase(source: String, fm: DiagramFrontmatter?, colo
     let rawLines = MermaidSourceNormalizer.rawLines(source)
     let diagram = try parseMindmap(rawLines, frontmatter: fm)
     let positioned = try layoutMindmap(diagram)
-    let diagramId = UUID().uuidString
+    let diagramId = _stableDiagramId(prefix: "mindmap", source: source)
     return renderMindmapSvg(positioned, diagramId: diagramId, colors, font, transparent)
 }
 

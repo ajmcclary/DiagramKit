@@ -1,3 +1,4 @@
+import CoreGraphics
 import XCTest
 @testable import BeautifulMermaid
 
@@ -98,6 +99,29 @@ final class MindmapLayoutTests: XCTestCase {
         XCTAssertGreaterThan(positioned.height, maxNodeY)
     }
 
+    func test_tidyTreeSeparatesNodeBoundsForWideAndDeepExamples() throws {
+        let sources = [
+            "wide siblings": "mindmap\n  id1[**Root** with\na second line]\n    id2[The dog in **the** hog]\n    id3[Regular labels still works]",
+            "deep branches": "mindmap\n  root\n    child1\n      grandchild1\n        greatgrandchild1\n      grandchild2\n    child2\n      grandchild3\n      grandchild4\n    child3\n      grandchild5\n      grandchild6",
+            "many siblings": "mindmap\n  root\n    Node1\n    Node2\n    Node3\n    Node4\n    Node5\n    Node6\n    Node7\n    Node8\n    Node9\n    Node10\n    Node11\n    Node12\n    Node13\n    Node14\n    Node15"
+        ]
+
+        for (name, source) in sources {
+            let diagram = try parseMindmap(source.split(separator: "\n", omittingEmptySubsequences: false).map(String.init), frontmatter: nil)
+            let positioned = try layoutMindmap(diagram)
+            assertNoMindmapNodeIntersections(positioned, name: name)
+        }
+    }
+
+    func test_tidyTreeSizesLongLabelsToAvoidClipping() throws {
+        let source = "mindmap\n  root((mindmap))\n    Origins\n      British popular psychology author Tony Buzan"
+        let diagram = try parseMindmap(source.split(separator: "\n", omittingEmptySubsequences: false).map(String.init), frontmatter: nil)
+        let positioned = try layoutMindmap(diagram)
+
+        let longLabel = try XCTUnwrap(positioned.nodes.first { $0.descr == "British popular psychology author Tony Buzan" })
+        XCTAssertGreaterThan(longLabel.width, diagram.config.maxNodeWidth * 1.5)
+    }
+
     // MARK: - Frontmatter layoutAlgorithm tests
 
     func test_frontmatterLayoutAlgorithm_tidyTree_succeeds() throws {
@@ -183,5 +207,38 @@ final class MindmapLayoutTests: XCTestCase {
         let diagram = try parseMindmap(source.split(separator: "\n", omittingEmptySubsequences: false).map(String.init), frontmatter: fm)
         let positioned = try layoutMindmap(diagram)
         XCTAssertTrue(positioned.width > 0)
+    }
+
+    private func assertNoMindmapNodeIntersections(
+        _ positioned: PositionedMindmapDiagram,
+        name: String,
+        file: StaticString = #filePath,
+        line: UInt = #line
+    ) {
+        let boxes = positioned.nodes.map { node in
+            (
+                node: node,
+                rect: CGRect(
+                    x: node.x - node.width / 2,
+                    y: node.y - node.height / 2,
+                    width: node.width,
+                    height: node.height
+                )
+            )
+        }
+
+        for lhsIndex in boxes.indices {
+            for rhsIndex in boxes.index(after: lhsIndex)..<boxes.endIndex {
+                let lhs = boxes[lhsIndex]
+                let rhs = boxes[rhsIndex]
+                if lhs.rect.intersects(rhs.rect) {
+                    XCTFail(
+                        "\(name): node '\(lhs.node.descr)' intersects '\(rhs.node.descr)' (\(lhs.rect) vs \(rhs.rect))",
+                        file: file,
+                        line: line
+                    )
+                }
+            }
+        }
     }
 }
