@@ -177,107 +177,51 @@ private func _initDirectivePayload(from line: String) -> String? {
 
 @discardableResult
 private func _applyInitDirectivePayload(_ payload: String, to frontmatter: inout DiagramFrontmatter) -> Bool {
-    let jsonPayload = payload.replacingOccurrences(of: "'", with: "\"")
-    guard let data = jsonPayload.data(using: .utf8),
-          let object = try? JSONSerialization.jsonObject(with: data) as? [String: Any] else {
+    // New path: use InitDirectiveParser + FrontmatterBinding for diagram-specific config.
+    // Shared values (theme, layout, look, htmlLabels, fontSize, securityLevel) are still
+    // handled inline for backward compatibility. Per-diagram config and theme bindings
+    // are dispatched through the FrontmatterBinding registry below.
+    guard let object = InitDirectiveParser.parseJSON(payload) else {
         return false
     }
 
     var applied = _applySharedInitValues(object, to: &frontmatter)
 
-    if let config = object["config"] as? [String: Any] {
-        applied = _applySharedInitValues(config, to: &frontmatter) || applied
-        if let sequence = config["sequence"] as? [String: Any] {
-            applied = _applySequenceInitConfig(sequence, to: &frontmatter) || applied
-        }
-        if let requirement = config["requirement"] as? [String: Any] {
-            applied = _applyRequirementInitConfig(requirement, to: &frontmatter) || applied
-        }
-        if let radar = config["radar"] as? [String: Any] {
-            applied = _applyRadarInitConfig(radar, to: &frontmatter) || applied
-        }
-        if let treemap = config["treemap"] as? [String: Any] {
-            applied = _applyTreemapInitConfig(treemap, to: &frontmatter) || applied
-        }
-        if let venn = config["venn"] as? [String: Any] {
-            applied = _applyVennInitConfig(venn, to: &frontmatter) || applied
-        }
-        if let ishikawa = config["ishikawa"] as? [String: Any] {
-            applied = _applyIshikawaInitConfig(ishikawa, to: &frontmatter) || applied
-        }
-        if let c4 = config["c4"] as? [String: Any] {
-            applied = _applyC4InitConfig(c4, to: &frontmatter) || applied
-        }
-        if let treeView = config["treeView"] as? [String: Any] {
-            applied = _applyTreeViewInitConfig(treeView, to: &frontmatter) || applied
-        }
-        if let eventmodeling = config["eventmodeling"] as? [String: Any] {
-            applied = _applyEventModelingInitConfig(eventmodeling, to: &frontmatter) || applied
-        }
-        if let wardley = config["wardley-beta"] as? [String: Any] {
-            applied = _applyWardleyInitConfig(wardley, to: &frontmatter) || applied
-        }
-        if let wardley = config["wardleyBeta"] as? [String: Any] {
-            applied = _applyWardleyInitConfig(wardley, to: &frontmatter) || applied
-        }
-        if let themeVariables = config["themeVariables"] as? [String: Any] {
-            applied = _applyRequirementInitTheme(themeVariables, to: &frontmatter) || applied
-            applied = _applyRadarInitTheme(themeVariables, to: &frontmatter) || applied
-            applied = _applyVennInitTheme(themeVariables, to: &frontmatter) || applied
-            applied = _applyTreeViewInitTheme(themeVariables, to: &frontmatter) || applied
-            applied = _applyEventModelingInitTheme(themeVariables, to: &frontmatter) || applied
-            applied = _applyWardleyInitTheme(themeVariables, to: &frontmatter) || applied
+    // Flatten the JSON into key-value pairs and apply through registered bindings.
+    let pairs = InitDirectiveParser.flatten(object, prefix: "")
+    applied = _applyBindings(pairs, to: &frontmatter) || applied
+
+    return applied
+}
+
+/// Registry of active `FrontmatterBinding` implementations. Each binding
+/// receives every key-value pair; it returns `true` if it consumed the key.
+private func _activeBindings() -> [any FrontmatterBinding] {
+    [
+        SequenceFrontmatterBinding(),
+        RequirementFrontmatterBinding(),
+        // Additional bindings (Radar, Treemap, Venn, Ishikawa, C4, TreeView,
+        // EventModeling, Wardley) are added here as they are implemented.
+    ]
+}
+
+/// Apply flattened key-value pairs through all registered bindings.
+private func _applyBindings(
+    _ pairs: [(path: String, value: FrontmatterValue)],
+    to frontmatter: inout DiagramFrontmatter
+) -> Bool {
+    var bindings = _activeBindings()
+    var applied = false
+    for (path, value) in pairs {
+        for i in bindings.indices {
+            if bindings[i].apply(path: path, value: value) {
+                applied = true
+            }
         }
     }
-
-    if let radar = object["radar"] as? [String: Any] {
-        applied = _applyRadarInitConfig(radar, to: &frontmatter) || applied
+    for i in bindings.indices {
+        bindings[i].commit(into: &frontmatter)
     }
-
-    if let sequence = object["sequence"] as? [String: Any] {
-        applied = _applySequenceInitConfig(sequence, to: &frontmatter) || applied
-    }
-
-    if let treemap = object["treemap"] as? [String: Any] {
-        applied = _applyTreemapInitConfig(treemap, to: &frontmatter) || applied
-    }
-
-    if let venn = object["venn"] as? [String: Any] {
-        applied = _applyVennInitConfig(venn, to: &frontmatter) || applied
-    }
-
-        if let ishikawa = object["ishikawa"] as? [String: Any] {
-        applied = _applyIshikawaInitConfig(ishikawa, to: &frontmatter) || applied
-    }
-
-    if let c4 = object["c4"] as? [String: Any] {
-        applied = _applyC4InitConfig(c4, to: &frontmatter) || applied
-    }
-
-    if let treeView = object["treeView"] as? [String: Any] {
-        applied = _applyTreeViewInitConfig(treeView, to: &frontmatter) || applied
-    }
-
-    if let eventmodeling = object["eventmodeling"] as? [String: Any] {
-        applied = _applyEventModelingInitConfig(eventmodeling, to: &frontmatter) || applied
-    }
-
-    if let wardley = object["wardley-beta"] as? [String: Any] {
-        applied = _applyWardleyInitConfig(wardley, to: &frontmatter) || applied
-    }
-
-    if let wardley = object["wardleyBeta"] as? [String: Any] {
-        applied = _applyWardleyInitConfig(wardley, to: &frontmatter) || applied
-    }
-
-        if let themeVariables = object["themeVariables"] as? [String: Any] {
-            applied = _applyRadarInitTheme(themeVariables, to: &frontmatter) || applied
-            applied = _applyVennInitTheme(themeVariables, to: &frontmatter) || applied
-            applied = _applyTreeViewInitTheme(themeVariables, to: &frontmatter) || applied
-            applied = _applyEventModelingInitTheme(themeVariables, to: &frontmatter) || applied
-            applied = _applyWardleyInitTheme(themeVariables, to: &frontmatter) || applied
-        }
-
     return applied
 }
 
@@ -1006,7 +950,7 @@ private struct _YamlFrontmatterEntry {
 
 /// Extended YAML parser for Mermaid frontmatter.
 /// Handles: title, class.*, config.class.*, config.flowchart.*, config.er.*, config.layout, config.look, config.htmlLabels
-private func _parseYamlFrontmatter(_ lines: [String]) -> DiagramFrontmatter? {
+func _parseYamlFrontmatter(_ lines: [String]) -> DiagramFrontmatter? {
     _StackSafeYamlFrontmatterParser().parse(lines)
 }
 
