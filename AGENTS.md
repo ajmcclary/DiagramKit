@@ -9,10 +9,12 @@ swift build                                         # library + playground
 swift build --build-tests                           # also compile tests
 swift test --filter <NameOrPattern>                 # one suite/test
 swift test --filter CorpusSnapshotTests             # snapshot test (~5 min)
+SNAPSHOT_DIAGRAM_IDS=block-1-simple,block-2-columns swift test --filter CorpusSnapshotTests/imageSnapshot
 swift run MermaidPlayground                         # SwiftUI sample app (macOS/iOS)
 
 # Record/refresh snapshot baselines (env var needed):
 SNAPSHOT_TESTING_RECORD=true swift test --filter CorpusSnapshotTests
+SNAPSHOT_TESTING_RECORD=all SNAPSHOT_DIAGRAM_IDS=block-1-simple,block-2-columns swift test --filter CorpusSnapshotTests/imageSnapshot
 
 # After editing Package.swift:
 swift package resolve

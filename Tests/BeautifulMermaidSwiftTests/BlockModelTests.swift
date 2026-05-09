@@ -38,6 +38,12 @@ final class BlockModelTests: XCTestCase {
         XCTAssertEqual(bounds.height, 200)
     }
 
+    func testBMColorAcceptsShortCSSHex() {
+        let color = BMColor(hex: "#6cf")
+        let expected = BMColor(red: 0x66 / 255.0, green: 0xcc / 255.0, blue: 0xff / 255.0, alpha: 1)
+        XCTAssertTrue(color.bmColorEquals(expected))
+    }
+
     func testEdgeTypeStrToThickness() {
         XCTAssertEqual(edgeTypeStrToThickness("==>"), "thick")
         XCTAssertEqual(edgeTypeStrToThickness("-->"), "normal")

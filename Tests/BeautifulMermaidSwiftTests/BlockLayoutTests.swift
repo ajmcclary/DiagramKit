@@ -62,6 +62,25 @@ final class BlockLayoutTests: XCTestCase {
         XCTAssertGreaterThan(positioned.blocks.count, 0)
     }
 
+    func testCompositeLayoutReservesHeaderBandForChildren() throws {
+        let source = """
+        block
+          block:group["Group"]
+            a b
+          end
+        """
+        let (processed, _) = _parseFrontMatterAndStripped(source)
+        let lines = _mermaidSourceLines(from: processed, separatedBy: CharacterSet(charactersIn: "\n"))
+        let diagram = try parseBlockDiagramLines(lines)
+        let positioned = try layoutBlockDiagram(diagram)
+        let group = try XCTUnwrap(positioned.blocks.first { $0.type == .composite })
+        let child = try XCTUnwrap(group.children.first)
+
+        let groupTop = group.y - group.height / 2
+        let childTop = child.y - child.height / 2
+        XCTAssertGreaterThanOrEqual(childTop, groupTop + 20 + diagram.config.padding)
+    }
+
     func testLayoutWithEdges() throws {
         let source = """
         block

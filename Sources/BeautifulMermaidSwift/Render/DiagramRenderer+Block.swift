@@ -11,7 +11,9 @@ extension DiagramRenderer {
     func _drawBlock(_ positioned: PositionedGraph, in context: CGContext, bounds: CGRect) {
         guard case .block(let diagram) = positioned.content else { return }
 
-        _withFittedContext(context, bounds: bounds, contentWidth: diagram.width, contentHeight: diagram.height) { ctx in
+        _withFittedContext(context, bounds: bounds, contentWidth: diagram.bounds.width, contentHeight: diagram.bounds.height) { ctx in
+            ctx.translateBy(x: -diagram.bounds.x, y: -diagram.bounds.y)
+
             for edge in diagram.edges {
                 _drawBlockCgEdge(edge, in: ctx)
             }
@@ -39,7 +41,10 @@ extension DiagramRenderer {
             ctx.setFillColor(fillColor.withAlphaComponent(0.1).cgColor)
             ctx.fill(clusterRect)
             ctx.stroke(clusterRect)
-            _drawTextInFlipped(node.label, at: CGPoint(x: node.x, y: y + 8), context: ctx, contentHeight: 0, color: strokeColor, font: _monoFont(size: 12))
+            _drawTextInFlipped(node.label, at: CGPoint(x: node.x, y: y + 12), context: ctx, contentHeight: 0, color: strokeColor, font: _monoFont(size: 12))
+            for child in node.children {
+                _drawBlockCgNode(child, in: ctx)
+            }
         } else if node.type == .blockArrow {
             _drawBlockArrowCg(node: node, in: ctx)
         } else {

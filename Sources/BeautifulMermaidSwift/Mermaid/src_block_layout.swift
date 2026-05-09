@@ -20,6 +20,11 @@ private final class BlockWarnings: @unchecked Sendable {
     }
 }
 private let _blockWarnings = BlockWarnings()
+private let _blockCompositeHeaderHeight = 20.0
+
+private func _blockHeaderHeight(_ block: BlockNode) -> Double {
+    block.type == .composite && block.id != "root" ? _blockCompositeHeaderHeight : 0
+}
 
 func blockWarnings() -> [String] { _blockWarnings.all() }
 func resetBlockWarnings() { _blockWarnings.reset() }
@@ -181,13 +186,15 @@ private func setBlockSizes(
     let ySize = max(1, Int(ceil(Double(numItems) / Double(xSize))))
 
     var width = Double(xSize) * (maxWidth + padding) + padding
-    var height = Double(ySize) * (effectiveMaxHeight + padding) + padding
+    let headerHeight = _blockHeaderHeight(block)
+    var height = headerHeight + Double(ySize) * (effectiveMaxHeight + padding) + padding
 
     if width < siblingWidth && siblingWidth > 0 {
         width = siblingWidth
-        height = siblingHeight
+        height = max(height, siblingHeight)
         let childWidth = (siblingWidth - Double(xSize) * padding - padding) / Double(xSize)
-        let childHeight = (siblingHeight - Double(ySize) * padding - padding) / Double(ySize)
+        let childAreaHeight = max(0, height - headerHeight)
+        let childHeight = max(0, (childAreaHeight - Double(ySize) * padding - padding) / Double(ySize))
         for childId in block.children {
             if var child = db[childId] {
                 child.size?.width = childWidth
@@ -219,6 +226,7 @@ private func setBlockSizes(
 private func layoutBlocks(block: inout BlockNode, db: inout [String: BlockNode], padding: Double = 8) {
     let columns = block.columns ?? -1
     guard !block.children.isEmpty else { return }
+    let headerHeight = _blockHeaderHeight(block)
 
     var rowHeights: [Int: Double] = [:]
     var colPos = 0
@@ -257,7 +265,7 @@ private func layoutBlocks(block: inout BlockNode, db: inout [String: BlockNode],
             size.x = startingPosX + padding + halfWidth
             let rowYOffset = rowYOffsets[py] ?? 0
             let rowHeight = rowHeights[py] ?? size.height
-            size.y = parentSize.y - parentSize.height / 2 + rowYOffset + rowHeight / 2 + padding
+            size.y = parentSize.y - parentSize.height / 2 + headerHeight + rowYOffset + rowHeight / 2 + padding
 
             startingPosX = size.x + halfWidth
         }
@@ -489,5 +497,3 @@ func layoutBlockDiagram(_ diagram: BlockDiagram) throws -> PositionedBlockDiagra
         diagramTitle: diagram.diagramTitle
     )
 }
-
-

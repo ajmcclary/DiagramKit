@@ -111,7 +111,7 @@ extension BMColor {
         raw = raw.replacingOccurrences(of: "#", with: "")
         var value: UInt64 = 0
         let scanned = Scanner(string: raw).scanHexInt64(&value)
-        let valid = scanned && (raw.count == 6 || raw.count == 8)
+        let valid = scanned && (raw.count == 3 || raw.count == 6 || raw.count == 8)
 
         if !valid {
             _reportMermaidIssue("BMColor(hex:) received invalid hex string: \"\(hex)\" — defaulting to opaque black.")
@@ -119,6 +119,11 @@ extension BMColor {
 
         let r, g, b, a: CGFloat
         switch raw.count {
+        case 3:
+            r = CGFloat((value & 0xF00) >> 8) / 15
+            g = CGFloat((value & 0x0F0) >> 4) / 15
+            b = CGFloat(value & 0x00F) / 15
+            a = 1
         case 6:
             r = CGFloat((value & 0xFF0000) >> 16) / 255
             g = CGFloat((value & 0x00FF00) >> 8) / 255
