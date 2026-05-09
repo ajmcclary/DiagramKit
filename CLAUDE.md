@@ -108,4 +108,32 @@ System fonts drift across macOS/iOS major versions; bundled fonts make snapshot 
 - **Underscore-prefixed top-level names are SPI** (e.g. `_PositionedNodePayload`, `_renderMermaidSVG`). Public typealiases drop the underscore: `PositionedNode = _PositionedNodePayload`. Don't reference the `_`-prefixed names from outside the module.
 - The Mermaid frontmatter parser at `SourcePreprocessing.swift:_parseFrontMatterAndStripped` is the single entry for YAML-like frontmatter; per-diagram-type parsers receive a typed `frontmatter` argument and pull config off it.
 
+## Linux portability state (Stage 2)
+
+DiagramKit compiles on `swift:6.3.1-noble` for the targets in the table below. Functional Linux layout/rendering for layouts that depend on text measurement (`CTLineGetBoundsWithOptions`) is **deferred** — those dispatch arms throw `MermaidStructuralError.payloadMismatch` on Linux. A portable text-measurement shim is the Stage 2.5 follow-up.
+
+| Target | Linux | Notes |
+|---|---|---|
+| `DiagramKitCommon` | full | No CG/CT/UI dependencies. |
+| `DiagramKitModel` | partial | UIKit/AppKit/CoreText files compile to empty on Linux. SVG/ASCII paths that don't measure text work; layouts requiring CTLine bounds (ishikawa, treeView, eventModeling) are unreachable. |
+| `DiagramKitTestSupport` | full | No CG/CT/UI dependencies. |
+| `DiagramKit` (umbrella) | partial | `parse(_:)` and `layout(_:config:)` portable. `renderImage`, `renderSVG`, `renderASCII`, `render(in: CGContext)`, `Views/*` are Apple-only. |
+| `DiagramKitRenderingCG` | none | Apple-only via `condition: .when(platforms: [Apple])` + `#if canImport(CoreGraphics)`. |
+| `DiagramKitViews` | none | Apple-only. |
+| `DiagramKitTests` | none | Test target depends on RenderingCG; left Apple-only for Stage 2. |
+| `MermaidPlayground` | none | SwiftUI executable. |
+
+**Verifying the Linux build:**
+
+```bash
+./Scripts/linux-check.sh
+```
+
+Builds the Linux-portable target matrix in a `swift:6.3.1-noble` container (Docker or Podman) and prints PASS/FAIL per target. Requires the daemon running locally (e.g. `open -a Docker`).
+
+**The platform-condition pattern:**
+- `Package.swift` edges that traverse RenderingCG/Views are guarded by `condition: .when(platforms: [.macOS, .iOS, .tvOS, .visionOS, .macCatalyst])`.
+- Source-level: `#if canImport(CoreGraphics)` for CG, `#if canImport(CoreText)` for text measurement, `#if canImport(UIKit) || canImport(AppKit)` for native UI types and `BMColor`/`BMFont`/`BMImage`.
+- `BMColor`/`BMFont`/`BMImage`/`BMView`/`BMBezierPath` typealiases in `CrossPlatform.swift` are intentionally undefined on Linux. Any callsite using them must itself be gated.
+
 See [FOLLOWUPS.md](FOLLOWUPS.md) for explicitly deferred work (CG/SVG audit, RenderConfig magic-number sweep, SourcePreprocessing split, etc.).
