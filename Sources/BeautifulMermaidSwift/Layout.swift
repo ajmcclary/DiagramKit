@@ -7,354 +7,131 @@ public struct GraphLayout {
         self.config = config
     }
 
+    /// Layout a parsed graph into positioned geometry.
+    /// Switches on `graph.typedPayload` directly so the compiler verifies
+    /// exhaustiveness — no empty fallback branches, no `guard case` boilerplate.
     public func layout(_ graph: MermaidGraph) throws -> PositionedGraph {
         try _withMermaidIssueReporting(operation: "GraphLayout.layout") {
-            switch graph.type {
+            switch graph.typedPayload {
             case .flowchart, .stateDiagram:
                 return try layoutGraphSync(graph, config: config)
-            case .classDiagram:
-                guard case let .classDiagram(parsed) = graph.payload else {
-                    _reportMermaidIssue("GraphLayout.layout found mismatched class diagram payload.")
-                    return PositionedGraph(diagram: graph, content: .classDiagram(classes: [], relationships: [], namespaces: [], notes: [], accTitle: nil, accDescr: nil, diagramTitle: nil))
-                }
+
+            case let .classDiagram(parsed):
                 let positioned = try layoutClassDiagramSync(parsed)
-                return PositionedGraph(
-                    diagram: graph,
-                    width: positioned.width,
-                    height: positioned.height,
-                    content: .classDiagram(
-                        classes: positioned.classes,
-                        relationships: positioned.relationships,
-                        namespaces: positioned.namespaces,
-                        notes: positioned.notes,
-                        accTitle: positioned.accTitle,
-                        accDescr: positioned.accDescription,
-                        diagramTitle: positioned.diagramTitle
-                    )
-                )
-            case .erDiagram:
-                guard case let .erDiagram(parsed) = graph.payload else {
-                    _reportMermaidIssue("GraphLayout.layout found mismatched ER diagram payload.")
-                    return PositionedGraph(diagram: graph, content: .erDiagram(entities: [], relationships: [], accTitle: nil, accDescr: nil, diagramTitle: nil))
-                }
+                return PositionedGraph(diagram: graph, width: positioned.width, height: positioned.height,
+                    content: .classDiagram(classes: positioned.classes, relationships: positioned.relationships,
+                        namespaces: positioned.namespaces, notes: positioned.notes,
+                        accTitle: positioned.accTitle, accDescr: positioned.accDescription, diagramTitle: positioned.diagramTitle))
+
+            case let .erDiagram(parsed):
                 let positioned = try layoutErDiagramSync(parsed, config: parsed.config)
-                return PositionedGraph(
-                    diagram: graph,
-                    width: positioned.width,
-                    height: positioned.height,
-                    content: .erDiagram(
-                        entities: positioned.entities,
-                        relationships: positioned.relationships,
-                        accTitle: positioned.accTitle,
-                        accDescr: positioned.accDescr,
-                        diagramTitle: positioned.diagramTitle
-                    )
-                )
-            case .sequenceDiagram:
-                guard case let .sequenceDiagram(parsed) = graph.payload else {
-                    _reportMermaidIssue("GraphLayout.layout found mismatched sequence diagram payload.")
-                    return PositionedGraph(diagram: graph, content: .sequenceDiagram(actors: [], messages: [], blocks: [], lifelines: [], activations: [], notes: [], boxes: [], bottomActors: [], rectHighlights: [], title: nil, accTitle: nil, accDescr: nil))
-                }
+                return PositionedGraph(diagram: graph, width: positioned.width, height: positioned.height,
+                    content: .erDiagram(entities: positioned.entities, relationships: positioned.relationships,
+                        accTitle: positioned.accTitle, accDescr: positioned.accDescr, diagramTitle: positioned.diagramTitle))
+
+            case let .sequenceDiagram(parsed):
                 let positioned = try layoutSequenceDiagram(parsed)
-                return PositionedGraph(
-                    diagram: graph,
-                    width: positioned.width,
-                    height: positioned.height,
-                    content: .sequenceDiagram(
-                        actors: positioned.actors,
-                        messages: positioned.messages,
-                        blocks: positioned.blocks,
-                        lifelines: positioned.lifelines,
-                        activations: positioned.activations,
-                        notes: positioned.notes,
-                        boxes: positioned.boxes,
-                        bottomActors: positioned.bottomActors,
-                        rectHighlights: positioned.rectHighlights,
-                        title: positioned.title,
-                        accTitle: positioned.accTitle,
-                        accDescr: positioned.accDescr
-                    )
-                )
-            case .journey:
-                guard case let .journey(parsed) = graph.payload else {
-                    _reportMermaidIssue("GraphLayout.layout found mismatched journey payload.")
-                    return PositionedGraph(diagram: graph, content: .journey(.empty))
-                }
+                return PositionedGraph(diagram: graph, width: positioned.width, height: positioned.height,
+                    content: .sequenceDiagram(actors: positioned.actors, messages: positioned.messages,
+                        blocks: positioned.blocks, lifelines: positioned.lifelines, activations: positioned.activations,
+                        notes: positioned.notes, boxes: positioned.boxes, bottomActors: positioned.bottomActors,
+                        rectHighlights: positioned.rectHighlights, title: positioned.title,
+                        accTitle: positioned.accTitle, accDescr: positioned.accDescr))
+
+            case let .journey(parsed):
                 let config = parsed.config ?? .default
                 let positioned = layoutJourneyDiagram(parsed, options: RenderOptions(), config: config)
-                return PositionedGraph(
-                    diagram: graph,
-                    width: positioned.width,
-                    height: positioned.height,
-                    content: .journey(positioned)
-                )
-            case .xyChart:
-                guard case let .xyChart(chart) = graph.payload else {
-                    _reportMermaidIssue("GraphLayout.layout found mismatched XY chart payload.")
-                    return PositionedGraph(diagram: graph, content: .xyChart(PositionedXYChart.empty))
-                }
+                return PositionedGraph(diagram: graph, width: positioned.width, height: positioned.height, content: .journey(positioned))
+
+            case let .xyChart(chart):
                 let positioned = layoutXYChart(chart)
-                return PositionedGraph(
-                    diagram: graph,
-                    width: positioned.width,
-                    height: positioned.height,
-                    content: .xyChart(positioned)
-                )
-            case .pie:
-                guard case let .pie(chart) = graph.payload else {
-                    _reportMermaidIssue("GraphLayout.layout found mismatched pie chart payload.")
-                    return PositionedGraph(diagram: graph, content: .pie(.empty))
-                }
+                return PositionedGraph(diagram: graph, width: positioned.width, height: positioned.height, content: .xyChart(positioned))
+
+            case let .pie(chart):
                 let positioned = layoutPieChart(chart)
-                return PositionedGraph(
-                    diagram: graph,
-                    width: positioned.width,
-                    height: positioned.height,
-                    content: .pie(positioned)
-                )
-            case .gantt:
-                guard case let .gantt(parsed) = graph.payload else {
-                    _reportMermaidIssue("GraphLayout.layout found mismatched Gantt payload.")
-                    return PositionedGraph(diagram: graph, content: .gantt(.empty))
-                }
+                return PositionedGraph(diagram: graph, width: positioned.width, height: positioned.height, content: .pie(positioned))
+
+            case let .gantt(parsed):
                 let config = parsed.config ?? .default
-                var merged = parsed
-                merged.config = config
+                var merged = parsed; merged.config = config
                 let positioned = layoutGanttDiagram(merged)
-                return PositionedGraph(
-                    diagram: graph,
-                    width: positioned.width,
-                    height: positioned.height,
-                    content: .gantt(positioned)
-                )
-            case .quadrantChart:
-                guard case let .quadrantChart(chart) = graph.payload else {
-                    _reportMermaidIssue("GraphLayout.layout found mismatched quadrant chart payload.")
-                    return PositionedGraph(diagram: graph, content: .quadrantChart(.empty))
-                }
+                return PositionedGraph(diagram: graph, width: positioned.width, height: positioned.height, content: .gantt(positioned))
+
+            case let .quadrantChart(chart):
                 let positioned = layoutQuadrantChart(chart)
-                return PositionedGraph(
-                    diagram: graph,
-                    width: positioned.width,
-                    height: positioned.height,
-                    content: .quadrantChart(positioned)
-                )
-            case .requirement:
-                guard case let .requirement(diagram) = graph.payload else {
-                    _reportMermaidIssue("GraphLayout.layout found mismatched requirement payload.")
-                    return PositionedGraph(diagram: graph, content: .requirement(PositionedRequirementDiagram(width: 0, height: 0, nodes: [], edges: [], config: RequirementDiagramConfig())))
-                }
+                return PositionedGraph(diagram: graph, width: positioned.width, height: positioned.height, content: .quadrantChart(positioned))
+
+            case let .requirement(diagram):
                 let positioned = try layoutRequirementDiagram(diagram)
-                return PositionedGraph(
-                    diagram: graph,
-                    width: positioned.width,
-                    height: positioned.height,
-                    content: .requirement(positioned)
-                )
-            case .gitGraph:
-                guard case let .gitGraph(diagram) = graph.payload else {
-                    _reportMermaidIssue("GraphLayout.layout found mismatched gitGraph payload.")
-                    return PositionedGraph(diagram: graph, content: .gitGraph(.empty))
-                }
+                return PositionedGraph(diagram: graph, width: positioned.width, height: positioned.height, content: .requirement(positioned))
+
+            case let .gitGraph(diagram):
                 let positioned = layoutGitGraph(diagram)
-                return PositionedGraph(
-                    diagram: graph,
-                    width: positioned.width,
-                    height: positioned.height,
-                    content: .gitGraph(positioned)
-                )
-            case .mindmap:
-                guard case let .mindmap(diagram) = graph.payload else {
-                    _reportMermaidIssue("GraphLayout.layout found mismatched mindmap payload.")
-                    return PositionedGraph(diagram: graph, content: .mindmap(.empty))
-                }
+                return PositionedGraph(diagram: graph, width: positioned.width, height: positioned.height, content: .gitGraph(positioned))
+
+            case let .mindmap(diagram):
                 let positioned = try layoutMindmap(diagram)
-                return PositionedGraph(
-                    diagram: graph,
-                    width: positioned.width,
-                    height: positioned.height,
-                    content: .mindmap(positioned)
-                )
-            case .timeline:
-                guard case let .timeline(diagram) = graph.payload else {
-                    _reportMermaidIssue("GraphLayout.layout found mismatched timeline payload.")
-                    return PositionedGraph(diagram: graph, content: .timeline(.empty))
-                }
+                return PositionedGraph(diagram: graph, width: positioned.width, height: positioned.height, content: .mindmap(positioned))
+
+            case let .timeline(diagram):
                 let positioned = layoutTimelineDiagram(diagram)
-                return PositionedGraph(
-                    diagram: graph,
-                    width: positioned.width,
-                    height: positioned.height,
-                    content: .timeline(positioned)
-                )
-            case .sankey:
-                guard case let .sankey(diagram) = graph.payload else {
-                    _reportMermaidIssue("GraphLayout.layout found mismatched sankey payload.")
-                    return PositionedGraph(diagram: graph, content: .sankey(.empty))
-                }
+                return PositionedGraph(diagram: graph, width: positioned.width, height: positioned.height, content: .timeline(positioned))
+
+            case let .sankey(diagram):
                 let positioned = layoutSankeyDiagram(diagram)
-                return PositionedGraph(
-                    diagram: graph,
-                    width: positioned.width,
-                    height: positioned.height,
-                    content: .sankey(positioned)
-                )
-            case .block:
-                guard case let .block(diagram) = graph.payload else {
-                    _reportMermaidIssue("GraphLayout.layout found mismatched block payload.")
-                    return PositionedGraph(diagram: graph, content: .block(.empty))
-                }
+                return PositionedGraph(diagram: graph, width: positioned.width, height: positioned.height, content: .sankey(positioned))
+
+            case let .block(diagram):
                 let positioned = try layoutBlockDiagram(diagram)
-                return PositionedGraph(
-                    diagram: graph,
-                    width: positioned.width,
-                    height: positioned.height,
-                    content: .block(positioned)
-                )
-            case .packet:
-                guard case let .packet(diagram) = graph.payload else {
-                    _reportMermaidIssue("GraphLayout.layout found mismatched packet payload.")
-                    return PositionedGraph(diagram: graph, content: .packet(.empty))
-                }
+                return PositionedGraph(diagram: graph, width: positioned.width, height: positioned.height, content: .block(positioned))
+
+            case let .packet(diagram):
                 let positioned = layoutPacketDiagram(diagram)
-                return PositionedGraph(
-                    diagram: graph,
-                    width: positioned.width,
-                    height: positioned.height,
-                    content: .packet(positioned)
-                )
-            case .kanban:
-                guard case let .kanban(diagram) = graph.payload else {
-                    _reportMermaidIssue("GraphLayout.layout found mismatched kanban payload.")
-                    return PositionedGraph(diagram: graph, content: .kanban(.empty))
-                }
+                return PositionedGraph(diagram: graph, width: positioned.width, height: positioned.height, content: .packet(positioned))
+
+            case let .kanban(diagram):
                 let positioned = layoutKanbanDiagram(diagram)
-                return PositionedGraph(
-                    diagram: graph,
-                    width: positioned.width,
-                    height: positioned.height,
-                    content: .kanban(positioned)
-                )
-            case .architecture:
-                guard case let .architecture(diagram) = graph.payload else {
-                    _reportMermaidIssue("GraphLayout.layout found mismatched architecture payload.")
-                    return PositionedGraph(diagram: graph, content: .architecture(.empty))
-                }
+                return PositionedGraph(diagram: graph, width: positioned.width, height: positioned.height, content: .kanban(positioned))
+
+            case let .architecture(diagram):
                 let positioned = layoutArchitectureDiagram(diagram)
-                return PositionedGraph(
-                    diagram: graph,
-                    width: positioned.width,
-                    height: positioned.height,
-                    content: .architecture(positioned)
-                )
-            case .radar:
-                guard case let .radar(diagram) = graph.payload else {
-                    _reportMermaidIssue("GraphLayout.layout found mismatched radar payload.")
-                    return PositionedGraph(diagram: graph, content: .radar(.empty))
-                }
+                return PositionedGraph(diagram: graph, width: positioned.width, height: positioned.height, content: .architecture(positioned))
+
+            case let .radar(diagram):
                 let positioned = layoutRadarDiagram(diagram)
-                return PositionedGraph(
-                    diagram: graph,
-                    width: positioned.width,
-                    height: positioned.height,
-                    content: .radar(positioned)
-                )
-            case .treemap:
-                guard case let .treemap(diagram) = graph.payload else {
-                    _reportMermaidIssue("GraphLayout.layout found mismatched treemap payload.")
-                    return PositionedGraph(diagram: graph, content: .treemap(.empty))
-                }
+                return PositionedGraph(diagram: graph, width: positioned.width, height: positioned.height, content: .radar(positioned))
+
+            case let .treemap(diagram):
                 let positioned = layoutTreemapDiagram(diagram)
-                return PositionedGraph(
-                    diagram: graph,
-                    width: positioned.width,
-                    height: positioned.height,
-                    content: .treemap(positioned)
-                )
-            case .venn:
-                guard case let .venn(diagram) = graph.payload else {
-                    _reportMermaidIssue("GraphLayout.layout found mismatched venn payload.")
-                    return PositionedGraph(diagram: graph, content: .venn(.empty))
-                }
+                return PositionedGraph(diagram: graph, width: positioned.width, height: positioned.height, content: .treemap(positioned))
+
+            case let .venn(diagram):
                 let positioned = layoutVennDiagram(diagram)
-                return PositionedGraph(
-                    diagram: graph,
-                    width: positioned.width,
-                    height: positioned.height,
-                    content: .venn(positioned)
-                )
-            case .ishikawa:
-                guard case let .ishikawa(diagram) = graph.payload else {
-                    _reportMermaidIssue("GraphLayout.layout found mismatched ishikawa payload.")
-                    return PositionedGraph(diagram: graph, content: .ishikawa(.empty))
-                }
+                return PositionedGraph(diagram: graph, width: positioned.width, height: positioned.height, content: .venn(positioned))
+
+            case let .ishikawa(diagram):
                 let positioned = layoutIshikawaDiagram(diagram)
-                return PositionedGraph(
-                    diagram: graph,
-                    width: positioned.width,
-                    height: positioned.height,
-                    content: .ishikawa(positioned)
-                )
-            case .treeView:
-                guard case let .treeView(diagram) = graph.payload else {
-                    _reportMermaidIssue("GraphLayout.layout found mismatched treeView payload.")
-                    return PositionedGraph(diagram: graph, content: .treeView(.empty))
-                }
+                return PositionedGraph(diagram: graph, width: positioned.width, height: positioned.height, content: .ishikawa(positioned))
+
+            case let .treeView(diagram):
                 let positioned = layoutTreeViewDiagram(diagram)
-                return PositionedGraph(
-                    diagram: graph,
-                    width: positioned.viewBoxWidth,
-                    height: positioned.viewBoxHeight,
-                    content: .treeView(positioned)
-                )
-            case .eventModeling:
-                guard case let .eventModeling(diagram) = graph.payload else {
-                    _reportMermaidIssue("GraphLayout.layout found mismatched eventModeling payload.")
-                    return PositionedGraph(diagram: graph, content: .eventModeling(.empty))
-                }
+                return PositionedGraph(diagram: graph, width: positioned.viewBoxWidth, height: positioned.viewBoxHeight, content: .treeView(positioned))
+
+            case let .eventModeling(diagram):
                 let positioned = layoutEventModeling(diagram)
-                return PositionedGraph(
-                    diagram: graph,
-                    width: positioned.width,
-                    height: positioned.height,
-                    content: .eventModeling(positioned)
-                )
-            case .wardleyBeta:
-                guard case let .wardleyBeta(diagram) = graph.payload else {
-                    _reportMermaidIssue("GraphLayout.layout found mismatched wardleyBeta payload.")
-                    return PositionedGraph(diagram: graph, content: .wardleyBeta(.empty))
-                }
+                return PositionedGraph(diagram: graph, width: positioned.width, height: positioned.height, content: .eventModeling(positioned))
+
+            case let .wardleyBeta(diagram):
                 let positioned = layoutWardleyMap(diagram)
-                return PositionedGraph(
-                    diagram: graph,
-                    width: positioned.width,
-                    height: positioned.height,
-                    content: .wardleyBeta(positioned)
-                )
-            case .zenuml:
-                guard case let .zenuml(parsed) = graph.payload else {
-                    _reportMermaidIssue("GraphLayout.layout found mismatched ZenUML payload.")
-                    return PositionedGraph(diagram: graph, content: .zenuml(.empty))
-                }
+                return PositionedGraph(diagram: graph, width: positioned.width, height: positioned.height, content: .wardleyBeta(positioned))
+
+            case let .zenuml(parsed):
                 let positioned = layoutZenUMLDiagram(parsed)
-                return PositionedGraph(
-                    diagram: graph,
-                    width: positioned.width,
-                    height: positioned.height,
-                    content: .zenuml(positioned)
-                )
-            case .c4:
-                guard case let .c4(parsed) = graph.payload else {
-                    _reportMermaidIssue("GraphLayout.layout found mismatched C4 payload.")
-                    return PositionedGraph(diagram: graph, content: .c4(.empty))
-                }
+                return PositionedGraph(diagram: graph, width: positioned.width, height: positioned.height, content: .zenuml(positioned))
+
+            case let .c4(parsed):
                 let positioned = layoutC4Diagram(parsed)
-                return PositionedGraph(
-                    diagram: graph,
-                    width: positioned.width,
-                    height: positioned.height,
-                    content: .c4(positioned)
-                )
+                return PositionedGraph(diagram: graph, width: positioned.width, height: positioned.height, content: .c4(positioned))
             }
         }
     }

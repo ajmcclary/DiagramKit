@@ -117,93 +117,38 @@ private func _decodeXML(_ text: String) -> String {
 }
 
 private func detectDiagramType(_ text: String) -> _DiagramRoutingType {
-    let firstStatement = _firstDiagramStatement(in: text)
-    let firstLine = firstStatement.lowercased()
-
-    if firstLine.range(of: "^sequencediagram\\s*$", options: .regularExpression) != nil {
-        return .sequence
+    // Delegate to the canonical diagram registry, then map DiagramType → _DiagramRoutingType.
+    let descriptor = DiagramRegistry.detect(from: text)
+    switch descriptor.type {
+    case .flowchart: return .flowchart
+    case .stateDiagram: return .flowchart  // state diagrams route through flowchart SVG
+    case .sequenceDiagram: return .sequence
+    case .classDiagram: return .class
+    case .erDiagram: return .er
+    case .xyChart: return .xychart
+    case .pie: return .pie
+    case .journey: return .journey
+    case .gantt: return .gantt
+    case .quadrantChart: return .quadrant
+    case .requirement: return .requirement
+    case .gitGraph: return .gitgraph
+    case .mindmap: return .mindmap
+    case .timeline: return .timeline
+    case .sankey: return .sankey
+    case .block: return .block
+    case .packet: return .packet
+    case .kanban: return .kanban
+    case .architecture: return .architecture
+    case .radar: return .radar
+    case .treemap: return .treemap
+    case .venn: return .venn
+    case .ishikawa: return .ishikawa
+    case .treeView: return .treeView
+    case .eventModeling: return .eventmodeling
+    case .wardleyBeta: return .wardley
+    case .c4: return .c4
+    case .zenuml: return .zenuml
     }
-    if firstLine.range(of: #"^classdiagram(-v2)?\s*$"#, options: .regularExpression) != nil {
-        return .class
-    }
-    if firstLine.range(of: "^erdiagram\\s*$", options: .regularExpression) != nil {
-        return .er
-    }
-    if firstLine.hasPrefix("xychart") {
-        return .xychart
-    }
-    if firstLine.hasPrefix("pie") {
-        return .pie
-    }
-    if firstLine.hasPrefix("journey") {
-        return .journey
-    }
-    if firstLine.hasPrefix("gantt") {
-        return .gantt
-    }
-    if firstLine.hasPrefix("quadrantchart") {
-        return .quadrant
-    }
-    if firstLine.hasPrefix("requirement") {
-        return .requirement
-    }
-    if firstLine.hasPrefix("gitgraph") {
-        return .gitgraph
-    }
-    if firstLine.hasPrefix("mindmap") {
-        return .mindmap
-    }
-    if firstLine.hasPrefix("timeline") {
-        return .timeline
-    }
-    if firstLine.hasPrefix("sankey") {
-        return .sankey
-    }
-    if firstLine.hasPrefix("block") {
-        return .block
-    }
-    if firstLine.hasPrefix("packet") {
-        return .packet
-    }
-    if firstLine.hasPrefix("kanban") {
-        return .kanban
-    }
-    if firstLine.hasPrefix("architecture") {
-        return .architecture
-    }
-    if firstLine.hasPrefix("radar-beta") {
-        return .radar
-    }
-    if firstLine.hasPrefix("treemap") {
-        return .treemap
-    }
-    if firstLine.hasPrefix("venn-beta") {
-        return .venn
-    }
-    if firstLine.range(of: #"^ishikawa(-beta)?\b"#, options: [.regularExpression, .caseInsensitive]) != nil {
-        return .ishikawa
-    }
-    if firstStatement == "treeView-beta" || firstStatement.hasPrefix("treeView-beta ") || firstStatement.hasPrefix("treeView-beta\t") {
-        return .treeView
-    }
-    if firstLine.hasPrefix("eventmodeling") {
-        return .eventmodeling
-    }
-    if firstLine.hasPrefix("wardley-beta") {
-        return .wardley
-    }
-
-    // ZenUML — case-insensitive header prefix match
-    if firstLine.hasPrefix("zenuml") {
-        return .zenuml
-    }
-
-    // C4 — case-sensitive full-line header match
-    if firstStatement.range(of: #"^C4(?:Context|Container|Component|Dynamic|Deployment)\s*$"#, options: .regularExpression) != nil {
-        return .c4
-    }
-
-    return .flowchart
 }
 
 private func _firstDiagramStatement(in text: String) -> String {

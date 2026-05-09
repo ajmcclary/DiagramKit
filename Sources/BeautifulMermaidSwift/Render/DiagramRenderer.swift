@@ -34,7 +34,7 @@ public final class DiagramRenderer {
             context.fill(bounds)
         }
 
-        switch positioned.diagram.type {
+        switch positioned.content {
         case .classDiagram:
             _drawClass(positioned, in: context, bounds: bounds)
         case .erDiagram:
