@@ -32,9 +32,9 @@ Source string → MermaidParser.parse → MermaidGraph
               → DiagramRenderer.render (CG) | renderSVG | renderASCII
 ```
 
-- **`MermaidRenderer`** ([Sources/BeautifulMermaidSwift/BeautifulMermaid.swift](Sources/BeautifulMermaidSwift/BeautifulMermaid.swift)) is the public façade — `async throws` static methods. Every entry point dispatches its work onto a fresh 8 MB-stack `Thread` via `_runOnWorker`. **Do not reintroduce a thread pool**; it was attempted in `ff2622b` and intentionally reverted (see the doc-comment on `_runOnWorker` and `FOLLOWUPS.md`). Layout exceeds the cooperative pool's ~512 KB stack budget on nested-subgraph diagrams.
-- **`MermaidPipeline`** ([Sources/BeautifulMermaidSwift/MermaidPipeline.swift](Sources/BeautifulMermaidSwift/MermaidPipeline.swift)) is a stateless enum (NOT an actor) holding the synchronous, nonisolated implementations. Each public method calls `BeautifulMermaidFontRegistry.registerBundledFontsIfNeeded()` first — critical for snapshot determinism.
-- **`MermaidImageRenderer`** ([Sources/BeautifulMermaidSwift/ImageRenderer.swift](Sources/BeautifulMermaidSwift/ImageRenderer.swift)) wraps the CG path and produces `BMImage` / PNG / JPEG. Routes through `MermaidRenderer._runOnWorker`, **not** a separate worker (the duplication was removed).
+- **`MermaidRenderer`** ([Sources/DiagramKit/MermaidRenderer.swift](Sources/DiagramKit/MermaidRenderer.swift)) is the public façade — `async throws` static methods. Every entry point dispatches its work onto a fresh 8 MB-stack `Thread` via `_runOnWorker`. **Do not reintroduce a thread pool**; it was attempted in `ff2622b` and intentionally reverted (see the doc-comment on `_runOnWorker` and `FOLLOWUPS.md`). Layout exceeds the cooperative pool's ~512 KB stack budget on nested-subgraph diagrams.
+- **`MermaidPipeline`** ([Sources/DiagramKit/MermaidPipeline.swift](Sources/DiagramKit/MermaidPipeline.swift)) is a stateless enum (NOT an actor) holding the synchronous, nonisolated implementations. Each public method calls `BeautifulMermaidFontRegistry.registerBundledFontsIfNeeded()` first — critical for snapshot determinism.
+- **`MermaidImageRenderer`** ([Sources/DiagramKit/ImageRenderer.swift](Sources/DiagramKit/ImageRenderer.swift)) wraps the CG path and produces `BMImage` / PNG / JPEG. Routes through `MermaidRenderer._runOnWorker`, **not** a separate worker (the duplication was removed).
 
 ### Type-safe payloads
 
@@ -53,22 +53,22 @@ case .sequenceDiagram(let seq): ...
 
 Every diagram type has **two independent renderers** that share no geometry/text-measurement logic:
 
-- **CG path:** `Sources/BeautifulMermaidSwift/Render/DiagramRenderer+<Type>.swift` — extends `DiagramRenderer`, drives `CGContext`, used by `renderImage(...)`.
-- **SVG path:** `Sources/BeautifulMermaidSwift/Mermaid/src_<type>_renderer.swift` (or `_svg.swift`) — used by `renderSVG(...)`.
+- **CG path:** `Sources/DiagramKitRenderingCG/DiagramRenderer+<Type>.swift` — extends `DiagramRenderer`, drives `CGContext`, used by `renderImage(...)`.
+- **SVG path:** `Sources/DiagramKitModel/src_<type>_renderer.swift` (or `_svg.swift`) — used by `renderSVG(...)`.
 
 These will drift over time. Snapshot tests catch divergence. Consolidation onto a single canonical path is a tracked follow-up — see [FOLLOWUPS.md](FOLLOWUPS.md).
 
 ### Parser dispatch
 
-[Sources/BeautifulMermaidSwift/Parser.swift](Sources/BeautifulMermaidSwift/Parser.swift) uses a cascading `firstLine.hasPrefix(...)` chain (e.g. `"sequencediagram"`, `"classdiagram"`, `"radar-beta"`). **Order matters** — narrower prefixes must come before broader ones. The fallback at the end handles `flowchart`, `graph`, `stateDiagram-v2`, and the older `state` keyword. Per-diagram-type parsers live in `Sources/BeautifulMermaidSwift/Mermaid/src_<type>_parser.swift`. The largest preprocessing file, `SourcePreprocessing.swift` (~2.6K LOC), handles frontmatter / multiline joining / comment stripping for all diagrams.
+[Sources/DiagramKit/Parser.swift](Sources/DiagramKit/Parser.swift) uses a cascading `firstLine.hasPrefix(...)` chain (e.g. `"sequencediagram"`, `"classdiagram"`, `"radar-beta"`). **Order matters** — narrower prefixes must come before broader ones. The fallback at the end handles `flowchart`, `graph`, `stateDiagram-v2`, and the older `state` keyword. Per-diagram-type parsers live in `Sources/DiagramKitModel/src_<type>_parser.swift`. The largest preprocessing file, `SourcePreprocessing.swift` (~2.6K LOC), handles frontmatter / multiline joining / comment stripping for all diagrams.
 
 ### Cross-platform shim
 
-[Sources/BeautifulMermaidSwift/CrossPlatform.swift](Sources/BeautifulMermaidSwift/CrossPlatform.swift) defines `BMColor`, `BMFont`, `BMImage`, `BMBezierPath`, `BMView` typealiases via `#if canImport(UIKit) / canImport(AppKit)`. AppKit `NSBezierPath` doesn't expose `cgPath`, so a custom `bm_cgPath` converter walks element-by-element including `.cubicCurveTo` / `.quadraticCurveTo`. **Do not** assume `BMColor` round-trips through `hexString` — use `bmColorEquals()` for comparisons (it normalizes through `.deviceRGB` on AppKit).
+[Sources/DiagramKitModel/CrossPlatform.swift](Sources/DiagramKitModel/CrossPlatform.swift) defines `BMColor`, `BMFont`, `BMImage`, `BMBezierPath`, `BMView` typealiases via `#if canImport(UIKit) / canImport(AppKit)`. AppKit `NSBezierPath` doesn't expose `cgPath`, so a custom `bm_cgPath` converter walks element-by-element including `.cubicCurveTo` / `.quadraticCurveTo`. **Do not** assume `BMColor` round-trips through `hexString` — use `bmColorEquals()` for comparisons (it normalizes through `.deviceRGB` on AppKit).
 
 ### Bundled fonts (snapshot determinism)
 
-`Sources/BeautifulMermaidSwift/Resources/Fonts/` ships Noto Sans (4 weights) + Noto Sans Mono (Regular + Bold) under SIL OFL. They are registered process-wide on first use via `BeautifulMermaidFontRegistry.registerBundledFontsIfNeeded()` and looked up by family name (`"Noto Sans"`, `"Noto Sans Mono"`) in:
+`Sources/DiagramKitRenderingCG/Resources/Fonts/` ships Noto Sans (4 weights) + Noto Sans Mono (Regular + Bold) under SIL OFL. They are registered process-wide on first use via `BeautifulMermaidFontRegistry.registerBundledFontsIfNeeded()` and looked up by family name (`"Noto Sans"`, `"Noto Sans Mono"`) in:
 
 - `RenderConfig.defaultFontFamily` / `defaultProportionalFontFamily` (the canonical knobs)
 - `DiagramRenderer._monoFont/_italicSystemFont/_italicMonoFont` (route through `config.*`)
@@ -80,7 +80,7 @@ System fonts drift across macOS/iOS major versions; bundled fonts make snapshot 
 ### Test corpus & snapshots
 
 - The corpus is [Examples/MermaidPlayground/Resources/test-diagrams.json](Examples/MermaidPlayground/Resources/test-diagrams.json) — 396 diagrams across 28 GAPS.md families. `PlaygroundExampleCatalogTests` validates that every category has at least one entry and that picker order matches GAPS.md.
-- `CorpusSnapshotTests.swift` (swift-testing, parameterized over `loadDiagrams()`) renders every entry through SVG / image / ASCII paths. Baselines live in `Tests/BeautifulMermaidSwiftTests/__Snapshots__/CorpusSnapshotTests/`. Currently ~393 SVG, ~172 ASCII, ~161 image baselines — the gap on image vs SVG is the rendering-bug punch list.
+- `CorpusSnapshotTests.swift` (swift-testing, parameterized over `loadDiagrams()`) renders every entry through SVG / image / ASCII paths. Baselines live in `Tests/DiagramKitTests/__Snapshots__/CorpusSnapshotTests/`. Currently ~393 SVG, ~172 ASCII, ~161 image baselines — the gap on image vs SVG is the rendering-bug punch list.
 - Most other tests use `XCTestCase` (~140 files). Migration to swift-testing is incremental, not blocking.
 
 ## Pinned dependencies
@@ -90,7 +90,7 @@ System fonts drift across macOS/iOS major versions; bundled fonts make snapshot 
 
 ## What lives where
 
-- `Sources/BeautifulMermaidSwift/` — library
+- `Sources/DiagramKit/` — library
   - `BeautifulMermaid.swift`, `MermaidPipeline.swift`, `ImageRenderer.swift` — public API
   - `Parser.swift`, `Layout.swift`, `Types.swift` — top-level dispatchers and public types
   - `CrossPlatform.swift`, `FontRegistry.swift`, `IssueReportingSupport.swift` — platform shims
@@ -98,7 +98,7 @@ System fonts drift across macOS/iOS major versions; bundled fonts make snapshot 
   - `Mermaid/` — JS-ported per-diagram-type parsers / layouts / SVG / ASCII (~150 files)
   - `Resources/` — bundled fonts + `VERSION` file (read by `MermaidRenderer.version`)
 - `Examples/MermaidPlayground/` — SwiftUI sample app, also the source of the test corpus JSON
-- `Tests/BeautifulMermaidSwiftTests/` — XCTest + swift-testing test files; `__Snapshots__/` baselines (excluded from SwiftPM resource processing)
+- `Tests/DiagramKitTests/` — XCTest + swift-testing test files; `__Snapshots__/` baselines (excluded from SwiftPM resource processing)
 
 ## Conventions
 
