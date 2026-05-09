@@ -115,3 +115,54 @@ public struct ElkGraphPort: Sendable {
         self.id = id
     }
 }
+
+// MARK: - LayoutNode Conversion
+
+extension ElkGraphNode {
+    /// Convert a `LayoutNode` dictionary (from the ELK engine) into a typed `ElkGraphNode`.
+    public init(from dict: [String: Any]) {
+        self.id = dict["id"] as? String ?? ""
+        self.width = (dict["width"] as? Double) ?? 0
+        self.height = (dict["height"] as? Double) ?? 0
+        self.x = (dict["x"] as? Double) ?? 0
+        self.y = (dict["y"] as? Double) ?? 0
+        self.layoutOptions = (dict["layoutOptions"] as? [String: String]) ?? [:]
+        self.labels = ((dict["labels"] as? [[String: Any]]) ?? []).map(ElkGraphLabel.init(from:))
+        self.ports = ((dict["ports"] as? [[String: Any]]) ?? []).map { ElkGraphPort(id: $0["id"] as? String ?? "") }
+        self.children = ((dict["children"] as? [[String: Any]]) ?? []).map(ElkGraphNode.init(from:))
+        self.edges = ((dict["edges"] as? [[String: Any]]) ?? []).map(ElkGraphEdge.init(from:))
+    }
+}
+
+extension ElkGraphEdge {
+    public init(from dict: [String: Any]) {
+        self.id = dict["id"] as? String ?? ""
+        self.sources = (dict["sources"] as? [String]) ?? []
+        self.targets = (dict["targets"] as? [String]) ?? []
+        self.sections = ((dict["sections"] as? [[String: Any]]) ?? []).map(ElkEdgeSection.init(from:))
+        self.labels = ((dict["labels"] as? [[String: Any]]) ?? []).map(ElkGraphLabel.init(from:))
+    }
+}
+
+extension ElkEdgeSection {
+    public init(from dict: [String: Any]) {
+        let sp = (dict["startPoint"] as? [String: Any])
+        self.startPoint = CGPoint(x: (sp?["x"] as? Double) ?? 0, y: (sp?["y"] as? Double) ?? 0)
+        let ep = (dict["endPoint"] as? [String: Any])
+        self.endPoint = CGPoint(x: (ep?["x"] as? Double) ?? 0, y: (ep?["y"] as? Double) ?? 0)
+        self.bendPoints = ((dict["bendPoints"] as? [[String: Any]]) ?? []).map { bp in
+            CGPoint(x: (bp["x"] as? Double) ?? 0, y: (bp["y"] as? Double) ?? 0)
+        }
+    }
+}
+
+extension ElkGraphLabel {
+    public init(from dict: [String: Any]) {
+        self.text = dict["text"] as? String ?? ""
+        self.x = (dict["x"] as? Double) ?? 0
+        self.y = (dict["y"] as? Double) ?? 0
+        self.width = (dict["width"] as? Double) ?? 0
+        self.height = (dict["height"] as? Double) ?? 0
+        self.layoutOptions = (dict["layoutOptions"] as? [String: String]) ?? [:]
+    }
+}

@@ -43,28 +43,6 @@ public struct _PositionedEdgePayload: Sendable {
     public var curve: String?
 }
 
-private func _asDict(_ value: Any?) -> [String: Any]? {
-    value as? [String: Any]
-}
-
-private func _asDictArray(_ value: Any?) -> [[String: Any]] {
-    if let direct = value as? [[String: Any]] { return direct }
-    if let anyArray = value as? [Any] { return anyArray.compactMap { $0 as? [String: Any] } }
-    return []
-}
-
-private func _asString(_ value: Any?) -> String? {
-    value as? String
-}
-
-private func _asDouble(_ value: Any?) -> Double? {
-    if let d = value as? Double { return d }
-    if let i = value as? Int { return Double(i) }
-    if let f = value as? Float { return Double(f) }
-    if let n = value as? NSNumber { return n.doubleValue }
-    return nil
-}
-
 private func _mapDirection(_ direction: original_src_types.Direction) -> String {
     switch direction {
     case .LR: return "RIGHT"
@@ -399,22 +377,21 @@ public struct _PositionedGroupPayload: Sendable {
 }
 
 /// Collect all leaf-node children from the ELK result, including those nested inside compound nodes.
-/// Returns tuples of (child dict, cumulative parent offset).
+/// Returns tuples of (child node, cumulative parent offset).
 private func _collectAllChildren(
-    _ elkNode: [String: Any],
+    _ elkNode: ElkGraphNode,
     nodeById: [String: original_src_types.MermaidNode],
     parentOffset: (x: Double, y: Double) = (0, 0)
-) -> [([String: Any], (x: Double, y: Double))] {
-    var result: [([String: Any], (x: Double, y: Double))] = []
-    for child in _asDictArray(elkNode["children"]) {
-        guard let id = _asString(child["id"]) else { continue }
-        if nodeById[id] != nil && _asDictArray(child["children"]).isEmpty {
+) -> [(ElkGraphNode, (x: Double, y: Double))] {
+    var result: [(ElkGraphNode, (x: Double, y: Double))] = []
+    for child in elkNode.children {
+        if nodeById[child.id] != nil && child.children.isEmpty {
             // Leaf node
             result.append((child, parentOffset))
         } else {
             // Compound node — recurse into its children with accumulated offset
-            let cx = (_asDouble(child["x"]) ?? 0) + parentOffset.x
-            let cy = (_asDouble(child["y"]) ?? 0) + parentOffset.y
+            let cx = child.x + parentOffset.x
+            let cy = child.y + parentOffset.y
             result += _collectAllChildren(child, nodeById: nodeById, parentOffset: (cx, cy))
         }
     }
@@ -432,13 +409,13 @@ private struct _EdgeSegments {
 /// Recursively collect edge segments from ELK result.
 /// Parses edge IDs to identify external ("e3"), outgoing ("e3_out"), and incoming ("e3_in") segments.
 private func _collectEdgeSegments(
-    _ elkNode: [String: Any],
+    _ elkNode: ElkGraphNode,
     segments: inout [Int: _EdgeSegments],
     offsetX: Double,
     offsetY: Double
 ) {
-    for elkEdge in _asDictArray(elkNode["edges"]) {
-        guard let eid = _asString(elkEdge["id"]) else { continue }
+    for elkEdge in elkNode.edges {
+        let eid = elkEdge.id
 
         // Parse edge ID
         let isOut = eid.hasSuffix("_out")
@@ -458,36 +435,30 @@ private func _collectEdgeSegments(
 
         // Extract points from sections
         var points: [_PositionedPointPayload] = []
-        if let section = _asDictArray(elkEdge["sections"]).first {
-            if let s = _asDict(section["startPoint"]) {
+        if let section = elkEdge.sections.first {
+            points.append(_PositionedPointPayload(
+                x: section.startPoint.x + offsetX,
+                y: section.startPoint.y + offsetY
+            ))
+            for bp in section.bendPoints {
                 points.append(_PositionedPointPayload(
-                    x: (_asDouble(s["x"]) ?? 0) + offsetX,
-                    y: (_asDouble(s["y"]) ?? 0) + offsetY
+                    x: bp.x + offsetX,
+                    y: bp.y + offsetY
                 ))
             }
-            for bp in _asDictArray(section["bendPoints"]) {
-                points.append(_PositionedPointPayload(
-                    x: (_asDouble(bp["x"]) ?? 0) + offsetX,
-                    y: (_asDouble(bp["y"]) ?? 0) + offsetY
-                ))
-            }
-            if let e = _asDict(section["endPoint"]) {
-                points.append(_PositionedPointPayload(
-                    x: (_asDouble(e["x"]) ?? 0) + offsetX,
-                    y: (_asDouble(e["y"]) ?? 0) + offsetY
-                ))
-            }
+            points.append(_PositionedPointPayload(
+                x: section.endPoint.x + offsetX,
+                y: section.endPoint.y + offsetY
+            ))
         }
 
         // Extract label position
         var labelPos: _PositionedPointPayload?
-        if let label = _asDictArray(elkEdge["labels"]).first {
-            if let lx = _asDouble(label["x"]), let ly = _asDouble(label["y"]) {
-                let lw = _asDouble(label["width"]) ?? 0
-                let lh = _asDouble(label["height"]) ?? 0
+        if let label = elkEdge.labels.first {
+            if label.x != 0 || label.y != 0 {
                 labelPos = _PositionedPointPayload(
-                    x: lx + lw / 2 + offsetX,
-                    y: ly + lh / 2 + offsetY
+                    x: label.x + label.width / 2 + offsetX,
+                    y: label.y + label.height / 2 + offsetY
                 )
             }
         }
@@ -502,8 +473,7 @@ private func _collectEdgeSegments(
         } else if isIn {
             segments[edgeIndex]?.incoming = points
         } else if isInternal {
-            let sources = (elkEdge["sources"] as? [String]) ?? []
-            let src = sources.first ?? ""
+            let src = elkEdge.sources.first ?? ""
             if src.contains("_in_") || src.contains("_out_") {
                 segments[edgeIndex]?.incoming = points
             } else {
@@ -518,10 +488,10 @@ private func _collectEdgeSegments(
     }
 
     // Recurse into compound children with accumulated offset
-    for child in _asDictArray(elkNode["children"]) {
-        if !_asDictArray(child["children"]).isEmpty {
-            let cx = (_asDouble(child["x"]) ?? 0) + offsetX
-            let cy = (_asDouble(child["y"]) ?? 0) + offsetY
+    for child in elkNode.children {
+        if !child.children.isEmpty {
+            let cx = child.x + offsetX
+            let cy = child.y + offsetY
             _collectEdgeSegments(child, segments: &segments, offsetX: cx, offsetY: cy)
         }
     }
@@ -906,7 +876,7 @@ private func _findGroupsContainingPoint(
 
 /// Extract positioned subgraph groups from the ELK result.
 private func _extractSubgraphGroups(
-    _ elkNode: [String: Any],
+    _ elkNode: ElkGraphNode,
     source: _ParsedGraph,
     graphHeight: Double,
     parentOffset: (x: Double, y: Double) = (0, 0),
@@ -914,14 +884,14 @@ private func _extractSubgraphGroups(
 ) -> [_PositionedGroupPayload] {
     let subgraphIds = Set(_allSubgraphIds(source.subgraphs))
     var groups: [_PositionedGroupPayload] = []
-    for child in _asDictArray(elkNode["children"]) {
-        guard let id = _asString(child["id"]), subgraphIds.contains(id) else { continue }
-        let rawX = (_asDouble(child["x"]) ?? 0) + parentOffset.x
-        let rawY = (_asDouble(child["y"]) ?? 0) + parentOffset.y
-        let w = _asDouble(child["width"]) ?? 0
-        let h = _asDouble(child["height"]) ?? 0
-        let sub = _findSubgraph(id, in: source.subgraphs)
-        let label = sub?.label ?? id
+    for child in elkNode.children {
+        guard subgraphIds.contains(child.id) else { continue }
+        let rawX = child.x + parentOffset.x
+        let rawY = child.y + parentOffset.y
+        let w = child.width
+        let h = child.height
+        let sub = _findSubgraph(child.id, in: source.subgraphs)
+        let label = sub?.label ?? child.id
         let shape = sub?.shape?.rawValue
         let altBkg = sub?.altBkg ?? false
         let childGroups = _extractSubgraphGroups(
@@ -930,7 +900,7 @@ private func _extractSubgraphGroups(
             depth: depth + 1
         )
         groups.append(_PositionedGroupPayload(
-            id: id, label: label,
+            id: child.id, label: label,
             x: rawX, y: rawY,
             width: w, height: h,
             children: childGroups,
@@ -1015,31 +985,29 @@ private func _resolveEdgeStyle(edgeIndex: Int, edgeId: String?, graph: _ParsedGr
 
 private func _extractPositionedGraph(
     _ source: _ParsedGraph,
-    _ laidOut: _ElkNode,
+    _ laidOut: ElkGraphNode,
     diagramType: DiagramType
 ) -> PositionedGraph {
     let nodeById = Dictionary(source.nodesInOrder.map { ($0.id, $0.node) }, uniquingKeysWith: { _, last in last })
-    let graphHeight = _asDouble(laidOut["height"]) ?? 0
+    let graphHeight = laidOut.height
 
     // Collect nodes from root and all compound children (subgraphs) recursively
     let allChildren = _collectAllChildren(laidOut, nodeById: nodeById)
 
     // ELK coordinates (y=0 at top) — rendering handles CGContext flip
     var nodes: [_PositionedNodePayload] = allChildren.compactMap { (child, parentOffset) in
-        guard
-            let id = _asString(child["id"]),
-            let original = nodeById[id]
-        else { return nil }
+        guard let original = nodeById[child.id] else { return nil }
         let fallbackSize = _nodeSize(original, hideEmptyDescription: source.stateConfig.hideEmptyDescription)
-        let w = _asDouble(child["width"]) ?? fallbackSize.width
-        let h = _asDouble(child["height"]) ?? fallbackSize.height
-        let rawX = (_asDouble(child["x"]) ?? 0) + parentOffset.x
-        let rawY = (_asDouble(child["y"]) ?? 0) + parentOffset.y
+        let w = child.width > 0 ? child.width : fallbackSize.width
+        let h = child.height > 0 ? child.height : fallbackSize.height
+        let rawX = child.x + parentOffset.x
+        let rawY = child.y + parentOffset.y
+        let id = child.id
         let effectiveLabel = original.properties?.label ?? original.label
         let effectiveShape: original_src_types.NodeShape = original.properties?.shape
             .flatMap { original_src_types.NodeShape.resolve(alias: $0) } ?? original.shape
         return _PositionedNodePayload(
-            id: id,
+            id: child.id,
             label: effectiveLabel,
             descriptions: original.descriptions,
             shape: effectiveShape.rawValue,
@@ -1175,7 +1143,7 @@ private func _extractPositionedGraph(
     // Calculate final bounds including all edge points and labels
     var minX: Double = 0
     var minY: Double = 0
-    var maxX = _asDouble(laidOut["width"]) ?? 0
+    var maxX = laidOut.width
     var maxY = graphHeight
     let arrowMargin: Double = 10
     let padding: Double = 40
@@ -1306,18 +1274,20 @@ private func _layoutGraphSyncWithConfig(
     _applyLayoutConfig(config, to: &elkGraph)
 
     do {
-        let laidOut = try layoutEngineSync(elkGraph)
+        let rawLaidOut = try layoutEngineSync(elkGraph)
+        let laidOut = ElkGraphNode(from: rawLaidOut)
         return _extractPositionedGraph(parsed, laidOut, diagramType: graph.type)
     } catch {
         var flatGraph = _buildFlatElkGraph(parsed)
         _applyLayoutConfig(config, to: &flatGraph)
-        let laidOut = try layoutEngineSync(flatGraph)
+        let rawLaidOut = try layoutEngineSync(flatGraph)
+        let laidOut = ElkGraphNode(from: rawLaidOut)
         return _extractPositionedGraph(parsed, laidOut, diagramType: graph.type)
     }
 }
 
 /// Patch ELK layout options on a built graph with LayoutConfig values.
-private func _applyLayoutConfig(_ config: LayoutConfig, to elkGraph: inout _ElkNode) {
+private func _applyLayoutConfig(_ config: LayoutConfig, to elkGraph: inout [String: Any]) {
     var opts = (elkGraph["layoutOptions"] as? [String: String]) ?? [:]
     let p = Int(config.padding)
     opts["elk.spacing.nodeNode"] = "\(Int(config.nodeSpacing))"
@@ -1566,18 +1536,21 @@ private func _layoutGraphSyncFromLayoutEngine(
             elkGraph = _buildElkGraphNoCrossEdges(parsed)
         }
         do {
-            let laidOut = try layoutEngineSync(elkGraph)
+            let rawLaidOut = try layoutEngineSync(elkGraph)
+            let laidOut = ElkGraphNode(from: rawLaidOut)
             return _extractPositionedGraph(parsed, laidOut, diagramType: graph.type)
         } catch {
             // Fallback: fully flat layout
             let flatGraph = _buildFlatElkGraph(parsed)
-            let laidOut = try layoutEngineSync(flatGraph)
+            let rawLaidOut = try layoutEngineSync(flatGraph)
+            let laidOut = ElkGraphNode(from: rawLaidOut)
             return _extractPositionedGraph(parsed, laidOut, diagramType: graph.type)
         }
     }
     // No subgraphs — use the standard flat graph builder
     let elkGraph = _buildElkGraph(parsed)
-    let laidOut = try layoutEngineSync(elkGraph)
+    let rawLaidOut = try layoutEngineSync(elkGraph)
+    let laidOut = ElkGraphNode(from: rawLaidOut)
     return _extractPositionedGraph(parsed, laidOut, diagramType: graph.type)
 }
 
