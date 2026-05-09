@@ -1772,8 +1772,8 @@ private func _clipEdgeToShape(
     let shape = node.shape
     // Rectangular shapes: bounding box is already correct
     if shape == "rectangle" || shape == "rounded" || shape == "stadium" ||
-       shape == "subroutine" || shape == "stateStart" || shape == "stateEnd" ||
-       shape == "stateFork" {
+       shape == "subroutine" || shape == "state-start" || shape == "state-end" ||
+       shape == "fork" || shape == "join" {
         return points
     }
 
@@ -1809,9 +1809,9 @@ private func _clipPoint(
     halfW: Double, halfH: Double
 ) -> _PositionedPointPayload? {
     switch shape {
-    case "diamond", "rhombus", "stateChoice":
+    case "diamond", "rhombus", "choice":
         return _clipToDiamond(endpoint: endpoint, adjacent: adjacent, cx: cx, cy: cy, halfW: halfW, halfH: halfH)
-    case "circle", "doublecircle":
+    case "circle", "doublecircle", "double-circle":
         return _clipToCircle(endpoint: endpoint, adjacent: adjacent, cx: cx, cy: cy, halfW: halfW, halfH: halfH)
     case "hexagon":
         return _clipToHexagon(endpoint: endpoint, adjacent: adjacent, cx: cx, cy: cy, halfW: halfW, halfH: halfH)

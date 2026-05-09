@@ -89,6 +89,17 @@ public class NodeShapeRenderer {
     }
 
     public func shapePath(for shape: String, in bounds: CGRect) -> CGPath {
+        // Prefer ShapeSpecRegistry for shapes with explicit path definitions;
+        // fall back to the existing switch for shapes without registry entries.
+        if let spec = ShapeSpecRegistry.spec(for: shape) {
+            let shapePath = spec.path(bounds, config)
+            // Only route through CGPathRenderer for shapes that have explicit
+            // non-rect paths; default-rect shapes go through the switch below.
+            if !_isDefaultRect(shapePath) {
+                return CGPathRenderer.makePath(from: shapePath, in: bounds, config: config)
+            }
+        }
+
         switch shape {
         case "rectangle", "entity", "invisible":
             return CGPath(rect: bounds, transform: nil)
@@ -198,6 +209,12 @@ public class NodeShapeRenderer {
     }
 
     // MARK: - Shape Paths
+
+    /// Returns `true` if the ShapePath is a default rectangle (no explicit path).
+    private func _isDefaultRect(_ shapePath: ShapePath) -> Bool {
+        if case .rect(let radius) = shapePath, radius == 0 { return true }
+        return false
+    }
 
     private func roundedRectPath(_ bounds: CGRect, cornerRadius: CGFloat) -> CGPath {
         let path = CGMutablePath()

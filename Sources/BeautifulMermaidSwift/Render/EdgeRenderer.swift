@@ -49,50 +49,11 @@ public class EdgeRenderer {
     }
 
     func buildCurvedPath(points: [CGPoint], curveType: String?) -> CGPath {
-        let path = CGMutablePath()
-        guard points.count >= 2 else { return path }
-
-        path.move(to: points[0])
-
-        switch curveType {
-        case "step", "stepBefore":
-            for i in 1..<points.count {
-                path.addLine(to: CGPoint(x: points[i - 1].x, y: points[i].y))
-                path.addLine(to: points[i])
-            }
-        case "stepAfter":
-            for i in 1..<points.count {
-                path.addLine(to: CGPoint(x: points[i].x, y: points[i - 1].y))
-                path.addLine(to: points[i])
-            }
-        case "basis", "natural":
-            addCatmullRomSpline(path: path, points: points, tension: curveType == "basis" ? 1.0 / 6.0 : 1.0 / 2.0)
-        default:
-            for i in 1..<points.count {
-                path.addLine(to: points[i])
-            }
-        }
-
-        return path
-    }
-
-    private func addCatmullRomSpline(path: CGMutablePath, points: [CGPoint], tension: CGFloat) {
-        let n = points.count - 1
-        for i in 0..<n {
-            let p0 = points[max(0, i - 1)]
-            let p1 = points[i]
-            let p2 = points[i + 1]
-            let p3 = points[min(points.count - 1, i + 2)]
-            let cp1 = CGPoint(
-                x: p1.x + (p2.x - p0.x) * tension,
-                y: p1.y + (p2.y - p0.y) * tension
-            )
-            let cp2 = CGPoint(
-                x: p2.x - (p3.x - p1.x) * tension,
-                y: p2.y - (p3.y - p1.y) * tension
-            )
-            path.addCurve(to: p2, control1: cp1, control2: cp2)
-        }
+        guard points.count >= 2 else { return CGMutablePath() }
+        // Delegate to EdgePathBuilder for platform-independent curve interpolation,
+        // then convert to CGPath via the shared CGPathRenderer.
+        let commands = EdgePathBuilder.commands(points: points, curveType: curveType)
+        return CGPathRenderer.makePath(from: commands)
     }
 
     public func drawArrowHeads(
