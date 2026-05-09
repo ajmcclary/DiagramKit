@@ -66,8 +66,8 @@ let package = Package(
             dependencies: [
                 "DiagramKitCommon",
                 "DiagramKitModel",
-                "DiagramKitRenderingCG",
-                "DiagramKitViews"
+                .target(name: "DiagramKitRenderingCG", condition: .when(platforms: [.macOS, .iOS, .tvOS, .visionOS, .macCatalyst])),
+                .target(name: "DiagramKitViews", condition: .when(platforms: [.macOS, .iOS, .tvOS, .visionOS, .macCatalyst]))
             ]
         ),
 
@@ -92,7 +92,7 @@ let package = Package(
                 "DiagramKit",
                 "DiagramKitCommon",
                 "DiagramKitModel",
-                "DiagramKitRenderingCG",
+                .target(name: "DiagramKitRenderingCG", condition: .when(platforms: [.macOS, .iOS, .tvOS, .visionOS, .macCatalyst])),
                 .product(name: "CustomDump", package: "swift-custom-dump"),
                 .product(name: "SnapshotTesting", package: "swift-snapshot-testing"),
             ],
