@@ -89,16 +89,23 @@ public func renderKanbanSvg(
             svg += "<line x1=\"\(lineX)\" y1=\"\(y1)\" x2=\"\(lineX)\" y2=\"\(y2)\" stroke-width=\"4\" stroke=\"\(stripeColor)\"/>\n"
         }
 
-        svg += "<text x=\"\(cardLeft + 10)\" y=\"\(cardTop + 16)\" text-anchor=\"start\" fill=\"\(fgColor)\" font-family=\"\(font)\" font-size=\"12\" class=\"kanban-label\">\(_escapeXml(card.label))</text>\n"
+        let labelX = cardLeft + Int(_kanbanCardTextInset)
+        let labelY = cardTop + 16
+        let labelLines = _kanbanWrappedLabelLines(
+            card.label,
+            maxWidth: max(1, Double(cw) - 2 * _kanbanCardTextInset)
+        )
+        svg += _kanbanSvgLabelText(lines: labelLines, x: labelX, y: labelY, fill: fgColor, font: font)
+        let metadataY = labelY + Int(ceil(Double(max(labelLines.count, 1)) * _kanbanCardLabelLineHeight))
 
         if let ticket = card.ticket {
             let baseUrl = positioned.config.ticketBaseUrl
             if let url = _safeKanbanTicketURL(baseUrl: baseUrl, ticket: ticket) {
                 svg += "<a xlink:href=\"\(SVG.escapeAttribute(url))\" class=\"kanban-ticket-link\" target=\"_blank\">\n"
-                svg += "<text x=\"\(cardLeft + 10)\" y=\"\(cardTop + 30)\" text-anchor=\"start\" fill=\"\(accentColor)\" font-family=\"\(font)\" font-size=\"10\" text-decoration=\"underline\">\(_escapeXml(ticket))</text>\n"
+                svg += "<text x=\"\(labelX)\" y=\"\(metadataY)\" text-anchor=\"start\" fill=\"\(accentColor)\" font-family=\"\(font)\" font-size=\"10\" text-decoration=\"underline\">\(_escapeXml(ticket))</text>\n"
                 svg += "</a>\n"
             } else {
-                svg += "<text x=\"\(cardLeft + 10)\" y=\"\(cardTop + 30)\" text-anchor=\"start\" fill=\"\(fgColor)\" font-family=\"\(font)\" font-size=\"10\">\(_escapeXml(ticket))</text>\n"
+                svg += "<text x=\"\(labelX)\" y=\"\(metadataY)\" text-anchor=\"start\" fill=\"\(fgColor)\" font-family=\"\(font)\" font-size=\"10\">\(_escapeXml(ticket))</text>\n"
             }
         }
 
@@ -111,6 +118,21 @@ public func renderKanbanSvg(
     svg += "</g>\n"
 
     svg += "</svg>"
+    return svg
+}
+
+private func _kanbanSvgLabelText(lines: [String], x: Int, y: Int, fill: String, font: String) -> String {
+    let lineHeight = Int(ceil(_kanbanCardLabelLineHeight))
+    if lines.count <= 1 {
+        return "<text x=\"\(x)\" y=\"\(y)\" text-anchor=\"start\" fill=\"\(fill)\" font-family=\"\(font)\" font-size=\"12\" class=\"kanban-label\">\(_escapeXml(lines.first ?? ""))</text>\n"
+    }
+
+    var svg = "<text x=\"\(x)\" y=\"\(y)\" text-anchor=\"start\" fill=\"\(fill)\" font-family=\"\(font)\" font-size=\"12\" class=\"kanban-label\">"
+    for (index, line) in lines.enumerated() {
+        let dy = index == 0 ? 0 : lineHeight
+        svg += "<tspan x=\"\(x)\" dy=\"\(dy)\">\(_escapeXml(line))</tspan>"
+    }
+    svg += "</text>\n"
     return svg
 }
 

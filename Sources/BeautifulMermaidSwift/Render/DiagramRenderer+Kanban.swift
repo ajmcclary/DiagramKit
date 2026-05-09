@@ -84,20 +84,24 @@ extension DiagramRenderer {
                 context.strokePath()
             }
 
-            _drawTextInFlipped(
+            let cardLabelLines = _kanbanWrappedLabelLines(
                 card.label,
-                at: CGPoint(x: CGFloat(card.x - card.width / 2) + 10, y: CGFloat(card.y - card.height / 2) + 16),
+                maxWidth: max(1, card.width - 2 * _kanbanCardTextInset)
+            )
+            _drawKanbanLabelLines(
+                cardLabelLines,
+                in: cardRect,
                 context: context,
                 contentHeight: CGFloat(bh),
                 color: theme.foreground,
-                font: _kanbanFont(size: 12),
-                alignment: .left
+                font: _kanbanFont(size: 12)
             )
+            let metadataY = cardRect.minY + 16 + CGFloat(max(cardLabelLines.count, 1)) * CGFloat(_kanbanCardLabelLineHeight)
 
             if let ticket = card.ticket {
                 _drawTextInFlipped(
                     ticket,
-                    at: CGPoint(x: CGFloat(card.x - card.width / 2) + 10, y: CGFloat(card.y - card.height / 2) + 30),
+                    at: CGPoint(x: cardRect.minX + CGFloat(_kanbanCardTextInset), y: metadataY),
                     context: context,
                     contentHeight: CGFloat(bh),
                     color: accentColor,
@@ -128,6 +132,35 @@ extension DiagramRenderer {
         #elseif canImport(AppKit)
         return NSFont.systemFont(ofSize: size)
         #endif
+    }
+
+    private func _drawKanbanLabelLines(
+        _ lines: [String],
+        in cardRect: CGRect,
+        context: CGContext,
+        contentHeight: CGFloat,
+        color: BMColor,
+        font: BMFont
+    ) {
+        let clipRect = cardRect.insetBy(dx: CGFloat(_kanbanCardTextInset), dy: 6)
+
+        context.saveGState()
+        context.clip(to: clipRect)
+        for (index, line) in lines.enumerated() {
+            _drawTextInFlipped(
+                line,
+                at: CGPoint(
+                    x: clipRect.minX,
+                    y: cardRect.minY + 16 + CGFloat(index) * CGFloat(_kanbanCardLabelLineHeight)
+                ),
+                context: context,
+                contentHeight: contentHeight,
+                color: color,
+                font: font,
+                alignment: .left
+            )
+        }
+        context.restoreGState()
     }
 
     private func _kanbanPriorityColor(_ priority: String?) -> CGColor? {

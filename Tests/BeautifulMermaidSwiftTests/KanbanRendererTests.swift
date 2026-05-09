@@ -133,7 +133,18 @@ final class KanbanRendererTests: XCTestCase {
         let svg = try renderKanbanSvg(positioned, diagramId: "test", colors, "Inter", false)
         XCTAssertTrue(svg.contains("viewBox=\"92 -308"))
         XCTAssertTrue(svg.contains("<rect x=\"100\" y=\"-300\" width=\"200\""))
-        XCTAssertTrue(svg.contains("<rect class=\"basic label-container __APA__\" x=\"108\" y=\"-275\""))
+        XCTAssertTrue(svg.contains("<rect class=\"basic label-container __APA__\" x=\"108\" y=\"-255\""))
+    }
+
+    func test_svgWrapsLongCardLabels() throws {
+        let source = "kanban\n  S\n    card1[Wrap long text across multiple lines to test layout]"
+        let diagram = try parseKanbanDiagram(rawLines(source), frontmatter: nil)
+        let positioned = layoutKanbanDiagram(diagram)
+        let colors = DiagramColors(bg: "#fff", fg: "#000")
+        let svg = try renderKanbanSvg(positioned, diagramId: "test", colors, "Inter", false)
+
+        XCTAssertTrue(svg.contains("<tspan"))
+        XCTAssertFalse(svg.contains(">Wrap long text across multiple lines to test layout</text>"))
     }
 
     func test_svgIncludesAccessibilityMetadata() throws {

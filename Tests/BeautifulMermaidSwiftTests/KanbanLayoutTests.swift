@@ -93,4 +93,25 @@ final class KanbanLayoutTests: XCTestCase {
         XCTAssertEqual(positionedA.sections[1].x - positionedA.sections[0].x, positionedB.sections[1].x - positionedB.sections[0].x)
         XCTAssertNotEqual(positionedA.width, positionedB.width)
     }
+
+    func test_firstCardStartsBelowSectionHeader() throws {
+        let source = "kanban\n  Todo\n    [Create Documentation]"
+        let diagram = try parseKanbanDiagram(rawLines(source), frontmatter: nil)
+        let positioned = layoutKanbanDiagram(diagram)
+        let section = positioned.sections[0]
+        let card = positioned.cards[0]
+        let sectionTop = section.y - section.width * 3 / 2
+        let titleCenterY = sectionTop + 25
+        let cardTop = card.y - card.height / 2
+
+        XCTAssertGreaterThanOrEqual(cardTop, titleCenterY + 10)
+    }
+
+    func test_longCardLabelsIncreaseCardHeightForWrapping() throws {
+        let source = "kanban\n  Todo\n    [Wrap long text across multiple lines to test layout]@{ assigned: alice }"
+        let diagram = try parseKanbanDiagram(rawLines(source), frontmatter: nil)
+        let positioned = layoutKanbanDiagram(diagram)
+
+        XCTAssertGreaterThan(positioned.cards[0].height, 66)
+    }
 }
