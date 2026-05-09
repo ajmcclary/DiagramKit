@@ -1,3 +1,5 @@
+// Apple-only SwiftUI/UIView wrappers gated by `#if canImport(UIKit) || canImport(AppKit)`. On Linux this file is empty.
+#if canImport(UIKit) || canImport(AppKit)
 import Foundation
 import DiagramKitModel
 import DiagramKitRenderingCG
@@ -179,3 +181,4 @@ public class MermaidLayer: CALayer {
         }
     }
 }
+#endif

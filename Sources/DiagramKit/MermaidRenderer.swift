@@ -1,7 +1,9 @@
 import Foundation
 import DiagramKitModel
+#if canImport(CoreGraphics)
 import DiagramKitRenderingCG
 import CoreGraphics
+#endif
 #if targetEnvironment(macCatalyst)
 import UIKit
 #elseif canImport(UIKit)
@@ -34,6 +36,7 @@ public struct MermaidRenderer {
         }
     }
 
+    #if canImport(CoreGraphics)
     /// Prepare a Mermaid diagram for direct CGContext rendering.
     public static func prepare(
         source: String,
@@ -83,7 +86,9 @@ public struct MermaidRenderer {
         let renderer = MermaidImageRenderer(theme: theme)
         return try await renderer.renderImage(from: source, size: size)
     }
+    #endif
 
+    #if canImport(CoreGraphics)
     /// Render a Mermaid diagram to an SVG string.
     public static func renderSVG(
         source: String,
@@ -103,6 +108,7 @@ public struct MermaidRenderer {
             try MermaidPipeline.renderASCII(source: source, theme: theme)
         }
     }
+    #endif
 
     /// Executes `work` on a fresh `Thread` with an 8 MB stack.
     ///
@@ -136,6 +142,7 @@ public struct MermaidRenderer {
 }
 
 extension MermaidRenderer {
+    #if canImport(CoreGraphics)
     @available(*, deprecated, renamed: "renderImage(source:theme:scale:)")
     @MainActor
     public static func renderImageAsync(
@@ -145,7 +152,9 @@ extension MermaidRenderer {
     ) async throws -> BMImage? {
         try await renderImage(source: source, theme: theme, scale: scale)
     }
+    #endif
 
+    #if canImport(CoreGraphics)
     @available(*, deprecated, renamed: "renderSVG(source:theme:)")
     public static func renderSVGAsync(
         source: String,
@@ -161,7 +170,9 @@ extension MermaidRenderer {
     ) async throws -> String {
         try await renderASCII(source: source, theme: theme)
     }
+    #endif
 
+    #if canImport(CoreGraphics)
     @available(*, deprecated, renamed: "prepare(source:theme:layoutConfig:)")
     public static func prepareAsync(
         source: String,
@@ -169,6 +180,7 @@ extension MermaidRenderer {
     ) async throws -> PreparedDiagram {
         try await prepare(source: source, theme: theme)
     }
+    #endif
 }
 
 extension String {
@@ -176,6 +188,7 @@ extension String {
         try await MermaidRenderer.parse(self)
     }
 
+    #if canImport(CoreGraphics)
     @MainActor
     public func renderMermaidImage(
         theme: DiagramTheme = .default,
@@ -183,7 +196,9 @@ extension String {
     ) async throws -> BMImage? {
         try await MermaidRenderer.renderImage(source: self, theme: theme, scale: scale)
     }
+    #endif
 
+    #if canImport(CoreGraphics)
     public func renderMermaidSVG(
         theme: DiagramTheme = .default
     ) async throws -> String {
@@ -195,4 +210,5 @@ extension String {
     ) async throws -> String {
         try await MermaidRenderer.renderASCII(source: self, theme: theme)
     }
+    #endif
 }

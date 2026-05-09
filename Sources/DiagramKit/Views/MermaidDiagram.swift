@@ -1,3 +1,5 @@
+// Apple-only SwiftUI/UIView wrappers gated by `#if canImport(UIKit) || canImport(AppKit)`. On Linux this file is empty.
+#if canImport(UIKit) || canImport(AppKit)
 import SwiftUI
 import CoreGraphics
 import DiagramKitCommon
@@ -82,4 +84,5 @@ extension MermaidDiagramView {
     }
 }
 
+#endif
 #endif

@@ -1,3 +1,5 @@
+// Apple-only renderer pipeline gated by `#if canImport(CoreGraphics)`. On Linux this file is empty.
+#if canImport(CoreGraphics)
 import Foundation
 import DiagramKitModel
 import DiagramKitRenderingCG
@@ -245,3 +247,4 @@ extension MermaidImageRenderer {
         return try await renderer.renderImage(from: source, size: size)
     }
 }
+#endif

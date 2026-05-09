@@ -1,7 +1,9 @@
 import Foundation
 import DiagramKitModel
-import DiagramKitRenderingCG
 import DiagramKitCommon
+#if canImport(CoreGraphics)
+import DiagramKitRenderingCG
+#endif
 
 /// Stateless namespace for Mermaid diagram pipeline operations.
 ///
@@ -21,7 +23,9 @@ public enum MermaidPipeline {
         _ work: () throws -> T
     ) throws -> T {
         if registerFonts {
+            #if canImport(CoreGraphics)
             BeautifulMermaidFontRegistry.registerBundledFontsIfNeeded()
+            #endif
         }
         return try _withMermaidIssueReporting(operation: operation, work)
     }
@@ -55,6 +59,7 @@ public enum MermaidPipeline {
         }
     }
 
+    #if canImport(CoreGraphics)
     // MARK: - Prepare
 
     public static func prepare(
@@ -107,4 +112,5 @@ public enum MermaidPipeline {
             return try original_src_ascii_index.renderMermaidASCII(source, options: options)
         }
     }
+    #endif
 }

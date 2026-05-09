@@ -1,3 +1,5 @@
+// Apple-only SwiftUI/UIView wrappers gated by `#if canImport(UIKit) || canImport(AppKit)`. On Linux this file is empty.
+#if canImport(UIKit) || canImport(AppKit)
 import SwiftUI
 import DiagramKitCommon
 import DiagramKitModel
@@ -142,4 +144,5 @@ public struct MermaidDiagramView: NSViewRepresentable {
     }
 }
 
+#endif
 #endif
