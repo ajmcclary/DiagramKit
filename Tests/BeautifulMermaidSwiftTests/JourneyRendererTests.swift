@@ -220,6 +220,26 @@ final class JourneyRendererTests: XCTestCase {
         XCTAssertTrue(svg.contains("r=\"7\""))
     }
 
+    func test_svgActorDotsAreCenteredAcrossTaskTop() throws {
+        let source = """
+        journey
+            section Go
+            Do work: 5: Alice, Bob
+        """
+        let positioned = try positionedFromSource(source)
+        let svg = try renderJourneySvg(positioned, defaultColors)
+        XCTAssertTrue(svg.contains(#"<circle class="actor-0" cx="216" cy="160" r="7""#))
+        XCTAssertTrue(svg.contains(#"<circle class="actor-1" cx="234" cy="160" r="7""#))
+        XCTAssertFalse(svg.contains(#"<circle class="actor-0" cx="160" cy="160" r="7""#))
+    }
+
+    func test_svgTaskGuideStartsBelowTaskRectangle() throws {
+        let positioned = try positionedFromSource(basicDiagramSource())
+        let svg = try renderJourneySvg(positioned, defaultColors)
+        XCTAssertTrue(svg.contains(#"x1="225" y1="210" x2="225" y2="450""#))
+        XCTAssertTrue(svg.contains(#"<line x1="150" y1="220""#))
+    }
+
     // MARK: - Phase B: text placement modes
 
     func test_oldModeDoesNotSplitBr() throws {
@@ -318,5 +338,14 @@ final class JourneyRendererTests: XCTestCase {
         XCTAssertTrue(svg2.contains("id=\"diagram-b-task0\""))
         XCTAssertFalse(svg1.contains("diagram-b-task"))
         XCTAssertFalse(svg2.contains("diagram-a-task"))
+    }
+
+    func test_publicRenderSVGUsesStableJourneyIds() async throws {
+        let source = basicDiagramSource()
+        let svg1 = try await MermaidRenderer.renderSVG(source: source)
+        let svg2 = try await MermaidRenderer.renderSVG(source: source)
+        XCTAssertEqual(svg1, svg2)
+        XCTAssertTrue(svg1.contains(#"id="mermaid-0""#))
+        XCTAssertTrue(svg1.contains(#"id="mermaid-0-task0""#))
     }
 }

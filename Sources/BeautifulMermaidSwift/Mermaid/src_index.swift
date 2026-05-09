@@ -310,8 +310,7 @@ private func _renderJourneySvgCase(lines: [String], fm: DiagramFrontmatter?, opt
     var merged = diagram
     merged.config = config
     let positioned = layoutJourneyDiagram(merged, options: options, config: config)
-    let diagramId = UUID().uuidString
-    return try renderJourneySvg(positioned, colors, font, transparent, diagramId: diagramId)
+    return try renderJourneySvg(positioned, colors, font, transparent)
 }
 
 private func _renderGanttSvgCase(source: String, fm: DiagramFrontmatter?, colors: DiagramColors, font: String, transparent: Bool) throws -> String {

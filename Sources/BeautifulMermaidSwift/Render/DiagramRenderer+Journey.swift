@@ -1,6 +1,30 @@
 import Foundation
 import CoreGraphics
 
+func _journeyResolvedCGFontSize(_ value: String, baseFontSize: Double, fallback: CGFloat) -> CGFloat {
+    let trimmed = value.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+    guard !trimmed.isEmpty else { return fallback }
+
+    let numberText = trimmed.prefix { ch in
+        ch.isNumber || ch == "." || ch == "-" || ch == "+"
+    }
+    guard let numeric = Double(numberText), numeric > 0 else { return fallback }
+
+    if trimmed.hasSuffix("rem") {
+        return CGFloat(numeric * baseFontSize)
+    }
+    if trimmed.hasSuffix("em") {
+        return CGFloat(numeric * baseFontSize)
+    }
+    if trimmed.hasSuffix("ex") {
+        return CGFloat(numeric * baseFontSize * 0.5)
+    }
+    if trimmed.hasSuffix("pt") {
+        return CGFloat(numeric * 96 / 72)
+    }
+    return CGFloat(numeric)
+}
+
 extension DiagramRenderer {
 
     func _drawJourney(_ positioned: PositionedGraph, in context: CGContext, bounds: CGRect) {
@@ -119,11 +143,10 @@ extension DiagramRenderer {
                 // Actor dots
                 let dotCount = task.people.count
                 if dotCount > 0 {
-                    let spacing = min(10.0, task.rectWidth / Double(dotCount + 1))
-                    let startX = task.x + spacing
+                    let dotXs = _journeyActorDotXPositions(taskX: task.x, taskWidth: task.rectWidth, dotCount: dotCount)
                     for (di, person) in task.people.enumerated() {
                         if let actorIdx = journey.actors.firstIndex(where: { $0.name == person }) {
-                            let dotX = startX + Double(di) * spacing
+                            let dotX = dotXs[di]
                             let dotY = task.y
                             let dotRect = CGRect(x: dotX - 7, y: dotY - 7, width: 14, height: 14)
                             let actorColor = _journeyCGPaletteValue(config.actorColours, index: actorIdx, fallback: "#8FBC8F")
@@ -146,7 +169,7 @@ extension DiagramRenderer {
                 ctx.setStrokeColor(self.theme.effectiveMuted().cgColor)
                 ctx.setLineWidth(1)
                 ctx.setLineDash(phase: 0, lengths: [4, 2])
-                ctx.move(to: CGPoint(x: lineCenterX, y: task.y))
+                ctx.move(to: CGPoint(x: lineCenterX, y: task.y + task.rectHeight))
                 ctx.addLine(to: CGPoint(x: lineCenterX, y: 450))
                 ctx.strokePath()
                 ctx.restoreGState()
@@ -195,14 +218,7 @@ extension DiagramRenderer {
 
             // 4. Title
             if let title = journey.title, !title.isEmpty {
-                let titleFontSize: CGFloat
-                let sizeStr = config.titleFontSize
-                let numericPart = sizeStr.trimmingCharacters(in: CharacterSet(charactersIn: "0123456789.").inverted)
-                if let parsed = Double(numericPart), parsed > 0 {
-                    titleFontSize = CGFloat(parsed)
-                } else {
-                    titleFontSize = 18
-                }
+                let titleFontSize = _journeyResolvedCGFontSize(config.titleFontSize, baseFontSize: config.taskFontSize, fallback: 18)
                 let titleFont = BMFont.systemFont(ofSize: titleFontSize, weight: .bold)
                 let titleColor: BMColor
                 if !config.titleColor.isEmpty, let cg = MermaidColorParser.cgHex(config.titleColor), let nsColor = BMColor(cgColor: cg) {
@@ -223,7 +239,7 @@ extension DiagramRenderer {
             // 5. Activity line with arrowhead
             let lineY = journey.activityLineY
             let lineX1 = journey.effectiveLeftMargin
-            let lineX2 = journey.width - 4
+            let lineX2 = max(lineX1, journey.width - 10)
 
             ctx.saveGState()
             ctx.setStrokeColor(self.theme.effectiveLine().cgColor)

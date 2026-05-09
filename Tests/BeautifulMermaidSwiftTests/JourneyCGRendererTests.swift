@@ -27,6 +27,11 @@ final class JourneyCGRendererTests: XCTestCase {
 
     // MARK: - CG Smoke Tests
 
+    func test_cssExTitleFontSizeResolvesAboveTinyNumericValue() {
+        let resolved = _journeyResolvedCGFontSize("4ex", baseFontSize: 14, fallback: 18)
+        XCTAssertEqual(resolved, 28, accuracy: 0.1)
+    }
+
     func test_cgRendersBasicDiagramWithoutCrashing() throws {
         let source = """
         journey

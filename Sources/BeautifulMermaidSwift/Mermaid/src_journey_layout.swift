@@ -218,16 +218,15 @@ public func layoutJourneyDiagram(
     }
 
     // 5. Activity line
-    let activityLineY: Double = conf.height * 4
+    let activityLineY: Double = taskStartY + conf.height + conf.diagramMarginY
 
     // 6. Final bounds
-    let boxStartX = bounds.startX
     let boxStartY = bounds.startY
-    let boxStopX = bounds.stopX
     let boxStopY = bounds.stopY
 
     let diagramHeight = boxStopY - boxStartY + 2 * conf.diagramMarginY
-    let diagramWidth = effectiveLeftMargin + (boxStopX - boxStartX) + 2 * conf.diagramMarginX
+    let rightmostTaskEdge = positionedTasks.map { $0.x + $0.rectWidth }.max() ?? effectiveLeftMargin
+    let diagramWidth = max(legendWidth, rightmostTaskEdge) + conf.diagramMarginX
 
     // Title offset
     let extraVertForTitle: Double = diagram.title != nil ? 70 : 0
@@ -259,4 +258,17 @@ private func _journeyPaletteValue(_ palette: [String], index: Int, fallback: Str
 private func _journeyPaletteIndex(_ palette: [String], index: Int) -> Int {
     guard !palette.isEmpty else { return 0 }
     return index % palette.count
+}
+
+func _journeyActorDotXPositions(taskX: Double, taskWidth: Double, dotCount: Int, dotRadius: Double = 7) -> [Double] {
+    guard dotCount > 0 else { return [] }
+    let centerX = taskX + taskWidth / 2
+    guard dotCount > 1 else { return [centerX] }
+
+    let preferredSpacing = dotRadius * 2 + 4
+    let availableSpan = max(0, taskWidth - dotRadius * 2)
+    let spacing = min(preferredSpacing, availableSpan / Double(dotCount - 1))
+    let totalSpan = spacing * Double(dotCount - 1)
+    let startX = centerX - totalSpan / 2
+    return (0..<dotCount).map { startX + Double($0) * spacing }
 }

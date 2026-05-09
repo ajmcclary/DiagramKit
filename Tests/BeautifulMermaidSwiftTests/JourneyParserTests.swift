@@ -27,7 +27,7 @@ final class JourneyParserTests: XCTestCase {
         XCTAssertEqual(diagram.sections[0], "Go to work")
         XCTAssertEqual(diagram.sections[1], "Go home")
         XCTAssertEqual(diagram.tasks.count, 5)
-        XCTAssertEqual(Set(diagram.actors), Set(["Me", "Cat"]))
+        XCTAssertEqual(diagram.actors, ["Me", "Cat"])
     }
 
     func test_titleParsing() throws {
@@ -173,7 +173,7 @@ final class JourneyParserTests: XCTestCase {
         XCTAssertEqual(diagram.tasks[1].section, "Another section")
     }
 
-    func test_actorDedupAndSorting() throws {
+    func test_actorDedupPreservesFirstAppearanceOrder() throws {
         let source = """
         journey
             section Test
@@ -181,7 +181,7 @@ final class JourneyParserTests: XCTestCase {
             Task2: 3: Bob, Alice
         """
         let diagram = try parseJourneyDiagram(lines(source))
-        XCTAssertEqual(diagram.actors, ["Alice", "Bob", "Charlie"])
+        XCTAssertEqual(diagram.actors, ["Charlie", "Alice", "Bob"])
     }
 
     func test_emptyDiagram() throws {

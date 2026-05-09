@@ -237,7 +237,38 @@ final class JourneyLayoutTests: XCTestCase {
         let diagram = try parsedDiagram(source)
         let positioned = layoutJourneyDiagram(diagram)
         let config = JourneyDiagramConfig()
-        XCTAssertEqual(positioned.activityLineY, config.height * 4)
+        let task = try XCTUnwrap(positioned.tasks.first)
+        XCTAssertEqual(positioned.activityLineY, task.y + task.rectHeight + config.diagramMarginY)
+    }
+
+    func test_activityLineDoesNotIntersectTaskRects() throws {
+        let source = """
+        journey
+            section Test
+            Task1: 5: Me
+            Task2: 4: Me
+        """
+        let positioned = layoutJourneyDiagram(try parsedDiagram(source))
+        for task in positioned.tasks {
+            XCTAssertGreaterThan(
+                positioned.activityLineY,
+                task.y + task.rectHeight,
+                "Activity line should sit below task \(task.task), not through its rectangle"
+            )
+        }
+    }
+
+    func test_diagramWidthUsesTaskRightEdgeWithoutDoubleCountingLeftMargin() throws {
+        let source = """
+        journey
+            section Checkout
+            Add to cart: 5: Me
+            Pay: 5: Me
+        """
+        let config = JourneyDiagramConfig()
+        let positioned = layoutJourneyDiagram(try parsedDiagram(source), config: config)
+        let lastTask = try XCTUnwrap(positioned.tasks.last)
+        XCTAssertEqual(positioned.width, lastTask.x + lastTask.rectWidth + config.diagramMarginX, accuracy: 1.0)
     }
 
     func test_emptyDiagramReturnsZeroSized() throws {

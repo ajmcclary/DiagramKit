@@ -211,11 +211,10 @@ private func _renderJourneySvgEntry(
         // Actor dots along top edge
         let dotCount = task.people.count
         if dotCount > 0 {
-            let spacing: Double = Swift.min(10, task.rectWidth / Double(dotCount + 1))
-            let startX = task.x + spacing
+            let dotXs = _journeyActorDotXPositions(taskX: task.x, taskWidth: task.rectWidth, dotCount: dotCount)
             for (di, person) in task.people.enumerated() {
                 if let actorIdx = diagram.actors.firstIndex(where: { $0.name == person }) {
-                    let dotX = startX + Double(di) * spacing
+                    let dotX = dotXs[di]
                     let actorColor = _journeySvgPaletteValue(conf.actorColours, index: actorIdx, fallback: "#8FBC8F")
                     let escapedPerson = SVG.escapeText(person)
                     parts.append("""
@@ -227,8 +226,9 @@ private func _renderJourneySvgEntry(
 
         // Dashed vertical guide line
         let lineX = _fmt(task.x + task.rectWidth / 2)
+        let lineY1 = _fmt(task.y + task.rectHeight)
         parts.append("""
-        <line id="\(diagramId)-task\(task.taskIndex)" x1="\(lineX)" y1="\(ty)" x2="\(lineX)" y2="450" class="task-line" stroke="var(--line, #666)" stroke-dasharray="4 2" stroke-width="1"/>
+        <line id="\(diagramId)-task\(task.taskIndex)" x1="\(lineX)" y1="\(lineY1)" x2="\(lineX)" y2="450" class="task-line" stroke="var(--line, #666)" stroke-dasharray="4 2" stroke-width="1"/>
         """)
 
         // Score face
@@ -269,7 +269,7 @@ private func _renderJourneySvgEntry(
 
     // Activity line
     let lineX1 = leftMargin
-    let lineX2 = diagram.width - 4
+    let lineX2 = max(lineX1, diagram.width - 10)
     let lineY = diagram.activityLineY
     parts.append("""
     <line x1="\(_fmt(lineX1))" y1="\(_fmt(lineY))" x2="\(_fmt(lineX2))" y2="\(_fmt(lineY))" stroke="var(--line, #000)" stroke-width="4" marker-end="url(#\(diagramId)-arrowhead)"/>

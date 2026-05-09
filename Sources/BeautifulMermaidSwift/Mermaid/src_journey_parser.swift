@@ -157,8 +157,13 @@ private func _parseJourneyDiagramEntry(_ lines: [String], frontmatter: DiagramFr
         throw JourneyParserError.unexpectedLine(line)
     }
 
-    let allPeople = tasks.flatMap { $0.people }
-    let actors = Array(Set(allPeople)).sorted()
+    var seenActors = Set<String>()
+    var actors: [String] = []
+    for person in tasks.flatMap(\.people) {
+        if seenActors.insert(person).inserted {
+            actors.append(person)
+        }
+    }
 
     var diagram = JourneyDiagram(
         title: title,
