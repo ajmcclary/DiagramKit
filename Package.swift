@@ -2,7 +2,7 @@
 import PackageDescription
 
 let package = Package(
-    name: "BeautifulMermaidSwift",
+    name: "DiagramKit",
     platforms: [
         .iOS(.v17),
         .macOS(.v14),
@@ -10,7 +10,17 @@ let package = Package(
         .visionOS(.v1)
     ],
     products: [
-        .library(name: "BeautifulMermaid", targets: ["BeautifulMermaid"]),
+        .library(name: "DiagramKit", targets: ["DiagramKit"]),
+        .library(name: "DiagramKitCommon", targets: ["DiagramKitCommon"]),
+        .library(name: "DiagramKitModel", targets: ["DiagramKitModel"]),
+        .library(name: "DiagramKitParse", targets: ["DiagramKitParse"]),
+        .library(name: "DiagramKitLayout", targets: ["DiagramKitLayout"]),
+        .library(name: "DiagramKitRendering", targets: ["DiagramKitRendering"]),
+        .library(name: "DiagramKitRenderingSVG", targets: ["DiagramKitRenderingSVG"]),
+        .library(name: "DiagramKitRenderingASCII", targets: ["DiagramKitRenderingASCII"]),
+        .library(name: "DiagramKitRenderingCG", targets: ["DiagramKitRenderingCG"]),
+        .library(name: "DiagramKitViews", targets: ["DiagramKitViews"]),
+        .library(name: "DiagramKitTestSupport", targets: ["DiagramKitTestSupport"]),
         .executable(name: "MermaidPlayground", targets: ["MermaidPlayground"])
     ],
     dependencies: [
@@ -29,6 +39,80 @@ let package = Package(
     ],
     targets: [
         .target(
+            name: "DiagramKitCommon",
+            dependencies: [
+                .product(name: "IssueReporting", package: "xctest-dynamic-overlay")
+            ]
+        ),
+        .target(
+            name: "DiagramKitModel",
+            dependencies: ["DiagramKitCommon"]
+        ),
+        .target(
+            name: "DiagramKitParse",
+            dependencies: ["DiagramKitCommon", "DiagramKitModel"]
+        ),
+        .target(
+            name: "DiagramKitLayout",
+            dependencies: ["DiagramKitCommon", "DiagramKitModel"]
+        ),
+        .target(
+            name: "DiagramKitRendering",
+            dependencies: ["DiagramKitCommon", "DiagramKitModel"]
+        ),
+        .target(
+            name: "DiagramKitRenderingSVG",
+            dependencies: [
+                "DiagramKitCommon",
+                "DiagramKitModel",
+                "DiagramKitParse",
+                "DiagramKitLayout",
+                "DiagramKitRendering"
+            ]
+        ),
+        .target(
+            name: "DiagramKitRenderingASCII",
+            dependencies: [
+                "DiagramKitCommon",
+                "DiagramKitModel",
+                "DiagramKitLayout",
+                "DiagramKitRendering"
+            ]
+        ),
+        .target(
+            name: "DiagramKitRenderingCG",
+            dependencies: [
+                "DiagramKitCommon",
+                "DiagramKitModel",
+                "DiagramKitLayout",
+                "DiagramKitRendering"
+            ]
+        ),
+        .target(
+            name: "DiagramKitViews",
+            dependencies: ["DiagramKitRenderingCG"]
+        ),
+        .target(
+            name: "DiagramKitTestSupport",
+            dependencies: ["DiagramKitModel"]
+        ),
+        .target(
+            name: "DiagramKit",
+            dependencies: [
+                "DiagramKitCommon",
+                "DiagramKitModel",
+                "DiagramKitParse",
+                "DiagramKitLayout",
+                "DiagramKitRendering",
+                "DiagramKitRenderingSVG",
+                "DiagramKitRenderingASCII",
+                "DiagramKitRenderingCG",
+                "DiagramKitViews"
+            ]
+        ),
+
+        // ↓ Old monolith — shrinks across tasks 3–12, deleted in Task 13.
+        .target(
             name: "BeautifulMermaid",
             dependencies: [
                 .product(name: "IssueReporting", package: "xctest-dynamic-overlay")
@@ -38,6 +122,7 @@ let package = Package(
                 .process("Resources")
             ]
         ),
+
         .executableTarget(
             name: "MermaidPlayground",
             dependencies: [
