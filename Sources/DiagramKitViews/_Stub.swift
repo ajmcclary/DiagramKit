@@ -1,1 +1,1 @@
-// Stub - real content arrives in subsequent tasks.
+// Stub - will be populated in Task 13 when umbrella DiagramKit is established.
