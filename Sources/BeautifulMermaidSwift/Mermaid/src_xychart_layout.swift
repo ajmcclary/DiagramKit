@@ -1,5 +1,6 @@
 // Ported from original/src/xychart/layout.ts
 import Foundation
+import DiagramKitCommon
 
 // MARK: - Layout constants (defaults, overridden by config)
 

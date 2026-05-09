@@ -1,5 +1,6 @@
 // Ported from original/src/er/layout.ts
 import Foundation
+import DiagramKitCommon
 
 private enum ER {
     static let padding: Double = 40

@@ -1,5 +1,6 @@
 // Ported from original/src/sequence/parser.ts
 import Foundation
+import DiagramKitCommon
 
 // MARK: - Parse Error
 

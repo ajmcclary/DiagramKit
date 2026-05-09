@@ -1,5 +1,6 @@
 // Ported from original/src/layout.ts
 import Foundation
+import DiagramKitCommon
 
 private typealias _ParsedGraph = original_src_types.MermaidGraph
 private typealias _ParsedEdge = original_src_types.MermaidEdge

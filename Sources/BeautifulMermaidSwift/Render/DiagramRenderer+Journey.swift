@@ -1,5 +1,6 @@
 import Foundation
 import CoreGraphics
+import DiagramKitCommon
 
 func _journeyResolvedCGFontSize(_ value: String, baseFontSize: Double, fallback: CGFloat) -> CGFloat {
     let trimmed = value.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()

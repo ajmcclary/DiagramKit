@@ -1,6 +1,7 @@
 // Ported from original/src/class/layout.ts
 // Expanded with direction support, namespace groups, notes, config-aware sizing.
 import Foundation
+import DiagramKitCommon
 
 public enum CLS {
     public static let padding: Double = 40

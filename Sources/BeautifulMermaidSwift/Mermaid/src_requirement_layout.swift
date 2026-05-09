@@ -1,4 +1,5 @@
 import Foundation
+import DiagramKitCommon
 
 private enum RQL {
     static let padding: Double = 40

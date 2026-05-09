@@ -1,4 +1,5 @@
 import Foundation
+import DiagramKitCommon
 
 private final class BlockWarnings: @unchecked Sendable {
     private var warnings: [String] = []

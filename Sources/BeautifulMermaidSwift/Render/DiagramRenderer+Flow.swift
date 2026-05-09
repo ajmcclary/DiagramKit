@@ -1,4 +1,5 @@
 import Foundation
+import DiagramKitCommon
 import CoreGraphics
 #if canImport(AppKit)
 import AppKit

@@ -1,5 +1,6 @@
 // Ported from original/src/sequence/layout.ts
 import Foundation
+import DiagramKitCommon
 
 // MARK: - Internal Config Adapter
 

@@ -1,5 +1,6 @@
 // Ported from original/src/xychart/renderer.ts
 import Foundation
+import DiagramKitCommon
 
 private enum ChartFont {
     static let titleSize: Double = 18

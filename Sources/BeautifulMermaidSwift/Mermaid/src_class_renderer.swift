@@ -1,6 +1,7 @@
 // Ported from original/src/class/renderer.ts
 // Expanded with notes, namespaces, lollipop, two-ended markers, styling, accessibility.
 import Foundation
+import DiagramKitCommon
 
 private enum _ClassFont {
     static let memberSize: Double = 11

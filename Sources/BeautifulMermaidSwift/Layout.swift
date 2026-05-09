@@ -1,4 +1,5 @@
 import Foundation
+import DiagramKitCommon
 
 public struct GraphLayout {
     public var config: LayoutConfig

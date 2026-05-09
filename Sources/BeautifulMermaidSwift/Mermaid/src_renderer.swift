@@ -1,5 +1,6 @@
 // Ported from original/src/renderer.ts
 import Foundation
+import DiagramKitCommon
 
 private struct _SvgPoint {
     var x: Double

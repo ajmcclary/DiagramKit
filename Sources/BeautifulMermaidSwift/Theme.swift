@@ -1,4 +1,5 @@
 import Foundation
+import DiagramKitCommon
 import CoreGraphics
 #if targetEnvironment(macCatalyst)
 import UIKit

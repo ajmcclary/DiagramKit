@@ -1,5 +1,6 @@
 // Ported from original/src/er/parser.ts — expanded for Mermaid parity
 import Foundation
+import DiagramKitCommon
 
 // MARK: - Cardinality & Identification Enums
 

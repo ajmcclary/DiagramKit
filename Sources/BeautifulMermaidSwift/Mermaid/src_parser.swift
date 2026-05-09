@@ -1,5 +1,6 @@
 // Ported from original/src/parser.ts
 import Foundation
+import DiagramKitCommon
 
 private typealias ParsedDirection = original_src_types.Direction
 private typealias ParsedNodeShape = original_src_types.NodeShape

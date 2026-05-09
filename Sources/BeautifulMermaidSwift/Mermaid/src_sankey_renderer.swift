@@ -1,4 +1,5 @@
 import Foundation
+import DiagramKitCommon
 
 private final class _SankeyUidGenerator: @unchecked Sendable {
     private var counter = 0

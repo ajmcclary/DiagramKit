@@ -1,4 +1,5 @@
 import Foundation
+import DiagramKitCommon
 
 public func renderJourneySvg(
     _ diagram: PositionedJourneyDiagram,

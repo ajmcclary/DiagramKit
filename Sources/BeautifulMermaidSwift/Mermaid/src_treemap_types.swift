@@ -1,4 +1,5 @@
 import Foundation
+import DiagramKitCommon
 
 // MARK: - Core Model Types
 

@@ -1,4 +1,5 @@
 import Foundation
+import DiagramKitCommon
 
 // MARK: - Packet Parser Error
 

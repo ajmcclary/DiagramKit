@@ -1,5 +1,6 @@
 import Foundation
 import CoreGraphics
+import DiagramKitCommon
 
 // MARK: - Semantic Model
 

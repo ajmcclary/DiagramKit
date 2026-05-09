@@ -1,4 +1,5 @@
 import Foundation
+import DiagramKitCommon
 
 public func renderRequirementSvg(
     _ diagram: PositionedRequirementDiagram,

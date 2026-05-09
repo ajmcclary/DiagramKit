@@ -2,6 +2,7 @@
 // Expanded with full Mermaid parity: two-ended relations, namespaces, notes,
 // annotations array, lollipop normalization, styling, interactions, config.
 import Foundation
+import DiagramKitCommon
 
 // MARK: - Type Model (Phase 2)
 

@@ -1,4 +1,5 @@
 import Foundation
+import DiagramKitCommon
 
 /// Canonical SVG utility namespace. All renderers should use these helpers
 /// instead of defining local escaping functions or hand-building SVG wrappers.
