@@ -407,9 +407,19 @@ private struct _YamlFrontmatterEntry {
 }
 
 /// Extended YAML parser for Mermaid frontmatter.
-/// Handles: title, class.*, config.class.*, config.flowchart.*, config.er.*, config.layout, config.look, config.htmlLabels
+/// Runs the legacy parser for global keys and families without bindings,
+/// then applies registered `FrontmatterBinding` implementations so YAML
+/// and JSON init directives produce the same `DiagramFrontmatter`.
 func _parseYamlFrontmatter(_ lines: [String]) -> DiagramFrontmatter? {
-    _StackSafeYamlFrontmatterParser().parse(lines)
+    var frontmatter = _StackSafeYamlFrontmatterParser().parse(lines)
+    let pairs = FrontmatterDocumentParser.flatten(lines)
+    if !pairs.isEmpty {
+        if frontmatter == nil {
+            frontmatter = DiagramFrontmatter()
+        }
+        _applyBindings(pairs, to: &frontmatter!)
+    }
+    return frontmatter
 }
 
 private func _flattenYamlFrontmatterLines(_ lines: [String]) -> [ _YamlFrontmatterEntry ] {

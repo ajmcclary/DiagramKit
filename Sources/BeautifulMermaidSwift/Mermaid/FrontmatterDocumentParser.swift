@@ -26,20 +26,26 @@ public enum FrontmatterDocumentParser {
             let depth = indent / 2
             // Pop back to the correct nesting depth
             while currentPath.count > depth { currentPath.removeLast() }
-            let parts = trimmed.split(separator: ":", maxSplits: 1, omittingEmptySubsequences: true)
-            guard parts.count == 2 else { continue }
-            let key = parts[0].trimmingCharacters(in: .whitespaces)
-            let value = parts[1].trimmingCharacters(in: .whitespaces)
-            // Remove quotes if present
-            let unquoted: String
-            if value.hasPrefix("\"") && value.hasSuffix("\"") && value.count >= 2 {
-                unquoted = String(value.dropFirst().dropLast())
-            } else if value.hasPrefix("'") && value.hasSuffix("'") && value.count >= 2 {
-                unquoted = String(value.dropFirst().dropLast())
-            } else {
-                unquoted = value
-            }
+
+            // Split on first colon only
+            guard let colonIdx = trimmed.firstIndex(of: ":") else { continue }
+            let key = String(trimmed[..<colonIdx]).trimmingCharacters(in: .whitespaces)
+            let valuePart = String(trimmed[trimmed.index(after: colonIdx)...]).trimmingCharacters(in: .whitespaces)
+
+            // Push the key onto the path regardless of whether there's a value
             currentPath.append(key)
+
+            // If there's no value, this is a nesting key — don't emit an entry
+            guard !valuePart.isEmpty else { continue }
+
+            let unquoted: String
+            if valuePart.hasPrefix("\"") && valuePart.hasSuffix("\"") && valuePart.count >= 2 {
+                unquoted = String(valuePart.dropFirst().dropLast())
+            } else if valuePart.hasPrefix("'") && valuePart.hasSuffix("'") && valuePart.count >= 2 {
+                unquoted = String(valuePart.dropFirst().dropLast())
+            } else {
+                unquoted = valuePart
+            }
             let fullPath = currentPath.joined(separator: ".")
             result.append((fullPath, FrontmatterValue(raw: unquoted)))
         }
