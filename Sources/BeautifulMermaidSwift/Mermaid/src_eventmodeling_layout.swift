@@ -371,11 +371,7 @@ private func stripBraces(_ text: String) -> String {
 }
 
 private func sanitizeEntityText(_ text: String) -> String {
-    text
-        .replacingOccurrences(of: "&", with: "&amp;")
-        .replacingOccurrences(of: "<", with: "&lt;")
-        .replacingOccurrences(of: ">", with: "&gt;")
-        .replacingOccurrences(of: "\"", with: "&quot;")
+    SVG.escapeAttribute(text)
 }
 
 private func sanitizeDataText(_ text: String) -> String {

@@ -18,10 +18,10 @@ public func renderRequirementSvg(
 
     parts.append(_reqSvgOpenTag(diagram.width, diagram.height, themeColors, transparent, config))
     if let accTitle = diagram.accTitle, !accTitle.isEmpty {
-        parts.append("<title>\(original_src_multiline_utils.escapeXml(accTitle))</title>")
+        parts.append("<title>\(SVG.escapeText(accTitle))</title>")
     }
     if let accDescr = diagram.accDescr, !accDescr.isEmpty {
-        parts.append("<desc>\(original_src_multiline_utils.escapeXml(accDescr))</desc>")
+        parts.append("<desc>\(SVG.escapeText(accDescr))</desc>")
     }
     parts.append(_renderReqStyleBlock(font, theme: theme, look: resolvedLook))
     parts.append("<defs>")

@@ -104,7 +104,7 @@ private func _qR(_ n: Double) -> String {
 }
 
 private func _escapeQuadrantXml(_ text: String) -> String {
-    SVG.escapeAttribute(text)
+    SVG.escapeText(text)
 }
 
 private func _quadrantSvgOpenTag(

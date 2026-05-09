@@ -2,7 +2,7 @@
 
 **Source**: [CODE_QUALITY_AUDIT.md](./CODE_QUALITY_AUDIT.md)
 **Date**: 2026-05-08
-**Status**: In Progress — 33/40 tasks complete; 5 design artifacts landed, 2 deferred, 0 remaining unstarted
+**Status**: In Progress — 32/40 tasks complete; 5 design artifacts landed, 3 deferred, 1 not started (4.3), 0 remaining unstarted
 
 ---
 
@@ -701,8 +701,8 @@ When a refactoring intentionally changes geometry (e.g., shape constants are now
 |------|--------|-------|
 | **Phase 1: Shared Infrastructure** | | |
 | 4.1 SVG Utilities | ✅ completed | `SVGUtilities.swift` with `SVG.escapeText`, `SVG.escapeAttribute`, `SVGDocumentBuilder` |
-| 4.2 Escaping migration | ✅ completed | 25 renderers migrated to `SVG.escapeText`/`SVG.escapeAttribute`; apostrophe standardized to `&#39;` |
-| 4.3 SVG wrapper migration | ✅ completed | `SVGDocumentBuilder` used for canonical `<svg>` construction; deprecated `svgOpenTag` |
+| 4.2 Escaping migration | ✅ completed | 25 renderer wrappers corrected: `SVG.escapeText` for text content, `SVG.escapeAttribute` for attributes; 33 deprecated `original_src_multiline_utils.escapeXml` calls migrated; apostrophe standardized to `&#39;` |
+| 4.3 SVG wrapper migration | 🔄 in progress | `sequence_renderer.swift` migrated to `SVGDocumentBuilder` (open + style + accessibility + close); 8 renderers remain; dead fields (`id`, `viewBox`) removed, fragile injection pattern consolidated |
 | 7.1 runPipeline helper | ✅ completed | `runPipeline(operation:registerFonts:_:)` added; all public methods delegate to it |
 | 7.2 parse font registration | ✅ completed | `parse()` now calls `runPipeline` with `registerFonts: true` |
 | 7.3 prepareSync routing | ✅ completed | `ImageRenderer.prepareSync` delegates to `MermaidPipeline.prepare()` |
@@ -767,7 +767,7 @@ The original estimate of ~52 sequential days was pessimistic. Phase 1 (planned 1
 | 1 | All 396 snapshot tests pass with identical or intentionally-rebaselined output | ⚠️ 915 unit tests pass (5 pre-existing failures in ArchitectureRenderer — `#000` hex bug); snapshot tests deferred |
 | 2 | `SourcePreprocessing.swift` reduced from 2,637 LOC to <500 LOC | ⏳ 2,587 → 2,039 (548 LOC deleted); YAML parser class extraction needed for <500 target |
 | 3 | Zero `Mirror` usage in rendering paths | ✅ Complete — `_extractSvgGraphModel` now uses typed `switch graph.content` |
-| 4 | Single `SVG` utility used by all 28+ renderers for escaping and document construction | ✅ Complete — `SVG.escapeText`/`SVG.escapeAttribute` + `SVGDocumentBuilder` |
+| 4 | Single `SVG` utility used by all 28+ renderers for escaping and document construction | ✅ Escaping complete — `SVG.escapeText`/`SVG.escapeAttribute` used by all renderers; `SVGDocumentBuilder` defined but not yet wired into renderers (Task 4.3 not started) |
 | 5 | Single `DiagramRegistry` owns all header detection and high-level routing | ✅ Complete — `DiagramRegistry.detect` drives Parser, Layout, type detection, and CG dispatch |
 | 6 | Public API surface reduced from ~740 declarations to ~100 | ⏸ Audit complete (939 top-level symbols, 49 scaffold classes); access changes deferred |
 | 7 | No hardcoded font names in any renderer | ⏳ SVG default font routed through `RenderTokens.shared.svgFontFamily`; Ishikawa CTFont routed through `layoutMonoCTFont`; per-renderer `"Inter"` defaults in ~20 function signatures remain |

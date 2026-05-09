@@ -31,10 +31,10 @@ private func _renderErSvgEntry(
 
     parts.append(_erSvgOpenTag(diagram.width, diagram.height, themeColors, transparent, config))
     if let accTitle = diagram.accTitle, !accTitle.isEmpty {
-        parts.append("<title>\(original_src_multiline_utils.escapeXml(accTitle))</title>")
+        parts.append("<title>\(SVG.escapeText(accTitle))</title>")
     }
     if let accDescr = diagram.accDescr, !accDescr.isEmpty {
-        parts.append("<desc>\(original_src_multiline_utils.escapeXml(accDescr))</desc>")
+        parts.append("<desc>\(SVG.escapeText(accDescr))</desc>")
     }
     parts.append(original_src_theme.buildStyleBlock(font, true))
     parts.append("<defs>")
@@ -46,7 +46,7 @@ private func _renderErSvgEntry(
         let titleTopMargin = config?.titleTopMargin ?? 25
         parts.append(
             "<text x=\"\(diagram.width / 2)\" y=\"\(titleTopMargin)\" text-anchor=\"middle\" " +
-                "font-size=\"\((config?.fontSize ?? 16))\" font-weight=\"700\" fill=\"var(--_text)\">\(original_src_multiline_utils.escapeXml(title))</text>"
+                "font-size=\"\((config?.fontSize ?? 16))\" font-weight=\"700\" fill=\"var(--_text)\">\(SVG.escapeText(title))</text>"
         )
     }
 
@@ -171,7 +171,7 @@ private func _renderEntityBox(_ entity: PositionedErEntity, _ config: ErDiagramC
         parts.append(
             "<text x=\"\(x + width / 2)\" y=\"\(y + headerHeight / 2)\" text-anchor=\"middle\" " +
                 "font-size=\"\(labelFontSize)\" font-weight=\"700\" fill=\"\(_escapeAttr(textFill))\" " +
-                "dy=\"\(original_src_styles.TEXT_BASELINE_SHIFT)\">\(original_src_multiline_utils.escapeXml(label))</text>"
+                "dy=\"\(original_src_styles.TEXT_BASELINE_SHIFT)\">\(SVG.escapeText(label))</text>"
         )
     } else {
         parts.append(
@@ -310,7 +310,7 @@ private func _renderAttribute(
     parts.append(
         "<text x=\"\(typeX)\" y=\"\(y)\" class=\"mono\" dy=\"\(original_src_styles.TEXT_BASELINE_SHIFT)\" " +
             "font-size=\"\(ERFont.attrSize)\" font-weight=\"\(ERFont.attrWeight)\">" +
-            "<tspan fill=\"var(--_text-muted)\">\(original_src_multiline_utils.escapeXml(attr.type))</tspan></text>"
+            "<tspan fill=\"var(--_text-muted)\">\(SVG.escapeText(attr.type))</tspan></text>"
     )
 
     // Name — rendered before comment column if present
@@ -318,7 +318,7 @@ private func _renderAttribute(
     parts.append(
         "<text x=\"\(nameEndX)\" y=\"\(y)\" class=\"mono\" text-anchor=\"end\" dy=\"\(original_src_styles.TEXT_BASELINE_SHIFT)\" " +
             "font-size=\"\(ERFont.attrSize)\" font-weight=\"\(ERFont.attrWeight)\">" +
-            "<tspan fill=\"var(--_text-sec)\">\(original_src_multiline_utils.escapeXml(attr.name))</tspan></text>"
+            "<tspan fill=\"var(--_text-sec)\">\(SVG.escapeText(attr.name))</tspan></text>"
     )
 
     // Comment column
@@ -327,7 +327,7 @@ private func _renderAttribute(
         parts.append(
             "<text x=\"\(commentX)\" y=\"\(y)\" class=\"mono\" dy=\"\(original_src_styles.TEXT_BASELINE_SHIFT)\" " +
                 "font-size=\"\(ERFont.commentSize)\" font-weight=\"\(ERFont.commentWeight)\" fill=\"var(--_text-faint)\">" +
-                "\(original_src_multiline_utils.escapeXml(attr.comment))</text>"
+                "\(SVG.escapeText(attr.comment))</text>"
         )
     }
 

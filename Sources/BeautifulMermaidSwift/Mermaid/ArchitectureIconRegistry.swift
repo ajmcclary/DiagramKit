@@ -126,14 +126,8 @@ public final class ArchitectureIconRegistry: @unchecked Sendable {
 }
 
 public func _sanitizeIconText(_ text: String?) -> String? {
-    guard let text = text, !text.isEmpty else { return text }
-    var sanitized = text
-    sanitized = sanitized.replacingOccurrences(of: "&", with: "&amp;")
-    sanitized = sanitized.replacingOccurrences(of: "<", with: "&lt;")
-    sanitized = sanitized.replacingOccurrences(of: ">", with: "&gt;")
-    sanitized = sanitized.replacingOccurrences(of: "\"", with: "&quot;")
-    sanitized = sanitized.replacingOccurrences(of: "'", with: "&apos;")
-    return sanitized
+    guard let text else { return nil }
+    return SVG.escapeAttribute(text)
 }
 
 private var _builtInIconNames: Set<String> {

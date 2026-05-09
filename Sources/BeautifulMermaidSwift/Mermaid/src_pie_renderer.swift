@@ -147,5 +147,5 @@ private func _pieR(_ n: Double) -> String {
 }
 
 private func _escapePieXml(_ text: String) -> String {
-    SVG.escapeAttribute(text)
+    SVG.escapeText(text)
 }

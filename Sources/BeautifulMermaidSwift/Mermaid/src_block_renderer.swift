@@ -24,7 +24,7 @@ func renderBlockSvg(
     let markerIds = BlockMarkerIds(diagramId: diagramId)
 
     svg += """
-    <svg id="\(diagramId.escapedXML)" xmlns="http://www.w3.org/2000/svg" viewBox="\(viewBoxX) \(viewBoxY) \(viewBoxW) \(viewBoxH)" width="\(Int(width))" height="\(Int(height))" style="max-width: 100%;">
+    <svg id="\(SVG.escapeAttribute(diagramId))" xmlns="http://www.w3.org/2000/svg" viewBox="\(viewBoxX) \(viewBoxY) \(viewBoxW) \(viewBoxH)" width="\(Int(width))" height="\(Int(height))" style="max-width: 100%;">
     """
 
     if let accTitle = diagram.accTitle, !accTitle.isEmpty {
@@ -443,6 +443,6 @@ private func resolveBlockTextColor(_ node: PositionedBlockNode, defaultColor: St
 
 extension String {
     var escapedXML: String {
-        SVG.escapeAttribute(self)
+        SVG.escapeText(self)
     }
 }

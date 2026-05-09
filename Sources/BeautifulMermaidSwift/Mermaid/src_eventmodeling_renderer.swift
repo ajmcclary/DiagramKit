@@ -117,5 +117,5 @@ private func emFmt(_ value: Double) -> String {
 }
 
 private func svmEscape(_ text: String) -> String {
-    SVG.escapeAttribute(text)
+    SVG.escapeText(text)
 }

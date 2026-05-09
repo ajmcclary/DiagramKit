@@ -332,7 +332,7 @@ private func _generateMindmapCSS(theme: MindmapThemeConfig, svgId: String) -> St
 }
 
 private func _svgEscape(_ text: String) -> String {
-    SVG.escapeAttribute(text)
+    SVG.escapeText(text)
 }
 
 private func _svgAttrEscape(_ text: String) -> String {

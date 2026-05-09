@@ -208,7 +208,7 @@ private func _sankeyFmt(_ n: Double) -> String {
 }
 
 private func _sankeyEscapeXml(_ text: String) -> String {
-    SVG.escapeAttribute(text)
+    SVG.escapeText(text)
 }
 
 private func _sankeyInjectSvgAttributes(_ svgTag: String, _ attributes: [String]) -> String {

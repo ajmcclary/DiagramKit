@@ -17,18 +17,18 @@ private func _renderSequenceSvgEntry(
     _ transparent: Bool
 ) throws -> String {
     var parts: [String] = []
-    let themeColors = original_src_theme.DiagramColors(
-        bg: colors.bg,
-        fg: colors.fg,
-        line: colors.line,
-        accent: colors.accent,
-        muted: colors.muted,
-        surface: colors.surface,
-        border: colors.border
-    )
 
-    parts.append(original_src_theme.svgOpenTag(diagram.width, diagram.height, themeColors, transparent))
-    parts.append(original_src_theme.buildStyleBlock(font, false))
+    let svgBuilder = SVGDocumentBuilder(
+        width: diagram.width,
+        height: diagram.height,
+        colors: colors,
+        transparent: transparent,
+        fontFamily: font,
+        accessibilityTitle: diagram.accTitle,
+        accessibilityDescription: diagram.accDescr
+    )
+    parts.append(svgBuilder.open())
+    parts.append(svgBuilder.style())
     parts.append("<defs>")
     parts.append(_arrowMarkerDefs())
     parts.append("</defs>")
@@ -39,12 +39,7 @@ private func _renderSequenceSvgEntry(
     }
 
     // Accessibility
-    if let accTitle = diagram.accTitle {
-        parts.append("<title>\(escapeXml(accTitle))</title>")
-    }
-    if let accDescr = diagram.accDescr {
-        parts.append("<desc>\(escapeXml(accDescr))</desc>")
-    }
+    parts.append(svgBuilder.accessibility())
 
     // Z-order: rect highlights behind everything
     for rect in diagram.rectHighlights {
@@ -117,7 +112,7 @@ private func _renderSequenceSvgEntry(
     </script>
     """)
 
-    parts.append("</svg>")
+    parts.append(svgBuilder.close())
     return parts.joined(separator: "\n")
 }
 

@@ -162,5 +162,5 @@ private func _fmtTreemap(_ value: Double) -> String {
 }
 
 private func _escapeXml(_ s: String) -> String {
-    SVG.escapeAttribute(s)
+    SVG.escapeText(s)
 }

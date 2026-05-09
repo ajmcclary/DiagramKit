@@ -318,5 +318,5 @@ private func _personBase64(for type: C4ShapeType) -> String {
 // MARK: - XML Escaping
 
 private func xmlEscape(_ s: String) -> String {
-    SVG.escapeAttribute(s)
+    SVG.escapeText(s)
 }

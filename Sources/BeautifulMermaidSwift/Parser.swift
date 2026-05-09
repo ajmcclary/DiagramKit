@@ -17,7 +17,7 @@ public enum MermaidParser {
             .map(String.init)
     }
 
-    public static func parse(_ source: String) throws -> MermaidGraph {
+    static func parse(_ source: String) throws -> MermaidGraph {
         try _withMermaidIssueReporting(operation: "MermaidParser.parse") {
             let decoded = _decodeXMLEntities(source)
             let (processed, frontmatter) = _parseFrontMatterAndStripped(decoded)

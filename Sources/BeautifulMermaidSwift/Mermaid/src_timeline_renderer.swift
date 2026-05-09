@@ -271,7 +271,7 @@ private func _tfmt(_ value: Double) -> String {
 }
 
 private func _tescapeXml(_ text: String) -> String {
-    SVG.escapeAttribute(text)
+    SVG.escapeText(text)
 }
 
 private func _trenderTimelineLabel(

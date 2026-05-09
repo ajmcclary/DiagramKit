@@ -124,7 +124,7 @@ public func renderXYChartSvg(
     // 2. Bars
     var barOverlay: [String] = []
     for bar in chart.bars {
-        let dataAttrs = " data-value=\"\(bar.value)\"\(bar.label.map { " data-label=\"\(_escapeXml($0))\"" } ?? "")"
+        let dataAttrs = " data-value=\"\(bar.value)\"\(bar.label.map { " data-label=\"\(SVG.escapeAttribute($0))\"" } ?? "")"
         let plotColor = _resolvePlotColor(bar.colorIndex, theme, accentHex, bgHex)
 
         if native {
@@ -191,7 +191,7 @@ public func renderXYChartSvg(
 
             if !interactive {
                 for e in entries {
-                    let dataAttrs = " data-value=\"\(e.value)\"\(e.label.map { " data-label=\"\(_escapeXml($0))\"" } ?? "")"
+                    let dataAttrs = " data-value=\"\(e.value)\"\(e.label.map { " data-label=\"\(SVG.escapeAttribute($0))\"" } ?? "")"
                     parts.append("<circle cx=\"\(_r(e.x))\" cy=\"\(_r(e.y))\" r=\"\(ChartFont.dotRadius)\" class=\"xychart-dot xychart-color-\(e.colorIndex)\"\(dataAttrs)/>")
                 }
             } else if entries.count > 1 {
@@ -205,14 +205,14 @@ public func renderXYChartSvg(
                 let tip = _multiTooltipAbove(first.x, topY - ChartFont.dotRadius, first.label ?? "", tipEntries)
                 var group = "<g class=\"xychart-dot-group\">\(hitArea)"
                 for e in entries {
-                    let dataAttrs = " data-value=\"\(e.value)\"\(e.label.map { " data-label=\"\(_escapeXml($0))\"" } ?? "")"
+                    let dataAttrs = " data-value=\"\(e.value)\"\(e.label.map { " data-label=\"\(SVG.escapeAttribute($0))\"" } ?? "")"
                     group += "<circle cx=\"\(_r(e.x))\" cy=\"\(_r(e.y))\" r=\"\(ChartFont.dotRadius)\" class=\"xychart-dot xychart-color-\(e.colorIndex)\"\(dataAttrs)/>"
                 }
                 group += "\(tip)</g>"
                 dotOverlay.append(group)
             } else {
                 let e = first
-                let dataAttrs = " data-value=\"\(e.value)\"\(e.label.map { " data-label=\"\(_escapeXml($0))\"" } ?? "")"
+                let dataAttrs = " data-value=\"\(e.value)\"\(e.label.map { " data-label=\"\(SVG.escapeAttribute($0))\"" } ?? "")"
                 let tipText = _formatTipValue(e.value)
                 let tip = _tooltipAbove(first.x, e.y - ChartFont.dotRadius, tipText)
                 dotOverlay.append(
@@ -587,5 +587,5 @@ private func _r(_ n: Double) -> String {
 }
 
 private func _escapeXml(_ text: String) -> String {
-    SVG.escapeAttribute(text)
+    SVG.escapeText(text)
 }

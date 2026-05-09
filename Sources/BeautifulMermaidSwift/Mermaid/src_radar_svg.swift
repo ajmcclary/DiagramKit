@@ -143,7 +143,7 @@ private func _radarSvgOpenTag(
 // MARK: - XML escaping and number formatting
 
 private func _escapeRadarXml(_ text: String) -> String {
-    SVG.escapeAttribute(text)
+    SVG.escapeText(text)
 }
 
 private func _rN(_ n: Double) -> String {

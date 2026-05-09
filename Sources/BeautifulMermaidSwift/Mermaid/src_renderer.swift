@@ -90,10 +90,10 @@ private func _renderSvgEntry(
     parts.append(original_src_theme.svgOpenTag(model.width, model.height, themeColors, transparent))
     let accessibility = _graphAccessibility(graph.diagram)
     if let title = accessibility.title, !title.isEmpty {
-        parts.append("<title>\(original_src_multiline_utils.escapeXml(title))</title>")
+        parts.append("<title>\(SVG.escapeText(title))</title>")
     }
     if let descr = accessibility.descr, !descr.isEmpty {
-        parts.append("<desc>\(original_src_multiline_utils.escapeXml(descr))</desc>")
+        parts.append("<desc>\(SVG.escapeText(descr))</desc>")
     }
     parts.append(original_src_theme.buildStyleBlock(font, false))
     parts.append("<defs>")
@@ -1179,7 +1179,7 @@ private func _renderIconContent(icon: String?, img: String?, x: Double, y: Doubl
     if let iconName = icon, !iconName.isEmpty {
         let trimmed = iconName.hasPrefix("fa:") ? String(iconName.dropFirst(3)) : iconName
         let fontSize = min(w, h) * 0.5
-        return "<text x=\"\(x + w / 2)\" y=\"\(y + h / 2)\" text-anchor=\"middle\" dominant-baseline=\"central\" font-size=\"\(fontSize)\" fill=\"currentColor\" class=\"icon-label\">\(original_src_multiline_utils.escapeXml(trimmed))</text>"
+        return "<text x=\"\(x + w / 2)\" y=\"\(y + h / 2)\" text-anchor=\"middle\" dominant-baseline=\"central\" font-size=\"\(fontSize)\" fill=\"currentColor\" class=\"icon-label\">\(SVG.escapeText(trimmed))</text>"
     }
     return ""
 }

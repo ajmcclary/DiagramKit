@@ -44,13 +44,13 @@ private func _renderClassSvgEntry(
 
     // Accessibility metadata
     if let title = diagram.accTitle, !title.isEmpty {
-        parts.append("  <title>\(original_src_multiline_utils.escapeXml(title))</title>")
+        parts.append("  <title>\(SVG.escapeText(title))</title>")
     }
     if let descr = diagram.accDescription, !descr.isEmpty {
-        parts.append("  <desc>\(original_src_multiline_utils.escapeXml(descr))</desc>")
+        parts.append("  <desc>\(SVG.escapeText(descr))</desc>")
     }
     if let diagramTitle = diagram.diagramTitle, !diagramTitle.isEmpty {
-        parts.append("  <text x=\"\(diagram.width / 2)\" y=\"24\" text-anchor=\"middle\" font-size=\"16\" font-weight=\"700\" fill=\"var(--_text)\">\(original_src_multiline_utils.escapeXml(diagramTitle))</text>")
+        parts.append("  <text x=\"\(diagram.width / 2)\" y=\"24\" text-anchor=\"middle\" font-size=\"16\" font-weight=\"700\" fill=\"var(--_text)\">\(SVG.escapeText(diagramTitle))</text>")
     }
 
     parts.append(original_src_theme.buildStyleBlock(font, true))
@@ -198,7 +198,7 @@ private func _renderClassBox(_ cls: PositionedClassNode, securityLevel: String? 
             parts.append(
                 "  <text x=\"\(x + width / 2)\" y=\"\(annotY)\" text-anchor=\"middle\" dy=\"\(original_src_styles.TEXT_BASELINE_SHIFT)\" " +
                     "font-size=\"\(_ClassFont.annotationSize)\" font-weight=\"\(_ClassFont.annotationWeight)\" " +
-                    "font-style=\"italic\" fill=\"var(--_text-muted)\">&lt;&lt;\(original_src_multiline_utils.escapeXml(annotation))&gt;&gt;</text>"
+                    "font-style=\"italic\" fill=\"var(--_text-muted)\">&lt;&lt;\(SVG.escapeText(annotation))&gt;&gt;</text>"
             )
             annotY += _ClassFont.annotationSize + 2
         }
@@ -253,7 +253,7 @@ private func _renderMember(_ member: ClassMember, _ x: Double, _ y: Double) -> S
 
     var spans: [String] = []
     if !member.visibility.isEmpty {
-        spans.append("<tspan fill=\"var(--_text-faint)\">\(original_src_multiline_utils.escapeXml(member.visibility)) </tspan>")
+        spans.append("<tspan fill=\"var(--_text-faint)\">\(SVG.escapeText(member.visibility)) </tspan>")
     }
 
     let genId = parseGenericTypes(member.id)
@@ -266,11 +266,11 @@ private func _renderMember(_ member: ClassMember, _ x: Double, _ y: Double) -> S
     } else {
         displayName = genId
     }
-    spans.append("<tspan fill=\"var(--_text-sec)\">\(original_src_multiline_utils.escapeXml(displayName))</tspan>")
+    spans.append("<tspan fill=\"var(--_text-sec)\">\(SVG.escapeText(displayName))</tspan>")
 
     if !member.returnType.isEmpty {
         spans.append("<tspan fill=\"var(--_text-faint)\"> : </tspan>")
-        spans.append("<tspan fill=\"var(--_text-muted)\">\(original_src_multiline_utils.escapeXml(genReturn))</tspan>")
+        spans.append("<tspan fill=\"var(--_text-muted)\">\(SVG.escapeText(genReturn))</tspan>")
     }
 
     return "<text x=\"\(x)\" y=\"\(y)\" class=\"mono\" dy=\"\(original_src_styles.TEXT_BASELINE_SHIFT)\" " +
@@ -408,7 +408,7 @@ private func _renderNamespace(_ ns: PositionedClassNamespace) -> String {
         parts.append(
             "  <text x=\"\(ns.x + CLS.boxPadX + 8)\" y=\"\(ns.y)\" dy=\"\(original_src_styles.TEXT_BASELINE_SHIFT)\" " +
                 "font-size=\"\(original_src_styles.FONT_SIZES.edgeLabel)\" font-weight=\"\(original_src_styles.FONT_WEIGHTS.edgeLabel)\" " +
-                "fill=\"var(--_text)\">\(original_src_multiline_utils.escapeXml(ns.label))</text>"
+                "fill=\"var(--_text)\">\(SVG.escapeText(ns.label))</text>"
         )
     }
 

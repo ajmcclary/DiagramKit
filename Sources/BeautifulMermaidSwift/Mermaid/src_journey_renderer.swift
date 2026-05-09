@@ -67,10 +67,10 @@ private func _renderJourneySvgEntry(
 
     // Accessibility
     if let accTitle = diagram.accTitle, !accTitle.isEmpty {
-        parts.append("<title>\(original_src_multiline_utils.escapeXml(accTitle))</title>")
+        parts.append("<title>\(SVG.escapeText(accTitle))</title>")
     }
     if let accDescr = diagram.accDescr, !accDescr.isEmpty {
-        parts.append("<desc>\(original_src_multiline_utils.escapeXml(accDescr))</desc>")
+        parts.append("<desc>\(SVG.escapeText(accDescr))</desc>")
     }
 
     parts.append(original_src_theme.buildStyleBlock(font, true))
@@ -96,14 +96,14 @@ private func _renderJourneySvgEntry(
         let cx = _fmt(actor.circleCenter.x)
         let cy = _fmt(actor.circleCenter.y)
         let lx = _fmt(actor.labelOrigin.x)
-        let escapedName = original_src_multiline_utils.escapeXml(actor.name)
+        let escapedName = SVG.escapeText(actor.name)
 
         parts.append("""
         <circle class="actor-\(actor.index)" cx="\(cx)" cy="\(cy)" r="7" fill="\(actor.color)" stroke="var(--line, #666)"><title>\(escapedName)</title></circle>
         """)
         for (lineIndex, line) in actor.lines.enumerated() {
             let lineY = _fmt(actor.labelOrigin.y + Double(lineIndex) * 20)
-            let escapedLine = original_src_multiline_utils.escapeXml(line)
+            let escapedLine = SVG.escapeText(line)
             parts.append("""
             <text class="legend" x="\(lx)" y="\(lineY)" fill="var(--fg, #666)" font-size="\(_fmt(conf.taskFontSize))">\(escapedLine)</text>
             """)
@@ -128,7 +128,7 @@ private func _renderJourneySvgEntry(
         let textY = _fmt(section.y + section.height / 2)
         let textPlacement = conf.textPlacement
         let rawLabel = section.name
-        let escapedRawLabel = original_src_multiline_utils.escapeXml(rawLabel)
+        let escapedRawLabel = SVG.escapeText(rawLabel)
         let brLines = original_src_multiline_utils.normalizeBrTags(rawLabel).components(separatedBy: "\n")
 
         if textPlacement == "old" || textPlacement == "fo" {
@@ -151,7 +151,7 @@ private func _renderJourneySvgEntry(
                 <text x="\(textX)" y="\(textY)" text-anchor="middle" dominant-baseline="central" fill="\(section.colour)" font-size="\(_fmt(conf.taskFontSize))"><tspan>\(escapedRawLabel)</tspan></text>
                 """)
             } else {
-                let tspanLines = brLines.map { "<tspan x=\"\(textX)\">\(original_src_multiline_utils.escapeXml($0))</tspan>" }.joined(separator: "\n")
+                let tspanLines = brLines.map { "<tspan x=\"\(textX)\">\(SVG.escapeText($0))</tspan>" }.joined(separator: "\n")
                 parts.append("""
                 <text x="\(textX)" y="\(textY)" text-anchor="middle" dominant-baseline="central" fill="\(section.colour)" font-size="\(_fmt(conf.taskFontSize))">\(tspanLines)</text>
                 """)
@@ -174,7 +174,7 @@ private func _renderJourneySvgEntry(
         """)
 
         let taskRawLabel = task.task
-        let escapedTaskLabel = original_src_multiline_utils.escapeXml(taskRawLabel)
+        let escapedTaskLabel = SVG.escapeText(taskRawLabel)
         let taskBrLines = original_src_multiline_utils.normalizeBrTags(taskRawLabel).components(separatedBy: "\n")
 
         // Task label
@@ -201,7 +201,7 @@ private func _renderJourneySvgEntry(
                 <text x="\(taskTextX)" y="\(taskTextY)" text-anchor="middle" dominant-baseline="central" fill="\(task.colour)" font-size="\(_fmt(conf.taskFontSize))"><tspan>\(escapedTaskLabel)</tspan></text>
                 """)
             } else {
-                let tspanLines = taskBrLines.map { "<tspan x=\"\(taskTextX)\">\(original_src_multiline_utils.escapeXml($0))</tspan>" }.joined(separator: "\n")
+                let tspanLines = taskBrLines.map { "<tspan x=\"\(taskTextX)\">\(SVG.escapeText($0))</tspan>" }.joined(separator: "\n")
                 parts.append("""
                 <text x="\(taskTextX)" y="\(taskTextY)" text-anchor="middle" dominant-baseline="central" fill="\(task.colour)" font-size="\(_fmt(conf.taskFontSize))">\(tspanLines)</text>
                 """)
@@ -217,7 +217,7 @@ private func _renderJourneySvgEntry(
                 if let actorIdx = diagram.actors.firstIndex(where: { $0.name == person }) {
                     let dotX = startX + Double(di) * spacing
                     let actorColor = _journeySvgPaletteValue(conf.actorColours, index: actorIdx, fallback: "#8FBC8F")
-                    let escapedPerson = original_src_multiline_utils.escapeXml(person)
+                    let escapedPerson = SVG.escapeText(person)
                     parts.append("""
                     <circle class="actor-\(actorIdx)" cx="\(_fmt(dotX))" cy="\(ty)" r="7" fill="\(actorColor)"><title>\(escapedPerson)</title></circle>
                     """)
@@ -260,7 +260,7 @@ private func _renderJourneySvgEntry(
 
     // Title
     if let title = diagram.title, !title.isEmpty {
-        let escapedTitle = original_src_multiline_utils.escapeXml(title)
+        let escapedTitle = SVG.escapeText(title)
         let titleColor = conf.titleColor.isEmpty ? "var(--fg, #000)" : conf.titleColor
         parts.append("""
         <text x="\(_fmt(leftMargin))" y="25" font-size="\(conf.titleFontSize)" font-weight="bold" fill="\(titleColor)" font-family="\(conf.titleFontFamily)">\(escapedTitle)</text>

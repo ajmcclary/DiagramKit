@@ -25,7 +25,7 @@ public func renderKanbanSvg(
     let width = max(1, Int(ceil(bounds.maxX)) - viewBoxX)
     let height = max(1, Int(ceil(bounds.maxY)) - viewBoxY)
 
-    svg += "<svg id=\"\(_escapeXml(diagramId))\" xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\""
+    svg += "<svg id=\"\(SVG.escapeAttribute(diagramId))\" xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\""
     if positioned.config.useMaxWidth {
         svg += " width=\"100%\" style=\"max-width: \(width)px;\" viewBox=\"\(viewBoxX) \(viewBoxY) \(width) \(height)\""
     } else {
@@ -59,7 +59,7 @@ public func renderKanbanSvg(
         let sectionStroke = sectionPalette.stroke[paletteIdx]
         let sectionTextFill = sectionPalette.text[paletteIdx]
 
-        svg += "<g id=\"\(_escapeXml(diagramId))-\(_escapeXml(section.id))\" class=\"cluster \(sectionClass)\">\n"
+        svg += "<g id=\"\(SVG.escapeAttribute(diagramId))-\(SVG.escapeAttribute(section.id))\" class=\"cluster \(sectionClass)\">\n"
         svg += "<rect x=\"\(sx)\" y=\"\(sy)\" width=\"\(sw)\" height=\"\(sh)\" rx=\"5\" ry=\"5\" fill=\"\(sectionFill)\" stroke=\"\(sectionStroke)\" stroke-width=\"1\"/>\n"
         svg += "<text x=\"\(Int(ceil(section.x)))\" y=\"\(sy + 25)\" text-anchor=\"middle\" dominant-baseline=\"middle\" fill=\"\(sectionTextFill)\" font-family=\"\(font)\" font-size=\"14\">\(_escapeXml(section.label))</text>\n"
         svg += "</g>\n"
@@ -78,7 +78,7 @@ public func renderKanbanSvg(
         var cardClass = "basic label-container __APA__"
         if let cc = card.cssClasses { cardClass += " \(cc)" }
 
-        svg += "<g id=\"\(_escapeXml(diagramId))-\(_escapeXml(card.id))\" class=\"node\">\n"
+        svg += "<g id=\"\(SVG.escapeAttribute(diagramId))-\(SVG.escapeAttribute(card.id))\" class=\"node\">\n"
 
         svg += "<rect class=\"\(cardClass)\" x=\"\(cardLeft)\" y=\"\(cardTop)\" width=\"\(cw)\" height=\"\(ch)\" rx=\"5\" ry=\"5\" fill=\"\(surfaceColor)\" stroke=\"\(borderColor)\" stroke-width=\"1\"/>\n"
 
@@ -94,7 +94,7 @@ public func renderKanbanSvg(
         if let ticket = card.ticket {
             let baseUrl = positioned.config.ticketBaseUrl
             if let url = _safeKanbanTicketURL(baseUrl: baseUrl, ticket: ticket) {
-                svg += "<a xlink:href=\"\(_escapeXml(url))\" class=\"kanban-ticket-link\" target=\"_blank\">\n"
+                svg += "<a xlink:href=\"\(SVG.escapeAttribute(url))\" class=\"kanban-ticket-link\" target=\"_blank\">\n"
                 svg += "<text x=\"\(cardLeft + 10)\" y=\"\(cardTop + 30)\" text-anchor=\"start\" fill=\"\(accentColor)\" font-family=\"\(font)\" font-size=\"10\" text-decoration=\"underline\">\(_escapeXml(ticket))</text>\n"
                 svg += "</a>\n"
             } else {
@@ -305,5 +305,5 @@ private func _safeKanbanTicketURL(baseUrl: String, ticket: String) -> String? {
 }
 
 private func _escapeXml(_ text: String) -> String {
-    SVG.escapeAttribute(text)
+    SVG.escapeText(text)
 }

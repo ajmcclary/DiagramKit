@@ -327,5 +327,5 @@ public func renderWardleyMapSvg(
 }
 
 private func escapingXml(_ text: String) -> String {
-    SVG.escapeAttribute(text)
+    SVG.escapeText(text)
 }

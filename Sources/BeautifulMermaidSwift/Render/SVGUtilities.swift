@@ -36,10 +36,8 @@ public enum SVG {
 /// calling `original_src_theme.svgOpenTag` / `buildStyleBlock` + hand-written
 /// accessibility and `<defs>` wrappers.
 public struct SVGDocumentBuilder: Sendable {
-    public var id: String?
     public var width: Double
     public var height: Double
-    public var viewBox: String?
     public var colors: DiagramColors
     public var transparent: Bool
     public var fontFamily: String
@@ -48,10 +46,8 @@ public struct SVGDocumentBuilder: Sendable {
     public var accessibilityDescription: String?
 
     public init(
-        id: String? = nil,
         width: Double,
         height: Double,
-        viewBox: String? = nil,
         colors: DiagramColors,
         transparent: Bool = false,
         fontFamily: String = "Inter",
@@ -59,10 +55,8 @@ public struct SVGDocumentBuilder: Sendable {
         accessibilityTitle: String? = nil,
         accessibilityDescription: String? = nil
     ) {
-        self.id = id
         self.width = width
         self.height = height
-        self.viewBox = viewBox
         self.colors = colors
         self.transparent = transparent
         self.fontFamily = fontFamily
@@ -89,18 +83,19 @@ public struct SVGDocumentBuilder: Sendable {
         )
         let svgTag = original_src_theme.svgOpenTag(width, height, themeColors, transparent)
 
-        // Inject role/aria if not already present
-        var tag = svgTag
+        // Collect additional attributes to inject into the opening tag.
+        var extraAttrs: [String] = []
         if let cls = className {
-            tag = tag.replacingOccurrences(of: "<svg ", with: "<svg class=\"\(SVG.escapeAttribute(cls))\" ")
+            extraAttrs.append("class=\"\(SVG.escapeAttribute(cls))\"")
         }
-        if !tag.contains("role=") {
-            tag = tag.replacingOccurrences(of: "<svg ", with: "<svg role=\"graphics-document\" aria-roledescription=\"diagram\" ")
+        if !svgTag.contains("role=") {
+            extraAttrs.append("role=\"graphics-document\" aria-roledescription=\"diagram\"")
         }
         if let extra = extraAttributes {
-            tag = tag.replacingOccurrences(of: "<svg ", with: "<svg \(extra) ")
+            extraAttrs.append(extra)
         }
-        return tag
+        guard !extraAttrs.isEmpty else { return svgTag }
+        return svgTag.replacingOccurrences(of: "<svg ", with: "<svg \(extraAttrs.joined(separator: " ")) ")
     }
 
     // MARK: - Accessibility

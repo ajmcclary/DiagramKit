@@ -90,22 +90,20 @@ public final class MermaidImageRenderer {
     }
 
     func renderSVGSync(from source: String) throws -> String {
-        try _withMermaidIssueReporting(operation: "MermaidImageRenderer.renderSVGSync") {
-            let options = RenderOptions(
-                bg: _hex(theme.background),
-                fg: _hex(theme.foreground),
-                line: _hex(theme.effectiveLine()),
-                accent: _hex(theme.effectiveAccent()),
-                muted: _hex(theme.effectiveMuted()),
-                surface: _hex(theme.effectiveSurface()),
-                border: _hex(theme.effectiveBorder()),
-                transparent: false
-            )
+        let options = RenderOptions(
+            bg: _hex(theme.background),
+            fg: _hex(theme.foreground),
+            line: _hex(theme.effectiveLine()),
+            accent: _hex(theme.effectiveAccent()),
+            muted: _hex(theme.effectiveMuted()),
+            surface: _hex(theme.effectiveSurface()),
+            border: _hex(theme.effectiveBorder()),
+            transparent: false
+        )
 
-            let svg = try _renderMermaidSVG(source, options)
-            let resolvedSvg = _resolveSvgCssVariables(svg)
-            return _flattenKnownSvgTokens(resolvedSvg, theme: theme)
-        }
+        let svg = try _renderMermaidSVG(source, options)
+        let resolvedSvg = _resolveSvgCssVariables(svg)
+        return _flattenKnownSvgTokens(resolvedSvg, theme: theme)
     }
 
     #if targetEnvironment(macCatalyst) || canImport(UIKit)

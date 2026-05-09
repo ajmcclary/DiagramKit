@@ -311,10 +311,5 @@ private func _unescapeQuotes(_ s: String) -> String {
 }
 
 private func _sanitizeDescription(_ raw: String) -> String {
-    var result = raw
-    result = result.replacingOccurrences(of: "&", with: "&amp;")
-    result = result.replacingOccurrences(of: "<", with: "&lt;")
-    result = result.replacingOccurrences(of: ">", with: "&gt;")
-    result = result.replacingOccurrences(of: "\"", with: "&quot;")
-    return result
+    SVG.escapeAttribute(raw)
 }

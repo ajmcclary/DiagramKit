@@ -24,7 +24,7 @@ public func renderArchitectureSvg(
     let h = Int(ceil(positioned.height))
 
     var svg = ""
-    svg += "<svg id=\"\(_escapeXml(diagramId))\" xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\""
+    svg += "<svg id=\"\(SVG.escapeAttribute(diagramId))\" xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\""
     if positioned.config.useMaxWidth {
         svg += " width=\"100%\" style=\"max-width: \(w)px;\" viewBox=\"0 0 \(w) \(h)\""
     } else {
@@ -54,7 +54,7 @@ public func renderArchitectureSvg(
 
     svg += "<g class=\"architecture-groups\">\n"
     for group in positioned.groups {
-        svg += "<g id=\"\(_escapeXml(diagramId))-group-\(_escapeXml(group.id))\" class=\"node-bkg\">\n"
+        svg += "<g id=\"\(SVG.escapeAttribute(diagramId))-group-\(SVG.escapeAttribute(group.id))\" class=\"node-bkg\">\n"
         svg += "<rect x=\"\(_fmt(group.x))\" y=\"\(_fmt(group.y))\" width=\"\(_fmt(group.width))\" height=\"\(_fmt(group.height))\" class=\"node-bkg\"/>\n"
         var groupLabelX = group.x + 4
         if let icon = group.icon, !icon.isEmpty {
@@ -81,7 +81,7 @@ public func renderArchitectureSvg(
     svg += "<g class=\"architecture-edges\">\n"
     for edge in positioned.edges {
         let d = "M \(_fmt(edge.startX)),\(_fmt(edge.startY)) L \(_fmt(edge.midX)),\(_fmt(edge.midY)) L \(_fmt(edge.endX)),\(_fmt(edge.endY))"
-        svg += "<path id=\"\(_escapeXml(diagramId))-\(_escapeXml(edge.id))\" class=\"edge\" d=\"\(d)\"/>\n"
+        svg += "<path id=\"\(SVG.escapeAttribute(diagramId))-\(SVG.escapeAttribute(edge.id))\" class=\"edge\" d=\"\(d)\"/>\n"
 
         if edge.sourceArrow {
             let (polygonPoints, xShift, yShift) = _directionArrowTransform(
@@ -132,8 +132,8 @@ public func renderArchitectureSvg(
     for service in positioned.services {
         let serviceId = "\(diagramId)-service-\(service.id)"
         let nodeId = "\(diagramId)-node-\(service.id)"
-        svg += "<g id=\"\(_escapeXml(serviceId))\" class=\"architecture-service\">\n"
-        svg += "<g id=\"\(_escapeXml(nodeId))\" style=\"color: \(fgColor)\">\n"
+        svg += "<g id=\"\(SVG.escapeAttribute(serviceId))\" class=\"architecture-service\">\n"
+        svg += "<g id=\"\(SVG.escapeAttribute(nodeId))\" style=\"color: \(fgColor)\">\n"
         svg += "<rect x=\"\(_fmt(service.x - service.width / 2))\" y=\"\(_fmt(service.y - service.height / 2))\" width=\"\(_fmt(service.width))\" height=\"\(_fmt(service.height))\" fill=\"none\" stroke=\"\(fgColor)\" stroke-width=\"1\"/>\n"
         svg += _iconSvg(for: service.icon, iconText: service.iconText, cx: service.x, cy: service.y, size: positioned.config.iconSize, iconSize: iconSize)
         svg += "</g>\n"
@@ -144,7 +144,7 @@ public func renderArchitectureSvg(
     }
     for junction in positioned.junctions {
         let nodeId = "\(diagramId)-node-\(junction.id)"
-        svg += "<g id=\"\(_escapeXml(nodeId))\" class=\"architecture-junction\">\n"
+        svg += "<g id=\"\(SVG.escapeAttribute(nodeId))\" class=\"architecture-junction\">\n"
         let jw = junction.width > 0 ? junction.width : positioned.config.iconSize
         let jh = junction.height > 0 ? junction.height : positioned.config.iconSize
         svg += "<rect x=\"\(_fmt(junction.x - jw / 2))\" y=\"\(_fmt(junction.y - jh / 2))\" width=\"\(_fmt(jw))\" height=\"\(_fmt(jh))\" fill-opacity=\"0\"/>\n"
@@ -310,7 +310,7 @@ private func _fmt(_ d: Double) -> String {
 }
 
 private func _escapeXml(_ text: String) -> String {
-    SVG.escapeAttribute(text)
+    SVG.escapeText(text)
 }
 
 private let _cloudPath = "M24 12c0-4.4-3.6-8-8-8-3 0-5.6 1.7-7 4.2C7 7.5 5.3 7 3.6 7.6 1.3 8.5 0 10.9 0 13.5 0 17.1 2.9 20 6.5 20H30c3.3 0 6-2.7 6-6 0-3.3-2.7-6-6-6h-.5c-.5-2.4-2.6-4-4.9-4-1.5 0-2.8.6-3.7 1.7C20.3 12.3 20 12 20 12h-4z"

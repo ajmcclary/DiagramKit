@@ -89,5 +89,5 @@ func renderTreeViewSvg(_ positioned: PositionedTreeViewDiagram, diagramId: Strin
 }
 
 private func _xmlEscape(_ value: String) -> String {
-    SVG.escapeAttribute(value)
+    SVG.escapeText(value)
 }

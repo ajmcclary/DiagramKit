@@ -298,5 +298,5 @@ private func handDrawnHachureForPath(_ pathSpec: String, angle: Double, gap: Dou
 }
 
 private func _escapeXml(_ s: String) -> String {
-    SVG.escapeAttribute(s)
+    SVG.escapeText(s)
 }
