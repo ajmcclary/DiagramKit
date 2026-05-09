@@ -333,16 +333,31 @@ public struct PositionedBlockDiagram: Sendable {
     public static let empty = PositionedBlockDiagram()
 }
 
-private let blockIdCounter = AtomicInt()
+// Thread-local block id counter. Using a per-thread counter (rather than a
+// process-global atomic) means concurrent parses don't interleave their
+// id sequences, which is important under swift-testing's default
+// parallelism: two threads parsing different diagrams each start counting
+// from 1 and produce stable, deterministic ids per parse.
+private let _blockIdCounterTLSKey = "DiagramKitModel.blockIdCounter"
 
-/// Resets the block id counter. Call at the start of each parse to keep
-/// generated ids deterministic per-source for snapshot stability.
+private func _currentBlockIdCounter() -> AtomicInt {
+    let dict = Thread.current.threadDictionary
+    if let existing = dict[_blockIdCounterTLSKey] as? AtomicInt {
+        return existing
+    }
+    let fresh = AtomicInt()
+    dict[_blockIdCounterTLSKey] = fresh
+    return fresh
+}
+
+/// Resets the block id counter for the current thread. Called at the start
+/// of each parse so generated ids are deterministic per-source.
 public func resetBlockIdCounter() {
-    blockIdCounter.reset()
+    _currentBlockIdCounter().reset()
 }
 
 public func generateBlockId() -> String {
-    let count = blockIdCounter.increment()
+    let count = _currentBlockIdCounter().increment()
     return "id-" + String(count)
 }
 

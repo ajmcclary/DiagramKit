@@ -115,14 +115,20 @@ extension _GitGraphDBState {
         if currBranch == otherBranch {
             throw GitGraphDBError.mergeIntoSelf(otherBranch)
         }
-        if currentCommit == nil {
-            throw GitGraphDBError.mergeEmptyCurrent(currBranch)
-        }
         if !branchNames.contains(otherBranch) {
             throw GitGraphDBError.mergeUnknownBranch(otherBranch)
         }
         if otherCommit == nil {
             throw GitGraphDBError.mergeEmptyTarget(otherBranch)
+        }
+        // Fast-forward when the current branch has no commits yet: adopt the
+        // source branch's head as the current branch's head and produce no
+        // merge commit. This mirrors Mermaid's gitGraph behavior — merging
+        // a branch into an empty branch is a fast-forward, not an error.
+        if currentCommit == nil, let other = otherCommit {
+            branchHeads[currBranch] = other.id
+            head = other
+            return
         }
         if currentCommit?.id == otherCommit?.id {
             throw GitGraphDBError.mergeSameHead

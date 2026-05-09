@@ -202,39 +202,61 @@ private func _parseTreeViewLine(_ line: String) throws -> (level: Int, name: Str
     var name: String
     var remainder: String
 
-    if trimmed.hasPrefix("\"") {
-        guard let closeQuote = _findClosingQuote(trimmed, from: trimmed.index(after: trimmed.startIndex), quote: "\"") else {
+    // Optional leading `icon(...)` prefix. When the line starts with the icon
+    // directive (e.g. `icon(none) name/` or `icon(database)-suppressed/`),
+    // consume the directive into `remainder` and let the regular label scan
+    // pick up the rest of the line as the name. The icon-loop below then
+    // applies the prefixed directive as the node's iconId.
+    var leadingIconDirective: String = ""
+    var working = trimmed
+    if working.hasPrefix("icon(") {
+        let after = working.index(working.startIndex, offsetBy: 5)
+        if let closeParen = working[after...].firstIndex(of: ")") {
+            leadingIconDirective = String(working[working.startIndex...closeParen])
+            working = String(working[working.index(after: closeParen)...]).trimmingCharacters(in: .whitespaces)
+        }
+    }
+
+    if working.hasPrefix("\"") {
+        guard let closeQuote = _findClosingQuote(working, from: working.index(after: working.startIndex), quote: "\"") else {
             throw TreeViewParserError.missingLabel(trimmed)
         }
-        let afterOpen = trimmed.index(after: trimmed.startIndex)
-        name = String(trimmed[afterOpen..<closeQuote])
-        remainder = String(trimmed[trimmed.index(after: closeQuote)...]).trimmingCharacters(in: .whitespaces)
-    } else if trimmed.hasPrefix("'") {
-        guard let closeQuote = _findClosingQuote(trimmed, from: trimmed.index(after: trimmed.startIndex), quote: "'") else {
+        let afterOpen = working.index(after: working.startIndex)
+        name = String(working[afterOpen..<closeQuote])
+        remainder = String(working[working.index(after: closeQuote)...]).trimmingCharacters(in: .whitespaces)
+    } else if working.hasPrefix("'") {
+        guard let closeQuote = _findClosingQuote(working, from: working.index(after: working.startIndex), quote: "'") else {
             throw TreeViewParserError.missingLabel(trimmed)
         }
-        let afterOpen = trimmed.index(after: trimmed.startIndex)
-        name = String(trimmed[afterOpen..<closeQuote])
-        remainder = String(trimmed[trimmed.index(after: closeQuote)...]).trimmingCharacters(in: .whitespaces)
+        let afterOpen = working.index(after: working.startIndex)
+        name = String(working[afterOpen..<closeQuote])
+        remainder = String(working[working.index(after: closeQuote)...]).trimmingCharacters(in: .whitespaces)
     } else {
-        var scanIdx = trimmed.startIndex
-        while scanIdx < trimmed.endIndex {
-            let remaining = String(trimmed[scanIdx...])
+        var scanIdx = working.startIndex
+        while scanIdx < working.endIndex {
+            let remaining = String(working[scanIdx...])
             if remaining.hasPrefix(":::") || remaining.hasPrefix("##") {
                 break
             }
             if remaining.hasPrefix("icon(") {
                 break
             }
-            scanIdx = trimmed.index(after: scanIdx)
+            scanIdx = working.index(after: scanIdx)
         }
 
-        if scanIdx == trimmed.startIndex {
+        if scanIdx == working.startIndex {
             throw TreeViewParserError.missingLabel(trimmed)
         }
 
-        name = String(trimmed[trimmed.startIndex..<scanIdx]).trimmingCharacters(in: .whitespaces)
-        remainder = String(trimmed[scanIdx...]).trimmingCharacters(in: .whitespaces)
+        name = String(working[working.startIndex..<scanIdx]).trimmingCharacters(in: .whitespaces)
+        remainder = String(working[scanIdx...]).trimmingCharacters(in: .whitespaces)
+    }
+
+    // Re-prepend the leading icon directive so the icon-handling loop below
+    // applies it. (The directive applies whether it appeared before or
+    // after the label.)
+    if !leadingIconDirective.isEmpty {
+        remainder = leadingIconDirective + (remainder.isEmpty ? "" : " " + remainder)
     }
 
     name = _unescapeQuotes(name)

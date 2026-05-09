@@ -46,18 +46,53 @@ private func _parseFrontMatterAndStrippedSlow(_ normalized: String, originalSour
     var frontmatter: DiagramFrontmatter?
     var consumedFrontmatter = false
 
-    if let startIdx = lines.firstIndex(where: { !$0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }),
-       lines[startIdx].trimmingCharacters(in: .whitespacesAndNewlines) == "---" {
-        guard let endIdx = lines[(startIdx + 1)...].firstIndex(where: {
-            $0.trimmingCharacters(in: .whitespacesAndNewlines) == "---"
-        }) else {
-            return (source, nil)
+    // Parse one or more leading frontmatter sections delimited by `---`.
+    // YAML multi-doc treats `---` as both a closer of the previous doc and
+    // an opener of the next, so a source like
+    //   ---
+    //   <doc1>
+    //   ---
+    //   <doc2>
+    //   ---
+    //   <body>
+    // contains two frontmatter sections and a diagram body. All sections are
+    // concatenated and parsed as a single YAML document.
+    let firstNonBlank = lines.firstIndex(where: { !$0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }) ?? lines.endIndex
+    var combinedFmLines: [String] = []
+    if firstNonBlank < lines.endIndex,
+       lines[firstNonBlank].trimmingCharacters(in: .whitespacesAndNewlines) == "---" {
+        // Find every `---` marker contiguously from the start (separated only
+        // by blank lines or YAML body content — never by another non-`---`
+        // non-YAML line).
+        var markers: [Int] = [firstNonBlank]
+        var cursor = firstNonBlank + 1
+        while cursor < lines.endIndex {
+            if lines[cursor].trimmingCharacters(in: .whitespacesAndNewlines) == "---" {
+                markers.append(cursor)
+            }
+            cursor += 1
         }
-
-        let fmLines = Array(lines[(startIdx + 1)..<endIdx])
-        strippedSource = lines[(endIdx + 1)...].joined(separator: "\n")
-        frontmatter = _parseYamlFrontmatter(fmLines)
-        consumedFrontmatter = true
+        // We need at least two `---` markers to have one frontmatter section.
+        // With N markers, there are N-1 sections (or floor((N)/1) frontmatter
+        // sections separated by `---`). If the last marker has no trailing
+        // body, treat all sections as frontmatter and body is empty.
+        if markers.count >= 2 {
+            for i in 0..<(markers.count - 1) {
+                let blockStart = markers[i] + 1
+                let blockEnd = markers[i + 1]
+                combinedFmLines.append(contentsOf: lines[blockStart..<blockEnd])
+            }
+            let lastMarker = markers.last!
+            strippedSource = lines[(lastMarker + 1)...].joined(separator: "\n")
+            consumedFrontmatter = true
+        }
+    }
+    if consumedFrontmatter {
+        frontmatter = _parseYamlFrontmatter(combinedFmLines)
+    } else if firstNonBlank < lines.endIndex,
+              lines[firstNonBlank].trimmingCharacters(in: .whitespacesAndNewlines) == "---" {
+        // Unterminated single block: legacy behavior.
+        return (source, nil)
     }
 
     guard strippedSource.contains("%%{") else {

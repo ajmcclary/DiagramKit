@@ -23,11 +23,47 @@ public struct DiagramHeader: Sendable {
 
     /// Convenience: detect from a preprocessed source string.
     public static func detect(from processedSource: String) -> DiagramHeader {
-        let rawLines = MermaidSourceNormalizer.rawLines(processedSource)
-        let firstLine = rawLines.first(where: { !$0.trimmingCharacters(in: .whitespaces).isEmpty })?
-            .trimmingCharacters(in: .whitespaces) ?? ""
+        // If the source begins with frontmatter (`---` ... `---`), pre-strip
+        // it so the registry sees the diagram body. Multiple contiguous
+        // frontmatter blocks are also stripped.
+        let stripped = _stripLeadingFrontmatter(from: processedSource)
+        let rawLines = MermaidSourceNormalizer.rawLines(stripped)
+        // Skip blank lines AND `%%` comment lines — the registry should match
+        // the first content-bearing line of the diagram.
+        let firstLine = rawLines.first(where: { line in
+            let trimmed = line.trimmingCharacters(in: .whitespaces)
+            return !trimmed.isEmpty && !trimmed.hasPrefix("%%")
+        })?.trimmingCharacters(in: .whitespaces) ?? ""
         return DiagramHeader(raw: firstLine, rawLines: rawLines)
     }
+}
+
+/// Strips one or more leading `---`-bracketed frontmatter blocks from
+/// `source` and returns whatever remains. Used by `DiagramHeader.detect`
+/// so registry matching ignores YAML frontmatter.
+private func _stripLeadingFrontmatter(from source: String) -> String {
+    let normalized = source
+        .replacingOccurrences(of: "\r\n", with: "\n")
+        .replacingOccurrences(of: "\r", with: "\n")
+    let lines = normalized.split(separator: "\n", omittingEmptySubsequences: false).map(String.init)
+    var cursor = lines.firstIndex(where: { !$0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }) ?? lines.endIndex
+    var lastEnd = -1
+    while cursor < lines.endIndex,
+          lines[cursor].trimmingCharacters(in: .whitespacesAndNewlines) == "---" {
+        guard let endIdx = lines[(cursor + 1)...].firstIndex(where: {
+            $0.trimmingCharacters(in: .whitespacesAndNewlines) == "---"
+        }) else { break }
+        lastEnd = endIdx
+        cursor = endIdx + 1
+        while cursor < lines.endIndex,
+              lines[cursor].trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            cursor += 1
+        }
+    }
+    if lastEnd >= 0 {
+        return lines[(lastEnd + 1)...].joined(separator: "\n")
+    }
+    return source
 }
 
 // MARK: - Diagram Descriptor
