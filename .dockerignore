@@ -1,0 +1,17 @@
+# Trim Docker build context for Dockerfile.linux-check.
+# Without this, Docker sends ~1.7 GB (including .build/ + snapshot baselines)
+# every invocation.
+
+.build/
+.swiftpm/
+.git/
+DerivedData/
+
+# Snapshot baselines aren't needed for the Linux build matrix, and they're
+# the bulk of Tests/.
+Tests/DiagramKitTests/__Snapshots__/
+
+# IDE / OS noise
+.DS_Store
+*.xcodeproj/xcuserdata/
+*.xcworkspace/xcuserdata/

@@ -144,7 +144,9 @@ private struct _ConsumedNodeGroup {
 private func _regex(_ pattern: String) -> NSRegularExpression {
     guard let regex = try? NSRegularExpression(pattern: pattern) else {
         assertionFailure("Invalid regex pattern: \(pattern)")
-        return NSRegularExpression()
+        // swift-corelibs-foundation has no `NSRegularExpression()` no-arg
+        // initializer — fall back to a guaranteed-valid never-match pattern.
+        return try! NSRegularExpression(pattern: "(?!)")
     }
     return regex
 }

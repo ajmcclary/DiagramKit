@@ -432,8 +432,16 @@ private extension DiagramRegistry {
             guard case let .mindmap(diagram) = graph.payload else {
                 throw MermaidStructuralError.payloadMismatch(.mindmap)
             }
+            #if canImport(UIKit) || canImport(AppKit)
             let positioned = try layoutMindmap(diagram)
             return PositionedGraph(diagram: graph, width: positioned.width, height: positioned.height, content: .mindmap(positioned))
+            #else
+            // Linux: layoutMindmap depends on BMFont + NSAttributedString
+            // text measurement. Unreachable until the portable
+            // text-measurement shim lands.
+            _ = diagram
+            throw MermaidStructuralError.payloadMismatch(.mindmap)
+            #endif
         }
     )
 

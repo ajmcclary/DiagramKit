@@ -1,3 +1,5 @@
+// Apple-only — depends on EdgePathBuilder/SVGPathSerializer (gated). `#if canImport(UIKit) || canImport(AppKit)`.
+#if canImport(UIKit) || canImport(AppKit)
 // Ported from original/src/renderer.ts
 import Foundation
 import DiagramKitCommon
@@ -1353,3 +1355,4 @@ open class original_src_renderer {
         try _renderSvgEntry(graph, colors, font, transparent)
     }
 }
+#endif

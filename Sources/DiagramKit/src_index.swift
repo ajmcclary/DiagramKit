@@ -1,3 +1,5 @@
+// Apple-only — depends on Models gated SVG/layout symbols. `#if canImport(UIKit) || canImport(AppKit)`.
+#if canImport(UIKit) || canImport(AppKit)
 // Ported from original/src/index.ts
 import Foundation
 import DiagramKitCommon
@@ -503,3 +505,4 @@ private func _renderZenUMLSvgCase(source: String, fm: DiagramFrontmatter?, color
 open class original_src_index {
     public init() {}
 }
+#endif

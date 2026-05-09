@@ -8,13 +8,12 @@ open class original_src_text_metrics {
     private static let WIDE_CHARS: Set<Character> = Set("WMwm@%".map { $0 })
     private static let VERY_WIDE_CHARS: Set<Character> = Set("WM".map { $0 })
     private static let SEMI_NARROW_PUNCT: Set<Character> = Set("()[]{}\\/-\"`".map { $0 })
-    private static let EMOJI_REGEX: NSRegularExpression = {
-        guard let regex = try? NSRegularExpression(pattern: #"[\p{Emoji_Presentation}\p{Extended_Pictographic}]"#) else {
-            assertionFailure("Invalid emoji regex")
-            return NSRegularExpression()
-        }
-        return regex
-    }()
+    // The pattern is hardcoded so the initializer cannot throw at runtime;
+    // using `try!` lets this compile on Linux too (swift-corelibs-foundation
+    // does not expose a no-arg `NSRegularExpression()` initializer).
+    private static let EMOJI_REGEX: NSRegularExpression = try! NSRegularExpression(
+        pattern: #"[\p{Emoji_Presentation}\p{Extended_Pictographic}]"#
+    )
 
     public static let LINE_HEIGHT_RATIO: Double = 1.3
 

@@ -1,3 +1,5 @@
+// Apple-only — depends on RenderConfig (BMColor/BMFont). Gated by `#if canImport(UIKit) || canImport(AppKit)`.
+#if canImport(UIKit) || canImport(AppKit)
 import Foundation
 #if canImport(CoreGraphics)
 import CoreGraphics
@@ -393,3 +395,4 @@ public enum ShapeSpecRegistry {
         }, path: { _, _ in .ellipse })
     }
 }
+#endif

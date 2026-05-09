@@ -1,3 +1,5 @@
+// Apple-only — depends on RenderConfig (BMColor/BMFont). Gated by `#if canImport(UIKit) || canImport(AppKit)`.
+#if canImport(UIKit) || canImport(AppKit)
 import Foundation
 import DiagramKitCommon
 
@@ -327,3 +329,4 @@ private func renderComment(_ comment: PositionedZenUMLComment) -> String {
 private func escXml(_ s: String) -> String {
     SVG.escapeText(s)
 }
+#endif

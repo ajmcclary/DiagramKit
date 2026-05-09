@@ -1,3 +1,5 @@
+// Apple-only — depends on gated symbols (ShapePath/BMFont/etc.). Gated by `#if canImport(UIKit) || canImport(AppKit)`.
+#if canImport(UIKit) || canImport(AppKit)
 import Foundation
 #if canImport(CoreGraphics)
 import CoreGraphics
@@ -92,3 +94,4 @@ public enum SVGPathSerializer {
         return String(format: "%.2f", rounded)
     }
 }
+#endif

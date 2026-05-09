@@ -11,7 +11,11 @@
 // hash to different IDs).
 
 import Foundation
+#if canImport(CryptoKit)
 import CryptoKit
+#else
+import Crypto
+#endif
 
 public enum StableID {
     /// Returns a UUID-format string deterministically derived from `seed`.

@@ -1,3 +1,5 @@
+// Apple-only — depends on gated symbols (ShapePath/BMFont/etc.). Gated by `#if canImport(UIKit) || canImport(AppKit)`.
+#if canImport(UIKit) || canImport(AppKit)
 import Foundation
 
 private let TIDY_TREE_GAP: Double = 20
@@ -396,3 +398,4 @@ private func _svgPathForPoints(_ points: [CGPoint]) -> String {
     }
     return path
 }
+#endif

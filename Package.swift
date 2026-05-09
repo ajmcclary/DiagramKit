@@ -21,6 +21,11 @@ let package = Package(
     dependencies: [
         .package(url: "https://github.com/pointfreeco/swift-custom-dump", from: "1.0.0"),
         .package(url: "https://github.com/pointfreeco/xctest-dynamic-overlay", from: "1.0.0"),
+        // swift-crypto provides the CryptoKit API surface on Linux. On Apple
+        // platforms `import CryptoKit` is preferred (zero-cost), but to keep
+        // DiagramKitCommon Linux-portable for `StableID.derive(...)`, we
+        // import `Crypto` from this package when CryptoKit is unavailable.
+        .package(url: "https://github.com/apple/swift-crypto", from: "3.0.0"),
         // TEMP: pinned to the fork at `ajmcclary/swift-snapshot-testing` (branch
         // `fix-swift-6.3-attachable`), which carries pointfreeco/swift-snapshot-testing#1090
         // for the Swift 6.3 `Attachable` cross-import-overlay break. `Data: Attachable`
@@ -36,7 +41,8 @@ let package = Package(
         .target(
             name: "DiagramKitCommon",
             dependencies: [
-                .product(name: "IssueReporting", package: "xctest-dynamic-overlay")
+                .product(name: "IssueReporting", package: "xctest-dynamic-overlay"),
+                .product(name: "Crypto", package: "swift-crypto", condition: .when(platforms: [.linux]))
             ]
         ),
         .target(
