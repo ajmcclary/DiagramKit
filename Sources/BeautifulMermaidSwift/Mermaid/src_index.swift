@@ -243,7 +243,7 @@ private func _renderPreprocessedMermaidSVG(
     options: RenderOptions
 ) throws -> String {
     let colors = buildColors(options)
-    let font = options.font ?? "Inter"
+    let font = options.font ?? RenderTokens.shared.svgFontFamily
     let transparent = options.transparent ?? false
     let diagramType = detectDiagramType(decodedText)
 

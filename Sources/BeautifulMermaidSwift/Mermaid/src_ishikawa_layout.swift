@@ -26,7 +26,7 @@ private func _measureIshikawaText(_ lines: [String], fontSize: Double) -> _Ishik
     guard !lines.isEmpty else {
         return _IshikawaTextBounds(width: 0, height: 0, x: 0, y: 0)
     }
-    let font = CTFontCreateWithName("Menlo" as CFString, CGFloat(fontSize), nil)
+    let font = RenderTokens.shared.layoutMonoCTFont(size: CGFloat(fontSize))
     let attr: [NSAttributedString.Key: Any] = [
         .font: font,
         .kern: 0

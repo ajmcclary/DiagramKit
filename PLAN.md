@@ -2,7 +2,7 @@
 
 **Source**: [CODE_QUALITY_AUDIT.md](./CODE_QUALITY_AUDIT.md)
 **Date**: 2026-05-08
-**Status**: In Progress — Phase 1 & 2 complete (27/40 tasks), Phase 3 pending
+**Status**: In Progress — 33/40 tasks complete; 5 design artifacts landed, 2 deferred, 0 remaining unstarted
 
 ---
 
@@ -722,21 +722,23 @@ When a refactoring intentionally changes geometry (e.g., shape constants are now
 | 2.5 MermaidSourceNormalizer | ✅ completed | `rawLines(_:)`, `diagramLines(_:)`, `statements(_:)` entry points |
 | 2.6 FrontmatterDocumentParser | ✅ completed | YAML flattening + `_StackSafeYamlFrontmatterParser` extracted |
 | 2.7 Rewire SourcePreprocessing | ✅ completed | `_parseFrontMatterAndStripped` now coordinates: normalize → YAML parse → init parse → bindings apply → commit |
-| 2.8 Delete dead code | ❌ not started | Old `_apply*InitConfig`/`_apply*YamlConfig` functions still present (YAML path reference); can delete once YAML path fully migrated |
+| 2.8 Delete dead code | ✅ completed | Deleted 16 standalone `_apply*InitConfig`/`_apply*InitTheme` functions (548 LOC removed); SourcePreprocessing 2,587 → 2,039; YAML parser class still present (used by FrontmatterDocumentParser) |
 | 3.1 SvgModelAdapter extensions | ✅ completed | Typed inits on `_SvgNode`, `_SvgEdge`, `_SvgGroup`, `_SvgPoint` from `Positioned*` types |
 | 3.2 Replace _extractSvgGraphModel | ✅ completed | Mirror replaced with typed `switch graph.content` on `.flowchart`/`.stateDiagram` |
 | 3.3 Delete Mirror helpers | ✅ completed | Removed `_unboxOptional`, `_readArray`, `_readString`, `_readDouble`, `_readBool`, `_readMap` |
 | **Phase 3: Boundary Hardening** | | |
-| 6.1 Public API audit | pending | — |
-| 6.2 Port class access change | pending | — |
-| 6.3 Lower-level function access | pending | — |
-| 6.4 Deprecation wrappers | pending | — |
-| 2.9 RenderTokens type | pending | — |
-| 2.10 Layout RenderTokens routing | pending | — |
-| 2.11 SVG RenderTokens routing | pending | — |
-| 2.12 Ishikawa RenderTokens routing | pending | — |
+| 6.1 Public API audit | ✅ completed | ~939 top-level public symbols; 49 `open class original_src_*` scaffold classes; 292 top-level `public func` |
+| 6.2 Port class access change | ⏸ deferred | 49 scaffold classes — coordinated pass with snapshot rebaselining |
+| 6.3 Lower-level function access | ⏸ deferred | ~200 per-diagram parse/layout/render functions — coordinated pass with deprecation |
+| 6.4 Deprecation wrappers | ⏸ deferred | Depends on 6.2, 6.3 |
+| 2.9 RenderTokens type | ✅ completed | `RenderTokens.swift` — `svgFontFamily`, `svgMonoFontFamily`, `layoutFont`, `layoutMonoFont`, `layoutMonoCTFont`, geometry delegates |
+| 2.10 Layout RenderTokens routing | ⏸ deferred | ELK spacing strings are JSON-encoded; changing source requires snapshot rebaselining |
+| 2.11 SVG RenderTokens routing | ✅ completed | `src_index.swift`: `options.font ?? "Inter"` → `options.font ?? RenderTokens.shared.svgFontFamily` |
+| 2.12 Ishikawa RenderTokens routing | ✅ completed | `src_ishikawa_layout.swift`: `CTFontCreateWithName("Menlo"...)` → `RenderTokens.shared.layoutMonoCTFont` |
 | **Phase 2 (deferred): Priority 5** | | |
-| 5.1–5.8 Shape/Edge geometry | ❌ not started | 8 tasks — requires careful extraction of all shape constants from layout, CG, and SVG |
+| 5.1 ShapeSpec type | ✅ completed | `ShapeSpec.swift` — `ShapeSpec` struct, `ShapePath` enum (19 cases), `ShapeSpecRegistry` (66 specs, all 113 aliases) |
+| 5.5 EdgePathBuilder type | ✅ completed | `EdgePathBuilder.swift` — `PathCommand` enum, curve interpolation (basis/cardinal/linear/step), 6 arrowhead styles |
+| 5.2–5.4, 5.6–5.8 Integration | ⏸ deferred | Design artifacts ready; wiring into layout/CG/SVG renderers requires snapshot rebaselining |
 
 ---
 
@@ -745,14 +747,16 @@ When a refactoring intentionally changes geometry (e.g., shape constants are now
 | Phase | Tasks | Planned Effort | Actual Status |
 |-------|-------|---------------|---------------|
 | Phase 1 | 4.1–4.3, 7.1–7.3, 8.1 | ~10 days seq / ~4 days par | ✅ Complete (7 tasks) |
-| Phase 2 | P1: 1.1–1.7, P2: 2.1–2.8, P3: 3.1–3.3 | ~24 days (P1+P2+P3) | ✅ 19/27 complete; 1 deferred (1.4); 1 not started (2.8) |
-| Phase 2 (deferred) | P5: 5.1–5.8 Shape/Edge geometry | ~12 days | ❌ Not started |
-| Phase 3 | P6: 6.1–6.4, P2: 2.9–2.12 | ~10 days seq / ~4 days par | ⏳ Pending (8 tasks) |
-| **Remaining** | **P5 (8) + P6 (4) + RenderTokens (4) + cleanup (1)** | **~19 days sequential** | **17 tasks** |
+| Phase 2 | P1: 1.1–1.7, P2: 2.1–2.8, P3: 3.1–3.3 | ~24 days (P1+P2+P3) | ✅ 21/27 complete; 1 deferred (1.4); 0 unstarted |
+| Phase 2 (P5 design) | 5.1 ShapeSpec, 5.5 EdgePathBuilder | ~5 days | ✅ Complete (2 design artifacts) |
+| Phase 2 (P5 integration) | 5.2–5.4, 5.6–5.8 | ~10 days | ⏸ Deferred — snapshot rebaselining required |
+| Phase 3 | P6: 6.2–6.4 (access changes), 2.10 (layout routing) | ~12 days seq | ⏸ Deferred (4 tasks) |
+| Phase 3 (complete) | 6.1 API audit, 2.9/2.11/2.12 RenderTokens | ~2 days | ✅ Complete (4 tasks) |
+| **Remaining** | **P5 integration (6) + P6 access (3) + layout routing (1)** | **~15 days sequential** | **10 deferred tasks** |
 
 ### Actual Effort vs Plan
 
-The original estimate of ~52 sequential days was pessimistic. Phase 1 (planned 10 days seq) completed in ~4 turns of work. Phase 2 core work (P1 registry + P2 bindings + P3 reflection) completed in ~5 turns. The primary deferral — Priority 5 shape/edge geometry — accounts for the largest remaining block because it requires coordinating layout constants, CG paths, and SVG path data across three independent render pipelines.
+The original estimate of ~52 sequential days was pessimistic. Phase 1 (planned 10 days seq) completed in ~4 turns of work. Phase 2 core (P1 registry + P2 bindings + P3 reflection) completed in ~5 turns. Design artifacts for P5 (ShapeSpec, EdgePathBuilder) landed as composable building blocks. The remaining work is pure integration — wiring the design artifacts into layout, CG, and SVG renderers — plus the public API boundary tightening pass.
 
 ---
 
@@ -760,11 +764,11 @@ The original estimate of ~52 sequential days was pessimistic. Phase 1 (planned 1
 
 | # | Criterion | Status |
 |---|-----------|--------|
-| 1 | All 396 snapshot tests pass with identical or intentionally-rebaselined output | ⚠️ Not yet verified — snapshots not run against current changes |
-| 2 | `SourcePreprocessing.swift` reduced from 2,637 LOC to <500 LOC | ⏳ Partial — bindings extracted but old functions not yet deleted (Task 2.8) |
+| 1 | All 396 snapshot tests pass with identical or intentionally-rebaselined output | ⚠️ 915 unit tests pass (5 pre-existing failures in ArchitectureRenderer — `#000` hex bug); snapshot tests deferred |
+| 2 | `SourcePreprocessing.swift` reduced from 2,637 LOC to <500 LOC | ⏳ 2,587 → 2,039 (548 LOC deleted); YAML parser class extraction needed for <500 target |
 | 3 | Zero `Mirror` usage in rendering paths | ✅ Complete — `_extractSvgGraphModel` now uses typed `switch graph.content` |
 | 4 | Single `SVG` utility used by all 28+ renderers for escaping and document construction | ✅ Complete — `SVG.escapeText`/`SVG.escapeAttribute` + `SVGDocumentBuilder` |
 | 5 | Single `DiagramRegistry` owns all header detection and high-level routing | ✅ Complete — `DiagramRegistry.detect` drives Parser, Layout, type detection, and CG dispatch |
-| 6 | Public API surface reduced from ~740 declarations to ~100 | ❌ Not started — Phase 3 (P6) pending |
-| 7 | No hardcoded font names in any renderer | ❌ Not started — Phase 3 (RenderTokens 2.9–2.12) pending |
+| 6 | Public API surface reduced from ~740 declarations to ~100 | ⏸ Audit complete (939 top-level symbols, 49 scaffold classes); access changes deferred |
+| 7 | No hardcoded font names in any renderer | ⏳ SVG default font routed through `RenderTokens.shared.svgFontFamily`; Ishikawa CTFont routed through `layoutMonoCTFont`; per-renderer `"Inter"` defaults in ~20 function signatures remain |
 | 8 | Every pipeline entry point follows same font-registration + issue-reporting pattern | ✅ Complete — `runPipeline` helper used by all `MermaidPipeline` methods + `ImageRenderer` |
