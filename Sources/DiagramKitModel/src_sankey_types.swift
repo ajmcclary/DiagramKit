@@ -1,5 +1,7 @@
 import Foundation
+#if canImport(CoreGraphics)
 import CoreGraphics
+#endif
 
 public struct SankeyDiagram: Sendable {
     public var nodes: [SankeyNode]
@@ -185,6 +187,7 @@ public struct SankeyLinkPath: Sendable {
         return "M \(_fmt(sourceX)),\(_fmt(sourceY)) C \(_fmt(cp1.x)),\(_fmt(cp1.y)),\(_fmt(cp2.x)),\(_fmt(cp2.y)),\(_fmt(targetX)),\(_fmt(targetY))"
     }
 
+    #if canImport(CoreGraphics)
     public var cgPath: CGPath {
         let p = CGMutablePath()
         p.move(to: CGPoint(x: sourceX, y: sourceY))
@@ -193,6 +196,7 @@ public struct SankeyLinkPath: Sendable {
                     control2: CGPoint(x: controlPoints[1].x, y: controlPoints[1].y))
         return p
     }
+    #endif
 }
 
 private func _fmt(_ v: Double) -> String {

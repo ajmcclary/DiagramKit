@@ -1,4 +1,7 @@
 import Foundation
+#if canImport(CoreGraphics)
+import CoreGraphics
+#endif
 
 public func layoutRadarDiagram(_ diagram: RadarDiagram) -> PositionedRadarDiagram {
     let config = diagram.config

@@ -1,4 +1,7 @@
 import Foundation
+#if canImport(CoreGraphics)
+import CoreGraphics
+#endif
 
 // MARK: - C4 Layout Engine (Row-based, mirrors Mermaid's Bounds class)
 

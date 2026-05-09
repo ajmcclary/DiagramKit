@@ -1,4 +1,7 @@
 import Foundation
+#if canImport(CoreGraphics)
+import CoreGraphics
+#endif
 
 public enum DiagramType: String, CaseIterable, Sendable {
     case flowchart

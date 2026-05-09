@@ -1,3 +1,5 @@
+// Apple-only renderer gated by `#if canImport(CoreGraphics)`. On Linux this file is empty.
+#if canImport(CoreGraphics)
 import Foundation
 import CoreGraphics
 
@@ -324,3 +326,4 @@ public enum CGPathRenderer {
         return path
     }
 }
+#endif

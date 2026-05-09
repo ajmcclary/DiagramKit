@@ -1,4 +1,7 @@
 import Foundation
+#if canImport(CoreGraphics)
+import CoreGraphics
+#endif
 import DiagramKitCommon
 
 // MARK: - Layout constants (LR)

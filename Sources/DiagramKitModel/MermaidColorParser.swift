@@ -12,6 +12,9 @@ import CoreGraphics
 ///
 /// Replaces the duplicated `_hexToCGColor`, `_thexToCGColor`, and ad-hoc
 /// CSS color parsers in individual renderer extensions.
+///
+/// Apple-only — depends on `BMColor` (UIColor/NSColor typealias).
+#if canImport(UIKit) || canImport(AppKit)
 public enum MermaidColorParser {
 
     /// Parse a color string into a `BMColor`, or `nil` if invalid.
@@ -112,3 +115,4 @@ public enum MermaidColorParser {
         return BMColor(red: r, green: g, blue: b, alpha: a)
     }
 }
+#endif
