@@ -1,0 +1,40 @@
+# Throwaway Dockerfile — verifies which DiagramKit targets build on Linux
+# Swift. Writes per-target outcomes to /tmp/results.txt.
+#
+# Mirrors MusicToolkit/Dockerfile.linux-check.
+#
+# Build context: mermaid-swift/
+# Usage:
+#   docker build -f Dockerfile.linux-check -t diagramkit-linux-check .
+#   docker run --rm diagramkit-linux-check
+# (or `podman` interchangeably; see Scripts/linux-check.sh)
+#
+# Apple-only targets (DiagramKitRenderingCG, DiagramKitViews, the umbrella
+# DiagramKit's render APIs, MermaidPlayground, the test target) are gated
+# by `#if canImport(CoreGraphics)` / `canImport(UIKit) || canImport(AppKit)`
+# at source level and by `condition: .when(platforms: [Apple])` on dep edges
+# in Package.swift, so they don't need to be excluded here — the matrix
+# below builds only the Linux-portable targets explicitly.
+#
+# Functional Linux layout/rendering for layouts that depend on text
+# measurement (CTLineGetBoundsWithOptions) is deferred — the call sites
+# throw MermaidStructuralError.payloadMismatch on Linux. A portable
+# text-measurement shim is the Stage 2.5 follow-up.
+
+FROM docker.io/library/swift:6.3.1-noble
+
+WORKDIR /work
+COPY . /work/
+
+RUN swift --version > /tmp/results.txt 2>&1 && echo "" >> /tmp/results.txt
+
+RUN echo "=== Build matrix ===" >> /tmp/results.txt && \
+    for tgt in DiagramKitCommon DiagramKitModel DiagramKitTestSupport DiagramKit; do \
+        echo "--- swift build --target $tgt ---" >> /tmp/results.txt; \
+        swift build --target "$tgt" >> /tmp/results.txt 2>&1 \
+            && echo "RESULT: $tgt PASS" >> /tmp/results.txt \
+            || echo "RESULT: $tgt FAIL" >> /tmp/results.txt; \
+        echo "" >> /tmp/results.txt; \
+    done
+
+CMD ["bash", "-c", "echo '=== Build matrix ==='; cat /tmp/results.txt | grep -E 'RESULT:|swift build'"]
