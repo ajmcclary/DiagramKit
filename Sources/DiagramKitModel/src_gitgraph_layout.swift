@@ -471,7 +471,7 @@ public func layoutGitGraph(_ diagram: GitGraphDiagram) -> PositionedGitGraphDiag
 
     // Phase 4: Branch lines
     var branchLines: [PositionedGitGraphBranchLine] = []
-    for (branch, bp) in branchPos {
+    for (branch, bp) in branchPos.sorted(by: { $0.value.index < $1.value.index }) {
         let rawColorIdx = bp.index
         let colorIndex = _gitGraphCalcColorIndex(rawColorIdx, limit: _GITGRAPH_THEME_COLOR_LIMIT, avoidDefaultColor: _gitGraphIsColorTheme(diagram.themeName))
         let spineY = (direction == .TB || direction == .BT)
@@ -504,7 +504,7 @@ public func layoutGitGraph(_ diagram: GitGraphDiagram) -> PositionedGitGraphDiag
     let labelPaddingX: Double = useReduxGeometry ? 16 : 0
     let labelPaddingY: Double = useReduxGeometry ? _GITGRAPH_REDUX_BRANCH_LABEL_PADDING_Y : 0
     let borderRadius: Double = useReduxGeometry ? 0 : 4
-    for (branch, bp) in branchPos {
+    for (branch, bp) in branchPos.sorted(by: { $0.value.index < $1.value.index }) {
         let labelText = branch
         let rawColorIdx = bp.index
         let colorIndex = _gitGraphCalcColorIndex(rawColorIdx, limit: _GITGRAPH_THEME_COLOR_LIMIT, avoidDefaultColor: _gitGraphIsColorTheme(diagram.themeName))

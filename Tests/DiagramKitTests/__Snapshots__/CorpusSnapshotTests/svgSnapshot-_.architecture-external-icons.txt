@@ -4,10 +4,10 @@
 .edge { stroke-width: 3; stroke: #939394; fill: none; }
 .arrow { fill: #939394; }
 .node-bkg { fill: none; stroke: #000000; stroke-width: 2px; stroke-dasharray: 8; }
-.arch-service-label { font-family: Noto Sans; font-size: 16px; fill: #27272A; text-anchor: middle; }
-.arch-group-label { font-family: Noto Sans; font-size: 16px; fill: #27272A; }
-.arch-edge-label { font-family: Noto Sans; font-size: 16px; fill: #27272A; text-anchor: middle; }
-.arch-diagram-title { font-family: Noto Sans; font-size: 16px; fill: #27272A; text-anchor: middle; font-weight: 600; }
+.arch-service-label { font-family: Inter; font-size: 16px; fill: #27272A; text-anchor: middle; }
+.arch-group-label { font-family: Inter; font-size: 16px; fill: #27272A; }
+.arch-edge-label { font-family: Inter; font-size: 16px; fill: #27272A; text-anchor: middle; }
+.arch-diagram-title { font-family: Inter; font-size: 16px; fill: #27272A; text-anchor: middle; font-weight: 600; }
 </style>
 <g class="architecture-groups">
 <g id="architecture-a19ecd926c95342-group-api" class="node-bkg">

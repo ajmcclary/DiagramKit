@@ -14,207 +14,207 @@
 <g class="sankey sankey-diagram">
 <g class="links">
 <defs>
-<linearGradient id="linearGradient-sankey-7-1" gradientUnits="userSpaceOnUse" x1="10" x2="158">
+<linearGradient id="linearGradient-sankey-1-1" gradientUnits="userSpaceOnUse" x1="10" x2="158">
 <stop offset="0%" stop-color="#6e6e73"/>
 <stop offset="100%" stop-color="#6e6e73"/>
 </linearGradient>
 </defs>
 <g class="link" style="mix-blend-mode: multiply;">
-<path d="M 10,110.4 C 84,110.4,84,110.4,158,110.4" fill="none" stroke="url(#linearGradient-sankey-7-1)" stroke-width="119.7" stroke-opacity="0.5"/>
+<path d="M 10,66.6 C 84,66.6,84,66.6,158,66.6" fill="none" stroke="url(#linearGradient-sankey-1-1)" stroke-width="133.2" stroke-opacity="0.5"/>
 </g>
 <defs>
-<linearGradient id="linearGradient-sankey-7-2" gradientUnits="userSpaceOnUse" x1="10" x2="158">
+<linearGradient id="linearGradient-sankey-1-2" gradientUnits="userSpaceOnUse" x1="10" x2="158">
 <stop offset="0%" stop-color="#6e6e73"/>
 <stop offset="100%" stop-color="#6e6e73"/>
 </linearGradient>
 </defs>
 <g class="link" style="mix-blend-mode: multiply;">
-<path d="M 10,197.8 C 84,197.8,84,197.8,158,197.8" fill="none" stroke="url(#linearGradient-sankey-7-2)" stroke-width="23.4" stroke-opacity="0.5"/>
+<path d="M 10,163.8 C 84,163.8,84,163.8,158,163.8" fill="none" stroke="url(#linearGradient-sankey-1-2)" stroke-width="26" stroke-opacity="0.5"/>
 </g>
 <defs>
-<linearGradient id="linearGradient-sankey-7-3" gradientUnits="userSpaceOnUse" x1="10" x2="158">
+<linearGradient id="linearGradient-sankey-1-3" gradientUnits="userSpaceOnUse" x1="10" x2="158">
 <stop offset="0%" stop-color="#6e6e73"/>
 <stop offset="100%" stop-color="#6e6e73"/>
 </linearGradient>
 </defs>
 <g class="link" style="mix-blend-mode: multiply;">
-<path d="M 10,284.3 C 84,284.3,84,284.3,158,284.3" fill="none" stroke="url(#linearGradient-sankey-7-3)" stroke-width="16.9" stroke-opacity="0.5"/>
+<path d="M 10,260.1 C 84,260.1,84,260.1,158,260.1" fill="none" stroke="url(#linearGradient-sankey-1-3)" stroke-width="18.8" stroke-opacity="0.5"/>
 </g>
 <defs>
-<linearGradient id="linearGradient-sankey-7-4" gradientUnits="userSpaceOnUse" x1="10" x2="158">
+<linearGradient id="linearGradient-sankey-1-4" gradientUnits="userSpaceOnUse" x1="10" x2="158">
 <stop offset="0%" stop-color="#6e6e73"/>
 <stop offset="100%" stop-color="#6e6e73"/>
 </linearGradient>
 </defs>
 <g class="link" style="mix-blend-mode: multiply;">
-<path d="M 10,280.8 C 84,280.8,84,280.8,158,280.8" fill="none" stroke="url(#linearGradient-sankey-7-4)" stroke-width="23.9" stroke-opacity="0.5"/>
+<path d="M 10,256.2 C 84,256.2,84,256.2,158,256.2" fill="none" stroke="url(#linearGradient-sankey-1-4)" stroke-width="26.6" stroke-opacity="0.5"/>
 </g>
 <defs>
-<linearGradient id="linearGradient-sankey-7-5" gradientUnits="userSpaceOnUse" x1="168" x2="316">
+<linearGradient id="linearGradient-sankey-1-5" gradientUnits="userSpaceOnUse" x1="168" x2="316">
 <stop offset="0%" stop-color="#6e6e73"/>
 <stop offset="100%" stop-color="#424245"/>
 </linearGradient>
 </defs>
 <g class="link" style="mix-blend-mode: multiply;">
-<path d="M 168,219.9 C 242,219.9,242,219.9,316,219.9" fill="none" stroke="url(#linearGradient-sankey-7-5)" stroke-width="234.7" stroke-opacity="0.5"/>
+<path d="M 168,188.4 C 242,188.4,242,188.4,316,188.4" fill="none" stroke="url(#linearGradient-sankey-1-5)" stroke-width="261.1" stroke-opacity="0.5"/>
 </g>
 <defs>
-<linearGradient id="linearGradient-sankey-7-6" gradientUnits="userSpaceOnUse" x1="10" x2="316">
+<linearGradient id="linearGradient-sankey-1-6" gradientUnits="userSpaceOnUse" x1="10" x2="316">
 <stop offset="0%" stop-color="#6e6e73"/>
 <stop offset="100%" stop-color="#424245"/>
 </linearGradient>
 </defs>
 <g class="link" style="mix-blend-mode: multiply;">
-<path d="M 10,248.1 C 163,248.1,163,248.1,316,248.1" fill="none" stroke="url(#linearGradient-sankey-7-6)" stroke-width="45.6" stroke-opacity="0.5"/>
+<path d="M 10,219.7 C 163,219.7,163,219.7,316,219.7" fill="none" stroke="url(#linearGradient-sankey-1-6)" stroke-width="50.7" stroke-opacity="0.5"/>
 </g>
 <defs>
-<linearGradient id="linearGradient-sankey-7-7" gradientUnits="userSpaceOnUse" x1="326" x2="790">
+<linearGradient id="linearGradient-sankey-1-7" gradientUnits="userSpaceOnUse" x1="326" x2="790">
 <stop offset="0%" stop-color="#424245"/>
 <stop offset="100%" stop-color="#ff3b30"/>
 </linearGradient>
 </defs>
 <g class="link" style="mix-blend-mode: multiply;">
-<path d="M 326,200.8 C 558,200.8,558,200.8,790,200.8" fill="none" stroke="url(#linearGradient-sankey-7-7)" stroke-width="139.2" stroke-opacity="0.5"/>
+<path d="M 326,167.1 C 558,167.1,558,167.1,790,167.1" fill="none" stroke="url(#linearGradient-sankey-1-7)" stroke-width="154.9" stroke-opacity="0.5"/>
 </g>
 <defs>
-<linearGradient id="linearGradient-sankey-7-8" gradientUnits="userSpaceOnUse" x1="326" x2="474">
+<linearGradient id="linearGradient-sankey-1-8" gradientUnits="userSpaceOnUse" x1="326" x2="474">
 <stop offset="0%" stop-color="#424245"/>
 <stop offset="100%" stop-color="#34c759"/>
 </linearGradient>
 </defs>
 <g class="link" style="mix-blend-mode: multiply;">
-<path d="M 326,333.7 C 400,333.7,400,333.7,474,333.7" fill="none" stroke="url(#linearGradient-sankey-7-8)" stroke-width="126.7" stroke-opacity="0.5"/>
+<path d="M 326,315 C 400,315,400,315,474,315" fill="none" stroke="url(#linearGradient-sankey-1-8)" stroke-width="140.9" stroke-opacity="0.5"/>
 </g>
 <defs>
-<linearGradient id="linearGradient-sankey-7-9" gradientUnits="userSpaceOnUse" x1="484" x2="790">
+<linearGradient id="linearGradient-sankey-1-9" gradientUnits="userSpaceOnUse" x1="484" x2="790">
 <stop offset="0%" stop-color="#34c759"/>
 <stop offset="100%" stop-color="#ff3b30"/>
 </linearGradient>
 </defs>
 <g class="link" style="mix-blend-mode: multiply;">
-<path d="M 484,185.4 C 637,185.4,637,185.4,790,185.4" fill="none" stroke="url(#linearGradient-sankey-7-9)" stroke-width="31.8" stroke-opacity="0.5"/>
+<path d="M 484,150 C 637,150,637,150,790,150" fill="none" stroke="url(#linearGradient-sankey-1-9)" stroke-width="35.4" stroke-opacity="0.5"/>
 </g>
 <defs>
-<linearGradient id="linearGradient-sankey-7-10" gradientUnits="userSpaceOnUse" x1="484" x2="632">
+<linearGradient id="linearGradient-sankey-1-10" gradientUnits="userSpaceOnUse" x1="484" x2="632">
 <stop offset="0%" stop-color="#34c759"/>
 <stop offset="100%" stop-color="#34c759"/>
 </linearGradient>
 </defs>
 <g class="link" style="mix-blend-mode: multiply;">
-<path d="M 484,303.8 C 558,303.8,558,303.8,632,303.8" fill="none" stroke="url(#linearGradient-sankey-7-10)" stroke-width="205" stroke-opacity="0.5"/>
+<path d="M 484,281.7 C 558,281.7,558,281.7,632,281.7" fill="none" stroke="url(#linearGradient-sankey-1-10)" stroke-width="228" stroke-opacity="0.5"/>
 </g>
 <defs>
-<linearGradient id="linearGradient-sankey-7-11" gradientUnits="userSpaceOnUse" x1="642" x2="790">
+<linearGradient id="linearGradient-sankey-1-11" gradientUnits="userSpaceOnUse" x1="642" x2="790">
 <stop offset="0%" stop-color="#34c759"/>
 <stop offset="100%" stop-color="#ff3b30"/>
 </linearGradient>
 </defs>
 <g class="link" style="mix-blend-mode: multiply;">
-<path d="M 642,275.6 C 716,275.6,716,275.6,790,275.6" fill="none" stroke="url(#linearGradient-sankey-7-11)" stroke-width="11.9" stroke-opacity="0.5"/>
+<path d="M 642,250.3 C 716,250.3,716,250.3,790,250.3" fill="none" stroke="url(#linearGradient-sankey-1-11)" stroke-width="13.2" stroke-opacity="0.5"/>
 </g>
 <defs>
-<linearGradient id="linearGradient-sankey-7-12" gradientUnits="userSpaceOnUse" x1="642" x2="790">
+<linearGradient id="linearGradient-sankey-1-12" gradientUnits="userSpaceOnUse" x1="642" x2="790">
 <stop offset="0%" stop-color="#34c759"/>
 <stop offset="100%" stop-color="#34c759"/>
 </linearGradient>
 </defs>
 <g class="link" style="mix-blend-mode: multiply;">
-<path d="M 642,238.4 C 716,238.4,716,238.4,790,238.4" fill="none" stroke="url(#linearGradient-sankey-7-12)" stroke-width="62.4" stroke-opacity="0.5"/>
+<path d="M 642,209 C 716,209,716,209,790,209" fill="none" stroke="url(#linearGradient-sankey-1-12)" stroke-width="69.5" stroke-opacity="0.5"/>
 </g>
 </g>
 <g class="nodes">
-<g class="node" id="node-sankey-7-13" transform="translate(0,50.5)" x="0" y="50.5)">
-<rect x="0" y="0" width="10" height="119.7" fill="#6e6e73" shape-rendering="crispEdges"/>
+<g class="node" id="node-sankey-1-13" transform="translate(0,0)" x="0" y="0)">
+<rect x="0" y="0" width="10" height="133.2" fill="#6e6e73" shape-rendering="crispEdges"/>
 </g>
-<g class="node" id="node-sankey-7-14" transform="translate(158,102.6)" x="158" y="102.6)">
-<rect x="0" y="0" width="10" height="292.8" fill="#6e6e73" shape-rendering="crispEdges"/>
+<g class="node" id="node-sankey-1-14" transform="translate(158,57.9)" x="158" y="57.9)">
+<rect x="0" y="0" width="10" height="325.7" fill="#6e6e73" shape-rendering="crispEdges"/>
 </g>
-<g class="node" id="node-sankey-7-15" transform="translate(0,186.1)" x="0" y="186.1)">
-<rect x="0" y="0" width="10" height="23.4" fill="#6e6e73" shape-rendering="crispEdges"/>
+<g class="node" id="node-sankey-1-15" transform="translate(0,150.8)" x="0" y="150.8)">
+<rect x="0" y="0" width="10" height="26" fill="#6e6e73" shape-rendering="crispEdges"/>
 </g>
-<g class="node" id="node-sankey-7-16" transform="translate(0,275.9)" x="0" y="275.9)">
-<rect x="0" y="0" width="10" height="16.9" fill="#6e6e73" shape-rendering="crispEdges"/>
+<g class="node" id="node-sankey-1-16" transform="translate(0,250.7)" x="0" y="250.7)">
+<rect x="0" y="0" width="10" height="18.8" fill="#6e6e73" shape-rendering="crispEdges"/>
 </g>
-<g class="node" id="node-sankey-7-17" transform="translate(0,268.9)" x="0" y="268.9)">
-<rect x="0" y="0" width="10" height="23.9" fill="#6e6e73" shape-rendering="crispEdges"/>
+<g class="node" id="node-sankey-1-17" transform="translate(0,242.9)" x="0" y="242.9)">
+<rect x="0" y="0" width="10" height="26.6" fill="#6e6e73" shape-rendering="crispEdges"/>
 </g>
-<g class="node" id="node-sankey-7-18" transform="translate(316,131.2)" x="316" y="131.2)">
-<rect x="0" y="0" width="10" height="292.8" fill="#424245" shape-rendering="crispEdges"/>
+<g class="node" id="node-sankey-1-18" transform="translate(316,89.7)" x="316" y="89.7)">
+<rect x="0" y="0" width="10" height="325.7" fill="#424245" shape-rendering="crispEdges"/>
 </g>
-<g class="node" id="node-sankey-7-19" transform="translate(0,225.3)" x="0" y="225.3)">
-<rect x="0" y="0" width="10" height="45.6" fill="#6e6e73" shape-rendering="crispEdges"/>
+<g class="node" id="node-sankey-1-19" transform="translate(0,194.4)" x="0" y="194.4)">
+<rect x="0" y="0" width="10" height="50.7" fill="#6e6e73" shape-rendering="crispEdges"/>
 </g>
-<g class="node" id="node-sankey-7-20" transform="translate(790,120.5)" x="790" y="120.5)">
-<rect x="0" y="0" width="10" height="139.2" fill="#ff3b30" shape-rendering="crispEdges"/>
+<g class="node" id="node-sankey-1-20" transform="translate(790,77.8)" x="790" y="77.8)">
+<rect x="0" y="0" width="10" height="154.9" fill="#ff3b30" shape-rendering="crispEdges"/>
 </g>
-<g class="node" id="node-sankey-7-21" transform="translate(474,169.5)" x="474" y="169.5)">
-<rect x="0" y="0" width="10" height="292.8" fill="#34c759" shape-rendering="crispEdges"/>
+<g class="node" id="node-sankey-1-21" transform="translate(474,132.3)" x="474" y="132.3)">
+<rect x="0" y="0" width="10" height="325.7" fill="#34c759" shape-rendering="crispEdges"/>
 </g>
-<g class="node" id="node-sankey-7-22" transform="translate(790,261)" x="790" y="261)">
-<rect x="0" y="0" width="10" height="31.8" fill="#ff3b30" shape-rendering="crispEdges"/>
+<g class="node" id="node-sankey-1-22" transform="translate(790,234.1)" x="790" y="234.1)">
+<rect x="0" y="0" width="10" height="35.4" fill="#ff3b30" shape-rendering="crispEdges"/>
 </g>
-<g class="node" id="node-sankey-7-23" transform="translate(632,207.2)" x="632" y="207.2)">
-<rect x="0" y="0" width="10" height="292.8" fill="#34c759" shape-rendering="crispEdges"/>
+<g class="node" id="node-sankey-1-23" transform="translate(632,174.3)" x="632" y="174.3)">
+<rect x="0" y="0" width="10" height="325.7" fill="#34c759" shape-rendering="crispEdges"/>
 </g>
-<g class="node" id="node-sankey-7-24" transform="translate(790,281)" x="790" y="281)">
-<rect x="0" y="0" width="10" height="11.9" fill="#ff3b30" shape-rendering="crispEdges"/>
+<g class="node" id="node-sankey-1-24" transform="translate(790,256.3)" x="790" y="256.3)">
+<rect x="0" y="0" width="10" height="13.2" fill="#ff3b30" shape-rendering="crispEdges"/>
 </g>
-<g class="node" id="node-sankey-7-25" transform="translate(790,230.4)" x="790" y="230.4)">
-<rect x="0" y="0" width="10" height="62.4" fill="#34c759" shape-rendering="crispEdges"/>
+<g class="node" id="node-sankey-1-25" transform="translate(790,200.1)" x="790" y="200.1)">
+<rect x="0" y="0" width="10" height="69.5" fill="#34c759" shape-rendering="crispEdges"/>
 </g>
 </g>
 <g class="node-labels">
-<text class="sankey-label-bg" x="-6" y="110.4" dy="0" text-anchor="end">iPhone
+<text class="sankey-label-bg" x="-6" y="66.6" dy="0" text-anchor="end">iPhone
 $205B</text>
-<text class="sankey-label-fg" x="-6" y="110.4" dy="0" text-anchor="end">iPhone
+<text class="sankey-label-fg" x="-6" y="66.6" dy="0" text-anchor="end">iPhone
 $205B</text>
-<text class="sankey-label-bg" x="152" y="249" dy="0" text-anchor="end">Products
+<text class="sankey-label-bg" x="152" y="220.8" dy="0" text-anchor="end">Products
 $315B</text>
-<text class="sankey-label-fg" x="152" y="249" dy="0" text-anchor="end">Products
+<text class="sankey-label-fg" x="152" y="220.8" dy="0" text-anchor="end">Products
 $315B</text>
-<text class="sankey-label-bg" x="-6" y="197.8" dy="0" text-anchor="end">Mac
+<text class="sankey-label-bg" x="-6" y="163.8" dy="0" text-anchor="end">Mac
 $40B</text>
-<text class="sankey-label-fg" x="-6" y="197.8" dy="0" text-anchor="end">Mac
+<text class="sankey-label-fg" x="-6" y="163.8" dy="0" text-anchor="end">Mac
 $40B</text>
-<text class="sankey-label-bg" x="-6" y="284.3" dy="0" text-anchor="end">iPad
+<text class="sankey-label-bg" x="-6" y="260.1" dy="0" text-anchor="end">iPad
 $29B</text>
-<text class="sankey-label-fg" x="-6" y="284.3" dy="0" text-anchor="end">iPad
+<text class="sankey-label-fg" x="-6" y="260.1" dy="0" text-anchor="end">iPad
 $29B</text>
-<text class="sankey-label-bg" x="-6" y="280.8" dy="0" text-anchor="end">Wearables
+<text class="sankey-label-bg" x="-6" y="256.2" dy="0" text-anchor="end">Wearables
 $41B</text>
-<text class="sankey-label-fg" x="-6" y="280.8" dy="0" text-anchor="end">Wearables
+<text class="sankey-label-fg" x="-6" y="256.2" dy="0" text-anchor="end">Wearables
 $41B</text>
-<text class="sankey-label-bg" x="332" y="277.6" dy="0" text-anchor="start">Revenue
+<text class="sankey-label-bg" x="332" y="252.6" dy="0" text-anchor="start">Revenue
 $393B</text>
-<text class="sankey-label-fg" x="332" y="277.6" dy="0" text-anchor="start">Revenue
+<text class="sankey-label-fg" x="332" y="252.6" dy="0" text-anchor="start">Revenue
 $393B</text>
-<text class="sankey-label-bg" x="-6" y="248.1" dy="0" text-anchor="end">Services
+<text class="sankey-label-bg" x="-6" y="219.7" dy="0" text-anchor="end">Services
 $78B</text>
-<text class="sankey-label-fg" x="-6" y="248.1" dy="0" text-anchor="end">Services
+<text class="sankey-label-fg" x="-6" y="219.7" dy="0" text-anchor="end">Services
 $78B</text>
-<text class="sankey-label-bg" x="806" y="190.1" dy="0" text-anchor="start">Cost of Revenue
+<text class="sankey-label-bg" x="806" y="155.2" dy="0" text-anchor="start">Cost of Revenue
 $223B</text>
-<text class="sankey-label-fg" x="806" y="190.1" dy="0" text-anchor="start">Cost of Revenue
+<text class="sankey-label-fg" x="806" y="155.2" dy="0" text-anchor="start">Cost of Revenue
 $223B</text>
-<text class="sankey-label-bg" x="490" y="315.9" dy="0" text-anchor="start">Gross Profit
+<text class="sankey-label-bg" x="490" y="295.2" dy="0" text-anchor="start">Gross Profit
 $170B</text>
-<text class="sankey-label-fg" x="490" y="315.9" dy="0" text-anchor="start">Gross Profit
+<text class="sankey-label-fg" x="490" y="295.2" dy="0" text-anchor="start">Gross Profit
 $170B</text>
-<text class="sankey-label-bg" x="806" y="276.9" dy="0" text-anchor="start">Op Expenses
+<text class="sankey-label-bg" x="806" y="251.8" dy="0" text-anchor="start">Op Expenses
 $51B</text>
-<text class="sankey-label-fg" x="806" y="276.9" dy="0" text-anchor="start">Op Expenses
+<text class="sankey-label-fg" x="806" y="251.8" dy="0" text-anchor="start">Op Expenses
 $51B</text>
-<text class="sankey-label-bg" x="648" y="353.6" dy="0" text-anchor="start">Op Profit
+<text class="sankey-label-bg" x="648" y="337.1" dy="0" text-anchor="start">Op Profit
 $119B</text>
-<text class="sankey-label-fg" x="648" y="353.6" dy="0" text-anchor="start">Op Profit
+<text class="sankey-label-fg" x="648" y="337.1" dy="0" text-anchor="start">Op Profit
 $119B</text>
-<text class="sankey-label-bg" x="806" y="286.9" dy="0" text-anchor="start">Tax
+<text class="sankey-label-bg" x="806" y="262.9" dy="0" text-anchor="start">Tax
 $19B</text>
-<text class="sankey-label-fg" x="806" y="286.9" dy="0" text-anchor="start">Tax
+<text class="sankey-label-fg" x="806" y="262.9" dy="0" text-anchor="start">Tax
 $19B</text>
-<text class="sankey-label-bg" x="806" y="261.6" dy="0" text-anchor="start">Net Profit
+<text class="sankey-label-bg" x="806" y="234.8" dy="0" text-anchor="start">Net Profit
 $100B</text>
-<text class="sankey-label-fg" x="806" y="261.6" dy="0" text-anchor="start">Net Profit
+<text class="sankey-label-fg" x="806" y="234.8" dy="0" text-anchor="start">Net Profit
 $100B</text>
 </g>
 </g>

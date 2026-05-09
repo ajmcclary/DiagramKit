@@ -26,7 +26,7 @@ public func renderWardleyMapSvg(
     let annotationFill = theme.annotationFill
     let gridColor = theme.gridColor
 
-    let diagramId = "wardley-\(UUID().uuidString.prefix(8))"
+    let diagramId = "wardley"
 
     var svg = """
     <svg id="\(diagramId)" class="wardley-map" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="\(Int(width))" height="\(Int(height))" viewBox="0 0 \(Int(width)) \(Int(height))" role="graphics-document document">

@@ -1,81 +1,81 @@
-<svg id="9A8EA929-C4F0-4CA3-B844-488CD61AEEB5" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="900" height="518.6" viewBox="0 0 900 518.6" style="--bg:#FFFFFF;--fg:#27272A;--line:#939394;--accent:#27272A;--muted:#A9A9AA;--surface:#F9F9F9;--border:#D4D4D4;background:#FFFFFF">
+<svg id="F6A1E993-706D-777D-1604-2FF4A88AF221" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="900" height="518.6" viewBox="0 0 900 518.6" style="--bg:#FFFFFF;--fg:#27272A;--line:#939394;--accent:#27272A;--muted:#A9A9AA;--surface:#F9F9F9;--border:#D4D4D4;background:#FFFFFF">
 <defs>
-<marker id="9A8EA929-C4F0-4CA3-B844-488CD61AEEB5-arrowhead" refX="5" refY="2" markerWidth="6" markerHeight="4" orient="auto">
+<marker id="F6A1E993-706D-777D-1604-2FF4A88AF221-arrowhead" refX="5" refY="2" markerWidth="6" markerHeight="4" orient="auto">
 <path d="M 0,0 V 4 L6,2 Z" class="arrowheadPath" fill="#939394"/>
 </marker>
 </defs>
 <g class="timeline-node section-0">
 <rect x="150" y="90" width="150" height="58.5" fill="#0052CC" stroke="#0052CC" stroke-width="1" rx="3" ry="3"/>
 <switch>
-<foreignObject x="150" y="90" width="150" height="58.5" position="fixed"><div xmlns="http://www.w3.org/1999/xhtml" class="label" style="display:table;width:100%;height:100%;text-align:center;font-size:14px;font-family:&quot;Open Sans&quot;, sans-serif;color:#ffffff"><div style="display:table-cell;vertical-align:middle">Age of<br/>Industrialization</div></div></foreignObject>
-<text text-anchor="middle" dominant-baseline="central" fill="#ffffff" font-size="14" font-family="&quot;Open Sans&quot;, sans-serif"><tspan x="225" y="110.8">Age of</tspan><tspan x="225" y="127.6">Industrialization</tspan></text>
+<foreignObject x="150" y="90" width="150" height="58.5" position="fixed"><div xmlns="http://www.w3.org/1999/xhtml" class="label" style="display:table;width:100%;height:100%;text-align:center;font-size:14px;font-family:"Open Sans", sans-serif;color:#ffffff"><div style="display:table-cell;vertical-align:middle">Age of<br/>Industrialization</div></div></foreignObject>
+<text text-anchor="middle" dominant-baseline="central" fill="#ffffff" font-size="14" font-family=""Open Sans", sans-serif"><tspan x="225" y="110.8">Age of</tspan><tspan x="225" y="127.6">Industrialization</tspan></text>
 </switch>
 </g>
 <g class="timeline-node section-1">
 <rect x="350" y="90" width="350" height="58.5" fill="#0065FF" stroke="#0065FF" stroke-width="1" rx="3" ry="3"/>
 <switch>
-<foreignObject x="350" y="90" width="350" height="58.5" position="fixed"><div xmlns="http://www.w3.org/1999/xhtml" class="label" style="display:table;width:100%;height:100%;text-align:center;font-size:14px;font-family:&quot;Open Sans&quot;, sans-serif;color:#ffffff"><div style="display:table-cell;vertical-align:middle">Age of<br/>Empire</div></div></foreignObject>
-<text text-anchor="middle" dominant-baseline="central" fill="#ffffff" font-size="14" font-family="&quot;Open Sans&quot;, sans-serif"><tspan x="525" y="110.8">Age of</tspan><tspan x="525" y="127.6">Empire</tspan></text>
+<foreignObject x="350" y="90" width="350" height="58.5" position="fixed"><div xmlns="http://www.w3.org/1999/xhtml" class="label" style="display:table;width:100%;height:100%;text-align:center;font-size:14px;font-family:"Open Sans", sans-serif;color:#ffffff"><div style="display:table-cell;vertical-align:middle">Age of<br/>Empire</div></div></foreignObject>
+<text text-anchor="middle" dominant-baseline="central" fill="#ffffff" font-size="14" font-family=""Open Sans", sans-serif"><tspan x="525" y="110.8">Age of</tspan><tspan x="525" y="127.6">Empire</tspan></text>
 </switch>
 </g>
 <g class="taskWrapper">
 <rect class="node-bkg node-0" x="150" y="198.5" width="150" height="43.1" fill="#0052CC" stroke="#0052CC" stroke-width="1" rx="3" ry="3"/>
 <line class="node-line-0" x1="150" y1="241.6" x2="300" y2="241.6" stroke="#003380" stroke-width="3"/>
 <switch>
-<foreignObject x="150" y="198.5" width="150" height="43.1" position="fixed"><div xmlns="http://www.w3.org/1999/xhtml" class="label" style="display:table;width:100%;height:100%;text-align:center;font-size:14px;font-family:&quot;Open Sans&quot;, sans-serif;color:#ffffff"><div style="display:table-cell;vertical-align:middle">1760</div></div></foreignObject>
-<text text-anchor="middle" dominant-baseline="central" fill="#ffffff" font-size="14" font-family="&quot;Open Sans&quot;, sans-serif"><tspan x="225" y="220.1">1760</tspan></text>
+<foreignObject x="150" y="198.5" width="150" height="43.1" position="fixed"><div xmlns="http://www.w3.org/1999/xhtml" class="label" style="display:table;width:100%;height:100%;text-align:center;font-size:14px;font-family:"Open Sans", sans-serif;color:#ffffff"><div style="display:table-cell;vertical-align:middle">1760</div></div></foreignObject>
+<text text-anchor="middle" dominant-baseline="central" fill="#ffffff" font-size="14" font-family=""Open Sans", sans-serif"><tspan x="225" y="220.1">1760</tspan></text>
 </switch>
 </g>
 <g class="taskWrapper">
 <rect class="node-bkg node-1" x="350" y="198.5" width="150" height="43.1" fill="#0065FF" stroke="#0065FF" stroke-width="1" rx="3" ry="3"/>
 <line class="node-line-1" x1="350" y1="241.6" x2="500" y2="241.6" stroke="#003D99" stroke-width="3"/>
 <switch>
-<foreignObject x="350" y="198.5" width="150" height="43.1" position="fixed"><div xmlns="http://www.w3.org/1999/xhtml" class="label" style="display:table;width:100%;height:100%;text-align:center;font-size:14px;font-family:&quot;Open Sans&quot;, sans-serif;color:#ffffff"><div style="display:table-cell;vertical-align:middle">1815</div></div></foreignObject>
-<text text-anchor="middle" dominant-baseline="central" fill="#ffffff" font-size="14" font-family="&quot;Open Sans&quot;, sans-serif"><tspan x="425" y="220.1">1815</tspan></text>
+<foreignObject x="350" y="198.5" width="150" height="43.1" position="fixed"><div xmlns="http://www.w3.org/1999/xhtml" class="label" style="display:table;width:100%;height:100%;text-align:center;font-size:14px;font-family:"Open Sans", sans-serif;color:#ffffff"><div style="display:table-cell;vertical-align:middle">1815</div></div></foreignObject>
+<text text-anchor="middle" dominant-baseline="central" fill="#ffffff" font-size="14" font-family=""Open Sans", sans-serif"><tspan x="425" y="220.1">1815</tspan></text>
 </switch>
 </g>
 <g class="taskWrapper">
 <rect class="node-bkg node-1" x="550" y="198.5" width="150" height="43.1" fill="#0065FF" stroke="#0065FF" stroke-width="1" rx="3" ry="3"/>
 <line class="node-line-1" x1="550" y1="241.6" x2="700" y2="241.6" stroke="#003D99" stroke-width="3"/>
 <switch>
-<foreignObject x="550" y="198.5" width="150" height="43.1" position="fixed"><div xmlns="http://www.w3.org/1999/xhtml" class="label" style="display:table;width:100%;height:100%;text-align:center;font-size:14px;font-family:&quot;Open Sans&quot;, sans-serif;color:#ffffff"><div style="display:table-cell;vertical-align:middle">1837</div></div></foreignObject>
-<text text-anchor="middle" dominant-baseline="central" fill="#ffffff" font-size="14" font-family="&quot;Open Sans&quot;, sans-serif"><tspan x="625" y="220.1">1837</tspan></text>
+<foreignObject x="550" y="198.5" width="150" height="43.1" position="fixed"><div xmlns="http://www.w3.org/1999/xhtml" class="label" style="display:table;width:100%;height:100%;text-align:center;font-size:14px;font-family:"Open Sans", sans-serif;color:#ffffff"><div style="display:table-cell;vertical-align:middle">1837</div></div></foreignObject>
+<text text-anchor="middle" dominant-baseline="central" fill="#ffffff" font-size="14" font-family=""Open Sans", sans-serif"><tspan x="625" y="220.1">1837</tspan></text>
 </switch>
 </g>
 <g class="eventWrapper" filter="brightness(120%)">
 <rect class="node-bkg" x="150" y="341.6" width="150" height="58.5" fill="#0052CC" stroke="#0052CC" stroke-width="1" rx="3" ry="3"/>
 <switch>
-<foreignObject x="150" y="341.6" width="150" height="58.5" position="fixed"><div xmlns="http://www.w3.org/1999/xhtml" class="label" style="display:table;width:100%;height:100%;text-align:center;font-size:14px;font-family:&quot;Open Sans&quot;, sans-serif;color:#27272A"><div style="display:table-cell;vertical-align:middle">James<br/>Watt</div></div></foreignObject>
-<text text-anchor="middle" dominant-baseline="central" fill="#27272A" font-size="14" font-family="&quot;Open Sans&quot;, sans-serif"><tspan x="225" y="362.5">James</tspan><tspan x="225" y="379.3">Watt</tspan></text>
+<foreignObject x="150" y="341.6" width="150" height="58.5" position="fixed"><div xmlns="http://www.w3.org/1999/xhtml" class="label" style="display:table;width:100%;height:100%;text-align:center;font-size:14px;font-family:"Open Sans", sans-serif;color:#27272A"><div style="display:table-cell;vertical-align:middle">James<br/>Watt</div></div></foreignObject>
+<text text-anchor="middle" dominant-baseline="central" fill="#27272A" font-size="14" font-family=""Open Sans", sans-serif"><tspan x="225" y="362.5">James</tspan><tspan x="225" y="379.3">Watt</tspan></text>
 </switch>
 </g>
 <g class="eventWrapper" filter="brightness(120%)">
 <rect class="node-bkg" x="150" y="410.1" width="150" height="58.5" fill="#0052CC" stroke="#0052CC" stroke-width="1" rx="3" ry="3"/>
 <switch>
-<foreignObject x="150" y="410.1" width="150" height="58.5" position="fixed"><div xmlns="http://www.w3.org/1999/xhtml" class="label" style="display:table;width:100%;height:100%;text-align:center;font-size:14px;font-family:&quot;Open Sans&quot;, sans-serif;color:#27272A"><div style="display:table-cell;vertical-align:middle">Steam<br/>Engine</div></div></foreignObject>
-<text text-anchor="middle" dominant-baseline="central" fill="#27272A" font-size="14" font-family="&quot;Open Sans&quot;, sans-serif"><tspan x="225" y="431.0">Steam</tspan><tspan x="225" y="447.8">Engine</tspan></text>
+<foreignObject x="150" y="410.1" width="150" height="58.5" position="fixed"><div xmlns="http://www.w3.org/1999/xhtml" class="label" style="display:table;width:100%;height:100%;text-align:center;font-size:14px;font-family:"Open Sans", sans-serif;color:#27272A"><div style="display:table-cell;vertical-align:middle">Steam<br/>Engine</div></div></foreignObject>
+<text text-anchor="middle" dominant-baseline="central" fill="#27272A" font-size="14" font-family=""Open Sans", sans-serif"><tspan x="225" y="431.0">Steam</tspan><tspan x="225" y="447.8">Engine</tspan></text>
 </switch>
 </g>
 <g class="eventWrapper" filter="brightness(120%)">
 <rect class="node-bkg" x="350" y="341.6" width="150" height="43.1" fill="#0065FF" stroke="#0065FF" stroke-width="1" rx="3" ry="3"/>
 <switch>
-<foreignObject x="350" y="341.6" width="150" height="43.1" position="fixed"><div xmlns="http://www.w3.org/1999/xhtml" class="label" style="display:table;width:100%;height:100%;text-align:center;font-size:14px;font-family:&quot;Open Sans&quot;, sans-serif;color:#27272A"><div style="display:table-cell;vertical-align:middle">Battle of Waterloo</div></div></foreignObject>
-<text text-anchor="middle" dominant-baseline="central" fill="#27272A" font-size="14" font-family="&quot;Open Sans&quot;, sans-serif"><tspan x="425" y="363.2">Battle of Waterloo</tspan></text>
+<foreignObject x="350" y="341.6" width="150" height="43.1" position="fixed"><div xmlns="http://www.w3.org/1999/xhtml" class="label" style="display:table;width:100%;height:100%;text-align:center;font-size:14px;font-family:"Open Sans", sans-serif;color:#27272A"><div style="display:table-cell;vertical-align:middle">Battle of Waterloo</div></div></foreignObject>
+<text text-anchor="middle" dominant-baseline="central" fill="#27272A" font-size="14" font-family=""Open Sans", sans-serif"><tspan x="425" y="363.2">Battle of Waterloo</tspan></text>
 </switch>
 </g>
 <g class="eventWrapper" filter="brightness(120%)">
 <rect class="node-bkg" x="550" y="341.6" width="150" height="43.1" fill="#0065FF" stroke="#0065FF" stroke-width="1" rx="3" ry="3"/>
 <switch>
-<foreignObject x="550" y="341.6" width="150" height="43.1" position="fixed"><div xmlns="http://www.w3.org/1999/xhtml" class="label" style="display:table;width:100%;height:100%;text-align:center;font-size:14px;font-family:&quot;Open Sans&quot;, sans-serif;color:#27272A"><div style="display:table-cell;vertical-align:middle">Queen Victoria</div></div></foreignObject>
-<text text-anchor="middle" dominant-baseline="central" fill="#27272A" font-size="14" font-family="&quot;Open Sans&quot;, sans-serif"><tspan x="625" y="363.2">Queen Victoria</tspan></text>
+<foreignObject x="550" y="341.6" width="150" height="43.1" position="fixed"><div xmlns="http://www.w3.org/1999/xhtml" class="label" style="display:table;width:100%;height:100%;text-align:center;font-size:14px;font-family:"Open Sans", sans-serif;color:#27272A"><div style="display:table-cell;vertical-align:middle">Queen Victoria</div></div></foreignObject>
+<text text-anchor="middle" dominant-baseline="central" fill="#27272A" font-size="14" font-family=""Open Sans", sans-serif"><tspan x="625" y="363.2">Queen Victoria</tspan></text>
 </switch>
 </g>
 <g class="lineWrapper">
-<line x1="225" y1="241.6" x2="225" y2="341.6" stroke="#939394" stroke-dasharray="5,5" stroke-width="2" marker-end="url(#9A8EA929-C4F0-4CA3-B844-488CD61AEEB5-arrowhead)"/>
-<line x1="225" y1="241.6" x2="225" y2="410.1" stroke="#939394" stroke-dasharray="5,5" stroke-width="2" marker-end="url(#9A8EA929-C4F0-4CA3-B844-488CD61AEEB5-arrowhead)"/>
-<line x1="425" y1="241.6" x2="425" y2="341.6" stroke="#939394" stroke-dasharray="5,5" stroke-width="2" marker-end="url(#9A8EA929-C4F0-4CA3-B844-488CD61AEEB5-arrowhead)"/>
-<line x1="625" y1="241.6" x2="625" y2="341.6" stroke="#939394" stroke-dasharray="5,5" stroke-width="2" marker-end="url(#9A8EA929-C4F0-4CA3-B844-488CD61AEEB5-arrowhead)"/>
+<line x1="225" y1="241.6" x2="225" y2="341.6" stroke="#939394" stroke-dasharray="5,5" stroke-width="2" marker-end="url(#F6A1E993-706D-777D-1604-2FF4A88AF221-arrowhead)"/>
+<line x1="225" y1="241.6" x2="225" y2="410.1" stroke="#939394" stroke-dasharray="5,5" stroke-width="2" marker-end="url(#F6A1E993-706D-777D-1604-2FF4A88AF221-arrowhead)"/>
+<line x1="425" y1="241.6" x2="425" y2="341.6" stroke="#939394" stroke-dasharray="5,5" stroke-width="2" marker-end="url(#F6A1E993-706D-777D-1604-2FF4A88AF221-arrowhead)"/>
+<line x1="625" y1="241.6" x2="625" y2="341.6" stroke="#939394" stroke-dasharray="5,5" stroke-width="2" marker-end="url(#F6A1E993-706D-777D-1604-2FF4A88AF221-arrowhead)"/>
 </g>
 <text x="150" y="30" font-size="4ex" font-weight="bold" fill="#27272A">History of England</text>
-<line x1="150" y1="291.6" x2="850" y2="291.6" stroke="#939394" stroke-width="4" marker-end="url(#9A8EA929-C4F0-4CA3-B844-488CD61AEEB5-arrowhead)"/>
+<line x1="150" y1="291.6" x2="850" y2="291.6" stroke="#939394" stroke-width="4" marker-end="url(#F6A1E993-706D-777D-1604-2FF4A88AF221-arrowhead)"/>
 </svg>

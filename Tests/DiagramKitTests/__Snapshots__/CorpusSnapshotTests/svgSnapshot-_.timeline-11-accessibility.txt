@@ -1,9 +1,9 @@
-<svg id="6E475DD6-F7BD-4363-B874-6F69E105B21B" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="700" height="286.2" viewBox="0 0 700 286.2" style="--bg:#FFFFFF;--fg:#27272A;--line:#939394;--accent:#27272A;--muted:#A9A9AA;--surface:#F9F9F9;--border:#D4D4D4;background:#FFFFFF">
+<svg id="3F9CD7B5-2C99-98C7-5A54-7130D528EA63" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="700" height="286.2" viewBox="0 0 700 286.2" style="--bg:#FFFFFF;--fg:#27272A;--line:#939394;--accent:#27272A;--muted:#A9A9AA;--surface:#F9F9F9;--border:#D4D4D4;background:#FFFFFF">
 <title>My Accessible Timeline</title>
 <desc>A timeline showing
 key historical events</desc>
 <defs>
-<marker id="6E475DD6-F7BD-4363-B874-6F69E105B21B-arrowhead" refX="5" refY="2" markerWidth="6" markerHeight="4" orient="auto">
+<marker id="3F9CD7B5-2C99-98C7-5A54-7130D528EA63-arrowhead" refX="5" refY="2" markerWidth="6" markerHeight="4" orient="auto">
 <path d="M 0,0 V 4 L6,2 Z" class="arrowheadPath" fill="#939394"/>
 </marker>
 </defs>
@@ -11,35 +11,35 @@ key historical events</desc>
 <rect class="node-bkg node-0" x="150" y="50" width="150" height="43.1" fill="#0052CC" stroke="#0052CC" stroke-width="1" rx="3" ry="3"/>
 <line class="node-line-0" x1="150" y1="93.1" x2="300" y2="93.1" stroke="#003380" stroke-width="3"/>
 <switch>
-<foreignObject x="150" y="50" width="150" height="43.1" position="fixed"><div xmlns="http://www.w3.org/1999/xhtml" class="label" style="display:table;width:100%;height:100%;text-align:center;font-size:14px;font-family:&quot;Open Sans&quot;, sans-serif;color:#ffffff"><div style="display:table-cell;vertical-align:middle">2020</div></div></foreignObject>
-<text text-anchor="middle" dominant-baseline="central" fill="#ffffff" font-size="14" font-family="&quot;Open Sans&quot;, sans-serif"><tspan x="225" y="71.5">2020</tspan></text>
+<foreignObject x="150" y="50" width="150" height="43.1" position="fixed"><div xmlns="http://www.w3.org/1999/xhtml" class="label" style="display:table;width:100%;height:100%;text-align:center;font-size:14px;font-family:"Open Sans", sans-serif;color:#ffffff"><div style="display:table-cell;vertical-align:middle">2020</div></div></foreignObject>
+<text text-anchor="middle" dominant-baseline="central" fill="#ffffff" font-size="14" font-family=""Open Sans", sans-serif"><tspan x="225" y="71.5">2020</tspan></text>
 </switch>
 </g>
 <g class="taskWrapper">
 <rect class="node-bkg node-1" x="350" y="50" width="150" height="43.1" fill="#0065FF" stroke="#0065FF" stroke-width="1" rx="3" ry="3"/>
 <line class="node-line-1" x1="350" y1="93.1" x2="500" y2="93.1" stroke="#003D99" stroke-width="3"/>
 <switch>
-<foreignObject x="350" y="50" width="150" height="43.1" position="fixed"><div xmlns="http://www.w3.org/1999/xhtml" class="label" style="display:table;width:100%;height:100%;text-align:center;font-size:14px;font-family:&quot;Open Sans&quot;, sans-serif;color:#ffffff"><div style="display:table-cell;vertical-align:middle">2021</div></div></foreignObject>
-<text text-anchor="middle" dominant-baseline="central" fill="#ffffff" font-size="14" font-family="&quot;Open Sans&quot;, sans-serif"><tspan x="425" y="71.5">2021</tspan></text>
+<foreignObject x="350" y="50" width="150" height="43.1" position="fixed"><div xmlns="http://www.w3.org/1999/xhtml" class="label" style="display:table;width:100%;height:100%;text-align:center;font-size:14px;font-family:"Open Sans", sans-serif;color:#ffffff"><div style="display:table-cell;vertical-align:middle">2021</div></div></foreignObject>
+<text text-anchor="middle" dominant-baseline="central" fill="#ffffff" font-size="14" font-family=""Open Sans", sans-serif"><tspan x="425" y="71.5">2021</tspan></text>
 </switch>
 </g>
 <g class="eventWrapper" filter="brightness(120%)">
 <rect class="node-bkg" x="150" y="193.1" width="150" height="43.1" fill="#0052CC" stroke="#0052CC" stroke-width="1" rx="3" ry="3"/>
 <switch>
-<foreignObject x="150" y="193.1" width="150" height="43.1" position="fixed"><div xmlns="http://www.w3.org/1999/xhtml" class="label" style="display:table;width:100%;height:100%;text-align:center;font-size:14px;font-family:&quot;Open Sans&quot;, sans-serif;color:#27272A"><div style="display:table-cell;vertical-align:middle">Event A</div></div></foreignObject>
-<text text-anchor="middle" dominant-baseline="central" fill="#27272A" font-size="14" font-family="&quot;Open Sans&quot;, sans-serif"><tspan x="225" y="214.7">Event A</tspan></text>
+<foreignObject x="150" y="193.1" width="150" height="43.1" position="fixed"><div xmlns="http://www.w3.org/1999/xhtml" class="label" style="display:table;width:100%;height:100%;text-align:center;font-size:14px;font-family:"Open Sans", sans-serif;color:#27272A"><div style="display:table-cell;vertical-align:middle">Event A</div></div></foreignObject>
+<text text-anchor="middle" dominant-baseline="central" fill="#27272A" font-size="14" font-family=""Open Sans", sans-serif"><tspan x="225" y="214.7">Event A</tspan></text>
 </switch>
 </g>
 <g class="eventWrapper" filter="brightness(120%)">
 <rect class="node-bkg" x="350" y="193.1" width="150" height="43.1" fill="#0065FF" stroke="#0065FF" stroke-width="1" rx="3" ry="3"/>
 <switch>
-<foreignObject x="350" y="193.1" width="150" height="43.1" position="fixed"><div xmlns="http://www.w3.org/1999/xhtml" class="label" style="display:table;width:100%;height:100%;text-align:center;font-size:14px;font-family:&quot;Open Sans&quot;, sans-serif;color:#27272A"><div style="display:table-cell;vertical-align:middle">Event B</div></div></foreignObject>
-<text text-anchor="middle" dominant-baseline="central" fill="#27272A" font-size="14" font-family="&quot;Open Sans&quot;, sans-serif"><tspan x="425" y="214.7">Event B</tspan></text>
+<foreignObject x="350" y="193.1" width="150" height="43.1" position="fixed"><div xmlns="http://www.w3.org/1999/xhtml" class="label" style="display:table;width:100%;height:100%;text-align:center;font-size:14px;font-family:"Open Sans", sans-serif;color:#27272A"><div style="display:table-cell;vertical-align:middle">Event B</div></div></foreignObject>
+<text text-anchor="middle" dominant-baseline="central" fill="#27272A" font-size="14" font-family=""Open Sans", sans-serif"><tspan x="425" y="214.7">Event B</tspan></text>
 </switch>
 </g>
 <g class="lineWrapper">
-<line x1="225" y1="93.1" x2="225" y2="193.1" stroke="#939394" stroke-dasharray="5,5" stroke-width="2" marker-end="url(#6E475DD6-F7BD-4363-B874-6F69E105B21B-arrowhead)"/>
-<line x1="425" y1="93.1" x2="425" y2="193.1" stroke="#939394" stroke-dasharray="5,5" stroke-width="2" marker-end="url(#6E475DD6-F7BD-4363-B874-6F69E105B21B-arrowhead)"/>
+<line x1="225" y1="93.1" x2="225" y2="193.1" stroke="#939394" stroke-dasharray="5,5" stroke-width="2" marker-end="url(#3F9CD7B5-2C99-98C7-5A54-7130D528EA63-arrowhead)"/>
+<line x1="425" y1="93.1" x2="425" y2="193.1" stroke="#939394" stroke-dasharray="5,5" stroke-width="2" marker-end="url(#3F9CD7B5-2C99-98C7-5A54-7130D528EA63-arrowhead)"/>
 </g>
-<line x1="150" y1="143.1" x2="650" y2="143.1" stroke="#939394" stroke-width="4" marker-end="url(#6E475DD6-F7BD-4363-B874-6F69E105B21B-arrowhead)"/>
+<line x1="150" y1="143.1" x2="650" y2="143.1" stroke="#939394" stroke-width="4" marker-end="url(#3F9CD7B5-2C99-98C7-5A54-7130D528EA63-arrowhead)"/>
 </svg>

@@ -204,7 +204,9 @@ private func detectDisjointClusters(setIds: [String], areas: [VennArea]) -> [[St
         clusterMap[root, default: []].append(sid)
     }
 
-    return Array(clusterMap.values)
+    // Sort clusters by their root index for deterministic iteration (Dictionary
+    // `.values` order is unspecified in Swift).
+    return clusterMap.keys.sorted().map { clusterMap[$0]! }
 }
 
 // MARK: - Loss-Function Optimizer (Nelder-Mead)
@@ -260,10 +262,21 @@ private func optimizeCircleCenters(
         initial.append(cy + ringRadius * sin(angle))
     }
 
-    // Loss function
+    // Loss function. Iterate `targetAreas` in a deterministic order so
+    // floating-point accumulation is identical across runs (Dictionary
+    // iteration order is unspecified in Swift).
+    let sortedTargetAreas: [(Set<Int>, Double)] = targetAreas
+        .map { ($0.key, $0.value) }
+        .sorted { lhs, rhs in
+            let l = lhs.0.sorted()
+            let r = rhs.0.sorted()
+            if l.count != r.count { return l.count < r.count }
+            for (a, b) in zip(l, r) where a != b { return a < b }
+            return false
+        }
     func loss(_ coords: [Double]) -> Double {
         var totalError: Double = 0
-        for (indices, targetArea) in targetAreas {
+        for (indices, targetArea) in sortedTargetAreas {
             let actual = computeMultiCircleOverlapArea(indices: Array(indices), coords: coords, radii: radii)
             let err = actual - targetArea
             let weight = indices.count == 2 ? 1.0 : 2.0
@@ -580,8 +593,20 @@ private func buildMergedStyles(styleEntries: [VennStyleEntry]) -> [String: [Stri
 }
 
 private func mergedStyle(for targetKey: String, mergedStyles: [String: [String: String]], key: String) -> String? {
-    return mergedStyles[targetKey]?[key]
-        ?? mergedStyles.first(where: { $0.key.split(separator: "|").contains(where: { $0 == targetKey }) })?.value[key]
+    if let exact = mergedStyles[targetKey]?[key] {
+        return exact
+    }
+    // Prefer single-target keys, then multi-target. Sort lexicographically
+    // within each tier for deterministic iteration order across runs.
+    let candidates = mergedStyles
+        .filter { $0.key.split(separator: "|").contains(where: { $0 == targetKey }) }
+        .sorted { lhs, rhs in
+            let lc = lhs.key.split(separator: "|").count
+            let rc = rhs.key.split(separator: "|").count
+            if lc != rc { return lc < rc }
+            return lhs.key < rhs.key
+        }
+    return candidates.first(where: { $0.value[key] != nil })?.value[key]
 }
 
 private func mergedStyle(forTargets targets: [String], mergedStyles: [String: [String: String]], key: String) -> String? {

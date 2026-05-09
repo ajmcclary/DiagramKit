@@ -21,6 +21,7 @@ public enum BlockParserError: Error, LocalizedError, _MermaidRecoverableError {
 }
 
 public func parseBlockDiagramLines(_ lines: [String]) throws -> BlockDiagram {
+    resetBlockIdCounter()
     guard let header = lines.first?.lowercased(), header == "block" || header == "block-beta" else {
         throw BlockParserError.invalidHeader(lines.first ?? "")
     }

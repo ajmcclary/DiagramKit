@@ -1,4 +1,4 @@
-<svg id="D7041028-B5E2-47D3-A923-800EDE15DBDB" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="100%" style="max-width: 421px;" viewBox="92 -308 421 148">
+<svg id="59A46BE7-7483-7D9F-AFB7-701C87766CD0" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="100%" style="max-width: 421px;" viewBox="92 -308 421 199">
 <style>
 .node rect,
 .node circle,
@@ -92,30 +92,30 @@
   fill: #714941;
 }
 </style>
-<rect x="92" y="-308" width="421" height="148" fill="#FFFFFF"/>
+<rect x="92" y="-308" width="421" height="199" fill="#FFFFFF"/>
 <g class="sections">
-<g id="D7041028-B5E2-47D3-A923-800EDE15DBDB-Todo" class="cluster section-1">
-<rect x="100" y="-300" width="200" height="132" rx="5" ry="5" fill="#DBE8F5" stroke="#B4CFE9" stroke-width="1"/>
+<g id="59A46BE7-7483-7D9F-AFB7-701C87766CD0-Todo" class="cluster section-1">
+<rect x="100" y="-300" width="200" height="183" rx="5" ry="5" fill="#DBE8F5" stroke="#B4CFE9" stroke-width="1"/>
 <text x="200" y="-275" text-anchor="middle" dominant-baseline="middle" fill="#3C5977" font-family="Inter" font-size="14">Todo</text>
 </g>
-<g id="D7041028-B5E2-47D3-A923-800EDE15DBDB-id7" class="cluster section-2">
-<rect x="305" y="-300" width="200" height="101" rx="5" ry="5" fill="#D1F0EB" stroke="#ABE3DA" stroke-width="1"/>
+<g id="59A46BE7-7483-7D9F-AFB7-701C87766CD0-id7" class="cluster section-2">
+<rect x="305" y="-300" width="200" height="136" rx="5" ry="5" fill="#D1F0EB" stroke="#ABE3DA" stroke-width="1"/>
 <text x="405" y="-275" text-anchor="middle" dominant-baseline="middle" fill="#3E746B" font-family="Inter" font-size="14">In progress</text>
 </g>
 </g>
 <g class="items">
-<g id="D7041028-B5E2-47D3-A923-800EDE15DBDB-Create Documentation" class="node">
-<rect class="basic label-container __APA__" x="108" y="-275" width="185" height="46" rx="5" ry="5" fill="#F9F9F9" stroke="#D4D4D4" stroke-width="1"/>
-<text x="118" y="-259" text-anchor="start" fill="#27272A" font-family="Inter" font-size="12" class="kanban-label">Create Documentation</text>
+<g id="59A46BE7-7483-7D9F-AFB7-701C87766CD0-Create Documentation" class="node">
+<rect class="basic label-container __APA__" x="108" y="-255" width="185" height="46" rx="5" ry="5" fill="#F9F9F9" stroke="#D4D4D4" stroke-width="1"/>
+<text x="118" y="-239" text-anchor="start" fill="#27272A" font-family="Inter" font-size="12" class="kanban-label">Create Documentation</text>
 </g>
-<g id="D7041028-B5E2-47D3-A923-800EDE15DBDB-docs" class="node">
-<rect class="basic label-container __APA__" x="108" y="-224" width="185" height="46" rx="5" ry="5" fill="#F9F9F9" stroke="#D4D4D4" stroke-width="1"/>
-<text x="118" y="-208" text-anchor="start" fill="#27272A" font-family="Inter" font-size="12" class="kanban-label">Create Blog about the new diagram</text>
+<g id="59A46BE7-7483-7D9F-AFB7-701C87766CD0-docs" class="node">
+<rect class="basic label-container __APA__" x="108" y="-204" width="185" height="62" rx="5" ry="5" fill="#F9F9F9" stroke="#D4D4D4" stroke-width="1"/>
+<text x="118" y="-188" text-anchor="start" fill="#27272A" font-family="Inter" font-size="12" class="kanban-label"><tspan x="118" dy="0">Create Blog about the</tspan><tspan x="118" dy="16">new diagram</tspan></text>
 </g>
-<g id="D7041028-B5E2-47D3-A923-800EDE15DBDB-id8" class="node">
-<rect class="basic label-container __APA__" x="313" y="-275" width="185" height="66" rx="5" ry="5" fill="#F9F9F9" stroke="#D4D4D4" stroke-width="1"/>
-<text x="323" y="-259" text-anchor="start" fill="#27272A" font-family="Inter" font-size="12" class="kanban-label">Design grammar</text>
-<text x="487" y="-217" text-anchor="end" fill="#27272A" font-family="Inter" font-size="10">knsv</text>
+<g id="59A46BE7-7483-7D9F-AFB7-701C87766CD0-id8" class="node">
+<rect class="basic label-container __APA__" x="313" y="-255" width="185" height="66" rx="5" ry="5" fill="#F9F9F9" stroke="#D4D4D4" stroke-width="1"/>
+<text x="323" y="-239" text-anchor="start" fill="#27272A" font-family="Inter" font-size="12" class="kanban-label">Design grammar</text>
+<text x="487" y="-197" text-anchor="end" fill="#27272A" font-family="Inter" font-size="10">knsv</text>
 </g>
 </g>
 </svg>

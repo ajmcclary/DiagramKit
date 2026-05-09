@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 455 380" width="455" height="380" style="--bg:#FFFFFF;--fg:#27272A;--line:#939394;--accent:#27272A;--muted:#A9A9AA;--surface:#F9F9F9;--border:#D4D4D4;background:#FFFFFF">
+<svg role="graphics-document" aria-roledescription="diagram" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 455 380" width="455" height="380" style="--bg:#FFFFFF;--fg:#27272A;--line:#939394;--accent:#27272A;--muted:#A9A9AA;--surface:#F9F9F9;--border:#D4D4D4;background:#FFFFFF">
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap');
   text { font-family: 'Inter', system-ui, sans-serif; }
@@ -76,6 +76,7 @@
     <line x1="8.0" y1="0" x2="0" y2="0" stroke="#27272A 85%, #FFFFFF))" stroke-width="1.5" />
   </marker>
 </defs>
+
 <line class="lifeline actor-line" data-actor="Alice" x1="87.5" y1="75.0" x2="87.5" y2="370.0" stroke="#939394 50%, #FFFFFF))" stroke-width="0.75" stroke-dasharray="6 4" />
 <line class="lifeline actor-line" data-actor="Bob" x1="227.5" y1="75.0" x2="227.5" y2="370.0" stroke="#939394 50%, #FFFFFF))" stroke-width="0.75" stroke-dasharray="6 4" />
 <line class="lifeline actor-line" data-actor="Alice/" x1="367.5" y1="75.0" x2="367.5" y2="370.0" stroke="#939394 50%, #FFFFFF))" stroke-width="0.75" stroke-dasharray="6 4" />

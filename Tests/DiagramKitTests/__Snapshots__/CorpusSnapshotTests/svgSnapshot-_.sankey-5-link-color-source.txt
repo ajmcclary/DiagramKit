@@ -14,37 +14,37 @@
 <g class="sankey sankey-diagram">
 <g class="links">
 <g class="link" style="mix-blend-mode: multiply;">
-<path d="M 10,317.7 C 300,317.7,300,317.7,590,317.7" fill="none" stroke="#4e79a7" stroke-width="95" stroke-opacity="0.5"/>
+<path d="M 10,281.1 C 300,281.1,300,281.1,590,281.1" fill="none" stroke="#4e79a7" stroke-width="137.2" stroke-opacity="0.5"/>
 </g>
 <g class="link" style="mix-blend-mode: multiply;">
-<path d="M 10,218.4 C 300,218.4,300,218.4,590,218.4" fill="none" stroke="#4e79a7" stroke-width="103.5" stroke-opacity="0.5"/>
+<path d="M 10,137.8 C 300,137.8,300,137.8,590,137.8" fill="none" stroke="#4e79a7" stroke-width="149.4" stroke-opacity="0.5"/>
 </g>
 <g class="link" style="mix-blend-mode: multiply;">
-<path d="M 10,154.3 C 300,154.3,300,154.3,590,154.3" fill="none" stroke="#4e79a7" stroke-width="24.7" stroke-opacity="0.5"/>
+<path d="M 10,45.3 C 300,45.3,300,45.3,590,45.3" fill="none" stroke="#4e79a7" stroke-width="35.7" stroke-opacity="0.5"/>
 </g>
 </g>
 <g class="nodes">
-<g class="node" id="node-sankey-5-4" transform="translate(0,142)" x="0" y="142)">
-<rect x="0" y="0" width="10" height="258" fill="#4e79a7" shape-rendering="crispEdges"/>
+<g class="node" id="node-sankey-1-4" transform="translate(0,27.4)" x="0" y="27.4)">
+<rect x="0" y="0" width="10" height="372.6" fill="#4e79a7" shape-rendering="crispEdges"/>
 </g>
-<g class="node" id="node-sankey-5-5" transform="translate(590,123)" x="590" y="123)">
-<rect x="0" y="0" width="10" height="95" fill="#f28e2c" shape-rendering="crispEdges"/>
+<g class="node" id="node-sankey-1-5" transform="translate(590,0)" x="590" y="0)">
+<rect x="0" y="0" width="10" height="137.2" fill="#f28e2c" shape-rendering="crispEdges"/>
 </g>
-<g class="node" id="node-sankey-5-6" transform="translate(590,154.5)" x="590" y="154.5)">
-<rect x="0" y="0" width="10" height="103.5" fill="#e15759" shape-rendering="crispEdges"/>
+<g class="node" id="node-sankey-1-6" transform="translate(590,45.6)" x="590" y="45.6)">
+<rect x="0" y="0" width="10" height="149.4" fill="#e15759" shape-rendering="crispEdges"/>
 </g>
-<g class="node" id="node-sankey-5-7" transform="translate(590,233.3)" x="590" y="233.3)">
-<rect x="0" y="0" width="10" height="24.7" fill="#76b7b2" shape-rendering="crispEdges"/>
+<g class="node" id="node-sankey-1-7" transform="translate(590,159.3)" x="590" y="159.3)">
+<rect x="0" y="0" width="10" height="35.7" fill="#76b7b2" shape-rendering="crispEdges"/>
 </g>
 </g>
 <g class="node-labels">
-<text x="16" y="271" dy="0" text-anchor="start" fill="#27272A">Electricity grid
+<text x="16" y="213.7" dy="0" text-anchor="start" fill="#27272A">Electricity grid
 245.32</text>
-<text x="584" y="170.5" dy="0" text-anchor="end" fill="#27272A">Over generation / exports
+<text x="584" y="68.6" dy="0" text-anchor="end" fill="#27272A">Over generation / exports
 104.45</text>
-<text x="584" y="206.3" dy="0" text-anchor="end" fill="#27272A">Heating and cooling - homes
+<text x="584" y="120.3" dy="0" text-anchor="end" fill="#27272A">Heating and cooling - homes
 113.73</text>
-<text x="584" y="245.7" dy="0" text-anchor="end" fill="#27272A">H2 conversion
+<text x="584" y="177.1" dy="0" text-anchor="end" fill="#27272A">H2 conversion
 27.14</text>
 </g>
 </g>

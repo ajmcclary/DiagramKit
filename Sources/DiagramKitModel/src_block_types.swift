@@ -335,11 +335,15 @@ public struct PositionedBlockDiagram: Sendable {
 
 private let blockIdCounter = AtomicInt()
 
+/// Resets the block id counter. Call at the start of each parse to keep
+/// generated ids deterministic per-source for snapshot stability.
+public func resetBlockIdCounter() {
+    blockIdCounter.reset()
+}
+
 public func generateBlockId() -> String {
     let count = blockIdCounter.increment()
-    let uuidStr = UUID().uuidString
-    let prefix = String(uuidStr.prefix(12))
-    return "id-" + prefix + "-" + String(count)
+    return "id-" + String(count)
 }
 
 private final class AtomicInt: @unchecked Sendable {
@@ -351,6 +355,11 @@ private final class AtomicInt: @unchecked Sendable {
         defer { lock.unlock() }
         value += 1
         return value
+    }
+    func reset() {
+        lock.lock()
+        defer { lock.unlock() }
+        value = 0
     }
 }
 

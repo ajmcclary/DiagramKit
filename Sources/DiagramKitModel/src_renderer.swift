@@ -106,7 +106,7 @@ private func _renderSvgEntry(
             customStrokeColors.insert(stroke)
         }
     }
-    for color in customStrokeColors {
+    for color in customStrokeColors.sorted() {
         parts.append(_arrowMarkerDefsForColor(color))
     }
     parts.append("</defs>")

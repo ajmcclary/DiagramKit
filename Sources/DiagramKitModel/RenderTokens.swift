@@ -17,12 +17,13 @@ public struct RenderTokens: Sendable {
 
     /// Proportional font family suitable for `font-family` in SVG output.
     ///
-    /// Falls back to `"Inter"` when `defaultProportionalFontFamily` is `nil`,
-    /// matching the historical default that existed before `RenderConfig`
-    /// was introduced.
-    public var svgFontFamily: String {
-        config.defaultProportionalFontFamily ?? "Inter"
-    }
+    /// Always returns `"Inter"` for SVG output. SVG `font-family` strings are
+    /// hints to the consumer (browser, viewer); the actual font used for
+    /// CoreText layout measurement is independent and comes from
+    /// `RenderConfig.defaultProportionalFontFamily` (typically `"Noto Sans"`,
+    /// bundled for snapshot determinism). Decoupling these lets snapshot
+    /// baselines remain stable when the bundled measurement font changes.
+    public var svgFontFamily: String { "Inter" }
 
     /// Monospace font family suitable for `font-family` in SVG output.
     ///

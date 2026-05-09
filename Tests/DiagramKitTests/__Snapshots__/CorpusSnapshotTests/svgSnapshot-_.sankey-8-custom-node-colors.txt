@@ -14,41 +14,41 @@
 <g class="sankey sankey-diagram">
 <g class="links">
 <defs>
-<linearGradient id="linearGradient-sankey-6-1" gradientUnits="userSpaceOnUse" x1="10" x2="590">
+<linearGradient id="linearGradient-sankey-1-1" gradientUnits="userSpaceOnUse" x1="10" x2="590">
 <stop offset="0%" stop-color="#4e79a7"/>
 <stop offset="100%" stop-color="#e15759"/>
 </linearGradient>
 </defs>
 <g class="link" style="mix-blend-mode: multiply;">
-<path d="M 10,205 C 300,205,300,205,590,205" fill="none" stroke="url(#linearGradient-sankey-6-1)" stroke-width="260" stroke-opacity="0.5"/>
+<path d="M 10,168.4 C 300,168.4,300,168.4,590,168.4" fill="none" stroke="url(#linearGradient-sankey-1-1)" stroke-width="308.7" stroke-opacity="0.5"/>
 </g>
 <defs>
-<linearGradient id="linearGradient-sankey-6-2" gradientUnits="userSpaceOnUse" x1="10" x2="590">
+<linearGradient id="linearGradient-sankey-1-2" gradientUnits="userSpaceOnUse" x1="10" x2="590">
 <stop offset="0%" stop-color="#4e79a7"/>
 <stop offset="100%" stop-color="#e15759"/>
 </linearGradient>
 </defs>
 <g class="link" style="mix-blend-mode: multiply;">
-<path d="M 10,356.5 C 300,356.5,300,356.5,590,356.5" fill="none" stroke="url(#linearGradient-sankey-6-2)" stroke-width="43.1" stroke-opacity="0.5"/>
+<path d="M 10,348.4 C 300,348.4,300,348.4,590,348.4" fill="none" stroke="url(#linearGradient-sankey-1-2)" stroke-width="51.1" stroke-opacity="0.5"/>
 </g>
 </g>
 <g class="nodes">
-<g class="node" id="node-sankey-6-3" transform="translate(0,75)" x="0" y="75)">
-<rect x="0" y="0" width="10" height="325" fill="#4e79a7" shape-rendering="crispEdges"/>
+<g class="node" id="node-sankey-1-3" transform="translate(0,14.1)" x="0" y="14.1)">
+<rect x="0" y="0" width="10" height="385.9" fill="#4e79a7" shape-rendering="crispEdges"/>
 </g>
-<g class="node" id="node-sankey-6-4" transform="translate(590,63.1)" x="590" y="63.1)">
-<rect x="0" y="0" width="10" height="260" fill="#e15759" shape-rendering="crispEdges"/>
+<g class="node" id="node-sankey-1-4" transform="translate(590,0)" x="590" y="0)">
+<rect x="0" y="0" width="10" height="308.7" fill="#e15759" shape-rendering="crispEdges"/>
 </g>
-<g class="node" id="node-sankey-6-5" transform="translate(590,282)" x="590" y="282)">
-<rect x="0" y="0" width="10" height="43.1" fill="#e15759" shape-rendering="crispEdges"/>
+<g class="node" id="node-sankey-1-5" transform="translate(590,259.9)" x="590" y="259.9)">
+<rect x="0" y="0" width="10" height="51.1" fill="#e15759" shape-rendering="crispEdges"/>
 </g>
 </g>
 <g class="node-labels">
-<text x="16" y="237.5" dy="0" text-anchor="start" fill="#27272A">Electricity grid
+<text x="16" y="207" dy="0" text-anchor="start" fill="#27272A">Electricity grid
 398.86</text>
-<text x="584" y="193.1" dy="0" text-anchor="end" fill="#27272A">Industry
+<text x="584" y="154.4" dy="0" text-anchor="end" fill="#27272A">Industry
 342.17</text>
-<text x="584" y="303.5" dy="0" text-anchor="end" fill="#27272A">Losses
+<text x="584" y="285.4" dy="0" text-anchor="end" fill="#27272A">Losses
 56.69</text>
 </g>
 </g>

@@ -311,7 +311,7 @@ private func _renderPopup(_ actor: PositionedSequenceActor, index: Int, forceMen
     parts.append("  <rect x=\"\(menuX)\" y=\"\(menuY)\" width=\"\(menuWidth)\" height=\"\(menuHeight)\" fill=\"var(--_node-fill)\" stroke=\"var(--_node-stroke)\" stroke-width=\"1\" rx=\"4\" ry=\"4\" />")
 
     var linkY = menuY + 14
-    for (label, url) in links {
+    for (label, url) in links.sorted(by: { $0.key < $1.key }) {
         parts.append("  <a xlink:href=\"\(escapeAttr(url))\" target=\"_blank\">")
         parts.append("    <text x=\"\(menuX + 12)\" y=\"\(linkY)\" font-size=\"10\" fill=\"var(--_text-muted)\">\(escapeXml(label))</text>")
         parts.append("  </a>")
@@ -335,10 +335,10 @@ private func _renderActor(_ actor: PositionedSequenceActor, index: Int) -> Strin
 
     var parts: [String] = []
     var dataAttrs = "data-id=\"\(escapeAttr(actor.id))\" data-label=\"\(escapeAttr(label))\" data-type=\"\(escapeAttr(pType.rawValue))\""
-    for (key, url) in actor.links {
+    for (key, url) in actor.links.sorted(by: { $0.key < $1.key }) {
         dataAttrs += " data-link-\(escapeAttr(key))=\"\(escapeAttr(url))\""
     }
-    for (key, value) in actor.properties {
+    for (key, value) in actor.properties.sorted(by: { $0.key < $1.key }) {
         dataAttrs += " data-prop-\(escapeAttr(key))=\"\(escapeAttr(value))\""
     }
     if let detailsId = actor.detailsElementId {

@@ -34,7 +34,7 @@ public func layoutTreemapDiagram(_ diagram: TreemapDiagram) -> PositionedTreemap
     var sectionIndex = 0
     var leafIndex = 0
 
-    let diagramId = UUID().uuidString
+    let diagramId = "treemap"
 
     _collectColorIndices(root, &colorIndex, &nextColorIndex)
 
