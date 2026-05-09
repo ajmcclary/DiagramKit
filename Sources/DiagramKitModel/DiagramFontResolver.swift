@@ -1,3 +1,5 @@
+// Apple-only — depends on CoreText. Gated by `#if canImport(CoreText)`.
+#if canImport(CoreText)
 import Foundation
 #if canImport(AppKit)
 import AppKit
@@ -56,3 +58,4 @@ public struct DiagramFontResolver: Sendable {
         return "\(primary), Courier, monospace"
     }
 }
+#endif

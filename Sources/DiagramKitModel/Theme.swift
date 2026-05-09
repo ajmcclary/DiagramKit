@@ -1,3 +1,5 @@
+// Apple-only — depends on BMColor/BMFont (UIKit/AppKit). Gated by `#if canImport(UIKit) || canImport(AppKit)`.
+#if canImport(UIKit) || canImport(AppKit)
 import Foundation
 import DiagramKitCommon
 import CoreGraphics
@@ -380,3 +382,4 @@ extension DiagramTheme {
         )
     }
 }
+#endif

@@ -1,3 +1,5 @@
+// Apple-only — depends on BMColor/BMFont (UIKit/AppKit). Gated by `#if canImport(UIKit) || canImport(AppKit)`.
+#if canImport(UIKit) || canImport(AppKit)
 import Foundation
 import CoreGraphics
 #if targetEnvironment(macCatalyst)
@@ -153,3 +155,4 @@ public func _resolveSvgCssVariables(_ svg: String) -> String {
 
     return out
 }
+#endif

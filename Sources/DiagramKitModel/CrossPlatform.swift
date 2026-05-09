@@ -1,6 +1,8 @@
 import Foundation
 import DiagramKitCommon
+#if canImport(CoreGraphics)
 import CoreGraphics
+#endif
 
 #if targetEnvironment(macCatalyst)
 import UIKit
@@ -98,10 +100,15 @@ extension NSImage {
     }
 }
 
+#else
+// Linux: no native UI/graphics framework. BMColor/BMFont/BMImage/BMView/
+// BMBezierPath typealiases are intentionally undefined here — Apple-only
+// call sites are gated by `#if canImport(UIKit) || canImport(AppKit)`.
 #endif
 
 // MARK: - BMColor Extensions
 
+#if canImport(UIKit) || canImport(AppKit)
 extension BMColor {
     /// Initialize a color from a hex string.
     ///
@@ -204,6 +211,7 @@ extension BMColor {
         mixed(with: BMColor.black, amount: amount)
     }
 }
+#endif
 
 // MARK: - ColorMix Constants
 
@@ -223,8 +231,10 @@ public enum ColorMix {
 
 // MARK: - CGRect Extension
 
+#if canImport(CoreGraphics)
 extension CGRect {
     public var center: CGPoint {
         CGPoint(x: midX, y: midY)
     }
 }
+#endif

@@ -1,3 +1,5 @@
+// Apple-only — depends on BMColor/BMFont (UIKit/AppKit). Gated by `#if canImport(UIKit) || canImport(AppKit)`.
+#if canImport(UIKit) || canImport(AppKit)
 import Foundation
 import CoreGraphics
 import CoreText
@@ -74,3 +76,4 @@ public struct RenderTokens: Sendable {
     /// Shared instance using `RenderConfig.shared`.
     public static let shared = RenderTokens()
 }
+#endif

@@ -1,3 +1,5 @@
+// Apple-only — depends on BMColor/BMFont (UIKit/AppKit). Gated by `#if canImport(UIKit) || canImport(AppKit)`.
+#if canImport(UIKit) || canImport(AppKit)
 import Foundation
 import CoreGraphics
 import CoreText
@@ -186,3 +188,4 @@ private func _treeViewFont(size: CGFloat) -> BMFont {
     return BMFont.systemFont(ofSize: size)
     #endif
 }
+#endif

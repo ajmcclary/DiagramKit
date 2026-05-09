@@ -1,3 +1,5 @@
+// Apple-only — depends on CoreText. Gated by `#if canImport(CoreText)`.
+#if canImport(CoreText)
 import Foundation
 import CoreGraphics
 import CoreText
@@ -522,3 +524,4 @@ private func _drawBranch(
 
     return bones.filter { $0.kind == .branch && $0.id == branchBone.id }
 }
+#endif

@@ -1,3 +1,5 @@
+// Apple-only — depends on CoreText. Gated by `#if canImport(CoreText)`.
+#if canImport(CoreText)
 import Foundation
 import DiagramKitCommon
 import CoreGraphics
@@ -421,3 +423,4 @@ private func _measureTextDimensions(
 
     return (width, height)
 }
+#endif
