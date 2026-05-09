@@ -116,6 +116,33 @@ public enum DiagramRegistry {
     public static func detect(from source: String) -> DiagramDescriptor {
         detect(DiagramHeader.detect(from: source))
     }
+
+    /// The number of registered descriptors. Should equal `DiagramType.allCases.count`.
+    public static var registeredCount: Int { all.count }
+
+    /// Validates that every `DiagramType` case has a corresponding descriptor.
+    /// Call once at app start or in a test. Returns `true` if the registry is
+    /// consistent with the `DiagramType` enum.
+    public static func validate() -> Bool {
+        let typeCount = DiagramType.allCases.count
+        guard registeredCount == typeCount else {
+            _reportMermaidIssue(
+                "DiagramRegistry.validate: \(registeredCount) descriptors registered, but DiagramType has \(typeCount) cases. Add missing descriptors or remove stale enum cases."
+            )
+            return false
+        }
+        // Extra safety: ensure every DiagramType case has a descriptor by matching types.
+        var seen = Set<DiagramType>()
+        for d in all { seen.insert(d.type) }
+        let missing = Set(DiagramType.allCases).subtracting(seen)
+        if !missing.isEmpty {
+            _reportMermaidIssue(
+                "DiagramRegistry.validate: missing descriptors for types: \(missing.map(\.rawValue).sorted().joined(separator: ", "))"
+            )
+            return false
+        }
+        return true
+    }
 }
 
 // MARK: - Descriptor Definitions
