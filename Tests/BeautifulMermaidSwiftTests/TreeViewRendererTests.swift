@@ -3,6 +3,7 @@ import Testing
 @testable import BeautifulMermaid
 @testable import DiagramKitCommon
 @testable import DiagramKitModel
+@testable import DiagramKitRenderingCG
 
 @Suite("TreeView Renderer")
 struct TreeViewRendererTests {

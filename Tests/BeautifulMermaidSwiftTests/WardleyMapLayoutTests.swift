@@ -2,6 +2,7 @@ import XCTest
 @testable import BeautifulMermaid
 @testable import DiagramKitCommon
 @testable import DiagramKitModel
+@testable import DiagramKitRenderingCG
 
 final class WardleyMapLayoutTests: XCTestCase {
     private func lines(_ source: String) -> [String] {

@@ -48,6 +48,9 @@ let package = Package(
             dependencies: [
                 "DiagramKitCommon",
                 "DiagramKitModel"
+            ],
+            resources: [
+                .process("Resources")
             ]
         ),
         .target(
@@ -74,12 +77,10 @@ let package = Package(
             dependencies: [
                 "DiagramKitCommon",
                 "DiagramKitModel",
+                "DiagramKitRenderingCG",
                 .product(name: "IssueReporting", package: "xctest-dynamic-overlay")
             ],
-            path: "Sources/BeautifulMermaidSwift",
-            resources: [
-                .process("Resources")
-            ]
+            path: "Sources/BeautifulMermaidSwift"
         ),
 
         .executableTarget(
@@ -103,6 +104,7 @@ let package = Package(
                 "BeautifulMermaid",
                 "DiagramKitCommon",
                 "DiagramKitModel",
+                "DiagramKitRenderingCG",
                 .product(name: "CustomDump", package: "swift-custom-dump"),
                 .product(name: "SnapshotTesting", package: "swift-snapshot-testing"),
             ],

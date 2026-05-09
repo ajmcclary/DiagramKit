@@ -5,6 +5,7 @@ import Dispatch
 @testable import BeautifulMermaid
 @testable import DiagramKitCommon
 @testable import DiagramKitModel
+@testable import DiagramKitRenderingCG
 
 @Suite("Radar Renderer", .serialized)
 struct RadarRendererTests {

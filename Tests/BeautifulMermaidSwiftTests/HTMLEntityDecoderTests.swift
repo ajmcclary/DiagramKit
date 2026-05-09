@@ -1,6 +1,7 @@
 import XCTest
 @testable import BeautifulMermaid
 @testable import DiagramKitModel
+@testable import DiagramKitRenderingCG
 @testable import DiagramKitCommon
 
 final class HTMLEntityDecoderTests: XCTestCase {

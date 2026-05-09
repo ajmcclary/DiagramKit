@@ -3,6 +3,7 @@ import Foundation
 @testable import BeautifulMermaid
 @testable import DiagramKitCommon
 @testable import DiagramKitModel
+@testable import DiagramKitRenderingCG
 
 @Suite("C4 SVG Renderer")
 struct C4SvgTests {

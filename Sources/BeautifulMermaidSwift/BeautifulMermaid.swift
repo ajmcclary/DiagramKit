@@ -1,5 +1,6 @@
 import Foundation
 import DiagramKitModel
+import DiagramKitRenderingCG
 import CoreGraphics
 #if targetEnvironment(macCatalyst)
 import UIKit
@@ -13,14 +14,7 @@ import AppKit
 public struct MermaidRenderer {
     /// Library version. Set via the `VERSION` file at the package root or `git describe --tags`.
     /// To update: edit the `VERSION` file or tag a release commit.
-    public static let version: String = {
-        if let url = Bundle.module.url(forResource: "VERSION", withExtension: nil),
-           let v = try? String(contentsOf: url, encoding: .utf8).trimmingCharacters(in: .whitespacesAndNewlines),
-           !v.isEmpty {
-            return v
-        }
-        return "0.1.1"
-    }()
+    public static let version: String = DiagramKitVersion.current
     public static let supportedDiagramTypes: [DiagramType] = DiagramType.allCases
 
     /// Parse a Mermaid diagram.

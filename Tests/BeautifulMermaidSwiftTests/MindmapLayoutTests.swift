@@ -3,6 +3,7 @@ import XCTest
 @testable import BeautifulMermaid
 @testable import DiagramKitCommon
 @testable import DiagramKitModel
+@testable import DiagramKitRenderingCG
 
 final class MindmapLayoutTests: XCTestCase {
 

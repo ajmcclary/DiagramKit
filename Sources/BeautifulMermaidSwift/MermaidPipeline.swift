@@ -1,5 +1,6 @@
 import Foundation
 import DiagramKitModel
+import DiagramKitRenderingCG
 import DiagramKitCommon
 
 /// Stateless namespace for Mermaid diagram pipeline operations.

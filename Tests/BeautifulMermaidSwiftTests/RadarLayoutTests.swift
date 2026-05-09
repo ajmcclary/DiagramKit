@@ -4,6 +4,7 @@ import CoreGraphics
 @testable import BeautifulMermaid
 @testable import DiagramKitCommon
 @testable import DiagramKitModel
+@testable import DiagramKitRenderingCG
 
 @Suite("Radar Layout")
 struct RadarLayoutTests {

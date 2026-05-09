@@ -3,6 +3,7 @@ import CustomDump
 @testable import BeautifulMermaid
 @testable import DiagramKitCommon
 @testable import DiagramKitModel
+@testable import DiagramKitRenderingCG
 
 final class StateDiagramReviewRegressionTests: XCTestCase {
     func testMultiDescriptionStateRendersTitleAndDescriptionBody() async throws {

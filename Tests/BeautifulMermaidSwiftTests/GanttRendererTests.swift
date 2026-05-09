@@ -4,6 +4,7 @@ import CoreGraphics
 @testable import BeautifulMermaid
 @testable import DiagramKitCommon
 @testable import DiagramKitModel
+@testable import DiagramKitRenderingCG
 
 @Suite("Gantt SVG Renderer")
 struct GanttRendererTests {
