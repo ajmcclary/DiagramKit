@@ -6,14 +6,18 @@ func _gitGraphSanitizeText(_ text: String) -> String {
     text
 }
 
-// MARK: - Random ID Generation
+// MARK: - Generated ID Generation
 
-func _gitGraphRandomID() -> String {
-    let chars = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+func _gitGraphGeneratedID(seq: Int) -> String {
+    let chars = Array("0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
     let length = 7
     var result = ""
+    var value = UInt64(truncatingIfNeeded: seq)
+    value = value &* 0x9E3779B185EBCA87 &+ 0xC2B2AE3D27D4EB4F
     for _ in 0..<length {
-        result.append(chars.randomElement()!)
+        let index = Int(value % UInt64(chars.count))
+        result.append(chars[index])
+        value = value / UInt64(chars.count)
     }
     return result
 }
@@ -64,7 +68,7 @@ extension _GitGraphDBState {
         let effectiveType = type ?? .normal
         let effectiveTags = tags?.map { _gitGraphSanitizeText($0) } ?? []
 
-        let commitID = (effectiveId != nil && !effectiveId!.isEmpty) ? effectiveId! : "\(seq)-\(_gitGraphRandomID())"
+        let commitID = (effectiveId != nil && !effectiveId!.isEmpty) ? effectiveId! : "\(seq)-\(_gitGraphGeneratedID(seq: seq))"
         let newCommit = GitGraphCommit(
             id: commitID,
             message: effectiveMsg,
@@ -130,7 +134,7 @@ extension _GitGraphDBState {
         let verifiedHead: String = otherHeadID ?? ""
         let effectiveTags = tags?.map { _gitGraphSanitizeText($0) } ?? []
 
-        let commitID = customId ?? "\(seq)-\(_gitGraphRandomID())"
+        let commitID = customId ?? "\(seq)-\(_gitGraphGeneratedID(seq: seq))"
         let newCommit = GitGraphCommit(
             id: commitID,
             message: "merged branch \(otherBranch) into \(currBranch)",
@@ -188,7 +192,7 @@ extension _GitGraphDBState {
         }()
 
         let newCommit = GitGraphCommit(
-            id: "\(seq)-\(_gitGraphRandomID())",
+            id: "\(seq)-\(_gitGraphGeneratedID(seq: seq))",
             message: "cherry-picked \(sourceCommit.message) into \(currBranch)",
             seq: seq,
             type: .cherryPick,

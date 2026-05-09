@@ -3,6 +3,20 @@ import XCTest
 
 final class GitGraphLayoutTests: XCTestCase {
 
+    private struct Bounds {
+        var minX: Double = .infinity
+        var minY: Double = .infinity
+        var maxX: Double = -.infinity
+        var maxY: Double = -.infinity
+
+        mutating func include(x1: Double, y1: Double, x2: Double, y2: Double) {
+            minX = min(minX, x1, x2)
+            minY = min(minY, y1, y2)
+            maxX = max(maxX, x1, x2)
+            maxY = max(maxY, y1, y2)
+        }
+    }
+
     private func lines(_ source: String) -> [String] {
         source.split(separator: "\n", omittingEmptySubsequences: false).map(String.init)
     }
@@ -10,6 +24,96 @@ final class GitGraphLayoutTests: XCTestCase {
     private func parseAndLayout(_ source: String) throws -> PositionedGitGraphDiagram {
         let diagram = try parseGitGraph(lines(source), frontmatter: nil)
         return layoutGitGraph(diagram)
+    }
+
+    private func renderedBounds(_ positioned: PositionedGitGraphDiagram) -> Bounds {
+        var bounds = Bounds()
+        let isVertical = positioned.direction == .TB || positioned.direction == .BT
+        let nodeRadius: Double = _gitGraphIsReduxGeometry(positioned.themeName) ? 7 : 10
+
+        for commit in positioned.commits {
+            bounds.include(
+                x1: commit.x - nodeRadius,
+                y1: commit.y - nodeRadius,
+                x2: commit.x + nodeRadius,
+                y2: commit.y + nodeRadius
+            )
+
+            if positioned.config.showCommitLabel, commit.showLabel {
+                let labelLen = Double(commit.id.count) * 4
+                if isVertical {
+                    let lx = commit.x - labelLen * 2 - 20
+                    let ly = commit.y
+                    bounds.include(x1: lx - 4, y1: ly - 8, x2: lx - 4 + labelLen * 4 + 8, y2: ly + 8)
+                } else {
+                    let lx = commit.x - labelLen
+                    let ly = commit.y + 20
+                    bounds.include(x1: lx - 4, y1: ly - 4, x2: lx + labelLen * 2 + 4, y2: ly + 14)
+                }
+            }
+
+            for (index, tag) in commit.tags.reversed().enumerated() {
+                let tagWidth = Double(max(tag.count, 1)) * 7 + 22
+                let tagHeight: Double = 16
+                if isVertical {
+                    let xOrigin = commit.x + 20
+                    let yOrigin = commit.y - 16 - Double(index) * 20
+                    bounds.include(
+                        x1: xOrigin,
+                        y1: yOrigin - tagHeight / 2 - 2,
+                        x2: xOrigin + 10 + tagWidth,
+                        y2: yOrigin + tagHeight / 2 + 2
+                    )
+                } else {
+                    let x = commit.x - tagWidth / 2
+                    let y = commit.y - 34 - Double(index) * 20
+                    bounds.include(x1: x, y1: y, x2: x + tagWidth, y2: y + tagHeight)
+                }
+            }
+        }
+
+        for line in positioned.branchLines {
+            bounds.include(x1: line.x1, y1: line.y1, x2: line.x2, y2: line.y2)
+        }
+
+        for label in positioned.branchLabels {
+            bounds.include(
+                x1: label.x + label.bkgX,
+                y1: label.y + label.bkgY,
+                x2: label.x + label.bkgX + label.bkgWidth,
+                y2: label.y + label.bkgY + label.bkgHeight
+            )
+        }
+
+        for arrow in positioned.arrows {
+            for segment in arrow.segments {
+                switch segment {
+                case .line(let from, let to), .arc(let from, let to, _, _, _, _, _):
+                    bounds.include(x1: from.x, y1: from.y, x2: to.x, y2: to.y)
+                case .cubic(let from, let c1, let c2, let to):
+                    bounds.include(x1: from.x, y1: from.y, x2: to.x, y2: to.y)
+                    bounds.include(x1: c1.x, y1: c1.y, x2: c2.x, y2: c2.y)
+                }
+            }
+        }
+
+        if let title = positioned.title {
+            bounds.include(x1: title.x - 120, y1: title.y, x2: title.x + 120, y2: title.y + 24)
+        }
+
+        return bounds
+    }
+
+    private func assertRenderedContentFitsViewport(
+        _ positioned: PositionedGitGraphDiagram,
+        file: StaticString = #filePath,
+        line: UInt = #line
+    ) {
+        let bounds = renderedBounds(positioned)
+        XCTAssertGreaterThanOrEqual(bounds.minX, 0, file: file, line: line)
+        XCTAssertGreaterThanOrEqual(bounds.minY, 0, file: file, line: line)
+        XCTAssertLessThanOrEqual(bounds.maxX, positioned.width, file: file, line: line)
+        XCTAssertLessThanOrEqual(bounds.maxY, positioned.height, file: file, line: line)
     }
 
     // MARK: - Branch positioning
@@ -29,6 +133,28 @@ final class GitGraphLayoutTests: XCTestCase {
         let devLabel = positioned.branchLabels.first(where: { $0.branch == "dev" })
         XCTAssertNotNil(mainLabel)
         XCTAssertNotNil(devLabel)
+    }
+
+    func testBranchLabelTextAnchorFallsInsideBackground() throws {
+        let cases = [
+            "gitGraph\n   commit id:\"A\"\n   branch dev\n   commit id:\"B\"",
+            "gitGraph TB:\n   commit id:\"A\"\n   branch dev\n   commit id:\"B\"",
+            "gitGraph BT:\n   commit id:\"A\"\n   branch dev\n   commit id:\"B\""
+        ]
+
+        for source in cases {
+            let positioned = try parseAndLayout(source)
+            for label in positioned.branchLabels {
+                let minX = label.x + label.bkgX
+                let maxX = minX + label.bkgWidth
+                let minY = label.y + label.bkgY
+                let maxY = minY + label.bkgHeight
+                XCTAssertGreaterThanOrEqual(label.x, minX)
+                XCTAssertLessThanOrEqual(label.x, maxX)
+                XCTAssertGreaterThanOrEqual(label.y, minY)
+                XCTAssertLessThanOrEqual(label.y, maxY)
+            }
+        }
     }
 
     // MARK: - Commit positioning
@@ -90,6 +216,20 @@ final class GitGraphLayoutTests: XCTestCase {
         let positioned = try parseAndLayout("gitGraph\n   commit\n   commit")
         XCTAssertGreaterThan(positioned.width, 0)
         XCTAssertGreaterThan(positioned.height, 0)
+    }
+
+    func testRenderedGeometryFitsViewportForAllOrientations() throws {
+        let cases = [
+            "gitGraph\n   commit id:\"ZERO\"\n   commit id:\"ONE\"",
+            "gitGraph\n   commit id:\"Alpha\" tag:\"v1.0\"\n   commit id:\"Beta\"",
+            "gitGraph TB:\n   commit id:\"Alpha\"\n   branch feature\n   commit id:\"Beta\"\n   checkout main\n   merge feature",
+            "gitGraph BT:\n   commit id:\"Alpha\"\n   commit id:\"Beta\"\n   branch hotfix\n   commit id:\"Gamma\"\n   checkout main\n   merge hotfix",
+            "gitGraph\n   commit id:\"ZERO\"\n   branch develop\n   commit id:\"A\"\n   checkout main\n   commit id:\"ONE\"\n   checkout develop\n   commit id:\"B\"\n   checkout main\n   merge develop id:\"MERGE\"\n   branch release\n   cherry-pick id:\"MERGE\" parent:\"B\""
+        ]
+
+        for source in cases {
+            assertRenderedContentFitsViewport(try parseAndLayout(source))
+        }
     }
 
     // MARK: - Config: showBranches false

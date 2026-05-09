@@ -165,15 +165,20 @@ extension DiagramRenderer {
             if pg.config.showCommitLabel {
                 for commit in pg.commits where commit.showLabel {
                     ctx.saveGState()
-                    let labelText = commit.id
-                    let lx = commit.x - Double(labelText.count) * 4
-                    let ly = commit.y + 20
-                    let bgRect = CGRect(x: lx - 4, y: ly - 4, width: Double(labelText.count) * 8 + 8, height: 18)
+                    let isVertical = pg.direction == .TB || pg.direction == .BT
+                    let labelRect = _gitGraphCommitLabelRect(commit, isVertical: isVertical)
+
+                    if !isVertical && pg.config.rotateCommitLabel {
+                        ctx.translateBy(x: commit.x, y: commit.y)
+                        ctx.rotate(by: -.pi / 4)
+                        ctx.translateBy(x: -commit.x, y: -commit.y)
+                    }
+
                     ctx.setFillColor(surfaceColor)
-                    ctx.fill(bgRect)
+                    ctx.fill(labelRect)
                     _drawTextInFlipped(
-                        labelText,
-                        at: CGPoint(x: lx + 4, y: ly + 10),
+                        commit.id,
+                        at: CGPoint(x: labelRect.minX + 8, y: labelRect.midY),
                         context: ctx,
                         contentHeight: contentHeight,
                         color: textColor,
@@ -186,39 +191,80 @@ extension DiagramRenderer {
 
             // Commit tags
             for commit in pg.commits where !commit.tags.isEmpty {
-                ctx.saveGState()
-                var tagOffsetY = commit.y + 36
-                for tag in commit.tags {
-                    let tagX = commit.x - Double(tag.count) * 3
+                let isVertical = pg.direction == .TB || pg.direction == .BT
+                for (tagIndex, tag) in commit.tags.reversed().enumerated() {
+                    ctx.saveGState()
+                    let tagWidth = Double(max(tag.count, 1)) * 7 + 22
+                    let tagHeight: Double = 16
 
-                    let tagPath = CGMutablePath()
-                    tagPath.move(to: CGPoint(x: tagX, y: tagOffsetY))
-                    tagPath.addLine(to: CGPoint(x: tagX + 8, y: tagOffsetY))
-                    tagPath.addLine(to: CGPoint(x: tagX + 10, y: tagOffsetY - 4))
-                    tagPath.addLine(to: CGPoint(x: tagX + 18 + Double(tag.count) * 6, y: tagOffsetY - 4))
-                    tagPath.addLine(to: CGPoint(x: tagX + 18 + Double(tag.count) * 6, y: tagOffsetY + 4))
-                    tagPath.addLine(to: CGPoint(x: tagX + 10, y: tagOffsetY + 4))
-                    tagPath.addLine(to: CGPoint(x: tagX + 8, y: tagOffsetY))
-                    ctx.setFillColor(surfaceColor)
-                    ctx.addPath(tagPath)
-                    ctx.fillPath()
-                    ctx.setStrokeColor(borderColor)
-                    ctx.setLineWidth(0.5)
-                    ctx.addPath(tagPath)
-                    ctx.strokePath()
+                    if isVertical {
+                        let yOrigin = commit.y - 16 - Double(tagIndex) * 20
+                        let xOrigin = commit.x + 20
+                        _applyGitGraphSvgTransform(
+                            ctx,
+                            translateX: 12,
+                            translateY: 12,
+                            angle: .pi / 4,
+                            anchor: CGPoint(x: commit.x, y: yOrigin)
+                        )
+                        let tagPath = _gitGraphVerticalTagPath(
+                            xOrigin: xOrigin,
+                            yOrigin: yOrigin,
+                            width: tagWidth,
+                            height: tagHeight
+                        )
+                        ctx.setFillColor(surfaceColor)
+                        ctx.addPath(tagPath)
+                        ctx.fillPath()
+                        ctx.setStrokeColor(borderColor)
+                        ctx.setLineWidth(0.5)
+                        ctx.addPath(tagPath)
+                        ctx.strokePath()
+                        ctx.setFillColor(borderColor)
+                        ctx.addArc(center: CGPoint(x: xOrigin + 2, y: yOrigin), radius: 1.5, startAngle: 0, endAngle: .pi * 2, clockwise: true)
+                        ctx.fillPath()
 
-                    _drawTextInFlipped(
-                        tag,
-                        at: CGPoint(x: tagX + 10, y: tagOffsetY),
-                        context: ctx,
-                        contentHeight: contentHeight,
-                        color: textColor,
-                        font: _monoFont(size: 8),
-                        alignment: .left
-                    )
-                    tagOffsetY += 14
+                        _drawTextInFlipped(
+                            tag,
+                            at: CGPoint(x: xOrigin + 8, y: yOrigin),
+                            context: ctx,
+                            contentHeight: contentHeight,
+                            color: textColor,
+                            font: _monoFont(size: 8),
+                            alignment: .left
+                        )
+                    } else {
+                        let tagX = commit.x - tagWidth / 2
+                        let tagY = commit.y - 34 - Double(tagIndex) * 20
+                        let tagPath = _gitGraphHorizontalTagPath(
+                            x: tagX,
+                            y: tagY,
+                            width: tagWidth,
+                            height: tagHeight
+                        )
+                        ctx.setFillColor(surfaceColor)
+                        ctx.addPath(tagPath)
+                        ctx.fillPath()
+                        ctx.setStrokeColor(borderColor)
+                        ctx.setLineWidth(0.5)
+                        ctx.addPath(tagPath)
+                        ctx.strokePath()
+                        ctx.setFillColor(borderColor)
+                        ctx.addArc(center: CGPoint(x: tagX + 7, y: tagY + tagHeight / 2), radius: 1.5, startAngle: 0, endAngle: .pi * 2, clockwise: true)
+                        ctx.fillPath()
+
+                        _drawTextInFlipped(
+                            tag,
+                            at: CGPoint(x: tagX + 14, y: tagY + tagHeight / 2),
+                            context: ctx,
+                            contentHeight: contentHeight,
+                            color: textColor,
+                            font: _monoFont(size: 8),
+                            alignment: .left
+                        )
+                    }
+                    ctx.restoreGState()
                 }
-                ctx.restoreGState()
             }
 
             // Arrows
@@ -259,5 +305,54 @@ extension DiagramRenderer {
                 ctx.restoreGState()
             }
         }
+    }
+
+    private func _gitGraphCommitLabelRect(_ commit: PositionedGitGraphCommit, isVertical: Bool) -> CGRect {
+        let labelLen = Double(commit.id.count) * 4
+        if isVertical {
+            let lx = commit.x - labelLen * 2 - 20
+            let ly = commit.y
+            return CGRect(x: lx - 4, y: ly - 8, width: labelLen * 4 + 8, height: 16)
+        }
+
+        let lx = commit.x - labelLen
+        let ly = commit.y + 20
+        return CGRect(x: lx - 4, y: ly - 4, width: labelLen * 2 + 8, height: 18)
+    }
+
+    private func _applyGitGraphSvgTransform(
+        _ ctx: CGContext,
+        translateX: Double,
+        translateY: Double,
+        angle: CGFloat,
+        anchor: CGPoint
+    ) {
+        ctx.translateBy(x: translateX, y: translateY)
+        ctx.translateBy(x: anchor.x, y: anchor.y)
+        ctx.rotate(by: angle)
+        ctx.translateBy(x: -anchor.x, y: -anchor.y)
+    }
+
+    private func _gitGraphHorizontalTagPath(x: Double, y: Double, width: Double, height: Double) -> CGPath {
+        let path = CGMutablePath()
+        path.move(to: CGPoint(x: x, y: y + height / 2))
+        path.addLine(to: CGPoint(x: x + 8, y: y))
+        path.addLine(to: CGPoint(x: x + width, y: y))
+        path.addLine(to: CGPoint(x: x + width, y: y + height))
+        path.addLine(to: CGPoint(x: x + 8, y: y + height))
+        path.closeSubpath()
+        return path
+    }
+
+    private func _gitGraphVerticalTagPath(xOrigin: Double, yOrigin: Double, width: Double, height: Double) -> CGPath {
+        let path = CGMutablePath()
+        path.move(to: CGPoint(x: xOrigin, y: yOrigin + 2))
+        path.addLine(to: CGPoint(x: xOrigin, y: yOrigin - 2))
+        path.addLine(to: CGPoint(x: xOrigin + 10, y: yOrigin - height / 2 - 2))
+        path.addLine(to: CGPoint(x: xOrigin + 10 + width, y: yOrigin - height / 2 - 2))
+        path.addLine(to: CGPoint(x: xOrigin + 10 + width, y: yOrigin + height / 2 + 2))
+        path.addLine(to: CGPoint(x: xOrigin + 10, y: yOrigin + height / 2 + 2))
+        path.closeSubpath()
+        return path
     }
 }

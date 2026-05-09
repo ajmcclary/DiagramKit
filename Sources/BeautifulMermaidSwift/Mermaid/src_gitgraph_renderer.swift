@@ -394,7 +394,15 @@ public func renderGitGraphSvg(_ positioned: PositionedGitGraphDiagram, diagramId
             let lines = bl.lines
             var textContent = ""
             for (j, line) in lines.enumerated() {
-                textContent += "<tspan x=\"0\" dy=\"\(j == 0 ? "1em" : "1em")\">\(_gitGraphEscapeXml(line))</tspan>"
+                let dy: String
+                if lines.count == 1 {
+                    dy = "0"
+                } else if j == 0 {
+                    dy = "\(-0.55 * Double(lines.count - 1))em"
+                } else {
+                    dy = "1.1em"
+                }
+                textContent += "<tspan x=\"0\" dy=\"\(dy)\">\(_gitGraphEscapeXml(line))</tspan>"
             }
             let labelFill = _gitGraphEscapeXml(_gitGraphBranchLabelColor(themeConfig, bl.colorIndex))
             let textFill = _gitGraphEscapeXml(_gitGraphResolved(themeConfig.labelTextColor, fallback: "#ffffff"))
@@ -407,7 +415,7 @@ public func renderGitGraphSvg(_ positioned: PositionedGitGraphDiagram, diagramId
             }
             branchLabelsStr += "<g transform=\"translate(\(bl.x) \(bl.y))\" class=\"branchLabel label\">\n"
             branchLabelsStr += "  <rect x=\"\(bl.bkgX)\" y=\"\(bl.bkgY)\" width=\"\(bl.bkgWidth)\" height=\"\(bl.bkgHeight)\" rx=\"\(bl.borderRadius)\" ry=\"\(bl.borderRadius)\" class=\"branchLabelBkg label\(bl.colorIndex)\" fill=\"\(labelFill)\"\(isLookNeo ? " data-look=\"neo\"" : "") style=\"\(filterStyle)\" />\n"
-            branchLabelsStr += "  <text class=\"branch-label branch-label\(bl.colorIndex)\" fill=\"\(textFill)\">\(textContent)</text>\n"
+            branchLabelsStr += "  <text class=\"branch-label branch-label\(bl.colorIndex)\" fill=\"\(textFill)\" text-anchor=\"middle\" dominant-baseline=\"middle\">\(textContent)</text>\n"
             branchLabelsStr += "</g>\n"
         }
         svg += branchLabelsStr
