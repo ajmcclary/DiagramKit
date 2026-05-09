@@ -1,6 +1,8 @@
 import XCTest
 import CoreGraphics
 @testable import BeautifulMermaid
+@testable import DiagramKitCommon
+@testable import DiagramKitModel
 
 final class SankeyRendererTests: XCTestCase {
 

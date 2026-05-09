@@ -1,5 +1,7 @@
 import XCTest
 @testable import BeautifulMermaid
+@testable import DiagramKitCommon
+@testable import DiagramKitModel
 
 #if os(macOS)
 import AppKit

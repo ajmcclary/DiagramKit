@@ -3,6 +3,8 @@ import Foundation
 import CoreGraphics
 import Dispatch
 @testable import BeautifulMermaid
+@testable import DiagramKitCommon
+@testable import DiagramKitModel
 
 @Suite("Class Diagram CG Renderer", .serialized)
 struct ClassCGRendererTests {

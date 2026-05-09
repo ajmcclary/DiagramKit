@@ -2,6 +2,8 @@ import Testing
 import Foundation
 import CoreGraphics
 @testable import BeautifulMermaid
+@testable import DiagramKitCommon
+@testable import DiagramKitModel
 
 @Suite("Gantt Layout")
 struct GanttLayoutTests {

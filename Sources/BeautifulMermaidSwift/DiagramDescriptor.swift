@@ -1,4 +1,5 @@
 import Foundation
+import DiagramKitModel
 import DiagramKitCommon
 
 // MARK: - Diagram Header

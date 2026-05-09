@@ -7,6 +7,7 @@
 
 import SwiftUI
 import BeautifulMermaid
+import DiagramKitModel
 
 @available(iOS 26.0, macOS 26.0, macCatalyst 26.0, *)
 struct ThemePicker: View {

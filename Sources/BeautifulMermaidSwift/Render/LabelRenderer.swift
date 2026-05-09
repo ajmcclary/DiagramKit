@@ -1,4 +1,5 @@
 import Foundation
+import DiagramKitModel
 import CoreGraphics
 import CoreText
 

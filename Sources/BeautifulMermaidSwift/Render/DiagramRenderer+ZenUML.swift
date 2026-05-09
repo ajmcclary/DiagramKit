@@ -1,4 +1,5 @@
 import Foundation
+import DiagramKitModel
 import CoreGraphics
 
 // MARK: - ZenUML Core Graphics Renderer

@@ -1,6 +1,8 @@
 import XCTest
 import CoreGraphics
 @testable import BeautifulMermaid
+@testable import DiagramKitCommon
+@testable import DiagramKitModel
 
 #if targetEnvironment(macCatalyst) || canImport(UIKit)
 import UIKit

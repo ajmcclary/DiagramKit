@@ -1,4 +1,5 @@
 import Foundation
+import DiagramKitModel
 import CoreGraphics
 
 // MARK: - C4 Core Graphics Renderer

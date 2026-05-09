@@ -7,6 +7,7 @@
 
 import SwiftUI
 import BeautifulMermaid
+import DiagramKitModel
 
 /// Singleton configuration for the playground
 @Observable

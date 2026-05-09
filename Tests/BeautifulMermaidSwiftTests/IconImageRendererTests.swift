@@ -1,6 +1,7 @@
 import XCTest
 @testable import BeautifulMermaid
-import DiagramKitCommon
+@testable import DiagramKitModel
+@testable import DiagramKitCommon
 
 final class IconImageRendererTests: XCTestCase {
 

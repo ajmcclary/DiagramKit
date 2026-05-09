@@ -1,6 +1,8 @@
 import Testing
 import Foundation
 @testable import BeautifulMermaid
+@testable import DiagramKitCommon
+@testable import DiagramKitModel
 
 private func parse(_ source: String) throws -> ArchitectureDiagram {
     try parseArchitectureDiagram(source)

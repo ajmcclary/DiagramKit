@@ -1,5 +1,7 @@
 import Testing
 @testable import BeautifulMermaid
+@testable import DiagramKitCommon
+@testable import DiagramKitModel
 
 @Suite("TreeView Public Pipeline")
 struct TreeViewPipelineTests {

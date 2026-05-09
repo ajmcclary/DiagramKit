@@ -116,6 +116,7 @@ let package = Package(
             name: "BeautifulMermaid",
             dependencies: [
                 "DiagramKitCommon",
+                "DiagramKitModel",
                 .product(name: "IssueReporting", package: "xctest-dynamic-overlay")
             ],
             path: "Sources/BeautifulMermaidSwift",
@@ -144,6 +145,7 @@ let package = Package(
             dependencies: [
                 "BeautifulMermaid",
                 "DiagramKitCommon",
+                "DiagramKitModel",
                 .product(name: "CustomDump", package: "swift-custom-dump"),
                 .product(name: "SnapshotTesting", package: "swift-snapshot-testing"),
             ],

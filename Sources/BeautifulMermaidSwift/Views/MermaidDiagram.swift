@@ -1,6 +1,7 @@
 import SwiftUI
 import CoreGraphics
 import DiagramKitCommon
+import DiagramKitModel
 
 /// A value-type model that manages the Mermaid diagram pipeline.
 @MainActor

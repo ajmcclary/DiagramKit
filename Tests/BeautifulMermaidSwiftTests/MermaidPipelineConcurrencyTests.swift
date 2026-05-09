@@ -1,6 +1,8 @@
 import CustomDump
 import Testing
 @testable import BeautifulMermaid
+@testable import DiagramKitCommon
+@testable import DiagramKitModel
 
 @Suite("Mermaid pipeline concurrency")
 struct MermaidPipelineConcurrencyTests {

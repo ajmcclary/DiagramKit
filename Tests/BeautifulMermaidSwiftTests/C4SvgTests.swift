@@ -1,6 +1,8 @@
 import Testing
 import Foundation
 @testable import BeautifulMermaid
+@testable import DiagramKitCommon
+@testable import DiagramKitModel
 
 @Suite("C4 SVG Renderer")
 struct C4SvgTests {

@@ -1,5 +1,7 @@
 import Testing
 @testable import BeautifulMermaid
+@testable import DiagramKitCommon
+@testable import DiagramKitModel
 import CoreGraphics
 
 @Suite("Ishikawa Renderer")

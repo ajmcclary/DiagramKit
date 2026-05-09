@@ -2,6 +2,8 @@ import Foundation
 import Testing
 import SnapshotTesting
 @testable import BeautifulMermaid
+@testable import DiagramKitCommon
+@testable import DiagramKitModel
 
 /// Snapshot tests for the entire diagram corpus.
 ///

@@ -2,6 +2,8 @@ import XCTest
 import Foundation
 import CoreGraphics
 @testable import BeautifulMermaid
+@testable import DiagramKitCommon
+@testable import DiagramKitModel
 
 final class JourneyCGRendererTests: XCTestCase {
 

@@ -1,4 +1,5 @@
 import Foundation
+import DiagramKitModel
 import CoreText
 
 /// Registers BeautifulMermaid's bundled fonts (Noto Sans family + Noto Sans Mono)

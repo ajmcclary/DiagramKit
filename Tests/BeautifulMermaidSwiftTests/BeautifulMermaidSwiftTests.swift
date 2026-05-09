@@ -1,6 +1,8 @@
 import XCTest
 import CustomDump
 @testable import BeautifulMermaid
+@testable import DiagramKitCommon
+@testable import DiagramKitModel
 
 final class BeautifulMermaidSwiftTests: XCTestCase {
     func testVersionIsNonEmpty() {

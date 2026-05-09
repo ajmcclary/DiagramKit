@@ -1,6 +1,8 @@
 import Foundation
 import XCTest
 @testable import BeautifulMermaid
+@testable import DiagramKitCommon
+@testable import DiagramKitModel
 
 final class GitGraphReviewRegressionTests: XCTestCase {
 

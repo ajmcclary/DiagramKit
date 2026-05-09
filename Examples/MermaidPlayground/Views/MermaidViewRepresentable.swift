@@ -7,6 +7,7 @@
 
 import SwiftUI
 import BeautifulMermaid
+import DiagramKitModel
 
 #if targetEnvironment(macCatalyst) || canImport(UIKit)
 import UIKit

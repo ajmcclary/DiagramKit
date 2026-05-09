@@ -1,4 +1,6 @@
 import SwiftUI
+import DiagramKitCommon
+import DiagramKitModel
 
 #if canImport(UIKit)
 import UIKit

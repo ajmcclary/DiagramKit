@@ -1,4 +1,5 @@
 import Foundation
+import DiagramKitModel
 import DiagramKitCommon
 import CoreGraphics
 @preconcurrency import QuartzCore

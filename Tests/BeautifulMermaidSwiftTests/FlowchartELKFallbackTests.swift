@@ -1,5 +1,7 @@
 import XCTest
 @testable import BeautifulMermaid
+@testable import DiagramKitCommon
+@testable import DiagramKitModel
 
 /// flowchart-elk header is parsed as a renderer hint, but falls back to dagre layout.
 /// This matches Mermaid JS behavior without the external @mermaid-js/layout-elk package.

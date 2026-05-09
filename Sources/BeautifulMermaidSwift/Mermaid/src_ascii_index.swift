@@ -1,5 +1,6 @@
 // Ported from original/src/ascii/index.ts
 import Foundation
+import DiagramKitModel
 
 private func _bmParseMermaid(_ text: String, config: original_src_types.FlowchartConfig? = nil) throws -> MermaidGraph {
     try parseMermaid(text, config: config)
@@ -708,12 +709,12 @@ open class original_src_ascii_index {
     private static func flipCanvasVertically(_ canvas: inout [[Character]]) {
         // Reverse each column array (Y-axis flip in column-major layout)
         // then remap directional characters that change meaning after flip
-        BeautifulMermaid.flipCanvasVertically(&canvas)
+        flipCanvasVertically(&canvas)
     }
 
     private static func flipRoleCanvasVertically(_ roleCanvas: inout RoleCanvas) {
         // Reverse each column array to match the canvas flip
-        BeautifulMermaid.flipRoleCanvasVertically(&roleCanvas)
+        flipRoleCanvasVertically(&roleCanvas)
     }
 
     private static func canvasToString(

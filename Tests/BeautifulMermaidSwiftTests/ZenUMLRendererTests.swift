@@ -1,6 +1,8 @@
 import CoreGraphics
 import Testing
 @testable import BeautifulMermaid
+@testable import DiagramKitCommon
+@testable import DiagramKitModel
 
 @Suite("ZenUML Core Graphics")
 struct ZenUMLRendererTests {

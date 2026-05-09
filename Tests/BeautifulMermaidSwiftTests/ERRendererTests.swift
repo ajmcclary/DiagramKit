@@ -1,6 +1,8 @@
 import Testing
 import Foundation
 @testable import BeautifulMermaid
+@testable import DiagramKitCommon
+@testable import DiagramKitModel
 
 @Suite("ER Renderer")
 struct ERRendererTests {

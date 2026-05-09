@@ -1,5 +1,6 @@
 import Foundation
 import CoreGraphics
+import DiagramKitModel
 
 public struct ArrowRenderer {
 

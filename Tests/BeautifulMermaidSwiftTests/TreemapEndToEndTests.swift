@@ -1,6 +1,8 @@
 import Foundation
 import Testing
 @testable import BeautifulMermaid
+@testable import DiagramKitCommon
+@testable import DiagramKitModel
 
 @Suite("Treemap End-to-End")
 struct TreemapEndToEndTests {
