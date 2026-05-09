@@ -4,6 +4,45 @@ import CoreGraphics
 
 final class PacketRendererTests: XCTestCase {
 
+    private func renderPacketPixels(_ diagram: PacketDiagram) throws -> (pixels: [UInt8], width: Int, height: Int, positioned: PositionedPacketDiagram) {
+        let positioned = layoutPacketDiagram(diagram)
+        let graph = MermaidGraph(payload: .packet(diagram))
+        let positionedGraph = PositionedGraph(
+            diagram: graph,
+            width: positioned.width,
+            height: positioned.height,
+            content: .packet(positioned)
+        )
+
+        let width = max(Int(positioned.width), 1)
+        let height = max(Int(positioned.height), 1)
+        var pixels = [UInt8](repeating: 0, count: width * height * 4)
+        let colorSpace = CGColorSpace(name: CGColorSpace.sRGB)!
+        guard let context = CGContext(
+            data: &pixels,
+            width: width,
+            height: height,
+            bitsPerComponent: 8,
+            bytesPerRow: width * 4,
+            space: colorSpace,
+            bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue
+        ) else {
+            XCTFail("Could not create CGContext")
+            return (pixels, width, height, positioned)
+        }
+
+        DiagramRenderer().render(positionedGraph, in: context, bounds: CGRect(x: 0, y: 0, width: width, height: height))
+        return (pixels, width, height, positioned)
+    }
+
+    private func isRedPixel(_ pixels: [UInt8], at index: Int) -> Bool {
+        pixels[index] > 180 && pixels[index + 1] < 90 && pixels[index + 2] < 90 && pixels[index + 3] > 180
+    }
+
+    private func isWhitePixel(_ pixels: [UInt8], at index: Int) -> Bool {
+        pixels[index] > 248 && pixels[index + 1] > 248 && pixels[index + 2] > 248 && pixels[index + 3] > 248
+    }
+
     func testCgRenderDoesNotCrash() throws {
         let source = """
         packet
@@ -55,30 +94,15 @@ final class PacketRendererTests: XCTestCase {
     }
 
     func testEmptyPacketRenders() throws {
-        let diagram = PacketDiagram.empty
-        let positioned = layoutPacketDiagram(diagram)
-        let graph = MermaidGraph(payload: .packet(diagram))
-        let positionedGraph = PositionedGraph(diagram: graph, width: positioned.width, height: positioned.height, content: .packet(positioned))
+        let rendered = try renderPacketPixels(.empty)
 
-        let width = max(Int(positioned.width), 1)
-        let height = max(Int(positioned.height), 1)
-        let colorSpace = CGColorSpace(name: CGColorSpace.sRGB)!
-        guard let context = CGContext(
-            data: nil,
-            width: width,
-            height: height,
-            bitsPerComponent: 8,
-            bytesPerRow: width * 4,
-            space: colorSpace,
-            bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue
-        ) else {
-            XCTFail("Could not create CGContext")
-            return
+        var nonWhitePixelCount = 0
+        for index in stride(from: 0, to: rendered.pixels.count, by: 4) {
+            if !isWhitePixel(rendered.pixels, at: index) {
+                nonWhitePixelCount += 1
+            }
         }
-
-        let renderer = DiagramRenderer()
-        renderer.render(positionedGraph, in: context, bounds: CGRect(x: 0, y: 0, width: width, height: height))
-        // No crash = success
+        XCTAssertGreaterThan(nonWhitePixelCount, 100)
     }
 
     func testPositionedGraphPacketAccessor() throws {
@@ -133,5 +157,33 @@ final class PacketRendererTests: XCTestCase {
             }
         }
         XCTAssertGreaterThan(redPixelCount, 100)
+    }
+
+    func testCoreGraphicsKeepsBitLabelsAbovePacketBlocks() throws {
+        var diagram = try parsePacketDiagram(_mermaidSourceLines(from: "packet\n0-15: \"test\""), frontmatter: nil)
+        diagram.theme = PacketThemeConfig(
+            byteFontSize: "10px",
+            startByteColor: "#ff0000",
+            endByteColor: "#ff0000",
+            blockStrokeColor: "#000000",
+            blockFillColor: "#ffffff"
+        )
+        let rendered = try renderPacketPixels(diagram)
+        let block = rendered.positioned.rows[0][0]
+        let blockTopY = Int(block.y.rounded(.down))
+        let blockBottomY = Int((block.y + block.height).rounded(.up))
+
+        var redPixelCountInsideBlocks = 0
+        for modelY in blockTopY..<blockBottomY {
+            let pixelY = rendered.height - 1 - modelY
+            let rowStart = pixelY * rendered.width * 4
+            for index in stride(from: rowStart, to: rowStart + rendered.width * 4, by: 4) {
+                if isRedPixel(rendered.pixels, at: index) {
+                    redPixelCountInsideBlocks += 1
+                }
+            }
+        }
+
+        XCTAssertEqual(redPixelCountInsideBlocks, 0)
     }
 }

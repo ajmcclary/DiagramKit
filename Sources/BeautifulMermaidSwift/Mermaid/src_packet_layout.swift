@@ -1,14 +1,26 @@
 import Foundation
 
+let packetBitLabelBandHeight = 16.0
+let packetBitLabelGapAboveBlock = 5.0
+
+func packetEffectivePaddingY(_ config: PacketDiagramConfig) -> Double {
+    config.paddingY + (config.showBits ? packetBitLabelBandHeight : 0)
+}
+
+func packetBitLabelY(forBlockY blockY: Double) -> Double {
+    blockY - packetBitLabelGapAboveBlock
+}
+
 func layoutPacketDiagram(_ diagram: PacketDiagram) -> PositionedPacketDiagram {
     let config = diagram.config
     let rows = diagram.rows
 
-    let effectivePaddingY = config.paddingY + (config.showBits ? 10 : 0)
+    let effectivePaddingY = packetEffectivePaddingY(config)
     let rowHeightTotal = config.rowHeight + effectivePaddingY
     let diagramWidth = config.bitWidth * Double(config.bitsPerRow) + 2
     let rowCount = rows.count
-    let diagramHeight = rowHeightTotal * Double(rowCount + 1)
+    let visibleRowCount = max(rowCount, 1)
+    let diagramHeight = rowHeightTotal * Double(visibleRowCount + 1)
         - (diagram.diagramTitle != nil ? 0 : config.rowHeight)
 
     var positionedRows: [PositionedPacketRow] = []

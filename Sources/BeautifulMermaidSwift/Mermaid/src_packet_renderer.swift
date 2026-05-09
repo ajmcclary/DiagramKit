@@ -52,6 +52,22 @@ func renderPacketSvg(
     </style>
     """
 
+    let effectivePaddingY = packetEffectivePaddingY(config)
+
+    if diagram.rows.isEmpty {
+        let blockX = 1.0
+        let blockY = effectivePaddingY
+        let blockWidth = config.bitWidth * Double(config.bitsPerRow) - config.paddingX
+        svg += "<g>\n"
+        svg += "<rect x=\"\(blockX)\" y=\"\(blockY)\" width=\"\(blockWidth)\" height=\"\(config.rowHeight)\" class=\"packetBlock\"/>\n"
+        if config.showBits {
+            let bitY = packetBitLabelY(forBlockY: blockY)
+            svg += "<text x=\"\(blockX)\" y=\"\(bitY)\" class=\"packetByte start\" dominant-baseline=\"auto\" text-anchor=\"start\">0</text>\n"
+            svg += "<text x=\"\(blockX + blockWidth)\" y=\"\(bitY)\" class=\"packetByte end\" dominant-baseline=\"auto\" text-anchor=\"end\">\(config.bitsPerRow - 1)</text>\n"
+        }
+        svg += "</g>\n"
+    }
+
     // Render each row
     for row in diagram.rows {
         svg += "<g>\n"
@@ -69,12 +85,12 @@ func renderPacketSvg(
                 if block.start == block.end {
                     // Single-bit: center
                     let bitX = block.x + block.width / 2
-                    let bitY = block.y - 2
+                    let bitY = packetBitLabelY(forBlockY: block.y)
                     svg += "<text x=\"\(bitX)\" y=\"\(bitY)\" class=\"packetByte start\" dominant-baseline=\"auto\" text-anchor=\"middle\">\(block.start)</text>\n"
                 } else {
                     // Start byte label
                     let startX = block.x
-                    let bitY = block.y - 2
+                    let bitY = packetBitLabelY(forBlockY: block.y)
                     svg += "<text x=\"\(startX)\" y=\"\(bitY)\" class=\"packetByte start\" dominant-baseline=\"auto\" text-anchor=\"start\">\(block.start)</text>\n"
                     // End byte label
                     let endX = block.x + block.width
@@ -87,7 +103,6 @@ func renderPacketSvg(
 
     // Title at bottom
     if let title = diagram.diagramTitle, !title.isEmpty {
-        let effectivePaddingY = config.paddingY + (config.showBits ? 10 : 0)
         let rowHeightTotal = config.rowHeight + effectivePaddingY
         let titleX = svgWidth / 2
         let titleY = svgHeight - rowHeightTotal / 2

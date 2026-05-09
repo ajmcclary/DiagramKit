@@ -20,7 +20,7 @@ extension DiagramRenderer {
                 ctx.fill(CGRect(x: 0, y: 0, width: packet.width, height: packet.height))
             }
 
-            let effectivePaddingY = packet.config.paddingY + (packet.config.showBits ? 10 : 0)
+            let effectivePaddingY = packetEffectivePaddingY(packet.config)
             let rowHeightTotal = packet.config.rowHeight + effectivePaddingY
             let packetTheme = packet.theme
             let blockFill = _packetColor(packetTheme.blockFillColor, fallback: BMColor(hex: "#efefef"))
@@ -34,55 +34,94 @@ extension DiagramRenderer {
             let titleColor = _packetColor(packetTheme.titleColor, fallback: BMColor.black)
             let titleFont = _monoFont(size: _packetFontSize(packetTheme.titleFontSize, fallback: 14))
 
-            // Draw each row and block
-            for row in packet.rows {
-                for block in row {
-                    // Draw rectangle
-                    let rect = CGRect(x: block.x, y: block.y,
-                                      width: block.width, height: block.height)
-                    ctx.setFillColor(blockFill.cgColor)
-                    ctx.setStrokeColor(blockStroke.cgColor)
-                    ctx.setLineWidth(blockStrokeWidth)
-                    ctx.fill(rect)
-                    ctx.stroke(rect)
+            func drawBitLabels(start: Int, end: Int, x: Double, y: Double, width: Double) {
+                guard packet.config.showBits else { return }
 
-                    // Draw label centered
-                    _drawTextInFlipped(block.label,
-                        at: CGPoint(x: block.x + block.width / 2, y: block.y + block.height / 2),
+                let bitBottomY = CGFloat(packetBitLabelY(forBlockY: y))
+                let bitLabelHeight = byteFont.pointSize * 1.4
+                let bitRect = CGRect(
+                    x: x,
+                    y: bitBottomY - bitLabelHeight,
+                    width: width,
+                    height: bitLabelHeight
+                )
+
+                if start == end {
+                    labelRenderer.drawText(
+                        "\(start)",
+                        in: bitRect,
+                        context: ctx,
+                        color: startByteColor,
+                        font: byteFont,
+                        alignment: .center,
+                        verticalAlignment: .bottom
+                    )
+                } else {
+                    labelRenderer.drawText(
+                        "\(start)",
+                        in: bitRect,
+                        context: ctx,
+                        color: startByteColor,
+                        font: byteFont,
+                        alignment: .left,
+                        verticalAlignment: .bottom
+                    )
+                    labelRenderer.drawText(
+                        "\(end)",
+                        in: bitRect,
+                        context: ctx,
+                        color: endByteColor,
+                        font: byteFont,
+                        alignment: .right,
+                        verticalAlignment: .bottom
+                    )
+                }
+            }
+
+            func drawBlock(start: Int, end: Int, label: String, x: Double, y: Double, width: Double, height: Double) {
+                let rect = CGRect(x: x, y: y, width: width, height: height)
+                ctx.setFillColor(blockFill.cgColor)
+                ctx.setStrokeColor(blockStroke.cgColor)
+                ctx.setLineWidth(blockStrokeWidth)
+                ctx.fill(rect)
+                ctx.stroke(rect)
+
+                if !label.isEmpty {
+                    _drawTextInFlipped(label,
+                        at: CGPoint(x: x + width / 2, y: y + height / 2),
                         context: ctx, contentHeight: packet.height,
                         color: labelColor,
                         font: labelFont,
                         alignment: .center)
+                }
 
-                    // Draw bit numbers if showBits
-                    if packet.config.showBits {
-                        let bitY = block.y - 2
-                        if block.start == block.end {
-                            // Single-bit: center
-                            let bitX = block.x + block.width / 2
-                            _drawTextInFlipped("\(block.start)",
-                                at: CGPoint(x: bitX, y: bitY),
-                                context: ctx, contentHeight: packet.height,
-                                color: startByteColor,
-                                font: byteFont,
-                                alignment: .center)
-                        } else {
-                            // Start bit label
-                            _drawTextInFlipped("\(block.start)",
-                                at: CGPoint(x: block.x, y: bitY),
-                                context: ctx, contentHeight: packet.height,
-                                color: startByteColor,
-                                font: byteFont,
-                                alignment: .left)
-                            // End bit label
-                            _drawTextInFlipped("\(block.end)",
-                                at: CGPoint(x: block.x + block.width, y: bitY),
-                                context: ctx, contentHeight: packet.height,
-                                color: endByteColor,
-                                font: byteFont,
-                                alignment: .right)
-                        }
-                    }
+                drawBitLabels(start: start, end: end, x: x, y: y, width: width)
+            }
+
+            if packet.rows.isEmpty {
+                drawBlock(
+                    start: 0,
+                    end: packet.config.bitsPerRow - 1,
+                    label: "",
+                    x: 1,
+                    y: effectivePaddingY,
+                    width: packet.config.bitWidth * Double(packet.config.bitsPerRow) - packet.config.paddingX,
+                    height: packet.config.rowHeight
+                )
+            }
+
+            // Draw each row and block
+            for row in packet.rows {
+                for block in row {
+                    drawBlock(
+                        start: block.start,
+                        end: block.end,
+                        label: block.label,
+                        x: block.x,
+                        y: block.y,
+                        width: block.width,
+                        height: block.height
+                    )
                 }
             }
 

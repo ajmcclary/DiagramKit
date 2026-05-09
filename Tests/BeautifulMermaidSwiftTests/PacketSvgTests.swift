@@ -5,11 +5,25 @@ final class PacketSvgTests: XCTestCase {
 
     private func parseAndRender(_ source: String, theme: PacketThemeConfig = .default) throws -> String {
         let lines = _mermaidSourceLines(from: source)
-        var diagram = try parsePacketDiagram(lines, frontmatter: nil)
+        let diagram = try parsePacketDiagram(lines, frontmatter: nil)
         // default title precedence
         let positioned = layoutPacketDiagram(diagram)
         let colors = DiagramColors(bg: "#FFFFFF", fg: "#000000")
         return renderPacketSvg(positioned, colors, "Inter", false, theme: theme)
+    }
+
+    private func firstDouble(in text: String, after prefix: String) throws -> Double {
+        guard let range = text.range(of: prefix) else {
+            XCTFail("Missing prefix: \(prefix)")
+            throw NSError(domain: "PacketSvgTests", code: 1)
+        }
+        let remainder = text[range.upperBound...]
+        let value = remainder.prefix { $0.isNumber || $0 == "." || $0 == "-" }
+        guard let double = Double(value) else {
+            XCTFail("Missing numeric value after prefix: \(prefix)")
+            throw NSError(domain: "PacketSvgTests", code: 2)
+        }
+        return double
     }
 
     func testSvgViewBox() throws {
@@ -30,6 +44,14 @@ final class PacketSvgTests: XCTestCase {
         XCTAssertEqual(rectCount, 3) // 2 blocks + background
     }
 
+    func testEmptyPacketSvgDrawsPlaceholderFrame() throws {
+        let svg = try parseAndRender("packet")
+
+        let rectCount = svg.components(separatedBy: "<rect").count - 1
+        XCTAssertEqual(rectCount, 2)
+        XCTAssertTrue(svg.contains("class=\"packetBlock\""))
+    }
+
     func testSvgLabels() throws {
         let svg = try parseAndRender("packet\n0-15: \"Source Port\"")
         XCTAssertTrue(svg.contains("class=\"packetLabel\""))
@@ -40,6 +62,15 @@ final class PacketSvgTests: XCTestCase {
         let svg = try parseAndRender("packet\n0-15: \"test\"")
         XCTAssertTrue(svg.contains("class=\"packetByte start\""))
         XCTAssertTrue(svg.contains("class=\"packetByte end\""))
+    }
+
+    func testSvgBitNumbersHaveClearanceAboveBlocks() throws {
+        let svg = try parseAndRender("packet\n0-15: \"test\"")
+        let blockY = try firstDouble(in: svg, after: "<rect x=\"1.0\" y=\"")
+        let bitY = try firstDouble(in: svg, after: "<text x=\"1.0\" y=\"")
+
+        XCTAssertGreaterThanOrEqual(blockY - bitY, 5)
+        XCTAssertGreaterThanOrEqual(bitY, 12)
     }
 
     func testSvgNoBitNumbers() throws {
@@ -97,7 +128,7 @@ final class PacketSvgTests: XCTestCase {
         0-15: "test"
         """
         let lines = _mermaidSourceLines(from: source)
-        var diagram = try parsePacketDiagram(lines, frontmatter: nil)
+        let diagram = try parsePacketDiagram(lines, frontmatter: nil)
         let positioned = layoutPacketDiagram(diagram)
         let colors = DiagramColors(bg: "#FFFFFF", fg: "#000000")
         let svg = renderPacketSvg(positioned, colors, "Inter", false, theme: diagram.theme)

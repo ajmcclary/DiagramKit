@@ -18,8 +18,8 @@ final class PacketLayoutTests: XCTestCase {
         XCTAssertEqual(block.width, 507, accuracy: 0.01)
         // x = 0*32 + 1 = 1
         XCTAssertEqual(block.x, 1, accuracy: 0.01)
-        // effectivePaddingY with showBits=true: 5 + 10 = 15
-        XCTAssertEqual(block.y, 15, accuracy: 0.01)
+        // effectivePaddingY with showBits=true: 5 + 16 = 21
+        XCTAssertEqual(block.y, 21, accuracy: 0.01)
     }
 
     func testDiagramDimensions() throws {
@@ -31,8 +31,8 @@ final class PacketLayoutTests: XCTestCase {
 
         // width = 32*32 + 2 = 1026
         XCTAssertEqual(positioned.width, 1026, accuracy: 0.01)
-        // height with title = (32+15)*(1+1) - 0 = 94
-        XCTAssertEqual(positioned.height, 94, accuracy: 0.01)
+        // height with title = (32+21)*(1+1) - 0 = 106
+        XCTAssertEqual(positioned.height, 106, accuracy: 0.01)
     }
 
     func testShowBitsPaddingY() throws {
@@ -40,9 +40,9 @@ final class PacketLayoutTests: XCTestCase {
         diagram.config.showBits = true
         let positioned = layoutPacketDiagram(diagram)
 
-        // effectivePaddingY = 5 + 10 = 15
+        // effectivePaddingY = 5 + 16 = 21
         let block = positioned.rows[0][0]
-        XCTAssertEqual(block.y, 15, accuracy: 0.01)
+        XCTAssertEqual(block.y, 21, accuracy: 0.01)
     }
 
     func testNoShowBitsPaddingY() throws {
@@ -68,7 +68,7 @@ final class PacketLayoutTests: XCTestCase {
         // Row 0 y and Row 1 y differ by rowHeight + effectivePaddingY
         let row0Y = positioned.rows[0][0].y
         let row1Y = positioned.rows[1][0].y
-        let effectivePaddingY = diagram.config.paddingY + (diagram.config.showBits ? 10 : 0)
+        let effectivePaddingY = packetEffectivePaddingY(diagram.config)
         let rowHeightTotal = diagram.config.rowHeight + effectivePaddingY
         XCTAssertEqual(row1Y - row0Y, rowHeightTotal, accuracy: 0.01)
     }
@@ -78,8 +78,16 @@ final class PacketLayoutTests: XCTestCase {
         // No title
         let positioned = layoutPacketDiagram(diagram)
 
-        // height without title = (32+15)*(1+1) - 32 = 62
-        XCTAssertEqual(positioned.height, 62, accuracy: 0.01)
+        // height without title = (32+21)*(1+1) - 32 = 74
+        XCTAssertEqual(positioned.height, 74, accuracy: 0.01)
+    }
+
+    func testEmptyPacketReservesVisibleRowBounds() throws {
+        let positioned = layoutPacketDiagram(.empty)
+
+        XCTAssertTrue(positioned.rows.isEmpty)
+        XCTAssertEqual(positioned.width, 1026, accuracy: 0.01)
+        XCTAssertEqual(positioned.height, 74, accuracy: 0.01)
     }
 
     func testCustomConfig() throws {
