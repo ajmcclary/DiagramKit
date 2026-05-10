@@ -11,6 +11,17 @@ import DiagramKitRenderingCG
 /// actor, these tests fail.
 final class MermaidPreparationWorkerTests: XCTestCase {
 
+    override class func setUp() {
+        super.setUp()
+        // `MermaidPreparation` now lives in `DiagramKitRenderingCG` and
+        // takes its synchronous implementation from the umbrella's
+        // `_MermaidPreparerBootstrap`. The bootstrap fires implicitly
+        // from any `MermaidRenderer.*` call, but these tests invoke
+        // `MermaidPreparation.prepare(...)` directly — so we need to
+        // trigger it manually.
+        MermaidRenderer.bootstrap()
+    }
+
     /// Captures values observed inside a worker closure, sendably.
     private actor WorkerObservation {
         var threadName: String?
