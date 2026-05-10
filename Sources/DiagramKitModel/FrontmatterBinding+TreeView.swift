@@ -12,12 +12,14 @@ public struct TreeViewFrontmatterBinding: FrontmatterBinding {
 
     public mutating func apply(path: String, value: FrontmatterValue) -> Bool {
         if path.hasPrefix(Self.prefixes[0]) {
+            guard _applyConfig(String(path.dropFirst(Self.prefixes[0].count)), value) else { return false }
             hasConfig = true
-            return _applyConfig(String(path.dropFirst(Self.prefixes[0].count)), value)
+            return true
         }
         if path.hasPrefix(Self.prefixes[1]) {
+            guard _applyTheme(String(path.dropFirst(Self.prefixes[1].count)), value) else { return false }
             hasTheme = true
-            return _applyTheme(String(path.dropFirst(Self.prefixes[1].count)), value)
+            return true
         }
         return false
     }
@@ -35,7 +37,17 @@ public struct TreeViewFrontmatterBinding: FrontmatterBinding {
         return true
     }
 
-    private mutating func _applyTheme(_ key: String, _ value: FrontmatterValue) -> Bool {
+    private mutating func _applyTheme(_ rawKey: String, _ value: FrontmatterValue) -> Bool {
+        // Theme variables can arrive either flat (`themeVariables.labelColor`)
+        // or nested under a `treeView.` sub-namespace
+        // (`themeVariables.treeView.labelColor`). Strip the sub-namespace so
+        // the inner switch handles both shapes uniformly.
+        let key: String
+        if rawKey.hasPrefix("treeView.") {
+            key = String(rawKey.dropFirst("treeView.".count))
+        } else {
+            key = rawKey
+        }
         let v = value.string
         switch key {
         case "labelColor":       theme.labelColor = v; return true

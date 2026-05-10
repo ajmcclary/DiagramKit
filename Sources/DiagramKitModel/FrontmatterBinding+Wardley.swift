@@ -12,18 +12,20 @@ public struct WardleyFrontmatterBinding: FrontmatterBinding {
 
     public mutating func apply(path: String, value: FrontmatterValue) -> Bool {
         if path.hasPrefix(Self.prefixes[0]) || path.hasPrefix(Self.prefixes[1]) {
-            hasConfig = true
             let key: String
             if path.hasPrefix(Self.prefixes[0]) {
                 key = String(path.dropFirst(Self.prefixes[0].count))
             } else {
                 key = String(path.dropFirst(Self.prefixes[1].count))
             }
-            return _applyConfig(key, value)
+            guard _applyConfig(key, value) else { return false }
+            hasConfig = true
+            return true
         }
         if path.hasPrefix(Self.prefixes[2]) {
+            guard _applyTheme(String(path.dropFirst(Self.prefixes[2].count)), value) else { return false }
             hasTheme = true
-            return _applyTheme(String(path.dropFirst(Self.prefixes[2].count)), value)
+            return true
         }
         return false
     }

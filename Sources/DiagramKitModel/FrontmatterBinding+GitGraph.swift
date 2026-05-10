@@ -20,28 +20,34 @@ public struct GitGraphFrontmatterBinding: FrontmatterBinding {
 
     public mutating func apply(path: String, value: FrontmatterValue) -> Bool {
         if path.hasPrefix(Self.prefixes[0]) {
+            guard _applyConfig(key: String(path.dropFirst(Self.prefixes[0].count)), value: value) else { return false }
             hasConfig = true
-            return _applyConfig(key: String(path.dropFirst(Self.prefixes[0].count)), value: value)
+            return true
         }
         if path.hasPrefix(Self.prefixes[1]) {
+            guard _applyConfig(key: String(path.dropFirst(Self.prefixes[1].count)), value: value) else { return false }
             hasConfig = true
-            return _applyConfig(key: String(path.dropFirst(Self.prefixes[1].count)), value: value)
+            return true
         }
         if path.hasPrefix(Self.prefixes[2]) {
+            guard _applyTheme(key: String(path.dropFirst(Self.prefixes[2].count)), value: value) else { return false }
             hasTheme = true
-            return _applyTheme(key: String(path.dropFirst(Self.prefixes[2].count)), value: value)
+            return true
         }
         if path.hasPrefix(Self.prefixes[3]) {
+            guard _applyTheme(key: String(path.dropFirst(Self.prefixes[3].count)), value: value) else { return false }
             hasTheme = true
-            return _applyTheme(key: String(path.dropFirst(Self.prefixes[3].count)), value: value)
+            return true
         }
         if path.hasPrefix(Self.prefixes[4]) {
+            guard _applyTheme(key: String(path.dropFirst(Self.prefixes[4].count)), value: value) else { return false }
             hasTheme = true
-            return _applyTheme(key: String(path.dropFirst(Self.prefixes[4].count)), value: value)
+            return true
         }
         if path.hasPrefix(Self.prefixes[5]) {
+            guard _applyTheme(key: String(path.dropFirst(Self.prefixes[5].count)), value: value) else { return false }
             hasTheme = true
-            return _applyTheme(key: String(path.dropFirst(Self.prefixes[5].count)), value: value)
+            return true
         }
         return false
     }

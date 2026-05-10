@@ -38,11 +38,15 @@ public enum FrontmatterDocumentParser {
                 key = String(key.dropFirst().dropLast())
             }
 
-            // Push the key onto the path regardless of whether there's a value
-            currentPath.append(key)
-
-            // If there's no value, this is a nesting key — don't emit an entry
-            guard !valuePart.isEmpty else { continue }
+            // Nesting keys (no inline value) extend the current path; leaf
+            // keys (with a value) should NOT — otherwise the next sibling at
+            // the same indent inherits the leaf's name (e.g.
+            // `rowIndent: 80` followed by `lineThickness: 3` would emit
+            // `config.treeView.rowIndent.lineThickness`).
+            if valuePart.isEmpty {
+                currentPath.append(key)
+                continue
+            }
 
             let unquoted: String
             if valuePart.hasPrefix("\"") && valuePart.hasSuffix("\"") && valuePart.count >= 2 {
@@ -52,7 +56,7 @@ public enum FrontmatterDocumentParser {
             } else {
                 unquoted = valuePart
             }
-            let fullPath = currentPath.joined(separator: ".")
+            let fullPath = (currentPath + [key]).joined(separator: ".")
             result.append((fullPath, FrontmatterValue(raw: unquoted)))
         }
         return result

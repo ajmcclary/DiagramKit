@@ -15,14 +15,16 @@ public struct RequirementFrontmatterBinding: FrontmatterBinding {
 
     public mutating func apply(path: String, value: FrontmatterValue) -> Bool {
         if path.hasPrefix(Self.prefixes[0]) {
-            hasConfig = true
             let key = String(path.dropFirst(Self.prefixes[0].count))
-            return _applyConfig(key: key, value: value)
+            guard _applyConfig(key: key, value: value) else { return false }
+            hasConfig = true
+            return true
         }
         if path.hasPrefix(Self.prefixes[1]) {
-            hasTheme = true
             let key = String(path.dropFirst(Self.prefixes[1].count))
-            return _applyTheme(key: key, value: value)
+            guard _applyTheme(key: key, value: value) else { return false }
+            hasTheme = true
+            return true
         }
         return false
     }

@@ -12,12 +12,14 @@ public struct RadarFrontmatterBinding: FrontmatterBinding {
 
     public mutating func apply(path: String, value: FrontmatterValue) -> Bool {
         if path.hasPrefix(Self.prefixes[0]) {
+            guard _applyConfig(String(path.dropFirst(Self.prefixes[0].count)), value) else { return false }
             hasConfig = true
-            return _applyConfig(String(path.dropFirst(Self.prefixes[0].count)), value)
+            return true
         }
         if path.hasPrefix(Self.prefixes[1]) {
+            guard _applyTheme(String(path.dropFirst(Self.prefixes[1].count)), value) else { return false }
             hasTheme = true
-            return _applyTheme(String(path.dropFirst(Self.prefixes[1].count)), value)
+            return true
         }
         return false
     }
@@ -39,7 +41,25 @@ public struct RadarFrontmatterBinding: FrontmatterBinding {
         return true
     }
 
-    private mutating func _applyTheme(_ key: String, _ value: FrontmatterValue) -> Bool {
+    private mutating func _applyTheme(_ rawKey: String, _ value: FrontmatterValue) -> Bool {
+        // Theme keys can arrive flat (`themeVariables.axisColor`) or nested
+        // under a `radar.` sub-namespace (`themeVariables.radar.axisColor`).
+        // Strip the sub-namespace so the inner switch handles both shapes.
+        let key: String
+        if rawKey.hasPrefix("radar.") {
+            key = String(rawKey.dropFirst("radar.".count))
+        } else {
+            key = rawKey
+        }
+        // `cScaleN` keys (where N is 0..<cScale.count) target individual
+        // entries in the cScale palette array. Mermaid's init directive
+        // uses this form (`themeVariables.cScale0`).
+        if key.hasPrefix("cScale"),
+           let index = Int(key.dropFirst("cScale".count)),
+           index >= 0, index < theme.cScale.count {
+            theme.cScale[index] = value.string
+            return true
+        }
         switch key {
         case "fontSize":            guard let v = value.double else { return false }; theme.fontSize = v
         case "titleColor":          theme.titleColor = value.string; return true
