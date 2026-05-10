@@ -2,7 +2,8 @@
 //  ThemePicker.swift
 //  MermaidPlayground
 //
-//  Theme selection UI with quick-access buttons and full menu
+//  Theme selection UI with quick-access buttons and full menu.
+//  Bound to LiveEditorStore instead of the legacy PlaygroundConfiguration.
 //
 
 import SwiftUI
@@ -11,7 +12,7 @@ import DiagramKitModel
 
 @available(iOS 26.0, macOS 26.0, macCatalyst 26.0, *)
 struct ThemePicker: View {
-    @Bindable var config: PlaygroundConfiguration
+    let store: LiveEditorStore
 
     /// Quick-access theme names (shown as separate buttons)
     private let quickAccessThemes = ["Zinc Light", "Dracula", "Solarized Light"]
@@ -25,10 +26,10 @@ struct ThemePicker: View {
                         QuickThemeButton(
                             themeName: themeName,
                             theme: theme,
-                            isSelected: isThemeSelected(theme),
-                            currentTheme: config.theme
+                            isSelected: isThemeSelected(themeName),
+                            currentTheme: store.theme
                         ) {
-                            config.theme = theme
+                            store.setTheme(named: themeName)
                         }
                     }
                 }
@@ -38,12 +39,12 @@ struct ThemePicker: View {
             Menu {
                 ForEach(DiagramTheme.allThemes, id: \.name) { name, theme in
                     Button {
-                        config.theme = theme
+                        store.setTheme(named: name)
                     } label: {
                         HStack {
                             ThemeCircle(theme: theme, size: 24)
                             Text(name)
-                            if isThemeSelected(theme) {
+                            if isThemeSelected(name) {
                                 Spacer()
                                 Image(systemName: "checkmark")
                             }
@@ -60,24 +61,16 @@ struct ThemePicker: View {
                 .padding(.horizontal, 12)
                 .background(
                     RoundedRectangle(cornerRadius: 8)
-                        .stroke(Color(config.theme.effectiveLine()).opacity(0.5), lineWidth: 1)
+                        .stroke(Color(store.theme.effectiveLine()).opacity(0.5), lineWidth: 1)
                 )
             }
             .buttonStyle(.plain)
-            .foregroundColor(Color(config.theme.foreground))
+            .foregroundColor(Color(store.theme.foreground))
         }
     }
 
-    private func isThemeSelected(_ theme: DiagramTheme) -> Bool {
-        theme.background.hexString == config.theme.background.hexString
-    }
-
-    private func shortThemeName(_ fullName: String) -> String {
-        switch fullName {
-        case "Zinc Light": return "Default"
-        case "Solarized Light": return "Solarized"
-        default: return fullName
-        }
+    private func isThemeSelected(_ name: String) -> Bool {
+        store.state.selectedThemeName == name
     }
 }
 

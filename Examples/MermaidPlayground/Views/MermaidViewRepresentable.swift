@@ -2,7 +2,8 @@
 //  MermaidViewRepresentable.swift
 //  MermaidPlayground
 //
-//  SwiftUI wrapper for MermaidView (cross-platform)
+//  SwiftUI wrapper for MermaidView (cross-platform).
+//  Publishes render completion status back to LiveEditorStore.
 //
 
 import SwiftUI
@@ -16,9 +17,7 @@ import UIKit
 struct MermaidViewRepresentable: UIViewRepresentable {
     let source: String
     let theme: DiagramTheme
-
-    @Binding var parseError: Error?
-    @Binding var diagramBounds: CGRect
+    let store: LiveEditorStore
 
     func makeUIView(context: Context) -> MermaidView {
         let view = MermaidView()
@@ -31,17 +30,16 @@ struct MermaidViewRepresentable: UIViewRepresentable {
     func updateUIView(_ view: MermaidView, context: Context) {
         bindPreparationUpdates(from: view)
 
-        // Update theme
-        if view.theme.background.hexString != theme.background.hexString ||
-           view.theme.foreground.hexString != theme.foreground.hexString {
+        // Update theme using bmColorEquals (not hexString round-trip)
+        if !view.theme.background.bmColorEquals(theme.background) ||
+           !view.theme.foreground.bmColorEquals(theme.foreground) {
             view.theme = theme
         }
 
-        // Update source (triggers re-render)
+        // Update source (triggers re-render in MermaidLayer)
         if view.source != source {
             view.source = source
         }
-
     }
 
     private func bindPreparationUpdates(from view: MermaidView) {
@@ -51,12 +49,13 @@ struct MermaidViewRepresentable: UIViewRepresentable {
     }
 
     private func publishPreparationState(from view: MermaidView?) {
-        let parseError = $parseError
-        let diagramBounds = $diagramBounds
+        let store = store
         Task { @MainActor in
             guard let view else { return }
-            parseError.wrappedValue = view.parseError
-            diagramBounds.wrappedValue = view.diagramBounds
+            store.didCompleteRender(
+                parseError: view.parseError,
+                diagramBounds: view.diagramBounds
+            )
         }
     }
 }
@@ -65,12 +64,11 @@ struct MermaidViewRepresentable: UIViewRepresentable {
 import AppKit
 
 @MainActor
+@available(iOS 26.0, macOS 26.0, macCatalyst 26.0, *)
 struct MermaidViewRepresentable: NSViewRepresentable {
     let source: String
     let theme: DiagramTheme
-
-    @Binding var parseError: Error?
-    @Binding var diagramBounds: CGRect
+    let store: LiveEditorStore
 
     func makeNSView(context: Context) -> MermaidView {
         let view = MermaidView()
@@ -83,17 +81,16 @@ struct MermaidViewRepresentable: NSViewRepresentable {
     func updateNSView(_ view: MermaidView, context: Context) {
         bindPreparationUpdates(from: view)
 
-        // Update theme
-        if view.theme.background.hexString != theme.background.hexString ||
-           view.theme.foreground.hexString != theme.foreground.hexString {
+        // Update theme using bmColorEquals (not hexString round-trip)
+        if !view.theme.background.bmColorEquals(theme.background) ||
+           !view.theme.foreground.bmColorEquals(theme.foreground) {
             view.theme = theme
         }
 
-        // Update source (triggers re-render)
+        // Update source (triggers re-render in MermaidLayer)
         if view.source != source {
             view.source = source
         }
-
     }
 
     private func bindPreparationUpdates(from view: MermaidView) {
@@ -103,12 +100,13 @@ struct MermaidViewRepresentable: NSViewRepresentable {
     }
 
     private func publishPreparationState(from view: MermaidView?) {
-        let parseError = $parseError
-        let diagramBounds = $diagramBounds
+        let store = store
         Task { @MainActor in
             guard let view else { return }
-            parseError.wrappedValue = view.parseError
-            diagramBounds.wrappedValue = view.diagramBounds
+            store.didCompleteRender(
+                parseError: view.parseError,
+                diagramBounds: view.diagramBounds
+            )
         }
     }
 }

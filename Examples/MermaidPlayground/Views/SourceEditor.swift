@@ -2,7 +2,8 @@
 //  SourceEditor.swift
 //  MermaidPlayground
 //
-//  Mermaid source text editor with debounced updates
+//  Mermaid source text editor with debounced updates.
+//  Bound to LiveEditorStore instead of the legacy PlaygroundConfiguration.
 //
 
 import SwiftUI
@@ -10,7 +11,7 @@ import DiagramKit
 
 @available(iOS 26.0, macOS 26.0, macCatalyst 26.0, *)
 struct SourceEditor: View {
-    @Bindable var config: PlaygroundConfiguration
+    let store: LiveEditorStore
 
     @SwiftUI.State private var localSource: String = ""
     @SwiftUI.State private var debounceTask: Task<Void, Never>?
@@ -19,8 +20,8 @@ struct SourceEditor: View {
         TextEditor(text: $localSource)
             .font(.system(.body, design: .monospaced))
             .scrollContentBackground(.hidden)
-            .background(Color(config.theme.background))
-            .foregroundColor(Color(config.theme.foreground))
+            .background(Color(store.theme.background))
+            .foregroundColor(Color(store.theme.foreground))
             #if os(iOS)
             .autocorrectionDisabled()
             .textInputAutocapitalization(.never)
@@ -28,13 +29,13 @@ struct SourceEditor: View {
             .padding(EdgeInsets(top: 12, leading: 10, bottom: 12, trailing: 10))
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .onAppear {
-                localSource = config.source
+                localSource = store.state.source
             }
             .onChange(of: localSource) { _, newValue in
                 debounceSourceUpdate(newValue)
             }
-            .onChange(of: config.source) { _, newValue in
-                // External update (e.g., diagram selection)
+            .onChange(of: store.state.source) { _, newValue in
+                // External update (e.g., corpus picker, history restore)
                 if localSource != newValue {
                     localSource = newValue
                 }
@@ -47,7 +48,7 @@ struct SourceEditor: View {
             try? await Task.sleep(for: .milliseconds(300))
             if !Task.isCancelled {
                 await MainActor.run {
-                    config.source = newValue
+                    store.setSource(newValue, origin: .user)
                 }
             }
         }

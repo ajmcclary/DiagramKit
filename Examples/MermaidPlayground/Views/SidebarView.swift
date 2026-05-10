@@ -2,8 +2,8 @@
 //  SidebarView.swift
 //  MermaidPlayground
 //
-//  Controls panel with diagram selector, theme picker, direction control,
-//  export button, and source editor
+//  Controls panel with diagram selector, theme picker, and export button.
+//  The source editor has moved to EditorPane.
 //
 
 import SwiftUI
@@ -13,7 +13,7 @@ import UniformTypeIdentifiers
 
 @available(iOS 26.0, macOS 26.0, macCatalyst 26.0, *)
 struct SidebarView: View {
-    @Bindable var config: PlaygroundConfiguration
+    let store: LiveEditorStore
 
     @SwiftUI.State private var selectedDiagramName: String = "Select Test Diagram..."
     @SwiftUI.State private var showExportError = false
@@ -22,36 +22,24 @@ struct SidebarView: View {
     @SwiftUI.State private var showingExporter = false
 
     var body: some View {
-        GeometryReader { geometry in
-            ScrollView {
-                VStack(alignment: .leading, spacing: 16) {
-                    // Test Diagrams Section
-                    sectionHeader("Test Diagrams")
-                    testDiagramPicker
-                        .padding(.top, -10)
+        ScrollView {
+            VStack(alignment: .leading, spacing: 16) {
+                // Test Diagrams Section
+                sectionHeader("Test Diagrams")
+                testDiagramPicker
+                    .padding(.top, -10)
 
-                    // Theme Section
-                    sectionHeader("Theme")
-                    ThemePicker(config: config)
-                        .padding(.top, -10)
+                // Theme Section
+                sectionHeader("Theme")
+                ThemePicker(store: store)
+                    .padding(.top, -10)
 
-                    // Export Button (no header needed)
-                    exportButton
-
-                    // Source Section
-                    sectionHeader("Source")
-                    SourceEditor(config: config)
-                        .frame(minHeight: max(200, geometry.size.height - 400))
-                        .background(
-                            RoundedRectangle(cornerRadius: 8)
-                                .stroke(Color(config.theme.effectiveLine()).opacity(0.3), lineWidth: 1)
-                        )
-                        .padding(.top, -10)
-                }
-                .padding(16)
+                // Export Button
+                exportButton
             }
+            .padding(16)
         }
-        .background(Color(config.theme.background))
+        .background(Color(store.theme.background))
         .alert("Export Failed", isPresented: $showExportError) {
             Button("OK", role: .cancel) {}
         } message: {
@@ -84,7 +72,7 @@ struct SidebarView: View {
     private func sectionHeader(_ title: String) -> some View {
         Text(title)
             .font(.headline)
-            .foregroundColor(Color(config.theme.foreground))
+            .foregroundColor(Color(store.theme.foreground))
     }
 
     // MARK: - Test Diagram Picker
@@ -98,7 +86,7 @@ struct SidebarView: View {
                         ForEach(diagrams) { diagram in
                             Button {
                                 selectedDiagramName = diagram.name
-                                config.source = diagram.source
+                                store.setSource(diagram.source, origin: .system)
                             } label: {
                                 VStack(alignment: .leading) {
                                     Text(diagram.name)
@@ -114,10 +102,10 @@ struct SidebarView: View {
         } label: {
             HStack {
                 Text(selectedDiagramName)
-                    .foregroundColor(Color(config.theme.effectiveAccent()))
+                    .foregroundColor(Color(store.theme.effectiveAccent()))
                 Spacer()
                 Image(systemName: "chevron.down")
-                    .foregroundColor(Color(config.theme.effectiveAccent()))
+                    .foregroundColor(Color(store.theme.effectiveAccent()))
             }
             .padding(.vertical, 12)
             .contentShape(Rectangle())
@@ -142,11 +130,11 @@ struct SidebarView: View {
             .padding(.vertical, 10)
             .background(
                 RoundedRectangle(cornerRadius: 8)
-                    .stroke(Color(config.theme.effectiveLine()), lineWidth: 1)
+                    .stroke(Color(store.theme.effectiveLine()), lineWidth: 1)
             )
         }
         .buttonStyle(.plain)
-        .foregroundColor(Color(config.theme.foreground))
+        .foregroundColor(Color(store.theme.foreground))
     }
 
     // MARK: - Export Logic
@@ -154,8 +142,8 @@ struct SidebarView: View {
     @MainActor
     private func exportPNG() async {
         do {
-            let renderer = MermaidImageRenderer(theme: config.theme)
-            guard let image = try await renderer.renderImage(from: config.source, scale: 2.0) else {
+            let renderer = MermaidImageRenderer(theme: store.theme)
+            guard let image = try await renderer.renderImage(from: store.state.source, scale: 2.0) else {
                 reportIssue("PNG export returned no image.")
                 showError("Failed to render diagram")
                 return

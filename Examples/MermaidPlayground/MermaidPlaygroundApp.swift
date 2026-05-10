@@ -2,7 +2,8 @@
 //  MermaidPlaygroundApp.swift
 //  MermaidPlayground
 //
-//  SwiftUI app entry point for iOS and macOS
+//  SwiftUI app entry point for iOS and macOS.
+//  Instantiates the LiveEditorStore and passes it to LiveEditorView.
 //
 
 import SwiftUI
@@ -10,9 +11,11 @@ import SwiftUI
 @main
 @available(iOS 26.0, macOS 26.0, macCatalyst 26.0, *)
 struct MermaidPlaygroundApp: App {
+    @SwiftUI.State private var store = LiveEditorStore()
+
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            LiveEditorView(store: store)
         }
         #if os(macOS)
         .windowStyle(.titleBar)
