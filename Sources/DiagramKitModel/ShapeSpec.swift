@@ -28,16 +28,61 @@ public struct ShapeSpec: Sendable {
     /// within the given bounding rectangle.
     public let path: @Sendable (_ rect: CGRect, _ config: RenderConfig) -> ShapePath
 
+    /// Optional clip outline. Used by `EdgeShapeClipper` when the visual
+    /// outline differs from the geometric outline (e.g. cylinder, where
+    /// the body is a rectangle but the visible cap arcs extend beyond
+    /// it). When `nil`, callers fall back to `path`.
+    public let clipPath: (@Sendable (_ rect: CGRect, _ config: RenderConfig) -> ShapePath)?
+
+    /// Decorations layered on top of the base `path`. Renderers iterate
+    /// this list AFTER drawing the primary path (e.g. the inner rectangle
+    /// of a subroutine, the inner ellipse of a doubleCircle, the cross of
+    /// a crossedCircle). `[]` for shapes that need no decoration.
+    public let decorations: [ShapeDecoration]
+
     public init(
         aliases: Set<String>,
         minimumSize: CGSize = CGSize(width: 60, height: 36),
         sizeAdjustment: @Sendable @escaping (_ textSize: CGSize, _ config: RenderConfig) -> CGSize,
-        path: @Sendable @escaping (_ rect: CGRect, _ config: RenderConfig) -> ShapePath
+        path: @Sendable @escaping (_ rect: CGRect, _ config: RenderConfig) -> ShapePath,
+        clipPath: (@Sendable (_ rect: CGRect, _ config: RenderConfig) -> ShapePath)? = nil,
+        decorations: [ShapeDecoration] = []
     ) {
         self.aliases = aliases
         self.minimumSize = minimumSize
         self.sizeAdjustment = sizeAdjustment
         self.path = path
+        self.clipPath = clipPath
+        self.decorations = decorations
+    }
+}
+
+// MARK: - Shape Decoration
+
+/// A secondary stroke/fill layered on top of a shape's primary `path`.
+/// Used for cases where a shape's visible appearance is composed of
+/// multiple drawing operations (inner rectangle of a subroutine, inner
+/// ellipse of a doubleCircle, cross of a crossedCircle, etc.).
+public struct ShapeDecoration: Sendable {
+
+    public enum Stroke: Sendable {
+        case mainStroke
+        case dashed(lengths: [CGFloat])
+        case thinStroke
+    }
+
+    public let path: @Sendable (_ rect: CGRect, _ config: RenderConfig) -> ShapePath
+    public let stroke: Stroke
+    public let fillsBackground: Bool
+
+    public init(
+        path: @Sendable @escaping (_ rect: CGRect, _ config: RenderConfig) -> ShapePath,
+        stroke: Stroke = .mainStroke,
+        fillsBackground: Bool = false
+    ) {
+        self.path = path
+        self.stroke = stroke
+        self.fillsBackground = fillsBackground
     }
 }
 
