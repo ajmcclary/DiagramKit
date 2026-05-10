@@ -215,25 +215,35 @@ public struct RenderConfig: Sendable {
         }
     }
 
+    /// Resolve the node-label font, honoring `defaultProportionalFontFamily`
+    /// when no explicit `family` is provided. Routes through `proportionalFont`
+    /// so bundled-font lookups land before the `BMFont.systemFont` fallback.
     public func nodeLabelFont(family: String? = nil) -> BMFont {
-        if let family = family {
-            return BMFont(name: family, size: fontSizeNodeLabel) ?? BMFont.systemFont(ofSize: fontSizeNodeLabel, weight: fontWeight(from: fontWeightNodeLabel))
+        if let family,
+           let f = BMFont(name: family, size: fontSizeNodeLabel) {
+            return f
         }
-        return BMFont.systemFont(ofSize: fontSizeNodeLabel, weight: fontWeight(from: fontWeightNodeLabel))
+        return proportionalFont(size: fontSizeNodeLabel, weight: fontWeightNodeLabel)
     }
 
+    /// Resolve the edge-label font, honoring `defaultProportionalFontFamily`
+    /// when no explicit `family` is provided.
     public func edgeLabelFont(family: String? = nil) -> BMFont {
-        if let family = family {
-            return BMFont(name: family, size: fontSizeEdgeLabel) ?? BMFont.systemFont(ofSize: fontSizeEdgeLabel, weight: fontWeight(from: fontWeightEdgeLabel))
+        if let family,
+           let f = BMFont(name: family, size: fontSizeEdgeLabel) {
+            return f
         }
-        return BMFont.systemFont(ofSize: fontSizeEdgeLabel, weight: fontWeight(from: fontWeightEdgeLabel))
+        return proportionalFont(size: fontSizeEdgeLabel, weight: fontWeightEdgeLabel)
     }
 
+    /// Resolve the group-header font, honoring `defaultProportionalFontFamily`
+    /// when no explicit `family` is provided.
     public func groupHeaderFont(family: String? = nil) -> BMFont {
-        if let family = family {
-            return BMFont(name: family, size: fontSizeGroupHeader) ?? BMFont.systemFont(ofSize: fontSizeGroupHeader, weight: fontWeight(from: fontWeightGroupHeader))
+        if let family,
+           let f = BMFont(name: family, size: fontSizeGroupHeader) {
+            return f
         }
-        return BMFont.systemFont(ofSize: fontSizeGroupHeader, weight: fontWeight(from: fontWeightGroupHeader))
+        return proportionalFont(size: fontSizeGroupHeader, weight: fontWeightGroupHeader)
     }
 
     /// Measure text width using CoreText for accurate, deterministic results.
