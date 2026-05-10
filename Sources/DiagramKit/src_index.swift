@@ -12,36 +12,6 @@ private enum _IndexDefaults {
     static let fg = "#27272A"
 }
 
-private enum _DiagramRoutingType {
-    case flowchart
-    case sequence
-    case `class`
-    case er
-    case xychart
-    case pie
-    case journey
-    case gantt
-    case quadrant
-    case requirement
-    case gitgraph
-    case mindmap
-    case timeline
-    case sankey
-    case block
-    case packet
-    case kanban
-    case architecture
-    case radar
-    case treemap
-    case venn
-    case ishikawa
-    case treeView
-    case eventmodeling
-    case wardley
-    case c4
-    case zenuml
-}
-
 private func _decodeXML(_ text: String) -> String {
     text
         .replacingOccurrences(of: "&lt;", with: "<")
@@ -51,40 +21,10 @@ private func _decodeXML(_ text: String) -> String {
         .replacingOccurrences(of: "&amp;", with: "&")
 }
 
-private func detectDiagramType(_ text: String) -> _DiagramRoutingType {
-    // Delegate to the canonical diagram registry, then map DiagramType → _DiagramRoutingType.
-    let descriptor = DiagramRegistry.detect(from: text)
-    switch descriptor.type {
-    case .flowchart: return .flowchart
-    case .stateDiagram: return .flowchart  // state diagrams route through flowchart SVG
-    case .sequenceDiagram: return .sequence
-    case .classDiagram: return .class
-    case .erDiagram: return .er
-    case .xyChart: return .xychart
-    case .pie: return .pie
-    case .journey: return .journey
-    case .gantt: return .gantt
-    case .quadrantChart: return .quadrant
-    case .requirement: return .requirement
-    case .gitGraph: return .gitgraph
-    case .mindmap: return .mindmap
-    case .timeline: return .timeline
-    case .sankey: return .sankey
-    case .block: return .block
-    case .packet: return .packet
-    case .kanban: return .kanban
-    case .architecture: return .architecture
-    case .radar: return .radar
-    case .treemap: return .treemap
-    case .venn: return .venn
-    case .ishikawa: return .ishikawa
-    case .treeView: return .treeView
-    case .eventModeling: return .eventmodeling
-    case .wardleyBeta: return .wardley
-    case .c4: return .c4
-    case .zenuml: return .zenuml
-    }
-}
+// `_DiagramRoutingType` and `detectDiagramType` previously lived here as
+// a parallel routing surface that mapped `DiagramType` cases to a
+// SVG-specific enum. Both have been replaced by `SVGRenderRegistry`,
+// which routes directly off `DiagramRegistry.detect(from:).type`.
 
 private func _firstDiagramStatement(in text: String) -> String {
     MermaidSourceNormalizer.statements(text).first ?? ""
@@ -134,69 +74,18 @@ private func _renderPreprocessedMermaidSVG(
     let colors = buildColors(options)
     let font = options.font ?? RenderTokens.shared.svgFontFamily
     let transparent = options.transparent ?? false
-    let diagramType = detectDiagramType(decodedText)
-
-    let lines = MermaidSourceNormalizer.statements(decodedText)
-
-    switch diagramType {
-    case .sequence:
-        return try _renderSequenceSvgCase(lines: lines, fm: fm, options: options, colors: colors, font: font, transparent: transparent)
-    case .class:
-        return try _renderClassSvgCase(lines: lines, fm: fm, options: options, colors: colors, font: font, transparent: transparent)
-    case .er:
-        return try _renderErSvgCase(lines: lines, fm: fm, options: options, colors: colors, font: font, transparent: transparent)
-    case .xychart:
-        return try _renderXYChartSvgCase(lines: lines, fm: fm, options: options, colors: colors, font: font, transparent: transparent)
-    case .pie:
-        return try _renderPieSvgCase(lines: lines, fm: fm, colors: colors, font: font, transparent: transparent)
-    case .journey:
-        return try _renderJourneySvgCase(lines: lines, fm: fm, options: options, colors: colors, font: font, transparent: transparent)
-    case .gantt:
-        return try _renderGanttSvgCase(source: decodedText, fm: fm, colors: colors, font: font, transparent: transparent)
-    case .quadrant:
-        return try _renderQuadrantSvgCase(lines: lines, fm: fm, colors: colors, font: font, transparent: transparent)
-    case .requirement:
-        return try _renderRequirementSvgCase(lines: lines, fm: fm, options: options, colors: colors, font: font, transparent: transparent)
-    case .flowchart:
-        return try _renderFlowchartSvgCase(source: decodedText, fm: fm, options: options, layoutConfig: layoutConfig, colors: colors, font: font, transparent: transparent)
-    case .gitgraph:
-        return try _renderGitGraphSvgCase(source: decodedText, fm: fm)
-    case .mindmap:
-        return try _renderMindmapSvgCase(source: decodedText, fm: fm, colors: colors, font: font, transparent: transparent)
-    case .timeline:
-        return try _renderTimelineSvgCase(source: decodedText, fm: fm, colors: colors, font: font, transparent: transparent)
-    case .sankey:
-        return try _renderSankeySvgCase(source: decodedText, fm: fm, colors: colors, font: font, transparent: transparent)
-    case .block:
-        return try _renderBlockSvgCase(source: decodedText, fm: fm, colors: colors, font: font, transparent: transparent)
-    case .packet:
-        return try _renderPacketSvgCase(source: decodedText, fm: fm, colors: colors, font: font, transparent: transparent)
-    case .kanban:
-        return try _renderKanbanSvgCase(source: decodedText, fm: fm, colors: colors, font: font, transparent: transparent)
-    case .architecture:
-        return try _renderArchitectureSvgCase(source: decodedText, fm: fm, colors: colors, font: font, transparent: transparent)
-    case .radar:
-        return try _renderRadarSvgCase(source: decodedText, fm: fm, colors: colors, font: font, transparent: transparent)
-    case .treemap:
-        return try _renderTreemapSvgCase(source: decodedText, fm: fm, colors: colors, font: font, transparent: transparent)
-    case .venn:
-        return try _renderVennSvgCase(source: decodedText, fm: fm, colors: colors, font: font, transparent: transparent)
-    case .ishikawa:
-        return try _renderIshikawaSvgCase(source: decodedText, fm: fm, colors: colors, font: font, transparent: transparent)
-    case .treeView:
-        return try _renderTreeViewSvgCase(source: decodedText, fm: fm, colors: colors, font: font, transparent: transparent)
-    case .eventmodeling:
-        return try _renderEventModelingSvgCase(source: decodedText, fm: fm, colors: colors, font: font, transparent: transparent)
-    case .wardley:
-        return try _renderWardleySvgCase(source: decodedText, fm: fm, colors: colors, font: font, transparent: transparent)
-    case .c4:
-        return try _renderC4SvgCase(source: decodedText, fm: fm, colors: colors, font: font, transparent: transparent)
-    case .zenuml:
-        return try _renderZenUMLSvgCase(source: decodedText, fm: fm, colors: colors, font: font, transparent: transparent)
-    }
+    return try SVGRenderRegistry.render(
+        decodedText,
+        frontmatter: fm,
+        options: options,
+        layoutConfig: layoutConfig,
+        colors: colors,
+        font: font,
+        transparent: transparent
+    )
 }
 
-private func _renderC4SvgCase(source: String, fm: DiagramFrontmatter?, colors: DiagramColors, font: String, transparent: Bool) throws -> String {
+func _renderC4SvgCase(source: String, fm: DiagramFrontmatter?, colors: DiagramColors, font: String, transparent: Bool) throws -> String {
     let lines = MermaidSourceNormalizer.rawLines(source)
     let config = fm?.c4Config ?? C4DiagramConfig()
     var diagram = try parseC4Diagram(lines, frontmatter: fm)
@@ -206,25 +95,25 @@ private func _renderC4SvgCase(source: String, fm: DiagramFrontmatter?, colors: D
     return try renderC4Svg(positioned, diagramId: diagramId, colors, font, transparent)
 }
 
-private func _renderSequenceSvgCase(lines: [String], fm: DiagramFrontmatter?, options: RenderOptions, colors: DiagramColors, font: String, transparent: Bool) throws -> String {
+func _renderSequenceSvgCase(lines: [String], fm: DiagramFrontmatter?, options: RenderOptions, colors: DiagramColors, font: String, transparent: Bool) throws -> String {
     let diagram = try parseSequenceDiagram(lines)
     let positioned = try layoutSequenceDiagram(diagram, options, config: fm?.sequenceConfig ?? .default)
     return try renderSequenceSvg(positioned, colors, font, transparent)
 }
 
-private func _renderClassSvgCase(lines: [String], fm: DiagramFrontmatter?, options: RenderOptions, colors: DiagramColors, font: String, transparent: Bool) throws -> String {
+func _renderClassSvgCase(lines: [String], fm: DiagramFrontmatter?, options: RenderOptions, colors: DiagramColors, font: String, transparent: Bool) throws -> String {
     let diagram = try parseClassDiagram(lines, frontmatter: fm)
     let positioned = try layoutClassDiagramSync(diagram, options: options)
     return try renderClassSvg(positioned, colors, font, transparent, securityLevel: fm?.securityLevel)
 }
 
-private func _renderErSvgCase(lines: [String], fm: DiagramFrontmatter?, options: RenderOptions, colors: DiagramColors, font: String, transparent: Bool) throws -> String {
+func _renderErSvgCase(lines: [String], fm: DiagramFrontmatter?, options: RenderOptions, colors: DiagramColors, font: String, transparent: Bool) throws -> String {
     let diagram = try parseErDiagram(lines, frontmatter: fm)
     let positioned = try layoutErDiagramSync(diagram, options: options, config: diagram.config)
     return try renderErSvg(positioned, colors, font, transparent)
 }
 
-private func _renderXYChartSvgCase(lines: [String], fm: DiagramFrontmatter?, options: RenderOptions, colors: DiagramColors, font: String, transparent: Bool) throws -> String {
+func _renderXYChartSvgCase(lines: [String], fm: DiagramFrontmatter?, options: RenderOptions, colors: DiagramColors, font: String, transparent: Bool) throws -> String {
     let chart = try parseXYChart(lines)
     var mutatedChart = chart
     if let fmc = fm?.xyChartConfig { mutatedChart.config = fmc }
@@ -236,13 +125,13 @@ private func _renderXYChartSvgCase(lines: [String], fm: DiagramFrontmatter?, opt
     return renderXYChartSvg(positioned, colors, font, transparent, interactive: options.interactive ?? false)
 }
 
-private func _renderPieSvgCase(lines: [String], fm: DiagramFrontmatter?, colors: DiagramColors, font: String, transparent: Bool) throws -> String {
+func _renderPieSvgCase(lines: [String], fm: DiagramFrontmatter?, colors: DiagramColors, font: String, transparent: Bool) throws -> String {
     let chart = try parsePieChart(lines, frontmatter: fm)
     let positioned = layoutPieChart(chart)
     return renderPieSvg(positioned, colors, font, transparent)
 }
 
-private func _renderJourneySvgCase(lines: [String], fm: DiagramFrontmatter?, options: RenderOptions, colors: DiagramColors, font: String, transparent: Bool) throws -> String {
+func _renderJourneySvgCase(lines: [String], fm: DiagramFrontmatter?, options: RenderOptions, colors: DiagramColors, font: String, transparent: Bool) throws -> String {
     let diagram = try parseJourneyDiagram(lines, frontmatter: fm)
     let config = fm?.journeyConfig ?? .default
     var merged = diagram
@@ -251,7 +140,7 @@ private func _renderJourneySvgCase(lines: [String], fm: DiagramFrontmatter?, opt
     return try renderJourneySvg(positioned, colors, font, transparent)
 }
 
-private func _renderGanttSvgCase(source: String, fm: DiagramFrontmatter?, colors: DiagramColors, font: String, transparent: Bool) throws -> String {
+func _renderGanttSvgCase(source: String, fm: DiagramFrontmatter?, colors: DiagramColors, font: String, transparent: Bool) throws -> String {
     let ganttLines = MermaidSourceNormalizer.statements(source, separators: CharacterSet(charactersIn: "\n"))
     let diagram = try parseGanttDiagram(ganttLines, frontmatter: fm)
     let config = fm?.ganttConfig ?? .default
@@ -262,7 +151,7 @@ private func _renderGanttSvgCase(source: String, fm: DiagramFrontmatter?, colors
     return try renderGanttSvg(positioned, diagramId: diagramId, colors, font, transparent)
 }
 
-private func _renderQuadrantSvgCase(lines: [String], fm: DiagramFrontmatter?, colors: DiagramColors, font: String, transparent: Bool) throws -> String {
+func _renderQuadrantSvgCase(lines: [String], fm: DiagramFrontmatter?, colors: DiagramColors, font: String, transparent: Bool) throws -> String {
     let chart = try parseQuadrantChart(lines, frontmatter: fm)
     var mutatedChart = chart
     if let fmc = fm?.quadrantChartConfig { mutatedChart.config = fmc }
@@ -275,7 +164,7 @@ private func _renderQuadrantSvgCase(lines: [String], fm: DiagramFrontmatter?, co
     return renderQuadrantSvg(positioned, colors, font, transparent)
 }
 
-private func _renderRequirementSvgCase(lines: [String], fm: DiagramFrontmatter?, options: RenderOptions, colors: DiagramColors, font: String, transparent: Bool) throws -> String {
+func _renderRequirementSvgCase(lines: [String], fm: DiagramFrontmatter?, options: RenderOptions, colors: DiagramColors, font: String, transparent: Bool) throws -> String {
     var diagram = try parseRequirementDiagram(lines, frontmatter: fm)
     if let fmTheme = fm?.requirementTheme { diagram.config.theme = fmTheme }
     let positioned = try layoutRequirementDiagram(diagram, options: options)
@@ -287,7 +176,7 @@ private func _renderRequirementSvgCase(lines: [String], fm: DiagramFrontmatter?,
         htmlLabels: fm?.htmlLabels)
 }
 
-private func _renderFlowchartSvgCase(source: String, fm: DiagramFrontmatter?, options: RenderOptions, layoutConfig: LayoutConfig, colors: DiagramColors, font: String, transparent: Bool) throws -> String {
+func _renderFlowchartSvgCase(source: String, fm: DiagramFrontmatter?, options: RenderOptions, layoutConfig: LayoutConfig, colors: DiagramColors, font: String, transparent: Bool) throws -> String {
     let graph = try parseMermaid(source, config: fm?.flowchartConfig, stateConfig: fm?.stateConfig)
     let positioned = layoutConfig == LayoutConfig()
         ? try layoutGraphSync(graph, options)
@@ -295,7 +184,7 @@ private func _renderFlowchartSvgCase(source: String, fm: DiagramFrontmatter?, op
     return try renderSvg(positioned, colors, font, transparent)
 }
 
-private func _renderGitGraphSvgCase(source: String, fm: DiagramFrontmatter?) throws -> String {
+func _renderGitGraphSvgCase(source: String, fm: DiagramFrontmatter?) throws -> String {
     let gitLines = MermaidSourceNormalizer.statements(source)
     let diagram = try parseGitGraph(gitLines, frontmatter: fm)
     let positioned = layoutGitGraph(diagram)
@@ -303,7 +192,7 @@ private func _renderGitGraphSvgCase(source: String, fm: DiagramFrontmatter?) thr
     return renderGitGraphSvg(positioned, diagramId: diagramId)
 }
 
-private func _renderMindmapSvgCase(source: String, fm: DiagramFrontmatter?, colors: DiagramColors, font: String, transparent: Bool) throws -> String {
+func _renderMindmapSvgCase(source: String, fm: DiagramFrontmatter?, colors: DiagramColors, font: String, transparent: Bool) throws -> String {
     let rawLines = MermaidSourceNormalizer.rawLines(source)
     let diagram = try parseMindmap(rawLines, frontmatter: fm)
     let positioned = try layoutMindmap(diagram)
@@ -311,7 +200,7 @@ private func _renderMindmapSvgCase(source: String, fm: DiagramFrontmatter?, colo
     return renderMindmapSvg(positioned, diagramId: diagramId, colors, font, transparent)
 }
 
-private func _renderTimelineSvgCase(source: String, fm: DiagramFrontmatter?, colors: DiagramColors, font: String, transparent: Bool) throws -> String {
+func _renderTimelineSvgCase(source: String, fm: DiagramFrontmatter?, colors: DiagramColors, font: String, transparent: Bool) throws -> String {
     let timelineLines = MermaidSourceNormalizer.rawLines(source)
     var diagram = try parseTimelineDiagram(timelineLines, frontmatter: fm)
     if let fmc = fm?.timelineConfig { diagram.config = fmc }
@@ -326,7 +215,7 @@ private func _renderTimelineSvgCase(source: String, fm: DiagramFrontmatter?, col
     return try renderTimelineSvg(positioned, diagramId: diagramId, colors, font, transparent)
 }
 
-private func _renderSankeySvgCase(source: String, fm: DiagramFrontmatter?, colors: DiagramColors, font: String, transparent: Bool) throws -> String {
+func _renderSankeySvgCase(source: String, fm: DiagramFrontmatter?, colors: DiagramColors, font: String, transparent: Bool) throws -> String {
     let sankeyLines = MermaidSourceNormalizer.statements(source)
     var diagram = try parseSankeyDiagram(sankeyLines, frontmatter: fm)
     if let fmc = fm?.sankeyConfig { diagram.config = fmc }
@@ -334,7 +223,7 @@ private func _renderSankeySvgCase(source: String, fm: DiagramFrontmatter?, color
     return renderSankeySvg(positioned, colors, font, transparent, diagramId: "sankey-1")
 }
 
-private func _renderBlockSvgCase(source: String, fm: DiagramFrontmatter?, colors: DiagramColors, font: String, transparent: Bool) throws -> String {
+func _renderBlockSvgCase(source: String, fm: DiagramFrontmatter?, colors: DiagramColors, font: String, transparent: Bool) throws -> String {
     let blockLines = MermaidSourceNormalizer.statements(source, separators: CharacterSet(charactersIn: "\n"))
     var diagram = try parseBlockDiagramLines(blockLines)
     if let fmc = fm?.blockConfig { diagram.config = fmc }
@@ -344,7 +233,7 @@ private func _renderBlockSvgCase(source: String, fm: DiagramFrontmatter?, colors
     return try renderBlockSvg(positioned, diagramId: diagramId, colors: colors, fontFamily: font, transparent: transparent)
 }
 
-private func _renderPacketSvgCase(source: String, fm: DiagramFrontmatter?, colors: DiagramColors, font: String, transparent: Bool) throws -> String {
+func _renderPacketSvgCase(source: String, fm: DiagramFrontmatter?, colors: DiagramColors, font: String, transparent: Bool) throws -> String {
     let packetLines = MermaidSourceNormalizer.statements(source)
     var diagram = try parsePacketDiagram(packetLines, frontmatter: fm)
     if diagram.diagramTitle == nil, let title = fm?.diagramTitle {
@@ -354,7 +243,7 @@ private func _renderPacketSvgCase(source: String, fm: DiagramFrontmatter?, color
     return renderPacketSvg(positioned, colors, font, transparent, theme: diagram.theme)
 }
 
-private func _renderKanbanSvgCase(source: String, fm: DiagramFrontmatter?, colors: DiagramColors, font: String, transparent: Bool) throws -> String {
+func _renderKanbanSvgCase(source: String, fm: DiagramFrontmatter?, colors: DiagramColors, font: String, transparent: Bool) throws -> String {
     let rawLines = MermaidSourceNormalizer.rawLines(source)
     let diagram = try parseKanbanDiagram(rawLines, frontmatter: fm)
     let positioned = layoutKanbanDiagram(diagram)
@@ -362,7 +251,7 @@ private func _renderKanbanSvgCase(source: String, fm: DiagramFrontmatter?, color
     return try renderKanbanSvg(positioned, diagramId: diagramId, colors, font, transparent)
 }
 
-private func _renderArchitectureSvgCase(source: String, fm: DiagramFrontmatter?, colors: DiagramColors, font: String, transparent: Bool) throws -> String {
+func _renderArchitectureSvgCase(source: String, fm: DiagramFrontmatter?, colors: DiagramColors, font: String, transparent: Bool) throws -> String {
     let rawLines = MermaidSourceNormalizer.rawLines(source)
     var diagram = try parseArchitectureDiagram(rawLines, frontmatter: fm)
     if let fmc = fm?.archConfig { diagram.config = fmc }
@@ -375,7 +264,7 @@ private func _renderArchitectureSvgCase(source: String, fm: DiagramFrontmatter?,
     return try renderArchitectureSvg(positioned, diagramId: diagramId, colors, font, transparent)
 }
 
-private func _renderRadarSvgCase(source: String, fm: DiagramFrontmatter?, colors: DiagramColors, font: String, transparent: Bool) throws -> String {
+func _renderRadarSvgCase(source: String, fm: DiagramFrontmatter?, colors: DiagramColors, font: String, transparent: Bool) throws -> String {
     var diagram = try parseRadarDiagram(source: source, frontmatter: fm)
     if let fmc = fm?.radarConfig { diagram.config = fmc }
     if let fmt = fm?.radarTheme { diagram.theme = fmt }
@@ -386,7 +275,7 @@ private func _renderRadarSvgCase(source: String, fm: DiagramFrontmatter?, colors
     return renderRadarSvg(positioned, colors: colors, font: font, transparent: transparent)
 }
 
-private func _renderTreemapSvgCase(source: String, fm: DiagramFrontmatter?, colors: DiagramColors, font: String, transparent: Bool) throws -> String {
+func _renderTreemapSvgCase(source: String, fm: DiagramFrontmatter?, colors: DiagramColors, font: String, transparent: Bool) throws -> String {
     let rawLines = MermaidSourceNormalizer.rawLines(source)
     var diagram = try parseTreemapDiagram(rawLines, frontmatter: fm)
     if let fmc = fm?.treemapConfig { diagram.config = fmc }
@@ -399,7 +288,7 @@ private func _renderTreemapSvgCase(source: String, fm: DiagramFrontmatter?, colo
     return renderTreemapSvg(positioned, diagramId: diagramId, colors, font, transparent)
 }
 
-private func _renderVennSvgCase(source: String, fm: DiagramFrontmatter?, colors: DiagramColors, font: String, transparent: Bool) throws -> String {
+func _renderVennSvgCase(source: String, fm: DiagramFrontmatter?, colors: DiagramColors, font: String, transparent: Bool) throws -> String {
     let rawLines = MermaidSourceNormalizer.rawLines(source)
     var diagram = try parseVennDiagram(rawLines, frontmatter: fm)
     if let fmc = fm?.vennConfig { diagram.config = fmc }
@@ -413,7 +302,7 @@ private func _renderVennSvgCase(source: String, fm: DiagramFrontmatter?, colors:
     return renderVennSvg(positioned, diagramId: diagramId, colors, font, transparent)
 }
 
-private func _renderIshikawaSvgCase(source: String, fm: DiagramFrontmatter?, colors: DiagramColors, font: String, transparent: Bool) throws -> String {
+func _renderIshikawaSvgCase(source: String, fm: DiagramFrontmatter?, colors: DiagramColors, font: String, transparent: Bool) throws -> String {
     let rawLines = MermaidSourceNormalizer.rawLines(source)
     var diagram = try parseIshikawaDiagram(rawLines, frontmatter: fm)
     if let fmc = fm?.ishikawaConfig { diagram.config = fmc }
@@ -427,7 +316,7 @@ private func _renderIshikawaSvgCase(source: String, fm: DiagramFrontmatter?, col
     return renderIshikawaSvg(positioned, diagramId: diagramId, colors: colors, fontFamily: font, transparent: transparent)
 }
 
-private func _renderTreeViewSvgCase(source: String, fm: DiagramFrontmatter?, colors: DiagramColors, font: String, transparent: Bool) throws -> String {
+func _renderTreeViewSvgCase(source: String, fm: DiagramFrontmatter?, colors: DiagramColors, font: String, transparent: Bool) throws -> String {
     let rawLines = MermaidSourceNormalizer.rawLines(source)
     var diagram = try parseTreeViewDiagram(rawLines, frontmatter: fm)
     if let fmc = fm?.treeViewConfig { diagram.config = fmc }
@@ -440,7 +329,7 @@ private func _renderTreeViewSvgCase(source: String, fm: DiagramFrontmatter?, col
     return renderTreeViewSvg(positioned, diagramId: diagramId, font: font)
 }
 
-private func _renderEventModelingSvgCase(source: String, fm: DiagramFrontmatter?, colors: DiagramColors, font: String, transparent: Bool) throws -> String {
+func _renderEventModelingSvgCase(source: String, fm: DiagramFrontmatter?, colors: DiagramColors, font: String, transparent: Bool) throws -> String {
     let rawLines = MermaidSourceNormalizer.rawLines(source)
     var diagram = try parseEventModeling(rawLines, frontmatter: fm)
     if let fmc = fm?.eventmodelingConfig { diagram.config = fmc }
@@ -453,7 +342,7 @@ private func _renderEventModelingSvgCase(source: String, fm: DiagramFrontmatter?
     return renderEventModelingSvg(positioned, diagramId: diagramId, colors: colors, font: font, transparent: transparent)
 }
 
-private func _renderWardleySvgCase(source: String, fm: DiagramFrontmatter?, colors: DiagramColors, font: String, transparent: Bool) throws -> String {
+func _renderWardleySvgCase(source: String, fm: DiagramFrontmatter?, colors: DiagramColors, font: String, transparent: Bool) throws -> String {
     let lines = MermaidSourceNormalizer.rawLines(source)
     var diagram = try parseWardleyMap(lines, frontmatter: fm)
     if let fm = fm {
@@ -499,7 +388,7 @@ public func renderMermaid(
     try await renderMermaidSVG(text, options)
 }
 
-private func _renderZenUMLSvgCase(source: String, fm: DiagramFrontmatter?, colors: DiagramColors, font: String, transparent: Bool) throws -> String {
+func _renderZenUMLSvgCase(source: String, fm: DiagramFrontmatter?, colors: DiagramColors, font: String, transparent: Bool) throws -> String {
     let rawLines = MermaidSourceNormalizer.rawLines(source)
     let diagram = try parseZenUMLDiagram(rawLines, frontmatter: fm)
     let positioned = layoutZenUMLDiagram(diagram)
