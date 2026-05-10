@@ -171,6 +171,14 @@ public enum SVGPathSerializer {
             let rx = bounds.width / 2
             let ry = bounds.height / 2
             return "M \(_fmt(bounds.midX - rx)) \(_fmt(bounds.midY)) A \(_fmt(rx)) \(_fmt(ry)) 0 1 1 \(_fmt(bounds.midX + rx)) \(_fmt(bounds.midY)) A \(_fmt(rx)) \(_fmt(ry)) 0 1 1 \(_fmt(bounds.midX - rx)) \(_fmt(bounds.midY)) Z"
+
+        case .notchedRectangle(let notchSize):
+            // Rect with triangular notch carved into the top-right corner.
+            return "M \(_fmt(bounds.minX)) \(_fmt(bounds.minY))"
+                + " L \(_fmt(bounds.maxX - notchSize)) \(_fmt(bounds.minY))"
+                + " L \(_fmt(bounds.maxX)) \(_fmt(bounds.minY + notchSize))"
+                + " L \(_fmt(bounds.maxX)) \(_fmt(bounds.maxY))"
+                + " L \(_fmt(bounds.minX)) \(_fmt(bounds.maxY)) Z"
         }
     }
 

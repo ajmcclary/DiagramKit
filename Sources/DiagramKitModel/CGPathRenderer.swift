@@ -75,6 +75,9 @@ public enum CGPathRenderer {
 
         case .polygon(let vertices):
             return _polygon(vertices, in: bounds)
+
+        case .notchedRectangle(let notchSize):
+            return _notchedRectangle(bounds, notchSize: notchSize)
         }
     }
 
@@ -311,6 +314,19 @@ public enum CGPathRenderer {
                           control2: CGPoint(x: ex + segWidth * 0.25, y: bounds.maxY - waveDepth * 1.5))
         }
         path.addLine(to: CGPoint(x: bounds.minX, y: bounds.maxY - waveDepth))
+        path.closeSubpath()
+        return path
+    }
+
+    private static func _notchedRectangle(_ bounds: CGRect, notchSize: CGFloat) -> CGPath {
+        // Mirrors `NodeShapeRenderer.notchedRectPath` — rect with a
+        // triangular notch carved into the top-right corner.
+        let path = CGMutablePath()
+        path.move(to: CGPoint(x: bounds.minX, y: bounds.minY))
+        path.addLine(to: CGPoint(x: bounds.maxX - notchSize, y: bounds.minY))
+        path.addLine(to: CGPoint(x: bounds.maxX, y: bounds.minY + notchSize))
+        path.addLine(to: CGPoint(x: bounds.maxX, y: bounds.maxY))
+        path.addLine(to: CGPoint(x: bounds.minX, y: bounds.maxY))
         path.closeSubpath()
         return path
     }

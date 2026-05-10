@@ -113,6 +113,12 @@ public enum ShapePath: Sendable {
     case flag
     case document
     case polygon(vertices: [CGPoint])
+
+    // MARK: - Rect-family additions (audit follow-up #1)
+
+    /// Rectangle with a triangular notch carved out of the top-right
+    /// corner. Used by `card`, `notch-rect`, `notched-rectangle`.
+    case notchedRectangle(notchSize: CGFloat)
 }
 
 // MARK: - Shape Spec Registry
@@ -366,7 +372,13 @@ public enum ShapeSpecRegistry {
     private static func _makeTextSpec() -> ShapeSpec {
         ShapeSpec(aliases: ["text"], sizeAdjustment: { textSize, _ in CGSize(width: textSize.width + 4, height: textSize.height + 4) }, path: { _, _ in .rect(cornerRadius: 0) })
     }
-    private static func _makeNotchedRectangleSpec() -> ShapeSpec { _defaultSpec(aliases: ["card", "notched-rectangle", "notch-rect"]) }
+    private static func _makeNotchedRectangleSpec() -> ShapeSpec {
+        ShapeSpec(
+            aliases: ["card", "notched-rectangle", "notch-rect"],
+            sizeAdjustment: _rectSizing,
+            path: { _, _ in .notchedRectangle(notchSize: 10) }
+        )
+    }
     private static func _makeLinedRectangleSpec() -> ShapeSpec { _defaultSpec(aliases: ["lined-process", "lined-rectangle", "lin-rect", "lin-proc", "shaded-process"]) }
     private static func _makeSmallCircleSpec() -> ShapeSpec { ShapeSpec(aliases: ["start", "small-circle", "sm-circ"], sizeAdjustment: { _, _ in CGSize(width: 28, height: 28) }, path: { _, _ in .ellipse }) }
     private static func _makeFramedCircleSpec() -> ShapeSpec { _defaultSpec(aliases: ["stop", "framed-circle", "fr-circ"]) }
