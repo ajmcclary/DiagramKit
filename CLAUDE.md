@@ -50,15 +50,15 @@ DiagramKitModel            (Linux + Apple)  — parsers, layouts, SVG/ASCII rend
 DiagramKitRenderingCG     DiagramKitTestSupport
    (Apple-only)            (Linux + Apple)
    ↑
-DiagramKitViews            (Apple-only — currently a placeholder stub; Views/ files still live inside DiagramKit umbrella)
+DiagramKitViews            (Apple-only — `MermaidView`, `MermaidLayer`, `MermaidDiagram`, `MermaidDiagramView`)
    ↑
-DiagramKit                 (umbrella; public API + Views/)
+DiagramKit                 (umbrella; public API; `ReExports.swift` re-exports the sub-targets)
    — Apple-only edges to RenderingCG/Views are gated via `condition: .when(platforms: [Apple])`
 ```
 
-The `DiagramKit` umbrella owns the public API surface (`MermaidRenderer`, `MermaidImageRenderer`, `MermaidPipeline`, `Parser.swift`, `Layout.swift`, `Views/*`). On Linux the umbrella's `parse` / `layout` work; everything CG-bound throws or is `#if`-gated out.
+The `DiagramKit` umbrella owns the public API surface (`MermaidRenderer`, `MermaidImageRenderer`, `MermaidPipeline`, `Parser.swift`, `Layout.swift`). On Linux the umbrella's `parse` / `layout` work; everything CG-bound throws or is `#if`-gated out.
 
-The `DiagramKitViews` target is currently an empty placeholder — actual SwiftUI/UIKit views (`MermaidView`, `MermaidDiagramView`, `MermaidLayer`, `MermaidDiagram`) live in [Sources/DiagramKit/Views/](Sources/DiagramKit/Views) because they depend on `MermaidPipeline`. A future refactor may extract them via a closure-based Preparer protocol.
+The view types live in `Sources/DiagramKitViews/`. Views call `MermaidPreparation.prepare(...)` (in `DiagramKitRenderingCG`) directly; the umbrella's `_MermaidPreparerBootstrap` registers the synchronous `MermaidPipeline.prepare` closure and wires `MermaidViewPreparerEnvironment` the first time any public `MermaidRenderer.*` API is called. Hosts that bypass the umbrella public API (e.g. instantiate `MermaidView` directly) should call `MermaidRenderer.bootstrap()` once at startup.
 
 ### Three-stage pipeline
 
@@ -131,9 +131,9 @@ System fonts drift across macOS/iOS major versions; bundled fonts make snapshot 
 - `Sources/DiagramKitCommon/` — Linux-portable foundations: `SVG`, `IssueReportingSupport`, `StableID` (CryptoKit / swift-crypto), text metrics, theme, font-awesome / HTML-entity tables, multiline utils, styles.
 - `Sources/DiagramKitModel/` (~197 files) — JS-ported per-diagram-type **parsers / layouts / SVG / ASCII renderers** (`src_<type>_parser.swift`, `src_<type>_layout.swift`, `src_<type>_renderer.swift`, `src_ascii_*.swift`). Also `Types.swift`, `RenderConfig.swift`, `RenderOptions.swift`, `RenderTokens.swift`, `PositionedPayloads.swift`, `CrossPlatform.swift` (`BMColor` / `BMFont` / `BMImage` typealiases), `FrontmatterBinding+<Type>.swift` (one per diagram), and the source-preprocessing quartet. UIKit/AppKit/CoreText-specific files are gated to compile to empty on Linux.
 - `Sources/DiagramKitRenderingCG/` — Apple-only CG renderer. `DiagramRenderer+<Type>.swift` per diagram type plus `DiagramRenderer.swift`, `EdgeRenderer`, `LabelRenderer`, `ShapeRenderer`, `ArrowRenderer`, `CGPathRenderer`, `PreparedDiagram`, `FontRegistry` (`BeautifulMermaidFontRegistry`), `Version` (reads `Resources/VERSION`). `Resources/` ships bundled fonts (`Fonts/Noto Sans*`) + `VERSION`.
-- `Sources/DiagramKitViews/` — Apple-only placeholder stub. The actual SwiftUI/UIKit views currently live in `Sources/DiagramKit/Views/`.
+- `Sources/DiagramKitViews/` — Apple-only SwiftUI/UIKit views (`MermaidView`, `MermaidLayer`, `MermaidDiagram`, `MermaidDiagramView`).
 - `Sources/DiagramKitTestSupport/` — Linux-portable test helpers (no CG/CT/UI deps).
-- `Sources/DiagramKit/` — public API umbrella: `MermaidRenderer.swift`, `MermaidPipeline.swift`, `ImageRenderer.swift`, `Parser.swift`, `Layout.swift`, `DiagramDescriptor.swift`, `src_index.swift`, `src_ascii_index.swift`, plus `Views/` (`MermaidView`, `MermaidDiagramView`, `MermaidLayer`, `MermaidDiagram`).
+- `Sources/DiagramKit/` — public API umbrella: `MermaidRenderer.swift`, `MermaidPipeline.swift`, `ImageRenderer.swift`, `Parser.swift`, `Layout.swift`, `MermaidPreparerWiring.swift`, `DiagramDescriptor.swift`, `src_index.swift`, `src_ascii_index.swift`, plus `ReExports.swift` (re-exports `DiagramKitViews` / `DiagramKitRenderingCG` / `DiagramKitModel` / `DiagramKitCommon`).
 - `Examples/MermaidPlayground/` — SwiftUI sample app and the source of `Resources/test-diagrams.json` (test corpus).
 - `Tests/DiagramKitTests/` — XCTest + swift-testing test files (~144); `__Snapshots__/CorpusSnapshotTests/` baselines (excluded from SwiftPM resource processing).
 - `Scripts/linux-check.sh` + `Dockerfile.linux-check` — Linux portability harness.
@@ -156,7 +156,7 @@ DiagramKit compiles on `swift:6.3.1-noble` for the targets in the table below. F
 | `DiagramKitCommon` | full | No CG/CT/UI dependencies. |
 | `DiagramKitModel` | partial | UIKit/AppKit/CoreText files compile to empty on Linux. SVG/ASCII paths that don't measure text work; layouts requiring CTLine bounds (ishikawa, treeView, eventModeling) are unreachable. |
 | `DiagramKitTestSupport` | full | No CG/CT/UI dependencies. |
-| `DiagramKit` (umbrella) | partial | `parse(_:)` and `layout(_:config:)` portable. `renderImage`, `renderSVG`, `renderASCII`, `render(in: CGContext)`, `Views/*` are Apple-only. |
+| `DiagramKit` (umbrella) | partial | `parse(_:)` and `layout(_:config:)` portable. `renderImage`, `renderSVG`, `renderASCII`, `render(in: CGContext)` are Apple-only. View types now live in `DiagramKitViews`. |
 | `DiagramKitRenderingCG` | none | Apple-only via `condition: .when(platforms: [Apple])` + `#if canImport(CoreGraphics)`. |
 | `DiagramKitViews` | none | Apple-only. |
 | `DiagramKitTests` | none | Test target depends on RenderingCG; left Apple-only for Stage 2. |
@@ -179,7 +179,7 @@ Builds the Linux-portable target matrix in a `swift:6.3.1-noble` container (Dock
 - A portable text-measurement shim so `ishikawa` / `treeView` / `eventModeling` layouts can run on Linux (Stage 2.5).
 - CG/SVG renderer drift — they share no geometry/measurement code; long-term plan is a single canonical path. Snapshot tests are the only guardrail in the meantime.
 - `RenderConfig.swift` carries a number of magic constants that should be lifted into theme tokens.
-- `DiagramKitViews` extraction (currently a placeholder stub).
+- Removing the `?? MermaidViewPreparer(prepare: MermaidPreparation.prepare(...))` fallback in `MermaidLayer` / `MermaidDiagram` — once the umbrella's bootstrap is guaranteed by other means.
 
 ## Discipline gates (Stage 3)
 
