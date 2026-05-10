@@ -188,6 +188,11 @@ a:hover { color: var(--lc-cyan-bright); }
   border-right: 1px solid var(--lc-border-var);
   overflow: hidden;
   position: relative;
+  width: 232px;
+  min-width: 232px;
+  max-width: 232px;
+  font-size: 13px;     /* lock the sidebar's font cascade so no    */
+  line-height: 1.45;   /* page can inflate nav-pill / pill sizing  */
 }
 
 /* Top elbow — signature LCARS shape */

@@ -274,12 +274,14 @@
     background: var(--lc-bg-2);
     min-height: 0;
   }
-  .code {
+  /* Scoped to .code-host so it can't collide with the .nav-pill > .code  */
+  /* code-label spans (BRG-00 / PG-01 / VE-02 …) in the shared sidebar.   */
+  .code-host > .code {
     display: grid;
     grid-template-columns: 56px 1fr;
     font-family: var(--mono);
     font-size: 12.5px;
-    line-height: 1.7;
+    line-height: 22px;
     padding: 12px 0 24px;
   }
   .gutter {
@@ -289,8 +291,9 @@
     user-select: none;
     font-variant-numeric: tabular-nums;
     font-size: 11px;
+    line-height: 22px;
   }
-  .gutter span { display: block; height: 1.7em; }
+  .gutter span { display: block; }
   .gutter span.warn { color: var(--lc-gold); }
   .gutter span.warn::before { content: "▲ "; }
   .gutter span.cur { color: var(--lc-orange); font-weight: 600; }
@@ -299,9 +302,8 @@
   .code-body {
     padding-left: 14px;
     color: var(--lc-ivory);
-    white-space: pre;
   }
-  .code-body .line { display: block; height: 1.7em; }
+  .code-body .line { display: block; white-space: pre; }
   .code-body .line.cur {
     background: rgba(255, 153, 51, 0.06);
     box-shadow: inset 2px 0 0 var(--lc-orange);
