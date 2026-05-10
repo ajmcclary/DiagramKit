@@ -16,6 +16,11 @@ struct MermaidPlaygroundApp: App {
     var body: some Scene {
         WindowGroup {
             LiveEditorView(store: store)
+                .toolbar {
+                    #if os(macOS)
+                    LiveEditorToolbar(store: store)
+                    #endif
+                }
         }
         #if os(macOS)
         .windowStyle(.titleBar)

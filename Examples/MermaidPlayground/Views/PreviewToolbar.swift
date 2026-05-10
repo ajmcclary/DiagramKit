@@ -14,12 +14,17 @@ import DiagramKitModel
 struct PreviewToolbar: View {
     let theme: DiagramTheme
     @Binding var zoomScale: CGFloat
+    @Binding var gridEnabled: Bool
     let minZoom: CGFloat
     let maxZoom: CGFloat
     let onFitToView: () -> Void
+    let onResetView: () -> Void
+    let onFullWindowPreview: (() -> Void)?
 
     var body: some View {
         HStack(spacing: 2) {
+            resetButton
+            divider
             zoomOutButton
             divider
             percentageLabel
@@ -27,6 +32,12 @@ struct PreviewToolbar: View {
             zoomInButton
             divider
             fitButton
+            divider
+            gridToggleButton
+            if onFullWindowPreview != nil {
+                divider
+                fullWindowButton
+            }
         }
         .font(.system(size: 13))
         .foregroundColor(Color(theme.foreground))
@@ -40,6 +51,15 @@ struct PreviewToolbar: View {
     }
 
     // MARK: - Buttons
+
+    private var resetButton: some View {
+        Button(action: onResetView) {
+            Image(systemName: "arrow.counterclockwise")
+                .frame(width: 28, height: 28)
+        }
+        .buttonStyle(.plain)
+        .help("Reset view")
+    }
 
     private var zoomOutButton: some View {
         Button {
@@ -71,6 +91,29 @@ struct PreviewToolbar: View {
                 .frame(width: 28, height: 28)
         }
         .buttonStyle(.plain)
+    }
+
+    private var gridToggleButton: some View {
+        Button {
+            gridEnabled.toggle()
+        } label: {
+            Image(systemName: gridEnabled ? "grid" : "grid")
+                .frame(width: 28, height: 28)
+        }
+        .buttonStyle(.plain)
+        .foregroundColor(gridEnabled
+            ? Color(theme.effectiveAccent())
+            : Color(theme.foreground))
+        .help(gridEnabled ? "Hide grid" : "Show grid")
+    }
+
+    private var fullWindowButton: some View {
+        Button(action: { onFullWindowPreview?() }) {
+            Image(systemName: "rectangle.inset.filled")
+                .frame(width: 28, height: 28)
+        }
+        .buttonStyle(.plain)
+        .help("Full-window preview")
     }
 
     private var percentageLabel: some View {

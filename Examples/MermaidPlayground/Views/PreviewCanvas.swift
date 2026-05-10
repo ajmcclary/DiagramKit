@@ -11,7 +11,8 @@ import DiagramKit
 
 @available(iOS 26.0, macOS 26.0, macCatalyst 26.0, *)
 struct PreviewCanvas: View {
-    let store: LiveEditorStore
+    @Bindable var store: LiveEditorStore
+    let onFullWindowPreview: (() -> Void)?
 
     @SwiftUI.State private var zoomScale: CGFloat = 1.0
     @SwiftUI.State private var hasSetInitialZoom: Bool = false
@@ -26,6 +27,11 @@ struct PreviewCanvas: View {
                 // Background
                 Color(store.theme.background)
                     .ignoresSafeArea()
+
+                // Grid overlay
+                if store.state.gridEnabled {
+                    gridOverlay(size: geometry.size)
+                }
 
                 // Mermaid view at zoomed size
                 let scaledWidth = max(store.diagramBounds.width * zoomScale, 1)
@@ -93,6 +99,18 @@ struct PreviewCanvas: View {
                     errorOverlay(error)
                 }
 
+                // Dirty indicator (manual mode)
+                if store.isDirty && store.state.updateMode == .manual {
+                    VStack {
+                        HStack {
+                            Spacer()
+                            dirtyBadge
+                                .padding(12)
+                        }
+                        Spacer()
+                    }
+                }
+
                 // Empty state
                 if store.renderStatus == .idle {
                     idleOverlay
@@ -106,6 +124,7 @@ struct PreviewCanvas: View {
                         PreviewToolbar(
                             theme: store.theme,
                             zoomScale: $zoomScale,
+                            gridEnabled: $store.state.gridEnabled,
                             minZoom: minZoom,
                             maxZoom: maxZoom,
                             onFitToView: {
@@ -113,7 +132,11 @@ struct PreviewCanvas: View {
                                     diagramBounds: store.diagramBounds,
                                     viewSize: geometry.size
                                 )
-                            }
+                            },
+                            onResetView: {
+                                zoomScale = 1.0
+                            },
+                            onFullWindowPreview: onFullWindowPreview
                         )
                         .padding(12)
                     }
@@ -149,6 +172,55 @@ struct PreviewCanvas: View {
         let scaleX = viewSize.width / diagramBounds.width
         let scaleY = viewSize.height / diagramBounds.height
         return min(max(min(scaleX, scaleY), minZoom), maxZoom)
+    }
+
+    // MARK: - Grid overlay
+
+    private func gridOverlay(size: CGSize) -> some View {
+        Canvas { context, _ in
+            let gridSpacing: CGFloat = 20
+            let lineColor = Color(store.theme.effectiveLine()).opacity(0.15)
+
+            context.stroke(
+                Path { path in
+                    var x: CGFloat = 0
+                    while x <= size.width {
+                        path.move(to: CGPoint(x: x, y: 0))
+                        path.addLine(to: CGPoint(x: x, y: size.height))
+                        x += gridSpacing
+                    }
+                    var y: CGFloat = 0
+                    while y <= size.height {
+                        path.move(to: CGPoint(x: 0, y: y))
+                        path.addLine(to: CGPoint(x: size.width, y: y))
+                        y += gridSpacing
+                    }
+                },
+                with: .color(lineColor),
+                lineWidth: 0.5
+            )
+        }
+        .allowsHitTesting(false)
+    }
+
+    // MARK: - Dirty badge
+
+    private var dirtyBadge: some View {
+        HStack(spacing: 6) {
+            Circle()
+                .fill(Color.orange)
+                .frame(width: 8, height: 8)
+            Text("Unsaved changes")
+                .font(.system(size: 11, weight: .medium))
+                .foregroundColor(Color.orange)
+        }
+        .padding(.horizontal, 10)
+        .padding(.vertical, 5)
+        .background(
+            RoundedRectangle(cornerRadius: 6)
+                .fill(Color(store.theme.background).opacity(0.85))
+                .shadow(color: .black.opacity(0.15), radius: 4, x: 0, y: 2)
+        )
     }
 
     // MARK: - Overlays

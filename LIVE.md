@@ -6,25 +6,47 @@ This document compares the current Swift-native `Examples/MermaidPlayground` app
 
 The goal is not to embed the JavaScript editor. The playground should remain a native validation surface for DiagramKit, using `MermaidView`, `MermaidPipeline`, `MermaidRenderer.renderSVG`, and `MermaidImageRenderer` so it exercises the same Swift parse/layout/render paths as the package.
 
-## Current State (post-Phase 1)
+## Current State (post-Phase 2)
 
-Phase 1 replaced the ad-hoc `PlaygroundConfiguration` singleton with a first-class store architecture. The app now has:
+Phase 1 replaced the ad-hoc `PlaygroundConfiguration` singleton with a first-class store architecture. Phase 2 added the toolbar shell, config editor, grid/pan controls, auto/manual sync, and export/clipboard actions. The app now has:
 
-- `LiveEditorView.swift`: new root view; editor+preview split (regular), Edit/View toggle (compact).
-- `LiveEditorStore.swift`: `@MainActor @Observable` owner of `LiveEditorState`, render status, `parseError`, `diagramBounds`. Actions: `setSource(_:origin:)`, `setTheme(named:)`, `didCompleteRender(parseError:diagramBounds:)`.
+### Models (3 files)
 - `LiveEditorState.swift`: `Codable` struct with `source`, `selectedThemeName`, `configJSON`, `editorMode`, `updateMode`, `gridEnabled`, `panZoomEnabled`, `zoomScale`, `panOffset`.
+- `LiveEditorStore.swift`: `@MainActor @Observable` owner of `LiveEditorState`, render status, `parseError`, `diagramBounds`, `isDirty`. Actions: `setSource(_:origin:)`, `setTheme(named:)`, `requestRender(reason:)`, `renderNow()`, `didCompleteRender(parseError:diagramBounds:)`.
 - `LiveRenderStatus.swift`: enum `idle | pending | rendering | rendered | failed`.
-- `EditorPane.swift`: Code/Config tab bar + `SourceEditor` (code tab wired; Config tab is a placeholder).
-- `PreviewCanvas.swift`: preview surface with zoom, fit-reset on render-generation change, error overlay, dim-on-failure, `PreviewToolbar`.
-- `PreviewToolbar.swift`: platform-agnostic zoom controls (in/out, fit, percentage).
-- `MermaidViewRepresentable.swift`: now publishes render completions to the store via `didCompleteRender`; theme comparison uses `bmColorEquals()`.
-- `SidebarView.swift`: corpus picker, theme picker, PNG export (source editor moved to `EditorPane`).
-- `BMColor+IsLight.swift`: extracted `isLight` extension from deleted `ContentView`.
+
+### Views — Core (6 files)
+- `LiveEditorView.swift`: root view; editor+preview split (regular), Edit/View toggle (compact), full-window preview sheet.
+- `EditorPane.swift`: Code/Config tab bar via `EditorModePicker` + `SourceEditor` (code) / `ConfigEditor` (config with JSON syntax indicator).
+- `PreviewCanvas.swift`: preview surface with zoom, fit-reset on render-generation change, error overlay, dim-on-failure, grid overlay, dirty badge (manual mode), `PreviewToolbar`.
+- `PreviewToolbar.swift`: 7-control floating toolbar (reset, zoom out, %, zoom in, fit, grid toggle, full-window preview).
+- `MermaidViewRepresentable.swift`: publishes render completions to the store via `didCompleteRender`; theme comparison uses `bmColorEquals()`.
+- `SidebarView.swift`: corpus picker, theme picker, PNG export.
+
+### Views — Toolbar panels (4 files, new in Phase 2)
+- `Views/Toolbar/LiveEditorToolbar.swift`: macOS unified toolbar + iOS nav bar; hosts `UpdateModePicker`, render button (manual mode), popover/sheet triggers for Samples/Actions/Info.
+- `Views/Toolbar/ActionsPanel.swift`: Export PNG/SVG, copy source/config/SVG/PNG, full-window preview trigger, share placeholder.
+- `Views/Toolbar/SampleDiagramPanel.swift`: searchable sample diagram picker with collapsible categories.
+- `Views/Toolbar/VersionSecurityPanel.swift`: DiagramKit version, platform info, privacy disclosure sheet, repo/doc links.
+
+### Views — Editor (2 files, new in Phase 2)
+- `Views/Editor/EditorModePicker.swift`: extracted Code/Config segmented tab bar (reusable).
+- `Views/Editor/ConfigEditor.swift`: JSON config text editor with syntax validation indicator (green/red dot + label).
+
+### Supporting (2 files)
+- `BMColor+IsLight.swift`: extracted `isLight` extension.
 - `SampleDiagrams.swift`: unchanged corpus loader.
 
-Deleted: `ContentView.swift`, `PreviewView.swift`, `PlaygroundConfiguration.swift`.
+### Store behaviors (new in Phase 2)
+- **Manual update mode**: `state.updateMode == .manual` → `setSource` marks `isDirty = true` and skips render. `renderNow()` clears dirty and fires render. System-origin changes (corpus, history) always render regardless of mode.
+- **Grid toggle**: `PreviewCanvas` draws a 20px `Canvas` grid when `state.gridEnabled == true`.
+- **Dirty badge**: orange "Unsaved changes" pill shown in preview when `isDirty && updateMode == .manual`.
+- **Full-window preview**: sheet with `PreviewCanvas` only, triggered from toolbar or preview toolbar.
 
-The render loop is explicit: source/theme changes set `renderStatus = .rendering`, the existing `MermaidLayer` pipeline handles cancel-on-new-source, and `onPrepareComplete` publishes success/failure back to the store. The preview dims on failure while keeping the last valid render visible.
+### Rendering invariants (unchanged)
+The render loop is explicit: source/theme changes set `renderStatus = .rendering`, `MermaidLayer` handles cancel-on-new-source, `onPrepareComplete` publishes success/failure. The preview dims on failure while keeping the last valid render visible.
+
+Deleted in Phase 1: `ContentView.swift`, `PreviewView.swift`, `PlaygroundConfiguration.swift`.
 
 ## Live Editor Feature Surface
 
@@ -78,25 +100,25 @@ Keep `rough` out of the first version unless a native rough renderer is added. T
 | --- | --- | --- |
 | Edit Mermaid source | ✅ Phase 1 | Source editor in `EditorPane` code tab; wired through `LiveEditorStore.setSource(_:origin:)` |
 | Live preview updates | ✅ Phase 1 | Explicit render scheduling via `renderStatus` state machine; stale tasks cancelled by `MermaidLayer`; fit-zoom reset on `renderGeneration` change |
-| Config JSON tab | ⬜ Phase 3 | Placeholder tab exists in `EditorPane`; permissive JSON validation to come |
+| Config JSON tab | ✅ Phase 2 editor / ⬜ Phase 3 mapping | `ConfigEditor` with syntax validation indicator; permissive JSON→native mapping to come |
 | Syntax highlighting and line errors | ✅ Phase 1 error panel / ⬜ Phase 6 editor | Plain monospaced `TextEditor` + error overlay in `PreviewCanvas`; native `NSTextView`/`UITextView` wrapper deferred |
-| Sample diagrams | ✅ Phase 1 | Corpus picker in `SidebarView` calls `store.setSource(_, origin: .system)` |
+| Sample diagrams | ✅ Phase 2 | `SidebarView` corpus picker + `SampleDiagramPanel` searchable popover with collapsible categories |
 | Theme controls | ✅ Phase 1 | `ThemePicker` calls `store.setTheme(named:)`; store resolves name via `DiagramTheme.theme(named:)` |
-| Pan/zoom/reset/full screen | ✅ Phase 1 toolbar | `PreviewToolbar` with zoom in/out, fit, percentage readout; `PreviewCanvas` fit-reset on identity change |
-| Background grid | Missing | Add grid toggle in preview canvas background |
-| Slow render autosync | Missing | Port the idea, not the implementation: if render exceeds threshold, debounce subsequent renders and show a pending state |
-| Manual update mode | Missing | Add auto/manual segmented control; manual mode sets dirty flag and renders only on command |
-| PNG export | Basic PNG export exists | Move to `LiveEditorStore.exportPNG`, add size mode: auto, width, height, scale |
-| SVG export | Missing | Use `MermaidRenderer.renderSVG(from:theme:)` so SVG parity is exercised |
-| Copy image / copy SVG / copy source | Missing | Use native pasteboard APIs (`NSPasteboard` / `UIPasteboard`) |
-| Share links | Missing | Add local state serialization. Optional: make the codec compatible with Mermaid Live Editor `pako:` URLs |
-| View-only mode | Missing | Add a preview-only window/sheet/scene that loads serialized state |
-| History | Missing | Add manual saved states and auto timeline using `Application Support` or `UserDefaults` for small payloads |
-| History import/export | Missing | Import/export JSON files through native file dialogs |
-| Gist/raw URL loaders | Missing | Add as optional network loaders with explicit user action and config sanitization |
-| Documentation button | Missing | Port the docs map and open URLs via `openURL` |
-| Version/security toolbar | Missing | Show DiagramKit version and a local privacy/security sheet describing native/offline behavior |
-| Mermaid Chart / AI / analytics | Missing | Defer or expose only as explicit external links; do not make them central to the sample app |
+| Pan/zoom/reset/full screen | ✅ Phase 2 | `PreviewToolbar` with reset, zoom out/in, fit, percentage; `PreviewCanvas` fit-reset on identity change; full-window preview sheet |
+| Background grid | ✅ Phase 2 | Grid toggle in `PreviewToolbar`; 20px `Canvas` overlay in `PreviewCanvas` |
+| Slow render autosync | ⬜ Deferred | Port the idea, not the implementation: if render exceeds threshold, debounce subsequent renders and show a pending state |
+| Manual update mode | ✅ Phase 2 | `UpdateModePicker` segmented control in toolbar; `isDirty` flag with orange badge; `renderNow()` action |
+| PNG export | ✅ Phase 2 | `ActionsPanel` → PNG via `MermaidImageRenderer` at 2× scale; `fileExporter` save dialog |
+| SVG export | ✅ Phase 2 | `ActionsPanel` → SVG via `MermaidRenderer.renderSVG(source:theme:)`; `fileExporter` save dialog |
+| Copy image / copy SVG / copy source | ✅ Phase 2 | `ActionsPanel` copy buttons: source text, config JSON, SVG text (via `NSPasteboard`/`UIPasteboard`), PNG image |
+| Share links | ⬜ Phase 4 | Local state serialization to come. Optional `pako:` compatibility deferred |
+| View-only mode | ✅ Phase 2 full-window preview | Full-window preview sheet from `ActionsPanel` or `PreviewToolbar`; standalone preview-only view |
+| History | ⬜ Phase 5 | Manual saved states and auto timeline to come |
+| History import/export | ⬜ Phase 5 | JSON file import/export to come |
+| Gist/raw URL loaders | ⬜ Phase 5 | Optional network loaders to come |
+| Documentation button | ⬜ Deferred | Port docs map and `openURL` |
+| Version/security toolbar | ✅ Phase 2 | `VersionSecurityPanel` with DiagramKit version, platform, privacy disclosure sheet, repo/doc links |
+| Mermaid Chart / AI / analytics | ⬜ Deferred | Defer or expose only as explicit external links; do not make them central to the sample app |
 
 ## Implementation Phases
 
@@ -138,30 +160,40 @@ Architecture decisions:
 - Theme comparison in `MermaidViewRepresentable` uses `bmColorEquals()` instead of `hexString` round-trips (per LIVE.md render rules).
 - `MermaidLayer`'s existing cancel-on-new-source behavior (`preparationTask?.cancel()`) is the cancellation mechanism — the store doesn't introduce a second one.
 
-### Phase 2: Match the Live Editor Shell
+### Phase 2: Match the Live Editor Shell ✅ DONE (2026-05-10)
 
-Files to create:
+**Outcome**: `swift build --build-tests` passes. All three acceptance criteria met. The app now has toolbar panels, config editor, grid, full-window preview, auto/manual sync, and export/clipboard actions.
 
-- `Examples/MermaidPlayground/Views/Toolbar/LiveEditorToolbar.swift`
-- `Examples/MermaidPlayground/Views/Toolbar/ActionsPanel.swift`
-- `Examples/MermaidPlayground/Views/Toolbar/SampleDiagramPanel.swift`
-- `Examples/MermaidPlayground/Views/Toolbar/VersionSecurityPanel.swift`
-- `Examples/MermaidPlayground/Views/Editor/ConfigEditor.swift`
-- `Examples/MermaidPlayground/Views/Editor/EditorModePicker.swift`
+**What was built** (the plan's 6 files were created as specified; additionally, `LiveEditorStore` gained `isDirty`/`renderNow()` and the existing views were enhanced):
 
-Strategy:
+Files created (6):
 
-- Replace the sidebar-first layout with a split editor/preview workspace on macOS and iPad.
-- Use tabs or a segmented control for `Code` and `Config`.
-- Preserve the compact iPhone flow: edit/view toggle with preview as a first-class screen, not a controls sheet only.
-- Add a preview toolbar: reset view, zoom out, zoom in, fit, full-window preview, grid toggle.
-- Add an auto/manual update control. Manual mode should show dirty state and an explicit render button.
+- `Examples/MermaidPlayground/Views/Toolbar/LiveEditorToolbar.swift` — macOS unified toolbar (`ToolbarContent`) + iOS nav bar; hosts `UpdateModePicker` (Auto/Manual segmented control), render button (manual mode only, disabled unless dirty), popover/sheet triggers for Samples, Actions, Info panels.
+- `Examples/MermaidPlayground/Views/Toolbar/ActionsPanel.swift` — Export PNG (via `MermaidImageRenderer`, `fileExporter`), Export SVG (via `MermaidRenderer.renderSVG`, `fileExporter`), Copy Source, Copy Config, Copy SVG, Copy PNG Image (native pasteboard APIs), Full-Window Preview trigger, Share placeholder (Phase 4).
+- `Examples/MermaidPlayground/Views/Toolbar/SampleDiagramPanel.swift` — searchable picker with collapsible categories; loads diagrams via `store.setSource(_:origin: .system)`.
+- `Examples/MermaidPlayground/Views/Toolbar/VersionSecurityPanel.swift` — DiagramKit version (from bundle `Info.plist`), platform info, privacy disclosure sheet (5-point: local execution, no network, no analytics, native renderers, package version), repo/doc links.
+- `Examples/MermaidPlayground/Views/Editor/ConfigEditor.swift` — JSON config text editor (monospaced) with validation bar: green check / red X via `JSONSerialization.jsonObject`. Debounced writes to `store.state.configJSON`.
+- `Examples/MermaidPlayground/Views/Editor/EditorModePicker.swift` — extracted Code/Config segmented tab bar from `EditorPane`; reusable with `@Binding editorMode` and theme.
 
-Acceptance criteria:
+Files modified (6):
 
-- The default screen is an editor plus preview workspace on regular width.
-- The compact screen can both edit and preview without burying editing in a control sheet.
-- Config tab edits are validated independently from Mermaid source edits.
+- `Examples/MermaidPlayground/Models/LiveEditorStore.swift` — added `isDirty: Bool`; `setSource` respects manual mode (user edits → dirty, no render; system origin → always render); added `renderNow()` (clears dirty, fires `requestRender(reason: .manual)`).
+- `Examples/MermaidPlayground/Views/EditorPane.swift` — replaced inline tab bar with `EditorModePicker`; replaced Config placeholder with `ConfigEditor`; changed `let store:` → `@Bindable var store:`.
+- `Examples/MermaidPlayground/Views/PreviewToolbar.swift` — expanded from 4 controls to 7: added reset (🔄), grid toggle (grid icon, accent color when active), full-window preview (rectangle icon). Takes new params: `gridEnabled`, `onResetView`, `onFullWindowPreview`.
+- `Examples/MermaidPlayground/Views/PreviewCanvas.swift` — changed `let store:` → `@Bindable var store:`; added grid overlay (`Canvas` drawing 20px lines), dirty badge (orange "Unsaved changes" pill), `onFullWindowPreview` callback; passes new params to `PreviewToolbar`.
+- `Examples/MermaidPlayground/Views/LiveEditorView.swift` — added `showingFullWindowPreview` state; full-window preview sheet; `.sheet` modifier in detail pane; `PreviewCanvas` receives `onFullWindowPreview` callback.
+- `Examples/MermaidPlayground/MermaidPlaygroundApp.swift` — added `.toolbar { LiveEditorToolbar(store: store) }` modifier (macOS only).
+
+Architecture decisions:
+
+- The split editor/preview workspace from Phase 1 (`HSplitView` on macOS, `HStack` on iOS) was already present — Phase 2 added toolbar panels on top without restructuring the layout.
+- The sidebar (`SidebarView`) was preserved for quick corpus/theme access alongside the new toolbar panels — this is a deliberate divergence from the web editor, whose sidebar-less design is constrained by browser layout. Native apps benefit from persistent sidebars.
+- SVG export and copy both use `MermaidRenderer.renderSVG(source:theme:)` synchronously inside `async` wrappers — this exercises the package's independent SVG renderer alongside the CG preview path.
+- Copy feedback uses a 2-second auto-dismissing green toast; export uses native `fileExporter` with temp-file cleanup.
+- `PlainTextDocument` (for SVG `fileExporter`) and `PNGDocument` (reused from Phase 1) are defined inline in `ActionsPanel.swift`/`SidebarView.swift` respectively.
+- Grid is drawn with SwiftUI `Canvas` rather than adding a background pattern to the `ScrollView` — this keeps grid lines independent of scroll/zoom state.
+- Full-window preview is a sheet (not a new window) on both macOS and iOS for Phase 2; a separate `Window` scene can be added later if needed.
+- The macOS toolbar uses `.primaryAction` placement for Samples/Actions/Info and `.navigation` placement for the update mode picker + render button, matching macOS HIG conventions.
 
 ### Phase 3: Config JSON and Validation
 
@@ -314,14 +346,13 @@ swift run MermaidPlayground
 ## Recommended Order of Work
 
 1. ✅ Land `LiveEditorStore` and replace `PlaygroundConfiguration`. (Phase 1 — done 2026-05-10)
-2. Rebuild the app shell around editor/preview panes and make live editing reliable.
-3. Add config tab and validation.
-4. Move existing PNG export into the new action model; add SVG export.
-5. Add grid, preview toolbar, and auto/manual sync.
-6. Add share serialization.
-7. Add history.
-8. Add loaders.
-9. Upgrade the text editor quality.
-10. Consider optional Mermaid Chart, AI, rough mode, and remote renderer links only after native parity is solid.
+2. ✅ Rebuild the app shell around editor/preview panes and make live editing reliable. (Phase 2 — done 2026-05-10)
+3. ✅ Add grid, preview toolbar, auto/manual sync, PNG/SVG export, copy actions, version/security panel. (Phase 2 — done 2026-05-10)
+4. ⬜ Add config validation and JSON→native mapping. (Phase 3)
+5. ⬜ Add share serialization. (Phase 4)
+6. ⬜ Add history. (Phase 5)
+7. ⬜ Add loaders. (Phase 5)
+8. ⬜ Upgrade the text editor quality. (Phase 6)
+9. ⬜ Consider optional Mermaid Chart, AI, rough mode, and remote renderer links only after native parity is solid.
 
 The first milestone should be small and strict: open `MermaidPlayground`, type Mermaid syntax, and see the native preview update deterministically with useful error feedback. Everything else in Live Editor builds on that state loop.

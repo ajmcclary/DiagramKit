@@ -52,6 +52,10 @@ public final class LiveEditorStore {
     /// Used by the preview to decide when to reset fit-to-view zoom.
     public private(set) var renderGeneration: Int = 0
 
+    /// Whether the source has unsaved changes in manual update mode.
+    /// Resets to `false` when the user clicks Render.
+    public var isDirty: Bool = false
+
     // MARK: - Init
 
     public init(state: LiveEditorState = LiveEditorState()) {
@@ -68,6 +72,14 @@ public final class LiveEditorStore {
     public func setSource(_ source: String, origin: SourceOrigin) {
         guard state.source != source else { return }
         state.source = source
+
+        if state.updateMode == .manual && origin == .user {
+            // In manual mode, mark dirty but don't render automatically.
+            // System-origin changes (corpus, history) always trigger a render.
+            isDirty = true
+            return
+        }
+
         requestRender(reason: .sourceChanged)
     }
 
@@ -86,6 +98,14 @@ public final class LiveEditorStore {
     public func requestRender(reason: RenderReason) {
         renderGeneration &+= 1
         renderStatus = .rendering
+    }
+
+    /// Trigger a render in manual update mode.
+    /// Clears the dirty flag and schedules a render.
+    public func renderNow() {
+        guard state.updateMode == .manual, isDirty else { return }
+        isDirty = false
+        requestRender(reason: .manual)
     }
 
     /// Callback from `MermaidViewRepresentable` when the layer finishes

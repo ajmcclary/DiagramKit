@@ -16,6 +16,7 @@ struct LiveEditorView: View {
 
     @SwiftUI.State private var columnVisibility: NavigationSplitViewVisibility = .all
     @SwiftUI.State private var showingControls = false
+    @SwiftUI.State private var showingFullWindowPreview = false
     @SwiftUI.State private var compactMode: CompactMode = .edit
 
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
@@ -56,7 +57,7 @@ struct LiveEditorView: View {
                 case .edit:
                     EditorPane(store: store)
                 case .view:
-                    PreviewCanvas(store: store)
+                    PreviewCanvas(store: store, onFullWindowPreview: nil)
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -121,6 +122,9 @@ struct LiveEditorView: View {
                 .toolbarBackground(Color(store.theme.background), for: .navigationBar)
                 .toolbarColorScheme(store.theme.background.isLight ? .light : .dark, for: .navigationBar)
                 #endif
+                .sheet(isPresented: $showingFullWindowPreview) {
+                    fullWindowPreviewSheet
+                }
         }
         .navigationSplitViewStyle(.balanced)
         #if os(macOS)
@@ -134,7 +138,7 @@ struct LiveEditorView: View {
             EditorPane(store: store)
                 .frame(minWidth: 300)
 
-            PreviewCanvas(store: store)
+            PreviewCanvas(store: store, onFullWindowPreview: { showingFullWindowPreview = true })
                 .frame(minWidth: 400)
         }
         #else
@@ -145,10 +149,32 @@ struct LiveEditorView: View {
             Divider()
                 .background(Color(store.theme.effectiveLine()).opacity(0.3))
 
-            PreviewCanvas(store: store)
+            PreviewCanvas(store: store, onFullWindowPreview: { showingFullWindowPreview = true })
                 .frame(minWidth: 300)
         }
         #endif
+    }
+
+    // MARK: - Full-window preview sheet
+
+    private var fullWindowPreviewSheet: some View {
+        NavigationStack {
+            PreviewCanvas(store: store, onFullWindowPreview: nil)
+                .navigationTitle("Preview")
+                #if os(iOS)
+                .navigationBarTitleDisplayMode(.inline)
+                #endif
+                .toolbar {
+                    ToolbarItem(placement: .confirmationAction) {
+                        Button("Done") {
+                            showingFullWindowPreview = false
+                        }
+                    }
+                }
+            #if os(iOS)
+                .toolbarBackground(Color(store.theme.background), for: .navigationBar)
+            #endif
+        }
     }
 }
 
