@@ -128,6 +128,27 @@ public enum ShapePath: Sendable {
     /// renderer as separate decorations — same pattern as the existing
     /// vertical `.cylinder(topCapInset:)`.
     case horizontalCylinder(leftCapInset: CGFloat)
+
+    // MARK: - Alt-skew additions (audit follow-up #3)
+
+    /// Inverted trapezoid (wide top, narrow bottom). Mirrors
+    /// `.trapezoid(skew:)` but with the inset applied to the bottom
+    /// edge instead of the top. Used by `trapezoid-alt`,
+    /// `inv_trapezoid`.
+    case trapezoidAlt(skew: CGFloat)
+
+    /// Parallelogram skewed left (mirror of `.parallelogram`). Used by
+    /// `parallelogram-alt`, `lean_left`.
+    case parallelogramAlt(skew: CGFloat)
+
+    /// Triangle with apex pointing down (inverted from `.triangle`).
+    /// Used by `flipped-triangle`, `manual-file`, `flip-tri`.
+    case triangleDown
+
+    /// Rectangle with the top edge slanted upward to the right by
+    /// `slope` × bounds height. Used by `sloped-rectangle`,
+    /// `manual-input`, `sl-rect`.
+    case slopedRectangle(slope: CGFloat)
 }
 
 // MARK: - Shape Spec Registry
@@ -171,7 +192,9 @@ public enum ShapeSpecRegistry {
             _makeCylinderSpec(),
             _makeAsymmetricSpec(),
             _makeTrapezoidSpec(),
+            _makeTrapezoidAltSpec(),
             _makeParallelogramSpec(),
+            _makeParallelogramAltSpec(),
             _makeBangSpec(),
             _makeCloudSpec(),
             _makeDataStoreSpec(),
@@ -373,6 +396,32 @@ public enum ShapeSpecRegistry {
         )
     }
 
+    private static func _makeTrapezoidAltSpec() -> ShapeSpec {
+        ShapeSpec(
+            aliases: ["trapezoid-alt", "inv_trapezoid", "trap-t"],
+            sizeAdjustment: { textSize, config in
+                CGSize(
+                    width: Swift.max(textSize.width + config.nodePaddingHorizontal * 2 + 20, config.minimumNodeWidth),
+                    height: Swift.max(textSize.height + config.nodePaddingVertical * 2, config.minimumNodeHeight)
+                )
+            },
+            path: { _, _ in .trapezoidAlt(skew: 0.15) }
+        )
+    }
+
+    private static func _makeParallelogramAltSpec() -> ShapeSpec {
+        ShapeSpec(
+            aliases: ["lean-left", "lean_left", "parallelogram-alt"],
+            sizeAdjustment: { textSize, config in
+                CGSize(
+                    width: Swift.max(textSize.width + config.nodePaddingHorizontal * 2 + 20, config.minimumNodeWidth),
+                    height: Swift.max(textSize.height + config.nodePaddingVertical * 2, config.minimumNodeHeight)
+                )
+            },
+            path: { _, _ in .parallelogramAlt(skew: 0.2) }
+        )
+    }
+
     // Remaining specs use defaults; full geometry deferred to integration (tasks 5.2–5.4).
 
     private static func _makeBangSpec() -> ShapeSpec { _defaultSpec(aliases: ["bang"]) }
@@ -428,8 +477,26 @@ public enum ShapeSpecRegistry {
     private static func _makeFilledCircleSpec() -> ShapeSpec { _defaultSpec(aliases: ["filled-circle", "f-circ", "junction"]) }
     private static func _makeLinedDocumentSpec() -> ShapeSpec { _defaultSpec(aliases: ["lined-document", "lin-doc"]) }
     private static func _makeNotchedPentagonSpec() -> ShapeSpec { _defaultSpec(aliases: ["loop-limit", "notch-pent", "notched-pentagon"]) }
-    private static func _makeFlippedTriangleSpec() -> ShapeSpec { _defaultSpec(aliases: ["manual-file", "flip-tri", "flipped-triangle"]) }
-    private static func _makeSlopedRectangleSpec() -> ShapeSpec { _defaultSpec(aliases: ["manual-input", "sl-rect", "sloped-rectangle"]) }
+    private static func _makeFlippedTriangleSpec() -> ShapeSpec {
+        ShapeSpec(
+            aliases: ["manual-file", "flip-tri", "flipped-triangle"],
+            sizeAdjustment: { textSize, config in
+                CGSize(
+                    width: Swift.max(textSize.width + config.nodePaddingHorizontal * 2 + 10, config.minimumNodeWidth),
+                    height: Swift.max(textSize.height + config.nodePaddingVertical * 2 + 10, config.minimumNodeHeight)
+                )
+            },
+            path: { _, _ in .triangleDown }
+        )
+    }
+
+    private static func _makeSlopedRectangleSpec() -> ShapeSpec {
+        ShapeSpec(
+            aliases: ["manual-input", "sl-rect", "sloped-rectangle"],
+            sizeAdjustment: _rectSizing,
+            path: { _, _ in .slopedRectangle(slope: 0.2) }
+        )
+    }
     private static func _makeStackedDocumentSpec() -> ShapeSpec { _defaultSpec(aliases: ["stacked-document", "docs", "documents", "st-doc"]) }
     private static func _makeStackedRectangleSpec() -> ShapeSpec { _defaultSpec(aliases: ["stacked-rectangle", "st-rect", "procs", "processes"]) }
     private static func _makeFlagSpec() -> ShapeSpec { ShapeSpec(aliases: ["paper-tape", "flag"], sizeAdjustment: _rectSizing, path: { _, _ in .flag }) }

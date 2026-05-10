@@ -188,6 +188,33 @@ public enum SVGPathSerializer {
                 + " L \(_fmt(maxX)) \(_fmt(bounds.minY))"
                 + " L \(_fmt(maxX)) \(_fmt(bounds.maxY))"
                 + " L \(_fmt(minX)) \(_fmt(bounds.maxY)) Z"
+
+        case .trapezoidAlt(let skew):
+            // Wide top, narrow bottom (mirror of `.trapezoid`).
+            let inset = bounds.width * skew
+            return "M \(_fmt(bounds.minX)) \(_fmt(bounds.minY))"
+                + " L \(_fmt(bounds.maxX)) \(_fmt(bounds.minY))"
+                + " L \(_fmt(bounds.maxX - inset)) \(_fmt(bounds.maxY))"
+                + " L \(_fmt(bounds.minX + inset)) \(_fmt(bounds.maxY)) Z"
+
+        case .parallelogramAlt(let skew):
+            let inset = bounds.width * skew
+            return "M \(_fmt(bounds.minX)) \(_fmt(bounds.minY))"
+                + " L \(_fmt(bounds.maxX - inset)) \(_fmt(bounds.minY))"
+                + " L \(_fmt(bounds.maxX)) \(_fmt(bounds.maxY))"
+                + " L \(_fmt(bounds.minX + inset)) \(_fmt(bounds.maxY)) Z"
+
+        case .triangleDown:
+            return "M \(_fmt(bounds.minX)) \(_fmt(bounds.minY))"
+                + " L \(_fmt(bounds.maxX)) \(_fmt(bounds.minY))"
+                + " L \(_fmt(bounds.midX)) \(_fmt(bounds.maxY)) Z"
+
+        case .slopedRectangle(let slope):
+            let dy = bounds.height * slope
+            return "M \(_fmt(bounds.minX)) \(_fmt(bounds.minY + dy))"
+                + " L \(_fmt(bounds.maxX)) \(_fmt(bounds.minY))"
+                + " L \(_fmt(bounds.maxX)) \(_fmt(bounds.maxY))"
+                + " L \(_fmt(bounds.minX)) \(_fmt(bounds.maxY)) Z"
         }
     }
 

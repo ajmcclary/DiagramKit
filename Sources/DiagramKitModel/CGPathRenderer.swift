@@ -81,6 +81,18 @@ public enum CGPathRenderer {
 
         case .horizontalCylinder(let leftCapInset):
             return _horizontalCylinder(bounds, leftCapInset: leftCapInset)
+
+        case .trapezoidAlt(let skew):
+            return _trapezoidAlt(bounds, skew: skew)
+
+        case .parallelogramAlt(let skew):
+            return _parallelogramAlt(bounds, skew: skew)
+
+        case .triangleDown:
+            return _triangleDown(bounds)
+
+        case .slopedRectangle(let slope):
+            return _slopedRectangle(bounds, slope: slope)
         }
     }
 
@@ -317,6 +329,51 @@ public enum CGPathRenderer {
                           control2: CGPoint(x: ex + segWidth * 0.25, y: bounds.maxY - waveDepth * 1.5))
         }
         path.addLine(to: CGPoint(x: bounds.minX, y: bounds.maxY - waveDepth))
+        path.closeSubpath()
+        return path
+    }
+
+    private static func _trapezoidAlt(_ bounds: CGRect, skew: CGFloat) -> CGPath {
+        // Mirrors `NodeShapeRenderer.trapezoidAltPath` — wide top, narrow bottom.
+        let path = CGMutablePath()
+        let inset = bounds.width * skew
+        path.move(to: CGPoint(x: bounds.minX, y: bounds.minY))
+        path.addLine(to: CGPoint(x: bounds.maxX, y: bounds.minY))
+        path.addLine(to: CGPoint(x: bounds.maxX - inset, y: bounds.maxY))
+        path.addLine(to: CGPoint(x: bounds.minX + inset, y: bounds.maxY))
+        path.closeSubpath()
+        return path
+    }
+
+    private static func _parallelogramAlt(_ bounds: CGRect, skew: CGFloat) -> CGPath {
+        // Mirrors `NodeShapeRenderer.parallelogramAltPath` — skewed left.
+        let path = CGMutablePath()
+        let inset = bounds.width * skew
+        path.move(to: CGPoint(x: bounds.minX, y: bounds.minY))
+        path.addLine(to: CGPoint(x: bounds.maxX - inset, y: bounds.minY))
+        path.addLine(to: CGPoint(x: bounds.maxX, y: bounds.maxY))
+        path.addLine(to: CGPoint(x: bounds.minX + inset, y: bounds.maxY))
+        path.closeSubpath()
+        return path
+    }
+
+    private static func _triangleDown(_ bounds: CGRect) -> CGPath {
+        let path = CGMutablePath()
+        path.move(to: CGPoint(x: bounds.minX, y: bounds.minY))
+        path.addLine(to: CGPoint(x: bounds.maxX, y: bounds.minY))
+        path.addLine(to: CGPoint(x: bounds.midX, y: bounds.maxY))
+        path.closeSubpath()
+        return path
+    }
+
+    private static func _slopedRectangle(_ bounds: CGRect, slope: CGFloat) -> CGPath {
+        // Top edge slanted upward to the right by `slope` × bounds.height.
+        let path = CGMutablePath()
+        let dy = bounds.height * slope
+        path.move(to: CGPoint(x: bounds.minX, y: bounds.minY + dy))
+        path.addLine(to: CGPoint(x: bounds.maxX, y: bounds.minY))
+        path.addLine(to: CGPoint(x: bounds.maxX, y: bounds.maxY))
+        path.addLine(to: CGPoint(x: bounds.minX, y: bounds.maxY))
         path.closeSubpath()
         return path
     }
