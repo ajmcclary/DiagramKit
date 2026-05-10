@@ -280,35 +280,10 @@ open class original_src_ascii_index {
         }
     }
 
-    private enum DetectedDiagramType {
-        case flowchart
-        case sequence
-        case `class`
-        case er
-        case xychart
-        case pie
-        case journey
-        case gantt
-        case quadrant
-        case requirement
-        case gitgraph
-        case mindmap
-        case timeline
-        case sankey
-        case block
-        case packet
-        case kanban
-        case architecture
-        case radar
-        case treemap
-    case venn
-    case ishikawa
-    case treeView
-    case eventmodeling
-    case wardley
-    case zenuml
-    case c4
-}
+    // `DetectedDiagramType` previously lived here as a parallel enum to
+    // the global `DiagramType`. Header detection now routes through
+    // `DiagramRegistry.detect`, so the enum and its bespoke
+    // `detectDiagramTypeInternal` chain have both been removed.
 
     struct AsciiConfig {
         var useAscii: Bool
@@ -364,62 +339,40 @@ open class original_src_ascii_index {
     }
 
     /// Detect the diagram type from the mermaid source text.
-    /// Mirrors src/index.ts ASCII renderer detection logic.
+    /// Delegates to `DiagramRegistry.detect` and maps the resulting
+    /// `DiagramType` back to the legacy ASCII-side name strings so the
+    /// public return value stays stable. State diagrams report as
+    /// "flowchart" (they share the renderer).
     public static func detectDiagramType(_ text: String) -> String {
-        switch detectDiagramTypeInternal(_preprocessMermaidSource(text).source) {
-        case .sequence:
-            return "sequence"
-        case .class:
-            return "class"
-        case .er:
-            return "er"
-        case .xychart:
-            return "xychart"
-        case .pie:
-            return "pie"
-        case .journey:
-            return "journey"
-        case .gantt:
-            return "gantt"
-        case .quadrant:
-            return "quadrantChart"
-        case .requirement:
-            return "requirement"
-        case .gitgraph:
-            return "gitGraph"
-        case .mindmap:
-            return "mindmap"
-        case .timeline:
-            return "timeline"
-        case .sankey:
-            return "sankey"
-        case .block:
-            return "block"
-        case .packet:
-            return "packet"
-        case .kanban:
-            return "kanban"
-        case .architecture:
-            return "architecture"
-        case .radar:
-            return "radar"
-        case .treemap:
-            return "treemap"
-        case .venn:
-            return "venn"
-        case .ishikawa:
-            return "ishikawa"
-        case .treeView:
-            return "treeView"
-        case .eventmodeling:
-            return "eventmodeling"
-        case .wardley:
-            return "wardley-beta"
-        case .zenuml:
-            return "zenuml"
-        case .c4:
-            return "c4"
-        case .flowchart:
+        let preprocessed = _preprocessMermaidSource(text).source
+        switch DiagramRegistry.detect(from: preprocessed).type {
+        case .sequenceDiagram:  return "sequence"
+        case .classDiagram:     return "class"
+        case .erDiagram:        return "er"
+        case .xyChart:          return "xychart"
+        case .pie:              return "pie"
+        case .journey:          return "journey"
+        case .gantt:            return "gantt"
+        case .quadrantChart:    return "quadrantChart"
+        case .requirement:      return "requirement"
+        case .gitGraph:         return "gitGraph"
+        case .mindmap:          return "mindmap"
+        case .timeline:         return "timeline"
+        case .sankey:           return "sankey"
+        case .block:            return "block"
+        case .packet:           return "packet"
+        case .kanban:           return "kanban"
+        case .architecture:     return "architecture"
+        case .radar:            return "radar"
+        case .treemap:          return "treemap"
+        case .venn:             return "venn"
+        case .ishikawa:         return "ishikawa"
+        case .treeView:         return "treeView"
+        case .eventModeling:    return "eventmodeling"
+        case .wardleyBeta:      return "wardley-beta"
+        case .zenuml:           return "zenuml"
+        case .c4:               return "c4"
+        case .flowchart, .stateDiagram:
             return "flowchart"
         }
     }
@@ -450,17 +403,17 @@ open class original_src_ascii_index {
 
         let theme = DEFAULT_ASCII_THEME.merged(with: options.theme)
 
-        switch detectDiagramTypeInternal(preprocessedText) {
-        case .sequence:
+        switch DiagramRegistry.detect(from: preprocessedText).type {
+        case .sequenceDiagram:
             return try renderSequenceAscii(preprocessedText, config, resolvedColorMode, theme)
 
-        case .class:
+        case .classDiagram:
             return try renderClassAscii(preprocessedText, config, resolvedColorMode, theme)
 
-        case .er:
+        case .erDiagram:
             return try renderErAscii(preprocessedText, config, resolvedColorMode, theme)
 
-        case .xychart:
+        case .xyChart:
             let mappedColorMode = _mapColorMode(resolvedColorMode)
             let mappedTheme = _mapTheme(theme, includeAccentBg: true)
             let mappedConfig = original_src_ascii_types.AsciiConfig(
@@ -481,13 +434,13 @@ open class original_src_ascii_index {
         case .gantt:
             throw BeautifulMermaidError.notYetImplemented("ASCII rendering for Gantt diagrams")
 
-        case .quadrant:
+        case .quadrantChart:
             throw BeautifulMermaidError.notYetImplemented("Quadrant Chart ASCII rendering")
 
         case .requirement:
             throw BeautifulMermaidError.notYetImplemented("Requirement Diagram ASCII rendering")
 
-        case .gitgraph:
+        case .gitGraph:
             throw BeautifulMermaidError.notYetImplemented("GitGraph ASCII rendering")
 
         case .mindmap:
@@ -526,10 +479,10 @@ open class original_src_ascii_index {
         case .treeView:
             throw BeautifulMermaidError.notYetImplemented("TreeView ASCII rendering")
 
-        case .eventmodeling:
+        case .eventModeling:
             throw BeautifulMermaidError.notYetImplemented("Event Modeling ASCII rendering")
 
-        case .wardley:
+        case .wardleyBeta:
             throw BeautifulMermaidError.notYetImplemented("Wardley Map ASCII rendering")
 
         case .zenuml:
@@ -538,7 +491,7 @@ open class original_src_ascii_index {
         case .c4:
             throw BeautifulMermaidError.notYetImplemented("C4 Diagram ASCII rendering")
 
-        case .flowchart:
+        case .flowchart, .stateDiagram:
             let parsed = try parseMermaid(preprocessedText)
 
             if parsed.direction == "LR" || parsed.direction == "RL" {
@@ -575,96 +528,10 @@ open class original_src_ascii_index {
     }
 
     // MARK: - Internal detection
-
-    private static func detectDiagramTypeInternal(_ text: String) -> DetectedDiagramType {
-        let firstStatement = _mermaidSourceLines(from: text).first ?? ""
-        let firstLine = firstStatement.lowercased()
-
-        if firstLine.range(of: #"^sequencediagram\s*$"#, options: .regularExpression) != nil {
-            return .sequence
-        }
-        if firstLine.range(of: #"^classdiagram\s*$"#, options: .regularExpression) != nil {
-            return .class
-        }
-        if firstLine.range(of: #"^erdiagram\s*$"#, options: .regularExpression) != nil {
-            return .er
-        }
-        if firstLine.hasPrefix("xychart") {
-            return .xychart
-        }
-        if firstLine.hasPrefix("pie") {
-            return .pie
-        }
-        if firstLine.hasPrefix("journey") {
-            return .journey
-        }
-        if firstLine.hasPrefix("gantt") {
-            return .gantt
-        }
-        if firstLine.hasPrefix("quadrantchart") {
-            return .quadrant
-        }
-        if firstLine.hasPrefix("requirement") {
-            return .requirement
-        }
-        if firstLine.hasPrefix("gitgraph") {
-            return .gitgraph
-        }
-        if firstLine.hasPrefix("mindmap") {
-            return .mindmap
-        }
-        if firstLine.hasPrefix("timeline") {
-            return .timeline
-        }
-        if firstLine.hasPrefix("sankey") {
-            return .sankey
-        }
-        if firstLine.hasPrefix("block") {
-            return .block
-        }
-        if firstLine.hasPrefix("packet") {
-            return .packet
-        }
-        if firstLine.hasPrefix("kanban") {
-            return .kanban
-        }
-        if firstLine.hasPrefix("architecture") {
-            return .architecture
-        }
-        if firstLine.hasPrefix("radar-beta") {
-            return .radar
-        }
-        if firstLine.hasPrefix("treemap") {
-            return .treemap
-        }
-        if firstLine.hasPrefix("venn-beta") {
-            return .venn
-        }
-        if firstLine.range(of: #"^ishikawa(-beta)?\b"#, options: [.regularExpression, .caseInsensitive]) != nil {
-            return .ishikawa
-        }
-        if firstStatement == "treeView-beta" || firstStatement.hasPrefix("treeView-beta ") || firstStatement.hasPrefix("treeView-beta\t") {
-            return .treeView
-        }
-        if firstLine.hasPrefix("eventmodeling") {
-            return .eventmodeling
-        }
-        if firstLine.hasPrefix("wardley-beta") {
-            return .wardley
-        }
-
-        // ZenUML — case-insensitive header prefix match
-        if firstLine.hasPrefix("zenuml") {
-            return .zenuml
-        }
-
-        // C4 — case-sensitive full-line header match
-        if firstStatement.range(of: #"^C4(?:Context|Container|Component|Dynamic|Deployment)\s*$"#, options: .regularExpression) != nil {
-            return .c4
-        }
-
-        return .flowchart
-    }
+    //
+    // Header detection now lives in `DiagramRegistry.detect(from:)`; the
+    // bespoke `detectDiagramTypeInternal` regex-and-prefix chain that
+    // previously lived here has been removed.
 
     // MARK: - Downstream call sites (explicit placeholders)
 
