@@ -24,6 +24,29 @@ swift test --filter CorpusSnapshotTests                                # verify 
 
 ## Architecture
 
+### Target layout
+
+The package ships six SwiftPM targets in a strict dependency layer ([Package.swift](Package.swift)):
+
+```
+DiagramKitCommon           (Linux + Apple)  — SVG primitives, theme, text metrics, IssueReporting, StableID
+   ↑
+DiagramKitModel            (Linux + Apple)  — parsers, layouts, SVG/ASCII renderers, frontmatter binding, payloads
+   ↑                                          UIKit/AppKit/CoreText files compile to empty on Linux
+   ├──────────────────┐
+DiagramKitRenderingCG     DiagramKitTestSupport
+   (Apple-only)            (Linux + Apple)
+   ↑
+DiagramKitViews            (Apple-only — currently a placeholder stub; Views/ files still live inside DiagramKit umbrella)
+   ↑
+DiagramKit                 (umbrella; public API + Views/)
+   — Apple-only edges to RenderingCG/Views are gated via `condition: .when(platforms: [Apple])`
+```
+
+The `DiagramKit` umbrella owns the public API surface (`MermaidRenderer`, `MermaidImageRenderer`, `MermaidPipeline`, `Parser.swift`, `Layout.swift`, `Views/*`). On Linux the umbrella's `parse` / `layout` work; everything CG-bound throws or is `#if`-gated out.
+
+The `DiagramKitViews` target is currently an empty placeholder — actual SwiftUI/UIKit views (`MermaidView`, `MermaidDiagramView`, `MermaidLayer`, `MermaidDiagram`) live in [Sources/DiagramKit/Views/](Sources/DiagramKit/Views) because they depend on `MermaidPipeline`. A future refactor may extract them via a closure-based Preparer protocol.
+
 ### Three-stage pipeline
 
 ```
@@ -32,7 +55,7 @@ Source string → MermaidParser.parse → MermaidGraph
               → DiagramRenderer.render (CG) | renderSVG | renderASCII
 ```
 
-- **`MermaidRenderer`** ([Sources/DiagramKit/MermaidRenderer.swift](Sources/DiagramKit/MermaidRenderer.swift)) is the public façade — `async throws` static methods. Every entry point dispatches its work onto a fresh 8 MB-stack `Thread` via `_runOnWorker`. **Do not reintroduce a thread pool**; it was attempted in `ff2622b` and intentionally reverted (see the doc-comment on `_runOnWorker` and `FOLLOWUPS.md`). Layout exceeds the cooperative pool's ~512 KB stack budget on nested-subgraph diagrams.
+- **`MermaidRenderer`** ([Sources/DiagramKit/MermaidRenderer.swift](Sources/DiagramKit/MermaidRenderer.swift)) is the public façade — `async throws` static methods. Every entry point dispatches its work onto a fresh 8 MB-stack `Thread` via `_runOnWorker`. **Do not reintroduce a thread pool**; it was attempted in `ff2622b` and intentionally reverted (see the doc-comment on `_runOnWorker`). Layout exceeds the cooperative pool's ~512 KB stack budget on nested-subgraph diagrams.
 - **`MermaidPipeline`** ([Sources/DiagramKit/MermaidPipeline.swift](Sources/DiagramKit/MermaidPipeline.swift)) is a stateless enum (NOT an actor) holding the synchronous, nonisolated implementations. Each public method calls `BeautifulMermaidFontRegistry.registerBundledFontsIfNeeded()` first — critical for snapshot determinism.
 - **`MermaidImageRenderer`** ([Sources/DiagramKit/ImageRenderer.swift](Sources/DiagramKit/ImageRenderer.swift)) wraps the CG path and produces `BMImage` / PNG / JPEG. Routes through `MermaidRenderer._runOnWorker`, **not** a separate worker (the duplication was removed).
 
@@ -56,11 +79,11 @@ Every diagram type has **two independent renderers** that share no geometry/text
 - **CG path:** `Sources/DiagramKitRenderingCG/DiagramRenderer+<Type>.swift` — extends `DiagramRenderer`, drives `CGContext`, used by `renderImage(...)`.
 - **SVG path:** `Sources/DiagramKitModel/src_<type>_renderer.swift` (or `_svg.swift`) — used by `renderSVG(...)`.
 
-These will drift over time. Snapshot tests catch divergence. Consolidation onto a single canonical path is a tracked follow-up — see [FOLLOWUPS.md](FOLLOWUPS.md).
+These will drift over time. Snapshot tests catch divergence. Consolidation onto a single canonical path is a long-standing follow-up.
 
 ### Parser dispatch
 
-[Sources/DiagramKit/Parser.swift](Sources/DiagramKit/Parser.swift) uses a cascading `firstLine.hasPrefix(...)` chain (e.g. `"sequencediagram"`, `"classdiagram"`, `"radar-beta"`). **Order matters** — narrower prefixes must come before broader ones. The fallback at the end handles `flowchart`, `graph`, `stateDiagram-v2`, and the older `state` keyword. Per-diagram-type parsers live in `Sources/DiagramKitModel/src_<type>_parser.swift`. The largest preprocessing file, `SourcePreprocessing.swift` (~2.6K LOC), handles frontmatter / multiline joining / comment stripping for all diagrams.
+[Sources/DiagramKit/Parser.swift](Sources/DiagramKit/Parser.swift) uses a cascading `firstLine.hasPrefix(...)` chain (e.g. `"sequencediagram"`, `"classdiagram"`, `"radar-beta"`). **Order matters** — narrower prefixes must come before broader ones. The fallback at the end handles `flowchart`, `graph`, `stateDiagram-v2`, and the older `state` keyword. Per-diagram-type parsers live in `Sources/DiagramKitModel/src_<type>_parser.swift`. Source preprocessing (frontmatter, multiline joining, comment stripping, init directive) is split across [SourcePreprocessing.swift](Sources/DiagramKitModel/SourcePreprocessing.swift), [MermaidSourceNormalizer.swift](Sources/DiagramKitModel/MermaidSourceNormalizer.swift), [FrontmatterDocumentParser.swift](Sources/DiagramKitModel/FrontmatterDocumentParser.swift), and [InitDirectiveParser.swift](Sources/DiagramKitModel/InitDirectiveParser.swift). `_parseFrontMatterAndStripped` in `SourcePreprocessing.swift` is still the single entry point that per-diagram parsers call.
 
 ### Cross-platform shim
 
@@ -79,26 +102,27 @@ System fonts drift across macOS/iOS major versions; bundled fonts make snapshot 
 
 ### Test corpus & snapshots
 
-- The corpus is [Examples/MermaidPlayground/Resources/test-diagrams.json](Examples/MermaidPlayground/Resources/test-diagrams.json) — 396 diagrams across 28 GAPS.md families. `PlaygroundExampleCatalogTests` validates that every category has at least one entry and that picker order matches GAPS.md.
-- `CorpusSnapshotTests.swift` (swift-testing, parameterized over `loadDiagrams()`) renders every entry through SVG / image / ASCII paths. Baselines live in `Tests/DiagramKitTests/__Snapshots__/CorpusSnapshotTests/`. Currently ~393 SVG, ~172 ASCII, ~161 image baselines — the gap on image vs SVG is the rendering-bug punch list.
-- Most other tests use `XCTestCase` (~140 files). Migration to swift-testing is incremental, not blocking.
+- The corpus is [Examples/MermaidPlayground/Resources/test-diagrams.json](Examples/MermaidPlayground/Resources/test-diagrams.json) — 396 diagrams across 28 diagram families. `PlaygroundExampleCatalogTests` validates that every category has at least one entry and that picker order matches the canonical family list in `Examples/MermaidPlayground/Models/SampleDiagrams.swift`.
+- [CorpusSnapshotTests.swift](Tests/DiagramKitTests/CorpusSnapshotTests.swift) (swift-testing, parameterized over `loadDiagrams()`) renders every entry through SVG / image / ASCII paths. Baselines live in `Tests/DiagramKitTests/__Snapshots__/CorpusSnapshotTests/`. Currently ~396 SVG, ~346 image, ~172 ASCII baselines — the remaining image gap is the rendering-bug punch list.
+- Most other tests use `XCTestCase` (~144 files). Migration to swift-testing is incremental, not blocking.
 
 ## Pinned dependencies
 
-- **`swift-snapshot-testing` is pinned to a fork** at `ajmcclary/swift-snapshot-testing` branch `fix-swift-6.3-attachable` (commit `67ce8c1`), carrying [pointfreeco/swift-snapshot-testing#1090](https://github.com/pointfreeco/swift-snapshot-testing/pull/1090). The upstream 1.18+ versions don't compile against Swift 6.3's `Attachable` cross-import-overlay layout. Switch back to upstream once #1090 ships in a tagged release — see "Upstream dependencies to watch" in [FOLLOWUPS.md](FOLLOWUPS.md).
+- **`swift-snapshot-testing` is pinned to a fork** at `ajmcclary/swift-snapshot-testing` branch `fix-swift-6.3-attachable`, carrying [pointfreeco/swift-snapshot-testing#1090](https://github.com/pointfreeco/swift-snapshot-testing/pull/1090). The upstream 1.18+ versions don't compile against Swift 6.3's `Attachable` cross-import-overlay layout. Switch back to upstream once #1090 ships in a tagged release.
 - `swift-custom-dump` and `xctest-dynamic-overlay` (for `IssueReporting`) are upstream pointfreeco releases.
+- `swift-crypto` is depended on **only on Linux** (`condition: .when(platforms: [.linux])`) so `DiagramKitCommon`'s `StableID.derive(...)` has a CryptoKit-equivalent API. Apple platforms use the system `CryptoKit` directly.
 
 ## What lives where
 
-- `Sources/DiagramKit/` — library
-  - `BeautifulMermaid.swift`, `MermaidPipeline.swift`, `ImageRenderer.swift` — public API
-  - `Parser.swift`, `Layout.swift`, `Types.swift` — top-level dispatchers and public types
-  - `CrossPlatform.swift`, `FontRegistry.swift`, `IssueReportingSupport.swift` — platform shims
-  - `Render/` — new CG renderer + per-type extensions
-  - `Mermaid/` — JS-ported per-diagram-type parsers / layouts / SVG / ASCII (~150 files)
-  - `Resources/` — bundled fonts + `VERSION` file (read by `MermaidRenderer.version`)
-- `Examples/MermaidPlayground/` — SwiftUI sample app, also the source of the test corpus JSON
-- `Tests/DiagramKitTests/` — XCTest + swift-testing test files; `__Snapshots__/` baselines (excluded from SwiftPM resource processing)
+- `Sources/DiagramKitCommon/` — Linux-portable foundations: `SVG`, `IssueReportingSupport`, `StableID` (CryptoKit / swift-crypto), text metrics, theme, font-awesome / HTML-entity tables, multiline utils, styles.
+- `Sources/DiagramKitModel/` (~197 files) — JS-ported per-diagram-type **parsers / layouts / SVG / ASCII renderers** (`src_<type>_parser.swift`, `src_<type>_layout.swift`, `src_<type>_renderer.swift`, `src_ascii_*.swift`). Also `Types.swift`, `RenderConfig.swift`, `RenderOptions.swift`, `RenderTokens.swift`, `PositionedPayloads.swift`, `CrossPlatform.swift` (`BMColor` / `BMFont` / `BMImage` typealiases), `FrontmatterBinding+<Type>.swift` (one per diagram), and the source-preprocessing quartet. UIKit/AppKit/CoreText-specific files are gated to compile to empty on Linux.
+- `Sources/DiagramKitRenderingCG/` — Apple-only CG renderer. `DiagramRenderer+<Type>.swift` per diagram type plus `DiagramRenderer.swift`, `EdgeRenderer`, `LabelRenderer`, `ShapeRenderer`, `ArrowRenderer`, `CGPathRenderer`, `PreparedDiagram`, `FontRegistry` (`BeautifulMermaidFontRegistry`), `Version` (reads `Resources/VERSION`). `Resources/` ships bundled fonts (`Fonts/Noto Sans*`) + `VERSION`.
+- `Sources/DiagramKitViews/` — Apple-only placeholder stub. The actual SwiftUI/UIKit views currently live in `Sources/DiagramKit/Views/`.
+- `Sources/DiagramKitTestSupport/` — Linux-portable test helpers (no CG/CT/UI deps).
+- `Sources/DiagramKit/` — public API umbrella: `MermaidRenderer.swift`, `MermaidPipeline.swift`, `ImageRenderer.swift`, `Parser.swift`, `Layout.swift`, `DiagramDescriptor.swift`, `src_index.swift`, `src_ascii_index.swift`, plus `Views/` (`MermaidView`, `MermaidDiagramView`, `MermaidLayer`, `MermaidDiagram`).
+- `Examples/MermaidPlayground/` — SwiftUI sample app and the source of `Resources/test-diagrams.json` (test corpus).
+- `Tests/DiagramKitTests/` — XCTest + swift-testing test files (~144); `__Snapshots__/CorpusSnapshotTests/` baselines (excluded from SwiftPM resource processing).
+- `Scripts/linux-check.sh` + `Dockerfile.linux-check` — Linux portability harness.
 
 ## Conventions
 
@@ -106,7 +130,8 @@ System fonts drift across macOS/iOS major versions; bundled fonts make snapshot 
 - **Public types implement `Sendable`** — `DiagramType`, `DiagramPayload`, `MermaidGraph`, `PositionedContent`, `PositionedGraph`, `LayoutConfig`, `EdgeStyle` are all explicitly `Sendable`. `swiftLanguageModes: [.v6]` is enforced.
 - **Errors flow through `_withMermaidIssueReporting(operation:)`.** Use it at every public boundary so test-time observers see uncategorized failures without obstructing flow.
 - **Underscore-prefixed top-level names are SPI** (e.g. `_PositionedNodePayload`, `_renderMermaidSVG`). Public typealiases drop the underscore: `PositionedNode = _PositionedNodePayload`. Don't reference the `_`-prefixed names from outside the module.
-- The Mermaid frontmatter parser at `SourcePreprocessing.swift:_parseFrontMatterAndStripped` is the single entry for YAML-like frontmatter; per-diagram-type parsers receive a typed `frontmatter` argument and pull config off it.
+- The Mermaid frontmatter parser at `SourcePreprocessing.swift:_parseFrontMatterAndStripped` is the single entry for YAML-like frontmatter; per-diagram-type parsers receive a typed `frontmatter` argument and pull config off it via the `FrontmatterBinding+<Type>.swift` adapters.
+- **Module imports follow the layer order.** Files inside `DiagramKitModel` cannot `import DiagramKitRenderingCG`; files inside `DiagramKitRenderingCG` import `DiagramKitModel` + `DiagramKitCommon`; the umbrella `DiagramKit` re-exports the layer below it. When in doubt about where a new file belongs: if it touches CoreGraphics, it goes in RenderingCG; if it touches UIKit/AppKit only via the `BMColor`/`BMFont` shims, it can go in Model under a `#if canImport(UIKit)||canImport(AppKit)` gate; if it has no platform deps at all, prefer `DiagramKitCommon`.
 
 ## Linux portability state (Stage 2)
 
@@ -136,4 +161,8 @@ Builds the Linux-portable target matrix in a `swift:6.3.1-noble` container (Dock
 - Source-level: `#if canImport(CoreGraphics)` for CG, `#if canImport(CoreText)` for text measurement, `#if canImport(UIKit) || canImport(AppKit)` for native UI types and `BMColor`/`BMFont`/`BMImage`.
 - `BMColor`/`BMFont`/`BMImage`/`BMView`/`BMBezierPath` typealiases in `CrossPlatform.swift` are intentionally undefined on Linux. Any callsite using them must itself be gated.
 
-See [FOLLOWUPS.md](FOLLOWUPS.md) for explicitly deferred work (CG/SVG audit, RenderConfig magic-number sweep, SourcePreprocessing split, etc.).
+**Known deferrals:**
+- A portable text-measurement shim so `ishikawa` / `treeView` / `eventModeling` layouts can run on Linux (Stage 2.5).
+- CG/SVG renderer drift — they share no geometry/measurement code; long-term plan is a single canonical path. Snapshot tests are the only guardrail in the meantime.
+- `RenderConfig.swift` carries a number of magic constants that should be lifted into theme tokens.
+- `DiagramKitViews` extraction (currently a placeholder stub).

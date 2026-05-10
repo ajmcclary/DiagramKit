@@ -1,6 +1,8 @@
 # AGENTS.md
 
-Native Swift mermaid-js port (~28 diagram types). The companion `CLAUDE.md` has deeper architecture notes — read it for the three-stage pipeline, directory layout, and JS-ported parser conventions.
+Native Swift mermaid-js port (~28 diagram types). The companion `CLAUDE.md` has deeper architecture notes — read it for the three-stage pipeline, layered target layout, and JS-ported parser conventions.
+
+The package is split into six layered targets: `DiagramKitCommon` (Linux+Apple) → `DiagramKitModel` (Linux+Apple) → `DiagramKitRenderingCG` (Apple-only) / `DiagramKitTestSupport` (Linux+Apple) / `DiagramKitViews` (Apple-only stub) → `DiagramKit` (umbrella, public API + Views). Imports flow strictly along that direction.
 
 ## Commands
 
@@ -27,7 +29,7 @@ There is no lint/format/typecheck step — `swift test` is the primary verificat
 - **Never introduce a thread pool.** Every public entry point spawns a fresh 8 MB-stack `Thread` via `MermaidRenderer._runOnWorker`. This was tried and reverted (`ff2622b`) — the cooperative pool's ~512 KB stack can't handle deeply nested subgraph layouts.
 - **`BeautifulMermaidFontRegistry.registerBundledFontsIfNeeded()` must be called first** in every pipeline method. Skipping it breaks snapshot determinism (fonts drift across OS versions).
 - **Parser dispatch order matters.** `Parser.swift` uses a cascading `firstLine.hasPrefix(...)` chain; narrower prefixes must come before broader ones. The fallback handles `flowchart`, `graph`, `stateDiagram-v2`, and `state`.
-- **Two independent renderers exist** (`Render/DiagramRenderer+<Type>.swift` for CG/images and `Mermaid/src_<type>_renderer.swift` for SVG). They share no geometry/text-measurement logic and will drift. Snapshot tests are the only guardrail.
+- **Two independent renderers exist** (`Sources/DiagramKitRenderingCG/DiagramRenderer+<Type>.swift` for CG/images and `Sources/DiagramKitModel/src_<type>_renderer.swift` for SVG). They share no geometry/text-measurement logic and will drift. Snapshot tests are the only guardrail.
 - **Use `bmColorEquals()` for color comparisons**, not `hexString` round-trips — AppKit `NSColor` normalizes through `.deviceRGB`.
 
 ## Conventions
@@ -40,9 +42,9 @@ There is no lint/format/typecheck step — `swift test` is the primary verificat
 
 ## Testing
 
-- ~140 XCTest files + a few swift-testing suites (`CorpusSnapshotTests` uses `@Suite`/`@Test`).
+- ~144 XCTest files + a few swift-testing suites (`CorpusSnapshotTests` uses `@Suite`/`@Test`).
 - The test corpus is `Examples/MermaidPlayground/Resources/test-diagrams.json` (396 entries).
-- `CorpusSnapshotTests` renders every diagram through SVG, image, and ASCII paths. Baselines at `Tests/BeautifulMermaidSwiftTests/__Snapshots__/CorpusSnapshotTests/`. ~161 image baselines — missing image cases are rendering bugs (layout producing 0×0 bounds).
+- `CorpusSnapshotTests` renders every diagram through SVG, image, and ASCII paths. Baselines at `Tests/DiagramKitTests/__Snapshots__/CorpusSnapshotTests/` (~396 SVG, ~346 image, ~172 ASCII). The remaining image gap is the rendering-bug punch list (layouts producing 0×0 bounds).
 - Snapshot precision: image snapshots use `precision: 0.99, perceptualPrecision: 0.98` to tolerate CoreText rasterization drift across CPU architectures.
 
 ## Dependencies
