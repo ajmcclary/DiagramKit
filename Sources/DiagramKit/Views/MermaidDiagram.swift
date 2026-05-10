@@ -28,6 +28,11 @@ public struct MermaidDiagram {
     }
 
     /// Parse and layout the current source.
+    ///
+    /// Dispatches to `MermaidPreparation.prepare`, which routes onto the
+    /// 8 MB-stack worker thread. The actual parse/layout therefore runs
+    /// off the main actor; only the result publication happens on the
+    /// main actor.
     public mutating func prepare() async {
         parseError = nil
 
@@ -37,11 +42,15 @@ public struct MermaidDiagram {
             return
         }
 
+        let snapshotSource = source
+        let snapshotTheme = theme
+        let snapshotConfig = layoutConfig
+
         do {
-            let prepared = try MermaidPipeline.prepare(
-                source: source,
-                theme: theme,
-                layoutConfig: layoutConfig
+            let prepared = try await MermaidPreparation.prepare(
+                source: snapshotSource,
+                theme: snapshotTheme,
+                layoutConfig: snapshotConfig
             )
             preparedDiagram = prepared
             diagramBounds = prepared.bounds
