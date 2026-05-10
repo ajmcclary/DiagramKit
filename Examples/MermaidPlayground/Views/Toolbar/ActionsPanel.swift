@@ -26,6 +26,7 @@ struct ActionsPanel: View {
     @SwiftUI.State private var showingPNGExporter = false
     @SwiftUI.State private var showingSVGExporter = false
     @SwiftUI.State private var showingShareSheet = false
+    @SwiftUI.State private var showingHistory = false
 
     var body: some View {
         ActionsView(
@@ -33,7 +34,8 @@ struct ActionsPanel: View {
             onExportPNG: { Task { await exportPNG() } },
             onExportSVG: { Task { await exportSVGToFile() } },
             onFullWindowPreview: { showingFullWindowPreview = true },
-            onShareState: { showingShareSheet = true }
+            onShareState: { showingShareSheet = true },
+            onShowHistory: { showingHistory = true }
         )
         .alert("Export Failed", isPresented: $showExportError) {
             Button("OK", role: .cancel) {}
@@ -72,6 +74,24 @@ struct ActionsPanel: View {
             #else
             ShareView(store: store)
                 .frame(width: 440, height: 520)
+            #endif
+        }
+        .sheet(isPresented: $showingHistory) {
+            #if os(iOS)
+            NavigationStack {
+                HistoryView(store: store)
+                    .navigationTitle("History")
+                    .navigationBarTitleDisplayMode(.inline)
+                    .toolbar {
+                        ToolbarItem(placement: .confirmationAction) {
+                            Button("Done") { showingHistory = false }
+                        }
+                    }
+            }
+            .presentationDetents([.medium, .large])
+            #else
+            HistoryView(store: store)
+                .frame(width: 460, height: 560)
             #endif
         }
     }

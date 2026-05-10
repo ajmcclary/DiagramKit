@@ -62,7 +62,7 @@ struct LiveEditorToolbar: ToolbarContent {
             }
             .popover(isPresented: $showingActions) {
                 ActionsPanel(store: store, showingFullWindowPreview: $showingFullWindowPreview)
-                    .frame(width: 300, height: 420)
+                    .frame(width: 300, height: 520)
             }
             .help("Export, copy, and share")
 

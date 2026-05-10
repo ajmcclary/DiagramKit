@@ -64,6 +64,11 @@ public final class LiveEditorStore {
     /// PNG export parameters. Mutable by the export UI.
     public var exportOptions: ExportOptions = ExportOptions()
 
+    // MARK: - History (Phase 5)
+
+    /// History store for manual saves, auto timeline, and loader entries.
+    public let historyStore: LiveHistoryStore
+
     // MARK: - Derived
 
     /// Resolved theme from ``LiveEditorState/selectedThemeName``.
@@ -84,6 +89,7 @@ public final class LiveEditorStore {
 
     public init(state: LiveEditorState = LiveEditorState()) {
         self.state = state
+        self.historyStore = LiveHistoryStore()
         parseConfig()
     }
 
@@ -182,6 +188,8 @@ public final class LiveEditorStore {
             renderStatus = .idle
         } else {
             renderStatus = .rendered
+            // Auto-save history after successful renders
+            historyStore.autoSaveIfNeeded(state: state)
         }
     }
 
@@ -328,6 +336,116 @@ public final class LiveEditorStore {
         if applied {
             requestRender(reason: .sourceChanged)
         }
+    }
+
+    // MARK: - History actions (Phase 5)
+
+    /// Save the current state as a manually-named history entry.
+    ///
+    /// - Parameter label: A user-provided name for this snapshot.
+    @discardableResult
+    public func saveHistoryEntry(label: String) -> LiveHistoryEntry {
+        historyStore.save(state: state, label: label)
+    }
+
+    /// Restore all editor state from a history entry.
+    ///
+    /// Applies source, theme, config, and view settings. Uses
+    /// `origin: .history` so manual mode doesn't block the restore.
+    ///
+    /// - Parameter entry: The history entry to restore from.
+    public func restoreFromHistory(_ entry: LiveHistoryEntry) {
+        let restored = historyStore.restore(entry)
+
+        var applied = false
+
+        if restored.source != state.source {
+            state.source = restored.source
+            applied = true
+        }
+        if restored.selectedThemeName != state.selectedThemeName {
+            state.selectedThemeName = restored.selectedThemeName
+            applied = true
+        }
+        if restored.configJSON != state.configJSON {
+            state.configJSON = restored.configJSON
+            parseConfig()
+            applied = true
+        }
+
+        state.editorMode = restored.editorMode
+        state.gridEnabled = restored.gridEnabled
+        state.panZoomEnabled = restored.panZoomEnabled
+        state.zoomScale = restored.zoomScale
+        state.panOffset = restored.panOffset
+        state.updateMode = restored.updateMode
+
+        isDirty = false
+
+        if applied {
+            requestRender(reason: .sourceChanged)
+        }
+    }
+
+    // MARK: - Loader actions (Phase 5)
+
+    /// Load diagram source and config from a GitHub Gist URL.
+    ///
+    /// Fetches the Gist via the public API, extracts source from
+    /// `code.mmd` (or a `.mmd` fallback), and config from `config.json`.
+    /// Config is sanitized before application. A loader history entry
+    /// is saved automatically.
+    ///
+    /// - Parameter url: A GitHub Gist URL.
+    /// - Throws: ``GistLoader.LoadError`` on failure.
+    public func loadFromGist(url: URL) async throws {
+        let result = try await GistLoader.load(from: url)
+
+        state.source = result.source
+
+        if let configJSON = result.configJSON {
+            state.configJSON = configJSON
+            parseConfig()
+        }
+
+        // Save loader history entry
+        historyStore.saveLoaderEntry(
+            state: state,
+            label: result.label,
+            sourceURL: result.sourceURL
+        )
+
+        isDirty = false
+        requestRender(reason: .sourceChanged)
+    }
+
+    /// Load diagram source and/or config from raw HTTP(S) URLs.
+    ///
+    /// - Parameters:
+    ///   - codeURL: URL to load Mermaid source from (optional).
+    ///   - configURL: URL to load config JSON from (optional).
+    /// - Throws: ``RawFileLoader.LoadError`` on failure.
+    public func loadFromRawURL(codeURL: URL?, configURL: URL?) async throws {
+        let result = try await RawFileLoader.load(codeURL: codeURL, configURL: configURL)
+
+        if !result.source.isEmpty {
+            state.source = result.source
+        }
+
+        if let configJSON = result.configJSON {
+            state.configJSON = configJSON
+            parseConfig()
+        }
+
+        // Save loader history entry
+        historyStore.saveLoaderEntry(
+            state: state,
+            label: result.label,
+            sourceURL: result.sourceURL
+        )
+
+        isDirty = false
+        requestRender(reason: .sourceChanged)
     }
 
     // MARK: - Private helpers

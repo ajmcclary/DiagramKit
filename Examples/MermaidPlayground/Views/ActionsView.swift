@@ -23,9 +23,21 @@ struct ActionsView: View {
     let onFullWindowPreview: () -> Void
     /// Called when the user taps "Share State".
     let onShareState: () -> Void
+    /// Called when the user taps "View History".
+    let onShowHistory: () -> Void
 
     @SwiftUI.State private var showingCopyFeedback = false
     @SwiftUI.State private var copyFeedbackMessage = ""
+
+    // History save state
+    @SwiftUI.State private var saveLabel: String = ""
+
+    // Loader state
+    @SwiftUI.State private var gistURLString: String = ""
+    @SwiftUI.State private var codeURLString: String = ""
+    @SwiftUI.State private var configURLString: String = ""
+    @SwiftUI.State private var loaderError: String?
+    @SwiftUI.State private var isLoading: Bool = false
 
     var body: some View {
         ScrollView {
@@ -51,6 +63,18 @@ struct ActionsView: View {
                 // Share section
                 sectionHeader("Share")
                 shareSection
+
+                Divider()
+
+                // History section
+                sectionHeader("History")
+                historySection
+
+                Divider()
+
+                // Load section
+                sectionHeader("Load")
+                loadSection
 
                 // Copy feedback toast
                 if showingCopyFeedback {
@@ -267,6 +291,199 @@ struct ActionsView: View {
                 subtitle: "Copy serialized editor state"
             ) {
                 onShareState()
+            }
+        }
+    }
+
+    // MARK: - History section
+
+    private var historySection: some View {
+        VStack(spacing: 6) {
+            // Save State with inline label field
+            HStack(spacing: 6) {
+                TextField("Snapshot name...", text: $saveLabel)
+                    .textFieldStyle(.roundedBorder)
+                    .font(.system(size: 12))
+                    .foregroundColor(Color(store.theme.foreground))
+
+                Button {
+                    let label = saveLabel.trimmingCharacters(in: .whitespaces)
+                    guard !label.isEmpty else { return }
+                    store.saveHistoryEntry(label: label)
+                    saveLabel = ""
+                    showCopyFeedback("Saved: \(label)")
+                } label: {
+                    Text("Save")
+                        .font(.system(size: 11, weight: .medium))
+                        .foregroundColor(.white)
+                        .padding(.horizontal, 10)
+                        .padding(.vertical, 4)
+                        .background(
+                            RoundedRectangle(cornerRadius: 4)
+                                .fill(Color(store.theme.effectiveAccent()))
+                        )
+                }
+                .disabled(saveLabel.trimmingCharacters(in: .whitespaces).isEmpty)
+                .buttonStyle(.plain)
+            }
+            .padding(.vertical, 2)
+
+            actionButton(
+                label: "View History",
+                icon: "clock.arrow.circlepath",
+                subtitle: "Browse saved states (\(store.historyStore.entries.count))"
+            ) {
+                onShowHistory()
+            }
+        }
+    }
+
+    // MARK: - Load section
+
+    private var loadSection: some View {
+        VStack(spacing: 8) {
+            // Gist URL field
+            VStack(alignment: .leading, spacing: 4) {
+                Text("Load from Gist")
+                    .font(.system(size: 11, weight: .medium))
+                    .foregroundColor(Color(store.theme.effectiveMuted()))
+
+                HStack(spacing: 6) {
+                    TextField("https://gist.github.com/...", text: $gistURLString)
+                        .textFieldStyle(.roundedBorder)
+                        .font(.system(size: 11))
+                        .foregroundColor(Color(store.theme.foreground))
+
+                    Button {
+                        loadFromGist()
+                    } label: {
+                        if isLoading {
+                            ProgressView()
+                                .scaleEffect(0.7)
+                                .frame(width: 20, height: 20)
+                        } else {
+                            Text("Load")
+                                .font(.system(size: 11, weight: .medium))
+                        }
+                    }
+                    .disabled(gistURLString.trimmingCharacters(in: .whitespaces).isEmpty || isLoading)
+                    .buttonStyle(.plain)
+                    .foregroundColor(Color(store.theme.effectiveAccent()))
+                }
+            }
+
+            // Raw URL fields
+            VStack(alignment: .leading, spacing: 4) {
+                Text("Load from URL")
+                    .font(.system(size: 11, weight: .medium))
+                    .foregroundColor(Color(store.theme.effectiveMuted()))
+
+                TextField("Code URL (e.g. raw .mmd file)", text: $codeURLString)
+                    .textFieldStyle(.roundedBorder)
+                    .font(.system(size: 11))
+                    .foregroundColor(Color(store.theme.foreground))
+
+                TextField("Config URL (optional JSON)", text: $configURLString)
+                    .textFieldStyle(.roundedBorder)
+                    .font(.system(size: 11))
+                    .foregroundColor(Color(store.theme.foreground))
+
+                HStack {
+                    Spacer()
+
+                    Button {
+                        loadFromRawURL()
+                    } label: {
+                        if isLoading {
+                            ProgressView()
+                                .scaleEffect(0.7)
+                                .frame(width: 20, height: 20)
+                        } else {
+                            Text("Load")
+                                .font(.system(size: 11, weight: .medium))
+                        }
+                    }
+                    .disabled(codeURLString.trimmingCharacters(in: .whitespaces).isEmpty || isLoading)
+                    .buttonStyle(.plain)
+                    .foregroundColor(Color(store.theme.effectiveAccent()))
+                }
+            }
+
+            // Loader error display
+            if let loaderError {
+                Text(loaderError)
+                    .font(.system(size: 11))
+                    .foregroundColor(.red)
+                    .padding(8)
+                    .background(
+                        RoundedRectangle(cornerRadius: 6)
+                            .fill(Color.red.opacity(0.08))
+                    )
+            }
+        }
+        .padding(8)
+        .background(
+            RoundedRectangle(cornerRadius: 8)
+                .fill(Color(store.theme.foreground).opacity(0.02))
+        )
+    }
+
+    // MARK: - Loader actions
+
+    private func loadFromGist() {
+        guard let url = URL(string: gistURLString.trimmingCharacters(in: .whitespaces)) else {
+            loaderError = "Invalid URL."
+            return
+        }
+
+        isLoading = true
+        loaderError = nil
+
+        Task {
+            do {
+                try await store.loadFromGist(url: url)
+                await MainActor.run {
+                    isLoading = false
+                    gistURLString = ""
+                    showCopyFeedback("Gist loaded")
+                }
+            } catch {
+                await MainActor.run {
+                    isLoading = false
+                    loaderError = error.localizedDescription
+                }
+            }
+        }
+    }
+
+    private func loadFromRawURL() {
+        let codeURL = URL(string: codeURLString.trimmingCharacters(in: .whitespaces))
+        let configURL = configURLString.trimmingCharacters(in: .whitespaces).isEmpty
+            ? nil
+            : URL(string: configURLString.trimmingCharacters(in: .whitespaces))
+
+        guard codeURL != nil || configURL != nil else {
+            loaderError = "At least one valid URL is required."
+            return
+        }
+
+        isLoading = true
+        loaderError = nil
+
+        Task {
+            do {
+                try await store.loadFromRawURL(codeURL: codeURL, configURL: configURL)
+                await MainActor.run {
+                    isLoading = false
+                    codeURLString = ""
+                    configURLString = ""
+                    showCopyFeedback("URL loaded")
+                }
+            } catch {
+                await MainActor.run {
+                    isLoading = false
+                    loaderError = error.localizedDescription
+                }
             }
         }
     }

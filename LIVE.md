@@ -6,13 +6,13 @@ This document compares the current Swift-native `Examples/MermaidPlayground` app
 
 The goal is not to embed the JavaScript editor. The playground should remain a native validation surface for DiagramKit, using `MermaidView`, `MermaidPipeline`, `MermaidRenderer.renderSVG`, and `MermaidImageRenderer` so it exercises the same Swift parse/layout/render paths as the package.
 
-## Current State (post-Phase 4)
+## Current State (post-Phase 5)
 
-Phase 1 replaced the ad-hoc `PlaygroundConfiguration` singleton with a first-class store architecture. Phase 2 added the toolbar shell, config editor, grid/pan controls, auto/manual sync, and export/clipboard actions. Phase 3 added config JSON parsing, theme/layout extraction, sanitization, and warnings overlay. Phase 4 centralized export/copy/share into the store, added PNG sizing options, state serialization (base64url), and a share/restore UI. The app now has:
+Phase 1 replaced the ad-hoc `PlaygroundConfiguration` singleton with a first-class store architecture. Phase 2 added the toolbar shell, config editor, grid/pan controls, auto/manual sync, and export/clipboard actions. Phase 3 added config JSON parsing, theme/layout extraction, sanitization, and warnings overlay. Phase 4 centralized export/copy/share into the store, added PNG sizing options, state serialization (base64url), and a share/restore UI. Phase 5 added history (manual saves, auto timeline, JSON export/import) and loaders (Gist, raw URL, config sanitization). The app now has:
 
-### Models (8 files)
+### Models (14 files)
 - `LiveEditorState.swift`: `Codable` struct with `source`, `selectedThemeName`, `configJSON`, `editorMode`, `updateMode`, `gridEnabled`, `panZoomEnabled`, `zoomScale`, `panOffset`.
-- `LiveEditorStore.swift`: `@MainActor @Observable` owner of `LiveEditorState`, render status, `parseError`, `diagramBounds`, `isDirty`, `parsedConfig`, `layoutConfig`, `configWarnings`, `exportOptions`. Actions: `setSource(_:origin:)`, `setTheme(named:)`, `setConfigJSON(_:)`, `requestRender(reason:)`, `renderNow()`, `didCompleteRender(parseError:diagramBounds:)`, `exportPNG(options:)`, `exportSVG()`, `copySource()`, `copyConfig()`, `copySVG()`, `copyPNGImage(options:)`, `serializedState()`, `restoreFromSerializedState(_:)`. Config parsing on init and on `setConfigJSON`; theme/layout extracted automatically.
+- `LiveEditorStore.swift`: `@MainActor @Observable` owner of `LiveEditorState`, render status, `parseError`, `diagramBounds`, `isDirty`, `parsedConfig`, `layoutConfig`, `configWarnings`, `exportOptions`, `historyStore`. Actions: `setSource(_:origin:)`, `setTheme(named:)`, `setConfigJSON(_:)`, `requestRender(reason:)`, `renderNow()`, `didCompleteRender(parseError:diagramBounds:)`, `exportPNG(options:)`, `exportSVG()`, `copySource()`, `copyConfig()`, `copySVG()`, `copyPNGImage(options:)`, `serializedState()`, `restoreFromSerializedState(_:)`, `saveHistoryEntry(label:)`, `restoreFromHistory(_:)`, `loadFromGist(url:)`, `loadFromRawURL(codeURL:configURL:)`. Config parsing on init and on `setConfigJSON`; theme/layout extracted automatically; auto-save hooks into `didCompleteRender`.
 - `LiveRenderStatus.swift`: enum `idle | pending | rendering | rendered | failed`.
 - `LiveEditorConfig.swift`: parses raw config JSON into `JSONValue` tree; extracts `themeName` (fuzzy-matched to DiagramKit themes), `layoutConfig` (padding/nodeSpacing/layerSpacing/componentSpacing), and `unknownKeys` for round-trip preservation; exposes `recognizedKeyCount`/`unknownKeyCount`.
 - `ConfigSanitizer.swift`: audits config tree for unsafe/unsupported keys (`securityLevel`, `htmlLabels`, prototype pollution via `__` prefix, XSS vectors via angle brackets in strings); produces `Warning` values with severity levels (unsupported/caution/info) and icon/color helpers for UI display.
@@ -20,6 +20,15 @@ Phase 1 replaced the ad-hoc `PlaygroundConfiguration` singleton with a first-cla
 - `LiveEditorStateCodec.swift` (Phase 4): serializes `LiveEditorState` to/from a URL-safe base64-encoded JSON string using `Base64URL` from `DiagramKitModel`.
 - `JSONValue.swift` (in `DiagramKitModel`): recursive `Codable` enum (`string|number|bool|null|object|array`) with key-path access, flattened representation, and round-trip fidelity — used by both the playground config parser and the package at large.
 - `Base64URL.swift` (in `DiagramKitModel`, Phase 4): RFC 4648 §5 URL-safe base64 encoding/decoding; used by `LiveEditorStateCodec` and testable from `DiagramKitTests`.
+
+### Models — History (Phase 5, 2 files)
+- `History/LiveHistoryEntry.swift`: `LiveHistoryEntry` struct (id, timestamp, label, origin, state, sourceURL) and `LiveHistoryOrigin` enum (manual/auto/loader); `Codable`/`Sendable`/`Identifiable`/`Equatable`; `isReadOnly` and `displayLabel` computed properties.
+- `History/LiveHistoryStore.swift`: `@MainActor @Observable` persistence engine in `Application Support/MermaidPlayground/History/history.json`; manual save, auto save (60s debounce, state dedup, 30-entry cap), restore, delete, clear, JSON export/import.
+
+### Models — Loaders (Phase 5, 3 files)
+- `Loaders/LoaderResult.swift`: shared result type with `source`, `configJSON`, `label`, `sourceURL`, optional `revisions`.
+- `Loaders/GistLoader.swift`: fetches GitHub Gist API; extracts `code.mmd` + `config.json`; sanitizes config; typed error enum.
+- `Loaders/RawFileLoader.swift`: fetches arbitrary HTTP(S) URLs; parallel code+config fetch; single-URL auto-detection; sanitizes config.
 
 ### Views — Core (6 files)
 - `LiveEditorView.swift`: root view; editor+preview split (regular), Edit/View toggle (compact), full-window preview sheet.
@@ -42,6 +51,9 @@ Phase 1 replaced the ad-hoc `PlaygroundConfiguration` singleton with a first-cla
 ### Views — Phase 4 (2 files)
 - `Views/ActionsView.swift`: Export/copy/share button groups with PNG sizing picker (Auto/Fixed + scale/width-height controls). Delegates copy actions to store methods; export triggers to parent callbacks.
 - `Views/ShareView.swift`: Displays serialized share string (selectable, copyable); paste-to-restore with error/success feedback.
+
+### Views — Phase 5 (1 file)
+- `Views/History/HistoryView.swift`: History browser with origin filter (All/Manual/Auto/Loader), scrollable entry list, restore/delete actions, inline save form, JSON import/export dialogs, clear-all confirmation.
 
 ### Supporting (2 files)
 - `BMColor+IsLight.swift`: extracted `isLight` extension.
@@ -66,6 +78,13 @@ Phase 1 replaced the ad-hoc `PlaygroundConfiguration` singleton with a first-cla
 - **PNG sizing**: `ExportOptions` with `.auto` (diagram natural bounds × scale) or `.fixed(CGSize)`. The `ActionsView` sizing picker mutates `store.exportOptions` directly.
 - **State serialization**: `LiveEditorStateCodec` encodes `LiveEditorState` to JSON + base64url (via `Base64URL` in `DiagramKitModel`). `serializedState()` and `restoreFromSerializedState(_:)` on the store wrap the codec. `restoreFromSerializedState` applies all 9 state fields and triggers a render (using `.system` origin to bypass manual-mode guard).
 - **Share UI**: `ShareView` displays the serialized string (selectable text, copy button, character count) and provides a paste-to-restore input with `TextEditor` and error/success feedback.
+
+### Store behaviors (new in Phase 5)
+- **Auto-save**: After successful renders, `didCompleteRender` calls `historyStore.autoSaveIfNeeded(state:)`. The history store enforces a 60s debounce, compares serialized state against the last auto entry for dedup, and caps auto entries at 30.
+- **Manual save/restore**: `saveHistoryEntry(label:)` creates a named snapshot; `restoreFromHistory(_:)` applies all 9 state fields and triggers a render.
+- **Loader integration**: `loadFromGist(url:)` and `loadFromRawURL(codeURL:configURL:)` fetch external content, sanitize config, apply to state, and save a loader history entry. Both use `SourceOrigin.loader` to bypass manual-mode guard.
+- **History panel**: `HistoryView` (opened from `ActionsView`) displays entries with origin filter, restore/delete actions, inline save form, and JSON import/export.
+- **Loader UI**: Inline in `ActionsView` — Gist URL field, code/config URL fields, load buttons with progress indicator and error display.
 
 ### Rendering invariants (unchanged)
 The render loop is explicit: source/theme changes set `renderStatus = .rendering`, `MermaidLayer` handles cancel-on-new-source, `onPrepareComplete` publishes success/failure. The preview dims on failure while keeping the last valid render visible.
@@ -137,9 +156,9 @@ Keep `rough` out of the first version unless a native rough renderer is added. T
 | Copy image / copy SVG / copy source | ✅ Phase 2 | `ActionsPanel` copy buttons: source text, config JSON, SVG text (via `NSPasteboard`/`UIPasteboard`), PNG image |
 | Share links | ✅ Phase 4 | `LiveEditorStateCodec` → JSON + base64url; `ShareView` with copy/paste-to-restore; `pako:` deflate interop deferred to Phase 4.1 |
 | View-only mode | ✅ Phase 2 full-window preview | Full-window preview sheet from `ActionsPanel` or `PreviewToolbar`; standalone preview-only view |
-| History | ⬜ Phase 5 | Manual saved states and auto timeline to come |
-| History import/export | ⬜ Phase 5 | JSON file import/export to come |
-| Gist/raw URL loaders | ⬜ Phase 5 | Optional network loaders to come |
+| History | ✅ Phase 5 | `LiveHistoryStore` with manual saves, auto timeline (30-entry cap, 60s debounce), restore/delete/clear; `HistoryView` with filtering and JSON import/export |
+| History import/export | ✅ Phase 5 | `exportData()`/`importData(_:)` on `LiveHistoryStore`; file exporter/importer in `HistoryView`; UUID-based dedup on import |
+| Gist/raw URL loaders | ✅ Phase 5 | `GistLoader` (GitHub API, `code.mmd`/`config.json`) and `RawFileLoader` (auto content-type detection); config sanitization via `ConfigSanitizer.stripUnsafe`; loader history entries saved automatically |
 | Documentation button | ⬜ Deferred | Port docs map and `openURL` |
 | Version/security toolbar | ✅ Phase 2 | `VersionSecurityPanel` with DiagramKit version, platform, privacy disclosure sheet, repo/doc links |
 | Mermaid Chart / AI / analytics | ⬜ Deferred | Defer or expose only as explicit external links; do not make them central to the sample app |
@@ -283,7 +302,50 @@ Architecture decisions:
 - **pako:/Compression.framework deferred** to Phase 4.1. The LIVE.md spec marks it optional ("if interoperability with mermaid.live URLs is a requirement"). Current format is app-local JSON+base64url.
 - **PNG export routes through `MermaidImageRenderer` with `layoutConfig`**: exports reflect the config-driven layout parameters, not just the source+theme.
 
-### Phase 5: History and Loaders
+### Phase 5: History and Loaders ✅ DONE (2026-05-10)
+
+**Outcome**: `swift build --build-tests` passes clean. 14 new tests (`LiveHistoryEntrySerializationTests`), all passing. Manual saves, auto timeline (30-entry cap, 60s debounce), JSON export/import round-trips, and Gist/raw-URL loaders integrated into the app.
+
+**What was built**:
+
+Files created (6):
+
+- `Examples/MermaidPlayground/Models/History/LiveHistoryEntry.swift` — `LiveHistoryEntry` struct (UUID, timestamp, label, origin, state, sourceURL) + `LiveHistoryOrigin` enum (manual/auto/loader), both `Codable`/`Sendable`/`Equatable`. Computed `isReadOnly` and `displayLabel` with relative timestamps.
+- `Examples/MermaidPlayground/Models/History/LiveHistoryStore.swift` — `@MainActor @Observable` persistence engine. Stores entries in `Application Support/MermaidPlayground/History/history.json`. Manual save with label, auto save with 60s debounce + state dedup + 30-entry eviction cap. Restore, delete, clear, export (JSON Data), import (merge with dedup by UUID). Async disk I/O on a background serial queue.
+- `Examples/MermaidPlayground/Models/Loaders/LoaderResult.swift` — shared result type with `source`, `configJSON`, `label`, `sourceURL`, and optional `revisions`. `LoaderRevision` for Gist version history (deferred).
+- `Examples/MermaidPlayground/Models/Loaders/GistLoader.swift` — fetches GitHub Gist API (public, no auth). Extracts gist ID from URL, looks for `code.mmd` (or `.mmd`/`.mermaid`/`.txt` fallback), reads `config.json`, sanitizes via `ConfigSanitizer.stripUnsafe`. Error enum: invalidURL, noMermaidFiles, networkError, notFound, invalidResponse.
+- `Examples/MermaidPlayground/Models/Loaders/RawFileLoader.swift` — fetches arbitrary HTTP(S) URLs. Supports separate code + config URLs (parallel fetch), or single URL with auto-detection (JSON parse → config, otherwise source). Sanitizes config. Error enum: noURLsProvided, invalidURL, networkError, invalidContent.
+- `Examples/MermaidPlayground/Views/History/HistoryView.swift` — SwiftUI history browser with segmented filter (All/Manual/Auto/Loader), scrollable entry list (icon, label, timestamp, source preview, theme chip), restore/delete actions, inline save form with label text field, JSON import/export file dialogs, clear-all confirmation. Themed to match `SampleDiagramPanel`.
+- `Tests/DiagramKitTests/LiveHistoryStoreTests.swift` — 14 tests (JSON schema validation, round-trip encode/decode for manual/auto/loader entries, array export/import, UUID uniqueness, label edge cases, origin raw values). Uses local mirror types matching the playground schema; full store integration tests need a `MermaidPlaygroundTests` target (Phase 5.1).
+
+Files modified (4):
+
+- `Examples/MermaidPlayground/Models/LiveEditorStore.swift` — added `historyStore: LiveHistoryStore` property (init in `init`), `saveHistoryEntry(label:)`, `restoreFromHistory(_:)` (applies all 9 state fields, triggers render), `loadFromGist(url:)` and `loadFromRawURL(codeURL:configURL:)` (async, sanitize config, save loader history entry), auto-save hook in `didCompleteRender` after successful renders.
+- `Examples/MermaidPlayground/Views/ActionsView.swift` — added History section (inline "Snapshot name" text field + Save button, "View History" action button with entry count badge) and Load section (Gist URL text field + Load button, code/config URL text fields + Load button, async load with progress indicator and error display). New callbacks: `onShowHistory`. New local state for save label, URL strings, loader error, loading flag.
+- `Examples/MermaidPlayground/Views/Toolbar/ActionsPanel.swift` — added `showingHistory` state, passes `onShowHistory` callback to `ActionsView`, hosts `HistoryView` sheet (NavigationStack on iOS, fixed frame on macOS). Popover height increased from 420pt to 520pt.
+- `Examples/MermaidPlayground/Views/Toolbar/LiveEditorToolbar.swift` — increased Actions popover height from 420pt to 520pt to accommodate new sections.
+
+Architecture decisions:
+
+- **Single unified entries array** (not three separate stores like the web editor). Filtering by origin is cheap and avoids three-way sync/eviction complexity.
+- **Auto-save dedup uses serialized state key** via `LiveEditorStateCodec.encode(state)` — only source/theme/config changes trigger new auto entries; view preference changes (grid, zoom) don't.
+- **Auto-save is reactive, not timer-driven** — called from `didCompleteRender` after successful renders. The 60s guard and dedup check prevent spam.
+- **Loader config sanitization** applies `ConfigSanitizer.stripUnsafe(from:)` before storing — removes `securityLevel`, `htmlLabels`, `__` proto keys, then re-encodes to JSON. The sanitized string replaces the raw config.
+- **HistoryView lives in the ActionsPanel sheet**, not in the sidebar or a separate window. This matches the web editor's collapsed design while keeping the sidebar focused on corpus/theme.
+- **Gist revisions deferred** to Phase 5.1 — the initial loader fetches only the latest version. Full revision history (fetch commits, load each SHA, create loader entries) is a follow-up when the Gist use case proves itself.
+- **Tests use local mirror types** for JSON schema validation since `LiveHistoryEntry`/`LiveHistoryStore` live in the playground executable target (not importable from `DiagramKitTests`). A `MermaidPlaygroundTests` target is the natural next step for full store integration tests.
+- **`saveHistoryEntry(label:)` returns the entry** for potential UI feedback (toast confirmation). The save is immediate; persistence is fire-and-forget.
+
+Acceptance criteria met:
+
+- **Manual save/restore works**: `saveHistoryEntry(label:)` creates a named entry; `restoreFromHistory(_:)` applies all 9 fields and triggers a render.
+- **Auto timeline stores distinct states and avoids duplicates**: 60s debounce + serialized state key comparison prevent identical saves. Empty-source states are excluded.
+- **Auto timeline caps at 30 entries**: oldest auto entries evicted when cap exceeded.
+- **History export/import round-trips**: JSON encode/decode with `iso8601` date strategy, UUID-based dedup on import, array sorted by timestamp descending.
+- **Loading a Gist is explicit, reports network failures, sanitizes config**: `GistLoader.load(from:)` fetches via `URLSession`, maps HTTP status codes to typed errors, runs `ConfigSanitizer.stripUnsafe` on config JSON.
+- **Loading a raw URL is explicit, reports network failures, sanitizes config**: `RawFileLoader.load(codeURL:configURL:)` fetches in parallel, auto-detects content type, sanitizes config.
+
+### Phase 5: History and Loaders — original plan reference
 
 Files to create:
 
@@ -384,8 +446,8 @@ swift run MermaidPlayground
 3. ✅ Add grid, preview toolbar, auto/manual sync, PNG/SVG export, copy actions, version/security panel. (Phase 2 — done 2026-05-10)
 4. ✅ Add config validation and JSON→native mapping. (Phase 3 — done 2026-05-10)
 5. ✅ Add share serialization. (Phase 4 — done 2026-05-10)
-6. ⬜ Add history. (Phase 5)
-7. ⬜ Add loaders. (Phase 5)
+6. ✅ Add history. (Phase 5 — done 2026-05-10)
+7. ✅ Add loaders. (Phase 5 — done 2026-05-10)
 8. ⬜ Upgrade the text editor quality. (Phase 6)
 9. ⬜ Consider optional Mermaid Chart, AI, rough mode, and remote renderer links only after native parity is solid.
 
