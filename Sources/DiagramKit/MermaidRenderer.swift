@@ -99,10 +99,15 @@ public struct MermaidRenderer {
     /// Render a Mermaid diagram to an SVG string.
     public static func renderSVG(
         source: String,
-        theme: DiagramTheme = .default
+        theme: DiagramTheme = .default,
+        layoutConfig: LayoutConfig = LayoutConfig()
     ) async throws -> String {
         try await _runOnWorker {
-            try MermaidPipeline.renderSVG(source: source, theme: theme)
+            try MermaidPipeline.renderSVG(
+                source: source,
+                theme: theme,
+                layoutConfig: layoutConfig
+            )
         }
     }
 
@@ -162,7 +167,7 @@ extension MermaidRenderer {
     #endif
 
     #if canImport(CoreGraphics)
-    @available(*, deprecated, renamed: "renderSVG(source:theme:)")
+    @available(*, deprecated, renamed: "renderSVG(source:theme:layoutConfig:)")
     public static func renderSVGAsync(
         source: String,
         theme: DiagramTheme = .default
@@ -207,9 +212,14 @@ extension String {
 
     #if canImport(CoreGraphics)
     public func renderMermaidSVG(
-        theme: DiagramTheme = .default
+        theme: DiagramTheme = .default,
+        layoutConfig: LayoutConfig = LayoutConfig()
     ) async throws -> String {
-        try await MermaidRenderer.renderSVG(source: self, theme: theme)
+        try await MermaidRenderer.renderSVG(
+            source: self,
+            theme: theme,
+            layoutConfig: layoutConfig
+        )
     }
 
     public func renderMermaidASCII(

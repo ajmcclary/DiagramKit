@@ -25,9 +25,21 @@ struct LiveEditorView: View {
         Group {
             #if os(iOS)
             if horizontalSizeClass == .compact {
-                compactLayout
+                NavigationStack {
+                    compactLayout
+                        .navigationTitle("Mermaid")
+                        .navigationBarTitleDisplayMode(.inline)
+                        .toolbarBackground(Color(store.theme.background), for: .navigationBar)
+                        .toolbarColorScheme(store.theme.background.isLight ? .light : .dark, for: .navigationBar)
+                        .toolbar {
+                            LiveEditorToolbar(store: store)
+                        }
+                }
             } else {
                 regularLayout
+                    .toolbar {
+                        LiveEditorToolbar(store: store)
+                    }
             }
             #else
             regularLayout

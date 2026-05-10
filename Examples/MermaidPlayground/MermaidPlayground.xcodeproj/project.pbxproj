@@ -3,186 +3,270 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 60;
+	objectVersion = 77;
 	objects = {
 
 /* Begin PBXBuildFile section */
-		13E49256962CDA57E8ACEDDC /* BeautifulMermaid in Frameworks */ = {isa = PBXBuildFile; productRef = 90161B8F3C5FB9851DF8250C /* BeautifulMermaid */; };
-		13F79229BE0577B2043775B8 /* MermaidViewRepresentable.swift in Sources */ = {isa = PBXBuildFile; fileRef = 29E007C30F70604F2B45B58B /* MermaidViewRepresentable.swift */; };
-		2A11FD1B8F2CF99901020CB5 /* SampleDiagrams.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9C55BA4D2F7706743CB2932 /* SampleDiagrams.swift */; };
-		3B24C20A132441568A8BCF10 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 9A95720760D692E63EB01493 /* Cocoa.framework */; };
-		46AFBEF68049159C2A34D2D8 /* SidebarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4008E894BC7BD18E2F8CFF79 /* SidebarView.swift */; };
-		4EA1105D3085975C0A240325 /* PlaygroundConfiguration.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1E15578C1E9E11E338D93A4 /* PlaygroundConfiguration.swift */; };
-		56A973F8912C97FAB96F6071 /* BeautifulMermaid in Frameworks */ = {isa = PBXBuildFile; productRef = A6B0267220DD39735E96C5A7 /* BeautifulMermaid */; };
-		5FDBA359F661AE7916F1777C /* PlaygroundConfiguration.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1E15578C1E9E11E338D93A4 /* PlaygroundConfiguration.swift */; };
-		69F3173A86A525ED1E01A0E8 /* ThemePicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 80B0AA1B03D6C338EE1ABC0D /* ThemePicker.swift */; };
-		70124D5E810A271D1F5A9623 /* SampleDiagrams.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9C55BA4D2F7706743CB2932 /* SampleDiagrams.swift */; };
-		7D8C8D49CAACE2583141F2E6 /* test-diagrams.json in Resources */ = {isa = PBXBuildFile; fileRef = 7EE83DD0A61411007F63AC00 /* test-diagrams.json */; };
-		8B4E7D443DAF73C77F2881C3 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = BB2C79A84224CB4F6E0526BE /* Assets.xcassets */; };
-		AB60D184350C2BEF0554629D /* SourceEditor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1FDDA712954728F5E801D362 /* SourceEditor.swift */; };
-		BE211388CE7DF6C29C223EDC /* MermaidPlaygroundApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8B086756ADB5D7F3F2E1FF42 /* MermaidPlaygroundApp.swift */; };
-		C57DE8464C6118C4C0D60C0B /* PreviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7FB2C2DF409C83E7A60C75B8 /* PreviewView.swift */; };
-		C94F021A453BA9B6F2BA1C30 /* SourceEditor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1FDDA712954728F5E801D362 /* SourceEditor.swift */; };
-		D3D9419860375CDB1485624D /* test-diagrams.json in Resources */ = {isa = PBXBuildFile; fileRef = 7EE83DD0A61411007F63AC00 /* test-diagrams.json */; };
-		E1E66AE30033A5C24F38DB49 /* ThemePicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 80B0AA1B03D6C338EE1ABC0D /* ThemePicker.swift */; };
-		E5E27BB2601E4D2D66B44382 /* MermaidViewRepresentable.swift in Sources */ = {isa = PBXBuildFile; fileRef = 29E007C30F70604F2B45B58B /* MermaidViewRepresentable.swift */; };
-		E6B9B40A6117E1D1D88DB90C /* MermaidPlaygroundApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8B086756ADB5D7F3F2E1FF42 /* MermaidPlaygroundApp.swift */; };
-		E6ED12596A52A69EC68CD82E /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 97C98A7BD4FF0C004EBD3F76 /* ContentView.swift */; };
-		EA659666B96051DBE9A1E95E /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 97C98A7BD4FF0C004EBD3F76 /* ContentView.swift */; };
-		EE98C38D279515DABB82B551 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = BB2C79A84224CB4F6E0526BE /* Assets.xcassets */; };
-		F4365AF1EDD5D140B0DE37E4 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F2CF9ADE77025007FB4A72DC /* Foundation.framework */; };
-		FA79C85F80BE4993C785E851 /* SidebarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4008E894BC7BD18E2F8CFF79 /* SidebarView.swift */; };
-		FB93ABC0FA15DDA7F385FB1A /* PreviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7FB2C2DF409C83E7A60C75B8 /* PreviewView.swift */; };
+		0177A96B352583C1448A3601 /* SampleDiagrams.swift in Sources */ = {isa = PBXBuildFile; fileRef = B4A9235C5800009912D8A4CF /* SampleDiagrams.swift */; };
+		0438B8E4B65B17AF85C6E148 /* MermaidPlaygroundApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = E62FC3C27B7C3D1B4AC1BEBA /* MermaidPlaygroundApp.swift */; };
+		068C981DEA7DC587653A66EE /* ExportOptions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 096491CDD543D42C20D91E7E /* ExportOptions.swift */; };
+		092C6EE2BD8192DA7017DF74 /* MermaidViewRepresentable.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48A2E34CE587126EACC5DA55 /* MermaidViewRepresentable.swift */; };
+		0BB9E12B29552822C54A37C8 /* LiveHistoryStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = D121E055309404756C30543B /* LiveHistoryStore.swift */; };
+		0BED2B15AC12F46326CC5318 /* LiveEditorConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0D3C64C51B0FA7A004195034 /* LiveEditorConfig.swift */; };
+		0C5E4DB437F1410044C7DE71 /* PreviewToolbar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76A2C379F7CAA8C7116C485E /* PreviewToolbar.swift */; };
+		1222A89F5306C12CBBB10FFF /* VersionSecurityPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = E25AEBF3AE3E4051C8D05196 /* VersionSecurityPanel.swift */; };
+		19EF9E543CD0DBC256055F50 /* EditorModePicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 08975B71E343495EC1D8BF37 /* EditorModePicker.swift */; };
+		1CBE0E356E6D758D5F337F2F /* LiveEditorState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 165262EF2705DDC03C447893 /* LiveEditorState.swift */; };
+		235805AB6BA9CB37A2E605A2 /* HistoryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 141B4C5ACF67CE426D6040C2 /* HistoryView.swift */; };
+		2588CF9336ACA3F0965A6D68 /* LoaderResult.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA1F88ACED3766AC52878F37 /* LoaderResult.swift */; };
+		2680D9343E4BFB5E16AF0357 /* EditorPane.swift in Sources */ = {isa = PBXBuildFile; fileRef = EF20E098814280D7EE73C274 /* EditorPane.swift */; };
+		27C5F4A2BB2DA939409E06E9 /* LiveEditorToolbar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2651EC74396E0FACCA911AB4 /* LiveEditorToolbar.swift */; };
+		2E13E235E058A9F10D0867C6 /* VersionSecurityPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = E25AEBF3AE3E4051C8D05196 /* VersionSecurityPanel.swift */; };
+		3015394A4443300B11CFC0DB /* LiveEditorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1C81C155B73FCB8100369381 /* LiveEditorView.swift */; };
+		323745E1CF50CCB624AE60E5 /* ShareView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0972BBA84544A7A67B2AB8AD /* ShareView.swift */; };
+		3497B6978C7F41692D073B72 /* SampleDiagramPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 462E1AE0BF1B3DD4383819AA /* SampleDiagramPanel.swift */; };
+		34C5AD21B0C04A9800FE9210 /* EditorPane.swift in Sources */ = {isa = PBXBuildFile; fileRef = EF20E098814280D7EE73C274 /* EditorPane.swift */; };
+		429D02565AF884E5371144C7 /* PreviewCanvas.swift in Sources */ = {isa = PBXBuildFile; fileRef = 145E05EEC32CA4181A70AB38 /* PreviewCanvas.swift */; };
+		462C8589797F0F7D37781D91 /* DiagramKit in Frameworks */ = {isa = PBXBuildFile; productRef = 15DF29D854A90CAFFC24252E /* DiagramKit */; };
+		48C2EE8AEB9DB37F9240AAD6 /* PreviewCanvas.swift in Sources */ = {isa = PBXBuildFile; fileRef = 145E05EEC32CA4181A70AB38 /* PreviewCanvas.swift */; };
+		4D93805FC5E586FB19B9C61B /* LoaderResult.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA1F88ACED3766AC52878F37 /* LoaderResult.swift */; };
+		563C22E407A780CDC1F364F2 /* EditorDiagnostic.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4EF834B77C053FD046212083 /* EditorDiagnostic.swift */; };
+		61B3DA01168E8DD57C55A36F /* ConfigSanitizer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 81D5E6069687240FDF8CAC0D /* ConfigSanitizer.swift */; };
+		624FDADFEC60581AD606E54F /* EditorDiagnostic.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4EF834B77C053FD046212083 /* EditorDiagnostic.swift */; };
+		62F10BEFF3FAC713B9A631B5 /* MermaidPlaygroundApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = E62FC3C27B7C3D1B4AC1BEBA /* MermaidPlaygroundApp.swift */; };
+		66EADBD310535244D5CC56FE /* HistoryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 141B4C5ACF67CE426D6040C2 /* HistoryView.swift */; };
+		67493518B5FA33542402772B /* LineNumberRuler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6F2A0E1FEAE9B4CBC1ADDBA1 /* LineNumberRuler.swift */; };
+		70A9CC629C1233E2DFA3B9F1 /* LiveEditorStateCodec.swift in Sources */ = {isa = PBXBuildFile; fileRef = C4ADD0DEB35A7AF539E60386 /* LiveEditorStateCodec.swift */; };
+		76663FE6C6ADA75ADC0F52D3 /* MermaidViewRepresentable.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48A2E34CE587126EACC5DA55 /* MermaidViewRepresentable.swift */; };
+		76CA5C530D4F366CBA7C1315 /* LiveHistoryStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = D121E055309404756C30543B /* LiveHistoryStore.swift */; };
+		78A8594CC46A31C58BE629F3 /* IssueReporting in Frameworks */ = {isa = PBXBuildFile; productRef = 1992934B12DCAEAC7CBCE174 /* IssueReporting */; };
+		7EFFFA6EBF161A53489F6B86 /* ConfigSanitizer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 81D5E6069687240FDF8CAC0D /* ConfigSanitizer.swift */; };
+		82E59D00023CA629386FEEA0 /* IssueReporting in Frameworks */ = {isa = PBXBuildFile; productRef = EBF15EBD000B78EFAD9D6203 /* IssueReporting */; };
+		8B625594340F512247BF7AAE /* BMColor+IsLight.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0E9710EDFB6F3AE15BC8690 /* BMColor+IsLight.swift */; };
+		9578E973C49FEC5A19B1C683 /* MermaidSyntaxHighlighter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5127A87EBFA7E91F0DB24C6B /* MermaidSyntaxHighlighter.swift */; };
+		97DEDC2680ECB1724860CAE8 /* RawFileLoader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10B91524FDDD5B1E83720FD2 /* RawFileLoader.swift */; };
+		9CFBA32D378AF534C443C29F /* ShareView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0972BBA84544A7A67B2AB8AD /* ShareView.swift */; };
+		9EE69142B2DD33ECFA4C3CC6 /* SidebarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 27D151F13ED26CE04A4FFD0D /* SidebarView.swift */; };
+		9F61E30492D2B7A17C171BED /* MermaidSyntaxHighlighter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5127A87EBFA7E91F0DB24C6B /* MermaidSyntaxHighlighter.swift */; };
+		ADD01FB443D6A9A904597B58 /* ActionsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7427FADA162FC9801E652262 /* ActionsView.swift */; };
+		B1274F4ACF6972A75BDF8C5D /* PreviewToolbar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76A2C379F7CAA8C7116C485E /* PreviewToolbar.swift */; };
+		B2B458CF99E2DC1E05C86B41 /* LiveHistoryEntry.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4A99B5D38CC8B4A6C2324F85 /* LiveHistoryEntry.swift */; };
+		B3A500D0B98F6A1F88FA7C9C /* LiveEditorConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0D3C64C51B0FA7A004195034 /* LiveEditorConfig.swift */; };
+		B591EFF621711B8071FDF6B5 /* ThemePicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 29DB81F66C8839ABBA99D356 /* ThemePicker.swift */; };
+		B5AE4BF373A630B4712F7B40 /* LiveEditorState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 165262EF2705DDC03C447893 /* LiveEditorState.swift */; };
+		B63A2C7599B03968128FC969 /* LiveEditorToolbar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2651EC74396E0FACCA911AB4 /* LiveEditorToolbar.swift */; };
+		B70D9F111FFA81DF459A1B8F /* LineNumberRuler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6F2A0E1FEAE9B4CBC1ADDBA1 /* LineNumberRuler.swift */; };
+		BC0E854E3753D9067055B45C /* SampleDiagramPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 462E1AE0BF1B3DD4383819AA /* SampleDiagramPanel.swift */; };
+		BEBD136CF6140C11D445C144 /* ExportOptions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 096491CDD543D42C20D91E7E /* ExportOptions.swift */; };
+		BF131979D0CDF1A1CA5E7F01 /* SidebarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 27D151F13ED26CE04A4FFD0D /* SidebarView.swift */; };
+		BF842A970E43597B17988722 /* LiveHistoryEntry.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4A99B5D38CC8B4A6C2324F85 /* LiveHistoryEntry.swift */; };
+		CC8D98B10FF78E3DD6DB18FF /* NativeCodeEditor.swift in Sources */ = {isa = PBXBuildFile; fileRef = FEFFE51C7703ED7BC85C6BFD /* NativeCodeEditor.swift */; };
+		CFFF5AC794F4BFEA98D3AD71 /* LiveEditorStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5896D986DA9334C65238B90 /* LiveEditorStore.swift */; };
+		D83A7632BB899BF39BFD2383 /* ThemePicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 29DB81F66C8839ABBA99D356 /* ThemePicker.swift */; };
+		D93AFE3489F81BF1199B5F66 /* GistLoader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96E05BF2CA1815C2315E11E4 /* GistLoader.swift */; };
+		DAB5264B4678E2CB2D99AEC6 /* DiagramKit in Frameworks */ = {isa = PBXBuildFile; productRef = 0420619350770193B907578E /* DiagramKit */; };
+		DB03670B15C2F5793EB63A44 /* EditorModePicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 08975B71E343495EC1D8BF37 /* EditorModePicker.swift */; };
+		DCB52EBF5DB43927E026506C /* ActionsPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = C25BEF314A99BA66628DAAA6 /* ActionsPanel.swift */; };
+		E304AAD5AEE7D5BFED22C389 /* LiveRenderStatus.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48973068802341F986D8B192 /* LiveRenderStatus.swift */; };
+		E325AA6ECA3E116BF55D3F42 /* GistLoader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96E05BF2CA1815C2315E11E4 /* GistLoader.swift */; };
+		E331D3123100C7065EF12445 /* LiveEditorStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5896D986DA9334C65238B90 /* LiveEditorStore.swift */; };
+		E55A574B406FC52B50BFADC3 /* BMColor+IsLight.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0E9710EDFB6F3AE15BC8690 /* BMColor+IsLight.swift */; };
+		EB1A94B8862DDEA2824CB0C9 /* LiveEditorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1C81C155B73FCB8100369381 /* LiveEditorView.swift */; };
+		EBBA69D3F7FEC7E0F313B015 /* RawFileLoader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10B91524FDDD5B1E83720FD2 /* RawFileLoader.swift */; };
+		EE57AA7ADC5D01F6FF2AAE6A /* SampleDiagrams.swift in Sources */ = {isa = PBXBuildFile; fileRef = B4A9235C5800009912D8A4CF /* SampleDiagrams.swift */; };
+		F251F8E3A4DBF445AED46947 /* NativeCodeEditor.swift in Sources */ = {isa = PBXBuildFile; fileRef = FEFFE51C7703ED7BC85C6BFD /* NativeCodeEditor.swift */; };
+		F74D6BAC0E4C2430992FF7EA /* LiveRenderStatus.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48973068802341F986D8B192 /* LiveRenderStatus.swift */; };
+		FB790B2D813B21C761DA8D38 /* ActionsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7427FADA162FC9801E652262 /* ActionsView.swift */; };
+		FBD37B09EF3A0A3E27AE7EC6 /* ActionsPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = C25BEF314A99BA66628DAAA6 /* ActionsPanel.swift */; };
+		FDD876689CD760D4A6AC2D25 /* LiveEditorStateCodec.swift in Sources */ = {isa = PBXBuildFile; fileRef = C4ADD0DEB35A7AF539E60386 /* LiveEditorStateCodec.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		1FDDA712954728F5E801D362 /* SourceEditor.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SourceEditor.swift; sourceTree = "<group>"; };
-		29E007C30F70604F2B45B58B /* MermaidViewRepresentable.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = MermaidViewRepresentable.swift; sourceTree = "<group>"; };
-		30DC77B3CCDCAC4B01928823 /* MermaidPlayground.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = MermaidPlayground.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		37F4D922ADA32BE8E2D809F4 /* Info.plist */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		3C92E5CCCB6D5D522CE3F8FD /* MermaidPlayground.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = MermaidPlayground.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		4008E894BC7BD18E2F8CFF79 /* SidebarView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SidebarView.swift; sourceTree = "<group>"; };
-		7EE83DD0A61411007F63AC00 /* test-diagrams.json */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.json; path = "test-diagrams.json"; sourceTree = "<group>"; };
-		7FB2C2DF409C83E7A60C75B8 /* PreviewView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PreviewView.swift; sourceTree = "<group>"; };
-		80B0AA1B03D6C338EE1ABC0D /* ThemePicker.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ThemePicker.swift; sourceTree = "<group>"; };
-		8B086756ADB5D7F3F2E1FF42 /* MermaidPlaygroundApp.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = MermaidPlaygroundApp.swift; sourceTree = "<group>"; };
-		97C98A7BD4FF0C004EBD3F76 /* ContentView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
-		9A95720760D692E63EB01493 /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = Platforms/MacOSX.platform/Developer/SDKs/MacOSX15.0.sdk/System/Library/Frameworks/Cocoa.framework; sourceTree = DEVELOPER_DIR; };
-		9C515AD001279AB302A0F1B5 /* GenerateAppIcon.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = GenerateAppIcon.swift; sourceTree = "<group>"; };
-		A9C55BA4D2F7706743CB2932 /* SampleDiagrams.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SampleDiagrams.swift; sourceTree = "<group>"; };
-		B1E15578C1E9E11E338D93A4 /* PlaygroundConfiguration.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PlaygroundConfiguration.swift; sourceTree = "<group>"; };
-		BB2C79A84224CB4F6E0526BE /* Assets.xcassets */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
-		F2CF9ADE77025007FB4A72DC /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS18.0.sdk/System/Library/Frameworks/Foundation.framework; sourceTree = DEVELOPER_DIR; };
+		08975B71E343495EC1D8BF37 /* EditorModePicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditorModePicker.swift; sourceTree = "<group>"; };
+		096491CDD543D42C20D91E7E /* ExportOptions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExportOptions.swift; sourceTree = "<group>"; };
+		0972BBA84544A7A67B2AB8AD /* ShareView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareView.swift; sourceTree = "<group>"; };
+		0D3C64C51B0FA7A004195034 /* LiveEditorConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveEditorConfig.swift; sourceTree = "<group>"; };
+		10B91524FDDD5B1E83720FD2 /* RawFileLoader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RawFileLoader.swift; sourceTree = "<group>"; };
+		141B4C5ACF67CE426D6040C2 /* HistoryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoryView.swift; sourceTree = "<group>"; };
+		145E05EEC32CA4181A70AB38 /* PreviewCanvas.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreviewCanvas.swift; sourceTree = "<group>"; };
+		165262EF2705DDC03C447893 /* LiveEditorState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveEditorState.swift; sourceTree = "<group>"; };
+		1C81C155B73FCB8100369381 /* LiveEditorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveEditorView.swift; sourceTree = "<group>"; };
+		2651EC74396E0FACCA911AB4 /* LiveEditorToolbar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveEditorToolbar.swift; sourceTree = "<group>"; };
+		27D151F13ED26CE04A4FFD0D /* SidebarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SidebarView.swift; sourceTree = "<group>"; };
+		29DB81F66C8839ABBA99D356 /* ThemePicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ThemePicker.swift; sourceTree = "<group>"; };
+		423C2F772C38F2816DB6224C /* MermaidPlayground-iOS.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = "MermaidPlayground-iOS.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		462E1AE0BF1B3DD4383819AA /* SampleDiagramPanel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SampleDiagramPanel.swift; sourceTree = "<group>"; };
+		48973068802341F986D8B192 /* LiveRenderStatus.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveRenderStatus.swift; sourceTree = "<group>"; };
+		48A2E34CE587126EACC5DA55 /* MermaidViewRepresentable.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MermaidViewRepresentable.swift; sourceTree = "<group>"; };
+		4A99B5D38CC8B4A6C2324F85 /* LiveHistoryEntry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveHistoryEntry.swift; sourceTree = "<group>"; };
+		4EF834B77C053FD046212083 /* EditorDiagnostic.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditorDiagnostic.swift; sourceTree = "<group>"; };
+		5127A87EBFA7E91F0DB24C6B /* MermaidSyntaxHighlighter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MermaidSyntaxHighlighter.swift; sourceTree = "<group>"; };
+		6F2A0E1FEAE9B4CBC1ADDBA1 /* LineNumberRuler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LineNumberRuler.swift; sourceTree = "<group>"; };
+		7427FADA162FC9801E652262 /* ActionsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActionsView.swift; sourceTree = "<group>"; };
+		76A2C379F7CAA8C7116C485E /* PreviewToolbar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreviewToolbar.swift; sourceTree = "<group>"; };
+		81D5E6069687240FDF8CAC0D /* ConfigSanitizer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConfigSanitizer.swift; sourceTree = "<group>"; };
+		96E05BF2CA1815C2315E11E4 /* GistLoader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GistLoader.swift; sourceTree = "<group>"; };
+		B4A9235C5800009912D8A4CF /* SampleDiagrams.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SampleDiagrams.swift; sourceTree = "<group>"; };
+		C2456BFE41A56F6C737B670F /* MermaidPlayground.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = MermaidPlayground.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		C25BEF314A99BA66628DAAA6 /* ActionsPanel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActionsPanel.swift; sourceTree = "<group>"; };
+		C4ADD0DEB35A7AF539E60386 /* LiveEditorStateCodec.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveEditorStateCodec.swift; sourceTree = "<group>"; };
+		C5896D986DA9334C65238B90 /* LiveEditorStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveEditorStore.swift; sourceTree = "<group>"; };
+		CA1F88ACED3766AC52878F37 /* LoaderResult.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoaderResult.swift; sourceTree = "<group>"; };
+		D121E055309404756C30543B /* LiveHistoryStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveHistoryStore.swift; sourceTree = "<group>"; };
+		E25AEBF3AE3E4051C8D05196 /* VersionSecurityPanel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VersionSecurityPanel.swift; sourceTree = "<group>"; };
+		E62FC3C27B7C3D1B4AC1BEBA /* MermaidPlaygroundApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MermaidPlaygroundApp.swift; sourceTree = "<group>"; };
+		EA0A4E8CCF70B9A6A1C43714 /* mermaid-swift */ = {isa = PBXFileReference; lastKnownFileType = folder; name = "mermaid-swift"; path = ../..; sourceTree = SOURCE_ROOT; };
+		EF20E098814280D7EE73C274 /* EditorPane.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditorPane.swift; sourceTree = "<group>"; };
+		F0E9710EDFB6F3AE15BC8690 /* BMColor+IsLight.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "BMColor+IsLight.swift"; sourceTree = "<group>"; };
+		FEFFE51C7703ED7BC85C6BFD /* NativeCodeEditor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NativeCodeEditor.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
-		29722811D7BF4726F0D936FA /* Frameworks */ = {
+		9C53119F1AFB010E85706E9F /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				3B24C20A132441568A8BCF10 /* Cocoa.framework in Frameworks */,
-				56A973F8912C97FAB96F6071 /* BeautifulMermaid in Frameworks */,
+				462C8589797F0F7D37781D91 /* DiagramKit in Frameworks */,
+				82E59D00023CA629386FEEA0 /* IssueReporting in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		CD61594A9BFDFE5B87DC4EAC /* Frameworks */ = {
+		ECEE6C8D8D34CB79B262924D /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				F4365AF1EDD5D140B0DE37E4 /* Foundation.framework in Frameworks */,
-				13E49256962CDA57E8ACEDDC /* BeautifulMermaid in Frameworks */,
+				DAB5264B4678E2CB2D99AEC6 /* DiagramKit in Frameworks */,
+				78A8594CC46A31C58BE629F3 /* IssueReporting in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
-		093DC18F155FB8FB6CF2AA0F /* iOS */ = {
+		023AEE4277F625C62FD333C0 /* Packages */ = {
 			isa = PBXGroup;
 			children = (
-				F2CF9ADE77025007FB4A72DC /* Foundation.framework */,
+				EA0A4E8CCF70B9A6A1C43714 /* mermaid-swift */,
 			);
-			name = iOS;
+			name = Packages;
 			sourceTree = "<group>";
 		};
-		12B8F7875CFCEAAB436E237A /* Views */ = {
+		384F82ADA653E594AB0DDBAB /* History */ = {
 			isa = PBXGroup;
 			children = (
-				97C98A7BD4FF0C004EBD3F76 /* ContentView.swift */,
-				29E007C30F70604F2B45B58B /* MermaidViewRepresentable.swift */,
-				7FB2C2DF409C83E7A60C75B8 /* PreviewView.swift */,
-				4008E894BC7BD18E2F8CFF79 /* SidebarView.swift */,
-				1FDDA712954728F5E801D362 /* SourceEditor.swift */,
-				80B0AA1B03D6C338EE1ABC0D /* ThemePicker.swift */,
+				141B4C5ACF67CE426D6040C2 /* HistoryView.swift */,
+			);
+			path = History;
+			sourceTree = "<group>";
+		};
+		6293E83F800067D13CECD5EC /* History */ = {
+			isa = PBXGroup;
+			children = (
+				4A99B5D38CC8B4A6C2324F85 /* LiveHistoryEntry.swift */,
+				D121E055309404756C30543B /* LiveHistoryStore.swift */,
+			);
+			path = History;
+			sourceTree = "<group>";
+		};
+		636AE0262B5DC9588C25EB02 /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				7427FADA162FC9801E652262 /* ActionsView.swift */,
+				F0E9710EDFB6F3AE15BC8690 /* BMColor+IsLight.swift */,
+				EF20E098814280D7EE73C274 /* EditorPane.swift */,
+				1C81C155B73FCB8100369381 /* LiveEditorView.swift */,
+				48A2E34CE587126EACC5DA55 /* MermaidViewRepresentable.swift */,
+				145E05EEC32CA4181A70AB38 /* PreviewCanvas.swift */,
+				76A2C379F7CAA8C7116C485E /* PreviewToolbar.swift */,
+				0972BBA84544A7A67B2AB8AD /* ShareView.swift */,
+				27D151F13ED26CE04A4FFD0D /* SidebarView.swift */,
+				29DB81F66C8839ABBA99D356 /* ThemePicker.swift */,
+				E8EF34930BAFFAD6CF6BD170 /* Editor */,
+				384F82ADA653E594AB0DDBAB /* History */,
+				E9A37680D0B71243AA149FA5 /* Toolbar */,
 			);
 			path = Views;
 			sourceTree = "<group>";
 		};
-		190D58FCA710BAA40ABC66D3 /* Resources */ = {
+		A79991C58968D64CE9DB4499 /* Loaders */ = {
 			isa = PBXGroup;
 			children = (
-				BB2C79A84224CB4F6E0526BE /* Assets.xcassets */,
-				7EE83DD0A61411007F63AC00 /* test-diagrams.json */,
+				96E05BF2CA1815C2315E11E4 /* GistLoader.swift */,
+				CA1F88ACED3766AC52878F37 /* LoaderResult.swift */,
+				10B91524FDDD5B1E83720FD2 /* RawFileLoader.swift */,
 			);
-			path = Resources;
+			path = Loaders;
 			sourceTree = "<group>";
 		};
-		381D6BD7B3E10B14A90ACAC0 /* Frameworks */ = {
+		E2DE6CDCAB760430FD98CEF5 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				96C44CDE67DE942ABC7CEA65 /* OS X */,
-				093DC18F155FB8FB6CF2AA0F /* iOS */,
-			);
-			name = Frameworks;
-			sourceTree = "<group>";
-		};
-		6706C6755C2943CC4A88C6E8 /* Scripts */ = {
-			isa = PBXGroup;
-			children = (
-				9C515AD001279AB302A0F1B5 /* GenerateAppIcon.swift */,
-			);
-			path = Scripts;
-			sourceTree = "<group>";
-		};
-		68F79C2F17C2F2080EC74989 /* Models */ = {
-			isa = PBXGroup;
-			children = (
-				B1E15578C1E9E11E338D93A4 /* PlaygroundConfiguration.swift */,
-				A9C55BA4D2F7706743CB2932 /* SampleDiagrams.swift */,
-			);
-			path = Models;
-			sourceTree = "<group>";
-		};
-		74EBAE2E9556AAA1D30D3F5B /* Products */ = {
-			isa = PBXGroup;
-			children = (
-				30DC77B3CCDCAC4B01928823 /* MermaidPlayground.app */,
-				3C92E5CCCB6D5D522CE3F8FD /* MermaidPlayground.app */,
+				423C2F772C38F2816DB6224C /* MermaidPlayground-iOS.app */,
+				C2456BFE41A56F6C737B670F /* MermaidPlayground.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
 		};
-		96C44CDE67DE942ABC7CEA65 /* OS X */ = {
+		E5B577166435A500660EEB63 = {
 			isa = PBXGroup;
 			children = (
-				9A95720760D692E63EB01493 /* Cocoa.framework */,
-			);
-			name = "OS X";
-			sourceTree = "<group>";
-		};
-		BBB9B7EB415B799424A4BFBD = {
-			isa = PBXGroup;
-			children = (
-				74EBAE2E9556AAA1D30D3F5B /* Products */,
-				381D6BD7B3E10B14A90ACAC0 /* Frameworks */,
-				F8EFFBCACBEF5D74A8B378A1 /* MermaidPlayground */,
+				E62FC3C27B7C3D1B4AC1BEBA /* MermaidPlaygroundApp.swift */,
+				E74977F60D06B6779C58E098 /* Models */,
+				023AEE4277F625C62FD333C0 /* Packages */,
+				636AE0262B5DC9588C25EB02 /* Views */,
+				E2DE6CDCAB760430FD98CEF5 /* Products */,
 			);
 			sourceTree = "<group>";
 		};
-		F8EFFBCACBEF5D74A8B378A1 /* MermaidPlayground */ = {
+		E74977F60D06B6779C58E098 /* Models */ = {
 			isa = PBXGroup;
 			children = (
-				68F79C2F17C2F2080EC74989 /* Models */,
-				12B8F7875CFCEAAB436E237A /* Views */,
-				190D58FCA710BAA40ABC66D3 /* Resources */,
-				6706C6755C2943CC4A88C6E8 /* Scripts */,
-				37F4D922ADA32BE8E2D809F4 /* Info.plist */,
-				8B086756ADB5D7F3F2E1FF42 /* MermaidPlaygroundApp.swift */,
+				81D5E6069687240FDF8CAC0D /* ConfigSanitizer.swift */,
+				4EF834B77C053FD046212083 /* EditorDiagnostic.swift */,
+				096491CDD543D42C20D91E7E /* ExportOptions.swift */,
+				0D3C64C51B0FA7A004195034 /* LiveEditorConfig.swift */,
+				165262EF2705DDC03C447893 /* LiveEditorState.swift */,
+				C4ADD0DEB35A7AF539E60386 /* LiveEditorStateCodec.swift */,
+				C5896D986DA9334C65238B90 /* LiveEditorStore.swift */,
+				48973068802341F986D8B192 /* LiveRenderStatus.swift */,
+				5127A87EBFA7E91F0DB24C6B /* MermaidSyntaxHighlighter.swift */,
+				B4A9235C5800009912D8A4CF /* SampleDiagrams.swift */,
+				6293E83F800067D13CECD5EC /* History */,
+				A79991C58968D64CE9DB4499 /* Loaders */,
 			);
-			name = MermaidPlayground;
-			path = .;
+			path = Models;
+			sourceTree = "<group>";
+		};
+		E8EF34930BAFFAD6CF6BD170 /* Editor */ = {
+			isa = PBXGroup;
+			children = (
+				08975B71E343495EC1D8BF37 /* EditorModePicker.swift */,
+				6F2A0E1FEAE9B4CBC1ADDBA1 /* LineNumberRuler.swift */,
+				FEFFE51C7703ED7BC85C6BFD /* NativeCodeEditor.swift */,
+			);
+			path = Editor;
+			sourceTree = "<group>";
+		};
+		E9A37680D0B71243AA149FA5 /* Toolbar */ = {
+			isa = PBXGroup;
+			children = (
+				C25BEF314A99BA66628DAAA6 /* ActionsPanel.swift */,
+				2651EC74396E0FACCA911AB4 /* LiveEditorToolbar.swift */,
+				462E1AE0BF1B3DD4383819AA /* SampleDiagramPanel.swift */,
+				E25AEBF3AE3E4051C8D05196 /* VersionSecurityPanel.swift */,
+			);
+			path = Toolbar;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		943A8BB655ACC2252442EBAB /* MermaidPlayground-iOS */ = {
+		832B033A802144C594E28B32 /* MermaidPlayground-iOS */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = F87921CC68EFCC7656F3D778 /* Build configuration list for PBXNativeTarget "MermaidPlayground-iOS" */;
+			buildConfigurationList = E12BD1B8C8DFA0EB95339352 /* Build configuration list for PBXNativeTarget "MermaidPlayground-iOS" */;
 			buildPhases = (
-				710E0ED35269D2439EB02FA6 /* Sources */,
-				CD61594A9BFDFE5B87DC4EAC /* Frameworks */,
-				2AC3BCA0FEC4B320D63223DC /* Resources */,
+				9E10DBD18A9C96E63D68DDCC /* Sources */,
+				9C53119F1AFB010E85706E9F /* Frameworks */,
 			);
 			buildRules = (
 			);
@@ -190,19 +274,19 @@
 			);
 			name = "MermaidPlayground-iOS";
 			packageProductDependencies = (
-				90161B8F3C5FB9851DF8250C /* BeautifulMermaid */,
+				15DF29D854A90CAFFC24252E /* DiagramKit */,
+				EBF15EBD000B78EFAD9D6203 /* IssueReporting */,
 			);
-			productName = "$(TARGET_NAME)";
-			productReference = 3C92E5CCCB6D5D522CE3F8FD /* MermaidPlayground.app */;
+			productName = "MermaidPlayground-iOS";
+			productReference = 423C2F772C38F2816DB6224C /* MermaidPlayground-iOS.app */;
 			productType = "com.apple.product-type.application";
 		};
-		F52293E1075C4F65CBB85F7A /* MermaidPlayground */ = {
+		900D446F9DA8846079B2421F /* MermaidPlayground */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 6ADABFE7537C601276B90C52 /* Build configuration list for PBXNativeTarget "MermaidPlayground" */;
+			buildConfigurationList = EE282DD9C8E80C30BAA05731 /* Build configuration list for PBXNativeTarget "MermaidPlayground" */;
 			buildPhases = (
-				17AF04B7F3EA1C4B019EFDF1 /* Sources */,
-				29722811D7BF4726F0D936FA /* Frameworks */,
-				9DF58C4C5E820C03A1BC4068 /* Resources */,
+				39FF571142F7C9DC53FC5EF7 /* Sources */,
+				ECEE6C8D8D34CB79B262924D /* Frameworks */,
 			);
 			buildRules = (
 			);
@@ -210,157 +294,138 @@
 			);
 			name = MermaidPlayground;
 			packageProductDependencies = (
-				A6B0267220DD39735E96C5A7 /* BeautifulMermaid */,
+				0420619350770193B907578E /* DiagramKit */,
+				1992934B12DCAEAC7CBCE174 /* IssueReporting */,
 			);
-			productName = "$(TARGET_NAME)";
-			productReference = 30DC77B3CCDCAC4B01928823 /* MermaidPlayground.app */;
+			productName = MermaidPlayground;
+			productReference = C2456BFE41A56F6C737B670F /* MermaidPlayground.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
-		4FB40C7208A95530D67CCE58 /* Project object */ = {
+		EE6F49F1211BE34BB8D1088E /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastSwiftUpdateCheck = 2600;
-				LastUpgradeCheck = 2600;
+				BuildIndependentTargetsInParallel = YES;
+				LastUpgradeCheck = 1430;
 			};
-			buildConfigurationList = 0B60F90F4B3090FCD34846E5 /* Build configuration list for PBXProject "MermaidPlayground" */;
-			compatibilityVersion = "Xcode 3.2";
+			buildConfigurationList = CC4049C83506D7B235CD96AA /* Build configuration list for PBXProject "MermaidPlayground" */;
+			compatibilityVersion = "Xcode 14.0";
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
 			knownRegions = (
-				en,
 				Base,
+				en,
 			);
-			mainGroup = BBB9B7EB415B799424A4BFBD;
+			mainGroup = E5B577166435A500660EEB63;
+			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
-				34D6CFDF9DE78646FDDD30F6 /* XCLocalSwiftPackageReference "../../" */,
+				54BD0ADCC1AFF820D3ADFDB9 /* XCRemoteSwiftPackageReference "xctest-dynamic-overlay" */,
+				0497DCEF0A73B25165B02442 /* XCLocalSwiftPackageReference "../.." */,
 			);
-			productRefGroup = 74EBAE2E9556AAA1D30D3F5B /* Products */;
+			preferredProjectObjectVersion = 77;
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				F52293E1075C4F65CBB85F7A /* MermaidPlayground */,
-				943A8BB655ACC2252442EBAB /* MermaidPlayground-iOS */,
+				900D446F9DA8846079B2421F /* MermaidPlayground */,
+				832B033A802144C594E28B32 /* MermaidPlayground-iOS */,
 			);
 		};
 /* End PBXProject section */
 
-/* Begin PBXResourcesBuildPhase section */
-		2AC3BCA0FEC4B320D63223DC /* Resources */ = {
-			isa = PBXResourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				8B4E7D443DAF73C77F2881C3 /* Assets.xcassets in Resources */,
-				7D8C8D49CAACE2583141F2E6 /* test-diagrams.json in Resources */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		9DF58C4C5E820C03A1BC4068 /* Resources */ = {
-			isa = PBXResourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				EE98C38D279515DABB82B551 /* Assets.xcassets in Resources */,
-				D3D9419860375CDB1485624D /* test-diagrams.json in Resources */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-/* End PBXResourcesBuildPhase section */
-
 /* Begin PBXSourcesBuildPhase section */
-		17AF04B7F3EA1C4B019EFDF1 /* Sources */ = {
+		39FF571142F7C9DC53FC5EF7 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				BE211388CE7DF6C29C223EDC /* MermaidPlaygroundApp.swift in Sources */,
-				5FDBA359F661AE7916F1777C /* PlaygroundConfiguration.swift in Sources */,
-				70124D5E810A271D1F5A9623 /* SampleDiagrams.swift in Sources */,
-				E6ED12596A52A69EC68CD82E /* ContentView.swift in Sources */,
-				E5E27BB2601E4D2D66B44382 /* MermaidViewRepresentable.swift in Sources */,
-				C57DE8464C6118C4C0D60C0B /* PreviewView.swift in Sources */,
-				FA79C85F80BE4993C785E851 /* SidebarView.swift in Sources */,
-				AB60D184350C2BEF0554629D /* SourceEditor.swift in Sources */,
-				E1E66AE30033A5C24F38DB49 /* ThemePicker.swift in Sources */,
+				DCB52EBF5DB43927E026506C /* ActionsPanel.swift in Sources */,
+				FB790B2D813B21C761DA8D38 /* ActionsView.swift in Sources */,
+				8B625594340F512247BF7AAE /* BMColor+IsLight.swift in Sources */,
+				61B3DA01168E8DD57C55A36F /* ConfigSanitizer.swift in Sources */,
+				624FDADFEC60581AD606E54F /* EditorDiagnostic.swift in Sources */,
+				19EF9E543CD0DBC256055F50 /* EditorModePicker.swift in Sources */,
+				2680D9343E4BFB5E16AF0357 /* EditorPane.swift in Sources */,
+				068C981DEA7DC587653A66EE /* ExportOptions.swift in Sources */,
+				E325AA6ECA3E116BF55D3F42 /* GistLoader.swift in Sources */,
+				66EADBD310535244D5CC56FE /* HistoryView.swift in Sources */,
+				67493518B5FA33542402772B /* LineNumberRuler.swift in Sources */,
+				B3A500D0B98F6A1F88FA7C9C /* LiveEditorConfig.swift in Sources */,
+				B5AE4BF373A630B4712F7B40 /* LiveEditorState.swift in Sources */,
+				FDD876689CD760D4A6AC2D25 /* LiveEditorStateCodec.swift in Sources */,
+				E331D3123100C7065EF12445 /* LiveEditorStore.swift in Sources */,
+				B63A2C7599B03968128FC969 /* LiveEditorToolbar.swift in Sources */,
+				3015394A4443300B11CFC0DB /* LiveEditorView.swift in Sources */,
+				BF842A970E43597B17988722 /* LiveHistoryEntry.swift in Sources */,
+				0BB9E12B29552822C54A37C8 /* LiveHistoryStore.swift in Sources */,
+				F74D6BAC0E4C2430992FF7EA /* LiveRenderStatus.swift in Sources */,
+				2588CF9336ACA3F0965A6D68 /* LoaderResult.swift in Sources */,
+				62F10BEFF3FAC713B9A631B5 /* MermaidPlaygroundApp.swift in Sources */,
+				9578E973C49FEC5A19B1C683 /* MermaidSyntaxHighlighter.swift in Sources */,
+				76663FE6C6ADA75ADC0F52D3 /* MermaidViewRepresentable.swift in Sources */,
+				F251F8E3A4DBF445AED46947 /* NativeCodeEditor.swift in Sources */,
+				48C2EE8AEB9DB37F9240AAD6 /* PreviewCanvas.swift in Sources */,
+				B1274F4ACF6972A75BDF8C5D /* PreviewToolbar.swift in Sources */,
+				EBBA69D3F7FEC7E0F313B015 /* RawFileLoader.swift in Sources */,
+				3497B6978C7F41692D073B72 /* SampleDiagramPanel.swift in Sources */,
+				0177A96B352583C1448A3601 /* SampleDiagrams.swift in Sources */,
+				9CFBA32D378AF534C443C29F /* ShareView.swift in Sources */,
+				BF131979D0CDF1A1CA5E7F01 /* SidebarView.swift in Sources */,
+				B591EFF621711B8071FDF6B5 /* ThemePicker.swift in Sources */,
+				2E13E235E058A9F10D0867C6 /* VersionSecurityPanel.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		710E0ED35269D2439EB02FA6 /* Sources */ = {
+		9E10DBD18A9C96E63D68DDCC /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				E6B9B40A6117E1D1D88DB90C /* MermaidPlaygroundApp.swift in Sources */,
-				4EA1105D3085975C0A240325 /* PlaygroundConfiguration.swift in Sources */,
-				2A11FD1B8F2CF99901020CB5 /* SampleDiagrams.swift in Sources */,
-				EA659666B96051DBE9A1E95E /* ContentView.swift in Sources */,
-				13F79229BE0577B2043775B8 /* MermaidViewRepresentable.swift in Sources */,
-				FB93ABC0FA15DDA7F385FB1A /* PreviewView.swift in Sources */,
-				46AFBEF68049159C2A34D2D8 /* SidebarView.swift in Sources */,
-				C94F021A453BA9B6F2BA1C30 /* SourceEditor.swift in Sources */,
-				69F3173A86A525ED1E01A0E8 /* ThemePicker.swift in Sources */,
+				FBD37B09EF3A0A3E27AE7EC6 /* ActionsPanel.swift in Sources */,
+				ADD01FB443D6A9A904597B58 /* ActionsView.swift in Sources */,
+				E55A574B406FC52B50BFADC3 /* BMColor+IsLight.swift in Sources */,
+				7EFFFA6EBF161A53489F6B86 /* ConfigSanitizer.swift in Sources */,
+				563C22E407A780CDC1F364F2 /* EditorDiagnostic.swift in Sources */,
+				DB03670B15C2F5793EB63A44 /* EditorModePicker.swift in Sources */,
+				34C5AD21B0C04A9800FE9210 /* EditorPane.swift in Sources */,
+				BEBD136CF6140C11D445C144 /* ExportOptions.swift in Sources */,
+				D93AFE3489F81BF1199B5F66 /* GistLoader.swift in Sources */,
+				235805AB6BA9CB37A2E605A2 /* HistoryView.swift in Sources */,
+				B70D9F111FFA81DF459A1B8F /* LineNumberRuler.swift in Sources */,
+				0BED2B15AC12F46326CC5318 /* LiveEditorConfig.swift in Sources */,
+				1CBE0E356E6D758D5F337F2F /* LiveEditorState.swift in Sources */,
+				70A9CC629C1233E2DFA3B9F1 /* LiveEditorStateCodec.swift in Sources */,
+				CFFF5AC794F4BFEA98D3AD71 /* LiveEditorStore.swift in Sources */,
+				27C5F4A2BB2DA939409E06E9 /* LiveEditorToolbar.swift in Sources */,
+				EB1A94B8862DDEA2824CB0C9 /* LiveEditorView.swift in Sources */,
+				B2B458CF99E2DC1E05C86B41 /* LiveHistoryEntry.swift in Sources */,
+				76CA5C530D4F366CBA7C1315 /* LiveHistoryStore.swift in Sources */,
+				E304AAD5AEE7D5BFED22C389 /* LiveRenderStatus.swift in Sources */,
+				4D93805FC5E586FB19B9C61B /* LoaderResult.swift in Sources */,
+				0438B8E4B65B17AF85C6E148 /* MermaidPlaygroundApp.swift in Sources */,
+				9F61E30492D2B7A17C171BED /* MermaidSyntaxHighlighter.swift in Sources */,
+				092C6EE2BD8192DA7017DF74 /* MermaidViewRepresentable.swift in Sources */,
+				CC8D98B10FF78E3DD6DB18FF /* NativeCodeEditor.swift in Sources */,
+				429D02565AF884E5371144C7 /* PreviewCanvas.swift in Sources */,
+				0C5E4DB437F1410044C7DE71 /* PreviewToolbar.swift in Sources */,
+				97DEDC2680ECB1724860CAE8 /* RawFileLoader.swift in Sources */,
+				BC0E854E3753D9067055B45C /* SampleDiagramPanel.swift in Sources */,
+				EE57AA7ADC5D01F6FF2AAE6A /* SampleDiagrams.swift in Sources */,
+				323745E1CF50CCB624AE60E5 /* ShareView.swift in Sources */,
+				9EE69142B2DD33ECFA4C3CC6 /* SidebarView.swift in Sources */,
+				D83A7632BB899BF39BFD2383 /* ThemePicker.swift in Sources */,
+				1222A89F5306C12CBBB10FFF /* VersionSecurityPanel.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin XCBuildConfiguration section */
-		12F60177E16B601BB596ABCA /* Debug */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
-				CLANG_ENABLE_OBJC_WEAK = NO;
-				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "-";
-				CODE_SIGN_STYLE = Automatic;
-				ENABLE_PREVIEWS = YES;
-				GENERATE_INFOPLIST_FILE = NO;
-				INFOPLIST_FILE = Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
-				LD_RUNPATH_SEARCH_PATHS = (
-					"$(inherited)",
-					"@executable_path/Frameworks",
-				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.lukilabs.MermaidPlayground.iOS;
-				PRODUCT_BUNDLE_PACKAGE_TYPE = APPL;
-				PRODUCT_NAME = MermaidPlayground;
-				SDKROOT = iphoneos;
-				SUPPORTS_MACCATALYST = YES;
-				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
-				SWIFT_EMIT_LOC_STRINGS = YES;
-				SWIFT_VERSION = 6.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
-			};
-			name = Debug;
-		};
-		16E161A7D67695E0E6916F06 /* Release */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
-				CODE_SIGN_STYLE = Automatic;
-				COMBINE_HIDPI_IMAGES = YES;
-				ENABLE_APP_SANDBOX = NO;
-				ENABLE_PREVIEWS = YES;
-				GENERATE_INFOPLIST_FILE = NO;
-				INFOPLIST_FILE = Info.plist;
-				LD_RUNPATH_SEARCH_PATHS = (
-					"$(inherited)",
-					"@executable_path/../Frameworks",
-				);
-				MACOSX_DEPLOYMENT_TARGET = 26.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.lukilabs.MermaidPlayground;
-				PRODUCT_BUNDLE_PACKAGE_TYPE = APPL;
-				PRODUCT_NAME = MermaidPlayground;
-				SDKROOT = macosx;
-				SWIFT_EMIT_LOC_STRINGS = YES;
-				SWIFT_VERSION = 6.0;
-			};
-			name = Release;
-		};
-		1A050B92191600B001318B49 /* Debug */ = {
+		1A5BDD494DD7BD71A544F43B /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
@@ -391,121 +456,7 @@
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
-				DEBUG_INFORMATION_FORMAT = dwarf;
-				ENABLE_STRICT_OBJC_MSGSEND = YES;
-				ENABLE_TESTABILITY = YES;
-				GCC_C_LANGUAGE_STANDARD = gnu11;
-				GCC_DYNAMIC_NO_PIC = NO;
-				GCC_NO_COMMON_BLOCKS = YES;
-				GCC_OPTIMIZATION_LEVEL = 0;
-				GCC_PREPROCESSOR_DEFINITIONS = (
-					"DEBUG=1",
-					"$(inherited)",
-				);
-				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
-				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
-				GCC_WARN_UNDECLARED_SELECTOR = YES;
-				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
-				GCC_WARN_UNUSED_FUNCTION = YES;
-				GCC_WARN_UNUSED_VARIABLE = YES;
-				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
-				MTL_FAST_MATH = YES;
-				ONLY_ACTIVE_ARCH = YES;
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
-				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
-				SWIFT_VERSION = 6.0;
-			};
-			name = Debug;
-		};
-		705A13D9E3D5A2FC41042F1F /* Release */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
-				CLANG_ENABLE_OBJC_WEAK = NO;
-				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "-";
-				CODE_SIGN_STYLE = Automatic;
-				ENABLE_PREVIEWS = YES;
-				GENERATE_INFOPLIST_FILE = NO;
-				INFOPLIST_FILE = Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
-				LD_RUNPATH_SEARCH_PATHS = (
-					"$(inherited)",
-					"@executable_path/Frameworks",
-				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.lukilabs.MermaidPlayground.iOS;
-				PRODUCT_BUNDLE_PACKAGE_TYPE = APPL;
-				PRODUCT_NAME = MermaidPlayground;
-				SDKROOT = iphoneos;
-				SUPPORTS_MACCATALYST = YES;
-				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
-				SWIFT_EMIT_LOC_STRINGS = YES;
-				SWIFT_VERSION = 6.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
-				VALIDATE_PRODUCT = YES;
-			};
-			name = Release;
-		};
-		A352935AB4F64311B5D298E0 /* Debug */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
-				CODE_SIGN_STYLE = Automatic;
-				COMBINE_HIDPI_IMAGES = YES;
-				ENABLE_APP_SANDBOX = NO;
-				ENABLE_PREVIEWS = YES;
-				GENERATE_INFOPLIST_FILE = NO;
-				INFOPLIST_FILE = Info.plist;
-				LD_RUNPATH_SEARCH_PATHS = (
-					"$(inherited)",
-					"@executable_path/../Frameworks",
-				);
-				MACOSX_DEPLOYMENT_TARGET = 26.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.lukilabs.MermaidPlayground;
-				PRODUCT_BUNDLE_PACKAGE_TYPE = APPL;
-				PRODUCT_NAME = MermaidPlayground;
-				SDKROOT = macosx;
-				SWIFT_EMIT_LOC_STRINGS = YES;
-				SWIFT_VERSION = 6.0;
-			};
-			name = Debug;
-		};
-		D2DE34556F3936DF0E573A0C /* Release */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				ALWAYS_SEARCH_USER_PATHS = NO;
-				CLANG_ANALYZER_NONNULL = YES;
-				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
-				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
-				CLANG_CXX_LIBRARY = "libc++";
-				CLANG_ENABLE_MODULES = YES;
-				CLANG_ENABLE_OBJC_ARC = YES;
-				CLANG_ENABLE_OBJC_WEAK = YES;
-				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
-				CLANG_WARN_BOOL_CONVERSION = YES;
-				CLANG_WARN_COMMA = YES;
-				CLANG_WARN_CONSTANT_CONVERSION = YES;
-				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
-				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
-				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
-				CLANG_WARN_EMPTY_BODY = YES;
-				CLANG_WARN_ENUM_CONVERSION = YES;
-				CLANG_WARN_INFINITE_RECURSION = YES;
-				CLANG_WARN_INT_CONVERSION = YES;
-				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
-				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
-				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
-				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
-				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
-				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
-				CLANG_WARN_STRICT_PROTOTYPES = YES;
-				CLANG_WARN_SUSPICIOUS_MOVE = YES;
-				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
-				CLANG_WARN_UNREACHABLE_CODE = YES;
-				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
-				COPY_PHASE_STRIP = NO;
+				CURRENT_PROJECT_VERSION = 1;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
@@ -517,6 +468,10 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
+				MACOSX_DEPLOYMENT_TARGET = 26.0;
+				MARKETING_VERSION = 1.0;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -526,57 +481,216 @@
 			};
 			name = Release;
 		};
+		4322CD5C4B96C430C2F99914 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.lukilabs.MermaidPlayground.iOS;
+				PRODUCT_NAME = MermaidPlayground;
+				SDKROOT = iphoneos;
+				SUPPORTS_MACCATALYST = YES;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		AA0F6897CAB980DC3D21D788 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.lukilabs.MermaidPlayground.iOS;
+				PRODUCT_NAME = MermaidPlayground;
+				SDKROOT = iphoneos;
+				SUPPORTS_MACCATALYST = YES;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		B251CFE8EDB96141B8F86E2F /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				COMBINE_HIDPI_IMAGES = YES;
+				ENABLE_APP_SANDBOX = NO;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 26.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.lukilabs.MermaidPlayground;
+				PRODUCT_NAME = MermaidPlayground;
+				SDKROOT = macosx;
+			};
+			name = Debug;
+		};
+		BE0F8D4FDEF1791AE7A74969 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				COMBINE_HIDPI_IMAGES = YES;
+				ENABLE_APP_SANDBOX = NO;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 26.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.lukilabs.MermaidPlayground;
+				PRODUCT_NAME = MermaidPlayground;
+				SDKROOT = macosx;
+			};
+			name = Release;
+		};
+		C310CFDDDB97284ED7EB69E5 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(inherited)",
+					"DEBUG=1",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
+				MACOSX_DEPLOYMENT_TARGET = 26.0;
+				MARKETING_VERSION = 1.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 6.0;
+			};
+			name = Debug;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		0B60F90F4B3090FCD34846E5 /* Build configuration list for PBXProject "MermaidPlayground" */ = {
+		CC4049C83506D7B235CD96AA /* Build configuration list for PBXProject "MermaidPlayground" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				1A050B92191600B001318B49 /* Debug */,
-				D2DE34556F3936DF0E573A0C /* Release */,
+				C310CFDDDB97284ED7EB69E5 /* Debug */,
+				1A5BDD494DD7BD71A544F43B /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
+			defaultConfigurationName = Debug;
 		};
-		6ADABFE7537C601276B90C52 /* Build configuration list for PBXNativeTarget "MermaidPlayground" */ = {
+		E12BD1B8C8DFA0EB95339352 /* Build configuration list for PBXNativeTarget "MermaidPlayground-iOS" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				16E161A7D67695E0E6916F06 /* Release */,
-				A352935AB4F64311B5D298E0 /* Debug */,
+				AA0F6897CAB980DC3D21D788 /* Debug */,
+				4322CD5C4B96C430C2F99914 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
+			defaultConfigurationName = Debug;
 		};
-		F87921CC68EFCC7656F3D778 /* Build configuration list for PBXNativeTarget "MermaidPlayground-iOS" */ = {
+		EE282DD9C8E80C30BAA05731 /* Build configuration list for PBXNativeTarget "MermaidPlayground" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				705A13D9E3D5A2FC41042F1F /* Release */,
-				12F60177E16B601BB596ABCA /* Debug */,
+				B251CFE8EDB96141B8F86E2F /* Debug */,
+				BE0F8D4FDEF1791AE7A74969 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
+			defaultConfigurationName = Debug;
 		};
 /* End XCConfigurationList section */
 
 /* Begin XCLocalSwiftPackageReference section */
-		34D6CFDF9DE78646FDDD30F6 /* XCLocalSwiftPackageReference "../../" */ = {
+		0497DCEF0A73B25165B02442 /* XCLocalSwiftPackageReference "../.." */ = {
 			isa = XCLocalSwiftPackageReference;
-			relativePath = ../../;
+			relativePath = ../..;
 		};
 /* End XCLocalSwiftPackageReference section */
 
-/* Begin XCSwiftPackageProductDependency section */
-		90161B8F3C5FB9851DF8250C /* BeautifulMermaid */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 34D6CFDF9DE78646FDDD30F6 /* XCLocalSwiftPackageReference "../../" */;
-			productName = BeautifulMermaid;
+/* Begin XCRemoteSwiftPackageReference section */
+		54BD0ADCC1AFF820D3ADFDB9 /* XCRemoteSwiftPackageReference "xctest-dynamic-overlay" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/pointfreeco/xctest-dynamic-overlay";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 1.0.0;
+			};
 		};
-		A6B0267220DD39735E96C5A7 /* BeautifulMermaid */ = {
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		0420619350770193B907578E /* DiagramKit */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = 34D6CFDF9DE78646FDDD30F6 /* XCLocalSwiftPackageReference "../../" */;
-			productName = BeautifulMermaid;
+			productName = DiagramKit;
+		};
+		15DF29D854A90CAFFC24252E /* DiagramKit */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = DiagramKit;
+		};
+		1992934B12DCAEAC7CBCE174 /* IssueReporting */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 54BD0ADCC1AFF820D3ADFDB9 /* XCRemoteSwiftPackageReference "xctest-dynamic-overlay" */;
+			productName = IssueReporting;
+		};
+		EBF15EBD000B78EFAD9D6203 /* IssueReporting */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 54BD0ADCC1AFF820D3ADFDB9 /* XCRemoteSwiftPackageReference "xctest-dynamic-overlay" */;
+			productName = IssueReporting;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};
-	rootObject = 4FB40C7208A95530D67CCE58 /* Project object */;
+	rootObject = EE6F49F1211BE34BB8D1088E /* Project object */;
 }

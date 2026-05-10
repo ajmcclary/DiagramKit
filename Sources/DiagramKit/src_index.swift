@@ -113,20 +113,23 @@ private func _stableDiagramId(prefix: String, source: String) -> String {
 
 func _renderMermaidSVG(
     _ text: String,
-    _ options: RenderOptions = RenderOptions()
+    _ options: RenderOptions = RenderOptions(),
+    layoutConfig: LayoutConfig = LayoutConfig()
 ) throws -> String {
     let preprocessed = _preprocessMermaidSource(_decodeXML(text))
     return try _renderPreprocessedMermaidSVG(
         preprocessed.source,
         frontmatter: preprocessed.frontmatter,
-        options: options
+        options: options,
+        layoutConfig: layoutConfig
     )
 }
 
 private func _renderPreprocessedMermaidSVG(
     _ decodedText: String,
     frontmatter fm: DiagramFrontmatter?,
-    options: RenderOptions
+    options: RenderOptions,
+    layoutConfig: LayoutConfig
 ) throws -> String {
     let colors = buildColors(options)
     let font = options.font ?? RenderTokens.shared.svgFontFamily
@@ -155,7 +158,7 @@ private func _renderPreprocessedMermaidSVG(
     case .requirement:
         return try _renderRequirementSvgCase(lines: lines, fm: fm, options: options, colors: colors, font: font, transparent: transparent)
     case .flowchart:
-        return try _renderFlowchartSvgCase(source: decodedText, fm: fm, options: options, colors: colors, font: font, transparent: transparent)
+        return try _renderFlowchartSvgCase(source: decodedText, fm: fm, options: options, layoutConfig: layoutConfig, colors: colors, font: font, transparent: transparent)
     case .gitgraph:
         return try _renderGitGraphSvgCase(source: decodedText, fm: fm)
     case .mindmap:
@@ -284,9 +287,11 @@ private func _renderRequirementSvgCase(lines: [String], fm: DiagramFrontmatter?,
         htmlLabels: fm?.htmlLabels)
 }
 
-private func _renderFlowchartSvgCase(source: String, fm: DiagramFrontmatter?, options: RenderOptions, colors: DiagramColors, font: String, transparent: Bool) throws -> String {
+private func _renderFlowchartSvgCase(source: String, fm: DiagramFrontmatter?, options: RenderOptions, layoutConfig: LayoutConfig, colors: DiagramColors, font: String, transparent: Bool) throws -> String {
     let graph = try parseMermaid(source, config: fm?.flowchartConfig, stateConfig: fm?.stateConfig)
-    let positioned = try layoutGraphSync(graph, options)
+    let positioned = layoutConfig == LayoutConfig()
+        ? try layoutGraphSync(graph, options)
+        : try layoutGraphSync(graph, config: layoutConfig)
     return try renderSvg(positioned, colors, font, transparent)
 }
 

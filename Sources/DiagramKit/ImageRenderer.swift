@@ -89,8 +89,13 @@ public final class MermaidImageRenderer {
 
     public func renderSVG(from source: String) async throws -> String {
         let theme = theme
+        let layoutConfig = layoutConfig
         return try await MermaidRenderer._runOnWorker {
-            try MermaidPipeline.renderSVG(source: source, theme: theme)
+            try MermaidPipeline.renderSVG(
+                source: source,
+                theme: theme,
+                layoutConfig: layoutConfig
+            )
         }
     }
 
@@ -106,7 +111,7 @@ public final class MermaidImageRenderer {
             transparent: false
         )
 
-        let svg = try _renderMermaidSVG(source, options)
+        let svg = try _renderMermaidSVG(source, options, layoutConfig: layoutConfig)
         let resolvedSvg = _resolveSvgCssVariables(svg)
         return _flattenKnownSvgTokens(resolvedSvg, theme: theme)
     }

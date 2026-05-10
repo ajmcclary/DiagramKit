@@ -47,6 +47,22 @@ public final class LiveEditorStore {
     /// The bounds of the most recently rendered diagram.
     public var diagramBounds: CGRect = .zero
 
+    /// Source text currently committed to the preview surface.
+    ///
+    /// In automatic update mode this tracks ``state/source`` immediately. In
+    /// manual mode it stays pinned to the last rendered source until
+    /// ``renderNow()`` commits the pending editor state.
+    public private(set) var previewSource: String
+
+    /// Theme name currently committed to the preview surface.
+    public private(set) var previewThemeName: String
+
+    /// Layout configuration currently committed to the preview surface.
+    public private(set) var previewLayoutConfig: LayoutConfig
+
+    /// Full editor state from the last render request.
+    private var previewState: LiveEditorState
+
     // MARK: - Config (Phase 3)
 
     /// Parsed representation of the current `state.configJSON`.
@@ -98,6 +114,11 @@ public final class LiveEditorStore {
         DiagramTheme.theme(named: state.selectedThemeName) ?? .default
     }
 
+    /// Resolved theme for the committed preview snapshot.
+    public var previewTheme: DiagramTheme {
+        DiagramTheme.theme(named: previewThemeName) ?? .default
+    }
+
     /// Incremented every time source or theme changes.
     /// Used by the preview to decide when to reset fit-to-view zoom.
     public private(set) var renderGeneration: Int = 0
@@ -110,15 +131,24 @@ public final class LiveEditorStore {
 
     public init(state: LiveEditorState = LiveEditorState()) {
         self.state = state
+        self.previewSource = state.source
+        self.previewThemeName = state.selectedThemeName
+        self.previewLayoutConfig = LayoutConfig()
+        self.previewState = state
         self.historyStore = LiveHistoryStore()
         parseConfig()
+        commitCurrentStateToPreview()
     }
 
     // MARK: - Config parsing
 
     /// Parse the current `state.configJSON`, extract known settings,
     /// and apply them to the store's runtime state.
-    private func parseConfig() {
+    @discardableResult
+    private func parseConfig() -> Bool {
+        let previousThemeName = state.selectedThemeName
+        let previousLayoutConfig = layoutConfig
+
         let config = LiveEditorConfig.parse(state.configJSON)
         var applied = config
         applied.warnings = ConfigSanitizer.audit(config.jsonTree)
@@ -126,10 +156,14 @@ public final class LiveEditorStore {
         configWarnings = applied.warnings
         layoutConfig = applied.layoutConfig
 
-        // Apply theme if found and different from current
+        // Apply config-driven theme to the editable state without requesting
+        // a render. The caller decides whether this is an automatic render or
+        // a dirty manual edit.
         if let themeName = applied.themeName, themeName != state.selectedThemeName {
-            setTheme(named: themeName)
+            state.selectedThemeName = themeName
         }
+
+        return previousThemeName != state.selectedThemeName || previousLayoutConfig != layoutConfig
     }
 
     // MARK: - Source / Theme / Config actions
@@ -161,6 +195,12 @@ public final class LiveEditorStore {
     public func setTheme(named name: String) {
         guard state.selectedThemeName != name else { return }
         state.selectedThemeName = name
+
+        if state.updateMode == .manual {
+            isDirty = true
+            return
+        }
+
         requestRender(reason: .themeChanged)
     }
 
@@ -181,6 +221,7 @@ public final class LiveEditorStore {
 
     /// Explicitly request a render (e.g. from manual update mode).
     public func requestRender(reason: RenderReason) {
+        commitCurrentStateToPreview()
         renderGeneration &+= 1
         renderStatus = .rendering
     }
@@ -210,8 +251,20 @@ public final class LiveEditorStore {
         } else {
             renderStatus = .rendered
             // Auto-save history after successful renders
-            historyStore.autoSaveIfNeeded(state: state)
+            historyStore.autoSaveIfNeeded(state: previewState)
         }
+    }
+
+    // MARK: - Preview transform
+
+    /// Persist the current preview zoom scale in serializable editor state.
+    public func setPreviewZoomScale(_ scale: CGFloat?) {
+        state.zoomScale = scale
+    }
+
+    /// Persist the current preview pan offset in serializable editor state.
+    public func setPreviewPanOffset(_ offset: CGSize?) {
+        state.panOffset = offset
     }
 
     // MARK: - Export (Phase 4)
@@ -254,7 +307,11 @@ public final class LiveEditorStore {
     /// - Throws: Rendering errors.
     /// - Returns: The SVG markup string.
     public func exportSVG() async throws -> String {
-        try await MermaidRenderer.renderSVG(source: state.source, theme: theme)
+        try await MermaidRenderer.renderSVG(
+            source: state.source,
+            theme: theme,
+            layoutConfig: layoutConfig
+        )
     }
 
     // MARK: - Copy to clipboard (Phase 4)
@@ -494,6 +551,14 @@ public final class LiveEditorStore {
         UIPasteboard.general.string = string
         return true
         #endif
+    }
+
+    /// Commit the editable state/config to the preview snapshot.
+    private func commitCurrentStateToPreview() {
+        previewSource = state.source
+        previewThemeName = state.selectedThemeName
+        previewLayoutConfig = layoutConfig
+        previewState = state
     }
 }
 

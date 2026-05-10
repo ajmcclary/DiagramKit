@@ -1,0 +1,2283 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Mermaid·Swift — Playground Redesign</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link
+  href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:ital,wght@0,300..800;1,300..800&family=Newsreader:ital,opsz,wght@0,6..72,200..700;1,6..72,200..700&display=swap"
+  rel="stylesheet"
+/>
+<style>
+  /* ======================================================================
+     DRAFTING ATELIER — Mermaid·Swift Playground
+     A workbench for diagrams. Warm parchment, walnut ink, vermillion stroke,
+     and the soft authority of a technical journal.
+     ====================================================================== */
+
+  :root {
+    /* Paper & ink */
+    --paper:      #F2EBDC;
+    --paper-2:    #ECE3D0;
+    --paper-3:    #E5DBC4;
+    --vellum:     #F8F2E4;
+    --ink:        #1B1410;
+    --ink-2:      #3A2F26;
+    --ink-3:      #6A5C4E;
+    --mute:       #8E8270;
+    --mute-2:     #B6AD9C;
+
+    /* Accent: drafting vermillion + blueprint */
+    --vermillion: #C73E1D;
+    --vermillion-soft: #E2856E;
+    --blueprint:  #2A4759;
+    --blueprint-2:#3F6377;
+    --ochre:      #B07F2A;
+    --moss:       #5C6E3A;
+
+    /* Functional */
+    --rule:       rgba(27, 20, 16, 0.10);
+    --rule-2:     rgba(27, 20, 16, 0.18);
+    --rule-3:     rgba(27, 20, 16, 0.32);
+    --shadow-1:   0 1px 0 rgba(27, 20, 16, 0.04), 0 8px 24px -8px rgba(27, 20, 16, 0.10);
+    --shadow-2:   0 1px 0 rgba(27, 20, 16, 0.06), 0 24px 60px -22px rgba(27, 20, 16, 0.22);
+
+    /* Type */
+    --serif: 'Instrument Serif', 'Newsreader', ui-serif, Georgia, serif;
+    --mono:  'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+    --tracking-wide: 0.16em;
+    --tracking-x-wide: 0.26em;
+  }
+
+  * { box-sizing: border-box; }
+
+  html, body {
+    margin: 0;
+    padding: 0;
+    font-family: var(--mono);
+    font-size: 13px;
+    line-height: 1.5;
+    color: var(--ink);
+    background: var(--paper);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  /* Paper grain texture across the whole document */
+  body::before {
+    content: "";
+    position: fixed; inset: 0;
+    pointer-events: none;
+    z-index: 1000;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='240' height='240'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' seed='4'/><feColorMatrix values='0 0 0 0 0.10  0 0 0 0 0.08  0 0 0 0 0.06  0 0 0 0.045 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+    mix-blend-mode: multiply;
+    opacity: 0.6;
+  }
+
+  /* Background tick rules — like drafting paper margins */
+  body::after {
+    content: "";
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    pointer-events: none;
+    z-index: 0;
+    background-image:
+      linear-gradient(to right, rgba(27,20,16,0.025) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(27,20,16,0.025) 1px, transparent 1px);
+    background-size: 56px 56px;
+  }
+
+  ::selection { background: var(--vermillion); color: var(--vellum); }
+
+  /* ===== Layout shell ============================================== */
+
+  .shell {
+    position: relative;
+    z-index: 2;
+    display: grid;
+    grid-template-rows: auto 1fr auto;
+    height: 100vh;
+    min-height: 720px;
+  }
+
+  /* ===== Masthead ================================================== */
+
+  .masthead {
+    display: grid;
+    grid-template-columns: minmax(280px, 1fr) auto minmax(280px, 1fr);
+    align-items: center;
+    padding: 14px 24px 14px 28px;
+    border-bottom: 1px solid var(--rule-2);
+    background: linear-gradient(to bottom, rgba(248, 242, 228, 0.6), rgba(242, 235, 220, 0));
+  }
+
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    min-width: 0;
+  }
+
+  .monogram {
+    width: 38px;
+    height: 38px;
+    border: 1.5px solid var(--ink);
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    background: var(--vellum);
+    box-shadow: inset 0 0 0 3px var(--paper);
+    flex-shrink: 0;
+    position: relative;
+  }
+  .monogram::after {
+    content: "";
+    position: absolute;
+    inset: -5px;
+    border-radius: 50%;
+    border: 1px dashed var(--rule-3);
+  }
+  .monogram svg { width: 20px; height: 20px; }
+
+  .wordmark {
+    display: flex;
+    flex-direction: column;
+    line-height: 1;
+    min-width: 0;
+  }
+  .wordmark .row1 {
+    font-family: var(--mono);
+    font-weight: 600;
+    font-size: 13px;
+    letter-spacing: var(--tracking-wide);
+    text-transform: uppercase;
+    color: var(--ink);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .wordmark .dot {
+    display: inline-block;
+    width: 5px; height: 5px;
+    background: var(--vermillion);
+    border-radius: 50%;
+    transform: translateY(-2px);
+  }
+  .wordmark .row2 {
+    font-family: var(--serif);
+    font-style: italic;
+    font-weight: 400;
+    font-size: 22px;
+    color: var(--ink-2);
+    margin-top: 4px;
+    letter-spacing: 0.005em;
+  }
+
+  .version-stack {
+    margin-left: 6px;
+    padding-left: 14px;
+    border-left: 1px solid var(--rule-2);
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    align-self: stretch;
+    justify-content: center;
+  }
+  .version-stack .label {
+    font-size: 9px;
+    letter-spacing: var(--tracking-x-wide);
+    color: var(--mute);
+    text-transform: uppercase;
+  }
+  .version-stack .value {
+    font-size: 11px;
+    color: var(--ink-2);
+    letter-spacing: 0.04em;
+  }
+
+  /* Center toolbar — render controls */
+  .render-bar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 4px 6px;
+    border: 1px solid var(--rule-2);
+    background: var(--vellum);
+    border-radius: 999px;
+    box-shadow: var(--shadow-1);
+  }
+
+  .seg {
+    display: flex;
+    background: var(--paper-2);
+    border-radius: 999px;
+    padding: 3px;
+    gap: 2px;
+    border: 1px solid var(--rule);
+  }
+  .seg button {
+    appearance: none;
+    border: none;
+    background: transparent;
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    padding: 5px 14px;
+    border-radius: 999px;
+    color: var(--ink-3);
+    cursor: pointer;
+    transition: all 160ms ease;
+  }
+  .seg button.is-on {
+    background: var(--ink);
+    color: var(--vellum);
+    box-shadow: 0 1px 0 rgba(27, 20, 16, 0.5);
+  }
+  .seg button:hover:not(.is-on) { color: var(--ink); }
+
+  .render-btn {
+    appearance: none;
+    border: 1px solid var(--vermillion);
+    background: var(--vermillion);
+    color: var(--vellum);
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 7px 18px 7px 14px;
+    border-radius: 999px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    box-shadow: 0 1px 0 rgba(27, 20, 16, 0.2), inset 0 -1px 0 rgba(0,0,0,0.15);
+    transition: transform 120ms ease;
+  }
+  .render-btn:hover { transform: translateY(-1px); }
+  .render-btn .triangle {
+    width: 0; height: 0;
+    border-left: 7px solid var(--vellum);
+    border-top: 5px solid transparent;
+    border-bottom: 5px solid transparent;
+  }
+  .render-btn .meta {
+    font-size: 9px;
+    letter-spacing: 0.16em;
+    opacity: 0.8;
+    border-left: 1px solid rgba(248, 242, 228, 0.4);
+    padding-left: 8px;
+  }
+
+  /* Right toolbar */
+  .actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 6px;
+  }
+
+  .icon-btn {
+    appearance: none;
+    background: transparent;
+    border: 1px solid transparent;
+    border-radius: 8px;
+    padding: 7px 9px;
+    color: var(--ink-2);
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.06em;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    transition: all 140ms ease;
+  }
+  .icon-btn:hover {
+    background: var(--vellum);
+    border-color: var(--rule-2);
+    color: var(--ink);
+  }
+  .icon-btn svg { width: 14px; height: 14px; flex-shrink: 0; }
+  .icon-btn .label { text-transform: uppercase; font-size: 10px; letter-spacing: 0.1em; }
+
+  .icon-btn.primary {
+    background: var(--ink);
+    color: var(--vellum);
+    border-color: var(--ink);
+  }
+  .icon-btn.primary:hover { background: var(--ink-2); }
+
+  .pip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 9px;
+    background: var(--paper-2);
+    border: 1px solid var(--rule);
+    border-radius: 999px;
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    color: var(--ink-3);
+    text-transform: uppercase;
+  }
+  .pip .swatch {
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    border: 1px solid var(--rule-3);
+  }
+
+  /* ===== Workspace =================================================== */
+
+  .workspace {
+    display: grid;
+    grid-template-columns: 268px 1fr 1fr 308px;
+    overflow: hidden;
+    border-top: 1px solid var(--rule);
+  }
+
+  .panel {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    overflow: hidden;
+    position: relative;
+  }
+  .panel + .panel {
+    border-left: 1px solid var(--rule);
+  }
+
+  /* Section header — § 01 styled */
+  .section-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    padding: 14px 16px 10px;
+    border-bottom: 1px solid var(--rule);
+    background: linear-gradient(to bottom, var(--vellum), transparent);
+    flex-shrink: 0;
+  }
+  .section-head .num {
+    font-family: var(--serif);
+    font-style: italic;
+    font-size: 14px;
+    color: var(--vermillion);
+    margin-right: 8px;
+  }
+  .section-head .title {
+    font-family: var(--mono);
+    font-weight: 600;
+    font-size: 11px;
+    letter-spacing: var(--tracking-wide);
+    color: var(--ink);
+    text-transform: uppercase;
+  }
+  .section-head .title em {
+    font-family: var(--serif);
+    font-style: italic;
+    font-weight: 400;
+    font-size: 16px;
+    text-transform: none;
+    letter-spacing: 0;
+    color: var(--ink-2);
+    margin-left: 8px;
+  }
+  .section-head .meta {
+    font-size: 10px;
+    color: var(--mute);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  /* ----- Catalog (left) ----- */
+  .catalog { background: linear-gradient(to right, transparent, rgba(236, 227, 208, 0.25)); }
+
+  .catalog-search {
+    margin: 12px 14px 8px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--vellum);
+    border: 1px solid var(--rule-2);
+    border-radius: 8px;
+    padding: 7px 10px;
+    color: var(--ink-3);
+    flex-shrink: 0;
+  }
+  .catalog-search svg { width: 13px; height: 13px; flex-shrink: 0; opacity: 0.6; }
+  .catalog-search input {
+    appearance: none;
+    border: none;
+    outline: none;
+    background: transparent;
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--ink);
+    width: 100%;
+  }
+  .catalog-search .kbd {
+    font-size: 9px;
+    border: 1px solid var(--rule-2);
+    border-radius: 4px;
+    padding: 1px 5px;
+    color: var(--mute);
+    background: var(--paper);
+    letter-spacing: 0.05em;
+  }
+
+  .catalog-meta {
+    display: flex;
+    justify-content: space-between;
+    padding: 0 16px 8px;
+    font-size: 9px;
+    color: var(--mute);
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    flex-shrink: 0;
+  }
+  .catalog-meta .count {
+    color: var(--ink-2);
+    font-weight: 600;
+  }
+
+  .catalog-list {
+    padding: 4px 8px 16px;
+    overflow-y: auto;
+    flex: 1;
+  }
+
+  .cat-section {
+    margin: 14px 0 6px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 0 8px;
+  }
+  .cat-section .stripe {
+    flex: 1;
+    height: 1px;
+    background: var(--rule-2);
+  }
+  .cat-section .label {
+    font-family: var(--serif);
+    font-style: italic;
+    font-size: 13px;
+    color: var(--mute);
+  }
+
+  .cat-fam {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+  .cat-fam > li {
+    border-radius: 6px;
+    transition: background 120ms ease;
+  }
+  .fam-row {
+    display: grid;
+    grid-template-columns: 14px 1fr auto auto;
+    align-items: center;
+    gap: 10px;
+    padding: 6px 10px;
+    cursor: pointer;
+    color: var(--ink-2);
+  }
+  .fam-row:hover { background: rgba(27, 20, 16, 0.04); border-radius: 6px; }
+  .fam-row .chev {
+    width: 0; height: 0;
+    border-left: 4px solid var(--mute);
+    border-top: 3px solid transparent;
+    border-bottom: 3px solid transparent;
+    transition: transform 160ms ease;
+  }
+  .cat-fam > li.open .fam-row .chev { transform: rotate(90deg); }
+
+  .fam-row .name {
+    font-size: 12px;
+    letter-spacing: 0.02em;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .fam-row .glyph {
+    width: 22px; height: 16px;
+    color: var(--ink-3);
+  }
+  .fam-row .badge {
+    font-size: 9px;
+    letter-spacing: 0.1em;
+    color: var(--mute);
+    background: var(--paper-2);
+    border: 1px solid var(--rule);
+    border-radius: 999px;
+    padding: 1px 7px;
+  }
+
+  .cat-fam .children {
+    list-style: none;
+    margin: 0 0 6px 22px;
+    padding: 0 0 6px 8px;
+    border-left: 1px dashed var(--rule-2);
+    display: none;
+  }
+  .cat-fam > li.open .children { display: block; }
+  .cat-fam .children li {
+    padding: 4px 8px 4px 10px;
+    font-size: 11px;
+    color: var(--ink-3);
+    cursor: pointer;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .cat-fam .children li::before {
+    content: "—";
+    color: var(--mute-2);
+    font-size: 10px;
+    margin-right: 2px;
+  }
+  .cat-fam .children li:hover { color: var(--ink); background: rgba(27, 20, 16, 0.03); }
+  .cat-fam .children li.is-active {
+    color: var(--vermillion);
+    background: rgba(199, 62, 29, 0.08);
+  }
+  .cat-fam .children li.is-active::before { content: "▸"; color: var(--vermillion); }
+
+  /* ----- Editor (center-left) ----- */
+
+  .editor-tabs {
+    display: flex;
+    align-items: stretch;
+    gap: 0;
+    padding: 0 16px;
+    border-bottom: 1px solid var(--rule);
+    background: var(--vellum);
+    flex-shrink: 0;
+  }
+  .editor-tab {
+    appearance: none;
+    background: transparent;
+    border: none;
+    padding: 12px 4px;
+    margin-right: 22px;
+    cursor: pointer;
+    color: var(--mute);
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: var(--tracking-wide);
+    text-transform: uppercase;
+    position: relative;
+  }
+  .editor-tab:hover { color: var(--ink-2); }
+  .editor-tab .num {
+    font-family: var(--serif);
+    font-style: italic;
+    font-size: 13px;
+    margin-right: 4px;
+    color: var(--mute-2);
+  }
+  .editor-tab.is-active { color: var(--ink); }
+  .editor-tab.is-active .num { color: var(--vermillion); }
+  .editor-tab.is-active::after {
+    content: "";
+    position: absolute;
+    left: -2px; right: -2px; bottom: -1px;
+    height: 2px;
+    background: var(--vermillion);
+    border-radius: 2px;
+  }
+  .editor-tab .caret {
+    display: inline-block;
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--vermillion);
+    margin-left: 6px;
+    transform: translateY(-1px);
+  }
+  .editor-tab .badge {
+    margin-left: 6px;
+    font-size: 9px;
+    color: var(--mute);
+    letter-spacing: 0.1em;
+  }
+
+  /* sub-status bar */
+  .editor-substrate {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    gap: 14px;
+    padding: 8px 16px;
+    background: linear-gradient(to bottom, transparent, rgba(236, 227, 208, 0.4));
+    border-bottom: 1px solid var(--rule);
+    align-items: center;
+    flex-shrink: 0;
+  }
+  .stat-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    font-size: 10px;
+    color: var(--ink-3);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+  .stat-pill .glow {
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    background: var(--moss);
+    box-shadow: 0 0 0 2px rgba(92, 110, 58, 0.18);
+    animation: breathe 2.6s ease-in-out infinite;
+  }
+  @keyframes breathe {
+    0%,100% { box-shadow: 0 0 0 2px rgba(92, 110, 58, 0.18); }
+    50%     { box-shadow: 0 0 0 5px rgba(92, 110, 58, 0.06); }
+  }
+  .stat-pill.warn .glow { background: var(--ochre); box-shadow: 0 0 0 2px rgba(176, 127, 42, 0.16); }
+  .stat-pill.err  .glow { background: var(--vermillion); box-shadow: 0 0 0 2px rgba(199, 62, 29, 0.18); }
+
+  .stat-strip {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    color: var(--mute);
+    font-size: 10px;
+    letter-spacing: 0.04em;
+    overflow-x: auto;
+    white-space: nowrap;
+  }
+  .stat-strip .v { color: var(--ink-2); font-variant-numeric: tabular-nums; }
+  .stat-strip .sep { color: var(--rule-3); }
+
+  /* Code editor */
+  .code-host {
+    flex: 1;
+    overflow: auto;
+    background:
+      linear-gradient(to right, transparent 60px, var(--rule) 60px, var(--rule) 61px, transparent 61px),
+      var(--vellum);
+    position: relative;
+    min-height: 0;
+  }
+  .code {
+    display: grid;
+    grid-template-columns: 60px 1fr;
+    font-family: var(--mono);
+    font-size: 12.5px;
+    line-height: 1.7;
+    padding: 14px 0 24px;
+  }
+  .gutter {
+    color: var(--mute-2);
+    text-align: right;
+    padding-right: 12px;
+    user-select: none;
+    font-variant-numeric: tabular-nums;
+    font-size: 11px;
+    border-right: none;
+    position: relative;
+  }
+  .gutter span {
+    display: block;
+    height: 1.7em;
+  }
+  .gutter span.diag-err {
+    color: var(--vermillion);
+    font-weight: 600;
+  }
+  .gutter span.diag-err::before {
+    content: "•";
+    color: var(--vermillion);
+    margin-right: 4px;
+  }
+  .gutter span.diag-warn {
+    color: var(--ochre);
+  }
+
+  .code-body {
+    padding-left: 14px;
+    color: var(--ink-2);
+    white-space: pre;
+  }
+  .code-body .line {
+    display: block;
+    height: 1.7em;
+  }
+  .code-body .line.cursor {
+    background: rgba(199, 62, 29, 0.05);
+    box-shadow: inset 2px 0 0 var(--vermillion);
+  }
+  .code-body .line.warn {
+    background: rgba(176, 127, 42, 0.06);
+    box-shadow: inset 2px 0 0 var(--ochre);
+  }
+
+  /* Mermaid syntax */
+  .kw   { color: var(--vermillion); font-weight: 600; }
+  .typ  { color: var(--blueprint); font-weight: 600; }
+  .id   { color: var(--ink); }
+  .str  { color: var(--moss); }
+  .num  { color: var(--ochre); }
+  .arr  { color: var(--ink); font-weight: 700; }
+  .com  { color: var(--mute); font-style: italic; }
+  .lab  { color: var(--ink-2); }
+  .punc { color: var(--ink-3); }
+
+  .gutter-mark {
+    display: inline-block;
+    transform: translateX(-2px);
+    width: 4px; height: 4px;
+    background: var(--vermillion);
+    border-radius: 50%;
+    vertical-align: middle;
+    margin-right: 5px;
+  }
+
+  /* Inline diagnostic banner inside code */
+  .diag-inline {
+    display: block;
+    margin: 2px 0 4px 60px;
+    padding: 6px 12px 6px 14px;
+    border-left: 2px solid var(--vermillion);
+    background: rgba(199, 62, 29, 0.06);
+    font-size: 11px;
+    color: var(--vermillion);
+    letter-spacing: 0.02em;
+    white-space: normal;
+  }
+  .diag-inline strong {
+    font-weight: 600;
+    margin-right: 6px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    font-size: 9px;
+  }
+  .diag-inline.warn {
+    border-left-color: var(--ochre);
+    background: rgba(176, 127, 42, 0.06);
+    color: var(--ochre);
+  }
+
+  /* Editor footer */
+  .editor-foot {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 16px;
+    border-top: 1px solid var(--rule);
+    background: var(--vellum);
+    font-size: 10px;
+    color: var(--mute);
+    letter-spacing: 0.06em;
+    flex-shrink: 0;
+  }
+  .editor-foot .group {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+  .editor-foot .v { color: var(--ink-2); font-variant-numeric: tabular-nums; }
+  .editor-foot .uppercase { text-transform: uppercase; letter-spacing: 0.12em; }
+
+  /* ----- Preview canvas (center-right) ----- */
+
+  .preview {
+    position: relative;
+    background: var(--paper);
+  }
+  .canvas-wrap {
+    flex: 1;
+    position: relative;
+    overflow: hidden;
+    background:
+      radial-gradient(circle at 30% 0%, rgba(248, 242, 228, 0.6) 0%, rgba(242, 235, 220, 0) 60%),
+      var(--paper);
+  }
+
+  /* Drafting paper grid */
+  .canvas-grid {
+    position: absolute;
+    inset: 0;
+    background-image:
+      linear-gradient(to right, rgba(27,20,16,0.05) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(27,20,16,0.05) 1px, transparent 1px),
+      linear-gradient(to right, rgba(27,20,16,0.025) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(27,20,16,0.025) 1px, transparent 1px);
+    background-size: 64px 64px, 64px 64px, 16px 16px, 16px 16px;
+    background-position: 0 0;
+  }
+
+  /* Title cartouche, top-left */
+  .cartouche {
+    position: absolute;
+    top: 16px; left: 16px;
+    z-index: 4;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    background: var(--vellum);
+    border: 1px solid var(--rule-2);
+    box-shadow: var(--shadow-1);
+    padding: 10px 14px 12px;
+    border-radius: 4px;
+    max-width: 360px;
+  }
+  .cartouche::before {
+    content: "";
+    position: absolute;
+    top: -6px; left: 14px;
+    width: 28px; height: 6px;
+    background: var(--vermillion);
+    border-radius: 2px 2px 0 0;
+  }
+  .cartouche .micro {
+    font-size: 9px;
+    color: var(--mute);
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+  }
+  .cartouche h1 {
+    margin: 2px 0 0;
+    font-family: var(--serif);
+    font-style: italic;
+    font-weight: 400;
+    font-size: 22px;
+    color: var(--ink);
+    letter-spacing: 0.005em;
+    line-height: 1.05;
+  }
+  .cartouche .sub {
+    margin-top: 4px;
+    font-size: 10px;
+    color: var(--ink-3);
+    letter-spacing: 0.06em;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .cartouche .sub .dot { color: var(--mute-2); }
+
+  /* Canvas controls */
+  .canvas-tools {
+    position: absolute;
+    top: 16px; right: 16px;
+    z-index: 4;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    align-items: flex-end;
+  }
+  .tool-cluster {
+    display: flex;
+    background: var(--vellum);
+    border: 1px solid var(--rule-2);
+    border-radius: 999px;
+    box-shadow: var(--shadow-1);
+    padding: 4px;
+    gap: 2px;
+  }
+  .tool-cluster button {
+    appearance: none;
+    background: transparent;
+    border: none;
+    width: 32px; height: 28px;
+    border-radius: 999px;
+    cursor: pointer;
+    color: var(--ink-3);
+    display: grid;
+    place-items: center;
+    transition: all 140ms ease;
+  }
+  .tool-cluster button:hover { background: var(--paper-2); color: var(--ink); }
+  .tool-cluster button.is-on { background: var(--ink); color: var(--vellum); }
+  .tool-cluster button svg { width: 14px; height: 14px; }
+  .tool-cluster .zoom-val {
+    font-size: 10px;
+    color: var(--ink-2);
+    padding: 0 8px;
+    align-self: center;
+    letter-spacing: 0.04em;
+    font-variant-numeric: tabular-nums;
+    border-left: 1px solid var(--rule-2);
+    border-right: 1px solid var(--rule-2);
+    margin: 4px 0;
+    height: 20px;
+    display: grid;
+    place-items: center;
+  }
+
+  /* Bottom-right minimap */
+  .minimap {
+    position: absolute;
+    right: 16px; bottom: 16px;
+    width: 168px; height: 96px;
+    background: var(--vellum);
+    border: 1px solid var(--rule-2);
+    border-radius: 4px;
+    box-shadow: var(--shadow-1);
+    overflow: hidden;
+  }
+  .minimap::before {
+    content: "MINIMAP";
+    position: absolute;
+    top: 4px; left: 6px;
+    font-size: 8px;
+    color: var(--mute);
+    letter-spacing: 0.18em;
+    z-index: 2;
+  }
+  .minimap-frame {
+    position: absolute;
+    border: 1.5px solid var(--vermillion);
+    background: rgba(199, 62, 29, 0.06);
+    border-radius: 2px;
+    top: 24px; left: 28px;
+    width: 86px; height: 50px;
+    pointer-events: none;
+  }
+
+  /* Bottom-left dimensions */
+  .dimensions {
+    position: absolute;
+    left: 16px; bottom: 16px;
+    z-index: 4;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    font-size: 9px;
+    color: var(--mute);
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+  }
+  .dimensions .v { color: var(--ink-2); font-variant-numeric: tabular-nums; }
+
+  /* Diagram SVG holder — centered */
+  .diagram-stage {
+    position: absolute;
+    inset: 80px 220px 140px 60px;
+    display: grid;
+    place-items: center;
+    z-index: 3;
+  }
+  .diagram-stage svg {
+    width: 100%;
+    max-width: 720px;
+    height: auto;
+    filter: drop-shadow(0 12px 24px rgba(27, 20, 16, 0.10));
+  }
+
+  /* Mermaid-style nodes (drawn) */
+  .m-node-rect {
+    fill: var(--vellum);
+    stroke: var(--ink);
+    stroke-width: 1.4;
+  }
+  .m-node-rect.accent { fill: #FBE9E1; stroke: var(--vermillion); }
+  .m-node-rect.bp     { fill: #E1ECF1; stroke: var(--blueprint); }
+  .m-node-rect.moss   { fill: #E8EBDC; stroke: var(--moss); }
+  .m-node-rect.ochre  { fill: #F4E8CB; stroke: var(--ochre); }
+  .m-node-text {
+    font-family: var(--mono);
+    font-size: 12px;
+    fill: var(--ink);
+    font-weight: 500;
+  }
+  .m-node-text.sub {
+    font-family: var(--serif);
+    font-style: italic;
+    font-size: 11px;
+    fill: var(--ink-3);
+  }
+  .m-edge {
+    stroke: var(--ink);
+    stroke-width: 1.3;
+    fill: none;
+  }
+  .m-edge.dashed { stroke-dasharray: 5 4; stroke: var(--blueprint); }
+  .m-edge.fail   { stroke: var(--vermillion); }
+  .m-arrow {
+    fill: var(--ink);
+  }
+  .m-arrow.bp { fill: var(--blueprint); }
+  .m-arrow.fail { fill: var(--vermillion); }
+  .m-edge-label {
+    font-family: var(--mono);
+    font-size: 10px;
+    fill: var(--ink-2);
+  }
+  .m-edge-label-bg {
+    fill: var(--paper);
+    stroke: none;
+  }
+  .m-subgraph {
+    fill: rgba(248, 242, 228, 0.7);
+    stroke: var(--rule-3);
+    stroke-width: 1;
+    stroke-dasharray: 3 3;
+  }
+  .m-subgraph-label {
+    font-family: var(--serif);
+    font-style: italic;
+    font-size: 12px;
+    fill: var(--ink-3);
+  }
+
+  /* ----- Inspector (right) ----- */
+
+  .inspector {
+    background: linear-gradient(to left, transparent, rgba(236, 227, 208, 0.18));
+    overflow-y: auto;
+  }
+
+  .inspector-block {
+    padding: 14px 18px;
+    border-bottom: 1px solid var(--rule);
+  }
+
+  .block-title {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    margin-bottom: 12px;
+  }
+  .block-title h3 {
+    margin: 0;
+    font-family: var(--mono);
+    font-weight: 600;
+    font-size: 10px;
+    letter-spacing: var(--tracking-wide);
+    text-transform: uppercase;
+    color: var(--ink);
+  }
+  .block-title h3 .num {
+    font-family: var(--serif);
+    font-style: italic;
+    color: var(--vermillion);
+    margin-right: 6px;
+    font-weight: 400;
+    font-size: 13px;
+    letter-spacing: 0;
+    text-transform: none;
+  }
+  .block-title .meta {
+    font-size: 10px;
+    color: var(--mute);
+    letter-spacing: 0.06em;
+  }
+
+  /* Theme studio */
+  .theme-quick {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 6px;
+    margin-bottom: 10px;
+  }
+  .theme-chip {
+    border: 1px solid var(--rule-2);
+    background: var(--vellum);
+    border-radius: 6px;
+    padding: 8px;
+    cursor: pointer;
+    text-align: left;
+    transition: all 160ms ease;
+    position: relative;
+  }
+  .theme-chip:hover { border-color: var(--rule-3); transform: translateY(-1px); }
+  .theme-chip.is-on { border-color: var(--ink); box-shadow: inset 0 0 0 1px var(--ink); }
+  .theme-chip.is-on::after {
+    content: "";
+    position: absolute;
+    top: 6px; right: 6px;
+    width: 6px; height: 6px; background: var(--vermillion); border-radius: 50%;
+  }
+  .theme-stack {
+    display: flex;
+    height: 18px;
+    border-radius: 3px;
+    overflow: hidden;
+    margin-bottom: 6px;
+    border: 1px solid var(--rule);
+  }
+  .theme-stack span { flex: 1; }
+  .theme-name {
+    font-size: 10px;
+    letter-spacing: 0.04em;
+    color: var(--ink-2);
+  }
+
+  .theme-grid {
+    display: grid;
+    grid-template-columns: repeat(8, 1fr);
+    gap: 4px;
+    padding: 4px 0 0;
+  }
+  .theme-dot {
+    width: 100%;
+    aspect-ratio: 1;
+    border-radius: 50%;
+    border: 1px solid var(--rule-2);
+    cursor: pointer;
+    position: relative;
+    transition: transform 140ms ease;
+  }
+  .theme-dot:hover { transform: scale(1.18); border-color: var(--ink-3); }
+  .theme-dot::after {
+    content: "";
+    position: absolute;
+    inset: 3px;
+    border-radius: 50%;
+    border: 1px solid rgba(0,0,0,0.14);
+  }
+  .theme-foot {
+    margin-top: 10px;
+    display: flex;
+    justify-content: space-between;
+    font-size: 9px;
+    color: var(--mute);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  /* Export */
+  .export-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+  }
+  .export-row .label {
+    font-size: 10px;
+    color: var(--mute);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+  .scale-seg {
+    display: flex;
+    background: var(--paper-2);
+    border: 1px solid var(--rule);
+    border-radius: 6px;
+    padding: 2px;
+  }
+  .scale-seg button {
+    appearance: none;
+    border: none;
+    background: transparent;
+    font-family: var(--mono);
+    font-size: 10px;
+    padding: 3px 9px;
+    border-radius: 4px;
+    cursor: pointer;
+    color: var(--ink-3);
+    letter-spacing: 0.04em;
+  }
+  .scale-seg button.is-on { background: var(--ink); color: var(--vellum); }
+
+  .export-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-bottom: 10px;
+  }
+  .export-btn {
+    appearance: none;
+    background: var(--vellum);
+    border: 1px solid var(--rule-2);
+    border-radius: 6px;
+    padding: 9px 10px;
+    text-align: left;
+    cursor: pointer;
+    transition: all 140ms ease;
+  }
+  .export-btn:hover { border-color: var(--ink); background: var(--paper-2); }
+  .export-btn .ext {
+    font-family: var(--serif);
+    font-style: italic;
+    font-size: 18px;
+    color: var(--ink);
+    line-height: 1;
+  }
+  .export-btn .desc {
+    font-size: 9px;
+    color: var(--mute);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-top: 4px;
+  }
+
+  .copy-row {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 4px;
+  }
+  .copy-pip {
+    appearance: none;
+    background: transparent;
+    border: 1px dashed var(--rule-2);
+    border-radius: 4px;
+    padding: 5px 7px;
+    font-size: 10px;
+    letter-spacing: 0.06em;
+    color: var(--ink-3);
+    text-align: left;
+    cursor: pointer;
+    text-transform: uppercase;
+  }
+  .copy-pip:hover { border-style: solid; border-color: var(--ink); color: var(--ink); }
+
+  /* History */
+  .history {
+    margin-top: 4px;
+  }
+  .hist-entry {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    gap: 10px;
+    padding: 9px 0;
+    border-bottom: 1px dashed var(--rule);
+    align-items: start;
+  }
+  .hist-entry:last-child { border-bottom: none; }
+  .hist-stamp {
+    font-size: 9px;
+    color: var(--mute);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    text-align: right;
+    min-width: 56px;
+    padding-top: 1px;
+    line-height: 1.45;
+  }
+  .hist-stamp .h {
+    color: var(--ink-2);
+    font-family: var(--serif);
+    font-style: italic;
+    font-size: 11px;
+    text-transform: none;
+    letter-spacing: 0;
+    display: block;
+  }
+  .hist-body { min-width: 0; }
+  .hist-label {
+    font-size: 11px;
+    color: var(--ink);
+    font-weight: 500;
+    letter-spacing: 0.01em;
+    margin-bottom: 2px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .hist-snippet {
+    font-size: 10px;
+    color: var(--mute);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .hist-tags {
+    margin-top: 4px;
+    display: flex;
+    gap: 4px;
+    flex-wrap: wrap;
+  }
+  .hist-tag {
+    font-size: 8px;
+    letter-spacing: 0.16em;
+    color: var(--ink-3);
+    text-transform: uppercase;
+    padding: 1px 5px;
+    background: var(--paper-2);
+    border: 1px solid var(--rule);
+    border-radius: 999px;
+  }
+  .hist-tag.manual { color: var(--blueprint); border-color: rgba(42, 71, 89, 0.2); }
+  .hist-tag.auto   { color: var(--mute); }
+  .hist-tag.loader { color: var(--moss); border-color: rgba(92, 110, 58, 0.22); }
+
+  .hist-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    align-items: flex-end;
+    padding-top: 1px;
+  }
+  .hist-actions button {
+    appearance: none;
+    background: transparent;
+    border: none;
+    color: var(--mute);
+    cursor: pointer;
+    font-size: 11px;
+  }
+  .hist-actions button:hover { color: var(--vermillion); }
+
+  .hist-foot {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 8px;
+    padding-top: 8px;
+    border-top: 1px solid var(--rule);
+    font-size: 10px;
+    color: var(--mute);
+    letter-spacing: 0.06em;
+  }
+  .hist-foot button {
+    appearance: none;
+    background: transparent;
+    border: none;
+    color: var(--ink-3);
+    cursor: pointer;
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+  .hist-foot button:hover { color: var(--vermillion); }
+
+  /* Loaders */
+  .loader-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 8px;
+  }
+  .loader-row input {
+    flex: 1;
+    background: var(--vellum);
+    border: 1px solid var(--rule-2);
+    border-radius: 6px;
+    padding: 6px 9px;
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--ink);
+    outline: none;
+  }
+  .loader-row input:focus { border-color: var(--ink); }
+  .loader-row .go {
+    appearance: none;
+    background: var(--ink);
+    color: var(--vellum);
+    border: none;
+    border-radius: 6px;
+    padding: 6px 12px;
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    cursor: pointer;
+  }
+  .loader-row .go:hover { background: var(--vermillion); }
+  .loader-help {
+    font-size: 9px;
+    color: var(--mute);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  /* ===== Status strip (bottom) ====================================== */
+
+  .status {
+    display: grid;
+    grid-template-columns: auto 1fr auto auto;
+    gap: 24px;
+    align-items: center;
+    padding: 8px 24px;
+    border-top: 1px solid var(--rule-2);
+    background: linear-gradient(to top, var(--vellum), transparent);
+    font-size: 10px;
+    color: var(--mute);
+    letter-spacing: 0.06em;
+  }
+  .status .v {
+    color: var(--ink-2);
+    font-variant-numeric: tabular-nums;
+  }
+  .status .crumbs {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    overflow: hidden;
+    white-space: nowrap;
+  }
+  .status .crumbs .sep { color: var(--mute-2); }
+  .status .crumbs .it { color: var(--ink-3); }
+  .status .crumbs .it.cur { color: var(--vermillion); }
+
+  .ledger {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .ledger .cell {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+  }
+  .ledger .cell .label {
+    font-size: 9px;
+    letter-spacing: 0.16em;
+    color: var(--mute);
+    text-transform: uppercase;
+  }
+
+  /* ===== Reveal animation =========================================== */
+
+  .reveal {
+    opacity: 0;
+    transform: translateY(6px);
+    animation: reveal 700ms cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+  }
+  @keyframes reveal {
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .r1 { animation-delay: 60ms; }
+  .r2 { animation-delay: 140ms; }
+  .r3 { animation-delay: 220ms; }
+  .r4 { animation-delay: 320ms; }
+  .r5 { animation-delay: 420ms; }
+  .r6 { animation-delay: 520ms; }
+
+  /* Animated ink stroke under canvas title */
+  .ink-stroke {
+    position: relative;
+    display: inline-block;
+  }
+  .ink-stroke::after {
+    content: "";
+    position: absolute;
+    left: 0; right: 0; bottom: -3px;
+    height: 6px;
+    background: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='6' viewBox='0 0 200 6'><path d='M2 4 C 30 1, 60 6, 100 3 S 170 1, 198 4' stroke='%23C73E1D' stroke-width='1.5' fill='none' stroke-linecap='round'/></svg>") repeat-x;
+    opacity: 0.85;
+    background-size: 200px 6px;
+  }
+
+  /* Scrollbar styling */
+  ::-webkit-scrollbar { width: 8px; height: 8px; }
+  ::-webkit-scrollbar-thumb {
+    background: rgba(27, 20, 16, 0.18);
+    border-radius: 999px;
+    border: 2px solid transparent;
+    background-clip: padding-box;
+  }
+  ::-webkit-scrollbar-track { background: transparent; }
+
+  /* Responsive collapse */
+  @media (max-width: 1280px) {
+    .workspace { grid-template-columns: 220px 1fr 1fr 280px; }
+  }
+  @media (max-width: 1100px) {
+    .workspace { grid-template-columns: 56px 1fr 1fr 0; }
+    .inspector { display: none; }
+    .catalog .catalog-search input,
+    .catalog .catalog-meta,
+    .catalog .cat-section .label,
+    .catalog .fam-row .name,
+    .catalog .fam-row .badge { display: none; }
+  }
+</style>
+</head>
+
+<body>
+<div class="shell">
+
+  <!-- ============================ MASTHEAD ============================ -->
+  <header class="masthead reveal r1">
+    <div class="brand">
+      <div class="monogram" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none">
+          <path d="M3 18 C 7 8, 11 8, 12 14 C 13 8, 17 8, 21 18" stroke="#1B1410" stroke-width="1.6" stroke-linecap="round"/>
+          <circle cx="12" cy="6" r="1.5" fill="#C73E1D"/>
+        </svg>
+      </div>
+      <div class="wordmark">
+        <div class="row1"><span>Mermaid</span><span class="dot"></span><span>Swift</span></div>
+        <div class="row2">the playground</div>
+      </div>
+      <div class="version-stack">
+        <span class="label">№ 0.9.4</span>
+        <span class="value">build 2026·05·10</span>
+      </div>
+    </div>
+
+    <div class="render-bar" role="toolbar" aria-label="Render controls">
+      <div class="seg" role="tablist">
+        <button class="is-on">Auto</button>
+        <button>Manual</button>
+      </div>
+      <button class="render-btn">
+        <span class="triangle"></span>
+        <span>Render</span>
+        <span class="meta">⌘ R · 312 ms</span>
+      </button>
+    </div>
+
+    <div class="actions">
+      <span class="pip" title="Active theme"><span class="swatch" style="background:#FAF6EE"></span>Zinc Light</span>
+      <button class="icon-btn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="4" y="4" width="7" height="7" rx="1"/><rect x="13" y="4" width="7" height="7" rx="1"/><rect x="4" y="13" width="7" height="7" rx="1"/><rect x="13" y="13" width="7" height="7" rx="1"/></svg>
+        <span class="label">Samples</span>
+      </button>
+      <button class="icon-btn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 4v12"/><path d="M7 9l5-5 5 5"/><path d="M5 20h14"/></svg>
+        <span class="label">Export</span>
+      </button>
+      <button class="icon-btn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 12v7a1 1 0 001 1h14a1 1 0 001-1v-7"/><path d="M16 6l-4-4-4 4"/><path d="M12 2v14"/></svg>
+        <span class="label">Share</span>
+      </button>
+      <button class="icon-btn primary" title="Information">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="9"/><path d="M12 8.5v.01M11 12h1v5h1"/></svg>
+      </button>
+    </div>
+  </header>
+
+  <!-- =========================== WORKSPACE =========================== -->
+  <main class="workspace">
+
+    <!-- =========== § 01 — CATALOG (left rail) =========== -->
+    <section class="panel catalog reveal r2">
+      <div class="section-head">
+        <div>
+          <span class="num">§ 01</span>
+          <span class="title">Catalog<em>specimens</em></span>
+        </div>
+        <span class="meta">396 · 28 fam.</span>
+      </div>
+
+      <div class="catalog-search">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="11" cy="11" r="6"/><path d="M16 16l4 4"/></svg>
+        <input type="text" placeholder="Search 396 diagrams…" />
+        <span class="kbd">⌘ K</span>
+      </div>
+
+      <div class="catalog-meta">
+        <span>Browse</span><span class="count">12 recent</span>
+      </div>
+
+      <div class="catalog-list">
+        <div class="cat-section"><div class="label">Recent</div><div class="stripe"></div></div>
+        <ul class="cat-fam">
+          <li class="open">
+            <div class="fam-row">
+              <span></span>
+              <span class="name">— Pull-request lifecycle</span>
+              <span></span>
+              <span class="badge">flow</span>
+            </div>
+          </li>
+          <li>
+            <div class="fam-row">
+              <span></span>
+              <span class="name">— Auth handshake</span>
+              <span></span>
+              <span class="badge">seq</span>
+            </div>
+          </li>
+          <li>
+            <div class="fam-row">
+              <span></span>
+              <span class="name">— Build pipeline ER</span>
+              <span></span>
+              <span class="badge">er</span>
+            </div>
+          </li>
+        </ul>
+
+        <div class="cat-section"><div class="label">Catalog</div><div class="stripe"></div></div>
+        <ul class="cat-fam">
+          <li class="open">
+            <div class="fam-row">
+              <span class="chev"></span>
+              <span class="name">Flowchart</span>
+              <svg class="glyph" viewBox="0 0 22 16"><rect x="1" y="1" width="6" height="4" rx="1" stroke="currentColor" fill="none" stroke-width="1"/><rect x="15" y="1" width="6" height="4" rx="1" stroke="currentColor" fill="none" stroke-width="1"/><rect x="8" y="11" width="6" height="4" rx="1" stroke="currentColor" fill="none" stroke-width="1"/><path d="M7 3 H15 M11 5 V11" stroke="currentColor" stroke-width="0.9"/></svg>
+              <span class="badge">42</span>
+            </div>
+            <ul class="children">
+              <li>Hello-world TD</li>
+              <li class="is-active">Pull-request lifecycle</li>
+              <li>Infrastructure regions</li>
+              <li>Subgraphs &amp; clusters</li>
+              <li>Class definitions</li>
+            </ul>
+          </li>
+
+          <li>
+            <div class="fam-row">
+              <span class="chev"></span>
+              <span class="name">Sequence</span>
+              <svg class="glyph" viewBox="0 0 22 16"><line x1="3" y1="1" x2="3" y2="15" stroke="currentColor" stroke-width="0.8"/><line x1="11" y1="1" x2="11" y2="15" stroke="currentColor" stroke-width="0.8"/><line x1="19" y1="1" x2="19" y2="15" stroke="currentColor" stroke-width="0.8"/><path d="M3 5 H11 M11 9 H19 M19 13 H3" stroke="currentColor" stroke-width="1"/></svg>
+              <span class="badge">38</span>
+            </div>
+          </li>
+          <li>
+            <div class="fam-row">
+              <span class="chev"></span>
+              <span class="name">State (v2)</span>
+              <svg class="glyph" viewBox="0 0 22 16"><circle cx="3" cy="8" r="2" stroke="currentColor" fill="none"/><rect x="8" y="5" width="6" height="6" rx="1" stroke="currentColor" fill="none"/><circle cx="19" cy="8" r="2" stroke="currentColor" fill="none"/><path d="M5 8 H8 M14 8 H17" stroke="currentColor"/></svg>
+              <span class="badge">21</span>
+            </div>
+          </li>
+          <li>
+            <div class="fam-row">
+              <span class="chev"></span>
+              <span class="name">Class</span>
+              <svg class="glyph" viewBox="0 0 22 16"><rect x="2" y="2" width="8" height="12" stroke="currentColor" fill="none"/><rect x="12" y="2" width="8" height="12" stroke="currentColor" fill="none"/><line x1="2" y1="6" x2="10" y2="6" stroke="currentColor"/><line x1="12" y1="6" x2="20" y2="6" stroke="currentColor"/></svg>
+              <span class="badge">17</span>
+            </div>
+          </li>
+          <li>
+            <div class="fam-row">
+              <span class="chev"></span>
+              <span class="name">Entity-Relationship</span>
+              <svg class="glyph" viewBox="0 0 22 16"><polygon points="4,8 8,4 12,8 8,12" stroke="currentColor" fill="none"/><polygon points="14,8 18,4 22,8 18,12" stroke="currentColor" fill="none"/><line x1="12" y1="8" x2="14" y2="8" stroke="currentColor"/></svg>
+              <span class="badge">14</span>
+            </div>
+          </li>
+          <li>
+            <div class="fam-row">
+              <span class="chev"></span>
+              <span class="name">Gantt</span>
+              <svg class="glyph" viewBox="0 0 22 16"><rect x="1" y="2" width="10" height="2" fill="currentColor"/><rect x="6" y="6" width="11" height="2" fill="currentColor"/><rect x="9" y="10" width="12" height="2" fill="currentColor"/></svg>
+              <span class="badge">19</span>
+            </div>
+          </li>
+          <li>
+            <div class="fam-row">
+              <span class="chev"></span>
+              <span class="name">gitGraph</span>
+              <svg class="glyph" viewBox="0 0 22 16"><circle cx="3" cy="8" r="1.6" fill="currentColor"/><circle cx="11" cy="4" r="1.6" fill="currentColor"/><circle cx="11" cy="12" r="1.6" fill="currentColor"/><circle cx="19" cy="8" r="1.6" fill="currentColor"/><path d="M4 8 Q8 4 11 4 M4 8 Q8 12 11 12 M11 4 Q15 8 19 8 M11 12 Q15 8 19 8" stroke="currentColor" fill="none"/></svg>
+              <span class="badge">12</span>
+            </div>
+          </li>
+          <li>
+            <div class="fam-row">
+              <span class="chev"></span>
+              <span class="name">Mindmap</span>
+              <svg class="glyph" viewBox="0 0 22 16"><circle cx="11" cy="8" r="3" stroke="currentColor" fill="none"/><path d="M11 5 V1 M11 11 V15 M8 8 H1 M14 8 H21" stroke="currentColor"/></svg>
+              <span class="badge">9</span>
+            </div>
+          </li>
+          <li>
+            <div class="fam-row">
+              <span class="chev"></span>
+              <span class="name">C4 Context</span>
+              <svg class="glyph" viewBox="0 0 22 16"><circle cx="11" cy="8" r="6.5" stroke="currentColor" fill="none" stroke-dasharray="2 2"/><rect x="8" y="5" width="6" height="6" stroke="currentColor" fill="none"/></svg>
+              <span class="badge">11</span>
+            </div>
+          </li>
+          <li>
+            <div class="fam-row">
+              <span class="chev"></span>
+              <span class="name">ZenUML</span>
+              <svg class="glyph" viewBox="0 0 22 16"><line x1="2" y1="2" x2="2" y2="14" stroke="currentColor"/><line x1="20" y1="2" x2="20" y2="14" stroke="currentColor"/><path d="M2 5 H20 M2 9 H20 M2 13 H20" stroke="currentColor" stroke-dasharray="3 2"/></svg>
+              <span class="badge">8</span>
+            </div>
+          </li>
+          <li>
+            <div class="fam-row">
+              <span class="chev"></span>
+              <span class="name">Wardley</span>
+              <svg class="glyph" viewBox="0 0 22 16"><line x1="1" y1="14" x2="21" y2="14" stroke="currentColor"/><line x1="1" y1="14" x2="1" y2="2" stroke="currentColor"/><circle cx="6" cy="10" r="1.5" fill="currentColor"/><circle cx="13" cy="6" r="1.5" fill="currentColor"/><circle cx="18" cy="11" r="1.5" fill="currentColor"/></svg>
+              <span class="badge">7</span>
+            </div>
+          </li>
+          <li>
+            <div class="fam-row">
+              <span class="chev"></span>
+              <span class="name">Treemap</span>
+              <svg class="glyph" viewBox="0 0 22 16"><rect x="1" y="1" width="12" height="14" stroke="currentColor" fill="none"/><rect x="13" y="1" width="8" height="7" stroke="currentColor" fill="none"/><rect x="13" y="8" width="8" height="7" stroke="currentColor" fill="none"/></svg>
+              <span class="badge">6</span>
+            </div>
+          </li>
+          <li>
+            <div class="fam-row">
+              <span class="chev"></span>
+              <span class="name">User Journey</span>
+              <svg class="glyph" viewBox="0 0 22 16"><path d="M1 14 Q5 4 10 9 T 21 6" stroke="currentColor" fill="none" stroke-width="1.2"/><circle cx="1" cy="14" r="1.4" fill="currentColor"/><circle cx="21" cy="6" r="1.4" fill="currentColor"/></svg>
+              <span class="badge">10</span>
+            </div>
+          </li>
+          <li>
+            <div class="fam-row">
+              <span class="chev"></span>
+              <span class="name">Quadrant</span>
+              <svg class="glyph" viewBox="0 0 22 16"><line x1="11" y1="1" x2="11" y2="15" stroke="currentColor"/><line x1="1" y1="8" x2="21" y2="8" stroke="currentColor"/><circle cx="6" cy="4" r="1.2" fill="currentColor"/><circle cx="16" cy="11" r="1.2" fill="currentColor"/></svg>
+              <span class="badge">5</span>
+            </div>
+          </li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- =========== § 02 — EDITOR =========== -->
+    <section class="panel editor reveal r3">
+      <div class="section-head">
+        <div>
+          <span class="num">§ 02</span>
+          <span class="title">Source<em>writing the diagram</em></span>
+        </div>
+        <span class="meta">flowchart.mmd · ⌘ S</span>
+      </div>
+
+      <div class="editor-tabs" role="tablist">
+        <button class="editor-tab is-active"><span class="num">i.</span>Code</button>
+        <button class="editor-tab"><span class="num">ii.</span>Config<span class="badge">json</span></button>
+        <button class="editor-tab"><span class="num">iii.</span>Inspector</button>
+      </div>
+
+      <div class="editor-substrate">
+        <div class="stat-pill" title="Live render OK">
+          <span class="glow"></span>
+          <span>Rendered · 312 ms</span>
+        </div>
+        <div class="stat-strip">
+          <span><span class="v">24</span> nodes</span><span class="sep">·</span>
+          <span><span class="v">31</span> edges</span><span class="sep">·</span>
+          <span><span class="v">3</span> subgraphs</span><span class="sep">·</span>
+          <span><span class="v">flowchart</span> TD</span><span class="sep">·</span>
+          <span><span class="v">UTF-8</span> · LF</span>
+        </div>
+        <div class="stat-pill warn" title="1 lint warning">
+          <span class="glow"></span>
+          <span>1 warning</span>
+        </div>
+      </div>
+
+      <div class="code-host">
+        <div class="code">
+          <div class="gutter">
+            <span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span>
+            <span class="diag-warn">7</span><span>8</span><span>9</span><span>10</span><span>11</span>
+            <span>12</span><span>13</span><span>14</span><span>15</span><span>16</span><span>17</span>
+            <span>18</span><span>19</span><span>20</span><span>21</span><span>22</span><span>23</span>
+            <span>24</span><span>25</span><span>26</span><span>27</span>
+          </div>
+          <div class="code-body">
+<span class="line"><span class="com">%% Pull-request lifecycle — drafted 2026·05·10</span></span>
+<span class="line"><span class="com">%% Source: catalog/flow/pull-request-lifecycle.mmd</span></span>
+<span class="line"><span class="kw">flowchart</span> <span class="typ">TD</span></span>
+<span class="line">    <span class="id">Author</span><span class="punc">[</span><span class="lab">Author</span><span class="punc">]</span> <span class="arr">--&gt;</span> <span class="id">Draft</span><span class="punc">{</span><span class="lab">Open draft PR?</span><span class="punc">}</span></span>
+<span class="line">    <span class="id">Draft</span> <span class="arr">--&gt;</span><span class="punc">|</span><span class="str">yes</span><span class="punc">|</span> <span class="id">CI</span><span class="punc">[[</span><span class="lab">Run CI</span><span class="punc">]]</span></span>
+<span class="line">    <span class="id">Draft</span> <span class="arr">--&gt;</span><span class="punc">|</span><span class="str">no</span><span class="punc">|</span> <span class="id">Local</span><span class="punc">[(</span><span class="lab">Local iteration</span><span class="punc">)]</span></span>
+<span class="line warn">    <span class="id">Local</span> <span class="arr">-.-&gt;</span> <span class="id">Author</span></span>
+<span class="line"></span>
+<span class="line">    <span class="kw">subgraph</span> <span class="id">Pipeline</span><span class="punc">[</span><span class="lab">CI Pipeline</span><span class="punc">]</span></span>
+<span class="line">        <span class="id">CI</span> <span class="arr">--&gt;</span> <span class="id">Build</span><span class="punc">[</span><span class="lab">Build</span><span class="punc">]</span></span>
+<span class="line">        <span class="id">Build</span> <span class="arr">--&gt;</span> <span class="id">Test</span><span class="punc">[</span><span class="lab">Test</span><span class="punc">]</span></span>
+<span class="line">        <span class="id">Test</span>  <span class="arr">--&gt;</span> <span class="id">Lint</span><span class="punc">[</span><span class="lab">Lint &amp; Type-check</span><span class="punc">]</span></span>
+<span class="line">    <span class="kw">end</span></span>
+<span class="line"></span>
+<span class="line">    <span class="id">Lint</span> <span class="arr">--&gt;</span> <span class="id">Review</span><span class="punc">{</span><span class="lab">Reviewer approves?</span><span class="punc">}</span></span>
+<span class="line">    <span class="id">Review</span> <span class="arr">--&gt;</span><span class="punc">|</span><span class="str">approve</span><span class="punc">|</span> <span class="id">Merge</span><span class="punc">[/</span><span class="lab">Merge to main</span><span class="punc">/]</span></span>
+<span class="line cursor">    <span class="id">Review</span> <span class="arr">--&gt;</span><span class="punc">|</span><span class="str">changes</span><span class="punc">|</span> <span class="id">Author</span></span>
+<span class="line">    <span class="id">Merge</span> <span class="arr">--&gt;</span> <span class="id">Deploy</span><span class="punc">[(</span><span class="lab">Deploy</span><span class="punc">)]</span></span>
+<span class="line"></span>
+<span class="line">    <span class="kw">classDef</span> <span class="id">cycle</span> <span class="lab">fill:</span><span class="num">#FBE9E1</span>,<span class="lab">stroke:</span><span class="num">#C73E1D</span></span>
+<span class="line">    <span class="kw">class</span> <span class="id">Author,Local</span> <span class="id">cycle</span></span>
+<span class="line"></span>
+<span class="line">    <span class="kw">click</span> <span class="id">Deploy</span> <span class="kw">href</span> <span class="str">"https://ops.example.com/deploy"</span></span>
+<span class="line">    <span class="kw">click</span> <span class="id">Build</span> <span class="kw">callback</span> <span class="str">"openBuildLog"</span></span>
+<span class="line"></span>
+<span class="line">    <span class="com">%% TODO: branch protection note for Deploy</span></span>
+<span class="line">    <span class="com">%% &nbsp;&nbsp;&nbsp; — see notes/branch-protection.md</span></span>
+<span class="line">    <span class="com">%% End of file. ✶</span></span>
+          </div>
+        </div>
+
+        <div class="diag-inline warn" style="margin-top:-6px;">
+          <strong>Lint · L7</strong> Dotted edge from <code>Local</code> back to <code>Author</code> creates a soft cycle outside the CI subgraph; consider tagging it as a feedback loop.
+        </div>
+      </div>
+
+      <div class="editor-foot">
+        <div class="group">
+          <span class="uppercase">Cursor</span>
+          <span class="v">L 14 · C 12</span>
+          <span style="color:var(--rule-3)">|</span>
+          <span class="uppercase">Sel</span>
+          <span class="v">0</span>
+        </div>
+        <div class="group">
+          <span class="uppercase">Format</span>
+          <span class="v">Mermaid</span>
+          <span style="color:var(--rule-3)">|</span>
+          <span class="v">714 B</span>
+          <span class="v">·</span>
+          <span class="v">29 lines</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- =========== § 03 — PREVIEW =========== -->
+    <section class="panel preview reveal r4">
+      <div class="section-head">
+        <div>
+          <span class="num">§ 03</span>
+          <span class="title">Plate<em>the rendered specimen</em></span>
+        </div>
+        <span class="meta">CG &amp; SVG · 1×</span>
+      </div>
+
+      <div class="canvas-wrap" style="flex:1;">
+        <div class="canvas-grid"></div>
+
+        <!-- cartouche -->
+        <div class="cartouche">
+          <div class="micro">Plate № 014 — Flowchart, top-down</div>
+          <h1><span class="ink-stroke">Pull-Request Lifecycle</span></h1>
+          <div class="sub">
+            <span>Theme · Zinc Light</span>
+            <span class="dot">/</span>
+            <span>Layout · TD · ELK-like</span>
+            <span class="dot">/</span>
+            <span>Saved 2 min ago</span>
+          </div>
+        </div>
+
+        <!-- canvas controls -->
+        <div class="canvas-tools">
+          <div class="tool-cluster" role="toolbar" aria-label="Zoom">
+            <button title="Zoom out">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14"/></svg>
+            </button>
+            <span class="zoom-val">132%</span>
+            <button title="Zoom in">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+            </button>
+          </div>
+          <div class="tool-cluster">
+            <button title="Fit to view" class="is-on">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg>
+            </button>
+            <button title="Reset view">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="3"/><path d="M3 12h3M18 12h3M12 3v3M12 18v3"/></svg>
+            </button>
+            <button title="Toggle grid">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M3 9h18M3 15h18M9 3v18M15 3v18"/></svg>
+            </button>
+            <button title="Open full window">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 14v6h6M20 10V4h-6M4 20l8-8M20 4l-8 8"/></svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- the diagram -->
+        <div class="diagram-stage">
+          <svg viewBox="0 0 720 480" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <marker id="arrow-ink" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" class="m-arrow"/></marker>
+              <marker id="arrow-bp" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" class="m-arrow bp"/></marker>
+              <marker id="arrow-fail" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" class="m-arrow fail"/></marker>
+            </defs>
+
+            <!-- subgraph: CI Pipeline -->
+            <rect class="m-subgraph" x="270" y="180" width="220" height="148" rx="6"/>
+            <text class="m-subgraph-label" x="282" y="200">CI Pipeline</text>
+
+            <!-- Author -->
+            <g transform="translate(40,20)">
+              <rect class="m-node-rect accent" x="0" y="0" width="140" height="48" rx="6"/>
+              <text class="m-node-text" x="20" y="22">Author</text>
+              <text class="m-node-text sub" x="20" y="38">opens PR</text>
+            </g>
+
+            <!-- Draft? diamond -->
+            <g transform="translate(296,20)">
+              <polygon class="m-node-rect" points="80,0 160,28 80,56 0,28"/>
+              <text class="m-node-text" x="80" y="26" text-anchor="middle">Open draft PR?</text>
+              <text class="m-node-text sub" x="80" y="44" text-anchor="middle">decision</text>
+            </g>
+
+            <!-- CI [[]] -->
+            <g transform="translate(540,28)">
+              <rect class="m-node-rect bp" x="0" y="0" width="140" height="40" rx="2"/>
+              <rect class="m-node-rect bp" x="6" y="0" width="128" height="40" rx="2" fill="none"/>
+              <text class="m-node-text" x="22" y="25">Run CI ▸</text>
+            </g>
+
+            <!-- Local cylinder -->
+            <g transform="translate(40,108)">
+              <rect class="m-node-rect ochre" x="0" y="6" width="140" height="36" rx="3"/>
+              <ellipse cx="0" cy="24" rx="4" ry="18" fill="#F4E8CB" stroke="#B07F2A" stroke-width="1.4"/>
+              <ellipse cx="140" cy="24" rx="4" ry="18" fill="#F4E8CB" stroke="#B07F2A" stroke-width="1.4"/>
+              <text class="m-node-text" x="20" y="29">Local iteration</text>
+            </g>
+
+            <!-- Build -->
+            <g transform="translate(290,200)">
+              <rect class="m-node-rect bp" x="0" y="0" width="180" height="34" rx="4"/>
+              <text class="m-node-text" x="14" y="22">Build</text>
+              <text class="m-node-text sub" x="120" y="22">swift build</text>
+            </g>
+
+            <!-- Test -->
+            <g transform="translate(290,244)">
+              <rect class="m-node-rect bp" x="0" y="0" width="180" height="34" rx="4"/>
+              <text class="m-node-text" x="14" y="22">Test</text>
+              <text class="m-node-text sub" x="120" y="22">swift test</text>
+            </g>
+
+            <!-- Lint -->
+            <g transform="translate(290,288)">
+              <rect class="m-node-rect bp" x="0" y="0" width="180" height="34" rx="4"/>
+              <text class="m-node-text" x="14" y="22">Lint &amp; Type-check</text>
+            </g>
+
+            <!-- Review diamond -->
+            <g transform="translate(516,266)">
+              <polygon class="m-node-rect" points="80,0 160,28 80,56 0,28"/>
+              <text class="m-node-text" x="80" y="26" text-anchor="middle">Reviewer approves?</text>
+            </g>
+
+            <!-- Merge /\ -->
+            <g transform="translate(540,360)">
+              <polygon class="m-node-rect moss" points="14,0 126,0 140,32 0,32"/>
+              <text class="m-node-text" x="70" y="22" text-anchor="middle">Merge to main</text>
+            </g>
+
+            <!-- Deploy cylinder -->
+            <g transform="translate(296,400)">
+              <rect class="m-node-rect ochre" x="0" y="6" width="160" height="36" rx="3"/>
+              <ellipse cx="0" cy="24" rx="4" ry="18" fill="#F4E8CB" stroke="#B07F2A" stroke-width="1.4"/>
+              <ellipse cx="160" cy="24" rx="4" ry="18" fill="#F4E8CB" stroke="#B07F2A" stroke-width="1.4"/>
+              <text class="m-node-text" x="20" y="29">Deploy ▸</text>
+            </g>
+
+            <!-- Edges -->
+            <!-- Author -> Draft -->
+            <path class="m-edge" d="M180 44 L296 48" marker-end="url(#arrow-ink)"/>
+            <!-- Draft -> CI yes -->
+            <path class="m-edge" d="M456 48 L540 48" marker-end="url(#arrow-ink)"/>
+            <rect class="m-edge-label-bg" x="478" y="34" width="34" height="14" rx="2"/>
+            <text class="m-edge-label" x="495" y="44" text-anchor="middle">yes</text>
+            <!-- Draft -> Local no -->
+            <path class="m-edge" d="M376 76 Q280 90 180 126" marker-end="url(#arrow-ink)"/>
+            <rect class="m-edge-label-bg" x="262" y="86" width="22" height="14" rx="2"/>
+            <text class="m-edge-label" x="273" y="96" text-anchor="middle">no</text>
+            <!-- Local -.-> Author (warn) -->
+            <path class="m-edge dashed" d="M110 108 L 110 68" marker-end="url(#arrow-bp)"/>
+            <text class="m-edge-label" x="118" y="92" fill="#3F6377">feedback</text>
+            <!-- CI -> Build -->
+            <path class="m-edge" d="M610 68 L 610 188 Q 610 200 600 200 L 480 200" marker-end="url(#arrow-ink)"/>
+            <!-- Build -> Test -->
+            <path class="m-edge" d="M380 234 L 380 244" marker-end="url(#arrow-ink)"/>
+            <!-- Test -> Lint -->
+            <path class="m-edge" d="M380 278 L 380 288" marker-end="url(#arrow-ink)"/>
+            <!-- Lint -> Review -->
+            <path class="m-edge" d="M470 305 L 516 294" marker-end="url(#arrow-ink)"/>
+            <!-- Review approve -> Merge -->
+            <path class="m-edge" d="M676 294 Q 700 310 670 358" marker-end="url(#arrow-ink)"/>
+            <rect class="m-edge-label-bg" x="664" y="320" width="48" height="14" rx="2"/>
+            <text class="m-edge-label" x="688" y="330" text-anchor="middle">approve</text>
+            <!-- Review changes -> Author (vermillion long edge) -->
+            <path class="m-edge fail" d="M516 294 Q 320 310 110 70 Q 110 60 110 44" marker-end="url(#arrow-fail)"/>
+            <rect class="m-edge-label-bg" x="220" y="240" width="56" height="14" rx="2"/>
+            <text class="m-edge-label" x="248" y="250" text-anchor="middle" fill="#C73E1D">changes</text>
+            <!-- Merge -> Deploy -->
+            <path class="m-edge" d="M610 392 Q 470 410 376 400" marker-end="url(#arrow-ink)"/>
+
+            <!-- annotation: section number (drafted) -->
+            <g transform="translate(8,464)">
+              <text class="m-edge-label" fill="#8E8270">PLATE 014 · Mermaid·Swift / 2026 · scale 1:1</text>
+            </g>
+          </svg>
+        </div>
+
+        <!-- minimap -->
+        <div class="minimap" aria-hidden="true">
+          <svg viewBox="0 0 168 96" width="168" height="96">
+            <rect x="14" y="20" width="36" height="10" fill="#E2856E" stroke="#1B1410" stroke-width="0.5"/>
+            <polygon points="76 16, 110 24, 76 32, 42 24" fill="#ECE3D0" stroke="#1B1410" stroke-width="0.5"/>
+            <rect x="118" y="20" width="36" height="10" fill="#E1ECF1" stroke="#2A4759" stroke-width="0.5"/>
+            <rect x="60" y="44" width="48" height="6" fill="#E1ECF1" stroke="#2A4759" stroke-width="0.5"/>
+            <rect x="60" y="54" width="48" height="6" fill="#E1ECF1" stroke="#2A4759" stroke-width="0.5"/>
+            <rect x="60" y="64" width="48" height="6" fill="#E1ECF1" stroke="#2A4759" stroke-width="0.5"/>
+            <polygon points="118 60, 154 68, 118 76, 82 68" fill="#ECE3D0" stroke="#1B1410" stroke-width="0.5"/>
+            <polygon points="118 80, 152 80, 154 90, 116 90" fill="#E8EBDC" stroke="#5C6E3A" stroke-width="0.5"/>
+          </svg>
+          <div class="minimap-frame"></div>
+        </div>
+
+        <!-- bottom-left dimensions -->
+        <div class="dimensions">
+          <div>Bounds <span class="v">720 × 480</span> px</div>
+          <div>Origin <span class="v">−128, −62</span></div>
+          <div>DPI <span class="v">144</span></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- =========== § 04 — INSPECTOR =========== -->
+    <aside class="panel inspector reveal r5">
+      <div class="section-head">
+        <div>
+          <span class="num">§ 04</span>
+          <span class="title">Studio<em>theme · export · history</em></span>
+        </div>
+        <span class="meta">live</span>
+      </div>
+
+      <!-- Theme Studio -->
+      <div class="inspector-block">
+        <div class="block-title">
+          <h3><span class="num">a.</span>Theme studio</h3>
+          <span class="meta">22 themes</span>
+        </div>
+
+        <div class="theme-quick">
+          <button class="theme-chip is-on">
+            <div class="theme-stack">
+              <span style="background:#FAF6EE"></span>
+              <span style="background:#1B1410"></span>
+              <span style="background:#C73E1D"></span>
+              <span style="background:#2A4759"></span>
+            </div>
+            <div class="theme-name">Zinc Light</div>
+          </button>
+          <button class="theme-chip">
+            <div class="theme-stack">
+              <span style="background:#282A36"></span>
+              <span style="background:#F8F8F2"></span>
+              <span style="background:#FF79C6"></span>
+              <span style="background:#50FA7B"></span>
+            </div>
+            <div class="theme-name">Dracula</div>
+          </button>
+          <button class="theme-chip">
+            <div class="theme-stack">
+              <span style="background:#FDF6E3"></span>
+              <span style="background:#073642"></span>
+              <span style="background:#B58900"></span>
+              <span style="background:#268BD2"></span>
+            </div>
+            <div class="theme-name">Solarized</div>
+          </button>
+        </div>
+
+        <div class="theme-grid" aria-label="All themes">
+          <span class="theme-dot" style="background:#FAF6EE" title="Zinc Light"></span>
+          <span class="theme-dot" style="background:#F2EBDC" title="Parchment"></span>
+          <span class="theme-dot" style="background:#FFFFFF" title="Default"></span>
+          <span class="theme-dot" style="background:#0E0E11" title="Carbon"></span>
+          <span class="theme-dot" style="background:#282A36" title="Dracula"></span>
+          <span class="theme-dot" style="background:#1E1E2E" title="Mocha"></span>
+          <span class="theme-dot" style="background:#FDF6E3" title="Solarized L"></span>
+          <span class="theme-dot" style="background:#002B36" title="Solarized D"></span>
+          <span class="theme-dot" style="background:#FFEFE0" title="Apricot"></span>
+          <span class="theme-dot" style="background:#E1ECF1" title="Blueprint"></span>
+          <span class="theme-dot" style="background:#E8EBDC" title="Moss"></span>
+          <span class="theme-dot" style="background:#F4E8CB" title="Linen"></span>
+          <span class="theme-dot" style="background:#1B1B1B" title="Onyx"></span>
+          <span class="theme-dot" style="background:#3D2C2E" title="Rust"></span>
+          <span class="theme-dot" style="background:#13262F" title="Cobalt"></span>
+          <span class="theme-dot" style="background:#0F1B12" title="Forest"></span>
+        </div>
+
+        <div class="theme-foot">
+          <span>22 / 22 visible</span>
+          <span>Curated</span>
+        </div>
+      </div>
+
+      <!-- Export -->
+      <div class="inspector-block">
+        <div class="block-title">
+          <h3><span class="num">b.</span>Export</h3>
+          <span class="meta">PNG · SVG</span>
+        </div>
+
+        <div class="export-row">
+          <div class="label">Sizing</div>
+          <div class="scale-seg">
+            <button class="is-on">Auto</button>
+            <button>Fixed</button>
+          </div>
+        </div>
+
+        <div class="export-row">
+          <div class="label">Scale</div>
+          <div class="scale-seg">
+            <button>1×</button>
+            <button class="is-on">2×</button>
+            <button>3×</button>
+          </div>
+        </div>
+
+        <div class="export-actions">
+          <button class="export-btn">
+            <div class="ext">.png</div>
+            <div class="desc">raster · 1440×960</div>
+          </button>
+          <button class="export-btn">
+            <div class="ext">.svg</div>
+            <div class="desc">vector · ~14 kB</div>
+          </button>
+        </div>
+
+        <div class="copy-row">
+          <button class="copy-pip">⧉ Source</button>
+          <button class="copy-pip">⧉ Config</button>
+          <button class="copy-pip">⧉ SVG</button>
+          <button class="copy-pip">⧉ PNG</button>
+        </div>
+      </div>
+
+      <!-- History timeline -->
+      <div class="inspector-block">
+        <div class="block-title">
+          <h3><span class="num">c.</span>History</h3>
+          <span class="meta">14 entries</span>
+        </div>
+
+        <div class="history">
+          <div class="hist-entry">
+            <div class="hist-stamp">14:22<span class="h">today</span></div>
+            <div class="hist-body">
+              <div class="hist-label">PR lifecycle — soft cycle pass</div>
+              <div class="hist-snippet">flowchart TD; Author --&gt; Draft{Open draft PR?}; Draft -.-&gt; …</div>
+              <div class="hist-tags">
+                <span class="hist-tag manual">manual</span>
+                <span class="hist-tag">Zinc Light</span>
+              </div>
+            </div>
+            <div class="hist-actions">
+              <button title="Restore">↺</button>
+              <button title="Pin">★</button>
+            </div>
+          </div>
+
+          <div class="hist-entry">
+            <div class="hist-stamp">13:48<span class="h">today</span></div>
+            <div class="hist-body">
+              <div class="hist-label">Auto snapshot · 14 nodes</div>
+              <div class="hist-snippet">flowchart TD; A --&gt; B{Is it working?}; B --&gt;|Yes| C[Great!]…</div>
+              <div class="hist-tags">
+                <span class="hist-tag auto">auto</span>
+                <span class="hist-tag">Solarized</span>
+              </div>
+            </div>
+            <div class="hist-actions"><button title="Restore">↺</button></div>
+          </div>
+
+          <div class="hist-entry">
+            <div class="hist-stamp">11:02<span class="h">today</span></div>
+            <div class="hist-body">
+              <div class="hist-label">From gist · auth-handshake.mmd</div>
+              <div class="hist-snippet">sequenceDiagram; participant U as User; participant A as Auth …</div>
+              <div class="hist-tags">
+                <span class="hist-tag loader">loader</span>
+                <span class="hist-tag">Dracula</span>
+                <span class="hist-tag">gist://9a3…</span>
+              </div>
+            </div>
+            <div class="hist-actions"><button title="Restore">↺</button></div>
+          </div>
+
+          <div class="hist-entry">
+            <div class="hist-stamp">May 9<span class="h">yesterday</span></div>
+            <div class="hist-body">
+              <div class="hist-label">ER · build-pipeline schema v2</div>
+              <div class="hist-snippet">erDiagram; CUSTOMER ||--o{ ORDER : places; ORDER ||--|{…</div>
+              <div class="hist-tags">
+                <span class="hist-tag manual">manual</span>
+                <span class="hist-tag">Parchment</span>
+              </div>
+            </div>
+            <div class="hist-actions"><button title="Restore">↺</button></div>
+          </div>
+        </div>
+
+        <div class="hist-foot">
+          <button>↧ Import</button>
+          <span>14 entries · 4 today</span>
+          <button>↥ Export</button>
+        </div>
+      </div>
+
+      <!-- Loaders -->
+      <div class="inspector-block" style="border-bottom:none;">
+        <div class="block-title">
+          <h3><span class="num">d.</span>Load remote</h3>
+          <span class="meta">gist · raw url</span>
+        </div>
+
+        <div class="loader-row">
+          <input type="text" placeholder="https://gist.github.com/…" />
+          <button class="go">Pull</button>
+        </div>
+        <div class="loader-row">
+          <input type="text" placeholder="raw .mmd url" />
+          <button class="go">Pull</button>
+        </div>
+        <div class="loader-help">Tip: Append <span style="color:var(--ink-2)">?config=…</span> for paired JSON.</div>
+      </div>
+    </aside>
+  </main>
+
+  <!-- ============================ STATUS ============================ -->
+  <footer class="status reveal r6">
+    <div class="ledger">
+      <span class="cell"><span class="label">File</span><span class="v">flowchart.mmd</span></span>
+      <span class="cell"><span class="label">Branch</span><span class="v">main</span></span>
+    </div>
+
+    <div class="crumbs">
+      <span class="it">Catalog</span><span class="sep">/</span>
+      <span class="it">Flowchart</span><span class="sep">/</span>
+      <span class="it cur">Pull-request lifecycle</span>
+      <span class="sep">·</span>
+      <span class="it">Plate 014</span>
+    </div>
+
+    <div class="ledger">
+      <span class="cell"><span class="label">Render</span><span class="v">312 ms</span></span>
+      <span class="cell"><span class="label">Frames</span><span class="v">14</span></span>
+      <span class="cell"><span class="label">Bounds</span><span class="v">720×480</span></span>
+      <span class="cell"><span class="label">Theme</span><span class="v">Zinc Light</span></span>
+    </div>
+
+    <div class="ledger">
+      <span class="cell"><span class="label">Auto-save</span><span class="v">✓ 12 s ago</span></span>
+      <span class="cell"><span class="label">Path</span><span class="v">~/Diagrams/pr-flow.mmd</span></span>
+    </div>
+  </footer>
+</div>
+
+<script>
+  // Tiny interactive niceties — nothing required, but lets the mockup feel alive.
+  document.querySelectorAll('.cat-fam > li').forEach((li) => {
+    const row = li.querySelector('.fam-row');
+    if (!row || !li.querySelector('.children')) return;
+    row.addEventListener('click', () => li.classList.toggle('open'));
+  });
+
+  document.querySelectorAll('.editor-tab').forEach((t) => {
+    t.addEventListener('click', () => {
+      document.querySelectorAll('.editor-tab').forEach((x) => x.classList.remove('is-active'));
+      t.classList.add('is-active');
+    });
+  });
+
+  document.querySelectorAll('.theme-chip').forEach((c) => {
+    c.addEventListener('click', () => {
+      document.querySelectorAll('.theme-chip').forEach((x) => x.classList.remove('is-on'));
+      c.classList.add('is-on');
+    });
+  });
+
+  document.querySelectorAll('.scale-seg').forEach((seg) => {
+    seg.querySelectorAll('button').forEach((b) => {
+      b.addEventListener('click', () => {
+        seg.querySelectorAll('button').forEach((x) => x.classList.remove('is-on'));
+        b.classList.add('is-on');
+      });
+    });
+  });
+</script>
+</body>
+</html>

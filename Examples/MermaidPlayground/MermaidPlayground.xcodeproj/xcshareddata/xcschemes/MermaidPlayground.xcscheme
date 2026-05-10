@@ -1,10 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Scheme
-   LastUpgradeVersion = "1600"
-   version = "1.3">
+   LastUpgradeVersion = "1430"
+   version = "1.7">
    <BuildAction
       parallelizeBuildables = "YES"
-      buildImplicitDependencies = "YES">
+      buildImplicitDependencies = "YES"
+      runPostActionsOnFailure = "NO">
       <BuildActionEntries>
          <BuildActionEntry
             buildForTesting = "YES"
@@ -14,7 +15,7 @@
             buildForAnalyzing = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "F52293E1075C4F65CBB85F7A"
+               BlueprintIdentifier = "900D446F9DA8846079B2421F"
                BuildableName = "MermaidPlayground.app"
                BlueprintName = "MermaidPlayground"
                ReferencedContainer = "container:MermaidPlayground.xcodeproj">
@@ -26,11 +27,12 @@
       buildConfiguration = "Debug"
       selectedDebuggerIdentifier = "Xcode.DebuggerFoundation.Debugger.LLDB"
       selectedLauncherIdentifier = "Xcode.DebuggerFoundation.Launcher.LLDB"
-      shouldUseLaunchSchemeArgsEnv = "YES">
+      shouldUseLaunchSchemeArgsEnv = "YES"
+      onlyGenerateCoverageForSpecifiedTargets = "NO">
       <MacroExpansion>
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "F52293E1075C4F65CBB85F7A"
+            BlueprintIdentifier = "900D446F9DA8846079B2421F"
             BuildableName = "MermaidPlayground.app"
             BlueprintName = "MermaidPlayground"
             ReferencedContainer = "container:MermaidPlayground.xcodeproj">
@@ -53,12 +55,14 @@
          runnableDebuggingMode = "0">
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "F52293E1075C4F65CBB85F7A"
+            BlueprintIdentifier = "900D446F9DA8846079B2421F"
             BuildableName = "MermaidPlayground.app"
             BlueprintName = "MermaidPlayground"
             ReferencedContainer = "container:MermaidPlayground.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
+      <CommandLineArguments>
+      </CommandLineArguments>
    </LaunchAction>
    <ProfileAction
       buildConfiguration = "Release"
@@ -70,7 +74,7 @@
          runnableDebuggingMode = "0">
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "F52293E1075C4F65CBB85F7A"
+            BlueprintIdentifier = "900D446F9DA8846079B2421F"
             BuildableName = "MermaidPlayground.app"
             BlueprintName = "MermaidPlayground"
             ReferencedContainer = "container:MermaidPlayground.xcodeproj">

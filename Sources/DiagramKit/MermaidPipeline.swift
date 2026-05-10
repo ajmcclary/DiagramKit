@@ -78,10 +78,12 @@ public enum MermaidPipeline {
 
     public static func renderSVG(
         source: String,
-        theme: DiagramTheme = .default
+        theme: DiagramTheme = .default,
+        layoutConfig: LayoutConfig = LayoutConfig()
     ) throws -> String {
         try runPipeline(operation: "MermaidPipeline.renderSVG") {
-            try MermaidImageRenderer(theme: theme).renderSVGSync(from: source)
+            try MermaidImageRenderer(theme: theme, config: layoutConfig)
+                .renderSVGSync(from: source)
         }
     }
 

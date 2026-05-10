@@ -63,11 +63,20 @@ public enum GistLoader {
     /// - Parameter url: A GitHub Gist URL.
     /// - Returns: The gist ID string, or nil if the URL doesn't match.
     public static func extractGistID(from url: URL) -> String? {
-        let path = url.path
-        let components = path.split(separator: "/")
-        // Expected: ["", "user", "id"] or ["", "user", "id", "revision"]
-        guard components.count >= 2 else { return nil }
-        return String(components.last(where: { $0.count >= 10 }) ?? components[components.count - 1])
+        let components = url.pathComponents.filter { $0 != "/" }
+
+        // gist.github.com/{id}
+        if components.count == 1 {
+            return components[0].count >= 10 ? components[0] : nil
+        }
+
+        // gist.github.com/{user}/{id}[/revision]
+        if components.count >= 2 {
+            let gistID = components[1]
+            return gistID.count >= 10 ? gistID : nil
+        }
+
+        return nil
     }
 
     /// Load diagram source and config from a Gist URL.

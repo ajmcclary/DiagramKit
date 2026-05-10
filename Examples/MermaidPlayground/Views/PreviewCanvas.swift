@@ -14,7 +14,9 @@ struct PreviewCanvas: View {
     @Bindable var store: LiveEditorStore
     let onFullWindowPreview: (() -> Void)?
 
-    @SwiftUI.State private var zoomScale: CGFloat = 1.0
+    @SwiftUI.State private var automaticZoomScale: CGFloat = 1.0
+    @SwiftUI.State private var gestureBaseZoomScale: CGFloat?
+    @SwiftUI.State private var activePanTranslation: CGSize = .zero
     @SwiftUI.State private var hasSetInitialZoom: Bool = false
     @SwiftUI.State private var lastRenderGeneration: Int = 0
 
@@ -25,7 +27,7 @@ struct PreviewCanvas: View {
         GeometryReader { geometry in
             ZStack {
                 // Background
-                Color(store.theme.background)
+                Color(store.previewTheme.background)
                     .ignoresSafeArea()
 
                 // Grid overlay
@@ -34,35 +36,25 @@ struct PreviewCanvas: View {
                 }
 
                 // Mermaid view at zoomed size
+                let zoomScale = currentZoomScale
                 let scaledWidth = max(store.diagramBounds.width * zoomScale, 1)
                 let scaledHeight = max(store.diagramBounds.height * zoomScale, 1)
 
-                ScrollView([.horizontal, .vertical], showsIndicators: true) {
+                panZoomInteractions(
                     ZStack {
-                        // Scroll content sized to at least the viewport
-                        Color.clear
-                            .frame(
-                                width: max(scaledWidth, geometry.size.width),
-                                height: max(scaledHeight, geometry.size.height)
-                            )
-
-                        // MermaidView at exact zoomed diagram size, centered
                         MermaidViewRepresentable(
-                            source: store.state.source,
-                            theme: store.theme,
-                            layoutConfig: store.layoutConfig,
+                            source: store.previewSource,
+                            theme: store.previewTheme,
+                            layoutConfig: store.previewLayoutConfig,
                             store: store
                         )
                         .frame(width: scaledWidth, height: scaledHeight)
+                        .offset(effectivePanOffset)
                     }
-                }
-                .defaultScrollAnchor(.center)
-                .scrollBounceBehavior(.basedOnSize)
-                #if targetEnvironment(macCatalyst)
-                .simultaneousGesture(magnificationGesture)
-                #else
-                .highPriorityGesture(magnificationGesture)
-                #endif
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .contentShape(Rectangle())
+                    .clipped()
+                )
                 .onChange(of: store.renderGeneration) { _, _ in
                     // Reset zoom to fit when diagram identity changes
                     if !hasSetInitialZoom || store.renderGeneration != lastRenderGeneration {
@@ -70,7 +62,7 @@ struct PreviewCanvas: View {
                             diagramBounds: store.diagramBounds,
                             viewSize: geometry.size
                         )
-                        zoomScale = fitScale
+                        applyAutomaticFitScale(fitScale)
                         hasSetInitialZoom = true
                         lastRenderGeneration = store.renderGeneration
                     }
@@ -82,7 +74,7 @@ struct PreviewCanvas: View {
                             diagramBounds: newBounds,
                             viewSize: geometry.size
                         )
-                        zoomScale = fitScale
+                        applyAutomaticFitScale(fitScale)
                         hasSetInitialZoom = true
                         lastRenderGeneration = store.renderGeneration
                     }
@@ -91,7 +83,7 @@ struct PreviewCanvas: View {
                 // Dim overlay on render failure
                 if store.renderStatus == .failed {
                     Rectangle()
-                        .fill(Color(store.theme.background).opacity(0.35))
+                        .fill(Color(store.previewTheme.background).opacity(0.35))
                         .allowsHitTesting(false)
                 }
 
@@ -135,19 +127,24 @@ struct PreviewCanvas: View {
                     HStack {
                         Spacer()
                         PreviewToolbar(
-                            theme: store.theme,
-                            zoomScale: $zoomScale,
+                            theme: store.previewTheme,
+                            zoomScale: zoomScaleBinding,
                             gridEnabled: $store.state.gridEnabled,
+                            panZoomEnabled: $store.state.panZoomEnabled,
                             minZoom: minZoom,
                             maxZoom: maxZoom,
                             onFitToView: {
-                                zoomScale = calculateFitScale(
+                                let fitScale = calculateFitScale(
                                     diagramBounds: store.diagramBounds,
                                     viewSize: geometry.size
                                 )
+                                applyAutomaticFitScale(fitScale)
+                                store.setPreviewZoomScale(nil)
+                                store.setPreviewPanOffset(.zero)
                             },
                             onResetView: {
-                                zoomScale = 1.0
+                                setZoomScale(1.0)
+                                store.setPreviewPanOffset(.zero)
                             },
                             onFullWindowPreview: onFullWindowPreview
                         )
@@ -160,21 +157,91 @@ struct PreviewCanvas: View {
 
     // MARK: - Magnification gesture
 
-    #if targetEnvironment(macCatalyst)
     private var magnificationGesture: some Gesture {
         MagnificationGesture()
             .onChanged { value in
-                zoomScale = min(max(zoomScale * value, minZoom), maxZoom)
+                if gestureBaseZoomScale == nil {
+                    gestureBaseZoomScale = currentZoomScale
+                }
+                let baseScale = gestureBaseZoomScale ?? currentZoomScale
+                setZoomScale(Self.zoomScale(
+                    forGestureValue: value,
+                    baseScale: baseScale,
+                    minZoom: minZoom,
+                    maxZoom: maxZoom
+                ))
+            }
+            .onEnded { _ in
+                gestureBaseZoomScale = nil
             }
     }
-    #else
-    private var magnificationGesture: some Gesture {
-        MagnificationGesture()
+
+    private var dragGesture: some Gesture {
+        DragGesture()
             .onChanged { value in
-                zoomScale = min(max(zoomScale * value, minZoom), maxZoom)
+                activePanTranslation = value.translation
+            }
+            .onEnded { value in
+                let baseOffset = store.state.panOffset ?? .zero
+                store.setPreviewPanOffset(CGSize(
+                    width: baseOffset.width + value.translation.width,
+                    height: baseOffset.height + value.translation.height
+                ))
+                activePanTranslation = .zero
             }
     }
-    #endif
+
+    @ViewBuilder
+    private func panZoomInteractions<Content: View>(_ content: Content) -> some View {
+        if store.state.panZoomEnabled {
+            content
+                .highPriorityGesture(dragGesture)
+                .simultaneousGesture(magnificationGesture)
+        } else {
+            content
+        }
+    }
+
+    static func zoomScale(
+        forGestureValue value: CGFloat,
+        baseScale: CGFloat,
+        minZoom: CGFloat,
+        maxZoom: CGFloat
+    ) -> CGFloat {
+        min(max(baseScale * value, minZoom), maxZoom)
+    }
+
+    // MARK: - Persisted preview transform
+
+    private var currentZoomScale: CGFloat {
+        min(max(store.state.zoomScale ?? automaticZoomScale, minZoom), maxZoom)
+    }
+
+    private var zoomScaleBinding: Binding<CGFloat> {
+        Binding(
+            get: { currentZoomScale },
+            set: { setZoomScale($0) }
+        )
+    }
+
+    private var effectivePanOffset: CGSize {
+        let baseOffset = store.state.panOffset ?? .zero
+        return CGSize(
+            width: baseOffset.width + activePanTranslation.width,
+            height: baseOffset.height + activePanTranslation.height
+        )
+    }
+
+    private func setZoomScale(_ scale: CGFloat) {
+        store.setPreviewZoomScale(min(max(scale, minZoom), maxZoom))
+    }
+
+    private func applyAutomaticFitScale(_ scale: CGFloat) {
+        automaticZoomScale = min(max(scale, minZoom), maxZoom)
+        if store.state.zoomScale == nil {
+            store.setPreviewPanOffset(.zero)
+        }
+    }
 
     // MARK: - Fit scale
 
@@ -192,7 +259,7 @@ struct PreviewCanvas: View {
     private func gridOverlay(size: CGSize) -> some View {
         Canvas { context, _ in
             let gridSpacing: CGFloat = 20
-            let lineColor = Color(store.theme.effectiveLine()).opacity(0.15)
+            let lineColor = Color(store.previewTheme.effectiveLine()).opacity(0.15)
 
             context.stroke(
                 Path { path in
@@ -231,7 +298,7 @@ struct PreviewCanvas: View {
         .padding(.vertical, 5)
         .background(
             RoundedRectangle(cornerRadius: 6)
-                .fill(Color(store.theme.background).opacity(0.85))
+                .fill(Color(store.previewTheme.background).opacity(0.85))
                 .shadow(color: .black.opacity(0.15), radius: 4, x: 0, y: 2)
         )
     }
@@ -263,7 +330,7 @@ struct PreviewCanvas: View {
         .padding(8)
         .background(
             RoundedRectangle(cornerRadius: 6)
-                .fill(Color(store.theme.background).opacity(0.88))
+                .fill(Color(store.previewTheme.background).opacity(0.88))
                 .shadow(color: .black.opacity(0.12), radius: 3, x: 0, y: 1)
         )
         .frame(maxWidth: 320)
@@ -286,7 +353,7 @@ struct PreviewCanvas: View {
         .padding(20)
         .background(
             RoundedRectangle(cornerRadius: 12)
-                .fill(Color(store.theme.background).opacity(0.92))
+                .fill(Color(store.previewTheme.background).opacity(0.92))
                 .shadow(color: .black.opacity(0.2), radius: 8, x: 0, y: 4)
         )
     }
@@ -295,10 +362,10 @@ struct PreviewCanvas: View {
         VStack(spacing: 12) {
             Image(systemName: "doc.text")
                 .font(.system(size: 36))
-                .foregroundColor(Color(store.theme.effectiveMuted()))
+                .foregroundColor(Color(store.previewTheme.effectiveMuted()))
             Text("Enter Mermaid syntax to preview")
                 .font(.body)
-                .foregroundColor(Color(store.theme.effectiveMuted()))
+                .foregroundColor(Color(store.previewTheme.effectiveMuted()))
         }
     }
 }

@@ -168,9 +168,10 @@ struct NativeCodeEditor: NSViewRepresentable {
         func textDidChange(_ notification: Notification) {
             guard let textView else { return }
             let newValue = textView.string
+            isUserTyping = true
 
             debounceTask?.cancel()
-            debounceTask = Task { [weak self] in
+            debounceTask = Task { [weak self, weak textView] in
                 try? await Task.sleep(for: .milliseconds(300))
                 guard !Task.isCancelled, let self else { return }
                 await MainActor.run {
@@ -181,11 +182,12 @@ struct NativeCodeEditor: NSViewRepresentable {
                     case .config:
                         self.store.setConfigJSON(newValue)
                     }
+                    if let textView {
+                        self.scheduleHighlight(for: textView)
+                    }
                 }
             }
 
-            // Trigger syntax highlighting after a shorter debounce
-            scheduleHighlight(for: textView)
             updateRulerLine(textView)
         }
 
@@ -213,6 +215,7 @@ struct NativeCodeEditor: NSViewRepresentable {
             Task { [weak self, weak textView] in
                 try? await Task.sleep(for: .milliseconds(150))
                 guard !Task.isCancelled, let textView else { return }
+                guard self?.isUserTyping == false else { return }
                 let source = textView.string
                 let visible = textView.visibleRect
                 let theme = self?.store.theme ?? .default
@@ -406,9 +409,10 @@ struct NativeCodeEditor: UIViewRepresentable {
 
         func textViewDidChange(_ textView: UITextView) {
             let newValue = textView.text ?? ""
+            isUserTyping = true
 
             debounceTask?.cancel()
-            debounceTask = Task { [weak self] in
+            debounceTask = Task { [weak self, weak textView] in
                 try? await Task.sleep(for: .milliseconds(300))
                 guard !Task.isCancelled, let self else { return }
                 await MainActor.run {
@@ -419,10 +423,12 @@ struct NativeCodeEditor: UIViewRepresentable {
                     case .config:
                         self.store.setConfigJSON(newValue)
                     }
+                    if let textView {
+                        self.scheduleHighlight(for: textView)
+                    }
                 }
             }
 
-            scheduleHighlight(for: textView)
             lineNumberRuler?.currentLine = _currentLine(in: textView)
         }
 
@@ -444,6 +450,7 @@ struct NativeCodeEditor: UIViewRepresentable {
             Task { [weak self, weak textView] in
                 try? await Task.sleep(for: .milliseconds(150))
                 guard !Task.isCancelled, let textView else { return }
+                guard self?.isUserTyping == false else { return }
                 let source = textView.text ?? ""
                 let visible = textView.bounds
                 let theme = self?.store.theme ?? .default

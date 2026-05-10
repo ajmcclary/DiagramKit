@@ -15,6 +15,7 @@ struct PreviewToolbar: View {
     let theme: DiagramTheme
     @Binding var zoomScale: CGFloat
     @Binding var gridEnabled: Bool
+    @Binding var panZoomEnabled: Bool
     let minZoom: CGFloat
     let maxZoom: CGFloat
     let onFitToView: () -> Void
@@ -32,6 +33,8 @@ struct PreviewToolbar: View {
             zoomInButton
             divider
             fitButton
+            divider
+            panZoomToggleButton
             divider
             gridToggleButton
             if onFullWindowPreview != nil {
@@ -69,8 +72,8 @@ struct PreviewToolbar: View {
                 .frame(width: 28, height: 28)
         }
         .buttonStyle(.plain)
-        .disabled(zoomScale <= minZoom)
-        .opacity(zoomScale <= minZoom ? 0.4 : 1.0)
+        .disabled(!panZoomEnabled || zoomScale <= minZoom)
+        .opacity(!panZoomEnabled || zoomScale <= minZoom ? 0.4 : 1.0)
     }
 
     private var zoomInButton: some View {
@@ -81,8 +84,8 @@ struct PreviewToolbar: View {
                 .frame(width: 28, height: 28)
         }
         .buttonStyle(.plain)
-        .disabled(zoomScale >= maxZoom)
-        .opacity(zoomScale >= maxZoom ? 0.4 : 1.0)
+        .disabled(!panZoomEnabled || zoomScale >= maxZoom)
+        .opacity(!panZoomEnabled || zoomScale >= maxZoom ? 0.4 : 1.0)
     }
 
     private var fitButton: some View {
@@ -91,6 +94,20 @@ struct PreviewToolbar: View {
                 .frame(width: 28, height: 28)
         }
         .buttonStyle(.plain)
+    }
+
+    private var panZoomToggleButton: some View {
+        Button {
+            panZoomEnabled.toggle()
+        } label: {
+            Image(systemName: panZoomEnabled ? "hand.draw.fill" : "hand.draw")
+                .frame(width: 28, height: 28)
+        }
+        .buttonStyle(.plain)
+        .foregroundColor(panZoomEnabled
+            ? Color(theme.effectiveAccent())
+            : Color(theme.foreground))
+        .help(panZoomEnabled ? "Disable pan and zoom" : "Enable pan and zoom")
     }
 
     private var gridToggleButton: some View {

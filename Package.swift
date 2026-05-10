@@ -101,6 +101,7 @@ let package = Package(
             path: "Examples/MermaidPlayground",
             exclude: [
                 "Info.plist",
+                "project.yml",
                 "Scripts"
             ],
             resources: [
@@ -114,6 +115,7 @@ let package = Package(
                 "DiagramKit",
                 "DiagramKitCommon",
                 "DiagramKitModel",
+                "MermaidPlayground",
                 .target(name: "DiagramKitRenderingCG", condition: .when(platforms: [.macOS, .iOS, .tvOS, .visionOS, .macCatalyst])),
                 .product(name: "CustomDump", package: "swift-custom-dump"),
                 .product(name: "SnapshotTesting", package: "swift-snapshot-testing"),
