@@ -862,7 +862,7 @@
             <div class="rail-section"><span class="lab">Personal</span><span class="stripe"></span><span class="scope">you</span></div>
 
             <div class="nav-row"><span class="ic"><svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="7" cy="4" r="2.5"/><path d="M2 12c0-3 2-5 5-5s5 2 5 5"/></svg></span><span>Account</span><span class="gated"></span></div>
-            <div class="nav-row is-on"><span class="ic"><svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="7" cy="7" r="5"/><path d="M7 2v10M2 7h10"/></svg></span><span>Appearance</span><span class="gated"></span></div>
+            <div class="nav-row"><span class="ic"><svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="7" cy="7" r="5"/><path d="M7 2v10M2 7h10"/></svg></span><span>Appearance</span><span class="gated"></span></div>
             <div class="nav-row"><span class="ic"><svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M3 3h8v8h-8z"/><path d="M5 5h2M5 7h4M5 9h3"/></svg></span><span>Editor</span></div>
             <div class="nav-row"><span class="ic"><svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M3 4v8a1 1 0 001 1h6a1 1 0 001-1V6L8 3H4a1 1 0 00-1 1z"/><path d="M8 3v3h3"/></svg></span><span>Notifications</span></div>
             <div class="nav-row"><span class="ic"><svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="7" cy="7" r="5"/><path d="M5 7h4"/></svg></span><span>Accessibility</span></div>
@@ -877,7 +877,7 @@
             <div class="rail-section"><span class="lab">Workspace</span><span class="stripe"></span><span class="scope">team</span></div>
 
             <div class="nav-row"><span class="ic"><svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="4" cy="5" r="1.5"/><circle cx="10" cy="5" r="1.5"/><path d="M2 12c0-2 1-3 2-3s2 1 2 3M8 12c0-2 1-3 2-3s2 1 2 3"/></svg></span><span>Members &amp; roles</span><span class="gated admin">admin</span></div>
-            <div class="nav-row"><span class="ic"><svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="3" cy="7" r="1.4"/><circle cx="11" cy="3" r="1.4"/><circle cx="11" cy="11" r="1.4"/><line x1="4" y1="6" x2="10" y2="4"/><line x1="4" y1="8" x2="10" y2="10"/></svg></span><span>Sharing policy</span><span class="gated admin">admin</span></div>
+            <div class="nav-row is-on"><span class="ic"><svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="3" cy="7" r="1.4"/><circle cx="11" cy="3" r="1.4"/><circle cx="11" cy="11" r="1.4"/><line x1="4" y1="6" x2="10" y2="4"/><line x1="4" y1="8" x2="10" y2="10"/></svg></span><span>Sharing policy</span><span class="gated admin">admin</span></div>
             <div class="nav-row"><span class="ic"><svg viewBox="0 0 14 14" fill="currentColor"><path d="M7 1l1 3 3 1-3 1L7 9 6 6 3 5l3-1z"/></svg></span><span>AI policy</span><span class="gated admin">admin</span></div>
             <div class="nav-row"><span class="ic"><svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="3" y="6" width="8" height="6" rx="1"/><path d="M5 6V4a2 2 0 014 0v2"/></svg></span><span>Security &amp; SSO</span><span class="gated admin">admin</span></div>
 
@@ -899,21 +899,275 @@
         <section class="panel main-area reveal r3">
 
           <div class="settings-head">
-            <div class="kicker">personal · appearance · SET-023..029</div>
-            <h1>Appearance</h1>
+            <div class="kicker">workspace · admin · SC-121..169</div>
+            <h1>Sharing &amp; permissions</h1>
             <p class="deck">
-              How the <em>app chrome</em> looks. Diagram themes are managed separately
-              under <em>Diagram defaults → Theme</em> so styling never modifies your saved diagram source.
+              How <em>Engineering</em> shares diagrams — internally and externally. Set the workspace defaults, gate external sharing on approved domains, enforce SSO, and tune the lifecycle of share links. Per-diagram overrides remain available where policy allows.
             </p>
-            <span class="scope-pill"><span class="ic">i</span>Personal · affects only you</span>
+            <span class="scope-pill" style="background: var(--lc-coral-soft); border-color: rgba(239, 90, 90, 0.36); color: var(--lc-coral-light);"><span class="ic">⚷</span>Admin · affects all of <b style="color: var(--lc-ivory); font-weight: 600; margin-left: 4px;">Engineering</b></span>
           </div>
 
           <div class="content-body">
 
+            <!-- ===== § Sharing defaults ===== -->
+            <section class="section" style="border-color: rgba(239, 90, 90, 0.32); background: linear-gradient(to bottom, rgba(239, 90, 90, 0.03), transparent), var(--lc-surface);">
+              <div class="head" style="border-color: rgba(239, 90, 90, 0.32);">
+                <h2><span class="n" style="color: var(--lc-coral-light);">a.</span>Default visibility &amp; roles</h2>
+                <span class="meta">SC-131 · 132 · 138 — new diagrams in <span class="v" style="color: var(--lc-coral-light);">Engineering</span></span>
+              </div>
+
+              <div class="field">
+                <div class="label">
+                  <span class="name">Default visibility for new diagrams</span>
+                  <span class="desc">Where new diagrams land before anyone shares them. <em>Private by default</em> is the safe choice — collaborators are invited explicitly.</span>
+                </div>
+                <div class="control">
+                  <div class="seg">
+                    <button class="is-on">Private</button>
+                    <button>Workspace</button>
+                    <button>Project</button>
+                  </div>
+                </div>
+              </div>
+
+              <div class="field">
+                <div class="label">
+                  <span class="name">Default role for new collaborators</span>
+                  <span class="desc">Pre-fills the role selector in the Share dialog. People can still override on a per-invite basis.</span>
+                </div>
+                <div class="control">
+                  <select class="select">
+                    <option>Viewer</option>
+                    <option selected>Commenter</option>
+                    <option>Editor</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="field">
+                <div class="label">
+                  <span class="name">Confirm before broadening access</span>
+                  <span class="desc">Show a confirmation when an action moves a diagram from <em>private → shared</em>, <em>internal → external</em>, or grants edit to someone who currently can only view.</span>
+                </div>
+                <div class="control"><span class="toggle is-on"><span class="lab">on</span></span></div>
+              </div>
+
+              <div class="field">
+                <div class="label">
+                  <span class="name">Allow diagram-specific permission overrides</span>
+                  <span class="desc">Owners can override workspace defaults on individual diagrams (e.g. mark a single diagram <em>private</em> inside an otherwise workspace-visible folder).</span>
+                </div>
+                <div class="control"><span class="toggle is-on"><span class="lab">on</span></span></div>
+              </div>
+            </section>
+
+            <!-- ===== § External sharing ===== -->
+            <section class="section">
+              <div class="head">
+                <h2><span class="n">b.</span>External sharing</h2>
+                <span class="meta">SC-121..130 · <span class="v">premium feature</span></span>
+              </div>
+
+              <div class="callout cyan" style="margin: 0 0 14px;">
+                <b>Premium feature</b>
+                Co-editing collaboration and external sharing are part of the Premium plan. Engineering is on <i>Premium</i> — external sharing is available.
+              </div>
+
+              <div class="field">
+                <div class="label">
+                  <span class="name">External sharing</span>
+                  <span class="desc">When enabled, members can invite collaborators with email addresses outside the workspace. External viewers do not count against editor seats.</span>
+                </div>
+                <div class="control">
+                  <div class="seg">
+                    <button>Off</button>
+                    <button class="is-on">Allow-listed domains</button>
+                    <button>Any domain</button>
+                  </div>
+                </div>
+              </div>
+
+              <div class="field">
+                <div class="label">
+                  <span class="name">Approved external domains</span>
+                  <span class="desc">Only people with email at these domains can be invited as external collaborators. Add as many as you need — wildcards like <em>*.partner.io</em> are supported.</span>
+                </div>
+                <div class="control">
+                  <div style="display: flex; flex-wrap: wrap; gap: 6px; align-items: center; justify-content: flex-end; max-width: 320px;">
+                    <span style="display: inline-flex; align-items: center; gap: 6px; background: var(--lc-cyan-soft); border: 1px solid rgba(126, 200, 222, 0.36); color: var(--lc-cyan-bright); padding: 3px 4px 3px 9px; border-radius: 999px; font-family: var(--mono); font-size: 10px;">
+                      @partner-co.io
+                      <button style="appearance: none; background: transparent; border: none; color: inherit; width: 16px; height: 16px; border-radius: 50%; cursor: pointer; font-family: var(--mono); font-size: 11px; line-height: 1; display: grid; place-items: center;">×</button>
+                    </span>
+                    <span style="display: inline-flex; align-items: center; gap: 6px; background: var(--lc-cyan-soft); border: 1px solid rgba(126, 200, 222, 0.36); color: var(--lc-cyan-bright); padding: 3px 4px 3px 9px; border-radius: 999px; font-family: var(--mono); font-size: 10px;">
+                      @enterprise.dev
+                      <button style="appearance: none; background: transparent; border: none; color: inherit; width: 16px; height: 16px; border-radius: 50%; cursor: pointer; font-family: var(--mono); font-size: 11px; line-height: 1; display: grid; place-items: center;">×</button>
+                    </span>
+                    <button style="appearance: none; background: var(--lc-bg); border: 1px dashed var(--lc-text-place); color: var(--lc-text-muted); padding: 4px 10px; border-radius: 999px; font-family: var(--mono); font-size: 10px; letter-spacing: 0.06em; cursor: pointer;">+ Add domain</button>
+                  </div>
+                </div>
+              </div>
+
+              <div class="field">
+                <div class="label">
+                  <span class="name">Warn before externally sharing</span>
+                  <span class="desc">Show a confirmation banner inside the Share dialog whenever an invite recipient is outside <em>Engineering</em> — and stage the action until confirmed.</span>
+                </div>
+                <div class="control"><span class="toggle is-on"><span class="lab">on</span></span></div>
+              </div>
+
+              <div class="field">
+                <div class="label">
+                  <span class="name">Require sign-in for external viewers</span>
+                  <span class="desc">External viewers must authenticate before they can open an Editor link. Anonymous SVG embeds remain accessible per the link's own setting.</span>
+                </div>
+                <div class="control"><span class="toggle is-on"><span class="lab">on</span></span></div>
+              </div>
+
+              <div class="field">
+                <div class="label">
+                  <span class="name">Notify owner on external share</span>
+                  <span class="desc">Email the diagram owner whenever a new external collaborator gains access. Useful for audit and access-review workflows.</span>
+                </div>
+                <div class="control"><span class="toggle"><span class="lab">off</span></span></div>
+              </div>
+            </section>
+
+            <!-- ===== § Link lifecycle ===== -->
+            <section class="section">
+              <div class="head">
+                <h2><span class="n">c.</span>Editor &amp; SVG link lifecycle</h2>
+                <span class="meta">SC-217..224</span>
+              </div>
+
+              <div class="field">
+                <div class="label">
+                  <span class="name">Default Editor-link expiration</span>
+                  <span class="desc">How long a freshly created Editor link is valid before it must be regenerated. Owners can always shorten or revoke individually.</span>
+                </div>
+                <div class="control">
+                  <div class="seg">
+                    <button>24 h</button>
+                    <button class="is-on">7 days</button>
+                    <button>30 days</button>
+                    <button>Never</button>
+                  </div>
+                </div>
+              </div>
+
+              <div class="field">
+                <div class="label">
+                  <span class="name">Default SVG-link mode</span>
+                  <span class="desc">Live links auto-update when the source diagram changes. Snapshot links freeze the diagram at its current state.</span>
+                </div>
+                <div class="control">
+                  <div class="seg">
+                    <button class="is-on">Live</button>
+                    <button>Snapshot</button>
+                  </div>
+                </div>
+              </div>
+
+              <div class="field">
+                <div class="label">
+                  <span class="name">Allow password-protected links</span>
+                  <span class="desc">Owners may add a passphrase to Editor or SVG links. Passwords are hashed at rest and never appear in audit logs.</span>
+                </div>
+                <div class="control"><span class="toggle"><span class="lab">off</span></span></div>
+              </div>
+
+              <div class="field">
+                <div class="label">
+                  <span class="name">Auto-revoke unused links</span>
+                  <span class="desc">If a share link has not been opened in 90 days, revoke it automatically and notify the owner. Reduces stale exposure surface.</span>
+                </div>
+                <div class="control"><span class="toggle is-on"><span class="lab">on</span></span></div>
+              </div>
+
+              <div class="callout">
+                <b>2 active workspace-wide link policies</b>
+                External SVG links must include the workspace watermark · Editor links to private diagrams cannot be regenerated by non-owners. <a href="#" style="color: var(--lc-cyan); text-decoration: underline dotted;">Review all policies →</a>
+              </div>
+            </section>
+
+            <!-- ===== § Comments & mentions ===== -->
+            <section class="section">
+              <div class="head">
+                <h2><span class="n">d.</span>Comments &amp; mentions</h2>
+                <span class="meta">SC-093..120</span>
+              </div>
+
+              <div class="field">
+                <div class="label">
+                  <span class="name">Allow comments by default</span>
+                  <span class="desc">Commenters can leave threaded notes on the diagram and on individual nodes/edges. Viewers cannot comment unless explicitly granted.</span>
+                </div>
+                <div class="control"><span class="toggle is-on"><span class="lab">on</span></span></div>
+              </div>
+
+              <div class="field">
+                <div class="label">
+                  <span class="name">Allow @mentions to grant access</span>
+                  <span class="desc">When someone mentions a workspace member who can't see the diagram, offer to grant access automatically. <em>Cannot</em> grant access to people outside the workspace.</span>
+                </div>
+                <div class="control">
+                  <div class="seg">
+                    <button>Never</button>
+                    <button class="is-on">Ask</button>
+                    <button>Always</button>
+                  </div>
+                </div>
+              </div>
+
+              <div class="field">
+                <div class="label">
+                  <span class="name">Preserve threads when an element is deleted</span>
+                  <span class="desc">If a commented node or edge is removed, keep the thread with a <em>deleted-context</em> marker rather than dropping the discussion.</span>
+                </div>
+                <div class="control"><span class="toggle is-on"><span class="lab">on</span></span></div>
+              </div>
+            </section>
+
+            <!-- ===== § SSO & secure access ===== -->
+            <section class="section">
+              <div class="head">
+                <h2><span class="n">e.</span>SSO &amp; secure access</h2>
+                <span class="meta">SC-163..169 · <span class="v" style="color: var(--lc-lavender);">enterprise feature</span></span>
+              </div>
+
+              <div class="callout cyan" style="margin: 0 0 14px; border-left-color: var(--lc-lavender); background: var(--lc-lav-soft); border-color: rgba(204, 153, 255, 0.32);">
+                <b style="color: var(--lc-lavender);">Enterprise feature</b>
+                SSO enforcement requires an Enterprise plan. Engineering is on <i>Premium</i>. <a href="#" style="color: var(--lc-lavender); text-decoration: underline dotted;">Upgrade to Enterprise →</a>
+              </div>
+
+              <div class="field" style="opacity: 0.55;">
+                <div class="label">
+                  <span class="name">Require SSO for all members</span>
+                  <span class="desc">Block password sign-in for anyone in the workspace. SSO providers: <em>Okta · Google Workspace · Azure AD</em>.</span>
+                </div>
+                <div class="control"><span class="toggle"><span class="lab">off</span></span></div>
+              </div>
+
+              <div class="field" style="opacity: 0.55;">
+                <div class="label">
+                  <span class="name">Block share links from bypassing SSO</span>
+                  <span class="desc">Editor and SVG links to private diagrams reject requests that don't carry a valid SSO session.</span>
+                </div>
+                <div class="control"><span class="toggle"><span class="lab">off</span></span></div>
+              </div>
+
+              <div class="field" style="opacity: 0.55;">
+                <div class="label">
+                  <span class="name">Ownership transfer to admins</span>
+                  <span class="desc">When a member leaves, automatically transfer their diagrams to a designated admin. Preserves revision history.</span>
+                </div>
+                <div class="control"><span class="toggle"><span class="lab">off</span></span></div>
+              </div>
+            </section>
+
             <!-- App appearance -->
             <section class="section">
               <div class="head">
-                <h2><span class="n">a.</span>App appearance</h2>
+                <h2><span class="n">f.</span>App appearance</h2>
                 <span class="meta">SET-023..026</span>
               </div>
               <div class="mode-grid">

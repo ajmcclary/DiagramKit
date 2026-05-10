@@ -370,6 +370,83 @@
   .event .badges .b.cat-edit { color: var(--lc-orange); border-color: rgba(255, 153, 51, 0.32); background: var(--lc-orange-soft); }
   .event .badges .b.cat-cmt { color: var(--lc-cyan); border-color: rgba(126, 200, 222, 0.32); background: var(--lc-cyan-soft); }
   .event .badges .b.cat-share { color: var(--lc-gold); border-color: rgba(255, 204, 102, 0.32); background: var(--lc-gold-soft); }
+  .event .badges .b.role-owner { color: var(--lc-orange); border-color: rgba(255, 153, 51, 0.36); background: var(--lc-orange-soft); }
+  .event .badges .b.role-editor { color: var(--lc-lavender); border-color: rgba(204, 153, 255, 0.36); background: var(--lc-lav-soft); }
+  .event .badges .b.role-commenter { color: var(--lc-cyan); border-color: rgba(126, 200, 222, 0.36); background: var(--lc-cyan-soft); }
+  .event .badges .b.role-viewer { color: var(--lc-gold); border-color: rgba(255, 204, 102, 0.36); background: var(--lc-gold-soft); }
+  .event .badges .b.external { color: var(--lc-coral-light); border-color: rgba(239, 90, 90, 0.36); background: var(--lc-coral-soft); }
+  .event .badges .b.policy { color: var(--lc-lavender); border-color: rgba(204, 153, 255, 0.36); background: var(--lc-lav-soft); }
+  .event .rail .ic.share-ext {
+    background: var(--lc-coral);
+    color: var(--lc-ivory);
+    box-shadow: 0 0 0 2px var(--lc-coral-soft), 0 0 0 3px rgba(239, 90, 90, 0.32);
+  }
+
+  /* Link-pill — in share events */
+  .event .link-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--lc-bg);
+    border: 1px solid var(--lc-border-var);
+    border-radius: 6px;
+    padding: 3px 8px 3px 6px;
+    font-family: var(--mono);
+    font-size: 10.5px;
+    color: var(--lc-cyan-bright);
+    margin-top: 4px;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .event .link-pill .ic {
+    width: 14px; height: 14px;
+    border-radius: 3px;
+    background: var(--lc-gold-soft);
+    color: var(--lc-gold);
+    display: grid; place-items: center;
+    flex-shrink: 0;
+  }
+  .event .link-pill .ic.svg { background: var(--lc-cyan-soft); color: var(--lc-cyan); }
+  .event .link-pill .ic svg { width: 9px; height: 9px; }
+  .event .link-pill .url { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+  .event .link-pill.revoked { color: var(--lc-coral-light); text-decoration: line-through; }
+
+  /* Avatar list for invite events */
+  .event .av-row {
+    display: flex;
+    gap: 4px;
+    margin-top: 6px;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+  .event .av-row .chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    background: var(--lc-bg);
+    border: 1px solid var(--lc-border-var);
+    border-radius: 999px;
+    padding: 2px 8px 2px 2px;
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--lc-ivory);
+  }
+  .event .av-row .chip .av {
+    width: 16px; height: 16px;
+    border-radius: 50%;
+    background: var(--lc-cyan);
+    color: var(--lc-bg);
+    display: grid; place-items: center;
+    font-family: var(--display);
+    font-weight: 700;
+    font-size: 9px;
+  }
+  .event .av-row .chip .av.gold { background: var(--lc-gold); }
+  .event .av-row .chip .av.coral { background: var(--lc-coral); color: var(--lc-ivory); }
+  .event .av-row .chip .av.lav { background: var(--lc-lavender); }
+  .event .av-row .chip.ext { color: var(--lc-coral-light); border-color: rgba(239, 90, 90, 0.36); background: var(--lc-coral-soft); }
   .event .badges .b.cat-ai { color: var(--lc-lavender); border-color: rgba(204, 153, 255, 0.32); background: var(--lc-lav-soft); }
   .event .badges .b.cat-deck { color: var(--lc-coral-light); border-color: rgba(239, 90, 90, 0.32); background: var(--lc-coral-soft); }
   .event .badges .b.unread { color: var(--lc-bg); background: var(--lc-cyan); border-color: var(--lc-cyan); }
@@ -897,7 +974,7 @@
 
             <div class="day-head">
               <span class="d"><span class="num">14·22</span>Today</span>
-              <span class="ct">8 events · 3 unread</span>
+              <span class="ct">12 events · 4 unread · 4 sharing</span>
               <span class="stripe"></span>
             </div>
 
@@ -984,7 +1061,7 @@
               </div>
             </div>
 
-            <!-- Share -->
+            <!-- NEW: Invite sent (just now) -->
             <div class="event">
               <div class="rail">
                 <div class="ic share">↗</div>
@@ -993,12 +1070,104 @@
               <div class="body">
                 <div class="row1">
                   <span class="actor you">You</span>
-                  <span class="summary">shared <a class="target" href="library.html">Pull-Request Lifecycle</a> with <b>engineering@</b> as <b>Editor</b></span>
-                  <span class="ts">1 h</span>
+                  <span class="summary">invited <b>1 collaborator</b> to <a class="target" href="share.html">auth-flow.mmd</a> as <b>Commenter</b></span>
+                  <span class="ts">2 m</span>
+                </div>
+                <div class="av-row">
+                  <span class="chip"><span class="av lav">M</span>m.okafor@enterprise.dev</span>
+                  <span style="font-family: var(--mono); font-size: 9px; color: var(--lc-text-place); letter-spacing: 0.1em; text-transform: uppercase;">awaiting accept · invite token <b style="color: var(--lc-gold);">·g7K9</b></span>
                 </div>
                 <div class="badges">
-                  <span class="b cat-share">share · editor link</span>
+                  <span class="b cat-share">share · invite</span>
+                  <span class="b role-commenter">commenter</span>
                   <span class="b">internal</span>
+                </div>
+                <div class="actions">
+                  <button>Resend</button>
+                  <button>Cancel invite</button>
+                  <a href="share.html" style="text-decoration: none; appearance: none; background: transparent; border: 1px solid var(--lc-border-var); border-radius: 4px; padding: 3px 8px; font-family: var(--mono); font-size: 9px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--lc-text-muted); cursor: pointer; display: inline-flex; align-items: center;">Open share dialog</a>
+                </div>
+              </div>
+            </div>
+
+            <!-- NEW: External share — warning state -->
+            <div class="event">
+              <div class="rail">
+                <div class="ic share-ext">↗</div>
+                <div class="line"></div>
+              </div>
+              <div class="body">
+                <div class="row1">
+                  <span class="actor you">You</span>
+                  <span class="summary">shared <a class="target" href="share.html">auth-flow.mmd</a> <b>outside Engineering</b> with <b>rajiv@partner-co.io</b></span>
+                  <span class="ts">8 m</span>
+                </div>
+                <div class="detail" style="border-color: rgba(239, 90, 90, 0.36); background: rgba(239, 90, 90, 0.05);">
+                  <span class="ctx" style="color: var(--lc-coral-light);">Workspace policy — external sharing allowed for approved domains</span>
+                  <span class="add">@partner-co.io · domain allowlisted</span>
+                  <span style="color: var(--lc-text-muted);">Sign-in required · link expires in 7 days · diagram source hidden in SVG render</span>
+                </div>
+                <div class="badges">
+                  <span class="b cat-share">share · external</span>
+                  <span class="b external">external ⚠</span>
+                  <span class="b role-viewer">viewer</span>
+                  <span class="b policy">domain · allow</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Share — Editor link created (richer) -->
+            <div class="event">
+              <div class="rail">
+                <div class="ic share">↗</div>
+                <div class="line"></div>
+              </div>
+              <div class="body">
+                <div class="row1">
+                  <span class="actor you">You</span>
+                  <span class="summary">created an <b>Editor link</b> for <a class="target" href="library.html">Pull-Request Lifecycle</a> and shared with <b>engineering@</b></span>
+                  <span class="ts">1 h</span>
+                </div>
+                <span class="link-pill">
+                  <span class="ic"><svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M9 2l3 3-7 7H2v-3z"/></svg></span>
+                  <span class="url">https://mermaid.swift/d/auth-flow-Xa7K9·editor</span>
+                  <span style="color: var(--lc-text-place); font-size: 9px; letter-spacing: 0.1em;">· 3 views</span>
+                </span>
+                <div class="badges">
+                  <span class="b cat-share">share · link</span>
+                  <span class="b role-editor">editor</span>
+                  <span class="b">internal · workspace</span>
+                </div>
+                <div class="actions">
+                  <button>Copy link</button>
+                  <button>Revoke</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- NEW: SVG link revoked -->
+            <div class="event">
+              <div class="rail">
+                <div class="ic share">⌀</div>
+                <div class="line"></div>
+              </div>
+              <div class="body">
+                <div class="row1">
+                  <span class="actor">Nico T.</span>
+                  <span class="summary">revoked an <b>SVG link</b> for <a class="target" href="library.html">Token state machine</a></span>
+                  <span class="ts">2 h</span>
+                </div>
+                <span class="link-pill revoked">
+                  <span class="ic svg"><svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="2" y="2" width="10" height="10" rx="1"/><path d="M2 6h10M6 2v10"/></svg></span>
+                  <span class="url">https://mermaid.swift/svg/token-state-V1p2y.svg</span>
+                </span>
+                <div class="badges">
+                  <span class="b cat-share">share · revoked</span>
+                  <span class="b" style="color: var(--lc-coral-light); border-color: rgba(239, 90, 90, 0.32); background: var(--lc-coral-soft);">link dead · 14 embeds affected</span>
+                </div>
+                <div class="actions">
+                  <button>Regenerate</button>
+                  <button>See referrers</button>
                 </div>
               </div>
             </div>
@@ -1089,6 +1258,34 @@
                 </div>
                 <div class="badges">
                   <span class="b cat-share">permission</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- NEW: Workspace policy change (admin audit) -->
+            <div class="event">
+              <div class="rail">
+                <div class="ic share" style="background: var(--lc-lavender); color: var(--lc-bg);">⚷</div>
+                <div class="line"></div>
+              </div>
+              <div class="body">
+                <div class="row1">
+                  <span class="actor">Workspace admin</span>
+                  <span class="summary">updated <b>Engineering</b> sharing policy — added <b>partner-co.io</b> to allowed external domains</span>
+                  <span class="ts">10:31</span>
+                </div>
+                <div class="detail">
+                  <span class="ctx">previously: enterprise.dev only · now: enterprise.dev, partner-co.io</span>
+                  <span class="add">@partner-co.io · allowed for view + comment</span>
+                </div>
+                <div class="badges">
+                  <span class="b cat-share">policy · external</span>
+                  <span class="b policy">admin · audit</span>
+                  <span class="b">workspace · engineering</span>
+                </div>
+                <div class="actions">
+                  <a href="settings.html" style="text-decoration: none; appearance: none; background: transparent; border: 1px solid var(--lc-border-var); border-radius: 4px; padding: 3px 8px; font-family: var(--mono); font-size: 9px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--lc-text-muted); cursor: pointer; display: inline-flex; align-items: center;">Review policy</a>
+                  <button class="gold">Revert</button>
                 </div>
               </div>
             </div>
