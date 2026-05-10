@@ -1,6 +1,11 @@
 // swift-tools-version: 6.3
 import PackageDescription
 
+let strictConcurrencySettings: [SwiftSetting] = [
+    .enableUpcomingFeature("StrictConcurrency"),
+    .enableUpcomingFeature("InferSendableFromCaptures")
+]
+
 let package = Package(
     name: "DiagramKit",
     platforms: [
@@ -43,11 +48,13 @@ let package = Package(
             dependencies: [
                 .product(name: "IssueReporting", package: "xctest-dynamic-overlay"),
                 .product(name: "Crypto", package: "swift-crypto", condition: .when(platforms: [.linux]))
-            ]
+            ],
+            swiftSettings: strictConcurrencySettings
         ),
         .target(
             name: "DiagramKitModel",
-            dependencies: ["DiagramKitCommon"]
+            dependencies: ["DiagramKitCommon"],
+            swiftSettings: strictConcurrencySettings
         ),
         .target(
             name: "DiagramKitRenderingCG",
@@ -57,15 +64,18 @@ let package = Package(
             ],
             resources: [
                 .process("Resources")
-            ]
+            ],
+            swiftSettings: strictConcurrencySettings
         ),
         .target(
             name: "DiagramKitViews",
-            dependencies: ["DiagramKitRenderingCG"]
+            dependencies: ["DiagramKitRenderingCG"],
+            swiftSettings: strictConcurrencySettings
         ),
         .target(
             name: "DiagramKitTestSupport",
-            dependencies: ["DiagramKitModel"]
+            dependencies: ["DiagramKitModel"],
+            swiftSettings: strictConcurrencySettings
         ),
         .target(
             name: "DiagramKit",
@@ -74,7 +84,8 @@ let package = Package(
                 "DiagramKitModel",
                 .target(name: "DiagramKitRenderingCG", condition: .when(platforms: [.macOS, .iOS, .tvOS, .visionOS, .macCatalyst])),
                 .target(name: "DiagramKitViews", condition: .when(platforms: [.macOS, .iOS, .tvOS, .visionOS, .macCatalyst]))
-            ]
+            ],
+            swiftSettings: strictConcurrencySettings
         ),
 
         .executableTarget(
@@ -90,7 +101,8 @@ let package = Package(
             ],
             resources: [
                 .process("Resources")
-            ]
+            ],
+            swiftSettings: strictConcurrencySettings
         ),
         .testTarget(
             name: "DiagramKitTests",
@@ -102,7 +114,8 @@ let package = Package(
                 .product(name: "CustomDump", package: "swift-custom-dump"),
                 .product(name: "SnapshotTesting", package: "swift-snapshot-testing"),
             ],
-            exclude: ["__Snapshots__"]
+            exclude: ["__Snapshots__"],
+            swiftSettings: strictConcurrencySettings
         )
     ],
     swiftLanguageModes: [.v6]
