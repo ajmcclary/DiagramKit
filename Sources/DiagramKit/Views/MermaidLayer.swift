@@ -150,23 +150,11 @@ public class MermaidLayer: CALayer {
 
         preparationTask = Task { [weak self] in
             do {
-                let prepared = try await withCheckedThrowingContinuation { continuation in
-                    let thread = Thread {
-                        do {
-                            let result = try MermaidPipeline.prepare(
-                                source: source,
-                                theme: theme,
-                                layoutConfig: layoutConfig
-                            )
-                            continuation.resume(returning: result)
-                        } catch {
-                            continuation.resume(throwing: error)
-                        }
-                    }
-                    thread.name = "BeautifulMermaid layer worker"
-                    thread.stackSize = 8 * 1024 * 1024
-                    thread.start()
-                }
+                let prepared = try await MermaidPreparation.prepare(
+                    source: source,
+                    theme: theme,
+                    layoutConfig: layoutConfig
+                )
                 guard !Task.isCancelled else { return }
                 self?.preparedDiagram = prepared
                 self?.diagramBounds = prepared.bounds
