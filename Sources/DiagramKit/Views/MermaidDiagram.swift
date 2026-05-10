@@ -46,12 +46,13 @@ public struct MermaidDiagram {
         let snapshotTheme = theme
         let snapshotConfig = layoutConfig
 
+        // Ensure the default preparer is installed before first use.
+        _ = _MermaidPreparerBootstrap.didInstall
+        let preparer = MermaidViewPreparerEnvironment.current
+            ?? MermaidViewPreparer(prepare: MermaidPreparation.prepare(source:theme:layoutConfig:))
+
         do {
-            let prepared = try await MermaidPreparation.prepare(
-                source: snapshotSource,
-                theme: snapshotTheme,
-                layoutConfig: snapshotConfig
-            )
+            let prepared = try await preparer.prepare(snapshotSource, snapshotTheme, snapshotConfig)
             preparedDiagram = prepared
             diagramBounds = prepared.bounds
         } catch {

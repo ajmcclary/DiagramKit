@@ -113,13 +113,16 @@ public class MermaidLayer: CALayer {
         let theme = theme
         let layoutConfig = layoutConfig
 
+        // Make sure the default preparer is installed before the first
+        // view-side preparation call. The reference here is what causes
+        // `_MermaidPreparerBootstrap.didInstall` to fire on first access.
+        _ = _MermaidPreparerBootstrap.didInstall
+        let preparer = MermaidViewPreparerEnvironment.current
+            ?? MermaidViewPreparer(prepare: MermaidPreparation.prepare(source:theme:layoutConfig:))
+
         preparationTask = Task { [weak self] in
             do {
-                let prepared = try await MermaidPreparation.prepare(
-                    source: source,
-                    theme: theme,
-                    layoutConfig: layoutConfig
-                )
+                let prepared = try await preparer.prepare(source, theme, layoutConfig)
                 guard !Task.isCancelled else { return }
                 self?.preparedDiagram = prepared
                 self?.diagramBounds = prepared.bounds
