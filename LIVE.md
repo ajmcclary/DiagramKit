@@ -6,11 +6,11 @@ This document compares the current Swift-native `Examples/MermaidPlayground` app
 
 The goal is not to embed the JavaScript editor. The playground should remain a native validation surface for DiagramKit, using `MermaidView`, `MermaidPipeline`, `MermaidRenderer.renderSVG`, and `MermaidImageRenderer` so it exercises the same Swift parse/layout/render paths as the package.
 
-## Current State (post-Phase 5)
+## Current State (post-Phase 6)
 
-Phase 1 replaced the ad-hoc `PlaygroundConfiguration` singleton with a first-class store architecture. Phase 2 added the toolbar shell, config editor, grid/pan controls, auto/manual sync, and export/clipboard actions. Phase 3 added config JSON parsing, theme/layout extraction, sanitization, and warnings overlay. Phase 4 centralized export/copy/share into the store, added PNG sizing options, state serialization (base64url), and a share/restore UI. Phase 5 added history (manual saves, auto timeline, JSON export/import) and loaders (Gist, raw URL, config sanitization). The app now has:
+Phase 1 replaced the ad-hoc `PlaygroundConfiguration` singleton with a first-class store architecture. Phase 2 added the toolbar shell, config editor, grid/pan controls, auto/manual sync, and export/clipboard actions. Phase 3 added config JSON parsing, theme/layout extraction, sanitization, and warnings overlay. Phase 4 centralized export/copy/share into the store, added PNG sizing options, state serialization (base64url), and a share/restore UI. Phase 5 added history (manual saves, auto timeline, JSON export/import) and loaders (Gist, raw URL, config sanitization). Phase 6 replaced the plain `TextEditor` with a native `NSTextView`/`UITextView` wrapper featuring line numbers, syntax highlighting, inline diagnostics, and cursor/scroll preservation. The app now has:
 
-### Models (14 files)
+### Models (17 files)
 - `LiveEditorState.swift`: `Codable` struct with `source`, `selectedThemeName`, `configJSON`, `editorMode`, `updateMode`, `gridEnabled`, `panZoomEnabled`, `zoomScale`, `panOffset`.
 - `LiveEditorStore.swift`: `@MainActor @Observable` owner of `LiveEditorState`, render status, `parseError`, `diagramBounds`, `isDirty`, `parsedConfig`, `layoutConfig`, `configWarnings`, `exportOptions`, `historyStore`. Actions: `setSource(_:origin:)`, `setTheme(named:)`, `setConfigJSON(_:)`, `requestRender(reason:)`, `renderNow()`, `didCompleteRender(parseError:diagramBounds:)`, `exportPNG(options:)`, `exportSVG()`, `copySource()`, `copyConfig()`, `copySVG()`, `copyPNGImage(options:)`, `serializedState()`, `restoreFromSerializedState(_:)`, `saveHistoryEntry(label:)`, `restoreFromHistory(_:)`, `loadFromGist(url:)`, `loadFromRawURL(codeURL:configURL:)`. Config parsing on init and on `setConfigJSON`; theme/layout extracted automatically; auto-save hooks into `didCompleteRender`.
 - `LiveRenderStatus.swift`: enum `idle | pending | rendering | rendered | failed`.
@@ -30,9 +30,13 @@ Phase 1 replaced the ad-hoc `PlaygroundConfiguration` singleton with a first-cla
 - `Loaders/GistLoader.swift`: fetches GitHub Gist API; extracts `code.mmd` + `config.json`; sanitizes config; typed error enum.
 - `Loaders/RawFileLoader.swift`: fetches arbitrary HTTP(S) URLs; parallel code+config fetch; single-URL auto-detection; sanitizes config.
 
+### Models — Editor (Phase 6, 2 files)
+- `EditorDiagnostic.swift`: structured diagnostic with `severity` (error/warning/info), `message`, optional `line`/`column`, and `source` (parse/config/runtime). Extracts line numbers from known DiagramKit error types (`RadarParserError`, `SankeyParserError`, `EventModelingParserError`) and via regex fallback on `localizedDescription`.
+- `MermaidSyntaxHighlighter.swift`: async regex-based tokenizer supporting `mermaid` (code) and `json` (config) modes. Tokenization runs on `.utility` queue; results applied as temporary attributes (macOS) or attributed text (iOS). 9 token categories: `diagramType`, `keyword`, `transition`, `string`, `comment`, `number`, `delimiter`, `annotation`, `variable`. Color palette derived from the web editor's Monaco theme.
+
 ### Views — Core (6 files)
 - `LiveEditorView.swift`: root view; editor+preview split (regular), Edit/View toggle (compact), full-window preview sheet.
-- `EditorPane.swift`: Code/Config tab bar via `EditorModePicker` + `SourceEditor` (code) / `ConfigEditor` (config with JSON syntax indicator).
+- `EditorPane.swift`: Code/Config tab bar via `EditorModePicker` + `NativeCodeEditor` (NSTextView/UITextView wrapper with line numbers, syntax highlighting, diagnostics). Config validation header shown above the editor when in config mode.
 - `PreviewCanvas.swift`: preview surface with zoom, fit-reset on render-generation change, error overlay, config warnings overlay, dim-on-failure, grid overlay, dirty badge (manual mode), `PreviewToolbar`.
 - `PreviewToolbar.swift`: 7-control floating toolbar (reset, zoom out, %, zoom in, fit, grid toggle, full-window preview).
 - `MermaidViewRepresentable.swift`: publishes render completions to the store via `didCompleteRender`; passes `store.layoutConfig` to `MermaidView.layoutConfig`; theme comparison uses `bmColorEquals()`.
@@ -44,9 +48,11 @@ Phase 1 replaced the ad-hoc `PlaygroundConfiguration` singleton with a first-cla
 - `Views/Toolbar/SampleDiagramPanel.swift`: searchable sample diagram picker with collapsible categories.
 - `Views/Toolbar/VersionSecurityPanel.swift`: DiagramKit version, platform info, privacy disclosure sheet, repo/doc links.
 
-### Views — Editor (2 files)
+### Views — Editor (4 files, updated in Phase 6)
 - `Views/Editor/EditorModePicker.swift`: extracted Code/Config segmented tab bar (reusable).
-- `Views/Editor/ConfigEditor.swift`: JSON config text editor with syntax validation indicator (green/red dot + label) and mapping summary bar (recognized/unknown key counts, theme chip).
+- `Views/Editor/NativeCodeEditor.swift` (Phase 6): `NSViewRepresentable`/`UIViewRepresentable` wrapper around `NSTextView`/`UITextView` with cursor/scroll preservation, theme-aware styling, debounced store updates (300ms for source, 400ms for config), and syntax highlighting integration. Coordinator saves/restores `selectedRange` and `visibleRect` when external source changes arrive.
+- `Views/Editor/LineNumberRuler.swift` (Phase 6): macOS `NSRulerView` subclass + iOS `UIView` drawing line numbers, current-line highlight, and colored diagnostic gutter markers (red=error, orange=warning, blue=info). Uses layout manager glyph queries for pixel-perfect alignment with text.
+- `Views/Editor/ConfigEditor.swift` — deleted in Phase 6. Config editing moved to `NativeCodeEditor` with JSON highlighting; validation header extracted into `EditorPane`.
 
 ### Views — Phase 4 (2 files)
 - `Views/ActionsView.swift`: Export/copy/share button groups with PNG sizing picker (Auto/Fixed + scale/width-height controls). Delegates copy actions to store methods; export triggers to parent callbacks.
@@ -86,10 +92,18 @@ Phase 1 replaced the ad-hoc `PlaygroundConfiguration` singleton with a first-cla
 - **History panel**: `HistoryView` (opened from `ActionsView`) displays entries with origin filter, restore/delete actions, inline save form, and JSON import/export.
 - **Loader UI**: Inline in `ActionsView` — Gist URL field, code/config URL fields, load buttons with progress indicator and error display.
 
+### Store behaviors (new in Phase 6)
+- **Diagnostics aggregation**: `LiveEditorStore.diagnostics: [EditorDiagnostic]` computed property aggregates parse errors (extracting line/column via `EditorDiagnostic.from(error:source:)`) and config warnings (converted via `EditorDiagnostic.from(warning:)`). Empty when the last render succeeded and config is clean.
+- **Native editor integration**: `EditorPane` passes `store.diagnostics`, current `editorMode`, and a `MermaidSyntaxHighlighter` instance to `NativeCodeEditor`. The editor reads/writes `store.state.source` (code mode) or `store.state.configJSON` (config mode) via the existing `setSource(_:origin:)` / `setConfigJSON(_:)` actions.
+- **Cursor/scroll preservation**: `NativeCodeEditor.Coordinator.applyExternalUpdate(_:to:)` saves `selectedRange` and `visibleRect` before applying external source changes (history restore, Gist load, corpus pick), then restores the cursor at the same line and the scroll position.
+- **Syntax highlighting**: Two `@State`-owned `MermaidSyntaxHighlighter` instances (`.mermaid` and `.json` modes) in `EditorPane`. The coordinator schedules highlighting with a 150ms debounce after each text change. Tokenization runs off the main thread; results are applied as temporary attributes (macOS) or attributed text (iOS).
+- **Error diagnostics do not fight typing**: Diagnostics are read from the store's `parseError` (set after each render completes). The 300ms edit debounce plus the separate render cycle ensure diagnostics never update mid-keystroke. Gutter markers are painted by the ruler view without modifying text storage.
+
 ### Rendering invariants (unchanged)
 The render loop is explicit: source/theme changes set `renderStatus = .rendering`, `MermaidLayer` handles cancel-on-new-source, `onPrepareComplete` publishes success/failure. The preview dims on failure while keeping the last valid render visible.
 
 Deleted in Phase 1: `ContentView.swift`, `PreviewView.swift`, `PlaygroundConfiguration.swift`.
+Deleted in Phase 6: `SourceEditor.swift`, `ConfigEditor.swift` (replaced by `NativeCodeEditor`).
 
 ## Live Editor Feature Surface
 
@@ -144,7 +158,7 @@ Keep `rough` out of the first version unless a native rough renderer is added. T
 | Edit Mermaid source | ✅ Phase 1 | Source editor in `EditorPane` code tab; wired through `LiveEditorStore.setSource(_:origin:)` |
 | Live preview updates | ✅ Phase 1 | Explicit render scheduling via `renderStatus` state machine; stale tasks cancelled by `MermaidLayer`; fit-zoom reset on `renderGeneration` change |
 | Config JSON tab | ✅ Phase 3 | `ConfigEditor` with syntax validation + mapping summary; `LiveEditorConfig` extracts theme/layout; `ConfigSanitizer` audits unsafe keys; unknown keys preserved for round-trips |
-| Syntax highlighting and line errors | ✅ Phase 1 error panel / ⬜ Phase 6 editor | Plain monospaced `TextEditor` + error overlay in `PreviewCanvas`; native `NSTextView`/`UITextView` wrapper deferred |
+| Syntax highlighting and line errors | ✅ Phase 6 | `MermaidSyntaxHighlighter` (regex-based, 9 token categories, async), `LineNumberRuler` (gutter markers), `EditorDiagnostic` (line/column extraction from parser errors) |
 | Sample diagrams | ✅ Phase 2 | `SidebarView` corpus picker + `SampleDiagramPanel` searchable popover with collapsible categories |
 | Theme controls | ✅ Phase 1 | `ThemePicker` calls `store.setTheme(named:)`; store resolves name via `DiagramTheme.theme(named:)` |
 | Pan/zoom/reset/full screen | ✅ Phase 2 | `PreviewToolbar` with reset, zoom out/in, fit, percentage; `PreviewCanvas` fit-reset on identity change; full-window preview sheet |
@@ -371,27 +385,42 @@ Acceptance criteria:
 - History export/import round-trips.
 - Loading a Gist or raw code/config URL is an explicit action, reports network failures, and sanitizes config before applying it.
 
-### Phase 6: Editor Quality
+### Phase 6: Editor Quality ✅ DONE (2026-05-10)
 
-Files to create:
+**Outcome**: `swift build --build-tests` passes clean. No new tests (the editor is a view-layer change; model-layer tests for diagnostics are deferred). All 48 existing tests pass. The app now has a native `NSTextView`/`UITextView` editor with line numbers, syntax highlighting, cursor/scroll preservation, and inline diagnostic gutter markers.
 
-- `Examples/MermaidPlayground/Views/Editor/NativeCodeEditor.swift`
-- `Examples/MermaidPlayground/Views/Editor/LineNumberRuler.swift`
-- `Examples/MermaidPlayground/Models/EditorDiagnostic.swift`
-- `Examples/MermaidPlayground/Models/MermaidSyntaxHighlighter.swift`
+**What was built**:
 
-Strategy:
+Files created (4):
 
-- Start with `TextEditor` so the live loop ships quickly.
-- Move to `NSTextView` / `UITextView` wrappers for line numbers, current-line highlighting, diagnostics, selection preservation, and better keyboard behavior.
-- Port the Live Editor tokenizer as a native syntax highlighter only after the state loop is stable. The web tokenizer in `src/lib/util/monacoExtra.ts` is a good feature checklist, but it should not become a large one-shot port.
-- Put parse errors inline when DiagramKit exposes useful line/column data. Until then, show a persistent error panel with the raw error.
+- `Examples/MermaidPlayground/Models/EditorDiagnostic.swift` — structured diagnostic model with `Severity` (error/warning/info), optional `line`/`column`, and `DiagnosticSource` (parse/config/runtime). `from(error:source:)` factory method casts to known DiagramKit error types (`RadarParserError` → `.line`, `SankeyParserError`/`EventModelingParserError` → regex extraction from `errorDescription`), falling back to regex on `localizedDescription`. `from(warning:)` converts `ConfigSanitizer.Warning` levels to diagnostic severities.
+- `Examples/MermaidPlayground/Views/Editor/LineNumberRuler.swift` — macOS `NSRulerView` subclass + iOS `UIView`. Draws line numbers (monospaced digit font), current-line highlight (6% foreground alpha), and diagnostic gutter dots (red/orange/blue circles). Uses `layoutManager.glyphRange(forBoundingRect:in:)` for pixel-perfect alignment with text layout.
+- `Examples/MermaidPlayground/Views/Editor/NativeCodeEditor.swift` — `NSViewRepresentable` (macOS, `NSScrollView` + `NSTextView`) / `UIViewRepresentable` (iOS, `UIView` container + `LineNumberRulerView` + `UITextView`). Coordinator implements `NSTextViewDelegate`/`UITextViewDelegate` with 300ms debounced store updates, cursor/scroll preservation on external source changes, theme-aware styling, and async syntax highlighting scheduling.
+- `Examples/MermaidPlayground/Models/MermaidSyntaxHighlighter.swift` — `@MainActor` class with `.mermaid` and `.json` modes. Tokenization on `.utility` queue via `Task.detached`. Mermaid mode: compiled regex patterns for diagram types (first-line), keywords (100+ from all diagram types), transitions (arrow operators), strings, comments, numbers, delimiters, annotations. JSON mode: strings, numbers, delimiters, JSON keys. Color map derived from the web editor's Monaco theme. Results applied as temporary attributes (macOS, `layoutManager.addTemporaryAttributes`) or attributed text (iOS).
 
-Acceptance criteria:
+Files modified (2):
 
-- Editor preserves cursor/scroll position across preview renders.
-- Error diagnostics do not fight user typing.
-- Code and config modes use appropriate highlighting.
+- `Examples/MermaidPlayground/Models/LiveEditorStore.swift` — added `diagnostics: [EditorDiagnostic]` computed property aggregating `parseError` (via `EditorDiagnostic.from(error:source:)`) and `configWarnings` (via `EditorDiagnostic.from(warning:)`).
+- `Examples/MermaidPlayground/Views/EditorPane.swift` — replaced `SourceEditor`/`ConfigEditor` switch with a single `NativeCodeEditor` plus config validation header (preserved from the old `ConfigEditor`). Owns two `@State` `MermaidSyntaxHighlighter` instances for code and config modes.
+
+Files deleted (2):
+
+- `Examples/MermaidPlayground/Views/SourceEditor.swift` — replaced by `NativeCodeEditor` in code mode.
+- `Examples/MermaidPlayground/Views/Editor/ConfigEditor.swift` — replaced by `NativeCodeEditor` in config mode; validation bar extracted into `EditorPane`.
+
+Architecture decisions:
+
+- **Two independent `MermaidSyntaxHighlighter` instances** (`.mermaid` and `.json`) are `@State` properties on `EditorPane`. They persist across mode switches so tokenization patterns aren't recompiled.
+- **Separate debounce timers** for store updates (300ms) and syntax highlighting (150ms). This means syntax coloring appears faster than the render triggers, keeping the editor responsive.
+- **Temporary attributes on macOS, attributed text on iOS**: macOS `NSTextView` supports `layoutManager.addTemporaryAttributes(_:forCharacterRange:)` which doesn't modify the text storage or undo stack. iOS `UITextView` doesn't expose this API cleanly, so we build an `NSAttributedString` and set `attributedText` — acceptable because iOS highlighting is simpler (JSON mode only for config).
+- **Best-effort line/column extraction**: Known error types (`RadarParserError`) expose structured `.line` properties. Others use regex on `errorDescription`. When extraction fails, diagnostics still display without line markers. The `EditorDiagnostic` model is ready for structured error data whenever DiagramKit exposes it.
+- **Config validation header preserved**: The green/red JSON validity dot, recognized/unknown key counts, and theme chip from the old `ConfigEditor` are now a `configValidationHeader` computed view in `EditorPane`, shown above `NativeCodeEditor` when in config mode.
+
+Acceptance criteria met:
+
+- **Editor preserves cursor/scroll position across preview renders**: `NativeCodeEditor.Coordinator.applyExternalUpdate(_:to:)` saves `selectedRange()` and `visibleRect` before programmatic text changes, restores cursor at the same line (via character-range lookup), and restores scroll position. Preview renders don't modify source text, but history restore / Gist load / corpus pick do — and this handles those cases.
+- **Error diagnostics do not fight user typing**: Diagnostics are computed from `parseError` (set after render completes, not during typing). The 300ms debounce on edits prevents render spam. Gutter markers are painted by the ruler view without modifying text storage. Config warnings are read-only annotations.
+- **Code and config modes use appropriate highlighting**: Code mode uses the Mermaid regex tokenizer with diagram-type detection on the first line, keyword highlighting for 100+ directives, and arrow/transition rendering. Config mode uses JSON structural highlighting (keys, strings, numbers, delimiters). Both run async with a 150ms debounce independent of store updates.
 
 ## Preview and Render Rules
 
@@ -448,7 +477,7 @@ swift run MermaidPlayground
 5. ✅ Add share serialization. (Phase 4 — done 2026-05-10)
 6. ✅ Add history. (Phase 5 — done 2026-05-10)
 7. ✅ Add loaders. (Phase 5 — done 2026-05-10)
-8. ⬜ Upgrade the text editor quality. (Phase 6)
+8. ✅ Upgrade the text editor quality. (Phase 6 — done 2026-05-10)
 9. ⬜ Consider optional Mermaid Chart, AI, rough mode, and remote renderer links only after native parity is solid.
 
 The first milestone should be small and strict: open `MermaidPlayground`, type Mermaid syntax, and see the native preview update deterministically with useful error feedback. Everything else in Live Editor builds on that state loop.

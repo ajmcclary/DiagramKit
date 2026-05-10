@@ -59,6 +59,27 @@ public final class LiveEditorStore {
     /// Sanitizer warnings from the current config (empty = clean).
     public private(set) var configWarnings: [ConfigSanitizer.Warning] = []
 
+    // MARK: - Diagnostics (Phase 6)
+
+    /// Unified diagnostics from parse errors and config warnings.
+    ///
+    /// Computed on access from the current ``parseError`` (extracting
+    /// line/column where possible) and ``configWarnings``. Empty when
+    /// the last render succeeded and config is clean.
+    public var diagnostics: [EditorDiagnostic] {
+        var result: [EditorDiagnostic] = []
+
+        if let error = parseError {
+            result.append(contentsOf: EditorDiagnostic.from(error: error, source: .parse))
+        }
+
+        for warning in configWarnings {
+            result.append(EditorDiagnostic.from(warning: warning))
+        }
+
+        return result
+    }
+
     // MARK: - Export options (Phase 4)
 
     /// PNG export parameters. Mutable by the export UI.
