@@ -1,0 +1,16 @@
+{
+  "name": "mermaid-prototype-v2",
+  "version": "0.3.0",
+  "private": true,
+  "description": "Local dev shell for the Mermaid native prototype (Design/prototype-v2).",
+  "type": "module",
+  "scripts": {
+    "start": "node server.mjs",
+    "serve": "NO_OPEN=1 node server.mjs",
+    "test": "node tests/prototype-enhancements.test.mjs",
+    "check": "node tests/prototype-enhancements.test.mjs"
+  },
+  "engines": {
+    "node": ">=18.17"
+  }
+}

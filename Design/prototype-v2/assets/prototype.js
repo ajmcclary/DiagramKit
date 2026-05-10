@@ -538,6 +538,153 @@ end
     });
   }
 
+  function initAiComposer() {
+    const composer = $("[data-ai-composer]");
+    if (!composer) return;
+    if (composer.dataset.aiComposerInit === "1") return;
+    composer.dataset.aiComposerInit = "1";
+    const textarea = $("textarea", composer);
+    const sendBtn = $("[data-ai-send]", composer);
+    const chat = $(".chat");
+    const counterEl = $(".ai-pane .pane-head .meta");
+    if (!textarea || !sendBtn || !chat) return;
+
+    const formatNow = () => {
+      const d = new Date();
+      const hh = String(d.getHours()).padStart(2, "0");
+      const mm = String(d.getMinutes()).padStart(2, "0");
+      return `${hh}:${mm}`;
+    };
+
+    const autosize = () => {
+      textarea.style.height = "auto";
+      const max = parseFloat(getComputedStyle(textarea).maxHeight) || 168;
+      textarea.style.height = `${Math.min(textarea.scrollHeight, max)}px`;
+    };
+
+    const refreshSendState = () => {
+      sendBtn.disabled = textarea.value.trim().length === 0;
+    };
+
+    const scrollToEnd = () => {
+      chat.scrollTop = chat.scrollHeight;
+    };
+
+    const bumpTurnCounter = () => {
+      if (!counterEl) return;
+      const match = counterEl.textContent.match(/(\d+)/);
+      if (!match) return;
+      const next = Number(match[1]) + 1;
+      counterEl.textContent = `${next} turns`;
+    };
+
+    const appendUserTurn = (text) => {
+      const turn = document.createElement("div");
+      turn.className = "turn user";
+      turn.innerHTML = `
+        <span class="av">A</span>
+        <div class="stack">
+          <div class="who"><span class="ts">${formatNow()}</span>You</div>
+          <div class="msg"></div>
+        </div>
+      `;
+      $(".msg", turn).textContent = text;
+      chat.appendChild(turn);
+      return turn;
+    };
+
+    const appendPendingStudio = () => {
+      const turn = document.createElement("div");
+      turn.className = "turn";
+      turn.innerHTML = `
+        <span class="av ai"></span>
+        <div class="stack">
+          <div class="who">Studio<span class="ts">thinking…</span></div>
+          <div class="msg is-pending">
+            <span class="dotz" aria-hidden="true"><span></span><span></span><span></span></span>
+          </div>
+        </div>
+      `;
+      chat.appendChild(turn);
+      return turn;
+    };
+
+    const resolveStudioTurn = (turn, prompt) => {
+      const lower = prompt.toLowerCase();
+      let summary = "Refined the diagram. Validation passed; preview updated.";
+      const pills = ['<span class="meta-pill ai">✦ refined</span>', '<span class="meta-pill live">✓ valid</span>'];
+      if (/(flow ?chart|swimlane)/.test(lower)) {
+        summary = "Converted to flowchart with swimlanes for each actor. Source kept in sync.";
+        pills.push('<span class="meta-pill warn">↺ structure</span>');
+      } else if (/error|retry|expir/.test(lower)) {
+        summary = "Added the error/retry path. Re-ran validate and repair — one label shortened.";
+        pills.push('<span class="meta-pill warn">↺ 1 fix</span>');
+      } else if (/simplif|concise|collapse/.test(lower)) {
+        summary = "Collapsed redundant steps; reduced from 7 to 5 messages. Layout re-fit.";
+      }
+
+      const elapsed = `${(0.8 + Math.random() * 1.6).toFixed(1)}s`;
+      turn.innerHTML = `
+        <span class="av ai"></span>
+        <div class="stack">
+          <div class="who">Studio<span class="ts">${formatNow()} · ${elapsed}</span></div>
+          <div class="msg">${summary}</div>
+          <div class="meta-pills">${pills.join("")}</div>
+        </div>
+      `;
+      bumpTurnCounter();
+      bumpTurnCounter();
+    };
+
+    const submit = () => {
+      const value = textarea.value.trim();
+      if (!value) {
+        textarea.focus();
+        return;
+      }
+      appendUserTurn(value);
+      const pending = appendPendingStudio();
+      scrollToEnd();
+      textarea.value = "";
+      autosize();
+      refreshSendState();
+      textarea.focus();
+      window.setTimeout(() => {
+        resolveStudioTurn(pending, value);
+        scrollToEnd();
+        showToast("Studio replied", "Preview will update once you accept the revision.");
+      }, 950);
+    };
+
+    textarea.addEventListener("input", () => {
+      autosize();
+      refreshSendState();
+    });
+    textarea.addEventListener("keydown", (event) => {
+      if (event.key === "Enter" && !event.shiftKey) {
+        event.preventDefault();
+        submit();
+      }
+    });
+    sendBtn.addEventListener("click", (event) => {
+      event.preventDefault();
+      submit();
+    });
+
+    $$(".ai-chip", composer).forEach((chip) => {
+      chip.addEventListener("click", () => {
+        const suggestion = chip.dataset.suggest || chip.textContent.trim();
+        textarea.value = suggestion;
+        autosize();
+        refreshSendState();
+        textarea.focus();
+      });
+    });
+
+    refreshSendState();
+    autosize();
+  }
+
   function initShareDialog() {
     const root = $(".share-card");
     if (!root) return;
@@ -1587,6 +1734,7 @@ end
     initActivityFilters();
     initVisualEditor();
     initAiStudio();
+    initAiComposer();
     initShareDialog();
     initPresentationMode();
     initSettingsFeedback();

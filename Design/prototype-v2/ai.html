@@ -54,7 +54,7 @@
   .chat {
     flex: 1;
     overflow-y: auto;
-    padding: 12px 14px;
+    padding: 12px 14px 18px;
   }
   .turn-day {
     font-size: 11px;
@@ -63,21 +63,33 @@
     padding: 14px 0 10px;
     font-weight: 500;
   }
+
+  /* Default = responder (Studio): avatar left, bubble left. */
   .turn {
     display: grid;
-    grid-template-columns: 28px 1fr;
-    gap: 10px;
+    grid-template-columns: 28px minmax(0, 1fr);
+    column-gap: 10px;
     margin-bottom: 14px;
   }
   .turn .av {
     width: 26px; height: 26px;
     font-size: 11px;
+    grid-column: 1;
+    grid-row: 1 / span 2;
+    align-self: start;
   }
   .turn .av.ai {
     background: linear-gradient(135deg, #C4B5FD, #7C3AED);
     color: white;
   }
   .turn .av.ai::before { content: "✦"; }
+  .turn .stack {
+    grid-column: 2;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    min-width: 0;
+  }
   .turn .who {
     font-size: 11.5px;
     color: var(--ink);
@@ -97,14 +109,35 @@
     line-height: 1.5;
     background: var(--surface-2);
     padding: 9px 12px;
-    border-radius: 8px;
+    border-radius: 12px 12px 12px 4px;
     border: 1px solid var(--border);
+    max-width: min(92%, 360px);
+    word-wrap: break-word;
   }
+
+  /* Sender (You): avatar right, bubble right, accent bubble. */
+  .turn.user { grid-template-columns: minmax(0, 1fr) 28px; }
+  .turn.user .av {
+    grid-column: 2;
+    background: linear-gradient(135deg, #ff8a65, #f4511e);
+    color: white;
+  }
+  .turn.user .stack {
+    grid-column: 1;
+    align-items: flex-end;
+  }
+  .turn.user .who { text-align: right; }
+  .turn.user .who .ts { margin-left: 0; margin-right: 6px; }
   .turn.user .msg {
     background: var(--accent-bg);
     border-color: var(--accent-bd);
     color: var(--ink);
+    border-radius: 12px 12px 4px 12px;
   }
+  .turn.user .meta-pills { justify-content: flex-end; }
+  .turn.user .turn-thumb,
+  .turn.user .alts-mini { align-self: flex-end; }
+
   .turn .meta-pills {
     display: flex;
     gap: 4px;
@@ -166,6 +199,143 @@
   }
   .alts-mini .alt.is-on { border-color: var(--accent); color: var(--accent); }
   .alts-mini .alt svg { width: 32px; height: 22px; }
+
+  /* Composer */
+  .ai-composer {
+    flex: 0 0 auto;
+    border-top: 1px solid var(--border);
+    background: var(--surface);
+    padding: 10px 12px 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .ai-composer-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .ai-chip {
+    appearance: none;
+    font: inherit;
+    font-size: 11px;
+    line-height: 1;
+    color: var(--ink-2);
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: 5px 9px;
+    cursor: pointer;
+    transition: border-color 120ms, color 120ms, background 120ms;
+  }
+  .ai-chip:hover {
+    border-color: var(--accent-bd);
+    color: var(--accent);
+    background: var(--accent-bg-2, var(--accent-bg));
+  }
+  .ai-composer-field {
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background: var(--bg);
+    padding: 8px 8px 6px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    transition: border-color 120ms, box-shadow 120ms;
+  }
+  .ai-composer-field:focus-within {
+    border-color: var(--accent-bd);
+    box-shadow: 0 0 0 3px rgba(94, 92, 230, 0.12);
+  }
+  .ai-composer textarea {
+    appearance: none;
+    border: none;
+    outline: none;
+    background: transparent;
+    resize: none;
+    width: 100%;
+    min-height: 22px;
+    max-height: 168px;
+    padding: 4px 6px;
+    font: inherit;
+    font-size: 13px;
+    line-height: 1.5;
+    color: var(--ink);
+    overflow-y: auto;
+  }
+  .ai-composer textarea::placeholder { color: var(--ink-4); }
+  .ai-composer-tools {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+  }
+  .ai-composer-tools .left,
+  .ai-composer-tools .right {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .ai-composer .tool {
+    appearance: none;
+    width: 26px;
+    height: 26px;
+    border-radius: 6px;
+    background: transparent;
+    border: 1px solid transparent;
+    color: var(--ink-3);
+    display: grid;
+    place-items: center;
+    cursor: pointer;
+    transition: background 120ms, color 120ms, border-color 120ms;
+  }
+  .ai-composer .tool:hover {
+    background: var(--surface-2);
+    color: var(--ink);
+    border-color: var(--border);
+  }
+  .ai-composer .tool svg { width: 14px; height: 14px; }
+  .ai-composer .hint {
+    font-size: 10.5px;
+    color: var(--ink-4);
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .ai-composer .hint kbd {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--ink-3);
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-bottom-width: 1.5px;
+    border-radius: 3px;
+    padding: 1px 4px;
+    line-height: 1;
+  }
+  .ai-composer .hint .sep { color: var(--ink-4); margin: 0 2px; }
+  .ai-composer .ai-send {
+    height: 28px;
+    padding: 0 10px 0 12px;
+    font-size: 12px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    border-radius: 7px;
+  }
+  .ai-composer .ai-send svg { width: 13px; height: 13px; }
+  .ai-composer .ai-send:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+  }
+  .ai-composer .ai-send:disabled .lbl { color: rgba(255, 255, 255, 0.9); }
+
+  /* Pending placeholder injected by the composer */
+  .turn .msg.is-pending {
+    color: var(--ink-3);
+    font-style: italic;
+    background: var(--surface-2);
+  }
 
   .pending {
     display: flex;
@@ -853,15 +1023,15 @@
 
               <div class="turn user">
                 <span class="av">A</span>
-                <div>
-                  <div class="who">You<span class="ts">14:22</span></div>
+                <div class="stack">
+                  <div class="who"><span class="ts">14:22</span>You</div>
                   <div class="msg">Sketch the auth flow for our SDK — login, MFA, refresh.</div>
                 </div>
               </div>
 
               <div class="turn">
                 <span class="av ai"></span>
-                <div>
+                <div class="stack">
                   <div class="who">Studio<span class="ts">14:22 · 1.4s</span></div>
                   <div class="msg">Picked sequenceDiagram — temporal interaction with messages between actors. Drafted four lifelines.</div>
                   <div class="turn-thumb">
@@ -880,15 +1050,15 @@
 
               <div class="turn user">
                 <span class="av">A</span>
-                <div>
-                  <div class="who">You<span class="ts">14:30</span></div>
+                <div class="stack">
+                  <div class="who"><span class="ts">14:30</span>You</div>
                   <div class="msg">+ Add error handling, also show MFA path.</div>
                 </div>
               </div>
 
               <div class="turn">
                 <span class="av ai"></span>
-                <div>
+                <div class="stack">
                   <div class="who">Studio<span class="ts">14:30 · 2.2s</span></div>
                   <div class="msg">Wrapped MFA in an alt block; added 401 retry from Auth API back to Client SDK.</div>
                   <div class="alts-mini">
@@ -906,8 +1076,8 @@
 
               <div class="turn user">
                 <span class="av">A</span>
-                <div>
-                  <div class="who">You<span class="ts">just now</span></div>
+                <div class="stack">
+                  <div class="who"><span class="ts">just now</span>You</div>
                   <div class="msg">Make MFA optional. Show the retry path when token expires.</div>
                   <div class="meta-pills">
                     <span class="meta-pill live">✓ drafted · v3</span>
@@ -915,6 +1085,44 @@
                 </div>
               </div>
             </div>
+
+            <form class="ai-composer" data-ai-composer onsubmit="return false">
+              <div class="ai-composer-chips">
+                <button type="button" class="ai-chip" data-suggest="Convert this to a flowchart, keeping the same actors as swimlanes.">↺ Convert to flowchart</button>
+                <button type="button" class="ai-chip" data-suggest="Add error handling for expired refresh tokens.">＋ Error path</button>
+                <button type="button" class="ai-chip" data-suggest="Make the diagram more concise — collapse MFA into a single step.">⤺ Simplify</button>
+              </div>
+              <div class="ai-composer-field">
+                <textarea
+                  rows="1"
+                  placeholder="Refine the diagram, ask for a variant, or paste Mermaid to repair…"
+                  aria-label="Message Studio"></textarea>
+                <div class="ai-composer-tools">
+                  <div class="left">
+                    <button type="button" class="tool" title="Attach context (⌘K)" aria-label="Attach context">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M21 12.79V19a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h6.21M16 3h5v5M10 14L21 3"/></svg>
+                    </button>
+                    <button type="button" class="tool" title="Templates" aria-label="Templates">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
+                    </button>
+                    <button type="button" class="tool" title="Slash commands" aria-label="Slash commands">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M16 4L8 20"/></svg>
+                    </button>
+                  </div>
+                  <div class="right">
+                    <span class="hint">
+                      <kbd>⏎</kbd> send
+                      <span class="sep">·</span>
+                      <kbd>⇧⏎</kbd> newline
+                    </span>
+                    <button type="submit" class="btn primary ai-send" data-ai-send>
+                      <span class="lbl">Send</span>
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 12h16M14 6l6 6-6 6"/></svg>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </form>
           </aside>
 
           <!-- Preview -->
