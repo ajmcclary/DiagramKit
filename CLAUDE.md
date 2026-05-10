@@ -6,12 +6,25 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 A native Swift port of [mermaid-js](https://mermaid.js.org/) covering ~28 diagram types (flowchart, state, sequence, class, ER, Gantt, gitGraph, mindmap, C4, ZenUML, Wardley, Treemap, etc.). Two output paths exist — Core Graphics (for `renderImage(...)`) and SVG (for `renderSVG(...)`) — plus an ASCII renderer.
 
+## Documentation map
+
+The repo carries a layered doc set; each file has a defined role. This file (`CLAUDE.md`) holds the invariants Claude must respect and the conventions Claude should follow. When scopes overlap (e.g. the worker-thread invariant) **this file is the source of truth for "do not break this"; ARCHITECTURE.md is the source of truth for "here is how it works in detail."**
+
+- [README.md](README.md) — public surface, install snippet, quick-start examples for image / SVG / ASCII / SwiftUI.
+- [ARCHITECTURE.md](ARCHITECTURE.md) — long-form layer diagram, three-stage pipeline, dual CG/SVG drift hazard, layer-import rules.
+- [BASELINES.md](BASELINES.md) — captured 2026-05-10: clean-build time (53.4s), test counts (144 files), snapshot counts (914 baselines = 396 SVG / 346 image / 172 ASCII), file-size landscape, gate status, refresh commands.
+- [CONTRIBUTING.md](CONTRIBUTING.md) — file-size thresholds, the green/yellow/red `@unchecked Sendable` policy with banner example, "add a new diagram type" 9-step checklist, PR checklist.
+- [ATTRIBUTION.md](ATTRIBUTION.md) — upstream `mermaid-js` lineage (MIT, Knut Sveidqvist & contributors), bundled fonts (SIL OFL), Swift libraries.
+- [THIRD_PARTY_LICENSES.md](THIRD_PARTY_LICENSES.md) — bundled assets with copyright + license-text references.
+- [ANALYSIS.md](ANALYSIS.md) — six-stage import plan and current status.
+- [AGENTS.md](AGENTS.md) — terse companion to this file for non-Claude AI agents.
+
 ## Commands
 
 ```bash
 swift build                                         # library + playground
 swift build --build-tests                           # also compile the test target
-swift test                                          # full test suite (~140 files, ~5–10 min)
+swift test                                          # full test suite (144 files, ~5–10 min — see BASELINES.md for caveats)
 swift test --filter <NameOrPattern>                 # one suite/test, e.g. SequenceSvgTests, CorpusSnapshotTests/svgSnapshot
 swift package resolve                               # after editing Package.swift dependencies
 
@@ -105,6 +118,7 @@ System fonts drift across macOS/iOS major versions; bundled fonts make snapshot 
 - The corpus is [Examples/MermaidPlayground/Resources/test-diagrams.json](Examples/MermaidPlayground/Resources/test-diagrams.json) — 396 diagrams across 28 diagram families. `PlaygroundExampleCatalogTests` validates that every category has at least one entry and that picker order matches the canonical family list in `Examples/MermaidPlayground/Models/SampleDiagrams.swift`.
 - [CorpusSnapshotTests.swift](Tests/DiagramKitTests/CorpusSnapshotTests.swift) (swift-testing, parameterized over `loadDiagrams()`) renders every entry through SVG / image / ASCII paths. Baselines live in `Tests/DiagramKitTests/__Snapshots__/CorpusSnapshotTests/`. Currently ~396 SVG, ~346 image, ~172 ASCII baselines — the remaining image gap is the rendering-bug punch list.
 - Most other tests use `XCTestCase` (~144 files). Migration to swift-testing is incremental, not blocking.
+- See [BASELINES.md](BASELINES.md) for current build-time / test / snapshot counts and refresh commands. The full-corpus parameterized run hits a known signal-10 hang on `main` (a `swift-testing` × `swift-snapshot-testing` interaction over 396 entries) — verify in chunks (`--filter "CorpusSnapshotTests/svgSnapshot.*<family>-"`) until the harness issue is fixed. The snapshots themselves are green.
 
 ## Pinned dependencies
 

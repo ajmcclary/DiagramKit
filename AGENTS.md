@@ -1,6 +1,6 @@
 # AGENTS.md
 
-Native Swift mermaid-js port (~28 diagram types). The companion `CLAUDE.md` has deeper architecture notes — read it for the three-stage pipeline, layered target layout, and JS-ported parser conventions.
+Native Swift mermaid-js port (~28 diagram types). For invariants and conventions, read `CLAUDE.md` (the source of truth for "do not break this"). For long-form architecture, read [ARCHITECTURE.md](ARCHITECTURE.md). For current metrics (build time, test counts, snapshot counts, gate status), read [BASELINES.md](BASELINES.md). For PR workflow + the green/yellow/red `@unchecked Sendable` policy, read [CONTRIBUTING.md](CONTRIBUTING.md). For upstream `mermaid-js` lineage, read [ATTRIBUTION.md](ATTRIBUTION.md). The six-stage import plan is in [ANALYSIS.md](ANALYSIS.md).
 
 The package is split into six layered targets: `DiagramKitCommon` (Linux+Apple) → `DiagramKitModel` (Linux+Apple) → `DiagramKitRenderingCG` (Apple-only) / `DiagramKitTestSupport` (Linux+Apple) / `DiagramKitViews` (Apple-only stub) → `DiagramKit` (umbrella, public API + Views). Imports flow strictly along that direction.
 
@@ -22,7 +22,18 @@ SNAPSHOT_TESTING_RECORD=all SNAPSHOT_DIAGRAM_IDS=block-1-simple,block-2-columns 
 swift package resolve
 ```
 
-There is no lint/format/typecheck step — `swift test` is the primary verification step.
+There is no lint/format/typecheck step — `swift test` plus the discipline gates below are the verification surface.
+
+## Verification gates
+
+`Scripts/bootstrap-smoke-check.sh` is the local "is this branch healthy?" gate. It chains `swift package dump-package`, `swift test`, the three governance gates below, `linux-check.sh`, and a multiplatform `xcodebuild` sweep. Run individual gates while iterating; run the orchestrator before merging.
+
+- `Scripts/check-file-sizes.sh` — 500 warn / 1000 error per `.swift` file. Allowlist: `Scripts/check-file-sizes-allowlist.txt` (11 JS-port files in `DiagramKitModel` grandfathered).
+- `Scripts/check-sendable-annotations.sh` — every `@unchecked Sendable` must be in `.sendable-allowlist.txt` (yellow + sunset) **or** carry a "Concurrency Contract" banner in the first 50 lines / within 10 lines of the annotation. Prefer green (banner) over yellow (allowlist).
+- `Scripts/strict-concurrency-check.sh` — `swift build -strict-concurrency=complete -warnings-as-errors`, filtered to `Sources/DiagramKit*/`. Currently clean.
+- `Scripts/linux-check.sh` — Docker/Podman build of the Linux-portable matrix on `swift:6.3.1-noble`.
+
+`Package.swift` applies `strictConcurrencySettings` (`StrictConcurrency` + `InferSendableFromCaptures` upcoming features) per target via the top-level `let strictConcurrencySettings: [SwiftSetting]` constant.
 
 ## Critical constraints
 
