@@ -179,7 +179,6 @@ Builds the Linux-portable target matrix in a `swift:6.3.1-noble` container (Dock
 - A portable text-measurement shim so `ishikawa` / `treeView` / `eventModeling` layouts can run on Linux (Stage 2.5).
 - CG/SVG renderer drift — they share no geometry/measurement code; long-term plan is a single canonical path. Snapshot tests are the only guardrail in the meantime.
 - `RenderConfig.swift` carries a number of magic constants that should be lifted into theme tokens.
-- Removing the `?? MermaidViewPreparer(prepare: MermaidPreparation.prepare(...))` fallback in `MermaidLayer` / `MermaidDiagram` — once the umbrella's bootstrap is guaranteed by other means.
 
 ## Discipline gates (Stage 3)
 
