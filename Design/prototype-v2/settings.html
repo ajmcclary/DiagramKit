@@ -1,0 +1,1206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Settings — Mermaid</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link
+  href="https://fonts.googleapis.com/css2?family=Inter:wght@400;450;500;600;700&family=Inter+Display:wght@500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap"
+  rel="stylesheet"
+/>
+<link rel="stylesheet" href="assets/shared.css" />
+<style>
+  /* Settings: nested rail · form panel · right column */
+  .se-grid {
+    display: grid;
+    grid-template-columns: 220px 1fr 280px;
+    overflow: hidden;
+    min-height: 0;
+  }
+  .se-pane {
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+  }
+  .se-pane:last-child { border-right: none; }
+  .se-pane.bg { background: var(--bg); }
+
+  /* Settings nav */
+  .nav-rail {
+    flex: 1;
+    overflow-y: auto;
+    padding: 12px 8px 16px;
+  }
+  .nav-rail .search {
+    margin: 0 4px 12px;
+  }
+  .nav-section {
+    font-size: 10.5px;
+    font-weight: 600;
+    color: var(--ink-3);
+    padding: 12px 12px 4px;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .nav-section .scope {
+    font-family: var(--mono);
+    font-size: 9.5px;
+    color: var(--ink-4);
+    text-transform: lowercase;
+    letter-spacing: 0;
+  }
+  .nav-row {
+    display: grid;
+    grid-template-columns: 18px 1fr auto;
+    gap: 8px;
+    align-items: center;
+    padding: 5px 10px;
+    border-radius: 5px;
+    font-size: 12.5px;
+    color: var(--ink-2);
+    cursor: pointer;
+  }
+  .nav-row:hover { background: var(--surface-2); color: var(--ink); }
+  .nav-row.is-on { background: var(--accent-bg); color: var(--accent); font-weight: 500; }
+  .nav-row.is-on .ic { color: var(--accent); }
+  .nav-row .ic { color: var(--ink-3); display: grid; place-items: center; }
+  .nav-row .ic svg { width: 13px; height: 13px; }
+  .gated {
+    font-size: 9.5px;
+    color: var(--ink-3);
+    background: var(--surface-2);
+    padding: 1px 5px;
+    border-radius: 3px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    font-weight: 600;
+  }
+  .gated.admin { color: var(--accent); background: var(--accent-bg); }
+  .gated.beta { color: #7C3AED; background: rgba(124, 58, 237, 0.10); }
+
+  /* Settings content */
+  .se-content {
+    flex: 1;
+    overflow-y: auto;
+    background: var(--bg);
+  }
+  .se-head {
+    padding: 24px 32px 18px;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface);
+  }
+  .se-head .kicker {
+    font-size: 11px;
+    color: var(--ink-3);
+    margin-bottom: 6px;
+    font-weight: 500;
+  }
+  .se-head h1 {
+    font-family: var(--display);
+    font-size: 24px;
+    font-weight: 600;
+    color: var(--ink);
+    margin: 0 0 6px;
+    letter-spacing: -0.02em;
+  }
+  .se-head .deck {
+    font-size: 13.5px;
+    color: var(--ink-2);
+    line-height: 1.55;
+    max-width: 640px;
+  }
+  .se-head .deck em { font-style: italic; color: var(--ink); }
+  .se-head .scope-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 12px;
+    background: var(--accent-bg);
+    border: 1px solid var(--accent-bd);
+    border-radius: 6px;
+    padding: 4px 10px;
+    font-size: 11.5px;
+    color: var(--accent);
+  }
+  .se-head .scope-pill b { color: var(--ink); font-weight: 600; margin-left: 3px; }
+
+  .se-body {
+    padding: 22px 32px 32px;
+    max-width: 880px;
+  }
+
+  .section {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    margin-bottom: 16px;
+    overflow: hidden;
+    box-shadow: var(--shadow-card);
+  }
+  .section .head {
+    padding: 14px 18px 8px;
+    border-bottom: 1px solid var(--border-3);
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+  }
+  .section .head h2 {
+    font-family: var(--display);
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--ink);
+    margin: 0;
+  }
+  .section .head .meta {
+    font-size: 11.5px;
+    color: var(--ink-3);
+    font-family: var(--mono);
+  }
+  .section .head .meta .v { color: var(--ink); }
+
+  .field {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 24px;
+    align-items: start;
+    padding: 14px 18px;
+    border-bottom: 1px solid var(--border-3);
+  }
+  .field:last-child { border-bottom: none; }
+  .field .label .name {
+    display: block;
+    font-size: 13px;
+    color: var(--ink);
+    font-weight: 500;
+    margin-bottom: 3px;
+  }
+  .field .label .desc {
+    font-size: 12px;
+    color: var(--ink-3);
+    line-height: 1.5;
+  }
+  .field .label .desc em { font-style: italic; color: var(--ink-2); }
+  .field .label .desc a { color: var(--accent); text-decoration: underline dotted; text-underline-offset: 2px; }
+  .field .control { flex-shrink: 0; }
+
+  .domain-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    align-items: center;
+    justify-content: flex-end;
+    max-width: 320px;
+  }
+  .domain-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    background: var(--accent-bg);
+    border: 1px solid var(--accent-bd);
+    color: var(--accent);
+    padding: 2px 4px 2px 9px;
+    border-radius: 999px;
+    font-family: var(--mono);
+    font-size: 11px;
+  }
+  .domain-chip button {
+    appearance: none;
+    background: transparent;
+    border: none;
+    color: inherit;
+    width: 16px; height: 16px;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 11px;
+    display: grid;
+    place-items: center;
+  }
+  .add-domain {
+    appearance: none;
+    background: transparent;
+    border: 1px dashed var(--ink-4);
+    color: var(--ink-3);
+    padding: 3px 9px;
+    border-radius: 999px;
+    font-family: var(--mono);
+    font-size: 11px;
+    cursor: pointer;
+  }
+
+  .callout {
+    margin: 14px 18px;
+    padding: 10px 12px;
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--ink-3);
+    border-radius: 4px;
+    font-size: 12px;
+    color: var(--ink-2);
+    line-height: 1.5;
+  }
+  .callout b { color: var(--ink); display: block; margin-bottom: 2px; }
+  .callout.accent { border-left-color: var(--accent); background: var(--accent-bg-2); }
+  .callout.violet { border-left-color: #7C3AED; background: rgba(124, 58, 237, 0.04); }
+  .callout.violet b { color: #7C3AED; }
+  .callout a { color: var(--accent); text-decoration: underline dotted; }
+
+  .slider {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    width: 200px;
+  }
+  .slider .track {
+    flex: 1;
+    height: 4px;
+    background: var(--ink-5);
+    border-radius: 999px;
+    position: relative;
+  }
+  .slider .track .fill {
+    position: absolute;
+    inset: 0 50% 0 0;
+    background: var(--accent);
+    border-radius: 999px;
+  }
+  .slider .track .thumb {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 16px; height: 16px;
+    background: white;
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.18), 0 0 0 0.5px rgba(0, 0, 0, 0.06);
+  }
+  .slider .v { font-family: var(--mono); font-size: 11.5px; color: var(--ink); font-weight: 500; min-width: 38px; }
+
+  /* Mode grid for app appearance */
+  .mode-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    padding: 14px 18px;
+  }
+  .mode-card {
+    appearance: none;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 8px;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .mode-card.is-on { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent-bg); }
+  .mode-card .preview {
+    aspect-ratio: 4/3;
+    border-radius: 4px;
+    border: 1px solid var(--border);
+    overflow: hidden;
+    background: linear-gradient(to bottom, #FAFAFA, #F2F2F4);
+    display: grid;
+    grid-template-columns: 24% 1fr;
+    padding: 4px;
+    gap: 3px;
+  }
+  .mode-card .preview > * {
+    background: white;
+    border-radius: 2px;
+    border: 1px solid var(--border);
+  }
+  .mode-card.dark .preview { background: linear-gradient(to bottom, #1D1D1F, #2A2A2D); }
+  .mode-card.dark .preview > * { background: #2A2A2D; border-color: #3A3A3D; }
+  .mode-card.sys .preview { background: linear-gradient(to right, #FAFAFA 50%, #1D1D1F 50%); }
+  .mode-card.sys .preview > * { background: linear-gradient(to right, white 50%, #2A2A2D 50%); }
+  .mode-card .info { text-align: left; padding: 0 4px; }
+  .mode-card .ttl {
+    font-family: var(--display);
+    font-size: 12.5px;
+    font-weight: 600;
+    color: var(--ink);
+  }
+  .mode-card .desc {
+    font-size: 10.5px;
+    color: var(--ink-3);
+  }
+
+  /* Theme list */
+  .theme-list {
+    padding: 8px 18px 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .theme-row {
+    appearance: none;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 8px 12px;
+    cursor: pointer;
+    display: grid;
+    grid-template-columns: 60px 1fr 18px;
+    gap: 12px;
+    align-items: center;
+  }
+  .theme-row:hover { background: var(--surface-2); }
+  .theme-row.is-on { border-color: var(--accent); background: var(--accent-bg-2); }
+  .theme-row .stack {
+    display: flex;
+    height: 18px;
+    border-radius: 4px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+  }
+  .theme-row .stack span { flex: 1; }
+  .theme-row .name {
+    font-size: 13px;
+    color: var(--ink);
+    font-weight: 500;
+    text-align: left;
+  }
+  .theme-row .name .sub {
+    display: block;
+    font-size: 11px;
+    color: var(--ink-3);
+    font-weight: 400;
+  }
+  .theme-row .check { color: transparent; font-size: 14px; }
+  .theme-row.is-on .check { color: var(--accent); }
+
+  /* Right column */
+  .right-rail {
+    flex: 1;
+    overflow-y: auto;
+    padding: 14px 16px;
+    background: var(--surface);
+  }
+  .ri-block { margin-bottom: 18px; }
+  .ri-block .head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    margin-bottom: 8px;
+  }
+  .ri-block h3 {
+    font-family: var(--display);
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--ink);
+    margin: 0;
+  }
+  .ri-block .meta { font-size: 10.5px; color: var(--ink-3); }
+
+  .scope-card, .save-bar, .plan-card {
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 10px 12px;
+  }
+  .scope-card .head {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 4px;
+  }
+  .scope-card .ic {
+    width: 18px; height: 18px;
+    border-radius: 50%;
+    background: var(--accent);
+    color: white;
+    font-size: 11px;
+    font-weight: 700;
+    display: grid;
+    place-items: center;
+  }
+  .scope-card .ttl { font-size: 12.5px; font-weight: 600; color: var(--ink); }
+  .scope-card .desc {
+    font-size: 11.5px;
+    color: var(--ink-2);
+    line-height: 1.5;
+  }
+  .scope-card .desc b { color: var(--ink); font-weight: 600; }
+
+  .save-bar .row {
+    display: flex;
+    justify-content: space-between;
+    padding: 3px 0;
+    font-size: 11.5px;
+  }
+  .save-bar .row .lab { color: var(--ink-3); }
+  .save-bar .row .v {
+    color: var(--ink);
+    font-weight: 500;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+  }
+  .save-bar .row .v::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--success); }
+  .save-bar .row:nth-child(2) .v::before { display: none; }
+  .save-bar .actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 4px;
+    margin-top: 8px;
+  }
+  .save-bar .actions button {
+    appearance: none;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 5px;
+    padding: 4px;
+    font-size: 11.5px;
+    color: var(--ink-2);
+    cursor: pointer;
+  }
+  .save-bar .actions .danger { color: var(--danger); border-color: var(--danger-bd); }
+
+  .plan-card .head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+  }
+  .plan-card .lab { font-size: 11px; color: var(--ink-3); }
+  .plan-card .name {
+    font-family: var(--display);
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--ink);
+  }
+  .plan-card .meter {
+    display: grid;
+    grid-template-columns: 30px 1fr auto;
+    gap: 8px;
+    align-items: center;
+    margin-bottom: 8px;
+    font-size: 11px;
+  }
+  .plan-card .meter .lab { color: var(--ink-3); }
+  .plan-card .gauge {
+    height: 4px;
+    background: var(--ink-5);
+    border-radius: 999px;
+    overflow: hidden;
+  }
+  .plan-card .gauge .fill {
+    width: 64%;
+    height: 100%;
+    background: var(--accent);
+  }
+  .plan-card .meter .v { font-family: var(--mono); font-size: 10.5px; font-weight: 500; color: var(--ink); }
+  .plan-card .row {
+    display: flex;
+    justify-content: space-between;
+    padding: 2px 0;
+    font-size: 11px;
+    color: var(--ink-2);
+  }
+  .plan-card .row b { color: var(--ink); font-weight: 600; }
+  .plan-card .upgrade {
+    appearance: none;
+    background: var(--accent);
+    color: white;
+    border: none;
+    border-radius: 5px;
+    padding: 6px;
+    font-size: 11.5px;
+    font-weight: 500;
+    cursor: pointer;
+    width: 100%;
+    margin-top: 8px;
+  }
+
+  .help-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+  }
+  .help-list a {
+    display: grid;
+    grid-template-columns: 18px 1fr 12px;
+    gap: 9px;
+    align-items: center;
+    padding: 7px 10px;
+    text-decoration: none;
+    color: var(--ink-2);
+    border-radius: 5px;
+    font-size: 12px;
+  }
+  .help-list a:hover { background: var(--surface-2); color: var(--ink); text-decoration: none; }
+  .help-list a .ic { color: var(--ink-3); display: grid; place-items: center; }
+  .help-list a .ic svg { width: 13px; height: 13px; }
+  .help-list a .arr { color: var(--ink-4); font-size: 14px; }
+</style>
+</head>
+
+<body>
+
+<div class="mac-window reveal r1">
+
+  <div class="title-bar">
+    <div class="traffic">
+      <span class="light close"></span><span class="light min"></span><span class="light max"></span>
+    </div>
+    <div class="title-text">
+      <span class="doc">Settings</span>
+    </div>
+    <div class="title-actions">
+      <span class="save-state"><span class="dot"></span>Auto-saved · 2s</span>
+      <span class="tb-divider"></span>
+      <button class="tb-btn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="9"/><path d="M12 8v4l3 2"/></svg>
+        Reset
+      </button>
+    </div>
+  </div>
+
+  <div class="app-body">
+
+    <aside class="sidebar">
+      <div class="sb-brand">
+        <span class="mark">M</span>
+        <span class="name">Mermaid</span>
+        <span class="ws">Eng</span>
+      </div>
+      <nav class="sb-body">
+        <div class="sb-section">Workspaces</div>
+        <a href="index.html" class="nav-pill">
+          <span class="glyph"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 12L12 4l9 8M5 10v10h14V10"/></svg></span>
+          Home
+        </a>
+        <a href="playground.html" class="nav-pill">
+          <span class="glyph"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg></span>
+          Playground
+        </a>
+        <a href="visual.html" class="nav-pill">
+          <span class="glyph"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M5 3l3 3M19 3l-3 3M5 21l3-3M19 21l-3-3"/><rect x="6" y="6" width="12" height="12" rx="1.5"/></svg></span>
+          Visual editor
+        </a>
+        <a href="ai.html" class="nav-pill">
+          <span class="glyph"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l1.6 4.4L18 8l-4.4 1.6L12 14l-1.6-4.4L6 8l4.4-1.6z"/></svg></span>
+          AI studio
+        </a>
+        <a href="present.html" class="nav-pill">
+          <span class="glyph"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="4" width="18" height="13" rx="1.5"/><path d="M9 21h6M12 17v4"/></svg></span>
+          Presentations
+        </a>
+
+        <div class="sb-section">Workspace</div>
+        <a href="library.html" class="nav-pill">
+          <span class="glyph"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 4h6v16H4zM14 4h6v10h-6zM14 16h6v4h-6z"/></svg></span>
+          Library
+          <span class="badge">47</span>
+        </a>
+        <a href="activity.html" class="nav-pill">
+          <span class="glyph"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 12h4l3-9 4 18 3-9h4"/></svg></span>
+          Activity
+          <span class="badge">3</span>
+        </a>
+        <a href="settings.html" class="nav-pill is-on">
+          <span class="glyph"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 11-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 11-4 0v-.09a1.65 1.65 0 00-1-1.51 1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 11-2.83-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 110-4h.09a1.65 1.65 0 001.51-1 1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 112.83-2.83l.06.06a1.65 1.65 0 001.82.33h0a1.65 1.65 0 001-1.51V3a2 2 0 114 0v.09a1.65 1.65 0 001 1.51h0a1.65 1.65 0 001.82-.33l.06-.06a2 2 0 112.83 2.83l-.06.06a1.65 1.65 0 00-.33 1.82v0a1.65 1.65 0 001.51 1H21a2 2 0 110 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg></span>
+          Settings
+        </a>
+      </nav>
+      <div class="sb-foot">
+        <div class="sb-account">
+          <span class="av">A</span>
+          <div class="who">
+            <span class="name">Alex Chen</span>
+            <span class="role">alex@engineering</span>
+          </div>
+          <span class="chev">▾</span>
+        </div>
+      </div>
+    </aside>
+
+    <div class="workarea">
+      <div class="work-content">
+        <div class="se-grid">
+
+          <!-- Settings nav -->
+          <aside class="se-pane reveal r2">
+            <div class="nav-rail">
+              <div class="search">
+                <div class="search-input">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="11" cy="11" r="6"/><path d="M16 16l4 4"/></svg>
+                  <input type="text" placeholder="Search settings…" />
+                </div>
+              </div>
+
+              <div class="nav-section">Personal <span class="scope">you</span></div>
+              <div class="nav-row">
+                <span class="ic"><svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="7" cy="4" r="2.5"/><path d="M2 12c0-3 2-5 5-5s5 2 5 5"/></svg></span>
+                <span>Account</span>
+              </div>
+              <div class="nav-row">
+                <span class="ic"><svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="7" cy="7" r="5"/><path d="M7 2v10M2 7h10"/></svg></span>
+                <span>Appearance</span>
+              </div>
+              <div class="nav-row">
+                <span class="ic"><svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M3 3h8v8h-8z"/><path d="M5 5h2M5 7h4M5 9h3"/></svg></span>
+                <span>Editor</span>
+              </div>
+              <div class="nav-row">
+                <span class="ic"><svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M3 4v8a1 1 0 001 1h6a1 1 0 001-1V6L8 3H4a1 1 0 00-1 1z"/><path d="M8 3v3h3"/></svg></span>
+                <span>Notifications</span>
+              </div>
+              <div class="nav-row">
+                <span class="ic"><svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="7" cy="7" r="5"/><path d="M5 7h4"/></svg></span>
+                <span>Accessibility</span>
+              </div>
+
+              <div class="nav-section">Diagram defaults <span class="scope">new</span></div>
+              <div class="nav-row">
+                <span class="ic"><svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="7" cy="7" r="5"/><path d="M2 7h10"/></svg></span>
+                <span>Theme</span>
+              </div>
+              <div class="nav-row">
+                <span class="ic"><svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="2" y="2" width="10" height="10"/><path d="M5 5h4M5 9h4"/></svg></span>
+                <span>Rendering</span>
+              </div>
+              <div class="nav-row">
+                <span class="ic"><svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="2" y="2" width="4" height="4"/><rect x="8" y="8" width="4" height="4"/><line x1="6" y1="4" x2="8" y2="4"/></svg></span>
+                <span>Visual editor</span>
+              </div>
+              <div class="nav-row">
+                <span class="ic"><svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M7 2v8M3 6l4-4 4 4M2 12h10"/></svg></span>
+                <span>Export</span>
+              </div>
+
+              <div class="nav-section">Workspace <span class="scope">team</span></div>
+              <div class="nav-row">
+                <span class="ic"><svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="4" cy="5" r="1.5"/><circle cx="10" cy="5" r="1.5"/><path d="M2 12c0-2 1-3 2-3s2 1 2 3M8 12c0-2 1-3 2-3s2 1 2 3"/></svg></span>
+                <span>Members &amp; roles</span>
+                <span class="gated admin">Admin</span>
+              </div>
+              <div class="nav-row is-on">
+                <span class="ic"><svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="3" cy="7" r="1.4"/><circle cx="11" cy="3" r="1.4"/><circle cx="11" cy="11" r="1.4"/><line x1="4" y1="6" x2="10" y2="4"/><line x1="4" y1="8" x2="10" y2="10"/></svg></span>
+                <span>Sharing policy</span>
+                <span class="gated admin">Admin</span>
+              </div>
+              <div class="nav-row">
+                <span class="ic"><svg viewBox="0 0 14 14" fill="currentColor"><path d="M7 1l1 3 3 1-3 1L7 9 6 6 3 5l3-1z"/></svg></span>
+                <span>AI policy</span>
+                <span class="gated admin">Admin</span>
+              </div>
+              <div class="nav-row">
+                <span class="ic"><svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="3" y="6" width="8" height="6" rx="1"/><path d="M5 6V4a2 2 0 014 0v2"/></svg></span>
+                <span>Security &amp; SSO</span>
+                <span class="gated admin">Admin</span>
+              </div>
+
+              <div class="nav-section">Plan <span class="scope">billing</span></div>
+              <div class="nav-row">
+                <span class="ic"><svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="2" y="3" width="10" height="8" rx="1"/><line x1="2" y1="6" x2="12" y2="6"/></svg></span>
+                <span>Billing</span>
+              </div>
+              <div class="nav-row">
+                <span class="ic"><svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="4" cy="4" r="2"/><circle cx="10" cy="10" r="2"/><line x1="5.5" y1="5.5" x2="8.5" y2="8.5"/></svg></span>
+                <span>Integrations</span>
+              </div>
+
+              <div class="nav-section">Advanced <span class="scope">careful</span></div>
+              <div class="nav-row">
+                <span class="ic"><svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M7 1L2 4v3c0 3 2 5 5 6 3-1 5-3 5-6V4z"/></svg></span>
+                <span>Rendering security</span>
+              </div>
+              <div class="nav-row">
+                <span class="ic"><svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M5 4l-3 3 3 3M9 4l3 3-3 3"/></svg></span>
+                <span>Developer / API</span>
+                <span class="gated beta">Beta</span>
+              </div>
+              <div class="nav-row">
+                <span class="ic"><svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="3" y="3" width="8" height="8"/><path d="M5 5l4 4M9 5l-4 4"/></svg></span>
+                <span>Data &amp; privacy</span>
+              </div>
+            </div>
+          </aside>
+
+          <!-- Content -->
+          <section class="se-pane bg reveal r3">
+            <div class="se-content">
+
+              <div class="se-head">
+                <div class="kicker">Workspace · Admin</div>
+                <h1>Sharing &amp; permissions</h1>
+                <div class="deck">How <em>Engineering</em> shares diagrams — internally and externally. Set the workspace defaults, gate external sharing on approved domains, enforce SSO, and tune the lifecycle of share links. Per-diagram overrides remain available where policy allows.</div>
+                <span class="scope-pill">⚷ Admin · affects all of <b>Engineering</b></span>
+              </div>
+
+              <div class="se-body">
+
+                <section class="section">
+                  <div class="head">
+                    <h2>Default visibility &amp; roles</h2>
+                    <span class="meta">new diagrams in <span class="v">Engineering</span></span>
+                  </div>
+                  <div class="field">
+                    <div class="label">
+                      <span class="name">Default visibility for new diagrams</span>
+                      <span class="desc">Where new diagrams land before anyone shares them. <em>Private by default</em> is the safe choice — collaborators are invited explicitly.</span>
+                    </div>
+                    <div class="control">
+                      <div class="seg">
+                        <button class="is-on">Private</button>
+                        <button>Workspace</button>
+                        <button>Project</button>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="field">
+                    <div class="label">
+                      <span class="name">Default role for new collaborators</span>
+                      <span class="desc">Pre-fills the role selector in the Share dialog. People can still override on a per-invite basis.</span>
+                    </div>
+                    <div class="control">
+                      <select class="select">
+                        <option>Viewer</option>
+                        <option selected>Commenter</option>
+                        <option>Editor</option>
+                      </select>
+                    </div>
+                  </div>
+                  <div class="field">
+                    <div class="label">
+                      <span class="name">Confirm before broadening access</span>
+                      <span class="desc">Show a confirmation when an action moves a diagram from <em>private → shared</em>, <em>internal → external</em>, or grants edit to someone who currently can only view.</span>
+                    </div>
+                    <div class="control"><span class="toggle is-on"></span></div>
+                  </div>
+                  <div class="field">
+                    <div class="label">
+                      <span class="name">Allow diagram-specific permission overrides</span>
+                      <span class="desc">Owners can override workspace defaults on individual diagrams.</span>
+                    </div>
+                    <div class="control"><span class="toggle is-on"></span></div>
+                  </div>
+                </section>
+
+                <section class="section">
+                  <div class="head">
+                    <h2>External sharing</h2>
+                    <span class="meta"><span class="v">Premium feature</span></span>
+                  </div>
+                  <div class="callout accent">
+                    <b>Premium feature</b>
+                    Co-editing collaboration and external sharing are part of the Premium plan. Engineering is on <i>Premium</i> — external sharing is available.
+                  </div>
+                  <div class="field">
+                    <div class="label">
+                      <span class="name">External sharing</span>
+                      <span class="desc">When enabled, members can invite collaborators with email addresses outside the workspace. External viewers do not count against editor seats.</span>
+                    </div>
+                    <div class="control">
+                      <div class="seg">
+                        <button>Off</button>
+                        <button class="is-on">Allow-listed</button>
+                        <button>Any domain</button>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="field">
+                    <div class="label">
+                      <span class="name">Approved external domains</span>
+                      <span class="desc">Only people with email at these domains can be invited as external collaborators. Wildcards like <em>*.partner.io</em> are supported.</span>
+                    </div>
+                    <div class="control">
+                      <div class="domain-list">
+                        <span class="domain-chip">@partner-co.io <button>×</button></span>
+                        <span class="domain-chip">@enterprise.dev <button>×</button></span>
+                        <button class="add-domain">+ Add domain</button>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="field">
+                    <div class="label">
+                      <span class="name">Warn before externally sharing</span>
+                      <span class="desc">Show a confirmation banner inside the Share dialog whenever an invite recipient is outside <em>Engineering</em>.</span>
+                    </div>
+                    <div class="control"><span class="toggle is-on"></span></div>
+                  </div>
+                  <div class="field">
+                    <div class="label">
+                      <span class="name">Require sign-in for external viewers</span>
+                      <span class="desc">External viewers must authenticate before they can open an Editor link. Anonymous SVG embeds remain accessible per the link's own setting.</span>
+                    </div>
+                    <div class="control"><span class="toggle is-on"></span></div>
+                  </div>
+                  <div class="field">
+                    <div class="label">
+                      <span class="name">Notify owner on external share</span>
+                      <span class="desc">Email the diagram owner whenever a new external collaborator gains access.</span>
+                    </div>
+                    <div class="control"><span class="toggle"></span></div>
+                  </div>
+                </section>
+
+                <section class="section">
+                  <div class="head">
+                    <h2>Editor &amp; SVG link lifecycle</h2>
+                  </div>
+                  <div class="field">
+                    <div class="label">
+                      <span class="name">Default Editor-link expiration</span>
+                      <span class="desc">How long a freshly created Editor link is valid before it must be regenerated. Owners can always shorten or revoke individually.</span>
+                    </div>
+                    <div class="control">
+                      <div class="seg">
+                        <button>24h</button>
+                        <button class="is-on">7 days</button>
+                        <button>30 days</button>
+                        <button>Never</button>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="field">
+                    <div class="label">
+                      <span class="name">Default SVG-link mode</span>
+                      <span class="desc">Live links auto-update when the source diagram changes. Snapshot links freeze the diagram at its current state.</span>
+                    </div>
+                    <div class="control">
+                      <div class="seg">
+                        <button class="is-on">Live</button>
+                        <button>Snapshot</button>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="field">
+                    <div class="label">
+                      <span class="name">Allow password-protected links</span>
+                      <span class="desc">Owners may add a passphrase to Editor or SVG links. Passwords are hashed at rest and never appear in audit logs.</span>
+                    </div>
+                    <div class="control"><span class="toggle"></span></div>
+                  </div>
+                  <div class="field">
+                    <div class="label">
+                      <span class="name">Auto-revoke unused links</span>
+                      <span class="desc">If a share link has not been opened in 90 days, revoke it automatically and notify the owner.</span>
+                    </div>
+                    <div class="control"><span class="toggle is-on"></span></div>
+                  </div>
+                  <div class="callout">
+                    <b>2 active workspace-wide link policies</b>
+                    External SVG links must include the workspace watermark · Editor links to private diagrams cannot be regenerated by non-owners. <a href="#">Review all policies →</a>
+                  </div>
+                </section>
+
+                <section class="section">
+                  <div class="head">
+                    <h2>SSO &amp; secure access</h2>
+                    <span class="meta"><span class="v" style="color: #7C3AED;">Enterprise feature</span></span>
+                  </div>
+                  <div class="callout violet">
+                    <b>Enterprise feature</b>
+                    SSO enforcement requires an Enterprise plan. Engineering is on <i>Premium</i>. <a href="#">Upgrade to Enterprise →</a>
+                  </div>
+                  <div class="field" style="opacity: 0.55;">
+                    <div class="label">
+                      <span class="name">Require SSO for all members</span>
+                      <span class="desc">Block password sign-in for anyone in the workspace. SSO providers: <em>Okta · Google Workspace · Azure AD</em>.</span>
+                    </div>
+                    <div class="control"><span class="toggle"></span></div>
+                  </div>
+                  <div class="field" style="opacity: 0.55;">
+                    <div class="label">
+                      <span class="name">Block share links from bypassing SSO</span>
+                      <span class="desc">Editor and SVG links to private diagrams reject requests that don't carry a valid SSO session.</span>
+                    </div>
+                    <div class="control"><span class="toggle"></span></div>
+                  </div>
+                </section>
+
+                <section class="section">
+                  <div class="head">
+                    <h2>App appearance</h2>
+                  </div>
+                  <div class="mode-grid">
+                    <button class="mode-card is-on">
+                      <div class="preview"><div></div><div></div></div>
+                      <div class="info">
+                        <div class="ttl">Light</div>
+                        <div class="desc">macOS Sonoma</div>
+                      </div>
+                    </button>
+                    <button class="mode-card dark">
+                      <div class="preview"><div></div><div></div></div>
+                      <div class="info">
+                        <div class="ttl">Dark</div>
+                        <div class="desc">night</div>
+                      </div>
+                    </button>
+                    <button class="mode-card sys">
+                      <div class="preview"><div></div><div></div></div>
+                      <div class="info">
+                        <div class="ttl">System</div>
+                        <div class="desc">match macOS</div>
+                      </div>
+                    </button>
+                  </div>
+                </section>
+
+                <section class="section">
+                  <div class="head">
+                    <h2>Editor theme</h2>
+                    <span class="meta">6 themes · current <span class="v">Default Light</span></span>
+                  </div>
+                  <div class="callout accent">
+                    <b>Heads up</b>
+                    Editor theme controls the app chrome, syntax colors, and panel backgrounds. It does <b>not</b> change diagram theme — manage that under <i>Diagram defaults</i>.
+                  </div>
+                  <div class="theme-list">
+                    <button class="theme-row is-on">
+                      <span class="stack">
+                        <span style="background:#FAFAFA"></span>
+                        <span style="background:#5E5CE6"></span>
+                        <span style="background:#0891B2"></span>
+                        <span style="background:#7C3AED"></span>
+                      </span>
+                      <span class="name">Default Light<span class="sub">white · indigo · cyan</span></span>
+                      <span class="check">✓</span>
+                    </button>
+                    <button class="theme-row">
+                      <span class="stack">
+                        <span style="background:#1D1D1F"></span>
+                        <span style="background:#818CF8"></span>
+                        <span style="background:#5EEAD4"></span>
+                        <span style="background:#FCD34D"></span>
+                      </span>
+                      <span class="name">Default Dark<span class="sub">night · indigo</span></span>
+                      <span class="check"></span>
+                    </button>
+                    <button class="theme-row">
+                      <span class="stack">
+                        <span style="background:#FAF6EE"></span>
+                        <span style="background:#1B1410"></span>
+                        <span style="background:#C73E1D"></span>
+                        <span style="background:#2A4759"></span>
+                      </span>
+                      <span class="name">Editorial<span class="sub">parchment · vermillion</span></span>
+                      <span class="check"></span>
+                    </button>
+                    <button class="theme-row">
+                      <span class="stack">
+                        <span style="background:#FDF6E3"></span>
+                        <span style="background:#073642"></span>
+                        <span style="background:#B58900"></span>
+                        <span style="background:#268BD2"></span>
+                      </span>
+                      <span class="name">Solarized<span class="sub">linen · gold</span></span>
+                      <span class="check"></span>
+                    </button>
+                  </div>
+                </section>
+
+                <section class="section">
+                  <div class="head">
+                    <h2>Editor preferences</h2>
+                  </div>
+                  <div class="field">
+                    <div class="label">
+                      <span class="name">Autosync / live preview</span>
+                      <span class="desc">Render diagrams automatically while typing. Disable to render only on ⌘ R.</span>
+                    </div>
+                    <div class="control"><span class="toggle is-on"></span></div>
+                  </div>
+                  <div class="field">
+                    <div class="label">
+                      <span class="name">Default editor mode</span>
+                      <span class="desc">Which editor opens when you launch a diagram.</span>
+                    </div>
+                    <div class="control">
+                      <div class="seg">
+                        <button>Code</button>
+                        <button class="is-on">Visual</button>
+                        <button>Split</button>
+                        <button>AI</button>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="field">
+                    <div class="label">
+                      <span class="name">Editor font size</span>
+                      <span class="desc">Affects the code editor and source drawer. Sidebar &amp; chrome use a fixed scale.</span>
+                    </div>
+                    <div class="control">
+                      <div class="slider">
+                        <div class="track">
+                          <div class="fill"></div>
+                          <div class="thumb"></div>
+                        </div>
+                        <span class="v">13px</span>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="field">
+                    <div class="label">
+                      <span class="name">Format on save</span>
+                      <span class="desc">Auto-prettify Mermaid source when you save. Visual editor will <em>always</em> normalize formatting.</span>
+                    </div>
+                    <div class="control"><span class="toggle"></span></div>
+                  </div>
+                </section>
+
+                <section class="section">
+                  <div class="head">
+                    <h2>Accessibility</h2>
+                  </div>
+                  <div class="field">
+                    <div class="label">
+                      <span class="name">Reduced motion</span>
+                      <span class="desc">Suppress animated transitions and selection effects.</span>
+                    </div>
+                    <div class="control">
+                      <div class="seg">
+                        <button>Off</button>
+                        <button>On</button>
+                        <button class="is-on">System</button>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="field">
+                    <div class="label">
+                      <span class="name">Higher-contrast UI</span>
+                      <span class="desc">Increases panel borders and tightens text contrast. WCAG AA on any chrome theme.</span>
+                    </div>
+                    <div class="control"><span class="toggle"></span></div>
+                  </div>
+                  <div class="field">
+                    <div class="label">
+                      <span class="name">Diagram a11y reminders</span>
+                      <span class="desc">Warn when a diagram is missing an accessible <em>title</em> or <em>description</em>.</span>
+                    </div>
+                    <div class="control"><span class="toggle is-on"></span></div>
+                  </div>
+                </section>
+
+              </div>
+            </div>
+          </section>
+
+          <!-- Right rail -->
+          <aside class="se-pane reveal r4" style="border-right: none;">
+            <div class="right-rail">
+
+              <div class="ri-block">
+                <div class="head"><h3>Scope</h3></div>
+                <div class="scope-card">
+                  <div class="head">
+                    <span class="ic">i</span>
+                    <span class="ttl">Workspace · admin</span>
+                  </div>
+                  <div class="desc">Settings here affect <b>all of Engineering</b>. Personal preferences are managed under <i>Personal</i>.</div>
+                </div>
+              </div>
+
+              <div class="ri-block">
+                <div class="head"><h3>Save state</h3></div>
+                <div class="save-bar">
+                  <div class="row"><span class="lab">Status</span><span class="v">Auto-saved</span></div>
+                  <div class="row"><span class="lab">Last save</span><span class="v" style="color: var(--ink); font-weight: 500;">2s ago</span></div>
+                  <div class="actions">
+                    <button>Save now</button>
+                    <button class="danger">Discard</button>
+                  </div>
+                </div>
+              </div>
+
+              <div class="ri-block">
+                <div class="head"><h3>Plan &amp; usage</h3></div>
+                <div class="plan-card">
+                  <div class="head">
+                    <span class="lab">Current plan</span>
+                    <span class="name">Studio</span>
+                  </div>
+                  <div class="meter">
+                    <span class="lab">AI</span>
+                    <div class="gauge"><div class="fill"></div></div>
+                    <span class="v">32 / 50</span>
+                  </div>
+                  <div class="row"><span>Diagrams</span><span><b>47</b> / 100</span></div>
+                  <div class="row"><span>Workspaces</span><span><b>2</b> / 5</span></div>
+                  <div class="row"><span>Co-editors</span><span><b>4</b> / 10</span></div>
+                  <div class="row"><span>External shares</span><span><b>2</b> · enabled</span></div>
+                  <button class="upgrade">Upgrade plan</button>
+                </div>
+              </div>
+
+              <div class="ri-block">
+                <div class="head"><h3>Help</h3></div>
+                <div class="help-list">
+                  <a href="#">
+                    <span class="ic"><svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M2 2h6l4 4v6H2z"/><path d="M5 7h4M5 9h3"/></svg></span>
+                    <span>Documentation</span>
+                    <span class="arr">›</span>
+                  </a>
+                  <a href="#">
+                    <span class="ic"><svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="7" cy="7" r="5"/><path d="M5 7h4M7 5v4"/></svg></span>
+                    <span>Contact support</span>
+                    <span class="arr">›</span>
+                  </a>
+                  <a href="#">
+                    <span class="ic"><svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="7" cy="7" r="5"/><path d="M7 5v3M7 9.5v.5"/></svg></span>
+                    <span>What's new</span>
+                    <span class="arr">›</span>
+                  </a>
+                  <a href="#">
+                    <span class="ic"><svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="2" y="2" width="10" height="10"/><path d="M5 5h4M5 7h4M5 9h2"/></svg></span>
+                    <span>Privacy &amp; terms</span>
+                    <span class="arr">›</span>
+                  </a>
+                </div>
+              </div>
+
+            </div>
+          </aside>
+
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  document.querySelectorAll('.nav-row').forEach(b => {
+    b.addEventListener('click', () => {
+      document.querySelectorAll('.nav-row').forEach(x => x.classList.remove('is-on'));
+      b.classList.add('is-on');
+    });
+  });
+  document.querySelectorAll('.mode-card').forEach(b => {
+    b.addEventListener('click', () => {
+      document.querySelectorAll('.mode-card').forEach(x => x.classList.remove('is-on'));
+      b.classList.add('is-on');
+    });
+  });
+  document.querySelectorAll('.theme-row').forEach(b => {
+    b.addEventListener('click', () => {
+      document.querySelectorAll('.theme-row').forEach(x => x.classList.remove('is-on'));
+      b.classList.add('is-on');
+    });
+  });
+  document.querySelectorAll('.toggle').forEach(t => {
+    t.addEventListener('click', () => t.classList.toggle('is-on'));
+  });
+  document.querySelectorAll('.seg').forEach(seg => {
+    seg.querySelectorAll('button').forEach(b => {
+      b.addEventListener('click', () => {
+        seg.querySelectorAll('button').forEach(x => x.classList.remove('is-on'));
+        b.classList.add('is-on');
+      });
+    });
+  });
+</script>
+
+</body>
+</html>

@@ -1,0 +1,1337 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>auth-flow.mmd — AI studio</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link
+  href="https://fonts.googleapis.com/css2?family=Inter:wght@400;450;500;600;700&family=Inter+Display:wght@500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap"
+  rel="stylesheet"
+/>
+<link rel="stylesheet" href="assets/shared.css" />
+<style>
+  /* AI studio: chat (left) · preview (center) · controls (right) */
+  .ai-grid {
+    display: grid;
+    grid-template-columns: 320px 1fr 280px;
+    overflow: hidden;
+    min-height: 0;
+  }
+  .ai-pane {
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+  }
+  .ai-pane:last-child { border-right: none; }
+  .ai-pane.bg { background: var(--bg); }
+
+  .pane-head {
+    padding: 10px 14px 8px;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .pane-head .ttl {
+    font-family: var(--display);
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--ink);
+  }
+  .pane-head .meta {
+    font-size: 11px;
+    color: var(--ink-3);
+    margin-left: auto;
+  }
+
+  /* Chat */
+  .chat {
+    flex: 1;
+    overflow-y: auto;
+    padding: 12px 14px;
+  }
+  .turn-day {
+    font-size: 11px;
+    color: var(--ink-3);
+    text-align: center;
+    padding: 14px 0 10px;
+    font-weight: 500;
+  }
+  .turn {
+    display: grid;
+    grid-template-columns: 28px 1fr;
+    gap: 10px;
+    margin-bottom: 14px;
+  }
+  .turn .av {
+    width: 26px; height: 26px;
+    font-size: 11px;
+  }
+  .turn .av.ai {
+    background: linear-gradient(135deg, #C4B5FD, #7C3AED);
+    color: white;
+  }
+  .turn .av.ai::before { content: "✦"; }
+  .turn .who {
+    font-size: 11.5px;
+    color: var(--ink);
+    font-weight: 600;
+    margin-bottom: 4px;
+  }
+  .turn .who .ts {
+    color: var(--ink-3);
+    font-weight: 400;
+    margin-left: 6px;
+    font-family: var(--mono);
+    font-size: 10.5px;
+  }
+  .turn .msg {
+    font-size: 13px;
+    color: var(--ink);
+    line-height: 1.5;
+    background: var(--surface-2);
+    padding: 9px 12px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+  }
+  .turn.user .msg {
+    background: var(--accent-bg);
+    border-color: var(--accent-bd);
+    color: var(--ink);
+  }
+  .turn .meta-pills {
+    display: flex;
+    gap: 4px;
+    margin-top: 6px;
+    flex-wrap: wrap;
+  }
+  .meta-pill {
+    font-size: 10.5px;
+    color: var(--ink-3);
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    padding: 1px 7px;
+    border-radius: 999px;
+  }
+  .meta-pill.ai { color: #7C3AED; background: rgba(124, 58, 237, 0.08); border-color: rgba(124, 58, 237, 0.24); }
+  .meta-pill.live { color: var(--success); background: var(--success-bg); border-color: var(--success-bd); }
+  .meta-pill.warn { color: var(--warn); background: var(--warn-bg); border-color: var(--warn-bd); }
+
+  .turn-thumb {
+    margin-top: 8px;
+    display: grid;
+    grid-template-columns: 36px 1fr;
+    gap: 8px;
+    align-items: center;
+    padding: 6px 8px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+  }
+  .turn-thumb .ic {
+    width: 36px; height: 26px;
+    background: var(--surface-2);
+    border-radius: 4px;
+    display: grid;
+    place-items: center;
+    color: var(--ink-3);
+  }
+  .turn-thumb .ic svg { width: 22px; height: 16px; }
+  .turn-thumb .info .t { font-size: 12px; font-weight: 500; }
+  .turn-thumb .info .s { font-size: 10.5px; color: var(--ink-3); }
+
+  .alts-mini {
+    display: flex;
+    gap: 6px;
+    margin-top: 8px;
+  }
+  .alts-mini .alt {
+    appearance: none;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 5px;
+    padding: 4px;
+    cursor: pointer;
+    height: 32px;
+    width: 50px;
+    color: var(--ink-3);
+    display: grid;
+    place-items: center;
+  }
+  .alts-mini .alt.is-on { border-color: var(--accent); color: var(--accent); }
+  .alts-mini .alt svg { width: 32px; height: 22px; }
+
+  .pending {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 4px;
+    font-size: 11.5px;
+    color: var(--ink-3);
+  }
+  .dotz {
+    display: inline-flex;
+    gap: 3px;
+  }
+  .dotz span {
+    width: 5px; height: 5px;
+    border-radius: 50%;
+    background: var(--accent);
+    animation: bounce 1.4s infinite;
+  }
+  .dotz span:nth-child(2) { animation-delay: 0.2s; }
+  .dotz span:nth-child(3) { animation-delay: 0.4s; }
+  @keyframes bounce {
+    0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
+    30% { transform: translateY(-3px); opacity: 1; }
+  }
+
+  /* Preview area */
+  .preview-area {
+    flex: 1;
+    overflow-y: auto;
+  }
+  .ai-headline {
+    padding: 22px 28px 18px;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface);
+  }
+  .ai-headline .kicker {
+    font-size: 11px;
+    color: var(--ink-3);
+    font-weight: 500;
+    margin-bottom: 6px;
+    letter-spacing: 0.02em;
+  }
+  .ai-headline h1 {
+    font-family: var(--display);
+    font-size: 22px;
+    font-weight: 600;
+    color: var(--ink);
+    margin: 0 0 6px;
+    letter-spacing: -0.015em;
+    line-height: 1.2;
+  }
+  .ai-headline h1 em {
+    font-style: normal;
+    color: var(--accent);
+  }
+  .ai-headline .sub {
+    font-size: 13px;
+    color: var(--ink-2);
+    line-height: 1.5;
+    margin-bottom: 10px;
+  }
+  .ai-headline .byline {
+    display: flex;
+    gap: 14px;
+    flex-wrap: wrap;
+    font-size: 11.5px;
+    color: var(--ink-3);
+  }
+  .ai-headline .byline .v {
+    color: var(--ink);
+    font-family: var(--mono);
+    font-weight: 500;
+  }
+
+  /* Pipeline */
+  .pipeline {
+    padding: 18px 28px;
+    background: var(--surface-2);
+    border-bottom: 1px solid var(--border);
+  }
+  .pipeline-h {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 10px;
+  }
+  .pipeline-h h3 {
+    font-family: var(--display);
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--ink);
+    margin: 0;
+  }
+  .pipeline-h .meta {
+    font-size: 11px;
+    color: var(--ink-3);
+    font-family: var(--mono);
+  }
+  .pipeline-h .meta .v { color: var(--ink); font-weight: 500; }
+
+  .steps {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 6px;
+  }
+  .step {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 10px 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .step.done { border-color: var(--success-bd); background: var(--success-bg); }
+  .step.warn { border-color: var(--warn-bd); background: var(--warn-bg); }
+  .step .name {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--ink);
+  }
+  .step.done .name { color: var(--success); }
+  .step.warn .name { color: var(--warn); }
+  .step .detail {
+    font-size: 10.5px;
+    color: var(--ink-3);
+    font-family: var(--mono);
+  }
+  .step .detail b { color: var(--ink); font-weight: 500; }
+
+  /* Plate */
+  .plate {
+    padding: 18px 28px;
+    border-bottom: 1px solid var(--border);
+  }
+  .plate-h {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+  }
+  .plate-h .name {
+    font-family: var(--display);
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--ink);
+  }
+  .plate-h .controls {
+    display: inline-flex;
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 2px;
+  }
+  .plate-h .controls button {
+    appearance: none;
+    background: transparent;
+    border: none;
+    padding: 2px 9px;
+    font-size: 11.5px;
+    color: var(--ink-2);
+    cursor: pointer;
+    border-radius: 4px;
+    height: 22px;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .plate-h .controls button.is-on { background: var(--surface); color: var(--ink); box-shadow: 0 1px 2px rgba(0,0,0,0.06); }
+  .plate-h .controls button svg { width: 12px; height: 12px; }
+
+  .plate-stage {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px;
+    position: relative;
+    min-height: 320px;
+    background-image:
+      radial-gradient(circle at 1px 1px, rgba(0, 0, 0, 0.04) 1px, transparent 0);
+    background-size: 16px 16px;
+  }
+  .plate-stage svg {
+    width: 100%;
+    max-width: 760px;
+    margin: 0 auto;
+    display: block;
+  }
+
+  .actor-rect { fill: white; stroke: var(--ink-3); stroke-width: 1.2; }
+  .actor-rect.flow { fill: #EEF4FF; stroke: var(--type-flow); }
+  .actor-rect.seq { fill: #ECFEFF; stroke: var(--type-seq); }
+  .actor-rect.violet { fill: #F5F3FF; stroke: var(--type-state); }
+  .actor-rect.amber { fill: #FFFBEB; stroke: var(--type-gantt); }
+  .actor-text { font-family: var(--display); font-size: 12px; fill: var(--ink); font-weight: 500; }
+  .actor-text.sub { font-size: 9.5px; fill: var(--ink-3); font-weight: 400; }
+  .lifeline { stroke: var(--border-2); stroke-width: 1; stroke-dasharray: 3 3; }
+  .activation { fill: var(--ink-4); }
+  .activation.flow { fill: var(--type-flow); }
+  .activation.seq { fill: var(--type-seq); }
+  .activation.amber { fill: var(--type-gantt); }
+  .alt-block { fill: rgba(217, 119, 6, 0.04); stroke: var(--type-gantt); stroke-width: 1; stroke-dasharray: 3 3; }
+  .alt-block-tab { fill: var(--type-gantt); }
+  .alt-block-tab-text { font-family: var(--mono); font-size: 9px; fill: white; font-weight: 600; }
+  .msg { fill: none; stroke: var(--ink-2); stroke-width: 1.4; }
+  .msg.flow { stroke: var(--type-flow); }
+  .msg.seq { stroke: var(--type-seq); }
+  .msg.ret { stroke-dasharray: 4 3; stroke: var(--ink-3); }
+  .msg-label { font-family: var(--mono); font-size: 10px; fill: var(--ink-2); }
+  .msg-label.flow { fill: var(--type-flow); }
+  .msg-label.amber { fill: var(--type-gantt); font-style: italic; }
+
+  /* Alternatives */
+  .alts {
+    padding: 18px 28px;
+    border-bottom: 1px solid var(--border);
+  }
+  .alts-h {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 10px;
+  }
+  .alts-h h3 {
+    font-family: var(--display);
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--ink);
+    margin: 0;
+  }
+  .alts-h .meta { font-size: 11px; color: var(--ink-3); }
+
+  .alts-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+  }
+  .alt-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 12px;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .alt-card:hover { border-color: var(--border-2); }
+  .alt-card.is-on { border-color: var(--accent); background: var(--accent-bg-2); }
+  .alt-card .preview {
+    aspect-ratio: 4/3;
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: 5px;
+    display: grid;
+    place-items: center;
+    color: var(--ink-3);
+  }
+  .alt-card .preview svg { width: 80%; height: 80%; }
+  .alt-card .info .ttl { font-size: 13px; font-weight: 600; color: var(--ink); margin-bottom: 4px; }
+  .alt-card .info .desc { font-size: 11.5px; color: var(--ink-3); line-height: 1.4; }
+  .alt-card .info .pip {
+    display: block;
+    margin-top: 4px;
+    font-family: var(--mono);
+    font-size: 10.5px;
+    color: var(--ink-3);
+  }
+  .alt-card .info .pip .v { color: var(--ink); font-weight: 500; }
+
+  /* Refine bar */
+  .refine {
+    padding: 18px 28px;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface-2);
+  }
+  .refine-input {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 8px;
+  }
+  .refine-input .icon {
+    width: 28px; height: 28px;
+    border-radius: 6px;
+    background: rgba(124, 58, 237, 0.10);
+    color: #7C3AED;
+    display: grid;
+    place-items: center;
+    font-size: 14px;
+    font-weight: 700;
+  }
+  .refine-input input {
+    flex: 1;
+    border: none;
+    background: transparent;
+    outline: none;
+    font-size: 13.5px;
+    font-family: var(--body);
+    color: var(--ink);
+  }
+  .refine-input .send {
+    appearance: none;
+    background: var(--accent);
+    color: white;
+    border: none;
+    padding: 0 12px;
+    height: 28px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .refine-input .send .kbd {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: rgba(255, 255, 255, 0.7);
+  }
+
+  .refine-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    margin-top: 10px;
+  }
+  .chip {
+    appearance: none;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: 3px 10px;
+    font-size: 11.5px;
+    color: var(--ink-2);
+    cursor: pointer;
+  }
+  .chip:hover { background: var(--surface-2); color: var(--ink); }
+  .chip.violet { color: #7C3AED; border-color: rgba(124, 58, 237, 0.32); background: rgba(124, 58, 237, 0.06); }
+
+  /* Source panel */
+  .src-panel { padding: 18px 28px; border-bottom: 1px solid var(--border); }
+  .src-h {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+  }
+  .src-h h3 { font-family: var(--display); font-size: 12px; font-weight: 600; margin: 0; color: var(--ink); }
+  .src-h .tabs {
+    display: inline-flex;
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 2px;
+  }
+  .src-h .tabs button {
+    appearance: none;
+    background: transparent;
+    border: none;
+    padding: 2px 10px;
+    height: 22px;
+    border-radius: 4px;
+    font-size: 11.5px;
+    color: var(--ink-2);
+    cursor: pointer;
+  }
+  .src-h .tabs button.is-on { background: var(--surface); color: var(--ink); box-shadow: 0 1px 2px rgba(0,0,0,0.06); }
+
+  /* Handoff */
+  .handoff {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+    padding: 18px 28px 24px;
+  }
+  .handoff-btn {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 12px;
+    text-decoration: none;
+    color: var(--ink);
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    cursor: pointer;
+    position: relative;
+  }
+  .handoff-btn:hover { border-color: var(--accent-bd); text-decoration: none; }
+  .handoff-btn.primary { background: var(--accent); border-color: var(--accent); color: white; }
+  .handoff-btn .label {
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--ink-3);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+  .handoff-btn.primary .label { color: rgba(255, 255, 255, 0.7); }
+  .handoff-btn .name {
+    font-family: var(--display);
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--ink);
+  }
+  .handoff-btn.primary .name { color: white; }
+  .handoff-btn .desc {
+    font-size: 11.5px;
+    color: var(--ink-3);
+    line-height: 1.4;
+  }
+  .handoff-btn.primary .desc { color: rgba(255, 255, 255, 0.85); }
+  .handoff-btn .arrow {
+    position: absolute;
+    top: 12px; right: 12px;
+    color: var(--ink-3);
+    font-size: 14px;
+  }
+  .handoff-btn.primary .arrow { color: rgba(255, 255, 255, 0.7); }
+
+  /* Controls (right) */
+  .controls-pane {
+    overflow-y: auto;
+    flex: 1;
+    background: var(--surface);
+    padding: 14px 16px 16px;
+  }
+  .controls-block { margin-bottom: 18px; }
+  .controls-block .head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    margin-bottom: 8px;
+  }
+  .controls-block .head h3 {
+    font-family: var(--display);
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--ink);
+    margin: 0;
+  }
+  .controls-block .head .meta { font-size: 10.5px; color: var(--ink-3); font-family: var(--mono); }
+
+  .type-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 4px;
+  }
+  .type-btn {
+    appearance: none;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 8px 6px;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    color: var(--ink-2);
+  }
+  .type-btn:hover { background: var(--surface-2); color: var(--ink); }
+  .type-btn.is-on { border-color: var(--accent); background: var(--accent-bg); color: var(--accent); }
+  .type-btn .gl svg { width: 22px; height: 14px; }
+  .type-btn .nm { font-size: 10.5px; font-weight: 500; }
+
+  .opt-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 4px;
+  }
+  .opt-row .opt {
+    appearance: none;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 5px;
+    padding: 6px 4px;
+    font-size: 11px;
+    color: var(--ink-2);
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    text-align: center;
+  }
+  .opt-row .opt.is-on { border-color: var(--accent); background: var(--accent-bg); color: var(--accent); }
+  .opt-row .opt span:nth-child(2) {
+    font-size: 9.5px;
+    color: var(--ink-3);
+    font-weight: 400;
+  }
+  .opt-row .opt.is-on span:nth-child(2) { color: var(--accent); opacity: 0.7; }
+
+  .pill-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 3px;
+  }
+  .pill-row .p {
+    appearance: none;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: 3px 9px;
+    font-size: 11px;
+    color: var(--ink-2);
+    cursor: pointer;
+  }
+  .pill-row .p.is-on { background: var(--accent-bg); border-color: var(--accent); color: var(--accent); font-weight: 500; }
+
+  .privacy-note {
+    background: var(--warn-bg);
+    border: 1px solid var(--warn-bd);
+    border-radius: 6px;
+    padding: 8px 10px;
+    font-size: 11.5px;
+    color: var(--ink-2);
+    line-height: 1.4;
+    margin-top: 8px;
+  }
+  .privacy-note b { color: var(--ink); font-weight: 600; }
+
+  .privacy-row {
+    display: grid;
+    grid-template-columns: 16px 1fr;
+    gap: 8px;
+    align-items: start;
+    font-size: 11.5px;
+    color: var(--ink-2);
+    line-height: 1.4;
+    padding: 5px 0;
+  }
+  .privacy-row .ic {
+    width: 14px; height: 14px;
+    border-radius: 50%;
+    color: white;
+    font-size: 9px;
+    font-weight: 700;
+    display: grid;
+    place-items: center;
+    margin-top: 1px;
+  }
+  .privacy-row .ic.ok { background: var(--success); }
+  .privacy-row .ic.warn { background: var(--warn); }
+  .privacy-row b { color: var(--ink); font-weight: 600; }
+
+  .starter-list {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .starter-list button {
+    appearance: none;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 5px;
+    padding: 6px 10px;
+    font-size: 12px;
+    color: var(--ink);
+    cursor: pointer;
+    text-align: left;
+  }
+  .starter-list button:hover { background: var(--surface-2); }
+</style>
+</head>
+
+<body>
+
+<div class="mac-window reveal r1">
+
+  <div class="title-bar">
+    <div class="traffic">
+      <span class="light close"></span><span class="light min"></span><span class="light max"></span>
+    </div>
+    <div class="title-text">
+      <span class="doc">auth-flow.mmd</span>
+      <span class="sep">—</span>
+      <span class="meta">AI studio</span>
+    </div>
+    <div class="title-actions">
+      <span class="save-state"><span class="dot"></span>32 / 50 credits</span>
+      <span class="tb-divider"></span>
+      <button class="tb-btn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 6h16M4 12h16M4 18h7"/></svg>
+        Templates
+      </button>
+      <a href="share.html" class="tb-btn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="6" cy="12" r="3"/><circle cx="18" cy="6" r="3"/><circle cx="18" cy="18" r="3"/><line x1="9" y1="11" x2="15" y2="7"/><line x1="9" y1="13" x2="15" y2="17"/></svg>
+        Share
+      </a>
+      <button class="tb-btn primary">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polygon points="6 4 20 12 6 20" fill="currentColor"/></svg>
+        Re-render
+      </button>
+    </div>
+  </div>
+
+  <div class="app-body">
+
+    <aside class="sidebar">
+      <div class="sb-brand">
+        <span class="mark">M</span>
+        <span class="name">Mermaid</span>
+        <span class="ws">Eng</span>
+      </div>
+      <nav class="sb-body">
+        <div class="sb-section">Workspaces</div>
+        <a href="index.html" class="nav-pill">
+          <span class="glyph"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 12L12 4l9 8M5 10v10h14V10"/></svg></span>
+          Home
+        </a>
+        <a href="playground.html" class="nav-pill">
+          <span class="glyph"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg></span>
+          Playground
+        </a>
+        <a href="visual.html" class="nav-pill">
+          <span class="glyph"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M5 3l3 3M19 3l-3 3M5 21l3-3M19 21l-3-3"/><rect x="6" y="6" width="12" height="12" rx="1.5"/></svg></span>
+          Visual editor
+        </a>
+        <a href="ai.html" class="nav-pill is-on">
+          <span class="glyph"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l1.6 4.4L18 8l-4.4 1.6L12 14l-1.6-4.4L6 8l4.4-1.6z"/></svg></span>
+          AI studio
+        </a>
+        <a href="present.html" class="nav-pill">
+          <span class="glyph"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="4" width="18" height="13" rx="1.5"/><path d="M9 21h6M12 17v4"/></svg></span>
+          Presentations
+        </a>
+
+        <div class="sb-section">Workspace</div>
+        <a href="library.html" class="nav-pill">
+          <span class="glyph"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 4h6v16H4zM14 4h6v10h-6zM14 16h6v4h-6z"/></svg></span>
+          Library
+          <span class="badge">47</span>
+        </a>
+        <a href="activity.html" class="nav-pill">
+          <span class="glyph"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 12h4l3-9 4 18 3-9h4"/></svg></span>
+          Activity
+          <span class="badge">3</span>
+        </a>
+        <a href="settings.html" class="nav-pill">
+          <span class="glyph"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 11-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 11-4 0v-.09a1.65 1.65 0 00-1-1.51 1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 11-2.83-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 110-4h.09a1.65 1.65 0 001.51-1 1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 112.83-2.83l.06.06a1.65 1.65 0 001.82.33h0a1.65 1.65 0 001-1.51V3a2 2 0 114 0v.09a1.65 1.65 0 001 1.51h0a1.65 1.65 0 001.82-.33l.06-.06a2 2 0 112.83 2.83l-.06.06a1.65 1.65 0 00-.33 1.82v0a1.65 1.65 0 001.51 1H21a2 2 0 110 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg></span>
+          Settings
+        </a>
+      </nav>
+      <div class="sb-foot">
+        <div class="sb-account">
+          <span class="av">A</span>
+          <div class="who">
+            <span class="name">Alex Chen</span>
+            <span class="role">alex@engineering</span>
+          </div>
+          <span class="chev">▾</span>
+        </div>
+      </div>
+    </aside>
+
+    <div class="workarea">
+
+      <div class="context-bar">
+        <div class="crumb">
+          <a href="library.html">Library</a>
+          <span class="sep">›</span>
+          <span>Sessions</span>
+          <span class="sep">›</span>
+          <span class="cur">Auth flow · v3</span>
+        </div>
+      </div>
+
+      <div class="work-content">
+        <div class="ai-grid">
+
+          <!-- Chat -->
+          <aside class="ai-pane reveal r2">
+            <div class="pane-head">
+              <span class="ttl">Session</span>
+              <span class="meta">5 turns</span>
+            </div>
+            <div class="chat">
+              <div class="turn-day">Today · 14:22</div>
+
+              <div class="turn user">
+                <span class="av">A</span>
+                <div>
+                  <div class="who">You<span class="ts">14:22</span></div>
+                  <div class="msg">Sketch the auth flow for our SDK — login, MFA, refresh.</div>
+                </div>
+              </div>
+
+              <div class="turn">
+                <span class="av ai"></span>
+                <div>
+                  <div class="who">Studio<span class="ts">14:22 · 1.4s</span></div>
+                  <div class="msg">Picked sequenceDiagram — temporal interaction with messages between actors. Drafted four lifelines.</div>
+                  <div class="turn-thumb">
+                    <div class="ic"><svg viewBox="0 0 22 16" fill="none" stroke="currentColor" stroke-width="1"><line x1="3" y1="1" x2="3" y2="15"/><line x1="9" y1="1" x2="9" y2="15"/><line x1="15" y1="1" x2="15" y2="15"/><line x1="21" y1="1" x2="21" y2="15"/><path d="M3 5 H9 M9 8 H15 M15 11 H21 M21 14 H3"/></svg></div>
+                    <div class="info">
+                      <div class="t">Auth flow · v1</div>
+                      <div class="s">4 actors · 7 messages</div>
+                    </div>
+                  </div>
+                  <div class="meta-pills">
+                    <span class="meta-pill ai">✦ generated</span>
+                    <span class="meta-pill live">✓ valid</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="turn user">
+                <span class="av">A</span>
+                <div>
+                  <div class="who">You<span class="ts">14:30</span></div>
+                  <div class="msg">+ Add error handling, also show MFA path.</div>
+                </div>
+              </div>
+
+              <div class="turn">
+                <span class="av ai"></span>
+                <div>
+                  <div class="who">Studio<span class="ts">14:30 · 2.2s</span></div>
+                  <div class="msg">Wrapped MFA in an alt block; added 401 retry from Auth API back to Client SDK.</div>
+                  <div class="alts-mini">
+                    <button class="alt is-on"><svg viewBox="0 0 22 16" fill="none" stroke="currentColor" stroke-width="0.9"><line x1="3" y1="1" x2="3" y2="15"/><line x1="9" y1="1" x2="9" y2="15"/><line x1="15" y1="1" x2="15" y2="15"/><line x1="21" y1="1" x2="21" y2="15"/><path d="M3 5 H9 M9 8 H15 M15 11 H21"/></svg></button>
+                    <button class="alt"><svg viewBox="0 0 22 16" fill="none" stroke="currentColor" stroke-width="0.9"><rect x="1" y="2" width="6" height="4" rx="1"/><rect x="15" y="2" width="6" height="4" rx="1"/><rect x="8" y="11" width="6" height="4" rx="1"/><path d="M7 4 H15 M11 6 V11"/></svg></button>
+                    <button class="alt"><svg viewBox="0 0 22 16" fill="none" stroke="currentColor" stroke-width="0.9"><circle cx="3" cy="8" r="2"/><rect x="8" y="5" width="6" height="6" rx="1"/><circle cx="19" cy="8" r="2"/><path d="M5 8 H8 M14 8 H17"/></svg></button>
+                  </div>
+                  <div class="meta-pills">
+                    <span class="meta-pill ai">✦ refined</span>
+                    <span class="meta-pill warn">↺ 1 fix</span>
+                    <span class="meta-pill live">✓ valid</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="turn user">
+                <span class="av">A</span>
+                <div>
+                  <div class="who">You<span class="ts">just now</span></div>
+                  <div class="msg">Make MFA optional. Show the retry path when token expires.</div>
+                  <div class="pending">
+                    <span>Drafting</span>
+                    <span class="dotz"><span></span><span></span><span></span></span>
+                    <span>est. 1.6s</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </aside>
+
+          <!-- Preview -->
+          <section class="ai-pane bg reveal r3">
+            <div class="preview-area">
+
+              <header class="ai-headline">
+                <div class="kicker">sequenceDiagram · v3 · refined ×2</div>
+                <h1>Auth flow for the <em>Mermaid·Swift</em> SDK</h1>
+                <div class="sub">Drafted from a one-line prompt and refined twice. The Studio chose a sequence diagram — temporal interactions between actors. Conversion into a flowchart or state diagram is one click away.</div>
+                <div class="byline">
+                  <span>Generated <span class="v">12 min ago</span></span>
+                  <span>Provider <span class="v">claude-sonnet-4-6</span></span>
+                  <span>Tokens <span class="v">1 224 in / 412 out</span></span>
+                </div>
+              </header>
+
+              <section class="pipeline">
+                <div class="pipeline-h">
+                  <h3>Generation lifecycle</h3>
+                  <div class="meta">Total <span class="v">2.21s</span> · Status <span class="v">live</span></div>
+                </div>
+                <div class="steps">
+                  <div class="step done"><span class="name">Prompt</span><span class="detail"><b>32 chars</b> · 2 follow-ups</span></div>
+                  <div class="step done"><span class="name">Generate</span><span class="detail"><b>412 tokens</b> · 1.40s</span></div>
+                  <div class="step done"><span class="name">Validate</span><span class="detail"><b>AST OK</b> · 4 actors</span></div>
+                  <div class="step warn"><span class="name">Repair</span><span class="detail"><b>1 fix</b> · L 12</span></div>
+                  <div class="step done"><span class="name">Render</span><span class="detail"><b>218ms</b> · 760×380</span></div>
+                </div>
+              </section>
+
+              <section class="plate">
+                <div class="plate-h">
+                  <span class="name">Auth flow · v3</span>
+                  <div class="controls">
+                    <button title="Fit"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg>Fit</button>
+                    <button class="is-on" title="Grid"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M3 9h18M3 15h18M9 3v18M15 3v18"/></svg>Grid</button>
+                    <button>100%</button>
+                  </div>
+                </div>
+                <div class="plate-stage">
+                  <svg viewBox="0 0 760 400" xmlns="http://www.w3.org/2000/svg">
+                    <defs>
+                      <marker id="arr-ink" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="9" markerHeight="9" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#424245"/></marker>
+                      <marker id="arr-flow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="9" markerHeight="9" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#2563EB"/></marker>
+                      <marker id="arr-seq" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="9" markerHeight="9" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#0891B2"/></marker>
+                      <marker id="arr-mid" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="9" markerHeight="9" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#86868B"/></marker>
+                    </defs>
+
+                    <g transform="translate(40,16)">
+                      <rect class="actor-rect" x="0" y="0" width="120" height="40" rx="6"/>
+                      <text class="actor-text" x="60" y="20" text-anchor="middle">User</text>
+                      <text class="actor-text sub" x="60" y="34" text-anchor="middle">human</text>
+                    </g>
+                    <g transform="translate(220,16)">
+                      <rect class="actor-rect flow" x="0" y="0" width="120" height="40" rx="6"/>
+                      <text class="actor-text" x="60" y="20" text-anchor="middle">Client SDK</text>
+                      <text class="actor-text sub" x="60" y="34" text-anchor="middle">swift</text>
+                    </g>
+                    <g transform="translate(400,16)">
+                      <rect class="actor-rect seq" x="0" y="0" width="120" height="40" rx="6"/>
+                      <text class="actor-text" x="60" y="20" text-anchor="middle">Auth API</text>
+                      <text class="actor-text sub" x="60" y="34" text-anchor="middle">/auth/*</text>
+                    </g>
+                    <g transform="translate(580,16)">
+                      <rect class="actor-rect amber" x="0" y="0" width="120" height="40" rx="6"/>
+                      <text class="actor-text" x="60" y="20" text-anchor="middle">Token Svc</text>
+                      <text class="actor-text sub" x="60" y="34" text-anchor="middle">vault</text>
+                    </g>
+
+                    <line class="lifeline" x1="100" y1="56" x2="100" y2="386"/>
+                    <line class="lifeline" x1="280" y1="56" x2="280" y2="386"/>
+                    <line class="lifeline" x1="460" y1="56" x2="460" y2="386"/>
+                    <line class="lifeline" x1="640" y1="56" x2="640" y2="386"/>
+
+                    <rect class="activation flow" x="275" y="80" width="10" height="160"/>
+                    <rect class="activation seq" x="455" y="100" width="10" height="120"/>
+                    <rect class="activation amber" x="635" y="118" width="10" height="50"/>
+                    <rect class="activation flow" x="275" y="280" width="10" height="80"/>
+
+                    <rect class="alt-block" x="80" y="240" width="450" height="140" rx="3"/>
+                    <rect class="alt-block-tab" x="80" y="240" width="60" height="14"/>
+                    <text class="alt-block-tab-text" x="89" y="251">ALT</text>
+                    <text class="msg-label amber" x="148" y="251">if MFA required (optional)</text>
+
+                    <path class="msg" d="M100 86 L 280 86" marker-end="url(#arr-ink)"/>
+                    <text class="msg-label" x="106" y="80">login(email, password)</text>
+
+                    <path class="msg flow" d="M280 106 L 460 106" marker-end="url(#arr-flow)"/>
+                    <text class="msg-label flow" x="288" y="100">POST /auth/sessions</text>
+
+                    <path class="msg seq" d="M460 124 L 640 124" marker-end="url(#arr-seq)"/>
+                    <text class="msg-label" x="466" y="118" fill="#0891B2">mint(access, refresh)</text>
+
+                    <path class="msg ret" d="M640 162 L 460 162" marker-end="url(#arr-mid)"/>
+                    <text class="msg-label" x="466" y="156">tokens · ttl 15m</text>
+
+                    <path class="msg ret" d="M460 192 L 280 192" marker-end="url(#arr-mid)"/>
+                    <text class="msg-label" x="288" y="186">200 OK · sessionId</text>
+
+                    <path class="msg" d="M280 274 L 100 274" marker-end="url(#arr-ink)"/>
+                    <text class="msg-label" x="108" y="268">show MFA prompt</text>
+
+                    <path class="msg" d="M100 304 L 280 304" marker-end="url(#arr-ink)"/>
+                    <text class="msg-label" x="108" y="298">otp(123 456)</text>
+
+                    <path class="msg flow" d="M280 326 L 460 326" marker-end="url(#arr-flow)"/>
+                    <text class="msg-label flow" x="288" y="320">POST /auth/mfa/verify</text>
+
+                    <path class="msg ret" d="M460 354 L 280 354" marker-end="url(#arr-mid)"/>
+                    <text class="msg-label" x="288" y="348">verified · refreshed tokens</text>
+                  </svg>
+                </div>
+              </section>
+
+              <section class="alts">
+                <div class="alts-h">
+                  <h3>Alternatives</h3>
+                  <span class="meta">tap to swap</span>
+                </div>
+                <div class="alts-grid">
+                  <div class="alt-card is-on">
+                    <div class="preview">
+                      <svg viewBox="0 0 80 60" fill="none" stroke="currentColor" stroke-width="1">
+                        <line x1="10" y1="6" x2="10" y2="56"/><line x1="30" y1="6" x2="30" y2="56"/>
+                        <line x1="50" y1="6" x2="50" y2="56"/><line x1="70" y1="6" x2="70" y2="56"/>
+                        <rect x="6" y="2" width="8" height="6" fill="#EEF4FF" stroke="#2563EB"/>
+                        <rect x="26" y="2" width="8" height="6" fill="#ECFEFF" stroke="#0891B2"/>
+                        <rect x="46" y="2" width="8" height="6"/>
+                        <rect x="66" y="2" width="8" height="6" fill="#FFFBEB" stroke="#D97706"/>
+                        <path d="M10 16H30 M30 22H50 M50 28H70 M70 36H50 M50 42H30 M30 50H10"/>
+                      </svg>
+                    </div>
+                    <div class="info">
+                      <div class="ttl">Sequence</div>
+                      <div class="desc">Time-ordered with returns &amp; an alt block.</div>
+                      <div class="pip"><span class="v">9</span> msgs · <span class="v">4</span> actors</div>
+                    </div>
+                  </div>
+
+                  <div class="alt-card">
+                    <div class="preview">
+                      <svg viewBox="0 0 80 60" fill="none" stroke="currentColor" stroke-width="1">
+                        <rect x="6" y="6" width="20" height="10" rx="2"/>
+                        <polygon points="40 5 56 14 40 23 24 14"/>
+                        <rect x="6" y="40" width="20" height="10" rx="2"/>
+                        <rect x="50" y="40" width="22" height="10" rx="2"/>
+                        <path d="M26 11 H 24 M 56 14 V 40 M 40 23 V 40 M 16 16 V 40 M 26 45 H 50"/>
+                      </svg>
+                    </div>
+                    <div class="info">
+                      <div class="ttl">Flowchart</div>
+                      <div class="desc">Loses timing; gains decision branches.</div>
+                      <div class="pip"><span class="v">8</span> nodes · <span class="v">10</span> edges</div>
+                    </div>
+                  </div>
+
+                  <div class="alt-card">
+                    <div class="preview">
+                      <svg viewBox="0 0 80 60" fill="none" stroke="currentColor" stroke-width="1">
+                        <circle cx="10" cy="30" r="3"/>
+                        <rect x="20" y="22" width="14" height="16" rx="2"/>
+                        <rect x="40" y="22" width="14" height="16" rx="2"/>
+                        <circle cx="70" cy="30" r="3"/>
+                        <path d="M13 30 H 20 M 34 30 H 40 M 54 30 H 67"/>
+                        <path d="M27 38 V 46 H 47 V 38" stroke-dasharray="2 2"/>
+                      </svg>
+                    </div>
+                    <div class="info">
+                      <div class="ttl">State</div>
+                      <div class="desc">Loses actors; gains lifecycle clarity.</div>
+                      <div class="pip"><span class="v">5</span> states · <span class="v">7</span> trans</div>
+                    </div>
+                  </div>
+                </div>
+              </section>
+
+              <section class="refine">
+                <div class="refine-input">
+                  <span class="icon">✦</span>
+                  <input type="text" value="Make MFA optional. Show the retry path when token expires." />
+                  <button class="send">Send <span class="kbd">⌘↩</span></button>
+                </div>
+                <div class="refine-chips">
+                  <button class="chip">+ Add error handling</button>
+                  <button class="chip">− Simplify</button>
+                  <button class="chip">↻ Reorganize</button>
+                  <button class="chip">⇄ Convert to flowchart</button>
+                  <button class="chip">⌘ Improve labels</button>
+                  <button class="chip violet">✦ Make it executive-friendly</button>
+                  <button class="chip">⊕ Add timing</button>
+                </div>
+              </section>
+
+              <section class="src-panel">
+                <div class="src-h">
+                  <h3>Source</h3>
+                  <div class="tabs">
+                    <button class="is-on">Mermaid</button>
+                    <button>Diff vs v2</button>
+                    <button>Explanation</button>
+                  </div>
+                </div>
+                <div class="code-host">
+                  <div class="gutter">
+                    <span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span>
+                    <span>7</span><span>8</span><span>9</span><span>10</span><span>11</span>
+                    <span class="add">12</span><span>13</span>
+                  </div>
+                  <div class="body">
+<span class="line"><span class="com">%% Auth flow — generated 2026-05-10 14:30</span></span>
+<span class="line"><span class="com">%% claude-sonnet-4-6 · refined ×2</span></span>
+<span class="line"><span class="kw">sequenceDiagram</span></span>
+<span class="line">    <span class="kw">participant</span> <span class="id">User</span></span>
+<span class="line">    <span class="kw">participant</span> <span class="id">Client</span> <span class="kw">as</span> <span class="lab">Client SDK</span></span>
+<span class="line">    <span class="kw">participant</span> <span class="id">Auth</span> <span class="kw">as</span> <span class="lab">Auth API</span></span>
+<span class="line">    <span class="kw">participant</span> <span class="id">Token</span> <span class="kw">as</span> <span class="lab">Token Svc</span></span>
+<span class="line"></span>
+<span class="line">    <span class="id">User</span><span class="arr">-&gt;&gt;</span><span class="id">Client</span>: <span class="str">login(email, password)</span></span>
+<span class="line">    <span class="id">Client</span><span class="arr">-&gt;&gt;</span><span class="id">Auth</span>: <span class="str">POST /auth/sessions</span></span>
+<span class="line">    <span class="id">Auth</span><span class="arr">-&gt;&gt;</span><span class="id">Token</span>: <span class="str">mint(access, refresh)</span></span>
+<span class="line add">    <span class="id">Token</span><span class="arr">--&gt;&gt;</span><span class="id">Auth</span>: <span class="str">tokens · ttl 15m</span></span>
+<span class="line">    <span class="kw">alt</span> <span class="lab">if MFA required (optional)</span></span>
+                  </div>
+                </div>
+              </section>
+
+              <section class="handoff">
+                <a href="visual.html" class="handoff-btn primary">
+                  <span class="label">Editor</span>
+                  <span class="name">Open in visual</span>
+                  <span class="desc">Code-only fallback for unsupported types.</span>
+                  <span class="arrow">→</span>
+                </a>
+                <a href="playground.html" class="handoff-btn">
+                  <span class="label">Editor</span>
+                  <span class="name">Open in code</span>
+                  <span class="desc">Native syntax-highlighted editor.</span>
+                  <span class="arrow">→</span>
+                </a>
+                <a href="present.html" class="handoff-btn">
+                  <span class="label">Insert</span>
+                  <span class="name">Add to deck</span>
+                  <span class="desc">Insert into current presentation.</span>
+                  <span class="arrow">→</span>
+                </a>
+                <a href="index.html" class="handoff-btn">
+                  <span class="label">Discard</span>
+                  <span class="name">Discard draft</span>
+                  <span class="desc">Existing diagram untouched.</span>
+                  <span class="arrow">×</span>
+                </a>
+              </section>
+
+            </div>
+          </section>
+
+          <!-- Controls -->
+          <aside class="ai-pane reveal r4" style="border-right: none;">
+            <div class="pane-head">
+              <span class="ttl">Brief</span>
+              <span class="meta">controls</span>
+            </div>
+            <div class="controls-pane">
+
+              <div class="controls-block">
+                <div class="head">
+                  <h3>Diagram type</h3>
+                </div>
+                <div class="type-grid">
+                  <button class="type-btn is-on">
+                    <span class="gl"><svg viewBox="0 0 24 16" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M3 8 Q 6 2 9 8 T 15 8 T 21 8" stroke-dasharray="3 2"/></svg></span>
+                    <span class="nm">Auto ✦</span>
+                  </button>
+                  <button class="type-btn">
+                    <span class="gl"><svg viewBox="0 0 24 16" fill="none" stroke="currentColor" stroke-width="1.2"><rect x="2" y="2" width="6" height="4"/><rect x="16" y="2" width="6" height="4"/><rect x="9" y="10" width="6" height="4"/><path d="M8 4 H 16 M 12 6 V 10"/></svg></span>
+                    <span class="nm">Flow</span>
+                  </button>
+                  <button class="type-btn">
+                    <span class="gl"><svg viewBox="0 0 24 16" fill="none" stroke="currentColor" stroke-width="1.1"><line x1="3" y1="2" x2="3" y2="14"/><line x1="11" y1="2" x2="11" y2="14"/><line x1="19" y1="2" x2="19" y2="14"/><path d="M3 6 H11 M11 9 H19 M19 12 H3"/></svg></span>
+                    <span class="nm">Sequence</span>
+                  </button>
+                  <button class="type-btn">
+                    <span class="gl"><svg viewBox="0 0 24 16" fill="none" stroke="currentColor" stroke-width="1.2"><circle cx="3" cy="8" r="2"/><rect x="8" y="5" width="6" height="6" rx="1"/><circle cx="21" cy="8" r="2"/><path d="M5 8 H 8 M 14 8 H 19"/></svg></span>
+                    <span class="nm">State</span>
+                  </button>
+                  <button class="type-btn">
+                    <span class="gl"><svg viewBox="0 0 24 16" fill="none" stroke="currentColor" stroke-width="1.2"><rect x="2" y="2" width="8" height="12"/><rect x="14" y="2" width="8" height="12"/><line x1="2" y1="6" x2="10" y2="6"/><line x1="14" y1="6" x2="22" y2="6"/></svg></span>
+                    <span class="nm">Class</span>
+                  </button>
+                  <button class="type-btn">
+                    <span class="gl"><svg viewBox="0 0 24 16" fill="none" stroke="currentColor" stroke-width="1.2"><polygon points="3 8 7 4 11 8 7 12"/><polygon points="13 8 17 4 21 8 17 12"/><line x1="11" y1="8" x2="13" y2="8"/></svg></span>
+                    <span class="nm">ER</span>
+                  </button>
+                  <button class="type-btn">
+                    <span class="gl"><svg viewBox="0 0 24 16" fill="none" stroke="currentColor" stroke-width="1.2"><circle cx="12" cy="8" r="3"/><path d="M12 5 V 1 M12 11 V 15 M9 8 H 1 M15 8 H 23"/></svg></span>
+                    <span class="nm">Mind</span>
+                  </button>
+                  <button class="type-btn">
+                    <span class="gl"><svg viewBox="0 0 24 16" fill="none" stroke="currentColor" stroke-width="1.2"><rect x="1" y="3" width="10" height="2"/><rect x="6" y="7" width="11" height="2"/><rect x="9" y="11" width="13" height="2"/></svg></span>
+                    <span class="nm">Gantt</span>
+                  </button>
+                  <button class="type-btn">
+                    <span class="gl"><svg viewBox="0 0 24 16" fill="none" stroke="currentColor" stroke-width="1.2"><path d="M1 14 Q 7 4 12 9 T 23 6"/><circle cx="1" cy="14" r="1.4" fill="currentColor"/><circle cx="23" cy="6" r="1.4" fill="currentColor"/></svg></span>
+                    <span class="nm">Journey</span>
+                  </button>
+                </div>
+              </div>
+
+              <div class="controls-block">
+                <div class="head">
+                  <h3>Detail level</h3>
+                </div>
+                <div class="opt-row">
+                  <button class="opt"><span>Hi-level</span><span>overview</span></button>
+                  <button class="opt is-on"><span>Standard</span><span>balanced</span></button>
+                  <button class="opt"><span>Detailed</span><span>verbose</span></button>
+                </div>
+              </div>
+
+              <div class="controls-block">
+                <div class="head">
+                  <h3>Audience</h3>
+                </div>
+                <div class="pill-row">
+                  <button class="p">Exec</button>
+                  <button class="p is-on">Engineering</button>
+                  <button class="p">Product</button>
+                  <button class="p">Support</button>
+                  <button class="p">Customer</button>
+                </div>
+              </div>
+
+              <div class="controls-block">
+                <div class="head">
+                  <h3>Privacy</h3>
+                </div>
+                <div class="privacy-row">
+                  <span class="ic ok">✓</span>
+                  <span>Prompts go to your <b>configured AI provider</b>. Local-only mode is in <a>Workspace policy</a>.</span>
+                </div>
+                <div class="privacy-row">
+                  <span class="ic ok">✓</span>
+                  <span><b>No-train</b>: prompts will not be used for training (org plan).</span>
+                </div>
+                <div class="privacy-row">
+                  <span class="ic warn">!</span>
+                  <span>Cloud features <b>disabled</b> for sensitive workspaces tagged <a>strict</a>.</span>
+                </div>
+                <div class="privacy-note">
+                  <b>Heads up.</b> Don't paste secrets — API keys, tokens, or PII. Likely secrets are <b>redacted</b> before submission.
+                </div>
+              </div>
+
+              <div class="controls-block">
+                <div class="head">
+                  <h3>Starters</h3>
+                </div>
+                <div class="starter-list">
+                  <button>Architecture review</button>
+                  <button>Database modeling</button>
+                  <button>Process mapping</button>
+                  <button>Roadmap</button>
+                  <button>Onboarding</button>
+                  <button>Troubleshooting</button>
+                </div>
+              </div>
+
+            </div>
+          </aside>
+
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  document.querySelectorAll('.type-btn').forEach(b => {
+    b.addEventListener('click', () => {
+      document.querySelectorAll('.type-btn').forEach(x => x.classList.remove('is-on'));
+      b.classList.add('is-on');
+    });
+  });
+  document.querySelectorAll('.opt-row .opt').forEach(b => {
+    b.addEventListener('click', () => {
+      document.querySelectorAll('.opt-row .opt').forEach(x => x.classList.remove('is-on'));
+      b.classList.add('is-on');
+    });
+  });
+  document.querySelectorAll('.pill-row .p').forEach(b => {
+    b.addEventListener('click', () => {
+      document.querySelectorAll('.pill-row .p').forEach(x => x.classList.remove('is-on'));
+      b.classList.add('is-on');
+    });
+  });
+  document.querySelectorAll('.alt-card').forEach(b => {
+    b.addEventListener('click', () => {
+      document.querySelectorAll('.alt-card').forEach(x => x.classList.remove('is-on'));
+      b.classList.add('is-on');
+    });
+  });
+  document.querySelectorAll('.src-h .tabs button').forEach(b => {
+    b.addEventListener('click', () => {
+      document.querySelectorAll('.src-h .tabs button').forEach(x => x.classList.remove('is-on'));
+      b.classList.add('is-on');
+    });
+  });
+  document.querySelectorAll('.alts-mini .alt').forEach(b => {
+    b.addEventListener('click', () => {
+      document.querySelectorAll('.alts-mini .alt').forEach(x => x.classList.remove('is-on'));
+      b.classList.add('is-on');
+    });
+  });
+</script>
+
+</body>
+</html>
