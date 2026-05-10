@@ -413,8 +413,8 @@ button { font-family: inherit; }
 /* ===== Workarea ======================================================= */
 
 .workarea {
-  display: grid;
-  grid-template-rows: 1fr;
+  display: flex;
+  flex-direction: column;
   overflow: hidden;
   min-height: 0;
   background: var(--bg);
@@ -424,6 +424,7 @@ button { font-family: inherit; }
   display: grid;
   overflow: hidden;
   min-height: 0;
+  flex: 1;
 }
 
 /* Optional thin context bar for pages that need a breadcrumb */
