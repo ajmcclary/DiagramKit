@@ -84,50 +84,15 @@ public class MermaidLayer: CALayer {
         guard let prepared = preparedDiagram else { return nil }
         let diagBounds = prepared.bounds
         guard diagBounds.width > 0, diagBounds.height > 0 else { return nil }
-
-        #if targetEnvironment(macCatalyst) || canImport(UIKit)
-        let size = CGSize(width: diagBounds.width * scale, height: diagBounds.height * scale)
-        let format = UIGraphicsImageRendererFormat()
-        format.scale = 1.0
-
-        let uiRenderer = UIGraphicsImageRenderer(size: size, format: format)
-        return uiRenderer.image { rendererContext in
-            let ctx = rendererContext.cgContext
-            if !theme.transparent {
-                ctx.setFillColor(theme.background.cgColor)
-                ctx.fill(CGRect(origin: .zero, size: size))
-            }
-            ctx.scaleBy(x: scale, y: scale)
+        let size = CGSize(width: diagBounds.width, height: diagBounds.height)
+        return MermaidBitmapRenderer.render(
+            size: size,
+            scale: scale,
+            theme: theme
+        ) { ctx in
             ctx.translateBy(x: -diagBounds.minX, y: -diagBounds.minY)
             prepared.render(in: ctx, bounds: diagBounds)
         }
-        #elseif canImport(AppKit)
-        let size = NSSize(width: diagBounds.width * scale, height: diagBounds.height * scale)
-        let image = NSImage(size: size)
-        image.lockFocus()
-
-        guard let ctx = NSGraphicsContext.current?.cgContext else {
-            image.unlockFocus()
-            return nil
-        }
-
-        if !theme.transparent {
-            ctx.setFillColor(theme.background.cgColor)
-            ctx.fill(CGRect(origin: .zero, size: size))
-        }
-
-        // Flip for AppKit (lockFocus context has y=0 at bottom)
-        ctx.translateBy(x: 0, y: size.height)
-        ctx.scaleBy(x: 1, y: -1)
-
-        ctx.scaleBy(x: scale, y: scale)
-        ctx.translateBy(x: -diagBounds.minX, y: -diagBounds.minY)
-
-        prepared.render(in: ctx, bounds: diagBounds)
-
-        image.unlockFocus()
-        return image
-        #endif
     }
 
     // MARK: - Private Methods

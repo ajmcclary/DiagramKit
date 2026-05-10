@@ -148,55 +148,16 @@ public final class MermaidImageRenderer {
 
     // MARK: - Platform image rendering
 
-    /// Centralized bitmap/image creation. Accepts a draw closure that receives
-    /// a y-down `CGContext` normalized to diagram space. Handles
-    /// UIKit/AppKit context setup, background fill, and AppKit y-axis flip.
+    /// Bitmap creation now routes through the shared
+    /// `MermaidBitmapRenderer` so the UIKit/AppKit setup can't drift
+    /// between `MermaidImageRenderer` and `MermaidLayer`.
     @MainActor
     private func renderBitmap(
         size: CGSize,
         scale: CGFloat,
         draw: (CGContext) -> Void
     ) -> BMImage? {
-        #if targetEnvironment(macCatalyst) || canImport(UIKit)
-        let format = UIGraphicsImageRendererFormat()
-        format.scale = scale
-        let uiRenderer = UIGraphicsImageRenderer(size: size, format: format)
-        return uiRenderer.image { rendererContext in
-            let ctx = rendererContext.cgContext
-            if !theme.transparent {
-                ctx.setFillColor(theme.background.cgColor)
-                ctx.fill(CGRect(origin: .zero, size: size))
-            }
-            draw(ctx)
-        }
-        #elseif canImport(AppKit)
-        let pixelWidth = Int(size.width * scale)
-        let pixelHeight = Int(size.height * scale)
-        guard pixelWidth > 0, pixelHeight > 0,
-              let ctx = CGContext(
-                  data: nil, width: pixelWidth, height: pixelHeight,
-                  bitsPerComponent: 8, bytesPerRow: 0,
-                  space: CGColorSpaceCreateDeviceRGB(),
-                  bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue | CGBitmapInfo.byteOrder32Big.rawValue
-              ) else { return nil }
-
-        if !theme.transparent {
-            ctx.setFillColor(theme.background.cgColor)
-            ctx.fill(CGRect(origin: .zero, size: CGSize(width: pixelWidth, height: pixelHeight)))
-        }
-
-        // Raw AppKit CGContext bitmaps are y-up (origin bottom-left). Renderer
-        // code assumes a y-down outer context — the same convention
-        // UIGraphicsImageRenderer applies on UIKit/Catalyst.
-        ctx.translateBy(x: 0, y: CGFloat(pixelHeight))
-        ctx.scaleBy(x: 1, y: -1)
-        ctx.scaleBy(x: scale, y: scale)
-
-        draw(ctx)
-
-        guard let cgImage = ctx.makeImage() else { return nil }
-        return NSImage(cgImage: cgImage, size: size)
-        #endif
+        MermaidBitmapRenderer.render(size: size, scale: scale, theme: theme, draw: draw)
     }
 
     @MainActor
