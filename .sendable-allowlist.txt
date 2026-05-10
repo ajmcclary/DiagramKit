@@ -1,0 +1,23 @@
+# Sendable allowlist — categories: red (must resolve immediately) /
+#                                   yellow (resolve before sunset).
+# Format: file:line:category:sunset (sunset YYYY-MM-DD for yellow).
+#
+# All entries below were grandfathered when Stage 3 landed (mermaid-swift
+# 2026-05-10). Resolve to green (with a Concurrency Contract banner in the
+# first 50 lines of the file or within 10 lines of the annotation) before
+# the sunset, or refactor to proper Sendable.
+
+Sources/DiagramKitModel/ArchitectureIconRegistry.swift:28:yellow:2027-06-30
+Sources/DiagramKitModel/Theme.swift:14:yellow:2027-06-30
+Sources/DiagramKitModel/src_ascii_converter.swift:59:yellow:2027-06-30
+Sources/DiagramKitModel/src_ascii_converter.swift:90:yellow:2027-06-30
+Sources/DiagramKitModel/src_ascii_converter.swift:125:yellow:2027-06-30
+Sources/DiagramKitModel/src_ascii_converter.swift:171:yellow:2027-06-30
+Sources/DiagramKitModel/src_ascii_converter.swift:243:yellow:2027-06-30
+Sources/DiagramKitModel/src_block_layout.swift:4:yellow:2027-06-30
+Sources/DiagramKitModel/src_block_types.swift:364:yellow:2027-06-30
+Sources/DiagramKitModel/src_sankey_renderer.swift:4:yellow:2027-06-30
+Sources/DiagramKitModel/src_sankey_renderer.swift:22:yellow:2027-06-30
+Sources/DiagramKitModel/src_treemap_parser.swift:3:yellow:2027-06-30
+Sources/DiagramKitModel/src_treeview_parser.swift:4:yellow:2027-06-30
+Sources/DiagramKitModel/src_types.swift:302:yellow:2027-06-30
