@@ -79,35 +79,14 @@ public struct RenderConfig: Sendable {
     public var edgeLabelCornerRadius: CGFloat = 2
     public var edgeLabelBorderWidth: CGFloat = 1.0
 
-    // MARK: - Sequence Diagram Constants
+    // MARK: - Per-Diagram Constants
 
-    public var sequenceLoopH: CGFloat = 20
-    public var sequenceTabHeight: CGFloat = 18
-    public var sequenceFoldSize: CGFloat = 6
-
-    // MARK: - Class Diagram Constants
-
-    public var classPadding: CGFloat = 40
-    public var classBoxPadX: CGFloat = 8
-    public var classHeaderBaseHeight: CGFloat = 32
-    public var classAnnotationHeight: CGFloat = 16
-    public var classMemberRowHeight: CGFloat = 20
-    public var classSectionPadY: CGFloat = 8
-    public var classEmptySectionHeight: CGFloat = 8
-    public var classMinWidth: CGFloat = 120
-    public var classMemberFontSize: CGFloat = 11
-    public var classMemberFontWeight: Int = 400
-    public var classNodeSpacing: CGFloat = 40
-    public var classLayerSpacing: CGFloat = 60
-
-    // MARK: - ER Diagram Constants
-
-    public var erPadding: CGFloat = 40
-    public var erBoxPadX: CGFloat = 14
-    public var erHeaderHeight: CGFloat = 34
-    public var erRowHeight: CGFloat = 22
-    public var erMinWidth: CGFloat = 140
-    public var erAttrFontSize: CGFloat = 11
+    // Sequence / Class / ER constants live in `RenderConfig+Sequence.swift`,
+    // `RenderConfig+Class.swift`, `RenderConfig+ER.swift` so this file
+    // stays focused on cross-cutting layout, font, and shape geometry.
+    // The eventual A5 split (audit roadmap #7) is to lift each family
+    // into a standalone config struct; the per-family extension files
+    // are the seam.
 
     // MARK: - Font Resolution
 
