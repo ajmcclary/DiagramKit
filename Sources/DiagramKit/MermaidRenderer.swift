@@ -122,19 +122,19 @@ public struct MermaidRenderer {
     }
     #endif
 
-    /// Executes `work` on a fresh `Thread` with an 8 MB stack.
-    ///
-    /// Layout occasionally exceeds the cooperative thread pool's ~512 KB stack
-    /// budget (this was empirically observed during the early port of
-    /// flowchart layout, which recurses through nested subgraphs). A reusable
-    /// worker pool was attempted in commit `ff2622b` and reverted shortly
-    /// after — the per-call thread cost is on the order of microseconds and at
-    /// the steady-state rate this library is used (well under 100 renders/min)
-    /// the simpler "spawn-per-call" model is the right trade-off. Revisit only
-    /// if profiling shows thread spawn dominates measured runtime.
-    ///
-    /// Both `MermaidRenderer.*` and `MermaidImageRenderer.*` route through
-    /// this single helper, so all dispatch to the 8 MB stack happens here.
+    /// Forwarding shim onto `MermaidWorkerThread.run` (defined in
+    /// `DiagramKitRenderingCG`). The canonical worker now lives in the
+    /// lower target so view code can dispatch through it without
+    /// importing the umbrella; this shim preserves the existing
+    /// internal call sites and the test surface
+    /// (`Tests/DiagramKitTests/MermaidPreparationWorkerTests.swift`).
+    #if canImport(CoreGraphics)
+    static func _runOnWorker<T: Sendable>(
+        _ work: @escaping @Sendable () throws -> T
+    ) async throws -> T {
+        try await MermaidWorkerThread.run(work)
+    }
+    #else
     static func _runOnWorker<T: Sendable>(
         _ work: @escaping @Sendable () throws -> T
     ) async throws -> T {
@@ -151,6 +151,7 @@ public struct MermaidRenderer {
             thread.start()
         }
     }
+    #endif
 }
 
 extension MermaidRenderer {
