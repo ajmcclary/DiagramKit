@@ -166,3 +166,25 @@ Builds the Linux-portable target matrix in a `swift:6.3.1-noble` container (Dock
 - CG/SVG renderer drift — they share no geometry/measurement code; long-term plan is a single canonical path. Snapshot tests are the only guardrail in the meantime.
 - `RenderConfig.swift` carries a number of magic constants that should be lifted into theme tokens.
 - `DiagramKitViews` extraction (currently a placeholder stub).
+
+## Discipline gates (Stage 3)
+
+`Package.swift` applies `strictConcurrencySettings` (`StrictConcurrency` + `InferSendableFromCaptures` upcoming features) uniformly to every target via the top-level `let strictConcurrencySettings: [SwiftSetting]` constant.
+
+Four governance scripts live under `Scripts/` and are orchestrated by `Scripts/bootstrap-smoke-check.sh` (the local "is Stage 3 healthy?" gate). Run them individually during development; run the orchestrator before merging:
+
+| Script | What it checks | Allowlist |
+|---|---|---|
+| `check-file-sizes.sh` | Every `.swift` in `Sources/` and `Tests/` against 500-line warn / 1000-line error thresholds. | `Scripts/check-file-sizes-allowlist.txt` (one path per line, `#` comments OK). The 11 JS-ported parser/layout/renderer files in `DiagramKitModel` are grandfathered. |
+| `check-sendable-annotations.sh` | Every `@unchecked Sendable` is either in the allowlist or has a "Concurrency Contract" banner in the first 50 lines of the file or within 10 lines of the annotation. | `.sendable-allowlist.txt` at repo root. Format: `file:line:category:sunset` — `red` (must resolve), `yellow` with `YYYY-MM-DD` sunset (resolve by date). Stage 3 grandfathered all 14 existing sites as yellow with sunset `2027-06-30`. |
+| `strict-concurrency-check.sh` | `swift build` under `-strict-concurrency=complete -warnings-as-errors`, filtered to first-party diagnostics matching `Sources/DiagramKit[^/]*/`. Third-party diagnostics are tolerated. | None — fix or yellow-allowlist via the sendable script. |
+| `bootstrap-smoke-check.sh` | Orchestrator: `swift package dump-package`, `swift test`, the three gates above, `linux-check.sh`, and `xcodebuild` for iOS / visionOS / tvOS via the `DiagramKit-Package` auto-scheme. | n/a |
+
+**Adding new `@unchecked Sendable`:** prefer green — write a Concurrency Contract banner explaining the invariant (single-pass / construction-then-freeze / queue-confinement / etc.) within 10 lines of the annotation. Only fall back to yellow with a sunset if the banner can't honestly be written.
+
+**Bootstrap markers (`<Target>Bootstrap.phase: Int`)** are intentionally not introduced in this package. They are relevant once DiagramKit is promoted into the monorepo and a second consumer is identified (Stage 6 in `ANALYSIS.md`); add them then.
+
+**Known caveats for `bootstrap-smoke-check.sh`:**
+- `swift test` full-run hangs partway through with `unexpected signal code 10` — pre-existing on `main` per the `CorpusSnapshotTests` issue. Verify snapshots in chunks (`--filter "CorpusSnapshotTests/svgSnapshot.*<family>-"`) until the harness issue is resolved.
+- `linux-check.sh` requires Docker or Podman running locally.
+- `xcodebuild` runs require the relevant platform runtimes installed in Xcode; missing runtimes are skipped (not failed) per the script's "Please download…" detection.
