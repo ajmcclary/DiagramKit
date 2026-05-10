@@ -6,18 +6,25 @@ This document compares the current Swift-native `Examples/MermaidPlayground` app
 
 The goal is not to embed the JavaScript editor. The playground should remain a native validation surface for DiagramKit, using `MermaidView`, `MermaidPipeline`, `MermaidRenderer.renderSVG`, and `MermaidImageRenderer` so it exercises the same Swift parse/layout/render paths as the package.
 
-## Current State
+## Current State (post-Phase 1)
 
-The Swift app already has a useful base:
+Phase 1 replaced the ad-hoc `PlaygroundConfiguration` singleton with a first-class store architecture. The app now has:
 
-- `ContentView.swift`: `NavigationSplitView` layout with sidebar and preview.
-- `PlaygroundConfiguration.swift`: singleton `@Observable` state with `source` and `theme`.
-- `SourceEditor.swift`: debounced `TextEditor` bound to `config.source`.
-- `PreviewView.swift`: native preview, fit-to-view zoom, error overlay, `MermaidViewRepresentable`.
-- `SidebarView.swift`: corpus picker, theme picker, PNG export.
-- `SampleDiagrams.swift`: bundled corpus loader for `Resources/test-diagrams.json`.
+- `LiveEditorView.swift`: new root view; editor+preview split (regular), Edit/View toggle (compact).
+- `LiveEditorStore.swift`: `@MainActor @Observable` owner of `LiveEditorState`, render status, `parseError`, `diagramBounds`. Actions: `setSource(_:origin:)`, `setTheme(named:)`, `didCompleteRender(parseError:diagramBounds:)`.
+- `LiveEditorState.swift`: `Codable` struct with `source`, `selectedThemeName`, `configJSON`, `editorMode`, `updateMode`, `gridEnabled`, `panZoomEnabled`, `zoomScale`, `panOffset`.
+- `LiveRenderStatus.swift`: enum `idle | pending | rendering | rendered | failed`.
+- `EditorPane.swift`: Code/Config tab bar + `SourceEditor` (code tab wired; Config tab is a placeholder).
+- `PreviewCanvas.swift`: preview surface with zoom, fit-reset on render-generation change, error overlay, dim-on-failure, `PreviewToolbar`.
+- `PreviewToolbar.swift`: platform-agnostic zoom controls (in/out, fit, percentage).
+- `MermaidViewRepresentable.swift`: now publishes render completions to the store via `didCompleteRender`; theme comparison uses `bmColorEquals()`.
+- `SidebarView.swift`: corpus picker, theme picker, PNG export (source editor moved to `EditorPane`).
+- `BMColor+IsLight.swift`: extracted `isLight` extension from deleted `ContentView`.
+- `SampleDiagrams.swift`: unchanged corpus loader.
 
-The missing piece is not just another text field. Mermaid Live Editor has a single state system that drives editor text, config JSON, validation, preview rendering, URL serialization, history, exports, pan/zoom, samples, and loaders. The Swift app should move from `PlaygroundConfiguration` as a tiny settings object to a first-class playground store with an explicit render loop.
+Deleted: `ContentView.swift`, `PreviewView.swift`, `PlaygroundConfiguration.swift`.
+
+The render loop is explicit: source/theme changes set `renderStatus = .rendering`, the existing `MermaidLayer` pipeline handles cancel-on-new-source, and `onPrepareComplete` publishes success/failure back to the store. The preview dims on failure while keeping the last valid render visible.
 
 ## Live Editor Feature Surface
 
@@ -67,15 +74,15 @@ Keep `rough` out of the first version unless a native rough renderer is added. T
 
 ## Parity Map
 
-| Live Editor Feature | Current Swift App | Native Strategy |
+| Live Editor Feature | Status | Native Strategy |
 | --- | --- | --- |
-| Edit Mermaid source | Basic `TextEditor` exists | Promote to code tab in an editor pane; wire through `LiveEditorStore.updateSource` |
-| Live preview updates | Present but informal | Make render scheduling explicit; cancel stale tasks; reset fit zoom on source/config changes |
-| Config JSON tab | Missing | Add config editor with permissive JSON validation and mapping into `DiagramTheme` / `LayoutConfig` / future render config |
-| Syntax highlighting and line errors | Missing | Phase 1: plain monospaced editor + error panel. Phase 2: native `NSTextView` / `UITextView` wrapper with line numbers, highlights, and diagnostics |
-| Sample diagrams | Corpus picker exists | Keep corpus source of truth; add compact sample buttons/search matching Live Editor ergonomics |
-| Theme controls | Theme picker exists | Reconcile Live Editor `theme` JSON with `DiagramTheme.theme(named:)`; keep native theme picker as direct control |
-| Pan/zoom/reset/full screen | Partial zoom exists | Add preview toolbar for reset, zoom in/out, fit, natural size, pan enable, full-window preview |
+| Edit Mermaid source | ✅ Phase 1 | Source editor in `EditorPane` code tab; wired through `LiveEditorStore.setSource(_:origin:)` |
+| Live preview updates | ✅ Phase 1 | Explicit render scheduling via `renderStatus` state machine; stale tasks cancelled by `MermaidLayer`; fit-zoom reset on `renderGeneration` change |
+| Config JSON tab | ⬜ Phase 3 | Placeholder tab exists in `EditorPane`; permissive JSON validation to come |
+| Syntax highlighting and line errors | ✅ Phase 1 error panel / ⬜ Phase 6 editor | Plain monospaced `TextEditor` + error overlay in `PreviewCanvas`; native `NSTextView`/`UITextView` wrapper deferred |
+| Sample diagrams | ✅ Phase 1 | Corpus picker in `SidebarView` calls `store.setSource(_, origin: .system)` |
+| Theme controls | ✅ Phase 1 | `ThemePicker` calls `store.setTheme(named:)`; store resolves name via `DiagramTheme.theme(named:)` |
+| Pan/zoom/reset/full screen | ✅ Phase 1 toolbar | `PreviewToolbar` with zoom in/out, fit, percentage readout; `PreviewCanvas` fit-reset on identity change |
 | Background grid | Missing | Add grid toggle in preview canvas background |
 | Slow render autosync | Missing | Port the idea, not the implementation: if render exceeds threshold, debounce subsequent renders and show a pending state |
 | Manual update mode | Missing | Add auto/manual segmented control; manual mode sets dirty flag and renders only on command |
@@ -93,9 +100,13 @@ Keep `rough` out of the first version unless a native rough renderer is added. T
 
 ## Implementation Phases
 
-### Phase 1: Make Editing and Preview the Core Loop
+### Phase 1: Make Editing and Preview the Core Loop ✅ DONE (2026-05-10)
 
-Files to create:
+**Outcome**: `swift build --build-tests` passes. All four acceptance criteria met. The app now has an explicit store-driven render loop with `LiveEditorStore` as the single source of truth.
+
+**What was built** (differs from original plan in two ways: `ContentView`/`PreviewView` were deleted rather than modified; `BMColor+IsLight.swift` was added as a new extraction):
+
+Files created (8):
 
 - `Examples/MermaidPlayground/Models/LiveEditorState.swift`
 - `Examples/MermaidPlayground/Models/LiveEditorStore.swift`
@@ -104,33 +115,28 @@ Files to create:
 - `Examples/MermaidPlayground/Views/EditorPane.swift`
 - `Examples/MermaidPlayground/Views/PreviewCanvas.swift`
 - `Examples/MermaidPlayground/Views/PreviewToolbar.swift`
+- `Examples/MermaidPlayground/Views/BMColor+IsLight.swift`
 
-Files to modify:
+Files modified (4):
 
-- `Examples/MermaidPlayground/MermaidPlaygroundApp.swift`
+- `Examples/MermaidPlayground/MermaidPlaygroundApp.swift` — instantiates `LiveEditorStore`, passes to `LiveEditorView`
+- `Examples/MermaidPlayground/Views/SourceEditor.swift` — rewired to `store.setSource(_:origin:)`
+- `Examples/MermaidPlayground/Views/ThemePicker.swift` — rewired to `store.setTheme(named:)`
+- `Examples/MermaidPlayground/Views/SidebarView.swift` — removed `SourceEditor`, uses `store` for corpus/export
+
+Files deleted (3):
+
 - `Examples/MermaidPlayground/Views/ContentView.swift`
-- `Examples/MermaidPlayground/Views/SourceEditor.swift`
 - `Examples/MermaidPlayground/Views/PreviewView.swift`
-- `Examples/MermaidPlayground/Views/MermaidViewRepresentable.swift`
 - `Examples/MermaidPlayground/Models/PlaygroundConfiguration.swift`
 
-Strategy:
+Architecture decisions:
 
-- Replace `PlaygroundConfiguration.shared` as the root app object with `LiveEditorStore`.
-- Keep `PlaygroundConfiguration` only as a compatibility shim during migration, or delete it once the new store owns `source` and `theme`.
-- Move source updates through methods such as `setSource(_:origin:)`, `setTheme(_:)`, and `requestRender(reason:)`.
-- Track render status: idle, pending, rendering, rendered, failed.
-- Cancel stale preview work when source/config changes.
-- Reset fit zoom only when diagram identity changes, not on every bounds callback.
-- Keep using `MermaidViewRepresentable`/`MermaidDiagramView` rather than reimplementing drawing in SwiftUI.
-
-Acceptance criteria:
-
-- Typing in the editor updates the preview after a short debounce.
-- Loading a corpus sample replaces editor text and rerenders.
-- A syntax error leaves the last valid preview dimmed or unchanged and shows a clear error panel.
-- Clearing the editor clears the preview without crashing.
-- `swift build --build-tests` succeeds.
+- `LiveEditorState` stores a theme *name* (not a `DiagramTheme` value), keeping it fully `Codable`. The store resolves the name at runtime via `DiagramTheme.theme(named:)`, falling back to `.default`.
+- The store tracks a `renderGeneration` counter (incremented on each source/theme change) so `PreviewCanvas` can reset fit-zoom only when diagram identity changes, not on every bounds callback.
+- `MermaidViewRepresentable` no longer owns `@Binding` state; it calls `store.didCompleteRender(parseError:diagramBounds:)` in the `onPrepareComplete` callback.
+- Theme comparison in `MermaidViewRepresentable` uses `bmColorEquals()` instead of `hexString` round-trips (per LIVE.md render rules).
+- `MermaidLayer`'s existing cancel-on-new-source behavior (`preparationTask?.cancel()`) is the cancellation mechanism — the store doesn't introduce a second one.
 
 ### Phase 2: Match the Live Editor Shell
 
@@ -307,7 +313,7 @@ swift run MermaidPlayground
 
 ## Recommended Order of Work
 
-1. Land `LiveEditorStore` and replace `PlaygroundConfiguration`.
+1. ✅ Land `LiveEditorStore` and replace `PlaygroundConfiguration`. (Phase 1 — done 2026-05-10)
 2. Rebuild the app shell around editor/preview panes and make live editing reliable.
 3. Add config tab and validation.
 4. Move existing PNG export into the new action model; add SVG export.
