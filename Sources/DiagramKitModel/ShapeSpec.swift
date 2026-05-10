@@ -119,6 +119,15 @@ public enum ShapePath: Sendable {
     /// Rectangle with a triangular notch carved out of the top-right
     /// corner. Used by `card`, `notch-rect`, `notched-rectangle`.
     case notchedRectangle(notchSize: CGFloat)
+
+    // MARK: - Cylinder-family additions (audit follow-up #2)
+
+    /// Horizontal cylinder body (rectangle inset on the left and right
+    /// edges by `leftCapInset`). Used by `horizontal-cylinder`, `h-cyl`,
+    /// `das`. The visible cap ellipses on left/right are drawn by the
+    /// renderer as separate decorations — same pattern as the existing
+    /// vertical `.cylinder(topCapInset:)`.
+    case horizontalCylinder(leftCapInset: CGFloat)
 }
 
 // MARK: - Shape Spec Registry
@@ -395,7 +404,18 @@ public enum ShapeSpecRegistry {
     }
     private static func _makeDocumentSpec() -> ShapeSpec { _defaultSpec(aliases: ["doc", "document"]) }
     private static func _makeDelaySpec() -> ShapeSpec { _defaultSpec(aliases: ["delay", "half-rounded-rectangle"]) }
-    private static func _makeHorizontalCylinderSpec() -> ShapeSpec { _defaultSpec(aliases: ["horizontal-cylinder", "h-cyl", "das"]) }
+    private static func _makeHorizontalCylinderSpec() -> ShapeSpec {
+        ShapeSpec(
+            aliases: ["horizontal-cylinder", "h-cyl", "das"],
+            sizeAdjustment: { textSize, config in
+                CGSize(
+                    width: Swift.max(textSize.width + config.nodePaddingHorizontal * 2 + 14, config.minimumNodeWidth),
+                    height: Swift.max(textSize.height + config.nodePaddingVertical * 2, config.minimumNodeHeight)
+                )
+            },
+            path: { _, config in .horizontalCylinder(leftCapInset: config.cylinderEllipseRadius) }
+        )
+    }
     private static func _makeLinedCylinderSpec() -> ShapeSpec { _defaultSpec(aliases: ["lined-cylinder", "lin-cyl", "disk"]) }
     private static func _makeCurvedTrapezoidSpec() -> ShapeSpec { _defaultSpec(aliases: ["curbed-trapezoid", "curv-trap", "display"]) }
     private static func _makeDividedRectangleSpec() -> ShapeSpec { _defaultSpec(aliases: ["divided-rectangle", "div-rect", "div-proc", "divided-process"]) }

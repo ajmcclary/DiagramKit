@@ -179,6 +179,15 @@ public enum SVGPathSerializer {
                 + " L \(_fmt(bounds.maxX)) \(_fmt(bounds.minY + notchSize))"
                 + " L \(_fmt(bounds.maxX)) \(_fmt(bounds.maxY))"
                 + " L \(_fmt(bounds.minX)) \(_fmt(bounds.maxY)) Z"
+
+        case .horizontalCylinder(let leftCapInset):
+            // Body rectangle only; cap ellipses drawn separately.
+            let minX = bounds.minX + leftCapInset
+            let maxX = bounds.maxX - leftCapInset
+            return "M \(_fmt(minX)) \(_fmt(bounds.minY))"
+                + " L \(_fmt(maxX)) \(_fmt(bounds.minY))"
+                + " L \(_fmt(maxX)) \(_fmt(bounds.maxY))"
+                + " L \(_fmt(minX)) \(_fmt(bounds.maxY)) Z"
         }
     }
 

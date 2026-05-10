@@ -78,6 +78,9 @@ public enum CGPathRenderer {
 
         case .notchedRectangle(let notchSize):
             return _notchedRectangle(bounds, notchSize: notchSize)
+
+        case .horizontalCylinder(let leftCapInset):
+            return _horizontalCylinder(bounds, leftCapInset: leftCapInset)
         }
     }
 
@@ -316,6 +319,18 @@ public enum CGPathRenderer {
         path.addLine(to: CGPoint(x: bounds.minX, y: bounds.maxY - waveDepth))
         path.closeSubpath()
         return path
+    }
+
+    private static func _horizontalCylinder(_ bounds: CGRect, leftCapInset: CGFloat) -> CGPath {
+        // Body rectangle only — the side cap ellipses are separately
+        // drawn as decorations by the renderer.
+        let bodyRect = CGRect(
+            x: bounds.minX + leftCapInset,
+            y: bounds.minY,
+            width: bounds.width - 2 * leftCapInset,
+            height: bounds.height
+        )
+        return CGPath(rect: bodyRect, transform: nil)
     }
 
     private static func _notchedRectangle(_ bounds: CGRect, notchSize: CGFloat) -> CGPath {
