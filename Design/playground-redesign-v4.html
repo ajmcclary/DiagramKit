@@ -1,0 +1,2361 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Mermaid·Swift — Presentations (Atelier Programme)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link
+  href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@0,6..96,400..900;1,6..96,400..900&family=JetBrains+Mono:ital,wght@0,300..800;1,300..800&family=Newsreader:ital,opsz,wght@0,6..72,200..700;1,6..72,200..700&display=swap"
+  rel="stylesheet"
+/>
+<style>
+  /* ======================================================================
+     ATELIER PROGRAMME — Mermaid·Swift Presentations
+     A theater playbill on a writer's desk. Programme-cream paper, curtain
+     crimson, brass gold, with Bodoni Moda on stage. Every slide is a
+     performance; every diagram stays alive after the curtain falls.
+     ====================================================================== */
+
+  :root {
+    /* Programme paper & ink */
+    --paper:        #EFE4D0;
+    --paper-2:      #E4D5BC;
+    --paper-3:      #D9C7A7;
+    --vellum:       #F8EEDB;
+    --ink:          #161210;
+    --ink-2:        #2D241F;
+    --ink-3:        #5A4B40;
+    --mute:         #8E7B6A;
+    --mute-2:       #B5A38F;
+
+    /* Rules */
+    --rule:         rgba(22, 18, 16, 0.10);
+    --rule-2:       rgba(22, 18, 16, 0.18);
+    --rule-3:       rgba(22, 18, 16, 0.34);
+
+    /* Theater accents */
+    --curtain:      #8B1623;
+    --curtain-2:    #B12733;
+    --curtain-soft: rgba(139, 22, 35, 0.10);
+    --brass:        #B07F23;
+    --brass-2:      #D2A14D;
+    --brass-soft:   rgba(176, 127, 35, 0.14);
+    --velvet:       #3D2228;
+    --moss:         #5C7038;
+    --moss-soft:    rgba(92, 112, 56, 0.14);
+
+    /* Type */
+    --display:      'Bodoni Moda', 'Didot', 'Bodoni 72', ui-serif, serif;
+    --body:         'Newsreader', 'Georgia', ui-serif, serif;
+    --mono:         'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+
+    --shadow-1:     0 1px 0 rgba(22, 18, 16, 0.06), 0 14px 30px -14px rgba(22, 18, 16, 0.20);
+    --shadow-2:     0 1px 0 rgba(22, 18, 16, 0.10), 0 36px 64px -22px rgba(22, 18, 16, 0.36);
+    --stage-shadow: 0 1px 0 rgba(22, 18, 16, 0.18), 0 50px 80px -30px rgba(22, 18, 16, 0.45), 0 24px 48px -18px rgba(22, 18, 16, 0.30);
+  }
+
+  * { box-sizing: border-box; }
+
+  html, body {
+    margin: 0; padding: 0;
+    font-family: var(--mono);
+    font-size: 13px;
+    line-height: 1.5;
+    color: var(--ink);
+    background: var(--paper);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  /* Programme paper grain */
+  body::before {
+    content: "";
+    position: fixed; inset: 0;
+    pointer-events: none; z-index: 1000;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='240' height='240'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' seed='8'/><feColorMatrix values='0 0 0 0 0.10  0 0 0 0 0.07  0 0 0 0 0.05  0 0 0 0.05 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+    mix-blend-mode: multiply;
+    opacity: 0.55;
+  }
+
+  ::selection { background: var(--curtain); color: var(--vellum); }
+
+  /* ===== Shell ===================================================== */
+
+  .shell {
+    position: relative;
+    z-index: 2;
+    display: grid;
+    grid-template-rows: auto 1fr auto;
+    height: 100vh;
+    min-height: 760px;
+  }
+
+  /* ===== Masthead — playbill flag =================================== */
+
+  .masthead {
+    display: grid;
+    grid-template-columns: minmax(280px, 1fr) auto minmax(280px, 1fr);
+    gap: 22px;
+    align-items: center;
+    padding: 14px 26px 16px;
+    border-bottom: 3px double var(--ink);
+    background: linear-gradient(to bottom, rgba(248, 238, 219, 0.6), rgba(239, 228, 208, 0));
+    position: relative;
+  }
+
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    min-width: 0;
+  }
+  .monogram {
+    width: 40px; height: 40px;
+    border: 1.5px solid var(--ink);
+    border-radius: 50%;
+    display: grid; place-items: center;
+    background: var(--vellum);
+    box-shadow: inset 0 0 0 3px var(--paper);
+    flex-shrink: 0;
+    position: relative;
+  }
+  .monogram::after {
+    content: "";
+    position: absolute;
+    inset: -5px;
+    border-radius: 50%;
+    border: 1px dashed var(--rule-3);
+  }
+  .monogram svg { width: 22px; height: 22px; }
+
+  .wordmark { display: flex; flex-direction: column; line-height: 1; }
+  .wordmark .row1 {
+    font-family: var(--mono);
+    font-weight: 600;
+    font-size: 12px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--ink);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .wordmark .dot {
+    width: 5px; height: 5px;
+    background: var(--curtain);
+    border-radius: 50%;
+    transform: translateY(-1px);
+  }
+  .wordmark .row2 {
+    font-family: var(--display);
+    font-style: italic;
+    font-weight: 500;
+    font-size: 24px;
+    color: var(--ink);
+    margin-top: 2px;
+    letter-spacing: 0.005em;
+    line-height: 1;
+  }
+  .wordmark .row2 em {
+    color: var(--curtain);
+    font-style: italic;
+    font-weight: 600;
+  }
+
+  /* Center: deck title */
+  .deck-flag {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    min-width: 0;
+    padding: 0 16px;
+  }
+  .deck-flag .ornament {
+    display: flex; align-items: center; gap: 8px;
+    color: var(--curtain);
+    font-family: var(--mono);
+    font-size: 9px;
+    letter-spacing: 0.32em;
+    text-transform: uppercase;
+    margin-bottom: 4px;
+  }
+  .deck-flag .ornament .stripe {
+    width: 26px; height: 1px; background: var(--curtain);
+  }
+  .deck-flag .ornament .star {
+    color: var(--brass);
+    font-size: 11px;
+  }
+  .deck-flag .ttl {
+    font-family: var(--display);
+    font-style: italic;
+    font-weight: 500;
+    font-variation-settings: "opsz" 96;
+    font-size: 22px;
+    line-height: 1.1;
+    color: var(--ink);
+    letter-spacing: -0.005em;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 360px;
+  }
+  .deck-flag .ttl em {
+    color: var(--curtain);
+    font-style: italic;
+    font-weight: 600;
+  }
+  .deck-flag .meta {
+    font-family: var(--mono);
+    font-size: 9px;
+    letter-spacing: 0.18em;
+    color: var(--mute);
+    text-transform: uppercase;
+    margin-top: 2px;
+  }
+  .deck-flag .meta .v { color: var(--ink-2); }
+
+  /* Right: mode switch + actions */
+  .right-cluster {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 8px;
+  }
+
+  .modes {
+    display: flex;
+    background: var(--vellum);
+    border: 1px solid var(--rule-2);
+    border-radius: 999px;
+    padding: 3px;
+    gap: 2px;
+    box-shadow: var(--shadow-1);
+  }
+  .mode-btn {
+    appearance: none;
+    border: none;
+    background: transparent;
+    color: var(--ink-3);
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 6px 12px;
+    border-radius: 999px;
+    cursor: pointer;
+    display: inline-flex; align-items: center; gap: 5px;
+    transition: all 160ms ease;
+  }
+  .mode-btn .num {
+    font-family: var(--display);
+    font-style: italic;
+    color: var(--curtain);
+    font-size: 12px;
+    font-weight: 500;
+    text-transform: none;
+    letter-spacing: 0;
+  }
+  .mode-btn:hover { color: var(--ink); }
+  .mode-btn.is-on {
+    background: var(--ink);
+    color: var(--vellum);
+    box-shadow: 0 1px 0 rgba(0,0,0,0.4);
+  }
+  .mode-btn.is-on .num { color: var(--brass); }
+
+  .icon-btn {
+    appearance: none;
+    background: transparent;
+    border: 1px solid transparent;
+    border-radius: 8px;
+    padding: 7px 9px;
+    color: var(--ink-2);
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.06em;
+    cursor: pointer;
+    display: flex; align-items: center; gap: 7px;
+    transition: all 140ms ease;
+  }
+  .icon-btn:hover {
+    background: var(--vellum);
+    border-color: var(--rule-2);
+    color: var(--ink);
+  }
+  .icon-btn svg { width: 14px; height: 14px; }
+  .icon-btn .label { text-transform: uppercase; font-size: 10px; letter-spacing: 0.1em; }
+
+  .present-btn {
+    appearance: none;
+    background: var(--curtain);
+    color: var(--vellum);
+    border: none;
+    border-radius: 999px;
+    padding: 9px 18px 9px 14px;
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 9px;
+    box-shadow: 0 1px 0 rgba(22, 18, 16, 0.3), inset 0 -1px 0 rgba(0,0,0,0.18);
+    transition: transform 140ms ease;
+  }
+  .present-btn:hover { transform: translateY(-1px); background: var(--curtain-2); }
+  .present-btn .glyph {
+    width: 16px; height: 16px;
+    border-radius: 50%;
+    background: var(--brass);
+    color: var(--ink);
+    display: grid; place-items: center;
+    font-size: 9px;
+    font-weight: 800;
+  }
+  .present-btn .meta {
+    font-size: 9px;
+    letter-spacing: 0.18em;
+    border-left: 1px solid rgba(248, 238, 219, 0.4);
+    padding-left: 8px;
+    color: rgba(248, 238, 219, 0.85);
+  }
+
+  /* ===== Workspace ================================================== */
+
+  .workspace {
+    display: grid;
+    grid-template-columns: 268px 1fr 320px;
+    overflow: hidden;
+    border-top: 1px solid var(--rule);
+  }
+  .panel {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    overflow: hidden;
+    position: relative;
+  }
+  .panel + .panel { border-left: 1px solid var(--rule); }
+
+  .sec-head {
+    padding: 14px 18px 10px;
+    border-bottom: 1px solid var(--rule);
+    background: linear-gradient(to bottom, var(--vellum), transparent);
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 10px;
+    flex-shrink: 0;
+  }
+  .sec-head .num {
+    font-family: var(--display);
+    font-style: italic;
+    font-weight: 500;
+    color: var(--curtain);
+    font-size: 14px;
+  }
+  .sec-head .title {
+    font-family: var(--mono);
+    font-weight: 600;
+    font-size: 11px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--ink);
+  }
+  .sec-head .title em {
+    font-family: var(--display);
+    font-style: italic;
+    font-weight: 500;
+    font-size: 17px;
+    text-transform: none;
+    letter-spacing: 0;
+    color: var(--ink-2);
+    margin-left: 8px;
+  }
+  .sec-head .meta {
+    font-size: 10px;
+    color: var(--mute);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  /* ===================================================================
+     LEFT — § 01 PROGRAMME (slide outline)
+     =================================================================== */
+  .programme {
+    background: linear-gradient(to right, transparent, rgba(228, 213, 188, 0.18));
+  }
+
+  .prog-list {
+    padding: 10px 12px 12px;
+    overflow-y: auto;
+    flex: 1;
+  }
+
+  .act-bar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 12px 4px 6px;
+  }
+  .act-bar .stripe { flex: 1; height: 1px; background: var(--rule); }
+  .act-bar .lab {
+    font-family: var(--display);
+    font-style: italic;
+    font-weight: 600;
+    font-size: 14px;
+    color: var(--velvet);
+    letter-spacing: 0.02em;
+  }
+  .act-bar .ornament {
+    color: var(--brass);
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.18em;
+  }
+
+  .slide-card {
+    display: grid;
+    grid-template-columns: 32px 1fr;
+    gap: 8px;
+    padding: 6px 6px;
+    border-radius: 7px;
+    cursor: pointer;
+    margin-bottom: 4px;
+    transition: background 140ms ease;
+    align-items: start;
+  }
+  .slide-card:hover { background: rgba(22, 18, 16, 0.03); }
+  .slide-card.is-on {
+    background: var(--vellum);
+    box-shadow: inset 2px 0 0 var(--curtain), 0 0 0 1px var(--rule-2);
+  }
+
+  .slide-card .num {
+    font-family: var(--display);
+    font-style: italic;
+    font-weight: 500;
+    font-size: 17px;
+    color: var(--mute);
+    text-align: center;
+    letter-spacing: -0.03em;
+    padding-top: 1px;
+  }
+  .slide-card.is-on .num { color: var(--curtain); }
+
+  .slide-card .body { min-width: 0; }
+
+  .slide-thumb {
+    aspect-ratio: 16/9;
+    background: var(--vellum);
+    border: 1px solid var(--rule-2);
+    border-radius: 4px;
+    margin-bottom: 4px;
+    overflow: hidden;
+    position: relative;
+    display: grid;
+    place-items: center;
+  }
+  .slide-card.is-on .slide-thumb {
+    border-color: var(--curtain);
+    box-shadow: 0 0 0 2px rgba(139, 22, 35, 0.10);
+  }
+  .slide-thumb svg, .slide-thumb .mini-content {
+    width: 90%;
+    height: 80%;
+    color: var(--ink-3);
+  }
+  .slide-thumb .mini-title {
+    font-family: var(--display);
+    font-style: italic;
+    font-size: 8.5px;
+    color: var(--ink);
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+    text-align: center;
+    padding: 6px;
+  }
+
+  .slide-thumb .pip {
+    position: absolute;
+    top: 3px; left: 3px;
+    font-family: var(--mono);
+    font-size: 7px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--vellum);
+    background: var(--curtain);
+    padding: 1px 4px;
+    border-radius: 2px;
+  }
+  .slide-thumb .pip.brass { background: var(--brass); color: var(--ink); }
+  .slide-thumb .pip.moss { background: var(--moss); }
+
+  .slide-card .name {
+    font-family: var(--display);
+    font-style: italic;
+    font-size: 13.5px;
+    color: var(--ink);
+    line-height: 1.15;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+  }
+  .slide-card .meta {
+    font-family: var(--mono);
+    font-size: 9px;
+    color: var(--mute);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    margin-top: 3px;
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+  .slide-card .meta .v { color: var(--ink-3); }
+  .slide-card .meta .stale {
+    color: var(--curtain);
+    background: var(--curtain-soft);
+    padding: 0 4px;
+    border-radius: 3px;
+  }
+
+  /* nested vertical slides */
+  .nested {
+    margin: 4px 0 4px 30px;
+    padding: 4px 0 4px 10px;
+    border-left: 1px dashed var(--rule-2);
+    position: relative;
+  }
+  .nested::before {
+    content: "v · nested";
+    position: absolute;
+    top: -7px;
+    left: 6px;
+    font-family: var(--mono);
+    font-size: 8px;
+    letter-spacing: 0.18em;
+    color: var(--mute);
+    text-transform: uppercase;
+    background: var(--paper);
+    padding: 0 4px;
+  }
+  .nested .slide-card {
+    grid-template-columns: 26px 1fr;
+    padding: 4px 4px;
+  }
+  .nested .slide-card .num {
+    font-size: 14px;
+    text-transform: lowercase;
+  }
+  .nested .slide-card .slide-thumb { aspect-ratio: 16/9; }
+  .nested .slide-card .name { font-size: 12px; }
+
+  .add-slide {
+    margin-top: 10px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 4px;
+  }
+  .add-slide button {
+    appearance: none;
+    background: transparent;
+    border: 1px dashed var(--rule-2);
+    border-radius: 6px;
+    padding: 7px 0;
+    font-family: var(--mono);
+    font-size: 9px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+  }
+  .add-slide button:hover { border-color: var(--curtain); color: var(--curtain); }
+  .add-slide button .glyph {
+    font-family: var(--display);
+    font-style: italic;
+    font-size: 14px;
+    color: var(--curtain);
+  }
+
+  /* ===================================================================
+     CENTER — § 02 STAGE (rendered slide hero)
+     =================================================================== */
+
+  .stage-panel {
+    background:
+      radial-gradient(ellipse at 50% -20%, rgba(248, 238, 219, 0.7), transparent 60%),
+      var(--paper);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* Stage caption */
+  .stage-caption {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 12px 22px 10px;
+    border-bottom: 1px solid var(--rule);
+    flex-shrink: 0;
+  }
+  .stage-caption .marquee {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.22em;
+    color: var(--curtain);
+    text-transform: uppercase;
+  }
+  .stage-caption .marquee .glyph {
+    color: var(--brass);
+    font-family: var(--display);
+    font-style: italic;
+    font-size: 14px;
+    letter-spacing: 0;
+    text-transform: none;
+  }
+  .stage-caption .stale-banner {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--brass-soft);
+    border: 1px solid rgba(176, 127, 35, 0.36);
+    border-left: 3px solid var(--brass);
+    padding: 5px 10px 5px 8px;
+    border-radius: 6px;
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--ink-2);
+    letter-spacing: 0.02em;
+  }
+  .stale-banner .tag {
+    font-size: 8px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--brass);
+    background: rgba(176, 127, 35, 0.18);
+    padding: 2px 5px;
+    border-radius: 999px;
+  }
+  .stale-banner a {
+    color: var(--curtain);
+    text-decoration: underline dotted;
+    margin-left: 4px;
+    cursor: pointer;
+  }
+
+  /* Stage area */
+  .stage-area {
+    flex: 1;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    padding: 18px 22px 0;
+    min-height: 0;
+  }
+
+  .stage-frame {
+    position: relative;
+    flex: 1;
+    min-height: 0;
+    display: grid;
+    place-items: center;
+    padding: 18px 30px;
+  }
+
+  /* Decorative proscenium curtain swag at top */
+  .stage-frame::before {
+    content: "";
+    position: absolute;
+    top: 0; left: 6%; right: 6%;
+    height: 18px;
+    background:
+      radial-gradient(ellipse at 50% 0%, var(--curtain) 0%, var(--curtain-2) 60%, transparent 65%);
+    background-image:
+      url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 18' preserveAspectRatio='none'><path d='M0 0 Q 12 18 25 0 T 50 0 T 75 0 T 100 0 T 125 0 T 150 0 T 175 0 T 200 0 V 0 H 0 Z' fill='%238B1623'/></svg>");
+    background-size: 140px 18px;
+    background-repeat: repeat-x;
+    opacity: 0.72;
+  }
+
+  /* Stage card — the actual slide */
+  .slide-stage {
+    aspect-ratio: 16/9;
+    width: 100%;
+    max-width: 920px;
+    background: var(--vellum);
+    border: 1px solid var(--rule-2);
+    border-radius: 8px;
+    box-shadow: var(--stage-shadow);
+    overflow: hidden;
+    position: relative;
+    display: grid;
+    grid-template-rows: auto 1fr auto;
+  }
+
+  /* Brass top + bottom trim of the slide */
+  .slide-stage::before, .slide-stage::after {
+    content: "";
+    position: absolute;
+    left: 0; right: 0;
+    height: 4px;
+    background: linear-gradient(to right, transparent, var(--brass) 14%, var(--brass-2) 50%, var(--brass) 86%, transparent);
+    opacity: 0.7;
+  }
+  .slide-stage::before { top: 0; }
+  .slide-stage::after  { bottom: 0; }
+
+  .slide-header {
+    padding: 22px 36px 6px;
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+    border-bottom: 1px solid var(--rule);
+  }
+  .slide-header .kicker {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.22em;
+    color: var(--curtain);
+    text-transform: uppercase;
+  }
+  .slide-header .pos {
+    font-family: var(--display);
+    font-style: italic;
+    font-weight: 500;
+    color: var(--mute);
+    font-size: 14px;
+    letter-spacing: 0.04em;
+  }
+  .slide-header .pos .cur { color: var(--curtain); }
+
+  .slide-body {
+    padding: 14px 36px 18px;
+    display: grid;
+    grid-template-columns: 1.35fr 1fr;
+    gap: 30px;
+    overflow: hidden;
+  }
+  .slide-body h1 {
+    font-family: var(--display);
+    font-variation-settings: "opsz" 96;
+    font-weight: 500;
+    font-style: italic;
+    font-size: 38px;
+    line-height: 1.05;
+    letter-spacing: -0.015em;
+    color: var(--ink);
+    margin: 0 0 8px;
+  }
+  .slide-body h1 em {
+    color: var(--curtain);
+    font-style: italic;
+    font-weight: 600;
+  }
+  .slide-body .deck {
+    font-family: var(--body);
+    font-size: 14px;
+    line-height: 1.5;
+    color: var(--ink-2);
+    margin: 0 0 14px;
+  }
+  .slide-body .deck em { font-style: italic; color: var(--curtain); }
+  .slide-body ul {
+    padding: 0;
+    margin: 0;
+    list-style: none;
+  }
+  .slide-body ul li {
+    font-family: var(--body);
+    font-size: 13px;
+    color: var(--ink-2);
+    margin: 6px 0;
+    padding-left: 18px;
+    position: relative;
+    line-height: 1.4;
+  }
+  .slide-body ul li::before {
+    content: "✦";
+    position: absolute;
+    left: 0; top: 1px;
+    color: var(--brass);
+    font-size: 11px;
+  }
+  .slide-body ul li b { font-weight: 600; color: var(--ink); }
+
+  .slide-body .diag-card {
+    background: var(--paper);
+    border: 1px solid var(--rule-2);
+    border-radius: 6px;
+    padding: 10px 12px 12px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    position: relative;
+  }
+  .diag-card .head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    margin-bottom: 8px;
+  }
+  .diag-card .ttl {
+    font-family: var(--display);
+    font-style: italic;
+    font-size: 13px;
+    color: var(--ink);
+  }
+  .diag-card .live {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-family: var(--mono);
+    font-size: 8.5px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--moss);
+    background: var(--moss-soft);
+    border: 1px solid rgba(92, 112, 56, 0.32);
+    padding: 1px 6px 1px 5px;
+    border-radius: 999px;
+  }
+  .diag-card .live .blip {
+    width: 5px; height: 5px;
+    border-radius: 50%;
+    background: var(--moss);
+    animation: blip 2s ease-in-out infinite;
+  }
+  @keyframes blip {
+    0%,100% { box-shadow: 0 0 0 0 rgba(92, 112, 56, 0.45); }
+    50%     { box-shadow: 0 0 0 4px rgba(92, 112, 56, 0); }
+  }
+
+  .diag-card .stage-svg {
+    flex: 1;
+    display: grid;
+    place-items: center;
+    background:
+      linear-gradient(to right, rgba(22, 18, 16, 0.025) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(22, 18, 16, 0.025) 1px, transparent 1px),
+      var(--vellum);
+    background-size: 14px 14px;
+    border-radius: 4px;
+    border: 1px solid var(--rule);
+    padding: 6px;
+    min-height: 0;
+  }
+  .diag-card .stage-svg svg {
+    width: 100%;
+    height: 100%;
+    max-height: 220px;
+  }
+  .diag-card .src-link {
+    margin-top: 6px;
+    font-family: var(--mono);
+    font-size: 8.5px;
+    color: var(--mute);
+    letter-spacing: 0.06em;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .diag-card .src-link .v { color: var(--ink-2); }
+  .diag-card .src-link a {
+    color: var(--curtain);
+    cursor: pointer;
+    text-decoration: underline dotted;
+    text-underline-offset: 3px;
+  }
+
+  /* Drawn flowchart node styles */
+  .pn { fill: var(--vellum); stroke: var(--ink); stroke-width: 1.2; }
+  .pn.cur { fill: var(--curtain-soft); stroke: var(--curtain); }
+  .pn.br  { fill: var(--brass-soft); stroke: var(--brass); }
+  .pn.mos { fill: var(--moss-soft); stroke: var(--moss); }
+  .pn.dim { fill: var(--paper-2); stroke: var(--rule-3); }
+  .pt {
+    font-family: var(--mono);
+    font-size: 9.5px;
+    fill: var(--ink);
+    font-weight: 500;
+  }
+  .pt.sub {
+    font-family: var(--display);
+    font-style: italic;
+    font-size: 9px;
+    fill: var(--ink-3);
+  }
+  .pe { stroke: var(--ink); stroke-width: 1; fill: none; }
+  .pe.dashed { stroke-dasharray: 3 3; stroke: var(--brass); }
+  .par { fill: var(--ink); }
+  .par.br { fill: var(--brass); }
+  .ple {
+    font-family: var(--mono);
+    font-size: 8px;
+    fill: var(--ink-2);
+  }
+  .pleg {
+    fill: var(--vellum);
+    stroke: none;
+  }
+
+  .slide-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 36px;
+    background: var(--paper);
+    border-top: 1px solid var(--rule);
+    font-family: var(--mono);
+    font-size: 9px;
+    letter-spacing: 0.16em;
+    color: var(--mute);
+    text-transform: uppercase;
+  }
+  .slide-footer .v { color: var(--ink-3); }
+  .slide-footer .deck-name {
+    font-family: var(--display);
+    font-style: italic;
+    font-size: 12px;
+    color: var(--ink-2);
+    text-transform: none;
+    letter-spacing: 0;
+  }
+
+  /* Slide ribbon (thumbnails) */
+  .ribbon {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 22px 10px;
+    border-top: 1px dashed var(--rule);
+    flex-shrink: 0;
+  }
+  .ribbon .nav {
+    appearance: none;
+    background: var(--vellum);
+    border: 1px solid var(--rule-2);
+    border-radius: 999px;
+    padding: 5px 11px;
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--ink-2);
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    flex-shrink: 0;
+  }
+  .ribbon .nav:hover { border-color: var(--ink); color: var(--ink); }
+  .ribbon .nav .arr { color: var(--curtain); font-size: 13px; }
+  .ribbon .strip {
+    flex: 1;
+    overflow-x: auto;
+    display: flex;
+    gap: 6px;
+    padding: 2px;
+  }
+  .ribbon .thumb {
+    flex-shrink: 0;
+    width: 76px;
+    aspect-ratio: 16/9;
+    border-radius: 4px;
+    border: 1px solid var(--rule-2);
+    background: var(--vellum);
+    display: grid;
+    place-items: center;
+    cursor: pointer;
+    position: relative;
+    color: var(--ink-3);
+    transition: all 140ms ease;
+  }
+  .ribbon .thumb:hover { transform: translateY(-2px); border-color: var(--ink); }
+  .ribbon .thumb.is-on { border-color: var(--curtain); box-shadow: 0 0 0 2px rgba(139, 22, 35, 0.14); }
+  .ribbon .thumb .n {
+    position: absolute;
+    top: 2px; left: 4px;
+    font-family: var(--display);
+    font-style: italic;
+    font-size: 11px;
+    color: var(--mute);
+  }
+  .ribbon .thumb.is-on .n { color: var(--curtain); }
+  .ribbon .thumb svg { width: 60%; height: 60%; opacity: 0.7; }
+  .ribbon .thumb .nest {
+    position: absolute;
+    top: 2px; right: 4px;
+    color: var(--brass);
+    font-family: var(--mono);
+    font-size: 8px;
+    letter-spacing: 0.1em;
+  }
+  .ribbon .pos {
+    flex-shrink: 0;
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--mute);
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+  }
+  .ribbon .pos .cur {
+    font-family: var(--display);
+    font-style: italic;
+    color: var(--curtain);
+    font-size: 14px;
+    letter-spacing: 0;
+    margin-right: 2px;
+  }
+
+  /* Markdown drawer */
+  .md-drawer {
+    border-top: 1px solid var(--rule);
+    background: var(--vellum);
+    flex-shrink: 0;
+    max-height: 250px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+  .md-head {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 8px 16px;
+    border-bottom: 1px solid var(--rule);
+    flex-shrink: 0;
+  }
+  .md-head .ttl {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--ink);
+  }
+  .md-head .ttl .num {
+    font-family: var(--display);
+    font-style: italic;
+    color: var(--curtain);
+    margin-right: 5px;
+    font-size: 13px;
+    text-transform: none;
+    letter-spacing: 0;
+    font-weight: 500;
+  }
+  .md-head .file {
+    font-family: var(--display);
+    font-style: italic;
+    color: var(--ink-2);
+    font-size: 14px;
+  }
+
+  .md-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    margin-left: auto;
+  }
+  .md-tool {
+    appearance: none;
+    background: transparent;
+    border: 1px solid transparent;
+    border-radius: 5px;
+    padding: 4px 8px;
+    color: var(--ink-2);
+    font-family: var(--mono);
+    font-size: 9px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .md-tool:hover { background: var(--paper-2); border-color: var(--rule-2); color: var(--ink); }
+  .md-tool svg { width: 13px; height: 13px; }
+  .md-tool .glyph {
+    font-family: var(--display);
+    font-style: italic;
+    color: var(--curtain);
+    font-size: 13px;
+  }
+  .md-tool.sep { width: 1px; height: 14px; background: var(--rule-2); margin: 0 4px; padding: 0; pointer-events: none; }
+
+  .md-body {
+    overflow: auto;
+    background:
+      linear-gradient(to right, transparent 56px, var(--rule) 56px, var(--rule) 57px, transparent 57px),
+      var(--vellum);
+    flex: 1;
+    min-height: 0;
+  }
+  .md-code {
+    display: grid;
+    grid-template-columns: 56px 1fr;
+    font-family: var(--mono);
+    font-size: 12.5px;
+    line-height: 1.7;
+    padding: 10px 0 14px;
+  }
+  .md-code .gut {
+    color: var(--mute-2);
+    text-align: right;
+    padding-right: 10px;
+    user-select: none;
+    font-variant-numeric: tabular-nums;
+    font-size: 11px;
+  }
+  .md-code .gut span { display: block; height: 1.7em; }
+  .md-code .gut span.cur {
+    color: var(--curtain);
+    font-weight: 600;
+    position: relative;
+  }
+  .md-code .gut span.cur::before {
+    content: "▸";
+    position: absolute;
+    left: 6px;
+    color: var(--curtain);
+  }
+  .md-code .body {
+    padding-left: 14px;
+    color: var(--ink-2);
+    white-space: pre;
+  }
+  .md-code .body .line { display: block; height: 1.7em; }
+
+  /* Slide separator visualization */
+  .md-code .body .line.sep {
+    color: var(--curtain);
+    background: var(--curtain-soft);
+    box-shadow: inset 2px 0 0 var(--curtain);
+    font-weight: 600;
+    position: relative;
+    letter-spacing: 0.1em;
+  }
+  .md-code .body .line.sep::after {
+    content: "  ── new horizontal slide";
+    color: var(--curtain);
+    font-style: italic;
+    font-size: 10px;
+    letter-spacing: 0.04em;
+    margin-left: 8px;
+  }
+  .md-code .body .line.sub {
+    color: var(--brass);
+    background: var(--brass-soft);
+    box-shadow: inset 2px 0 0 var(--brass);
+    font-weight: 600;
+    letter-spacing: 0.1em;
+  }
+  .md-code .body .line.sub::after {
+    content: "  ── nested vertical sub-slide";
+    color: var(--brass);
+    font-style: italic;
+    font-size: 10px;
+    margin-left: 8px;
+  }
+  .md-code .body .line.cur {
+    background: rgba(22, 18, 16, 0.04);
+  }
+
+  /* Markdown syntax */
+  .h1 { color: var(--curtain); font-weight: 700; }
+  .h2 { color: var(--velvet); font-weight: 600; }
+  .h3 { color: var(--ink); font-weight: 600; }
+  .em { color: var(--ink-2); font-style: italic; }
+  .b  { color: var(--ink); font-weight: 700; }
+  .li { color: var(--ink-2); }
+  .li-mark { color: var(--brass); }
+  .lnk { color: var(--curtain); text-decoration: underline; text-underline-offset: 2px; text-decoration-thickness: 1px; }
+  .code-fence { color: var(--moss); }
+  .img { color: var(--brass); }
+  .merm { color: var(--curtain); font-weight: 600; }
+
+  /* ===================================================================
+     RIGHT — § 03 PROMPTER (notes · linked diagrams · ai)
+     =================================================================== */
+
+  .prompter {
+    background: linear-gradient(to left, transparent, rgba(228, 213, 188, 0.20));
+    overflow-y: auto;
+  }
+
+  .prom-block {
+    padding: 12px 18px;
+    border-bottom: 1px solid var(--rule);
+  }
+  .prom-ttl {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    margin-bottom: 10px;
+  }
+  .prom-ttl h3 {
+    margin: 0;
+    font-family: var(--mono);
+    font-weight: 600;
+    font-size: 10px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--ink);
+  }
+  .prom-ttl h3 .n {
+    font-family: var(--display);
+    font-style: italic;
+    color: var(--curtain);
+    margin-right: 6px;
+    font-weight: 500;
+    font-size: 13px;
+    letter-spacing: 0;
+    text-transform: none;
+  }
+  .prom-ttl .meta {
+    font-size: 9px;
+    color: var(--mute);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  /* Speaker notes — director's cue card */
+  .cue-card {
+    background:
+      linear-gradient(to bottom, var(--vellum), var(--paper-2));
+    border: 1px solid var(--rule-2);
+    border-left: 3px solid var(--curtain);
+    border-radius: 6px;
+    padding: 12px 14px;
+    position: relative;
+  }
+  .cue-card::before {
+    content: "";
+    position: absolute;
+    top: 6px; right: 8px; bottom: 6px;
+    width: 1px;
+    background: repeating-linear-gradient(to bottom, var(--rule-2), var(--rule-2) 3px, transparent 3px, transparent 6px);
+    opacity: 0.5;
+  }
+  .cue-card .lab {
+    font-family: var(--mono);
+    font-size: 8px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--curtain);
+    margin-bottom: 5px;
+  }
+  .cue-card .note {
+    font-family: var(--body);
+    font-style: italic;
+    font-size: 13px;
+    line-height: 1.45;
+    color: var(--ink-2);
+  }
+  .cue-card .note b { font-style: normal; font-weight: 600; color: var(--ink); }
+  .cue-card .stamp {
+    font-family: var(--display);
+    font-style: italic;
+    font-size: 11px;
+    color: var(--mute);
+    margin-top: 8px;
+    padding-top: 6px;
+    border-top: 1px dashed var(--rule);
+    display: flex;
+    justify-content: space-between;
+  }
+
+  /* Linked diagrams list */
+  .linked-list { display: flex; flex-direction: column; gap: 6px; }
+  .linked-row {
+    display: grid;
+    grid-template-columns: 28px 1fr auto;
+    align-items: center;
+    gap: 9px;
+    background: var(--vellum);
+    border: 1px solid var(--rule-2);
+    border-radius: 7px;
+    padding: 7px 9px;
+    cursor: pointer;
+  }
+  .linked-row:hover { border-color: var(--ink); }
+  .linked-row.stale { border-color: rgba(176, 127, 35, 0.45); background: var(--brass-soft); }
+  .linked-row .ic {
+    width: 28px; height: 22px;
+    background: var(--paper);
+    border-radius: 4px;
+    display: grid; place-items: center;
+    color: var(--ink-2);
+    border: 1px solid var(--rule);
+  }
+  .linked-row .ic svg { width: 18px; height: 14px; }
+  .linked-row .body { min-width: 0; }
+  .linked-row .name {
+    font-family: var(--display);
+    font-style: italic;
+    font-size: 13.5px;
+    color: var(--ink);
+    line-height: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .linked-row .sub {
+    font-family: var(--mono);
+    font-size: 9px;
+    color: var(--mute);
+    letter-spacing: 0.06em;
+    margin-top: 3px;
+  }
+  .linked-row .sub .v { color: var(--ink-3); }
+  .linked-row .badge {
+    font-family: var(--mono);
+    font-size: 8px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    padding: 3px 6px;
+    border-radius: 999px;
+  }
+  .linked-row .badge.live { color: var(--moss); background: var(--moss-soft); border: 1px solid rgba(92, 112, 56, 0.32); }
+  .linked-row .badge.stale { color: var(--brass); background: rgba(255,255,255,0.5); border: 1px solid rgba(176, 127, 35, 0.45); }
+  .linked-row .badge.snap { color: var(--mute); background: var(--paper-2); border: 1px solid var(--rule); }
+
+  .insert-btn {
+    appearance: none;
+    background: transparent;
+    border: 1px dashed var(--rule-2);
+    border-radius: 6px;
+    padding: 8px 10px;
+    width: 100%;
+    margin-top: 8px;
+    font-family: var(--mono);
+    font-size: 9px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    cursor: pointer;
+    text-align: left;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .insert-btn .glyph {
+    color: var(--curtain);
+    font-family: var(--display);
+    font-style: italic;
+    font-size: 14px;
+  }
+  .insert-btn:hover { border-color: var(--curtain); color: var(--curtain); }
+
+  /* AI block */
+  .ai-block {
+    background: linear-gradient(135deg, rgba(176, 127, 35, 0.10), rgba(139, 22, 35, 0.06));
+    border: 1px solid rgba(176, 127, 35, 0.32);
+    border-radius: 8px;
+    padding: 12px;
+  }
+  .ai-block .ai-head {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 6px;
+  }
+  .ai-block .ai-mark {
+    width: 18px; height: 18px;
+    border-radius: 50%;
+    background: var(--brass);
+    color: var(--ink);
+    display: grid; place-items: center;
+    font-family: var(--display);
+    font-style: italic;
+    font-size: 13px;
+    font-weight: 700;
+  }
+  .ai-block .ai-title {
+    font-family: var(--display);
+    font-style: italic;
+    font-size: 16px;
+    color: var(--ink);
+  }
+  .ai-block .ai-desc {
+    font-family: var(--body);
+    font-size: 12px;
+    color: var(--ink-3);
+    line-height: 1.4;
+    margin-bottom: 9px;
+  }
+  .ai-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .ai-actions button {
+    appearance: none;
+    background: var(--vellum);
+    border: 1px solid var(--rule-2);
+    border-radius: 6px;
+    padding: 7px 10px;
+    text-align: left;
+    cursor: pointer;
+    font-family: var(--mono);
+    font-size: 10.5px;
+    color: var(--ink-2);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    letter-spacing: 0.02em;
+  }
+  .ai-actions button:hover { border-color: var(--curtain); color: var(--curtain); }
+  .ai-actions button .glyph {
+    color: var(--brass);
+    font-family: var(--display);
+    font-style: italic;
+    font-size: 13px;
+  }
+
+  /* Theme + export */
+  .theme-row {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 4px;
+  }
+  .theme-opt {
+    appearance: none;
+    background: var(--vellum);
+    border: 1px solid var(--rule-2);
+    border-radius: 6px;
+    padding: 8px 10px;
+    cursor: pointer;
+    text-align: left;
+    color: var(--ink-2);
+    transition: all 140ms ease;
+  }
+  .theme-opt:hover { border-color: var(--ink); }
+  .theme-opt.is-on {
+    border-color: var(--curtain);
+    background: var(--curtain-soft);
+  }
+  .theme-opt .lab {
+    font-family: var(--display);
+    font-style: italic;
+    font-size: 14px;
+    color: var(--ink);
+    line-height: 1;
+  }
+  .theme-opt .sub {
+    font-family: var(--mono);
+    font-size: 8px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--mute);
+    margin-top: 3px;
+  }
+
+  .export-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 4px;
+    margin-top: 8px;
+  }
+  .export-grid .ex {
+    appearance: none;
+    background: var(--vellum);
+    border: 1px solid var(--rule-2);
+    border-radius: 6px;
+    padding: 8px 0;
+    cursor: pointer;
+    color: var(--ink-2);
+    text-align: center;
+    font-family: var(--display);
+    font-style: italic;
+    font-size: 13px;
+    line-height: 1;
+  }
+  .export-grid .ex:hover { border-color: var(--ink); color: var(--ink); }
+  .export-grid .ex .lab {
+    display: block;
+    font-family: var(--mono);
+    font-size: 8px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--mute);
+    margin-top: 3px;
+  }
+
+  /* Templates */
+  .tmpl-list { display: flex; flex-direction: column; gap: 4px; }
+  .tmpl {
+    display: grid;
+    grid-template-columns: 24px 1fr auto;
+    gap: 8px;
+    align-items: center;
+    padding: 6px 8px;
+    background: var(--vellum);
+    border: 1px solid var(--rule-2);
+    border-radius: 6px;
+    cursor: pointer;
+  }
+  .tmpl:hover { border-color: var(--ink); }
+  .tmpl .roman {
+    font-family: var(--display);
+    font-style: italic;
+    font-size: 12px;
+    color: var(--curtain);
+  }
+  .tmpl .name {
+    font-family: var(--display);
+    font-style: italic;
+    font-size: 13.5px;
+    color: var(--ink);
+    line-height: 1;
+  }
+  .tmpl .sub {
+    display: block;
+    font-family: var(--mono);
+    font-size: 8px;
+    color: var(--mute);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    margin-top: 2px;
+  }
+  .tmpl .arrow { color: var(--brass); font-family: var(--mono); font-size: 11px; }
+
+  /* ===== Status strip =============================================== */
+
+  .status {
+    display: grid;
+    grid-template-columns: auto auto 1fr auto auto;
+    gap: 22px;
+    align-items: center;
+    padding: 8px 22px;
+    border-top: 1px solid var(--rule-2);
+    background: linear-gradient(to top, var(--vellum), transparent);
+    font-size: 10px;
+    color: var(--mute);
+    letter-spacing: 0.06em;
+  }
+  .status .v { color: var(--ink-2); font-variant-numeric: tabular-nums; }
+  .status .lab {
+    font-size: 9px;
+    letter-spacing: 0.16em;
+    color: var(--mute);
+    text-transform: uppercase;
+  }
+  .status .group {
+    display: flex; align-items: center; gap: 14px;
+  }
+  .status .crumbs {
+    display: flex; align-items: center; gap: 8px;
+    color: var(--ink-3);
+    overflow: hidden; white-space: nowrap;
+  }
+  .status .crumbs .sep { color: var(--mute-2); }
+  .status .crumbs .cur {
+    font-family: var(--display);
+    font-style: italic;
+    color: var(--curtain);
+    font-size: 13px;
+    letter-spacing: 0;
+  }
+  .status .a11y {
+    display: inline-flex; align-items: center; gap: 5px;
+    font-size: 9px; letter-spacing: 0.14em;
+    text-transform: uppercase;
+  }
+
+  /* ===== Reveal ===================================================== */
+  .reveal {
+    opacity: 0;
+    transform: translateY(6px);
+    animation: reveal 700ms cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+  }
+  @keyframes reveal { to { opacity: 1; transform: translateY(0); } }
+  .r1 { animation-delay: 60ms; }
+  .r2 { animation-delay: 140ms; }
+  .r3 { animation-delay: 240ms; }
+  .r4 { animation-delay: 340ms; }
+  .r5 { animation-delay: 440ms; }
+  .r6 { animation-delay: 540ms; }
+
+  ::-webkit-scrollbar { width: 8px; height: 8px; }
+  ::-webkit-scrollbar-thumb {
+    background: rgba(22, 18, 16, 0.18);
+    border-radius: 999px;
+    border: 2px solid transparent;
+    background-clip: padding-box;
+  }
+  ::-webkit-scrollbar-track { background: transparent; }
+
+  @media (max-width: 1280px) {
+    .workspace { grid-template-columns: 232px 1fr 296px; }
+    .slide-body h1 { font-size: 32px; }
+    .slide-body { gap: 22px; padding: 12px 26px; }
+  }
+  @media (max-width: 1100px) {
+    .workspace { grid-template-columns: 0 1fr 0; }
+    .programme, .prompter { display: none; }
+  }
+</style>
+</head>
+
+<body>
+<div class="shell">
+
+  <!-- ============================ MASTHEAD ============================ -->
+  <header class="masthead reveal r1">
+    <div class="brand">
+      <div class="monogram" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none">
+          <path d="M3 18 C 7 8, 11 8, 12 14 C 13 8, 17 8, 21 18" stroke="#161210" stroke-width="1.6" stroke-linecap="round"/>
+          <circle cx="12" cy="6" r="1.6" fill="#8B1623"/>
+          <path d="M5 21 H19" stroke="#B07F23" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>
+      </div>
+      <div class="wordmark">
+        <div class="row1"><span>Mermaid</span><span class="dot"></span><span>Swift</span></div>
+        <div class="row2">the programme <em>·</em> stage</div>
+      </div>
+    </div>
+
+    <div class="deck-flag">
+      <div class="ornament">
+        <span class="stripe"></span>
+        <span class="star">✦</span>
+        <span>A Programme in Twelve Slides</span>
+        <span class="star">✦</span>
+        <span class="stripe"></span>
+      </div>
+      <div class="ttl">SDK Auth · <em>Q2 architecture review</em></div>
+      <div class="meta">
+        <span class="v">12</span> slides · <span class="v">4</span> linked diagrams · <span class="v">Tonight 7 pm</span>
+      </div>
+    </div>
+
+    <div class="right-cluster">
+      <div class="modes" role="tablist">
+        <button class="mode-btn"><span class="num">i.</span>Outline</button>
+        <button class="mode-btn is-on"><span class="num">ii.</span>Edit</button>
+        <button class="mode-btn"><span class="num">iii.</span>Source</button>
+      </div>
+      <button class="icon-btn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="3"/><circle cx="6" cy="6" r="2"/><circle cx="18" cy="18" r="2"/><path d="M8 7l5 4M14 14l3 3"/></svg>
+        <span class="label">Share</span>
+      </button>
+      <button class="icon-btn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 4v12"/><path d="M7 9l5-5 5 5"/><path d="M5 20h14"/></svg>
+        <span class="label">Export</span>
+      </button>
+      <button class="present-btn">
+        <span class="glyph">▸</span>
+        Present
+        <span class="meta">⌥ ⌘ P · slide IV</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- =========================== WORKSPACE =========================== -->
+  <main class="workspace">
+
+    <!-- =========== § 01 PROGRAMME (outline) =========== -->
+    <aside class="panel programme reveal r2">
+      <div class="sec-head">
+        <div>
+          <span class="num">§ 01</span>
+          <span class="title">Programme<em>outline</em></span>
+        </div>
+        <span class="meta">XII slides</span>
+      </div>
+
+      <div class="prog-list">
+
+        <div class="act-bar"><span class="ornament">act</span><span class="lab">Opening</span><span class="stripe"></span></div>
+
+        <div class="slide-card">
+          <div class="num">i</div>
+          <div class="body">
+            <div class="slide-thumb">
+              <span class="pip brass">cover</span>
+              <div class="mini-title">SDK Auth · Q2 architecture review</div>
+            </div>
+            <div class="name">Title — SDK Auth · Q2 review</div>
+            <div class="meta"><span>Cover</span></div>
+          </div>
+        </div>
+
+        <div class="slide-card">
+          <div class="num">ii</div>
+          <div class="body">
+            <div class="slide-thumb">
+              <svg viewBox="0 0 60 36" fill="none" stroke="currentColor" stroke-width="0.8">
+                <line x1="6" y1="8" x2="48" y2="8"/>
+                <line x1="6" y1="14" x2="44" y2="14"/>
+                <line x1="6" y1="20" x2="50" y2="20"/>
+                <line x1="6" y1="26" x2="40" y2="26"/>
+                <circle cx="3" cy="8" r="1" fill="currentColor"/>
+                <circle cx="3" cy="14" r="1" fill="currentColor"/>
+                <circle cx="3" cy="20" r="1" fill="currentColor"/>
+                <circle cx="3" cy="26" r="1" fill="currentColor"/>
+              </svg>
+            </div>
+            <div class="name">Agenda — what we'll cover</div>
+            <div class="meta"><span>List · 4 items</span></div>
+          </div>
+        </div>
+
+        <div class="slide-card">
+          <div class="num">iii</div>
+          <div class="body">
+            <div class="slide-thumb">
+              <div class="mini-title" style="font-size:9.5px; color:var(--ink-2);">"The token model<br/>has drifted from spec"</div>
+            </div>
+            <div class="name">The challenge — pull-quote</div>
+            <div class="meta"><span>Quote</span></div>
+          </div>
+        </div>
+
+        <div class="act-bar"><span class="ornament">act</span><span class="lab">The Boundary</span><span class="stripe"></span></div>
+
+        <div class="slide-card is-on">
+          <div class="num">iv</div>
+          <div class="body">
+            <div class="slide-thumb">
+              <span class="pip">live ✦</span>
+              <svg viewBox="0 0 60 36" fill="none" stroke="currentColor" stroke-width="0.8">
+                <rect x="3" y="6" width="14" height="6" rx="1"/>
+                <rect x="23" y="6" width="14" height="6" rx="1"/>
+                <rect x="43" y="6" width="14" height="6" rx="1"/>
+                <rect x="13" y="22" width="14" height="6" rx="1" fill="currentColor" fill-opacity="0.15"/>
+                <rect x="33" y="22" width="14" height="6" rx="1"/>
+                <path d="M17 9 H 23 M37 9 H 43 M20 12 V 22 M40 12 V 22 M27 25 H 33"/>
+              </svg>
+            </div>
+            <div class="name">Service boundary — where auth lives</div>
+            <div class="meta"><span>Flowchart</span><span>·</span><span class="v">5 nodes</span></div>
+          </div>
+        </div>
+
+        <div class="slide-card">
+          <div class="num">v</div>
+          <div class="body">
+            <div class="slide-thumb">
+              <span class="pip moss">live</span>
+              <svg viewBox="0 0 60 36" fill="none" stroke="currentColor" stroke-width="0.7">
+                <line x1="8" y1="4" x2="8" y2="32"/>
+                <line x1="22" y1="4" x2="22" y2="32"/>
+                <line x1="36" y1="4" x2="36" y2="32"/>
+                <line x1="50" y1="4" x2="50" y2="32"/>
+                <path d="M8 12 H22 M22 18 H36 M36 24 H50"/>
+              </svg>
+            </div>
+            <div class="name">Auth flow — call sequence</div>
+            <div class="meta"><span>Sequence</span></div>
+          </div>
+          <div class="nested" style="grid-column: 1 / 3;">
+            <div class="slide-card">
+              <div class="num">a</div>
+              <div class="body">
+                <div class="name">Happy path</div>
+                <div class="meta"><span>5 messages</span></div>
+              </div>
+            </div>
+            <div class="slide-card">
+              <div class="num">b</div>
+              <div class="body">
+                <div class="name">MFA branch (alt block)</div>
+                <div class="meta"><span>Alt · 4 messages</span></div>
+              </div>
+            </div>
+            <div class="slide-card">
+              <div class="num">c</div>
+              <div class="body">
+                <div class="name">Token refresh on 401</div>
+                <div class="meta"><span>Loop</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="slide-card">
+          <div class="num">vi</div>
+          <div class="body">
+            <div class="slide-thumb">
+              <span class="pip" style="background: var(--brass); color: var(--ink);">stale</span>
+              <svg viewBox="0 0 60 36" fill="none" stroke="currentColor" stroke-width="0.8">
+                <circle cx="6" cy="18" r="3"/>
+                <rect x="14" y="14" width="14" height="9" rx="1"/>
+                <rect x="32" y="14" width="14" height="9" rx="1"/>
+                <circle cx="54" cy="18" r="3"/>
+                <path d="M9 18 H14 M28 18 H32 M46 18 H51"/>
+              </svg>
+            </div>
+            <div class="name">Token state machine</div>
+            <div class="meta"><span>State</span><span>·</span><span class="stale">stale ⚠</span></div>
+          </div>
+        </div>
+
+        <div class="act-bar"><span class="ornament">act</span><span class="lab">Closing</span><span class="stripe"></span></div>
+
+        <div class="slide-card">
+          <div class="num">vii</div>
+          <div class="body">
+            <div class="slide-thumb">
+              <svg viewBox="0 0 60 36" fill="none" stroke="currentColor" stroke-width="0.7">
+                <rect x="3" y="6" width="54" height="4"/>
+                <rect x="3" y="14" width="54" height="4"/>
+                <rect x="3" y="22" width="54" height="4"/>
+                <line x1="20" y1="4" x2="20" y2="30"/>
+                <line x1="40" y1="4" x2="40" y2="30"/>
+              </svg>
+            </div>
+            <div class="name">Error matrix</div>
+            <div class="meta"><span>Table · 9×3</span></div>
+          </div>
+        </div>
+
+        <div class="slide-card">
+          <div class="num">viii</div>
+          <div class="body">
+            <div class="slide-thumb">
+              <span class="pip moss">live</span>
+              <svg viewBox="0 0 60 36" fill="none" stroke="currentColor" stroke-width="0.8">
+                <rect x="3" y="8" width="22" height="3" fill="currentColor"/>
+                <rect x="14" y="14" width="24" height="3" fill="currentColor"/>
+                <rect x="22" y="20" width="26" height="3" fill="currentColor"/>
+                <rect x="30" y="26" width="28" height="3" fill="currentColor"/>
+              </svg>
+            </div>
+            <div class="name">Roadmap — Q2 → Q4</div>
+            <div class="meta"><span>Gantt</span></div>
+          </div>
+        </div>
+
+        <div class="slide-card">
+          <div class="num">ix</div>
+          <div class="body">
+            <div class="slide-thumb"><div class="mini-title" style="font-size:9px;">Open questions ·<br/>discussion</div></div>
+            <div class="name">Open questions</div>
+            <div class="meta"><span>List</span></div>
+          </div>
+        </div>
+
+        <div class="slide-card">
+          <div class="num">x</div>
+          <div class="body">
+            <div class="slide-thumb"><div class="mini-title" style="font-family:var(--display); font-style:italic; font-size:11px;">— end —</div></div>
+            <div class="name">Thank you</div>
+            <div class="meta"><span>Closing</span></div>
+          </div>
+        </div>
+
+        <div class="add-slide">
+          <button><span class="glyph">+</span> New slide</button>
+          <button><span class="glyph">↳</span> Sub-slide</button>
+        </div>
+      </div>
+    </aside>
+
+    <!-- =========== § 02 STAGE =========== -->
+    <section class="panel stage-panel reveal r3">
+
+      <div class="stage-caption">
+        <span class="marquee">
+          <span class="glyph">✦</span>
+          Stage · dress rehearsal
+          <span class="glyph">✦</span>
+        </span>
+        <span class="stale-banner">
+          <span class="tag">Stale ⚠</span>
+          <span><b style="color:var(--ink); font-weight:600;">1 of 4 linked diagrams</b> changed since last rehearsal · <a>Review changes →</a></span>
+        </span>
+      </div>
+
+      <div class="stage-area">
+
+        <div class="stage-frame">
+          <div class="slide-stage">
+            <div class="slide-header">
+              <span class="kicker">act ii · the boundary</span>
+              <span class="pos">Slide <span class="cur">IV</span> of XII</span>
+            </div>
+
+            <div class="slide-body">
+              <div class="text-col">
+                <h1>Where <em>authentication</em> lives</h1>
+                <p class="deck">
+                  The SDK terminates traffic at the edge gateway, but <em>identity</em>
+                  belongs to the Auth API service — not the gateway, not the app shell.
+                  This boundary is the contract we'll defend tonight.
+                </p>
+                <ul>
+                  <li><b>SDK</b> — issues login intents, never holds long-lived tokens.</li>
+                  <li><b>Edge</b> — terminates TLS &amp; rate-limits. Stateless.</li>
+                  <li><b>Auth API</b> — sole authority on session &amp; MFA state.</li>
+                  <li><b>Token Svc</b> — vaulted secrets, short-lived JWTs.</li>
+                </ul>
+              </div>
+
+              <div class="diag-card">
+                <div class="head">
+                  <span class="ttl">Service boundary</span>
+                  <span class="live"><span class="blip"></span>Live</span>
+                </div>
+
+                <div class="stage-svg">
+                  <svg viewBox="0 0 380 220" xmlns="http://www.w3.org/2000/svg">
+                    <defs>
+                      <marker id="ar4-ink" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" class="par"/></marker>
+                      <marker id="ar4-br" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" class="par br"/></marker>
+                    </defs>
+
+                    <!-- subgraph: Trusted boundary -->
+                    <rect x="118" y="80" width="252" height="124" rx="6" fill="rgba(139, 22, 35, 0.04)" stroke="#8B1623" stroke-width="1" stroke-dasharray="3 3"/>
+                    <text x="128" y="95" font-family="serif" font-style="italic" font-size="10.5" fill="#8B1623">Trusted boundary</text>
+
+                    <!-- SDK -->
+                    <g transform="translate(10,90)">
+                      <rect class="pn" x="0" y="0" width="86" height="36" rx="5"/>
+                      <text class="pt" x="10" y="16">SDK</text>
+                      <text class="pt sub" x="10" y="28">client</text>
+                    </g>
+
+                    <!-- Edge -->
+                    <g transform="translate(130,100)">
+                      <rect class="pn dim" x="0" y="0" width="84" height="36" rx="5"/>
+                      <text class="pt" x="10" y="16">Edge</text>
+                      <text class="pt sub" x="10" y="28">gateway · TLS</text>
+                    </g>
+
+                    <!-- Auth API (current) -->
+                    <g transform="translate(232,108)">
+                      <rect class="pn cur" x="0" y="-2" width="120" height="44" rx="5"/>
+                      <text class="pt" x="10" y="16">Auth API</text>
+                      <text class="pt sub" x="10" y="28">/auth/* · sessions</text>
+                      <text class="pt sub" x="10" y="38">MFA state</text>
+                    </g>
+
+                    <!-- Token Svc -->
+                    <g transform="translate(252,164)">
+                      <rect class="pn br" x="0" y="0" width="100" height="32" rx="5"/>
+                      <text class="pt" x="10" y="14">Token Svc</text>
+                      <text class="pt sub" x="10" y="26">vault · JWT</text>
+                    </g>
+
+                    <!-- Datastore (out of boundary) -->
+                    <g transform="translate(10,164)">
+                      <rect class="pn dim" x="0" y="0" width="100" height="32" rx="5"/>
+                      <text class="pt" x="10" y="14">Datastore</text>
+                      <text class="pt sub" x="10" y="26">eventual</text>
+                    </g>
+
+                    <!-- Edges -->
+                    <path class="pe" d="M96 108 H130" marker-end="url(#ar4-ink)"/>
+                    <path class="pe" d="M214 118 H232" marker-end="url(#ar4-ink)"/>
+                    <path class="pe" d="M292 152 V164" marker-end="url(#ar4-ink)"/>
+                    <path class="pe dashed" d="M232 134 Q 160 168 110 174" marker-end="url(#ar4-br)"/>
+                    <text class="ple" x="160" y="166" fill="#B07F23" font-style="italic" font-family="serif">audit</text>
+
+                    <!-- Edge labels -->
+                    <rect class="pleg" x="100" y="98" width="28" height="12" rx="2"/>
+                    <text class="ple" x="114" y="107" text-anchor="middle">https</text>
+                    <rect class="pleg" x="216" y="108" width="20" height="12" rx="2"/>
+                    <text class="ple" x="226" y="117" text-anchor="middle">jwt</text>
+                  </svg>
+                </div>
+
+                <div class="src-link">
+                  <span><span class="v">linked</span> · architecture-overview.mmd</span>
+                  <a>open ›</a>
+                </div>
+              </div>
+            </div>
+
+            <div class="slide-footer">
+              <span class="deck-name">SDK Auth · Q2</span>
+              <span><span class="v">slide IV</span> · the boundary</span>
+              <span><span class="v">2026 · 05 · 10</span></span>
+            </div>
+          </div>
+        </div>
+
+        <!-- ribbon -->
+        <div class="ribbon">
+          <button class="nav"><span class="arr">‹</span> Prev</button>
+          <div class="strip">
+            <div class="thumb"><span class="n">i</span></div>
+            <div class="thumb"><span class="n">ii</span></div>
+            <div class="thumb"><span class="n">iii</span></div>
+            <div class="thumb is-on">
+              <span class="n">iv</span>
+              <svg viewBox="0 0 60 36" fill="none" stroke="currentColor" stroke-width="0.8">
+                <rect x="3" y="6" width="14" height="6" rx="1"/><rect x="23" y="6" width="14" height="6" rx="1"/><rect x="43" y="6" width="14" height="6" rx="1"/>
+                <rect x="13" y="22" width="14" height="6" rx="1" fill="currentColor" fill-opacity="0.18"/><rect x="33" y="22" width="14" height="6" rx="1"/>
+              </svg>
+            </div>
+            <div class="thumb"><span class="n">v</span><span class="nest">a · b · c</span></div>
+            <div class="thumb"><span class="n">vi</span></div>
+            <div class="thumb"><span class="n">vii</span></div>
+            <div class="thumb"><span class="n">viii</span></div>
+            <div class="thumb"><span class="n">ix</span></div>
+            <div class="thumb"><span class="n">x</span></div>
+            <div class="thumb"><span class="n">xi</span></div>
+            <div class="thumb"><span class="n">xii</span></div>
+          </div>
+          <span class="pos"><span class="cur">IV</span>/ XII</span>
+          <button class="nav">Next <span class="arr">›</span></button>
+        </div>
+
+        <!-- Markdown drawer -->
+        <div class="md-drawer">
+          <div class="md-head">
+            <span class="ttl"><span class="num">§ a</span>Source</span>
+            <span class="file">deck.md</span>
+            <div class="md-toolbar">
+              <button class="md-tool"><span class="glyph">+</span>Slide</button>
+              <button class="md-tool"><span class="glyph">↳</span>Sub-slide</button>
+              <span class="md-tool sep"></span>
+              <button class="md-tool" title="Bullet list">
+                <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="3" cy="4" r="1" fill="currentColor"/><circle cx="3" cy="8" r="1" fill="currentColor"/><circle cx="3" cy="12" r="1" fill="currentColor"/><line x1="6" y1="4" x2="13" y2="4"/><line x1="6" y1="8" x2="13" y2="8"/><line x1="6" y1="12" x2="13" y2="12"/></svg>
+                Bullet
+              </button>
+              <button class="md-tool" title="Numbered list">
+                <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4"><text x="1" y="5" font-size="4" fill="currentColor" stroke="none">1.</text><text x="1" y="9" font-size="4" fill="currentColor" stroke="none">2.</text><text x="1" y="13" font-size="4" fill="currentColor" stroke="none">3.</text><line x1="6" y1="4" x2="13" y2="4"/><line x1="6" y1="8" x2="13" y2="8"/><line x1="6" y1="12" x2="13" y2="12"/></svg>
+                Number
+              </button>
+              <button class="md-tool" title="Image">
+                <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="1" y="2" width="12" height="10"/><circle cx="5" cy="6" r="1.4"/><path d="M1 11l4-3 3 2 5-3"/></svg>
+                Image
+              </button>
+              <button class="md-tool" title="Table">
+                <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="1" y="2" width="12" height="10"/><line x1="1" y1="6" x2="13" y2="6"/><line x1="5" y1="2" x2="5" y2="12"/><line x1="9" y1="2" x2="9" y2="12"/></svg>
+                Table
+              </button>
+              <button class="md-tool" title="Link">
+                <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M5 9 L 9 5 M 6 4 a 2.5 2.5 0 0 1 4 0 v 1 M 8 10 a 2.5 2.5 0 0 1 -4 0 v -1"/></svg>
+                Link
+              </button>
+              <span class="md-tool sep"></span>
+              <button class="md-tool" title="Insert diagram">
+                <span class="glyph">✦</span>
+                Diagram
+              </button>
+            </div>
+          </div>
+
+          <div class="md-body">
+            <div class="md-code">
+              <div class="gut">
+                <span>22</span><span>23</span><span>24</span><span>25</span><span>26</span>
+                <span class="cur">27</span><span class="cur">28</span><span class="cur">29</span>
+                <span>30</span><span>31</span><span>32</span><span>33</span>
+              </div>
+              <div class="body">
+<span class="line sep">----</span>
+<span class="line"></span>
+<span class="line"><span class="h1"># Where <span class="em">_authentication_</span> lives</span></span>
+<span class="line"></span>
+<span class="line">The SDK terminates traffic at the edge gateway, but <span class="em">_identity_</span></span>
+<span class="line cur">belongs to the **Auth API** service — not the gateway, not the app shell.</span>
+<span class="line cur">This <span class="em">_boundary_</span> is the contract we'll defend tonight.</span>
+<span class="line cur"></span>
+<span class="line"><span class="li-mark">-</span> <span class="b">**SDK**</span> — issues login intents, never holds long-lived tokens.</span>
+<span class="line"><span class="li-mark">-</span> <span class="b">**Edge**</span> — terminates TLS &amp; rate-limits. Stateless.</span>
+<span class="line"><span class="li-mark">-</span> <span class="b">**Auth API**</span> — sole authority on session &amp; MFA state.</span>
+<span class="line"><span class="li-mark">-</span> <span class="b">**Token Svc**</span> — vaulted secrets, short-lived JWTs.</span>
+<span class="line"></span>
+<span class="line"><span class="merm">```mermaid : architecture-overview.mmd</span>  <span style="color: var(--mute); font-style: italic;">← linked, live</span></span>
+<span class="line sub">====</span>
+<span class="line"></span>
+<span class="line"><span class="h2">## v.a · Happy path</span></span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- =========== § 03 PROMPTER =========== -->
+    <aside class="panel prompter reveal r4">
+
+      <div class="sec-head">
+        <div>
+          <span class="num">§ 03</span>
+          <span class="title">Prompter<em>notes &amp; cues</em></span>
+        </div>
+        <span class="meta">slide IV</span>
+      </div>
+
+      <!-- Speaker notes (cue card) -->
+      <div class="prom-block">
+        <div class="prom-ttl">
+          <h3><span class="n">a.</span>Speaker notes</h3>
+          <span class="meta">cue card</span>
+        </div>
+        <div class="cue-card">
+          <div class="lab">From the wings</div>
+          <div class="note">
+            Open by <b>naming the contract</b> — "the gateway never holds identity."
+            Pause on the <b>Trusted boundary</b> dashed line; that's the visual the room
+            should remember. If anyone interrupts about Token Svc latency, hold it
+            for slide <b>VI</b>.
+          </div>
+          <div class="stamp">
+            <span>est. 90 s · 142 wpm</span>
+            <span>edited 4 m ago</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Linked diagrams -->
+      <div class="prom-block">
+        <div class="prom-ttl">
+          <h3><span class="n">b.</span>Linked diagrams</h3>
+          <span class="meta">4 in this deck</span>
+        </div>
+        <div class="linked-list">
+          <div class="linked-row">
+            <div class="ic">
+              <svg viewBox="0 0 22 14" fill="none" stroke="currentColor" stroke-width="0.9"><rect x="1" y="2" width="5" height="3" rx="1"/><rect x="9" y="2" width="5" height="3" rx="1"/><rect x="17" y="2" width="4" height="3" rx="1"/><rect x="6" y="9" width="5" height="3" rx="1"/><rect x="13" y="9" width="6" height="3" rx="1"/><path d="M6 4 H 9 M14 4 H 17 M11 5 V 9 M16 5 V 9"/></svg>
+            </div>
+            <div class="body">
+              <div class="name">architecture-overview.mmd</div>
+              <div class="sub"><span class="v">slide IV</span> · 5 nodes · updated 2 m ago</div>
+            </div>
+            <span class="badge live">● live</span>
+          </div>
+
+          <div class="linked-row">
+            <div class="ic">
+              <svg viewBox="0 0 22 14" fill="none" stroke="currentColor" stroke-width="0.9"><line x1="3" y1="2" x2="3" y2="13"/><line x1="9" y1="2" x2="9" y2="13"/><line x1="15" y1="2" x2="15" y2="13"/><line x1="21" y1="2" x2="21" y2="13"/><path d="M3 5 H9 M9 8 H15 M15 11 H21"/></svg>
+            </div>
+            <div class="body">
+              <div class="name">auth-flow.mmd</div>
+              <div class="sub"><span class="v">slide V · a/b/c</span> · sequence · 9 msgs</div>
+            </div>
+            <span class="badge live">● live</span>
+          </div>
+
+          <div class="linked-row stale">
+            <div class="ic">
+              <svg viewBox="0 0 22 14" fill="none" stroke="currentColor" stroke-width="0.9"><circle cx="3" cy="7" r="1.6"/><rect x="7" y="4" width="6" height="6" rx="1"/><rect x="15" y="4" width="6" height="6" rx="1"/></svg>
+            </div>
+            <div class="body">
+              <div class="name">token-state.mmd</div>
+              <div class="sub"><span class="v">slide VI</span> · diverged · 4 changes upstream</div>
+            </div>
+            <span class="badge stale">⚠ stale</span>
+          </div>
+
+          <div class="linked-row">
+            <div class="ic">
+              <svg viewBox="0 0 22 14" fill="none" stroke="currentColor" stroke-width="0.9"><rect x="1" y="2" width="9" height="2"/><rect x="6" y="6" width="11" height="2"/><rect x="9" y="10" width="12" height="2"/></svg>
+            </div>
+            <div class="body">
+              <div class="name">roadmap-q2-q4.mmd</div>
+              <div class="sub"><span class="v">slide VIII</span> · gantt · snapshot</div>
+            </div>
+            <span class="badge snap">snapshot</span>
+          </div>
+        </div>
+
+        <button class="insert-btn">
+          <span class="glyph">+</span>
+          Insert diagram from workspace
+        </button>
+      </div>
+
+      <!-- AI -->
+      <div class="prom-block">
+        <div class="prom-ttl">
+          <h3><span class="n">c.</span>Studio assistant</h3>
+          <span class="meta">PR-148 · 149</span>
+        </div>
+        <div class="ai-block">
+          <div class="ai-head">
+            <span class="ai-mark">✦</span>
+            <span class="ai-title">From the prompter</span>
+          </div>
+          <div class="ai-desc">
+            Generate notes, summaries, or bullets <em>from the diagram on this slide</em>.
+            Always written into editable Markdown — never image-only.
+          </div>
+          <div class="ai-actions">
+            <button><span class="glyph">▸</span>Generate speaker notes</button>
+            <button><span class="glyph">≡</span>Convert diagram → bullets</button>
+            <button><span class="glyph">∼</span>Summarize for the title slide</button>
+            <button><span class="glyph">↻</span>Generate deck outline from these diagrams</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Theme -->
+      <div class="prom-block">
+        <div class="prom-ttl">
+          <h3><span class="n">d.</span>Programme theme</h3>
+          <span class="meta">PR-107 · 111</span>
+        </div>
+        <div class="theme-row">
+          <button class="theme-opt is-on">
+            <span class="lab">Programme</span>
+            <span class="sub">cream · brass · curtain</span>
+          </button>
+          <button class="theme-opt">
+            <span class="lab">Lecture Hall</span>
+            <span class="sub">chalkboard · ivory</span>
+          </button>
+          <button class="theme-opt">
+            <span class="lab">Editorial</span>
+            <span class="sub">paper · vermillion</span>
+          </button>
+          <button class="theme-opt">
+            <span class="lab">Nocturne</span>
+            <span class="sub">midnight · cyan</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Export -->
+      <div class="prom-block">
+        <div class="prom-ttl">
+          <h3><span class="n">e.</span>Export</h3>
+          <span class="meta">PR-127 · 128 · 129</span>
+        </div>
+        <div class="export-grid">
+          <button class="ex">.md<span class="lab">markdown</span></button>
+          <button class="ex">.pdf<span class="lab">deck</span></button>
+          <button class="ex">.png<span class="lab">slides</span></button>
+        </div>
+        <div style="margin-top: 8px; font-family: var(--mono); font-size: 9px; color: var(--mute); letter-spacing: 0.06em; line-height: 1.45;">
+          PDF and PNG <b style="color: var(--ink-2);">snapshot</b> linked diagrams; .md keeps them <b style="color: var(--curtain);">live</b>.
+        </div>
+      </div>
+
+      <!-- Templates -->
+      <div class="prom-block" style="border-bottom: none;">
+        <div class="prom-ttl">
+          <h3><span class="n">f.</span>Programme templates</h3>
+          <span class="meta">PR-153</span>
+        </div>
+        <div class="tmpl-list">
+          <div class="tmpl">
+            <span class="roman">i.</span>
+            <div>
+              <span class="name">Architecture review</span>
+              <span class="sub">8 slides · 3 diagrams</span>
+            </div>
+            <span class="arrow">›</span>
+          </div>
+          <div class="tmpl">
+            <span class="roman">ii.</span>
+            <div>
+              <span class="name">Product strategy</span>
+              <span class="sub">6 slides · roadmap</span>
+            </div>
+            <span class="arrow">›</span>
+          </div>
+          <div class="tmpl">
+            <span class="roman">iii.</span>
+            <div>
+              <span class="name">Postmortem walkthrough</span>
+              <span class="sub">10 slides · timeline</span>
+            </div>
+            <span class="arrow">›</span>
+          </div>
+          <div class="tmpl">
+            <span class="roman">iv.</span>
+            <div>
+              <span class="name">Schema review</span>
+              <span class="sub">7 slides · ER + class</span>
+            </div>
+            <span class="arrow">›</span>
+          </div>
+          <div class="tmpl">
+            <span class="roman">v.</span>
+            <div>
+              <span class="name">Onboarding</span>
+              <span class="sub">12 slides · journey</span>
+            </div>
+            <span class="arrow">›</span>
+          </div>
+        </div>
+      </div>
+
+    </aside>
+  </main>
+
+  <!-- ============================ STATUS ============================ -->
+  <footer class="status reveal r6">
+    <div class="group">
+      <span><span class="lab">Mode</span> <span class="v">Edit · stage</span></span>
+      <span><span class="lab">Slide</span> <span class="v">IV / XII</span></span>
+      <span><span class="lab">Act</span> <span class="v">II — boundary</span></span>
+    </div>
+    <div class="group">
+      <span><span class="lab">Linked</span> <span class="v">3 live</span></span>
+      <span><span class="lab">Stale</span> <span class="v" style="color: var(--brass);">1 ⚠</span></span>
+      <span><span class="lab">Snapshot</span> <span class="v">1</span></span>
+    </div>
+    <div class="crumbs">
+      <span>Decks</span><span class="sep">/</span>
+      <span>SDK Auth</span><span class="sep">/</span>
+      <span class="cur">Q2 review · slide IV</span>
+    </div>
+    <div class="group">
+      <span><span class="lab">Render</span> <span class="v">142 ms</span></span>
+      <span><span class="lab">Theme</span> <span class="v">Programme</span></span>
+    </div>
+    <div class="group">
+      <span class="a11y" title="Reduced motion respected">⚐ a11y · ✓ keyboard · ✓ semantic headings · ✓ contrast 7.4</span>
+      <span><span class="lab">Saved</span> <span class="v">8 s ago</span></span>
+    </div>
+  </footer>
+
+</div>
+
+<script>
+  // Mode switch
+  document.querySelectorAll('.mode-btn').forEach((b) => {
+    b.addEventListener('click', () => {
+      document.querySelectorAll('.mode-btn').forEach((x) => x.classList.remove('is-on'));
+      b.classList.add('is-on');
+    });
+  });
+  // Slide selection (outline)
+  document.querySelectorAll('.slide-card').forEach((b) => {
+    b.addEventListener('click', (e) => {
+      e.stopPropagation();
+      document.querySelectorAll('.slide-card').forEach((x) => x.classList.remove('is-on'));
+      b.classList.add('is-on');
+    });
+  });
+  // Ribbon
+  document.querySelectorAll('.ribbon .thumb').forEach((b) => {
+    b.addEventListener('click', () => {
+      document.querySelectorAll('.ribbon .thumb').forEach((x) => x.classList.remove('is-on'));
+      b.classList.add('is-on');
+    });
+  });
+  // Theme picker
+  document.querySelectorAll('.theme-opt').forEach((b) => {
+    b.addEventListener('click', () => {
+      document.querySelectorAll('.theme-opt').forEach((x) => x.classList.remove('is-on'));
+      b.classList.add('is-on');
+    });
+  });
+</script>
+</body>
+</html>
