@@ -329,12 +329,12 @@
   .pn.cur { fill: var(--accent-bg); stroke: var(--accent); }
   .pn.dim { fill: var(--surface-2); stroke: var(--ink-4); }
   .pn.amber { fill: #FFFBEB; stroke: var(--type-gantt); }
-  .pt { font-family: var(--display); font-size: 10px; fill: var(--ink); font-weight: 500; }
-  .pt.sub { font-size: 8.5px; fill: var(--ink-3); font-weight: 400; }
-  .pe { fill: none; stroke: var(--ink-3); stroke-width: 1.2; }
+  .pt { font-family: var(--display); font-size: 12px; fill: var(--ink); font-weight: 500; }
+  .pt.sub { font-size: 10px; fill: var(--ink-3); font-weight: 400; }
+  .pe { fill: none; stroke: var(--ink-3); stroke-width: 1.4; }
   .pe.dashed { stroke-dasharray: 3 2; }
   .pe.amber { stroke: var(--type-gantt); }
-  .ple { font-family: var(--mono); font-size: 9px; fill: var(--ink-3); }
+  .ple { font-family: var(--mono); font-size: 10.5px; fill: var(--ink-3); }
   .pleg { fill: white; stroke: var(--border); stroke-width: 0.5; }
 
   .slide-footer {
@@ -415,9 +415,10 @@
     display: flex;
     flex-direction: column;
     overflow: hidden;
+    position: relative;
   }
   .md-head {
-    padding: 6px 16px;
+    padding: 6px 250px 6px 16px;
     background: var(--surface);
     border-bottom: 1px solid var(--border);
     display: flex;
@@ -430,10 +431,13 @@
     color: var(--ink);
     font-weight: 500;
   }
-  .md-head .toolbar {
-    margin-left: auto;
+  .md-drawer > .toolbar {
+    position: absolute;
+    top: 6px;
+    right: 16px;
     display: inline-flex;
     gap: 4px;
+    z-index: 1;
   }
   .md-tool {
     appearance: none;
@@ -670,7 +674,7 @@
       <span class="meta">Presentations</span>
     </div>
     <div class="title-actions">
-      <span class="save-state warn"><span class="dot"></span>1 stale</span>
+      <span class="save-state warn"><span class="dot"></span>1 stale diagram</span>
       <span class="tb-divider"></span>
       <div class="seg" style="margin-right: 4px;">
         <button>Outline</button>
@@ -685,7 +689,7 @@
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="6" cy="12" r="3"/><circle cx="18" cy="6" r="3"/><circle cx="18" cy="18" r="3"/><line x1="9" y1="11" x2="15" y2="7"/><line x1="9" y1="13" x2="15" y2="17"/></svg>
         Share
       </a>
-      <button class="tb-btn primary">
+      <button class="tb-btn primary" data-golden-path="present">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polygon points="6 4 20 12 6 20" fill="currentColor"/></svg>
         Present
       </button>
@@ -701,7 +705,7 @@
         <span class="ws">Eng</span>
       </div>
       <nav class="sb-body">
-        <div class="sb-section">Workspaces</div>
+        <div class="sb-section">Workstations</div>
         <a href="index.html" class="nav-pill">
           <span class="glyph"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 12L12 4l9 8M5 10v10h14V10"/></svg></span>
           Home
@@ -762,8 +766,6 @@
           <span class="cur">SDK Auth · Q2 review</span>
         </div>
         <div class="right">
-          <span class="pill">12 slides · 4 linked</span>
-          <span class="pill warn"><span class="dot"></span>1 diagram restricted</span>
         </div>
       </div>
 
@@ -771,12 +773,13 @@
         <div class="pr-grid">
 
           <!-- Outline -->
-          <aside class="pr-pane reveal r2">
+          <aside class="pr-pane pane-tertiary reveal r2">
             <div class="pane-head">
               <span class="ttl">Outline</span>
               <span class="meta">12 slides</span>
             </div>
             <div class="outline">
+              <div class="outline-items">
               <div class="act-bar">Opening</div>
 
               <div class="slide-card">
@@ -928,6 +931,8 @@
                 <button>+ Slide</button>
                 <button>↳ Sub</button>
               </div>
+              </div>
+              <div class="outline-empty" style="display:none; padding:20px; text-align:center; color:var(--ink-3); font-size:12px;">No slides matched</div>
             </div>
           </aside>
 
@@ -937,7 +942,24 @@
 
               <div class="stage-banner">
                 <span class="tag">Stale</span>
-                <span><b>1 of 4 linked diagrams</b> changed since last rehearsal · <a>Review changes →</a></span>
+                <span><b>1 stale linked diagram</b> — token-state.mmd has diverged. <a>Review changes →</a></span>
+              </div>
+
+              <div class="review-queue" style="padding: 8px 22px; background: var(--surface); border-bottom: 1px solid var(--border);">
+                <div style="font-size: 11px; font-weight: 600; color: var(--ink-3); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.04em;">Review queue · 1 stale</div>
+                <div class="review-item stale">
+                  <span class="status-icon stale">!</span>
+                  <div class="body">
+                    <span class="name">token-state.mmd</span>
+                    <span class="meta">Slide 6 · <span class="v">4 changes</span> since last reviewed · diverged 1h ago</span>
+                  </div>
+                  <div class="actions">
+                    <button class="warn">Compare old/new</button>
+                    <button class="primary">Accept update</button>
+                    <button>Keep snapshot</button>
+                    <button>Update all deck refs</button>
+                  </div>
+                </div>
               </div>
 
               <div class="stage-frame">
@@ -1054,17 +1076,17 @@
                 <button class="nav">Next ›</button>
               </div>
 
-              <div class="md-drawer">
-                <div class="md-head">
-                  <span style="font-size: 11px; color: var(--ink-3); font-weight: 600;">SOURCE</span>
+              <details class="md-drawer">
+                <summary class="md-head" style="cursor: pointer; list-style: none;">
+                  <span style="font-size: 11px; color: var(--ink-3); font-weight: 600;">SOURCE ▸</span>
                   <span class="file">deck.md</span>
-                  <div class="toolbar">
-                    <button class="md-tool">+ Slide</button>
-                    <button class="md-tool">↳ Sub</button>
-                    <button class="md-tool"><svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="3" cy="4" r="1" fill="currentColor"/><circle cx="3" cy="8" r="1" fill="currentColor"/><circle cx="3" cy="12" r="1" fill="currentColor"/><line x1="6" y1="4" x2="13" y2="4"/><line x1="6" y1="8" x2="13" y2="8"/><line x1="6" y1="12" x2="13" y2="12"/></svg>Bullet</button>
-                    <button class="md-tool"><svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="1" y="2" width="12" height="10"/><circle cx="5" cy="6" r="1.4"/><path d="M1 11l4-3 3 2 5-3"/></svg>Image</button>
-                    <button class="md-tool">✦ Diagram</button>
-                  </div>
+                </summary>
+                <div class="toolbar">
+                  <button class="md-tool">+ Slide</button>
+                  <button class="md-tool">↳ Sub</button>
+                  <button class="md-tool"><svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="3" cy="4" r="1" fill="currentColor"/><circle cx="3" cy="8" r="1" fill="currentColor"/><circle cx="3" cy="12" r="1" fill="currentColor"/><line x1="6" y1="4" x2="13" y2="4"/><line x1="6" y1="8" x2="13" y2="8"/><line x1="6" y1="12" x2="13" y2="12"/></svg>Bullet</button>
+                  <button class="md-tool"><svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="1" y="2" width="12" height="10"/><circle cx="5" cy="6" r="1.4"/><path d="M1 11l4-3 3 2 5-3"/></svg>Image</button>
+                  <button class="md-tool">✦ Diagram</button>
                 </div>
                 <div class="md-body">
                   <div class="code-host">
@@ -1087,12 +1109,12 @@
                     </div>
                   </div>
                 </div>
-              </div>
+              </details>
             </div>
           </section>
 
           <!-- Prompter -->
-          <aside class="pr-pane reveal r4" style="border-right: none;">
+          <aside class="pr-pane pane-secondary reveal r4" style="border-right: none;">
             <div class="pane-head">
               <span class="ttl">Notes</span>
               <span class="meta">slide 4</span>
@@ -1146,7 +1168,7 @@
                       <div class="name">roadmap-q2-q4.mmd</div>
                       <div class="sub"><span class="v">slide 8</span> · gantt · snapshot</div>
                     </div>
-                    <span class="pill">Snap</span>
+                    <span class="pill">Snapshot</span>
                   </div>
                 </div>
                 <a href="playground.html" class="insert-btn">+ Insert from workspace</a>
@@ -1234,5 +1256,6 @@
   });
 </script>
 
+<script src="assets/prototype.js"></script>
 </body>
 </html>

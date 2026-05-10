@@ -351,6 +351,13 @@
     font-size: 11px;
     color: var(--ink-3);
   }
+  .role-menu .opt .body .caps {
+    display: block;
+    font-size: 10px;
+    color: var(--ink-4);
+    margin-top: 2px;
+    font-weight: 500;
+  }
   .role-menu .opt .gate {
     font-size: 9.5px;
     color: #7C3AED;
@@ -693,7 +700,7 @@
         <span class="ws">Eng</span>
       </div>
       <nav class="sb-body">
-        <div class="sb-section">Workspaces</div>
+        <div class="sb-section">Workstations</div>
         <a href="index.html" class="nav-pill">
           <span class="glyph"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 12L12 4l9 8M5 10v10h14V10"/></svg></span>
           Home
@@ -837,24 +844,14 @@
                   <div class="role-menu" role="menu" aria-label="Role">
                     <div class="opt">
                       <span class="ic">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3l9 5-9 5-9-5z"/><path d="M3 14l9 5 9-5"/></svg>
-                      </span>
-                      <div class="body">
-                        <span class="name">Owner</span>
-                        <span class="desc">Full control · share, rename, delete</span>
-                      </div>
-                      <span></span>
-                      <span class="check">●</span>
-                    </div>
-                    <div class="opt">
-                      <span class="ic">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 21v-4l13-13 4 4L7 21H3z"/></svg>
                       </span>
                       <div class="body">
                         <span class="name">Editor</span>
                         <span class="desc">Edit source · co-edit in real time</span>
+                        <span class="caps">Can: edit source, comment, export</span>
                       </div>
-                      <span class="gate">Premium</span>
+                      <span></span>
                       <span class="check">●</span>
                     </div>
                     <div class="opt is-on">
@@ -864,6 +861,7 @@
                       <div class="body">
                         <span class="name">Commenter</span>
                         <span class="desc">View · leave comments · @mention</span>
+                        <span class="caps">Can: view, comment, suggest</span>
                       </div>
                       <span></span>
                       <span class="check">●</span>
@@ -875,6 +873,7 @@
                       <div class="body">
                         <span class="name">Viewer</span>
                         <span class="desc">Read-only · no comments · no export</span>
+                        <span class="caps">Can: view only</span>
                       </div>
                       <span></span>
                       <span class="check">●</span>
@@ -886,6 +885,11 @@
                   <div class="sx-head">
                     <h3>People with access</h3>
                     <em>4 collaborators · 1 pending</em>
+                  </div>
+
+                  <div class="alert-info" style="margin-bottom: 8px;">
+                    <span class="icon">i</span>
+                    <span><b>Click a collaborator</b> to see what they can access. Permission preview shows edit, comment, export, source visibility, and external restrictions.</span>
                   </div>
 
                   <div class="collab-list">
@@ -936,17 +940,6 @@
                     </div>
                   </div>
 
-                  <div class="alert">
-                    <span class="ic">!</span>
-                    <div class="body">
-                      <span class="ttl">External sharing in progress</span>
-                      <span class="desc">
-                        <b>rajiv@partner-co.io</b> is outside <b>Engineering</b>. <em>Workspace policy:</em> external sharing allowed for approved domains only — <b>partner-co.io</b> matches the allowlist.
-                      </span>
-                    </div>
-                    <button class="cta">Confirm</button>
-                  </div>
-
                 </div>
 
                 <!-- RIGHT -->
@@ -961,7 +954,7 @@
                     <div class="lhead">
                       <span class="name">
                         <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M16 4l4 4-12 12H4v-4z"/></svg></span>
-                        Editor link
+                        Diagram link
                       </span>
                       <input type="checkbox" class="switch gold" checked />
                     </div>
@@ -977,8 +970,8 @@
                       </button>
                     </div>
                     <div class="opts">
-                      <div class="o"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="3"/><circle cx="12" cy="12" r="9"/></svg></span><span class="lab">opens as</span><span class="v">Viewer</span></div>
-                      <div class="o"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="4" y="6" width="16" height="14" rx="2"/></svg></span><span class="lab">opens in</span><span class="v">Editor</span></div>
+                      <div class="o"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="3"/><circle cx="12" cy="12" r="9"/></svg></span><span class="lab">Permission</span><span class="v">Viewer</span></div>
+                      <div class="o"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="4" y="6" width="16" height="14" rx="2"/></svg></span><span class="lab">Destination</span><span class="v">Editor</span></div>
                       <div class="o"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 1l3 6 6 1-4 4 1 6-6-3-6 3 1-6-4-4 6-1z"/></svg></span><span class="lab">requires</span><span class="v">Sign-in</span></div>
                       <div class="o"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg></span><span class="lab">expires</span><span class="v">7 days</span></div>
                     </div>
@@ -1023,12 +1016,11 @@
                   <div class="alert violet">
                     <span class="ic">✦</span>
                     <div class="body">
-                      <span class="ttl">Co-editing requires Premium</span>
+                      <span class="ttl">Studio feature enabled</span>
                       <span class="desc">
-                        Two of your invitees are marked as <b>Editor</b>. Real-time co-editing and external sharing are <em>Premium-plan</em> features. Your workspace is on <b>Plus</b> — collaborators will be downgraded to <b>Commenter</b> until you upgrade.
+                        Real-time co-editing and external sharing are <em>Studio-plan</em> features. Your workspace is on <b>Studio</b> — collaborators have full editing access.
                       </span>
                     </div>
-                    <button class="cta">Upgrade</button>
                   </div>
 
                   <div class="alert gold">
@@ -1042,16 +1034,33 @@
                     <a class="cta" href="settings.html">Review</a>
                   </div>
 
+                  <div class="alert" style="background: #FEF2F2; border-color: #FECACA; margin-top: 8px;">
+                    <span class="ic" style="background: #EF4444;">!</span>
+                    <div class="body">
+                      <span class="ttl">Blocked: external sharing restricted</span>
+                      <span class="desc">
+                        When policy blocks sharing, external collaborators lose access immediately. Affected users see <b>"Access denied by workspace policy"</b> and shared links for this diagram <em>stop resolving</em> for unapproved domains.
+                      </span>
+                    </div>
+                  </div>
+
                 </div>
               </div>
 
               <footer class="share-foot">
+                <div class="alert" style="flex: 1; margin: 0 12px 0 0; padding: 6px 10px; border-radius: 6px;">
+                  <span class="ic" style="width: 16px; height: 16px; font-size: 9px;">!</span>
+                  <div class="body">
+                    <span class="ttl" style="font-size: 11.5px;">External sharing in progress</span>
+                    <span class="desc" style="font-size: 10.5px;">
+                      <b>rajiv@partner-co.io</b> is outside <b>Engineering</b>. <em>Workspace policy:</em> partner-co.io matches the allowlist.
+                    </span>
+                  </div>
+                  <button class="cta" style="font-size: 10.5px; padding: 4px 10px;">Confirm external share</button>
+                </div>
                 <span class="plan-pill">
                   <span class="icon">✦</span>
-                  Plus plan · view + comment
-                </span>
-                <span class="helper">
-                  Last share event · <b>14m ago — Kai promoted Priya to Commenter</b>
+                  Studio plan · full editing + external sharing
                 </span>
                 <div class="footer-actions">
                   <button class="btn">Manage links</button>
@@ -1068,5 +1077,6 @@
   </div>
 </div>
 
+<script src="assets/prototype.js"></script>
 </body>
 </html>

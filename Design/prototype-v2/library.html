@@ -625,7 +625,7 @@
         <span class="ws">Eng</span>
       </div>
       <nav class="sb-body">
-        <div class="sb-section">Workspaces</div>
+        <div class="sb-section">Workstations</div>
         <a href="index.html" class="nav-pill">
           <span class="glyph"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 12L12 4l9 8M5 10v10h14V10"/></svg></span>
           Home
@@ -697,6 +697,11 @@
                 <span>All diagrams</span>
                 <span class="ct">47</span>
               </div>
+              <div style="padding: 3px 8px; margin-bottom: 4px; display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
+                <span style="font-size: 11px; color: var(--ink-3);">Browse</span>
+                <span class="pill" style="font-size: 11px; cursor: default;">Folder: Architecture</span>
+                <span style="font-size: 11px; color: var(--ink-3);">· 12 diagrams</span>
+              </div>
               <div class="view-row">
                 <span class="ic"><svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="7" cy="7" r="6"/><path d="M7 4v3l2 2"/></svg></span>
                 <span>Recent</span>
@@ -748,7 +753,7 @@
                         <span></span>
                         <span class="ic"><svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M1 4l2-2h3l2 2h5v8H1z"/></svg></span>
                         <span>Architecture</span>
-                        <span class="ct">12</span>
+                        <span class="ct" style="background: var(--accent-bg); color: var(--accent); padding: 1px 6px; border-radius: 3px;">12</span>
                       </div>
                     </li>
                     <li>
@@ -833,37 +838,41 @@
                 </span>
               </div>
 
-              <div class="stats-strip">
-                <div class="stat"><div class="lab">Total</div><div class="v">47</div></div>
-                <div class="stat"><div class="lab">Shared</div><div class="v" style="color: var(--accent);">12</div></div>
-                <div class="stat"><div class="lab">Stale</div><div class="v warn">3</div></div>
-                <div class="stat"><div class="lab">AI</div><div class="v violet">8</div></div>
-                <div class="stat"><div class="lab">In decks</div><div class="v live">6</div></div>
+              <details style="padding: 8px 18px; background: var(--surface-2); border-bottom: 1px solid var(--border);">
+                <summary style="font-size: 12px; color: var(--ink-3); cursor: pointer; font-weight: 500;">Workspace stats: 47 total · 12 shared · 3 stale · 8 AI · 6 in decks</summary>
+                <div class="stats-strip" style="margin-top: 8px; padding: 0; background: none; border-bottom: none;">
+                  <div class="stat"><div class="lab">Total</div><div class="v">47</div></div>
+                  <div class="stat"><div class="lab">Shared</div><div class="v" style="color: var(--accent);">12</div></div>
+                  <div class="stat"><div class="lab">Stale</div><div class="v warn">3</div></div>
+                  <div class="stat"><div class="lab">AI</div><div class="v violet">8</div></div>
+                  <div class="stat"><div class="lab">In decks</div><div class="v live">6</div></div>
+                </div>
+              </details>
+
+              <div style="padding: 14px 18px 0; display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                <div style="display: inline-flex; background: var(--surface); border: 1px solid var(--border); border-radius: 6px; overflow: hidden; box-shadow: var(--shadow-card);">
+                  <button class="btn primary" style="border: none; border-radius: 5px 0 0 5px;">+ New diagram</button>
+                  <button class="btn ghost" style="border-radius: 0 5px 5px 0; border-left: 1px solid var(--border);">▾</button>
+                </div>
+                <a href="#" class="chip" style="display: inline-flex; align-items: center; text-decoration: none; font-size: 12px;">Blank</a>
+                <a href="ai.html" class="chip" style="display: inline-flex; align-items: center; text-decoration: none; font-size: 12px; color: #7C3AED; border-color: rgba(124, 58, 237, 0.32); background: rgba(124, 58, 237, 0.06);">✦ From AI</a>
+                <a href="visual.html" class="chip" style="display: inline-flex; align-items: center; text-decoration: none; font-size: 12px;">Visual</a>
+                <a href="#" class="chip" style="display: inline-flex; align-items: center; text-decoration: none; font-size: 12px;">From sample</a>
               </div>
 
-              <div class="new-panel">
-                <h3>New diagram</h3>
-                <div class="new-grid">
-                  <a href="playground.html">
-                    <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="4" y="4" width="16" height="16" rx="1"/><path d="M9 10h6M9 14h6"/></svg></span>
-                    <span class="ttl">Blank</span>
-                    <span class="desc">code editor · default theme</span>
-                  </a>
-                  <a href="ai.html">
-                    <span class="ic violet"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l1.6 4.4L18 8l-4.4 1.6L12 14l-1.6-4.4L6 8l4.4-1.6z"/></svg></span>
-                    <span class="ttl">From AI</span>
-                    <span class="desc">prompt → diagram · 32/50</span>
-                  </a>
-                  <a href="visual.html">
-                    <span class="ic teal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="6" y="6" width="12" height="12" rx="1"/><path d="M5 3l3 3M19 3l-3 3M5 21l3-3M19 21l-3-3"/></svg></span>
-                    <span class="ttl">Visual</span>
-                    <span class="desc">drag · connect · flowchart</span>
-                  </a>
-                  <a href="playground.html">
-                    <span class="ic amber"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg></span>
-                    <span class="ttl">From sample</span>
-                    <span class="desc">396 in 28 families</span>
-                  </a>
+              <!-- Empty state: shown when no results match filters -->
+              <div class="state-empty-inline" style="grid-column: 1 / -1; margin: 16px 0;" hidden data-lib-empty>
+                No diagrams match <code data-lib-empty-query></code>. Try adjusting your search or <a href="#" onclick="document.querySelector('.lib-toolbar input').value=''; document.querySelector('.lib-toolbar input').dispatchEvent(new Event('input')); return false;">clear filters</a>.
+              </div>
+
+              <!-- Error state: shown when library fails to load -->
+              <div class="state-error" style="grid-column: 1 / -1; margin: 16px 0; display: none;" data-lib-error>
+                <div class="icon">!</div>
+                <h3>Couldn't load diagrams</h3>
+                <p>The library couldn't be reached. Your local drafts are safe but remote content is unavailable.</p>
+                <div class="actions">
+                  <button class="btn primary">Retry</button>
+                  <button class="btn">Work offline</button>
                 </div>
               </div>
 
@@ -1088,7 +1097,7 @@
           </section>
 
           <!-- Inspector -->
-          <aside class="lib-pane reveal r4" style="border-right: none;">
+          <aside class="lib-pane pane-secondary reveal r4" style="border-right: none;">
             <div class="insp">
               <div class="insp-head">
                 <div class="tag">Selected · diagram</div>
@@ -1259,5 +1268,6 @@
   });
 </script>
 
+<script src="assets/prototype.js"></script>
 </body>
 </html>

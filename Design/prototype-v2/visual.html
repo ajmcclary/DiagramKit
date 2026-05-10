@@ -600,7 +600,7 @@
         <span class="ws">Eng</span>
       </div>
       <nav class="sb-body">
-        <div class="sb-section">Workspaces</div>
+        <div class="sb-section">Workstations</div>
         <a href="index.html" class="nav-pill">
           <span class="glyph"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 12L12 4l9 8M5 10v10h14V10"/></svg></span>
           Home
@@ -850,6 +850,7 @@
                 </svg>
               </div>
 
+              <!-- Default editing state: contextual toolbar only -->
               <div class="ctx-toolbar" style="left: calc(50% - 100px); top: 198px;">
                 <button class="ctx-btn"><svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="2" y="3" width="10" height="8" rx="1"/></svg>Shape</button>
                 <button class="ctx-btn"><span class="ctx-swatch" style="background:#0891B2"></span>Fill</button>
@@ -861,29 +862,31 @@
                 <button class="ctx-btn danger"><svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M3 4h8M5 4V2h4v2M5 4v8h4V4"/></svg>Delete</button>
               </div>
 
-              <div class="ctx-menu" style="left: calc(50% + 80px); top: 320px;">
-                <div class="grp">Lint &amp; type-check</div>
-                <div class="item"><span class="ic"><svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M3 11l8-8 2 2-8 8H3z"/></svg></span><span>Edit label</span><span class="kbd">↩</span></div>
-                <div class="item"><span class="ic"><svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="1" y="3" width="6" height="8"/><polygon points="7 3 13 7 7 11"/></svg></span><span>Convert shape</span><span></span></div>
-                <div class="item"><span class="ic"><svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="7" cy="7" r="4"/></svg></span><span>Style…</span><span></span></div>
-                <div class="item"><span class="ic"><svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="4" cy="4" r="1.5"/><circle cx="10" cy="10" r="1.5"/><line x1="4" y1="4" x2="10" y2="10"/></svg></span><span>Connect to…</span><span class="kbd">E</span></div>
-                <div class="item"><span class="ic"><svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="2" y="2" width="6" height="6"/><rect x="6" y="6" width="6" height="6"/></svg></span><span>Group into subgraph</span><span class="kbd">⌘G</span></div>
-                <div class="sep"></div>
-                <div class="item"><span class="ic"><svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="3" y="3" width="8" height="8"/><rect x="6" y="6" width="8" height="8"/></svg></span><span>Duplicate</span><span class="kbd">⌘D</span></div>
-                <div class="sep"></div>
-                <div class="item danger"><span class="ic"><svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M3 4h8M5 4V2h4v2M5 4v8h4V4"/></svg></span><span>Delete node</span><span class="kbd">⌫</span></div>
+              <!-- Context menu and label editor hidden in default state;
+                   visible only when right-click or ↩ is triggered -->
+              <!--
+              <div class="ctx-menu" style="left: calc(50% + 80px); top: 320px;">…</div>
+              <div class="label-edit" style="left: calc(50% - 30px); top: 280px;">…</div>
+              -->
+
+              <!-- Source safety bar -->
+              <div class="source-safety-bar" style="position: absolute; bottom: 52px; left: 50%; transform: translateX(-50%); width: max-content; max-width: 90%; z-index: 3;">
+                <span class="status-icon modified">↻</span>
+                <div class="info">
+                  <span class="ttl">Source will be modified</span>
+                  <span class="desc">Visual edits restructure Mermaid source. <b>Semantic meaning preserved</b> · whitespace normalized.</span>
+                </div>
+                <div class="safety-actions">
+                  <button class="safety-diff-btn">Review diff</button>
+                  <button class="primary safety-apply-btn">Apply</button>
+                </div>
               </div>
 
-              <div class="label-edit" style="left: calc(50% - 30px); top: 280px;">
-                <span class="lab">Label</span>
-                Build &amp; cache deps
-              </div>
-
-              <div class="normalize-banner">
-                <span class="tag">Heads up</span>
+              <div class="normalize-banner" style="bottom: 98px;">
+                <span class="tag">Note</span>
                 <span>
-                  Visual edits will normalize your <b>Mermaid source</b> formatting.
-                  <a>Preview the changes</a>
+                  Visual edits may reformat your <b>Mermaid source</b>.
+                  <a class="safety-diff-link" style="cursor: pointer;">Preview source changes</a>
                   before applying.
                 </span>
               </div>
@@ -894,15 +897,17 @@
           </section>
 
           <!-- Inspector -->
-          <aside class="ve-pane reveal r4" style="border-right: none;">
+          <aside class="ve-pane pane-secondary reveal r4" style="border-right: none;">
             <div class="insp">
               <div class="insp-head">
                 <div class="tag">Selected · node</div>
                 <h2>Build &amp; cache deps</h2>
                 <div class="meta">
-                  id <span class="v">Build</span>
-                  <span>·</span>
-                  flowchart node
+                  <div style="display: grid; gap: 3px; margin-top: 4px;">
+                    <div style="font-size: 12px;"><span style="color: var(--ink-3);">ID</span> <span class="v">Build</span></div>
+                    <div style="font-size: 12px;"><span style="color: var(--ink-3);">Label</span> <span style="font-weight: 500; color: var(--ink);">"Build &amp; cache deps"</span></div>
+                    <div style="font-size: 12px;"><span style="color: var(--ink-3);">Type</span> <span style="font-weight: 500; color: var(--ink);">flowchart node</span></div>
+                  </div>
                 </div>
               </div>
 
@@ -1017,5 +1022,6 @@
   });
 </script>
 
+<script src="assets/prototype.js"></script>
 </body>
 </html>

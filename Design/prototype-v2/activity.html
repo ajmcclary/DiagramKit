@@ -365,6 +365,21 @@
   }
   .event .actions button:hover, .event .actions a:hover { background: var(--surface); color: var(--ink); }
   .event .actions .gold { color: var(--warn); border-color: var(--warn-bd); background: var(--warn-bg); }
+  .event .actions .compare-btn {
+    color: var(--accent);
+    border-color: var(--accent-bd);
+    background: var(--accent-bg);
+    font-weight: 500;
+  }
+  .event .actions .compare-btn:hover { background: var(--accent); color: white; }
+  .event .actions .primary-restore {
+    background: var(--warn);
+    border-color: var(--warn);
+    color: white;
+    font-weight: 600;
+    padding: 4px 12px;
+  }
+  .event .actions .primary-restore:hover { background: var(--warn-hover, #D97706); border-color: var(--warn-hover, #D97706); }
 
   .event .av-row {
     display: flex;
@@ -415,6 +430,73 @@
     font-size: 11.5px;
     color: var(--accent);
     cursor: pointer;
+  }
+
+  /* Session group */
+  .session-group {
+    border: 1px solid var(--border);
+    border-radius: 9px;
+    overflow: hidden;
+    margin-bottom: 8px;
+  }
+  .session-group .group-head {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    background: var(--surface-2);
+    border-bottom: 1px solid var(--border);
+    font-size: 11.5px;
+    color: var(--ink-2);
+    cursor: pointer;
+    user-select: none;
+  }
+  .session-group .group-head .summary {
+    font-weight: 600;
+    color: var(--ink);
+    flex: 1;
+  }
+  .session-group .group-head .chev {
+    color: var(--ink-3);
+    transition: transform 120ms;
+  }
+  .session-group.open .group-head .chev { transform: rotate(180deg); }
+  .session-group .group-body {
+    display: none;
+    padding: 4px 8px 8px;
+  }
+  .session-group.open .group-body { display: block; }
+  .session-group .group-body .event {
+    margin-bottom: 2px;
+  }
+
+  /* Decision pill */
+  .decision-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 10.5px;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 999px;
+    border: 1px solid;
+    white-space: nowrap;
+    margin-left: 2px;
+  }
+  .decision-pill.needs-reply {
+    color: var(--accent);
+    border-color: var(--accent-bd);
+    background: var(--accent-bg);
+  }
+  .decision-pill.restorable {
+    color: #7C3AED;
+    border-color: rgba(124, 58, 237, 0.32);
+    background: rgba(124, 58, 237, 0.06);
+  }
+  .decision-pill.stale-deck {
+    color: var(--warn);
+    border-color: var(--warn-bd);
+    background: var(--warn-bg);
   }
 
   /* Inspector */
@@ -598,7 +680,7 @@
       <span class="meta">Engineering</span>
     </div>
     <div class="title-actions">
-      <span class="save-state live"><span class="dot"></span>3 unread · live</span>
+      <span class="save-state live"><span class="dot"></span>12 events · 3 unread</span>
       <span class="tb-divider"></span>
       <button class="tb-btn">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
@@ -620,7 +702,7 @@
         <span class="ws">Eng</span>
       </div>
       <nav class="sb-body">
-        <div class="sb-section">Workspaces</div>
+        <div class="sb-section">Workstations</div>
         <a href="index.html" class="nav-pill">
           <span class="glyph"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 12L12 4l9 8M5 10v10h14V10"/></svg></span>
           Home
@@ -681,7 +763,7 @@
               <div class="scope-row is-on">
                 <span class="ic"><svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="1" y="1" width="12" height="9" rx="1"/><path d="M5 13h4"/></svg></span>
                 <span>This diagram</span>
-                <span class="ct unread">12</span>
+                <span class="ct">12</span>
               </div>
               <div class="scope-row">
                 <span class="ic"><svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="1" y="1" width="5" height="5"/><rect x="8" y="1" width="5" height="5"/><rect x="1" y="8" width="5" height="5"/><rect x="8" y="8" width="5" height="5"/></svg></span>
@@ -732,7 +814,7 @@
               </div>
 
               <div class="rail-section">Actors</div>
-              <div class="actor-row is-on"><span class="av">A</span><span class="name">You</span><span class="ct">28</span></div>
+              <div class="actor-row"><span class="av">A</span><span class="name">You</span><span class="ct">28</span></div>
               <div class="actor-row"><span class="av teal">M</span><span class="name">Mira K.</span><span class="ct">19</span></div>
               <div class="actor-row"><span class="av amber">J</span><span class="name">Jordan O.</span><span class="ct">11</span></div>
               <div class="actor-row"><span class="av violet">N</span><span class="name">Nico T.</span><span class="ct">7</span></div>
@@ -796,6 +878,7 @@
                       <span class="b cat-cmt">comment</span>
                       <span class="b unread">unread</span>
                       <span class="mention-tag">@mention</span>
+                      <span class="decision-pill needs-reply">Needs reply</span>
                     </div>
                     <div class="actions">
                       <button>Reply</button>
@@ -825,34 +908,75 @@
                       <span class="b cat-ai">ai · refined</span>
                       <span class="b unread">unread</span>
                       <span class="b restorable">restorable</span>
+                      <span class="decision-pill restorable">Restorable</span>
                     </div>
                     <div class="actions">
-                      <button>Compare versions</button>
-                      <button class="gold">Restore previous</button>
+                      <a class="compare-btn" onclick="prototypeDemo.openSourceDiffModal('auth-flow-v3', 'ai-refine-14m'); return false;" href="#">Compare versions</a>
+                      <button class="gold primary-restore">Restore previous</button>
                       <button>Open</button>
                     </div>
                   </div>
                 </div>
 
-                <div class="event">
-                  <div class="rail">
-                    <div class="ic edit">↻</div>
-                    <div class="line"></div>
+                <div class="session-group open">
+                  <div class="group-head">
+                    <span class="summary">Edit session · 14 changes in 12m</span>
+                    <span class="chev">▾</span>
                   </div>
-                  <div class="body">
-                    <div class="row1">
-                      <span class="actor you">You</span>
-                      <span class="summary">edited <a href="library.html">Pull-Request Lifecycle</a> · <b>14 changes in 12m</b></span>
-                      <span class="ts">28m</span>
+                  <div class="group-body">
+                    <div class="event">
+                      <div class="rail">
+                        <div class="ic edit">↻</div>
+                        <div class="line"></div>
+                      </div>
+                      <div class="body">
+                        <div class="row1">
+                          <span class="actor you">You</span>
+                          <span class="summary">edited <a href="library.html">Pull-Request Lifecycle</a> · <b>14 changes in 12m</b></span>
+                          <span class="ts">28m</span>
+                        </div>
+                        <div class="badges">
+                          <span class="b cat-edit">visual editor</span>
+                          <span class="b">14 source · 3 visual</span>
+                          <span class="b restorable">restorable</span>
+                        </div>
+                        <div class="expand">
+                          <span>▾</span>
+                          Expand session details
+                        </div>
+                      </div>
                     </div>
-                    <div class="badges">
-                      <span class="b cat-edit">visual editor</span>
-                      <span class="b">14 source · 3 visual</span>
-                      <span class="b restorable">restorable</span>
+                    <div class="event">
+                      <div class="rail">
+                        <div class="ic edit">↻</div>
+                        <div class="line"></div>
+                      </div>
+                      <div class="body">
+                        <div class="row1">
+                          <span class="actor you">You</span>
+                          <span class="summary">repositioned <b>Lint &amp; type-check</b> node</span>
+                          <span class="ts">26m</span>
+                        </div>
+                        <div class="badges">
+                          <span class="b cat-edit">visual</span>
+                        </div>
+                      </div>
                     </div>
-                    <div class="expand">
-                      <span>▾</span>
-                      Expand session details
+                    <div class="event">
+                      <div class="rail">
+                        <div class="ic edit">↻</div>
+                        <div class="line"></div>
+                      </div>
+                      <div class="body">
+                        <div class="row1">
+                          <span class="actor you">You</span>
+                          <span class="summary">added edge <b>Review → Merge</b></span>
+                          <span class="ts">22m</span>
+                        </div>
+                        <div class="badges">
+                          <span class="b cat-edit">source</span>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -1108,6 +1232,7 @@
                     </div>
                     <div class="badges">
                       <span class="b cat-deck">stale</span>
+                      <span class="decision-pill stale-deck">Stale in deck</span>
                     </div>
                     <div class="actions">
                       <button>Review changes</button>
@@ -1120,7 +1245,7 @@
           </section>
 
           <!-- Inspector -->
-          <aside class="ac-pane reveal r4" style="border-right: none;">
+          <aside class="ac-pane pane-secondary reveal r4" style="border-right: none;">
             <div class="insp">
               <div class="insp-head">
                 <div class="tag">Selected · event</div>
@@ -1154,6 +1279,27 @@
               </div>
 
               <div class="insp-block">
+                <h3>Decision support</h3>
+                <div class="notif-card">
+                  <div class="row">
+                    <span style="color: var(--accent);">@</span>
+                    <span><b>Unresolved</b> items need attention</span>
+                    <span class="v">2</span>
+                  </div>
+                  <div class="row">
+                    <span style="color: #7C3AED;">✦</span>
+                    <span>Restorable <b>AI edits</b> available</span>
+                    <span class="v">1</span>
+                  </div>
+                  <div class="row">
+                    <span style="color: var(--warn);">▸</span>
+                    <span>Stale <b>deck links</b> detected</span>
+                    <span class="v">1</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="insp-block">
                 <h3>Details</h3>
                 <div class="meta-row"><span class="k">Actor</span><span class="v"><span class="av teal">M</span>Mira K.</span></div>
                 <div class="meta-row"><span class="k">Event</span><span class="v" style="font-family: var(--mono); font-size: 11.5px;">comment.mention</span></div>
@@ -1165,13 +1311,25 @@
               </div>
 
               <div class="insp-block">
-                <h3>Linked diff</h3>
+                <h3>Actions</h3>
+                <div class="actions" style="display: flex; flex-direction: column; gap: 6px;">
+                  <button style="appearance: none; background: var(--accent); color: white; border: none; border-radius: 5px; padding: 6px 12px; font-size: 12px; font-weight: 500; cursor: pointer; width: 100%;">Reply to thread</button>
+                  <button style="appearance: none; background: var(--surface); border: 1px solid var(--border); border-radius: 5px; padding: 5px 12px; font-size: 12px; color: var(--ink-2); cursor: pointer; width: 100%;">Resolve comment</button>
+                  <button style="appearance: none; background: var(--surface); border: 1px solid var(--border); border-radius: 5px; padding: 5px 12px; font-size: 12px; color: var(--ink-2); cursor: pointer; width: 100%;">Open full thread</button>
+                  <button style="appearance: none; background: var(--surface); border: 1px solid var(--border); border-radius: 5px; padding: 5px 12px; font-size: 12px; color: var(--ink-2); cursor: pointer; width: 100%;">Mark as read</button>
+                </div>
+              </div>
+
+              <details class="insp-block">
+                <summary style="font-family: var(--display); font-size: 12px; font-weight: 600; color: var(--ink); cursor: pointer; list-style: none; display: flex; justify-content: space-between;">Related diff <span style="color: var(--ink-3);">▾</span></summary>
+                <div style="margin-top: 8px;">
                 <div class="diff-block"><span class="ctx">// from AI refine · 14m</span><span class="add">+ alt MFA required (optional)</span><span class="add">+   Client-->>User: show MFA prompt</span><span class="rem">- Token-->Auth: tokens · ttl 15m</span><span class="add">+ Token-->>Auth: tokens · ttl 15m</span><span class="ctx">// 1 line auto-repaired</span></div>
                 <div class="restore-actions">
                   <button>Compare</button>
                   <button class="primary">Restore prev</button>
                 </div>
-              </div>
+                </div>
+              </details>
 
               <div class="insp-block">
                 <h3>Audit log</h3>
@@ -1185,7 +1343,7 @@
                 <h3>Active filters</h3>
                 <div class="filters-list">
                   <div class="row"><span class="k">Scope</span><span class="v">This diagram</span><span class="x">×</span></div>
-                  <div class="row"><span class="k">Actor</span><span class="v">You</span><span class="x">×</span></div>
+                  <div class="row"><span class="k">Actor</span><span class="v">All</span><span class="x"></span></div>
                   <div class="row"><span class="k">Range</span><span class="v">Today</span><span class="x">×</span></div>
                   <div class="row"><span class="k">Sort</span><span class="v">Newest first</span><span class="x"></span></div>
                 </div>
@@ -1223,5 +1381,6 @@
   });
 </script>
 
+<script src="assets/prototype.js"></script>
 </body>
 </html>

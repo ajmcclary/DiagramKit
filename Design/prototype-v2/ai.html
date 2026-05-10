@@ -777,7 +777,7 @@
         <span class="ws">Eng</span>
       </div>
       <nav class="sb-body">
-        <div class="sb-section">Workspaces</div>
+        <div class="sb-section">Workstations</div>
         <a href="index.html" class="nav-pill">
           <span class="glyph"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 12L12 4l9 8M5 10v10h14V10"/></svg></span>
           Home
@@ -909,10 +909,8 @@
                 <div>
                   <div class="who">You<span class="ts">just now</span></div>
                   <div class="msg">Make MFA optional. Show the retry path when token expires.</div>
-                  <div class="pending">
-                    <span>Drafting</span>
-                    <span class="dotz"><span></span><span></span><span></span></span>
-                    <span>est. 1.6s</span>
+                  <div class="meta-pills">
+                    <span class="meta-pill live">✓ drafted · v3</span>
                   </div>
                 </div>
               </div>
@@ -934,19 +932,19 @@
                 </div>
               </header>
 
-              <section class="pipeline">
-                <div class="pipeline-h">
-                  <h3>Generation lifecycle</h3>
-                  <div class="meta">Total <span class="v">2.21s</span> · Status <span class="v">live</span></div>
-                </div>
-                <div class="steps">
+              <details class="pipeline" open>
+                <summary class="pipeline-h" style="cursor: pointer; list-style: none; display: flex; align-items: baseline; gap: 12px;">
+                  <h3 style="display: inline; font-size: 12px; font-weight: 600;">Generated · Valid · 1 repair · Rendered in 2.21s</h3>
+                  <span class="meta" style="margin-left: auto;">▾ expand steps</span>
+                </summary>
+                <div class="steps" style="margin-top: 10px;">
                   <div class="step done"><span class="name">Prompt</span><span class="detail"><b>32 chars</b> · 2 follow-ups</span></div>
                   <div class="step done"><span class="name">Generate</span><span class="detail"><b>412 tokens</b> · 1.40s</span></div>
                   <div class="step done"><span class="name">Validate</span><span class="detail"><b>AST OK</b> · 4 actors</span></div>
                   <div class="step warn"><span class="name">Repair</span><span class="detail"><b>1 fix</b> · L 12</span></div>
                   <div class="step done"><span class="name">Render</span><span class="detail"><b>218ms</b> · 760×380</span></div>
                 </div>
-              </section>
+              </details>
 
               <section class="plate">
                 <div class="plate-h">
@@ -1175,7 +1173,7 @@
           </section>
 
           <!-- Controls -->
-          <aside class="ai-pane reveal r4" style="border-right: none;">
+          <aside class="ai-pane pane-secondary reveal r4" style="border-right: none;">
             <div class="pane-head">
               <span class="ttl">Brief</span>
               <span class="meta">controls</span>
@@ -1250,10 +1248,23 @@
                 </div>
               </div>
 
-              <div class="controls-block">
-                <div class="head">
-                  <h3>Privacy</h3>
+              <!-- Blocked state: AI credits exhausted -->
+              <div class="state-blocked" style="margin: 8px 0; display: none;" data-ai-blocked>
+                <div class="icon">⛔</div>
+                <h3>AI credits exhausted</h3>
+                <p>You've used 50/50 credits this month. Credits reset on <b>June 1</b>. Your existing diagrams remain fully editable.</p>
+                <div class="actions">
+                  <button class="btn primary">Upgrade plan</button>
+                  <button class="btn">View usage</button>
                 </div>
+              </div>
+
+              <details class="controls-block">
+                <summary class="head" style="cursor: pointer; list-style: none; display: flex;">
+                  <h3>Policy &amp; privacy</h3>
+                  <span class="meta" style="margin-left: auto;">▾</span>
+                </summary>
+                <div style="margin-top: 8px;">
                 <div class="privacy-row">
                   <span class="ic ok">✓</span>
                   <span>Prompts go to your <b>configured AI provider</b>. Local-only mode is in <a>Workspace policy</a>.</span>
@@ -1269,12 +1280,15 @@
                 <div class="privacy-note">
                   <b>Heads up.</b> Don't paste secrets — API keys, tokens, or PII. Likely secrets are <b>redacted</b> before submission.
                 </div>
-              </div>
-
-              <div class="controls-block">
-                <div class="head">
-                  <h3>Starters</h3>
                 </div>
+              </details>
+
+              <details class="controls-block">
+                <summary class="head" style="cursor: pointer; list-style: none; display: flex;">
+                  <h3>Starters</h3>
+                  <span class="meta" style="margin-left: auto;">▾</span>
+                </summary>
+                <div style="margin-top: 8px;">
                 <div class="starter-list">
                   <button>Architecture review</button>
                   <button>Database modeling</button>
@@ -1283,7 +1297,8 @@
                   <button>Onboarding</button>
                   <button>Troubleshooting</button>
                 </div>
-              </div>
+                </div>
+              </details>
 
             </div>
           </aside>
@@ -1333,5 +1348,6 @@
   });
 </script>
 
+<script src="assets/prototype.js"></script>
 </body>
 </html>

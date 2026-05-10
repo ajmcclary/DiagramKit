@@ -301,7 +301,7 @@
         <span class="ws">Eng</span>
       </div>
       <nav class="sb-body">
-        <div class="sb-section">Workspaces</div>
+        <div class="sb-section">Workstations</div>
         <a href="index.html" class="nav-pill is-on">
           <span class="glyph"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 12L12 4l9 8M5 10v10h14V10"/></svg></span>
           Home
@@ -356,9 +356,27 @@
       <div class="work-content">
         <div class="home">
 
+          <!-- Empty state for new users -->
+          <div class="state-empty" style="display: none;" data-home-empty>
+            <div class="icon">▦</div>
+            <h3>Welcome to Mermaid</h3>
+            <p>Your workspace is ready. Create your first diagram to get started — choose a type, then pick your editing mode.</p>
+            <div class="actions">
+              <button class="btn primary" onclick="prototypeDemo.openNewDiagramModal()">+ New diagram</button>
+              <a href="library.html" class="btn">Browse samples</a>
+            </div>
+          </div>
+
           <header class="greeting reveal r2">
             <h1 class="h1">Good afternoon — pick a <em>workstation</em>.</h1>
             <div class="sub">One app, four workstations: Playground, Visual editor, AI studio, and Presentations. They all share the same library and live state.</div>
+            <div class="start-strip" style="margin-top: 16px; display: flex; gap: 8px; flex-wrap: wrap;">
+              <a href="#" class="btn primary">+ New blank diagram</a>
+              <a href="ai.html" class="btn" style="border-color: rgba(124, 58, 237, 0.32); color: #7C3AED;">✦ From AI</a>
+              <a href="visual.html" class="btn">Visual editor</a>
+              <a href="#" class="btn">From sample</a>
+              <a href="#" class="btn">Import…</a>
+            </div>
           </header>
 
           <section class="modes reveal r3">
@@ -416,7 +434,7 @@
               </div>
               <div class="recent-list">
                 <a class="recent-row" href="visual.html">
-                  <span class="ic"><svg viewBox="0 0 22 14" fill="none" stroke="currentColor" stroke-width="0.9"><rect x="1" y="2" width="5" height="3" rx="1"/><rect x="9" y="2" width="5" height="3" rx="1"/><rect x="17" y="2" width="4" height="3" rx="1"/><rect x="6" y="9" width="5" height="3" rx="1"/><rect x="13" y="9" width="6" height="3" rx="1"/><path d="M6 4 H 9 M14 4 H 17 M11 5 V 9 M16 5 V 9"/></svg></span>
+                  <span class="ic" style="color: var(--type-flow); background: rgba(37, 99, 235, 0.08); border-color: rgba(37, 99, 235, 0.20);"><svg viewBox="0 0 22 14" fill="none" stroke="currentColor" stroke-width="0.9"><rect x="1" y="2" width="5" height="3" rx="1"/><rect x="9" y="2" width="5" height="3" rx="1"/><rect x="17" y="2" width="4" height="3" rx="1"/><rect x="6" y="9" width="5" height="3" rx="1"/><rect x="13" y="9" width="6" height="3" rx="1"/><path d="M6 4 H 9 M14 4 H 17 M11 5 V 9 M16 5 V 9"/></svg></span>
                   <div class="name">
                     <span class="t">architecture-overview.mmd</span>
                     <span class="s">flowchart · 5 nodes · in deck "SDK Auth · Q2"</span>
@@ -425,7 +443,7 @@
                   <span class="ts">2m</span>
                 </a>
                 <a class="recent-row" href="share.html">
-                  <span class="ic"><svg viewBox="0 0 22 14" fill="none" stroke="currentColor" stroke-width="0.9"><line x1="3" y1="2" x2="3" y2="13"/><line x1="9" y1="2" x2="9" y2="13"/><line x1="15" y1="2" x2="15" y2="13"/><line x1="21" y1="2" x2="21" y2="13"/><path d="M3 5 H9 M9 8 H15 M15 11 H21"/></svg></span>
+                  <span class="ic" style="color: var(--type-seq); background: rgba(8, 145, 178, 0.08); border-color: rgba(8, 145, 178, 0.20);"><svg viewBox="0 0 22 14" fill="none" stroke="currentColor" stroke-width="0.9"><line x1="3" y1="2" x2="3" y2="13"/><line x1="9" y1="2" x2="9" y2="13"/><line x1="15" y1="2" x2="15" y2="13"/><line x1="21" y1="2" x2="21" y2="13"/><path d="M3 5 H9 M9 8 H15 M15 11 H21"/></svg></span>
                   <div class="name">
                     <span class="t">auth-flow.mmd</span>
                     <span class="s">sequence · 9 messages · shared with 4</span>
@@ -434,7 +452,7 @@
                   <span class="ts">14m</span>
                 </a>
                 <a class="recent-row" href="playground.html">
-                  <span class="ic"><svg viewBox="0 0 22 14" fill="none" stroke="currentColor" stroke-width="0.9"><circle cx="3" cy="7" r="1.6"/><rect x="7" y="4" width="6" height="6" rx="1"/><rect x="15" y="4" width="6" height="6" rx="1"/></svg></span>
+                  <span class="ic" style="color: var(--type-state); background: rgba(124, 58, 237, 0.08); border-color: rgba(124, 58, 237, 0.20);"><svg viewBox="0 0 22 14" fill="none" stroke="currentColor" stroke-width="0.9"><circle cx="3" cy="7" r="1.6"/><rect x="7" y="4" width="6" height="6" rx="1"/><rect x="15" y="4" width="6" height="6" rx="1"/></svg></span>
                   <div class="name">
                     <span class="t">token-state.mmd</span>
                     <span class="s">state · diverged from deck (4 changes)</span>
@@ -443,7 +461,7 @@
                   <span class="ts">1h</span>
                 </a>
                 <a class="recent-row" href="playground.html">
-                  <span class="ic"><svg viewBox="0 0 22 14" fill="none" stroke="currentColor" stroke-width="0.9"><rect x="1" y="2" width="9" height="2"/><rect x="6" y="6" width="11" height="2"/><rect x="9" y="10" width="12" height="2"/></svg></span>
+                  <span class="ic" style="color: var(--type-gantt); background: rgba(217, 119, 6, 0.08); border-color: rgba(217, 119, 6, 0.20);"><svg viewBox="0 0 22 14" fill="none" stroke="currentColor" stroke-width="0.9"><rect x="1" y="2" width="9" height="2"/><rect x="6" y="6" width="11" height="2"/><rect x="9" y="10" width="12" height="2"/></svg></span>
                   <div class="name">
                     <span class="t">roadmap-q2-q4.mmd</span>
                     <span class="s">gantt · 14 phases</span>
@@ -452,7 +470,7 @@
                   <span class="ts">Yesterday</span>
                 </a>
                 <a class="recent-row" href="playground.html">
-                  <span class="ic"><svg viewBox="0 0 22 14" fill="none" stroke="currentColor" stroke-width="0.9"><polygon points="3 7 7 4 11 7 7 10"/><polygon points="13 7 17 4 21 7 17 10"/><line x1="11" y1="7" x2="13" y2="7"/></svg></span>
+                  <span class="ic" style="color: var(--type-er); background: rgba(219, 39, 119, 0.08); border-color: rgba(219, 39, 119, 0.20);"><svg viewBox="0 0 22 14" fill="none" stroke="currentColor" stroke-width="0.9"><polygon points="3 7 7 4 11 7 7 10"/><polygon points="13 7 17 4 21 7 17 10"/><line x1="11" y1="7" x2="13" y2="7"/></svg></span>
                   <div class="name">
                     <span class="t">build-pipeline-er.mmd</span>
                     <span class="s">ER · v2 schema</span>
@@ -511,5 +529,6 @@
   </div>
 </div>
 
+<script src="assets/prototype.js"></script>
 </body>
 </html>

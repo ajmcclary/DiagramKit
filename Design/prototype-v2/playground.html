@@ -242,9 +242,10 @@
     padding: 36px;
   }
   .canvas-stage svg {
-    width: 100%;
-    max-width: 720px;
-    max-height: 100%;
+    width: auto;
+    max-width: 95%;
+    height: auto;
+    max-height: 90%;
     filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.06));
   }
 
@@ -504,7 +505,7 @@
         <span class="ws">Eng</span>
       </div>
       <nav class="sb-body">
-        <div class="sb-section">Workspaces</div>
+        <div class="sb-section">Workstations</div>
         <a href="index.html" class="nav-pill">
           <span class="glyph"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 12L12 4l9 8M5 10v10h14V10"/></svg></span>
           Home
@@ -637,7 +638,7 @@
               <span><span class="v">31</span> edges</span>
               <span><span class="v">3</span> subgraphs</span>
               <span><span class="v">flowchart TD</span></span>
-              <span class="right">1 warning</span>
+              <a href="#line-7" class="right" title="Line 7: feedback edge has no label">1 warning — L7: unlabeled feedback edge</a>
             </div>
             <div class="editor-shell">
               <div class="code-host">
@@ -916,5 +917,6 @@
   });
 </script>
 
+<script src="assets/prototype.js"></script>
 </body>
 </html>
