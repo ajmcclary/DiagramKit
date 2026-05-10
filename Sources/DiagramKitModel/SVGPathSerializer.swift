@@ -54,11 +54,123 @@ public enum SVGPathSerializer {
             let r = bounds.height / 2
             return "M \(bounds.minX + r) \(bounds.minY) L \(bounds.maxX - r) \(bounds.minY) A \(r) \(r) 0 0 1 \(bounds.maxX) \(bounds.minY + r) L \(bounds.maxX) \(bounds.maxY - r) A \(r) \(r) 0 0 1 \(bounds.maxX - r) \(bounds.maxY) L \(bounds.minX + r) \(bounds.maxY) A \(r) \(r) 0 0 1 \(bounds.minX) \(bounds.maxY - r) L \(bounds.minX) \(bounds.minY + r) A \(r) \(r) 0 0 1 \(bounds.minX + r) \(bounds.minY) Z"
 
-        case .subroutine, .asymmetric, .crossedCircle, .hourglass,
-             .lightningBolt, .cloud, .bowTie, .triangle, .flag, .document,
-             .polygon, .doubleCircle:
-            // Complex shapes: return a recognizable rect as fallback
-            return "M \(bounds.minX) \(bounds.minY) L \(bounds.maxX) \(bounds.minY) L \(bounds.maxX) \(bounds.maxY) L \(bounds.minX) \(bounds.maxY) Z"
+        case .subroutine:
+            // Outer rectangle only; inner vertical lines are decorations
+            // and drawn separately by the renderer.
+            return "M \(_fmt(bounds.minX)) \(_fmt(bounds.minY)) L \(_fmt(bounds.maxX)) \(_fmt(bounds.minY)) L \(_fmt(bounds.maxX)) \(_fmt(bounds.maxY)) L \(_fmt(bounds.minX)) \(_fmt(bounds.maxY)) Z"
+
+        case .asymmetric(let indent):
+            // Rect with a triangular notch carved into the left edge.
+            return "M \(_fmt(bounds.minX + indent)) \(_fmt(bounds.minY)) L \(_fmt(bounds.maxX)) \(_fmt(bounds.minY)) L \(_fmt(bounds.maxX)) \(_fmt(bounds.maxY)) L \(_fmt(bounds.minX + indent)) \(_fmt(bounds.maxY)) L \(_fmt(bounds.minX)) \(_fmt(bounds.midY)) Z"
+
+        case .crossedCircle:
+            // Outer circle (cross strokes are decorations).
+            let rx = bounds.width / 2
+            let ry = bounds.height / 2
+            return "M \(_fmt(bounds.midX - rx)) \(_fmt(bounds.midY)) A \(_fmt(rx)) \(_fmt(ry)) 0 1 1 \(_fmt(bounds.midX + rx)) \(_fmt(bounds.midY)) A \(_fmt(rx)) \(_fmt(ry)) 0 1 1 \(_fmt(bounds.midX - rx)) \(_fmt(bounds.midY)) Z"
+
+        case .hourglass:
+            // Two triangles meeting at center (pinched mid-line).
+            let pinch = bounds.width * 0.15
+            return "M \(_fmt(bounds.minX)) \(_fmt(bounds.minY)) L \(_fmt(bounds.maxX)) \(_fmt(bounds.minY)) L \(_fmt(bounds.midX + pinch)) \(_fmt(bounds.midY)) L \(_fmt(bounds.maxX)) \(_fmt(bounds.maxY)) L \(_fmt(bounds.minX)) \(_fmt(bounds.maxY)) L \(_fmt(bounds.midX - pinch)) \(_fmt(bounds.midY)) Z"
+
+        case .lightningBolt:
+            // Zig-zag bolt — coordinates mirror `ShapeRenderer.lightningBoltPath`.
+            let w = bounds.width
+            let h = bounds.height
+            return "M \(_fmt(bounds.minX + w * 0.4)) \(_fmt(bounds.minY))"
+                + " L \(_fmt(bounds.minX + w * 0.25)) \(_fmt(bounds.midY - h * 0.1))"
+                + " L \(_fmt(bounds.minX + w * 0.55)) \(_fmt(bounds.midY - h * 0.1))"
+                + " L \(_fmt(bounds.minX + w * 0.35)) \(_fmt(bounds.midY + h * 0.1))"
+                + " L \(_fmt(bounds.minX + w * 0.75)) \(_fmt(bounds.maxY))"
+                + " L \(_fmt(bounds.minX + w * 0.5)) \(_fmt(bounds.midY + h * 0.1))"
+                + " L \(_fmt(bounds.minX + w * 0.2)) \(_fmt(bounds.midY + h * 0.1)) Z"
+
+        case .cloud:
+            // Eight cubic curve segments — mirrors `ShapeRenderer.cloudPath`.
+            let w = bounds.width
+            let h = bounds.height
+            let r = Swift.min(w, h) * 0.12
+            let midX = bounds.midX
+            let midY = bounds.midY
+            var parts: [String] = []
+            parts.append("M \(_fmt(midX)) \(_fmt(bounds.minY + r * 0.5))")
+            parts.append("C \(_fmt(midX + r * 2)) \(_fmt(bounds.minY - r * 0.3)), \(_fmt(bounds.maxX)) \(_fmt(bounds.minY - r * 0.2)), \(_fmt(bounds.maxX - r)) \(_fmt(bounds.minY + r))")
+            parts.append("C \(_fmt(bounds.maxX + r)) \(_fmt(bounds.minY + r * 2)), \(_fmt(bounds.maxX + r)) \(_fmt(midY - r)), \(_fmt(bounds.maxX - r * 0.5)) \(_fmt(midY))")
+            parts.append("C \(_fmt(bounds.maxX + r)) \(_fmt(midY + r)), \(_fmt(bounds.maxX + r)) \(_fmt(bounds.maxY - r)), \(_fmt(bounds.maxX - r)) \(_fmt(bounds.maxY - r))")
+            parts.append("C \(_fmt(bounds.maxX - r * 2)) \(_fmt(bounds.maxY + r * 0.3)), \(_fmt(midX + r * 2)) \(_fmt(bounds.maxY + r * 0.5)), \(_fmt(midX)) \(_fmt(bounds.maxY))")
+            parts.append("C \(_fmt(midX - r * 2)) \(_fmt(bounds.maxY + r * 0.5)), \(_fmt(bounds.minX)) \(_fmt(bounds.maxY + r * 0.3)), \(_fmt(bounds.minX + r)) \(_fmt(bounds.maxY - r))")
+            parts.append("C \(_fmt(bounds.minX - r)) \(_fmt(bounds.maxY - r * 2)), \(_fmt(bounds.minX - r)) \(_fmt(midY + r)), \(_fmt(bounds.minX + r * 0.5)) \(_fmt(midY))")
+            parts.append("C \(_fmt(bounds.minX - r)) \(_fmt(midY - r)), \(_fmt(bounds.minX - r)) \(_fmt(bounds.minY + r)), \(_fmt(bounds.minX + r)) \(_fmt(bounds.minY + r))")
+            parts.append("C \(_fmt(bounds.minX + r * 2)) \(_fmt(bounds.minY - r * 0.3)), \(_fmt(midX - r)) \(_fmt(bounds.minY - r)), \(_fmt(midX)) \(_fmt(bounds.minY + r * 0.5))")
+            parts.append("Z")
+            return parts.joined(separator: " ")
+
+        case .bowTie:
+            // Two triangles meeting at center, hourglass-style on the
+            // horizontal axis. Mirrors `ShapeRenderer.bowTiePath`.
+            let m = CGPoint(x: bounds.midX, y: bounds.midY)
+            return "M \(_fmt(bounds.minX)) \(_fmt(bounds.minY))"
+                + " L \(_fmt(m.x)) \(_fmt(m.y))"
+                + " L \(_fmt(bounds.maxX)) \(_fmt(bounds.minY))"
+                + " L \(_fmt(m.x)) \(_fmt(m.y))"
+                + " L \(_fmt(bounds.maxX)) \(_fmt(bounds.maxY))"
+                + " L \(_fmt(m.x)) \(_fmt(m.y))"
+                + " L \(_fmt(bounds.minX)) \(_fmt(bounds.maxY)) Z"
+
+        case .triangle:
+            return "M \(_fmt(bounds.midX)) \(_fmt(bounds.minY)) L \(_fmt(bounds.maxX)) \(_fmt(bounds.maxY)) L \(_fmt(bounds.minX)) \(_fmt(bounds.maxY)) Z"
+
+        case .flag:
+            // Paper-tape / flag — rectangle with a chevron cut into the right edge.
+            let inset = bounds.width * 0.15
+            return "M \(_fmt(bounds.minX)) \(_fmt(bounds.minY))"
+                + " L \(_fmt(bounds.maxX - inset)) \(_fmt(bounds.minY))"
+                + " L \(_fmt(bounds.maxX)) \(_fmt(bounds.midY))"
+                + " L \(_fmt(bounds.maxX - inset)) \(_fmt(bounds.maxY))"
+                + " L \(_fmt(bounds.minX)) \(_fmt(bounds.maxY)) Z"
+
+        case .document:
+            // Rectangle with wavy bottom edge. Mirrors `ShapeRenderer.documentPath`.
+            let w = bounds.width
+            let h = bounds.height
+            let waveDepth = h * 0.15
+            let waveSegments = 5
+            let segWidth = w / CGFloat(waveSegments)
+            var parts: [String] = []
+            parts.append("M \(_fmt(bounds.minX)) \(_fmt(bounds.minY))")
+            parts.append("L \(_fmt(bounds.maxX)) \(_fmt(bounds.minY))")
+            parts.append("L \(_fmt(bounds.maxX)) \(_fmt(bounds.maxY - waveDepth))")
+            for i in 0..<waveSegments {
+                let sx = bounds.maxX - CGFloat(i) * segWidth
+                let ex = bounds.maxX - CGFloat(i + 1) * segWidth
+                let dir: CGFloat = i % 2 == 0 ? 1 : -1
+                let c1x = sx - segWidth * 0.25
+                let c1y = bounds.maxY + waveDepth * dir
+                let c2x = ex + segWidth * 0.25
+                let c2y = bounds.maxY - waveDepth * 1.5
+                parts.append("C \(_fmt(c1x)) \(_fmt(c1y)), \(_fmt(c2x)) \(_fmt(c2y)), \(_fmt(ex)) \(_fmt(bounds.maxY - waveDepth))")
+            }
+            parts.append("L \(_fmt(bounds.minX)) \(_fmt(bounds.maxY - waveDepth))")
+            parts.append("Z")
+            return parts.joined(separator: " ")
+
+        case .polygon(let vertices):
+            guard let first = vertices.first else { return "" }
+            var parts: [String] = []
+            parts.append("M \(_fmt(first.x)) \(_fmt(first.y))")
+            for vertex in vertices.dropFirst() {
+                parts.append("L \(_fmt(vertex.x)) \(_fmt(vertex.y))")
+            }
+            parts.append("Z")
+            return parts.joined(separator: " ")
+
+        case .doubleCircle:
+            // Outer ellipse only; the inner ellipse is drawn as a decoration
+            // by the renderer (using the `gap` parameter).
+            let rx = bounds.width / 2
+            let ry = bounds.height / 2
+            return "M \(_fmt(bounds.midX - rx)) \(_fmt(bounds.midY)) A \(_fmt(rx)) \(_fmt(ry)) 0 1 1 \(_fmt(bounds.midX + rx)) \(_fmt(bounds.midY)) A \(_fmt(rx)) \(_fmt(ry)) 0 1 1 \(_fmt(bounds.midX - rx)) \(_fmt(bounds.midY)) Z"
         }
     }
 
