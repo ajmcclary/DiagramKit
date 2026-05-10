@@ -73,7 +73,11 @@ let package = Package(
         ),
         .target(
             name: "DiagramKitViews",
-            dependencies: ["DiagramKitRenderingCG"],
+            dependencies: [
+                "DiagramKitCommon",
+                "DiagramKitModel",
+                "DiagramKitRenderingCG"
+            ],
             swiftSettings: strictConcurrencySettings
         ),
         .target(

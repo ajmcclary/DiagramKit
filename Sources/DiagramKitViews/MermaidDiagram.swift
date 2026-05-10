@@ -46,8 +46,13 @@ public struct MermaidDiagram {
         let snapshotTheme = theme
         let snapshotConfig = layoutConfig
 
-        // Ensure the default preparer is installed before first use.
-        _ = _MermaidPreparerBootstrap.didInstall
+        // `MermaidViewPreparerEnvironment` is configured by the umbrella's
+        // `_MermaidPreparerBootstrap` on the first call to any public
+        // `MermaidRenderer.*` API. If a host is using `MermaidDiagram` /
+        // `MermaidDiagramView` without ever going through the umbrella, the
+        // fallback below dispatches through the canonical 8 MB-stack worker
+        // via `MermaidPreparation.prepare`, which will preconditionFailure
+        // with a clear instruction to call `MermaidRenderer.bootstrap()`.
         let preparer = MermaidViewPreparerEnvironment.current
             ?? MermaidViewPreparer(prepare: MermaidPreparation.prepare(source:theme:layoutConfig:))
 

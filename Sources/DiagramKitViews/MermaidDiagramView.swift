@@ -3,6 +3,7 @@
 import SwiftUI
 import DiagramKitCommon
 import DiagramKitModel
+import DiagramKitRenderingCG
 
 #if canImport(UIKit)
 import UIKit

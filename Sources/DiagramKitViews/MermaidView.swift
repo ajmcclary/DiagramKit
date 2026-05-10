@@ -2,6 +2,7 @@
 #if canImport(UIKit) || canImport(AppKit)
 import Foundation
 import DiagramKitModel
+import DiagramKitRenderingCG
 import CoreGraphics
 import QuartzCore
 

@@ -113,10 +113,13 @@ public class MermaidLayer: CALayer {
         let theme = theme
         let layoutConfig = layoutConfig
 
-        // Make sure the default preparer is installed before the first
-        // view-side preparation call. The reference here is what causes
-        // `_MermaidPreparerBootstrap.didInstall` to fire on first access.
-        _ = _MermaidPreparerBootstrap.didInstall
+        // `MermaidViewPreparerEnvironment` is configured by the umbrella's
+        // `_MermaidPreparerBootstrap` on the first call to any public
+        // `MermaidRenderer.*` API. If a host is using `MermaidView` /
+        // `MermaidDiagramView` without ever going through the umbrella, the
+        // fallback below dispatches through the canonical 8 MB-stack worker
+        // via `MermaidPreparation.prepare`, which will preconditionFailure
+        // with a clear instruction to call `MermaidRenderer.bootstrap()`.
         let preparer = MermaidViewPreparerEnvironment.current
             ?? MermaidViewPreparer(prepare: MermaidPreparation.prepare(source:theme:layoutConfig:))
 
