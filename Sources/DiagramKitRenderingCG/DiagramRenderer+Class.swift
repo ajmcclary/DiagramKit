@@ -85,7 +85,7 @@ extension DiagramRenderer {
                 }
 
                 // Class name
-                let nameFont = BMFont.systemFont(ofSize: config.fontSizeNodeLabel, weight: .bold)
+                let nameFont = DiagramFontResolver.proportional(config, size: config.fontSizeNodeLabel, weight: .bold)
                 let labelText = cls.text.isEmpty ? cls.label : cls.text
                 self._drawTextInFlipped(
                     labelText,

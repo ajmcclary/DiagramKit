@@ -90,22 +90,17 @@ extension DiagramRenderer {
     }
 
     private func _tvFont(size: CGFloat) -> BMFont {
-        #if targetEnvironment(macCatalyst) || canImport(UIKit)
-        return BMFont.systemFont(ofSize: size)
-        #elseif canImport(AppKit)
-        return BMFont.systemFont(ofSize: size)
-        #endif
+        DiagramFontResolver.proportional(config, size: size, weight: .regular)
     }
 
     private func _tvItalicFont(size: CGFloat) -> BMFont {
+        let baseFont = DiagramFontResolver.proportional(config, size: size, weight: .regular)
         #if targetEnvironment(macCatalyst) || canImport(UIKit)
-        let baseFont = BMFont.systemFont(ofSize: size)
         if let descriptor = baseFont.fontDescriptor.withSymbolicTraits(.traitItalic) {
             return BMFont(descriptor: descriptor, size: 0)
         }
         return baseFont
         #elseif canImport(AppKit)
-        let baseFont = BMFont.systemFont(ofSize: size)
         let manager = NSFontManager.shared
         return manager.convert(baseFont, toHaveTrait: .italicFontMask)
         #endif

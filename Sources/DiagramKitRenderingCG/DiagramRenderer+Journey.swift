@@ -55,7 +55,7 @@ extension DiagramRenderer {
                 ctx.setLineWidth(1)
                 ctx.strokeEllipse(in: circleRect)
 
-                let legendFont = BMFont.systemFont(ofSize: CGFloat(config.taskFontSize), weight: .regular)
+                let legendFont = DiagramFontResolver.proportional(self.config, size: CGFloat(config.taskFontSize), weight: .regular)
                 for (li, line) in actor.lines.enumerated() {
                     let textY = actor.labelOrigin.y + Double(li) * 16
                     self._drawTextInFlipped(
@@ -82,7 +82,7 @@ extension DiagramRenderer {
                 ctx.addPath(path.bm_cgPath)
                 ctx.fillPath()
 
-                let sectionFont = BMFont.systemFont(ofSize: CGFloat(config.taskFontSize), weight: .regular)
+                let sectionFont = DiagramFontResolver.proportional(self.config, size: CGFloat(config.taskFontSize), weight: .regular)
                 let splitsBr: Bool
                 if config.textPlacement == "old" || config.textPlacement == "fo" {
                     splitsBr = false
@@ -120,7 +120,7 @@ extension DiagramRenderer {
                 ctx.addPath(path.bm_cgPath)
                 ctx.fillPath()
 
-                let taskFont = BMFont.systemFont(ofSize: CGFloat(config.taskFontSize), weight: .regular)
+                let taskFont = DiagramFontResolver.proportional(self.config, size: CGFloat(config.taskFontSize), weight: .regular)
                 let taskSplitsBr: Bool
                 if config.textPlacement == "old" || config.textPlacement == "fo" {
                     taskSplitsBr = false
@@ -223,7 +223,7 @@ extension DiagramRenderer {
             // 4. Title
             if let title = journey.title, !title.isEmpty {
                 let titleFontSize = _journeyResolvedCGFontSize(config.titleFontSize, baseFontSize: config.taskFontSize, fallback: 18)
-                let titleFont = BMFont.systemFont(ofSize: titleFontSize, weight: .bold)
+                let titleFont = DiagramFontResolver.proportional(self.config, size: titleFontSize, weight: .bold)
                 let titleColor: BMColor
                 if !config.titleColor.isEmpty, let cg = MermaidColorParser.cgHex(config.titleColor), let nsColor = BMColor(cgColor: cg) {
                     titleColor = nsColor

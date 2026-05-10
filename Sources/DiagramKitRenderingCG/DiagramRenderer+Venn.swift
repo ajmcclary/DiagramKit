@@ -304,11 +304,7 @@ extension DiagramRenderer {
     }
 
     private func _systemFont(size: CGFloat) -> BMFont {
-        if let family = config.defaultProportionalFontFamily,
-           let bundled = BMFont(name: family, size: size) {
-            return bundled
-        }
-        return BMFont.systemFont(ofSize: size)
+        DiagramFontResolver.proportional(config, size: size, weight: .regular)
     }
 
     // MARK: - Hand-Drawn CG Helpers

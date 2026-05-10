@@ -322,7 +322,7 @@ extension DiagramRenderer {
                 _drawSFIcon(sfName, bounds: bounds.insetBy(dx: 4, dy: 4), in: context, contentHeight: ch)
             } else {
                 let fontSize = CGFloat(min(bounds.width, bounds.height) * 0.4)
-                let iconFont = BMFont.systemFont(ofSize: fontSize)
+                let iconFont = DiagramFontResolver.proportional(self.config, size: fontSize, weight: .regular)
                 let textColor = theme.nodeTextColor(for: [:])
                 _drawTextInFlipped(
                     faName,

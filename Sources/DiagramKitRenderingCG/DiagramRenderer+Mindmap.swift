@@ -250,7 +250,8 @@ extension DiagramRenderer {
 
     private func _drawMindmapNodeText(_ node: PositionedMindmapNode, context: CGContext, theme: MindmapThemeConfig, config: MindmapConfig) {
         let fill = node.isRoot ? theme.gitBranchLabel0 : theme.cScaleLabel(for: node.section ?? 0)
-        let font = BMFont(name: theme.fontFamily, size: CGFloat(theme.fontSize)) ?? BMFont.systemFont(ofSize: CGFloat(theme.fontSize))
+        let font = BMFont(name: theme.fontFamily, size: CGFloat(theme.fontSize))
+            ?? DiagramFontResolver.proportional(self.config, size: CGFloat(theme.fontSize), weight: .regular)
 
         let x = node.x - node.width / 2
         let y = node.y - node.height / 2
@@ -318,7 +319,7 @@ extension DiagramRenderer {
         let isCircle = node.type == .circle
 
         let iconColor = _bmColor(from: theme.cScaleLabel(for: node.section ?? 0))
-        let iconFont = BMFont.systemFont(ofSize: 12)
+        let iconFont = DiagramFontResolver.proportional(self.config, size: 12, weight: .regular)
 
         let iconX: CGFloat
         let iconY: CGFloat

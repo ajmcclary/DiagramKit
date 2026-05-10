@@ -151,17 +151,10 @@ extension DiagramRenderer {
     }
 
     private func _radarFont(size: CGFloat, bold: Bool = false) -> BMFont {
-        #if targetEnvironment(macCatalyst) || canImport(UIKit)
         if bold {
-            return BMFont.boldSystemFont(ofSize: size)
+            return DiagramFontResolver.boldProportional(config, size: size)
         }
-        return BMFont.systemFont(ofSize: size)
-        #elseif canImport(AppKit)
-        if bold {
-            return NSFont.boldSystemFont(ofSize: size)
-        }
-        return NSFont.systemFont(ofSize: size)
-        #endif
+        return DiagramFontResolver.proportional(config, size: size, weight: .regular)
     }
 }
 #endif

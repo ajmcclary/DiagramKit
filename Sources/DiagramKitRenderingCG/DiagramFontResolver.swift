@@ -28,10 +28,36 @@ enum DiagramFontResolver {
         config.proportionalFont(size: size, weight: weight)
     }
 
+    /// Convenience overload accepting a `BMFont.Weight` instead of a CSS
+    /// weight integer. Lets call sites keep their `.regular` / `.medium` /
+    /// `.semibold` / `.bold` literals.
+    static func proportional(
+        _ config: RenderConfig,
+        size: CGFloat,
+        weight: BMFont.Weight
+    ) -> BMFont {
+        proportional(config, size: size, weight: _cssWeight(from: weight))
+    }
+
     /// Bold proportional font. Convenience for sites that previously
     /// called `BMFont.systemFont(ofSize:weight: .bold)`.
     static func boldProportional(_ config: RenderConfig, size: CGFloat) -> BMFont {
         config.proportionalFont(size: size, weight: 700)
+    }
+
+    private static func _cssWeight(from w: BMFont.Weight) -> Int {
+        switch w {
+        case .ultraLight: return 100
+        case .thin:       return 200
+        case .light:      return 300
+        case .regular:    return 400
+        case .medium:     return 500
+        case .semibold:   return 600
+        case .bold:       return 700
+        case .heavy:      return 800
+        case .black:      return 900
+        default:          return 400
+        }
     }
 
     /// Monospace font, honoring `defaultFontFamily` (Noto Sans Mono by

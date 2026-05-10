@@ -38,7 +38,7 @@ extension DiagramRenderer {
                 ctx.addLine(to: CGPoint(x: tick.x, y: gridY + gridLineHeight))
                 ctx.strokePath()
 
-                let tickFont = BMFont.systemFont(ofSize: 10, weight: .regular)
+                let tickFont = DiagramFontResolver.proportional(self.config, size: 10, weight: .regular)
                 self._drawTextInFlipped(
                     tick.label,
                     at: CGPoint(x: tick.x, y: gridY + 15),
@@ -59,7 +59,7 @@ extension DiagramRenderer {
                     ctx.addLine(to: CGPoint(x: tick.x, y: config.topPadding + topGridLineHeight))
                     ctx.strokePath()
 
-                    let tickFont = BMFont.systemFont(ofSize: 10, weight: .regular)
+                    let tickFont = DiagramFontResolver.proportional(self.config, size: 10, weight: .regular)
                     self._drawTextInFlipped(
                         tick.label,
                         at: CGPoint(x: tick.x, y: config.topPadding + 15 + topGridLineHeight),
@@ -194,7 +194,7 @@ extension DiagramRenderer {
                 }
 
                 // 5. Task labels
-                let taskFont = BMFont.systemFont(ofSize: CGFloat(config.fontSize), weight: .regular)
+                let taskFont = DiagramFontResolver.proportional(self.config, size: CGFloat(config.fontSize), weight: .regular)
                 let textColor: BMColor
                 if ptask.labelClass.contains("taskTextOutsideLeft") || ptask.labelClass.contains("taskTextOutsideRight") {
                     textColor = MermaidColorParser.hexColor(theme.taskTextOutsideColor) ?? self.theme.foreground
@@ -224,7 +224,7 @@ extension DiagramRenderer {
             // 6. Section labels
             for section in gantt.sections {
                 let lines = original_src_multiline_utils.normalizeBrTags(section.name).components(separatedBy: "\n")
-                let sectionFont = BMFont.systemFont(ofSize: CGFloat(config.sectionFontSize), weight: .bold)
+                let sectionFont = DiagramFontResolver.proportional(self.config, size: CGFloat(config.sectionFontSize), weight: .bold)
                 let lineHeight = config.sectionFontSize * 1.3
                 let totalHeight = Double(lines.count) * lineHeight
                 let startY = section.labelPoint.y - totalHeight / 2 + config.sectionFontSize
@@ -252,7 +252,7 @@ extension DiagramRenderer {
 
             // 8. Title
             if let title = gantt.title, !title.isEmpty {
-                let titleFont = BMFont.systemFont(ofSize: 18, weight: .bold)
+                let titleFont = DiagramFontResolver.proportional(self.config, size: 18, weight: .bold)
                 self._drawTextInFlipped(
                     title,
                     at: CGPoint(x: gantt.width / 2, y: config.titleTopMargin),

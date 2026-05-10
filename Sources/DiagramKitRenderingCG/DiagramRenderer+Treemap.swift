@@ -133,21 +133,11 @@ extension DiagramRenderer {
     }
 
     private func _systemFont(size: CGFloat) -> BMFont {
-        if let family = config.defaultProportionalFontFamily,
-           let bundled = BMFont(name: family, size: size) {
-            return bundled
-        }
-        return BMFont.systemFont(ofSize: size)
+        DiagramFontResolver.proportional(config, size: size, weight: .regular)
     }
 
     private func _boldSystemFont(size: CGFloat) -> BMFont {
-        if let family = config.defaultProportionalFontFamily {
-            let candidates = ["\(family)-Bold", "\(family) Bold"]
-            for name in candidates {
-                if let f = BMFont(name: name, size: size) { return f }
-            }
-        }
-        return BMFont.boldSystemFont(ofSize: size)
+        DiagramFontResolver.boldProportional(config, size: size)
     }
 
     private func _treemapStyledColor(_ styles: [String]?, keys: [String], fallback: String) -> BMColor {
