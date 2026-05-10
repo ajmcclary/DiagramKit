@@ -50,6 +50,7 @@ struct PreviewCanvas: View {
                         MermaidViewRepresentable(
                             source: store.state.source,
                             theme: store.theme,
+                            layoutConfig: store.layoutConfig,
                             store: store
                         )
                         .frame(width: scaledWidth, height: scaledHeight)
@@ -97,6 +98,18 @@ struct PreviewCanvas: View {
                 // Error overlay
                 if let error = store.parseError, store.renderStatus == .failed {
                     errorOverlay(error)
+                }
+
+                // Config warnings (Phase 3)
+                if !store.configWarnings.isEmpty {
+                    VStack {
+                        Spacer()
+                        HStack {
+                            configWarningsOverlay
+                                .padding(12)
+                            Spacer()
+                        }
+                    }
                 }
 
                 // Dirty indicator (manual mode)
@@ -224,6 +237,37 @@ struct PreviewCanvas: View {
     }
 
     // MARK: - Overlays
+
+    private var configWarningsOverlay: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            ForEach(store.configWarnings) { warning in
+                HStack(spacing: 6) {
+                    Image(systemName: warning.level.iconName)
+                        .font(.system(size: 10))
+                        .foregroundColor(warning.level.color)
+
+                    VStack(alignment: .leading, spacing: 1) {
+                        Text(warning.keyPath)
+                            .font(.system(size: 10, weight: .semibold, design: .monospaced))
+                        Text(warning.message)
+                            .font(.system(size: 10))
+                            .lineLimit(2)
+                    }
+
+                    Spacer()
+                }
+                .padding(.horizontal, 8)
+                .padding(.vertical, 4)
+            }
+        }
+        .padding(8)
+        .background(
+            RoundedRectangle(cornerRadius: 6)
+                .fill(Color(store.theme.background).opacity(0.88))
+                .shadow(color: .black.opacity(0.12), radius: 3, x: 0, y: 1)
+        )
+        .frame(maxWidth: 320)
+    }
 
     private func errorOverlay(_ error: Error) -> some View {
         VStack(spacing: 8) {

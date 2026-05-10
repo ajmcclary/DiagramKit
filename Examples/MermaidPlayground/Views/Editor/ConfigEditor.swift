@@ -56,26 +56,77 @@ struct ConfigEditor: View {
     // MARK: - Validation bar
 
     private var validationBar: some View {
-        HStack(spacing: 6) {
-            Circle()
-                .fill(isJSONValid ? Color.green : Color.red)
-                .frame(width: 8, height: 8)
+        VStack(spacing: 0) {
+            HStack(spacing: 6) {
+                Circle()
+                    .fill(isJSONValid ? Color.green : Color.red)
+                    .frame(width: 8, height: 8)
 
-            Text(isJSONValid ? "Valid JSON" : "Invalid JSON")
-                .font(.system(size: 11, weight: .medium))
-                .foregroundColor(isJSONValid
-                    ? Color.green
-                    : Color.red)
+                Text(isJSONValid ? "Valid JSON" : "Invalid JSON")
+                    .font(.system(size: 11, weight: .medium))
+                    .foregroundColor(isJSONValid
+                        ? Color.green
+                        : Color.red)
+
+                Spacer()
+
+                Text("Config")
+                    .font(.system(size: 11, weight: .regular))
+                    .foregroundColor(Color(store.theme.effectiveMuted()))
+            }
+            .padding(.horizontal, 12)
+            .padding(.vertical, 4)
+            .background(Color(store.theme.foreground).opacity(0.04))
+
+            // Mapping summary (Phase 3)
+            if let config = store.parsedConfig {
+                mappingSummary(config)
+            }
+        }
+    }
+
+    // MARK: - Mapping summary
+
+    private func mappingSummary(_ config: LiveEditorConfig) -> some View {
+        HStack(spacing: 6) {
+            if config.recognizedKeyCount > 0 {
+                Text("\(config.recognizedKeyCount) recognized")
+                    .font(.system(size: 10, weight: .regular))
+                    .foregroundColor(.green)
+            }
+            if config.unknownKeyCount > 0 {
+                if config.recognizedKeyCount > 0 {
+                    Text("·")
+                        .font(.system(size: 10))
+                        .foregroundColor(Color(store.theme.effectiveMuted()))
+                }
+                Text("\(config.unknownKeyCount) unknown")
+                    .font(.system(size: 10, weight: .regular))
+                    .foregroundColor(.orange)
+            }
 
             Spacer()
 
-            Text("Config")
-                .font(.system(size: 11, weight: .regular))
-                .foregroundColor(Color(store.theme.effectiveMuted()))
+            // Theme indicator
+            if let themeName = config.themeName {
+                HStack(spacing: 3) {
+                    Image(systemName: "paintpalette")
+                        .font(.system(size: 9))
+                    Text(themeName)
+                        .font(.system(size: 10, weight: .medium))
+                }
+                .foregroundColor(Color(store.theme.effectiveAccent()))
+                .padding(.horizontal, 6)
+                .padding(.vertical, 2)
+                .background(
+                    RoundedRectangle(cornerRadius: 4)
+                        .fill(Color(store.theme.effectiveAccent()).opacity(0.1))
+                )
+            }
         }
         .padding(.horizontal, 12)
-        .padding(.vertical, 4)
-        .background(Color(store.theme.foreground).opacity(0.04))
+        .padding(.vertical, 3)
+        .background(Color(store.theme.foreground).opacity(0.03))
     }
 
     // MARK: - JSON validation
@@ -107,7 +158,7 @@ struct ConfigEditor: View {
             try? await Task.sleep(for: .milliseconds(400))
             if !Task.isCancelled {
                 await MainActor.run {
-                    store.state.configJSON = newValue
+                    store.setConfigJSON(newValue)
                 }
             }
         }

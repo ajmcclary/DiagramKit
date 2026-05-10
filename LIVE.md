@@ -6,21 +6,24 @@ This document compares the current Swift-native `Examples/MermaidPlayground` app
 
 The goal is not to embed the JavaScript editor. The playground should remain a native validation surface for DiagramKit, using `MermaidView`, `MermaidPipeline`, `MermaidRenderer.renderSVG`, and `MermaidImageRenderer` so it exercises the same Swift parse/layout/render paths as the package.
 
-## Current State (post-Phase 2)
+## Current State (post-Phase 3)
 
-Phase 1 replaced the ad-hoc `PlaygroundConfiguration` singleton with a first-class store architecture. Phase 2 added the toolbar shell, config editor, grid/pan controls, auto/manual sync, and export/clipboard actions. The app now has:
+Phase 1 replaced the ad-hoc `PlaygroundConfiguration` singleton with a first-class store architecture. Phase 2 added the toolbar shell, config editor, grid/pan controls, auto/manual sync, and export/clipboard actions. Phase 3 added config JSON parsing, theme/layout extraction, sanitization, and warnings overlay. The app now has:
 
-### Models (3 files)
+### Models (6 files)
 - `LiveEditorState.swift`: `Codable` struct with `source`, `selectedThemeName`, `configJSON`, `editorMode`, `updateMode`, `gridEnabled`, `panZoomEnabled`, `zoomScale`, `panOffset`.
-- `LiveEditorStore.swift`: `@MainActor @Observable` owner of `LiveEditorState`, render status, `parseError`, `diagramBounds`, `isDirty`. Actions: `setSource(_:origin:)`, `setTheme(named:)`, `requestRender(reason:)`, `renderNow()`, `didCompleteRender(parseError:diagramBounds:)`.
+- `LiveEditorStore.swift`: `@MainActor @Observable` owner of `LiveEditorState`, render status, `parseError`, `diagramBounds`, `isDirty`, `parsedConfig`, `layoutConfig`, `configWarnings`. Actions: `setSource(_:origin:)`, `setTheme(named:)`, `setConfigJSON(_:)`, `requestRender(reason:)`, `renderNow()`, `didCompleteRender(parseError:diagramBounds:)`. Config parsing on init and on `setConfigJSON`; theme/layout extracted automatically.
 - `LiveRenderStatus.swift`: enum `idle | pending | rendering | rendered | failed`.
+- `LiveEditorConfig.swift`: parses raw config JSON into `JSONValue` tree; extracts `themeName` (fuzzy-matched to DiagramKit themes), `layoutConfig` (padding/nodeSpacing/layerSpacing/componentSpacing), and `unknownKeys` for round-trip preservation; exposes `recognizedKeyCount`/`unknownKeyCount`.
+- `ConfigSanitizer.swift`: audits config tree for unsafe/unsupported keys (`securityLevel`, `htmlLabels`, prototype pollution via `__` prefix, XSS vectors via angle brackets in strings); produces `Warning` values with severity levels (unsupported/caution/info) and icon/color helpers for UI display.
+- `JSONValue.swift` (in `DiagramKitModel`): recursive `Codable` enum (`string|number|bool|null|object|array`) with key-path access, flattened representation, and round-trip fidelity — used by both the playground config parser and the package at large.
 
 ### Views — Core (6 files)
 - `LiveEditorView.swift`: root view; editor+preview split (regular), Edit/View toggle (compact), full-window preview sheet.
 - `EditorPane.swift`: Code/Config tab bar via `EditorModePicker` + `SourceEditor` (code) / `ConfigEditor` (config with JSON syntax indicator).
-- `PreviewCanvas.swift`: preview surface with zoom, fit-reset on render-generation change, error overlay, dim-on-failure, grid overlay, dirty badge (manual mode), `PreviewToolbar`.
+- `PreviewCanvas.swift`: preview surface with zoom, fit-reset on render-generation change, error overlay, config warnings overlay, dim-on-failure, grid overlay, dirty badge (manual mode), `PreviewToolbar`.
 - `PreviewToolbar.swift`: 7-control floating toolbar (reset, zoom out, %, zoom in, fit, grid toggle, full-window preview).
-- `MermaidViewRepresentable.swift`: publishes render completions to the store via `didCompleteRender`; theme comparison uses `bmColorEquals()`.
+- `MermaidViewRepresentable.swift`: publishes render completions to the store via `didCompleteRender`; passes `store.layoutConfig` to `MermaidView.layoutConfig`; theme comparison uses `bmColorEquals()`.
 - `SidebarView.swift`: corpus picker, theme picker, PNG export.
 
 ### Views — Toolbar panels (4 files, new in Phase 2)
@@ -29,9 +32,9 @@ Phase 1 replaced the ad-hoc `PlaygroundConfiguration` singleton with a first-cla
 - `Views/Toolbar/SampleDiagramPanel.swift`: searchable sample diagram picker with collapsible categories.
 - `Views/Toolbar/VersionSecurityPanel.swift`: DiagramKit version, platform info, privacy disclosure sheet, repo/doc links.
 
-### Views — Editor (2 files, new in Phase 2)
+### Views — Editor (2 files)
 - `Views/Editor/EditorModePicker.swift`: extracted Code/Config segmented tab bar (reusable).
-- `Views/Editor/ConfigEditor.swift`: JSON config text editor with syntax validation indicator (green/red dot + label).
+- `Views/Editor/ConfigEditor.swift`: JSON config text editor with syntax validation indicator (green/red dot + label) and mapping summary bar (recognized/unknown key counts, theme chip).
 
 ### Supporting (2 files)
 - `BMColor+IsLight.swift`: extracted `isLight` extension.
@@ -42,6 +45,13 @@ Phase 1 replaced the ad-hoc `PlaygroundConfiguration` singleton with a first-cla
 - **Grid toggle**: `PreviewCanvas` draws a 20px `Canvas` grid when `state.gridEnabled == true`.
 - **Dirty badge**: orange "Unsaved changes" pill shown in preview when `isDirty && updateMode == .manual`.
 - **Full-window preview**: sheet with `PreviewCanvas` only, triggered from toolbar or preview toolbar.
+
+### Store behaviors (new in Phase 3)
+- **Config parsing**: `setConfigJSON(_:)` parses the JSON through `LiveEditorConfig.parse()`, runs `ConfigSanitizer.audit()`, extracts theme name → `selectedThemeName` and layout keys → `layoutConfig`, then triggers render (auto mode) or marks dirty (manual mode).
+- **Config→theme mapping**: `{"theme":"dark"}` resolves to `"Zinc Dark"`, `{"theme":"default"}` → `"Zinc Light"`, with fuzzy matching against all 17 DiagramKit built-in themes. Unknown names are preserved but don't override the theme.
+- **Config→layout mapping**: top-level keys (`padding`, `nodeSpacing`, `layerSpacing`, `componentSpacing`) and nested keys (`flowchart.padding`, `config.padding`) are extracted into `LayoutConfig` and passed to `MermaidView.layoutConfig`.
+- **Config warnings**: unsupported keys (`securityLevel`, `htmlLabels`), prototype-pollution patterns (`__` prefix), and XSS-like strings (`<`, `>`, `url(data:`) produce warnings displayed as a floating overlay in `PreviewCanvas`.
+- **Unknown key preservation**: keys not recognized by the native mapping survive verbatim in `configJSON` and `LiveEditorConfig.unknownKeys`, ensuring round-trips through save/share/history.
 
 ### Rendering invariants (unchanged)
 The render loop is explicit: source/theme changes set `renderStatus = .rendering`, `MermaidLayer` handles cancel-on-new-source, `onPrepareComplete` publishes success/failure. The preview dims on failure while keeping the last valid render visible.
@@ -100,7 +110,7 @@ Keep `rough` out of the first version unless a native rough renderer is added. T
 | --- | --- | --- |
 | Edit Mermaid source | ✅ Phase 1 | Source editor in `EditorPane` code tab; wired through `LiveEditorStore.setSource(_:origin:)` |
 | Live preview updates | ✅ Phase 1 | Explicit render scheduling via `renderStatus` state machine; stale tasks cancelled by `MermaidLayer`; fit-zoom reset on `renderGeneration` change |
-| Config JSON tab | ✅ Phase 2 editor / ⬜ Phase 3 mapping | `ConfigEditor` with syntax validation indicator; permissive JSON→native mapping to come |
+| Config JSON tab | ✅ Phase 3 | `ConfigEditor` with syntax validation + mapping summary; `LiveEditorConfig` extracts theme/layout; `ConfigSanitizer` audits unsafe keys; unknown keys preserved for round-trips |
 | Syntax highlighting and line errors | ✅ Phase 1 error panel / ⬜ Phase 6 editor | Plain monospaced `TextEditor` + error overlay in `PreviewCanvas`; native `NSTextView`/`UITextView` wrapper deferred |
 | Sample diagrams | ✅ Phase 2 | `SidebarView` corpus picker + `SampleDiagramPanel` searchable popover with collapsible categories |
 | Theme controls | ✅ Phase 1 | `ThemePicker` calls `store.setTheme(named:)`; store resolves name via `DiagramTheme.theme(named:)` |
@@ -195,30 +205,40 @@ Architecture decisions:
 - Full-window preview is a sheet (not a new window) on both macOS and iOS for Phase 2; a separate `Window` scene can be added later if needed.
 - The macOS toolbar uses `.primaryAction` placement for Samples/Actions/Info and `.navigation` placement for the update mode picker + render button, matching macOS HIG conventions.
 
-### Phase 3: Config JSON and Validation
+### Phase 3: Config JSON and Validation ✅ DONE (2026-05-10)
 
-Files to create:
+**Outcome**: `swift build --build-tests` passes. 20 new tests (13 JSONValue + 7 config extraction), all passing. Config JSON now drives theme selection and layout parameters; unknown keys survive round-trips; sanitizer audits unsafe config keys and displays warnings in the preview.
 
-- `Examples/MermaidPlayground/Models/LiveEditorConfig.swift`
-- `Examples/MermaidPlayground/Models/JSONValue.swift`
-- `Examples/MermaidPlayground/Models/ConfigSanitizer.swift`
-- `Tests/DiagramKitTests/LiveEditorConfigTests.swift`
+**What was built** (`JSONValue` was moved from the playground to `DiagramKitModel` so it's testable from `DiagramKitTests`; the playground types import it from there):
 
-Strategy:
+Files created (3 + 1 moved):
 
-- Store the raw config JSON exactly as the user typed it.
-- Decode into a permissive `JSONValue` tree so unknown Mermaid config keys do not fail the app.
-- Map known keys into native settings:
-  - `theme` -> `DiagramTheme.theme(named:)` where possible.
-  - layout-related config -> `LayoutConfig` where DiagramKit exposes equivalent options.
-  - unsupported keys remain visible but marked as not yet applied.
-- Sanitize imported config before applying external state. Mirror the Live Editor concern around unsafe fields, but adapt it for native behavior. The native app is not executing browser HTML, so the risky set is smaller; still warn before accepting link callbacks, external resources, or future HTML-capable fields.
+- `Sources/DiagramKitModel/JSONValue.swift` — recursive `Codable` enum (`string|number|bool|null|object|array`) with key-path subscript, `flattened()`, and round-trip fidelity. Public in `DiagramKitModel` so tests and future package code can use it.
+- `Examples/MermaidPlayground/Models/LiveEditorConfig.swift` — static `parse(_:)` that decodes `JSONValue`, extracts `themeName` (with fuzzy matching: `"dark"`→`"Zinc Dark"`, `"default"`/`"light"`→`"Zinc Light"`, plus substring matching against all 17 built-in DiagramKit themes), `layoutConfig` (top-level and `flowchart.`/`config.` nested padding), and `unknownKeys` for preservation. Exposes `recognizedKeyCount`, `unknownKeyCount`, `parseError`.
+- `Examples/MermaidPlayground/Models/ConfigSanitizer.swift` — `audit(_:)` checks `securityLevel` (warns on loose/antiscript), `htmlLabels` (native renderers don't support HTML labels), `__`-prefixed keys (prototype pollution, informational), and string values with `<`, `>`, or `url(data:` patterns (XSS vector, caution). `stripUnsafe(from:)` for Phase 5 imported state. `Warning.Level` enum with SF Symbol `iconName` and SwiftUI `Color` helpers.
+- `Tests/DiagramKitTests/LiveEditorConfigTests.swift` — 20 tests across 2 suites: `JSONValueTests` (13 tests: decode object/array/null/bool/nested, round-trip key preservation, key-path lookup, flattened, empty/edge cases, special characters) and `LiveEditorConfigExtractionTests` (7 tests: layout defaults, top-level extraction, partial-key defaults, nested flowchart padding, unknown key preservation, theme extraction for `"dark"` and `"default"`).
 
-Acceptance criteria:
+Files modified (5):
 
-- Invalid JSON reports a config error without destroying the source preview.
-- Valid `{"theme":"dark"}` / `{"theme":"default"}` style config updates the preview theme.
-- Unknown keys survive round-trips through save/share/history.
+- `Examples/MermaidPlayground/Models/LiveEditorStore.swift` — added `parsedConfig: LiveEditorConfig?`, `layoutConfig: LayoutConfig`, `configWarnings: [ConfigSanitizer.Warning]`; `parseConfig()` on init; `setConfigJSON(_:)` action (called by `ConfigEditor` debounced writes) that parses, sanitizes, extracts theme/layout, and triggers render or marks dirty.
+- `Examples/MermaidPlayground/Views/MermaidViewRepresentable.swift` — added `layoutConfig` parameter (both `UIViewRepresentable` and `NSViewRepresentable` paths); sets `view.layoutConfig` on make and update.
+- `Examples/MermaidPlayground/Views/Editor/ConfigEditor.swift` — `debounceConfigUpdate` now calls `store.setConfigJSON(newValue)` instead of writing `store.state.configJSON` directly; validation bar shows `mappingSummary` below syntax indicator with recognized/unknown key counts and theme chip.
+- `Examples/MermaidPlayground/Views/PreviewCanvas.swift` — passes `layoutConfig: store.layoutConfig` to `MermaidViewRepresentable`; displays `configWarningsOverlay` (bottom-left floating panel) when `store.configWarnings` is non-empty.
+
+Architecture decisions:
+
+- `JSONValue` lives in `DiagramKitModel` (not the playground) because it's a general-purpose type usable beyond the sample app. The playground's `LiveEditorConfig` and `ConfigSanitizer` import it from there. Tests in `DiagramKitTests` import `DiagramKitModel` to exercise `JSONValue` directly.
+- `LiveEditorConfig` keeps the raw `configJSON` string, the decoded `jsonTree`, extracted known values, and diagnostics all in one struct — the store calls `parse()` and reads the fields it needs.
+- The sanitizer is read-only by default (produces warnings for UI display). The `stripUnsafe(from:)` mutation path is reserved for Phase 5 imported state (network-loaded config).
+- Config→theme mapping uses a two-tier resolution: direct `DiagramTheme.theme(named:)` lookup first, then common aliases (`"dark"`, `"default"`, `"light"`), then fuzzy substring matching against all built-in theme display names.
+- Config changes in manual update mode set `isDirty = true` but don't auto-render — consistent with source-editing behavior from Phase 2.
+- Layout config is passed through `MermaidViewRepresentable` → `MermaidView.layoutConfig` → `MermaidLayer.layoutConfig`, exercising the full package rendering path with non-default layout parameters.
+
+Acceptance criteria met:
+
+- **Invalid JSON reports a config error without destroying the source preview**: `LiveEditorConfig.parse()` returns `parseError` without throwing; store sets `parsedConfig = nil`; last valid render persists.
+- **Valid `{"theme":"dark"}` updates the preview theme**: `extractTheme` resolves `"dark"` → `"Zinc Dark"`; store calls `setTheme(named:)` which triggers render.
+- **Unknown keys survive round-trips**: raw `configJSON` string is stored as-typed; `LiveEditorConfig.unknownKeys` preserves unrecognized keys; `ConfigSanitizer` audits but doesn't strip them.
 
 ### Phase 4: Exports, Clipboard, and Share State
 
@@ -319,7 +339,7 @@ Suggested tests:
   - default state encodes/decodes
   - unknown config keys survive
   - malformed serialized state fails gracefully
-- `LiveEditorConfigTests`
+- `LiveEditorConfigTests` ✅ (20 tests, passing)
   - invalid JSON reports a config error
   - known theme names map to `DiagramTheme`
   - unsupported keys are preserved
@@ -348,7 +368,7 @@ swift run MermaidPlayground
 1. ✅ Land `LiveEditorStore` and replace `PlaygroundConfiguration`. (Phase 1 — done 2026-05-10)
 2. ✅ Rebuild the app shell around editor/preview panes and make live editing reliable. (Phase 2 — done 2026-05-10)
 3. ✅ Add grid, preview toolbar, auto/manual sync, PNG/SVG export, copy actions, version/security panel. (Phase 2 — done 2026-05-10)
-4. ⬜ Add config validation and JSON→native mapping. (Phase 3)
+4. ✅ Add config validation and JSON→native mapping. (Phase 3 — done 2026-05-10)
 5. ⬜ Add share serialization. (Phase 4)
 6. ⬜ Add history. (Phase 5)
 7. ⬜ Add loaders. (Phase 5)

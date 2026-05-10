@@ -40,6 +40,18 @@ public final class LiveEditorStore {
     /// The bounds of the most recently rendered diagram.
     public var diagramBounds: CGRect = .zero
 
+    // MARK: - Config (Phase 3)
+
+    /// Parsed representation of the current `state.configJSON`.
+    /// Nil when the JSON is invalid or empty.
+    public private(set) var parsedConfig: LiveEditorConfig?
+
+    /// Layout parameters extracted from config JSON.
+    public private(set) var layoutConfig: LayoutConfig = LayoutConfig()
+
+    /// Sanitizer warnings from the current config (empty = clean).
+    public private(set) var configWarnings: [ConfigSanitizer.Warning] = []
+
     // MARK: - Derived
 
     /// Resolved theme from ``LiveEditorState/selectedThemeName``.
@@ -60,6 +72,25 @@ public final class LiveEditorStore {
 
     public init(state: LiveEditorState = LiveEditorState()) {
         self.state = state
+        parseConfig()
+    }
+
+    // MARK: - Config parsing
+
+    /// Parse the current `state.configJSON`, extract known settings,
+    /// and apply them to the store's runtime state.
+    private func parseConfig() {
+        let config = LiveEditorConfig.parse(state.configJSON)
+        var applied = config
+        applied.warnings = ConfigSanitizer.audit(config.jsonTree)
+        parsedConfig = config.parseError == nil ? applied : nil
+        configWarnings = applied.warnings
+        layoutConfig = applied.layoutConfig
+
+        // Apply theme if found and different from current
+        if let themeName = applied.themeName, themeName != state.selectedThemeName {
+            setTheme(named: themeName)
+        }
     }
 
     // MARK: - Actions
@@ -92,6 +123,21 @@ public final class LiveEditorStore {
         guard state.selectedThemeName != name else { return }
         state.selectedThemeName = name
         requestRender(reason: .themeChanged)
+    }
+
+    /// Update the config JSON and re-parse.
+    ///
+    /// Called by ``ConfigEditor`` on debounced changes.
+    public func setConfigJSON(_ json: String) {
+        guard state.configJSON != json else { return }
+        state.configJSON = json
+        parseConfig()
+
+        if state.updateMode == .auto {
+            requestRender(reason: .sourceChanged)
+        } else {
+            isDirty = true
+        }
     }
 
     /// Explicitly request a render (e.g. from manual update mode).

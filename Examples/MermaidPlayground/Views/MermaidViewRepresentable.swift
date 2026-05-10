@@ -17,6 +17,7 @@ import UIKit
 struct MermaidViewRepresentable: UIViewRepresentable {
     let source: String
     let theme: DiagramTheme
+    let layoutConfig: LayoutConfig
     let store: LiveEditorStore
 
     func makeUIView(context: Context) -> MermaidView {
@@ -24,6 +25,7 @@ struct MermaidViewRepresentable: UIViewRepresentable {
         bindPreparationUpdates(from: view)
         view.theme = theme
         view.source = source
+        view.layoutConfig = layoutConfig
         return view
     }
 
@@ -39,6 +41,11 @@ struct MermaidViewRepresentable: UIViewRepresentable {
         // Update source (triggers re-render in MermaidLayer)
         if view.source != source {
             view.source = source
+        }
+
+        // Update layout config
+        if view.layoutConfig != layoutConfig {
+            view.layoutConfig = layoutConfig
         }
     }
 
@@ -68,6 +75,7 @@ import AppKit
 struct MermaidViewRepresentable: NSViewRepresentable {
     let source: String
     let theme: DiagramTheme
+    let layoutConfig: LayoutConfig
     let store: LiveEditorStore
 
     func makeNSView(context: Context) -> MermaidView {
@@ -75,6 +83,7 @@ struct MermaidViewRepresentable: NSViewRepresentable {
         bindPreparationUpdates(from: view)
         view.theme = theme
         view.source = source
+        view.layoutConfig = layoutConfig
         return view
     }
 
@@ -90,6 +99,10 @@ struct MermaidViewRepresentable: NSViewRepresentable {
         // Update source (triggers re-render in MermaidLayer)
         if view.source != source {
             view.source = source
+        }
+
+        if view.layoutConfig != layoutConfig {
+            view.layoutConfig = layoutConfig
         }
     }
 
