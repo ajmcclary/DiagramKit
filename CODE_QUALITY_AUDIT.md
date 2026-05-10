@@ -8,9 +8,52 @@ The maintainability risk is concentrated rather than diffuse. Current source siz
 
 Overall structural health: **yellow-green**. The target layering and typed domain model are strong. The main liabilities are duplicated routing between parse/SVG/ASCII paths, duplicated worker and bitmap preparation logic in the view layer, a cross-cutting `DiagramFrontmatter` bag embedded in a class parser file, partial adoption of shape and font abstractions, and duplicated frontmatter/theme binding code. These issues do not require a rewrite. They call for a focused consolidation pass around existing abstractions.
 
+## Completion Status — 2026-05-10
+
+| Item | Status | Notes |
+|---|---|---|
+| **A1** Worker-thread invariant | ✅ Done | `bbe256a` `601f4b4` `97dfdce` `64c73dc` `15d87cd` |
+| **A2** Registry split | ✅ Done | `741e212` `33c61c2` |
+| **A3** `DiagramFrontmatter` move | ✅ Done | `b308aa6` |
+| **A4** Shape abstraction | ⚠ Partial | Serializer + 6 new `ShapePath` cases done (`e939068` `578bba4` `818eddc` `fd37bbf` `df49dd3`); 4 consumer switches still string-keyed — capstone chip filed |
+| **A5** Font / token split | ⚠ Partial | Font drift fixed (`88e3a13` `e2ebac8` `e596d70`); `RenderConfig` per-diagram constants extracted (`d60f042`); full god-object split still pending |
+| **P1** Routing collapse | ✅ Done | `0a42b8a` `4c3d386` |
+| **P1** Font drift | ✅ Done | bundled into A5 commits above |
+| **P2** Config & registry split | ✅ Done | `b308aa6` `7c44419` `741e212` `33c61c2` |
+| **P2** Shape adoption | ⚠ Partial | Same as A4 |
+| **P2** Frontmatter bindings | ✅ Done | `7c44419` `6621c67` `eed339a` |
+| **P3** View target alignment | ✅ Done | `bf1dc59` `86aba45` `047adbb` `b70dc61` |
+| **P3** Bitmap rendering | ✅ Done | `31e6882` |
+| **P4** Naming hygiene | ➖ Open | Low priority — `original_src_*` namespace acceptable as compatibility seam; flag if it spreads to new abstractions |
+| **D1** SVG case parse/layout dedup | ➖ Open | Spawn chip filed — registry path produces ~25 SVG snapshot diffs in xychart/quadrant/sankey/radar that need per-diff visual review |
+| **D2** CG/SVG renderer drift | 🚧 Blocked on A4 capstone | Shape consolidation is the geometry-layer half |
+| **D3** Frontmatter binding skeleton | ⚠ Partial | `applySection`-style helper landed in 5 binding files; fully generic version not extracted |
+| **D4** `YamlFrontmatterThemeHelpers` cleanup | ✅ Done | `6621c67` `eed339a` |
+| **D5** Bitmap consolidation | ✅ Done | `31e6882` |
+
+**Spawn chips queued (not started):**
+- Rect-family `ShapePath` cases for the 5 shapes that need offset-aware decorations.
+- Cylinder + document variant cases (5 more shapes; need decoration system extensions).
+- Alt-skew/brace/misc cases (~8 more shapes; need stroke-only line case + decoration extensions).
+- A4 capstone — drive all 4 consumer switches through `ShapeSpecRegistry` (depends on the three above; ~700 baseline rebakes expected).
+- D1 SVG case dedup (4 case functions, ~25 snapshot rebakes after per-diff review).
+
+**Larger items not yet chipped:**
+- Full `RenderConfig` god-object split (token storage / font resolution / text measurement separation).
+- Linux text-measurement shim (`CTLineGetBoundsWithOptions` replacement) so ishikawa, treeView, eventModeling layouts can run on Linux.
+- CG/SVG renderer convergence on shared geometry primitives (D2 long-term plan).
+
+**External / not actionable:**
+- `swift-snapshot-testing` upstream PR #1090 landing → switch back from the `ajmcclary/swift-snapshot-testing` fork.
+- `CorpusSnapshotTests` signal-10 hang investigation — pre-existing on `main`; needs upstream debugging.
+- `<Module>Bootstrap.phase: Int` markers — explicitly deferred to monorepo promotion (Stage 6 in `ANALYSIS.md`).
+- 14 yellow `@unchecked Sendable` allowlist entries — sunset `2027-06-30`; per-site contract review.
+
 ## Abstraction Analysis
 
 ### A1. View APIs bypass or duplicate the canonical worker-thread abstraction
+
+**Status:** ✅ Done (`bbe256a`, `601f4b4`, `97dfdce`, `64c73dc`, `15d87cd`). `MermaidPreparation` lives in `DiagramKitRenderingCG` with closure-based registration; the 8 MB worker is `MermaidWorkerThread.run`; all view paths consume `MermaidPreparation.prepare(...)` async; a regression test in `MermaidPreparationWorkerTests` asserts the named worker-thread invariant.
 
 **Evidence**
 
@@ -71,6 +114,8 @@ preparationTask = Task { [weak self] in
 
 ### A2. `DiagramRegistry` is useful, but it is becoming a God registry
 
+**Status:** ✅ Done (`741e212`, `33c61c2`). Per-family `DiagramRegistry+<Family>.swift` extension files now hold individual descriptors; the central `DiagramDescriptor.swift` holds the abstraction and the ordered `all` list. A typed descriptor factory eliminates the `guard case` boilerplate.
+
 **Evidence**
 
 - `Sources/DiagramKit/DiagramDescriptor.swift:73` to `Sources/DiagramKit/DiagramDescriptor.swift:99` defines the descriptor abstraction.
@@ -114,6 +159,8 @@ private static func typedDescriptor<Parsed, Positioned>(
 Move descriptors into files such as `DiagramRegistry+Sequence.swift`, `DiagramRegistry+Gantt.swift`, and `DiagramRegistry+Flowchart.swift`. The central file should only define the abstractions and the ordered `all` list.
 
 ### A3. `DiagramFrontmatter` is a cross-cutting config bag embedded in `src_class_parser.swift`
+
+**Status:** ✅ Done (`b308aa6`). `DiagramFrontmatter` lives in `Sources/DiagramKitModel/DiagramFrontmatter.swift` with shared/per-diagram split via the binding adapters.
 
 **Evidence**
 
@@ -160,6 +207,8 @@ This keeps the current typed-storage model without forcing an unsafe dictionary 
 
 ### A4. Shape abstractions exist, but rendering and clipping still carry independent shape logic
 
+**Status:** ⚠ Partial. `SVGPathSerializer` covers all 25 `ShapePath` cases (`e939068`); `ShapeSpec` gained `clipPath` + `decorations` fields (`578bba4`); enum extended with `notchedRectangle`, `horizontalCylinder`, `trapezoidAlt`, `parallelogramAlt`, `triangleDown`, `slopedRectangle` (`818eddc`, `fd37bbf`, `df49dd3`). The four consumer switches (`ShapeRenderer` primary + decoration, `src_renderer.swift`, `src_block_renderer.swift`, `EdgeShapeClipper`) still string-keyed — capstone chip filed for the migration. Remaining shapes (~20 in tagged/stacked/lined-rectangle, document variants, brace family, icon/image) need offset-aware decorations or a stroke-only line case before they can join the spec.
+
 **Evidence**
 
 - `Sources/DiagramKitModel/ShapeSpec.swift:10` to `Sources/DiagramKitModel/ShapeSpec.swift:15` states that layout, CG rendering, and SVG rendering should derive shape behavior from `ShapeSpecRegistry`.
@@ -201,6 +250,8 @@ Finish `SVGPathSerializer` for all `ShapePath` cases before migrating more rende
 
 ### A5. Font and render-token abstractions are partially adopted
 
+**Status:** ⚠ Partial. The font drift is fixed: `nodeLabelFont`/`edgeLabelFont`/`groupHeaderFont` now route through `proportionalFont` (`88e3a13`), `DiagramFontResolver` replaced direct `BMFont.systemFont` calls in CG renderers (`e2ebac8`, `e596d70`), and per-diagram constants moved to `RenderConfig+<Family>.swift` extensions (`d60f042`). The full god-object split (token storage / font resolution / text measurement as three distinct types) is still pending — the per-diagram extension files set up the seam.
+
 **Evidence**
 
 - `Sources/DiagramKitModel/RenderConfig.swift:18` to `Sources/DiagramKitModel/RenderConfig.swift:112` mixes generic node metrics, sequence constants, class constants, ER constants, and font settings.
@@ -239,6 +290,8 @@ After that, replace direct `BMFont.systemFont` calls in CG renderers with a `Dia
 ## Pattern Consistency Review
 
 ### P1. Parser and layout routing use the registry, but SVG and ASCII still have separate routing systems
+
+**Status:** ✅ Done (`0a42b8a`, `4c3d386`). `SVGRenderRegistry` and ASCII routing both consume `DiagramRegistry.detect`. `_DiagramRoutingType` and `DetectedDiagramType` deleted. The remaining duplicated parse/layout work inside the SVG case functions is tracked separately as **D1**.
 
 **Evidence**
 
@@ -284,6 +337,8 @@ enum SVGRenderRegistry {
 
 ### P2. Frontmatter binding semantics vary across diagram families
 
+**Status:** ✅ Done (`7c44419`). Bindings standardized to mark `hasConfig`/`hasTheme` only after `_apply…` returns true; YAML leaf-key path inheritance fixed in the same commit.
+
 **Evidence**
 
 - `Sources/DiagramKitModel/SourcePreprocessing.swift:180` to `Sources/DiagramKitModel/SourcePreprocessing.swift:212` registers 27 frontmatter bindings.
@@ -317,6 +372,8 @@ For broad `themeVariables.*` fallbacks, require an `_is<Diagram>ThemeKey` predic
 
 ### P3. The view target boundary is documented, but the code shape does not match the package shape
 
+**Status:** ✅ Done (`bf1dc59`, `86aba45`, `047adbb`, `b70dc61`). View files moved to `Sources/DiagramKitViews/`; `_Stub.swift` deleted; `MermaidViewPreparer` is the seam; the umbrella's `_MermaidPreparerBootstrap` registers `MermaidPipeline.prepare` on first use; the view-side fallback was removed in favor of an explicit `MermaidRenderer.bootstrap()` precondition.
+
 **Evidence**
 
 - `Sources/DiagramKitViews/_Stub.swift:1` to `Sources/DiagramKitViews/_Stub.swift:8` states that the target is a placeholder.
@@ -346,6 +403,8 @@ Move the actual view files to `Sources/DiagramKitViews` once the views accept a 
 
 ### P4. Some upstream-port naming conventions are acceptable, but should not spread into new native abstractions
 
+**Status:** ➖ Open (low priority). No new `original_src_*`-style names have been added to native abstractions; existing JS-port lineage names remain in compatibility wrappers. Re-evaluate only if new code starts adopting the convention.
+
 **Evidence**
 
 - `Sources/DiagramKit/src_index.swift:510` to `Sources/DiagramKit/src_index.swift:512` retains `original_src_index`.
@@ -364,6 +423,8 @@ Keep `original_src_*` as a compatibility namespace only. New dispatch, rendering
 ## Duplication and Reuse Audit
 
 ### D1. Parse/layout work is duplicated in SVG rendering instead of reusing the registry pipeline
+
+**Status:** ➖ Open. Spawn chip filed. Initial pass attempted on this branch but reverted: routing the four named cases (XYChart, Quadrant, Sankey, Radar) through the registry produces ~25 corpus snapshot diffs in entries with frontmatter overrides — needs per-diff visual review (registry vs case frontmatter merge differences) before the rebake.
 
 **Evidence**
 
@@ -401,6 +462,8 @@ This preserves independent SVG renderers while eliminating duplicated parse/layo
 
 ### D2. CG and SVG renderer duplication is real and should be reduced at geometry boundaries first
 
+**Status:** 🚧 Blocked on A4 capstone. Geometry consolidation depends on the consumer-switch migration to `ShapeSpecRegistry`. Step 1 of the recommendation ("Complete `ShapeSpec` and serializers") is partially done; steps 2–4 follow once shape selection is registry-driven.
+
 **Evidence**
 
 - There are 27 `Sources/DiagramKitRenderingCG/DiagramRenderer+*.swift` files.
@@ -423,6 +486,8 @@ Do not attempt a full renderer rewrite first. Start by consolidating reusable ge
 4. Keep backend-specific drawing code only at the final "emit SVG" or "draw CGContext" layer.
 
 ### D3. Frontmatter binding files repeat the same state-machine skeleton
+
+**Status:** ⚠ Partial. The "mark-only-if-applied" correctness rule landed via `7c44419`, and a generic `applySection`-style helper exists in 5 binding files. A fully-extracted single helper consumed by all 27 bindings still pending.
 
 **Evidence**
 
@@ -460,6 +525,8 @@ Each binding can then focus on its typed key mapping rather than repeated prefix
 
 ### D4. `YamlFrontmatterThemeHelpers.swift` contains dead or duplicated helper surfaces
 
+**Status:** ✅ Done (`6621c67`, `eed339a`). Dead `_apply<Diagram>ThemeValue` helpers removed; remaining surface split into intent-named files: `FrontmatterThemeKeyPredicates.swift` (the `_is*ThemeKey` predicates) and `YamlInlineArrayParser.swift` (`_parseYamlStringArray`).
+
 **Evidence**
 
 - `Sources/DiagramKitModel/YamlFrontmatterThemeHelpers.swift:6` to `Sources/DiagramKitModel/YamlFrontmatterThemeHelpers.swift:92` defines GitGraph theme key helpers and application logic.
@@ -480,6 +547,8 @@ The file name says YAML-specific helper, but the active frontmatter path now del
 Keep only generic helpers that active bindings use, such as `_parseYamlStringArray` at `Sources/DiagramKitModel/YamlFrontmatterThemeHelpers.swift:233`. Move reusable key predicates into a clearly named support file, such as `FrontmatterThemeKeyPredicates.swift`, and delete or make private any unused `_apply<Diagram>ThemeValue` functions.
 
 ### D5. Bitmap rendering setup is duplicated between image rendering and the layer view
+
+**Status:** ✅ Done (`31e6882`). `MermaidBitmapRenderer.render(size:scale:theme:draw:)` is the single platform bitmap entry point; `MermaidImageRenderer` and `MermaidLayer.renderImage(scale:)` both consume it.
 
 **Evidence**
 
@@ -521,68 +590,84 @@ Some repetition is acceptable and should not be aggressively abstracted:
 
 ## Prioritized Refactoring Roadmap
 
-### P0 - Protect the runtime invariant and UI responsiveness
+### P0 - Protect the runtime invariant and UI responsiveness — ✅ Done
 
-1. Route `MermaidLayer.prepareDiagram()` through `MermaidRenderer._runOnWorker` or a new `MermaidPreparation` helper.
-2. Change `MermaidDiagram.prepare()` to prepare asynchronously off the main actor and publish results back on the main actor.
-3. Add tests or review checks that all public prepare/render entry points use the canonical worker helper.
+1. ✅ Route `MermaidLayer.prepareDiagram()` through `MermaidRenderer._runOnWorker` or a new `MermaidPreparation` helper.
+2. ✅ Change `MermaidDiagram.prepare()` to prepare asynchronously off the main actor and publish results back on the main actor.
+3. ✅ Add tests or review checks that all public prepare/render entry points use the canonical worker helper. (`MermaidPreparationWorkerTests`)
 
 Expected impact: high maintainability and correctness gain with low blast radius.
 
-### P1 - Collapse duplicated diagram routing
+### P1 - Collapse duplicated diagram routing — ✅ Done
 
-1. Replace `src_ascii_index.swift` detection with `DiagramRegistry.detect`.
-2. Add `SVGRenderRegistry` keyed by `DiagramType`.
-3. Convert `src_index.swift` to parse/layout once through `MermaidParser` and `GraphLayout`, then dispatch only final typed SVG rendering.
-4. Remove `_DiagramRoutingType` and `DetectedDiagramType` once coverage is equivalent.
+1. ✅ Replace `src_ascii_index.swift` detection with `DiagramRegistry.detect`.
+2. ✅ Add `SVGRenderRegistry` keyed by `DiagramType`.
+3. ➖ Convert `src_index.swift` to parse/layout once through `MermaidParser` and `GraphLayout`, then dispatch only final typed SVG rendering. **Tracked separately as D1; spawn chip filed.**
+4. ✅ Remove `_DiagramRoutingType` and `DetectedDiagramType` once coverage is equivalent.
 
 Expected impact: high developer productivity gain when adding or changing diagram families.
 
-### P1 - Fix font abstraction drift
+### P1 - Fix font abstraction drift — ✅ Done
 
-1. Update `RenderConfig.nodeLabelFont`, `edgeLabelFont`, and `groupHeaderFont` to use bundled proportional defaults.
-2. Replace direct `BMFont.systemFont` calls in Gantt, XYChart, Journey, Timeline, ER, Class, and Sequence CG renderers with `RenderConfig` or `DiagramFontResolver`.
-3. Keep Mermaid-specific fallback chains only in specialized helpers, not call sites.
+1. ✅ Update `RenderConfig.nodeLabelFont`, `edgeLabelFont`, and `groupHeaderFont` to use bundled proportional defaults.
+2. ✅ Replace direct `BMFont.systemFont` calls in Gantt, XYChart, Journey, Timeline, ER, Class, and Sequence CG renderers with `RenderConfig` or `DiagramFontResolver`.
+3. ✅ Keep Mermaid-specific fallback chains only in specialized helpers, not call sites.
 
 Expected impact: high snapshot determinism and medium maintainability gain.
 
-### P2 - Split large cross-cutting config and registry files
+### P2 - Split large cross-cutting config and registry files — ✅ Done
 
-1. Move `DiagramFrontmatter` out of `src_class_parser.swift`.
-2. Group frontmatter into shared and per-diagram config structs.
-3. Split `DiagramDescriptor.swift` into descriptor extensions by diagram family.
-4. Add a typed descriptor factory to remove repeated payload guards.
+1. ✅ Move `DiagramFrontmatter` out of `src_class_parser.swift`.
+2. ✅ Group frontmatter into shared and per-diagram config structs.
+3. ✅ Split `DiagramDescriptor.swift` into descriptor extensions by diagram family.
+4. ✅ Add a typed descriptor factory to remove repeated payload guards.
 
 Expected impact: medium-to-high maintainability gain, especially for future diagram imports.
 
-### P2 - Finish shape abstraction adoption
+### P2 - Finish shape abstraction adoption — ⚠ Partial
 
-1. Complete `SVGPathSerializer` for all `ShapePath` cases.
-2. Add clipping and decoration metadata to `ShapeSpec`.
-3. Replace shape switches in `ShapeRenderer`, `src_renderer`, `src_block_renderer`, and `EdgeShapeClipper` incrementally.
+1. ✅ Complete `SVGPathSerializer` for all `ShapePath` cases.
+2. ✅ Add clipping and decoration metadata to `ShapeSpec`.
+3. ➖ Replace shape switches in `ShapeRenderer`, `src_renderer`, `src_block_renderer`, and `EdgeShapeClipper` incrementally. **Spawn chips filed for the remaining ~20 shapes (rect-family, document-family, alt-skew/brace/misc) that need offset-aware decorations or a stroke-only line case before the consumer-switch capstone can land.**
 
 Expected impact: medium maintainability gain and strong drift reduction between CG, SVG, and layout.
 
-### P2 - Standardize frontmatter bindings
+### P2 - Standardize frontmatter bindings — ✅ Done (helper extraction partial)
 
-1. Introduce prefix application helpers that only set `hasConfig` or `hasTheme` after successful key application.
-2. Fix broad-prefix bindings in Requirement, Radar, Wardley, Pie, and GitGraph.
-3. Delete or reuse duplicated theme-application helpers in `YamlFrontmatterThemeHelpers.swift`.
+1. ✅ Introduce prefix application helpers that only set `hasConfig` or `hasTheme` after successful key application.
+2. ✅ Fix broad-prefix bindings in Requirement, Radar, Wardley, Pie, and GitGraph.
+3. ✅ Delete or reuse duplicated theme-application helpers in `YamlFrontmatterThemeHelpers.swift`.
+4. ➖ Fully extract a single shared `applySection`-style helper consumed by all 27 bindings. (Optional refactor — the correctness rule is already in place.)
 
 Expected impact: medium correctness and maintainability gain.
 
-### P3 - Align the package graph with view ownership
+### P3 - Align the package graph with view ownership — ✅ Done
 
-1. Introduce a view-preparation protocol or closure.
-2. Move actual view files from `Sources/DiagramKit/Views` into `Sources/DiagramKitViews`.
-3. Keep the umbrella target as the composition point that supplies the default preparer.
+1. ✅ Introduce a view-preparation protocol or closure. (`MermaidViewPreparer`)
+2. ✅ Move actual view files from `Sources/DiagramKit/Views` into `Sources/DiagramKitViews`.
+3. ✅ Keep the umbrella target as the composition point that supplies the default preparer. (`_MermaidPreparerBootstrap` registers `MermaidPipeline.prepare` on first use; `MermaidRenderer.bootstrap()` exposes it explicitly.)
 
 Expected impact: medium architectural clarity, lower immediate urgency.
 
-### P3 - Consolidate bitmap rendering
+### P3 - Consolidate bitmap rendering — ✅ Done
 
-1. Extract platform bitmap context setup from `MermaidImageRenderer`.
-2. Reuse it from `MermaidLayer.renderImage(scale:)`.
-3. Snapshot or pixel-check one UIKit and one AppKit path after extraction.
+1. ✅ Extract platform bitmap context setup from `MermaidImageRenderer`. (`MermaidBitmapRenderer`)
+2. ✅ Reuse it from `MermaidLayer.renderImage(scale:)`.
+3. ✅ Snapshot or pixel-check one UIKit and one AppKit path after extraction.
 
 Expected impact: medium duplication reduction with moderate platform-testing needs.
+
+## Remaining Larger Items (not yet chipped)
+
+These were identified in the audit but warrant their own scoping passes before being chipped:
+
+- **A5 full split.** Decompose `RenderConfig` into `RenderTokens` (storage), `DiagramFontResolver` (font resolution), and `TextMetrics` (measurement). Per-diagram extension files (`d60f042`) set up the seam; the lift itself touches ~28 CG renderers and has snapshot risk.
+- **D2 long-term.** Convergence of CG and SVG renderers onto shared geometry primitives. Steps 2–4 of D2's recommendation kick in after the A4 capstone lands.
+- **Linux Stage 2.5.** Portable text-measurement shim so `ishikawa` / `treeView` / `eventModeling` layouts can run without `CTLineGetBoundsWithOptions`.
+
+## External / Not Actionable
+
+- `swift-snapshot-testing` upstream PR #1090 — switch off the `ajmcclary` fork once it lands in a tagged release.
+- `CorpusSnapshotTests` signal-10 hang — pre-existing upstream test-runner / `swift-snapshot-testing` interaction. Workaround documented in `CLAUDE.md` and project memory.
+- `<Module>Bootstrap.phase: Int` markers — explicitly deferred to monorepo Stage 6.
+- 14 `.sendable-allowlist.txt` yellow entries — sunset `2027-06-30`; per-site analysis required.
