@@ -6,17 +6,20 @@ This document compares the current Swift-native `Examples/MermaidPlayground` app
 
 The goal is not to embed the JavaScript editor. The playground should remain a native validation surface for DiagramKit, using `MermaidView`, `MermaidPipeline`, `MermaidRenderer.renderSVG`, and `MermaidImageRenderer` so it exercises the same Swift parse/layout/render paths as the package.
 
-## Current State (post-Phase 3)
+## Current State (post-Phase 4)
 
-Phase 1 replaced the ad-hoc `PlaygroundConfiguration` singleton with a first-class store architecture. Phase 2 added the toolbar shell, config editor, grid/pan controls, auto/manual sync, and export/clipboard actions. Phase 3 added config JSON parsing, theme/layout extraction, sanitization, and warnings overlay. The app now has:
+Phase 1 replaced the ad-hoc `PlaygroundConfiguration` singleton with a first-class store architecture. Phase 2 added the toolbar shell, config editor, grid/pan controls, auto/manual sync, and export/clipboard actions. Phase 3 added config JSON parsing, theme/layout extraction, sanitization, and warnings overlay. Phase 4 centralized export/copy/share into the store, added PNG sizing options, state serialization (base64url), and a share/restore UI. The app now has:
 
-### Models (6 files)
+### Models (8 files)
 - `LiveEditorState.swift`: `Codable` struct with `source`, `selectedThemeName`, `configJSON`, `editorMode`, `updateMode`, `gridEnabled`, `panZoomEnabled`, `zoomScale`, `panOffset`.
-- `LiveEditorStore.swift`: `@MainActor @Observable` owner of `LiveEditorState`, render status, `parseError`, `diagramBounds`, `isDirty`, `parsedConfig`, `layoutConfig`, `configWarnings`. Actions: `setSource(_:origin:)`, `setTheme(named:)`, `setConfigJSON(_:)`, `requestRender(reason:)`, `renderNow()`, `didCompleteRender(parseError:diagramBounds:)`. Config parsing on init and on `setConfigJSON`; theme/layout extracted automatically.
+- `LiveEditorStore.swift`: `@MainActor @Observable` owner of `LiveEditorState`, render status, `parseError`, `diagramBounds`, `isDirty`, `parsedConfig`, `layoutConfig`, `configWarnings`, `exportOptions`. Actions: `setSource(_:origin:)`, `setTheme(named:)`, `setConfigJSON(_:)`, `requestRender(reason:)`, `renderNow()`, `didCompleteRender(parseError:diagramBounds:)`, `exportPNG(options:)`, `exportSVG()`, `copySource()`, `copyConfig()`, `copySVG()`, `copyPNGImage(options:)`, `serializedState()`, `restoreFromSerializedState(_:)`. Config parsing on init and on `setConfigJSON`; theme/layout extracted automatically.
 - `LiveRenderStatus.swift`: enum `idle | pending | rendering | rendered | failed`.
 - `LiveEditorConfig.swift`: parses raw config JSON into `JSONValue` tree; extracts `themeName` (fuzzy-matched to DiagramKit themes), `layoutConfig` (padding/nodeSpacing/layerSpacing/componentSpacing), and `unknownKeys` for round-trip preservation; exposes `recognizedKeyCount`/`unknownKeyCount`.
 - `ConfigSanitizer.swift`: audits config tree for unsafe/unsupported keys (`securityLevel`, `htmlLabels`, prototype pollution via `__` prefix, XSS vectors via angle brackets in strings); produces `Warning` values with severity levels (unsupported/caution/info) and icon/color helpers for UI display.
+- `ExportOptions.swift` (Phase 4): PNG sizing model (`auto` at scale or `fixed` CGSize); stored on the store, mutable by the export UI.
+- `LiveEditorStateCodec.swift` (Phase 4): serializes `LiveEditorState` to/from a URL-safe base64-encoded JSON string using `Base64URL` from `DiagramKitModel`.
 - `JSONValue.swift` (in `DiagramKitModel`): recursive `Codable` enum (`string|number|bool|null|object|array`) with key-path access, flattened representation, and round-trip fidelity — used by both the playground config parser and the package at large.
+- `Base64URL.swift` (in `DiagramKitModel`, Phase 4): RFC 4648 §5 URL-safe base64 encoding/decoding; used by `LiveEditorStateCodec` and testable from `DiagramKitTests`.
 
 ### Views — Core (6 files)
 - `LiveEditorView.swift`: root view; editor+preview split (regular), Edit/View toggle (compact), full-window preview sheet.
@@ -24,17 +27,21 @@ Phase 1 replaced the ad-hoc `PlaygroundConfiguration` singleton with a first-cla
 - `PreviewCanvas.swift`: preview surface with zoom, fit-reset on render-generation change, error overlay, config warnings overlay, dim-on-failure, grid overlay, dirty badge (manual mode), `PreviewToolbar`.
 - `PreviewToolbar.swift`: 7-control floating toolbar (reset, zoom out, %, zoom in, fit, grid toggle, full-window preview).
 - `MermaidViewRepresentable.swift`: publishes render completions to the store via `didCompleteRender`; passes `store.layoutConfig` to `MermaidView.layoutConfig`; theme comparison uses `bmColorEquals()`.
-- `SidebarView.swift`: corpus picker, theme picker, PNG export.
+- `SidebarView.swift`: corpus picker, theme picker. (PNG export moved to store/actions panel in Phase 4.)
 
 ### Views — Toolbar panels (4 files, new in Phase 2)
 - `Views/Toolbar/LiveEditorToolbar.swift`: macOS unified toolbar + iOS nav bar; hosts `UpdateModePicker`, render button (manual mode), popover/sheet triggers for Samples/Actions/Info.
-- `Views/Toolbar/ActionsPanel.swift`: Export PNG/SVG, copy source/config/SVG/PNG, full-window preview trigger, share placeholder.
+- `Views/Toolbar/ActionsPanel.swift`: Thin shell around `ActionsView`; owns file-exporter triggers, error alerts, and ShareView sheet. Export/copy logic delegated to store methods.
 - `Views/Toolbar/SampleDiagramPanel.swift`: searchable sample diagram picker with collapsible categories.
 - `Views/Toolbar/VersionSecurityPanel.swift`: DiagramKit version, platform info, privacy disclosure sheet, repo/doc links.
 
 ### Views — Editor (2 files)
 - `Views/Editor/EditorModePicker.swift`: extracted Code/Config segmented tab bar (reusable).
 - `Views/Editor/ConfigEditor.swift`: JSON config text editor with syntax validation indicator (green/red dot + label) and mapping summary bar (recognized/unknown key counts, theme chip).
+
+### Views — Phase 4 (2 files)
+- `Views/ActionsView.swift`: Export/copy/share button groups with PNG sizing picker (Auto/Fixed + scale/width-height controls). Delegates copy actions to store methods; export triggers to parent callbacks.
+- `Views/ShareView.swift`: Displays serialized share string (selectable, copyable); paste-to-restore with error/success feedback.
 
 ### Supporting (2 files)
 - `BMColor+IsLight.swift`: extracted `isLight` extension.
@@ -52,6 +59,13 @@ Phase 1 replaced the ad-hoc `PlaygroundConfiguration` singleton with a first-cla
 - **Config→layout mapping**: top-level keys (`padding`, `nodeSpacing`, `layerSpacing`, `componentSpacing`) and nested keys (`flowchart.padding`, `config.padding`) are extracted into `LayoutConfig` and passed to `MermaidView.layoutConfig`.
 - **Config warnings**: unsupported keys (`securityLevel`, `htmlLabels`), prototype-pollution patterns (`__` prefix), and XSS-like strings (`<`, `>`, `url(data:`) produce warnings displayed as a floating overlay in `PreviewCanvas`.
 - **Unknown key preservation**: keys not recognized by the native mapping survive verbatim in `configJSON` and `LiveEditorConfig.unknownKeys`, ensuring round-trips through save/share/history.
+
+### Store behaviors (new in Phase 4)
+- **Export centralization**: `exportPNG(options:)` and `exportSVG()` are store methods that use `MermaidImageRenderer` (with `layoutConfig` and `ExportOptions` sizing) and `MermaidRenderer.renderSVG`. Views call these and handle file-exporter dialogs.
+- **Copy centralization**: `copySource()`, `copyConfig()`, `copySVG()`, and `copyPNGImage(options:)` are store methods that write directly to `NSPasteboard`/`UIPasteboard`. Copy feedback (2-second green toast) is managed by `ActionsView`.
+- **PNG sizing**: `ExportOptions` with `.auto` (diagram natural bounds × scale) or `.fixed(CGSize)`. The `ActionsView` sizing picker mutates `store.exportOptions` directly.
+- **State serialization**: `LiveEditorStateCodec` encodes `LiveEditorState` to JSON + base64url (via `Base64URL` in `DiagramKitModel`). `serializedState()` and `restoreFromSerializedState(_:)` on the store wrap the codec. `restoreFromSerializedState` applies all 9 state fields and triggers a render (using `.system` origin to bypass manual-mode guard).
+- **Share UI**: `ShareView` displays the serialized string (selectable text, copy button, character count) and provides a paste-to-restore input with `TextEditor` and error/success feedback.
 
 ### Rendering invariants (unchanged)
 The render loop is explicit: source/theme changes set `renderStatus = .rendering`, `MermaidLayer` handles cancel-on-new-source, `onPrepareComplete` publishes success/failure. The preview dims on failure while keeping the last valid render visible.
@@ -121,7 +135,7 @@ Keep `rough` out of the first version unless a native rough renderer is added. T
 | PNG export | ✅ Phase 2 | `ActionsPanel` → PNG via `MermaidImageRenderer` at 2× scale; `fileExporter` save dialog |
 | SVG export | ✅ Phase 2 | `ActionsPanel` → SVG via `MermaidRenderer.renderSVG(source:theme:)`; `fileExporter` save dialog |
 | Copy image / copy SVG / copy source | ✅ Phase 2 | `ActionsPanel` copy buttons: source text, config JSON, SVG text (via `NSPasteboard`/`UIPasteboard`), PNG image |
-| Share links | ⬜ Phase 4 | Local state serialization to come. Optional `pako:` compatibility deferred |
+| Share links | ✅ Phase 4 | `LiveEditorStateCodec` → JSON + base64url; `ShareView` with copy/paste-to-restore; `pako:` deflate interop deferred to Phase 4.1 |
 | View-only mode | ✅ Phase 2 full-window preview | Full-window preview sheet from `ActionsPanel` or `PreviewToolbar`; standalone preview-only view |
 | History | ⬜ Phase 5 | Manual saved states and auto timeline to come |
 | History import/export | ⬜ Phase 5 | JSON file import/export to come |
@@ -240,36 +254,34 @@ Acceptance criteria met:
 - **Valid `{"theme":"dark"}` updates the preview theme**: `extractTheme` resolves `"dark"` → `"Zinc Dark"`; store calls `setTheme(named:)` which triggers render.
 - **Unknown keys survive round-trips**: raw `configJSON` string is stored as-typed; `LiveEditorConfig.unknownKeys` preserves unrecognized keys; `ConfigSanitizer` audits but doesn't strip them.
 
-### Phase 4: Exports, Clipboard, and Share State
+### Phase 4: Exports, Clipboard, and Share State ✅ DONE (2026-05-10)
 
-Files to create:
+**Outcome**: `swift build --build-tests` passes clean (no warnings). 14 new tests (`Base64URLTests`), all passing. Export/copy/share logic centralized in the store; PNG sizing options added; state serialization with share/restore UI.
 
-- `Examples/MermaidPlayground/Models/LiveEditorStateCodec.swift`
-- `Examples/MermaidPlayground/Models/ExportOptions.swift`
-- `Examples/MermaidPlayground/Views/ActionsView.swift`
-- `Examples/MermaidPlayground/Views/ShareView.swift`
-- `Tests/DiagramKitTests/LiveEditorStateCodecTests.swift`
+**What was built**:
 
-Strategy:
+Files created (4 playground + 1 DiagramKitModel + 1 test):
 
-- Move PNG export out of `SidebarView` into an action service on the store.
-- Add SVG export using `MermaidRenderer.renderSVG`. This is important because the package has independent CG and SVG renderers, and the sample app should expose both.
-- Add PNG sizing options: auto, fixed width, fixed height, and scale.
-- Add copy actions:
-  - source text
-  - config JSON
-  - SVG text
-  - PNG image
-- Add share serialization:
-  - First version: app-local JSON + URL-safe base64.
-  - Parity version: support Live Editor-compatible `pako:` decoding/encoding using native zlib/deflate through the `Compression` framework, if interoperability with mermaid.live URLs is a requirement.
+- `Sources/DiagramKitModel/Base64URL.swift` — RFC 4648 §5 URL-safe base64 codec. Lives in `DiagramKitModel` (like `JSONValue`) so it's testable from `DiagramKitTests` without playground dependencies.
+- `Examples/MermaidPlayground/Models/LiveEditorStateCodec.swift` — wraps `Base64URL` with JSON encode/decode of `LiveEditorState`. Three `CodecError` cases: `invalidBase64`, `invalidJSON`, `invalidState`.
+- `Examples/MermaidPlayground/Models/ExportOptions.swift` — PNG sizing model: `.auto` (diagram bounds × scale) or `.fixed(CGSize)`. Conforms to `Hashable` for `Picker` `.tag()`.
+- `Examples/MermaidPlayground/Views/ActionsView.swift` — extracted export/copy/share UI from `ActionsPanel`. PNG sizing picker (Auto/Fixed + scale/width-height controls). Delegates copy actions to store methods; export triggers to parent callbacks.
+- `Examples/MermaidPlayground/Views/ShareView.swift` — displays serialized share string (selectable, copyable, character count); paste-to-restore `TextEditor` with error/success feedback.
+- `Tests/DiagramKitTests/LiveEditorStateCodecTests.swift` — 14 tests: round-trips (empty, simple, binary, 10 KB), URL-safe charset, padding edge cases, invalid input, standard base64 interop.
 
-Acceptance criteria:
+Files modified (3):
 
-- Exported PNG reflects the current source/theme/config.
-- Exported SVG reflects the current source/theme/config.
-- Copy actions work on macOS and iOS.
-- Serialized state can be copied, pasted back into the app, and restored.
+- `Examples/MermaidPlayground/Models/LiveEditorStore.swift` — added `exportOptions` property, 9 new methods: `exportPNG(options:)`, `exportSVG()`, `copySource()`, `copyConfig()`, `copySVG()`, `copyPNGImage(options:)`, `serializedState()`, `restoreFromSerializedState(_:)`; `ExportError` enum. Platform pasteboard/PNG conversion logic lives here.
+- `Examples/MermaidPlayground/Views/Toolbar/ActionsPanel.swift` — collapsed from ~400 lines to ~170. Now a thin shell: hosts `ActionsView`, owns `fileExporter` modifiers, `Export Failed` alert, and `ShareView` sheet trigger.
+- `Examples/MermaidPlayground/Views/SidebarView.swift` — removed duplicate PNG export button (~70 lines deleted, `IssueReporting` and file-exporter state removed). Keeps corpus picker and theme picker.
+
+Architecture decisions:
+
+- **Export/copy centralized in the store**: views call `store.exportPNG(options:)` / `store.copySource()` etc. The store owns rendering calls, pasteboard writes, and temp-file management. This keeps views thin and the store testable.
+- **`Base64URL` in `DiagramKitModel`** follows the same pattern as `JSONValue` — usable beyond the playground and testable from `DiagramKitTests`.
+- **`restoreFromSerializedState` applies all 9 state fields** (source, theme, config, editorMode, gridEnabled, panZoomEnabled, zoomScale, panOffset, updateMode) and triggers a render — but gates on `applied`, so restoring identical state is a no-op.
+- **pako:/Compression.framework deferred** to Phase 4.1. The LIVE.md spec marks it optional ("if interoperability with mermaid.live URLs is a requirement"). Current format is app-local JSON+base64url.
+- **PNG export routes through `MermaidImageRenderer` with `layoutConfig`**: exports reflect the config-driven layout parameters, not just the source+theme.
 
 ### Phase 5: History and Loaders
 
@@ -335,10 +347,12 @@ Add focused tests around the model layer first. SwiftUI UI automation can come l
 
 Suggested tests:
 
-- `LiveEditorStateCodecTests`
-  - default state encodes/decodes
-  - unknown config keys survive
-  - malformed serialized state fails gracefully
+- `LiveEditorStateCodecTests` ✅ (14 tests, passing)
+  - Base64URL round-trip: empty, simple, binary, 10 KB
+  - URL-safe charset verification (no +/=/ in output)
+  - Padding edge cases (1-char, 2-char, 3-char inputs)
+  - Invalid base64 throws expected error
+  - Standard base64 interop (accepts padded input)
 - `LiveEditorConfigTests` ✅ (20 tests, passing)
   - invalid JSON reports a config error
   - known theme names map to `DiagramTheme`
@@ -369,7 +383,7 @@ swift run MermaidPlayground
 2. ✅ Rebuild the app shell around editor/preview panes and make live editing reliable. (Phase 2 — done 2026-05-10)
 3. ✅ Add grid, preview toolbar, auto/manual sync, PNG/SVG export, copy actions, version/security panel. (Phase 2 — done 2026-05-10)
 4. ✅ Add config validation and JSON→native mapping. (Phase 3 — done 2026-05-10)
-5. ⬜ Add share serialization. (Phase 4)
+5. ✅ Add share serialization. (Phase 4 — done 2026-05-10)
 6. ⬜ Add history. (Phase 5)
 7. ⬜ Add loaders. (Phase 5)
 8. ⬜ Upgrade the text editor quality. (Phase 6)

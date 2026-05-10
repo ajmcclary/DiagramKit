@@ -1,0 +1,336 @@
+//
+//  ActionsView.swift
+//  MermaidPlayground
+//
+//  Export, copy, and share action buttons. Extracted from ActionsPanel
+//  so the UI is reusable. Export file-dialog triggers are coordinated
+//  by the parent (ActionsPanel) via callbacks.
+//
+
+import SwiftUI
+import DiagramKit
+import DiagramKitModel
+
+@available(iOS 26.0, macOS 26.0, macCatalyst 26.0, *)
+struct ActionsView: View {
+    @Bindable var store: LiveEditorStore
+
+    /// Called when the user taps "Export PNG" (parent triggers fileExporter).
+    let onExportPNG: () -> Void
+    /// Called when the user taps "Export SVG" (parent triggers fileExporter).
+    let onExportSVG: () -> Void
+    /// Called when the user taps "Full-Window Preview".
+    let onFullWindowPreview: () -> Void
+    /// Called when the user taps "Share State".
+    let onShareState: () -> Void
+
+    @SwiftUI.State private var showingCopyFeedback = false
+    @SwiftUI.State private var copyFeedbackMessage = ""
+
+    var body: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 20) {
+                // Export section
+                sectionHeader("Export")
+                exportSection
+
+                Divider()
+
+                // Copy section
+                sectionHeader("Copy to Clipboard")
+                copySection
+
+                Divider()
+
+                // View section
+                sectionHeader("View")
+                viewSection
+
+                Divider()
+
+                // Share section
+                sectionHeader("Share")
+                shareSection
+
+                // Copy feedback toast
+                if showingCopyFeedback {
+                    Text(copyFeedbackMessage)
+                        .font(.system(size: 12, weight: .medium))
+                        .foregroundColor(.white)
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 6)
+                        .background(
+                            RoundedRectangle(cornerRadius: 6)
+                                .fill(Color.green.opacity(0.85))
+                        )
+                        .transition(.opacity.combined(with: .scale))
+                }
+            }
+            .padding(16)
+        }
+        .background(Color(store.theme.background))
+    }
+
+    // MARK: - Section header
+
+    private func sectionHeader(_ title: String) -> some View {
+        Text(title)
+            .font(.system(size: 11, weight: .semibold))
+            .foregroundColor(Color(store.theme.effectiveMuted()))
+            .textCase(.uppercase)
+    }
+
+    // MARK: - Export section
+
+    private var exportSection: some View {
+        VStack(spacing: 6) {
+            // PNG sizing picker
+            pngSizingPicker
+
+            actionButton(
+                label: "Export PNG",
+                icon: "photo",
+                subtitle: pngSubtitle
+            ) {
+                onExportPNG()
+            }
+
+            actionButton(
+                label: "Export SVG",
+                icon: "doc.text",
+                subtitle: "Vector graphics"
+            ) {
+                onExportSVG()
+            }
+        }
+    }
+
+    private var pngSizingPicker: some View {
+        HStack(spacing: 8) {
+            Picker("Sizing", selection: Binding(
+                get: { store.exportOptions.sizing },
+                set: { store.exportOptions.sizing = $0 }
+            )) {
+                Text("Auto (2×)").tag(ExportOptions.Sizing.auto)
+                Text("Fixed size").tag(ExportOptions.Sizing.fixed(
+                    store.exportOptions.sizing.fixedSize ?? CGSize(width: 800, height: 600)
+                ))
+            }
+            .pickerStyle(.menu)
+            .labelsHidden()
+            .frame(maxWidth: 140)
+
+            if case .fixed = store.exportOptions.sizing {
+                HStack(spacing: 4) {
+                    Text("W:")
+                        .font(.system(size: 10))
+                        .foregroundColor(Color(store.theme.effectiveMuted()))
+                    TextField("Width", value: Binding(
+                        get: { Double(store.exportOptions.sizing.fixedSize?.width ?? 800) },
+                        set: { w in
+                            let h = store.exportOptions.sizing.fixedSize?.height ?? 600
+                            store.exportOptions.sizing = .fixed(CGSize(width: max(1, CGFloat(w)), height: h))
+                        }
+                    ), format: .number)
+                    .textFieldStyle(.roundedBorder)
+                    .frame(width: 60)
+                    .font(.system(size: 11))
+
+                    Text("H:")
+                        .font(.system(size: 10))
+                        .foregroundColor(Color(store.theme.effectiveMuted()))
+                    TextField("Height", value: Binding(
+                        get: { Double(store.exportOptions.sizing.fixedSize?.height ?? 600) },
+                        set: { h in
+                            let w = store.exportOptions.sizing.fixedSize?.width ?? 800
+                            store.exportOptions.sizing = .fixed(CGSize(width: w, height: max(1, CGFloat(h))))
+                        }
+                    ), format: .number)
+                    .textFieldStyle(.roundedBorder)
+                    .frame(width: 60)
+                    .font(.system(size: 11))
+                }
+            }
+
+            if case .auto = store.exportOptions.sizing {
+                HStack(spacing: 4) {
+                    Text("Scale:")
+                        .font(.system(size: 10))
+                        .foregroundColor(Color(store.theme.effectiveMuted()))
+                    Picker("", selection: Binding(
+                        get: { store.exportOptions.scale },
+                        set: { store.exportOptions.scale = $0 }
+                    )) {
+                        Text("1×").tag(CGFloat(1.0))
+                        Text("2×").tag(CGFloat(2.0))
+                        Text("3×").tag(CGFloat(3.0))
+                    }
+                    .pickerStyle(.segmented)
+                    .frame(width: 120)
+                }
+            }
+        }
+        .padding(.vertical, 4)
+        .padding(.horizontal, 10)
+        .background(
+            RoundedRectangle(cornerRadius: 6)
+                .fill(Color(store.theme.foreground).opacity(0.04))
+        )
+    }
+
+    private var pngSubtitle: String {
+        switch store.exportOptions.sizing {
+        case .auto:
+            return "Raster image at \(Int(store.exportOptions.scale))× scale"
+        case .fixed(let size):
+            return "Raster image at \(Int(size.width))×\(Int(size.height))"
+        }
+    }
+
+    // MARK: - Copy section
+
+    private var copySection: some View {
+        VStack(spacing: 6) {
+            actionButton(
+                label: "Copy Source",
+                icon: "doc.on.clipboard",
+                subtitle: "Mermaid diagram text"
+            ) {
+                if store.copySource() {
+                    showCopyFeedback("Source copied")
+                }
+            }
+
+            actionButton(
+                label: "Copy Config",
+                icon: "gearshape",
+                subtitle: "Config JSON"
+            ) {
+                if store.copyConfig() {
+                    showCopyFeedback("Config copied")
+                }
+            }
+
+            actionButton(
+                label: "Copy SVG",
+                icon: "doc.richtext",
+                subtitle: "Vector markup"
+            ) {
+                Task {
+                    do {
+                        try await store.copySVG()
+                        showCopyFeedback("SVG copied")
+                    } catch {
+                        showCopyFeedback("Copy failed")
+                    }
+                }
+            }
+
+            actionButton(
+                label: "Copy PNG Image",
+                icon: "photo.on.rectangle",
+                subtitle: "Raster image"
+            ) {
+                Task {
+                    do {
+                        try await store.copyPNGImage(options: store.exportOptions)
+                        showCopyFeedback("PNG copied")
+                    } catch {
+                        showCopyFeedback("Copy failed")
+                    }
+                }
+            }
+        }
+    }
+
+    // MARK: - View section
+
+    private var viewSection: some View {
+        VStack(spacing: 6) {
+            actionButton(
+                label: "Full-Window Preview",
+                icon: "rectangle.inset.filled",
+                subtitle: "Preview-only window"
+            ) {
+                onFullWindowPreview()
+            }
+        }
+    }
+
+    // MARK: - Share section
+
+    private var shareSection: some View {
+        VStack(spacing: 6) {
+            actionButton(
+                label: "Share State",
+                icon: "square.and.arrow.up",
+                subtitle: "Copy serialized editor state"
+            ) {
+                onShareState()
+            }
+        }
+    }
+
+    // MARK: - Action button
+
+    private func actionButton(
+        label: String,
+        icon: String,
+        subtitle: String,
+        action: @escaping () -> Void
+    ) -> some View {
+        Button(action: action) {
+            HStack(spacing: 10) {
+                Image(systemName: icon)
+                    .font(.system(size: 16))
+                    .frame(width: 24)
+                    .foregroundColor(Color(store.theme.effectiveAccent()))
+
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(label)
+                        .font(.system(size: 13, weight: .medium))
+                        .foregroundColor(Color(store.theme.foreground))
+                    Text(subtitle)
+                        .font(.system(size: 11))
+                        .foregroundColor(Color(store.theme.effectiveMuted()))
+                }
+
+                Spacer()
+            }
+            .padding(.vertical, 8)
+            .padding(.horizontal, 10)
+            .background(
+                RoundedRectangle(cornerRadius: 6)
+                    .fill(Color(store.theme.foreground).opacity(0.04))
+            )
+        }
+        .buttonStyle(.plain)
+    }
+
+    // MARK: - Feedback
+
+    private func showCopyFeedback(_ message: String) {
+        copyFeedbackMessage = message
+        withAnimation(.easeOut(duration: 0.2)) {
+            showingCopyFeedback = true
+        }
+        Task {
+            try? await Task.sleep(for: .seconds(2))
+            await MainActor.run {
+                withAnimation(.easeOut(duration: 0.2)) {
+                    showingCopyFeedback = false
+                }
+            }
+        }
+    }
+}
+
+// MARK: - ExportOptions.Sizing helpers
+
+extension ExportOptions.Sizing {
+    /// Return the fixed size if this is a `.fixed` case, else nil.
+    var fixedSize: CGSize? {
+        if case .fixed(let size) = self { return size }
+        return nil
+    }
+}

@@ -4,13 +4,20 @@
 //
 //  Central @MainActor @Observable store that owns the serializable
 //  LiveEditorState, tracks render lifecycle, and exposes actions for
-//  every UI interaction (source edits, theme changes, render requests).
+//  every UI interaction (source edits, theme changes, render requests,
+//  exports, clipboard operations, and state sharing).
 //
 
 import SwiftUI
 import DiagramKit
 import DiagramKitModel
 import IssueReporting
+
+#if os(macOS)
+import AppKit
+#elseif os(iOS)
+import UIKit
+#endif
 
 // MARK: - LiveEditorStore
 
@@ -51,6 +58,11 @@ public final class LiveEditorStore {
 
     /// Sanitizer warnings from the current config (empty = clean).
     public private(set) var configWarnings: [ConfigSanitizer.Warning] = []
+
+    // MARK: - Export options (Phase 4)
+
+    /// PNG export parameters. Mutable by the export UI.
+    public var exportOptions: ExportOptions = ExportOptions()
 
     // MARK: - Derived
 
@@ -93,7 +105,7 @@ public final class LiveEditorStore {
         }
     }
 
-    // MARK: - Actions
+    // MARK: - Source / Theme / Config actions
 
     /// Update the diagram source and schedule a render.
     ///
@@ -172,6 +184,178 @@ public final class LiveEditorStore {
             renderStatus = .rendered
         }
     }
+
+    // MARK: - Export (Phase 4)
+
+    /// Export the current diagram as a PNG image to a temporary file.
+    ///
+    /// - Parameter options: Sizing and scale parameters.
+    /// - Throws: Rendering or file I/O errors.
+    /// - Returns: The URL of the temporary PNG file (caller cleans up).
+    public func exportPNG(options: ExportOptions) async throws -> URL {
+        let renderer = MermaidImageRenderer(theme: theme)
+        renderer.layoutConfig = layoutConfig
+
+        let image: BMImage?
+        switch options.sizing {
+        case .auto:
+            image = try await renderer.renderImage(from: state.source, scale: options.scale)
+        case .fixed(let size):
+            image = try await renderer.renderImage(from: state.source, size: size)
+        }
+
+        guard let image else {
+            throw ExportError.renderFailed
+        }
+
+        guard let pngData = platformPNGData(from: image) else {
+            throw ExportError.pngConversionFailed
+        }
+
+        let tempDir = FileManager.default.temporaryDirectory
+        let fileName = "mermaid-diagram-\(Int(Date().timeIntervalSince1970)).png"
+        let tempURL = tempDir.appendingPathComponent(fileName)
+        try pngData.write(to: tempURL)
+
+        return tempURL
+    }
+
+    /// Export the current diagram as an SVG string.
+    ///
+    /// - Throws: Rendering errors.
+    /// - Returns: The SVG markup string.
+    public func exportSVG() async throws -> String {
+        try await MermaidRenderer.renderSVG(source: state.source, theme: theme)
+    }
+
+    // MARK: - Copy to clipboard (Phase 4)
+
+    /// Copy the diagram source text to the system pasteboard.
+    /// - Returns: `true` if the copy succeeded.
+    @discardableResult
+    public func copySource() -> Bool {
+        writeToPasteboard(state.source)
+    }
+
+    /// Copy the config JSON text to the system pasteboard.
+    /// - Returns: `true` if the copy succeeded.
+    @discardableResult
+    public func copyConfig() -> Bool {
+        writeToPasteboard(state.configJSON)
+    }
+
+    /// Render and copy the SVG markup to the system pasteboard.
+    /// - Throws: Rendering errors.
+    public func copySVG() async throws {
+        let svg = try await exportSVG()
+        _ = writeToPasteboard(svg)
+    }
+
+    /// Render and copy the PNG image to the system pasteboard.
+    /// - Parameter options: Sizing and scale parameters.
+    /// - Throws: Rendering errors.
+    public func copyPNGImage(options: ExportOptions) async throws {
+        let renderer = MermaidImageRenderer(theme: theme)
+        renderer.layoutConfig = layoutConfig
+
+        let image: BMImage?
+        switch options.sizing {
+        case .auto:
+            image = try await renderer.renderImage(from: state.source, scale: options.scale)
+        case .fixed(let size):
+            image = try await renderer.renderImage(from: state.source, size: size)
+        }
+
+        guard let image else {
+            throw ExportError.renderFailed
+        }
+
+        #if os(macOS)
+        let pasteboard = NSPasteboard.general
+        pasteboard.clearContents()
+        pasteboard.writeObjects([image])
+        #elseif os(iOS)
+        UIPasteboard.general.image = image
+        #endif
+    }
+
+    // MARK: - Share state (Phase 4)
+
+    /// Serialize the current editor state to a shareable base64url string.
+    ///
+    /// The encoded string can be copied, pasted into another instance,
+    /// or stored as a URL query parameter.
+    public func serializedState() -> String {
+        LiveEditorStateCodec.encode(state)
+    }
+
+    /// Restore editor state from a serialized base64url string.
+    ///
+    /// Applies source, theme, config, and view settings. Uses
+    /// `origin: .system` so manual mode doesn't block the restore.
+    ///
+    /// - Parameter string: A string produced by ``serializedState()``.
+    /// - Throws: `LiveEditorStateCodec.CodecError` if the string is malformed.
+    public func restoreFromSerializedState(_ string: String) throws {
+        let restored = try LiveEditorStateCodec.decode(string)
+
+        // Apply all fields, using .system origin to bypass manual-mode guard
+        var applied = false
+
+        if restored.source != state.source {
+            state.source = restored.source
+            applied = true
+        }
+        if restored.selectedThemeName != state.selectedThemeName {
+            state.selectedThemeName = restored.selectedThemeName
+            applied = true
+        }
+        if restored.configJSON != state.configJSON {
+            state.configJSON = restored.configJSON
+            parseConfig()
+            applied = true
+        }
+
+        state.editorMode = restored.editorMode
+        state.gridEnabled = restored.gridEnabled
+        state.panZoomEnabled = restored.panZoomEnabled
+        state.zoomScale = restored.zoomScale
+        state.panOffset = restored.panOffset
+        state.updateMode = restored.updateMode
+
+        isDirty = false
+
+        if applied {
+            requestRender(reason: .sourceChanged)
+        }
+    }
+
+    // MARK: - Private helpers
+
+    /// Convert a platform image to PNG data.
+    private func platformPNGData(from image: BMImage) -> Data? {
+        #if targetEnvironment(macCatalyst) || canImport(UIKit)
+        return image.pngData()
+        #elseif canImport(AppKit)
+        guard let tiffData = image.tiffRepresentation,
+              let bitmap = NSBitmapImageRep(data: tiffData) else { return nil }
+        return bitmap.representation(using: .png, properties: [:])
+        #endif
+    }
+
+    /// Write a string to the system pasteboard.
+    /// - Returns: `true` if the write succeeded.
+    @discardableResult
+    private func writeToPasteboard(_ string: String) -> Bool {
+        #if os(macOS)
+        let pasteboard = NSPasteboard.general
+        pasteboard.clearContents()
+        return pasteboard.setString(string, forType: .string)
+        #elseif os(iOS)
+        UIPasteboard.general.string = string
+        return true
+        #endif
+    }
 }
 
 // MARK: - Supporting types
@@ -193,4 +377,23 @@ public enum RenderReason: Sendable {
     case sourceChanged
     case themeChanged
     case manual
+}
+
+// MARK: - Export errors
+
+/// Errors that can occur during export operations.
+public enum ExportError: Swift.Error, Sendable, LocalizedError {
+    /// The diagram rendered but produced no image.
+    case renderFailed
+    /// The rendered image could not be converted to PNG data.
+    case pngConversionFailed
+
+    public var errorDescription: String? {
+        switch self {
+        case .renderFailed:
+            return "Failed to render diagram — no image produced."
+        case .pngConversionFailed:
+            return "Failed to convert rendered image to PNG data."
+        }
+    }
 }
