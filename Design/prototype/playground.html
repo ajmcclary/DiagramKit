@@ -1,0 +1,1287 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Mermaid·Swift — Playground · LCARS Dark</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link
+  href="https://fonts.googleapis.com/css2?family=Antonio:wght@300..700&family=JetBrains+Mono:ital,wght@0,300..800;1,300..800&display=swap"
+  rel="stylesheet"
+/>
+<link rel="stylesheet" href="assets/shared.css" />
+<style>
+  /* Page-specific */
+  .work-content { grid-template-columns: 240px 1fr 1fr 280px; }
+
+  .panel {
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    border-right: 1px solid var(--lc-border-var);
+  }
+  .panel:last-child { border-right: none; }
+
+  .panel-head {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 14px;
+    background: var(--lc-panel);
+    border-bottom: 1px solid var(--lc-border-var);
+    flex-shrink: 0;
+  }
+  .panel-head .pill {
+    background: var(--lc-orange);
+    color: var(--lc-bg);
+    height: 22px;
+    padding: 0 12px;
+    border-radius: 22px;
+    display: inline-flex;
+    align-items: center;
+    font-family: var(--display);
+    font-weight: 700;
+    font-size: 11px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+  }
+  .panel-head .pill.cyan { background: var(--lc-cyan); }
+  .panel-head .pill.lav { background: var(--lc-lavender); }
+  .panel-head .pill.gold { background: var(--lc-gold); }
+  .panel-head .pill .num {
+    font-family: var(--mono);
+    font-size: 9px;
+    margin-right: 6px;
+    opacity: 0.7;
+  }
+  .panel-head .ttl {
+    font-family: var(--display);
+    font-weight: 500;
+    font-size: 14px;
+    color: var(--lc-ivory);
+    letter-spacing: 0.04em;
+  }
+  .panel-head .meta {
+    margin-left: auto;
+    font-family: var(--mono);
+    font-size: 9px;
+    letter-spacing: 0.16em;
+    color: var(--lc-text-place);
+    text-transform: uppercase;
+  }
+
+  /* ----- Catalog ----- */
+  .catalog-search {
+    margin: 10px 12px 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--lc-surface);
+    border: 1px solid var(--lc-border-var);
+    border-radius: 22px;
+    padding: 7px 12px;
+  }
+  .catalog-search svg { width: 13px; height: 13px; color: var(--lc-text-dim); }
+  .catalog-search input {
+    appearance: none;
+    border: none;
+    outline: none;
+    background: transparent;
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--lc-ivory);
+    width: 100%;
+  }
+  .catalog-search input::placeholder { color: var(--lc-text-place); }
+  .catalog-search .kbd {
+    font-size: 9px;
+    color: var(--lc-text-place);
+    background: var(--lc-bg-2);
+    border: 1px solid var(--lc-border-var);
+    padding: 1px 5px;
+    border-radius: 4px;
+    letter-spacing: 0.1em;
+  }
+  .catalog-meta {
+    padding: 8px 14px 0;
+    font-family: var(--mono);
+    font-size: 9px;
+    letter-spacing: 0.18em;
+    color: var(--lc-text-place);
+    text-transform: uppercase;
+    display: flex;
+    justify-content: space-between;
+  }
+  .catalog-meta .v { color: var(--lc-orange); }
+
+  .cat-list { padding: 8px 8px 16px; overflow-y: auto; flex: 1; }
+  .cat-section {
+    margin: 12px 6px 4px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .cat-section .lab {
+    font-family: var(--display);
+    font-weight: 600;
+    font-size: 12px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--lc-cyan);
+  }
+  .cat-section .stripe { flex: 1; height: 1px; background: var(--lc-border-var); }
+
+  .fam-row {
+    display: grid;
+    grid-template-columns: 14px 1fr auto;
+    gap: 8px;
+    align-items: center;
+    padding: 6px 10px;
+    cursor: pointer;
+    border-radius: 6px;
+    color: var(--lc-text-muted);
+    font-family: var(--display);
+    font-size: 13px;
+    letter-spacing: 0.04em;
+  }
+  .fam-row:hover { background: var(--lc-surface-2); color: var(--lc-ivory); }
+  .fam-row .chev {
+    width: 0; height: 0;
+    border-left: 4px solid var(--lc-text-place);
+    border-top: 3px solid transparent;
+    border-bottom: 3px solid transparent;
+    transition: transform 160ms ease;
+  }
+  .fam-row.open .chev { transform: rotate(90deg); border-left-color: var(--lc-orange); }
+  .fam-row .badge {
+    font-family: var(--mono);
+    font-size: 9px;
+    color: var(--lc-text-place);
+    background: var(--lc-bg-2);
+    border: 1px solid var(--lc-border-var);
+    border-radius: 999px;
+    padding: 1px 6px;
+    letter-spacing: 0.1em;
+  }
+  .fam-row.open .badge { color: var(--lc-orange); border-color: var(--lc-orange); }
+
+  .children {
+    list-style: none;
+    margin: 0 0 6px 22px;
+    padding: 0 0 4px 8px;
+    border-left: 1px dashed var(--lc-border-var);
+  }
+  .children li {
+    padding: 4px 8px;
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--lc-text-muted);
+    cursor: pointer;
+    border-radius: 4px;
+    letter-spacing: 0.02em;
+  }
+  .children li::before { content: "—  "; color: var(--lc-text-place); }
+  .children li:hover { color: var(--lc-ivory); background: var(--lc-surface-2); }
+  .children li.is-on { color: var(--lc-orange); background: var(--lc-surface-4); }
+  .children li.is-on::before { content: "▸  "; color: var(--lc-orange); }
+
+  /* ----- Editor ----- */
+  .editor-tabs {
+    display: flex;
+    gap: 0;
+    border-bottom: 1px solid var(--lc-border-var);
+    background: var(--lc-panel);
+    padding: 0 14px;
+    flex-shrink: 0;
+  }
+  .editor-tab {
+    appearance: none;
+    background: transparent;
+    border: none;
+    padding: 10px 0;
+    margin-right: 22px;
+    cursor: pointer;
+    color: var(--lc-text-muted);
+    font-family: var(--display);
+    font-size: 12px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    position: relative;
+  }
+  .editor-tab:hover { color: var(--lc-ivory); }
+  .editor-tab .num {
+    color: var(--lc-orange);
+    font-family: var(--mono);
+    font-size: 10px;
+    margin-right: 4px;
+  }
+  .editor-tab.is-on { color: var(--lc-orange); }
+  .editor-tab.is-on::after {
+    content: "";
+    position: absolute;
+    left: 0; right: 0; bottom: -1px;
+    height: 2px;
+    background: var(--lc-orange);
+    border-radius: 2px;
+  }
+
+  .substrate {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    gap: 14px;
+    padding: 7px 14px;
+    background: var(--lc-bg-2);
+    border-bottom: 1px solid var(--lc-border-var);
+    align-items: center;
+    flex-shrink: 0;
+  }
+  .stat-pip {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    font-family: var(--mono);
+    font-size: 9px;
+    letter-spacing: 0.14em;
+    color: var(--lc-text-dim);
+    text-transform: uppercase;
+  }
+  .stat-pip .blip {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--lc-cyan);
+    box-shadow: 0 0 5px rgba(126, 200, 222, 0.5);
+  }
+  .stat-pip.warn .blip { background: var(--lc-gold); box-shadow: 0 0 5px rgba(255, 204, 102, 0.5); }
+  .stat-strip-row {
+    display: flex;
+    gap: 14px;
+    color: var(--lc-text-place);
+    font-family: var(--mono);
+    font-size: 9px;
+    letter-spacing: 0.06em;
+    overflow: hidden;
+    white-space: nowrap;
+  }
+  .stat-strip-row .v { color: var(--lc-orange); font-variant-numeric: tabular-nums; }
+  .stat-strip-row .sep { color: var(--lc-border); }
+
+  /* Code area */
+  .code-host {
+    flex: 1;
+    overflow: auto;
+    background: var(--lc-bg-2);
+    min-height: 0;
+  }
+  .code {
+    display: grid;
+    grid-template-columns: 56px 1fr;
+    font-family: var(--mono);
+    font-size: 12.5px;
+    line-height: 1.7;
+    padding: 12px 0 24px;
+  }
+  .gutter {
+    color: var(--lc-text-place);
+    text-align: right;
+    padding-right: 12px;
+    user-select: none;
+    font-variant-numeric: tabular-nums;
+    font-size: 11px;
+  }
+  .gutter span { display: block; height: 1.7em; }
+  .gutter span.warn { color: var(--lc-gold); }
+  .gutter span.warn::before { content: "▲ "; }
+  .gutter span.cur { color: var(--lc-orange); font-weight: 600; }
+  .gutter span.cur::before { content: "▸ "; color: var(--lc-orange); }
+
+  .code-body {
+    padding-left: 14px;
+    color: var(--lc-ivory);
+    white-space: pre;
+  }
+  .code-body .line { display: block; height: 1.7em; }
+  .code-body .line.cur {
+    background: rgba(255, 153, 51, 0.06);
+    box-shadow: inset 2px 0 0 var(--lc-orange);
+  }
+  .code-body .line.warn {
+    background: rgba(255, 204, 102, 0.06);
+    box-shadow: inset 2px 0 0 var(--lc-gold);
+  }
+  /* Mermaid syntax */
+  .kw   { color: var(--lc-orange); font-weight: 700; }
+  .typ  { color: var(--lc-lavender); font-weight: 700; }
+  .id   { color: var(--lc-ivory); }
+  .str  { color: var(--lc-cyan-bright); }
+  .num  { color: var(--lc-amber); font-weight: 600; }
+  .arr  { color: var(--lc-gold); font-weight: 700; }
+  .com  { color: var(--lc-text-dim); font-style: italic; }
+  .lab  { color: var(--lc-text-muted); }
+  .punc { color: var(--lc-gold); }
+
+  .editor-foot {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 7px 14px;
+    background: var(--lc-panel);
+    border-top: 1px solid var(--lc-border-var);
+    font-family: var(--mono);
+    font-size: 9px;
+    color: var(--lc-text-dim);
+    letter-spacing: 0.08em;
+    flex-shrink: 0;
+  }
+  .editor-foot .v { color: var(--lc-orange); font-variant-numeric: tabular-nums; }
+  .editor-foot .lab {
+    color: var(--lc-text-place);
+    text-transform: uppercase;
+    letter-spacing: 0.16em;
+  }
+
+  /* ----- Preview ----- */
+  .preview-wrap {
+    flex: 1;
+    position: relative;
+    overflow: hidden;
+    background:
+      radial-gradient(circle at 30% 0%, rgba(255, 153, 51, 0.05), transparent 60%),
+      var(--lc-bg-2);
+    min-height: 0;
+  }
+  .canvas-grid {
+    position: absolute;
+    inset: 0;
+    background-image:
+      linear-gradient(to right, rgba(255, 153, 51, 0.05) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(255, 153, 51, 0.05) 1px, transparent 1px),
+      linear-gradient(to right, rgba(255, 153, 51, 0.10) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(255, 153, 51, 0.10) 1px, transparent 1px);
+    background-size: 16px 16px, 16px 16px, 64px 64px, 64px 64px;
+  }
+
+  /* Plate cartouche */
+  .cartouche {
+    position: absolute;
+    top: 14px; left: 14px;
+    background: var(--lc-surface);
+    border: 1px solid var(--lc-border-var);
+    border-left: 3px solid var(--lc-orange);
+    border-radius: 6px;
+    padding: 8px 12px;
+    z-index: 4;
+    box-shadow: var(--shadow-xl);
+    max-width: 360px;
+  }
+  .cartouche .micro {
+    font-family: var(--mono);
+    font-size: 8px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--lc-orange);
+  }
+  .cartouche h1 {
+    margin: 4px 0 0;
+    font-family: var(--display);
+    font-weight: 700;
+    font-size: 22px;
+    color: var(--lc-ivory);
+    line-height: 1.05;
+    letter-spacing: 0.005em;
+  }
+  .cartouche .sub {
+    font-family: var(--mono);
+    font-size: 9px;
+    letter-spacing: 0.06em;
+    color: var(--lc-text-dim);
+    margin-top: 4px;
+  }
+
+  /* Canvas tools cluster */
+  .canvas-tools {
+    position: absolute;
+    top: 14px; right: 14px;
+    z-index: 4;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    align-items: flex-end;
+  }
+  .tool-cluster {
+    display: flex;
+    background: var(--lc-surface);
+    border: 1px solid var(--lc-border-var);
+    border-radius: 999px;
+    padding: 3px;
+    gap: 2px;
+    box-shadow: var(--shadow-xl);
+  }
+  .tool-cluster button {
+    appearance: none;
+    background: transparent;
+    border: none;
+    width: 28px; height: 24px;
+    border-radius: 999px;
+    cursor: pointer;
+    color: var(--lc-text-muted);
+    display: grid; place-items: center;
+  }
+  .tool-cluster button:hover { background: var(--lc-surface-3); color: var(--lc-ivory); }
+  .tool-cluster button.is-on { background: var(--lc-orange); color: var(--lc-bg); }
+  .tool-cluster button svg { width: 13px; height: 13px; }
+  .tool-cluster .v {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.04em;
+    color: var(--lc-orange);
+    padding: 0 8px;
+    align-self: center;
+    height: 20px; display: grid; place-items: center;
+    border-left: 1px solid var(--lc-border-var);
+    border-right: 1px solid var(--lc-border-var);
+    margin: 2px 0;
+  }
+
+  /* The diagram */
+  .diagram-stage {
+    position: absolute;
+    inset: 76px 16px 56px 16px;
+    display: grid;
+    place-items: center;
+    z-index: 3;
+  }
+  .diagram-stage svg {
+    width: 100%; max-width: 720px;
+    height: auto;
+    filter: drop-shadow(0 12px 28px rgba(0, 0, 0, 0.55));
+  }
+
+  /* node styles */
+  .pn-rect { fill: var(--lc-surface-2); stroke: var(--lc-ivory); stroke-width: 1.2; }
+  .pn-rect.orange { fill: rgba(255, 153, 51, 0.08); stroke: var(--lc-orange); }
+  .pn-rect.cyan { fill: rgba(126, 200, 222, 0.08); stroke: var(--lc-cyan); }
+  .pn-rect.lav { fill: rgba(204, 153, 255, 0.08); stroke: var(--lc-lavender); }
+  .pn-rect.gold { fill: rgba(255, 204, 102, 0.08); stroke: var(--lc-gold); }
+  .pn-rect.coral { fill: rgba(239, 90, 90, 0.08); stroke: var(--lc-coral); }
+  .pn-text { font-family: var(--display); font-size: 12px; fill: var(--lc-ivory); font-weight: 600; }
+  .pn-text.sub { font-family: var(--mono); font-size: 9px; fill: var(--lc-text-muted); font-weight: 400; }
+  .pe { stroke: var(--lc-ivory); stroke-width: 1.2; fill: none; }
+  .pe.cyan { stroke: var(--lc-cyan); }
+  .pe.coral { stroke: var(--lc-coral); }
+  .pe.dashed { stroke-dasharray: 4 3; }
+  .par { fill: var(--lc-ivory); }
+  .par.cyan { fill: var(--lc-cyan); }
+  .par.coral { fill: var(--lc-coral); }
+  .ple { font-family: var(--mono); font-size: 9px; fill: var(--lc-text-muted); }
+  .pleg { fill: var(--lc-bg-2); }
+  .ps { fill: rgba(126, 200, 222, 0.04); stroke: var(--lc-cyan); stroke-width: 1; stroke-dasharray: 3 3; }
+  .psl { font-family: var(--display); font-style: italic; font-size: 11px; fill: var(--lc-cyan); font-weight: 500; }
+
+  /* Bottom-right minimap */
+  .minimap {
+    position: absolute;
+    right: 14px; bottom: 14px;
+    width: 168px; height: 96px;
+    background: var(--lc-surface);
+    border: 1px solid var(--lc-border-var);
+    border-radius: 6px;
+    overflow: hidden;
+    box-shadow: var(--shadow-xl);
+    z-index: 4;
+  }
+  .minimap::before {
+    content: "MINIMAP · 100 %";
+    position: absolute;
+    top: 4px; left: 6px;
+    font-family: var(--mono);
+    font-size: 8px;
+    letter-spacing: 0.18em;
+    color: var(--lc-text-place);
+  }
+  .minimap-frame {
+    position: absolute;
+    border: 1.5px solid var(--lc-orange);
+    background: rgba(255, 153, 51, 0.08);
+    border-radius: 3px;
+    top: 22px; left: 30px;
+    width: 90px; height: 56px;
+  }
+
+  .dimensions {
+    position: absolute;
+    left: 14px; bottom: 14px;
+    font-family: var(--mono);
+    font-size: 9px;
+    color: var(--lc-text-dim);
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    z-index: 4;
+  }
+  .dimensions .v { color: var(--lc-orange); }
+
+  /* ----- Inspector ----- */
+  .insp { overflow-y: auto; }
+  .ins-block {
+    padding: 12px 14px;
+    border-bottom: 1px solid var(--lc-border-var);
+  }
+  .ins-ttl {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 10px;
+  }
+  .ins-ttl h3 {
+    margin: 0;
+    font-family: var(--display);
+    font-weight: 700;
+    font-size: 12px;
+    color: var(--lc-ivory);
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+  }
+  .ins-ttl h3 .n {
+    font-family: var(--mono);
+    color: var(--lc-orange);
+    margin-right: 6px;
+    font-weight: 600;
+    font-size: 10px;
+    letter-spacing: 0.1em;
+  }
+  .ins-ttl .meta {
+    font-family: var(--mono);
+    font-size: 9px;
+    color: var(--lc-text-place);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  /* Theme studio */
+  .theme-quick {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 4px;
+    margin-bottom: 8px;
+  }
+  .theme-chip {
+    appearance: none;
+    background: var(--lc-surface);
+    border: 1px solid var(--lc-border-var);
+    border-radius: 6px;
+    padding: 6px;
+    cursor: pointer;
+    text-align: left;
+    transition: all 140ms ease;
+  }
+  .theme-chip:hover { border-color: var(--lc-text-dim); }
+  .theme-chip.is-on {
+    border-color: var(--lc-orange);
+    background: var(--lc-surface-4);
+  }
+  .theme-stack {
+    display: flex;
+    height: 14px;
+    border-radius: 3px;
+    overflow: hidden;
+    margin-bottom: 4px;
+    border: 1px solid var(--lc-border-var);
+  }
+  .theme-stack span { flex: 1; }
+  .theme-name {
+    font-family: var(--mono);
+    font-size: 9px;
+    color: var(--lc-text-muted);
+    letter-spacing: 0.04em;
+  }
+  .theme-chip.is-on .theme-name { color: var(--lc-orange); }
+
+  .theme-grid {
+    display: grid;
+    grid-template-columns: repeat(8, 1fr);
+    gap: 4px;
+  }
+  .theme-dot {
+    width: 100%; aspect-ratio: 1;
+    border-radius: 50%;
+    border: 1px solid var(--lc-border-var);
+    cursor: pointer;
+  }
+  .theme-dot:hover { transform: scale(1.15); border-color: var(--lc-orange); }
+
+  /* Export */
+  .export-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 4px;
+    margin-bottom: 6px;
+  }
+  .export-btn {
+    appearance: none;
+    background: var(--lc-surface);
+    border: 1px solid var(--lc-border-var);
+    border-radius: 6px;
+    padding: 8px 10px;
+    text-align: left;
+    cursor: pointer;
+    color: var(--lc-ivory);
+  }
+  .export-btn:hover { border-color: var(--lc-orange); }
+  .export-btn .ext {
+    font-family: var(--display);
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--lc-orange);
+    line-height: 1;
+  }
+  .export-btn .desc {
+    font-family: var(--mono);
+    font-size: 8px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--lc-text-place);
+    margin-top: 4px;
+  }
+  .copy-pip-row { display: grid; grid-template-columns: repeat(2, 1fr); gap: 4px; }
+  .copy-pip {
+    appearance: none;
+    background: transparent;
+    border: 1px dashed var(--lc-border-var);
+    color: var(--lc-text-muted);
+    border-radius: 4px;
+    padding: 4px 6px;
+    font-family: var(--mono);
+    font-size: 9px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    cursor: pointer;
+  }
+  .copy-pip:hover { border-style: solid; border-color: var(--lc-orange); color: var(--lc-orange); }
+
+  /* History */
+  .hist-entry {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    gap: 8px;
+    padding: 8px 0;
+    border-bottom: 1px dashed var(--lc-border-var);
+    align-items: start;
+  }
+  .hist-entry:last-child { border-bottom: none; }
+  .hist-stamp {
+    font-family: var(--mono);
+    font-size: 8px;
+    color: var(--lc-text-place);
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    text-align: right;
+    min-width: 50px;
+    line-height: 1.4;
+  }
+  .hist-stamp .h {
+    color: var(--lc-orange);
+    font-family: var(--display);
+    font-size: 11px;
+    text-transform: none;
+    letter-spacing: 0;
+    display: block;
+  }
+  .hist-label {
+    font-family: var(--display);
+    font-size: 13px;
+    color: var(--lc-ivory);
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+  .hist-snippet {
+    font-family: var(--mono);
+    font-size: 9px;
+    color: var(--lc-text-place);
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    margin-top: 2px;
+  }
+  .hist-tags { margin-top: 4px; display: flex; gap: 3px; }
+  .hist-tag {
+    font-family: var(--mono);
+    font-size: 8px;
+    letter-spacing: 0.16em;
+    color: var(--lc-text-dim);
+    background: var(--lc-bg-2);
+    border: 1px solid var(--lc-border-var);
+    padding: 1px 5px;
+    border-radius: 999px;
+    text-transform: uppercase;
+  }
+  .hist-tag.manual { color: var(--lc-cyan); border-color: rgba(126, 200, 222, 0.3); }
+  .hist-tag.auto { color: var(--lc-text-dim); }
+  .hist-tag.loader { color: var(--lc-gold); border-color: rgba(255, 204, 102, 0.3); }
+  .hist-act {
+    appearance: none;
+    background: transparent;
+    border: none;
+    color: var(--lc-text-dim);
+    cursor: pointer;
+    font-size: 12px;
+  }
+  .hist-act:hover { color: var(--lc-orange); }
+</style>
+</head>
+
+<body>
+
+<div class="mac-window reveal r1">
+
+  <!-- ===== macOS title bar ===== -->
+  <div class="title-bar">
+    <div class="traffic">
+      <span class="light close"></span>
+      <span class="light min"></span>
+      <span class="light max"></span>
+    </div>
+    <div class="title-text">
+      <span class="doc">PR-LIFECYCLE.MMD</span>
+      <span class="sep">/</span>
+      <span>PLAYGROUND</span>
+      <span class="sep">·</span>
+      <span class="stardate">STARDATE 41254.7</span>
+    </div>
+    <div class="title-actions">
+      <button class="title-action" title="Theme: LCARS Dark">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="9"/><path d="M12 3a9 9 0 000 18"/></svg>
+      </button>
+      <button class="title-action" title="Search">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="11" cy="11" r="6"/><path d="M16 16l4 4"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- ===== App body ===== -->
+  <div class="app-body">
+
+    <!-- ===== Sidebar (shared) ===== -->
+    <aside class="sidebar">
+      <div class="sb-elbow">
+        <div class="stripe"></div>
+        <div class="top-bar">SECTION 02</div>
+        <div class="id-block">
+          <div class="name">PG · 01</div>
+          <div class="sub">PLAYGROUND</div>
+        </div>
+      </div>
+      <nav class="sb-body">
+        <div class="sb-section"><span class="num">01</span><span>Workstations</span><span class="stripe"></span></div>
+        <a href="index.html" class="nav-pill">
+          <span class="glyph"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 3v18M3 12h18"/></svg></span>
+          Bridge
+          <span class="code">BRG-00</span>
+        </a>
+        <a href="playground.html" class="nav-pill is-on">
+          <span class="glyph"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg></span>
+          Playground
+          <span class="code">PG-01</span>
+        </a>
+        <a href="visual.html" class="nav-pill">
+          <span class="glyph cyan"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M5 3l3 3M19 3l-3 3M5 21l3-3M19 21l-3-3"/><rect x="6" y="6" width="12" height="12" rx="1"/></svg></span>
+          Visual editor
+          <span class="code">VE-02</span>
+        </a>
+        <a href="ai.html" class="nav-pill">
+          <span class="glyph lav"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l1.6 4.4L18 8l-4.4 1.6L12 14l-1.6-4.4L6 8l4.4-1.6z"/></svg></span>
+          AI studio
+          <span class="code">AI-03</span>
+        </a>
+        <a href="present.html" class="nav-pill">
+          <span class="glyph gold"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="4" width="18" height="13" rx="1.5"/><path d="M9 21h6M12 17v4"/></svg></span>
+          Presentations
+          <span class="code">PR-04</span>
+        </a>
+      </nav>
+      <div class="sb-foot">
+        <div class="code-block">
+          <span>theme · LCARS Dark</span>
+          <span class="v">ON</span>
+        </div>
+        <div class="sb-pillrow">
+          <div class="blip on"></div>
+          <div class="blip cyan"></div>
+          <div class="blip"></div>
+          <div class="blip gold"></div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- ===== Workarea ===== -->
+    <div class="workarea">
+
+      <!-- LCARS top header -->
+      <div class="lcars-header">
+        <div class="head-pill orange"><span class="num">01-A</span>PLAYGROUND</div>
+        <div class="head-seg orange" style="width: 28px;"></div>
+        <div class="head-stretch">
+          <div class="head-crumb">
+            <a href="index.html" style="color: var(--lc-text-muted);">Bridge</a>
+            <span class="sep">›</span>
+            <span>Catalog</span>
+            <span class="sep">›</span>
+            <span>Flowchart</span>
+            <span class="sep">›</span>
+            <span class="cur">Pull-request lifecycle</span>
+          </div>
+          <span class="lc-pill"><span class="blip"></span>Auto · 312 ms</span>
+        </div>
+        <div class="head-actions">
+          <div class="lc-pill" title="Active theme"><span class="blip" style="background: var(--lc-orange); box-shadow: 0 0 5px var(--lc-orange-glow);"></span>LCARS Dark</div>
+          <button class="head-btn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="4" y="4" width="7" height="7" rx="1"/><rect x="13" y="4" width="7" height="7" rx="1"/><rect x="4" y="13" width="7" height="7" rx="1"/><rect x="13" y="13" width="7" height="7" rx="1"/></svg>
+            Samples
+          </button>
+          <button class="head-btn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 4v12M7 9l5-5 5 5M5 20h14"/></svg>
+            Export
+          </button>
+          <button class="head-btn primary">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polygon points="6 4 20 12 6 20" fill="currentColor"/></svg>
+            Render
+          </button>
+        </div>
+      </div>
+
+      <!-- Four-column workspace -->
+      <div class="work-content">
+
+        <!-- ===== § 01 Catalog ===== -->
+        <section class="panel reveal r2">
+          <div class="panel-head">
+            <span class="pill"><span class="num">01</span>CATALOG</span>
+            <span class="ttl">specimens</span>
+            <span class="meta">396 · 28 fam.</span>
+          </div>
+
+          <div class="catalog-search">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="11" cy="11" r="6"/><path d="M16 16l4 4"/></svg>
+            <input type="text" placeholder="Search 396 diagrams…" />
+            <span class="kbd">⌘ K</span>
+          </div>
+
+          <div class="catalog-meta">
+            <span>Browse</span><span><span class="v">12</span> recent</span>
+          </div>
+
+          <div class="cat-list">
+            <div class="cat-section"><span class="lab">Recent</span><span class="stripe"></span></div>
+            <ul style="list-style: none; padding: 0; margin: 0;">
+              <li><div class="fam-row open"><span class="chev"></span><span>Pull-request lifecycle</span><span class="badge">flow</span></div></li>
+              <li><div class="fam-row"><span class="chev"></span><span>Auth handshake</span><span class="badge">seq</span></div></li>
+              <li><div class="fam-row"><span class="chev"></span><span>Build pipeline ER</span><span class="badge">er</span></div></li>
+            </ul>
+
+            <div class="cat-section"><span class="lab">Catalog</span><span class="stripe"></span></div>
+            <ul style="list-style: none; padding: 0; margin: 0;">
+              <li>
+                <div class="fam-row open"><span class="chev"></span><span>Flowchart</span><span class="badge">42</span></div>
+                <ul class="children">
+                  <li>Hello-world TD</li>
+                  <li class="is-on">Pull-request lifecycle</li>
+                  <li>Infrastructure regions</li>
+                  <li>Subgraphs &amp; clusters</li>
+                  <li>Class definitions</li>
+                </ul>
+              </li>
+              <li><div class="fam-row"><span class="chev"></span><span>Sequence</span><span class="badge">38</span></div></li>
+              <li><div class="fam-row"><span class="chev"></span><span>State (v2)</span><span class="badge">21</span></div></li>
+              <li><div class="fam-row"><span class="chev"></span><span>Class</span><span class="badge">17</span></div></li>
+              <li><div class="fam-row"><span class="chev"></span><span>Entity-Relationship</span><span class="badge">14</span></div></li>
+              <li><div class="fam-row"><span class="chev"></span><span>Gantt</span><span class="badge">19</span></div></li>
+              <li><div class="fam-row"><span class="chev"></span><span>gitGraph</span><span class="badge">12</span></div></li>
+              <li><div class="fam-row"><span class="chev"></span><span>Mindmap</span><span class="badge">9</span></div></li>
+              <li><div class="fam-row"><span class="chev"></span><span>C4 Context</span><span class="badge">11</span></div></li>
+              <li><div class="fam-row"><span class="chev"></span><span>ZenUML</span><span class="badge">8</span></div></li>
+              <li><div class="fam-row"><span class="chev"></span><span>Wardley</span><span class="badge">7</span></div></li>
+              <li><div class="fam-row"><span class="chev"></span><span>Treemap</span><span class="badge">6</span></div></li>
+              <li><div class="fam-row"><span class="chev"></span><span>User Journey</span><span class="badge">10</span></div></li>
+              <li><div class="fam-row"><span class="chev"></span><span>Quadrant</span><span class="badge">5</span></div></li>
+            </ul>
+          </div>
+        </section>
+
+        <!-- ===== § 02 Source ===== -->
+        <section class="panel reveal r3">
+          <div class="panel-head">
+            <span class="pill cyan"><span class="num">02</span>SOURCE</span>
+            <span class="ttl">writing the diagram</span>
+            <span class="meta">flowchart.mmd · ⌘ S</span>
+          </div>
+
+          <div class="editor-tabs">
+            <button class="editor-tab is-on"><span class="num">i.</span>Code</button>
+            <button class="editor-tab"><span class="num">ii.</span>Config</button>
+            <button class="editor-tab"><span class="num">iii.</span>Inspector</button>
+          </div>
+
+          <div class="substrate">
+            <div class="stat-pip"><span class="blip"></span>Rendered · 312 ms</div>
+            <div class="stat-strip-row">
+              <span><span class="v">24</span> nodes</span><span class="sep">·</span>
+              <span><span class="v">31</span> edges</span><span class="sep">·</span>
+              <span><span class="v">3</span> subgraphs</span><span class="sep">·</span>
+              <span><span class="v">flowchart</span> TD</span>
+            </div>
+            <div class="stat-pip warn"><span class="blip"></span>1 warning</div>
+          </div>
+
+          <div class="code-host">
+            <div class="code">
+              <div class="gutter">
+                <span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span>
+                <span class="warn">7</span><span>8</span><span>9</span><span>10</span><span>11</span>
+                <span>12</span><span>13</span><span class="cur">14</span><span>15</span><span>16</span>
+                <span>17</span><span>18</span><span>19</span>
+              </div>
+              <div class="code-body">
+<span class="line"><span class="com">%% Pull-request lifecycle — drafted 2026·05·10</span></span>
+<span class="line"><span class="com">%% Source: catalog/flow/pull-request-lifecycle.mmd</span></span>
+<span class="line"><span class="kw">flowchart</span> <span class="typ">TD</span></span>
+<span class="line">    <span class="id">Author</span><span class="punc">[</span><span class="lab">Author</span><span class="punc">]</span> <span class="arr">--&gt;</span> <span class="id">Draft</span><span class="punc">{</span><span class="lab">Open draft PR?</span><span class="punc">}</span></span>
+<span class="line">    <span class="id">Draft</span> <span class="arr">--&gt;</span><span class="punc">|</span><span class="str">yes</span><span class="punc">|</span> <span class="id">CI</span><span class="punc">[[</span><span class="lab">Run CI</span><span class="punc">]]</span></span>
+<span class="line">    <span class="id">Draft</span> <span class="arr">--&gt;</span><span class="punc">|</span><span class="str">no</span><span class="punc">|</span> <span class="id">Local</span><span class="punc">[(</span><span class="lab">Local iteration</span><span class="punc">)]</span></span>
+<span class="line warn">    <span class="id">Local</span> <span class="arr">-.-&gt;</span> <span class="id">Author</span></span>
+<span class="line"></span>
+<span class="line">    <span class="kw">subgraph</span> <span class="id">Pipeline</span><span class="punc">[</span><span class="lab">CI Pipeline</span><span class="punc">]</span></span>
+<span class="line">        <span class="id">CI</span> <span class="arr">--&gt;</span> <span class="id">Build</span><span class="punc">[</span><span class="lab">Build</span><span class="punc">]</span></span>
+<span class="line">        <span class="id">Build</span> <span class="arr">--&gt;</span> <span class="id">Test</span><span class="punc">[</span><span class="lab">Test</span><span class="punc">]</span></span>
+<span class="line">        <span class="id">Test</span>  <span class="arr">--&gt;</span> <span class="id">Lint</span><span class="punc">[</span><span class="lab">Lint &amp; Type-check</span><span class="punc">]</span></span>
+<span class="line">    <span class="kw">end</span></span>
+<span class="line cur">    <span class="id">Lint</span> <span class="arr">--&gt;</span> <span class="id">Review</span><span class="punc">{</span><span class="lab">Reviewer approves?</span><span class="punc">}</span></span>
+<span class="line">    <span class="id">Review</span> <span class="arr">--&gt;</span><span class="punc">|</span><span class="str">approve</span><span class="punc">|</span> <span class="id">Merge</span><span class="punc">[/</span><span class="lab">Merge</span><span class="punc">/]</span></span>
+<span class="line">    <span class="id">Review</span> <span class="arr">--&gt;</span><span class="punc">|</span><span class="str">changes</span><span class="punc">|</span> <span class="id">Author</span></span>
+<span class="line">    <span class="id">Merge</span> <span class="arr">--&gt;</span> <span class="id">Deploy</span><span class="punc">[(</span><span class="lab">Deploy</span><span class="punc">)]</span></span>
+<span class="line"></span>
+<span class="line">    <span class="kw">classDef</span> <span class="id">cycle</span> <span class="lab">fill:</span><span class="num">#FF9933</span></span>
+              </div>
+            </div>
+          </div>
+
+          <div class="editor-foot">
+            <span><span class="lab">Cursor</span> <span class="v">L 14 · C 12</span></span>
+            <span><span class="lab">Sel</span> <span class="v">0</span> · <span class="lab">UTF-8 · LF</span> · <span class="v">714 B</span> · <span class="v">19 lines</span></span>
+          </div>
+        </section>
+
+        <!-- ===== § 03 Plate ===== -->
+        <section class="panel reveal r4">
+          <div class="panel-head">
+            <span class="pill gold"><span class="num">03</span>PLATE</span>
+            <span class="ttl">rendered specimen</span>
+            <span class="meta">CG &amp; SVG · 1×</span>
+          </div>
+
+          <div class="preview-wrap">
+            <div class="canvas-grid"></div>
+
+            <div class="cartouche">
+              <div class="micro">PLATE № 014 · FLOWCHART · TOP-DOWN</div>
+              <h1>Pull-Request Lifecycle</h1>
+              <div class="sub">LCARS Dark · TD layout · Saved 2 m ago</div>
+            </div>
+
+            <div class="canvas-tools">
+              <div class="tool-cluster">
+                <button title="Zoom out"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14"/></svg></button>
+                <span class="v">132%</span>
+                <button title="Zoom in"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg></button>
+              </div>
+              <div class="tool-cluster">
+                <button class="is-on" title="Fit"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg></button>
+                <button title="Grid"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M3 9h18M3 15h18M9 3v18M15 3v18"/></svg></button>
+                <button title="Full window"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 14v6h6M20 10V4h-6"/></svg></button>
+              </div>
+            </div>
+
+            <div class="diagram-stage">
+              <svg viewBox="0 0 720 480" xmlns="http://www.w3.org/2000/svg">
+                <defs>
+                  <marker id="ar-ink" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="9" markerHeight="9" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" class="par"/></marker>
+                  <marker id="ar-cyan" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="9" markerHeight="9" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" class="par cyan"/></marker>
+                  <marker id="ar-coral" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="9" markerHeight="9" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" class="par coral"/></marker>
+                </defs>
+
+                <!-- subgraph -->
+                <rect class="ps" x="270" y="180" width="220" height="148" rx="6"/>
+                <text class="psl" x="282" y="200">CI Pipeline</text>
+
+                <g transform="translate(40,20)">
+                  <rect class="pn-rect orange" x="0" y="0" width="140" height="48" rx="6"/>
+                  <text class="pn-text" x="20" y="22">Author</text>
+                  <text class="pn-text sub" x="20" y="38">opens PR</text>
+                </g>
+
+                <g transform="translate(296,20)">
+                  <polygon class="pn-rect" points="80,0 160,28 80,56 0,28"/>
+                  <text class="pn-text" x="80" y="26" text-anchor="middle">Open draft PR?</text>
+                  <text class="pn-text sub" x="80" y="44" text-anchor="middle">decision</text>
+                </g>
+
+                <g transform="translate(540,28)">
+                  <rect class="pn-rect cyan" x="0" y="0" width="140" height="40" rx="2"/>
+                  <line x1="6" y1="0" x2="6" y2="40" stroke="#7EC8DE" stroke-width="1.2"/>
+                  <line x1="134" y1="0" x2="134" y2="40" stroke="#7EC8DE" stroke-width="1.2"/>
+                  <text class="pn-text" x="22" y="25">Run CI ▸</text>
+                </g>
+
+                <g transform="translate(40,108)">
+                  <rect class="pn-rect gold" x="0" y="6" width="140" height="36" rx="3"/>
+                  <ellipse cx="0" cy="24" rx="4" ry="18" fill="rgba(255, 204, 102, 0.10)" stroke="#FFCC66" stroke-width="1.2"/>
+                  <ellipse cx="140" cy="24" rx="4" ry="18" fill="rgba(255, 204, 102, 0.10)" stroke="#FFCC66" stroke-width="1.2"/>
+                  <text class="pn-text" x="20" y="29">Local iteration</text>
+                </g>
+
+                <g transform="translate(290,200)">
+                  <rect class="pn-rect cyan" x="0" y="0" width="180" height="34" rx="4"/>
+                  <text class="pn-text" x="14" y="22">Build</text>
+                  <text class="pn-text sub" x="120" y="22">swift build</text>
+                </g>
+                <g transform="translate(290,244)">
+                  <rect class="pn-rect cyan" x="0" y="0" width="180" height="34" rx="4"/>
+                  <text class="pn-text" x="14" y="22">Test</text>
+                  <text class="pn-text sub" x="120" y="22">swift test</text>
+                </g>
+                <g transform="translate(290,288)">
+                  <rect class="pn-rect cyan" x="0" y="0" width="180" height="34" rx="4"/>
+                  <text class="pn-text" x="14" y="22">Lint &amp; Type-check</text>
+                </g>
+
+                <g transform="translate(516,266)">
+                  <polygon class="pn-rect" points="80,0 160,28 80,56 0,28"/>
+                  <text class="pn-text" x="80" y="26" text-anchor="middle">Reviewer approves?</text>
+                </g>
+
+                <g transform="translate(540,360)">
+                  <polygon class="pn-rect lav" points="14,0 126,0 140,32 0,32"/>
+                  <text class="pn-text" x="70" y="22" text-anchor="middle">Merge to main</text>
+                </g>
+
+                <g transform="translate(296,400)">
+                  <rect class="pn-rect gold" x="0" y="6" width="160" height="36" rx="3"/>
+                  <ellipse cx="0" cy="24" rx="4" ry="18" fill="rgba(255, 204, 102, 0.10)" stroke="#FFCC66" stroke-width="1.2"/>
+                  <ellipse cx="160" cy="24" rx="4" ry="18" fill="rgba(255, 204, 102, 0.10)" stroke="#FFCC66" stroke-width="1.2"/>
+                  <text class="pn-text" x="20" y="29">Deploy ▸</text>
+                </g>
+
+                <!-- Edges -->
+                <path class="pe" d="M180 44 L296 48" marker-end="url(#ar-ink)"/>
+                <path class="pe" d="M456 48 L540 48" marker-end="url(#ar-ink)"/>
+                <rect class="pleg" x="478" y="34" width="34" height="14" rx="2"/>
+                <text class="ple" x="495" y="44" text-anchor="middle">yes</text>
+                <path class="pe" d="M376 76 Q280 90 180 126" marker-end="url(#ar-ink)"/>
+                <rect class="pleg" x="262" y="86" width="22" height="14" rx="2"/>
+                <text class="ple" x="273" y="96" text-anchor="middle">no</text>
+                <path class="pe cyan dashed" d="M110 108 L 110 68" marker-end="url(#ar-cyan)"/>
+                <text class="ple" x="118" y="92" fill="#7EC8DE">feedback</text>
+                <path class="pe" d="M610 68 L 610 188 Q 610 200 600 200 L 480 200" marker-end="url(#ar-ink)"/>
+                <path class="pe" d="M380 234 L 380 244" marker-end="url(#ar-ink)"/>
+                <path class="pe" d="M380 278 L 380 288" marker-end="url(#ar-ink)"/>
+                <path class="pe" d="M470 305 L 516 294" marker-end="url(#ar-ink)"/>
+                <path class="pe" d="M676 294 Q 700 310 670 358" marker-end="url(#ar-ink)"/>
+                <rect class="pleg" x="664" y="320" width="48" height="14" rx="2"/>
+                <text class="ple" x="688" y="330" text-anchor="middle">approve</text>
+                <path class="pe coral" d="M516 294 Q 320 310 110 70 Q 110 60 110 44" marker-end="url(#ar-coral)"/>
+                <rect class="pleg" x="220" y="240" width="56" height="14" rx="2"/>
+                <text class="ple" x="248" y="250" text-anchor="middle" fill="#EF5A5A">changes</text>
+                <path class="pe" d="M610 392 Q 470 410 376 400" marker-end="url(#ar-ink)"/>
+              </svg>
+            </div>
+
+            <div class="minimap">
+              <div class="minimap-frame"></div>
+            </div>
+
+            <div class="dimensions">
+              Bounds <span class="v">720 × 480</span> · Origin <span class="v">−128, −62</span>
+            </div>
+          </div>
+        </section>
+
+        <!-- ===== § 04 Studio ===== -->
+        <aside class="panel insp reveal r5">
+          <div class="panel-head">
+            <span class="pill lav"><span class="num">04</span>STUDIO</span>
+            <span class="ttl">theme · export · history</span>
+          </div>
+
+          <div class="ins-block">
+            <div class="ins-ttl">
+              <h3><span class="n">a.</span>Theme</h3>
+              <span class="meta">22 themes</span>
+            </div>
+            <div class="theme-quick">
+              <button class="theme-chip is-on">
+                <div class="theme-stack">
+                  <span style="background:#05060A"></span>
+                  <span style="background:#FF9933"></span>
+                  <span style="background:#7EC8DE"></span>
+                  <span style="background:#CC99FF"></span>
+                </div>
+                <div class="theme-name">LCARS Dark</div>
+              </button>
+              <button class="theme-chip">
+                <div class="theme-stack">
+                  <span style="background:#FAF6EE"></span>
+                  <span style="background:#1B1410"></span>
+                  <span style="background:#C73E1D"></span>
+                  <span style="background:#2A4759"></span>
+                </div>
+                <div class="theme-name">Zinc</div>
+              </button>
+              <button class="theme-chip">
+                <div class="theme-stack">
+                  <span style="background:#282A36"></span>
+                  <span style="background:#F8F8F2"></span>
+                  <span style="background:#FF79C6"></span>
+                  <span style="background:#50FA7B"></span>
+                </div>
+                <div class="theme-name">Dracula</div>
+              </button>
+            </div>
+            <div class="theme-grid">
+              <span class="theme-dot" style="background:#FF9933"></span>
+              <span class="theme-dot" style="background:#7EC8DE"></span>
+              <span class="theme-dot" style="background:#CC99FF"></span>
+              <span class="theme-dot" style="background:#FFCC66"></span>
+              <span class="theme-dot" style="background:#FAF6EE"></span>
+              <span class="theme-dot" style="background:#F2EBDC"></span>
+              <span class="theme-dot" style="background:#FFFFFF"></span>
+              <span class="theme-dot" style="background:#0E0E11"></span>
+              <span class="theme-dot" style="background:#282A36"></span>
+              <span class="theme-dot" style="background:#1E1E2E"></span>
+              <span class="theme-dot" style="background:#FDF6E3"></span>
+              <span class="theme-dot" style="background:#002B36"></span>
+              <span class="theme-dot" style="background:#FFEFE0"></span>
+              <span class="theme-dot" style="background:#E1ECF1"></span>
+              <span class="theme-dot" style="background:#E8EBDC"></span>
+              <span class="theme-dot" style="background:#3D2C2E"></span>
+            </div>
+          </div>
+
+          <div class="ins-block">
+            <div class="ins-ttl">
+              <h3><span class="n">b.</span>Export</h3>
+              <span class="meta">PNG · SVG · MMD</span>
+            </div>
+            <div class="export-row">
+              <button class="export-btn">
+                <div class="ext">.png</div>
+                <div class="desc">raster · 2×</div>
+              </button>
+              <button class="export-btn">
+                <div class="ext">.svg</div>
+                <div class="desc">vector · 14 kB</div>
+              </button>
+            </div>
+            <div class="copy-pip-row">
+              <button class="copy-pip">⧉ Source</button>
+              <button class="copy-pip">⧉ Config</button>
+              <button class="copy-pip">⧉ SVG</button>
+              <button class="copy-pip">⧉ PNG</button>
+            </div>
+          </div>
+
+          <div class="ins-block">
+            <div class="ins-ttl">
+              <h3><span class="n">c.</span>History</h3>
+              <span class="meta">14 entries</span>
+            </div>
+            <div class="hist-entry">
+              <div class="hist-stamp">14:22<span class="h">today</span></div>
+              <div>
+                <div class="hist-label">PR lifecycle — soft cycle pass</div>
+                <div class="hist-snippet">flowchart TD; Author → Draft{Open draft PR?}; Draft -.-&gt; …</div>
+                <div class="hist-tags">
+                  <span class="hist-tag manual">manual</span>
+                  <span class="hist-tag">LCARS Dark</span>
+                </div>
+              </div>
+              <button class="hist-act" title="Restore">↺</button>
+            </div>
+            <div class="hist-entry">
+              <div class="hist-stamp">13:48<span class="h">today</span></div>
+              <div>
+                <div class="hist-label">Auto snapshot · 14 nodes</div>
+                <div class="hist-snippet">flowchart TD; A → B{Is it working?}; B →|Yes| C[Great!]…</div>
+                <div class="hist-tags">
+                  <span class="hist-tag auto">auto</span>
+                </div>
+              </div>
+              <button class="hist-act" title="Restore">↺</button>
+            </div>
+            <div class="hist-entry">
+              <div class="hist-stamp">11:02<span class="h">today</span></div>
+              <div>
+                <div class="hist-label">From gist · auth-handshake.mmd</div>
+                <div class="hist-snippet">sequenceDiagram; participant U as User; participant A …</div>
+                <div class="hist-tags">
+                  <span class="hist-tag loader">loader</span>
+                  <span class="hist-tag">gist://9a3…</span>
+                </div>
+              </div>
+              <button class="hist-act" title="Restore">↺</button>
+            </div>
+          </div>
+
+          <div class="ins-block" style="border-bottom:none;">
+            <div class="ins-ttl">
+              <h3><span class="n">d.</span>Load remote</h3>
+              <span class="meta">gist · raw</span>
+            </div>
+            <div style="display: flex; gap: 4px; margin-bottom: 6px;">
+              <input type="text" placeholder="gist url…" style="flex: 1; appearance: none; background: var(--lc-surface); border: 1px solid var(--lc-border-var); border-radius: 6px; padding: 6px 8px; font-family: var(--mono); font-size: 10px; color: var(--lc-ivory); outline: none;" />
+              <button class="head-btn" style="font-size: 9px; padding: 6px 10px;">Pull</button>
+            </div>
+            <div style="display: flex; gap: 4px;">
+              <input type="text" placeholder="raw .mmd url…" style="flex: 1; appearance: none; background: var(--lc-surface); border: 1px solid var(--lc-border-var); border-radius: 6px; padding: 6px 8px; font-family: var(--mono); font-size: 10px; color: var(--lc-ivory); outline: none;" />
+              <button class="head-btn" style="font-size: 9px; padding: 6px 10px;">Pull</button>
+            </div>
+          </div>
+        </aside>
+      </div>
+
+      <!-- Status bar -->
+      <div class="status-bar">
+        <div class="group">
+          <span class="lab">File</span><span class="v">flowchart.mmd</span>
+          <span class="lab">Branch</span><span class="v">main</span>
+        </div>
+        <div class="group" style="justify-content: center;">
+          <span class="blip"></span>
+          <span><span class="lab">Render</span> <span class="v">312 ms</span></span>
+          <span><span class="lab">Frames</span> <span class="v">14</span></span>
+          <span><span class="lab">Bounds</span> <span class="v">720×480</span></span>
+        </div>
+        <div class="group">
+          <span><span class="lab">Theme</span> <span class="v">LCARS DARK</span></span>
+          <span><span class="lab">Auto-save</span> <span class="v">12 s ago</span></span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  document.querySelectorAll('.editor-tab').forEach(b => {
+    b.addEventListener('click', () => {
+      document.querySelectorAll('.editor-tab').forEach(x => x.classList.remove('is-on'));
+      b.classList.add('is-on');
+    });
+  });
+  document.querySelectorAll('.theme-chip').forEach(b => {
+    b.addEventListener('click', () => {
+      document.querySelectorAll('.theme-chip').forEach(x => x.classList.remove('is-on'));
+      b.classList.add('is-on');
+    });
+  });
+  document.querySelectorAll('.fam-row').forEach(r => {
+    r.addEventListener('click', () => r.classList.toggle('open'));
+  });
+</script>
+
+</body>
+</html>

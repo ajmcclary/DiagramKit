@@ -1,0 +1,1333 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Mermaid·Swift — Visual Editor · LCARS Dark</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link
+  href="https://fonts.googleapis.com/css2?family=Antonio:wght@300..700&family=JetBrains+Mono:ital,wght@0,300..800;1,300..800&display=swap"
+  rel="stylesheet"
+/>
+<link rel="stylesheet" href="assets/shared.css" />
+<style>
+  .work-content {
+    grid-template-columns: 76px 1fr 320px;
+    grid-template-rows: 1fr auto;
+  }
+  .panel {
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    border-right: 1px solid var(--lc-border-var);
+  }
+  .panel:last-child { border-right: none; }
+
+  /* Mode pill in header — Visual / Split / Code */
+  .vmode {
+    display: flex;
+    background: var(--lc-surface);
+    border: 1px solid var(--lc-border-var);
+    border-radius: 22px;
+    padding: 3px;
+  }
+  .vmode button {
+    appearance: none;
+    background: transparent;
+    border: none;
+    color: var(--lc-text-muted);
+    font-family: var(--display);
+    font-weight: 600;
+    font-size: 11px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    padding: 6px 14px;
+    border-radius: 22px;
+    cursor: pointer;
+  }
+  .vmode button.is-on { background: var(--lc-cyan); color: var(--lc-bg); }
+  .vmode button:hover:not(.is-on) { color: var(--lc-ivory); }
+
+  /* Capability badge */
+  .cap-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--lc-cyan-soft);
+    border: 1px solid rgba(126, 200, 222, 0.36);
+    color: var(--lc-cyan);
+    border-radius: 999px;
+    padding: 4px 10px 4px 6px;
+    font-family: var(--mono);
+    font-size: 9px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+  }
+  .cap-badge .check {
+    width: 13px; height: 13px;
+    background: var(--lc-cyan);
+    color: var(--lc-bg);
+    border-radius: 50%;
+    display: grid; place-items: center;
+    font-size: 9px;
+    font-weight: 700;
+  }
+
+  /* ===== Tool rail (left) ===== */
+  .rail {
+    background: var(--lc-bg);
+    grid-row: 1;
+  }
+  .rail-section {
+    padding: 8px 6px 8px;
+    border-bottom: 1px solid var(--lc-border-var);
+  }
+  .rail-section .lab {
+    font-family: var(--display);
+    font-weight: 700;
+    font-size: 9px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--lc-orange);
+    margin: 0 6px 6px;
+    text-align: center;
+  }
+  .rail-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 4px;
+  }
+  .tool {
+    appearance: none;
+    border: 1px solid var(--lc-border-var);
+    background: var(--lc-surface);
+    border-radius: 6px;
+    padding: 7px 0;
+    cursor: pointer;
+    color: var(--lc-text-muted);
+    display: grid; place-items: center;
+    transition: all 140ms ease;
+    position: relative;
+  }
+  .tool:hover { border-color: var(--lc-cyan); color: var(--lc-ivory); }
+  .tool.is-on {
+    border-color: var(--lc-cyan);
+    color: var(--lc-cyan);
+    background: var(--lc-cyan-soft);
+  }
+  .tool svg { width: 22px; height: 18px; }
+  .dir-btn {
+    appearance: none;
+    background: var(--lc-surface);
+    border: 1px solid var(--lc-border-var);
+    border-radius: 6px;
+    padding: 5px 0;
+    cursor: pointer;
+    color: var(--lc-text-muted);
+    font-family: var(--mono);
+    font-size: 9px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+  }
+  .dir-btn.is-on { border-color: var(--lc-cyan); color: var(--lc-cyan); background: var(--lc-cyan-soft); }
+  .reflow {
+    margin-top: 4px;
+    appearance: none;
+    background: transparent;
+    border: 1px dashed var(--lc-border-var);
+    border-radius: 6px;
+    width: 100%;
+    padding: 5px 0;
+    color: var(--lc-text-muted);
+    font-family: var(--mono);
+    font-size: 8px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    cursor: pointer;
+  }
+  .reflow:hover { border-color: var(--lc-cyan); color: var(--lc-cyan); }
+
+  /* ===== Canvas ===== */
+  .canvas-panel {
+    grid-row: 1;
+    background: var(--lc-bg-2);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+  .canvas-top {
+    display: flex; align-items: center; gap: 12px;
+    padding: 8px 14px;
+    border-bottom: 1px solid var(--lc-border-var);
+    background: var(--lc-panel);
+    flex-shrink: 0;
+  }
+  .canvas-top .crumb {
+    font-family: var(--display);
+    font-size: 13px;
+    color: var(--lc-text-muted);
+    display: flex; align-items: center; gap: 7px;
+  }
+  .canvas-top .crumb .sep { color: var(--lc-text-place); }
+  .canvas-top .crumb .cur { color: var(--lc-ivory); }
+
+  .layout-pill {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: var(--lc-surface);
+    border: 1px solid var(--lc-border-var);
+    border-radius: 999px;
+    padding: 3px 4px 3px 10px;
+    font-family: var(--mono);
+    font-size: 9px;
+    color: var(--lc-text-muted);
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    cursor: pointer;
+  }
+  .layout-pill .arr {
+    width: 18px; height: 18px;
+    border-radius: 50%;
+    background: var(--lc-cyan-soft);
+    color: var(--lc-cyan);
+    display: grid; place-items: center;
+    font-size: 10px;
+  }
+
+  .zoom-cluster {
+    display: flex;
+    background: var(--lc-surface);
+    border: 1px solid var(--lc-border-var);
+    border-radius: 999px;
+    padding: 3px;
+  }
+  .zoom-cluster button {
+    appearance: none; background: transparent; border: none;
+    width: 26px; height: 22px;
+    border-radius: 999px;
+    cursor: pointer;
+    color: var(--lc-text-muted);
+    display: grid; place-items: center;
+  }
+  .zoom-cluster button:hover { background: var(--lc-surface-3); color: var(--lc-ivory); }
+  .zoom-cluster button.is-on { background: var(--lc-cyan); color: var(--lc-bg); }
+  .zoom-cluster button svg { width: 13px; height: 13px; }
+  .zoom-cluster .v {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--lc-cyan);
+    padding: 0 8px;
+    align-self: center;
+    height: 18px; display: grid; place-items: center;
+    border-left: 1px solid var(--lc-border-var);
+    border-right: 1px solid var(--lc-border-var);
+    margin: 2px 0;
+  }
+
+  /* Canvas itself */
+  .canvas {
+    position: relative;
+    flex: 1;
+    overflow: hidden;
+    min-height: 0;
+    background:
+      radial-gradient(circle at 30% 20%, rgba(126, 200, 222, 0.06), transparent 60%),
+      var(--lc-bg);
+  }
+  .canvas-grid {
+    position: absolute; inset: 0;
+    background-image:
+      linear-gradient(to right, rgba(126, 200, 222, 0.04) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(126, 200, 222, 0.04) 1px, transparent 1px),
+      linear-gradient(to right, rgba(126, 200, 222, 0.10) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(126, 200, 222, 0.10) 1px, transparent 1px);
+    background-size: 16px 16px, 16px 16px, 64px 64px, 64px 64px;
+  }
+  .ruler-corner {
+    position: absolute;
+    top: 10px; left: 10px;
+    width: 26px; height: 26px;
+    border: 1px solid var(--lc-border-var);
+    background: var(--lc-bg);
+    border-radius: 4px;
+    display: grid; place-items: center;
+    font-family: var(--mono);
+    font-size: 9px;
+    color: var(--lc-text-place);
+    letter-spacing: 0.1em;
+    z-index: 4;
+  }
+
+  .stage-svg-wrap {
+    position: absolute; inset: 0;
+    display: grid; place-items: center;
+    z-index: 3;
+  }
+  .stage-svg-wrap svg.diagram {
+    width: min(86%, 880px);
+    height: auto;
+    filter: drop-shadow(0 14px 36px rgba(0, 0, 0, 0.6));
+  }
+
+  .vn-rect { fill: var(--lc-surface); stroke: var(--lc-ivory); stroke-width: 1.2; }
+  .vn-rect.cyan { fill: rgba(126, 200, 222, 0.10); stroke: var(--lc-cyan); }
+  .vn-rect.coral { fill: rgba(239, 90, 90, 0.10); stroke: var(--lc-coral); }
+  .vn-rect.gold { fill: rgba(255, 204, 102, 0.10); stroke: var(--lc-gold); }
+  .vn-rect.lav { fill: rgba(204, 153, 255, 0.10); stroke: var(--lc-lavender); }
+  .vn-rect.dim { fill: var(--lc-bg-2); stroke: var(--lc-border); }
+
+  .vn-text { font-family: var(--display); font-size: 12px; fill: var(--lc-ivory); font-weight: 600; }
+  .vn-text.sub { font-family: var(--mono); font-size: 10px; fill: var(--lc-text-muted); font-weight: 400; }
+  .vn-edge { stroke: var(--lc-ivory); stroke-width: 1.2; fill: none; }
+  .vn-edge.cyan { stroke: var(--lc-cyan); }
+  .vn-edge.coral { stroke: var(--lc-coral); }
+  .vn-edge.dashed { stroke-dasharray: 5 4; }
+  .vn-arrow { fill: var(--lc-ivory); }
+  .vn-arrow.cyan { fill: var(--lc-cyan); }
+  .vn-arrow.coral { fill: var(--lc-coral); }
+  .vn-edge-label { font-family: var(--mono); font-size: 10px; fill: var(--lc-text-muted); }
+  .vn-edge-label-bg { fill: var(--lc-bg); }
+  .vn-subgraph { fill: rgba(126, 200, 222, 0.04); stroke: rgba(126, 200, 222, 0.34); stroke-width: 1; stroke-dasharray: 4 4; }
+  .vn-subgraph-label { font-family: var(--display); font-style: italic; font-size: 13px; fill: var(--lc-cyan); font-weight: 500; }
+
+  .vn-select {
+    fill: none;
+    stroke: var(--lc-cyan);
+    stroke-width: 1.4;
+    stroke-dasharray: 4 3;
+    animation: marching 1.5s linear infinite;
+  }
+  @keyframes marching { to { stroke-dashoffset: -28; } }
+  .vn-handle { fill: var(--lc-bg); stroke: var(--lc-cyan); stroke-width: 1.4; }
+  .vn-port { fill: var(--lc-cyan); stroke: var(--lc-bg); stroke-width: 1.4; }
+  .vn-hover { fill: none; stroke: var(--lc-cyan); stroke-width: 1; stroke-opacity: 0.5; }
+  .ghost-edge { fill: none; stroke: var(--lc-cyan); stroke-width: 1.4; stroke-dasharray: 3 3; }
+
+  /* Floating context toolbar */
+  .ctx-toolbar {
+    position: absolute;
+    z-index: 6;
+    display: flex;
+    background: var(--lc-ivory);
+    border-radius: 10px;
+    padding: 4px;
+    gap: 2px;
+    box-shadow: 0 18px 40px rgba(0, 0, 0, 0.55), 0 0 0 1px rgba(0, 0, 0, 0.4);
+  }
+  .ctx-toolbar::after {
+    content: ""; position: absolute;
+    bottom: -6px; left: 22px;
+    width: 12px; height: 12px;
+    background: var(--lc-ivory);
+    transform: rotate(45deg); border-radius: 2px;
+    z-index: -1;
+  }
+  .ctx-btn {
+    appearance: none;
+    background: transparent;
+    border: none;
+    padding: 5px 8px;
+    border-radius: 6px;
+    cursor: pointer;
+    color: var(--lc-bg);
+    display: flex; align-items: center; gap: 5px;
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+  .ctx-btn:hover { background: rgba(5, 6, 10, 0.08); }
+  .ctx-btn svg { width: 13px; height: 13px; }
+  .ctx-btn.danger:hover { background: rgba(239, 90, 90, 0.16); color: var(--lc-coral); }
+  .ctx-divider { width: 1px; background: rgba(5, 6, 10, 0.14); margin: 4px 2px; }
+  .ctx-swatch { display: inline-block; width: 14px; height: 14px; border-radius: 4px; border: 1px solid rgba(5, 6, 10, 0.2); }
+
+  /* Right-click context menu */
+  .ctx-menu {
+    position: absolute;
+    z-index: 7;
+    width: 220px;
+    background: var(--lc-surface);
+    border: 1px solid var(--lc-border);
+    border-radius: 10px;
+    padding: 5px;
+    box-shadow: var(--shadow-xl);
+  }
+  .ctx-menu .grp {
+    padding: 5px 8px 6px;
+    font-family: var(--mono);
+    font-size: 9px;
+    letter-spacing: 0.18em;
+    color: var(--lc-text-place);
+    text-transform: uppercase;
+    border-bottom: 1px solid var(--lc-border-var);
+    margin-bottom: 4px;
+  }
+  .ctx-menu .item {
+    display: grid;
+    grid-template-columns: 18px 1fr auto;
+    gap: 8px;
+    align-items: center;
+    padding: 6px 8px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--lc-ivory);
+    letter-spacing: 0.04em;
+  }
+  .ctx-menu .item:hover { background: var(--lc-surface-3); }
+  .ctx-menu .item .ic { color: var(--lc-text-muted); display: grid; place-items: center; }
+  .ctx-menu .item .ic svg { width: 13px; height: 13px; }
+  .ctx-menu .item .kbd { font-family: var(--mono); font-size: 9px; color: var(--lc-text-place); letter-spacing: 0.06em; }
+  .ctx-menu .item.has-sub::after { content: "▸"; color: var(--lc-text-place); font-size: 9px; }
+  .ctx-menu .sep { height: 1px; background: var(--lc-border-var); margin: 4px 4px; }
+  .ctx-menu .item.danger { color: var(--lc-coral-light); }
+  .ctx-menu .item.danger .ic { color: var(--lc-coral-light); }
+
+  /* Inline label edit */
+  .label-edit {
+    position: absolute;
+    z-index: 6;
+    background: var(--lc-ivory);
+    color: var(--lc-bg);
+    border-radius: 6px;
+    padding: 4px 10px 5px;
+    font-family: var(--mono);
+    font-size: 12px;
+    border: 1.5px solid var(--lc-cyan);
+    box-shadow: 0 0 0 4px rgba(126, 200, 222, 0.18), 0 12px 30px rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .label-edit::after {
+    content: "";
+    width: 1px; height: 14px;
+    background: var(--lc-cyan);
+    animation: caret 1s steps(1) infinite;
+  }
+  @keyframes caret { 50% { opacity: 0; } }
+
+  /* Normalize banner */
+  .normalize-banner {
+    position: absolute;
+    bottom: 14px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 5;
+    background: var(--lc-surface);
+    border: 1px solid var(--lc-border);
+    border-left: 3px solid var(--lc-gold);
+    padding: 7px 12px 7px 10px;
+    border-radius: 6px;
+    color: var(--lc-text-muted);
+    font-family: var(--mono);
+    font-size: 10px;
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    box-shadow: var(--shadow-xl);
+    max-width: 540px;
+    letter-spacing: 0.02em;
+  }
+  .normalize-banner .tag {
+    font-size: 8px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--lc-gold);
+    background: var(--lc-gold-soft);
+    padding: 2px 7px;
+    border-radius: 999px;
+  }
+  .normalize-banner .preview {
+    color: var(--lc-cyan);
+    cursor: pointer;
+    text-decoration: underline dotted var(--lc-border);
+    text-underline-offset: 3px;
+  }
+
+  .minimap {
+    position: absolute;
+    right: 14px; bottom: 14px;
+    width: 188px; height: 110px;
+    background: var(--lc-surface);
+    border: 1px solid var(--lc-border);
+    border-radius: 6px;
+    overflow: hidden;
+    box-shadow: var(--shadow-xl);
+    z-index: 5;
+  }
+  .minimap::before {
+    content: "MINIMAP · 14 %";
+    position: absolute;
+    top: 4px; left: 6px;
+    font-family: var(--mono);
+    font-size: 8px;
+    letter-spacing: 0.18em;
+    color: var(--lc-text-place);
+  }
+  .minimap-frame {
+    position: absolute;
+    border: 1.4px solid var(--lc-cyan);
+    background: rgba(126, 200, 222, 0.08);
+    border-radius: 3px;
+    top: 24px; left: 32px;
+    width: 100px; height: 60px;
+    box-shadow: 0 0 16px rgba(126, 200, 222, 0.4);
+  }
+
+  .dims {
+    position: absolute;
+    left: 14px; bottom: 14px;
+    font-family: var(--mono);
+    font-size: 9px;
+    color: var(--lc-text-place);
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    z-index: 4;
+  }
+  .dims .v { color: var(--lc-cyan); font-variant-numeric: tabular-nums; }
+
+  /* ===== Source drawer (bottom) ===== */
+  .src-drawer {
+    grid-row: 2;
+    grid-column: 1 / 4;
+    border-top: 1px solid var(--lc-border-var);
+    background: var(--lc-panel);
+    display: flex;
+    flex-direction: column;
+    max-height: 220px;
+  }
+  .src-head {
+    display: flex; align-items: center; gap: 12px;
+    padding: 8px 16px;
+    border-bottom: 1px solid var(--lc-border-var);
+    flex-shrink: 0;
+  }
+  .src-head .pill {
+    background: var(--lc-cyan); color: var(--lc-bg);
+    height: 22px;
+    padding: 0 12px;
+    border-radius: 22px;
+    display: inline-flex;
+    align-items: center;
+    font-family: var(--display);
+    font-weight: 700;
+    font-size: 11px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+  }
+  .src-head .pill .num { font-family: var(--mono); font-size: 9px; margin-right: 6px; opacity: 0.7; }
+  .src-head .ttl { font-family: var(--display); font-weight: 500; font-size: 14px; color: var(--lc-ivory); }
+  .src-head .right { margin-left: auto; display: flex; gap: 10px; align-items: center; }
+
+  .sync-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 3px 9px 3px 7px;
+    border-radius: 999px;
+    background: rgba(126, 200, 222, 0.1);
+    border: 1px solid rgba(126, 200, 222, 0.32);
+    color: var(--lc-cyan);
+    font-family: var(--mono);
+    font-size: 9px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+  }
+  .sync-pill .blip {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--lc-cyan);
+    box-shadow: 0 0 6px rgba(126, 200, 222, 0.6);
+  }
+
+  .src-host {
+    overflow: auto;
+    flex: 1;
+    background: var(--lc-bg-2);
+    min-height: 0;
+  }
+  .src-code {
+    display: grid;
+    grid-template-columns: 56px 1fr;
+    font-family: var(--mono);
+    font-size: 12px;
+    line-height: 1.7;
+    padding: 10px 0 18px;
+  }
+  .src-code .gutter { color: var(--lc-text-place); text-align: right; padding-right: 10px; user-select: none; font-size: 10.5px; }
+  .src-code .gutter span { display: block; height: 1.7em; }
+  .src-code .gutter span.live { color: var(--lc-cyan); font-weight: 600; }
+  .src-code .gutter span.live::before { content: "▸ "; }
+  .src-code .body { padding-left: 12px; color: var(--lc-ivory); white-space: pre; }
+  .src-code .body .line { display: block; height: 1.7em; }
+  .src-code .body .line.live {
+    background: rgba(126, 200, 222, 0.06);
+    box-shadow: inset 2px 0 0 var(--lc-cyan);
+  }
+  .src-code .body .line.proposed {
+    background: rgba(255, 204, 102, 0.06);
+    box-shadow: inset 2px 0 0 var(--lc-gold);
+  }
+  .src-code .body .line.proposed::after {
+    content: " ← proposed";
+    color: var(--lc-gold);
+    font-style: italic;
+    font-size: 10px;
+    margin-left: 8px;
+  }
+  .kw   { color: var(--lc-orange); font-weight: 700; }
+  .typ  { color: var(--lc-lavender); font-weight: 700; }
+  .id   { color: var(--lc-ivory); }
+  .str  { color: var(--lc-cyan-bright); }
+  .num  { color: var(--lc-amber); font-weight: 600; }
+  .arr  { color: var(--lc-gold); font-weight: 700; }
+  .com  { color: var(--lc-text-dim); font-style: italic; }
+  .lab  { color: var(--lc-text-muted); }
+  .punc { color: var(--lc-gold); }
+
+  /* ===== Inspector (right) ===== */
+  .inspector { grid-row: 1; background: var(--lc-bg); overflow-y: auto; }
+  .insp-head {
+    padding: 12px 16px 10px;
+    border-bottom: 1px solid var(--lc-border-var);
+    background: var(--lc-panel);
+  }
+  .insp-head .row1 { display: flex; align-items: center; gap: 8px; }
+  .insp-head .num {
+    font-family: var(--display);
+    font-weight: 700;
+    color: var(--lc-cyan);
+    font-size: 12px;
+    letter-spacing: 0.1em;
+  }
+  .insp-head .label {
+    font-family: var(--mono);
+    font-weight: 600;
+    font-size: 9px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--lc-text-place);
+  }
+  .insp-head h2 {
+    margin: 4px 0 4px;
+    font-family: var(--display);
+    font-weight: 700;
+    font-size: 22px;
+    color: var(--lc-ivory);
+    letter-spacing: 0.005em;
+  }
+  .insp-head .meta {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--lc-text-dim);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+  .insp-head .meta .blip {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--lc-cyan);
+    box-shadow: 0 0 6px rgba(126, 200, 222, 0.55);
+  }
+  .insp-head .meta .v { color: var(--lc-cyan); }
+
+  .insp-block { padding: 12px 16px; border-bottom: 1px solid var(--lc-border-var); }
+  .insp-block .ttl { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 10px; }
+  .insp-block .ttl h3 {
+    margin: 0;
+    font-family: var(--display);
+    font-weight: 700;
+    font-size: 11px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--lc-ivory);
+  }
+  .insp-block .ttl h3 .n {
+    font-family: var(--mono);
+    color: var(--lc-cyan);
+    margin-right: 6px;
+    font-weight: 600;
+    font-size: 10px;
+    letter-spacing: 0.08em;
+  }
+  .insp-block .ttl .meta { font-family: var(--mono); font-size: 9px; color: var(--lc-text-place); letter-spacing: 0.08em; }
+
+  .row {
+    display: grid;
+    grid-template-columns: 80px 1fr;
+    gap: 9px;
+    align-items: center;
+    margin-bottom: 7px;
+  }
+  .row .k {
+    font-family: var(--mono);
+    font-size: 9px;
+    color: var(--lc-text-place);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+  .row .v {
+    background: var(--lc-surface);
+    border: 1px solid var(--lc-border-var);
+    border-radius: 6px;
+    padding: 6px 9px;
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--lc-ivory);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .row .v.editable {
+    border-color: var(--lc-cyan);
+    box-shadow: 0 0 0 3px rgba(126, 200, 222, 0.10);
+  }
+  .row .v small {
+    color: var(--lc-text-place);
+    margin-left: auto;
+    font-size: 9px;
+    letter-spacing: 0.12em;
+  }
+
+  .shape-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 4px;
+  }
+  .shape-grid .sh {
+    appearance: none;
+    background: var(--lc-surface);
+    border: 1px solid var(--lc-border-var);
+    border-radius: 6px;
+    aspect-ratio: 1;
+    cursor: pointer;
+    color: var(--lc-text-muted);
+    display: grid; place-items: center;
+  }
+  .shape-grid .sh:hover { border-color: var(--lc-cyan); color: var(--lc-ivory); }
+  .shape-grid .sh.is-on {
+    border-color: var(--lc-cyan);
+    color: var(--lc-cyan);
+    background: var(--lc-cyan-soft);
+  }
+  .shape-grid .sh svg { width: 22px; height: 16px; }
+
+  .swatches {
+    display: grid;
+    grid-template-columns: repeat(8, 1fr);
+    gap: 4px;
+  }
+  .swatches .sw {
+    width: 100%; aspect-ratio: 1;
+    border-radius: 5px;
+    cursor: pointer;
+    border: 1px solid var(--lc-border-var);
+    transition: transform 140ms ease;
+    position: relative;
+  }
+  .swatches .sw:hover { transform: scale(1.12); }
+  .swatches .sw.is-on::after {
+    content: ""; position: absolute; inset: 0;
+    border-radius: 5px;
+    box-shadow: 0 0 0 2px var(--lc-cyan), 0 0 14px rgba(126, 200, 222, 0.6);
+  }
+
+  .stroke-row { display: flex; gap: 6px; margin-top: 4px; }
+  .stroke-row .opt {
+    flex: 1; padding: 6px 0;
+    border: 1px solid var(--lc-border-var);
+    border-radius: 5px;
+    background: var(--lc-surface);
+    cursor: pointer;
+    text-align: center;
+    color: var(--lc-text-muted);
+  }
+  .stroke-row .opt.is-on { border-color: var(--lc-cyan); color: var(--lc-cyan); }
+  .stroke-row .opt svg { width: 28px; height: 8px; }
+
+  .src-pv {
+    background: var(--lc-bg-2);
+    border: 1px solid var(--lc-border-var);
+    border-radius: 6px;
+    padding: 9px 11px;
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--lc-ivory);
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .src-pv .dim { color: var(--lc-text-place); font-style: italic; }
+  .src-pv .add {
+    color: var(--lc-cyan);
+    background: rgba(126, 200, 222, 0.06);
+    margin: 0 -11px;
+    padding: 2px 11px;
+    border-left: 2px solid var(--lc-cyan);
+  }
+  .src-pv .change {
+    color: var(--lc-gold);
+    background: rgba(255, 204, 102, 0.06);
+    margin: 0 -11px;
+    padding: 2px 11px;
+    border-left: 2px solid var(--lc-gold);
+  }
+</style>
+</head>
+
+<body>
+
+<div class="mac-window reveal r1">
+
+  <div class="title-bar">
+    <div class="traffic">
+      <span class="light close"></span><span class="light min"></span><span class="light max"></span>
+    </div>
+    <div class="title-text">
+      <span class="doc">FLOWCHART.MMD</span>
+      <span class="sep">/</span>
+      <span>VISUAL EDITOR</span>
+      <span class="sep">·</span>
+      <span class="stardate">STARDATE 41254.7</span>
+    </div>
+    <div class="title-actions">
+      <button class="title-action" title="Theme: LCARS Dark">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="9"/><path d="M12 3a9 9 0 000 18"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <div class="app-body">
+
+    <aside class="sidebar">
+      <div class="sb-elbow">
+        <div class="stripe"></div>
+        <div class="top-bar">SECTION 03</div>
+        <div class="id-block">
+          <div class="name">VE · 02</div>
+          <div class="sub">VISUAL EDITOR</div>
+        </div>
+      </div>
+      <nav class="sb-body">
+        <div class="sb-section"><span class="num">01</span><span>Workstations</span><span class="stripe"></span></div>
+        <a href="index.html" class="nav-pill">
+          <span class="glyph"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 3v18M3 12h18"/></svg></span>
+          Bridge
+          <span class="code">BRG-00</span>
+        </a>
+        <a href="playground.html" class="nav-pill">
+          <span class="glyph"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg></span>
+          Playground
+          <span class="code">PG-01</span>
+        </a>
+        <a href="visual.html" class="nav-pill is-on">
+          <span class="glyph cyan"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M5 3l3 3M19 3l-3 3M5 21l3-3M19 21l-3-3"/><rect x="6" y="6" width="12" height="12" rx="1"/></svg></span>
+          Visual editor
+          <span class="code">VE-02</span>
+        </a>
+        <a href="ai.html" class="nav-pill">
+          <span class="glyph lav"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l1.6 4.4L18 8l-4.4 1.6L12 14l-1.6-4.4L6 8l4.4-1.6z"/></svg></span>
+          AI studio
+          <span class="code">AI-03</span>
+        </a>
+        <a href="present.html" class="nav-pill">
+          <span class="glyph gold"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="4" width="18" height="13" rx="1.5"/><path d="M9 21h6M12 17v4"/></svg></span>
+          Presentations
+          <span class="code">PR-04</span>
+        </a>
+      </nav>
+      <div class="sb-foot">
+        <div class="code-block"><span>theme · LCARS Dark</span><span class="v">ON</span></div>
+        <div class="sb-pillrow">
+          <div class="blip"></div><div class="blip cyan on" style="background: var(--lc-cyan); border-color: var(--lc-cyan);"></div><div class="blip"></div><div class="blip"></div>
+        </div>
+      </div>
+    </aside>
+
+    <div class="workarea">
+
+      <div class="lcars-header">
+        <div class="head-pill cyan"><span class="num">02-A</span>VISUAL EDITOR</div>
+        <div class="head-seg cyan" style="width: 28px;"></div>
+        <div class="head-stretch">
+          <div class="vmode">
+            <button class="is-on">Visual</button>
+            <button>Split</button>
+            <button>Code</button>
+          </div>
+          <div style="display: flex; gap: 4px; align-items: center;">
+            <button class="head-btn" title="Undo">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M9 14l-5-5 5-5"/><path d="M4 9h11a5 5 0 010 10h-3"/></svg>
+            </button>
+            <span class="lc-pill" style="font-size: 9px; padding: 4px 8px;">14 / 28</span>
+            <button class="head-btn" title="Redo">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M15 14l5-5-5-5"/><path d="M20 9H9a5 5 0 000 10h3"/></svg>
+            </button>
+          </div>
+          <span class="cap-badge"><span class="check">✓</span>Flowchart · fully editable</span>
+        </div>
+        <div class="head-actions">
+          <button class="head-btn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 2l1.6 4.4L18 8l-4.4 1.6L12 14l-1.6-4.4L6 8l4.4-1.6z"/></svg>
+            ✦ Refine
+          </button>
+          <button class="head-btn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 4v12M7 9l5-5 5 5"/></svg>
+            Export
+          </button>
+          <button class="head-btn primary">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polygon points="6 4 20 12 6 20" fill="currentColor"/></svg>
+            Render
+          </button>
+        </div>
+      </div>
+
+      <div class="work-content">
+
+        <!-- ===== Tool rail ===== -->
+        <aside class="panel rail reveal r2">
+          <div class="rail-section">
+            <div class="lab">SHAPES</div>
+            <div class="rail-grid">
+              <button class="tool is-on" title="Rectangle"><svg viewBox="0 0 22 18" fill="none" stroke="currentColor"><rect x="2" y="3" width="18" height="12" rx="1" stroke-width="1.4"/></svg></button>
+              <button class="tool" title="Rounded"><svg viewBox="0 0 22 18" fill="none" stroke="currentColor"><rect x="2" y="3" width="18" height="12" rx="5" stroke-width="1.4"/></svg></button>
+              <button class="tool" title="Stadium"><svg viewBox="0 0 22 18" fill="none" stroke="currentColor"><rect x="2" y="3" width="18" height="12" rx="6" stroke-width="1.4"/></svg></button>
+              <button class="tool" title="Diamond"><svg viewBox="0 0 22 18" fill="none" stroke="currentColor"><polygon points="11 2 20 9 11 16 2 9" stroke-width="1.4"/></svg></button>
+              <button class="tool" title="Circle"><svg viewBox="0 0 22 18" fill="none" stroke="currentColor"><circle cx="11" cy="9" r="6" stroke-width="1.4"/></svg></button>
+              <button class="tool" title="Cylinder"><svg viewBox="0 0 22 18" fill="none" stroke="currentColor" stroke-width="1.4"><ellipse cx="11" cy="4.5" rx="8" ry="2"/><path d="M3 4.5V13.5C3 14.6 6.6 15.5 11 15.5C15.4 15.5 19 14.6 19 13.5V4.5"/></svg></button>
+              <button class="tool" title="Subroutine"><svg viewBox="0 0 22 18" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="2" y="3" width="18" height="12"/><line x1="5" y1="3" x2="5" y2="15"/><line x1="17" y1="3" x2="17" y2="15"/></svg></button>
+              <button class="tool" title="Hexagon"><svg viewBox="0 0 22 18" fill="none" stroke="currentColor" stroke-width="1.4"><polygon points="6 2 16 2 20 9 16 16 6 16 2 9"/></svg></button>
+            </div>
+          </div>
+          <div class="rail-section">
+            <div class="lab">CONNECT</div>
+            <div class="rail-grid">
+              <button class="tool"><svg viewBox="0 0 22 12" fill="none" stroke="currentColor" stroke-width="1.4"><line x1="2" y1="6" x2="17" y2="6"/><polygon points="20 6 16 4 16 8" fill="currentColor"/></svg></button>
+              <button class="tool"><svg viewBox="0 0 22 12" fill="none" stroke="currentColor" stroke-width="1.4"><line x1="2" y1="6" x2="20" y2="6"/></svg></button>
+              <button class="tool"><svg viewBox="0 0 22 12" fill="none" stroke="currentColor" stroke-width="1.4"><line x1="2" y1="6" x2="17" y2="6" stroke-dasharray="3 2"/><polygon points="20 6 16 4 16 8" fill="currentColor"/></svg></button>
+              <button class="tool"><svg viewBox="0 0 22 12" fill="none" stroke="currentColor" stroke-width="2.6"><line x1="2" y1="6" x2="17" y2="6"/><polygon points="20 6 16 4 16 8" fill="currentColor"/></svg></button>
+            </div>
+          </div>
+          <div class="rail-section">
+            <div class="lab">LAYOUT</div>
+            <div class="rail-grid">
+              <button class="dir-btn is-on">TD</button>
+              <button class="dir-btn">LR</button>
+              <button class="dir-btn">RL</button>
+              <button class="dir-btn">BT</button>
+            </div>
+            <button class="reflow">⟲ Reflow</button>
+          </div>
+          <div class="rail-section" style="border-bottom: none;">
+            <div class="lab">TOOLS</div>
+            <div class="rail-grid">
+              <button class="tool is-on" title="Select"><svg viewBox="0 0 22 18" fill="none" stroke="currentColor" stroke-width="1.4"><polygon points="4 2 4 16 8 12 11 17 13 16 10 11 16 11"/></svg></button>
+              <button class="tool" title="Pan"><svg viewBox="0 0 22 18" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M7 9V4a1 1 0 012 0v4M11 8V4a1 1 0 012 0v6M5 10c0-1 1-2 2-2v6a4 4 0 008 0V7a1 1 0 012 0v6a6 6 0 01-12 0z"/></svg></button>
+              <button class="tool" title="Connect"><svg viewBox="0 0 22 18" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="5" cy="9" r="2"/><circle cx="17" cy="9" r="2"/><line x1="7" y1="9" x2="15" y2="9"/></svg></button>
+              <button class="tool" title="Comment"><svg viewBox="0 0 22 18" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M3 4h16v9H10l-4 3v-3H3z"/></svg></button>
+            </div>
+          </div>
+        </aside>
+
+        <!-- ===== Canvas ===== -->
+        <section class="panel canvas-panel reveal r3">
+          <div class="canvas-top">
+            <div class="crumb">
+              <a href="index.html" style="color: var(--lc-text-muted);">Bridge</a>
+              <span class="sep">›</span>
+              <span>Catalog</span>
+              <span class="sep">›</span>
+              <span class="cur">Pull-Request Lifecycle</span>
+            </div>
+            <div style="margin-left: auto; display: flex; gap: 6px; align-items: center;">
+              <button class="layout-pill"><span class="arr">↓</span>Top-Down · TD</button>
+              <div class="zoom-cluster">
+                <button title="Zoom out"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14"/></svg></button>
+                <span class="v">100%</span>
+                <button title="Zoom in"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg></button>
+                <button class="is-on" title="Fit"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg></button>
+              </div>
+            </div>
+          </div>
+
+          <div class="canvas">
+            <div class="canvas-grid"></div>
+            <div class="ruler-corner">0,0</div>
+
+            <div class="stage-svg-wrap">
+              <svg class="diagram" viewBox="0 0 880 540" xmlns="http://www.w3.org/2000/svg">
+                <defs>
+                  <marker id="va-ink" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="9" markerHeight="9" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" class="vn-arrow"/></marker>
+                  <marker id="va-cyan" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="9" markerHeight="9" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" class="vn-arrow cyan"/></marker>
+                  <marker id="va-coral" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="9" markerHeight="9" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" class="vn-arrow coral"/></marker>
+                </defs>
+
+                <rect class="vn-subgraph" x="280" y="180" width="320" height="190" rx="8"/>
+                <text class="vn-subgraph-label" x="296" y="204">CI Pipeline</text>
+
+                <g transform="translate(70,40)">
+                  <rect class="vn-rect coral" x="0" y="0" width="160" height="56" rx="8"/>
+                  <text class="vn-text" x="20" y="26">Author</text>
+                  <text class="vn-text sub" x="20" y="44">opens PR</text>
+                </g>
+
+                <g transform="translate(360,38)">
+                  <polygon class="vn-rect" points="80,0 160,30 80,60 0,30"/>
+                  <text class="vn-text" x="80" y="28" text-anchor="middle">Open draft PR?</text>
+                  <text class="vn-text sub" x="80" y="46" text-anchor="middle">decision</text>
+                </g>
+
+                <g transform="translate(640,52)">
+                  <rect class="vn-hover" x="-5" y="-5" width="170" height="42" rx="6"/>
+                  <rect class="vn-rect cyan" x="0" y="0" width="160" height="32" rx="4"/>
+                  <line x1="6" y1="0" x2="6" y2="32" stroke="#7EC8DE" stroke-width="1.2"/>
+                  <line x1="154" y1="0" x2="154" y2="32" stroke="#7EC8DE" stroke-width="1.2"/>
+                  <text class="vn-text" x="20" y="20">Run CI</text>
+                </g>
+
+                <g transform="translate(70,140)">
+                  <rect class="vn-rect gold" x="0" y="6" width="160" height="36" rx="3"/>
+                  <ellipse cx="0" cy="24" rx="4" ry="18" fill="rgba(255, 204, 102, 0.10)" stroke="#FFCC66" stroke-width="1.2"/>
+                  <ellipse cx="160" cy="24" rx="4" ry="18" fill="rgba(255, 204, 102, 0.10)" stroke="#FFCC66" stroke-width="1.2"/>
+                  <text class="vn-text" x="20" y="29">Local iteration</text>
+                </g>
+
+                <!-- SELECTED Build node -->
+                <g transform="translate(310,210)">
+                  <rect class="vn-select" x="-8" y="-8" width="276" height="56" rx="8"/>
+                  <rect class="vn-rect cyan" x="0" y="0" width="260" height="40" rx="6"/>
+                  <text class="vn-text" x="16" y="25">Build &amp; cache deps</text>
+                  <text class="vn-text sub" x="170" y="25">swift build</text>
+                  <rect class="vn-handle" x="-12" y="-12" width="8" height="8"/>
+                  <rect class="vn-handle" x="256" y="-12" width="8" height="8"/>
+                  <rect class="vn-handle" x="-12" y="44" width="8" height="8"/>
+                  <rect class="vn-handle" x="256" y="44" width="8" height="8"/>
+                  <rect class="vn-handle" x="124" y="-12" width="8" height="8"/>
+                  <rect class="vn-handle" x="124" y="44" width="8" height="8"/>
+                  <rect class="vn-handle" x="-12" y="16" width="8" height="8"/>
+                  <rect class="vn-handle" x="256" y="16" width="8" height="8"/>
+                  <circle class="vn-port" cx="130" cy="-2" r="3.4"/>
+                  <circle class="vn-port" cx="130" cy="42" r="3.4"/>
+                  <circle class="vn-port" cx="-2" cy="20" r="3.4"/>
+                  <circle class="vn-port" cx="262" cy="20" r="3.4"/>
+                </g>
+
+                <g transform="translate(310,260)">
+                  <rect class="vn-rect" x="0" y="0" width="260" height="36" rx="6"/>
+                  <text class="vn-text" x="16" y="22">Test</text>
+                  <text class="vn-text sub" x="200" y="22">swift test</text>
+                </g>
+
+                <g transform="translate(310,310)">
+                  <rect class="vn-hover" x="-4" y="-4" width="268" height="44" rx="8"/>
+                  <rect class="vn-rect" x="0" y="0" width="260" height="36" rx="6"/>
+                  <text class="vn-text" x="16" y="22">Lint &amp; type-check</text>
+                </g>
+
+                <g transform="translate(625,295)">
+                  <polygon class="vn-rect" points="80,0 160,30 80,60 0,30"/>
+                  <text class="vn-text" x="80" y="28" text-anchor="middle">Reviewer</text>
+                  <text class="vn-text sub" x="80" y="44" text-anchor="middle">approves?</text>
+                </g>
+
+                <g transform="translate(640,420)">
+                  <polygon class="vn-rect lav" points="14,0 146,0 160,32 0,32"/>
+                  <text class="vn-text" x="78" y="22" text-anchor="middle">Merge to main</text>
+                </g>
+
+                <g transform="translate(316,470)">
+                  <rect class="vn-rect gold" x="0" y="6" width="180" height="36" rx="3"/>
+                  <ellipse cx="0" cy="24" rx="4" ry="18" fill="rgba(255, 204, 102, 0.10)" stroke="#FFCC66" stroke-width="1.2"/>
+                  <ellipse cx="180" cy="24" rx="4" ry="18" fill="rgba(255, 204, 102, 0.10)" stroke="#FFCC66" stroke-width="1.2"/>
+                  <text class="vn-text" x="20" y="29">Deploy ▸</text>
+                </g>
+
+                <!-- Edges -->
+                <path class="vn-edge" d="M230 68 L360 68" marker-end="url(#va-ink)"/>
+                <path class="vn-edge" d="M520 68 L640 68" marker-end="url(#va-ink)"/>
+                <rect class="vn-edge-label-bg" x="566" y="56" width="34" height="14" rx="2"/>
+                <text class="vn-edge-label" x="583" y="66" text-anchor="middle">yes</text>
+                <path class="vn-edge" d="M440 98 Q300 124 230 162" marker-end="url(#va-ink)"/>
+                <rect class="vn-edge-label-bg" x="316" y="116" width="22" height="14" rx="2"/>
+                <text class="vn-edge-label" x="327" y="126" text-anchor="middle">no</text>
+                <path class="vn-edge cyan dashed" d="M150 140 L150 96" marker-end="url(#va-cyan)"/>
+                <text class="vn-edge-label" x="158" y="120" fill="#7EC8DE">feedback</text>
+                <path class="vn-edge" d="M720 84 Q 720 200 600 220 L 570 220" marker-end="url(#va-ink)"/>
+                <path class="vn-edge cyan" d="M440 250 L440 260" marker-end="url(#va-cyan)"/>
+                <path class="vn-edge" d="M440 296 L440 310" marker-end="url(#va-ink)"/>
+                <path class="vn-edge" d="M570 328 L625 325" marker-end="url(#va-ink)"/>
+                <path class="vn-edge" d="M785 325 Q 800 380 760 418" marker-end="url(#va-ink)"/>
+                <rect class="vn-edge-label-bg" x="754" y="372" width="50" height="14" rx="2"/>
+                <text class="vn-edge-label" x="779" y="382" text-anchor="middle">approve</text>
+                <path class="vn-edge coral dashed" d="M625 325 Q 320 360 150 110 Q 150 90 150 78" marker-end="url(#va-coral)"/>
+                <rect class="vn-edge-label-bg" x="244" y="276" width="56" height="14" rx="2"/>
+                <text class="vn-edge-label" x="272" y="286" text-anchor="middle" fill="#EF5A5A">changes</text>
+                <path class="vn-edge" d="M700 452 Q 480 480 396 488" marker-end="url(#va-ink)"/>
+
+                <!-- ghost edge -->
+                <path class="ghost-edge" d="M572 232 Q 600 240 625 295"/>
+                <circle cx="572" cy="232" r="3.4" class="vn-port"/>
+              </svg>
+            </div>
+
+            <!-- floating context toolbar above selected node -->
+            <div class="ctx-toolbar" style="left: calc(50% - 30px); top: 220px;">
+              <button class="ctx-btn"><svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="2" y="3" width="10" height="8" rx="1"/></svg>Shape</button>
+              <button class="ctx-btn"><span class="ctx-swatch" style="background:#7EC8DE"></span>Fill</button>
+              <button class="ctx-btn"><svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4"><line x1="2" y1="7" x2="12" y2="7"/></svg>Stroke</button>
+              <span class="ctx-divider"></span>
+              <button class="ctx-btn"><svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M3 11l8-8 2 2-8 8H3z"/></svg>Label</button>
+              <button class="ctx-btn"><svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="2" y="2" width="8" height="8"/><rect x="5" y="5" width="8" height="8"/></svg>Dupe</button>
+              <span class="ctx-divider"></span>
+              <button class="ctx-btn danger"><svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M3 4h8M5 4V2h4v2M5 4v8h4V4"/></svg>⌫</button>
+            </div>
+
+            <!-- right-click menu -->
+            <div class="ctx-menu" style="left: calc(50% + 90px); top: 332px;">
+              <div class="grp">Lint &amp; type-check</div>
+              <div class="item"><span class="ic"><svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M3 11l8-8 2 2-8 8H3z"/></svg></span><span>Edit label</span><span class="kbd">↩</span></div>
+              <div class="item has-sub"><span class="ic"><svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="1" y="3" width="6" height="8"/><polygon points="7 3 13 7 7 11"/></svg></span><span>Convert shape</span><span></span></div>
+              <div class="item has-sub"><span class="ic"><svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="7" cy="7" r="4"/></svg></span><span>Style…</span><span></span></div>
+              <div class="item"><span class="ic"><svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="4" cy="4" r="1.5"/><circle cx="10" cy="10" r="1.5"/><line x1="4" y1="4" x2="10" y2="10"/></svg></span><span>Connect to…</span><span class="kbd">E</span></div>
+              <div class="item"><span class="ic"><svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="2" y="2" width="6" height="6"/><rect x="6" y="6" width="6" height="6"/></svg></span><span>Group into subgraph</span><span class="kbd">⌘ G</span></div>
+              <div class="sep"></div>
+              <div class="item"><span class="ic"><svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="3" y="3" width="8" height="8"/><rect x="6" y="6" width="8" height="8"/></svg></span><span>Duplicate</span><span class="kbd">⌘ D</span></div>
+              <div class="sep"></div>
+              <div class="item danger"><span class="ic"><svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M3 4h8M5 4V2h4v2M5 4v8h4V4"/></svg></span><span>Delete node</span><span class="kbd">⌫</span></div>
+            </div>
+
+            <!-- inline label editor -->
+            <div class="label-edit" style="left: calc(50% - 30px); top: 286px;">
+              <span style="color: var(--lc-text-place); font-size: 9px; letter-spacing: 0.16em; text-transform: uppercase;">Label</span>
+              Build &amp; cache deps
+            </div>
+
+            <div class="normalize-banner">
+              <span class="tag">Heads up</span>
+              <span>
+                Visual edits will normalize your <strong style="color: var(--lc-ivory);">Mermaid source</strong> formatting.
+                <span class="preview">Preview the changes</span>
+                before applying.
+              </span>
+            </div>
+
+            <div class="minimap">
+              <svg viewBox="0 0 188 110" width="188" height="110">
+                <rect x="14" y="22" width="42" height="14" fill="rgba(239, 90, 90, 0.18)" stroke="#EF5A5A" stroke-width="0.6" rx="2"/>
+                <polygon points="78 18, 122 28, 78 38, 34 28" fill="rgba(242, 231, 216, 0.06)" stroke="rgba(242, 231, 216, 0.24)" stroke-width="0.6"/>
+                <rect x="138" y="22" width="42" height="14" fill="rgba(126, 200, 222, 0.18)" stroke="#7EC8DE" stroke-width="0.6" rx="2"/>
+                <rect x="64" y="48" width="62" height="8" fill="rgba(126, 200, 222, 0.18)" stroke="#7EC8DE" stroke-width="0.8" rx="2"/>
+                <rect x="64" y="60" width="62" height="8" fill="rgba(242, 231, 216, 0.06)" stroke="rgba(242, 231, 216, 0.24)" stroke-width="0.6" rx="2"/>
+                <rect x="64" y="72" width="62" height="8" fill="rgba(242, 231, 216, 0.06)" stroke="rgba(242, 231, 216, 0.24)" stroke-width="0.6" rx="2"/>
+                <polygon points="138 70, 180 78, 138 86, 96 78" fill="rgba(242, 231, 216, 0.06)" stroke="rgba(242, 231, 216, 0.24)" stroke-width="0.6"/>
+                <polygon points="138 92, 174 92, 178 102, 134 102" fill="rgba(204, 153, 255, 0.18)" stroke="#CC99FF" stroke-width="0.6"/>
+              </svg>
+              <div class="minimap-frame"></div>
+            </div>
+
+            <div class="dims">
+              Bounds <span class="v">880 × 540</span> · Sel <span class="v">Build · 260×40</span>
+            </div>
+          </div>
+        </section>
+
+        <!-- ===== Inspector ===== -->
+        <aside class="panel inspector reveal r4">
+          <div class="insp-head">
+            <div class="row1">
+              <span class="num">§ 04</span>
+              <span class="label">Selected · node</span>
+            </div>
+            <h2>Build &amp; cache deps</h2>
+            <div class="meta">
+              <span class="blip"></span>
+              <span>id <span class="v">Build</span></span>
+              <span>·</span>
+              <span>flowchart node</span>
+            </div>
+          </div>
+
+          <div class="insp-block">
+            <div class="ttl"><h3><span class="n">a.</span>Identity</h3><span class="meta">VE-019 · 040</span></div>
+            <div class="row"><span class="k">Id</span><div class="v">Build <small>auto</small></div></div>
+            <div class="row"><span class="k">Label</span><div class="v editable">Build &amp; cache deps<small>↩</small></div></div>
+            <div class="row"><span class="k">Subgraph</span><div class="v">CI Pipeline <small>parent</small></div></div>
+          </div>
+
+          <div class="insp-block">
+            <div class="ttl"><h3><span class="n">b.</span>Shape</h3><span class="meta">VE-021 · 060</span></div>
+            <div class="shape-grid">
+              <button class="sh is-on"><svg viewBox="0 0 22 16" fill="none"><rect x="2" y="3" width="18" height="10" rx="1"/></svg></button>
+              <button class="sh"><svg viewBox="0 0 22 16" fill="none"><rect x="2" y="3" width="18" height="10" rx="5"/></svg></button>
+              <button class="sh"><svg viewBox="0 0 22 16" fill="none"><rect x="2" y="3" width="18" height="10" rx="6"/></svg></button>
+              <button class="sh"><svg viewBox="0 0 22 16" fill="none"><polygon points="11 1 21 8 11 15 1 8"/></svg></button>
+              <button class="sh"><svg viewBox="0 0 22 16" fill="none"><circle cx="11" cy="8" r="6"/></svg></button>
+              <button class="sh"><svg viewBox="0 0 22 16" fill="none"><ellipse cx="11" cy="3" rx="8" ry="2"/><path d="M3 3v10c0 1 4 2 8 2s8-1 8-2V3"/></svg></button>
+              <button class="sh"><svg viewBox="0 0 22 16" fill="none"><rect x="2" y="3" width="18" height="10"/><line x1="5" y1="3" x2="5" y2="13"/><line x1="17" y1="3" x2="17" y2="13"/></svg></button>
+              <button class="sh"><svg viewBox="0 0 22 16" fill="none"><polygon points="6 2 16 2 20 8 16 14 6 14 2 8"/></svg></button>
+              <button class="sh"><svg viewBox="0 0 22 16" fill="none"><polygon points="5 3 17 3 20 13 2 13"/></svg></button>
+              <button class="sh"><svg viewBox="0 0 22 16" fill="none"><path d="M3 3h16v8c-3 2-5 0-8 0s-5 2-8 0z"/></svg></button>
+            </div>
+          </div>
+
+          <div class="insp-block">
+            <div class="ttl"><h3><span class="n">c.</span>Style</h3><span class="meta">VE-022 · 064 · 067</span></div>
+            <div class="row">
+              <span class="k">Fill</span>
+              <div class="v" style="padding: 4px 4px 4px 8px;">
+                <span style="width:14px; height:14px; border-radius:4px; background:#7EC8DE; border:1px solid rgba(0,0,0,0.3)"></span>
+                #7EC8DE · cyan
+              </div>
+            </div>
+            <div class="swatches" style="margin: 4px 0 8px;">
+              <span class="sw is-on" style="background:#7EC8DE"></span>
+              <span class="sw" style="background:#FF9933"></span>
+              <span class="sw" style="background:#CC99FF"></span>
+              <span class="sw" style="background:#FFCC66"></span>
+              <span class="sw" style="background:#EF5A5A"></span>
+              <span class="sw" style="background:#F2E7D8"></span>
+              <span class="sw" style="background:#151A24; border:1px solid var(--lc-border)"></span>
+              <span class="sw" style="background: linear-gradient(135deg,#7EC8DE,#CC99FF)"></span>
+            </div>
+            <div class="row">
+              <span class="k">Border</span>
+              <div class="v" style="padding: 4px 4px 4px 8px;">
+                <span style="width:14px; height:14px; border-radius:4px; background:transparent; border:2px solid #7EC8DE"></span>
+                1.4 px · solid
+              </div>
+            </div>
+            <div class="stroke-row">
+              <button class="opt is-on"><svg viewBox="0 0 28 8" fill="none" stroke="currentColor" stroke-width="1.6"><line x1="2" y1="4" x2="26" y2="4"/></svg></button>
+              <button class="opt"><svg viewBox="0 0 28 8" fill="none" stroke="currentColor" stroke-width="1.6"><line x1="2" y1="4" x2="26" y2="4" stroke-dasharray="4 3"/></svg></button>
+              <button class="opt"><svg viewBox="0 0 28 8" fill="none" stroke="currentColor" stroke-width="1.8"><line x1="2" y1="4" x2="26" y2="4" stroke-dasharray="1 3"/></svg></button>
+              <button class="opt"><svg viewBox="0 0 28 8" fill="none" stroke="currentColor" stroke-width="3"><line x1="2" y1="4" x2="26" y2="4"/></svg></button>
+            </div>
+          </div>
+
+          <div class="insp-block">
+            <div class="ttl"><h3><span class="n">e.</span>Source preview</h3><span class="meta">VE-053</span></div>
+            <div class="src-pv">
+              <span class="dim">// will rewrite as:</span>
+              <span class="change">B[<span style="color: var(--lc-ivory);">"Build &amp; cache deps"</span>]:::cycle</span>
+              <span class="add">B --&gt; Test</span>
+              <span class="add">B -.-&gt; Review</span>
+              <span class="dim">// (whitespace normalized)</span>
+            </div>
+          </div>
+
+          <div class="insp-block" style="border-bottom: none;">
+            <div class="ttl"><h3><span class="n">f.</span>Limitations</h3><span class="meta">VE-080</span></div>
+            <div style="background: var(--lc-gold-soft); border: 1px solid rgba(255, 204, 102, 0.32); border-radius: 6px; padding: 9px 11px; font-family: var(--mono); font-size: 10.5px; color: var(--lc-gold); line-height: 1.4; letter-spacing: 0.02em;">
+              <strong style="text-transform: uppercase; font-size: 9px; letter-spacing: 0.18em; margin-right: 6px;">Note</strong>
+              Sequence, Class, ER, and 24 other types are <strong style="color: var(--lc-ivory);">code-edit + preview only</strong>.
+              <a style="color: var(--lc-gold); text-decoration: underline dotted;">See plan →</a>
+            </div>
+          </div>
+        </aside>
+
+        <!-- ===== Source drawer (bottom) ===== -->
+        <section class="src-drawer reveal r5">
+          <div class="src-head">
+            <span class="pill"><span class="num">§ 05</span>SOURCE</span>
+            <span class="ttl">flowchart.mmd</span>
+            <div class="right">
+              <span class="sync-pill"><span class="blip"></span>Synced · 218 ms</span>
+              <button class="head-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 6h16M7 12h13M10 18h10"/></svg>Format</button>
+            </div>
+          </div>
+          <div class="src-host">
+            <div class="src-code">
+              <div class="gutter">
+                <span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span>
+                <span>7</span><span>8</span><span class="live">9</span><span class="live">10</span>
+                <span class="live">11</span><span>12</span><span>13</span><span>14</span><span>15</span>
+              </div>
+              <div class="body">
+<span class="line"><span class="com">%% Pull-request lifecycle — drafted 2026·05·10</span></span>
+<span class="line"><span class="kw">flowchart</span> <span class="typ">TD</span></span>
+<span class="line">    <span class="id">Author</span><span class="punc">[</span><span class="lab">Author</span><span class="punc">]</span> <span class="arr">--&gt;</span> <span class="id">Draft</span><span class="punc">{</span><span class="lab">Open draft PR?</span><span class="punc">}</span></span>
+<span class="line">    <span class="id">Draft</span> <span class="arr">--&gt;</span><span class="punc">|</span><span class="str">yes</span><span class="punc">|</span> <span class="id">CI</span><span class="punc">[[</span><span class="lab">Run CI</span><span class="punc">]]</span></span>
+<span class="line">    <span class="id">Draft</span> <span class="arr">--&gt;</span><span class="punc">|</span><span class="str">no</span><span class="punc">|</span> <span class="id">Local</span><span class="punc">[(</span><span class="lab">Local iteration</span><span class="punc">)]</span></span>
+<span class="line">    <span class="id">Local</span> <span class="arr">-.-&gt;</span> <span class="id">Author</span></span>
+<span class="line"></span>
+<span class="line">    <span class="kw">subgraph</span> <span class="id">Pipeline</span><span class="punc">[</span><span class="lab">CI Pipeline</span><span class="punc">]</span></span>
+<span class="line live">        <span class="id">CI</span> <span class="arr">--&gt;</span> <span class="id">Build</span><span class="punc">[</span><span class="lab">Build &amp; cache deps</span><span class="punc">]</span></span>
+<span class="line live">        <span class="id">Build</span> <span class="arr">--&gt;</span> <span class="id">Test</span><span class="punc">[</span><span class="lab">Test</span><span class="punc">]</span></span>
+<span class="line proposed">        <span class="id">Build</span> <span class="arr">-.-&gt;</span> <span class="id">Review</span></span>
+<span class="line">        <span class="id">Test</span>  <span class="arr">--&gt;</span> <span class="id">Lint</span><span class="punc">[</span><span class="lab">Lint &amp; type-check</span><span class="punc">]</span></span>
+<span class="line">    <span class="kw">end</span></span>
+<span class="line">    <span class="kw">classDef</span> <span class="id">cycle</span> <span class="lab">fill:</span><span class="num">#7EC8DE</span></span>
+<span class="line">    <span class="kw">class</span> <span class="id">Build</span> <span class="id">cycle</span></span>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <div class="status-bar">
+        <div class="group">
+          <span class="cap-badge" style="font-size: 8px; padding: 2px 7px;"><span class="check" style="width: 11px; height: 11px; font-size: 8px;">✓</span>Editable</span>
+          <span><span class="lab">Mode</span> <span class="v">Visual</span></span>
+          <span><span class="lab">Layout</span> <span class="v">TD · auto</span></span>
+        </div>
+        <div class="group" style="justify-content: center;">
+          <span class="blip"></span>
+          <span><span class="lab">Sel</span> <span class="v">Build</span></span>
+          <span><span class="lab">Edits</span> <span class="v">14 / 28</span></span>
+          <span><span class="lab">Render</span> <span class="v">218 ms</span></span>
+        </div>
+        <div class="group">
+          <span><span class="lab">Theme</span> <span class="v">LCARS DARK</span></span>
+          <span><span class="lab">Saved</span> <span class="v">12 s ago</span></span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  document.querySelectorAll('.vmode button').forEach(b => {
+    b.addEventListener('click', () => {
+      document.querySelectorAll('.vmode button').forEach(x => x.classList.remove('is-on'));
+      b.classList.add('is-on');
+    });
+  });
+  document.querySelectorAll('.dir-btn').forEach(b => {
+    b.addEventListener('click', () => {
+      document.querySelectorAll('.dir-btn').forEach(x => x.classList.remove('is-on'));
+      b.classList.add('is-on');
+    });
+  });
+  document.querySelectorAll('.shape-grid .sh').forEach(b => {
+    b.addEventListener('click', () => {
+      document.querySelectorAll('.shape-grid .sh').forEach(x => x.classList.remove('is-on'));
+      b.classList.add('is-on');
+    });
+  });
+  document.querySelectorAll('.swatches .sw').forEach(b => {
+    b.addEventListener('click', () => {
+      document.querySelectorAll('.swatches .sw').forEach(x => x.classList.remove('is-on'));
+      b.classList.add('is-on');
+    });
+  });
+  document.querySelectorAll('.stroke-row .opt').forEach(b => {
+    b.addEventListener('click', () => {
+      document.querySelectorAll('.stroke-row .opt').forEach(x => x.classList.remove('is-on'));
+      b.classList.add('is-on');
+    });
+  });
+</script>
+
+</body>
+</html>
