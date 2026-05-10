@@ -12,7 +12,7 @@ DiagramKit is a native Swift port of [mermaid-js](https://mermaid.js.org/) cover
 - Frontmatter / init-directive parsing matches upstream Mermaid: YAML frontmatter, `%%{init: …}%%` directives, theme tokens, and per-diagram-type config bindings.
 - `MermaidView` (SwiftUI) + `MermaidDiagramView` (UIKit/AppKit) for drop-in display on Apple platforms.
 - Linux-portable parse + layout (CG/CT-bound layouts excepted); see [ARCHITECTURE.md](ARCHITECTURE.md) for the per-target portability matrix.
-- Strict Swift 6 concurrency: `swiftLanguageModes: [.v6]` plus `StrictConcurrency` + `InferSendableFromCaptures` upcoming features applied per target.
+- Strict Swift 6 concurrency: `swiftLanguageModes: [.v6]` plus the `StrictConcurrency` upcoming feature applied per target.
 
 ## Requirements
 

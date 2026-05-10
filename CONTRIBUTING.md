@@ -36,7 +36,7 @@ When you find yourself wanting to add to the allowlist:
 
 ## Sendable / concurrency policy
 
-`Package.swift` applies `strictConcurrencySettings` (`StrictConcurrency` + `InferSendableFromCaptures` upcoming features) per target. `swift build` should be warning-free under `-strict-concurrency=complete -warnings-as-errors` — the gate at `Scripts/strict-concurrency-check.sh` enforces this for first-party paths matching `Sources/DiagramKit*/`.
+`Package.swift` applies `strictConcurrencySettings` (the `StrictConcurrency` upcoming feature) per target. `InferSendableFromCaptures` is omitted because it is already default in Swift 6 mode — re-enabling it via `.enableUpcomingFeature` emits one warning per source file. `swift build` should be warning-free under `-strict-concurrency=complete -warnings-as-errors` — the gate at `Scripts/strict-concurrency-check.sh` enforces this for first-party paths matching `Sources/DiagramKit*/`.
 
 For `@unchecked Sendable`, the policy is **green > yellow > red**:
 

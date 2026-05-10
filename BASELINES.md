@@ -11,7 +11,7 @@ Captured **2026-05-10** as part of Stage 4 (Docs). These numbers are the referen
 | Swift | 6.3 |
 | SwiftPM tools-version | 6.3 |
 | Language mode | Swift 6 (`swiftLanguageModes: [.v6]`) |
-| Strict concurrency | Per-target `StrictConcurrency` + `InferSendableFromCaptures` upcoming features |
+| Strict concurrency | Per-target `StrictConcurrency` upcoming feature (`InferSendableFromCaptures` omitted — it's already default in Swift 6 and would emit per-file warnings) |
 
 ## Build performance
 

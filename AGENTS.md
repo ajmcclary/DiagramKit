@@ -33,7 +33,7 @@ There is no lint/format/typecheck step — `swift test` plus the discipline gate
 - `Scripts/strict-concurrency-check.sh` — `swift build -strict-concurrency=complete -warnings-as-errors`, filtered to `Sources/DiagramKit*/`. Currently clean.
 - `Scripts/linux-check.sh` — Docker/Podman build of the Linux-portable matrix on `swift:6.3.1-noble`.
 
-`Package.swift` applies `strictConcurrencySettings` (`StrictConcurrency` + `InferSendableFromCaptures` upcoming features) per target via the top-level `let strictConcurrencySettings: [SwiftSetting]` constant.
+`Package.swift` applies `strictConcurrencySettings` (the `StrictConcurrency` upcoming feature only) per target via the top-level `let strictConcurrencySettings: [SwiftSetting]` constant. `InferSendableFromCaptures` is omitted — it's already default in Swift 6 mode, and including it produced a per-file "already enabled" warning.
 
 ## Critical constraints
 

@@ -1,9 +1,13 @@
 // swift-tools-version: 6.3
 import PackageDescription
 
+// `InferSendableFromCaptures` is already on by default in Swift 6 mode;
+// re-enabling it via `.enableUpcomingFeature` emits a "feature is already
+// enabled" warning per source file (one per compile job). We keep
+// `StrictConcurrency` for documented intent and forward-compat against
+// future toolchain shifts — it's silent under Swift 6.
 let strictConcurrencySettings: [SwiftSetting] = [
-    .enableUpcomingFeature("StrictConcurrency"),
-    .enableUpcomingFeature("InferSendableFromCaptures")
+    .enableUpcomingFeature("StrictConcurrency")
 ]
 
 let package = Package(

@@ -183,7 +183,7 @@ Builds the Linux-portable target matrix in a `swift:6.3.1-noble` container (Dock
 
 ## Discipline gates (Stage 3)
 
-`Package.swift` applies `strictConcurrencySettings` (`StrictConcurrency` + `InferSendableFromCaptures` upcoming features) uniformly to every target via the top-level `let strictConcurrencySettings: [SwiftSetting]` constant.
+`Package.swift` applies `strictConcurrencySettings` (the `StrictConcurrency` upcoming feature) uniformly to every target via the top-level `let strictConcurrencySettings: [SwiftSetting]` constant. `InferSendableFromCaptures` is intentionally **not** included — it is already on by default in Swift 6 mode, and re-enabling it via `.enableUpcomingFeature` emits a per-file warning. The doc-comment on the constant explains the rationale.
 
 Four governance scripts live under `Scripts/` and are orchestrated by `Scripts/bootstrap-smoke-check.sh` (the local "is Stage 3 healthy?" gate). Run them individually during development; run the orchestrator before merging:
 
