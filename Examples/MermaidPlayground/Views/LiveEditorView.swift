@@ -93,7 +93,7 @@ struct LiveEditorView: View {
         .sheet(isPresented: $showingControls) {
             NavigationStack {
                 SidebarView(store: store)
-                    .navigationTitle("Controls")
+                    .navigationTitle("Samples")
                     .navigationBarTitleDisplayMode(.inline)
                     .toolbarBackground(Color(store.theme.background), for: .navigationBar)
                     .toolbarColorScheme(store.theme.background.isLight ? .light : .dark, for: .navigationBar)
@@ -117,7 +117,7 @@ struct LiveEditorView: View {
     private var regularLayout: some View {
         NavigationSplitView(columnVisibility: $columnVisibility) {
             SidebarView(store: store)
-                .navigationTitle("Controls")
+                .navigationTitle("Samples")
                 #if os(iOS)
                 .navigationBarTitleDisplayMode(.inline)
                 .toolbarBackground(Color(store.theme.background), for: .navigationBar)

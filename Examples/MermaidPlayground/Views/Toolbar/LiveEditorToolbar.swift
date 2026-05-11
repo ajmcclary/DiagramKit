@@ -23,7 +23,8 @@ import DiagramKitModel
 struct LiveEditorToolbar: ToolbarContent {
     @Bindable var store: LiveEditorStore
 
-    @SwiftUI.State private var showingSamples = false
+    @SwiftUI.State private var showingTheme = false
+    @SwiftUI.State private var showingView = false
     @SwiftUI.State private var showingActions = false
     @SwiftUI.State private var showingVersionInfo = false
     @SwiftUI.State private var showingFullWindowPreview = false
@@ -40,19 +41,33 @@ struct LiveEditorToolbar: ToolbarContent {
             }
         }
 
-        // Primary actions: samples, actions, info
+        // Primary actions: theme, view, actions, info
         ToolbarItemGroup(placement: .primaryAction) {
-            // Samples button
+            // Theme button
             Button {
-                showingSamples.toggle()
+                showingTheme.toggle()
             } label: {
-                Label("Samples", systemImage: "square.grid.2x2")
+                Label("Theme", systemImage: "paintpalette")
             }
-            .popover(isPresented: $showingSamples) {
-                SampleDiagramPanel(store: store)
-                    .frame(width: 360, height: 480)
+            .popover(isPresented: $showingTheme) {
+                ThemePicker(store: store)
+                    .padding(16)
+                    .frame(width: 280)
             }
-            .help("Sample diagrams")
+            .help("Theme")
+
+            // View button
+            Button {
+                showingView.toggle()
+            } label: {
+                Label("View", systemImage: "eye")
+            }
+            .popover(isPresented: $showingView) {
+                ViewOptionsPanel(store: store)
+                    .padding(16)
+                    .frame(width: 220)
+            }
+            .help("View options")
 
             // Actions button
             Button {
@@ -112,7 +127,8 @@ struct LiveEditorToolbar: ToolbarContent {
 struct LiveEditorToolbar: ToolbarContent {
     @Bindable var store: LiveEditorStore
 
-    @SwiftUI.State private var showingSamples = false
+    @SwiftUI.State private var showingTheme = false
+    @SwiftUI.State private var showingView = false
     @SwiftUI.State private var showingActions = false
     @SwiftUI.State private var showingVersionInfo = false
     @SwiftUI.State private var showingFullWindowPreview = false
@@ -121,11 +137,18 @@ struct LiveEditorToolbar: ToolbarContent {
 
     var body: some ToolbarContent {
         ToolbarItemGroup(placement: .topBarTrailing) {
-            // Samples button
+            // Theme button
             Button {
-                showingSamples = true
+                showingTheme = true
             } label: {
-                Image(systemName: "square.grid.2x2")
+                Image(systemName: "paintpalette")
+            }
+
+            // View button
+            Button {
+                showingView = true
+            } label: {
+                Image(systemName: "eye")
             }
 
             // Actions button
@@ -144,18 +167,35 @@ struct LiveEditorToolbar: ToolbarContent {
         }
 
         // Panels as sheets/popovers
-        // Samples
-        .sheet(isPresented: $showingSamples) {
+        // Theme
+        .sheet(isPresented: $showingTheme) {
             NavigationStack {
-                SampleDiagramPanel(store: store)
-                    .navigationTitle("Samples")
+                ThemePicker(store: store)
+                    .padding(16)
+                    .navigationTitle("Theme")
                     .navigationBarTitleDisplayMode(.inline)
                     .toolbar {
                         ToolbarItem(placement: .confirmationAction) {
-                            Button("Done") { showingSamples = false }
+                            Button("Done") { showingTheme = false }
                         }
                     }
             }
+            .presentationDetents([.medium])
+        }
+        // View options
+        .sheet(isPresented: $showingView) {
+            NavigationStack {
+                ViewOptionsPanel(store: store)
+                    .padding(16)
+                    .navigationTitle("View")
+                    .navigationBarTitleDisplayMode(.inline)
+                    .toolbar {
+                        ToolbarItem(placement: .confirmationAction) {
+                            Button("Done") { showingView = false }
+                        }
+                    }
+            }
+            .presentationDetents([.medium])
         }
         // Actions
         .sheet(isPresented: $showingActions) {
@@ -216,6 +256,28 @@ extension UpdateMode {
         case .auto: return "Auto"
         case .manual: return "Manual"
         }
+    }
+}
+
+// MARK: - View Options Panel
+
+/// Grid overlay and pan & zoom toggles, hosted in the toolbar's View popover.
+@available(iOS 26.0, macOS 26.0, macCatalyst 26.0, *)
+struct ViewOptionsPanel: View {
+    @Bindable var store: LiveEditorStore
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Toggle(isOn: $store.state.gridEnabled) {
+                Label("Grid overlay", systemImage: "square.grid.3x3")
+                    .labelStyle(.titleAndIcon)
+            }
+            Toggle(isOn: $store.state.panZoomEnabled) {
+                Label("Pan & zoom", systemImage: "hand.draw")
+                    .labelStyle(.titleAndIcon)
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
     }
 }
 
