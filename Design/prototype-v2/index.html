@@ -381,61 +381,19 @@
           </div>
 
           <header class="greeting reveal r2">
-            <h1 class="h1">Good afternoon — pick a <em>workstation</em>.</h1>
-            <div class="sub">Three primary work surfaces: Diagram editor, AI studio, and Presentations. They all share the same library and live state.</div>
-            <div class="start-strip" style="margin-top: 16px; display: flex; gap: 8px; flex-wrap: wrap;">
-              <a href="#" class="btn primary">+ New diagram</a>
-              <a href="ai.html" class="btn" style="border-color: rgba(124, 58, 237, 0.32); color: #7C3AED;">✦ Generate with AI</a>
-              <a href="editor.html?mode=visual" class="btn">Open in Visual mode</a>
-              <a href="#" class="btn">From template</a>
-              <a href="#" class="btn">Import Mermaid</a>
-            </div>
+            <h1 class="h1">Good afternoon, Alex.</h1>
+            <div class="sub">Pick up where you left off, or start something new.</div>
           </header>
 
-          <section class="modes reveal r3">
-            <a href="editor.html" class="mode">
-              <span class="icon">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
-              </span>
-              <div class="body">
-                <span class="title">Diagram editor</span>
-                <span class="desc">Browse 396 specimens · edit Mermaid source with native syntax highlighting.</span>
-              </div>
-              <span class="kbd">⌘1</span>
-            </a>
-
-            <a href="editor.html?mode=visual" class="mode teal">
-              <span class="icon">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M5 3l3 3M19 3l-3 3M5 21l3-3M19 21l-3-3"/><rect x="6" y="6" width="12" height="12" rx="1.5"/></svg>
-              </span>
-              <div class="body">
-                <span class="title">Diagram editor · Visual</span>
-                <span class="desc">Drag nodes, draw connectors, edit labels inline. Source stays in sync.</span>
-              </div>
-              <span class="kbd">⌘2</span>
-            </a>
-
-            <a href="ai.html" class="mode violet">
-              <span class="icon">
-                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l1.6 4.4L18 8l-4.4 1.6L12 14l-1.6-4.4L6 8l4.4-1.6z"/></svg>
-              </span>
-              <div class="body">
-                <span class="title">AI studio</span>
-                <span class="desc">Prompt → validated Mermaid → rendered preview. Hand off to any editor.</span>
-              </div>
-              <span class="kbd">⌘3</span>
-            </a>
-
-            <a href="present.html" class="mode amber">
-              <span class="icon">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="4" width="18" height="13" rx="1.5"/><path d="M9 21h6M12 17v4"/></svg>
-              </span>
-              <div class="body">
-                <span class="title">Presentations</span>
-                <span class="desc">Markdown decks with live-linked diagrams. Export to PDF, PNG, or Markdown.</span>
-              </div>
-              <span class="kbd">⌘4</span>
-            </a>
+          <section class="home-create reveal r3" data-create-row>
+            <h2 class="home-create__title">Start something new</h2>
+            <div class="home-create__actions">
+              <a href="editor.html" class="btn primary">+ New diagram</a>
+              <a href="ai.html" class="btn" style="border-color: rgba(124, 58, 237, 0.32); color: #7C3AED;">✨ Generate with AI</a>
+              <a href="#" class="btn">📄 From template</a>
+              <a href="#" class="btn">↑ Import Mermaid</a>
+              <a href="present.html" class="btn">▦ New presentation</a>
+            </div>
           </section>
 
           <div class="home-row reveal r4">
