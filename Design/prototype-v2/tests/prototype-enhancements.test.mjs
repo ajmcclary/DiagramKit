@@ -79,6 +79,9 @@ const requiredJsHooks = [
   "initEditorMode",
   "initEditorSelection",
   "initPublishVersion",
+  // New in Stage 5/6
+  "initDecisionSupport",
+  "initRefineAI",
 ];
 
 // Page-specific requirements: each entry asserts substrings present.

@@ -360,6 +360,53 @@
     apply();
   }
 
+  function initRefineAI() {
+    const trigger = document.querySelector('[data-refine-ai]');
+    const rail = document.querySelector('[data-rail-state]');
+    if (!trigger) return;
+
+    trigger.addEventListener("click", (e) => {
+      e.preventDefault();
+      if (!rail) {
+        // No rail on this page — navigate to AI studio with diagram context
+        const diagramId = document.body.dataset.diagramId || "current";
+        location.href = `ai.html?source=${encodeURIComponent(diagramId)}&from=editor`;
+        return;
+      }
+      // Force rail into Diagram identity (deselect if Inspector was active)
+      rail.classList.remove("rail--inspector");
+      rail.classList.add("rail--diagram");
+      rail.dataset.railState = "diagram";
+      // Activate Assistant tab
+      const tabs = rail.querySelectorAll('.rail__tabs button');
+      tabs.forEach((b) => {
+        const on = b.dataset.tab === "assistant";
+        b.classList.toggle("is-on", on);
+        b.setAttribute("aria-selected", String(on));
+      });
+      rail.querySelectorAll('.rail__tabpanel').forEach((p) => {
+        p.classList.toggle("is-on", p.dataset.tabpanel === "assistant");
+      });
+      // Focus chat input if any
+      const input = rail.querySelector('[data-tabpanel="assistant"] input, [data-tabpanel="assistant"] textarea');
+      if (input) input.focus();
+    });
+
+    // Promote to AI studio from inside the Assistant panel
+    const promote = document.querySelector('[data-promote-to-ai-studio]');
+    if (promote) {
+      promote.addEventListener("click", (e) => {
+        e.preventDefault();
+        const diagramId = document.body.dataset.diagramId || "current";
+        try {
+          const draft = rail?.querySelector('[data-tabpanel="assistant"] textarea')?.value || "";
+          sessionStorage.setItem(`ai-studio:chat-draft:${diagramId}`, draft);
+        } catch {}
+        location.href = `ai.html?source=${encodeURIComponent(diagramId)}&from=editor`;
+      });
+    }
+  }
+
   function initDecisionSupport() {
     const buttons = document.querySelectorAll('[data-decision-filter]');
     if (buttons.length === 0) return;
@@ -1877,6 +1924,9 @@ end
 
     // Stage 5 — Per-screen consolidations
     initDecisionSupport();
+
+    // Stage 6 — Refine-with-AI handoff
+    initRefineAI();
   });
 
   window.prototypeDemo = {
