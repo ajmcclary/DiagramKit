@@ -3140,3 +3140,57 @@ button {
   align-items: center;
   gap: 8px;
 }
+
+/* =========================================================================
+   Right-rail anatomy (Stage 1 redesign)
+   .rail--inspector / .rail--diagram swap on the same container; width
+   does not change.
+   ========================================================================= */
+.rail {
+  display: flex;
+  flex-direction: column;
+  background: var(--surface);
+  border-left: 1px solid var(--border);
+  min-width: var(--inspector);
+  max-width: var(--inspector);
+}
+.rail__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 12px 14px 8px;
+  font: 600 12px/1 var(--display);
+  color: var(--ink);
+  letter-spacing: -0.005em;
+}
+.rail__title::before { content: ""; }
+.rail--inspector .rail__title::before { content: "Inspector"; }
+.rail--diagram   .rail__title::before { content: "Diagram"; }
+.rail__tabs {
+  display: flex;
+  gap: 2px;
+  padding: 0 10px 8px;
+  border-bottom: 1px solid var(--border-3);
+  overflow-x: auto;
+}
+.rail__tabs button {
+  font: 500 12px/1 var(--display);
+  color: var(--ink-3);
+  padding: 6px 8px;
+  background: transparent;
+  border: 0;
+  border-radius: 6px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.rail__tabs button.is-on {
+  color: var(--accent);
+  background: var(--accent-bg-2);
+}
+.rail__tabpanel {
+  padding: 12px 14px;
+  overflow-y: auto;
+  flex: 1 1 auto;
+}
+.rail__tabpanel:not(.is-on) { display: none; }

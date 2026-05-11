@@ -47,6 +47,13 @@ const requiredCss = [
   ".pageheader__modes",
   ".pageheader__status",
   ".pageheader__cta",
+  // New in Stage 1 — rail anatomy
+  ".rail",
+  ".rail__header",
+  ".rail__tabs",
+  ".rail__tabpanel",
+  ".rail--inspector",
+  ".rail--diagram",
 ];
 
 const requiredJsHooks = [
