@@ -1025,6 +1025,30 @@
       </div>
 
       <div class="work-content">
+        <!-- AI studio scoped landing (Stage 6) — hidden when ?source= is set -->
+        <section class="ai-empty-state" data-ai-empty hidden style="display: none;">
+          <h1>What would you like to do?</h1>
+          <div class="ai-empty-state__actions">
+            <button class="btn primary" data-ai-action="generate-new">✨ Generate a new diagram</button>
+            <button class="btn" data-ai-action="refine-existing">Refine an existing diagram →</button>
+          </div>
+        </section>
+
+        <!-- Source diff component (Stage 6) — shown when refining -->
+        <section class="source-diff" data-source-diff hidden style="display: none;">
+          <div class="source-diff__pane source-diff__pane--current">
+            <h3>Current</h3>
+            <pre>flowchart TD
+  A --&gt; B</pre>
+          </div>
+          <div class="source-diff__pane source-diff__pane--proposed">
+            <h3>Proposed</h3>
+            <pre>flowchart TD
+  A --&gt; B
+  B --&gt; C[Retry]</pre>
+          </div>
+        </section>
+
         <div class="ai-grid">
 
           <!-- Chat -->
