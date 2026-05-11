@@ -15,7 +15,7 @@ Overall structural health: **yellow-green**. The target layering and typed domai
 | **A1** Worker-thread invariant | ✅ Done | `bbe256a` `601f4b4` `97dfdce` `64c73dc` `15d87cd` |
 | **A2** Registry split | ✅ Done | `741e212` `33c61c2` |
 | **A3** `DiagramFrontmatter` move | ✅ Done | `b308aa6` |
-| **A4** Shape abstraction | ✅ Done | All 4 consumer switches migrated: `ShapeRenderer.shapePath` + `_drawSpecDecorations`, SVG `_renderNodeShapeGeneric`, `EdgeShapeClipper` (`_clipPoint` now ShapePath-keyed). 27 `ShapePath` cases with full `CGPathRenderer` + `SVGPathSerializer` coverage; all `_defaultSpec` entries replaced with explicit paths + `ShapeDecoration`. Position-dependent shapes (cylinder, stacked, window-pane, tagged) retained in special-case switch pending sub-bounds decoration support. |
+| **A4** Shape abstraction | ✅ Done | All 4 consumer switches migrated: `ShapeRenderer.shapePath` + `_drawSpecDecorations`, SVG `_renderNodeShapeGeneric`, `EdgeShapeClipper` (`_clipPoint` now ShapePath-keyed). 27 `ShapePath` cases with full `CGPathRenderer` + `SVGPathSerializer` coverage; all `_defaultSpec` entries replaced with explicit paths + `ShapeDecoration`. **Position-dependent decorations (cylinder caps, stacked offsets, inset panes, corner tags) follow-up required** — currently retained in legacy switches (~130 lines) pending sub-bounds decoration support. |
 | **A5** Font / token split | ⚠ Partial | Font drift fixed (`88e3a13` `e2ebac8` `e596d70`); `RenderConfig` per-diagram constants extracted (`d60f042`); full god-object split still pending |
 | **P1** Routing collapse | ✅ Done | `0a42b8a` `4c3d386` |
 | **P1** Font drift | ✅ Done | bundled into A5 commits above |

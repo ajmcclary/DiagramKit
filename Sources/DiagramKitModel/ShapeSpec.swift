@@ -678,25 +678,11 @@ public enum ShapeSpecRegistry {
         }, path: { _, _ in .triangle })
     }
     private static func _makeWindowPaneSpec() -> ShapeSpec {
+        // Position-dependent decoration (inset pane) deferred to sub-bounds support.
         ShapeSpec(
             aliases: ["internal-storage", "win-pane", "window-pane"],
             sizeAdjustment: _rectSizing,
-            path: { _, _ in .rect(cornerRadius: 0) },
-            decorations: [
-                ShapeDecoration(
-                    path: { rect, _ in
-                        let inset = rect.width * 0.2
-                        let paneRect = CGRect(
-                            x: rect.maxX - inset - 4,
-                            y: rect.minY + 4,
-                            width: inset,
-                            height: rect.height - 8
-                        )
-                        return .rect(cornerRadius: 0)
-                    },
-                    stroke: .mainStroke
-                ),
-            ]
+            path: { _, _ in .rect(cornerRadius: 0) }
         )
     }
     private static func _makeFilledCircleSpec() -> ShapeSpec {
@@ -755,30 +741,19 @@ public enum ShapeSpecRegistry {
         )
     }
     private static func _makeStackedDocumentSpec() -> ShapeSpec {
-        let offset: CGFloat = 4
-        return ShapeSpec(
+        // Position-dependent decoration (offset copy) deferred to sub-bounds support.
+        ShapeSpec(
             aliases: ["stacked-document", "docs", "documents", "st-doc"],
             sizeAdjustment: _rectSizing,
-            path: { _, _ in .document },
-            decorations: [
-                ShapeDecoration(
-                    path: { rect, _ in .document },
-                    stroke: .thinStroke
-                ),
-            ]
+            path: { _, _ in .document }
         )
     }
     private static func _makeStackedRectangleSpec() -> ShapeSpec {
+        // Position-dependent decoration (offset copy) deferred to sub-bounds support.
         ShapeSpec(
             aliases: ["stacked-rectangle", "st-rect", "procs", "processes"],
             sizeAdjustment: _rectSizing,
-            path: { _, _ in .rect(cornerRadius: 0) },
-            decorations: [
-                ShapeDecoration(
-                    path: { rect, _ in .rect(cornerRadius: 0) },
-                    stroke: .thinStroke
-                ),
-            ]
+            path: { _, _ in .rect(cornerRadius: 0) }
         )
     }
     private static func _makeFlagSpec() -> ShapeSpec { ShapeSpec(aliases: ["paper-tape", "flag"], sizeAdjustment: _rectSizing, path: { _, _ in .flag }) }
@@ -811,39 +786,19 @@ public enum ShapeSpecRegistry {
         )
     }
     private static func _makeTaggedDocumentSpec() -> ShapeSpec {
-        let notchSize: CGFloat = 10
-        return ShapeSpec(
+        // Position-dependent decoration (corner tag) deferred to sub-bounds support.
+        ShapeSpec(
             aliases: ["tagged-document", "tag-doc"],
             sizeAdjustment: _rectSizing,
-            path: { _, _ in .document },
-            decorations: [
-                ShapeDecoration(
-                    path: { rect, _ in .polygon(vertices: [
-                        CGPoint(x: rect.maxX - notchSize, y: rect.minY),
-                        CGPoint(x: rect.maxX - notchSize, y: rect.minY + notchSize),
-                        CGPoint(x: rect.maxX, y: rect.minY + notchSize),
-                    ]) },
-                    stroke: .mainStroke
-                ),
-            ]
+            path: { _, _ in .document }
         )
     }
     private static func _makeTaggedRectangleSpec() -> ShapeSpec {
-        let notchSize: CGFloat = 10
-        return ShapeSpec(
+        // Position-dependent decoration (corner tag) deferred to sub-bounds support.
+        ShapeSpec(
             aliases: ["tagged-rectangle", "tag-rect", "tag-proc", "tagged-process"],
             sizeAdjustment: _rectSizing,
-            path: { _, _ in .rect(cornerRadius: 0) },
-            decorations: [
-                ShapeDecoration(
-                    path: { rect, _ in .polygon(vertices: [
-                        CGPoint(x: rect.maxX - notchSize, y: rect.minY),
-                        CGPoint(x: rect.maxX - notchSize, y: rect.minY + notchSize),
-                        CGPoint(x: rect.maxX, y: rect.minY + notchSize),
-                    ]) },
-                    stroke: .mainStroke
-                ),
-            ]
+            path: { _, _ in .rect(cornerRadius: 0) }
         )
     }
     private static func _makeIconSquareSpec() -> ShapeSpec { ShapeSpec(aliases: ["icon-square"], sizeAdjustment: _rectSizing, path: { _, _ in .rect(cornerRadius: 0) }) }

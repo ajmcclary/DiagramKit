@@ -466,6 +466,12 @@ public class NodeShapeRenderer {
     // MARK: - Shape Details
 
     private func drawShapeDetails(_ shape: String, in bounds: CGRect, context: CGContext, theme: DiagramTheme, inlineStyles: [String: String]) {
+        // Skip shapes whose same-bounds details are now rendered by
+        // _drawSpecDecorations.  Position-dependent shapes (cylinder caps,
+        // offset copies, inset panes, corner tags) still go through the
+        // legacy switch below.
+        if _isSpecDetailsCovered(shape) { return }
+
         let config = config
 
         switch shape {
@@ -624,6 +630,25 @@ public class NodeShapeRenderer {
     }
 
     // MARK: - Spec-driven decoration rendering
+
+    /// Returns `true` when the shape's detail geometry is fully covered by
+    /// spec decorations — the legacy `drawShapeDetails` switch should be
+    /// skipped to avoid double-stroking.
+    ///
+    /// Position-dependent shapes (window-pane, stacked-*, tagged-*) are
+    /// excluded because their decorations need sub-bounds support that the
+    /// current system doesn't provide yet.
+    private func _isSpecDetailsCovered(_ shape: String) -> Bool {
+        guard let spec = ShapeSpecRegistry.spec(for: shape),
+              !spec.decorations.isEmpty else { return false }
+        switch shape {
+        case "window-pane", "stacked-document", "stacked-rectangle",
+             "tagged-document", "tagged-rectangle":
+            return false
+        default:
+            return true
+        }
+    }
 
     /// Draws decorations declared in the shape's `ShapeSpec`.
     ///
