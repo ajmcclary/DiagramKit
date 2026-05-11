@@ -39,6 +39,14 @@ const requiredCss = [
   "--pill-sharing-bg",
   "--pill-ai-bg",
   "--pill-ai-bd",
+  // New in Stage 1 — page header anatomy
+  ".pageheader",
+  ".pageheader__row1",
+  ".pageheader__row2",
+  ".pageheader__breadcrumb",
+  ".pageheader__modes",
+  ".pageheader__status",
+  ".pageheader__cta",
 ];
 
 const requiredJsHooks = [

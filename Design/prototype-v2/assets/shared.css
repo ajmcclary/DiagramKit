@@ -3050,3 +3050,93 @@ button {
     background: var(--warn-bg);
     border-color: var(--warn-bd);
 }
+
+/* =========================================================================
+   Page header anatomy (Stage 1 redesign)
+   ========================================================================= */
+.pageheader {
+  display: flex;
+  flex-direction: column;
+  background: var(--titlebar);
+  border-bottom: 1px solid var(--border);
+}
+.pageheader__row1,
+.pageheader__row2 {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 0 20px;
+  min-height: 36px;
+}
+.pageheader__row1 {
+  border-bottom: 1px solid var(--border-3);
+}
+.pageheader__breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--text-meta);
+  color: var(--ink-2);
+  font-family: var(--display);
+  flex: 1 1 auto;
+  min-width: 0;
+}
+.pageheader__breadcrumb a {
+  color: var(--ink-2);
+  text-decoration: none;
+}
+.pageheader__breadcrumb a:hover {
+  color: var(--ink);
+}
+.pageheader__breadcrumb .sep {
+  color: var(--ink-4);
+  margin: 0 2px;
+}
+.pageheader__breadcrumb .leaf {
+  color: var(--ink);
+  font-weight: 600;
+}
+.pageheader__modes {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 2px;
+}
+.pageheader__modes a,
+.pageheader__modes button {
+  font: 500 12px/1 var(--display);
+  color: var(--ink-3);
+  padding: 6px 10px;
+  border-radius: 6px;
+  text-decoration: none;
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+}
+.pageheader__modes a.is-on,
+.pageheader__modes button.is-on {
+  background: var(--surface);
+  color: var(--ink);
+  box-shadow: 0 1px 0 rgba(0,0,0,0.04);
+}
+.pageheader__status {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: var(--text-meta);
+  color: var(--ink-3);
+  flex: 1 1 auto;
+}
+.pageheader__cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.pageheader__actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
