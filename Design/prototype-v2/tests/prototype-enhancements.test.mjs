@@ -30,6 +30,15 @@ const requiredCss = [
   ".presenter-overlay",
   ".card-grid.is-list",
   ".empty-state",
+  // New in Stage 1 — pill family tokens (asserted via custom-property names)
+  "--pill-state-bg",
+  "--pill-state-bd",
+  "--pill-sync-live-bg",
+  "--pill-sync-stale-bg",
+  "--pill-sync-snapshot-bd",
+  "--pill-sharing-bg",
+  "--pill-ai-bg",
+  "--pill-ai-bd",
 ];
 
 const requiredJsHooks = [

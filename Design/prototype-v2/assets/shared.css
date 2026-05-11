@@ -42,6 +42,35 @@
     --danger-bg: rgba(220, 38, 38, 0.08);
     --danger-bd: rgba(220, 38, 38, 0.28);
 
+    /* Pill families (Stage 1 redesign) */
+    /* Document state — neutral pill, leading dot; warning dot becomes amber */
+    --pill-state-bg: #f3f3f5;
+    --pill-state-bd: #e1e1e4;
+    --pill-state-fg: #424245;
+    --pill-state-warn-dot: #d97706;
+
+    /* Sync state — Live/Co-editing animated dot; Stale amber; Snapshot outline */
+    --pill-sync-live-bg: #f3f3f5;
+    --pill-sync-live-dot: #30a46c;
+    --pill-sync-stale-bg: rgba(217, 119, 6, 0.10);
+    --pill-sync-stale-bd: rgba(217, 119, 6, 0.28);
+    --pill-sync-stale-fg: #b45309;
+    --pill-sync-snapshot-bg: transparent;
+    --pill-sync-snapshot-bd: #d1d1d6;
+    --pill-sync-snapshot-fg: #86868b;
+
+    /* Sharing state — neutral with glyph */
+    --pill-sharing-bg: #f3f3f5;
+    --pill-sharing-bd: #e1e1e4;
+    --pill-sharing-fg: #424245;
+    --pill-sharing-external-bg: rgba(217, 119, 6, 0.10);
+    --pill-sharing-external-fg: #b45309;
+
+    /* AI state — lavender (accent family) with sparkle */
+    --pill-ai-bg: rgba(94, 92, 230, 0.10);
+    --pill-ai-bd: rgba(94, 92, 230, 0.28);
+    --pill-ai-fg: #5e5ce6;
+
     /* Diagram-type accents (sparingly used; map cleanly to ink/accent on hover) */
     --type-flow: #2563eb;
     --type-seq: #0891b2;
