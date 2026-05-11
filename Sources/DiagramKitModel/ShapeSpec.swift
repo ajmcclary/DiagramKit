@@ -327,7 +327,23 @@ public enum ShapeSpecRegistry {
         ShapeSpec(
             aliases: ["subroutine", "subproc", "sub-routine"],
             sizeAdjustment: _rectSizing,
-            path: { _, config in .subroutine(inset: config.subroutineInset) }
+            path: { _, config in .subroutine(inset: config.subroutineInset) },
+            decorations: [
+                ShapeDecoration(
+                    path: { rect, config in .polyline(points: [
+                        CGPoint(x: rect.minX + config.subroutineInset, y: rect.minY),
+                        CGPoint(x: rect.minX + config.subroutineInset, y: rect.maxY),
+                    ]) },
+                    stroke: .mainStroke
+                ),
+                ShapeDecoration(
+                    path: { rect, config in .polyline(points: [
+                        CGPoint(x: rect.maxX - config.subroutineInset, y: rect.minY),
+                        CGPoint(x: rect.maxX - config.subroutineInset, y: rect.maxY),
+                    ]) },
+                    stroke: .mainStroke
+                ),
+            ]
         )
     }
 
@@ -340,7 +356,14 @@ public enum ShapeSpecRegistry {
                 let d = ceil(sqrt(w * w + h * h)) + 8 + 12
                 return CGSize(width: Swift.max(d, config.minimumNodeWidth), height: Swift.max(d, config.minimumNodeHeight))
             },
-            path: { _, config in .doubleCircle(gap: config.doubleCircleGap) }
+            path: { _, config in .doubleCircle(gap: config.doubleCircleGap) },
+            decorations: [
+                ShapeDecoration(
+                    path: { _, _ in .ellipse },
+                    stroke: .mainStroke,
+                    fillsBackground: true
+                ),
+            ]
         )
     }
 
@@ -764,7 +787,29 @@ public enum ShapeSpecRegistry {
             CGSize(width: Swift.max(textSize.width + config.nodePaddingHorizontal * 2 + 12, config.minimumNodeWidth), height: Swift.max(textSize.height + config.nodePaddingVertical * 2, config.minimumNodeHeight))
         }, path: { _, _ in .bowTie(indent: 12) })
     }
-    private static func _makeCrossedCircleSpec() -> ShapeSpec { ShapeSpec(aliases: ["crossed-circle", "cross-circ", "summary"], sizeAdjustment: _rectSizing, path: { _, _ in .crossedCircle }) }
+    private static func _makeCrossedCircleSpec() -> ShapeSpec {
+        ShapeSpec(
+            aliases: ["crossed-circle", "cross-circ", "summary"],
+            sizeAdjustment: _rectSizing,
+            path: { _, _ in .crossedCircle },
+            decorations: [
+                ShapeDecoration(
+                    path: { rect, _ in .polyline(points: [
+                        CGPoint(x: rect.midX - rect.width * 0.25, y: rect.midY - rect.height * 0.25),
+                        CGPoint(x: rect.midX + rect.width * 0.25, y: rect.midY + rect.height * 0.25),
+                    ]) },
+                    stroke: .mainStroke
+                ),
+                ShapeDecoration(
+                    path: { rect, _ in .polyline(points: [
+                        CGPoint(x: rect.midX + rect.width * 0.25, y: rect.midY - rect.height * 0.25),
+                        CGPoint(x: rect.midX - rect.width * 0.25, y: rect.midY + rect.height * 0.25),
+                    ]) },
+                    stroke: .mainStroke
+                ),
+            ]
+        )
+    }
     private static func _makeTaggedDocumentSpec() -> ShapeSpec {
         let notchSize: CGFloat = 10
         return ShapeSpec(

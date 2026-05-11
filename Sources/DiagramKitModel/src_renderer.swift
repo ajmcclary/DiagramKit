@@ -550,6 +550,43 @@ private func _nodeAnchorAttributes(_ node: _SvgNode) -> String? {
     return attrs.joined(separator: " ")
 }
 
+/// Generic spec-driven SVG shape renderer. Handles the common case:
+/// look up ShapeSpec → serialize path via SVGPathSerializer → render
+/// decorations. Shapes with special color handling or embedded content
+/// bypass this path.
+private func _renderNodeShapeGeneric(
+    x: Double, y: Double, w: Double, h: Double,
+    shape: String, fill: String, stroke: String, sw: String
+) -> String {
+    let bounds = CGRect(x: x, y: y, width: w, height: h)
+    guard let spec = ShapeSpecRegistry.spec(for: shape) else {
+        return _renderRect(x: x, y: y, w: w, h: h, fill: fill, stroke: stroke, sw: sw)
+    }
+
+    let shapePath = spec.path(bounds, RenderConfig.shared)
+    let d = SVGPathSerializer.serialize(shapePath, in: bounds)
+    var parts: [String] = []
+    parts.append("<path d=\"\(d)\" fill=\"\(fill)\" stroke=\"\(stroke)\" stroke-width=\"\(sw)\" />")
+
+    for decoration in spec.decorations {
+        let decPath = decoration.path(bounds, RenderConfig.shared)
+        let decD = SVGPathSerializer.serialize(decPath, in: bounds)
+        let decFill = decoration.fillsBackground ? fill : "none"
+        var extra = ""
+        switch decoration.stroke {
+        case .dashed(let lengths):
+            extra = " stroke-dasharray=\"\(lengths.map { String(format: "%.0f", $0) }.joined(separator: " "))\""
+        case .thinStroke:
+            extra = " opacity=\"0.4\""
+        case .mainStroke:
+            break
+        }
+        parts.append("<path d=\"\(decD)\" fill=\"\(decFill)\" stroke=\"\(stroke)\" stroke-width=\"\(sw)\"\(extra) />")
+    }
+
+    return parts.joined(separator: "\n")
+}
+
 private func _renderNodeShape(_ node: _SvgNode) -> String {
     let x = node.x
     let y = node.y
@@ -562,103 +599,29 @@ private func _renderNodeShape(_ node: _SvgNode) -> String {
     let stroke = _escapeAttr(inlineStyle["stroke"] ?? "var(--_node-stroke)")
     let sw = _escapeAttr(inlineStyle["stroke-width"] ?? "\(original_src_styles.STROKE_WIDTHS.innerBox)")
 
+    // Shapes with special color semantics or embedded content that bypass
+    // the generic spec-driven path.
     switch shape {
-    case "diamond":
-        return _renderDiamond(x: x, y: y, w: width, h: height, fill: fill, stroke: stroke, sw: sw)
-    case "rounded":
-        return _renderRoundedRect(x: x, y: y, w: width, h: height, fill: fill, stroke: stroke, sw: sw)
-    case "stadium":
-        return _renderStadium(x: x, y: y, w: width, h: height, fill: fill, stroke: stroke, sw: sw)
-    case "circle":
-        return _renderCircle(x: x, y: y, w: width, h: height, fill: fill, stroke: stroke, sw: sw)
-    case "subroutine":
-        return _renderSubroutine(x: x, y: y, w: width, h: height, fill: fill, stroke: stroke, sw: sw)
-    case "doublecircle":
-        return _renderDoubleCircle(x: x, y: y, w: width, h: height, fill: fill, stroke: stroke, sw: sw)
-    case "hexagon":
-        return _renderHexagon(x: x, y: y, w: width, h: height, fill: fill, stroke: stroke, sw: sw)
-    case "cylinder":
-        return _renderCylinder(x: x, y: y, w: width, h: height, fill: fill, stroke: stroke, sw: sw)
-    case "asymmetric":
-        return _renderAsymmetric(x: x, y: y, w: width, h: height, fill: fill, stroke: stroke, sw: sw)
-    case "trapezoid":
-        return _renderTrapezoid(x: x, y: y, w: width, h: height, fill: fill, stroke: stroke, sw: sw)
-    case "trapezoid-alt":
-        return _renderTrapezoidAlt(x: x, y: y, w: width, h: height, fill: fill, stroke: stroke, sw: sw)
     case "state-start":
         return _renderStateStart(x: x, y: y, w: width, h: height)
     case "state-end":
         return _renderStateEnd(x: x, y: y, w: width, h: height)
-    case "ellipse":
-        return _renderCircle(x: x, y: y, w: width, h: height, fill: fill, stroke: stroke, sw: sw)
-    case "parallelogram":
-        return _renderParallel(x: x, y: y, w: width, h: height, fill: fill, stroke: stroke, sw: sw)
-    case "parallelogram-alt":
-        return _renderParallelAlt(x: x, y: y, w: width, h: height, fill: fill, stroke: stroke, sw: sw)
-    case "triangle":
-        return _renderTriangle(x: x, y: y, w: width, h: height, fill: fill, stroke: stroke, sw: sw)
-    case "bang":
-        return _renderBang(x: x, y: y, w: width, h: height, fill: fill, stroke: stroke, sw: sw)
-    case "small-circle", "filled-circle":
-        return _renderFilledCircle(x: x, y: y, w: width, h: height)
-    case "framed-circle":
-        return _renderFramedCircle(x: x, y: y, w: width, h: height, fill: fill, stroke: stroke, sw: sw)
+    case "state-divider":
+        return _renderStateDivider(x: x, y: y, w: width, h: height, stroke: stroke)
     case "fork", "join":
         return _renderForkJoinBar(x: x, y: y, w: width, h: height)
     case "text", "invisible":
         return _renderRect(x: x, y: y, w: width, h: height, fill: "none", stroke: "none", sw: "1")
-    case "crossed-circle":
-        return _renderCrossedCircle(x: x, y: y, w: width, h: height, fill: fill, stroke: stroke, sw: sw)
-    case "document":
-        return _renderDocument(x: x, y: y, w: width, h: height, fill: fill, stroke: stroke, sw: sw)
-    case "divided-rectangle":
-        return _renderDividedRect(x: x, y: y, w: width, h: height, fill: fill, stroke: stroke, sw: sw)
-    case "window-pane":
-        return _renderWindowPane(x: x, y: y, w: width, h: height, fill: fill, stroke: stroke, sw: sw)
-    case "lightning-bolt":
-        return _renderLightningBolt(x: x, y: y, w: width, h: height, fill: fill, stroke: stroke, sw: sw)
-    case "bow-tie-rectangle":
-        return _renderBowTie(x: x, y: y, w: width, h: height, fill: fill, stroke: stroke, sw: sw)
-    case "flag":
-        return _renderFlag(x: x, y: y, w: width, h: height, fill: fill, stroke: stroke, sw: sw)
-    case "cloud":
-        return _renderCloud(x: x, y: y, w: width, h: height, fill: fill, stroke: stroke, sw: sw)
-    case "curved-trapezoid":
-        return _renderCurvedTrapezoid(x: x, y: y, w: width, h: height, fill: fill, stroke: stroke, sw: sw)
-    case "delay":
-        return _renderDelay(x: x, y: y, w: width, h: height, fill: fill, stroke: stroke, sw: sw)
-    case "notched-rectangle":
-        return _renderNotchedRect(x: x, y: y, w: width, h: height, fill: fill, stroke: stroke, sw: sw)
-    case "notched-pentagon":
-        return _renderTriangle(x: x, y: y, w: width, h: height, fill: fill, stroke: stroke, sw: sw)
-    case "tagged-document":
-        return _renderTaggedDocument(x: x, y: y, w: width, h: height, fill: fill, stroke: stroke, sw: sw)
-    case "tagged-rectangle":
-        return _renderTaggedRect(x: x, y: y, w: width, h: height, fill: fill, stroke: stroke, sw: sw)
-    case "stacked-document":
-        return _renderStackedDocument(x: x, y: y, w: width, h: height, fill: fill, stroke: stroke, sw: sw)
-    case "stacked-rectangle":
-        return _renderStackedRect(x: x, y: y, w: width, h: height, fill: fill, stroke: stroke, sw: sw)
-    case "lined-rectangle", "lined-process":
-        return _renderLinedRect(x: x, y: y, w: width, h: height, fill: fill, stroke: stroke, sw: sw)
-    case "lined-document":
-        return _renderLinedDocument(x: x, y: y, w: width, h: height, fill: fill, stroke: stroke, sw: sw)
-    case "lined-cylinder", "disk":
-        return _renderLinedCylinder(x: x, y: y, w: width, h: height, fill: fill, stroke: stroke, sw: sw)
-    case "horizontal-cylinder", "h-cyl", "das":
-        return _renderHorizontalCylinder(x: x, y: y, w: width, h: height, fill: fill, stroke: stroke, sw: sw)
-    case "data-store", "datastore":
-        return _renderDataStore(x: x, y: y, w: width, h: height, fill: fill, stroke: stroke, sw: sw)
-    case "flipped-triangle":
-        return _renderFlippedTriangle(x: x, y: y, w: width, h: height, fill: fill, stroke: stroke, sw: sw)
-    case "sloped-rectangle":
-        return _renderSlopedRect(x: x, y: y, w: width, h: height, fill: fill, stroke: stroke, sw: sw)
-    case "brace-l":
-        return _renderBraceL(x: x, y: y, w: width, h: height, fill: fill, stroke: stroke, sw: sw)
-    case "brace-r":
-        return _renderBraceR(x: x, y: y, w: width, h: height, fill: fill, stroke: stroke, sw: sw)
-    case "braces":
-        return _renderBraces(x: x, y: y, w: width, h: height, fill: fill, stroke: stroke, sw: sw)
+    case "small-circle", "filled-circle":
+        return _renderFilledCircle(x: x, y: y, w: width, h: height)
+    case "state-note":
+        let noteFill = _escapeAttr(inlineStyle["fill"] ?? "var(--_note-bkg)")
+        let noteStroke = _escapeAttr(inlineStyle["stroke"] ?? "var(--_note-border)")
+        return _renderRoundedRect(x: x, y: y, w: width, h: height, fill: noteFill, stroke: noteStroke, sw: sw)
+    case "rect-with-title":
+        return _renderRectWithTitle(x: x, y: y, w: width, h: height, fill: fill, stroke: stroke, sw: sw)
+    case "rounded-with-title":
+        return _renderRoundedWithTitle(x: x, y: y, w: width, h: height, fill: fill, stroke: stroke, sw: sw)
     case "icon-square":
         return _renderIconSquare(x: x, y: y, w: width, h: height, fill: fill, stroke: stroke, sw: sw, icon: node.icon, img: node.img)
     case "icon-circle":
@@ -669,24 +632,32 @@ private func _renderNodeShape(_ node: _SvgNode) -> String {
         return _renderIconRounded(x: x, y: y, w: width, h: height, fill: fill, stroke: stroke, sw: sw, icon: node.icon, img: node.img)
     case "image-square":
         return _renderImageRect(x: x, y: y, w: width, h: height, fill: fill, stroke: stroke, sw: sw, img: node.img)
-    case "state", "note":
-        return _renderRect(x: x, y: y, w: width, h: height, fill: fill, stroke: stroke, sw: sw)
-    case "choice":
-        return _renderDiamond(x: x, y: y, w: width, h: height, fill: fill, stroke: stroke, sw: sw)
-    case "rect-with-title":
-        return _renderRectWithTitle(x: x, y: y, w: width, h: height, fill: fill, stroke: stroke, sw: sw)
-    case "rounded-with-title":
-        return _renderRoundedWithTitle(x: x, y: y, w: width, h: height, fill: fill, stroke: stroke, sw: sw)
-    case "state-divider":
-        return _renderStateDivider(x: x, y: y, w: width, h: height, stroke: stroke)
-    case "state-note":
-        let noteFill = _escapeAttr(inlineStyle["fill"] ?? "var(--_note-bkg)")
-        let noteStroke = _escapeAttr(inlineStyle["stroke"] ?? "var(--_note-border)")
-        return _renderRoundedRect(x: x, y: y, w: width, h: height, fill: noteFill, stroke: noteStroke, sw: sw)
-    case "label-rect", "anchor": break
-    default: break
+    case "label-rect", "anchor":
+        return ""
+    // Position-dependent rendering — these shapes need sub-bounds decorations
+    // (cylinder caps, offset copies, inset panes, corner tags) that the
+    // generic spec-driven path doesn't support yet.
+    case "cylinder":
+        return _renderCylinder(x: x, y: y, w: width, h: height, fill: fill, stroke: stroke, sw: sw)
+    case "horizontal-cylinder", "h-cyl", "das":
+        return _renderHorizontalCylinder(x: x, y: y, w: width, h: height, fill: fill, stroke: stroke, sw: sw)
+    case "data-store", "datastore":
+        return _renderDataStore(x: x, y: y, w: width, h: height, fill: fill, stroke: stroke, sw: sw)
+    case "lined-cylinder", "disk":
+        return _renderLinedCylinder(x: x, y: y, w: width, h: height, fill: fill, stroke: stroke, sw: sw)
+    case "stacked-document":
+        return _renderStackedDocument(x: x, y: y, w: width, h: height, fill: fill, stroke: stroke, sw: sw)
+    case "stacked-rectangle":
+        return _renderStackedRect(x: x, y: y, w: width, h: height, fill: fill, stroke: stroke, sw: sw)
+    case "window-pane":
+        return _renderWindowPane(x: x, y: y, w: width, h: height, fill: fill, stroke: stroke, sw: sw)
+    case "tagged-document":
+        return _renderTaggedDocument(x: x, y: y, w: width, h: height, fill: fill, stroke: stroke, sw: sw)
+    case "tagged-rectangle":
+        return _renderTaggedRect(x: x, y: y, w: width, h: height, fill: fill, stroke: stroke, sw: sw)
+    default:
+        return _renderNodeShapeGeneric(x: x, y: y, w: width, h: height, shape: shape, fill: fill, stroke: stroke, sw: sw)
     }
-    return _renderRect(x: x, y: y, w: width, h: height, fill: fill, stroke: stroke, sw: sw)
 }
 
 private func _renderRect(x: Double, y: Double, w: Double, h: Double, fill: String, stroke: String, sw: String) -> String {
