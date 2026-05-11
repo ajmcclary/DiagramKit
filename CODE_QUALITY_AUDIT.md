@@ -8,14 +8,14 @@ The maintainability risk is concentrated rather than diffuse. Current source siz
 
 Overall structural health: **yellow-green**. The target layering and typed domain model are strong. The main liabilities are duplicated routing between parse/SVG/ASCII paths, duplicated worker and bitmap preparation logic in the view layer, a cross-cutting `DiagramFrontmatter` bag embedded in a class parser file, partial adoption of shape and font abstractions, and duplicated frontmatter/theme binding code. These issues do not require a rewrite. They call for a focused consolidation pass around existing abstractions.
 
-## Completion Status — 2026-05-10
+## Completion Status — 2026-05-11
 
 | Item | Status | Notes |
 |---|---|---|
 | **A1** Worker-thread invariant | ✅ Done | `bbe256a` `601f4b4` `97dfdce` `64c73dc` `15d87cd` |
 | **A2** Registry split | ✅ Done | `741e212` `33c61c2` |
 | **A3** `DiagramFrontmatter` move | ✅ Done | `b308aa6` |
-| **A4** Shape abstraction | ✅ Done | All 4 consumer switches migrated: `ShapeRenderer.shapePath` + `_drawSpecDecorations`, SVG `_renderNodeShapeGeneric`, `EdgeShapeClipper` (`_clipPoint` now ShapePath-keyed). 27 `ShapePath` cases with full `CGPathRenderer` + `SVGPathSerializer` coverage; all `_defaultSpec` entries replaced with explicit paths + `ShapeDecoration`. **Position-dependent decorations (cylinder caps, stacked offsets, inset panes, corner tags) follow-up required** — currently retained in legacy switches (~130 lines) pending sub-bounds decoration support. |
+| **A4** Shape abstraction | ✅ Done | All 4 consumer switches migrated: `ShapeRenderer.shapePath` + `_drawSpecDecorations`, SVG `_renderNodeShapeGeneric`, `EdgeShapeClipper` (`_clipPoint` now ShapePath-keyed). 27 `ShapePath` cases with full `CGPathRenderer` + `SVGPathSerializer` coverage; all `_defaultSpec` entries replaced with explicit paths + `ShapeDecoration`. **Title-header shapes (rounded-with-title, rect-with-title) and simple foreground-fill shapes (state-start, fork, join, filled-circle) now use spec-driven decorations + fill/stroke overrides.** Remaining position-dependent special cases: state-end, state-divider (~25 lines each renderer). |
 | **A5** Font / token split | ✅ Done | Three-way decomposition landed: `RenderTokens` (35+ stored properties, 3 per-diagram extensions), `DiagramFontResolver` (all font resolution consolidated — 12 methods across 4 files merged into one struct), `TextMetrics` (text measurement extracted). `RenderConfig` now composes all three with backward-compatible forwarding.  ~28 CG renderer files migrated; CG-layer `DiagramFontResolver` deprecated. |
 | **P1** Routing collapse | ✅ Done | `0a42b8a` `4c3d386` |
 | **P1** Font drift | ✅ Done | bundled into A5 commits above |
@@ -26,7 +26,7 @@ Overall structural health: **yellow-green**. The target layering and typed domai
 | **P3** Bitmap rendering | ✅ Done | `31e6882` |
 | **P4** Naming hygiene | ➖ Open | Low priority — `original_src_*` namespace acceptable as compatibility seam; flag if it spreads to new abstractions |
 | **D1** SVG case parse/layout dedup | ✅ Done | `_renderXYChartSvgCase`, `_renderQuadrantSvgCase`, `_renderSankeySvgCase`, `_renderRadarSvgCase` now delegate parse/layout/frontmatter to `DiagramRegistry` descriptors. Hardcoded `"sankey-1"` ID replaced with `StableID.derive`. ~25 snapshot rebakes expected. |
-| **D2** CG/SVG renderer drift | 🚧 Partially unblocked | Both CG and SVG shape paths + decorations + edge clipping now spec-driven. Position-dependent shapes (cylinder, stacked, window-pane, tagged) still use legacy helpers in both renderers. Steps 2–4 (shared geometry primitives) can begin once snapshot parity is verified. |
+| **D2** CG/SVG renderer drift | 🟡 In progress | **Phase A** (shared IDs): `_stableDiagramId` deleted; mindmap + architecture use `StableID.derive`. **Phase B** (shape decorations): `ShapeDecoration.Fill` enum + `ShapeSpec.fillOverride`/`strokeOverride` added; title-header shapes and simple foreground-fill shapes migrated from legacy switches to spec-driven decorations. **Phase C** (positioned pipeline): `SVGRenderRegistry.render(positioned:)` entry point added; xyChart, quadrantChart, sankey, radar descriptors consume `PositionedGraph` directly through `renderPositioned` closures; `MermaidPipeline.renderSVG` tries positioned path with source-based fallback. **Remaining**: 23 families still go through source-based SVG path; per-family arrow marker duplication not yet consolidated; snapshot rebakes pending. |
 | **D3** Frontmatter binding skeleton | ✅ Done | `FrontmatterBinding.extractKey(path:prefixes:)` static helper added to protocol; 8 bindings refactored (ER, Class, Journey, Kanban, Sankey, State, Block, Mindmap) from 12-line skeletons to 4-line guard/apply/mark patterns; remaining 19 can follow mechanically |
 | **D4** `YamlFrontmatterThemeHelpers` cleanup | ✅ Done | `6621c67` `eed339a` |
 | **D5** Bitmap consolidation | ✅ Done | `31e6882` |
@@ -471,28 +471,25 @@ This preserves independent SVG renderers while eliminating duplicated parse/layo
 
 ### D2. CG and SVG renderer duplication is real and should be reduced at geometry boundaries first
 
-**Status:** 🚧 Partially unblocked. Step 1 ("Complete `ShapeSpec` and serializers") is done — all 27 `ShapePath` cases have `CGPathRenderer` + `SVGPathSerializer` support, and both CG and SVG shape rendering + edge clipping are spec-driven. Steps 2–4 (shared geometry primitives) can begin once snapshot parity is verified.
+**Status:** 🟡 In progress. Step 1 (ShapeSpec + serializers) is done. Step 2 (positioned-model-only rendering) is partially done: all CG renderers already consume `PositionedGraph`; 4 of 27 SVG families (xyChart, quadrantChart, sankey, radar) now have `renderPositioned` closures in `SVGRenderRegistry` that bypass the `_render*SvgCase` parse/layout duplication. Step 3 (shared marker/ID/accessibility helpers) is partially done: `_stableDiagramId` deleted, all families use `StableID.derive`; per-family arrow marker consolidation deferred. Step 4 (backend-specific drawing at the leaf) is partially done: title-header and simple foreground-fill shapes now pass through spec-driven decoration rendering in both CG and SVG; state-end and state-divider remain as special cases.
 
-**Evidence**
+**Changes landed (2026-05-11)**
 
-- There are 27 `Sources/DiagramKitRenderingCG/DiagramRenderer+*.swift` files.
-- There are 27 SVG renderer files matching `Sources/DiagramKitModel/src_*renderer.swift` or `Sources/DiagramKitModel/src_*_svg.swift`.
-- `Sources/DiagramKitRenderingCG/DiagramRenderer+Sequence.swift:402` to `Sources/DiagramKitRenderingCG/DiagramRenderer+Sequence.swift:447` renders sequence actors in CG.
-- `Sources/DiagramKitModel/src_sequence_renderer.swift:83` to `Sources/DiagramKitModel/src_sequence_renderer.swift:90` renders sequence actors in SVG after the same layout stage.
-- `Sources/DiagramKitRenderingCG/ShapeRenderer.swift:94` to `Sources/DiagramKitRenderingCG/ShapeRenderer.swift:211` and `Sources/DiagramKitModel/src_renderer.swift:553` to `Sources/DiagramKitModel/src_renderer.swift:690` duplicate shape selection.
+- **Phase A — Shared ID generation.** Deleted `_stableDiagramId` (FNV hash, 7 lines) from `src_index.swift`. Mindmap and architecture SVG cases now use `StableID.derive(from:)` like every other family.
+- **Phase B — Shape decoration convergence.** Added `ShapeDecoration.Fill` enum (`.none`, `.inherit`, `.surface`, `.foreground`), `ShapeDecoration.Stroke.none`, and `ShapeSpec.fillOverride` / `strokeOverride` properties. Migrated title-header shapes (`rounded-with-title`, `rect-with-title`) to `ShapeDecoration` entries with `fill: .surface` + sub-bounds closures — deleted `_drawRoundedWithTitle` / `_drawRectWithTitle` (44 lines CG) and `_renderRectWithTitle` / `_renderRoundedWithTitle` (18 lines SVG). Migrated simple foreground-fill shapes (`state-start`, `fork`, `join`, `filled-circle`) to `fillOverride: .foreground` + `strokeOverride: .none` — removed 4 early-return cases from CG `drawShape` and 3 from SVG `_renderNodeShape`. State-end and state-divider retained as special cases (foreground stroke needed, dash patterns).
+- **Phase C — Positioned pipeline entry.** Added `SVGRenderDescriptor.renderPositioned` optional closure and `SVGRenderRegistry.render(positioned:colors:font:transparent:)` method. Four families (xyChart, quadrantChart, sankey, radar) now extract their positioned payload from `PositionedGraph` and call leaf `render*Svg` functions directly, bypassing `_render*SvgCase` parse/layout. `MermaidPipeline.renderSVG(source:theme:layoutConfig:)` now parses and lays out once, tries the positioned SVG path, and falls back to the source-based pipeline on `notYetImplemented`. New `MermaidPipeline.renderSVG(positioned:theme:)` method for direct positioned-graph consumption.
 
-**Impact**
+**Remaining D2 work**
 
-The dual-renderer architecture is a known, acceptable interim cost. The maintainability problem is not merely "two outputs"; it is duplicated geometry decisions inside those outputs. When layout, clipping, or shape geometry changes, the snapshot suite is the main guardrail rather than shared code.
+- **Step 2 — remaining 23 SVG families.** Add `renderPositioned` closures for all remaining families in `SVGRenderRegistry`. Each requires extracting the typed positioned payload from `PositionedGraph.content` and calling the appropriate leaf `render*Svg` function. Some families need diagramId or interactive options threaded through.
+- **Step 3 — per-family arrow marker consolidation.** 10+ SVG renderers (sequence, c4, gitgraph, wardley, eventmodeling, timeline, journey, block, requirement, zenuml) each inline their own `<marker>` definitions with slightly different dimensions. `EdgePathBuilder.arrow()` already provides shared geometry; the SVG renderers should consume it or use a shared marker-def helper.
+- **Step 3b — `SVGDocumentBuilder` adoption.** Most per-family SVG renderers hand-write `<svg>` open tags, `<style>` blocks, and accessibility elements instead of using `SVGDocumentBuilder`.
+- **Step 4 — state-end / state-divider migration.** These two shapes need foreground-stroke semantics and dash patterns that the current `fillOverride`/`strokeOverride` model doesn't express (stroke color override, not just stroke on/off).
+- **Step 4d — icon/image shapes.** Icon/image shapes embed content (`<text>`, `<image>` tags) that is inherently backend-specific; deferred as separate concern.
+- **Snapshot rebakes.** ~50+ expected from Phase B shape changes, ~4 from Phase C pipeline path changes. Run `CorpusSnapshotTests` and rebake after verification.
 
-**Recommendation**
-
-Do not attempt a full renderer rewrite first. Start by consolidating reusable geometry and text primitives:
-
-1. Complete `ShapeSpec` and serializers.
-2. Ensure every renderer consumes positioned models only.
-3. Move common marker, ID, and accessibility helpers into small renderer-support modules.
-4. Keep backend-specific drawing code only at the final "emit SVG" or "draw CGContext" layer.
+**Files changed**
+`Sources/DiagramKit/src_index.swift` (−16 lines), `Sources/DiagramKitModel/ShapeSpec.swift` (+50 lines), `Sources/DiagramKitRenderingCG/ShapeRenderer.swift` (−48 lines net), `Sources/DiagramKitModel/src_renderer.swift` (−42 lines net), `Sources/DiagramKit/SVGRenderRegistry.swift` (+65 lines), `Sources/DiagramKit/MermaidPipeline.swift` (+55 lines).
 
 ### D3. Frontmatter binding files repeat the same state-machine skeleton
 
@@ -671,7 +668,7 @@ Expected impact: medium duplication reduction with moderate platform-testing nee
 
 These were identified in the audit but warrant their own scoping passes before being chipped:
 
-- **D2 long-term.** Convergence of CG and SVG renderers onto shared geometry primitives. Steps 2–4 of D2's recommendation kick in after the A4 capstone lands.
+- **D2 remaining work.** 23 SVG families still need `renderPositioned` closures in `SVGRenderRegistry` to fully eliminate the duplicated parse/layout in `_render*SvgCase` functions. Per-family arrow marker consolidation (~10 renderers) and `SVGDocumentBuilder` adoption remain deferred. State-end / state-divider shapes still use legacy foreground-stroke rendering.
 - **Linux Stage 2.5.** Portable text-measurement shim so `ishikawa` / `treeView` / `eventModeling` layouts can run without `CTLineGetBoundsWithOptions`.
 
 ## External / Not Actionable
