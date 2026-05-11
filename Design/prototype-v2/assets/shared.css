@@ -312,7 +312,7 @@ button {
     margin: 0 4px;
 }
 
-.title-actions .tb-btn {
+.tb-btn {
     appearance: none;
     background: transparent;
     border: none;
@@ -327,27 +327,27 @@ button {
     font-size: 12px;
     font-weight: 500;
 }
-.title-actions .tb-btn:hover {
+.tb-btn:hover {
     background: rgba(0, 0, 0, 0.05);
 }
-.title-actions .tb-btn svg {
+.tb-btn svg {
     width: 14px;
     height: 14px;
 }
-.title-actions .tb-btn.primary {
+.tb-btn.primary {
     background: var(--accent);
     color: var(--accent-ink);
 }
-.title-actions .tb-btn.primary:hover {
+.tb-btn.primary:hover {
     background: var(--accent-hover);
 }
-.title-actions .tb-btn .kbd {
+.tb-btn .kbd {
     font-family: var(--mono);
     font-size: 10px;
     color: var(--ink-3);
     margin-left: 2px;
 }
-.title-actions .tb-btn.primary .kbd {
+.tb-btn.primary .kbd {
     color: rgba(255, 255, 255, 0.7);
 }
 
