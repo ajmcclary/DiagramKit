@@ -172,6 +172,29 @@ for (const page of pages) {
   }
 }
 
+// --- Cross-cutting header + rail invariants (Stage 3 redesign) ---------------
+const headerlessPages = new Set(["share.html"]); // Share uses its own modal chrome
+
+for (const page of pages) {
+  if (headerlessPages.has(page)) continue;
+  const html = read(page);
+
+  // Exactly one .pageheader with row1 + row2.
+  const headerCount = (html.match(/class="[^"]*\bpageheader\b[^"]*"/g) || []).length;
+  if (headerCount < 1) fail(`${page}: missing .pageheader element`);
+
+  const hasRow1 = /class="[^"]*\bpageheader__row1\b[^"]*"/.test(html);
+  const hasRow2 = /class="[^"]*\bpageheader__row2\b[^"]*"/.test(html);
+  if (!hasRow1) fail(`${page}: pageheader missing __row1`);
+  if (!hasRow2) fail(`${page}: pageheader missing __row2`);
+
+  // Row 1 breadcrumb must start with the workspace name "Engineering".
+  const breadcrumb = html.match(/class="[^"]*pageheader__breadcrumb[^"]*"[^>]*>([\s\S]*?)<\/nav>/);
+  if (breadcrumb && !/Engineering/.test(breadcrumb[1])) {
+    fail(`${page}: breadcrumb does not start with workspace "Engineering"`);
+  }
+}
+
 // --- Shared CSS surface ------------------------------------------------------
 const css = read("assets/shared.css");
 for (const selector of requiredCss) {
