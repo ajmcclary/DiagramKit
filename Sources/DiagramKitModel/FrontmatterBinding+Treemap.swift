@@ -9,9 +9,13 @@ public struct TreemapFrontmatterBinding: FrontmatterBinding {
     public init() {}
 
     public mutating func apply(path: String, value: FrontmatterValue) -> Bool {
-        guard path.hasPrefix(Self.prefixes[0]) else { return false }
+        guard let key = Self.extractKey(path: path, prefixes: Self.prefixes) else { return false }
+        guard _applyConfig(key: key, value: value) else { return false }
         hasSection = true
-        let key = String(path.dropFirst(Self.prefixes[0].count))
+        return true
+    }
+
+    private mutating func _applyConfig(key: String, value: FrontmatterValue) -> Bool {
         switch key {
         case "useMaxWidth":     guard let v = value.bool else { return false }; config.useMaxWidth = v
         case "padding":         guard let v = value.double else { return false }; config.padding = v

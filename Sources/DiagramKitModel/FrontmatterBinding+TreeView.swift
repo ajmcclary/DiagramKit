@@ -2,6 +2,8 @@ import Foundation
 
 public struct TreeViewFrontmatterBinding: FrontmatterBinding {
     public static let prefixes = ["config.treeView.", "themeVariables."]
+    private static let configPrefixes = ["config.treeView."]
+    private static let themePrefixes = ["themeVariables."]
 
     private var config = TreeViewDiagramConfig()
     private var theme = TreeViewThemeVariables()
@@ -11,13 +13,13 @@ public struct TreeViewFrontmatterBinding: FrontmatterBinding {
     public init() {}
 
     public mutating func apply(path: String, value: FrontmatterValue) -> Bool {
-        if path.hasPrefix(Self.prefixes[0]) {
-            guard _applyConfig(String(path.dropFirst(Self.prefixes[0].count)), value) else { return false }
+        if let key = Self.extractKey(path: path, prefixes: Self.configPrefixes) {
+            guard _applyConfig(key, value) else { return false }
             hasConfig = true
             return true
         }
-        if path.hasPrefix(Self.prefixes[1]) {
-            guard _applyTheme(String(path.dropFirst(Self.prefixes[1].count)), value) else { return false }
+        if let key = Self.extractKey(path: path, prefixes: Self.themePrefixes) {
+            guard _applyTheme(key, value) else { return false }
             hasTheme = true
             return true
         }

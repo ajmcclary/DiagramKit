@@ -5,6 +5,8 @@ import Foundation
 /// Reusable across both YAML frontmatter and JSON init-directive paths.
 public struct RequirementFrontmatterBinding: FrontmatterBinding {
     public static let prefixes = ["config.requirement.", "themeVariables."]
+    private static let configPrefixes = ["config.requirement."]
+    private static let themePrefixes = ["themeVariables."]
 
     private var config = RequirementDiagramConfig()
     private var theme = RequirementThemeVariables()
@@ -14,14 +16,12 @@ public struct RequirementFrontmatterBinding: FrontmatterBinding {
     public init() {}
 
     public mutating func apply(path: String, value: FrontmatterValue) -> Bool {
-        if path.hasPrefix(Self.prefixes[0]) {
-            let key = String(path.dropFirst(Self.prefixes[0].count))
+        if let key = Self.extractKey(path: path, prefixes: Self.configPrefixes) {
             guard _applyConfig(key: key, value: value) else { return false }
             hasConfig = true
             return true
         }
-        if path.hasPrefix(Self.prefixes[1]) {
-            let key = String(path.dropFirst(Self.prefixes[1].count))
+        if let key = Self.extractKey(path: path, prefixes: Self.themePrefixes) {
             guard _applyTheme(key: key, value: value) else { return false }
             hasTheme = true
             return true

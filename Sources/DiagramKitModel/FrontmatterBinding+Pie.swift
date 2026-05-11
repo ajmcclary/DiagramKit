@@ -10,6 +10,9 @@ public struct PieFrontmatterBinding: FrontmatterBinding {
         // without the "pie." sub-namespace.
         "config.themeVariables.", "themeVariables.",
     ]
+    private static let configPrefixes = ["config.pie.", "pie."]
+    private static let themeSpecificPrefixes = ["config.themeVariables.pie.", "themeVariables.pie."]
+    private static let themeFallbackPrefixes = ["config.themeVariables.", "themeVariables."]
 
     private var config = PieChartConfig()
     private var theme = PieChartThemeConfig()
@@ -19,33 +22,18 @@ public struct PieFrontmatterBinding: FrontmatterBinding {
     public init() {}
 
     public mutating func apply(path: String, value: FrontmatterValue) -> Bool {
-        if path.hasPrefix(Self.prefixes[0]) {
-            guard _applyConfig(key: String(path.dropFirst(Self.prefixes[0].count)), value: value) else { return false }
+        if let key = Self.extractKey(path: path, prefixes: Self.configPrefixes) {
+            guard _applyConfig(key: key, value: value) else { return false }
             hasConfig = true
             return true
         }
-        if path.hasPrefix(Self.prefixes[1]) {
-            guard _applyConfig(key: String(path.dropFirst(Self.prefixes[1].count)), value: value) else { return false }
-            hasConfig = true
-            return true
-        }
-        if path.hasPrefix(Self.prefixes[2]) {
-            guard _applyTheme(key: String(path.dropFirst(Self.prefixes[2].count)), value: value) else { return false }
+        if let key = Self.extractKey(path: path, prefixes: Self.themeSpecificPrefixes) {
+            guard _applyTheme(key: key, value: value) else { return false }
             hasTheme = true
             return true
         }
-        if path.hasPrefix(Self.prefixes[3]) {
-            guard _applyTheme(key: String(path.dropFirst(Self.prefixes[3].count)), value: value) else { return false }
-            hasTheme = true
-            return true
-        }
-        if path.hasPrefix(Self.prefixes[4]) {
-            guard _applyTheme(key: String(path.dropFirst(Self.prefixes[4].count)), value: value) else { return false }
-            hasTheme = true
-            return true
-        }
-        if path.hasPrefix(Self.prefixes[5]) {
-            guard _applyTheme(key: String(path.dropFirst(Self.prefixes[5].count)), value: value) else { return false }
+        if let key = Self.extractKey(path: path, prefixes: Self.themeFallbackPrefixes) {
+            guard _applyTheme(key: key, value: value) else { return false }
             hasTheme = true
             return true
         }

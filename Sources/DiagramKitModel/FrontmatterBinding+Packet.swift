@@ -7,6 +7,8 @@ public struct PacketFrontmatterBinding: FrontmatterBinding {
         "config.packet.", "packet.",
         "config.themeVariables.packet.", "themeVariables.packet.",
     ]
+    private static let configPrefixes = ["config.packet.", "packet."]
+    private static let themePrefixes = ["config.themeVariables.packet.", "themeVariables.packet."]
 
     private var config = PacketDiagramConfig()
     private var theme = PacketThemeConfig()
@@ -16,21 +18,15 @@ public struct PacketFrontmatterBinding: FrontmatterBinding {
     public init() {}
 
     public mutating func apply(path: String, value: FrontmatterValue) -> Bool {
-        if path.hasPrefix(Self.prefixes[0]) {
+        if let key = Self.extractKey(path: path, prefixes: Self.configPrefixes) {
+            guard _applyConfig(key: key, value: value) else { return false }
             hasConfig = true
-            return _applyConfig(key: String(path.dropFirst(Self.prefixes[0].count)), value: value)
+            return true
         }
-        if path.hasPrefix(Self.prefixes[1]) {
-            hasConfig = true
-            return _applyConfig(key: String(path.dropFirst(Self.prefixes[1].count)), value: value)
-        }
-        if path.hasPrefix(Self.prefixes[2]) {
+        if let key = Self.extractKey(path: path, prefixes: Self.themePrefixes) {
+            guard _applyTheme(key: key, value: value) else { return false }
             hasTheme = true
-            return _applyTheme(key: String(path.dropFirst(Self.prefixes[2].count)), value: value)
-        }
-        if path.hasPrefix(Self.prefixes[3]) {
-            hasTheme = true
-            return _applyTheme(key: String(path.dropFirst(Self.prefixes[3].count)), value: value)
+            return true
         }
         return false
     }

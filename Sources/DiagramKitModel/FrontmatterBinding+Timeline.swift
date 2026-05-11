@@ -7,6 +7,8 @@ public struct TimelineFrontmatterBinding: FrontmatterBinding {
         "config.timeline.", "timeline.",
         "config.themeVariables.", "themeVariables.",
     ]
+    private static let configPrefixes = ["config.timeline.", "timeline."]
+    private static let themePrefixes = ["config.themeVariables.", "themeVariables."]
 
     private var config = TimelineDiagramConfig()
     private var theme = TimelineThemeConfig()
@@ -16,29 +18,16 @@ public struct TimelineFrontmatterBinding: FrontmatterBinding {
     public init() {}
 
     public mutating func apply(path: String, value: FrontmatterValue) -> Bool {
-        if path.hasPrefix(Self.prefixes[0]) {
+        if let key = Self.extractKey(path: path, prefixes: Self.configPrefixes) {
+            guard _applyConfig(key: key, value: value) else { return false }
             hasConfig = true
-            return _applyConfig(key: String(path.dropFirst(Self.prefixes[0].count)), value: value)
+            return true
         }
-        if path.hasPrefix(Self.prefixes[1]) {
-            hasConfig = true
-            return _applyConfig(key: String(path.dropFirst(Self.prefixes[1].count)), value: value)
-        }
-        if path.hasPrefix(Self.prefixes[2]) {
-            let key = String(path.dropFirst(Self.prefixes[2].count))
-            if _isTimelineThemeKey(key) {
-                hasTheme = true
-                return _applyTheme(key: key, value: value)
-            }
-            return false
-        }
-        if path.hasPrefix(Self.prefixes[3]) {
-            let key = String(path.dropFirst(Self.prefixes[3].count))
-            if _isTimelineThemeKey(key) {
-                hasTheme = true
-                return _applyTheme(key: key, value: value)
-            }
-            return false
+        if let key = Self.extractKey(path: path, prefixes: Self.themePrefixes) {
+            guard _isTimelineThemeKey(key) else { return false }
+            guard _applyTheme(key: key, value: value) else { return false }
+            hasTheme = true
+            return true
         }
         return false
     }

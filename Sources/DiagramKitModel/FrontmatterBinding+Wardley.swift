@@ -2,6 +2,8 @@ import Foundation
 
 public struct WardleyFrontmatterBinding: FrontmatterBinding {
     public static let prefixes = ["config.wardley-beta.", "config.wardleyBeta.", "themeVariables."]
+    private static let configPrefixes = ["config.wardley-beta.", "config.wardleyBeta."]
+    private static let themePrefixes = ["themeVariables."]
 
     private var config = WardleyDiagramConfig()
     private var theme = WardleyThemeVariables()
@@ -11,19 +13,13 @@ public struct WardleyFrontmatterBinding: FrontmatterBinding {
     public init() {}
 
     public mutating func apply(path: String, value: FrontmatterValue) -> Bool {
-        if path.hasPrefix(Self.prefixes[0]) || path.hasPrefix(Self.prefixes[1]) {
-            let key: String
-            if path.hasPrefix(Self.prefixes[0]) {
-                key = String(path.dropFirst(Self.prefixes[0].count))
-            } else {
-                key = String(path.dropFirst(Self.prefixes[1].count))
-            }
+        if let key = Self.extractKey(path: path, prefixes: Self.configPrefixes) {
             guard _applyConfig(key, value) else { return false }
             hasConfig = true
             return true
         }
-        if path.hasPrefix(Self.prefixes[2]) {
-            guard _applyTheme(String(path.dropFirst(Self.prefixes[2].count)), value) else { return false }
+        if let key = Self.extractKey(path: path, prefixes: Self.themePrefixes) {
+            guard _applyTheme(key, value) else { return false }
             hasTheme = true
             return true
         }

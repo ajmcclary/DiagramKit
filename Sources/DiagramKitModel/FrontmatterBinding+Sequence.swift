@@ -11,10 +11,10 @@ public struct SequenceFrontmatterBinding: FrontmatterBinding {
     public init() {}
 
     public mutating func apply(path: String, value: FrontmatterValue) -> Bool {
-        guard path.hasPrefix(Self.prefixes[0]) else { return false }
+        guard let key = Self.extractKey(path: path, prefixes: Self.prefixes) else { return false }
+        guard _apply(key: key, value: value) else { return false }
         hasSection = true
-        let key = String(path.dropFirst(Self.prefixes[0].count))
-        return _apply(key: key, value: value)
+        return true
     }
 
     private mutating func _apply(key: String, value: FrontmatterValue) -> Bool {

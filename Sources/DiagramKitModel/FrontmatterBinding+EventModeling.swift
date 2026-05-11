@@ -2,6 +2,8 @@ import Foundation
 
 public struct EventModelingFrontmatterBinding: FrontmatterBinding {
     public static let prefixes = ["config.eventmodeling.", "themeVariables."]
+    private static let configPrefixes = ["config.eventmodeling."]
+    private static let themePrefixes = ["themeVariables."]
 
     private var config = EventModelingDiagramConfig()
     private var theme = EventModelingThemeVariables()
@@ -11,13 +13,15 @@ public struct EventModelingFrontmatterBinding: FrontmatterBinding {
     public init() {}
 
     public mutating func apply(path: String, value: FrontmatterValue) -> Bool {
-        if path.hasPrefix(Self.prefixes[0]) {
+        if let key = Self.extractKey(path: path, prefixes: Self.configPrefixes) {
+            guard _applyConfig(key, value) else { return false }
             hasConfig = true
-            return _applyConfig(String(path.dropFirst(Self.prefixes[0].count)), value)
+            return true
         }
-        if path.hasPrefix(Self.prefixes[1]) {
+        if let key = Self.extractKey(path: path, prefixes: Self.themePrefixes) {
+            guard _applyTheme(key, value) else { return false }
             hasTheme = true
-            return _applyTheme(String(path.dropFirst(Self.prefixes[1].count)), value)
+            return true
         }
         return false
     }
