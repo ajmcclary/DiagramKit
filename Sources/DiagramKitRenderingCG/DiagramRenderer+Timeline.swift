@@ -15,8 +15,8 @@ extension DiagramRenderer {
             let ch = max(1, timeline.height)
             let theme = timeline.theme
             let fontSize = CGFloat(timeline.config.taskFontSize)
-            let font = DiagramFontResolver.proportional(config, size: fontSize, weight: .regular)
-            let titleFont = DiagramFontResolver.proportional(config, size: 18, weight: .bold)
+            let font = self.fontResolver.proportionalFont(size: fontSize, weight: .regular)
+            let titleFont = self.fontResolver.proportionalFont(size: 18, weight: .bold)
             let isNeo = timeline.look == "neo"
             let themeName = timeline.themeName ?? ""
             let isRedux = themeName.contains("redux")

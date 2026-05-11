@@ -16,6 +16,21 @@ public final class DiagramRenderer {
     public var theme: DiagramTheme
     let config: RenderConfig
 
+    /// Font resolver backed by the renderer's configuration.
+    /// Prefer `self.fontResolver` over `self._monoFont` / `self._italicSystemFont`
+    /// in new code. The legacy helpers below delegate here for backward compat.
+    var fontResolver: DiagramKitModel.DiagramFontResolver { config.fontResolver }
+
+    /// Token storage backed by the renderer's configuration.
+    /// Prefer `self.tokens.strokeWidthOuterBox` over `self.config.strokeWidthOuterBox`
+    /// in new code.
+    var tokens: RenderTokens { config.tokens }
+
+    /// Text measurement backed by the renderer's configuration.
+    /// Prefer `self.textMetrics.estimateTextWidth(...)` over
+    /// `self.config.estimateTextWidth(...)` in new code.
+    var textMetrics: TextMetrics { config.textMetrics }
+
     let shapeRenderer: NodeShapeRenderer
     let edgeRenderer: EdgeRenderer
     let labelRenderer: LabelRenderer
@@ -97,83 +112,21 @@ public final class DiagramRenderer {
 
     // MARK: - Utility
 
-    /// Resolves a monospace font, preferring `RenderConfig.defaultFontFamily`
-    /// (typically the bundled "Noto Sans Mono"), then "Menlo", then the
-    /// system monospaced font. Bundled-font registration happens in `init`,
-    /// so the named lookup succeeds in the snapshot-test path.
+    /// Resolves a monospace font. Delegates to `fontResolver.monoFont(size:)`.
     func _monoFont(size: CGFloat) -> BMFont {
-        if let family = config.defaultFontFamily,
-           let bundled = BMFont(name: family, size: size) {
-            return bundled
-        }
-        #if targetEnvironment(macCatalyst) || canImport(UIKit)
-        return UIFont(name: "Menlo", size: size) ?? UIFont.monospacedSystemFont(ofSize: size, weight: .regular)
-        #elseif canImport(AppKit)
-        return NSFont(name: "Menlo", size: size) ?? NSFont.monospacedSystemFont(ofSize: size, weight: .regular)
-        #endif
+        fontResolver.monoFont(size: size)
     }
 
-    /// Resolves an italic proportional font, preferring
-    /// `RenderConfig.defaultProportionalFontFamily` (typically "Noto Sans"),
-    /// then the system font with an italic-trait descriptor.
+    /// Resolves an italic proportional font.
+    /// Delegates to `fontResolver.italicProportionalFont(size:weight:)`.
     func _italicSystemFont(size: CGFloat, weight: CGFloat) -> BMFont {
-        if let family = config.defaultProportionalFontFamily {
-            // Try named italic variants first (e.g. "NotoSans-Italic"); fall back
-            // to the regular family with an italic trait applied.
-            let italicCandidates = [
-                "\(family)-Italic",
-                "\(family) Italic",
-            ]
-            for name in italicCandidates {
-                if let f = BMFont(name: name, size: size) { return f }
-            }
-            if let baseFont = BMFont(name: family, size: size) {
-                #if targetEnvironment(macCatalyst) || canImport(UIKit)
-                if let descriptor = baseFont.fontDescriptor.withSymbolicTraits(.traitItalic) {
-                    return BMFont(descriptor: descriptor, size: size)
-                }
-                return baseFont
-                #elseif canImport(AppKit)
-                return NSFontManager.shared.convert(baseFont, toHaveTrait: .italicFontMask)
-                #endif
-            }
-        }
-        #if targetEnvironment(macCatalyst) || canImport(UIKit)
-        let baseFont = BMFont.systemFont(ofSize: size, weight: UIFont.Weight(weight))
-        if let descriptor = baseFont.fontDescriptor.withSymbolicTraits(.traitItalic) {
-            return BMFont(descriptor: descriptor, size: size)
-        }
-        return baseFont
-        #elseif canImport(AppKit)
-        let baseFont = BMFont.systemFont(ofSize: size, weight: NSFont.Weight(weight))
-        let manager = NSFontManager.shared
-        return manager.convert(baseFont, toHaveTrait: .italicFontMask)
-        #endif
+        fontResolver.italicProportionalFont(size: size, weight: weight)
     }
 
-    /// Resolves an italic monospace font, preferring an italic variant of
-    /// `RenderConfig.defaultFontFamily`, then "Menlo-Italic", then a synthesized
-    /// italic of the system monospace font (no italic trait → falls back to
-    /// upright mono).
+    /// Resolves an italic monospace font.
+    /// Delegates to `fontResolver.italicMonoFont(size:)`.
     func _italicMonoFont(size: CGFloat) -> BMFont {
-        if let family = config.defaultFontFamily {
-            let italicCandidates = [
-                "\(family)-Italic",
-                "\(family) Italic",
-            ]
-            for name in italicCandidates {
-                if let f = BMFont(name: name, size: size) { return f }
-            }
-            // Bundled Noto Sans Mono ships only Regular + Bold (no italic). Fall
-            // through to the upright family rather than crashing — italic mono
-            // is a stylistic nicety, not a correctness requirement.
-            if let f = BMFont(name: family, size: size) { return f }
-        }
-        #if targetEnvironment(macCatalyst) || canImport(UIKit)
-        return UIFont(name: "Menlo-Italic", size: size) ?? UIFont.monospacedSystemFont(ofSize: size, weight: .regular)
-        #elseif canImport(AppKit)
-        return NSFont(name: "Menlo-Italic", size: size) ?? NSFont.monospacedSystemFont(ofSize: size, weight: .regular)
-        #endif
+        fontResolver.italicMonoFont(size: size)
     }
 
     /// Draw text at a point. The `contentHeight` parameter is retained for call-site compatibility

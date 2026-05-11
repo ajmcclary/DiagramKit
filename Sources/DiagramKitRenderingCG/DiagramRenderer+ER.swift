@@ -69,7 +69,7 @@ extension DiagramRenderer {
 
                 // Use alias label if present
                 let displayLabel = entity.alias.isEmpty ? entity.label : entity.alias
-                let nameFont = DiagramFontResolver.proportional(config, size: config.fontSizeNodeLabel, weight: .bold)
+                let nameFont = self.fontResolver.proportionalFont(size: config.fontSizeNodeLabel, weight: .bold)
                 self._drawTextInFlipped(
                     displayLabel,
                     at: CGPoint(x: entity.x + entity.width / 2, y: entity.y + entity.headerHeight / 2),
@@ -152,7 +152,7 @@ extension DiagramRenderer {
                         ctx.addPath(badgePath.bm_cgPath)
                         ctx.fillPath()
 
-                        let keyFont = DiagramFontResolver.proportional(config, size: 9, weight: .semibold)
+                        let keyFont = self.fontResolver.proportionalFont(size: 9, weight: .semibold)
                         self._drawTextInFlipped(keyText, at: CGPoint(x: entity.x + 6 + keyWidth / 2, y: rowY), context: ctx, contentHeight: ch, color: self.theme.effectiveTextSecondary(), font: keyFont, alignment: .center)
                     }
 

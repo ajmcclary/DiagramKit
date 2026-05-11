@@ -90,7 +90,7 @@ extension DiagramRenderer {
             for node in nodes {
                 guard !node.label.isEmpty else { continue }
                 let textColor = self.theme.nodeTextColor(for: node.inlineStyle)
-                let nodeFont = self.config.nodeLabelFont()
+                let nodeFont = self.fontResolver.nodeLabelFont()
                 let hasMarkdown = node.label.contains("**") || node.label.contains("*") || node.label.contains("`")
                 let pos = node.properties?.pos
 
@@ -200,7 +200,7 @@ extension DiagramRenderer {
     }
 
     private func _drawSubgraphLabels(_ groups: [_PositionedGroupPayload], in context: CGContext) {
-        let headerFont = self.config.groupHeaderFont()
+        let headerFont = self.fontResolver.groupHeaderFont()
         for group in groups {
             if group.label.contains("\n") {
                 let rect = CGRect(x: group.x + 8, y: group.y, width: group.width - 16, height: group.headerHeight)
@@ -214,7 +214,7 @@ extension DiagramRenderer {
     }
 
     private func _drawSubgraphLabelsInFlipped(_ groups: [_PositionedGroupPayload], in context: CGContext, contentHeight ch: CGFloat) {
-        let headerFont = self.config.groupHeaderFont()
+        let headerFont = self.fontResolver.groupHeaderFont()
         for group in groups {
             let labelPoint = CGPoint(x: group.x + 8, y: group.y + group.headerHeight / 2)
             _drawTextInFlipped(
@@ -231,12 +231,11 @@ extension DiagramRenderer {
     }
 
     func _drawEdgeLabelInFlipped(_ label: String, at position: CGPoint, in context: CGContext, contentHeight ch: CGFloat) {
-        let config = self.config
-        let edgeFont = config.edgeLabelFont()
+        let edgeFont = self.fontResolver.edgeLabelFont()
         let attributes: [NSAttributedString.Key: Any] = [.font: edgeFont]
         let size = (label as NSString).size(withAttributes: attributes)
 
-        let padding = config.edgeLabelPadding
+        let padding = self.tokens.edgeLabelPadding
         let pillRect = CGRect(
             x: position.x - size.width / 2 - padding,
             y: position.y - size.height / 2 - padding / 2,
@@ -244,13 +243,13 @@ extension DiagramRenderer {
             height: size.height + padding
         )
 
-        let pillPath = BMBezierPath(roundedRect: pillRect, cornerRadius: config.edgeLabelCornerRadius)
+        let pillPath = BMBezierPath(roundedRect: pillRect, cornerRadius: self.tokens.edgeLabelCornerRadius)
         context.setFillColor(theme.background.cgColor)
         context.addPath(pillPath.bm_cgPath)
         context.fillPath()
 
         context.setStrokeColor(theme.effectiveInnerStroke().cgColor)
-        context.setLineWidth(config.edgeLabelBorderWidth)
+        context.setLineWidth(self.tokens.edgeLabelBorderWidth)
         context.addPath(pillPath.bm_cgPath)
         context.strokePath()
 
@@ -266,12 +265,11 @@ extension DiagramRenderer {
     }
 
     func _drawEdgeLabel(_ label: String, at position: CGPoint, in context: CGContext) {
-        let config = self.config
-        let edgeFont = config.edgeLabelFont()
+        let edgeFont = self.fontResolver.edgeLabelFont()
         let attributes: [NSAttributedString.Key: Any] = [.font: edgeFont]
         let size = (label as NSString).size(withAttributes: attributes)
 
-        let padding = config.edgeLabelPadding
+        let padding = self.tokens.edgeLabelPadding
         let pillRect = CGRect(
             x: position.x - size.width / 2 - padding,
             y: position.y - size.height / 2 - padding / 2,
@@ -279,13 +277,13 @@ extension DiagramRenderer {
             height: size.height + padding
         )
 
-        let pillPath = BMBezierPath(roundedRect: pillRect, cornerRadius: config.edgeLabelCornerRadius)
+        let pillPath = BMBezierPath(roundedRect: pillRect, cornerRadius: self.tokens.edgeLabelCornerRadius)
         context.setFillColor(theme.background.cgColor)
         context.addPath(pillPath.bm_cgPath)
         context.fillPath()
 
         context.setStrokeColor(theme.effectiveInnerStroke().cgColor)
-        context.setLineWidth(config.edgeLabelBorderWidth)
+        context.setLineWidth(self.tokens.edgeLabelBorderWidth)
         context.addPath(pillPath.bm_cgPath)
         context.strokePath()
 
@@ -322,7 +320,7 @@ extension DiagramRenderer {
                 _drawSFIcon(sfName, bounds: bounds.insetBy(dx: 4, dy: 4), in: context, contentHeight: ch)
             } else {
                 let fontSize = CGFloat(min(bounds.width, bounds.height) * 0.4)
-                let iconFont = DiagramFontResolver.proportional(self.config, size: fontSize, weight: .regular)
+                let iconFont = self.fontResolver.proportionalFont(size: fontSize, weight: .regular)
                 let textColor = theme.nodeTextColor(for: [:])
                 _drawTextInFlipped(
                     faName,

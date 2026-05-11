@@ -93,7 +93,7 @@ extension DiagramRenderer {
                     stereotypeText = "<<Element>>"
                 }
                 let stereotypeY = node.y + 14
-                let smallFont = DiagramFontResolver.proportional(config, size: 11, weight: .regular)
+                let smallFont = self.fontResolver.proportionalFont(size: 11, weight: .regular)
                 self._drawTextInFlipped(stereotypeText, at: CGPoint(x: node.x + node.width / 2, y: stereotypeY), context: ctx, contentHeight: ch, color: self.theme.effectiveMuted(), font: smallFont, alignment: .center)
 
                 // Name — markdown rendered as attributed string
@@ -104,7 +104,7 @@ extension DiagramRenderer {
                 mutable.enumerateAttributes(in: NSRange(location: 0, length: mutable.length), options: []) { attrs, range, _ in
                     var newAttrs = attrs
                     if let existingFont = attrs[.font] as? BMFont {
-                        let boldFont = DiagramFontResolver.boldProportional(config, size: existingFont.pointSize)
+                        let boldFont = self.fontResolver.boldProportionalFont(size: existingFont.pointSize)
                         newAttrs[.font] = boldFont
                     }
                     mutable.setAttributes(newAttrs, range: range)

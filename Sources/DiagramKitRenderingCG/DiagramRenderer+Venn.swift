@@ -304,7 +304,7 @@ extension DiagramRenderer {
     }
 
     private func _systemFont(size: CGFloat) -> BMFont {
-        DiagramFontResolver.proportional(config, size: size, weight: .regular)
+        self.fontResolver.proportionalFont(size: size, weight: .regular)
     }
 
     // MARK: - Hand-Drawn CG Helpers

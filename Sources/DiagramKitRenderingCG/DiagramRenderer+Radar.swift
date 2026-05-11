@@ -152,9 +152,9 @@ extension DiagramRenderer {
 
     private func _radarFont(size: CGFloat, bold: Bool = false) -> BMFont {
         if bold {
-            return DiagramFontResolver.boldProportional(config, size: size)
+            return self.fontResolver.boldProportionalFont(size: size)
         }
-        return DiagramFontResolver.proportional(config, size: size, weight: .regular)
+        return self.fontResolver.proportionalFont(size: size, weight: .regular)
     }
 }
 #endif

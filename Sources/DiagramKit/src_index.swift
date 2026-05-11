@@ -72,7 +72,7 @@ private func _renderPreprocessedMermaidSVG(
     layoutConfig: LayoutConfig
 ) throws -> String {
     let colors = buildColors(options)
-    let font = options.font ?? RenderTokens.shared.svgFontFamily
+    let font = options.font ?? DiagramFontResolver.shared.svgFontFamily
     let transparent = options.transparent ?? false
     return try SVGRenderRegistry.render(
         decodedText,

@@ -129,7 +129,7 @@ extension DiagramRenderer {
 
                 // Data labels
                 if let dl = bar.dataLabel {
-                    let labelFont = DiagramFontResolver.proportional(self.config, size: CGFloat(dl.fontSize), weight: .regular)
+                    let labelFont = self.fontResolver.proportionalFont(size: CGFloat(dl.fontSize), weight: .regular)
                     let anchor: NSTextAlignment = dl.textAnchor == "end" ? .right : dl.textAnchor == "start" ? .left : .center
                     self._drawTextXY(ctx, dl.text, x: dl.x, y: fy(dl.y), font: labelFont, color: textColor, align: anchor)
                 }
@@ -185,14 +185,14 @@ extension DiagramRenderer {
 
             // Axis labels
             if config.xAxis.showLabel {
-                let labelFont = DiagramFontResolver.proportional(self.config, size: CGFloat(config.xAxis.labelFontSize), weight: .regular)
+                let labelFont = self.fontResolver.proportionalFont(size: CGFloat(config.xAxis.labelFontSize), weight: .regular)
                 for tick in chart.xAxis.ticks {
                     let anchor: NSTextAlignment = tick.textAnchor == "end" ? .right : tick.textAnchor == "start" ? .left : .center
                     self._drawTextXY(ctx, tick.label, x: tick.labelX, y: fy(tick.labelY), font: labelFont, color: mutedColor, align: anchor)
                 }
             }
             if config.yAxis.showLabel {
-                let labelFont = DiagramFontResolver.proportional(self.config, size: CGFloat(config.yAxis.labelFontSize), weight: .regular)
+                let labelFont = self.fontResolver.proportionalFont(size: CGFloat(config.yAxis.labelFontSize), weight: .regular)
                 for tick in chart.yAxis.ticks {
                     let anchor: NSTextAlignment = tick.textAnchor == "end" ? .right : tick.textAnchor == "start" ? .left : .center
                     self._drawTextXY(ctx, tick.label, x: tick.labelX, y: fy(tick.labelY), font: labelFont, color: mutedColor, align: anchor)
@@ -201,7 +201,7 @@ extension DiagramRenderer {
 
             // Axis titles
             if let t = chart.xAxis.title, config.xAxis.showTitle {
-                let axisTitleFont = DiagramFontResolver.proportional(self.config, size: CGFloat(config.xAxis.titleFontSize), weight: .medium)
+                let axisTitleFont = self.fontResolver.proportionalFont(size: CGFloat(config.xAxis.titleFontSize), weight: .medium)
                 if let rotate = t.rotate {
                     ctx.saveGState()
                     ctx.translateBy(x: CGFloat(t.x), y: CGFloat(fy(t.y)))
@@ -213,7 +213,7 @@ extension DiagramRenderer {
                 }
             }
             if let t = chart.yAxis.title, config.yAxis.showTitle {
-                let axisTitleFont = DiagramFontResolver.proportional(self.config, size: CGFloat(config.yAxis.titleFontSize), weight: .medium)
+                let axisTitleFont = self.fontResolver.proportionalFont(size: CGFloat(config.yAxis.titleFontSize), weight: .medium)
                 if let rotate = t.rotate {
                     ctx.saveGState()
                     ctx.translateBy(x: CGFloat(t.x), y: CGFloat(fy(t.y)))
@@ -227,13 +227,13 @@ extension DiagramRenderer {
 
             // Chart title
             if let title = chart.title, config.showTitle {
-                let titleFont = DiagramFontResolver.proportional(self.config, size: CGFloat(config.titleFontSize), weight: .semibold)
+                let titleFont = self.fontResolver.proportionalFont(size: CGFloat(config.titleFontSize), weight: .semibold)
                 self._drawTextXY(ctx, title.text, x: title.x, y: fy(title.y), font: titleFont, color: textColor, align: .center)
             }
 
             // Legend (native only)
             if native {
-                let legendFont = DiagramFontResolver.proportional(self.config, size: 12, weight: .regular)
+                let legendFont = self.fontResolver.proportionalFont(size: 12, weight: .regular)
                 for item in chart.legend {
                     let seriesColor = self._xySeriesColor(item.colorIndex, accentHex: accentHex, bgHex: bgHex, themeConfig: themeConfig)
                     let iy = fy(item.y)

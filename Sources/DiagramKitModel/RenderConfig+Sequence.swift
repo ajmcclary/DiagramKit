@@ -1,18 +1,17 @@
-// Per-diagram-family constants extracted from `RenderConfig.swift`.
-// Step toward the audit's `RenderConfig` split (A5 / #7 in the audit
-// roadmap): grouping these by family makes it cheap to lift them into
-// dedicated `SequenceConfig` / `ClassConfig` / `ERConfig` structs in a
-// follow-up. No semantic change — values and access pattern unchanged.
+// Per-diagram-family constants forwarded from `RenderTokens`.
+// These are the migration seam for the A5 `RenderConfig` split.
+// The authoritative values live in `RenderTokens+Sequence.swift`.
+// Remove this file once all consumers use `RenderTokens` directly.
 #if canImport(UIKit) || canImport(AppKit)
 import Foundation
 import CoreGraphics
 
 extension RenderConfig {
 
-    // MARK: - Sequence Diagram Constants
+    // MARK: - Sequence Diagram Constants (forwarded)
 
-    public var sequenceLoopH: CGFloat { 20 }
-    public var sequenceTabHeight: CGFloat { 18 }
-    public var sequenceFoldSize: CGFloat { 6 }
+    public var sequenceLoopH: CGFloat { tokens.sequenceLoopH }
+    public var sequenceTabHeight: CGFloat { tokens.sequenceTabHeight }
+    public var sequenceFoldSize: CGFloat { tokens.sequenceFoldSize }
 }
 #endif

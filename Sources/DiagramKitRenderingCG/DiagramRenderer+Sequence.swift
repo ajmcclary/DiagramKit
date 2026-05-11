@@ -34,7 +34,7 @@ extension DiagramRenderer {
                     at: CGPoint(x: positioned.width / 2, y: 16),
                     context: ctx, contentHeight: ch,
                     color: theme.foreground,
-                    font: DiagramFontResolver.proportional(config, size: 16, weight: .semibold),
+                    font: self.fontResolver.proportionalFont(size: 16, weight: .semibold),
                     alignment: .center
                 )
             }

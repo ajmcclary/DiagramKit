@@ -90,11 +90,11 @@ extension DiagramRenderer {
     }
 
     private func _tvFont(size: CGFloat) -> BMFont {
-        DiagramFontResolver.proportional(config, size: size, weight: .regular)
+        self.fontResolver.proportionalFont(size: size, weight: .regular)
     }
 
     private func _tvItalicFont(size: CGFloat) -> BMFont {
-        let baseFont = DiagramFontResolver.proportional(config, size: size, weight: .regular)
+        let baseFont = self.fontResolver.proportionalFont(size: size, weight: .regular)
         #if targetEnvironment(macCatalyst) || canImport(UIKit)
         if let descriptor = baseFont.fontDescriptor.withSymbolicTraits(.traitItalic) {
             return BMFont(descriptor: descriptor, size: 0)

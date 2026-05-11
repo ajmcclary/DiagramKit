@@ -291,13 +291,7 @@ extension DiagramRenderer {
     }
 
     private func _emMonoFont(size: CGFloat) -> BMFont {
-        if let family = config.defaultFontFamily,
-           let bundled = BMFont(name: family, size: size) {
-            return bundled
-        }
-        return BMFont(name: "Menlo", size: size)
-            ?? BMFont(name: "Courier", size: size)
-            ?? BMFont.monospacedSystemFont(ofSize: size, weight: .regular)
+        fontResolver.monoFont(size: size)
     }
 }
 #endif

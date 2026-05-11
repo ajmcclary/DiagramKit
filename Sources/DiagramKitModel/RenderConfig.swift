@@ -11,110 +11,215 @@ import UIKit
 import AppKit
 #endif
 
+/// Public configuration facade for DiagramKit rendering.
+///
+/// `RenderConfig` owns a `RenderTokens` instance (the source of truth for
+/// all layout, font, and geometry constants) and exposes its properties
+/// through computed property forwarding. Font resolution and text
+/// measurement methods remain on this type during the A5 migration and
+/// will move to `DiagramFontResolver` / `TextMetrics` in follow-up phases.
+///
+/// Per-diagram-family constants (Sequence, Class, ER) are forwarded from
+/// `RenderTokens` via extensions in `RenderConfig+Sequence.swift`,
+/// `RenderConfig+Class.swift`, and `RenderConfig+ER.swift`.
 public struct RenderConfig: Sendable {
 
     public static let shared = RenderConfig()
 
-    // MARK: - Node Padding
+    // MARK: - Token storage
 
-    public var nodePaddingHorizontal: CGFloat = 20
-    public var nodePaddingVertical: CGFloat = 10
-    public var nodePaddingDiamondExtra: CGFloat = 24
+    /// The source of truth for all configurable constants.
+    public var tokens = RenderTokens()
 
-    public var nodePadding: CGSize {
-        CGSize(width: nodePaddingHorizontal, height: nodePaddingVertical)
+    // MARK: - Node Padding (forwarded)
+
+    public var nodePaddingHorizontal: CGFloat {
+        get { tokens.nodePaddingHorizontal }
+        set { tokens.nodePaddingHorizontal = newValue }
+    }
+    public var nodePaddingVertical: CGFloat {
+        get { tokens.nodePaddingVertical }
+        set { tokens.nodePaddingVertical = newValue }
+    }
+    public var nodePaddingDiamondExtra: CGFloat {
+        get { tokens.nodePaddingDiamondExtra }
+        set { tokens.nodePaddingDiamondExtra = newValue }
+    }
+    public var nodePadding: CGSize { tokens.nodePadding }
+
+    // MARK: - Font Sizes (forwarded)
+
+    public var fontSizeNodeLabel: CGFloat {
+        get { tokens.fontSizeNodeLabel }
+        set { tokens.fontSizeNodeLabel = newValue }
+    }
+    public var fontSizeEdgeLabel: CGFloat {
+        get { tokens.fontSizeEdgeLabel }
+        set { tokens.fontSizeEdgeLabel = newValue }
+    }
+    public var fontSizeGroupHeader: CGFloat {
+        get { tokens.fontSizeGroupHeader }
+        set { tokens.fontSizeGroupHeader = newValue }
     }
 
-    // MARK: - Font Sizes
+    // MARK: - Font Weights (forwarded)
 
-    public var fontSizeNodeLabel: CGFloat = 13
-    public var fontSizeEdgeLabel: CGFloat = 11
-    public var fontSizeGroupHeader: CGFloat = 12
+    public var fontWeightNodeLabel: Int {
+        get { tokens.fontWeightNodeLabel }
+        set { tokens.fontWeightNodeLabel = newValue }
+    }
+    public var fontWeightEdgeLabel: Int {
+        get { tokens.fontWeightEdgeLabel }
+        set { tokens.fontWeightEdgeLabel = newValue }
+    }
+    public var fontWeightGroupHeader: Int {
+        get { tokens.fontWeightGroupHeader }
+        set { tokens.fontWeightGroupHeader = newValue }
+    }
 
-    // MARK: - Font Weights
+    // MARK: - Stroke Widths (forwarded)
 
-    public var fontWeightNodeLabel: Int = 500
-    public var fontWeightEdgeLabel: Int = 400
-    public var fontWeightGroupHeader: Int = 600
+    public var strokeWidthOuterBox: CGFloat {
+        get { tokens.strokeWidthOuterBox }
+        set { tokens.strokeWidthOuterBox = newValue }
+    }
+    public var strokeWidthInnerBox: CGFloat {
+        get { tokens.strokeWidthInnerBox }
+        set { tokens.strokeWidthInnerBox = newValue }
+    }
+    public var strokeWidthConnector: CGFloat {
+        get { tokens.strokeWidthConnector }
+        set { tokens.strokeWidthConnector = newValue }
+    }
 
-    // MARK: - Stroke Widths
+    // MARK: - Arrow Head (forwarded)
 
-    public var strokeWidthOuterBox: CGFloat = 1.0
-    public var strokeWidthInnerBox: CGFloat = 0.75
-    public var strokeWidthConnector: CGFloat = 1.0
+    public var arrowHeadWidth: CGFloat {
+        get { tokens.arrowHeadWidth }
+        set { tokens.arrowHeadWidth = newValue }
+    }
+    public var arrowHeadHeight: CGFloat {
+        get { tokens.arrowHeadHeight }
+        set { tokens.arrowHeadHeight = newValue }
+    }
 
-    // MARK: - Arrow Head
+    // MARK: - Spacing (forwarded)
 
-    public var arrowHeadWidth: CGFloat = 8.0
-    public var arrowHeadHeight: CGFloat = 5.0
+    public var groupHeaderContentPad: CGFloat {
+        get { tokens.groupHeaderContentPad }
+        set { tokens.groupHeaderContentPad = newValue }
+    }
+    public var subgraphPadding: CGFloat {
+        get { tokens.subgraphPadding }
+        set { tokens.subgraphPadding = newValue }
+    }
+    public var nodeSpacing: CGFloat {
+        get { tokens.nodeSpacing }
+        set { tokens.nodeSpacing = newValue }
+    }
+    public var layerSpacing: CGFloat {
+        get { tokens.layerSpacing }
+        set { tokens.layerSpacing = newValue }
+    }
+    public var graphPadding: CGFloat {
+        get { tokens.graphPadding }
+        set { tokens.graphPadding = newValue }
+    }
 
-    // MARK: - Spacing
+    // MARK: - Text Rendering (forwarded)
 
-    public var groupHeaderContentPad: CGFloat = 12.0
-    public var subgraphPadding: CGFloat = 24
-    public var nodeSpacing: CGFloat = 28
-    public var layerSpacing: CGFloat = 48
-    public var graphPadding: CGFloat = 40
+    public var textBaselineShiftEm: CGFloat {
+        get { tokens.textBaselineShiftEm }
+        set { tokens.textBaselineShiftEm = newValue }
+    }
 
-    // MARK: - Text Rendering
+    // MARK: - Minimum Sizes (forwarded)
 
-    public var textBaselineShiftEm: CGFloat = 0.35
+    public var minimumNodeWidth: CGFloat {
+        get { tokens.minimumNodeWidth }
+        set { tokens.minimumNodeWidth = newValue }
+    }
+    public var minimumNodeHeight: CGFloat {
+        get { tokens.minimumNodeHeight }
+        set { tokens.minimumNodeHeight = newValue }
+    }
+    public var statePseudostateSize: CGFloat {
+        get { tokens.statePseudostateSize }
+        set { tokens.statePseudostateSize = newValue }
+    }
 
-    // MARK: - Minimum Sizes
+    // MARK: - Shape-specific (forwarded)
 
-    public var minimumNodeWidth: CGFloat = 60
-    public var minimumNodeHeight: CGFloat = 36
-    public var statePseudostateSize: CGFloat = 28
+    public var cylinderEllipseRadius: CGFloat {
+        get { tokens.cylinderEllipseRadius }
+        set { tokens.cylinderEllipseRadius = newValue }
+    }
+    public var subroutineInset: CGFloat {
+        get { tokens.subroutineInset }
+        set { tokens.subroutineInset = newValue }
+    }
+    public var asymmetricIndent: CGFloat {
+        get { tokens.asymmetricIndent }
+        set { tokens.asymmetricIndent = newValue }
+    }
+    public var doubleCircleGap: CGFloat {
+        get { tokens.doubleCircleGap }
+        set { tokens.doubleCircleGap = newValue }
+    }
 
-    // MARK: - Shape-specific
+    // MARK: - Edge Labels (forwarded)
 
-    public var cylinderEllipseRadius: CGFloat = 7
-    public var subroutineInset: CGFloat = 8
-    public var asymmetricIndent: CGFloat = 12
-    public var doubleCircleGap: CGFloat = 5
+    public var edgeLabelPadding: CGFloat {
+        get { tokens.edgeLabelPadding }
+        set { tokens.edgeLabelPadding = newValue }
+    }
+    public var edgeLabelCornerRadius: CGFloat {
+        get { tokens.edgeLabelCornerRadius }
+        set { tokens.edgeLabelCornerRadius = newValue }
+    }
+    public var edgeLabelBorderWidth: CGFloat {
+        get { tokens.edgeLabelBorderWidth }
+        set { tokens.edgeLabelBorderWidth = newValue }
+    }
 
-    // MARK: - Edge Labels
+    // MARK: - Font Families (forwarded)
 
-    public var edgeLabelPadding: CGFloat = 8
-    public var edgeLabelCornerRadius: CGFloat = 2
-    public var edgeLabelBorderWidth: CGFloat = 1.0
+    public var defaultFontFamily: String? {
+        get { tokens.defaultFontFamily }
+        set { tokens.defaultFontFamily = newValue }
+    }
+    public var defaultProportionalFontFamily: String? {
+        get { tokens.defaultProportionalFontFamily }
+        set { tokens.defaultProportionalFontFamily = newValue }
+    }
 
-    // MARK: - Per-Diagram Constants
+    // MARK: - Initialization
 
-    // Sequence / Class / ER constants live in `RenderConfig+Sequence.swift`,
-    // `RenderConfig+Class.swift`, `RenderConfig+ER.swift` so this file
-    // stays focused on cross-cutting layout, font, and shape geometry.
-    // The eventual A5 split (audit roadmap #7) is to lift each family
-    // into a standalone config struct; the per-family extension files
-    // are the seam.
+    public init() {}
+
+    // MARK: - Decomposed type accessors
+
+    /// Font resolver backed by the token storage.
+    /// Prefer `self.fontResolver.nodeLabelFont()` over `self.nodeLabelFont()`
+    /// in new code. The instance methods below remain for backward compatibility.
+    public var fontResolver: DiagramFontResolver {
+        DiagramFontResolver(tokens: tokens)
+    }
+
+    /// Text measurement backed by the font resolver.
+    /// Prefer `self.textMetrics.estimateTextWidth(...)` over
+    /// `self.estimateTextWidth(...)` in new code.
+    public var textMetrics: TextMetrics {
+        TextMetrics(fontResolver: fontResolver)
+    }
 
     // MARK: - Font Resolution
-
-    /// Default monospace font family name for deterministic rendering.
-    ///
-    /// Defaults to `"Noto Sans Mono"`, which is bundled in
-    /// `Resources/Fonts/noto-sans-mono/` and registered at first render via
-    /// `BeautifulMermaidFontRegistry.registerBundledFontsIfNeeded()`. Set to
-    /// `nil` to fall back to "Menlo" / system monospace.
-    public var defaultFontFamily: String? = "Noto Sans Mono"
-
-    /// Default proportional (non-monospace) font family name.
-    ///
-    /// Defaults to `"Noto Sans"`, which is bundled in
-    /// `Resources/Fonts/noto-sans/` and registered at first render via
-    /// `BeautifulMermaidFontRegistry.registerBundledFontsIfNeeded()`. Set to
-    /// `nil` to fall back to the system font.
-    public var defaultProportionalFontFamily: String? = "Noto Sans"
+    //
+    // NOTE: These methods will move to `DiagramFontResolver` in Phase 2
+    // of the A5 `RenderConfig` split. They remain here for backward
+    // compatibility during the migration.
 
     /// Maps a CSS-style numeric weight (100..900) to a `BMFont.Weight`.
-    ///
-    /// The previous implementation —
-    /// `BMFont.Weight(CGFloat(weight) / 1000.0 * CGFloat(BMFont.Weight.regular.rawValue))`
-    /// — was mathematically broken: `BMFont.Weight.regular.rawValue` is `0.0`,
-    /// so the expression always evaluated to `0.0` (= regular weight)
-    /// regardless of input. Bold/heavy weights silently degraded to regular.
-    /// This switch-based mapping matches the documented CSS → Apple weight
-    /// correspondence.
     public static func bmWeight(forCSS weight: Int) -> BMFont.Weight {
         switch weight {
         case ..<150:    return .ultraLight
@@ -131,10 +236,7 @@ public struct RenderConfig: Sendable {
 
     /// Resolves a monospace font, preferring `defaultFontFamily` when set.
     public func defaultFont(size: CGFloat, weight: Int = 400) -> BMFont {
-        if let family = defaultFontFamily {
-            // Try a weight-suffixed variant first (e.g. "NotoSansMono-Bold"),
-            // then the regular family. CTFontManager will return the closest
-            // match available among registered fonts.
+        if let family = tokens.defaultFontFamily {
             if weight >= 550 {
                 let boldCandidates = ["\(family)-Bold", "\(family) Bold"]
                 for name in boldCandidates {
@@ -150,13 +252,12 @@ public struct RenderConfig: Sendable {
 
     /// Resolves a proportional (non-monospace) font for the given size and weight.
     public func proportionalFont(size: CGFloat, weight: Int = 400) -> BMFont {
-        if let family = defaultProportionalFontFamily {
-            // Try weight-suffixed variant first.
+        if let family = tokens.defaultProportionalFontFamily {
             let suffix: String?
             switch weight {
-            case ..<350:    suffix = nil // Regular catches Light too
+            case ..<350:    suffix = nil
             case 350..<450: suffix = nil
-            case 450..<650: suffix = nil // Medium → Regular (no Medium in bundled Noto Sans)
+            case 450..<650: suffix = nil
             case 650..<850: suffix = "Bold"
             default:        suffix = "Bold"
             }
@@ -172,10 +273,6 @@ public struct RenderConfig: Sendable {
         }
         return BMFont.systemFont(ofSize: size, weight: Self.bmWeight(forCSS: weight))
     }
-
-    // MARK: - Initialization
-
-    public init() {}
 
     // MARK: - Font Helpers
 
@@ -195,41 +292,39 @@ public struct RenderConfig: Sendable {
     }
 
     /// Resolve the node-label font, honoring `defaultProportionalFontFamily`
-    /// when no explicit `family` is provided. Routes through `proportionalFont`
-    /// so bundled-font lookups land before the `BMFont.systemFont` fallback.
+    /// when no explicit `family` is provided.
     public func nodeLabelFont(family: String? = nil) -> BMFont {
         if let family,
-           let f = BMFont(name: family, size: fontSizeNodeLabel) {
+           let f = BMFont(name: family, size: tokens.fontSizeNodeLabel) {
             return f
         }
-        return proportionalFont(size: fontSizeNodeLabel, weight: fontWeightNodeLabel)
+        return proportionalFont(size: tokens.fontSizeNodeLabel, weight: tokens.fontWeightNodeLabel)
     }
 
-    /// Resolve the edge-label font, honoring `defaultProportionalFontFamily`
-    /// when no explicit `family` is provided.
+    /// Resolve the edge-label font.
     public func edgeLabelFont(family: String? = nil) -> BMFont {
         if let family,
-           let f = BMFont(name: family, size: fontSizeEdgeLabel) {
+           let f = BMFont(name: family, size: tokens.fontSizeEdgeLabel) {
             return f
         }
-        return proportionalFont(size: fontSizeEdgeLabel, weight: fontWeightEdgeLabel)
+        return proportionalFont(size: tokens.fontSizeEdgeLabel, weight: tokens.fontWeightEdgeLabel)
     }
 
-    /// Resolve the group-header font, honoring `defaultProportionalFontFamily`
-    /// when no explicit `family` is provided.
+    /// Resolve the group-header font.
     public func groupHeaderFont(family: String? = nil) -> BMFont {
         if let family,
-           let f = BMFont(name: family, size: fontSizeGroupHeader) {
+           let f = BMFont(name: family, size: tokens.fontSizeGroupHeader) {
             return f
         }
-        return proportionalFont(size: fontSizeGroupHeader, weight: fontWeightGroupHeader)
+        return proportionalFont(size: tokens.fontSizeGroupHeader, weight: tokens.fontWeightGroupHeader)
     }
 
+    // MARK: - Text Measurement
+    //
+    // NOTE: These methods will move to `TextMetrics` in Phase 3 of the A5
+    // `RenderConfig` split. They remain here for backward compatibility.
+
     /// Measure text width using CoreText for accurate, deterministic results.
-    ///
-    /// Uses `CTLineGetBoundsWithOptions(.useOpticalBounds)` which matches the
-    /// measurement used by `NSAttributedString.size()` in `LabelRenderer`,
-    /// ensuring consistent text placement between layout and CG drawing.
     public func estimateTextWidth(_ text: String, fontSize: CGFloat, fontWeight: Int) -> CGFloat {
         guard !text.isEmpty else { return 0 }
         let font = proportionalFont(size: fontSize, weight: fontWeight)
@@ -241,10 +336,6 @@ public struct RenderConfig: Sendable {
     }
 
     /// Measure monospace text width using CoreText.
-    ///
-    /// Previously used a crude `charCount * fontSize * 0.6` approximation.
-    /// Now uses actual CoreText measurement for accurate results with
-    /// non-ASCII and fullwidth characters.
     public func estimateMonoTextWidth(_ text: String, fontSize: CGFloat) -> CGFloat {
         guard !text.isEmpty else { return 0 }
         let font = defaultFont(size: fontSize)

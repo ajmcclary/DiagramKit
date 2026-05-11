@@ -255,29 +255,11 @@ extension DiagramRenderer {
     }
 
     private func _ishikawaMonoFont(size: CGFloat) -> BMFont {
-        if let family = config.defaultFontFamily,
-           let bundled = BMFont(name: family, size: size) {
-            return bundled
-        }
-        #if targetEnvironment(macCatalyst) || canImport(UIKit)
-        return UIFont(name: "Menlo", size: size) ?? UIFont.monospacedSystemFont(ofSize: size, weight: .regular)
-        #elseif canImport(AppKit)
-        return NSFont(name: "Menlo", size: size) ?? NSFont.monospacedSystemFont(ofSize: size, weight: .regular)
-        #endif
+        fontResolver.monoFont(size: size)
     }
 
     private func _ishikawaBoldFont(size: CGFloat) -> BMFont {
-        if let family = config.defaultFontFamily {
-            let candidates = ["\(family)-Bold", "\(family) Bold"]
-            for name in candidates {
-                if let f = BMFont(name: name, size: size) { return f }
-            }
-        }
-        #if targetEnvironment(macCatalyst) || canImport(UIKit)
-        return UIFont(name: "Menlo-Bold", size: size) ?? UIFont.systemFont(ofSize: size, weight: .semibold)
-        #elseif canImport(AppKit)
-        return NSFont(name: "Menlo-Bold", size: size) ?? NSFont.systemFont(ofSize: size, weight: .semibold)
-        #endif
+        fontResolver.boldMonoFont(size: size)
     }
 }
 #endif

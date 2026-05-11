@@ -8,6 +8,9 @@ public class NodeShapeRenderer {
 
     let config: RenderConfig
 
+    /// Token storage backed by the renderer's configuration.
+    var tokens: RenderTokens { config.tokens }
+
     public init(config: RenderConfig = RenderConfig.shared) {
         self.config = config
     }
@@ -29,7 +32,7 @@ public class NodeShapeRenderer {
             let outerR = min(bounds.width, bounds.height) / 2 - 2
             let outerRect = CGRect(x: cx - outerR, y: cy - outerR, width: outerR * 2, height: outerR * 2)
             context.setStrokeColor(theme.foreground.cgColor)
-            context.setLineWidth(config.strokeWidthInnerBox * 2)
+            context.setLineWidth(tokens.strokeWidthInnerBox * 2)
             context.strokeEllipse(in: outerRect)
             let innerR = outerR - 4
             let innerRect = CGRect(x: cx - innerR, y: cy - innerR, width: innerR * 2, height: innerR * 2)
@@ -82,7 +85,7 @@ public class NodeShapeRenderer {
         context.fillPath()
 
         context.setStrokeColor(strokeColor.cgColor)
-        context.setLineWidth(config.strokeWidthInnerBox)
+        context.setLineWidth(tokens.strokeWidthInnerBox)
         context.addPath(path)
         context.strokePath()
 
@@ -133,7 +136,7 @@ public class NodeShapeRenderer {
         case "trapezoid-alt":
             return trapezoidAltPath(bounds)
         case "cylinder":
-            let ry = config.cylinderEllipseRadius
+            let ry = tokens.cylinderEllipseRadius
             let bodyRect = CGRect(x: bounds.minX, y: bounds.minY + ry, width: bounds.width, height: bounds.height - 2 * ry)
             return CGPath(rect: bodyRect, transform: nil)
         case "subroutine":
@@ -187,11 +190,11 @@ public class NodeShapeRenderer {
         case "bow-tie-rectangle":
             return bowTiePath(bounds)
         case "horizontal-cylinder":
-            let rx = config.cylinderEllipseRadius
+            let rx = tokens.cylinderEllipseRadius
             let bodyRect = CGRect(x: bounds.minX + rx, y: bounds.minY, width: bounds.width - 2 * rx, height: bounds.height)
             return CGPath(rect: bodyRect, transform: nil)
         case "lined-cylinder", "data-store":
-            let ry = config.cylinderEllipseRadius
+            let ry = tokens.cylinderEllipseRadius
             let bodyRect = CGRect(x: bounds.minX, y: bounds.minY + ry, width: bounds.width, height: bounds.height - 2 * ry)
             return CGPath(rect: bodyRect, transform: nil)
         case "flipped-triangle", "sloped-rectangle":
@@ -294,7 +297,7 @@ public class NodeShapeRenderer {
 
     private func asymmetricPath(_ bounds: CGRect) -> CGPath {
         let path = CGMutablePath()
-        let indent = config.asymmetricIndent
+        let indent = tokens.asymmetricIndent
         let c = bounds.center
         path.move(to: CGPoint(x: bounds.minX + indent, y: bounds.minY))
         path.addLine(to: CGPoint(x: bounds.maxX, y: bounds.minY))
@@ -472,13 +475,11 @@ public class NodeShapeRenderer {
         // legacy switch below.
         if _isSpecDetailsCovered(shape) { return }
 
-        let config = config
-
         switch shape {
         case "subroutine":
-            let inset = config.subroutineInset
+            let inset = tokens.subroutineInset
             context.setStrokeColor(theme.nodeStrokeColor(for: inlineStyles).cgColor)
-            context.setLineWidth(config.strokeWidthInnerBox)
+            context.setLineWidth(tokens.strokeWidthInnerBox)
             context.move(to: CGPoint(x: bounds.minX + inset, y: bounds.minY))
             context.addLine(to: CGPoint(x: bounds.minX + inset, y: bounds.maxY))
             context.strokePath()
@@ -487,14 +488,14 @@ public class NodeShapeRenderer {
             context.strokePath()
 
         case "doublecircle":
-            let innerBounds = bounds.insetBy(dx: config.doubleCircleGap, dy: config.doubleCircleGap)
+            let innerBounds = bounds.insetBy(dx: tokens.doubleCircleGap, dy: tokens.doubleCircleGap)
             context.setStrokeColor(theme.nodeStrokeColor(for: inlineStyles).cgColor)
-            context.setLineWidth(config.strokeWidthInnerBox)
+            context.setLineWidth(tokens.strokeWidthInnerBox)
             context.addPath(CGPath(ellipseIn: innerBounds, transform: nil))
             context.strokePath()
 
         case "cylinder":
-            let ry = config.cylinderEllipseRadius
+            let ry = tokens.cylinderEllipseRadius
             let ellipseHeight = ry * 2
             let bodyTop = bounds.minY + ry
             let bodyBottom = bounds.maxY - ry
@@ -503,7 +504,7 @@ public class NodeShapeRenderer {
             let fillColor = theme.nodeFillColor(for: inlineStyles)
 
             context.setStrokeColor(strokeColor.cgColor)
-            context.setLineWidth(config.strokeWidthInnerBox)
+            context.setLineWidth(tokens.strokeWidthInnerBox)
             context.move(to: CGPoint(x: bounds.minX, y: bodyTop))
             context.addLine(to: CGPoint(x: bounds.minX, y: bodyBottom))
             context.strokePath()
@@ -532,7 +533,7 @@ public class NodeShapeRenderer {
         case "bang":
             // Center vertical line from top to bottom
             context.setStrokeColor(theme.nodeStrokeColor(for: inlineStyles).cgColor)
-            context.setLineWidth(config.strokeWidthInnerBox)
+            context.setLineWidth(tokens.strokeWidthInnerBox)
             context.move(to: CGPoint(x: bounds.midX, y: bounds.minY))
             context.addLine(to: CGPoint(x: bounds.midX, y: bounds.maxY))
             context.strokePath()
@@ -540,7 +541,7 @@ public class NodeShapeRenderer {
         case "framed-circle":
             let outerBounds = bounds.insetBy(dx: -4, dy: -4)
             context.setStrokeColor(theme.nodeStrokeColor(for: inlineStyles).cgColor)
-            context.setLineWidth(config.strokeWidthInnerBox * 1.5)
+            context.setLineWidth(tokens.strokeWidthInnerBox * 1.5)
             context.addPath(CGPath(ellipseIn: outerBounds, transform: nil))
             context.strokePath()
 
@@ -548,7 +549,7 @@ public class NodeShapeRenderer {
             let cx = bounds.midX, cy = bounds.midY
             let r = min(bounds.width, bounds.height) / 2
             context.setStrokeColor(theme.nodeStrokeColor(for: inlineStyles).cgColor)
-            context.setLineWidth(config.strokeWidthInnerBox)
+            context.setLineWidth(tokens.strokeWidthInnerBox)
             context.move(to: CGPoint(x: cx - r * 0.5, y: cy - r * 0.5))
             context.addLine(to: CGPoint(x: cx + r * 0.5, y: cy + r * 0.5))
             context.strokePath()
@@ -558,7 +559,7 @@ public class NodeShapeRenderer {
 
         case "divided-rectangle":
             context.setStrokeColor(theme.nodeStrokeColor(for: inlineStyles).cgColor)
-            context.setLineWidth(config.strokeWidthInnerBox)
+            context.setLineWidth(tokens.strokeWidthInnerBox)
             context.move(to: CGPoint(x: bounds.minX, y: bounds.midY))
             context.addLine(to: CGPoint(x: bounds.maxX, y: bounds.midY))
             context.strokePath()
@@ -568,7 +569,7 @@ public class NodeShapeRenderer {
             let paneRect = CGRect(x: bounds.maxX - inset - 4, y: bounds.minY + 4,
                                   width: inset, height: bounds.height - 8)
             context.setStrokeColor(theme.nodeStrokeColor(for: inlineStyles).cgColor)
-            context.setLineWidth(config.strokeWidthInnerBox)
+            context.setLineWidth(tokens.strokeWidthInnerBox)
             context.addPath(CGPath(rect: paneRect, transform: nil))
             context.strokePath()
 
@@ -577,7 +578,7 @@ public class NodeShapeRenderer {
             let backRect = bounds.offsetBy(dx: -offset, dy: -offset)
             context.saveGState()
             context.setStrokeColor(theme.nodeStrokeColor(for: inlineStyles).cgColor)
-            context.setLineWidth(config.strokeWidthInnerBox)
+            context.setLineWidth(tokens.strokeWidthInnerBox)
             context.setAlpha(0.4)
             context.addPath(documentPath(backRect))
             context.strokePath()
@@ -588,7 +589,7 @@ public class NodeShapeRenderer {
             let backRect = bounds.offsetBy(dx: -offset, dy: -offset)
             context.saveGState()
             context.setStrokeColor(theme.nodeStrokeColor(for: inlineStyles).cgColor)
-            context.setLineWidth(config.strokeWidthInnerBox)
+            context.setLineWidth(tokens.strokeWidthInnerBox)
             context.setAlpha(0.4)
             context.addPath(CGPath(rect: backRect, transform: nil))
             context.strokePath()
@@ -610,7 +611,7 @@ public class NodeShapeRenderer {
         case "tagged-document", "tagged-rectangle":
             let notchSize: CGFloat = 10
             context.setStrokeColor(theme.nodeStrokeColor(for: inlineStyles).cgColor)
-            context.setLineWidth(config.strokeWidthInnerBox)
+            context.setLineWidth(tokens.strokeWidthInnerBox)
             context.move(to: CGPoint(x: bounds.maxX - notchSize, y: bounds.minY))
             context.addLine(to: CGPoint(x: bounds.maxX - notchSize, y: bounds.minY + notchSize))
             context.addLine(to: CGPoint(x: bounds.maxX, y: bounds.minY + notchSize))
@@ -669,12 +670,12 @@ public class NodeShapeRenderer {
             switch decoration.stroke {
             case .mainStroke:
                 context.setStrokeColor(strokeColor.cgColor)
-                context.setLineWidth(config.strokeWidthInnerBox)
+                context.setLineWidth(tokens.strokeWidthInnerBox)
                 context.addPath(cgPath)
                 context.strokePath()
             case .dashed(let lengths):
                 context.setStrokeColor(strokeColor.cgColor)
-                context.setLineWidth(config.strokeWidthInnerBox)
+                context.setLineWidth(tokens.strokeWidthInnerBox)
                 context.setLineDash(phase: 0, lengths: lengths.map { $0 })
                 context.addPath(cgPath)
                 context.strokePath()
@@ -682,7 +683,7 @@ public class NodeShapeRenderer {
             case .thinStroke:
                 context.saveGState()
                 context.setStrokeColor(strokeColor.cgColor)
-                context.setLineWidth(config.strokeWidthInnerBox)
+                context.setLineWidth(tokens.strokeWidthInnerBox)
                 context.setAlpha(0.4)
                 context.addPath(cgPath)
                 context.strokePath()
@@ -713,7 +714,7 @@ public class NodeShapeRenderer {
         context.fillPath()
 
         context.setStrokeColor(strokeColor.cgColor)
-        context.setLineWidth(config.strokeWidthInnerBox)
+        context.setLineWidth(tokens.strokeWidthInnerBox)
         context.addPath(path)
         context.strokePath()
     }
@@ -738,13 +739,13 @@ public class NodeShapeRenderer {
 
         let divY = bounds.minY + titleHeight
         context.setStrokeColor(strokeColor.cgColor)
-        context.setLineWidth(config.strokeWidthInnerBox)
+        context.setLineWidth(tokens.strokeWidthInnerBox)
         context.move(to: CGPoint(x: bounds.minX, y: divY))
         context.addLine(to: CGPoint(x: bounds.maxX, y: divY))
         context.strokePath()
 
         context.setStrokeColor(strokeColor.cgColor)
-        context.setLineWidth(config.strokeWidthInnerBox)
+        context.setLineWidth(tokens.strokeWidthInnerBox)
         context.addPath(path)
         context.strokePath()
     }

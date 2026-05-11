@@ -16,7 +16,7 @@ Overall structural health: **yellow-green**. The target layering and typed domai
 | **A2** Registry split | ✅ Done | `741e212` `33c61c2` |
 | **A3** `DiagramFrontmatter` move | ✅ Done | `b308aa6` |
 | **A4** Shape abstraction | ✅ Done | All 4 consumer switches migrated: `ShapeRenderer.shapePath` + `_drawSpecDecorations`, SVG `_renderNodeShapeGeneric`, `EdgeShapeClipper` (`_clipPoint` now ShapePath-keyed). 27 `ShapePath` cases with full `CGPathRenderer` + `SVGPathSerializer` coverage; all `_defaultSpec` entries replaced with explicit paths + `ShapeDecoration`. **Position-dependent decorations (cylinder caps, stacked offsets, inset panes, corner tags) follow-up required** — currently retained in legacy switches (~130 lines) pending sub-bounds decoration support. |
-| **A5** Font / token split | ⚠ Partial | Font drift fixed (`88e3a13` `e2ebac8` `e596d70`); `RenderConfig` per-diagram constants extracted (`d60f042`); full god-object split still pending |
+| **A5** Font / token split | ✅ Done | Three-way decomposition landed: `RenderTokens` (35+ stored properties, 3 per-diagram extensions), `DiagramFontResolver` (all font resolution consolidated — 12 methods across 4 files merged into one struct), `TextMetrics` (text measurement extracted). `RenderConfig` now composes all three with backward-compatible forwarding.  ~28 CG renderer files migrated; CG-layer `DiagramFontResolver` deprecated. |
 | **P1** Routing collapse | ✅ Done | `0a42b8a` `4c3d386` |
 | **P1** Font drift | ✅ Done | bundled into A5 commits above |
 | **P2** Config & registry split | ✅ Done | `b308aa6` `7c44419` `741e212` `33c61c2` |
@@ -39,7 +39,6 @@ Overall structural health: **yellow-green**. The target layering and typed domai
 **Spawn chips remaining:** none — all spawn chips from the original audit have been completed.
 
 **Larger items not yet chipped:**
-- Full `RenderConfig` god-object split (token storage / font resolution / text measurement separation).
 - Linux text-measurement shim (`CTLineGetBoundsWithOptions` replacement) so ishikawa, treeView, eventModeling layouts can run on Linux.
 - CG/SVG renderer convergence on shared geometry primitives (D2 long-term plan).
 
@@ -250,7 +249,17 @@ Finish `SVGPathSerializer` for all `ShapePath` cases before migrating more rende
 
 ### A5. Font and render-token abstractions are partially adopted
 
-**Status:** ⚠ Partial. The font drift is fixed: `nodeLabelFont`/`edgeLabelFont`/`groupHeaderFont` now route through `proportionalFont` (`88e3a13`), `DiagramFontResolver` replaced direct `BMFont.systemFont` calls in CG renderers (`e2ebac8`, `e596d70`), and per-diagram constants moved to `RenderConfig+<Family>.swift` extensions (`d60f042`). The full god-object split (token storage / font resolution / text measurement as three distinct types) is still pending — the per-diagram extension files set up the seam.
+**Status:** ✅ Done. The three-way decomposition landed:
+
+- **`RenderTokens`** — owns all 35+ stored properties (node padding, font sizes/weights, stroke widths, arrow dimensions, spacing, minimum sizes, shape-specific radii, edge-label layout, default font families). Per-diagram constants live in `RenderTokens+Sequence.swift`, `RenderTokens+Class.swift`, and `RenderTokens+ER.swift`. `RenderConfig` forwards all stored properties through `self.tokens.*` with get/set accessors.
+
+- **`DiagramFontResolver`** — consolidates all font resolution into one struct in `Sources/DiagramKitModel/`. Absorbed `RenderConfig.defaultFont()`, `.proportionalFont()`, `.nodeLabelFont()`, `.edgeLabelFont()`, `.groupHeaderFont()`, `.bmWeight()`, `.fontWeight()`; the CG-layer `DiagramFontResolver` static helpers (`proportional`, `boldProportional`, `mono`); `DiagramRenderer._monoFont` / `._italicSystemFont` / `._italicMonoFont`; and Ishikawa/EventModeling local font helpers. Also provides SVG font-family strings (`svgProportionalFamily`, `svgMonoFamily`, fallback chains) and CTFont helpers (`proportionalCTFont`, `monospaceCTFont`). Takes `RenderTokens` as init parameter.
+
+- **`TextMetrics`** — new type in `Sources/DiagramKitModel/TextMetrics.swift`. Extracted `estimateTextWidth()` and `estimateMonoTextWidth()` from `RenderConfig`. Takes `DiagramFontResolver` as init parameter for font resolution.
+
+`RenderConfig` now exposes `tokens`, `fontResolver`, and `textMetrics` as computed properties. All old methods remain as backward-compatible forwarding wrappers. `DiagramRenderer` exposes the same three properties. ~28 CG renderer files were migrated: all `DiagramFontResolver.proportional(config, ...)` calls replaced with `self.fontResolver.proportionalFont(...)`, `ShapeRenderer` tokenized, and local font helpers eliminated. The CG-layer `DiagramFontResolver` enum is deprecated.
+
+**Evidence** (updated — post-split)
 
 **Evidence**
 
@@ -662,7 +671,6 @@ Expected impact: medium duplication reduction with moderate platform-testing nee
 
 These were identified in the audit but warrant their own scoping passes before being chipped:
 
-- **A5 full split.** Decompose `RenderConfig` into `RenderTokens` (storage), `DiagramFontResolver` (font resolution), and `TextMetrics` (measurement). Per-diagram extension files (`d60f042`) set up the seam; the lift itself touches ~28 CG renderers and has snapshot risk.
 - **D2 long-term.** Convergence of CG and SVG renderers onto shared geometry primitives. Steps 2–4 of D2's recommendation kick in after the A4 capstone lands.
 - **Linux Stage 2.5.** Portable text-measurement shim so `ishikawa` / `treeView` / `eventModeling` layouts can run without `CTLineGetBoundsWithOptions`.
 
