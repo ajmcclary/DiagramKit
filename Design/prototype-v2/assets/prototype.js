@@ -1104,19 +1104,13 @@ end
     });
   }
 
-  document.addEventListener("DOMContentLoaded", () => {
-    initAccessibilityLabels();
-    initCommandPalette();
-    initNewDiagramFlow();
-    initLibraryFilters();
-    initActivityFilters();
-    initVisualEditor();
-    initAiStudio();
-    initShareDialog();
-    initPresentationMode();
-    initSettingsFeedback();
-    initGenericActionFeedback();
-  });
+  // Note: this prototype historically had two DOMContentLoaded handlers
+  // that both ran the init functions. That double-fire caused each
+  // controller to attach to the page twice (the visible symptom was
+  // duplicate "16 events" badges in the Activity toolbar). The canonical
+  // boot block lives further down in the file with the full Stage 4–6
+  // controller set; the legacy handler that used to live here has been
+  // removed.
 
   // =======================================================================
   // GOLDEN PATH — Cross-page workflow state
