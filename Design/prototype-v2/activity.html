@@ -198,25 +198,58 @@
     display: grid;
     grid-template-columns: 32px 1fr;
     gap: 12px;
-    padding: 10px 12px;
+    padding: 0 12px;
     border-radius: 8px;
-    margin-bottom: 4px;
+    margin-bottom: 0;
     cursor: pointer;
     transition: background 80ms;
   }
   .event:hover { background: var(--surface-2); }
   .event.is-on {
     background: transparent;
+    color: inherit;
     box-shadow: inset 3px 0 0 var(--accent);
-    padding-left: 17px;
   }
   .event.mention.is-on {
     background: transparent;
   }
-  .event .rail {
+  /* Renamed from `.rail` to dodge global `.rail` rule in shared.css
+     (which forces min/max-width: 280px on the inspector pane). */
+  .event .event-rail {
     display: flex;
     flex-direction: column;
     align-items: center;
+    position: relative;
+    padding-top: 10px;
+    min-width: 0;
+    max-width: none;
+    background: transparent;
+    border: 0;
+  }
+  .event .event-rail::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 50%;
+    width: 1px;
+    background: var(--border-3);
+    transform: translateX(-50%);
+    z-index: 0;
+    pointer-events: none;
+  }
+  /* First event in a section: line emerges from icon, not above it. */
+  .day-head + .event .event-rail::before,
+  .session-group + .event .event-rail::before,
+  .group-body > .event:first-child .event-rail::before {
+    top: 24px;
+  }
+  /* Last event in a section: line ends at the icon, not below it. */
+  .event:has(+ .day-head) .event-rail::before,
+  .event:has(+ .session-group) .event-rail::before,
+  .group-body > .event:last-child .event-rail::before,
+  .timeline > .event:last-child .event-rail::before {
+    bottom: calc(100% - 24px);
   }
   .event .ic {
     width: 28px; height: 28px;
@@ -228,6 +261,9 @@
     place-items: center;
     font-size: 13px;
     font-weight: 700;
+    position: relative;
+    z-index: 1;
+    flex-shrink: 0;
   }
   .event .ic.cmt { background: rgba(8, 145, 178, 0.10); border-color: rgba(8, 145, 178, 0.32); color: #0891B2; }
   .event .ic.ai { background: rgba(124, 58, 237, 0.10); border-color: rgba(124, 58, 237, 0.32); color: #7C3AED; }
@@ -236,14 +272,8 @@
   .event .ic.share-ext { background: var(--danger-bg); border-color: var(--danger-bd); color: var(--danger); }
   .event .ic.deck { background: var(--warn-bg); border-color: var(--warn-bd); color: var(--warn); }
   .event .ic.sys { background: var(--surface-2); border-color: var(--border); color: var(--ink-3); }
-  .event .line {
-    width: 1px;
-    flex: 1;
-    background: var(--border-3);
-    margin-top: 4px;
-  }
 
-  .event .body { padding-top: 4px; }
+  .event .body { padding: 10px 0; min-width: 0; }
   .event .row1 {
     display: flex;
     align-items: baseline;
@@ -486,7 +516,7 @@
   }
   .session-group.open .group-body { display: block; }
   .session-group .group-body .event {
-    margin-bottom: 2px;
+    margin-bottom: 0;
   }
 
   /* Decision pill */
@@ -895,9 +925,8 @@
                 </div>
 
                 <div class="event mention is-on">
-                  <div class="rail">
+                  <div class="event-rail">
                     <div class="ic cmt">✎</div>
-                    <div class="line"></div>
                   </div>
                   <div class="body">
                     <div class="row1">
@@ -924,9 +953,8 @@
                 </div>
 
                 <div class="event">
-                  <div class="rail">
+                  <div class="event-rail">
                     <div class="ic ai">✦</div>
-                    <div class="line"></div>
                   </div>
                   <div class="body">
                     <div class="row1">
@@ -960,9 +988,8 @@
                   </div>
                   <div class="group-body">
                     <div class="event">
-                      <div class="rail">
+                      <div class="event-rail">
                         <div class="ic edit">↻</div>
-                        <div class="line"></div>
                       </div>
                       <div class="body">
                         <div class="row1">
@@ -982,9 +1009,8 @@
                       </div>
                     </div>
                     <div class="event">
-                      <div class="rail">
+                      <div class="event-rail">
                         <div class="ic edit">↻</div>
-                        <div class="line"></div>
                       </div>
                       <div class="body">
                         <div class="row1">
@@ -998,9 +1024,8 @@
                       </div>
                     </div>
                     <div class="event">
-                      <div class="rail">
+                      <div class="event-rail">
                         <div class="ic edit">↻</div>
-                        <div class="line"></div>
                       </div>
                       <div class="body">
                         <div class="row1">
@@ -1017,9 +1042,8 @@
                 </div>
 
                 <div class="event">
-                  <div class="rail">
+                  <div class="event-rail">
                     <div class="ic share">↗</div>
-                    <div class="line"></div>
                   </div>
                   <div class="body">
                     <div class="row1">
@@ -1045,9 +1069,8 @@
                 </div>
 
                 <div class="event">
-                  <div class="rail">
+                  <div class="event-rail">
                     <div class="ic share-ext">↗</div>
-                    <div class="line"></div>
                   </div>
                   <div class="body">
                     <div class="row1">
@@ -1070,9 +1093,8 @@
                 </div>
 
                 <div class="event">
-                  <div class="rail">
+                  <div class="event-rail">
                     <div class="ic share">↗</div>
-                    <div class="line"></div>
                   </div>
                   <div class="body">
                     <div class="row1">
@@ -1098,9 +1120,8 @@
                 </div>
 
                 <div class="event">
-                  <div class="rail">
+                  <div class="event-rail">
                     <div class="ic share">⌀</div>
-                    <div class="line"></div>
                   </div>
                   <div class="body">
                     <div class="row1">
@@ -1124,9 +1145,8 @@
                 </div>
 
                 <div class="event">
-                  <div class="rail">
+                  <div class="event-rail">
                     <div class="ic cmt">✓</div>
-                    <div class="line"></div>
                   </div>
                   <div class="body">
                     <div class="row1">
@@ -1144,9 +1164,8 @@
                 </div>
 
                 <div class="event">
-                  <div class="rail">
+                  <div class="event-rail">
                     <div class="ic deck">▸</div>
-                    <div class="line"></div>
                   </div>
                   <div class="body">
                     <div class="row1">
@@ -1167,9 +1186,8 @@
                 </div>
 
                 <div class="event">
-                  <div class="rail">
+                  <div class="event-rail">
                     <div class="ic ai">✦</div>
-                    <div class="line"></div>
                   </div>
                   <div class="body">
                     <div class="row1">
@@ -1192,9 +1210,8 @@
                 </div>
 
                 <div class="event">
-                  <div class="rail">
+                  <div class="event-rail">
                     <div class="ic share">⚙</div>
-                    <div class="line"></div>
                   </div>
                   <div class="body">
                     <div class="row1">
@@ -1209,9 +1226,8 @@
                 </div>
 
                 <div class="event">
-                  <div class="rail">
+                  <div class="event-rail">
                     <div class="ic" style="background: rgba(124, 58, 237, 0.10); color: #7C3AED; border-color: rgba(124, 58, 237, 0.32);">⚷</div>
-                    <div class="line"></div>
                   </div>
                   <div class="body">
                     <div class="row1">
@@ -1235,9 +1251,8 @@
                 </div>
 
                 <div class="event">
-                  <div class="rail">
+                  <div class="event-rail">
                     <div class="ic sys">↻</div>
-                    <div class="line"></div>
                   </div>
                   <div class="body">
                     <div class="row1">
@@ -1253,7 +1268,7 @@
                 </div>
 
                 <div class="event">
-                  <div class="rail">
+                  <div class="event-rail">
                     <div class="ic deck">!</div>
                   </div>
                   <div class="body">
