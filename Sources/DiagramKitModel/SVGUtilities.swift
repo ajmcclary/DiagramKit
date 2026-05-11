@@ -9,6 +9,16 @@ import DiagramKitCommon
 /// CSS style block, and closing tag. Replaces the per-renderer patterns of
 /// calling `original_src_theme.svgOpenTag` / `buildStyleBlock` + hand-written
 /// accessibility and `<defs>` wrappers.
+///
+/// Three optional fields control root-element rendering beyond the basic
+/// viewBox + dimensions:
+/// - `useMaxWidth`: when `true`, emits `width="100%"` with a `max-width`
+///   style and `preserveAspectRatio="xMinYMin meet"` instead of fixed
+///   `width`/`height`.
+/// - `viewBoxX` / `viewBoxY`: non-zero viewBox origin offsets, forwarded
+///   to `original_src_theme.svgOpenTag(viewBoxX:viewBoxY:)`.
+/// - `rootStyles`: additional CSS custom properties injected into the
+///   root `<svg>` style attribute (e.g. `"--line: #333"`).
 public struct SVGDocumentBuilder: Sendable {
     public var width: Double
     public var height: Double
@@ -18,6 +28,10 @@ public struct SVGDocumentBuilder: Sendable {
     public var includeHtmlLabelCSS: Bool
     public var accessibilityTitle: String?
     public var accessibilityDescription: String?
+    public var useMaxWidth: Bool
+    public var viewBoxX: Double
+    public var viewBoxY: Double
+    public var rootStyles: [String]
 
     public init(
         width: Double,
@@ -27,7 +41,11 @@ public struct SVGDocumentBuilder: Sendable {
         fontFamily: String = "Inter",
         includeHtmlLabelCSS: Bool = false,
         accessibilityTitle: String? = nil,
-        accessibilityDescription: String? = nil
+        accessibilityDescription: String? = nil,
+        useMaxWidth: Bool = false,
+        viewBoxX: Double = 0,
+        viewBoxY: Double = 0,
+        rootStyles: [String] = []
     ) {
         self.width = width
         self.height = height
@@ -37,6 +55,10 @@ public struct SVGDocumentBuilder: Sendable {
         self.includeHtmlLabelCSS = includeHtmlLabelCSS
         self.accessibilityTitle = accessibilityTitle
         self.accessibilityDescription = accessibilityDescription
+        self.useMaxWidth = useMaxWidth
+        self.viewBoxX = viewBoxX
+        self.viewBoxY = viewBoxY
+        self.rootStyles = rootStyles
     }
 
     // MARK: - Open tag
@@ -55,7 +77,33 @@ public struct SVGDocumentBuilder: Sendable {
             noteBkg: colors.noteBkg,
             noteBorder: colors.noteBorder
         )
-        let svgTag = original_src_theme.svgOpenTag(width, height, themeColors, transparent)
+        var svgTag = original_src_theme.svgOpenTag(
+            width, height, themeColors, transparent,
+            viewBoxX: viewBoxX, viewBoxY: viewBoxY
+        )
+
+        if useMaxWidth {
+            let wStr = _formatSvgNum(width)
+            svgTag = svgTag.replacingOccurrences(of: "width=\"\(wStr)\"", with: "width=\"100%\"")
+            let maxStyle = "max-width:\(wStr)px;"
+            if let styleStart = svgTag.range(of: "style=\"") {
+                svgTag.insert(contentsOf: maxStyle, at: styleStart.upperBound)
+            }
+            if !svgTag.contains("preserveAspectRatio") {
+                svgTag = svgTag.replacingOccurrences(
+                    of: "<svg ",
+                    with: "<svg preserveAspectRatio=\"xMinYMin meet\" "
+                )
+            }
+        }
+
+        // Inject root-level custom properties into the style attribute.
+        if !rootStyles.isEmpty {
+            let extra = rootStyles.joined(separator: ";") + ";"
+            if let styleStart = svgTag.range(of: "style=\"") {
+                svgTag.insert(contentsOf: extra, at: styleStart.upperBound)
+            }
+        }
 
         // Collect additional attributes to inject into the opening tag.
         var extraAttrs: [String] = []
@@ -99,4 +147,13 @@ public struct SVGDocumentBuilder: Sendable {
 
     /// Returns `</svg>`.
     public func close() -> String { "</svg>" }
+
+    // MARK: - Private
+
+    private func _formatSvgNum(_ value: Double) -> String {
+        if value.rounded() == value {
+            return String(Int(value))
+        }
+        return String(value)
+    }
 }
