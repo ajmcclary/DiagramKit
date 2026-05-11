@@ -18,15 +18,6 @@ public class NodeShapeRenderer {
     public func drawShape(_ shape: String, bounds: CGRect, inlineStyles: [String: String], in context: CGContext, theme: DiagramTheme) {
         context.saveGState()
 
-        if shape == "state-start" {
-            let path = trueCirclePath(bounds)
-            context.setFillColor(theme.foreground.cgColor)
-            context.addPath(path)
-            context.fillPath()
-            context.restoreGState()
-            return
-        }
-
         if shape == "state-end" {
             let cx = bounds.midX, cy = bounds.midY
             let outerR = min(bounds.width, bounds.height) / 2 - 2
@@ -56,38 +47,46 @@ public class NodeShapeRenderer {
             return
         }
 
-        if shape == "fork" || shape == "join" {
-            context.setFillColor(theme.foreground.cgColor)
-            context.addPath(roundedRectPath(bounds, cornerRadius: 2))
-            context.fillPath()
-            context.restoreGState()
-            return
-        }
-
-        if shape == "rounded-with-title" {
-            _drawRoundedWithTitle(bounds, context: context, theme: theme, inlineStyles: inlineStyles)
-            context.restoreGState()
-            return
-        }
-
-        if shape == "rect-with-title" {
-            _drawRectWithTitle(bounds, context: context, theme: theme, inlineStyles: inlineStyles)
-            context.restoreGState()
-            return
-        }
-
-        let fillColor = theme.nodeFillColor(for: inlineStyles)
-        let strokeColor = theme.nodeStrokeColor(for: inlineStyles)
+        let fillColor: BMColor
+        let strokeColor: BMColor
         let path = shapePath(for: shape, in: bounds)
 
-        context.setFillColor(fillColor.cgColor)
-        context.addPath(path)
-        context.fillPath()
+        // Apply fill/stroke overrides from ShapeSpec when present.
+        if let spec = ShapeSpecRegistry.spec(for: shape) {
+            if let fo = spec.fillOverride {
+                switch fo {
+                case .foreground: fillColor = theme.foreground
+                case .surface:    fillColor = theme.subgraphHeaderColor()
+                case .inherit:    fillColor = theme.nodeFillColor(for: inlineStyles)
+                case .none:       fillColor = theme.nodeFillColor(for: inlineStyles)
+                }
+            } else {
+                fillColor = theme.nodeFillColor(for: inlineStyles)
+            }
+            switch spec.strokeOverride {
+            case .none:  strokeColor = .clear  // won't stroke
+            case .some:  strokeColor = theme.nodeStrokeColor(for: inlineStyles)
+            case nil:    strokeColor = theme.nodeStrokeColor(for: inlineStyles)
+            }
+        } else {
+            fillColor = theme.nodeFillColor(for: inlineStyles)
+            strokeColor = theme.nodeStrokeColor(for: inlineStyles)
+        }
 
-        context.setStrokeColor(strokeColor.cgColor)
-        context.setLineWidth(tokens.strokeWidthInnerBox)
-        context.addPath(path)
-        context.strokePath()
+        // Only fill if override doesn't suppress it.
+        if fillColor != .clear {
+            context.setFillColor(fillColor.cgColor)
+            context.addPath(path)
+            context.fillPath()
+        }
+
+        // Only stroke if override doesn't suppress it.
+        if strokeColor != .clear {
+            context.setStrokeColor(strokeColor.cgColor)
+            context.setLineWidth(tokens.strokeWidthInnerBox)
+            context.addPath(path)
+            context.strokePath()
+        }
 
         _drawSpecDecorations(shape, in: bounds, context: context, theme: theme, inlineStyles: inlineStyles)
 
@@ -485,6 +484,8 @@ public class NodeShapeRenderer {
             let cgPath = CGPathRenderer.makePath(from: decorationPath, in: subBounds, config: config)
 
             switch decoration.stroke {
+            case .none:
+                break
             case .mainStroke:
                 context.setStrokeColor(strokeColor.cgColor)
                 context.setLineWidth(tokens.strokeWidthInnerBox)
@@ -507,64 +508,25 @@ public class NodeShapeRenderer {
                 context.restoreGState()
             }
 
-            if decoration.fillsBackground {
+            switch decoration.fill {
+            case .none:
+                break
+            case .inherit:
                 context.setFillColor(fillColor.cgColor)
+                context.addPath(cgPath)
+                context.fillPath()
+            case .surface:
+                context.setFillColor(theme.subgraphHeaderColor().cgColor)
+                context.addPath(cgPath)
+                context.fillPath()
+            case .foreground:
+                context.setFillColor(theme.foreground.cgColor)
                 context.addPath(cgPath)
                 context.fillPath()
             }
         }
     }
 
-    private func _drawRoundedWithTitle(_ bounds: CGRect, context: CGContext, theme: DiagramTheme, inlineStyles: [String: String]) {
-        let titleHeight: CGFloat = 35
-        let fillColor = theme.nodeFillColor(for: inlineStyles)
-        let strokeColor = theme.nodeStrokeColor(for: inlineStyles)
-        let headerColor = theme.subgraphHeaderColor()
 
-        let path = roundedRectPath(bounds, cornerRadius: 8)
-        context.setFillColor(fillColor.cgColor)
-        context.addPath(path)
-        context.fillPath()
-
-        context.setFillColor(headerColor.cgColor)
-        context.addPath(roundedRectPath(CGRect(x: bounds.minX, y: bounds.minY, width: bounds.width, height: titleHeight), cornerRadius: 8))
-        context.fillPath()
-
-        context.setStrokeColor(strokeColor.cgColor)
-        context.setLineWidth(tokens.strokeWidthInnerBox)
-        context.addPath(path)
-        context.strokePath()
-    }
-
-    private func _drawRectWithTitle(_ bounds: CGRect, context: CGContext, theme: DiagramTheme, inlineStyles: [String: String]) {
-        let titleHeight: CGFloat = 24
-        let fillColor = theme.nodeFillColor(for: inlineStyles)
-        let strokeColor = theme.nodeStrokeColor(for: inlineStyles)
-        let headerColor = theme.subgraphHeaderColor()
-
-        let path = roundedRectPath(bounds, cornerRadius: 4)
-        context.setFillColor(fillColor.cgColor)
-        context.addPath(path)
-        context.fillPath()
-
-        let titleRect = CGRect(x: bounds.minX, y: bounds.minY, width: bounds.width, height: titleHeight)
-        let titlePath = CGMutablePath()
-        titlePath.addRoundedRect(in: titleRect, cornerWidth: 4, cornerHeight: 4)
-        context.setFillColor(headerColor.cgColor)
-        context.addPath(titlePath)
-        context.fillPath()
-
-        let divY = bounds.minY + titleHeight
-        context.setStrokeColor(strokeColor.cgColor)
-        context.setLineWidth(tokens.strokeWidthInnerBox)
-        context.move(to: CGPoint(x: bounds.minX, y: divY))
-        context.addLine(to: CGPoint(x: bounds.maxX, y: divY))
-        context.strokePath()
-
-        context.setStrokeColor(strokeColor.cgColor)
-        context.setLineWidth(tokens.strokeWidthInnerBox)
-        context.addPath(path)
-        context.strokePath()
-    }
 }
 #endif

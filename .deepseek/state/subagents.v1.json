@@ -15,10 +15,48 @@
       },
       "result": null,
       "steps_taken": 0,
-      "duration_ms": 242642,
+      "duration_ms": 552846,
       "allowed_tools": [],
-      "updated_at_ms": 1778464709722,
+      "updated_at_ms": 1778498853309,
       "session_boot_id": "boot_4f209bc6-410"
+    },
+    {
+      "id": "agent_18dda98e",
+      "agent_type": "explore",
+      "prompt": "Trace the position-dependent shape decorations still in legacy switches. In Sources/DiagramKitRenderingCG/ShapeRenderer.swift, find the `drawShapeDetails` method and any switch statements that handle cylinder caps, stacked offsets, inset panes, and corner tags. Count the approximate lines involved and note which shapes are still handled there vs. through ShapeSpecRegistry. Also check Sources/DiagramKitModel/src_renderer.swift for the SVG-side equivalent — the `_renderNodeShape` function and its special-case switch for position-dependent shapes. Report: which shape types still have position-dependent decoration code in each renderer, approximately how many lines, and whether the logic is the same or different between CG and SVG.",
+      "assignment": {
+        "objective": "Trace the position-dependent shape decorations still in legacy switches. In Sources/DiagramKitRenderingCG/ShapeRenderer.swift, find the `drawShapeDetails` method and any switch statements that handle cylinder caps, stacked offsets, inset panes, and corner tags. Count the approximate lines involved and note which shapes are still handled there vs. through ShapeSpecRegistry. Also check Sources/DiagramKitModel/src_renderer.swift for the SVG-side equivalent — the `_renderNodeShape` function and its special-case switch for position-dependent shapes. Report: which shape types still have position-dependent decoration code in each renderer, approximately how many lines, and whether the logic is the same or different between CG and SVG.",
+        "role": "explorer"
+      },
+      "model": "deepseek-v4-pro",
+      "nickname": "长须鲸",
+      "status": {
+        "Failed": "API call timed out after 120s"
+      },
+      "result": null,
+      "steps_taken": 0,
+      "duration_ms": 210474,
+      "allowed_tools": [],
+      "updated_at_ms": 1778498853309,
+      "session_boot_id": "boot_ba614f9f-2e7"
+    },
+    {
+      "id": "agent_2d5890de",
+      "agent_type": "explore",
+      "prompt": "Survey the SVG renderer landscape in Sources/DiagramKitModel/. For each src_*_renderer.swift, src_*_svg.swift, and the base src_renderer.swift file, read the first 50-80 lines to determine their public entry point function signatures. Specifically note: do they accept positioned/graph model objects or raw/parsed but unpositioned models? Also check src_index.swift in Sources/DiagramKit/ for how these SVG renderers are invoked — look for _render*SvgCase functions. Report: a table of SVG renderer file → entry point signatures → positioned vs unpositioned, and note any that do their own parsing/layout instead of being handed a pre-positioned model.",
+      "assignment": {
+        "objective": "Survey the SVG renderer landscape in Sources/DiagramKitModel/. For each src_*_renderer.swift, src_*_svg.swift, and the base src_renderer.swift file, read the first 50-80 lines to determine their public entry point function signatures. Specifically note: do they accept positioned/graph model objects or raw/parsed but unpositioned models? Also check src_index.swift in Sources/DiagramKit/ for how these SVG renderers are invoked — look for _render*SvgCase functions. Report: a table of SVG renderer file → entry point signatures → positioned vs unpositioned, and note any that do their own parsing/layout instead of being handed a pre-positioned model.",
+        "role": "explorer"
+      },
+      "model": "deepseek-v4-pro",
+      "nickname": "抹香鲸",
+      "status": "Completed",
+      "result": "I now have all the data needed. Here is the complete survey.\n\n---\n\n### SUMMARY\n\nSurveyed all 21 SVG renderer entry points in `Sources/DiagramKitModel/` and the `_render*SvgCase` orchestration layer in `Sources/DiagramKit/src_index.swift`. Every SVG renderer function accepts a **positioned** (pre-laid-out) model — none do their own parsing or layout. Parsing and layout happen in the `_render*SvgCase` functions in `src_index.swift`, which call `parseX()`, `layoutX()`, then pass the positioned result to the renderer. All invocations are routed through `SVGRenderRegistry` (in `Sources/DiagramKit/SVGRenderRegistry.swift`).\n\n### EVIDENCE\n\n- `Sources/DiagramKitModel/src_renderer.swift:64-68` — `public func renderSvg(_ graph: PositionedGraph, _ colors: DiagramColors, ...) throws -> String` (positioned)\n- `Sources/DiagramKitModel/src_c4_renderer.swift:15-20` — `public func renderC4Svg(_ diagram: PositionedC4Diagram, diagramId: String, ...) throws -> String` (positioned)\n- `Sources/DiagramKitModel/src_class_renderer.swift:15-20` — `public func renderClassSvg(_ diagram: PositionedClassDiagram, ...) throws -> String` (positioned)\n- `Sources/DiagramKitModel/src_er_renderer.swift:18-23` — `public func renderErSvg(_ diagram: PositionedErDiagram, ...) throws -> String` (positioned)\n- `Sources/DiagramKitModel/src_gantt_renderer.swift:34-40` — `public func renderGanttSvg(_ positioned: PositionedGanttDiagram, diagramId: String, ...) throws -> String` (positioned)\n- `Sources/DiagramKitModel/src_gitgraph_renderer.swift:144-146` — `public func renderGitGraphSvg(_ positioned: PositionedGitGraphDiagram, ...) -> String` (positioned)\n- `Sources/DiagramKitModel/src_ishikawa_renderer.swift:3-7` — `public func renderIshikawaSvg(_ positioned: PositionedIshikawaDiagram, diagramId: String, ...) -> String` (positioned)\n- `Sources/DiagramKitModel/src_journey_renderer.swift:3-9` — `public func renderJourneySvg(_ diagram: PositionedJourneyDiagram, ...) throws -> String` (positioned)\n- `Sources/DiagramKitModel/src_kanban_renderer.swift:5-10` — `public func renderKanbanSvg(_ positioned: PositionedKanbanDiagram, diagramId: String, ...) throws -> String` (positioned)\n- `Sources/DiagramKitModel/src_packet_renderer.swift:3-7` — `public func renderPacketSvg(_ diagram: PositionedPacketDiagram, ...) -> String` (positioned)\n- `Sources/DiagramKitModel/src_pie_renderer.swift:5-10` — `public func renderPieSvg(_ chart: PositionedPieChart, ...) -> String` (positioned)\n- `Sources/DiagramKitModel/src_sequence_renderer.swift:5-10` — `public func renderSequenceSvg(_ diagram: PositionedSequenceDiagram, ...) throws -> String` (positioned)\n- `Sources/DiagramKitModel/src_timeline_renderer.swift:3-7` — `public func renderTimelineSvg(_ diagram: PositionedTimelineDiagram, ...) throws -> String` (positioned)\n- `Sources/DiagramKitModel/src_treeview_renderer.swift:5-7` — `public func renderTreeViewSvg(_ positioned: PositionedTreeViewDiagram, diagramId: String, font: String) -> String` (positioned)\n- `Sources/DiagramKitModel/src_wardley_renderer.swift:3-7` — `public func renderWardleyMapSvg(_ diagram: PositionedWardleyMapDiagram, ...) -> String` (positioned)\n- `Sources/DiagramKitModel/src_xychart_renderer.swift:51-58` — `public func renderXYChartSvg(_ chart: PositionedXYChart, ...) -> String` (positioned)\n- `Sources/DiagramKitModel/src_zenuml_renderer.swift:12-18` — `public func renderZenUMLSvg(_ diagram: PositionedZenUMLDiagram, ...) -> String` (positioned)\n- `Sources/DiagramKitModel/src_architecture_renderer.swift:3-8` — `public func renderArchitectureSvg(_ positioned: PositionedArchitectureDiagram, ...) throws -> String` (positioned)\n- `Sources/DiagramKitModel/src_sankey_renderer.swift:37-43` — `public func renderSankeySvg(_ positioned: PositionedSankeyDiagram, ...) -> String` (positioned)\n- `Sources/DiagramKitModel/src_block_renderer.swift:3-7` — `public func renderBlockSvg(_ diagram: PositionedBlockDiagram, ...) throws -> String` (positioned)\n- `Sources/DiagramKitModel/src_eventmodeling_renderer.swift:3-9` — `public func renderEventModelingSvg(_ positioned: PositionedEventModelingDiagram, ...) -> String` (positioned)\n- `Sources/DiagramKitModel/src_quadrant_renderer.swift:5-10` — `public func renderQuadrantSvg(_ chart: PositionedQuadrantChart, ...) -> String` (positioned)\n- SVG-specific files:\n  - `Sources/DiagramKitModel/src_treemap_svg.swift:3-9` — `public func renderTreemapSvg(_ positioned: PositionedTreemapDiagram, ...) -> String` (positioned)\n  - `Sources/DiagramKitModel/src_venn_svg.swift:3-9` — `public func renderVennSvg(_ positioned: PositionedVennDiagram, ...) -> String` (positioned)\n  - `Sources/DiagramKitModel/src_mindmap_svg.swift:3-9` — `public func renderMindmapSvg(_ positioned: PositionedMindmapDiagram, ...) -> String` (positioned)\n  - `Sources/DiagramKitModel/src_radar_svg.swift:3-8` — `public func renderRadarSvg(_ positioned: PositionedRadarDiagram, ...) -> String` (positioned)\n  - `Sources/DiagramKitModel/src_requirement_svg.swift:5-13` — `public func renderRequirementSvg(_ diagram: PositionedRequirementDiagram, ...) throws -> String` (positioned)\n- `Sources/DiagramKit/src_index.swift:65-268` — All `_render*SvgCase` functions do their own `parse*()` + `layout*()` before calling the positioned renderer; every case follows the pattern: parse → layout → call `render*Svg(positionedModel, ...)`.\n- `Sources/DiagramKit/SVGRenderRegistry.swift:50-155` — `SVGRenderRegistry.all` maps each `DiagramType` to a closure that delegates to the corresponding `_render*SvgCase` in `src_index.swift`.\n\n### CHANGES\n\nNone.\n\n### RISKS\n\nNone observed. The architecture is consistent: every SVG renderer receives a positioned model. There are no renderers that accept raw/unpositioned input — all parsing and layout is done upstream in `src_index.swift`'s `_render*SvgCase` functions.\n\n### BLOCKERS\n\nNone.",
+      "steps_taken": 7,
+      "duration_ms": 210536,
+      "allowed_tools": [],
+      "updated_at_ms": 1778498853309,
+      "session_boot_id": "boot_ba614f9f-2e7"
     },
     {
       "id": "agent_8483f29e",
@@ -34,9 +72,9 @@
       },
       "result": null,
       "steps_taken": 0,
-      "duration_ms": 242674,
+      "duration_ms": 552878,
       "allowed_tools": [],
-      "updated_at_ms": 1778464709722,
+      "updated_at_ms": 1778498853309,
       "session_boot_id": "boot_4f209bc6-410"
     },
     {
@@ -53,10 +91,30 @@
       },
       "result": null,
       "steps_taken": 0,
-      "duration_ms": 242610,
+      "duration_ms": 552814,
       "allowed_tools": [],
-      "updated_at_ms": 1778464709722,
+      "updated_at_ms": 1778498853309,
       "session_boot_id": "boot_4f209bc6-410"
+    },
+    {
+      "id": "agent_8efa0214",
+      "agent_type": "explore",
+      "prompt": "Identify duplicated marker, ID, and accessibility helpers across both the CG renderer layer (Sources/DiagramKitRenderingCG/) and the SVG renderer layer (Sources/DiagramKitModel/). Search for patterns like: marker rendering (arrow heads, end markers), diagram ID generation (StableID, _stableDiagramId), accessibility/title/desc generation for SVG, and any ARIA or metadata helpers. Also check if there's shared color/theme resolution logic that's duplicated. Look in: ArrowRenderer.swift, EdgeRenderer.swift, SVGUtilities.swift, SVGHelpers.swift, src_renderer.swift, DiagramRenderer.swift, and any other files that contain these helpers. Report: for each category (markers, IDs, accessibility, other), list the files and specific functions/structs that are duplicated.",
+      "assignment": {
+        "objective": "Identify duplicated marker, ID, and accessibility helpers across both the CG renderer layer (Sources/DiagramKitRenderingCG/) and the SVG renderer layer (Sources/DiagramKitModel/). Search for patterns like: marker rendering (arrow heads, end markers), diagram ID generation (StableID, _stableDiagramId), accessibility/title/desc generation for SVG, and any ARIA or metadata helpers. Also check if there's shared color/theme resolution logic that's duplicated. Look in: ArrowRenderer.swift, EdgeRenderer.swift, SVGUtilities.swift, SVGHelpers.swift, src_renderer.swift, DiagramRenderer.swift, and any other files that contain these helpers. Report: for each category (markers, IDs, accessibility, other), list the files and specific functions/structs that are duplicated.",
+        "role": "explorer"
+      },
+      "model": "deepseek-v4-pro",
+      "nickname": "Fin",
+      "status": {
+        "Failed": "API call timed out after 120s"
+      },
+      "result": null,
+      "steps_taken": 0,
+      "duration_ms": 210505,
+      "allowed_tools": [],
+      "updated_at_ms": 1778498853309,
+      "session_boot_id": "boot_ba614f9f-2e7"
     },
     {
       "id": "agent_b5aa1cd0",
@@ -70,10 +128,28 @@
       "status": "Cancelled",
       "result": null,
       "steps_taken": 0,
-      "duration_ms": 242579,
+      "duration_ms": 552783,
       "allowed_tools": [],
-      "updated_at_ms": 1778464709722,
+      "updated_at_ms": 1778498853309,
       "session_boot_id": "boot_4f209bc6-410"
+    },
+    {
+      "id": "agent_cdb3789a",
+      "agent_type": "explore",
+      "prompt": "Survey the CG renderer landscape in Sources/DiagramKitRenderingCG/. For each DiagramRenderer+*.swift file, read the first 50-80 lines to determine its public entry point(s) — what parameters do they accept? Specifically note: do they accept a positioned/graph model object (like PositionedGraph, FlowchartLayoutResult, etc.) or do they accept raw/parsed but unpositioned models? Also check if there's a common base class or protocol they conform to. Report: a table of renderer file → entry point method signatures → whether it consumes positioned vs unpositioned models. Focus on the render methods, not setup/init code.",
+      "assignment": {
+        "objective": "Survey the CG renderer landscape in Sources/DiagramKitRenderingCG/. For each DiagramRenderer+*.swift file, read the first 50-80 lines to determine its public entry point(s) — what parameters do they accept? Specifically note: do they accept a positioned/graph model object (like PositionedGraph, FlowchartLayoutResult, etc.) or do they accept raw/parsed but unpositioned models? Also check if there's a common base class or protocol they conform to. Report: a table of renderer file → entry point method signatures → whether it consumes positioned vs unpositioned models. Focus on the render methods, not setup/init code.",
+        "role": "explorer"
+      },
+      "model": "deepseek-v4-pro",
+      "nickname": "Sperm",
+      "status": "Completed",
+      "result": "I now have a complete picture. Here is the full report.\n\n### SUMMARY\n\nAll CG renderers in `Sources/DiagramKitRenderingCG/` are extensions on the single `public final class DiagramRenderer`. There is **no common protocol** — just one concrete class. The sole public entry point is `render(_: PositionedGraph, in: CGContext, bounds: CGRect)`, which dispatches to private `_draw*` methods via a `switch` on `positioned.content`. **Every renderer consumes a positioned (already-laid-out) model** — `PositionedGraph` wraps `PositionedContent`, an enum whose cases all carry layout-complete types (e.g. `PositionedNode`, `PositionedXYChart`, `PositionedMindmapDiagram`). No renderer accepts raw/parsed/unpositioned models.\n\n### EVIDENCE\n\n- `Sources/DiagramKitRenderingCG/DiagramRenderer.swift:20-103` — `DiagramRenderer` is `public final class` with `public func render(_ positioned: PositionedGraph, in context: CGContext, bounds: CGRect)`. The method switches on `positioned.content` and calls private `_draw*` methods.\n- `Sources/DiagramKitModel/Types.swift:301-310` — `PositionedGraph` struct holds `diagram: MermaidGraph`, `width: Double`, `height: Double`, and `content: PositionedContent`.\n- `Sources/DiagramKitModel/Types.swift:163-240` — `PositionedContent` enum: all cases carry positioned types (e.g. `.flowchart([PositionedNode], [PositionedEdge], [PositionedGroup])`, `.xyChart(PositionedXYChart)`, etc.).\n- `Sources/DiagramKitRenderingCG/DiagramRenderer+Flow.swift:36` — `func _drawFlowOrState(_ positioned: PositionedGraph, ...)` — consumes `PositionedGraph`.\n- `Sources/DiagramKitRenderingCG/DiagramRenderer+Sequence.swift:12` — `func _drawSequence(_ positioned: PositionedGraph, ...)` — consumes `PositionedGraph`.\n- `Sources/DiagramKitRenderingCG/DiagramRenderer+Class.swift:11` — `func _drawClass(_ positioned: PositionedGraph, ...)` — consumes `PositionedGraph`.\n- `Sources/DiagramKitRenderingCG/DiagramRenderer+ER.swift:11` — `func _drawEr(_ positioned: PositionedGraph, ...)` — consumes `PositionedGraph`.\n- `Sources/DiagramKitRenderingCG/DiagramRenderer+Gantt.swift:10` — `func _drawGantt(_ positioned: PositionedGraph, ...)` — consumes `PositionedGraph`.\n- `Sources/DiagramKitRenderingCG/DiagramRenderer+Pie.swift:17` — `func _drawPie(_ positioned: PositionedGraph, ...)` — consumes `PositionedGraph`.\n- `Sources/DiagramKitRenderingCG/DiagramRenderer+Sankey.swift:17` — `func _drawSankey(_ positioned: PositionedGraph, ...)` — consumes `PositionedGraph`.\n- `Sources/DiagramKitRenderingCG/DiagramRenderer+Journey.swift:33` — `func _drawJourney(_ positioned: PositionedGraph, ...)` — consumes `PositionedGraph`.\n- `Sources/DiagramKitRenderingCG/DiagramRenderer+Quadrant.swift:18` — `func _drawQuadrant(_ positioned: PositionedGraph, ...)` — consumes `PositionedGraph`.\n- `Sources/DiagramKitRenderingCG/DiagramRenderer+Requirement.swift:10` — `func _drawRequirement(_ positioned: PositionedGraph, ...)` — consumes `PositionedGraph`.\n- `Sources/DiagramKitRenderingCG/DiagramRenderer+GitGraph.swift:16` — `func _drawGitGraph(_ positioned: PositionedGraph, ...)` — consumes `PositionedGraph`.\n- `Sources/DiagramKitRenderingCG/DiagramRenderer+Mindmap.swift:16` — `func _drawMindmap(_ positioned: PositionedGraph, ...)` — consumes `PositionedGraph`.\n- `Sources/DiagramKitRenderingCG/DiagramRenderer+Timeline.swift:10` — `func _drawTimeline(_ positioned: PositionedGraph, ...)` — consumes `PositionedGraph`.\n- `Sources/DiagramKitRenderingCG/DiagramRenderer+Block.swift:15` — `func _drawBlock(_ positioned: PositionedGraph, ...)` — consumes `PositionedGraph`.\n- `Sources/DiagramKitRenderingCG/DiagramRenderer+Packet.swift:15` — `func _drawPacket(_ positioned: PositionedGraph, ...)` — consumes `PositionedGraph`.\n- `Sources/DiagramKitRenderingCG/DiagramRenderer+Kanban.swift:16` — `func _drawKanban(_ positioned: PositionedGraph, ...)` — consumes `PositionedGraph`.\n- `Sources/DiagramKitRenderingCG/DiagramRenderer+Architecture.swift:15` — `func _drawArchitecture(_ positioned: PositionedGraph, ...)` — consumes `PositionedGraph`.\n- `Sources/DiagramKitRenderingCG/DiagramRenderer+Radar.swift:17` — `func _drawRadar(_ positioned: PositionedGraph, ...)` — consumes `PositionedGraph`.\n- `Sources/DiagramKitRenderingCG/DiagramRenderer+Treemap.swift:16` — `func _drawTreemap(_ positioned: PositionedGraph, ...)` — consumes `PositionedGraph`.\n- `Sources/DiagramKitRenderingCG/DiagramRenderer+Venn.swift:143` — `func _drawVenn(_ positioned: PositionedGraph, ...)` — consumes `PositionedGraph`.\n- `Sources/DiagramKitRenderingCG/DiagramRenderer+Ishikawa.swift:16` — `func _drawIshikawa(_ positioned: PositionedGraph, ...)` — consumes `PositionedGraph`.\n- `Sources/DiagramKitRenderingCG/DiagramRenderer+TreeView.swift:17` — `func _drawTreeView(_ positioned: PositionedGraph, ...)` — consumes `PositionedGraph`.\n- `Sources/DiagramKitRenderingCG/DiagramRenderer+EventModeling.swift:17` — `func _drawEventModeling(_ positioned: PositionedGraph, ...)` — consumes `PositionedGraph`.\n- `Sources/DiagramKitRenderingCG/DiagramRenderer+Wardley.swift:8` — `func _drawWardley(_ positioned: PositionedGraph, ...)` — consumes `PositionedGraph`.\n- `Sources/DiagramKitRenderingCG/DiagramRenderer+ZenUML.swift:11` — `func _drawZenUML(_ positioned: PositionedGraph, ...)` — consumes `PositionedGraph`.\n- `Sources/DiagramKitRenderingCG/DiagramRenderer+C4.swift:10` — `func _drawC4(_ positioned: PositionedGraph, ...)` — consumes `PositionedGraph`.\n- `Sources/DiagramKitRenderingCG/DiagramRenderer+XYChart.swift:17` — `func _drawXYChart(_ positioned: PositionedGraph, ...)` — consumes `PositionedGraph`.\n\n### CHANGES\n\nNone.\n\n### RISKS\n\nNone observed.\n\n### BLOCKERS\n\nNone.",
+      "steps_taken": 7,
+      "duration_ms": 210569,
+      "allowed_tools": [],
+      "updated_at_ms": 1778498853309,
+      "session_boot_id": "boot_ba614f9f-2e7"
     }
   ]
 }

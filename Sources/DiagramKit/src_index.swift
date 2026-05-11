@@ -42,15 +42,6 @@ private func buildColors(_ options: RenderOptions) -> DiagramColors {
     )
 }
 
-private func _stableDiagramId(prefix: String, source: String) -> String {
-    var hash: UInt64 = 14_695_981_039_346_656_037
-    for byte in source.utf8 {
-        hash ^= UInt64(byte)
-        hash &*= 1_099_511_628_211
-    }
-    return "\(prefix)-\(String(hash, radix: 16))"
-}
-
 func _renderMermaidSVG(
     _ text: String,
     _ options: RenderOptions = RenderOptions(),
@@ -191,7 +182,7 @@ func _renderMindmapSvgCase(source: String, fm: DiagramFrontmatter?, colors: Diag
     let rawLines = MermaidSourceNormalizer.rawLines(source)
     let diagram = try parseMindmap(rawLines, frontmatter: fm)
     let positioned = try layoutMindmap(diagram)
-    let diagramId = _stableDiagramId(prefix: "mindmap", source: source)
+    let diagramId = StableID.derive(from: source)
     return renderMindmapSvg(positioned, diagramId: diagramId, colors, font, transparent)
 }
 
@@ -257,7 +248,7 @@ func _renderArchitectureSvgCase(source: String, fm: DiagramFrontmatter?, colors:
         diagram.diagramTitle = fmTitle
     }
     let positioned = layoutArchitectureDiagram(diagram)
-    let diagramId = _stableDiagramId(prefix: "architecture", source: source)
+    let diagramId = StableID.derive(from: source)
     return try renderArchitectureSvg(positioned, diagramId: diagramId, colors, font, transparent)
 }
 

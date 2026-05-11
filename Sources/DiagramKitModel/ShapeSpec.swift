@@ -34,6 +34,14 @@ public struct ShapeSpec: Sendable {
     /// it). When `nil`, callers fall back to `path`.
     public let clipPath: (@Sendable (_ rect: CGRect, _ config: RenderConfig) -> ShapePath)?
 
+    /// Overrides the fill color for the primary path. When `nil` (default),
+    /// the renderer uses the node's normal fill color (`nodeFillColor`).
+    public let fillOverride: ShapeDecoration.Fill?
+
+    /// Overrides the stroke style for the primary path. When `nil` (default),
+    /// the renderer uses the node's normal stroke (`mainStroke`).
+    public let strokeOverride: ShapeDecoration.Stroke?
+
     /// Decorations layered on top of the base `path`. Renderers iterate
     /// this list AFTER drawing the primary path (e.g. the inner rectangle
     /// of a subroutine, the inner ellipse of a doubleCircle, the cross of
@@ -46,6 +54,8 @@ public struct ShapeSpec: Sendable {
         sizeAdjustment: @Sendable @escaping (_ textSize: CGSize, _ config: RenderConfig) -> CGSize,
         path: @Sendable @escaping (_ rect: CGRect, _ config: RenderConfig) -> ShapePath,
         clipPath: (@Sendable (_ rect: CGRect, _ config: RenderConfig) -> ShapePath)? = nil,
+        fillOverride: ShapeDecoration.Fill? = nil,
+        strokeOverride: ShapeDecoration.Stroke? = nil,
         decorations: [ShapeDecoration] = []
     ) {
         self.aliases = aliases
@@ -53,6 +63,8 @@ public struct ShapeSpec: Sendable {
         self.sizeAdjustment = sizeAdjustment
         self.path = path
         self.clipPath = clipPath
+        self.fillOverride = fillOverride
+        self.strokeOverride = strokeOverride
         self.decorations = decorations
     }
 }
@@ -72,9 +84,22 @@ public struct ShapeSpec: Sendable {
 public struct ShapeDecoration: Sendable {
 
     public enum Stroke: Sendable {
+        case none
         case mainStroke
         case dashed(lengths: [CGFloat])
         case thinStroke
+    }
+
+    /// Controls how the decoration's path is filled.
+    public enum Fill: Sendable {
+        /// No fill — stroke only.
+        case none
+        /// Use the same fill color as the main shape.
+        case inherit
+        /// Use the theme's surface color (for title headers, inset panes).
+        case surface
+        /// Use the theme's foreground color (for state-start/end, fork/join, filled-circle).
+        case foreground
     }
 
     /// Generates a platform-independent path description for the
@@ -88,18 +113,21 @@ public struct ShapeDecoration: Sendable {
     public let bounds: @Sendable (_ fullBounds: CGRect, _ config: RenderConfig) -> CGRect
 
     public let stroke: Stroke
-    public let fillsBackground: Bool
+    public let fill: Fill
+
+    @available(*, deprecated, message: "Use `fill` instead")
+    public var fillsBackground: Bool { fill == .inherit }
 
     public init(
         path: @Sendable @escaping (_ rect: CGRect, _ config: RenderConfig) -> ShapePath,
         bounds: @Sendable @escaping (_ fullBounds: CGRect, _ config: RenderConfig) -> CGRect = { fullBounds, _ in fullBounds },
         stroke: Stroke = .mainStroke,
-        fillsBackground: Bool = false
+        fill: Fill = .none
     ) {
         self.path = path
         self.bounds = bounds
         self.stroke = stroke
-        self.fillsBackground = fillsBackground
+        self.fill = fill
     }
 }
 
@@ -378,7 +406,7 @@ public enum ShapeSpecRegistry {
                 ShapeDecoration(
                     path: { _, _ in .ellipse },
                     stroke: .mainStroke,
-                    fillsBackground: true
+                    fill: .inherit
                 ),
             ]
         )
@@ -422,7 +450,7 @@ public enum ShapeSpecRegistry {
                     return CGRect(x: full.minX, y: full.minY, width: full.width, height: h)
                 },
                 stroke: .mainStroke,
-                fillsBackground: true
+                fill: .inherit
             ),
             ShapeDecoration(
                 path: { _, _ in .ellipse },
@@ -431,7 +459,7 @@ public enum ShapeSpecRegistry {
                     return CGRect(x: full.minX, y: full.maxY - h, width: full.width, height: h)
                 },
                 stroke: .mainStroke,
-                fillsBackground: true
+                fill: .inherit
             ),
         ]
         return ShapeSpec(
@@ -556,7 +584,7 @@ public enum ShapeSpecRegistry {
                     return CGRect(x: full.minX, y: full.minY, width: full.width, height: h)
                 },
                 stroke: .mainStroke,
-                fillsBackground: true
+                fill: .inherit
             ),
             ShapeDecoration(
                 path: { _, _ in .ellipse },
@@ -565,7 +593,7 @@ public enum ShapeSpecRegistry {
                     return CGRect(x: full.minX, y: full.maxY - h, width: full.width, height: h)
                 },
                 stroke: .mainStroke,
-                fillsBackground: true
+                fill: .inherit
             ),
         ]
         return ShapeSpec(
@@ -620,8 +648,12 @@ public enum ShapeSpecRegistry {
             ]
         )
     }
-    private static func _makeForkSpec() -> ShapeSpec { ShapeSpec(aliases: ["fork"], sizeAdjustment: { _, _ in CGSize(width: 70, height: 7) }, path: { _, _ in .rect(cornerRadius: 0) }) }
-    private static func _makeJoinSpec() -> ShapeSpec { ShapeSpec(aliases: ["join"], sizeAdjustment: { _, _ in CGSize(width: 70, height: 7) }, path: { _, _ in .rect(cornerRadius: 0) }) }
+    private static func _makeForkSpec() -> ShapeSpec {
+        ShapeSpec(aliases: ["fork"], sizeAdjustment: { _, _ in CGSize(width: 70, height: 7) }, path: { _, _ in .rect(cornerRadius: 0) }, fillOverride: .foreground, strokeOverride: .none)
+    }
+    private static func _makeJoinSpec() -> ShapeSpec {
+        ShapeSpec(aliases: ["join"], sizeAdjustment: { _, _ in CGSize(width: 70, height: 7) }, path: { _, _ in .rect(cornerRadius: 0) }, fillOverride: .foreground, strokeOverride: .none)
+    }
     private static func _makeHourglassSpec() -> ShapeSpec {
         ShapeSpec(aliases: ["collate", "hourglass"], sizeAdjustment: _rectSizing, path: { _, _ in .hourglass })
     }
@@ -720,7 +752,7 @@ public enum ShapeSpecRegistry {
                         return CGRect(x: full.minX, y: full.minY, width: w, height: full.height)
                     },
                     stroke: .mainStroke,
-                    fillsBackground: true
+                    fill: .inherit
                 ),
                 ShapeDecoration(
                     path: { _, _ in .ellipse },
@@ -729,7 +761,7 @@ public enum ShapeSpecRegistry {
                         return CGRect(x: full.maxX - w, y: full.minY, width: w, height: full.height)
                     },
                     stroke: .mainStroke,
-                    fillsBackground: true
+                    fill: .inherit
                 ),
                 ShapeDecoration(
                     path: { rect, config in .polyline(points: [
@@ -787,7 +819,7 @@ public enum ShapeSpecRegistry {
                         return CGRect(x: full.minX, y: full.minY, width: full.width, height: h)
                     },
                     stroke: .mainStroke,
-                    fillsBackground: true
+                    fill: .inherit
                 ),
                 ShapeDecoration(
                     path: { _, _ in .ellipse },
@@ -796,7 +828,7 @@ public enum ShapeSpecRegistry {
                         return CGRect(x: full.minX, y: full.maxY - h, width: full.width, height: h)
                     },
                     stroke: .mainStroke,
-                    fillsBackground: true
+                    fill: .inherit
                 ),
             ]
         )
@@ -853,7 +885,7 @@ public enum ShapeSpecRegistry {
         )
     }
     private static func _makeFilledCircleSpec() -> ShapeSpec {
-        ShapeSpec(aliases: ["filled-circle", "f-circ", "junction"], sizeAdjustment: { _, _ in CGSize(width: 28, height: 28) }, path: { _, _ in .ellipse })
+        ShapeSpec(aliases: ["filled-circle", "f-circ", "junction"], sizeAdjustment: { _, _ in CGSize(width: 28, height: 28) }, path: { _, _ in .ellipse }, fillOverride: .foreground, strokeOverride: .none)
     }
     private static func _makeLinedDocumentSpec() -> ShapeSpec {
         ShapeSpec(
@@ -977,7 +1009,7 @@ public enum ShapeSpecRegistry {
                         CGPoint(x: rect.maxX, y: rect.minY + 10),
                     ]) },
                     stroke: .mainStroke,
-                    fillsBackground: true
+                    fill: .inherit
                 ),
             ]
         )
@@ -995,7 +1027,7 @@ public enum ShapeSpecRegistry {
                         CGPoint(x: rect.maxX, y: rect.minY + 10),
                     ]) },
                     stroke: .mainStroke,
-                    fillsBackground: true
+                    fill: .inherit
                 ),
             ]
         )
@@ -1014,18 +1046,66 @@ public enum ShapeSpecRegistry {
     }
     private static func _makeNoteSpec() -> ShapeSpec { ShapeSpec(aliases: ["note"], sizeAdjustment: _rectSizing, path: { _, _ in .rect(cornerRadius: 0) }) }
     private static func _makeRectWithTitleSpec() -> ShapeSpec {
-        ShapeSpec(aliases: ["rect-with-title"], sizeAdjustment: _rectSizing, path: { _, _ in .rect(cornerRadius: 4) })
+        ShapeSpec(
+            aliases: ["rect-with-title"],
+            sizeAdjustment: _rectSizing,
+            path: { _, _ in .rect(cornerRadius: 4) },
+            decorations: [
+                ShapeDecoration(
+                    path: { sub, _ in .rect(cornerRadius: 4) },
+                    bounds: { full, _ in CGRect(x: full.minX, y: full.minY, width: full.width, height: 24) },
+                    stroke: .none,
+                    fill: .surface
+                ),
+                ShapeDecoration(
+                    path: { _, _ in .polyline(points: [
+                        CGPoint(x: 0, y: 24),
+                        CGPoint(x: 100, y: 24),  // width overridden by bounds scaling
+                    ]) },
+                    stroke: .mainStroke,
+                    fill: .none
+                ),
+            ]
+        )
     }
     private static func _makeLabelRectSpec() -> ShapeSpec { ShapeSpec(aliases: ["label-rect"], sizeAdjustment: _rectSizing, path: { _, _ in .rect(cornerRadius: 0) }) }
     private static func _makeAnchorSpec() -> ShapeSpec { ShapeSpec(aliases: ["anchor"], sizeAdjustment: _rectSizing, path: { _, _ in .rect(cornerRadius: 0) }) }
     private static func _makeClassBoxSpec() -> ShapeSpec { ShapeSpec(aliases: ["class-box"], sizeAdjustment: _rectSizing, path: { _, _ in .rect(cornerRadius: 4) }) }
     private static func _makeInvisibleSpec() -> ShapeSpec { ShapeSpec(aliases: ["invisible"], sizeAdjustment: { _, _ in .zero }, path: { _, _ in .rect(cornerRadius: 0) }) }
-    private static func _makeStateStartSpec() -> ShapeSpec { ShapeSpec(aliases: ["state-start"], sizeAdjustment: { _, _ in CGSize(width: 28, height: 28) }, path: { _, _ in .ellipse }) }
+    private static func _makeStateStartSpec() -> ShapeSpec {
+        ShapeSpec(
+            aliases: ["state-start"],
+            sizeAdjustment: { _, _ in CGSize(width: 28, height: 28) },
+            path: { _, _ in .ellipse },
+            fillOverride: .foreground,
+            strokeOverride: .none
+        )
+    }
     private static func _makeStateEndSpec() -> ShapeSpec { ShapeSpec(aliases: ["state-end"], sizeAdjustment: { _, _ in CGSize(width: 28, height: 28) }, path: { _, _ in .doubleCircle(gap: 5) }) }
     private static func _makeStateDividerSpec() -> ShapeSpec { ShapeSpec(aliases: ["state-divider"], sizeAdjustment: { textSize, _ in CGSize(width: Swift.max(textSize.width, 60), height: 12) }, path: { _, _ in .rect(cornerRadius: 0) }) }
     private static func _makeStateNoteSpec() -> ShapeSpec { ShapeSpec(aliases: ["state-note"], sizeAdjustment: { textSize, _ in CGSize(width: Swift.max(textSize.width, 80), height: Swift.max(textSize.height, 40)) }, path: { _, _ in .rect(cornerRadius: 6) }) }
     private static func _makeRoundedWithTitleSpec() -> ShapeSpec {
-        ShapeSpec(aliases: ["rounded-with-title"], sizeAdjustment: _rectSizing, path: { _, _ in .rect(cornerRadius: 8) })
+        ShapeSpec(
+            aliases: ["rounded-with-title"],
+            sizeAdjustment: _rectSizing,
+            path: { _, _ in .rect(cornerRadius: 8) },
+            decorations: [
+                ShapeDecoration(
+                    path: { sub, _ in .rect(cornerRadius: 8) },
+                    bounds: { full, _ in CGRect(x: full.minX, y: full.minY, width: full.width, height: 35) },
+                    stroke: .none,
+                    fill: .surface
+                ),
+                ShapeDecoration(
+                    path: { _, _ in .polyline(points: [
+                        CGPoint(x: 0, y: 35),
+                        CGPoint(x: 100, y: 35),
+                    ]) },
+                    stroke: .mainStroke,
+                    fill: .none
+                ),
+            ]
+        )
     }
     private static func _makeEllipseSpec() -> ShapeSpec {
         ShapeSpec(aliases: ["ellipse"], sizeAdjustment: { textSize, config in

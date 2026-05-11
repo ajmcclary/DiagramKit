@@ -565,16 +565,43 @@ private func _renderNodeShapeGeneric(
 
     let shapePath = spec.path(bounds, RenderConfig.shared)
     let d = SVGPathSerializer.serialize(shapePath, in: bounds)
+
+    // Apply fill/stroke overrides from the spec.
+    let primaryFill: String = {
+        switch spec.fillOverride {
+        case .some(.foreground): return "var(--_text)"
+        case .some(.surface): return "var(--_surface)"
+        case .some(.inherit), .some(.none), nil: return fill
+        }
+    }()
+    let primaryStroke: String = {
+        switch spec.strokeOverride {
+        case .none: return "none"
+        case .some: return stroke
+        case nil: return stroke
+        }
+    }()
+
     var parts: [String] = []
-    parts.append("<path d=\"\(d)\" fill=\"\(fill)\" stroke=\"\(stroke)\" stroke-width=\"\(sw)\" />")
+    parts.append("<path d=\"\(d)\" fill=\"\(primaryFill)\" stroke=\"\(primaryStroke)\" stroke-width=\"\(sw)\" />")
 
     for decoration in spec.decorations {
         let subBounds = decoration.bounds(bounds, RenderConfig.shared)
         let decPath = decoration.path(subBounds, RenderConfig.shared)
         let decD = SVGPathSerializer.serialize(decPath, in: subBounds)
-        let decFill = decoration.fillsBackground ? fill : "none"
+        let decFill: String = {
+            switch decoration.fill {
+            case .none: return "none"
+            case .inherit: return fill
+            case .surface: return "var(--_surface)"
+            case .foreground: return "var(--_text)"
+            }
+        }()
         var extra = ""
+        var decStroke = stroke
         switch decoration.stroke {
+        case .none:
+            decStroke = "none"
         case .dashed(let lengths):
             extra = " stroke-dasharray=\"\(lengths.map { String(format: "%.0f", $0) }.joined(separator: " "))\""
         case .thinStroke:
@@ -582,7 +609,7 @@ private func _renderNodeShapeGeneric(
         case .mainStroke:
             break
         }
-        parts.append("<path d=\"\(decD)\" fill=\"\(decFill)\" stroke=\"\(stroke)\" stroke-width=\"\(sw)\"\(extra) />")
+        parts.append("<path d=\"\(decD)\" fill=\"\(decFill)\" stroke=\"\(decStroke)\" stroke-width=\"\(sw)\"\(extra) />")
     }
 
     return parts.joined(separator: "\n")
@@ -603,26 +630,18 @@ private func _renderNodeShape(_ node: _SvgNode) -> String {
     // Shapes with special color semantics or embedded content that bypass
     // the generic spec-driven path.
     switch shape {
-    case "state-start":
-        return _renderStateStart(x: x, y: y, w: width, h: height)
     case "state-end":
         return _renderStateEnd(x: x, y: y, w: width, h: height)
     case "state-divider":
         return _renderStateDivider(x: x, y: y, w: width, h: height, stroke: stroke)
-    case "fork", "join":
-        return _renderForkJoinBar(x: x, y: y, w: width, h: height)
     case "text", "invisible":
         return _renderRect(x: x, y: y, w: width, h: height, fill: "none", stroke: "none", sw: "1")
-    case "small-circle", "filled-circle":
+    case "small-circle":
         return _renderFilledCircle(x: x, y: y, w: width, h: height)
     case "state-note":
         let noteFill = _escapeAttr(inlineStyle["fill"] ?? "var(--_note-bkg)")
         let noteStroke = _escapeAttr(inlineStyle["stroke"] ?? "var(--_note-border)")
         return _renderRoundedRect(x: x, y: y, w: width, h: height, fill: noteFill, stroke: noteStroke, sw: sw)
-    case "rect-with-title":
-        return _renderRectWithTitle(x: x, y: y, w: width, h: height, fill: fill, stroke: stroke, sw: sw)
-    case "rounded-with-title":
-        return _renderRoundedWithTitle(x: x, y: y, w: width, h: height, fill: fill, stroke: stroke, sw: sw)
     case "icon-square":
         return _renderIconSquare(x: x, y: y, w: width, h: height, fill: fill, stroke: stroke, sw: sw, icon: node.icon, img: node.img)
     case "icon-circle":
@@ -751,24 +770,6 @@ private func _renderStateEnd(x: Double, y: Double, w: Double, h: Double) -> Stri
     let innerR = outerR - 4
     return "<circle cx=\"\(cx)\" cy=\"\(cy)\" r=\"\(outerR)\" fill=\"none\" stroke=\"var(--_text)\" stroke-width=\"\(original_src_styles.STROKE_WIDTHS.innerBox * 2)\" />\n" +
         "<circle cx=\"\(cx)\" cy=\"\(cy)\" r=\"\(innerR)\" fill=\"var(--_text)\" stroke=\"none\" />"
-}
-
-private func _renderRectWithTitle(x: Double, y: Double, w: Double, h: Double, fill: String, stroke: String, sw: String) -> String {
-    let titleH: Double = 24
-    var parts: [String] = []
-    parts.append("<rect x=\"\(x)\" y=\"\(y)\" width=\"\(w)\" height=\"\(h)\" rx=\"4\" ry=\"4\" fill=\"\(fill)\" stroke=\"\(stroke)\" stroke-width=\"\(sw)\" />")
-    parts.append("<rect x=\"\(x)\" y=\"\(y)\" width=\"\(w)\" height=\"\(titleH)\" rx=\"4\" ry=\"4\" fill=\"var(--_surface)\" stroke=\"none\" />")
-    parts.append("<line x1=\"\(x)\" y1=\"\(y + titleH)\" x2=\"\(x + w)\" y2=\"\(y + titleH)\" stroke=\"\(stroke)\" stroke-width=\"\(sw)\" />")
-    return parts.joined(separator: "\n")
-}
-
-private func _renderRoundedWithTitle(x: Double, y: Double, w: Double, h: Double, fill: String, stroke: String, sw: String) -> String {
-    let titleH: Double = 35
-    var parts: [String] = []
-    parts.append("<rect x=\"\(x)\" y=\"\(y)\" width=\"\(w)\" height=\"\(h)\" rx=\"8\" ry=\"8\" fill=\"\(fill)\" stroke=\"\(stroke)\" stroke-width=\"\(sw)\" />")
-    parts.append("<rect x=\"\(x)\" y=\"\(y)\" width=\"\(w)\" height=\"\(titleH)\" rx=\"8\" ry=\"8\" fill=\"var(--_surface)\" stroke=\"none\" />")
-    parts.append("<rect x=\"\(x)\" y=\"\(y + titleH - 8)\" width=\"\(w)\" height=\"8\" fill=\"var(--_surface)\" stroke=\"none\" />")
-    return parts.joined(separator: "\n")
 }
 
 private func _renderStateDivider(x: Double, y: Double, w: Double, h: Double, stroke: String) -> String {
