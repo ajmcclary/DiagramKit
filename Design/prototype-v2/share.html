@@ -1050,24 +1050,13 @@
                 </div>
               </div>
 
-              <footer class="share-foot">
-                <div class="alert" style="flex: 1; margin: 0 12px 0 0; padding: 6px 10px; border-radius: 6px;">
-                  <span class="ic" style="width: 16px; height: 16px; font-size: 9px;">!</span>
-                  <div class="body">
-                    <span class="ttl" style="font-size: 11.5px;">External sharing in progress</span>
-                    <span class="desc" style="font-size: 10.5px;">
-                      <b>rajiv@partner-co.io</b> is outside <b>Engineering</b>. <em>Workspace policy:</em> partner-co.io matches the allowlist.
-                    </span>
-                  </div>
-                  <button class="cta" style="font-size: 10.5px; padding: 4px 10px;">Confirm external share</button>
-                </div>
-                <span class="plan-pill">
-                  <span class="icon">✦</span>
-                  Studio plan · full editing + external sharing
+              <footer class="share-foot" data-share-modal>
+                <span data-share-summary style="flex: 1; font-size: 12px; color: var(--ink-2);">
+                  2 invites · 1 external (Allowed by policy)
                 </span>
                 <div class="footer-actions">
-                  <button class="btn">Manage links</button>
-                  <button class="btn primary">Save changes</button>
+                  <a href="library.html" class="btn" data-share-cancel>Cancel</a>
+                  <button class="btn primary" data-share-send-save>Send &amp; save</button>
                 </div>
               </footer>
 
