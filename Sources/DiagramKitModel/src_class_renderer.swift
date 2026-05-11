@@ -29,19 +29,17 @@ private func _renderClassSvgEntry(
 ) throws -> String {
     var parts: [String] = []
 
-    let themedColors = original_src_theme.DiagramColors(
-        bg: colors.bg,
-        fg: colors.fg,
-        line: colors.line,
-        accent: colors.accent,
-        muted: colors.muted,
-        surface: colors.surface,
-        border: colors.border,
-        noteBkg: colors.noteBkg,
-        noteBorder: colors.noteBorder
+    let builder = SVGDocumentBuilder(
+        width: diagram.width,
+        height: diagram.height,
+        colors: colors,
+        transparent: transparent,
+        fontFamily: font,
+        includeHtmlLabelCSS: true,
+        accessibilityTitle: diagram.accTitle,
+        accessibilityDescription: diagram.accDescription
     )
-
-    parts.append(original_src_theme.svgOpenTag(diagram.width, diagram.height, themedColors, transparent))
+    parts.append(builder.open())
 
     // Accessibility metadata
     if let title = diagram.accTitle, !title.isEmpty {
@@ -54,7 +52,7 @@ private func _renderClassSvgEntry(
         parts.append("  <text x=\"\(diagram.width / 2)\" y=\"24\" text-anchor=\"middle\" font-size=\"16\" font-weight=\"700\" fill=\"var(--_text)\">\(SVG.escapeText(diagramTitle))</text>")
     }
 
-    parts.append(original_src_theme.buildStyleBlock(font, true))
+    parts.append(builder.style())
     parts.append("<defs>")
     parts.append(_relationshipMarkerDefs())
     parts.append("</defs>")
@@ -86,7 +84,7 @@ private func _renderClassSvgEntry(
         if !rendered.isEmpty { parts.append(rendered) }
     }
 
-    parts.append("</svg>")
+    parts.append(builder.close())
     return parts.joined(separator: "\n")
 }
 

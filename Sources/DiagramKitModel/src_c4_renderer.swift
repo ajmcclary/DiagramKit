@@ -26,7 +26,16 @@ public func renderC4Svg(
     let viewBoxW = diagram.width * 1.2
     let viewBoxH = diagram.height + extraVertForTitle + diagram.width * 0.1
 
-    svg += "<svg id=\"\(xmlEscape(diagramId))\" viewBox=\"\(viewBoxX) \(viewBoxY) \(viewBoxW) \(viewBoxH)\" xmlns=\"http://www.w3.org/2000/svg\">\n"
+    let builder = SVGDocumentBuilder(
+        width: viewBoxW,
+        height: viewBoxH,
+        colors: colors,
+        transparent: transparent,
+        fontFamily: font,
+        viewBoxX: viewBoxX,
+        viewBoxY: viewBoxY
+    )
+    svg += builder.open(extraAttributes: "id=\"\(xmlEscape(diagramId))\"") + "\n"
 
     if !transparent {
         svg += "<rect width=\"100%\" height=\"100%\" fill=\"\(xmlEscape(colors.bg))\"/>\n"
@@ -69,7 +78,7 @@ public func renderC4Svg(
         svg += "<title>\(xmlEscape(accTitle))</title>\n"
     }
 
-    svg += "</svg>"
+    svg += builder.close()
     return svg
 }
 

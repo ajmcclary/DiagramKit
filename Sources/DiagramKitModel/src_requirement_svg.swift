@@ -12,12 +12,22 @@ public func renderRequirementSvg(
     htmlLabels: Bool? = nil
 ) throws -> String {
     var parts: [String] = []
-    let themeColors = _toReqThemeColors(colors)
     let config = diagram.config
     let resolvedLook = config.look ?? look ?? "classic"
     let resolvedHtmlLabels = config.htmlLabels ?? htmlLabels ?? true
 
-    parts.append(_reqSvgOpenTag(diagram.width, diagram.height, themeColors, transparent, config))
+    let builder = SVGDocumentBuilder(
+        width: diagram.width,
+        height: diagram.height,
+        colors: colors,
+        transparent: transparent,
+        fontFamily: font,
+        includeHtmlLabelCSS: false,
+        accessibilityTitle: diagram.accTitle,
+        accessibilityDescription: diagram.accDescr,
+        useMaxWidth: config.useMaxWidth
+    )
+    parts.append(builder.open())
     if let accTitle = diagram.accTitle, !accTitle.isEmpty {
         parts.append("<title>\(SVG.escapeText(accTitle))</title>")
     }
@@ -53,7 +63,7 @@ public func renderRequirementSvg(
         parts.append(_renderReqEdgeLabel(edge))
     }
 
-    parts.append("</svg>")
+    parts.append(builder.close())
     return parts.joined(separator: "\n")
 }
 

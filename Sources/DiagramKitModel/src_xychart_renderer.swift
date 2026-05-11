@@ -67,10 +67,17 @@ public func renderXYChartSvg(
         chart.bars.map(\.colorIndex).max() ?? 0,
         chart.lines.map(\.colorIndex).max() ?? 0
     )
-    let themeColors = original_src_theme.DiagramColors(bg: colors.bg, fg: colors.fg, line: colors.line, accent: colors.accent, muted: colors.muted, surface: colors.surface, border: colors.border)
-    var svgTag = original_src_theme.svgOpenTag(chart.width, chart.height, themeColors, transparent)
-    svgTag = svgTag.replacingOccurrences(of: "<svg ", with: "<svg data-xychart-colors=\"\(maxColorIdx)\" ")
-    parts.append(svgTag)
+    let builder = SVGDocumentBuilder(
+        width: chart.width,
+        height: chart.height,
+        colors: colors,
+        transparent: transparent,
+        fontFamily: font,
+        includeHtmlLabelCSS: false,
+        accessibilityTitle: chart.accTitle,
+        accessibilityDescription: chart.accDescr
+    )
+    parts.append(builder.open(extraAttributes: "data-xychart-colors=\"\(maxColorIdx)\""))
 
     // Accessibility
     if let accTitle = chart.accTitle {
@@ -80,7 +87,7 @@ public func renderXYChartSvg(
         parts.append("<desc>\(_escapeXml(accDescr))</desc>")
     }
 
-    parts.append(original_src_theme.buildStyleBlock(font, false))
+    parts.append(builder.style())
 
     let maxLinePoints = chart.lines.map(\.points.count).max() ?? 0
     let sparse = maxLinePoints > 0 && maxLinePoints <= 12
@@ -332,7 +339,7 @@ public func renderXYChartSvg(
         for g in dotOverlay { parts.append(g) }
     }
 
-    parts.append("</svg>")
+    parts.append(builder.close())
     return parts.joined(separator: "\n")
 }
 

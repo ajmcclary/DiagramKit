@@ -80,25 +80,25 @@ private func _renderSvgEntry(
     let model = _extractSvgGraphModel(graph)
     var parts: [String] = []
 
-    let themeColors = original_src_theme.DiagramColors(
-        bg: colors.bg,
-        fg: colors.fg,
-        line: colors.line,
-        accent: colors.accent,
-        muted: colors.muted,
-        surface: colors.surface,
-        border: colors.border
-    )
-
-    parts.append(original_src_theme.svgOpenTag(model.width, model.height, themeColors, transparent))
     let accessibility = _graphAccessibility(graph.diagram)
+    let builder = SVGDocumentBuilder(
+        width: model.width,
+        height: model.height,
+        colors: colors,
+        transparent: transparent,
+        fontFamily: font,
+        includeHtmlLabelCSS: false,
+        accessibilityTitle: accessibility.title,
+        accessibilityDescription: accessibility.descr
+    )
+    parts.append(builder.open())
     if let title = accessibility.title, !title.isEmpty {
         parts.append("<title>\(SVG.escapeText(title))</title>")
     }
     if let descr = accessibility.descr, !descr.isEmpty {
         parts.append("<desc>\(SVG.escapeText(descr))</desc>")
     }
-    parts.append(original_src_theme.buildStyleBlock(font, false))
+    parts.append(builder.style())
     parts.append("<defs>")
     parts.append(_arrowMarkerDefs())
     // Per-color arrow markers for edges with custom stroke via linkStyle
@@ -177,7 +177,7 @@ private func _renderSvgEntry(
         parts.append(_renderNode(node, font, isStateDiagram: model.isStateDiagram))
     }
 
-    parts.append("</svg>")
+    parts.append(builder.close())
     return parts.joined(separator: "\n")
 }
 

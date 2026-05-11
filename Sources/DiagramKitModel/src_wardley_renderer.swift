@@ -28,10 +28,16 @@ public func renderWardleyMapSvg(
 
     let diagramId = "wardley"
 
-    var svg = """
-    <svg id="\(diagramId)" class="wardley-map" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="\(Int(width))" height="\(Int(height))" viewBox="0 0 \(Int(width)) \(Int(height))" role="graphics-document document">
-
-    """
+    let builder = SVGDocumentBuilder(
+        width: width,
+        height: height,
+        colors: colors,
+        transparent: transparent,
+        fontFamily: font,
+        accessibilityTitle: diagram.accTitle,
+        accessibilityDescription: diagram.accDescr
+    )
+    var svg = builder.open(className: "wardley-map", extraAttributes: "id=\"\(diagramId)\" role=\"graphics-document document\"") + "\n\n"
 
     // Accessibility metadata
     if let accTitle = diagram.accTitle {
@@ -323,7 +329,7 @@ public func renderWardleyMapSvg(
         svg += "</g>\n"
     }
 
-    svg += "</svg>"
+    svg += builder.close()
     return svg
 }
 

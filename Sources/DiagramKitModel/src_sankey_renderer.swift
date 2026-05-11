@@ -42,12 +42,6 @@ public func renderSankeySvg(
 ) -> String {
     let uid = _SankeyUidGenerator(scope: diagramId ?? _SankeyRenderScopeCounter.shared.next())
 
-    let themeColors = original_src_theme.DiagramColors(
-        bg: colors.bg, fg: colors.fg, line: colors.line,
-        accent: colors.accent, muted: colors.muted,
-        surface: colors.surface, border: colors.border
-    )
-
     let nodeColorMap = _buildNodeColorMap(positioned)
 
     var parts: [String] = []
@@ -57,19 +51,28 @@ public func renderSankeySvg(
     let vbWidth = positioned.config.useMaxWidth ? positioned.width : positioned.width + 20
     let vbHeight = positioned.config.useMaxWidth ? positioned.height : positioned.height + 20
 
-    var svgTag = original_src_theme.svgOpenTag(
-        vbWidth, vbHeight, themeColors, transparent,
-        viewBoxX: viewBoxX, viewBoxY: viewBoxY
+    let ariaLabel = positioned.accTitle ?? positioned.diagramTitle
+    let builder = SVGDocumentBuilder(
+        width: vbWidth,
+        height: vbHeight,
+        colors: colors,
+        transparent: transparent,
+        fontFamily: font,
+        includeHtmlLabelCSS: false,
+        accessibilityTitle: positioned.accTitle,
+        accessibilityDescription: positioned.accDescr,
+        useMaxWidth: positioned.config.useMaxWidth,
+        viewBoxX: viewBoxX,
+        viewBoxY: viewBoxY
     )
-    var rootAttributes = [
+    var extraAttrs: [String] = [
         #"role="graphics-document document""#,
         #"aria-roledescription="sankey""#,
     ]
-    if let label = positioned.accTitle ?? positioned.diagramTitle, !label.isEmpty {
-        rootAttributes.append(#"aria-label="\#(_sankeyEscapeXml(label))""#)
+    if let label = ariaLabel, !label.isEmpty {
+        extraAttrs.append(#"aria-label="\#(label)""#)
     }
-    svgTag = _sankeyInjectSvgAttributes(svgTag, rootAttributes)
-    parts.append(svgTag)
+    parts.append(builder.open(extraAttributes: extraAttrs.joined(separator: " ")))
 
     if let accTitle = positioned.accTitle {
         parts.append("<title>\(_sankeyEscapeXml(accTitle))</title>")
@@ -194,7 +197,7 @@ public func renderSankeySvg(
     }
 
     parts.append("</g>")
-    parts.append("</svg>")
+    parts.append(builder.close())
 
     return parts.joined(separator: "\n")
 }

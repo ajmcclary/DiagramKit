@@ -27,17 +27,27 @@ private func _renderErSvgEntry(
     _ transparent: Bool
 ) throws -> String {
     var parts: [String] = []
-    let themeColors = _toThemeColors(colors)
     let config = diagram.config
 
-    parts.append(_erSvgOpenTag(diagram.width, diagram.height, themeColors, transparent, config))
+    let builder = SVGDocumentBuilder(
+        width: diagram.width,
+        height: diagram.height,
+        colors: colors,
+        transparent: transparent,
+        fontFamily: font,
+        includeHtmlLabelCSS: true,
+        accessibilityTitle: diagram.accTitle,
+        accessibilityDescription: diagram.accDescr,
+        useMaxWidth: config?.useMaxWidth ?? false
+    )
+    parts.append(builder.open())
     if let accTitle = diagram.accTitle, !accTitle.isEmpty {
         parts.append("<title>\(SVG.escapeText(accTitle))</title>")
     }
     if let accDescr = diagram.accDescr, !accDescr.isEmpty {
         parts.append("<desc>\(SVG.escapeText(accDescr))</desc>")
     }
-    parts.append(original_src_theme.buildStyleBlock(font, true))
+    parts.append(builder.style())
     parts.append("<defs>")
     parts.append(_renderErMarkerDefs(config))
     parts.append("</defs>")
@@ -67,22 +77,8 @@ private func _renderErSvgEntry(
         parts.append(_renderRelationshipLabel(rel, config))
     }
 
-    parts.append("</svg>")
+    parts.append(builder.close())
     return parts.joined(separator: "\n")
-}
-
-private func _erSvgOpenTag(
-    _ width: Double,
-    _ height: Double,
-    _ colors: original_src_theme.DiagramColors,
-    _ transparent: Bool,
-    _ config: ErDiagramConfig?
-) -> String {
-    var tag = original_src_theme.svgOpenTag(width, height, colors, transparent)
-    if config?.useMaxWidth == true {
-        tag = tag.replacingOccurrences(of: "width=\"\(Int(width))\"", with: "width=\"100%\"")
-    }
-    return tag
 }
 
 private func _toThemeColors(_ colors: DiagramColors) -> original_src_theme.DiagramColors {
