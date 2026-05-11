@@ -60,23 +60,23 @@
 <polyline data-from="B" data-to="C" data-style="solid" data-arrow-start="false" data-arrow-end="true" class="edge" points="307.647,58.45 331.647,58.45 331.647,58.45 355.64700000000005,58.45" fill="none" stroke="#939394 50%, #FFFFFF))" stroke-width="1.0" marker-end="url(#arrowhead)" />
 <polyline data-from="C" data-to="D" data-style="solid" data-arrow-start="false" data-arrow-end="true" class="edge" points="493.179,58.45 517.179,58.45 517.179,58.45 541.179,58.45" fill="none" stroke="#939394 50%, #FFFFFF))" stroke-width="1.0" marker-end="url(#arrowhead)" />
 <g class="node" data-id="A" data-label="Database" data-shape="cylinder">
-  <rect x="40.0" y="47.0" width="98.26599999999999" height="36.900000000000006" fill="#F9F9F9 3%, #FFFFFF))" stroke="none" />
-  <line x1="40.0" y1="47.0" x2="40.0" y2="83.9" stroke="#D4D4D4 20%, #FFFFFF))" stroke-width="0.75" />
-  <line x1="138.266" y1="47.0" x2="138.266" y2="83.9" stroke="#D4D4D4 20%, #FFFFFF))" stroke-width="0.75" />
-  <ellipse cx="89.133" cy="83.9" rx="49.132999999999996" ry="7.0" fill="#F9F9F9 3%, #FFFFFF))" stroke="#D4D4D4 20%, #FFFFFF))" stroke-width="0.75" />
-  <ellipse cx="89.133" cy="47.0" rx="49.132999999999996" ry="7.0" fill="#F9F9F9 3%, #FFFFFF))" stroke="#D4D4D4 20%, #FFFFFF))" stroke-width="0.75" />
+  <path d="M 40.0 40.0 L 138.266 40.0 L 138.266 90.9 L 40.0 90.9 Z" fill="#F9F9F9 3%, #FFFFFF))" stroke="#D4D4D4 20%, #FFFFFF))" stroke-width="0.75" />
+  <path d="M 40 47 L 40 83.90" fill="none" stroke="#D4D4D4 20%, #FFFFFF))" stroke-width="0.75" />
+  <path d="M 138.27 47 L 138.27 83.90" fill="none" stroke="#D4D4D4 20%, #FFFFFF))" stroke-width="0.75" />
+  <path d="M 40.0 47.0 A 49.132999999999996 7.0 0 1 1 138.266 47.0 A 49.132999999999996 7.0 0 1 1 40.0 47.0 Z" fill="#F9F9F9 3%, #FFFFFF))" stroke="#D4D4D4 20%, #FFFFFF))" stroke-width="0.75" />
+  <path d="M 40.0 83.9 A 49.132999999999996 7.0 0 1 1 138.266 83.9 A 49.132999999999996 7.0 0 1 1 40.0 83.9 Z" fill="#F9F9F9 3%, #FFFFFF))" stroke="#D4D4D4 20%, #FFFFFF))" stroke-width="0.75" />
   <text x="89.133" y="65.45" text-anchor="middle" font-size="13.0" font-weight="500" fill="#27272A" dy="4.55">Database</text>
 </g>
 <g class="node" data-id="B" data-label="Flag Shape" data-shape="asymmetric">
-  <polygon points="198.266,40.0 307.647,40.0 307.647,76.9 198.266,76.9 186.266,58.45" fill="#F9F9F9 3%, #FFFFFF))" stroke="#D4D4D4 20%, #FFFFFF))" stroke-width="0.75" />
+  <path d="M 198.27 40 L 307.65 40 L 307.65 76.90 L 198.27 76.90 L 186.27 58.45 Z" fill="#F9F9F9 3%, #FFFFFF))" stroke="#D4D4D4 20%, #FFFFFF))" stroke-width="0.75" />
   <text x="246.9565" y="58.45" text-anchor="middle" font-size="13.0" font-weight="500" fill="#27272A" dy="4.55">Flag Shape</text>
 </g>
 <g class="node" data-id="C" data-label="Wider Bottom" data-shape="trapezoid">
-  <polygon points="376.2768,40.0 472.5492,40.0 493.179,76.9 355.647,76.9" fill="#F9F9F9 3%, #FFFFFF))" stroke="#D4D4D4 20%, #FFFFFF))" stroke-width="0.75" />
+  <path d="M 396.90659999999997 40.0 L 451.9194 40.0 L 493.179 76.9 L 355.647 76.9 Z" fill="#F9F9F9 3%, #FFFFFF))" stroke="#D4D4D4 20%, #FFFFFF))" stroke-width="0.75" />
   <text x="424.413" y="58.45" text-anchor="middle" font-size="13.0" font-weight="500" fill="#27272A" dy="4.55">Wider Bottom</text>
 </g>
 <g class="node" data-id="D" data-label="Wider Top" data-shape="trapezoid-alt">
-  <polygon points="541.179,40.0 663.891,40.0 645.4842,76.9 559.5858,76.9" fill="#F9F9F9 3%, #FFFFFF))" stroke="#D4D4D4 20%, #FFFFFF))" stroke-width="0.75" />
+  <path d="M 541.18 40 L 663.89 40 L 645.48 76.90 L 559.59 76.90 Z" fill="#F9F9F9 3%, #FFFFFF))" stroke="#D4D4D4 20%, #FFFFFF))" stroke-width="0.75" />
   <text x="602.535" y="58.45" text-anchor="middle" font-size="13.0" font-weight="500" fill="#27272A" dy="4.55">Wider Top</text>
 </g>
 </svg>

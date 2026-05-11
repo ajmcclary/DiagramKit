@@ -68,58 +68,58 @@
 <polyline data-from="J" data-to="K" data-style="solid" data-arrow-start="false" data-arrow-end="true" class="edge" points="1515.1140000000003,58.45 1539.114,58.45 1539.114,58.45 1563.114,58.45" fill="none" stroke="#939394 50%, #FFFFFF))" stroke-width="1.0" marker-end="url(#arrowhead)" />
 <polyline data-from="K" data-to="L" data-style="solid" data-arrow-start="false" data-arrow-end="true" class="edge" points="1687.308,58.45 1711.308,58.45 1711.308,58.45 1735.308,58.45" fill="none" stroke="#939394 50%, #FFFFFF))" stroke-width="1.0" marker-end="url(#arrowhead)" />
 <g class="node" data-id="A" data-label="Rectangle" data-shape="rectangle">
-  <rect x="40.0" y="40.0" width="101.22999999999999" height="36.900000000000006" rx="0" ry="0" fill="#F9F9F9 3%, #FFFFFF))" stroke="#D4D4D4 20%, #FFFFFF))" stroke-width="0.75" />
+  <path d="M 40.0 40.0 L 141.23 40.0 L 141.23 76.9 L 40.0 76.9 Z" fill="#F9F9F9 3%, #FFFFFF))" stroke="#D4D4D4 20%, #FFFFFF))" stroke-width="0.75" />
   <text x="90.615" y="58.45" text-anchor="middle" font-size="13.0" font-weight="500" fill="#27272A" dy="4.55">Rectangle</text>
 </g>
 <g class="node" data-id="B" data-label="Rounded" data-shape="rounded">
-  <rect x="189.23" y="40.0" width="95.30199999999999" height="36.900000000000006" rx="6" ry="6" fill="#F9F9F9 3%, #FFFFFF))" stroke="#D4D4D4 20%, #FFFFFF))" stroke-width="0.75" />
+  <path d="M 195.23 40.0 L 278.532 40.0 Q 284.532 40.0 284.532 46.0 L 284.532 70.9 Q 284.532 76.9 278.532 76.9 L 195.23 76.9 Q 189.23 76.9 189.23 70.9 L 189.23 46.0 Q 189.23 40.0 195.23 40.0 Z" fill="#F9F9F9 3%, #FFFFFF))" stroke="#D4D4D4 20%, #FFFFFF))" stroke-width="0.75" />
   <text x="236.88099999999997" y="58.45" text-anchor="middle" font-size="13.0" font-weight="500" fill="#27272A" dy="4.55">Rounded</text>
 </g>
 <g class="node" data-id="C" data-label="Diamond" data-shape="diamond">
-  <polygon points="390.70099999999996,40.0 448.86999999999995,98.169 390.70099999999996,156.338 332.532,98.169" fill="#F9F9F9 3%, #FFFFFF))" stroke="#D4D4D4 20%, #FFFFFF))" stroke-width="0.75" />
+  <path d="M 390.70099999999996 40.0 L 448.87 98.169 L 390.70099999999996 156.338 L 332.532 98.169 Z" fill="#F9F9F9 3%, #FFFFFF))" stroke="#D4D4D4 20%, #FFFFFF))" stroke-width="0.75" />
   <text x="390.70099999999996" y="98.169" text-anchor="middle" font-size="13.0" font-weight="500" fill="#27272A" dy="4.55">Diamond</text>
 </g>
 <g class="node" data-id="D" data-label="Stadium" data-shape="stadium">
-  <rect x="496.87" y="40.0" width="87.892" height="36.900000000000006" rx="18.450000000000003" ry="18.450000000000003" fill="#F9F9F9 3%, #FFFFFF))" stroke="#D4D4D4 20%, #FFFFFF))" stroke-width="0.75" />
+  <path d="M 515.32 40.0 L 566.3119999999999 40.0 A 18.450000000000003 18.450000000000003 0 0 1 584.762 58.45 L 584.762 58.45 A 18.450000000000003 18.450000000000003 0 0 1 566.3119999999999 76.9 L 515.32 76.9 A 18.450000000000003 18.450000000000003 0 0 1 496.87 58.45 L 496.87 58.45 A 18.450000000000003 18.450000000000003 0 0 1 515.32 40.0 Z" fill="#F9F9F9 3%, #FFFFFF))" stroke="#D4D4D4 20%, #FFFFFF))" stroke-width="0.75" />
   <text x="540.816" y="58.45" text-anchor="middle" font-size="13.0" font-weight="500" fill="#27272A" dy="4.55">Stadium</text>
 </g>
 <g class="node" data-id="E" data-label="Circle" data-shape="circle">
-  <circle cx="679.762" cy="87.0" r="47.0" fill="#F9F9F9 3%, #FFFFFF))" stroke="#D4D4D4 20%, #FFFFFF))" stroke-width="0.75" />
+  <path d="M 632.762 87.0 A 47.0 47.0 0 1 1 726.762 87.0 A 47.0 47.0 0 1 1 632.762 87.0 Z" fill="#F9F9F9 3%, #FFFFFF))" stroke="#D4D4D4 20%, #FFFFFF))" stroke-width="0.75" />
   <text x="679.762" y="87.0" text-anchor="middle" font-size="13.0" font-weight="500" fill="#27272A" dy="4.55">Circle</text>
 </g>
 <g class="node" data-id="F" data-label="Subroutine" data-shape="subroutine">
-  <rect x="774.762" y="40.0" width="107.158" height="36.900000000000006" rx="0" ry="0" fill="#F9F9F9 3%, #FFFFFF))" stroke="#D4D4D4 20%, #FFFFFF))" stroke-width="0.75" />
-  <line x1="782.762" y1="40.0" x2="782.762" y2="76.9" stroke="#D4D4D4 20%, #FFFFFF))" stroke-width="0.75" />
-  <line x1="873.92" y1="40.0" x2="873.92" y2="76.9" stroke="#D4D4D4 20%, #FFFFFF))" stroke-width="0.75" />
+  <path d="M 774.76 40 L 881.92 40 L 881.92 76.90 L 774.76 76.90 Z" fill="#F9F9F9 3%, #FFFFFF))" stroke="#D4D4D4 20%, #FFFFFF))" stroke-width="0.75" />
+  <path d="M 782.76 40 L 782.76 76.90" fill="none" stroke="#D4D4D4 20%, #FFFFFF))" stroke-width="0.75" />
+  <path d="M 873.92 40 L 873.92 76.90" fill="none" stroke="#D4D4D4 20%, #FFFFFF))" stroke-width="0.75" />
   <text x="828.3409999999999" y="58.45" text-anchor="middle" font-size="13.0" font-weight="500" fill="#27272A" dy="4.55">Subroutine</text>
 </g>
 <g class="node" data-id="G" data-label="Double Circle" data-shape="doublecircle">
-  <circle cx="1003.42" cy="113.5" r="73.5" fill="#F9F9F9 3%, #FFFFFF))" stroke="#D4D4D4 20%, #FFFFFF))" stroke-width="0.75" />
-  <circle cx="1003.42" cy="113.5" r="68.5" fill="#F9F9F9 3%, #FFFFFF))" stroke="#D4D4D4 20%, #FFFFFF))" stroke-width="0.75" />
+  <path d="M 929.92 113.50 A 73.50 73.50 0 1 1 1076.92 113.50 A 73.50 73.50 0 1 1 929.92 113.50 Z" fill="#F9F9F9 3%, #FFFFFF))" stroke="#D4D4D4 20%, #FFFFFF))" stroke-width="0.75" />
+  <path d="M 929.92 113.5 A 73.5 73.5 0 1 1 1076.92 113.5 A 73.5 73.5 0 1 1 929.92 113.5 Z" fill="#F9F9F9 3%, #FFFFFF))" stroke="#D4D4D4 20%, #FFFFFF))" stroke-width="0.75" />
   <text x="1003.42" y="113.5" text-anchor="middle" font-size="13.0" font-weight="500" fill="#27272A" dy="4.55">Double Circle</text>
 </g>
 <g class="node" data-id="H" data-label="Hexagon" data-shape="hexagon">
-  <polygon points="1134.145,40.0 1230.997,40.0 1240.222,58.45 1230.997,76.9 1134.145,76.9 1124.92,58.45" fill="#F9F9F9 3%, #FFFFFF))" stroke="#D4D4D4 20%, #FFFFFF))" stroke-width="0.75" />
+  <path d="M 1134.145 40.0 L 1230.997 40.0 L 1240.222 58.45 L 1230.997 76.9 L 1134.145 76.9 L 1124.92 58.45 Z" fill="#F9F9F9 3%, #FFFFFF))" stroke="#D4D4D4 20%, #FFFFFF))" stroke-width="0.75" />
   <text x="1182.5710000000001" y="58.45" text-anchor="middle" font-size="13.0" font-weight="500" fill="#27272A" dy="4.55">Hexagon</text>
 </g>
 <g class="node" data-id="I" data-label="Database" data-shape="cylinder">
-  <rect x="1288.222" y="47.0" width="98.26599999999999" height="36.900000000000006" fill="#F9F9F9 3%, #FFFFFF))" stroke="none" />
-  <line x1="1288.222" y1="47.0" x2="1288.222" y2="83.9" stroke="#D4D4D4 20%, #FFFFFF))" stroke-width="0.75" />
-  <line x1="1386.488" y1="47.0" x2="1386.488" y2="83.9" stroke="#D4D4D4 20%, #FFFFFF))" stroke-width="0.75" />
-  <ellipse cx="1337.355" cy="83.9" rx="49.132999999999996" ry="7.0" fill="#F9F9F9 3%, #FFFFFF))" stroke="#D4D4D4 20%, #FFFFFF))" stroke-width="0.75" />
-  <ellipse cx="1337.355" cy="47.0" rx="49.132999999999996" ry="7.0" fill="#F9F9F9 3%, #FFFFFF))" stroke="#D4D4D4 20%, #FFFFFF))" stroke-width="0.75" />
+  <path d="M 1288.222 40.0 L 1386.488 40.0 L 1386.488 90.9 L 1288.222 90.9 Z" fill="#F9F9F9 3%, #FFFFFF))" stroke="#D4D4D4 20%, #FFFFFF))" stroke-width="0.75" />
+  <path d="M 1288.22 47 L 1288.22 83.90" fill="none" stroke="#D4D4D4 20%, #FFFFFF))" stroke-width="0.75" />
+  <path d="M 1386.49 47 L 1386.49 83.90" fill="none" stroke="#D4D4D4 20%, #FFFFFF))" stroke-width="0.75" />
+  <path d="M 1288.222 47.0 A 49.132999999999996 7.0 0 1 1 1386.488 47.0 A 49.132999999999996 7.0 0 1 1 1288.222 47.0 Z" fill="#F9F9F9 3%, #FFFFFF))" stroke="#D4D4D4 20%, #FFFFFF))" stroke-width="0.75" />
+  <path d="M 1288.222 83.9 A 49.132999999999996 7.0 0 1 1 1386.488 83.9 A 49.132999999999996 7.0 0 1 1 1288.222 83.9 Z" fill="#F9F9F9 3%, #FFFFFF))" stroke="#D4D4D4 20%, #FFFFFF))" stroke-width="0.75" />
   <text x="1337.355" y="65.45" text-anchor="middle" font-size="13.0" font-weight="500" fill="#27272A" dy="4.55">Database</text>
 </g>
 <g class="node" data-id="J" data-label="Flag" data-shape="asymmetric">
-  <polygon points="1446.488,40.0 1515.114,40.0 1515.114,76.9 1446.488,76.9 1434.488,58.45" fill="#F9F9F9 3%, #FFFFFF))" stroke="#D4D4D4 20%, #FFFFFF))" stroke-width="0.75" />
+  <path d="M 1446.49 40 L 1515.11 40 L 1515.11 76.90 L 1446.49 76.90 L 1434.49 58.45 Z" fill="#F9F9F9 3%, #FFFFFF))" stroke="#D4D4D4 20%, #FFFFFF))" stroke-width="0.75" />
   <text x="1474.8010000000002" y="58.45" text-anchor="middle" font-size="13.0" font-weight="500" fill="#27272A" dy="4.55">Flag</text>
 </g>
 <g class="node" data-id="K" data-label="Trapezoid" data-shape="trapezoid">
-  <polygon points="1581.7431000000001,40.0 1668.6788999999999,40.0 1687.308,76.9 1563.114,76.9" fill="#F9F9F9 3%, #FFFFFF))" stroke="#D4D4D4 20%, #FFFFFF))" stroke-width="0.75" />
+  <path d="M 1600.3722 40.0 L 1650.0498 40.0 L 1687.308 76.9 L 1563.114 76.9 Z" fill="#F9F9F9 3%, #FFFFFF))" stroke="#D4D4D4 20%, #FFFFFF))" stroke-width="0.75" />
   <text x="1625.211" y="58.45" text-anchor="middle" font-size="13.0" font-weight="500" fill="#27272A" dy="4.55">Trapezoid</text>
 </g>
 <g class="node" data-id="L" data-label="Inverse Trap" data-shape="trapezoid-alt">
-  <polygon points="1735.308,40.0 1875.063,40.0 1854.09975,76.9 1756.27125,76.9" fill="#F9F9F9 3%, #FFFFFF))" stroke="#D4D4D4 20%, #FFFFFF))" stroke-width="0.75" />
+  <path d="M 1735.31 40 L 1875.06 40 L 1854.10 76.90 L 1756.27 76.90 Z" fill="#F9F9F9 3%, #FFFFFF))" stroke="#D4D4D4 20%, #FFFFFF))" stroke-width="0.75" />
   <text x="1805.1855" y="58.45" text-anchor="middle" font-size="13.0" font-weight="500" fill="#27272A" dy="4.55">Inverse Trap</text>
 </g>
 </svg>

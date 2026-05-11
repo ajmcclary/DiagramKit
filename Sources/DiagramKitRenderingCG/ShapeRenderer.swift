@@ -90,7 +90,6 @@ public class NodeShapeRenderer {
         context.strokePath()
 
         _drawSpecDecorations(shape, in: bounds, context: context, theme: theme, inlineStyles: inlineStyles)
-        drawShapeDetails(shape, in: bounds, context: context, theme: theme, inlineStyles: inlineStyles)
 
         context.restoreGState()
     }
@@ -466,206 +465,24 @@ public class NodeShapeRenderer {
         return path
     }
 
-    // MARK: - Shape Details
-
-    private func drawShapeDetails(_ shape: String, in bounds: CGRect, context: CGContext, theme: DiagramTheme, inlineStyles: [String: String]) {
-        // Skip shapes whose same-bounds details are now rendered by
-        // _drawSpecDecorations.  Position-dependent shapes (cylinder caps,
-        // offset copies, inset panes, corner tags) still go through the
-        // legacy switch below.
-        if _isSpecDetailsCovered(shape) { return }
-
-        switch shape {
-        case "subroutine":
-            let inset = tokens.subroutineInset
-            context.setStrokeColor(theme.nodeStrokeColor(for: inlineStyles).cgColor)
-            context.setLineWidth(tokens.strokeWidthInnerBox)
-            context.move(to: CGPoint(x: bounds.minX + inset, y: bounds.minY))
-            context.addLine(to: CGPoint(x: bounds.minX + inset, y: bounds.maxY))
-            context.strokePath()
-            context.move(to: CGPoint(x: bounds.maxX - inset, y: bounds.minY))
-            context.addLine(to: CGPoint(x: bounds.maxX - inset, y: bounds.maxY))
-            context.strokePath()
-
-        case "doublecircle":
-            let innerBounds = bounds.insetBy(dx: tokens.doubleCircleGap, dy: tokens.doubleCircleGap)
-            context.setStrokeColor(theme.nodeStrokeColor(for: inlineStyles).cgColor)
-            context.setLineWidth(tokens.strokeWidthInnerBox)
-            context.addPath(CGPath(ellipseIn: innerBounds, transform: nil))
-            context.strokePath()
-
-        case "cylinder":
-            let ry = tokens.cylinderEllipseRadius
-            let ellipseHeight = ry * 2
-            let bodyTop = bounds.minY + ry
-            let bodyBottom = bounds.maxY - ry
-
-            let strokeColor = theme.nodeStrokeColor(for: inlineStyles)
-            let fillColor = theme.nodeFillColor(for: inlineStyles)
-
-            context.setStrokeColor(strokeColor.cgColor)
-            context.setLineWidth(tokens.strokeWidthInnerBox)
-            context.move(to: CGPoint(x: bounds.minX, y: bodyTop))
-            context.addLine(to: CGPoint(x: bounds.minX, y: bodyBottom))
-            context.strokePath()
-            context.move(to: CGPoint(x: bounds.maxX, y: bodyTop))
-            context.addLine(to: CGPoint(x: bounds.maxX, y: bodyBottom))
-            context.strokePath()
-
-            let bottomEllipse = CGRect(x: bounds.minX, y: bounds.maxY - ellipseHeight, width: bounds.width, height: ellipseHeight)
-            let bottomPath = CGPath(ellipseIn: bottomEllipse, transform: nil)
-            context.setFillColor(fillColor.cgColor)
-            context.addPath(bottomPath)
-            context.fillPath()
-            context.setStrokeColor(strokeColor.cgColor)
-            context.addPath(bottomPath)
-            context.strokePath()
-
-            let topEllipse = CGRect(x: bounds.minX, y: bounds.minY, width: bounds.width, height: ellipseHeight)
-            let topPath = CGPath(ellipseIn: topEllipse, transform: nil)
-            context.setFillColor(fillColor.cgColor)
-            context.addPath(topPath)
-            context.fillPath()
-            context.setStrokeColor(strokeColor.cgColor)
-            context.addPath(topPath)
-            context.strokePath()
-
-        case "bang":
-            // Center vertical line from top to bottom
-            context.setStrokeColor(theme.nodeStrokeColor(for: inlineStyles).cgColor)
-            context.setLineWidth(tokens.strokeWidthInnerBox)
-            context.move(to: CGPoint(x: bounds.midX, y: bounds.minY))
-            context.addLine(to: CGPoint(x: bounds.midX, y: bounds.maxY))
-            context.strokePath()
-
-        case "framed-circle":
-            let outerBounds = bounds.insetBy(dx: -4, dy: -4)
-            context.setStrokeColor(theme.nodeStrokeColor(for: inlineStyles).cgColor)
-            context.setLineWidth(tokens.strokeWidthInnerBox * 1.5)
-            context.addPath(CGPath(ellipseIn: outerBounds, transform: nil))
-            context.strokePath()
-
-        case "crossed-circle":
-            let cx = bounds.midX, cy = bounds.midY
-            let r = min(bounds.width, bounds.height) / 2
-            context.setStrokeColor(theme.nodeStrokeColor(for: inlineStyles).cgColor)
-            context.setLineWidth(tokens.strokeWidthInnerBox)
-            context.move(to: CGPoint(x: cx - r * 0.5, y: cy - r * 0.5))
-            context.addLine(to: CGPoint(x: cx + r * 0.5, y: cy + r * 0.5))
-            context.strokePath()
-            context.move(to: CGPoint(x: cx + r * 0.5, y: cy - r * 0.5))
-            context.addLine(to: CGPoint(x: cx - r * 0.5, y: cy + r * 0.5))
-            context.strokePath()
-
-        case "divided-rectangle":
-            context.setStrokeColor(theme.nodeStrokeColor(for: inlineStyles).cgColor)
-            context.setLineWidth(tokens.strokeWidthInnerBox)
-            context.move(to: CGPoint(x: bounds.minX, y: bounds.midY))
-            context.addLine(to: CGPoint(x: bounds.maxX, y: bounds.midY))
-            context.strokePath()
-
-        case "window-pane":
-            let inset = bounds.width * 0.2
-            let paneRect = CGRect(x: bounds.maxX - inset - 4, y: bounds.minY + 4,
-                                  width: inset, height: bounds.height - 8)
-            context.setStrokeColor(theme.nodeStrokeColor(for: inlineStyles).cgColor)
-            context.setLineWidth(tokens.strokeWidthInnerBox)
-            context.addPath(CGPath(rect: paneRect, transform: nil))
-            context.strokePath()
-
-        case "stacked-document":
-            let offset: CGFloat = 4
-            let backRect = bounds.offsetBy(dx: -offset, dy: -offset)
-            context.saveGState()
-            context.setStrokeColor(theme.nodeStrokeColor(for: inlineStyles).cgColor)
-            context.setLineWidth(tokens.strokeWidthInnerBox)
-            context.setAlpha(0.4)
-            context.addPath(documentPath(backRect))
-            context.strokePath()
-            context.restoreGState()
-
-        case "stacked-rectangle":
-            let offset: CGFloat = 4
-            let backRect = bounds.offsetBy(dx: -offset, dy: -offset)
-            context.saveGState()
-            context.setStrokeColor(theme.nodeStrokeColor(for: inlineStyles).cgColor)
-            context.setLineWidth(tokens.strokeWidthInnerBox)
-            context.setAlpha(0.4)
-            context.addPath(CGPath(rect: backRect, transform: nil))
-            context.strokePath()
-            context.restoreGState()
-
-        case "notched-rectangle":
-            let notchSize: CGFloat = 10
-            context.setFillColor(theme.nodeFillColor(for: inlineStyles).cgColor)
-            let path = CGMutablePath()
-            path.move(to: CGPoint(x: bounds.minX, y: bounds.minY))
-            path.addLine(to: CGPoint(x: bounds.maxX - notchSize, y: bounds.minY))
-            path.addLine(to: CGPoint(x: bounds.maxX, y: bounds.minY + notchSize))
-            path.addLine(to: CGPoint(x: bounds.maxX, y: bounds.maxY))
-            path.addLine(to: CGPoint(x: bounds.minX, y: bounds.maxY))
-            path.closeSubpath()
-            context.addPath(path)
-            context.fillPath()
-
-        case "tagged-document", "tagged-rectangle":
-            let notchSize: CGFloat = 10
-            context.setStrokeColor(theme.nodeStrokeColor(for: inlineStyles).cgColor)
-            context.setLineWidth(tokens.strokeWidthInnerBox)
-            context.move(to: CGPoint(x: bounds.maxX - notchSize, y: bounds.minY))
-            context.addLine(to: CGPoint(x: bounds.maxX - notchSize, y: bounds.minY + notchSize))
-            context.addLine(to: CGPoint(x: bounds.maxX, y: bounds.minY + notchSize))
-            context.strokePath()
-            let tagPath = CGMutablePath()
-            tagPath.move(to: CGPoint(x: bounds.maxX - notchSize, y: bounds.minY))
-            tagPath.addLine(to: CGPoint(x: bounds.maxX - notchSize, y: bounds.minY + notchSize))
-            tagPath.addLine(to: CGPoint(x: bounds.maxX, y: bounds.minY + notchSize))
-            tagPath.closeSubpath()
-            context.setFillColor(theme.nodeFillColor(for: inlineStyles).cgColor)
-            context.addPath(tagPath)
-            context.fillPath()
-
-        default:
-            break
-        }
-    }
-
     // MARK: - Spec-driven decoration rendering
-
-    /// Returns `true` when the shape's detail geometry is fully covered by
-    /// spec decorations — the legacy `drawShapeDetails` switch should be
-    /// skipped to avoid double-stroking.
-    ///
-    /// Position-dependent shapes (window-pane, stacked-*, tagged-*) are
-    /// excluded because their decorations need sub-bounds support that the
-    /// current system doesn't provide yet.
-    private func _isSpecDetailsCovered(_ shape: String) -> Bool {
-        guard let spec = ShapeSpecRegistry.spec(for: shape),
-              !spec.decorations.isEmpty else { return false }
-        switch shape {
-        case "window-pane", "stacked-document", "stacked-rectangle",
-             "tagged-document", "tagged-rectangle":
-            return false
-        default:
-            return true
-        }
-    }
 
     /// Draws decorations declared in the shape's `ShapeSpec`.
     ///
-    /// Only handles same-bounds decorations (polyline strokes, centered
-    /// ellipses, etc.). Position-dependent details (cylinder caps, offset
-    /// copies, inset panes) remain in `drawShapeDetails` until the
-    /// decoration system supports sub-bounds positioning.
-    private func _drawSpecDecorations(_ shape: String, in bounds: CGRect, context: CGContext, theme: DiagramTheme, inlineStyles: [String: String]) {
+    /// Each decoration computes its own sub-bounds via `decoration.bounds`
+    /// so that position-dependent details (cylinder caps, offset copies,
+    /// inset panes, corner tags) can coexist with same-bounds polylines
+    /// and ellipses in a single loop.
+    private func _drawSpecDecorations(_ shape: String, in fullBounds: CGRect, context: CGContext, theme: DiagramTheme, inlineStyles: [String: String]) {
         guard let spec = ShapeSpecRegistry.spec(for: shape), !spec.decorations.isEmpty else { return }
 
         let strokeColor = theme.nodeStrokeColor(for: inlineStyles)
         let fillColor = theme.nodeFillColor(for: inlineStyles)
 
         for decoration in spec.decorations {
-            let decorationPath = decoration.path(bounds, config)
-            let cgPath = CGPathRenderer.makePath(from: decorationPath, in: bounds, config: config)
+            let subBounds = decoration.bounds(fullBounds, config)
+            let decorationPath = decoration.path(subBounds, config)
+            let cgPath = CGPathRenderer.makePath(from: decorationPath, in: subBounds, config: config)
 
             switch decoration.stroke {
             case .mainStroke:

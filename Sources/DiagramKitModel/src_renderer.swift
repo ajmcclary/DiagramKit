@@ -569,8 +569,9 @@ private func _renderNodeShapeGeneric(
     parts.append("<path d=\"\(d)\" fill=\"\(fill)\" stroke=\"\(stroke)\" stroke-width=\"\(sw)\" />")
 
     for decoration in spec.decorations {
-        let decPath = decoration.path(bounds, RenderConfig.shared)
-        let decD = SVGPathSerializer.serialize(decPath, in: bounds)
+        let subBounds = decoration.bounds(bounds, RenderConfig.shared)
+        let decPath = decoration.path(subBounds, RenderConfig.shared)
+        let decD = SVGPathSerializer.serialize(decPath, in: subBounds)
         let decFill = decoration.fillsBackground ? fill : "none"
         var extra = ""
         switch decoration.stroke {
@@ -634,27 +635,6 @@ private func _renderNodeShape(_ node: _SvgNode) -> String {
         return _renderImageRect(x: x, y: y, w: width, h: height, fill: fill, stroke: stroke, sw: sw, img: node.img)
     case "label-rect", "anchor":
         return ""
-    // Position-dependent rendering — these shapes need sub-bounds decorations
-    // (cylinder caps, offset copies, inset panes, corner tags) that the
-    // generic spec-driven path doesn't support yet.
-    case "cylinder":
-        return _renderCylinder(x: x, y: y, w: width, h: height, fill: fill, stroke: stroke, sw: sw)
-    case "horizontal-cylinder", "h-cyl", "das":
-        return _renderHorizontalCylinder(x: x, y: y, w: width, h: height, fill: fill, stroke: stroke, sw: sw)
-    case "data-store", "datastore":
-        return _renderDataStore(x: x, y: y, w: width, h: height, fill: fill, stroke: stroke, sw: sw)
-    case "lined-cylinder", "disk":
-        return _renderLinedCylinder(x: x, y: y, w: width, h: height, fill: fill, stroke: stroke, sw: sw)
-    case "stacked-document":
-        return _renderStackedDocument(x: x, y: y, w: width, h: height, fill: fill, stroke: stroke, sw: sw)
-    case "stacked-rectangle":
-        return _renderStackedRect(x: x, y: y, w: width, h: height, fill: fill, stroke: stroke, sw: sw)
-    case "window-pane":
-        return _renderWindowPane(x: x, y: y, w: width, h: height, fill: fill, stroke: stroke, sw: sw)
-    case "tagged-document":
-        return _renderTaggedDocument(x: x, y: y, w: width, h: height, fill: fill, stroke: stroke, sw: sw)
-    case "tagged-rectangle":
-        return _renderTaggedRect(x: x, y: y, w: width, h: height, fill: fill, stroke: stroke, sw: sw)
     default:
         return _renderNodeShapeGeneric(x: x, y: y, w: width, h: height, shape: shape, fill: fill, stroke: stroke, sw: sw)
     }
@@ -721,18 +701,6 @@ private func _renderHexagon(x: Double, y: Double, w: Double, h: Double, fill: St
         "\(x),\(y + h / 2)",
     ].joined(separator: " ")
     return "<polygon points=\"\(points)\" fill=\"\(fill)\" stroke=\"\(stroke)\" stroke-width=\"\(sw)\" />"
-}
-
-private func _renderCylinder(x: Double, y: Double, w: Double, h: Double, fill: String, stroke: String, sw: String) -> String {
-    let ry = 7.0
-    let cx = x + w / 2
-    let bodyTop = y + ry
-    let bodyH = h - 2 * ry
-    return "<rect x=\"\(x)\" y=\"\(bodyTop)\" width=\"\(w)\" height=\"\(bodyH)\" fill=\"\(fill)\" stroke=\"none\" />\n" +
-        "<line x1=\"\(x)\" y1=\"\(bodyTop)\" x2=\"\(x)\" y2=\"\(bodyTop + bodyH)\" stroke=\"\(stroke)\" stroke-width=\"\(sw)\" />\n" +
-        "<line x1=\"\(x + w)\" y1=\"\(bodyTop)\" x2=\"\(x + w)\" y2=\"\(bodyTop + bodyH)\" stroke=\"\(stroke)\" stroke-width=\"\(sw)\" />\n" +
-        "<ellipse cx=\"\(cx)\" cy=\"\(y + h - ry)\" rx=\"\(w / 2)\" ry=\"\(ry)\" fill=\"\(fill)\" stroke=\"\(stroke)\" stroke-width=\"\(sw)\" />\n" +
-        "<ellipse cx=\"\(cx)\" cy=\"\(bodyTop)\" rx=\"\(w / 2)\" ry=\"\(ry)\" fill=\"\(fill)\" stroke=\"\(stroke)\" stroke-width=\"\(sw)\" />"
 }
 
 private func _renderAsymmetric(x: Double, y: Double, w: Double, h: Double, fill: String, stroke: String, sw: String) -> String {
@@ -871,12 +839,6 @@ private func _renderDividedRect(x: Double, y: Double, w: Double, h: Double, fill
         "<line x1=\"\(x)\" y1=\"\(y + h / 2)\" x2=\"\(x + w)\" y2=\"\(y + h / 2)\" stroke=\"\(stroke)\" stroke-width=\"\(sw)\" />"
 }
 
-private func _renderWindowPane(x: Double, y: Double, w: Double, h: Double, fill: String, stroke: String, sw: String) -> String {
-    let inset = w * 0.2
-    return "<rect x=\"\(x)\" y=\"\(y)\" width=\"\(w)\" height=\"\(h)\" rx=\"0\" ry=\"0\" fill=\"\(fill)\" stroke=\"\(stroke)\" stroke-width=\"\(sw)\" />\n" +
-        "<rect x=\"\(x + w - inset - 4)\" y=\"\(y + 4)\" width=\"\(inset)\" height=\"\(h - 8)\" fill=\"none\" stroke=\"\(stroke)\" stroke-width=\"\(sw)\" />"
-}
-
 private func _renderDocument(x: Double, y: Double, w: Double, h: Double, fill: String, stroke: String, sw: String) -> String {
     let waveDepth = h * 0.15
     let points = [
@@ -975,53 +937,6 @@ private func _renderNotchedRect(x: Double, y: Double, w: Double, h: Double, fill
     return "<polygon points=\"\(points)\" fill=\"\(fill)\" stroke=\"\(stroke)\" stroke-width=\"\(sw)\" />"
 }
 
-private func _renderTaggedDocument(x: Double, y: Double, w: Double, h: Double, fill: String, stroke: String, sw: String) -> String {
-    let waveDepth = h * 0.15, n: Double = 10
-    let points = [
-        "\(x),\(y)",
-        "\(x + w - n),\(y)",
-        "\(x + w - n),\(y + n)",
-        "\(x + w),\(y + n)",
-        "\(x + w),\(y + h - waveDepth)",
-        "\(x + w * 0.8),\(y + h + waveDepth * 0.5)",
-        "\(x + w * 0.6),\(y + h - waveDepth * 1.5)",
-        "\(x + w * 0.4),\(y + h + waveDepth * 0.5)",
-        "\(x + w * 0.2),\(y + h - waveDepth * 1.5)",
-        "\(x),\(y + h - waveDepth)",
-    ].joined(separator: " ")
-    return "<polygon points=\"\(points)\" fill=\"\(fill)\" stroke=\"\(stroke)\" stroke-width=\"\(sw)\" />" +
-        "<polygon points=\"\(x + w - n),\(y) \(x + w - n),\(y + n) \(x + w),\(y + n)\" fill=\"\(fill)\" stroke=\"\(stroke)\" stroke-width=\"\(sw)\" />"
-}
-
-private func _renderTaggedRect(x: Double, y: Double, w: Double, h: Double, fill: String, stroke: String, sw: String) -> String {
-    let n: Double = 10
-    return "<rect x=\"\(x)\" y=\"\(y)\" width=\"\(w)\" height=\"\(h)\" rx=\"0\" ry=\"0\" fill=\"\(fill)\" stroke=\"\(stroke)\" stroke-width=\"\(sw)\" />" +
-        "<polygon points=\"\(x + w - n),\(y) \(x + w - n),\(y + n) \(x + w),\(y + n)\" fill=\"\(fill)\" stroke=\"\(stroke)\" stroke-width=\"\(sw)\" />"
-}
-
-private func _renderStackedDocument(x: Double, y: Double, w: Double, h: Double, fill: String, stroke: String, sw: String) -> String {
-    let off: Double = 4
-    let front = _renderDocument(x: x, y: y, w: w, h: h, fill: fill, stroke: stroke, sw: sw)
-    let waveDepth = h * 0.15
-    let backPoints = [
-        "\(x - off),\(y - off)",
-        "\(x + w - off),\(y - off)",
-        "\(x + w - off),\(y + h - waveDepth - off)",
-        "\(x + w * 0.8 - off),\(y + h + waveDepth * 0.5 - off)",
-        "\(x + w * 0.6 - off),\(y + h - waveDepth * 1.5 - off)",
-        "\(x + w * 0.4 - off),\(y + h + waveDepth * 0.5 - off)",
-        "\(x + w * 0.2 - off),\(y + h - waveDepth * 1.5 - off)",
-        "\(x - off),\(y + h - waveDepth - off)",
-    ].joined(separator: " ")
-    return "<polygon points=\"\(backPoints)\" fill=\"none\" stroke=\"\(stroke)\" stroke-width=\"\(sw)\" opacity=\"0.4\" />\n" + front
-}
-
-private func _renderStackedRect(x: Double, y: Double, w: Double, h: Double, fill: String, stroke: String, sw: String) -> String {
-    let off: Double = 4
-    return "<rect x=\"\(x - off)\" y=\"\(y - off)\" width=\"\(w)\" height=\"\(h)\" rx=\"0\" ry=\"0\" fill=\"none\" stroke=\"\(stroke)\" stroke-width=\"\(sw)\" opacity=\"0.4\" />\n" +
-        "<rect x=\"\(x)\" y=\"\(y)\" width=\"\(w)\" height=\"\(h)\" rx=\"0\" ry=\"0\" fill=\"\(fill)\" stroke=\"\(stroke)\" stroke-width=\"\(sw)\" />"
-}
-
 private func _renderLinedRect(x: Double, y: Double, w: Double, h: Double, fill: String, stroke: String, sw: String) -> String {
     return "<rect x=\"\(x)\" y=\"\(y)\" width=\"\(w)\" height=\"\(h)\" rx=\"0\" ry=\"0\" fill=\"\(fill)\" stroke=\"\(stroke)\" stroke-width=\"\(sw)\" />\n" +
         "<line x1=\"\(x + 4)\" y1=\"\(y)\" x2=\"\(x + 4)\" y2=\"\(y + h)\" stroke=\"\(stroke)\" stroke-width=\"\(sw)\" opacity=\"0.5\" />"
@@ -1032,32 +947,6 @@ private func _renderLinedDocument(x: Double, y: Double, w: Double, h: Double, fi
     let ly = y + h * 0.3
     return doc + "\n<line x1=\"\(x + 8)\" y1=\"\(ly)\" x2=\"\(x + w - 8)\" y2=\"\(ly)\" stroke=\"\(stroke)\" stroke-width=\"\(sw)\" opacity=\"0.4\" />" +
         "<line x1=\"\(x + 8)\" y1=\"\(ly + 6)\" x2=\"\(x + w - 16)\" y2=\"\(ly + 6)\" stroke=\"\(stroke)\" stroke-width=\"\(sw)\" opacity=\"0.3\" />"
-}
-
-private func _renderLinedCylinder(x: Double, y: Double, w: Double, h: Double, fill: String, stroke: String, sw: String) -> String {
-    let cyl = _renderCylinder(x: x, y: y, w: w, h: h, fill: fill, stroke: stroke, sw: sw)
-    let ly = y + h / 2
-    return cyl + "\n<line x1=\"\(x)\" y1=\"\(ly)\" x2=\"\(x + w)\" y2=\"\(ly)\" stroke=\"\(stroke)\" stroke-width=\"\(sw)\" stroke-dasharray=\"3 3\" opacity=\"0.5\" />"
-}
-
-private func _renderHorizontalCylinder(x: Double, y: Double, w: Double, h: Double, fill: String, stroke: String, sw: String) -> String {
-    let rx = 7.0  // ellipse radius on x-axis for horizontal
-    let cx = x + w / 2
-    return "<rect x=\"\(x + rx)\" y=\"\(y)\" width=\"\(w - 2 * rx)\" height=\"\(h)\" fill=\"\(fill)\" stroke=\"none\" />\n" +
-        "<line x1=\"\(x + rx)\" y1=\"\(y)\" x2=\"\(x + w - rx)\" y2=\"\(y)\" stroke=\"\(stroke)\" stroke-width=\"\(sw)\" />\n" +
-        "<line x1=\"\(x + rx)\" y1=\"\(y + h)\" x2=\"\(x + w - rx)\" y2=\"\(y + h)\" stroke=\"\(stroke)\" stroke-width=\"\(sw)\" />\n" +
-        "<ellipse cx=\"\(cx)\" cy=\"\(y)\" rx=\"\(rx)\" ry=\"\(h / 2)\" fill=\"\(fill)\" stroke=\"\(stroke)\" stroke-width=\"\(sw)\" />\n" +
-        "<ellipse cx=\"\(cx)\" cy=\"\(y + h)\" rx=\"\(rx)\" ry=\"\(h / 2)\" fill=\"\(fill)\" stroke=\"\(stroke)\" stroke-width=\"\(sw)\" />"
-}
-
-private func _renderDataStore(x: Double, y: Double, w: Double, h: Double, fill: String, stroke: String, sw: String) -> String {
-    let ry = 10.0, cx = x + w / 2
-    let bodyTop = y + ry, bodyH = h - 2 * ry
-    return "<path d=\"M\(x),\(bodyTop) L\(x),\(bodyTop + bodyH) " +
-           "A\(w / 2),\(ry) 0 0,0 \(x + w),\(bodyTop + bodyH) " +
-           "L\(x + w),\(bodyTop) A\(w / 2),\(ry) 0 0,1 \(x),\(bodyTop) Z\" " +
-           "fill=\"\(fill)\" stroke=\"\(stroke)\" stroke-width=\"\(sw)\" />\n" +
-        "<ellipse cx=\"\(cx)\" cy=\"\(bodyTop)\" rx=\"\(w / 2)\" ry=\"\(ry)\" fill=\"\(fill)\" stroke=\"\(stroke)\" stroke-width=\"\(sw)\" />"
 }
 
 private func _renderFlippedTriangle(x: Double, y: Double, w: Double, h: Double, fill: String, stroke: String, sw: String) -> String {

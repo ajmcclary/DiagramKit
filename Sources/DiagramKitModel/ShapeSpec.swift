@@ -63,6 +63,12 @@ public struct ShapeSpec: Sendable {
 /// Used for cases where a shape's visible appearance is composed of
 /// multiple drawing operations (inner rectangle of a subroutine, inner
 /// ellipse of a doubleCircle, cross of a crossedCircle, etc.).
+///
+/// Most decorations are drawn within the same bounds as the main shape
+/// (`bounds` defaults to identity). Position-dependent decorations such
+/// as cylinder caps, offset copies, and inset panes use a custom
+/// `bounds` closure to specify the sub-rectangle they occupy within the
+/// full shape bounds.
 public struct ShapeDecoration: Sendable {
 
     public enum Stroke: Sendable {
@@ -71,16 +77,27 @@ public struct ShapeDecoration: Sendable {
         case thinStroke
     }
 
+    /// Generates a platform-independent path description for the
+    /// decoration within the rectangle produced by `bounds`.
     public let path: @Sendable (_ rect: CGRect, _ config: RenderConfig) -> ShapePath
+
+    /// Maps the full shape bounds to the sub-rectangle where this
+    /// decoration is drawn. Defaults to identity so same-bounds
+    /// decorations (polyline strokes, centered ellipses, etc.)
+    /// work without changes.
+    public let bounds: @Sendable (_ fullBounds: CGRect, _ config: RenderConfig) -> CGRect
+
     public let stroke: Stroke
     public let fillsBackground: Bool
 
     public init(
         path: @Sendable @escaping (_ rect: CGRect, _ config: RenderConfig) -> ShapePath,
+        bounds: @Sendable @escaping (_ fullBounds: CGRect, _ config: RenderConfig) -> CGRect = { fullBounds, _ in fullBounds },
         stroke: Stroke = .mainStroke,
         fillsBackground: Bool = false
     ) {
         self.path = path
+        self.bounds = bounds
         self.stroke = stroke
         self.fillsBackground = fillsBackground
     }
@@ -381,7 +398,43 @@ public enum ShapeSpecRegistry {
     }
 
     private static func _makeCylinderSpec() -> ShapeSpec {
-        ShapeSpec(
+        let sideLines: [ShapeDecoration] = [
+            ShapeDecoration(
+                path: { rect, config in .polyline(points: [
+                    CGPoint(x: rect.minX, y: rect.minY + config.cylinderEllipseRadius),
+                    CGPoint(x: rect.minX, y: rect.maxY - config.cylinderEllipseRadius),
+                ]) },
+                stroke: .mainStroke
+            ),
+            ShapeDecoration(
+                path: { rect, config in .polyline(points: [
+                    CGPoint(x: rect.maxX, y: rect.minY + config.cylinderEllipseRadius),
+                    CGPoint(x: rect.maxX, y: rect.maxY - config.cylinderEllipseRadius),
+                ]) },
+                stroke: .mainStroke
+            ),
+        ]
+        let capDecorations: [ShapeDecoration] = [
+            ShapeDecoration(
+                path: { _, _ in .ellipse },
+                bounds: { full, config in
+                    let h = config.cylinderEllipseRadius * 2
+                    return CGRect(x: full.minX, y: full.minY, width: full.width, height: h)
+                },
+                stroke: .mainStroke,
+                fillsBackground: true
+            ),
+            ShapeDecoration(
+                path: { _, _ in .ellipse },
+                bounds: { full, config in
+                    let h = config.cylinderEllipseRadius * 2
+                    return CGRect(x: full.minX, y: full.maxY - h, width: full.width, height: h)
+                },
+                stroke: .mainStroke,
+                fillsBackground: true
+            ),
+        ]
+        return ShapeSpec(
             aliases: ["cylinder", "cyl"],
             sizeAdjustment: { textSize, config in
                 CGSize(
@@ -389,7 +442,8 @@ public enum ShapeSpecRegistry {
                     height: Swift.max(textSize.height + config.nodePaddingVertical * 2 + 14, config.minimumNodeHeight)
                 )
             },
-            path: { _, config in .cylinder(topCapInset: config.cylinderEllipseRadius) }
+            path: { _, config in .cylinder(topCapInset: config.cylinderEllipseRadius) },
+            decorations: sideLines + capDecorations
         )
     }
 
@@ -478,7 +532,43 @@ public enum ShapeSpecRegistry {
     }
     private static func _makeCloudSpec() -> ShapeSpec { ShapeSpec(aliases: ["cloud"], sizeAdjustment: _rectSizing, path: { _, _ in .cloud }) }
     private static func _makeDataStoreSpec() -> ShapeSpec {
-        ShapeSpec(
+        let sideLines: [ShapeDecoration] = [
+            ShapeDecoration(
+                path: { rect, config in .polyline(points: [
+                    CGPoint(x: rect.minX, y: rect.minY + config.cylinderEllipseRadius),
+                    CGPoint(x: rect.minX, y: rect.maxY - config.cylinderEllipseRadius),
+                ]) },
+                stroke: .mainStroke
+            ),
+            ShapeDecoration(
+                path: { rect, config in .polyline(points: [
+                    CGPoint(x: rect.maxX, y: rect.minY + config.cylinderEllipseRadius),
+                    CGPoint(x: rect.maxX, y: rect.maxY - config.cylinderEllipseRadius),
+                ]) },
+                stroke: .mainStroke
+            ),
+        ]
+        let capDecorations: [ShapeDecoration] = [
+            ShapeDecoration(
+                path: { _, _ in .ellipse },
+                bounds: { full, config in
+                    let h = config.cylinderEllipseRadius * 2
+                    return CGRect(x: full.minX, y: full.minY, width: full.width, height: h)
+                },
+                stroke: .mainStroke,
+                fillsBackground: true
+            ),
+            ShapeDecoration(
+                path: { _, _ in .ellipse },
+                bounds: { full, config in
+                    let h = config.cylinderEllipseRadius * 2
+                    return CGRect(x: full.minX, y: full.maxY - h, width: full.width, height: h)
+                },
+                stroke: .mainStroke,
+                fillsBackground: true
+            ),
+        ]
+        return ShapeSpec(
             aliases: ["data-store", "datastore"],
             sizeAdjustment: { textSize, config in
                 CGSize(
@@ -486,7 +576,8 @@ public enum ShapeSpecRegistry {
                     height: Swift.max(textSize.height + config.nodePaddingVertical * 2 + 14, config.minimumNodeHeight)
                 )
             },
-            path: { _, config in .cylinder(topCapInset: config.cylinderEllipseRadius) }
+            path: { _, config in .cylinder(topCapInset: config.cylinderEllipseRadius) },
+            decorations: sideLines + capDecorations
         )
     }
     private static func _makeTextSpec() -> ShapeSpec {
@@ -620,7 +711,41 @@ public enum ShapeSpecRegistry {
                     height: Swift.max(textSize.height + config.nodePaddingVertical * 2, config.minimumNodeHeight)
                 )
             },
-            path: { _, config in .horizontalCylinder(leftCapInset: config.cylinderEllipseRadius) }
+            path: { _, config in .horizontalCylinder(leftCapInset: config.cylinderEllipseRadius) },
+            decorations: [
+                ShapeDecoration(
+                    path: { _, _ in .ellipse },
+                    bounds: { full, config in
+                        let w = config.cylinderEllipseRadius * 2
+                        return CGRect(x: full.minX, y: full.minY, width: w, height: full.height)
+                    },
+                    stroke: .mainStroke,
+                    fillsBackground: true
+                ),
+                ShapeDecoration(
+                    path: { _, _ in .ellipse },
+                    bounds: { full, config in
+                        let w = config.cylinderEllipseRadius * 2
+                        return CGRect(x: full.maxX - w, y: full.minY, width: w, height: full.height)
+                    },
+                    stroke: .mainStroke,
+                    fillsBackground: true
+                ),
+                ShapeDecoration(
+                    path: { rect, config in .polyline(points: [
+                        CGPoint(x: rect.minX + config.cylinderEllipseRadius, y: rect.minY),
+                        CGPoint(x: rect.maxX - config.cylinderEllipseRadius, y: rect.minY),
+                    ]) },
+                    stroke: .mainStroke
+                ),
+                ShapeDecoration(
+                    path: { rect, config in .polyline(points: [
+                        CGPoint(x: rect.minX + config.cylinderEllipseRadius, y: rect.maxY),
+                        CGPoint(x: rect.maxX - config.cylinderEllipseRadius, y: rect.maxY),
+                    ]) },
+                    stroke: .mainStroke
+                ),
+            ]
         )
     }
     private static func _makeLinedCylinderSpec() -> ShapeSpec {
@@ -640,6 +765,38 @@ public enum ShapeSpecRegistry {
                         CGPoint(x: rect.maxX, y: rect.midY),
                     ]) },
                     stroke: .dashed(lengths: [3, 3])
+                ),
+                ShapeDecoration(
+                    path: { rect, config in .polyline(points: [
+                        CGPoint(x: rect.minX, y: rect.minY + config.cylinderEllipseRadius),
+                        CGPoint(x: rect.minX, y: rect.maxY - config.cylinderEllipseRadius),
+                    ]) },
+                    stroke: .mainStroke
+                ),
+                ShapeDecoration(
+                    path: { rect, config in .polyline(points: [
+                        CGPoint(x: rect.maxX, y: rect.minY + config.cylinderEllipseRadius),
+                        CGPoint(x: rect.maxX, y: rect.maxY - config.cylinderEllipseRadius),
+                    ]) },
+                    stroke: .mainStroke
+                ),
+                ShapeDecoration(
+                    path: { _, _ in .ellipse },
+                    bounds: { full, config in
+                        let h = config.cylinderEllipseRadius * 2
+                        return CGRect(x: full.minX, y: full.minY, width: full.width, height: h)
+                    },
+                    stroke: .mainStroke,
+                    fillsBackground: true
+                ),
+                ShapeDecoration(
+                    path: { _, _ in .ellipse },
+                    bounds: { full, config in
+                        let h = config.cylinderEllipseRadius * 2
+                        return CGRect(x: full.minX, y: full.maxY - h, width: full.width, height: h)
+                    },
+                    stroke: .mainStroke,
+                    fillsBackground: true
                 ),
             ]
         )
@@ -678,11 +835,21 @@ public enum ShapeSpecRegistry {
         }, path: { _, _ in .triangle })
     }
     private static func _makeWindowPaneSpec() -> ShapeSpec {
-        // Position-dependent decoration (inset pane) deferred to sub-bounds support.
         ShapeSpec(
             aliases: ["internal-storage", "win-pane", "window-pane"],
             sizeAdjustment: _rectSizing,
-            path: { _, _ in .rect(cornerRadius: 0) }
+            path: { _, _ in .rect(cornerRadius: 0) },
+            decorations: [
+                ShapeDecoration(
+                    path: { _, _ in .rect(cornerRadius: 0) },
+                    bounds: { full, _ in
+                        let inset = full.width * 0.2
+                        return CGRect(x: full.maxX - inset - 4, y: full.minY + 4,
+                                      width: inset, height: full.height - 8)
+                    },
+                    stroke: .mainStroke
+                ),
+            ]
         )
     }
     private static func _makeFilledCircleSpec() -> ShapeSpec {
@@ -741,19 +908,31 @@ public enum ShapeSpecRegistry {
         )
     }
     private static func _makeStackedDocumentSpec() -> ShapeSpec {
-        // Position-dependent decoration (offset copy) deferred to sub-bounds support.
         ShapeSpec(
             aliases: ["stacked-document", "docs", "documents", "st-doc"],
             sizeAdjustment: _rectSizing,
-            path: { _, _ in .document }
+            path: { _, _ in .document },
+            decorations: [
+                ShapeDecoration(
+                    path: { _, _ in .document },
+                    bounds: { full, _ in full.offsetBy(dx: -4, dy: -4) },
+                    stroke: .thinStroke
+                ),
+            ]
         )
     }
     private static func _makeStackedRectangleSpec() -> ShapeSpec {
-        // Position-dependent decoration (offset copy) deferred to sub-bounds support.
         ShapeSpec(
             aliases: ["stacked-rectangle", "st-rect", "procs", "processes"],
             sizeAdjustment: _rectSizing,
-            path: { _, _ in .rect(cornerRadius: 0) }
+            path: { _, _ in .rect(cornerRadius: 0) },
+            decorations: [
+                ShapeDecoration(
+                    path: { _, _ in .rect(cornerRadius: 0) },
+                    bounds: { full, _ in full.offsetBy(dx: -4, dy: -4) },
+                    stroke: .thinStroke
+                ),
+            ]
         )
     }
     private static func _makeFlagSpec() -> ShapeSpec { ShapeSpec(aliases: ["paper-tape", "flag"], sizeAdjustment: _rectSizing, path: { _, _ in .flag }) }
@@ -786,19 +965,39 @@ public enum ShapeSpecRegistry {
         )
     }
     private static func _makeTaggedDocumentSpec() -> ShapeSpec {
-        // Position-dependent decoration (corner tag) deferred to sub-bounds support.
         ShapeSpec(
             aliases: ["tagged-document", "tag-doc"],
             sizeAdjustment: _rectSizing,
-            path: { _, _ in .document }
+            path: { _, _ in .document },
+            decorations: [
+                ShapeDecoration(
+                    path: { rect, _ in .polygon(vertices: [
+                        CGPoint(x: rect.maxX - 10, y: rect.minY),
+                        CGPoint(x: rect.maxX - 10, y: rect.minY + 10),
+                        CGPoint(x: rect.maxX, y: rect.minY + 10),
+                    ]) },
+                    stroke: .mainStroke,
+                    fillsBackground: true
+                ),
+            ]
         )
     }
     private static func _makeTaggedRectangleSpec() -> ShapeSpec {
-        // Position-dependent decoration (corner tag) deferred to sub-bounds support.
         ShapeSpec(
             aliases: ["tagged-rectangle", "tag-rect", "tag-proc", "tagged-process"],
             sizeAdjustment: _rectSizing,
-            path: { _, _ in .rect(cornerRadius: 0) }
+            path: { _, _ in .rect(cornerRadius: 0) },
+            decorations: [
+                ShapeDecoration(
+                    path: { rect, _ in .polygon(vertices: [
+                        CGPoint(x: rect.maxX - 10, y: rect.minY),
+                        CGPoint(x: rect.maxX - 10, y: rect.minY + 10),
+                        CGPoint(x: rect.maxX, y: rect.minY + 10),
+                    ]) },
+                    stroke: .mainStroke,
+                    fillsBackground: true
+                ),
+            ]
         )
     }
     private static func _makeIconSquareSpec() -> ShapeSpec { ShapeSpec(aliases: ["icon-square"], sizeAdjustment: _rectSizing, path: { _, _ in .rect(cornerRadius: 0) }) }
