@@ -3365,3 +3365,36 @@ button {
   border-radius: 4px;
   border: 1px solid var(--border);
 }
+
+/* =========================================================================
+   Publish version popover (Stage 4 redesign)
+   ========================================================================= */
+.publish-popover {
+  background: var(--surface);
+  border-radius: 10px;
+  box-shadow: var(--shadow-pop);
+  padding: 16px 18px;
+  width: 360px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.publish-popover h3 { font: 600 14px/1.2 var(--display); margin: 0 0 4px; }
+.publish-popover label {
+  display: flex; flex-direction: column; gap: 4px;
+  font: 500 12px/1 var(--display); color: var(--ink-2);
+}
+.publish-popover input, .publish-popover textarea {
+  font: 400 13px/1.4 var(--body);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 6px 8px;
+}
+.publish-popover__actions { display: flex; justify-content: flex-end; gap: 8px; }
+
+.pill--state.is-flash {
+  background: var(--accent-bg);
+  border-color: var(--accent-bd);
+  color: var(--accent);
+  transition: background 200ms, color 200ms;
+}

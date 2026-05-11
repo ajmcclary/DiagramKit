@@ -75,6 +75,10 @@ const requiredJsHooks = [
   "initShareDialog",
   "initPresentationMode",
   "showToast",
+  // New in Stage 4 — editor consolidation controllers
+  "initEditorMode",
+  "initEditorSelection",
+  "initPublishVersion",
 ];
 
 // Page-specific requirements: each entry asserts substrings present.

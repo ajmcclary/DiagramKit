@@ -360,6 +360,117 @@
     apply();
   }
 
+  function initEditorMode() {
+    const tabs = document.querySelectorAll('[data-mode-tabs] button[data-mode]');
+    const panes = document.querySelectorAll('[data-pane]');
+    if (tabs.length === 0 || panes.length === 0) return;
+
+    const params = new URLSearchParams(location.search);
+    const requested = params.get("mode");
+    const valid = ["source", "visual", "split"];
+    const startMode = valid.includes(requested) ? requested : "source";
+
+    function apply(mode) {
+      tabs.forEach((btn) => {
+        const on = btn.dataset.mode === mode;
+        btn.classList.toggle("is-on", on);
+        btn.setAttribute("aria-pressed", on ? "true" : "false");
+      });
+      panes.forEach((pane) => {
+        pane.classList.toggle("is-on", pane.dataset.pane === mode);
+      });
+      const next = new URL(location.href);
+      next.searchParams.set("mode", mode);
+      history.replaceState(null, "", next);
+      try {
+        const diagramId = document.body.dataset.diagramId || "default";
+        sessionStorage.setItem(`editor:lastMode:${diagramId}`, mode);
+      } catch {}
+    }
+
+    tabs.forEach((btn) => {
+      btn.addEventListener("click", (e) => {
+        e.preventDefault();
+        apply(btn.dataset.mode);
+      });
+    });
+    apply(startMode);
+  }
+
+  function initEditorSelection() {
+    const rail = document.querySelector('[data-rail-state]');
+    if (!rail) return;
+    const nodes = document.querySelectorAll('.canvas .node, [data-node-id]');
+    if (nodes.length === 0) return;
+
+    function setState(state, payload = null) {
+      rail.classList.toggle("rail--inspector", state === "inspector");
+      rail.classList.toggle("rail--diagram", state === "diagram");
+      rail.dataset.railState = state;
+      const panel = rail.querySelector('[data-tabpanel="details"]');
+      if (state === "inspector" && payload && panel) {
+        panel.innerHTML = `<p>Node <code>${payload.id}</code> selected.</p>`;
+      }
+    }
+
+    nodes.forEach((node) => {
+      node.addEventListener("click", () => {
+        nodes.forEach((n) => n.classList.remove("is-selected"));
+        node.classList.add("is-selected");
+        setState("inspector", { id: node.dataset.nodeId });
+      });
+    });
+    document.querySelectorAll('.canvas').forEach((svg) => {
+      svg.addEventListener("click", (e) => {
+        if (e.target === svg) {
+          nodes.forEach((n) => n.classList.remove("is-selected"));
+          setState("diagram");
+        }
+      });
+    });
+    setState("diagram");
+  }
+
+  function initPublishVersion() {
+    const trigger = document.querySelector('[data-publish]');
+    if (!trigger) return;
+    let versionCount = 3;
+
+    trigger.addEventListener("click", (e) => {
+      e.preventDefault();
+      const popover = makeScrim(`
+        <div class="publish-popover">
+          <h3>Publish version of pr-lifecycle.mmd</h3>
+          <label>Version label<input type="text" value="v0.${++versionCount}" data-publish-label /></label>
+          <label>Notes (optional)<textarea data-publish-notes></textarea></label>
+          <div class="publish-popover__actions">
+            <button class="tb-btn" data-publish-cancel>Cancel</button>
+            <button class="tb-btn primary" data-publish-confirm>Publish ⌘⇧P</button>
+          </div>
+        </div>
+      `, "publish-scrim");
+
+      popover.querySelector("[data-publish-cancel]").onclick = () => closeScrim(popover);
+      popover.querySelector("[data-publish-confirm]").onclick = () => {
+        const label = popover.querySelector("[data-publish-label]").value || `v0.${versionCount}`;
+        closeScrim(popover);
+        flashPublished(label);
+      };
+    });
+
+    function flashPublished(label) {
+      const status = document.querySelector('.pageheader__status .pill--state');
+      if (!status) return;
+      const original = status.innerHTML;
+      status.innerHTML = `Published · ${label}`;
+      status.classList.add("is-flash");
+      setTimeout(() => {
+        status.innerHTML = original;
+        status.classList.remove("is-flash");
+      }, 1200);
+    }
+  }
+
   function initVisualEditor() {
     const root = $(".ve-grid");
     if (!root) return;
@@ -1745,6 +1856,11 @@ end
     initGuidedTourTrigger();
     initVisualEditorStateModel();
     initPermissionPreviewHooks();
+
+    // Stage 4 — Diagram editor consolidation
+    initEditorMode();
+    initEditorSelection();
+    initPublishVersion();
   });
 
   window.prototypeDemo = {
