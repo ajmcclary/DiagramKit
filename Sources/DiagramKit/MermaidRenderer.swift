@@ -124,14 +124,16 @@ public struct MermaidRenderer {
     public static func renderSVG(
         source: String,
         theme: DiagramTheme = .default,
-        layoutConfig: LayoutConfig = LayoutConfig()
+        layoutConfig: LayoutConfig = LayoutConfig(),
+        idPolicy: SVGIDPolicy = .unique
     ) async throws -> String {
         _ = _MermaidPreparerBootstrap.didInstall
         return try await _runOnWorker {
             try MermaidPipeline.renderSVG(
                 source: source,
                 theme: theme,
-                layoutConfig: layoutConfig
+                layoutConfig: layoutConfig,
+                idPolicy: idPolicy
             )
         }
     }

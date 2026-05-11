@@ -135,7 +135,7 @@ extension DiagramRenderer {
             context.rotate(by: rotation * .pi / 180)
         }
 
-        let font = _quadrantFont(size: fontSize)
+        let font = fontResolver.proportionalFont(size: fontSize, weight: .regular)
         let alignment: TextAlignment
 
         if verticalPos == "left" {
@@ -181,11 +181,4 @@ private func parseQuadrantCGFloat(_ s: String) -> CGFloat? {
     return CGFloat(value)
 }
 
-private func _quadrantFont(size: CGFloat) -> BMFont {
-    #if targetEnvironment(macCatalyst) || canImport(UIKit)
-    return UIFont.systemFont(ofSize: size)
-    #elseif canImport(AppKit)
-    return NSFont.systemFont(ofSize: size)
-    #endif
-}
 #endif

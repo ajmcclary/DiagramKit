@@ -85,7 +85,7 @@ public struct SVGDocumentBuilder: Sendable {
         if useMaxWidth {
             let wStr = _formatSvgNum(width)
             svgTag = svgTag.replacingOccurrences(of: "width=\"\(wStr)\"", with: "width=\"100%\"")
-            let maxStyle = "max-width:\(wStr)px;"
+            let maxStyle = "max-width: \(wStr)px;"
             if let styleStart = svgTag.range(of: "style=\"") {
                 svgTag.insert(contentsOf: maxStyle, at: styleStart.upperBound)
             }
@@ -110,8 +110,13 @@ public struct SVGDocumentBuilder: Sendable {
         if let cls = className {
             extraAttrs.append("class=\"\(SVG.escapeAttribute(cls))\"")
         }
+        let extraHasRoleDescription = extraAttributes?.contains("aria-roledescription") ?? false
         if !svgTag.contains("role=") {
-            extraAttrs.append("role=\"graphics-document\" aria-roledescription=\"diagram\"")
+            extraAttrs.append(
+                extraHasRoleDescription
+                    ? "role=\"graphics-document\""
+                    : "role=\"graphics-document\" aria-roledescription=\"diagram\""
+            )
         }
         if let extra = extraAttributes {
             extraAttrs.append(extra)

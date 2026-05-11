@@ -186,7 +186,7 @@ extension DiagramRenderer {
 
     private func _drawVennTitle(_ title: PositionedVennTitle, in context: CGContext) {
         let font = _systemFont(size: CGFloat(title.fontSize))
-        let color = BMColor(hex: title.fillColor)
+        let color = _vennColor(title.fillColor, fallback: theme.foreground)
         let point = CGPoint(x: CGFloat(title.x), y: CGFloat(title.y))
         _drawTextInFlipped(title.text, at: point, context: context, contentHeight: 1000, color: color, font: font, alignment: .center)
     }
@@ -202,11 +202,11 @@ extension DiagramRenderer {
 
             if isHandDrawn {
                 let seed = handDrawnSeed + ci * 137
-                let fillColor = BMColor(hex: area.fillColor).withAlphaComponent(CGFloat(area.fillOpacity))
+                let fillColor = _vennFillColor(area.fillColor, opacity: area.fillOpacity)
                 context.setFillColor(fillColor.cgColor)
                 _drawHandDrawnCircleCG(cx: cx, cy: cy, r: r, seed: seed, in: context)
 
-                let strokeColor = BMColor(hex: area.strokeColor).withAlphaComponent(0.95)
+                let strokeColor = _vennColor(area.strokeColor).withAlphaComponent(0.95)
                 context.setStrokeColor(strokeColor.cgColor)
                 context.setLineWidth(CGFloat(area.strokeWidth))
                 _drawHandDrawnCircleCG(cx: cx, cy: cy, r: r, seed: seed, in: context)
@@ -214,13 +214,13 @@ extension DiagramRenderer {
 
                 // Hachure fill
                 let hachureAngle = -41.0 + Double(ci) * 60.0
-                _drawHachureLinesCG(cx: cx, cy: cy, r: r * 0.95, seed: seed, angle: hachureAngle, gap: 8, in: context, color: BMColor(hex: area.fillColor).withAlphaComponent(0.4))
+                _drawHachureLinesCG(cx: cx, cy: cy, r: r * 0.95, seed: seed, angle: hachureAngle, gap: 8, in: context, color: _vennColor(area.fillColor).withAlphaComponent(0.4))
             } else {
-                let fillColor = BMColor(hex: area.fillColor).withAlphaComponent(CGFloat(area.fillOpacity))
+                let fillColor = _vennFillColor(area.fillColor, opacity: area.fillOpacity)
                 context.setFillColor(fillColor.cgColor)
                 context.fillEllipse(in: CGRect(x: cx - r, y: cy - r, width: r * 2, height: r * 2))
 
-                let strokeColor = BMColor(hex: area.strokeColor).withAlphaComponent(0.95)
+                let strokeColor = _vennColor(area.strokeColor).withAlphaComponent(0.95)
                 context.setStrokeColor(strokeColor.cgColor)
                 context.setLineWidth(CGFloat(area.strokeWidth))
                 context.strokeEllipse(in: CGRect(x: cx - r, y: cy - r, width: r * 2, height: r * 2))
@@ -240,14 +240,14 @@ extension DiagramRenderer {
             let path = _makeVennCGPath(from: pathSpec)
             if let path = path {
                 if isHandDrawn && area.fillOpacity > 0 && area.fillColor.lowercased() != "transparent" {
-                    _drawHandDrawnIntersectionCG(path: path, fillColor: BMColor(hex: area.fillColor), strokeColor: BMColor(hex: area.strokeColor), strokeWidth: CGFloat(area.strokeWidth), seed: handDrawnSeed, in: context)
+                    _drawHandDrawnIntersectionCG(path: path, fillColor: _vennColor(area.fillColor), strokeColor: _vennColor(area.strokeColor), strokeWidth: CGFloat(area.strokeWidth), seed: handDrawnSeed, in: context)
                 } else {
-                    let fillColor = BMColor(hex: area.fillColor).withAlphaComponent(CGFloat(area.fillOpacity))
+                    let fillColor = _vennFillColor(area.fillColor, opacity: area.fillOpacity)
                     context.setFillColor(fillColor.cgColor)
                     context.addPath(path)
                     context.fillPath()
 
-                    let strokeColor = BMColor(hex: area.strokeColor).withAlphaComponent(0.95)
+                    let strokeColor = _vennColor(area.strokeColor).withAlphaComponent(0.95)
                     context.setStrokeColor(strokeColor.cgColor)
                     context.setLineWidth(CGFloat(area.strokeWidth))
                     context.addPath(path)
@@ -260,7 +260,7 @@ extension DiagramRenderer {
         let labelText = area.label ?? area.sets.first ?? ""
         if !labelText.isEmpty {
             let font = _systemFont(size: CGFloat(area.textFontSize))
-            let textColor = BMColor(hex: area.textColor)
+            let textColor = _vennColor(area.textColor, fallback: theme.foreground)
             let point = CGPoint(x: CGFloat(area.textPoint.x), y: CGFloat(area.textPoint.y))
             _drawTextInFlipped(labelText, at: point, context: context, contentHeight: 1000, color: textColor, font: font, alignment: .center)
         }
@@ -279,7 +279,7 @@ extension DiagramRenderer {
 
         let displayText = node.label ?? node.id
 
-        let textColor = BMColor(hex: node.textColor)
+        let textColor = _vennColor(node.textColor, fallback: theme.foreground)
         let fontSize: CGFloat = CGFloat(node.fontSize)
         let font = _systemFont(size: fontSize)
 
@@ -305,6 +305,18 @@ extension DiagramRenderer {
 
     private func _systemFont(size: CGFloat) -> BMFont {
         self.fontResolver.proportionalFont(size: size, weight: .regular)
+    }
+
+    private func _vennColor(_ value: String, fallback: BMColor = .black) -> BMColor {
+        MermaidColorParser.color(value) ?? fallback
+    }
+
+    private func _vennFillColor(_ value: String, opacity: Double) -> BMColor {
+        let color = _vennColor(value)
+        if value.trimmingCharacters(in: .whitespacesAndNewlines).lowercased() == "transparent" {
+            return color
+        }
+        return color.withAlphaComponent(CGFloat(opacity))
     }
 
     // MARK: - Hand-Drawn CG Helpers

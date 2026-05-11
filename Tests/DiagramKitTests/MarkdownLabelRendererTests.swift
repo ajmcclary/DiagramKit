@@ -81,6 +81,12 @@ final class MarkdownLabelRendererTests: XCTestCase {
         XCTAssertTrue(result.string.contains("\n"))
     }
 
+    func testLessThanTextThatIsNotBreakTagIsPlainText() {
+        let config = MarkdownLabelRenderer.Config(fontSize: 14, textColor: .black)
+        let result = MarkdownLabelRenderer.render("<- satisfies", config: config)
+        XCTAssertEqual(result.string, "<- satisfies")
+    }
+
     func testPlainTextNoTraits() {
         let config = MarkdownLabelRenderer.Config(fontSize: 14, textColor: .black)
         let result = MarkdownLabelRenderer.render("plain text", config: config)

@@ -64,9 +64,10 @@ public class NodeShapeRenderer {
                 fillColor = theme.nodeFillColor(for: inlineStyles)
             }
             switch spec.strokeOverride {
-            case .none:  strokeColor = .clear  // won't stroke
-            case .some:  strokeColor = theme.nodeStrokeColor(for: inlineStyles)
-            case nil:    strokeColor = theme.nodeStrokeColor(for: inlineStyles)
+            case .some(.none):
+                strokeColor = .clear
+            case .some, nil:
+                strokeColor = theme.nodeStrokeColor(for: inlineStyles)
             }
         } else {
             fillColor = theme.nodeFillColor(for: inlineStyles)

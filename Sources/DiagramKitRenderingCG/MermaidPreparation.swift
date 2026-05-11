@@ -21,6 +21,18 @@ import DiagramKitModel
 /// that is set exactly once by the umbrella's bootstrap and then read
 /// concurrently from any actor. Writes go through `_lock`; reads do
 /// too. The closure itself must be `@Sendable`.
+public enum MermaidPreparationError: Error, LocalizedError, Sendable {
+    case notConfigured
+
+    public var errorDescription: String? {
+        """
+        MermaidPreparation has no registered implementation. Import DiagramKit and \
+        call MermaidRenderer.bootstrap() once at startup, or register a custom \
+        implementation with MermaidPreparation.registerImplementation(_:).
+        """
+    }
+}
+
 public enum MermaidPreparation {
 
     /// Synchronous prepare implementation signature. The umbrella
@@ -54,13 +66,7 @@ public enum MermaidPreparation {
     ) async throws -> PreparedDiagram {
         let impl = _currentImpl
         guard let impl else {
-            preconditionFailure("""
-                MermaidPreparation: no implementation registered. The DiagramKit \
-                umbrella registers one automatically when any MermaidRenderer.* \
-                API is called. If you are using DiagramKitViews directly, call \
-                `MermaidRenderer.bootstrap()` once at startup, or register a \
-                custom implementation via `MermaidPreparation.registerImplementation(_:)`.
-                """)
+            throw MermaidPreparationError.notConfigured
         }
         return try await MermaidWorkerThread.run {
             try impl(source, theme, layoutConfig)

@@ -13,7 +13,7 @@ final class SVGPathSerializerTests: XCTestCase {
 
     private let bounds = CGRect(x: 0, y: 0, width: 100, height: 60)
 
-    private func assertNonTrivial(_ shapePath: ShapePath, file: StaticString = #file, line: UInt = #line) {
+    private func assertNonTrivial(_ shapePath: ShapePath, file: StaticString = #filePath, line: UInt = #line) {
         let data = SVGPathSerializer.serialize(shapePath, in: bounds)
         XCTAssertFalse(data.isEmpty, "empty path data for \(shapePath)", file: file, line: line)
         XCTAssertTrue(data.contains("M"), "no Move command for \(shapePath): \(data)", file: file, line: line)

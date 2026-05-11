@@ -29,6 +29,7 @@ import AppKit
 /// bypass the bundled-font determinism guarantee.
 public struct DiagramFontResolver: Sendable {
     public let tokens: RenderTokens
+    private static let ctFontLock = NSLock()
 
     public init(tokens: RenderTokens = .shared) {
         self.tokens = tokens
@@ -76,14 +77,20 @@ public struct DiagramFontResolver: Sendable {
     /// font family. Falls back to `"TrebuchetMS"`.
     public func proportionalCTFont(size: CGFloat) -> CTFont {
         let family = tokens.defaultProportionalFontFamily ?? "TrebuchetMS"
-        return CTFontCreateWithName(family as CFString, size, nil)
+        return Self.makeCTFont(name: family, size: size)
     }
 
     /// Monospace `CTFont` using the configured default font family.
     /// Previously `RenderTokens.layoutMonoCTFont(size:)`.
     public func monospaceCTFont(size: CGFloat) -> CTFont {
         let family = tokens.defaultFontFamily ?? "Menlo"
-        return CTFontCreateWithName(family as CFString, size, nil)
+        return Self.makeCTFont(name: family, size: size)
+    }
+
+    private static func makeCTFont(name: String, size: CGFloat) -> CTFont {
+        ctFontLock.lock()
+        defer { ctFontLock.unlock() }
+        return CTFontCreateWithName(name as CFString, size, nil)
     }
 
     // MARK: - CSS weight mapping

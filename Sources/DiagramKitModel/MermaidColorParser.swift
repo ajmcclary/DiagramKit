@@ -8,7 +8,8 @@ import CoreGraphics
 /// A unified CSS color parser for Mermaid diagram renderers.
 ///
 /// Supports hex colors (`#RGB`, `#RRGGBB`, `#RRGGBBAA`), `rgb()`/`rgba()`
-/// functional notation, and named colors (`transparent`).
+/// functional notation, and a small set of named colors used by Mermaid
+/// theme defaults.
 ///
 /// Replaces the duplicated `_hexToCGColor`, `_thexToCGColor`, and ad-hoc
 /// CSS color parsers in individual renderer extensions.
@@ -30,8 +31,8 @@ public enum MermaidColorParser {
         let trimmed = value.trimmingCharacters(in: .whitespacesAndNewlines)
         if trimmed.isEmpty { return nil }
 
-        if trimmed.caseInsensitiveCompare("transparent") == .orderedSame {
-            return BMColor(red: 0, green: 0, blue: 0, alpha: 0)
+        if let named = _namedColor(trimmed) {
+            return named
         }
 
         if trimmed.hasPrefix("#") {
@@ -113,6 +114,19 @@ public enum MermaidColorParser {
         let a: CGFloat = values.count >= 4 ? CGFloat(values[3]) : 1.0
 
         return BMColor(red: r, green: g, blue: b, alpha: a)
+    }
+
+    private static func _namedColor(_ value: String) -> BMColor? {
+        switch value.lowercased() {
+        case "transparent":
+            return BMColor(red: 0, green: 0, blue: 0, alpha: 0)
+        case "black":
+            return BMColor(red: 0, green: 0, blue: 0, alpha: 1)
+        case "white":
+            return BMColor(red: 1, green: 1, blue: 1, alpha: 1)
+        default:
+            return nil
+        }
     }
 }
 #endif

@@ -83,7 +83,8 @@ public enum MermaidPipeline {
     public static func renderSVG(
         source: String,
         theme: DiagramTheme = .default,
-        layoutConfig: LayoutConfig = LayoutConfig()
+        layoutConfig: LayoutConfig = LayoutConfig(),
+        idPolicy: SVGIDPolicy = .unique
     ) throws -> String {
         try runPipeline(operation: "MermaidPipeline.renderSVG") {
             let graph = try MermaidParser.parse(source)
@@ -99,7 +100,7 @@ public enum MermaidPipeline {
                 border: (theme.border ?? theme.foreground).hexString
             )
             let font = DiagramFontResolver.shared.svgFontFamily
-            let diagramId = StableID.derive(from: source)
+            let diagramId = SVGIDGenerator.id(for: source, policy: idPolicy)
 
             do {
                 let svg = try SVGRenderRegistry.render(
@@ -115,7 +116,7 @@ public enum MermaidPipeline {
                 // Fall back to source-based pipeline for families not yet
                 // on the positioned path.
                 return try MermaidImageRenderer(theme: theme, config: layoutConfig)
-                    .renderSVGSync(from: source)
+                    .renderSVGSync(from: source, idPolicy: idPolicy)
             }
         }
     }
@@ -137,8 +138,13 @@ public enum MermaidPipeline {
                 border: (theme.border ?? theme.foreground).hexString
             )
             let font = DiagramFontResolver.shared.svgFontFamily
+            let diagramId = SVGIDGenerator.id(
+                for: "\(positioned.diagram.type.rawValue)-\(positioned.width)x\(positioned.height)",
+                policy: .unique
+            )
             let svg = try SVGRenderRegistry.render(
                 positioned: positioned,
+                diagramId: diagramId,
                 colors: colors,
                 font: font,
                 transparent: false

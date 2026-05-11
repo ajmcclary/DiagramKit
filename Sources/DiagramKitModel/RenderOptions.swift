@@ -6,6 +6,15 @@
 
 import Foundation
 
+public enum SVGIDPolicy: String, Sendable {
+    /// Generate fresh IDs for every render so multiple copies of the same
+    /// diagram can coexist in one DOM without marker/gradient collisions.
+    case unique
+
+    /// Derive IDs from source content for snapshot-stable SVG output.
+    case stable
+}
+
 public struct RenderOptions: Sendable {
     public var bg: String?
     public var fg: String?
@@ -17,6 +26,7 @@ public struct RenderOptions: Sendable {
     public var font: String?
     public var transparent: Bool?
     public var interactive: Bool?
+    public var idPolicy: SVGIDPolicy
 
     public init(
         bg: String? = nil,
@@ -28,7 +38,8 @@ public struct RenderOptions: Sendable {
         border: String? = nil,
         font: String? = nil,
         transparent: Bool? = nil,
-        interactive: Bool? = nil
+        interactive: Bool? = nil,
+        idPolicy: SVGIDPolicy = .unique
     ) {
         self.bg = bg
         self.fg = fg
@@ -40,6 +51,7 @@ public struct RenderOptions: Sendable {
         self.font = font
         self.transparent = transparent
         self.interactive = interactive
+        self.idPolicy = idPolicy
     }
 }
 

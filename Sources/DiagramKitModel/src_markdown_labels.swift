@@ -88,7 +88,9 @@ public enum MarkdownLabelRenderer {
         var i = text.startIndex
         while i < text.endIndex {
             let ch = text[i]
-            if ch == "*" || ch == "`" || ch == "<" || ch == "\n" {
+            let rest = text[i...]
+            if ch == "*" || ch == "`" || ch == "\n" ||
+                rest.hasPrefix("<br>") || rest.hasPrefix("<br/>") {
                 break
             }
             i = text.index(after: i)

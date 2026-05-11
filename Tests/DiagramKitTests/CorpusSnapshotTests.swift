@@ -67,7 +67,7 @@ struct CorpusSnapshotTests {
 
     @Test("SVG snapshot", arguments: try loadDiagrams())
     func svgSnapshot(_ diagram: DiagramEntry) async throws {
-        let svg = try await MermaidRenderer.renderSVG(source: diagram.source)
+        let svg = try await MermaidRenderer.renderSVG(source: diagram.source, idPolicy: .stable)
         assertSnapshot(of: svg, as: .lines, named: diagram.id)
     }
 

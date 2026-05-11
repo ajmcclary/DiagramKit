@@ -133,13 +133,16 @@ final class GitGraphModelTests: XCTestCase {
     }
 
     func testMergeEmptyCurrent() throws {
-        XCTAssertThrowsError(try parse("gitGraph\n   branch dev\n   commit\n   checkout main\n   merge dev")) { error in
-            guard let dbError = error as? GitGraphDBError else { return }
-            switch dbError {
-            case .mergeEmptyCurrent: break
-            default: XCTFail("Expected mergeEmptyCurrent, got \(dbError)")
-            }
-        }
+        let diagram = try parse("gitGraph\n   branch dev\n   commit\n   checkout main\n   merge dev")
+        let devCommit = try XCTUnwrap(diagram.commits.first)
+        let mainHead = try XCTUnwrap(diagram.branchHeads["main"])
+        let devHead = try XCTUnwrap(diagram.branchHeads["dev"])
+
+        XCTAssertEqual(diagram.commits.count, 1)
+        XCTAssertEqual(devCommit.branch, "dev")
+        XCTAssertEqual(diagram.currentBranch, "main")
+        XCTAssertEqual(mainHead, devCommit.id)
+        XCTAssertEqual(devHead, devCommit.id)
     }
 
     func testMergeEmptyTarget() throws {

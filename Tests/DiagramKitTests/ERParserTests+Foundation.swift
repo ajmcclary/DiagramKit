@@ -468,6 +468,21 @@ struct ERParserFoundationTests {
         #expect(diagram.entities.first?.labelType == "text")
     }
 
+    @Test("ER init directive htmlLabels reaches parser model")
+    func erInitDirectiveHtmlLabelsReachPublicParserModel() async throws {
+        let graph = try await MermaidRenderer.parse("""
+            %%{init: { "htmlLabels": false }}%%
+            erDiagram
+              CUSTOMER
+            """)
+        guard case let .erDiagram(diagram) = graph.payload else {
+            Issue.record("Expected ER diagram payload")
+            return
+        }
+        #expect(diagram.config?.htmlLabels == false)
+        #expect(diagram.entities.first?.labelType == "text")
+    }
+
     @Test("ER accessibility renders title and desc")
     func erAccessibilityRendersTitleAndDesc() async throws {
         let svg = try await renderMermaidSVG("""

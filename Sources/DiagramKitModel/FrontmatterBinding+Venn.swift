@@ -1,7 +1,9 @@
 import Foundation
 
 public struct VennFrontmatterBinding: FrontmatterBinding {
-    public static let prefixes = ["config.venn."]
+    public static let prefixes = ["config.venn.", "venn.", "config.themeVariables.", "themeVariables."]
+    private static let configPrefixes = ["config.venn.", "venn."]
+    private static let themePrefixes = ["config.themeVariables.", "themeVariables."]
 
     private var config = VennDiagramConfig()
     private var themeVars: [String: String] = [:]
@@ -11,10 +13,16 @@ public struct VennFrontmatterBinding: FrontmatterBinding {
     public init() {}
 
     public mutating func apply(path: String, value: FrontmatterValue) -> Bool {
-        guard let key = Self.extractKey(path: path, prefixes: Self.prefixes) else { return false }
-        guard _applyConfig(key: key, value: value) else { return false }
-        hasConfig = true
-        return true
+        if let key = Self.extractKey(path: path, prefixes: Self.configPrefixes) {
+            guard _applyConfig(key: key, value: value) else { return false }
+            hasConfig = true
+            return true
+        }
+        if let key = Self.extractKey(path: path, prefixes: Self.themePrefixes) {
+            applyThemeVar(key, value)
+            return true
+        }
+        return false
     }
 
     private mutating func _applyConfig(key: String, value: FrontmatterValue) -> Bool {

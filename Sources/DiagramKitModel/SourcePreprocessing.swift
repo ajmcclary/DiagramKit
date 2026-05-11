@@ -132,6 +132,10 @@ private func _stripAndApplyInitDirectives(
     }
 
     if removedDirective {
+        if var fm = nextFrontmatter {
+            _propagateGlobalErConfig(into: &fm)
+            nextFrontmatter = fm
+        }
         return (strippedLines.joined(separator: "\n"), nextFrontmatter)
     }
     return (source, nextFrontmatter)
@@ -371,15 +375,7 @@ public func _parseYamlFrontmatter(_ lines: [String]) -> DiagramFrontmatter? {
     // Apply bindings for all diagram-specific config
     _ = _applyBindings(pairs, to: &frontmatter)
 
-    // Legacy: propagate global layout/look/htmlLabels to ER config if set
-    if frontmatter.layout != nil || frontmatter.look != nil || frontmatter.htmlLabels != nil {
-        if var er = frontmatter.erConfig {
-            if let l = frontmatter.layout { er.layout = l }
-            if let lk = frontmatter.look { er.look = lk }
-            if let hl = frontmatter.htmlLabels { er.htmlLabels = hl }
-            frontmatter.erConfig = er
-        }
-    }
+    _propagateGlobalErConfig(into: &frontmatter)
 
     // Legacy: propagate securityLevel to flowchart and state configs
     if let sl = frontmatter.securityLevel {
@@ -404,3 +400,14 @@ public func _parseYamlFrontmatter(_ lines: [String]) -> DiagramFrontmatter? {
     return hasContent ? frontmatter : nil
 }
 
+private func _propagateGlobalErConfig(into frontmatter: inout DiagramFrontmatter) {
+    guard frontmatter.layout != nil || frontmatter.look != nil || frontmatter.htmlLabels != nil else {
+        return
+    }
+
+    var er = frontmatter.erConfig ?? ErDiagramConfig()
+    if let layout = frontmatter.layout { er.layout = layout }
+    if let look = frontmatter.look { er.look = look }
+    if let htmlLabels = frontmatter.htmlLabels { er.htmlLabels = htmlLabels }
+    frontmatter.erConfig = er
+}

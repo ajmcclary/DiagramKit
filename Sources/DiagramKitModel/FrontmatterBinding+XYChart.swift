@@ -34,15 +34,15 @@ public struct XYChartFrontmatterBinding: FrontmatterBinding {
     private mutating func _applyConfig(key: String, value: FrontmatterValue) -> Bool {
         // Top-level keys
         switch key {
-        case "width":                    guard let v = value.double else { return false }; config.width = v
-        case "height":                   guard let v = value.double else { return false }; config.height = v
-        case "titleFontSize":            guard let v = value.double else { return false }; config.titleFontSize = v
-        case "titlePadding":             guard let v = value.double else { return false }; config.titlePadding = v
-        case "showTitle":                guard let v = value.bool else { return false }; config.showTitle = v
-        case "showDataLabel":            guard let v = value.bool else { return false }; config.showDataLabel = v
-        case "showDataLabelOutsideBar":  guard let v = value.bool else { return false }; config.showDataLabelOutsideBar = v
-        case "chartOrientation":         config.chartOrientation = value.string
-        case "plotReservedSpacePercent": guard let v = value.double else { return false }; config.plotReservedSpacePercent = v
+        case "width":                    guard let v = value.double else { return false }; config.width = v; return true
+        case "height":                   guard let v = value.double else { return false }; config.height = v; return true
+        case "titleFontSize":            guard let v = value.double else { return false }; config.titleFontSize = v; return true
+        case "titlePadding":             guard let v = value.double else { return false }; config.titlePadding = v; return true
+        case "showTitle":                guard let v = value.bool else { return false }; config.showTitle = v; return true
+        case "showDataLabel":            guard let v = value.bool else { return false }; config.showDataLabel = v; return true
+        case "showDataLabelOutsideBar":  guard let v = value.bool else { return false }; config.showDataLabelOutsideBar = v; return true
+        case "chartOrientation":         config.chartOrientation = value.string; return true
+        case "plotReservedSpacePercent": guard let v = value.double else { return false }; config.plotReservedSpacePercent = v; return true
         default: break
         }
         // xAxis sub-keys

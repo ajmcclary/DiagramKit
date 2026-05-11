@@ -36,12 +36,12 @@ extension DiagramRenderer {
         let labelFontSize = _tvParseLabelFontSize(tvTheme.labelFontSize)
         let labelFont = _tvFont(size: CGFloat(labelFontSize))
         let descFont = _tvItalicFont(size: CGFloat(labelFontSize))
-        let labelColor = BMColor(hex: tvTheme.labelColor)
-        let lineColor = BMColor(hex: tvTheme.lineColor)
-        let iconColor = BMColor(hex: tvTheme.iconColor)
-        let descColor = BMColor(hex: tvTheme.descriptionColor)
-        let highlightBg = BMColor(hex: tvTheme.highlightBg)
-        let highlightStroke = BMColor(hex: tvTheme.highlightStroke)
+        let labelColor = _tvColor(tvTheme.labelColor, fallback: theme.foreground)
+        let lineColor = _tvColor(tvTheme.lineColor, fallback: theme.effectiveLine())
+        let iconColor = _tvColor(tvTheme.iconColor, fallback: theme.effectiveAccent())
+        let descColor = _tvColor(tvTheme.descriptionColor, fallback: theme.effectiveMuted())
+        let highlightBg = _tvColor(tvTheme.highlightBg, fallback: theme.effectiveAccent().withAlphaComponent(0.15))
+        let highlightStroke = _tvColor(tvTheme.highlightStroke, fallback: theme.effectiveAccent())
 
         for rect in data.highlightRects {
             context.setFillColor(highlightBg.cgColor)
@@ -104,6 +104,10 @@ extension DiagramRenderer {
         let manager = NSFontManager.shared
         return manager.convert(baseFont, toHaveTrait: .italicFontMask)
         #endif
+    }
+
+    private func _tvColor(_ value: String, fallback: BMColor) -> BMColor {
+        MermaidColorParser.color(value) ?? fallback
     }
 
     private func _drawSVGPath(_ d: String, in context: CGContext, color: BMColor) {

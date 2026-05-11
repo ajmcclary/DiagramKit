@@ -289,8 +289,9 @@ final class QuadrantSvgTests: XCTestCase {
         let positioned = layoutQuadrantChart(chart)
         let svg = renderQuadrantSvg(positioned, colors)
 
-        XCTAssertTrue(svg.contains(#"role="graphics-document document""#))
+        XCTAssertTrue(svg.contains(#"role="graphics-document""#))
         XCTAssertTrue(svg.contains(#"aria-roledescription="quadrant-chart""#))
+        XCTAssertFalse(svg.contains(#"aria-roledescription="diagram""#))
     }
 
     func testSvgPointClassStyleRendering() throws {

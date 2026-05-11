@@ -58,7 +58,7 @@ extension DiagramRenderer {
                 context: context,
                 contentHeight: CGFloat(bh),
                 color: theme.foreground,
-                font: _kanbanFont(size: 14),
+                font: fontResolver.proportionalFont(size: 14, weight: .regular),
                 alignment: .center
             )
         }
@@ -97,7 +97,7 @@ extension DiagramRenderer {
                 context: context,
                 contentHeight: CGFloat(bh),
                 color: theme.foreground,
-                font: _kanbanFont(size: 12)
+                font: fontResolver.proportionalFont(size: 12, weight: .regular)
             )
             let metadataY = cardRect.minY + 16 + CGFloat(max(cardLabelLines.count, 1)) * CGFloat(_kanbanCardLabelLineHeight)
 
@@ -108,7 +108,7 @@ extension DiagramRenderer {
                     context: context,
                     contentHeight: CGFloat(bh),
                     color: accentColor,
-                    font: _kanbanFont(size: 10),
+                    font: fontResolver.proportionalFont(size: 10, weight: .regular),
                     alignment: .left
                 )
             }
@@ -120,21 +120,13 @@ extension DiagramRenderer {
                     context: context,
                     contentHeight: CGFloat(bh),
                     color: theme.foreground,
-                    font: _kanbanFont(size: 10),
+                    font: fontResolver.proportionalFont(size: 10, weight: .regular),
                     alignment: .right
                 )
             }
         }
 
         context.restoreGState()
-    }
-
-    private func _kanbanFont(size: CGFloat) -> BMFont {
-        #if targetEnvironment(macCatalyst) || canImport(UIKit)
-        return UIFont.systemFont(ofSize: size)
-        #elseif canImport(AppKit)
-        return NSFont.systemFont(ofSize: size)
-        #endif
     }
 
     private func _drawKanbanLabelLines(

@@ -141,7 +141,8 @@ struct RadarSvgTests {
     @Test("SVG transparent background")
     func svgTransparent() {
         let svg = renderRadarSvg(makePositioned(), colors: DiagramColors(bg: "#FFF", fg: "#000"), transparent: true)
-        #expect(svg.contains("background-color: none"))
+        #expect(!svg.contains("background:var(--bg)"))
+        #expect(!svg.contains("background-color:"))
     }
 
     @Test("SVG useMaxWidth configuration")
@@ -166,7 +167,7 @@ struct RadarSvgTests {
         let svg = renderRadarSvg(pos, colors: DiagramColors(bg: "#FFF", fg: "#000"), transparent: false)
         #expect(svg.contains("A &amp; B"))
         #expect(svg.contains("Test &lt;Radar&gt;"))
-        #expect(svg.contains("AT &quot;quoted&quot;"))
+        #expect(svg.contains("<title>AT \"quoted\"</title>"))
     }
 
     @Test("SVG with empty diagram")

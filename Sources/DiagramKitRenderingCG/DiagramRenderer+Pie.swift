@@ -63,7 +63,7 @@ extension DiagramRenderer {
                     context: ctx,
                     contentHeight: pieHeight,
                     color: _pieColor(chart.theme.resolvedPieSectionTextColor, fallback: theme.foreground),
-                    font: _pieFont(size: parsePieCGFloat(chart.theme.pieSectionTextSize) ?? 17)
+                    font: self.fontResolver.proportionalFont(size: parsePieCGFloat(chart.theme.pieSectionTextSize) ?? 17, weight: .regular)
                 )
             }
 
@@ -77,7 +77,7 @@ extension DiagramRenderer {
                     context: ctx,
                     contentHeight: pieHeight,
                     color: _pieColor(chart.theme.resolvedPieTitleTextColor, fallback: theme.foreground),
-                    font: _pieFont(size: parsePieCGFloat(chart.theme.pieTitleTextSize) ?? 25)
+                    font: self.fontResolver.proportionalFont(size: parsePieCGFloat(chart.theme.pieTitleTextSize) ?? 25, weight: .regular)
                 )
             }
 
@@ -107,7 +107,7 @@ extension DiagramRenderer {
                     context: ctx,
                     contentHeight: pieHeight,
                     color: _pieColor(chart.theme.resolvedPieLegendTextColor, fallback: theme.foreground),
-                    font: _pieFont(size: parsePieCGFloat(chart.theme.pieLegendTextSize) ?? 17),
+                    font: self.fontResolver.proportionalFont(size: parsePieCGFloat(chart.theme.pieLegendTextSize) ?? 17, weight: .regular),
                     alignment: .left
                 )
             }
@@ -152,11 +152,4 @@ private func pieChartRadius(for chart: PositionedPieChart, outerStrokeWidth: CGF
     max(0, CGFloat(chart.outerCircle.r) - outerStrokeWidth / 2)
 }
 
-private func _pieFont(size: CGFloat) -> BMFont {
-    #if targetEnvironment(macCatalyst) || canImport(UIKit)
-    return UIFont.systemFont(ofSize: size)
-    #elseif canImport(AppKit)
-    return NSFont.systemFont(ofSize: size)
-    #endif
-}
 #endif

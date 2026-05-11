@@ -134,17 +134,17 @@ enum SVGRenderRegistry {
             render: { _, lines, fm, options, _, colors, font, transparent in
                 try _renderJourneySvgCase(lines: lines, fm: fm, options: options, colors: colors, font: font, transparent: transparent)
             },
-            renderPositioned: { positioned, _, colors, font, transparent in
+            renderPositioned: { positioned, diagramId, colors, font, transparent in
                 guard case let .journey(diagram) = positioned.content else {
                     throw MermaidStructuralError.payloadMismatch(.journey)
                 }
-                return try renderJourneySvg(diagram, colors, font, transparent)
+                return try renderJourneySvg(diagram, colors, font, transparent, diagramId: diagramId ?? "mermaid-0")
             }
         ),
         .gantt: SVGRenderDescriptor(
             type: .gantt,
-            render: { source, _, fm, _, _, colors, font, transparent in
-                try _renderGanttSvgCase(source: source, fm: fm, colors: colors, font: font, transparent: transparent)
+            render: { source, _, fm, options, _, colors, font, transparent in
+                try _renderGanttSvgCase(source: source, fm: fm, colors: colors, font: font, transparent: transparent, idPolicy: options.idPolicy)
             },
             renderPositioned: { positioned, diagramId, colors, font, transparent in
                 guard case let .gantt(data) = positioned.content else {
@@ -201,8 +201,8 @@ enum SVGRenderRegistry {
         ),
         .gitGraph: SVGRenderDescriptor(
             type: .gitGraph,
-            render: { source, _, fm, _, _, _, _, _ in
-                try _renderGitGraphSvgCase(source: source, fm: fm)
+            render: { source, _, fm, options, _, _, _, _ in
+                try _renderGitGraphSvgCase(source: source, fm: fm, idPolicy: options.idPolicy)
             },
             renderPositioned: { positioned, diagramId, _, _, _ in
                 guard case let .gitGraph(data) = positioned.content else {
@@ -213,8 +213,8 @@ enum SVGRenderRegistry {
         ),
         .mindmap: SVGRenderDescriptor(
             type: .mindmap,
-            render: { source, _, fm, _, _, colors, font, transparent in
-                try _renderMindmapSvgCase(source: source, fm: fm, colors: colors, font: font, transparent: transparent)
+            render: { source, _, fm, options, _, colors, font, transparent in
+                try _renderMindmapSvgCase(source: source, fm: fm, colors: colors, font: font, transparent: transparent, idPolicy: options.idPolicy)
             },
             renderPositioned: { positioned, diagramId, colors, font, transparent in
                 guard case let .mindmap(data) = positioned.content else {
@@ -225,8 +225,8 @@ enum SVGRenderRegistry {
         ),
         .timeline: SVGRenderDescriptor(
             type: .timeline,
-            render: { source, _, fm, _, _, colors, font, transparent in
-                try _renderTimelineSvgCase(source: source, fm: fm, colors: colors, font: font, transparent: transparent)
+            render: { source, _, fm, options, _, colors, font, transparent in
+                try _renderTimelineSvgCase(source: source, fm: fm, colors: colors, font: font, transparent: transparent, idPolicy: options.idPolicy)
             },
             renderPositioned: { positioned, diagramId, colors, font, transparent in
                 guard case let .timeline(data) = positioned.content else {
@@ -237,8 +237,8 @@ enum SVGRenderRegistry {
         ),
         .sankey: SVGRenderDescriptor(
             type: .sankey,
-            render: { source, _, fm, _, _, colors, font, transparent in
-                try _renderSankeySvgCase(source: source, fm: fm, colors: colors, font: font, transparent: transparent)
+            render: { source, _, fm, options, _, colors, font, transparent in
+                try _renderSankeySvgCase(source: source, fm: fm, colors: colors, font: font, transparent: transparent, idPolicy: options.idPolicy)
             },
             renderPositioned: { positioned, diagramId, colors, font, transparent in
                 guard case let .sankey(diagram) = positioned.content else {
@@ -249,8 +249,8 @@ enum SVGRenderRegistry {
         ),
         .block: SVGRenderDescriptor(
             type: .block,
-            render: { source, _, fm, _, _, colors, font, transparent in
-                try _renderBlockSvgCase(source: source, fm: fm, colors: colors, font: font, transparent: transparent)
+            render: { source, _, fm, options, _, colors, font, transparent in
+                try _renderBlockSvgCase(source: source, fm: fm, colors: colors, font: font, transparent: transparent, idPolicy: options.idPolicy)
             },
             renderPositioned: { positioned, diagramId, colors, font, transparent in
                 guard case let .block(data) = positioned.content else {
@@ -273,8 +273,8 @@ enum SVGRenderRegistry {
         ),
         .kanban: SVGRenderDescriptor(
             type: .kanban,
-            render: { source, _, fm, _, _, colors, font, transparent in
-                try _renderKanbanSvgCase(source: source, fm: fm, colors: colors, font: font, transparent: transparent)
+            render: { source, _, fm, options, _, colors, font, transparent in
+                try _renderKanbanSvgCase(source: source, fm: fm, colors: colors, font: font, transparent: transparent, idPolicy: options.idPolicy)
             },
             renderPositioned: { positioned, diagramId, colors, font, transparent in
                 guard case let .kanban(data) = positioned.content else {
@@ -285,8 +285,8 @@ enum SVGRenderRegistry {
         ),
         .architecture: SVGRenderDescriptor(
             type: .architecture,
-            render: { source, _, fm, _, _, colors, font, transparent in
-                try _renderArchitectureSvgCase(source: source, fm: fm, colors: colors, font: font, transparent: transparent)
+            render: { source, _, fm, options, _, colors, font, transparent in
+                try _renderArchitectureSvgCase(source: source, fm: fm, colors: colors, font: font, transparent: transparent, idPolicy: options.idPolicy)
             },
             renderPositioned: { positioned, diagramId, colors, font, transparent in
                 guard case let .architecture(data) = positioned.content else {
@@ -309,8 +309,8 @@ enum SVGRenderRegistry {
         ),
         .treemap: SVGRenderDescriptor(
             type: .treemap,
-            render: { source, _, fm, _, _, colors, font, transparent in
-                try _renderTreemapSvgCase(source: source, fm: fm, colors: colors, font: font, transparent: transparent)
+            render: { source, _, fm, options, _, colors, font, transparent in
+                try _renderTreemapSvgCase(source: source, fm: fm, colors: colors, font: font, transparent: transparent, idPolicy: options.idPolicy)
             },
             renderPositioned: { positioned, diagramId, colors, font, transparent in
                 guard case let .treemap(data) = positioned.content else {
@@ -321,8 +321,8 @@ enum SVGRenderRegistry {
         ),
         .venn: SVGRenderDescriptor(
             type: .venn,
-            render: { source, _, fm, _, _, colors, font, transparent in
-                try _renderVennSvgCase(source: source, fm: fm, colors: colors, font: font, transparent: transparent)
+            render: { source, _, fm, options, _, colors, font, transparent in
+                try _renderVennSvgCase(source: source, fm: fm, colors: colors, font: font, transparent: transparent, idPolicy: options.idPolicy)
             },
             renderPositioned: { positioned, diagramId, colors, font, transparent in
                 guard case let .venn(data) = positioned.content else {
@@ -333,8 +333,8 @@ enum SVGRenderRegistry {
         ),
         .ishikawa: SVGRenderDescriptor(
             type: .ishikawa,
-            render: { source, _, fm, _, _, colors, font, transparent in
-                try _renderIshikawaSvgCase(source: source, fm: fm, colors: colors, font: font, transparent: transparent)
+            render: { source, _, fm, options, _, colors, font, transparent in
+                try _renderIshikawaSvgCase(source: source, fm: fm, colors: colors, font: font, transparent: transparent, idPolicy: options.idPolicy)
             },
             renderPositioned: { positioned, diagramId, colors, font, transparent in
                 guard case let .ishikawa(data) = positioned.content else {
@@ -345,8 +345,8 @@ enum SVGRenderRegistry {
         ),
         .treeView: SVGRenderDescriptor(
             type: .treeView,
-            render: { source, _, fm, _, _, colors, font, transparent in
-                try _renderTreeViewSvgCase(source: source, fm: fm, colors: colors, font: font, transparent: transparent)
+            render: { source, _, fm, options, _, colors, font, transparent in
+                try _renderTreeViewSvgCase(source: source, fm: fm, colors: colors, font: font, transparent: transparent, idPolicy: options.idPolicy)
             },
             renderPositioned: { positioned, diagramId, _, font, _ in
                 guard case let .treeView(data) = positioned.content else {
@@ -357,8 +357,8 @@ enum SVGRenderRegistry {
         ),
         .eventModeling: SVGRenderDescriptor(
             type: .eventModeling,
-            render: { source, _, fm, _, _, colors, font, transparent in
-                try _renderEventModelingSvgCase(source: source, fm: fm, colors: colors, font: font, transparent: transparent)
+            render: { source, _, fm, options, _, colors, font, transparent in
+                try _renderEventModelingSvgCase(source: source, fm: fm, colors: colors, font: font, transparent: transparent, idPolicy: options.idPolicy)
             },
             renderPositioned: { positioned, diagramId, colors, font, transparent in
                 guard case let .eventModeling(data) = positioned.content else {
@@ -381,8 +381,8 @@ enum SVGRenderRegistry {
         ),
         .c4: SVGRenderDescriptor(
             type: .c4,
-            render: { source, _, fm, _, _, colors, font, transparent in
-                try _renderC4SvgCase(source: source, fm: fm, colors: colors, font: font, transparent: transparent)
+            render: { source, _, fm, options, _, colors, font, transparent in
+                try _renderC4SvgCase(source: source, fm: fm, colors: colors, font: font, transparent: transparent, idPolicy: options.idPolicy)
             },
             renderPositioned: { positioned, diagramId, colors, font, transparent in
                 guard case let .c4(diagram) = positioned.content else {

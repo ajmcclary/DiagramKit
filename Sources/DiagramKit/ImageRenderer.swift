@@ -87,19 +87,20 @@ public final class MermaidImageRenderer {
         return image
     }
 
-    public func renderSVG(from source: String) async throws -> String {
+    public func renderSVG(from source: String, idPolicy: SVGIDPolicy = .unique) async throws -> String {
         let theme = theme
         let layoutConfig = layoutConfig
         return try await MermaidRenderer._runOnWorker {
             try MermaidPipeline.renderSVG(
                 source: source,
                 theme: theme,
-                layoutConfig: layoutConfig
+                layoutConfig: layoutConfig,
+                idPolicy: idPolicy
             )
         }
     }
 
-    func renderSVGSync(from source: String) throws -> String {
+    func renderSVGSync(from source: String, idPolicy: SVGIDPolicy = .unique) throws -> String {
         let options = RenderOptions(
             bg: _hex(theme.background),
             fg: _hex(theme.foreground),
@@ -108,7 +109,8 @@ public final class MermaidImageRenderer {
             muted: _hex(theme.effectiveMuted()),
             surface: _hex(theme.effectiveSurface()),
             border: _hex(theme.effectiveBorder()),
-            transparent: false
+            transparent: false,
+            idPolicy: idPolicy
         )
 
         let svg = try _renderMermaidSVG(source, options, layoutConfig: layoutConfig)

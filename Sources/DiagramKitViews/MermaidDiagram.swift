@@ -46,23 +46,18 @@ public struct MermaidDiagram {
         let snapshotTheme = theme
         let snapshotConfig = layoutConfig
 
-        // `MermaidViewPreparerEnvironment` is configured by the umbrella's
-        // `_MermaidPreparerBootstrap` on the first call to any public
-        // `MermaidRenderer.*` API. Hosts that bypass the umbrella public
-        // API (e.g. construct `MermaidDiagram` before any `MermaidRenderer.*`
-        // call) must call `MermaidRenderer.bootstrap()` once at startup,
-        // or configure the environment directly.
-        guard let preparer = MermaidViewPreparerEnvironment.current else {
-            preconditionFailure("""
-                MermaidDiagram: MermaidViewPreparerEnvironment is not configured. \
-                Call `MermaidRenderer.bootstrap()` once at startup, or call \
-                any `MermaidRenderer.*` API to install the default preparer \
-                automatically.
-                """)
-        }
+        let preparer = MermaidViewPreparerEnvironment.current
 
         do {
-            let prepared = try await preparer.prepare(snapshotSource, snapshotTheme, snapshotConfig)
+            let prepared = if let preparer {
+                try await preparer.prepare(snapshotSource, snapshotTheme, snapshotConfig)
+            } else {
+                try await MermaidPreparation.prepare(
+                    source: snapshotSource,
+                    theme: snapshotTheme,
+                    layoutConfig: snapshotConfig
+                )
+            }
             preparedDiagram = prepared
             diagramBounds = prepared.bounds
         } catch {

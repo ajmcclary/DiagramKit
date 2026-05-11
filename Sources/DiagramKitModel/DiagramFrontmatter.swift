@@ -167,49 +167,276 @@ public struct SharedFrontmatter: Sendable {
 /// Per-diagram-family configs and themes. Each field is `nil` unless the
 /// frontmatter actually committed at least one value for that family.
 public struct PerDiagramFrontmatter: Sendable {
-    public var classConfig: ClassConfig?
-    public var flowchartConfig: original_src_types.FlowchartConfig?
-    public var erConfig: ErDiagramConfig?
-    public var xyChartConfig: XYChartConfig?
-    public var xyChartTheme: XYChartThemeConfig?
-    public var pieConfig: PieChartConfig?
-    public var pieTheme: PieChartThemeConfig?
-    public var sequenceConfig: SequenceDiagramConfig?
-    public var stateConfig: original_src_types.StateConfig?
-    public var journeyConfig: JourneyDiagramConfig?
-    public var ganttConfig: GanttDiagramConfig?
-    public var quadrantChartConfig: QuadrantChartConfig?
-    public var quadrantChartTheme: QuadrantChartThemeConfig?
-    public var requirementConfig: RequirementDiagramConfig?
-    public var requirementTheme: RequirementThemeVariables?
-    public var gitGraphConfig: GitGraphConfig?
-    public var gitGraphTheme: GitGraphThemeConfig?
-    public var mindmapConfig: MindmapConfig?
-    public var timelineConfig: TimelineDiagramConfig?
-    public var timelineTheme: TimelineThemeConfig?
-    public var sankeyConfig: SankeyDiagramConfig?
-    public var blockConfig: BlockDiagramConfig?
-    public var packetConfig: PacketDiagramConfig?
-    public var packetTheme: PacketThemeConfig?
-    public var kanbanConfig: KanbanDiagramConfig?
-    public var archConfig: ArchitectureDiagramConfig?
-    public var archTheme: ArchitectureThemeConfig?
-    public var radarConfig: RadarDiagramConfig?
-    public var radarTheme: RadarThemeConfig?
-    public var treemapConfig: TreemapDiagramConfig?
-    public var treemapThemeVariables: [String: String]?
-    public var vennConfig: VennDiagramConfig?
-    public var vennThemeVariables: [String: String]?
-    public var ishikawaConfig: IshikawaDiagramConfig?
-    public var treeViewConfig: TreeViewDiagramConfig?
-    public var treeViewTheme: TreeViewThemeVariables?
-    public var eventmodelingConfig: EventModelingDiagramConfig?
-    public var eventmodelingThemeVariables: EventModelingThemeVariables?
-    public var wardleyBetaConfig: WardleyDiagramConfig?
-    public var wardleyTheme: WardleyThemeVariables?
-    public var c4Config: C4DiagramConfig?
+    /// Concurrency Contract:
+    /// `Storage` is private, and public mutations go through copy-on-write
+    /// setters before touching the reference. The reference exists only to keep
+    /// this value type small enough for cooperative executor stacks.
+    private final class Storage: @unchecked Sendable {
+        var classConfig: ClassConfig?
+        var flowchartConfig: original_src_types.FlowchartConfig?
+        var erConfig: ErDiagramConfig?
+        var xyChartConfig: XYChartConfig?
+        var xyChartTheme: XYChartThemeConfig?
+        var pieConfig: PieChartConfig?
+        var pieTheme: PieChartThemeConfig?
+        var sequenceConfig: SequenceDiagramConfig?
+        var stateConfig: original_src_types.StateConfig?
+        var journeyConfig: JourneyDiagramConfig?
+        var ganttConfig: GanttDiagramConfig?
+        var quadrantChartConfig: QuadrantChartConfig?
+        var quadrantChartTheme: QuadrantChartThemeConfig?
+        var requirementConfig: RequirementDiagramConfig?
+        var requirementTheme: RequirementThemeVariables?
+        var gitGraphConfig: GitGraphConfig?
+        var gitGraphTheme: GitGraphThemeConfig?
+        var mindmapConfig: MindmapConfig?
+        var timelineConfig: TimelineDiagramConfig?
+        var timelineTheme: TimelineThemeConfig?
+        var sankeyConfig: SankeyDiagramConfig?
+        var blockConfig: BlockDiagramConfig?
+        var packetConfig: PacketDiagramConfig?
+        var packetTheme: PacketThemeConfig?
+        var kanbanConfig: KanbanDiagramConfig?
+        var archConfig: ArchitectureDiagramConfig?
+        var archTheme: ArchitectureThemeConfig?
+        var radarConfig: RadarDiagramConfig?
+        var radarTheme: RadarThemeConfig?
+        var treemapConfig: TreemapDiagramConfig?
+        var treemapThemeVariables: [String: String]?
+        var vennConfig: VennDiagramConfig?
+        var vennThemeVariables: [String: String]?
+        var ishikawaConfig: IshikawaDiagramConfig?
+        var treeViewConfig: TreeViewDiagramConfig?
+        var treeViewTheme: TreeViewThemeVariables?
+        var eventmodelingConfig: EventModelingDiagramConfig?
+        var eventmodelingThemeVariables: EventModelingThemeVariables?
+        var wardleyBetaConfig: WardleyDiagramConfig?
+        var wardleyTheme: WardleyThemeVariables?
+        var c4Config: C4DiagramConfig?
 
-    public init() {}
+        init() {}
+
+        init(copying other: Storage) {
+            classConfig = other.classConfig
+            flowchartConfig = other.flowchartConfig
+            erConfig = other.erConfig
+            xyChartConfig = other.xyChartConfig
+            xyChartTheme = other.xyChartTheme
+            pieConfig = other.pieConfig
+            pieTheme = other.pieTheme
+            sequenceConfig = other.sequenceConfig
+            stateConfig = other.stateConfig
+            journeyConfig = other.journeyConfig
+            ganttConfig = other.ganttConfig
+            quadrantChartConfig = other.quadrantChartConfig
+            quadrantChartTheme = other.quadrantChartTheme
+            requirementConfig = other.requirementConfig
+            requirementTheme = other.requirementTheme
+            gitGraphConfig = other.gitGraphConfig
+            gitGraphTheme = other.gitGraphTheme
+            mindmapConfig = other.mindmapConfig
+            timelineConfig = other.timelineConfig
+            timelineTheme = other.timelineTheme
+            sankeyConfig = other.sankeyConfig
+            blockConfig = other.blockConfig
+            packetConfig = other.packetConfig
+            packetTheme = other.packetTheme
+            kanbanConfig = other.kanbanConfig
+            archConfig = other.archConfig
+            archTheme = other.archTheme
+            radarConfig = other.radarConfig
+            radarTheme = other.radarTheme
+            treemapConfig = other.treemapConfig
+            treemapThemeVariables = other.treemapThemeVariables
+            vennConfig = other.vennConfig
+            vennThemeVariables = other.vennThemeVariables
+            ishikawaConfig = other.ishikawaConfig
+            treeViewConfig = other.treeViewConfig
+            treeViewTheme = other.treeViewTheme
+            eventmodelingConfig = other.eventmodelingConfig
+            eventmodelingThemeVariables = other.eventmodelingThemeVariables
+            wardleyBetaConfig = other.wardleyBetaConfig
+            wardleyTheme = other.wardleyTheme
+            c4Config = other.c4Config
+        }
+    }
+
+    private var storage: Storage
+
+    public init() {
+        storage = Storage()
+    }
+
+    private mutating func ensureUniqueStorage() {
+        if !isKnownUniquelyReferenced(&storage) {
+            storage = Storage(copying: storage)
+        }
+    }
+
+    public var classConfig: ClassConfig? {
+        get { storage.classConfig }
+        set { ensureUniqueStorage(); storage.classConfig = newValue }
+    }
+    public var flowchartConfig: original_src_types.FlowchartConfig? {
+        get { storage.flowchartConfig }
+        set { ensureUniqueStorage(); storage.flowchartConfig = newValue }
+    }
+    public var erConfig: ErDiagramConfig? {
+        get { storage.erConfig }
+        set { ensureUniqueStorage(); storage.erConfig = newValue }
+    }
+    public var xyChartConfig: XYChartConfig? {
+        get { storage.xyChartConfig }
+        set { ensureUniqueStorage(); storage.xyChartConfig = newValue }
+    }
+    public var xyChartTheme: XYChartThemeConfig? {
+        get { storage.xyChartTheme }
+        set { ensureUniqueStorage(); storage.xyChartTheme = newValue }
+    }
+    public var pieConfig: PieChartConfig? {
+        get { storage.pieConfig }
+        set { ensureUniqueStorage(); storage.pieConfig = newValue }
+    }
+    public var pieTheme: PieChartThemeConfig? {
+        get { storage.pieTheme }
+        set { ensureUniqueStorage(); storage.pieTheme = newValue }
+    }
+    public var sequenceConfig: SequenceDiagramConfig? {
+        get { storage.sequenceConfig }
+        set { ensureUniqueStorage(); storage.sequenceConfig = newValue }
+    }
+    public var stateConfig: original_src_types.StateConfig? {
+        get { storage.stateConfig }
+        set { ensureUniqueStorage(); storage.stateConfig = newValue }
+    }
+    public var journeyConfig: JourneyDiagramConfig? {
+        get { storage.journeyConfig }
+        set { ensureUniqueStorage(); storage.journeyConfig = newValue }
+    }
+    public var ganttConfig: GanttDiagramConfig? {
+        get { storage.ganttConfig }
+        set { ensureUniqueStorage(); storage.ganttConfig = newValue }
+    }
+    public var quadrantChartConfig: QuadrantChartConfig? {
+        get { storage.quadrantChartConfig }
+        set { ensureUniqueStorage(); storage.quadrantChartConfig = newValue }
+    }
+    public var quadrantChartTheme: QuadrantChartThemeConfig? {
+        get { storage.quadrantChartTheme }
+        set { ensureUniqueStorage(); storage.quadrantChartTheme = newValue }
+    }
+    public var requirementConfig: RequirementDiagramConfig? {
+        get { storage.requirementConfig }
+        set { ensureUniqueStorage(); storage.requirementConfig = newValue }
+    }
+    public var requirementTheme: RequirementThemeVariables? {
+        get { storage.requirementTheme }
+        set { ensureUniqueStorage(); storage.requirementTheme = newValue }
+    }
+    public var gitGraphConfig: GitGraphConfig? {
+        get { storage.gitGraphConfig }
+        set { ensureUniqueStorage(); storage.gitGraphConfig = newValue }
+    }
+    public var gitGraphTheme: GitGraphThemeConfig? {
+        get { storage.gitGraphTheme }
+        set { ensureUniqueStorage(); storage.gitGraphTheme = newValue }
+    }
+    public var mindmapConfig: MindmapConfig? {
+        get { storage.mindmapConfig }
+        set { ensureUniqueStorage(); storage.mindmapConfig = newValue }
+    }
+    public var timelineConfig: TimelineDiagramConfig? {
+        get { storage.timelineConfig }
+        set { ensureUniqueStorage(); storage.timelineConfig = newValue }
+    }
+    public var timelineTheme: TimelineThemeConfig? {
+        get { storage.timelineTheme }
+        set { ensureUniqueStorage(); storage.timelineTheme = newValue }
+    }
+    public var sankeyConfig: SankeyDiagramConfig? {
+        get { storage.sankeyConfig }
+        set { ensureUniqueStorage(); storage.sankeyConfig = newValue }
+    }
+    public var blockConfig: BlockDiagramConfig? {
+        get { storage.blockConfig }
+        set { ensureUniqueStorage(); storage.blockConfig = newValue }
+    }
+    public var packetConfig: PacketDiagramConfig? {
+        get { storage.packetConfig }
+        set { ensureUniqueStorage(); storage.packetConfig = newValue }
+    }
+    public var packetTheme: PacketThemeConfig? {
+        get { storage.packetTheme }
+        set { ensureUniqueStorage(); storage.packetTheme = newValue }
+    }
+    public var kanbanConfig: KanbanDiagramConfig? {
+        get { storage.kanbanConfig }
+        set { ensureUniqueStorage(); storage.kanbanConfig = newValue }
+    }
+    public var archConfig: ArchitectureDiagramConfig? {
+        get { storage.archConfig }
+        set { ensureUniqueStorage(); storage.archConfig = newValue }
+    }
+    public var archTheme: ArchitectureThemeConfig? {
+        get { storage.archTheme }
+        set { ensureUniqueStorage(); storage.archTheme = newValue }
+    }
+    public var radarConfig: RadarDiagramConfig? {
+        get { storage.radarConfig }
+        set { ensureUniqueStorage(); storage.radarConfig = newValue }
+    }
+    public var radarTheme: RadarThemeConfig? {
+        get { storage.radarTheme }
+        set { ensureUniqueStorage(); storage.radarTheme = newValue }
+    }
+    public var treemapConfig: TreemapDiagramConfig? {
+        get { storage.treemapConfig }
+        set { ensureUniqueStorage(); storage.treemapConfig = newValue }
+    }
+    public var treemapThemeVariables: [String: String]? {
+        get { storage.treemapThemeVariables }
+        set { ensureUniqueStorage(); storage.treemapThemeVariables = newValue }
+    }
+    public var vennConfig: VennDiagramConfig? {
+        get { storage.vennConfig }
+        set { ensureUniqueStorage(); storage.vennConfig = newValue }
+    }
+    public var vennThemeVariables: [String: String]? {
+        get { storage.vennThemeVariables }
+        set { ensureUniqueStorage(); storage.vennThemeVariables = newValue }
+    }
+    public var ishikawaConfig: IshikawaDiagramConfig? {
+        get { storage.ishikawaConfig }
+        set { ensureUniqueStorage(); storage.ishikawaConfig = newValue }
+    }
+    public var treeViewConfig: TreeViewDiagramConfig? {
+        get { storage.treeViewConfig }
+        set { ensureUniqueStorage(); storage.treeViewConfig = newValue }
+    }
+    public var treeViewTheme: TreeViewThemeVariables? {
+        get { storage.treeViewTheme }
+        set { ensureUniqueStorage(); storage.treeViewTheme = newValue }
+    }
+    public var eventmodelingConfig: EventModelingDiagramConfig? {
+        get { storage.eventmodelingConfig }
+        set { ensureUniqueStorage(); storage.eventmodelingConfig = newValue }
+    }
+    public var eventmodelingThemeVariables: EventModelingThemeVariables? {
+        get { storage.eventmodelingThemeVariables }
+        set { ensureUniqueStorage(); storage.eventmodelingThemeVariables = newValue }
+    }
+    public var wardleyBetaConfig: WardleyDiagramConfig? {
+        get { storage.wardleyBetaConfig }
+        set { ensureUniqueStorage(); storage.wardleyBetaConfig = newValue }
+    }
+    public var wardleyTheme: WardleyThemeVariables? {
+        get { storage.wardleyTheme }
+        set { ensureUniqueStorage(); storage.wardleyTheme = newValue }
+    }
+    public var c4Config: C4DiagramConfig? {
+        get { storage.c4Config }
+        set { ensureUniqueStorage(); storage.c4Config = newValue }
+    }
 }
 
 // MARK: - Flat-field source-compatibility shims

@@ -209,6 +209,8 @@ struct EventModelingParserTests {
     }
 }
 
+@Suite(.serialized)
+@MainActor
 struct EventModelingLayoutTests {
 
     @Test func layout_simpleStateChange() throws {
@@ -305,6 +307,8 @@ struct EventModelingLayoutTests {
     }
 }
 
+@Suite(.serialized)
+@MainActor
 struct EventModelingSvgTests {
 
     @Test func svg_simpleStateChange() throws {
@@ -447,6 +451,8 @@ struct EventModelingSvgTests {
     }
 }
 
+@Suite(.serialized)
+@MainActor
 struct EventModelingEndToEndTests {
 
     @Test func e2e_simpleStateChange() async throws {

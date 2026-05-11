@@ -113,24 +113,15 @@ public class MermaidLayer: CALayer {
         let theme = theme
         let layoutConfig = layoutConfig
 
-        // `MermaidViewPreparerEnvironment` is configured by the umbrella's
-        // `_MermaidPreparerBootstrap` on the first call to any public
-        // `MermaidRenderer.*` API. Hosts that bypass the umbrella public
-        // API (e.g. construct `MermaidView` before any `MermaidRenderer.*`
-        // call) must call `MermaidRenderer.bootstrap()` once at startup,
-        // or configure the environment directly.
-        guard let preparer = MermaidViewPreparerEnvironment.current else {
-            preconditionFailure("""
-                MermaidLayer: MermaidViewPreparerEnvironment is not configured. \
-                Call `MermaidRenderer.bootstrap()` once at startup, or call \
-                any `MermaidRenderer.*` API to install the default preparer \
-                automatically.
-                """)
-        }
+        let preparer = MermaidViewPreparerEnvironment.current
 
         preparationTask = Task { [weak self] in
             do {
-                let prepared = try await preparer.prepare(source, theme, layoutConfig)
+                let prepared = if let preparer {
+                    try await preparer.prepare(source, theme, layoutConfig)
+                } else {
+                    try await MermaidPreparation.prepare(source: source, theme: theme, layoutConfig: layoutConfig)
+                }
                 guard !Task.isCancelled else { return }
                 self?.preparedDiagram = prepared
                 self?.diagramBounds = prepared.bounds
