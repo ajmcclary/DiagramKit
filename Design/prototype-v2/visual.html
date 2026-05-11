@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>flowchart.mmd — Visual editor</title>
+<title>flowchart.mmd — Diagram editor · Visual</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link
@@ -12,7 +12,7 @@
 />
 <link rel="stylesheet" href="assets/shared.css" />
 <style>
-  /* Visual editor: tool rail · canvas · inspector */
+  /* Diagram editor · Visual mode: tool rail · canvas · inspector */
   .ve-grid {
     display: grid;
     grid-template-columns: 88px 1fr 280px;
@@ -568,7 +568,7 @@
     <div class="title-text">
       <span class="doc">flowchart.mmd</span>
       <span class="sep">—</span>
-      <span class="meta">Visual editor</span>
+      <span class="meta">Diagram editor · Visual</span>
     </div>
     <div class="title-actions">
       <span class="save-state live"><span class="dot"></span>Co-editing · live</span>
@@ -607,11 +607,11 @@
         </a>
         <a href="playground.html" class="nav-pill">
           <span class="glyph"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg></span>
-          Playground
+          Diagram editor
         </a>
         <a href="visual.html" class="nav-pill is-on">
           <span class="glyph"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M5 3l3 3M19 3l-3 3M5 21l3-3M19 21l-3-3"/><rect x="6" y="6" width="12" height="12" rx="1.5"/></svg></span>
-          Visual editor
+          Diagram editor · Visual
         </a>
         <a href="ai.html" class="nav-pill">
           <span class="glyph"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l1.6 4.4L18 8l-4.4 1.6L12 14l-1.6-4.4L6 8l4.4-1.6z"/></svg></span>
@@ -661,7 +661,7 @@
         <div class="vmode" style="margin-left: 12px;">
           <button class="is-on">Visual</button>
           <button>Split</button>
-          <button>Code</button>
+          <button>Source</button>
         </div>
         <div class="right">
           <span class="pill"><span class="dot" style="background: var(--success);"></span>14 / 28 edits</span>
@@ -877,7 +877,7 @@
                   <span class="desc">Visual edits restructure Mermaid source. <b>Semantic meaning preserved</b> · whitespace normalized.</span>
                 </div>
                 <div class="safety-actions">
-                  <button class="safety-diff-btn">Review diff</button>
+                  <button class="safety-diff-btn">Review source diff</button>
                   <button class="primary safety-apply-btn">Apply</button>
                 </div>
               </div>
