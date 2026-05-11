@@ -101,6 +101,7 @@ public struct RequirementDiagramConfig: Sendable, Equatable {
     public var rankSpacing: Double = 50
     public var theme: RequirementThemeVariables?
     public var htmlLabels: Bool?
+    public var look: String?
 }
 
 public struct RequirementThemeVariables: Sendable, Equatable {

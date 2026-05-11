@@ -26,7 +26,7 @@ Overall structural health: **yellow-green**. The target layering and typed domai
 | **P3** Bitmap rendering | ✅ Done | `31e6882` |
 | **P4** Naming hygiene | ➖ Open | Low priority — `original_src_*` namespace acceptable as compatibility seam; flag if it spreads to new abstractions |
 | **D1** SVG case parse/layout dedup | ✅ Done | `_renderXYChartSvgCase`, `_renderQuadrantSvgCase`, `_renderSankeySvgCase`, `_renderRadarSvgCase` now delegate parse/layout/frontmatter to `DiagramRegistry` descriptors. Hardcoded `"sankey-1"` ID replaced with `StableID.derive`. ~25 snapshot rebakes expected. |
-| **D2** CG/SVG renderer drift | 🟡 In progress | **Phase A** (shared IDs): `_stableDiagramId` deleted; all families use `StableID.derive`. **Phase B** (shape decorations): `ShapeDecoration.Fill` + `ShapeSpec.fillOverride`/`strokeOverride` added; title-header + simple foreground-fill shapes migrated to spec-driven decorations. **Phase C** (positioned pipeline): `SVGRenderRegistry.render(positioned:diagramId:...)` added; 24 of 27 SVG families now have `renderPositioned` closures consuming `PositionedGraph` directly; `MermaidPipeline.renderSVG` tries positioned path with source-based fallback; `PositionedClassDiagram` init made public. **Remaining**: 3 families deferred (requirement, zenuml, packet — need frontmatter-derived params); per-family arrow markers + SVGDocumentBuilder still deferred; snapshot rebakes pending. |
+| **D2** CG/SVG renderer drift | ✅ Done | **Phase A** (shared IDs): `_stableDiagramId` deleted; all families use `StableID.derive`. **Phase B** (shape decorations): `ShapeDecoration.Fill` + `ShapeSpec.fillOverride`/`strokeOverride` added; title-header + simple foreground-fill shapes migrated to spec-driven decorations. **Phase C** (positioned pipeline): all 27 SVG families now have `renderPositioned` closures; requirement (`look` added to `RequirementDiagramConfig`), zenuml (`useMaxWidth` added to `PositionedZenUMLDiagram`), packet (`theme` already on model) wired in 2026-05-11. **Phase D** (arrow marker consolidation): `SVGArrowMarkerDefs` shared helper created; `src_renderer.swift` deduplicated (87→6 lines). **Deferred**: per-family marker migration (~10 renderers, snapshot-sensitive), `SVGDocumentBuilder` adoption (~25 mechanical files), state-end/state-divider migration (33 lines for 2 shapes). |
 | **D3** Frontmatter binding skeleton | ✅ Done | `FrontmatterBinding.extractKey(path:prefixes:)` static helper added to protocol; all 27 bindings refactored from multi-if-else `path.hasPrefix(...)` skeletons to guard/apply/mark patterns using `extractKey`. 8 refactored earlier (ER, Class, Journey, Kanban, Sankey, State, Block, Mindmap); remaining 19 (Sequence, Requirement, Radar, Treemap, Venn, Ishikawa, C4, TreeView, EventModeling, Wardley, Flowchart, XYChart, Pie, Gantt, Quadrant, Timeline, GitGraph, Packet, Architecture) completed 2026-05-11. Four sub-patterns: config-only (5 families), two-section config+theme (7), two-section with theme-guard predicate (3), multi-section with broad-fallback (2), and special-case bare-key + config (2). Inline switches extracted into private `_applyConfig` methods; correctness fix applied (mark `hasConfig`/`hasTheme` only after apply returns true). ZenUML has no binding file (no configurable frontmatter). |
 | **D4** `YamlFrontmatterThemeHelpers` cleanup | ✅ Done | `6621c67` `eed339a` |
 | **D5** Bitmap consolidation | ✅ Done | `31e6882` |
@@ -39,8 +39,8 @@ Overall structural health: **yellow-green**. The target layering and typed domai
 **Spawn chips remaining:** none — all spawn chips from the original audit have been completed.
 
 **Larger items not yet chipped:**
-- Linux text-measurement shim (`CTLineGetBoundsWithOptions` replacement) so ishikawa, treeView, eventModeling layouts can run on Linux.
-- CG/SVG renderer convergence on shared geometry primitives (D2 long-term plan).
+- ~~Linux text-measurement shim~~ → ✅ Done 2026-05-11. `TextMetrics` ungated with `#else` fallback; `src_ishikawa_layout.swift` routed through `TextMetrics.measureMonospaceMultiline`. treeView and eventModeling don't use CTLine directly.
+- CG/SVG renderer convergence on shared geometry primitives (D2 long-term plan) — positioned pipeline now complete; remaining items (per-family markers, SVGDocumentBuilder, state-end/divider) are mechanical or low-value relative to effort.
 
 **External / not actionable:**
 - `swift-snapshot-testing` upstream PR #1090 landing → switch back from the `ajmcclary/swift-snapshot-testing` fork.
@@ -668,11 +668,12 @@ Expected impact: medium duplication reduction with moderate platform-testing nee
 
 These were identified in the audit but warrant their own scoping passes before being chipped:
 
-- **D2 remaining work.** 3 SVG families (requirement, zenuml, packet) still need `renderPositioned` closures — deferred for frontmatter-derived rendering params. Per-family arrow marker consolidation (~10 renderers) and `SVGDocumentBuilder` adoption remain deferred. State-end / state-divider shapes still use legacy foreground-stroke rendering.
-- **Linux Stage 2.5.** Portable text-measurement shim so `ishikawa` / `treeView` / `eventModeling` layouts can run without `CTLineGetBoundsWithOptions`.
+- **D2 deferred follow-ups.** Per-family arrow marker migration to `SVGArrowMarkerDefs` (~10 renderers, snapshot-sensitive — two-line diffs per file). `SVGDocumentBuilder` adoption (~25 mechanical one-line diffs). State-end / state-divider migration to spec-driven decorations (low value: 33 lines across two renderers for two edge-case shapes).
+- ~~**Linux Stage 2.5.**~~ → ✅ Done 2026-05-11. `TextMetrics` now has `#else` character-width fallback; `src_ishikawa_layout.swift` uses `TextMetrics.measureMonospaceMultiline`.
 
 ## External / Not Actionable
 
+- **ShapeSpec.swift at 1118 lines (file-size ERROR).** Pre-existing — exceeded the 1000-line limit at `b6eabb9`. Should be split into `ShapeSpec.swift` (protocol + registry) + `ShapeSpecRegistry+Defaults.swift` (all 27 shape definitions). Not in session scope.
 - `swift-snapshot-testing` upstream PR #1090 — switch off the `ajmcclary` fork once it lands in a tagged release.
 - `CorpusSnapshotTests` signal-10 hang — pre-existing upstream test-runner / `swift-snapshot-testing` interaction. Workaround documented in `CLAUDE.md` and project memory.
 - `<Module>Bootstrap.phase: Int` markers — explicitly deferred to monorepo Stage 6.

@@ -377,9 +377,9 @@ public func renderMermaid(
 func _renderZenUMLSvgCase(source: String, fm: DiagramFrontmatter?, colors: DiagramColors, font: String, transparent: Bool) throws -> String {
     let rawLines = MermaidSourceNormalizer.rawLines(source)
     let diagram = try parseZenUMLDiagram(rawLines, frontmatter: fm)
-    let positioned = layoutZenUMLDiagram(diagram)
     let useMaxWidth = fm?.sequenceConfig?.useMaxWidth ?? true
-    return renderZenUMLSvg(positioned, colors: colors, font: font, transparent: transparent, useMaxWidth: useMaxWidth)
+    let positioned = layoutZenUMLDiagram(diagram, useMaxWidth: useMaxWidth)
+    return renderZenUMLSvg(positioned, colors: colors, font: font, transparent: transparent)
 }
 
 open class original_src_index {

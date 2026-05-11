@@ -182,87 +182,11 @@ private func _renderSvgEntry(
 }
 
 private func _arrowMarkerDefs() -> String {
-    let w = original_src_styles.ARROW_HEAD.width
-    let h = original_src_styles.ARROW_HEAD.height
-    let arrowStyle = "fill=\"var(--_arrow)\" stroke=\"var(--_arrow)\" stroke-width=\"0.75\" stroke-linejoin=\"round\""
-    let refX = w - 1
-    var parts: [String] = []
-    // Standard arrow
-    parts.append("  <marker id=\"arrowhead\" markerWidth=\"\(w)\" markerHeight=\"\(h)\" refX=\"\(refX)\" refY=\"\(h / 2)\" orient=\"auto\">")
-    parts.append("    <polygon points=\"0 0, \(w) \(h / 2), 0 \(h)\" \(arrowStyle) />")
-    parts.append("  </marker>")
-    parts.append("  <marker id=\"arrowhead-start\" markerWidth=\"\(w)\" markerHeight=\"\(h)\" refX=\"1\" refY=\"\(h / 2)\" orient=\"auto-start-reverse\">")
-    parts.append("    <polygon points=\"\(w) 0, 0 \(h / 2), \(w) \(h)\" \(arrowStyle) />")
-    parts.append("  </marker>")
-    // Circle
-    let cs: Double = h * 0.7
-    parts.append("  <marker id=\"circlehead\" markerWidth=\"\(cs + 2)\" markerHeight=\"\(cs)\" refX=\"\(cs / 2 + 1)\" refY=\"\(cs / 2)\" orient=\"auto\">")
-    parts.append("    <circle cx=\"\(cs / 2)\" cy=\"\(cs / 2)\" r=\"\(cs / 2 - 0.5)\" \(arrowStyle) />")
-    parts.append("  </marker>")
-    parts.append("  <marker id=\"circlehead-start\" markerWidth=\"\(cs + 2)\" markerHeight=\"\(cs)\" refX=\"\(cs / 2 - 1)\" refY=\"\(cs / 2)\" orient=\"auto-start-reverse\">")
-    parts.append("    <circle cx=\"\(cs / 2)\" cy=\"\(cs / 2)\" r=\"\(cs / 2 - 0.5)\" \(arrowStyle) />")
-    parts.append("  </marker>")
-    // Cross
-    let xs: Double = h * 0.6
-    parts.append("  <marker id=\"crosshead\" markerWidth=\"\(xs)\" markerHeight=\"\(xs)\" refX=\"\(xs / 2)\" refY=\"\(xs / 2)\" orient=\"auto\">")
-    parts.append("    <line x1=\"0\" y1=\"0\" x2=\"\(xs)\" y2=\"\(xs)\" stroke=\"var(--_arrow)\" stroke-width=\"1.5\" />")
-    parts.append("    <line x1=\"\(xs)\" y1=\"0\" x2=\"0\" y2=\"\(xs)\" stroke=\"var(--_arrow)\" stroke-width=\"1.5\" />")
-    parts.append("  </marker>")
-    parts.append("  <marker id=\"crosshead-start\" markerWidth=\"\(xs)\" markerHeight=\"\(xs)\" refX=\"\(xs / 2)\" refY=\"\(xs / 2)\" orient=\"auto-start-reverse\">")
-    parts.append("    <line x1=\"0\" y1=\"0\" x2=\"\(xs)\" y2=\"\(xs)\" stroke=\"var(--_arrow)\" stroke-width=\"1.5\" />")
-    parts.append("    <line x1=\"\(xs)\" y1=\"0\" x2=\"0\" y2=\"\(xs)\" stroke=\"var(--_arrow)\" stroke-width=\"1.5\" />")
-    parts.append("  </marker>")
-    // Diamond
-    parts.append("  <marker id=\"diamondhead\" markerWidth=\"\(w * 1.2)\" markerHeight=\"\(h)\" refX=\"\(w)\" refY=\"\(h / 2)\" orient=\"auto\">")
-    parts.append("    <polygon points=\"0 \(h / 2), \(w * 0.6) 0, \(w * 1.2) \(h / 2), \(w * 0.6) \(h)\" \(arrowStyle) />")
-    parts.append("  </marker>")
-    parts.append("  <marker id=\"diamondhead-start\" markerWidth=\"\(w * 1.2)\" markerHeight=\"\(h)\" refX=\"\(w * 0.2)\" refY=\"\(h / 2)\" orient=\"auto-start-reverse\">")
-    parts.append("    <polygon points=\"\(w * 0.6) \(h / 2), 0 0, \(w * 1.2) \(h / 2), 0 \(h)\" \(arrowStyle) />")
-    parts.append("  </marker>")
-    return parts.joined(separator: "\n")
+    SVGArrowMarkerDefs.common()
 }
 
 private func _arrowMarkerDefsForColor(_ color: String) -> String {
-    let w = original_src_styles.ARROW_HEAD.width
-    let h = original_src_styles.ARROW_HEAD.height
-    let escaped = _escapeAttr(color)
-    let arrowStyle = "fill=\"\(escaped)\" stroke=\"\(escaped)\" stroke-width=\"0.75\" stroke-linejoin=\"round\""
-    let refX = w - 1
-    let suffix = _markerSuffix(color)
-    var parts: [String] = []
-    // Arrow
-    parts.append("  <marker id=\"arrowhead-\(suffix)\" markerWidth=\"\(w)\" markerHeight=\"\(h)\" refX=\"\(refX)\" refY=\"\(h / 2)\" orient=\"auto\">")
-    parts.append("    <polygon points=\"0 0, \(w) \(h / 2), 0 \(h)\" \(arrowStyle) />")
-    parts.append("  </marker>")
-    parts.append("  <marker id=\"arrowhead-start-\(suffix)\" markerWidth=\"\(w)\" markerHeight=\"\(h)\" refX=\"1\" refY=\"\(h / 2)\" orient=\"auto-start-reverse\">")
-    parts.append("    <polygon points=\"\(w) 0, 0 \(h / 2), \(w) \(h)\" \(arrowStyle) />")
-    parts.append("  </marker>")
-    // Circle
-    let cs: Double = h * 0.7
-    parts.append("  <marker id=\"circlehead-\(suffix)\" markerWidth=\"\(cs + 2)\" markerHeight=\"\(cs)\" refX=\"\(cs / 2 + 1)\" refY=\"\(cs / 2)\" orient=\"auto\">")
-    parts.append("    <circle cx=\"\(cs / 2)\" cy=\"\(cs / 2)\" r=\"\(cs / 2 - 0.5)\" fill=\"\(escaped)\" stroke=\"\(escaped)\" stroke-width=\"0.75\" />")
-    parts.append("  </marker>")
-    parts.append("  <marker id=\"circlehead-start-\(suffix)\" markerWidth=\"\(cs + 2)\" markerHeight=\"\(cs)\" refX=\"\(cs / 2 - 1)\" refY=\"\(cs / 2)\" orient=\"auto-start-reverse\">")
-    parts.append("    <circle cx=\"\(cs / 2)\" cy=\"\(cs / 2)\" r=\"\(cs / 2 - 0.5)\" fill=\"\(escaped)\" stroke=\"\(escaped)\" stroke-width=\"0.75\" />")
-    parts.append("  </marker>")
-    // Cross
-    let xs: Double = h * 0.6
-    parts.append("  <marker id=\"crosshead-\(suffix)\" markerWidth=\"\(xs)\" markerHeight=\"\(xs)\" refX=\"\(xs / 2)\" refY=\"\(xs / 2)\" orient=\"auto\">")
-    parts.append("    <line x1=\"0\" y1=\"0\" x2=\"\(xs)\" y2=\"\(xs)\" stroke=\"\(escaped)\" stroke-width=\"1.5\" />")
-    parts.append("    <line x1=\"\(xs)\" y1=\"0\" x2=\"0\" y2=\"\(xs)\" stroke=\"\(escaped)\" stroke-width=\"1.5\" />")
-    parts.append("  </marker>")
-    parts.append("  <marker id=\"crosshead-start-\(suffix)\" markerWidth=\"\(xs)\" markerHeight=\"\(xs)\" refX=\"\(xs / 2)\" refY=\"\(xs / 2)\" orient=\"auto-start-reverse\">")
-    parts.append("    <line x1=\"0\" y1=\"0\" x2=\"\(xs)\" y2=\"\(xs)\" stroke=\"\(escaped)\" stroke-width=\"1.5\" />")
-    parts.append("    <line x1=\"\(xs)\" y1=\"0\" x2=\"0\" y2=\"\(xs)\" stroke=\"\(escaped)\" stroke-width=\"1.5\" />")
-    parts.append("  </marker>")
-    // Diamond
-    parts.append("  <marker id=\"diamondhead-\(suffix)\" markerWidth=\"\(w * 1.2)\" markerHeight=\"\(h)\" refX=\"\(w)\" refY=\"\(h / 2)\" orient=\"auto\">")
-    parts.append("    <polygon points=\"0 \(h / 2), \(w * 0.6) 0, \(w * 1.2) \(h / 2), \(w * 0.6) \(h)\" \(arrowStyle) />")
-    parts.append("  </marker>")
-    parts.append("  <marker id=\"diamondhead-start-\(suffix)\" markerWidth=\"\(w * 1.2)\" markerHeight=\"\(h)\" refX=\"\(w * 0.2)\" refY=\"\(h / 2)\" orient=\"auto-start-reverse\">")
-    parts.append("    <polygon points=\"\(w * 0.6) \(h / 2), 0 0, \(w * 1.2) \(h / 2), 0 \(h)\" \(arrowStyle) />")
-    parts.append("  </marker>")
-    return parts.joined(separator: "\n")
+    SVGArrowMarkerDefs.commonWithColor(color, suffix: _markerSuffix(color))
 }
 
 private func _markerSuffix(_ color: String) -> String {

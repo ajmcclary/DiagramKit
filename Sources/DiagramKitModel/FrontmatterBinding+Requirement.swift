@@ -55,6 +55,7 @@ public struct RequirementFrontmatterBinding: FrontmatterBinding {
             guard let v = value.double else { return false }; config.rankSpacing = v
         case "htmlLabels":
             guard let v = value.bool else { return false }; config.htmlLabels = v
+        case "look": config.look = value.string
         default: return false
         }
         return true

@@ -1,8 +1,10 @@
-// Apple-only — depends on CoreText. Gated by `#if canImport(CoreText)`.
-#if canImport(CoreText)
 import Foundation
+#if canImport(CoreGraphics)
 import CoreGraphics
+#endif
+#if canImport(CoreText)
 import CoreText
+#endif
 
 // MARK: - Layout Constants
 
@@ -28,6 +30,7 @@ private func _measureIshikawaText(_ lines: [String], fontSize: Double) -> _Ishik
     guard !lines.isEmpty else {
         return _IshikawaTextBounds(width: 0, height: 0, x: 0, y: 0)
     }
+#if canImport(CoreText)
     let font = DiagramFontResolver.shared.monospaceCTFont(size: CGFloat(fontSize))
     let attr: [NSAttributedString.Key: Any] = [
         .font: font,
@@ -43,6 +46,10 @@ private func _measureIshikawaText(_ lines: [String], fontSize: Double) -> _Ishik
     let lineHeight = fontSize * 1.05
     let totalHeight = lineHeight * Double(lines.count)
     return _IshikawaTextBounds(width: maxWidth, height: totalHeight, x: 0, y: -totalHeight)
+#else
+    let (maxWidth, totalHeight) = TextMetrics.shared.measureMonospaceMultiline(lines, fontSize: CGFloat(fontSize))
+    return _IshikawaTextBounds(width: Double(maxWidth), height: Double(totalHeight), x: 0, y: -Double(totalHeight))
+#endif
 }
 
 private func _ishikawaWrapText(_ text: String, maxChars: Int) -> [String] {
@@ -524,4 +531,3 @@ private func _drawBranch(
 
     return bones.filter { $0.kind == .branch && $0.id == branchBone.id }
 }
-#endif

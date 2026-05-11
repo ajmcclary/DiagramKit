@@ -165,9 +165,18 @@ enum SVGRenderRegistry {
                 return renderQuadrantSvg(chart, colors, font, transparent)
             }
         ),
-        .requirement: SVGRenderDescriptor(type: .requirement) { _, lines, fm, options, _, colors, font, transparent in
-            try _renderRequirementSvgCase(lines: lines, fm: fm, options: options, colors: colors, font: font, transparent: transparent)
-        },
+        .requirement: SVGRenderDescriptor(
+            type: .requirement,
+            render: { _, lines, fm, options, _, colors, font, transparent in
+                try _renderRequirementSvgCase(lines: lines, fm: fm, options: options, colors: colors, font: font, transparent: transparent)
+            },
+            renderPositioned: { positioned, diagramId, colors, font, transparent in
+                guard case let .requirement(data) = positioned.content else {
+                    throw MermaidStructuralError.payloadMismatch(.requirement)
+                }
+                return try renderRequirementSvg(data, colors, font, transparent, diagramId: diagramId)
+            }
+        ),
         .flowchart: SVGRenderDescriptor(
             type: .flowchart,
             render: { source, _, fm, options, layoutConfig, colors, font, transparent in
@@ -246,9 +255,18 @@ enum SVGRenderRegistry {
                 return try renderBlockSvg(data, diagramId: diagramId ?? "", colors: colors, fontFamily: font, transparent: transparent)
             }
         ),
-        .packet: SVGRenderDescriptor(type: .packet) { source, _, fm, _, _, colors, font, transparent in
-            try _renderPacketSvgCase(source: source, fm: fm, colors: colors, font: font, transparent: transparent)
-        },
+        .packet: SVGRenderDescriptor(
+            type: .packet,
+            render: { source, _, fm, _, _, colors, font, transparent in
+                try _renderPacketSvgCase(source: source, fm: fm, colors: colors, font: font, transparent: transparent)
+            },
+            renderPositioned: { positioned, _, colors, font, transparent in
+                guard case let .packet(data) = positioned.content else {
+                    throw MermaidStructuralError.payloadMismatch(.packet)
+                }
+                return renderPacketSvg(data, colors, font, transparent, theme: data.theme)
+            }
+        ),
         .kanban: SVGRenderDescriptor(
             type: .kanban,
             render: { source, _, fm, _, _, colors, font, transparent in
@@ -369,9 +387,18 @@ enum SVGRenderRegistry {
                 return try renderC4Svg(diagram, diagramId: diagramId ?? "", colors, font, transparent)
             }
         ),
-        .zenuml: SVGRenderDescriptor(type: .zenuml) { source, _, fm, _, _, colors, font, transparent in
-            try _renderZenUMLSvgCase(source: source, fm: fm, colors: colors, font: font, transparent: transparent)
-        },
+        .zenuml: SVGRenderDescriptor(
+            type: .zenuml,
+            render: { source, _, fm, _, _, colors, font, transparent in
+                try _renderZenUMLSvgCase(source: source, fm: fm, colors: colors, font: font, transparent: transparent)
+            },
+            renderPositioned: { positioned, _, colors, font, transparent in
+                guard case let .zenuml(data) = positioned.content else {
+                    throw MermaidStructuralError.payloadMismatch(.zenuml)
+                }
+                return renderZenUMLSvg(data, colors: colors, font: font, transparent: transparent)
+            }
+        ),
     ]
 
     /// Render a pre-parsed / pre-laid-out `PositionedGraph` to SVG.

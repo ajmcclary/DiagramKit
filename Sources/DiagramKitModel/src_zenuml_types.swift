@@ -486,6 +486,7 @@ public struct PositionedZenUMLDiagram: Sendable {
     public var returns: [PositionedZenUMLReturn]
     public var comments: [PositionedZenUMLComment]
     public var groups: [PositionedZenUMLGroup]
+    public var useMaxWidth: Bool
 
     public init(
         width: Double = 0,
@@ -503,7 +504,8 @@ public struct PositionedZenUMLDiagram: Sendable {
         dividers: [PositionedZenUMLDivider] = [],
         returns: [PositionedZenUMLReturn] = [],
         comments: [PositionedZenUMLComment] = [],
-        groups: [PositionedZenUMLGroup] = []
+        groups: [PositionedZenUMLGroup] = [],
+        useMaxWidth: Bool = true
     ) {
         self.width = width
         self.height = height
@@ -521,6 +523,7 @@ public struct PositionedZenUMLDiagram: Sendable {
         self.returns = returns
         self.comments = comments
         self.groups = groups
+        self.useMaxWidth = useMaxWidth
     }
 
     public static var empty: PositionedZenUMLDiagram {

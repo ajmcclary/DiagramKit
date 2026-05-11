@@ -14,8 +14,8 @@ public func renderRequirementSvg(
     var parts: [String] = []
     let themeColors = _toReqThemeColors(colors)
     let config = diagram.config
-    let resolvedLook = look ?? "classic"
-    let resolvedHtmlLabels = htmlLabels ?? true
+    let resolvedLook = config.look ?? look ?? "classic"
+    let resolvedHtmlLabels = config.htmlLabels ?? htmlLabels ?? true
 
     parts.append(_reqSvgOpenTag(diagram.width, diagram.height, themeColors, transparent, config))
     if let accTitle = diagram.accTitle, !accTitle.isEmpty {

@@ -12,7 +12,7 @@ public func renderZenUMLSvg(
     colors: DiagramColors = DiagramColors(bg: "#FFFFFF", fg: "#27272A"),
     font: String = DiagramFontResolver.shared.svgFontFamily,
     transparent: Bool = false,
-    useMaxWidth: Bool = true
+    useMaxWidth: Bool? = nil
 ) -> String {
     let padding: Double = 10
     let frameHeaderHeight: Double = 28
@@ -131,8 +131,9 @@ public func renderZenUMLSvg(
     let content = "<g transform=\"translate(\(contentLeftMargin), \(headerLineY))\">\n\(parts.joined(separator: "\n"))\n</g>"
     let innerSvg = "\(style)\n\(frame)\n\(content)"
 
+    let resolvedUseMaxWidth = useMaxWidth ?? diagram.useMaxWidth
     let svg: String
-    if useMaxWidth {
+    if resolvedUseMaxWidth {
         svg = "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"100%\" preserveAspectRatio=\"xMinYMin meet\" style=\"max-width: \(viewWidth)px\" viewBox=\"\(viewBox)\">\n\(innerSvg)\n</svg>"
     } else {
         svg = "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"\(viewWidth)\" height=\"\(viewHeight)\" viewBox=\"\(viewBox)\">\n\(innerSvg)\n</svg>"

@@ -7,7 +7,7 @@ import CoreGraphics
 
 /// Layout a parsed ZenUML diagram into positioned geometry.
 /// Recursive layout that handles nested sync blocks, creation, fragments, returns, and dividers.
-public func layoutZenUMLDiagram(_ diagram: ZenUMLDiagram) -> PositionedZenUMLDiagram {
+public func layoutZenUMLDiagram(_ diagram: ZenUMLDiagram, useMaxWidth: Bool = true) -> PositionedZenUMLDiagram {
     let participantWidth: Double = 100
     let participantHeight: Double = 70
     let horizontalSpacing: Double = 60
@@ -201,6 +201,7 @@ public func layoutZenUMLDiagram(_ diagram: ZenUMLDiagram) -> PositionedZenUMLDia
         dividers: positionedDividers,
         returns: positionedReturns,
         comments: positionedComments,
-        groups: positionedGroups
+        groups: positionedGroups,
+        useMaxWidth: useMaxWidth
     )
 }

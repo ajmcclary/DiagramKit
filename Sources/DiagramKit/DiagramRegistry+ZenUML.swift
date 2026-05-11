@@ -15,7 +15,7 @@ extension DiagramRegistry {
             guard case let .zenuml(parsed) = graph.payload else {
                 throw MermaidStructuralError.payloadMismatch(.zenuml)
             }
-            let positioned = layoutZenUMLDiagram(parsed)
+            let positioned = layoutZenUMLDiagram(parsed, useMaxWidth: true)
             return PositionedGraph(diagram: graph, width: positioned.width, height: positioned.height, content: .zenuml(positioned))
         }
     )
