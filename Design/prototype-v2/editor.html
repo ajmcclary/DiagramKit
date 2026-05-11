@@ -1,0 +1,973 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>pr-lifecycle.mmd — Diagram editor</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link
+  href="https://fonts.googleapis.com/css2?family=Inter:wght@400;450;500;600;700&family=Inter+Display:wght@500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap"
+  rel="stylesheet"
+/>
+<link rel="stylesheet" href="assets/shared.css" />
+<style>
+  /* Diagram editor layout: catalog rail · source editor · preview · assistant rail */
+  .pg-grid {
+    display: grid;
+    grid-template-columns: 230px 1fr 1fr 260px;
+    overflow: hidden;
+    min-height: 0;
+  }
+  .pg-pane {
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+  }
+  .pg-pane:last-child { border-right: none; }
+  .pg-pane.bg { background: var(--bg); }
+
+  .pane-head {
+    padding: 10px 14px 8px;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .pane-head .ttl {
+    font-family: var(--display);
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--ink);
+  }
+  .pane-head .meta {
+    font-size: 11px;
+    color: var(--ink-3);
+    margin-left: auto;
+  }
+
+  /* Catalog */
+  .catalog {
+    flex: 1;
+    overflow-y: auto;
+    padding: 10px 10px 14px;
+  }
+  .catalog .search-input { margin-bottom: 12px; }
+  .cat-section {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--ink-3);
+    padding: 8px 6px 4px;
+    text-transform: none;
+  }
+  .fam-row {
+    display: grid;
+    grid-template-columns: 12px 1fr auto;
+    align-items: center;
+    gap: 8px;
+    padding: 5px 8px;
+    border-radius: 5px;
+    font-size: 12.5px;
+    color: var(--ink);
+    cursor: pointer;
+  }
+  .fam-row:hover { background: var(--surface-2); }
+  .fam-row .chev::before {
+    content: "›";
+    color: var(--ink-3);
+    font-size: 11px;
+    display: inline-block;
+    transition: transform 120ms;
+  }
+  .fam-row.open .chev::before { transform: rotate(90deg); }
+  .fam-row .ct {
+    font-size: 10.5px;
+    color: var(--ink-3);
+    font-variant-numeric: tabular-nums;
+  }
+  .children {
+    list-style: none;
+    padding: 0;
+    margin: 2px 0 4px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+  }
+  .children li {
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    color: var(--ink-2);
+    cursor: pointer;
+    border-left: 2px solid transparent;
+  }
+  .children li:hover { background: var(--surface-2); }
+  .children li.is-on {
+    color: var(--accent);
+    border-left-color: var(--accent);
+    font-weight: 500;
+    background: var(--accent-bg-2);
+  }
+
+  /* Source pane */
+  .editor-tabs {
+    display: flex;
+    gap: 2px;
+    padding: 6px 10px 0;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface);
+  }
+  .editor-tab {
+    appearance: none;
+    background: transparent;
+    border: none;
+    padding: 6px 10px;
+    font-size: 12px;
+    color: var(--ink-3);
+    font-weight: 500;
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -1px;
+  }
+  .editor-tab.is-on { color: var(--ink); border-bottom-color: var(--accent); }
+
+  .source-status {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 8px 14px;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface-2);
+    font-size: 11.5px;
+    color: var(--ink-3);
+    font-variant-numeric: tabular-nums;
+  }
+  .source-status .ok { color: var(--success); display: inline-flex; align-items: center; gap: 5px; }
+  .source-status .ok::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--success); }
+  .source-status .v { color: var(--ink); font-weight: 500; }
+  .source-status .right { margin-left: auto; color: var(--warn); display: inline-flex; align-items: center; gap: 5px; }
+  .source-status .right::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--warn); }
+
+  .editor-shell {
+    flex: 1;
+    overflow: auto;
+    padding: 0;
+    background: #FBFBFD;
+  }
+  .editor-shell .code-host {
+    border: none;
+    border-radius: 0;
+    height: 100%;
+  }
+
+  .editor-foot {
+    display: flex;
+    justify-content: space-between;
+    padding: 6px 14px;
+    border-top: 1px solid var(--border);
+    background: var(--surface);
+    font-size: 11px;
+    color: var(--ink-3);
+    font-family: var(--mono);
+    font-variant-numeric: tabular-nums;
+  }
+  .editor-foot .v { color: var(--ink); }
+
+  /* Preview pane */
+  .preview {
+    flex: 1;
+    position: relative;
+    background: var(--bg);
+    overflow: hidden;
+  }
+  .canvas-grid {
+    position: absolute;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(0, 0, 0, 0.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0, 0, 0, 0.04) 1px, transparent 1px);
+    background-size: 20px 20px;
+    pointer-events: none;
+  }
+  .canvas-tools {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    display: flex;
+    gap: 6px;
+    z-index: 2;
+  }
+  .canvas-tools .tool-cluster {
+    display: inline-flex;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 2px;
+    gap: 0;
+    box-shadow: var(--shadow-card);
+  }
+  .canvas-tools button {
+    appearance: none;
+    background: transparent;
+    border: none;
+    color: var(--ink-2);
+    width: 24px; height: 22px;
+    border-radius: 4px;
+    cursor: pointer;
+    display: grid;
+    place-items: center;
+    font-size: 11px;
+  }
+  .canvas-tools button:hover { background: var(--surface-2); }
+  .canvas-tools button.is-on { background: var(--accent-bg); color: var(--accent); }
+  .canvas-tools button svg { width: 13px; height: 13px; }
+  .canvas-tools .v {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--ink);
+    font-weight: 500;
+    padding: 0 6px;
+    align-self: center;
+  }
+
+  .canvas-stage {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    padding: 36px;
+  }
+  .canvas-stage svg {
+    width: auto;
+    max-width: 95%;
+    height: auto;
+    max-height: 90%;
+    filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.06));
+  }
+
+  .pn-rect { fill: white; stroke: var(--ink-3); stroke-width: 1.2; }
+  .pn-rect.flow { fill: #EEF4FF; stroke: var(--type-flow); }
+  .pn-rect.seq { fill: #ECFEFF; stroke: var(--type-seq); }
+  .pn-rect.violet { fill: #F5F3FF; stroke: var(--type-state); }
+  .pn-rect.amber { fill: #FFFBEB; stroke: var(--type-gantt); }
+  .pn-text {
+    font-family: var(--display);
+    font-size: 13px;
+    fill: var(--ink);
+    font-weight: 500;
+  }
+  .pn-text.sub { font-size: 10.5px; fill: var(--ink-3); font-weight: 400; }
+  .pe { fill: none; stroke: var(--ink-3); stroke-width: 1.4; }
+  .pe.dashed { stroke-dasharray: 4 3; }
+  .pe.flow { stroke: var(--type-flow); }
+  .ple {
+    font-family: var(--mono);
+    font-size: 10.5px;
+    fill: var(--ink-2);
+  }
+  .pleg { fill: white; stroke: var(--border); stroke-width: 0.6; }
+  .ps { fill: rgba(94, 92, 230, 0.04); stroke: var(--accent-bd); stroke-width: 1; stroke-dasharray: 4 3; }
+  .psl { font-family: var(--display); font-size: 11.5px; fill: var(--accent); font-style: italic; }
+
+  .canvas-corner {
+    position: absolute;
+    bottom: 12px; left: 12px;
+    font-family: var(--mono);
+    font-size: 10.5px;
+    color: var(--ink-3);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 5px;
+    padding: 4px 8px;
+    z-index: 2;
+  }
+  .canvas-corner .v { color: var(--ink); font-weight: 500; }
+
+  /* Studio (right rail) */
+  .studio {
+    flex: 1;
+    overflow-y: auto;
+    padding: 12px 14px 16px;
+    background: var(--surface);
+  }
+  .studio-block { margin-bottom: 18px; }
+  .studio-block .head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    margin-bottom: 8px;
+  }
+  .studio-block .head h3 {
+    font-family: var(--display);
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--ink);
+    margin: 0;
+  }
+  .studio-block .head .meta {
+    font-size: 11px;
+    color: var(--ink-3);
+  }
+
+  .theme-list {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+  }
+  .theme-chip {
+    appearance: none;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 6px;
+    text-align: left;
+    cursor: pointer;
+    display: grid;
+    grid-template-rows: auto auto;
+    gap: 4px;
+  }
+  .theme-chip:hover { border-color: var(--border-2); }
+  .theme-chip.is-on { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent-bg); }
+  .theme-chip .stack {
+    display: flex;
+    height: 18px;
+    border-radius: 3px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+  }
+  .theme-chip .stack span { flex: 1; }
+  .theme-chip .name {
+    font-size: 11.5px;
+    color: var(--ink);
+    font-weight: 500;
+  }
+
+  .theme-grid {
+    display: grid;
+    grid-template-columns: repeat(8, 1fr);
+    gap: 4px;
+    margin-top: 8px;
+  }
+  .theme-dot {
+    width: 18px; height: 18px;
+    border-radius: 4px;
+    border: 1px solid var(--border);
+    cursor: pointer;
+  }
+  .theme-dot:hover { transform: scale(1.1); }
+
+  .export-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+  }
+  .export-btn {
+    appearance: none;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 8px 10px;
+    cursor: pointer;
+    text-align: left;
+    display: grid;
+    gap: 2px;
+  }
+  .export-btn:hover { background: var(--surface-2); }
+  .export-btn .ext {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--ink);
+    font-weight: 600;
+  }
+  .export-btn .desc {
+    font-size: 10.5px;
+    color: var(--ink-3);
+  }
+
+  .copy-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    margin-top: 6px;
+  }
+  .copy-btn {
+    appearance: none;
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 3px 8px;
+    font-family: var(--mono);
+    font-size: 10.5px;
+    color: var(--ink-2);
+    cursor: pointer;
+  }
+  .copy-btn:hover { background: var(--surface); color: var(--ink); }
+
+  .hist-entry {
+    display: grid;
+    grid-template-columns: 38px 1fr 18px;
+    gap: 8px;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--border-3);
+    align-items: start;
+  }
+  .hist-entry:last-child { border-bottom: none; }
+  .hist-stamp {
+    font-family: var(--mono);
+    font-size: 10.5px;
+    color: var(--ink-3);
+    font-variant-numeric: tabular-nums;
+    line-height: 1.4;
+  }
+  .hist-stamp .h { display: block; font-size: 9.5px; color: var(--ink-4); }
+  .hist-label {
+    font-size: 12px;
+    color: var(--ink);
+    font-weight: 500;
+    margin-bottom: 2px;
+  }
+  .hist-snippet {
+    font-family: var(--mono);
+    font-size: 10.5px;
+    color: var(--ink-3);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    margin-bottom: 4px;
+  }
+  .hist-tag {
+    display: inline-block;
+    font-size: 9.5px;
+    color: var(--ink-3);
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    padding: 1px 6px;
+    border-radius: 3px;
+    margin-right: 3px;
+  }
+  .hist-tag.manual { color: var(--accent); border-color: var(--accent-bd); background: var(--accent-bg); }
+  .hist-act {
+    appearance: none;
+    background: transparent;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    color: var(--ink-3);
+    cursor: pointer;
+    height: 22px; width: 22px;
+    display: grid;
+    place-items: center;
+  }
+  .hist-act:hover { background: var(--surface-2); color: var(--ink); }
+</style>
+</head>
+
+<body>
+
+<div class="mac-window reveal r1">
+
+  <div class="title-bar">
+    <div class="traffic">
+      <span class="light close"></span><span class="light min"></span><span class="light max"></span>
+    </div>
+    <div class="title-text">
+      <span class="doc">Mermaid</span>
+    </div>
+    <div class="title-actions">
+      <button class="tb-btn" aria-label="Notifications">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 18v-6a9 9 0 0118 0v6"/><path d="M21 19a2 2 0 01-2 2h-1v-7h3v5zM3 19a2 2 0 002 2h1v-7H3v5z"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <header class="pageheader">
+    <div class="pageheader__row1">
+      <nav class="pageheader__breadcrumb" aria-label="Breadcrumb">
+        <a href="index.html">Engineering</a>
+        <span class="sep">›</span>
+        <a href="library.html">Library</a>
+        <span class="sep">›</span>
+        <a href="library.html?folder=architecture">Architecture</a>
+        <span class="sep">›</span>
+        <span class="leaf">pr-lifecycle.mmd</span>
+      </nav>
+      <div class="pageheader__actions">
+        <button class="tb-btn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 4v12M7 9l5-5 5 5M5 20h14"/></svg>
+          Export
+        </button>
+        <a href="share.html" class="tb-btn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="6" cy="12" r="3"/><circle cx="18" cy="6" r="3"/><circle cx="18" cy="18" r="3"/><line x1="9" y1="11" x2="15" y2="7"/><line x1="9" y1="13" x2="15" y2="17"/></svg>
+          Share
+        </a>
+      </div>
+    </div>
+    <div class="pageheader__row2">
+      <div class="pageheader__modes" data-mode-tabs>
+        <button data-mode="source" class="is-on" aria-pressed="true">Source</button>
+        <button data-mode="visual" aria-pressed="false">Visual</button>
+        <button data-mode="split" aria-pressed="false">Split</button>
+      </div>
+      <div class="pageheader__status">
+        <span class="pill pill--state"><span class="pill__dot"></span>Saved · 12s</span>
+        <span class="pill pill--state">Auto · 312ms</span>
+      </div>
+      <div class="pageheader__cta">
+        <button class="tb-btn" data-refine-ai>✨ Refine with AI →</button>
+        <button class="tb-btn primary" data-publish>Publish version ⌘⇧P</button>
+      </div>
+    </div>
+  </header>
+
+  <div class="app-body">
+
+    <aside class="sidebar">
+      <div class="sb-brand">
+        <span class="mark">M</span>
+        <span class="name">Mermaid</span>
+        <span class="ws">Eng</span>
+      </div>
+      <nav class="sb-body">
+        <div class="sb-section">Workstations</div>
+        <a href="index.html" class="nav-pill">
+          <span class="glyph"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 12L12 4l9 8M5 10v10h14V10"/></svg></span>
+          Home
+        </a>
+        <a href="editor.html" class="nav-pill is-on">
+          <span class="glyph"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg></span>
+          Diagram editor
+        </a>
+        <a href="ai.html" class="nav-pill">
+          <span class="glyph"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l1.6 4.4L18 8l-4.4 1.6L12 14l-1.6-4.4L6 8l4.4-1.6z"/></svg></span>
+          AI studio
+        </a>
+        <a href="present.html" class="nav-pill">
+          <span class="glyph"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="4" width="18" height="13" rx="1.5"/><path d="M9 21h6M12 17v4"/></svg></span>
+          Presentations
+        </a>
+
+        <div class="sb-section">Workspace</div>
+        <a href="library.html" class="nav-pill">
+          <span class="glyph"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 4h6v16H4zM14 4h6v10h-6zM14 16h6v4h-6z"/></svg></span>
+          Library
+          <span class="badge">47</span>
+        </a>
+        <a href="activity.html" class="nav-pill">
+          <span class="glyph"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 12h4l3-9 4 18 3-9h4"/></svg></span>
+          Activity
+          <span class="badge">3</span>
+        </a>
+        <a href="settings.html" class="nav-pill">
+          <span class="glyph"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 11-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 11-4 0v-.09a1.65 1.65 0 00-1-1.51 1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 11-2.83-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 110-4h.09a1.65 1.65 0 001.51-1 1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 112.83-2.83l.06.06a1.65 1.65 0 001.82.33h0a1.65 1.65 0 001-1.51V3a2 2 0 114 0v.09a1.65 1.65 0 001 1.51h0a1.65 1.65 0 001.82-.33l.06-.06a2 2 0 112.83 2.83l-.06.06a1.65 1.65 0 00-.33 1.82v0a1.65 1.65 0 001.51 1H21a2 2 0 110 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg></span>
+          Settings
+        </a>
+      </nav>
+      <div class="sb-foot">
+        <div class="sb-account">
+          <span class="av">A</span>
+          <div class="who">
+            <span class="name">Alex Chen</span>
+            <span class="role">alex@engineering</span>
+          </div>
+          <span class="chev">▾</span>
+        </div>
+      </div>
+    </aside>
+
+    <div class="workarea">
+
+      <div class="context-bar">
+        <div class="crumb">
+          <a href="library.html">Library</a>
+          <span class="sep">›</span>
+          <a href="library.html">Architecture</a>
+          <span class="sep">›</span>
+          <span>Flowchart</span>
+          <span class="sep">›</span>
+          <span class="cur">Pull-request lifecycle</span>
+        </div>
+        <div class="right">
+          <span class="pill"><span class="dot" style="background: var(--success);"></span>Auto · 312ms</span>
+          <span class="pill accent">Shared · 4</span>
+        </div>
+      </div>
+
+      <div class="work-content">
+
+        <!-- Source mode pane -->
+        <div class="editor-pane is-on" data-pane="source">
+        <div class="pg-grid">
+
+          <!-- Catalog -->
+          <aside class="pg-pane reveal r2">
+            <div class="pane-head">
+              <span class="ttl">Catalog</span>
+              <span class="meta">396 · 28 fam.</span>
+            </div>
+            <div class="catalog">
+              <div class="search-input" style="margin-bottom: 12px;">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="11" cy="11" r="6"/><path d="M16 16l4 4"/></svg>
+                <input type="text" placeholder="Search 396 diagrams…" />
+                <span class="kbd">⌘K</span>
+              </div>
+
+              <div class="cat-section">Recent</div>
+              <ul style="list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 1px;">
+                <li><div class="fam-row"><span class="chev"></span><span>Pull-request lifecycle</span><span class="ct">flow</span></div></li>
+                <li><div class="fam-row"><span class="chev"></span><span>Auth handshake</span><span class="ct">seq</span></div></li>
+                <li><div class="fam-row"><span class="chev"></span><span>Build pipeline ER</span><span class="ct">er</span></div></li>
+              </ul>
+
+              <div class="cat-section" style="margin-top: 8px;">Catalog</div>
+              <ul style="list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 1px;">
+                <li>
+                  <div class="fam-row open"><span class="chev"></span><span>Flowchart</span><span class="ct">42</span></div>
+                  <ul class="children">
+                    <li>Hello-world TD</li>
+                    <li class="is-on">Pull-request lifecycle</li>
+                    <li>Infrastructure regions</li>
+                    <li>Subgraphs &amp; clusters</li>
+                    <li>Class definitions</li>
+                  </ul>
+                </li>
+                <li><div class="fam-row"><span class="chev"></span><span>Sequence</span><span class="ct">38</span></div></li>
+                <li><div class="fam-row"><span class="chev"></span><span>State (v2)</span><span class="ct">21</span></div></li>
+                <li><div class="fam-row"><span class="chev"></span><span>Class</span><span class="ct">17</span></div></li>
+                <li><div class="fam-row"><span class="chev"></span><span>Entity-Relationship</span><span class="ct">14</span></div></li>
+                <li><div class="fam-row"><span class="chev"></span><span>Gantt</span><span class="ct">19</span></div></li>
+                <li><div class="fam-row"><span class="chev"></span><span>gitGraph</span><span class="ct">12</span></div></li>
+                <li><div class="fam-row"><span class="chev"></span><span>Mindmap</span><span class="ct">9</span></div></li>
+                <li><div class="fam-row"><span class="chev"></span><span>C4 Context</span><span class="ct">11</span></div></li>
+                <li><div class="fam-row"><span class="chev"></span><span>ZenUML</span><span class="ct">8</span></div></li>
+                <li><div class="fam-row"><span class="chev"></span><span>Wardley</span><span class="ct">7</span></div></li>
+                <li><div class="fam-row"><span class="chev"></span><span>Treemap</span><span class="ct">6</span></div></li>
+                <li><div class="fam-row"><span class="chev"></span><span>User Journey</span><span class="ct">10</span></div></li>
+                <li><div class="fam-row"><span class="chev"></span><span>Quadrant</span><span class="ct">5</span></div></li>
+              </ul>
+            </div>
+          </aside>
+
+          <!-- Source -->
+          <section class="pg-pane reveal r3">
+            <div class="editor-tabs">
+              <button class="editor-tab is-on">Source</button>
+              <button class="editor-tab">Config</button>
+              <button class="editor-tab">Inspector</button>
+            </div>
+            <div class="source-status">
+              <span class="ok">Rendered · 312ms</span>
+              <span><span class="v">24</span> nodes</span>
+              <span><span class="v">31</span> edges</span>
+              <span><span class="v">3</span> subgraphs</span>
+              <span><span class="v">flowchart TD</span></span>
+              <a href="#line-7" class="right" title="Line 7: feedback edge has no label">1 warning — L7: unlabeled feedback edge</a>
+            </div>
+            <div class="editor-shell">
+              <div class="code-host">
+                <div class="gutter">
+                  <span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span>
+                  <span class="warn">7</span><span>8</span><span>9</span><span>10</span><span>11</span>
+                  <span>12</span><span>13</span><span class="cur">14</span><span>15</span><span>16</span>
+                  <span>17</span><span>18</span><span>19</span>
+                </div>
+                <div class="body">
+<span class="line"><span class="com">%% Pull-request lifecycle — drafted 2026-05-10</span></span>
+<span class="line"><span class="com">%% Source: catalog/flow/pull-request-lifecycle.mmd</span></span>
+<span class="line"><span class="kw">flowchart</span> <span class="typ">TD</span></span>
+<span class="line">    <span class="id">Author</span><span class="punc">[</span><span class="lab">Author</span><span class="punc">]</span> <span class="arr">--&gt;</span> <span class="id">Draft</span><span class="punc">{</span><span class="lab">Open draft PR?</span><span class="punc">}</span></span>
+<span class="line">    <span class="id">Draft</span> <span class="arr">--&gt;</span><span class="punc">|</span><span class="str">yes</span><span class="punc">|</span> <span class="id">CI</span><span class="punc">[[</span><span class="lab">Run CI</span><span class="punc">]]</span></span>
+<span class="line">    <span class="id">Draft</span> <span class="arr">--&gt;</span><span class="punc">|</span><span class="str">no</span><span class="punc">|</span> <span class="id">Local</span><span class="punc">[(</span><span class="lab">Local iteration</span><span class="punc">)]</span></span>
+<span class="line warn">    <span class="id">Local</span> <span class="arr">-.-&gt;</span> <span class="id">Author</span></span>
+<span class="line"></span>
+<span class="line">    <span class="kw">subgraph</span> <span class="id">Pipeline</span><span class="punc">[</span><span class="lab">CI Pipeline</span><span class="punc">]</span></span>
+<span class="line">        <span class="id">CI</span> <span class="arr">--&gt;</span> <span class="id">Build</span><span class="punc">[</span><span class="lab">Build</span><span class="punc">]</span></span>
+<span class="line">        <span class="id">Build</span> <span class="arr">--&gt;</span> <span class="id">Test</span><span class="punc">[</span><span class="lab">Test</span><span class="punc">]</span></span>
+<span class="line">        <span class="id">Test</span>  <span class="arr">--&gt;</span> <span class="id">Lint</span><span class="punc">[</span><span class="lab">Lint &amp; Type-check</span><span class="punc">]</span></span>
+<span class="line">    <span class="kw">end</span></span>
+<span class="line cur">    <span class="id">Lint</span> <span class="arr">--&gt;</span> <span class="id">Review</span><span class="punc">{</span><span class="lab">Reviewer approves?</span><span class="punc">}</span></span>
+<span class="line">    <span class="id">Review</span> <span class="arr">--&gt;</span><span class="punc">|</span><span class="str">approve</span><span class="punc">|</span> <span class="id">Merge</span><span class="punc">[/</span><span class="lab">Merge</span><span class="punc">/]</span></span>
+<span class="line">    <span class="id">Review</span> <span class="arr">--&gt;</span><span class="punc">|</span><span class="str">changes</span><span class="punc">|</span> <span class="id">Author</span></span>
+<span class="line">    <span class="id">Merge</span> <span class="arr">--&gt;</span> <span class="id">Deploy</span><span class="punc">[(</span><span class="lab">Deploy</span><span class="punc">)]</span></span>
+<span class="line"></span>
+<span class="line">    <span class="kw">classDef</span> <span class="id">cycle</span> <span class="lab">fill:</span><span class="num">#5E5CE6</span></span>
+                </div>
+              </div>
+            </div>
+            <div class="editor-foot">
+              <span><span class="v">L 14 · C 12</span></span>
+              <span>UTF-8 · LF · <span class="v">714 B</span> · <span class="v">19 lines</span></span>
+            </div>
+          </section>
+
+          <!-- Preview -->
+          <section class="pg-pane bg reveal r4" style="position: relative;">
+            <div class="pane-head">
+              <span class="ttl">Preview</span>
+              <span class="meta">CG &amp; SVG · 1×</span>
+            </div>
+            <div class="preview">
+              <div class="canvas-grid"></div>
+
+              <div class="canvas-tools">
+                <div class="tool-cluster">
+                  <button title="Zoom out"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14"/></svg></button>
+                  <span class="v">132%</span>
+                  <button title="Zoom in"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg></button>
+                </div>
+                <div class="tool-cluster">
+                  <button class="is-on" title="Fit"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg></button>
+                  <button title="Grid"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M3 9h18M3 15h18M9 3v18M15 3v18"/></svg></button>
+                </div>
+              </div>
+
+              <div class="canvas-stage">
+                <svg viewBox="0 0 720 480" xmlns="http://www.w3.org/2000/svg">
+                  <defs>
+                    <marker id="ar-ink" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="9" markerHeight="9" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#86868B"/></marker>
+                    <marker id="ar-flow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="9" markerHeight="9" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#2563EB"/></marker>
+                    <marker id="ar-warn" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="9" markerHeight="9" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#C7782F"/></marker>
+                  </defs>
+
+                  <rect class="ps" x="270" y="180" width="220" height="148" rx="6"/>
+                  <text class="psl" x="282" y="200">CI Pipeline</text>
+
+                  <g transform="translate(40,20)">
+                    <rect class="pn-rect flow" x="0" y="0" width="140" height="48" rx="6"/>
+                    <text class="pn-text" x="20" y="24">Author</text>
+                    <text class="pn-text sub" x="20" y="40">opens PR</text>
+                  </g>
+
+                  <g transform="translate(296,20)">
+                    <polygon class="pn-rect" points="80,0 160,28 80,56 0,28"/>
+                    <text class="pn-text" x="80" y="26" text-anchor="middle">Open draft PR?</text>
+                    <text class="pn-text sub" x="80" y="44" text-anchor="middle">decision</text>
+                  </g>
+
+                  <g transform="translate(540,28)">
+                    <rect class="pn-rect seq" x="0" y="0" width="140" height="40" rx="2"/>
+                    <line x1="6" y1="0" x2="6" y2="40" stroke="#0891B2" stroke-width="1.2"/>
+                    <line x1="134" y1="0" x2="134" y2="40" stroke="#0891B2" stroke-width="1.2"/>
+                    <text class="pn-text" x="22" y="25">Run CI</text>
+                  </g>
+
+                  <g transform="translate(40,108)">
+                    <rect class="pn-rect amber" x="0" y="6" width="140" height="36" rx="3"/>
+                    <text class="pn-text" x="20" y="29">Local iteration</text>
+                  </g>
+
+                  <g transform="translate(290,200)">
+                    <rect class="pn-rect seq" x="0" y="0" width="180" height="34" rx="4"/>
+                    <text class="pn-text" x="14" y="22">Build</text>
+                    <text class="pn-text sub" x="120" y="22">swift build</text>
+                  </g>
+                  <g transform="translate(290,244)">
+                    <rect class="pn-rect seq" x="0" y="0" width="180" height="34" rx="4"/>
+                    <text class="pn-text" x="14" y="22">Test</text>
+                    <text class="pn-text sub" x="120" y="22">swift test</text>
+                  </g>
+                  <g transform="translate(290,288)">
+                    <rect class="pn-rect seq" x="0" y="0" width="180" height="34" rx="4"/>
+                    <text class="pn-text" x="14" y="22">Lint &amp; Type-check</text>
+                  </g>
+
+                  <g transform="translate(516,266)">
+                    <polygon class="pn-rect" points="80,0 160,28 80,56 0,28"/>
+                    <text class="pn-text" x="80" y="26" text-anchor="middle">Reviewer approves?</text>
+                  </g>
+
+                  <g transform="translate(540,360)">
+                    <polygon class="pn-rect violet" points="14,0 126,0 140,32 0,32"/>
+                    <text class="pn-text" x="70" y="22" text-anchor="middle">Merge to main</text>
+                  </g>
+
+                  <g transform="translate(296,400)">
+                    <rect class="pn-rect amber" x="0" y="6" width="160" height="36" rx="3"/>
+                    <text class="pn-text" x="20" y="29">Deploy</text>
+                  </g>
+
+                  <path class="pe" d="M180 44 L296 48" marker-end="url(#ar-ink)"/>
+                  <path class="pe" d="M456 48 L540 48" marker-end="url(#ar-ink)"/>
+                  <rect class="pleg" x="478" y="34" width="34" height="14" rx="2"/>
+                  <text class="ple" x="495" y="44" text-anchor="middle">yes</text>
+                  <path class="pe" d="M376 76 Q280 90 180 126" marker-end="url(#ar-ink)"/>
+                  <rect class="pleg" x="262" y="86" width="22" height="14" rx="2"/>
+                  <text class="ple" x="273" y="96" text-anchor="middle">no</text>
+                  <path class="pe flow dashed" d="M110 108 L 110 68" marker-end="url(#ar-flow)"/>
+                  <text class="ple" x="118" y="92" fill="#2563EB">feedback</text>
+                  <path class="pe" d="M610 68 L 610 188 Q 610 200 600 200 L 480 200" marker-end="url(#ar-ink)"/>
+                  <path class="pe" d="M380 234 L 380 244" marker-end="url(#ar-ink)"/>
+                  <path class="pe" d="M380 278 L 380 288" marker-end="url(#ar-ink)"/>
+                  <path class="pe" d="M470 305 L 516 294" marker-end="url(#ar-ink)"/>
+                  <path class="pe" d="M676 294 Q 700 310 670 358" marker-end="url(#ar-ink)"/>
+                  <rect class="pleg" x="664" y="320" width="48" height="14" rx="2"/>
+                  <text class="ple" x="688" y="330" text-anchor="middle">approve</text>
+                </svg>
+              </div>
+
+              <div class="canvas-corner">
+                Bounds <span class="v">720 × 480</span>
+              </div>
+            </div>
+          </section>
+
+          <!-- Studio -->
+          <aside class="pg-pane reveal r5" style="border-right: none;">
+            <div class="pane-head">
+              <span class="ttl">Assistant</span>
+              <span class="meta">theme · export · history</span>
+            </div>
+            <div class="studio">
+
+              <div class="studio-block">
+                <div class="head">
+                  <h3>Theme</h3>
+                  <span class="meta">22 themes</span>
+                </div>
+                <div class="theme-list">
+                  <button class="theme-chip is-on">
+                    <div class="stack">
+                      <span style="background:#FAFAFA"></span>
+                      <span style="background:#5E5CE6"></span>
+                      <span style="background:#0891B2"></span>
+                      <span style="background:#7C3AED"></span>
+                    </div>
+                    <div class="name">Default Light</div>
+                  </button>
+                  <button class="theme-chip">
+                    <div class="stack">
+                      <span style="background:#1D1D1F"></span>
+                      <span style="background:#818CF8"></span>
+                      <span style="background:#5EEAD4"></span>
+                      <span style="background:#FCD34D"></span>
+                    </div>
+                    <div class="name">Default Dark</div>
+                  </button>
+                </div>
+                <div class="theme-grid">
+                  <span class="theme-dot" style="background:#5E5CE6"></span>
+                  <span class="theme-dot" style="background:#0891B2"></span>
+                  <span class="theme-dot" style="background:#7C3AED"></span>
+                  <span class="theme-dot" style="background:#16A34A"></span>
+                  <span class="theme-dot" style="background:#DC2626"></span>
+                  <span class="theme-dot" style="background:#D97706"></span>
+                  <span class="theme-dot" style="background:#0F172A"></span>
+                  <span class="theme-dot" style="background:#FAFAFA"></span>
+                </div>
+              </div>
+
+              <div class="studio-block">
+                <div class="head">
+                  <h3>Export</h3>
+                  <span class="meta">PNG · SVG · MMD</span>
+                </div>
+                <div class="export-row">
+                  <button class="export-btn">
+                    <div class="ext">.png</div>
+                    <div class="desc">raster · 2×</div>
+                  </button>
+                  <button class="export-btn">
+                    <div class="ext">.svg</div>
+                    <div class="desc">vector · 14 KB</div>
+                  </button>
+                </div>
+                <div class="copy-row">
+                  <button class="copy-btn">⧉ Source</button>
+                  <button class="copy-btn">⧉ Config</button>
+                  <button class="copy-btn">⧉ SVG</button>
+                  <button class="copy-btn">⧉ PNG</button>
+                </div>
+              </div>
+
+              <div class="studio-block">
+                <div class="head">
+                  <h3>History</h3>
+                  <span class="meta">14 entries</span>
+                </div>
+                <div class="hist-entry">
+                  <div class="hist-stamp">14:22<span class="h">today</span></div>
+                  <div>
+                    <div class="hist-label">PR lifecycle — soft cycle pass</div>
+                    <div class="hist-snippet">flowchart TD; Author → Draft{Open draft…</div>
+                    <span class="hist-tag manual">manual</span>
+                  </div>
+                  <button class="hist-act" title="Restore">↺</button>
+                </div>
+                <div class="hist-entry">
+                  <div class="hist-stamp">13:48<span class="h">today</span></div>
+                  <div>
+                    <div class="hist-label">Auto snapshot · 14 nodes</div>
+                    <div class="hist-snippet">flowchart TD; A → B{Is it working…</div>
+                    <span class="hist-tag">auto</span>
+                  </div>
+                  <button class="hist-act" title="Restore">↺</button>
+                </div>
+                <div class="hist-entry">
+                  <div class="hist-stamp">11:02<span class="h">today</span></div>
+                  <div>
+                    <div class="hist-label">From gist · auth-handshake.mmd</div>
+                    <div class="hist-snippet">sequenceDiagram; participant U as User…</div>
+                    <span class="hist-tag">loader</span>
+                  </div>
+                  <button class="hist-act" title="Restore">↺</button>
+                </div>
+              </div>
+
+            </div>
+          </aside>
+
+        </div>
+        </div><!-- /.editor-pane[data-pane=source] -->
+
+        <!-- Visual mode pane -->
+        <div class="editor-pane" data-pane="visual">
+          <div class="editor-pane__placeholder">
+            <h2>Visual mode</h2>
+            <p>Canvas + shapes/connect/layout palette would render here. In v0.3.0 this lived in <code>visual.html</code>; it consolidates into this pane as part of the Stage-4 IA collapse.</p>
+            <p>Stage 6 wires the Inspector ↔ Diagram rail swap on canvas-node selection. The pending-edits banner uses <code>.editbanner--active</code>.</p>
+            <div class="editbanner editbanner--active">
+              <span>Visual edits will update Mermaid source.</span>
+              <span class="editbanner__actions">
+                <button class="tb-btn">Review source diff</button>
+                <button class="tb-btn primary">Apply changes</button>
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Split mode pane -->
+        <div class="editor-pane" data-pane="split">
+          <div class="editor-pane__placeholder">
+            <h2>Split mode</h2>
+            <p>Source editor on the left, visual canvas on the right, 50/50 with a draggable splitter. Both sides remain interactive.</p>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  document.querySelectorAll('.editor-tab').forEach(b => {
+    b.addEventListener('click', () => {
+      document.querySelectorAll('.editor-tab').forEach(x => x.classList.remove('is-on'));
+      b.classList.add('is-on');
+    });
+  });
+  document.querySelectorAll('.theme-chip').forEach(b => {
+    b.addEventListener('click', () => {
+      document.querySelectorAll('.theme-chip').forEach(x => x.classList.remove('is-on'));
+      b.classList.add('is-on');
+    });
+  });
+  document.querySelectorAll('.fam-row').forEach(r => {
+    r.addEventListener('click', () => r.classList.toggle('open'));
+  });
+</script>
+
+<script src="assets/prototype.js"></script>
+</body>
+</html>

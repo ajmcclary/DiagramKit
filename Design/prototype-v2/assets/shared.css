@@ -3334,3 +3334,34 @@ button {
   text-align: center;
 }
 .modalheader__close:hover { background: var(--surface-2); color: var(--ink); }
+
+/* =========================================================================
+   Diagram editor mode panes (Stage 4 redesign)
+   ========================================================================= */
+.editor-pane { display: none; flex: 1 1 auto; min-height: 0; overflow: hidden; }
+.editor-pane.is-on { display: block; }
+.editor-pane__placeholder {
+  padding: 32px 36px;
+  max-width: 720px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.editor-pane__placeholder h2 {
+  font: 600 18px/1.2 var(--display);
+  margin: 0;
+  color: var(--ink);
+}
+.editor-pane__placeholder p {
+  font: 400 13px/1.5 var(--body);
+  color: var(--ink-2);
+  margin: 0;
+}
+.editor-pane__placeholder code {
+  font: 400 12px/1 var(--mono);
+  background: var(--surface-2);
+  padding: 1px 5px;
+  border-radius: 4px;
+  border: 1px solid var(--border);
+}

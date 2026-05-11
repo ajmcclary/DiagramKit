@@ -7,8 +7,7 @@ const read = (rel) => readFileSync(resolve(ROOT, rel), "utf8");
 
 const pages = [
   "index.html",
-  "playground.html",
-  "visual.html",
+  "editor.html",
   "ai.html",
   "present.html",
   "library.html",
@@ -169,6 +168,24 @@ for (const page of pages) {
   // "Studio plan" / "AI studio" / "Assistant".
   if (/<button[^>]*>\s*Studio\s*<|data-tab="Studio"/.test(html)) {
     fail(`${page}: bare "Studio" appears as a tab/button label (use Assistant or AI studio or 'Studio plan')`);
+  }
+}
+
+// --- editor.html mode routing (Stage 4 redesign) -----------------------------
+{
+  const html = existsSync(resolve(ROOT, "editor.html")) ? read("editor.html") : "";
+  if (html) {
+    for (const mode of ["source", "visual", "split"]) {
+      if (!html.includes(`data-mode="${mode}"`)) {
+        fail(`editor.html: missing data-mode="${mode}" tab`);
+      }
+      if (!html.includes(`data-pane="${mode}"`)) {
+        fail(`editor.html: missing data-pane="${mode}" content`);
+      }
+    }
+    if (!/<button[^>]*data-mode="source"[^>]*\bis-on\b/.test(html)) {
+      fail(`editor.html: default mode should be Source (is-on)`);
+    }
   }
 }
 
