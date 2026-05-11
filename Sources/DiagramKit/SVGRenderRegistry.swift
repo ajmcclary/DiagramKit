@@ -23,6 +23,17 @@ struct SVGRenderDescriptor: Sendable {
         _ font: String,
         _ transparent: Bool
     ) throws -> String
+
+    /// Positioned-graph entry point. When non-nil, the renderer consumes a
+    /// pre-parsed / pre-laid-out `PositionedGraph` rather than parsing and
+    /// laying out the source itself. Descriptors that still do inline
+    /// parse+layout return `nil` here.
+    var renderPositioned: (@Sendable (
+        _ positioned: PositionedGraph,
+        _ colors: DiagramColors,
+        _ font: String,
+        _ transparent: Bool
+    ) throws -> String)? = nil
 }
 
 // MARK: - SVGRenderRegistry
@@ -45,9 +56,18 @@ enum SVGRenderRegistry {
         .erDiagram: SVGRenderDescriptor(type: .erDiagram) { _, lines, fm, options, _, colors, font, transparent in
             try _renderErSvgCase(lines: lines, fm: fm, options: options, colors: colors, font: font, transparent: transparent)
         },
-        .xyChart: SVGRenderDescriptor(type: .xyChart) { _, lines, fm, options, _, colors, font, transparent in
-            try _renderXYChartSvgCase(lines: lines, fm: fm, options: options, colors: colors, font: font, transparent: transparent)
-        },
+        .xyChart: SVGRenderDescriptor(
+            type: .xyChart,
+            render: { _, lines, fm, options, _, colors, font, transparent in
+                try _renderXYChartSvgCase(lines: lines, fm: fm, options: options, colors: colors, font: font, transparent: transparent)
+            },
+            renderPositioned: { positioned, colors, font, transparent in
+                guard case let .xyChart(chart) = positioned.content else {
+                    throw MermaidStructuralError.payloadMismatch(.xyChart)
+                }
+                return renderXYChartSvg(chart, colors, font, transparent, interactive: false)
+            }
+        ),
         .pie: SVGRenderDescriptor(type: .pie) { _, lines, fm, _, _, colors, font, transparent in
             try _renderPieSvgCase(lines: lines, fm: fm, colors: colors, font: font, transparent: transparent)
         },
@@ -57,9 +77,18 @@ enum SVGRenderRegistry {
         .gantt: SVGRenderDescriptor(type: .gantt) { source, _, fm, _, _, colors, font, transparent in
             try _renderGanttSvgCase(source: source, fm: fm, colors: colors, font: font, transparent: transparent)
         },
-        .quadrantChart: SVGRenderDescriptor(type: .quadrantChart) { _, lines, fm, _, _, colors, font, transparent in
-            try _renderQuadrantSvgCase(lines: lines, fm: fm, colors: colors, font: font, transparent: transparent)
-        },
+        .quadrantChart: SVGRenderDescriptor(
+            type: .quadrantChart,
+            render: { _, lines, fm, _, _, colors, font, transparent in
+                try _renderQuadrantSvgCase(lines: lines, fm: fm, colors: colors, font: font, transparent: transparent)
+            },
+            renderPositioned: { positioned, colors, font, transparent in
+                guard case let .quadrantChart(chart) = positioned.content else {
+                    throw MermaidStructuralError.payloadMismatch(.quadrantChart)
+                }
+                return renderQuadrantSvg(chart, colors, font, transparent)
+            }
+        ),
         .requirement: SVGRenderDescriptor(type: .requirement) { _, lines, fm, options, _, colors, font, transparent in
             try _renderRequirementSvgCase(lines: lines, fm: fm, options: options, colors: colors, font: font, transparent: transparent)
         },
@@ -79,9 +108,18 @@ enum SVGRenderRegistry {
         .timeline: SVGRenderDescriptor(type: .timeline) { source, _, fm, _, _, colors, font, transparent in
             try _renderTimelineSvgCase(source: source, fm: fm, colors: colors, font: font, transparent: transparent)
         },
-        .sankey: SVGRenderDescriptor(type: .sankey) { source, _, fm, _, _, colors, font, transparent in
-            try _renderSankeySvgCase(source: source, fm: fm, colors: colors, font: font, transparent: transparent)
-        },
+        .sankey: SVGRenderDescriptor(
+            type: .sankey,
+            render: { source, _, fm, _, _, colors, font, transparent in
+                try _renderSankeySvgCase(source: source, fm: fm, colors: colors, font: font, transparent: transparent)
+            },
+            renderPositioned: { positioned, colors, font, transparent in
+                guard case let .sankey(diagram) = positioned.content else {
+                    throw MermaidStructuralError.payloadMismatch(.sankey)
+                }
+                return renderSankeySvg(diagram, colors, font, transparent)
+            }
+        ),
         .block: SVGRenderDescriptor(type: .block) { source, _, fm, _, _, colors, font, transparent in
             try _renderBlockSvgCase(source: source, fm: fm, colors: colors, font: font, transparent: transparent)
         },
@@ -94,9 +132,18 @@ enum SVGRenderRegistry {
         .architecture: SVGRenderDescriptor(type: .architecture) { source, _, fm, _, _, colors, font, transparent in
             try _renderArchitectureSvgCase(source: source, fm: fm, colors: colors, font: font, transparent: transparent)
         },
-        .radar: SVGRenderDescriptor(type: .radar) { source, _, fm, _, _, colors, font, transparent in
-            try _renderRadarSvgCase(source: source, fm: fm, colors: colors, font: font, transparent: transparent)
-        },
+        .radar: SVGRenderDescriptor(
+            type: .radar,
+            render: { source, _, fm, _, _, colors, font, transparent in
+                try _renderRadarSvgCase(source: source, fm: fm, colors: colors, font: font, transparent: transparent)
+            },
+            renderPositioned: { positioned, colors, font, transparent in
+                guard case let .radar(diagram) = positioned.content else {
+                    throw MermaidStructuralError.payloadMismatch(.radar)
+                }
+                return renderRadarSvg(diagram, colors: colors, font: font, transparent: transparent)
+            }
+        ),
         .treemap: SVGRenderDescriptor(type: .treemap) { source, _, fm, _, _, colors, font, transparent in
             try _renderTreemapSvgCase(source: source, fm: fm, colors: colors, font: font, transparent: transparent)
         },
@@ -122,6 +169,31 @@ enum SVGRenderRegistry {
             try _renderZenUMLSvgCase(source: source, fm: fm, colors: colors, font: font, transparent: transparent)
         },
     ]
+
+    /// Render a pre-parsed / pre-laid-out `PositionedGraph` to SVG.
+    ///
+    /// Only diagram families whose descriptors have a `renderPositioned`
+    /// closure are supported through this path. Other families must go
+    /// through the source-based `render(_:frontmatter:...)` entry point.
+    static func render(
+        positioned: PositionedGraph,
+        colors: DiagramColors,
+        font: String,
+        transparent: Bool
+    ) throws -> String {
+        let type = positioned.diagram.type
+        guard let svgDescriptor = all[type] else {
+            throw BeautifulMermaidError.notYetImplemented(
+                "SVG rendering for \(type.rawValue)"
+            )
+        }
+        guard let rp = svgDescriptor.renderPositioned else {
+            throw BeautifulMermaidError.notYetImplemented(
+                "Positioned-graph SVG rendering for \(type.rawValue)"
+            )
+        }
+        return try rp(positioned, colors, font, transparent)
+    }
 
     /// Render the preprocessed source through the appropriate per-family
     /// descriptor. Detection is done via `DiagramRegistry.detect` so it

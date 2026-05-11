@@ -76,14 +76,73 @@ public enum MermaidPipeline {
 
     // MARK: - Render SVG
 
+    /// Render a diagram to SVG through the positioned-graph path when the
+    /// diagram family supports it (currently: xyChart, quadrantChart,
+    /// sankey, radar). Falls back to the source-based pipeline for other
+    /// families.
     public static func renderSVG(
         source: String,
         theme: DiagramTheme = .default,
         layoutConfig: LayoutConfig = LayoutConfig()
     ) throws -> String {
         try runPipeline(operation: "MermaidPipeline.renderSVG") {
-            try MermaidImageRenderer(theme: theme, config: layoutConfig)
-                .renderSVGSync(from: source)
+            let graph = try MermaidParser.parse(source)
+            let positioned = try GraphLayout(config: layoutConfig).layout(graph)
+
+            let colors = DiagramColors(
+                bg: theme.background.hexString,
+                fg: theme.foreground.hexString,
+                line: (theme.line ?? theme.foreground).hexString,
+                accent: (theme.accent ?? theme.foreground).hexString,
+                muted: (theme.muted ?? theme.foreground).hexString,
+                surface: (theme.surface ?? theme.background).hexString,
+                border: (theme.border ?? theme.foreground).hexString
+            )
+            let font = DiagramFontResolver.shared.svgFontFamily
+
+            do {
+                let svg = try SVGRenderRegistry.render(
+                    positioned: positioned,
+                    colors: colors,
+                    font: font,
+                    transparent: false
+                )
+                let resolved = _resolveSvgCssVariables(svg)
+                return _flattenKnownSvgTokens(resolved, theme: theme)
+            } catch BeautifulMermaidError.notYetImplemented {
+                // Fall back to source-based pipeline for families not yet
+                // on the positioned path.
+                return try MermaidImageRenderer(theme: theme, config: layoutConfig)
+                    .renderSVGSync(from: source)
+            }
+        }
+    }
+
+    /// Render a pre-positioned diagram to SVG. Only families with a
+    /// positioned entry point in `SVGRenderRegistry` are supported.
+    public static func renderSVG(
+        positioned: PositionedGraph,
+        theme: DiagramTheme = .default
+    ) throws -> String {
+        try runPipeline(operation: "MermaidPipeline.renderSVG(positioned:)") {
+            let colors = DiagramColors(
+                bg: theme.background.hexString,
+                fg: theme.foreground.hexString,
+                line: (theme.line ?? theme.foreground).hexString,
+                accent: (theme.accent ?? theme.foreground).hexString,
+                muted: (theme.muted ?? theme.foreground).hexString,
+                surface: (theme.surface ?? theme.background).hexString,
+                border: (theme.border ?? theme.foreground).hexString
+            )
+            let font = DiagramFontResolver.shared.svgFontFamily
+            let svg = try SVGRenderRegistry.render(
+                positioned: positioned,
+                colors: colors,
+                font: font,
+                transparent: false
+            )
+            let resolved = _resolveSvgCssVariables(svg)
+            return _flattenKnownSvgTokens(resolved, theme: theme)
         }
     }
 
