@@ -7,11 +7,16 @@
 //
 
 import SwiftUI
+import DiagramKit
 
 @main
 @available(iOS 26.0, macOS 26.0, macCatalyst 26.0, *)
 struct MermaidPlaygroundApp: App {
     @SwiftUI.State private var store = LiveEditorStore()
+
+    init() {
+        MermaidRenderer.bootstrap()
+    }
 
     var body: some Scene {
         WindowGroup {
