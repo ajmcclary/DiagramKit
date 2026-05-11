@@ -96,8 +96,6 @@ public func renderZenUMLSvg(
         titleSvg = ""
     }
 
-    let viewBox = "0 0 \(viewWidth) \(viewHeight)"
-
     let fontChain = DiagramFontResolver().svgProportionalFamilyChain
     let style = """
     <defs>

@@ -500,9 +500,8 @@ private func _renderNodeShapeGeneric(
     }()
     let primaryStroke: String = {
         switch spec.strokeOverride {
-        case .none: return "none"
-        case .some: return stroke
-        case nil: return stroke
+        case .some(.none): return "none"
+        case .some, nil: return stroke
         }
     }()
 

@@ -338,10 +338,10 @@ extension ShapeSpecRegistry {
         )
     }
     static func _makeForkSpec() -> ShapeSpec {
-        ShapeSpec(aliases: ["fork"], sizeAdjustment: { _, _ in CGSize(width: 70, height: 7) }, path: { _, _ in .rect(cornerRadius: 0) }, fillOverride: .foreground, strokeOverride: .none)
+        ShapeSpec(aliases: ["fork"], sizeAdjustment: { _, _ in CGSize(width: 70, height: 7) }, path: { _, _ in .rect(cornerRadius: 0) }, fillOverride: .foreground, strokeOverride: ShapeDecoration.Stroke.none)
     }
     static func _makeJoinSpec() -> ShapeSpec {
-        ShapeSpec(aliases: ["join"], sizeAdjustment: { _, _ in CGSize(width: 70, height: 7) }, path: { _, _ in .rect(cornerRadius: 0) }, fillOverride: .foreground, strokeOverride: .none)
+        ShapeSpec(aliases: ["join"], sizeAdjustment: { _, _ in CGSize(width: 70, height: 7) }, path: { _, _ in .rect(cornerRadius: 0) }, fillOverride: .foreground, strokeOverride: ShapeDecoration.Stroke.none)
     }
     static func _makeHourglassSpec() -> ShapeSpec {
         ShapeSpec(aliases: ["collate", "hourglass"], sizeAdjustment: _rectSizing, path: { _, _ in .hourglass })
@@ -574,7 +574,7 @@ extension ShapeSpecRegistry {
         )
     }
     static func _makeFilledCircleSpec() -> ShapeSpec {
-        ShapeSpec(aliases: ["filled-circle", "f-circ", "junction"], sizeAdjustment: { _, _ in CGSize(width: 28, height: 28) }, path: { _, _ in .ellipse }, fillOverride: .foreground, strokeOverride: .none)
+        ShapeSpec(aliases: ["filled-circle", "f-circ", "junction"], sizeAdjustment: { _, _ in CGSize(width: 28, height: 28) }, path: { _, _ in .ellipse }, fillOverride: .foreground, strokeOverride: ShapeDecoration.Stroke.none)
     }
     static func _makeLinedDocumentSpec() -> ShapeSpec {
         ShapeSpec(
@@ -767,7 +767,7 @@ extension ShapeSpecRegistry {
             sizeAdjustment: { _, _ in CGSize(width: 28, height: 28) },
             path: { _, _ in .ellipse },
             fillOverride: .foreground,
-            strokeOverride: .none
+            strokeOverride: ShapeDecoration.Stroke.none
         )
     }
     static func _makeStateEndSpec() -> ShapeSpec { ShapeSpec(aliases: ["state-end"], sizeAdjustment: { _, _ in CGSize(width: 28, height: 28) }, path: { _, _ in .doubleCircle(gap: 5) }) }
