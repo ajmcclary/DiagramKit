@@ -216,6 +216,67 @@ for (const page of pages) {
   }
 }
 
+// --- Remaining cross-cutting invariants (Stage 4 post-deletion) -------------
+const PILL_FAMILIES = ["state", "sync", "sharing", "type", "ai"];
+const CHIP_ORDER = ["type", "sync", "sharing", "ai"];
+
+for (const page of pages) {
+  const html = read(page);
+
+  // "Playground" / "Visual editor" (as destinations) appear nowhere — stricter
+  // than the label-only check in Stage 2. Allowed exceptions: HTML comments,
+  // <script> blocks. The check looks at visible text only.
+  const visibleText = html.replace(/<script[\s\S]*?<\/script>/g, "")
+                          .replace(/<!--[\s\S]*?-->/g, "");
+  if (/\bPlayground\b/.test(visibleText)) {
+    fail(`${page}: 'Playground' appears in visible text (deleted concept)`);
+  }
+  if (/\bVisual editor\b/.test(visibleText)) {
+    fail(`${page}: 'Visual editor' appears as a destination label (use 'Visual mode' or 'Diagram editor')`);
+  }
+
+  // Each .pill must carry exactly one family modifier class.
+  const pills = [...html.matchAll(/<[a-z]+[^>]*class="([^"]*\bpill\b[^"]*)"/g)].map(m => m[1]);
+  for (const cls of pills) {
+    // Skip pills without modifiers in legacy chrome that we'll convert later
+    if (!/pill--/.test(cls)) continue;
+    const families = PILL_FAMILIES.filter(f => new RegExp(`\\bpill--${f}\\b`).test(cls));
+    if (families.length === 0) {
+      fail(`${page}: .pill without a family class ("${cls}")`);
+    } else if (families.length > 1) {
+      fail(`${page}: .pill with multiple family classes ("${cls}")`);
+    }
+  }
+
+  // Card chip order — every .cardchips must list pills in [type, sync, sharing, ai].
+  const chipBlocks = [...html.matchAll(/class="[^"]*\bcardchips\b[^"]*"[^>]*>([\s\S]*?)<\/[a-z]+>/g)];
+  for (const [, inner] of chipBlocks) {
+    const pillFamilies = [...inner.matchAll(/class="[^"]*\bpill--(state|sync|sharing|type|ai)\b/g)].map(m => m[1]);
+    const filtered = pillFamilies.filter(f => f !== "state"); // state is not a card chip
+    let lastIdx = -1;
+    for (const f of filtered) {
+      const idx = CHIP_ORDER.indexOf(f);
+      if (idx < lastIdx) {
+        fail(`${page}: .cardchips DOM order violates [type][sync][sharing][ai] (saw ${filtered.join(",")})`);
+        break;
+      }
+      lastIdx = idx;
+    }
+  }
+
+  // Counts ("47 diagrams", "9 shown", "3 unread", "12 events") render as
+  // plain text, never inside a .pill class.
+  if (/<[a-z]+[^>]*class="[^"]*\bpill\b[^"]*"[^>]*>\s*\d+\s+(diagrams|shown|unread|events)\b/i.test(html)) {
+    fail(`${page}: a count appears inside a .pill (counts must be plain text)`);
+  }
+
+  // Mode tabs (where present) sit in pageheader__row2, not row1.
+  const row1Match = html.match(/class="pageheader__row1"[\s\S]*?<\/div>/);
+  if (row1Match && /\bpageheader__modes\b/.test(row1Match[0])) {
+    fail(`${page}: mode tabs appear in row1 (must be in row2)`);
+  }
+}
+
 // --- Shared CSS surface ------------------------------------------------------
 const css = read("assets/shared.css");
 for (const selector of requiredCss) {
