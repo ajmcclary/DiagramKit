@@ -8,20 +8,19 @@
 //
 
 import SwiftUI
+import DiagramKit
 
 @available(iOS 26.0, macOS 26.0, macCatalyst 26.0, *)
 struct VersionSecurityPanel: View {
     @SwiftUI.State private var showingPrivacySheet = false
 
-    /// The DiagramKit version string, populated from the package bundle.
+    /// The DiagramKit version string reported by the public renderer API.
+    nonisolated static var diagramKitVersion: String {
+        MermaidRenderer.version
+    }
+
     private var diagramKitVersion: String {
-        // Read from the DiagramKit bundle's Info.plist if available.
-        // Falls back to a compile-time placeholder.
-        if let bundle = Bundle(identifier: "com.ajmcclary.DiagramKit"),
-           let version = bundle.infoDictionary?["CFBundleShortVersionString"] as? String {
-            return version
-        }
-        return "0.1.0 (development)"
+        Self.diagramKitVersion
     }
 
     var body: some View {

@@ -124,21 +124,14 @@ public enum ConfigSanitizer {
 
     // MARK: - Strip unsafe keys
 
-    /// Remove audited (unsafe) keys from a config tree, returning a cleaned copy.
+    /// Remove web-only unsafe keys from a config tree, returning a cleaned copy.
     ///
-    /// Used when importing external state (Phase 5 loaders) after user confirmation.
+    /// Used when importing external state (Phase 5 loaders). DiagramKit now
+    /// understands shared Mermaid settings such as `htmlLabels` and
+    /// `securityLevel`, so those values are preserved and only prototype-style
+    /// keys are stripped.
     public static func stripUnsafe(from tree: JSONValue) -> JSONValue {
         guard case .object(var dict) = tree else { return tree }
-
-        // Remove audited keys
-        let keysToRemove: Set<String> = [
-            "securityLevel",
-            "htmlLabels"
-        ]
-
-        for key in keysToRemove {
-            dict.removeValue(forKey: key)
-        }
 
         // Strip __ proto keys recursively
         dict = stripProtoKeys(from: dict)

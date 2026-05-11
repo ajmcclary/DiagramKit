@@ -403,7 +403,11 @@ struct ActionsView: View {
                                 .font(.system(size: 11, weight: .medium))
                         }
                     }
-                    .disabled(codeURLString.trimmingCharacters(in: .whitespaces).isEmpty || isLoading)
+                    .disabled(Self.isRawURLLoadDisabled(
+                        codeURLString: codeURLString,
+                        configURLString: configURLString,
+                        isLoading: isLoading
+                    ))
                     .buttonStyle(.plain)
                     .foregroundColor(Color(store.theme.effectiveAccent()))
                 }
@@ -486,6 +490,16 @@ struct ActionsView: View {
                 }
             }
         }
+    }
+
+    nonisolated static func isRawURLLoadDisabled(
+        codeURLString: String,
+        configURLString: String,
+        isLoading: Bool
+    ) -> Bool {
+        if isLoading { return true }
+        return codeURLString.trimmingCharacters(in: .whitespaces).isEmpty
+            && configURLString.trimmingCharacters(in: .whitespaces).isEmpty
     }
 
     // MARK: - Action button

@@ -168,6 +168,7 @@ struct NativeCodeEditor: NSViewRepresentable {
         func textDidChange(_ notification: Notification) {
             guard let textView else { return }
             let newValue = textView.string
+            let modeAtEdit = mode
             isUserTyping = true
 
             debounceTask?.cancel()
@@ -176,7 +177,7 @@ struct NativeCodeEditor: NSViewRepresentable {
                 guard !Task.isCancelled, let self else { return }
                 await MainActor.run {
                     self.isUserTyping = false
-                    switch self.mode {
+                    switch modeAtEdit {
                     case .code:
                         self.store.setSource(newValue, origin: .user)
                     case .config:
@@ -409,6 +410,7 @@ struct NativeCodeEditor: UIViewRepresentable {
 
         func textViewDidChange(_ textView: UITextView) {
             let newValue = textView.text ?? ""
+            let modeAtEdit = mode
             isUserTyping = true
 
             debounceTask?.cancel()
@@ -417,7 +419,7 @@ struct NativeCodeEditor: UIViewRepresentable {
                 guard !Task.isCancelled, let self else { return }
                 await MainActor.run {
                     self.isUserTyping = false
-                    switch self.mode {
+                    switch modeAtEdit {
                     case .code:
                         self.store.setSource(newValue, origin: .user)
                     case .config:

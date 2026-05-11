@@ -120,6 +120,8 @@ public final class MermaidSyntaxHighlighter: Sendable {
                 "block-beta", "packet-beta", "kanban",
                 "zenuml", "architecture", "info",
                 "eventmodeling",
+                "radar-beta", "treemap-beta", "treemap", "venn-beta",
+                "ishikawa-beta", "ishikawa", "treeView-beta", "wardley-beta",
             ]
             let dtAlt = dtPatterns
                 .map { NSRegularExpression.escapedPattern(for: $0) }

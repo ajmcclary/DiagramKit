@@ -14,6 +14,9 @@ import XCTest
 import DiagramKit
 import DiagramKitModel
 @testable import MermaidPlayground
+#if canImport(AppKit)
+import AppKit
+#endif
 
 @available(iOS 26.0, macOS 26.0, macCatalyst 26.0, *)
 @MainActor
@@ -95,6 +98,30 @@ final class MermaidPlaygroundStoreRegressionTests: XCTestCase {
         XCTAssertEqual(importStore.entries.first?.id, saved.id)
         XCTAssertEqual(importStore.restore(saved), state)
     }
+
+    func testDebouncedCodeEditCommitsToOriginalEditorModeAfterModeSwitch() async throws {
+        #if canImport(AppKit)
+        let originalConfig = #"{"theme":"dark"}"#
+        let editedSource = "sequenceDiagram\n  Alice->>Bob: Hi"
+        let store = LiveEditorStore(
+            state: LiveEditorState(
+                source: "graph TD\n  A --> B",
+                configJSON: originalConfig
+            )
+        )
+        let coordinator = NativeCodeEditor.Coordinator(store: store, mode: .code)
+        let textView = NSTextView()
+        textView.string = editedSource
+        coordinator.textView = textView
+
+        coordinator.textDidChange(Notification(name: NSText.didChangeNotification, object: textView))
+        coordinator.mode = .config
+        try await Task.sleep(for: .milliseconds(450))
+
+        XCTAssertEqual(store.state.source, editedSource)
+        XCTAssertEqual(store.state.configJSON, originalConfig)
+        #endif
+    }
 }
 
 @available(iOS 26.0, macOS 26.0, macCatalyst 26.0, *)
@@ -116,6 +143,25 @@ final class MermaidPlaygroundLoaderRegressionTests: XCTestCase {
             "0123456789abcdef0123456789abcdef"
         )
     }
+
+    func testImportedConfigSanitizerPreservesSupportedSharedKeys() throws {
+        let raw = """
+        {
+          "htmlLabels": false,
+          "securityLevel": "sandbox",
+          "__proto__": { "polluted": true },
+          "nested": { "__defineGetter__": "polluted" }
+        }
+        """
+        let value = try JSONDecoder().decode(JSONValue.self, from: Data(raw.utf8))
+
+        let cleaned = ConfigSanitizer.stripUnsafe(from: value)
+
+        XCTAssertEqual(cleaned[["htmlLabels"]], .bool(false))
+        XCTAssertEqual(cleaned[["securityLevel"]], .string("sandbox"))
+        XCTAssertNil(cleaned[["__proto__"]])
+        XCTAssertNil(cleaned[["nested", "__defineGetter__"]])
+    }
 }
 
 @available(iOS 26.0, macOS 26.0, macCatalyst 26.0, *)
@@ -134,6 +180,64 @@ final class MermaidPlaygroundExportRegressionTests: XCTestCase {
         .renderSVG(from: source)
 
         XCTAssertNotEqual(defaultSVG, paddedSVG)
+    }
+}
+
+@available(iOS 26.0, macOS 26.0, macCatalyst 26.0, *)
+final class MermaidPlaygroundActionsRegressionTests: XCTestCase {
+    func testRawURLLoadIsEnabledWhenOnlyConfigURLIsProvided() {
+        XCTAssertFalse(ActionsView.isRawURLLoadDisabled(
+            codeURLString: "",
+            configURLString: "https://example.com/config.json",
+            isLoading: false
+        ))
+        XCTAssertTrue(ActionsView.isRawURLLoadDisabled(
+            codeURLString: "",
+            configURLString: "",
+            isLoading: false
+        ))
+        XCTAssertTrue(ActionsView.isRawURLLoadDisabled(
+            codeURLString: "https://example.com/code.mmd",
+            configURLString: "",
+            isLoading: true
+        ))
+    }
+}
+
+@available(iOS 26.0, macOS 26.0, macCatalyst 26.0, *)
+final class MermaidPlaygroundVersionRegressionTests: XCTestCase {
+    func testVersionSecurityPanelReportsRendererVersion() {
+        XCTAssertEqual(VersionSecurityPanel.diagramKitVersion, MermaidRenderer.version)
+    }
+}
+
+@available(iOS 26.0, macOS 26.0, macCatalyst 26.0, *)
+@MainActor
+final class MermaidPlaygroundSyntaxHighlighterRegressionTests: XCTestCase {
+    func testHighlightsCurrentRegistryHeaders() async throws {
+        #if canImport(AppKit)
+        let headers = ["venn-beta", "wardley-beta", "ishikawa", "treeView-beta"]
+
+        for header in headers {
+            let source = "\(header)\n  Root"
+            let textView = NSTextView()
+            textView.string = source
+
+            await MermaidSyntaxHighlighter().highlight(
+                source,
+                in: textView,
+                visibleRect: .zero,
+                theme: .default
+            )
+
+            let color = textView.layoutManager?.temporaryAttribute(
+                .foregroundColor,
+                atCharacterIndex: 0,
+                effectiveRange: nil
+            )
+            XCTAssertNotNil(color, "Expected \(header) to be highlighted as a diagram type")
+        }
+        #endif
     }
 }
 #endif

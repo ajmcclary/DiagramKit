@@ -25,6 +25,11 @@ let package = Package(
         .library(name: "DiagramKitRenderingCG", targets: ["DiagramKitRenderingCG"]),
         .library(name: "DiagramKitViews", targets: ["DiagramKitViews"]),
         .library(name: "DiagramKitTestSupport", targets: ["DiagramKitTestSupport"]),
+        // SwiftPM has a package-wide platform floor, while the Playground app
+        // intentionally targets the latest Apple UI APIs. The library products
+        // support the platforms declared above; the Playground executable is
+        // additionally guarded by `@available(iOS/macOS/macCatalyst 26.0, *)`
+        // and the Xcode project sets its deployment target to 26.0.
         .executable(name: "MermaidPlayground", targets: ["MermaidPlayground"])
     ],
     dependencies: [
