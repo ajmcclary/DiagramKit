@@ -99,10 +99,12 @@ public enum MermaidPipeline {
                 border: (theme.border ?? theme.foreground).hexString
             )
             let font = DiagramFontResolver.shared.svgFontFamily
+            let diagramId = StableID.derive(from: source)
 
             do {
                 let svg = try SVGRenderRegistry.render(
                     positioned: positioned,
+                    diagramId: diagramId,
                     colors: colors,
                     font: font,
                     transparent: false

@@ -259,6 +259,28 @@ public struct PositionedClassDiagram: Sendable {
     public var accTitle: String?
     public var accDescription: String?
     public var diagramTitle: String?
+
+    public init(
+        width: Double,
+        height: Double,
+        classes: [PositionedClassNode] = [],
+        relationships: [PositionedClassRelationship] = [],
+        namespaces: [PositionedClassNamespace] = [],
+        notes: [PositionedClassNote] = [],
+        accTitle: String? = nil,
+        accDescription: String? = nil,
+        diagramTitle: String? = nil
+    ) {
+        self.width = width
+        self.height = height
+        self.classes = classes
+        self.relationships = relationships
+        self.namespaces = namespaces
+        self.notes = notes
+        self.accTitle = accTitle
+        self.accDescription = accDescription
+        self.diagramTitle = diagramTitle
+    }
 }
 
 public struct PositionedClassNode: Sendable {
