@@ -215,6 +215,29 @@ public enum SVGPathSerializer {
                 + " L \(_fmt(bounds.maxX)) \(_fmt(bounds.minY))"
                 + " L \(_fmt(bounds.maxX)) \(_fmt(bounds.maxY))"
                 + " L \(_fmt(bounds.minX)) \(_fmt(bounds.maxY)) Z"
+
+        case .polyline(let points):
+            guard let first = points.first else { return "" }
+            var parts: [String] = []
+            parts.append("M \(_fmt(first.x)) \(_fmt(first.y))")
+            for p in points.dropFirst() {
+                parts.append("L \(_fmt(p.x)) \(_fmt(p.y))")
+            }
+            // Intentionally NOT closed — polyline is stroke-only
+            return parts.joined(separator: " ")
+
+        case .curvedTrapezoid(let skew):
+            // Curved trapezoid — right edge curves inward like a display.
+            // Mirrors `ShapeRenderer.curvedTrapezoidPath` and `_renderCurvedTrapezoid`.
+            let inset = bounds.width * skew
+            let cp = bounds.height * 0.2
+            return "M \(_fmt(bounds.minX + inset)) \(_fmt(bounds.minY))"
+                + " Q \(_fmt(bounds.maxX - inset)) \(_fmt(bounds.minY))"
+                + " \(_fmt(bounds.maxX)) \(_fmt(bounds.maxY - cp))"
+                + " L \(_fmt(bounds.maxX)) \(_fmt(bounds.maxY))"
+                + " L \(_fmt(bounds.minX)) \(_fmt(bounds.maxY))"
+                + " Q \(_fmt(bounds.minX)) \(_fmt(bounds.maxY - cp))"
+                + " \(_fmt(bounds.minX + inset)) \(_fmt(bounds.minY)) Z"
         }
     }
 

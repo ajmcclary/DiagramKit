@@ -51,3 +51,34 @@ public protocol FrontmatterBinding {
     /// `DiagramFrontmatter` struct. Called after all keys have been applied.
     func commit(into frontmatter: inout DiagramFrontmatter)
 }
+
+extension FrontmatterBinding {
+
+    /// Apply a frontmatter key-value pair using prefix matching.
+    ///
+    /// For each prefix in `prefixes`, if `path` starts with that prefix,
+    /// the trailing key is extracted and passed to `apply`. If `apply`
+    /// returns `true`, `mark` is set to `true` and the method returns
+    /// `true`. If no prefix matches, or `apply` returns `false` for all
+    /// matching prefixes, the method returns `false` without modifying
+    /// `mark`.
+    ///
+    /// Usage:
+    /// ```swift
+    /// public mutating func apply(path: String, value: FrontmatterValue) -> Bool {
+    ///     guard let key = Self.extractKey(path: path, prefixes: Self.prefixes) else { return false }
+    ///     guard _applyConfig(key: key, value: value) else { return false }
+    ///     hasSection = true
+    ///     return true
+    /// }
+    /// ```
+    ///
+    /// Returns the trailing key after the first matching prefix, or `nil`
+    /// if no prefix matches.
+    public static func extractKey(path: String, prefixes: [String]) -> String? {
+        for prefix in prefixes where path.hasPrefix(prefix) {
+            return String(path.dropFirst(prefix.count))
+        }
+        return nil
+    }
+}

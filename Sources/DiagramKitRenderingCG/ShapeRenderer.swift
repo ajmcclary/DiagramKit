@@ -86,21 +86,19 @@ public class NodeShapeRenderer {
         context.addPath(path)
         context.strokePath()
 
+        _drawSpecDecorations(shape, in: bounds, context: context, theme: theme, inlineStyles: inlineStyles)
         drawShapeDetails(shape, in: bounds, context: context, theme: theme, inlineStyles: inlineStyles)
 
         context.restoreGState()
     }
 
     public func shapePath(for shape: String, in bounds: CGRect) -> CGPath {
-        // Prefer ShapeSpecRegistry for shapes with explicit path definitions;
-        // fall back to the existing switch for shapes without registry entries.
+        // Route through ShapeSpecRegistry for all shapes with registry entries.
+        // The fallback switch below is retained for shapes not yet in the
+        // registry or for any edge case where registry lookup returns nil.
         if let spec = ShapeSpecRegistry.spec(for: shape) {
             let shapePath = spec.path(bounds, config)
-            // Only route through CGPathRenderer for shapes that have explicit
-            // non-rect paths; default-rect shapes go through the switch below.
-            if !_isDefaultRect(shapePath) {
-                return CGPathRenderer.makePath(from: shapePath, in: bounds, config: config)
-            }
+            return CGPathRenderer.makePath(from: shapePath, in: bounds, config: config)
         }
 
         switch shape {
@@ -212,12 +210,6 @@ public class NodeShapeRenderer {
     }
 
     // MARK: - Shape Paths
-
-    /// Returns `true` if the ShapePath is a default rectangle (no explicit path).
-    private func _isDefaultRect(_ shapePath: ShapePath) -> Bool {
-        if case .rect(let radius) = shapePath, radius == 0 { return true }
-        return false
-    }
 
     private func roundedRectPath(_ bounds: CGRect, cornerRadius: CGFloat) -> CGPath {
         let path = CGMutablePath()
@@ -628,6 +620,55 @@ public class NodeShapeRenderer {
 
         default:
             break
+        }
+    }
+
+    // MARK: - Spec-driven decoration rendering
+
+    /// Draws decorations declared in the shape's `ShapeSpec`.
+    ///
+    /// Only handles same-bounds decorations (polyline strokes, centered
+    /// ellipses, etc.). Position-dependent details (cylinder caps, offset
+    /// copies, inset panes) remain in `drawShapeDetails` until the
+    /// decoration system supports sub-bounds positioning.
+    private func _drawSpecDecorations(_ shape: String, in bounds: CGRect, context: CGContext, theme: DiagramTheme, inlineStyles: [String: String]) {
+        guard let spec = ShapeSpecRegistry.spec(for: shape), !spec.decorations.isEmpty else { return }
+
+        let strokeColor = theme.nodeStrokeColor(for: inlineStyles)
+        let fillColor = theme.nodeFillColor(for: inlineStyles)
+
+        for decoration in spec.decorations {
+            let decorationPath = decoration.path(bounds, config)
+            let cgPath = CGPathRenderer.makePath(from: decorationPath, in: bounds, config: config)
+
+            switch decoration.stroke {
+            case .mainStroke:
+                context.setStrokeColor(strokeColor.cgColor)
+                context.setLineWidth(config.strokeWidthInnerBox)
+                context.addPath(cgPath)
+                context.strokePath()
+            case .dashed(let lengths):
+                context.setStrokeColor(strokeColor.cgColor)
+                context.setLineWidth(config.strokeWidthInnerBox)
+                context.setLineDash(phase: 0, lengths: lengths.map { $0 })
+                context.addPath(cgPath)
+                context.strokePath()
+                context.setLineDash(phase: 0, lengths: [])
+            case .thinStroke:
+                context.saveGState()
+                context.setStrokeColor(strokeColor.cgColor)
+                context.setLineWidth(config.strokeWidthInnerBox)
+                context.setAlpha(0.4)
+                context.addPath(cgPath)
+                context.strokePath()
+                context.restoreGState()
+            }
+
+            if decoration.fillsBackground {
+                context.setFillColor(fillColor.cgColor)
+                context.addPath(cgPath)
+                context.fillPath()
+            }
         }
     }
 

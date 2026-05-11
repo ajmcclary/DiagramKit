@@ -93,6 +93,12 @@ public enum CGPathRenderer {
 
         case .slopedRectangle(let slope):
             return _slopedRectangle(bounds, slope: slope)
+
+        case .polyline(let points):
+            return _polyline(points)
+
+        case .curvedTrapezoid(let skew):
+            return _curvedTrapezoid(bounds, skew: skew)
         }
     }
 
@@ -410,6 +416,41 @@ public enum CGPathRenderer {
         for v in vertices.dropFirst() {
             path.addLine(to: v)
         }
+        path.closeSubpath()
+        return path
+    }
+
+    /// Open polyline — no close, no fill. Used for brace decorations and
+    /// inline shape details that are pure stroke operations.
+    private static func _polyline(_ points: [CGPoint]) -> CGPath {
+        let path = CGMutablePath()
+        guard let first = points.first else { return path }
+        path.move(to: first)
+        for p in points.dropFirst() {
+            path.addLine(to: p)
+        }
+        // Intentionally NOT closed — decorations are stroke-only
+        return path
+    }
+
+    /// Curved trapezoid — a rectangle where the right edge curves inward
+    /// like a display screen. Mirrors `NodeShapeRenderer.curvedTrapezoidPath`.
+    private static func _curvedTrapezoid(_ bounds: CGRect, skew: CGFloat) -> CGPath {
+        let path = CGMutablePath()
+        let inset = bounds.width * skew
+        let cpOffset = bounds.height * 0.2
+        path.move(to: CGPoint(x: bounds.minX + inset, y: bounds.minY))
+        path.addCurve(
+            to: CGPoint(x: bounds.maxX, y: bounds.maxY),
+            control1: CGPoint(x: bounds.maxX - inset, y: bounds.minY),
+            control2: CGPoint(x: bounds.maxX, y: bounds.maxY - cpOffset)
+        )
+        path.addLine(to: CGPoint(x: bounds.minX, y: bounds.maxY))
+        path.addCurve(
+            to: CGPoint(x: bounds.minX + inset, y: bounds.minY),
+            control1: CGPoint(x: bounds.minX, y: bounds.maxY - cpOffset),
+            control2: CGPoint(x: bounds.minX + inset + cpOffset, y: bounds.minY + cpOffset)
+        )
         path.closeSubpath()
         return path
     }

@@ -10,15 +10,10 @@ public struct ERFrontmatterBinding: FrontmatterBinding {
     public init() {}
 
     public mutating func apply(path: String, value: FrontmatterValue) -> Bool {
-        if path.hasPrefix(Self.prefixes[0]) {
-            hasSection = true
-            return _applyConfig(key: String(path.dropFirst(Self.prefixes[0].count)), value: value)
-        }
-        if path.hasPrefix(Self.prefixes[1]) {
-            hasSection = true
-            return _applyConfig(key: String(path.dropFirst(Self.prefixes[1].count)), value: value)
-        }
-        return false
+        guard let key = Self.extractKey(path: path, prefixes: Self.prefixes) else { return false }
+        guard _applyConfig(key: key, value: value) else { return false }
+        hasSection = true
+        return true
     }
 
     private mutating func _applyConfig(key: String, value: FrontmatterValue) -> Bool {

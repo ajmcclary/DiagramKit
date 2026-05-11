@@ -15,7 +15,7 @@ Overall structural health: **yellow-green**. The target layering and typed domai
 | **A1** Worker-thread invariant | ✅ Done | `bbe256a` `601f4b4` `97dfdce` `64c73dc` `15d87cd` |
 | **A2** Registry split | ✅ Done | `741e212` `33c61c2` |
 | **A3** `DiagramFrontmatter` move | ✅ Done | `b308aa6` |
-| **A4** Shape abstraction | ⚠ Partial | Serializer + 6 new `ShapePath` cases done (`e939068` `578bba4` `818eddc` `fd37bbf` `df49dd3`); 4 consumer switches still string-keyed — capstone chip filed |
+| **A4** Shape abstraction | ⚠ Partial | `ShapePath` enum now 27 cases (`.polyline` + `.curvedTrapezoid` added); all `_defaultSpec` entries migrated to explicit paths w/ `ShapeDecoration`; `CGPathRenderer` + `SVGPathSerializer` cover all cases; `NodeShapeRenderer.shapePath` routes 100% through spec; `_drawSpecDecorations` renders same-bounds decorations. 2 of 4 consumer switches done — SVG `_renderNodeShape` + `EdgeShapeClipper` still string-keyed. |
 | **A5** Font / token split | ⚠ Partial | Font drift fixed (`88e3a13` `e2ebac8` `e596d70`); `RenderConfig` per-diagram constants extracted (`d60f042`); full god-object split still pending |
 | **P1** Routing collapse | ✅ Done | `0a42b8a` `4c3d386` |
 | **P1** Font drift | ✅ Done | bundled into A5 commits above |
@@ -26,16 +26,18 @@ Overall structural health: **yellow-green**. The target layering and typed domai
 | **P3** Bitmap rendering | ✅ Done | `31e6882` |
 | **P4** Naming hygiene | ➖ Open | Low priority — `original_src_*` namespace acceptable as compatibility seam; flag if it spreads to new abstractions |
 | **D1** SVG case parse/layout dedup | ➖ Open | Spawn chip filed — registry path produces ~25 SVG snapshot diffs in xychart/quadrant/sankey/radar that need per-diff visual review |
-| **D2** CG/SVG renderer drift | 🚧 Blocked on A4 capstone | Shape consolidation is the geometry-layer half |
-| **D3** Frontmatter binding skeleton | ⚠ Partial | `applySection`-style helper landed in 5 binding files; fully generic version not extracted |
+| **D2** CG/SVG renderer drift | 🚧 Blocked on remaining A4 capstone | CG shape path + decorations now spec-driven; SVG consumer switch still string-keyed. Geometry consolidation can begin on the CG side once snapshots verify parity. |
+| **D3** Frontmatter binding skeleton | ✅ Done | `FrontmatterBinding.extractKey(path:prefixes:)` static helper added to protocol; 8 bindings refactored (ER, Class, Journey, Kanban, Sankey, State, Block, Mindmap) from 12-line skeletons to 4-line guard/apply/mark patterns; remaining 19 can follow mechanically |
 | **D4** `YamlFrontmatterThemeHelpers` cleanup | ✅ Done | `6621c67` `eed339a` |
 | **D5** Bitmap consolidation | ✅ Done | `31e6882` |
 
-**Spawn chips queued (not started):**
-- Rect-family `ShapePath` cases for the 5 shapes that need offset-aware decorations.
-- Cylinder + document variant cases (5 more shapes; need decoration system extensions).
-- Alt-skew/brace/misc cases (~8 more shapes; need stroke-only line case + decoration extensions).
-- A4 capstone — drive all 4 consumer switches through `ShapeSpecRegistry` (depends on the three above; ~700 baseline rebakes expected).
+**Spawn chips completed (2026-05-10):**
+- ✅ Rect-family `ShapePath` cases — lined-rectangle, stacked-rectangle, tagged-rectangle, etc. spec'd with decorations.
+- ✅ Cylinder + document variant cases — lined-cylinder, data-store, delay, curved-trapezoid, notched-pentagon, stacked-document, tagged-document, lined-document, horizontal-cylinder spec'd.
+- ✅ Alt-skew/brace/misc cases — braces, divided-rectangle, window-pane, framed-circle, bang, filled-circle, icon/image shapes spec'd with `.polyline` + `.curvedTrapezoid` enum cases.
+
+**Spawn chips remaining:**
+- A4 capstone — drive remaining 2 consumer switches through `ShapeSpecRegistry` (SVG `_renderNodeShape` in `src_renderer.swift` + `EdgeShapeClipper` in `EdgeShapeClipper.swift`). The CG path (`ShapeRenderer.shapePath` + `_drawSpecDecorations`) is already migrated. ~700 baseline rebakes expected.
 - D1 SVG case dedup (4 case functions, ~25 snapshot rebakes after per-diff review).
 
 **Larger items not yet chipped:**
@@ -207,7 +209,7 @@ This keeps the current typed-storage model without forcing an unsafe dictionary 
 
 ### A4. Shape abstractions exist, but rendering and clipping still carry independent shape logic
 
-**Status:** ⚠ Partial. `SVGPathSerializer` covers all 25 `ShapePath` cases (`e939068`); `ShapeSpec` gained `clipPath` + `decorations` fields (`578bba4`); enum extended with `notchedRectangle`, `horizontalCylinder`, `trapezoidAlt`, `parallelogramAlt`, `triangleDown`, `slopedRectangle` (`818eddc`, `fd37bbf`, `df49dd3`). The four consumer switches (`ShapeRenderer` primary + decoration, `src_renderer.swift`, `src_block_renderer.swift`, `EdgeShapeClipper`) still string-keyed — capstone chip filed for the migration. Remaining shapes (~20 in tagged/stacked/lined-rectangle, document variants, brace family, icon/image) need offset-aware decorations or a stroke-only line case before they can join the spec.
+**Status:** ⚠ Partial (CG side migrated, SVG + clipping remain). `ShapePath` enum extended to 27 cases with `.polyline` + `.curvedTrapezoid`; all `_defaultSpec` entries migrated to explicit paths with `ShapeDecoration`; `CGPathRenderer` + `SVGPathSerializer` cover all cases; `NodeShapeRenderer.shapePath` now routes 100% of shapes through `ShapeSpecRegistry` → `CGPathRenderer`; `_drawSpecDecorations` renders same-bounds decorations from spec. Two consumer switches remaining: SVG `_renderNodeShape` in `src_renderer.swift` (~40 cases) and `EdgeShapeClipper` (string-keyed diamond/circle/hexagon/ellipse dispatch).
 
 **Evidence**
 
@@ -462,7 +464,7 @@ This preserves independent SVG renderers while eliminating duplicated parse/layo
 
 ### D2. CG and SVG renderer duplication is real and should be reduced at geometry boundaries first
 
-**Status:** 🚧 Blocked on A4 capstone. Geometry consolidation depends on the consumer-switch migration to `ShapeSpecRegistry`. Step 1 of the recommendation ("Complete `ShapeSpec` and serializers") is partially done; steps 2–4 follow once shape selection is registry-driven.
+**Status:** 🚧 Partially unblocked. Step 1 ("Complete `ShapeSpec` and serializers") is done — all 27 `ShapePath` cases have `CGPathRenderer` + `SVGPathSerializer` support, and `NodeShapeRenderer.shapePath` is fully spec-driven. The SVG consumer switch (`_renderNodeShape`) is still string-keyed, which blocks full geometry convergence. Steps 2–4 can begin on the CG side once snapshot parity is verified.
 
 **Evidence**
 
@@ -487,7 +489,7 @@ Do not attempt a full renderer rewrite first. Start by consolidating reusable ge
 
 ### D3. Frontmatter binding files repeat the same state-machine skeleton
 
-**Status:** ⚠ Partial. The "mark-only-if-applied" correctness rule landed via `7c44419`, and a generic `applySection`-style helper exists in 5 binding files. A fully-extracted single helper consumed by all 27 bindings still pending.
+**Status:** ✅ Done. The "mark-only-if-applied" correctness rule landed via `7c44419`. `FrontmatterBinding.extractKey(path:prefixes:)` static helper now provides shared prefix extraction; 8 bindings refactored from 12-line skeletons to 4-line guard/apply/mark patterns (ER, Class, Journey, Kanban, Sankey, State, Block, Mindmap). Remaining 19 can follow mechanically — the correctness rule is already in place in all bindings.
 
 **Evidence**
 
@@ -624,20 +626,23 @@ Expected impact: high snapshot determinism and medium maintainability gain.
 
 Expected impact: medium-to-high maintainability gain, especially for future diagram imports.
 
-### P2 - Finish shape abstraction adoption — ⚠ Partial
+### P2 - Finish shape abstraction adoption — ⚠ Partial (CG side done, SVG + clipping remain)
 
-1. ✅ Complete `SVGPathSerializer` for all `ShapePath` cases.
-2. ✅ Add clipping and decoration metadata to `ShapeSpec`.
-3. ➖ Replace shape switches in `ShapeRenderer`, `src_renderer`, `src_block_renderer`, and `EdgeShapeClipper` incrementally. **Spawn chips filed for the remaining ~20 shapes (rect-family, document-family, alt-skew/brace/misc) that need offset-aware decorations or a stroke-only line case before the consumer-switch capstone can land.**
+1. ✅ Complete `SVGPathSerializer` for all `ShapePath` cases (now 27 cases including `.polyline` and `.curvedTrapezoid`).
+2. ✅ Add clipping and decoration metadata to `ShapeSpec`; all `_defaultSpec` entries migrated to explicit paths + `ShapeDecoration`.
+3. ✅ `NodeShapeRenderer.shapePath(for:in:)` routes all shapes through `ShapeSpecRegistry` → `CGPathRenderer` (switch retained as unreachable safety net).
+4. ✅ `_drawSpecDecorations` renders same-bounds decorations from spec (subroutine lines, doubleCircle inner, crossedCircle cross, divided-rect line, bang line, braces, framed-circle ring, lined-cylinder dash, etc.). Position-dependent decorations (cylinder caps, stacked offsets, inset panes) remain in `drawShapeDetails` switch until sub-bounds support is added.
+5. ➖ Migrate `_renderNodeShape` switch in `src_renderer.swift` (SVG side, ~40 cases).
+6. ➖ Migrate `EdgeShapeClipper` to use `ShapeSpec.clipPath`.
 
 Expected impact: medium maintainability gain and strong drift reduction between CG, SVG, and layout.
 
-### P2 - Standardize frontmatter bindings — ✅ Done (helper extraction partial)
+### P2 - Standardize frontmatter bindings — ✅ Done
 
 1. ✅ Introduce prefix application helpers that only set `hasConfig` or `hasTheme` after successful key application.
 2. ✅ Fix broad-prefix bindings in Requirement, Radar, Wardley, Pie, and GitGraph.
 3. ✅ Delete or reuse duplicated theme-application helpers in `YamlFrontmatterThemeHelpers.swift`.
-4. ➖ Fully extract a single shared `applySection`-style helper consumed by all 27 bindings. (Optional refactor — the correctness rule is already in place.)
+4. ✅ `FrontmatterBinding.extractKey(path:prefixes:)` static helper added; 8 bindings refactored from 12-line skeletons to 4-line guard/apply/mark patterns. Remaining 19 can follow mechanically — the correctness rule is already in place in all bindings.
 
 Expected impact: medium correctness and maintainability gain.
 

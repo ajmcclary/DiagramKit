@@ -149,6 +149,18 @@ public enum ShapePath: Sendable {
     /// `slope` × bounds height. Used by `sloped-rectangle`,
     /// `manual-input`, `sl-rect`.
     case slopedRectangle(slope: CGFloat)
+
+    // MARK: - Phase 1 additions (audit follow-up #4)
+
+    /// Open polyline (stroke-only, no fill). Used for brace decorations
+    /// and inline shape details that are pure stroke operations.
+    /// Unlike `.polygon`, this path does NOT close.
+    case polyline(points: [CGPoint])
+
+    /// Curved trapezoid — a rectangle where the right edge curves
+    /// inward like a display screen. Used by `curved-trapezoid`,
+    /// `curv-trap`, `display`.
+    case curvedTrapezoid(skew: CGFloat)
 }
 
 // MARK: - Shape Spec Registry
@@ -241,6 +253,7 @@ public enum ShapeSpecRegistry {
             _makeRectWithTitleSpec(),
             _makeLabelRectSpec(),
             _makeAnchorSpec(),
+            _makeClassBoxSpec(),
             _makeInvisibleSpec(),
             _makeStateStartSpec(),
             _makeStateEndSpec(),
@@ -268,7 +281,7 @@ public enum ShapeSpecRegistry {
 
     private static func _makeRectangleSpec() -> ShapeSpec {
         ShapeSpec(
-            aliases: ["rect", "proc", "process", "rectangle"],
+            aliases: ["rect", "proc", "process", "rectangle", "entity", "state-fork"],
             sizeAdjustment: _rectSizing,
             path: { _, _ in .rect(cornerRadius: 0) }
         )
@@ -278,7 +291,7 @@ public enum ShapeSpecRegistry {
         ShapeSpec(
             aliases: ["rounded", "fr-rect", "rounded-rectangle"],
             sizeAdjustment: _rectSizing,
-            path: { _, _ in .rect(cornerRadius: 5) }
+            path: { _, _ in .rect(cornerRadius: 6) }
         )
     }
 
@@ -422,11 +435,37 @@ public enum ShapeSpecRegistry {
         )
     }
 
-    // Remaining specs use defaults; full geometry deferred to integration (tasks 5.2–5.4).
+    // MARK: Phase 1 — specs migrated from _defaultSpec to explicit paths + decorations.
 
-    private static func _makeBangSpec() -> ShapeSpec { _defaultSpec(aliases: ["bang"]) }
+    private static func _makeBangSpec() -> ShapeSpec {
+        ShapeSpec(
+            aliases: ["bang"],
+            sizeAdjustment: _rectSizing,
+            path: { _, _ in .ellipse },
+            decorations: [
+                ShapeDecoration(
+                    path: { rect, _ in .polyline(points: [
+                        CGPoint(x: rect.midX, y: rect.minY),
+                        CGPoint(x: rect.midX, y: rect.maxY),
+                    ]) },
+                    stroke: .mainStroke
+                ),
+            ]
+        )
+    }
     private static func _makeCloudSpec() -> ShapeSpec { ShapeSpec(aliases: ["cloud"], sizeAdjustment: _rectSizing, path: { _, _ in .cloud }) }
-    private static func _makeDataStoreSpec() -> ShapeSpec { _defaultSpec(aliases: ["data-store", "datastore"]) }
+    private static func _makeDataStoreSpec() -> ShapeSpec {
+        ShapeSpec(
+            aliases: ["data-store", "datastore"],
+            sizeAdjustment: { textSize, config in
+                CGSize(
+                    width: Swift.max(textSize.width + config.nodePaddingHorizontal * 2, config.minimumNodeWidth),
+                    height: Swift.max(textSize.height + config.nodePaddingVertical * 2 + 14, config.minimumNodeHeight)
+                )
+            },
+            path: { _, config in .cylinder(topCapInset: config.cylinderEllipseRadius) }
+        )
+    }
     private static func _makeTextSpec() -> ShapeSpec {
         ShapeSpec(aliases: ["text"], sizeAdjustment: { textSize, _ in CGSize(width: textSize.width + 4, height: textSize.height + 4) }, path: { _, _ in .rect(cornerRadius: 0) })
     }
@@ -437,22 +476,118 @@ public enum ShapeSpecRegistry {
             path: { _, _ in .notchedRectangle(notchSize: 10) }
         )
     }
-    private static func _makeLinedRectangleSpec() -> ShapeSpec { _defaultSpec(aliases: ["lined-process", "lined-rectangle", "lin-rect", "lin-proc", "shaded-process"]) }
+    private static func _makeLinedRectangleSpec() -> ShapeSpec {
+        ShapeSpec(
+            aliases: ["lined-process", "lined-rectangle", "lin-rect", "lin-proc", "shaded-process"],
+            sizeAdjustment: _rectSizing,
+            path: { _, _ in .rect(cornerRadius: 0) },
+            decorations: [
+                ShapeDecoration(
+                    path: { rect, _ in .polyline(points: [
+                        CGPoint(x: rect.minX + 4, y: rect.minY),
+                        CGPoint(x: rect.minX + 4, y: rect.maxY),
+                    ]) },
+                    stroke: .thinStroke
+                ),
+            ]
+        )
+    }
     private static func _makeSmallCircleSpec() -> ShapeSpec { ShapeSpec(aliases: ["start", "small-circle", "sm-circ"], sizeAdjustment: { _, _ in CGSize(width: 28, height: 28) }, path: { _, _ in .ellipse }) }
-    private static func _makeFramedCircleSpec() -> ShapeSpec { _defaultSpec(aliases: ["stop", "framed-circle", "fr-circ"]) }
+    private static func _makeFramedCircleSpec() -> ShapeSpec {
+        ShapeSpec(
+            aliases: ["stop", "framed-circle", "fr-circ"],
+            sizeAdjustment: _rectSizing,
+            path: { _, _ in .ellipse },
+            decorations: [
+                ShapeDecoration(
+                    path: { rect, _ in .ellipse },
+                    stroke: .thinStroke
+                ),
+            ]
+        )
+    }
     private static func _makeForkSpec() -> ShapeSpec { ShapeSpec(aliases: ["fork"], sizeAdjustment: { _, _ in CGSize(width: 70, height: 7) }, path: { _, _ in .rect(cornerRadius: 0) }) }
     private static func _makeJoinSpec() -> ShapeSpec { ShapeSpec(aliases: ["join"], sizeAdjustment: { _, _ in CGSize(width: 70, height: 7) }, path: { _, _ in .rect(cornerRadius: 0) }) }
-    private static func _makeHourglassSpec() -> ShapeSpec { _defaultSpec(aliases: ["collate", "hourglass"]) }
-    private static func _makeBraceLSpec() -> ShapeSpec { _defaultSpec(aliases: ["brace-l", "comment", "brace"]) }
-    private static func _makeBraceRSpec() -> ShapeSpec { _defaultSpec(aliases: ["brace-r"]) }
-    private static func _makeBracesSpec() -> ShapeSpec { _defaultSpec(aliases: ["braces"]) }
+    private static func _makeHourglassSpec() -> ShapeSpec {
+        ShapeSpec(aliases: ["collate", "hourglass"], sizeAdjustment: _rectSizing, path: { _, _ in .hourglass })
+    }
+    private static func _makeBraceLSpec() -> ShapeSpec {
+        ShapeSpec(
+            aliases: ["brace-l", "comment", "brace"],
+            sizeAdjustment: _rectSizing,
+            path: { _, _ in .rect(cornerRadius: 0) },
+            decorations: [
+                ShapeDecoration(
+                    path: { rect, _ in .polyline(points: [
+                        CGPoint(x: rect.minX + rect.width * 0.4, y: rect.minY + 2),
+                        CGPoint(x: rect.minX + 2, y: rect.minY + rect.height * 0.1),
+                        CGPoint(x: rect.minX + rect.width * 0.3, y: rect.midY),
+                        CGPoint(x: rect.minX + 2, y: rect.maxY - rect.height * 0.1),
+                        CGPoint(x: rect.minX + rect.width * 0.4, y: rect.maxY - 2),
+                    ]) },
+                    stroke: .mainStroke
+                ),
+            ]
+        )
+    }
+    private static func _makeBraceRSpec() -> ShapeSpec {
+        ShapeSpec(
+            aliases: ["brace-r"],
+            sizeAdjustment: _rectSizing,
+            path: { _, _ in .rect(cornerRadius: 0) },
+            decorations: [
+                ShapeDecoration(
+                    path: { rect, _ in .polyline(points: [
+                        CGPoint(x: rect.minX + rect.width * 0.6, y: rect.minY + 2),
+                        CGPoint(x: rect.maxX - 2, y: rect.minY + rect.height * 0.1),
+                        CGPoint(x: rect.minX + rect.width * 0.7, y: rect.midY),
+                        CGPoint(x: rect.maxX - 2, y: rect.maxY - rect.height * 0.1),
+                        CGPoint(x: rect.minX + rect.width * 0.6, y: rect.maxY - 2),
+                    ]) },
+                    stroke: .mainStroke
+                ),
+            ]
+        )
+    }
+    private static func _makeBracesSpec() -> ShapeSpec {
+        let leftDecoration = ShapeDecoration(
+            path: { rect, _ in .polyline(points: [
+                CGPoint(x: rect.minX + rect.width * 0.4, y: rect.minY + 2),
+                CGPoint(x: rect.minX + 2, y: rect.minY + rect.height * 0.1),
+                CGPoint(x: rect.minX + rect.width * 0.3, y: rect.midY),
+                CGPoint(x: rect.minX + 2, y: rect.maxY - rect.height * 0.1),
+                CGPoint(x: rect.minX + rect.width * 0.4, y: rect.maxY - 2),
+            ]) },
+            stroke: ShapeDecoration.Stroke.mainStroke
+        )
+        let rightDecoration = ShapeDecoration(
+            path: { rect, _ in .polyline(points: [
+                CGPoint(x: rect.minX + rect.width * 0.6, y: rect.minY + 2),
+                CGPoint(x: rect.maxX - 2, y: rect.minY + rect.height * 0.1),
+                CGPoint(x: rect.minX + rect.width * 0.7, y: rect.midY),
+                CGPoint(x: rect.maxX - 2, y: rect.maxY - rect.height * 0.1),
+                CGPoint(x: rect.minX + rect.width * 0.6, y: rect.maxY - 2),
+            ]) },
+            stroke: ShapeDecoration.Stroke.mainStroke
+        )
+        return ShapeSpec(
+            aliases: ["braces"],
+            sizeAdjustment: _rectSizing,
+            path: { _, _ in .rect(cornerRadius: 0) },
+            decorations: [leftDecoration, rightDecoration]
+        )
+    }
     private static func _makeLightningBoltSpec() -> ShapeSpec {
         ShapeSpec(aliases: ["com-link", "bolt", "lightning-bolt"], sizeAdjustment: { textSize, config in
             CGSize(width: Swift.max(textSize.width + config.nodePaddingHorizontal * 2 + 8, config.minimumNodeWidth), height: Swift.max(textSize.height + config.nodePaddingVertical * 2 + 8, config.minimumNodeHeight))
         }, path: { _, _ in .lightningBolt })
     }
-    private static func _makeDocumentSpec() -> ShapeSpec { _defaultSpec(aliases: ["doc", "document"]) }
-    private static func _makeDelaySpec() -> ShapeSpec { _defaultSpec(aliases: ["delay", "half-rounded-rectangle"]) }
+    private static func _makeDocumentSpec() -> ShapeSpec {
+        ShapeSpec(aliases: ["doc", "document"], sizeAdjustment: _rectSizing, path: { _, _ in .document })
+    }
+    private static func _makeDelaySpec() -> ShapeSpec {
+        ShapeSpec(aliases: ["delay", "half-rounded-rectangle"], sizeAdjustment: _rectSizing, path: { _, _ in .stadium })
+    }
     private static func _makeHorizontalCylinderSpec() -> ShapeSpec {
         ShapeSpec(
             aliases: ["horizontal-cylinder", "h-cyl", "das"],
@@ -465,18 +600,117 @@ public enum ShapeSpecRegistry {
             path: { _, config in .horizontalCylinder(leftCapInset: config.cylinderEllipseRadius) }
         )
     }
-    private static func _makeLinedCylinderSpec() -> ShapeSpec { _defaultSpec(aliases: ["lined-cylinder", "lin-cyl", "disk"]) }
-    private static func _makeCurvedTrapezoidSpec() -> ShapeSpec { _defaultSpec(aliases: ["curbed-trapezoid", "curv-trap", "display"]) }
-    private static func _makeDividedRectangleSpec() -> ShapeSpec { _defaultSpec(aliases: ["divided-rectangle", "div-rect", "div-proc", "divided-process"]) }
+    private static func _makeLinedCylinderSpec() -> ShapeSpec {
+        ShapeSpec(
+            aliases: ["lined-cylinder", "lin-cyl", "disk"],
+            sizeAdjustment: { textSize, config in
+                CGSize(
+                    width: Swift.max(textSize.width + config.nodePaddingHorizontal * 2, config.minimumNodeWidth),
+                    height: Swift.max(textSize.height + config.nodePaddingVertical * 2 + 14, config.minimumNodeHeight)
+                )
+            },
+            path: { _, config in .cylinder(topCapInset: config.cylinderEllipseRadius) },
+            decorations: [
+                ShapeDecoration(
+                    path: { rect, _ in .polyline(points: [
+                        CGPoint(x: rect.minX, y: rect.midY),
+                        CGPoint(x: rect.maxX, y: rect.midY),
+                    ]) },
+                    stroke: .dashed(lengths: [3, 3])
+                ),
+            ]
+        )
+    }
+    private static func _makeCurvedTrapezoidSpec() -> ShapeSpec {
+        ShapeSpec(
+            aliases: ["curbed-trapezoid", "curv-trap", "display"],
+            sizeAdjustment: { textSize, config in
+                CGSize(
+                    width: Swift.max(textSize.width + config.nodePaddingHorizontal * 2 + 20, config.minimumNodeWidth),
+                    height: Swift.max(textSize.height + config.nodePaddingVertical * 2, config.minimumNodeHeight)
+                )
+            },
+            path: { _, _ in .curvedTrapezoid(skew: 0.15) }
+        )
+    }
+    private static func _makeDividedRectangleSpec() -> ShapeSpec {
+        ShapeSpec(
+            aliases: ["divided-rectangle", "div-rect", "div-proc", "divided-process"],
+            sizeAdjustment: _rectSizing,
+            path: { _, _ in .rect(cornerRadius: 0) },
+            decorations: [
+                ShapeDecoration(
+                    path: { rect, _ in .polyline(points: [
+                        CGPoint(x: rect.minX, y: rect.midY),
+                        CGPoint(x: rect.maxX, y: rect.midY),
+                    ]) },
+                    stroke: .mainStroke
+                ),
+            ]
+        )
+    }
     private static func _makeTriangleSpec() -> ShapeSpec {
         ShapeSpec(aliases: ["triangle", "tri", "extract"], sizeAdjustment: { textSize, config in
             CGSize(width: Swift.max(textSize.width + config.nodePaddingHorizontal * 2 + 10, config.minimumNodeWidth), height: Swift.max(textSize.height + config.nodePaddingVertical * 2 + 10, config.minimumNodeHeight))
         }, path: { _, _ in .triangle })
     }
-    private static func _makeWindowPaneSpec() -> ShapeSpec { _defaultSpec(aliases: ["internal-storage", "win-pane", "window-pane"]) }
-    private static func _makeFilledCircleSpec() -> ShapeSpec { _defaultSpec(aliases: ["filled-circle", "f-circ", "junction"]) }
-    private static func _makeLinedDocumentSpec() -> ShapeSpec { _defaultSpec(aliases: ["lined-document", "lin-doc"]) }
-    private static func _makeNotchedPentagonSpec() -> ShapeSpec { _defaultSpec(aliases: ["loop-limit", "notch-pent", "notched-pentagon"]) }
+    private static func _makeWindowPaneSpec() -> ShapeSpec {
+        ShapeSpec(
+            aliases: ["internal-storage", "win-pane", "window-pane"],
+            sizeAdjustment: _rectSizing,
+            path: { _, _ in .rect(cornerRadius: 0) },
+            decorations: [
+                ShapeDecoration(
+                    path: { rect, _ in
+                        let inset = rect.width * 0.2
+                        let paneRect = CGRect(
+                            x: rect.maxX - inset - 4,
+                            y: rect.minY + 4,
+                            width: inset,
+                            height: rect.height - 8
+                        )
+                        return .rect(cornerRadius: 0)
+                    },
+                    stroke: .mainStroke
+                ),
+            ]
+        )
+    }
+    private static func _makeFilledCircleSpec() -> ShapeSpec {
+        ShapeSpec(aliases: ["filled-circle", "f-circ", "junction"], sizeAdjustment: { _, _ in CGSize(width: 28, height: 28) }, path: { _, _ in .ellipse })
+    }
+    private static func _makeLinedDocumentSpec() -> ShapeSpec {
+        ShapeSpec(
+            aliases: ["lined-document", "lin-doc"],
+            sizeAdjustment: _rectSizing,
+            path: { _, _ in .document },
+            decorations: [
+                ShapeDecoration(
+                    path: { rect, _ in .polyline(points: [
+                        CGPoint(x: rect.minX + 8, y: rect.minY + rect.height * 0.3),
+                        CGPoint(x: rect.maxX - 8, y: rect.minY + rect.height * 0.3),
+                    ]) },
+                    stroke: .thinStroke
+                ),
+                ShapeDecoration(
+                    path: { rect, _ in .polyline(points: [
+                        CGPoint(x: rect.minX + 8, y: rect.minY + rect.height * 0.3 + 6),
+                        CGPoint(x: rect.maxX - 16, y: rect.minY + rect.height * 0.3 + 6),
+                    ]) },
+                    stroke: .thinStroke
+                ),
+            ]
+        )
+    }
+    private static func _makeNotchedPentagonSpec() -> ShapeSpec {
+        ShapeSpec(
+            aliases: ["loop-limit", "notch-pent", "notched-pentagon"],
+            sizeAdjustment: { textSize, config in
+                CGSize(width: Swift.max(textSize.width + config.nodePaddingHorizontal * 2 + 10, config.minimumNodeWidth), height: Swift.max(textSize.height + config.nodePaddingVertical * 2 + 10, config.minimumNodeHeight))
+            },
+            path: { _, _ in .triangle }
+        )
+    }
     private static func _makeFlippedTriangleSpec() -> ShapeSpec {
         ShapeSpec(
             aliases: ["manual-file", "flip-tri", "flipped-triangle"],
@@ -497,8 +731,33 @@ public enum ShapeSpecRegistry {
             path: { _, _ in .slopedRectangle(slope: 0.2) }
         )
     }
-    private static func _makeStackedDocumentSpec() -> ShapeSpec { _defaultSpec(aliases: ["stacked-document", "docs", "documents", "st-doc"]) }
-    private static func _makeStackedRectangleSpec() -> ShapeSpec { _defaultSpec(aliases: ["stacked-rectangle", "st-rect", "procs", "processes"]) }
+    private static func _makeStackedDocumentSpec() -> ShapeSpec {
+        let offset: CGFloat = 4
+        return ShapeSpec(
+            aliases: ["stacked-document", "docs", "documents", "st-doc"],
+            sizeAdjustment: _rectSizing,
+            path: { _, _ in .document },
+            decorations: [
+                ShapeDecoration(
+                    path: { rect, _ in .document },
+                    stroke: .thinStroke
+                ),
+            ]
+        )
+    }
+    private static func _makeStackedRectangleSpec() -> ShapeSpec {
+        ShapeSpec(
+            aliases: ["stacked-rectangle", "st-rect", "procs", "processes"],
+            sizeAdjustment: _rectSizing,
+            path: { _, _ in .rect(cornerRadius: 0) },
+            decorations: [
+                ShapeDecoration(
+                    path: { rect, _ in .rect(cornerRadius: 0) },
+                    stroke: .thinStroke
+                ),
+            ]
+        )
+    }
     private static func _makeFlagSpec() -> ShapeSpec { ShapeSpec(aliases: ["paper-tape", "flag"], sizeAdjustment: _rectSizing, path: { _, _ in .flag }) }
     private static func _makeBowTieRectangleSpec() -> ShapeSpec {
         ShapeSpec(aliases: ["bow-tie-rectangle", "bow-rect", "stored-data"], sizeAdjustment: { textSize, config in
@@ -506,30 +765,69 @@ public enum ShapeSpecRegistry {
         }, path: { _, _ in .bowTie(indent: 12) })
     }
     private static func _makeCrossedCircleSpec() -> ShapeSpec { ShapeSpec(aliases: ["crossed-circle", "cross-circ", "summary"], sizeAdjustment: _rectSizing, path: { _, _ in .crossedCircle }) }
-    private static func _makeTaggedDocumentSpec() -> ShapeSpec { _defaultSpec(aliases: ["tagged-document", "tag-doc"]) }
-    private static func _makeTaggedRectangleSpec() -> ShapeSpec { _defaultSpec(aliases: ["tagged-rectangle", "tag-rect", "tag-proc", "tagged-process"]) }
-    private static func _makeIconSquareSpec() -> ShapeSpec { _defaultSpec(aliases: ["icon-square"]) }
-    private static func _makeIconCircleSpec() -> ShapeSpec { _defaultSpec(aliases: ["icon-circle"]) }
-    private static func _makeIconSpec() -> ShapeSpec { _defaultSpec(aliases: ["icon"]) }
-    private static func _makeIconRoundedSpec() -> ShapeSpec { _defaultSpec(aliases: ["icon-rounded"]) }
-    private static func _makeImageSquareSpec() -> ShapeSpec { _defaultSpec(aliases: ["image-square"]) }
-    private static func _makeStateSpec() -> ShapeSpec { _defaultSpec(aliases: ["state"]) }
+    private static func _makeTaggedDocumentSpec() -> ShapeSpec {
+        let notchSize: CGFloat = 10
+        return ShapeSpec(
+            aliases: ["tagged-document", "tag-doc"],
+            sizeAdjustment: _rectSizing,
+            path: { _, _ in .document },
+            decorations: [
+                ShapeDecoration(
+                    path: { rect, _ in .polygon(vertices: [
+                        CGPoint(x: rect.maxX - notchSize, y: rect.minY),
+                        CGPoint(x: rect.maxX - notchSize, y: rect.minY + notchSize),
+                        CGPoint(x: rect.maxX, y: rect.minY + notchSize),
+                    ]) },
+                    stroke: .mainStroke
+                ),
+            ]
+        )
+    }
+    private static func _makeTaggedRectangleSpec() -> ShapeSpec {
+        let notchSize: CGFloat = 10
+        return ShapeSpec(
+            aliases: ["tagged-rectangle", "tag-rect", "tag-proc", "tagged-process"],
+            sizeAdjustment: _rectSizing,
+            path: { _, _ in .rect(cornerRadius: 0) },
+            decorations: [
+                ShapeDecoration(
+                    path: { rect, _ in .polygon(vertices: [
+                        CGPoint(x: rect.maxX - notchSize, y: rect.minY),
+                        CGPoint(x: rect.maxX - notchSize, y: rect.minY + notchSize),
+                        CGPoint(x: rect.maxX, y: rect.minY + notchSize),
+                    ]) },
+                    stroke: .mainStroke
+                ),
+            ]
+        )
+    }
+    private static func _makeIconSquareSpec() -> ShapeSpec { ShapeSpec(aliases: ["icon-square"], sizeAdjustment: _rectSizing, path: { _, _ in .rect(cornerRadius: 0) }) }
+    private static func _makeIconCircleSpec() -> ShapeSpec { ShapeSpec(aliases: ["icon-circle"], sizeAdjustment: _rectSizing, path: { _, _ in .ellipse }) }
+    private static func _makeIconSpec() -> ShapeSpec { ShapeSpec(aliases: ["icon"], sizeAdjustment: _rectSizing, path: { _, _ in .rect(cornerRadius: 0) }) }
+    private static func _makeIconRoundedSpec() -> ShapeSpec { ShapeSpec(aliases: ["icon-rounded"], sizeAdjustment: _rectSizing, path: { _, _ in .rect(cornerRadius: 6) }) }
+    private static func _makeImageSquareSpec() -> ShapeSpec { ShapeSpec(aliases: ["image-square"], sizeAdjustment: _rectSizing, path: { _, _ in .rect(cornerRadius: 0) }) }
+    private static func _makeStateSpec() -> ShapeSpec { ShapeSpec(aliases: ["state"], sizeAdjustment: _rectSizing, path: { _, _ in .rect(cornerRadius: 0) }) }
     private static func _makeChoiceSpec() -> ShapeSpec {
-        ShapeSpec(aliases: ["choice"], sizeAdjustment: { textSize, config in
+        ShapeSpec(aliases: ["choice", "state-choice"], sizeAdjustment: { textSize, config in
             let side = Swift.max(Swift.max(textSize.width + config.nodePaddingHorizontal * 2, textSize.height + config.nodePaddingVertical * 2), config.minimumNodeWidth) + 16
             return CGSize(width: side, height: side)
         }, path: { _, _ in .diamond })
     }
-    private static func _makeNoteSpec() -> ShapeSpec { _defaultSpec(aliases: ["note"]) }
-    private static func _makeRectWithTitleSpec() -> ShapeSpec { _defaultSpec(aliases: ["rect-with-title"]) }
-    private static func _makeLabelRectSpec() -> ShapeSpec { _defaultSpec(aliases: ["label-rect"]) }
-    private static func _makeAnchorSpec() -> ShapeSpec { _defaultSpec(aliases: ["anchor"]) }
+    private static func _makeNoteSpec() -> ShapeSpec { ShapeSpec(aliases: ["note"], sizeAdjustment: _rectSizing, path: { _, _ in .rect(cornerRadius: 0) }) }
+    private static func _makeRectWithTitleSpec() -> ShapeSpec {
+        ShapeSpec(aliases: ["rect-with-title"], sizeAdjustment: _rectSizing, path: { _, _ in .rect(cornerRadius: 4) })
+    }
+    private static func _makeLabelRectSpec() -> ShapeSpec { ShapeSpec(aliases: ["label-rect"], sizeAdjustment: _rectSizing, path: { _, _ in .rect(cornerRadius: 0) }) }
+    private static func _makeAnchorSpec() -> ShapeSpec { ShapeSpec(aliases: ["anchor"], sizeAdjustment: _rectSizing, path: { _, _ in .rect(cornerRadius: 0) }) }
+    private static func _makeClassBoxSpec() -> ShapeSpec { ShapeSpec(aliases: ["class-box"], sizeAdjustment: _rectSizing, path: { _, _ in .rect(cornerRadius: 4) }) }
     private static func _makeInvisibleSpec() -> ShapeSpec { ShapeSpec(aliases: ["invisible"], sizeAdjustment: { _, _ in .zero }, path: { _, _ in .rect(cornerRadius: 0) }) }
     private static func _makeStateStartSpec() -> ShapeSpec { ShapeSpec(aliases: ["state-start"], sizeAdjustment: { _, _ in CGSize(width: 28, height: 28) }, path: { _, _ in .ellipse }) }
     private static func _makeStateEndSpec() -> ShapeSpec { ShapeSpec(aliases: ["state-end"], sizeAdjustment: { _, _ in CGSize(width: 28, height: 28) }, path: { _, _ in .doubleCircle(gap: 5) }) }
     private static func _makeStateDividerSpec() -> ShapeSpec { ShapeSpec(aliases: ["state-divider"], sizeAdjustment: { textSize, _ in CGSize(width: Swift.max(textSize.width, 60), height: 12) }, path: { _, _ in .rect(cornerRadius: 0) }) }
-    private static func _makeStateNoteSpec() -> ShapeSpec { ShapeSpec(aliases: ["state-note"], sizeAdjustment: { textSize, _ in CGSize(width: Swift.max(textSize.width, 80), height: Swift.max(textSize.height, 40)) }, path: { _, _ in .rect(cornerRadius: 0) }) }
-    private static func _makeRoundedWithTitleSpec() -> ShapeSpec { _defaultSpec(aliases: ["rounded-with-title"]) }
+    private static func _makeStateNoteSpec() -> ShapeSpec { ShapeSpec(aliases: ["state-note"], sizeAdjustment: { textSize, _ in CGSize(width: Swift.max(textSize.width, 80), height: Swift.max(textSize.height, 40)) }, path: { _, _ in .rect(cornerRadius: 6) }) }
+    private static func _makeRoundedWithTitleSpec() -> ShapeSpec {
+        ShapeSpec(aliases: ["rounded-with-title"], sizeAdjustment: _rectSizing, path: { _, _ in .rect(cornerRadius: 8) })
+    }
     private static func _makeEllipseSpec() -> ShapeSpec {
         ShapeSpec(aliases: ["ellipse"], sizeAdjustment: { textSize, config in
             let w = textSize.width + config.nodePaddingHorizontal * 2
