@@ -8,7 +8,10 @@ extension DiagramRegistry {
         matches: { $0.normalized.hasPrefix("requirement") },
         parse: { source, frontmatter in
             let lines = MermaidSourceNormalizer.diagramLines(source)
-            let diagram = try parseRequirementDiagram(lines, frontmatter: frontmatter)
+            var diagram = try parseRequirementDiagram(lines, frontmatter: frontmatter)
+            if let theme = frontmatter?.requirementTheme {
+                diagram.config.theme = theme
+            }
             return MermaidGraph(payload: .requirement(diagram))
         },
         layout: { graph, _ in

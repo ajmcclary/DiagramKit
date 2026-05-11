@@ -101,6 +101,7 @@ public struct ZenUMLDiagram: Sendable {
     public var errors: [ZenUMLParseError]
     public var accTitle: String?
     public var accDescr: String?
+    public var useMaxWidth: Bool
 
     public init(
         title: String? = nil,
@@ -109,7 +110,8 @@ public struct ZenUMLDiagram: Sendable {
         statements: [ZenUMLStatement] = [],
         errors: [ZenUMLParseError] = [],
         accTitle: String? = nil,
-        accDescr: String? = nil
+        accDescr: String? = nil,
+        useMaxWidth: Bool = true
     ) {
         self.title = title
         self.participants = participants
@@ -118,6 +120,7 @@ public struct ZenUMLDiagram: Sendable {
         self.errors = errors
         self.accTitle = accTitle
         self.accDescr = accDescr
+        self.useMaxWidth = useMaxWidth
     }
 
     public static var empty: ZenUMLDiagram {

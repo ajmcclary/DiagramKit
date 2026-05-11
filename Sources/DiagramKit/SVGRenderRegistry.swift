@@ -174,7 +174,11 @@ enum SVGRenderRegistry {
                 guard case let .requirement(data) = positioned.content else {
                     throw MermaidStructuralError.payloadMismatch(.requirement)
                 }
-                return try renderRequirementSvg(data, colors, font, transparent, diagramId: diagramId)
+                return try renderRequirementSvg(data, colors, font, transparent,
+                    diagramId: diagramId,
+                    look: data.config.look,
+                    theme: data.config.theme,
+                    htmlLabels: data.config.htmlLabels)
             }
         ),
         .flowchart: SVGRenderDescriptor(
