@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>pr-lifecycle.mmd — Playground</title>
+<title>pr-lifecycle.mmd — Diagram editor</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link
@@ -12,7 +12,7 @@
 />
 <link rel="stylesheet" href="assets/shared.css" />
 <style>
-  /* Playground layout: catalog rail · code editor · preview · studio rail */
+  /* Diagram editor layout: catalog rail · source editor · preview · assistant rail */
   .pg-grid {
     display: grid;
     grid-template-columns: 230px 1fr 1fr 260px;
@@ -476,7 +476,7 @@
     <div class="title-text">
       <span class="doc">pr-lifecycle.mmd</span>
       <span class="sep">—</span>
-      <span class="meta">Playground</span>
+      <span class="meta">Diagram editor</span>
     </div>
     <div class="title-actions">
       <span class="save-state"><span class="dot"></span>Saved · 12s</span>
@@ -512,11 +512,11 @@
         </a>
         <a href="playground.html" class="nav-pill is-on">
           <span class="glyph"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg></span>
-          Playground
+          Diagram editor
         </a>
         <a href="visual.html" class="nav-pill">
           <span class="glyph"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M5 3l3 3M19 3l-3 3M5 21l3-3M19 21l-3-3"/><rect x="6" y="6" width="12" height="12" rx="1.5"/></svg></span>
-          Visual editor
+          Diagram editor · Visual
         </a>
         <a href="ai.html" class="nav-pill">
           <span class="glyph"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l1.6 4.4L18 8l-4.4 1.6L12 14l-1.6-4.4L6 8l4.4-1.6z"/></svg></span>
@@ -628,7 +628,7 @@
           <!-- Source -->
           <section class="pg-pane reveal r3">
             <div class="editor-tabs">
-              <button class="editor-tab is-on">Code</button>
+              <button class="editor-tab is-on">Source</button>
               <button class="editor-tab">Config</button>
               <button class="editor-tab">Inspector</button>
             </div>
@@ -791,7 +791,7 @@
           <!-- Studio -->
           <aside class="pg-pane reveal r5" style="border-right: none;">
             <div class="pane-head">
-              <span class="ttl">Studio</span>
+              <span class="ttl">Assistant</span>
               <span class="meta">theme · export · history</span>
             </div>
             <div class="studio">
