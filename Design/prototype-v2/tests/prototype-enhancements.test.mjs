@@ -131,6 +131,47 @@ for (const page of pages) {
   }
 }
 
+// --- Terminology denylist (Stage 2 redesign) ---------------------------------
+//
+// These regexes look for the OLD vocabulary in label-bearing contexts (tab
+// labels, button labels, nav-pill labels, h1/h2 headings, breadcrumbs).
+// Bare appearances inside prose comments or alt-text are tolerated; the test
+// targets the user-visible labels that the rename pass is meant to fix.
+const labelContext = (term) =>
+  new RegExp(
+    `(?:<button[^>]*>\\s*${term}\\s*<|` +
+    `<a[^>]*class="[^"]*nav-pill[^"]*"[^>]*>\\s*${term}\\s*<|` +
+    `<h1[^>]*>\\s*${term}\\s*<|` +
+    `<h2[^>]*>\\s*${term}\\s*<|` +
+    `data-tab="${term}"|` +
+    `data-mode="${term}")`,
+    "i"
+  );
+
+const denied = [
+  { term: "Code",          where: "tab/button/heading" },
+  { term: "Code editor",   where: "label" },
+  { term: "Studio AI",     where: "activity actor" },
+  { term: "Studio assistant", where: "right panel" },
+  { term: "Playground",    where: "any label" },
+  { term: "Visual editor", where: "destination label" },
+  { term: "Review diff",   where: "button label (should be 'Review source diff')" },
+];
+
+for (const page of pages) {
+  const html = read(page);
+  for (const rule of denied) {
+    if (labelContext(rule.term).test(html)) {
+      fail(`${page}: forbidden term "${rule.term}" appears as a ${rule.where}`);
+    }
+  }
+  // Bare "Studio" check, narrower regex to avoid false-positives on
+  // "Studio plan" / "AI studio" / "Assistant".
+  if (/<button[^>]*>\s*Studio\s*<|data-tab="Studio"/.test(html)) {
+    fail(`${page}: bare "Studio" appears as a tab/button label (use Assistant or AI studio or 'Studio plan')`);
+  }
+}
+
 // --- Shared CSS surface ------------------------------------------------------
 const css = read("assets/shared.css");
 for (const selector of requiredCss) {
