@@ -3194,3 +3194,103 @@ button {
   flex: 1 1 auto;
 }
 .rail__tabpanel:not(.is-on) { display: none; }
+
+/* =========================================================================
+   Pending-edits banner (Visual mode in Diagram editor)
+   ========================================================================= */
+.editbanner {
+  display: none;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 16px;
+  background: var(--accent-bg);
+  border-top: 1px solid var(--accent-bd);
+  font-size: var(--text-meta);
+  color: var(--ink-2);
+}
+.editbanner--active { display: flex; }
+.editbanner__actions { display: inline-flex; gap: 8px; }
+
+/* =========================================================================
+   Card chips (status-pill taxonomy)
+   Order enforced by DOM: [Type] [Sync] [Sharing] [AI]
+   ========================================================================= */
+.cardchips {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  align-items: center;
+}
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font: 500 11px/1 var(--display);
+  letter-spacing: 0.01em;
+  padding: 3px 7px;
+  border-radius: 999px;
+  border: 1px solid transparent;
+  white-space: nowrap;
+}
+.pill__dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  display: inline-block;
+}
+.pill--state {
+  background: var(--pill-state-bg);
+  border-color: var(--pill-state-bd);
+  color: var(--pill-state-fg);
+}
+.pill--state.is-warn .pill__dot { background: var(--pill-state-warn-dot); }
+
+.pill--sync.is-live { background: var(--pill-sync-live-bg); }
+.pill--sync.is-live .pill__dot { background: var(--pill-sync-live-dot); animation: pulse 1.6s ease-in-out infinite; }
+.pill--sync.is-stale {
+  background: var(--pill-sync-stale-bg);
+  border-color: var(--pill-sync-stale-bd);
+  color: var(--pill-sync-stale-fg);
+}
+.pill--sync.is-snapshot {
+  background: var(--pill-sync-snapshot-bg);
+  border-color: var(--pill-sync-snapshot-bd);
+  color: var(--pill-sync-snapshot-fg);
+}
+
+.pill--sharing {
+  background: var(--pill-sharing-bg);
+  border-color: var(--pill-sharing-bd);
+  color: var(--pill-sharing-fg);
+}
+.pill--sharing.is-external {
+  background: var(--pill-sharing-external-bg);
+  color: var(--pill-sharing-external-fg);
+}
+
+.pill--type {
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 3px 6px;
+  font-size: 10px;
+  color: #fff;
+}
+.pill--type.is-flow    { background: var(--type-flow); }
+.pill--type.is-seq     { background: var(--type-seq); }
+.pill--type.is-state   { background: var(--type-state); }
+.pill--type.is-er      { background: var(--type-er); }
+.pill--type.is-class   { background: var(--type-class); }
+.pill--type.is-gantt   { background: var(--type-gantt); }
+.pill--type.is-mind    { background: var(--type-mind); }
+.pill--type.is-journey { background: var(--type-journey); }
+
+.pill--ai {
+  background: var(--pill-ai-bg);
+  border-color: var(--pill-ai-bd);
+  color: var(--pill-ai-fg);
+}
+
+@keyframes pulse {
+  0%,100% { opacity: 1; }
+  50%     { opacity: 0.4; }
+}

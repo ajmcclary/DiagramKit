@@ -54,6 +54,15 @@ const requiredCss = [
   ".rail__tabpanel",
   ".rail--inspector",
   ".rail--diagram",
+  // New in Stage 1 — banner + chip container
+  ".editbanner",
+  ".editbanner--active",
+  ".cardchips",
+  ".pill--state",
+  ".pill--sync",
+  ".pill--sharing",
+  ".pill--type",
+  ".pill--ai",
 ];
 
 const requiredJsHooks = [
