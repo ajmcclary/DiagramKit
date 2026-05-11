@@ -26,13 +26,14 @@ public func renderKanbanSvg(
     let width = max(1, Int(ceil(bounds.maxX)) - viewBoxX)
     let height = max(1, Int(ceil(bounds.maxY)) - viewBoxY)
 
-    svg += "<svg id=\"\(SVG.escapeAttribute(diagramId))\" xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\""
-    if positioned.config.useMaxWidth {
-        svg += " width=\"100%\" style=\"max-width: \(width)px;\" viewBox=\"\(viewBoxX) \(viewBoxY) \(width) \(height)\""
-    } else {
-        svg += " width=\"\(width)\" height=\"\(height)\" viewBox=\"\(viewBoxX) \(viewBoxY) \(width) \(height)\""
-    }
-    svg += ">\n"
+    let _builder = SVGDocumentBuilder(
+        width: Double(width), height: Double(height),
+        colors: colors, transparent: transparent,
+        fontFamily: font,
+        useMaxWidth: positioned.config.useMaxWidth,
+        viewBoxX: Double(viewBoxX), viewBoxY: Double(viewBoxY)
+    )
+    svg += _builder.open(extraAttributes: "id=\"\(SVG.escapeAttribute(diagramId))\"") + "\n"
 
     if let accTitle = positioned.accTitle, !accTitle.isEmpty {
         svg += "<title>\(_escapeXml(accTitle))</title>\n"
@@ -118,7 +119,7 @@ public func renderKanbanSvg(
     }
     svg += "</g>\n"
 
-    svg += "</svg>"
+    svg += _builder.close()
     return svg
 }
 

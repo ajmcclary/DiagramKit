@@ -25,13 +25,13 @@ public func renderArchitectureSvg(
     let h = Int(ceil(positioned.height))
 
     var svg = ""
-    svg += "<svg id=\"\(SVG.escapeAttribute(diagramId))\" xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\""
-    if positioned.config.useMaxWidth {
-        svg += " width=\"100%\" style=\"max-width: \(w)px;\" viewBox=\"0 0 \(w) \(h)\""
-    } else {
-        svg += " width=\"\(w)\" height=\"\(h)\" viewBox=\"0 0 \(w) \(h)\""
-    }
-    svg += ">\n"
+    let _builder = SVGDocumentBuilder(
+        width: Double(w), height: Double(h),
+        colors: colors, transparent: transparent,
+        fontFamily: font,
+        useMaxWidth: positioned.config.useMaxWidth
+    )
+    svg += _builder.open(extraAttributes: "id=\"\(SVG.escapeAttribute(diagramId))\"") + "\n"
 
     if let accTitle = positioned.accTitle, !accTitle.isEmpty {
         svg += "<title>\(_escapeXml(accTitle))</title>\n"
@@ -158,7 +158,7 @@ public func renderArchitectureSvg(
     }
     svg += "</g>\n"
 
-    svg += "</svg>\n"
+    svg += _builder.close() + "\n"
     return svg
 }
 

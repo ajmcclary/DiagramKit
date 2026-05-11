@@ -113,29 +113,11 @@ private func _quadrantSvgOpenTag(
     _ colors: DiagramColors,
     _ transparent: Bool
 ) -> String {
-    let widthStr = _qR(chart.width)
-    let heightStr = _qR(chart.height)
-    let bg = transparent ? "none" : colors.bg
-
-    var attrs: [String] = [
-        #"id="graphDiv""#,
-        #"xmlns="http://www.w3.org/2000/svg""#,
-        #"viewBox="0 0 \#(widthStr) \#(heightStr)""#,
-        #"role="graphics-document document""#,
-        #"aria-roledescription="quadrant-chart""#,
-    ]
-
-    var styles: [String] = []
-    if chart.config.useMaxWidth {
-        attrs.append(#"width="100%""#)
-        attrs.append(#"preserveAspectRatio="xMinYMin meet""#)
-        styles.append("max-width: \(widthStr)px")
-    } else {
-        attrs.append(#"width="\#(widthStr)""#)
-        attrs.append(#"height="\#(heightStr)""#)
-    }
-    styles.append("background-color: \(bg)")
-    attrs.append(#"style="\#(styles.joined(separator: "; "))""#)
-
-    return "<svg \(attrs.joined(separator: " "))>"
+    let builder = SVGDocumentBuilder(
+        width: chart.width, height: chart.height,
+        colors: colors, transparent: transparent,
+        fontFamily: "Inter",
+        useMaxWidth: chart.config.useMaxWidth
+    )
+    return builder.open(extraAttributes: #"id="graphDiv" aria-roledescription="quadrant-chart""#)
 }

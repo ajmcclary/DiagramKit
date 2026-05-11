@@ -11,7 +11,13 @@ public func renderVennSvg(
     var svg = ""
     let isHandDrawn = positioned.isHandDrawn
 
-    svg += "<svg id=\"\(diagramId)\" viewBox=\"0 0 \(Int(positioned.width)) \(Int(positioned.height))\" xmlns=\"http://www.w3.org/2000/svg\">\n"
+    let _builder = SVGDocumentBuilder(
+        width: positioned.width, height: positioned.height,
+        colors: colors, transparent: transparent,
+        fontFamily: font,
+        useMaxWidth: true
+    )
+    svg += _builder.open(extraAttributes: "id=\"\(diagramId)\"") + "\n"
 
     if let accTitle = positioned.accTitle {
         svg += "<title>\(_escapeXml(accTitle))</title>\n"
@@ -50,7 +56,7 @@ public func renderVennSvg(
         svg += "<style>#\(diagramId) { max-width: 100%; }</style>\n"
     }
 
-    svg += "</svg>"
+    svg += _builder.close()
 
     return svg
 }

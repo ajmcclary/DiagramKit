@@ -16,13 +16,14 @@ public func renderTreemapSvg(
     let viewBoxWidth = positioned.svgWidth + padding * 2
     let viewBoxHeight = positioned.svgHeight + padding * 2
 
-    svg += "<svg id=\"\(_escapeXml(diagramId))\" class=\"treemap\" xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\""
-    if positioned.config.useMaxWidth {
-        svg += " width=\"100%\" style=\"max-width: \(_fmtTreemap(viewBoxWidth))px;\" viewBox=\"\(_fmtTreemap(viewBoxX)) \(_fmtTreemap(viewBoxY)) \(_fmtTreemap(viewBoxWidth)) \(_fmtTreemap(viewBoxHeight))\""
-    } else {
-        svg += " width=\"\(_fmtTreemap(viewBoxWidth))\" height=\"\(_fmtTreemap(viewBoxHeight))\" viewBox=\"\(_fmtTreemap(viewBoxX)) \(_fmtTreemap(viewBoxY)) \(_fmtTreemap(viewBoxWidth)) \(_fmtTreemap(viewBoxHeight))\""
-    }
-    svg += ">\n"
+    let _builder = SVGDocumentBuilder(
+        width: viewBoxWidth, height: viewBoxHeight,
+        colors: colors, transparent: transparent,
+        fontFamily: font,
+        useMaxWidth: positioned.config.useMaxWidth,
+        viewBoxX: viewBoxX, viewBoxY: viewBoxY
+    )
+    svg += _builder.open(className: "treemap", extraAttributes: "id=\"\(_escapeXml(diagramId))\"") + "\n"
 
     if let accTitle = positioned.accTitle, !accTitle.isEmpty {
         svg += "<title>\(_escapeXml(accTitle))</title>\n"
@@ -52,7 +53,7 @@ public func renderTreemapSvg(
 
     svg += "</g>\n"
 
-    svg += "</svg>"
+    svg += _builder.close()
 
     return svg
 }

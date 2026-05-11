@@ -21,26 +21,14 @@ public func renderIshikawaSvg(
     let vbh = viewBox.size.height
 
     var svg = ""
-    var attrs = [
-        "xmlns=\"http://www.w3.org/2000/svg\"",
-        "viewBox=\"\(vbx) \(vby) \(vbw) \(vbh)\""
-    ]
-    var styles: [String] = []
-    if positioned.config.useMaxWidth {
-        attrs.append("width=\"100%\"")
-        styles.append("max-width: \(vbw)px")
-    } else {
-        attrs.append("width=\"\(vbw)\"")
-        attrs.append("height=\"\(vbh)\"")
-    }
-    if !fontFamily.isEmpty {
-        styles.append("font-family:\(fontFamily)")
-    }
-    if !styles.isEmpty {
-        attrs.append("style=\"\(styles.joined(separator: "; "))\"")
-    }
-    svg += "<svg \(attrs.joined(separator: " "))"
-    svg += ">"
+    let _builder = SVGDocumentBuilder(
+        width: vbw, height: vbh,
+        colors: colors, transparent: transparent,
+        fontFamily: fontFamily,
+        useMaxWidth: positioned.config.useMaxWidth,
+        viewBoxX: vbx, viewBoxY: vby
+    )
+    svg += _builder.open() + ">"
     if !transparent {
         svg += "<rect width=\"100%\" height=\"100%\" fill=\"\(bg)\"/>"
     }
@@ -105,7 +93,7 @@ public func renderIshikawaSvg(
     }
 
     svg += "</g>"
-    svg += "</svg>"
+    svg += _builder.close()
     return svg
 }
 

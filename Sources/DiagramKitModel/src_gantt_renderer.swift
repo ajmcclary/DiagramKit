@@ -43,8 +43,13 @@ public func renderGanttSvg(
     let config = positioned.config
 
     var svg = ""
-    svg += #"<svg id="\#(diagramId)" class="mermaid" width="100%" height="100%" viewBox="0 0 \#(Int(w)) \#(Int(h))" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">"#
-    svg += "\n"
+    let _builder = SVGDocumentBuilder(
+        width: w, height: h,
+        colors: colors, transparent: transparent,
+        fontFamily: font,
+        useMaxWidth: true
+    )
+    svg += _builder.open(className: "mermaid", extraAttributes: "id=\"\(diagramId)\"") + "\n"
 
     // CSS styles
     svg += "<style>\n"
@@ -187,7 +192,7 @@ public func renderGanttSvg(
         svg += "\n"
     }
 
-    svg += "</svg>"
+    svg += _builder.close()
     return svg
 }
 

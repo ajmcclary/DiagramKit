@@ -22,49 +22,13 @@ private func _renderJourneySvgEntry(
 
     let conf = diagram.config ?? .default
 
-    let widthStr = _formatNum(diagram.width)
-    let heightStr = _formatNum(diagram.height)
-
-    var svgAttrs: [String] = [
-        "id=\"\(diagramId)\"",
-        "xmlns=\"http://www.w3.org/2000/svg\"",
-        "xmlns:xlink=\"http://www.w3.org/1999/xlink\"",
-    ]
-
-    if conf.useMaxWidth {
-        svgAttrs.append("width=\"100%\"")
-        svgAttrs.append("viewBox=\"0 0 \(widthStr) \(heightStr)\"")
-        svgAttrs.append("preserveAspectRatio=\"xMinYMin meet\"")
-    } else {
-        svgAttrs.append("width=\"\(widthStr)\"")
-        svgAttrs.append("height=\"\(heightStr)\"")
-        svgAttrs.append("viewBox=\"0 0 \(widthStr) \(heightStr)\"")
-    }
-
-    let styleVars = [
-        "--bg:\(colors.bg)",
-        "--fg:\(colors.fg)",
-        colors.line.map { "--line:\($0)" } ?? "",
-        colors.accent.map { "--accent:\($0)" } ?? "",
-        colors.muted.map { "--muted:\($0)" } ?? "",
-        colors.surface.map { "--surface:\($0)" } ?? "",
-        colors.border.map { "--border:\($0)" } ?? "",
-    ].filter { !$0.isEmpty }.joined(separator: ";")
-    var rootStyles: [String] = []
-    if conf.useMaxWidth {
-        rootStyles.append("max-width: \(widthStr)px")
-    }
-    if !styleVars.isEmpty {
-        rootStyles.append(styleVars)
-    }
-    if !transparent {
-        rootStyles.append("background:var(--bg)")
-    }
-    if !rootStyles.isEmpty {
-        svgAttrs.append("style=\"\(rootStyles.joined(separator: ";"))\"")
-    }
-
-    parts.append("<svg \(svgAttrs.joined(separator: " "))>")
+    let _builder = SVGDocumentBuilder(
+        width: diagram.width, height: diagram.height,
+        colors: colors, transparent: transparent,
+        fontFamily: font,
+        useMaxWidth: conf.useMaxWidth
+    )
+    parts.append(_builder.open(extraAttributes: "id=\"\(diagramId)\"") + ">")
 
     // Accessibility
     if let accTitle = diagram.accTitle, !accTitle.isEmpty {
@@ -276,7 +240,7 @@ private func _renderJourneySvgEntry(
     <line x1="\(_fmt(lineX1))" y1="\(_fmt(lineY))" x2="\(_fmt(lineX2))" y2="\(_fmt(lineY))" stroke="var(--line, #000)" stroke-width="4" marker-end="url(#\(diagramId)-arrowhead)"/>
     """)
 
-    parts.append("</svg>")
+    parts.append(_builder.close())
 
     return parts.joined(separator: "\n")
 }

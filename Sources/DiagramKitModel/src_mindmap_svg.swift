@@ -13,7 +13,13 @@ public func renderMindmapSvg(
     let w = max(1, positioned.width)
     let h = max(1, positioned.height)
 
-    parts.append("<svg id=\"\(svgId)\" class=\"mindmapDiagram\" width=\"\(Int(w))\" height=\"\(Int(h))\" viewBox=\"0 0 \(Int(w)) \(Int(h))\" xmlns=\"http://www.w3.org/2000/svg\">")
+    let _builder = SVGDocumentBuilder(
+        width: w, height: h,
+        colors: colors, transparent: transparent,
+        fontFamily: font,
+        useMaxWidth: true
+    )
+    parts.append(_builder.open(className: "mindmapDiagram", extraAttributes: "id=\"\(svgId)\"") + ">")
 
     if let accTitle = positioned.accTitle {
         parts.append("<title>\(_svgEscape(accTitle))</title>")
@@ -63,7 +69,7 @@ public func renderMindmapSvg(
     parts.append("</g>")
 
     parts.append("</g>")
-    parts.append("</svg>")
+    parts.append(_builder.close())
 
     return parts.joined(separator: "\n")
 }

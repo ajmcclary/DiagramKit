@@ -31,50 +31,13 @@ private func _renderTimelineSvg(
 
     let conf = diagram.config
 
-    let widthStr = _tfmt(diagram.width)
-    let heightStr = _tfmt(diagram.height)
-
-    var svgAttrs: [String] = [
-        "id=\"\(diagramId)\"",
-        "xmlns=\"http://www.w3.org/2000/svg\"",
-        "xmlns:xlink=\"http://www.w3.org/1999/xlink\"",
-    ]
-
-    if conf.useMaxWidth {
-        svgAttrs.append("width=\"100%\"")
-        svgAttrs.append("viewBox=\"0 0 \(widthStr) \(heightStr)\"")
-        svgAttrs.append("preserveAspectRatio=\"xMinYMin meet\"")
-    } else {
-        svgAttrs.append("width=\"\(widthStr)\"")
-        svgAttrs.append("height=\"\(heightStr)\"")
-        svgAttrs.append("viewBox=\"0 0 \(widthStr) \(heightStr)\"")
-    }
-
-    let styleVars = [
-        "--bg:\(colors.bg)",
-        "--fg:\(colors.fg)",
-        colors.line.map { "--line:\($0)" } ?? "",
-        colors.accent.map { "--accent:\($0)" } ?? "",
-        colors.muted.map { "--muted:\($0)" } ?? "",
-        colors.surface.map { "--surface:\($0)" } ?? "",
-        colors.border.map { "--border:\($0)" } ?? "",
-    ].filter { !$0.isEmpty }.joined(separator: ";")
-
-    var rootStyles: [String] = []
-    if conf.useMaxWidth {
-        rootStyles.append("max-width: \(widthStr)px")
-    }
-    if !styleVars.isEmpty {
-        rootStyles.append(styleVars)
-    }
-    if !transparent {
-        rootStyles.append("background:var(--bg)")
-    }
-    if !rootStyles.isEmpty {
-        svgAttrs.append("style=\"\(rootStyles.joined(separator: ";"))\"")
-    }
-
-    parts.append("<svg \(svgAttrs.joined(separator: " "))>")
+    let _builder = SVGDocumentBuilder(
+        width: diagram.width, height: diagram.height,
+        colors: colors, transparent: transparent,
+        fontFamily: font,
+        useMaxWidth: conf.useMaxWidth
+    )
+    parts.append(_builder.open(extraAttributes: "id=\"\(diagramId)\"") + ">")
 
     // Accessibility
     if let accTitle = diagram.accTitle, !accTitle.isEmpty {
@@ -256,7 +219,7 @@ private func _renderTimelineSvg(
     <line x1="\(_tfmt(diagram.activityLine.x1))" y1="\(_tfmt(diagram.activityLine.y1))" x2="\(_tfmt(diagram.activityLine.x2))" y2="\(_tfmt(diagram.activityLine.y2))" stroke="var(--line, #666)" stroke-width="4" marker-end="url(#\(arrowheadId))"/>
     """)
 
-    parts.append("</svg>")
+    parts.append(_builder.close())
     return parts.joined(separator: "\n")
 }
 

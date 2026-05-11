@@ -11,28 +11,15 @@ public func renderPieSvg(
 ) -> String {
     var parts: [String] = []
 
-    let widthStr = _pieR(chart.width)
-    let heightStr = _pieR(chart.height)
-    let viewBoxXStr = _pieR(chart.viewBoxX)
     let useMaxWidth = chart.config.useMaxWidth
-
-    var styleVarParts: [String] = []
-    styleVarParts.append("--bg:\(colors.bg)")
-    styleVarParts.append("--fg:\(colors.fg)")
-    if let line = colors.line { styleVarParts.append("--line:\(line)") }
-    if let accent = colors.accent { styleVarParts.append("--accent:\(accent)") }
-    if let muted = colors.muted { styleVarParts.append("--muted:\(muted)") }
-    if let surface = colors.surface { styleVarParts.append("--surface:\(surface)") }
-    if let border = colors.border { styleVarParts.append("--border:\(border)") }
-    let bgStyle = transparent ? "" : ";background:var(--bg)"
-
-    if useMaxWidth {
-        let styleVars = (styleVarParts + ["max-width: \(widthStr)px"]).joined(separator: ";")
-        parts.append("<svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" viewBox=\"0 0 \(widthStr) \(heightStr)\" width=\"100%\" preserveAspectRatio=\"xMinYMin meet\" style=\"\(styleVars)\(bgStyle)\">")
-    } else {
-        let styleVars = styleVarParts.joined(separator: ";")
-        parts.append("<svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" viewBox=\"\(viewBoxXStr) 0 \(widthStr) \(heightStr)\" width=\"\(widthStr)\" height=\"\(heightStr)\" style=\"\(styleVars)\(bgStyle)\">")
-    }
+    let _builder = SVGDocumentBuilder(
+        width: chart.width, height: chart.height,
+        colors: colors, transparent: transparent,
+        fontFamily: font,
+        useMaxWidth: useMaxWidth,
+        viewBoxX: chart.viewBoxX
+    )
+    parts.append(_builder.open())
 
     // Accessibility
     if let accTitle = chart.accTitle {
@@ -131,7 +118,7 @@ public func renderPieSvg(
     }
 
     parts.append("</g>")
-    parts.append("</svg>")
+    parts.append(_builder.close())
 
     return parts.joined(separator: "\n")
 }

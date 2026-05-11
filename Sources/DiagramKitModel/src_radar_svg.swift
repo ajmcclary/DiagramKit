@@ -114,31 +114,13 @@ private func _radarSvgOpenTag(
     transparent: Bool,
     font: String
 ) -> String {
-    let w = _rN(positioned.width)
-    let h = _rN(positioned.height)
-    let bg = transparent ? "none" : colors.bg
-
-    var attrs: [String] = [
-        #"id="graphDiv""#,
-        #"xmlns="http://www.w3.org/2000/svg""#,
-        #"viewBox="0 0 \#(w) \#(h)""#,
-        #"role="graphics-document document""#,
-    ]
-
-    var styles: [String] = []
-    if positioned.config.useMaxWidth {
-        attrs.append(#"width="100%""#)
-        attrs.append(#"preserveAspectRatio="xMinYMin meet""#)
-        styles.append("max-width: \(w)px")
-    } else {
-        attrs.append(#"width="\#(w)""#)
-        attrs.append(#"height="\#(h)""#)
-    }
-    styles.append("background-color: \(bg)")
-    styles.append("font-family: \(font)")
-    attrs.append(#"style="\#(styles.joined(separator: "; "))""#)
-
-    return "<svg \(attrs.joined(separator: " "))>"
+    let builder = SVGDocumentBuilder(
+        width: positioned.width, height: positioned.height,
+        colors: colors, transparent: transparent,
+        fontFamily: font,
+        useMaxWidth: positioned.config.useMaxWidth
+    )
+    return builder.open(extraAttributes: #"id="graphDiv""#)
 }
 
 // MARK: - XML escaping and number formatting

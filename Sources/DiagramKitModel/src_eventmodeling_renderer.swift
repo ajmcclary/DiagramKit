@@ -19,26 +19,14 @@ public func renderEventModelingSvg(
     let vbh = positioned.height + 2 * padding
 
     var svg = ""
-    var attrs = [
-        "xmlns=\"http://www.w3.org/2000/svg\"",
-        "xmlns:xhtml=\"http://www.w3.org/1999/xhtml\"",
-        "viewBox=\"\(emFmt(vbx)) \(emFmt(vby)) \(emFmt(vbw)) \(emFmt(vbh))\""
-    ]
-    var styles: [String] = []
-    if config.useMaxWidth {
-        attrs.append("width=\"100%\"")
-        styles.append("max-width: \(emFmt(vbw))px")
-    } else {
-        attrs.append("width=\"\(emFmt(vbw))\"")
-        attrs.append("height=\"\(emFmt(vbh))\"")
-    }
-    if !font.isEmpty {
-        styles.append("font-family:\(font)")
-    }
-    if !styles.isEmpty {
-        attrs.append("style=\"\(styles.joined(separator: "; "))\"")
-    }
-    svg += "<svg \(attrs.joined(separator: " "))>"
+    let _builder = SVGDocumentBuilder(
+        width: vbw, height: vbh,
+        colors: colors, transparent: transparent,
+        fontFamily: font,
+        useMaxWidth: config.useMaxWidth,
+        viewBoxX: vbx, viewBoxY: vby
+    )
+    svg += _builder.open() + ">"
     if !transparent {
         svg += "<rect x=\"\(emFmt(vbx))\" y=\"\(emFmt(vby))\" width=\"\(emFmt(vbw))\" height=\"\(emFmt(vbh))\" fill=\"\(svmEscape(bg))\"/>"
     }
@@ -103,7 +91,7 @@ public func renderEventModelingSvg(
         svg += "<path class=\"em-relation\" fill=\"none\" stroke=\"\(svmEscape(stroke))\" stroke-width=\"1\" marker-end=\"url(#\(markerId))\" d=\"M\(emFmt(rel.sourceX)) \(emFmt(rel.sourceY)) L\(emFmt(rel.targetX)) \(emFmt(rel.targetY))\"/>"
     }
 
-    svg += "</svg>"
+    svg += _builder.close()
     return svg
 }
 

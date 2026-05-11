@@ -132,12 +132,13 @@ public func renderZenUMLSvg(
     let innerSvg = "\(style)\n\(frame)\n\(content)"
 
     let resolvedUseMaxWidth = useMaxWidth ?? diagram.useMaxWidth
-    let svg: String
-    if resolvedUseMaxWidth {
-        svg = "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"100%\" preserveAspectRatio=\"xMinYMin meet\" style=\"max-width: \(viewWidth)px\" viewBox=\"\(viewBox)\">\n\(innerSvg)\n</svg>"
-    } else {
-        svg = "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"\(viewWidth)\" height=\"\(viewHeight)\" viewBox=\"\(viewBox)\">\n\(innerSvg)\n</svg>"
-    }
+    let _builder = SVGDocumentBuilder(
+        width: viewWidth, height: viewHeight,
+        colors: colors, transparent: transparent,
+        fontFamily: font,
+        useMaxWidth: resolvedUseMaxWidth
+    )
+    let svg = _builder.open() + "\n" + innerSvg + "\n" + _builder.close()
 
     return svg
 }

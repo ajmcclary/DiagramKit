@@ -14,18 +14,13 @@ public func renderPacketSvg(
     var svg = ""
 
     // Root SVG element
-    svg += "<svg xmlns=\"http://www.w3.org/2000/svg\""
-
-    if config.useMaxWidth {
-        svg += " width=\"100%\""
-        svg += " style=\"max-width: \(svgWidth)px;\""
-        svg += " viewBox=\"0 0 \(svgWidth) \(svgHeight)\""
-    } else {
-        svg += " width=\"\(svgWidth)\""
-        svg += " height=\"\(svgHeight)\""
-        svg += " viewBox=\"0 0 \(svgWidth) \(svgHeight)\""
-    }
-    svg += ">\n"
+    let _builder = SVGDocumentBuilder(
+        width: svgWidth, height: svgHeight,
+        colors: colors, transparent: transparent,
+        fontFamily: fontFamily,
+        useMaxWidth: config.useMaxWidth
+    )
+    svg += _builder.open() + "\n"
 
     // Accessibility
     if let accTitle = diagram.accTitle, !accTitle.isEmpty {
@@ -109,6 +104,6 @@ public func renderPacketSvg(
         svg += "<text x=\"\(titleX)\" y=\"\(titleY)\" class=\"packetTitle\" dominant-baseline=\"middle\" text-anchor=\"middle\">\(title.escapedXML)</text>\n"
     }
 
-    svg += "</svg>"
+    svg += _builder.close()
     return svg
 }

@@ -21,12 +21,18 @@ public func renderBlockSvg(
     let viewBoxH = diagram.bounds.height + magicFactor + 10
 
     let width = viewBoxW + 10
-    let height = viewBoxH
     let markerIds = BlockMarkerIds(diagramId: diagramId)
 
-    svg += """
-    <svg id="\(SVG.escapeAttribute(diagramId))" xmlns="http://www.w3.org/2000/svg" viewBox="\(viewBoxX) \(viewBoxY) \(viewBoxW) \(viewBoxH)" width="\(Int(width))" height="\(Int(height))" style="max-width: 100%;">
-    """
+    let _viewBoxWFmt = viewBoxW.rounded() == viewBoxW ? String(Int(viewBoxW)) : String(viewBoxW)
+    let _builder = SVGDocumentBuilder(
+        width: viewBoxW, height: viewBoxH,
+        colors: colors, transparent: transparent,
+        fontFamily: fontFamily,
+        viewBoxX: viewBoxX, viewBoxY: viewBoxY
+    )
+    var _openTag = _builder.open(extraAttributes: "id=\"\(SVG.escapeAttribute(diagramId))\"")
+    _openTag = _openTag.replacingOccurrences(of: "width=\"\(_viewBoxWFmt)\"", with: "width=\"\(Int(width))\"")
+    svg += _openTag + "\n"
 
     if let accTitle = diagram.accTitle, !accTitle.isEmpty {
         svg += """
@@ -75,8 +81,8 @@ public func renderBlockSvg(
 
     svg += """
     </g>
-    </svg>
     """
+    svg += _builder.close() + "\n"
     return svg
 }
 
