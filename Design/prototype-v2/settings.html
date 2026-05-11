@@ -553,17 +553,40 @@
       <span class="light close"></span><span class="light min"></span><span class="light max"></span>
     </div>
     <div class="title-text">
-      <span class="doc">Settings</span>
+      <span class="doc">Mermaid</span>
     </div>
     <div class="title-actions">
-      <span class="save-state"><span class="dot"></span>Auto-saved · 2s</span>
-      <span class="tb-divider"></span>
-      <button class="tb-btn">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="9"/><path d="M12 8v4l3 2"/></svg>
-        Reset
+      <button class="tb-btn" aria-label="Notifications">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 18v-6a9 9 0 0118 0v6"/><path d="M21 19a2 2 0 01-2 2h-1v-7h3v5zM3 19a2 2 0 002 2h1v-7H3v5z"/></svg>
       </button>
     </div>
   </div>
+
+  <header class="pageheader">
+    <div class="pageheader__row1">
+      <nav class="pageheader__breadcrumb" aria-label="Breadcrumb">
+        <a href="index.html">Engineering</a>
+        <span class="sep">›</span>
+        <a href="settings.html">Settings</a>
+        <span class="sep">›</span>
+        <span class="leaf">Sharing &amp; permissions</span>
+      </nav>
+      <div class="pageheader__actions">
+        <span class="tag tag--admin">ADMIN · affects all of Engineering</span>
+      </div>
+    </div>
+    <div class="pageheader__row2">
+      <div class="pageheader__status">
+        <span class="pill pill--state"><span class="pill__dot"></span>Auto-saved · 2s</span>
+      </div>
+      <div class="pageheader__cta">
+        <button class="tb-btn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="9"/><path d="M12 8v4l3 2"/></svg>
+          Revert changes
+        </button>
+      </div>
+    </div>
+  </header>
 
   <div class="app-body">
 

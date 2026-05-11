@@ -474,27 +474,53 @@
       <span class="light close"></span><span class="light min"></span><span class="light max"></span>
     </div>
     <div class="title-text">
-      <span class="doc">pr-lifecycle.mmd</span>
-      <span class="sep">—</span>
-      <span class="meta">Diagram editor</span>
+      <span class="doc">Mermaid</span>
     </div>
     <div class="title-actions">
-      <span class="save-state"><span class="dot"></span>Saved · 12s</span>
-      <span class="tb-divider"></span>
-      <button class="tb-btn">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 4v12M7 9l5-5 5 5M5 20h14"/></svg>
-        Export
-      </button>
-      <a href="share.html" class="tb-btn">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="6" cy="12" r="3"/><circle cx="18" cy="6" r="3"/><circle cx="18" cy="18" r="3"/><line x1="9" y1="11" x2="15" y2="7"/><line x1="9" y1="13" x2="15" y2="17"/></svg>
-        Share
-      </a>
-      <button class="tb-btn primary">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polygon points="6 4 20 12 6 20" fill="currentColor"/></svg>
-        Render
+      <button class="tb-btn" aria-label="Notifications">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 18v-6a9 9 0 0118 0v6"/><path d="M21 19a2 2 0 01-2 2h-1v-7h3v5zM3 19a2 2 0 002 2h1v-7H3v5z"/></svg>
       </button>
     </div>
   </div>
+
+  <header class="pageheader">
+    <div class="pageheader__row1">
+      <nav class="pageheader__breadcrumb" aria-label="Breadcrumb">
+        <a href="index.html">Engineering</a>
+        <span class="sep">›</span>
+        <a href="library.html">Library</a>
+        <span class="sep">›</span>
+        <a href="library.html?folder=architecture">Architecture</a>
+        <span class="sep">›</span>
+        <span class="leaf">pr-lifecycle.mmd</span>
+      </nav>
+      <div class="pageheader__actions">
+        <button class="tb-btn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 4v12M7 9l5-5 5 5M5 20h14"/></svg>
+          Export
+        </button>
+        <a href="share.html" class="tb-btn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="6" cy="12" r="3"/><circle cx="18" cy="6" r="3"/><circle cx="18" cy="18" r="3"/><line x1="9" y1="11" x2="15" y2="7"/><line x1="9" y1="13" x2="15" y2="17"/></svg>
+          Share
+        </a>
+      </div>
+    </div>
+    <div class="pageheader__row2">
+      <div class="pageheader__modes">
+        <button class="is-on" data-mode="source" aria-pressed="true">Source</button>
+        <a href="visual.html" data-mode="visual">Visual</a>
+        <a href="visual.html?split=1" data-mode="split">Split</a>
+      </div>
+      <div class="pageheader__status">
+        <span class="pill pill--state"><span class="pill__dot"></span>Saved · 12s</span>
+        <span class="pill pill--state">Auto · 312ms</span>
+      </div>
+      <div class="pageheader__cta">
+        <button class="tb-btn" data-refine-ai>✨ Refine with AI →</button>
+        <button class="tb-btn primary" data-publish>Publish version ⌘⇧P</button>
+      </div>
+    </div>
+  </header>
 
   <div class="app-body">
 
