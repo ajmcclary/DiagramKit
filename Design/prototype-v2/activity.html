@@ -1294,24 +1294,24 @@
                 </div>
               </div>
 
-              <div class="insp-block">
+              <div class="insp-block" data-decision-support>
                 <h3>Decision support</h3>
                 <div class="notif-card">
-                  <div class="row">
+                  <button class="row" role="button" data-decision-filter="unresolved" aria-pressed="false" style="all: unset; display: grid; grid-template-columns: 18px 1fr auto; gap: 8px; align-items: center; padding: 6px 4px; cursor: pointer; border-radius: 5px;">
                     <span style="color: var(--accent);">@</span>
                     <span><b>Unresolved</b> items need attention</span>
                     <span class="v">2</span>
-                  </div>
-                  <div class="row">
+                  </button>
+                  <button class="row" role="button" data-decision-filter="restorable-ai" aria-pressed="false" style="all: unset; display: grid; grid-template-columns: 18px 1fr auto; gap: 8px; align-items: center; padding: 6px 4px; cursor: pointer; border-radius: 5px;">
                     <span style="color: #7C3AED;">✦</span>
                     <span>Restorable <b>AI edits</b> available</span>
                     <span class="v">1</span>
-                  </div>
-                  <div class="row">
+                  </button>
+                  <button class="row" role="button" data-decision-filter="stale-deck-link" aria-pressed="false" style="all: unset; display: grid; grid-template-columns: 18px 1fr auto; gap: 8px; align-items: center; padding: 6px 4px; cursor: pointer; border-radius: 5px;">
                     <span style="color: var(--warn);">▸</span>
                     <span>Stale <b>deck links</b> detected</span>
                     <span class="v">1</span>
-                  </div>
+                  </button>
                 </div>
               </div>
 

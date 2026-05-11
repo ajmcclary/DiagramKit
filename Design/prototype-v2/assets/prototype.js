@@ -360,6 +360,19 @@
     apply();
   }
 
+  function initDecisionSupport() {
+    const buttons = document.querySelectorAll('[data-decision-filter]');
+    if (buttons.length === 0) return;
+    buttons.forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const wasOn = btn.getAttribute("aria-pressed") === "true";
+        buttons.forEach((b) => b.setAttribute("aria-pressed", "false"));
+        btn.setAttribute("aria-pressed", String(!wasOn));
+        document.body.dataset.decisionFilter = !wasOn ? btn.dataset.decisionFilter : "";
+      });
+    });
+  }
+
   function initEditorMode() {
     const tabs = document.querySelectorAll('[data-mode-tabs] button[data-mode]');
     const panes = document.querySelectorAll('[data-pane]');
@@ -1861,6 +1874,9 @@ end
     initEditorMode();
     initEditorSelection();
     initPublishVersion();
+
+    // Stage 5 — Per-screen consolidations
+    initDecisionSupport();
   });
 
   window.prototypeDemo = {
