@@ -17,8 +17,6 @@ struct PreviewCanvas: View {
     @SwiftUI.State private var automaticZoomScale: CGFloat = 1.0
     @SwiftUI.State private var gestureBaseZoomScale: CGFloat?
     @SwiftUI.State private var activePanTranslation: CGSize = .zero
-    @SwiftUI.State private var hasSetInitialZoom: Bool = false
-    @SwiftUI.State private var lastRenderGeneration: Int = 0
 
     private let minZoom: CGFloat = 0.25
     private let maxZoom: CGFloat = 4.0
@@ -55,29 +53,11 @@ struct PreviewCanvas: View {
                     .contentShape(Rectangle())
                     .clipped()
                 )
-                .onChange(of: store.renderGeneration) { _, _ in
-                    // Reset zoom to fit when diagram identity changes
-                    if !hasSetInitialZoom || store.renderGeneration != lastRenderGeneration {
-                        let fitScale = calculateFitScale(
-                            diagramBounds: store.diagramBounds,
-                            viewSize: geometry.size
-                        )
-                        applyAutomaticFitScale(fitScale)
-                        hasSetInitialZoom = true
-                        lastRenderGeneration = store.renderGeneration
-                    }
-                }
                 .onChange(of: store.diagramBounds) { _, newBounds in
-                    // First-render fit
-                    if !hasSetInitialZoom, newBounds.width > 0 {
-                        let fitScale = calculateFitScale(
-                            diagramBounds: newBounds,
-                            viewSize: geometry.size
-                        )
-                        applyAutomaticFitScale(fitScale)
-                        hasSetInitialZoom = true
-                        lastRenderGeneration = store.renderGeneration
-                    }
+                    refreshAutomaticFit(bounds: newBounds, viewSize: geometry.size)
+                }
+                .onChange(of: geometry.size) { _, newSize in
+                    refreshAutomaticFit(bounds: store.diagramBounds, viewSize: newSize)
                 }
 
                 // Dim overlay on render failure
@@ -131,6 +111,7 @@ struct PreviewCanvas: View {
                             zoomScale: zoomScaleBinding,
                             gridEnabled: $store.state.gridEnabled,
                             panZoomEnabled: $store.state.panZoomEnabled,
+                            isAtAutomaticFit: store.state.zoomScale == nil,
                             minZoom: minZoom,
                             maxZoom: maxZoom,
                             onFitToView: {
@@ -142,7 +123,7 @@ struct PreviewCanvas: View {
                                 store.setPreviewZoomScale(nil)
                                 store.setPreviewPanOffset(.zero)
                             },
-                            onResetView: {
+                            onActualSize: {
                                 setZoomScale(1.0)
                                 store.setPreviewPanOffset(.zero)
                             },
@@ -243,14 +224,27 @@ struct PreviewCanvas: View {
         }
     }
 
+    /// Recompute the automatic fit scale whenever either the diagram bounds
+    /// or the viewport size changes. User-set zoom (`state.zoomScale != nil`)
+    /// is preserved — auto-fit only affects the value used when the user is
+    /// in "Fit" mode.
+    private func refreshAutomaticFit(bounds: CGRect, viewSize: CGSize) {
+        guard bounds.width > 0, viewSize.width > 0 else { return }
+        let fitScale = calculateFitScale(diagramBounds: bounds, viewSize: viewSize)
+        automaticZoomScale = min(max(fitScale, minZoom), maxZoom)
+    }
+
     // MARK: - Fit scale
 
     private func calculateFitScale(diagramBounds: CGRect, viewSize: CGSize) -> CGFloat {
         guard diagramBounds.width > 0, diagramBounds.height > 0 else {
             return 1.0
         }
-        let scaleX = viewSize.width / diagramBounds.width
-        let scaleY = viewSize.height / diagramBounds.height
+        // Leave ~8% breathing room so the diagram doesn't kiss the viewport edges
+        // (and so the floating zoom toolbar doesn't overlap content).
+        let fitMargin: CGFloat = 0.92
+        let scaleX = (viewSize.width * fitMargin) / diagramBounds.width
+        let scaleY = (viewSize.height * fitMargin) / diagramBounds.height
         return min(max(min(scaleX, scaleY), minZoom), maxZoom)
     }
 

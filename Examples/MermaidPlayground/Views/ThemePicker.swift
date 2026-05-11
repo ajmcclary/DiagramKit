@@ -20,7 +20,7 @@ struct ThemePicker: View {
     var body: some View {
         VStack(spacing: 8) {
             // Quick-access theme buttons
-            HStack(spacing: 8) {
+            HStack(spacing: 6) {
                 ForEach(quickAccessThemes, id: \.self) { themeName in
                     if let theme = DiagramTheme.theme(named: themeName) {
                         QuickThemeButton(
@@ -52,17 +52,25 @@ struct ThemePicker: View {
                     }
                 }
             } label: {
-                HStack {
-                    Text("\(DiagramTheme.allThemes.count) Themes")
-                        .font(.system(size: 13, weight: .medium))
+                HStack(spacing: 6) {
+                    Image(systemName: "paintpalette")
+                        .font(.system(size: 11, weight: .medium))
+                        .foregroundColor(Color(store.theme.effectiveMuted()))
+                    Text("All \(DiagramTheme.allThemes.count) themes")
+                        .font(.system(size: 12, weight: .medium))
+                    Spacer(minLength: 4)
+                    Image(systemName: "chevron.up.chevron.down")
+                        .font(.system(size: 9, weight: .semibold))
+                        .foregroundColor(Color(store.theme.effectiveMuted()))
                 }
-                .frame(maxWidth: .infinity)
                 .padding(.vertical, 8)
                 .padding(.horizontal, 12)
+                .frame(maxWidth: .infinity, alignment: .leading)
                 .background(
                     RoundedRectangle(cornerRadius: 8)
-                        .stroke(Color(store.theme.effectiveLine()).opacity(0.5), lineWidth: 1)
+                        .stroke(Color(store.theme.effectiveLine()).opacity(0.35), lineWidth: 0.5)
                 )
+                .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
             .foregroundColor(Color(store.theme.foreground))
@@ -83,34 +91,39 @@ struct QuickThemeButton: View {
 
     var body: some View {
         Button(action: action) {
-            HStack(spacing: 6) {
-                ThemeCircle(theme: theme, size: 18)
+            HStack(spacing: 5) {
+                ThemeCircle(theme: theme, size: 14)
                 Text(shortThemeName)
-                    .font(.system(size: 13, weight: .medium))
+                    .font(.system(size: 11, weight: .medium))
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.85)
             }
             .frame(maxWidth: .infinity)
-            .padding(.vertical, 8)
-            .padding(.horizontal, 12)
+            .padding(.vertical, 7)
+            .padding(.horizontal, 8)
             .background(
-                RoundedRectangle(cornerRadius: 8)
-                    .fill(isSelected ? Color(currentTheme.foreground).opacity(0.1) : Color.clear)
+                RoundedRectangle(cornerRadius: 7)
+                    .fill(isSelected
+                        ? Color(currentTheme.effectiveAccent()).opacity(0.12)
+                        : Color(currentTheme.foreground).opacity(0.04))
             )
             .overlay(
-                RoundedRectangle(cornerRadius: 8)
+                RoundedRectangle(cornerRadius: 7)
                     .stroke(
-                        Color(currentTheme.effectiveLine()).opacity(isSelected ? 1.0 : 0.5),
-                        lineWidth: 1
+                        Color(currentTheme.effectiveLine()).opacity(isSelected ? 0.7 : 0.25),
+                        lineWidth: 0.5
                     )
             )
         }
         .buttonStyle(.plain)
         .foregroundColor(Color(currentTheme.foreground))
+        .help(themeName)
     }
 
     private var shortThemeName: String {
         switch themeName {
         case "Zinc Light": return "Default"
-        case "Solarized Light": return "Solarized"
+        case "Solarized Light": return "Solar"
         default: return themeName
         }
     }

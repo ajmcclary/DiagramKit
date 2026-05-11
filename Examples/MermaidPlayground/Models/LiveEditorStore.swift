@@ -177,6 +177,14 @@ public final class LiveEditorStore {
         guard state.source != source else { return }
         state.source = source
 
+        // Non-user sources (sample picker, remote loader) drop a fresh diagram in;
+        // reset preview transform so it auto-fits instead of inheriting the previous
+        // diagram's zoom and pan.
+        if origin == .system || origin == .loader {
+            state.zoomScale = nil
+            state.panOffset = nil
+        }
+
         if state.updateMode == .manual && origin == .user {
             // In manual mode, mark dirty but don't render automatically.
             // System-origin changes (corpus, history) always trigger a render.

@@ -2,8 +2,8 @@
 //  PreviewToolbar.swift
 //  MermaidPlayground
 //
-//  Floating toolbar for preview controls: zoom in/out, fit-to-view,
-//  reset, and percentage readout.
+//  Floating toolbar for preview controls: fit-to-view, zoom in/out,
+//  actual size, percent readout, pan/grid toggles, full-window.
 //
 
 import SwiftUI
@@ -16,26 +16,24 @@ struct PreviewToolbar: View {
     @Binding var zoomScale: CGFloat
     @Binding var gridEnabled: Bool
     @Binding var panZoomEnabled: Bool
+    let isAtAutomaticFit: Bool
     let minZoom: CGFloat
     let maxZoom: CGFloat
     let onFitToView: () -> Void
-    let onResetView: () -> Void
+    let onActualSize: () -> Void
     let onFullWindowPreview: (() -> Void)?
 
     var body: some View {
         HStack(spacing: 2) {
-            resetButton
-            divider
-            zoomOutButton
-            divider
-            percentageLabel
-            divider
-            zoomInButton
-            divider
             fitButton
             divider
-            panZoomToggleButton
+            zoomOutButton
+            zoomLabel
+            zoomInButton
             divider
+            actualSizeButton
+            divider
+            panZoomToggleButton
             gridToggleButton
             if onFullWindowPreview != nil {
                 divider
@@ -47,21 +45,40 @@ struct PreviewToolbar: View {
         .padding(.horizontal, 6)
         .padding(.vertical, 4)
         .background(
-            RoundedRectangle(cornerRadius: 6)
-                .fill(Color(theme.background).opacity(0.85))
-                .shadow(color: .black.opacity(0.15), radius: 4, x: 0, y: 2)
+            RoundedRectangle(cornerRadius: 8)
+                .fill(.regularMaterial)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 8)
+                        .stroke(Color(theme.effectiveLine()).opacity(0.2), lineWidth: 0.5)
+                )
         )
+        .shadow(color: .black.opacity(0.12), radius: 6, x: 0, y: 2)
     }
 
     // MARK: - Buttons
 
-    private var resetButton: some View {
-        Button(action: onResetView) {
-            Image(systemName: "arrow.counterclockwise")
-                .frame(width: 28, height: 28)
+    private var fitButton: some View {
+        Button(action: onFitToView) {
+            HStack(spacing: 4) {
+                Image(systemName: "arrow.up.left.and.arrow.down.right")
+                    .font(.system(size: 11, weight: .medium))
+                Text("Fit")
+                    .font(.system(size: 11, weight: .medium))
+            }
+            .padding(.horizontal, 8)
+            .frame(height: 26)
+            .background(
+                RoundedRectangle(cornerRadius: 5)
+                    .fill(isAtAutomaticFit
+                        ? Color(theme.effectiveAccent()).opacity(0.15)
+                        : Color.clear)
+            )
+            .foregroundColor(isAtAutomaticFit
+                ? Color(theme.effectiveAccent())
+                : Color(theme.foreground))
         }
         .buttonStyle(.plain)
-        .help("Reset view")
+        .help("Fit diagram to view")
     }
 
     private var zoomOutButton: some View {
@@ -69,11 +86,12 @@ struct PreviewToolbar: View {
             zoomScale = max(zoomScale / 1.25, minZoom)
         } label: {
             Image(systemName: "minus")
-                .frame(width: 28, height: 28)
+                .frame(width: 26, height: 26)
         }
         .buttonStyle(.plain)
         .disabled(!panZoomEnabled || zoomScale <= minZoom)
-        .opacity(!panZoomEnabled || zoomScale <= minZoom ? 0.4 : 1.0)
+        .opacity(!panZoomEnabled || zoomScale <= minZoom ? 0.35 : 1.0)
+        .help("Zoom out")
     }
 
     private var zoomInButton: some View {
@@ -81,19 +99,22 @@ struct PreviewToolbar: View {
             zoomScale = min(zoomScale * 1.25, maxZoom)
         } label: {
             Image(systemName: "plus")
-                .frame(width: 28, height: 28)
+                .frame(width: 26, height: 26)
         }
         .buttonStyle(.plain)
         .disabled(!panZoomEnabled || zoomScale >= maxZoom)
-        .opacity(!panZoomEnabled || zoomScale >= maxZoom ? 0.4 : 1.0)
+        .opacity(!panZoomEnabled || zoomScale >= maxZoom ? 0.35 : 1.0)
+        .help("Zoom in")
     }
 
-    private var fitButton: some View {
-        Button(action: onFitToView) {
-            Image(systemName: "arrow.up.left.and.arrow.down.right")
-                .frame(width: 28, height: 28)
+    private var actualSizeButton: some View {
+        Button(action: onActualSize) {
+            Text("1:1")
+                .font(.system(size: 11, weight: .medium, design: .monospaced))
+                .frame(width: 28, height: 26)
         }
         .buttonStyle(.plain)
+        .help("Actual size (100%)")
     }
 
     private var panZoomToggleButton: some View {
@@ -101,7 +122,7 @@ struct PreviewToolbar: View {
             panZoomEnabled.toggle()
         } label: {
             Image(systemName: panZoomEnabled ? "hand.draw.fill" : "hand.draw")
-                .frame(width: 28, height: 28)
+                .frame(width: 26, height: 26)
         }
         .buttonStyle(.plain)
         .foregroundColor(panZoomEnabled
@@ -114,8 +135,8 @@ struct PreviewToolbar: View {
         Button {
             gridEnabled.toggle()
         } label: {
-            Image(systemName: gridEnabled ? "grid" : "grid")
-                .frame(width: 28, height: 28)
+            Image(systemName: "grid")
+                .frame(width: 26, height: 26)
         }
         .buttonStyle(.plain)
         .foregroundColor(gridEnabled
@@ -127,20 +148,24 @@ struct PreviewToolbar: View {
     private var fullWindowButton: some View {
         Button(action: { onFullWindowPreview?() }) {
             Image(systemName: "rectangle.inset.filled")
-                .frame(width: 28, height: 28)
+                .frame(width: 26, height: 26)
         }
         .buttonStyle(.plain)
         .help("Full-window preview")
     }
 
-    private var percentageLabel: some View {
-        Text("\(Int(round(zoomScale * 100)))%")
+    private var zoomLabel: some View {
+        Text(isAtAutomaticFit ? "Fit" : "\(Int(round(zoomScale * 100)))%")
             .font(.system(size: 11, weight: .medium, design: .monospaced))
-            .frame(width: 44)
+            .foregroundColor(isAtAutomaticFit
+                ? Color(theme.effectiveMuted())
+                : Color(theme.foreground))
+            .frame(width: 42)
     }
 
     private var divider: some View {
         Divider()
-            .frame(height: 18)
+            .frame(height: 16)
+            .opacity(0.6)
     }
 }

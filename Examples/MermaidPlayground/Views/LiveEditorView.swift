@@ -124,7 +124,7 @@ struct LiveEditorView: View {
                 .toolbarColorScheme(store.theme.background.isLight ? .light : .dark, for: .navigationBar)
                 #endif
                 #if os(macOS)
-                .navigationSplitViewColumnWidth(min: 280, ideal: 340, max: 420)
+                .navigationSplitViewColumnWidth(min: 240, ideal: 280, max: 320)
                 #endif
         } detail: {
             editorPreviewSplit
@@ -138,7 +138,7 @@ struct LiveEditorView: View {
                     fullWindowPreviewSheet
                 }
         }
-        .navigationSplitViewStyle(.balanced)
+        .navigationSplitViewStyle(.automatic)
         #if os(macOS)
         .frame(minWidth: 900, minHeight: 600)
         #endif
