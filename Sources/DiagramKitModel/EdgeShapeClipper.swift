@@ -13,6 +13,7 @@ public func _clipEdgeToShape(
     guard points.count >= 2 else { return points }
 
     let shape = node.shape
+
     // Rectangular shapes: bounding box is already correct
     if shape == "rectangle" || shape == "rounded" || shape == "stadium" ||
        shape == "subroutine" || shape == "state-start" || shape == "state-end" ||
@@ -44,6 +45,11 @@ public func _clipEdgeToShape(
     return result
 }
 
+/// Clip an edge endpoint to a shape boundary, dispatching on the
+/// platform-independent `ShapePath` type instead of raw shape-name strings.
+///
+/// Look up the shape via `ShapeSpecRegistry`, then route to the
+/// appropriate clipping algorithm based on the shape's geometry type.
 public func _clipPoint(
     endpoint: _PositionedPointPayload,
     adjacent: _PositionedPointPayload,
@@ -51,12 +57,45 @@ public func _clipPoint(
     cx: Double, cy: Double,
     halfW: Double, halfH: Double
 ) -> _PositionedPointPayload? {
+    // Prefer ShapeSpecRegistry for typed dispatch.
+    if let spec = ShapeSpecRegistry.spec(for: shape) {
+        return _clipPoint(endpoint: endpoint, adjacent: adjacent,
+                          shapePath: spec.path(.zero, RenderConfig.shared),
+                          cx: cx, cy: cy, halfW: halfW, halfH: halfH)
+    }
+    // Fallback to legacy string dispatch for shapes not in registry.
     switch shape {
     case "diamond", "rhombus", "choice":
         return _clipToDiamond(endpoint: endpoint, adjacent: adjacent, cx: cx, cy: cy, halfW: halfW, halfH: halfH)
     case "circle", "doublecircle", "double-circle":
         return _clipToCircle(endpoint: endpoint, adjacent: adjacent, cx: cx, cy: cy, halfW: halfW, halfH: halfH)
     case "hexagon":
+        return _clipToHexagon(endpoint: endpoint, adjacent: adjacent, cx: cx, cy: cy, halfW: halfW, halfH: halfH)
+    default:
+        return _clipToEllipseApprox(endpoint: endpoint, adjacent: adjacent, cx: cx, cy: cy, halfW: halfW, halfH: halfH)
+    }
+}
+
+/// ShapePath-keyed dispatch for edge clipping.
+///
+/// Maps each `ShapePath` case to the appropriate clipping algorithm:
+/// - `.diamond` → diamond-edge intersection
+/// - `.ellipse`, `.doubleCircle`, `.crossedCircle` → circle-distance clamping
+/// - `.hexagon` → hexagon polygon intersection
+/// - Everything else → ellipse approximation (normalized distance)
+public func _clipPoint(
+    endpoint: _PositionedPointPayload,
+    adjacent: _PositionedPointPayload,
+    shapePath: ShapePath,
+    cx: Double, cy: Double,
+    halfW: Double, halfH: Double
+) -> _PositionedPointPayload? {
+    switch shapePath {
+    case .diamond:
+        return _clipToDiamond(endpoint: endpoint, adjacent: adjacent, cx: cx, cy: cy, halfW: halfW, halfH: halfH)
+    case .ellipse, .doubleCircle, .crossedCircle:
+        return _clipToCircle(endpoint: endpoint, adjacent: adjacent, cx: cx, cy: cy, halfW: halfW, halfH: halfH)
+    case .hexagon:
         return _clipToHexagon(endpoint: endpoint, adjacent: adjacent, cx: cx, cy: cy, halfW: halfW, halfH: halfH)
     default:
         return _clipToEllipseApprox(endpoint: endpoint, adjacent: adjacent, cx: cx, cy: cy, halfW: halfW, halfH: halfH)

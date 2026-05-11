@@ -114,15 +114,13 @@ func _renderErSvgCase(lines: [String], fm: DiagramFrontmatter?, options: RenderO
 }
 
 func _renderXYChartSvgCase(lines: [String], fm: DiagramFrontmatter?, options: RenderOptions, colors: DiagramColors, font: String, transparent: Bool) throws -> String {
-    let chart = try parseXYChart(lines)
-    var mutatedChart = chart
-    if let fmc = fm?.xyChartConfig { mutatedChart.config = fmc }
-    if let fmt = fm?.xyChartTheme { mutatedChart.theme = fmt }
-    if mutatedChart.titleText == nil, let fmTitle = fm?.diagramTitle {
-        mutatedChart.diagramTitle = fmTitle
+    let source = lines.joined(separator: "\n")
+    let graph = try DiagramRegistry._xyChart.parse(source, fm)
+    let positioned = try DiagramRegistry._xyChart.layout(graph, LayoutConfig())
+    guard case let .xyChart(chart) = positioned.content else {
+        throw MermaidStructuralError.payloadMismatch(.xyChart)
     }
-    let positioned = layoutXYChart(mutatedChart, options)
-    return renderXYChartSvg(positioned, colors, font, transparent, interactive: options.interactive ?? false)
+    return renderXYChartSvg(chart, colors, font, transparent, interactive: options.interactive ?? false)
 }
 
 func _renderPieSvgCase(lines: [String], fm: DiagramFrontmatter?, colors: DiagramColors, font: String, transparent: Bool) throws -> String {
@@ -152,16 +150,13 @@ func _renderGanttSvgCase(source: String, fm: DiagramFrontmatter?, colors: Diagra
 }
 
 func _renderQuadrantSvgCase(lines: [String], fm: DiagramFrontmatter?, colors: DiagramColors, font: String, transparent: Bool) throws -> String {
-    let chart = try parseQuadrantChart(lines, frontmatter: fm)
-    var mutatedChart = chart
-    if let fmc = fm?.quadrantChartConfig { mutatedChart.config = fmc }
-    if let fmt = fm?.quadrantChartTheme { mutatedChart.theme = fmt }
-    if mutatedChart.titleText == nil, let fmTitle = fm?.diagramTitle {
-        mutatedChart.titleText = fmTitle
-        mutatedChart.diagramTitle = fmTitle
+    let source = lines.joined(separator: "\n")
+    let graph = try DiagramRegistry._quadrantChart.parse(source, fm)
+    let positioned = try DiagramRegistry._quadrantChart.layout(graph, LayoutConfig())
+    guard case let .quadrantChart(chart) = positioned.content else {
+        throw MermaidStructuralError.payloadMismatch(.quadrantChart)
     }
-    let positioned = layoutQuadrantChart(mutatedChart)
-    return renderQuadrantSvg(positioned, colors, font, transparent)
+    return renderQuadrantSvg(chart, colors, font, transparent)
 }
 
 func _renderRequirementSvgCase(lines: [String], fm: DiagramFrontmatter?, options: RenderOptions, colors: DiagramColors, font: String, transparent: Bool) throws -> String {
@@ -216,11 +211,13 @@ func _renderTimelineSvgCase(source: String, fm: DiagramFrontmatter?, colors: Dia
 }
 
 func _renderSankeySvgCase(source: String, fm: DiagramFrontmatter?, colors: DiagramColors, font: String, transparent: Bool) throws -> String {
-    let sankeyLines = MermaidSourceNormalizer.statements(source)
-    var diagram = try parseSankeyDiagram(sankeyLines, frontmatter: fm)
-    if let fmc = fm?.sankeyConfig { diagram.config = fmc }
-    let positioned = layoutSankeyDiagram(diagram)
-    return renderSankeySvg(positioned, colors, font, transparent, diagramId: "sankey-1")
+    let graph = try DiagramRegistry._sankey.parse(source, fm)
+    let positioned = try DiagramRegistry._sankey.layout(graph, LayoutConfig())
+    guard case let .sankey(diagram) = positioned.content else {
+        throw MermaidStructuralError.payloadMismatch(.sankey)
+    }
+    let diagramId = StableID.derive(from: source)
+    return renderSankeySvg(diagram, colors, font, transparent, diagramId: diagramId)
 }
 
 func _renderBlockSvgCase(source: String, fm: DiagramFrontmatter?, colors: DiagramColors, font: String, transparent: Bool) throws -> String {
@@ -265,14 +262,12 @@ func _renderArchitectureSvgCase(source: String, fm: DiagramFrontmatter?, colors:
 }
 
 func _renderRadarSvgCase(source: String, fm: DiagramFrontmatter?, colors: DiagramColors, font: String, transparent: Bool) throws -> String {
-    var diagram = try parseRadarDiagram(source: source, frontmatter: fm)
-    if let fmc = fm?.radarConfig { diagram.config = fmc }
-    if let fmt = fm?.radarTheme { diagram.theme = fmt }
-    if diagram.diagramTitle == nil, let fmTitle = fm?.diagramTitle {
-        diagram.diagramTitle = fmTitle
+    let graph = try DiagramRegistry._radar.parse(source, fm)
+    let positioned = try DiagramRegistry._radar.layout(graph, LayoutConfig())
+    guard case let .radar(diagram) = positioned.content else {
+        throw MermaidStructuralError.payloadMismatch(.radar)
     }
-    let positioned = layoutRadarDiagram(diagram)
-    return renderRadarSvg(positioned, colors: colors, font: font, transparent: transparent)
+    return renderRadarSvg(diagram, colors: colors, font: font, transparent: transparent)
 }
 
 func _renderTreemapSvgCase(source: String, fm: DiagramFrontmatter?, colors: DiagramColors, font: String, transparent: Bool) throws -> String {
