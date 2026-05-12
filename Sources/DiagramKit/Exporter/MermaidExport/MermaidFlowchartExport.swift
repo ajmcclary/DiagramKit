@@ -66,22 +66,24 @@ enum MermaidFlowchartExport {
                 arrowHeadEnd: edge.arrowHeadEnd
             )
 
-            var edgeLine = "  \(sanitizedSrc) \(arrowStr) \(sanitizedTgt)"
+            var emittedArrow = arrowStr
 
             if let label = edge.label, !label.isEmpty {
                 let (escaped, escDiags) = MermaidExportHelpers.escapeEdgeLabel(label)
                 diagnostics.append(contentsOf: escDiags)
-                edgeLine += "|\(escaped)|"
+                emittedArrow = textEmbeddedArrowString(
+                    style: edge.style,
+                    arrowHeadStart: edge.arrowHeadStart,
+                    arrowHeadEnd: edge.arrowHeadEnd,
+                    label: escaped
+                )
             }
+
+            var edgeLine = "  \(sanitizedSrc) \(emittedArrow) \(sanitizedTgt)"
 
             // Edge ID
             if let edgeId = edge.id {
-                edgeLine = "  \(sanitizedSrc) \(edgeId)@\(arrowStr) \(sanitizedTgt)"
-                if let _ = edge.label {
-                    // Edge IDs with labels: label is embedded in the edge syntax
-                    // This is best-effort — Mermaid edge IDs and labels together
-                    // have complex syntax
-                }
+                edgeLine = "  \(sanitizedSrc) \(edgeId)@\(emittedArrow) \(sanitizedTgt)"
             }
 
             lines.append(edgeLine)
@@ -223,6 +225,29 @@ enum MermaidFlowchartExport {
     }
 
     // MARK: - Arrow string
+
+    private static func textEmbeddedArrowString(
+        style: original_src_types.EdgeStyle,
+        arrowHeadStart: original_src_types.ArrowHeadType,
+        arrowHeadEnd: original_src_types.ArrowHeadType,
+        label: String
+    ) -> String {
+        let startPrefix = arrowHeadStart == .arrow ? "<" : ""
+
+        switch style {
+        case .dotted:
+            let close = arrowHeadEnd == .none ? "-.-" : ".->"
+            return "\(startPrefix)-. \(label) \(close)"
+        case .thick:
+            let close = arrowHeadEnd == .none ? "===" : "==>"
+            return "\(startPrefix)== \(label) \(close)"
+        case .solid:
+            let close = arrowHeadEnd == .none ? "---" : "-->"
+            return "\(startPrefix)-- \(label) \(close)"
+        case .invisible:
+            return "~~~"
+        }
+    }
 
     private static func arrowString(
         style: original_src_types.EdgeStyle,

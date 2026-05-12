@@ -53,6 +53,30 @@ import DiagramKit
         #expect(result.source.contains("-->"))
     }
 
+    @Test("Flowchart edge labels are emitted in parser-compatible Mermaid syntax")
+    func flowchartEdgeLabelRoundTrips() throws {
+        let graph = ParsedGraphModel(
+            direction: .TD,
+            nodesInOrder: [
+                (id: "A", node: original_src_types.MermaidNode(id: "A", label: "Start", shape: .rectangle)),
+                (id: "B", node: original_src_types.MermaidNode(id: "B", label: "End", shape: .rectangle))
+            ],
+            edges: [
+                original_src_types.MermaidEdge(source: "A", target: "B", label: "goes to", style: .solid)
+            ]
+        )
+
+        let result = try MermaidExporter().export(DiagramDocument(payload: .flowchart(graph)))
+        #expect(result.source.contains("A -- goes to --> B"))
+
+        let reparsed = try MermaidImporter().parse(result.source).document
+        guard case .flowchart(let reparsedGraph) = reparsed.payload else {
+            Issue.record("Expected flowchart payload")
+            return
+        }
+        #expect(reparsedGraph.edges.first?.label == "goes to")
+    }
+
     @Test("Flowchart export empty graph produces minimum valid source")
     func flowchartEmptyGraph() throws {
         let doc = DiagramDocument(type: .flowchart)
@@ -77,6 +101,29 @@ import DiagramKit
         #expect(result.source.contains("participant"))
         #expect(result.source.contains("Alice"))
         #expect(result.source.contains("Bob"))
+    }
+
+    @Test("Sequence messages and left/right notes round-trip through Mermaid source")
+    func sequenceMessageAndNoteRoundTrip() throws {
+        let seq = SequenceDiagram(items: [
+            .actor(SequenceActor(id: "Alice", label: "Alice", type: .participant)),
+            .actor(SequenceActor(id: "Bob", label: "Bob", type: .participant)),
+            .message(SequenceMessage(from: "Alice", to: "Bob", label: "status: ok", arrowType: .solid)),
+            .note(SequenceNote(actorIds: ["Bob"], text: "observe: carefully", position: "right"))
+        ])
+
+        let result = try MermaidExporter().export(DiagramDocument(payload: .sequenceDiagram(seq)))
+        #expect(result.source.contains("Alice->>Bob: status: ok"))
+        #expect(result.source.contains("Note right of Bob: observe: carefully"))
+
+        let reparsed = try MermaidImporter().parse(result.source).document
+        guard case .sequenceDiagram(let reparsedSequence) = reparsed.payload else {
+            Issue.record("Expected sequence payload")
+            return
+        }
+        #expect(reparsedSequence.messages.first?.label == "status: ok")
+        #expect(reparsedSequence.notes.first?.position == "right")
+        #expect(reparsedSequence.notes.first?.text == "observe: carefully")
     }
 
     // MARK: - Class

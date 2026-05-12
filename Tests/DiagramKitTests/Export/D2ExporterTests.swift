@@ -34,6 +34,32 @@ import DiagramKitD2
         #expect(result.source.contains("->"))
     }
 
+    @Test("D2 flowchart export escapes quoted labels for parser-compatible source")
+    func flowchartExportEscapesQuotedLabels() throws {
+        let graph = ParsedGraphModel(
+            direction: .LR,
+            nodesInOrder: [
+                (id: "A", node: original_src_types.MermaidNode(id: "A", label: #"Say "hello"\again"#, shape: .rectangle)),
+                (id: "B", node: original_src_types.MermaidNode(id: "B", label: "World", shape: .rectangle))
+            ],
+            edges: [
+                original_src_types.MermaidEdge(source: "A", target: "B", label: #"use "edge"\path"#, style: .solid)
+            ]
+        )
+
+        let result = try D2Exporter().export(DiagramDocument(payload: .flowchart(graph)))
+        #expect(result.source.contains(#"A: "Say \"hello\"\\again""#))
+        #expect(result.source.contains(#"A -> B: "use \"edge\"\\path""#))
+
+        let reparsed = try D2Importer().parse(result.source).document
+        guard case .flowchart(let reparsedGraph) = reparsed.payload else {
+            Issue.record("Expected flowchart payload")
+            return
+        }
+        #expect(reparsedGraph.nodesInOrder.first(where: { $0.id == "A" })?.node.label == #"Say "hello"\again"#)
+        #expect(reparsedGraph.edges.first?.label == #"use "edge"\path"#)
+    }
+
     @Test("D2 export unsupported type returns diagnostic")
     func unsupportedType() throws {
         let doc = DiagramDocument(type: .sequenceDiagram)

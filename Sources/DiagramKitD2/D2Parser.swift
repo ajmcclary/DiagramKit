@@ -378,11 +378,45 @@ public struct D2Parser {
 
     private func unquote(_ s: String) -> String {
         var result = s.trimmingCharacters(in: .whitespaces)
+        var wasQuoted = false
         if result.hasPrefix("\"") && result.hasSuffix("\"") {
             result = String(result.dropFirst().dropLast())
+            wasQuoted = true
         } else if result.hasPrefix("'") && result.hasSuffix("'") {
             result = String(result.dropFirst().dropLast())
+            wasQuoted = true
         }
+        return wasQuoted ? unescapeD2String(result) : result
+    }
+
+    private func unescapeD2String(_ s: String) -> String {
+        var result = ""
+        var index = s.startIndex
+
+        while index < s.endIndex {
+            let ch = s[index]
+            if ch == "\\" {
+                let nextIndex = s.index(after: index)
+                guard nextIndex < s.endIndex else {
+                    result.append(ch)
+                    break
+                }
+
+                switch s[nextIndex] {
+                case "n": result.append("\n")
+                case "r": result.append("\r")
+                case "t": result.append("\t")
+                case "\"": result.append("\"")
+                case "\\": result.append("\\")
+                default: result.append(s[nextIndex])
+                }
+                index = s.index(after: nextIndex)
+            } else {
+                result.append(ch)
+                index = s.index(after: index)
+            }
+        }
+
         return result
     }
 }

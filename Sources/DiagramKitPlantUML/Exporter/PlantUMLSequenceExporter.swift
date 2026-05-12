@@ -18,22 +18,21 @@ enum PlantUMLSequenceExport {
             switch item {
             case .actor(let actor):
                 if actor.isExplicit {
-                    let escapedId = escape(actor.id)
-                    if !emittedActorIds.insert(escapedId).inserted { continue }
+                    let actorAlias = participantAlias(actor.id)
+                    if !emittedActorIds.insert(actorAlias).inserted { continue }
 
                     let typeStr = plantUMLParticipantType(actor.type)
-                    let escapedLabel = escape(actor.label)
 
                     if actor.id == actor.label || actor.label.isEmpty {
-                        lines.append("\(typeStr) \(escapedId)")
+                        lines.append("\(typeStr) \(actorAlias)")
                     } else {
-                        lines.append("\(typeStr) \(escapedId) as \(escapedLabel)")
+                        lines.append("\(typeStr) \(quoted(actor.label)) as \(actorAlias)")
                     }
                 }
 
             case .message(let msg):
-                let from = escape(msg.from)
-                let to = escape(msg.to)
+                let from = participantAlias(msg.from)
+                let to = participantAlias(msg.to)
                 let arrow = plantUMLArrow(for: msg.arrowType)
 
                 if msg.activate {
@@ -46,16 +45,17 @@ enum PlantUMLSequenceExport {
                 }
 
             case .note(let note):
-                let actorList = note.actorIds.map { escape($0) }.joined(separator: ", ")
-                let position = note.position.isEmpty ? "over" : note.position
+                let actorList = note.actorIds.map { participantAlias($0) }.joined(separator: ", ")
+                let rawPosition = note.position.isEmpty ? "over" : note.position.lowercased()
+                let position = rawPosition == "left" ? "left of" : (rawPosition == "right" ? "right of" : rawPosition)
                 let text = escape(note.text)
                 lines.append("note \(position) \(actorList): \(text)")
 
             case .activationStart(let actorId):
-                lines.append("activate \(escape(actorId))")
+                lines.append("activate \(participantAlias(actorId))")
 
             case .activationEnd(let actorId):
-                lines.append("deactivate \(escape(actorId))")
+                lines.append("deactivate \(participantAlias(actorId))")
 
             case .blockStart(let type, let label):
                 if type == "rect" {
@@ -79,10 +79,11 @@ enum PlantUMLSequenceExport {
                 lines.append("end")
 
             case .boxStart(let fill, let title, _):
+                let normalizedFill = normalizeColor(fill)
                 if let t = title {
-                    lines.append("box \(t) #\(fill)")
+                    lines.append("box \(quoted(t)) \(normalizedFill)")
                 } else {
-                    lines.append("box #\(fill)")
+                    lines.append("box \(normalizedFill)")
                 }
 
             case .boxEnd:
@@ -101,17 +102,17 @@ enum PlantUMLSequenceExport {
                 break
 
             case .createParticipant(let actor):
-                let escapedId = escape(actor.id)
-                if !emittedActorIds.insert(escapedId).inserted { continue }
+                let actorAlias = participantAlias(actor.id)
+                if !emittedActorIds.insert(actorAlias).inserted { continue }
                 let typeStr = plantUMLParticipantType(actor.type)
                 if actor.id == actor.label || actor.label.isEmpty {
-                    lines.append("\(typeStr) \(escapedId)")
+                    lines.append("\(typeStr) \(actorAlias)")
                 } else {
-                    lines.append("\(typeStr) \(escapedId) as \(escape(actor.label))")
+                    lines.append("\(typeStr) \(quoted(actor.label)) as \(actorAlias)")
                 }
 
             case .destroyParticipant(let actorId):
-                lines.append("destroy \(escape(actorId))")
+                lines.append("destroy \(participantAlias(actorId))")
 
             case .link, .links, .properties, .details:
                 // Not directly translatable to PlantUML; skip with diagnostic
@@ -162,6 +163,22 @@ enum PlantUMLSequenceExport {
         case .solidArrowTopReverseDotted, .solidArrowBottomReverseDotted: return "<--"
         case .stickArrowTopReverseDotted, .stickArrowBottomReverseDotted: return "<--"
         }
+    }
+
+    private static func participantAlias(_ text: String) -> String {
+        let simplePattern = #"^[A-Za-z_][A-Za-z0-9_]*$"#
+        if text.range(of: simplePattern, options: .regularExpression) != nil {
+            return text
+        }
+        return quoted(text)
+    }
+
+    private static func quoted(_ text: String) -> String {
+        "\"\(escape(text))\""
+    }
+
+    private static func normalizeColor(_ color: String) -> String {
+        color.hasPrefix("#") ? color : "#\(color)"
     }
 
     private static func escape(_ text: String) -> String {

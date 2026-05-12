@@ -28,9 +28,9 @@ enum MermaidSequenceExport {
                     if actor.label.isEmpty || actor.label == actor.id {
                         lines.append("  \(typePrefix) \(sanitizedId)")
                     } else {
-                        let (quoted, qDiags) = MermaidExportHelpers.quote(actor.label)
-                        diagnostics.append(contentsOf: qDiags)
-                        lines.append("  \(typePrefix) \(sanitizedId) as \(quoted)")
+                        let (label, labelDiags) = sequenceText(actor.label)
+                        diagnostics.append(contentsOf: labelDiags)
+                        lines.append("  \(typePrefix) \(sanitizedId) as \(label)")
                     }
 
                     // Links
@@ -55,7 +55,7 @@ enum MermaidSequenceExport {
                 diagnostics.append(contentsOf: td)
 
                 let arrow = sequenceArrow(for: msg.arrowType)
-                let (escapedLabel, ld) = MermaidExportHelpers.quote(msg.label)
+                let (escapedLabel, ld) = sequenceText(msg.label)
                 diagnostics.append(contentsOf: ld)
 
                 let msgLine = "  \(sanitizedFrom)\(arrow)\(sanitizedTo): \(escapedLabel)"
@@ -73,8 +73,9 @@ enum MermaidSequenceExport {
                     return s
                 }.joined(separator: ", ")
 
-                let position = note.position.isEmpty ? "over" : note.position
-                let (qText, nd) = MermaidExportHelpers.quote(note.text)
+                let rawPosition = note.position.isEmpty ? "over" : note.position.lowercased()
+                let position = rawPosition == "left" ? "left of" : (rawPosition == "right" ? "right of" : rawPosition)
+                let (qText, nd) = sequenceText(note.text)
                 diagnostics.append(contentsOf: nd)
 
                 lines.append("  Note \(position) \(actorList): \(qText)")
@@ -92,27 +93,28 @@ enum MermaidSequenceExport {
                     if label.isEmpty {
                         lines.append("  rect rgb(200, 200, 200)")
                     } else {
-                        let (q, _) = MermaidExportHelpers.quote(label)
+                        let (q, _) = sequenceText(label)
                         lines.append("  rect \(q)")
                     }
                 } else {
                     if label.isEmpty {
                         lines.append("  \(type)")
                     } else {
-                        let (q, _) = MermaidExportHelpers.quote(label)
+                        let (q, _) = sequenceText(label)
                         lines.append("  \(type) \(q)")
                     }
                 }
 
             case .blockDivider(_, let label):
-                lines.append("  else \(label)")
+                let (dividerLabel, _) = sequenceText(label)
+                lines.append("  else \(dividerLabel)")
 
             case .blockEnd:
                 lines.append("  end")
 
             case .boxStart(let fill, let title, _):
                 if let t = title {
-                    let (q, _) = MermaidExportHelpers.quote(t)
+                    let (q, _) = sequenceText(t)
                     lines.append("  box \(q) \(fill)")
                 } else {
                     lines.append("  box \(fill)")
@@ -138,9 +140,9 @@ enum MermaidSequenceExport {
                 if actor.label.isEmpty || actor.label == actor.id {
                     lines.append("  create \(typePrefix) \(sanitizedId)")
                 } else {
-                    let (quoted, qDiags) = MermaidExportHelpers.quote(actor.label)
-                    diagnostics.append(contentsOf: qDiags)
-                    lines.append("  create \(typePrefix) \(sanitizedId) as \(quoted)")
+                    let (label, labelDiags) = sequenceText(actor.label)
+                    diagnostics.append(contentsOf: labelDiags)
+                    lines.append("  create \(typePrefix) \(sanitizedId) as \(label)")
                 }
 
             case .destroyParticipant(let actorId):
@@ -148,15 +150,15 @@ enum MermaidSequenceExport {
                 lines.append("  destroy \(sanitized)")
 
             case .title(let t):
-                let (q, _) = MermaidExportHelpers.quote(t)
+                let (q, _) = sequenceText(t)
                 lines.append("  title \(q)")
 
             case .accTitle(let t):
-                let (q, _) = MermaidExportHelpers.quote(t)
+                let (q, _) = sequenceText(t)
                 lines.append("  accTitle: \(q)")
 
             case .accDescr(let d):
-                let (q, _) = MermaidExportHelpers.quote(d)
+                let (q, _) = sequenceText(d)
                 lines.append("  accDescr: \(q)")
 
             case .link(let actorId, let label, let url):
@@ -219,6 +221,28 @@ enum MermaidSequenceExport {
     }
 
     // MARK: - Helpers
+
+    private static func sequenceText(_ text: String) -> (escaped: String, diagnostics: [DiagramDiagnostic]) {
+        var diagnostics: [DiagramDiagnostic] = []
+        var result = ""
+
+        for ch in text {
+            switch ch {
+            case "\n":
+                result += "<br/>"
+                diagnostics.append(DiagramDiagnostic(
+                    severity: .info,
+                    message: "Newline in sequence text replaced with <br/>"
+                ))
+            case "\r":
+                continue
+            default:
+                result.append(ch)
+            }
+        }
+
+        return (result, diagnostics)
+    }
 
     private static func propertiesToJSON(_ props: [String: String]) -> String {
         guard let data = try? JSONSerialization.data(withJSONObject: props, options: []),

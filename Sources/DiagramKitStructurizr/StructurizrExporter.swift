@@ -87,28 +87,27 @@ enum StructurizrC4Export {
         // Views
         let viewType: String
         switch model.kind {
-        case .context: viewType = "systemLandscape"
+        case .context: viewType = "systemContext"
         case .container: viewType = "container"
         case .component: viewType = "component"
         case .dynamic: viewType = "dynamic"
         case .deployment: viewType = "deployment"
         }
 
-        // Find the system alias for container/component views
+        // The current importer requires scoped views, so context/container/component
+        // exports all use a software system alias when one is available.
         var systemAlias: String? = nil
-        if model.kind == .container || model.kind == .component {
+        if model.kind == .context || model.kind == .container || model.kind == .component {
             systemAlias = model.shapes.first(where: { $0.typeC4Shape == .system })?.alias
         }
+        let viewScopeAlias = systemAlias ?? model.shapes.first?.alias
 
         lines.append("  views {")
-        if let sysAlias = systemAlias {
-            lines.append("    \(viewType) \(sysAlias) {")
-        } else {
-            lines.append("    \(viewType) {")
+        if let scopeAlias = viewScopeAlias {
+            lines.append("    \(viewType) \(scopeAlias) {")
+            lines.append("      include *")
+            lines.append("    }")
         }
-
-        lines.append("      include *")
-        lines.append("    }")
         lines.append("  }")
 
         lines.append("}")
@@ -133,8 +132,8 @@ enum StructurizrC4Export {
     }
 
     private static func escape(_ text: String) -> String {
-        text.replacingOccurrences(of: "\"", with: "\\\"")
-            .replacingOccurrences(of: "\\", with: "\\\\")
+        text.replacingOccurrences(of: "\\", with: "\\\\")
+            .replacingOccurrences(of: "\"", with: "\\\"")
             .replacingOccurrences(of: "\n", with: " ")
             .replacingOccurrences(of: "\r", with: "")
     }

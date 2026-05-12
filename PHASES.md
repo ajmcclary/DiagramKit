@@ -3,13 +3,15 @@
 This is the active execution roadmap. `ANALYSIS.md` is the long-form rationale.
 Detailed phase records live in `PHASE-0.md`, `PHASE-1.md`, `PHASE-2.md`,
 `PHASE-3.md`, `PHASE-4.md`, `PHASE-5.md`, and `PHASE-6.md`.
+`PHASE-7.md` tracks the exporter protocol and sparse source-generation work.
 
 ## Current State
 
 Phases 0, 1, 2, 3, 4, and 5 are implemented and committed locally. Phase 6A
-(PlantUML sequence diagrams) is implemented with post-review remediation in
-this worktree. The remaining Phase 6 work is the planned PlantUML family slices:
-class, state/activity, mindmap+gantt, and C4-flavored PlantUML.
+(PlantUML sequence diagrams) is complete; the remaining Phase 6 work is the
+planned PlantUML family slices: class, state/activity, mindmap+gantt, and
+C4-flavored PlantUML. Phase 7, the exporter protocol, is implemented locally
+with post-review remediation in this worktree.
 
 What is true now:
 
@@ -36,6 +38,15 @@ What is true now:
 - `DiagramKitPlantUML` is the fourth non-Mermaid importer target. Slice 6A
   parses PlantUML sequence diagrams and maps them to
   `DiagramPayload.sequenceDiagram`.
+- `DiagramKitExport` is the source-format export boundary target. It owns
+  `DiagramFormatID`, `DiagramExporter`, `DiagramExportResult`,
+  `DiagramExportError`, `ExporterRegistry`, and `DiagramExportLoader`.
+- `DiagramPipeline.defaultExportRegistry` is keyed by canonical format ID and
+  currently registers Mermaid, D2, Structurizr, and PlantUML exporters.
+- Exporter support is intentionally sparse and importer-gated: Mermaid exports
+  flowchart, sequence, class, ER, and C4; D2 exports flowchart; Structurizr
+  exports C4; PlantUML exports sequence only until later PlantUML importer
+  slices land.
 - `MermaidImporter` remains the broad fallback importer and must stay last in
   the default registry.
 - `DiagramPipeline.defaultRegistry` is currently ordered as
@@ -94,6 +105,12 @@ What is true now:
   broader fallbacks. Mermaid stays last.
 - Unsupported format features must produce diagnostics. No silent partial
   imports and no empty successful conversions.
+- Exporter `supportedDiagramTypes` must stay a subset of the same-format
+  importer coverage. Experimental source generation can exist internally, but
+  the public exporter must not claim output that cannot be re-ingested.
+- Exported source should have parser-facing tests, not only header/substr
+  smoke tests. Each exporter slice needs at least one validity or round-trip
+  test through the matching importer.
 - Land each new format as a vertical slice with parser tests, probe collision
   tests, inline corpus fixtures, diagnostics tests, and at least one
   parse-to-layout/render smoke path through existing infrastructure.
@@ -104,6 +121,21 @@ What is true now:
   the final snapshot pass unless a phase explicitly says otherwise.
 - Keep new and touched files below the 500-line warning threshold. Split tests
   by concern before they become new file-size warnings.
+
+## Approach Going Forward
+
+1. Treat Phase 7 as the export boundary baseline. Future source-generation work
+   extends existing exporters and tests rather than inventing another dispatch
+   path.
+2. Proceed to Phase 8 interactivity primitives on top of
+   `DiagramDocument -> PositionedGraph -> PreparedDiagram`.
+3. Continue PlantUML 6B-6E as independent importer/exporter expansion tracks.
+   A PlantUML family becomes publicly exportable only after the same-format
+   importer can parse it.
+4. Keep Graphviz/DOT export and long-tail Mermaid export as later exporter
+   extensions, after the Phase 8 identity/geometry primitives are settled.
+5. Save real multi-format corpus entries, snapshot recording, and accumulated
+   visual drift cleanup for the final release/baseline pass.
 
 ## Verification Policy
 
@@ -131,7 +163,7 @@ Snapshot policy:
 
 - Run targeted `CorpusSnapshotTests` subsets when a change could affect parsing,
   layout, or rendering.
-- Do not record snapshots during Phase 1-6 unless the phase explicitly includes
+- Do not record snapshots during Phase 1-7 unless the phase explicitly includes
   an intentional rendering-baseline update.
 - Treat crashes, 0x0 layout regressions, missing outputs, importer
   misrouting, and unexpected snapshot deletions as blockers.
@@ -405,17 +437,26 @@ Tests:
 
 Goal: add source generation after multiple importers prove the canonical model.
 
-Approach:
+Status: implemented locally with post-review remediation in this worktree.
 
-- Add `DiagramExporter`, `DiagramExportResult`, and exporter diagnostics.
-- Add sparse conversion-matrix tests.
-- Add exporters in this order:
-  1. Mermaid
-  2. D2
-  3. Structurizr/C4
-  4. PlantUML subsets
-- Add round-trip tests:
-  `parse(formatA) -> export(formatB) -> parse(formatB) -> export(formatB)`.
+Completed:
+
+- Added `DiagramKitExport` as the export boundary target and product.
+- Added `DiagramFormatID`, `DiagramExporter`, `DiagramExportResult`,
+  `DiagramExportError`, `ExporterRegistry`, and `DiagramExportLoader`.
+- Wired `DiagramPipeline.defaultExportRegistry` and re-exported
+  `DiagramKitExport` through the umbrella target.
+- Added Mermaid export for the first high-value families: flowchart, sequence,
+  class, ER, and C4.
+- Added D2 export for flowchart.
+- Added Structurizr export for C4.
+- Added PlantUML export for sequence diagrams only, matching current
+  `PlantUMLImporter` coverage.
+- Added sparse conversion-matrix tests and no-silent-empty-output tests.
+- Added source-validity and round-trip coverage for the remediated exporter
+  syntax paths: Mermaid flowchart labels, Mermaid sequence labels/notes,
+  PlantUML sequence aliases/notes, D2 quoted labels, and Structurizr quoted
+  strings.
 
 Rules:
 
@@ -424,6 +465,17 @@ Rules:
 - No conversion silently produces empty output.
 - Exporters do not patch source strings by hand for editor sync; they operate
   from `DiagramDocument`.
+- `supportedDiagramTypes` must not get ahead of importer coverage. PlantUML C4
+  remains deferred until the PlantUML C4 importer slice can parse the emitted
+  source or a separate cross-format exporter contract is introduced.
+
+Deferred:
+
+- Graphviz/DOT export.
+- Exporting the long tail of Mermaid families beyond the current P0 set.
+- PlantUML class, state/activity, mindmap, gantt, and C4 export until the
+  matching importer slices land.
+- Real multi-format corpus entries and export snapshot baselines.
 
 ## Phase 8: Interactivity Primitives
 

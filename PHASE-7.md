@@ -6,71 +6,38 @@ Date: 2026-05-12. This is the implementation plan for Phase 7 of the DiagramKit
 multi-format roadmap. It follows the in-progress Phase 6 (PlantUML importers)
 and precedes Phase 8 (Interactivity Primitives).
 
-▏ Phase 7: Exporter Protocol — Complete
-▏ 
-▏ New Target: `DiagramKitExport` (7 files)
-▏ - DiagramFormatID.swift — Canonical format identifiers (.mermaid, .d2, .structurizr,
-▏   .plantuml, .graphviz)
-▏ - DiagramExporter.swift — DiagramExporter protocol with name, formatID,
-▏   supportedDiagramTypes, export(_:)
-▏ - DiagramExportResult.swift — Result type with source string and diagnostics
-▏ - DiagramExportError.swift — Fatal error type for export failures
-▏ - ExporterRegistry.swift — Format-keyed registry with registering(_:) and
-▏   exporter(named:) lookup
-▏ - DiagramExportLoader.swift — Stateless dispatch: export(_:to:registry:) and
-▏   export(_:using:registry:)
-▏ 
-▏ Slice 7A: Mermaid Exporter (8 files)
-▏ - MermaidExporter.swift — Dispatcher supporting P0 families: flowchart, sequence,
-▏   class, ER, C4
-▏ - MermaidExportHelpers.swift — Escaping/sanitization: bracket labels, edge labels,
-▏   identifiers, quoted strings
-▏ - MermaidFlowchartExport.swift — Nodes, edges, subgraphs, classDefs, linkStyles, node
-▏   styles
-▏ - MermaidSequenceExport.swift — All 22 SequenceItem cases mapped to Mermaid syntax
-▏ - MermaidClassExport.swift — Classes, members, namespaces, notes, relationships,
-▏   annotations, styleClasses
-▏ - MermaidERExport.swift — Entities, attributes, relationships with cardinality
-▏   symbols
-▏ - MermaidC4Export.swift — All 20 C4 shape types + 7 relationship kinds + boundaries
-▏ - MermaidExportDiagnostics.swift — Diagnostic helpers
-▏ 
-▏ Slice 7B: D2 Exporter (1 file)
-▏ - D2Exporter.swift — Flowchart → D2 mapping with shape conversion
-▏ 
-▏ Slice 7C: Structurizr Exporter (1 file)
-▏ - StructurizrExporter.swift — C4 → Structurizr DSL (workspace/model/views with
-▏   groups)
-▏ 
-▏ Slice 7D: PlantUML Exporter (3 files)
-▏ - PlantUMLExporter.swift — Dispatcher for sequence + C4
-▏ - PlantUMLSequenceExporter.swift — Sequence → PlantUML with activation, blocks,
-▏   boxes, notes
-▏ - PlantUMLC4Exporter.swift — C4 → PlantUML with !include <C4/...>
-▏ 
-▏ Package.swift
-▏ - New product: DiagramKitExport
-▏ - New target wired into DiagramKit umbrella, all format targets, and test target
-▏ - Added @_exported import DiagramKitExport to ReExports.swift
-▏ 
-▏ Tests (8 suites, 38 tests)
-▏ - DiagramExportInfrastructureTests — FormatID, result, error, empty registry
-▏ - ExporterRegistryTests — Lookup, replacement, union types
-▏ - DiagramExportLoaderTests — Dispatch, unsupported types, unknown format
-▏ - ExportMatrixTests — All 4 exporters' supported types, silent-empty diagnostic rule
-▏ - MermaidExporterTests — P0 families: flowchart, sequence, class, ER, C4
-▏ - D2ExporterTests — Flowchart export, unsupported type
-▏ - StructurizrExporterTests — C4 export, unsupported type
-▏ - PlantUMLExporterTests — Sequence, C4, unsupported type
-▏ - MermaidEscapeTests — Bracket labels, edge labels, identifier sanitization
-▏ 
-▏ Verification Gates
-▏ - swift build --build-tests — Clean
-▏ - swift test --filter Export — 38/38 passed
-▏ - Scripts/check-file-sizes.sh — No new warnings
-▏ - Scripts/check-sendable-annotations.sh — All allowlisted
-▏ - Scripts/strict-concurrency-check.sh — Strict-concurrency clean
-▏ - Existing importer tests — No regressions
+## Implementation Status
+
+Phase 7 is implemented locally with post-review remediation. The export
+surface is intentionally sparse and importer-gated: an exporter must not claim a
+diagram type its same-format importer cannot parse.
+
+Implemented:
+
+- New `DiagramKitExport` target with `DiagramFormatID`, `DiagramExporter`,
+  `DiagramExportResult`, `DiagramExportError`, `ExporterRegistry`, and
+  `DiagramExportLoader`.
+- `DiagramPipeline.defaultExportRegistry`, keyed by `DiagramFormatID`.
+- Mermaid exporter for P0 families: flowchart, sequence, class, ER, and C4.
+- D2 exporter for flowchart.
+- Structurizr exporter for C4.
+- PlantUML exporter for sequence only, matching `PlantUMLImporter` 6A.
+- Focused source-validity and round-trip tests for exported syntax, including
+  Mermaid flowchart labels, Mermaid/PlantUML sequence notes and aliases, D2
+  quoted labels, and Structurizr quoted strings.
+
+Deferred:
+
+- PlantUML C4 export as public supported output. The implementation file may
+  exist for future work, but `.c4` remains unsupported by `PlantUMLExporter`
+  until the corresponding PlantUML importer slice can re-ingest it.
+- Graphviz/DOT export.
+- Real multi-format corpus entries and snapshot baselines.
+
+Verification:
+
+- `swift test --filter Export` passes with 43 Swift Testing tests plus the
+  existing export-named XCTest cases.
 
 ## Table of Contents
 
@@ -581,7 +548,7 @@ will support. ✅ = planned support in this phase; ❌ = unsupported (diagnostic
 | erDiagram       | ✅      | ❌  | ❌          | ❌       |
 | gantt           | ✅      | ❌  | ❌          | ◌ (6D)   |
 | mindmap         | ✅      | ❌  | ❌          | ◌ (6D)   |
-| c4              | ✅      | ❌  | ✅          | ✅       |
+| c4              | ✅      | ❌  | ✅          | ◌ (6E)   |
 | pie             | ✅      | ❌  | ❌          | ❌       |
 | xyChart         | ✅      | ❌  | ❌          | ❌       |
 | journey         | ✅      | ❌  | ❌          | ❌       |
@@ -621,10 +588,10 @@ diagram families. The current `StructurizrImporter` produces `.c4`.
 
 **PlantUML** 7D starts with sequence export only, matching the current
 `PlantUMLImporter` which only supports `.sequenceDiagram` (Slice 6A complete).
-Class (6B), state/activity (6C), mindmap+gantt (6D), and PlantUML C4 (uses
-Structurizr importer path) are gated by their Phase 6 importer slices. The
-PlantUML C4 exporter also appears in 7C as a Structurizr C4 → PlantUML C4
-round-trip test target.
+Class (6B), state/activity (6C), mindmap+gantt (6D), and PlantUML C4 (6E) are
+gated by their Phase 6 importer slices. PlantUML C4 source generation must not
+be advertised through `PlantUMLExporter.supportedDiagramTypes` until a
+same-format importer path can re-ingest it.
 
 **Exporting to an unsupported format** produces:
 ```swift
@@ -1200,7 +1167,7 @@ public struct PlantUMLExporter: DiagramExporter {
     ///   .classDiagram    — gated by 6B
     ///   .stateDiagram    — gated by 6C
     ///   .mindmap, .gantt — gated by 6D
-    ///   .c4              — uses Structurizr importer path; round-trip in 7C
+    ///   .c4              — gated by 6E
     ///   .flowchart       — gated by 6C (activity diagrams)
     public let supportedDiagramTypes: Set<DiagramType> = [
         .sequenceDiagram,
@@ -1240,12 +1207,11 @@ When each importer slice completes, the corresponding exporter follows:
 | state/activity | 6C             | `PlantUMLStateExporter.swift`    | ~150       |
 | mindmap        | 6D             | `PlantUMLMindmapExporter.swift`  | ~60        |
 | gantt          | 6D             | `PlantUMLGanttExporter.swift`    | ~150       |
-| c4             | via Structurizr | `PlantUMLC4Exporter.swift`     | ~120       |
+| c4             | 6E             | `PlantUMLC4Exporter.swift`      | ~120       |
 
-The PlantUML C4 exporter is also used in 7C round-trip tests (Structurizr C4
-→ PlantUML C4 → Structurizr C4). It can ship before the PlantUML C4 importer
-(slice 6E) because it relies on the Structurizr importer for round-trip
-verification.
+PlantUML C4 can be developed behind the scenes, but it must not be registered
+as supported output until the PlantUML importer can parse the emitted C4 source
+or a separate, explicitly named cross-format exporter contract exists.
 
 ### 8.4 Files
 

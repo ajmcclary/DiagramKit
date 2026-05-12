@@ -14,7 +14,6 @@ public struct PlantUMLExporter: DiagramExporter {
     /// Sequence only — matches PlantUMLImporter's current coverage (6A).
     public let supportedDiagramTypes: Set<DiagramType> = [
         .sequenceDiagram,
-        .c4,  // C4 via Structurizr importer path; round-trip in 7C
     ]
 
     public init() {}
@@ -23,8 +22,6 @@ public struct PlantUMLExporter: DiagramExporter {
         switch document.payload {
         case .sequenceDiagram(let model):
             return try PlantUMLSequenceExport.emit(model)
-        case .c4(let model):
-            return try PlantUMLC4Export.emit(model)
         default:
             return DiagramExportResult(
                 source: "",

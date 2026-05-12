@@ -46,11 +46,11 @@ import DiagramKitPlantUML
 
     // MARK: - PlantUML exporter
 
-    @Test("PlantUML exporter supports sequence and c4")
+    @Test("PlantUML exporter supports sequence only until additional importer slices land")
     func plantUMLExporterSupportedTypes() {
         let exporter = PlantUMLExporter()
         #expect(exporter.supportedDiagramTypes.contains(.sequenceDiagram))
-        #expect(exporter.supportedDiagramTypes.contains(.c4))
+        #expect(!exporter.supportedDiagramTypes.contains(.c4))
         #expect(!exporter.supportedDiagramTypes.contains(.flowchart))
     }
 

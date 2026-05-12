@@ -35,6 +35,34 @@ import DiagramKitStructurizr
         #expect(result.source.contains("system = softwareSystem"))
     }
 
+    @Test("Structurizr C4 export escapes quoted strings for parser-compatible source")
+    func c4ExportEscapesQuotedStrings() throws {
+        let c4 = C4Diagram(
+            kind: .context,
+            shapes: [
+                C4Shape(alias: "customer", label: #"Customer "A"\B"#, typeC4Shape: .person),
+                C4Shape(alias: "system", label: "System", typeC4Shape: .system, description: #"Line "one"\two"#)
+            ],
+            relationships: [
+                C4Relationship(kind: .rel, from: "customer", to: "system", label: #"Uses "API"\v1"#)
+            ]
+        )
+
+        let result = try StructurizrExporter().export(DiagramDocument(payload: .c4(c4)))
+        #expect(result.source.contains(#"customer = person "Customer \"A\"\\B""#))
+        #expect(result.source.contains(#"system = softwareSystem "System" "Line \"one\"\\two""#))
+        #expect(result.source.contains(#"customer -> system "Uses \"API\"\\v1""#))
+
+        let reparsed = try StructurizrImporter().parse(result.source).document
+        guard case .c4(let reparsedC4) = reparsed.payload else {
+            Issue.record("Expected C4 payload")
+            return
+        }
+        #expect(reparsedC4.shapes.first(where: { $0.alias == "customer" })?.label == #"Customer "A"\B"#)
+        #expect(reparsedC4.shapes.first(where: { $0.alias == "system" })?.description == #"Line "one"\two"#)
+        #expect(reparsedC4.relationships.first?.label == #"Uses "API"\v1"#)
+    }
+
     @Test("Structurizr export unsupported type returns diagnostic")
     func unsupportedType() throws {
         let doc = DiagramDocument(type: .flowchart)

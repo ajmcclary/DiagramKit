@@ -56,7 +56,7 @@ enum D2FlowchartExport {
         for (nodeId, node) in model.nodesInOrder {
             let sanitizedId = sanitizeD2ID(nodeId)
             let shape = d2Shape(for: node.shape)
-            var nodeBlock = "\(sanitizedId): \"\(node.label)\""
+            var nodeBlock = "\(sanitizedId): \"\(escapeD2String(node.label))\""
 
             if shape != "rectangle" {
                 nodeBlock += " {\n    shape: \(shape)\n  }"
@@ -72,7 +72,7 @@ enum D2FlowchartExport {
 
             var edgeLine: String
             if let label = edge.label, !label.isEmpty {
-                edgeLine = "\(sanitizedSrc) -> \(sanitizedTgt): \"\(label)\""
+                edgeLine = "\(sanitizedSrc) -> \(sanitizedTgt): \"\(escapeD2String(label))\""
             } else {
                 edgeLine = "\(sanitizedSrc) -> \(sanitizedTgt)"
             }
@@ -97,6 +97,13 @@ enum D2FlowchartExport {
             }
         }
         return result.isEmpty ? "node" : result
+    }
+
+    private static func escapeD2String(_ text: String) -> String {
+        text.replacingOccurrences(of: "\\", with: "\\\\")
+            .replacingOccurrences(of: "\"", with: "\\\"")
+            .replacingOccurrences(of: "\n", with: "\\n")
+            .replacingOccurrences(of: "\r", with: "")
     }
 
     private static func d2Shape(for shape: original_src_types.NodeShape) -> String {
