@@ -1,18 +1,19 @@
 # DiagramKit Multi-Format Roadmap
 
 This is the active execution roadmap. `ANALYSIS.md` is the long-form rationale.
-Detailed phase records live in `PHASE-0.md`, `PHASE-1.md`, `PHASE-2.md`, and
-`PHASE-3.md`.
+Detailed phase records live in `PHASE-0.md`, `PHASE-1.md`, `PHASE-2.md`,
+`PHASE-3.md`, and `PHASE-4.md`.
 
 ## Current State
 
-Phases 0, 1, 2, and 3 are implemented locally. Phase 3 has post-review
-remediation in this worktree: D2 edge-only endpoints synthesize nodes, D2 node
-property statements merge into existing nodes, top-level `direction` is a real
-AST directive rather than a visible node, and D2 corpus fixtures are split out
-of `CorpusMultiFormatTests.swift`.
+Phases 0, 1, 2, 3, and 4 are implemented locally. Phase 4 has post-review
+remediation in this worktree: compact DOT headers probe correctly, quoted
+comment markers survive lexing, chained DOT edges stay in their local subgraph
+scope, DOT port syntax and edges to subgraphs emit diagnostics, later explicit
+node statements update edge-synthesized nodes, and the DOT parser/mapper are
+split below the file-size warning threshold.
 
-Commit the Phase 3 remediation before starting Phase 4.
+Commit the Phase 4 remediation before starting Phase 5.
 
 What is true now:
 
@@ -30,11 +31,14 @@ What is true now:
   `ImporterRegistry`, and `DiagramLoader`.
 - `DiagramKitD2` is the first non-Mermaid importer target. It parses a narrow
   D2 vertical slice and maps it to `DiagramPayload.flowchart`.
+- `DiagramKitGraphviz` is the second non-Mermaid importer target. It parses a
+  narrow Graphviz DOT vertical slice and maps it to
+  `DiagramPayload.flowchart`.
 - `MermaidImporter` remains the broad fallback importer and must stay last in
   the default registry.
 - `DiagramPipeline.defaultRegistry` is currently ordered as
-  `[D2Importer(), MermaidImporter()]`: narrow D2 probe first, broad Mermaid
-  fallback last.
+  `[GraphvizImporter(), D2Importer(), MermaidImporter()]`: narrow DOT and D2
+  probes first, broad Mermaid fallback last.
 - Source-taking `DiagramPipeline` paths for parse, layout, prepare, and primary
   SVG rendering load through `DiagramLoader` by default. Graph/positioned paths
   remain format-agnostic and consume `DiagramDocument`/`PositionedGraph`.
@@ -53,6 +57,8 @@ What is true now:
 - The real corpus file is still Mermaid-only. Multi-format examples live as
   inline fixtures with `skipSnapshots` until the final baseline pass, unless a
   future phase explicitly calls for a controlled corpus update.
+- DOT inline corpus fixtures exist for the supported vertical slice. They do
+  not add real corpus entries or snapshot baselines.
 - Snapshot baselines currently include 396 SVG, 396 image, and 174 ASCII files.
   Snapshot recording is deferred until the final baseline pass unless a phase is
   explicitly about intentional renderer baseline changes.
@@ -64,7 +70,7 @@ What is true now:
 
 ## Operating Principles
 
-- Do not start Phase 4 until Phase 3 remediation is committed.
+- Do not start Phase 5 until Phase 4 remediation is committed.
 - Keep source import separate from diagram-family layout. Importers produce
   `DiagramDocument`; they do not layout or render.
 - Preserve the worker-thread invariant: every public async facade path still
@@ -197,8 +203,7 @@ Closure evidence lives in `PHASE-2.md`.
 
 Goal: prove the importer architecture with the highest-ROI non-Mermaid format.
 
-Status: complete locally; post-review remediation is in this worktree and
-should be committed before Phase 4.
+Status: complete and committed locally.
 
 Completed:
 
@@ -215,8 +220,7 @@ Completed:
 - Merged D2 property statements into existing nodes and synthesized edge-only
   endpoint nodes.
 - Emitted diagnostics for unsupported D2 constructs.
-- Added D2 parser/importer/probe/fixture/registry coverage. The current targeted
-  Phase 3 verification set is 97 tests.
+- Added D2 parser/importer/probe/fixture/registry coverage.
 - Kept real `test-diagrams.json`, `CorpusSnapshotTests.swift`, and snapshot
   baselines unchanged.
 
@@ -234,30 +238,50 @@ Closure evidence lives in `PHASE-3.md`.
 
 Goal: add Graphviz DOT as the next focused graph-language importer.
 
-Approach:
+Status: complete locally; post-review remediation is in this worktree and
+should be committed before Phase 5.
 
-- Write `PHASE-4.md` before implementation and review it before code changes.
-- Add `DiagramKitGraphviz` as a separate importer target and product.
-- Add a narrow DOT probe that requires `graph`, `digraph`, or `strict graph` /
-  `strict digraph` structure. Do not treat bare `A -> B` as DOT; that remains
-  D2-shaped input.
-- Prepend `GraphvizImporter()` before `D2Importer()` and `MermaidImporter()`.
-- Parse a small DOT subset: graph/digraph headers, node statements, node
-  labels, directed edges, undirected edges, simple attribute lists, and
-  `subgraph cluster_*` containers.
-- Map the first slice to `DiagramPayload.flowchart`.
-- Emit diagnostics for unsupported DOT attributes and layout-only concepts.
-- Keep DOT fixtures inline with `skipSnapshots`; do not add real corpus entries
-  or snapshot baselines in this phase.
+Completed:
 
-Tests:
+- Added `DiagramKitGraphviz` as a separate importer target and product.
+- Added `GraphvizImporter`, `DOTLexer`, `DOTParser`, `DOTAST`, `DOTMapper`,
+  `DOTProbe`, and focused parser/mapper helper files.
+- Prepended `GraphvizImporter()` before `D2Importer()` and `MermaidImporter()`
+  in `DiagramPipeline.defaultRegistry`.
+- Added a narrow DOT probe that requires `graph`, `digraph`, or `strict graph`
+  / `strict digraph` structure, including compact headers such as
+  `digraph{A->B}`.
+- Parsed the first DOT slice: graph/digraph headers, optional strict mode,
+  node statements, node labels, directed and undirected edges, chained edges,
+  simple attribute lists, graph attributes, and `subgraph cluster_*`
+  containers.
+- Mapped DOT to `DiagramPayload.flowchart`, reusing the existing flowchart
+  layout and SVG/CG render paths.
+- Applied scoped node defaults and merged later explicit node statements into
+  existing or edge-synthesized nodes.
+- Kept chained edge segments inside the statement list where they are parsed,
+  so cluster membership remains correct.
+- Preserved `//`, `#`, and `/* ... */` markers inside quoted strings while
+  still stripping real comments.
+- Emitted diagnostics for unsupported DOT attributes, strict mode, port syntax,
+  and edges to subgraphs.
+- Added DOT parser/importer/probe/fixture/registry coverage and parse-to-layout
+  smoke tests.
+- Kept real `test-diagrams.json` and snapshot baselines unchanged.
+- Kept new/touched DOT source files below the 500-line warning threshold by
+  splitting parser and mapper helpers.
 
-- DOT parser unit tests.
-- DOT importer tests for node labels, edge-only endpoint synthesis, directed
-  and undirected edges, clusters, diagnostics, and parse-to-layout smoke.
-- Probe collision tests across DOT, D2, Mermaid, PlantUML, and Structurizr.
-- Inline corpus fixture tests with Mermaid/DOT source pairs.
-- Existing D2 and Mermaid importer/regression tests.
+Deferred from Phase 4:
+
+- Full DOT grammar coverage, including HTML-like labels, record layouts, edge
+  labels on every chained segment, compound edges, and subgraph edge semantics.
+- Graphviz layout parity.
+- DOT-specific styling beyond current flowchart shape/label mapping.
+- Exporting DOT.
+- Real multi-format corpus entries and DOT snapshot baselines.
+
+Closure evidence lives in `PHASE-4.md`. Post-review remediation evidence is in
+the current worktree until committed.
 
 ## Phase 5: Structurizr Importer Vertical Slice
 

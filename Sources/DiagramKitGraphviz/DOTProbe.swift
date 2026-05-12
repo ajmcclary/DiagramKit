@@ -16,6 +16,7 @@ public func isDOTSource(_ source: String) -> Bool {
     // to avoid ambiguity. Headers are required for importer routing.
 
     let lower = firstLine.lowercased()
+        .replacingOccurrences(of: "{", with: " { ")
 
     // PlantUML / Structurizr guards
     if trimmed.contains("@startuml") || trimmed.contains("@start") { return false }

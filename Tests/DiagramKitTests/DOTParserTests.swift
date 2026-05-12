@@ -38,7 +38,7 @@ import DiagramKitModel
         let lexer = DOTLexer()
         let tokens = try lexer.tokenize(source)
         let parser = DOTParser()
-        let (doc, diags) = try parser.parse(tokens)
+        let (doc, _) = try parser.parse(tokens)
         #expect(doc.strict == true)
         #expect(doc.kind == .digraph)
     }
@@ -49,7 +49,7 @@ import DiagramKitModel
         let lexer = DOTLexer()
         let tokens = try lexer.tokenize(source)
         let parser = DOTParser()
-        let (doc, diags) = try parser.parse(tokens)
+        let (doc, _) = try parser.parse(tokens)
         #expect(doc.strict == true)
         #expect(doc.kind == .graph)
     }
@@ -62,7 +62,7 @@ import DiagramKitModel
         let lexer = DOTLexer()
         let tokens = try lexer.tokenize(source)
         let parser = DOTParser()
-        let (doc, diags) = try parser.parse(tokens)
+        let (doc, _) = try parser.parse(tokens)
         #expect(doc.statements.count == 1)
         guard case .nodeStatement(let node) = doc.statements[0] else {
             Issue.record("Expected nodeStatement")
@@ -77,7 +77,7 @@ import DiagramKitModel
         let lexer = DOTLexer()
         let tokens = try lexer.tokenize(source)
         let parser = DOTParser()
-        let (doc, diags) = try parser.parse(tokens)
+        let (doc, _) = try parser.parse(tokens)
         guard case .nodeStatement(let node) = doc.statements[0] else {
             Issue.record("Expected nodeStatement")
             return
@@ -91,7 +91,7 @@ import DiagramKitModel
         let lexer = DOTLexer()
         let tokens = try lexer.tokenize(source)
         let parser = DOTParser()
-        let (doc, diags) = try parser.parse(tokens)
+        let (doc, _) = try parser.parse(tokens)
         guard case .nodeStatement(let node) = doc.statements[0] else {
             Issue.record("Expected nodeStatement")
             return
@@ -107,7 +107,7 @@ import DiagramKitModel
         let lexer = DOTLexer()
         let tokens = try lexer.tokenize(source)
         let parser = DOTParser()
-        let (doc, diags) = try parser.parse(tokens)
+        let (doc, _) = try parser.parse(tokens)
         guard case .edgeStatement(let edge) = doc.statements[0] else {
             Issue.record("Expected edgeStatement")
             return
@@ -123,7 +123,7 @@ import DiagramKitModel
         let lexer = DOTLexer()
         let tokens = try lexer.tokenize(source)
         let parser = DOTParser()
-        let (doc, diags) = try parser.parse(tokens)
+        let (doc, _) = try parser.parse(tokens)
         guard case .edgeStatement(let edge) = doc.statements[0] else {
             Issue.record("Expected edgeStatement")
             return
@@ -139,7 +139,7 @@ import DiagramKitModel
         let lexer = DOTLexer()
         let tokens = try lexer.tokenize(source)
         let parser = DOTParser()
-        let (doc, diags) = try parser.parse(tokens)
+        let (doc, _) = try parser.parse(tokens)
         guard case .edgeStatement(let edge) = doc.statements[0] else {
             Issue.record("Expected edgeStatement")
             return
@@ -153,7 +153,7 @@ import DiagramKitModel
         let lexer = DOTLexer()
         let tokens = try lexer.tokenize(source)
         let parser = DOTParser()
-        let (doc, diags) = try parser.parse(tokens)
+        let (doc, _) = try parser.parse(tokens)
         let edges = doc.statements.compactMap { stmt -> DOTEdgeStatement? in
             if case .edgeStatement(let e) = stmt { return e }
             return nil
@@ -173,7 +173,7 @@ import DiagramKitModel
         let lexer = DOTLexer()
         let tokens = try lexer.tokenize(source)
         let parser = DOTParser()
-        let (doc, diags) = try parser.parse(tokens)
+        let (doc, _) = try parser.parse(tokens)
         let attrStmts = doc.statements.compactMap { stmt -> DOTAttrStatement? in
             if case .attrStatement(let a) = stmt { return a }
             return nil
@@ -191,7 +191,7 @@ import DiagramKitModel
         let lexer = DOTLexer()
         let tokens = try lexer.tokenize(source)
         let parser = DOTParser()
-        let (doc, diags) = try parser.parse(tokens)
+        let (doc, _) = try parser.parse(tokens)
         let subs = doc.statements.compactMap { stmt -> DOTSubgraph? in
             if case .subgraph(let s) = stmt { return s }
             return nil
@@ -208,7 +208,7 @@ import DiagramKitModel
         let lexer = DOTLexer()
         let tokens = try lexer.tokenize(source)
         let parser = DOTParser()
-        let (doc, diags) = try parser.parse(tokens)
+        let (doc, _) = try parser.parse(tokens)
         let subs = doc.statements.compactMap { stmt -> DOTSubgraph? in
             if case .subgraph(let s) = stmt { return s }
             return nil
@@ -225,7 +225,7 @@ import DiagramKitModel
         let lexer = DOTLexer()
         let tokens = try lexer.tokenize(source)
         let parser = DOTParser()
-        let (doc, diags) = try parser.parse(tokens)
+        let (doc, _) = try parser.parse(tokens)
         let graphAttrs = doc.statements.compactMap { stmt -> (String, String)? in
             if case .graphAttr(let k, let v) = stmt { return (k, v) }
             return nil
@@ -243,7 +243,7 @@ import DiagramKitModel
         let lexer = DOTLexer()
         let tokens = try lexer.tokenize(source)
         let parser = DOTParser()
-        let (doc, diags) = try parser.parse(tokens)
+        let (doc, _) = try parser.parse(tokens)
         let nodes = doc.statements.compactMap { stmt -> String? in
             if case .nodeStatement(let node) = stmt { return node.id }
             return nil
@@ -259,7 +259,7 @@ import DiagramKitModel
         let lexer = DOTLexer()
         let tokens = try lexer.tokenize(source)
         let parser = DOTParser()
-        let (doc, diags) = try parser.parse(tokens)
+        let (doc, _) = try parser.parse(tokens)
         guard case .nodeStatement(let node) = doc.statements[0] else {
             Issue.record("Expected nodeStatement")
             return
@@ -288,7 +288,7 @@ import DiagramKitModel
         let lexer = DOTLexer()
         let tokens = try lexer.tokenize(source)
         let parser = DOTParser()
-        let (doc, diags) = try parser.parse(tokens)
+        let (doc, _) = try parser.parse(tokens)
         guard case .edgeStatement(let edge) = doc.statements[0] else {
             Issue.record("Expected edgeStatement")
             return

@@ -26,6 +26,12 @@ import DiagramKitGraphviz
         #expect(importer.supports(source: "strict digraph G { }"))
     }
 
+    @Test("supports compact digraph header")
+    func supportsCompactDigraphHeader() {
+        let importer = GraphvizImporter()
+        #expect(importer.supports(source: "digraph{A->B}"))
+    }
+
     @Test("supports rejects Mermaid graph TD")
     func rejectsMermaidGraphTD() {
         let importer = GraphvizImporter()
@@ -95,6 +101,32 @@ import DiagramKitGraphviz
         }
         #expect(graph.nodesInOrder.map(\.id) == ["A", "B"])
         #expect(graph.nodesInOrder.map(\.node.label) == ["A", "B"])
+    }
+
+    @Test("parse applies later explicit node attributes to synthesized endpoint")
+    func parseExplicitNodeAttributesAfterEndpointSynthesis() throws {
+        let importer = GraphvizImporter()
+        let result = try importer.parse("digraph { A -> B; A [label=\"Start\", shape=circle]; }")
+        guard case .flowchart(let graph) = result.document.payload else {
+            Issue.record("Expected flowchart payload")
+            return
+        }
+        let node = graph.nodesInOrder.first { $0.id == "A" }?.node
+        #expect(node?.label == "Start")
+        #expect(node?.shape == .circle)
+        #expect(!result.diagnostics.contains { $0.message.contains("Duplicate node") })
+    }
+
+    @Test("parse preserves comment markers inside quoted labels")
+    func parseQuotedCommentMarkersInLabels() throws {
+        let importer = GraphvizImporter()
+        let result = try importer.parse("digraph { A [label=\"http://example/#section\"]; B [label=\"A # B\"]; }")
+        guard case .flowchart(let graph) = result.document.payload else {
+            Issue.record("Expected flowchart payload")
+            return
+        }
+        #expect(graph.nodesInOrder.first { $0.id == "A" }?.node.label == "http://example/#section")
+        #expect(graph.nodesInOrder.first { $0.id == "B" }?.node.label == "A # B")
     }
 
     @Test("parse returns directed edge with arrow")
@@ -210,6 +242,20 @@ import DiagramKitGraphviz
         #expect(graph.nodesInOrder.map(\.id) == ["A", "B", "C"])
     }
 
+    @Test("parse keeps chained edge endpoints inside containing cluster")
+    func parseChainedEdgesInsideCluster() throws {
+        let importer = GraphvizImporter()
+        let result = try importer.parse("digraph { subgraph cluster_0 { A -> B -> C; } }")
+        guard case .flowchart(let graph) = result.document.payload else {
+            Issue.record("Expected flowchart payload")
+            return
+        }
+        #expect(graph.edges.count == 2)
+        #expect(graph.edges.map { "\($0.source)->\($0.target)" } == ["A->B", "B->C"])
+        #expect(graph.subgraphs.count == 1)
+        #expect(graph.subgraphs[0].nodeIds == ["A", "B", "C"])
+    }
+
     // MARK: - parse: duplicates
 
     @Test("parse preserves duplicate edges")
@@ -258,6 +304,37 @@ import DiagramKitGraphviz
         let importer = GraphvizImporter()
         let result = try importer.parse("strict digraph G { A -> B }")
         #expect(result.diagnostics.contains { $0.message.contains("strict") })
+    }
+
+    @Test("parse emits diagnostic for port syntax and uses node ids")
+    func emitsDiagnosticForPortSyntax() throws {
+        let importer = GraphvizImporter()
+        let result = try importer.parse("digraph { A:n -> B:s; }")
+        guard case .flowchart(let graph) = result.document.payload else {
+            Issue.record("Expected flowchart payload")
+            return
+        }
+        #expect(graph.edges.count == 1)
+        #expect(graph.edges[0].source == "A")
+        #expect(graph.edges[0].target == "B")
+        #expect(result.diagnostics.contains { $0.message.contains("port syntax") })
+    }
+
+    @Test("parse emits diagnostic for edge to subgraph without synthetic subgraph node")
+    func emitsDiagnosticForEdgeToSubgraph() throws {
+        let importer = GraphvizImporter()
+        let result = try importer.parse("digraph { A -> subgraph cluster_0 { B; C; } }")
+        guard case .flowchart(let graph) = result.document.payload else {
+            Issue.record("Expected flowchart payload")
+            return
+        }
+        #expect(graph.edges.isEmpty)
+        #expect(graph.nodesInOrder.map(\.id) == ["A", "B", "C"])
+        #expect(graph.subgraphs.count == 1)
+        if graph.subgraphs.count == 1 {
+            #expect(graph.subgraphs[0].id == "cluster_0")
+        }
+        #expect(result.diagnostics.contains { $0.message.contains("edges to subgraphs") })
     }
 
     // MARK: - Layout smoke

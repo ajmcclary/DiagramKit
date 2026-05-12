@@ -29,14 +29,14 @@ public struct DOTParser {
 
     // MARK: - Parse state
 
-    private struct State {
+    struct State {
         var tokens: [DOTToken]
         var pos: Int = 0
         var diagnostics: [DiagramDiagnostic] = []
 
         /// Buffer for extra statements produced by chained edge parsing.
-        /// These are prepended to the statement list after the current
-        /// parseDocument loop completes.
+        /// The active parse loop flushes these immediately after the current
+        /// statement so nested chains stay in their local statement list.
         var pendingStatements: [DOTStatement] = []
 
         func peek() -> DOTToken? {
@@ -98,6 +98,11 @@ public struct DOTParser {
         }
     }
 
+    struct Endpoint {
+        var id: String
+        var usedPortSyntax: Bool
+    }
+
     // MARK: - Public entry point
 
     public func parse(_ tokens: [DOTToken]) throws -> (document: DOTDocument, diagnostics: [DiagramDiagnostic]) {
@@ -122,6 +127,7 @@ public struct DOTParser {
             }
             if let stmt = try parseStatement(&s) {
                 statements.append(stmt)
+                flushPendingStatements(to: &statements, state: &s)
             }
             // Consume optional semicolons
             _ = s.consumeIf(.semicolon)
@@ -131,9 +137,6 @@ public struct DOTParser {
             throw DiagramError.notYetImplemented("Unbalanced braces: missing '}'")
         }
         _ = s.advance() // consume '}'
-
-        // Flush any pending statements from chained edge parsing
-        statements.append(contentsOf: s.pendingStatements)
 
         return DOTDocument(kind: kind, strict: strict, id: id, statements: statements)
     }
@@ -209,7 +212,7 @@ public struct DOTParser {
                 fallthrough
             default:
                 // Check for edge (ID followed by -> or --)
-                if let edgeToken = s.peekAhead(1), edgeToken == .directedEdge || edgeToken == .undirectedEdge {
+                if edgeOperatorIndex(afterEndpointAt: s.pos, in: s) != nil {
                     return try parseEdgeStatement(&s)
                 }
                 // Check for graph_attr_stmt: ID = ID
@@ -228,6 +231,7 @@ public struct DOTParser {
                 if t == .semicolon { _ = s.advance(); continue }
                 if let stmt = try parseStatement(&s) {
                     statements.append(stmt)
+                    flushPendingStatements(to: &statements, state: &s)
                 }
                 _ = s.consumeIf(.semicolon)
             }
@@ -276,9 +280,7 @@ public struct DOTParser {
 
     private func parseEdgeStatement(_ s: inout State) throws -> DOTStatement {
         // First endpoint
-        guard let firstId = s.consumeIdentifier() else {
-            throw DiagramError.notYetImplemented("Expected edge source identifier")
-        }
+        let firstEndpoint = try parseEndpoint(&s, role: "edge source")
 
         // Edge operator
         guard let edgeOp = s.advance() else {
@@ -293,32 +295,43 @@ public struct DOTParser {
             throw DiagramError.notYetImplemented("Expected '->' or '--'")
         }
 
-        // Second endpoint
-        guard let secondId = s.consumeIdentifier() else {
-            throw DiagramError.notYetImplemented("Expected edge target identifier")
+        if s.peekIdentifier()?.lowercased() == "subgraph" {
+            emitPortDiagnosticIfNeeded(firstEndpoint, state: &s)
+            s.diagnostics.append(DiagramDiagnostic(
+                severity: .unsupported,
+                message: "edges to subgraphs not yet supported; preserving subgraph contents without the edge",
+                location: nil
+            ))
+            let subgraphStatement = try parseSubgraph(&s)
+            s.pendingStatements.append(subgraphStatement)
+            return .nodeStatement(DOTNodeStatement(id: firstEndpoint.id))
         }
+
+        // Second endpoint
+        let secondEndpoint = try parseEndpoint(&s, role: "edge target")
+        emitPortDiagnosticIfNeeded(firstEndpoint, state: &s)
+        emitPortDiagnosticIfNeeded(secondEndpoint, state: &s)
 
         // Check for chained edges: `A -> B -> C`
         // If the next token is an edge operator, this is a chain.
         // Consume the full chain, emit the first edge now, and buffer
         // subsequent edges in pendingStatements for later flush.
         if let nextToken = s.peek(), nextToken == .directedEdge || nextToken == .undirectedEdge {
-            var prevID = secondId
+            var prevID = secondEndpoint.id
             while let nextToken = s.peek(), nextToken == .directedEdge || nextToken == .undirectedEdge {
                 let chainedDirected = (s.advance()! == .directedEdge)
-                guard let nextId = s.consumeIdentifier() else {
-                    throw DiagramError.notYetImplemented("Expected identifier in chained edge")
-                }
+                let nextEndpoint = try parseEndpoint(&s, role: "chained edge target")
+                emitPortDiagnosticIfNeeded(nextEndpoint, state: &s)
                 // Buffer this edge segment (prevID -> nextId)
                 s.pendingStatements.append(
                     .edgeStatement(DOTEdgeStatement(
                         source: prevID,
-                        target: nextId,
+                        target: nextEndpoint.id,
                         directed: chainedDirected,
                         attributes: []
                     ))
                 )
-                prevID = nextId
+                prevID = nextEndpoint.id
             }
 
             // Optional attribute list at end of chain — applies to the LAST buffered edge
@@ -337,8 +350,8 @@ public struct DOTParser {
                 attrs = try parseAttrList(&s)
             }
             let edgeStmt = DOTEdgeStatement(
-                source: firstId,
-                target: secondId,
+                source: firstEndpoint.id,
+                target: secondEndpoint.id,
                 directed: directed,
                 attributes: attrs
             )
@@ -347,8 +360,8 @@ public struct DOTParser {
 
         // Return the first edge segment
         let firstEdge = DOTEdgeStatement(
-            source: firstId,
-            target: secondId,
+            source: firstEndpoint.id,
+            target: secondEndpoint.id,
             directed: directed,
             attributes: []
         )
@@ -413,6 +426,7 @@ public struct DOTParser {
             if token == .semicolon { _ = s.advance(); continue }
             if let stmt = try parseStatement(&s) {
                 statements.append(stmt)
+                flushPendingStatements(to: &statements, state: &s)
             }
             _ = s.consumeIf(.semicolon)
         }
@@ -425,57 +439,4 @@ public struct DOTParser {
         return .subgraph(DOTSubgraph(id: id, statements: statements))
     }
 
-    // MARK: - attr_list
-
-    private func parseAttrList(_ s: inout State) throws -> [DOTAttribute] {
-        guard s.peek() == .openBracket else { return [] }
-        _ = s.advance() // consume '['
-
-        var attributes: [DOTAttribute] = []
-
-        // Parse comma-separated key=value pairs
-        while let token = s.peek(), token != .closeBracket {
-            if token == .comma || token == .semicolon {
-                _ = s.advance()
-                continue
-            }
-
-            guard let key = s.consumeIdentifier() else {
-                break
-            }
-
-            guard s.peek() == .equals else {
-                s.diagnostics.append(DiagramDiagnostic(
-                    severity: .unsupported,
-                    message: "Expected '=' after attribute key '\(key)'",
-                    location: nil
-                ))
-                continue
-            }
-            _ = s.advance() // consume '='
-
-            // Value can be identifier, string, or number
-            let value: String
-            if let ident = s.consumeIdentifier() {
-                value = ident
-            } else {
-                value = ""
-            }
-
-            attributes.append(DOTAttribute(key: key, value: value))
-
-            // Skip optional comma
-            _ = s.consumeIf(.comma)
-        }
-
-        // Consume optional comma before ']'
-        _ = s.consumeIf(.comma)
-
-        guard s.peek() == .closeBracket else {
-            throw DiagramError.notYetImplemented("Unterminated attribute list: expected ']'")
-        }
-        _ = s.advance() // consume ']'
-
-        return attributes
-    }
 }

@@ -21,12 +21,14 @@ public struct DOTMapper {
 
     // MARK: - Mapping context
 
-    private struct MappingContext {
+    struct MappingContext {
         var nodesById: [String: original_src_types.MermaidNode] = [:]
         var nodeOrder: [String] = []
         var edges: [original_src_types.MermaidEdge] = []
         var subgraphs: [original_src_types.MermaidSubgraph] = []
         var diagnostics: [DiagramDiagnostic] = []
+        var explicitNodeLabels: Set<String> = []
+        var explicitNodeShapes: Set<String> = []
 
         // Default attributes scoped to current nesting level
         var defaultNodeAttrs: [DOTAttribute] = []
@@ -101,8 +103,12 @@ public struct DOTMapper {
         for stmt in statements {
             switch stmt {
             case .nodeStatement(let nodeStmt):
-                let effectiveAttrs = context.defaultNodeAttrs + nodeStmt.attributes
-                upsertNode(nodeStmt.id, attributes: effectiveAttrs, context: &context)
+                upsertNode(
+                    nodeStmt.id,
+                    explicitAttributes: nodeStmt.attributes,
+                    defaultAttributes: context.defaultNodeAttrs,
+                    context: &context
+                )
 
             case .edgeStatement(let edgeStmt):
                 mapEdge(edgeStmt, context: &context)
@@ -164,31 +170,49 @@ public struct DOTMapper {
 
     // MARK: - Node upsert
 
-    private func upsertNode(_ id: String, attributes: [DOTAttribute], context: inout MappingContext) {
+    private func upsertNode(
+        _ id: String,
+        explicitAttributes: [DOTAttribute],
+        defaultAttributes: [DOTAttribute],
+        context: inout MappingContext
+    ) {
         guard !id.isEmpty else { return }
 
-        let label = attributes.first(where: { $0.key == "label" })?.value ?? id
-        let shape = mapNodeShape(attributes: attributes, context: &context)
+        let effectiveAttributes = defaultAttributes + explicitAttributes
+        let label = attributeValue("label", in: effectiveAttributes) ?? id
+        let shape = mapNodeShape(attributes: effectiveAttributes, context: &context)
 
-        if let existing = context.nodesById[id] {
-            // Merge: keep existing label unless new one is explicitly set
-            let hasExplicitLabel = attributes.contains(where: { $0.key == "label" })
-            if hasExplicitLabel {
-                context.diagnostics.append(DiagramDiagnostic(
-                    severity: .unsupported,
-                    message: "Duplicate node '\(id)' with different label; keeping first label '\(existing.label)'",
-                    location: nil
-                ))
+        if var existing = context.nodesById[id] {
+            if let explicitLabel = attributeValue("label", in: explicitAttributes) {
+                if context.explicitNodeLabels.contains(id), explicitLabel != existing.label {
+                    context.diagnostics.append(DiagramDiagnostic(
+                        severity: .unsupported,
+                        message: "Duplicate node '\(id)' with different label; keeping first label '\(existing.label)'",
+                        location: nil
+                    ))
+                } else {
+                    existing.label = explicitLabel
+                    context.explicitNodeLabels.insert(id)
+                }
             }
-            // For shape: keep existing shape unless explicit
-            let hasExplicitShape = attributes.contains(where: { $0.key == "shape" })
-            if hasExplicitShape && shape != existing.shape {
-                context.diagnostics.append(DiagramDiagnostic(
-                    severity: .unsupported,
-                    message: "Duplicate node '\(id)' with different shape; keeping first shape",
-                    location: nil
-                ))
+
+            if let explicitShapeAttr = explicitAttributes.first(where: { $0.key.lowercased() == "shape" }) {
+                let explicitShape = mapNodeShape(attributes: [explicitShapeAttr], context: &context)
+                if context.explicitNodeShapes.contains(id), explicitShape != existing.shape {
+                    context.diagnostics.append(DiagramDiagnostic(
+                        severity: .unsupported,
+                        message: "Duplicate node '\(id)' with different shape; keeping first shape",
+                        location: nil
+                    ))
+                } else {
+                    existing.shape = explicitShape
+                    context.explicitNodeShapes.insert(id)
+                }
             }
+
+            context.nodesById[id] = existing
+            recordNodeInCurrentSubgraph(id: id, context: &context)
+            emitUnsupportedNodeAttrs(explicitAttributes, context: &context)
             return
         }
 
@@ -200,16 +224,17 @@ public struct DOTMapper {
         context.nodesById[id] = node
         context.nodeOrder.append(id)
 
-        // Track in current subgraph
-        if !context.subgraphStack.isEmpty {
-            let idx = context.subgraphStack.count - 1
-            if !context.subgraphStack[idx].nodeIds.contains(id) {
-                context.subgraphStack[idx].nodeIds.append(id)
-            }
+        if attributeValue("label", in: explicitAttributes) != nil {
+            context.explicitNodeLabels.insert(id)
+        }
+        if explicitAttributes.contains(where: { $0.key.lowercased() == "shape" }) {
+            context.explicitNodeShapes.insert(id)
         }
 
+        recordNodeInCurrentSubgraph(id: id, context: &context)
+
         // Emit diagnostics for unsupported node attributes
-        emitUnsupportedNodeAttrs(attributes, context: &context)
+        emitUnsupportedNodeAttrs(explicitAttributes, context: &context)
     }
 
     // MARK: - Edge mapping
@@ -240,15 +265,25 @@ public struct DOTMapper {
     }
 
     private func ensureNode(id: String, context: inout MappingContext) {
-        guard context.nodesById[id] == nil else { return }
+        if context.nodesById[id] != nil {
+            recordNodeInCurrentSubgraph(id: id, context: &context)
+            return
+        }
+
+        let label = attributeValue("label", in: context.defaultNodeAttrs) ?? id
+        let shape = mapNodeShape(attributes: context.defaultNodeAttrs, context: &context)
         let node = original_src_types.MermaidNode(
             id: id,
-            label: id,
-            shape: .rectangle
+            label: label,
+            shape: shape
         )
         context.nodesById[id] = node
         context.nodeOrder.append(id)
 
+        recordNodeInCurrentSubgraph(id: id, context: &context)
+    }
+
+    private func recordNodeInCurrentSubgraph(id: String, context: inout MappingContext) {
         if !context.subgraphStack.isEmpty {
             let idx = context.subgraphStack.count - 1
             if !context.subgraphStack[idx].nodeIds.contains(id) {
@@ -260,7 +295,7 @@ public struct DOTMapper {
     // MARK: - Shape mapping
 
     private func mapNodeShape(attributes: [DOTAttribute], context: inout MappingContext) -> original_src_types.NodeShape {
-        guard let shapeAttr = attributes.first(where: { $0.key == "shape" }) else {
+        guard let shapeAttr = attributes.first(where: { $0.key.lowercased() == "shape" }) else {
             return .rectangle
         }
 
@@ -311,214 +346,8 @@ public struct DOTMapper {
         return []
     }
 
-    // MARK: - Diagnostic emitters
-
-    private func emitUnsupportedNodeAttrs(_ attributes: [DOTAttribute], context: inout MappingContext) {
-        for attr in attributes {
-            let key = attr.key.lowercased()
-            switch key {
-            case "label", "shape", "id":
-                continue // supported
-            case "style":
-                context.diagnostics.append(DiagramDiagnostic(
-                    severity: .unsupported,
-                    message: "node style not yet supported",
-                    location: nil
-                ))
-            case "color", "fillcolor", "fontcolor", "bgcolor", "pencolor":
-                context.diagnostics.append(DiagramDiagnostic(
-                    severity: .unsupported,
-                    message: "color attributes not yet supported",
-                    location: nil
-                ))
-            case "fontname", "fontsize":
-                context.diagnostics.append(DiagramDiagnostic(
-                    severity: .unsupported,
-                    message: "font attributes not yet supported",
-                    location: nil
-                ))
-            case "penwidth":
-                context.diagnostics.append(DiagramDiagnostic(
-                    severity: .unsupported,
-                    message: "line/arrow attributes not yet supported",
-                    location: nil
-                ))
-            case "url", "href", "target", "tooltip":
-                context.diagnostics.append(DiagramDiagnostic(
-                    severity: .unsupported,
-                    message: "hyperlink attributes not yet supported",
-                    location: nil
-                ))
-            case "image", "imagescale", "imagepos":
-                context.diagnostics.append(DiagramDiagnostic(
-                    severity: .unsupported,
-                    message: "image attributes not yet supported",
-                    location: nil
-                ))
-            default:
-                // Unknown attribute — emit generic unsupported
-                context.diagnostics.append(DiagramDiagnostic(
-                    severity: .unsupported,
-                    message: "unrecognized node attribute '\(attr.key)' not yet supported",
-                    location: nil
-                ))
-            }
-        }
+    private func attributeValue(_ name: String, in attributes: [DOTAttribute]) -> String? {
+        attributes.first { $0.key.lowercased() == name }?.value
     }
 
-    private func emitUnsupportedEdgeAttrs(_ attributes: [DOTAttribute], context: inout MappingContext) {
-        for attr in attributes {
-            let key = attr.key.lowercased()
-            switch key {
-            case "label":
-                continue // supported
-            case "color", "fillcolor", "fontcolor":
-                context.diagnostics.append(DiagramDiagnostic(
-                    severity: .unsupported,
-                    message: "color attributes not yet supported",
-                    location: nil
-                ))
-            case "style":
-                context.diagnostics.append(DiagramDiagnostic(
-                    severity: .unsupported,
-                    message: "edge style not yet supported",
-                    location: nil
-                ))
-            case "fontname", "fontsize":
-                context.diagnostics.append(DiagramDiagnostic(
-                    severity: .unsupported,
-                    message: "font attributes not yet supported",
-                    location: nil
-                ))
-            case "penwidth", "arrowsize", "arrowhead":
-                context.diagnostics.append(DiagramDiagnostic(
-                    severity: .unsupported,
-                    message: "line/arrow attributes not yet supported",
-                    location: nil
-                ))
-            case "constraint", "weight":
-                context.diagnostics.append(DiagramDiagnostic(
-                    severity: .unsupported,
-                    message: "edge weight/constraint not yet supported",
-                    location: nil
-                ))
-            default:
-                context.diagnostics.append(DiagramDiagnostic(
-                    severity: .unsupported,
-                    message: "unrecognized edge attribute '\(attr.key)' not yet supported",
-                    location: nil
-                ))
-            }
-        }
-    }
-
-    private func emitUnsupportedGraphAttrs(_ attributes: [DOTAttribute], context: inout MappingContext) {
-        for attr in attributes {
-            let key = attr.key.lowercased()
-            switch key {
-            case "rankdir", "label":
-                continue // supported
-            case "rank":
-                context.diagnostics.append(DiagramDiagnostic(
-                    severity: .unsupported,
-                    message: "rank constraints not yet supported",
-                    location: nil
-                ))
-            case "splines", "overlap", "sep", "pad", "margin", "nodesep", "ranksep":
-                context.diagnostics.append(DiagramDiagnostic(
-                    severity: .unsupported,
-                    message: "layout engine attributes not yet supported",
-                    location: nil
-                ))
-            case "bgcolor", "pencolor", "labelloc", "labeljust":
-                context.diagnostics.append(DiagramDiagnostic(
-                    severity: .unsupported,
-                    message: "graph appearance attributes not yet supported",
-                    location: nil
-                ))
-            case "compound", "lhead", "ltail":
-                context.diagnostics.append(DiagramDiagnostic(
-                    severity: .unsupported,
-                    message: "compound edge attributes not yet supported",
-                    location: nil
-                ))
-            case "concentrate":
-                context.diagnostics.append(DiagramDiagnostic(
-                    severity: .unsupported,
-                    message: "edge concentration not yet supported",
-                    location: nil
-                ))
-            case "center", "resolution", "page", "viewport", "ratio", "size":
-                context.diagnostics.append(DiagramDiagnostic(
-                    severity: .unsupported,
-                    message: "graph layout attributes not yet supported",
-                    location: nil
-                ))
-            default:
-                context.diagnostics.append(DiagramDiagnostic(
-                    severity: .unsupported,
-                    message: "unrecognized graph attribute '\(attr.key)' not yet supported",
-                    location: nil
-                ))
-            }
-        }
-    }
-
-    private func emitUnsupportedNodeDefaults(_ attributes: [DOTAttribute], context: inout MappingContext) {
-        for attr in attributes {
-            let key = attr.key.lowercased()
-            switch key {
-            case "shape", "label":
-                continue // supported
-            case "style":
-                if attr.value.lowercased() != "solid" {
-                    context.diagnostics.append(DiagramDiagnostic(
-                        severity: .unsupported,
-                        message: "node style not yet supported",
-                        location: nil
-                    ))
-                }
-            case "color", "fillcolor", "fontcolor", "bgcolor", "pencolor":
-                context.diagnostics.append(DiagramDiagnostic(
-                    severity: .unsupported,
-                    message: "color attributes not yet supported",
-                    location: nil
-                ))
-            default:
-                break
-            }
-        }
-    }
-
-    private func emitUnsupportedGraphAttr(key: String, value: String, context: inout MappingContext) {
-        let lower = key.lowercased()
-        switch lower {
-        case "rankdir", "label":
-            return // handled
-        case "rank":
-            context.diagnostics.append(DiagramDiagnostic(
-                severity: .unsupported,
-                message: "rank constraints not yet supported",
-                location: nil
-            ))
-        case "splines", "overlap", "sep", "pad", "margin", "nodesep", "ranksep":
-            context.diagnostics.append(DiagramDiagnostic(
-                severity: .unsupported,
-                message: "layout engine attributes not yet supported",
-                location: nil
-            ))
-        case "concentrate":
-            context.diagnostics.append(DiagramDiagnostic(
-                severity: .unsupported,
-                message: "edge concentration not yet supported",
-                location: nil
-            ))
-        default:
-            context.diagnostics.append(DiagramDiagnostic(
-                severity: .unsupported,
-                message: "unrecognized graph attribute '\(key)' not yet supported",
-                location: nil
-            ))
-        }
-    }
 }

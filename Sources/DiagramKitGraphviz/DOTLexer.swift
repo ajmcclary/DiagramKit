@@ -12,8 +12,10 @@ public enum DOTToken: Sendable, Equatable {
     case semicolon                   // `;`
     case equals                      // `=`
     case comma                       // `,`
+    case colon                       // `:`
     case directedEdge                // `->`
     case undirectedEdge              // `--`
+    case unsupported(String)         // unsupported single-character syntax
 }
 
 // MARK: - Lexer
@@ -41,7 +43,32 @@ public struct DOTLexer {
         var i = source.startIndex
         let end = source.endIndex
 
+        var inString = false
+        var escaping = false
+
         while i < end {
+            if inString {
+                result.append(source[i])
+
+                if escaping {
+                    escaping = false
+                } else if source[i] == "\\" {
+                    escaping = true
+                } else if source[i] == "\"" {
+                    inString = false
+                }
+
+                i = source.index(after: i)
+                continue
+            }
+
+            if source[i] == "\"" {
+                inString = true
+                result.append(source[i])
+                i = source.index(after: i)
+                continue
+            }
+
             // Block comment: /* ... */
             if source[i] == "/" && source.index(after: i) < end && source[source.index(after: i)] == "*" {
                 i = source.index(i, offsetBy: 2)
@@ -59,6 +86,7 @@ public struct DOTLexer {
                     // Unterminated block comment — consume rest
                     i = end
                 }
+                result.append(" ")
                 continue
             }
 
@@ -159,6 +187,10 @@ public struct DOTLexer {
                 tokens.append(.equals)
                 advance()
                 continue
+            case ":":
+                tokens.append(.colon)
+                advance()
+                continue
             case "-":
                 if let next = peekAhead(1), next == ">" {
                     tokens.append(.directedEdge)
@@ -222,7 +254,9 @@ public struct DOTLexer {
                 continue
             }
 
-            // Unknown character — skip (lenient)
+            // Unknown character — preserve as an unsupported token so the
+            // parser can surface a diagnostic instead of silently dropping it.
+            tokens.append(.unsupported(String(c)))
             advance()
         }
 
