@@ -74,7 +74,9 @@ Sources/DiagramKitPlantUML/
   block markers.
 
 **Level 2 — Family routing** (`PlantUMLImporter.parse`):
-- Strips `@startuml`/`@enduml` boundaries.
+- Extracts the body between `@startuml`/`@enduml` (or `@startxxx`/`@endxxx`),
+  preserving the start-tag kind (`startuml`, `startmindmap`, `startgantt`,
+  `startwbs`) as metadata for explicit-header families.
 - Probes family-specific syntax in fixed order inside the PlantUML body:
   1. C4 (`!include <C4/...>`, `Person(`, `System(`, `Container(`) — narrowest
   2. Gantt (`@startgantt`) — explicit header
@@ -86,8 +88,9 @@ Sources/DiagramKitPlantUML/
 - Each family probe is a free function, e.g. `isPlantUMLSequenceBody(_:)`,
   called on the inner body string (text between `@startuml` and `@enduml`).
 
-If no family matches, the importer emits a `.unsupportedFormat` diagnostic and
-throws a structured error — it never silently routes to a wrong family.
+If no family matches, the importer emits a `.unsupported` diagnostic and
+throws `DiagramError.notYetImplemented("PlantUML family not recognized")` —
+it never silently routes to a wrong family.
 
 ### 1.3 Mapping Targets
 
@@ -140,9 +143,14 @@ layout or renderer changes are required for any slice.
 ```swift
 public struct PlantUMLImporter: DiagramSourceImporter {
     public let name = "PlantUML"
+    /// Grows per slice. In slice 6A, only sequence is implemented.
+    /// Unsupported family dispatch throws `DiagramError.notYetImplemented`.
     public let supportedDiagramTypes: Set<DiagramType> = [
-        .sequenceDiagram, .classDiagram, .stateDiagram,
-        .mindmap, .gantt, .c4
+        .sequenceDiagram
+        // .classDiagram     — added in 6B
+        // .stateDiagram     — added in 6C
+        // .mindmap, .gantt  — added in 6D
+        // .c4               — added in 6E
     ]
 
     public init() {}
@@ -377,19 +385,32 @@ chars are consumed greedily (`->>`, `->>>`, etc.).
 `PlantUMLSequenceMapper` maps `PlantUMLSequenceAST` to
 `DiagramPayload.sequenceDiagram(SequenceDiagram)`.
 
-**Mapping strategy**:
-- `PlantUMLParticipant` → `SequenceActor` (renamed `SequenceParticipant` in
-  the existing model).
-- `PlantUMLSequenceMessage` → `SequenceItem.message(SequenceMessage)`, with
-  message type derived from arrow type.
-- `note` → `SequenceItem.note(SequenceNote)`.
-- `activate`/`deactivate` → `SequenceItem.activation(...)`.
-- `groupStart` → `SequenceItem.groupStart(SequenceGroup)`.
-- `groupEnd` → `SequenceItem.groupEnd`.
-- `divergent` → `SequenceItem.divergent(...)`.
+**Mapping to real `SequenceItem` cases**:
+- `PlantUMLParticipant` → `SequenceItem.actor(SequenceActor)`. Aliases become
+  `SequenceActor.id`; display names become `SequenceActor.label`. Actor type
+  maps to `ParticipantType.actor`, participant to `.participant`.
+- `PlantUMLSequenceMessage` → `SequenceItem.message(SequenceMessage)`.
+  Arrow types map to `SequenceArrowType` values (e.g., `-->` → `.dotted`,
+  `->>` → `.dottedOpen`, `->o` → `.solidOpen`).
+  `SequenceMessage.activate`/`.deactivate` booleans control auto-activation.
+- `note left of` / `note right of` / `note over` →
+  `SequenceItem.note(SequenceNote)`. `SequenceNote.actorIds` holds the
+  participant IDs; `position` holds `"left"`, `"right"`, or `"over"`.
+- `activate X` → `SequenceItem.activationStart(actorId: X)`.
+  `deactivate X` → `SequenceItem.activationEnd(actorId: X)`.
+- `alt`/`loop`/`opt`/`group` → `SequenceItem.blockStart(type:, label:)`.
+  The block type string is `"alt"`, `"loop"`, `"opt"`, or `"group"`.
+- `else` → `SequenceItem.blockDivider(type:, label:)` with the same type
+  as the enclosing block.
+- `end` → `SequenceItem.blockEnd(type:)`.
+- `box "title"` → `SequenceItem.boxStart(fill:, title:, wrap:)`.
+  `end box` → `SequenceItem.boxEnd`.
+- `autonumber` / `autonumber stop` / `autonumber resume` →
+  `SequenceItem.autonumberEvent(start:, step:, visible:)`.
 
 **Participant synthesis**: messages referencing undeclared participant aliases
-auto-synthesize a participant declaration at the point of first reference.
+auto-synthesize `SequenceItem.actor(SequenceActor(id: alias, label: alias,
+isExplicit: false))` at the point of first reference.
 
 ### 2.6 Files to Create
 
@@ -696,16 +717,38 @@ struct PlantUMLClassNote: Sendable, Equatable {
 `PlantUMLClassMapper` maps `PlantUMLClassAST` to
 `DiagramPayload.classDiagram(ClassDiagram)`.
 
-**Mapping strategy**:
-- `PlantUMLClassDeclaration` → `ClassNode` with class members
-- Visibility: `+` → `.public`, `-` → `.private`, `#` → `.protected`,
-  `~` → `.package`
-- `PlantUMLRelationship` → `ClassRelationship` with relationship type
-- Extension → `.inheritance`, realization → `.realization`,
-  association → `.association`, composition → `.composition`,
-  aggregation → `.aggregation`, dependency → `.dependency`
-- Multiplicities stored as relationship labels
-- Notes mapped to diagram-level annotations
+**Real model types**:
+- `PlantUMLClassDeclaration` → `ClassNode`. Members with `+` visibility
+  become `ClassMember(visibility: "+")`; `-` → `"-"`; `#` → `"#"`;
+  `~` → `"~"`. Methods (`memberType: .method`) carry parameter/return type
+  strings. Attributes are `memberType: .attribute`.
+- `PlantUMLClassKind` → stored in `ClassNode.annotations` (e.g.,
+  `["<<interface>>"]`) and/or `ClassNode.type` string.
+- Enum members → `ClassMember(visibility: "", memberType: .attribute)`
+  with the member name as the id.
+
+**Relationship mapping** uses `ClassRelationEndpoint` with `type1: Int`,
+`type2: Int`, and `lineType: Int`:
+- Extension (`--|>` or `<|--`):
+  `type1/type2` = `.inheritance.rawValue` (1) on the superclass end,
+  `.none.rawValue` (-1) on the other; `lineType` = `.solid.rawValue` (0).
+- Realization (`..|>` or `<|..`):
+  `type1/type2` = `.inheritance.rawValue` (1) on the interface end,
+  `.none.rawValue` (-1) on the other; `lineType` = `.dotted.rawValue` (1).
+- Composition (`*--` or `--*`):
+  `type1/type2` = `.composition.rawValue` (2) on the diamond end,
+  `.none.rawValue` (-1) on the other; `lineType` = `.solid.rawValue` (0).
+- Aggregation (`o--` or `--o`):
+  `type1/type2` = `.aggregation.rawValue` (0) on the diamond end,
+  `.none.rawValue` (-1) on the other; `lineType` = `.solid.rawValue` (0).
+- Dependency (`..>` or `<..`):
+  both `.none.rawValue` (-1); `lineType` = `.dotted.rawValue` (1).
+- Association (`--`):
+  both `.none.rawValue` (-1); `lineType` = `.solid.rawValue` (0).
+
+The `ClassRelationship` stores cardinality/multiplicity strings in
+`relationTitle1` and `relationTitle2`. Labels go in `title`.
+Notes are mapped to `ClassNote` with `class_:` referencing the target class id.
 
 ### 3.6 Files to Create
 
