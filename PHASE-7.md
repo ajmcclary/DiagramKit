@@ -39,6 +39,17 @@ Exporters unlock:
   stable.
 - **Format migration tooling**: bulk-convert diagrams between formats.
 
+**Current importer state (2026-05-12):**
+- Mermaid: all 28 diagram types
+- D2: flowchart only (`D2Importer.supportedDiagramTypes == [.flowchart]`)
+- Graphviz: flowchart only (DOT importer produces `.flowchart`)
+- Structurizr: c4 only
+- PlantUML: sequence only (Slice 6A complete; 6B-6E not yet implemented)
+
+Exporters for a diagram type are gated by their corresponding importer. An
+exporter must never claim a diagram type that its format's importer cannot
+parse — see rule 6 (§1.5). The importer is the gate.
+
 ### 1.2 Target Structure
 
 ```
@@ -143,6 +154,18 @@ These rules are non-negotiable and apply to every exporter:
    The exporter must produce syntactically valid source that its own
    importer's probe accepts.
 
+6. **An exporter's `supportedDiagramTypes` must be a subset of its importer's.**
+   An exporter must not claim a diagram type that the corresponding importer
+   cannot parse. The importer gate ensures that exported source can be
+   re-ingested. When a Phase 6 importer slice expands (e.g., PlantUML 6B adds
+   class diagrams), the corresponding exporter slice may follow.
+
+7. **`DiagramFormatID` is the canonical format key.** Registry lookup uses
+   `DiagramFormatID` (e.g., `.mermaid`, `.d2`, `.plantuml`), not a free
+   string. Each exporter declares its `formatID`. The loader's `to:` parameter
+   is authoritative — it selects the exact exporter requested, not the first
+   exporter that supports the diagram type.
+
 ---
 
 ## 2. New Target: DiagramKitExport
@@ -209,6 +232,29 @@ dependencies. The new target inherits `[.macOS, .iOS, .tvOS, .visionOS,
 
 ## 3. Exporter Protocol Design
 
+### 3.0 `DiagramFormatID`
+
+```swift
+// Sources/DiagramKitExport/DiagramFormatID.swift
+
+/// Canonical identifier for a diagram source format.
+/// Used to look up exporters by format in `ExporterRegistry`.
+/// Matches the canonical lowercase IDs already used in `CorpusEntry`
+/// (`DiagramKitTestSupport`) and `ImporterRegistry` probe collision tests.
+public struct DiagramFormatID: Sendable, Hashable, RawRepresentable, CustomStringConvertible {
+    public let rawValue: String
+    public init(rawValue: String) { self.rawValue = rawValue }
+
+    public var description: String { rawValue }
+
+    public static let mermaid     = DiagramFormatID(rawValue: "mermaid")
+    public static let d2          = DiagramFormatID(rawValue: "d2")
+    public static let graphviz    = DiagramFormatID(rawValue: "graphviz")
+    public static let structurizr = DiagramFormatID(rawValue: "structurizr")
+    public static let plantuml    = DiagramFormatID(rawValue: "plantuml")
+}
+```
+
 ### 3.1 `DiagramExporter` Protocol
 
 ```swift
@@ -225,11 +271,16 @@ dependencies. The new target inherits `[.macOS, .iOS, .tvOS, .visionOS,
 /// `DiagramExportResult` — there is no shared mutable diagnostics property.
 /// This keeps exporters stateless at the protocol boundary.
 public protocol DiagramExporter: Sendable {
-    /// Human-readable name (e.g. "Mermaid", "D2", "PlantUML").
+    /// Human-readable display name (e.g. "Mermaid", "D2", "PlantUML").
+    /// For registry lookup, use `formatID` instead.
     var name: String { get }
 
+    /// Canonical format identifier. Used by `ExporterRegistry` and
+    /// `DiagramExportLoader` for format-targeted dispatch.
+    var formatID: DiagramFormatID { get }
+
     /// The set of `DiagramType` values this exporter can emit as source.
-    /// Used for UI discovery and sparse-matrix validation.
+    /// Must be a subset of the corresponding importer's `supportedDiagramTypes`.
     var supportedDiagramTypes: Set<DiagramType> { get }
 
     /// Emit source text for the given diagram document.
@@ -293,84 +344,107 @@ public struct DiagramExportError: Error, LocalizedError, Sendable {
 ```swift
 // Sources/DiagramKitExport/ExporterRegistry.swift
 
-/// An ordered collection of format exporters.
+/// A collection of format exporters, keyed by `DiagramFormatID`.
 ///
-/// Lookup is by diagram type: `exporter(for:)` returns the first exporter
-/// whose `supportedDiagramTypes` includes the given type.
-/// Order matters when multiple exporters support the same type.
+/// Lookup is by format ID: `exporter(named:)` returns the exporter
+/// registered for that format, or `nil`. This is format-targeted dispatch —
+/// callers ask for `.d2` and get the D2 exporter regardless of whether
+/// Mermaid also supports the diagram type.
+///
+/// Multiple exporters may support the same diagram type — that is expected
+/// in a multi-format toolkit. Format overlap is normal; the format ID is
+/// the authoritative dispatch key.
 public struct ExporterRegistry: Sendable {
-    public let exporters: [any DiagramExporter]
+    private var exportersByID: [DiagramFormatID: any DiagramExporter]
 
-    public init(exporters: [any DiagramExporter]) {
-        self.exporters = exporters
+    public init(exportersByID: [DiagramFormatID: any DiagramExporter] = [:]) {
+        self.exportersByID = exportersByID
     }
 
-    /// Returns a new registry with `exporter` appended.
-    public func appending(_ exporter: any DiagramExporter) -> Self {
-        ExporterRegistry(exporters: exporters + [exporter])
+    /// All registered exporters as an array.
+    public var exporters: [any DiagramExporter] {
+        Array(exportersByID.values)
     }
 
-    /// The first exporter that supports the given diagram type, or `nil`.
-    public func exporter(for type: DiagramType) -> (any DiagramExporter)? {
-        exporters.first { $0.supportedDiagramTypes.contains(type) }
+    /// Returns a new registry with `exporter` registered under its format ID.
+    /// Replaces any existing exporter with the same format ID.
+    public func registering(_ exporter: any DiagramExporter) -> Self {
+        var dict = exportersByID
+        dict[exporter.formatID] = exporter
+        return ExporterRegistry(exportersByID: dict)
+    }
+
+    /// The exporter registered for the given format ID, or `nil`.
+    public func exporter(named formatID: DiagramFormatID) -> (any DiagramExporter)? {
+        exportersByID[formatID]
     }
 
     /// All diagram types supported by any exporter in this registry.
     public var supportedDiagramTypes: Set<DiagramType> {
-        exporters.reduce(into: []) { $0.formUnion($1.supportedDiagramTypes) }
+        exportersByID.values.reduce(into: []) { $0.formUnion($1.supportedDiagramTypes) }
     }
 
     /// Empty registry — no exporters registered.
-    public static let empty = ExporterRegistry(exporters: [])
+    public static let empty = ExporterRegistry()
 }
 ```
-
-**Why `appending` not `prepending`?** Unlike importers (where probe order is
-contractual because `supports(source:)` can overlap), exporters declare an
-exact `supportedDiagramTypes` set. No two exporters should claim the same
-diagram type in the default registry. `appending` matches the expected mental
-model: "add a new exporter to the list."
 
 ### 3.5 `DiagramExportLoader`
 
 ```swift
 // Sources/DiagramKitExport/DiagramExportLoader.swift
 
-/// Stateless dispatch: export a `DiagramDocument` through the first
-/// matching exporter in an `ExporterRegistry`.
+/// Stateless dispatch: export a `DiagramDocument` to a target format.
+/// The `to:` format ID is authoritative — it selects the exact exporter.
 public enum DiagramExportLoader {
 
-    /// Export `document` using the given registry.
+    /// Export `document` to the given format.
     ///
     /// - Parameters:
     ///   - document: The diagram document to export.
-    ///   - format: The target format name (e.g. "mermaid", "d2").
-    ///     Used only for error messages when no exporter matches.
+    ///   - to: The target format ID (e.g., `.d2`, `.plantuml`).
+    ///     This is authoritative — it selects the exact exporter.
     ///   - registry: The exporter registry to search.
     /// - Returns: `DiagramExportResult` with the generated source and any
     ///   diagnostics.
-    /// - Throws: `DiagramExportError` when no exporter supports the diagram
-    ///   type, or when the matched exporter throws a fatal error.
+    /// - Throws: `DiagramExportError` when no exporter is registered for the
+    ///   format, or when the matched exporter throws a fatal error.
     public static func export(
         _ document: DiagramDocument,
-        format: String,
+        to formatID: DiagramFormatID,
         registry: ExporterRegistry
     ) throws -> DiagramExportResult {
-        guard let exporter = registry.exporter(for: document.type) else {
+        guard let exporter = registry.exporter(named: formatID) else {
             throw DiagramExportError(
-                message: "No exporter registered for \(document.type.rawValue) in format \(format)",
+                message: "No exporter registered for format \(formatID)",
                 diagnostics: [
                     DiagramDiagnostic(
                         severity: .unsupported,
-                        message: "Diagram type '\(document.type.rawValue)' cannot be exported to '\(format)'"
+                        message: "Format '\(formatID)' has no registered exporter"
                     )
                 ]
             )
         }
+
+        // If the exporter doesn't support this diagram type, return a
+        // diagnostic — never throw for unsupported types.
+        guard exporter.supportedDiagramTypes.contains(document.type) else {
+            return DiagramExportResult(
+                source: "",
+                diagnostics: [
+                    DiagramDiagnostic(
+                        severity: .unsupported,
+                        message: "Diagram type '\(document.type.rawValue)' is not supported for export to '\(formatID)'"
+                    )
+                ]
+            )
+        }
+
         return try exporter.export(document)
     }
 
-    /// Convenience: export using a specific exporter by name.
+    /// Convenience: export using a specific exporter by display name.
+    /// Prefer `export(_:to:registry:)` with a format ID for type safety.
     public static func export(
         _ document: DiagramDocument,
         using exporterName: String,
@@ -381,6 +455,19 @@ public enum DiagramExportLoader {
                 message: "No exporter named '\(exporterName)' in registry"
             )
         }
+
+        guard exporter.supportedDiagramTypes.contains(document.type) else {
+            return DiagramExportResult(
+                source: "",
+                diagnostics: [
+                    DiagramDiagnostic(
+                        severity: .unsupported,
+                        message: "Diagram type '\(document.type.rawValue)' is not supported by exporter '\(exporterName)'"
+                    )
+                ]
+            )
+        }
+
         return try exporter.export(document)
     }
 }
@@ -388,31 +475,28 @@ public enum DiagramExportLoader {
 
 ### 3.6 Default Registry
 
-The default export registry lives on `DiagramPipeline`, matching the pattern
-established for `defaultRegistry` on the import side:
+The default export registry lives on `DiagramPipeline`:
 
 ```swift
 // Sources/DiagramKit/MermaidPipeline.swift (addition)
 
 extension DiagramPipeline {
-    /// Default export registry.
-    /// Mermaid covers all 28 diagram types and is the primary exporter.
-    /// D2, Structurizr, and PlantUML are appended for format conversion.
-    ///
-    /// When multiple exporters support a type, the first in the registry
-    /// wins. Mermaid is first because it has the broadest coverage.
+    /// Default export registry, keyed by format ID.
+    /// Mermaid is the primary exporter with the broadest type coverage.
+    /// D2, Structurizr, and PlantUML are registered for format conversion.
+    /// Dispatch is by format ID — callers request `.d2` and get the D2
+    /// exporter regardless of Mermaid's overlapping coverage.
     public static let defaultExportRegistry: ExporterRegistry = {
-        var registry = ExporterRegistry(exporters: [MermaidExporter()])
+        var registry = ExporterRegistry.empty
+            .registering(MermaidExporter())
         // Subsequent slices append here:
-        // registry = registry.appending(D2Exporter())
-        // registry = registry.appending(StructurizrExporter())
-        // registry = registry.appending(PlantUMLExporter())
+        // registry = registry.registering(D2Exporter())
+        // registry = registry.registering(StructurizrExporter())
+        // registry = registry.registering(PlantUMLExporter())
         return registry
     }()
 }
 ```
-
-As each exporter slice lands, the default registry grows.
 
 ---
 
@@ -424,13 +508,13 @@ will support. ✅ = planned support in this phase; ❌ = unsupported (diagnostic
 
 | Diagram Type    | Mermaid | D2  | Structurizr | PlantUML |
 |-----------------|---------|-----|-------------|----------|
-| flowchart       | ✅      | ✅  | ❌          | ✅(act)  |
-| stateDiagram    | ✅      | ❌  | ❌          | ✅       |
+| flowchart       | ✅      | ✅  | ❌          | ◌ (6C)   |
+| stateDiagram    | ✅      | ❌  | ❌          | ◌ (6C)   |
 | sequenceDiagram | ✅      | ❌  | ❌          | ✅       |
-| classDiagram    | ✅      | ❌  | ❌          | ✅       |
-| erDiagram       | ✅      | ✅  | ❌          | ❌       |
-| gantt           | ✅      | ❌  | ❌          | ✅       |
-| mindmap         | ✅      | ❌  | ❌          | ✅       |
+| classDiagram    | ✅      | ❌  | ❌          | ◌ (6B)   |
+| erDiagram       | ✅      | ❌  | ❌          | ❌       |
+| gantt           | ✅      | ❌  | ❌          | ◌ (6D)   |
+| mindmap         | ✅      | ❌  | ❌          | ◌ (6D)   |
 | c4              | ✅      | ❌  | ✅          | ✅       |
 | pie             | ✅      | ❌  | ❌          | ❌       |
 | xyChart         | ✅      | ❌  | ❌          | ❌       |
@@ -443,7 +527,7 @@ will support. ✅ = planned support in this phase; ❌ = unsupported (diagnostic
 | block           | ✅      | ❌  | ❌          | ❌       |
 | packet          | ✅      | ❌  | ❌          | ❌       |
 | kanban          | ✅      | ❌  | ❌          | ❌       |
-| architecture    | ✅      | ✅  | ❌          | ❌       |
+| architecture    | ✅      | ❌  | ❌          | ❌       |
 | radar           | ✅      | ❌  | ❌          | ❌       |
 | treemap         | ✅      | ❌  | ❌          | ❌       |
 | venn            | ✅      | ❌  | ❌          | ❌       |
@@ -453,18 +537,28 @@ will support. ✅ = planned support in this phase; ❌ = unsupported (diagnostic
 | wardleyBeta     | ✅      | ❌  | ❌          | ❌       |
 | zenuml          | ✅      | ❌  | ❌          | ❌       |
 
-**Mermaid** exports all 28 types because the Mermaid parser already handles
-all 28. The exporter reverses the parse path per-family.
+✅ = implemented in this phase; ◌ = gated by future importer slice (Phase 6);
+❌ = unsupported (returns diagnostic).
 
-**D2** exports flowchart, ER, and architecture — the diagram types D2
-natively represents as graph structures with nodes, edges, and containers.
+**Mermaid** starts with P0 families (flowchart, sequence, class, ER, c4) and
+grows through sub-slices (§5.3). The Mermaid importer handles all 28 types,
+so every family is eligible for export — but `supportedDiagramTypes` only
+lists families whose emit functions exist. Unimplemented families return a
+`.unsupported` diagnostic.
+
+**D2** exports flowchart only — matching the current `D2Importer` which only
+produces `DiagramPayload.flowchart`. ER and architecture D2 export are
+deferred until the D2 importer gains those mappings (future Phase 3 extension).
 
 **Structurizr** exports only C4 — Structurizr DSL has no syntax for other
-diagram families.
+diagram families. The current `StructurizrImporter` produces `.c4`.
 
-**PlantUML** exports sequence, class, state/activity, mindmap, gantt, C4,
-and flowchart (via activity diagrams). The supported set matches the
-PlantUML import slices implemented in Phase 6.
+**PlantUML** 7D starts with sequence export only, matching the current
+`PlantUMLImporter` which only supports `.sequenceDiagram` (Slice 6A complete).
+Class (6B), state/activity (6C), mindmap+gantt (6D), and PlantUML C4 (uses
+Structurizr importer path) are gated by their Phase 6 importer slices. The
+PlantUML C4 exporter also appears in 7C as a Structurizr C4 → PlantUML C4
+round-trip test target.
 
 **Exporting to an unsupported format** produces:
 ```swift
@@ -485,18 +579,24 @@ DiagramExportResult(
 // Tests/DiagramKitTests/Export/ExportMatrixTests.swift
 
 @Suite struct ExportMatrixTests {
-    @Test("Mermaid exporter supports all 28 diagram types")
-    func mermaidExporterSupportsAllTypes() {
+    @Test("Mermaid exporter P0 supported types")
+    func mermaidExporterP0Types() {
         let exporter = MermaidExporter()
-        #expect(exporter.supportedDiagramTypes.count == 28)
+        #expect(exporter.supportedDiagramTypes.contains(.flowchart))
+        #expect(exporter.supportedDiagramTypes.contains(.sequenceDiagram))
+        #expect(exporter.supportedDiagramTypes.contains(.classDiagram))
+        #expect(exporter.supportedDiagramTypes.contains(.erDiagram))
+        #expect(exporter.supportedDiagramTypes.contains(.c4))
+        // P1/P2 types not yet implemented
+        #expect(!exporter.supportedDiagramTypes.contains(.stateDiagram))
     }
 
-    @Test("D2 exporter supports flowchart, ER, architecture")
+    @Test("D2 exporter supports flowchart only")
     func d2ExporterSupportedTypes() {
         let exporter = D2Exporter()
         #expect(exporter.supportedDiagramTypes.contains(.flowchart))
-        #expect(exporter.supportedDiagramTypes.contains(.erDiagram))
-        #expect(exporter.supportedDiagramTypes.contains(.architecture))
+        #expect(!exporter.supportedDiagramTypes.contains(.erDiagram))
+        #expect(!exporter.supportedDiagramTypes.contains(.architecture))
         #expect(!exporter.supportedDiagramTypes.contains(.sequenceDiagram))
     }
 
@@ -514,7 +614,6 @@ DiagramExportResult(
 
     @Test("No exporter silently returns empty source with zero diagnostics")
     func noSilentEmptyOutput() throws {
-        // Verify that every exporter's unsupported path produces a diagnostic.
         let exporters: [any DiagramExporter] = [
             MermaidExporter(),
             D2Exporter(),
@@ -527,10 +626,19 @@ DiagramExportResult(
             {
                 let doc = DiagramDocument(type: type)
                 let result = try exporter.export(doc)
-                #expect(!result.diagnostics.isEmpty,
-                    "\(exporter.name) produced empty diagnostics for unsupported type \(type.rawValue)")
+                #expect(result.source.isEmpty,
+                    "\(exporter.name) should produce empty source for unsupported type \(type.rawValue)")
+                #expect(result.diagnostics.contains { $0.severity == .unsupported },
+                    "\(exporter.name) should produce .unsupported diagnostic for type \(type.rawValue)")
             }
         }
+    }
+
+    @Test("Exporter registry lookup by format ID")
+    func registryLookupByFormatID() {
+        let registry = DiagramPipeline.defaultExportRegistry
+        #expect(registry.exporter(named: .mermaid) != nil)
+        #expect(registry.exporter(named: .graphviz) == nil) // deferred
     }
 }
 ```
@@ -539,8 +647,9 @@ DiagramExportResult(
 
 ## 5. Slice 7A: Mermaid Exporter
 
-**Slice goal**: emit valid Mermaid source for all 28 diagram types from
-`DiagramDocument`.
+**Slice goal**: emit valid Mermaid source from `DiagramDocument`, starting
+with P0 families (flowchart, sequence, class, ER, c4) and growing through
+sub-slices.
 
 **Where**: `Sources/DiagramKit/Exporter/MermaidExporter.swift` and
 per-family emit helpers under `Sources/DiagramKit/Exporter/MermaidExport/`.
@@ -548,7 +657,7 @@ per-family emit helpers under `Sources/DiagramKit/Exporter/MermaidExport/`.
 ### 5.1 Why Mermaid First
 
 Mermaid is the highest-value exporter:
-- All 28 diagram types have known Mermaid syntax.
+- Mermaid importer covers all 28 diagram types — the broadest surface.
 - The round-trip test (parse Mermaid → export Mermaid → parse again) is the
   primary correctness gate.
 - Editor source-pane sync requires Mermaid export before any other format.
@@ -556,12 +665,28 @@ Mermaid is the highest-value exporter:
 
 ### 5.2 Exporter Architecture
 
+`MermaidExporter.supportedDiagramTypes` reflects only families whose emit
+functions exist. Unimplemented families return a `.unsupported` diagnostic.
+The set grows as sub-slices land.
+
 ```swift
 // Sources/DiagramKit/Exporter/MermaidExporter.swift
 
 public struct MermaidExporter: DiagramExporter {
     public let name = "Mermaid"
-    public let supportedDiagramTypes = Set(DiagramType.allCases)
+    public let formatID = DiagramFormatID.mermaid
+    /// Grows per sub-slice. Only families with active emit functions.
+    public let supportedDiagramTypes: Set<DiagramType> = [
+        .flowchart,       // 7A-P0
+        .sequenceDiagram, // 7A-P0
+        .classDiagram,    // 7A-P0
+        .erDiagram,       // 7A-P0
+        .c4,              // 7A-P0
+        // .stateDiagram  — added in 7A-P1
+        // .gantt         — added in 7A-P1
+        // .mindmap       — added in 7A-P1
+        // ... remaining families in 7A-P2 / Phase 10
+    ]
 
     public init() {}
 
@@ -569,26 +694,24 @@ public struct MermaidExporter: DiagramExporter {
         switch document.payload {
         case .flowchart(let model):
             return try MermaidFlowchartExport.emit(model)
-        case .stateDiagram(let model):
-            return try MermaidStateExport.emit(model)
         case .sequenceDiagram(let model):
             return try MermaidSequenceExport.emit(model)
         case .classDiagram(let model):
             return try MermaidClassExport.emit(model)
         case .erDiagram(let model):
             return try MermaidERExport.emit(model)
-        case .gantt(let model):
-            return try MermaidGanttExport.emit(model)
-        case .mindmap(let model):
-            return try MermaidMindmapExport.emit(model)
         case .c4(let model):
             return try MermaidC4Export.emit(model)
-        case .pie(let model):
-            return try MermaidPieExport.emit(model)
-        // ... remaining 19 cases ...
-        case .zenuml(let model):
-            // ZenUML within Mermaid — emit the Mermaid wrapper syntax
-            return try MermaidZenUMLExport.emit(model)
+        default:
+            return DiagramExportResult(
+                source: "",
+                diagnostics: [
+                    DiagramDiagnostic(
+                        severity: .unsupported,
+                        message: "Mermaid export for '\(document.type.rawValue)' not yet implemented (7A-P1/7A-P2/Phase 10)"
+                    )
+                ]
+            )
         }
     }
 }
@@ -600,29 +723,17 @@ Each family gets its own emit function in a separate file. These are
 internal helper structs/enums, not public API. They operate solely on the
 typed payload (e.g., `ParsedGraphModel`, `SequenceDiagram`, etc.).
 
-**Priority order for family implementation:**
+**Sub-slice priority order:**
 
-| Priority | Family       | Complexity | Reason                                  |
-|----------|-------------|------------|------------------------------------------|
-| P0       | flowchart   | Medium     | Most common type; D2 round-trip target   |
-| P0       | sequence    | Medium     | PlantUML round-trip target; Structurizr adjacent |
-| P0       | class       | Medium     | High usage; PlantUML round-trip target   |
-| P0       | ER          | Low        | Simple model; D2 round-trip target       |
-| P0       | c4          | Medium     | Structurizr round-trip target            |
-| P1       | state       | Medium     | PlantUML round-trip target               |
-| P1       | gantt       | Medium     | PlantUML round-trip target               |
-| P1       | mindmap     | Low        | Simple model; PlantUML round-trip target |
-| P2       | pie         | Low        | Simple model                             |
-| P2       | xyChart     | Low        | Simple model                             |
-| P2       | gitGraph    | Medium     | Unique syntax                            |
-| P2       | requirement | Medium     | Unique syntax                            |
-| P3       | All others  | Varies     | Long tail; not needed for initial round-trips |
+| Sub-slice | Families                          | Depends On                 |
+|-----------|-----------------------------------|----------------------------|
+| 7A-P0     | flowchart, sequence, class, ER, c4 | — (initial)               |
+| 7A-P1     | state, gantt, mindmap             | P0 complete               |
+| 7A-P2     | pie, xyChart, gitGraph, requirement | P1 complete              |
+| 7A-P3     | All remaining 16 families         | Deferred to Phase 10      |
 
-**P0 families** are implemented before the Mermaid exporter is considered
-"slice complete." P1 and P2 families are implemented within Phase 7 but can
-be deferred past the initial D2/Structurizr/PlantUML exporter slices.
-P3 families may be deferred to Phase 10 (Release and Deprecation Cleanup)
-if they have no round-trip targets.
+7A-P0 must be complete before 7B/7C/7D can use Mermaid as the round-trip
+baseline. P1 and P2 can proceed in parallel with 7B/7C/7D.
 
 ### 5.4 Flowchart Emit Design
 
@@ -739,44 +850,72 @@ C4Context
   Rel(customer, system, "Uses")
 ```
 
-### 5.9 State Emit Design
+### 5.9 Escaping and Identifier Sanitization
 
+Emitters write labels, IDs, and text content directly into source strings
+for multiple languages (Mermaid, D2, PlantUML, Structurizr). Each language
+has different quoting, escaping, and reserved-word rules. Underscaped
+content produces broken source that the importer cannot re-parse.
+
+**`MermaidExportHelpers.swift` provides:**
+
+```swift
+// Sources/DiagramKit/Exporter/MermaidExport/MermaidExportHelpers.swift
+
+enum MermaidExportHelpers {
+    /// Escape for Mermaid bracket labels: `[label]`.
+    /// Escapes `]`, `[`, `"`, backslash. Newlines → spaces (diagnostic).
+    static func escapeBracketLabel(_ text: String) -> (escaped: String, diagnostics: [DiagramDiagnostic])
+
+    /// Escape for Mermaid edge labels: `-->|label|`.
+    /// Escapes `|`, `"`, backslash.
+    static func escapeEdgeLabel(_ text: String) -> (escaped: String, diagnostics: [DiagramDiagnostic])
+
+    /// Sanitize a Mermaid identifier (node ID, participant alias).
+    /// Spaces → underscores, strips leading digits, removes non-`[a-zA-Z0-9_-]`.
+    static func sanitizeIdentifier(_ raw: String) -> (sanitized: String, diagnostics: [DiagramDiagnostic])
+
+    /// Quote for Mermaid quoted values (`"text"`).
+    /// Escapes `"`, backslash, newlines.
+    static func quote(_ text: String) -> (quoted: String, diagnostics: [DiagramDiagnostic])
+}
 ```
-stateDiagram-v2
-  [*] --> Idle
-  Idle --> Processing : start
-  state Processing {
-    [*] --> Validating
-    Validating --> Executing
-    Executing --> [*]
-  }
-  Processing --> Done
-  Done --> [*]
-```
+
+**Per-format escaping rules tested before family emitters:**
+
+| Format      | Escaping concern                                         | Test suite                  |
+|-------------|----------------------------------------------------------|-----------------------------|
+| Mermaid     | bracket labels, edge labels, identifiers, quoted strings | `MermaidEscapeTests`       |
+| D2          | quoted labels, identifiers with dots/dashes, braces      | `D2EscapeTests`            |
+| Structurizr | quoted strings in DSL, identifiers                       | `StructurizrEscapeTests`   |
+| PlantUML    | quoted labels, participant names, note text, `:` in text | `PlantUMLEscapeTests`      |
+
+**Escape tests verify:**
+- Labels containing `"`, `]`, `|`, `:`, `\n`, `{`, `}`, `#` round-trip correctly
+- Identifiers with spaces, dots, leading digits are sanitized
+- Empty labels produce minimum valid output (not syntax errors)
+- Sanitization diagnostics are emitted when content is modified
+- The result passes the corresponding importer's `supports(source:)`
 
 ### 5.10 Files to Create
 
 ```
 Sources/DiagramKit/Exporter/
-├── MermaidExporter.swift              (~80 lines)
+├── MermaidExporter.swift              (~90 lines)
 ├── MermaidExport/
 │   ├── MermaidExportHelpers.swift     (~60 lines, shared formatting)
+│   ├── MermaidEscapeHelpers.swift     (~80 lines, escaping + sanitization)
 │   ├── MermaidFlowchartExport.swift   (~200 lines)
 │   ├── MermaidSequenceExport.swift    (~180 lines)
 │   ├── MermaidClassExport.swift       (~150 lines)
 │   ├── MermaidERExport.swift          (~120 lines)
 │   ├── MermaidC4Export.swift          (~150 lines)
-│   ├── MermaidStateExport.swift       (~130 lines)
-│   ├── MermaidGanttExport.swift       (~180 lines)
-│   ├── MermaidMindmapExport.swift     (~80 lines)
-│   ├── MermaidPieExport.swift         (~80 lines)
-│   ├── MermaidGitGraphExport.swift    (~120 lines)
-│   ├── MermaidRequirementExport.swift (~120 lines)
-│   └── MermaidZenUMLExport.swift      (~60 lines)
+│   ├── (7A-P1: MermaidStateExport, MermaidGanttExport, MermaidMindmapExport)
+│   └── (7A-P2: MermaidPieExport, MermaidGitGraphExport, MermaidRequirementExport, ...)
 └── MermaidExportDiagnostics.swift     (~30 lines)
 ```
 
-**Total estimated source**: ~1,720 lines across 14 files. All under 500 lines.
+**7A-P0 estimated source**: ~1,060 lines across 10 files. All under 500 lines.
 
 ### 5.11 Tests
 
@@ -787,6 +926,7 @@ Sources/DiagramKit/Exporter/
 - `Tests/DiagramKitTests/Export/MermaidClassExportTests.swift`
 - `Tests/DiagramKitTests/Export/MermaidERExportTests.swift`
 - `Tests/DiagramKitTests/Export/MermaidC4ExportTests.swift`
+- `Tests/DiagramKitTests/Export/MermaidEscapeTests.swift`
 
 **Test structure** (per family):
 - **Round-trip**: parse Mermaid source → export to Mermaid → parse again →
@@ -794,18 +934,19 @@ Sources/DiagramKit/Exporter/
 - **Idempotency**: export → parse → export → parse. The second parse should
   produce the same `DiagramDocument` as the first.
 - **Diagnostic emission**: unsupported styling constructs produce warnings
-  but don't block export.
+  but don't block export; unimplemented families return `.unsupported`.
 - **Empty model → valid source**: `DiagramDocument(type: .flowchart)` with
   empty graph → produces `graph TD\n` (or equivalent minimum valid source).
 - **Source validity**: every exported source passes
   `MermaidImporter().supports(source:)`.
+- **Escape round-trip**: labels with special characters survive export→parse.
 
 ---
 
 ## 6. Slice 7B: D2 Exporter
 
-**Slice goal**: emit valid D2 source for flowchart, ER, and architecture
-diagrams from `DiagramDocument`.
+**Slice goal**: emit valid D2 source for flowchart diagrams from
+`DiagramDocument`.
 
 **Where**: `Sources/DiagramKitD2/D2Exporter.swift`
 
@@ -814,10 +955,14 @@ diagrams from `DiagramDocument`.
 ```swift
 public struct D2Exporter: DiagramExporter {
     public let name = "D2"
+    public let formatID = DiagramFormatID.d2
+    /// Flowchart only — matches D2Importer's current coverage.
+    /// ER and architecture D2 export are deferred until the D2 importer
+    /// gains those mappings.
     public let supportedDiagramTypes: Set<DiagramType> = [
         .flowchart,
-        .erDiagram,
-        .architecture
+        // .erDiagram      — deferred: D2Importer only produces .flowchart
+        // .architecture   — deferred: D2Importer only produces .flowchart
     ]
 ```
 
@@ -856,59 +1001,39 @@ Decision -> Process: no
 - Styling: `classDef` fill/stroke → D2 style properties on nodes.
   Unsupported Mermaid styling constructs → diagnostic.
 
-### 6.3 ER → D2 Mapping
+### 6.3 Deferred D2 Types
 
-`ErDiagram` → D2 SQL table shapes:
+**ER and architecture D2 export are deferred** because the current
+`D2Importer` only produces `DiagramPayload.flowchart` (see
+`Sources/DiagramKitD2/D2Importer.swift`). Per rule 6 (§1.5), exporters
+must not claim types their importer cannot parse. When the D2 importer
+gains ER and architecture mappings (future Phase 3 extension), the
+corresponding D2 export functions will follow.
 
-```
-CUSTOMER: {
-  shape: sql_table
-  id int {constraint: primary_key}
-  name varchar
-}
-ORDER: {
-  shape: sql_table
-  ...
-}
-CUSTOMER -> ORDER: places {constraint: foreign_key}
-```
-
-### 6.4 Architecture → D2 Mapping
-
-`ArchitectureDiagram` → D2 container + edge syntax:
-
-```
-services: "Services" {
-  api: "API Gateway" {
-    shape: hexagon
-  }
-  auth: "Auth Service"
-}
-services.api -> services.auth
-```
-
-### 6.5 Files
+### 6.4 Files
 
 ```
 Sources/DiagramKitD2/
-├── D2Exporter.swift      (~120 lines)
-├── D2ExportHelpers.swift  (~60 lines)
+├── D2Exporter.swift       (~100 lines)
+├── D2ExportHelpers.swift  (~60 lines, escaping + formatting)
 ```
 
-### 6.6 Tests
+### 6.5 Tests
 
 - `Tests/DiagramKitTests/Export/D2ExporterTests.swift`
 - `Tests/DiagramKitTests/Export/D2FlowchartExportTests.swift`
-- `Tests/DiagramKitTests/Export/D2ERExportTests.swift`
+- `Tests/DiagramKitTests/Export/D2EscapeTests.swift`
 
-**Tests** (~30 total):
+**Tests** (~25 total):
 - Round-trip: parse Mermaid flowchart → export D2 → parse D2 → structural
   equality.
-- Round-trip: parse Mermaid ER → export D2 → parse D2 → structural equality.
 - Round-trip: parse D2 flowchart → export D2 → parse D2 → idempotent.
-- Unsupported type → diagnostic.
+- Cross-format: parse Mermaid flowchart → export D2 → parse D2 → export D2
+  → parse D2 (idempotent in target format).
+- Unsupported type (.erDiagram, .sequenceDiagram) → diagnostic.
 - Empty model → valid D2 source.
 - Source validity: exported D2 source passes `D2Importer().supports(source:)`.
+- D2 escaping: identifiers with dots/slashes/dashes in D2 syntax.
 
 ---
 
@@ -993,8 +1118,8 @@ Sources/DiagramKitStructurizr/
 
 ## 8. Slice 7D: PlantUML Exporter
 
-**Slice goal**: emit valid PlantUML source for the diagram types covered by
-Phase 6 PlantUML importers.
+**Slice goal**: emit valid PlantUML source, starting with sequence diagrams.
+Additional families are gated by their Phase 6 importer slices (6B-6E).
 
 **Where**: `Sources/DiagramKitPlantUML/Exporter/`
 
@@ -1003,14 +1128,16 @@ Phase 6 PlantUML importers.
 ```swift
 public struct PlantUMLExporter: DiagramExporter {
     public let name = "PlantUML"
+    public let formatID = DiagramFormatID.plantuml
+    /// Sequence only — matches PlantUMLImporter's current coverage (6A).
+    /// Additional families are gated by their Phase 6 importer slices:
+    ///   .classDiagram    — gated by 6B
+    ///   .stateDiagram    — gated by 6C
+    ///   .mindmap, .gantt — gated by 6D
+    ///   .c4              — uses Structurizr importer path; round-trip in 7C
+    ///   .flowchart       — gated by 6C (activity diagrams)
     public let supportedDiagramTypes: Set<DiagramType> = [
         .sequenceDiagram,
-        .classDiagram,
-        .stateDiagram,    // includes activity
-        .mindmap,
-        .gantt,
-        .c4,
-        .flowchart        // emitted as activity diagram
     ]
 ```
 
@@ -1035,60 +1162,51 @@ end
 Reverse of the PlantUML sequence parser's mapping. Boxes, notes, autonumber
 are all supported.
 
-### 8.3 Class → PlantUML Mapping
+### 8.3 Gated PlantUML Families
 
-```
-@startuml
-class Animal {
-  +name: String
-  -age: Integer
-  #protectedField
-}
-interface Flyable
-Animal <|-- Dog
-Dog *-- Tail
-@enduml
-```
+Additional PlantUML exporters are gated by their Phase 6 importer slices.
+When each importer slice completes, the corresponding exporter follows:
 
-### 8.4 C4 → PlantUML Mapping
+| Family         | Importer Slice | Exporter File                   | Est. Lines |
+|----------------|----------------|---------------------------------|------------|
+| sequence       | 6A (done)      | `PlantUMLSequenceExporter.swift` | ~150       |
+| class          | 6B             | `PlantUMLClassExporter.swift`    | ~150       |
+| state/activity | 6C             | `PlantUMLStateExporter.swift`    | ~150       |
+| mindmap        | 6D             | `PlantUMLMindmapExporter.swift`  | ~60        |
+| gantt          | 6D             | `PlantUMLGanttExporter.swift`    | ~150       |
+| c4             | via Structurizr | `PlantUMLC4Exporter.swift`     | ~120       |
 
-```
-@startuml
-!include <C4/C4_Container>
-Person(customer, "Customer", "A customer")
-System(system, "System", "Description")
-Rel(customer, system, "Uses")
-@enduml
-```
+The PlantUML C4 exporter is also used in 7C round-trip tests (Structurizr C4
+→ PlantUML C4 → Structurizr C4). It can ship before the PlantUML C4 importer
+(slice 6E) because it relies on the Structurizr importer for round-trip
+verification.
 
-### 8.5 Files
+### 8.4 Files
 
 ```
 Sources/DiagramKitPlantUML/Exporter/
-├── PlantUMLExporter.swift              (~100 lines, family dispatch)
+├── PlantUMLExporter.swift              (~80 lines, family dispatch)
 ├── PlantUMLSequenceExporter.swift      (~150 lines)
-├── PlantUMLClassExporter.swift         (~150 lines)
-├── PlantUMLStateExporter.swift         (~150 lines)
-├── PlantUMLMindmapExporter.swift       (~60 lines)
-├── PlantUMLGanttExporter.swift         (~150 lines)
-├── PlantUMLC4Exporter.swift            (~120 lines)
-└── PlantUMLExportDiagnostics.swift     (~30 lines)
+├── PlantUMLExportDiagnostics.swift     (~30 lines)
+└── (additional family exporters gated by Phase 6 slices — see §8.3)
 ```
 
-**Total estimated source**: ~910 lines across 8 files.
+**7D sequence-only estimated source**: ~260 lines across 3 files.
 
-### 8.6 Tests
+### 8.5 Tests
 
 - `Tests/DiagramKitTests/Export/PlantUMLExporterTests.swift`
 - `Tests/DiagramKitTests/Export/PlantUMLSequenceExportTests.swift`
+- `Tests/DiagramKitTests/Export/PlantUMLEscapeTests.swift`
 
-**Tests** (~40 total):
-- Per-family round-trip: parse PlantUML → export PlantUML → parse PlantUML →
-  structural equality.
-- Cross-format round-trip: parse Mermaid sequence → export PlantUML →
+**Tests** (~25 total):
+- Self round-trip: parse PlantUML sequence → export PlantUML →
   parse PlantUML → structural equality.
+- Cross-format: parse Mermaid sequence → export PlantUML →
+  parse PlantUML → parse PlantUML again (idempotent in target format).
 - Unsupported type → diagnostic.
 - Source validity: exported source passes `PlantUMLImporter().supports(source:)`.
+- PlantUML escaping: `:` in labels, quoted participant names, note text.
 
 ---
 
@@ -1287,15 +1405,18 @@ Tests/DiagramKitTests/Export/
 ├── MermaidClassExportTests.swift         (~15 tests)
 ├── MermaidERExportTests.swift            (~10 tests)
 ├── MermaidC4ExportTests.swift            (~10 tests)
+├── MermaidEscapeTests.swift              (~15 tests)
 ├── D2ExporterTests.swift                 (~15 tests)
 ├── D2FlowchartExportTests.swift          (~15 tests)
-├── D2ERExportTests.swift                 (~10 tests)
+├── D2EscapeTests.swift                   (~10 tests)
 ├── StructurizrExporterTests.swift        (~15 tests)
+├── StructurizrEscapeTests.swift          (~8 tests)
 ├── PlantUMLExporterTests.swift           (~15 tests)
-└── PlantUMLSequenceExportTests.swift     (~15 tests)
+├── PlantUMLSequenceExportTests.swift     (~15 tests)
+└── PlantUMLEscapeTests.swift             (~10 tests)
 ```
 
-**Total estimated tests**: ~340 across 16 files.
+**Total estimated tests**: ~350 across 19 files.
 
 ---
 
@@ -1378,6 +1499,13 @@ The following are **explicitly deferred** from Phase 7:
   content (nodes, edges, labels, types). Style fidelity (colors, fonts,
   exact shape markers) is best-effort and may lose detail through
   cross-format round-trips. This is documented behavior.
+- **`DiagramDiagnostic` location.** `DiagramKitExport` depends on
+  `DiagramKitImport` solely for `DiagramDiagnostic` reuse. This is
+  semantically awkward (export depending on the import boundary) but
+  acyclic and pragmatic for Phase 7. In Phase 10 (Release and Deprecation
+  Cleanup), `DiagramDiagnostic` should be evaluated for a move to
+  `DiagramKitCommon` so both import and export can depend on it without
+  coupling to each other.
 
 ---
 
@@ -1389,12 +1517,12 @@ cross-format tests.
 
 | Slice | Exporter     | Est. Source | Est. Test | Est. Tests | Depends On |
 |-------|-------------|------------|-----------|------------|------------|
-| 7A    | Mermaid     | ~1,720      | ~1,200    | ~150       | —          |
-| 7B    | D2          | ~180        | ~400      | ~40        | 7A (for round-trip fixtures) |
+| 7A    | Mermaid (P0)| ~1,060      | ~1,000    | ~130       | —          |
+| 7B    | D2          | ~160        | ~350      | ~25        | 7A (for round-trip fixtures) |
 | 7C    | Structurizr | ~200        | ~300      | ~25        | 7A (for round-trip fixtures) |
-| 7D    | PlantUML    | ~910        | ~500      | ~40        | 7A (for round-trip fixtures) |
-|       | Shared infra| ~350        | ~800      | ~85        | —          |
-| **Total** |         | **~3,360**  | **~3,200** | **~340**  |            |
+| 7D    | PlantUML    | ~260        | ~350      | ~25        | 7A (for round-trip fixtures) |
+|       | Shared infra| ~350        | ~850      | ~90        | —          |
+| **Total** |         | **~2,030**  | **~2,850** | **~295**  |            |
 
 **Shared infra** includes the `DiagramKitExport` target, `ExporterRegistryTests`,
 `ExportMatrixTests`, `RoundTripHelpers`, and the cross-format `RoundTripTests`.
@@ -1412,6 +1540,8 @@ Each subsequent slice adds ~1 day of implementation + ~1 day of review.
 ---
 
 *This plan was written against the in-progress Phase 6 state described in
-`PHASE-6.md` and `PHASES.md`. The importer architecture (Phase 1-6) provides
-the `DiagramDocument` model that exporters consume. The sparse matrix
+`PHASE-6.md` and `PHASES.md` (revised 2026-05-12 per review for format-targeted
+dispatch, honest `supportedDiagramTypes`, importer-gated exporters, and escaping
+requirements). The importer architecture (Phase 1-6) provides the
+`DiagramDocument` model that exporters consume. The sparse matrix
 constraints in `ANALYSIS.md` §6 guide the `supportedDiagramTypes` sets.*
