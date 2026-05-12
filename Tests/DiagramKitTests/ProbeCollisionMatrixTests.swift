@@ -3,6 +3,7 @@ import Testing
 import DiagramKitModel
 import DiagramKitImport
 import DiagramKitD2
+import DiagramKitGraphviz
 
 @Suite struct ProbeCollisionMatrixTests {
 
@@ -25,13 +26,6 @@ import DiagramKitD2
     // distinguishable. When those importers land, they are prepended
     // before MermaidImporter so their probes fire first.
 
-    @Test("DOT probe signature: digraph keyword")
-    func dotProbeSignature() {
-        let source = "digraph G {\n  a -> b\n}"
-        let firstLine = source.split(separator: "\n").first ?? ""
-        #expect(firstLine.hasPrefix("digraph") || firstLine.hasPrefix("graph"))
-    }
-
     @Test("d2 probe signature: edge syntax with colon assignment")
     func d2ProbeSignature() {
         let source = "a -> b\nb: c"
@@ -50,6 +44,98 @@ import DiagramKitD2
     func structurizrProbeSignature() {
         let source = "workspace {\n  model {\n    user = person \"User\"\n  }\n}"
         #expect(source.contains("workspace {"))
+    }
+
+    // MARK: - DOT probe collision tests (Phase 4)
+
+    @Test("DOT probe accepts digraph")
+    func dotProbeAcceptsDigraph() {
+        let dot = GraphvizImporter()
+        #expect(dot.supports(source: "digraph G { A -> B }"))
+    }
+
+    @Test("DOT probe accepts graph")
+    func dotProbeAcceptsGraph() {
+        let dot = GraphvizImporter()
+        #expect(dot.supports(source: "graph G { A -- B }"))
+    }
+
+    @Test("DOT probe accepts strict digraph")
+    func dotProbeAcceptsStrictDigraph() {
+        let dot = GraphvizImporter()
+        #expect(dot.supports(source: "strict digraph G { }"))
+    }
+
+    @Test("DOT probe rejects Mermaid graph TD")
+    func dotProbeRejectsMermaidGraphTD() {
+        let dot = GraphvizImporter()
+        #expect(!dot.supports(source: "graph TD\nA-->B"))
+    }
+
+    @Test("DOT probe rejects Mermaid flowchart")
+    func dotProbeRejectsMermaidFlowchart() {
+        let dot = GraphvizImporter()
+        #expect(!dot.supports(source: "flowchart LR\nA-->B"))
+    }
+
+    @Test("DOT probe rejects D2 source")
+    func dotProbeRejectsD2Source() {
+        let dot = GraphvizImporter()
+        #expect(!dot.supports(source: "A: Start\nA -> B"))
+    }
+
+    @Test("DOT probe rejects bare edge")
+    func dotProbeRejectsBareEdge() {
+        let dot = GraphvizImporter()
+        #expect(!dot.supports(source: "A -> B"))
+    }
+
+    @Test("DOT probe rejects PlantUML")
+    func dotProbeRejectsPlantUML() {
+        let dot = GraphvizImporter()
+        #expect(!dot.supports(source: "@startuml\nAlice -> Bob: Hello\n@enduml"))
+    }
+
+    @Test("DOT probe rejects Structurizr")
+    func dotProbeRejectsStructurizr() {
+        let dot = GraphvizImporter()
+        #expect(!dot.supports(source: "workspace { model { user = person } }"))
+    }
+
+    @Test("DOT probe rejects prefix match (digraphy)")
+    func dotProbeRejectsPrefixMatch() {
+        let dot = GraphvizImporter()
+        #expect(!dot.supports(source: "digraphy { }"))
+    }
+
+    @Test("registry prepends Graphviz before D2")
+    func registryPrependsGraphvizBeforeD2() {
+        let graphviz = GraphvizImporter()
+        let d2 = D2Importer()
+        let mermaid = MermaidImporter()
+        let registry = ImporterRegistry(importers: [graphviz, d2, mermaid])
+        let importer = registry.importer(for: "digraph G { A -> B }")
+        #expect(importer?.name == "Graphviz")
+    }
+
+    @Test("registry falls back to D2 for bare edge")
+    func registryFallsBackToD2ForBareEdge() {
+        let graphviz = GraphvizImporter()
+        let d2 = D2Importer()
+        let mermaid = MermaidImporter()
+        let registry = ImporterRegistry(importers: [graphviz, d2, mermaid])
+        let importer = registry.importer(for: "A -> B")
+        #expect(importer?.name == "D2")
+    }
+
+    @Test("registry falls back to Mermaid for graph TD")
+    func registryFallsBackToMermaidForGraphTD() {
+        let graphviz = GraphvizImporter()
+        let d2 = D2Importer()
+        let mermaid = MermaidImporter()
+        let registry = ImporterRegistry(importers: [graphviz, d2, mermaid])
+        let importer = registry.importer(for: "graph TD\nA-->B")
+        #expect(importer?.name == "Mermaid")
     }
 
     // MARK: - D2 probe collision tests (Phase 3)

@@ -1,9 +1,9 @@
 # Phase 4: DOT Importer Vertical Slice — Plan
 
-Date: 2026-05-12 (revised 2026-05-12 per review). This document is the
-executable plan for Phase 4 of the DiagramKit multi-format roadmap. It follows
-`PHASE-3.md` (complete: D2 importer) and precedes Phase 5 (Structurizr
-importer).
+Date: 2026-05-12 (revised 2026-05-12 per review). **Status: COMPLETE** as of
+2026-05-12. This document is the executable plan for Phase 4 of the DiagramKit
+multi-format roadmap. It follows `PHASE-3.md` (complete: D2 importer) and
+precedes Phase 5 (Structurizr importer).
 
 ## Goal
 
@@ -740,19 +740,19 @@ swift test --filter PlaygroundCorpusDecodingTests
 
 | File | Action | Status |
 |---|---|---|
-| `Package.swift` | Add `DiagramKitGraphviz` target, product, deps. Add to umbrella + test target deps | Planned |
-| `Sources/DiagramKitGraphviz/DOTAST.swift` | New — DOT AST types | Planned |
-| `Sources/DiagramKitGraphviz/DOTLexer.swift` | New — DOT token types + lexer | Planned |
-| `Sources/DiagramKitGraphviz/DOTParser.swift` | New — recursive-descent parser | Planned |
-| `Sources/DiagramKitGraphviz/DOTMapper.swift` | New — DOTAST → `ParsedGraphModel` mapper | Planned |
-| `Sources/DiagramKitGraphviz/DOTProbe.swift` | New — narrow DOT probe | Planned |
-| `Sources/DiagramKitGraphviz/GraphvizImporter.swift` | New — `DiagramSourceImporter` conformance | Planned |
-| `Sources/DiagramKit/MermaidPipeline.swift` | Edit — add `GraphvizImporter()` to `defaultRegistry` + `import DiagramKitGraphviz` | Planned |
-| `Tests/DiagramKitTests/DOTParserTests.swift` | New — ~19 parser unit tests | Planned |
-| `Tests/DiagramKitTests/DOTImporterTests.swift` | New — ~27 importer unit tests | Planned |
-| `Tests/DiagramKitTests/ProbeCollisionMatrixTests.swift` | Edit — add ~13 DOT probe collision tests + `import DiagramKitGraphviz` | Planned |
-| `Tests/DiagramKitTests/DOTCorpusFixtureTests.swift` | New — ~6 inline DOT fixture tests | Planned |
-| `Tests/DiagramKitTests/ImporterRegistryTests.swift` | Edit — Graphviz-first registry assertion + `import DiagramKitGraphviz` | Planned |
+| `Package.swift` | Add `DiagramKitGraphviz` target, product, deps. Add to umbrella + test target deps | Done |
+| `Sources/DiagramKitGraphviz/DOTAST.swift` | New — DOT AST types | Done |
+| `Sources/DiagramKitGraphviz/DOTLexer.swift` | New — DOT token types + lexer | Done |
+| `Sources/DiagramKitGraphviz/DOTParser.swift` | New — recursive-descent parser | Done |
+| `Sources/DiagramKitGraphviz/DOTMapper.swift` | New — DOTAST → `ParsedGraphModel` mapper | Done |
+| `Sources/DiagramKitGraphviz/DOTProbe.swift` | New — narrow DOT probe | Done |
+| `Sources/DiagramKitGraphviz/GraphvizImporter.swift` | New — `DiagramSourceImporter` conformance | Done |
+| `Sources/DiagramKit/MermaidPipeline.swift` | Edit — add `GraphvizImporter()` to `defaultRegistry` + `import DiagramKitGraphviz` | Done |
+| `Tests/DiagramKitTests/DOTParserTests.swift` | New — 19 parser unit tests (all pass) | Done |
+| `Tests/DiagramKitTests/DOTImporterTests.swift` | New — 30 importer unit tests (all pass) | Done |
+| `Tests/DiagramKitTests/ProbeCollisionMatrixTests.swift` | Edit — 13 DOT probe collision tests + `import DiagramKitGraphviz` (all pass) | Done |
+| `Tests/DiagramKitTests/DOTCorpusFixtureTests.swift` | New — 6 inline DOT fixture tests (all pass) | Done |
+| `Tests/DiagramKitTests/ImporterRegistryTests.swift` | Edit — Graphviz-first registry assertion + `import DiagramKitGraphviz` (all pass) | Done |
 
 ### Files intentionally NOT changed
 
@@ -907,6 +907,52 @@ and preprocessing (comment stripping, tokenization). The parser consumes
   lenient parsing deferred)
 - Real `test-diagrams.json` multi-format entries
 - DOT snapshot baselines (SVG, image, ASCII)
+
+## Implementation Notes (2026-05-12)
+
+### Parser fixes made during implementation
+
+Three bugs surfaced during initial test runs that required parser corrections:
+
+1. **Header ID consumption** (`parseHeader`). The plan specified `ID?` as the
+   optional graph name, but the original code only *peeked* the identifier
+   without consuming it. For `digraph G { }`, the lexer produces
+   `[identifier("digraph"), identifier("G"), openBrace]`. After consuming
+   `digraph`, the next token was `identifier("G")` — `parseDocument` then
+   called `expect(.openBrace)` which failed. Fixed by consuming the optional
+   graph ID when the next token is `{`.
+
+2. **Subgraph ID consumption** (`parseSubgraph`). Same pattern as header:
+   `subgraph cluster_0 { ... }` was tokenized as
+   `[identifier("subgraph"), identifier("cluster_0"), openBrace, ...]`.
+   The optional subgraph ID had to be explicitly consumed before expecting
+   `{`. Fixed identically to header parsing.
+
+3. **Chained edge handling** (`parseEdgeStatement`). The original
+   implementation returned only the first edge (`A -> B`) from `A -> B -> C`
+   because it could not "unread" consumed tokens for re-entry through
+   `parseStatement`. Fixed by adding a `pendingStatements: [DOTStatement]`
+   buffer to `State`. When a chain is detected, subsequent segments are
+   buffered and flushed at the end of `parseDocument`. The attribute list
+   at the end of the chain is applied to the last buffered edge.
+
+### Test suite results
+
+| Suite | Tests | Status |
+|---|---|---|
+| `DOTParserTests` | 19 | All pass |
+| `DOTImporterTests` | 30 | All pass (includes 3 layout smoke tests) |
+| `ProbeCollisionMatrixTests` | 28 | All pass (13 new DOT tests + existing D2/Mermaid) |
+| `DOTCorpusFixtureTests` | 6 | All pass |
+| `ImporterRegistryTests` | 7 | All pass (updated for 3-importer order) |
+| `D2ParserTests` | 20 | All pass (regression) |
+| `D2ImporterTests` | 22 | All pass (regression) |
+
+### One test correction
+
+The `dotLayoutSmoke` test originally used `digraph { A: Start; ... }` syntax,
+which is D2 colon-assignment, not DOT. DOT uses `A [label="Start"]`. The
+test was corrected to use valid DOT syntax before the final run.
 
 ---
 

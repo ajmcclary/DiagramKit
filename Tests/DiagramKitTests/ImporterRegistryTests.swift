@@ -3,15 +3,21 @@ import Testing
 import DiagramKitModel
 import DiagramKitImport
 import DiagramKitD2
+import DiagramKitGraphviz
 
 @Suite struct ImporterRegistryTests {
 
-    @Test("Default registry has D2 first, Mermaid last")
+    @Test("Default registry has Graphviz first, D2 second, Mermaid last")
     func defaultRegistryOrder() throws {
         let registry = DiagramPipeline.defaultRegistry
-        #expect(registry.importers.count >= 2)
-        #expect(registry.importers[0].name == "D2")
+        #expect(registry.importers.count >= 3)
+        #expect(registry.importers[0].name == "Graphviz")
+        #expect(registry.importers[1].name == "D2")
         #expect(registry.importers.last?.name == "Mermaid")
+
+        // DOT-shaped source picks Graphviz
+        let dotImporter = try #require(registry.importer(for: "digraph G { A -> B }"))
+        #expect(dotImporter.name == "Graphviz")
 
         // d2-shaped source picks D2
         let d2Importer = try #require(registry.importer(for: "A -> B"))
@@ -47,6 +53,14 @@ import DiagramKitD2
         #expect(extended.importers.count == 2)
         #expect(extended.importers[0].name == "D2")
         #expect(extended.importers[1].name == "Mermaid")
+
+        // Graphviz prepended before D2+Mermaid
+        let dot = GraphvizImporter()
+        let withDot = extended.prepending(dot)
+        #expect(withDot.importers.count == 3)
+        #expect(withDot.importers[0].name == "Graphviz")
+        #expect(withDot.importers[1].name == "D2")
+        #expect(withDot.importers[2].name == "Mermaid")
     }
 
     @Test("layout(source:registry:) uses the importer registry")

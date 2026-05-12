@@ -27,6 +27,7 @@ let package = Package(
         .library(name: "DiagramKitViews", targets: ["DiagramKitViews"]),
         .library(name: "DiagramKitTestSupport", targets: ["DiagramKitTestSupport"]),
         .library(name: "DiagramKitD2", targets: ["DiagramKitD2"]),
+        .library(name: "DiagramKitGraphviz", targets: ["DiagramKitGraphviz"]),
         // SwiftPM has a package-wide platform floor, while the Playground app
         // intentionally targets the latest Apple UI APIs. The library products
         // support the platforms declared above; the Playground executable is
@@ -78,6 +79,11 @@ let package = Package(
             swiftSettings: strictConcurrencySettings
         ),
         .target(
+            name: "DiagramKitGraphviz",
+            dependencies: ["DiagramKitModel", "DiagramKitImport"],
+            swiftSettings: strictConcurrencySettings
+        ),
+        .target(
             name: "DiagramKitRenderingCG",
             dependencies: [
                 "DiagramKitCommon",
@@ -109,6 +115,7 @@ let package = Package(
                 "DiagramKitModel",
                 "DiagramKitImport",
                 .target(name: "DiagramKitD2"),
+                .target(name: "DiagramKitGraphviz"),
                 .target(name: "DiagramKitRenderingCG", condition: .when(platforms: [.macOS, .iOS, .tvOS, .visionOS, .macCatalyst])),
                 .target(name: "DiagramKitViews", condition: .when(platforms: [.macOS, .iOS, .tvOS, .visionOS, .macCatalyst]))
             ],
@@ -141,6 +148,7 @@ let package = Package(
                 "DiagramKitTestSupport",
                 "MermaidPlayground",
                 "DiagramKitD2",
+                "DiagramKitGraphviz",
                 .target(name: "DiagramKitRenderingCG", condition: .when(platforms: [.macOS, .iOS, .tvOS, .visionOS, .macCatalyst])),
                 .product(name: "CustomDump", package: "swift-custom-dump"),
                 .product(name: "SnapshotTesting", package: "swift-snapshot-testing"),
