@@ -30,6 +30,7 @@ let package = Package(
         .library(name: "DiagramKitGraphviz", targets: ["DiagramKitGraphviz"]),
         .library(name: "DiagramKitStructurizr", targets: ["DiagramKitStructurizr"]),
         .library(name: "DiagramKitPlantUML", targets: ["DiagramKitPlantUML"]),
+        .library(name: "DiagramKitExport", targets: ["DiagramKitExport"]),
         // SwiftPM has a package-wide platform floor, while the Playground app
         // intentionally targets the latest Apple UI APIs. The library products
         // support the platforms declared above; the Playground executable is
@@ -77,7 +78,7 @@ let package = Package(
         ),
         .target(
             name: "DiagramKitD2",
-            dependencies: ["DiagramKitModel", "DiagramKitImport"],
+            dependencies: ["DiagramKitModel", "DiagramKitImport", "DiagramKitExport"],
             swiftSettings: strictConcurrencySettings
         ),
         .target(
@@ -87,11 +88,16 @@ let package = Package(
         ),
         .target(
             name: "DiagramKitStructurizr",
-            dependencies: ["DiagramKitModel", "DiagramKitImport"],
+            dependencies: ["DiagramKitModel", "DiagramKitImport", "DiagramKitExport"],
             swiftSettings: strictConcurrencySettings
         ),
         .target(
             name: "DiagramKitPlantUML",
+            dependencies: ["DiagramKitModel", "DiagramKitImport", "DiagramKitExport"],
+            swiftSettings: strictConcurrencySettings
+        ),
+        .target(
+            name: "DiagramKitExport",
             dependencies: ["DiagramKitModel", "DiagramKitImport"],
             swiftSettings: strictConcurrencySettings
         ),
@@ -126,6 +132,7 @@ let package = Package(
                 "DiagramKitCommon",
                 "DiagramKitModel",
                 "DiagramKitImport",
+                "DiagramKitExport",
                 .target(name: "DiagramKitD2"),
                 .target(name: "DiagramKitGraphviz"),
                 .target(name: "DiagramKitStructurizr"),
@@ -159,6 +166,7 @@ let package = Package(
                 "DiagramKit",
                 "DiagramKitCommon",
                 "DiagramKitModel",
+                "DiagramKitExport",
                 "DiagramKitTestSupport",
                 "MermaidPlayground",
                 "DiagramKitD2",

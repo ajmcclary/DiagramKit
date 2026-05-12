@@ -1,0 +1,172 @@
+import Foundation
+import DiagramKitModel
+import DiagramKitImport
+import DiagramKitExport
+
+/// Emits PlantUML sequence diagram source from a `SequenceDiagram`.
+enum PlantUMLSequenceExport {
+
+    static func emit(_ model: SequenceDiagram) throws -> DiagramExportResult {
+        var lines: [String] = []
+        var diagnostics: [DiagramDiagnostic] = []
+
+        lines.append("@startuml")
+
+        var emittedActorIds = Set<String>()
+
+        for item in model.items {
+            switch item {
+            case .actor(let actor):
+                if actor.isExplicit {
+                    let escapedId = escape(actor.id)
+                    if !emittedActorIds.insert(escapedId).inserted { continue }
+
+                    let typeStr = plantUMLParticipantType(actor.type)
+                    let escapedLabel = escape(actor.label)
+
+                    if actor.id == actor.label || actor.label.isEmpty {
+                        lines.append("\(typeStr) \(escapedId)")
+                    } else {
+                        lines.append("\(typeStr) \(escapedId) as \(escapedLabel)")
+                    }
+                }
+
+            case .message(let msg):
+                let from = escape(msg.from)
+                let to = escape(msg.to)
+                let arrow = plantUMLArrow(for: msg.arrowType)
+
+                if msg.activate {
+                    lines.append("activate \(to)")
+                }
+                let escapedLabelWithNewlines = msg.label.replacingOccurrences(of: "\n", with: "\\n")
+                lines.append("\(from) \(arrow) \(to): \(escapedLabelWithNewlines)")
+                if msg.deactivate {
+                    lines.append("deactivate \(to)")
+                }
+
+            case .note(let note):
+                let actorList = note.actorIds.map { escape($0) }.joined(separator: ", ")
+                let position = note.position.isEmpty ? "over" : note.position
+                let text = escape(note.text)
+                lines.append("note \(position) \(actorList): \(text)")
+
+            case .activationStart(let actorId):
+                lines.append("activate \(escape(actorId))")
+
+            case .activationEnd(let actorId):
+                lines.append("deactivate \(escape(actorId))")
+
+            case .blockStart(let type, let label):
+                if type == "rect" {
+                    if label.isEmpty {
+                        lines.append("group")
+                    } else {
+                        lines.append("group \(escape(label))")
+                    }
+                } else {
+                    if label.isEmpty {
+                        lines.append("\(type)")
+                    } else {
+                        lines.append("\(type) \(escape(label))")
+                    }
+                }
+
+            case .blockDivider(_, let label):
+                lines.append("else \(escape(label))")
+
+            case .blockEnd:
+                lines.append("end")
+
+            case .boxStart(let fill, let title, _):
+                if let t = title {
+                    lines.append("box \(t) #\(fill)")
+                } else {
+                    lines.append("box #\(fill)")
+                }
+
+            case .boxEnd:
+                lines.append("end box")
+
+            case .autonumberEvent(let start, let step, let visible):
+                if visible {
+                    lines.append("autonumber \(Int(start)) \(Int(step))")
+                }
+
+            case .title(let t):
+                lines.append("title \(escape(t))")
+
+            case .accTitle, .accDescr:
+                // PlantUML doesn't have accTitle/accDescr equivalents
+                break
+
+            case .createParticipant(let actor):
+                let escapedId = escape(actor.id)
+                if !emittedActorIds.insert(escapedId).inserted { continue }
+                let typeStr = plantUMLParticipantType(actor.type)
+                if actor.id == actor.label || actor.label.isEmpty {
+                    lines.append("\(typeStr) \(escapedId)")
+                } else {
+                    lines.append("\(typeStr) \(escapedId) as \(escape(actor.label))")
+                }
+
+            case .destroyParticipant(let actorId):
+                lines.append("destroy \(escape(actorId))")
+
+            case .link, .links, .properties, .details:
+                // Not directly translatable to PlantUML; skip with diagnostic
+                diagnostics.append(DiagramDiagnostic(
+                    severity: .info,
+                    message: "PlantUML export: link/properties/detail not directly supported in sequence diagram"
+                ))
+            }
+        }
+
+        lines.append("@enduml")
+
+        let source = lines.joined(separator: "\n") + "\n"
+        return DiagramExportResult(source: source, diagnostics: diagnostics)
+    }
+
+    // MARK: - Helpers
+
+    private static func plantUMLParticipantType(_ type: ParticipantType) -> String {
+        switch type {
+        case .participant: return "participant"
+        case .actor: return "actor"
+        case .boundary: return "boundary"
+        case .control: return "control"
+        case .entity: return "entity"
+        case .database: return "database"
+        case .collections: return "collections"
+        case .queue: return "queue"
+        }
+    }
+
+    private static func plantUMLArrow(for type: SequenceArrowType) -> String {
+        switch type {
+        case .solid, .solidArrowTop, .solidArrowBottom: return "->"
+        case .dotted, .solidArrowTopDotted, .solidArrowBottomDotted: return "-->"
+        case .solidCross: return "->x"
+        case .dottedCross: return "--x"
+        case .solidOpen: return "->"
+        case .dottedOpen: return "-->"
+        case .solidPoint: return "->"
+        case .dottedPoint: return "-->"
+        case .bidirectionalSolid: return "<->"
+        case .bidirectionalDotted: return "<-->"
+        case .stickArrowTop, .stickArrowBottom: return "->"
+        case .solidArrowTopReverse, .solidArrowBottomReverse: return "<-"
+        case .stickArrowTopReverse, .stickArrowBottomReverse: return "<-"
+        case .stickArrowTopDotted, .stickArrowBottomDotted: return "-->"
+        case .solidArrowTopReverseDotted, .solidArrowBottomReverseDotted: return "<--"
+        case .stickArrowTopReverseDotted, .stickArrowBottomReverseDotted: return "<--"
+        }
+    }
+
+    private static func escape(_ text: String) -> String {
+        text.replacingOccurrences(of: "\\", with: "\\\\")
+            .replacingOccurrences(of: "\"", with: "\\\"")
+            .replacingOccurrences(of: "\r", with: "")
+    }
+}

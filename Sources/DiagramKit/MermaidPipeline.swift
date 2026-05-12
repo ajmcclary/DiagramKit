@@ -6,6 +6,7 @@ import DiagramKitD2
 import DiagramKitGraphviz
 import DiagramKitStructurizr
 import DiagramKitPlantUML
+import DiagramKitExport
 #if canImport(CoreGraphics)
 import DiagramKitRenderingCG
 #endif
@@ -41,6 +42,20 @@ public enum DiagramPipeline {
     public static let defaultRegistry: ImporterRegistry = ImporterRegistry(
         importers: [StructurizrImporter(), PlantUMLImporter(), GraphvizImporter(), D2Importer(), MermaidImporter()]
     )
+
+    /// Default export registry, keyed by format ID.
+    /// Mermaid is the primary exporter with the broadest type coverage.
+    /// D2, Structurizr, and PlantUML are registered for format conversion.
+    /// Dispatch is by format ID — callers request `.d2` and get the D2
+    /// exporter regardless of Mermaid's overlapping coverage.
+    public static let defaultExportRegistry: ExporterRegistry = {
+        var registry = ExporterRegistry.empty
+            .registering(MermaidExporter())
+        registry = registry.registering(D2Exporter())
+        registry = registry.registering(StructurizrExporter())
+        registry = registry.registering(PlantUMLExporter())
+        return registry
+    }()
 
     // MARK: - Parse
 

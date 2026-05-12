@@ -6,6 +6,72 @@ Date: 2026-05-12. This is the implementation plan for Phase 7 of the DiagramKit
 multi-format roadmap. It follows the in-progress Phase 6 (PlantUML importers)
 and precedes Phase 8 (Interactivity Primitives).
 
+▏ Phase 7: Exporter Protocol — Complete
+▏ 
+▏ New Target: `DiagramKitExport` (7 files)
+▏ - DiagramFormatID.swift — Canonical format identifiers (.mermaid, .d2, .structurizr,
+▏   .plantuml, .graphviz)
+▏ - DiagramExporter.swift — DiagramExporter protocol with name, formatID,
+▏   supportedDiagramTypes, export(_:)
+▏ - DiagramExportResult.swift — Result type with source string and diagnostics
+▏ - DiagramExportError.swift — Fatal error type for export failures
+▏ - ExporterRegistry.swift — Format-keyed registry with registering(_:) and
+▏   exporter(named:) lookup
+▏ - DiagramExportLoader.swift — Stateless dispatch: export(_:to:registry:) and
+▏   export(_:using:registry:)
+▏ 
+▏ Slice 7A: Mermaid Exporter (8 files)
+▏ - MermaidExporter.swift — Dispatcher supporting P0 families: flowchart, sequence,
+▏   class, ER, C4
+▏ - MermaidExportHelpers.swift — Escaping/sanitization: bracket labels, edge labels,
+▏   identifiers, quoted strings
+▏ - MermaidFlowchartExport.swift — Nodes, edges, subgraphs, classDefs, linkStyles, node
+▏   styles
+▏ - MermaidSequenceExport.swift — All 22 SequenceItem cases mapped to Mermaid syntax
+▏ - MermaidClassExport.swift — Classes, members, namespaces, notes, relationships,
+▏   annotations, styleClasses
+▏ - MermaidERExport.swift — Entities, attributes, relationships with cardinality
+▏   symbols
+▏ - MermaidC4Export.swift — All 20 C4 shape types + 7 relationship kinds + boundaries
+▏ - MermaidExportDiagnostics.swift — Diagnostic helpers
+▏ 
+▏ Slice 7B: D2 Exporter (1 file)
+▏ - D2Exporter.swift — Flowchart → D2 mapping with shape conversion
+▏ 
+▏ Slice 7C: Structurizr Exporter (1 file)
+▏ - StructurizrExporter.swift — C4 → Structurizr DSL (workspace/model/views with
+▏   groups)
+▏ 
+▏ Slice 7D: PlantUML Exporter (3 files)
+▏ - PlantUMLExporter.swift — Dispatcher for sequence + C4
+▏ - PlantUMLSequenceExporter.swift — Sequence → PlantUML with activation, blocks,
+▏   boxes, notes
+▏ - PlantUMLC4Exporter.swift — C4 → PlantUML with !include <C4/...>
+▏ 
+▏ Package.swift
+▏ - New product: DiagramKitExport
+▏ - New target wired into DiagramKit umbrella, all format targets, and test target
+▏ - Added @_exported import DiagramKitExport to ReExports.swift
+▏ 
+▏ Tests (8 suites, 38 tests)
+▏ - DiagramExportInfrastructureTests — FormatID, result, error, empty registry
+▏ - ExporterRegistryTests — Lookup, replacement, union types
+▏ - DiagramExportLoaderTests — Dispatch, unsupported types, unknown format
+▏ - ExportMatrixTests — All 4 exporters' supported types, silent-empty diagnostic rule
+▏ - MermaidExporterTests — P0 families: flowchart, sequence, class, ER, C4
+▏ - D2ExporterTests — Flowchart export, unsupported type
+▏ - StructurizrExporterTests — C4 export, unsupported type
+▏ - PlantUMLExporterTests — Sequence, C4, unsupported type
+▏ - MermaidEscapeTests — Bracket labels, edge labels, identifier sanitization
+▏ 
+▏ Verification Gates
+▏ - swift build --build-tests — Clean
+▏ - swift test --filter Export — 38/38 passed
+▏ - Scripts/check-file-sizes.sh — No new warnings
+▏ - Scripts/check-sendable-annotations.sh — All allowlisted
+▏ - Scripts/strict-concurrency-check.sh — Strict-concurrency clean
+▏ - Existing importer tests — No regressions
+
 ## Table of Contents
 
 1. [Architecture Overview](#1-architecture-overview)

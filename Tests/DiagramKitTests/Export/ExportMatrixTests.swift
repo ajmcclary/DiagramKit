@@ -1,0 +1,102 @@
+import Testing
+import DiagramKitModel
+import DiagramKitImport
+import DiagramKitExport
+import DiagramKit
+import DiagramKitD2
+import DiagramKitStructurizr
+import DiagramKitPlantUML
+
+@Suite struct ExportMatrixTests {
+
+    // MARK: - Mermaid exporter
+
+    @Test("Mermaid exporter P0 supported types")
+    func mermaidExporterP0Types() {
+        let exporter = MermaidExporter()
+        #expect(exporter.supportedDiagramTypes.contains(.flowchart))
+        #expect(exporter.supportedDiagramTypes.contains(.sequenceDiagram))
+        #expect(exporter.supportedDiagramTypes.contains(.classDiagram))
+        #expect(exporter.supportedDiagramTypes.contains(.erDiagram))
+        #expect(exporter.supportedDiagramTypes.contains(.c4))
+        // P1/P2 types not yet implemented
+        #expect(!exporter.supportedDiagramTypes.contains(.stateDiagram))
+    }
+
+    // MARK: - D2 exporter
+
+    @Test("D2 exporter supports flowchart only")
+    func d2ExporterSupportedTypes() {
+        let exporter = D2Exporter()
+        #expect(exporter.supportedDiagramTypes.contains(.flowchart))
+        #expect(!exporter.supportedDiagramTypes.contains(.erDiagram))
+        #expect(!exporter.supportedDiagramTypes.contains(.architecture))
+        #expect(!exporter.supportedDiagramTypes.contains(.sequenceDiagram))
+    }
+
+    // MARK: - Structurizr exporter
+
+    @Test("Structurizr exporter supports c4 only")
+    func structurizrExporterSupportedTypes() {
+        let exporter = StructurizrExporter()
+        #expect(exporter.supportedDiagramTypes.contains(.c4))
+        #expect(!exporter.supportedDiagramTypes.contains(.flowchart))
+        #expect(!exporter.supportedDiagramTypes.contains(.sequenceDiagram))
+    }
+
+    // MARK: - PlantUML exporter
+
+    @Test("PlantUML exporter supports sequence and c4")
+    func plantUMLExporterSupportedTypes() {
+        let exporter = PlantUMLExporter()
+        #expect(exporter.supportedDiagramTypes.contains(.sequenceDiagram))
+        #expect(exporter.supportedDiagramTypes.contains(.c4))
+        #expect(!exporter.supportedDiagramTypes.contains(.flowchart))
+    }
+
+    // MARK: - Unsupported type diagnostic
+
+    @Test("Unsupported type produces diagnostic, not empty source")
+    func unsupportedTypeProducesDiagnostic() throws {
+        let exporter = StructurizrExporter() // c4 only
+        let doc = DiagramDocument(type: .gantt) // gantt is not c4
+        let result = try exporter.export(doc)
+        #expect(result.source.isEmpty)
+        #expect(!result.diagnostics.isEmpty)
+        #expect(result.diagnostics.contains { $0.severity == .unsupported })
+    }
+
+    @Test("No exporter silently returns empty source with zero diagnostics")
+    func noSilentEmptyOutput() throws {
+        let exporters: [any DiagramExporter] = [
+            MermaidExporter(),
+            D2Exporter(),
+            StructurizrExporter(),
+            PlantUMLExporter()
+        ]
+        for exporter in exporters {
+            for type in DiagramType.allCases
+                where !exporter.supportedDiagramTypes.contains(type)
+            {
+                let doc = DiagramDocument(type: type)
+                let result = try exporter.export(doc)
+                #expect(result.source.isEmpty,
+                    "\(exporter.name) should produce empty source for unsupported type \(type.rawValue)")
+                #expect(result.diagnostics.contains { $0.severity == .unsupported },
+                    "\(exporter.name) should produce .unsupported diagnostic for type \(type.rawValue)")
+            }
+        }
+    }
+
+    // MARK: - Registry lookup
+
+    @Test("Exporter registry lookup by format ID")
+    func registryLookupByFormatID() {
+        let registry = DiagramPipeline.defaultExportRegistry
+        #expect(registry.exporter(named: .mermaid) != nil)
+        #expect(registry.exporter(named: .d2) != nil)
+        #expect(registry.exporter(named: .structurizr) != nil)
+        #expect(registry.exporter(named: .plantuml) != nil)
+        #expect(registry.exporter(named: .graphviz) == nil) // deferred
+    }
+}
