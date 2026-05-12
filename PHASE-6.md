@@ -177,6 +177,12 @@ public struct PlantUMLImporter: DiagramSourceImporter {
 `DiagramPayload.sequenceDiagram(SequenceDiagram)`. This slice is the first
 PlantUML family and adds the `DiagramKitPlantUML` target.
 
+**Implementation order**: start with the minimum viable subset — participants
+(participant/actor), simple messages (`->`, `-->`), notes, and basic blocks
+(alt/else/end). Then follow up within 6A with activations, boxes, loop/opt/
+group, auto-numbering, and the remaining arrow types. This keeps the first
+green-build milestone small while the target scaffolding is stabilizing.
+
 ### 2.1 Supported Syntax
 
 #### Participants and Actors
@@ -1113,10 +1119,24 @@ struct PlantUMLGanttSeparator: Sendable, Equatable {
 `PlantUMLGanttMapper` maps `PlantUMLGanttAST` to
 `DiagramPayload.gantt(GanttDiagram)`.
 
-- `PlantUMLGanttTask` → `GanttTask` with duration, dependencies, color.
-- Separators → section markers.
-- Project start → `GanttDiagramConfig` date anchor.
-- Print scale → time axis configuration.
+**Real model constraint**: `GanttTask` requires concrete `startTime: Date` and
+`endTime: Date`. The PlantUML Gantt AST stores durations (in days) and
+dependency names. The mapper must include a **scheduling resolver** that:
+1. Parses the optional `projectStart` string (e.g. `"2025-01-06"`) into a
+   `Date` anchor via ISO 8601 or `YYYY-MM-DD` format.
+2. Sorts tasks topologically by dependency graph.
+3. Computes `startTime` for each task: for tasks with `startAfter` deps,
+   use the predecessor's `endTime` (plus offset days if specified). For
+   tasks without deps, use the project start date. For tasks with only a
+   duration, use the project start date.
+4. Computes `endTime` = `startTime + duration days`.
+5. Tasks with unresolvable dependencies (missing predecessor, cycle) emit
+   a `.warning` diagnostic and default to project start + cumulative offset.
+- Separators → `GanttSection(name: separatorText, index:)`.
+- Project start → used by the resolver, not directly stored in config.
+- Print scale → stored in `GanttDiagram.axisFormat` and `tickInterval`.
+- Colors → stored on `GanttTask` via future tag/class support; for now
+  documented as an unsupported diagnostic on color assignment.
 
 ### 5.3 Tests
 
@@ -1190,9 +1210,8 @@ Boundary(containerAlias, "API Layer") {
 - `Boundary(alias, "label") { ... }` — visual grouping.
 - `System_Boundary(alias, "label") { ... }`.
 - `Enterprise_Boundary(alias, "label") { ... }`.
-- `AddElementTag`, `AddRelTag`, `UpdateElementStyle`, `UpdateRelStyle`.
-- `SHOW_LEGEND()`, `SHOW_DYNAMIC_LEGEND()`.
-- `Lay_D(from, to)` / `Lay_U` / `Lay_L` / `Lay_R` layout hints.
+- `Lay_D(from, to)` / `Lay_U` / `Lay_L` / `Lay_R` layout hints —
+  silently ignored (no position constraint in current layout engine).
 
 ### 6.2 Unsupported Syntax → Diagnostics
 
@@ -1202,9 +1221,9 @@ Boundary(containerAlias, "API Layer") {
 | `!include <C4/C4_Dynamic>`       | `.unsupported("C4 Dynamic diagrams not supported")` |
 | `Deployment_Node`                | `.unsupported("Deployment_Node not supported")` |
 | `Container_Boundary`             | `.unsupported("Container_Boundary not supported")` |
-| `AddRelTag` with unsupported tags| `.unsupported` |
-| `UpdateElementStyle` / `UpdateRelStyle` | `.unsupported("C4 styling directives not supported")` |
-| `SHOW_LEGEND()`                  | `.unsupported("C4 legend not supported")` |
+| `AddElementTag`, `AddRelTag` with unsupported tags | `.unsupported("C4 styling directives not supported")` |
+| `UpdateElementStyle` / `UpdateRelStyle` | `.unsupported("C4 styling not supported")` |
+| `SHOW_LEGEND()` / `SHOW_DYNAMIC_LEGEND()` | `.unsupported("C4 legend not supported")` |
 | `!include` non-C4 files          | `.unsupported("Non-C4 includes not supported")` |
 | `!define`                        | `.unsupported("PlantUML preprocessor not supported")` |
 
@@ -1283,17 +1302,37 @@ quoted strings. The parser handles nested parentheses for boundary bodies.
 
 `PlantUMLC4Mapper` maps `PlantUMLC4AST` to `DiagramPayload.c4(C4Diagram)`.
 
-**Mapping strategy**:
-- `Person` → `C4Person` in `C4Diagram`.
-- `Person_Ext` → `C4Person` with external flag.
-- `System` → `C4SoftwareSystem`.
-- `System_Ext` → `C4SoftwareSystem` with external flag.
-- `Container` → `C4Container` (linked to parent system).
-- `ContainerDb` → `C4Container` with database type.
-- `Component` → `C4Component` (linked to parent container).
-- `Rel` → `C4Relationship` with label, technology, and direction.
-- `Boundary` → `C4Boundary` grouping elements.
-- Diagram kind → `C4DiagramKind.container` or `.component` or `.systemContext`.
+**Real model types** (see `Sources/DiagramKitModel/src_c4_types.swift`):
+
+The C4 model uses a unified `C4Shape` with `typeC4Shape: C4ShapeType` to
+represent all element kinds. There are no separate `C4Person` or
+`C4SoftwareSystem` types.
+
+- `Person(alias, name, description)` →
+  `C4Shape(alias:, label: name, typeC4Shape: .person, description:)`.
+- `Person_Ext(alias, name, description)` →
+  `C4Shape(alias:, label: name, typeC4Shape: .external_person, description:)`.
+- `System(alias, name, description)` →
+  `C4Shape(alias:, label: name, typeC4Shape: .system, description:)`.
+- `System_Ext(alias, name, description)` →
+  `C4Shape(alias:, label: name, typeC4Shape: .external_system, description:)`.
+- `Container(systemAlias, alias, name, technology, description)` →
+  `C4Shape(alias:, label: name, typeC4Shape: .container, technology:,
+  description:, parentBoundary: systemAlias)`.
+- `ContainerDb(...)` → `.container_db`; `Component(...)` → `.component`.
+- `Rel(from, to, label[, technology])` →
+  `C4Relationship(kind: .rel, from:, to:, label:, technology:)`.
+- `Rel_D` → `C4RelationshipKind.rel_d`; `Rel_U` → `.rel_u`;
+  `Rel_L` → `.rel_l`; `Rel_R` → `.rel_r`;
+  `Rel_Back` → `.rel_b`; bidirectional → `.birel`.
+- `Boundary(alias, "label") { ... }` →
+  `C4Boundary(alias:, label:)`. Nested elements get
+  `parentBoundary: alias` linking them to the boundary.
+- `System_Boundary` / `Enterprise_Boundary` →
+  `C4Boundary` with `type:` string (`"System_Boundary"`, etc.).
+- Diagram kind: `!include <C4/C4_Container>` → `.container`;
+  `!include <C4/C4_Component>` → `.component`;
+  default (Context) → `.context`.
 
 ### 6.6 Files to Create
 
@@ -1316,10 +1355,10 @@ Sources/DiagramKitPlantUML/C4/
 - `PlantUMLC4Diagnostics` (~8 tests): Deployment includes, Dynamic includes,
   Deployment_Node, unsupported macros, styling directives, legend, non-C4
   includes, preprocessor
-- `PlantUMLC4Mapping` (~8 tests): Person → C4Person, System → C4SoftwareSystem,
-  Container → C4Container with parent system, Component → C4Component with
-  parent container, Rel → C4Relationship, boundaries → C4Boundary, diagram kind
-  detection, external elements flagged correctly
+- `PlantUMLC4Mapping` (~8 tests): Person → C4Shape(.person), System →
+  C4Shape(.system), Container → C4Shape(.container) with parentBoundary,
+  Component → C4Shape(.component), Rel → C4Relationship, boundaries →
+  C4Boundary, diagram kind detection, external elements flagged via shape type
 - `PlantUMLC4Probe` (~6 tests): recognizes `!include <C4/`, recognizes
   `Person(`, `System(`, `Container(`, rejects `@startuml` without C4 content,
   does not false-match on sequence with `->` arrows
@@ -1404,12 +1443,22 @@ swift build --build-tests
 swift test --filter PlantUML<Family>ImporterTests
 swift test --filter ProbeCollisionMatrixTests
 swift test --filter DiagramLoaderTests
-swift test --filter CorpusSnapshotTests
 Scripts/check-file-sizes.sh
 Scripts/check-sendable-annotations.sh
 Scripts/strict-concurrency-check.sh
 git diff --check
 ```
+
+**CorpusSnapshotTests are only required per-slice if a slice touches
+shared layout or rendering code.** PlantUML slices only touch the import
+boundary (parser → mapper → DiagramPayload). They do not modify layout,
+renderers, or shared model types. If `swift build --build-tests` succeeds
+and the PlantUML-specific test suites pass, the 396 existing Mermaid
+snapshots are unaffected.
+
+Run `swift test --filter CorpusSnapshotTests` as a sanity check at the end
+of each slice, but do not treat expected mechanical success as a gate
+failure — only treat snapshot diffs or crashes as blockers.
 
 For the final slice (6E) or when the full Phase 6 is complete, run:
 ```bash
@@ -1467,7 +1516,9 @@ Each slice is independently shippable. A slice is complete when:
 2. All tests in the slice's suite pass.
 3. All probe collision tests pass (existing + new).
 4. All regression suites pass (Mermaid, D2, DOT, Structurizr).
-5. `CorpusSnapshotTests` passes with zero diffs.
+5. `swift test --filter CorpusSnapshotTests` shows no snapshot diffs or
+   crashes (expected: all 396 Mermaid entries pass; PlantUML import-only
+   work does not affect snapshots).
 6. Verification gates pass.
 
 **Slice order and estimated effort:**
