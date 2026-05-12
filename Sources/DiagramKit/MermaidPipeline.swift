@@ -4,6 +4,7 @@ import DiagramKitCommon
 import DiagramKitImport
 import DiagramKitD2
 import DiagramKitGraphviz
+import DiagramKitStructurizr
 #if canImport(CoreGraphics)
 import DiagramKitRenderingCG
 #endif
@@ -35,9 +36,9 @@ public enum DiagramPipeline {
 
     // MARK: - Default registry
 
-    /// Default registry: Graphviz first (narrowest probe), D2 second, Mermaid last (broad fallback).
+    /// Default registry: Structurizr first, Graphviz second, D2 third, Mermaid last (broad fallback).
     public static let defaultRegistry: ImporterRegistry = ImporterRegistry(
-        importers: [GraphvizImporter(), D2Importer(), MermaidImporter()]
+        importers: [StructurizrImporter(), GraphvizImporter(), D2Importer(), MermaidImporter()]
     )
 
     // MARK: - Parse

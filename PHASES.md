@@ -2,18 +2,19 @@
 
 This is the active execution roadmap. `ANALYSIS.md` is the long-form rationale.
 Detailed phase records live in `PHASE-0.md`, `PHASE-1.md`, `PHASE-2.md`,
-`PHASE-3.md`, and `PHASE-4.md`.
+`PHASE-3.md`, `PHASE-4.md`, and `PHASE-5.md`.
 
 ## Current State
 
-Phases 0, 1, 2, 3, and 4 are implemented locally. Phase 4 has post-review
-remediation in this worktree: compact DOT headers probe correctly, quoted
-comment markers survive lexing, chained DOT edges stay in their local subgraph
-scope, DOT port syntax and edges to subgraphs emit diagnostics, later explicit
-node statements update edge-synthesized nodes, and the DOT parser/mapper are
-split below the file-size warning threshold.
+Phases 0, 1, 2, 3, 4, and 5 are implemented locally. Phase 5 has post-review
+remediation in this worktree: unsupported Structurizr statements no longer
+consume following supported model statements, relationship descriptions preserve
+the third string argument, deployment nodes are diagnostic-only and do not render
+as fallback system shapes, missing view scope/include aliases emit diagnostics,
+the Structurizr probe rejects unquoted workspace names that the parser cannot
+accept, and inline Structurizr fixtures now parse and inspect C4 payloads.
 
-Commit the Phase 4 remediation before starting Phase 5.
+Commit the Phase 5 remediation before starting Phase 6.
 
 What is true now:
 
@@ -34,11 +35,14 @@ What is true now:
 - `DiagramKitGraphviz` is the second non-Mermaid importer target. It parses a
   narrow Graphviz DOT vertical slice and maps it to
   `DiagramPayload.flowchart`.
+- `DiagramKitStructurizr` is the third non-Mermaid importer target. It parses a
+  narrow Structurizr DSL vertical slice and maps it to
+  `DiagramPayload.c4(C4Diagram)`.
 - `MermaidImporter` remains the broad fallback importer and must stay last in
   the default registry.
 - `DiagramPipeline.defaultRegistry` is currently ordered as
-  `[GraphvizImporter(), D2Importer(), MermaidImporter()]`: narrow DOT and D2
-  probes first, broad Mermaid fallback last.
+  `[StructurizrImporter(), GraphvizImporter(), D2Importer(), MermaidImporter()]`:
+  narrow Structurizr, DOT, and D2 probes first, broad Mermaid fallback last.
 - Source-taking `DiagramPipeline` paths for parse, layout, prepare, and primary
   SVG rendering load through `DiagramLoader` by default. Graph/positioned paths
   remain format-agnostic and consume `DiagramDocument`/`PositionedGraph`.
@@ -59,6 +63,9 @@ What is true now:
   future phase explicitly calls for a controlled corpus update.
 - DOT inline corpus fixtures exist for the supported vertical slice. They do
   not add real corpus entries or snapshot baselines.
+- Structurizr inline corpus fixtures exist for the supported C4 slice. They
+  parse fixture sources through `StructurizrImporter`, inspect the resulting
+  `C4Diagram`, and remain marked `skipSnapshots`.
 - Snapshot baselines currently include 396 SVG, 396 image, and 174 ASCII files.
   Snapshot recording is deferred until the final baseline pass unless a phase is
   explicitly about intentional renderer baseline changes.
@@ -70,7 +77,7 @@ What is true now:
 
 ## Operating Principles
 
-- Do not start Phase 5 until Phase 4 remediation is committed.
+- Do not start Phase 6 until Phase 5 remediation is committed.
 - Keep source import separate from diagram-family layout. Importers produce
   `DiagramDocument`; they do not layout or render.
 - Preserve the worker-thread invariant: every public async facade path still
@@ -238,8 +245,7 @@ Closure evidence lives in `PHASE-3.md`.
 
 Goal: add Graphviz DOT as the next focused graph-language importer.
 
-Status: complete locally; post-review remediation is in this worktree and
-should be committed before Phase 5.
+Status: complete and committed locally.
 
 Completed:
 
@@ -280,33 +286,58 @@ Deferred from Phase 4:
 - Exporting DOT.
 - Real multi-format corpus entries and DOT snapshot baselines.
 
-Closure evidence lives in `PHASE-4.md`. Post-review remediation evidence is in
-the current worktree until committed.
+Closure evidence lives in `PHASE-4.md`.
 
 ## Phase 5: Structurizr Importer Vertical Slice
 
 Goal: support the C4-shaped subset where Structurizr maps cleanly to current
 DiagramKit models.
 
-Approach:
+Status: complete locally; post-review remediation is in this worktree and
+should be committed before Phase 6.
 
-- Write `PHASE-5.md` before implementation and review it before code changes.
-- Add `DiagramKitStructurizr` as a separate importer target and product.
-- Keep the probe narrow around `workspace` and Structurizr DSL structure.
-- Prepend `StructurizrImporter()` before existing importers once the probe is
-  proven collision-safe.
-- Focus on workspace/model/view slices that map to existing C4 payloads.
-- Keep DSL sections that do not map cleanly as explicit diagnostics.
-- Do not build a complete Structurizr runtime.
-- Keep fixtures inline with `skipSnapshots`; defer real corpus entries and
-  baselines.
+Completed:
 
-Tests:
+- Added `DiagramKitStructurizr` as a separate importer target and product.
+- Added `StructurizrImporter`, `StructurizrLexer`, `StructurizrParser`,
+  `StructurizrParserState`, `StructurizrAST`, `StructurizrModelRegistry`,
+  `StructurizrMapper`, and `StructurizrProbe`.
+- Prepended `StructurizrImporter()` before Graphviz, D2, and Mermaid in
+  `DiagramPipeline.defaultRegistry`.
+- Parsed the first Structurizr slice: `workspace`, `model`, `views`, `person`,
+  `softwareSystem`, `container`, `component`, `deploymentNode` diagnostics,
+  explicit relationships, scoped relationships, `include *`, explicit
+  includes, comments, optional workspace/view strings, and narrow unsupported
+  statement diagnostics.
+- Mapped Structurizr to `DiagramPayload.c4(C4Diagram)`, reusing existing C4
+  layout and SVG/CG render paths.
+- Created real `C4Boundary` entries for container/component view scopes instead
+  of relying on `parentBoundary` alone.
+- Preserved C4 element description/technology order and relationship label,
+  technology, and description fields.
+- Emitted diagnostics for dynamic/deployment views, deployment nodes,
+  directives, tags, view excludes, unknown view statements, and missing
+  scope/include aliases.
+- Kept deployment nodes diagnostic-only with no fallback rendered shape.
+- Added lexer/parser/registry/importer/probe/fixture/regression/layout smoke
+  coverage. The focused Structurizr suite is 96 tests in 10 suites.
+- Kept real `test-diagrams.json`, `CorpusSnapshotTests.swift`, and snapshot
+  baselines unchanged.
+- Kept new/touched Phase 5 source and test files below the 500-line warning
+  threshold.
 
-- Structurizr parser and importer tests for the supported workspace/view slice.
-- C4 mapping tests that prove the importer produces the expected payload.
-- Probe collision tests against Mermaid, D2, DOT, and PlantUML.
-- Diagnostics tests for unsupported workspace sections.
+Deferred from Phase 5:
+
+- Full Structurizr DSL coverage, including deployment instances, dynamic and
+  deployment views, multiple diagrams per workspace, tags/styles/themes,
+  properties, `!include` resolution, implied relationships, groups, URLs, and
+  plugin/script/ref/extend directives.
+- Structurizr-specific layout parity beyond the current C4 layout.
+- Exporting Structurizr.
+- Real multi-format corpus entries and Structurizr snapshot baselines.
+
+Closure evidence lives in `PHASE-5.md`. Post-review remediation evidence is in
+the current worktree until committed.
 
 ## Phase 6: PlantUML In Vertical Slices
 

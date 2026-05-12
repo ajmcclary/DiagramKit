@@ -1,9 +1,23 @@
 # Phase 5: Structurizr Importer Vertical Slice — Plan (Revised)
 
-Date: 2026-05-12 (revised 2026-05-12 per review). **Status: PLANNING** — this
-document is the executable plan for Phase 5 of the DiagramKit multi-format
-roadmap. It follows Phase 4 (complete: Graphviz DOT importer) and precedes
-Phase 6 (PlantUML importer).
+Date: 2026-05-12 (revised 2026-05-12 per review). **Status: COMPLETE** — all
+work streams implemented; local non-snapshot verification passes, with Linux
+skipped because Docker/Podman is unavailable. Phase 5 of the DiagramKit
+multi-format roadmap is done. It follows Phase 4 (complete: Graphviz DOT
+importer) and precedes Phase 6 (PlantUML importer).
+
+**Implementation notes (2026-05-12)**:
+- `StructurizrParserState.swift` was extracted from `StructurizrParser.swift`
+  to keep the parser under 500 lines (308 lines); State type and block-skipping
+  helpers live in the separate file (130 lines).
+- `StructurizrLayoutSmokeTests.swift` was split from `StructurizrImporterTests.swift`
+  to keep the latter under 500 lines.
+- The focused Structurizr suite now has 96 tests in 10 suites, including
+  post-review regression coverage for unsupported-statement skipping,
+  relationship descriptions, deployment-node filtering, missing-alias
+  diagnostics, and probe/parser agreement.
+- `StructurizrImporter` is prepended first in `defaultRegistry`; probe order:
+  Structurizr → Graphviz → D2 → Mermaid.
 
 **Revision notes (2026-05-12)**:
 - Element argument order corrected to Structurizr DSL convention:
@@ -24,6 +38,12 @@ Phase 6 (PlantUML importer).
   systemContext views, a boundary in container/component views.
 - Test fixtures revised to include complete scoped elements and at least one
   relationship proving wildcard resolution.
+- Post-review remediation tightened unsupported statement skipping so `tags`
+  and `!directive` diagnostics no longer consume following supported model
+  statements.
+- Relationship third-string descriptions are preserved, deployment nodes are
+  diagnostic-only and not rendered as fallback system shapes, and missing view
+  scope/include aliases emit diagnostics.
 
 ---
 
@@ -41,6 +61,7 @@ Sources/DiagramKitStructurizr/
 ├── StructurizrImporter.swift       DiagramSourceImporter conformance
 ├── StructurizrAST.swift            Minimal Structurizr DSL AST types
 ├── StructurizrLexer.swift          Tokenizer (comment stripping, token stream)
+├── StructurizrParserState.swift    Parse state, token navigation, block-skip helpers
 ├── StructurizrParser.swift         Recursive-descent parser (consumes tokens)
 ├── StructurizrMapper.swift         StructurizrAST → C4Diagram mapping
 ├── StructurizrModelRegistry.swift  Model element lookup table
@@ -215,9 +236,11 @@ public struct StructurizrLexer: Sendable {
   (`{`, `}`, `=`, `->`, `*`, `!`) and quoted strings.
 - Quoted strings (`"..."`) produce `.string(content)` with quotes stripped and
   no escape processing beyond `\"`.
-- Identifiers are alphanumeric + `_`, case-sensitive.
-- The `*` token is only emitted as `.star` when it appears as a standalone
-  token (i.e., `include *`).
+- Identifiers are alphanumeric plus `_`, `.`, `/`, `:`, and `-`, case-sensitive.
+  The path characters keep directive arguments such as `!include shared.dsl`
+  together while preserving a narrow Structurizr probe.
+- The `*` token is emitted as `.star` for wildcard include statements
+  (i.e., `include *`).
 
 ## Work Stream 3: Structurizr DSL AST Types (`StructurizrAST.swift`)
 
@@ -464,7 +487,7 @@ include_stmt   := "include" "*"
 | `deploymentNode "AWS" { ... }` | Parsed as AST element, deferred with diagnostic |
 | `dynamic app { ... }` | Parsed as view, deferred with diagnostic |
 | `!include url` | Emitted `.unsupported` diagnostic |
-| `tags "Tag1,Tag2"` in model | Tags parsed into element.tags field, emitted diagnostic |
+| `tags "Tag1,Tag2"` in model | Tags consumed with diagnostic; tag refinement is deferred |
 | `autoLayout { ... }` in view | Parsed, deferred with diagnostic |
 | `exclude user` in view | Parsed, deferred with diagnostic |
 | `styles { ... }` in view | Parsed, deferred with diagnostic |
@@ -974,7 +997,7 @@ Parser unit tests for the recursive-descent parser. At least 20 tests:
 | `parseNestedElements` | `workspace { model { app = softwareSystem "App" { web = container "Web" } } }` → child container with parentAlias "app" |
 | `parseScopedRelationship` | `workspace { model { app = softwareSystem "App" { user -> web "Uses" } } }` → relationship in model.relationships with source "user", target "web" |
 | `parseRelationship` | `workspace { model { u -> app "Uses" } }` → relationship with label "Uses" |
-| `parseRelationshipWithAllArgs` | `workspace { model { u -> app "Uses" "HTTPS" "Over TLS" } }` → description "Uses", technology "HTTPS", but relationship def expects [description]? [technology]? — third string is unused or diagnostic |
+| `parseRelationshipWithAllArgs` | `workspace { model { u -> app "Uses" "HTTPS" "Over TLS" } }` → label "Uses", technology "HTTPS", description "Over TLS" |
 | `parseMultipleElements` | `workspace { model { u = person "U"; app = softwareSystem "A" } }` → two model elements |
 | `parseSystemContextView` | `workspace { views { systemContext app { include * } } }` → view with kind .systemContext, scopeAlias "app" |
 | `parseContainerView` | `workspace { views { container app { include * } } }` → view kind .container |
@@ -1130,22 +1153,25 @@ swift test --filter PlaygroundCorpusDecodingTests
 
 | File | Action | Status |
 |---|---|---|
-| `Package.swift` | Add `DiagramKitStructurizr` target, product, deps. Add to umbrella + test target deps | Pending |
-| `Sources/DiagramKitStructurizr/StructurizrAST.swift` | New — Structurizr DSL AST types | Pending |
-| `Sources/DiagramKitStructurizr/StructurizrLexer.swift` | New — tokenizer (comment stripping, token stream) | Pending |
-| `Sources/DiagramKitStructurizr/StructurizrParser.swift` | New — recursive-descent parser (consumes tokens) | Pending |
-| `Sources/DiagramKitStructurizr/StructurizrModelRegistry.swift` | New — model element lookup table | Pending |
-| `Sources/DiagramKitStructurizr/StructurizrMapper.swift` | New — StructurizrAST → C4Diagram mapping (creates boundaries) | Pending |
-| `Sources/DiagramKitStructurizr/StructurizrProbe.swift` | New — narrow Structurizr probe (requires `{` after workspace) | Pending |
-| `Sources/DiagramKitStructurizr/StructurizrImporter.swift` | New — `DiagramSourceImporter` conformance | Pending |
-| `Sources/DiagramKit/MermaidPipeline.swift` | Edit — add `StructurizrImporter()` to `defaultRegistry` + `import DiagramKitStructurizr` | Pending |
-| `Tests/DiagramKitTests/StructurizrLexerTests.swift` | New — 10+ lexer unit tests | Pending |
-| `Tests/DiagramKitTests/StructurizrParserTests.swift` | New — 22+ parser unit tests | Pending |
-| `Tests/DiagramKitTests/StructurizrModelRegistryTests.swift` | New — 6 registry unit tests | Pending |
-| `Tests/DiagramKitTests/StructurizrImporterTests.swift` | New — 31+ importer unit tests (includes 3 layout smoke tests) | Pending |
-| `Tests/DiagramKitTests/ProbeCollisionMatrixTests.swift` | Edit — 16+ Structurizr probe collision tests + `import DiagramKitStructurizr` | Pending |
-| `Tests/DiagramKitTests/StructurizrCorpusFixtureTests.swift` | New — 7 inline Structurizr fixture tests (complete scoped elements + relationships) | Pending |
-| `Tests/DiagramKitTests/ImporterRegistryTests.swift` | Edit — Structurizr-first registry assertion + `import DiagramKitStructurizr` | Pending |
+| `Package.swift` | Add `DiagramKitStructurizr` target, product, deps. Add to umbrella + test target deps | Complete |
+| `Sources/DiagramKitStructurizr/StructurizrAST.swift` | New — Structurizr DSL AST types (151 lines) | Complete |
+| `Sources/DiagramKitStructurizr/StructurizrLexer.swift` | New — tokenizer (comment stripping, token stream) (243 lines) | Complete |
+| `Sources/DiagramKitStructurizr/StructurizrParserState.swift` | New — parse state, token navigation, block-skipping helpers (130 lines) | Complete |
+| `Sources/DiagramKitStructurizr/StructurizrParser.swift` | New — recursive-descent parser (consumes tokens) (308 lines) | Complete |
+| `Sources/DiagramKitStructurizr/StructurizrModelRegistry.swift` | New — model element lookup table (178 lines) | Complete |
+| `Sources/DiagramKitStructurizr/StructurizrMapper.swift` | New — StructurizrAST → C4Diagram mapping (creates boundaries) (270 lines) | Complete |
+| `Sources/DiagramKitStructurizr/StructurizrProbe.swift` | New — narrow Structurizr probe (requires `{` after optional quoted workspace strings) (64 lines) | Complete |
+| `Sources/DiagramKitStructurizr/StructurizrImporter.swift` | New — `DiagramSourceImporter` conformance (38 lines) | Complete |
+| `Sources/DiagramKit/MermaidPipeline.swift` | Edit — add `StructurizrImporter()` to `defaultRegistry` + `import DiagramKitStructurizr` | Complete |
+| `Tests/DiagramKitTests/StructurizrLexerTests.swift` | New — 10 lexer unit tests | Complete |
+| `Tests/DiagramKitTests/StructurizrParserTests.swift` | New — 22 parser unit tests | Complete |
+| `Tests/DiagramKitTests/StructurizrModelRegistryTests.swift` | New — 6 registry unit tests | Complete |
+| `Tests/DiagramKitTests/StructurizrImporterTests.swift` | New — 36 importer unit tests (496 lines) | Complete |
+| `Tests/DiagramKitTests/StructurizrLayoutSmokeTests.swift` | New — 3 layout smoke tests (split from ImporterTests) | Complete |
+| `Tests/DiagramKitTests/ProbeCollisionMatrixTests.swift` | Edit — 16 Structurizr probe collision tests + `import DiagramKitStructurizr` | Complete |
+| `Tests/DiagramKitTests/StructurizrCorpusFixtureTests.swift` | New — 7 inline Structurizr fixture tests that parse fixtures and inspect C4 payloads | Complete |
+| `Tests/DiagramKitTests/StructurizrRegressionTests.swift` | New — 7 post-review regression tests | Complete |
+| `Tests/DiagramKitTests/ImporterRegistryTests.swift` | Edit — Structurizr-first registry assertion + `import DiagramKitStructurizr` | Complete |
 
 ### Files intentionally NOT changed
 
@@ -1222,9 +1248,9 @@ No `{tag}` annotation syntax exists.
 Tags come from explicit `tags "..."` statements, `+tag` syntax (rare), or
 trailing string arguments in some DSL versions. The `{tag}` notation was a
 misreading of the DSL. The correct path for this vertical slice is to parse
-`tags "..."` into the element's `tags: [String]` field and emit a diagnostic
-saying tag-based shape refinement is deferred. No brace-based tag parsing is
-needed.
+`tags "..."` statement, emit a diagnostic saying tag-based shape refinement is
+deferred, and continue parsing later model statements. The vertical slice does
+not map tag values into shapes yet. No brace-based tag parsing is needed.
 
 ### 5. Scoped relationships inside element blocks are supported
 
@@ -1303,7 +1329,9 @@ swift test --filter StructurizrLexerTests
 swift test --filter StructurizrParserTests
 swift test --filter StructurizrModelRegistryTests
 swift test --filter StructurizrImporterTests
+swift test --filter StructurizrLayoutSmokeTests
 swift test --filter StructurizrCorpusFixtureTests
+swift test --filter StructurizrRegressionTests
 swift test --filter ProbeCollisionMatrixTests
 swift test --filter ImporterRegistryTests
 swift test --filter D2ParserTests               # regression
@@ -1318,12 +1346,11 @@ Scripts/strict-concurrency-check.sh
 git diff --check
 ```
 
-`Scripts/check-file-sizes.sh` may report pre-existing warnings. Phase 5
-should not add new warnings; splitting lexer, parser, mapper, and registry
-files keeps each new file under 500 lines.
+`Scripts/check-file-sizes.sh` reports no Phase 5 source or test files over the
+500-line warning threshold. All remaining warnings are pre-existing.
 
-No snapshot recording. No Linux check unless Docker/Podman is available
-(record as skipped due to environment otherwise).
+Focused Structurizr verification passes (96 tests in 10 suites).
+No snapshot recording. No Linux check performed (Docker/Podman not available).
 
 ---
 

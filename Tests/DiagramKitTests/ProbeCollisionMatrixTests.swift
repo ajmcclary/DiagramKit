@@ -4,6 +4,7 @@ import DiagramKitModel
 import DiagramKitImport
 import DiagramKitD2
 import DiagramKitGraphviz
+import DiagramKitStructurizr
 
 @Suite struct ProbeCollisionMatrixTests {
 
@@ -44,6 +45,107 @@ import DiagramKitGraphviz
     func structurizrProbeSignature() {
         let source = "workspace {\n  model {\n    user = person \"User\"\n  }\n}"
         #expect(source.contains("workspace {"))
+    }
+
+    // MARK: - Structurizr probe collision tests (Phase 5)
+
+    @Test("Structurizr probe accepts workspace")
+    func structurizrProbeAcceptsWorkspace() {
+        let s = StructurizrImporter()
+        #expect(s.supports(source: "workspace { }"))
+    }
+
+    @Test("Structurizr probe accepts named workspace")
+    func structurizrProbeAcceptsNamedWorkspace() {
+        let s = StructurizrImporter()
+        #expect(s.supports(source: "workspace \"N\" { }"))
+    }
+
+    @Test("Structurizr probe accepts compact")
+    func structurizrProbeAcceptsCompact() {
+        let s = StructurizrImporter()
+        #expect(s.supports(source: "workspace{model{}}"))
+    }
+
+    @Test("Structurizr probe accepts multiline workspace")
+    func structurizrProbeAcceptsMultilineWorkspace() {
+        let s = StructurizrImporter()
+        #expect(s.supports(source: "workspace\n{ model {} }"))
+    }
+
+    @Test("Structurizr probe rejects workspace without brace")
+    func structurizrProbeRejectsWorkspaceWithoutBrace() {
+        let s = StructurizrImporter()
+        #expect(!s.supports(source: "workspace"))
+    }
+
+    @Test("Structurizr probe rejects workspace name without brace")
+    func structurizrProbeRejectsWorkspaceNameWithoutBrace() {
+        let s = StructurizrImporter()
+        #expect(!s.supports(source: "workspace \"N\""))
+    }
+
+    @Test("Structurizr probe rejects Mermaid graph TD")
+    func structurizrProbeRejectsMermaidGraphTD() {
+        let s = StructurizrImporter()
+        #expect(!s.supports(source: "graph TD\nA-->B"))
+    }
+
+    @Test("Structurizr probe rejects Mermaid flowchart")
+    func structurizrProbeRejectsMermaidFlowchart() {
+        let s = StructurizrImporter()
+        #expect(!s.supports(source: "flowchart LR\nA-->B"))
+    }
+
+    @Test("Structurizr probe rejects Mermaid C4")
+    func structurizrProbeRejectsMermaidC4() {
+        let s = StructurizrImporter()
+        #expect(!s.supports(source: "C4Context\nPerson(user, \"U\")"))
+    }
+
+    @Test("Structurizr probe rejects D2 source")
+    func structurizrProbeRejectsD2Source() {
+        let s = StructurizrImporter()
+        #expect(!s.supports(source: "A: Start\nA -> B"))
+    }
+
+    @Test("Structurizr probe rejects DOT source")
+    func structurizrProbeRejectsDOTSource() {
+        let s = StructurizrImporter()
+        #expect(!s.supports(source: "digraph G { A -> B }"))
+    }
+
+    @Test("Structurizr probe rejects PlantUML")
+    func structurizrProbeRejectsPlantUML() {
+        let s = StructurizrImporter()
+        #expect(!s.supports(source: "@startuml\nAlice -> Bob: Hello\n@enduml"))
+    }
+
+    @Test("Structurizr probe rejects empty string")
+    func structurizrProbeRejectsEmptyString() {
+        let s = StructurizrImporter()
+        #expect(!s.supports(source: ""))
+    }
+
+    @Test("registry prepends Structurizr first")
+    func registryPrependsStructurizrFirst() {
+        let registry = DiagramPipeline.defaultRegistry
+        let importer = registry.importer(for: "workspace { model { } views { } }")
+        #expect(importer?.name == "Structurizr")
+    }
+
+    @Test("registry falls back to Graphviz for digraph")
+    func registryFallsBackToGraphvizForDigraph() {
+        let registry = DiagramPipeline.defaultRegistry
+        let importer = registry.importer(for: "digraph G { A -> B }")
+        #expect(importer?.name == "Graphviz")
+    }
+
+    @Test("registry with Structurizr falls back to Mermaid for graph TD")
+    func structurizrRegistryFallsBackToMermaidForGraphTD() {
+        let registry = DiagramPipeline.defaultRegistry
+        let importer = registry.importer(for: "graph TD\nA-->B")
+        #expect(importer?.name == "Mermaid")
     }
 
     // MARK: - DOT probe collision tests (Phase 4)
