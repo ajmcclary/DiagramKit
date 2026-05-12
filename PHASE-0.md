@@ -3,108 +3,176 @@
 **Date**: 2026-05-12
 **Status**: Planned
 
-One mechanical commit: rename every Mermaid-coupled public symbol to its
-format-neutral name, resolve the `DiagramRenderer` collision, and add
-backward-compat type aliases for one release cycle.
+Add format-neutral public names additively, then migrate internals in small
+buildable passes. No breaking changes in this phase — the `@available(deprecated)`
+alias surface keeps every existing call site compiling.
 
 ---
 
-## 1. The Core Conflict: Two `DiagramRenderer` Types
+## 1. The `DiagramRenderer` Collision — Resolved
 
-The public async facade (`MermaidRenderer`) and the CG-context renderer
-(`DiagramRenderer`) would collide if both renamed naively. Resolve by
-moving the CG type aside:
+Two types historically named `DiagramRenderer`:
+
+| Target | Type | Role |
+|---|---|---|
+| `DiagramKitRenderingCG` | `public final class DiagramRenderer` | CG-context renderer, draws into `CGContext` |
+| `DiagramKit` | `public struct MermaidRenderer` | Public async facade (`parse`, `layout`, `renderSVG`, `renderImage`, etc.) |
+
+The umbrella target **re-exports** `DiagramKitRenderingCG` via `@_exported import`.
+That means the CG `DiagramRenderer` name is visible to any `import DiagramKit`
+consumer — its name space is already occupied at the umbrella level.
+
+**Decision**: the public async facade becomes `DiagramEngine`, not `DiagramRenderer`.
+This avoids the collision entirely. The CG `DiagramRenderer` stays as-is — no
+rename needed for the CG type.
 
 ```
-DiagramKitRenderingCG.DiagramRenderer  →  CGDiagramRenderer
-DiagramKit.MermaidRenderer             →  DiagramRenderer   (vacated slot)
+DiagramKit.MermaidRenderer  →  DiagramKit.DiagramEngine   (new public facade)
+DiagramKitRenderingCG.DiagramRenderer  →  NO RENAME
 ```
 
-This is the natural layering: the public facade is what users see first,
-and the CG type is an implementation detail consumed primarily through
-`PreparedDiagram.render(in:context:bounds:)`.
+The `DiagramEngine` naming matches MusicToolkit's `ScoreLoader` pattern: a
+stateless enum/struct that orchestrates the full pipeline without being a
+"renderer" in the graphics sense.
 
 ---
 
-## 2. Complete Rename Map (bottom-up by target)
+## 2. Execution Strategy: Additive, Not Destructive
 
-### 2a. `DiagramKitCommon` (already format-neutral)
+Phase 0 is split into **three buildable commits**:
+
+### Commit A: Introduce New Names (additive only)
+
+Add new types/wrappers alongside existing ones. Every existing public symbol
+stays exactly where it is. This commit compiles and all tests pass unchanged.
+
+### Commit B: Migrate Internals (no public API change)
+
+Replace internal call sites with new names. External consumers still see both
+old and new names through deprecated aliases. Snapshot tests verify no
+behavior change.
+
+### Commit C: File Renames + Docs + Deprecation Annotations
+
+Rename `.swift` files to match their new primary type names. Add `@available(deprecated
+renamed:)` annotations to all compat aliases. Update README, AGENTS.md,
+ARCHITECTURE.md, CONTRIBUTING.md, ANALYSIS.md, BASELINES.md.
+
+---
+
+## 3. Complete Rename Map (bottom-up by target)
+
+### 3a. `DiagramKitCommon`
 
 | Before | After |
 |---|---|
 | `_reportMermaidIssue(_:)` | `_reportDiagramIssue(_:)` |
 | `_reportMermaidIssueIfNeeded(_:operation:)` | `_reportDiagramIssueIfNeeded(_:operation:)` |
 | `_withMermaidIssueReporting(operation:_:)` | `_withDiagramIssueReporting(operation:_:)` |
+| `_MermaidRecoverableError` (protocol) | `_RecoverableDiagramError` |
+| `_isRecoverableMermaidError(_:)` | `_isRecoverableDiagramError(_:)` |
 
 File: `Sources/DiagramKitCommon/IssueReportingSupport.swift`
 
-### 2b. `DiagramKitModel`
+### 3b. `DiagramKitModel`
 
 | Before | After | Notes |
 |---|---|---|
 | `MermaidGraph` | `DiagramDocument` | The canonical parsed model |
-| `BeautifulMermaidError` | `DiagramError` | One error type |
+| `BeautifulMermaidError` | `DiagramError` | Moved to `Errors.swift` |
 | `MermaidSourceNormalizer` | `DiagramSourceNormalizer` | Shared by all parsers |
-| `MermaidNode` | *unchanged* | Model-level Mermaid node; domain-specific |
-| `ParsedGraphModel` (typealias) | *unchanged* | Aliases `original_src_types.MermaidGraph` — upstream port |
+| `MermaidColorParser` | `DiagramColorParser` | Hex color parsing |
+| `MermaidNode` | *unchanged* | Mermaid-specific node concept |
+| `ParsedGraphModel` (typealias) | *unchanged* | Upstream `original_src_types.MermaidGraph` |
 
-`DiagramDocument` matches MusicToolkit's `Score` pattern exactly: one
-frozen canonical document that every importer produces and every
-renderer/exporter consumes.
+New file: `Sources/DiagramKitModel/Errors.swift`
+- Consolidate `DiagramError`, `DiagramStructuralError` (moved from umbrella), and
+  eventually `DiagramDiagnostic` (Phase 1).
 
-### 2c. `DiagramKitRenderingCG`
+### 3c. `DiagramKitRenderingCG`
 
 | Before | After | Notes |
 |---|---|---|
-| `DiagramRenderer` | `CGDiagramRenderer` | Frees the name for the public facade |
-| `MermaidWorkerThread` | `DiagramWorkerThread` | Generic worker, not Mermaid-specific |
-| `MermaidPreparation` | `DiagramPreparation` | Bridge type |
+| `DiagramRenderer` | **NO RENAME** | See Section 1 |
+| `MermaidWorkerThread` | `DiagramWorkerThread` | |
+| `MermaidPreparation` | `DiagramPreparation` | |
 | `MermaidPreparationError` | `DiagramPreparationError` | |
 | `MermaidBitmapRenderer` | `DiagramBitmapRenderer` | |
 | `MermaidViewPreparer` | `DiagramViewPreparer` | |
 | `MermaidViewPreparerEnvironment` | `DiagramViewPreparerEnvironment` | |
-| `BeautifulMermaidFontRegistry` | `DiagramFontRegistry` | Already lives alongside `DiagramFontResolver` |
+| `BeautifulMermaidFontRegistry` | `DiagramFontRegistry` | |
 
-### 2d. `DiagramKitViews`
+### 3d. `DiagramKitViews`
 
 | Before | After | Notes |
 |---|---|---|
-| `MermaidView` (UIView/NSView subclass) | `DiagramNativeView` | Distinguishes from SwiftUI wrapper |
+| `MermaidView` (UIView/NSView) | `DiagramNativeView` | |
 | `MermaidLayer` | `DiagramLayer` | |
-| `MermaidDiagram` (`@Observable`) | `DiagramViewModel` | Value-type model for views |
-| `MermaidDiagramView` (SwiftUI representable) | `DiagramView` | Primary SwiftUI entry point |
+| `MermaidDiagram` (`@Observable`) | `DiagramViewModel` | |
+| `MermaidDiagramView` (SwiftUI) | `DiagramView` | |
 
-### 2e. `DiagramKit` (umbrella + Mermaid-specific code)
+### 3e. `DiagramKit` (umbrella)
 
 | Before | After | Notes |
 |---|---|---|
-| `MermaidRenderer` | `DiagramRenderer` | The public async facade |
-| `MermaidPipeline` | `DiagramPipeline` | Stateless pipeline enum |
+| `MermaidRenderer` | `DiagramEngine` | New public facade (see Section 1) |
+| `MermaidPipeline` | `DiagramPipeline` | |
 | `MermaidImageRenderer` | `DiagramImageRenderer` | |
-| `MermaidParser` | *unchanged* | Will become `MermaidImporter` in Phase 2; keep for now |
-| `MermaidStructuralError` | `DiagramStructuralError` | Move to `DiagramKitModel` |
+| `MermaidParser` | *unchanged* | Will become `MermaidImporter` in Phase 2 |
+| `MermaidStructuralError` | `DiagramStructuralError` | **Move to `DiagramKitModel/Errors.swift`** |
 | `_MermaidPreparerBootstrap` | `_DiagramPreparerBootstrap` | |
-| `MermaidPreparerWiring.swift` | `DiagramPreparerWiring.swift` | File rename |
-| `ImageRenderer.swift` | `DiagramImageRenderer.swift` or move logic into renamed type | File rename |
+| `MermaidPreparerWiring.swift` | `DiagramPreparerWiring.swift` | File rename in Commit C |
+| `ImageRenderer.swift` | `DiagramImageRenderer.swift` | File rename in Commit C |
+
+### 3f. Public Free Functions (in `src_index.swift` / `src_ascii_index.swift`)
+
+| Before | After | Notes |
+|---|---|---|
+| `renderMermaidSVG(_:_:)` | `renderDiagramSVG(_:_:)` | Public function |
+| `renderMermaidSVGAsync(_:_:)` | `renderDiagramSVGAsync(_:_:)` | Deprecated wrapper |
+| `renderMermaidASCII(_:options:)` | *defer to Phase 2* | ASCII is Mermaid-specific; keep for now |
+| `_renderMermaidSVG(_:_:_:)` | `_renderDiagramSVG(_:_:_:)` | Internal function |
+| `renderMermaid(_:_:)` | `renderDiagram(_:_:)` | Already deprecated in favor of `renderMermaidSVG` |
+
+### 3g. Registry Types — DEFERRED to Phase 1
+
+`DiagramRegistry`, `DiagramDescriptor`, and `DiagramHeader` are public types.
+Renaming them to `MermaidDiagramRegistry` / `MermaidDiagramDescriptor` /
+`MermaidDiagramHeader` is correct conceptually but is a breaking change with
+no clear compat alias strategy (the old names would collide with the future
+format-level `DiagramRegistry` concept).
+
+**Decision**: defer all three renames to Phase 1 ("Importer Protocol + Registry").
+Phase 1 will:
+- Introduce `DiagramSourceImporter` protocol and `ImporterRegistry`
+- Move the current `DiagramRegistry` → `MermaidImporter.supports(source:)`
+- Then `DiagramRegistry` / `DiagramDescriptor` / `DiagramHeader` can be renamed
+  or retired without ambiguity
+
+For Phase 0, add a comment banner in `DiagramDescriptor.swift` and the 28
+`DiagramRegistry+*.swift` files clarifying they are Mermaid-family-internal:
+
+```swift
+// MARK: - Mermaid-internal diagram-family registry
+//
+// These descriptors are Mermaid-specific. A format-agnostic importer registry
+// (`ImporterRegistry` + `DiagramSourceImporter`) will be introduced in Phase 1.
+// At that point this type will become `MermaidDiagramRegistry` or be subsumed
+// into `MermaidImporter`.
+```
 
 ---
 
-## 3. Backward-Compat Type Aliases (one release cycle)
+## 4. Backward-Compat Type Aliases (one release cycle)
 
-All in `Sources/DiagramKit/ReExports.swift` (or a new `DeprecatedAliases.swift`):
+Each alias lives in the **target where the original public symbol was defined**,
+not in the umbrella `ReExports.swift`.
+
+### `DiagramKitModel` (in `Types.swift`)
 
 ```swift
 @available(*, deprecated, renamed: "DiagramDocument")
 public typealias MermaidGraph = DiagramDocument
-
-@available(*, deprecated, renamed: "DiagramRenderer")
-public typealias MermaidRenderer = DiagramRenderer
-
-@available(*, deprecated, renamed: "DiagramPipeline")
-public typealias MermaidPipeline = DiagramPipeline
-
-@available(*, deprecated, renamed: "DiagramImageRenderer")
-public typealias MermaidImageRenderer = DiagramImageRenderer
 
 @available(*, deprecated, renamed: "DiagramError")
 public typealias BeautifulMermaidError = DiagramError
@@ -112,6 +180,13 @@ public typealias BeautifulMermaidError = DiagramError
 @available(*, deprecated, renamed: "DiagramSourceNormalizer")
 public typealias MermaidSourceNormalizer = DiagramSourceNormalizer
 
+@available(*, deprecated, renamed: "DiagramColorParser")
+public typealias MermaidColorParser = DiagramColorParser
+```
+
+### `DiagramKitRenderingCG` (in a new `DeprecatedAliases.swift` or per-type)
+
+```swift
 @available(*, deprecated, renamed: "DiagramWorkerThread")
 public typealias MermaidWorkerThread = DiagramWorkerThread
 
@@ -121,9 +196,22 @@ public typealias MermaidPreparation = DiagramPreparation
 @available(*, deprecated, renamed: "DiagramPreparationError")
 public typealias MermaidPreparationError = DiagramPreparationError
 
-@available(*, deprecated, renamed: "DiagramView")
-public typealias MermaidDiagramView = DiagramView
+@available(*, deprecated, renamed: "DiagramBitmapRenderer")
+public typealias MermaidBitmapRenderer = DiagramBitmapRenderer
 
+@available(*, deprecated, renamed: "DiagramViewPreparer")
+public typealias MermaidViewPreparer = DiagramViewPreparer
+
+@available(*, deprecated, renamed: "DiagramViewPreparerEnvironment")
+public typealias MermaidViewPreparerEnvironment = DiagramViewPreparerEnvironment
+
+@available(*, deprecated, renamed: "DiagramFontRegistry")
+public typealias BeautifulMermaidFontRegistry = DiagramFontRegistry
+```
+
+### `DiagramKitViews` (per-file)
+
+```swift
 @available(*, deprecated, renamed: "DiagramNativeView")
 public typealias MermaidView = DiagramNativeView
 
@@ -133,122 +221,188 @@ public typealias MermaidLayer = DiagramLayer
 @available(*, deprecated, renamed: "DiagramViewModel")
 public typealias MermaidDiagram = DiagramViewModel
 
+@available(*, deprecated, renamed: "DiagramView")
+public typealias MermaidDiagramView = DiagramView
+```
+
+### `DiagramKit` (in a new `DeprecatedAliases.swift`)
+
+```swift
+@available(*, deprecated, renamed: "DiagramEngine")
+public typealias MermaidRenderer = DiagramEngine
+
+@available(*, deprecated, renamed: "DiagramPipeline")
+public typealias MermaidPipeline = DiagramPipeline
+
+@available(*, deprecated, renamed: "DiagramImageRenderer")
+public typealias MermaidImageRenderer = DiagramImageRenderer
+
 @available(*, deprecated, renamed: "DiagramStructuralError")
 public typealias MermaidStructuralError = DiagramStructuralError
+```
 
-@available(*, deprecated, renamed: "DiagramFontRegistry")
-public typealias BeautifulMermaidFontRegistry = DiagramFontRegistry
+### String Extensions (in `DiagramKit/MermaidRenderer.swift`)
+
+```swift
+extension String {
+    @available(*, deprecated, renamed: "parseDiagram()")
+    public func parseMermaid() async throws -> DiagramDocument { ... }
+
+    @available(*, deprecated, renamed: "renderDiagramImage()")
+    @MainActor
+    public func renderMermaidImage(theme: DiagramTheme = .default, scale: CGFloat = 2.0) async throws -> BMImage? { ... }
+
+    @available(*, deprecated, renamed: "renderDiagramSVG()")
+    public func renderMermaidSVG(theme: DiagramTheme = .default, layoutConfig: LayoutConfig = LayoutConfig()) async throws -> String { ... }
+
+    @available(*, deprecated, renamed: "renderDiagramASCII()")
+    public func renderMermaidASCII(theme: DiagramTheme = .default) async throws -> String { ... }
+}
 ```
 
 ---
 
-## 4. Diagnostics Location Decision
+## 5. Diagnostics Location Decision
 
-**Place `DiagramDiagnostic` in `DiagramKitModel`.**
+**Place `DiagramError` and `DiagramStructuralError` in `DiagramKitModel/Errors.swift`.**
 
-- `DiagramDiagnostic` will reference `DiagramType`, `DiagramPayload` cases,
-  and source spans — all model-level concerns
-- MusicToolkit's `NotationDiagnostic` lives in `MusicToolkitModel` for the
-  same reason
-- This lets any importer/exporter target depend on `DiagramKitModel` and emit
-  diagnostics without dragging in the umbrella
+Both are already in `DiagramKitModel.Types` (`BeautifulMermaidError`) and
+`DiagramKit.DiagramDescriptor` (`MermaidStructuralError`). Consolidating them
+into a single `Errors.swift` in the model target:
+- Lets any importer/exporter depend on `DiagramKitModel` and throw typed errors
+- Follows MusicToolkit's pattern of model-level error types
+- Avoids the umbrella target as an error dependency for new format targets
 
-Similarly move `DiagramStructuralError` (currently in
-`Sources/DiagramKit/DiagramDescriptor.swift`) and `DiagramError` (currently
-`BeautifulMermaidError` in `Sources/DiagramKitModel/Types.swift`) both into a
-dedicated `Sources/DiagramKitModel/Errors.swift`.
+Future `DiagramDiagnostic` (the non-fatal warning type) will also live here.
 
 ---
 
-## 5. Registry Ownership Split
+## 6. Registry Ownership Split — Phase 0 Action
 
-Current state: one `DiagramRegistry` enum in
-`Sources/DiagramKit/DiagramDescriptor.swift` holds both:
-- The 28 per-family Mermaid descriptors (`_flowchart`, `_sequenceDiagram`, etc.)
-- The ordered `all` array + `detect(header:)` dispatch
-
-Post-Phase-0 state (preparing for Phase 1-2):
-
-- **`MermaidDiagramRegistry`** (rename from `DiagramRegistry`): the existing
-  28-family first-match-wins list, now explicitly named as Mermaid-internal
-- The format-level `ImporterRegistry` (Phase 1) will be a separate protocol
-  dispatch table for "is this Mermaid, d2, DOT, PlantUML, or Structurizr?"
-- For Phase 0, just rename the type and its symbol to clarify the distinction
-
-Files to rename:
-```
-DiagramDescriptor.swift       →  MermaidDiagramDescriptor.swift
-DiagramRegistry+Flowchart.swift →  MermaidDiagramRegistry+Flowchart.swift
-... (all 28 DiagramRegistry+*.swift files)
-```
-
-Type renames:
-```
-DiagramRegistry    →  MermaidDiagramRegistry
-DiagramDescriptor  →  MermaidDiagramDescriptor
-DiagramHeader      →  MermaidDiagramHeader
-```
+Deferred to Phase 1 (see Section 3g). For Phase 0:
+- Add comment banners to `DiagramDescriptor.swift` and 28 `DiagramRegistry+*.swift` files
+- No type renames
 
 ---
 
-## 6. BASELINES.md Gap
+## 7. BASELINES.md — Create a Real File
 
-`AGENTS.md` and `ANALYSIS.md` both reference `BASELINES.md` — it doesn't exist.
-Create a stub.
+Generate `BASELINES.md` from live metrics. At minimum:
+
+```markdown
+# BASELINES.md
+
+## Build
+- `swift build --build-tests`: ~X seconds (MacBook Pro M4, 24 GB)
+- `swift build -strict-concurrency=complete -warnings-as-errors`: clean
+
+## Tests
+- `swift test`: ~N test suites, ~M test cases (approx. X minutes)
+- `SNAPSHOT_DIAGRAM_IDS=... swift test --filter CorpusSnapshotTests/imageSnapshot`: ~5 min
+
+## Snapshot Baselines
+- SVG: 396 entries
+- Image: 346 entries (50 gap: layouts producing 0×0 bounds)
+- ASCII: 172 entries
+
+## Gate Status
+- `Scripts/check-file-sizes.sh`: pass
+- `Scripts/check-sendable-annotations.sh`: pass
+- `Scripts/strict-concurrency-check.sh`: pass
+- `Scripts/linux-check.sh`: pass
+
+Last updated: 2026-05-12
+```
+
+Populate actual numbers from current `swift test` output after Commit A compiles.
 
 ---
 
-## 7. Execution Order
+## 8. Execution Order
 
-**One mechanical commit, bottom-up:**
+### Commit A: Additive Introduction
 
-1. `DiagramKitCommon` — rename issue-reporting helpers (1 file)
-2. `DiagramKitModel` — rename `MermaidGraph` → `DiagramDocument`,
-   `BeautifulMermaidError` → `DiagramError`, `MermaidSourceNormalizer` →
-   `DiagramSourceNormalizer` (~200+ sites across 210 files in Model + all
-   downstream consumers)
-3. `DiagramKitRenderingCG` — CG `DiagramRenderer` → `CGDiagramRenderer` +
-   worker/prep/font renames (~42 files in RenderingCG + View references)
-4. `DiagramKitViews` — view renames (4 files)
-5. `DiagramKit` — umbrella facade rename + add backward-compat aliases
-   (~42 files in umbrella)
-6. **Tests** — update all test references (~144 test files)
-7. **Playground** — update `LiveEditorStore`, `SampleDiagrams.swift`
-8. `BASELINES.md` — create stub
+Goal: `swift build --build-tests` succeeds with zero test changes.
+
+1. `DiagramKitModel` — add `DiagramDocument`, `DiagramError`, `DiagramSourceNormalizer`, `DiagramColorParser`
+2. `DiagramKitCommon` — add renamed issue-reporting helpers alongside old names
+3. `DiagramKitRenderingCG` — add `DiagramWorkerThread`, `DiagramPreparation`, `DiagramViewPreparer`, etc.
+4. `DiagramKitViews` — add `DiagramView`, `DiagramNativeView`, `DiagramLayer`, `DiagramViewModel`
+5. `DiagramKit` — add `DiagramEngine` wrapping `MermaidRenderer`, add `DiagramPipeline` wrapping `MermaidPipeline`, add `DiagramImageRenderer`
+6. `DiagramKit/DeprecatedAliases.swift` — add all compat aliases
+7. Build and verify: `swift build --build-tests`
+
+### Commit B: Internal Migration
+
+Goal: all internal call sites use new names. Tests pass with existing baselines.
+
+1. `DiagramKitModel` — migrate ~200 internal references from `MermaidGraph` → `DiagramDocument`, etc.
+2. `DiagramKitCommon` — migrate internal callers of old issue-reporting names
+3. `DiagramKitRenderingCG` — migrate internal references (~42 files)
+4. `DiagramKit` — migrate internal references (parser, layout, pipeline, SVG, ASCII, image)
+5. `DiagramKitViews` — migrate internal references (4 files)
+6. Tests — migrate test references (~144 files)
+7. Playground — migrate `LiveEditorStore`, `SampleDiagrams.swift`
+8. `swift test --filter CorpusSnapshotTests` — verify no snapshot drift
+
+### Commit C: File Renames + Docs
+
+Goal: files match their primary type names. Docs reflect new API surface.
+
+1. Rename `Sources/DiagramKit/ImageRenderer.swift` → `Sources/DiagramKit/DiagramImageRenderer.swift`
+2. Rename `Sources/DiagramKit/MermaidPreparerWiring.swift` → `Sources/DiagramKit/DiagramPreparerWiring.swift`
+3. Rename `Sources/DiagramKitModel/MermaidColorParser.swift` → `Sources/DiagramKitModel/DiagramColorParser.swift`
+4. Rename `Sources/DiagramKitModel/MermaidSourceNormalizer.swift` → `Sources/DiagramKitModel/DiagramSourceNormalizer.swift`
+5. Create `Sources/DiagramKitModel/Errors.swift` (consolidate error types)
+6. Add `DiagramKit/DeprecatedAliases.swift` with all compat aliases
+7. Create `BASELINES.md` with live metrics
+8. Update `README.md`, `AGENTS.md`, `ARCHITECTURE.md`, `CONTRIBUTING.md`, `ANALYSIS.md`
+9. `Scripts/bootstrap-smoke-check.sh` — full gate
 
 ---
 
-## 8. Verification Gates
+## 9. Verification Gates
 
 ```bash
-swift build --build-tests          # must succeed
-swift test --filter CorpusSnapshotTests  # snapshot baseline names change
-SNAPSHOT_TESTING_RECORD=true swift test --filter CorpusSnapshotTests  # re-record
-Scripts/bootstrap-smoke-check.sh    # full gate
+# After Commit A:
+swift build --build-tests
+
+# After Commit B:
+swift test --filter CorpusSnapshotTests
+# Verify no snapshot drift before re-recording
+
+# After Commit C:
+Scripts/bootstrap-smoke-check.sh
+```
+
+Snapshot re-recording is **not** expected in Phase 0 — test function names don't
+embed `Mermaid_` prefixes (verified: no matches in `Tests/`). If any snapshot
+baseline name changes, re-record with:
+```bash
+SNAPSHOT_TESTING_RECORD=true swift test --filter CorpusSnapshotTests
 ```
 
 ---
 
-## 9. Open Risk Items
+## 10. Open Risk Items
 
-- **~400 code sites** to update — the rename surface is large. Mechanical
-  search-and-replace with `sed` is the right tool, not manual editing.
-- **Snapshot baseline files** (~396 SVG, ~346 image, ~172 ASCII) have test
-  function names that embed `Mermaid_` prefixes — these will shift when
-  `CorpusSnapshotTests` is updated.
-- **Linux path**: `MermaidRenderer._runOnWorker` has a `#else` branch for
-  Linux that constructs `Thread` manually — the rename must hit both branches.
+- **~400 code sites** across all targets. Mechanical `sed` replacement with
+  target-by-target verification is the right approach.
+- **Linux `#else` path** in `MermaidRenderer._runOnWorker`: the manual `Thread`
+  construction must be updated. The Linux path in `DiagramKitCommon` helpers
+  (`_reportMermaidIssue` → stderr fallback) must also be updated.
 - **`original_src_types.MermaidGraph`**: the upstream JS-port type in
-  `DiagramKitModel` is called `MermaidGraph` internally — this is distinct
-  from the public `MermaidGraph` (our wrapper). The upstream type is accessed
-  via `original_src_types.MermaidGraph` or the `ParsedGraphModel` typealias.
-  Don't rename the upstream port's internal types — only the public wrapper.
-- **`MermaidNode`** is intentionally left unchanged — it's a Mermaid-specific
-  model concept (node inline styles in Mermaid syntax), not a general diagram
-  concept.
-- **`MermaidParser`** is intentionally left unchanged — it will become
-  `MermaidImporter` in Phase 2 when the importer protocol lands.
-- The `String` extension methods (`parseMermaid()`, `renderMermaidImage()`,
-  `renderMermaidSVG()`, `renderMermaidASCII()`) should be deprecated in favor
-  of `parseDiagram()`, `renderDiagramImage()`, `renderDiagramSVG()`,
-  `renderDiagramASCII()`.
+  `DiagramKitModel` is distinct from our public `MermaidGraph` wrapper. Access
+  via `original_src_types.MermaidGraph` or `ParsedGraphModel` typealias. Do
+  not rename upstream port internal types.
+- **`MermaidNode`** — intentionally left unchanged (Mermaid-specific node concept:
+  inline styles from Mermaid syntax).
+- **`MermaidParser`** — intentionally left unchanged (will become `MermaidImporter`
+  when the `DiagramSourceImporter` protocol lands in Phase 2).
+- **15+ `_MermaidRecoverableError` conformances** across DiagramKitModel parser
+  error types. Each enum (`ClassParserError`, `ErParserError`, etc.) conforms to
+  `_MermaidRecoverableError`. Renaming the protocol means updating all 15+
+  conformances.
+- **`renderMermaidSVG` / `renderMermaidASCII` free functions**: the SVG function
+  should be aliased to `renderDiagramSVG`. The ASCII function is Mermaid-specific
+  (no other format produces ASCII output) — keep as-is with a deprecation comment.
