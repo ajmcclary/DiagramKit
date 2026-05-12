@@ -45,16 +45,20 @@ then build their own UI on top.
 - **Portable geometry types** in `DiagramKitCommon` — `DiagramPoint` and
   `DiagramRect` that work on Linux and Apple without leaking CoreGraphics into
   format-neutral surfaces.
-- **Guaranteed stable element IDs** for every positioned element across all 28
-  diagram families. IDs are source-derived, deterministic, and survive
+- **Guaranteed stable element IDs** for every positioned element in the five
+  priority families (flowchart/state, sequence, class, ER, C4) and incremental
+  long-tail coverage (Slice 8G). Exhaustive 28-family coverage is deferred to
+  later slices / Phase 10. IDs are source-derived, deterministic, and survive
   re-layouts.
 - **`DiagramSelection`** — a lightweight value type carrying a `DiagramType`
   and an opaque stable `elementID`. Survives parse/layout/render cycles.
 - **`DiagramBoundsLookup`** — a spatial index built from `PositionedGraph` that
   provides hit-testing (`element(at:)`), marquee selection
   (`elements(in:)`), and reverse lookup (`bounds(of:)`).
-- **Pipeline integration** — lookup is constructed during `prepare()` and
-  accessible via `PreparedDiagram.positioned.lookup`.
+- **Pipeline integration** — lookup is built eagerly as a computed property on
+  `PositionedGraph` (`positioned.lookup`). Consumers access it through
+  `PreparedDiagram.positioned.lookup` without any `PreparedDiagram` API
+  changes.
 
 ### 1.3 What Phase 8 Does NOT Deliver
 
@@ -106,11 +110,13 @@ No new target. All work fits into the existing layered architecture.
    `Sendable` struct built once from a `PositionedGraph`. It has no mutable
    state. Consumers create a new lookup when they re-layout.
 
-6. **Coverage is exhaustive but incremental.** Slice 8A provides the foundation
-   types. Slices 8B-8F cover the five priority families (flowchart/state,
-   sequence, class, ER, C4). Slice 8G covers the remaining 23 families.
-   Families without explicit coverage return empty lookup results — they do not
-   crash or throw.
+6. **Coverage is incremental; priority families are the near-term exit.**
+   Slice 8A provides the foundation types. Slices 8B-8F cover the five
+   priority families (flowchart/state, sequence, class, ER, C4) — completing
+   these five slices is the Phase 8 exit criterion. Slice 8G covers the
+   remaining 23 families and can ship incrementally or in Phase 10. Families
+   without explicit coverage return empty lookup results — they do not crash
+   or throw.
 
 ---
 
@@ -324,11 +330,35 @@ import DiagramKitCommon
 /// `DiagramBoundsLookup` is `Sendable`. It is constructed once and read
 /// concurrently. All state is immutable value-type data.
 public struct DiagramBoundsLookup: Sendable {
-    /// Internal entry: element bounds + opaque ID + human-readable label.
+    /// The category of a diagram element, used for hit-test z-order.
+    /// Lower raw values draw first (further back); higher values draw last
+    /// (on top) and win hit-test tiebreaking.
+    public enum ElementKind: Int, Sendable, Comparable {
+        case boundary = 0
+        case lifeline = 1
+        case group = 2
+        case highlight = 3
+        case edge = 4
+        case activation = 5
+        case block = 6
+        case note = 7
+        case box = 8
+        case node = 9
+        case actor = 10
+
+        public static func < (lhs: ElementKind, rhs: ElementKind) -> Bool {
+            lhs.rawValue < rhs.rawValue
+        }
+    }
+
+    /// Internal entry: element bounds + opaque ID + human-readable label
+    /// + kind + draw order for correct z-order hit-testing.
     private struct Entry: Sendable {
         var bounds: DiagramRect
         var elementID: String
         var label: String?
+        var kind: ElementKind
+        var drawOrder: Int
     }
 
     /// Entries sorted by minY then minX for efficient hit-testing.
@@ -338,7 +368,8 @@ public struct DiagramBoundsLookup: Sendable {
     /// The number of elements in this lookup.
     public var count: Int { entries.count }
 
-    /// All element IDs in this lookup.
+    /// All element IDs in this lookup. Uniqueness is guaranteed by the
+    /// builder layer (duplicate IDs are a builder bug).
     public var allElementIDs: [String] {
         entries.map(\.elementID)
     }
@@ -349,14 +380,19 @@ public struct DiagramBoundsLookup: Sendable {
     /// or nil if no element contains the point.
     ///
     /// When multiple elements overlap at the given point, the element with
-    /// the smallest area is returned (the most "specific" element).
-    /// Z-order tiebreaking: nodes beat edges beat groups beat boundaries.
+    /// the highest draw order wins. When draw order ties, the element with
+    /// the smallest area wins. Element kind is factored into draw order:
+    /// boundaries draw first, actors draw last.
     public func element(at point: DiagramPoint) -> DiagramSelection? {
         var best: (entry: Entry, area: Double)? = nil
         for entry in entries {
             guard entry.bounds.contains(point) else { continue }
             let area = entry.bounds.width * entry.bounds.height
-            if let current = best, area >= current.area { continue }
+            if let current = best {
+                // Higher drawOrder wins; tiebreak by smaller area.
+                if entry.drawOrder < current.entry.drawOrder { continue }
+                if entry.drawOrder == current.entry.drawOrder && area >= current.area { continue }
+            }
             best = (entry, area)
         }
         return best.map {
@@ -410,14 +446,22 @@ public struct DiagramBoundsLookup: Sendable {
 
     // MARK: - Factory
 
-    /// Build a lookup from an arbitrary collection of `DiagramStableElement`
-    /// values.
+    /// Build a lookup from an array of `(element, kind)` tuples.
+    /// Draw order is assigned by array position: element at index 0 draws
+    /// first (lowest z), element at last index draws last (highest z).
     public static func build(
         diagramType: DiagramType,
-        elements: [any DiagramStableElement]
+        elements: [(any DiagramStableElement, kind: ElementKind)]
     ) -> DiagramBoundsLookup {
-        let entries = elements.map { el in
-            Entry(bounds: el.stableElementBounds, elementID: el.stableElementID, label: el.stableElementLabel)
+        let entries = elements.enumerated().map { idx, pair in
+            let el = pair.0
+            return Entry(
+                bounds: el.stableElementBounds,
+                elementID: el.stableElementID,
+                label: el.stableElementLabel,
+                kind: pair.kind,
+                drawOrder: idx
+            )
         }
         // Sort by minY then minX for better hit-testing locality.
         let sorted = entries.sorted { a, b in
@@ -575,12 +619,13 @@ extension PositionedNode: DiagramStableElement {
 extension PositionedEdge {
     /// Guaranteed stable edge identifier.
     /// Uses `edgeId` when present; falls back to a deterministic synthetic
-    /// ID derived from source and target nodes.
+    /// ID derived purely from source model fields (no layout geometry).
+    /// The lookup builder passes a source-order ordinal to disambiguate
+    /// repeated edges with identical source+target+label; that ordinal is
+    /// appended by the builder, not this property.
     public var guaranteedEdgeID: String {
         if let edgeId, !edgeId.isEmpty { return edgeId }
-        // Deterministic synthesis: source + target + label + first point.
-        let components = [source, target, label ?? "", points.first.map { "\($0.x),\($0.y)" } ?? ""]
-        let seed = components.joined(separator: "→")
+        let seed = [source, target, label ?? ""].joined(separator: "→")
         return "edge:\(StableID.derive(from: seed))"
     }
 }
@@ -641,13 +686,39 @@ private func _flowchartLookup(
     edges: [PositionedEdge],
     groups: [PositionedGroup]
 ) -> DiagramBoundsLookup {
-    var elements: [any DiagramStableElement] = []
-    elements.append(contentsOf: nodes.map { $0 as any DiagramStableElement })
-    elements.append(contentsOf: edges.map { $0 as any DiagramStableElement })
+    typealias E = DiagramBoundsLookup.ElementKind
+    var elements: [(any DiagramStableElement, kind: E)] = []
+
+    // Track edge ID counts to disambiguate duplicates.
+    var edgeIDCounts: [String: Int] = [:]
+
+    for node in nodes {
+        elements.append((node, .node))
+    }
+    for edge in edges {
+        let baseID = edge.guaranteedEdgeID
+        let count = edgeIDCounts[baseID, default: 0]
+        edgeIDCounts[baseID] = count + 1
+        let disambiguatedID = count > 0 ? "\(baseID)/\(count)" : baseID
+        elements.append((_EdgeWrapper(edge: edge, overrideID: disambiguatedID), .edge))
+    }
     for group in groups {
-        elements.append(contentsOf: group.allGroupElements())
+        for el in group.allGroupElements() {
+            elements.append((el, .group))
+        }
     }
     return DiagramBoundsLookup.build(diagramType: .flowchart, elements: elements)
+}
+
+/// Wraps a PositionedEdge with an override stable ID for duplicate
+/// disambiguation. The override is purely source-order-derived; no layout
+/// geometry is included.
+private struct _EdgeWrapper: DiagramStableElement {
+    let edge: PositionedEdge
+    let overrideID: String
+    var stableElementID: String { overrideID }
+    var stableElementBounds: DiagramRect { edge.stableElementBounds }
+    var stableElementLabel: String? { edge.stableElementLabel }
 }
 ```
 
@@ -694,7 +765,9 @@ extension SequenceLifeline: DiagramStableElement {
 }
 
 extension PositionedSequenceMessage {
-    /// Synthetic stable ID from from+to+label+sequenceNumber.
+    /// Synthetic stable ID from from+to+label+sequenceNumber (source-model
+    /// fields only; no layout geometry). Duplicates are disambiguated by
+    /// the lookup builder via source-order ordinal.
     public var guaranteedMessageID: String {
         let seed = [from, to, label, sequenceNumber.map(String.init) ?? ""]
             .joined(separator: "→")
@@ -717,7 +790,10 @@ extension PositionedSequenceMessage: DiagramStableElement {
 }
 
 extension SequenceActivation: DiagramStableElement {
-    public var stableElementID: String { "activation:\(actorId):\(topY)" }
+    /// Stable ID from actorId only. Multiple activations on the same actor
+    /// are disambiguated by the builder via source-order ordinal.
+    /// No layout geometry included.
+    public var stableElementID: String { "activation:\(actorId)" }
     public var stableElementBounds: DiagramRect {
         DiagramRect(x: x, y: topY, width: width, height: max(1, bottomY - topY))
     }
@@ -725,8 +801,9 @@ extension SequenceActivation: DiagramStableElement {
 }
 
 extension PositionedSequenceBlock: DiagramStableElement {
+    /// Stable ID from type+label only. Duplicates disambiguated by builder.
     public var stableElementID: String {
-        let seed = "\(type):\(label):\(x):\(y)"
+        let seed = "\(type):\(label)"
         return "block:\(StableID.derive(from: seed))"
     }
     public var stableElementBounds: DiagramRect {
@@ -736,8 +813,9 @@ extension PositionedSequenceBlock: DiagramStableElement {
 }
 
 extension PositionedSequenceNote: DiagramStableElement {
+    /// Stable ID from text only. Duplicates disambiguated by builder.
     public var stableElementID: String {
-        let seed = "note:\(text):\(x):\(y)"
+        let seed = text
         return "note:\(StableID.derive(from: seed))"
     }
     public var stableElementBounds: DiagramRect {
@@ -755,8 +833,10 @@ extension PositionedSequenceBox: DiagramStableElement {
 }
 
 extension PositionedRectHighlight: DiagramStableElement {
+    /// Stable ID from fill color + source order. Duplicates disambiguated
+    /// by the builder. No layout geometry in the ID.
     public var stableElementID: String {
-        "highlight:\(x):\(y):\(width):\(height)"
+        "highlight:\(fill)"
     }
     public var stableElementBounds: DiagramRect {
         DiagramRect(x: x, y: y, width: width, height: height)
@@ -799,17 +879,49 @@ private func _sequenceLookup(
     bottomActors: [PositionedSequenceActor],
     rectHighlights: [PositionedRectHighlight]
 ) -> DiagramBoundsLookup {
-    var elements: [any DiagramStableElement] = []
-    elements.append(contentsOf: actors.map { $0 as any DiagramStableElement })
-    elements.append(contentsOf: messages.map { $0 as any DiagramStableElement })
-    elements.append(contentsOf: blocks.map { $0 as any DiagramStableElement })
-    elements.append(contentsOf: lifelines.map { $0 as any DiagramStableElement })
-    elements.append(contentsOf: activations.map { $0 as any DiagramStableElement })
-    elements.append(contentsOf: notes.map { $0 as any DiagramStableElement })
-    elements.append(contentsOf: boxes.map { $0 as any DiagramStableElement })
-    elements.append(contentsOf: bottomActors.map { $0.asBottomActorStableElement() })
-    elements.append(contentsOf: rectHighlights.map { $0 as any DiagramStableElement })
+    typealias E = DiagramBoundsLookup.ElementKind
+    var elements: [(any DiagramStableElement, kind: E)] = []
+
+    /// Helper to disambiguate duplicate IDs with a per-ID running ordinal.
+    func disambiguate<T: DiagramStableElement>(
+        _ items: [T],
+        kind: E,
+        into target: inout [(any DiagramStableElement, kind: E)]
+    ) {
+        var counts: [String: Int] = [:]
+        for item in items {
+            let base = item.stableElementID
+            let n = counts[base, default: 0]
+            counts[base] = n + 1
+            if n > 0 {
+                target.append((_IDOverrideWrapper(wrapped: item, overrideID: "\(base)/\(n)"), kind))
+            } else {
+                target.append((item, kind))
+            }
+        }
+    }
+
+    disambiguate(actors, kind: .actor, into: &elements)
+    disambiguate(messages, kind: .edge, into: &elements)
+    disambiguate(blocks, kind: .block, into: &elements)
+    disambiguate(lifelines, kind: .lifeline, into: &elements)
+    disambiguate(activations, kind: .activation, into: &elements)
+    disambiguate(notes, kind: .note, into: &elements)
+    disambiguate(boxes, kind: .box, into: &elements)
+    disambiguate(bottomActors, kind: .actor, into: &elements)
+    disambiguate(rectHighlights, kind: .highlight, into: &elements)
+
     return DiagramBoundsLookup.build(diagramType: .sequenceDiagram, elements: elements)
+}
+
+/// Generic wrapper that overrides a DiagramStableElement's stable ID.
+/// Used for source-order duplicate disambiguation; no layout geometry.
+private struct _IDOverrideWrapper<T: DiagramStableElement>: DiagramStableElement {
+    let wrapped: T
+    let overrideID: String
+    var stableElementID: String { overrideID }
+    var stableElementBounds: DiagramRect { wrapped.stableElementBounds }
+    var stableElementLabel: String? { wrapped.stableElementLabel }
 }
 ```
 
@@ -833,6 +945,8 @@ extension PositionedClassNode: DiagramStableElement {
 }
 
 extension PositionedClassRelationship: DiagramStableElement {
+    /// Stable ID from from+to+title only (source-model fields).
+    /// Duplicates disambiguated by the builder via source-order ordinal.
     public var stableElementID: String {
         let seed = [from, to, title ?? ""].joined(separator: "→")
         return "rel:\(StableID.derive(from: seed))"
@@ -881,6 +995,47 @@ extension PositionedClassNote: DiagramStableElement {
 }
 ```
 
+### 6.2 Class Lookup Builder
+
+```swift
+// Sources/DiagramKitModel/DiagramBoundsLookup+Class.swift
+
+private func _classLookup(
+    classes: [PositionedClassNode],
+    relationships: [PositionedClassRelationship],
+    namespaces: [PositionedClassNamespace],
+    notes: [PositionedClassNote]
+) -> DiagramBoundsLookup {
+    typealias E = DiagramBoundsLookup.ElementKind
+    var elements: [(any DiagramStableElement, kind: E)] = []
+    func disambiguate<T: DiagramStableElement>(
+        _ items: [T], kind: E,
+        into target: inout [(any DiagramStableElement, kind: E)]
+    ) {
+        var counts: [String: Int] = [:]
+        for item in items {
+            let base = item.stableElementID
+            let n = counts[base, default: 0]
+            counts[base] = n + 1
+            if n > 0 {
+                target.append((_IDOverrideWrapper(wrapped: item, overrideID: "\(base)/\(n)"), kind))
+            } else {
+                target.append((item, kind))
+            }
+        }
+    }
+    disambiguate(classes, kind: .node, into: &elements)
+    disambiguate(relationships, kind: .edge, into: &elements)
+    for ns in namespaces {
+        for el in ns.allNamespaceElements() {
+            elements.append((el, .group))
+        }
+    }
+    disambiguate(notes, kind: .note, into: &elements)
+    return DiagramBoundsLookup.build(diagramType: .classDiagram, elements: elements)
+}
+```
+
 **Estimated**: ~80 lines.
 
 ---
@@ -901,6 +1056,8 @@ extension PositionedErEntity: DiagramStableElement {
 }
 
 extension PositionedErRelationship: DiagramStableElement {
+    /// Stable ID from entity1+entity2+label only. Duplicates disambiguated
+    /// by the builder via source-order ordinal.
     public var stableElementID: String {
         let seed = [entity1, entity2, label].joined(separator: "↔")
         return "er-rel:\(StableID.derive(from: seed))"
@@ -920,6 +1077,39 @@ extension PositionedErRelationship: DiagramStableElement {
                            height: maxY - minY + pad * 2)
     }
     public var stableElementLabel: String? { label.isEmpty ? nil : label }
+}
+```
+
+### 7.2 ER Lookup Builder
+
+```swift
+// Sources/DiagramKitModel/DiagramBoundsLookup+ER.swift
+
+private func _erLookup(
+    entities: [PositionedErEntity],
+    relationships: [PositionedErRelationship]
+) -> DiagramBoundsLookup {
+    typealias E = DiagramBoundsLookup.ElementKind
+    var elements: [(any DiagramStableElement, kind: E)] = []
+    func disambiguate<T: DiagramStableElement>(
+        _ items: [T], kind: E,
+        into target: inout [(any DiagramStableElement, kind: E)]
+    ) {
+        var counts: [String: Int] = [:]
+        for item in items {
+            let base = item.stableElementID
+            let n = counts[base, default: 0]
+            counts[base] = n + 1
+            if n > 0 {
+                target.append((_IDOverrideWrapper(wrapped: item, overrideID: "\(base)/\(n)"), kind))
+            } else {
+                target.append((item, kind))
+            }
+        }
+    }
+    disambiguate(entities, kind: .node, into: &elements)
+    disambiguate(relationships, kind: .edge, into: &elements)
+    return DiagramBoundsLookup.build(diagramType: .erDiagram, elements: elements)
 }
 ```
 
@@ -961,6 +1151,8 @@ extension PositionedC4Boundary: DiagramStableElement {
 }
 
 extension PositionedC4Relationship: DiagramStableElement {
+    /// Stable ID from from+to+label only. Duplicates disambiguated by the
+    /// builder via source-order ordinal.
     public var stableElementID: String {
         let seed = [from, to, label].joined(separator: "→")
         return "c4-rel:\(StableID.derive(from: seed))"
@@ -981,12 +1173,44 @@ extension PositionedC4Relationship: DiagramStableElement {
 ```
 
 **Note**: `PositionedC4Relationship.startPoint` and `endPoint` are `CGPoint`,
-which is an Apple-only type. The `PositionedC4Relationship` struct already has
-`#if canImport(CoreGraphics)` guarding the `CGPoint` import. The conformance
-here must be guarded similarly, or we should consider migrating those fields
-to `DiagramPoint` in a future cleanup. For Phase 8, the conformance file
-lives in `DiagramKitModel` and uses the existing `#if canImport(CoreGraphics)`
-guard.
+an Apple-only type. The `PositionedC4Relationship` struct already has
+`#if canImport(CoreGraphics)` guarding the `CGPoint` import. As part of
+Slice 8A, those fields should be migrated to `DiagramPoint` so the C4
+conformance can live unconditionally in `DiagramKitModel`. If the migration
+is deferred, the conformance file uses `#if canImport(CoreGraphics)` to
+match the existing guard — but the portable geometry types exist precisely
+to eliminate this pattern, so migration is the preferred path.
+
+### 8.3 C4 Lookup Builder
+
+```swift
+// Sources/DiagramKitModel/DiagramBoundsLookup+C4.swift
+
+private func _c4Lookup(_ diagram: PositionedC4Diagram) -> DiagramBoundsLookup {
+    typealias E = DiagramBoundsLookup.ElementKind
+    var elements: [(any DiagramStableElement, kind: E)] = []
+    func disambiguate<T: DiagramStableElement>(
+        _ items: [T], kind: E,
+        into target: inout [(any DiagramStableElement, kind: E)]
+    ) {
+        var counts: [String: Int] = [:]
+        for item in items {
+            let base = item.stableElementID
+            let n = counts[base, default: 0]
+            counts[base] = n + 1
+            if n > 0 {
+                target.append((_IDOverrideWrapper(wrapped: item, overrideID: "\(base)/\(n)"), kind))
+            } else {
+                target.append((item, kind))
+            }
+        }
+    }
+    disambiguate(diagram.shapes, kind: .node, into: &elements)
+    disambiguate(diagram.boundaries, kind: .boundary, into: &elements)
+    disambiguate(diagram.relationships, kind: .edge, into: &elements)
+    return DiagramBoundsLookup.build(diagramType: .c4, elements: elements)
+}
+```
 
 **Estimated**: ~60 lines.
 
@@ -1119,8 +1343,15 @@ access `prepared.positioned.lookup`. No API changes to `PreparedDiagram`.
 7. **Label retrieval**: `label(for:)` returns the correct label.
 8. **Edge cases**: zero-element diagrams, single-element diagrams, overlapping
    elements.
-9. **All elements accounted**: `lookup.count` matches the expected element
-   count for known fixtures.
+9. **Duplicate element handling**: repeated edges with identical
+   source+target+label, repeated sequence notes with identical text, repeated
+   ER/class relationships between the same entities, and repeated C4
+   relationships between the same aliases all produce unique `allElementIDs`.
+10. **`allElementIDs` uniqueness**: the builder guarantees every entry has a
+    distinct `elementID`. Tests assert `Set(lookup.allElementIDs).count ==
+    lookup.count` for every fixture.
+11. **All elements accounted**: `lookup.count` matches the expected element
+    count for known fixtures.
 
 ### 11.2 Test File Structure
 
@@ -1136,10 +1367,11 @@ Tests/DiagramKitTests/Interactivity/
 ├── ERLookupTests.swift                  (~10 tests)
 ├── C4LookupTests.swift                  (~10 tests)
 ├── LongTailLookupTests.swift            (~15 tests, spot-checks)
-└── StableIDDeterminismTests.swift       (~10 tests)
+├── StableIDDeterminismTests.swift       (~10 tests)
+└── DuplicateIDTests.swift              (~15 tests, collision + uniqueness)
 ```
 
-**Total estimated tests**: ~160 across 10 files.
+**Total estimated tests**: ~175 across 12 files.
 
 ### 11.3 Regression Safety
 
@@ -1160,6 +1392,7 @@ swift build --build-tests
 swift test --filter DiagramGeometryTests
 swift test --filter DiagramSelectionTests
 swift test --filter DiagramBoundsLookupTests
+swift test --filter DuplicateIDTests
 swift test --filter <slice-specific lookup tests>
 Scripts/check-file-sizes.sh
 Scripts/check-sendable-annotations.sh
@@ -1238,16 +1471,16 @@ Slice 8G (long tail) follows.
 
 | Slice | Content | Est. Lines | Est. Tests | Depends On |
 |-------|---------|------------|------------|------------|
-| 8A    | Foundation (geometry, selection, lookup, protocol) | ~420 | ~40 | — |
-| 8B    | Flowchart + state | ~105 | ~35 | 8A |
-| 8C    | Sequence | ~150 | ~25 | 8A |
-| 8D    | Class | ~80 | ~15 | 8A |
-| 8E    | ER | ~50 | ~10 | 8A |
-| 8F    | C4 | ~60 | ~10 | 8A |
+| 8A    | Foundation (geometry, selection, lookup, protocol) | ~480 | ~40 | — |
+| 8B    | Flowchart + state | ~145 | ~35 | 8A |
+| 8C    | Sequence | ~190 | ~25 | 8A |
+| 8D    | Class | ~120 | ~15 | 8A |
+| 8E    | ER | ~90 | ~10 | 8A |
+| 8F    | C4 | ~100 | ~10 | 8A |
 | 8G    | Long tail (23 families) | ~1,200 | ~25 | 8A |
-| **Total** | | **~2,065** | **~160** | |
+| **Total** | | **~2,325** | **~175** | |
 
-**Estimated total source**: ~2,065 lines across ~35 new files. All files
+**Estimated total source**: ~2,325 lines across ~40 new files. All files
 under 500 lines. No existing files materially modified beyond additive
 extensions.
 
