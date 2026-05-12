@@ -1182,7 +1182,7 @@ private func _extractPositionedGraph(
         content = .flowchart(nodes: nodes, edges: edges, groups: groups)
     }
     return PositionedGraph(
-        diagram: MermaidGraph(payload: diagramType == .stateDiagram ? .stateDiagram(source) : .flowchart(source)),
+        diagram: DiagramDocument(payload: diagramType == .stateDiagram ? .stateDiagram(source) : .flowchart(source)),
         width: finalWidth,
         height: finalHeight,
         content: content
@@ -1190,7 +1190,7 @@ private func _extractPositionedGraph(
 }
 
 public func layoutGraphSync(
-    _ graph: MermaidGraph,
+    _ graph: DiagramDocument,
     _ options: RenderOptions = RenderOptions()
 ) throws -> PositionedGraph {
     // layout.ts re-exports layout-engine.ts; route through the same public entry.
@@ -1199,14 +1199,14 @@ public func layoutGraphSync(
 
 /// Overload that accepts LayoutConfig to control ELK spacing parameters.
 public func layoutGraphSync(
-    _ graph: MermaidGraph,
+    _ graph: DiagramDocument,
     config: LayoutConfig
 ) throws -> PositionedGraph {
     return try _layoutGraphSyncWithConfig(graph, config)
 }
 
 private func _layoutGraphSyncWithConfig(
-    _ graph: MermaidGraph,
+    _ graph: DiagramDocument,
     _ config: LayoutConfig
 ) throws -> PositionedGraph {
     let parsed: _ParsedGraph
@@ -1253,21 +1253,21 @@ private func _applyLayoutConfig(_ config: LayoutConfig, to elkGraph: inout [Stri
 }
 
 public func layoutGraphWithDiagnosticsSync(
-    _ graph: MermaidGraph,
+    _ graph: DiagramDocument,
     _ options: RenderOptions = RenderOptions()
 ) throws -> PositionedGraph {
     return try _layoutGraphWithDiagnosticsEntry(graph, options)
 }
 
 private func _layoutGraphSyncEntry(
-    _ graph: MermaidGraph,
+    _ graph: DiagramDocument,
     _ options: RenderOptions
 ) throws -> PositionedGraph {
     try _layoutGraphSyncFromLayoutEngine(graph, options)
 }
 
 private func _layoutGraphWithDiagnosticsEntry(
-    _ graph: MermaidGraph,
+    _ graph: DiagramDocument,
     _ options: RenderOptions
 ) throws -> PositionedGraph {
     try _layoutGraphWithDiagnosticsSyncFromLayoutEngine(graph, options)
@@ -1467,7 +1467,7 @@ private func _buildFlatElkGraph(_ graph: _ParsedGraph) -> _ElkNode {
 }
 
 private func _layoutGraphSyncFromLayoutEngine(
-    _ graph: MermaidGraph,
+    _ graph: DiagramDocument,
     _ options: RenderOptions
 ) throws -> PositionedGraph {
     _ = options
@@ -1510,14 +1510,14 @@ private func _layoutGraphSyncFromLayoutEngine(
 }
 
 private func _layoutGraphWithDiagnosticsSyncFromLayoutEngine(
-    _ graph: MermaidGraph,
+    _ graph: DiagramDocument,
     _ options: RenderOptions
 ) throws -> PositionedGraph {
     try _layoutGraphSyncFromLayoutEngine(graph, options)
 }
 
 private func _convertToElkFormat(
-    _ graph: MermaidGraph,
+    _ graph: DiagramDocument,
     _ options: RenderOptions
 ) throws {
     _ = graph
@@ -1531,7 +1531,7 @@ open class original_src_layout {
     // Export inventory from TypeScript source:
     // - export { layoutGraphSync } from './layout-engine.ts'
     public static func layoutGraphSync(
-        _ graph: MermaidGraph,
+        _ graph: DiagramDocument,
         _ options: RenderOptions = RenderOptions()
     ) throws -> PositionedGraph {
         try _layoutGraphSyncEntry(graph, options)

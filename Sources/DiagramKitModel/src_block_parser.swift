@@ -3,7 +3,7 @@ import DiagramKitCommon
 
 // MARK: - Block Diagram Parser
 
-public enum BlockParserError: Error, LocalizedError, _MermaidRecoverableError {
+public enum BlockParserError: Error, LocalizedError, _RecoverableDiagramError {
     case invalidHeader(String)
     case invalidStatement(String)
     case unterminatedComposite(String)

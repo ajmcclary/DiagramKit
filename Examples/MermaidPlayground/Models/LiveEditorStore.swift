@@ -242,7 +242,7 @@ public final class LiveEditorStore {
         requestRender(reason: .manual)
     }
 
-    /// Callback from `MermaidViewRepresentable` when the layer finishes
+    /// Callback from `DiagramNativeViewRepresentable` when the layer finishes
     /// preparing (parse + layout complete, success or failure).
     ///
     /// The store reads `parseError` and `diagramBounds` from the view
@@ -283,7 +283,7 @@ public final class LiveEditorStore {
     /// - Throws: Rendering or file I/O errors.
     /// - Returns: The URL of the temporary PNG file (caller cleans up).
     public func exportPNG(options: ExportOptions) async throws -> URL {
-        let renderer = MermaidImageRenderer(theme: theme)
+        let renderer = DiagramImageRenderer(theme: theme)
         renderer.layoutConfig = layoutConfig
 
         let image: BMImage?
@@ -315,7 +315,7 @@ public final class LiveEditorStore {
     /// - Throws: Rendering errors.
     /// - Returns: The SVG markup string.
     public func exportSVG() async throws -> String {
-        try await MermaidRenderer.renderSVG(
+        try await DiagramEngine.renderSVG(
             source: state.source,
             theme: theme,
             layoutConfig: layoutConfig
@@ -349,7 +349,7 @@ public final class LiveEditorStore {
     /// - Parameter options: Sizing and scale parameters.
     /// - Throws: Rendering errors.
     public func copyPNGImage(options: ExportOptions) async throws {
-        let renderer = MermaidImageRenderer(theme: theme)
+        let renderer = DiagramImageRenderer(theme: theme)
         renderer.layoutConfig = layoutConfig
 
         let image: BMImage?

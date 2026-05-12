@@ -43,7 +43,7 @@ extension DiagramRenderer {
         let groups = positioned.flowchartGroups ?? []
 
         _withFittedContext(context, bounds: bounds, contentWidth: max(1, positioned.width), contentHeight: max(1, positioned.height)) { ctx in
-            // Context already has y=0 at top (UIKit native, or AppKit flipped by MermaidView).
+            // Context already has y=0 at top (UIKit native, or AppKit flipped by DiagramNativeView).
             // No internal flip needed — layout coordinates match the context.
             let ch = max(1, positioned.height)
 

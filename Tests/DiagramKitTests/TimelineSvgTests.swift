@@ -239,10 +239,10 @@ final class TimelineSvgTests: XCTestCase {
         XCTAssertTrue(svg.contains("preserveAspectRatio"))
     }
 
-    func test_renderMermaidSVG_scopesIdsPerTimelineRender() throws {
+    func test_renderDiagramSVG_scopesIdsPerTimelineRender() throws {
         let source = "timeline\n    2020 : Event"
-        let svg1 = try _renderMermaidSVG(source)
-        let svg2 = try _renderMermaidSVG(source)
+        let svg1 = try _renderDiagramSVG(source)
+        let svg2 = try _renderDiagramSVG(source)
         let id1 = try XCTUnwrap(rootId(in: svg1))
         let id2 = try XCTUnwrap(rootId(in: svg2))
         XCTAssertNotEqual(id1, id2)

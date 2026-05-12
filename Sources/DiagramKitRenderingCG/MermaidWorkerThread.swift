@@ -17,10 +17,10 @@ import Foundation
 /// if profiling shows thread spawn dominates measured runtime.
 ///
 /// All public preparation entry points
-/// (`MermaidRenderer.*`, `MermaidImageRenderer.*`, `MermaidPreparation.prepare`)
+/// (`DiagramEngine.*`, `DiagramImageRenderer.*`, `DiagramPreparation.prepare`)
 /// route through this helper so the 8 MB stack is the only place where
 /// layout runs.
-public enum MermaidWorkerThread {
+public enum DiagramWorkerThread {
 
     /// Run `work` on a fresh `Thread` named `"BeautifulMermaid worker"`
     /// with an 8 MB stack.
@@ -41,4 +41,9 @@ public enum MermaidWorkerThread {
         }
     }
 }
+
+// MARK: - Phase 0 backward-compat deprecated alias
+
+@available(*, deprecated, renamed: "DiagramWorkerThread")
+public typealias MermaidWorkerThread = DiagramWorkerThread
 #endif

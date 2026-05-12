@@ -16,13 +16,13 @@ struct TreeViewPipelineTests {
             package.json
         """
 
-        let graph = try await MermaidRenderer.parse(source)
+        let graph = try await DiagramEngine.parse(source)
         guard case .treeView = graph.payload else {
             Issue.record("Expected TreeView payload, got \(graph.payload)")
             return
         }
 
-        let positioned = try await MermaidRenderer.layout(source)
+        let positioned = try await DiagramEngine.layout(source)
         guard case .treeView(let data) = positioned.content else {
             Issue.record("Expected positioned TreeView content, got \(positioned.content)")
             return
@@ -37,7 +37,7 @@ struct TreeViewPipelineTests {
         do {
             _ = try original_src_ascii_index.renderMermaidASCII(source)
             Issue.record("Expected TreeView ASCII to be explicitly not implemented")
-        } catch let error as BeautifulMermaidError {
+        } catch let error as DiagramError {
             guard case .notYetImplemented(let message) = error else {
                 Issue.record("Expected notYetImplemented, got \(error)")
                 return
@@ -59,7 +59,7 @@ struct TreeViewPipelineTests {
     func asciiTreeViewDetectionIsCaseSensitive() {
         do {
             _ = try original_src_ascii_index.renderMermaidASCII("treeview-beta\n    file.js\n")
-        } catch let error as BeautifulMermaidError {
+        } catch let error as DiagramError {
             if case .notYetImplemented(let message) = error {
                 #expect(!message.contains("TreeView ASCII rendering"))
             }
@@ -76,7 +76,7 @@ struct TreeViewPipelineTests {
             file.js
         """
 
-        let graph = try await MermaidRenderer.parse(source)
+        let graph = try await DiagramEngine.parse(source)
         guard case .treeView(let diagram) = graph.payload else {
             Issue.record("Expected TreeView payload, got \(graph.payload)")
             return

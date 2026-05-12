@@ -612,7 +612,7 @@ public struct PositionedGitGraphTitle: Sendable, Equatable {
 
 // MARK: - Parser Errors
 
-public enum GitGraphParserError: Error, LocalizedError, _MermaidRecoverableError {
+public enum GitGraphParserError: Error, LocalizedError, _RecoverableDiagramError {
     case invalidHeader(String)
     case unexpectedProperty(String, String)
     case missingPropertyValue(String, String)

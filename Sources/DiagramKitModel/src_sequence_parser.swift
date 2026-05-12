@@ -4,7 +4,7 @@ import DiagramKitCommon
 
 // MARK: - Parse Error
 
-public enum SequenceParserError: Error, LocalizedError, _MermaidRecoverableError {
+public enum SequenceParserError: Error, LocalizedError, _RecoverableDiagramError {
     case invalidHeader(expected: String, found: String)
     case invalidConfig(String)
     case duplicateActor(String)

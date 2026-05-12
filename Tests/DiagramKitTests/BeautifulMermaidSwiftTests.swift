@@ -7,7 +7,7 @@ import CustomDump
 
 final class BeautifulMermaidSwiftTests: XCTestCase {
     func testVersionIsNonEmpty() {
-        XCTAssertFalse(MermaidRenderer.version.isEmpty)
+        XCTAssertFalse(DiagramEngine.version.isEmpty)
     }
 
     func testFlowSvgContainsNodes() async throws {
@@ -23,13 +23,13 @@ final class BeautifulMermaidSwiftTests: XCTestCase {
 
     @MainActor
     func testRenderImageForSimpleFlowIsNonNil() async throws {
-        let image = try await MermaidRenderer.renderImage(
+        let image = try await DiagramEngine.renderImage(
             source: """
             graph TD
               A[Start] --> B[End]
             """
         )
-        XCTAssertNotNil(image, "Expected MermaidRenderer.renderImage to return a rasterizable image")
+        XCTAssertNotNil(image, "Expected DiagramEngine.renderImage to return a rasterizable image")
     }
 
     /// Reproduces crash in flow-15 (subgraph with direction override).
@@ -82,10 +82,10 @@ final class BeautifulMermaidSwiftTests: XCTestCase {
             Crash --> [*]
         """
 
-        let graph = try await MermaidRenderer.parse(source)
+        let graph = try await DiagramEngine.parse(source)
         expectNoDifference(graph.type, .stateDiagram)
 
-        let positioned = try await MermaidRenderer.layout(source)
+        let positioned = try await DiagramEngine.layout(source)
         let userStateIDs = Set(["Crash", "Moving", "Still"])
         let nodeIDs = (positioned.flowchartNodes ?? [])
             .map(\.id)
@@ -93,17 +93,17 @@ final class BeautifulMermaidSwiftTests: XCTestCase {
             .sorted()
         expectNoDifference(nodeIDs, ["Crash", "Moving", "Still"])
 
-        let svg = try await MermaidRenderer.renderSVG(source: source)
+        let svg = try await DiagramEngine.renderSVG(source: source)
         XCTAssertTrue(svg.contains("<svg"), "Expected frontmatter state diagram to render SVG")
         XCTAssertTrue(svg.contains("start moving"), "Expected transition label text to render in SVG")
 
-        let ascii = try await MermaidRenderer.renderASCII(source: source)
+        let ascii = try await DiagramEngine.renderASCII(source: source)
         XCTAssertFalse(ascii.isEmpty, "Expected frontmatter state diagram to render ASCII")
     }
 
     @MainActor
     func testLayerKeepsLastPreparedDiagramWhenSourceBecomesInvalid() async throws {
-        let layer = MermaidLayer()
+        let layer = DiagramLayer()
         layer.source = """
         graph TD
           A[Start] --> B[End]
@@ -152,7 +152,7 @@ final class BeautifulMermaidSwiftTests: XCTestCase {
 
     func testSimpleTDNodeOrder() async throws {
         let source = "graph TD\n  A[Start] --> B[End]"
-        let pos = try await MermaidRenderer.layout(source)
+        let pos = try await DiagramEngine.layout(source)
         let nodes = pos.flowchartNodes!
         expectNoDifference(nodes.map(\.id).sorted(), ["A", "B"])
         let nodeA = nodes.first { $0.id == "A" }!
@@ -162,7 +162,7 @@ final class BeautifulMermaidSwiftTests: XCTestCase {
 
     func testSimpleBTNodeOrder() async throws {
         let source = "graph BT\n  A[Foundation] --> B[Layer 2] --> C[Top]"
-        let pos = try await MermaidRenderer.layout(source)
+        let pos = try await DiagramEngine.layout(source)
         let nodes = pos.flowchartNodes!
         expectNoDifference(nodes.map(\.id).sorted(), ["A", "B", "C"])
         let nodeA = nodes.first { $0.id == "A" }!
@@ -184,7 +184,7 @@ final class BeautifulMermaidSwiftTests: XCTestCase {
           E[Load Balancer] --> A
           E --> C
         """
-        let pos = try await MermaidRenderer.layout(source)
+        let pos = try await DiagramEngine.layout(source)
         let nodes = pos.flowchartNodes!
         let edges = pos.flowchartEdges!
         let groups = pos.flowchartGroups!
@@ -204,7 +204,7 @@ final class BeautifulMermaidSwiftTests: XCTestCase {
     func testFlow6PortOrderDebug() async throws {
         // Test as graph TD (has GraphTransformer rotation)
         let sourceTD = "graph TD\n  A[Source] -->|solid| B[Target 1]\n  A -.->|dotted| C[Target 2]\n  A ==>|thick| D[Target 3]"
-        let posTD = try await MermaidRenderer.layout(sourceTD)
+        let posTD = try await DiagramEngine.layout(sourceTD)
         let nodesTD = posTD.flowchartNodes!
         let edgesTD = posTD.flowchartEdges!
         print("=== FLOW-6 TD ===")
@@ -216,7 +216,7 @@ final class BeautifulMermaidSwiftTests: XCTestCase {
 
         // Test as graph LR (no rotation)
         let sourceLR = "graph LR\n  A[Source] -->|solid| B[Target 1]\n  A -.->|dotted| C[Target 2]\n  A ==>|thick| D[Target 3]"
-        let posLR = try await MermaidRenderer.layout(sourceLR)
+        let posLR = try await DiagramEngine.layout(sourceLR)
         let nodesLR = posLR.flowchartNodes!
         let edgesLR = posLR.flowchartEdges!
         print("=== FLOW-6 LR ===")

@@ -309,7 +309,7 @@ public struct ErPoint: Sendable {
 
 // MARK: - Errors
 
-public enum ErParserError: Error, LocalizedError, _MermaidRecoverableError {
+public enum ErParserError: Error, LocalizedError, _RecoverableDiagramError {
     case invalidHeader(expected: String, found: String)
     case invalidRelationship(String)
 

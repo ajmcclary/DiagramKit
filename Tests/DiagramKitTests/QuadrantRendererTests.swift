@@ -39,7 +39,7 @@ final class QuadrantRendererTests: XCTestCase {
         )
         let positionedQuadrant = layoutQuadrantChart(chart)
         let positioned = PositionedGraph(
-            diagram: MermaidGraph(payload: .quadrantChart(chart)),
+            diagram: DiagramDocument(payload: .quadrantChart(chart)),
             width: positionedQuadrant.width,
             height: positionedQuadrant.height,
             content: .quadrantChart(positionedQuadrant)
@@ -81,7 +81,7 @@ final class QuadrantRendererTests: XCTestCase {
         chart.points = [QuadrantPoint(text: "A", x: 0.25, y: 0.25, radius: 8, color: "#FF0000")]
         let positionedQuadrant = layoutQuadrantChart(chart)
         let positioned = PositionedGraph(
-            diagram: MermaidGraph(payload: .quadrantChart(chart)),
+            diagram: DiagramDocument(payload: .quadrantChart(chart)),
             width: positionedQuadrant.width,
             height: positionedQuadrant.height,
             content: .quadrantChart(positionedQuadrant)
@@ -121,7 +121,7 @@ final class QuadrantRendererTests: XCTestCase {
         ]
         let positionedQuadrant = layoutQuadrantChart(chart)
         let positioned = PositionedGraph(
-            diagram: MermaidGraph(payload: .quadrantChart(chart)),
+            diagram: DiagramDocument(payload: .quadrantChart(chart)),
             width: positionedQuadrant.width,
             height: positionedQuadrant.height,
             content: .quadrantChart(positionedQuadrant)
@@ -158,7 +158,7 @@ final class QuadrantRendererTests: XCTestCase {
         )
         let positionedQuadrant = layoutQuadrantChart(chart)
         let positioned = PositionedGraph(
-            diagram: MermaidGraph(payload: .quadrantChart(chart)),
+            diagram: DiagramDocument(payload: .quadrantChart(chart)),
             width: positionedQuadrant.width,
             height: positionedQuadrant.height,
             content: .quadrantChart(positionedQuadrant)
@@ -194,7 +194,7 @@ final class QuadrantRendererTests: XCTestCase {
         )
         let positionedQuadrant = layoutQuadrantChart(chart)
         let positioned = PositionedGraph(
-            diagram: MermaidGraph(payload: .quadrantChart(chart)),
+            diagram: DiagramDocument(payload: .quadrantChart(chart)),
             width: positionedQuadrant.width,
             height: positionedQuadrant.height,
             content: .quadrantChart(positionedQuadrant)
@@ -231,7 +231,7 @@ final class QuadrantRendererTests: XCTestCase {
         )
         let positionedQuadrant = layoutQuadrantChart(chart)
         let positioned = PositionedGraph(
-            diagram: MermaidGraph(payload: .quadrantChart(chart)),
+            diagram: DiagramDocument(payload: .quadrantChart(chart)),
             width: positionedQuadrant.width,
             height: positionedQuadrant.height,
             content: .quadrantChart(positionedQuadrant)
@@ -287,8 +287,8 @@ final class QuadrantRendererTests: XCTestCase {
         let smallPX = layoutQuadrantChart(chartSmall)
         let largePX = layoutQuadrantChart(chartLarge)
 
-        let positionedSmall = PositionedGraph(diagram: MermaidGraph(payload: .quadrantChart(chartSmall)), width: smallPX.width, height: smallPX.height, content: .quadrantChart(smallPX))
-        let positionedLarge = PositionedGraph(diagram: MermaidGraph(payload: .quadrantChart(chartLarge)), width: largePX.width, height: largePX.height, content: .quadrantChart(largePX))
+        let positionedSmall = PositionedGraph(diagram: DiagramDocument(payload: .quadrantChart(chartSmall)), width: smallPX.width, height: smallPX.height, content: .quadrantChart(smallPX))
+        let positionedLarge = PositionedGraph(diagram: DiagramDocument(payload: .quadrantChart(chartLarge)), width: largePX.width, height: largePX.height, content: .quadrantChart(largePX))
 
         var smallPixels = [UInt8](repeating: 0, count: width * height * 4)
         var largePixels = [UInt8](repeating: 0, count: width * height * 4)
@@ -344,7 +344,7 @@ final class QuadrantRendererTests: XCTestCase {
         )
         let positionedQuadrant = layoutQuadrantChart(chart)
         let positioned = PositionedGraph(
-            diagram: MermaidGraph(payload: .quadrantChart(chart)),
+            diagram: DiagramDocument(payload: .quadrantChart(chart)),
             width: positionedQuadrant.width,
             height: positionedQuadrant.height,
             content: .quadrantChart(positionedQuadrant)
@@ -395,7 +395,7 @@ final class QuadrantRendererTests: XCTestCase {
         )
         let positionedQuadrant = layoutQuadrantChart(chart)
         let positioned = PositionedGraph(
-            diagram: MermaidGraph(payload: .quadrantChart(chart)),
+            diagram: DiagramDocument(payload: .quadrantChart(chart)),
             width: positionedQuadrant.width,
             height: positionedQuadrant.height,
             content: .quadrantChart(positionedQuadrant)

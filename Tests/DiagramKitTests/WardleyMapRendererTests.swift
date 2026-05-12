@@ -23,7 +23,7 @@ final class WardleyMapRendererTests: XCTestCase {
             componentLabelColor: "#ff0000"
         )
         let positioned = layoutWardleyMap(diagram)
-        let graph = MermaidGraph(payload: .wardleyBeta(diagram))
+        let graph = DiagramDocument(payload: .wardleyBeta(diagram))
         let positionedGraph = PositionedGraph(
             diagram: graph,
             width: positioned.width,

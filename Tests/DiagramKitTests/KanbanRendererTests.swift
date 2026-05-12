@@ -278,7 +278,7 @@ final class KanbanRendererTests: XCTestCase {
         let source = "kanban\n  S\n    card1@{ priority: 'High' }"
         let diagram = try parseKanbanDiagram(rawLines(source), frontmatter: nil)
         let positioned = layoutKanbanDiagram(diagram)
-        let graph = MermaidGraph(payload: .kanban(diagram))
+        let graph = DiagramDocument(payload: .kanban(diagram))
         let positionedGraph = PositionedGraph(
             diagram: graph,
             width: positioned.width,

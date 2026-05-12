@@ -2,6 +2,13 @@ import Foundation
 import DiagramKitModel
 import DiagramKitCommon
 
+
+// MARK: Mermaid-internal diagram-family registry
+//
+// These descriptors are Mermaid-specific. A format-agnostic importer registry
+// (ImporterRegistry + DiagramSourceImporter) will be introduced in Phase 1.
+// At that point this type will become DiagramViewModelRegistry or be subsumed
+// into MermaidImporter.
 extension DiagramRegistry {
     static let _treeView = DiagramDescriptor(
         type: .treeView,
@@ -9,18 +16,18 @@ extension DiagramRegistry {
             _isTreeViewHeader(rawLines: header.rawLines)
         },
         parse: { source, frontmatter in
-            let rawLines = MermaidSourceNormalizer.rawLines(source)
+            let rawLines = DiagramSourceNormalizer.rawLines(source)
             var diagram = try parseTreeViewDiagram(rawLines, frontmatter: frontmatter)
             if let fm = frontmatter {
                 if let cfg = fm.treeViewConfig { diagram.config = cfg }
                 if let theme = fm.treeViewTheme { diagram.theme = theme }
                 if diagram.diagramTitle == nil, let fmTitle = fm.diagramTitle { diagram.diagramTitle = fmTitle }
             }
-            return MermaidGraph(payload: .treeView(diagram))
+            return DiagramDocument(payload: .treeView(diagram))
         },
         layout: { graph, _ in
             guard case let .treeView(diagram) = graph.payload else {
-                throw MermaidStructuralError.payloadMismatch(.treeView)
+                throw DiagramStructuralError.payloadMismatch(.treeView)
             }
             #if canImport(UIKit) || canImport(AppKit)
             let positioned = layoutTreeViewDiagram(diagram)
@@ -29,7 +36,7 @@ extension DiagramRegistry {
             // Linux: layoutTreeViewDiagram depends on BMColor + CTLine.
             // Unreachable until the portable text-measurement shim lands.
             _ = diagram
-            throw MermaidStructuralError.payloadMismatch(.treeView)
+            throw DiagramStructuralError.payloadMismatch(.treeView)
             #endif
         }
     )

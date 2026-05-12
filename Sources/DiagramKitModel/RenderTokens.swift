@@ -93,7 +93,7 @@ public struct RenderTokens: Sendable {
     ///
     /// Defaults to `"Noto Sans Mono"`, which is bundled in
     /// `Resources/Fonts/noto-sans-mono/` and registered at first render via
-    /// `BeautifulMermaidFontRegistry.registerBundledFontsIfNeeded()`. Set to
+    /// `DiagramFontRegistry.registerBundledFontsIfNeeded()`. Set to
     /// `nil` to fall back to "Menlo" / system monospace.
     public var defaultFontFamily: String? = "Noto Sans Mono"
 
@@ -101,7 +101,7 @@ public struct RenderTokens: Sendable {
     ///
     /// Defaults to `"Noto Sans"`, which is bundled in
     /// `Resources/Fonts/noto-sans/` and registered at first render via
-    /// `BeautifulMermaidFontRegistry.registerBundledFontsIfNeeded()`. Set to
+    /// `DiagramFontRegistry.registerBundledFontsIfNeeded()`. Set to
     /// `nil` to fall back to the system font.
     public var defaultProportionalFontFamily: String? = "Noto Sans"
 

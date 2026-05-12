@@ -385,7 +385,7 @@ public func layoutBlockDiagram(_ diagram: BlockDiagram) throws -> PositionedBloc
     let padding = diagram.config.padding
 
     guard var root = db["root"] else {
-        throw BeautifulMermaidError.notYetImplemented("Block Diagram layout: no root block")
+        throw DiagramError.notYetImplemented("Block Diagram layout: no root block")
     }
 
     for childId in root.children {
@@ -408,7 +408,7 @@ public func layoutBlockDiagram(_ diagram: BlockDiagram) throws -> PositionedBloc
     db["root"] = root
 
     guard var positionedRoot = db["root"] else {
-        throw BeautifulMermaidError.notYetImplemented("Block Diagram layout: root missing after sizing")
+        throw DiagramError.notYetImplemented("Block Diagram layout: root missing after sizing")
     }
     layoutBlocks(block: &positionedRoot, db: &db, padding: padding)
     db["root"] = positionedRoot

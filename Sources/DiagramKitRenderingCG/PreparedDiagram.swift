@@ -1,6 +1,6 @@
 // Apple-only target gated by `#if canImport(CoreGraphics)`. On Linux this file is empty.
 #if canImport(CoreGraphics)
-// Extracted from Views/MermaidLayer.swift during Stage 1 module split.
+// Extracted from Views/DiagramLayer.swift during Stage 1 module split.
 // PreparedDiagram is the bridge type between layout output and CGContext
 // rendering; it lives in DiagramKitRenderingCG so both BeautifulMermaid
 // (umbrella in Stage 1) and DiagramKitViews can consume it.

@@ -347,7 +347,7 @@ public struct ClassPoint: Sendable {
 
 // MARK: - Errors
 
-public enum ClassParserError: Error, LocalizedError, _MermaidRecoverableError {
+public enum ClassParserError: Error, LocalizedError, _RecoverableDiagramError {
     case invalidHeader(expected: String, found: String)
 
     public var errorDescription: String? {

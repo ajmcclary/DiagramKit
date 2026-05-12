@@ -130,7 +130,7 @@ public enum DiagramPayload: Sendable {
     }
 }
 
-public struct MermaidGraph: Sendable {
+public struct DiagramDocument: Sendable {
     public var payload: DiagramPayload
 
     public var type: DiagramType {
@@ -140,7 +140,7 @@ public struct MermaidGraph: Sendable {
     /// Type-safe access to the parsed diagram model.
     /// Use pattern matching to access the typed data:
     /// ```swift
-    /// let graph = try await MermaidRenderer.parse(source)
+    /// let graph = try await DiagramEngine.parse(source)
     /// switch graph.typedPayload {
     /// case .flowchart(let model): // ...
     /// case .sequenceDiagram(let seq): // ...
@@ -299,12 +299,12 @@ public enum PositionedContent: Sendable {
 }
 
 public struct PositionedGraph: Sendable {
-    public var diagram: MermaidGraph
+    public var diagram: DiagramDocument
     public var width: Double
     public var height: Double
     /// Type-safe positioned content. Use pattern matching to access layout results:
     /// ```swift
-    /// let graph = try await MermaidRenderer.layout(source)
+    /// let graph = try await DiagramEngine.layout(source)
     /// switch graph.content {
     /// case .flowchart(let nodes, let edges, let groups):
     ///     // use nodes, edges, groups directly
@@ -314,7 +314,7 @@ public struct PositionedGraph: Sendable {
     /// ```
     public var content: PositionedContent
 
-    public init(diagram: MermaidGraph, width: Double = 0, height: Double = 0, content: PositionedContent) {
+    public init(diagram: DiagramDocument, width: Double = 0, height: Double = 0, content: PositionedContent) {
         self.diagram = diagram
         self.width = width
         self.height = height
@@ -322,7 +322,7 @@ public struct PositionedGraph: Sendable {
     }
 
     /// Convenience initializer that creates an empty positioned graph based on the diagram type.
-    public init(diagram: MermaidGraph, width: Double = 0, height: Double = 0) {
+    public init(diagram: DiagramDocument, width: Double = 0, height: Double = 0) {
         self.diagram = diagram
         self.width = width
         self.height = height
@@ -751,7 +751,7 @@ public struct MermaidNode: Sendable {
     }
 }
 
-public enum BeautifulMermaidError: Error, LocalizedError {
+public enum DiagramError: Error, LocalizedError {
     case notYetImplemented(String)
 
     public var errorDescription: String? {
@@ -761,3 +761,11 @@ public enum BeautifulMermaidError: Error, LocalizedError {
         }
     }
 }
+
+// MARK: - Phase 0 backward-compat deprecated aliases (Commit B)
+
+@available(*, deprecated, renamed: "DiagramDocument")
+public typealias MermaidGraph = DiagramDocument
+
+@available(*, deprecated, renamed: "DiagramError")
+public typealias BeautifulMermaidError = DiagramError

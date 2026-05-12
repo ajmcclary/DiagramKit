@@ -3,7 +3,7 @@ import Foundation
 /// Centralized source normalization and statement splitting.
 /// Replaces the duplicated splitting logic in `SourcePreprocessing.swift`,
 /// `src_index.swift`, and `Parser.swift`.
-public enum MermaidSourceNormalizer {
+public enum DiagramSourceNormalizer {
 
     // MARK: - Raw lines
 
@@ -110,3 +110,8 @@ public enum MermaidSourceNormalizer {
         return parts
     }
 }
+
+// MARK: - Phase 0 backward-compat deprecated alias
+
+@available(*, deprecated, renamed: "DiagramSourceNormalizer")
+public typealias MermaidSourceNormalizer = DiagramSourceNormalizer

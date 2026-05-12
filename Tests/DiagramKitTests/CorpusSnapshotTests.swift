@@ -67,7 +67,7 @@ struct CorpusSnapshotTests {
 
     @Test("SVG snapshot", arguments: try loadDiagrams())
     func svgSnapshot(_ diagram: DiagramEntry) async throws {
-        let svg = try await MermaidRenderer.renderSVG(source: diagram.source, idPolicy: .stable)
+        let svg = try await DiagramEngine.renderSVG(source: diagram.source, idPolicy: .stable)
         assertSnapshot(of: svg, as: .lines, named: diagram.id)
     }
 
@@ -76,7 +76,7 @@ struct CorpusSnapshotTests {
     @Test("Image snapshot", arguments: try loadDiagrams())
     @MainActor
     func imageSnapshot(_ diagram: DiagramEntry) async throws {
-        let image = try #require(await MermaidRenderer.renderImage(source: diagram.source))
+        let image = try #require(await DiagramEngine.renderImage(source: diagram.source))
         // Allow a small margin for floating-point differences in CoreText path
         // rasterization across CPU architectures (Apple Silicon vs Intel) and
         // OS minor versions. `perceptualPrecision` smooths over imperceptible
@@ -93,7 +93,7 @@ struct CorpusSnapshotTests {
 
     @Test("ASCII snapshot", arguments: try loadDiagrams())
     func asciiSnapshot(_ diagram: DiagramEntry) async throws {
-        let ascii = try await MermaidRenderer.renderASCII(source: diagram.source)
+        let ascii = try await DiagramEngine.renderASCII(source: diagram.source)
         assertSnapshot(of: ascii, as: .lines, named: diagram.id + "-ascii")
     }
 }

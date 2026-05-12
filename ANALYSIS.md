@@ -43,7 +43,7 @@ DiagramKitCommon (Linux + Apple)
 
 **Parser.swift** (22 lines) — stateless enum `MermaidParser`:
 ```swift
-static func parse(_ source: String) throws -> MermaidGraph {
+static func parse(_ source: String) throws -> DiagramDocument {
     let decoded = _decodeXMLEntities(source)
     let (processed, frontmatter) = _parseFrontMatterAndStripped(decoded)
     let header = DiagramHeader.detect(from: processed)
@@ -54,8 +54,8 @@ static func parse(_ source: String) throws -> MermaidGraph {
 
 **DiagramDescriptor** — a struct carrying three closures per diagram family:
 - `matches: @Sendable (DiagramHeader) -> Bool` — probe function
-- `parse: @Sendable (String, DiagramFrontmatter?) throws -> MermaidGraph`
-- `layout: @Sendable (MermaidGraph, LayoutConfig) throws -> PositionedGraph`
+- `parse: @Sendable (String, DiagramFrontmatter?) throws -> DiagramDocument`
+- `layout: @Sendable (DiagramDocument, LayoutConfig) throws -> PositionedGraph`
 
 **DiagramRegistry** — ordered array of `DiagramDescriptor`, first-match-wins.
 28 per-family extension files (`DiagramRegistry+Flowchart.swift` etc.). The
@@ -64,14 +64,14 @@ ordered `all` array lives in `DiagramDescriptor.swift`.
 **DiagramHeader** — strips frontmatter, extracts first content-bearing line.
 Used by `DiagramDescriptor.matches` for routing.
 
-**MermaidPipeline** — stateless enum wrapping parse → layout → render:
-- `parse(source) -> MermaidGraph`
+**DiagramPipeline** — stateless enum wrapping parse → layout → render:
+- `parse(source) -> DiagramDocument`
 - `layout(source/graph) -> PositionedGraph`
 - `prepare(source) -> PreparedDiagram` (for CG rendering)
 - `renderSVG(source/positioned) -> String`
 - `renderASCII(source) -> String`
 
-**MermaidRenderer** — public `async throws` facade dispatching through
+**DiagramEngine** — public `async throws` facade dispatching through
 `_runOnWorker` (8 MB-stack `Thread`, not cooperative pool).
 
 ### 1.3 The Model (Types.swift)
@@ -79,8 +79,8 @@ Used by `DiagramDescriptor.matches` for routing.
 - **28 `DiagramType` cases** — thorough coverage, already aware of c4, zenuml
 - **28 `DiagramPayload` cases** — typed payloads, no `Any` casting
 - **28 `PositionedContent` cases** — typed positioned results
-- **`MermaidGraph`** — wraps `DiagramPayload`, has empty constructors
-- **`PositionedGraph`** — wraps `MermaidGraph` + `PositionedContent` + dimensions
+- **`DiagramDocument`** — wraps `DiagramPayload`, has empty constructors
+- **`PositionedGraph`** — wraps `DiagramDocument` + `PositionedContent` + dimensions
 
 The model layer is already format-agnostic in its type system. Nothing in
 `DiagramPayload`, `PositionedContent`, or `DiagramType` carries Mermaid syntax
@@ -92,7 +92,7 @@ layout/SVG/CG paths would render it unchanged.
 `LiveEditorStore` lives in `Examples/MermaidPlayground/Models/` — not in the
 library. It's `@Observable @MainActor`, owns source/theme/config state, render
 lifecycle, export/copy/share actions, history, and URL loading. It is Mermaid-specific
-(calls `MermaidRenderer` / `MermaidImageRenderer` directly) and does not expose
+(calls `DiagramEngine` / `MermaidImageRenderer` directly) and does not expose
 selection or hit-testing.
 
 ---
@@ -197,9 +197,9 @@ without change.
 
 ### 3.2 Clean Pipeline Seams
 
-`MermaidPipeline` is a stateless enum with explicit parse → layout → render
+`DiagramPipeline` is a stateless enum with explicit parse → layout → render
 boundaries. Layout and render have zero format awareness — they consume
-`MermaidGraph` / `PositionedGraph`, not source strings.
+`DiagramDocument` / `PositionedGraph`, not source strings.
 
 ### 3.3 DiagramRegistry Already Is a Dispatch Table
 
@@ -231,7 +231,7 @@ No diagnostics surface.
 
 ### Gap 2: No Exporter Protocol
 
-The only "export" is SVG rendering via `MermaidPipeline.renderSVG`. There's no way
+The only "export" is SVG rendering via `DiagramPipeline.renderSVG`. There's no way
 to emit Mermaid source from a `DiagramDocument`, let alone emit d2 or PlantUML.
 
 ### Gap 3: No Interactivity Surface
@@ -242,7 +242,7 @@ highlighting. The library has zero interactivity primitives.
 
 ### Gap 4: Naming Is Mermaid-Coupled
 
-`MermaidRenderer`, `MermaidPipeline`, `MermaidGraph`, `MermaidParser`,
+`DiagramEngine`, `DiagramPipeline`, `DiagramDocument`, `MermaidParser`,
 `MermaidImageRenderer`, `BeautifulMermaidError`, `MermaidStructuralError` —
 these all become misleading the moment d2 or PlantUML lands.
 
@@ -315,7 +315,7 @@ digraph G {
 **Port to Swift feasibility**: Medium. The DOT parser is ~5,000 lines of C in
 `lib/dotgen/dotinit.c` + supporting files. A Swift port of just the parser
 (not the layout engines, since DiagramKit already has ELK) would be ~2,000-3,000
-lines. The graph structure maps to `MermaidGraph` + `ParsedGraphModel`.
+lines. The graph structure maps to `DiagramDocument` + `ParsedGraphModel`.
 
 **Diagram type coverage**:
 - flowchart: full (the primary use case)
@@ -463,9 +463,9 @@ One mechanical commit: rename Mermaid → Diagram.
 
 | Before                        | After                              |
 |-------------------------------|------------------------------------|
-| `MermaidRenderer`             | `DiagramRenderer`                  |
-| `MermaidPipeline`             | `DiagramPipeline`                  |
-| `MermaidGraph`                | `DiagramDocument` (or `Diagram`)   |
+| `DiagramEngine`             | `DiagramRenderer`                  |
+| `DiagramPipeline`             | `DiagramPipeline`                  |
+| `DiagramDocument`                | `DiagramDocument` (or `Diagram`)   |
 | `MermaidView`                 | `DiagramView`                      |
 | `MermaidParser`               | `DiagramParser` / `MermaidImporter`|
 | `MermaidImageRenderer`        | `DiagramImageRenderer`             |
@@ -476,7 +476,7 @@ One mechanical commit: rename Mermaid → Diagram.
 | `MermaidSourceNormalizer`     | `DiagramSourceNormalizer`          |
 | `MermaidPreparerBootstrap`    | `DiagramPreparerBootstrap`         |
 
-Keep `public typealias MermaidRenderer = DiagramRenderer` etc. for one release
+Keep `public typealias DiagramEngine = DiagramRenderer` etc. for one release
 cycle so the playground and downstream consumers don't break.
 
 ### Phase 1 — Importer Protocol + Registry
@@ -696,12 +696,12 @@ After reorganization:
 
 1. **Where does the `DiagramDocument.finish()` boundary go?** MusicToolkit's
    `Score.finish(settings:)` freezes the graph. DiagramKit's graph is already
-   value-typed (`struct MermaidGraph`, `struct PositionedGraph`), so the freeze
+   value-typed (`struct DiagramDocument`, `struct PositionedGraph`), so the freeze
    is implicit in construction. Does interactivity (Phase 4) require a mutable
    post-parse phase?
 
 2. **Thread model for importers.** MusicToolkit importers are `Sendable` but
-   not `@MainActor`. DiagramKit's `MermaidRenderer` spawns an 8 MB-stack `Thread`
+   not `@MainActor`. DiagramKit's `DiagramEngine` spawns an 8 MB-stack `Thread`
    per call. Should format importers follow the same pattern, or can they run on
    the cooperative pool? Parsing is typically compute-bound, not stack-deep.
 
@@ -723,7 +723,7 @@ After reorganization:
    Mermaid's ZenUML support. A native `DiagramKitZenUML` target is valuable
    but lower priority than d2/PlantUML — the Mermaid path already works.
 
-7. **`DiagramDocument` naming.** `MermaidGraph` → `DiagramDocument` follows
+7. **`DiagramDocument` naming.** `DiagramDocument` → `DiagramDocument` follows
    MusicToolkit's `Score` pattern (a "document" is a frozen parsed model).
    Alternative: `Diagram` (shorter but ambiguous with `DiagramType`).
 

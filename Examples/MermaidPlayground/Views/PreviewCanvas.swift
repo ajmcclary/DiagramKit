@@ -2,7 +2,7 @@
 //  PreviewCanvas.swift
 //  MermaidPlayground
 //
-//  Preview surface that wraps MermaidViewRepresentable, manages zoom
+//  Preview surface that wraps DiagramNativeViewRepresentable, manages zoom
 //  state, and overlays error/dim-state on render failure.
 //
 
@@ -40,7 +40,7 @@ struct PreviewCanvas: View {
 
                 panZoomInteractions(
                     ZStack {
-                        MermaidViewRepresentable(
+                        DiagramNativeViewRepresentable(
                             source: store.previewSource,
                             theme: store.previewTheme,
                             layoutConfig: store.previewLayoutConfig,

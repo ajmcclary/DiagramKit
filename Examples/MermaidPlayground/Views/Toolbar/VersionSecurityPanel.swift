@@ -16,7 +16,7 @@ struct VersionSecurityPanel: View {
 
     /// The DiagramKit version string reported by the public renderer API.
     nonisolated static var diagramKitVersion: String {
-        MermaidRenderer.version
+        DiagramEngine.version
     }
 
     private var diagramKitVersion: String {

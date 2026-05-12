@@ -13,7 +13,7 @@ import UIKit
 import AppKit
 #endif
 
-public final class MermaidImageRenderer {
+public final class DiagramImageRenderer {
     public var theme: DiagramTheme
     public var layoutConfig: LayoutConfig
     public var scale: CGFloat = 2.0
@@ -26,8 +26,8 @@ public final class MermaidImageRenderer {
     public func prepare(from source: String) async throws -> PreparedDiagram {
         let theme = theme
         let layoutConfig = layoutConfig
-        return try await MermaidRenderer._runOnWorker {
-            try MermaidPipeline.prepare(
+        return try await DiagramEngine._runOnWorker {
+            try DiagramPipeline.prepare(
                 source: source,
                 theme: theme,
                 layoutConfig: layoutConfig
@@ -36,15 +36,15 @@ public final class MermaidImageRenderer {
     }
 
     func prepareSync(from source: String) throws -> PreparedDiagram {
-        try MermaidPipeline.prepare(source: source, theme: theme, layoutConfig: layoutConfig)
+        try DiagramPipeline.prepare(source: source, theme: theme, layoutConfig: layoutConfig)
     }
 
     @MainActor
     public func renderImage(from source: String, scale overrideScale: CGFloat? = nil) async throws -> BMImage? {
         let theme = theme
         let layoutConfig = layoutConfig
-        let prepared = try await MermaidRenderer._runOnWorker {
-            try MermaidPipeline.prepare(
+        let prepared = try await DiagramEngine._runOnWorker {
+            try DiagramPipeline.prepare(
                 source: source,
                 theme: theme,
                 layoutConfig: layoutConfig
@@ -52,7 +52,7 @@ public final class MermaidImageRenderer {
         }
         let image = _renderPrepared(prepared, scale: overrideScale ?? scale)
         if image == nil {
-            _reportMermaidIssue("MermaidImageRenderer.renderImage(from source:) returned nil.")
+            _reportDiagramIssue("DiagramImageRenderer.renderImage(from source:) returned nil.")
         }
         return image
     }
@@ -64,7 +64,7 @@ public final class MermaidImageRenderer {
             scale: overrideScale ?? scale
         )
         if image == nil {
-            _reportMermaidIssue("MermaidImageRenderer.renderImage(from positioned:) returned nil.")
+            _reportDiagramIssue("DiagramImageRenderer.renderImage(from positioned:) returned nil.")
         }
         return image
     }
@@ -73,8 +73,8 @@ public final class MermaidImageRenderer {
     public func renderImage(from source: String, size: CGSize) async throws -> BMImage? {
         let theme = theme
         let layoutConfig = layoutConfig
-        let prepared = try await MermaidRenderer._runOnWorker {
-            try MermaidPipeline.prepare(
+        let prepared = try await DiagramEngine._runOnWorker {
+            try DiagramPipeline.prepare(
                 source: source,
                 theme: theme,
                 layoutConfig: layoutConfig
@@ -82,7 +82,7 @@ public final class MermaidImageRenderer {
         }
         let image = _renderPreparedFitted(prepared, size: size)
         if image == nil {
-            _reportMermaidIssue("MermaidImageRenderer.renderImage(from source:size:) returned nil.")
+            _reportDiagramIssue("DiagramImageRenderer.renderImage(from source:size:) returned nil.")
         }
         return image
     }
@@ -90,8 +90,8 @@ public final class MermaidImageRenderer {
     public func renderSVG(from source: String, idPolicy: SVGIDPolicy = .unique) async throws -> String {
         let theme = theme
         let layoutConfig = layoutConfig
-        return try await MermaidRenderer._runOnWorker {
-            try MermaidPipeline.renderSVG(
+        return try await DiagramEngine._runOnWorker {
+            try DiagramPipeline.renderSVG(
                 source: source,
                 theme: theme,
                 layoutConfig: layoutConfig,
@@ -113,7 +113,7 @@ public final class MermaidImageRenderer {
             idPolicy: idPolicy
         )
 
-        let svg = try _renderMermaidSVG(source, options, layoutConfig: layoutConfig)
+        let svg = try _renderDiagramSVG(source, options, layoutConfig: layoutConfig)
         let resolvedSvg = _resolveSvgCssVariables(svg)
         return _flattenKnownSvgTokens(resolvedSvg, theme: theme)
     }
@@ -151,15 +151,15 @@ public final class MermaidImageRenderer {
     // MARK: - Platform image rendering
 
     /// Bitmap creation now routes through the shared
-    /// `MermaidBitmapRenderer` so the UIKit/AppKit setup can't drift
-    /// between `MermaidImageRenderer` and `MermaidLayer`.
+    /// `DiagramBitmapRenderer` so the UIKit/AppKit setup can't drift
+    /// between `DiagramImageRenderer` and `DiagramLayer`.
     @MainActor
     private func renderBitmap(
         size: CGSize,
         scale: CGFloat,
         draw: (CGContext) -> Void
     ) -> BMImage? {
-        MermaidBitmapRenderer.render(size: size, scale: scale, theme: theme, draw: draw)
+        DiagramBitmapRenderer.render(size: size, scale: scale, theme: theme, draw: draw)
     }
 
     @MainActor
@@ -193,14 +193,14 @@ public final class MermaidImageRenderer {
     }
 }
 
-extension MermaidImageRenderer {
+extension DiagramImageRenderer {
     @MainActor
     public static func render(
         _ source: String,
         theme: DiagramTheme = .default,
         scale: CGFloat = 2.0
     ) async throws -> BMImage? {
-        let renderer = MermaidImageRenderer(theme: theme)
+        let renderer = DiagramImageRenderer(theme: theme)
         renderer.scale = scale
         return try await renderer.renderImage(from: source)
     }
@@ -211,8 +211,13 @@ extension MermaidImageRenderer {
         size: CGSize,
         theme: DiagramTheme = .default
     ) async throws -> BMImage? {
-        let renderer = MermaidImageRenderer(theme: theme)
+        let renderer = DiagramImageRenderer(theme: theme)
         return try await renderer.renderImage(from: source, size: size)
     }
 }
+
+// MARK: - Phase 0 backward-compat deprecated alias
+
+@available(*, deprecated, renamed: "DiagramImageRenderer")
+public typealias MermaidImageRenderer = DiagramImageRenderer
 #endif

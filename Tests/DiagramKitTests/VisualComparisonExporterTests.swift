@@ -67,7 +67,7 @@ final class VisualComparisonExporterTests: XCTestCase {
         context.setFillColor(CGColor(gray: 1.0, alpha: 1.0))
         context.fill(CGRect(origin: .zero, size: size))
 
-        try await MermaidRenderer.render(
+        try await DiagramEngine.render(
             source: source,
             in: context,
             bounds: CGRect(origin: .zero, size: size),

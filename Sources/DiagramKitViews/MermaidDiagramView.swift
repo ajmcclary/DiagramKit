@@ -11,7 +11,7 @@ import UIKit
 /// A SwiftUI view that renders a Mermaid diagram.
 @available(iOS 26.0, macCatalyst 26.0, visionOS 26.0, *)
 @MainActor
-public struct MermaidDiagramView: UIViewRepresentable {
+public struct DiagramView: UIViewRepresentable {
     private let source: String
     private let theme: DiagramTheme
     private let layoutConfig: LayoutConfig
@@ -32,8 +32,8 @@ public struct MermaidDiagramView: UIViewRepresentable {
         self._diagramBounds = diagramBounds
     }
 
-    public func makeUIView(context: Context) -> MermaidView {
-        let view = MermaidView()
+    public func makeUIView(context: Context) -> DiagramNativeView {
+        let view = DiagramNativeView()
         bindPreparationUpdates(from: view)
         view.theme = theme
         view.layoutConfig = layoutConfig
@@ -41,7 +41,7 @@ public struct MermaidDiagramView: UIViewRepresentable {
         return view
     }
 
-    public func updateUIView(_ view: MermaidView, context: Context) {
+    public func updateUIView(_ view: DiagramNativeView, context: Context) {
         bindPreparationUpdates(from: view)
 
         if view.theme != theme {
@@ -58,13 +58,13 @@ public struct MermaidDiagramView: UIViewRepresentable {
 
     }
 
-    private func bindPreparationUpdates(from view: MermaidView) {
+    private func bindPreparationUpdates(from view: DiagramNativeView) {
         view.mermaidLayer.onPrepareComplete = { [weak view] in
             publishPreparationState(from: view)
         }
     }
 
-    private func publishPreparationState(from view: MermaidView?) {
+    private func publishPreparationState(from view: DiagramNativeView?) {
         let parseError = $parseError
         let diagramBounds = $diagramBounds
         Task { @MainActor in
@@ -81,7 +81,7 @@ import AppKit
 /// A SwiftUI view that renders a Mermaid diagram.
 @available(macOS 26.0, *)
 @MainActor
-public struct MermaidDiagramView: NSViewRepresentable {
+public struct DiagramView: NSViewRepresentable {
     private let source: String
     private let theme: DiagramTheme
     private let layoutConfig: LayoutConfig
@@ -102,8 +102,8 @@ public struct MermaidDiagramView: NSViewRepresentable {
         self._diagramBounds = diagramBounds
     }
 
-    public func makeNSView(context: Context) -> MermaidView {
-        let view = MermaidView()
+    public func makeNSView(context: Context) -> DiagramNativeView {
+        let view = DiagramNativeView()
         bindPreparationUpdates(from: view)
         view.theme = theme
         view.layoutConfig = layoutConfig
@@ -111,7 +111,7 @@ public struct MermaidDiagramView: NSViewRepresentable {
         return view
     }
 
-    public func updateNSView(_ view: MermaidView, context: Context) {
+    public func updateNSView(_ view: DiagramNativeView, context: Context) {
         bindPreparationUpdates(from: view)
 
         if view.theme != theme {
@@ -128,13 +128,13 @@ public struct MermaidDiagramView: NSViewRepresentable {
 
     }
 
-    private func bindPreparationUpdates(from view: MermaidView) {
+    private func bindPreparationUpdates(from view: DiagramNativeView) {
         view.mermaidLayer.onPrepareComplete = { [weak view] in
             publishPreparationState(from: view)
         }
     }
 
-    private func publishPreparationState(from view: MermaidView?) {
+    private func publishPreparationState(from view: DiagramNativeView?) {
         let parseError = $parseError
         let diagramBounds = $diagramBounds
         Task { @MainActor in
@@ -146,4 +146,10 @@ public struct MermaidDiagramView: NSViewRepresentable {
 }
 
 #endif
+
+// MARK: - Phase 0 backward-compat deprecated alias
+
+@available(iOS 26.0, macCatalyst 26.0, visionOS 26.0, macOS 26.0, *)
+@available(*, deprecated, renamed: "DiagramView")
+public typealias MermaidDiagramView = DiagramView
 #endif

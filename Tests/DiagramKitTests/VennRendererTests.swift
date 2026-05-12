@@ -16,7 +16,7 @@ final class VennRendererTests: XCTestCase {
             ]
         )
         let positioned = layoutVennDiagram(diagram)
-        let graph = MermaidGraph(payload: .venn(diagram))
+        let graph = DiagramDocument(payload: .venn(diagram))
         let positionedGraph = PositionedGraph(
             diagram: graph,
             width: positioned.width,

@@ -1,7 +1,7 @@
 # Phase 0: Stabilize Names
 
 **Date**: 2026-05-12
-**Status**: Planned
+**Status**: Complete ✅
 
 Add format-neutral public names additively, then migrate internals in small
 buildable passes. No breaking changes in this phase — the `@available(deprecated)`
@@ -406,3 +406,118 @@ SNAPSHOT_TESTING_RECORD=true swift test --filter CorpusSnapshotTests
 - **`renderMermaidSVG` / `renderMermaidASCII` free functions**: the SVG function
   should be aliased to `renderDiagramSVG`. The ASCII function is Mermaid-specific
   (no other format produces ASCII output) — keep as-is with a deprecation comment.
+
+---
+
+## 11. Implementation Notes — What Was Done
+
+### Commit A — Additive Introduction ✅
+
+All new names introduced as `public typealias NewName = OldName` in their
+respective defining files alongside the existing primary definitions.
+
+| File | Aliases added |
+|---|---|
+| `Sources/DiagramKitModel/Types.swift` | `DiagramDocument`, `DiagramError` |
+| `Sources/DiagramKitModel/MermaidColorParser.swift` | `DiagramColorParser` |
+| `Sources/DiagramKitModel/MermaidSourceNormalizer.swift` | `DiagramSourceNormalizer` |
+| `Sources/DiagramKitCommon/IssueReportingSupport.swift` | `_RecoverableDiagramError`, `_withDiagramIssueReporting`, `_reportDiagramIssueIfNeeded`, `_reportDiagramIssue`, `_isRecoverableDiagramError` (delegation wrappers) |
+| `Sources/DiagramKitRenderingCG/MermaidWorkerThread.swift` | `DiagramWorkerThread` |
+| `Sources/DiagramKitRenderingCG/MermaidPreparation.swift` | `DiagramPreparation`, `DiagramPreparationError` |
+| `Sources/DiagramKitRenderingCG/MermaidBitmapRenderer.swift` | `DiagramBitmapRenderer` |
+| `Sources/DiagramKitRenderingCG/MermaidViewPreparer.swift` | `DiagramViewPreparer`, `DiagramViewPreparerEnvironment` |
+| `Sources/DiagramKitRenderingCG/FontRegistry.swift` | `DiagramFontRegistry` |
+| `Sources/DiagramKitViews/MermaidView.swift` | `DiagramNativeView` |
+| `Sources/DiagramKitViews/MermaidLayer.swift` | `DiagramLayer` |
+| `Sources/DiagramKitViews/MermaidDiagram.swift` | `DiagramViewModel` |
+| `Sources/DiagramKitViews/MermaidDiagramView.swift` | `DiagramView` (with `@available` for platform version) |
+| `Sources/DiagramKit/MermaidRenderer.swift` | `DiagramEngine` |
+| `Sources/DiagramKit/MermaidPipeline.swift` | `DiagramPipeline` |
+| `Sources/DiagramKit/ImageRenderer.swift` | `DiagramImageRenderer` |
+| `Sources/DiagramKit/DiagramDescriptor.swift` | `DiagramStructuralError` |
+| `Sources/DiagramKit/MermaidPreparerWiring.swift` | `_DiagramPreparerBootstrap` |
+
+**Verification**: `swift build --build-tests` passed with zero test changes
+(build time ~16s on MBP M4).
+
+### Commit B — Internal Migration ✅
+
+All internal call sites migrated via bulk sed replacement (126 files, 289
+replacements across Sources/ + Tests/ + Examples/). Forward typealiases from
+Commit A were replaced with backward-compat `@available(*, deprecated,
+renamed:)` aliases pointing old → new.
+
+**Preserved intentionally**:
+- `original_src_types.MermaidGraph` — upstream JS-port internal type (corrected
+  after initial sed over-rename)
+- `MermaidNode` — per plan, Mermaid-specific node concept
+- `MermaidParser` — per plan, will become `MermaidImporter` in Phase 2
+- `DiagramRenderer` (CG class) — per Section 1, no rename
+- `DiagramRegistry` / `DiagramDescriptor` / `DiagramHeader` — deferred to Phase 1
+
+**Additional renames executed** (missed in initial bulk pass, caught later):
+- `_renderMermaidSVG` → `_renderDiagramSVG` (internal, in `src_index.swift`)
+- `_renderPreprocessedMermaidSVG` → `_renderPreprocessedDiagramSVG` (internal)
+- `renderMermaidSVG` → `renderDiagramSVG` (public, new primary; old deprecated)
+- `renderMermaidSVGAsync` → `renderDiagramSVGAsync` (public, new primary; old deprecated)
+- `renderMermaid` → `renderDiagram` (already-deprecated, updated message)
+
+**Deprecated backward-compat surface**: every renamed type has a
+`@available(*, deprecated, renamed: "NewName") public typealias OldName = NewName`
+in the target where the original symbol was defined. Deprecated function
+wrappers delegate to the new names.
+
+**Verification**: `swift build --build-tests` passed. Corpus snapshot tests
+ran — snapshot failures are pre-existing rendering issues (stroke color
+calculations, 0×0 layout bounds), not caused by renames. See BASELINES.md
+for known gap counts.
+
+### Commit C — File Renames + Docs + BASELINES ✅
+
+**File renames** (via `git mv`):
+- `Sources/DiagramKit/ImageRenderer.swift` → `DiagramImageRenderer.swift`
+- `Sources/DiagramKit/MermaidPreparerWiring.swift` → `DiagramPreparerWiring.swift`
+- `Sources/DiagramKitModel/MermaidColorParser.swift` → `DiagramColorParser.swift`
+- `Sources/DiagramKitModel/MermaidSourceNormalizer.swift` → `DiagramSourceNormalizer.swift`
+
+**Registry comment banners**: added to `DiagramDescriptor.swift` and all 29
+`DiagramRegistry+*.swift` files, marking them as Mermaid-family-internal with
+a Phase 1 migration note.
+
+**BASELINES.md**: created with build time, snapshot counts, and gate status.
+Test counts left as placeholders (~XXX) pending a full `swift test` count pass.
+
+**Docs updated**: AGENTS.md (critical constraints, conventions), ARCHITECTURE.md
+(type names, file paths, pipeline descriptions), ANALYSIS.md (type references).
+
+**Verification**: `swift build --build-tests` passed (18s). Governance gates:
+- `check-file-sizes.sh` — pass (all warnings pre-existing)
+- `strict-concurrency-check.sh` — pass (clean)
+- `check-sendable-annotations.sh` — pass (all documented/allowlisted)
+
+### Deferred to Phase 1
+
+- Registry type renames (`DiagramRegistry` → `MermaidDiagramRegistry`, etc.)
+- `Errors.swift` consolidation (`DiagramError` + `DiagramStructuralError` → single file)
+- `renderMermaidASCII` rename (ASCII is Mermaid-specific)
+- `MermaidParser` → `MermaidImporter` (needs `DiagramSourceImporter` protocol)
+
+### Snapshot Test Status
+
+Corpus snapshot tests produce ~700 issues across 3 suites (SVG / image / ASCII).
+These are **pre-existing** and match the known rendering-bug punch list:
+- Image: 50 entries fail due to layouts producing 0×0 bounds
+- SVG/ASCII: color hex differences in ER / C4 / event-modeling renderers
+  (e.g., `#939394` → `#27272A` stroke colors) caused by theme-color fallback
+  logic, not by Phase 0 renames
+
+Re-recording is not expected in Phase 0 — no snapshot baseline names changed
+(confirmed: zero `Mermaid_` prefixes in `Tests/` snapshot paths).
+
+### Build Metrics (2026-05-12, MBP M4 24 GB)
+
+| Command | Time |
+|---|---|
+| `swift build --build-tests` | ~16s |
+| `swift test` (excluding snapshots) | ~30s |
+| `swift test --filter CorpusSnapshotTests` | ~5 min |

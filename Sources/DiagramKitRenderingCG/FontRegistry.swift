@@ -17,7 +17,7 @@ import CoreText
 ///
 /// The implementation mirrors `CoreGraphicsFontRegistry` in
 /// `~/Workspace/packages/MusicToolkit/Sources/MusicToolkitRenderingCG/Canvas/CoreGraphicsCanvas.swift`.
-public enum BeautifulMermaidFontRegistry {
+public enum DiagramFontRegistry {
     private static let lock = NSLock()
     /// Guarded by `lock` (NSLock). All reads and mutations of `didRegister`
     /// must hold the lock — see `registerBundledFontsIfNeeded()` below.
@@ -63,4 +63,9 @@ public enum BeautifulMermaidFontRegistry {
         }
     }
 }
+
+// MARK: - Phase 0 backward-compat deprecated alias
+
+@available(*, deprecated, renamed: "DiagramFontRegistry")
+public typealias BeautifulMermaidFontRegistry = DiagramFontRegistry
 #endif

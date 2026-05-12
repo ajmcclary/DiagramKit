@@ -10,7 +10,7 @@ import DiagramKitRenderingCG
 /// All methods are synchronous and nonisolated — callers are responsible
 /// for dispatching to an appropriate thread when stack requirements
 /// exceed the cooperative thread pool budget (~512 KB).
-public enum MermaidPipeline {
+public enum DiagramPipeline {
 
     // MARK: - Entry-point boundary
 
@@ -24,16 +24,16 @@ public enum MermaidPipeline {
     ) throws -> T {
         if registerFonts {
             #if canImport(CoreGraphics)
-            BeautifulMermaidFontRegistry.registerBundledFontsIfNeeded()
+            DiagramFontRegistry.registerBundledFontsIfNeeded()
             #endif
         }
-        return try _withMermaidIssueReporting(operation: operation, work)
+        return try _withDiagramIssueReporting(operation: operation, work)
     }
 
     // MARK: - Parse
 
-    public static func parse(_ source: String) throws -> MermaidGraph {
-        try runPipeline(operation: "MermaidPipeline.parse", registerFonts: true) {
+    public static func parse(_ source: String) throws -> DiagramDocument {
+        try runPipeline(operation: "DiagramPipeline.parse", registerFonts: true) {
             try MermaidParser.parse(source)
         }
     }
@@ -44,17 +44,17 @@ public enum MermaidPipeline {
         _ source: String,
         config: LayoutConfig = LayoutConfig()
     ) throws -> PositionedGraph {
-        try runPipeline(operation: "MermaidPipeline.layout(source:)") {
+        try runPipeline(operation: "DiagramPipeline.layout(source:)") {
             let graph = try MermaidParser.parse(source)
             return try GraphLayout(config: config).layout(graph)
         }
     }
 
     public static func layout(
-        _ graph: MermaidGraph,
+        _ graph: DiagramDocument,
         config: LayoutConfig = LayoutConfig()
     ) throws -> PositionedGraph {
-        try runPipeline(operation: "MermaidPipeline.layout(graph:)") {
+        try runPipeline(operation: "DiagramPipeline.layout(graph:)") {
             try GraphLayout(config: config).layout(graph)
         }
     }
@@ -67,7 +67,7 @@ public enum MermaidPipeline {
         theme: DiagramTheme = .default,
         layoutConfig: LayoutConfig = LayoutConfig()
     ) throws -> PreparedDiagram {
-        try runPipeline(operation: "MermaidPipeline.prepare") {
+        try runPipeline(operation: "DiagramPipeline.prepare") {
             let graph = try MermaidParser.parse(source)
             let positioned = try GraphLayout(config: layoutConfig).layout(graph)
             return PreparedDiagram(positioned: positioned, theme: theme)
@@ -86,7 +86,7 @@ public enum MermaidPipeline {
         layoutConfig: LayoutConfig = LayoutConfig(),
         idPolicy: SVGIDPolicy = .unique
     ) throws -> String {
-        try runPipeline(operation: "MermaidPipeline.renderSVG") {
+        try runPipeline(operation: "DiagramPipeline.renderSVG") {
             let graph = try MermaidParser.parse(source)
             let positioned = try GraphLayout(config: layoutConfig).layout(graph)
 
@@ -112,10 +112,10 @@ public enum MermaidPipeline {
                 )
                 let resolved = _resolveSvgCssVariables(svg)
                 return _flattenKnownSvgTokens(resolved, theme: theme)
-            } catch BeautifulMermaidError.notYetImplemented {
+            } catch DiagramError.notYetImplemented {
                 // Fall back to source-based pipeline for families not yet
                 // on the positioned path.
-                return try MermaidImageRenderer(theme: theme, config: layoutConfig)
+                return try DiagramImageRenderer(theme: theme, config: layoutConfig)
                     .renderSVGSync(from: source, idPolicy: idPolicy)
             }
         }
@@ -127,7 +127,7 @@ public enum MermaidPipeline {
         positioned: PositionedGraph,
         theme: DiagramTheme = .default
     ) throws -> String {
-        try runPipeline(operation: "MermaidPipeline.renderSVG(positioned:)") {
+        try runPipeline(operation: "DiagramPipeline.renderSVG(positioned:)") {
             let colors = DiagramColors(
                 bg: theme.background.hexString,
                 fg: theme.foreground.hexString,
@@ -158,8 +158,8 @@ public enum MermaidPipeline {
         _ text: String,
         options: RenderOptions = RenderOptions()
     ) throws -> String {
-        try runPipeline(operation: "MermaidPipeline.renderSVG(options:)") {
-            try _renderMermaidSVG(text, options)
+        try runPipeline(operation: "DiagramPipeline.renderSVG(options:)") {
+            try _renderDiagramSVG(text, options)
         }
     }
 
@@ -169,7 +169,7 @@ public enum MermaidPipeline {
         source: String,
         theme: DiagramTheme = .default
     ) throws -> String {
-        try runPipeline(operation: "MermaidPipeline.renderASCII") {
+        try runPipeline(operation: "DiagramPipeline.renderASCII") {
             let colors: [String: String] = [
                 "fg": theme.foreground.hexString,
                 "border": (theme.border ?? theme.foreground).hexString,
@@ -183,3 +183,8 @@ public enum MermaidPipeline {
     }
     #endif
 }
+
+// MARK: - Phase 0 backward-compat deprecated alias
+
+@available(*, deprecated, renamed: "DiagramPipeline")
+public typealias MermaidPipeline = DiagramPipeline

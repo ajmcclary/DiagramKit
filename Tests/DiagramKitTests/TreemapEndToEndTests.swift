@@ -93,7 +93,7 @@ struct TreemapEndToEndTests {
         treemap
         "A": 10
         """
-        let graph = try await MermaidRenderer.parse(source)
+        let graph = try await DiagramEngine.parse(source)
         #expect(graph.type == .treemap)
     }
 
@@ -103,7 +103,7 @@ struct TreemapEndToEndTests {
         treemap
         "A": 10
         """
-        let positioned = try await MermaidRenderer.layout(source)
+        let positioned = try await DiagramEngine.layout(source)
         #expect(positioned.diagram.type == .treemap)
     }
 }

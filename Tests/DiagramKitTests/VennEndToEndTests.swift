@@ -36,7 +36,7 @@ struct VennEndToEndTests {
           set B
           union A,B
         """
-        let graph = try await MermaidRenderer.parse(source)
+        let graph = try await DiagramEngine.parse(source)
         guard case .venn(let diagram) = graph.payload else {
             #expect(Bool(false), "Expected .venn payload")
             return
@@ -60,7 +60,7 @@ struct VennEndToEndTests {
           set B
           union A,B
         """
-        let graph = try await MermaidRenderer.parse(source)
+        let graph = try await DiagramEngine.parse(source)
         guard case .venn(let diagram) = graph.payload else {
             #expect(Bool(false), "Expected .venn payload")
             return
@@ -84,7 +84,7 @@ struct VennEndToEndTests {
           set Backend
           union Frontend,Backend
         """
-        let graph = try await MermaidRenderer.parse(source)
+        let graph = try await DiagramEngine.parse(source)
         guard case .venn(let diagram) = graph.payload else {
             #expect(Bool(false), "Expected .venn payload")
             return
@@ -109,7 +109,7 @@ struct VennEndToEndTests {
           set B
           union A,B
         """
-        let positioned = try await MermaidRenderer.layout(source)
+        let positioned = try await DiagramEngine.layout(source)
         guard case .venn(let data) = positioned.content else {
             #expect(Bool(false), "Expected .venn positioned content")
             return

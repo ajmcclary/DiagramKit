@@ -259,7 +259,7 @@ open class original_src_ascii_converter {
         }
     }
 
-    public struct MermaidGraphInput: Sendable {
+    public struct DiagramDocumentInput: Sendable {
         // Ordered to preserve insertion semantics from the TS Map.
         public var nodes: [(id: String, node: MermaidNodeInput)]
         public var edges: [MermaidEdgeInput]
@@ -296,7 +296,7 @@ open class original_src_ascii_converter {
 
     /// Faithful port of converter.ts high-level mapping semantics.
     public static func convertToAsciiGraph(
-        _ parsed: MermaidGraphInput,
+        _ parsed: DiagramDocumentInput,
         _ config: AsciiConfig
     ) -> AsciiGraph {
         var nodeMap: [String: AsciiNode] = [:]

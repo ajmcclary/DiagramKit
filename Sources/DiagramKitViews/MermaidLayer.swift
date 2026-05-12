@@ -20,7 +20,7 @@ import AppKit
 /// A CALayer subclass that manages the Mermaid diagram rendering pipeline:
 /// parse -> layout -> draw.
 @MainActor
-public class MermaidLayer: CALayer {
+public class DiagramLayer: CALayer {
 
     // MARK: - Public Properties
 
@@ -85,7 +85,7 @@ public class MermaidLayer: CALayer {
         let diagBounds = prepared.bounds
         guard diagBounds.width > 0, diagBounds.height > 0 else { return nil }
         let size = CGSize(width: diagBounds.width, height: diagBounds.height)
-        return MermaidBitmapRenderer.render(
+        return DiagramBitmapRenderer.render(
             size: size,
             scale: scale,
             theme: theme
@@ -113,21 +113,21 @@ public class MermaidLayer: CALayer {
         let theme = theme
         let layoutConfig = layoutConfig
 
-        let preparer = MermaidViewPreparerEnvironment.current
+        let preparer = DiagramViewPreparerEnvironment.current
 
         preparationTask = Task { [weak self] in
             do {
                 let prepared = if let preparer {
                     try await preparer.prepare(source, theme, layoutConfig)
                 } else {
-                    try await MermaidPreparation.prepare(source: source, theme: theme, layoutConfig: layoutConfig)
+                    try await DiagramPreparation.prepare(source: source, theme: theme, layoutConfig: layoutConfig)
                 }
                 guard !Task.isCancelled else { return }
                 self?.preparedDiagram = prepared
                 self?.diagramBounds = prepared.bounds
             } catch {
                 guard !Task.isCancelled else { return }
-                _reportMermaidIssueIfNeeded(error, operation: "MermaidLayer.prepareDiagram")
+                _reportDiagramIssueIfNeeded(error, operation: "DiagramLayer.prepareDiagram")
                 self?.parseError = error
             }
 
@@ -136,4 +136,9 @@ public class MermaidLayer: CALayer {
         }
     }
 }
+
+// MARK: - Phase 0 backward-compat deprecated alias
+
+@available(*, deprecated, renamed: "DiagramLayer")
+public typealias MermaidLayer = DiagramLayer
 #endif

@@ -6,7 +6,7 @@ import Testing
 @testable import DiagramKitRenderingCG
 
 @Suite("Mermaid pipeline concurrency")
-struct MermaidPipelineConcurrencyTests {
+struct DiagramPipelineConcurrencyTests {
     struct Snapshot: Equatable, Sendable {
         var index: Int
         var type: DiagramType
@@ -76,10 +76,10 @@ struct MermaidPipelineConcurrencyTests {
             for (index, diagram) in diagrams.enumerated() {
                 let source = diagram.source
                 group.addTask {
-                    let graph = try await MermaidRenderer.parse(source)
-                    let positioned = try await MermaidRenderer.layout(source)
-                    let svg = try await MermaidRenderer.renderSVG(source: source)
-                    let ascii = try await MermaidRenderer.renderASCII(source: source)
+                    let graph = try await DiagramEngine.parse(source)
+                    let positioned = try await DiagramEngine.layout(source)
+                    let svg = try await DiagramEngine.renderSVG(source: source)
+                    let ascii = try await DiagramEngine.renderASCII(source: source)
                     return Snapshot(
                         index: index,
                         type: graph.type,

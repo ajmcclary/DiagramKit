@@ -6,20 +6,20 @@ import DiagramKitRenderingCG
 
 /// Asserts the architectural invariant: every async preparation entry point
 /// dispatches onto the named 8 MB worker thread defined by
-/// `MermaidRenderer._runOnWorker`. If a future refactor reintroduces an
+/// `DiagramEngine._runOnWorker`. If a future refactor reintroduces an
 /// inline `Thread { ... }.start()` or runs prepare/layout on the main
 /// actor, these tests fail.
-final class MermaidPreparationWorkerTests: XCTestCase {
+final class DiagramPreparationWorkerTests: XCTestCase {
 
     override class func setUp() {
         super.setUp()
-        // `MermaidPreparation` now lives in `DiagramKitRenderingCG` and
+        // `DiagramPreparation` now lives in `DiagramKitRenderingCG` and
         // takes its synchronous implementation from the umbrella's
-        // `_MermaidPreparerBootstrap`. The bootstrap fires implicitly
-        // from any `MermaidRenderer.*` call, but these tests invoke
-        // `MermaidPreparation.prepare(...)` directly — so we need to
+        // `_DiagramPreparerBootstrap`. The bootstrap fires implicitly
+        // from any `DiagramEngine.*` call, but these tests invoke
+        // `DiagramPreparation.prepare(...)` directly — so we need to
         // trigger it manually.
-        MermaidRenderer.bootstrap()
+        DiagramEngine.bootstrap()
     }
 
     /// Captures values observed inside a worker closure, sendably.
@@ -34,7 +34,7 @@ final class MermaidPreparationWorkerTests: XCTestCase {
 
     func test_runOnWorker_runsOnNamedNonMainThread() async throws {
         let observation = WorkerObservation()
-        try await MermaidRenderer._runOnWorker {
+        try await DiagramEngine._runOnWorker {
             let name = Thread.current.name
             let isMain = Thread.isMainThread
             Task { await observation.record(name: name, isMain: isMain) }
@@ -47,14 +47,14 @@ final class MermaidPreparationWorkerTests: XCTestCase {
         XCTAssertEqual(observedIsMain, false)
     }
 
-    func test_MermaidPreparation_prepareSucceeds() async throws {
+    func test_DiagramPreparation_prepareSucceeds() async throws {
         let source = "flowchart TD\n  A[Start] --> B[End]\n"
-        let prepared = try await MermaidPreparation.prepare(source: source)
+        let prepared = try await DiagramPreparation.prepare(source: source)
         XCTAssertGreaterThan(prepared.bounds.width, 0)
         XCTAssertGreaterThan(prepared.bounds.height, 0)
     }
 
-    func test_MermaidPreparation_routesThroughNamedWorker() async throws {
+    func test_DiagramPreparation_routesThroughNamedWorker() async throws {
         // Run three serial prepares and confirm each observes the
         // canonical worker thread name. Serial rather than parallel
         // because XCTestCase is not Sendable under strict concurrency.
@@ -62,7 +62,7 @@ final class MermaidPreparationWorkerTests: XCTestCase {
         for _ in 0..<3 {
             let observed = try await _observeWorkerName()
             XCTAssertEqual(observed, "BeautifulMermaid worker")
-            _ = try await MermaidPreparation.prepare(source: source)
+            _ = try await DiagramPreparation.prepare(source: source)
         }
     }
 }
@@ -70,8 +70,8 @@ final class MermaidPreparationWorkerTests: XCTestCase {
 /// Free function — kept outside the test class so it does not capture
 /// `self` (XCTestCase is not Sendable under strict concurrency).
 private func _observeWorkerName() async throws -> String? {
-    let observation = MermaidPreparationWorkerTests_WorkerObservation()
-    try await MermaidRenderer._runOnWorker {
+    let observation = DiagramPreparationWorkerTests_WorkerObservation()
+    try await DiagramEngine._runOnWorker {
         let name = Thread.current.name
         let isMain = Thread.isMainThread
         Task { await observation.record(name: name, isMain: isMain) }
@@ -80,7 +80,7 @@ private func _observeWorkerName() async throws -> String? {
     return await observation.threadName
 }
 
-private actor MermaidPreparationWorkerTests_WorkerObservation {
+private actor DiagramPreparationWorkerTests_WorkerObservation {
     var threadName: String?
     var isMainThread: Bool?
     func record(name: String?, isMain: Bool) {

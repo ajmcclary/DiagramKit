@@ -2,7 +2,7 @@
 import Foundation
 import DiagramKitModel
 
-private func _bmParseMermaid(_ text: String, config: original_src_types.FlowchartConfig? = nil) throws -> MermaidGraph {
+private func _bmParseMermaid(_ text: String, config: original_src_types.FlowchartConfig? = nil) throws -> DiagramDocument {
     try parseMermaid(text, config: config)
 }
 
@@ -26,7 +26,7 @@ private func _bmConvertToAsciiGraph(
     default:
         // Fallback: empty graph if payload isn't the expected type
         return original_src_ascii_converter.convertToAsciiGraph(
-            original_src_ascii_converter.MermaidGraphInput(
+            original_src_ascii_converter.DiagramDocumentInput(
                 nodes: [], edges: [], subgraphs: [], classAssignments: [], classDefs: [:]
             ),
             converterConfig
@@ -73,7 +73,7 @@ private func _bmConvertToAsciiGraph(
         classNames.map { (nodeId: nodeId, className: $0) }
     }
 
-    let converterInput = original_src_ascii_converter.MermaidGraphInput(
+    let converterInput = original_src_ascii_converter.DiagramDocumentInput(
         nodes: nodes,
         edges: edges,
         subgraphs: subgraphs,
@@ -295,7 +295,7 @@ open class original_src_ascii_index {
 
     struct ParsedMermaid {
         var direction: String
-        var graph: MermaidGraph
+        var graph: DiagramDocument
     }
 
     private struct AsciiGraphModel {
@@ -426,70 +426,70 @@ open class original_src_ascii_index {
             return renderXYChartAscii(preprocessedText, mappedConfig, mappedColorMode, mappedTheme)
 
         case .pie:
-            throw BeautifulMermaidError.notYetImplemented("Pie Chart ASCII rendering")
+            throw DiagramError.notYetImplemented("Pie Chart ASCII rendering")
 
         case .journey:
-            throw BeautifulMermaidError.notYetImplemented("ASCII rendering for User Journey diagrams")
+            throw DiagramError.notYetImplemented("ASCII rendering for User Journey diagrams")
 
         case .gantt:
-            throw BeautifulMermaidError.notYetImplemented("ASCII rendering for Gantt diagrams")
+            throw DiagramError.notYetImplemented("ASCII rendering for Gantt diagrams")
 
         case .quadrantChart:
-            throw BeautifulMermaidError.notYetImplemented("Quadrant Chart ASCII rendering")
+            throw DiagramError.notYetImplemented("Quadrant Chart ASCII rendering")
 
         case .requirement:
-            throw BeautifulMermaidError.notYetImplemented("Requirement Diagram ASCII rendering")
+            throw DiagramError.notYetImplemented("Requirement Diagram ASCII rendering")
 
         case .gitGraph:
-            throw BeautifulMermaidError.notYetImplemented("GitGraph ASCII rendering")
+            throw DiagramError.notYetImplemented("GitGraph ASCII rendering")
 
         case .mindmap:
-            throw BeautifulMermaidError.notYetImplemented("Mindmap ASCII rendering")
+            throw DiagramError.notYetImplemented("Mindmap ASCII rendering")
 
         case .timeline:
-            throw BeautifulMermaidError.notYetImplemented("Timeline ASCII rendering")
+            throw DiagramError.notYetImplemented("Timeline ASCII rendering")
 
         case .sankey:
-            throw BeautifulMermaidError.notYetImplemented("Sankey ASCII rendering")
+            throw DiagramError.notYetImplemented("Sankey ASCII rendering")
 
         case .block:
-            throw BeautifulMermaidError.notYetImplemented("Block Diagram ASCII rendering")
+            throw DiagramError.notYetImplemented("Block Diagram ASCII rendering")
 
         case .packet:
-            throw BeautifulMermaidError.notYetImplemented("Packet ASCII rendering is not yet implemented.")
+            throw DiagramError.notYetImplemented("Packet ASCII rendering is not yet implemented.")
 
         case .kanban:
-            throw BeautifulMermaidError.notYetImplemented("Kanban ASCII rendering")
+            throw DiagramError.notYetImplemented("Kanban ASCII rendering")
 
         case .architecture:
-            throw BeautifulMermaidError.notYetImplemented("Architecture Diagram ASCII rendering")
+            throw DiagramError.notYetImplemented("Architecture Diagram ASCII rendering")
 
         case .radar:
-            throw BeautifulMermaidError.notYetImplemented("Radar Chart ASCII rendering")
+            throw DiagramError.notYetImplemented("Radar Chart ASCII rendering")
 
         case .treemap:
-            throw BeautifulMermaidError.notYetImplemented("Treemap ASCII rendering")
+            throw DiagramError.notYetImplemented("Treemap ASCII rendering")
 
         case .venn:
-            throw BeautifulMermaidError.notYetImplemented("Venn Diagram ASCII rendering")
+            throw DiagramError.notYetImplemented("Venn Diagram ASCII rendering")
 
         case .ishikawa:
-            throw BeautifulMermaidError.notYetImplemented("Ishikawa Diagram ASCII rendering")
+            throw DiagramError.notYetImplemented("Ishikawa Diagram ASCII rendering")
 
         case .treeView:
-            throw BeautifulMermaidError.notYetImplemented("TreeView ASCII rendering")
+            throw DiagramError.notYetImplemented("TreeView ASCII rendering")
 
         case .eventModeling:
-            throw BeautifulMermaidError.notYetImplemented("Event Modeling ASCII rendering")
+            throw DiagramError.notYetImplemented("Event Modeling ASCII rendering")
 
         case .wardleyBeta:
-            throw BeautifulMermaidError.notYetImplemented("Wardley Map ASCII rendering")
+            throw DiagramError.notYetImplemented("Wardley Map ASCII rendering")
 
         case .zenuml:
-            throw BeautifulMermaidError.notYetImplemented("ZenUML ASCII rendering")
+            throw DiagramError.notYetImplemented("ZenUML ASCII rendering")
 
         case .c4:
-            throw BeautifulMermaidError.notYetImplemented("C4 Diagram ASCII rendering")
+            throw DiagramError.notYetImplemented("C4 Diagram ASCII rendering")
 
         case .flowchart, .stateDiagram:
             let parsed = try parseMermaid(preprocessedText)

@@ -168,12 +168,12 @@ final class MermaidPlaygroundLoaderRegressionTests: XCTestCase {
 final class MermaidPlaygroundExportRegressionTests: XCTestCase {
     func testSVGRendererHonorsLayoutConfig() async throws {
         let source = "graph TD\n  A[Start] --> B[End]"
-        let defaultSVG = try await MermaidImageRenderer(
+        let defaultSVG = try await DiagramImageRenderer(
             theme: .default,
             config: LayoutConfig()
         )
         .renderSVG(from: source)
-        let paddedSVG = try await MermaidImageRenderer(
+        let paddedSVG = try await DiagramImageRenderer(
             theme: .default,
             config: LayoutConfig(padding: 140)
         )
@@ -207,7 +207,7 @@ final class MermaidPlaygroundActionsRegressionTests: XCTestCase {
 @available(iOS 26.0, macOS 26.0, macCatalyst 26.0, *)
 final class MermaidPlaygroundVersionRegressionTests: XCTestCase {
     func testVersionSecurityPanelReportsRendererVersion() {
-        XCTAssertEqual(VersionSecurityPanel.diagramKitVersion, MermaidRenderer.version)
+        XCTAssertEqual(VersionSecurityPanel.diagramKitVersion, DiagramEngine.version)
     }
 }
 

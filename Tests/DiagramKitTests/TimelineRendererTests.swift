@@ -6,11 +6,11 @@ import XCTest
 
 final class TimelineRendererTests: XCTestCase {
 
-    private func parseAndLayout(_ source: String) throws -> (MermaidGraph, PositionedTimelineDiagram) {
+    private func parseAndLayout(_ source: String) throws -> (DiagramDocument, PositionedTimelineDiagram) {
         let lines = source.split(separator: "\n", omittingEmptySubsequences: false).map(String.init)
         let diagram = try parseTimelineDiagram(lines, frontmatter: nil)
         let positioned = layoutTimelineDiagram(diagram)
-        let graph = MermaidGraph(payload: .timeline(diagram))
+        let graph = DiagramDocument(payload: .timeline(diagram))
         return (graph, positioned)
     }
 
@@ -89,7 +89,7 @@ final class TimelineRendererTests: XCTestCase {
             2020 : COVID-19
             2021 : Vaccines
         """
-        let svg = try _renderMermaidSVG(source)
+        let svg = try _renderDiagramSVG(source)
         XCTAssertTrue(svg.contains("<svg"))
         XCTAssertTrue(svg.contains("COVID-19"))
         XCTAssertTrue(svg.contains("Vaccines"))

@@ -2,23 +2,30 @@ import Foundation
 import DiagramKitModel
 import DiagramKitCommon
 
+
+// MARK: Mermaid-internal diagram-family registry
+//
+// These descriptors are Mermaid-specific. A format-agnostic importer registry
+// (ImporterRegistry + DiagramSourceImporter) will be introduced in Phase 1.
+// At that point this type will become DiagramViewModelRegistry or be subsumed
+// into MermaidImporter.
 extension DiagramRegistry {
     static let _eventModeling = DiagramDescriptor(
         type: .eventModeling,
         matches: { $0.normalized.hasPrefix("eventmodeling") },
         parse: { source, frontmatter in
-            let rawLines = MermaidSourceNormalizer.rawLines(source)
+            let rawLines = DiagramSourceNormalizer.rawLines(source)
             var diagram = try parseEventModeling(rawLines, frontmatter: frontmatter)
             if let fm = frontmatter {
                 if let cfg = fm.eventmodelingConfig { diagram.config = cfg }
                 if let theme = fm.eventmodelingThemeVariables { diagram.themeVariables = theme }
                 if diagram.diagramTitle == nil, let fmTitle = fm.diagramTitle { diagram.diagramTitle = fmTitle }
             }
-            return MermaidGraph(payload: .eventModeling(diagram))
+            return DiagramDocument(payload: .eventModeling(diagram))
         },
         layout: { graph, _ in
             guard case let .eventModeling(diagram) = graph.payload else {
-                throw MermaidStructuralError.payloadMismatch(.eventModeling)
+                throw DiagramStructuralError.payloadMismatch(.eventModeling)
             }
             #if canImport(CoreText)
             let positioned = layoutEventModeling(diagram)
@@ -28,7 +35,7 @@ extension DiagramRegistry {
             // measurement. Unreachable until the portable text-measurement
             // shim lands.
             _ = diagram
-            throw MermaidStructuralError.payloadMismatch(.eventModeling)
+            throw DiagramStructuralError.payloadMismatch(.eventModeling)
             #endif
         }
     )

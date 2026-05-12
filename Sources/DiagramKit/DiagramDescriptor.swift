@@ -27,7 +27,7 @@ public struct DiagramHeader: Sendable {
         // it so the registry sees the diagram body. Multiple contiguous
         // frontmatter blocks are also stripped.
         let stripped = _stripLeadingFrontmatter(from: processedSource)
-        let rawLines = MermaidSourceNormalizer.rawLines(stripped)
+        let rawLines = DiagramSourceNormalizer.rawLines(stripped)
         // Skip blank lines AND `%%` comment lines — the registry should match
         // the first content-bearing line of the diagram.
         let firstLine = rawLines.first(where: { line in
@@ -78,18 +78,18 @@ public struct DiagramDescriptor: Sendable {
     /// the first match wins.
     public let matches: @Sendable (DiagramHeader) -> Bool
 
-    /// Parse the preprocessed source into a `MermaidGraph`.
+    /// Parse the preprocessed source into a `DiagramDocument`.
     /// `frontmatter` is the parsed and bound frontmatter (optional).
-    public let parse: @Sendable (String, DiagramFrontmatter?) throws -> MermaidGraph
+    public let parse: @Sendable (String, DiagramFrontmatter?) throws -> DiagramDocument
 
     /// Layout a parsed graph into a `PositionedGraph`.
-    public let layout: @Sendable (MermaidGraph, LayoutConfig) throws -> PositionedGraph
+    public let layout: @Sendable (DiagramDocument, LayoutConfig) throws -> PositionedGraph
 
     public init(
         type: DiagramType,
         matches: @escaping @Sendable (DiagramHeader) -> Bool,
-        parse: @escaping @Sendable (String, DiagramFrontmatter?) throws -> MermaidGraph,
-        layout: @escaping @Sendable (MermaidGraph, LayoutConfig) throws -> PositionedGraph
+        parse: @escaping @Sendable (String, DiagramFrontmatter?) throws -> DiagramDocument,
+        layout: @escaping @Sendable (DiagramDocument, LayoutConfig) throws -> PositionedGraph
     ) {
         self.type = type
         self.matches = matches
@@ -99,6 +99,13 @@ public struct DiagramDescriptor: Sendable {
 }
 
 // MARK: - Diagram Registry
+
+// MARK: Mermaid-internal diagram-family registry
+//
+// These descriptors are Mermaid-specific. A format-agnostic importer registry
+// (`ImporterRegistry` + `DiagramSourceImporter`) will be introduced in Phase 1.
+// At that point this type will become `DiagramViewModelRegistry` or be subsumed
+// into `MermaidImporter`.
 
 /// The canonical source of truth for diagram detection, parsing, and layout
 /// routing. Replaces the duplicated `hasPrefix` chains in `Parser.swift`,
@@ -154,11 +161,11 @@ public enum DiagramRegistry {
     /// The number of registered descriptors. Should equal `DiagramType.allCases.count`.
     public static var registeredCount: Int { all.count }
 
-    /// Look up a descriptor by `DiagramType`. Throws `MermaidStructuralError` if
+    /// Look up a descriptor by `DiagramType`. Throws `DiagramStructuralError` if
     /// no descriptor matches the given type.
     public static func descriptor(for type: DiagramType) throws -> DiagramDescriptor {
         guard let descriptor = all.first(where: { $0.type == type }) else {
-            throw MermaidStructuralError.payloadMismatch(type)
+            throw DiagramStructuralError.payloadMismatch(type)
         }
         return descriptor
     }
@@ -169,7 +176,7 @@ public enum DiagramRegistry {
     public static func validate() -> Bool {
         let typeCount = DiagramType.allCases.count
         guard registeredCount == typeCount else {
-            _reportMermaidIssue(
+            _reportDiagramIssue(
                 "DiagramRegistry.validate: \(registeredCount) descriptors registered, but DiagramType has \(typeCount) cases. Add missing descriptors or remove stale enum cases."
             )
             return false
@@ -179,7 +186,7 @@ public enum DiagramRegistry {
         for d in all { seen.insert(d.type) }
         let missing = Set(DiagramType.allCases).subtracting(seen)
         if !missing.isEmpty {
-            _reportMermaidIssue(
+            _reportDiagramIssue(
                 "DiagramRegistry.validate: missing descriptors for types: \(missing.map(\.rawValue).sorted().joined(separator: ", "))"
             )
             return false
@@ -196,14 +203,19 @@ public enum DiagramRegistry {
 
 // MARK: - Error type for payload mismatches
 
-public struct MermaidStructuralError: Error, LocalizedError {
+public struct DiagramStructuralError: Error, LocalizedError {
     public let expectedType: DiagramType
 
-    public static func payloadMismatch(_ type: DiagramType) -> MermaidStructuralError {
-        MermaidStructuralError(expectedType: type)
+    public static func payloadMismatch(_ type: DiagramType) -> DiagramStructuralError {
+        DiagramStructuralError(expectedType: type)
     }
 
     public var errorDescription: String? {
-        "MermaidStructuralError: expected payload of type \(expectedType.rawValue)"
+        "DiagramStructuralError: expected payload of type \(expectedType.rawValue)"
     }
 }
+
+// MARK: - Phase 0 backward-compat deprecated alias
+
+@available(*, deprecated, renamed: "DiagramStructuralError")
+public typealias MermaidStructuralError = DiagramStructuralError

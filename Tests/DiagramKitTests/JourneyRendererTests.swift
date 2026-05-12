@@ -345,8 +345,8 @@ final class JourneyRendererTests: XCTestCase {
 
     func test_publicRenderSVGUsesStableJourneyIds() async throws {
         let source = basicDiagramSource()
-        let svg1 = try await MermaidRenderer.renderSVG(source: source, idPolicy: .stable)
-        let svg2 = try await MermaidRenderer.renderSVG(source: source, idPolicy: .stable)
+        let svg1 = try await DiagramEngine.renderSVG(source: source, idPolicy: .stable)
+        let svg2 = try await DiagramEngine.renderSVG(source: source, idPolicy: .stable)
         XCTAssertEqual(svg1, svg2)
         let rootId = try XCTUnwrap(svg1.firstMatch(of: /<svg[^>]*id="([^"]+)"/)?.1)
         XCTAssertFalse(rootId.isEmpty)

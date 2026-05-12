@@ -169,7 +169,7 @@ public struct PositionedRequirementEdge: Sendable {
 
 // MARK: - Parser Errors
 
-public enum RequirementParserError: Error, LocalizedError, _MermaidRecoverableError {
+public enum RequirementParserError: Error, LocalizedError, _RecoverableDiagramError {
     case invalidHeader(String)
     case missingRequirementName(String)
     case missingElementName(String)

@@ -8,8 +8,8 @@ public enum MermaidParser {
         _HTMLEntities.decode(s)
     }
 
-    static func parse(_ source: String) throws -> MermaidGraph {
-        try _withMermaidIssueReporting(operation: "MermaidParser.parse") {
+    static func parse(_ source: String) throws -> DiagramDocument {
+        try _withDiagramIssueReporting(operation: "MermaidParser.parse") {
             let decoded = _decodeXMLEntities(source)
             let (processed, frontmatter) = _parseFrontMatterAndStripped(decoded)
 

@@ -15,7 +15,7 @@ final class StateDiagramVisualDiffTests: XCTestCase {
           A --> B
           B --> [*]
         """
-        let svg = try await MermaidRenderer.renderSVG(source: source)
+        let svg = try await DiagramEngine.renderSVG(source: source)
         XCTAssertTrue(svg.contains("<svg"))
         XCTAssertTrue(svg.contains("statediagram-state"), "State nodes should have statediagram-state class")
         XCTAssertTrue(svg.contains("class=\"edge transition"), "Edges should have transition class")
@@ -33,7 +33,7 @@ final class StateDiagramVisualDiffTests: XCTestCase {
           }
           [*] --> Active
         """
-        let svg = try await MermaidRenderer.renderSVG(source: source)
+        let svg = try await DiagramEngine.renderSVG(source: source)
         XCTAssertTrue(svg.contains("<svg"))
         XCTAssertTrue(svg.contains("statediagram-cluster"), "Composite should have cluster class")
         XCTAssertTrue(svg.contains("data-shape=\"rect-with-title\"") || svg.contains("rect-with-title"),
@@ -53,7 +53,7 @@ final class StateDiagramVisualDiffTests: XCTestCase {
           fork_state --> join_state
           join_state --> [*]
         """
-        let svg = try await MermaidRenderer.renderSVG(source: source)
+        let svg = try await DiagramEngine.renderSVG(source: source)
         XCTAssertTrue(svg.contains("data-shape=\"choice\""), "Choice node should use choice shape")
         XCTAssertTrue(svg.contains("data-shape=\"fork\""), "Fork node should use fork shape")
         XCTAssertTrue(svg.contains("data-shape=\"join\""), "Join node should use join shape")
@@ -69,7 +69,7 @@ final class StateDiagramVisualDiffTests: XCTestCase {
             [*] --> B1
           }
         """
-        let svg = try await MermaidRenderer.renderSVG(source: source)
+        let svg = try await DiagramEngine.renderSVG(source: source)
         XCTAssertTrue(svg.contains("<svg"))
         XCTAssertTrue(svg.contains("statediagram-cluster"), "Composite should have cluster class")
         // Region subgraphs should exist
@@ -89,7 +89,7 @@ final class StateDiagramVisualDiffTests: XCTestCase {
           classDef highlight fill:#f9f
           class Idle highlight
         """
-        let svg = try await MermaidRenderer.renderSVG(source: source)
+        let svg = try await DiagramEngine.renderSVG(source: source)
         XCTAssertTrue(svg.contains("statediagram-note"), "Notes should have statediagram-note class")
         XCTAssertTrue(svg.contains("note-edge"), "Note edges should have note-edge class")
         XCTAssertTrue(svg.contains("statediagram-state"), "State nodes should have state class")
@@ -103,7 +103,7 @@ final class StateDiagramVisualDiffTests: XCTestCase {
           Home --> About : go
           click Home href "https://example.com" "Go to Example"
         """
-        let svg = try await MermaidRenderer.renderSVG(source: source)
+        let svg = try await DiagramEngine.renderSVG(source: source)
         XCTAssertTrue(svg.contains("<a "), "Should have anchor tag for clickable node")
         XCTAssertTrue(svg.contains("xlink:href=\"https://example.com\""), "Should have href")
         XCTAssertTrue(svg.contains("target=\"_blank\""), "Should have target _blank")
@@ -117,7 +117,7 @@ final class StateDiagramVisualDiffTests: XCTestCase {
           accDescr: This diagram shows state transitions
           [*] --> Idle
         """
-        let svg = try await MermaidRenderer.renderSVG(source: source)
+        let svg = try await DiagramEngine.renderSVG(source: source)
         XCTAssertTrue(svg.contains("<title>My State Diagram</title>"))
         XCTAssertTrue(svg.contains("<desc>This diagram shows state transitions</desc>"))
     }
@@ -144,7 +144,7 @@ final class StateDiagramVisualDiffTests: XCTestCase {
           classDef highlight fill:#f9f
           class Processing highlight
         """
-        let svg = try await MermaidRenderer.renderSVG(source: source)
+        let svg = try await DiagramEngine.renderSVG(source: source)
         // Must contain all key elements
         XCTAssertTrue(svg.contains("<svg"))
         XCTAssertTrue(svg.contains("statediagram-cluster"), "Composite should render")

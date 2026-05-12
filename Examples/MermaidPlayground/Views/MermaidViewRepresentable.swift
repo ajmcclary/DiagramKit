@@ -1,8 +1,8 @@
 //
-//  MermaidViewRepresentable.swift
+//  DiagramNativeViewRepresentable.swift
 //  MermaidPlayground
 //
-//  SwiftUI wrapper for MermaidView (cross-platform).
+//  SwiftUI wrapper for DiagramNativeView (cross-platform).
 //  Publishes render completion status back to LiveEditorStore.
 //
 
@@ -14,14 +14,14 @@ import DiagramKitModel
 import UIKit
 
 @MainActor
-struct MermaidViewRepresentable: UIViewRepresentable {
+struct DiagramNativeViewRepresentable: UIViewRepresentable {
     let source: String
     let theme: DiagramTheme
     let layoutConfig: LayoutConfig
     let store: LiveEditorStore
 
-    func makeUIView(context: Context) -> MermaidView {
-        let view = MermaidView()
+    func makeUIView(context: Context) -> DiagramNativeView {
+        let view = DiagramNativeView()
         bindPreparationUpdates(from: view)
         view.theme = theme
         view.source = source
@@ -29,7 +29,7 @@ struct MermaidViewRepresentable: UIViewRepresentable {
         return view
     }
 
-    func updateUIView(_ view: MermaidView, context: Context) {
+    func updateUIView(_ view: DiagramNativeView, context: Context) {
         bindPreparationUpdates(from: view)
 
         // Update theme using bmColorEquals (not hexString round-trip)
@@ -38,7 +38,7 @@ struct MermaidViewRepresentable: UIViewRepresentable {
             view.theme = theme
         }
 
-        // Update source (triggers re-render in MermaidLayer)
+        // Update source (triggers re-render in DiagramLayer)
         if view.source != source {
             view.source = source
         }
@@ -49,13 +49,13 @@ struct MermaidViewRepresentable: UIViewRepresentable {
         }
     }
 
-    private func bindPreparationUpdates(from view: MermaidView) {
+    private func bindPreparationUpdates(from view: DiagramNativeView) {
         view.mermaidLayer.onPrepareComplete = { [weak view] in
             publishPreparationState(from: view)
         }
     }
 
-    private func publishPreparationState(from view: MermaidView?) {
+    private func publishPreparationState(from view: DiagramNativeView?) {
         let store = store
         Task { @MainActor in
             guard let view else { return }
@@ -72,14 +72,14 @@ import AppKit
 
 @MainActor
 @available(iOS 26.0, macOS 26.0, macCatalyst 26.0, *)
-struct MermaidViewRepresentable: NSViewRepresentable {
+struct DiagramNativeViewRepresentable: NSViewRepresentable {
     let source: String
     let theme: DiagramTheme
     let layoutConfig: LayoutConfig
     let store: LiveEditorStore
 
-    func makeNSView(context: Context) -> MermaidView {
-        let view = MermaidView()
+    func makeNSView(context: Context) -> DiagramNativeView {
+        let view = DiagramNativeView()
         bindPreparationUpdates(from: view)
         view.theme = theme
         view.source = source
@@ -87,7 +87,7 @@ struct MermaidViewRepresentable: NSViewRepresentable {
         return view
     }
 
-    func updateNSView(_ view: MermaidView, context: Context) {
+    func updateNSView(_ view: DiagramNativeView, context: Context) {
         bindPreparationUpdates(from: view)
 
         // Update theme using bmColorEquals (not hexString round-trip)
@@ -96,7 +96,7 @@ struct MermaidViewRepresentable: NSViewRepresentable {
             view.theme = theme
         }
 
-        // Update source (triggers re-render in MermaidLayer)
+        // Update source (triggers re-render in DiagramLayer)
         if view.source != source {
             view.source = source
         }
@@ -106,13 +106,13 @@ struct MermaidViewRepresentable: NSViewRepresentable {
         }
     }
 
-    private func bindPreparationUpdates(from view: MermaidView) {
+    private func bindPreparationUpdates(from view: DiagramNativeView) {
         view.mermaidLayer.onPrepareComplete = { [weak view] in
             publishPreparationState(from: view)
         }
     }
 
-    private func publishPreparationState(from view: MermaidView?) {
+    private func publishPreparationState(from view: DiagramNativeView?) {
         let store = store
         Task { @MainActor in
             guard let view else { return }

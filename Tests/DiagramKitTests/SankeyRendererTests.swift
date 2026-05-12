@@ -8,7 +8,7 @@ import CoreGraphics
 final class SankeyRendererTests: XCTestCase {
 
     func testParseDetectsSankeyType() async throws {
-        let graph = try await MermaidRenderer.parse("sankey\nA,B,10")
+        let graph = try await DiagramEngine.parse("sankey\nA,B,10")
         XCTAssertEqual(graph.type, .sankey)
         switch graph.payload {
         case .sankey(let diagram):
@@ -19,12 +19,12 @@ final class SankeyRendererTests: XCTestCase {
     }
 
     func testParseDetectsSankeyBetaType() async throws {
-        let graph = try await MermaidRenderer.parse("sankey-beta\nA,B,10")
+        let graph = try await DiagramEngine.parse("sankey-beta\nA,B,10")
         XCTAssertEqual(graph.type, .sankey)
     }
 
     func testLayoutProducesSankeyContent() async throws {
-        let positioned = try await MermaidRenderer.layout("sankey\nA,B,10")
+        let positioned = try await DiagramEngine.layout("sankey\nA,B,10")
         switch positioned.content {
         case .sankey(let diagram):
             XCTAssertEqual(diagram.nodes.count, 2)
@@ -35,7 +35,7 @@ final class SankeyRendererTests: XCTestCase {
     }
 
     func testRenderSvgProducesOutput() async throws {
-        let svg = try await MermaidRenderer.renderSVG(source: "sankey\nA,B,10")
+        let svg = try await DiagramEngine.renderSVG(source: "sankey\nA,B,10")
         XCTAssertTrue(svg.contains("<svg"))
         XCTAssertTrue(svg.contains("</svg>"))
     }
@@ -48,7 +48,7 @@ final class SankeyRendererTests: XCTestCase {
         Electricity grid,H2 conversion,27.14
         Electricity grid,Industry,342.165
         """
-        let svg = try await MermaidRenderer.renderSVG(source: source)
+        let svg = try await DiagramEngine.renderSVG(source: source)
         XCTAssertTrue(svg.contains("<svg"))
         XCTAssertFalse(svg.isEmpty)
     }
@@ -65,7 +65,7 @@ final class SankeyRendererTests: XCTestCase {
         A,B,10
         B,C,20
         """
-        let svg = try await MermaidRenderer.renderSVG(source: source)
+        let svg = try await DiagramEngine.renderSVG(source: source)
         XCTAssertTrue(svg.contains("</svg>"))
     }
 
@@ -81,7 +81,7 @@ final class SankeyRendererTests: XCTestCase {
         sankey
         A,B,10
         """
-        let svg = try await MermaidRenderer.renderSVG(source: source)
+        let svg = try await DiagramEngine.renderSVG(source: source)
         XCTAssertTrue(svg.contains("#4e79a7") || svg.contains("#e15759"))
     }
 
@@ -96,13 +96,13 @@ final class SankeyRendererTests: XCTestCase {
         sankey
         Electricity grid,Industry,10
         """
-        let svg = try await MermaidRenderer.renderSVG(source: source)
+        let svg = try await DiagramEngine.renderSVG(source: source)
         XCTAssertTrue(svg.contains(##"fill="#123456""##))
     }
 
     func testRenderSvgScopesIdsAcrossSankeyRenders() async throws {
-        let first = try await MermaidRenderer.renderSVG(source: "sankey\nA,B,10")
-        let second = try await MermaidRenderer.renderSVG(source: "sankey\nA,B,10")
+        let first = try await DiagramEngine.renderSVG(source: "sankey\nA,B,10")
+        let second = try await DiagramEngine.renderSVG(source: "sankey\nA,B,10")
 
         let firstIDs = Set(Self.svgIDs(in: first).filter { $0.contains("node-") || $0.contains("linearGradient-") })
         let secondIDs = Set(Self.svgIDs(in: second).filter { $0.contains("node-") || $0.contains("linearGradient-") })
@@ -122,12 +122,12 @@ final class SankeyRendererTests: XCTestCase {
     }
 
     func testPositionedGraphSankeyAccessor() async throws {
-        let positioned = try await MermaidRenderer.layout("sankey\nA,B,10")
+        let positioned = try await DiagramEngine.layout("sankey\nA,B,10")
         XCTAssertNotNil(positioned.sankeyData)
     }
 
     func testPositionedGraphIncludesDefaultSankeySvgPadding() async throws {
-        let positioned = try await MermaidRenderer.layout("sankey\nA,B,10")
+        let positioned = try await DiagramEngine.layout("sankey\nA,B,10")
         XCTAssertEqual(positioned.width, 620, accuracy: 0.01)
         XCTAssertEqual(positioned.height, 420, accuracy: 0.01)
     }
@@ -166,7 +166,7 @@ final class SankeyRendererTests: XCTestCase {
             config: config
         )
         let positioned = PositionedGraph(
-            diagram: MermaidGraph(payload: .sankey(SankeyDiagram(config: config))),
+            diagram: DiagramDocument(payload: .sankey(SankeyDiagram(config: config))),
             width: 120,
             height: 100,
             content: .sankey(diagram)
@@ -256,7 +256,7 @@ final class SankeyRendererTests: XCTestCase {
         sankey
         A,B,10
         """
-        let svg = try await MermaidRenderer.renderSVG(source: source)
+        let svg = try await DiagramEngine.renderSVG(source: source)
         XCTAssertTrue(svg.contains("</svg>"))
     }
 
@@ -270,7 +270,7 @@ final class SankeyRendererTests: XCTestCase {
         sankey
         A,B,10
         """
-        let svg = try await MermaidRenderer.renderSVG(source: source)
+        let svg = try await DiagramEngine.renderSVG(source: source)
         XCTAssertTrue(svg.contains("</svg>"))
     }
 
@@ -284,7 +284,7 @@ final class SankeyRendererTests: XCTestCase {
         sankey
         A,B,10
         """
-        let svg = try await MermaidRenderer.renderSVG(source: source)
+        let svg = try await DiagramEngine.renderSVG(source: source)
         XCTAssertTrue(svg.contains("</svg>"))
     }
 

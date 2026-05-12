@@ -2,6 +2,13 @@ import Foundation
 import DiagramKitModel
 import DiagramKitCommon
 
+
+// MARK: Mermaid-internal diagram-family registry
+//
+// These descriptors are Mermaid-specific. A format-agnostic importer registry
+// (ImporterRegistry + DiagramSourceImporter) will be introduced in Phase 1.
+// At that point this type will become DiagramViewModelRegistry or be subsumed
+// into MermaidImporter.
 extension DiagramRegistry {
     static let _ishikawa = DiagramDescriptor(
         type: .ishikawa,
@@ -9,13 +16,13 @@ extension DiagramRegistry {
             _isIshikawaDiagramHeader(header.raw)
         },
         parse: { source, frontmatter in
-            let rawLines = MermaidSourceNormalizer.rawLines(source)
+            let rawLines = DiagramSourceNormalizer.rawLines(source)
             let diagram = try parseIshikawaDiagram(rawLines, frontmatter: frontmatter)
-            return MermaidGraph(payload: .ishikawa(diagram))
+            return DiagramDocument(payload: .ishikawa(diagram))
         },
         layout: { graph, _ in
             guard case let .ishikawa(diagram) = graph.payload else {
-                throw MermaidStructuralError.payloadMismatch(.ishikawa)
+                throw DiagramStructuralError.payloadMismatch(.ishikawa)
             }
             #if canImport(CoreText)
             let positioned = layoutIshikawaDiagram(diagram)
@@ -25,7 +32,7 @@ extension DiagramRegistry {
             // measurement. Unreachable until the portable text-measurement
             // shim lands (Stage 2.5 follow-up).
             _ = diagram
-            throw MermaidStructuralError.payloadMismatch(.ishikawa)
+            throw DiagramStructuralError.payloadMismatch(.ishikawa)
             #endif
         }
     )

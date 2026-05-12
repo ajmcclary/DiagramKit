@@ -2,18 +2,25 @@ import Foundation
 import DiagramKitModel
 import DiagramKitCommon
 
+
+// MARK: Mermaid-internal diagram-family registry
+//
+// These descriptors are Mermaid-specific. A format-agnostic importer registry
+// (ImporterRegistry + DiagramSourceImporter) will be introduced in Phase 1.
+// At that point this type will become DiagramViewModelRegistry or be subsumed
+// into MermaidImporter.
 extension DiagramRegistry {
     static let _sequenceDiagram = DiagramDescriptor(
         type: .sequenceDiagram,
         matches: { $0.normalized.hasPrefix("sequencediagram") },
         parse: { source, _ in
-            let lines = MermaidSourceNormalizer.diagramLines(source)
+            let lines = DiagramSourceNormalizer.diagramLines(source)
             let parsed = try parseSequenceDiagram(lines)
-            return MermaidGraph(payload: .sequenceDiagram(parsed))
+            return DiagramDocument(payload: .sequenceDiagram(parsed))
         },
         layout: { graph, _ in
             guard case let .sequenceDiagram(parsed) = graph.payload else {
-                throw MermaidStructuralError.payloadMismatch(.sequenceDiagram)
+                throw DiagramStructuralError.payloadMismatch(.sequenceDiagram)
             }
             let positioned = try layoutSequenceDiagram(parsed)
             return PositionedGraph(diagram: graph, width: positioned.width, height: positioned.height, content: .sequenceDiagram(

@@ -457,7 +457,7 @@ struct EventModelingEndToEndTests {
 
     @Test func e2e_simpleStateChange() async throws {
         let source = "eventmodeling\ntf 01 ui CartUI\ntf 02 cmd AddItem\ntf 03 evt ItemAdded"
-        let graph = try await MermaidRenderer.parse(source)
+        let graph = try await DiagramEngine.parse(source)
         guard case let .eventModeling(diagram) = graph.payload else {
             Issue.record("Expected eventModeling payload")
             return
@@ -476,7 +476,7 @@ struct EventModelingEndToEndTests {
         tf 01 ui CartUI
         tf 02 cmd AddItem
         """
-        let graph = try await MermaidRenderer.parse(source)
+        let graph = try await DiagramEngine.parse(source)
         guard case let .eventModeling(diagram) = graph.payload else {
             Issue.record("Expected eventModeling payload")
             return
@@ -496,7 +496,7 @@ struct EventModelingEndToEndTests {
         tf 01 ui CartUI
         tf 02 cmd AddItem
         """
-        let graph = try await MermaidRenderer.parse(source)
+        let graph = try await DiagramEngine.parse(source)
         guard case let .eventModeling(diagram) = graph.payload else {
             Issue.record("Expected eventModeling payload")
             return
@@ -507,7 +507,7 @@ struct EventModelingEndToEndTests {
 
     @Test func e2e_asciiReturnsNotYetImplemented() throws {
         let source = "eventmodeling\ntf 01 ui CartUI\ntf 02 cmd AddItem"
-        #expect(throws: BeautifulMermaidError.self) {
+        #expect(throws: DiagramError.self) {
             _ = try original_src_ascii_index.renderMermaidASCII(source)
         }
     }
@@ -521,7 +521,7 @@ struct EventModelingEndToEndTests {
 
     @Test func e2e_layout() async throws {
         let source = "eventmodeling\ntf 01 ui CartUI\ntf 02 cmd AddItem"
-        let positioned = try await MermaidRenderer.layout(source)
+        let positioned = try await DiagramEngine.layout(source)
         guard case .eventModeling = positioned.content else {
             Issue.record("Expected eventModeling positioned content")
             return
@@ -537,7 +537,7 @@ struct EventModelingEndToEndTests {
         tf 02 cmd AddItem
         tf 03 evt ItemAdded
         """
-        let graph = try await MermaidRenderer.parse(source)
+        let graph = try await DiagramEngine.parse(source)
         guard case let .eventModeling(diagram) = graph.payload else {
             Issue.record("Expected eventModeling payload")
             return
@@ -553,7 +553,7 @@ struct EventModelingEndToEndTests {
         tf 01 ui CartUI
         tf 02 cmd AddItem
         """
-        let graph = try await MermaidRenderer.parse(source)
+        let graph = try await DiagramEngine.parse(source)
         guard case let .eventModeling(diagram) = graph.payload else {
             Issue.record("Expected eventModeling payload")
             return
@@ -563,7 +563,7 @@ struct EventModelingEndToEndTests {
 
     @Test func e2e_cgDoesNotThrow() async throws {
         let source = "eventmodeling\ntf 01 ui CartUI\ntf 02 cmd AddItem\ntf 03 evt ItemAdded"
-        let positioned = try await MermaidRenderer.layout(source)
+        let positioned = try await DiagramEngine.layout(source)
         let renderer = DiagramRenderer(theme: .default)
         let width = 800
         let height = 600

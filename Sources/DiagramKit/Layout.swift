@@ -13,8 +13,8 @@ public struct GraphLayout {
     /// Delegates to `DiagramRegistry.descriptor(for:)` so the registry is the
     /// single source of truth for layout dispatch. Adding a diagram type now
     /// requires only an entry in `DiagramRegistry.all` — no switch changes.
-    public func layout(_ graph: MermaidGraph) throws -> PositionedGraph {
-        try _withMermaidIssueReporting(operation: "GraphLayout.layout") {
+    public func layout(_ graph: DiagramDocument) throws -> PositionedGraph {
+        try _withDiagramIssueReporting(operation: "GraphLayout.layout") {
             let descriptor = try DiagramRegistry.descriptor(for: graph.type)
             return try descriptor.layout(graph, config)
         }

@@ -1,7 +1,7 @@
 import Foundation
 import DiagramKitCommon
 
-public enum SankeyParserError: Error, LocalizedError, _MermaidRecoverableError {
+public enum SankeyParserError: Error, LocalizedError, _RecoverableDiagramError {
     case missingHeader
     case invalidHeader(String)
     case malformedRecord(line: Int, text: String)
@@ -31,7 +31,7 @@ public func parseSankeyDiagram(
     _ lines: [String],
     frontmatter: DiagramFrontmatter? = nil
 ) throws -> SankeyDiagram {
-    try _withMermaidIssueReporting(operation: "parseSankeyDiagram") {
+    try _withDiagramIssueReporting(operation: "parseSankeyDiagram") {
         let source = lines.joined(separator: "\n")
         let prepared = _prepareSankeyText(source)
         let preprocessedLines = _mermaidSourceLines(from: prepared, separatedBy: CharacterSet(charactersIn: "\n"))

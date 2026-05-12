@@ -36,7 +36,7 @@ public final class DiagramRenderer {
     let labelRenderer: LabelRenderer
 
     public init(theme: DiagramTheme = .default, config: RenderConfig = RenderConfig.shared) {
-        BeautifulMermaidFontRegistry.registerBundledFontsIfNeeded()
+        DiagramFontRegistry.registerBundledFontsIfNeeded()
         self.theme = theme
         self.config = config
         self.shapeRenderer = NodeShapeRenderer(config: config)

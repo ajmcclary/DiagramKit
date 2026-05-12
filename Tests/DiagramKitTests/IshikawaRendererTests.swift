@@ -11,7 +11,7 @@ struct IshikawaRendererTests {
     @Test("Renderer produces non-blank output")
     func nonBlankOutput() throws {
         let positioned = PositionedGraph(
-            diagram: MermaidGraph(payload: .ishikawa(IshikawaDiagram(
+            diagram: DiagramDocument(payload: .ishikawa(IshikawaDiagram(
                 root: IshikawaNode(text: "Problem")
             ))),
             width: 600,
@@ -55,7 +55,7 @@ struct IshikawaRendererTests {
     @Test("End-to-end parse+layout+SVG render simple diagram")
     func endToEndSimpleDiagram() async throws {
         let source = "ishikawa-beta\nProblem\n    Cause A"
-        let graph = try await MermaidRenderer.parse(source)
+        let graph = try await DiagramEngine.parse(source)
         #expect(graph.type == .ishikawa)
         if case .ishikawa(let diagram) = graph.payload {
             #expect(diagram.root?.text == "Problem")
@@ -66,7 +66,7 @@ struct IshikawaRendererTests {
     @Test("End-to-end parse+layout for ishikawa header variant")
     func endToEndIshikawaHeader() async throws {
         let source = "ishikawa\nProblem\nCause A\n  Subcause A1\nCause B"
-        let graph = try await MermaidRenderer.parse(source)
+        let graph = try await DiagramEngine.parse(source)
         #expect(graph.type == .ishikawa)
         if case .ishikawa(let diagram) = graph.payload {
             #expect(diagram.root?.children.count == 2)
@@ -76,14 +76,14 @@ struct IshikawaRendererTests {
     @Test("End-to-end parse+layout with leading comment")
     func endToEndWithLeadingComment() async throws {
         let source = "%% comment\nishikawa-beta\nProblem\n    Cause A"
-        let graph = try await MermaidRenderer.parse(source)
+        let graph = try await DiagramEngine.parse(source)
         #expect(graph.type == .ishikawa)
     }
 
     @Test("End-to-end parse+layout root-only")
     func endToEndRootOnly() async throws {
         let source = "ishikawa-beta\nProblem"
-        let graph = try await MermaidRenderer.parse(source)
+        let graph = try await DiagramEngine.parse(source)
         #expect(graph.type == .ishikawa)
         if case .ishikawa(let diagram) = graph.payload {
             #expect(diagram.root?.children.isEmpty == true)
@@ -92,7 +92,7 @@ struct IshikawaRendererTests {
 
     @Test("Layout dispatch handles ishikawa type")
     func layoutDispatch() async throws {
-        let positioned = try await MermaidRenderer.layout("ishikawa-beta\nProblem")
+        let positioned = try await DiagramEngine.layout("ishikawa-beta\nProblem")
         #expect(positioned.diagram.type == .ishikawa)
     }
 
@@ -117,7 +117,7 @@ struct IshikawaRendererTests {
     @Test("Frontmatter config flows through parse → layout → render")
     func frontmatterConfigFlow() async throws {
         let source = "---\nconfig:\n  ishikawa:\n    diagramPadding: 50\n---\nishikawa-beta\nProblem\n    Cause A"
-        let graph = try await MermaidRenderer.parse(source)
+        let graph = try await DiagramEngine.parse(source)
         #expect(graph.type == .ishikawa)
         if case .ishikawa(let diagram) = graph.payload {
             #expect(diagram.config.diagramPadding == 50)
@@ -127,7 +127,7 @@ struct IshikawaRendererTests {
     @Test("Frontmatter theme flows through parse")
     func frontmatterThemeFlow() async throws {
         let source = "---\nconfig:\n  theme: dark\n---\nishikawa-beta\nProblem\n    Cause A"
-        let graph = try await MermaidRenderer.parse(source)
+        let graph = try await DiagramEngine.parse(source)
         if case .ishikawa(let diagram) = graph.payload {
             #expect(diagram.themeName == "dark")
         }

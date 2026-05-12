@@ -11,7 +11,7 @@ final class ArchitectureRendererTests: XCTestCase {
         let source = "architecture-beta\n    service srv[Server]"
         let diagram = try parseArchitectureDiagram(source)
         let positioned = layoutArchitectureDiagram(diagram)
-        let graph = MermaidGraph(payload: .architecture(diagram))
+        let graph = DiagramDocument(payload: .architecture(diagram))
         let positionedGraph = PositionedGraph(diagram: graph, width: positioned.width, height: positioned.height, content: .architecture(positioned))
 
         let width = max(Int(positioned.width), 1)
@@ -38,7 +38,7 @@ final class ArchitectureRendererTests: XCTestCase {
         let source = "architecture-beta\n    service db[DB]\n    service srv[Server]\n    db:R --> L:srv"
         let diagram = try parseArchitectureDiagram(source)
         let positioned = layoutArchitectureDiagram(diagram)
-        let graph = MermaidGraph(payload: .architecture(diagram))
+        let graph = DiagramDocument(payload: .architecture(diagram))
         let positionedGraph = PositionedGraph(diagram: graph, width: positioned.width, height: positioned.height, content: .architecture(positioned))
 
         let width = max(Int(positioned.width), 1)
@@ -65,7 +65,7 @@ final class ArchitectureRendererTests: XCTestCase {
         let source = "architecture-beta\n    group api(cloud)[API]\n    service db(database)[DB] in api\n    service srv(server)[Server] in api\n    db:R --> L:srv"
         let diagram = try parseArchitectureDiagram(source)
         let positioned = layoutArchitectureDiagram(diagram)
-        let graph = MermaidGraph(payload: .architecture(diagram))
+        let graph = DiagramDocument(payload: .architecture(diagram))
         let positionedGraph = PositionedGraph(diagram: graph, width: positioned.width, height: positioned.height, content: .architecture(positioned))
 
         let width = max(Int(positioned.width), 1)
@@ -92,7 +92,7 @@ final class ArchitectureRendererTests: XCTestCase {
         let source = "architecture-beta\n    service left[Left]\n    junction center\n    left:R --> L:center"
         let diagram = try parseArchitectureDiagram(source)
         let positioned = layoutArchitectureDiagram(diagram)
-        let graph = MermaidGraph(payload: .architecture(diagram))
+        let graph = DiagramDocument(payload: .architecture(diagram))
         let positionedGraph = PositionedGraph(diagram: graph, width: positioned.width, height: positioned.height, content: .architecture(positioned))
 
         let width = max(Int(positioned.width), 1)
@@ -118,7 +118,7 @@ final class ArchitectureRendererTests: XCTestCase {
     func testCgRenderEmptyDiagram() throws {
         let diagram = ArchitectureDiagram.empty
         let positioned = layoutArchitectureDiagram(diagram)
-        let graph = MermaidGraph(payload: .architecture(diagram))
+        let graph = DiagramDocument(payload: .architecture(diagram))
         let positionedGraph = PositionedGraph(diagram: graph, width: positioned.width, height: positioned.height, content: .architecture(positioned))
 
         let width = max(Int(positioned.width), 1)
@@ -185,7 +185,7 @@ final class ArchitectureRendererTests: XCTestCase {
         let diagram = try parseArchitectureDiagram("architecture-beta\n    service db(database)")
         let positioned = layoutArchitectureDiagram(diagram)
         let service = try XCTUnwrap(positioned.services.first)
-        let graph = MermaidGraph(payload: .architecture(diagram))
+        let graph = DiagramDocument(payload: .architecture(diagram))
         let positionedGraph = PositionedGraph(diagram: graph, width: positioned.width, height: positioned.height, content: .architecture(positioned))
         let width = max(Int(positioned.width), 1)
         let height = max(Int(positioned.height), 1)
@@ -217,7 +217,7 @@ final class ArchitectureRendererTests: XCTestCase {
 
     private func renderCgPixels(_ diagram: ArchitectureDiagram) throws -> ([UInt8], Int, Int) {
         let positioned = layoutArchitectureDiagram(diagram)
-        let graph = MermaidGraph(payload: .architecture(diagram))
+        let graph = DiagramDocument(payload: .architecture(diagram))
         let positionedGraph = PositionedGraph(diagram: graph, width: positioned.width, height: positioned.height, content: .architecture(positioned))
         let width = max(Int(positioned.width), 1)
         let height = max(Int(positioned.height), 1)
@@ -434,8 +434,8 @@ final class ArchitectureSvgRendererTests: XCTestCase {
 
     func testPipelineArchitectureIdsAreStable() throws {
         let source = "architecture-beta\n    service a"
-        let svg1 = try _renderMermaidSVG(source, RenderOptions(idPolicy: .stable))
-        let svg2 = try _renderMermaidSVG(source, RenderOptions(idPolicy: .stable))
+        let svg1 = try _renderDiagramSVG(source, RenderOptions(idPolicy: .stable))
+        let svg2 = try _renderDiagramSVG(source, RenderOptions(idPolicy: .stable))
         XCTAssertEqual(svg1, svg2)
         XCTAssertTrue(svg1.contains("id=\""))
     }

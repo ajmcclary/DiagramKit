@@ -17,7 +17,7 @@ struct TreemapRendererTests {
             "Item": 10:::hot
         """)
         let positionedTreemap = layoutTreemapDiagram(diagram)
-        let graph = MermaidGraph(payload: .treemap(diagram))
+        let graph = DiagramDocument(payload: .treemap(diagram))
         let positioned = PositionedGraph(
             diagram: graph,
             width: positionedTreemap.width,

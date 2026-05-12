@@ -1105,7 +1105,7 @@ private func _extractSvgGraphModel(_ graph: PositionedGraph) -> _SvgGraphModel {
     }
 }
 
-private func _graphAccessibility(_ graph: MermaidGraph) -> (title: String?, descr: String?) {
+private func _graphAccessibility(_ graph: DiagramDocument) -> (title: String?, descr: String?) {
     switch graph.payload {
     case .flowchart(let parsed), .stateDiagram(let parsed):
         return (parsed.accTitle, parsed.accDescr)
@@ -1114,7 +1114,7 @@ private func _graphAccessibility(_ graph: MermaidGraph) -> (title: String?, desc
     }
 }
 
-private func _graphSecurityLevel(_ graph: MermaidGraph) -> String? {
+private func _graphSecurityLevel(_ graph: DiagramDocument) -> String? {
     switch graph.payload {
     case .flowchart(let parsed):
         return parsed.config?.securityLevel

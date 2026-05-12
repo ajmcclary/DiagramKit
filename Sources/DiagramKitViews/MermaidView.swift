@@ -11,9 +11,9 @@ import UIKit
 
 /// A UIView subclass that renders Mermaid diagrams
 @MainActor
-public class MermaidView: UIView {
+public class DiagramNativeView: UIView {
 
-    public let mermaidLayer: MermaidLayer
+    public let mermaidLayer: DiagramLayer
 
     public var source: String {
         get { mermaidLayer.source }
@@ -37,13 +37,13 @@ public class MermaidView: UIView {
     public var diagramBounds: CGRect { mermaidLayer.diagramBounds }
 
     public override init(frame: CGRect) {
-        self.mermaidLayer = MermaidLayer()
+        self.mermaidLayer = DiagramLayer()
         super.init(frame: frame)
         commonInit()
     }
 
     public required init?(coder: NSCoder) {
-        self.mermaidLayer = MermaidLayer()
+        self.mermaidLayer = DiagramLayer()
         super.init(coder: coder)
         commonInit()
     }
@@ -112,9 +112,9 @@ import AppKit
 
 /// An NSView subclass that renders Mermaid diagrams
 @MainActor
-public class MermaidView: NSView {
+public class DiagramNativeView: NSView {
 
-    public let mermaidLayer: MermaidLayer
+    public let mermaidLayer: DiagramLayer
 
     public var source: String {
         get { mermaidLayer.source }
@@ -138,13 +138,13 @@ public class MermaidView: NSView {
     public var diagramBounds: CGRect { mermaidLayer.diagramBounds }
 
     public override init(frame frameRect: NSRect) {
-        self.mermaidLayer = MermaidLayer()
+        self.mermaidLayer = DiagramLayer()
         super.init(frame: frameRect)
         commonInit()
     }
 
     public required init?(coder: NSCoder) {
-        self.mermaidLayer = MermaidLayer()
+        self.mermaidLayer = DiagramLayer()
         super.init(coder: coder)
         commonInit()
     }
@@ -199,4 +199,9 @@ public class MermaidView: NSView {
 }
 
 #endif
+
+// MARK: - Phase 0 backward-compat deprecated alias
+
+@available(*, deprecated, renamed: "DiagramNativeView")
+public typealias MermaidView = DiagramNativeView
 #endif

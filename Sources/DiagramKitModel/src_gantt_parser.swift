@@ -3,7 +3,7 @@ import DiagramKitCommon
 
 // MARK: - Errors
 
-public enum GanttParserError: Error, LocalizedError, _MermaidRecoverableError {
+public enum GanttParserError: Error, LocalizedError, _RecoverableDiagramError {
     case invalidHeader(String)
     case invalidTaskDefinition(String)
     case unexpectedLine(String)

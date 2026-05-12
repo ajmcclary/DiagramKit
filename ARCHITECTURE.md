@@ -4,7 +4,7 @@ DiagramKit is structured as a layered Swift package: a small portable foundation
 
 ## High-level design goals
 
-- **Pure-data parse and layout.** The parse step yields a typed `MermaidGraph` (one enum case per diagram family); the layout step yields a typed `PositionedGraph`. Neither stage touches CoreGraphics, CoreText, UIKit, or AppKit. This is what makes the engine Linux-portable.
+- **Pure-data parse and layout.** The parse step yields a typed `DiagramDocument` (one enum case per diagram family); the layout step yields a typed `PositionedGraph`. Neither stage touches CoreGraphics, CoreText, UIKit, or AppKit. This is what makes the engine Linux-portable.
 - **Three render backends from one layout.** A single `PositionedGraph` is consumed by the CG image path (`renderImage`), the SVG path (`renderSVG`), and the ASCII path (`renderASCII`). They share no geometry/measurement code today — see "Drift hazard" below.
 - **Snapshot-deterministic rendering.** Bundled fonts neutralise system-font drift across macOS / iOS major versions. Every render path routes font lookup through `RenderConfig.*` so per-call overrides work.
 - **Strict layer boundaries.** Source-level imports follow the dependency layer; cross-layer imports either compile clean on every platform or sit behind a `#if canImport(...)` gate.
@@ -45,10 +45,10 @@ Apple-platform-only edges in [Package.swift](Package.swift) are guarded with `co
 |---|---|---|---|
 | `DiagramKitCommon` | `SVG` primitives, `IssueReportingSupport`, `StableID` (CryptoKit / swift-crypto), text metrics, theme tokens, font-awesome / HTML-entity tables, multiline utilities, styles. | full | full |
 | `DiagramKitModel` | ~197 files: per-diagram-type `src_<type>_parser.swift`, `src_<type>_layout.swift`, `src_<type>_renderer.swift`, ASCII converters (`src_ascii_*.swift`), source-preprocessing quartet, `Types.swift`, `RenderConfig.swift`, `RenderOptions.swift`, `RenderTokens.swift`, `PositionedPayloads.swift`, `CrossPlatform.swift` (`BMColor`/`BMFont`/`BMImage` shims), and 28 `FrontmatterBinding+<Type>.swift` adapters. | partial | full |
-| `DiagramKitRenderingCG` | Apple-only CG renderer: `DiagramRenderer+<Type>.swift` per diagram family, plus `EdgeRenderer`, `LabelRenderer`, `ShapeRenderer`, `ArrowRenderer`, `CGPathRenderer`, `PreparedDiagram`, `FontRegistry` (`BeautifulMermaidFontRegistry`), `Version`. Bundled fonts under `Resources/Fonts/`. | none | full |
+| `DiagramKitRenderingCG` | Apple-only CG renderer: `DiagramRenderer+<Type>.swift` per diagram family, plus `EdgeRenderer`, `LabelRenderer`, `ShapeRenderer`, `ArrowRenderer`, `CGPathRenderer`, `PreparedDiagram`, `FontRegistry` (`DiagramFontRegistry`), `Version`. Bundled fonts under `Resources/Fonts/`. | none | full |
 | `DiagramKitTestSupport` | Linux-portable test helpers (no CG/CT/UI deps). | full | full |
-| `DiagramKitViews` | Placeholder stub today. The actual SwiftUI/UIKit views (`MermaidView`, `MermaidDiagramView`, `MermaidLayer`, `MermaidDiagram`) currently live in `Sources/DiagramKit/Views/` because they depend on `MermaidPipeline`. A future refactor may extract them via a closure-based Preparer protocol. | none | full |
-| `DiagramKit` | Umbrella: `MermaidRenderer`, `MermaidImageRenderer`, `MermaidPipeline`, `Parser.swift`, `Layout.swift`, `DiagramDescriptor.swift`, `src_index.swift`, `src_ascii_index.swift`, plus `Views/`. | partial | full |
+| `DiagramKitViews` | Placeholder stub today. The actual SwiftUI/UIKit views (`DiagramNativeView`, `DiagramView`, `DiagramLayer`, `DiagramViewModel`) currently live in `Sources/DiagramKit/Views/` because they depend on `DiagramPipeline`. A future refactor may extract them via a closure-based Preparer protocol. | none | full |
+| `DiagramKit` | Umbrella: `DiagramEngine`, `DiagramImageRenderer`, `DiagramPipeline`, `Parser.swift`, `Layout.swift`, `DiagramDescriptor.swift`, `src_index.swift`, `src_ascii_index.swift`, plus `Views/`. | partial | full |
 
 ## Three-stage pipeline
 
@@ -57,13 +57,13 @@ Source string
     │
     ▼
 ┌────────────────────┐
-│  MermaidParser     │   Parse: source → MermaidGraph (typed payload enum)
+│  MermaidParser     │   Parse: source → DiagramDocument (typed payload enum)
 │   .parse(_:)       │   Lives in: DiagramKit umbrella + DiagramKitModel
 └─────────┬──────────┘
           │
           ▼
 ┌────────────────────┐
-│  GraphLayout       │   Layout: MermaidGraph → PositionedGraph
+│  GraphLayout       │   Layout: DiagramDocument → PositionedGraph
 │   .layout(...)     │   Pure-data; no CG/CT on the portable path
 └─────────┬──────────┘
           │
@@ -91,17 +91,17 @@ Per-diagram-type parsers receive a typed `frontmatter` argument and pull config 
 
 ### Type-safe payloads
 
-`MermaidGraph.payload: DiagramPayload` and `PositionedGraph.content: PositionedContent` are enums with one case per diagram type — never `Any` or untyped dictionaries. `Layout.swift` performs the parse-payload → layout dispatch via these enums and uses `_reportMermaidIssue(...)` for "shouldn't happen" mismatches (logged in tests via `IssueReporting`, swallowed in production).
+`DiagramDocument.payload: DiagramPayload` and `PositionedGraph.content: PositionedContent` are enums with one case per diagram type — never `Any` or untyped dictionaries. `Layout.swift` performs the parse-payload → layout dispatch via these enums and uses `_reportDiagramIssue(...)` for "shouldn't happen" mismatches (logged in tests via `IssueReporting`, swallowed in production).
 
 ## The worker-thread invariant
 
-`MermaidRenderer` ([Sources/DiagramKit/MermaidRenderer.swift](Sources/DiagramKit/MermaidRenderer.swift)) is the public façade. Every `async throws` entry point dispatches its work onto a fresh **8 MB-stack `Thread`** via `_runOnWorker`.
+`DiagramEngine` ([Sources/DiagramKit/DiagramEngine.swift](Sources/DiagramKit/DiagramEngine.swift)) is the public façade. Every `async throws` entry point dispatches its work onto a fresh **8 MB-stack `Thread`** via `_runOnWorker`.
 
 **Do not reintroduce a thread pool.** It was attempted in commit `ff2622b` and intentionally reverted (see the doc-comment on `_runOnWorker`). Layout exceeds the cooperative pool's ~512 KB stack budget on nested-subgraph diagrams; running on a dedicated worker thread with an 8 MB stack is the only thing that keeps deeply nested mindmaps and flowcharts from crashing on stack overflow.
 
 Implementation details:
-- `MermaidPipeline` ([Sources/DiagramKit/MermaidPipeline.swift](Sources/DiagramKit/MermaidPipeline.swift)) is a stateless `enum` (NOT an actor) holding the synchronous, nonisolated implementations. Each public method calls `BeautifulMermaidFontRegistry.registerBundledFontsIfNeeded()` first — critical for snapshot determinism.
-- `MermaidImageRenderer` ([Sources/DiagramKit/ImageRenderer.swift](Sources/DiagramKit/ImageRenderer.swift)) routes through `MermaidRenderer._runOnWorker` rather than a separate worker (the duplication was removed).
+- `DiagramPipeline` ([Sources/DiagramKit/DiagramPipeline.swift](Sources/DiagramKit/DiagramPipeline.swift)) is a stateless `enum` (NOT an actor) holding the synchronous, nonisolated implementations. Each public method calls `DiagramFontRegistry.registerBundledFontsIfNeeded()` first — critical for snapshot determinism.
+- `DiagramImageRenderer` ([Sources/DiagramKit/DiagramImageRenderer.swift](Sources/DiagramKit/DiagramImageRenderer.swift)) routes through `DiagramEngine._runOnWorker` rather than a separate worker (the duplication was removed).
 
 ## Rendering backends — drift hazard
 
@@ -129,7 +129,7 @@ On Linux, `BMColor` / `BMFont` / `BMImage` / `BMView` / `BMBezierPath` are inten
 - Noto Sans — Regular, Bold, Italic, BoldItalic
 - Noto Sans Mono — Regular, Bold
 
-Both under SIL OFL. They are registered process-wide on first use via `BeautifulMermaidFontRegistry.registerBundledFontsIfNeeded()` and looked up by family name (`"Noto Sans"`, `"Noto Sans Mono"`) in:
+Both under SIL OFL. They are registered process-wide on first use via `DiagramFontRegistry.registerBundledFontsIfNeeded()` and looked up by family name (`"Noto Sans"`, `"Noto Sans Mono"`) in:
 
 - `RenderConfig.defaultFontFamily` / `defaultProportionalFontFamily` (the canonical knobs)
 - `DiagramRenderer._monoFont` / `_italicSystemFont` / `_italicMonoFont` (route through `config.*`)
@@ -152,9 +152,9 @@ Files in `DiagramKitModel` cannot `import DiagramKitRenderingCG`. Files in `Diag
 
 - `swiftLanguageModes: [.v6]` is enforced package-wide.
 - `strictConcurrencySettings` (the `StrictConcurrency` upcoming feature) is applied per target via the constant in [Package.swift](Package.swift). `InferSendableFromCaptures` is intentionally omitted — it's already default in Swift 6 mode and emits a per-file warning when re-enabled.
-- Public types implement `Sendable` explicitly: `DiagramType`, `DiagramPayload`, `MermaidGraph`, `PositionedContent`, `PositionedGraph`, `LayoutConfig`, `EdgeStyle`.
+- Public types implement `Sendable` explicitly: `DiagramType`, `DiagramPayload`, `DiagramDocument`, `PositionedContent`, `PositionedGraph`, `LayoutConfig`, `EdgeStyle`.
 - `async throws` is the public default. `@MainActor` is reserved for methods that produce or consume native UI types (`BMImage`, `CGContext`); `renderSVG` / `renderASCII` are intentionally **not** main-actor.
-- Errors flow through `_withMermaidIssueReporting(operation:)` at every public boundary so test-time observers see uncategorised failures without obstructing flow.
+- Errors flow through `_withDiagramIssueReporting(operation:)` at every public boundary so test-time observers see uncategorised failures without obstructing flow.
 - Underscore-prefixed top-level names are SPI (e.g. `_PositionedNodePayload`, `_renderMermaidSVG`). Public typealiases drop the underscore: `PositionedNode = _PositionedNodePayload`.
 
 ## Discipline gates
@@ -176,7 +176,7 @@ The four governance scripts originated as ports from the sibling `MusicToolkit` 
 - **Stage 2.5** — portable text-measurement shim (replacement for `CTLineGetBoundsWithOptions` on Linux) so `ishikawa` / `treeView` / `eventModeling` layouts can run without an Apple runtime.
 - **CG/SVG renderer drift** — long-term plan is a single canonical render path; snapshot tests are the only guardrail in the meantime.
 - **`RenderConfig.swift` magic constants** — should be lifted into theme tokens.
-- **`DiagramKitViews` extraction** — currently a placeholder stub; the real views still live in the umbrella because they depend on `MermaidPipeline`.
+- **`DiagramKitViews` extraction** — currently a placeholder stub; the real views still live in the umbrella because they depend on `DiagramPipeline`.
 - **`<Module>Bootstrap.phase: Int` markers** — deferred to Stage 6 monorepo promotion (per [ANALYSIS.md](ANALYSIS.md)).
 
 ## Suggested reading map

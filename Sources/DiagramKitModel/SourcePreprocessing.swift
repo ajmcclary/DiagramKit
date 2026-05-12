@@ -14,7 +14,7 @@ public func _mermaidSourceLines(
 ) -> [String] {
     let processed = _preprocessMermaidSource(source)
     let joined = _joinMultiLineBlocks(processed.source)
-    return MermaidSourceNormalizer.statements(joined, separators: separators)
+    return DiagramSourceNormalizer.statements(joined, separators: separators)
 }
 
 /// Parse YAML-like frontmatter from a source string.

@@ -37,7 +37,7 @@ final class BlockRendererTests: XCTestCase {
 
     func testAsciiBlockReturnsNotYetImplemented() {
         XCTAssertThrowsError(try original_src_ascii_index.renderMermaidASCII("block\n  a")) { error in
-            guard case BeautifulMermaidError.notYetImplemented = error else {
+            guard case DiagramError.notYetImplemented = error else {
                 XCTFail("Expected notYetImplemented error")
                 return
             }
@@ -78,7 +78,7 @@ final class BlockRendererTests: XCTestCase {
             height: 200,
             bounds: BlockBounds(x: 0, y: 0, width: 200, height: 200)
         )
-        let graph = MermaidGraph(payload: .block(.empty))
+        let graph = DiagramDocument(payload: .block(.empty))
         let positioned = PositionedGraph(
             diagram: graph,
             width: 200,

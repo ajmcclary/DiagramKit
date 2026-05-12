@@ -123,7 +123,7 @@ final class VisualReportGenerator: XCTestCase {
         context.translateBy(x: 0, y: size.height)
         context.scaleBy(x: 1, y: -1)
 
-        try await MermaidRenderer.render(
+        try await DiagramEngine.render(
             source: source,
             in: context,
             bounds: CGRect(origin: .zero, size: size),

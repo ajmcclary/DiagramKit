@@ -13,12 +13,12 @@ final class StateDiagramReviewRegressionTests: XCTestCase {
           LS : This is the body
         """
 
-        let positioned = try await MermaidRenderer.layout(source)
+        let positioned = try await DiagramEngine.layout(source)
         let node = try XCTUnwrap(positioned.flowchartNodes?.first { $0.id == "LS" })
         expectNoDifference(node.shape, "rect-with-title")
         expectNoDifference(node.descriptions, ["This is a title", "This is the body"])
 
-        let svg = try await MermaidRenderer.renderSVG(source: source)
+        let svg = try await DiagramEngine.renderSVG(source: source)
         XCTAssertTrue(svg.contains("This is a title"))
         XCTAssertTrue(svg.contains("This is the body"))
     }
@@ -30,7 +30,7 @@ final class StateDiagramReviewRegressionTests: XCTestCase {
           click Home href "https://example.com" "Go to Example"
         """
 
-        let svg = try await MermaidRenderer.renderSVG(source: source)
+        let svg = try await DiagramEngine.renderSVG(source: source)
         XCTAssertTrue(svg.contains("<a "))
         XCTAssertTrue(svg.contains("xlink:href=\"https://example.com\""))
         XCTAssertTrue(svg.contains("target=\"_blank\""))
@@ -41,7 +41,7 @@ final class StateDiagramReviewRegressionTests: XCTestCase {
           [*] --> Home
           click Home "https://example.com/quoted" "Quoted form"
         """
-        let quotedUrlSvg = try await MermaidRenderer.renderSVG(source: quotedUrlSource)
+        let quotedUrlSvg = try await DiagramEngine.renderSVG(source: quotedUrlSource)
         XCTAssertTrue(quotedUrlSvg.contains("xlink:href=\"https://example.com/quoted\""))
         XCTAssertTrue(quotedUrlSvg.contains("title=\"Quoted form\""))
     }
@@ -54,7 +54,7 @@ final class StateDiagramReviewRegressionTests: XCTestCase {
           Running --> [*]:::endpoint
         """
 
-        let positioned = try await MermaidRenderer.layout(source)
+        let positioned = try await DiagramEngine.layout(source)
         let nodes = Dictionary(uniqueKeysWithValues: (positioned.flowchartNodes ?? []).map { ($0.id, $0) })
         expectNoDifference(nodes["root_start"]?.inlineStyle["fill"], "#f9f")
         expectNoDifference(nodes["root_start"]?.inlineStyle["stroke"], "#333")
@@ -72,11 +72,11 @@ final class StateDiagramReviewRegressionTests: XCTestCase {
           end note
         """
 
-        let positioned = try await MermaidRenderer.layout(source)
+        let positioned = try await DiagramEngine.layout(source)
         let note = try XCTUnwrap(positioned.flowchartNodes?.first { $0.id == "State1----note" })
         expectNoDifference(note.label, "first note line\nsecond note line")
 
-        let svg = try await MermaidRenderer.renderSVG(source: source)
+        let svg = try await DiagramEngine.renderSVG(source: source)
         XCTAssertTrue(svg.contains("data-from=\"State1\" data-to=\"State1----note\" data-style=\"dotted\""))
         XCTAssertTrue(svg.contains("first note line"))
         XCTAssertTrue(svg.contains("second note line"))
@@ -92,7 +92,7 @@ final class StateDiagramReviewRegressionTests: XCTestCase {
           join_state --> [*]
         """
 
-        let positioned = try await MermaidRenderer.layout(source)
+        let positioned = try await DiagramEngine.layout(source)
         let fork = try XCTUnwrap(positioned.flowchartNodes?.first { $0.id == "fork_state" })
         let join = try XCTUnwrap(positioned.flowchartNodes?.first { $0.id == "join_state" })
 
@@ -105,7 +105,7 @@ final class StateDiagramReviewRegressionTests: XCTestCase {
         expectNoDifference(join.width, 70)
         expectNoDifference(join.height, 7)
 
-        let svg = try await MermaidRenderer.renderSVG(source: source)
+        let svg = try await DiagramEngine.renderSVG(source: source)
         XCTAssertTrue(svg.contains("data-shape=\"fork\""))
         XCTAssertTrue(svg.contains("data-shape=\"join\""))
         XCTAssertTrue(svg.contains("stroke=\"none\""))
@@ -119,14 +119,14 @@ final class StateDiagramReviewRegressionTests: XCTestCase {
           [*] --> Idle
         """
 
-        let graph = try await MermaidRenderer.parse(source)
+        let graph = try await DiagramEngine.parse(source)
         guard case .stateDiagram(let stateGraph) = graph.payload else {
             return XCTFail("Expected a state diagram")
         }
         expectNoDifference(stateGraph.stateConfig.scaleWidth, 350)
         expectNoDifference(stateGraph.stateConfig.hideEmptyDescription, true)
 
-        let positioned = try await MermaidRenderer.layout(source)
+        let positioned = try await DiagramEngine.layout(source)
         expectNoDifference(positioned.width, 350)
     }
 
@@ -138,7 +138,7 @@ final class StateDiagramReviewRegressionTests: XCTestCase {
             descriptions: ["Only title"]
         )
 
-        let visibleGraph = MermaidGraph(payload: .stateDiagram(original_src_types.MermaidGraph(
+        let visibleGraph = DiagramDocument(payload: .stateDiagram(original_src_types.MermaidGraph(
             direction: .TB,
             nodesInOrder: [("OnlyTitle", node)],
             edges: []
@@ -146,7 +146,7 @@ final class StateDiagramReviewRegressionTests: XCTestCase {
 
         var hiddenConfig = original_src_types.StateConfig()
         hiddenConfig.hideEmptyDescription = true
-        let hiddenGraph = MermaidGraph(payload: .stateDiagram(original_src_types.MermaidGraph(
+        let hiddenGraph = DiagramDocument(payload: .stateDiagram(original_src_types.MermaidGraph(
             direction: .TB,
             nodesInOrder: [("OnlyTitle", node)],
             edges: [],
@@ -166,7 +166,7 @@ final class StateDiagramReviewRegressionTests: XCTestCase {
           as --> if_state
         """
 
-        let positioned = try await MermaidRenderer.layout(source)
+        let positioned = try await DiagramEngine.layout(source)
         let nodes = Dictionary(uniqueKeysWithValues: (positioned.flowchartNodes ?? []).map { ($0.id, $0) })
         expectNoDifference(nodes["as"]?.label, "as")
         expectNoDifference(nodes["if_state"]?.shape, "choice")
@@ -180,7 +180,7 @@ final class StateDiagramReviewRegressionTests: XCTestCase {
           [*] --> Idle
         """
 
-        let svg = try await MermaidRenderer.renderSVG(source: source)
+        let svg = try await DiagramEngine.renderSVG(source: source)
         XCTAssertTrue(svg.contains("<title>My State Diagram</title>"))
         XCTAssertTrue(svg.contains("<desc>This diagram shows state transitions</desc>"))
     }
@@ -199,7 +199,7 @@ final class StateDiagramReviewRegressionTests: XCTestCase {
           }
         """
 
-        let graph = try await MermaidRenderer.parse(source)
+        let graph = try await DiagramEngine.parse(source)
         guard case .stateDiagram(let stateGraph) = graph.payload else {
             return XCTFail("Expected state diagram")
         }
@@ -208,8 +208,8 @@ final class StateDiagramReviewRegressionTests: XCTestCase {
         XCTAssertNotNil(activeSub)
         XCTAssertFalse(activeSub!.children.isEmpty, "Concurrent regions should create child subgraphs")
 
-        _ = try await MermaidRenderer.layout(source)
-        let svg = try await MermaidRenderer.renderSVG(source: source)
+        _ = try await DiagramEngine.layout(source)
+        let svg = try await DiagramEngine.renderSVG(source: source)
         // No raw divider nodes in SVG output
         XCTAssertFalse(svg.contains("_divider_"), "Divider IDs should not appear in SVG")
         // Region subgraphs should exist as groups
@@ -227,7 +227,7 @@ final class StateDiagramReviewRegressionTests: XCTestCase {
           Processing --> [*]
         """
 
-        let svg = try await MermaidRenderer.renderSVG(source: source)
+        let svg = try await DiagramEngine.renderSVG(source: source)
         XCTAssertTrue(svg.contains("statediagram-cluster"), "Composite should have statediagram-cluster class")
         XCTAssertTrue(svg.contains("data-id=\"Processing\""), "Composite should have id attribute")
     }
@@ -243,7 +243,7 @@ final class StateDiagramReviewRegressionTests: XCTestCase {
           }
         """
 
-        let svg = try await MermaidRenderer.renderSVG(source: source)
+        let svg = try await DiagramEngine.renderSVG(source: source)
         XCTAssertTrue(svg.contains("statediagram-cluster"), "At least one cluster class should be present")
         // Outer composite at depth 0 is not alt, inner at depth 1 is alt
         XCTAssertTrue(svg.contains("statediagram-cluster-alt"), "Nested composite should have alt class")
@@ -260,12 +260,12 @@ final class StateDiagramReviewRegressionTests: XCTestCase {
           }
         """
 
-        let positioned = try await MermaidRenderer.layout(source)
+        let positioned = try await DiagramEngine.layout(source)
         // No divider nodes in positioned output
         let dividerNode = positioned.flowchartNodes?.first { $0.id.hasPrefix("_divider") }
         XCTAssertNil(dividerNode, "Divider nodes should be stripped after concurrent region restructuring")
 
-        let svg = try await MermaidRenderer.renderSVG(source: source)
+        let svg = try await DiagramEngine.renderSVG(source: source)
         XCTAssertTrue(svg.contains("State1"))
         XCTAssertTrue(svg.contains("State3"))
     }
@@ -282,7 +282,7 @@ final class StateDiagramReviewRegressionTests: XCTestCase {
           [*] --> Active
         """
 
-        let graph = try await MermaidRenderer.parse(source)
+        let graph = try await DiagramEngine.parse(source)
         guard case .stateDiagram(let stateGraph) = graph.payload else {
             return XCTFail("Expected state diagram")
         }
@@ -299,7 +299,7 @@ final class StateDiagramReviewRegressionTests: XCTestCase {
           Idle --> Active
         """
 
-        let svg = try await MermaidRenderer.renderSVG(source: source)
+        let svg = try await DiagramEngine.renderSVG(source: source)
         XCTAssertTrue(svg.contains("statediagram-state"), "State nodes should have statediagram-state class")
     }
 
@@ -309,7 +309,7 @@ final class StateDiagramReviewRegressionTests: XCTestCase {
           [*] --> Idle
         """
 
-        let svg = try await MermaidRenderer.renderSVG(source: source)
+        let svg = try await DiagramEngine.renderSVG(source: source)
         XCTAssertTrue(svg.contains("class=\"edge transition"), "Edges should have transition class")
     }
 
@@ -320,7 +320,7 @@ final class StateDiagramReviewRegressionTests: XCTestCase {
           note right of State1 : Test note
         """
 
-        let svg = try await MermaidRenderer.renderSVG(source: source)
+        let svg = try await DiagramEngine.renderSVG(source: source)
         XCTAssertTrue(svg.contains("statediagram-note"), "Notes should have statediagram-note class")
     }
 
@@ -331,7 +331,7 @@ final class StateDiagramReviewRegressionTests: XCTestCase {
           note left of State1 : Test note
         """
 
-        let svg = try await MermaidRenderer.renderSVG(source: source)
+        let svg = try await DiagramEngine.renderSVG(source: source)
         XCTAssertTrue(svg.contains("note-edge"), "Note edges should have note-edge class")
     }
 
@@ -342,7 +342,7 @@ final class StateDiagramReviewRegressionTests: XCTestCase {
           note right of State1 : Test
         """
 
-        let svg = try await MermaidRenderer.renderSVG(source: source)
+        let svg = try await DiagramEngine.renderSVG(source: source)
         XCTAssertTrue(svg.contains("_note-bkg"), "Note should use note background color variable")
         XCTAssertTrue(svg.contains("_note-border"), "Note should use note border color variable")
     }
@@ -364,7 +364,7 @@ final class StateDiagramReviewRegressionTests: XCTestCase {
           click A href "javascript:alert(1)" "bad"
         """
 
-        let graph = try await MermaidRenderer.parse(source)
+        let graph = try await DiagramEngine.parse(source)
         guard case .stateDiagram(let parsed) = graph.payload else {
             return XCTFail("Expected state diagram")
         }

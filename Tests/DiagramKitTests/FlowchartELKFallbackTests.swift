@@ -10,7 +10,7 @@ final class FlowchartELKFallbackTests: XCTestCase {
 
     func testFlowchartElkParsesWithoutError() async throws {
         let source = "flowchart-elk LR\n  A[Start] --> B[End]"
-        let graph = try await MermaidRenderer.parse(source)
+        let graph = try await DiagramEngine.parse(source)
         XCTAssertEqual(graph.type, .flowchart)
     }
 
@@ -33,7 +33,7 @@ final class FlowchartELKFallbackTests: XCTestCase {
 
     func testFlowchartElkWithoutDirectionDefaultsToTD() async throws {
         let source = "flowchart-elk\n  A --> B"
-        let graph = try await MermaidRenderer.parse(source)
+        let graph = try await DiagramEngine.parse(source)
         XCTAssertEqual(graph.type, .flowchart)
         let svg = try await renderMermaidSVG(source, RenderOptions())
         XCTAssertTrue(svg.contains("<svg"))

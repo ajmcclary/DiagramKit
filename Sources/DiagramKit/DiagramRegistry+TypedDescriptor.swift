@@ -2,13 +2,20 @@ import Foundation
 import DiagramKitModel
 import DiagramKitCommon
 
+
+// MARK: Mermaid-internal diagram-family registry
+//
+// These descriptors are Mermaid-specific. A format-agnostic importer registry
+// (ImporterRegistry + DiagramSourceImporter) will be introduced in Phase 1.
+// At that point this type will become DiagramViewModelRegistry or be subsumed
+// into MermaidImporter.
 extension DiagramRegistry {
 
     /// Build a `DiagramDescriptor` from typed parse + layout closures.
     ///
     /// Removes the repeated `guard case let .X(parsed) = graph.payload else { throw }`
     /// boilerplate used by every per-family descriptor, and the matching
-    /// `MermaidGraph(payload: .X(parsed))` wrap on the way out. The factory
+    /// `DiagramDocument(payload: .X(parsed))` wrap on the way out. The factory
     /// is internal to the umbrella; per-family extension files in
     /// `DiagramRegistry+<Family>.swift` consume it. Use the original
     /// `DiagramDescriptor(...)` initializer directly for descriptors that
@@ -21,18 +28,18 @@ extension DiagramRegistry {
         wrap: @escaping @Sendable (Parsed) -> DiagramPayload,
         unwrap: @escaping @Sendable (DiagramPayload) -> Parsed?,
         layout: @escaping @Sendable (Parsed, LayoutConfig) throws -> Positioned,
-        positioned: @escaping @Sendable (MermaidGraph, Positioned) -> PositionedGraph
+        positioned: @escaping @Sendable (DiagramDocument, Positioned) -> PositionedGraph
     ) -> DiagramDescriptor {
         DiagramDescriptor(
             type: type,
             matches: matches,
             parse: { source, fm in
                 let parsed = try parse(source, fm)
-                return MermaidGraph(payload: wrap(parsed))
+                return DiagramDocument(payload: wrap(parsed))
             },
             layout: { graph, config in
                 guard let parsed = unwrap(graph.payload) else {
-                    throw MermaidStructuralError.payloadMismatch(type)
+                    throw DiagramStructuralError.payloadMismatch(type)
                 }
                 return positioned(graph, try layout(parsed, config))
             }

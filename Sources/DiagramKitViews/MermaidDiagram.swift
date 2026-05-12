@@ -8,7 +8,7 @@ import DiagramKitRenderingCG
 
 /// A value-type model that manages the Mermaid diagram pipeline.
 @MainActor
-public struct MermaidDiagram {
+public struct DiagramViewModel {
     public var source: String
     public var theme: DiagramTheme
     public var layoutConfig: LayoutConfig
@@ -29,7 +29,7 @@ public struct MermaidDiagram {
 
     /// Parse and layout the current source.
     ///
-    /// Dispatches to `MermaidPreparation.prepare`, which routes onto the
+    /// Dispatches to `DiagramPreparation.prepare`, which routes onto the
     /// 8 MB-stack worker thread. The actual parse/layout therefore runs
     /// off the main actor; only the result publication happens on the
     /// main actor.
@@ -46,13 +46,13 @@ public struct MermaidDiagram {
         let snapshotTheme = theme
         let snapshotConfig = layoutConfig
 
-        let preparer = MermaidViewPreparerEnvironment.current
+        let preparer = DiagramViewPreparerEnvironment.current
 
         do {
             let prepared = if let preparer {
                 try await preparer.prepare(snapshotSource, snapshotTheme, snapshotConfig)
             } else {
-                try await MermaidPreparation.prepare(
+                try await DiagramPreparation.prepare(
                     source: snapshotSource,
                     theme: snapshotTheme,
                     layoutConfig: snapshotConfig
@@ -61,21 +61,26 @@ public struct MermaidDiagram {
             preparedDiagram = prepared
             diagramBounds = prepared.bounds
         } catch {
-            _reportMermaidIssueIfNeeded(error, operation: "MermaidDiagram.prepare")
+            _reportDiagramIssueIfNeeded(error, operation: "DiagramViewModel.prepare")
             parseError = error
         }
     }
 }
 
-// MARK: - MermaidDiagramView convenience init for the value-type model
+// MARK: - Phase 0 backward-compat deprecated alias
+
+@available(*, deprecated, renamed: "DiagramViewModel")
+public typealias MermaidDiagram = DiagramViewModel
+
+// MARK: - DiagramView convenience init for the value-type model
 
 #if canImport(UIKit)
 import UIKit
 
 @available(iOS 26.0, macCatalyst 26.0, visionOS 26.0, *)
-extension MermaidDiagramView {
-    /// Create a diagram view driven by a ``MermaidDiagram`` value.
-    public init(_ diagram: MermaidDiagram) {
+extension DiagramView {
+    /// Create a diagram view driven by a ``DiagramViewModel`` value.
+    public init(_ diagram: DiagramViewModel) {
         self.init(
             source: diagram.source,
             theme: diagram.theme,
@@ -88,9 +93,9 @@ extension MermaidDiagramView {
 import AppKit
 
 @available(macOS 26.0, *)
-extension MermaidDiagramView {
-    /// Create a diagram view driven by a ``MermaidDiagram`` value.
-    public init(_ diagram: MermaidDiagram) {
+extension DiagramView {
+    /// Create a diagram view driven by a ``DiagramViewModel`` value.
+    public init(_ diagram: DiagramViewModel) {
         self.init(
             source: diagram.source,
             theme: diagram.theme,

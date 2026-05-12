@@ -308,7 +308,7 @@ extension DiagramRenderer {
     }
 
     private func _vennColor(_ value: String, fallback: BMColor = .black) -> BMColor {
-        MermaidColorParser.color(value) ?? fallback
+        DiagramColorParser.color(value) ?? fallback
     }
 
     private func _vennFillColor(_ value: String, opacity: Double) -> BMColor {

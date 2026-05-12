@@ -14,7 +14,7 @@ final class FlowchartSecurityTests: XCTestCase {
           A[Start] --> B[End]
           click A href "https://safe.com"
         """
-        let graph = try await MermaidRenderer.parse(source)
+        let graph = try await DiagramEngine.parse(source)
         guard case .flowchart(let model) = graph.payload else {
             XCTFail("Expected flowchart payload")
             return
@@ -34,7 +34,7 @@ final class FlowchartSecurityTests: XCTestCase {
           A[Start] --> B[End]
           click A href "javascript:alert(1)"
         """
-        let graph = try await MermaidRenderer.parse(source)
+        let graph = try await DiagramEngine.parse(source)
         guard case .flowchart(let model) = graph.payload else {
             XCTFail("Expected flowchart payload")
             return
@@ -48,7 +48,7 @@ final class FlowchartSecurityTests: XCTestCase {
           A[Start] --> B[End]
           click A href "data:text/html,<script>alert(1)</script>"
         """
-        let graph = try await MermaidRenderer.parse(source)
+        let graph = try await DiagramEngine.parse(source)
         guard case .flowchart(let model) = graph.payload else {
             XCTFail("Expected flowchart payload")
             return
@@ -62,7 +62,7 @@ final class FlowchartSecurityTests: XCTestCase {
           A[Start] --> B[End]
           click A href "vbscript:msgbox(1)"
         """
-        let graph = try await MermaidRenderer.parse(source)
+        let graph = try await DiagramEngine.parse(source)
         guard case .flowchart(let model) = graph.payload else {
             XCTFail("Expected flowchart payload")
             return
@@ -76,7 +76,7 @@ final class FlowchartSecurityTests: XCTestCase {
           A[Start] --> B[End]
           click A href "file:///etc/passwd"
         """
-        let graph = try await MermaidRenderer.parse(source)
+        let graph = try await DiagramEngine.parse(source)
         guard case .flowchart(let model) = graph.payload else {
             XCTFail("Expected flowchart payload")
             return
@@ -90,7 +90,7 @@ final class FlowchartSecurityTests: XCTestCase {
           A[Start] --> B[End]
           click A call myCallback()
         """
-        let graph = try await MermaidRenderer.parse(source)
+        let graph = try await DiagramEngine.parse(source)
         guard case .flowchart(let model) = graph.payload else {
             XCTFail("Expected flowchart payload")
             return
@@ -110,7 +110,7 @@ final class FlowchartSecurityTests: XCTestCase {
           A[Start] --> B[End]
           click A myCallback
         """
-        let graph = try await MermaidRenderer.parse(source)
+        let graph = try await DiagramEngine.parse(source)
         guard case .flowchart(let model) = graph.payload else {
             XCTFail("Expected flowchart payload")
             return
@@ -130,7 +130,7 @@ final class FlowchartSecurityTests: XCTestCase {
           A[Start] --> B[End]
           click A href "https://safe.com" "Go to safe" _blank
         """
-        let graph = try await MermaidRenderer.parse(source)
+        let graph = try await DiagramEngine.parse(source)
         guard case .flowchart(let model) = graph.payload else {
             XCTFail("Expected flowchart payload")
             return

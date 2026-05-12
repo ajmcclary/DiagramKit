@@ -13,7 +13,7 @@ import AppKit
 #endif
 
 /// Main entry point for parsing, layout, and rendering Mermaid diagrams.
-public struct MermaidRenderer {
+public struct DiagramEngine {
     /// Library version. Set via the `VERSION` file at the package root or `git describe --tags`.
     /// To update: edit the `VERSION` file or tag a release commit.
     public static let version: String = {
@@ -29,25 +29,25 @@ public struct MermaidRenderer {
     #if canImport(CoreGraphics)
     /// Eagerly trigger the view-preparer bootstrap.
     ///
-    /// Every public `MermaidRenderer.*` API calls this implicitly before
+    /// Every public `DiagramEngine.*` API calls this implicitly before
     /// doing work, so end users normally never need to invoke it
     /// directly. Call it explicitly only when consuming
-    /// `MermaidPreparation` / `MermaidViewPreparerEnvironment` /
+    /// `DiagramPreparation` / `DiagramViewPreparerEnvironment` /
     /// `DiagramKitViews` symbols without first going through a
-    /// `MermaidRenderer` entry point — for example, in test fixtures
-    /// that exercise `MermaidPreparation.prepare(...)` directly.
+    /// `DiagramEngine` entry point — for example, in test fixtures
+    /// that exercise `DiagramPreparation.prepare(...)` directly.
     public static func bootstrap() {
-        _ = _MermaidPreparerBootstrap.didInstall
+        _ = _DiagramPreparerBootstrap.didInstall
     }
     #endif
 
     /// Parse a Mermaid diagram.
-    public static func parse(_ source: String) async throws -> MermaidGraph {
+    public static func parse(_ source: String) async throws -> DiagramDocument {
         #if canImport(CoreGraphics)
-        _ = _MermaidPreparerBootstrap.didInstall
+        _ = _DiagramPreparerBootstrap.didInstall
         #endif
         return try await _runOnWorker {
-            try MermaidPipeline.parse(source)
+            try DiagramPipeline.parse(source)
         }
     }
 
@@ -57,10 +57,10 @@ public struct MermaidRenderer {
         config: LayoutConfig = LayoutConfig()
     ) async throws -> PositionedGraph {
         #if canImport(CoreGraphics)
-        _ = _MermaidPreparerBootstrap.didInstall
+        _ = _DiagramPreparerBootstrap.didInstall
         #endif
         return try await _runOnWorker {
-            try MermaidPipeline.layout(source, config: config)
+            try DiagramPipeline.layout(source, config: config)
         }
     }
 
@@ -71,9 +71,9 @@ public struct MermaidRenderer {
         theme: DiagramTheme = .default,
         layoutConfig: LayoutConfig = LayoutConfig()
     ) async throws -> PreparedDiagram {
-        _ = _MermaidPreparerBootstrap.didInstall
+        _ = _DiagramPreparerBootstrap.didInstall
         return try await _runOnWorker {
-            try MermaidPipeline.prepare(
+            try DiagramPipeline.prepare(
                 source: source,
                 theme: theme,
                 layoutConfig: layoutConfig
@@ -100,8 +100,8 @@ public struct MermaidRenderer {
         theme: DiagramTheme = .default,
         scale: CGFloat = 2.0
     ) async throws -> BMImage? {
-        _ = _MermaidPreparerBootstrap.didInstall
-        let renderer = MermaidImageRenderer(theme: theme)
+        _ = _DiagramPreparerBootstrap.didInstall
+        let renderer = DiagramImageRenderer(theme: theme)
         renderer.scale = scale
         return try await renderer.renderImage(from: source)
     }
@@ -113,8 +113,8 @@ public struct MermaidRenderer {
         size: CGSize,
         theme: DiagramTheme = .default
     ) async throws -> BMImage? {
-        _ = _MermaidPreparerBootstrap.didInstall
-        let renderer = MermaidImageRenderer(theme: theme)
+        _ = _DiagramPreparerBootstrap.didInstall
+        let renderer = DiagramImageRenderer(theme: theme)
         return try await renderer.renderImage(from: source, size: size)
     }
     #endif
@@ -127,9 +127,9 @@ public struct MermaidRenderer {
         layoutConfig: LayoutConfig = LayoutConfig(),
         idPolicy: SVGIDPolicy = .unique
     ) async throws -> String {
-        _ = _MermaidPreparerBootstrap.didInstall
+        _ = _DiagramPreparerBootstrap.didInstall
         return try await _runOnWorker {
-            try MermaidPipeline.renderSVG(
+            try DiagramPipeline.renderSVG(
                 source: source,
                 theme: theme,
                 layoutConfig: layoutConfig,
@@ -143,24 +143,24 @@ public struct MermaidRenderer {
         source: String,
         theme: DiagramTheme = .default
     ) async throws -> String {
-        _ = _MermaidPreparerBootstrap.didInstall
+        _ = _DiagramPreparerBootstrap.didInstall
         return try await _runOnWorker {
-            try MermaidPipeline.renderASCII(source: source, theme: theme)
+            try DiagramPipeline.renderASCII(source: source, theme: theme)
         }
     }
     #endif
 
-    /// Forwarding shim onto `MermaidWorkerThread.run` (defined in
+    /// Forwarding shim onto `DiagramWorkerThread.run` (defined in
     /// `DiagramKitRenderingCG`). The canonical worker now lives in the
     /// lower target so view code can dispatch through it without
     /// importing the umbrella; this shim preserves the existing
     /// internal call sites and the test surface
-    /// (`Tests/DiagramKitTests/MermaidPreparationWorkerTests.swift`).
+    /// (`Tests/DiagramKitTests/DiagramPreparationWorkerTests.swift`).
     #if canImport(CoreGraphics)
     static func _runOnWorker<T: Sendable>(
         _ work: @escaping @Sendable () throws -> T
     ) async throws -> T {
-        try await MermaidWorkerThread.run(work)
+        try await DiagramWorkerThread.run(work)
     }
     #else
     static func _runOnWorker<T: Sendable>(
@@ -182,7 +182,7 @@ public struct MermaidRenderer {
     #endif
 }
 
-extension MermaidRenderer {
+extension DiagramEngine {
     #if canImport(CoreGraphics)
     @available(*, deprecated, renamed: "renderImage(source:theme:scale:)")
     @MainActor
@@ -224,9 +224,14 @@ extension MermaidRenderer {
     #endif
 }
 
+// MARK: - Phase 0 backward-compat deprecated alias
+
+@available(*, deprecated, renamed: "DiagramEngine")
+public typealias MermaidRenderer = DiagramEngine
+
 extension String {
-    public func parseMermaid() async throws -> MermaidGraph {
-        try await MermaidRenderer.parse(self)
+    public func parseMermaid() async throws -> DiagramDocument {
+        try await DiagramEngine.parse(self)
     }
 
     #if canImport(CoreGraphics)
@@ -235,7 +240,7 @@ extension String {
         theme: DiagramTheme = .default,
         scale: CGFloat = 2.0
     ) async throws -> BMImage? {
-        try await MermaidRenderer.renderImage(source: self, theme: theme, scale: scale)
+        try await DiagramEngine.renderImage(source: self, theme: theme, scale: scale)
     }
     #endif
 
@@ -244,7 +249,7 @@ extension String {
         theme: DiagramTheme = .default,
         layoutConfig: LayoutConfig = LayoutConfig()
     ) async throws -> String {
-        try await MermaidRenderer.renderSVG(
+        try await DiagramEngine.renderSVG(
             source: self,
             theme: theme,
             layoutConfig: layoutConfig
@@ -254,7 +259,7 @@ extension String {
     public func renderMermaidASCII(
         theme: DiagramTheme = .default
     ) async throws -> String {
-        try await MermaidRenderer.renderASCII(source: self, theme: theme)
+        try await DiagramEngine.renderASCII(source: self, theme: theme)
     }
     #endif
 }

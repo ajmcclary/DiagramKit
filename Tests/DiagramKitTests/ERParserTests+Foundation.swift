@@ -444,7 +444,7 @@ struct ERParserFoundationTests {
 
     @Test("ER frontmatter reaches public parser model")
     func erFrontmatterReachesPublicParserModel() async throws {
-        let graph = try await MermaidRenderer.parse("""
+        let graph = try await DiagramEngine.parse("""
             ---
             title: Customer ERD
             config:
@@ -470,7 +470,7 @@ struct ERParserFoundationTests {
 
     @Test("ER init directive htmlLabels reaches parser model")
     func erInitDirectiveHtmlLabelsReachPublicParserModel() async throws {
-        let graph = try await MermaidRenderer.parse("""
+        let graph = try await DiagramEngine.parse("""
             %%{init: { "htmlLabels": false }}%%
             erDiagram
               CUSTOMER
@@ -759,7 +759,7 @@ struct ERParserFoundationTests {
 
     @Test("labelType set to text when htmlLabels is false")
     func labelTypeTextWhenHtmlLabelsFalse() async throws {
-        let graph = try await MermaidRenderer.parse("""
+        let graph = try await DiagramEngine.parse("""
             ---
             config:
               htmlLabels: false
@@ -776,7 +776,7 @@ struct ERParserFoundationTests {
 
     @Test("labelType set to markdown by default")
     func labelTypeMarkdownByDefault() async throws {
-        let graph = try await MermaidRenderer.parse("""
+        let graph = try await DiagramEngine.parse("""
             erDiagram
               CUSTOMER
             """)

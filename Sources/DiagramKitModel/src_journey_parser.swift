@@ -3,7 +3,7 @@ import DiagramKitCommon
 
 // MARK: - Parse Errors
 
-public enum JourneyParserError: Error, LocalizedError, _MermaidRecoverableError {
+public enum JourneyParserError: Error, LocalizedError, _RecoverableDiagramError {
     case invalidHeader(String)
     case unexpectedLine(String)
 

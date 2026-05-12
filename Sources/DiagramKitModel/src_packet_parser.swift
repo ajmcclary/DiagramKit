@@ -3,7 +3,7 @@ import DiagramKitCommon
 
 // MARK: - Packet Parser Error
 
-public enum PacketParserError: Error, LocalizedError, _MermaidRecoverableError {
+public enum PacketParserError: Error, LocalizedError, _RecoverableDiagramError {
     case missingHeader
     case invalidHeader(String)
     case malformedBlock(String)

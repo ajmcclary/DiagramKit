@@ -2,18 +2,25 @@ import Foundation
 import DiagramKitModel
 import DiagramKitCommon
 
+
+// MARK: Mermaid-internal diagram-family registry
+//
+// These descriptors are Mermaid-specific. A format-agnostic importer registry
+// (ImporterRegistry + DiagramSourceImporter) will be introduced in Phase 1.
+// At that point this type will become DiagramViewModelRegistry or be subsumed
+// into MermaidImporter.
 extension DiagramRegistry {
     static let _mindmap = DiagramDescriptor(
         type: .mindmap,
         matches: { $0.normalized.hasPrefix("mindmap") },
         parse: { source, frontmatter in
-            let rawLines = MermaidSourceNormalizer.rawLines(source)
+            let rawLines = DiagramSourceNormalizer.rawLines(source)
             let parsed = try parseMindmap(rawLines, frontmatter: frontmatter)
-            return MermaidGraph(payload: .mindmap(parsed))
+            return DiagramDocument(payload: .mindmap(parsed))
         },
         layout: { graph, _ in
             guard case let .mindmap(diagram) = graph.payload else {
-                throw MermaidStructuralError.payloadMismatch(.mindmap)
+                throw DiagramStructuralError.payloadMismatch(.mindmap)
             }
             #if canImport(UIKit) || canImport(AppKit)
             let positioned = try layoutMindmap(diagram)
@@ -23,7 +30,7 @@ extension DiagramRegistry {
             // text measurement. Unreachable until the portable text-measurement
             // shim lands.
             _ = diagram
-            throw MermaidStructuralError.payloadMismatch(.mindmap)
+            throw DiagramStructuralError.payloadMismatch(.mindmap)
             #endif
         }
     )

@@ -103,7 +103,7 @@ struct RadarRendererTests {
     @Test("DiagramRenderer handles radar with empty diagram")
     func rendererHandlesEmpty() throws {
         try renderOnWorker {
-            let diagram = MermaidGraph(type: .radar)
+            let diagram = DiagramDocument(type: .radar)
             let positioned = PositionedGraph(diagram: diagram)
             try render(positioned: positioned, size: CGSize(width: 700, height: 700))
         }

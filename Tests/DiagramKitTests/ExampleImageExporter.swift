@@ -182,7 +182,7 @@ final class ExampleImageExporter: XCTestCase {
         for example in Self.examples {
             // Export PNGs
             for (themeName, theme) in Self.themes {
-                guard let image = try await MermaidRenderer.renderImage(source: example.code, theme: theme, scale: 2.0) else {
+                guard let image = try await DiagramEngine.renderImage(source: example.code, theme: theme, scale: 2.0) else {
                     XCTFail("Failed to render \(example.name) with \(themeName) theme")
                     continue
                 }
@@ -220,7 +220,7 @@ final class ExampleImageExporter: XCTestCase {
             }
 
             // Export ASCII art
-            let ascii = try await MermaidRenderer.renderASCII(source: example.code, theme: .zincDark)
+            let ascii = try await DiagramEngine.renderASCII(source: example.code, theme: .zincDark)
             let asciiFilename = "\(example.name)-ascii.txt"
             let asciiPath = (outputDir as NSString).appendingPathComponent(asciiFilename)
             try ascii.write(toFile: asciiPath, atomically: true, encoding: .utf8)

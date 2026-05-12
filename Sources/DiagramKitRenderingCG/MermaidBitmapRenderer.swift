@@ -11,7 +11,7 @@ import AppKit
 /// Shared UIKit/AppKit bitmap context setup for the package's image
 /// rendering paths.
 ///
-/// `MermaidImageRenderer` (programmatic export) and `MermaidLayer`
+/// `DiagramImageRenderer` (programmatic export) and `DiagramLayer`
 /// (in-view export) both need:
 ///   - a platform bitmap context at a target size and scale,
 ///   - an optional background fill from the diagram theme,
@@ -23,7 +23,7 @@ import AppKit
 /// drift between them silently produced different images for the same
 /// prepared diagram. Both call sites now route through `render(...)`.
 @MainActor
-public enum MermaidBitmapRenderer {
+public enum DiagramBitmapRenderer {
 
     /// Render a bitmap by invoking `draw` against a CGContext that is:
     /// - sized to `size` in points,
@@ -88,4 +88,9 @@ public enum MermaidBitmapRenderer {
         #endif
     }
 }
+
+// MARK: - Phase 0 backward-compat deprecated alias
+
+@available(*, deprecated, renamed: "DiagramBitmapRenderer")
+public typealias MermaidBitmapRenderer = DiagramBitmapRenderer
 #endif

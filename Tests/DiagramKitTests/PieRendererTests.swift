@@ -242,7 +242,7 @@ final class PieRendererTests: XCTestCase {
             )
         )
         let positionedPie = layoutPieChart(chart)
-        let graph = MermaidGraph(payload: .pie(chart))
+        let graph = DiagramDocument(payload: .pie(chart))
         let positioned = PositionedGraph(
             diagram: graph,
             width: positionedPie.width,
@@ -350,7 +350,7 @@ final class PieRendererTests: XCTestCase {
     private func renderPiePixels(_ source: String) throws -> (pixels: [UInt8], width: Int, height: Int) {
         let chart = try parsePieChart(lines(source))
         let positionedPie = layoutPieChart(chart)
-        let graph = MermaidGraph(payload: .pie(chart))
+        let graph = DiagramDocument(payload: .pie(chart))
         let positioned = PositionedGraph(
             diagram: graph,
             width: positionedPie.width,

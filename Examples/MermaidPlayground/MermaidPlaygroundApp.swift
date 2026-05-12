@@ -15,7 +15,7 @@ struct MermaidPlaygroundApp: App {
     @SwiftUI.State private var store = LiveEditorStore()
 
     init() {
-        MermaidRenderer.bootstrap()
+        DiagramEngine.bootstrap()
     }
 
     var body: some Scene {

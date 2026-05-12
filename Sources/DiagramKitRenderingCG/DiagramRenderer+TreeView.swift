@@ -107,7 +107,7 @@ extension DiagramRenderer {
     }
 
     private func _tvColor(_ value: String, fallback: BMColor) -> BMColor {
-        MermaidColorParser.color(value) ?? fallback
+        DiagramColorParser.color(value) ?? fallback
     }
 
     private func _drawSVGPath(_ d: String, in context: CGContext, color: BMColor) {

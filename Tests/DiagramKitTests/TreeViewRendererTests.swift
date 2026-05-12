@@ -26,7 +26,7 @@ struct TreeViewRendererTests {
         let rawLines = normalized.split(separator: "\n", omittingEmptySubsequences: false).map(String.init)
         let diagram = try parseTreeViewDiagram(rawLines, frontmatter: nil)
         let positioned = layoutTreeViewDiagram(diagram)
-        let graph = MermaidGraph(payload: .treeView(diagram))
+        let graph = DiagramDocument(payload: .treeView(diagram))
         return PositionedGraph(diagram: graph, width: positioned.viewBoxWidth, height: positioned.viewBoxHeight, content: .treeView(positioned))
     }
 
@@ -106,7 +106,7 @@ struct TreeViewRendererTests {
             iconColor: "#0000FF"
         )
         let positioned = layoutTreeViewDiagram(diagram)
-        let graph = MermaidGraph(payload: .treeView(diagram))
+        let graph = DiagramDocument(payload: .treeView(diagram))
         let positionedGraph = PositionedGraph(diagram: graph, width: positioned.viewBoxWidth, height: positioned.viewBoxHeight, content: .treeView(positioned))
         let context = _makeContext()
         #expect(context != nil)
@@ -122,7 +122,7 @@ struct TreeViewRendererTests {
         let rawLines = normalized.split(separator: "\n", omittingEmptySubsequences: false).map(String.init)
         let diagram = try parseTreeViewDiagram(rawLines, frontmatter: nil)
         let positioned = layoutTreeViewDiagram(diagram)
-        let graph = MermaidGraph(payload: .treeView(diagram))
+        let graph = DiagramDocument(payload: .treeView(diagram))
         let positionedGraph = PositionedGraph(
             diagram: graph,
             width: positioned.viewBoxWidth,

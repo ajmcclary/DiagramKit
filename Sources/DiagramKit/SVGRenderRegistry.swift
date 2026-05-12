@@ -55,7 +55,7 @@ enum SVGRenderRegistry {
             },
             renderPositioned: { positioned, _, colors, font, transparent in
                 guard case let .sequenceDiagram(actors, messages, blocks, lifelines, activations, notes, boxes, bottomActors, rectHighlights, title, accTitle, accDescr) = positioned.content else {
-                    throw MermaidStructuralError.payloadMismatch(.sequenceDiagram)
+                    throw DiagramStructuralError.payloadMismatch(.sequenceDiagram)
                 }
                 let diagram = PositionedSequenceDiagram(
                     width: positioned.width, height: positioned.height,
@@ -75,7 +75,7 @@ enum SVGRenderRegistry {
             },
             renderPositioned: { positioned, _, colors, font, transparent in
                 guard case let .classDiagram(classes, relationships, namespaces, notes, accTitle, accDescr, diagramTitle) = positioned.content else {
-                    throw MermaidStructuralError.payloadMismatch(.classDiagram)
+                    throw DiagramStructuralError.payloadMismatch(.classDiagram)
                 }
                 let diagram = PositionedClassDiagram(
                     width: positioned.width, height: positioned.height,
@@ -94,7 +94,7 @@ enum SVGRenderRegistry {
             },
             renderPositioned: { positioned, _, colors, font, transparent in
                 guard case let .erDiagram(entities, relationships, accTitle, accDescr, diagramTitle) = positioned.content else {
-                    throw MermaidStructuralError.payloadMismatch(.erDiagram)
+                    throw DiagramStructuralError.payloadMismatch(.erDiagram)
                 }
                 let diagram = PositionedErDiagram(
                     width: positioned.width, height: positioned.height,
@@ -112,7 +112,7 @@ enum SVGRenderRegistry {
             },
             renderPositioned: { positioned, _, colors, font, transparent in
                 guard case let .xyChart(chart) = positioned.content else {
-                    throw MermaidStructuralError.payloadMismatch(.xyChart)
+                    throw DiagramStructuralError.payloadMismatch(.xyChart)
                 }
                 return renderXYChartSvg(chart, colors, font, transparent, interactive: false)
             }
@@ -124,7 +124,7 @@ enum SVGRenderRegistry {
             },
             renderPositioned: { positioned, _, colors, font, transparent in
                 guard case let .pie(chart) = positioned.content else {
-                    throw MermaidStructuralError.payloadMismatch(.pie)
+                    throw DiagramStructuralError.payloadMismatch(.pie)
                 }
                 return renderPieSvg(chart, colors, font, transparent)
             }
@@ -136,7 +136,7 @@ enum SVGRenderRegistry {
             },
             renderPositioned: { positioned, diagramId, colors, font, transparent in
                 guard case let .journey(diagram) = positioned.content else {
-                    throw MermaidStructuralError.payloadMismatch(.journey)
+                    throw DiagramStructuralError.payloadMismatch(.journey)
                 }
                 return try renderJourneySvg(diagram, colors, font, transparent, diagramId: diagramId ?? "mermaid-0")
             }
@@ -148,7 +148,7 @@ enum SVGRenderRegistry {
             },
             renderPositioned: { positioned, diagramId, colors, font, transparent in
                 guard case let .gantt(data) = positioned.content else {
-                    throw MermaidStructuralError.payloadMismatch(.gantt)
+                    throw DiagramStructuralError.payloadMismatch(.gantt)
                 }
                 return try renderGanttSvg(data, diagramId: diagramId ?? "", colors, font, transparent)
             }
@@ -160,7 +160,7 @@ enum SVGRenderRegistry {
             },
             renderPositioned: { positioned, _, colors, font, transparent in
                 guard case let .quadrantChart(chart) = positioned.content else {
-                    throw MermaidStructuralError.payloadMismatch(.quadrantChart)
+                    throw DiagramStructuralError.payloadMismatch(.quadrantChart)
                 }
                 return renderQuadrantSvg(chart, colors, font, transparent)
             }
@@ -172,7 +172,7 @@ enum SVGRenderRegistry {
             },
             renderPositioned: { positioned, diagramId, colors, font, transparent in
                 guard case let .requirement(data) = positioned.content else {
-                    throw MermaidStructuralError.payloadMismatch(.requirement)
+                    throw DiagramStructuralError.payloadMismatch(.requirement)
                 }
                 return try renderRequirementSvg(data, colors, font, transparent,
                     diagramId: diagramId,
@@ -206,7 +206,7 @@ enum SVGRenderRegistry {
             },
             renderPositioned: { positioned, diagramId, _, _, _ in
                 guard case let .gitGraph(data) = positioned.content else {
-                    throw MermaidStructuralError.payloadMismatch(.gitGraph)
+                    throw DiagramStructuralError.payloadMismatch(.gitGraph)
                 }
                 return renderGitGraphSvg(data, diagramId: diagramId ?? "")
             }
@@ -218,7 +218,7 @@ enum SVGRenderRegistry {
             },
             renderPositioned: { positioned, diagramId, colors, font, transparent in
                 guard case let .mindmap(data) = positioned.content else {
-                    throw MermaidStructuralError.payloadMismatch(.mindmap)
+                    throw DiagramStructuralError.payloadMismatch(.mindmap)
                 }
                 return renderMindmapSvg(data, diagramId: diagramId ?? "", colors, font, transparent)
             }
@@ -230,7 +230,7 @@ enum SVGRenderRegistry {
             },
             renderPositioned: { positioned, diagramId, colors, font, transparent in
                 guard case let .timeline(data) = positioned.content else {
-                    throw MermaidStructuralError.payloadMismatch(.timeline)
+                    throw DiagramStructuralError.payloadMismatch(.timeline)
                 }
                 return try renderTimelineSvg(data, diagramId: diagramId ?? "mermaid-0", colors, font, transparent)
             }
@@ -242,7 +242,7 @@ enum SVGRenderRegistry {
             },
             renderPositioned: { positioned, diagramId, colors, font, transparent in
                 guard case let .sankey(diagram) = positioned.content else {
-                    throw MermaidStructuralError.payloadMismatch(.sankey)
+                    throw DiagramStructuralError.payloadMismatch(.sankey)
                 }
                 return renderSankeySvg(diagram, colors, font, transparent, diagramId: diagramId)
             }
@@ -254,7 +254,7 @@ enum SVGRenderRegistry {
             },
             renderPositioned: { positioned, diagramId, colors, font, transparent in
                 guard case let .block(data) = positioned.content else {
-                    throw MermaidStructuralError.payloadMismatch(.block)
+                    throw DiagramStructuralError.payloadMismatch(.block)
                 }
                 return try renderBlockSvg(data, diagramId: diagramId ?? "", colors: colors, fontFamily: font, transparent: transparent)
             }
@@ -266,7 +266,7 @@ enum SVGRenderRegistry {
             },
             renderPositioned: { positioned, _, colors, font, transparent in
                 guard case let .packet(data) = positioned.content else {
-                    throw MermaidStructuralError.payloadMismatch(.packet)
+                    throw DiagramStructuralError.payloadMismatch(.packet)
                 }
                 return renderPacketSvg(data, colors, font, transparent, theme: data.theme)
             }
@@ -278,7 +278,7 @@ enum SVGRenderRegistry {
             },
             renderPositioned: { positioned, diagramId, colors, font, transparent in
                 guard case let .kanban(data) = positioned.content else {
-                    throw MermaidStructuralError.payloadMismatch(.kanban)
+                    throw DiagramStructuralError.payloadMismatch(.kanban)
                 }
                 return try renderKanbanSvg(data, diagramId: diagramId ?? "", colors, font, transparent)
             }
@@ -290,7 +290,7 @@ enum SVGRenderRegistry {
             },
             renderPositioned: { positioned, diagramId, colors, font, transparent in
                 guard case let .architecture(data) = positioned.content else {
-                    throw MermaidStructuralError.payloadMismatch(.architecture)
+                    throw DiagramStructuralError.payloadMismatch(.architecture)
                 }
                 return try renderArchitectureSvg(data, diagramId: diagramId ?? "", colors, font, transparent)
             }
@@ -302,7 +302,7 @@ enum SVGRenderRegistry {
             },
             renderPositioned: { positioned, _, colors, font, transparent in
                 guard case let .radar(diagram) = positioned.content else {
-                    throw MermaidStructuralError.payloadMismatch(.radar)
+                    throw DiagramStructuralError.payloadMismatch(.radar)
                 }
                 return renderRadarSvg(diagram, colors: colors, font: font, transparent: transparent)
             }
@@ -314,7 +314,7 @@ enum SVGRenderRegistry {
             },
             renderPositioned: { positioned, diagramId, colors, font, transparent in
                 guard case let .treemap(data) = positioned.content else {
-                    throw MermaidStructuralError.payloadMismatch(.treemap)
+                    throw DiagramStructuralError.payloadMismatch(.treemap)
                 }
                 return renderTreemapSvg(data, diagramId: diagramId ?? "", colors, font, transparent)
             }
@@ -326,7 +326,7 @@ enum SVGRenderRegistry {
             },
             renderPositioned: { positioned, diagramId, colors, font, transparent in
                 guard case let .venn(data) = positioned.content else {
-                    throw MermaidStructuralError.payloadMismatch(.venn)
+                    throw DiagramStructuralError.payloadMismatch(.venn)
                 }
                 return renderVennSvg(data, diagramId: diagramId ?? "", colors, font, transparent)
             }
@@ -338,7 +338,7 @@ enum SVGRenderRegistry {
             },
             renderPositioned: { positioned, diagramId, colors, font, transparent in
                 guard case let .ishikawa(data) = positioned.content else {
-                    throw MermaidStructuralError.payloadMismatch(.ishikawa)
+                    throw DiagramStructuralError.payloadMismatch(.ishikawa)
                 }
                 return renderIshikawaSvg(data, diagramId: diagramId ?? "", colors: colors, fontFamily: font, transparent: transparent)
             }
@@ -350,7 +350,7 @@ enum SVGRenderRegistry {
             },
             renderPositioned: { positioned, diagramId, _, font, _ in
                 guard case let .treeView(data) = positioned.content else {
-                    throw MermaidStructuralError.payloadMismatch(.treeView)
+                    throw DiagramStructuralError.payloadMismatch(.treeView)
                 }
                 return renderTreeViewSvg(data, diagramId: diagramId ?? "", font: font)
             }
@@ -362,7 +362,7 @@ enum SVGRenderRegistry {
             },
             renderPositioned: { positioned, diagramId, colors, font, transparent in
                 guard case let .eventModeling(data) = positioned.content else {
-                    throw MermaidStructuralError.payloadMismatch(.eventModeling)
+                    throw DiagramStructuralError.payloadMismatch(.eventModeling)
                 }
                 return renderEventModelingSvg(data, diagramId: diagramId ?? "", colors: colors, font: font, transparent: transparent)
             }
@@ -374,7 +374,7 @@ enum SVGRenderRegistry {
             },
             renderPositioned: { positioned, _, colors, font, transparent in
                 guard case let .wardleyBeta(diagram) = positioned.content else {
-                    throw MermaidStructuralError.payloadMismatch(.wardleyBeta)
+                    throw DiagramStructuralError.payloadMismatch(.wardleyBeta)
                 }
                 return renderWardleyMapSvg(diagram, colors: colors, font: font, transparent: transparent)
             }
@@ -386,7 +386,7 @@ enum SVGRenderRegistry {
             },
             renderPositioned: { positioned, diagramId, colors, font, transparent in
                 guard case let .c4(diagram) = positioned.content else {
-                    throw MermaidStructuralError.payloadMismatch(.c4)
+                    throw DiagramStructuralError.payloadMismatch(.c4)
                 }
                 return try renderC4Svg(diagram, diagramId: diagramId ?? "", colors, font, transparent)
             }
@@ -398,7 +398,7 @@ enum SVGRenderRegistry {
             },
             renderPositioned: { positioned, _, colors, font, transparent in
                 guard case let .zenuml(data) = positioned.content else {
-                    throw MermaidStructuralError.payloadMismatch(.zenuml)
+                    throw DiagramStructuralError.payloadMismatch(.zenuml)
                 }
                 return renderZenUMLSvg(data, colors: colors, font: font, transparent: transparent)
             }
@@ -419,12 +419,12 @@ enum SVGRenderRegistry {
     ) throws -> String {
         let type = positioned.diagram.type
         guard let svgDescriptor = all[type] else {
-            throw BeautifulMermaidError.notYetImplemented(
+            throw DiagramError.notYetImplemented(
                 "SVG rendering for \(type.rawValue)"
             )
         }
         guard let rp = svgDescriptor.renderPositioned else {
-            throw BeautifulMermaidError.notYetImplemented(
+            throw DiagramError.notYetImplemented(
                 "Positioned-graph SVG rendering for \(type.rawValue)"
             )
         }
@@ -444,9 +444,9 @@ enum SVGRenderRegistry {
         transparent: Bool
     ) throws -> String {
         let descriptor = DiagramRegistry.detect(from: decodedSource)
-        let lines = MermaidSourceNormalizer.statements(decodedSource)
+        let lines = DiagramSourceNormalizer.statements(decodedSource)
         guard let svgDescriptor = all[descriptor.type] else {
-            throw BeautifulMermaidError.notYetImplemented(
+            throw DiagramError.notYetImplemented(
                 "SVG rendering for \(descriptor.type.rawValue)"
             )
         }

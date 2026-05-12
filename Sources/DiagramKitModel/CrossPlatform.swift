@@ -113,7 +113,7 @@ extension BMColor {
     /// Initialize a color from a hex string.
     ///
     /// Supported formats: `"#RGB"`, `"#RRGGBB"`, `"#RRGGBBAA"`, with or without the `#` prefix.
-    /// Invalid input defaults to opaque black and reports an issue via `_reportMermaidIssue`.
+    /// Invalid input defaults to opaque black and reports an issue via `_reportDiagramIssue`.
     public convenience init(hex: String) {
         var raw = hex.trimmingCharacters(in: .whitespacesAndNewlines)
         raw = raw.replacingOccurrences(of: "#", with: "")
@@ -122,7 +122,7 @@ extension BMColor {
         let valid = scanned && (raw.count == 3 || raw.count == 6 || raw.count == 8)
 
         if !valid {
-            _reportMermaidIssue("BMColor(hex:) received invalid hex string: \"\(hex)\" — defaulting to opaque black.")
+            _reportDiagramIssue("BMColor(hex:) received invalid hex string: \"\(hex)\" — defaulting to opaque black.")
         }
 
         let r, g, b, a: CGFloat

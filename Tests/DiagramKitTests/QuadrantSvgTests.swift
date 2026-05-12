@@ -375,7 +375,7 @@ final class QuadrantSvgTests: XCTestCase {
             y-axis Low --> High
             quadrant-1 Plan
         """
-        let svg = try _renderMermaidSVG(source)
+        let svg = try _renderDiagramSVG(source)
         XCTAssertFalse(svg.isEmpty)
         XCTAssertTrue(svg.contains("class=\"main\""))
         XCTAssertTrue(svg.contains("Plan"))

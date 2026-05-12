@@ -265,7 +265,7 @@ public struct PositionedIshikawaDiagram: Sendable, Equatable {
 
 // MARK: - Parser Errors
 
-public enum IshikawaParserError: Error, LocalizedError, _MermaidRecoverableError {
+public enum IshikawaParserError: Error, LocalizedError, _RecoverableDiagramError {
     case emptySource
     case missingHeader
     case missingRoot

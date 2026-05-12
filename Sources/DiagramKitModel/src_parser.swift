@@ -20,7 +20,7 @@ private struct _StateNodeMeta {
     var labelType: String = "markdown"
 }
 
-private enum _ParserEntryError: Error, LocalizedError, _MermaidRecoverableError {
+private enum _ParserEntryError: Error, LocalizedError, _RecoverableDiagramError {
     case emptyDiagram
     case invalidHeader(String)
 
@@ -176,11 +176,11 @@ private let _nodePatterns: [(regex: NSRegularExpression, shape: ParsedNodeShape)
     (_regex(#"^([\w\p{L}.-]+)\{(.+?)\}"#), .diamond),
 ]
 
-public func parseMermaid(_ text: String, config: original_src_types.FlowchartConfig? = nil, stateConfig: original_src_types.StateConfig? = nil) throws -> MermaidGraph {
+public func parseMermaid(_ text: String, config: original_src_types.FlowchartConfig? = nil, stateConfig: original_src_types.StateConfig? = nil) throws -> DiagramDocument {
     try _parseMermaidEntry(text, config: config, stateConfig: stateConfig)
 }
 
-private func _parseMermaidEntry(_ text: String, config: original_src_types.FlowchartConfig? = nil, stateConfig: original_src_types.StateConfig? = nil) throws -> MermaidGraph {
+private func _parseMermaidEntry(_ text: String, config: original_src_types.FlowchartConfig? = nil, stateConfig: original_src_types.StateConfig? = nil) throws -> DiagramDocument {
     let lines = _mermaidSourceLines(from: text)
 
     guard !lines.isEmpty else {
@@ -199,7 +199,7 @@ private func _parseMermaidEntry(_ text: String, config: original_src_types.Flowc
         diagramType = .flowchart
     }
 
-    return MermaidGraph(payload: diagramType == .stateDiagram ? .stateDiagram(parsed) : .flowchart(parsed))
+    return DiagramDocument(payload: diagramType == .stateDiagram ? .stateDiagram(parsed) : .flowchart(parsed))
 }
 
 private func _parseFlowchart(_ lines: [String], config: original_src_types.FlowchartConfig? = nil) throws -> ParsedGraph {
@@ -1270,7 +1270,7 @@ open class original_src_parser {
 
     // Export inventory from TypeScript source:
     // - export function parseMermaid
-    public static func parseMermaid(_ text: String) throws -> MermaidGraph {
+    public static func parseMermaid(_ text: String) throws -> DiagramDocument {
         try _parseMermaidEntry(text)
     }
 }

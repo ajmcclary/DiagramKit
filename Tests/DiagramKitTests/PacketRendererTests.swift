@@ -9,7 +9,7 @@ final class PacketRendererTests: XCTestCase {
 
     private func renderPacketPixels(_ diagram: PacketDiagram) throws -> (pixels: [UInt8], width: Int, height: Int, positioned: PositionedPacketDiagram) {
         let positioned = layoutPacketDiagram(diagram)
-        let graph = MermaidGraph(payload: .packet(diagram))
+        let graph = DiagramDocument(payload: .packet(diagram))
         let positionedGraph = PositionedGraph(
             diagram: graph,
             width: positioned.width,
@@ -71,7 +71,7 @@ final class PacketRendererTests: XCTestCase {
         let lines = _mermaidSourceLines(from: source)
         let diagram = try parsePacketDiagram(lines, frontmatter: nil)
         let positioned = layoutPacketDiagram(diagram)
-        let graph = MermaidGraph(payload: .packet(diagram))
+        let graph = DiagramDocument(payload: .packet(diagram))
         let positionedGraph = PositionedGraph(diagram: graph, width: positioned.width, height: positioned.height, content: .packet(positioned))
 
         // Create a CGContext for rendering
@@ -111,7 +111,7 @@ final class PacketRendererTests: XCTestCase {
     func testPositionedGraphPacketAccessor() throws {
         let diagram = try parsePacketDiagram(_mermaidSourceLines(from: "packet\n0-15: \"test\""), frontmatter: nil)
         let positioned = layoutPacketDiagram(diagram)
-        let graph = MermaidGraph(payload: .packet(diagram))
+        let graph = DiagramDocument(payload: .packet(diagram))
         let positionedGraph = PositionedGraph(
             diagram: graph,
             width: positioned.width,
@@ -126,7 +126,7 @@ final class PacketRendererTests: XCTestCase {
         var diagram = try parsePacketDiagram(_mermaidSourceLines(from: "packet\n0-15: \"test\""), frontmatter: nil)
         diagram.theme = PacketThemeConfig(blockFillColor: "#ff0000")
         let positioned = layoutPacketDiagram(diagram)
-        let graph = MermaidGraph(payload: .packet(diagram))
+        let graph = DiagramDocument(payload: .packet(diagram))
         let positionedGraph = PositionedGraph(
             diagram: graph,
             width: positioned.width,

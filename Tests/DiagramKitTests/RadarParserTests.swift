@@ -599,7 +599,7 @@ struct RadarParserTests {
 
     @Test("End-to-end parsing through MermaidParser")
     func endToEndParsing() async throws {
-        let graph = try await MermaidRenderer.parse("radar-beta\n  axis A,B\n  curve c1{1,2}")
+        let graph = try await DiagramEngine.parse("radar-beta\n  axis A,B\n  curve c1{1,2}")
         guard case .radar(let diagram) = graph.payload else {
             #expect(Bool(false), "Expected .radar payload")
             return
@@ -611,7 +611,7 @@ struct RadarParserTests {
 
     @Test("End-to-end parsing with title and accessibility")
     func endToEndWithTitleAndAccessibility() async throws {
-        let graph = try await MermaidRenderer.parse("radar-beta title My Radar accTitle: AT\n  axis A\n  curve c1{1}")
+        let graph = try await DiagramEngine.parse("radar-beta title My Radar accTitle: AT\n  axis A\n  curve c1{1}")
         guard case .radar(let diagram) = graph.payload else {
             #expect(Bool(false), "Expected .radar payload")
             return
@@ -622,7 +622,7 @@ struct RadarParserTests {
 
     @Test("End-to-end parsing with options")
     func endToEndWithOptions() async throws {
-        let graph = try await MermaidRenderer.parse("radar-beta\n  ticks 8\n  showLegend false\n  graticule polygon\n  min 1\n  max 200\n  axis A\n  curve c1{1}")
+        let graph = try await DiagramEngine.parse("radar-beta\n  ticks 8\n  showLegend false\n  graticule polygon\n  min 1\n  max 200\n  axis A\n  curve c1{1}")
         guard case .radar(let diagram) = graph.payload else {
             #expect(Bool(false), "Expected .radar payload")
             return
@@ -665,7 +665,7 @@ struct RadarParserTests {
           curve mycurve{1,2,3}
         """
 
-        let graph = try await MermaidRenderer.parse(source)
+        let graph = try await DiagramEngine.parse(source)
         guard case .radar(let diagram) = graph.payload else {
             #expect(Bool(false), "Expected .radar payload")
             return
@@ -695,7 +695,7 @@ struct RadarParserTests {
           min 0
           max 100
         """
-        let graph = try await MermaidRenderer.parse(source)
+        let graph = try await DiagramEngine.parse(source)
         guard case .radar(let diagram) = graph.payload else {
             #expect(Bool(false), "Expected .radar payload")
             return

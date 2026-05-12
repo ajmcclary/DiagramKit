@@ -16,7 +16,7 @@ import CoreGraphics
 ///
 /// Apple-only — depends on `BMColor` (UIColor/NSColor typealias).
 #if canImport(UIKit) || canImport(AppKit)
-public enum MermaidColorParser {
+public enum DiagramColorParser {
 
     /// Parse a color string into a `BMColor`, or `nil` if invalid.
     ///
@@ -129,4 +129,9 @@ public enum MermaidColorParser {
         }
     }
 }
+
+// MARK: - Phase 0 backward-compat deprecated alias
+
+@available(*, deprecated, renamed: "DiagramColorParser")
+public typealias MermaidColorParser = DiagramColorParser
 #endif

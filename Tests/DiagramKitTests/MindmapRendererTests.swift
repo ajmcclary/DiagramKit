@@ -45,8 +45,8 @@ final class MindmapRendererTests: XCTestCase {
 
     func test_renderASCII_throwsNotYetImplemented() {
         XCTAssertThrowsError(try original_src_ascii_index.renderMermaidASCII("mindmap\n  root")) { error in
-            guard let bmError = error as? BeautifulMermaidError else {
-                XCTFail("Expected BeautifulMermaidError, got \(error)")
+            guard let bmError = error as? DiagramError else {
+                XCTFail("Expected DiagramError, got \(error)")
                 return
             }
             if case .notYetImplemented(let msg) = bmError {
@@ -137,8 +137,8 @@ final class MindmapRendererTests: XCTestCase {
         XCTAssertTrue(svg.contains("mindmapDiagram"))
     }
 
-    func test_MermaidGraph_initType() {
-        let graph = MermaidGraph(type: .mindmap)
+    func test_DiagramDocument_initType() {
+        let graph = DiagramDocument(type: .mindmap)
         XCTAssertEqual(graph.type, .mindmap)
     }
 }

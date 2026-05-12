@@ -11,7 +11,7 @@ struct RadarEndToEndTests {
     @Test("MermaidParser.parse routes radar-beta sources to RadarDiagram")
     func parserRoutesRadarSource() async throws {
         let source = "radar-beta\n  axis A,B,C\n  curve c1{1,2,3}"
-        let graph = try await MermaidRenderer.parse(source)
+        let graph = try await DiagramEngine.parse(source)
         #expect(graph.type == .radar)
         switch graph.payload {
         case .radar(let diagram):
@@ -36,21 +36,21 @@ struct RadarEndToEndTests {
     @Test("MermaidParser.parse handles radar-beta: header variant")
     func parserHandlesRadarColon() async throws {
         let source = "radar-beta:\n  axis A\n  curve c1{1}"
-        let graph = try await MermaidRenderer.parse(source)
+        let graph = try await DiagramEngine.parse(source)
         #expect(graph.type == .radar)
     }
 
     @Test("MermaidParser.parse handles radar-beta : header variant")
     func parserHandlesRadarSpaceColon() async throws {
         let source = "radar-beta :\n  axis A\n  curve c1{1}"
-        let graph = try await MermaidRenderer.parse(source)
+        let graph = try await DiagramEngine.parse(source)
         #expect(graph.type == .radar)
     }
 
     @Test("GraphLayout.layout handles radar type")
     func layoutHandlesRadar() async throws {
         let source = "radar-beta\n  axis A,B,C\n  curve c1{1,2,3}"
-        let positioned = try await MermaidRenderer.layout(source)
+        let positioned = try await DiagramEngine.layout(source)
         #expect(positioned.width > 0)
         #expect(positioned.height > 0)
         if case .radar(let data) = positioned.content {
@@ -89,7 +89,7 @@ struct RadarEndToEndTests {
         do {
             _ = try original_src_ascii_index.renderMermaidASCII(source)
             #expect(Bool(false), "Expected notYetImplemented error")
-        } catch BeautifulMermaidError.notYetImplemented(let msg) {
+        } catch DiagramError.notYetImplemented(let msg) {
             #expect(msg.contains("Radar Chart"))
         }
     }
@@ -124,7 +124,7 @@ struct RadarEndToEndTests {
           min 0
           max 10
         """
-        let graph = try await MermaidRenderer.parse(source)
+        let graph = try await DiagramEngine.parse(source)
         #expect(graph.type == .radar)
         switch graph.payload {
         case .radar(let diagram):

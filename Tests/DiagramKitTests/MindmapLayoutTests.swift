@@ -62,8 +62,8 @@ final class MindmapLayoutTests: XCTestCase {
         var configured = diagram
         configured.config.layout = "cose-bilkent"
         XCTAssertThrowsError(try layoutMindmap(configured)) { error in
-            guard let bmError = error as? BeautifulMermaidError else {
-                XCTFail("Expected BeautifulMermaidError, got \(error)")
+            guard let bmError = error as? DiagramError else {
+                XCTFail("Expected DiagramError, got \(error)")
                 return
             }
             if case .notYetImplemented(let msg) = bmError {
@@ -149,8 +149,8 @@ final class MindmapLayoutTests: XCTestCase {
         let source = "mindmap\n  root\n    A\n    B"
         let diagram = try parseMindmap(source.split(separator: "\n", omittingEmptySubsequences: false).map(String.init), frontmatter: fm)
         XCTAssertThrowsError(try layoutMindmap(diagram)) { error in
-            guard let bmError = error as? BeautifulMermaidError else {
-                XCTFail("Expected BeautifulMermaidError, got \(error)")
+            guard let bmError = error as? DiagramError else {
+                XCTFail("Expected DiagramError, got \(error)")
                 return
             }
             if case .notYetImplemented(let msg) = bmError {
@@ -189,8 +189,8 @@ final class MindmapLayoutTests: XCTestCase {
         // resolvedLayout = layout ?? layoutAlgorithm = "cose-bilkent"
         XCTAssertEqual(diagram.config.resolvedLayout, "cose-bilkent", "Global layout should override mindmap.layoutAlgorithm")
         XCTAssertThrowsError(try layoutMindmap(diagram)) { error in
-            guard let bmError = error as? BeautifulMermaidError else {
-                XCTFail("Expected BeautifulMermaidError, got \(error)")
+            guard let bmError = error as? DiagramError else {
+                XCTFail("Expected DiagramError, got \(error)")
                 return
             }
             if case .notYetImplemented(let msg) = bmError {

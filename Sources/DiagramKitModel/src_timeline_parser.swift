@@ -3,7 +3,7 @@ import DiagramKitCommon
 
 // MARK: - Parse Errors
 
-public enum TimelineParserError: Error, LocalizedError, _MermaidRecoverableError {
+public enum TimelineParserError: Error, LocalizedError, _RecoverableDiagramError {
     case invalidHeader(String)
     case strayEventContinuation(String)
     case incompleteMultilineAccDescr
