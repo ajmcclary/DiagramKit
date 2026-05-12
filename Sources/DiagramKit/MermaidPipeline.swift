@@ -1,6 +1,7 @@
 import Foundation
 import DiagramKitModel
 import DiagramKitCommon
+import DiagramKitImport
 #if canImport(CoreGraphics)
 import DiagramKitRenderingCG
 #endif
@@ -30,11 +31,28 @@ public enum DiagramPipeline {
         return try _withDiagramIssueReporting(operation: operation, work)
     }
 
+    // MARK: - Default registry
+
+    /// Default registry for Phase 1: Mermaid only.
+    /// In later phases, specific importers are prepended before Mermaid.
+    public static let defaultRegistry: ImporterRegistry = ImporterRegistry(
+        importers: [MermaidImporter()]
+    )
+
     // MARK: - Parse
 
     public static func parse(_ source: String) throws -> DiagramDocument {
         try runPipeline(operation: "DiagramPipeline.parse", registerFonts: true) {
-            try MermaidParser.parse(source)
+            try DiagramLoader.parseDocument(source, registry: defaultRegistry)
+        }
+    }
+
+    public static func parse(
+        _ source: String,
+        registry: ImporterRegistry
+    ) throws -> DiagramDocument {
+        try runPipeline(operation: "DiagramPipeline.parse(registry:)", registerFonts: true) {
+            try DiagramLoader.parseDocument(source, registry: registry)
         }
     }
 

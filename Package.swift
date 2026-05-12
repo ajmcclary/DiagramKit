@@ -20,6 +20,7 @@ let package = Package(
     ],
     products: [
         .library(name: "DiagramKit", targets: ["DiagramKit"]),
+        .library(name: "DiagramKitImport", targets: ["DiagramKitImport"]),
         .library(name: "DiagramKitCommon", targets: ["DiagramKitCommon"]),
         .library(name: "DiagramKitModel", targets: ["DiagramKitModel"]),
         .library(name: "DiagramKitRenderingCG", targets: ["DiagramKitRenderingCG"]),
@@ -66,6 +67,11 @@ let package = Package(
             swiftSettings: strictConcurrencySettings
         ),
         .target(
+            name: "DiagramKitImport",
+            dependencies: ["DiagramKitModel"],
+            swiftSettings: strictConcurrencySettings
+        ),
+        .target(
             name: "DiagramKitRenderingCG",
             dependencies: [
                 "DiagramKitCommon",
@@ -95,6 +101,7 @@ let package = Package(
             dependencies: [
                 "DiagramKitCommon",
                 "DiagramKitModel",
+                "DiagramKitImport",
                 .target(name: "DiagramKitRenderingCG", condition: .when(platforms: [.macOS, .iOS, .tvOS, .visionOS, .macCatalyst])),
                 .target(name: "DiagramKitViews", condition: .when(platforms: [.macOS, .iOS, .tvOS, .visionOS, .macCatalyst]))
             ],

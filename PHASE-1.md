@@ -1066,3 +1066,42 @@ If any snapshot drifts, the refactor is incorrect.
 Sources/DiagramKitModel/, Tests/DiagramKitTests/, and Package.swift as they
 exist at 2026-05-12. Revised per review to fix the five structural issues
 identified.*
+
+---
+
+## Status: COMPLETE (2026-05-12)
+
+### Implementation summary
+
+All 10 new files and 5 modified files landed per the plan above. No
+deviations from the architecture or naming decisions.
+
+### Verification results
+
+| Gate | Result |
+|------|--------|
+| `swift build --build-tests` | ✅ Pass (zero errors) |
+| `ImporterRegistryTests` (4 tests) | ✅ Pass |
+| `ProbeCollisionMatrixTests` (6 tests) | ✅ Pass |
+| `MermaidImporterTests` (4 tests) | ✅ Pass |
+| `MermaidLegacyAPITests` (4 tests) | ✅ Pass |
+| `DiagramRegistryTests` (5 tests) | ✅ Pass (unchanged) |
+| `Scripts/check-file-sizes.sh` | ✅ Pass (no new warnings) |
+| `Scripts/check-sendable-annotations.sh` | ✅ Pass |
+| `Scripts/strict-concurrency-check.sh` | ✅ Pass |
+| Linux check | ⏭️ Skipped (no Docker/Podman) |
+| Corpus snapshot tests | ⚠️ Pre-existing theme drift (not caused by this phase) |
+
+### Key invariants preserved
+
+- Worker-thread dispatch: `DiagramEngine` → `_runOnWorker` → `DiagramPipeline` → `DiagramLoader` — unchanged chain.
+- Font determinism: `DiagramPipeline.runPipeline()` calls `registerBundledFontsIfNeeded()` before every operation.
+- `DiagramDocument → PositionedGraph → render` remains format-agnostic.
+- `DiagramRegistry` remains public with backward-compat documentation.
+- No snapshot re-recording required (parse path produces identical `DiagramDocument`).
+
+### Next phase
+
+Phase 2: Multi-format corpus foundation. The importer boundary is ready;
+specific importers (d2, DOT, PlantUML, Structurizr) can now be prepended
+before the Mermaid fallback using `ImporterRegistry.prepending(_:)`.

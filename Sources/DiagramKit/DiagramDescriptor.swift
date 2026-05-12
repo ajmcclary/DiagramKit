@@ -100,16 +100,15 @@ public struct DiagramDescriptor: Sendable {
 
 // MARK: - Diagram Registry
 
-// MARK: Mermaid-internal diagram-family registry
+// MARK: Mermaid-family diagram routing
 //
-// These descriptors are Mermaid-specific. A format-agnostic importer registry
-// (`ImporterRegistry` + `DiagramSourceImporter`) will be introduced in Phase 1.
-// At that point this type will become `MermaidDiagramRegistry` or be subsumed
-// into `MermaidImporter`.
+// DiagramRegistry and DiagramDescriptor are Mermaid-specific dispatch types.
+// Format-agnostic import dispatch goes through the new
+// `DiagramSourceImporter` protocol + `ImporterRegistry` (see DiagramKitImport).
+// These types remain public for backward compatibility during the transition.
 
-/// The canonical source of truth for diagram detection, parsing, and layout
-/// routing. Replaces the duplicated `hasPrefix` chains in `Parser.swift`,
-/// `src_index.swift`, and `Layout.swift`.
+/// Mermaid-family diagram registry.
+/// For multi-format import dispatch, use `ImporterRegistry` + `DiagramLoader`.
 public enum DiagramRegistry {
 
     /// All registered diagram descriptors, in priority order.

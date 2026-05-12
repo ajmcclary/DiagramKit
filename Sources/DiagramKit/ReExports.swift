@@ -7,4 +7,5 @@
 @_exported import DiagramKitRenderingCG
 #endif
 @_exported import DiagramKitModel
+@_exported import DiagramKitImport
 @_exported import DiagramKitCommon
