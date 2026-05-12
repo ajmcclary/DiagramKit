@@ -1,8 +1,31 @@
-# Phase 5: Structurizr Importer Vertical Slice — Plan
+# Phase 5: Structurizr Importer Vertical Slice — Plan (Revised)
 
-Date: 2026-05-12. **Status: PLANNING** — this document is the executable plan
-for Phase 5 of the DiagramKit multi-format roadmap. It follows Phase 4
-(complete: Graphviz DOT importer) and precedes Phase 6 (PlantUML importer).
+Date: 2026-05-12 (revised 2026-05-12 per review). **Status: PLANNING** — this
+document is the executable plan for Phase 5 of the DiagramKit multi-format
+roadmap. It follows Phase 4 (complete: Graphviz DOT importer) and precedes
+Phase 6 (PlantUML importer).
+
+**Revision notes (2026-05-12)**:
+- Element argument order corrected to Structurizr DSL convention:
+  `container <name> [description] [technology]`, not name/technology/description.
+- `C4Boundary` entries are now explicitly created for parent elements whose
+  children are in the view scope; `parentBoundary` alone is insufficient.
+- Tag syntax changed from `{tag}` braces to `tags "..."` child statements
+  (Structurizr braces always open child blocks).
+- `StructurizrLexer.swift` added to the architecture; parser is token-driven.
+- `StructurizrModelRegistryTests.swift` added for independent registry coverage.
+- Probe tightened to require `{` after optional workspace name, matching the
+  stated "requires `workspace {` structure" contract.
+- `name: String?` field added to `StructurizrWorkspace`.
+- Scoped relationships inside element blocks are now explicitly supported.
+- Diagnostics extended for `exclude`, `tags`, per-element description/technology,
+  scoped `->`, and unknown view statements.
+- `include *` semantics revised: scope element is a rendered shape in
+  systemContext views, a boundary in container/component views.
+- Test fixtures revised to include complete scoped elements and at least one
+  relationship proving wildcard resolution.
+
+---
 
 ## Goal
 
@@ -15,12 +38,13 @@ works across the importer boundary.
 
 ```
 Sources/DiagramKitStructurizr/
-├── StructurizrImporter.swift   DiagramSourceImporter conformance
-├── StructurizrAST.swift        Minimal Structurizr DSL AST types
-├── StructurizrParser.swift     Recursive-descent parser
-├── StructurizrMapper.swift     StructurizrAST → C4Diagram mapping
-├── StructurizrProbe.swift      Narrow probe function
-└── StructurizrModelRegistry.swift  Model element lookup table
+├── StructurizrImporter.swift       DiagramSourceImporter conformance
+├── StructurizrAST.swift            Minimal Structurizr DSL AST types
+├── StructurizrLexer.swift          Tokenizer (comment stripping, token stream)
+├── StructurizrParser.swift         Recursive-descent parser (consumes tokens)
+├── StructurizrMapper.swift         StructurizrAST → C4Diagram mapping
+├── StructurizrModelRegistry.swift  Model element lookup table
+└── StructurizrProbe.swift          Narrow probe function
 ```
 
 The Structurizr importer follows the same pattern as D2 and Graphviz: parse a
@@ -30,27 +54,34 @@ existing C4 layout and render pipelines. There are no new diagram types, no
 layout changes, no renderer changes, no snapshot baselines, and no real corpus
 edits.
 
+The parser is token-driven (not purely line-oriented) so that compact forms
+like `workspace{model{user=person"U"}}` are handled uniformly. The lexer
+(`StructurizrLexer.swift`) strips comments, collapses whitespace, and emits
+a token stream consumed by the parser.
+
 ### How Structurizr differs from D2/DOT
 
 D2 and DOT both map to `DiagramPayload.flowchart` — a graph with nodes, edges,
 and subgraphs. Structurizr maps to `DiagramPayload.c4(C4Diagram)` — a
 semantically richer model with typed shapes (`C4ShapeType`: person, system,
-container, component, etc.), boundaries, and relationships with explicit
-direction and technology fields. The C4 layout (`layoutC4Diagram`) and SVG/CG
-renderers already handle this payload, so the Structurizr importer only needs
-to produce valid `C4Diagram` values.
+container, component, etc.), boundaries (`C4Boundary`), and relationships
+(`C4Relationship`) with explicit direction and technology fields. The C4
+layout (`layoutC4Diagram`) and SVG/CG renderers already handle this payload,
+so the Structurizr importer only needs to produce valid `C4Diagram` values.
 
 ### Structurizr DSL structure (narrow slice)
 
 ```
-workspace {
+workspace "My Workspace" "Description" {
     model {
-        user = person "User Name" "Description"
-        app = softwareSystem "My App" "Description" {
-            web = container "Web App" "Spring Boot" "Description"
-            auth = component "Auth Service" "Description"
+        user = person "User Name" "A user of the system"
+        app  = softwareSystem "My App" "Core application" {
+            web  = container "Web App" "Public-facing web UI" "Spring Boot"
+            auth = component "Auth Service" "Handles authentication"
         }
-        user -> app "Uses" "HTTPS"
+        ext  = softwareSystem "External CRM" "Third-party"
+        user -> app  "Uses" "HTTPS"
+        user -> ext  "Accesses" "REST"
     }
     views {
         systemContext app "System Context" {
@@ -70,23 +101,26 @@ workspace {
 
 - **Model elements**: `person`, `softwareSystem`, `container`, `component` —
   defined with `=` assignment syntax. Each carries an identifier (alias), a
-  type keyword, a name string, an optional description string, and optional
-  technology string.
+  type keyword, a name string, an optional description string, and an optional
+  technology string. **Per Structurizr DSL convention**: `container <name>
+  [description] [technology]`, not name/technology/description.
 - **Nested elements**: containers and components can be defined inside
   `softwareSystem { ... }` or `container { ... }` blocks. The parser tracks
   parent-child relationships.
-- **Relationships**: explicit `source -> target "Label" "Technology"` syntax,
-  defined at the model level or inside element blocks.
+- **Relationships**: explicit `source -> target "Label" "Technology"
+  "Description"` syntax, defined at the model level or inside element blocks
+  (scoped relationships).
 - **Views**: `systemContext`, `container`, `component` — each names a scoping
   element and includes a subset of model elements. `include *` means "include
   all elements visible from the scoping element's perspective."
-- **Tags**: `{tag1 tag2}` annotations after elements — deferred with diagnostics.
+- **Tags**: `tags "Tag1,Tag2"` child statements — deferred with diagnostics
+  (no `{tag}` brace syntax; braces always open child blocks in Structurizr).
 
 For the vertical slice, the importer parses a complete workspace, extracts all
 model elements/relationships, processes the **first** view definition only,
 resolves it against the model registry, and produces a single `C4Diagram`.
-Additional views emit `.unsupported` diagnostics. `deployment` and `dynamic`
-views are deferred entirely.
+Additional views emit diagnostics. `deployment` and `dynamic` views are
+deferred entirely.
 
 ---
 
@@ -143,7 +177,49 @@ Add a single new SPM target and product. Follows the `DiagramKitD2` and
 ),
 ```
 
-## Work Stream 2: Structurizr DSL AST Types (`StructurizrAST.swift`)
+## Work Stream 2: Lexer (`StructurizrLexer.swift`)
+
+A tokenizer that consumes raw Structurizr DSL source and produces a stream
+of tokens for the parser. Splitting the lexer from the parser keeps both
+files under the 500-line threshold and enables independent unit testing.
+
+### Token types
+
+```swift
+public enum StructurizrToken: Sendable, Equatable {
+    case identifier(String)          // unquoted identifiers: workspace, model, person, etc.
+    case string(String)              // quoted string, quotes stripped: "User Name"
+    case openBrace                   // {
+    case closeBrace                  // }
+    case equals                      // =
+    case arrow                       // ->
+    case star                        // * (wildcard include)
+    case bang                        // ! (directive prefix)
+}
+```
+
+### Lexer behavior
+
+```swift
+public struct StructurizrLexer: Sendable {
+    /// Tokenize raw Structurizr DSL source.
+    /// Strips `//` and `#` single-line comments, `/* ... */` block comments.
+    /// Returns `[StructurizrToken]`.
+    public func tokenize(_ source: String) -> [StructurizrToken]
+}
+```
+
+- Strips `// ...` and `# ...` end-of-line comments.
+- Strips `/* ... */` block comments (nesting not required for this slice).
+- Collapses whitespace runs — token boundaries are derived from punctuation
+  (`{`, `}`, `=`, `->`, `*`, `!`) and quoted strings.
+- Quoted strings (`"..."`) produce `.string(content)` with quotes stripped and
+  no escape processing beyond `\"`.
+- Identifiers are alphanumeric + `_`, case-sensitive.
+- The `*` token is only emitted as `.star` when it appears as a standalone
+  token (i.e., `include *`).
+
+## Work Stream 3: Structurizr DSL AST Types (`StructurizrAST.swift`)
 
 All types are value types (`Sendable`). The AST models the narrow DSL subset
 we parse — not the full Structurizr DSL language.
@@ -153,10 +229,19 @@ we parse — not the full Structurizr DSL language.
 ```swift
 /// Top-level: a complete Structurizr workspace definition.
 public struct StructurizrWorkspace: Sendable {
+    public var name: String?               // optional workspace name
+    public var description: String?        // optional workspace description
     public var model: StructurizrModel?
     public var views: [StructurizrView]
 
-    public init(model: StructurizrModel? = nil, views: [StructurizrView] = []) {
+    public init(
+        name: String? = nil,
+        description: String? = nil,
+        model: StructurizrModel? = nil,
+        views: [StructurizrView] = []
+    ) {
+        self.name = name
+        self.description = description
         self.model = model
         self.views = views
     }
@@ -187,7 +272,7 @@ public struct StructurizrModelElement: Sendable {
     public var name: String                 // display name, e.g., "User Name"
     public var description: String?         // optional description string
     public var technology: String?          // optional technology string
-    public var tags: [String]               // tag annotations (deferred)
+    public var tags: [String]               // from tags "..." child (deferred)
     public var parentAlias: String?         // nil for top-level, alias of parent
     public var children: [StructurizrModelElement]  // nested elements defined in block
 
@@ -229,14 +314,14 @@ on valid Structurizr DSL that uses deployment constructs.
 ### Relationship types
 
 ```swift
-/// An explicit relationship definition from the model section.
+/// An explicit relationship definition from the model section or element block.
 public struct StructurizrRelationshipDef: Sendable {
     public var source: String              // alias of source element
     public var target: String              // alias of target element
     public var label: String?              // relationship label
     public var technology: String?         // technology annotation
     public var description: String?        // description annotation
-    public var tags: [String]              // tag annotations (deferred)
+    public var tags: [String]              // from tags "..." child (deferred)
 
     public init(
         source: String,
@@ -264,18 +349,24 @@ public struct StructurizrView: Sendable {
     public var kind: StructurizrViewKind
     public var scopeAlias: String          // softwareSystem/container being viewed
     public var title: String?              // optional view title
+    public var description: String?        // optional view description
     public var includes: [StructurizrViewInclude]
+    public var autoLayout: Bool            // autoLayout child (deferred)
 
     public init(
         kind: StructurizrViewKind,
         scopeAlias: String,
         title: String? = nil,
-        includes: [StructurizrViewInclude] = []
+        description: String? = nil,
+        includes: [StructurizrViewInclude] = [],
+        autoLayout: Bool = false
     ) {
         self.kind = kind
         self.scopeAlias = scopeAlias
         self.title = title
+        self.description = description
         self.includes = includes
+        self.autoLayout = autoLayout
     }
 }
 
@@ -291,11 +382,152 @@ public enum StructurizrViewKind: Sendable, Equatable {
 public enum StructurizrViewInclude: Sendable, Equatable {
     case wildcard                       // `include *`
     case element(String)                // `include elementAlias`
-    case relationship(String, String)   // `include source -> target`
 }
 ```
 
-## Work Stream 3: Model Registry (`StructurizrModelRegistry.swift`)
+## Work Stream 4: Structurizr DSL Parser (`StructurizrParser.swift`)
+
+A recursive-descent parser consuming the token stream from `StructurizrLexer`.
+Produces `(StructurizrWorkspace, [DiagramDiagnostic])`.
+
+### Grammar subset
+
+```
+workspace       := "workspace" (STRING STRING?)? "{" section* "}"
+
+section        := model_section
+               | views_section
+               | "!" identifier ...       → emit diagnostic
+               | "tags" ...               → emit diagnostic (top-level tags)
+               | <unknown>                → emit diagnostic
+
+model_section  := "model" "{" model_stmt* "}"
+
+model_stmt     := element_def
+               | relationship_def
+               | "tags" ...               → emit diagnostic
+
+element_def    := IDENT "=" element_kind STRING (STRING)? (STRING)?
+                  ("{" (element_def | relationship_def)* "}")?
+
+element_kind   := "person"
+               | "softwareSystem"
+               | "container"
+               | "component"
+               | "deploymentNode"         → parsed, deferred
+
+relationship_def := IDENT "->" IDENT (STRING)? (STRING)? (STRING)?
+
+views_section  := "views" "{" view_def* "}"
+
+view_def       := view_kind IDENT (STRING)? (STRING)? "{" view_stmt* "}"
+
+view_kind      := "systemContext"
+               | "container"
+               | "component"
+               | "dynamic"                → deferred
+               | "deployment"             → deferred
+
+view_stmt      := include_stmt
+               | "autoLayout" "{" ... "}" → deferred, emit diagnostic
+               | "animation" "{" ... "}"  → deferred, emit diagnostic
+               | "styles" "{" ... "}"     → deferred, emit diagnostic
+               | "exclude" ...            → deferred, emit diagnostic
+               | "tags" "..."             → deferred, emit diagnostic
+               | <unknown>                → emit diagnostic
+
+include_stmt   := "include" "*"
+               | "include" IDENT
+```
+
+### Parse rules (narrow slice)
+
+| Input pattern | AST output |
+|---|---|
+| `workspace { model { } views { } }` | `StructurizrWorkspace` with nil name, empty model + views |
+| `workspace "Name" { ... }` | Workspace with `name: "Name"` |
+| `workspace "Name" "Desc" { ... }` | Workspace with `name: "Name"`, `description: "Desc"` |
+| `user = person "User Name"` | `StructurizrModelElement(alias: "user", kind: .person, name: "User Name")` |
+| `user = person "User Name" "A user"` | Element with description "A user" |
+| `app = softwareSystem "My App"` | Element kind `.softwareSystem`, name "My App" |
+| `db = container "Database" "PostgreSQL"` | Element kind `.container`, name "Database", **description** "PostgreSQL" |
+| `db = container "Database" "PostgreSQL" "Stores data"` | Element with description "PostgreSQL", **technology** "Stores data" |
+| `auth = component "Auth Service"` | Element kind `.component` |
+| `app = softwareSystem "My App" { web = container "Web" }` | Element with nested child |
+| `app = softwareSystem "App" { web = container "Web" user -> web "Uses" }` | Scoped relationship inside element block |
+| `user -> app "Uses"` | `StructurizrRelationshipDef(source: "user", target: "app", label: "Uses")` |
+| `user -> app "Uses" "HTTPS"` | Relationship with label + technology |
+| `user -> app "Uses" "HTTPS" "Over TLS"` | Relationship with label + tech + description |
+| `systemContext app "Context" { include * }` | `StructurizrView(kind: .systemContext, scopeAlias: "app", title: "Context", includes: [.wildcard])` |
+| `container app { include * }` | View with nil title, nil description |
+| `component web { include user include db }` | View with explicit element includes |
+| `deploymentNode "AWS" { ... }` | Parsed as AST element, deferred with diagnostic |
+| `dynamic app { ... }` | Parsed as view, deferred with diagnostic |
+| `!include url` | Emitted `.unsupported` diagnostic |
+| `tags "Tag1,Tag2"` in model | Tags parsed into element.tags field, emitted diagnostic |
+| `autoLayout { ... }` in view | Parsed, deferred with diagnostic |
+| `exclude user` in view | Parsed, deferred with diagnostic |
+| `styles { ... }` in view | Parsed, deferred with diagnostic |
+| `animation { ... }` in view | Parsed, deferred with diagnostic |
+
+### Key parser behaviors
+
+1. **Identifier-first assignment**: Structurizr uses `alias = elementType ...`
+   rather than bare keywords. The parser reads an identifier token, then `=`,
+   then the element kind keyword. This distinguishes `user = person` (element
+   def) from bare `person` (would be a parse error).
+
+2. **Quoted strings**: Names, descriptions, and technologies are quoted
+   strings (`"..."`). The lexer strips quotes; the parser sees `.string`
+   tokens. Optional strings: if fewer than 3 strings are provided after the
+   element kind, the later positional slots are nil.
+
+3. **Argument order (Structurizr DSL convention)**:
+   - `person <name> [description]` (2 positional strings max)
+   - `softwareSystem <name> [description]` (2 positional strings max)
+   - `container <name> [description] [technology]` (3 positional strings max)
+   - `component <name> [description] [technology]` (3 positional strings max)
+   - `deploymentNode <name> [description] [technology]` (3 positional strings max)
+   - Relationship: `source -> target [description] [technology]` (2 optional strings after target)
+
+   **This is the corrected order.** The prior version incorrectly put
+   technology before description.
+
+4. **Nested element blocks**: `softwareSystem { container = container ...
+   component = component ... }` — children are parsed recursively. The parent
+   alias is tracked via a stack.
+
+5. **Scoped relationships**: Inside an element block (`{ ... }`), both
+   element definitions and relationship definitions are allowed. A scoped
+   relationship like `user -> web "Uses"` inside `app = softwareSystem { ... }`
+   is a valid Structurizr construct and is parsed into the model's
+   relationship list. The source/target aliases are resolved at model scope
+   (not scoped to the block).
+
+6. **Relationship arrow**: `->` separates source from target. Labels,
+   technology, and description are optional quoted strings after the target.
+   Relationship argument order: `source -> target [description]? [technology]?`.
+
+7. **Views section**: Parsed after the model section. View definitions specify
+   the view kind, the scoping element alias, an optional title string, an
+   optional description string, and include directives plus optional child
+   blocks (`autoLayout`, `animation`, `styles`).
+
+8. **Include `*`**: A bare `*` token after `include` means "include all
+   visible elements." The parser captures this as `.wildcard`. Explicit
+   element includes (`include user`) are captured as `.element("user")`.
+
+9. **Deferred constructs**: `deploymentNode`, `dynamic` views, `deployment`
+   views, `!include`, `!docs`, `!adrs`, `!decisions`, `tags "..."`,
+   `properties { ... }`, `autoLayout { ... }`, `animation { ... }`,
+   `styles { ... }`, `exclude`, and any unknown view statements are parsed
+   into the AST (or their blocks consumed) but the mapper emits
+   `.unsupported` diagnostics rather than producing C4 model entries.
+
+10. **Brace balancing**: The parser validates that `{` and `}` are balanced.
+    Unbalanced braces produce `DiagramError`.
+
+## Work Stream 5: Model Registry (`StructurizrModelRegistry.swift`)
 
 A lookup table built from the parsed model elements, used during view
 resolution.
@@ -304,9 +536,9 @@ resolution.
 /// Registry that indexes model elements by alias for fast lookup.
 /// Supports hierarchical parent-child traversal for view scoping.
 public struct StructurizrModelRegistry: Sendable {
-    /// All model elements indexed by alias.
+    /// All model elements indexed by alias (flattened: includes nested children).
     public let elementsByAlias: [String: StructurizrModelElement]
-    /// All explicit relationships.
+    /// All explicit relationships (model-level + scoped).
     public let relationships: [StructurizrRelationshipDef]
 
     public init(
@@ -332,141 +564,42 @@ public struct StructurizrModelRegistry: Sendable {
     public var topLevelElements: [StructurizrModelElement] {
         elementsByAlias.values.filter { $0.parentAlias == nil }
     }
+
+    /// All aliases connected to `alias` via any relationship (source or target).
+    public func connectedAliases(to alias: String) -> Set<String> {
+        var result: Set<String> = []
+        for rel in relationships {
+            if rel.source == alias { result.insert(rel.target) }
+            if rel.target == alias { result.insert(rel.source) }
+        }
+        return result
+    }
 }
 ```
 
 **Resolve `include *` for a view:**
 
-For the vertical slice, `include *` semantics are simplified:
+For the vertical slice, `include *` semantics are simplified but follow
+Structurizr's C4 scoping rules:
 
-| View kind | Scope element | Include * resolves to |
-|---|---|---|
-| `systemContext <alias>` | softwareSystem | The softwareSystem itself, all persons that relate to it, and all external softwareSystems it relates to |
-| `container <alias>` | softwareSystem | The softwareSystem, all its containers, all persons that relate to it, and all relationships among those elements |
-| `component <alias>` | container | The parent softwareSystem + the container, all its components, all persons/containers that relate to it, and all relationships among those |
+| View kind | Scope element | Scope rendered as | Include * resolves to |
+|---|---|---|---|
+| `systemContext <alias>` | softwareSystem | `C4Shape` (system box) | The scope softwareSystem (as shape), all persons related to it, and all softwareSystems related to it. Excludes containers, components, deployment nodes. |
+| `container <alias>` | softwareSystem | `C4Boundary` (system boundary) | The scope softwareSystem (as boundary), all its direct container children (as shapes inside boundary), all persons related to the scope or its containers, and all external softwareSystems related to the scope or its containers. |
+| `component <alias>` | container | `C4Boundary` (container boundary) | The parent softwareSystem (as shape or top-level context), the scope container (as boundary), all its direct component children (as shapes inside boundary), and all persons/containers related to the scope or its components. |
 
 The resolution walks explicit relationships to discover connected elements.
-Elements not referenced by any relationship that touches the scope element are
-excluded (matching C4 "include *" semantics where only related elements appear).
+Elements not referenced by any relationship that touches the scope element or
+its children are excluded from the view.
 
-## Work Stream 4: Structurizr DSL Parser (`StructurizrParser.swift`)
+**Boundary creation rule**: When a scope element is rendered as a boundary
+(container and component views), the mapper creates a `C4Boundary` entry in
+`C4Diagram.boundaries` with `alias` matching the scope element's alias. Child
+shapes receive `parentBoundary` set to the scope alias. The C4 layout engine
+(`_drawInsideBoundary`) requires both the boundary entry and the matching
+`parentBoundary` on shapes — `parentBoundary` alone is insufficient.
 
-A recursive-descent parser that consumes raw Structurizr DSL source and
-produces `(StructurizrWorkspace, [DiagramDiagnostic])`. The parser is
-line-oriented with brace-tracking for nested blocks.
-
-### Lexing / preprocessing
-
-- Strip `// ...` single-line comments and `/* ... */` block comments.
-- Strip `#` line comments (Structurizr DSL supports `#` for comments).
-- Tokenize lines: identifiers, quoted strings (`"..."`), braces (`{`, `}`),
-  arrow (`->`), equals (`=`).
-
-### Grammar subset
-
-```
-workspace       := "workspace"  "{" section* "}"
-               |  "workspace"  IDENT "{" section* "}"    // named workspace
-
-section        := model_section
-               | views_section
-               | "!include" ...            → emit diagnostic
-               | "!docs" ...               → emit diagnostic
-               | "!adrs" ...               → emit diagnostic
-               | "!decisions" ...          → emit diagnostic
-               | properties_block           → emit diagnostic
-
-model_section  := "model" "{" model_stmt* "}"
-
-model_stmt     := element_def
-               | relationship_def
-
-element_def    := id "=" element_kind STRING (STRING)? (STRING)? tags_opt ("{" element_def* "}")?
-
-element_kind   := "person"
-               | "softwareSystem"
-               | "container"
-               | "component"
-               | "deploymentNode"          → parsed, deferred
-
-relationship_def := id "->" id (STRING)? (STRING)? (STRING)? tags_opt
-
-tags_opt       := "{" tag (","? tag)* "}"
-               | ε
-
-views_section  := "views" "{" view_def* "}"
-
-view_def       := view_kind id (STRING)? "{" include_stmt* "}"
-
-view_kind      := "systemContext"
-               | "container"
-               | "component"
-               | "dynamic"                 → deferred
-               | "deployment"              → deferred
-
-include_stmt   := "include" "*"
-               | "include" id
-               | "include" id "->" id
-```
-
-### Parse rules (narrow slice)
-
-| Input pattern | AST output |
-|---|---|
-| `workspace { model { } views { } }` | `StructurizrWorkspace` with empty model + views |
-| `workspace "Name" { ... }` | Named workspace (name captured but unused) |
-| `user = person "User Name"` | `StructurizrModelElement(alias: "user", kind: .person, name: "User Name")` |
-| `user = person "User Name" "A user"` | Element with description "A user" |
-| `app = softwareSystem "My App"` | Element kind `.softwareSystem`, name "My App" |
-| `db = container "Database" "PostgreSQL"` | Element kind `.container`, name "Database", technology "PostgreSQL" |
-| `db = container "Database" "PostgreSQL" "Stores data"` | Element with technology + description |
-| `auth = component "Auth Service"` | Element kind `.component` |
-| `app = softwareSystem "My App" { web = container "Web" }` | Element with nested child |
-| `user -> app "Uses"` | `StructurizrRelationshipDef(source: "user", target: "app", label: "Uses")` |
-| `user -> app "Uses" "HTTPS"` | Relationship with label + technology |
-| `user -> app "Uses" "HTTPS" "Over TLS"` | Relationship with label + technology + description |
-| `systemContext app "Context" { include * }` | `StructurizrView(kind: .systemContext, scopeAlias: "app", title: "Context", includes: [.wildcard])` |
-| `container app { include * }` | View with nil title |
-| `component web { include user include db }` | View with explicit element includes |
-| `deploymentNode "AWS" { ... }` | Parsed as AST element, deferred with diagnostic |
-| `dynamic app { ... }` | Parsed as view, deferred with diagnostic |
-| `!include url` | Emitted `.unsupported` diagnostic |
-| `{tag1 tag2}` after element | Parsed tags, emitted `.unsupported` diagnostic |
-
-### Key parser behaviors
-
-1. **Identifier-first assignment**: Structurizr uses `alias = elementType ...`
-   rather than bare keywords. The parser reads an identifier, then `=`, then
-   the element kind keyword. This distinguishes `user = person` (element def)
-   from bare `person` (would be a syntax error in our subset).
-
-2. **Quoted strings**: Names, descriptions, and technologies are quoted
-   strings (`"..."`). The parser strips quotes. Optional strings: if fewer
-   than 3 strings are provided after the element kind, the later positional
-   slots are nil.
-
-3. **Nested element blocks**: `softwareSystem { container = container ... }`
-   — children are parsed recursively. The parent alias is tracked via a stack.
-
-4. **Relationship arrow**: `->` separates source from target. Labels,
-   technology, and description are optional quoted strings after the target.
-
-5. **Views section**: Parsed after the model section. View definitions specify
-   the view kind, the scoping element alias, an optional title string, and
-   include directives.
-
-6. **Include `*`**: A bare `*` after `include` means "include all visible
-   elements." The parser captures this as `.wildcard`.
-
-7. **Deferred constructs**: `deploymentNode`, `dynamic` views, `!include`,
-   `!docs`, `!adrs`, `!decisions` — parsed into the AST (to avoid crashing on
-   valid Structurizr DSL) but mapper emits `.unsupported` diagnostics rather
-   than producing `C4Shape` / `C4Relationship` / `C4Diagram` entries.
-
-8. **Brace balancing**: The parser validates that `{` and `}` are balanced.
-   Unbalanced braces produce `DiagramError`.
-
-## Work Stream 5: Structurizr → C4Diagram Mapper (`StructurizrMapper.swift`)
+## Work Stream 6: Structurizr → C4Diagram Mapper (`StructurizrMapper.swift`)
 
 Converts `StructurizrWorkspace` → `C4Diagram` plus diagnostics. The mapper
 builds a model registry from the `model` section, then resolves the first
@@ -474,24 +607,26 @@ view against it.
 
 ### Core mapping table
 
-| Structurizr construct | C4Diagram / C4Shape field |
+| Structurizr construct | C4Diagram / C4Shape / C4Boundary field |
 |---|---|
-| `person` element | `C4Shape(alias:, label:, typeC4Shape: .person)` |
-| `softwareSystem` element | `C4Shape(alias:, label:, typeC4Shape: .system)` |
-| `container` element | `C4Shape(alias:, label:, typeC4Shape: .container, technology:)` |
-| `component` element | `C4Shape(alias:, label:, typeC4Shape: .component, technology:)` |
+| `person` element | `C4Shape(alias:, label:, typeC4Shape: .person, description:)` |
+| `softwareSystem` element | `C4Shape(alias:, label:, typeC4Shape: .system, description:)` |
+| `container` element | `C4Shape(alias:, label:, typeC4Shape: .container, technology:, description:)` |
+| `component` element | `C4Shape(alias:, label:, typeC4Shape: .component, technology:, description:)` |
 | `deploymentNode` element | Diagnostic only — no shape |
 | Element `name` | `C4Shape.label` |
 | Element `description` | `C4Shape.description` |
 | Element `technology` | `C4Shape.technology` |
 | Element `alias` | `C4Shape.alias` |
-| Nested element parent | `C4Shape.parentBoundary` — mapped to parent's alias |
-| `source -> target` relationship | `C4Relationship(kind: .rel, from:, to:, label:, technology:)` |
+| Scope element as boundary (container/component views) | `C4Boundary(alias:, label: element.name, type:, description: element.description)` |
+| Child element of boundary | `C4Shape.parentBoundary` set to parent's alias |
+| `source -> target` relationship | `C4Relationship(kind: .rel, from:, to:, label:, technology:, description:)` |
 | `systemContext` view | `C4Diagram.kind = .context` |
 | `container` view | `C4Diagram.kind = .container` |
 | `component` view | `C4Diagram.kind = .component` |
 | `dynamic` / `deployment` view | Diagnostic only |
 | View `title` | `C4Diagram.title` |
+| View `description` | `C4Diagram.accDescr` |
 | `include *` | All elements visible from scope element's perspective |
 
 ### Key mapper behaviors
@@ -506,15 +641,41 @@ view against it.
    | `component` | `.component` |
 
    The `external_*` and `*_db`/`*_queue` variants are **not mapped** in this
-   slice. Tags like `{external}` or `{database}` on a Structurizr element
-   emit `.unsupported` diagnostics — the element is mapped to its base type
-   (e.g., `softwareSystem {database}` → `.system` with a diagnostic saying
-   "tag-based shape refinement not yet supported; rendered as base type").
+   slice. Tags on elements emit diagnostics — the element is mapped to its
+   base type.
 
-2. **Parent boundary mapping**: Nested elements (container inside
-   softwareSystem, component inside container) set `C4Shape.parentBoundary` to
-   the parent's alias. The C4 layout/layout engine uses this to position
-   shapes within boundaries.
+2. **Boundary creation (critical — revised)**:
+
+   For **container** views: the mapper creates a `C4Boundary` for the scope
+   softwareSystem:
+   ```swift
+   C4Boundary(
+       alias: scopeElement.alias,
+       label: scopeElement.name,
+       type: "system",
+       description: scopeElement.description,
+       parentBoundary: "global"
+   )
+   ```
+   Child containers become `C4Shape` entries with `parentBoundary` set to the
+   scope alias. The scope element itself is **not** added as a `C4Shape`.
+
+   For **component** views: the mapper creates a `C4Boundary` for the scope
+   container with `type: "container"`. Child components become `C4Shape`
+   entries with `parentBoundary` set to the scope container's alias. The
+   scope container's parent softwareSystem is added as a `C4Shape` (at global
+   level) unless it has containers outside the component view scope.
+
+   For **systemContext** views: the scope softwareSystem is rendered as a
+   `C4Shape` (at global level). No boundary is created.
+
+   **Why this matters**: The C4 layout engine (`layoutC4Diagram` →
+   `_drawInsideBoundary`) only positions shapes within boundaries that exist
+   in `C4Diagram.boundaries`. A shape with `parentBoundary: "app"` but no
+   `C4Boundary(alias: "app")` in the diagram will never be positioned inside
+   any boundary — it falls to the global level and displays incorrectly.
+   Creating explicit `C4Boundary` entries is mandatory for correct C4
+   rendering.
 
 3. **Relationship resolution**: Explicit model relationships map directly to
    `C4Relationship` entries. The `kind` defaults to `.rel` (directed). Arrow
@@ -525,22 +686,24 @@ view against it.
 4. **View resolution — `include *`**: The mapper resolves which model
    elements are visible from the scope element's perspective:
 
-   - **systemContext**: Include the scope softwareSystem, all persons that have
-     a relationship TO or FROM the scope, and all softwareSystems that have a
-     relationship TO or FROM the scope. Exclude containers, components, and
-     deployment nodes (those are lower-level details not visible at context
-     level).
-   - **container**: Include the scope softwareSystem, all its containers, all
-     persons related to the scope, all softwareSystems related to the scope,
-     and all relationships among those elements. Exclude components.
-   - **component**: Include the scope container's parent softwareSystem, the
-     scope container itself, all the container's components, all persons and
-     other containers that relate to the scope container or its components,
-     and all relationships among those.
+   - **systemContext**: Include the scope softwareSystem (as shape), all
+     persons that have a relationship TO or FROM the scope, and all
+     softwareSystems that have a relationship TO or FROM the scope. Exclude
+     containers, components, and deployment nodes.
+   - **container**: CREATE a boundary for the scope softwareSystem. Include
+     all its direct container children (as shapes with `parentBoundary` =
+     scope alias), all persons related to the scope or its containers, all
+     external softwareSystems related to the scope or its containers, and all
+     relationships among those elements. Exclude components.
+   - **component**: CREATE a boundary for the scope container. Include its
+     parent softwareSystem (as global shape), the scope container (as
+     boundary), all its direct component children (as shapes with
+     `parentBoundary` = scope alias), all persons and other containers that
+     relate to the scope container or its components, and all relationships
+     among those.
 
    Elements not referenced by any relationship that touches the scope element
-   are excluded from the view — this matches Structurizr's semantics where
-   `include *` shows only *related* elements, not the entire model.
+   or its direct children are excluded from the view.
 
 5. **Multiple views — first-view-only**: The mapper processes only
    `workspace.views.first`. Additional views emit diagnostics:
@@ -559,19 +722,21 @@ view against it.
    relationships to the scope element is included only if it is the scope
    element itself or a direct child of the scope element.
 
-9. **Title from view**: The view's optional title string populates
-   `C4Diagram.title`. If the view has no title, the scope alias is used as
+9. **Title and description from view**: The view's optional title string
+   populates `C4Diagram.title`. The view's optional description populates
+   `C4Diagram.accDescr`. If the view has no title, the scope alias is used as
    a fallback title.
 
-## Work Stream 6: Structurizr Probe (`StructurizrProbe.swift`)
+## Work Stream 7: Structurizr Probe (`StructurizrProbe.swift`)
 
-A narrow probe function that requires explicit `workspace {` structure. It
-must NOT false-match on Mermaid, D2, DOT, or PlantUML source.
+A narrow probe function that requires `workspace` followed by an opening
+brace (with optional name/description in between). It must NOT false-match
+on Mermaid, D2, DOT, or PlantUML source.
 
 ```swift
 /// Returns true when `source` appears to be Structurizr DSL rather than any
-/// other known format. This is a narrow probe — it requires `workspace {`
-/// or `workspace <name> {` at the start of meaningful content.
+/// other known format. This is a narrow probe — it requires `workspace`
+/// followed by `{` (with optional name/description strings between).
 public func isStructurizrSource(_ source: String) -> Bool {
     let trimmed = source.trimmingCharacters(in: .whitespacesAndNewlines)
     guard !trimmed.isEmpty else { return false }
@@ -579,12 +744,12 @@ public func isStructurizrSource(_ source: String) -> Bool {
     let firstLine = trimmed.split(separator: "\n").first?
         .trimmingCharacters(in: .whitespaces) ?? ""
 
-    // PlantUML guard — @startuml/@startxxx before workspace
+    // PlantUML guard — @startuml/@startxxx blocks
     if trimmed.contains("@startuml") || trimmed.contains("@start") {
         return false
     }
 
-    // Mermaid guard — flowchart/graph/sequenceDiagram etc. first-line headers
+    // Mermaid guard — first-line diagram headers
     let mermaidHeaders = [
         "graph", "flowchart", "sequenceDiagram", "classDiagram",
         "stateDiagram", "erDiagram", "gantt", "pie", "mindmap",
@@ -611,34 +776,38 @@ public func isStructurizrSource(_ source: String) -> Bool {
         }
     }
 
-    // Positive: workspace keyword at start
+    // D2 guard — d2 uses `:` and `->` without workspace wrapper
+    // (Structurizr requires workspace keyword; D2 never starts with it)
+
+    // Positive: workspace keyword at start, followed by { somewhere
     let wsTokens = lowerLine.split(separator: " ", omittingEmptySubsequences: true)
-    guard let firstWS = wsTokens.first else { return false }
-
-    if firstWS == "workspace" { return true }
-
-    // Compact form: workspace{...} or workspace"Name"{...}
-    if lowerLine.hasPrefix("workspace{") || lowerLine.hasPrefix("workspace\"") {
-        return true
+    guard let firstWS = wsTokens.first, firstWS == "workspace" else {
+        // Compact form: workspace{...} or workspace"Name"{...}
+        if lowerLine.hasPrefix("workspace{") || lowerLine.hasPrefix("workspace\"") {
+            // Must eventually contain { to be valid
+            return trimmed.contains("{")
+        }
+        return false
     }
 
-    return false
+    // Must contain an opening brace (may be on first line or subsequent lines)
+    return trimmed.contains("{")
 }
 ```
 
 **Probe design rationale**:
 
-- Structurizr DSL always starts with `workspace` (optionally followed by a
-  quoted name, then `{`). No other diagram format uses `workspace` as a
-  top-level keyword.
-- Mermaid, DOT, PlantUML, D2 are all explicitly rejected before the positive
-  check, providing defense-in-depth.
-- The probe requires `workspace` at the very start of the first line — it
-  does not search for `workspace` deep in the source. This guards against
-  false matches on large sources that happen to contain the word.
+- Structurizr DSL always starts with `workspace` (optionally followed by
+  quoted name/description strings, then `{`). No other diagram format uses
+  `workspace` as a top-level keyword.
+- The probe now requires `{` somewhere in the source — `"workspace "` alone
+  without `{` returns false. This matches the stated contract that the probe
+  requires "`workspace {` structure."
+- Mermaid, DOT, PlantUML, and D2 are all explicitly rejected before the
+  positive check, providing defense-in-depth.
 - Compact forms like `workspace{model{user=person"U"}}` are accepted.
 
-## Work Stream 7: StructurizrImporter (`StructurizrImporter.swift`)
+## Work Stream 8: StructurizrImporter (`StructurizrImporter.swift`)
 
 ```swift
 import Foundation
@@ -663,8 +832,11 @@ public struct StructurizrImporter: DiagramSourceImporter {
     }
 
     public func parse(_ source: String) throws -> DiagramImportResult {
+        let lexer = StructurizrLexer()
+        let tokens = lexer.tokenize(source)
+
         let parser = StructurizrParser()
-        let (workspace, parseDiagnostics) = try parser.parse(source)
+        let (workspace, parseDiagnostics) = try parser.parse(tokens)
 
         let mapper = StructurizrMapper()
         let (c4Diagram, mapDiagnostics) = mapper.map(workspace)
@@ -678,7 +850,7 @@ public struct StructurizrImporter: DiagramSourceImporter {
 }
 ```
 
-## Work Stream 8: Registry Integration
+## Work Stream 9: Registry Integration
 
 Update `DiagramPipeline.defaultRegistry` to prepend `StructurizrImporter()`
 before the existing importers:
@@ -709,7 +881,7 @@ The import in `MermaidPipeline.swift`:
 import DiagramKitStructurizr
 ```
 
-## Work Stream 9: Diagnostics for Unsupported DSL Constructs
+## Work Stream 10: Diagnostics for Unsupported DSL Constructs
 
 The parser and mapper emit `.unsupported` diagnostics for Structurizr DSL
 features outside the narrow vertical slice. Categories:
@@ -727,8 +899,8 @@ features outside the narrow vertical slice. Categories:
 | `!docs <path>` | "!docs directive not yet supported" |
 | `!adrs <path>` | "!adrs directive not yet supported" |
 | `!decisions <path>` | "!decisions directive not yet supported" |
-| `{tag}` annotations on elements | "tag-based shape refinement not yet supported; rendered as base type" |
-| `{tag}` annotations on relationships | "tag-based relationship styling not yet supported" |
+| `tags "..."` on elements | "tag-based shape refinement not yet supported; rendered as base type" |
+| `tags "..."` on relationships | "tag-based relationship styling not yet supported" |
 | `properties { ... }` block | "custom properties not yet supported" |
 | `!identifiers` (hierarchical/ flat) | "identifier strategy not yet supported" |
 | `!impliedRelationships` | "implied relationships not yet supported" |
@@ -737,57 +909,96 @@ features outside the narrow vertical slice. Categories:
 | `branding { ... }` | "branding not yet supported" |
 | `terminology { ... }` | "terminology customization not yet supported" |
 | `configuration { ... }` | "configuration block not yet supported" |
-| `filtered { ... }` views | "filtered views not yet supported" |
-| `animation { ... }` in views | "animation not yet supported" |
 | `styles { ... }` (element/ relationship) | "custom styles not yet supported" |
 | `perspectives { ... }` | "perspectives not yet supported" |
 | `model { ... }` block inside view | "inline model in views not yet supported" |
 | `group` / `groups` | "element groups not yet supported" |
-| `url` on elements | "URL attribute not yet supported" |
+| `url` attribute on elements | "URL attribute not yet supported" |
 | `!ref` / `!extend` | "reference/include extension not yet supported" |
+| `exclude` in view | "exclude directive not yet supported" |
+| Unknown directive (`!foo`) | "unknown directive: !foo" |
+| Unknown view statement | "unsupported view statement" |
 
 ### Diagnostic emission strategy
 
+- **Lexer emits no diagnostics** — unrecognized tokens are passed through as
+  `.identifier` for the parser to handle.
 - **Parser emits diagnostics** for unsupported top-level directives
   (`!include`, `!docs`, `!adrs`, `!decisions`), deployment node definitions,
-  dynamic/deployment views, properties blocks, and tag annotations.
+  dynamic/deployment views, `properties` blocks, `tags` statements,
+  `autoLayout`/`animation`/`styles`/`exclude` in views, and unknown
+  directives or view statements.
 - **Mapper emits diagnostics** for multiple views, tag-based shape
-  refinements, and missing views.
+  refinements, boundary-scope mismatches, and missing views.
 - **Diagnostics carry line information** when available from the parser.
   Mapper-level diagnostics carry no line info (they fire during AST walk).
 - **Never silent no-op**: every unrecognized construct produces a diagnostic.
   Valid constructs that map to supported C4 types produce no diagnostics.
 
-## Work Stream 10: Tests
+## Work Stream 11: Tests
 
-### 10a. `StructurizrParserTests` (new file: `Tests/DiagramKitTests/StructurizrParserTests.swift`)
+### 11a. `StructurizrLexerTests` (new file: `Tests/DiagramKitTests/StructurizrLexerTests.swift`)
 
-Parser unit tests for the recursive-descent parser. At least 18 tests:
+Lexer unit tests. At least 8 tests:
 
 | Test name | Description |
 |---|---|
-| `parseEmptyWorkspace` | `workspace { }` → workspace with nil model, empty views |
-| `parseNamedWorkspace` | `workspace "Name" { }` → workspace parsed, name captured |
+| `tokenizeEmptySource` | `""` → empty token array |
+| `tokenizeIdentifiers` | `workspace model views` → three `.identifier` tokens |
+| `tokenizeStrings` | `"Hello" "World"` → two `.string` tokens with quotes stripped |
+| `tokenizeBraces` | `{ }` → `.openBrace`, `.closeBrace` |
+| `tokenizeEquals` | `=` → `.equals` |
+| `tokenizeArrow` | `->` → `.arrow` |
+| `tokenizeStar` | `*` → `.star` (standalone) |
+| `tokenizeLineComments` | `// comment\nworkspace` → only `.identifier("workspace")` |
+| `tokenizeBlockComments` | `/* comment */workspace` → only `.identifier("workspace")` |
+| `tokenizeHashComments` | `# comment\nworkspace` → only `.identifier("workspace")` |
+
+### 11b. `StructurizrParserTests` (new file: `Tests/DiagramKitTests/StructurizrParserTests.swift`)
+
+Parser unit tests for the recursive-descent parser. At least 20 tests:
+
+| Test name | Description |
+|---|---|
+| `parseEmptyWorkspace` | `workspace { }` → workspace with nil name, nil model, empty views |
+| `parseNamedWorkspace` | `workspace "Name" { }` → `name == "Name"` |
+| `parseNamedWorkspaceWithDescription` | `workspace "N" "Desc" { }` → `name == "N"`, `description == "Desc"` |
 | `parsePersonElement` | `workspace { model { u = person "User" } }` → element with alias "u", kind .person, name "User" |
 | `parsePersonWithDescription` | `workspace { model { u = person "User" "A user" } }` → description "A user" |
-| `parseSoftwareSystem` | `workspace { model { app = softwareSystem "My App" } }` → element kind .softwareSystem |
-| `parseContainer` | `workspace { model { db = container "DB" "PostgreSQL" } }` → technology "PostgreSQL" |
-| `parseContainerWithDescription` | `workspace { model { db = container "DB" "PG" "Stores data" } }` → technology + description |
+| `parseSoftwareSystem` | `workspace { model { app = softwareSystem "My App" } }` → element kind .softwareSystem, name "My App" |
+| `parseSoftwareSystemWithDescription` | `workspace { model { app = softwareSystem "My App" "Core" } }` → description "Core" |
+| `parseContainer` | `workspace { model { db = container "DB" "PostgreSQL" } }` → name "DB", **description** "PostgreSQL", technology nil |
+| `parseContainerWithTechnology` | `workspace { model { db = container "DB" "PostgreSQL" "Stores data" } }` → description "PostgreSQL", **technology** "Stores data" |
 | `parseComponent` | `workspace { model { auth = component "Auth" } }` → element kind .component |
+| `parseComponentWithDescriptionAndTech` | `workspace { model { auth = component "Auth" "Handles login" "OAuth2" } }` → description "Handles login", technology "OAuth2" |
 | `parseNestedElements` | `workspace { model { app = softwareSystem "App" { web = container "Web" } } }` → child container with parentAlias "app" |
+| `parseScopedRelationship` | `workspace { model { app = softwareSystem "App" { user -> web "Uses" } } }` → relationship in model.relationships with source "user", target "web" |
 | `parseRelationship` | `workspace { model { u -> app "Uses" } }` → relationship with label "Uses" |
-| `parseRelationshipWithTechnology` | `workspace { model { u -> app "Uses" "HTTPS" } }` → technology "HTTPS" |
-| `parseMultipleElements` | `workspace { model { u = person "U" app = softwareSystem "A" } }` → two model elements |
+| `parseRelationshipWithAllArgs` | `workspace { model { u -> app "Uses" "HTTPS" "Over TLS" } }` → description "Uses", technology "HTTPS", but relationship def expects [description]? [technology]? — third string is unused or diagnostic |
+| `parseMultipleElements` | `workspace { model { u = person "U"; app = softwareSystem "A" } }` → two model elements |
 | `parseSystemContextView` | `workspace { views { systemContext app { include * } } }` → view with kind .systemContext, scopeAlias "app" |
 | `parseContainerView` | `workspace { views { container app { include * } } }` → view kind .container |
-| `parseComponentView` | `workspace { views { component web { include u include db } } }` → view with explicit includes |
-| `parseViewWithTitle` | `workspace { views { systemContext app "My Context" { include * } } }` → view title "My Context" |
+| `parseComponentView` | `workspace { views { component web { include u include db } } }` → view with explicit element includes |
+| `parseViewWithTitleAndDescription` | `workspace { views { systemContext app "Title" "Desc" { include * } } }` → view title "Title", description "Desc" |
 | `parseComments` | `workspace { // comment\nmodel { u = person "U" }\n}` — comments stripped |
 | `parseThrowsOnUnbalancedBraces` | `workspace { model { u = person "U"` → throws `DiagramError` |
 
-### 10b. `StructurizrImporterTests` (new file: `Tests/DiagramKitTests/StructurizrImporterTests.swift`)
+### 11c. `StructurizrModelRegistryTests` (new file: `Tests/DiagramKitTests/StructurizrModelRegistryTests.swift`)
 
-Importer unit tests. At least 24 tests:
+Model registry unit tests. At least 6 tests:
+
+| Test name | Description |
+|---|---|
+| `lookupElementByAlias` | Register elements, verify `element(for:)` returns correct element |
+| `lookupMissingAliasReturnsNil` | `element(for: "nonexistent")` → nil |
+| `collectsNestedChildren` | Element with children → both parent and children in `elementsByAlias` |
+| `topLevelElementsExcludesChildren` | `topLevelElements` returns only elements with nil parentAlias |
+| `connectedAliasesFindsBothDirections` | Relationship A→B → `connectedAliases(to: "A")` includes "B" and vice versa |
+| `connectedAliasesEmptyForIsolatedElement` | Element with no relationships → empty set |
+
+### 11d. `StructurizrImporterTests` (new file: `Tests/DiagramKitTests/StructurizrImporterTests.swift`)
+
+Importer unit tests. At least 28 tests:
 
 **supports tests:**
 
@@ -796,6 +1007,8 @@ Importer unit tests. At least 24 tests:
 | `supportsWorkspace` | `workspace { model { } views { } }` → true |
 | `supportsCompactWorkspace` | `workspace{model{u=person"U"}}` → true |
 | `supportsNamedWorkspace` | `workspace "Name" { }` → true |
+| `rejectsWorkspaceWithoutBrace` | `workspace` (no `{`) → false |
+| `rejectsWorkspaceNameWithoutBrace` | `workspace "Name"` (no `{`) → false |
 | `rejectsMermaidSource` | `graph TD\nA-->B` → false |
 | `rejectsMermaidC4` | `C4Context\nPerson(user, "User")` → false |
 | `rejectsD2Source` | `A: Start\nA -> B` → false |
@@ -807,27 +1020,30 @@ Importer unit tests. At least 24 tests:
 
 | Test name | Description |
 |---|---|
-| `parsePersonMapsToC4Shape` | `workspace { model { u = person "User" } views { systemContext app { include * } } }` → shape with typeC4Shape .person |
-| `parseSoftwareSystemMapsToSystem` | Element kind .softwareSystem → shape typeC4Shape .system |
-| `parseContainerMapsToContainer` | Element kind .container → shape typeC4Shape .container |
-| `parseComponentMapsToComponent` | Element kind .component → shape typeC4Shape .component |
+| `parsePersonMapsToC4Shape` | Person element → shape with typeC4Shape .person |
+| `parseSoftwareSystemMapsToSystem` | softwareSystem element → shape typeC4Shape .system |
+| `parseContainerMapsToContainer` | container element → shape typeC4Shape .container |
+| `parseComponentMapsToComponent` | component element → shape typeC4Shape .component |
 | `parseTechnologyIsPreserved` | Container with technology "PostgreSQL" → C4Shape.technology = "PostgreSQL" |
 | `parseDescriptionIsPreserved` | Element with description → C4Shape.description populated |
+| `parseContainerDescriptionNotTechnology` | `container "DB" "PostgreSQL"` → description "PostgreSQL", technology nil (not the reverse) |
 | `parseViewTitleBecomesDiagramTitle` | View with title "My Context" → C4Diagram.title = "My Context" |
-| `parseSystemContextViewProducesContextKind` | systemContext view → C4Diagram.kind = .context |
-| `parseContainerViewProducesContainerKind` | container view → C4Diagram.kind = .container |
-| `parseComponentViewProducesComponentKind` | component view → C4Diagram.kind = .component |
+| `parseViewDescriptionBecomesAccDescr` | View with description → C4Diagram.accDescr populated |
+| `parseSystemContextViewCreatesNoBoundary` | systemContext view → scope softwareSystem is a C4Shape, no C4Boundary for it |
+| `parseContainerViewCreatesBoundary` | container view → C4Boundary created for scope softwareSystem, containers are child shapes |
+| `parseComponentViewCreatesBoundary` | component view → C4Boundary created for scope container, components are child shapes |
+| `parseBoundaryHasChildrenWithMatchingParentBoundary` | Container view → child shapes have parentBoundary matching boundary alias |
 | `parseRelationshipMapsToC4Relationship` | `u -> app "Uses"` → C4Relationship with label "Uses" |
-| `parseRelationshipTechnology` | `u -> app "Uses" "HTTPS"` → C4Relationship.technology = "HTTPS" |
-| `parseNestedElementSetsParentBoundary` | Container inside softwareSystem → C4Shape.parentBoundary = parent alias |
-| `wildcardIncludeIncludesScopeElement` | systemContext view with include * → scope softwareSystem in shapes |
-| `wildcardIncludeIncludesRelatedElements` | systemContext view with include * → related persons + systems included |
+| `parseRelationshipWithTechnology` | Relationship with technology → C4Relationship.technology populated |
+| `wildcardIncludeIncludesScopeElement` | systemContext view → scope softwareSystem in shapes |
+| `wildcardIncludeIncludesRelatedElements` | Related persons + systems included in view |
 | `wildcardIncludeExcludesUnrelatedElements` | Unrelated elements not included in view |
 | `emitsDiagnosticForDeploymentNode` | `deploymentNode "AWS" { }` → diagnostic |
 | `emitsDiagnosticForDynamicView` | `dynamic app { }` → diagnostic |
-| `emitsDiagnosticForIncludeDirective` | `!include url` → diagnostic |
-| `emitsDiagnosticForTags` | `{database}` on element → diagnostic |
-| `emitsDiagnosticForMultipleViews` | workspace with 2+ views → diagnostic about 1 view only |
+| `emitsDiagnosticForTags` | `tags "Tag1"` on element → diagnostic |
+| `emitsDiagnosticForExcludeInView` | `exclude user` in view → diagnostic |
+| `emitsDiagnosticForUnknownDirective` | `!foo` → diagnostic |
+| `emitsDiagnosticForMultipleViews` | workspace with 2+ views → diagnostic |
 | `emitsDiagnosticForNoViews` | workspace with model but no views → diagnostic |
 
 **layout smoke tests:**
@@ -835,45 +1051,49 @@ Importer unit tests. At least 24 tests:
 | Test name | Description |
 |---|---|
 | `structurizrLayoutSmoke` | Parse structurizr workspace, run `DiagramPipeline.layout`, verify non-empty positioned output |
-| `structurizrLayoutWithBoundariesSmoke` | Parse workspace with nested containers, layout, verify boundaries present |
+| `structurizrContainerViewLayoutSmoke` | Parse container view workspace, layout, verify boundaries present in positioned output |
+| `structurizrComponentViewLayoutSmoke` | Parse component view workspace, layout, verify boundaries present |
 
-### 10c. Probe Collision Tests (edit `Tests/DiagramKitTests/ProbeCollisionMatrixTests.swift`)
+### 11e. Probe Collision Tests (edit `Tests/DiagramKitTests/ProbeCollisionMatrixTests.swift`)
 
-Add Structurizr probe collision tests. At least 14 new tests:
+Add Structurizr probe collision tests. At least 16 new tests:
 
 | Test name | Description |
 |---|---|
 | `structurizrProbeAcceptsWorkspace` | `StructurizrImporter().supports(source: "workspace { }")` → true |
 | `structurizrProbeAcceptsNamedWorkspace` | `StructurizrImporter().supports(source: "workspace \"N\" { }")` → true |
 | `structurizrProbeAcceptsCompact` | `StructurizrImporter().supports(source: "workspace{model{}}")` → true |
+| `structurizrProbeAcceptsMultilineWorkspace` | `StructurizrImporter().supports(source: "workspace\n{ model {} }")` → true |
+| `structurizrProbeRejectsWorkspaceWithoutBrace` | `StructurizrImporter().supports(source: "workspace")` → false |
+| `structurizrProbeRejectsWorkspaceNameWithoutBrace` | `StructurizrImporter().supports(source: "workspace \"N\"")` → false |
 | `structurizrProbeRejectsMermaidGraphTD` | `StructurizrImporter().supports(source: "graph TD\nA-->B")` → false |
 | `structurizrProbeRejectsMermaidFlowchart` | `StructurizrImporter().supports(source: "flowchart LR\nA-->B")` → false |
 | `structurizrProbeRejectsMermaidC4` | `StructurizrImporter().supports(source: "C4Context\nPerson(user, \"U\")")` → false |
 | `structurizrProbeRejectsD2Source` | `StructurizrImporter().supports(source: "A: Start\nA -> B")` → false |
 | `structurizrProbeRejectsDOTSource` | `StructurizrImporter().supports(source: "digraph G { A -> B }")` → false |
 | `structurizrProbeRejectsPlantUML` | `StructurizrImporter().supports(source: "@startuml\nAlice -> Bob: Hello\n@enduml")` → false |
-| `structurizrProbeRejectsBareEdge` | `StructurizrImporter().supports(source: "A -> B")` → false |
 | `structurizrProbeRejectsEmptyString` | `StructurizrImporter().supports(source: "")` → false |
 | `registryPrependsStructurizrFirst` | `registry.importer(for: "workspace { model { } views { } }")?.name == "Structurizr"` |
 | `registryFallsBackToGraphvizForDigraph` | `registry.importer(for: "digraph G { A -> B }")?.name == "Graphviz"` |
 | `registryFallsBackToMermaidForGraphTD` | `registry.importer(for: "graph TD\nA-->B")?.name == "Mermaid"` |
 
-### 10d. `StructurizrCorpusFixtureTests` (new file: `Tests/DiagramKitTests/StructurizrCorpusFixtureTests.swift`)
+### 11f. `StructurizrCorpusFixtureTests` (new file: `Tests/DiagramKitTests/StructurizrCorpusFixtureTests.swift`)
 
-Inline corpus fixtures with `skipSnapshots: ["structurizr"]`. At least 6 tests,
-following the `D2CorpusFixtureTests.swift` and `DOTCorpusFixtureTests.swift`
-pattern:
+Inline corpus fixtures with `skipSnapshots: ["structurizr"]`. At least 7 tests.
+**Each fixture must include a complete scoped element and at least one
+relationship that proves wildcard resolution works.**
 
 | Test name | Description |
 |---|---|
-| `structurizrSimpleWorkspaceFixtureDecodes` | Inline fixture with person + system + context view |
-| `structurizrContainerViewFixtureDecodes` | Inline fixture with softwareSystem, containers, container view |
-| `structurizrComponentViewFixtureDecodes` | Inline fixture with container, components, component view |
-| `structurizrUnsupportedFixtureHasDiagnostics` | Inline fixture with deploymentNode + tags → `expectedDiagnostics` |
+| `structurizrSystemContextFixtureDecodes` | Inline fixture: person + softwareSystem + relationship + systemContext view with `include *`. Verify shapes include person and both systems; verify no boundary created. |
+| `structurizrContainerViewFixtureDecodes` | Inline fixture: softwareSystem with 2 containers, person, relationship, container view with `include *`. Verify boundary created for softwareSystem; container shapes have parentBoundary matching boundary. |
+| `structurizrComponentViewFixtureDecodes` | Inline fixture: softwareSystem → container with 2 components, person, relationships, component view with `include *`. Verify boundary for container; component shapes have parentBoundary. |
+| `structurizrScopedRelationshipFixtureDecodes` | Inline fixture: relationship defined inside element block, verify it appears in C4Diagram.relationships. |
+| `structurizrUnsupportedFixtureHasDiagnostics` | Inline fixture with deploymentNode + `tags "db"` + `!include x` → `expectedDiagnostics` checking all three categories. |
 | `structurizrSourceForFormat` | `entry.source(for: "structurizr")` returns the Structurizr source |
-| `structurizrParseThroughImporter` | Parse Structurizr source via `StructurizrImporter`, layout, verify non-empty |
+| `structurizrParseThroughImporter` | Parse Structurizr source via `StructurizrImporter`, layout via `DiagramPipeline.layout`, verify non-empty positioned graph |
 
-### 10e. Registry Tests (edit `Tests/DiagramKitTests/ImporterRegistryTests.swift`)
+### 11g. Registry Tests (edit `Tests/DiagramKitTests/ImporterRegistryTests.swift`)
 
 Update existing registry tests for the new four-importer order:
 
@@ -883,7 +1103,7 @@ Update existing registry tests for the new four-importer order:
 | `prependingPutsFirst` | Extend to show `StructurizrImporter()` prepended before Graphviz+D2+Mermaid |
 | `structurizrFirstRouting` | Verify Structurizr claims `workspace { ... }` source |
 
-### 10f. Existing Test Regressions
+### 11h. Existing Test Regressions
 
 Run and verify no regressions:
 
@@ -912,16 +1132,19 @@ swift test --filter PlaygroundCorpusDecodingTests
 |---|---|---|
 | `Package.swift` | Add `DiagramKitStructurizr` target, product, deps. Add to umbrella + test target deps | Pending |
 | `Sources/DiagramKitStructurizr/StructurizrAST.swift` | New — Structurizr DSL AST types | Pending |
+| `Sources/DiagramKitStructurizr/StructurizrLexer.swift` | New — tokenizer (comment stripping, token stream) | Pending |
+| `Sources/DiagramKitStructurizr/StructurizrParser.swift` | New — recursive-descent parser (consumes tokens) | Pending |
 | `Sources/DiagramKitStructurizr/StructurizrModelRegistry.swift` | New — model element lookup table | Pending |
-| `Sources/DiagramKitStructurizr/StructurizrParser.swift` | New — recursive-descent parser | Pending |
-| `Sources/DiagramKitStructurizr/StructurizrMapper.swift` | New — StructurizrAST → C4Diagram mapping | Pending |
-| `Sources/DiagramKitStructurizr/StructurizrProbe.swift` | New — narrow Structurizr probe | Pending |
+| `Sources/DiagramKitStructurizr/StructurizrMapper.swift` | New — StructurizrAST → C4Diagram mapping (creates boundaries) | Pending |
+| `Sources/DiagramKitStructurizr/StructurizrProbe.swift` | New — narrow Structurizr probe (requires `{` after workspace) | Pending |
 | `Sources/DiagramKitStructurizr/StructurizrImporter.swift` | New — `DiagramSourceImporter` conformance | Pending |
 | `Sources/DiagramKit/MermaidPipeline.swift` | Edit — add `StructurizrImporter()` to `defaultRegistry` + `import DiagramKitStructurizr` | Pending |
-| `Tests/DiagramKitTests/StructurizrParserTests.swift` | New — 18+ parser unit tests | Pending |
-| `Tests/DiagramKitTests/StructurizrImporterTests.swift` | New — 24+ importer unit tests (includes 2 layout smoke tests) | Pending |
-| `Tests/DiagramKitTests/ProbeCollisionMatrixTests.swift` | Edit — 14+ Structurizr probe collision tests + `import DiagramKitStructurizr` | Pending |
-| `Tests/DiagramKitTests/StructurizrCorpusFixtureTests.swift` | New — 6 inline Structurizr fixture tests | Pending |
+| `Tests/DiagramKitTests/StructurizrLexerTests.swift` | New — 10+ lexer unit tests | Pending |
+| `Tests/DiagramKitTests/StructurizrParserTests.swift` | New — 22+ parser unit tests | Pending |
+| `Tests/DiagramKitTests/StructurizrModelRegistryTests.swift` | New — 6 registry unit tests | Pending |
+| `Tests/DiagramKitTests/StructurizrImporterTests.swift` | New — 31+ importer unit tests (includes 3 layout smoke tests) | Pending |
+| `Tests/DiagramKitTests/ProbeCollisionMatrixTests.swift` | Edit — 16+ Structurizr probe collision tests + `import DiagramKitStructurizr` | Pending |
+| `Tests/DiagramKitTests/StructurizrCorpusFixtureTests.swift` | New — 7 inline Structurizr fixture tests (complete scoped elements + relationships) | Pending |
 | `Tests/DiagramKitTests/ImporterRegistryTests.swift` | Edit — Structurizr-first registry assertion + `import DiagramKitStructurizr` | Pending |
 
 ### Files intentionally NOT changed
@@ -953,113 +1176,121 @@ directly from Structurizr's domain. The layout engine (`layoutC4Diagram`) and
 SVG renderer (`renderC4Svg`) already handle `C4Diagram` payloads. Adding new
 payload cases for Structurizr would duplicate the C4 rendering path.
 
-### 2. First view only — single `DiagramImportResult`
+### 2. Explicit `C4Boundary` entries for container/component views (REVISED)
+
+**Decision**: For container and component views, the mapper creates
+`C4Boundary` entries for the scope element (softwareSystem for container
+views, container for component views). Child shapes have `parentBoundary` set
+to the boundary's alias.
+
+**Rationale**: The C4 layout engine (`_drawInsideBoundary`) only positions
+shapes within boundaries that exist in `C4Diagram.boundaries`. A shape with
+`parentBoundary: "app"` but no `C4Boundary(alias: "app")` will not be
+positioned inside any boundary — it falls to the global level. Setting
+`parentBoundary` on shapes without a matching boundary is a silent rendering
+bug. Creating explicit boundaries is mandatory for correct C4 output.
+
+In systemContext views, the scope softwareSystem is rendered as a `C4Shape`
+(no boundary) — matching C4 convention where system context diagrams show the
+system as a box among other boxes, not as a container.
+
+### 3. Element argument order: description before technology (REVISED)
+
+**Decision**: `container <name> [description] [technology]` and
+`component <name> [description] [technology]` per Structurizr DSL convention,
+NOT `name/technology/description`.
+
+**Rationale**: Official Structurizr DSL reference:
+- `person <name> [description] [tags]`
+- `softwareSystem <name> [description] [tags]`
+- `container <name> [description] [technology] [tags]`
+- `component <name> [description] [technology] [tags]`
+
+The previous plan had the argument order reversed. This correction is critical
+for parser test fidelity — incorrect argument order would bake wrong behavior
+into the parser tests, causing the importer to swap description and technology
+on every container/component element.
+
+### 4. Tag syntax: `tags "..."` child statements, not `{tag}` braces (REVISED)
+
+**Decision**: Tags are parsed from `tags "Tag1,Tag2"` child statements inside
+element/relationship blocks. The `{` `}` brace syntax is reserved for child
+blocks in Structurizr DSL (e.g., `softwareSystem "App" { container = ... }`).
+No `{tag}` annotation syntax exists.
+
+**Rationale**: Structurizr DSL uses braces exclusively to open child blocks.
+Tags come from explicit `tags "..."` statements, `+tag` syntax (rare), or
+trailing string arguments in some DSL versions. The `{tag}` notation was a
+misreading of the DSL. The correct path for this vertical slice is to parse
+`tags "..."` into the element's `tags: [String]` field and emit a diagnostic
+saying tag-based shape refinement is deferred. No brace-based tag parsing is
+needed.
+
+### 5. Scoped relationships inside element blocks are supported
+
+**Decision**: The parser accepts relationship definitions inside element
+blocks (`softwareSystem "App" { user -> web "Uses" }`). These are collected
+into the model's `relationships` list at model scope.
+
+**Rationale**: Scoped relationships are a common Structurizr DSL pattern and
+require only a small grammar change (allow `relationship_def` inside element
+blocks alongside `element_def`). Supporting them avoids a common diagnostic
+on valid DSL and improves real-world workspace compatibility.
+
+### 6. First view only — single `DiagramImportResult`
 
 **Decision**: The importer returns only the first view from a multi-view
-workspace. Additional views beyond the first emit `.unsupported` diagnostics.
+workspace. Additional views beyond the first emit diagnostics.
 
 **Rationale**: `DiagramSourceImporter.parse()` returns a single
 `DiagramImportResult` with one `DiagramDocument`. Multi-diagram output
-from a single source is a future concern (Phase 7 or beyond). Emitting
-diagnostics for extra views keeps users informed without silently dropping
-data. This matches the vertical-slice philosophy: prove the importer
-boundary works, defer multi-view support.
+from a single source is a future concern (Phase 7 or beyond).
 
-### 3. Simplified `include *` semantics
+### 7. Probe requires `{` after workspace
 
-**Decision**: `include *` resolves based on the scope element and explicit
-model relationships. Elements not connected to the scope element via any
-relationship are excluded from the resolved view.
+**Decision**: The probe returns false for `"workspace"` or `"workspace \"Name\""`
+without a following `{`. The source must contain `{` to pass the probe.
 
-**Rationale**: Full Structurizr `include *` semantics involve auto-detected
-implied relationships, perspective-based filtering, and element property
-matching — all deferred. The simplified semantics match the most common C4
-usage pattern: define explicit relationships in the model, then use
-`include *` to show the connected subgraph. This is sufficient for the
-vertical slice and produces correct C4 diagrams for the supported use case.
+**Rationale**: The stated probe contract is "requires `workspace {` structure."
+Without a brace check, `"workspace"` alone would pass, which is too broad.
+Requiring `{` keeps the probe narrow and honest about its contract.
 
-### 4. `deploymentNode` and `dynamic` views parsed but deferred
+### 8. Lexer separated from parser
 
-**Decision**: The parser recognizes `deploymentNode` definitions and
-`dynamic`/`deployment` view keywords, consuming their blocks without crashing.
-The mapper emits `.unsupported` diagnostics for them.
+**Decision**: `StructurizrLexer.swift` is a separate file from
+`StructurizrParser.swift`. The lexer owns token type definitions and
+preprocessing (comment stripping, tokenization). The parser consumes
+`[StructurizrToken]` and emits `StructurizrWorkspace` + diagnostics.
 
-**Rationale**: Valid Structurizr DSL documents often include deployment
-definitions alongside model elements. Crashing on them would make the
-importer unusable for real-world workspaces. By parsing the block structure
-(consuming balanced braces) and emitting diagnostics, the importer
-gracefully handles workspaces that mix supported and unsupported constructs.
+**Rationale**: Keeps both files under the 500-line threshold, enables
+independent unit testing of the lexer (10+ tests), and matches the DOT
+Phase 4 pattern (`DOTLexer.swift` + `DOTParser.swift`). The parser is
+token-driven, not purely line-oriented — this handles compact forms
+uniformly.
 
-### 5. Tag annotations parsed but deferred
+### 9. Model registry independently testable
 
-**Decision**: Tags like `{database}`, `{external}`, `{queue}` after element
-or relationship definitions are parsed into the AST but the mapper emits
-`.unsupported` diagnostics and maps the element to its base `C4ShapeType`.
+**Decision**: `StructurizrModelRegistryTests.swift` is a separate test file
+with 6 tests covering alias lookup, nested child collection, top-level
+filtering, and connected-alias resolution.
 
-**Rationale**: Structurizr uses tags heavily for styling and shape refinement.
-The Mermaid C4 model has distinct `C4ShapeType` variants for
-`external_person`, `system_db`, `container_queue`, etc. Mapping these
-requires a tag-to-shape-type mapping table and is deferred to keep the
-vertical slice focused. Emitting diagnostics prevents silent information
-loss.
+**Rationale**: View resolution is the hardest part of the mapper. Being able
+to test the registry's `connectedAliases(to:)` and `topLevelElements`
+independently of the mapper catches logic bugs before they propagate to
+integration tests. The registry's `include *` resolution logic is the most
+likely source of subtle C4 scoping errors.
 
-### 6. Probe order: Structurizr first
+### 10. Complete test fixtures with relationships
 
-**Decision**: `StructurizrImporter()` is prepended before `GraphvizImporter()`,
-`D2Importer()`, and `MermaidImporter()` in the default registry.
+**Decision**: Every corpus fixture test includes at least one relationship
+definition and a wildcard include view that exercises the resolution path.
 
-**Rationale**: The Structurizr probe requires `workspace` at the start of the
-source — a keyword no other format uses. It cannot false-match on DOT
-(`digraph`/`graph`), D2 (`A: label`), or Mermaid (diagram-specific headers).
-The probe is as narrow as Graphviz's. Prepending it first follows the stated
-Phase 5 goal of "prepend before existing importers once the probe is proven
-collision-safe." If future collision testing reveals order sensitivity, the
-position relative to Graphviz can be swapped — they are disjoint.
-
-### 7. No snapshot baselines
-
-**Decision**: Structurizr fixtures carry `skipSnapshots: ["structurizr"]` and
-do not produce snapshot baselines. No real `test-diagrams.json` entries are
-added.
-
-**Rationale**: Matches the D2 and Graphviz Phase 3/4 pattern. Snapshot
-baselines are deferred to Phase 10 (final baseline pass). The C4 rendering
-path is already tested by the existing Mermaid C4 corpus entries, so layout
-and rendering regressions are already covered.
-
-### 8. `StructurizrModelRegistry` as a separate file
-
-**Decision**: The model registry types live in `StructurizrModelRegistry.swift`
-rather than being embedded in the mapper.
-
-**Rationale**: The registry has non-trivial logic (alias indexing, parent-child
-traversal, `include *` resolution). Separating it from the mapper keeps both
-files under the 500-line warning threshold and improves testability. The
-registry can be unit-tested independently of the mapper.
-
-### 9. Relationships at model level only (no inline relationships in views)
-
-**Decision**: The parser handles relationship definitions in the `model { }`
-section. Relationships defined inside view blocks (inline) are deferred with
-diagnostics.
-
-**Rationale**: In Structurizr DSL, relationships can appear in both model
-and view sections. For the vertical slice, model-level relationships are
-sufficient for the supported C4 use cases. View-inline relationships would
-require dual-pass parsing (model first, then views with relationship
-merging) and are deferred.
-
-### 10. No implicit relationship detection
-
-**Decision**: Only explicit `source -> target` relationships from the model
-section are mapped to `C4Relationship` entries. Implicit relationships
-(auto-detected from element nesting or naming conventions) are deferred.
-
-**Rationale**: Structurizr has an `!impliedRelationships` directive that
-auto-detects relationships based on element hierarchy and naming patterns.
-This is deferred — only explicit relationships are supported in the
-vertical slice. This simplifies the mapper and avoids false-positive
-relationship generation.
+**Rationale**: A fixture that only defines model elements without
+relationships cannot prove that `include *` resolution works — there are no
+connections to traverse. Each fixture must include the scoped element, at
+least one related element, and at least one explicit relationship so that
+the wildcard resolution produces a non-trivial set of shapes. This catches
+the boundary-vs-shape distinction (Design Decision 2) early.
 
 ---
 
@@ -1068,7 +1299,9 @@ relationship generation.
 ```bash
 swift package dump-package
 swift build --build-tests
+swift test --filter StructurizrLexerTests
 swift test --filter StructurizrParserTests
+swift test --filter StructurizrModelRegistryTests
 swift test --filter StructurizrImporterTests
 swift test --filter StructurizrCorpusFixtureTests
 swift test --filter ProbeCollisionMatrixTests
@@ -1086,8 +1319,8 @@ git diff --check
 ```
 
 `Scripts/check-file-sizes.sh` may report pre-existing warnings. Phase 5
-should not add new warnings; splitting parser, mapper, and registry files
-keeps each new file under 500 lines.
+should not add new warnings; splitting lexer, parser, mapper, and registry
+files keeps each new file under 500 lines.
 
 No snapshot recording. No Linux check unless Docker/Podman is available
 (record as skipped due to environment otherwise).
@@ -1100,21 +1333,21 @@ No snapshot recording. No Linux check unless Docker/Podman is available
   `containerInstance` element types
 - `dynamic` and `deployment` views
 - Multiple views from a single workspace (multi-diagram output)
-- Tag-based shape refinement (mapping `{external}` → `.external_system`,
-  `{database}` → `.system_db`, `{queue}` → `.system_queue`, etc.)
+- Tag-based shape refinement (mapping `tags "external"` → `.external_system`,
+  `tags "database"` → `.system_db`, `tags "queue"` → `.system_queue`, etc.)
 - Implicit relationships (`!impliedRelationships` directive)
 - `!include`, `!docs`, `!adrs`, `!decisions` directives
 - `properties { ... }` blocks on elements and relationships
 - `!identifiers` (hierarchical vs. flat identifier strategy)
 - `autoLayout { ... }` configuration
 - `themes`, `branding`, `terminology`, `configuration` blocks
-- Filtered views (`filtered { ... }`)
-- `animation { ... }` in views
 - `styles { ... }` (per-element and per-relationship custom styles)
 - `perspectives { ... }`
 - `group` / `groups` element grouping
 - `url` attribute on elements
 - `!ref` / `!extend` / `!plugin` / `!script` directives
+- `exclude` in views
+- `animation { ... }` in views
 - Inline model elements within views
 - Inline relationship definitions within views
 - Round-trip export (StructurizrExporter)
@@ -1123,15 +1356,10 @@ No snapshot recording. No Linux check unless Docker/Podman is available
 
 ---
 
-## Implementation Notes (to be filled during/after implementation)
-
-*This section will be populated with implementation deviations, parser fixes,
-and test suite results once implementation begins.*
-
----
-
-*This plan was prepared from live codebase analysis of Package.swift,
-Sources/DiagramKitModel/src_c4_types.swift, Sources/DiagramKitD2/,
-Sources/DiagramKitGraphviz/, Sources/DiagramKit/, Sources/DiagramKitImport/,
-Tests/DiagramKitTests/, ANALYSIS.md, PHASES.md, PHASE-3.md, and
-PHASE-4.md as they exist at 2026-05-12.*
+*This plan (revised) was prepared from live codebase analysis of Package.swift,
+Sources/DiagramKitModel/src_c4_types.swift, Sources/DiagramKitModel/src_c4_layout.swift,
+Sources/DiagramKitD2/, Sources/DiagramKitGraphviz/, Sources/DiagramKit/,
+Sources/DiagramKitImport/, Tests/DiagramKitTests/, ANALYSIS.md, PHASES.md,
+PHASE-3.md, and PHASE-4.md as they exist at 2026-05-12. The official
+Structurizr DSL language reference was consulted for argument order and tag
+syntax corrections.*
