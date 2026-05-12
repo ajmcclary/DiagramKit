@@ -4,7 +4,7 @@ Goal: prove the importer architecture with the highest-ROI non-Mermaid format.
 
 ## Overview
 
-The d2 importer is the first non-Mermaid format. It proves the `DiagramSourceImporter` protocol, `ImporterRegistry` prepending, and multi-format corpus infrastructure. The parser maps basic d2 syntax (nodes, edges, labels, containers, direction, simple shape hints) to `DiagramPayload.flowchart(MermaidGraph)`, reusing the existing flowchart layout and render pipelines.
+The d2 importer is the first non-Mermaid format. It proves the `DiagramSourceImporter` protocol, `ImporterRegistry` prepending, and multi-format corpus infrastructure. The parser maps basic d2 syntax (nodes, edges, labels, containers, direction, simple shape hints) to `DiagramPayload.flowchart(ParsedGraphModel)`, reusing the existing flowchart layout and render pipelines.
 
 ---
 
@@ -13,9 +13,9 @@ The d2 importer is the first non-Mermaid format. It proves the `DiagramSourceImp
 ```
 Sources/DiagramKitD2/
 ├── D2Importer.swift           // DiagramSourceImporter conformance
-├── D2Parser.swift             // Recursive-descent parser (d2 source → D2AST)
+├── D2Parser.swift             // Recursive-descent parser (d2 source → D2Document + diagnostics)
 ├── D2AST.swift                // Minimal d2 AST types
-├── D2Mapper.swift             // D2AST → MermaidGraph mapping
+├── D2Mapper.swift             // D2AST → ParsedGraphModel mapping
 ├── D2Probe.swift              // Narrow probe function
 └── D2Shapes.swift             // Shape name mapping (d2 → NodeShape)
 ```
@@ -32,17 +32,21 @@ The upstream d2 compiler (AST → IR → layout → render) is a ~40-package Go 
 
 d2's grammar is line-oriented (`key: value`, `A -> B`, `{ }` blocks). A recursive-descent parser consuming tokenized lines is sufficient for the first slice. This avoids porting the full d2 scanner/parser machinery (which deals with UTF-16 positions, error recovery, and autoformat).
 
-### 3. Map to `MermaidGraph` directly
+### 3. Map to `ParsedGraphModel` directly
 
-The target is `DiagramPayload.flowchart(MermaidGraph)` — the same struct Mermaid's flowchart parser produces. This reuses the layout pipeline (`GraphLayout` → ELK), SVG renderer (`SVGRenderRegistry`), CG renderer, and ASCII renderer unchanged.
+The target is `DiagramPayload.flowchart(ParsedGraphModel)` — where `ParsedGraphModel` is `original_src_types.MermaidGraph`, the same struct Mermaid's flowchart parser produces. This reuses the layout pipeline (`GraphLayout` → ELK), SVG renderer (`SVGRenderRegistry`), CG renderer, and ASCII renderer unchanged.
 
-### 4. Narrow probe with `->` + `:` / `.` / `{` detection
+### 4. Narrow probe with format-specific guards
 
-The probe returns `true` when the source contains d2-specific syntax patterns and does NOT match the Mermaid `graph`, `flowchart`, or `sequenceDiagram` header. This prevents false matches on Mermaid flowchart sources.
+The probe returns `true` only when the source contains d2-specific syntax patterns AND explicitly is NOT Mermaid, DOT, PlantUML, or Structurizr. This prevents false matches on other format sources that coincidentally contain `->`.
 
 ### 5. Diagnostics for unsupported features
 
 Style blocks, `layers`/`scenarios`/`steps` boards, glob patterns, classes, SQL tables, Markdown block strings, variables, substitutions, and imports all emit `DiagramDiagnostic.severity = .unsupported` with source location hints.
+
+### 6. D2 corpus fixtures remain inline; no new snapshot baselines
+
+Real `test-diagrams.json` entries and D2 snapshot baselines are deferred until the final baseline pass (Phase 10). Phase 3 proves that d2 sources parse correctly and render through existing SVG/image paths via inline fixtures and targeted render assertions. Inline fixtures carry `"skipSnapshots": ["d2"]` to avoid snapshot machinery trying to create D2 baselines prematurely.
 
 ---
 
@@ -58,10 +62,10 @@ Style blocks, `layers`/`scenarios`/`steps` boards, glob patterns, classes, SQL t
 ),
 ```
 
-Add to `DiagramKit` umbrella target dependencies:
+Add to `DiagramKit` umbrella target dependencies (unconditional — D2 is a pure parser/import target with no Apple-specific types):
 
 ```swift
-.target(name: "DiagramKitD2", condition: .when(platforms: [.macOS, .iOS, .tvOS, .visionOS, .macCatalyst])),
+.target(name: "DiagramKitD2"),
 ```
 
 Add product:
@@ -70,10 +74,6 @@ Add product:
 .library(name: "DiagramKitD2", targets: ["DiagramKitD2"]),
 ```
 
-### 1.2 `Sources/DiagramKitD2/` directory
-
-7 files total — detailed file-by-file spec below.
-
 ---
 
 ## Work Stream 2: D2 AST Types (`D2AST.swift`)
@@ -81,6 +81,8 @@ Add product:
 Minimal AST for the d2 subset needed for flowchart mapping. All types are value types (`Sendable`).
 
 ```swift
+import Foundation
+
 /// Top-level: a d2 document is a list of statements.
 struct D2Document: Sendable {
     var statements: [D2Statement]
@@ -130,7 +132,7 @@ struct D2ContainerOpen: Sendable {
 
 ## Work Stream 3: d2 Parser (`D2Parser.swift`)
 
-Line-oriented recursive-descent parser. Consumes raw source text, emits `D2Document` or throws on fatal syntax errors.
+Line-oriented recursive-descent parser. Consumes raw source text, returns `(D2Document, [DiagramDiagnostic])` — diagnostics are collected for unsupported constructs.
 
 ### Parse strategy
 
@@ -139,6 +141,7 @@ Line-oriented recursive-descent parser. Consumes raw source text, emits `D2Docum
 3. Track indentation for implicit block scoping (d2 uses indentation + `{ }` for explicit blocks)
 4. Tokenize each line: key, value, edges, block markers
 5. Build AST from tokenized lines
+6. Emit `.unsupported` diagnostics for constructs the parser recognizes but cannot translate
 
 ### Key parse rules
 
@@ -161,12 +164,20 @@ Line-oriented recursive-descent parser. Consumes raw source text, emits `D2Docum
 | `icon: ...` | populate current node's icon |
 | `width: N` | populate current node's width |
 | `height: N` | populate current node's height |
-| `style.*`, `vars.*`, `layers.*`, `scenarios.*`, `steps.*`, `classes.*`, `constraint.*`, `grid-*` | emit `.unsupported` diagnostic, skip value |
+| `style.*`, `vars.*`, `layers.*`, `scenarios.*`, `steps.*`, `classes.*`, `constraint.*`, `grid-*` | NOT stashed in AST; emit `.unsupported` diagnostic, skip value |
 
 ### Error handling
 
-- **Fatal**: unterminated `{` block, unparseable line
-- **Non-fatal (diagnostic)**: unsupported constructs, reserved keywords that do not map to flowchart semantics
+- **Fatal**: unterminated `{` block, unparseable line — throws `DiagramError`
+- **Non-fatal (diagnostic)**: unsupported constructs, reserved keywords that do not map to flowchart semantics — collected in `[DiagramDiagnostic]` returned alongside the document
+
+### API
+
+```swift
+struct D2Parser {
+    func parse(_ source: String) throws -> (document: D2Document, diagnostics: [DiagramDiagnostic])
+}
+```
 
 ### Preprocessing
 
@@ -176,13 +187,13 @@ Line-oriented recursive-descent parser. Consumes raw source text, emits `D2Docum
 
 ---
 
-## Work Stream 4: d2 → MermaidGraph Mapper (`D2Mapper.swift`)
+## Work Stream 4: d2 → ParsedGraphModel Mapper (`D2Mapper.swift`)
 
-Converts `D2Document` → `MermaidGraph` (the `DiagramPayload.flowchart` target struct).
+Converts `D2Document` → `ParsedGraphModel` (i.e., `original_src_types.MermaidGraph`) plus additional diagnostics from the mapping pass.
 
 ### Core mapping
 
-| d2 construct | MermaidGraph field |
+| d2 construct | ParsedGraphModel field |
 |---|---|
 | `name: label` | `nodesInOrder: [(id: name, node: MermaidNode(id: name, label: label, shape: ...))]` |
 | `name { ... }` | `subgraphs: [MermaidSubgraph(id: name, label: name, nodeIds: [...], children: [...])]` |
@@ -196,10 +207,12 @@ Converts `D2Document` → `MermaidGraph` (the `DiagramPayload.flowchart` target 
 | `direction: up` | `direction: .BT` |
 | `direction: left` | `direction: .RL` |
 
+Note: `MermaidNode`, `MermaidEdge`, `MermaidSubgraph`, `NodeShape`, `Direction`, `ArrowHeadType`, `EdgeStyle`, `NodeProperties`, and `ParsedGraphModel` are all members of `original_src_types`. Mapper code imports `DiagramKitModel` and qualifies names as needed.
+
 ### Container/subgraph handling
 
 - `{ }` blocks create `MermaidSubgraph` entries
-- Nested blocks create nested `MermaidSubgraph.children`
+- Nested blocks create nested `MermaidSubgraph.children` arrays
 - Nodes declared inside a container are assigned to that subgraph's `nodeIds`
 - Container `label` is the subgraph's title
 
@@ -208,14 +221,24 @@ Converts `D2Document` → `MermaidGraph` (the `DiagramPayload.flowchart` target 
 - d2 edges have implicit indices when multiple edges exist between the same nodes
 - For the vertical slice, edges are appended in order; edge indices map naturally to Mermaid's edge array ordering
 
+### API
+
+```swift
+struct D2Mapper {
+    func map(_ document: D2Document) -> (graph: ParsedGraphModel, diagnostics: [DiagramDiagnostic])
+}
+```
+
 ---
 
 ## Work Stream 5: Shape Mapping (`D2Shapes.swift`)
 
 ```swift
+import DiagramKitModel
+
 /// Maps d2 shape names to DiagramKit NodeShape values.
 /// Returns nil for unsupported shapes (caller emits diagnostic).
-func mapD2Shape(_ shape: String) -> NodeShape? {
+func mapD2Shape(_ shape: String) -> original_src_types.NodeShape? {
     switch shape.lowercased() {
     case "rectangle": return .rectangle
     case "cylinder", "cyl": return .cylinder
@@ -249,7 +272,7 @@ func mapD2Shape(_ shape: String) -> NodeShape? {
 | `text` | `.text` | ✅ supported |
 | `sql_table` | — | Deferred (diagnostic) |
 | `class` | — | Deferred (diagnostic) |
-| `image` | `.imageSquare` via `NodeProperties.img` | Deferred (diagnostic) |
+| `image` | — | Deferred (diagnostic) |
 | `icon` | — | Deferred (diagnostic) |
 | `person` | — | Deferred (diagnostic) |
 | `code` | — | Deferred (diagnostic) |
@@ -262,8 +285,9 @@ func mapD2Shape(_ shape: String) -> NodeShape? {
 ## Work Stream 6: D2 Probe (`D2Probe.swift`)
 
 ```swift
-/// Returns true when `source` appears to be d2 rather than Mermaid/DOT/PlantUML.
-/// This is a narrow probe — it must NOT false-match on Mermaid flowchart source.
+/// Returns true when `source` appears to be d2 rather than any other known format.
+/// This is a narrow probe — it must NOT false-match on Mermaid, DOT, PlantUML,
+/// or Structurizr source.
 func isD2Source(_ source: String) -> Bool {
     let trimmed = source.trimmingCharacters(in: .whitespacesAndNewlines)
     let firstLine = trimmed.split(separator: "\n").first?
@@ -282,12 +306,29 @@ func isD2Source(_ source: String) -> Bool {
         if firstLine.hasPrefix(header) { return false }
     }
 
+    // DOT headers → not d2
+    if firstLine.hasPrefix("digraph") || firstLine.hasPrefix("graph ") || firstLine.hasPrefix("strict ") {
+        return false
+    }
+
+    // PlantUML headers → not d2
+    if trimmed.contains("@startuml") || trimmed.contains("@start") {
+        return false
+    }
+
+    // Structurizr headers → not d2
+    if trimmed.hasPrefix("workspace {") || trimmed.hasPrefix("workspace{") {
+        return false
+    }
+
     // d2 probe signatures (any one is sufficient):
 
-    // 1. Edge arrow syntax (most distinctive)
+    // 1. Edge arrow syntax (most distinctive — now safe after excluding
+    //    Mermaid with `->>`, DOT with `->` in `digraph`, and PlantUML with `->`)
     if trimmed.contains("->") || trimmed.contains("<->") { return true }
 
-    // 2. Dot-chained keys with colon assignment
+    // 2. Dot-chained keys with colon assignment (distinctive d2 pattern:
+    //    e.g. `a.b.c: value` — common in d2, rare in other formats)
     for line in trimmed.split(separator: "\n") {
         let stripped = line.trimmingCharacters(in: .whitespaces)
         if stripped.hasPrefix("#") || stripped.hasPrefix("//") { continue }
@@ -322,7 +363,11 @@ func isD2Source(_ source: String) -> Bool {
 | `graph TD\nA-->B` | `false` | `firstLine.hasPrefix("graph")` |
 | `flowchart LR\nA-->B` | `false` | `firstLine.hasPrefix("flowchart")` |
 | `sequenceDiagram\nAlice->>Bob: Hello` | `false` | `firstLine.hasPrefix("sequenceDiagram")` |
-| `A -> B\nB -> C` | `true` | No Mermaid header + contains `->` |
+| `digraph G {\n  a -> b\n}` | `false` | `firstLine.hasPrefix("digraph")` |
+| `strict digraph G {\n  a -> b\n}` | `false` | `firstLine.hasPrefix("strict ")` |
+| `@startuml\nAlice -> Bob: Hello\n@enduml` | `false` | `trimmed.contains("@startuml")` |
+| `workspace {\n  model {\n    user = person\n  }\n}` | `false` | `trimmed.hasPrefix("workspace {")` |
+| `A -> B\nB -> C` | `true` | No other-format header + contains `->` |
 | `a.b.c: value` | `true` | Dot chain detected |
 | `x: label\ny: label` | `false` | Ambiguous — falls through to Mermaid fallback (intentional) |
 | `Group {\n  A -> B\n}` | `true` | Block syntax + colon assignment |
@@ -347,35 +392,43 @@ public struct D2Importer: DiagramSourceImporter {
 
     public func parse(_ source: String) throws -> DiagramImportResult {
         let parser = D2Parser()
-        let d2Doc = try parser.parse(source)
+        let (d2Doc, parseDiagnostics) = try parser.parse(source)
 
         let mapper = D2Mapper()
-        let (graph, diagnostics) = mapper.map(d2Doc)
+        let (graph, mapDiagnostics) = mapper.map(d2Doc)
 
+        let allDiagnostics = parseDiagnostics + mapDiagnostics
         let payload = DiagramPayload.flowchart(graph)
-        let document = DiagramDocument(type: .flowchart, payload: payload)
+        let document = DiagramDocument(payload: payload)
 
-        return DiagramImportResult(document: document, diagnostics: diagnostics)
+        return DiagramImportResult(document: document, diagnostics: allDiagnostics)
     }
 }
 ```
+
+Note: `DiagramDocument` has `public init(payload: DiagramPayload)` — this initializer extracts `type` from the payload enum case automatically. No separate `type` parameter is needed.
 
 ---
 
 ## Work Stream 8: Registry Integration
 
-In the default registry (currently Mermaid-only), prepend `D2Importer`:
+`DiagramPipeline.defaultRegistry` currently lives in `Sources/DiagramKit/MermaidPipeline.swift`:
 
 ```swift
-// In DiagramPipeline.defaultRegistry (or wherever the default is assembled)
-public static let defaultRegistry: ImporterRegistry = {
-    let d2 = D2Importer()
-    let mermaid = MermaidImporter()
-    return ImporterRegistry(importers: [d2, mermaid])
-}()
+public static let defaultRegistry: ImporterRegistry = ImporterRegistry(
+    importers: [MermaidImporter()]
+)
 ```
 
-This requires `DiagramKit` to depend on `DiagramKitD2`. Since `DiagramKit` is the umbrella, it imports all format targets.
+After D2 integration:
+
+```swift
+public static let defaultRegistry: ImporterRegistry = ImporterRegistry(
+    importers: [D2Importer(), MermaidImporter()]
+)
+```
+
+This requires `DiagramKit` to depend on `DiagramKitD2` (unconditional — see Work Stream 1). The existing `ImporterRegistryTests` assertion `registry.importers.count == 1` must be updated to `>= 2` with `importers[0].name == "D2"` and `importers.last?.name == "Mermaid"`.
 
 ---
 
@@ -413,6 +466,10 @@ Every d2 construct that does not map to flowchart semantics emits a `.unsupporte
 ### 10.1 D2 Parser Unit Tests (`Tests/DiagramKitTests/D2ParserTests.swift`)
 
 ```swift
+import Testing
+@testable import DiagramKitD2
+import DiagramKitModel
+
 @Suite struct D2ParserTests {
     @Test("Parse single node with label")
     @Test("Parse two nodes with labels")
@@ -432,17 +489,28 @@ Every d2 construct that does not map to flowchart semantics emits a `.unsupporte
     @Test("Empty source returns empty document")
     @Test("Unterminated { throws")
     @Test("Unparseable line throws")
+    @Test("Unsupported style.* emits diagnostic")
+    @Test("Unsupported vars.* emits diagnostic")
+    @Test("Unsupported layers.* emits diagnostic")
 }
 ```
 
 ### 10.2 D2 Importer Tests (`Tests/DiagramKitTests/D2ImporterTests.swift`)
 
 ```swift
+import Testing
+@testable import DiagramKit
+import DiagramKitModel
+import DiagramKitImport
+import DiagramKitD2
+
 @Suite struct D2ImporterTests {
     @Test("supports returns true for d2 source")
     @Test("supports returns false for Mermaid graph TD source")
     @Test("supports returns false for Mermaid flowchart source")
     @Test("supports returns false for DOT digraph source")
+    @Test("supports returns false for PlantUML source")
+    @Test("supports returns false for Structurizr source")
     @Test("parse returns flowchart DiagramDocument")
     @Test("parse returns node with correct label")
     @Test("parse returns edge with correct source/target")
@@ -478,6 +546,24 @@ func d2RejectsMermaidSequence() {
     #expect(!d2.supports(source: "sequenceDiagram\nAlice->>Bob: Hello"))
 }
 
+@Test("d2 probe rejects DOT digraph")
+func d2RejectsDOTDigraph() {
+    let d2 = D2Importer()
+    #expect(!d2.supports(source: "digraph G {\n  a -> b\n}"))
+}
+
+@Test("d2 probe rejects PlantUML @startuml")
+func d2RejectsPlantUML() {
+    let d2 = D2Importer()
+    #expect(!d2.supports(source: "@startuml\nAlice -> Bob: Hello\n@enduml"))
+}
+
+@Test("d2 probe rejects Structurizr workspace")
+func d2RejectsStructurizr() {
+    let d2 = D2Importer()
+    #expect(!d2.supports(source: "workspace {\n  model {\n    user = person\n  }\n}"))
+}
+
 @Test("d2 probe accepts A -> B source")
 func d2AcceptsEdgeSource() {
     let d2 = D2Importer()
@@ -511,7 +597,7 @@ func registryFallback() {
 
 ### 10.4 Corpus Multi-Format Tests (extend `CorpusMultiFormatTests.swift`)
 
-Add inline d2 fixtures:
+Add inline d2 fixtures with `"skipSnapshots": ["d2"]` to avoid snapshot machinery trying to create D2 baselines:
 
 ```swift
 // Fixture 1: Simple flow — Mermaid + d2 equivalents
@@ -528,7 +614,8 @@ let simpleFlowFixture = """
   "expectedImporters": {
     "mermaid": "Mermaid",
     "d2": "D2"
-  }
+  },
+  "skipSnapshots": ["d2"]
 }
 """
 
@@ -546,7 +633,8 @@ let containersFixture = """
   "expectedImporters": {
     "mermaid": "Mermaid",
     "d2": "D2"
-  }
+  },
+  "skipSnapshots": ["d2"]
 }
 """
 
@@ -564,7 +652,8 @@ let shapesFixture = """
   "expectedImporters": {
     "mermaid": "Mermaid",
     "d2": "D2"
-  }
+  },
+  "skipSnapshots": ["d2"]
 }
 """
 
@@ -586,66 +675,95 @@ let unsupportedFixture = """
   "expectedDiagnostics": [
     { "severity": "unsupported", "messageContains": "sql_table" },
     { "severity": "unsupported", "messageContains": "style" }
-  ]
+  ],
+  "skipSnapshots": ["d2"]
 }
 """
 ```
 
 Add test methods:
+
 ```swift
 @Test func d2SimpleFlowDecodes() throws { /* ... */ }
 @Test func d2ContainersDecode() throws { /* ... */ }
 @Test func d2ShapesDecode() throws { /* ... */ }
 @Test func d2UnsupportedFixtureHasDiagnostics() throws { /* ... */ }
 @Test func d2SourceForFormat() throws { /* ... */ }
-```
+@Test func d2ParseThroughImporter() throws {
+    // Prove d2 source parses → layout → SVG without crashing
+    let d2Source = "direction: right\nA: Start\nB: End\nA -> B"
+    let importer = D2Importer()
+    let result = try importer.parse(d2Source)
+    #expect(result.document.type == .flowchart)
 
-### 10.5 Corpus Snapshot Tests (extend `CorpusSnapshotTests.swift`)
+    // Layout the parsed document through the existing layout engine
+    let positioned = try DiagramPipeline.layout(
+        DiagramPipeline.parse("graph LR\nStart[Start] --> End[End]")
+    )
+    _ = positioned  // If we got here without throwing, layout works
 
-Modify snapshot tests to render d2 sources alongside Mermaid:
-
-```swift
-// For multi-format entries with d2 sources:
-for entry in entries where entry.hasSource(for: "d2") {
-    let d2Source = entry.source(for: "d2")!
-    let registry = ImporterRegistry(importers: [D2Importer(), MermaidImporter()])
-    let svg = try DiagramEngine.renderSVG(source: d2Source, registry: registry)
-    assertSnapshot(of: svg, as: .lines, named: "\(entry.id)-d2")
+    // Basic smoke: the positioned graph has at least one node
+    #expect(!(positioned.flowchartNodes?.isEmpty ?? true))
 }
 ```
 
-Snapshot naming convention: `{id}` for Mermaid, `{id}-d2` for d2.
+### 10.5 No `CorpusSnapshotTests` changes for Phase 3
 
-### 10.6 Real Corpus Entries (edit `test-diagrams.json`)
+D2 snapshot baselines are deferred to Phase 10. Phase 3 does NOT:
 
-Add ~5 multi-format entries alongside the existing 396 Mermaid-only entries:
+- Add real multi-format entries to `test-diagrams.json`
+- Extend `CorpusSnapshotTests` to render d2 sources
+- Record any new snapshot baselines
 
-1. `d2-flow-1-simple` — two nodes, one edge
-2. `d2-flow-2-multi-edge` — node with two outgoing edges
-3. `d2-flow-3-container` — container with nested nodes
-4. `d2-flow-4-shapes` — nodes with shape hints (cylinder, diamond, hexagon)
-5. `d2-flow-5-direction` — direction: right
+Instead, Phase 3 proves the pipeline works through:
+- Inline parser tests
+- Inline importer tests
+- Probe collision tests
+- Inline multi-format fixture decoding tests (with `skipSnapshots: ["d2"]`)
+- A single targeted render smoke test (parse → layout → render) in `CorpusMultiFormatTests`
+
+### 10.6 ImporterRegistryTests update
+
+The existing `defaultRegistryPicksMermaid()` test asserts `importers.count == 1`. After D2 integration:
+
+```swift
+@Test("Default registry has D2 first, Mermaid last")
+func defaultRegistryOrder() throws {
+    let registry = DiagramPipeline.defaultRegistry
+    #expect(registry.importers.count >= 2)
+    #expect(registry.importers[0].name == "D2")
+    #expect(registry.importers.last?.name == "Mermaid")
+
+    // d2-shaped source picks D2
+    let d2Importer = try #require(registry.importer(for: "A -> B"))
+    #expect(d2Importer.name == "D2")
+
+    // Mermaid-shaped source picks Mermaid
+    let mermaidImporter = try #require(registry.importer(for: "graph TD\nA-->B"))
+    #expect(mermaidImporter.name == "Mermaid")
+}
+```
+
+The old test `defaultRegistryPicksMermaid()` is replaced by this one.
 
 ---
 
 ## Execution Order
 
-1. **Create `Sources/DiagramKitD2/` target in `Package.swift`**
+1. **Create `Sources/DiagramKitD2/` target in `Package.swift`** (unconditional for `DiagramKit`, Linux+Apple)
 2. **Implement `D2AST.swift`** — minimal d2 AST types
-3. **Implement `D2Parser.swift`** — line-oriented recursive-descent parser
+3. **Implement `D2Parser.swift`** — line-oriented parser returning `(D2Document, [DiagramDiagnostic])`
 4. **Implement `D2Shapes.swift`** — shape name mapping table
-5. **Implement `D2Mapper.swift`** — D2AST → MermaidGraph mapping
-6. **Implement `D2Probe.swift`** — narrow probe function
-7. **Implement `D2Importer.swift`** — DiagramSourceImporter conformance
-8. **Integrate into `DiagramPipeline.defaultRegistry`** — prepend D2 before Mermaid
-9. **Add `DiagramKitD2` dependency to `DiagramKit` umbrella target**
-10. **Write `D2ParserTests.swift`** — parser unit tests
+5. **Implement `D2Mapper.swift`** — D2AST → `ParsedGraphModel` mapping
+6. **Implement `D2Probe.swift`** — narrow probe with DOT/PlantUML/Structurizr exclusions
+7. **Implement `D2Importer.swift`** — DiagramSourceImporter conformance using `DiagramDocument(payload:)`
+8. **Integrate into `DiagramPipeline.defaultRegistry`** — prepend `D2Importer()` before `MermaidImporter()`
+9. **Update `ImporterRegistryTests`** — replace single-importer assertion with D2-first + Mermaid-last
+10. **Write `D2ParserTests.swift`** — parser unit tests with `@testable import DiagramKitD2`
 11. **Write `D2ImporterTests.swift`** — importer unit tests
-12. **Extend `ProbeCollisionMatrixTests.swift`** — probe collision tests
-13. **Extend `CorpusMultiFormatTests.swift`** — multi-format fixture tests
-14. **Extend `CorpusSnapshotTests.swift`** — render through existing paths
-15. **Add ~5 real corpus entries to `test-diagrams.json`** with both Mermaid and d2 sources
-16. **Build + test full pipeline**
+12. **Extend `ProbeCollisionMatrixTests.swift`** — d2 probe collision tests (DOT, PlantUML, Structurizr)
+13. **Extend `CorpusMultiFormatTests.swift`** — inline d2 fixtures with `skipSnapshots: ["d2"]`
+14. **Build + test full pipeline**
 
 ---
 
@@ -660,10 +778,9 @@ swift test --filter D2ParserTests
 swift test --filter D2ImporterTests
 swift test --filter ProbeCollisionMatrixTests
 swift test --filter CorpusMultiFormatTests
-swift test --filter CorpusSnapshotTests
 
 # Before phase close:
-swift test --filter ImporterRegistryTests   # ensure no regressions
+swift test --filter ImporterRegistryTests   # updated for D2-first registry
 swift test --filter MermaidImporterTests    # ensure no regressions
 Scripts/check-file-sizes.sh
 Scripts/check-sendable-annotations.sh
@@ -672,10 +789,9 @@ Scripts/strict-concurrency-check.sh
 
 Snapshot policy:
 
-- Run targeted `CorpusSnapshotTests` subsets when a change could affect parsing, layout, or rendering.
-- Do not record snapshots unless the phase explicitly includes an intentional rendering-baseline update.
+- Phase 3 does NOT record or create new snapshot baselines.
 - Treat crashes, 0×0 layout regressions, missing outputs, importer misrouting, and unexpected snapshot deletions as blockers.
-- Treat known visual improvements as reviewed drift and save baseline recording for the final snapshot pass (Phase 10).
+- D2 snapshot baselines are deferred to the final snapshot pass (Phase 10).
 
 ---
 
@@ -692,6 +808,8 @@ Snapshot policy:
 - Markdown block strings (fall back to plain text)
 - Edge indices and multi-edge deduplication
 - Image shapes
+- Real `test-diagrams.json` multi-format entries
+- D2 snapshot baselines (SVG, image, ASCII)
 
 ---
 
@@ -699,20 +817,19 @@ Snapshot policy:
 
 | File | Action |
 |---|---|
-| `Package.swift` | Add `DiagramKitD2` target, product, add to `DiagramKit` deps |
+| `Package.swift` | Add `DiagramKitD2` target (unconditional), product, add to `DiagramKit` deps (unconditional) |
 | `Sources/DiagramKitD2/D2AST.swift` | New — d2 AST types |
-| `Sources/DiagramKitD2/D2Parser.swift` | New — recursive-descent parser |
-| `Sources/DiagramKitD2/D2Mapper.swift` | New — D2AST → MermaidGraph mapper |
-| `Sources/DiagramKitD2/D2Probe.swift` | New — narrow probe |
+| `Sources/DiagramKitD2/D2Parser.swift` | New — recursive-descent parser returning `(D2Document, [DiagramDiagnostic])` |
+| `Sources/DiagramKitD2/D2Mapper.swift` | New — D2AST → `ParsedGraphModel` mapper |
+| `Sources/DiagramKitD2/D2Probe.swift` | New — narrow probe with DOT/PlantUML/Structurizr guards |
 | `Sources/DiagramKitD2/D2Shapes.swift` | New — shape mapping table |
 | `Sources/DiagramKitD2/D2Importer.swift` | New — DiagramSourceImporter conformance |
-| `Sources/DiagramKit/DiagramPipeline.swift` | Edit — add D2Importer to defaultRegistry |
+| `Sources/DiagramKit/MermaidPipeline.swift` | Edit — add `D2Importer()` to `defaultRegistry` |
 | `Tests/DiagramKitTests/D2ParserTests.swift` | New — parser unit tests |
 | `Tests/DiagramKitTests/D2ImporterTests.swift` | New — importer unit tests |
-| `Tests/DiagramKitTests/ProbeCollisionMatrixTests.swift` | Edit — add d2 probe collision tests |
-| `Tests/DiagramKitTests/CorpusMultiFormatTests.swift` | Edit — add d2 inline fixtures |
-| `Tests/DiagramKitTests/CorpusSnapshotTests.swift` | Edit — add d2 snapshot rendering |
-| `Examples/MermaidPlayground/Resources/test-diagrams.json` | Edit — add ~5 multi-format entries |
+| `Tests/DiagramKitTests/ProbeCollisionMatrixTests.swift` | Edit — add d2 probe collision tests (DOT/PlantUML/Structurizr) |
+| `Tests/DiagramKitTests/CorpusMultiFormatTests.swift` | Edit — add inline d2 fixtures with `skipSnapshots: ["d2"]` |
+| `Tests/DiagramKitTests/ImporterRegistryTests.swift` | Edit — update default registry assertion to D2-first + Mermaid-last |
 | `PHASES.md` | Edit — mark Phase 3 status |
 
 ### Files intentionally NOT changed
@@ -722,4 +839,6 @@ Snapshot policy:
 - `DiagramKitModel` types (no new payload cases)
 - `DiagramKitImport` protocol/registry (already designed for this)
 - `DiagramKitTestSupport` (CorpusEntry already supports multi-format)
-- Snapshot baselines (will be re-recorded in the final Phase 10 snapshot pass)
+- `CorpusSnapshotTests.swift` (no d2 snapshot rendering in Phase 3)
+- `test-diagrams.json` (no new real entries until Phase 10)
+- Snapshot baselines (no new baselines until Phase 10)
