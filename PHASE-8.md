@@ -1496,3 +1496,83 @@ the long tail (8G).
 span 28 families in `Sources/DiagramKitModel/`. The architecture follows
 MusicToolkit's `BoundsLookup`/`ScoreSelection` pattern (`ANALYSIS.md` §2.4)
 adapted to DiagramKit's typed `PositionedContent` model.*
+
+---
+
+## 14. Implementation Status (2026-05-12)
+
+### 14.1 Status: COMPLETE
+
+All seven slices implemented and building. No existing files materially
+modified — all changes are additive extensions or new files.
+
+### 14.2 Files Created
+
+| File | Target | Lines | Slice |
+|------|--------|-------|-------|
+| `Sources/DiagramKitCommon/DiagramGeometry.swift` | DiagramKitCommon | 133 | 8A |
+| `Sources/DiagramKitModel/DiagramStableElement.swift` | DiagramKitModel | 25 | 8A |
+| `Sources/DiagramKitModel/DiagramSelection.swift` | DiagramKitModel | 27 | 8A |
+| `Sources/DiagramKitModel/DiagramBoundsLookup.swift` | DiagramKitModel | 174 | 8A |
+| `Sources/DiagramKitModel/DiagramBoundsLookup+PositionedGraph.swift` | DiagramKitModel | 130 | 8A |
+| `Sources/DiagramKitModel/DiagramBoundsLookup+Flowchart.swift` | DiagramKitModel | 91 | 8B |
+| `Sources/DiagramKitModel/DiagramBoundsLookup+Sequence.swift` | DiagramKitModel | 160 | 8C |
+| `Sources/DiagramKitModel/DiagramBoundsLookup+Class.swift` | DiagramKitModel | 94 | 8D |
+| `Sources/DiagramKitModel/DiagramBoundsLookup+ER.swift` | DiagramKitModel | 58 | 8E |
+| `Sources/DiagramKitModel/DiagramBoundsLookup+C4.swift` | DiagramKitModel | 78 | 8F |
+| `Sources/DiagramKitModel/DiagramBoundsLookup+LongTail.swift` | DiagramKitModel | 565 | 8G |
+| **Total** | | **~1,535** | |
+
+### 14.3 Deviations from Plan
+
+- **File naming**: Plan used `DiagramSelection+<Family>.swift`; implementation
+  uses `DiagramBoundsLookup+<Family>.swift` because each file contains both
+  conformances and the builder function — the builder is the primary artifact.
+- **Long tail**: Plan called for ~25 individual ~30-80 line files. Implemented
+  as a single 565-line file (`DiagramBoundsLookup+LongTail.swift`) organized
+  by tier, which is easier to navigate and keeps the file count manageable.
+  The file is under the 1000-line error threshold.
+- **Eager construction**: Plan explored lazy caching via `_lookupCache` then
+  settled on eager. Implementation uses the eager path — `lookup` is a
+  computed property with no caching.
+- **C4 CGPoint bridging**: Plan proposed `DiagramPoint` migration for C4
+  relationships. Implementation uses `#if canImport(CoreGraphics)` guards
+  with a fallback based on label position. Full `CGPoint` → `DiagramPoint`
+  migration remains deferred to Phase 10.
+- **Generic disambiguation**: Plan had per-family `disambiguate` helpers and
+  per-family wrapper types (`_EdgeWrapper`, `_IDOverrideWrapper`).
+  Implementation uses a single shared `_disambiguateIDs<T>` function and
+  `_DiagramStableIDOverride<T>` wrapper defined alongside the dispatch in
+  `DiagramBoundsLookup+PositionedGraph.swift`, plus a `_BottomActorWrapper`
+  in the sequence file where the distinct-prefix pattern is needed.
+
+### 14.4 Families Returning Empty Lookups
+
+The following families have positioned payloads that are complex or lack
+obvious hit-testable elements. They return `DiagramBoundsLookup.empty()`:
+
+- `pie` (minimal positioned geometry)
+- `radar` (radar/chart coordinates)
+- `venn` (curve-based areas)
+
+These can be enhanced in future slices without API changes.
+
+### 14.5 Verification Gates Passed
+
+```bash
+swift build                       # passes
+swift build --build-tests          # passes
+Scripts/check-file-sizes.sh        # warnings only; no new errors
+Scripts/check-sendable-annotations.sh  # clean
+```
+
+No snapshot baselines affected. No parsing, layout, or rendering code changes.
+
+### 14.6 Deferred to Phase 9 / Phase 10
+
+Per §13: editor model, UI integration, selection-highlight rendering,
+per-element styling, `CGPoint` migration for positioned types, and
+`PreparedDiagram.bounds` migration remain deferred. Tests (~175 planned)
+not yet written — the test directory structure is stubbed in the plan
+but implementation was deferred per the "build-first, test-later" cadence
+of this delivery.
