@@ -12,6 +12,7 @@ public struct D2Document: Sendable {
 public enum D2Statement: Sendable {
     case nodeDefinition(D2NodeDefinition)      // `name: value` or `name { ... }`
     case edgeDefinition(D2EdgeDefinition)      // `A -> B` or `A -> B: label`
+    case direction(String)                     // top-level `direction: right`
     case containerOpen(D2ContainerOpen)        // `name {`
     case containerClose                        // `}`
 }

@@ -1,15 +1,18 @@
 # DiagramKit Multi-Format Roadmap
 
 This is the active execution roadmap. `ANALYSIS.md` is the long-form rationale.
-`PHASE-0.md`, `PHASE-1.md`, and `PHASE-2.md` are the detailed phase plans and
-history.
+Detailed phase records live in `PHASE-0.md`, `PHASE-1.md`, `PHASE-2.md`, and
+`PHASE-3.md`.
 
 ## Current State
 
-Phases 0, 1, and 2 are implemented locally. Phase 2 has post-review schema
-hardening in this worktree: format IDs are canonical lowercase values,
-`sources` requires a `mermaid` source, and the playground decoder enforces the
-same source/Mermaid consistency rules as the test-support decoder.
+Phases 0, 1, 2, and 3 are implemented locally. Phase 3 has post-review
+remediation in this worktree: D2 edge-only endpoints synthesize nodes, D2 node
+property statements merge into existing nodes, top-level `direction` is a real
+AST directive rather than a visible node, and D2 corpus fixtures are split out
+of `CorpusMultiFormatTests.swift`.
+
+Commit the Phase 3 remediation before starting Phase 4.
 
 What is true now:
 
@@ -22,20 +25,22 @@ What is true now:
 - `String` has primary format-neutral helpers:
   `parseDiagram()`, `renderDiagramImage(...)`, `renderDiagramSVG(...)`, and
   `renderDiagramASCII(...)`.
-- `DiagramKitImport` exists as the format-import boundary target. It owns
+- `DiagramKitImport` is the source-format import boundary target. It owns
   `DiagramSourceImporter`, `DiagramImportResult`, `DiagramDiagnostic`,
   `ImporterRegistry`, and `DiagramLoader`.
-- `MermaidImporter` is the first concrete importer and is intentionally broad:
-  it acts as the fallback importer and must be ordered last once narrower
-  importers are added.
-- `DiagramPipeline.defaultRegistry` is the Phase 1 default registry. It is
-  Mermaid-only today. Custom registries are passed to registry-aware pipeline
-  methods rather than through an `ImporterRegistry.default` global.
+- `DiagramKitD2` is the first non-Mermaid importer target. It parses a narrow
+  D2 vertical slice and maps it to `DiagramPayload.flowchart`.
+- `MermaidImporter` remains the broad fallback importer and must stay last in
+  the default registry.
+- `DiagramPipeline.defaultRegistry` is currently ordered as
+  `[D2Importer(), MermaidImporter()]`: narrow D2 probe first, broad Mermaid
+  fallback last.
 - Source-taking `DiagramPipeline` paths for parse, layout, prepare, and primary
   SVG rendering load through `DiagramLoader` by default. Graph/positioned paths
   remain format-agnostic and consume `DiagramDocument`/`PositionedGraph`.
-- ASCII rendering is still Mermaid-specific in Phase 1. Do not claim it as part
-  of the generic importer boundary until it is deliberately migrated.
+- Source-taking ASCII rendering is still Mermaid-specific. Do not treat
+  `DiagramPipeline.renderASCII(source:)` as part of the generic importer
+  boundary until it is deliberately migrated.
 - `DiagramRegistry`, `DiagramDescriptor`, and `DiagramHeader` remain public
   Mermaid-family routing types for compatibility. They are documented as
   Mermaid-specific, not the multi-format import registry.
@@ -43,11 +48,11 @@ What is true now:
   It decodes legacy Mermaid-only entries and future multi-format entries while
   preserving `entry.source` as the Mermaid source.
 - Corpus format metadata uses canonical lowercase format IDs such as `mermaid`,
-  `d2`, `graphviz`, `plantuml`, and `structurizr`; importer names remain display
-  values such as `Mermaid`.
+  `d2`, `graphviz`, `plantuml`, and `structurizr`; importer names remain
+  display values such as `Mermaid` and `D2`.
 - The real corpus file is still Mermaid-only. Multi-format examples live as
-  inline fixtures in the corpus multi-format test files until the first d2
-  slice lands.
+  inline fixtures with `skipSnapshots` until the final baseline pass, unless a
+  future phase explicitly calls for a controlled corpus update.
 - Snapshot baselines currently include 396 SVG, 396 image, and 174 ASCII files.
   Snapshot recording is deferred until the final baseline pass unless a phase is
   explicitly about intentional renderer baseline changes.
@@ -59,7 +64,7 @@ What is true now:
 
 ## Operating Principles
 
-- Do not start new parser ports until Phase 2 is closed and committed.
+- Do not start Phase 4 until Phase 3 remediation is committed.
 - Keep source import separate from diagram-family layout. Importers produce
   `DiagramDocument`; they do not layout or render.
 - Preserve the worker-thread invariant: every public async facade path still
@@ -67,18 +72,22 @@ What is true now:
 - Preserve font determinism: `DiagramFontRegistry.registerBundledFontsIfNeeded()`
   must run before rendering-related pipeline work.
 - Keep `DiagramDocument -> PositionedGraph -> render` independent of source
-  format. Layout must not care whether the document came from Mermaid, d2, DOT,
+  format. Layout must not care whether the document came from Mermaid, D2, DOT,
   Structurizr, or PlantUML.
 - Probe order is contractual. Narrow/specific importers are prepended before
-  the Mermaid fallback.
+  broader fallbacks. Mermaid stays last.
 - Unsupported format features must produce diagnostics. No silent partial
   imports and no empty successful conversions.
 - Land each new format as a vertical slice with parser tests, probe collision
-  tests, corpus fixtures, diagnostics tests, and enough snapshot coverage to
-  prove it uses the existing render paths.
+  tests, inline corpus fixtures, diagnostics tests, and at least one
+  parse-to-layout/render smoke path through existing infrastructure.
+- Keep real `test-diagrams.json` entries Mermaid-only until the final snapshot
+  pass unless a phase explicitly opts into controlled baseline churn.
 - Expect snapshot drift during the phased import and renderer-improvement work.
   Review diffs for mechanical regressions now, but defer baseline recording to
   the final snapshot pass unless a phase explicitly says otherwise.
+- Keep new and touched files below the 500-line warning threshold. Split tests
+  by concern before they become new file-size warnings.
 
 ## Verification Policy
 
@@ -93,6 +102,9 @@ Scripts/check-sendable-annotations.sh
 Scripts/strict-concurrency-check.sh
 git diff --check
 ```
+
+`Scripts/check-file-sizes.sh` may report pre-existing warnings while still
+exiting successfully. A phase should not add new warnings in touched files.
 
 Run `Scripts/linux-check.sh` and the full `Scripts/bootstrap-smoke-check.sh`
 before merge readiness when Docker/Podman and Xcode runtimes are available. If
@@ -133,7 +145,7 @@ Mermaid behavior.
 
 Status: complete and committed locally.
 
-Implemented shape:
+Completed:
 
 - New `DiagramKitImport` target.
 - `DiagramSourceImporter`, `DiagramImportResult`, `DiagramDiagnostic`,
@@ -142,7 +154,6 @@ Implemented shape:
   fallbacks.
 - `MermaidImporter` wraps the current Mermaid-family registry dispatch and is
   the explicit fallback importer.
-- `DiagramPipeline.defaultRegistry` is Mermaid-only.
 - Source-taking parse/layout/prepare/primary SVG paths use the loader-backed
   import boundary.
 - Graph/positioned paths remain format-agnostic.
@@ -151,27 +162,14 @@ Implemented shape:
 - `DiagramError` remains in `DiagramKitModel`; `DiagramStructuralError` remains
   where existing render/layout code can use it without forcing a larger move.
 
-Closure evidence:
-
-- `swift build --build-tests`
-- `swift test --filter ImporterRegistryTests`
-- `swift test --filter ProbeCollisionMatrixTests`
-- `swift test --filter MermaidImporterTests`
-- `swift test --filter MermaidLegacyAPITests`
-- `swift test --filter DiagramRegistryTests`
-- governance scripts from the verification policy
-- snapshot review only; do not record baselines
-
-See `PHASE-1.md` for the full implementation plan and verification history.
+Closure evidence lives in `PHASE-1.md`.
 
 ## Phase 2: Multi-Format Corpus Foundation
 
 Goal: make the corpus capable of hosting multiple source formats before the
 second importer lands.
 
-Status: implemented locally; post-review schema hardening is in the current
-worktree and should be committed before Phase 3 starts. Full plan and design
-decisions are in [PHASE-2.md](PHASE-2.md).
+Status: complete and committed locally.
 
 Completed:
 
@@ -188,97 +186,119 @@ Completed:
   lowercase during decoding.
 - `CorpusSnapshotTests` uses `CorpusEntry`/`CorpusFile` from
   `DiagramKitTestSupport`; calls `validate()` on all entries.
-- `Package.swift`: `DiagramKitTests` depends on `DiagramKitTestSupport`.
-- `SampleDiagrams.swift`: `TestDiagram` carries multi-format fields + custom
-  decoder matching `CorpusEntry`; `TestExpectedDiagnostic` added.
-- `CorpusMultiFormatTests.swift` and `CorpusMultiFormatIntegrationTests.swift`:
-  6 test suites (decoding, metadata, backward compat, validation, playground
-  parity, sparse matrix) across 22 tests. Fixture-only tests stay separate from
-  real-corpus/render spot checks to satisfy the file-size gate.
-- Real `test-diagrams.json` untouched. All 396 entries remain Mermaid-only,
+- Playground corpus decoding mirrors the test-support schema invariants.
+- Real `test-diagrams.json` is untouched. All 396 entries remain Mermaid-only,
   decode correctly, and pass `validate()`.
 - Snapshot names unchanged. No baselines re-recorded.
 
-Close this phase with:
-
-- `swift build --build-tests`
-- `swift test --filter CorpusMultiFormatTests`
-- `swift test --filter CorpusMultiFormatIntegrationTests`
-- `swift test --filter ImporterRegistryTests`
-- governance scripts from the verification policy
-
-Do not add d2/DOT/PlantUML/Structurizr code until this phase is committed.
+Closure evidence lives in `PHASE-2.md`.
 
 ## Phase 3: D2 Importer Vertical Slice
 
 Goal: prove the importer architecture with the highest-ROI non-Mermaid format.
 
-Scope:
+Status: complete locally; post-review remediation is in this worktree and
+should be committed before Phase 4.
 
-- Add `DiagramKitD2` as a separate importer target.
-- Implement a narrow D2 probe and prepend it before Mermaid in configured
-  registries.
-- Parse basic nodes, edges, labels, containers, direction, and simple shape
-  hints.
-- Map the first slice to `DiagramPayload.flowchart`.
-- Emit diagnostics for unsupported D2 constructs.
-- Add corpus entries with equivalent Mermaid and d2 sources.
+Completed:
 
-Defer:
+- Added `DiagramKitD2` as a separate importer target and product.
+- Added `D2Importer`, `D2Parser`, `D2AST`, `D2Mapper`, `D2Probe`, and
+  `D2Shapes`.
+- Prepended `D2Importer()` before `MermaidImporter()` in
+  `DiagramPipeline.defaultRegistry`.
+- Parsed the first D2 slice: nodes, edges, labels, containers, top-level
+  direction, simple shape hints, comments, and `:`/`=` separators.
+- Mapped D2 to `DiagramPayload.flowchart`, reusing existing flowchart layout and
+  SVG/CG render paths.
+- Kept top-level `direction` as an AST directive, not a synthetic node.
+- Merged D2 property statements into existing nodes and synthesized edge-only
+  endpoint nodes.
+- Emitted diagnostics for unsupported D2 constructs.
+- Added D2 parser/importer/probe/fixture/registry coverage. The current targeted
+  Phase 3 verification set is 97 tests.
+- Kept real `test-diagrams.json`, `CorpusSnapshotTests.swift`, and snapshot
+  baselines unchanged.
+
+Deferred from Phase 3:
 
 - Full D2 styling parity.
-- D2 layout engine parity.
-- Non-flowchart mappings unless they fall out naturally.
-- Exporting d2.
+- D2 layout engine parity (`near`, grid, constraints, fixed positions).
+- Non-flowchart mappings.
+- Exporting D2.
+- Real multi-format corpus entries and D2 snapshot baselines.
 
-Tests:
-
-- D2 parser unit tests.
-- Probe collision tests proving D2 beats Mermaid for D2-shaped input.
-- Corpus entries render through existing SVG/image paths.
-- Unsupported syntax produces diagnostics without crashing.
+Closure evidence lives in `PHASE-3.md`.
 
 ## Phase 4: DOT Importer Vertical Slice
 
-Goal: add Graphviz DOT as a focused graph-language importer after d2 proves the
-pattern.
+Goal: add Graphviz DOT as the next focused graph-language importer.
 
-Scope:
+Approach:
 
-- Add `DiagramKitGraphviz` as a separate importer target.
-- Support `graph`, `digraph`, strict graphs, node labels, directed edges,
-  undirected edges, and simple subgraph clusters.
-- Map to `DiagramPayload.flowchart`.
-- Emit diagnostics for unsupported attributes and layout-only DOT concepts.
+- Write `PHASE-4.md` before implementation and review it before code changes.
+- Add `DiagramKitGraphviz` as a separate importer target and product.
+- Add a narrow DOT probe that requires `graph`, `digraph`, or `strict graph` /
+  `strict digraph` structure. Do not treat bare `A -> B` as DOT; that remains
+  D2-shaped input.
+- Prepend `GraphvizImporter()` before `D2Importer()` and `MermaidImporter()`.
+- Parse a small DOT subset: graph/digraph headers, node statements, node
+  labels, directed edges, undirected edges, simple attribute lists, and
+  `subgraph cluster_*` containers.
+- Map the first slice to `DiagramPayload.flowchart`.
+- Emit diagnostics for unsupported DOT attributes and layout-only concepts.
+- Keep DOT fixtures inline with `skipSnapshots`; do not add real corpus entries
+  or snapshot baselines in this phase.
 
 Tests:
 
 - DOT parser unit tests.
-- DOT/Mermaid/D2 probe collision tests.
-- Corpus fixtures with DOT and equivalent Mermaid sources.
-- Diagnostics tests for unsupported DOT attributes.
+- DOT importer tests for node labels, edge-only endpoint synthesis, directed
+  and undirected edges, clusters, diagnostics, and parse-to-layout smoke.
+- Probe collision tests across DOT, D2, Mermaid, PlantUML, and Structurizr.
+- Inline corpus fixture tests with Mermaid/DOT source pairs.
+- Existing D2 and Mermaid importer/regression tests.
 
 ## Phase 5: Structurizr Importer Vertical Slice
 
-Goal: support the C4-shaped subset where Structurizr maps cleanly to the current
-model.
+Goal: support the C4-shaped subset where Structurizr maps cleanly to current
+DiagramKit models.
 
-Scope:
+Approach:
 
-- Add `DiagramKitStructurizr` as a separate importer target.
+- Write `PHASE-5.md` before implementation and review it before code changes.
+- Add `DiagramKitStructurizr` as a separate importer target and product.
+- Keep the probe narrow around `workspace` and Structurizr DSL structure.
+- Prepend `StructurizrImporter()` before existing importers once the probe is
+  proven collision-safe.
 - Focus on workspace/model/view slices that map to existing C4 payloads.
 - Keep DSL sections that do not map cleanly as explicit diagnostics.
 - Do not build a complete Structurizr runtime.
+- Keep fixtures inline with `skipSnapshots`; defer real corpus entries and
+  baselines.
 
 Tests:
 
-- Structurizr parser/probe tests.
-- C4 corpus fixtures with Mermaid and Structurizr sources.
+- Structurizr parser and importer tests for the supported workspace/view slice.
+- C4 mapping tests that prove the importer produces the expected payload.
+- Probe collision tests against Mermaid, D2, DOT, and PlantUML.
 - Diagnostics tests for unsupported workspace sections.
 
 ## Phase 6: PlantUML In Vertical Slices
 
 Goal: support useful PlantUML subsets without attempting a full PlantUML clone.
+
+Approach:
+
+- Write a separate plan for each PlantUML family slice.
+- Add `DiagramKitPlantUML` only when the first family plan is accepted.
+- Keep the outer probe narrow around `@startuml`/`@enduml`; route inside the
+  target by supported family.
+- Treat each family as independently shippable. Do not block earlier families
+  on later grammar coverage.
+- Every unsupported syntax branch emits a diagnostic.
+- Keep fixtures inline with `skipSnapshots`; defer real corpus entries and
+  baselines.
 
 Order:
 
@@ -288,30 +308,24 @@ Order:
 4. Mindmap and Gantt.
 5. C4-flavored PlantUML.
 
-Rules:
-
-- Treat each family as its own vertical slice.
-- Every unsupported syntax branch emits a diagnostic.
-- Do not block earlier slices on later grammar coverage.
-- Keep parser state isolated enough that slices can ship independently.
-
 Tests:
 
-- One suite per PlantUML family slice.
-- Probe collision tests for `@startuml` and family-specific headers.
+- One parser/importer suite per PlantUML family slice.
+- Probe collision tests for `@startuml` plus family-specific headers.
 - Corpus fixtures only for the families implemented in that slice.
+- Existing Mermaid, D2, DOT, and Structurizr routing regressions.
 
 ## Phase 7: Exporter Protocol
 
 Goal: add source generation after multiple importers prove the canonical model.
 
-Tasks:
+Approach:
 
 - Add `DiagramExporter`, `DiagramExportResult`, and exporter diagnostics.
 - Add sparse conversion-matrix tests.
 - Add exporters in this order:
   1. Mermaid
-  2. d2
+  2. D2
   3. Structurizr/C4
   4. PlantUML subsets
 - Add round-trip tests:
@@ -329,7 +343,7 @@ Rules:
 
 Goal: expose stable identity and geometry without building a full editor.
 
-Tasks:
+Approach:
 
 - Add stable semantic IDs for nodes, edges, groups, and diagram-specific items.
 - Add `DiagramSelection`.
@@ -338,14 +352,15 @@ Tasks:
 - Consider portable geometry types in `DiagramKitCommon` if `CGRect` would leak
   Apple-only types into format-neutral surfaces.
 
-Start with flowchart, state, class, sequence, and ER, then fill in the long tail.
+Start with flowchart, state, class, sequence, and ER, then fill in the long
+tail.
 
 ## Phase 9: Optional Interactive Model
 
 Goal: provide editor primitives only after import/export and stable geometry are
 settled.
 
-Tasks:
+Approach:
 
 - Add a `DiagramKitInteractive` target if real consumers need it.
 - Introduce a `@MainActor` editor model with selection state, undo, and typed
@@ -358,11 +373,13 @@ Tasks:
 Goal: reduce compatibility surface after the new architecture has lived through
 at least one release cycle.
 
-Tasks:
+Approach:
 
 - Decide which Mermaid-prefixed aliases stay indefinitely and which get removed.
 - Rename remaining files whose filenames materially confuse ownership.
+- Move approved inline multi-format fixtures into the real corpus.
+- Run full corpus snapshots, review accumulated drift, and record only
+  intentional baselines.
 - Update README, ARCHITECTURE, CLAUDE, AGENTS, CONTRIBUTING, and BASELINES.
-- Run full corpus snapshots and record only reviewed, intentional baselines.
 - Run the full gate in an environment with Docker/Podman and Xcode runtimes:
   `Scripts/bootstrap-smoke-check.sh`.

@@ -138,11 +138,11 @@ import DiagramKitModel
         let parser = D2Parser()
         let (doc, diags) = try parser.parse(source)
         #expect(diags.isEmpty)
-        guard case .nodeDefinition(let node) = doc.statements[0] else {
-            Issue.record("Expected nodeDefinition")
+        guard case .direction(let direction) = doc.statements[0] else {
+            Issue.record("Expected direction")
             return
         }
-        #expect(node.direction == "right")
+        #expect(direction == "right")
     }
 
     @Test("Parse direction: down")
@@ -151,6 +151,11 @@ import DiagramKitModel
         let parser = D2Parser()
         let (doc, diags) = try parser.parse(source)
         #expect(diags.isEmpty)
+        guard case .direction(let direction) = doc.statements[0] else {
+            Issue.record("Expected direction")
+            return
+        }
+        #expect(direction == "down")
     }
 
     @Test("Parse dot-chained keys (a.b.c: value)")

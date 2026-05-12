@@ -93,6 +93,18 @@ import DiagramKitD2
         #expect(graph.edges[0].target == "B")
     }
 
+    @Test("parse synthesizes nodes for edge-only endpoints")
+    func parseSynthesizesNodesForEdgeOnlyEndpoints() throws {
+        let d2 = D2Importer()
+        let result = try d2.parse("A -> B")
+        guard case .flowchart(let graph) = result.document.payload else {
+            Issue.record("Expected flowchart payload")
+            return
+        }
+        #expect(graph.nodesInOrder.map(\.id) == ["A", "B"])
+        #expect(graph.nodesInOrder.map(\.node.label) == ["A", "B"])
+    }
+
     @Test("parse maps shape: cylinder to .cylinder")
     func parseMapsShapeCylinder() throws {
         let d2 = D2Importer()
@@ -105,6 +117,20 @@ import DiagramKitD2
         #expect(graph.nodesInOrder[0].node.shape == .cylinder)
     }
 
+    @Test("parse merges node labels and property statements")
+    func parseMergesNodeLabelsAndPropertyStatements() throws {
+        let d2 = D2Importer()
+        let result = try d2.parse("A: Database\nA.shape: cylinder")
+        guard case .flowchart(let graph) = result.document.payload else {
+            Issue.record("Expected flowchart payload")
+            return
+        }
+        #expect(graph.nodesInOrder.count == 1)
+        #expect(graph.nodesInOrder[0].id == "A")
+        #expect(graph.nodesInOrder[0].node.label == "Database")
+        #expect(graph.nodesInOrder[0].node.shape == .cylinder)
+    }
+
     @Test("parse maps direction: right to .LR")
     func parseMapsDirectionRight() throws {
         let d2 = D2Importer()
@@ -114,6 +140,32 @@ import DiagramKitD2
             return
         }
         #expect(graph.direction == .LR)
+    }
+
+    @Test("parse does not render top-level direction as a node")
+    func parseDoesNotRenderTopLevelDirectionAsNode() throws {
+        let d2 = D2Importer()
+        let result = try d2.parse("direction: right\nA -> B")
+        guard case .flowchart(let graph) = result.document.payload else {
+            Issue.record("Expected flowchart payload")
+            return
+        }
+        #expect(graph.direction == .LR)
+        #expect(!graph.nodesInOrder.map(\.id).contains("direction"))
+        #expect(graph.nodesInOrder.map(\.id) == ["A", "B"])
+    }
+
+    @Test("parse assigns edge-only endpoints to containing subgraph")
+    func parseAssignsEdgeOnlyEndpointsToContainingSubgraph() throws {
+        let d2 = D2Importer()
+        let result = try d2.parse("Group {\n  A -> B\n}")
+        guard case .flowchart(let graph) = result.document.payload else {
+            Issue.record("Expected flowchart payload")
+            return
+        }
+        let subgraph = try #require(graph.subgraphs.first)
+        #expect(graph.nodesInOrder.map(\.id) == ["A", "B"])
+        #expect(subgraph.nodeIds == ["A", "B"])
     }
 
     @Test("parse maps A <-> B to bidirectional arrowheads")

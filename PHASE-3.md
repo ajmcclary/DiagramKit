@@ -1,9 +1,9 @@
 # Phase 3: D2 Importer Vertical Slice — ✅ COMPLETE
 
 **Completed**: 2026-05-12
-**Tests**: 79/79 pass (D2Parser, D2Importer, probe collision, multi-format fixtures, registry)
-**Verification gates**: All pass (file sizes, `@unchecked Sendable`, strict concurrency)
-**Mermaid regressions**: None (ImporterRegistryTests, MermaidImporterTests all pass)
+**Tests**: 97/97 targeted tests pass (D2Parser, D2Importer, D2 fixtures, probe collision, multi-format corpus, registry, Mermaid importer)
+**Verification gates**: File sizes, `@unchecked Sendable`, strict concurrency, package dump, and build-tests pass
+**Mermaid regressions**: None (ImporterRegistryTests and MermaidImporterTests pass)
 
 Goal: prove the importer architecture with the highest-ROI non-Mermaid format.
 
@@ -51,7 +51,7 @@ Unsupported constructs emit `DiagramDiagnostic.severity = .unsupported` with sou
 
 ### 6. D2 corpus fixtures remain inline; no new snapshot baselines ✅
 
-Inline fixtures carry `"skipSnapshots": ["d2"]`. No `test-diagrams.json` edits, no `CorpusSnapshotTests` changes, no new baselines.
+Inline fixtures carry `"skipSnapshots": ["d2"]` and live in `D2CorpusFixtureTests.swift` so `CorpusMultiFormatTests.swift` stays below the file-size gate. No `test-diagrams.json` edits, no `CorpusSnapshotTests` changes, no new baselines.
 
 ---
 
@@ -67,7 +67,11 @@ The plan assumed only `:` as key-value separator. d2 uses both `:` (`A: Start`) 
 
 ### Parser: bare `direction: right` as top-level directive
 
-The plan's parse rules showed `direction: right` → "populate current container's direction" but the dot-notation handler (`A.direction: right`) didn't cover bare `direction` without a dot. Implementation treats `direction` (no dot) as a top-level directive that creates a node with the direction field set, which the mapper picks up to set `MermaidGraph.direction`.
+The plan's parse rules showed `direction: right` → "populate current container's direction" but the dot-notation handler (`A.direction: right`) didn't cover bare `direction` without a dot. Implementation treats `direction` (no dot) as a dedicated AST statement (`D2Statement.direction`) instead of a synthetic node. The mapper applies it to `MermaidGraph.direction` without adding a visible `direction` node.
+
+### Mapper: node table is order-preserving and merge-aware
+
+The initial vertical slice appended every node/property statement directly to `nodesInOrder`, so `A: Database` plus `A.shape: cylinder` produced duplicate `A` nodes and edge-only diagrams did not materialize `A`/`B` nodes at all. The mapper now maintains an ordered node table, merges property statements into existing nodes, synthesizes missing edge endpoints, and records synthesized endpoints in the containing subgraph.
 
 ### AST types: `public` everywhere
 
@@ -88,9 +92,10 @@ All types are `public` in the library target (the plan omitted explicit access m
 | `Sources/DiagramKitD2/D2Importer.swift` | New — DiagramSourceImporter conformance | ✅ |
 | `Sources/DiagramKit/MermaidPipeline.swift` | Edit — add `D2Importer()` + `import DiagramKitD2` | ✅ |
 | `Tests/DiagramKitTests/D2ParserTests.swift` | New — 20 parser unit tests | ✅ |
-| `Tests/DiagramKitTests/D2ImporterTests.swift` | New — 18 importer unit tests | ✅ |
+| `Tests/DiagramKitTests/D2ImporterTests.swift` | New — 22 importer unit tests | ✅ |
 | `Tests/DiagramKitTests/ProbeCollisionMatrixTests.swift` | Edit — 8 d2 probe collision tests + `import DiagramKitD2` | ✅ |
-| `Tests/DiagramKitTests/CorpusMultiFormatTests.swift` | Edit — 6 inline d2 fixture tests + `import DiagramKitD2` | ✅ |
+| `Tests/DiagramKitTests/D2CorpusFixtureTests.swift` | New — 6 inline d2 fixture tests | ✅ |
+| `Tests/DiagramKitTests/CorpusMultiFormatTests.swift` | Restored to schema/playground coverage only after fixture split | ✅ |
 | `Tests/DiagramKitTests/ImporterRegistryTests.swift` | Edit — D2-first registry assertion + `import DiagramKitD2` | ✅ |
 
 ### Files intentionally NOT changed
@@ -109,16 +114,27 @@ All types are `public` in the library target (the plan omitted explicit access m
 ## Verification Gate Results
 
 ```
-Scripts/check-file-sizes.sh       ✅ No new warnings (D2 files all under 500 lines)
+swift package dump-package                  ✅ package graph loads
+swift build --build-tests                   ✅ library + tests compile
+Scripts/check-file-sizes.sh                 ✅ Passes with pre-existing warnings; all touched files under 500 lines
 Scripts/check-sendable-annotations.sh  ✅ All @unchecked Sendable documented/allowlisted
 Scripts/strict-concurrency-check.sh    ✅ DiagramKit first-party targets clean
+git diff --check                            ✅ no whitespace errors
 
 swift test --filter D2ParserTests              ✅ 20/20
-swift test --filter D2ImporterTests            ✅ 18/18
+swift test --filter D2ImporterTests            ✅ 22/22
+swift test --filter D2FixtureTests             ✅ 6/6
 swift test --filter ProbeCollisionMatrixTests  ✅ 16/16 (8 D2 + 8 pre-existing)
-swift test --filter CorpusMultiFormatTests     ✅ 22/22 (6 D2 + 16 pre-existing)
-swift test --filter ImporterRegistryTests      ✅ 8/8 (updated for D2-first)
-swift test --filter MermaidImporterTests       ✅ 3/3 (no regressions)
+swift test --filter MultiFormatDecodingTests   ✅ 5/5
+swift test --filter MultiFormatFixtureMetadataTests ✅ 6/6
+swift test --filter PlaygroundCorpusDecodingTests   ✅ 1/1 (when CoreGraphics is available)
+swift test --filter MultiFormatBackwardCompatibilityTests ✅ 4/4
+swift test --filter MultiFormatValidationTests ✅ 3/3
+swift test --filter MultiFormatSparseMatrixTests ✅ 3/3
+swift test --filter ImporterRegistryTests      ✅ 7/7 (updated for D2-first)
+swift test --filter MermaidImporterTests       ✅ 4/4 (no regressions)
+
+Not run by request: snapshots and Linux/Docker check.
 ```
 
 ---
@@ -252,7 +268,7 @@ public static let defaultRegistry: ImporterRegistry = ImporterRegistry(
 ### Work Stream 10: Tests
 
 - 20 parser unit tests
-- 18 importer unit tests
+- 22 importer unit tests
 - 8 probe collision tests
 - 6 inline d2 fixture tests
 - Updated ImporterRegistryTests

@@ -91,10 +91,8 @@ public struct D2Parser {
             }
 
             // Check for node definition: `id: value` or `id.shape: value`
-            if let nodeDef = try parseNodeOrProperty(line, lineNumber: i + 1, diagnostics: &diagnostics) {
-                if case let .nodeDefinition(node) = nodeDef {
-                    statements.append(.nodeDefinition(node))
-                }
+            if let statement = try parseNodeOrProperty(line, lineNumber: i + 1, diagnostics: &diagnostics) {
+                statements.append(statement)
                 // Property-only statements (like style.*, vars.*) already emitted as diagnostics
             }
 
@@ -235,7 +233,7 @@ public struct D2Parser {
 
         // Handle top-level `direction: <dir>` directive
         if key.lowercased() == "direction" {
-            return .nodeDefinition(D2NodeDefinition(id: key, direction: value))
+            return .direction(value)
         }
 
         // Check if this is a property on the current node context
