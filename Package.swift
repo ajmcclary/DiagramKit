@@ -131,6 +131,7 @@ let package = Package(
                 "DiagramKit",
                 "DiagramKitCommon",
                 "DiagramKitModel",
+                "DiagramKitTestSupport",
                 "MermaidPlayground",
                 .target(name: "DiagramKitRenderingCG", condition: .when(platforms: [.macOS, .iOS, .tvOS, .visionOS, .macCatalyst])),
                 .product(name: "CustomDump", package: "swift-custom-dump"),

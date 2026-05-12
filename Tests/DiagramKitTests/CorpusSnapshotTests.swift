@@ -1,6 +1,7 @@
 import Foundation
 import Testing
 import SnapshotTesting
+import DiagramKitTestSupport
 @testable import DiagramKit
 @testable import DiagramKitCommon
 @testable import DiagramKitModel
@@ -24,19 +25,6 @@ import SnapshotTesting
 @Suite("Diagram corpus snapshots")
 struct CorpusSnapshotTests {
 
-    // MARK: - Model
-
-    struct DiagramEntry: Decodable, Sendable {
-        let id: String
-        let category: String
-        let name: String
-        let source: String
-    }
-
-    private struct DiagramFile: Decodable {
-        let diagrams: [DiagramEntry]
-    }
-
     // MARK: - Helpers
 
     private static func projectRoot() -> URL {
@@ -51,11 +39,14 @@ struct CorpusSnapshotTests {
         return URL(fileURLWithPath: FileManager.default.currentDirectoryPath)
     }
 
-    private static func loadDiagrams() throws -> [DiagramEntry] {
+    private static func loadDiagrams() throws -> [CorpusEntry] {
         let jsonURL = projectRoot()
             .appendingPathComponent("Examples/MermaidPlayground/Resources/test-diagrams.json")
         let data = try Data(contentsOf: jsonURL)
-        let file = try JSONDecoder().decode(DiagramFile.self, from: data)
+        let file = try JSONDecoder().decode(CorpusFile.self, from: data)
+        for entry in file.diagrams {
+            try entry.validate()
+        }
         guard let rawIds = ProcessInfo.processInfo.environment["SNAPSHOT_DIAGRAM_IDS"], !rawIds.isEmpty else {
             return file.diagrams
         }
@@ -66,7 +57,7 @@ struct CorpusSnapshotTests {
     // MARK: - SVG snapshots
 
     @Test("SVG snapshot", arguments: try loadDiagrams())
-    func svgSnapshot(_ diagram: DiagramEntry) async throws {
+    func svgSnapshot(_ diagram: CorpusEntry) async throws {
         let svg = try await DiagramEngine.renderSVG(source: diagram.source, idPolicy: .stable)
         assertSnapshot(of: svg, as: .lines, named: diagram.id)
     }
@@ -75,7 +66,7 @@ struct CorpusSnapshotTests {
 
     @Test("Image snapshot", arguments: try loadDiagrams())
     @MainActor
-    func imageSnapshot(_ diagram: DiagramEntry) async throws {
+    func imageSnapshot(_ diagram: CorpusEntry) async throws {
         let image = try #require(await DiagramEngine.renderImage(source: diagram.source))
         // Allow a small margin for floating-point differences in CoreText path
         // rasterization across CPU architectures (Apple Silicon vs Intel) and
@@ -92,7 +83,7 @@ struct CorpusSnapshotTests {
     // MARK: - ASCII snapshots
 
     @Test("ASCII snapshot", arguments: try loadDiagrams())
-    func asciiSnapshot(_ diagram: DiagramEntry) async throws {
+    func asciiSnapshot(_ diagram: CorpusEntry) async throws {
         let ascii = try await DiagramEngine.renderASCII(source: diagram.source)
         assertSnapshot(of: ascii, as: .lines, named: diagram.id + "-ascii")
     }

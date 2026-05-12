@@ -239,13 +239,95 @@ public struct SampleDiagrams {
 
 // MARK: - Test Diagrams from Verification Suite
 
-/// A single test diagram entry
+/// A single test diagram entry decoded from or constructed for test-diagrams.json.
 public struct TestDiagram: Codable, Identifiable, Sendable {
     public let id: String
     public let category: String
     public let name: String
     public let source: String
     public var options: [String: Bool]? = nil
+
+    // Multi-format fields (all optional, nil on legacy entries)
+    public let sources: [String: String]?
+    public let expectedImporters: [String: String]?
+    public let expectedDiagnostics: [TestExpectedDiagnostic]?
+    public let unsupportedNote: String?
+    public let skipSnapshots: [String]?
+
+    // MARK: - Initialization
+
+    /// Direct construction for embedded fixtures (legacy schema).
+    public init(
+        id: String,
+        category: String,
+        name: String,
+        source: String,
+        options: [String: Bool]? = nil,
+        sources: [String: String]? = nil,
+        expectedImporters: [String: String]? = nil,
+        expectedDiagnostics: [TestExpectedDiagnostic]? = nil,
+        unsupportedNote: String? = nil,
+        skipSnapshots: [String]? = nil
+    ) {
+        self.id = id
+        self.category = category
+        self.name = name
+        self.source = source
+        self.options = options
+        self.sources = sources
+        self.expectedImporters = expectedImporters
+        self.expectedDiagnostics = expectedDiagnostics
+        self.unsupportedNote = unsupportedNote
+        self.skipSnapshots = skipSnapshots
+    }
+
+    // MARK: - Codable
+
+    enum CodingKeys: String, CodingKey {
+        case id, category, name, source, options
+        case sources, expectedImporters, expectedDiagnostics
+        case unsupportedNote, skipSnapshots
+    }
+
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        id = try container.decode(String.self, forKey: .id)
+        category = try container.decode(String.self, forKey: .category)
+        name = try container.decode(String.self, forKey: .name)
+        options = try container.decodeIfPresent([String: Bool].self, forKey: .options)
+        sources = try container.decodeIfPresent([String: String].self, forKey: .sources)
+        expectedImporters = try container.decodeIfPresent([String: String].self, forKey: .expectedImporters)
+        expectedDiagnostics = try container.decodeIfPresent(
+            [TestExpectedDiagnostic].self, forKey: .expectedDiagnostics
+        )
+        unsupportedNote = try container.decodeIfPresent(String.self, forKey: .unsupportedNote)
+        skipSnapshots = try container.decodeIfPresent([String].self, forKey: .skipSnapshots)
+
+        // Derive `source`: prefer `sources["mermaid"]`, fall back to `source`.
+        if let mermaidSource = sources?["mermaid"] {
+            source = mermaidSource
+        } else {
+            source = try container.decode(String.self, forKey: .source)
+        }
+    }
+
+    // MARK: - Helpers
+
+    /// Source text for a given format name.
+    /// Special-cases "mermaid" to fall back to the legacy `source` property.
+    public func source(for format: String) -> String? {
+        let key = format.lowercased()
+        if key == "mermaid" {
+            return sources?[key] ?? source
+        }
+        return sources?[key]
+    }
+}
+
+/// Expected diagnostic shape decoded from the multi-format fixture schema.
+public struct TestExpectedDiagnostic: Codable, Sendable {
+    public let severity: String
+    public let messageContains: String?
 }
 
 /// A diagram-family category shown in the playground picker.

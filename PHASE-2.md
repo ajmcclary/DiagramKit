@@ -3,7 +3,7 @@
 Goal: make the corpus capable of hosting multiple source formats before the
 second importer lands.
 
-Status: planned.
+Status: implemented.
 
 ---
 
@@ -527,6 +527,25 @@ No re-recording of snapshots needed — the real corpus is unchanged and this is
 a pure schema/test-infrastructure extension.
 
 ---
+
+## Implementation Notes
+
+The implementation matches the plan with one intentional strengthening:
+
+- **Mismatch detection moved into the decoder.** The plan described a
+  post-decode `validate()` method that compared `source` against
+  `sources["mermaid"]`. The implementation instead always decodes the top-level
+  `source` field and compares it against `sources["mermaid"]` during
+  `init(from:)`, throwing `CorpusEntryError.sourceMermaidMismatch` immediately.
+  This catches diverging values at the earliest possible point, before any
+  consumer sees a `CorpusEntry`. The `validate()` method remains as a
+  belt-and-suspenders re-check.
+
+- **Explicit memberwise init on `TestDiagram`.** The playground's
+  `TestDiagram` struct needs a manual `init(...)` because the custom
+  `init(from decoder:)` suppresses automatic memberwise synthesis.
+  The `embeddedDiagrams` fallback array uses this init to construct
+  legacy-schema entries inline.
 
 ## Design Decisions
 

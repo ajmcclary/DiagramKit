@@ -158,39 +158,28 @@ Do not add d2/DOT/PlantUML/Structurizr code until this phase is committed.
 Goal: make the corpus capable of hosting multiple source formats before the
 second importer lands.
 
-Tasks:
+Status: implemented. Full plan and design decisions in [PHASE-2.md](PHASE-2.md).
 
-- Extend `test-diagrams.json` decoding to support both the current schema and a
-  multi-format schema:
+Completed:
 
-```json
-{
-  "id": "flow-1-simple",
-  "source": "graph TD\nA-->B",
-  "sources": {
-    "mermaid": "graph TD\nA-->B",
-    "d2": "A -> B"
-  }
-}
-```
-
-- Keep `source` as the Mermaid fallback for backward compatibility.
-- Add fixture metadata for importer identity, expected diagnostics, unsupported
-  feature notes, and snapshot participation.
-- Update `SampleDiagrams.swift`, `CorpusSnapshotTests`, and playground loaders
-  to preserve current behavior when only `source` exists.
-- Keep existing Mermaid snapshot names stable.
-- Add a sparse-matrix fixture model without forcing every format to support
-  every diagram type.
-
-Tests:
-
-- Old fixture schema decodes.
-- New fixture schema decodes.
-- Existing 396 Mermaid entries still run as Mermaid.
-- A fixture can carry a second format source without changing current Mermaid
-  snapshots.
-- Importer identity and expected diagnostics are available to tests.
+- `CorpusEntry` type in `DiagramKitTestSupport` with multi-format decoding,
+  format helpers, and validation.
+- `CorpusFile` container decodes `test-diagrams.json` including optional
+  `version`/`description`; ignores `metadata`.
+- `ExpectedDiagnostic` and `CorpusEntryError` for fixture metadata.
+- Mismatch detection: decoder throws `CorpusEntryError.sourceMermaidMismatch`
+  when `source` and `sources["mermaid"]` differ.
+- `CorpusSnapshotTests` uses `CorpusEntry`/`CorpusFile` from
+  `DiagramKitTestSupport`; calls `validate()` on all entries.
+- `Package.swift`: `DiagramKitTests` depends on `DiagramKitTestSupport`.
+- `SampleDiagrams.swift`: `TestDiagram` carries multi-format fields + custom
+  decoder matching `CorpusEntry`; `TestExpectedDiagnostic` added.
+- `CorpusMultiFormatTests.swift`: 5 test suites (decoding, metadata, backward
+  compat, validation, sparse matrix) — 20 tests total, all inline JSON
+  fixtures.
+- Real `test-diagrams.json` untouched. All 396 entries remain Mermaid-only,
+  decode correctly, and pass `validate()`.
+- Snapshot names unchanged. No baselines re-recorded.
 
 ## Phase 3: D2 Importer Vertical Slice
 
