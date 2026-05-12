@@ -11,7 +11,7 @@ final class BeautifulMermaidSwiftTests: XCTestCase {
     }
 
     func testFlowSvgContainsNodes() async throws {
-        let svg = try await renderMermaidSVG(
+        let svg = try await renderDiagramSVG(
             """
             graph TD
               A[Start] --> B[End]
@@ -32,6 +32,33 @@ final class BeautifulMermaidSwiftTests: XCTestCase {
         XCTAssertNotNil(image, "Expected DiagramEngine.renderImage to return a rasterizable image")
     }
 
+    func testStringDiagramExtensionsUseFormatNeutralNames() async throws {
+        let source = """
+        graph TD
+          A[Start] --> B[End]
+        """
+
+        let graph = try await source.parseDiagram()
+        XCTAssertEqual(graph.type, .flowchart)
+
+        let svg = try await source.renderDiagramSVG()
+        XCTAssertTrue(svg.contains("<svg"), "Expected format-neutral String SVG helper to render SVG")
+
+        let ascii = try await source.renderDiagramASCII()
+        XCTAssertFalse(ascii.isEmpty, "Expected format-neutral String ASCII helper to render ASCII")
+    }
+
+    @MainActor
+    func testStringRenderDiagramImageForSimpleFlowIsNonNil() async throws {
+        let source = """
+        graph TD
+          A[Start] --> B[End]
+        """
+
+        let image = try await source.renderDiagramImage()
+        XCTAssertNotNil(image, "Expected format-neutral String image helper to return a rasterizable image")
+    }
+
     /// Reproduces crash in flow-15 (subgraph with direction override).
     func testFlow15SubgraphDirectionCrash() async throws {
         let source = """
@@ -43,7 +70,7 @@ final class BeautifulMermaidSwiftTests: XCTestCase {
           E[Source] --> A
           D --> F[Sink]
         """
-        let svg = try await renderMermaidSVG(source, RenderOptions())
+        let svg = try await renderDiagramSVG(source, RenderOptions())
         XCTAssertFalse(svg.isEmpty)
     }
 
@@ -62,7 +89,7 @@ final class BeautifulMermaidSwiftTests: XCTestCase {
           Error --> Idle : retry
           Complete --> [*]
         """
-        let svg = try await renderMermaidSVG(source, RenderOptions())
+        let svg = try await renderDiagramSVG(source, RenderOptions())
         XCTAssertFalse(svg.isEmpty)
     }
 
@@ -128,13 +155,13 @@ final class BeautifulMermaidSwiftTests: XCTestCase {
 
     func testFlow6EdgeStyles() async throws {
         let source = "graph TD\n  A[Source] -->|solid| B[Target 1]\n  A -.->|dotted| C[Target 2]\n  A ==>|thick| D[Target 3]"
-        let svg = try await renderMermaidSVG(source, RenderOptions())
+        let svg = try await renderDiagramSVG(source, RenderOptions())
         XCTAssertFalse(svg.isEmpty)
     }
 
     func testFlow8BidirectionalEdgeLabels() async throws {
         let source = "graph LR\n  A[Client] <-->|sync| B[Server]\n  B <-.->|heartbeat| C[Monitor]\n  C <==>|data| D[Storage]"
-        let svg = try await renderMermaidSVG(source, RenderOptions())
+        let svg = try await renderDiagramSVG(source, RenderOptions())
         XCTAssertFalse(svg.isEmpty)
     }
 

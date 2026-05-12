@@ -79,15 +79,15 @@ File: `Sources/DiagramKitCommon/IssueReportingSupport.swift`
 | Before | After | Notes |
 |---|---|---|
 | `MermaidGraph` | `DiagramDocument` | The canonical parsed model |
-| `BeautifulMermaidError` | `DiagramError` | Moved to `Errors.swift` |
+| `BeautifulMermaidError` | `DiagramError` | Renamed in place; file consolidation deferred |
 | `MermaidSourceNormalizer` | `DiagramSourceNormalizer` | Shared by all parsers |
 | `MermaidColorParser` | `DiagramColorParser` | Hex color parsing |
 | `MermaidNode` | *unchanged* | Mermaid-specific node concept |
 | `ParsedGraphModel` (typealias) | *unchanged* | Upstream `original_src_types.MermaidGraph` |
 
-New file: `Sources/DiagramKitModel/Errors.swift`
-- Consolidate `DiagramError`, `DiagramStructuralError` (moved from umbrella), and
-  eventually `DiagramDiagnostic` (Phase 1).
+Deferred to Phase 1: consolidate `DiagramError`, `DiagramStructuralError`, and
+eventually `DiagramDiagnostic` into a model-level diagnostics file once importer
+protocol boundaries are in place.
 
 ### 3c. `DiagramKitRenderingCG`
 
@@ -119,7 +119,7 @@ New file: `Sources/DiagramKitModel/Errors.swift`
 | `MermaidPipeline` | `DiagramPipeline` | |
 | `MermaidImageRenderer` | `DiagramImageRenderer` | |
 | `MermaidParser` | *unchanged* | Will become `MermaidImporter` in Phase 2 |
-| `MermaidStructuralError` | `DiagramStructuralError` | **Move to `DiagramKitModel/Errors.swift`** |
+| `MermaidStructuralError` | `DiagramStructuralError` | Renamed in place; model move deferred |
 | `_MermaidPreparerBootstrap` | `_DiagramPreparerBootstrap` | |
 | `MermaidPreparerWiring.swift` | `DiagramPreparerWiring.swift` | File rename in Commit C |
 | `ImageRenderer.swift` | `DiagramImageRenderer.swift` | File rename in Commit C |
@@ -245,17 +245,26 @@ public typealias MermaidStructuralError = DiagramStructuralError
 
 ```swift
 extension String {
+    public func parseDiagram() async throws -> DiagramDocument { ... }
+
     @available(*, deprecated, renamed: "parseDiagram()")
     public func parseMermaid() async throws -> DiagramDocument { ... }
 
-    @available(*, deprecated, renamed: "renderDiagramImage()")
+    @MainActor
+    public func renderDiagramImage(theme: DiagramTheme = .default, scale: CGFloat = 2.0) async throws -> BMImage? { ... }
+
+    @available(*, deprecated, renamed: "renderDiagramImage(theme:scale:)")
     @MainActor
     public func renderMermaidImage(theme: DiagramTheme = .default, scale: CGFloat = 2.0) async throws -> BMImage? { ... }
 
-    @available(*, deprecated, renamed: "renderDiagramSVG()")
+    public func renderDiagramSVG(theme: DiagramTheme = .default, layoutConfig: LayoutConfig = LayoutConfig()) async throws -> String { ... }
+
+    @available(*, deprecated, renamed: "renderDiagramSVG(theme:layoutConfig:)")
     public func renderMermaidSVG(theme: DiagramTheme = .default, layoutConfig: LayoutConfig = LayoutConfig()) async throws -> String { ... }
 
-    @available(*, deprecated, renamed: "renderDiagramASCII()")
+    public func renderDiagramASCII(theme: DiagramTheme = .default) async throws -> String { ... }
+
+    @available(*, deprecated, renamed: "renderDiagramASCII(theme:)")
     public func renderMermaidASCII(theme: DiagramTheme = .default) async throws -> String { ... }
 }
 ```
@@ -264,16 +273,17 @@ extension String {
 
 ## 5. Diagnostics Location Decision
 
-**Place `DiagramError` and `DiagramStructuralError` in `DiagramKitModel/Errors.swift`.**
+**Phase 1 should place `DiagramError` and `DiagramStructuralError` in a model-level diagnostics file.**
 
-Both are already in `DiagramKitModel.Types` (`BeautifulMermaidError`) and
-`DiagramKit.DiagramDescriptor` (`MermaidStructuralError`). Consolidating them
-into a single `Errors.swift` in the model target:
+Today, `DiagramError` lives in `DiagramKitModel.Types` and
+`DiagramStructuralError` lives in `DiagramKit.DiagramDescriptor`. Consolidating
+them into a single model-target diagnostics file:
 - Lets any importer/exporter depend on `DiagramKitModel` and throw typed errors
 - Follows MusicToolkit's pattern of model-level error types
 - Avoids the umbrella target as an error dependency for new format targets
 
-Future `DiagramDiagnostic` (the non-fatal warning type) will also live here.
+That move is intentionally deferred because it changes target ownership and
+dependency boundaries. Future `DiagramDiagnostic` should live there too.
 
 ---
 
@@ -293,23 +303,25 @@ Generate `BASELINES.md` from live metrics. At minimum:
 # BASELINES.md
 
 ## Build
-- `swift build --build-tests`: ~X seconds (MacBook Pro M4, 24 GB)
+- `swift build --build-tests`: 22.23s (MacBook Pro M4, 24 GB)
 - `swift build -strict-concurrency=complete -warnings-as-errors`: clean
 
 ## Tests
-- `swift test`: ~N test suites, ~M test cases (approx. X minutes)
+- Test source files: 150 Swift files under `Tests/DiagramKitTests`
+- `swift test`: full count not captured in this pass
 - `SNAPSHOT_DIAGRAM_IDS=... swift test --filter CorpusSnapshotTests/imageSnapshot`: ~5 min
 
 ## Snapshot Baselines
 - SVG: 396 entries
-- Image: 346 entries (50 gap: layouts producing 0×0 bounds)
-- ASCII: 172 entries
+- Image: 396 entries
+- ASCII: 174 entries
+- Total tracked corpus baselines: 966 files
 
 ## Gate Status
 - `Scripts/check-file-sizes.sh`: pass
 - `Scripts/check-sendable-annotations.sh`: pass
 - `Scripts/strict-concurrency-check.sh`: pass
-- `Scripts/linux-check.sh`: pass
+- `Scripts/linux-check.sh`: run when Docker/Podman is available
 
 Last updated: 2026-05-12
 ```
@@ -353,11 +365,10 @@ Goal: files match their primary type names. Docs reflect new API surface.
 2. Rename `Sources/DiagramKit/MermaidPreparerWiring.swift` → `Sources/DiagramKit/DiagramPreparerWiring.swift`
 3. Rename `Sources/DiagramKitModel/MermaidColorParser.swift` → `Sources/DiagramKitModel/DiagramColorParser.swift`
 4. Rename `Sources/DiagramKitModel/MermaidSourceNormalizer.swift` → `Sources/DiagramKitModel/DiagramSourceNormalizer.swift`
-5. Create `Sources/DiagramKitModel/Errors.swift` (consolidate error types)
-6. Add `DiagramKit/DeprecatedAliases.swift` with all compat aliases
-7. Create `BASELINES.md` with live metrics
-8. Update `README.md`, `AGENTS.md`, `ARCHITECTURE.md`, `CONTRIBUTING.md`, `ANALYSIS.md`
-9. `Scripts/bootstrap-smoke-check.sh` — full gate
+5. Add compatibility aliases/wrappers in the original defining files
+6. Create `BASELINES.md` with live metrics
+7. Update `README.md`, `AGENTS.md`, `ARCHITECTURE.md`, `CONTRIBUTING.md`, `ANALYSIS.md`
+8. `Scripts/bootstrap-smoke-check.sh` — full gate
 
 ---
 
@@ -375,9 +386,11 @@ swift test --filter CorpusSnapshotTests
 Scripts/bootstrap-smoke-check.sh
 ```
 
-Snapshot re-recording is **not** expected in Phase 0 — test function names don't
-embed `Mermaid_` prefixes (verified: no matches in `Tests/`). If any snapshot
-baseline name changes, re-record with:
+Snapshot re-recording is **not** required by the Phase 0 rename itself — test
+function names don't embed `Mermaid_` prefixes (verified: no matches in
+`Tests/`). The committed image snapshot additions are intentional baselines from
+prior rendering improvements, not rename fallout. If any snapshot baseline name
+changes, re-record with:
 ```bash
 SNAPSHOT_TESTING_RECORD=true swift test --filter CorpusSnapshotTests
 ```
@@ -467,10 +480,9 @@ renamed:)` aliases pointing old → new.
 in the target where the original symbol was defined. Deprecated function
 wrappers delegate to the new names.
 
-**Verification**: `swift build --build-tests` passed. Corpus snapshot tests
-ran — snapshot failures are pre-existing rendering issues (stroke color
-calculations, 0×0 layout bounds), not caused by renames. See BASELINES.md
-for known gap counts.
+**Verification**: `swift build --build-tests` passed. Corpus snapshot baseline
+changes are not caused by the rename; the image additions are intentional outputs
+from earlier rendering improvements.
 
 ### Commit C — File Renames + Docs + BASELINES ✅
 
@@ -485,7 +497,8 @@ for known gap counts.
 a Phase 1 migration note.
 
 **BASELINES.md**: created with build time, snapshot counts, and gate status.
-Test counts left as placeholders (~XXX) pending a full `swift test` count pass.
+Snapshot counts are explicit: 396 SVG, 396 image, 174 ASCII, 966 tracked corpus
+baseline files total.
 
 **Docs updated**: AGENTS.md (critical constraints, conventions), ARCHITECTURE.md
 (type names, file paths, pipeline descriptions), ANALYSIS.md (type references).
@@ -504,15 +517,11 @@ Test counts left as placeholders (~XXX) pending a full `swift test` count pass.
 
 ### Snapshot Test Status
 
-Corpus snapshot tests produce ~700 issues across 3 suites (SVG / image / ASCII).
-These are **pre-existing** and match the known rendering-bug punch list:
-- Image: 50 entries fail due to layouts producing 0×0 bounds
-- SVG/ASCII: color hex differences in ER / C4 / event-modeling renderers
-  (e.g., `#939394` → `#27272A` stroke colors) caused by theme-color fallback
-  logic, not by Phase 0 renames
-
-Re-recording is not expected in Phase 0 — no snapshot baseline names changed
-(confirmed: zero `Mermaid_` prefixes in `Tests/` snapshot paths).
+The repository currently tracks 396 SVG, 396 image, and 174 ASCII corpus
+baselines. The image baseline additions in the Phase 0 history are intentional
+outputs from earlier rendering improvements. Re-recording is not required for
+the rename itself because no snapshot baseline names changed (confirmed: zero
+`Mermaid_` prefixes in `Tests/` snapshot paths).
 
 ### Build Metrics (2026-05-12, MBP M4 24 GB)
 

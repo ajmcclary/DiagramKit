@@ -4,11 +4,10 @@ import DiagramKitModel
 
 /// Indirection for view-side diagram preparation.
 ///
-/// The view types in `Sources/DiagramKit/Views/` previously called
-/// `DiagramPreparation.prepare` directly. That coupled the view code
-/// to the umbrella target, which is why the audit recommended a
-/// preparer protocol so the views can ultimately live in
-/// `DiagramKitViews`.
+/// The view types in `Sources/DiagramKitViews/` call through this
+/// wrapper instead of reaching up into the umbrella target. That keeps
+/// the view layer below `DiagramKit` while still using the canonical
+/// preparation pipeline registered by the umbrella.
 ///
 /// `DiagramViewPreparer` is a `Sendable` value-type wrapper around the
 /// async prepare closure. The umbrella registers the canonical

@@ -282,6 +282,9 @@ open class original_src_ascii_converter {
         }
     }
 
+    @available(*, deprecated, renamed: "DiagramDocumentInput")
+    public typealias MermaidGraphInput = DiagramDocumentInput
+
     // MARK: - TS parity utilities
 
     public static func gridCoordEquals(_ lhs: GridCoord, _ rhs: GridCoord) -> Bool {

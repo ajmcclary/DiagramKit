@@ -10,7 +10,7 @@ DiagramKit is a native Swift port of [mermaid-js](https://mermaid.js.org/) cover
 - Three render backends from a single layout: CoreGraphics (`renderImage`), SVG (`renderSVG`), ASCII (`renderASCII`).
 - Snapshot-deterministic rendering via bundled Noto Sans / Noto Sans Mono fonts (system-font drift across macOS major versions is neutralised).
 - Frontmatter / init-directive parsing matches upstream Mermaid: YAML frontmatter, `%%{init: …}%%` directives, theme tokens, and per-diagram-type config bindings.
-- `MermaidView` (SwiftUI) + `MermaidDiagramView` (UIKit/AppKit) for drop-in display on Apple platforms.
+- `DiagramView` (SwiftUI) + `DiagramNativeView` (UIKit/AppKit) for drop-in display on Apple platforms.
 - Linux-portable parse + layout (CG/CT-bound layouts excepted); see [ARCHITECTURE.md](ARCHITECTURE.md) for the per-target portability matrix.
 - Strict Swift 6 concurrency: `swiftLanguageModes: [.v6]` plus the `StrictConcurrency` upcoming feature applied per target.
 
@@ -57,9 +57,9 @@ DiagramKitModel            (Linux + Apple)  — parsers, layouts, SVG/ASCII rend
 DiagramKitRenderingCG     DiagramKitTestSupport
    (Apple-only)            (Linux + Apple)
    ↑
-DiagramKitViews            (Apple-only — placeholder stub today; Views/ files live in DiagramKit umbrella)
+DiagramKitViews            (Apple-only — SwiftUI/UIKit/AppKit view wrappers)
    ↑
-DiagramKit                 (umbrella; public API + Views/)
+DiagramKit                 (umbrella; public API)
    — Apple-only edges to RenderingCG/Views are gated via `condition: .when(platforms: [Apple])`
 ```
 
@@ -79,22 +79,22 @@ flowchart LR
     B -->|no| A
 """
 
-let image = try await MermaidImageRenderer.render(
-    source: source,
-    options: .init(scale: 2.0)
+let image = try await DiagramImageRenderer.render(
+    source,
+    scale: 2.0
 )
 ```
 
 ### Render to SVG
 
 ```swift
-let svg: String = try await MermaidRenderer.renderSVG(source)
+let svg: String = try await DiagramEngine.renderSVG(source)
 ```
 
 ### Render to ASCII
 
 ```swift
-let ascii: String = try await MermaidRenderer.renderASCII(source)
+let ascii: String = try await DiagramEngine.renderASCII(source)
 print(ascii)
 ```
 
@@ -108,7 +108,7 @@ struct ContentView: View {
     let source: String
 
     var body: some View {
-        MermaidView(source: source)
+        DiagramView(source: source)
             .frame(minWidth: 320, minHeight: 200)
     }
 }
@@ -117,8 +117,8 @@ struct ContentView: View {
 ### Parse without rendering (Linux-portable)
 
 ```swift
-let graph = try await MermaidRenderer.parse(source)
-let positioned = try await MermaidRenderer.layout(graph, config: .default)
+let graph = try await DiagramEngine.parse(source)
+let positioned = try await DiagramEngine.layout(graph, config: .default)
 // positioned is the laid-out scene graph; render with renderSVG / renderASCII
 // (renderImage requires CoreGraphics → Apple-only).
 ```
@@ -138,7 +138,7 @@ For the per-diagram-type parser/layout/renderer file map, see the "What lives wh
 | `DiagramKitCommon` | full | No CG/CT/UI dependencies. |
 | `DiagramKitModel` | partial | UIKit/AppKit/CoreText files compile to empty on Linux. SVG/ASCII paths that don't measure text work; layouts requiring `CTLineGetBoundsWithOptions` (`ishikawa`, `treeView`, `eventModeling`) are unreachable until Stage 2.5 ships a portable measurement shim. |
 | `DiagramKitTestSupport` | full | No CG/CT/UI dependencies. |
-| `DiagramKit` (umbrella) | partial | `parse(_:)` and `layout(_:config:)` portable. `renderImage`, `renderSVG`, `renderASCII`, `render(in: CGContext)`, `Views/*` are Apple-only. |
+| `DiagramKit` (umbrella) | partial | `parse(_:)` and `layout(_:config:)` portable. `renderImage`, `renderSVG`, `renderASCII`, and `render(in: CGContext)` are Apple-only. |
 | `DiagramKitRenderingCG` | none | Apple-only via `condition: .when(platforms: [Apple])` + `#if canImport(CoreGraphics)`. |
 | `DiagramKitViews` | none | Apple-only. |
 
@@ -148,7 +148,7 @@ Verify Linux build: `./Scripts/linux-check.sh` (requires Docker or Podman; build
 
 ```bash
 swift build                           # ~50s clean, ~4s incremental
-swift test                            # full suite (~144 files; see BASELINES.md for caveats)
+swift test                            # full suite (150 test files; see BASELINES.md for caveats)
 swift test --filter <NameOrPattern>   # narrow run, e.g. SequenceSvgTests, CorpusSnapshotTests/svgSnapshot
 ./Scripts/bootstrap-smoke-check.sh    # local "is this branch healthy?" gate
 ```
@@ -184,7 +184,8 @@ swift run MermaidPlayground
 - [ATTRIBUTION.md](ATTRIBUTION.md) — upstream `mermaid-js` lineage, bundled fonts, library dependencies.
 - [THIRD_PARTY_LICENSES.md](THIRD_PARTY_LICENSES.md) — bundled assets with copyright + license text references.
 - [CLAUDE.md](CLAUDE.md) — invariants, conventions, layer-import rules, where new files belong.
-- [ANALYSIS.md](ANALYSIS.md) — six-stage import plan and current status.
+- [PHASES.md](PHASES.md) — active multi-format roadmap from the current state.
+- [ANALYSIS.md](ANALYSIS.md) — long-form format analysis and rationale.
 
 ## License
 

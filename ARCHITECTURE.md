@@ -29,11 +29,11 @@ DiagramKit is structured as a layered Swift package: a small portable foundation
               └─────────┬─────────────┘  └───────────────────────┘
                         │
               ┌─────────▼──────────┐
-              │  DiagramKitViews   │  Apple-only (placeholder stub)
+              │  DiagramKitViews   │  Apple-only views
               └─────────┬──────────┘
                         │
               ┌─────────▼──────────────────────────┐
-              │            DiagramKit              │  umbrella: public API + Views/
+              │            DiagramKit              │  umbrella: public API + re-exports
               │  Apple-only edges to RenderingCG/  │
               │  Views via condition:.when(Apple)  │
               └─────────────────────────────────────┘
@@ -47,8 +47,8 @@ Apple-platform-only edges in [Package.swift](Package.swift) are guarded with `co
 | `DiagramKitModel` | ~197 files: per-diagram-type `src_<type>_parser.swift`, `src_<type>_layout.swift`, `src_<type>_renderer.swift`, ASCII converters (`src_ascii_*.swift`), source-preprocessing quartet, `Types.swift`, `RenderConfig.swift`, `RenderOptions.swift`, `RenderTokens.swift`, `PositionedPayloads.swift`, `CrossPlatform.swift` (`BMColor`/`BMFont`/`BMImage` shims), and 28 `FrontmatterBinding+<Type>.swift` adapters. | partial | full |
 | `DiagramKitRenderingCG` | Apple-only CG renderer: `DiagramRenderer+<Type>.swift` per diagram family, plus `EdgeRenderer`, `LabelRenderer`, `ShapeRenderer`, `ArrowRenderer`, `CGPathRenderer`, `PreparedDiagram`, `FontRegistry` (`DiagramFontRegistry`), `Version`. Bundled fonts under `Resources/Fonts/`. | none | full |
 | `DiagramKitTestSupport` | Linux-portable test helpers (no CG/CT/UI deps). | full | full |
-| `DiagramKitViews` | Placeholder stub today. The actual SwiftUI/UIKit views (`DiagramNativeView`, `DiagramView`, `DiagramLayer`, `DiagramViewModel`) currently live in `Sources/DiagramKit/Views/` because they depend on `DiagramPipeline`. A future refactor may extract them via a closure-based Preparer protocol. | none | full |
-| `DiagramKit` | Umbrella: `DiagramEngine`, `DiagramImageRenderer`, `DiagramPipeline`, `Parser.swift`, `Layout.swift`, `DiagramDescriptor.swift`, `src_index.swift`, `src_ascii_index.swift`, plus `Views/`. | partial | full |
+| `DiagramKitViews` | Apple-only SwiftUI/UIKit/AppKit wrappers: `DiagramNativeView`, `DiagramView`, `DiagramLayer`, `DiagramViewModel`. | none | full |
+| `DiagramKit` | Umbrella: `DiagramEngine`, `DiagramImageRenderer`, `DiagramPipeline`, `Parser.swift`, `Layout.swift`, `DiagramDescriptor.swift`, `src_index.swift`, `src_ascii_index.swift`. | partial | full |
 
 ## Three-stage pipeline
 
@@ -95,12 +95,12 @@ Per-diagram-type parsers receive a typed `frontmatter` argument and pull config 
 
 ## The worker-thread invariant
 
-`DiagramEngine` ([Sources/DiagramKit/DiagramEngine.swift](Sources/DiagramKit/DiagramEngine.swift)) is the public façade. Every `async throws` entry point dispatches its work onto a fresh **8 MB-stack `Thread`** via `_runOnWorker`.
+`DiagramEngine` ([Sources/DiagramKit/MermaidRenderer.swift](Sources/DiagramKit/MermaidRenderer.swift)) is the public façade. Every `async throws` entry point dispatches its work onto a fresh **8 MB-stack `Thread`** via `_runOnWorker`.
 
 **Do not reintroduce a thread pool.** It was attempted in commit `ff2622b` and intentionally reverted (see the doc-comment on `_runOnWorker`). Layout exceeds the cooperative pool's ~512 KB stack budget on nested-subgraph diagrams; running on a dedicated worker thread with an 8 MB stack is the only thing that keeps deeply nested mindmaps and flowcharts from crashing on stack overflow.
 
 Implementation details:
-- `DiagramPipeline` ([Sources/DiagramKit/DiagramPipeline.swift](Sources/DiagramKit/DiagramPipeline.swift)) is a stateless `enum` (NOT an actor) holding the synchronous, nonisolated implementations. Each public method calls `DiagramFontRegistry.registerBundledFontsIfNeeded()` first — critical for snapshot determinism.
+- `DiagramPipeline` ([Sources/DiagramKit/MermaidPipeline.swift](Sources/DiagramKit/MermaidPipeline.swift)) is a stateless `enum` (NOT an actor) holding the synchronous, nonisolated implementations. Each public method calls `DiagramFontRegistry.registerBundledFontsIfNeeded()` first — critical for snapshot determinism.
 - `DiagramImageRenderer` ([Sources/DiagramKit/DiagramImageRenderer.swift](Sources/DiagramKit/DiagramImageRenderer.swift)) routes through `DiagramEngine._runOnWorker` rather than a separate worker (the duplication was removed).
 
 ## Rendering backends — drift hazard
@@ -176,7 +176,7 @@ The four governance scripts originated as ports from the sibling `MusicToolkit` 
 - **Stage 2.5** — portable text-measurement shim (replacement for `CTLineGetBoundsWithOptions` on Linux) so `ishikawa` / `treeView` / `eventModeling` layouts can run without an Apple runtime.
 - **CG/SVG renderer drift** — long-term plan is a single canonical render path; snapshot tests are the only guardrail in the meantime.
 - **`RenderConfig.swift` magic constants** — should be lifted into theme tokens.
-- **`DiagramKitViews` extraction** — currently a placeholder stub; the real views still live in the umbrella because they depend on `DiagramPipeline`.
+- **View interactivity** — `DiagramKitViews` is split out, but selection, hit-testing, and editor-oriented state remain future work.
 - **`<Module>Bootstrap.phase: Int` markers** — deferred to Stage 6 monorepo promotion (per [ANALYSIS.md](ANALYSIS.md)).
 
 ## Suggested reading map

@@ -230,22 +230,36 @@ extension DiagramEngine {
 public typealias MermaidRenderer = DiagramEngine
 
 extension String {
-    public func parseMermaid() async throws -> DiagramDocument {
+    public func parseDiagram() async throws -> DiagramDocument {
         try await DiagramEngine.parse(self)
+    }
+
+    @available(*, deprecated, renamed: "parseDiagram()")
+    public func parseMermaid() async throws -> DiagramDocument {
+        try await parseDiagram()
     }
 
     #if canImport(CoreGraphics)
     @MainActor
-    public func renderMermaidImage(
+    public func renderDiagramImage(
         theme: DiagramTheme = .default,
         scale: CGFloat = 2.0
     ) async throws -> BMImage? {
         try await DiagramEngine.renderImage(source: self, theme: theme, scale: scale)
     }
+
+    @available(*, deprecated, renamed: "renderDiagramImage(theme:scale:)")
+    @MainActor
+    public func renderMermaidImage(
+        theme: DiagramTheme = .default,
+        scale: CGFloat = 2.0
+    ) async throws -> BMImage? {
+        try await renderDiagramImage(theme: theme, scale: scale)
+    }
     #endif
 
     #if canImport(CoreGraphics)
-    public func renderMermaidSVG(
+    public func renderDiagramSVG(
         theme: DiagramTheme = .default,
         layoutConfig: LayoutConfig = LayoutConfig()
     ) async throws -> String {
@@ -256,10 +270,25 @@ extension String {
         )
     }
 
-    public func renderMermaidASCII(
+    @available(*, deprecated, renamed: "renderDiagramSVG(theme:layoutConfig:)")
+    public func renderMermaidSVG(
+        theme: DiagramTheme = .default,
+        layoutConfig: LayoutConfig = LayoutConfig()
+    ) async throws -> String {
+        try await renderDiagramSVG(theme: theme, layoutConfig: layoutConfig)
+    }
+
+    public func renderDiagramASCII(
         theme: DiagramTheme = .default
     ) async throws -> String {
         try await DiagramEngine.renderASCII(source: self, theme: theme)
+    }
+
+    @available(*, deprecated, renamed: "renderDiagramASCII(theme:)")
+    public func renderMermaidASCII(
+        theme: DiagramTheme = .default
+    ) async throws -> String {
+        try await renderDiagramASCII(theme: theme)
     }
     #endif
 }

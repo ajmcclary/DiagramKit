@@ -1,5 +1,6 @@
 .build/
 .swiftpm/
+.deepseek/
 .DS_Store
 xcuserdata/
 __pycache__/

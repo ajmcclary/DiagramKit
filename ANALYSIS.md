@@ -35,7 +35,7 @@ DiagramKitCommon (Linux + Apple)
   → DiagramKitModel (Linux + Apple)
     → DiagramKitRenderingCG (Apple only)
     → DiagramKitTestSupport (Linux + Apple)
-    → DiagramKitViews (Apple only, stub)
+    → DiagramKitViews (Apple only)
       → DiagramKit (umbrella, public API + re-exports)
 ```
 
@@ -92,7 +92,7 @@ layout/SVG/CG paths would render it unchanged.
 `LiveEditorStore` lives in `Examples/MermaidPlayground/Models/` — not in the
 library. It's `@Observable @MainActor`, owns source/theme/config state, render
 lifecycle, export/copy/share actions, history, and URL loading. It is Mermaid-specific
-(calls `DiagramEngine` / `MermaidImageRenderer` directly) and does not expose
+(calls `DiagramEngine` / `DiagramImageRenderer` directly) and does not expose
 selection or hit-testing.
 
 ---
@@ -242,9 +242,10 @@ highlighting. The library has zero interactivity primitives.
 
 ### Gap 4: Naming Is Mermaid-Coupled
 
-`DiagramEngine`, `DiagramPipeline`, `DiagramDocument`, `MermaidParser`,
-`MermaidImageRenderer`, `BeautifulMermaidError`, `MermaidStructuralError` —
-these all become misleading the moment d2 or PlantUML lands.
+`DiagramEngine`, `DiagramPipeline`, and `DiagramDocument` now use format-neutral
+names, but `MermaidParser`, Mermaid-family registry types, and source-specific
+helpers remain coupled to Mermaid. Those should become importer-specific once d2
+or PlantUML lands.
 
 ---
 
@@ -463,9 +464,9 @@ One mechanical commit: rename Mermaid → Diagram.
 
 | Before                        | After                              |
 |-------------------------------|------------------------------------|
-| `DiagramEngine`             | `DiagramRenderer`                  |
-| `DiagramPipeline`             | `DiagramPipeline`                  |
-| `DiagramDocument`                | `DiagramDocument` (or `Diagram`)   |
+| `MermaidRenderer`             | `DiagramEngine`                    |
+| `MermaidPipeline`             | `DiagramPipeline`                  |
+| `MermaidGraph`                | `DiagramDocument`                  |
 | `MermaidView`                 | `DiagramView`                      |
 | `MermaidParser`               | `DiagramParser` / `MermaidImporter`|
 | `MermaidImageRenderer`        | `DiagramImageRenderer`             |
@@ -476,7 +477,7 @@ One mechanical commit: rename Mermaid → Diagram.
 | `MermaidSourceNormalizer`     | `DiagramSourceNormalizer`          |
 | `MermaidPreparerBootstrap`    | `DiagramPreparerBootstrap`         |
 
-Keep `public typealias DiagramEngine = DiagramRenderer` etc. for one release
+Keep `@available(..., renamed:)` Mermaid-prefixed typealiases for one release
 cycle so the playground and downstream consumers don't break.
 
 ### Phase 1 — Importer Protocol + Registry
@@ -705,10 +706,10 @@ After reorganization:
    per call. Should format importers follow the same pattern, or can they run on
    the cooperative pool? Parsing is typically compute-bound, not stack-deep.
 
-3. **Should `DiagramKitViews` stay a stub?** MusicToolkit ships zero views,
-   leaving UI to consumers. DiagramKit has `DiagramKitViews` as an Apple-only
-   stub. Should the new `DiagramKitInteractive` follow the same "model only"
-   philosophy?
+3. **How much UI should DiagramKit own?** MusicToolkit ships zero views,
+   leaving UI to consumers. DiagramKit now has an Apple-only `DiagramKitViews`
+   target for display wrappers. Should the new `DiagramKitInteractive` follow a
+   "model/primitives only" philosophy, or should it grow turnkey editor UI?
 
 4. **PlantUML scope.** Full PlantUML support is impractical (decades of
    accumulated syntax). Reasonable target: sequence + class + state + mindmap +
@@ -723,7 +724,7 @@ After reorganization:
    Mermaid's ZenUML support. A native `DiagramKitZenUML` target is valuable
    but lower priority than d2/PlantUML — the Mermaid path already works.
 
-7. **`DiagramDocument` naming.** `DiagramDocument` → `DiagramDocument` follows
+7. **`DiagramDocument` naming.** `MermaidGraph` → `DiagramDocument` follows
    MusicToolkit's `Score` pattern (a "document" is a frozen parsed model).
    Alternative: `Diagram` (shorter but ambiguous with `DiagramType`).
 

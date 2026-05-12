@@ -104,7 +104,7 @@ public struct DiagramDescriptor: Sendable {
 //
 // These descriptors are Mermaid-specific. A format-agnostic importer registry
 // (`ImporterRegistry` + `DiagramSourceImporter`) will be introduced in Phase 1.
-// At that point this type will become `DiagramViewModelRegistry` or be subsumed
+// At that point this type will become `MermaidDiagramRegistry` or be subsumed
 // into `MermaidImporter`.
 
 /// The canonical source of truth for diagram detection, parsing, and layout
