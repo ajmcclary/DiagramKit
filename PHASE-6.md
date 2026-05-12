@@ -10,7 +10,7 @@ and precedes Phase 7 (Exporter Protocol).
 
 | Slice | Family     | Status    | Date       | Source Lines | Test Lines | Tests | Notes |
 |-------|------------|-----------|------------|-------------|------------|-------|-------|
-| 6A    | Sequence   | ✅ Done   | 2026-05-12 | ~1,010       | ~725        | 51    | See [Slice 6A Completion Notes](#slice-6a-completion-notes) |
+| 6A    | Sequence   | ✅ Done   | 2026-05-12 | ~1,060       | ~835        | 55    | See [Slice 6A Completion Notes](#slice-6a-completion-notes) |
 | 6B    | Class      | 📋 Planned | —         | —           | —          | —     | — |
 | 6C    | State/Activity | 📋 Planned | —     | —           | —          | —     | — |
 | 6D    | Mindmap+Gantt | 📋 Planned | —      | —           | —          | —     | — |
@@ -18,7 +18,8 @@ and precedes Phase 7 (Exporter Protocol).
 
 **Slice 6A completion notes:**
 - 8 source files created under `Sources/DiagramKitPlantUML/`
-- 51 tests in `Tests/DiagramKitTests/PlantUMLSequenceImporterTests.swift` — all passing
+- 55 tests split across `PlantUMLSequenceParserTests`,
+  `PlantUMLSequenceMapperTests`, and `PlantUMLSequenceIntegrationTests` — all passing
 - Registry: `PlantUMLImporter` inserted between `StructurizrImporter` and `GraphvizImporter`
 - Probe collision: 44/44 `ProbeCollisionMatrixTests` pass (zero regressions)
 - Importer regression: 98/98 tests pass across Structurizr, D2, DOT, Mermaid
@@ -27,11 +28,12 @@ and precedes Phase 7 (Exporter Protocol).
 **Gate verification (Slice 6A):**
 - `swift package dump-package` — ✅
 - `swift build --build-tests` — ✅ (zero warnings)
-- `swift test --filter PlantUMLSequenceImporterTests` — ✅ 51/51
+- `swift test --filter PlantUMLSequence` — ✅ 55/55
+- `swift test --filter ImporterRegistryTests` — ✅ 7/7
 - `swift test --filter ProbeCollisionMatrixTests` — ✅ 44/44
-- `swift test --filter StructurizrImporterTests` — ✅ 45/45
-- `swift test --filter D2ImporterTests` — ✅ 16/16
-- `swift test --filter DOTImporterTests` — ✅ 28/28
+- `swift test --filter StructurizrImporterTests` — ✅ 36/36
+- `swift test --filter D2ImporterTests` — ✅ 22/22
+- `swift test --filter DOTImporterTests` — ✅ 36/36
 - `swift test --filter MermaidImporterTests` — ✅ 4/4
 
 ## Table of Contents
@@ -97,9 +99,11 @@ Sources/DiagramKitPlantUML/
 **Level 1 — Outer probe** (`PlantUMLProbe.isPlantUMLSource`):
 - Returns `true` when the source contains `@startuml` or `@startxxx` with a
   corresponding `@enduml` / `@endxxx`.
-- Rejects sources from all other formats (Mermaid, D2, DOT, Structurizr).
-- Guards: no `workspace {`, no `digraph`/`graph` header, no d2-specific
-  block markers.
+- Sources from other formats fail this probe because they do not use matched
+  PlantUML start/end tags.
+- Does not scan the PlantUML body for other-format keywords. Labels and notes
+  can legitimately contain strings such as `workspace {`, `digraph`, or D2-like
+  text, and family routing happens after the body is extracted.
 
 **Level 2 — Family routing** (`PlantUMLImporter.parse`):
 - Extracts the body between `@startuml`/`@enduml` (or `@startxxx`/`@endxxx`),
@@ -139,7 +143,8 @@ layout or renderer changes are required for any slice.
 - **Probe order is contractual.** `PlantUMLImporter` is prepended before
   `MermaidImporter()` and after `StructurizrImporter()` in
   `DiagramPipeline.defaultRegistry`. The Structurizr probe already rejects
-  `@startuml`. PlantUML's outer probe rejects `workspace {`.
+  `@startuml`. PlantUML's outer probe only accepts matched PlantUML start/end
+  tags; do not add broad body keyword guards for other formats.
   
   Final registry order after all slices:
   ```
@@ -254,10 +259,11 @@ Bob --> Alice: result
 deactivate Bob
 @enduml
 ```
-- `activate` / `deactivate` with optional target.
-- Auto-activation: implicit `activate` on first message to a participant,
-  `deactivate` on return message.
-- `return` keyword equivalent to `-->` with implicit `deactivate`.
+- `activate` / `deactivate` with optional target. Bare `activate` targets the
+  previous message receiver; bare `deactivate` targets the previous message
+  sender.
+- `return` emits a dotted reverse message and sets the message's `deactivate`
+  flag for the previous receiver.
 
 #### Notes
 ```
@@ -348,13 +354,14 @@ struct PlantUMLParticipant: Sendable, Equatable {
     var alias: String                    // used in arrow statements
     var displayName: String?             // optional display name
     var boxName: String?                 // enclosing box name
+    var boxFill: String?                 // optional enclosing box fill
 }
 
 enum PlantUMLSequenceItem: Sendable, Equatable {
     case message(PlantUMLSequenceMessage)
     case note(PlantUMLSequenceNote)
-    case activate(String, target: String)            // activate target
-    case deactivate(String, target: String)          // deactivate target
+    case activate(String)                            // target alias
+    case deactivate(String)                          // target alias
     case groupStart(String, kind: PlantUMLGroupKind)  // alt/loop/opt/group/box
     case groupEnd
     case divergent(String)                           // else
@@ -368,6 +375,8 @@ struct PlantUMLSequenceMessage: Sendable, Equatable {
     var to: String
     var arrow: PlantUMLArrowType
     var label: String?
+    var activate: Bool
+    var deactivate: Bool
 }
 
 enum PlantUMLArrowType: Sendable, Equatable {
@@ -426,7 +435,8 @@ chars are consumed greedily (`->>`, `->>>`, etc.).
 - `PlantUMLSequenceMessage` → `SequenceItem.message(SequenceMessage)`.
   Arrow types map to `SequenceArrowType` values (e.g., `-->` → `.dotted`,
   `->>` → `.dottedOpen`, `->o` → `.solidOpen`).
-  `SequenceMessage.activate`/`.deactivate` booleans control auto-activation.
+  `SequenceMessage.activate`/`.deactivate` booleans preserve inline activation
+  markers and return-driven deactivation.
 - `note left of` / `note right of` / `note over` →
   `SequenceItem.note(SequenceNote)`. `SequenceNote.actorIds` holds the
   participant IDs; `position` holds `"left"`, `"right"`, or `"over"`.
@@ -496,8 +506,10 @@ public static let defaultRegistry = ImporterRegistry(importers: [
 
 ### 2.9 Tests
 
-**New test file**: `Tests/DiagramKitTests/PlantUMLSequenceImporterTests.swift`
-(~250 lines expected, split by concern if needed).
+**New test files**:
+- `Tests/DiagramKitTests/PlantUMLSequenceParserTests.swift`
+- `Tests/DiagramKitTests/PlantUMLSequenceMapperTests.swift`
+- `Tests/DiagramKitTests/PlantUMLSequenceIntegrationTests.swift`
 
 **Test structure**:
 - `PlantUMLSequenceParsing` suite (~12 tests):
@@ -531,7 +543,7 @@ public static let defaultRegistry = ImporterRegistry(importers: [
   - Maps notes to SequenceNotes
   - Maps groups to SequenceGroups
   - Synthesizes participants from undeclared message references
-  - Auto-activation: first message to participant activates it
+  - Explicit activation items map without implicit activation side effects
 
 - `PlantUMLSequenceProbe` suite (~8 tests):
   - Recognizes `participant` in body
@@ -541,7 +553,7 @@ public static let defaultRegistry = ImporterRegistry(importers: [
   - Rejects bare `@startuml` with no sequence content
   - Does not false-match on class syntax
   - Does not false-match on mindmap syntax
-  - Does not false-match on state syntax
+  - Verifies state syntax is routed by the narrower state probe first
 
 - `PlantUMLSequenceIntegration` suite (~4 tests):
   - Full `@startuml/@enduml` round-trip through `PlantUMLImporter.parse`
@@ -555,7 +567,7 @@ public static let defaultRegistry = ImporterRegistry(importers: [
 - PlantUML sequence probe fires before class/mindmap/state probes for
   sequence-only sources
 
-**Inline corpus fixtures** (in `PlantUMLSequenceImporterTests`):
+**Inline corpus fixtures** (in the PlantUML sequence test files):
 - 3-4 inline fixtures with `skipSnapshots`
 - A simple two-participant message diagram
 - A diagram with alt/else/end grouping
@@ -574,10 +586,11 @@ public static let defaultRegistry = ImporterRegistry(importers: [
 | Arrow types (`->`, `-->`, `->>`, `->o`, `->x`, `<->`) | ✅ | All six variants plus reverse direction |
 | Message labels (`: text`) | ✅ | |
 | Self-messages | ✅ | |
-| Activations (`activate`/`deactivate`) | ✅ | With target participant |
+| Activations (`activate`/`deactivate`) | ✅ | With explicit target and bare previous-message context |
 | Notes (left, right, over) | ✅ | With comma-separated multi-target |
 | Grouping (alt/else/end, loop, opt, group) | ✅ | With diverge (else) support |
-| Boxes (`box "title" ... end box`) | ✅ | Box context tracked per participant |
+| Boxes (`box "title" ... end box`) | ✅ | Produces `SequenceBox` output |
+| `return` keyword | ✅ | Dotted reverse message with deactivation |
 | Autonumber | ✅ | start/stop |
 | Unsupported syntax diagnostics | ✅ | 10 constructs emit `.unsupported` |
 
@@ -586,16 +599,19 @@ public static let defaultRegistry = ImporterRegistry(importers: [
 | File | Actual lines | Est. lines |
 |------|-------------|------------|
 | `PlantUMLImporter.swift` | 86 | ~40 |
-| `PlantUMLProbe.swift` | 91 | ~50 |
-| `PlantUMLFamilyProbe.swift` | 70 | ~60 |
+| `PlantUMLProbe.swift` | 35 | ~50 |
+| `PlantUMLFamilyProbe.swift` | 69 | ~60 |
 | `PlantUMLDiagnostics.swift` | 31 | ~30 |
-| `Sequence/PlantUMLSequenceParser.swift` | 420 | ~300 |
-| `Sequence/PlantUMLSequenceAST.swift` | 115 | ~80 |
-| `Sequence/PlantUMLSequenceMapper.swift` | 133 | ~200 |
+| `Sequence/PlantUMLSequenceParser.swift` | 497 | ~300 |
+| `Sequence/PlantUMLSequenceAST.swift` | 129 | ~80 |
+| `Sequence/PlantUMLSequenceMapper.swift` | 150 | ~200 |
 | `Sequence/PlantUMLSequenceProbe.swift` | 63 | ~40 |
-| **Total** | **~1,010** | **~800** |
+| **Total** | **~1,060** | **~800** |
 
-**Actual test coverage:** 51 tests (vs ~38 estimated) — the increase came from family routing tests, registry tests, and probe dispatch verification tests that were added organically during implementation.
+**Actual test coverage:** 55 tests (vs ~38 estimated) — the increase came from
+family routing tests, registry tests, probe dispatch verification tests, and
+post-review coverage for boxes, return, bare activation, and probe false
+negatives.
 
 **Plan deviations:**
 1. `isPlantUMLStateBody` — removed bare `end` keyword detection. The keyword `end` is used for closing sequence blocks (`alt/else/end`), making it ambiguous with activity diagram end markers. The State probe now relies on `start`, `stop`, `state `, `[*]`, `partition`, and `:action;` for detection.
@@ -1441,7 +1457,9 @@ Sources/DiagramKitPlantUML/C4/
 
 | Test File                                          | Slice | Est. Tests |
 |----------------------------------------------------|-------|------------|
-| `PlantUMLSequenceImporterTests.swift`              | 6A    | ~38        |
+| `PlantUMLSequenceParserTests.swift`                | 6A    | ~32        |
+| `PlantUMLSequenceMapperTests.swift`                | 6A    | ~8         |
+| `PlantUMLSequenceIntegrationTests.swift`           | 6A    | ~15        |
 | `PlantUMLClassImporterTests.swift`                 | 6B    | ~40        |
 | `PlantUMLStateActivityImporterTests.swift`         | 6C    | ~44        |
 | `PlantUMLMindmapImporterTests.swift`               | 6D    | ~20        |
@@ -1508,9 +1526,9 @@ For each slice, before marking the slice complete:
 ```bash
 swift package dump-package
 swift build --build-tests
-swift test --filter PlantUML<Family>ImporterTests
+swift test --filter <phase-specific PlantUML suites>
 swift test --filter ProbeCollisionMatrixTests
-swift test --filter DiagramLoaderTests
+swift test --filter ImporterRegistryTests
 Scripts/check-file-sizes.sh
 Scripts/check-sendable-annotations.sh
 Scripts/strict-concurrency-check.sh
@@ -1593,14 +1611,14 @@ Each slice is independently shippable. A slice is complete when:
 
 | Slice | Family             | Est. Source | Est. Test | Est. Tests | Done | Actual Src | Actual Test | Act. Tests |
 |-------|--------------------|------------|-----------|------------|------|-----------|------------|-----------|
-| 6A    | Sequence           | ~800        | ~650      | ~38        | ✅ | ~1,010 | ~725 | 51 |
+| 6A    | Sequence           | ~800        | ~650      | ~38        | ✅ | ~1,060 | ~835 | 55 |
 | 6B    | Class              | ~600        | ~700      | ~40        |   | —      | —    | —  |
 | 6C    | State/Activity     | ~600        | ~750      | ~44        |   | —      | —    | —  |
 | 6D    | Mindmap + Gantt    | ~650        | ~800      | ~45        |   | —      | —    | —  |
 | 6E    | C4                 | ~620        | ~650      | ~36        |   | —      | —    | —  |
 |       | Shared infra       | ~200        | ~200      | ~15        |   | —      | —    | —  |
 |       | Probe extensions   | —           | ~400      | ~30        |   | —      | —    | —  |
-| **Total** |               | **~3,470**  | **~4,150** | **~248**  |   | **~1,010** | **~725** | **51** |
+| **Total** |               | **~3,470**  | **~4,150** | **~248**  |   | **~1,060** | **~835** | **55** |
 
 **Dependencies between slices**:
 - Slice 6A creates the `DiagramKitPlantUML` target and shared infrastructure.

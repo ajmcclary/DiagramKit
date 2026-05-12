@@ -12,11 +12,27 @@ public struct PlantUMLSequenceMapper {
         var diagnostics: [DiagramDiagnostic] = []
         var knownActorIds = Set<String>()
 
-        // Emit actor items first from participants
+        // Emit actor items first from participants, preserving box grouping.
+        var openBox: (title: String?, fill: String)?
         for p in ast.participants {
+            let participantBox = p.boxName.map { (title: Optional($0), fill: p.boxFill ?? "transparent") }
+            let boxChanged = openBox?.title != participantBox?.title || openBox?.fill != participantBox?.fill
+            if boxChanged {
+                if openBox != nil {
+                    items.append(.boxEnd)
+                }
+                if let participantBox {
+                    items.append(.boxStart(fill: participantBox.fill, title: participantBox.title, wrap: false))
+                }
+                openBox = participantBox
+            }
+
             let actor = _mapParticipant(p)
             knownActorIds.insert(actor.id)
             items.append(.actor(actor))
+        }
+        if openBox != nil {
+            items.append(.boxEnd)
         }
 
         // Walk AST items and emit SequenceItems
@@ -46,8 +62,8 @@ public struct PlantUMLSequenceMapper {
                     to: to,
                     label: msg.label ?? "",
                     arrowType: seqArrowType,
-                    activate: false,
-                    deactivate: false
+                    activate: msg.activate,
+                    deactivate: msg.deactivate
                 )
                 items.append(.message(seqMsg))
 
@@ -110,6 +126,7 @@ public struct PlantUMLSequenceMapper {
             id: p.alias,
             label: label,
             type: participantType,
+            boxId: p.boxName,
             isExplicit: true
         )
     }

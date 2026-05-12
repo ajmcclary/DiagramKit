@@ -14,18 +14,33 @@ public struct PlantUMLSequenceParser {
         var participants: [PlantUMLParticipant] = []
         var items: [PlantUMLSequenceItem] = []
         var hasAutoNumber = false
-        var currentBoxName: String? = nil
 
         // First pass: collect participant/actor declarations
         var lineNumber = 0
         var participantAliases = Set<String>()
+        var currentBoxName: String?
+        var currentBoxFill: String?
 
         for line in lines {
             lineNumber += 1
             let trimmed = line.trimmingCharacters(in: .whitespaces)
             guard !trimmed.isEmpty else { continue }
+            let lower = trimmed.lowercased()
 
-            if let p = _parseParticipant(trimmed, boxName: currentBoxName) {
+            if lower.hasPrefix("box ") {
+                let box = _parseBoxContext(trimmed)
+                currentBoxName = box.title
+                currentBoxFill = box.fill
+                continue
+            }
+
+            if lower == "end box" || lower == "endbox" {
+                currentBoxName = nil
+                currentBoxFill = nil
+                continue
+            }
+
+            if let p = _parseParticipant(trimmed, boxName: currentBoxName, boxFill: currentBoxFill) {
                 if !participantAliases.contains(p.alias) {
                     participants.append(p)
                     participantAliases.insert(p.alias)
@@ -35,6 +50,7 @@ public struct PlantUMLSequenceParser {
 
         // Second pass: walk lines and emit items
         lineNumber = 0
+        var lastMessage: PlantUMLSequenceMessage?
         var i = 0
         while i < lines.count {
             lineNumber += 1
@@ -50,24 +66,7 @@ public struct PlantUMLSequenceParser {
                 continue
             }
 
-            // Box context
-            if lower.hasPrefix("box ") {
-                // Parse box title and optional color
-                let afterBox = String(trimmed.dropFirst(4)).trimmingCharacters(in: .whitespaces)
-                // box "title" #color or box "title"
-                var boxTitle: String? = nil
-                var rest = afterBox
-                if rest.hasPrefix("\"") {
-                    if let endQuote = _findClosingQuote(in: rest, start: rest.index(after: rest.startIndex)) {
-                        boxTitle = String(rest[rest.index(after: rest.startIndex)..<endQuote])
-                        rest = String(rest[rest.index(after: endQuote)...]).trimmingCharacters(in: .whitespaces)
-                    }
-                }
-                currentBoxName = boxTitle
-                continue
-            }
-            if lower == "end box" || lower == "endbox" {
-                currentBoxName = nil
+            if lower.hasPrefix("box ") || lower == "end box" || lower == "endbox" {
                 continue
             }
 
@@ -89,7 +88,11 @@ public struct PlantUMLSequenceParser {
                 continue
             }
             if lower == "activate" {
-                // Implicit activation on last referenced participant
+                if let target = lastMessage?.to {
+                    items.append(.activate(target))
+                } else {
+                    items.append(.unsupported("activate without previous message", line: lineNumber))
+                }
                 continue
             }
             if lower.hasPrefix("deactivate ") {
@@ -98,6 +101,11 @@ public struct PlantUMLSequenceParser {
                 continue
             }
             if lower == "deactivate" {
+                if let target = lastMessage?.from {
+                    items.append(.deactivate(target))
+                } else {
+                    items.append(.unsupported("deactivate without previous message", line: lineNumber))
+                }
                 continue
             }
 
@@ -149,10 +157,13 @@ public struct PlantUMLSequenceParser {
             }
 
             // Return keyword (--> with implicit deactivate)
-            if lower.hasPrefix("return ") {
-                let rest = String(trimmed.dropFirst(7)).trimmingCharacters(in: .whitespaces)
-                if let msg = _parseReturnMessage(rest, lineNumber: lineNumber) {
+            if lower == "return" || lower.hasPrefix("return ") {
+                let rest = lower == "return" ? "" : String(trimmed.dropFirst(7)).trimmingCharacters(in: .whitespaces)
+                if let msg = _parseReturnMessage(rest, previousMessage: lastMessage) {
                     items.append(.message(msg))
+                    lastMessage = msg
+                } else {
+                    items.append(.unsupported("return without previous message", line: lineNumber))
                 }
                 continue
             }
@@ -177,6 +188,7 @@ public struct PlantUMLSequenceParser {
                     participantAliases.insert(msg.to)
                 }
                 items.append(.message(msg))
+                lastMessage = msg
                 continue
             }
 
@@ -202,7 +214,7 @@ public struct PlantUMLSequenceParser {
 
     // MARK: - Participant parsing
 
-    private func _parseParticipant(_ line: String, boxName: String?) -> PlantUMLParticipant? {
+    private func _parseParticipant(_ line: String, boxName: String?, boxFill: String?) -> PlantUMLParticipant? {
         let lower = line.lowercased()
         let kind: PlantUMLParticipantKind
         let rest: String
@@ -250,7 +262,13 @@ public struct PlantUMLSequenceParser {
                             ? _stripQuotes(aliasPart)
                             : String(aliasPart.split(separator: " ").first ?? Substring(aliasPart))
                     }
-                    return PlantUMLParticipant(kind: kind, alias: alias, displayName: displayName, boxName: boxName)
+                    return PlantUMLParticipant(
+                        kind: kind,
+                        alias: alias,
+                        displayName: displayName,
+                        boxName: boxName,
+                        boxFill: boxFill
+                    )
                 }
             }
         }
@@ -264,7 +282,13 @@ public struct PlantUMLSequenceParser {
         }
 
         guard !alias.isEmpty else { return nil }
-        return PlantUMLParticipant(kind: kind, alias: alias, displayName: displayName, boxName: boxName)
+        return PlantUMLParticipant(
+            kind: kind,
+            alias: alias,
+            displayName: displayName,
+            boxName: boxName,
+            boxFill: boxFill
+        )
     }
 
     // MARK: - Message parsing
@@ -316,14 +340,15 @@ public struct PlantUMLSequenceParser {
         return nil
     }
 
-    private func _parseReturnMessage(_ rest: String, lineNumber: Int) -> PlantUMLSequenceMessage? {
-        // "return label" or "return" — acts as a deactivate message
-        if rest.isEmpty {
-            return nil
-        }
-        // PlantUML return: `return message` or `return` (implicit to = previous sender)
-        // We emit a placeholder — the mapper will resolve direction
-        return PlantUMLSequenceMessage(from: "return", to: "return", arrow: .dotted, label: rest)
+    private func _parseReturnMessage(_ rest: String, previousMessage: PlantUMLSequenceMessage?) -> PlantUMLSequenceMessage? {
+        guard let previousMessage else { return nil }
+        return PlantUMLSequenceMessage(
+            from: previousMessage.to,
+            to: previousMessage.from,
+            arrow: .dotted,
+            label: rest,
+            deactivate: true
+        )
     }
 
     // MARK: - Note parsing
@@ -427,5 +452,46 @@ public struct PlantUMLSequenceParser {
             return String(str.dropFirst().dropLast())
         }
         return str
+    }
+
+    private func _parseBoxContext(_ line: String) -> (title: String?, fill: String?) {
+        var rest = String(line.dropFirst(3)).trimmingCharacters(in: .whitespaces)
+        var title: String?
+        var fill: String?
+
+        if rest.hasPrefix("\""),
+           let endQuote = _findClosingQuote(in: rest, start: rest.index(after: rest.startIndex)) {
+            title = String(rest[rest.index(after: rest.startIndex)..<endQuote])
+            rest = String(rest[rest.index(after: endQuote)...]).trimmingCharacters(in: .whitespaces)
+        } else if !rest.isEmpty {
+            let parts = rest.split(separator: " ", maxSplits: 1, omittingEmptySubsequences: true)
+            if let first = parts.first {
+                let firstToken = String(first)
+                if firstToken.hasPrefix("#") {
+                    fill = _normalizePlantUMLColor(firstToken)
+                } else {
+                    title = firstToken
+                }
+                rest = parts.count > 1 ? String(parts[1]).trimmingCharacters(in: .whitespaces) : ""
+            }
+        }
+
+        if !rest.isEmpty {
+            let parts = rest.split(separator: " ", maxSplits: 1, omittingEmptySubsequences: true)
+            if let first = parts.first, first.hasPrefix("#") {
+                fill = _normalizePlantUMLColor(String(first))
+            }
+        }
+
+        return (title: title, fill: fill)
+    }
+
+    private func _normalizePlantUMLColor(_ color: String) -> String {
+        guard color.hasPrefix("#") else { return color }
+        let value = String(color.dropFirst())
+        if value.range(of: #"^[0-9A-Fa-f]{3}([0-9A-Fa-f]{3})?([0-9A-Fa-f]{2})?$"#, options: .regularExpression) != nil {
+            return color
+        }
+        return value
     }
 }

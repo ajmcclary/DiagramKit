@@ -5,21 +5,27 @@ import DiagramKitImport
 import DiagramKitD2
 import DiagramKitGraphviz
 import DiagramKitStructurizr
+import DiagramKitPlantUML
 
 @Suite struct ImporterRegistryTests {
 
-    @Test("Default registry has Structurizr first, Graphviz second, D2 third, Mermaid last")
+    @Test("Default registry has Structurizr first, PlantUML second, Graphviz third, D2 fourth, Mermaid last")
     func defaultRegistryOrder() throws {
         let registry = DiagramPipeline.defaultRegistry
-        #expect(registry.importers.count >= 4)
+        #expect(registry.importers.count >= 5)
         #expect(registry.importers[0].name == "Structurizr")
-        #expect(registry.importers[1].name == "Graphviz")
-        #expect(registry.importers[2].name == "D2")
+        #expect(registry.importers[1].name == "PlantUML")
+        #expect(registry.importers[2].name == "Graphviz")
+        #expect(registry.importers[3].name == "D2")
         #expect(registry.importers.last?.name == "Mermaid")
 
         // Structurizr-shaped source picks Structurizr
         let structurizrImporter = try #require(registry.importer(for: "workspace { model { } views { } }"))
         #expect(structurizrImporter.name == "Structurizr")
+
+        // PlantUML-shaped source picks PlantUML
+        let plantUMLImporter = try #require(registry.importer(for: "@startuml\nAlice -> Bob: Hello\n@enduml"))
+        #expect(plantUMLImporter.name == "PlantUML")
 
         // DOT-shaped source picks Graphviz
         let dotImporter = try #require(registry.importer(for: "digraph G { A -> B }"))

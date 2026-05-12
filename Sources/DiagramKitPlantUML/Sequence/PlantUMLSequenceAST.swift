@@ -20,17 +20,20 @@ public struct PlantUMLParticipant: Sendable, Equatable {
     public var alias: String
     public var displayName: String?
     public var boxName: String?
+    public var boxFill: String?
 
     public init(
         kind: PlantUMLParticipantKind = .participant,
         alias: String,
         displayName: String? = nil,
-        boxName: String? = nil
+        boxName: String? = nil,
+        boxFill: String? = nil
     ) {
         self.kind = kind
         self.alias = alias
         self.displayName = displayName
         self.boxName = boxName
+        self.boxFill = boxFill
     }
 }
 
@@ -57,12 +60,23 @@ public struct PlantUMLSequenceMessage: Sendable, Equatable {
     public var to: String
     public var arrow: PlantUMLArrowType
     public var label: String?
+    public var activate: Bool
+    public var deactivate: Bool
 
-    public init(from: String, to: String, arrow: PlantUMLArrowType = .solid, label: String? = nil) {
+    public init(
+        from: String,
+        to: String,
+        arrow: PlantUMLArrowType = .solid,
+        label: String? = nil,
+        activate: Bool = false,
+        deactivate: Bool = false
+    ) {
         self.from = from
         self.to = to
         self.arrow = arrow
         self.label = label
+        self.activate = activate
+        self.deactivate = deactivate
     }
 }
 

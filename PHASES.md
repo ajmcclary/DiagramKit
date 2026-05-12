@@ -2,19 +2,14 @@
 
 This is the active execution roadmap. `ANALYSIS.md` is the long-form rationale.
 Detailed phase records live in `PHASE-0.md`, `PHASE-1.md`, `PHASE-2.md`,
-`PHASE-3.md`, `PHASE-4.md`, and `PHASE-5.md`.
+`PHASE-3.md`, `PHASE-4.md`, `PHASE-5.md`, and `PHASE-6.md`.
 
 ## Current State
 
-Phases 0, 1, 2, 3, 4, and 5 are implemented locally. Phase 5 has post-review
-remediation in this worktree: unsupported Structurizr statements no longer
-consume following supported model statements, relationship descriptions preserve
-the third string argument, deployment nodes are diagnostic-only and do not render
-as fallback system shapes, missing view scope/include aliases emit diagnostics,
-the Structurizr probe rejects unquoted workspace names that the parser cannot
-accept, and inline Structurizr fixtures now parse and inspect C4 payloads.
-
-Commit the Phase 5 remediation before starting Phase 6.
+Phases 0, 1, 2, 3, 4, and 5 are implemented and committed locally. Phase 6A
+(PlantUML sequence diagrams) is implemented with post-review remediation in
+this worktree. The remaining Phase 6 work is the planned PlantUML family slices:
+class, state/activity, mindmap+gantt, and C4-flavored PlantUML.
 
 What is true now:
 
@@ -38,11 +33,15 @@ What is true now:
 - `DiagramKitStructurizr` is the third non-Mermaid importer target. It parses a
   narrow Structurizr DSL vertical slice and maps it to
   `DiagramPayload.c4(C4Diagram)`.
+- `DiagramKitPlantUML` is the fourth non-Mermaid importer target. Slice 6A
+  parses PlantUML sequence diagrams and maps them to
+  `DiagramPayload.sequenceDiagram`.
 - `MermaidImporter` remains the broad fallback importer and must stay last in
   the default registry.
 - `DiagramPipeline.defaultRegistry` is currently ordered as
-  `[StructurizrImporter(), GraphvizImporter(), D2Importer(), MermaidImporter()]`:
-  narrow Structurizr, DOT, and D2 probes first, broad Mermaid fallback last.
+  `[StructurizrImporter(), PlantUMLImporter(), GraphvizImporter(), D2Importer(), MermaidImporter()]`:
+  narrow Structurizr and PlantUML probes first, then DOT and D2, with broad
+  Mermaid fallback last.
 - Source-taking `DiagramPipeline` paths for parse, layout, prepare, and primary
   SVG rendering load through `DiagramLoader` by default. Graph/positioned paths
   remain format-agnostic and consume `DiagramDocument`/`PositionedGraph`.
@@ -66,6 +65,9 @@ What is true now:
 - Structurizr inline corpus fixtures exist for the supported C4 slice. They
   parse fixture sources through `StructurizrImporter`, inspect the resulting
   `C4Diagram`, and remain marked `skipSnapshots`.
+- PlantUML sequence fixtures exist as inline tests. They parse through
+  `PlantUMLImporter`, inspect the resulting `SequenceDiagram`, and do not add
+  real corpus entries or snapshot baselines.
 - Snapshot baselines currently include 396 SVG, 396 image, and 174 ASCII files.
   Snapshot recording is deferred until the final baseline pass unless a phase is
   explicitly about intentional renderer baseline changes.
@@ -77,7 +79,8 @@ What is true now:
 
 ## Operating Principles
 
-- Do not start Phase 6 until Phase 5 remediation is committed.
+- Continue Phase 6 family-by-family. Slice 6A is the infrastructure and
+  sequence-diagram baseline; do not let later PlantUML slices destabilize it.
 - Keep source import separate from diagram-family layout. Importers produce
   `DiagramDocument`; they do not layout or render.
 - Preserve the worker-thread invariant: every public async facade path still
@@ -293,8 +296,7 @@ Closure evidence lives in `PHASE-4.md`.
 Goal: support the C4-shaped subset where Structurizr maps cleanly to current
 DiagramKit models.
 
-Status: complete locally; post-review remediation is in this worktree and
-should be committed before Phase 6.
+Status: complete and committed locally.
 
 Completed:
 
@@ -336,39 +338,68 @@ Deferred from Phase 5:
 - Exporting Structurizr.
 - Real multi-format corpus entries and Structurizr snapshot baselines.
 
-Closure evidence lives in `PHASE-5.md`. Post-review remediation evidence is in
-the current worktree until committed.
+Closure evidence lives in `PHASE-5.md`.
 
 ## Phase 6: PlantUML In Vertical Slices
 
 Goal: support useful PlantUML subsets without attempting a full PlantUML clone.
 
+Status: in progress. Slice 6A is complete locally with post-review remediation
+in this worktree. Slice 6B, PlantUML class diagrams, is next.
+
 Approach:
 
-- Write a separate plan for each PlantUML family slice.
-- Add `DiagramKitPlantUML` only when the first family plan is accepted.
-- Keep the outer probe narrow around `@startuml`/`@enduml`; route inside the
-  target by supported family.
+- Use `PHASE-6.md` as the canonical PlantUML plan and status table.
+- Keep `DiagramKitPlantUML` as a separate importer target.
+- Keep the outer probe narrow around valid `@start...`/`@end...` blocks; route
+  inside the target by supported family.
 - Treat each family as independently shippable. Do not block earlier families
   on later grammar coverage.
 - Every unsupported syntax branch emits a diagnostic.
 - Keep fixtures inline with `skipSnapshots`; defer real corpus entries and
   baselines.
 
+Completed in 6A:
+
+- Added `DiagramKitPlantUML` as a separate importer target and product.
+- Added PlantUML outer probing, family probing, diagnostics, and sequence
+  parser/mapper/probe files.
+- Inserted `PlantUMLImporter()` between `StructurizrImporter()` and
+  `GraphvizImporter()` in `DiagramPipeline.defaultRegistry`.
+- Parsed the first PlantUML sequence slice: participants, actors, aliases,
+  display names, six arrow variants plus reverse direction, message labels,
+  self-messages, explicit and bare activations, notes, groups, boxes,
+  autonumber start/stop, and `return`.
+- Mapped PlantUML sequence diagrams to `DiagramPayload.sequenceDiagram`, using
+  real `SequenceItem` cases including `boxStart`/`boxEnd`,
+  `activationStart`/`activationEnd`, `blockStart`/`blockDivider`/`blockEnd`,
+  and `autonumberEvent`.
+- Fixed post-review gaps: boxes now produce `SequenceBox` output, `return`
+  emits a dotted reverse message with deactivation, bare activation commands use
+  previous-message context, PlantUML probes no longer reject valid labels that
+  contain other-format keywords, registry order tests include PlantUML, and the
+  sequence tests are split below the 500-line warning threshold.
+- Added 55 PlantUML sequence tests across parser, mapper, and integration
+  suites, plus registry and probe collision coverage.
+- Kept real `test-diagrams.json`, `CorpusSnapshotTests.swift`, and snapshot
+  baselines unchanged.
+
 Order:
 
-1. Sequence diagrams.
-2. Class diagrams.
+1. Sequence diagrams. Complete in 6A.
+2. Class diagrams. Next.
 3. State/activity diagrams.
 4. Mindmap and Gantt.
 5. C4-flavored PlantUML.
 
 Tests:
 
-- One parser/importer suite per PlantUML family slice.
+- Split tests by concern before any new file crosses the 500-line warning
+  threshold.
+- One parser/importer suite group per PlantUML family slice.
 - Probe collision tests for `@startuml` plus family-specific headers.
 - Corpus fixtures only for the families implemented in that slice.
-- Existing Mermaid, D2, DOT, and Structurizr routing regressions.
+- Existing Mermaid, D2, DOT, Structurizr, and registry routing regressions.
 
 ## Phase 7: Exporter Protocol
 
