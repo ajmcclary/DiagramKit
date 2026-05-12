@@ -1,8 +1,9 @@
 # Phase 4: DOT Importer Vertical Slice — Plan
 
-Date: 2026-05-12. This document is the executable plan for Phase 4 of the
-DiagramKit multi-format roadmap. It follows `PHASE-3.md` (complete: D2
-importer) and precedes Phase 5 (Structurizr importer).
+Date: 2026-05-12 (revised 2026-05-12 per review). This document is the
+executable plan for Phase 4 of the DiagramKit multi-format roadmap. It follows
+`PHASE-3.md` (complete: D2 importer) and precedes Phase 5 (Structurizr
+importer).
 
 ## Goal
 
@@ -16,7 +17,8 @@ importer architecture with a narrow DOT vertical slice that maps to
 Sources/DiagramKitGraphviz/
 ├── GraphvizImporter.swift     DiagramSourceImporter conformance
 ├── DOTAST.swift               Minimal DOT AST types
-├── DOTParser.swift            Tokenizer + recursive-descent parser
+├── DOTLexer.swift             Token types + lexer
+├── DOTParser.swift            Recursive-descent parser
 ├── DOTMapper.swift            DOTAST → ParsedGraphModel mapping
 └── DOTProbe.swift             Narrow probe function
 ```
@@ -26,6 +28,9 @@ subset of DOT, map to `ParsedGraphModel`, emit diagnostics for unsupported
 constructs, and reuse the existing flowchart layout and render pipelines.
 There are no new diagram types, no layout changes, no renderer changes, no
 snapshot baselines, and no real corpus edits.
+
+Splitting the lexer (`DOTLexer.swift`) from the parser prevents the parser
+file from growing past the 500-line warning threshold.
 
 ## Work Stream 1: `DiagramKitGraphviz` Target
 
@@ -213,24 +218,47 @@ public struct DOTAttribute: Sendable, Hashable {
   than full attribute lists, since the DOT grammar allows both
   `rankdir=LR` and `graph [rankdir=LR]` forms for graph-level attributes.
 
-## Work Stream 3: DOT Parser (`DOTParser.swift`)
+## Work Stream 3: DOT Lexer (`DOTLexer.swift`)
 
-A tokenizer + recursive-descent parser for the narrow DOT subset. Consumes
-raw source text, returns `(DOTDocument, [DiagramDiagnostic])`.
+A tokenizer that consumes raw DOT source and produces a stream of
+`DOTToken` values for the parser.
+
+### Token types
+
+```swift
+public enum DOTToken: Sendable, Equatable {
+    case identifier(String)          // `A`, `graph`, `digraph`, `shape`, etc.
+    case string(String)              // quoted string, quotes stripped
+    case openBrace                   // `{`
+    case closeBrace                  // `}`
+    case openBracket                 // `[`
+    case closeBracket                // `]`
+    case semicolon                   // `;`
+    case equals                      // `=`
+    case comma                       // `,`
+    case directedEdge                // `->`
+    case undirectedEdge              // `--`
+}
+```
 
 ### Lexer / Preprocessing
 
-- Strip `// ...` single-line comments and `/* ... */` block comments.
-- Strip `#` line comments (some DOT variants accept these).
-- Tokenize on whitespace and punctuation: `{`, `}`, `;`, `[`, `]`, `=`,
+- Strips `// ...` single-line comments and `/* ... */` block comments.
+- Strips `#` line comments (some DOT variants accept these).
+- Tokenizes on whitespace and punctuation: `{`, `}`, `;`, `[`, `]`, `=`,
   `->`, `--`, `,`.
 - DOT identifiers: alphanumeric plus `_`, may be quoted in double-quotes.
-- Strings in double-quotes retain their content minus the quotes.
+- Strings in double-quotes return their content minus the quotes.
 
-### Grammar subset
+## Work Stream 4: DOT Parser (`DOTParser.swift`)
+
+A recursive-descent parser consuming the token stream from `DOTLexer`.
+Returns `(DOTDocument, [DiagramDiagnostic])`.
+
+### Grammar subset (header required)
 
 ```
-document      := header? "{" statement* "}"
+document      := header "{" statement* "}"
 header        := "strict"? ("graph" | "digraph") ID?
 
 statement     := node_stmt ";"
@@ -250,6 +278,11 @@ graph_attr_stmt := ID "=" ID
 attr_list     := "[" a_list? "]"
 a_list        := ID "=" ID ("," ID "=" ID)*
 ```
+
+**Header is required**: the `document` rule does NOT make `header`
+optional. Every DOT document parsed through this importer must start with
+`graph`, `digraph`, or `strict graph`/`strict digraph`. This matches the
+probe contract — bare `A -> B` routes to D2, never to Graphviz.
 
 ### Parse rules (narrow subset)
 
@@ -285,30 +318,26 @@ a_list        := ID "=" ID ("," ID "=" ID)*
    `digraph{ A->B }` parses identically to `digraph {\n  A -> B\n}`.
    The tokenizer collapses whitespace runs.
 
-4. **Quoted identifiers**: `"node name" [label="A Node"];` — identifiers
-   and attribute values may be quoted. The parser strips quotes and treats
-   the content as the identifier.
+4. **Quoted identifiers and attribute values**: `"node name" [label="A Node"];`
+   — identifiers and attribute values may be quoted. The lexer strips
+   quotes and delivers the content as `.string` or `.identifier` tokens.
 
-5. **Comma-separated node lists**: `A, B, C;` — DOT allows multiple nodes
-   in one statement separated by commas. Each becomes a separate
-   `DOTNodeStatement`.
-
-6. **Attribute lists**: `[label="Node", shape=box, color=red]` — key-value
+5. **Attribute lists**: `[label="Node", shape=box, color=red]` — key-value
    pairs separated by commas within brackets.
 
-7. **Unquoted attribute values**: `shape=box` (no quotes) is valid DOT.
+6. **Unquoted attribute values**: `shape=box` (no quotes) is valid DOT.
    The parser accepts both `shape=box` and `shape="box"`.
 
-8. **Balanced braces**: The parser validates that `{` and `}` are balanced.
+7. **Balanced braces**: The parser validates that `{` and `}` are balanced.
    Unbalanced braces produce `DiagramError`.
 
-9. **Edge chains with attribute lists**: `A -> B -> C [label="path"]` —
+8. **Edge chains with attribute lists**: `A -> B -> C [label="path"]` —
    the attribute list applies to the last edge (`B -> C`) only.
 
-10. **Nested subgraphs in edges**: We do NOT support `A -> subgraph { B; C }`
-    in this slice. Emit `.unsupported` diagnostic.
+9. **Nested subgraphs in edges**: We do NOT support `A -> subgraph { B; C }`
+   in this slice. Emit `.unsupported` diagnostic.
 
-## Work Stream 4: DOT → ParsedGraphModel Mapper (`DOTMapper.swift`)
+## Work Stream 5: DOT → ParsedGraphModel Mapper (`DOTMapper.swift`)
 
 Converts `DOTDocument` → `ParsedGraphModel` (typealias for `MermaidGraph`)
 plus diagnostics. Follows the `D2Mapper` pattern: ordered node table with
@@ -367,21 +396,33 @@ merge and edge-endpoint synthesis.
 7. **Node shape mapping** — DOT `shape` attribute values map to
    `NodeShape`:
    - `box`, `rect`, `rectangle` → `.rectangle`
-   - `ellipse`, `oval`, `circle` → `.ellipse` (circle is `.circle` when explicitly `shape=circle`)
+   - `ellipse`, `oval` → `.ellipse`
    - `circle` → `.circle`
    - `diamond` → `.diamond`
    - `cylinder` → `.cylinder`
    - `hexagon` → `.hexagon`
-   - `parallelogram`, `trapezium`, `invtrapezium`, `triangle`, etc. → `.unsupported` diagnostic with fallback to `.rectangle`
+   - `parallelogram`, `trapezium`, `invtrapezium`, `triangle`, `point`,
+     `doublecircle`, `tripleoctagon`, `invtriangle`, `Mdiamond`,
+     `Msquare`, `Mcircle`, `note`, `tab`, `folder`, `box3d`,
+     `component` — plus the full graphviz `record`-based and bioinformatics
+     shape families — all emit `.unsupported` diagnostic with fallback to
+     `.rectangle`
    - `plaintext`, `none` → `.text`
    - `record`, `Mrecord` → `.unsupported` diagnostic (record nodes not yet supported)
 
-8. **Subgraph label extraction** — When a subgraph contains
+8. **Duplicate edges preserved; `strict` emits diagnostic** — Non-strict
+   DOT graphs may contain multiple edges between the same pair. The mapper
+   preserves all edges (no deduplication). When `doc.strict == true`, the
+   mapper emits a diagnostic: "strict mode not yet supported; duplicate
+   edges preserved." This avoids silently dropping valid non-strict edges
+   and surfaces the deferral explicitly.
+
+9. **Subgraph label extraction** — When a subgraph contains
    `graph [label="Container Name"];` or `label="Container Name";`, the
    mapper extracts the label. When absent, the subgraph's display label
    is derived from the `cluster_*` id with the prefix stripped.
 
-## Work Stream 5: DOT Probe (`DOTProbe.swift`)
+## Work Stream 6: DOT Probe (`DOTProbe.swift`)
 
 A narrow probe function that requires explicit DOT structure. It must NOT
 false-match on D2, Mermaid, PlantUML, or Structurizr source.
@@ -398,13 +439,7 @@ public func isDOTSource(_ source: String) -> Bool {
         .trimmingCharacters(in: .whitespaces) ?? ""
 
     // Bare A -> B without a graph/digraph/strict header is D2-shaped input,
-    // not DOT — keep it that way.
-    //
-    // Must match one of:
-    //   digraph G {         (case-insensitive)
-    //   graph G {
-    //   strict digraph G {
-    //   strict graph G {
+    // to avoid ambiguity. Headers are required for importer routing.
 
     let lower = firstLine.lowercased()
 
@@ -412,24 +447,33 @@ public func isDOTSource(_ source: String) -> Bool {
     if trimmed.contains("@startuml") || trimmed.contains("@start") { return false }
     if trimmed.hasPrefix("workspace {") || trimmed.hasPrefix("workspace{") { return false }
 
-    // Mermaid header guard — Mermaid's `graph` header must not false-match
-    if lower.hasPrefix("graph ") {
-        // "graph TD", "graph LR", etc. are Mermaid
-        let afterGraph = firstLine.dropFirst(6).trimmingCharacters(in: .whitespaces)
-        if ["td", "lr", "bt", "rl", "tb"].contains(where: {
-            afterGraph.lowercased().hasPrefix($0)
-        }) {
-            return false
-        }
+    // Tokenize the first line to avoid prefix-only false matches
+    // (e.g. "digraphy" would match hasPrefix("digraph")).
+    let tokens = lower.split(separator: " ", omittingEmptySubsequences: true)
+    guard let firstToken = tokens.first else { return false }
+
+    // "strict digraph" / "strict graph" — two-token header
+    if firstToken == "strict", tokens.count >= 2 {
+        let second = tokens[1]
+        if second == "digraph" || second == "graph" { return true }
+        return false
     }
 
-    // Match DOS headers: digraph, graph, strict digraph, strict graph
-    if lower.hasPrefix("digraph") { return true }
-    if lower.hasPrefix("strict digraph") { return true }
-    if lower.hasPrefix("strict graph") { return true }
+    // Single-token headers: digraph, graph
+    if firstToken == "digraph" { return true }
 
-    // Plain "graph G {" after excluding Mermaid's "graph TD" etc.
-    if lower.hasPrefix("graph ") || lower.hasPrefix("graph{") {
+    if firstToken == "graph" {
+        // Reject Mermaid's "graph TD", "graph LR", etc.
+        // After "graph", the next token is a direction keyword for Mermaid,
+        // or an optional graph name / "{" for DOT.
+        if tokens.count >= 2 {
+            let second = tokens[1]
+            if ["td", "lr", "bt", "rl", "tb"].contains(where: {
+                second.hasPrefix($0)
+            }) {
+                return false
+            }
+        }
         return true
     }
 
@@ -439,9 +483,10 @@ public func isDOTSource(_ source: String) -> Bool {
 
 **Probe design rationale**:
 
-- `firstLine.hasPrefix("digraph")` + `firstLine.hasPrefix("graph")`
-  catches the DOT header. This is narrower than D2's `contains("->")`
-  probe, so DOT must be ordered BEFORE D2 in the registry.
+- The probe tokenizes the first line and checks token boundaries rather
+  than raw `hasPrefix`, avoiding false matches on words like `digraphy`.
+  This is narrower than D2's `contains("->")` probe, so DOT is ordered
+  BEFORE D2 in the registry.
 - Mermaid's `graph TD` / `graph LR` headers start with `graph` followed
   by a direction keyword. The probe explicitly rejects these.
 - Bare `A -> B` without a container is NOT DOT — it remains D2-shaped
@@ -450,7 +495,7 @@ public func isDOTSource(_ source: String) -> Bool {
 - PlantUML `@startuml` and Structurizr `workspace {` are explicitly
   rejected before the DOT header check.
 
-## Work Stream 6: GraphvizImporter (`GraphvizImporter.swift`)
+## Work Stream 7: GraphvizImporter (`GraphvizImporter.swift`)
 
 ```swift
 import Foundation
@@ -474,8 +519,11 @@ public struct GraphvizImporter: DiagramSourceImporter {
     }
 
     public func parse(_ source: String) throws -> DiagramImportResult {
+        let lexer = DOTLexer()
+        let tokens = try lexer.tokenize(source)
+
         let parser = DOTParser()
-        let (dotDoc, parseDiagnostics) = try parser.parse(source)
+        let (dotDoc, parseDiagnostics) = try parser.parse(tokens)
 
         let mapper = DOTMapper()
         let (graph, mapDiagnostics) = mapper.map(dotDoc)
@@ -489,7 +537,7 @@ public struct GraphvizImporter: DiagramSourceImporter {
 }
 ```
 
-## Work Stream 7: Registry Integration
+## Work Stream 8: Registry Integration
 
 Update `DiagramPipeline.defaultRegistry` to prepend `GraphvizImporter()`
 before `D2Importer()` and `MermaidImporter()`:
@@ -511,7 +559,7 @@ The import in `MermaidPipeline.swift`:
 import DiagramKitGraphviz
 ```
 
-## Work Stream 8: Diagnostics for Unsupported DOT Constructs
+## Work Stream 9: Diagnostics for Unsupported DOT Constructs
 
 The parser and mapper emit `.unsupported` diagnostics for DOT features
 outside the narrow vertical slice. Categories:
@@ -521,8 +569,8 @@ outside the narrow vertical slice. Categories:
 | `shape=record` / `shape=Mrecord` | "record nodes not yet supported; rendered as rectangle" |
 | `shape=parallelogram`, `shape=trapezium`, `shape=triangle`, etc. | "\(shape) shape not yet supported; rendered as rectangle" |
 | `style=filled`, `style=dashed`, `style=dotted`, etc. | "node/edge style not yet supported" |
-| `color=red`, `fillcolor=blue`, etc. | "color attributes not yet supported" |
-| `fontname`, `fontsize`, `fontcolor` | "font attributes not yet supported" |
+| `color=*`, `fillcolor=*`, `fontcolor=*`, `bgcolor=*`, `pencolor=*` | "color attributes not yet supported" |
+| `fontname`, `fontsize` | "font attributes not yet supported" |
 | `penwidth`, `arrowsize`, `arrowhead` | "line/arrow attributes not yet supported" |
 | `rank=same`, `rank=min`, `rank=max` | "rank constraints not yet supported" |
 | `constraint=false`, `weight=N` | "edge weight/constraint not yet supported" |
@@ -533,29 +581,29 @@ outside the narrow vertical slice. Categories:
 | `compound=true`, `lhead`, `ltail` | "compound edge attributes not yet supported" |
 | `concentrate=true` | "edge concentration not yet supported" |
 | `center=true`, `resolution`, `page`, `viewport`, `ratio`, `size` | "graph layout attributes not yet supported" |
-| `A -> subgraph { B; C; }` | "edges to subgraphs not yet supported" |
+| `A -> subgraph { ... }` | "edges to subgraphs not yet supported" |
 | `A:n -> B:s` (port syntax) | "port syntax not yet supported" |
 | HTML-like labels (`<TABLE>`, `<FONT>`, etc.) | "HTML-like labels not yet supported" |
-| `strict` keyword | Not an error — parsed but ignored. Strict mode means "no multi-edges." The mapper already produces one edge per pair, so no extra work needed. |
+| `strict` keyword | Diagnostic only — "strict mode not yet supported; duplicate edges preserved." Parsed but edge dedup deferred. |
 
 ### Diagnostic emission strategy
 
 - **Parser emits diagnostics** for unsupported constructs discovered during
-  tokenization/parsing (HTML labels, port syntax, nested subgraph edges).
+  parsing (HTML labels, port syntax, nested subgraph edges).
 - **Mapper emits diagnostics** for supported constructs with unsupported
   attributes (shape=record, color=red, etc.) and for deferred features
-  (default edge attributes, compound edges, etc.).
+  (default edge attributes, compound edges, strict mode, etc.).
 - **Diagnostics carry `line` information** when available from the parser.
   Mapper-level diagnostics carry no line info (they fire during AST walk).
 - **Never silent no-op**: every unrecognized attribute or unsupported
   construct produces a diagnostic. No information is silently dropped.
 
-## Work Stream 9: Tests
+## Work Stream 10: Tests
 
-### 9a. `DOTParserTests` (new file: `Tests/DiagramKitTests/DOTParserTests.swift`)
+### 10a. `DOTParserTests` (new file: `Tests/DiagramKitTests/DOTParserTests.swift`)
 
-Parser unit tests for the tokenizer and recursive-descent parser. At least
-15 tests:
+Parser unit tests for the lexer and recursive-descent parser. At least
+18 tests:
 
 | Test name | Description |
 |---|---|
@@ -574,15 +622,14 @@ Parser unit tests for the tokenizer and recursive-descent parser. At least
 | `parseSubgraphCluster` | `digraph { subgraph cluster_0 { A; B; } }` → subgraph with id="cluster_0" |
 | `parseAnonymousSubgraph` | `digraph { subgraph { A; } }` → subgraph with nil id |
 | `parseGraphRankdir` | `digraph { rankdir=LR; }` → graphAttr("rankdir", "LR") |
-| `parseComments` | `// comment` and `/* block */` are stripped |
-| `parseCommaSeparatedNodes` | `A, B, C;` → three node statements |
-| `parseUnquotedAttrValue` | `A [shape=box];` → attribute with key="shape", value="box" |
+| `parseComments` | `digraph { // comment\nA; /* block */\nB; }` — comments stripped, nodes parsed |
+| `parseUnquotedAttrValue` | `digraph { A [shape=box]; }` → attribute with key="shape", value="box" |
 | `parseThrowsOnUnbalancedBraces` | `digraph { A;` → throws `DiagramError` |
 | `parseWhitespaceInsensitive` | `digraph{A->B}` parses identically to `digraph {\n  A -> B\n}` |
 
-### 9b. `DOTImporterTests` (new file: `Tests/DiagramKitTests/DOTImporterTests.swift`)
+### 10b. `DOTImporterTests` (new file: `Tests/DiagramKitTests/DOTImporterTests.swift`)
 
-Importer unit tests. At least 20 tests:
+Importer unit tests. At least 24 tests:
 
 **supports tests:**
 
@@ -612,11 +659,12 @@ Importer unit tests. At least 20 tests:
 | `parseSubgraphClusterLabel` | `digraph { subgraph cluster_0 { label="Group"; A; } }` → subgraph label = "Group" |
 | `parseNestedSubgraph` | `digraph { subgraph cluster_0 { subgraph cluster_1 { A; } } }` → nested subgraphs |
 | `parseChainedEdges` | `digraph { A -> B -> C; }` → two edges, three nodes |
-| `parseCommaSeparatedNodes` | `digraph { A, B, C; }` → three nodes in order |
-| `emitsDiagnosticForRecordShape` | `A [shape=record];` → diagnostic |
-| `emitsDiagnosticForColorAttribute` | `A [color=red];` → diagnostic |
-| `emitsDiagnosticForStyleFilled` | `A [style=filled];` → diagnostic |
-| `emitsDiagnosticForRankSame` | `{rank=same; A; B;}` → diagnostic |
+| `preservesDuplicateEdges` | `digraph { A -> B; A -> B; }` → two edges (not deduplicated) |
+| `emitsDiagnosticForRecordShape` | `digraph { A [shape=record]; }` → diagnostic |
+| `emitsDiagnosticForColorAttribute` | `digraph { A [color=red]; }` → diagnostic |
+| `emitsDiagnosticForStyleFilled` | `digraph { A [style=filled]; }` → diagnostic |
+| `emitsDiagnosticForRankSame` | `digraph { rank=same; A; B; }` → diagnostic |
+| `emitsDiagnosticForStrict` | `strict digraph G { A -> B }` → diagnostic about strict mode |
 
 **layout smoke tests:**
 
@@ -626,9 +674,9 @@ Importer unit tests. At least 20 tests:
 | `dotLayoutWithClusterSmoke` | Parse digraph with cluster subgraph, layout, verify subgraph present |
 | `dotLayoutWithUndirectedSmoke` | Parse undirected graph, layout, verify non-empty output |
 
-### 9c. Probe Collision Tests (edit `Tests/DiagramKitTests/ProbeCollisionMatrixTests.swift`)
+### 10c. Probe Collision Tests (edit `Tests/DiagramKitTests/ProbeCollisionMatrixTests.swift`)
 
-Add DOT probe collision tests. At least 10 new tests:
+Add DOT probe collision tests. At least 12 new tests:
 
 | Test name | Description |
 |---|---|
@@ -641,13 +689,14 @@ Add DOT probe collision tests. At least 10 new tests:
 | `dotProbeRejectsBareEdge` | `GraphvizImporter().supports(source: "A -> B")` → false |
 | `dotProbeRejectsPlantUML` | `GraphvizImporter().supports(source: "@startuml\nAlice -> Bob: Hello\n@enduml")` → false |
 | `dotProbeRejectsStructurizr` | `GraphvizImporter().supports(source: "workspace { model { user = person } }")` → false |
+| `dotProbeRejectsPrefixMatch` | `GraphvizImporter().supports(source: "digraphy { }")` → false (token boundary) |
 | `registryPrependsGraphvizBeforeD2` | `registry.importer(for: "digraph G { A -> B }")?.name == "Graphviz"` |
 | `registryFallsBackToD2ForBareEdge` | `registry.importer(for: "A -> B")?.name == "D2"` |
 | `registryFallsBackToMermaidForGraphTD` | `registry.importer(for: "graph TD\nA-->B")?.name == "Mermaid"` |
 
-### 9d. DOT Inline Corpus Fixture Tests (new file: `Tests/DiagramKitTests/DOTCorpusFixtureTests.swift`)
+### 10d. `DOTCorpusFixtureTests` (new file: `Tests/DiagramKitTests/DOTCorpusFixtureTests.swift`)
 
-Inline corpus fixtures with `skipSnapshots: ["graphviz"]`. At least 5 tests,
+Inline corpus fixtures with `skipSnapshots: ["graphviz"]`. At least 6 tests,
 following the `D2CorpusFixtureTests.swift` pattern:
 
 | Test name | Description |
@@ -659,7 +708,7 @@ following the `D2CorpusFixtureTests.swift` pattern:
 | `dotSourceForFormat` | `entry.source(for: "graphviz")` returns the DOT source |
 | `dotParseThroughImporter` | Parse DOT source via `GraphvizImporter`, layout, verify non-empty |
 
-### 9e. Registry Tests (edit `Tests/DiagramKitTests/ImporterRegistryTests.swift`)
+### 10e. Registry Tests (edit `Tests/DiagramKitTests/ImporterRegistryTests.swift`)
 
 Update existing registry tests for the new three-importer order:
 
@@ -668,7 +717,7 @@ Update existing registry tests for the new three-importer order:
 | `defaultRegistryOrder` | Assert `registry.importers[0].name == "Graphviz"`, `[1] == "D2"`, last == "Mermaid" |
 | `prependingPutsFirst` | Extend to show `GraphvizImporter()` prepended before D2+Mermaid |
 
-### 9f. Existing Test Regressions
+### 10f. Existing Test Regressions
 
 Run and verify no regressions:
 
@@ -684,6 +733,7 @@ swift test --filter MultiFormatFixtureMetadataTests
 swift test --filter MultiFormatBackwardCompatibilityTests
 swift test --filter MultiFormatValidationTests
 swift test --filter MultiFormatSparseMatrixTests
+swift test --filter PlaygroundCorpusDecodingTests
 ```
 
 ## File Change Summary
@@ -692,29 +742,30 @@ swift test --filter MultiFormatSparseMatrixTests
 |---|---|---|
 | `Package.swift` | Add `DiagramKitGraphviz` target, product, deps. Add to umbrella + test target deps | Planned |
 | `Sources/DiagramKitGraphviz/DOTAST.swift` | New — DOT AST types | Planned |
-| `Sources/DiagramKitGraphviz/DOTParser.swift` | New — tokenizer + recursive-descent parser | Planned |
+| `Sources/DiagramKitGraphviz/DOTLexer.swift` | New — DOT token types + lexer | Planned |
+| `Sources/DiagramKitGraphviz/DOTParser.swift` | New — recursive-descent parser | Planned |
 | `Sources/DiagramKitGraphviz/DOTMapper.swift` | New — DOTAST → `ParsedGraphModel` mapper | Planned |
 | `Sources/DiagramKitGraphviz/DOTProbe.swift` | New — narrow DOT probe | Planned |
 | `Sources/DiagramKitGraphviz/GraphvizImporter.swift` | New — `DiagramSourceImporter` conformance | Planned |
 | `Sources/DiagramKit/MermaidPipeline.swift` | Edit — add `GraphvizImporter()` to `defaultRegistry` + `import DiagramKitGraphviz` | Planned |
-| `Tests/DiagramKitTests/DOTParserTests.swift` | New — ~20 parser unit tests | Planned |
-| `Tests/DiagramKitTests/DOTImporterTests.swift` | New — ~25 importer unit tests | Planned |
-| `Tests/DiagramKitTests/ProbeCollisionMatrixTests.swift` | Edit — add ~12 DOT probe collision tests + `import DiagramKitGraphviz` | Planned |
+| `Tests/DiagramKitTests/DOTParserTests.swift` | New — ~19 parser unit tests | Planned |
+| `Tests/DiagramKitTests/DOTImporterTests.swift` | New — ~27 importer unit tests | Planned |
+| `Tests/DiagramKitTests/ProbeCollisionMatrixTests.swift` | Edit — add ~13 DOT probe collision tests + `import DiagramKitGraphviz` | Planned |
 | `Tests/DiagramKitTests/DOTCorpusFixtureTests.swift` | New — ~6 inline DOT fixture tests | Planned |
 | `Tests/DiagramKitTests/ImporterRegistryTests.swift` | Edit — Graphviz-first registry assertion + `import DiagramKitGraphviz` | Planned |
 
 ### Files intentionally NOT changed
 
-- Any rendering code (SVG, CG, ASCII)
-- Layout engine (ELK)
-- `DiagramKitModel` types (no new payload cases)
-- `DiagramKitImport` protocol/registry (already designed for this)
-- `DiagramKitTestSupport` (no new types needed)
-- `CorpusSnapshotTests.swift` (no DOT snapshot rendering in Phase 4)
-- `test-diagrams.json` (no new real entries)
-- Snapshot baselines (no new baselines)
-- Any D2 source files
-- Any Mermaid source files
+- Rendering code (SVG, CG, ASCII) — unchanged
+- Layout engine (ELK) — unchanged
+- `DiagramKitModel` types — no new payload cases
+- `DiagramKitImport` protocol/registry — already designed for this
+- `DiagramKitTestSupport` — no new types needed
+- `CorpusSnapshotTests.swift` — no DOT snapshot rendering in Phase 4
+- `test-diagrams.json` — no new real entries
+- Snapshot baselines — no new baselines
+- D2 importer sources (`Sources/DiagramKitD2/`) — unchanged
+- Mermaid parser/rendering sources — unchanged
 
 ## Verification Gates
 
@@ -723,7 +774,7 @@ swift package dump-package
 swift build --build-tests
 swift test --filter DOTParserTests
 swift test --filter DOTImporterTests
-swift test --filter DOTFixtureTests
+swift test --filter DOTCorpusFixtureTests
 swift test --filter ProbeCollisionMatrixTests
 swift test --filter ImporterRegistryTests
 swift test --filter D2ParserTests           # regression
@@ -735,6 +786,10 @@ Scripts/check-sendable-annotations.sh
 Scripts/strict-concurrency-check.sh
 git diff --check
 ```
+
+`Scripts/check-file-sizes.sh` may report pre-existing warnings. Phase 4
+should not add new warnings; splitting `DOTLexer.swift` and `DOTParser.swift`
+keeps each new file under 500 lines.
 
 No snapshot recording. No Linux check unless Docker/Podman is available
 (record as skipped due to environment otherwise).
@@ -755,19 +810,24 @@ cross-format false-positives, but probe order is the primary defense.
 ### 2. Bare `A -> B` is NOT DOT
 
 **Decision**: The DOT probe requires a `digraph`/`graph`/`strict` header.
-Bare `A -> B` without a container remains D2-shaped input.
+Bare `A -> B` without a container remains D2-shaped input. The parser also
+requires a header — the `document` grammar rule is `header "{" ... "}"`,
+not `header? "{" ... "}"`.
 
 **Rationale**: DOT is a container language — every valid DOT document starts
 with `graph`/`digraph`/`strict` followed by `{`. A bare edge floating at
-top level is D2 syntax, not DOT. This keeps the probe boundary clean and
-avoids ambiguous routing.
+top level is D2 syntax, not DOT. Requiring the header everywhere (probe,
+parser grammar, tests) keeps the boundary clean and avoids ambiguous routing.
 
-### 3. No `strict` enforcement
+### 3. `strict` parsed, dedup deferred
 
-The `strict` keyword in DOT means "no multi-edges between the same pair of
-nodes." The mapper always produces one edge per (source, target, directed)
-tuple, so `strict` is effectively the default behavior. The keyword is
-parsed and stored in `DOTDocument.strict` but has no impact on mapping.
+The `strict` keyword in DOT means "no multi-edges between the same pair
+of nodes." Non-strict DOT graphs may contain multiple edges between the
+same pair, and the mapper must preserve them. In this vertical slice the
+mapper preserves all edges (no deduplication). When `doc.strict == true`
+it emits a diagnostic: "strict mode not yet supported; duplicate edges
+preserved." This avoids silently dropping valid non-strict edges and
+surfaces the deferral explicitly.
 
 ### 4. Anonymous subgraphs don't create containers
 
@@ -821,6 +881,13 @@ DOT fixtures carry `skipSnapshots: ["graphviz"]` and do not produce
 snapshot baselines. No real `test-diagrams.json` entries are added. This
 matches the D2 Phase 3 pattern.
 
+### 11. Lexer split from parser
+
+The lexer (`DOTLexer.swift`) is a separate file from the parser to keep
+both files under the 500-line gate. The lexer owns token type definitions
+and preprocessing (comment stripping, tokenization). The parser consumes
+`[DOTToken]` and emits `DOTDocument` + diagnostics.
+
 ## Deferred to Later Phases
 
 - DOT record nodes and HTML-like labels
@@ -832,10 +899,12 @@ matches the D2 Phase 3 pattern.
 - DOT port syntax (`A:n -> B:s`)
 - Edges to subgraphs (`A -> subgraph { B; C; }`)
 - Multi-node edge chains with attributes on intermediate segments
-- DOT `strict` enforcement (already implicit in our mapping)
+- DOT `strict` enforcement (edge deduplication)
 - DOT default edge attributes (parsed but unsupported)
 - Layout-based attributes (`rank=same`, `rank=min`, `rank=max`)
 - DOT graph appearance (bgcolor, pencolor, labelloc, labeljust)
+- Comma-separated node lists (`A, B, C;` — not standard DOT grammar;
+  lenient parsing deferred)
 - Real `test-diagrams.json` multi-format entries
 - DOT snapshot baselines (SVG, image, ASCII)
 
@@ -843,4 +912,7 @@ matches the D2 Phase 3 pattern.
 
 *This plan was prepared from live codebase analysis of Package.swift,
 Sources/DiagramKitD2/, Sources/DiagramKit/, Tests/DiagramKitTests/,
-and the existing Phase 0-3 documentation as they exist at 2026-05-12.*
+and the existing Phase 0-3 documentation as they exist at 2026-05-12.
+Revised per review to fix headerless-DOT inconsistency, `strict`
+semantics, comma-separated node lists, probe token boundaries, lexer
+split, and "unchanged files" phrasing.*
