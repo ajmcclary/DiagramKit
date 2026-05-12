@@ -1,8 +1,9 @@
 # Phase 1: Importer Boundary And Mermaid Extraction
 
-Date: 2026-05-12. This document is the executable plan for Phase 1 of the
-DiagramKit multi-format roadmap. It follows `PHASE-0.md` (completed: naming
-transition) and precedes Phase 2 (multi-format corpus foundation).
+Date: 2026-05-12 (revised 2026-05-12 per review). This document is the
+executable plan for Phase 1 of the DiagramKit multi-format roadmap. It follows
+`PHASE-0.md` (completed: naming transition) and precedes Phase 2 (multi-format
+corpus foundation).
 
 ## Goal
 
@@ -23,30 +24,39 @@ format lands.
 │                    DiagramLoader                          │
 │  DiagramLoader.parse(source, registry:) → DiagramDocument │
 │  First-match-wins probe dispatch through ImporterRegistry │
+│  Narrowest / most-specific importers probed FIRST         │
 └────────────────────────┬─────────────────────────────────┘
                          │
-            ┌────────────┴────────────┐
-            ▼                         ▼
-   ┌─────────────────┐      ┌─────────────────┐
-   │ MermaidImporter │      │  (d2 — Phase 3) │
-   │  (first, default)│      │                 │
-   └────────┬────────┘      └─────────────────┘
-            │
-            ▼
-   ┌─────────────────┐
-   │ MermaidDiagram   │  (current DiagramRegistry internals)
-   │   Registry       │  28 per-family descriptors
-   └─────────────────┘
-            │
-            ▼
-   ┌─────────────────┐
-   │ DiagramDocument  │  (format-agnostic, already exists)
-   │   ↓              │
-   │ PositionedGraph  │  (layout, format-agnostic)
-   │   ↓              │
-   │ render (SVG/CG)  │  (unchanged)
-   └─────────────────┘
+            ┌────────────┴──────────────────┐
+            ▼                               ▼
+   ┌─────────────────┐            ┌─────────────────┐
+   │  (d2 — Phase 3) │            │ MermaidImporter │
+   │  (before Mermaid)│            │ (explicit       │
+   │                 │            │  fallback, last) │
+   └─────────────────┘            └────────┬────────┘
+                                           │
+                                           ▼
+                                  ┌─────────────────┐
+                                  │ DiagramRegistry  │  (Mermaid-family routing,
+                                  │   (kept public)  │   28 per-family descriptors)
+                                  └─────────────────┘
+                                           │
+                                           ▼
+                                  ┌─────────────────┐
+                                  │ DiagramDocument  │  (format-agnostic, already exists)
+                                  │   ↓              │
+                                  │ PositionedGraph  │  (layout, format-agnostic)
+                                  │   ↓              │
+                                  │ render (SVG/CG)  │  (unchanged)
+                                  └─────────────────┘
 ```
+
+Probe order is contractual. Specific importers (d2 `a -> b`, DOT `digraph`,
+PlantUML `@startuml`, Structurizr `workspace {`) are probed **before**
+`MermaidImporter`. Mermaid's probe is intentionally broad and acts as the
+fallback — it claims any source not matched by a more specific importer.
+In Phase 1, Mermaid is the only registered importer, so it claims everything
+(preserving current behavior).
 
 The critical invariant: `DiagramDocument → PositionedGraph → render` remains
 format-agnostic. Layout must not care whether the document came from Mermaid,
@@ -116,7 +126,7 @@ Sources/
 ├── DiagramKitCommon          (Linux+Apple, IssueReporting + Crypto)
 ├── DiagramKitModel           (Linux+Apple, depends on DiagramKitCommon)
 ├── DiagramKitRenderingCG     (Apple only)
-├── DiagramKitViews           (Apple only, stub)
+├── DiagramKitViews           (Apple only)
 ├── DiagramKitTestSupport     (Linux+Apple)
 └── DiagramKit                (umbrella, re-exports all)
 ```
@@ -145,7 +155,7 @@ and diagnostic types.
 **Where**: `Sources/DiagramKitImport/`
 
 **Dependencies**: `DiagramKitModel` (for `DiagramType`, `DiagramDocument`,
-`DiagramPayload`, `DiagramFrontmatter`)
+`DiagramPayload`).
 
 **Package.swift changes**:
 
@@ -174,7 +184,8 @@ and diagnostic types.
 **Design rationale**: `DiagramKitImport` depends only on `DiagramKitModel`
 (and transitively `DiagramKitCommon`). It does NOT depend on
 `DiagramKitRenderingCG`, `DiagramKitViews`, or the umbrella. This keeps the
-import boundary clean and testable on Linux without CoreGraphics.
+import boundary clean and testable on Linux without CoreGraphics. It does
+NOT depend on `DiagramFrontmatter` — the importer protocol is frontmatter-free.
 
 ### Step 2: Protocol Types
 
@@ -184,7 +195,7 @@ import boundary clean and testable on Linux without CoreGraphics.
 // Sources/DiagramKitImport/DiagramDiagnostic.swift
 
 /// A non-fatal issue discovered during import.
-/// Emitted by `DiagramSourceImporter.parse()` via the `diagnostics` property.
+/// Returned in `DiagramImportResult.diagnostics`.
 public struct DiagramDiagnostic: Sendable, Hashable, CustomStringConvertible {
     /// Severity level.
     public enum Severity: Sendable, Hashable {
@@ -254,10 +265,9 @@ public struct DiagramImportResult: Sendable {
 ///
 /// ## Concurrency Contract
 /// `DiagramSourceImporter` is `Sendable`. Implementations must be safe for
-/// concurrent use. The `diagnostics` property must return accumulated
-/// diagnostics from the most recent `parse(...)` call and be reset before
-/// the next parse — implementers should use actor isolation or a serial
-/// queue if diagnostics are mutated during parsing.
+/// concurrent use. All parsing state (including diagnostics) is returned in
+/// `DiagramImportResult` — there is no shared mutable diagnostics property.
+/// This keeps importers stateless at the protocol boundary.
 public protocol DiagramSourceImporter: Sendable {
     /// Human-readable name (e.g. "Mermaid", "d2", "DOT").
     var name: String { get }
@@ -269,36 +279,39 @@ public protocol DiagramSourceImporter: Sendable {
     /// Returns `true` when `source` appears to be in this importer's format.
     /// This is a text-only probe — it should be fast and avoid full parsing.
     /// The first importer returning `true` for a given source wins.
+    ///
+    /// Narrow / specific probes must return `true` only for their own format.
+    /// The Mermaid importer's probe is intentionally broad and acts as the
+    /// fallback — it is ordered LAST in the default registry.
     func supports(source: String) -> Bool
 
-    /// Parse `source` into a `DiagramDocument`.
+    /// Parse `source` into a `DiagramImportResult`.
     ///
     /// - Parameters:
-    ///   - source: The raw diagram source text.
-    ///   - frontmatter: Parsed YAML frontmatter, or `nil` if none was present.
+    ///   - source: The raw diagram source text. The importer is responsible
+    ///     for any format-specific preprocessing (XML entity decoding,
+    ///     frontmatter parsing, etc.).
     /// - Returns: A `DiagramImportResult` containing the parsed document and
     ///   any non-fatal diagnostics.
     /// - Throws: `DiagramError` or a format-specific error on fatal parse
     ///   failures.
-    func parse(
-        _ source: String,
-        frontmatter: DiagramFrontmatter?
-    ) throws -> DiagramImportResult
-
-    /// Diagnostics accumulated during the most recent `parse(...)` call.
-    /// Returns the empty array when no parse has occurred or was reset.
-    var diagnostics: [DiagramDiagnostic] { get }
+    func parse(_ source: String) throws -> DiagramImportResult
 }
 ```
 
-**Note on `diagnostics`**: Unlike MusicToolkit's `ScoreImporter` which
-uses a `var diagnostics` property, Swift's `any DiagramSourceImporter`
-existential cannot access mutable properties. We keep `diagnostics` as
-a read-only requirement; implementers manage the backing storage internally
-(actor, lock, or thread-local). An alternative is to return diagnostics
-solely in `DiagramImportResult` and drop the property — but MusicToolkit's
-pattern of a separate property is useful for accumulating non-fatal warnings
-during multi-pass parsing. We adopt it.
+**Why no `frontmatter` parameter**: `DiagramFrontmatter` is a Mermaid-shaped
+type (45 per-family config fields). Baking it into the generic importer
+protocol would force every future format importer to understand Mermaid
+frontmatter. Instead, each importer handles its own preprocessing internally.
+`MermaidImporter.parse(_:)` calls `_parseFrontMatterAndStripped` inside its
+implementation.
+
+**Why no `var diagnostics` property**: Diagnostics are returned in
+`DiagramImportResult`. There is no shared mutable state — the importer
+accumulates diagnostics locally during `parse()` and returns them. This
+avoids the lock-based approach from the original draft, which would be
+problematic on Linux (`OSAllocatedUnfairLock` is Darwin-only) and creates
+shared mutable state across concurrent parses.
 
 #### 2d. `ImporterRegistry`
 
@@ -310,6 +323,10 @@ during multi-pass parsing. We adopt it.
 /// Detection is first-match-wins: when `DiagramLoader` probes each importer
 /// in array order, the first `supports(source:) → true` wins.
 /// **Probe order is contractual** — it is enforced by `ProbeCollisionMatrixTests`.
+///
+/// Specific/narrow importers (d2, DOT, PlantUML, Structurizr) must be ordered
+/// BEFORE the broad Mermaid fallback importer. Mermaid's probe intentionally
+/// returns `true` for any source, so it MUST be last in the registry.
 public struct ImporterRegistry: Sendable {
     public let importers: [any DiagramSourceImporter]
 
@@ -317,9 +334,10 @@ public struct ImporterRegistry: Sendable {
         self.importers = importers
     }
 
-    /// Returns a new registry with `importer` appended.
-    public func adding(_ importer: any DiagramSourceImporter) -> Self {
-        ImporterRegistry(importers: importers + [importer])
+    /// Returns a new registry with `importer` prepended (not appended).
+    /// New, narrower importers should be probed before existing broader ones.
+    public func prepending(_ importer: any DiagramSourceImporter) -> Self {
+        ImporterRegistry(importers: [importer] + importers)
     }
 
     /// The first importer whose `supports(source:)` returns `true`,
@@ -328,13 +346,15 @@ public struct ImporterRegistry: Sendable {
         importers.first { $0.supports(source: source) }
     }
 
-    /// Default registry: Mermaid first (current behavior).
-    /// Populated in `DiagramKit` umbrella where `MermaidImporter` is defined.
-    /// Importers added by later phases (d2, DOT, PlantUML, Structurizr)
-    /// append to this default.
+    /// Empty registry — no importers registered.
     public static let empty = ImporterRegistry(importers: [])
 }
 ```
+
+**`prepending` vs `adding`**: New specific importers go at the front so they
+are probed first. The Mermaid fallback stays at the end. This avoids the
+starvation problem where a broad `supports()` returns `true` before a narrow
+probe gets to fire.
 
 #### 2e. `DiagramLoader`
 
@@ -348,36 +368,33 @@ public enum DiagramLoader {
     /// Parse `source` using the given registry.
     ///
     /// Probes each importer in the registry in order; the first
-    /// `supports(source:) → true` win. Returns the parsed `DiagramImportResult`
+    /// `supports(source:) → true` wins. Returns the parsed `DiagramImportResult`
     /// containing the `DiagramDocument` and any diagnostics.
     ///
     /// - Parameters:
     ///   - source: Raw diagram source text.
     ///   - registry: The importer registry to probe.
-    ///   - frontmatter: Optional pre-parsed YAML frontmatter.
     /// - Returns: `DiagramImportResult` with the parsed document and diagnostics.
     /// - Throws: `DiagramError` on fatal parse failures. Throws a loader-level
     ///   error when no importer claims the source.
     public static func parse(
         _ source: String,
-        registry: ImporterRegistry,
-        frontmatter: DiagramFrontmatter? = nil
+        registry: ImporterRegistry
     ) throws -> DiagramImportResult {
         guard let importer = registry.importer(for: source) else {
             throw DiagramError.notYetImplemented(
                 "No importer registered for source format"
             )
         }
-        return try importer.parse(source, frontmatter: frontmatter)
+        return try importer.parse(source)
     }
 
     /// Shorthand returning only the `DiagramDocument`, discarding diagnostics.
     public static func parseDocument(
         _ source: String,
-        registry: ImporterRegistry,
-        frontmatter: DiagramFrontmatter? = nil
+        registry: ImporterRegistry
     ) throws -> DiagramDocument {
-        try parse(source, registry: registry, frontmatter: frontmatter).document
+        try parse(source, registry: registry).document
     }
 }
 ```
@@ -400,56 +417,39 @@ import DiagramKitImport
 
 /// Mermaid source-format importer.
 ///
-/// Wraps the existing per-family `DiagramDescriptor` dispatch (now internal
-/// as `MermaidDiagramRegistry`) behind the `DiagramSourceImporter` protocol.
-/// All 28 diagram families supported by the Mermaid parser are available
-/// through this importer.
+/// Wraps the existing per-family `DiagramRegistry` dispatch behind the
+/// `DiagramSourceImporter` protocol. All 28 diagram families supported
+/// by the Mermaid parser are available through this importer.
+///
+/// This importer's `supports(source:)` probe is intentionally broad —
+/// it always returns `true`. Mermaid acts as the fallback importer and
+/// MUST be ordered LAST in any `ImporterRegistry` that includes narrower
+/// format importers.
 public struct MermaidImporter: DiagramSourceImporter {
 
     public let name = "Mermaid"
     public let supportedDiagramTypes: Set<DiagramType> = Set(DiagramType.allCases)
 
-    private let _diagnostics = OSAllocatedUnfairLock(
-        initialState: [DiagramDiagnostic]()
-    )
-
-    public var diagnostics: [DiagramDiagnostic] {
-        _diagnostics.withLock { $0 }
-    }
-
     public init() {}
 
     public func supports(source: String) -> Bool {
-        // Delegate to the existing Mermaid probe chain.
-        // `DiagramHeader.detect` strips frontmatter and finds the first
-        // content-bearing line. `MermaidDiagramRegistry.detect` returns
-        // a descriptor; the flowchart fallback descriptor matches everything
-        // (`{ _ in true }`), so this always returns `true` for non-empty
-        // Mermaid-style source. Non-Mermaid source will be rejected by
-        // a full parse.
-        let header = DiagramHeader.detect(from: source)
-        let descriptor = MermaidDiagramRegistry.detect(header)
-        // The flowchart fallback matches `true` for everything. This is
-        // intentionally broad — Mermaid claims any source whose header
-        // didn't match a more specific importer. Probe order in
-        // `ImporterRegistry` controls collisions.
+        // Mermaid's flowchart fallback descriptor matches `{ _ in true }`,
+        // so any non-empty source is potentially Mermaid. This is the
+        // explicit fallback — narrower importers (d2, DOT, PlantUML,
+        // Structurizr) are probed BEFORE this importer in the registry.
         return true
     }
 
-    public func parse(
-        _ source: String,
-        frontmatter: DiagramFrontmatter?
-    ) throws -> DiagramImportResult {
-        // Replicate MermaidParser.parse() logic.
+    public func parse(_ source: String) throws -> DiagramImportResult {
+        // Replicate existing MermaidParser.parse() logic.
         let decoded = _HTMLEntities.decode(source)
-        let (processed, fm) = _parseFrontMatterAndStripped(decoded)
-        let effectiveFrontmatter = frontmatter ?? fm
+        let (processed, frontmatter) = _parseFrontMatterAndStripped(decoded)
 
         let header = DiagramHeader.detect(from: processed)
-        let descriptor = MermaidDiagramRegistry.detect(header)
-        let document = try descriptor.parse(processed, effectiveFrontmatter)
+        let descriptor = DiagramRegistry.detect(header)
+        let document = try descriptor.parse(processed, frontmatter)
 
-        return DiagramImportResult(document: document, diagnostics: diagnostics)
+        return DiagramImportResult(document: document, diagnostics: [])
     }
 }
 ```
@@ -457,67 +457,46 @@ public struct MermaidImporter: DiagramSourceImporter {
 **Key decisions for `MermaidImporter`**:
 
 1. **`supports(source:)` always returns `true`**. This is because the Mermaid
-   flowchart fallback descriptor (`DiagramRegistry._flowchart`) matches
-   `{ _ in true }` — Mermaid claims any source not claimed by a more specific
-   importer. In the default registry, Mermaid is first, so it claims everything
-   (preserving current behavior). When d2/DOT/PlantUML are added, narrower
-   importers come first.
+   flowchart fallback descriptor matches `{ _ in true }`. Mermaid is the
+   explicit fallback importer and MUST be ordered last in any multi-importer
+   registry. Future importers (d2, DOT, PlantUML, Structurizr) are
+   prepended before Mermaid.
 
-2. **Diagnostics storage**: Uses `OSAllocatedUnfairLock` for thread-safe
-   access. This is parse-scoped — diagnostics are accumulated during a single
-   `parse()` call and read afterward. The lock is per-importer-instance;
-   concurrent parses through the same importer instance will interleave
-   diagnostics, which is acceptable (the importer is stateless beyond
-   diagnostics).
+2. **No diagnostics property**. Diagnostics are accumulated locally during
+   `parse()` and returned in `DiagramImportResult`. Mermaid parsing rarely
+   produces non-fatal diagnostics today (it either succeeds or throws), so
+   the initial implementation returns an empty array. When Mermaid gains
+   diagnostic capability (e.g., unsupported-syntax warnings), the parse
+   method accumulates them locally.
 
-3. **Frontmatter handling**: If the caller provides pre-parsed frontmatter
-   (e.g., from a two-pass loader), use it. Otherwise, parse frontmatter
-   from the source (the existing `_parseFrontMatterAndStripped` path).
+3. **Frontmatter handled internally**. `MermaidImporter.parse(_:)` calls
+   `_parseFrontMatterAndStripped` itself. The `DiagramSourceImporter`
+   protocol does not take a `DiagramFrontmatter` parameter — that type is
+   Mermaid-specific and should not leak into the generic importer surface.
 
 ### Step 4: Wire the Loader Into the Pipeline
 
-#### 4a. `MermaidParser` — update to route through loader
+#### 4a. `MermaidParser` — thin wrapper over `MermaidImporter`
 
 ```swift
 // Sources/DiagramKit/Parser.swift (updated)
 
 public enum MermaidParser {
 
-    private static func _decodeXMLEntities(_ s: String) -> String {
-        _HTMLEntities.decode(s)
-    }
-
     static func parse(_ source: String) throws -> DiagramDocument {
         try _withDiagramIssueReporting(operation: "MermaidParser.parse") {
-            let decoded = _decodeXMLEntities(source)
-            let (processed, frontmatter) = _parseFrontMatterAndStripped(decoded)
-
-            // Delegate through the importer registry.
-            // Uses the Mermaid-only internal path when the registry
-            // is not yet wired (transitional).
-            let header = DiagramHeader.detect(from: processed)
-            let descriptor = MermaidDiagramRegistry.detect(header)
-            return try descriptor.parse(processed, frontmatter)
-        }
-    }
-
-    /// Parse through the format-agnostic loader.
-    /// This is the preferred path when an `ImporterRegistry` is available.
-    static func parse(
-        _ source: String,
-        registry: ImporterRegistry
-    ) throws -> DiagramDocument {
-        try _withDiagramIssueReporting(operation: "MermaidParser.parse(registry:)") {
-            try DiagramLoader.parseDocument(source, registry: registry)
+            // Delegate to MermaidImporter — exactly one import path.
+            let importer = MermaidImporter()
+            return try importer.parse(source).document
         }
     }
 }
 ```
 
-In Phase 1, `MermaidParser.parse(_:)` (no registry) continues to work for
-backward compatibility but is deprecated in favor of the loader path.
-The internal `DiagramDescriptor` dispatch stays as the implementation
-backing `MermaidImporter.parse`.
+`MermaidParser.parse(_:)` is now a thin wrapper. There is no duplicated
+descriptor dispatch — `MermaidImporter` is the single source of truth for
+Mermaid parsing. The `_decodeXMLEntities` call moves into `MermaidImporter`
+(already shown in Step 3).
 
 #### 4b. `DiagramPipeline` — update `parse(_:)` to use loader
 
@@ -528,18 +507,15 @@ public enum DiagramPipeline {
 
     // ... runPipeline unchanged ...
 
-    // Default registry — Mermaid only. Populated lazily.
+    // Default registry — Mermaid only (Phase 1).
+    // In later phases, specific importers are prepended before Mermaid.
     private static let defaultRegistry: ImporterRegistry = {
-        // MermaidImporter defined in DiagramKit umbrella.
         ImporterRegistry(importers: [MermaidImporter()])
     }()
 
     public static func parse(_ source: String) throws -> DiagramDocument {
         try runPipeline(operation: "DiagramPipeline.parse", registerFonts: true) {
-            try DiagramLoader.parseDocument(
-                source,
-                registry: defaultRegistry
-            )
+            try DiagramLoader.parseDocument(source, registry: defaultRegistry)
         }
     }
 
@@ -580,87 +556,75 @@ DiagramEngine.renderASCII(source:theme:) -> String
 `String` extensions (`parseDiagram()`, `renderDiagramSVG(...)`, etc.) —
 unchanged.
 
-#### 4d. Default registry in `ImporterRegistry`
-
-`ImporterRegistry.empty` is defined in `DiagramKitImport`. The default
-registry with `MermaidImporter` is built in `DiagramKit` (umbrella) where
-`MermaidImporter` lives:
+#### 4d. Default registry in `DiagramKit` umbrella
 
 ```swift
+// Sources/DiagramKit/MermaidPipeline.swift (or ReExports.swift)
+
 extension ImporterRegistry {
-    /// Default registry: Mermaid first.
-    /// Future phases append d2, DOT, PlantUML, Structurizr after Mermaid.
+    /// Default registry for Phase 1: Mermaid only.
+    /// In Phase 3+: specific importers are prepended before Mermaid.
+    ///
+    /// Example future shape:
+    ///   ImporterRegistry(importers: [
+    ///     StructurizrImporter(),  // probe: "workspace {"
+    ///     PlantUMLImporter(),     // probe: "@startuml"
+    ///     DOTImporter(),          // probe: "digraph" / "graph"
+    ///     D2Importer(),           // probe: "->" + ": " assignment
+    ///     MermaidImporter(),      // fallback: always true
+    ///   ])
     public static let `default`: ImporterRegistry = ImporterRegistry(
         importers: [MermaidImporter()]
     )
 }
 ```
 
-### Step 5: Rename and Deprecate `DiagramRegistry` → `MermaidDiagramRegistry`
+### Step 5: `DiagramRegistry` — Keep Public, Mark as Mermaid-Family
 
-#### 5a. Rename `DiagramRegistry` to `MermaidDiagramRegistry`
+**Decision**: Do NOT rename `DiagramRegistry` or make it internal in Phase 1.
 
-The existing `DiagramRegistry` enum becomes `MermaidDiagramRegistry`. It
-is no longer the public format-agnostic dispatch table — it is Mermaid's
-internal per-family dispatch.
+**Rationale**: Changing `public enum DiagramRegistry` to `internal enum
+MermaidDiagramRegistry` creates a compile error for any downstream code
+referencing `DiagramRegistry` (playground, test suites). Swift does not
+allow a `public typealias` to an `internal` type. Rather than mixing
+public API removal into the importer architecture work, Phase 1 keeps
+`DiagramRegistry` public and adds documentation marking it as
+Mermaid-family-specific routing.
+
+**Changes to `DiagramDescriptor.swift`**:
 
 ```swift
-// Sources/DiagramKit/DiagramDescriptor.swift (updated)
+// Sources/DiagramKit/DiagramDescriptor.swift
 
-/// Mermaid-internal diagram-family registry.
-///
-/// These descriptors are Mermaid-specific. Format-agnostic import dispatch
-/// goes through `ImporterRegistry` + `DiagramSourceImporter`.
-///
-/// This type was previously named `DiagramRegistry`. It is now internal
-/// to `MermaidImporter`.
-enum MermaidDiagramRegistry {
-    // ... same `all`, `detect`, `descriptor(for:)`, `validate()` ...
+// MARK: Mermaid-family diagram routing
+//
+// DiagramRegistry and DiagramDescriptor are Mermaid-specific dispatch types.
+// Format-agnostic import dispatch goes through the new
+// `DiagramSourceImporter` protocol + `ImporterRegistry` (see DiagramKitImport).
+// These types remain public for backward compatibility during the transition.
+
+/// Mermaid-family diagram registry.
+/// For multi-format import dispatch, use `ImporterRegistry` + `DiagramLoader`.
+public enum DiagramRegistry {
+    // ... unchanged implementation ...
 }
 ```
 
-**Access level**: Changed from `public enum` to `enum` (internal). The
-`ImporterRegistry` is the public dispatch surface. `MermaidDiagramRegistry`
-is an implementation detail of `MermaidImporter`.
-
-#### 5b. Compatibility aliases
-
-For downstream code that references `DiagramRegistry` or `DiagramDescriptor`
-directly (the playground's `SampleDiagrams`, test code, etc.):
-
-```swift
-@available(*, deprecated, renamed: "ImporterRegistry")
-public typealias DiagramRegistry = MermaidDiagramRegistry
-
-@available(*, deprecated, message: "Use DiagramSourceImporter protocol instead")
-public typealias DiagramDescriptor = DiagramDescriptor  // keep but deprecate
-```
-
-`DiagramDescriptor` stays public as a deprecated type. `DiagramHeader` stays
-public (it's used by Mermaid probes).
-
-#### 5c. File renames (cosmetic — Phase 1 defers moving files)
-
-No files move in Phase 1. The 28 `DiagramRegistry+*.swift` files stay in
-`Sources/DiagramKit/` as Mermaid implementation details. They will move to
-`Sources/DiagramKitMermaid/` in a future phase, or when a separate
-`DiagramKitMermaid` target is created.
-
-The `DiagramRegistry+TypedDescriptor.swift` helper stays where it is.
+No file renames. No access-level changes. The 28 `DiagramRegistry+*.swift`
+extension files are unchanged.
 
 ### Step 6: Error Type Boundaries
 
 #### `DiagramError` — stays in `DiagramKitModel`
 
 `DiagramError.notYetImplemented(String)` is format-agnostic. It's thrown by
-renderers and layouts, not just importers. It stays in `DiagramKitModel/Types.swift`.
+renderers and layouts, not just importers. Stays in `DiagramKitModel/Types.swift`.
 
 #### `DiagramStructuralError` — stays in `DiagramKit` umbrella
 
 `DiagramStructuralError.payloadMismatch(DiagramType)` is thrown by
 `DiagramDescriptor.layout` closures when the payload doesn't match the
-expected type. This is a layout concern, not an import concern. It stays
-in `Sources/DiagramKit/DiagramDescriptor.swift`.
+expected type. Stays in `Sources/DiagramKit/DiagramDescriptor.swift`.
 
 #### `DiagramDiagnostic` — new, in `DiagramKitImport`
 
@@ -708,13 +672,12 @@ Downstream consumers importing `DiagramKit` automatically get
 
 @Suite struct ImporterRegistryTests {
 
-    @Test("Default registry picks Mermaid for all corpus entries")
+    @Test("Default registry picks Mermaid for Mermaid source")
     func defaultRegistryPicksMermaid() throws {
         let registry = ImporterRegistry.default
         #expect(registry.importers.count == 1)
         #expect(registry.importers[0].name == "Mermaid")
 
-        // Verify the default importer claims a Mermaid source
         let source = "graph TD\nA-->B"
         let importer = try #require(registry.importer(for: source))
         #expect(importer.name == "Mermaid")
@@ -730,18 +693,18 @@ Downstream consumers importing `DiagramKit` automatically get
     func loaderThrowsForUnsupportedSource() {
         let registry = ImporterRegistry.empty
         #expect(throws: DiagramError.self) {
-            try DiagramLoader.parseDocument(
-                "unsupported",
-                registry: registry
-            )
+            try DiagramLoader.parseDocument("unsupported", registry: registry)
         }
     }
 
-    @Test("adding() appends an importer")
-    func addingAppends() {
-        let base = ImporterRegistry(importers: [])
-        let extended = base.adding(MermaidImporter())
-        #expect(extended.importers.count == 1)
+    @Test("prepending() puts new importer first in probe order")
+    func prependingPutsFirst() {
+        let base = ImporterRegistry(importers: [MermaidImporter()])
+        // In Phase 3, a D2Importer would be prepended:
+        // let extended = base.prepending(D2Importer())
+        // #expect(extended.importers[0].name == "d2")
+        // #expect(extended.importers[1].name == "Mermaid")
+        #expect(base.importers.count == 1)
     }
 }
 ```
@@ -752,10 +715,6 @@ Downstream consumers importing `DiagramKit` automatically get
 // Tests/DiagramKitTests/ProbeCollisionMatrixTests.swift
 
 @Suite struct ProbeCollisionMatrixTests {
-
-    // In Phase 1, only Mermaid is registered. These tests verify that
-    // Mermaid's probe correctly identifies Mermaid source and that
-    // non-Mermaid probe signatures are documented.
 
     @Test("Mermaid graph TD is claimed by MermaidImporter")
     func mermaidGraphTD() {
@@ -771,18 +730,14 @@ Downstream consumers importing `DiagramKit` automatically get
         #expect(importer.supports(source: source))
     }
 
-    // Future-phase probe signatures documented as tests:
-    // These are NOT expected to pass in Phase 1 — they document the
-    // probe signatures that d2, DOT, PlantUML, and Structurizr importers
-    // will use. They serve as collision-awareness tests.
+    // Future-phase probe signatures documented as tests.
+    // These verify that the probe signatures for future formats are
+    // distinguishable. When those importers land, they are prepended
+    // before MermaidImporter so their probes fire first.
 
     @Test("DOT probe signature: digraph keyword")
     func dotProbeSignature() {
         let source = "digraph G {\n  a -> b\n}"
-        // DOT: starts with 'digraph' or 'graph', followed by '{'
-        // Mermaid's flowchart fallback would claim this in Phase 1.
-        // When DiagramKitGraphviz lands, its probe must be ordered before
-        // Mermaid in the default registry.
         let firstLine = source.split(separator: "\n").first ?? ""
         #expect(firstLine.hasPrefix("digraph") || firstLine.hasPrefix("graph"))
     }
@@ -790,7 +745,6 @@ Downstream consumers importing `DiagramKit` automatically get
     @Test("d2 probe signature: edge syntax with colon assignment")
     func d2ProbeSignature() {
         let source = "a -> b\nb: c"
-        // d2: lines containing `: ` (key-value) AND `->` or `-->` edge syntax
         let containsEdgeArrow = source.contains("->") || source.contains("-->")
         let containsColonAssign = source.contains(": ")
         #expect(containsEdgeArrow && containsColonAssign)
@@ -820,10 +774,7 @@ Downstream consumers importing `DiagramKit` automatically get
     @Test("MermaidImporter parses flowchart source")
     func parsesFlowchart() throws {
         let importer = MermaidImporter()
-        let result = try importer.parse(
-            "graph TD\nA[Start] --> B[End]",
-            frontmatter: nil
-        )
+        let result = try importer.parse("graph TD\nA[Start] --> B[End]")
         #expect(result.document.type == .flowchart)
         #expect(result.diagnostics.isEmpty)
     }
@@ -831,10 +782,7 @@ Downstream consumers importing `DiagramKit` automatically get
     @Test("MermaidImporter parses sequence diagram source")
     func parsesSequence() throws {
         let importer = MermaidImporter()
-        let result = try importer.parse(
-            "sequenceDiagram\nAlice->>Bob: Hello",
-            frontmatter: nil
-        )
+        let result = try importer.parse("sequenceDiagram\nAlice->>Bob: Hello")
         #expect(result.document.type == .sequenceDiagram)
     }
 
@@ -844,11 +792,11 @@ Downstream consumers importing `DiagramKit` automatically get
         #expect(importer.supportedDiagramTypes.count == DiagramType.allCases.count)
     }
 
-    @Test("MermaidImporter diagnostics are empty after clean parse")
+    @Test("MermaidImporter returns empty diagnostics for clean parse")
     func cleanParseHasNoDiagnostics() throws {
         let importer = MermaidImporter()
-        _ = try importer.parse("graph TD\nA-->B", frontmatter: nil)
-        #expect(importer.diagnostics.isEmpty)
+        let result = try importer.parse("graph TD\nA-->B")
+        #expect(result.diagnostics.isEmpty)
     }
 }
 ```
@@ -860,7 +808,7 @@ Downstream consumers importing `DiagramKit` automatically get
 
 @Suite struct MermaidLegacyAPITests {
 
-    @Test("MermaidParser.parse still works through new loader")
+    @Test("MermaidParser.parse still works through loader")
     func mermaidParserStillWorks() throws {
         let doc = try MermaidParser.parse("graph TD\nA-->B")
         #expect(doc.type == .flowchart)
@@ -897,33 +845,21 @@ use `DiagramEngine` / `String` extensions, which route through
 
 #### 8f. `CorpusSnapshotTests` — no changes
 
-```swift
-// Tests/DiagramKitTests/CorpusSnapshotTests.swift — unchanged
-```
-
 The snapshot tests call `DiagramEngine.renderSVG(source:...)`,
 `DiagramEngine.renderImage(source:...)`, and `DiagramEngine.renderASCII(source:...)`.
 These route through `DiagramPipeline` → `DiagramLoader` → `MermaidImporter`.
 Output must be byte-identical to the pre-Phase-1 baselines.
 
-**Verification**: Run full corpus before and after Phase 1; diff the SVG/image/ASCII
-snapshots. Zero diffs expected.
-
-#### 8g. `DiagramRegistryTests` — update to reference `MermaidDiagramRegistry`
-
-```swift
-// Tests/DiagramKitTests/DiagramRegistryTests.swift (updated)
-
-@Suite struct MermaidDiagramRegistryTests {  // was DiagramRegistryTests
-
-    @Test("Registry validates that every DiagramType case has a descriptor")
-    func registryCoversAllDiagramTypes() {
-        #expect(MermaidDiagramRegistry.validate())  // was DiagramRegistry
-    }
-
-    // ... etc., s/DiagramRegistry/MermaidDiagramRegistry/g
-}
+**Caveats**: The full corpus suite runs ~5 minutes. Use environment variable
+filtering for iterative development:
+```bash
+SNAPSHOT_DIAGRAM_IDS=block-1-simple,flow-1-simple swift test --filter CorpusSnapshotTests
 ```
+
+#### 8g. `DiagramRegistryTests` — unchanged
+
+`DiagramRegistry` remains public and its tests are unchanged. The suite
+continues to validate that all 28 `DiagramType` cases have descriptors.
 
 ### Step 9: Verification Gates
 
@@ -940,42 +876,50 @@ Run these in order before considering Phase 1 complete:
    swift test --filter ProbeCollisionMatrixTests
    swift test --filter MermaidImporterTests
    swift test --filter MermaidLegacyAPITests
-   swift test --filter MermaidDiagramRegistryTests
    ```
 
-3. **Full corpus snapshots** (must be byte-identical):
+3. **Existing registry tests**:
+   ```bash
+   swift test --filter DiagramRegistryTests
+   ```
+
+4. **Full corpus snapshots** (must be byte-identical; ~5 min):
    ```bash
    swift test --filter CorpusSnapshotTests
    ```
+   For iterative work, filter to a smaller set:
+   ```bash
+   SNAPSHOT_DIAGRAM_IDS=block-1-simple,flow-1-simple,seq-1-basic swift test --filter CorpusSnapshotTests
+   ```
 
-4. **File size check**:
+5. **File size check**:
    ```bash
    Scripts/check-file-sizes.sh
    ```
 
-5. **Sendable annotations**:
+6. **Sendable annotations**:
    ```bash
    Scripts/check-sendable-annotations.sh
    ```
 
-6. **Strict concurrency**:
+7. **Strict concurrency**:
    ```bash
    Scripts/strict-concurrency-check.sh
    ```
 
-7. **Linux check** (skip if Docker/Podman unavailable):
+8. **Linux check** (skip if Docker/Podman unavailable):
    ```bash
    Scripts/linux-check.sh
    ```
 
-8. **Full bootstrap smoke check**:
+9. **Full bootstrap smoke check**:
    ```bash
    Scripts/bootstrap-smoke-check.sh
    ```
 
 ## Summary of Changes
 
-### New files (12)
+### New files (10)
 
 | File | Target | Purpose |
 |------|--------|---------|
@@ -990,17 +934,15 @@ Run these in order before considering Phase 1 complete:
 | `Tests/DiagramKitTests/MermaidImporterTests.swift` | DiagramKitTests | Importer tests |
 | `Tests/DiagramKitTests/MermaidLegacyAPITests.swift` | DiagramKitTests | Legacy API tests |
 
-### Modified files (7)
+### Modified files (5)
 
 | File | Change |
 |------|--------|
 | `Package.swift` | Add `DiagramKitImport` target + product; add `DiagramKitImport` dependency to `DiagramKit` |
 | `Sources/DiagramKit/ReExports.swift` | Add `@_exported import DiagramKitImport` |
-| `Sources/DiagramKit/DiagramDescriptor.swift` | Rename `DiagramRegistry` → `MermaidDiagramRegistry` (internal); add compat aliases |
-| `Sources/DiagramKit/Parser.swift` | Add `parse(_:registry:)` overload; deprecation annotation |
+| `Sources/DiagramKit/Parser.swift` | Rewrite as thin wrapper over `MermaidImporter`; remove duplicated descriptor dispatch |
 | `Sources/DiagramKit/MermaidPipeline.swift` | Route `parse(_:)` through `DiagramLoader` with default registry; add `parse(_:registry:)` overload |
-| `Sources/DiagramKit/DiagramRegistry+TypedDescriptor.swift` | Update extension target |
-| `Tests/DiagramKitTests/DiagramRegistryTests.swift` | Rename suite, s/DiagramRegistry/MermaidDiagramRegistry/ |
+| `Sources/DiagramKit/DiagramDescriptor.swift` | Add doc comment marking `DiagramRegistry` as Mermaid-family routing |
 
 ### Unchanged files (critical)
 
@@ -1009,10 +951,12 @@ Run these in order before considering Phase 1 complete:
 | `Sources/DiagramKitModel/Types.swift` | `DiagramDocument`, `DiagramPayload`, `DiagramError`, `DiagramType` — no changes needed |
 | `Sources/DiagramKit/MermaidRenderer.swift` | `DiagramEngine` public API — unchanged; delegates through `DiagramPipeline` |
 | `Sources/DiagramKit/Layout.swift` | `GraphLayout` — format-agnostic, unchanged |
+| `Sources/DiagramKit/DiagramRegistry+*.swift` | All 28 per-family descriptor files — unchanged |
+| `Sources/DiagramKit/DiagramRegistry+TypedDescriptor.swift` | Unchanged |
 | `Examples/MermaidPlayground/Models/SampleDiagrams.swift` | Playground sample data — unchanged |
 | `Tests/DiagramKitTests/CorpusSnapshotTests.swift` | Snapshot tests — unchanged |
-| `Tests/DiagramKitTests/*` | All other test files — unchanged except `DiagramRegistryTests` |
-| 28 `DiagramRegistry+*.swift` files | Per-family descriptors — unchanged (internal rename only) |
+| `Tests/DiagramKitTests/DiagramRegistryTests.swift` | Registry tests — unchanged (`DiagramRegistry` stays public) |
+| `Tests/DiagramKitTests/*` | All other test files — unchanged |
 
 ## Design Decisions
 
@@ -1038,39 +982,67 @@ their parsers, and their layouts — a large refactor that risks snapshot drift.
 Phase 1 establishes the protocol boundary; Phase 2 or later can extract
 Mermaid into its own target when d2 demonstrates the pattern.
 
-### 3. `DiagramRegistry` → `MermaidDiagramRegistry` (internal)
+### 3. `DiagramRegistry` stays public
 
-**Decision**: Make it `internal enum`, with deprecated `public typealias`.
+**Decision**: Keep `DiagramRegistry` as a public enum. Do not rename or internalize.
 
-**Rationale**: The registry is Mermaid's internal dispatch. No external consumer
-should be creating descriptors or querying the registry directly — they go
-through `DiagramSourceImporter` / `ImporterRegistry`. Keeping it internal
-prevents accidental coupling to Mermaid-specific routing.
+**Rationale**: Making it `internal enum MermaidDiagramRegistry` and then
+attempting a `public typealias DiagramRegistry = MermaidDiagramRegistry`
+does not compile in Swift (a public typealias cannot reference an internal
+type). The self-referential `DiagramDescriptor = DiagramDescriptor` alias
+originally proposed is also invalid. Rather than mixing public API removal
+into the importer architecture work, Phase 1 keeps `DiagramRegistry` public,
+adds documentation marking it as Mermaid-family routing, and lets the new
+`ImporterRegistry` + `DiagramLoader` surface be the format-agnostic dispatch
+path. The old types can be deprecated in a later phase once consumers have
+migrated.
 
-### 4. Probe order: Mermaid first, flowchart fallback claims everything
+### 4. Probe order: specific importers first, Mermaid fallback last
 
-**Decision**: Mermaid's `supports(source:)` always returns `true`.
+**Decision**: `MermaidImporter.supports(source:)` always returns `true`.
+It is the explicit fallback and MUST be last in any multi-importer registry.
+`ImporterRegistry` uses `prepending(_:)` (not `adding(_:)`) to place new
+specific importers before existing broader ones.
 
-**Rationale**: The flowchart fallback descriptor (`DiagramRegistry._flowchart`)
-matches `{ _ in true }`. This means Mermaid claims any source not claimed by a
-more specific importer. In Phase 1, Mermaid is the only importer, so it claims
-everything (preserving current behavior). In Phase 2+, narrower importers
-(d2, DOT, PlantUML) are ordered before Mermaid in the default registry, so
-their probes fire first.
+**Rationale**: The original draft proposed `adding(_:)` (append), which would
+permanently starve d2/DOT/PlantUML importers — Mermaid's always-true probe
+would fire first and claim their sources. With `prepending(_:)` and Mermaid
+ordered last, specific probes fire first. In Phase 1, Mermaid is the only
+importer and claims everything (preserving current behavior).
 
-### 5. Worker-thread invariant preserved
+### 5. No `DiagramFrontmatter` in the importer protocol
+
+**Decision**: `DiagramSourceImporter.parse(_ source: String)` takes only a
+source string. No `DiagramFrontmatter` parameter.
+
+**Rationale**: `DiagramFrontmatter` is a Mermaid-shaped type with 45 per-family
+config fields. Baking it into the generic importer protocol would force every
+future format importer (d2, DOT, PlantUML, Structurizr) to understand
+Mermaid frontmatter. Each importer handles its own preprocessing internally.
+
+### 6. No `var diagnostics` in the importer protocol
+
+**Decision**: Diagnostics are returned only in `DiagramImportResult`. There is
+no `var diagnostics: [DiagramDiagnostic] { get }` requirement on the protocol.
+
+**Rationale**: The property creates shared mutable state across concurrent
+parses through the same importer instance. The lock-based approach
+(`OSAllocatedUnfairLock`) is Darwin-only and would fail on Linux. Returning
+diagnostics in the result keeps importers stateless at the protocol boundary.
+
+### 7. Worker-thread invariant preserved
 
 All public `DiagramEngine` entry points still dispatch through `_runOnWorker`
 (8 MB-stack `Thread`). `DiagramLoader.parse()` is called inside the worker
 thread, matching the existing pattern.
 
-### 6. Font determinism preserved
+### 8. Font determinism preserved
 
 `DiagramPipeline.runPipeline()` still calls
 `DiagramFontRegistry.registerBundledFontsIfNeeded()` before every operation.
 The loader path does not bypass this.
 
-### 7. No snapshot re-recording
+### 9. No snapshot re-recording
 
 Phase 1 is a pure refactor: same parsing behavior, same layout, same rendering.
 All 396 SVG, 396 image, and 174 ASCII baselines must remain byte-identical.
@@ -1082,14 +1054,15 @@ If any snapshot drifts, the refactor is incorrect.
 |------|-----------|------------|
 | Snapshot drift from subtle parse-order change | Low | `MermaidImporter.parse()` replicates existing `MermaidParser.parse()` byte-for-byte |
 | `any DiagramSourceImporter` existential overhead | Low | Importer is probed once per source; existential dispatch is negligible vs. parsing cost |
-| `OSAllocatedUnfairLock` availability on Linux | Low | Available since macOS 13 / iOS 16 / Swift 5.9+; fallback to `NSLock` if needed |
 | `DiagramKitImport` target breaks Linux build | Low | `DiagramKitModel` already Linux-compatible; no Apple-only dependencies |
 | Playground `LiveEditorStore` breakage | Low | Store calls `DiagramEngine` public API, which is unchanged |
-| `DiagramRegistry` internal rename breaks playground | Low | Playground uses `DiagramEngine` / `String` extensions, not `DiagramRegistry` directly |
-| Probe collision between Mermaid flowchart and d2/DOT | N/A (Phase 3+) | Phase 1 has only Mermaid; collision tests document expected future signatures |
+| `DiagramRegistry` deprecation breaks consumers | None | `DiagramRegistry` is kept public — no deprecation in Phase 1 |
+| Probe collision between Mermaid and future formats | Low | `prepending(_:)` + Mermaid-last ordering enforced; collision tests document expected signatures |
+| `MermaidParser` thin wrapper adds overhead | None | `MermaidImporter()` is a value type with no stored properties; init cost is zero |
 
 ---
 
 *This plan was prepared from live codebase analysis of Sources/DiagramKit/,
 Sources/DiagramKitModel/, Tests/DiagramKitTests/, and Package.swift as they
-exist at 2026-05-12.*
+exist at 2026-05-12. Revised per review to fix the five structural issues
+identified.*
