@@ -37,9 +37,64 @@ import DiagramKitImport
         #expect(base.importers[0].name == "Mermaid")
 
         // Verify prepending would put a new importer first (for Phase 3+)
-        let extended = base.prepending(MermaidImporter())
+        let extended = base.prepending(FixtureImporter())
         #expect(extended.importers.count == 2)
-        #expect(extended.importers[0].name == "Mermaid")
+        #expect(extended.importers[0].name == "Fixture")
         #expect(extended.importers[1].name == "Mermaid")
+    }
+
+    @Test("layout(source:registry:) uses the importer registry")
+    func layoutUsesImporterRegistry() throws {
+        let registry = ImporterRegistry(importers: [FixtureImporter()])
+
+        let positioned = try DiagramPipeline.layout("fixture-format source", registry: registry)
+
+        #expect(positioned.diagram.type == .flowchart)
+        #expect(positioned.flowchartNodes?.isEmpty == false)
+    }
+
+    #if canImport(CoreGraphics)
+    @Test("prepare(source:registry:) uses the importer registry")
+    func prepareUsesImporterRegistry() throws {
+        let registry = ImporterRegistry(importers: [FixtureImporter()])
+
+        let prepared = try DiagramPipeline.prepare(
+            source: "fixture-format source",
+            registry: registry
+        )
+
+        #expect(prepared.positioned.diagram.type == .flowchart)
+        #expect(prepared.positioned.flowchartNodes?.isEmpty == false)
+    }
+
+    @Test("renderSVG(source:registry:) uses the importer registry")
+    func renderSVGUsesImporterRegistry() throws {
+        let registry = ImporterRegistry(importers: [FixtureImporter()])
+
+        let svg = try DiagramPipeline.renderSVG(
+            source: "fixture-format source",
+            idPolicy: .stable,
+            registry: registry
+        )
+
+        #expect(svg.contains("<svg"))
+        #expect(svg.contains("Fixture"))
+    }
+    #endif
+}
+
+private struct FixtureImporter: DiagramSourceImporter {
+    let name = "Fixture"
+    let supportedDiagramTypes: Set<DiagramType> = [.flowchart]
+
+    func supports(source: String) -> Bool {
+        true
+    }
+
+    func parse(_ source: String) throws -> DiagramImportResult {
+        let document = try MermaidImporter()
+            .parse("graph TD\nFixture[Fixture] --> Output[Output]")
+            .document
+        return DiagramImportResult(document: document)
     }
 }

@@ -41,9 +41,16 @@ public enum DiagramPipeline {
 
     // MARK: - Parse
 
+    private static func loadDocument(
+        _ source: String,
+        registry: ImporterRegistry
+    ) throws -> DiagramDocument {
+        try DiagramLoader.parseDocument(source, registry: registry)
+    }
+
     public static func parse(_ source: String) throws -> DiagramDocument {
         try runPipeline(operation: "DiagramPipeline.parse", registerFonts: true) {
-            try DiagramLoader.parseDocument(source, registry: defaultRegistry)
+            try loadDocument(source, registry: defaultRegistry)
         }
     }
 
@@ -52,7 +59,7 @@ public enum DiagramPipeline {
         registry: ImporterRegistry
     ) throws -> DiagramDocument {
         try runPipeline(operation: "DiagramPipeline.parse(registry:)", registerFonts: true) {
-            try DiagramLoader.parseDocument(source, registry: registry)
+            try loadDocument(source, registry: registry)
         }
     }
 
@@ -60,10 +67,11 @@ public enum DiagramPipeline {
 
     public static func layout(
         _ source: String,
-        config: LayoutConfig = LayoutConfig()
+        config: LayoutConfig = LayoutConfig(),
+        registry: ImporterRegistry = defaultRegistry
     ) throws -> PositionedGraph {
         try runPipeline(operation: "DiagramPipeline.layout(source:)") {
-            let graph = try MermaidParser.parse(source)
+            let graph = try loadDocument(source, registry: registry)
             return try GraphLayout(config: config).layout(graph)
         }
     }
@@ -83,10 +91,11 @@ public enum DiagramPipeline {
     public static func prepare(
         source: String,
         theme: DiagramTheme = .default,
-        layoutConfig: LayoutConfig = LayoutConfig()
+        layoutConfig: LayoutConfig = LayoutConfig(),
+        registry: ImporterRegistry = defaultRegistry
     ) throws -> PreparedDiagram {
         try runPipeline(operation: "DiagramPipeline.prepare") {
-            let graph = try MermaidParser.parse(source)
+            let graph = try loadDocument(source, registry: registry)
             let positioned = try GraphLayout(config: layoutConfig).layout(graph)
             return PreparedDiagram(positioned: positioned, theme: theme)
         }
@@ -102,10 +111,11 @@ public enum DiagramPipeline {
         source: String,
         theme: DiagramTheme = .default,
         layoutConfig: LayoutConfig = LayoutConfig(),
-        idPolicy: SVGIDPolicy = .unique
+        idPolicy: SVGIDPolicy = .unique,
+        registry: ImporterRegistry = defaultRegistry
     ) throws -> String {
         try runPipeline(operation: "DiagramPipeline.renderSVG") {
-            let graph = try MermaidParser.parse(source)
+            let graph = try loadDocument(source, registry: registry)
             let positioned = try GraphLayout(config: layoutConfig).layout(graph)
 
             let colors = DiagramColors(
