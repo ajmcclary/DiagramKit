@@ -1,3 +1,5 @@
+import Foundation
+
 /// A single entry in the diagram corpus (test-diagrams.json).
 /// Decodes both the legacy single-format schema and the new multi-format schema.
 public struct CorpusEntry: Codable, Identifiable, Sendable {
@@ -5,16 +7,16 @@ public struct CorpusEntry: Codable, Identifiable, Sendable {
     public let category: String
     public let name: String
 
-    /// The primary Mermaid source. Always populated — either from the
+    /// The primary Mermaid source. Always populated, either from the
     /// top-level `source` field (legacy) or from `sources["mermaid"]`.
     /// When both exist they must be identical (enforced by post-decode validation).
     public let source: String
 
-    /// Format → source map. When present, keys name importers
+    /// Format-to-source map. Keys are normalized lowercase format identifiers
     /// (e.g. "mermaid", "d2", "graphviz").
     public let sources: [String: String]?
 
-    /// Format → expected importer name for routing tests.
+    /// Format identifier to expected importer name for routing tests.
     public let expectedImporters: [String: String]?
 
     /// Expected non-fatal diagnostics.
@@ -42,19 +44,28 @@ public struct CorpusEntry: Codable, Identifiable, Sendable {
         id = try container.decode(String.self, forKey: .id)
         category = try container.decode(String.self, forKey: .category)
         name = try container.decode(String.self, forKey: .name)
-        sources = try container.decodeIfPresent([String: String].self, forKey: .sources)
-        expectedImporters = try container.decodeIfPresent([String: String].self, forKey: .expectedImporters)
+        sources = try Self.normalizedFormatMap(
+            container.decodeIfPresent([String: String].self, forKey: .sources)
+        )
+        expectedImporters = try Self.normalizedFormatMap(
+            container.decodeIfPresent([String: String].self, forKey: .expectedImporters)
+        )
         expectedDiagnostics = try container.decodeIfPresent(
             [ExpectedDiagnostic].self, forKey: .expectedDiagnostics
         )
         unsupportedNote = try container.decodeIfPresent(String.self, forKey: .unsupportedNote)
-        skipSnapshots = try container.decodeIfPresent([String].self, forKey: .skipSnapshots)
+        skipSnapshots = try container
+            .decodeIfPresent([String].self, forKey: .skipSnapshots)?
+            .map(Self.normalizedFormat)
 
         // Decode the top-level `source` and compare against `sources["mermaid"]`
         // when both are present. They must be identical; mismatches are a
         // decoding error (ambiguous canonical source).
         let topLevelSource = try container.decode(String.self, forKey: .source)
-        if let mermaidSource = sources?["mermaid"] {
+        if let sources {
+            guard let mermaidSource = sources["mermaid"] else {
+                throw CorpusEntryError.sourcesMissingMermaid(id: id)
+            }
             if mermaidSource != topLevelSource {
                 throw CorpusEntryError.sourceMermaidMismatch(id: id)
             }
@@ -94,7 +105,7 @@ public struct CorpusEntry: Codable, Identifiable, Sendable {
     /// when `sources` is nil, preserving the invariant that Mermaid source
     /// is always available.
     public func source(for format: String) -> String? {
-        let key = format.lowercased()
+        let key = Self.normalizedFormat(format)
         if key == "mermaid" {
             return sources?[key] ?? source
         }
@@ -113,7 +124,27 @@ public struct CorpusEntry: Codable, Identifiable, Sendable {
 
     /// Whether snapshots should be skipped for the given format.
     public func shouldSkipSnapshot(for format: String) -> Bool {
-        skipSnapshots?.contains(format.lowercased()) ?? false
+        skipSnapshots?.contains(Self.normalizedFormat(format)) ?? false
+    }
+
+    private static func normalizedFormat(_ format: String) -> String {
+        format.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+    }
+
+    private static func normalizedFormatMap(
+        _ values: [String: String]?
+    ) throws -> [String: String]? {
+        guard let values else { return nil }
+
+        var normalized: [String: String] = [:]
+        for (key, value) in values {
+            let normalizedKey = normalizedFormat(key)
+            if normalized[normalizedKey] != nil {
+                throw CorpusEntryError.duplicateFormatKey(key: normalizedKey)
+            }
+            normalized[normalizedKey] = value
+        }
+        return normalized
     }
 }
 
@@ -121,11 +152,17 @@ public struct CorpusEntry: Codable, Identifiable, Sendable {
 
 public enum CorpusEntryError: Error, CustomStringConvertible, Sendable {
     case sourceMermaidMismatch(id: String)
+    case sourcesMissingMermaid(id: String)
+    case duplicateFormatKey(key: String)
 
     public var description: String {
         switch self {
         case .sourceMermaidMismatch(let id):
             return "Entry \"\(id)\": top-level `source` differs from `sources[\"mermaid\"]`"
+        case .sourcesMissingMermaid(let id):
+            return "Entry \"\(id)\": `sources` must include a `mermaid` source"
+        case .duplicateFormatKey(let key):
+            return "Duplicate format key after normalization: \"\(key)\""
         }
     }
 }

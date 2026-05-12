@@ -247,7 +247,8 @@ public struct TestDiagram: Codable, Identifiable, Sendable {
     public let source: String
     public var options: [String: Bool]? = nil
 
-    // Multi-format fields (all optional, nil on legacy entries)
+    // Multi-format fields (all optional, nil on legacy entries).
+    // Format keys are normalized lowercase identifiers.
     public let sources: [String: String]?
     public let expectedImporters: [String: String]?
     public let expectedDiagnostics: [TestExpectedDiagnostic]?
@@ -295,19 +296,43 @@ public struct TestDiagram: Codable, Identifiable, Sendable {
         category = try container.decode(String.self, forKey: .category)
         name = try container.decode(String.self, forKey: .name)
         options = try container.decodeIfPresent([String: Bool].self, forKey: .options)
-        sources = try container.decodeIfPresent([String: String].self, forKey: .sources)
-        expectedImporters = try container.decodeIfPresent([String: String].self, forKey: .expectedImporters)
+        sources = try Self.normalizedFormatMap(
+            container.decodeIfPresent([String: String].self, forKey: .sources),
+            container: container,
+            key: .sources
+        )
+        expectedImporters = try Self.normalizedFormatMap(
+            container.decodeIfPresent([String: String].self, forKey: .expectedImporters),
+            container: container,
+            key: .expectedImporters
+        )
         expectedDiagnostics = try container.decodeIfPresent(
             [TestExpectedDiagnostic].self, forKey: .expectedDiagnostics
         )
         unsupportedNote = try container.decodeIfPresent(String.self, forKey: .unsupportedNote)
-        skipSnapshots = try container.decodeIfPresent([String].self, forKey: .skipSnapshots)
+        skipSnapshots = try container
+            .decodeIfPresent([String].self, forKey: .skipSnapshots)?
+            .map(Self.normalizedFormat)
 
-        // Derive `source`: prefer `sources["mermaid"]`, fall back to `source`.
-        if let mermaidSource = sources?["mermaid"] {
+        let topLevelSource = try container.decode(String.self, forKey: .source)
+        if let sources {
+            guard let mermaidSource = sources["mermaid"] else {
+                throw DecodingError.dataCorruptedError(
+                    forKey: .sources,
+                    in: container,
+                    debugDescription: "`sources` must include a `mermaid` source"
+                )
+            }
+            guard mermaidSource == topLevelSource else {
+                throw DecodingError.dataCorruptedError(
+                    forKey: .source,
+                    in: container,
+                    debugDescription: "top-level `source` differs from `sources[\"mermaid\"]`"
+                )
+            }
             source = mermaidSource
         } else {
-            source = try container.decode(String.self, forKey: .source)
+            source = topLevelSource
         }
     }
 
@@ -316,11 +341,37 @@ public struct TestDiagram: Codable, Identifiable, Sendable {
     /// Source text for a given format name.
     /// Special-cases "mermaid" to fall back to the legacy `source` property.
     public func source(for format: String) -> String? {
-        let key = format.lowercased()
+        let key = Self.normalizedFormat(format)
         if key == "mermaid" {
             return sources?[key] ?? source
         }
         return sources?[key]
+    }
+
+    private static func normalizedFormat(_ format: String) -> String {
+        format.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+    }
+
+    private static func normalizedFormatMap(
+        _ values: [String: String]?,
+        container: KeyedDecodingContainer<CodingKeys>,
+        key codingKey: CodingKeys
+    ) throws -> [String: String]? {
+        guard let values else { return nil }
+
+        var normalized: [String: String] = [:]
+        for (key, value) in values {
+            let normalizedKey = normalizedFormat(key)
+            if normalized[normalizedKey] != nil {
+                throw DecodingError.dataCorruptedError(
+                    forKey: codingKey,
+                    in: container,
+                    debugDescription: "duplicate format key after normalization: \(normalizedKey)"
+                )
+            }
+            normalized[normalizedKey] = value
+        }
+        return normalized
     }
 }
 

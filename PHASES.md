@@ -1,12 +1,15 @@
 # DiagramKit Multi-Format Roadmap
 
 This is the active execution roadmap. `ANALYSIS.md` is the long-form rationale.
-`PHASE-0.md` and `PHASE-1.md` are the detailed phase plans and history.
+`PHASE-0.md`, `PHASE-1.md`, and `PHASE-2.md` are the detailed phase plans and
+history.
 
 ## Current State
 
-Phase 0 is complete and committed. Phase 1 is implemented locally and is in
-closure/remediation review before push.
+Phases 0, 1, and 2 are implemented locally. Phase 2 has post-review schema
+hardening in this worktree: format IDs are canonical lowercase values,
+`sources` requires a `mermaid` source, and the playground decoder enforces the
+same source/Mermaid consistency rules as the test-support decoder.
 
 What is true now:
 
@@ -36,6 +39,15 @@ What is true now:
 - `DiagramRegistry`, `DiagramDescriptor`, and `DiagramHeader` remain public
   Mermaid-family routing types for compatibility. They are documented as
   Mermaid-specific, not the multi-format import registry.
+- `DiagramKitTestSupport.CorpusEntry` is the canonical test-side corpus decoder.
+  It decodes legacy Mermaid-only entries and future multi-format entries while
+  preserving `entry.source` as the Mermaid source.
+- Corpus format metadata uses canonical lowercase format IDs such as `mermaid`,
+  `d2`, `graphviz`, `plantuml`, and `structurizr`; importer names remain display
+  values such as `Mermaid`.
+- The real corpus file is still Mermaid-only. Multi-format examples live as
+  inline fixtures in the corpus multi-format test files until the first d2
+  slice lands.
 - Snapshot baselines currently include 396 SVG, 396 image, and 174 ASCII files.
   Snapshot recording is deferred until the final baseline pass unless a phase is
   explicitly about intentional renderer baseline changes.
@@ -47,7 +59,7 @@ What is true now:
 
 ## Operating Principles
 
-- Do not start new parser ports until Phase 1 is closed and committed.
+- Do not start new parser ports until Phase 2 is closed and committed.
 - Keep source import separate from diagram-family layout. Importers produce
   `DiagramDocument`; they do not layout or render.
 - Preserve the worker-thread invariant: every public async facade path still
@@ -83,9 +95,9 @@ git diff --check
 ```
 
 Run `Scripts/linux-check.sh` and the full `Scripts/bootstrap-smoke-check.sh`
-before merge/push readiness when Docker/Podman and Xcode runtimes are available.
-If Docker/Podman is unavailable locally, record Linux as skipped due to
-environment.
+before merge readiness when Docker/Podman and Xcode runtimes are available. If
+Docker/Podman is unavailable locally, record Linux as skipped due to
+environment; do not block local phase remediation on it.
 
 Snapshot policy:
 
@@ -119,8 +131,7 @@ Closure evidence lives in `PHASE-0.md`.
 Goal: split source-format import from diagram-family layout while preserving
 Mermaid behavior.
 
-Status: implemented locally; close with the post-review remediation commit and
-normal non-Docker gates.
+Status: complete and committed locally.
 
 Implemented shape:
 
@@ -140,7 +151,7 @@ Implemented shape:
 - `DiagramError` remains in `DiagramKitModel`; `DiagramStructuralError` remains
   where existing render/layout code can use it without forcing a larger move.
 
-Close this phase with:
+Closure evidence:
 
 - `swift build --build-tests`
 - `swift test --filter ImporterRegistryTests`
@@ -151,14 +162,16 @@ Close this phase with:
 - governance scripts from the verification policy
 - snapshot review only; do not record baselines
 
-Do not add d2/DOT/PlantUML/Structurizr code until this phase is committed.
+See `PHASE-1.md` for the full implementation plan and verification history.
 
 ## Phase 2: Multi-Format Corpus Foundation
 
 Goal: make the corpus capable of hosting multiple source formats before the
 second importer lands.
 
-Status: implemented. Full plan and design decisions in [PHASE-2.md](PHASE-2.md).
+Status: implemented locally; post-review schema hardening is in the current
+worktree and should be committed before Phase 3 starts. Full plan and design
+decisions are in [PHASE-2.md](PHASE-2.md).
 
 Completed:
 
@@ -169,17 +182,32 @@ Completed:
 - `ExpectedDiagnostic` and `CorpusEntryError` for fixture metadata.
 - Mismatch detection: decoder throws `CorpusEntryError.sourceMermaidMismatch`
   when `source` and `sources["mermaid"]` differ.
+- `sources` maps must include a `mermaid` key when present. Omitting it is a
+  schema error, not a fallback path.
+- Format IDs in `sources`, `expectedImporters`, and `skipSnapshots` normalize to
+  lowercase during decoding.
 - `CorpusSnapshotTests` uses `CorpusEntry`/`CorpusFile` from
   `DiagramKitTestSupport`; calls `validate()` on all entries.
 - `Package.swift`: `DiagramKitTests` depends on `DiagramKitTestSupport`.
 - `SampleDiagrams.swift`: `TestDiagram` carries multi-format fields + custom
   decoder matching `CorpusEntry`; `TestExpectedDiagnostic` added.
-- `CorpusMultiFormatTests.swift`: 5 test suites (decoding, metadata, backward
-  compat, validation, sparse matrix) — 20 tests total, all inline JSON
-  fixtures.
+- `CorpusMultiFormatTests.swift` and `CorpusMultiFormatIntegrationTests.swift`:
+  6 test suites (decoding, metadata, backward compat, validation, playground
+  parity, sparse matrix) across 22 tests. Fixture-only tests stay separate from
+  real-corpus/render spot checks to satisfy the file-size gate.
 - Real `test-diagrams.json` untouched. All 396 entries remain Mermaid-only,
   decode correctly, and pass `validate()`.
 - Snapshot names unchanged. No baselines re-recorded.
+
+Close this phase with:
+
+- `swift build --build-tests`
+- `swift test --filter CorpusMultiFormatTests`
+- `swift test --filter CorpusMultiFormatIntegrationTests`
+- `swift test --filter ImporterRegistryTests`
+- governance scripts from the verification policy
+
+Do not add d2/DOT/PlantUML/Structurizr code until this phase is committed.
 
 ## Phase 3: D2 Importer Vertical Slice
 

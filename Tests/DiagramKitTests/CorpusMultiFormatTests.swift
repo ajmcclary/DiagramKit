@@ -2,6 +2,9 @@ import Foundation
 import Testing
 import DiagramKitTestSupport
 @testable import DiagramKit
+#if canImport(CoreGraphics)
+@testable import MermaidPlayground
+#endif
 
 // MARK: - Decode Tests
 
@@ -99,13 +102,13 @@ struct MultiFormatDecodingTests {
         """.data(using: .utf8)!
         let file = try JSONDecoder().decode(CorpusFile.self, from: json)
         let entry = try #require(file.diagrams.first)
-        // No `sources` → `source` is the top-level value
+        // No `sources`: `source` is the top-level value.
         #expect(entry.source == "graph TD\n  A --> B")
         #expect(entry.source(for: "mermaid") == "graph TD\n  A --> B")
     }
 
-    @Test("source without mermaid key falls back")
-    func testSourceWithoutMermaidKeyFallsBack() throws {
+    @Test("sources without mermaid key throws")
+    func testSourcesWithoutMermaidKeyThrows() throws {
         let json = """
         {
             "diagrams": [
@@ -121,12 +124,9 @@ struct MultiFormatDecodingTests {
             ]
         }
         """.data(using: .utf8)!
-        let file = try JSONDecoder().decode(CorpusFile.self, from: json)
-        let entry = try #require(file.diagrams.first)
-        // `sources` has no "mermaid" key → `source` falls back to top-level
-        #expect(entry.source == "graph TD\n  A --> B")
-        #expect(entry.source(for: "mermaid") == "graph TD\n  A --> B")
-        #expect(entry.source(for: "d2") == "A -> B")
+        #expect(throws: CorpusEntryError.self) {
+            let _ = try JSONDecoder().decode(CorpusFile.self, from: json)
+        }
     }
 }
 
@@ -276,111 +276,57 @@ struct MultiFormatFixtureMetadataTests {
         let multiEntry = try #require(multiFile.diagrams.first)
         #expect(multiEntry.source(for: "mermaid") == "graph TD\n  A --> B")
     }
-}
 
-// MARK: - Backward-Compatibility Tests
-
-/// Verify that the real 396-entry corpus still works with the new types.
-@Suite("Multi-format backward compatibility")
-struct MultiFormatBackwardCompatibilityTests {
-
-    private static func projectRoot() -> URL {
-        var url = URL(fileURLWithPath: #file).deletingLastPathComponent()
-        while url.path != "/" {
-            let package = url.appendingPathComponent("Package.swift")
-            if FileManager.default.fileExists(atPath: package.path) {
-                return url
-            }
-            url.deleteLastPathComponent()
-        }
-        return URL(fileURLWithPath: FileManager.default.currentDirectoryPath)
-    }
-
-    private static func loadRealCorpus() throws -> [CorpusEntry] {
-        let jsonURL = projectRoot()
-            .appendingPathComponent("Examples/MermaidPlayground/Resources/test-diagrams.json")
-        let data = try Data(contentsOf: jsonURL)
-        let file = try JSONDecoder().decode(CorpusFile.self, from: data)
-        return file.diagrams
-    }
-
-    @Test("All 396 Mermaid entries decode")
-    func testAll396MermaidEntriesDecode() throws {
-        let entries = try Self.loadRealCorpus()
-        #expect(entries.count >= 396, "Expected at least 396 entries; got \(entries.count)")
-        for entry in entries {
-            #expect(!entry.source.isEmpty, "Entry \"\(entry.id)\" has empty source")
-            try entry.validate()
-        }
-    }
-
-    @Test("Real corpus has no sources field")
-    func testRealCorpusHasNoSourcesField() throws {
-        let entries = try Self.loadRealCorpus()
-        for entry in entries {
-            let comment: Comment = "Entry \"\(entry.id)\" unexpectedly has a `sources` field"
-            #expect(entry.sources == nil, comment)
-        }
-    }
-
-    @Test("Mermaid snapshots unchanged")
-    func testMermaidSnapshotsUnchanged() async throws {
-        let entries = try Self.loadRealCorpus()
-        // Spot-check a few well-known entries render non-empty SVG
-        let spotIDs: Set = [
-            "flow-1-simple",
-            "seq-1-basic",
-            "class-1-basic",
-            "state-1-basic",
-            "er-1-basic"
-        ]
-        let spotEntries = entries.filter { spotIDs.contains($0.id) }
-        #expect(spotEntries.count == spotIDs.count,
-                "Expected \(spotIDs.count) spot-check entries; found \(spotEntries.count)")
-
-        for entry in spotEntries {
-            let svg = try await DiagramEngine.renderSVG(source: entry.source, idPolicy: .stable)
-            #expect(!svg.isEmpty, "Entry \"\(entry.id)\" produced empty SVG")
-        }
-    }
-
-    @Test("Second format does not change mermaid source")
-    func testSecondFormatDoesNotChangeMermaidSource() throws {
+    @Test("format keys are normalized to lowercase")
+    func testFormatKeysAreNormalizedToLowercase() throws {
         let json = """
         {
             "diagrams": [
                 {
-                    "id": "multi-format-flow",
+                    "id": "test",
                     "category": "flowchart",
-                    "name": "Multi-Format Flow",
-                    "source": "graph LR\\n  A --> B",
+                    "name": "Test",
+                    "source": "graph TD\\n  A --> B",
                     "sources": {
-                        "mermaid": "graph LR\\n  A --> B",
-                        "d2": "A -> B"
-                    }
+                        "Mermaid": "graph TD\\n  A --> B",
+                        "D2": "A -> B"
+                    },
+                    "expectedImporters": {
+                        "Mermaid": "Mermaid",
+                        "D2": "D2"
+                    },
+                    "skipSnapshots": ["D2"]
                 }
             ]
         }
         """.data(using: .utf8)!
         let file = try JSONDecoder().decode(CorpusFile.self, from: json)
         let entry = try #require(file.diagrams.first)
-        // `source` stays the Mermaid string, not the d2 string
-        #expect(entry.source == "graph LR\n  A --> B")
-        #expect(entry.source != "A -> B")
-        #expect(entry.source(for: "d2") == "A -> B")
+
+        #expect(entry.availableFormats == ["d2", "mermaid"])
+        #expect(entry.sources?["mermaid"] == "graph TD\n  A --> B")
+        #expect(entry.sources?["d2"] == "A -> B")
+        #expect(entry.source(for: "D2") == "A -> B")
+        #expect(entry.expectedImporters?["mermaid"] == "Mermaid")
+        #expect(entry.expectedImporters?["d2"] == "D2")
+        #expect(entry.shouldSkipSnapshot(for: "d2"))
     }
 }
 
-// MARK: - Validation Tests
+#if canImport(CoreGraphics)
+// MARK: - Playground Schema Parity Tests
 
-/// Verify that `CorpusEntry.validate()` catches mismatches and accepts valid entries.
-@Suite("Multi-format validation")
-struct MultiFormatValidationTests {
+/// Verify the playground's duplicated corpus decoder preserves the same schema
+/// invariants as `DiagramKitTestSupport.CorpusEntry`.
+@Suite("Playground corpus decoding")
+struct PlaygroundCorpusDecodingTests {
 
-    @Test("source/mermaid mismatch throws during decode")
-    func testSourceMermaidMismatchThrows() throws {
+    @Test("playground rejects source/mermaid mismatch")
+    func testPlaygroundRejectsSourceMermaidMismatch() throws {
         let json = """
         {
+            "version": "2.0.0",
+            "description": "Test",
             "diagrams": [
                 {
                     "id": "bad-entry",
@@ -394,133 +340,10 @@ struct MultiFormatValidationTests {
             ]
         }
         """.data(using: .utf8)!
-        // Decode should throw because `source` and `sources["mermaid"]` differ.
-        // The decoder always reads both and compares them; mismatches are a
-        // decoding error.
-        #expect(throws: CorpusEntryError.self) {
-            let _ = try JSONDecoder().decode(CorpusFile.self, from: json)
-        }
-    }
 
-    @Test("source/mermaid match passes")
-    func testSourceMermaidMatchPasses() throws {
-        let json = """
-        {
-            "diagrams": [
-                {
-                    "id": "good-entry",
-                    "category": "flowchart",
-                    "name": "Good Entry",
-                    "source": "graph TD\\n  A --> B",
-                    "sources": {
-                        "mermaid": "graph TD\\n  A --> B"
-                    }
-                }
-            ]
-        }
-        """.data(using: .utf8)!
-        let file = try JSONDecoder().decode(CorpusFile.self, from: json)
-        let entry = try #require(file.diagrams.first)
-        #expect(throws: Never.self) {
-            try entry.validate()
-        }
-    }
-
-    @Test("validate does not throw on legacy entries")
-    func testValidateDoesNotThrowOnLegacyEntries() throws {
-        let json = """
-        {
-            "diagrams": [
-                {
-                    "id": "legacy",
-                    "category": "flowchart",
-                    "name": "Legacy",
-                    "source": "graph TD\\n  A --> B"
-                }
-            ]
-        }
-        """.data(using: .utf8)!
-        let file = try JSONDecoder().decode(CorpusFile.self, from: json)
-        let entry = try #require(file.diagrams.first)
-        #expect(throws: Never.self) {
-            try entry.validate()
+        #expect(throws: (any Error).self) {
+            let _ = try JSONDecoder().decode(TestDiagramsFile.self, from: json)
         }
     }
 }
-
-// MARK: - Sparse-Matrix Tests
-
-/// Verify per-format availability and snapshot filtering.
-@Suite("Multi-format sparse matrix")
-struct MultiFormatSparseMatrixTests {
-
-    @Test("availableFormats is only mermaid on legacy")
-    func testAvailableFormatsIsOnlyMermaidOnLegacy() throws {
-        let json = """
-        {
-            "diagrams": [
-                {
-                    "id": "legacy",
-                    "category": "flowchart",
-                    "name": "Legacy",
-                    "source": "graph TD\\n  A --> B"
-                }
-            ]
-        }
-        """.data(using: .utf8)!
-        let file = try JSONDecoder().decode(CorpusFile.self, from: json)
-        let entry = try #require(file.diagrams.first)
-        #expect(entry.availableFormats == ["mermaid"])
-    }
-
-    @Test("mermaid is always present in sources")
-    func testMermaidIsAlwaysPresentInSources() throws {
-        // Even when `sources` exists, "mermaid" key ensures backward compat
-        let json = """
-        {
-            "diagrams": [
-                {
-                    "id": "test",
-                    "category": "flowchart",
-                    "name": "Test",
-                    "source": "graph TD\\n  A --> B",
-                    "sources": {
-                        "mermaid": "graph TD\\n  A --> B",
-                        "d2": "A -> B"
-                    }
-                }
-            ]
-        }
-        """.data(using: .utf8)!
-        let file = try JSONDecoder().decode(CorpusFile.self, from: json)
-        let entry = try #require(file.diagrams.first)
-        #expect(entry.availableFormats.contains("mermaid"))
-        #expect(entry.hasSource(for: "mermaid"))
-        // Verify Mermaid source is always retrievable
-        #expect(entry.source(for: "mermaid") != nil)
-    }
-
-    @Test("skipSnapshots is per-format")
-    func testSkipSnapshotsIsPerFormat() throws {
-        let json = """
-        {
-            "diagrams": [
-                {
-                    "id": "test",
-                    "category": "flowchart",
-                    "name": "Test",
-                    "source": "graph TD\\n  A --> B",
-                    "skipSnapshots": ["d2", "graphviz"]
-                }
-            ]
-        }
-        """.data(using: .utf8)!
-        let file = try JSONDecoder().decode(CorpusFile.self, from: json)
-        let entry = try #require(file.diagrams.first)
-        #expect(entry.shouldSkipSnapshot(for: "d2"))
-        #expect(entry.shouldSkipSnapshot(for: "graphviz"))
-        #expect(entry.shouldSkipSnapshot(for: "D2"))       // case-insensitive
-        #expect(!entry.shouldSkipSnapshot(for: "mermaid"))  // Mermaid never skipped
-        #expect(!entry.shouldSkipSnapshot(for: "plantuml")) // not in the list
-    }
-}
+#endif
