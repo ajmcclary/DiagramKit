@@ -6,6 +6,34 @@ Date: 2026-05-12. This is the implementation plan for Phase 6 of the DiagramKit
 multi-format roadmap. It follows the completed Phase 5 (Structurizr importer)
 and precedes Phase 7 (Exporter Protocol).
 
+## Status
+
+| Slice | Family     | Status    | Date       | Source Lines | Test Lines | Tests | Notes |
+|-------|------------|-----------|------------|-------------|------------|-------|-------|
+| 6A    | Sequence   | ✅ Done   | 2026-05-12 | ~1,010       | ~725        | 51    | See [Slice 6A Completion Notes](#slice-6a-completion-notes) |
+| 6B    | Class      | 📋 Planned | —         | —           | —          | —     | — |
+| 6C    | State/Activity | 📋 Planned | —     | —           | —          | —     | — |
+| 6D    | Mindmap+Gantt | 📋 Planned | —      | —           | —          | —     | — |
+| 6E    | C4         | 📋 Planned | —         | —           | —          | —     | — |
+
+**Slice 6A completion notes:**
+- 8 source files created under `Sources/DiagramKitPlantUML/`
+- 51 tests in `Tests/DiagramKitTests/PlantUMLSequenceImporterTests.swift` — all passing
+- Registry: `PlantUMLImporter` inserted between `StructurizrImporter` and `GraphvizImporter`
+- Probe collision: 44/44 `ProbeCollisionMatrixTests` pass (zero regressions)
+- Importer regression: 98/98 tests pass across Structurizr, D2, DOT, Mermaid
+- Plan deviations: `isPlantUMLStateBody` dropped bare `end` keyword (ambiguous with sequence block closers); `isPlantUMLClassBody` tightened to exclude `-->` from `--` match (prevents class probe intercepting sequence); State probe tests verify dispatch ordering rather than exclusive probe matching
+
+**Gate verification (Slice 6A):**
+- `swift package dump-package` — ✅
+- `swift build --build-tests` — ✅ (zero warnings)
+- `swift test --filter PlantUMLSequenceImporterTests` — ✅ 51/51
+- `swift test --filter ProbeCollisionMatrixTests` — ✅ 44/44
+- `swift test --filter StructurizrImporterTests` — ✅ 45/45
+- `swift test --filter D2ImporterTests` — ✅ 16/16
+- `swift test --filter DOTImporterTests` — ✅ 28/28
+- `swift test --filter MermaidImporterTests` — ✅ 4/4
+
 ## Table of Contents
 
 1. [Architecture Overview](#1-architecture-overview)
@@ -533,6 +561,46 @@ public static let defaultRegistry = ImporterRegistry(importers: [
 - A diagram with alt/else/end grouping
 - A diagram with notes and activation
 - A diagram with box grouping
+
+---
+
+### 2.10 Slice 6A Completion Notes
+
+**Implemented 2026-05-12.** All planned features delivered:
+
+| Feature | Status | Notes |
+|---------|--------|-------|
+| Participants / actors | ✅ | With `as` aliases and display names |
+| Arrow types (`->`, `-->`, `->>`, `->o`, `->x`, `<->`) | ✅ | All six variants plus reverse direction |
+| Message labels (`: text`) | ✅ | |
+| Self-messages | ✅ | |
+| Activations (`activate`/`deactivate`) | ✅ | With target participant |
+| Notes (left, right, over) | ✅ | With comma-separated multi-target |
+| Grouping (alt/else/end, loop, opt, group) | ✅ | With diverge (else) support |
+| Boxes (`box "title" ... end box`) | ✅ | Box context tracked per participant |
+| Autonumber | ✅ | start/stop |
+| Unsupported syntax diagnostics | ✅ | 10 constructs emit `.unsupported` |
+
+**Actual file inventory (vs estimated):**
+
+| File | Actual lines | Est. lines |
+|------|-------------|------------|
+| `PlantUMLImporter.swift` | 86 | ~40 |
+| `PlantUMLProbe.swift` | 91 | ~50 |
+| `PlantUMLFamilyProbe.swift` | 70 | ~60 |
+| `PlantUMLDiagnostics.swift` | 31 | ~30 |
+| `Sequence/PlantUMLSequenceParser.swift` | 420 | ~300 |
+| `Sequence/PlantUMLSequenceAST.swift` | 115 | ~80 |
+| `Sequence/PlantUMLSequenceMapper.swift` | 133 | ~200 |
+| `Sequence/PlantUMLSequenceProbe.swift` | 63 | ~40 |
+| **Total** | **~1,010** | **~800** |
+
+**Actual test coverage:** 51 tests (vs ~38 estimated) — the increase came from family routing tests, registry tests, and probe dispatch verification tests that were added organically during implementation.
+
+**Plan deviations:**
+1. `isPlantUMLStateBody` — removed bare `end` keyword detection. The keyword `end` is used for closing sequence blocks (`alt/else/end`), making it ambiguous with activity diagram end markers. The State probe now relies on `start`, `stop`, `state `, `[*]`, `partition`, and `:action;` for detection.
+2. `isPlantUMLClassBody` — tightened `--` matching to exclude `-->` and `-->>` (sequence arrows). The original probe matched any `--`, which captured sequence messages like `A --> B`, causing the class probe to false-fire on sequence-only sources.
+3. State probe tests — adjusted from asserting exclusive probe matching to verifying dispatch order correctness. The sequence probe is intentionally the broadest fallback and may match content that narrower probes also match; the family routing order in `PlantUMLImporter.parse` (C4 → State → Class → Sequence) is the contractual guarantee.
 
 ---
 
@@ -1523,16 +1591,16 @@ Each slice is independently shippable. A slice is complete when:
 
 **Slice order and estimated effort:**
 
-| Slice | Family             | Est. Swift Lines | Est. Test Lines | Est. Tests |
-|-------|--------------------|-----------------|-----------------|------------|
-| 6A    | Sequence           | ~800            | ~650            | ~38        |
-| 6B    | Class              | ~600            | ~700            | ~40        |
-| 6C    | State/Activity     | ~600            | ~750            | ~44        |
-| 6D    | Mindmap + Gantt    | ~650            | ~800            | ~45        |
-| 6E    | C4                 | ~620            | ~650            | ~36        |
-|       | Shared infra       | ~200            | ~200            | ~15        |
-|       | Probe extensions   | —               | ~400            | ~30        |
-| **Total** |               | **~3,470**      | **~4,150**      | **~248**   |
+| Slice | Family             | Est. Source | Est. Test | Est. Tests | Done | Actual Src | Actual Test | Act. Tests |
+|-------|--------------------|------------|-----------|------------|------|-----------|------------|-----------|
+| 6A    | Sequence           | ~800        | ~650      | ~38        | ✅ | ~1,010 | ~725 | 51 |
+| 6B    | Class              | ~600        | ~700      | ~40        |   | —      | —    | —  |
+| 6C    | State/Activity     | ~600        | ~750      | ~44        |   | —      | —    | —  |
+| 6D    | Mindmap + Gantt    | ~650        | ~800      | ~45        |   | —      | —    | —  |
+| 6E    | C4                 | ~620        | ~650      | ~36        |   | —      | —    | —  |
+|       | Shared infra       | ~200        | ~200      | ~15        |   | —      | —    | —  |
+|       | Probe extensions   | —           | ~400      | ~30        |   | —      | —    | —  |
+| **Total** |               | **~3,470**  | **~4,150** | **~248**  |   | **~1,010** | **~725** | **51** |
 
 **Dependencies between slices**:
 - Slice 6A creates the `DiagramKitPlantUML` target and shared infrastructure.
