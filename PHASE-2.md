@@ -14,10 +14,14 @@ hosting multiple source formats without changing current Mermaid behavior. The
 work splits into five work streams:
 
 1. JSON schema evolution (backward-compatible)
-2. Shared type unification (`CorpusEntry` in `DiagramKitTestSupport`)
+2. Shared type (`CorpusEntry` in `DiagramKitTestSupport`)
 3. Test-side consumer updates (`CorpusSnapshotTests`)
 4. Playground-side consumer updates (`SampleDiagrams.swift`)
 5. New verification tests (`CorpusMultiFormatTests`)
+
+Multi-format examples live as **inline JSON fixtures** in
+`CorpusMultiFormatTests`. The real `test-diagrams.json` stays purely Mermaid for
+Phase 2. Phase 3 will add real multi-format entries once d2 baselines exist.
 
 ---
 
@@ -25,8 +29,9 @@ work splits into five work streams:
 
 **File**: `Examples/MermaidPlayground/Resources/test-diagrams.json`
 
-Each entry gains optional fields. All 396 existing entries stay unchanged. Two
-new multi-format entries are added for testing.
+No changes to the real corpus in Phase 2. All 396 entries stay exactly as they
+are. The multi-format schema is exercised through inline JSON strings in
+`CorpusMultiFormatTests`.
 
 ### Old schema (unchanged — all 396 entries keep this shape)
 
@@ -39,15 +44,15 @@ new multi-format entries are added for testing.
 }
 ```
 
-### New fields (all optional, added to a handful of test-only entries)
+### New fields (all optional, available for future entries)
 
 | Field | Type | Purpose |
 |---|---|---|
-| `sources` | `[String: String]?` | Format → source map. When present, `source` is derived from `sources["mermaid"]`. |
-| `expectedImporter` | `String?` | The `DiagramSourceImporter.name` expected to claim this entry (for routing tests). |
+| `sources` | `[String: String]?` | Format → source map. When present, `source` must equal `sources["mermaid"]`. |
+| `expectedImporters` | `[String: String]?` | Format → importer name. Per-format expectation for routing tests. |
 | `expectedDiagnostics` | `[ExpectedDiagnostic]?` | Non-fatal diagnostics the importer should emit (for sparse-matrix coverage). |
 | `unsupportedNote` | `String?` | Human note explaining why a format is unsupported for this diagram. |
-| `skipSnapshot` | `Bool?` | When `true`, this entry is skipped in snapshot tests for the relevant format. |
+| `skipSnapshots` | `[String]?` | List of format names to skip in snapshot tests. |
 
 ### `ExpectedDiagnostic` shape
 
@@ -64,9 +69,19 @@ When only `source` exists (all 396 entries), it is treated as equivalent to
 `sources: { "mermaid": "<source>" }`. The `source` field remains the primary
 key for Mermaid-only entries.
 
-### New multi-format test entries (appended to `diagrams` array)
+### Validation invariant
 
-**Entry 1 — Mermaid-primary with d2 equivalent:**
+When both `source` and `sources["mermaid"]` are present, they **must** be
+identical. A decoding-time assertion or post-decode validation test enforces
+this. Divergent values would create ambiguity about which string is the
+canonical Mermaid source.
+
+### Test-only inline fixtures
+
+These live as string literals in `CorpusMultiFormatTests`, not in the real
+corpus file:
+
+**Fixture A — Mermaid-primary with d2 equivalent:**
 
 ```json
 {
@@ -78,13 +93,15 @@ key for Mermaid-only entries.
     "mermaid": "graph TD\n  A[Start] --> B[End]",
     "d2": "A -> B"
   },
-  "expectedImporter": "Mermaid",
+  "expectedImporters": {
+    "mermaid": "Mermaid"
+  },
   "unsupportedNote": null,
-  "skipSnapshot": false
+  "skipSnapshots": ["d2"]
 }
 ```
 
-**Entry 2 — d2-primary with Mermaid equivalent:**
+**Fixture B — d2-primary with Mermaid equivalent:**
 
 ```json
 {
@@ -96,14 +113,19 @@ key for Mermaid-only entries.
     "mermaid": "graph LR\n  A --> B",
     "d2": "A -> B"
   },
-  "expectedImporter": "d2",
+  "expectedImporters": {
+    "mermaid": "Mermaid",
+    "d2": "D2"
+  },
   "unsupportedNote": null,
-  "skipSnapshot": false
+  "skipSnapshots": ["d2"]
 }
 ```
 
-> `expectedImporter: "d2"` won't pass until Phase 3 lands the d2 importer, but
-> the fixture is ready now. In Phase 2 it serves as a decoding test.
+> `expectedImporters.d2` won't be asserted until Phase 3 lands the d2 importer.
+> In Phase 2 it serves as a decoding test. `skipSnapshots: ["d2"]` is
+> pre-emptive — Phase 2 only snapshots Mermaid, and the d2 source cannot render
+> through the Mermaid importer.
 
 ---
 
@@ -111,9 +133,11 @@ key for Mermaid-only entries.
 
 **File**: `Sources/DiagramKitTestSupport/CorpusEntry.swift` (new)
 
-A single canonical type that replaces the duplicated `DiagramEntry`/`TestDiagram`
-decoding logic. Both `CorpusSnapshotTests` and `SampleDiagrams.swift` decode the
-same JSON schema.
+`CorpusEntry` is the canonical decoding type for test targets. The playground
+(`MermaidPlayground`) cannot depend on `DiagramKitTestSupport`, so it
+duplicates the decoding in a local `TestDiagram` struct that decodes the same
+JSON schema. This is accepted duplication — the JSON file is the single source
+of truth.
 
 ```swift
 /// A single entry in the diagram corpus (test-diagrams.json).
@@ -125,14 +149,15 @@ public struct CorpusEntry: Codable, Identifiable, Sendable {
 
     /// The primary Mermaid source. Always populated — either from the
     /// top-level `source` field (legacy) or from `sources["mermaid"]`.
+    /// When both exist they must be identical (enforced by post-decode validation).
     public let source: String
 
     /// Format → source map. When present, keys name importers
     /// (e.g. "mermaid", "d2", "graphviz").
     public let sources: [String: String]?
 
-    /// Expected importer name for routing tests.
-    public let expectedImporter: String?
+    /// Format → expected importer name for routing tests.
+    public let expectedImporters: [String: String]?
 
     /// Expected non-fatal diagnostics.
     public let expectedDiagnostics: [ExpectedDiagnostic]?
@@ -140,18 +165,18 @@ public struct CorpusEntry: Codable, Identifiable, Sendable {
     /// Human note for unsupported features.
     public let unsupportedNote: String?
 
-    /// Skip snapshot rendering for this entry.
-    public let skipSnapshot: Bool?
+    /// Format names to skip in snapshot tests.
+    public let skipSnapshots: [String]?
 
     // MARK: - Codable
 
     enum CodingKeys: String, CodingKey {
         case id, category, name, source
         case sources
-        case expectedImporter
+        case expectedImporters
         case expectedDiagnostics
         case unsupportedNote
-        case skipSnapshot
+        case skipSnapshots
     }
 
     public init(from decoder: Decoder) throws {
@@ -160,12 +185,12 @@ public struct CorpusEntry: Codable, Identifiable, Sendable {
         category = try container.decode(String.self, forKey: .category)
         name = try container.decode(String.self, forKey: .name)
         sources = try container.decodeIfPresent([String: String].self, forKey: .sources)
-        expectedImporter = try container.decodeIfPresent(String.self, forKey: .expectedImporter)
+        expectedImporters = try container.decodeIfPresent([String: String].self, forKey: .expectedImporters)
         expectedDiagnostics = try container.decodeIfPresent(
             [ExpectedDiagnostic].self, forKey: .expectedDiagnostics
         )
         unsupportedNote = try container.decodeIfPresent(String.self, forKey: .unsupportedNote)
-        skipSnapshot = try container.decodeIfPresent(Bool.self, forKey: .skipSnapshot)
+        skipSnapshots = try container.decodeIfPresent([String].self, forKey: .skipSnapshots)
 
         // Derive `source`: prefer `sources["mermaid"]`, fall back to `source`.
         if let mermaidSource = sources?["mermaid"] {
@@ -182,20 +207,35 @@ public struct CorpusEntry: Codable, Identifiable, Sendable {
         try container.encode(name, forKey: .name)
         try container.encode(source, forKey: .source)
         try container.encodeIfPresent(sources, forKey: .sources)
-        try container.encodeIfPresent(expectedImporter, forKey: .expectedImporter)
+        try container.encodeIfPresent(expectedImporters, forKey: .expectedImporters)
         try container.encodeIfPresent(expectedDiagnostics, forKey: .expectedDiagnostics)
         try container.encodeIfPresent(unsupportedNote, forKey: .unsupportedNote)
-        try container.encodeIfPresent(skipSnapshot, forKey: .skipSnapshot)
+        try container.encodeIfPresent(skipSnapshots, forKey: .skipSnapshots)
+    }
+
+    /// Post-decode validation: when both `source` and `sources["mermaid"]`
+    /// are present, they must be identical.
+    public func validate() throws {
+        if let mermaidSource = sources?["mermaid"], mermaidSource != source {
+            throw CorpusEntryError.sourceMermaidMismatch(id: id)
+        }
     }
 
     // MARK: - Helpers
 
-    /// Source text for a given importer name.
-    public func source(for importerName: String) -> String? {
-        sources?[importerName.lowercased()]
+    /// Source text for a given format name.
+    /// Special-cases "mermaid" to fall back to the legacy `source` property
+    /// when `sources` is nil, preserving the invariant that Mermaid source
+    /// is always available.
+    public func source(for format: String) -> String? {
+        let key = format.lowercased()
+        if key == "mermaid" {
+            return sources?[key] ?? source
+        }
+        return sources?[key]
     }
 
-    /// All importer names present in sources.
+    /// All format names present in sources.
     public var availableFormats: [String] {
         sources?.keys.sorted() ?? ["mermaid"]
     }
@@ -203,6 +243,22 @@ public struct CorpusEntry: Codable, Identifiable, Sendable {
     /// Whether this entry carries a source for the given format.
     public func hasSource(for format: String) -> Bool {
         source(for: format) != nil
+    }
+
+    /// Whether snapshots should be skipped for the given format.
+    public func shouldSkipSnapshot(for format: String) -> Bool {
+        skipSnapshots?.contains(format.lowercased()) ?? false
+    }
+}
+
+public enum CorpusEntryError: Error, CustomStringConvertible {
+    case sourceMermaidMismatch(id: String)
+
+    public var description: String {
+        switch self {
+        case .sourceMermaidMismatch(let id):
+            return "Entry \"\(id)\": top-level `source` differs from `sources[\"mermaid\"]`"
+        }
     }
 }
 
@@ -242,12 +298,34 @@ import DiagramKitTestSupport
 
 - Remove the local `DiagramEntry` and `DiagramFile` structs.
 - Use `CorpusEntry` and `CorpusFile` directly.
-- Update `loadDiagrams()` to decode `CorpusFile`.
+- Update `loadDiagrams()` to decode `CorpusFile` and call `entry.validate()`
+  on each entry.
 - The three test methods (`svgSnapshot`, `imageSnapshot`, `asciiSnapshot`)
   continue using `diagram.source` — which now derives from `sources["mermaid"]`
   when the new schema is present.
 - Snapshot names remain `diagram.id` — unchanged. All 396 existing baselines
   match.
+
+### `Package.swift` dependency
+
+`DiagramKitTests` does not currently depend on `DiagramKitTestSupport`. Add it:
+
+```swift
+.testTarget(
+    name: "DiagramKitTests",
+    dependencies: [
+        "DiagramKit",
+        "DiagramKitCommon",
+        "DiagramKitModel",
+        "DiagramKitTestSupport",   // NEW
+        "MermaidPlayground",
+        .target(name: "DiagramKitRenderingCG", condition: ...),
+        .product(name: "CustomDump", package: "swift-custom-dump"),
+        .product(name: "SnapshotTesting", package: "swift-snapshot-testing"),
+    ],
+    ...
+)
+```
 
 ---
 
@@ -256,12 +334,12 @@ import DiagramKitTestSupport
 **File**: `Examples/MermaidPlayground/Models/SampleDiagrams.swift`
 
 Since the playground can't depend on `DiagramKitTestSupport`, the `TestDiagram`
-struct gets its own backward-compatible decoding. But fields and logic match
+struct gets its own backward-compatible decoding. Fields and logic match
 `CorpusEntry` to minimize divergence.
 
 ### Changes to `TestDiagram`
 
-Add optional multi-format fields:
+Add optional multi-format fields with an explicit custom decoder:
 
 ```swift
 public struct TestDiagram: Codable, Identifiable, Sendable {
@@ -270,12 +348,51 @@ public struct TestDiagram: Codable, Identifiable, Sendable {
     public let name: String
     public let source: String
     public var options: [String: Bool]? = nil
+
+    // Multi-format fields (all optional, nil on legacy entries)
     public let sources: [String: String]?
-    public let expectedImporter: String?
+    public let expectedImporters: [String: String]?
     public let expectedDiagnostics: [TestExpectedDiagnostic]?
     public let unsupportedNote: String?
-    public let skipSnapshot: Bool?
-    // ... same Codable derivation logic as CorpusEntry
+    public let skipSnapshots: [String]?
+
+    enum CodingKeys: String, CodingKey {
+        case id, category, name, source, options
+        case sources, expectedImporters, expectedDiagnostics
+        case unsupportedNote, skipSnapshots
+    }
+
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        id = try container.decode(String.self, forKey: .id)
+        category = try container.decode(String.self, forKey: .category)
+        name = try container.decode(String.self, forKey: .name)
+        options = try container.decodeIfPresent([String: Bool].self, forKey: .options)
+        sources = try container.decodeIfPresent([String: String].self, forKey: .sources)
+        expectedImporters = try container.decodeIfPresent([String: String].self, forKey: .expectedImporters)
+        expectedDiagnostics = try container.decodeIfPresent(
+            [TestExpectedDiagnostic].self, forKey: .expectedDiagnostics
+        )
+        unsupportedNote = try container.decodeIfPresent(String.self, forKey: .unsupportedNote)
+        skipSnapshots = try container.decodeIfPresent([String].self, forKey: .skipSnapshots)
+
+        // Derive `source`: prefer `sources["mermaid"]`, fall back to `source`.
+        if let mermaidSource = sources?["mermaid"] {
+            source = mermaidSource
+        } else {
+            source = try container.decode(String.self, forKey: .source)
+        }
+    }
+
+    /// Source text for a given format name.
+    /// Special-cases "mermaid" to fall back to the legacy `source` property.
+    public func source(for format: String) -> String? {
+        let key = format.lowercased()
+        if key == "mermaid" {
+            return sources?[key] ?? source
+        }
+        return sources?[key]
+    }
 }
 
 public struct TestExpectedDiagnostic: Codable, Sendable {
@@ -300,44 +417,65 @@ public struct TestExpectedDiagnostic: Codable, Sendable {
 
 **File**: `Tests/DiagramKitTests/CorpusMultiFormatTests.swift` (new)
 
+Test fixtures are inline JSON string literals — the real `test-diagrams.json`
+is not modified.
+
 ### 1. `MultiFormatDecodingTests` — Decode tests
 
-- `testOldSchemaDecodes` — A fixture with only `source` decodes; `source` is
-  populated, `sources` is `nil`.
-- `testNewSchemaDecodes` — A fixture with `sources` decodes;
+- `testOldSchemaDecodes` — An inline fixture with only `source` decodes;
+  `source` is populated, `sources` is `nil`.
+- `testNewSchemaDecodes` — An inline fixture with `sources` decodes;
   `sources["mermaid"]` is populated.
 - `testSourceDerivationFromSources` — When `sources["mermaid"]` exists,
   `source` equals it.
 - `testSourceFallback` — When only `source` exists (no `sources`), `source`
   is that value.
+- `testSourceWithoutMermaidKeyFallsBack` — When `sources` exists but lacks
+  a `"mermaid"` key, `source` decodes from the top-level `source` field.
 
 ### 2. `MultiFormatFixtureMetadataTests` — Metadata tests
 
-- `testExpectedImporterAvailable` — A fixture with `expectedImporter` has it
-  populated.
+- `testExpectedImportersAvailable` — A fixture with `expectedImporters` has
+  them populated.
 - `testExpectedDiagnosticsAvailable` — A fixture with `expectedDiagnostics`
   has them populated.
 - `testAvailableFormats` — A fixture with `sources` reports correct
   `availableFormats`.
 - `testHasSourceForFormat` — `hasSource(for:)` returns correct bool.
+- `testMermaidSourceAlwaysAvailable` — `source(for: "mermaid")` returns a
+  value even when `sources` is `nil` (legacy fallback).
 
 ### 3. `MultiFormatBackwardCompatibilityTests` — Integration tests
 
-- `testAll396MermaidEntriesDecode` — Load the full corpus, verify count ≥ 396,
-  every entry has a non-empty `source`.
-- `testMermaidSnapshotsUnchanged` — Spot-check ~5 entries: render SVG via
-  `DiagramEngine.renderSVG(source: entry.source)` and verify they don't crash
-  (not a full snapshot compare — that's `CorpusSnapshotTests`'s job).
-- `testSecondFormatDoesNotChangeMermaidSource` — For the multi-format entry,
-  verify `source` stays the Mermaid string, not the d2 string.
+- `testAll396MermaidEntriesDecode` — Load the full real corpus, verify count
+  ≥ 396, every entry has a non-empty `source`, all entries pass `validate()`.
+- `testRealCorpusHasNoSourcesField` — Assert that no existing entry in the
+  real corpus has a `sources` field (the 396 are pure Mermaid).
+- `testMermaidSnapshotsUnchanged` — Spot-check ~5 real entries: render SVG via
+  `DiagramEngine.renderSVG(source: entry.source)` and verify they produce
+  non-empty output (not a full snapshot compare — that's
+  `CorpusSnapshotTests`'s job).
+- `testSecondFormatDoesNotChangeMermaidSource` — For the inline multi-format
+  fixture, verify `source` stays the Mermaid string, not the d2 string.
 
-### 4. `MultiFormatSparseMatrixTests` — Sparse matrix tests
+### 4. `MultiFormatValidationTests` — Validation tests
 
-- `testNoFormatForcedOnAllEntries` — For the new multi-format entries, verify
-  `sources` only contains relevant formats (e.g., no DOT source on a sequence
-  diagram).
-- `testMermaidIsAlwaysPresent` — When `sources` exists, `sources["mermaid"]`
-  is always present.
+- `testSourceMermaidMismatchThrows` — An inline fixture where `source` and
+  `sources["mermaid"]` differ throws `CorpusEntryError.sourceMermaidMismatch`
+  during `validate()`.
+- `testSourceMermaidMatchPasses` — When `source` and `sources["mermaid"]`
+  are identical, `validate()` succeeds.
+- `testValidateDoesNotThrowOnLegacyEntries` — Legacy entries (no `sources`)
+  pass `validate()`.
+
+### 5. `MultiFormatSparseMatrixTests` — Sparse matrix tests
+
+- `testAvailableFormatsIsOnlyMermaidOnLegacy` — A legacy entry reports
+  `availableFormats` as `["mermaid"]`.
+- `testMermaidIsAlwaysPresentInSources` — When `sources` exists and is
+  non-empty, `"mermaid"` is always a key.
+- `testSkipSnapshotsIsPerFormat` — `shouldSkipSnapshot(for:)` returns correct
+  per-format results.
 
 ---
 
@@ -345,28 +483,29 @@ public struct TestExpectedDiagnostic: Codable, Sendable {
 
 | File | Action |
 |---|---|
-| `Examples/MermaidPlayground/Resources/test-diagrams.json` | Add 2 multi-format entries; keep all 396 unchanged |
-| `Sources/DiagramKitTestSupport/CorpusEntry.swift` | **New** — canonical `CorpusEntry`, `ExpectedDiagnostic`, `CorpusFile` |
-| `Tests/DiagramKitTests/CorpusSnapshotTests.swift` | Replace local types with `DiagramKitTestSupport` imports; use `CorpusEntry` |
-| `Examples/MermaidPlayground/Models/SampleDiagrams.swift` | Add optional multi-format fields to `TestDiagram`; backward-compat decoding |
-| `Tests/DiagramKitTests/CorpusMultiFormatTests.swift` | **New** — 4 test suites |
-| `PHASES.md` | Update Phase 2 status from "planned" to track progress |
+| `Package.swift` | Add `DiagramKitTestSupport` as a dependency of `DiagramKitTests` |
+| `Sources/DiagramKitTestSupport/CorpusEntry.swift` | **New** — canonical `CorpusEntry`, `ExpectedDiagnostic`, `CorpusFile`, `CorpusEntryError` |
+| `Tests/DiagramKitTests/CorpusSnapshotTests.swift` | Replace local types with `DiagramKitTestSupport.CorpusEntry`; call `validate()` |
+| `Examples/MermaidPlayground/Models/SampleDiagrams.swift` | Add optional multi-format fields + custom decoder to `TestDiagram`; add `TestExpectedDiagnostic` |
+| `Tests/DiagramKitTests/CorpusMultiFormatTests.swift` | **New** — 5 test suites with inline JSON fixtures |
+| `PHASES.md` | Update Phase 2 status to track progress |
 
-### Zero changes to
+### Files intentionally NOT changed
 
-- `SampleDiagramPanel.swift` (uses `diagram.source` only)
-- `DiagramKitImport` types (already designed for multi-format)
+- `Examples/MermaidPlayground/Resources/test-diagrams.json` — untouched
+- `SampleDiagramPanel.swift` — uses `diagram.source` only
+- `DiagramKitImport` types — already designed for multi-format
 - Any rendering or layout code
-- Snapshot baselines (names and content preserved)
+- Snapshot baselines — names and content preserved
 
 ---
 
 ## Execution Order
 
 1. Create `CorpusEntry.swift` in `DiagramKitTestSupport`
-2. Update `test-diagrams.json` with 2 multi-format entries
+2. Add `DiagramKitTestSupport` dependency to `DiagramKitTests` in `Package.swift`
 3. Update `CorpusSnapshotTests.swift` to use `CorpusEntry`
-4. Update `SampleDiagrams.swift` with backward-compat fields
+4. Update `SampleDiagrams.swift` with backward-compat fields and custom decoder
 5. Create `CorpusMultiFormatTests.swift` with full test coverage
 6. Build + test — verify all 396 entries still decode and render
 7. Update `PHASES.md` to mark Phase 2 progress
@@ -374,53 +513,75 @@ public struct TestExpectedDiagnostic: Codable, Sendable {
 ## Verification Gates
 
 ```bash
+swift package dump-package
 swift build --build-tests
-swift test --filter CorpusSnapshotTests              # all 396+2 entries
-swift test --filter MultiFormatDecodingTests
-swift test --filter MultiFormatFixtureMetadataTests
-swift test --filter MultiFormatBackwardCompatibilityTests
-swift test --filter MultiFormatSparseMatrixTests
+swift test --filter CorpusSnapshotTests              # all 396 entries, no new baselines needed
+swift test --filter CorpusMultiFormatTests           # 5 suites, inline fixtures only
 Scripts/check-file-sizes.sh
+Scripts/check-sendable-annotations.sh
+Scripts/strict-concurrency-check.sh
+git diff --check
 ```
 
-No re-recording of snapshots needed — this is a pure schema extension, no
-rendering changes.
+No re-recording of snapshots needed — the real corpus is unchanged and this is
+a pure schema/test-infrastructure extension.
 
 ---
 
 ## Design Decisions
 
-1. **`source` remains the primary field.** All existing consumers
+1. **Multi-format fixtures are inline, not in the real corpus.**
+   Adding new entries to `test-diagrams.json` would require new snapshot
+   baselines (SVG + image + ASCII) or filtering logic in snapshot tests.
+   Keeping them inline avoids both problems and keeps the corpus cleanly
+   Mermaid-only until Phase 3 adds real d2 sources with proper baselines.
+
+2. **`source` remains the primary field.** All existing consumers
    (`CorpusSnapshotTests`, `SampleDiagramPanel`) use `entry.source`. By deriving
    `source` from `sources["mermaid"]` when both exist, no consumer code changes.
    This is the single most important invariant for backward compatibility.
 
-2. **No new SPM target for the corpus type.** `CorpusEntry` lives in
+3. **`source(for:)` special-cases Mermaid.** When `sources` is `nil` (legacy
+   entries), `source(for: "mermaid")` falls back to the top-level `source`
+   property. This preserves the invariant that Mermaid source is always
+   retrievable regardless of which schema variant is in use.
+
+4. **No new SPM target for the corpus type.** `CorpusEntry` lives in
    `DiagramKitTestSupport` because it's test infrastructure. The playground
    duplicates the decoding (same JSON schema, local `TestDiagram` struct)
-   because the playground can't depend on a test target. This is accepted
-   duplication — the JSON file is the single source of truth.
+   because `MermaidPlayground` cannot depend on a test-only library target.
+   This is accepted duplication — the JSON file is the single source of truth.
 
-3. **`sources` keys are importer names** (e.g. `"mermaid"`, `"d2"`,
+5. **Metadata is per-format, not top-level.** `expectedImporters` is a map
+   from format name to importer name, not a single top-level string. A
+   multi-format entry has multiple sources, and importer expectations are
+   format-specific. `skipSnapshots` is similarly a list of format names.
+
+6. **`validate()` enforces source/Mermaid consistency.** When both
+   `source` and `sources["mermaid"]` are present, they must be identical.
+   A decoding-time validation method catches mismatches rather than silently
+   preferring one over the other.
+
+7. **`sources` keys are importer names** (e.g. `"mermaid"`, `"d2"`,
    `"graphviz"`), not target names or enum cases. This keeps the fixture
    human-readable and decoupled from Swift module layout. An importer's
    `DiagramSourceImporter.name` property matches the fixture key.
 
-4. **No format-should/shouldn't enforcement in Phase 2.** The
+8. **No format-should/shouldn't enforcement in Phase 2.** The
    `supportedDiagramTypes` set on each `DiagramSourceImporter` is the
    authoritative sparse-matrix definition. The fixture's `sources` map only
    carries what's actually been authored. Validation that "d2 doesn't have a
    sequence source because d2 doesn't support sequence" lives in
    `MultiFormatSparseMatrixTests`, not in the type system.
 
-5. **Snapshot names stay `diagram.id`.** When a fixture has both Mermaid and
+9. **Snapshot names stay `diagram.id`.** When a fixture has both Mermaid and
    d2 sources, the Mermaid path renders with snapshot name `diagram.id` (same
    as today). When Phase 3 adds d2 snapshot testing, d2 snapshots will use
    `diagram.id + "-d2"` (or similar suffix). The naming convention is
    `{id}` for Mermaid, `{id}-{format}` for non-Mermaid formats. This keeps
    existing 396 SVG + 396 image + 174 ASCII baselines matched exactly.
 
-6. **`CorpusFile` ignores `metadata`.** The JSON has a trailing `metadata`
-   object with counts. We decode only `diagrams` and skip `metadata` via
-   standard `Codable` omission (keys not in `CodingKeys` are ignored). This
-   avoids coupling the Swift type to a metadata shape that may change.
+10. **`CorpusFile` ignores `metadata`.** The JSON has a trailing `metadata`
+    object with counts. We decode only `diagrams` and skip `metadata` via
+    standard `Codable` omission (keys not in `CodingKeys` are ignored). This
+    avoids coupling the Swift type to a metadata shape that may change.
