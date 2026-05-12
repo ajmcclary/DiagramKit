@@ -2,6 +2,7 @@ import Foundation
 import DiagramKitModel
 import DiagramKitCommon
 import DiagramKitImport
+import DiagramKitD2
 #if canImport(CoreGraphics)
 import DiagramKitRenderingCG
 #endif
@@ -33,10 +34,9 @@ public enum DiagramPipeline {
 
     // MARK: - Default registry
 
-    /// Default registry for Phase 1: Mermaid only.
-    /// In later phases, specific importers are prepended before Mermaid.
+    /// Default registry: D2 first (narrow probe), Mermaid last (broad fallback).
     public static let defaultRegistry: ImporterRegistry = ImporterRegistry(
-        importers: [MermaidImporter()]
+        importers: [D2Importer(), MermaidImporter()]
     )
 
     // MARK: - Parse

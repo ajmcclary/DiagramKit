@@ -2,18 +2,24 @@ import Testing
 @testable import DiagramKit
 import DiagramKitModel
 import DiagramKitImport
+import DiagramKitD2
 
 @Suite struct ImporterRegistryTests {
 
-    @Test("Default registry picks Mermaid for Mermaid source")
-    func defaultRegistryPicksMermaid() throws {
+    @Test("Default registry has D2 first, Mermaid last")
+    func defaultRegistryOrder() throws {
         let registry = DiagramPipeline.defaultRegistry
-        #expect(registry.importers.count == 1)
-        #expect(registry.importers[0].name == "Mermaid")
+        #expect(registry.importers.count >= 2)
+        #expect(registry.importers[0].name == "D2")
+        #expect(registry.importers.last?.name == "Mermaid")
 
-        let source = "graph TD\nA-->B"
-        let importer = try #require(registry.importer(for: source))
-        #expect(importer.name == "Mermaid")
+        // d2-shaped source picks D2
+        let d2Importer = try #require(registry.importer(for: "A -> B"))
+        #expect(d2Importer.name == "D2")
+
+        // Mermaid-shaped source picks Mermaid
+        let mermaidImporter = try #require(registry.importer(for: "graph TD\nA-->B"))
+        #expect(mermaidImporter.name == "Mermaid")
     }
 
     @Test("Empty registry returns nil importer")
@@ -36,10 +42,10 @@ import DiagramKitImport
         #expect(base.importers.count == 1)
         #expect(base.importers[0].name == "Mermaid")
 
-        // Verify prepending would put a new importer first (for Phase 3+)
-        let extended = base.prepending(FixtureImporter())
+        let d2 = D2Importer()
+        let extended = base.prepending(d2)
         #expect(extended.importers.count == 2)
-        #expect(extended.importers[0].name == "Fixture")
+        #expect(extended.importers[0].name == "D2")
         #expect(extended.importers[1].name == "Mermaid")
     }
 
