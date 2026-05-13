@@ -376,12 +376,12 @@ public final class LiveEditorStore {
     ///
     /// Parses through `DiagramPipeline.defaultRegistry` (auto-detects the
     /// current format), then dispatches to the target exporter through
-    /// `DiagramPipeline.defaultExportRegistry`.
+    /// `DiagramPipeline.defaultExportRegistry`. All five formats have
+    /// registered exporters; an exporter may still emit a `.unsupported`
+    /// diagnostic when the parsed document's diagram family is outside
+    /// its `supportedDiagramTypes`.
     ///
-    /// - Parameter target: Destination format. Graphviz currently has no
-    ///   exporter registered — callers receive a `.unsupported` diagnostic
-    ///   inside the returned `DiagramExportResult` instead of a thrown
-    ///   error so the UI can degrade gracefully.
+    /// - Parameter target: Destination format.
     /// - Throws: Parse errors from the source side, or fatal export errors.
     /// - Returns: The exporter's `DiagramExportResult` with `source` and
     ///   `diagnostics`.

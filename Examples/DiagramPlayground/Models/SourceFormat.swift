@@ -68,10 +68,4 @@ public enum SourceFormat: String, Codable, CaseIterable, Sendable, Identifiable 
         case .plantuml:    return .plantuml
         }
     }
-
-    /// `true` when `DiagramPipeline.defaultExportRegistry` has a registered
-    /// exporter for this format. Graphviz currently has no DOT exporter.
-    public var hasExporter: Bool {
-        self != .graphviz
-    }
 }

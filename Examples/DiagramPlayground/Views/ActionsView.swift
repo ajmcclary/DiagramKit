@@ -222,22 +222,17 @@ struct ActionsView: View {
     // MARK: - Convert section
 
     /// Per-target buttons that parse the current source through `DiagramLoader`
-    /// and dispatch to the format's exporter. Graphviz is shown with a
-    /// disabled subtitle because no DOT exporter is registered yet.
+    /// and dispatch to the format's exporter. Unsupported diagram families
+    /// for a given target surface as `.unsupported` diagnostics in the
+    /// returned `DiagramExportResult` rather than being gated up-front.
     private var convertSection: some View {
         VStack(spacing: 6) {
             ForEach(SourceFormat.allCases.filter { $0 != store.state.sourceFormat }) { target in
                 actionButton(
                     label: "Convert to \(target.displayName)",
-                    icon: target.hasExporter ? "arrow.left.arrow.right" : "exclamationmark.triangle",
-                    subtitle: target.hasExporter
-                        ? "Re-export current diagram as \(target.shortName)"
-                        : "No exporter registered yet"
+                    icon: "arrow.left.arrow.right",
+                    subtitle: "Re-export current diagram as \(target.shortName)"
                 ) {
-                    guard target.hasExporter else {
-                        showCopyFeedback("\(target.displayName) exporter unavailable")
-                        return
-                    }
                     onConvertSource(target)
                 }
             }
