@@ -4,32 +4,26 @@ import Foundation
 public struct ClassFrontmatterBinding: FrontmatterBinding {
     public static let prefixes = ["config.class.", "class."]
 
-    private var config = ClassConfig()
-    private var hasSection = false
+    private var section = SingleSectionBinding<ClassConfig>(config: ClassConfig())
 
     public init() {}
 
     public mutating func apply(path: String, value: FrontmatterValue) -> Bool {
-        guard let key = Self.extractKey(path: path, prefixes: Self.prefixes) else { return false }
-        guard _applyConfig(key: key, value: value) else { return false }
-        hasSection = true
-        return true
-    }
-
-    private mutating func _applyConfig(key: String, value: FrontmatterValue) -> Bool {
-        switch key {
-        case "hideEmptyMembersBox":
-            guard let v = value.bool else { return false }; config.hideEmptyMembersBox = v
-        case "hierarchicalNamespaces":
-            guard let v = value.bool else { return false }; config.hierarchicalNamespaces = v
-        case "padding":
-            guard let v = value.double else { return false }; config.padding = v
-        default: return false
+        section.apply(path: path, value: value, prefixes: Self.prefixes) { key, value, config in
+            switch key {
+            case "hideEmptyMembersBox":
+                guard let v = value.bool else { return false }; config.hideEmptyMembersBox = v
+            case "hierarchicalNamespaces":
+                guard let v = value.bool else { return false }; config.hierarchicalNamespaces = v
+            case "padding":
+                guard let v = value.double else { return false }; config.padding = v
+            default: return false
+            }
+            return true
         }
-        return true
     }
 
     public func commit(into frontmatter: inout DiagramFrontmatter) {
-        if hasSection { frontmatter.classConfig = config }
+        if section.hasSection { frontmatter.classConfig = section.config }
     }
 }

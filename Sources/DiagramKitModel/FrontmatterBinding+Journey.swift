@@ -4,55 +4,49 @@ import Foundation
 public struct JourneyFrontmatterBinding: FrontmatterBinding {
     public static let prefixes = ["config.journey.", "journey."]
 
-    private var config = JourneyDiagramConfig()
-    private var hasSection = false
+    private var section = SingleSectionBinding<JourneyDiagramConfig>(config: JourneyDiagramConfig())
 
     public init() {}
 
     public mutating func apply(path: String, value: FrontmatterValue) -> Bool {
-        guard let key = Self.extractKey(path: path, prefixes: Self.prefixes) else { return false }
-        guard _applyConfig(key: key, value: value) else { return false }
-        hasSection = true
-        return true
-    }
-
-    private mutating func _applyConfig(key: String, value: FrontmatterValue) -> Bool {
-        switch key {
-        case "diagramMarginX":   guard let v = value.double else { return false }; config.diagramMarginX = v
-        case "diagramMarginY":   guard let v = value.double else { return false }; config.diagramMarginY = v
-        case "leftMargin":       guard let v = value.double else { return false }; config.leftMargin = v
-        case "maxLabelWidth":    guard let v = value.double else { return false }; config.maxLabelWidth = v
-        case "width":            guard let v = value.double else { return false }; config.width = v
-        case "height":           guard let v = value.double else { return false }; config.height = v
-        case "boxMargin":        guard let v = value.double else { return false }; config.boxMargin = v
-        case "boxTextMargin":    guard let v = value.double else { return false }; config.boxTextMargin = v
-        case "noteMargin":       guard let v = value.double else { return false }; config.noteMargin = v
-        case "messageMargin":    guard let v = value.double else { return false }; config.messageMargin = v
-        case "messageAlign":     config.messageAlign = value.string
-        case "bottomMarginAdj":  guard let v = value.double else { return false }; config.bottomMarginAdj = v
-        case "useMaxWidth":      guard let v = value.bool else { return false }; config.useMaxWidth = v
-        case "rightAngles":      guard let v = value.bool else { return false }; config.rightAngles = v
-        case "taskFontSize":     guard let v = value.double else { return false }; config.taskFontSize = v
-        case "taskFontFamily":   config.taskFontFamily = value.string
-        case "taskMargin":       guard let v = value.double else { return false }; config.taskMargin = v
-        case "activationWidth":  guard let v = value.double else { return false }; config.activationWidth = v
-        case "textPlacement":    config.textPlacement = value.string
-        case "actorColours":
-            if let arr = _parseYamlStringArray(value.string) { config.actorColours = arr }
-        case "sectionFills":
-            if let arr = _parseYamlStringArray(value.string) { config.sectionFills = arr }
-        case "sectionColours":
-            if let arr = _parseYamlStringArray(value.string) { config.sectionColours = arr }
-        case "titleColor":       config.titleColor = value.string
-        case "titleFontFamily":  config.titleFontFamily = value.string
-        case "titleFontSize":    config.titleFontSize = value.string
-        case "faceColor":        config.faceColor = value.string
-        default: return false
+        section.apply(path: path, value: value, prefixes: Self.prefixes) { key, value, config in
+            switch key {
+            case "diagramMarginX":   guard let v = value.double else { return false }; config.diagramMarginX = v
+            case "diagramMarginY":   guard let v = value.double else { return false }; config.diagramMarginY = v
+            case "leftMargin":       guard let v = value.double else { return false }; config.leftMargin = v
+            case "maxLabelWidth":    guard let v = value.double else { return false }; config.maxLabelWidth = v
+            case "width":            guard let v = value.double else { return false }; config.width = v
+            case "height":           guard let v = value.double else { return false }; config.height = v
+            case "boxMargin":        guard let v = value.double else { return false }; config.boxMargin = v
+            case "boxTextMargin":    guard let v = value.double else { return false }; config.boxTextMargin = v
+            case "noteMargin":       guard let v = value.double else { return false }; config.noteMargin = v
+            case "messageMargin":    guard let v = value.double else { return false }; config.messageMargin = v
+            case "messageAlign":     config.messageAlign = value.string
+            case "bottomMarginAdj":  guard let v = value.double else { return false }; config.bottomMarginAdj = v
+            case "useMaxWidth":      guard let v = value.bool else { return false }; config.useMaxWidth = v
+            case "rightAngles":      guard let v = value.bool else { return false }; config.rightAngles = v
+            case "taskFontSize":     guard let v = value.double else { return false }; config.taskFontSize = v
+            case "taskFontFamily":   config.taskFontFamily = value.string
+            case "taskMargin":       guard let v = value.double else { return false }; config.taskMargin = v
+            case "activationWidth":  guard let v = value.double else { return false }; config.activationWidth = v
+            case "textPlacement":    config.textPlacement = value.string
+            case "actorColours":
+                if let arr = _parseYamlStringArray(value.string) { config.actorColours = arr }
+            case "sectionFills":
+                if let arr = _parseYamlStringArray(value.string) { config.sectionFills = arr }
+            case "sectionColours":
+                if let arr = _parseYamlStringArray(value.string) { config.sectionColours = arr }
+            case "titleColor":       config.titleColor = value.string
+            case "titleFontFamily":  config.titleFontFamily = value.string
+            case "titleFontSize":    config.titleFontSize = value.string
+            case "faceColor":        config.faceColor = value.string
+            default: return false
+            }
+            return true
         }
-        return true
     }
 
     public func commit(into frontmatter: inout DiagramFrontmatter) {
-        if hasSection { frontmatter.journeyConfig = config }
+        if section.hasSection { frontmatter.journeyConfig = section.config }
     }
 }

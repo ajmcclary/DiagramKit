@@ -4,30 +4,24 @@ import Foundation
 public struct MindmapFrontmatterBinding: FrontmatterBinding {
     public static let prefixes = ["config.mindmap.", "mindmap."]
 
-    private var config = MindmapConfig()
-    private var hasSection = false
+    private var section = SingleSectionBinding<MindmapConfig>(config: MindmapConfig())
 
     public init() {}
 
     public mutating func apply(path: String, value: FrontmatterValue) -> Bool {
-        guard let key = Self.extractKey(path: path, prefixes: Self.prefixes) else { return false }
-        guard _applyConfig(key: key, value: value) else { return false }
-        hasSection = true
-        return true
-    }
-
-    private mutating func _applyConfig(key: String, value: FrontmatterValue) -> Bool {
-        switch key {
-        case "padding":          guard let v = value.double else { return false }; config.padding = v
-        case "maxNodeWidth":     guard let v = value.double else { return false }; config.maxNodeWidth = v
-        case "useMaxWidth":      guard let v = value.bool else { return false }; config.useMaxWidth = v
-        case "layoutAlgorithm":  config.layoutAlgorithm = value.string
-        default: return false
+        section.apply(path: path, value: value, prefixes: Self.prefixes) { key, value, config in
+            switch key {
+            case "padding":          guard let v = value.double else { return false }; config.padding = v
+            case "maxNodeWidth":     guard let v = value.double else { return false }; config.maxNodeWidth = v
+            case "useMaxWidth":      guard let v = value.bool else { return false }; config.useMaxWidth = v
+            case "layoutAlgorithm":  config.layoutAlgorithm = value.string
+            default: return false
+            }
+            return true
         }
-        return true
     }
 
     public func commit(into frontmatter: inout DiagramFrontmatter) {
-        if hasSection { frontmatter.mindmapConfig = config }
+        if section.hasSection { frontmatter.mindmapConfig = section.config }
     }
 }
