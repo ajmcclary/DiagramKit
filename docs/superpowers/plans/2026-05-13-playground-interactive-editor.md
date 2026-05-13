@@ -15,15 +15,15 @@
 **Created**
 
 - `Tests/DiagramKitTests/DiagramViewBoundsLookupBindingTests.swift` — library API test
+- `Tests/DiagramKitTests/LiveEditorStateInspectorOpenTests.swift`
+- `Tests/DiagramKitTests/LiveEditorStoreEditorLifecycleTests.swift`
+- `Tests/DiagramKitTests/TapCoordinateConversionTests.swift`
+- `Tests/DiagramKitTests/TapToSelectTests.swift`
 - `Examples/DiagramPlayground/Views/Editor/DiagramEditorPane.swift` — new SwiftUI pane (~350 lines target, split if >500)
-- `Examples/DiagramPlayground/Tests/DiagramPlaygroundTests/LiveEditorStoreEditorLifecycleTests.swift`
-- `Examples/DiagramPlayground/Tests/DiagramPlaygroundTests/TapCoordinateConversionTests.swift`
-- `Examples/DiagramPlayground/Tests/DiagramPlaygroundTests/TapToSelectTests.swift`
 
 **Modified**
 
 - `Sources/DiagramKitViews/DiagramView.swift` — new `boundsLookup` binding (UIKit + AppKit)
-- `Examples/DiagramPlayground/project.yml` — new `DiagramPlaygroundTests` target + scheme test action
 - `Examples/DiagramPlayground/Models/LiveEditorState.swift` — `inspectorOpen` field + Codable migration
 - `Examples/DiagramPlayground/Models/LiveEditorStore.swift` — persistent `editor`, `boundsLookup`, selection, mutations, drawer toggle, tap dispatch, structural undo/redo
 - `Examples/DiagramPlayground/Views/PreviewCanvas.swift` — `boundsLookup` binding flow, tap gesture, selection overlay
@@ -278,91 +278,23 @@ git commit -m "feat(views): add public boundsLookup binding to DiagramView"
 
 ---
 
-## Phase 2 — Playground test infrastructure
+## Phase 2 — Confirm playground sources are already test-visible
 
-### Task 3: Add a `DiagramPlaygroundTests` xcodeproj target
+> **Pre-execution amendment.** The original spec assumed playground sources could not be reached from `Tests/DiagramKitTests/` and called for a new xcodeproj test target. Inspection of `Package.swift` shows `DiagramKitTests` already declares `DiagramPlayground` as a dependency (line 198), and `Tests/DiagramKitTests/DiagramPlaygroundRegressionTests.swift` already uses `@testable import DiagramPlayground` to exercise `LiveEditorStore`, `LiveEditorState`, and `LiveEditorStateCodec`. We can place every new playground-level test alongside it and drive everything from `swift test --filter`.
 
-**Files:**
-- Modify: `Examples/DiagramPlayground/project.yml`
-- Create: `Examples/DiagramPlayground/Tests/DiagramPlaygroundTests/Placeholder.swift`
+### Task 3: Confirm playground module visibility
 
-- [ ] **Step 1: Add the test target and schemes entries to `project.yml`**
+**Files:** none modified
 
-Open `Examples/DiagramPlayground/project.yml`. Inside `targets:`, after the `DiagramPlayground-iOS` block, append:
+- [ ] **Step 1: Verify the existing playground regression suite still passes**
 
-```yaml
-  DiagramPlaygroundTests:
-    type: bundle.unit-test
-    platform: macOS
-    deploymentTarget: "26.0"
-    sources:
-      - Tests/DiagramPlaygroundTests
-    dependencies:
-      - target: DiagramPlayground
-      - package: DiagramKit
-        product: DiagramKit
-      - package: DiagramKit
-        product: DiagramKitInteractive
-      - package: DiagramKit
-        product: DiagramKitModel
-    settings:
-      base:
-        PRODUCT_BUNDLE_IDENTIFIER: com.lukilabs.DiagramPlaygroundTests
-        GENERATE_INFOPLIST_FILE: YES
-```
+Run: `swift test --filter DiagramPlaygroundRegressionTests`
 
-Then, inside the `schemes:` block, update the existing `DiagramPlayground` scheme to wire the test target into its `test` action by adding a `test:` section after `run:`:
+Expected: green. This proves `@testable import DiagramPlayground` works on this machine and the testTarget plumbing is intact before we start adding new tests.
 
-```yaml
-  DiagramPlayground:
-    build:
-      targets:
-        DiagramPlayground: all
-        DiagramPlaygroundTests: [test]
-    run:
-      config: Debug
-    test:
-      config: Debug
-      targets:
-        - DiagramPlaygroundTests
-    archive:
-      config: Release
-```
+- [ ] **Step 2: No commit needed**
 
-- [ ] **Step 2: Create a placeholder test file so xcodegen has a non-empty source directory**
-
-Create `Examples/DiagramPlayground/Tests/DiagramPlaygroundTests/Placeholder.swift`:
-
-```swift
-import XCTest
-
-final class PlaygroundPlaceholderTests: XCTestCase {
-    func testPlaceholder() {
-        XCTAssertTrue(true)
-    }
-}
-```
-
-- [ ] **Step 3: Regenerate the xcodeproj**
-
-Run: `cd Examples/DiagramPlayground && xcodegen generate && cd -`
-
-Expected: xcodegen reports `Created project at … DiagramPlayground.xcodeproj` with no errors.
-
-- [ ] **Step 4: Run the placeholder test to confirm the target builds and runs**
-
-Run: `xcodebuild test -project Examples/DiagramPlayground/DiagramPlayground.xcodeproj -scheme DiagramPlayground -destination 'platform=macOS' -only-testing:DiagramPlaygroundTests/PlaygroundPlaceholderTests/testPlaceholder | tail -40`
-
-Expected: `** TEST SUCCEEDED **` with 1 test executed.
-
-- [ ] **Step 5: Commit**
-
-```bash
-git add Examples/DiagramPlayground/project.yml \
-        Examples/DiagramPlayground/Tests/DiagramPlaygroundTests/Placeholder.swift \
-        Examples/DiagramPlayground/DiagramPlayground.xcodeproj
-git commit -m "test(playground): add DiagramPlaygroundTests xcodeproj target"
-```
+This is a precondition check, not a code change.
 
 ---
 
@@ -371,7 +303,7 @@ git commit -m "test(playground): add DiagramPlaygroundTests xcodeproj target"
 ### Task 4: Write the failing test for `inspectorOpen` Codable round-trip
 
 **Files:**
-- Create: `Examples/DiagramPlayground/Tests/DiagramPlaygroundTests/LiveEditorStateInspectorOpenTests.swift`
+- Create: `Tests/DiagramKitTests/LiveEditorStateInspectorOpenTests.swift`
 
 - [ ] **Step 1: Write the failing test**
 
@@ -409,7 +341,7 @@ final class LiveEditorStateInspectorOpenTests: XCTestCase {
 
 - [ ] **Step 2: Run the test to verify it fails**
 
-Run: `xcodebuild test -project Examples/DiagramPlayground/DiagramPlayground.xcodeproj -scheme DiagramPlayground -destination 'platform=macOS' -only-testing:DiagramPlaygroundTests/LiveEditorStateInspectorOpenTests | tail -40`
+Run: `swift test --filter LiveEditorStateInspectorOpenTests`
 
 Expected: compile error — `Value of type 'LiveEditorState' has no member 'inspectorOpen'`.
 
@@ -461,7 +393,7 @@ In `public init(from decoder: Decoder) throws`, after `self.updateMode = try c.d
 
 - [ ] **Step 4: Run the test to verify it passes**
 
-Run: `xcodebuild test -project Examples/DiagramPlayground/DiagramPlayground.xcodeproj -scheme DiagramPlayground -destination 'platform=macOS' -only-testing:DiagramPlaygroundTests/LiveEditorStateInspectorOpenTests | tail -40`
+Run: `swift test --filter LiveEditorStateInspectorOpenTests`
 
 Expected: 3 / 3 tests pass.
 
@@ -469,7 +401,7 @@ Expected: 3 / 3 tests pass.
 
 ```bash
 git add Examples/DiagramPlayground/Models/LiveEditorState.swift \
-        Examples/DiagramPlayground/Tests/DiagramPlaygroundTests/LiveEditorStateInspectorOpenTests.swift
+        Tests/DiagramKitTests/LiveEditorStateInspectorOpenTests.swift
 git commit -m "feat(playground): persist Inspector drawer state in LiveEditorState"
 ```
 
@@ -480,7 +412,7 @@ git commit -m "feat(playground): persist Inspector drawer state in LiveEditorSta
 ### Task 6: Write the failing test for the persistent `editor` lifecycle
 
 **Files:**
-- Create: `Examples/DiagramPlayground/Tests/DiagramPlaygroundTests/LiveEditorStoreEditorLifecycleTests.swift`
+- Create: `Tests/DiagramKitTests/LiveEditorStoreEditorLifecycleTests.swift`
 
 - [ ] **Step 1: Write the failing test**
 
@@ -556,7 +488,7 @@ final class LiveEditorStoreEditorLifecycleTests: XCTestCase {
 
 - [ ] **Step 2: Run the test to verify it fails**
 
-Run: `xcodebuild test -project Examples/DiagramPlayground/DiagramPlayground.xcodeproj -scheme DiagramPlayground -destination 'platform=macOS' -only-testing:DiagramPlaygroundTests/LiveEditorStoreEditorLifecycleTests | tail -40`
+Run: `swift test --filter LiveEditorStoreEditorLifecycleTests`
 
 Expected: compile error — `Value of type 'LiveEditorStore' has no member 'editor'`.
 
@@ -661,7 +593,7 @@ Replace the body of `didCompleteRender(parseError:diagramBounds:)` with:
 
 - [ ] **Step 4: Run the test to verify it passes**
 
-Run: `xcodebuild test -project Examples/DiagramPlayground/DiagramPlayground.xcodeproj -scheme DiagramPlayground -destination 'platform=macOS' -only-testing:DiagramPlaygroundTests/LiveEditorStoreEditorLifecycleTests | tail -40`
+Run: `swift test --filter LiveEditorStoreEditorLifecycleTests`
 
 Expected: 3 / 3 tests pass.
 
@@ -669,7 +601,7 @@ Expected: 3 / 3 tests pass.
 
 ```bash
 git add Examples/DiagramPlayground/Models/LiveEditorStore.swift \
-        Examples/DiagramPlayground/Tests/DiagramPlaygroundTests/LiveEditorStoreEditorLifecycleTests.swift
+        Tests/DiagramKitTests/LiveEditorStoreEditorLifecycleTests.swift
 git commit -m "feat(playground): own a persistent DiagramEditor on LiveEditorStore"
 ```
 
@@ -680,7 +612,7 @@ git commit -m "feat(playground): own a persistent DiagramEditor on LiveEditorSto
 ### Task 8: Write the failing test for `tapPointInDiagramCoordinates`
 
 **Files:**
-- Create: `Examples/DiagramPlayground/Tests/DiagramPlaygroundTests/TapCoordinateConversionTests.swift`
+- Create: `Tests/DiagramKitTests/TapCoordinateConversionTests.swift`
 
 - [ ] **Step 1: Write the failing test**
 
@@ -742,7 +674,7 @@ final class TapCoordinateConversionTests: XCTestCase {
 
 - [ ] **Step 2: Run to verify it fails**
 
-Run: `xcodebuild test -project Examples/DiagramPlayground/DiagramPlayground.xcodeproj -scheme DiagramPlayground -destination 'platform=macOS' -only-testing:DiagramPlaygroundTests/TapCoordinateConversionTests | tail -30`
+Run: `swift test --filter TapCoordinateConversionTests`
 
 Expected: compile error — `Type 'LiveEditorStore' has no member 'tapPointInDiagramCoordinates'`.
 
@@ -786,7 +718,7 @@ Inside the `LiveEditorStore` class body, after `private func writeToPasteboard(.
 
 - [ ] **Step 2: Run the test to verify it passes**
 
-Run: `xcodebuild test -project Examples/DiagramPlayground/DiagramPlayground.xcodeproj -scheme DiagramPlayground -destination 'platform=macOS' -only-testing:DiagramPlaygroundTests/TapCoordinateConversionTests | tail -30`
+Run: `swift test --filter TapCoordinateConversionTests`
 
 Expected: 3 / 3 tests pass.
 
@@ -794,14 +726,14 @@ Expected: 3 / 3 tests pass.
 
 ```bash
 git add Examples/DiagramPlayground/Models/LiveEditorStore.swift \
-        Examples/DiagramPlayground/Tests/DiagramPlaygroundTests/TapCoordinateConversionTests.swift
+        Tests/DiagramKitTests/TapCoordinateConversionTests.swift
 git commit -m "feat(playground): add pure tap-coordinate conversion helper"
 ```
 
 ### Task 10: Write the failing test for `setSelection(_:)` and `handleTapAt(_:viewSize:)`
 
 **Files:**
-- Create: `Examples/DiagramPlayground/Tests/DiagramPlaygroundTests/TapToSelectTests.swift`
+- Create: `Tests/DiagramKitTests/TapToSelectTests.swift`
 
 - [ ] **Step 1: Write the failing test**
 
@@ -890,7 +822,7 @@ final class TapToSelectTests: XCTestCase {
 
 - [ ] **Step 2: Run the test to verify it fails**
 
-Run: `xcodebuild test -project Examples/DiagramPlayground/DiagramPlayground.xcodeproj -scheme DiagramPlayground -destination 'platform=macOS' -only-testing:DiagramPlaygroundTests/TapToSelectTests | tail -40`
+Run: `swift test --filter TapToSelectTests`
 
 Expected: compile errors — `Value of type 'LiveEditorStore' has no member 'setSelection'` and `'handleTapAt'`.
 
@@ -933,7 +865,7 @@ In the `LiveEditorStore` class body, after the `tapPointInDiagramCoordinates` he
 
 - [ ] **Step 2: Run the test to verify it passes**
 
-Run: `xcodebuild test -project Examples/DiagramPlayground/DiagramPlayground.xcodeproj -scheme DiagramPlayground -destination 'platform=macOS' -only-testing:DiagramPlaygroundTests/TapToSelectTests | tail -40`
+Run: `swift test --filter TapToSelectTests`
 
 Expected: 4 / 4 tests pass.
 
@@ -941,7 +873,7 @@ Expected: 4 / 4 tests pass.
 
 ```bash
 git add Examples/DiagramPlayground/Models/LiveEditorStore.swift \
-        Examples/DiagramPlayground/Tests/DiagramPlaygroundTests/TapToSelectTests.swift
+        Tests/DiagramKitTests/TapToSelectTests.swift
 git commit -m "feat(playground): wire tap-to-select through LiveEditorStore"
 ```
 
@@ -952,7 +884,7 @@ git commit -m "feat(playground): wire tap-to-select through LiveEditorStore"
 ### Task 12: Extend the lifecycle tests with mutation-flow expectations
 
 **Files:**
-- Modify: `Examples/DiagramPlayground/Tests/DiagramPlaygroundTests/LiveEditorStoreEditorLifecycleTests.swift`
+- Modify: `Tests/DiagramKitTests/LiveEditorStoreEditorLifecycleTests.swift`
 
 - [ ] **Step 1: Add the new test cases**
 
@@ -994,7 +926,7 @@ Also add the new helper inside the helpers section:
 
 - [ ] **Step 2: Run the test to verify it fails**
 
-Run: `xcodebuild test -project Examples/DiagramPlayground/DiagramPlayground.xcodeproj -scheme DiagramPlayground -destination 'platform=macOS' -only-testing:DiagramPlaygroundTests/LiveEditorStoreEditorLifecycleTests | tail -40`
+Run: `swift test --filter LiveEditorStoreEditorLifecycleTests`
 
 Expected: compile errors — `Value of type 'LiveEditorStore' has no member 'performMutation'` and `'toggleInspector'`.
 
@@ -1072,7 +1004,7 @@ After the `setSelection` / `handleTapAt` block added in Task 11, append:
 
 - [ ] **Step 2: Run the test to verify it passes**
 
-Run: `xcodebuild test -project Examples/DiagramPlayground/DiagramPlayground.xcodeproj -scheme DiagramPlayground -destination 'platform=macOS' -only-testing:DiagramPlaygroundTests/LiveEditorStoreEditorLifecycleTests | tail -40`
+Run: `swift test --filter LiveEditorStoreEditorLifecycleTests`
 
 Expected: 5 / 5 tests pass (3 original + 2 new).
 
@@ -1080,7 +1012,7 @@ Expected: 5 / 5 tests pass (3 original + 2 new).
 
 ```bash
 git add Examples/DiagramPlayground/Models/LiveEditorStore.swift \
-        Examples/DiagramPlayground/Tests/DiagramPlaygroundTests/LiveEditorStoreEditorLifecycleTests.swift
+        Tests/DiagramKitTests/LiveEditorStoreEditorLifecycleTests.swift
 git commit -m "feat(playground): route DiagramEditor mutations + inspector toggle through the store"
 ```
 
@@ -2387,16 +2319,17 @@ Expected: all green.
 
 - [ ] **Step 2: Playground tests**
 
-Run:
+Run each filter separately so the full test sweep doesn't run (per the [Avoid full `swift test` runs] guidance):
 
 ```bash
-xcodebuild test \
-  -project Examples/DiagramPlayground/DiagramPlayground.xcodeproj \
-  -scheme DiagramPlayground \
-  -destination 'platform=macOS' | tail -40
+swift test --filter LiveEditorStateInspectorOpenTests
+swift test --filter LiveEditorStoreEditorLifecycleTests
+swift test --filter TapCoordinateConversionTests
+swift test --filter TapToSelectTests
+swift test --filter DiagramPlaygroundRegressionTests
 ```
 
-Expected: `** TEST SUCCEEDED **` with all of the new `PlaygroundPlaceholderTests`, `LiveEditorStateInspectorOpenTests`, `LiveEditorStoreEditorLifecycleTests`, `TapCoordinateConversionTests`, and `TapToSelectTests` reporting pass.
+Expected: all green.
 
 - [ ] **Step 3: Static gates**
 
@@ -2454,4 +2387,4 @@ If a remote workflow applies, push and open a PR. Otherwise the branch is ready 
 
 ## Notes on test target additions
 
-The new `DiagramPlaygroundTests` target lives only on the macOS scheme. The iOS scheme stays test-free for now since the tests exercise pure model code that is identical on both platforms. If iOS-specific coverage becomes important, mirror the target on the iOS scheme later.
+No new xcodeproj test target. Playground-level tests live in `Tests/DiagramKitTests/` alongside `DiagramPlaygroundRegressionTests.swift`, leveraging the existing `DiagramPlayground` dependency on the `DiagramKitTests` testTarget (declared in `Package.swift`). This keeps the test run unified under `swift test --filter <Name>` and aligns with the project's discipline gates.
