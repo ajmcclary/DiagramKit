@@ -445,7 +445,9 @@ public final class original_src_ascii_index {
             throw DiagramError.notYetImplemented("GitGraph ASCII rendering")
 
         case .mindmap:
-            throw DiagramError.notYetImplemented("Mindmap ASCII rendering")
+            let rawLines = DiagramSourceNormalizer.rawLines(preprocessedText)
+            let model = try parseMindmap(rawLines, frontmatter: preprocessed.frontmatter)
+            return renderMindmapAscii(model)
 
         case .timeline:
             throw DiagramError.notYetImplemented("Timeline ASCII rendering")
@@ -475,10 +477,14 @@ public final class original_src_ascii_index {
             throw DiagramError.notYetImplemented("Venn Diagram ASCII rendering")
 
         case .ishikawa:
-            throw DiagramError.notYetImplemented("Ishikawa Diagram ASCII rendering")
+            let rawLines = DiagramSourceNormalizer.rawLines(preprocessedText)
+            let model = try parseIshikawaDiagram(rawLines, frontmatter: preprocessed.frontmatter)
+            return renderIshikawaAscii(model)
 
         case .treeView:
-            throw DiagramError.notYetImplemented("TreeView ASCII rendering")
+            let rawLines = DiagramSourceNormalizer.rawLines(preprocessedText)
+            let model = try parseTreeViewDiagram(rawLines, frontmatter: preprocessed.frontmatter)
+            return renderTreeViewAscii(model)
 
         case .eventModeling:
             throw DiagramError.notYetImplemented("Event Modeling ASCII rendering")
