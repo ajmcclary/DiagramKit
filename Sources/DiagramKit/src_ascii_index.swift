@@ -430,10 +430,14 @@ public final class original_src_ascii_index {
             return renderPieAscii(chart)
 
         case .journey:
-            throw DiagramError.notYetImplemented("ASCII rendering for User Journey diagrams")
+            let rawLines = DiagramSourceNormalizer.rawLines(preprocessedText)
+            let model = try parseJourneyDiagram(rawLines, frontmatter: preprocessed.frontmatter)
+            return renderJourneyAscii(model)
 
         case .gantt:
-            throw DiagramError.notYetImplemented("ASCII rendering for Gantt diagrams")
+            let rawLines = DiagramSourceNormalizer.rawLines(preprocessedText)
+            let model = try parseGanttDiagram(rawLines, frontmatter: preprocessed.frontmatter)
+            return renderGanttAscii(model)
 
         case .quadrantChart:
             throw DiagramError.notYetImplemented("Quadrant Chart ASCII rendering")
@@ -442,7 +446,9 @@ public final class original_src_ascii_index {
             throw DiagramError.notYetImplemented("Requirement Diagram ASCII rendering")
 
         case .gitGraph:
-            throw DiagramError.notYetImplemented("GitGraph ASCII rendering")
+            let rawLines = DiagramSourceNormalizer.rawLines(preprocessedText)
+            let model = try parseGitGraph(rawLines, frontmatter: preprocessed.frontmatter)
+            return renderGitGraphAscii(model)
 
         case .mindmap:
             let rawLines = DiagramSourceNormalizer.rawLines(preprocessedText)
@@ -450,7 +456,9 @@ public final class original_src_ascii_index {
             return renderMindmapAscii(model)
 
         case .timeline:
-            throw DiagramError.notYetImplemented("Timeline ASCII rendering")
+            let rawLines = DiagramSourceNormalizer.rawLines(preprocessedText)
+            let model = try parseTimelineDiagram(rawLines, frontmatter: preprocessed.frontmatter)
+            return renderTimelineAscii(model)
 
         case .sankey:
             throw DiagramError.notYetImplemented("Sankey ASCII rendering")
