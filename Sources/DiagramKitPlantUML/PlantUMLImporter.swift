@@ -16,7 +16,7 @@ public struct PlantUMLImporter: DiagramSourceImporter {
         .classDiagram,
         .stateDiagram,
         .mindmap,
-        // .gantt            — added in next 6D slice
+        .gantt,
         // .c4               — added in 6E
     ]
 
@@ -42,7 +42,12 @@ public struct PlantUMLImporter: DiagramSourceImporter {
         // Slice 6A: only Sequence is implemented.
         // Explicit header families that aren't sequence are rejected early.
         if startKind == "gantt" {
-            throw DiagramError.notYetImplemented("PlantUML Gantt diagrams not yet implemented (Slice 6D)")
+            let ast = PlantUMLGanttParser().parse(body)
+            let (model, diagnostics) = PlantUMLGanttMapper().map(ast)
+            return DiagramImportResult(
+                document: DiagramDocument(payload: .gantt(model)),
+                diagnostics: diagnostics
+            )
         }
         if startKind == "mindmap" || startKind == "wbs" {
             let tree = PlantUMLMindmapParser().parse(body)

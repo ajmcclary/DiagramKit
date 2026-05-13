@@ -13,12 +13,13 @@ public struct PlantUMLExporter: DiagramExporter {
     public let name = "PlantUML"
     public let formatID = DiagramFormatID.plantuml
 
-    /// Sequence + class + state + mindmap — matches the current PlantUMLImporter coverage.
+    /// Sequence + class + state + mindmap + gantt — matches the current PlantUMLImporter coverage.
     public let supportedDiagramTypes: Set<DiagramType> = [
         .sequenceDiagram,
         .classDiagram,
         .stateDiagram,
         .mindmap,
+        .gantt,
     ]
 
     public init() {}
@@ -33,6 +34,8 @@ public struct PlantUMLExporter: DiagramExporter {
             return try PlantUMLStateExport.emit(graph)
         case .mindmap(let model):
             return try PlantUMLMindmapExport.emit(model)
+        case .gantt(let model):
+            return try PlantUMLGanttExport.emit(model)
         default:
             return DiagramExportResult(
                 source: "",

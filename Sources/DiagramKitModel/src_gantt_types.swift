@@ -209,6 +209,46 @@ public struct GanttDiagram: Sendable {
     public var links: [String: String] = [:]
     public var config: GanttDiagramConfig?
 
+    public init(
+        title: String? = nil,
+        accTitle: String? = nil,
+        accDescr: String? = nil,
+        dateFormat: String = "YYYY-MM-DD",
+        axisFormat: String? = nil,
+        tickInterval: String? = nil,
+        todayMarker: String = "",
+        includes: [String] = [],
+        excludes: [String] = [],
+        inclusiveEndDates: Bool = false,
+        topAxis: Bool = false,
+        weekday: String = "sunday",
+        weekend: String = "saturday",
+        displayMode: String = "",
+        sections: [GanttSection] = [],
+        tasks: [GanttTask] = [],
+        links: [String: String] = [:],
+        config: GanttDiagramConfig? = nil
+    ) {
+        self.title = title
+        self.accTitle = accTitle
+        self.accDescr = accDescr
+        self.dateFormat = dateFormat
+        self.axisFormat = axisFormat
+        self.tickInterval = tickInterval
+        self.todayMarker = todayMarker
+        self.includes = includes
+        self.excludes = excludes
+        self.inclusiveEndDates = inclusiveEndDates
+        self.topAxis = topAxis
+        self.weekday = weekday
+        self.weekend = weekend
+        self.displayMode = displayMode
+        self.sections = sections
+        self.tasks = tasks
+        self.links = links
+        self.config = config
+    }
+
     public static let empty = GanttDiagram()
 }
 

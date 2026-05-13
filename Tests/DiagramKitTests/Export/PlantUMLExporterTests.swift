@@ -29,6 +29,30 @@ import DiagramKitPlantUML
         #expect(result.source.contains("+greet(): Void"))
     }
 
+    @Test("PlantUML gantt export round-trips through PlantUMLImporter")
+    func ganttExportRoundTrip() throws {
+        let source = """
+        @startgantt
+        project starts 2024-01-15
+        [Design] lasts 10 days
+        [Build] lasts 20 days
+        @endgantt
+        """
+        let parsed = try PlantUMLImporter().parse(source).document
+        let exported = try PlantUMLExporter().export(parsed)
+        #expect(exported.source.contains("@startgantt"))
+        #expect(exported.source.contains("@endgantt"))
+        #expect(exported.source.contains("[Design]"))
+        #expect(exported.source.contains("[Build]"))
+        let reparsed = try PlantUMLImporter().parse(exported.source).document
+        guard case .gantt(let model) = reparsed.payload else {
+            Issue.record("Expected gantt payload"); return
+        }
+        #expect(model.tasks.count == 2)
+        #expect(model.tasks.first(where: { $0.task == "Design" }) != nil)
+        #expect(model.tasks.first(where: { $0.task == "Build" }) != nil)
+    }
+
     @Test("PlantUML mindmap export round-trips through PlantUMLImporter")
     func mindmapExportRoundTrip() throws {
         let source = """
