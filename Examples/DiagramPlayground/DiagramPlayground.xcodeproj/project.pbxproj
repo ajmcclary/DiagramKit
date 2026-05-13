@@ -16,25 +16,26 @@
 		10B9EEBD8F06ABF46D1EAEC3 /* LiveEditorStateCodec.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0C2C8D0C8DDDA00F2C1F7BB /* LiveEditorStateCodec.swift */; };
 		1685EECD9C9DE2E3490F7BB1 /* LiveEditorConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = 57A13F7093A3861D3C89FBE8 /* LiveEditorConfig.swift */; };
 		19250F74DA484E9D6025B835 /* ThemePicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = A918F585DF774CD0FC4033DB /* ThemePicker.swift */; };
+		21E83B0FCA8A75CE554CAC28 /* IssueReporting in Frameworks */ = {isa = PBXBuildFile; productRef = 0DE2DB0B2B4FC070CFA9D281 /* IssueReporting */; };
 		260AB090B84C5BE60507F228 /* DiagramKitPlantUML in Frameworks */ = {isa = PBXBuildFile; productRef = 4BCDDB561E190D9F56CCF901 /* DiagramKitPlantUML */; };
 		26CF1ED9B4449F524E1BF8B3 /* NativeCodeEditor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0ED3A85C9F035BCBAC98BE96 /* NativeCodeEditor.swift */; };
 		27251F47975F43DD38F5065A /* DiagramPlaygroundApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 987F6BBE5471312B36FFDB67 /* DiagramPlaygroundApp.swift */; };
-		295C42FCC83BD4E496B1E75A /* DiagramNativeViewRepresentable.swift in Sources */ = {isa = PBXBuildFile; fileRef = D6B42295BF43499126235D04 /* DiagramNativeViewRepresentable.swift */; };
 		2ACE002D69659308D10EB741 /* LiveEditorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C16F5A868192706936A052FB /* LiveEditorView.swift */; };
 		2B6D82435719DC184B3BA91C /* NativeCodeEditor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0ED3A85C9F035BCBAC98BE96 /* NativeCodeEditor.swift */; };
 		2F09890E95F3859F43B78EA3 /* LiveEditorStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0C4A0AFF6EB55A7CA868F2CD /* LiveEditorStore.swift */; };
 		2FE407DEFB720281FB490F1A /* LiveEditorStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0C4A0AFF6EB55A7CA868F2CD /* LiveEditorStore.swift */; };
 		36E905D77DC26E68047EFB6B /* DiagramKitGraphviz in Frameworks */ = {isa = PBXBuildFile; productRef = 7C50BB43099D0B03D0CF8E96 /* DiagramKitGraphviz */; };
+		3A7E7669D4B5703B708E08B0 /* SourceFormatPicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8D221EF40DD1A74E88844D50 /* SourceFormatPicker.swift */; };
 		3ABF98441304FBE40CFBB37F /* SidebarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC6C9B41F4E260DB4D756E0A /* SidebarView.swift */; };
 		3BA5EE9516F225A2581AA43B /* EditorModePicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9D7D39A211AFBE95011C020B /* EditorModePicker.swift */; };
 		3CC8EA615E8989E87E8FB21F /* DiagramKit in Frameworks */ = {isa = PBXBuildFile; productRef = B1AB23F1E76A527DAF533C7D /* DiagramKit */; };
-		3CF37003BF1120BD5E6E8064 /* DiagramNativeViewRepresentable.swift in Sources */ = {isa = PBXBuildFile; fileRef = D6B42295BF43499126235D04 /* DiagramNativeViewRepresentable.swift */; };
 		3FA0029D158B0D54F4E893D1 /* PreviewCanvas.swift in Sources */ = {isa = PBXBuildFile; fileRef = D243A9D2978231797DC76F9D /* PreviewCanvas.swift */; };
 		41D25AF21FBBF2FE879B499D /* PreviewToolbar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1395356A60C01148F9B855DE /* PreviewToolbar.swift */; };
 		42BA8F9E8D67B6993CE4865B /* ExportOptions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 03CB5538899AF270470B174F /* ExportOptions.swift */; };
 		49759BB06AF1EFEAC3274F28 /* PreviewCanvas.swift in Sources */ = {isa = PBXBuildFile; fileRef = D243A9D2978231797DC76F9D /* PreviewCanvas.swift */; };
 		4C4D360090B82E7AE8D1EA9E /* LiveEditorState.swift in Sources */ = {isa = PBXBuildFile; fileRef = F634073CB71DD9B210E2140F /* LiveEditorState.swift */; };
 		54FC8D4F33DB14342ABA1230 /* HistoryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 70F314A0A77405978EE4DEF3 /* HistoryView.swift */; };
+		5B74413C46AB3F16C0E76F4B /* SourceFormat.swift in Sources */ = {isa = PBXBuildFile; fileRef = F7DEB0D5292780AB515192B4 /* SourceFormat.swift */; };
 		5BC7D79242A7F75FC8228ACE /* BMColor+IsLight.swift in Sources */ = {isa = PBXBuildFile; fileRef = A48C795B7F2C7C9C0AB49326 /* BMColor+IsLight.swift */; };
 		5C1EAC903EB0FE106F33DFA1 /* LiveHistoryEntry.swift in Sources */ = {isa = PBXBuildFile; fileRef = E14E34154801238D6F24FD9B /* LiveHistoryEntry.swift */; };
 		616F0C584F66CAD43780A408 /* HistoryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 70F314A0A77405978EE4DEF3 /* HistoryView.swift */; };
@@ -45,10 +46,13 @@
 		6769BDBEAB3B9A2DF4ADFF0A /* SampleDiagramPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9372C5E20E5A520ABA77B70E /* SampleDiagramPanel.swift */; };
 		696DA5E991640B1516E11B31 /* SampleDiagrams.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C9AAEB3C5C59DD79F7E9BB0 /* SampleDiagrams.swift */; };
 		6FD27DC65409F8690E30305D /* DiagramKitD2 in Frameworks */ = {isa = PBXBuildFile; productRef = D4E05EF8F25CE5B0C3CF536E /* DiagramKitD2 */; };
+		73A6F9C2975A3723904E0906 /* SourceFormat.swift in Sources */ = {isa = PBXBuildFile; fileRef = F7DEB0D5292780AB515192B4 /* SourceFormat.swift */; };
 		76051CBBCF780244DA55171F /* LiveRenderStatus.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2FF3AC82F7BAD9CD6A298588 /* LiveRenderStatus.swift */; };
 		7661B8E80D57D3395AA9C01A /* ActionsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EDBDE755FB1EFA4AA2789A90 /* ActionsView.swift */; };
 		79B7C9B9E7A0AB80988EBCEB /* DiagramPlaygroundApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 987F6BBE5471312B36FFDB67 /* DiagramPlaygroundApp.swift */; };
 		816B7D5F6AF0E5C191E9A0A7 /* EditorDiagnostic.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E2D328F5164590C9BA15C63 /* EditorDiagnostic.swift */; };
+		82222E7F87A1EDC9A7E89014 /* DiagramEditorPane.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4BAD4B41EFA7C8D4DFCE466 /* DiagramEditorPane.swift */; };
+		88092A2107B4FD8BAE3954C0 /* SourceFormatPicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8D221EF40DD1A74E88844D50 /* SourceFormatPicker.swift */; };
 		880FEF1247A9DF373A3A07CA /* PreviewToolbar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1395356A60C01148F9B855DE /* PreviewToolbar.swift */; };
 		883FA6075C244743F7544DB5 /* ActionsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EDBDE755FB1EFA4AA2789A90 /* ActionsView.swift */; };
 		8923A4660B5AFF5AD04AEB16 /* ShareView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EFF0253B31FCDEDFDED80B14 /* ShareView.swift */; };
@@ -58,16 +62,18 @@
 		9860E33873BDA7B1D1E77361 /* RawFileLoader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3EBFC51582BE3667033F091A /* RawFileLoader.swift */; };
 		9B413FAC70CC28E3DCD5227E /* ThemePicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = A918F585DF774CD0FC4033DB /* ThemePicker.swift */; };
 		A24660A3A0D3F9C5CE4EC1E7 /* ShareView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EFF0253B31FCDEDFDED80B14 /* ShareView.swift */; };
+		A4D2A48A76DD49BA4795D8AD /* DiagramEditorPane.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4BAD4B41EFA7C8D4DFCE466 /* DiagramEditorPane.swift */; };
 		A73837288D745218B98D0605 /* SampleDiagrams.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C9AAEB3C5C59DD79F7E9BB0 /* SampleDiagrams.swift */; };
 		A81B92FCFAC82E4578A16DEE /* LineNumberRuler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6DF051D27311D13FEDF0384D /* LineNumberRuler.swift */; };
 		AB0B493419EB01E85F66F4C4 /* LiveHistoryStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 33F2205BE455753911EEE253 /* LiveHistoryStore.swift */; };
 		AC569C58B233875AA964F016 /* ActionsPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 46340F73D8EBC608761F52EB /* ActionsPanel.swift */; };
+		ACC53D1904D3BB2E5F87C0A4 /* IssueReporting in Frameworks */ = {isa = PBXBuildFile; productRef = 901904D45E655F2DA2097583 /* IssueReporting */; };
 		AF8B60ACA80AC60EC16D1A5C /* DiagramKit in Frameworks */ = {isa = PBXBuildFile; productRef = 0524187B347FDEEA4D0F86D1 /* DiagramKit */; };
 		B18AEB7822775AE574417F89 /* DiagramKitStructurizr in Frameworks */ = {isa = PBXBuildFile; productRef = E044B5C2C4917468ED131785 /* DiagramKitStructurizr */; };
 		B212BF3ED601407E16CC6C66 /* EditorModePicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9D7D39A211AFBE95011C020B /* EditorModePicker.swift */; };
 		BAF9B41991AE16DA5B3623FA /* LoaderResult.swift in Sources */ = {isa = PBXBuildFile; fileRef = 172D27E6F35E6DA789B85665 /* LoaderResult.swift */; };
 		BEB6A5C768899253E84846BC /* DiagramKitPlantUML in Frameworks */ = {isa = PBXBuildFile; productRef = 4E212781BBF00B936A9F8A9C /* DiagramKitPlantUML */; };
-		C0B9C1A853B801408D55CF11 /* IssueReporting in Frameworks */ = {isa = PBXBuildFile; productRef = 0DE2DB0B2B4FC070CFA9D281 /* IssueReporting */; };
+		C0B9C1A853B801408D55CF11 /* DiagramKitInteractive in Frameworks */ = {isa = PBXBuildFile; productRef = D85860D644F4091650C47334 /* DiagramKitInteractive */; };
 		C3021243D24F8C24B52CA7D2 /* ExportOptions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 03CB5538899AF270470B174F /* ExportOptions.swift */; };
 		C34CE319B4ADF823C8D409F4 /* DiagramKitGraphviz in Frameworks */ = {isa = PBXBuildFile; productRef = D85105FA4384C51736DD32B4 /* DiagramKitGraphviz */; };
 		D37EFCFD28289B99194D2116 /* VersionSecurityPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = B8C4386AF78310E3B217A4AD /* VersionSecurityPanel.swift */; };
@@ -86,7 +92,7 @@
 		F5EFD28C5087AACF9BC53DD4 /* LiveEditorConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = 57A13F7093A3861D3C89FBE8 /* LiveEditorConfig.swift */; };
 		F9349A3F252B0FDF3C579D3F /* LiveEditorToolbar.swift in Sources */ = {isa = PBXBuildFile; fileRef = D00071A30CD213F32533C552 /* LiveEditorToolbar.swift */; };
 		FA86865E6727798F3E45818D /* DiagramSyntaxHighlighter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8BC8B0A6218A3B1CC571F6D4 /* DiagramSyntaxHighlighter.swift */; };
-		FF2F69CCE010A9C537270740 /* IssueReporting in Frameworks */ = {isa = PBXBuildFile; productRef = 901904D45E655F2DA2097583 /* IssueReporting */; };
+		FF2F69CCE010A9C537270740 /* DiagramKitInteractive in Frameworks */ = {isa = PBXBuildFile; productRef = CC0ED87A3944B5187D72DBA0 /* DiagramKitInteractive */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -109,6 +115,7 @@
 		70F314A0A77405978EE4DEF3 /* HistoryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoryView.swift; sourceTree = "<group>"; };
 		7C9AAEB3C5C59DD79F7E9BB0 /* SampleDiagrams.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SampleDiagrams.swift; sourceTree = "<group>"; };
 		8BC8B0A6218A3B1CC571F6D4 /* DiagramSyntaxHighlighter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiagramSyntaxHighlighter.swift; sourceTree = "<group>"; };
+		8D221EF40DD1A74E88844D50 /* SourceFormatPicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SourceFormatPicker.swift; sourceTree = "<group>"; };
 		9372C5E20E5A520ABA77B70E /* SampleDiagramPanel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SampleDiagramPanel.swift; sourceTree = "<group>"; };
 		987F6BBE5471312B36FFDB67 /* DiagramPlaygroundApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiagramPlaygroundApp.swift; sourceTree = "<group>"; };
 		9D7D39A211AFBE95011C020B /* EditorModePicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditorModePicker.swift; sourceTree = "<group>"; };
@@ -122,11 +129,12 @@
 		C16F5A868192706936A052FB /* LiveEditorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveEditorView.swift; sourceTree = "<group>"; };
 		D00071A30CD213F32533C552 /* LiveEditorToolbar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveEditorToolbar.swift; sourceTree = "<group>"; };
 		D243A9D2978231797DC76F9D /* PreviewCanvas.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreviewCanvas.swift; sourceTree = "<group>"; };
-		D6B42295BF43499126235D04 /* DiagramNativeViewRepresentable.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiagramNativeViewRepresentable.swift; sourceTree = "<group>"; };
 		E14E34154801238D6F24FD9B /* LiveHistoryEntry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveHistoryEntry.swift; sourceTree = "<group>"; };
 		EDBDE755FB1EFA4AA2789A90 /* ActionsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActionsView.swift; sourceTree = "<group>"; };
 		EFF0253B31FCDEDFDED80B14 /* ShareView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareView.swift; sourceTree = "<group>"; };
+		F4BAD4B41EFA7C8D4DFCE466 /* DiagramEditorPane.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiagramEditorPane.swift; sourceTree = "<group>"; };
 		F634073CB71DD9B210E2140F /* LiveEditorState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveEditorState.swift; sourceTree = "<group>"; };
+		F7DEB0D5292780AB515192B4 /* SourceFormat.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SourceFormat.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -139,7 +147,8 @@
 				36E905D77DC26E68047EFB6B /* DiagramKitGraphviz in Frameworks */,
 				02E5A2B92BCE87B3F24249CE /* DiagramKitStructurizr in Frameworks */,
 				260AB090B84C5BE60507F228 /* DiagramKitPlantUML in Frameworks */,
-				C0B9C1A853B801408D55CF11 /* IssueReporting in Frameworks */,
+				C0B9C1A853B801408D55CF11 /* DiagramKitInteractive in Frameworks */,
+				21E83B0FCA8A75CE554CAC28 /* IssueReporting in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -152,7 +161,8 @@
 				C34CE319B4ADF823C8D409F4 /* DiagramKitGraphviz in Frameworks */,
 				B18AEB7822775AE574417F89 /* DiagramKitStructurizr in Frameworks */,
 				BEB6A5C768899253E84846BC /* DiagramKitPlantUML in Frameworks */,
-				FF2F69CCE010A9C537270740 /* IssueReporting in Frameworks */,
+				FF2F69CCE010A9C537270740 /* DiagramKitInteractive in Frameworks */,
+				ACC53D1904D3BB2E5F87C0A4 /* IssueReporting in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -180,6 +190,7 @@
 				0C4A0AFF6EB55A7CA868F2CD /* LiveEditorStore.swift */,
 				2FF3AC82F7BAD9CD6A298588 /* LiveRenderStatus.swift */,
 				7C9AAEB3C5C59DD79F7E9BB0 /* SampleDiagrams.swift */,
+				F7DEB0D5292780AB515192B4 /* SourceFormat.swift */,
 				7511B2E050774CF13FF4FD34 /* History */,
 				CDD2A31C39338D03B6F5ABEA /* Loaders */,
 			);
@@ -211,7 +222,6 @@
 			children = (
 				EDBDE755FB1EFA4AA2789A90 /* ActionsView.swift */,
 				A48C795B7F2C7C9C0AB49326 /* BMColor+IsLight.swift */,
-				D6B42295BF43499126235D04 /* DiagramNativeViewRepresentable.swift */,
 				417F719FF3F57CADAAE73526 /* EditorPane.swift */,
 				C16F5A868192706936A052FB /* LiveEditorView.swift */,
 				D243A9D2978231797DC76F9D /* PreviewCanvas.swift */,
@@ -240,9 +250,11 @@
 		A9CA22755A0ECD7FBCCB9C06 /* Editor */ = {
 			isa = PBXGroup;
 			children = (
+				F4BAD4B41EFA7C8D4DFCE466 /* DiagramEditorPane.swift */,
 				9D7D39A211AFBE95011C020B /* EditorModePicker.swift */,
 				6DF051D27311D13FEDF0384D /* LineNumberRuler.swift */,
 				0ED3A85C9F035BCBAC98BE96 /* NativeCodeEditor.swift */,
+				8D221EF40DD1A74E88844D50 /* SourceFormatPicker.swift */,
 			);
 			path = Editor;
 			sourceTree = "<group>";
@@ -295,6 +307,7 @@
 				7C50BB43099D0B03D0CF8E96 /* DiagramKitGraphviz */,
 				D85B7B04EA254F856DE07E04 /* DiagramKitStructurizr */,
 				4BCDDB561E190D9F56CCF901 /* DiagramKitPlantUML */,
+				D85860D644F4091650C47334 /* DiagramKitInteractive */,
 				0DE2DB0B2B4FC070CFA9D281 /* IssueReporting */,
 			);
 			productName = "DiagramPlayground-iOS";
@@ -319,6 +332,7 @@
 				D85105FA4384C51736DD32B4 /* DiagramKitGraphviz */,
 				E044B5C2C4917468ED131785 /* DiagramKitStructurizr */,
 				4E212781BBF00B936A9F8A9C /* DiagramKitPlantUML */,
+				CC0ED87A3944B5187D72DBA0 /* DiagramKitInteractive */,
 				901904D45E655F2DA2097583 /* IssueReporting */,
 			);
 			productName = DiagramPlayground;
@@ -369,7 +383,7 @@
 				883FA6075C244743F7544DB5 /* ActionsView.swift in Sources */,
 				5BC7D79242A7F75FC8228ACE /* BMColor+IsLight.swift in Sources */,
 				021AEF817727B975A79923AA /* ConfigSanitizer.swift in Sources */,
-				295C42FCC83BD4E496B1E75A /* DiagramNativeViewRepresentable.swift in Sources */,
+				A4D2A48A76DD49BA4795D8AD /* DiagramEditorPane.swift in Sources */,
 				79B7C9B9E7A0AB80988EBCEB /* DiagramPlaygroundApp.swift in Sources */,
 				FA86865E6727798F3E45818D /* DiagramSyntaxHighlighter.swift in Sources */,
 				816B7D5F6AF0E5C191E9A0A7 /* EditorDiagnostic.swift in Sources */,
@@ -397,6 +411,8 @@
 				696DA5E991640B1516E11B31 /* SampleDiagrams.swift in Sources */,
 				8923A4660B5AFF5AD04AEB16 /* ShareView.swift in Sources */,
 				DCE9E45862AB74C0134F76BC /* SidebarView.swift in Sources */,
+				73A6F9C2975A3723904E0906 /* SourceFormat.swift in Sources */,
+				88092A2107B4FD8BAE3954C0 /* SourceFormatPicker.swift in Sources */,
 				19250F74DA484E9D6025B835 /* ThemePicker.swift in Sources */,
 				03182DAC686C3F414101D55D /* VersionSecurityPanel.swift in Sources */,
 			);
@@ -410,7 +426,7 @@
 				7661B8E80D57D3395AA9C01A /* ActionsView.swift in Sources */,
 				F5B7AD18D16D0271C6F8CE71 /* BMColor+IsLight.swift in Sources */,
 				02B0D7B0A8D2A4967C839291 /* ConfigSanitizer.swift in Sources */,
-				3CF37003BF1120BD5E6E8064 /* DiagramNativeViewRepresentable.swift in Sources */,
+				82222E7F87A1EDC9A7E89014 /* DiagramEditorPane.swift in Sources */,
 				27251F47975F43DD38F5065A /* DiagramPlaygroundApp.swift in Sources */,
 				DF8E2FFC3AA296D724198F1C /* DiagramSyntaxHighlighter.swift in Sources */,
 				628900C500938ADA740F4513 /* EditorDiagnostic.swift in Sources */,
@@ -438,6 +454,8 @@
 				A73837288D745218B98D0605 /* SampleDiagrams.swift in Sources */,
 				A24660A3A0D3F9C5CE4EC1E7 /* ShareView.swift in Sources */,
 				3ABF98441304FBE40CFBB37F /* SidebarView.swift in Sources */,
+				5B74413C46AB3F16C0E76F4B /* SourceFormat.swift in Sources */,
+				3A7E7669D4B5703B708E08B0 /* SourceFormatPicker.swift in Sources */,
 				9B413FAC70CC28E3DCD5227E /* ThemePicker.swift in Sources */,
 				D37EFCFD28289B99194D2116 /* VersionSecurityPanel.swift in Sources */,
 			);
@@ -732,6 +750,10 @@
 			isa = XCSwiftPackageProductDependency;
 			productName = DiagramKit;
 		};
+		CC0ED87A3944B5187D72DBA0 /* DiagramKitInteractive */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = DiagramKitInteractive;
+		};
 		D4E05EF8F25CE5B0C3CF536E /* DiagramKitD2 */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = DiagramKitD2;
@@ -739,6 +761,10 @@
 		D85105FA4384C51736DD32B4 /* DiagramKitGraphviz */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = DiagramKitGraphviz;
+		};
+		D85860D644F4091650C47334 /* DiagramKitInteractive */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = DiagramKitInteractive;
 		};
 		D85B7B04EA254F856DE07E04 /* DiagramKitStructurizr */ = {
 			isa = XCSwiftPackageProductDependency;
