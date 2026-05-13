@@ -426,7 +426,8 @@ public final class original_src_ascii_index {
             return renderXYChartAscii(preprocessedText, mappedConfig, mappedColorMode, mappedTheme)
 
         case .pie:
-            throw DiagramError.notYetImplemented("Pie Chart ASCII rendering")
+            let chart = try parsePieChart(preprocessedText)
+            return renderPieAscii(chart)
 
         case .journey:
             throw DiagramError.notYetImplemented("ASCII rendering for User Journey diagrams")
