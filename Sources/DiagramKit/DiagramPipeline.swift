@@ -123,10 +123,11 @@ public enum DiagramPipeline {
 
     // MARK: - Render SVG
 
-    /// Render a diagram to SVG through the positioned-graph path when the
-    /// diagram family supports it (currently: xyChart, quadrantChart,
-    /// sankey, radar). Falls back to the source-based pipeline for other
-    /// families.
+    /// Render a diagram to SVG through the positioned-graph path. Every
+    /// diagram family registered in `SVGRenderRegistry` carries a
+    /// `renderPositioned` closure, so this is the canonical SVG entry
+    /// point: parse → layout → positioned render. The legacy source-based
+    /// fallback was retired in Phase 2 (audit A4).
     public static func renderSVG(
         source: String,
         theme: DiagramTheme = .default,
@@ -150,22 +151,15 @@ public enum DiagramPipeline {
             let font = DiagramFontResolver.shared.svgFontFamily
             let diagramId = SVGIDGenerator.id(for: source, policy: idPolicy)
 
-            do {
-                let svg = try SVGRenderRegistry.render(
-                    positioned: positioned,
-                    diagramId: diagramId,
-                    colors: colors,
-                    font: font,
-                    transparent: false
-                )
-                let resolved = _resolveSvgCssVariables(svg)
-                return _flattenKnownSvgTokens(resolved, theme: theme)
-            } catch DiagramError.notYetImplemented {
-                // Fall back to source-based pipeline for families not yet
-                // on the positioned path.
-                return try DiagramImageRenderer(theme: theme, config: layoutConfig)
-                    .renderSVGSync(from: source, idPolicy: idPolicy)
-            }
+            let svg = try SVGRenderRegistry.render(
+                positioned: positioned,
+                diagramId: diagramId,
+                colors: colors,
+                font: font,
+                transparent: false
+            )
+            let resolved = _resolveSvgCssVariables(svg)
+            return _flattenKnownSvgTokens(resolved, theme: theme)
         }
     }
 
