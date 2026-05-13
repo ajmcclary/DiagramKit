@@ -330,9 +330,34 @@ guard depth == 0 else {
 }
 ```
 
-### Finding P4: Transition comments and implementation state have drifted
+### Finding P4: Transition comments and implementation state have drifted — RESOLVED 2026-05-13 (Phase 7, commits 2119dd3, 32732f7)
 
-Evidence:
+Closure summary:
+
+- All 28 `DiagramRegistry+<Family>.swift` files plus
+  `DiagramRegistry+TypedDescriptor.swift` carried the same four-line
+  "will be introduced in Phase 1 … will become MermaidDiagramRegistry"
+  header. Replaced with the audit's illustrative refactor: a single
+  sentence describing the current architecture (format-agnostic
+  dispatch lives in `DiagramKitImport`; this registry stays as the
+  Mermaid family detector and descriptor catalog).
+- `MermaidImporter.swift` no longer references the obsolete Phase 6D
+  switch; `DiagramLoader.parse` already throws
+  `DiagramError.unrecognizedFormat` for empty / unclaimed input.
+- `DiagramPipeline.swift:126-129` was already updated in Phase 2 (the
+  current comment correctly describes the canonical positioned-graph
+  path) — no further change needed.
+- `ShapeSpecRegistry+Defaults.swift` removed the duplicated
+  `// MARK: - Individual specs` heading.
+- New guard: `Scripts/check-stale-phase-comments.sh` scans `Sources/`
+  for "will be introduced", "will become", and "after Phase 6D" and
+  is wired into `Scripts/bootstrap-smoke-check.sh`. Intentional
+  migration-seam markers (e.g. "Phase 7 of the A5 RenderConfig
+  split", `Phase 8: Interactivity Primitives — Slice 8X` file
+  headers, in-function algorithmic step markers) are not matched —
+  see the script's header for the exclusion rationale.
+
+Evidence (at audit time):
 
 - `Sources/DiagramKit/DiagramRegistry+TypedDescriptor.swift:8-11` says a format-agnostic importer registry "will be introduced in Phase 1", but `ImporterRegistry` already exists.
 - `Sources/DiagramKit/MermaidImporter.swift:29-31` references a future Phase 6D behavior while `DiagramError.unrecognizedFormat` is already present.
