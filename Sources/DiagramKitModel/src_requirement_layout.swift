@@ -18,43 +18,9 @@ private enum RQL {
 
 private typealias NodeSizeMap = [String: (width: Double, height: Double)]
 
-private struct _RElkLabel {
-    var text: String
-    var width: Double
-    var height: Double
-    var x: Double?
-    var y: Double?
-}
-
-private struct _RElkPoint {
-    var x: Double
-    var y: Double
-}
-
-private struct _RElkSection {
-    var startPoint: _RElkPoint
-    var endPoint: _RElkPoint
-    var bendPoints: [_RElkPoint]?
-}
-
-private struct _RElkEdge {
-    var id: String
-    var sources: [String]
-    var targets: [String]
-    var labels: [_RElkLabel]?
-    var sections: [_RElkSection]?
-}
-
-private struct _RElkNode {
-    var id: String
-    var width: Double?
-    var height: Double?
-    var x: Double?
-    var y: Double?
-    var layoutOptions: [String: String]?
-    var children: [_RElkNode]?
-    var edges: [_RElkEdge]?
-}
+// ELK adapter types live in ElkModels.swift (ElkGraphNode / ElkGraphEdge /
+// ElkGraphLabel / ElkEdgeSection). The local _RElkNode/_RElkEdge/... structs
+// that used to wrap them here were deleted in Phase 1 (audit A1).
 
 private func _reqMapDirection(_ dir: RequirementDirection) -> String {
     switch dir {
@@ -134,7 +100,7 @@ private func _estimateElNodeSize(
 private func _buildReqElkGraph(
     _ diagram: RequirementDiagram,
     _ options: RenderOptions
-) -> (elkGraph: _RElkNode, nodeSizes: NodeSizeMap) {
+) -> (elkGraph: ElkGraphNode, nodeSizes: NodeSizeMap) {
     _ = options
     var nodeSizes: NodeSizeMap = [:]
     var allNodes: [(id: String, isRequirement: Bool, colorIndex: Int)] = []
@@ -153,21 +119,13 @@ private func _buildReqElkGraph(
         allNodes.append((id: el.name, isRequirement: false, colorIndex: diagram.requirements.count + idx))
     }
 
-    var children: [_RElkNode] = []
+    var children: [ElkGraphNode] = []
     for node in allNodes {
         let size = nodeSizes[node.id] ?? (RQL.minWidth, RQL.minHeight)
-        children.append(_RElkNode(
-            id: node.id,
-            width: size.width,
-            height: size.height,
-            x: nil, y: nil,
-            layoutOptions: nil,
-            children: nil,
-            edges: nil
-        ))
+        children.append(ElkGraphNode(id: node.id, width: size.width, height: size.height))
     }
 
-    var edges: [_RElkEdge] = []
+    var edges: [ElkGraphEdge] = []
     for (idx, rel) in diagram.relationships.enumerated() {
         let edgeId = "\(rel.sourceName)-\(rel.destinationName)-\(idx)"
         let labelText = "<<\(rel.type.rawValue)>>"
@@ -176,16 +134,14 @@ private func _buildReqElkGraph(
             fontSize: original_src_styles.FONT_SIZES.edgeLabel,
             fontWeight: original_src_styles.FONT_WEIGHTS.edgeLabel
         )
-        let edge = _RElkEdge(
+        edges.append(ElkGraphEdge(
             id: edgeId,
             sources: [rel.sourceName],
             targets: [rel.destinationName],
             labels: [
-                _RElkLabel(text: labelText, width: metrics.width + 8, height: metrics.height + 6, x: nil, y: nil)
-            ],
-            sections: nil
-        )
-        edges.append(edge)
+                ElkGraphLabel(text: labelText, width: metrics.width + 8, height: metrics.height + 6)
+            ]
+        ))
     }
 
     let directionStr = _reqMapDirection(diagram.direction)
@@ -193,9 +149,10 @@ private func _buildReqElkGraph(
     let ls = diagram.config.rankSpacing
     let pad = RQL.padding
 
-    let elkGraph = _RElkNode(
+    let elkGraph = ElkGraphNode(
         id: "root",
-        width: nil, height: nil, x: nil, y: nil,
+        children: children,
+        edges: edges,
         layoutOptions: [
             "elk.algorithm": "layered",
             "elk.direction": directionStr,
@@ -203,17 +160,15 @@ private func _buildReqElkGraph(
             "elk.layered.spacing.nodeNodeBetweenLayers": String(ls),
             "elk.padding": "[top=\(pad),left=\(pad),bottom=\(pad),right=\(pad)]",
             "elk.edgeRouting": "ORTHOGONAL",
-            "elk.edgeLabels.placement": "CENTER",
-        ],
-        children: children,
-        edges: edges
+            "elk.edgeLabels.placement": "CENTER"
+        ]
     )
 
     return (elkGraph, nodeSizes)
 }
 
 private func _extractReqLayout(
-    _ result: _RElkNode,
+    _ result: ElkGraphNode,
     _ diagram: RequirementDiagram,
     _ nodeSizes: NodeSizeMap,
     _ config: RequirementDiagramConfig
@@ -226,12 +181,12 @@ private func _extractReqLayout(
     for (idx, el) in diagram.elements.enumerated() { allColorIndex[el.name] = diagram.requirements.count + idx }
 
     var positionedNodes: [PositionedRequirementNode] = []
-    for child in result.children ?? [] {
+    for child in result.children {
         let fallback = nodeSizes[child.id] ?? (RQL.minWidth, RQL.minHeight)
-        let cw = child.width ?? fallback.width
-        let ch = child.height ?? fallback.height
-        let cx = child.x ?? 0
-        let cy = child.y ?? 0
+        let cw = child.width != 0 ? child.width : fallback.width
+        let ch = child.height != 0 ? child.height : fallback.height
+        let cx = child.x
+        let cy = child.y
 
         if let req = reqLookup[child.id] {
             positionedNodes.append(PositionedRequirementNode(
@@ -271,14 +226,13 @@ private func _extractReqLayout(
     }
 
     var edges: [PositionedRequirementEdge] = []
-    let resultEdges = result.edges ?? []
-    for (idx, elkEdge) in resultEdges.enumerated() {
+    for (idx, elkEdge) in result.edges.enumerated() {
         guard idx < diagram.relationships.count else { continue }
         let rel = diagram.relationships[idx]
         var path: [CGPoint] = []
-        if let section = elkEdge.sections?.first {
+        if let section = elkEdge.sections.first {
             path.append(CGPoint(x: section.startPoint.x, y: section.startPoint.y))
-            for bp in section.bendPoints ?? [] {
+            for bp in section.bendPoints {
                 path.append(CGPoint(x: bp.x, y: bp.y))
             }
             path.append(CGPoint(x: section.endPoint.x, y: section.endPoint.y))
@@ -290,8 +244,8 @@ private func _extractReqLayout(
 
         // Compute label midpoint
         let labelPosition: CGPoint? = {
-            if let label = elkEdge.labels?.first, let lx = label.x, let ly = label.y {
-                return CGPoint(x: lx, y: ly)
+            if let label = elkEdge.labels.first, label.x != 0 || label.y != 0 {
+                return CGPoint(x: label.x, y: label.y)
             }
             if path.count >= 2 {
                 // Midpoint of path
@@ -335,8 +289,8 @@ private func _extractReqLayout(
     }
 
     return PositionedRequirementDiagram(
-        width: result.width ?? 800,
-        height: result.height ?? 600,
+        width: result.width != 0 ? result.width : 800,
+        height: result.height != 0 ? result.height : 600,
         nodes: positionedNodes,
         edges: edges,
         diagramTitle: diagram.diagramTitle,
@@ -346,102 +300,9 @@ private func _extractReqLayout(
     )
 }
 
-// MARK: - ELK bridge (same pattern as ER layout)
-
-private func _anyToDouble(_ value: Any?) -> Double? {
-    if let d = value as? Double { return d }
-    if let i = value as? Int { return Double(i) }
-    if let f = value as? Float { return Double(f) }
-    if let n = value as? NSNumber { return n.doubleValue }
-    return nil
-}
-
-private func _decodeRElkPoint(_ any: Any?) -> _RElkPoint? {
-    guard let point = any as? [String: Any],
-          let x = _anyToDouble(point["x"]),
-          let y = _anyToDouble(point["y"]) else { return nil }
-    return _RElkPoint(x: x, y: y)
-}
-
-private func _encodeRElkPoint(_ point: _RElkPoint) -> [String: Any] {
-    ["x": point.x, "y": point.y]
-}
-
-private func _decodeRElkLabel(_ any: Any?) -> _RElkLabel? {
-    guard let label = any as? [String: Any],
-          let text = label["text"] as? String,
-          let width = _anyToDouble(label["width"]),
-          let height = _anyToDouble(label["height"]) else { return nil }
-    return _RElkLabel(text: text, width: width, height: height, x: _anyToDouble(label["x"]), y: _anyToDouble(label["y"]))
-}
-
-private func _encodeRElkLabel(_ label: _RElkLabel) -> [String: Any] {
-    var out: [String: Any] = ["text": label.text, "width": label.width, "height": label.height]
-    if let x = label.x { out["x"] = x }
-    if let y = label.y { out["y"] = y }
-    return out
-}
-
-private func _decodeRElkSection(_ any: Any?) -> _RElkSection? {
-    guard let section = any as? [String: Any],
-          let startPoint = _decodeRElkPoint(section["startPoint"]),
-          let endPoint = _decodeRElkPoint(section["endPoint"]) else { return nil }
-    let bendPoints = (section["bendPoints"] as? [Any])?.compactMap { _decodeRElkPoint($0) }
-    return _RElkSection(startPoint: startPoint, endPoint: endPoint, bendPoints: bendPoints)
-}
-
-private func _encodeRElkSection(_ section: _RElkSection) -> [String: Any] {
-    var out: [String: Any] = ["startPoint": _encodeRElkPoint(section.startPoint), "endPoint": _encodeRElkPoint(section.endPoint)]
-    if let bendPoints = section.bendPoints {
-        out["bendPoints"] = bendPoints.map(_encodeRElkPoint)
-    }
-    return out
-}
-
-private func _decodeRElkEdge(_ any: Any?) -> _RElkEdge? {
-    guard let edge = any as? [String: Any],
-          let id = edge["id"] as? String,
-          let sources = edge["sources"] as? [String],
-          let targets = edge["targets"] as? [String] else { return nil }
-    let labels = (edge["labels"] as? [Any])?.compactMap { _decodeRElkLabel($0) }
-    let sections = (edge["sections"] as? [Any])?.compactMap { _decodeRElkSection($0) }
-    return _RElkEdge(id: id, sources: sources, targets: targets, labels: labels, sections: sections)
-}
-
-private func _encodeRElkEdge(_ edge: _RElkEdge) -> [String: Any] {
-    var out: [String: Any] = ["id": edge.id, "sources": edge.sources, "targets": edge.targets]
-    if let labels = edge.labels { out["labels"] = labels.map(_encodeRElkLabel) }
-    if let sections = edge.sections { out["sections"] = sections.map(_encodeRElkSection) }
-    return out
-}
-
-private func _decodeRElkNode(_ any: Any?) -> _RElkNode? {
-    guard let node = any as? [String: Any],
-          let id = node["id"] as? String else { return nil }
-    let children = (node["children"] as? [Any])?.compactMap { _decodeRElkNode($0) }
-    let edges = (node["edges"] as? [Any])?.compactMap { _decodeRElkEdge($0) }
-    return _RElkNode(id: id, width: _anyToDouble(node["width"]), height: _anyToDouble(node["height"]),
-                     x: _anyToDouble(node["x"]), y: _anyToDouble(node["y"]),
-                     layoutOptions: node["layoutOptions"] as? [String: String],
-                     children: children, edges: edges)
-}
-
-private func _encodeRElkNode(_ node: _RElkNode) -> LayoutNode {
-    var out: LayoutNode = ["id": node.id]
-    if let w = node.width { out["width"] = w }
-    if let h = node.height { out["height"] = h }
-    if let x = node.x { out["x"] = x }
-    if let y = node.y { out["y"] = y }
-    if let lo = node.layoutOptions { out["layoutOptions"] = lo }
-    if let children = node.children { out["children"] = children.map(_encodeRElkNode) }
-    if let edges = node.edges { out["edges"] = edges.map(_encodeRElkEdge) }
-    return out
-}
-
-private func _layoutEngineSync(_ graph: _RElkNode) throws -> _RElkNode {
-    let laidOut = try layoutEngineSync(_encodeRElkNode(graph))
-    return _decodeRElkNode(laidOut) ?? graph
-}
+// ELK bridge: typed ElkGraphNode is converted to dict only at the
+// layoutEngineSync(...) call boundary; the laidOut dict is parsed back via
+// ElkGraphNode(from:). Encoder/decoder helpers removed in Phase 1.
 
 public func layoutRequirementDiagram(
     _ diagram: RequirementDiagram,
@@ -457,6 +318,7 @@ public func layoutRequirementDiagram(
         )
     }
     let built = _buildReqElkGraph(diagram, options)
-    let result = try _layoutEngineSync(built.elkGraph)
+    let rawResult = try layoutEngineSync(built.elkGraph.toDictionary())
+    let result = ElkGraphNode(from: rawResult)
     return _extractReqLayout(result, diagram, built.nodeSizes, diagram.config)
 }
