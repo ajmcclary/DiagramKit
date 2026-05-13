@@ -2,7 +2,7 @@
 
 DiagramKit is a native Swift port of [mermaid-js](https://mermaid.js.org/) covering ~28 diagram families (flowchart, state, sequence, class, ER, Gantt, gitGraph, mindmap, C4, ZenUML, Wardley, Treemap, Sankey, XY chart, Quadrant, Radar, Block, Timeline, EventModeling, Architecture, Ishikawa, Kanban, Packet, Pie, Requirement, TreeView, Venn, ZenUML). It exposes three render backends — Core Graphics images, SVG, and ASCII — plus a SwiftUI/UIKit/AppKit view wrapper.
 
-> **Status:** active. Phases 0–10 of the multi-format port are complete (Mermaid + D2 + Graphviz DOT + Structurizr + PlantUML sequence, 13 SwiftPM library products, 1044 snapshot baselines). Review-driven remediation (see [REVIEW.md](REVIEW.md) + [PLAN.md](PLAN.md)) is in flight — every Critical finding is fixed, with Important and Minor backlog tracked phase-by-phase.
+> **Status:** active. Phases 0–10 of the multi-format port are complete (Mermaid + D2 + Graphviz DOT + Structurizr + PlantUML sequence, 13 SwiftPM library products, 1044 snapshot baselines). Review-driven remediation is complete; every Critical finding has a closing commit recorded in [BASELINES.md](BASELINES.md). The archived plan lives at [docs/archive/PLAN.md](docs/archive/PLAN.md). Remaining work is tracked in [PHASES.md](PHASES.md): PlantUML family slices, DOT exporter, and broader ASCII renderer coverage.
 
 ## Features
 

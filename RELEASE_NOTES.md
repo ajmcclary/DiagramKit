@@ -1,9 +1,12 @@
 # Release notes — Review remediation cycle (Phases 1–8)
 
-This release closes every Critical finding in [REVIEW.md](REVIEW.md) and
-burns down the Important + Minor backlog called out in the same review.
-Phases 1–8 in [PLAN.md](PLAN.md) landed as 12 focused commits on `main`
-(see `git log 1f7361e..HEAD --oneline`).
+This release closes every Critical finding from the comprehensive code
+review and burns down the Important + Minor backlog called out alongside
+it. Phases 1–8 (plus 6A–6F) of the archived
+[docs/archive/PLAN.md](docs/archive/PLAN.md) landed as focused commits on
+`main` (see `git log 1f7361e..HEAD --oneline`). REVIEW.md itself was
+removed once the work shipped; the closing-commit map is preserved in
+[BASELINES.md](BASELINES.md).
 
 ## Renderer correctness
 

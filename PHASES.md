@@ -3,9 +3,12 @@
 This file is the active index. Historical phase records live under
 [docs/archive/](docs/archive/) — see [docs/archive/PHASES.md](docs/archive/PHASES.md)
 for the full multi-format port story (Phases 0–10) and the individual
-`docs/archive/PHASE-*.md` deep dives.
+`docs/archive/PHASE-*.md` deep dives. The completed review-remediation
+plan is preserved at [docs/archive/PLAN.md](docs/archive/PLAN.md); the
+closing-commit map for every Critical finding lives in
+[BASELINES.md](BASELINES.md).
 
-## Current state (post-Phase 10 + review remediation)
+## Current state
 
 - All 13 SwiftPM library products ship: `DiagramKit` (umbrella),
   `DiagramKitCommon`, `DiagramKitModel`, `DiagramKitImport`,
@@ -22,34 +25,32 @@ for the full multi-format port story (Phases 0–10) and the individual
   corpus exercised by the snapshot suite. Multi-format corpus entries
   (D2 / DOT / Structurizr / PlantUML) round-trip through their
   respective importers/exporters.
+- Review remediation (archived `PLAN.md`, Phases 0–8 plus 6A–6F) is
+  complete. CI runs the governance gates on PRs; `BASELINES.md` tracks
+  the closing commit for every Critical finding.
 
 ## Active work
 
-- **Review remediation (PLAN.md)** — execute the 12 Critical and the
-  Important backlog from [REVIEW.md](REVIEW.md). Phases 1–6 of
-  [PLAN.md](PLAN.md) are complete; Phase 7 (docs + minor cleanup),
-  Phase 8 (release verification) are the remaining slices.
-- **PlantUML family slices** — extend the importer/exporter coverage
-  beyond sequence (Phases 6B–6E in the archived roadmap). Current
-  PlantUML import is sequence-only; the exporter supports sequence +
-  C4 emission. Class, state/activity, mindmap+gantt, and C4 import
-  are still open.
+- **PlantUML family slices** — extend importer/exporter coverage beyond
+  sequence. Current PlantUML import is sequence-only; the exporter
+  supports sequence + C4 emission. Class, state/activity, mindmap +
+  gantt, and C4 import are still open. Tracked as Phases 6B–6E in the
+  archived multi-format roadmap.
 - **DOT exporter** — `DOTExporter` does not exist yet. Calling
   `DiagramExportLoader.export(to: .graphviz, …)` returns a
   `.unsupported` diagnostic. Implementation is a separate scoped phase.
 - **ASCII renderer coverage** — 5 of 28 families ship an ASCII renderer
   (flowchart, sequence, class, ER, state). The remaining 23 throw
-  `notYetImplemented`. Documented in
-  [BASELINES.md](BASELINES.md).
+  `notYetImplemented` from `Sources/DiagramKit/src_ascii_index.swift`.
+  Documented in [BASELINES.md](BASELINES.md).
 
 ## Index
 
 | Doc | Purpose |
 | --- | --- |
-| [REVIEW.md](REVIEW.md) | Comprehensive code review (12 Critical + Important + Minor) |
-| [PLAN.md](PLAN.md) | Remediation plan for REVIEW.md, organised into Phases 0–8 |
-| [BASELINES.md](BASELINES.md) | Build / test / snapshot counts, gate caveats, deferred follow-ups |
+| [BASELINES.md](BASELINES.md) | Build / test / snapshot counts, gate caveats, REVIEW.md closing-commit map |
 | [CONTRIBUTING.md](CONTRIBUTING.md) | Local + CI gate workflow, file-size & Sendable policy |
 | [ARCHITECTURE.md](ARCHITECTURE.md) | Layer diagram, pipeline detail, drift hazards |
 | [docs/archive/PHASES.md](docs/archive/PHASES.md) | Historical multi-format port roadmap (Phases 0–10) |
+| [docs/archive/PLAN.md](docs/archive/PLAN.md) | Completed review-remediation plan (Phases 0–8 + 6A–6F) |
 | [docs/archive/PHASE-0.md](docs/archive/PHASE-0.md) ... `PHASE-10.md` | Per-phase records |
