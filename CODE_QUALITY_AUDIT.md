@@ -213,7 +213,7 @@ public enum OriginalSourceLayoutCompatibility {
 
 ## Pattern Consistency Review
 
-### Finding P1: Target dependency declarations are inconsistent with source imports
+### Finding P1: Target dependency declarations are inconsistent with source imports — RESOLVED 2026-05-13 (Phase 4, commit 7e189a7)
 
 Evidence:
 
@@ -275,7 +275,7 @@ private func measureText(_ text: String, fontSize: Double, context: TreeViewLayo
 }
 ```
 
-### Finding P3: Error taxonomy is defined but parser code still uses `notYetImplemented` for malformed input
+### Finding P3: Error taxonomy is defined but parser code still uses `notYetImplemented` for malformed input — RESOLVED 2026-05-13 (Phase 4, commit da60d2a)
 
 Evidence:
 
@@ -707,7 +707,24 @@ Suggested sequence:
 2. Add frontmatter binding runners for single-section and config/theme families.
 3. Convert the most duplicated bindings first: ER/Ishikawa/Journey/Kanban/Class/C4/Mindmap/State and Architecture/Packet/XYChart/Timeline/Requirement/Venn/Quadrant.
 
-### Priority 4: Normalize error taxonomy and target metadata
+### Priority 4: Normalize error taxonomy and target metadata — COMPLETE (Phase 4, 2026-05-13)
+
+Closure summary:
+
+- `Package.swift` now declares `DiagramKitExport` on the
+  `DiagramKitGraphviz` target, matching the actual imports in
+  `DOTExporter.swift` and `DOTFlowchartExport.swift`.
+- All 19 syntax-error throws in `D2Parser`, `DOTParserHelpers`, and
+  `StructurizrParser` migrated from `DiagramError.notYetImplemented`
+  to `DiagramError.malformedSource(message:)`. `.notYetImplemented` is
+  now reserved for genuine feature gaps.
+- New `MalformedSourceErrorTaxonomyTests` (6 tests) pins the new
+  contract: unbalanced D2 braces, missing/unterminated Structurizr
+  workspace, missing model brace, and unterminated DOT attribute list
+  all assert `.malformedSource` is thrown.
+- Closure scan: `rg -n 'notYetImplemented' Sources/DiagramKitD2
+  Sources/DiagramKitGraphviz Sources/DiagramKitStructurizr` returns
+  zero matches.
 
 Files:
 
