@@ -240,7 +240,7 @@ Illustrative refactor:
 )
 ```
 
-### Finding P2: Font resolution is inconsistent between layout and rendering
+### Finding P2: Font resolution is inconsistent between layout and rendering — RESOLVED 2026-05-13 (Phase 5, commit 459df54)
 
 Evidence:
 
@@ -445,7 +445,7 @@ enum ElkLayoutOptions {
 }
 ```
 
-### Finding D3: Bounds-from-polyline logic is duplicated across stable-element conformances
+### Finding D3: Bounds-from-polyline logic is duplicated across stable-element conformances — RESOLVED 2026-05-13 (Phase 5, commit de2f713)
 
 Evidence:
 
@@ -486,7 +486,7 @@ extension DiagramRect {
 }
 ```
 
-### Finding D4: ASCII renderers duplicate canvas mutation helpers
+### Finding D4: ASCII renderers duplicate canvas mutation helpers — RESOLVED 2026-05-13 (Phase 5, commit 00e9fb8)
 
 Evidence:
 
@@ -522,7 +522,7 @@ public struct AsciiCanvasWriter {
 }
 ```
 
-### Finding D5: Flowchart exporters duplicate traversal and source assembly
+### Finding D5: Flowchart exporters duplicate traversal and source assembly — RESOLVED 2026-05-13 (Phase 5, commit 81560df)
 
 Evidence:
 
