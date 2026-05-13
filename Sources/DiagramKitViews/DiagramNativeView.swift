@@ -36,6 +36,8 @@ public class DiagramNativeView: UIView {
     public var parseError: Error? { mermaidLayer.parseError }
     public var diagramBounds: CGRect { mermaidLayer.diagramBounds }
 
+    private var invalidationToken: AnyObject?
+
     public override init(frame: CGRect) {
         self.mermaidLayer = DiagramLayer()
         super.init(frame: frame)
@@ -51,7 +53,7 @@ public class DiagramNativeView: UIView {
     private func commonInit() {
         backgroundColor = mermaidLayer.theme.background
         contentMode = .redraw
-        mermaidLayer.onPrepareComplete = { [weak self] in
+        invalidationToken = mermaidLayer.addPrepareCompletionHandler { [weak self] in
             self?.invalidateIntrinsicContentSize()
             self?.setNeedsDisplay()
         }

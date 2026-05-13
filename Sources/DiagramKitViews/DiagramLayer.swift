@@ -43,8 +43,17 @@ public class DiagramLayer: CALayer {
     public private(set) var preparedDiagram: PreparedDiagram?
     private var preparationTask: Task<Void, Never>?
 
-    /// Called after the diagram is prepared (parsed + laid out).
+    /// Compatibility callback fired after a non-cancelled preparation completes.
+    /// For multiple observers (e.g. host view + SwiftUI binding), prefer
+    /// ``addPrepareCompletionHandler(_:)`` which supports fan-out.
     public var onPrepareComplete: (@MainActor () -> Void)?
+
+    private struct CompletionHandlerEntry {
+        let token: ObjectIdentifier
+        let handler: @MainActor () -> Void
+    }
+    private var prepareHandlers: [CompletionHandlerEntry] = []
+    private final class HandlerToken {}
 
     // MARK: - Initialization
 
@@ -67,6 +76,13 @@ public class DiagramLayer: CALayer {
         preparationTask?.cancel()
     }
 
+    /// CALayer's overridden initializers are `nonisolated` (forced by the
+    /// parent's signature), so `commonInit()` is too. The writes below land
+    /// on CALayer-inherited properties, which `@preconcurrency QuartzCore`
+    /// exposes as nonisolated. When the umbrella drops `@preconcurrency`,
+    /// this method must move to `@MainActor` — but that requires the inits
+    /// to be `@MainActor` first, which is only legal once CALayer's own
+    /// inits are visible as `@MainActor`.
     private nonisolated func commonInit() {
         needsDisplayOnBoundsChange = true
         #if os(visionOS)
@@ -76,6 +92,29 @@ public class DiagramLayer: CALayer {
         #elseif canImport(AppKit)
         contentsScale = NSScreen.main?.backingScaleFactor ?? 2.0
         #endif
+    }
+
+    // MARK: - Preparation observers
+
+    /// Register a handler called after every non-cancelled preparation completes
+    /// (both success and parse-error paths). Multiple handlers may be installed;
+    /// each receives the event. Returns a token to pass to
+    /// ``removePrepareCompletionHandler(_:)``.
+    @discardableResult
+    public func addPrepareCompletionHandler(
+        _ handler: @escaping @MainActor () -> Void
+    ) -> AnyObject {
+        let token = HandlerToken()
+        prepareHandlers.append(CompletionHandlerEntry(
+            token: ObjectIdentifier(token),
+            handler: handler
+        ))
+        return token
+    }
+
+    public func removePrepareCompletionHandler(_ token: AnyObject) {
+        let id = ObjectIdentifier(token)
+        prepareHandlers.removeAll { $0.token == id }
     }
 
     // MARK: - Bitmap Rendering
@@ -97,6 +136,13 @@ public class DiagramLayer: CALayer {
 
     // MARK: - Private Methods
 
+    private func notifyPrepareComplete() {
+        onPrepareComplete?()
+        for entry in prepareHandlers {
+            entry.handler()
+        }
+    }
+
     private func prepareDiagram() {
         preparationTask?.cancel()
         parseError = nil
@@ -105,7 +151,7 @@ public class DiagramLayer: CALayer {
             preparedDiagram = nil
             diagramBounds = .zero
             setNeedsDisplay()
-            onPrepareComplete?()
+            notifyPrepareComplete()
             return
         }
 
@@ -115,24 +161,34 @@ public class DiagramLayer: CALayer {
 
         let preparer = DiagramViewPreparerEnvironment.current
 
-        preparationTask = Task { [weak self] in
+        preparationTask = Task { @MainActor [weak self] in
+            let result: Result<PreparedDiagram, Error>
             do {
-                let prepared = if let preparer {
-                    try await preparer.prepare(source, theme, layoutConfig)
+                let prepared: PreparedDiagram
+                if let preparer {
+                    prepared = try await preparer.prepare(source, theme, layoutConfig)
                 } else {
-                    try await DiagramPreparation.prepare(source: source, theme: theme, layoutConfig: layoutConfig)
+                    prepared = try await DiagramPreparation.prepare(
+                        source: source, theme: theme, layoutConfig: layoutConfig
+                    )
                 }
-                guard !Task.isCancelled else { return }
-                self?.preparedDiagram = prepared
-                self?.diagramBounds = prepared.bounds
+                result = .success(prepared)
             } catch {
-                guard !Task.isCancelled else { return }
-                _reportDiagramIssueIfNeeded(error, operation: "DiagramLayer.prepareDiagram")
-                self?.parseError = error
+                result = .failure(error)
             }
 
-            self?.setNeedsDisplay()
-            self?.onPrepareComplete?()
+            // Cancelled tasks must not publish stale state or fire callbacks.
+            guard !Task.isCancelled, let self else { return }
+            switch result {
+            case .success(let prepared):
+                self.preparedDiagram = prepared
+                self.diagramBounds = prepared.bounds
+            case .failure(let error):
+                _reportDiagramIssueIfNeeded(error, operation: "DiagramLayer.prepareDiagram")
+                self.parseError = error
+            }
+            self.setNeedsDisplay()
+            self.notifyPrepareComplete()
         }
     }
 }

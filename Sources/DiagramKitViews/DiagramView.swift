@@ -32,9 +32,13 @@ public struct DiagramView: UIViewRepresentable {
         self._diagramBounds = diagramBounds
     }
 
+    public func makeCoordinator() -> Coordinator {
+        Coordinator(parseError: $parseError, diagramBounds: $diagramBounds)
+    }
+
     public func makeUIView(context: Context) -> DiagramNativeView {
         let view = DiagramNativeView()
-        bindPreparationUpdates(from: view)
+        context.coordinator.attach(to: view)
         view.theme = theme
         view.layoutConfig = layoutConfig
         view.source = source
@@ -42,7 +46,7 @@ public struct DiagramView: UIViewRepresentable {
     }
 
     public func updateUIView(_ view: DiagramNativeView, context: Context) {
-        bindPreparationUpdates(from: view)
+        context.coordinator.updateBindings(parseError: $parseError, diagramBounds: $diagramBounds)
 
         if view.theme != theme {
             view.theme = theme
@@ -55,19 +59,35 @@ public struct DiagramView: UIViewRepresentable {
         if view.source != source {
             view.source = source
         }
-
     }
 
-    private func bindPreparationUpdates(from view: DiagramNativeView) {
-        view.mermaidLayer.onPrepareComplete = { [weak view] in
-            publishPreparationState(from: view)
+    public final class Coordinator {
+        fileprivate var parseError: Binding<Error?>
+        fileprivate var diagramBounds: Binding<CGRect>
+        fileprivate weak var view: DiagramNativeView?
+        fileprivate var token: AnyObject?
+
+        fileprivate init(parseError: Binding<Error?>, diagramBounds: Binding<CGRect>) {
+            self.parseError = parseError
+            self.diagramBounds = diagramBounds
         }
-    }
 
-    private func publishPreparationState(from view: DiagramNativeView?) {
-        let parseError = $parseError
-        let diagramBounds = $diagramBounds
-        Task { @MainActor in
+        @MainActor
+        fileprivate func attach(to view: DiagramNativeView) {
+            self.view = view
+            self.token = view.mermaidLayer.addPrepareCompletionHandler { [weak self, weak view] in
+                self?.publish(from: view)
+            }
+        }
+
+        @MainActor
+        fileprivate func updateBindings(parseError: Binding<Error?>, diagramBounds: Binding<CGRect>) {
+            self.parseError = parseError
+            self.diagramBounds = diagramBounds
+        }
+
+        @MainActor
+        fileprivate func publish(from view: DiagramNativeView?) {
             guard let view else { return }
             parseError.wrappedValue = view.parseError
             diagramBounds.wrappedValue = view.diagramBounds
@@ -102,9 +122,13 @@ public struct DiagramView: NSViewRepresentable {
         self._diagramBounds = diagramBounds
     }
 
+    public func makeCoordinator() -> Coordinator {
+        Coordinator(parseError: $parseError, diagramBounds: $diagramBounds)
+    }
+
     public func makeNSView(context: Context) -> DiagramNativeView {
         let view = DiagramNativeView()
-        bindPreparationUpdates(from: view)
+        context.coordinator.attach(to: view)
         view.theme = theme
         view.layoutConfig = layoutConfig
         view.source = source
@@ -112,7 +136,7 @@ public struct DiagramView: NSViewRepresentable {
     }
 
     public func updateNSView(_ view: DiagramNativeView, context: Context) {
-        bindPreparationUpdates(from: view)
+        context.coordinator.updateBindings(parseError: $parseError, diagramBounds: $diagramBounds)
 
         if view.theme != theme {
             view.theme = theme
@@ -125,19 +149,35 @@ public struct DiagramView: NSViewRepresentable {
         if view.source != source {
             view.source = source
         }
-
     }
 
-    private func bindPreparationUpdates(from view: DiagramNativeView) {
-        view.mermaidLayer.onPrepareComplete = { [weak view] in
-            publishPreparationState(from: view)
+    public final class Coordinator {
+        fileprivate var parseError: Binding<Error?>
+        fileprivate var diagramBounds: Binding<CGRect>
+        fileprivate weak var view: DiagramNativeView?
+        fileprivate var token: AnyObject?
+
+        fileprivate init(parseError: Binding<Error?>, diagramBounds: Binding<CGRect>) {
+            self.parseError = parseError
+            self.diagramBounds = diagramBounds
         }
-    }
 
-    private func publishPreparationState(from view: DiagramNativeView?) {
-        let parseError = $parseError
-        let diagramBounds = $diagramBounds
-        Task { @MainActor in
+        @MainActor
+        fileprivate func attach(to view: DiagramNativeView) {
+            self.view = view
+            self.token = view.mermaidLayer.addPrepareCompletionHandler { [weak self, weak view] in
+                self?.publish(from: view)
+            }
+        }
+
+        @MainActor
+        fileprivate func updateBindings(parseError: Binding<Error?>, diagramBounds: Binding<CGRect>) {
+            self.parseError = parseError
+            self.diagramBounds = diagramBounds
+        }
+
+        @MainActor
+        fileprivate func publish(from view: DiagramNativeView?) {
             guard let view else { return }
             parseError.wrappedValue = view.parseError
             diagramBounds.wrappedValue = view.diagramBounds
