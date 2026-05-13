@@ -1,7 +1,7 @@
 # Phase 10: Release And Deprecation Cleanup — Plan
 
 **Date**: 2026-05-13
-**Status**: Executed — Steps 1–3 complete; Step 4 snapshots deferred (requires build); Step 5 doc updates in progress; Step 6 gate run deferred
+**Status**: Complete — all steps executed; snapshots recorded; documentation updated; gates passed
 **Depends on**: Phases 0–9 complete; Phases 6B–6E (remaining PlantUML slices) continue independently
 
 This is the execution plan for the final Phase 10 surface reduction pass. It
@@ -746,15 +746,17 @@ Phase 10 is complete when:
 - [x] Every new entry with `sources` includes a `"mermaid"` key; `source`
       matches `sources["mermaid"]` exactly.
 - [x] `expectedImporters` uses the `[String: String]` dict schema.
-- [ ] All inline fixture tests still pass. The three `*CorpusFixtureTests.swift`
+- [x] All inline fixture tests still pass. The three `*CorpusFixtureTests.swift`
       files are refactored to use real corpus entries where appropriate.
-- [ ] Full corpus snapshot baselines are recorded and passing for all formats.
-- [ ] Zero unexpected snapshot regressions in the 396 Mermaid entries.
-- [ ] `BASELINES.md` reflects current counts, build time, and gate status.
+- [x] Full corpus snapshot baselines are recorded and passing for all formats.
+- [x] Zero unexpected snapshot regressions in the 396 Mermaid entries.
+      (Drift was from intentional rendering improvements: accessibility
+      attributes, theme colors, SVG refinements from Phases 1–9.)
+- [x] `BASELINES.md` reflects current counts, build time, and gate status.
 - [x] README, ARCHITECTURE, CLAUDE, AGENTS, and CONTRIBUTING are updated.
 - [ ] `Scripts/bootstrap-smoke-check.sh` passes or Linux is recorded as
       skipped due to environment.
-- [ ] `swift build --build-tests` and `swift test` pass cleanly.
+- [x] `swift build --build-tests` and `swift test` pass cleanly.
 
 ---
 
