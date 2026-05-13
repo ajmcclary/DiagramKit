@@ -202,6 +202,6 @@ public class DiagramNativeView: NSView {
 
 // MARK: - Phase 0 backward-compat deprecated alias
 
-@available(*, deprecated, renamed: "DiagramNativeView")
+@available(*, deprecated, renamed: "DiagramNativeView", message: "Will be removed in the next major version.")
 public typealias MermaidView = DiagramNativeView
 #endif

@@ -111,7 +111,3 @@ public enum DiagramSourceNormalizer {
     }
 }
 
-// MARK: - Phase 0 backward-compat deprecated alias
-
-@available(*, deprecated, renamed: "DiagramSourceNormalizer")
-public typealias MermaidSourceNormalizer = DiagramSourceNormalizer

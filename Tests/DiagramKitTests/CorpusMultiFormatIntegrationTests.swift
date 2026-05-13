@@ -39,12 +39,14 @@ struct MultiFormatBackwardCompatibilityTests {
         }
     }
 
-    @Test("Real corpus has no sources field")
-    func testRealCorpusHasNoSourcesField() throws {
+    @Test("Real corpus entries with sources are valid multi-format")
+    func testRealCorpusSourcesInvariants() throws {
         let entries = try Self.loadRealCorpus()
         for entry in entries {
-            let comment: Comment = "Entry \"\(entry.id)\" unexpectedly has a `sources` field"
-            #expect(entry.sources == nil, comment)
+            if let sources = entry.sources {
+                #expect(sources["mermaid"] != nil,
+                        "Entry \"\(entry.id)\" has sources but no mermaid key")
+            }
         }
     }
 

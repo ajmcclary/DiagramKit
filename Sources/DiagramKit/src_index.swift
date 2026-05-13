@@ -363,7 +363,7 @@ public func renderDiagramSVGAsync(
 
 // MARK: - Deprecated compat wrappers
 
-@available(*, deprecated, renamed: "renderDiagramSVG(_:_:)")
+@available(*, deprecated, renamed: "renderDiagramSVG(_:_:)", message: "Will be removed in the next major version.")
 public func renderMermaidSVG(
     _ text: String,
     _ options: RenderOptions = RenderOptions()
@@ -371,7 +371,7 @@ public func renderMermaidSVG(
     try await renderDiagramSVG(text, options)
 }
 
-@available(*, deprecated, renamed: "renderDiagramSVGAsync(_:_:)")
+@available(*, deprecated, renamed: "renderDiagramSVGAsync(_:_:)", message: "Will be removed in the next major version.")
 public func renderMermaidSVGAsync(
     _ text: String,
     _ options: RenderOptions = RenderOptions()
@@ -379,15 +379,7 @@ public func renderMermaidSVGAsync(
     try await renderDiagramSVGAsync(text, options)
 }
 
-@available(*, unavailable, message: "Use await renderDiagramSVG")
-public func renderMermaidSync(
-    _ text: String,
-    _ options: RenderOptions = RenderOptions()
-) throws -> String {
-    fatalError("Use await renderDiagramSVG(_:_:)")
-}
-
-@available(*, deprecated, message: "Use renderDiagramSVG")
+@available(*, deprecated, renamed: "renderDiagramSVG(_:_:)", message: "Will be removed in the next major version.")
 public func renderMermaid(
     _ text: String,
     _ options: RenderOptions = RenderOptions()

@@ -80,11 +80,4 @@ public enum DiagramPreparation {
     }
 }
 
-// MARK: - Phase 0 backward-compat deprecated aliases
-
-@available(*, deprecated, renamed: "DiagramPreparationError")
-public typealias MermaidPreparationError = DiagramPreparationError
-
-@available(*, deprecated, renamed: "DiagramPreparation")
-public typealias MermaidPreparation = DiagramPreparation
 #endif

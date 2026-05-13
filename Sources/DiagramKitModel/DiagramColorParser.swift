@@ -130,8 +130,4 @@ public enum DiagramColorParser {
     }
 }
 
-// MARK: - Phase 0 backward-compat deprecated alias
-
-@available(*, deprecated, renamed: "DiagramColorParser")
-public typealias MermaidColorParser = DiagramColorParser
 #endif

@@ -216,5 +216,5 @@ public struct DiagramStructuralError: Error, LocalizedError {
 
 // MARK: - Phase 0 backward-compat deprecated alias
 
-@available(*, deprecated, renamed: "DiagramStructuralError")
+@available(*, deprecated, renamed: "DiagramStructuralError", message: "Will be removed in the next major version.")
 public typealias MermaidStructuralError = DiagramStructuralError

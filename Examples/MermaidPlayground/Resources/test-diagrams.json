@@ -2407,6 +2407,174 @@
       "category": "zenuml",
       "name": "Title",
       "source": "zenuml\ntitle My Diagram\nA->B: hello"
+    },
+    {
+      "id": "d2-1-simple-edge",
+      "category": "flowchart",
+      "name": "D2: Simple Edge (A → B)",
+      "source": "graph LR\n  A[Start] --> B[End]",
+      "sources": {
+        "mermaid": "graph LR\n  A[Start] --> B[End]",
+        "d2": "direction: right\nA: Start\nB: End\nA -> B"
+      },
+      "expectedImporters": {
+        "mermaid": "Mermaid",
+        "d2": "D2"
+      }
+    },
+    {
+      "id": "d2-2-container",
+      "category": "flowchart",
+      "name": "D2: Container",
+      "source": "graph TD\n  subgraph Cluster\n    A --> B\n  end",
+      "sources": {
+        "mermaid": "graph TD\n  subgraph Cluster\n    A --> B\n  end",
+        "d2": "Cluster {\n  A -> B\n}"
+      },
+      "expectedImporters": {
+        "mermaid": "Mermaid",
+        "d2": "D2"
+      }
+    },
+    {
+      "id": "d2-3-shape-hint",
+      "category": "flowchart",
+      "name": "D2: Shape Hint",
+      "source": "graph LR\n  A[(Database)]",
+      "sources": {
+        "mermaid": "graph LR\n  A[(Database)]",
+        "d2": "A: Database\nA.shape: cylinder"
+      },
+      "expectedImporters": {
+        "mermaid": "Mermaid",
+        "d2": "D2"
+      }
+    },
+    {
+      "id": "d2-4-comments",
+      "category": "flowchart",
+      "name": "D2: Comments",
+      "source": "graph LR\n  A[Start] --> B[End]\n  A -->|label| B",
+      "sources": {
+        "mermaid": "graph LR\n  A[Start] --> B[End]\n  A -->|label| B",
+        "d2": "# A comment\nA: Start\nA -> B: label"
+      },
+      "expectedImporters": {
+        "mermaid": "Mermaid",
+        "d2": "D2"
+      }
+    },
+    {
+      "id": "dot-1-simple-digraph",
+      "category": "flowchart",
+      "name": "DOT: Simple Digraph",
+      "source": "graph LR\n  A[Start] --> B[End]",
+      "sources": {
+        "mermaid": "graph LR\n  A[Start] --> B[End]",
+        "graphviz": "digraph G {\n  rankdir=LR;\n  A [label=Start];\n  B [label=End];\n  A -> B;\n}"
+      },
+      "expectedImporters": {
+        "mermaid": "Mermaid",
+        "graphviz": "Graphviz"
+      }
+    },
+    {
+      "id": "dot-2-subgraph",
+      "category": "flowchart",
+      "name": "DOT: Subgraph",
+      "source": "graph TD\n  subgraph Cluster\n    A --> B\n  end",
+      "sources": {
+        "mermaid": "graph TD\n  subgraph Cluster\n    A --> B\n  end",
+        "graphviz": "digraph G {\n  subgraph cluster_0 {\n    label=\"Cluster\";\n    A; B;\n  }\n}"
+      },
+      "expectedImporters": {
+        "mermaid": "Mermaid",
+        "graphviz": "Graphviz"
+      }
+    },
+    {
+      "id": "dot-3-undirected",
+      "category": "flowchart",
+      "name": "DOT: Undirected Graph",
+      "source": "graph TD\n  A --- B",
+      "sources": {
+        "mermaid": "graph TD\n  A --- B",
+        "graphviz": "graph G {\n  A -- B;\n}"
+      },
+      "expectedImporters": {
+        "mermaid": "Mermaid",
+        "graphviz": "Graphviz"
+      }
+    },
+    {
+      "id": "dot-4-node-attrs",
+      "category": "flowchart",
+      "name": "DOT: Node Attributes",
+      "source": "graph TD\n  A[Start] --> B[End]",
+      "sources": {
+        "mermaid": "graph TD\n  A[Start] --> B[End]",
+        "graphviz": "digraph G {\n  node [shape=box];\n  A [label=Start];\n  B [label=End];\n  A -> B;\n}"
+      },
+      "expectedImporters": {
+        "mermaid": "Mermaid",
+        "graphviz": "Graphviz"
+      }
+    },
+    {
+      "id": "structurizr-1-system-context",
+      "category": "c4",
+      "name": "Structurizr: System Context",
+      "source": "C4Context\n  Person(u, \"User\")\n  System(app, \"My App\")\n  Rel(u, app, \"Uses\")",
+      "sources": {
+        "mermaid": "C4Context\n  Person(u, \"User\")\n  System(app, \"My App\")\n  Rel(u, app, \"Uses\")",
+        "structurizr": "workspace {\n  model {\n    u = person \"User\" \"A user\"\n    app = softwareSystem \"My App\" \"Core\"\n    u -> app \"Uses\" \"HTTPS\"\n  }\n  views {\n    systemContext app \"System Context\" {\n      include *\n    }\n  }\n}"
+      },
+      "expectedImporters": {
+        "mermaid": "Mermaid",
+        "structurizr": "Structurizr"
+      }
+    },
+    {
+      "id": "structurizr-2-container-view",
+      "category": "c4",
+      "name": "Structurizr: Container View",
+      "source": "C4Container\n  Person(u, \"User\")\n  System(app, \"My App\")\n  Container(web, \"Web App\", \"Spring\")\n  Container(db, \"Database\", \"PostgreSQL\")\n  Rel(u, app, \"Uses\")",
+      "sources": {
+        "mermaid": "C4Container\n  Person(u, \"User\")\n  System(app, \"My App\")\n  Container(web, \"Web App\", \"Spring\")\n  Container(db, \"Database\", \"PostgreSQL\")\n  Rel(u, app, \"Uses\")",
+        "structurizr": "workspace {\n  model {\n    u = person \"User\"\n    app = softwareSystem \"My App\" {\n      web = container \"Web App\" \"Public UI\" \"Spring\"\n      db = container \"Database\" \"PostgreSQL\"\n    }\n    u -> app \"Uses\"\n  }\n  views {\n    container app \"Container View\" {\n      include *\n    }\n  }\n}"
+      },
+      "expectedImporters": {
+        "mermaid": "Mermaid",
+        "structurizr": "Structurizr"
+      }
+    },
+    {
+      "id": "structurizr-3-component-view",
+      "category": "c4",
+      "name": "Structurizr: Component View",
+      "source": "C4Component\n  Person(u, \"User\")\n  System(app, \"My App\")\n  Container(web, \"Web App\")\n  Component(auth, \"Auth Service\", \"OAuth2\")\n  Component(api, \"API Service\")\n  Rel(u, app, \"Uses\")",
+      "sources": {
+        "mermaid": "C4Component\n  Person(u, \"User\")\n  System(app, \"My App\")\n  Container(web, \"Web App\")\n  Component(auth, \"Auth Service\", \"OAuth2\")\n  Component(api, \"API Service\")\n  Rel(u, app, \"Uses\")",
+        "structurizr": "workspace {\n  model {\n    u = person \"User\"\n    app = softwareSystem \"My App\" {\n      web = container \"Web App\" {\n        auth = component \"Auth Service\" \"Handles login\" \"OAuth2\"\n        api = component \"API Service\"\n      }\n    }\n    u -> app \"Uses\"\n  }\n  views {\n    component web \"Component View\" {\n      include *\n    }\n  }\n}"
+      },
+      "expectedImporters": {
+        "mermaid": "Mermaid",
+        "structurizr": "Structurizr"
+      }
+    },
+    {
+      "id": "structurizr-4-scoped-rel",
+      "category": "c4",
+      "name": "Structurizr: Scoped Relationship",
+      "source": "C4Container\n  Container(web, \"Web App\")\n  Container(db, \"Database\")\n  Rel(web, db, \"Queries\")",
+      "sources": {
+        "mermaid": "C4Container\n  Container(web, \"Web App\")\n  Container(db, \"Database\")\n  Rel(web, db, \"Queries\")",
+        "structurizr": "workspace {\n  model {\n    u = person \"User\"\n    app = softwareSystem \"My App\" {\n      web = container \"Web App\"\n      db = container \"Database\"\n      web -> db \"Queries\" \"SQL\"\n    }\n    u -> app \"Uses\"\n  }\n  views {\n    container app {\n      include *\n    }\n  }\n}"
+      },
+      "expectedImporters": {
+        "mermaid": "Mermaid",
+        "structurizr": "Structurizr"
+      }
     }
   ],
   "metadata": {
@@ -2440,5 +2608,35 @@
       "c4": 5,
       "zenuml": 15
     }
+  },
+  "_counts": {
+    "architecture": 9,
+    "block": 12,
+    "c4": 9,
+    "class": 61,
+    "er": 25,
+    "eventmodeling": 12,
+    "flowchart": 35,
+    "gantt": 7,
+    "gitGraph": 18,
+    "ishikawa": 7,
+    "journey": 3,
+    "kanban": 4,
+    "mindmap": 9,
+    "packet": 5,
+    "pie": 14,
+    "quadrantChart": 12,
+    "radar": 10,
+    "requirement": 16,
+    "sankey": 10,
+    "sequence": 23,
+    "state": 12,
+    "timeline": 13,
+    "treeView": 10,
+    "treemap": 10,
+    "venn": 8,
+    "wardleyBeta": 12,
+    "xychart": 27,
+    "zenuml": 15
   }
 }

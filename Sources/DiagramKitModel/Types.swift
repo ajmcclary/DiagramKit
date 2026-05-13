@@ -769,8 +769,8 @@ public enum DiagramError: Error, LocalizedError {
 
 // MARK: - Phase 0 backward-compat deprecated aliases (Commit B)
 
-@available(*, deprecated, renamed: "DiagramDocument")
+@available(*, deprecated, renamed: "DiagramDocument", message: "Will be removed in the next major version.")
 public typealias MermaidGraph = DiagramDocument
 
-@available(*, deprecated, renamed: "DiagramError")
+@available(*, deprecated, renamed: "DiagramError", message: "Will be removed in the next major version.")
 public typealias BeautifulMermaidError = DiagramError

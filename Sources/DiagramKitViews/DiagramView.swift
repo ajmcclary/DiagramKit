@@ -150,6 +150,6 @@ public struct DiagramView: NSViewRepresentable {
 // MARK: - Phase 0 backward-compat deprecated alias
 
 @available(iOS 26.0, macCatalyst 26.0, visionOS 26.0, macOS 26.0, *)
-@available(*, deprecated, renamed: "DiagramView")
+@available(*, deprecated, renamed: "DiagramView", message: "Will be removed in the next major version.")
 public typealias MermaidDiagramView = DiagramView
 #endif

@@ -42,8 +42,4 @@ public enum DiagramWorkerThread {
     }
 }
 
-// MARK: - Phase 0 backward-compat deprecated alias
-
-@available(*, deprecated, renamed: "DiagramWorkerThread")
-public typealias MermaidWorkerThread = DiagramWorkerThread
 #endif

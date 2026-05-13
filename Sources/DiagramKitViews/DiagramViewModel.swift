@@ -69,7 +69,7 @@ public struct DiagramViewModel {
 
 // MARK: - Phase 0 backward-compat deprecated alias
 
-@available(*, deprecated, renamed: "DiagramViewModel")
+@available(*, deprecated, renamed: "DiagramViewModel", message: "Will be removed in the next major version.")
 public typealias MermaidDiagram = DiagramViewModel
 
 // MARK: - DiagramView convenience init for the value-type model

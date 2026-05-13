@@ -64,8 +64,4 @@ public enum DiagramFontRegistry {
     }
 }
 
-// MARK: - Phase 0 backward-compat deprecated alias
-
-@available(*, deprecated, renamed: "DiagramFontRegistry")
-public typealias BeautifulMermaidFontRegistry = DiagramFontRegistry
 #endif

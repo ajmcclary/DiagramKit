@@ -89,8 +89,4 @@ public enum DiagramBitmapRenderer {
     }
 }
 
-// MARK: - Phase 0 backward-compat deprecated alias
-
-@available(*, deprecated, renamed: "DiagramBitmapRenderer")
-public typealias MermaidBitmapRenderer = DiagramBitmapRenderer
 #endif

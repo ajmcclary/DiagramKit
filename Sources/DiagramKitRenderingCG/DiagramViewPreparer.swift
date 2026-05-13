@@ -62,11 +62,4 @@ public enum DiagramViewPreparerEnvironment {
     }
 }
 
-// MARK: - Phase 0 backward-compat deprecated aliases
-
-@available(*, deprecated, renamed: "DiagramViewPreparer")
-public typealias MermaidViewPreparer = DiagramViewPreparer
-
-@available(*, deprecated, renamed: "DiagramViewPreparerEnvironment")
-public typealias MermaidViewPreparerEnvironment = DiagramViewPreparerEnvironment
 #endif

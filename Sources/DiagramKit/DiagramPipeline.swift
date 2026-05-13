@@ -232,5 +232,5 @@ public enum DiagramPipeline {
 
 // MARK: - Phase 0 backward-compat deprecated alias
 
-@available(*, deprecated, renamed: "DiagramPipeline")
+@available(*, deprecated, renamed: "DiagramPipeline", message: "Will be removed in the next major version.")
 public typealias MermaidPipeline = DiagramPipeline

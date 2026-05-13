@@ -27,7 +27,7 @@ struct CorpusSnapshotTests {
 
     // MARK: - Helpers
 
-    private static func projectRoot() -> URL {
+    static func projectRoot() -> URL {
         var url = URL(fileURLWithPath: #file).deletingLastPathComponent()
         while url.path != "/" {
             let package = url.appendingPathComponent("Package.swift")
@@ -39,7 +39,7 @@ struct CorpusSnapshotTests {
         return URL(fileURLWithPath: FileManager.default.currentDirectoryPath)
     }
 
-    private static func loadDiagrams() throws -> [CorpusEntry] {
+    static func loadDiagrams() throws -> [CorpusEntry] {
         let jsonURL = projectRoot()
             .appendingPathComponent("Examples/MermaidPlayground/Resources/test-diagrams.json")
         let data = try Data(contentsOf: jsonURL)
@@ -68,11 +68,6 @@ struct CorpusSnapshotTests {
     @MainActor
     func imageSnapshot(_ diagram: CorpusEntry) async throws {
         let image = try #require(await DiagramEngine.renderImage(source: diagram.source))
-        // Allow a small margin for floating-point differences in CoreText path
-        // rasterization across CPU architectures (Apple Silicon vs Intel) and
-        // OS minor versions. `perceptualPrecision` smooths over imperceptible
-        // sub-pixel-antialiasing drift; `precision` gates the strict-pixel-match
-        // count. Tighten if you need stricter regression catching.
         assertSnapshot(
             of: image,
             as: .image(precision: 0.99, perceptualPrecision: 0.98),
@@ -86,5 +81,59 @@ struct CorpusSnapshotTests {
     func asciiSnapshot(_ diagram: CorpusEntry) async throws {
         let ascii = try await DiagramEngine.renderASCII(source: diagram.source)
         assertSnapshot(of: ascii, as: .lines, named: diagram.id + "-ascii")
+    }
+}
+
+// MARK: - Multi-format snapshot tests
+
+/// Multi-format snapshot tests that iterate over `entry.availableFormats`.
+/// In a separate suite to avoid `@Test` macro symbol conflicts with
+/// the Mermaid-only snapshot tests above.
+///
+/// Snapshot names use a format suffix (e.g. `flow-1-simple-mermaid`,
+/// `d2-1-simple-edge-d2`) so baselines for different formats never collide.
+///
+/// ## Recording (chunked to avoid signal-10 in parameterized harness)
+/// ```bash
+/// SNAPSHOT_DIAGRAM_IDS=<id1,id2,...> SNAPSHOT_TESTING_RECORD=true \
+///   swift test --filter CorpusMultiFormatSnapshotTests/multiFormatSvgSnapshot
+/// SNAPSHOT_DIAGRAM_IDS=<id1,id2,...> SNAPSHOT_TESTING_RECORD=true \
+///   swift test --filter CorpusMultiFormatSnapshotTests/multiFormatImageSnapshot
+/// ```
+@Suite("Multi-format corpus snapshots")
+struct CorpusMultiFormatSnapshotTests {
+
+    private static func loadDiagrams() throws -> [CorpusEntry] {
+        try CorpusSnapshotTests.loadDiagrams()
+    }
+
+    // MARK: - Multi-format SVG snapshots
+
+    @Test("Multi-format SVG snapshot", arguments: try loadDiagrams())
+    func multiFormatSvgSnapshot(_ diagram: CorpusEntry) async throws {
+        for format in diagram.availableFormats where format != "mermaid" {
+            guard !diagram.shouldSkipSnapshot(for: format) else { continue }
+            guard let source = diagram.source(for: format) else { continue }
+            let svg = try await DiagramEngine.renderSVG(source: source, idPolicy: .stable)
+            let snapshotName = "\(diagram.id)-\(format)"
+            assertSnapshot(of: svg, as: .lines, named: snapshotName)
+        }
+    }
+
+    // MARK: - Multi-format image snapshots
+
+    @Test("Multi-format image snapshot", arguments: try loadDiagrams())
+    @MainActor
+    func multiFormatImageSnapshot(_ diagram: CorpusEntry) async throws {
+        for format in diagram.availableFormats where format != "mermaid" {
+            guard !diagram.shouldSkipSnapshot(for: format) else { continue }
+            guard let source = diagram.source(for: format) else { continue }
+            let image = try #require(await DiagramEngine.renderImage(source: source))
+            assertSnapshot(
+                of: image,
+                as: .image(precision: 0.99, perceptualPrecision: 0.98),
+                named: "\(diagram.id)-\(format)"
+            )
+        }
     }
 }

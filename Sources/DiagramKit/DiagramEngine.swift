@@ -184,7 +184,7 @@ public struct DiagramEngine {
 
 extension DiagramEngine {
     #if canImport(CoreGraphics)
-    @available(*, deprecated, renamed: "renderImage(source:theme:scale:)")
+    @available(*, deprecated, renamed: "renderImage(source:theme:scale:)", message: "Will be removed in the next major version.")
     @MainActor
     public static func renderImageAsync(
         source: String,
@@ -196,7 +196,7 @@ extension DiagramEngine {
     #endif
 
     #if canImport(CoreGraphics)
-    @available(*, deprecated, renamed: "renderSVG(source:theme:layoutConfig:)")
+    @available(*, deprecated, renamed: "renderSVG(source:theme:layoutConfig:)", message: "Will be removed in the next major version.")
     public static func renderSVGAsync(
         source: String,
         theme: DiagramTheme = .default
@@ -204,7 +204,7 @@ extension DiagramEngine {
         try await renderSVG(source: source, theme: theme)
     }
 
-    @available(*, deprecated, renamed: "renderASCII(source:theme:)")
+    @available(*, deprecated, renamed: "renderASCII(source:theme:)", message: "Will be removed in the next major version.")
     public static func renderASCIIAsync(
         source: String,
         theme: DiagramTheme = .default
@@ -214,7 +214,7 @@ extension DiagramEngine {
     #endif
 
     #if canImport(CoreGraphics)
-    @available(*, deprecated, renamed: "prepare(source:theme:layoutConfig:)")
+    @available(*, deprecated, renamed: "prepare(source:theme:layoutConfig:)", message: "Will be removed in the next major version.")
     public static func prepareAsync(
         source: String,
         theme: DiagramTheme = .default
@@ -226,7 +226,7 @@ extension DiagramEngine {
 
 // MARK: - Phase 0 backward-compat deprecated alias
 
-@available(*, deprecated, renamed: "DiagramEngine")
+@available(*, deprecated, renamed: "DiagramEngine", message: "Will be removed in the next major version.")
 public typealias MermaidRenderer = DiagramEngine
 
 extension String {
@@ -234,7 +234,7 @@ extension String {
         try await DiagramEngine.parse(self)
     }
 
-    @available(*, deprecated, renamed: "parseDiagram()")
+    @available(*, deprecated, renamed: "parseDiagram()", message: "Will be removed in the next major version.")
     public func parseMermaid() async throws -> DiagramDocument {
         try await parseDiagram()
     }
@@ -248,7 +248,7 @@ extension String {
         try await DiagramEngine.renderImage(source: self, theme: theme, scale: scale)
     }
 
-    @available(*, deprecated, renamed: "renderDiagramImage(theme:scale:)")
+    @available(*, deprecated, renamed: "renderDiagramImage(theme:scale:)", message: "Will be removed in the next major version.")
     @MainActor
     public func renderMermaidImage(
         theme: DiagramTheme = .default,
@@ -270,7 +270,7 @@ extension String {
         )
     }
 
-    @available(*, deprecated, renamed: "renderDiagramSVG(theme:layoutConfig:)")
+    @available(*, deprecated, renamed: "renderDiagramSVG(theme:layoutConfig:)", message: "Will be removed in the next major version.")
     public func renderMermaidSVG(
         theme: DiagramTheme = .default,
         layoutConfig: LayoutConfig = LayoutConfig()
@@ -284,7 +284,7 @@ extension String {
         try await DiagramEngine.renderASCII(source: self, theme: theme)
     }
 
-    @available(*, deprecated, renamed: "renderDiagramASCII(theme:)")
+    @available(*, deprecated, renamed: "renderDiagramASCII(theme:)", message: "Will be removed in the next major version.")
     public func renderMermaidASCII(
         theme: DiagramTheme = .default
     ) async throws -> String {

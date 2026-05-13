@@ -139,6 +139,6 @@ public class DiagramLayer: CALayer {
 
 // MARK: - Phase 0 backward-compat deprecated alias
 
-@available(*, deprecated, renamed: "DiagramLayer")
+@available(*, deprecated, renamed: "DiagramLayer", message: "Will be removed in the next major version.")
 public typealias MermaidLayer = DiagramLayer
 #endif
