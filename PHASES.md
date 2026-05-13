@@ -32,22 +32,26 @@ closing-commit map for every Critical finding lives in
 ## Active work
 
 - **PlantUML family slices** — extend importer/exporter coverage beyond
-  sequence. Current PlantUML import is sequence-only; the exporter
-  supports sequence + C4 emission. Class, state/activity, mindmap +
-  gantt, and C4 import are still open. Tracked as Phases 6B–6E in the
-  archived multi-format roadmap.
+  sequence. Both sides of PlantUML are sequence-only today; the
+  earlier C4 exporter (`PlantUMLC4Exporter.swift`) was deleted in
+  Phase 7 cleanup because it was unwired. Class, state/activity,
+  mindmap, gantt, and C4 importers + exporters are still open.
+  Detailed scoping lives in [PLAN.md](PLAN.md) (Phases 2–6).
 - **DOT exporter** — `DOTExporter` does not exist yet. Calling
   `DiagramExportLoader.export(to: .graphviz, …)` returns a
-  `.unsupported` diagnostic. Implementation is a separate scoped phase.
+  `.unsupported` diagnostic. Scoped as Phase 1 in [PLAN.md](PLAN.md).
 - **ASCII renderer coverage** — 5 of 28 families ship an ASCII renderer
-  (flowchart, sequence, class, ER, state). The remaining 23 throw
-  `notYetImplemented` from `Sources/DiagramKit/src_ascii_index.swift`.
-  Documented in [BASELINES.md](BASELINES.md).
+  today (flowchart, sequence, class, ER, xychart; state shares the
+  flowchart dispatch). The other 22 `case`s in
+  `Sources/DiagramKit/src_ascii_index.swift` throw
+  `notYetImplemented`. Scoped as Phases 7–11 in [PLAN.md](PLAN.md);
+  baseline counts tracked in [BASELINES.md](BASELINES.md).
 
 ## Index
 
 | Doc | Purpose |
 | --- | --- |
+| [PLAN.md](PLAN.md) | Active phased plan for DOT exporter, PlantUML slices, ASCII coverage |
 | [BASELINES.md](BASELINES.md) | Build / test / snapshot counts, gate caveats, REVIEW.md closing-commit map |
 | [CONTRIBUTING.md](CONTRIBUTING.md) | Local + CI gate workflow, file-size & Sendable policy |
 | [ARCHITECTURE.md](ARCHITECTURE.md) | Layer diagram, pipeline detail, drift hazards |
