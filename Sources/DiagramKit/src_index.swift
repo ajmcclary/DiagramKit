@@ -4,6 +4,7 @@
 import Foundation
 import DiagramKitCommon
 import DiagramKitModel
+import DiagramKitImport
 
 // RenderOptions + DiagramColors moved to DiagramKitModel/RenderOptions.swift
 
@@ -42,34 +43,32 @@ private func buildColors(_ options: RenderOptions) -> DiagramColors {
     )
 }
 
+/// Render Mermaid source to SVG by routing through the canonical
+/// positioned-graph path (parse → layout → positioned render).
+/// Preserved for the two callers that thread `RenderOptions` rather
+/// than `DiagramTheme`: `DiagramPipeline.renderSVG(_:options:)` and
+/// `DiagramImageRenderer.renderSVGSync(from:idPolicy:)`. The legacy
+/// source-based SVG path (with its 27 `_render*SvgCase` functions) was
+/// retired in Phase 2 (audit A4).
 func _renderDiagramSVG(
     _ text: String,
     _ options: RenderOptions = RenderOptions(),
     layoutConfig: LayoutConfig = LayoutConfig()
 ) throws -> String {
-    let preprocessed = _preprocessMermaidSource(_decodeXML(text))
-    return try _renderPreprocessedDiagramSVG(
-        preprocessed.source,
-        frontmatter: preprocessed.frontmatter,
-        options: options,
-        layoutConfig: layoutConfig
+    let document = try DiagramLoader.parseDocument(
+        text,
+        registry: DiagramPipeline.defaultRegistry
     )
-}
+    let positioned = try GraphLayout(config: layoutConfig).layout(document)
 
-private func _renderPreprocessedDiagramSVG(
-    _ decodedText: String,
-    frontmatter fm: DiagramFrontmatter?,
-    options: RenderOptions,
-    layoutConfig: LayoutConfig
-) throws -> String {
     let colors = buildColors(options)
     let font = options.font ?? DiagramFontResolver.shared.svgFontFamily
     let transparent = options.transparent ?? false
+    let diagramId = SVGIDGenerator.id(for: text, policy: options.idPolicy)
+
     return try SVGRenderRegistry.render(
-        decodedText,
-        frontmatter: fm,
-        options: options,
-        layoutConfig: layoutConfig,
+        positioned: positioned,
+        diagramId: diagramId,
         colors: colors,
         font: font,
         transparent: transparent
