@@ -43,6 +43,28 @@ final class LiveEditorStoreEditorLifecycleTests: XCTestCase {
         XCTAssertNotNil(store.parseError)
     }
 
+    func test_performSetLabelUpdatesSourceAndPreservesSelection() async throws {
+        let store = LiveEditorStore(state: LiveEditorState(source: "flowchart TD\nA --> B\n"))
+        try await waitForEditor(store: store)
+        let selection = DiagramSelection(diagramType: .flowchart, elementID: "node:A")
+        store.setSelection(selection)
+
+        try store.performMutation(.setLabel(of: selection, to: "Renamed"))
+        try await waitForRenderTick(store: store)
+
+        XCTAssertTrue(store.state.source.contains("Renamed"))
+        XCTAssertEqual(store.editor?.selection?.elementID, "node:A")
+    }
+
+    func test_toggleInspectorFlipsState() {
+        let store = LiveEditorStore(state: LiveEditorState())
+        XCTAssertFalse(store.state.inspectorOpen)
+        store.toggleInspector()
+        XCTAssertTrue(store.state.inspectorOpen)
+        store.toggleInspector()
+        XCTAssertFalse(store.state.inspectorOpen)
+    }
+
     // MARK: - Helpers
 
     /// Drive the render path until `store.editor` becomes non-nil or the
@@ -67,6 +89,12 @@ final class LiveEditorStoreEditorLifecycleTests: XCTestCase {
     fileprivate func waitForRender(store: LiveEditorStore, timeout: TimeInterval = 1) async throws {
         try await Task.sleep(nanoseconds: 50_000_000)
         store.didCompleteRender(parseError: NSError(domain: "test", code: 1), diagramBounds: .zero)
+    }
+
+    /// Tick a successful render so re-seed runs after a mutation.
+    fileprivate func waitForRenderTick(store: LiveEditorStore, timeout: TimeInterval = 1) async throws {
+        try await Task.sleep(nanoseconds: 50_000_000)
+        store.didCompleteRender(parseError: nil, diagramBounds: .zero)
     }
 }
 #endif

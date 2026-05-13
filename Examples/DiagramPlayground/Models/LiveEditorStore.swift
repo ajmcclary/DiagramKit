@@ -336,7 +336,7 @@ public final class LiveEditorStore {
 
     /// Apply a freshly-parsed document to the persistent editor.
     private func applySeededEditor(document: DiagramDocument) async {
-        let previousSelectionID = editor?.selection?.elementID
+        let previousSelection = editor?.selection
         let formatID = state.sourceFormat.formatID
 
         let newEditor = DiagramEditor(
@@ -346,15 +346,19 @@ public final class LiveEditorStore {
         )
         try? newEditor.syncSource()
 
-        // Best-effort selection restore: depends on the lookup being current.
-        // The DiagramView preview path also publishes a lookup; the canvas
-        // overlay uses that. We only need to clear stale selection here.
-        if let previousSelectionID,
-           let lookup = boundsLookup,
-           let restored = lookup.selection(for: previousSelectionID) {
-            newEditor.selection = restored
-        } else {
-            newEditor.selection = nil
+        // Best-effort selection restore. If a lookup is current, validate the
+        // element still exists. Otherwise, preserve the same DiagramSelection
+        // verbatim when the document type still matches — a later tap or
+        // render cycle will clear stale selection if the element was removed.
+        if let previousSelection {
+            if let lookup = boundsLookup,
+               let restored = lookup.selection(for: previousSelection.elementID) {
+                newEditor.selection = restored
+            } else if previousSelection.diagramType == document.type {
+                newEditor.selection = previousSelection
+            } else {
+                newEditor.selection = nil
+            }
         }
 
         editor = newEditor
@@ -722,6 +726,66 @@ public final class LiveEditorStore {
     /// tap dispatch and any keyboard-driven picker.
     public func setSelection(_ selection: DiagramSelection?) {
         editor?.selection = selection
+    }
+
+    // MARK: - Mutations (Phase 7)
+
+    /// Most recent mutation error, surfaced inline by the editor pane.
+    /// Cleared automatically on the next successful mutation.
+    public private(set) var lastMutationError: String?
+
+    /// Apply a core mutation through the persistent editor, then push the
+    /// exported source back into `state.source` (origin: `.system` so manual
+    /// mode does not block the round-trip).
+    ///
+    /// No-ops silently when `editor` is nil — the pane gates buttons on
+    /// `store.editor != nil`, so this only protects against races.
+    public func performMutation(_ mutation: DiagramMutation) throws {
+        guard let editor else { return }
+        do {
+            try editor.perform(mutation)
+            lastMutationError = nil
+            if let source = editor.source, source != state.source {
+                setSource(source, origin: .system)
+            }
+        } catch {
+            lastMutationError = error.localizedDescription
+            throw error
+        }
+    }
+
+    /// Apply a flowchart-specific mutation through the persistent editor.
+    ///
+    /// No-ops silently when `editor` is nil.
+    public func performFlowchartMutation(_ mutation: FlowchartMutation) throws {
+        guard let editor else { return }
+        do {
+            try editor.performFlowchart(mutation)
+            lastMutationError = nil
+            if let source = editor.source, source != state.source {
+                setSource(source, origin: .system)
+            }
+        } catch {
+            lastMutationError = error.localizedDescription
+            throw error
+        }
+    }
+
+    // MARK: - Inspector pane (Phase 7)
+
+    /// Toggle the floating Inspector drawer.
+    public func toggleInspector() {
+        state.inspectorOpen.toggle()
+    }
+
+    /// Delegate to `editor.undoManager.undo()`.
+    public func undoStructural() {
+        editor?.undoManager.undo()
+    }
+
+    /// Delegate to `editor.undoManager.redo()`.
+    public func redoStructural() {
+        editor?.undoManager.redo()
     }
 
     /// Convert a view-space tap into a selection on `editor`.
