@@ -68,6 +68,12 @@ struct DiagramEditorPane: View {
         } else if let editor = store.editor {
             VStack(alignment: .leading, spacing: 18) {
                 TitleSection(store: store, editor: editor)
+                Divider()
+                SelectionSection(store: store, editor: editor)
+                Divider()
+                LabelSection(store: store, editor: editor)
+                Divider()
+                DeleteSection(store: store, editor: editor)
                 if let message = store.lastMutationError {
                     Text(message)
                         .font(.system(size: 11))
@@ -136,4 +142,126 @@ private func sectionLabel(_ text: String, store: LiveEditorStore) -> some View {
         .font(.system(size: 10, weight: .semibold))
         .foregroundColor(Color(store.theme.effectiveMuted()))
         .textCase(.uppercase)
+}
+
+// MARK: - Selection section
+
+@available(iOS 26.0, macOS 26.0, macCatalyst 26.0, *)
+private struct SelectionSection: View {
+    @Bindable var store: LiveEditorStore
+    let editor: DiagramEditor
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            sectionLabel("Selection", store: store)
+            if let lookup = store.boundsLookup, !lookup.allElementIDs.isEmpty {
+                Picker("Selected element", selection: pickerBinding(lookup: lookup)) {
+                    Text("None").tag(String?.none)
+                    Section("Nodes") {
+                        ForEach(nodeIDs(lookup: lookup), id: \.self) { id in
+                            Text(displayName(id: id, lookup: lookup)).tag(String?.some(id))
+                        }
+                    }
+                    Section("Edges") {
+                        ForEach(edgeIDs(lookup: lookup), id: \.self) { id in
+                            Text(displayName(id: id, lookup: lookup)).tag(String?.some(id))
+                        }
+                    }
+                }
+                .pickerStyle(.menu)
+                .labelsHidden()
+            } else {
+                Text("No selectable elements in this diagram.")
+                    .font(.system(size: 11))
+                    .foregroundColor(Color(store.theme.effectiveMuted()))
+            }
+        }
+    }
+
+    private func pickerBinding(lookup: DiagramBoundsLookup) -> Binding<String?> {
+        Binding(
+            get: { editor.selection?.elementID },
+            set: { newID in
+                if let newID, let selection = lookup.selection(for: newID) {
+                    store.setSelection(selection)
+                } else {
+                    store.setSelection(nil)
+                }
+            }
+        )
+    }
+
+    private func nodeIDs(lookup: DiagramBoundsLookup) -> [String] {
+        lookup.allElementIDs.filter { $0.hasPrefix("node:") }
+    }
+
+    private func edgeIDs(lookup: DiagramBoundsLookup) -> [String] {
+        lookup.allElementIDs.filter { $0.hasPrefix("edge:") }
+    }
+
+    private func displayName(id: String, lookup: DiagramBoundsLookup) -> String {
+        guard let sel = lookup.selection(for: id) else { return id }
+        if let label = lookup.label(for: sel), !label.isEmpty {
+            return "\(label) (\(id))"
+        }
+        return id
+    }
+}
+
+// MARK: - Label section
+
+@available(iOS 26.0, macOS 26.0, macCatalyst 26.0, *)
+private struct LabelSection: View {
+    @Bindable var store: LiveEditorStore
+    let editor: DiagramEditor
+
+    @SwiftUI.State private var draft: String = ""
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            sectionLabel("Label", store: store)
+            HStack(spacing: 6) {
+                TextField("Label…", text: $draft)
+                    .textFieldStyle(.roundedBorder)
+                    .font(.system(size: 12))
+                Button("Rename") {
+                    guard let selection = editor.selection else { return }
+                    try? store.performMutation(.setLabel(of: selection, to: draft))
+                }
+                .disabled(editor.selection == nil)
+            }
+        }
+        .onChange(of: editor.selection) { _, _ in
+            updateDraft()
+        }
+        .onAppear { updateDraft() }
+    }
+
+    private func updateDraft() {
+        guard let selection = editor.selection,
+              let label = store.boundsLookup?.label(for: selection) else {
+            draft = ""
+            return
+        }
+        draft = label
+    }
+}
+
+// MARK: - Delete section
+
+@available(iOS 26.0, macOS 26.0, macCatalyst 26.0, *)
+private struct DeleteSection: View {
+    @Bindable var store: LiveEditorStore
+    let editor: DiagramEditor
+
+    var body: some View {
+        HStack {
+            Button("Delete selected", role: .destructive) {
+                guard let selection = editor.selection else { return }
+                try? store.performMutation(.deleteElement(selection))
+            }
+            .disabled(editor.selection == nil)
+            Spacer(minLength: 0)
+        }
+    }
 }
