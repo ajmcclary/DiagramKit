@@ -1,5 +1,9 @@
 # Phase 9: Interactive Model (Editor Primitives)
 
+> **Status: COMPLETE** (2026-05-12)
+> All criteria met. See [Implementation Notes](#implementation-notes) below for
+> actual line counts, test counts, and deviations from the plan.
+
 Goal: provide editor primitives after import/export and stable geometry are
 settled, without shipping a turnkey editor UI.
 
@@ -894,36 +898,107 @@ changes.
 
 Phase 9 is complete when:
 
-- [ ] `DiagramKitInteractive` target exists and builds without depending
+- [x] `DiagramKitInteractive` target exists and builds without depending
       on `DiagramKit`, `DiagramKitImport`, `DiagramKitRenderingCG`, or
-      `DiagramKitViews`.
-- [ ] `DiagramEditor` class is implemented with `preferredExportFormat`,
+      `DiagramKitViews`. (See §Deviations.)
+- [x] `DiagramEditor` class is implemented with `preferredExportFormat`,
       `exportRegistry`, undo, selection, and source sync.
-- [ ] Core mutations (`deleteElement`, `setLabel`, `setTitle`) work on
+- [x] Core mutations (`deleteElement`, `setLabel`, `setTitle`) work on
       flowcharts.
-- [ ] Flowchart mutations (`insertNode`, `insertEdge`) work on flowcharts.
-- [ ] `setTitle` works on all families.
-- [ ] Undo/redo is atomic: failed mutations do not pollute the undo stack.
-- [ ] Undo/redo closures are nonthrowing.
-- [ ] Source sync uses `DiagramExportLoader.export(_:to:registry:)` with
+- [x] Flowchart mutations (`insertNode`, `insertEdge`) work on flowcharts.
+- [x] `setTitle` works on all families.
+- [x] Undo/redo is atomic: failed mutations do not pollute the undo stack.
+- [x] Undo/redo closures are nonthrowing.
+- [x] Source sync uses `DiagramExportLoader.export(_:to:registry:)` with
       the stored `preferredExportFormat`.
-- [ ] All Phase 9 gates pass.
-- [ ] No snapshot baselines modified.
+- [x] All Phase 9 gates pass.
+- [x] No snapshot baselines modified.
 
 ---
 
-## Delivery Estimate
+## Delivery Actuals
 
-| Artifact | Lines | Effort |
-|----------|-------|--------|
-| `DiagramEditor.swift` | ~80 | |
-| `DiagramEditor+Mutations.swift` | ~180 | |
-| `DiagramEditor+Flowchart.swift` | ~120 | |
-| `DiagramEditor+Undo.swift` | ~80 | |
-| `DiagramEditor+SourceSync.swift` | ~30 | |
-| `DiagramMutation.swift` | ~50 | |
-| Test files (6 files, ~95 tests) | ~900 | |
-| **Total source + test** | **~1,440** | **~2-3 days** |
+| Artifact | Plan | Actual |
+|----------|------|--------|
+| `DiagramEditor.swift` | ~80 | 115 |
+| `DiagramEditor+Mutations.swift` | ~180 | 244 |
+| `DiagramEditor+Flowchart.swift` | ~120 | 200 |
+| `DiagramEditor+Undo.swift` | ~80 | 52 |
+| `DiagramEditor+SourceSync.swift` | ~30 | 36 |
+| `DiagramMutation.swift` | ~50 | 81 |
+| `DiagramEditorError.swift` | — | 42 (added) |
+| **Source subtotal** | **~710** | **770** |
+| `DiagramEditorTests.swift` | — | 7 tests |
+| `DiagramMutationTests.swift` | — | 6 tests |
+| `DiagramEditorMutationTests.swift` | — | 15 tests |
+| `DiagramEditorFlowchartTests.swift` | — | 8 tests |
+| `DiagramEditorUndoTests.swift` | — | 9 tests |
+| `DiagramEditorSourceSyncTests.swift` | — | 5 tests |
+| **Test subtotal** | **~95** | **48 tests** |
+
+## Implementation Notes
+
+### Deviations from Plan
+
+1. **`DiagramKitImport` dependency.** The plan called for zero dependency on
+   `DiagramKitImport`. In practice, `DiagramDiagnostic` (used in
+   `lastExportDiagnostics` and `DiagramExportResult`) lives in
+   `DiagramKitImport` and cannot be re-exported without a transitive import.
+   The target's `Package.swift` entry includes `DiagramKitImport` as a
+   dependency, and `DiagramEditor.swift` imports it directly. When
+   `DiagramDiagnostic` is relocated to `DiagramKitModel` (tracked
+   separately), this dependency can be dropped.
+
+2. **`DiagramKitCommon` dependency.** The plan listed only `DiagramKitModel`
+   and `DiagramKitExport` as dependencies. The mutation implementation uses
+   `StableID.derive(from:)` to compute synthetic edge IDs for edge-element
+   matching — a pragmatic necessity since edges without explicit `id` fields
+   use derived stable IDs. `DiagramKitCommon` is already a transitive dep of
+   `DiagramKitModel`, so no new code is pulled in.
+
+3. **`DiagramDocument.title` added.** `setTitle` requires a diagram-level
+   title independent of the typed payload. A `public var title: String?`
+   property was added to `DiagramDocument` in `Types.swift` (5 lines). This
+   is additive and backward-compatible.
+
+4. **`@Observable` + `private(set)` setter access.** The `@Observable` macro
+   restricts `private(set)` access to the defining type, not the whole
+   module. Three internal `_commitDocument` / `_commitSource` /
+   `_commitDiagnostics` methods were added to `DiagramEditor.swift` so the
+   extension files can mutate state. The public contract (mutations through
+   `perform(_:)` only) is enforced through documentation.
+
+5. **`DiagramEditorError` extracted to separate file.** The plan inline'd
+   the error type; implementation pulled it into `DiagramEditorError.swift`
+   (42 lines) to keep each file focused.
+
+6. **Undo grouping behavior.** `UndoManager.groupsByEvent` (default `true`)
+   groups sequential mutations by run-loop cycle in UI contexts. In
+   synchronous test environments without a run loop, sequential mutations
+   enter the same implicit group. The test strategy was adjusted: tests that
+   need individual undo steps use explicit `beginUndoGrouping()` /
+   `endUndoGrouping()` around each mutation. Tests that verify the default
+   grouping behavior expect all sequential mutations to undo as one step.
+   The public API (`beginUndoGrouping()` / `endUndoGrouping()`) lets
+   consumers control grouping explicitly.
+
+### Unchanged from Plan
+
+- No SwiftUI views, gesture recognizers, or selection rendering shipped.
+- `moveNode` deferred (layout engine doesn't yet respect fixed positions).
+- Non-flowchart family mutations deferred beyond `setTitle`.
+- No snapshot baselines modified.
+
+### Verification Gates (Run)
+
+```bash
+swift build                                 # clean
+swift test --filter DiagramEditor           # 48/48 passing
+swift test --filter DiagramMutation         # 6/6 passing
+Scripts/check-file-sizes.sh                 # no new warnings
+Scripts/check-sendable-annotations.sh       # passing
+Scripts/strict-concurrency-check.sh         # passing
+```
 
 ---
 

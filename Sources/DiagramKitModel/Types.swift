@@ -133,6 +133,11 @@ public enum DiagramPayload: Sendable {
 public struct DiagramDocument: Sendable {
     public var payload: DiagramPayload
 
+    /// An optional diagram-level title, independent of the typed payload.
+    /// Set via `DiagramEditor.perform(.setTitle(...))`; exported by format
+    /// exporters that support a top-level title.
+    public var title: String?
+
     public var type: DiagramType {
         payload.type
     }

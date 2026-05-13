@@ -31,6 +31,7 @@ let package = Package(
         .library(name: "DiagramKitStructurizr", targets: ["DiagramKitStructurizr"]),
         .library(name: "DiagramKitPlantUML", targets: ["DiagramKitPlantUML"]),
         .library(name: "DiagramKitExport", targets: ["DiagramKitExport"]),
+        .library(name: "DiagramKitInteractive", targets: ["DiagramKitInteractive"]),
         // SwiftPM has a package-wide platform floor, while the Playground app
         // intentionally targets the latest Apple UI APIs. The library products
         // support the platforms declared above; the Playground executable is
@@ -102,6 +103,11 @@ let package = Package(
             swiftSettings: strictConcurrencySettings
         ),
         .target(
+            name: "DiagramKitInteractive",
+            dependencies: ["DiagramKitCommon", "DiagramKitModel", "DiagramKitImport", "DiagramKitExport"],
+            swiftSettings: strictConcurrencySettings
+        ),
+        .target(
             name: "DiagramKitRenderingCG",
             dependencies: [
                 "DiagramKitCommon",
@@ -133,6 +139,7 @@ let package = Package(
                 "DiagramKitModel",
                 "DiagramKitImport",
                 "DiagramKitExport",
+                "DiagramKitInteractive",
                 .target(name: "DiagramKitD2"),
                 .target(name: "DiagramKitGraphviz"),
                 .target(name: "DiagramKitStructurizr"),
@@ -167,6 +174,7 @@ let package = Package(
                 "DiagramKitCommon",
                 "DiagramKitModel",
                 "DiagramKitExport",
+                "DiagramKitInteractive",
                 "DiagramKitTestSupport",
                 "MermaidPlayground",
                 "DiagramKitD2",
