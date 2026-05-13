@@ -18,6 +18,20 @@ If you're touching public API or a renderer, also run:
 ./Scripts/bootstrap-smoke-check.sh    # the local "is this branch healthy?" gate
 ```
 
+## Continuous integration
+
+`.github/workflows/ci.yml` runs every PR through a macOS runner:
+
+- `swift package dump-package`
+- `swift build --build-tests`
+- `swift test`
+- `Scripts/check-file-sizes.sh`
+- `Scripts/check-sendable-annotations.sh`
+- `Scripts/strict-concurrency-check.sh`
+- `Scripts/linux-check.sh` (with `SKIP_LINUX_CHECK=1` — GitHub's macOS runners don't ship Docker or Podman; the actual container build runs locally via `bootstrap-smoke-check.sh`).
+
+The local merge gate is the authoritative health check: it adds the Xcode multi-platform builds and a real `linux-check.sh` against your locally-installed runtime. CI is the second line of defense, not a replacement.
+
 ## File-size guidelines
 
 | Threshold | Behaviour |

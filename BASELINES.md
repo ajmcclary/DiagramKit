@@ -32,3 +32,24 @@ Last updated: 2026-05-13 (Phase 10 completion)
 - `Scripts/check-sendable-annotations.sh`: pass (2026-05-13)
 - `Scripts/strict-concurrency-check.sh`: pass (2026-05-13)
 - `Scripts/linux-check.sh`: skipped (2026-05-13; Docker/Podman not running)
+
+## Merge-gate caveats
+
+- `Scripts/bootstrap-smoke-check.sh` no longer fails fast: every governance
+  script and platform build runs, failures aggregate, and the script exits
+  non-zero only if at least one gate reported failure. This means you see
+  the complete failure surface in a single local invocation.
+- `Scripts/linux-check.sh` is environment-aware: if neither `docker` nor
+  `podman` is on `PATH`, or if `SKIP_LINUX_CHECK=1` is set, it exits 0
+  with a notice. Real container failures still exit non-zero.
+- `swift test` still hits the documented signal-10 hang on a full corpus
+  run; chunked execution via `SNAPSHOT_DIAGRAM_IDS` remains the
+  recommended workflow for recording or verifying snapshots.
+
+## Continuous integration
+
+`.github/workflows/ci.yml` runs every PR on a macOS runner: package dump,
+build, test, the three governance scripts, and `linux-check.sh` with
+`SKIP_LINUX_CHECK=1` (the macOS runner image does not ship a container
+runtime). The local merge gate adds the Xcode platform sweep and a real
+`linux-check.sh` against the maintainer's installed runtime.

@@ -1,0 +1,53 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-and-test:
+    name: Build, test, gates
+    runs-on: macos-15
+    timeout-minutes: 60
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Show Swift / Xcode version
+        run: |
+          xcode-select -p
+          swift --version
+
+      - name: swift package dump-package
+        run: swift package dump-package > /dev/null
+
+      - name: swift build --build-tests
+        run: swift build --build-tests
+
+      - name: swift test
+        run: swift test
+
+      - name: Scripts/check-file-sizes.sh
+        run: ./Scripts/check-file-sizes.sh
+
+      - name: Scripts/check-sendable-annotations.sh
+        run: ./Scripts/check-sendable-annotations.sh
+
+      - name: Scripts/strict-concurrency-check.sh
+        run: ./Scripts/strict-concurrency-check.sh
+
+      # Skip the container build on the PR runner; docker/podman aren't
+      # provisioned by default on macos runners and the local merge gate
+      # (Scripts/bootstrap-smoke-check.sh) still enforces it for maintainers.
+      - name: Scripts/linux-check.sh (env-skipped)
+        env:
+          SKIP_LINUX_CHECK: "1"
+        run: ./Scripts/linux-check.sh
