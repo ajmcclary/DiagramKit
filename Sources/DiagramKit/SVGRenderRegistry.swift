@@ -4,55 +4,35 @@ import DiagramKitCommon
 
 // MARK: - SVGRenderDescriptor
 
-/// Per-diagram-type SVG rendering descriptor. The closure receives the
-/// preprocessed source plus parsed frontmatter and returns the SVG string.
-///
-/// Some per-family closures still take raw source today (they parse +
-/// layout internally); others consume already-positioned data. The
-/// shape is kept uniform so the registry can route by `DiagramType`
-/// without case-by-case dispatch in the caller.
+/// Per-diagram-family positioned-SVG rendering descriptor. Every family
+/// registered in `SVGRenderRegistry.all` carries a closure that consumes
+/// a pre-laid-out `PositionedGraph` and emits an SVG string. The legacy
+/// source-based `render` closure (which fanned out to 27 `_render*SvgCase`
+/// helpers that parsed + laid out inline) was retired in Phase 2 (audit
+/// A4); construction now flows uniformly through
+/// `DiagramPipeline.parse` → `GraphLayout` → here.
 struct SVGRenderDescriptor: Sendable {
     let type: DiagramType
-    let render: @Sendable (
-        _ decodedSource: String,
-        _ lines: [String],
-        _ frontmatter: DiagramFrontmatter?,
-        _ options: RenderOptions,
-        _ layoutConfig: LayoutConfig,
-        _ colors: DiagramColors,
-        _ font: String,
-        _ transparent: Bool
-    ) throws -> String
-
-    /// Positioned-graph entry point. When non-nil, the renderer consumes a
-    /// pre-parsed / pre-laid-out `PositionedGraph` rather than parsing and
-    /// laying out the source itself. Descriptors that still do inline
-    /// parse+layout return `nil` here.
-    var renderPositioned: (@Sendable (
+    let renderPositioned: @Sendable (
         _ positioned: PositionedGraph,
         _ diagramId: String?,
         _ colors: DiagramColors,
         _ font: String,
         _ transparent: Bool
-    ) throws -> String)? = nil
+    ) throws -> String
 }
 
 // MARK: - SVGRenderRegistry
 
-/// Canonical SVG rendering dispatcher. Routes from the preprocessed source
-/// through `DiagramRegistry.detect` (the same detector parser/layout use)
-/// to a per-`DiagramType` descriptor. Replaces the legacy
-/// `_DiagramRoutingType` enum and `detectDiagramType` chain that lived
-/// inside `src_index.swift` — there is now exactly one source of truth
-/// for header detection, anchored on `DiagramRegistry`.
+/// Canonical SVG rendering dispatcher. Routes `PositionedGraph.diagram.type`
+/// to a per-family descriptor. All 28 supported diagram families have an
+/// entry in `all`; the lookup is therefore total under normal use, and
+/// the `notYetImplemented` throw is reserved for future cases.
 enum SVGRenderRegistry {
 
     static let all: [DiagramType: SVGRenderDescriptor] = [
         .sequenceDiagram: SVGRenderDescriptor(
             type: .sequenceDiagram,
-            render: { _, lines, fm, options, _, colors, font, transparent in
-                try _renderSequenceSvgCase(lines: lines, fm: fm, options: options, colors: colors, font: font, transparent: transparent)
-            },
             renderPositioned: { positioned, _, colors, font, transparent in
                 guard case let .sequenceDiagram(actors, messages, blocks, lifelines, activations, notes, boxes, bottomActors, rectHighlights, title, accTitle, accDescr) = positioned.content else {
                     throw DiagramStructuralError.payloadMismatch(.sequenceDiagram)
@@ -70,9 +50,6 @@ enum SVGRenderRegistry {
         ),
         .classDiagram: SVGRenderDescriptor(
             type: .classDiagram,
-            render: { _, lines, fm, options, _, colors, font, transparent in
-                try _renderClassSvgCase(lines: lines, fm: fm, options: options, colors: colors, font: font, transparent: transparent)
-            },
             renderPositioned: { positioned, _, colors, font, transparent in
                 guard case let .classDiagram(classes, relationships, namespaces, notes, accTitle, accDescr, diagramTitle) = positioned.content else {
                     throw DiagramStructuralError.payloadMismatch(.classDiagram)
@@ -89,9 +66,6 @@ enum SVGRenderRegistry {
         ),
         .erDiagram: SVGRenderDescriptor(
             type: .erDiagram,
-            render: { _, lines, fm, options, _, colors, font, transparent in
-                try _renderErSvgCase(lines: lines, fm: fm, options: options, colors: colors, font: font, transparent: transparent)
-            },
             renderPositioned: { positioned, _, colors, font, transparent in
                 guard case let .erDiagram(entities, relationships, accTitle, accDescr, diagramTitle) = positioned.content else {
                     throw DiagramStructuralError.payloadMismatch(.erDiagram)
@@ -107,9 +81,6 @@ enum SVGRenderRegistry {
         ),
         .xyChart: SVGRenderDescriptor(
             type: .xyChart,
-            render: { _, lines, fm, options, _, colors, font, transparent in
-                try _renderXYChartSvgCase(lines: lines, fm: fm, options: options, colors: colors, font: font, transparent: transparent)
-            },
             renderPositioned: { positioned, _, colors, font, transparent in
                 guard case let .xyChart(chart) = positioned.content else {
                     throw DiagramStructuralError.payloadMismatch(.xyChart)
@@ -119,9 +90,6 @@ enum SVGRenderRegistry {
         ),
         .pie: SVGRenderDescriptor(
             type: .pie,
-            render: { _, lines, fm, _, _, colors, font, transparent in
-                try _renderPieSvgCase(lines: lines, fm: fm, colors: colors, font: font, transparent: transparent)
-            },
             renderPositioned: { positioned, _, colors, font, transparent in
                 guard case let .pie(chart) = positioned.content else {
                     throw DiagramStructuralError.payloadMismatch(.pie)
@@ -131,9 +99,6 @@ enum SVGRenderRegistry {
         ),
         .journey: SVGRenderDescriptor(
             type: .journey,
-            render: { _, lines, fm, options, _, colors, font, transparent in
-                try _renderJourneySvgCase(lines: lines, fm: fm, options: options, colors: colors, font: font, transparent: transparent)
-            },
             renderPositioned: { positioned, diagramId, colors, font, transparent in
                 guard case let .journey(diagram) = positioned.content else {
                     throw DiagramStructuralError.payloadMismatch(.journey)
@@ -143,9 +108,6 @@ enum SVGRenderRegistry {
         ),
         .gantt: SVGRenderDescriptor(
             type: .gantt,
-            render: { source, _, fm, options, _, colors, font, transparent in
-                try _renderGanttSvgCase(source: source, fm: fm, colors: colors, font: font, transparent: transparent, idPolicy: options.idPolicy)
-            },
             renderPositioned: { positioned, diagramId, colors, font, transparent in
                 guard case let .gantt(data) = positioned.content else {
                     throw DiagramStructuralError.payloadMismatch(.gantt)
@@ -155,9 +117,6 @@ enum SVGRenderRegistry {
         ),
         .quadrantChart: SVGRenderDescriptor(
             type: .quadrantChart,
-            render: { _, lines, fm, _, _, colors, font, transparent in
-                try _renderQuadrantSvgCase(lines: lines, fm: fm, colors: colors, font: font, transparent: transparent)
-            },
             renderPositioned: { positioned, _, colors, font, transparent in
                 guard case let .quadrantChart(chart) = positioned.content else {
                     throw DiagramStructuralError.payloadMismatch(.quadrantChart)
@@ -167,9 +126,6 @@ enum SVGRenderRegistry {
         ),
         .requirement: SVGRenderDescriptor(
             type: .requirement,
-            render: { _, lines, fm, options, _, colors, font, transparent in
-                try _renderRequirementSvgCase(lines: lines, fm: fm, options: options, colors: colors, font: font, transparent: transparent)
-            },
             renderPositioned: { positioned, diagramId, colors, font, transparent in
                 guard case let .requirement(data) = positioned.content else {
                     throw DiagramStructuralError.payloadMismatch(.requirement)
@@ -183,27 +139,18 @@ enum SVGRenderRegistry {
         ),
         .flowchart: SVGRenderDescriptor(
             type: .flowchart,
-            render: { source, _, fm, options, layoutConfig, colors, font, transparent in
-                try _renderFlowchartSvgCase(source: source, fm: fm, options: options, layoutConfig: layoutConfig, colors: colors, font: font, transparent: transparent)
-            },
             renderPositioned: { positioned, _, colors, font, transparent in
                 try renderSvg(positioned, colors, font, transparent)
             }
         ),
         .stateDiagram: SVGRenderDescriptor(
             type: .stateDiagram,
-            render: { source, _, fm, options, layoutConfig, colors, font, transparent in
-                try _renderFlowchartSvgCase(source: source, fm: fm, options: options, layoutConfig: layoutConfig, colors: colors, font: font, transparent: transparent)
-            },
             renderPositioned: { positioned, _, colors, font, transparent in
                 try renderSvg(positioned, colors, font, transparent)
             }
         ),
         .gitGraph: SVGRenderDescriptor(
             type: .gitGraph,
-            render: { source, _, fm, options, _, _, _, _ in
-                try _renderGitGraphSvgCase(source: source, fm: fm, idPolicy: options.idPolicy)
-            },
             renderPositioned: { positioned, diagramId, _, _, _ in
                 guard case let .gitGraph(data) = positioned.content else {
                     throw DiagramStructuralError.payloadMismatch(.gitGraph)
@@ -213,9 +160,6 @@ enum SVGRenderRegistry {
         ),
         .mindmap: SVGRenderDescriptor(
             type: .mindmap,
-            render: { source, _, fm, options, _, colors, font, transparent in
-                try _renderMindmapSvgCase(source: source, fm: fm, colors: colors, font: font, transparent: transparent, idPolicy: options.idPolicy)
-            },
             renderPositioned: { positioned, diagramId, colors, font, transparent in
                 guard case let .mindmap(data) = positioned.content else {
                     throw DiagramStructuralError.payloadMismatch(.mindmap)
@@ -225,9 +169,6 @@ enum SVGRenderRegistry {
         ),
         .timeline: SVGRenderDescriptor(
             type: .timeline,
-            render: { source, _, fm, options, _, colors, font, transparent in
-                try _renderTimelineSvgCase(source: source, fm: fm, colors: colors, font: font, transparent: transparent, idPolicy: options.idPolicy)
-            },
             renderPositioned: { positioned, diagramId, colors, font, transparent in
                 guard case let .timeline(data) = positioned.content else {
                     throw DiagramStructuralError.payloadMismatch(.timeline)
@@ -237,9 +178,6 @@ enum SVGRenderRegistry {
         ),
         .sankey: SVGRenderDescriptor(
             type: .sankey,
-            render: { source, _, fm, options, _, colors, font, transparent in
-                try _renderSankeySvgCase(source: source, fm: fm, colors: colors, font: font, transparent: transparent, idPolicy: options.idPolicy)
-            },
             renderPositioned: { positioned, diagramId, colors, font, transparent in
                 guard case let .sankey(diagram) = positioned.content else {
                     throw DiagramStructuralError.payloadMismatch(.sankey)
@@ -249,9 +187,6 @@ enum SVGRenderRegistry {
         ),
         .block: SVGRenderDescriptor(
             type: .block,
-            render: { source, _, fm, options, _, colors, font, transparent in
-                try _renderBlockSvgCase(source: source, fm: fm, colors: colors, font: font, transparent: transparent, idPolicy: options.idPolicy)
-            },
             renderPositioned: { positioned, diagramId, colors, font, transparent in
                 guard case let .block(data) = positioned.content else {
                     throw DiagramStructuralError.payloadMismatch(.block)
@@ -261,9 +196,6 @@ enum SVGRenderRegistry {
         ),
         .packet: SVGRenderDescriptor(
             type: .packet,
-            render: { source, _, fm, _, _, colors, font, transparent in
-                try _renderPacketSvgCase(source: source, fm: fm, colors: colors, font: font, transparent: transparent)
-            },
             renderPositioned: { positioned, _, colors, font, transparent in
                 guard case let .packet(data) = positioned.content else {
                     throw DiagramStructuralError.payloadMismatch(.packet)
@@ -273,9 +205,6 @@ enum SVGRenderRegistry {
         ),
         .kanban: SVGRenderDescriptor(
             type: .kanban,
-            render: { source, _, fm, options, _, colors, font, transparent in
-                try _renderKanbanSvgCase(source: source, fm: fm, colors: colors, font: font, transparent: transparent, idPolicy: options.idPolicy)
-            },
             renderPositioned: { positioned, diagramId, colors, font, transparent in
                 guard case let .kanban(data) = positioned.content else {
                     throw DiagramStructuralError.payloadMismatch(.kanban)
@@ -285,9 +214,6 @@ enum SVGRenderRegistry {
         ),
         .architecture: SVGRenderDescriptor(
             type: .architecture,
-            render: { source, _, fm, options, _, colors, font, transparent in
-                try _renderArchitectureSvgCase(source: source, fm: fm, colors: colors, font: font, transparent: transparent, idPolicy: options.idPolicy)
-            },
             renderPositioned: { positioned, diagramId, colors, font, transparent in
                 guard case let .architecture(data) = positioned.content else {
                     throw DiagramStructuralError.payloadMismatch(.architecture)
@@ -297,9 +223,6 @@ enum SVGRenderRegistry {
         ),
         .radar: SVGRenderDescriptor(
             type: .radar,
-            render: { source, _, fm, _, _, colors, font, transparent in
-                try _renderRadarSvgCase(source: source, fm: fm, colors: colors, font: font, transparent: transparent)
-            },
             renderPositioned: { positioned, _, colors, font, transparent in
                 guard case let .radar(diagram) = positioned.content else {
                     throw DiagramStructuralError.payloadMismatch(.radar)
@@ -309,9 +232,6 @@ enum SVGRenderRegistry {
         ),
         .treemap: SVGRenderDescriptor(
             type: .treemap,
-            render: { source, _, fm, options, _, colors, font, transparent in
-                try _renderTreemapSvgCase(source: source, fm: fm, colors: colors, font: font, transparent: transparent, idPolicy: options.idPolicy)
-            },
             renderPositioned: { positioned, diagramId, colors, font, transparent in
                 guard case let .treemap(data) = positioned.content else {
                     throw DiagramStructuralError.payloadMismatch(.treemap)
@@ -321,9 +241,6 @@ enum SVGRenderRegistry {
         ),
         .venn: SVGRenderDescriptor(
             type: .venn,
-            render: { source, _, fm, options, _, colors, font, transparent in
-                try _renderVennSvgCase(source: source, fm: fm, colors: colors, font: font, transparent: transparent, idPolicy: options.idPolicy)
-            },
             renderPositioned: { positioned, diagramId, colors, font, transparent in
                 guard case let .venn(data) = positioned.content else {
                     throw DiagramStructuralError.payloadMismatch(.venn)
@@ -333,9 +250,6 @@ enum SVGRenderRegistry {
         ),
         .ishikawa: SVGRenderDescriptor(
             type: .ishikawa,
-            render: { source, _, fm, options, _, colors, font, transparent in
-                try _renderIshikawaSvgCase(source: source, fm: fm, colors: colors, font: font, transparent: transparent, idPolicy: options.idPolicy)
-            },
             renderPositioned: { positioned, diagramId, colors, font, transparent in
                 guard case let .ishikawa(data) = positioned.content else {
                     throw DiagramStructuralError.payloadMismatch(.ishikawa)
@@ -345,9 +259,6 @@ enum SVGRenderRegistry {
         ),
         .treeView: SVGRenderDescriptor(
             type: .treeView,
-            render: { source, _, fm, options, _, colors, font, transparent in
-                try _renderTreeViewSvgCase(source: source, fm: fm, colors: colors, font: font, transparent: transparent, idPolicy: options.idPolicy)
-            },
             renderPositioned: { positioned, diagramId, _, font, _ in
                 guard case let .treeView(data) = positioned.content else {
                     throw DiagramStructuralError.payloadMismatch(.treeView)
@@ -357,9 +268,6 @@ enum SVGRenderRegistry {
         ),
         .eventModeling: SVGRenderDescriptor(
             type: .eventModeling,
-            render: { source, _, fm, options, _, colors, font, transparent in
-                try _renderEventModelingSvgCase(source: source, fm: fm, colors: colors, font: font, transparent: transparent, idPolicy: options.idPolicy)
-            },
             renderPositioned: { positioned, diagramId, colors, font, transparent in
                 guard case let .eventModeling(data) = positioned.content else {
                     throw DiagramStructuralError.payloadMismatch(.eventModeling)
@@ -369,9 +277,6 @@ enum SVGRenderRegistry {
         ),
         .wardleyBeta: SVGRenderDescriptor(
             type: .wardleyBeta,
-            render: { source, _, fm, _, _, colors, font, transparent in
-                try _renderWardleySvgCase(source: source, fm: fm, colors: colors, font: font, transparent: transparent)
-            },
             renderPositioned: { positioned, _, colors, font, transparent in
                 guard case let .wardleyBeta(diagram) = positioned.content else {
                     throw DiagramStructuralError.payloadMismatch(.wardleyBeta)
@@ -381,9 +286,6 @@ enum SVGRenderRegistry {
         ),
         .c4: SVGRenderDescriptor(
             type: .c4,
-            render: { source, _, fm, options, _, colors, font, transparent in
-                try _renderC4SvgCase(source: source, fm: fm, colors: colors, font: font, transparent: transparent, idPolicy: options.idPolicy)
-            },
             renderPositioned: { positioned, diagramId, colors, font, transparent in
                 guard case let .c4(diagram) = positioned.content else {
                     throw DiagramStructuralError.payloadMismatch(.c4)
@@ -393,9 +295,6 @@ enum SVGRenderRegistry {
         ),
         .zenuml: SVGRenderDescriptor(
             type: .zenuml,
-            render: { source, _, fm, _, _, colors, font, transparent in
-                try _renderZenUMLSvgCase(source: source, fm: fm, colors: colors, font: font, transparent: transparent)
-            },
             renderPositioned: { positioned, _, colors, font, transparent in
                 guard case let .zenuml(data) = positioned.content else {
                     throw DiagramStructuralError.payloadMismatch(.zenuml)
@@ -406,10 +305,6 @@ enum SVGRenderRegistry {
     ]
 
     /// Render a pre-parsed / pre-laid-out `PositionedGraph` to SVG.
-    ///
-    /// Only diagram families whose descriptors have a `renderPositioned`
-    /// closure are supported through this path. Other families must go
-    /// through the source-based `render(_:frontmatter:...)` entry point.
     static func render(
         positioned: PositionedGraph,
         diagramId: String? = nil,
@@ -418,40 +313,11 @@ enum SVGRenderRegistry {
         transparent: Bool
     ) throws -> String {
         let type = positioned.diagram.type
-        guard let svgDescriptor = all[type] else {
+        guard let descriptor = all[type] else {
             throw DiagramError.notYetImplemented(
                 "SVG rendering for \(type.rawValue)"
             )
         }
-        guard let rp = svgDescriptor.renderPositioned else {
-            throw DiagramError.notYetImplemented(
-                "Positioned-graph SVG rendering for \(type.rawValue)"
-            )
-        }
-        return try rp(positioned, diagramId, colors, font, transparent)
-    }
-
-    /// Render the preprocessed source through the appropriate per-family
-    /// descriptor. Detection is done via `DiagramRegistry.detect` so it
-    /// stays in lockstep with parser/layout dispatch.
-    static func render(
-        _ decodedSource: String,
-        frontmatter: DiagramFrontmatter?,
-        options: RenderOptions,
-        layoutConfig: LayoutConfig,
-        colors: DiagramColors,
-        font: String,
-        transparent: Bool
-    ) throws -> String {
-        let descriptor = DiagramRegistry.detect(from: decodedSource)
-        let lines = DiagramSourceNormalizer.statements(decodedSource)
-        guard let svgDescriptor = all[descriptor.type] else {
-            throw DiagramError.notYetImplemented(
-                "SVG rendering for \(descriptor.type.rawValue)"
-            )
-        }
-        return try svgDescriptor.render(
-            decodedSource, lines, frontmatter, options, layoutConfig, colors, font, transparent
-        )
+        return try descriptor.renderPositioned(positioned, diagramId, colors, font, transparent)
     }
 }
