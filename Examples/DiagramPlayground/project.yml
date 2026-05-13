@@ -40,6 +40,8 @@ targets:
         product: DiagramKitStructurizr
       - package: DiagramKit
         product: DiagramKitPlantUML
+      - package: DiagramKit
+        product: DiagramKitInteractive
       - package: xctest-dynamic-overlay
         product: IssueReporting
     settings:
@@ -71,6 +73,8 @@ targets:
         product: DiagramKitStructurizr
       - package: DiagramKit
         product: DiagramKitPlantUML
+      - package: DiagramKit
+        product: DiagramKitInteractive
       - package: xctest-dynamic-overlay
         product: IssueReporting
     settings:

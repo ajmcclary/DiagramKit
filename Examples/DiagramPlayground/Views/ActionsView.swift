@@ -27,6 +27,8 @@ struct ActionsView: View {
     let onShowHistory: () -> Void
     /// Called when the user picks a target format to convert into.
     let onConvertSource: (SourceFormat) -> Void
+    /// Called when the user taps "Inspector".
+    let onShowInspector: () -> Void
 
     @SwiftUI.State private var showingCopyFeedback = false
     @SwiftUI.State private var copyFeedbackMessage = ""
@@ -305,6 +307,14 @@ struct ActionsView: View {
                 subtitle: "Preview-only window"
             ) {
                 onFullWindowPreview()
+            }
+
+            actionButton(
+                label: "Inspector",
+                icon: "slider.horizontal.below.rectangle",
+                subtitle: "Structured edits + undo (DiagramEditor)"
+            ) {
+                onShowInspector()
             }
         }
     }

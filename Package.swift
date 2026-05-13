@@ -171,6 +171,7 @@ let package = Package(
                 "DiagramKitGraphviz",
                 "DiagramKitStructurizr",
                 "DiagramKitPlantUML",
+                .target(name: "DiagramKitInteractive", condition: .when(platforms: [.macOS, .iOS, .tvOS, .visionOS, .macCatalyst])),
                 .product(name: "IssueReporting", package: "xctest-dynamic-overlay")
             ],
             path: "Examples/DiagramPlayground",
