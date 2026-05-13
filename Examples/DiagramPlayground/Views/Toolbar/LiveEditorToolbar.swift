@@ -92,6 +92,17 @@ struct LiveEditorToolbar: ToolbarContent {
                     .frame(width: 320, height: 280)
             }
             .help("Version and security information")
+
+            // Inspector toggle (Cmd-I)
+            Button {
+                store.toggleInspector()
+            } label: {
+                Image(systemName: store.state.inspectorOpen
+                    ? "slider.horizontal.below.rectangle.fill"
+                    : "slider.horizontal.below.rectangle")
+            }
+            .help("Inspector (⌘I)")
+            .keyboardShortcut("i", modifiers: [.command])
         }
     }
 
@@ -164,6 +175,16 @@ struct LiveEditorToolbar: ToolbarContent {
             } label: {
                 Image(systemName: "info.circle")
             }
+
+            // Inspector toggle (Cmd-I on hardware keyboards)
+            Button {
+                store.toggleInspector()
+            } label: {
+                Image(systemName: store.state.inspectorOpen
+                    ? "slider.horizontal.below.rectangle.fill"
+                    : "slider.horizontal.below.rectangle")
+            }
+            .keyboardShortcut("i", modifiers: [.command])
         }
 
         // Panels as sheets/popovers
