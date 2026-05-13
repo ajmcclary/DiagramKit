@@ -10,20 +10,20 @@ import DiagramKitCommon
 // At that point this type will become MermaidDiagramRegistry or be subsumed
 // into MermaidImporter.
 extension DiagramRegistry {
-    static let _sequenceDiagram = DiagramDescriptor(
+    static let _sequenceDiagram = _typed(
         type: .sequenceDiagram,
         matches: { $0.normalized.hasPrefix("sequencediagram") },
         parse: { source, _ in
-            let lines = DiagramSourceNormalizer.diagramLines(source)
-            let parsed = try parseSequenceDiagram(lines)
-            return DiagramDocument(payload: .sequenceDiagram(parsed))
+            try parseSequenceDiagram(DiagramSourceNormalizer.diagramLines(source))
         },
-        layout: { graph, _ in
-            guard case let .sequenceDiagram(parsed) = graph.payload else {
-                throw DiagramStructuralError.payloadMismatch(.sequenceDiagram)
-            }
-            let positioned = try layoutSequenceDiagram(parsed)
-            return PositionedGraph(diagram: graph, width: positioned.width, height: positioned.height, content: .sequenceDiagram(
+        wrap: DiagramPayload.sequenceDiagram,
+        unwrap: { payload in
+            guard case let .sequenceDiagram(value) = payload else { return nil }
+            return value
+        },
+        layout: { parsed, _ in try layoutSequenceDiagram(parsed) },
+        positioned: { graph, positioned in
+            PositionedGraph(diagram: graph, width: positioned.width, height: positioned.height, content: .sequenceDiagram(
                 actors: positioned.actors, messages: positioned.messages,
                 blocks: positioned.blocks, lifelines: positioned.lifelines,
                 activations: positioned.activations, notes: positioned.notes,
