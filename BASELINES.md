@@ -93,18 +93,41 @@ Important-and-Minor backlog is closed across Phases 6A–6F + 7
 
 ## Post-remediation feature work
 
-| Feature | Phase | Tests |
-| --- | --- | --- |
-| DOT exporter (`DiagramKitGraphviz/DOTExporter`) | PLAN.md Phase 1 | `DOTExporterTests` (6 tests), `DiagramExportLoaderTests/graphvizExportSucceeds`, `ExportMatrixTests/dotExporterSupportedTypes` |
+The follow-on plan ([docs/archive/PLAN-followup.md](docs/archive/PLAN-followup.md))
+closed the three open work items from PHASES.md:
+
+| # | Feature | Phase | Commit |
+| --- | --- | --- | --- |
+| 1 | DOT exporter (`DiagramKitGraphviz/DOTExporter`) | Phase 1 | `f468791` |
+| 2 | PlantUML class slice (importer + exporter) | Phase 2 | `26314a8` |
+| 3 | PlantUML state/activity slice | Phase 3 | `b4e6de9` |
+| 4 | PlantUML mindmap slice | Phase 4 | `2255621` |
+| 5 | PlantUML gantt slice | Phase 5 | `e911295` |
+| 6 | PlantUML C4 slice | Phase 6 | `a4bdee1` |
+| 7 | Pie chart ASCII renderer | Phase 7 | `d6773c1` |
+| 8 | Tree-shaped ASCII (mindmap, treeView, ishikawa) | Phase 8 | `a25704b` |
+| 9 | Time-based ASCII (gantt, gitGraph, timeline, journey) | Phase 9 | `64eed79` |
+| 10 | Box-cluster ASCII (block, c4, architecture, eventModeling, wardley, kanban) | Phase 10 | `8cdd3c4` |
+| 11 | Specialty ASCII (sankey, radar, treemap, venn, quadrant, packet, requirement, zenuml) | Phase 11 | `1b84e89` |
+
+After Phase 11, `Sources/DiagramKit/src_ascii_index.swift` no
+longer contains any `notYetImplemented` branches — every diagram
+family routes to a real ASCII renderer.
 
 ## ASCII renderer coverage
 
-Only 5 of the 28 diagram families ship ASCII renderers today
-(`flowchart`, `sequence`, `class`, `er`, `state`); the remaining
-23 families throw `DiagramError.notYetImplemented("… ASCII rendering")`
-at render time and are deliberately excluded from `CorpusSnapshotTests/
-asciiSnapshot` baselines. Promoting ASCII coverage to all 28 families
-is a separate, scoped phase — see REVIEW.md "Important / Renderers".
+All 28 diagram families ship an ASCII renderer after the
+post-remediation Phases 7–11 (see the "Post-remediation feature
+work" table above). Tabular/list-style renderers cover the
+specialty families (pie, mindmap, treeView, ishikawa, gantt,
+gitGraph, timeline, journey, block, c4, architecture,
+eventModeling, wardley, kanban, sankey, radar, treemap, venn,
+quadrantChart, packet, requirement, zenuml); the canvas-based
+renderers (flowchart/state, sequence, class, ER, xychart) are
+unchanged. Snapshot baselines for the new ASCII families remain a
+follow-up — each renderer has dedicated unit tests asserting key
+label presence, but corpus ASCII snapshots are not yet recorded
+for the 23 families added in this cycle.
 
 ## Merge-gate caveats
 
