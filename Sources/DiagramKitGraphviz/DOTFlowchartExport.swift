@@ -7,49 +7,15 @@ import DiagramKitExport
 enum DOTFlowchartExport {
 
     static func emit(_ model: ParsedGraphModel, title: String? = nil) throws -> DiagramExportResult {
-        var lines: [String] = []
-        let diagnostics: [DiagramDiagnostic] = []
-
-        lines.append("digraph G {")
-
-        if let title, !title.isEmpty {
-            lines.append("  labelloc=\"t\";")
-            lines.append("  label=\(quoted(singleLineTitle(title)));")
-        }
-
-        switch model.direction {
-        case .LR, .RL:
-            lines.append("  rankdir=LR;")
-        default:
-            lines.append("  rankdir=TB;")
-        }
-
-        for (nodeId, node) in model.nodesInOrder {
-            let sanitizedId = sanitizeDOTID(nodeId)
-            let shape = dotShape(for: node.shape)
-            let label = node.label.isEmpty ? nodeId : node.label
-            lines.append("  \(sanitizedId) [label=\(quoted(label)), shape=\(shape)];")
-        }
-
-        for edge in model.edges {
-            let src = sanitizeDOTID(edge.source)
-            let tgt = sanitizeDOTID(edge.target)
-            if let label = edge.label, !label.isEmpty {
-                lines.append("  \(src) -> \(tgt) [label=\(quoted(label))];")
-            } else {
-                lines.append("  \(src) -> \(tgt);")
-            }
-        }
-
-        lines.append("}")
-
+        var sink = DOTFlowchartExportSink()
+        FlowchartExportWalker.walk(model, title: title, into: &sink)
         return DiagramExportResult(
-            source: lines.joined(separator: "\n"),
-            diagnostics: diagnostics
+            source: sink.lines.joined(separator: "\n"),
+            diagnostics: []
         )
     }
 
-    private static func quoted(_ s: String) -> String {
+    fileprivate static func quoted(_ s: String) -> String {
         let escaped = s
             .replacingOccurrences(of: "\\", with: "\\\\")
             .replacingOccurrences(of: "\"", with: "\\\"")
@@ -58,7 +24,7 @@ enum DOTFlowchartExport {
         return "\"\(escaped)\""
     }
 
-    private static func sanitizeDOTID(_ id: String) -> String {
+    fileprivate static func sanitizeDOTID(_ id: String) -> String {
         // DOT bareword IDs match [A-Za-z\200-\377_][0-9A-Za-z\200-\377_]*.
         // Anything else gets quoted.
         let allowedFirst = CharacterSet.letters.union(CharacterSet(charactersIn: "_"))
@@ -71,12 +37,12 @@ enum DOTFlowchartExport {
         return id
     }
 
-    private static func singleLineTitle(_ title: String) -> String {
+    fileprivate static func singleLineTitle(_ title: String) -> String {
         title.replacingOccurrences(of: "\n", with: " ")
              .replacingOccurrences(of: "\r", with: " ")
     }
 
-    private static func dotShape(for shape: original_src_types.NodeShape) -> String {
+    fileprivate static func dotShape(for shape: original_src_types.NodeShape) -> String {
         switch shape {
         case .rectangle, .rounded: return "box"
         case .stadium: return "ellipse"
@@ -92,5 +58,47 @@ enum DOTFlowchartExport {
         case .document, .linedDocument, .stackedDocument, .taggedDocument: return "note"
         default: return "box"
         }
+    }
+}
+
+// MARK: - Sink
+
+private struct DOTFlowchartExportSink: FlowchartExportSink {
+    var lines: [String] = []
+
+    mutating func begin(title: String?) {
+        lines.append("digraph G {")
+        if let title, !title.isEmpty {
+            lines.append("  labelloc=\"t\";")
+            lines.append("  label=\(DOTFlowchartExport.quoted(DOTFlowchartExport.singleLineTitle(title)));")
+        }
+    }
+
+    mutating func direction(_ direction: original_src_types.Direction) {
+        switch direction {
+        case .LR, .RL: lines.append("  rankdir=LR;")
+        default:        lines.append("  rankdir=TB;")
+        }
+    }
+
+    mutating func node(id: String, node: original_src_types.MermaidNode) {
+        let sanitizedId = DOTFlowchartExport.sanitizeDOTID(id)
+        let shape = DOTFlowchartExport.dotShape(for: node.shape)
+        let label = node.label.isEmpty ? id : node.label
+        lines.append("  \(sanitizedId) [label=\(DOTFlowchartExport.quoted(label)), shape=\(shape)];")
+    }
+
+    mutating func edge(_ edge: original_src_types.MermaidEdge) {
+        let src = DOTFlowchartExport.sanitizeDOTID(edge.source)
+        let tgt = DOTFlowchartExport.sanitizeDOTID(edge.target)
+        if let label = edge.label, !label.isEmpty {
+            lines.append("  \(src) -> \(tgt) [label=\(DOTFlowchartExport.quoted(label))];")
+        } else {
+            lines.append("  \(src) -> \(tgt);")
+        }
+    }
+
+    mutating func end() {
+        lines.append("}")
     }
 }

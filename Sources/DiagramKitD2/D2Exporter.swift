@@ -41,54 +41,15 @@ public struct D2Exporter: DiagramExporter {
 enum D2FlowchartExport {
 
     static func emit(_ model: ParsedGraphModel, title: String? = nil) throws -> DiagramExportResult {
-        var lines: [String] = []
-        let diagnostics: [DiagramDiagnostic] = []
-
-        if let title, !title.isEmpty {
-            lines.append("# title: \(singleLineTitle(title))")
-        }
-
-        // Direction
-        switch model.direction {
-        case .LR, .RL:
-            lines.append("direction: right")
-        default:
-            lines.append("direction: down")
-        }
-
-        // Nodes
-        for (nodeId, node) in model.nodesInOrder {
-            let sanitizedId = sanitizeD2ID(nodeId)
-            let shape = d2Shape(for: node.shape)
-            var nodeBlock = "\(sanitizedId): \"\(escapeD2String(node.label))\""
-
-            if shape != "rectangle" {
-                nodeBlock += " {\n    shape: \(shape)\n  }"
-            }
-
-            lines.append(nodeBlock)
-        }
-
-        // Edges
-        for edge in model.edges {
-            let sanitizedSrc = sanitizeD2ID(edge.source)
-            let sanitizedTgt = sanitizeD2ID(edge.target)
-
-            var edgeLine: String
-            if let label = edge.label, !label.isEmpty {
-                edgeLine = "\(sanitizedSrc) -> \(sanitizedTgt): \"\(escapeD2String(label))\""
-            } else {
-                edgeLine = "\(sanitizedSrc) -> \(sanitizedTgt)"
-            }
-
-            lines.append(edgeLine)
-        }
-
-        let source = lines.joined(separator: "\n") + "\n"
-        return DiagramExportResult(source: source, diagnostics: diagnostics)
+        var sink = D2FlowchartExportSink()
+        FlowchartExportWalker.walk(model, title: title, into: &sink)
+        return DiagramExportResult(
+            source: sink.lines.joined(separator: "\n") + "\n",
+            diagnostics: []
+        )
     }
 
-    private static func sanitizeD2ID(_ raw: String) -> String {
+    fileprivate static func sanitizeD2ID(_ raw: String) -> String {
         var result = ""
         for (i, ch) in raw.enumerated() {
             switch ch {
@@ -103,14 +64,14 @@ enum D2FlowchartExport {
         return result.isEmpty ? "node" : result
     }
 
-    private static func escapeD2String(_ text: String) -> String {
+    fileprivate static func escapeD2String(_ text: String) -> String {
         text.replacingOccurrences(of: "\\", with: "\\\\")
             .replacingOccurrences(of: "\"", with: "\\\"")
             .replacingOccurrences(of: "\n", with: "\\n")
             .replacingOccurrences(of: "\r", with: "")
     }
 
-    private static func d2Shape(for shape: original_src_types.NodeShape) -> String {
+    fileprivate static func d2Shape(for shape: original_src_types.NodeShape) -> String {
         switch shape {
         case .rectangle: return "rectangle"
         case .rounded: return "rectangle"  // TODO: border-radius
@@ -127,11 +88,52 @@ enum D2FlowchartExport {
         }
     }
 
-    private static func singleLineTitle(_ title: String) -> String {
+    fileprivate static func singleLineTitle(_ title: String) -> String {
         title
             .replacingOccurrences(of: "\r\n", with: "\n")
             .replacingOccurrences(of: "\r", with: "\n")
             .split(separator: "\n", omittingEmptySubsequences: false)
             .joined(separator: " ")
     }
+}
+
+// MARK: - Sink
+
+private struct D2FlowchartExportSink: FlowchartExportSink {
+    var lines: [String] = []
+
+    mutating func begin(title: String?) {
+        if let title, !title.isEmpty {
+            lines.append("# title: \(D2FlowchartExport.singleLineTitle(title))")
+        }
+    }
+
+    mutating func direction(_ direction: original_src_types.Direction) {
+        switch direction {
+        case .LR, .RL: lines.append("direction: right")
+        default:        lines.append("direction: down")
+        }
+    }
+
+    mutating func node(id: String, node: original_src_types.MermaidNode) {
+        let sanitizedId = D2FlowchartExport.sanitizeD2ID(id)
+        let shape = D2FlowchartExport.d2Shape(for: node.shape)
+        var nodeBlock = "\(sanitizedId): \"\(D2FlowchartExport.escapeD2String(node.label))\""
+        if shape != "rectangle" {
+            nodeBlock += " {\n    shape: \(shape)\n  }"
+        }
+        lines.append(nodeBlock)
+    }
+
+    mutating func edge(_ edge: original_src_types.MermaidEdge) {
+        let sanitizedSrc = D2FlowchartExport.sanitizeD2ID(edge.source)
+        let sanitizedTgt = D2FlowchartExport.sanitizeD2ID(edge.target)
+        if let label = edge.label, !label.isEmpty {
+            lines.append("\(sanitizedSrc) -> \(sanitizedTgt): \"\(D2FlowchartExport.escapeD2String(label))\"")
+        } else {
+            lines.append("\(sanitizedSrc) -> \(sanitizedTgt)")
+        }
+    }
+
+    mutating func end() {}
 }
