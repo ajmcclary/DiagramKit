@@ -24,20 +24,7 @@ extension PositionedClassRelationship: DiagramStableElement {
         return "rel:\(StableID.derive(from: seed))"
     }
     public var stableElementBounds: DiagramRect {
-        guard let first = points.first else { return .zero }
-        var minX = first.x, minY = first.y, maxX = first.x, maxY = first.y
-        for p in points {
-            minX = Swift.min(minX, p.x)
-            minY = Swift.min(minY, p.y)
-            maxX = Swift.max(maxX, p.x)
-            maxY = Swift.max(maxY, p.y)
-        }
-        let pad = 8.0
-        return DiagramRect(
-            x: minX - pad, y: minY - pad,
-            width: maxX - minX + pad * 2,
-            height: maxY - minY + pad * 2
-        )
+        DiagramRect.bounding(points: points, paddedBy: 8.0)
     }
     public var stableElementLabel: String? { title }
 }

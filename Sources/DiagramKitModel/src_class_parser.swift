@@ -376,7 +376,7 @@ public struct PositionedClassNote: Sendable {
     public var edgePoints: [ClassPoint]?
 }
 
-public struct ClassPoint: Sendable {
+public struct ClassPoint: Sendable, _PointLike {
     public var x: Double
     public var y: Double
 }

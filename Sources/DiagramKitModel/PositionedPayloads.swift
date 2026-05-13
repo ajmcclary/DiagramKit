@@ -3,8 +3,9 @@
 // algorithm in src_layout.swift produces them and renderers consume them.
 
 import Foundation
+import DiagramKitCommon
 
-public struct _PositionedPointPayload: Sendable {
+public struct _PositionedPointPayload: Sendable, _PointLike {
     public var x: Double
     public var y: Double
 }

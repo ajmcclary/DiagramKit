@@ -297,7 +297,7 @@ public struct PositionedErRelationship: Sendable {
     }
 }
 
-public struct ErPoint: Sendable {
+public struct ErPoint: Sendable, _PointLike {
     public var x: Double
     public var y: Double
 

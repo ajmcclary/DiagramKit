@@ -97,7 +97,48 @@ public struct DiagramRect: Sendable, Hashable, CustomStringConvertible {
     public var description: String {
         "(\(x), \(y); \(width)×\(height))"
     }
+
+    /// Smallest rectangle that contains every point in `points`, optionally
+    /// expanded by `paddedBy` on all sides. Returns `.zero` for an empty
+    /// input. Used by hit-target bounds across diagram families (edges,
+    /// relationships) where each family carries its own point type — see
+    /// `_PointLike` for the conformance convention.
+    public static func bounding(
+        points: [some _PointLike],
+        paddedBy pad: Double = 0
+    ) -> DiagramRect {
+        guard let first = points.first else { return .zero }
+        var minX = first.x
+        var minY = first.y
+        var maxX = first.x
+        var maxY = first.y
+        for p in points.dropFirst() {
+            if p.x < minX { minX = p.x }
+            if p.y < minY { minY = p.y }
+            if p.x > maxX { maxX = p.x }
+            if p.y > maxY { maxY = p.y }
+        }
+        return DiagramRect(
+            x: minX - pad,
+            y: minY - pad,
+            width: (maxX - minX) + pad * 2,
+            height: (maxY - minY) + pad * 2
+        )
+    }
 }
+
+// MARK: - _PointLike
+
+/// Underscore-prefixed SPI protocol that lets per-family point types
+/// (`DiagramPoint` in this module, `ClassPoint` and `ErPoint` in
+/// `DiagramKitModel`) participate in shared geometry helpers without
+/// promising public API stability for the protocol itself.
+public protocol _PointLike {
+    var x: Double { get }
+    var y: Double { get }
+}
+
+extension DiagramPoint: _PointLike {}
 
 // MARK: - CoreGraphics bridging
 
