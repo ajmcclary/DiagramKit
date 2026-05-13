@@ -7,3 +7,4 @@ __pycache__/
 *.pyc
 visual-report.html
 Package.resolved
+.superpowers/
