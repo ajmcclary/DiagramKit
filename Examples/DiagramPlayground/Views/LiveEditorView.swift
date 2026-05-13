@@ -149,8 +149,7 @@ struct LiveEditorView: View {
         HSplitView {
             EditorPane(store: store)
                 .frame(minWidth: 300)
-
-            PreviewCanvas(store: store, onFullWindowPreview: { showingFullWindowPreview = true })
+            previewWithDrawer
                 .frame(minWidth: 400)
         }
         #else
@@ -161,10 +160,23 @@ struct LiveEditorView: View {
             Divider()
                 .background(Color(store.theme.effectiveLine()).opacity(0.3))
 
-            PreviewCanvas(store: store, onFullWindowPreview: { showingFullWindowPreview = true })
+            previewWithDrawer
                 .frame(minWidth: 300)
         }
         #endif
+    }
+
+    private var previewWithDrawer: some View {
+        ZStack(alignment: .trailing) {
+            PreviewCanvas(store: store, onFullWindowPreview: { showingFullWindowPreview = true })
+            if store.state.inspectorOpen {
+                DiagramEditorPane(store: store)
+                    .padding(.vertical, 12)
+                    .padding(.trailing, 12)
+                    .transition(.move(edge: .trailing).combined(with: .opacity))
+            }
+        }
+        .animation(.easeInOut(duration: 0.18), value: store.state.inspectorOpen)
     }
 
     // MARK: - Full-window preview sheet
