@@ -66,8 +66,16 @@ public final class DiagramSyntaxHighlighter: Sendable {
     // MARK: - Mode
 
     public enum Mode: Sendable {
+        /// Mermaid keyword/operator/string tokenization.
         case mermaid
+        /// JSON key/value tokenization for the config tab.
         case json
+        /// No tokenization — emits zero tokens so a previous mode's
+        /// temporary attributes are stripped and the text renders in
+        /// the theme's default foreground color. Use for non-Mermaid
+        /// source formats (D2 / DOT / Structurizr / PlantUML) until
+        /// dedicated tokenizers exist.
+        case plain
     }
 
     public let mode: Mode
@@ -301,6 +309,8 @@ public final class DiagramSyntaxHighlighter: Sendable {
             return await Task.detached(priority: .utility) {
                 Self._tokenizeJSON(source)
             }.value
+        case .plain:
+            return []
         }
     }
 

@@ -17,6 +17,7 @@ struct EditorPane: View {
 
     @State private var mermaidHighlighter = DiagramSyntaxHighlighter(mode: .mermaid)
     @State private var jsonHighlighter = DiagramSyntaxHighlighter(mode: .json)
+    @State private var plainHighlighter = DiagramSyntaxHighlighter(mode: .plain)
 
     var body: some View {
         VStack(spacing: 0) {
@@ -61,8 +62,14 @@ struct EditorPane: View {
 
     private var currentHighlighter: DiagramSyntaxHighlighter? {
         switch store.state.editorMode {
-        case .code: return mermaidHighlighter
-        case .config: return jsonHighlighter
+        case .code:
+            // The token tables are Mermaid-specific (Mermaid arrows, `%%`
+            // comments, Mermaid diagram-type keywords). Non-Mermaid
+            // formats fall through to the plain highlighter so they
+            // don't get miscolored as Mermaid.
+            return store.state.sourceFormat == .mermaid ? mermaidHighlighter : plainHighlighter
+        case .config:
+            return jsonHighlighter
         }
     }
 
