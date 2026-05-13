@@ -29,6 +29,31 @@ import DiagramKitPlantUML
         #expect(result.source.contains("+greet(): Void"))
     }
 
+    @Test("PlantUML mindmap export round-trips through PlantUMLImporter")
+    func mindmapExportRoundTrip() throws {
+        let source = """
+        @startmindmap
+        * Root
+        ** Child A
+        *** Grandchild A1
+        ** Child B
+        @endmindmap
+        """
+        let parsed = try PlantUMLImporter().parse(source).document
+        let exported = try PlantUMLExporter().export(parsed)
+        #expect(exported.source.contains("@startmindmap"))
+        #expect(exported.source.contains("@endmindmap"))
+        #expect(exported.source.contains("* Root"))
+        #expect(exported.source.contains("** Child A"))
+        #expect(exported.source.contains("*** Grandchild A1"))
+        let reparsed = try PlantUMLImporter().parse(exported.source).document
+        guard case .mindmap(let model) = reparsed.payload else {
+            Issue.record("Expected mindmap payload"); return
+        }
+        #expect(model.root?.descr == "Root")
+        #expect(model.root?.children.count == 2)
+    }
+
     @Test("PlantUML state export round-trips through PlantUMLImporter")
     func stateExportRoundTrip() throws {
         let source = """
