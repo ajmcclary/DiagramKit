@@ -33,6 +33,16 @@ Last updated: 2026-05-13 (Phase 10 completion)
 - `Scripts/strict-concurrency-check.sh`: pass (2026-05-13)
 - `Scripts/linux-check.sh`: skipped (2026-05-13; Docker/Podman not running)
 
+## ASCII renderer coverage
+
+Only 5 of the 28 diagram families ship ASCII renderers today
+(`flowchart`, `sequence`, `class`, `er`, `state`); the remaining
+23 families throw `DiagramError.notYetImplemented("… ASCII rendering")`
+at render time and are deliberately excluded from `CorpusSnapshotTests/
+asciiSnapshot` baselines. Promoting ASCII coverage to all 28 families
+is a separate, scoped phase — see REVIEW.md "Important / Renderers"
+and `Phase 6C` notes.
+
 ## Merge-gate caveats
 
 - `Scripts/bootstrap-smoke-check.sh` no longer fails fast: every governance

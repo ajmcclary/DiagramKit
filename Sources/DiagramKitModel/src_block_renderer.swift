@@ -62,7 +62,7 @@ public func renderBlockSvg(
       <circle cx="5" cy="5" r="4" fill="none" stroke="\(colors.line ?? "#333")" stroke-width="1"/>
     </marker>
     <marker id="\(markerIds.cross)" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
-      <path d="M 1 1 L 9 9 M 9 1 L 1 9" stroke="\(colors.line ?? "#333")" stroke-width="1.5"/>
+      <path d="M 1 1 L 9 9 M 9 1 L 1 9" stroke="\(colors.line ?? "#333")" stroke-width="\(BlockRenderConstants.strokeWidth)"/>
     </marker>
     </defs>
     """
@@ -205,7 +205,7 @@ private func renderBlockNodeSvg(_ node: PositionedBlockNode, colors: DiagramColo
         let clusterBorder = colors.border ?? "#333"
         var svg = """
         <g class="cluster" id="\(id)">
-          <rect x="\(x)" y="\(y + 20)" width="\(w)" height="\(max(0, h - 20))" rx="2" ry="2" fill="\(clusterBkg)" stroke="\(clusterBorder)" stroke-width="1.5"/>
+          <rect x="\(x)" y="\(y + 20)" width="\(w)" height="\(max(0, h - 20))" rx="2" ry="2" fill="\(clusterBkg)" stroke="\(clusterBorder)" stroke-width="\(BlockRenderConstants.strokeWidth)"/>
           <text x="\(node.x)" y="\(y + 12)" text-anchor="middle" font-family="\(fontFamily)" font-size="14" font-weight="bold" fill="\(textColor)">\(node.label.escapedXML)</text>
         """
         for child in node.children {
@@ -233,80 +233,80 @@ private func renderBlockNodeSvg(_ node: PositionedBlockNode, colors: DiagramColo
     switch shape {
     case "rect":
         svg += """
-          <rect x="\(x)" y="\(y)" width="\(w)" height="\(h)"\(roundStr) fill="\(fill)" stroke="\(stroke)" stroke-width="1.5"/>
+          <rect x="\(x)" y="\(y)" width="\(w)" height="\(h)"\(roundStr) fill="\(fill)" stroke="\(stroke)" stroke-width="\(BlockRenderConstants.strokeWidth)"/>
         """
     case "circle":
         let r = min(w, h) / 2
         svg += """
-          <circle cx="\(node.x)" cy="\(node.y)" r="\(r)" fill="\(fill)" stroke="\(stroke)" stroke-width="1.5"/>
+          <circle cx="\(node.x)" cy="\(node.y)" r="\(r)" fill="\(fill)" stroke="\(stroke)" stroke-width="\(BlockRenderConstants.strokeWidth)"/>
         """
     case "doublecircle":
         let outerR = min(w, h) / 2
         let innerR = outerR * 0.8
         svg += """
-          <circle cx="\(node.x)" cy="\(node.y)" r="\(outerR)" fill="\(fill)" stroke="\(stroke)" stroke-width="1.5"/>
-          <circle cx="\(node.x)" cy="\(node.y)" r="\(innerR)" fill="none" stroke="\(stroke)" stroke-width="1.5"/>
+          <circle cx="\(node.x)" cy="\(node.y)" r="\(outerR)" fill="\(fill)" stroke="\(stroke)" stroke-width="\(BlockRenderConstants.strokeWidth)"/>
+          <circle cx="\(node.x)" cy="\(node.y)" r="\(innerR)" fill="none" stroke="\(stroke)" stroke-width="\(BlockRenderConstants.strokeWidth)"/>
         """
     case "diamond":
         let mx = node.x; let my = node.y
         let hw = w / 2; let hh = h / 2
         svg += """
-          <polygon points="\(mx),\(my - hh) \(mx + hw),\(my) \(mx),\(my + hh) \(mx - hw),\(my)" fill="\(fill)" stroke="\(stroke)" stroke-width="1.5"/>
+          <polygon points="\(mx),\(my - hh) \(mx + hw),\(my) \(mx),\(my + hh) \(mx - hw),\(my)" fill="\(fill)" stroke="\(stroke)" stroke-width="\(BlockRenderConstants.strokeWidth)"/>
         """
     case "hexagon":
         let mx = node.x; let my = node.y
         let hw = w / 2; let hh = h / 2
         let qw = w / 4
         svg += """
-          <polygon points="\(mx - qw),\(my - hh) \(mx + qw),\(my - hh) \(mx + hw),\(my) \(mx + qw),\(my + hh) \(mx - qw),\(my + hh) \(mx - hw),\(my)" fill="\(fill)" stroke="\(stroke)" stroke-width="1.5"/>
+          <polygon points="\(mx - qw),\(my - hh) \(mx + qw),\(my - hh) \(mx + hw),\(my) \(mx + qw),\(my + hh) \(mx - qw),\(my + hh) \(mx - hw),\(my)" fill="\(fill)" stroke="\(stroke)" stroke-width="\(BlockRenderConstants.strokeWidth)"/>
         """
     case "stadium":
         let rx_s = min(w, h) / 2
         svg += """
-          <rect x="\(x)" y="\(y)" width="\(w)" height="\(h)" rx="\(rx_s)" ry="\(rx_s)" fill="\(fill)" stroke="\(stroke)" stroke-width="1.5"/>
+          <rect x="\(x)" y="\(y)" width="\(w)" height="\(h)" rx="\(rx_s)" ry="\(rx_s)" fill="\(fill)" stroke="\(stroke)" stroke-width="\(BlockRenderConstants.strokeWidth)"/>
         """
     case "subroutine":
         let inset = w * 0.1
         svg += """
-          <rect x="\(x + inset)" y="\(y)" width="\(max(0, w - 2 * inset))" height="\(h)" fill="\(fill)" stroke="\(stroke)" stroke-width="1.5"/>
-          <rect x="\(x)" y="\(y)" width="\(inset + 3)" height="\(h)" fill="\(fill)" stroke="\(stroke)" stroke-width="1.5"/>
-          <rect x="\(x + w - inset - 3)" y="\(y)" width="\(inset + 3)" height="\(h)" fill="\(fill)" stroke="\(stroke)" stroke-width="1.5"/>
+          <rect x="\(x + inset)" y="\(y)" width="\(max(0, w - 2 * inset))" height="\(h)" fill="\(fill)" stroke="\(stroke)" stroke-width="\(BlockRenderConstants.strokeWidth)"/>
+          <rect x="\(x)" y="\(y)" width="\(inset + 3)" height="\(h)" fill="\(fill)" stroke="\(stroke)" stroke-width="\(BlockRenderConstants.strokeWidth)"/>
+          <rect x="\(x + w - inset - 3)" y="\(y)" width="\(inset + 3)" height="\(h)" fill="\(fill)" stroke="\(stroke)" stroke-width="\(BlockRenderConstants.strokeWidth)"/>
         """
     case "cylinder":
         let arcH = h * 0.15
         svg += """
-          <path d="M \(x),\(y + arcH) L \(x),\(y + h - arcH) A \(w/2),\(arcH) 0 0,0 \(x + w),\(y + h - arcH) L \(x + w),\(y + arcH) A \(w/2),\(arcH) 0 0,1 \(x),\(y + arcH)" fill="\(fill)" stroke="\(stroke)" stroke-width="1.5"/>
-          <path d="M \(x),\(y + arcH) A \(w/2),\(arcH) 0 0,1 \(x + w),\(y + arcH)" fill="none" stroke="\(stroke)" stroke-width="1.5"/>
+          <path d="M \(x),\(y + arcH) L \(x),\(y + h - arcH) A \(w/2),\(arcH) 0 0,0 \(x + w),\(y + h - arcH) L \(x + w),\(y + arcH) A \(w/2),\(arcH) 0 0,1 \(x),\(y + arcH)" fill="\(fill)" stroke="\(stroke)" stroke-width="\(BlockRenderConstants.strokeWidth)"/>
+          <path d="M \(x),\(y + arcH) A \(w/2),\(arcH) 0 0,1 \(x + w),\(y + arcH)" fill="none" stroke="\(stroke)" stroke-width="\(BlockRenderConstants.strokeWidth)"/>
         """
     case "lean_right":
         let skew = w * 0.15
         svg += """
-          <polygon points="\(x + skew),\(y) \(x + w),\(y) \(x + w - skew),\(y + h) \(x),\(y + h)" fill="\(fill)" stroke="\(stroke)" stroke-width="1.5"/>
+          <polygon points="\(x + skew),\(y) \(x + w),\(y) \(x + w - skew),\(y + h) \(x),\(y + h)" fill="\(fill)" stroke="\(stroke)" stroke-width="\(BlockRenderConstants.strokeWidth)"/>
         """
     case "lean_left":
         let skew = w * 0.15
         svg += """
-          <polygon points="\(x),\(y) \(x + w - skew),\(y) \(x + w),\(y + h) \(x + skew),\(y + h)" fill="\(fill)" stroke="\(stroke)" stroke-width="1.5"/>
+          <polygon points="\(x),\(y) \(x + w - skew),\(y) \(x + w),\(y + h) \(x + skew),\(y + h)" fill="\(fill)" stroke="\(stroke)" stroke-width="\(BlockRenderConstants.strokeWidth)"/>
         """
     case "trapezoid":
         let skew = w * 0.15
         svg += """
-          <polygon points="\(x + skew),\(y) \(x + w),\(y) \(x + w),\(y + h) \(x),\(y + h)" fill="\(fill)" stroke="\(stroke)" stroke-width="1.5"/>
+          <polygon points="\(x + skew),\(y) \(x + w),\(y) \(x + w),\(y + h) \(x),\(y + h)" fill="\(fill)" stroke="\(stroke)" stroke-width="\(BlockRenderConstants.strokeWidth)"/>
         """
     case "inv_trapezoid":
         let skew = w * 0.15
         svg += """
-          <polygon points="\(x),\(y) \(x + w),\(y) \(x + w - skew),\(y + h) \(x + skew),\(y + h)" fill="\(fill)" stroke="\(stroke)" stroke-width="1.5"/>
+          <polygon points="\(x),\(y) \(x + w),\(y) \(x + w - skew),\(y + h) \(x + skew),\(y + h)" fill="\(fill)" stroke="\(stroke)" stroke-width="\(BlockRenderConstants.strokeWidth)"/>
         """
     case "rect_left_inv_arrow":
         let mx = node.x; let my = node.y
         let hw = w / 2; let hh = h / 2
         svg += """
-          <polygon points="\(mx - hw),\(my - hh) \(mx + hw),\(my - hh) \(mx + hw),\(my + hh) \(mx - hw),\(my + hh) \(mx - hw * 1.5),\(my)" fill="\(fill)" stroke="\(stroke)" stroke-width="1.5"/>
+          <polygon points="\(mx - hw),\(my - hh) \(mx + hw),\(my - hh) \(mx + hw),\(my + hh) \(mx - hw),\(my + hh) \(mx - hw * 1.5),\(my)" fill="\(fill)" stroke="\(stroke)" stroke-width="\(BlockRenderConstants.strokeWidth)"/>
         """
     default:
         svg += """
-          <rect x="\(x)" y="\(y)" width="\(w)" height="\(h)" fill="\(fill)" stroke="\(stroke)" stroke-width="1.5"/>
+          <rect x="\(x)" y="\(y)" width="\(w)" height="\(h)" fill="\(fill)" stroke="\(stroke)" stroke-width="\(BlockRenderConstants.strokeWidth)"/>
         """
     }
 
@@ -337,7 +337,7 @@ private func renderBlockArrowSvg(node: PositionedBlockNode, id: String, fill: St
 
     return """
     <g class="node \(classList)" id="\(id)" transform="translate(\(node.x) \(node.y))">
-      <path d="\(pathStr)" fill="\(fill)" stroke="\(stroke)" stroke-width="1.5"/>
+      <path d="\(pathStr)" fill="\(fill)" stroke="\(stroke)" stroke-width="\(BlockRenderConstants.strokeWidth)"/>
     </g>
     """
 }
@@ -357,7 +357,9 @@ private func renderBlockEdgeSvg(_ edge: PositionedBlockEdge, colors: DiagramColo
     let patternClass = edge.pattern == "dotted" ? "edge-pattern-dotted" : "edge-pattern-solid"
     let cssClasses = "\(thicknessClass) \(patternClass) flowchart-link"
 
-    let strokeWidth = edge.thickness == "thick" ? "3.5" : "1.5"
+    let strokeWidth = edge.thickness == "thick"
+        ? String(BlockRenderConstants.thickStrokeWidth)
+        : String(BlockRenderConstants.strokeWidth)
     let dashArray = edge.pattern == "dotted" ? "stroke-dasharray: 5,5;" : ""
 
     let markerStart = blockMarkerAttribute(name: "marker-start", arrowType: edge.arrowTypeStart, markerIds: markerIds)
@@ -376,7 +378,7 @@ private func renderBlockEdgeSvg(_ edge: PositionedBlockEdge, colors: DiagramColo
         let labelBg = colors.surface ?? colors.bg
         svg += """
       <g class="edgeLabel">
-        <rect x="\(pts[1].x - labelWidth / 2)" y="\(pts[1].y - 12)" width="\(labelWidth)" height="20" rx="3" fill="\(labelBg)" opacity="0.5" stroke="none"/>
+        <rect x="\(pts[1].x - labelWidth / 2)" y="\(pts[1].y - 12)" width="\(labelWidth)" height="20" rx="\(BlockRenderConstants.edgeLabelCornerRadius)" fill="\(labelBg)" opacity="0.5" stroke="none"/>
         <text x="\(pts[1].x)" y="\(pts[1].y + 3)" text-anchor="middle" font-family="\(fontFamily)" font-size="12" fill="\(colors.fg)">\(label.escapedXML)</text>
       </g>
       """

@@ -1,6 +1,7 @@
 // Apple-only target gated by `#if canImport(CoreGraphics)`. On Linux this file is empty.
 #if canImport(CoreGraphics)
 import Foundation
+import DiagramKitCommon
 import DiagramKitModel
 import CoreGraphics
 #if targetEnvironment(macCatalyst) || canImport(UIKit)
@@ -37,7 +38,7 @@ extension DiagramRenderer {
         let strokeColor = _cgBlockStroke(node)
         ctx.setFillColor(fillColor.cgColor)
         ctx.setStrokeColor(strokeColor.cgColor)
-        ctx.setLineWidth(1.5)
+        ctx.setLineWidth(CGFloat(BlockRenderConstants.strokeWidth))
 
         if node.type == .composite {
             let clusterRect = CGRect(x: x, y: y + 20, width: node.width, height: max(0, node.height - 20))
@@ -102,7 +103,9 @@ extension DiagramRenderer {
             lineStyle: edge.thickness == "thick" ? .thick : (edge.pattern == "dotted" ? .dotted : .solid),
             sourceArrow: _cgBlockArrowHead(edge.arrowTypeStart),
             targetArrow: _cgBlockArrowHead(edge.arrowTypeEnd),
-            strokeWidth: edge.thickness == "thick" ? 3.5 : 1.5
+            strokeWidth: edge.thickness == "thick"
+                ? CGFloat(BlockRenderConstants.thickStrokeWidth)
+                : CGFloat(BlockRenderConstants.strokeWidth)
         )
         edgeRenderer.drawEdgePath(points: points, style: style, in: ctx, theme: theme)
         edgeRenderer.drawArrowHeads(points: points, style: style, in: ctx, theme: theme)

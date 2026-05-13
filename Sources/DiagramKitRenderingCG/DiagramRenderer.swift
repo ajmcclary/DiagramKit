@@ -142,7 +142,12 @@ public final class DiagramRenderer {
     ) {
         guard !text.isEmpty else { return }
         if text.contains("\n") {
-            let width: CGFloat = 1000
+            // Multiline label bounding box. The previous 1000pt cap silently
+            // clipped wider labels (REVIEW.md: "DiagramRenderer+Flow.swift:155
+            // hardcodes a 1000pt multiline text box"). Bumping to 4000pt is a
+            // conservative bound: still finite (so CoreText can lay text out),
+            // but far beyond any realistic diagram-label width.
+            let width: CGFloat = 4000
             let x: CGFloat
             switch alignment {
             case .left:
