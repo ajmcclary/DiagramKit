@@ -716,6 +716,31 @@ public final class LiveEditorStore {
         previewState = state
     }
 
+    // MARK: - Selection (Phase 7)
+
+    /// Write `selection` into the persistent editor. Used by both the canvas
+    /// tap dispatch and any keyboard-driven picker.
+    public func setSelection(_ selection: DiagramSelection?) {
+        editor?.selection = selection
+    }
+
+    /// Convert a view-space tap into a selection on `editor`.
+    ///
+    /// Uses the committed `state.zoomScale` and `state.panOffset` — never the
+    /// in-flight gesture state — so the result matches what the user sees.
+    public func handleTapAt(viewPoint: CGPoint, viewSize: CGSize) {
+        guard let lookup = boundsLookup else { return }
+        let localPoint = Self.tapPointInDiagramCoordinates(
+            viewPoint: viewPoint,
+            viewSize: viewSize,
+            diagramBounds: diagramBounds,
+            zoomScale: state.zoomScale ?? 1,
+            panOffset: state.panOffset ?? .zero
+        )
+        let diagramPoint = DiagramPoint(x: Double(localPoint.x), y: Double(localPoint.y))
+        setSelection(lookup.element(at: diagramPoint))
+    }
+
     // MARK: - Tap coordinate math (Phase 7)
 
     /// Convert a tap point in `DiagramView` view-space into diagram-space.
