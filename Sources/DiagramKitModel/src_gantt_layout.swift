@@ -292,7 +292,7 @@ public func layoutGanttDiagram(_ diagram: GanttDiagram) -> PositionedGanttDiagra
     // Today marker
     var todayLineX: Double? = nil
     if diagram.todayMarker != "off" {
-        let today = Calendar.current.startOfDay(for: Date())
+        let today = _ganttReferenceToday()
         todayLineX = scale(today)
     }
 
@@ -339,6 +339,28 @@ public func layoutGanttDiagram(_ diagram: GanttDiagram) -> PositionedGanttDiagra
 }
 
 // MARK: - Helpers
+
+/// Today's date for the Gantt today-marker line. Honors the
+/// `DIAGRAMKIT_GANTT_TODAY=YYYY-MM-DD` env override (parsed with a POSIX
+/// Gregorian calendar in UTC) so snapshot tests are deterministic across
+/// runs. Falls back to `Date()` for normal runtime use.
+func _ganttReferenceToday() -> Date {
+    if let override = ProcessInfo.processInfo.environment["DIAGRAMKIT_GANTT_TODAY"],
+       !override.isEmpty {
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = TimeZone(identifier: "UTC") ?? .current
+        calendar.locale = Locale(identifier: "en_US_POSIX")
+        let formatter = DateFormatter()
+        formatter.calendar = calendar
+        formatter.timeZone = calendar.timeZone
+        formatter.locale = calendar.locale
+        formatter.dateFormat = "yyyy-MM-dd"
+        if let parsed = formatter.date(from: override) {
+            return calendar.startOfDay(for: parsed)
+        }
+    }
+    return Calendar.current.startOfDay(for: Date())
+}
 
 private func _uniqueInOrder(_ values: [String]) -> [String] {
     var seen: Set<String> = []

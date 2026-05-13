@@ -56,6 +56,6 @@
 <text id="AD67C4B0-0696-2939-5C4B-72BA7A555C3A-t1-text" class="taskText taskText0 width-31" x="600.0" y="63.5">Task 1</text>
 <text class="sectionTitle sectionTitle0" x="0.0" y="66.35">Main</text>
 <g class="today">
-<line class="today" x1="129518.75" x2="129518.75" y1="25.0" y2="99.0" style=""/>
+<line class="today" x1="24943.75" x2="24943.75" y1="25.0" y2="99.0" style=""/>
 </g>
 </svg>

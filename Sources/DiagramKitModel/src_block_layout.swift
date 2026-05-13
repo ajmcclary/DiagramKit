@@ -436,7 +436,9 @@ public func layoutBlockDiagram(_ diagram: BlockDiagram) throws -> PositionedBloc
         }
         styles.append(contentsOf: blk.styles ?? [])
         let size = blk.size ?? BlockSize()
-        let rounded = blk.type == .round ? 5.0 : 0.0
+        // Match the CG `rounded` ShapeRenderer corner radius (6 pt) so SVG
+        // and CG agree for `.round` block nodes.
+        let rounded = blk.type == .round ? 6.0 : 0.0
         return PositionedBlockNode(
             id: blk.id,
             label: blk.label,

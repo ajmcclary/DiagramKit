@@ -66,7 +66,7 @@
 <text id="45009086-C87B-FD49-EC43-CDA8E66411F5-m3-text" class="taskTextOutsideLeft taskTextOutside0 milestoneText width-21" x="1110.0" y="135.5">End</text>
 <text class="sectionTitle sectionTitle0" x="0.0" y="102.35">Phase 1</text>
 <g class="today">
-<line class="today" x1="30278.541666666668" x2="30278.541666666668" y1="25.0" y2="171.0" style=""/>
+<line class="today" x1="5877.708333333333" x2="5877.708333333333" y1="25.0" y2="171.0" style=""/>
 </g>
 <text class="titleText" x="600.0" y="25.0">Milestones</text>
 </svg>

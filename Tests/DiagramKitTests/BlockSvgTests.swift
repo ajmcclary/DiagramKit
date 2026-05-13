@@ -228,4 +228,41 @@ final class BlockSvgTests: XCTestCase {
         XCTAssertTrue(svg2.contains("id=\"\(id2)-block-point\""))
         XCTAssertTrue(svg2.contains("marker-end=\"url(#\(id2)-block-point)\""))
     }
+
+    // Critical 2: SVG `.round` shape must emit non-zero rx/ry so it matches
+    // the CG path's 6 pt rounded rectangle. Plain `.square` keeps rx=0.
+    func testRoundBlockNodeEmitsRoundedRectInSVG() throws {
+        let source = """
+        block
+          A("rounded")
+        """
+        let (processed, _) = _parseFrontMatterAndStripped(source)
+        let lines = _mermaidSourceLines(from: processed, separatedBy: CharacterSet(charactersIn: "\n"))
+        let diagram = try parseBlockDiagramLines(lines)
+        XCTAssertEqual(diagram.blockDatabase["A"]?.type, .round, "Parser should classify A(\"...\") as .round")
+
+        let positioned = try layoutBlockDiagram(diagram)
+        let colors = DiagramColors(bg: "#FFF", fg: "#000")
+        let svg = try renderBlockSvg(positioned, colors: colors, fontFamily: "Inter", transparent: false)
+
+        XCTAssertTrue(svg.contains("rx=\"6"), "Expected `.round` SVG rect to include rx=\"6\". Got:\n\(svg)")
+        XCTAssertTrue(svg.contains("ry=\"6"), "Expected `.round` SVG rect to include ry=\"6\". Got:\n\(svg)")
+    }
+
+    func testSquareBlockNodeEmitsPlainRectInSVG() throws {
+        let source = """
+        block
+          A["square"]
+        """
+        let (processed, _) = _parseFrontMatterAndStripped(source)
+        let lines = _mermaidSourceLines(from: processed, separatedBy: CharacterSet(charactersIn: "\n"))
+        let diagram = try parseBlockDiagramLines(lines)
+        XCTAssertEqual(diagram.blockDatabase["A"]?.type, .square)
+
+        let positioned = try layoutBlockDiagram(diagram)
+        let colors = DiagramColors(bg: "#FFF", fg: "#000")
+        let svg = try renderBlockSvg(positioned, colors: colors, fontFamily: "Inter", transparent: false)
+
+        XCTAssertFalse(svg.contains(" rx=\""), "Expected `.square` SVG rect to omit rx; got:\n\(svg)")
+    }
 }

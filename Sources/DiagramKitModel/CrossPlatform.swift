@@ -178,6 +178,27 @@ extension BMColor {
         return String(format: "#%02X%02X%02X", Int(r * 255), Int(g * 255), Int(b * 255))
     }
 
+    /// Serialize for CSS use, preserving alpha. Opaque colors return `#RRGGBB`
+    /// (matching `hexString` for snapshot stability); non-opaque colors return
+    /// `rgba(r,g,b,a)` so alpha survives — `hexString` would truncate it.
+    public var cssColorString: String {
+        var r: CGFloat = 0, g: CGFloat = 0, b: CGFloat = 0, a: CGFloat = 0
+        #if targetEnvironment(macCatalyst) || canImport(UIKit)
+        getRed(&r, green: &g, blue: &b, alpha: &a)
+        #elseif canImport(AppKit)
+        guard let rgbColor = usingColorSpace(.deviceRGB) else { return "#000000" }
+        rgbColor.getRed(&r, green: &g, blue: &b, alpha: &a)
+        #endif
+        let ri = Int(max(0, min(255, (r * 255).rounded())))
+        let gi = Int(max(0, min(255, (g * 255).rounded())))
+        let bi = Int(max(0, min(255, (b * 255).rounded())))
+        if a >= 0.9999 {
+            return String(format: "#%02X%02X%02X", ri, gi, bi)
+        }
+        let alpha = (a * 1000).rounded() / 1000
+        return "rgba(\(ri),\(gi),\(bi),\(alpha))"
+    }
+
     public func mixed(with other: BMColor, amount: CGFloat) -> BMColor {
         var r1: CGFloat = 0, g1: CGFloat = 0, b1: CGFloat = 0, a1: CGFloat = 0
         var r2: CGFloat = 0, g2: CGFloat = 0, b2: CGFloat = 0, a2: CGFloat = 0

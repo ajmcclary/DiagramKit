@@ -62,7 +62,7 @@
 <text id="546E8C17-23A2-5270-486C-46BBC4DDE417-c-text" class="taskText taskText0 width-36" x="848.6842105263158" y="111.5">Task C</text>
 <text class="sectionTitle sectionTitle0" x="0.0" y="90.35">Tasks</text>
 <g class="today">
-<line class="today" x1="47764.80263157895" x2="47764.80263157895" y1="25.0" y2="147.0" style=""/>
+<line class="today" x1="9237.171052631578" x2="9237.171052631578" y1="25.0" y2="147.0" style=""/>
 </g>
 <text class="titleText" x="600.0" y="25.0">Compact Gantt</text>
 </svg>

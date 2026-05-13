@@ -144,6 +144,27 @@ struct GanttLayoutTests {
         #expect(positioned.todayLineX != nil)
     }
 
+    @Test("Today marker honors DIAGRAMKIT_GANTT_TODAY for deterministic snapshots")
+    func todayMarkerHonorsEnvOverride() throws {
+        setenv("DIAGRAMKIT_GANTT_TODAY", "2024-06-15", 1)
+        let config = GanttDiagramConfig.default
+        let task = GanttTask(
+            id: "t1", task: "Task", section: "S1", type: "S1",
+            startTime: _date(2024, 6, 1), endTime: _date(2024, 6, 30),
+            order: 0
+        )
+        let diagram = GanttDiagram(
+            dateFormat: "YYYY-MM-DD", sections: [GanttSection(name: "S1", index: 0)],
+            tasks: [task], config: config
+        )
+        let first = layoutGanttDiagram(diagram)
+        let second = layoutGanttDiagram(diagram)
+        let third = layoutGanttDiagram(diagram)
+        #expect(first.todayLineX != nil)
+        #expect(first.todayLineX == second.todayLineX)
+        #expect(second.todayLineX == third.todayLineX)
+    }
+
     @Test("Today marker off suppresses line")
     func todayMarkerOff() throws {
         let today = Calendar.current.startOfDay(for: Date())

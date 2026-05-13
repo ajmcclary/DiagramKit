@@ -137,13 +137,13 @@ public enum DiagramPipeline {
             let positioned = try GraphLayout(config: layoutConfig).layout(graph)
 
             let colors = DiagramColors(
-                bg: theme.background.hexString,
-                fg: theme.foreground.hexString,
-                line: (theme.line ?? theme.foreground).hexString,
-                accent: (theme.accent ?? theme.foreground).hexString,
-                muted: (theme.muted ?? theme.foreground).hexString,
-                surface: (theme.surface ?? theme.background).hexString,
-                border: (theme.border ?? theme.foreground).hexString
+                bg: theme.background.cssColorString,
+                fg: theme.foreground.cssColorString,
+                line: (theme.line ?? theme.foreground).cssColorString,
+                accent: (theme.accent ?? theme.foreground).cssColorString,
+                muted: (theme.muted ?? theme.foreground).cssColorString,
+                surface: (theme.surface ?? theme.background).cssColorString,
+                border: (theme.border ?? theme.foreground).cssColorString
             )
             let font = DiagramFontResolver.shared.svgFontFamily
             let diagramId = SVGIDGenerator.id(for: source, policy: idPolicy)
@@ -175,13 +175,13 @@ public enum DiagramPipeline {
     ) throws -> String {
         try runPipeline(operation: "DiagramPipeline.renderSVG(positioned:)") {
             let colors = DiagramColors(
-                bg: theme.background.hexString,
-                fg: theme.foreground.hexString,
-                line: (theme.line ?? theme.foreground).hexString,
-                accent: (theme.accent ?? theme.foreground).hexString,
-                muted: (theme.muted ?? theme.foreground).hexString,
-                surface: (theme.surface ?? theme.background).hexString,
-                border: (theme.border ?? theme.foreground).hexString
+                bg: theme.background.cssColorString,
+                fg: theme.foreground.cssColorString,
+                line: (theme.line ?? theme.foreground).cssColorString,
+                accent: (theme.accent ?? theme.foreground).cssColorString,
+                muted: (theme.muted ?? theme.foreground).cssColorString,
+                surface: (theme.surface ?? theme.background).cssColorString,
+                border: (theme.border ?? theme.foreground).cssColorString
             )
             let font = DiagramFontResolver.shared.svgFontFamily
             let diagramId = SVGIDGenerator.id(

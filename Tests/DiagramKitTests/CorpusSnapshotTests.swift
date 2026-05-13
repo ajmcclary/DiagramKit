@@ -40,6 +40,11 @@ struct CorpusSnapshotTests {
     }
 
     static func loadDiagrams() throws -> [CorpusEntry] {
+        // Pin the Gantt today-marker to a fixed date so SVG snapshots are
+        // deterministic regardless of when the suite runs. Honored by
+        // `_ganttReferenceToday()` in `src_gantt_layout.swift`.
+        setenv("DIAGRAMKIT_GANTT_TODAY", "2024-06-15", 1)
+
         let jsonURL = projectRoot()
             .appendingPathComponent("Examples/MermaidPlayground/Resources/test-diagrams.json")
         let data = try Data(contentsOf: jsonURL)
