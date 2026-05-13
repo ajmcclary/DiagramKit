@@ -70,6 +70,8 @@ struct LiveEditorView: View {
                     EditorPane(store: store)
                 case .view:
                     PreviewCanvas(store: store, onFullWindowPreview: nil)
+                case .inspector:
+                    DiagramEditorPane(store: store)
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -207,11 +209,13 @@ struct LiveEditorView: View {
 private enum CompactMode: CaseIterable {
     case edit
     case view
+    case inspector
 
     var label: String {
         switch self {
         case .edit: return "Edit"
         case .view: return "View"
+        case .inspector: return "Inspect"
         }
     }
 }
