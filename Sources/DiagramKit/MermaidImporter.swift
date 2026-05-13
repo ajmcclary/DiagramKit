@@ -28,8 +28,8 @@ public struct MermaidImporter: DiagramSourceImporter {
         //
         // Empty / whitespace-only input is excluded: nothing claims that
         // input, and `DiagramLoader.parse` surfaces the rejection as a
-        // `notYetImplemented` (or, after Phase 6D, `unrecognizedFormat`)
-        // diagnostic rather than dispatching to a parser.
+        // `DiagramError.unrecognizedFormat` diagnostic rather than
+        // dispatching to a parser.
         return !source.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
     }
 

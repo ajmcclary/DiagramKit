@@ -11,8 +11,6 @@ extension ShapeSpecRegistry {
 
     // MARK: - Individual specs
 
-    // MARK: - Individual specs
-
     static func _makeRectangleSpec() -> ShapeSpec {
         ShapeSpec(
             aliases: ["rect", "proc", "process", "rectangle", "entity", "state-fork"],

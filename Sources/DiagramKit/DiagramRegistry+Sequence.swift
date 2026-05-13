@@ -5,10 +5,9 @@ import DiagramKitCommon
 
 // MARK: Mermaid-internal diagram-family registry
 //
-// These descriptors are Mermaid-specific. A format-agnostic importer registry
-// (ImporterRegistry + DiagramSourceImporter) will be introduced in Phase 1.
-// At that point this type will become MermaidDiagramRegistry or be subsumed
-// into MermaidImporter.
+// Mermaid-family descriptors. Format-agnostic source dispatch lives in
+// DiagramKitImport (`ImporterRegistry` + `DiagramSourceImporter`). This
+// registry remains as the Mermaid family detector and descriptor catalog.
 extension DiagramRegistry {
     static let _sequenceDiagram = _typed(
         type: .sequenceDiagram,
