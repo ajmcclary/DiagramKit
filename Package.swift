@@ -88,7 +88,7 @@ let package = Package(
         ),
         .target(
             name: "DiagramKitGraphviz",
-            dependencies: ["DiagramKitModel", "DiagramKitImport"],
+            dependencies: ["DiagramKitModel", "DiagramKitImport", "DiagramKitExport"],
             swiftSettings: strictConcurrencySettings
         ),
         .target(
