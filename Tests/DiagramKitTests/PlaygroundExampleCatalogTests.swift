@@ -43,7 +43,7 @@ final class PlaygroundExampleCatalogTests: XCTestCase {
 
     func testPlaygroundCorpusContainsEveryGapsDiagramFamily() throws {
         let diagramsURL = Self.projectRoot()
-            .appendingPathComponent("Examples/MermaidPlayground/Resources/test-diagrams.json")
+            .appendingPathComponent("Examples/DiagramPlayground/Resources/test-diagrams.json")
         let data = try Data(contentsOf: diagramsURL)
         let file = try JSONDecoder().decode(DiagramFile.self, from: data)
         let categories = Set(file.diagrams.map(\.category))
@@ -59,7 +59,7 @@ final class PlaygroundExampleCatalogTests: XCTestCase {
 
     func testPlaygroundPickerUsesGapsCatalogOrder() throws {
         let modelURL = Self.projectRoot()
-            .appendingPathComponent("Examples/MermaidPlayground/Models/SampleDiagrams.swift")
+            .appendingPathComponent("Examples/DiagramPlayground/Models/SampleDiagrams.swift")
         let modelSource = try String(contentsOf: modelURL, encoding: .utf8)
         let catalogIDs = modelSource
             .components(separatedBy: "\n")
@@ -68,14 +68,14 @@ final class PlaygroundExampleCatalogTests: XCTestCase {
         XCTAssertEqual(catalogIDs, expectedGapsCategoryIDs)
 
         let sidebarURL = Self.projectRoot()
-            .appendingPathComponent("Examples/MermaidPlayground/Views/SidebarView.swift")
+            .appendingPathComponent("Examples/DiagramPlayground/Views/SidebarView.swift")
         let sidebarSource = try String(contentsOf: sidebarURL, encoding: .utf8)
         XCTAssertTrue(sidebarSource.contains("ForEach(TestDiagrams.orderedCategories)"))
     }
 
     func testEmbeddedFallbackContainsEveryGapsDiagramFamily() throws {
         let modelURL = Self.projectRoot()
-            .appendingPathComponent("Examples/MermaidPlayground/Models/SampleDiagrams.swift")
+            .appendingPathComponent("Examples/DiagramPlayground/Models/SampleDiagrams.swift")
         let modelSource = try String(contentsOf: modelURL, encoding: .utf8)
         let fallbackCategoryIDs = Set(
             modelSource
@@ -88,7 +88,7 @@ final class PlaygroundExampleCatalogTests: XCTestCase {
 
     func testLoaderHasDevelopmentResourceFallback() throws {
         let modelURL = Self.projectRoot()
-            .appendingPathComponent("Examples/MermaidPlayground/Models/SampleDiagrams.swift")
+            .appendingPathComponent("Examples/DiagramPlayground/Models/SampleDiagrams.swift")
         let modelSource = try String(contentsOf: modelURL, encoding: .utf8)
 
         XCTAssertTrue(modelSource.contains("developmentResourceURL()"))

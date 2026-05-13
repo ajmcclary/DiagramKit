@@ -35,7 +35,7 @@ swift build --build-tests                           # also compile tests
 swift test --filter <NameOrPattern>                 # one suite/test
 swift test --filter CorpusSnapshotTests             # corpus snapshots (~5 min; see caveats)
 SNAPSHOT_DIAGRAM_IDS=block-1-simple,block-2-columns swift test --filter CorpusSnapshotTests/imageSnapshot
-swift run MermaidPlayground                         # SwiftUI sample app
+swift run DiagramPlayground                         # SwiftUI sample app
 
 # Record/refresh snapshot baselines:
 SNAPSHOT_TESTING_RECORD=true swift test --filter CorpusSnapshotTests
@@ -185,7 +185,7 @@ outside the defining module.
 - `Sources/DiagramKitInteractive/` - Apple-only `DiagramEditor` plus
   mutation/undo support.
 - `Sources/DiagramKitTestSupport/` - Linux-portable test helpers.
-- `Examples/MermaidPlayground/` - SwiftUI sample app and the current
+- `Examples/DiagramPlayground/` - SwiftUI sample app and the current
   `test-diagrams.json` corpus source.
 - `Tests/DiagramKitTests/` - XCTest and swift-testing suites plus corpus
   snapshots.
@@ -193,7 +193,7 @@ outside the defining module.
 ## Testing And Snapshots
 
 - Current test source count: 188 Swift files under `Tests/DiagramKitTests`.
-- The corpus is `Examples/MermaidPlayground/Resources/test-diagrams.json` with
+- The corpus is `Examples/DiagramPlayground/Resources/test-diagrams.json` with
   422 entries (396 Mermaid-only + 26 multi-format: D2, DOT, Structurizr, PlantUML).
 - Corpus baselines under `Tests/DiagramKitTests/__Snapshots__/` track
   435 SVG, 435 image, and 174 ASCII files (1044 total; 609 text snapshots

@@ -89,7 +89,7 @@ layout/SVG/CG paths would render it unchanged.
 
 ### 1.4 The Live Editor (Playground-only)
 
-`LiveEditorStore` lives in `Examples/MermaidPlayground/Models/` — not in the
+`LiveEditorStore` lives in `Examples/DiagramPlayground/Models/` — not in the
 library. It's `@Observable @MainActor`, owns source/theme/config state, render
 lifecycle, export/copy/share actions, history, and URL loading. It is Mermaid-specific
 (calls `DiagramEngine` / `DiagramImageRenderer` directly) and does not expose
@@ -677,7 +677,7 @@ The existing per-family files in `Sources/DiagramKit/` (e.g.,
 
 ## 9. Test Corpus Reorganization
 
-Current state: `Examples/MermaidPlayground/Resources/test-diagrams.json` —
+Current state: `Examples/DiagramPlayground/Resources/test-diagrams.json` —
 396 entries, Mermaid-only. Each entry has an `id`, `category`, and `source`
 (Mermaid string). `CorpusSnapshotTests` renders every entry through SVG,
 image, and ASCII.

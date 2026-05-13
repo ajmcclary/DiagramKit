@@ -75,7 +75,7 @@ public struct DiagramView: UIViewRepresentable {
         @MainActor
         fileprivate func attach(to view: DiagramNativeView) {
             self.view = view
-            self.token = view.mermaidLayer.addPrepareCompletionHandler { [weak self, weak view] in
+            self.token = view.diagramLayer.addPrepareCompletionHandler { [weak self, weak view] in
                 self?.publish(from: view)
             }
         }
@@ -165,7 +165,7 @@ public struct DiagramView: NSViewRepresentable {
         @MainActor
         fileprivate func attach(to view: DiagramNativeView) {
             self.view = view
-            self.token = view.mermaidLayer.addPrepareCompletionHandler { [weak self, weak view] in
+            self.token = view.diagramLayer.addPrepareCompletionHandler { [weak self, weak view] in
                 self?.publish(from: view)
             }
         }

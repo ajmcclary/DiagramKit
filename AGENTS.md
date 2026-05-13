@@ -24,7 +24,7 @@ swift build --build-tests                           # compile tests
 swift test --filter <NameOrPattern>                 # one suite/test
 swift test --filter CorpusSnapshotTests             # corpus snapshots (~5 min; see caveats)
 SNAPSHOT_DIAGRAM_IDS=block-1-simple,block-2-columns swift test --filter CorpusSnapshotTests/imageSnapshot
-swift run MermaidPlayground                         # SwiftUI sample app
+swift run DiagramPlayground                         # SwiftUI sample app
 
 # Record/refresh snapshot baselines:
 SNAPSHOT_TESTING_RECORD=true swift test --filter CorpusSnapshotTests
@@ -97,7 +97,7 @@ Active work:
 ## Testing
 
 - Test sources: 188 Swift files under `Tests/DiagramKitTests`.
-- Corpus: `Examples/MermaidPlayground/Resources/test-diagrams.json`
+- Corpus: `Examples/DiagramPlayground/Resources/test-diagrams.json`
   (422 entries: 396 Mermaid-only + 26 multi-format with D2, DOT, Structurizr, PlantUML sources).
 - Snapshot baselines:
   - SVG: 435 (422 corpus entries + 13 non-Mermaid multi-format)

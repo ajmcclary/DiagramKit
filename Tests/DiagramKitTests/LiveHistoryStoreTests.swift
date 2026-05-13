@@ -6,9 +6,9 @@
 //  encoding/decoding, and JSON round-trip fidelity.
 //
 //  NOTE: LiveHistoryStore (the @MainActor persistence class) lives in
-//  the MermaidPlayground executable target and cannot be imported here.
+//  the DiagramPlayground executable target and cannot be imported here.
 //  Full store behavior tests (auto-save debounce, dedup, eviction caps)
-//  require a MermaidPlaygroundTests test target — see Phase 5.1.
+//  require a DiagramPlaygroundTests test target — see Phase 5.1.
 //
 
 import Foundation
@@ -17,7 +17,7 @@ import XCTest
 // MARK: - LiveHistoryEntry JSON round-trip tests
 
 /// Tests that LiveHistoryEntry encodes/decodes correctly through JSON.
-/// LiveHistoryEntry is a Codable struct in the MermaidPlayground target,
+/// LiveHistoryEntry is a Codable struct in the DiagramPlayground target,
 /// so these tests validate the serialization contract by constructing
 /// hand-crafted JSON matching the expected schema.
 final class LiveHistoryEntrySerializationTests: XCTestCase {
@@ -379,10 +379,10 @@ final class LiveHistoryEntrySerializationTests: XCTestCase {
     }
 }
 
-// MARK: - Local mirror types (match MermaidPlayground schema)
+// MARK: - Local mirror types (match DiagramPlayground schema)
 
 /// Local mirror of LiveHistoryOrigin for JSON round-trip testing.
-/// Matches the Codable schema of the real type in MermaidPlayground.
+/// Matches the Codable schema of the real type in DiagramPlayground.
 private enum LiveHistoryOrigin_Raw: String, Codable, CaseIterable {
     case manual
     case auto
@@ -390,7 +390,7 @@ private enum LiveHistoryOrigin_Raw: String, Codable, CaseIterable {
 }
 
 /// Local mirror of LiveHistoryEntry for JSON round-trip testing.
-/// Matches the Codable schema of the real type in MermaidPlayground.
+/// Matches the Codable schema of the real type in DiagramPlayground.
 private struct HistoryEntryJSON: Codable, Equatable {
     let id: String
     let timestamp: String
@@ -417,7 +417,7 @@ private struct HistoryEntryJSON: Codable, Equatable {
 }
 
 /// Local mirror of LiveEditorState for JSON round-trip testing.
-/// Matches the Codable schema of the real type in MermaidPlayground.
+/// Matches the Codable schema of the real type in DiagramPlayground.
 private struct StateJSON: Codable, Equatable {
     let source: String
     let selectedThemeName: String

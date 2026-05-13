@@ -454,8 +454,8 @@ Expected: only intentional Gantt SVG/image diffs.
 - Create: `Tests/DiagramKitTests/ERParserLayoutReviewTests.swift`
 - Modify: `Tests/DiagramKitTests/EventModelingTests.swift`
 - Modify: `Tests/DiagramKitTests/MermaidPreparationWorkerTests.swift`
-- Modify: `Tests/DiagramKitTests/MermaidPlaygroundRegressionTests.swift`
-- Modify: `Examples/MermaidPlayground/Resources/test-diagrams.json`.
+- Modify: `Tests/DiagramKitTests/DiagramPlaygroundRegressionTests.swift`
+- Modify: `Examples/DiagramPlayground/Resources/test-diagrams.json`.
 
 - [ ] Add dedicated parser/layout tests for flowchart, state, and ER beyond corpus snapshots.
 - [ ] Split the monolithic eventmodeling tests into parser, layout, renderer, and corpus-fixture coverage.

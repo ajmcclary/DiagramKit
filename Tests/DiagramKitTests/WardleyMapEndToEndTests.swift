@@ -17,7 +17,7 @@ final class WardleyMapEndToEndTests: XCTestCase {
     }
 
     func testPlaygroundWardleyExamplesParseLayoutAndRenderSvg() throws {
-        let path = "/Users/ajmcclary/Dev/Research/DiagramKit/mermaid-swift/Examples/MermaidPlayground/Resources/test-diagrams.json"
+        let path = "/Users/ajmcclary/Dev/Research/DiagramKit/mermaid-swift/Examples/DiagramPlayground/Resources/test-diagrams.json"
         let data = try Data(contentsOf: URL(fileURLWithPath: path))
         let file = try JSONDecoder().decode(DiagramFile.self, from: data)
         let wardleyExamples = file.diagrams.filter { $0.category == "wardleyBeta" }

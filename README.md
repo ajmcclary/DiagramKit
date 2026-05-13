@@ -124,7 +124,7 @@ let positioned = try await DiagramEngine.layout(source, config: .default)
 
 ## Diagram-type coverage
 
-DiagramKit parses and renders the families below. The corpus at [Examples/MermaidPlayground/Resources/test-diagrams.json](Examples/MermaidPlayground/Resources/test-diagrams.json) ships **422** sample diagrams across **28** families (396 Mermaid-only + 26 multi-format with D2, DOT, Structurizr, and PlantUML sources), used as the snapshot-test fixture set.
+DiagramKit parses and renders the families below. The corpus at [Examples/DiagramPlayground/Resources/test-diagrams.json](Examples/DiagramPlayground/Resources/test-diagrams.json) ships **422** sample diagrams across **28** families (396 Mermaid-only + 26 multi-format with D2, DOT, Structurizr, and PlantUML sources), used as the snapshot-test fixture set.
 
 `flowchart` · `stateDiagram-v2` · `sequenceDiagram` · `classDiagram` · `erDiagram` · `gantt` · `gitGraph` · `mindmap` · `journey` · `pie` · `quadrantChart` · `radar-beta` · `xychart-beta` · `timeline` · `sankey-beta` · `block-beta` · `kanban` · `requirementDiagram` · `c4Context` (and C4 variants) · `architecture-beta` · `packet-beta` · `treemap-beta` · `treeView-beta` · `ishikawa-beta` · `eventModeling-beta` · `wardley-beta` · `venn-beta` · `zenuml`
 
@@ -174,10 +174,10 @@ SNAPSHOT_DIAGRAM_IDS=id1,id2,... SNAPSHOT_TESTING_RECORD=true \
 
 ## Examples
 
-`Examples/MermaidPlayground/` is a SwiftUI sample app that exercises every diagram family and renderer:
+`Examples/DiagramPlayground/` is a SwiftUI sample app that exercises every diagram family and renderer:
 
 ```bash
-swift run MermaidPlayground
+swift run DiagramPlayground
 ```
 
 > The playground's Xcode-project surface and the location of `Resources/test-diagrams.json` (currently inside the app, not in `DiagramKitTestSupport`) is a deliberate trade-off so the corpus stays editable from the SwiftUI app. See [ANALYSIS.md](ANALYSIS.md) for the original rationale.

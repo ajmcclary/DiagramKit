@@ -9,51 +9,55 @@ import QuartzCore
 #if targetEnvironment(macCatalyst) || canImport(UIKit)
 import UIKit
 
-/// A UIView subclass that renders Mermaid diagrams
+/// A UIView subclass that renders diagrams
 @MainActor
 public class DiagramNativeView: UIView {
 
-    public let mermaidLayer: DiagramLayer
+    public let diagramLayer: DiagramLayer
+
+    /// Deprecated alias for ``diagramLayer``.
+    @available(*, deprecated, renamed: "diagramLayer", message: "Renamed for format-neutral naming. Will be removed in the next major version.")
+    public var mermaidLayer: DiagramLayer { diagramLayer }
 
     public var source: String {
-        get { mermaidLayer.source }
-        set { mermaidLayer.source = newValue }
+        get { diagramLayer.source }
+        set { diagramLayer.source = newValue }
     }
 
     public var theme: DiagramTheme {
-        get { mermaidLayer.theme }
+        get { diagramLayer.theme }
         set {
-            mermaidLayer.theme = newValue
+            diagramLayer.theme = newValue
             backgroundColor = newValue.background
         }
     }
 
     public var layoutConfig: LayoutConfig {
-        get { mermaidLayer.layoutConfig }
-        set { mermaidLayer.layoutConfig = newValue }
+        get { diagramLayer.layoutConfig }
+        set { diagramLayer.layoutConfig = newValue }
     }
 
-    public var parseError: Error? { mermaidLayer.parseError }
-    public var diagramBounds: CGRect { mermaidLayer.diagramBounds }
+    public var parseError: Error? { diagramLayer.parseError }
+    public var diagramBounds: CGRect { diagramLayer.diagramBounds }
 
     private var invalidationToken: AnyObject?
 
     public override init(frame: CGRect) {
-        self.mermaidLayer = DiagramLayer()
+        self.diagramLayer = DiagramLayer()
         super.init(frame: frame)
         commonInit()
     }
 
     public required init?(coder: NSCoder) {
-        self.mermaidLayer = DiagramLayer()
+        self.diagramLayer = DiagramLayer()
         super.init(coder: coder)
         commonInit()
     }
 
     private func commonInit() {
-        backgroundColor = mermaidLayer.theme.background
+        backgroundColor = diagramLayer.theme.background
         contentMode = .redraw
-        invalidationToken = mermaidLayer.addPrepareCompletionHandler { [weak self] in
+        invalidationToken = diagramLayer.addPrepareCompletionHandler { [weak self] in
             self?.invalidateIntrinsicContentSize()
             self?.setNeedsDisplay()
         }
@@ -69,7 +73,7 @@ public class DiagramNativeView: UIView {
             ctx.fill(viewBounds)
         }
 
-        guard let prepared = mermaidLayer.preparedDiagram else { return }
+        guard let prepared = diagramLayer.preparedDiagram else { return }
         let diagBounds = prepared.bounds
         guard diagBounds.width > 0, diagBounds.height > 0 else { return }
         guard viewBounds.width > 0, viewBounds.height > 0 else { return }
@@ -113,49 +117,53 @@ public class DiagramNativeView: UIView {
 #elseif canImport(AppKit)
 import AppKit
 
-/// An NSView subclass that renders Mermaid diagrams
+/// An NSView subclass that renders diagrams
 @MainActor
 public class DiagramNativeView: NSView {
 
-    public let mermaidLayer: DiagramLayer
+    public let diagramLayer: DiagramLayer
+
+    /// Deprecated alias for ``diagramLayer``.
+    @available(*, deprecated, renamed: "diagramLayer", message: "Renamed for format-neutral naming. Will be removed in the next major version.")
+    public var mermaidLayer: DiagramLayer { diagramLayer }
 
     public var source: String {
-        get { mermaidLayer.source }
-        set { mermaidLayer.source = newValue }
+        get { diagramLayer.source }
+        set { diagramLayer.source = newValue }
     }
 
     public var theme: DiagramTheme {
-        get { mermaidLayer.theme }
+        get { diagramLayer.theme }
         set {
-            mermaidLayer.theme = newValue
+            diagramLayer.theme = newValue
             layer?.backgroundColor = newValue.background.cgColor
         }
     }
 
     public var layoutConfig: LayoutConfig {
-        get { mermaidLayer.layoutConfig }
-        set { mermaidLayer.layoutConfig = newValue }
+        get { diagramLayer.layoutConfig }
+        set { diagramLayer.layoutConfig = newValue }
     }
 
-    public var parseError: Error? { mermaidLayer.parseError }
-    public var diagramBounds: CGRect { mermaidLayer.diagramBounds }
+    public var parseError: Error? { diagramLayer.parseError }
+    public var diagramBounds: CGRect { diagramLayer.diagramBounds }
 
     public override init(frame frameRect: NSRect) {
-        self.mermaidLayer = DiagramLayer()
+        self.diagramLayer = DiagramLayer()
         super.init(frame: frameRect)
         commonInit()
     }
 
     public required init?(coder: NSCoder) {
-        self.mermaidLayer = DiagramLayer()
+        self.diagramLayer = DiagramLayer()
         super.init(coder: coder)
         commonInit()
     }
 
     private func commonInit() {
         wantsLayer = true
-        layer?.backgroundColor = mermaidLayer.theme.background.cgColor
-        mermaidLayer.onPrepareComplete = { [weak self] in
+        layer?.backgroundColor = diagramLayer.theme.background.cgColor
+        diagramLayer.onPrepareComplete = { [weak self] in
             self?.invalidateIntrinsicContentSize()
             self?.needsDisplay = true
         }
@@ -171,7 +179,7 @@ public class DiagramNativeView: NSView {
             ctx.fill(rect)
         }
 
-        guard let prepared = mermaidLayer.preparedDiagram else { return }
+        guard let prepared = diagramLayer.preparedDiagram else { return }
         let diagBounds = prepared.bounds
         guard diagBounds.width > 0, diagBounds.height > 0 else { return }
         guard rect.width > 0, rect.height > 0 else { return }

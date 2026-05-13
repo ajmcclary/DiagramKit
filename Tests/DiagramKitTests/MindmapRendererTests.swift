@@ -86,7 +86,7 @@ final class MindmapRendererTests: XCTestCase {
 
     func test_playgroundMindmapExamplesRender() async throws {
         let path = (Self.projectRoot() as NSString).appendingPathComponent(
-            "Examples/MermaidPlayground/Resources/test-diagrams.json"
+            "Examples/DiagramPlayground/Resources/test-diagrams.json"
         )
         let data = try Data(contentsOf: URL(fileURLWithPath: path))
         let fixture = try JSONDecoder().decode(PlaygroundFixture.self, from: data)

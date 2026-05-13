@@ -38,7 +38,7 @@ let package = Package(
         // support the platforms declared above; the Playground executable is
         // additionally guarded by `@available(iOS/macOS/macCatalyst 26.0, *)`
         // and the Xcode project sets its deployment target to 26.0.
-        .executable(name: "MermaidPlayground", targets: ["MermaidPlayground"])
+        .executable(name: "DiagramPlayground", targets: ["DiagramPlayground"])
     ],
     dependencies: [
         .package(url: "https://github.com/pointfreeco/swift-custom-dump", from: "1.0.0"),
@@ -164,12 +164,16 @@ let package = Package(
         ),
 
         .executableTarget(
-            name: "MermaidPlayground",
+            name: "DiagramPlayground",
             dependencies: [
                 "DiagramKit",
+                "DiagramKitD2",
+                "DiagramKitGraphviz",
+                "DiagramKitStructurizr",
+                "DiagramKitPlantUML",
                 .product(name: "IssueReporting", package: "xctest-dynamic-overlay")
             ],
-            path: "Examples/MermaidPlayground",
+            path: "Examples/DiagramPlayground",
             exclude: [
                 "Info.plist",
                 "project.yml",
@@ -190,7 +194,7 @@ let package = Package(
                 "DiagramKitMermaid",
                 "DiagramKitInteractive",
                 "DiagramKitTestSupport",
-                "MermaidPlayground",
+                "DiagramPlayground",
                 "DiagramKitD2",
                 "DiagramKitGraphviz",
                 "DiagramKitStructurizr",

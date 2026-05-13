@@ -3,7 +3,7 @@ import Testing
 import DiagramKitTestSupport
 @testable import DiagramKit
 #if canImport(CoreGraphics)
-@testable import MermaidPlayground
+@testable import DiagramPlayground
 #endif
 
 // MARK: - Decode Tests

@@ -90,7 +90,7 @@ When porting a new mermaid diagram family from upstream `mermaid-js`:
 5. **CG renderer** — `Sources/DiagramKitRenderingCG/DiagramRenderer+<Type>.swift`. **Both renderers must move together** — see "Drift hazard" in [ARCHITECTURE.md](ARCHITECTURE.md). Sharing geometry helpers is a long-standing follow-up; in the meantime, snapshot tests are the only guardrail.
 6. **ASCII renderer** — `Sources/DiagramKitModel/src_ascii_<type>.swift` (optional but encouraged for parity).
 7. **Frontmatter binding** — `Sources/DiagramKitModel/FrontmatterBinding+<Type>.swift`. Defines how YAML frontmatter and `%%{init: …}%%` directives map to the per-diagram `RenderConfig` slice.
-8. **Corpus fixtures** — add 2–4 representative diagrams to `Examples/MermaidPlayground/Resources/test-diagrams.json` and re-run `PlaygroundExampleCatalogTests`.
+8. **Corpus fixtures** — add 2–4 representative diagrams to `Examples/DiagramPlayground/Resources/test-diagrams.json` and re-run `PlaygroundExampleCatalogTests`.
 9. **Snapshot baselines** — `SNAPSHOT_TESTING_RECORD=true swift test --filter "CorpusSnapshotTests/.*<type>-"` to generate SVG / image / ASCII baselines. Inspect each visually before committing.
 
 ## Snapshot tests
