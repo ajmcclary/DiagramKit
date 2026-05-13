@@ -10,25 +10,26 @@ import DiagramKitCommon
 // At that point this type will become MermaidDiagramRegistry or be subsumed
 // into MermaidImporter.
 extension DiagramRegistry {
-    static let _xyChart = DiagramDescriptor(
+    static let _xyChart = _typed(
         type: .xyChart,
         matches: { $0.normalized.hasPrefix("xychart") },
         parse: { source, frontmatter in
-            let lines = DiagramSourceNormalizer.diagramLines(source)
-            var chart = try parseXYChart(lines)
+            var chart = try parseXYChart(DiagramSourceNormalizer.diagramLines(source))
             if let fm = frontmatter {
                 chart.config = fm.xyChartConfig
                 chart.theme = fm.xyChartTheme
                 if chart.titleText == nil, let fmTitle = fm.diagramTitle { chart.diagramTitle = fmTitle }
             }
-            return DiagramDocument(payload: .xyChart(chart))
+            return chart
         },
-        layout: { graph, _ in
-            guard case let .xyChart(chart) = graph.payload else {
-                throw DiagramStructuralError.payloadMismatch(.xyChart)
-            }
-            let positioned = layoutXYChart(chart)
-            return PositionedGraph(diagram: graph, width: positioned.width, height: positioned.height, content: .xyChart(positioned))
+        wrap: DiagramPayload.xyChart,
+        unwrap: { payload in
+            guard case let .xyChart(value) = payload else { return nil }
+            return value
+        },
+        layout: { chart, _ in layoutXYChart(chart) },
+        positioned: { graph, positioned in
+            PositionedGraph(diagram: graph, width: positioned.width, height: positioned.height, content: .xyChart(positioned))
         }
     )
 }

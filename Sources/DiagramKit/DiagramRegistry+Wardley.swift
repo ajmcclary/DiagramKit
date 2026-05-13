@@ -10,25 +10,26 @@ import DiagramKitCommon
 // At that point this type will become MermaidDiagramRegistry or be subsumed
 // into MermaidImporter.
 extension DiagramRegistry {
-    static let _wardley = DiagramDescriptor(
+    static let _wardley = _typed(
         type: .wardleyBeta,
         matches: { $0.normalized.hasPrefix("wardley-beta") },
         parse: { source, frontmatter in
-            let rawLines = DiagramSourceNormalizer.rawLines(source)
-            var diagram = try parseWardleyMap(rawLines, frontmatter: frontmatter)
+            var diagram = try parseWardleyMap(DiagramSourceNormalizer.rawLines(source), frontmatter: frontmatter)
             if let fm = frontmatter {
                 if let cfg = fm.wardleyBetaConfig { diagram.config = cfg }
                 if let theme = fm.wardleyTheme { diagram.theme = theme }
                 if diagram.diagramTitle == nil, let fmTitle = fm.diagramTitle { diagram.diagramTitle = fmTitle }
             }
-            return DiagramDocument(payload: .wardleyBeta(diagram))
+            return diagram
         },
-        layout: { graph, _ in
-            guard case let .wardleyBeta(diagram) = graph.payload else {
-                throw DiagramStructuralError.payloadMismatch(.wardleyBeta)
-            }
-            let positioned = layoutWardleyMap(diagram)
-            return PositionedGraph(diagram: graph, width: positioned.width, height: positioned.height, content: .wardleyBeta(positioned))
+        wrap: DiagramPayload.wardleyBeta,
+        unwrap: { payload in
+            guard case let .wardleyBeta(value) = payload else { return nil }
+            return value
+        },
+        layout: { diagram, _ in layoutWardleyMap(diagram) },
+        positioned: { graph, positioned in
+            PositionedGraph(diagram: graph, width: positioned.width, height: positioned.height, content: .wardleyBeta(positioned))
         }
     )
 }
