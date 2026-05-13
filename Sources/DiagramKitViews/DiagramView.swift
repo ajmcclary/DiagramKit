@@ -17,23 +17,30 @@ public struct DiagramView: UIViewRepresentable {
     private let layoutConfig: LayoutConfig
     @Binding private var parseError: Error?
     @Binding private var diagramBounds: CGRect
+    @Binding private var boundsLookup: DiagramBoundsLookup?
 
     public init(
         source: String,
         theme: DiagramTheme = .default,
         layoutConfig: LayoutConfig = LayoutConfig(),
         parseError: Binding<Error?> = .constant(nil),
-        diagramBounds: Binding<CGRect> = .constant(.zero)
+        diagramBounds: Binding<CGRect> = .constant(.zero),
+        boundsLookup: Binding<DiagramBoundsLookup?> = .constant(nil)
     ) {
         self.source = source
         self.theme = theme
         self.layoutConfig = layoutConfig
         self._parseError = parseError
         self._diagramBounds = diagramBounds
+        self._boundsLookup = boundsLookup
     }
 
     public func makeCoordinator() -> Coordinator {
-        Coordinator(parseError: $parseError, diagramBounds: $diagramBounds)
+        Coordinator(
+            parseError: $parseError,
+            diagramBounds: $diagramBounds,
+            boundsLookup: $boundsLookup
+        )
     }
 
     public func makeUIView(context: Context) -> DiagramNativeView {
@@ -46,7 +53,11 @@ public struct DiagramView: UIViewRepresentable {
     }
 
     public func updateUIView(_ view: DiagramNativeView, context: Context) {
-        context.coordinator.updateBindings(parseError: $parseError, diagramBounds: $diagramBounds)
+        context.coordinator.updateBindings(
+            parseError: $parseError,
+            diagramBounds: $diagramBounds,
+            boundsLookup: $boundsLookup
+        )
 
         if view.theme != theme {
             view.theme = theme
@@ -64,12 +75,18 @@ public struct DiagramView: UIViewRepresentable {
     public final class Coordinator {
         fileprivate var parseError: Binding<Error?>
         fileprivate var diagramBounds: Binding<CGRect>
+        fileprivate var boundsLookup: Binding<DiagramBoundsLookup?>
         fileprivate weak var view: DiagramNativeView?
         fileprivate var token: AnyObject?
 
-        fileprivate init(parseError: Binding<Error?>, diagramBounds: Binding<CGRect>) {
+        fileprivate init(
+            parseError: Binding<Error?>,
+            diagramBounds: Binding<CGRect>,
+            boundsLookup: Binding<DiagramBoundsLookup?>
+        ) {
             self.parseError = parseError
             self.diagramBounds = diagramBounds
+            self.boundsLookup = boundsLookup
         }
 
         @MainActor
@@ -81,9 +98,14 @@ public struct DiagramView: UIViewRepresentable {
         }
 
         @MainActor
-        fileprivate func updateBindings(parseError: Binding<Error?>, diagramBounds: Binding<CGRect>) {
+        fileprivate func updateBindings(
+            parseError: Binding<Error?>,
+            diagramBounds: Binding<CGRect>,
+            boundsLookup: Binding<DiagramBoundsLookup?>
+        ) {
             self.parseError = parseError
             self.diagramBounds = diagramBounds
+            self.boundsLookup = boundsLookup
         }
 
         @MainActor
@@ -91,6 +113,7 @@ public struct DiagramView: UIViewRepresentable {
             guard let view else { return }
             parseError.wrappedValue = view.parseError
             diagramBounds.wrappedValue = view.diagramBounds
+            boundsLookup.wrappedValue = view.diagramLayer.preparedDiagram?.positioned.lookup
         }
     }
 }
@@ -107,23 +130,30 @@ public struct DiagramView: NSViewRepresentable {
     private let layoutConfig: LayoutConfig
     @Binding private var parseError: Error?
     @Binding private var diagramBounds: CGRect
+    @Binding private var boundsLookup: DiagramBoundsLookup?
 
     public init(
         source: String,
         theme: DiagramTheme = .default,
         layoutConfig: LayoutConfig = LayoutConfig(),
         parseError: Binding<Error?> = .constant(nil),
-        diagramBounds: Binding<CGRect> = .constant(.zero)
+        diagramBounds: Binding<CGRect> = .constant(.zero),
+        boundsLookup: Binding<DiagramBoundsLookup?> = .constant(nil)
     ) {
         self.source = source
         self.theme = theme
         self.layoutConfig = layoutConfig
         self._parseError = parseError
         self._diagramBounds = diagramBounds
+        self._boundsLookup = boundsLookup
     }
 
     public func makeCoordinator() -> Coordinator {
-        Coordinator(parseError: $parseError, diagramBounds: $diagramBounds)
+        Coordinator(
+            parseError: $parseError,
+            diagramBounds: $diagramBounds,
+            boundsLookup: $boundsLookup
+        )
     }
 
     public func makeNSView(context: Context) -> DiagramNativeView {
@@ -136,7 +166,11 @@ public struct DiagramView: NSViewRepresentable {
     }
 
     public func updateNSView(_ view: DiagramNativeView, context: Context) {
-        context.coordinator.updateBindings(parseError: $parseError, diagramBounds: $diagramBounds)
+        context.coordinator.updateBindings(
+            parseError: $parseError,
+            diagramBounds: $diagramBounds,
+            boundsLookup: $boundsLookup
+        )
 
         if view.theme != theme {
             view.theme = theme
@@ -154,12 +188,18 @@ public struct DiagramView: NSViewRepresentable {
     public final class Coordinator {
         fileprivate var parseError: Binding<Error?>
         fileprivate var diagramBounds: Binding<CGRect>
+        fileprivate var boundsLookup: Binding<DiagramBoundsLookup?>
         fileprivate weak var view: DiagramNativeView?
         fileprivate var token: AnyObject?
 
-        fileprivate init(parseError: Binding<Error?>, diagramBounds: Binding<CGRect>) {
+        fileprivate init(
+            parseError: Binding<Error?>,
+            diagramBounds: Binding<CGRect>,
+            boundsLookup: Binding<DiagramBoundsLookup?>
+        ) {
             self.parseError = parseError
             self.diagramBounds = diagramBounds
+            self.boundsLookup = boundsLookup
         }
 
         @MainActor
@@ -171,9 +211,14 @@ public struct DiagramView: NSViewRepresentable {
         }
 
         @MainActor
-        fileprivate func updateBindings(parseError: Binding<Error?>, diagramBounds: Binding<CGRect>) {
+        fileprivate func updateBindings(
+            parseError: Binding<Error?>,
+            diagramBounds: Binding<CGRect>,
+            boundsLookup: Binding<DiagramBoundsLookup?>
+        ) {
             self.parseError = parseError
             self.diagramBounds = diagramBounds
+            self.boundsLookup = boundsLookup
         }
 
         @MainActor
@@ -181,6 +226,7 @@ public struct DiagramView: NSViewRepresentable {
             guard let view else { return }
             parseError.wrappedValue = view.parseError
             diagramBounds.wrappedValue = view.diagramBounds
+            boundsLookup.wrappedValue = view.diagramLayer.preparedDiagram?.positioned.lookup
         }
     }
 }
