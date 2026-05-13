@@ -8,6 +8,7 @@
 
 import SwiftUI
 import DiagramKit
+import DiagramKitModel
 
 @available(iOS 26.0, macOS 26.0, macCatalyst 26.0, *)
 struct PreviewCanvas: View {
@@ -27,6 +28,7 @@ struct PreviewCanvas: View {
     @SwiftUI.State private var liveParseError: Error?
     @SwiftUI.State private var liveParseErrorMessage: String?
     @SwiftUI.State private var liveDiagramBounds: CGRect = .zero
+    @SwiftUI.State private var liveBoundsLookup: DiagramBoundsLookup?
 
     private let minZoom: CGFloat = 0.25
     private let maxZoom: CGFloat = 4.0
@@ -195,14 +197,25 @@ struct PreviewCanvas: View {
                     theme: store.previewTheme,
                     layoutConfig: store.previewLayoutConfig,
                     parseError: parseErrorBinding,
-                    diagramBounds: $liveDiagramBounds
+                    diagramBounds: $liveDiagramBounds,
+                    boundsLookup: $liveBoundsLookup
                 )
                 .frame(width: scaledWidth, height: scaledHeight)
                 .offset(effectivePanOffset)
+
+                selectionOverlay(geometry: geometry)
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .contentShape(Rectangle())
             .clipped()
+            .simultaneousGesture(
+                SpatialTapGesture()
+                    .onEnded { event in
+                        let isMidGesture = gestureBaseZoomScale != nil || activePanTranslation != .zero
+                        guard !isMidGesture else { return }
+                        store.handleTapAt(viewPoint: event.location, viewSize: geometry.size)
+                    }
+            )
         )
         .onChange(of: store.diagramBounds) { _, newBounds in
             refreshAutomaticFit(bounds: newBounds, viewSize: geometry.size)
@@ -215,6 +228,28 @@ struct PreviewCanvas: View {
         }
         .onChange(of: liveParseErrorMessage) { _, _ in
             forwardRenderCompletion()
+        }
+    }
+
+    @ViewBuilder
+    private func selectionOverlay(geometry: GeometryProxy) -> some View {
+        if let selection = store.editor?.selection,
+           let bounds = store.boundsLookup?.bounds(of: selection) {
+            let zoom = currentZoomScale
+            let scaledWidth = store.diagramBounds.width * zoom
+            let scaledHeight = store.diagramBounds.height * zoom
+            let centerX = (geometry.size.width - scaledWidth) / 2 + effectivePanOffset.width
+            let centerY = (geometry.size.height - scaledHeight) / 2 + effectivePanOffset.height
+            let originX = centerX + CGFloat(bounds.minX) * zoom
+            let originY = centerY + CGFloat(bounds.minY) * zoom
+            let width = CGFloat(bounds.width) * zoom
+            let height = CGFloat(bounds.height) * zoom
+
+            RoundedRectangle(cornerRadius: 4)
+                .stroke(Color(store.previewTheme.effectiveAccent()), lineWidth: 2)
+                .frame(width: width, height: height)
+                .position(x: originX + width / 2, y: originY + height / 2)
+                .allowsHitTesting(false)
         }
     }
 
@@ -232,6 +267,7 @@ struct PreviewCanvas: View {
     }
 
     private func forwardRenderCompletion() {
+        store.boundsLookup = liveBoundsLookup
         store.didCompleteRender(
             parseError: liveParseError,
             diagramBounds: liveDiagramBounds
