@@ -715,6 +715,32 @@ public final class LiveEditorStore {
         previewLayoutConfig = layoutConfig
         previewState = state
     }
+
+    // MARK: - Tap coordinate math (Phase 7)
+
+    /// Convert a tap point in `DiagramView` view-space into diagram-space.
+    ///
+    /// The preview frames `DiagramView` at `diagramBounds * zoomScale` and
+    /// centers it inside `viewSize`, then translates by `panOffset`. This
+    /// helper inverts that transform.
+    ///
+    /// `nonisolated` so unit tests can call it without crossing the
+    /// `@MainActor` boundary.
+    nonisolated public static func tapPointInDiagramCoordinates(
+        viewPoint: CGPoint,
+        viewSize: CGSize,
+        diagramBounds: CGRect,
+        zoomScale: CGFloat,
+        panOffset: CGSize
+    ) -> CGPoint {
+        let scaledWidth = diagramBounds.width * zoomScale
+        let scaledHeight = diagramBounds.height * zoomScale
+        let centerX = (viewSize.width - scaledWidth) / 2 + panOffset.width
+        let centerY = (viewSize.height - scaledHeight) / 2 + panOffset.height
+        let localX = (viewPoint.x - centerX) / zoomScale
+        let localY = (viewPoint.y - centerY) / zoomScale
+        return CGPoint(x: localX, y: localY)
+    }
 }
 
 // MARK: - Supporting types
