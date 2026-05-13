@@ -68,4 +68,37 @@ public enum SourceFormat: String, Codable, CaseIterable, Sendable, Identifiable 
         case .plantuml:    return .plantuml
         }
     }
+
+    /// All file extensions (lowercase, no leading dot) commonly used for
+    /// this format. Includes ``fileExtension`` plus widely accepted aliases.
+    public var fileExtensions: [String] {
+        switch self {
+        case .mermaid:     return ["mmd", "mermaid"]
+        case .d2:          return ["d2"]
+        case .graphviz:    return ["dot", "gv"]
+        case .structurizr: return ["dsl"]
+        case .plantuml:    return ["puml", "plantuml", "iuml", "pu"]
+        }
+    }
+
+    /// Map a file extension (with or without a leading dot, case-insensitive)
+    /// to a `SourceFormat`, or `nil` when the extension is unknown.
+    public static func from(fileExtension ext: String) -> SourceFormat? {
+        let normalized = ext.lowercased().trimmingCharacters(in: CharacterSet(charactersIn: "."))
+        guard !normalized.isEmpty else { return nil }
+        return allCases.first { $0.fileExtensions.contains(normalized) }
+    }
+
+    /// Sniff a `SourceFormat` from a filename or URL path. Returns `nil`
+    /// when the path carries no extension or an unrecognized one.
+    public static func from(filename: String) -> SourceFormat? {
+        guard let dot = filename.lastIndex(of: ".") else { return nil }
+        let ext = filename[filename.index(after: dot)...]
+        return from(fileExtension: String(ext))
+    }
+
+    /// Sniff a `SourceFormat` from a URL's last path component.
+    public static func from(url: URL) -> SourceFormat? {
+        from(filename: url.lastPathComponent)
+    }
 }

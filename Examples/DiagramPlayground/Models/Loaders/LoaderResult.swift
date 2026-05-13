@@ -14,7 +14,7 @@ import Foundation
 /// The result of loading diagram source from an external URL.
 public struct LoaderResult: Sendable {
 
-    /// Mermaid diagram source text.
+    /// Diagram source text.
     public let source: String
 
     /// Config JSON string (nil if no config was found).
@@ -26,6 +26,11 @@ public struct LoaderResult: Sendable {
     /// The URL that was loaded (for display and history metadata).
     public let sourceURL: URL
 
+    /// Source format sniffed from the origin (file extension or path).
+    /// `nil` when the loader could not determine the format and the caller
+    /// should leave its current format hint alone.
+    public let sourceFormat: SourceFormat?
+
     /// Revision history from a Gist (nil for raw URL loads).
     /// Each revision represents a prior version of the Gist content.
     public let revisions: [LoaderRevision]?
@@ -35,12 +40,14 @@ public struct LoaderResult: Sendable {
         configJSON: String?,
         label: String,
         sourceURL: URL,
+        sourceFormat: SourceFormat? = nil,
         revisions: [LoaderRevision]? = nil
     ) {
         self.source = source
         self.configJSON = configJSON
         self.label = label
         self.sourceURL = sourceURL
+        self.sourceFormat = sourceFormat
         self.revisions = revisions
     }
 }

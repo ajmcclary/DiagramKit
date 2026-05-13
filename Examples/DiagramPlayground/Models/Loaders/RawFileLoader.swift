@@ -2,9 +2,10 @@
 //  RawFileLoader.swift
 //  DiagramPlayground
 //
-//  Loads Mermaid diagram source or config from arbitrary HTTP(S) URLs.
+//  Loads diagram source or config from arbitrary HTTP(S) URLs.
 //  Supports loading code and config from separate URLs, or a single URL
 //  whose content type is auto-detected (JSON → config, plain text → source).
+//  Source format is sniffed from the URL's path extension when present.
 //  Config is sanitized via ConfigSanitizer.stripUnsafe before returning.
 //
 
@@ -13,11 +14,12 @@ import DiagramKitModel
 
 // MARK: - RawFileLoader
 
-/// Loads Mermaid source/config from raw URLs.
+/// Loads diagram source/config from raw URLs.
 ///
 /// Content type is detected automatically for single-URL loads:
 /// - If the content parses as valid JSON, it's treated as config.
-/// - Otherwise it's treated as Mermaid source text.
+/// - Otherwise it's treated as source text and the URL extension is
+///   sniffed for a `SourceFormat`.
 ///
 /// For two-URL loads, `codeURL` is treated as source and `configURL` as config.
 /// Config is sanitized through ``ConfigSanitizer/stripUnsafe(from:)``
@@ -76,7 +78,8 @@ public enum RawFileLoader {
                 source: source,
                 configJSON: sanitizedConfig ?? rawConfig,
                 label: "Loaded from URL",
-                sourceURL: codeURL
+                sourceURL: codeURL,
+                sourceFormat: SourceFormat.from(url: codeURL)
             )
         }
 
@@ -109,7 +112,8 @@ public enum RawFileLoader {
                 source: content,
                 configJSON: nil,
                 label: "Source from \(url.host ?? "URL")",
-                sourceURL: url
+                sourceURL: url,
+                sourceFormat: SourceFormat.from(url: url)
             )
         }
     }

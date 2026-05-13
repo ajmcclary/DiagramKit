@@ -557,10 +557,11 @@ public final class LiveEditorStore {
 
     /// Load diagram source and config from a GitHub Gist URL.
     ///
-    /// Fetches the Gist via the public API, extracts source from
-    /// `code.mmd` (or a `.mmd` fallback), and config from `config.json`.
-    /// Config is sanitized before application. A loader history entry
-    /// is saved automatically.
+    /// Fetches the Gist via the public API, extracts a recognized
+    /// diagram source file (Mermaid/D2/DOT/Structurizr/PlantUML by
+    /// extension), and reads config from `config.json`. Config is
+    /// sanitized before application. A loader history entry is saved
+    /// automatically.
     ///
     /// - Parameter url: A GitHub Gist URL.
     /// - Throws: ``GistLoader.LoadError`` on failure.
@@ -568,8 +569,9 @@ public final class LiveEditorStore {
         let result = try await GistLoader.load(from: url)
 
         state.source = result.source
-        // Gist loader resolves `.mmd` files, so the loaded source is always Mermaid.
-        state.sourceFormat = .mermaid
+        if let sniffed = result.sourceFormat {
+            state.sourceFormat = sniffed
+        }
 
         if let configJSON = result.configJSON {
             state.configJSON = configJSON
@@ -589,8 +591,12 @@ public final class LiveEditorStore {
 
     /// Load diagram source and/or config from raw HTTP(S) URLs.
     ///
+    /// The source URL's path extension is sniffed for a `SourceFormat`;
+    /// when no extension is present, the current `state.sourceFormat`
+    /// is left untouched.
+    ///
     /// - Parameters:
-    ///   - codeURL: URL to load Mermaid source from (optional).
+    ///   - codeURL: URL to load source from (optional).
     ///   - configURL: URL to load config JSON from (optional).
     /// - Throws: ``RawFileLoader.LoadError`` on failure.
     public func loadFromRawURL(codeURL: URL?, configURL: URL?) async throws {
@@ -598,8 +604,9 @@ public final class LiveEditorStore {
 
         if !result.source.isEmpty {
             state.source = result.source
-            // RawFileLoader pulls Mermaid source; flip the format hint to match.
-            state.sourceFormat = .mermaid
+            if let sniffed = result.sourceFormat {
+                state.sourceFormat = sniffed
+            }
         }
 
         if let configJSON = result.configJSON {

@@ -2,8 +2,10 @@
 //  GistLoader.swift
 //  DiagramPlayground
 //
-//  Loads Mermaid diagram source and optional config from a GitHub Gist.
-//  Targets the public Gist API (no auth required for public gists).
+//  Loads diagram source and optional config from a GitHub Gist.
+//  Recognizes all five supported source formats by file extension:
+//  Mermaid (.mmd/.mermaid), D2 (.d2), Graphviz (.dot/.gv),
+//  Structurizr (.dsl), and PlantUML (.puml/.plantuml/.iuml/.pu).
 //  Config is sanitized via ConfigSanitizer.stripUnsafe before returning.
 //
 //  URL format: https://gist.github.com/{user}/{id}[/{revision}]
@@ -14,11 +16,11 @@ import DiagramKitModel
 
 // MARK: - GistLoader
 
-/// Loads Mermaid source from a GitHub Gist.
+/// Loads diagram source from a GitHub Gist.
 ///
-/// Looks for files named `code.mmd` (source) and `config.json` (config).
-/// Falls back to any `.mmd` / `.mermaid` / `.txt` file for source.
-/// Config is sanitized through ``ConfigSanitizer/stripUnsafe(from:)``
+/// Looks for any file whose extension maps to a known `SourceFormat`,
+/// preferring an exact `code.<ext>` match. Config is read from
+/// `config.json` and sanitized through ``ConfigSanitizer/stripUnsafe(from:)``
 /// before being returned.
 public enum GistLoader {
 
@@ -27,8 +29,8 @@ public enum GistLoader {
     public enum LoadError: Swift.Error, Sendable, LocalizedError {
         /// The provided URL does not contain a recognizable Gist path.
         case invalidURL(URL)
-        /// The Gist does not contain any recognizable Mermaid source files.
-        case noMermaidFiles(String)
+        /// The Gist does not contain any recognizable diagram source files.
+        case noSourceFiles(String)
         /// A network or HTTP error occurred.
         case networkError(String)
         /// The Gist was not found (404).
@@ -40,8 +42,8 @@ public enum GistLoader {
             switch self {
             case .invalidURL(let url):
                 return "Not a valid Gist URL: \(url.absoluteString)"
-            case .noMermaidFiles(let id):
-                return "Gist \(id) does not contain a code.mmd or .mmd file."
+            case .noSourceFiles(let id):
+                return "Gist \(id) does not contain a recognized diagram source file."
             case .networkError(let detail):
                 return "Network error: \(detail)"
             case .notFound(let id):
@@ -99,13 +101,12 @@ public enum GistLoader {
         let response = try await fetchGistAPI(url: apiURL, gistID: gistID)
 
         // Find source file
-        let sourceFile = findSourceFile(in: response.files)
-        guard let sourceFile else {
-            throw LoadError.noMermaidFiles(gistID)
+        guard let match = findSourceFile(in: response.files) else {
+            throw LoadError.noSourceFiles(gistID)
         }
 
         // Read source content
-        let source = try await readFileContent(sourceFile)
+        let source = try await readFileContent(match.file)
 
         // Read config if present
         var configJSON: String?
@@ -134,28 +135,51 @@ public enum GistLoader {
             configJSON: configJSON,
             label: label,
             sourceURL: url,
+            sourceFormat: match.format,
             revisions: nil // Revisions deferred to Phase 5.1
         )
     }
 
     // MARK: - Private helpers
 
-    /// Find a Mermaid source file in the Gist.
+    /// A file found in a Gist that maps to a known `SourceFormat`.
+    fileprivate struct SourceMatch {
+        let file: GistFile
+        let format: SourceFormat
+    }
+
+    /// Find a diagram source file in the Gist.
     ///
-    /// Priority: `code.mmd` > first `.mmd` file > first `.mermaid` file > first `.txt` file.
-    private static func findSourceFile(in files: [String: GistFile]) -> GistFile? {
-        if let codeFile = files["code.mmd"] {
-            return codeFile
+    /// Priority:
+    ///  1. `code.<ext>` exact-name match for any known format extension.
+    ///  2. The alphabetically-first filename whose extension maps to a
+    ///     `SourceFormat`.
+    ///  3. First `.txt` file (treated as Mermaid for backward compatibility).
+    private static func findSourceFile(in files: [String: GistFile]) -> SourceMatch? {
+        // 1. Exact `code.<ext>` match. Probe extensions in registry order so a
+        //    Gist that ships e.g. both `code.mmd` and `code.d2` would deterministically
+        //    pick Mermaid first (matches the umbrella's importer fallback order).
+        for format in SourceFormat.allCases {
+            for ext in format.fileExtensions {
+                if let file = files["code.\(ext)"] {
+                    return SourceMatch(file: file, format: format)
+                }
+            }
         }
-        if let mmdFile = files.first(where: { $0.key.hasSuffix(".mmd") }) {
-            return mmdFile.value
+
+        // 2. First recognized-extension filename, alphabetically by name.
+        let sorted = files.sorted { $0.key.localizedCaseInsensitiveCompare($1.key) == .orderedAscending }
+        for (name, file) in sorted {
+            if let format = SourceFormat.from(filename: name) {
+                return SourceMatch(file: file, format: format)
+            }
         }
-        if let mermaidFile = files.first(where: { $0.key.hasSuffix(".mermaid") }) {
-            return mermaidFile.value
+
+        // 3. .txt fallback as Mermaid.
+        if let txt = sorted.first(where: { $0.key.lowercased().hasSuffix(".txt") }) {
+            return SourceMatch(file: txt.value, format: .mermaid)
         }
-        if let txtFile = files.first(where: { $0.key.hasSuffix(".txt") }) {
-            return txtFile.value
-        }
+
         return nil
     }
 
