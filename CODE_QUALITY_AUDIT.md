@@ -183,9 +183,38 @@ public static func renderSVG(
 }
 ```
 
-### Finding A5: Legacy `original_src_*` wrappers remain public across the model surface
+### Finding A5: Legacy `original_src_*` wrappers remain public across the model surface — RESOLVED 2026-05-13 (Phase 6, commit 2e64fb6)
 
-Evidence:
+Closure summary:
+
+- Inventory in `docs/inventory/original-src-public-surface.md`
+  (transient; deleted at phase close) classified all 49
+  declarations (47 `open class` + 2 `public final class`).
+- 40 classes whose symbol had zero cross-target / test usage were
+  demoted to module-internal (`final class`). They still serve as
+  same-module static namespaces for ported helpers.
+- 9 classes remain deliberately public because cross-target consumers
+  (`DiagramKitModel`, `DiagramKitCommon` foundations) or tests use
+  them directly: `original_src_types`, `original_src_ascii_index`,
+  `original_src_multiline_utils`, `original_src_styles`,
+  `original_src_text_metrics`, `original_src_theme`,
+  `original_src_ascii_types`, `original_src_ascii_converter`,
+  `original_src_ascii_grid`. Renaming + deprecated-alias work for
+  these is deferred to a future major-version bump so test/cross-
+  target callers can migrate gradually.
+- SPI (`@_spi(PortCompatibility)`) was rejected for this phase
+  because it would force every cross-target importer to add
+  `@_spi(PortCompatibility) import …` — broader churn than the audit
+  finding warrants.
+
+Closure scan:
+- `rg -n '^open class original_src_' Sources` → 8 (the open subset
+  of keep-public).
+- `rg -n '^public final class original_src_' Sources` → 1
+  (`original_src_ascii_index`).
+- `rg -n '^final class original_src_' Sources` → 40 (demoted).
+
+Evidence (at audit time):
 
 - There are 45 public/open `original_src_*` wrapper classes in `Sources/DiagramKit` and `Sources/DiagramKitModel`.
 - Examples: `Sources/DiagramKitModel/src_parser.swift:1268`, `Sources/DiagramKitModel/src_layout.swift:1546`, `Sources/DiagramKitModel/src_renderer.swift:1128`, and `Sources/DiagramKit/src_ascii_index.swift:221`.
@@ -746,7 +775,23 @@ Suggested sequence:
 2. Replace malformed-source uses of `.notYetImplemented`.
 3. Add tests asserting malformed input yields `.malformedSource`.
 
-### Priority 5: Clean public legacy port surfaces
+### Priority 5: Clean public legacy port surfaces — COMPLETE (Phase 6, 2026-05-13)
+
+Closure summary:
+
+- Built `docs/inventory/original-src-public-surface.md` (transient,
+  deleted at phase close) cataloguing all 49 public/open
+  `original_src_*` declarations with cross-target and test-reference
+  counts.
+- Demoted 40 wrappers with zero cross-target / test usage to
+  module-internal (`final class`). No subclasses or extensions
+  existed across `Sources/Tests/Examples` so the demotion was
+  mechanical.
+- Kept 9 wrappers deliberately public — they are consumed by other
+  SwiftPM targets or by tests. Format-neutral rename + deprecation
+  pass deferred to a future major-version bump.
+- Public surface scan after Phase 6: `rg -n '^public ' Sources |
+  rg original_src_` reports just the keep-public set.
 
 Files:
 
@@ -759,7 +804,7 @@ Why fifth:
 
 This is important for API clarity but may have compatibility implications. It should follow the mechanical reuse work so compatibility shims can point to stable format-neutral APIs.
 
-Suggested sequence:
+Suggested sequence (executed):
 
 1. Inventory the 45 public/open `original_src_*` wrappers.
 2. Classify each as public compatibility, SPI, or internal.

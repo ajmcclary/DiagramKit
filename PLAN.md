@@ -11,7 +11,7 @@
 | Phase 3 — `_typed` + frontmatter runners | **COMPLETE** | `095530a..8e3f626` | A2, D1, Priority 3 |
 | Phase 4 — Error taxonomy + target metadata | **COMPLETE** | `7e189a7..8debf64` | P1, P3, Priority 4 |
 | Phase 5 — Duplication clean-up | **COMPLETE** | `de2f713..a97b4bf` | D3, D4, D5, P2 |
-| Phase 6 — Public legacy port surface | **PENDING** | — | A5, Priority 5 |
+| Phase 6 — Public legacy port surface | **COMPLETE** | `6595cab..2e64fb6` | A5, Priority 5 |
 | Phase 7 — Comment hygiene + guard script | **PENDING** | — | P4 (residual) |
 
 **Notes on Phases 1–5 (history for the executor):**
