@@ -10,23 +10,24 @@ import DiagramKitCommon
 // At that point this type will become MermaidDiagramRegistry or be subsumed
 // into MermaidImporter.
 extension DiagramRegistry {
-    static let _requirement = DiagramDescriptor(
+    static let _requirement = _typed(
         type: .requirement,
         matches: { $0.normalized.hasPrefix("requirement") },
         parse: { source, frontmatter in
-            let lines = DiagramSourceNormalizer.diagramLines(source)
-            var diagram = try parseRequirementDiagram(lines, frontmatter: frontmatter)
+            var diagram = try parseRequirementDiagram(DiagramSourceNormalizer.diagramLines(source), frontmatter: frontmatter)
             if let theme = frontmatter?.requirementTheme {
                 diagram.config.theme = theme
             }
-            return DiagramDocument(payload: .requirement(diagram))
+            return diagram
         },
-        layout: { graph, _ in
-            guard case let .requirement(diagram) = graph.payload else {
-                throw DiagramStructuralError.payloadMismatch(.requirement)
-            }
-            let positioned = try layoutRequirementDiagram(diagram)
-            return PositionedGraph(diagram: graph, width: positioned.width, height: positioned.height, content: .requirement(positioned))
+        wrap: DiagramPayload.requirement,
+        unwrap: { payload in
+            guard case let .requirement(value) = payload else { return nil }
+            return value
+        },
+        layout: { diagram, _ in try layoutRequirementDiagram(diagram) },
+        positioned: { graph, positioned in
+            PositionedGraph(diagram: graph, width: positioned.width, height: positioned.height, content: .requirement(positioned))
         }
     )
 }

@@ -10,7 +10,7 @@ import DiagramKitCommon
 // At that point this type will become MermaidDiagramRegistry or be subsumed
 // into MermaidImporter.
 extension DiagramRegistry {
-    static let _radar = DiagramDescriptor(
+    static let _radar = _typed(
         type: .radar,
         matches: { $0.normalized.hasPrefix("radar-beta") },
         parse: { source, frontmatter in
@@ -20,14 +20,16 @@ extension DiagramRegistry {
                 if let theme = fm.radarTheme { diagram.theme = theme }
                 if diagram.diagramTitle == nil, let fmTitle = fm.diagramTitle { diagram.diagramTitle = fmTitle }
             }
-            return DiagramDocument(payload: .radar(diagram))
+            return diagram
         },
-        layout: { graph, _ in
-            guard case let .radar(diagram) = graph.payload else {
-                throw DiagramStructuralError.payloadMismatch(.radar)
-            }
-            let positioned = layoutRadarDiagram(diagram)
-            return PositionedGraph(diagram: graph, width: positioned.width, height: positioned.height, content: .radar(positioned))
+        wrap: DiagramPayload.radar,
+        unwrap: { payload in
+            guard case let .radar(value) = payload else { return nil }
+            return value
+        },
+        layout: { diagram, _ in layoutRadarDiagram(diagram) },
+        positioned: { graph, positioned in
+            PositionedGraph(diagram: graph, width: positioned.width, height: positioned.height, content: .radar(positioned))
         }
     )
 }

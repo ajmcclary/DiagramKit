@@ -10,20 +10,20 @@ import DiagramKitCommon
 // At that point this type will become MermaidDiagramRegistry or be subsumed
 // into MermaidImporter.
 extension DiagramRegistry {
-    static let _packet = DiagramDescriptor(
+    static let _packet = _typed(
         type: .packet,
         matches: { $0.normalized.hasPrefix("packet") },
         parse: { source, frontmatter in
-            let lines = DiagramSourceNormalizer.statements(source)
-            let parsed = try parsePacketDiagram(lines, frontmatter: frontmatter)
-            return DiagramDocument(payload: .packet(parsed))
+            try parsePacketDiagram(DiagramSourceNormalizer.statements(source), frontmatter: frontmatter)
         },
-        layout: { graph, _ in
-            guard case let .packet(diagram) = graph.payload else {
-                throw DiagramStructuralError.payloadMismatch(.packet)
-            }
-            let positioned = layoutPacketDiagram(diagram)
-            return PositionedGraph(diagram: graph, width: positioned.width, height: positioned.height, content: .packet(positioned))
+        wrap: DiagramPayload.packet,
+        unwrap: { payload in
+            guard case let .packet(value) = payload else { return nil }
+            return value
+        },
+        layout: { diagram, _ in layoutPacketDiagram(diagram) },
+        positioned: { graph, positioned in
+            PositionedGraph(diagram: graph, width: positioned.width, height: positioned.height, content: .packet(positioned))
         }
     )
 }

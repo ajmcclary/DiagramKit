@@ -10,25 +10,26 @@ import DiagramKitCommon
 // At that point this type will become MermaidDiagramRegistry or be subsumed
 // into MermaidImporter.
 extension DiagramRegistry {
-    static let _pie = DiagramDescriptor(
+    static let _pie = _typed(
         type: .pie,
         matches: { $0.startsWithToken("pie") },
         parse: { source, frontmatter in
-            let lines = DiagramSourceNormalizer.diagramLines(source)
-            var chart = try parsePieChart(lines, frontmatter: frontmatter)
+            var chart = try parsePieChart(DiagramSourceNormalizer.diagramLines(source), frontmatter: frontmatter)
             if let fm = frontmatter {
                 if let cfg = fm.pieConfig { chart.config = cfg }
                 if let theme = fm.pieTheme { chart.theme = theme }
                 if chart.diagramTitle == nil, let fmTitle = fm.diagramTitle { chart.diagramTitle = fmTitle }
             }
-            return DiagramDocument(payload: .pie(chart))
+            return chart
         },
-        layout: { graph, _ in
-            guard case let .pie(chart) = graph.payload else {
-                throw DiagramStructuralError.payloadMismatch(.pie)
-            }
-            let positioned = layoutPieChart(chart)
-            return PositionedGraph(diagram: graph, width: positioned.width, height: positioned.height, content: .pie(positioned))
+        wrap: DiagramPayload.pie,
+        unwrap: { payload in
+            guard case let .pie(value) = payload else { return nil }
+            return value
+        },
+        layout: { chart, _ in layoutPieChart(chart) },
+        positioned: { graph, positioned in
+            PositionedGraph(diagram: graph, width: positioned.width, height: positioned.height, content: .pie(positioned))
         }
     )
 }
