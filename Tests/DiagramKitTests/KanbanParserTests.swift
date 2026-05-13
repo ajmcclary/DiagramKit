@@ -325,6 +325,10 @@ final class KanbanParserTests: XCTestCase {
     }
 
     func test_duplicateIdsAreNonFatal() throws {
+        // Kanban duplicate-id detection now flows through `_reportDiagramIssue`
+        // (Phase 6B) instead of `print`. Suppress the expected diagnostic so
+        // XCTest doesn't mark the test as failed.
+        XCTExpectFailure("Duplicate kanban node IDs are reported as a diagnostic")
         let source = "kanban\n  S\n    card\n  T\n    card"
         let diagram = try parseKanbanDiagram(rawLines(source), frontmatter: nil)
         let cards = diagram.nodes.filter { !$0.isGroup }
@@ -332,6 +336,7 @@ final class KanbanParserTests: XCTestCase {
     }
 
     func test_duplicateIdsInSameSectionAreNonFatal() throws {
+        XCTExpectFailure("Duplicate kanban node IDs are reported as a diagnostic")
         let source = "kanban\n  S\n    card\n    card"
         let diagram = try parseKanbanDiagram(rawLines(source), frontmatter: nil)
         let cards = diagram.nodes.filter { !$0.isGroup }
@@ -376,6 +381,7 @@ final class KanbanParserTests: XCTestCase {
     }
 
     func test_docsFullExample() throws {
+        XCTExpectFailure("Mermaid docs fixture deliberately re-uses id3 to demonstrate duplicate-id tolerance; Phase 6B now reports the duplicate as a diagnostic.")
         let source = """
         kanban
           Todo

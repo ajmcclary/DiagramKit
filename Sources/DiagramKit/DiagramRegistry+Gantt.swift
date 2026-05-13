@@ -12,7 +12,7 @@ import DiagramKitCommon
 extension DiagramRegistry {
     static let _gantt = DiagramDescriptor(
         type: .gantt,
-        matches: { $0.normalized.hasPrefix("gantt") },
+        matches: { $0.startsWithToken("gantt") },
         parse: { source, frontmatter in
             let lines = DiagramSourceNormalizer.statements(source, separators: CharacterSet(charactersIn: "\n"))
             let parsed = try parseGanttDiagram(lines, frontmatter: frontmatter)

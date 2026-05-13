@@ -1,4 +1,5 @@
 import Foundation
+import DiagramKitCommon
 
 // MARK: - Layout Constants
 
@@ -262,10 +263,23 @@ public func layoutGitGraph(_ diagram: GitGraphDiagram) -> PositionedGitGraphDiag
     var maxPos: Double = defaultPos
 
     // Phase 2: Commit positions
-    if config.parallelCommits {
-        // Mermaid parallel commit positioning
-        guard let firstKey = sortedKeys.first, let firstCommit = commitsByID[firstKey] else { fatalError() }
-        guard let firstBranchP = branchPos[firstCommit.branch] else { fatalError() }
+    if config.parallelCommits, let firstKey = sortedKeys.first {
+        // Mermaid parallel commit positioning. Skip cleanly with a diagnostic
+        // if the commit/branch lookup tables are missing data — that means the
+        // input was malformed (e.g., empty diagram with parallelCommits set),
+        // not an invariant violation.
+        guard let firstCommit = commitsByID[firstKey],
+              let firstBranchP = branchPos[firstCommit.branch] else {
+            _reportDiagramIssue(
+                "gitGraph parallelCommits layout: missing commit or branch position for first key '\(firstKey)'; falling back to empty layout."
+            )
+            return PositionedGitGraphDiagram(
+                accTitle: diagram.accTitle,
+                accDescr: diagram.accDescr,
+                config: config,
+                direction: direction
+            )
+        }
         let initialPos: Double
         if direction == .TB {
             commitPos[firstKey] = (x: firstBranchP.pos, y: defaultPos + _GITGRAPH_LAYOUT_OFFSET + titleOffset)

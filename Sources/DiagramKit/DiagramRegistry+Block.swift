@@ -12,7 +12,7 @@ import DiagramKitCommon
 extension DiagramRegistry {
     static let _block = DiagramDescriptor(
         type: .block,
-        matches: { $0.normalized.hasPrefix("block") },
+        matches: { $0.startsWithToken("block") },
         parse: { source, frontmatter in
             let parsed = try parseBlockDiagram(source, frontmatter: frontmatter)
             return DiagramDocument(payload: .block(parsed))

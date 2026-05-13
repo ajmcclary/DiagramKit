@@ -21,6 +21,20 @@ public struct DiagramHeader: Sendable {
         self.rawLines = rawLines
     }
 
+    /// True iff `normalized` starts with `prefix` followed by a token boundary
+    /// (end-of-string or any character that is not a letter, digit, or
+    /// underscore). Use this in matchers where a broad `hasPrefix` would
+    /// incorrectly accept longer identifiers — e.g. `gantt` is a diagram
+    /// keyword but `ganttogram` should not match.
+    public func startsWithToken(_ prefix: String) -> Bool {
+        let norm = normalized
+        guard norm.hasPrefix(prefix) else { return false }
+        let after = norm.index(norm.startIndex, offsetBy: prefix.count)
+        if after == norm.endIndex { return true }
+        let next = norm[after]
+        return !next.isLetter && !next.isNumber && next != "_"
+    }
+
     /// Convenience: detect from a preprocessed source string.
     public static func detect(from processedSource: String) -> DiagramHeader {
         // If the source begins with frontmatter (`---` ... `---`), pre-strip

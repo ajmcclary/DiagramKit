@@ -2,6 +2,12 @@
 import Foundation
 import DiagramKitCommon
 
+/// Soft cap on nested-subgraph recursion. The 8 MB worker stack tolerates
+/// deeper nesting, but pathological input shouldn't be able to exhaust it
+/// without a diagnostic. Reaching the cap reports an issue and truncates
+/// the traversal rather than continuing.
+private let _MAX_SUBGRAPH_RECURSION_DEPTH = 1024
+
 private typealias _ParsedGraph = original_src_types.MermaidGraph
 private typealias _ParsedEdge = original_src_types.MermaidEdge
 
@@ -316,17 +322,25 @@ private func _buildSubgraphOwnership(
     return result
 }
 
-private func _allNodeIds(in sub: original_src_types.MermaidSubgraph) -> Set<String> {
+private func _allNodeIds(in sub: original_src_types.MermaidSubgraph, depth: Int = 0) -> Set<String> {
+    if depth >= _MAX_SUBGRAPH_RECURSION_DEPTH {
+        _reportDiagramIssue("_allNodeIds: subgraph recursion depth exceeded \(_MAX_SUBGRAPH_RECURSION_DEPTH); truncating.")
+        return Set(sub.nodeIds)
+    }
     var ids = Set(sub.nodeIds)
     for child in sub.children {
-        ids.formUnion(_allNodeIds(in: child))
+        ids.formUnion(_allNodeIds(in: child, depth: depth + 1))
     }
     return ids
 }
 
-private func _subgraphContainsNode(_ sub: original_src_types.MermaidSubgraph, nodeId: String) -> Bool {
+private func _subgraphContainsNode(_ sub: original_src_types.MermaidSubgraph, nodeId: String, depth: Int = 0) -> Bool {
+    if depth >= _MAX_SUBGRAPH_RECURSION_DEPTH {
+        _reportDiagramIssue("_subgraphContainsNode: subgraph recursion depth exceeded \(_MAX_SUBGRAPH_RECURSION_DEPTH); reporting absent.")
+        return false
+    }
     if sub.nodeIds.contains(nodeId) { return true }
-    return sub.children.contains { _subgraphContainsNode($0, nodeId: nodeId) }
+    return sub.children.contains { _subgraphContainsNode($0, nodeId: nodeId, depth: depth + 1) }
 }
 
 // _PositionedGroupPayload moved to DiagramKitModel/PositionedPayloads.swift
@@ -870,10 +884,14 @@ private func _allSubgraphIds(_ subs: [original_src_types.MermaidSubgraph]) -> [S
     subs.flatMap { [$0.id] + _allSubgraphIds($0.children) }
 }
 
-private func _findSubgraph(_ id: String, in subs: [original_src_types.MermaidSubgraph]) -> original_src_types.MermaidSubgraph? {
+private func _findSubgraph(_ id: String, in subs: [original_src_types.MermaidSubgraph], depth: Int = 0) -> original_src_types.MermaidSubgraph? {
+    if depth >= _MAX_SUBGRAPH_RECURSION_DEPTH {
+        _reportDiagramIssue("_findSubgraph: subgraph recursion depth exceeded \(_MAX_SUBGRAPH_RECURSION_DEPTH); aborting search for '\(id)'.")
+        return nil
+    }
     for sub in subs {
         if sub.id == id { return sub }
-        if let found = _findSubgraph(id, in: sub.children) { return found }
+        if let found = _findSubgraph(id, in: sub.children, depth: depth + 1) { return found }
     }
     return nil
 }

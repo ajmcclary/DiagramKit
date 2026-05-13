@@ -7,11 +7,19 @@ public enum DiagramSourceNormalizer {
 
     // MARK: - Raw lines
 
-    /// Split source into raw lines (CRLF normalized, no filtering).
+    /// Split source into raw lines, no filtering.
+    ///
+    /// Normalizes every line-terminator variant that a real-world editor or
+    /// pipeline might produce — CRLF, lone CR, the Unicode line and
+    /// paragraph separators (U+2028 / U+2029), and form feed (U+000C) — to
+    /// a single `\n` before splitting.
     public static func rawLines(_ source: String) -> [String] {
         source
             .replacingOccurrences(of: "\r\n", with: "\n")
             .replacingOccurrences(of: "\r", with: "\n")
+            .replacingOccurrences(of: "\u{2028}", with: "\n")
+            .replacingOccurrences(of: "\u{2029}", with: "\n")
+            .replacingOccurrences(of: "\u{000C}", with: "\n")
             .split(separator: "\n", omittingEmptySubsequences: false)
             .map(String.init)
     }

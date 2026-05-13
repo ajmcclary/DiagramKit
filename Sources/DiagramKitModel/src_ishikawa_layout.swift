@@ -1,4 +1,5 @@
 import Foundation
+import DiagramKitCommon
 #if canImport(CoreGraphics)
 import CoreGraphics
 #endif
@@ -117,11 +118,20 @@ private struct _IshikawaBoneInfo {
     var childrenDrawn: Int
 }
 
+/// Soft cap on Ishikawa-tree recursion. Pathological input would otherwise
+/// keep recursing until the worker stack is exhausted; truncating here
+/// reports a diagnostic and stops the walk gracefully.
+private let _MAX_ISHIKAWA_RECURSION_DEPTH = 1024
+
 private func _flattenIshikawaTree(_ children: [IshikawaNode], direction: Int) -> (entries: [_IshikawaLabelEntry], yOrder: [Int]) {
     var entries: [_IshikawaLabelEntry] = []
     var yOrder: [Int] = []
 
     func walk(_ nodes: [IshikawaNode], pid: Int, depth: Int) {
+        if depth >= _MAX_ISHIKAWA_RECURSION_DEPTH {
+            _reportDiagramIssue("Ishikawa recursion depth exceeded \(_MAX_ISHIKAWA_RECURSION_DEPTH); truncating tree walk.")
+            return
+        }
         let ordered = direction == -1 ? Array(nodes.reversed()) : nodes
         for child in ordered {
             let idx = entries.count

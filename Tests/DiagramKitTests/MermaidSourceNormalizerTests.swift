@@ -20,6 +20,17 @@ import Foundation
         #expect(lines[3] == "line4")
     }
 
+    @Test("rawLines normalizes U+2028, U+2029, and form feed")
+    func rawLinesNormalizesUnicodeLineSeparators() {
+        let source = "line1\u{2028}line2\u{2029}line3\u{000C}line4"
+        let lines = DiagramSourceNormalizer.rawLines(source)
+        #expect(lines.count == 4)
+        #expect(lines[0] == "line1")
+        #expect(lines[1] == "line2")
+        #expect(lines[2] == "line3")
+        #expect(lines[3] == "line4")
+    }
+
     @Test("rawLines preserves empty lines")
     func rawLinesPreservesEmptyLines() {
         let source = "a\n\nb\n"

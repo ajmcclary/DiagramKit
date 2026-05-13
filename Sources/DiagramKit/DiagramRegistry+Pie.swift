@@ -12,7 +12,7 @@ import DiagramKitCommon
 extension DiagramRegistry {
     static let _pie = DiagramDescriptor(
         type: .pie,
-        matches: { $0.normalized.hasPrefix("pie") },
+        matches: { $0.startsWithToken("pie") },
         parse: { source, frontmatter in
             let lines = DiagramSourceNormalizer.diagramLines(source)
             var chart = try parsePieChart(lines, frontmatter: frontmatter)

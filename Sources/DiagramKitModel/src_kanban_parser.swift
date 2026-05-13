@@ -1,4 +1,5 @@
 import Foundation
+import DiagramKitCommon
 
 public enum KanbanParserError: Error, LocalizedError {
     case invalidHeader(String)
@@ -193,7 +194,7 @@ public func parseKanbanDiagram(_ lines: [String], frontmatter: DiagramFrontmatte
     var seenIds = Set<String>()
     for node in sanitizedNodes {
         if seenIds.contains(node.id) {
-            print("[Kanban] Warning: duplicate node ID \"\(node.id)\"")
+            _reportDiagramIssue("[Kanban] duplicate node ID \"\(node.id)\"")
         }
         seenIds.insert(node.id)
     }
