@@ -283,11 +283,10 @@ public final class LiveEditorStore {
         requestRender(reason: .manual)
     }
 
-    /// Callback from `DiagramNativeViewRepresentable` when the layer finishes
-    /// preparing (parse + layout complete, success or failure).
-    ///
-    /// The store reads `parseError` and `diagramBounds` from the view
-    /// and updates its runtime state accordingly.
+    /// Forwarded from `DiagramView`'s `parseError` and `diagramBounds`
+    /// bindings when the underlying layer finishes preparing (parse +
+    /// layout complete, success or failure). The store mirrors the
+    /// values and updates `renderStatus` accordingly.
     public func didCompleteRender(parseError: Error?, diagramBounds: CGRect) {
         self.parseError = parseError
         self.diagramBounds = diagramBounds

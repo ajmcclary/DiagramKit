@@ -2,8 +2,8 @@
 //  PreviewCanvas.swift
 //  DiagramPlayground
 //
-//  Preview surface that wraps DiagramNativeViewRepresentable, manages zoom
-//  state, and overlays error/dim-state on render failure.
+//  Preview surface that wraps the library's SwiftUI DiagramView, manages
+//  zoom state, and overlays error/dim-state on render failure.
 //
 
 import SwiftUI
@@ -18,6 +18,15 @@ struct PreviewCanvas: View {
     @SwiftUI.State private var gestureBaseZoomScale: CGFloat?
     @SwiftUI.State private var activePanTranslation: CGSize = .zero
     @SwiftUI.State private var previewMode: PreviewMode = .diagram
+
+    // Bridges DiagramView's @Binding-based completion publishing into
+    // the store's didCompleteRender(...) entry point. liveParseError
+    // carries the raw Error for forwarding; liveParseErrorMessage is the
+    // Equatable signal we observe via `.onChange` (Error itself isn't
+    // Equatable).
+    @SwiftUI.State private var liveParseError: Error?
+    @SwiftUI.State private var liveParseErrorMessage: String?
+    @SwiftUI.State private var liveDiagramBounds: CGRect = .zero
 
     private let minZoom: CGFloat = 0.25
     private let maxZoom: CGFloat = 4.0
@@ -181,11 +190,12 @@ struct PreviewCanvas: View {
 
         panZoomInteractions(
             ZStack {
-                DiagramNativeViewRepresentable(
+                DiagramView(
                     source: store.previewSource,
                     theme: store.previewTheme,
                     layoutConfig: store.previewLayoutConfig,
-                    store: store
+                    parseError: parseErrorBinding,
+                    diagramBounds: $liveDiagramBounds
                 )
                 .frame(width: scaledWidth, height: scaledHeight)
                 .offset(effectivePanOffset)
@@ -200,6 +210,32 @@ struct PreviewCanvas: View {
         .onChange(of: geometry.size) { _, newSize in
             refreshAutomaticFit(bounds: store.diagramBounds, viewSize: newSize)
         }
+        .onChange(of: liveDiagramBounds) { _, _ in
+            forwardRenderCompletion()
+        }
+        .onChange(of: liveParseErrorMessage) { _, _ in
+            forwardRenderCompletion()
+        }
+    }
+
+    /// Bridges `DiagramView`'s `Error?` binding so we can also mirror an
+    /// Equatable `String?` for `.onChange` change-detection. The raw
+    /// `liveParseError` is what we forward to the store.
+    private var parseErrorBinding: Binding<Error?> {
+        Binding(
+            get: { liveParseError },
+            set: { newValue in
+                liveParseError = newValue
+                liveParseErrorMessage = newValue?.localizedDescription
+            }
+        )
+    }
+
+    private func forwardRenderCompletion() {
+        store.didCompleteRender(
+            parseError: liveParseError,
+            diagramBounds: liveDiagramBounds
+        )
     }
 
     // MARK: - Magnification gesture
