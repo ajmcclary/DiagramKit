@@ -440,10 +440,13 @@ public final class original_src_ascii_index {
             return renderGanttAscii(model)
 
         case .quadrantChart:
-            throw DiagramError.notYetImplemented("Quadrant Chart ASCII rendering")
+            let model = try parseQuadrantChart(preprocessedText)
+            return renderQuadrantAscii(model)
 
         case .requirement:
-            throw DiagramError.notYetImplemented("Requirement Diagram ASCII rendering")
+            let rawLines = DiagramSourceNormalizer.rawLines(preprocessedText)
+            let model = try parseRequirementDiagram(rawLines, frontmatter: preprocessed.frontmatter)
+            return renderRequirementAscii(model)
 
         case .gitGraph:
             let rawLines = DiagramSourceNormalizer.rawLines(preprocessedText)
@@ -461,14 +464,18 @@ public final class original_src_ascii_index {
             return renderTimelineAscii(model)
 
         case .sankey:
-            throw DiagramError.notYetImplemented("Sankey ASCII rendering")
+            let rawLines = DiagramSourceNormalizer.rawLines(preprocessedText)
+            let model = try parseSankeyDiagram(rawLines, frontmatter: preprocessed.frontmatter)
+            return renderSankeyAscii(model)
 
         case .block:
             let model = try parseBlockDiagram(preprocessedText, frontmatter: preprocessed.frontmatter)
             return renderBlockAscii(model)
 
         case .packet:
-            throw DiagramError.notYetImplemented("Packet ASCII rendering is not yet implemented.")
+            let rawLines = DiagramSourceNormalizer.rawLines(preprocessedText)
+            let model = try parsePacketDiagram(rawLines, frontmatter: preprocessed.frontmatter)
+            return renderPacketAscii(model)
 
         case .kanban:
             let rawLines = DiagramSourceNormalizer.rawLines(preprocessedText)
@@ -480,13 +487,17 @@ public final class original_src_ascii_index {
             return renderArchitectureAscii(model)
 
         case .radar:
-            throw DiagramError.notYetImplemented("Radar Chart ASCII rendering")
+            let model = try parseRadarDiagram(source: preprocessedText, frontmatter: preprocessed.frontmatter)
+            return renderRadarAscii(model)
 
         case .treemap:
-            throw DiagramError.notYetImplemented("Treemap ASCII rendering")
+            let model = try parseTreemapDiagramFromSource(preprocessedText, frontmatter: preprocessed.frontmatter)
+            return renderTreemapAscii(model)
 
         case .venn:
-            throw DiagramError.notYetImplemented("Venn Diagram ASCII rendering")
+            let rawLines = DiagramSourceNormalizer.rawLines(preprocessedText)
+            let model = try parseVennDiagram(rawLines, frontmatter: preprocessed.frontmatter)
+            return renderVennAscii(model)
 
         case .ishikawa:
             let rawLines = DiagramSourceNormalizer.rawLines(preprocessedText)
@@ -509,7 +520,9 @@ public final class original_src_ascii_index {
             return renderWardleyAscii(model)
 
         case .zenuml:
-            throw DiagramError.notYetImplemented("ZenUML ASCII rendering")
+            let rawLines = DiagramSourceNormalizer.rawLines(preprocessedText)
+            let model = try parseZenUMLDiagram(rawLines, frontmatter: preprocessed.frontmatter)
+            return renderZenUMLAscii(model)
 
         case .c4:
             let rawLines = DiagramSourceNormalizer.rawLines(preprocessedText)
