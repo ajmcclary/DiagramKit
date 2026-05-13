@@ -12,6 +12,7 @@ import SwiftUI
 import DiagramKit
 import DiagramKitExport
 import DiagramKitImport
+import DiagramKitInteractive
 import DiagramKitModel
 import IssueReporting
 
@@ -107,6 +108,16 @@ public final class LiveEditorStore {
 
     /// History store for manual saves, auto timeline, and loader entries.
     public let historyStore: LiveHistoryStore
+
+    // MARK: - Interactive editor (Phase 7)
+
+    /// Persistent DiagramEditor. Re-seeded from `state.source` on every
+    /// successful parse; nil until at least one render has succeeded.
+    public private(set) var editor: DiagramEditor?
+
+    /// Mirrors what `DiagramView` publishes for the current preview source.
+    /// Used by the canvas tap dispatch and the selection overlay.
+    public var boundsLookup: DiagramBoundsLookup?
 
     // MARK: - Derived
 
@@ -296,11 +307,57 @@ public final class LiveEditorStore {
             renderStatus = .failed
         } else if state.source.isEmpty {
             renderStatus = .idle
+            editor = nil
         } else {
             renderStatus = .rendered
+            seedEditorFromSource()
             // Auto-save history after successful renders
             historyStore.autoSaveIfNeeded(state: previewState)
         }
+    }
+
+    /// Re-seed `editor` from the currently committed `state.source`.
+    ///
+    /// Runs on every successful render. Preserves selection by element ID
+    /// when the element still exists in the new layout; otherwise clears.
+    private func seedEditorFromSource() {
+        Task { [weak self] in
+            guard let self else { return }
+            do {
+                let document = try await DiagramEngine.parse(self.state.source)
+                await self.applySeededEditor(document: document)
+            } catch {
+                // Parse failures are already surfaced via parseError; leave
+                // the existing editor in place so structural undo state isn't
+                // destroyed by a transient text-edit-in-progress.
+            }
+        }
+    }
+
+    /// Apply a freshly-parsed document to the persistent editor.
+    private func applySeededEditor(document: DiagramDocument) async {
+        let previousSelectionID = editor?.selection?.elementID
+        let formatID = state.sourceFormat.formatID
+
+        let newEditor = DiagramEditor(
+            document: document,
+            preferredExportFormat: formatID,
+            exportRegistry: DiagramPipeline.defaultExportRegistry
+        )
+        try? newEditor.syncSource()
+
+        // Best-effort selection restore: depends on the lookup being current.
+        // The DiagramView preview path also publishes a lookup; the canvas
+        // overlay uses that. We only need to clear stale selection here.
+        if let previousSelectionID,
+           let lookup = boundsLookup,
+           let restored = lookup.selection(for: previousSelectionID) {
+            newEditor.selection = restored
+        } else {
+            newEditor.selection = nil
+        }
+
+        editor = newEditor
     }
 
     // MARK: - Preview transform
