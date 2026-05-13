@@ -464,16 +464,20 @@ public final class original_src_ascii_index {
             throw DiagramError.notYetImplemented("Sankey ASCII rendering")
 
         case .block:
-            throw DiagramError.notYetImplemented("Block Diagram ASCII rendering")
+            let model = try parseBlockDiagram(preprocessedText, frontmatter: preprocessed.frontmatter)
+            return renderBlockAscii(model)
 
         case .packet:
             throw DiagramError.notYetImplemented("Packet ASCII rendering is not yet implemented.")
 
         case .kanban:
-            throw DiagramError.notYetImplemented("Kanban ASCII rendering")
+            let rawLines = DiagramSourceNormalizer.rawLines(preprocessedText)
+            let model = try parseKanbanDiagram(rawLines, frontmatter: preprocessed.frontmatter)
+            return renderKanbanAscii(model)
 
         case .architecture:
-            throw DiagramError.notYetImplemented("Architecture Diagram ASCII rendering")
+            let model = try parseArchitectureDiagram(preprocessedText, frontmatter: preprocessed.frontmatter)
+            return renderArchitectureAscii(model)
 
         case .radar:
             throw DiagramError.notYetImplemented("Radar Chart ASCII rendering")
@@ -495,16 +499,22 @@ public final class original_src_ascii_index {
             return renderTreeViewAscii(model)
 
         case .eventModeling:
-            throw DiagramError.notYetImplemented("Event Modeling ASCII rendering")
+            let rawLines = DiagramSourceNormalizer.rawLines(preprocessedText)
+            let model = try parseEventModeling(rawLines, frontmatter: preprocessed.frontmatter)
+            return renderEventModelingAscii(model)
 
         case .wardleyBeta:
-            throw DiagramError.notYetImplemented("Wardley Map ASCII rendering")
+            let rawLines = DiagramSourceNormalizer.rawLines(preprocessedText)
+            let model = try parseWardleyMap(rawLines, frontmatter: preprocessed.frontmatter)
+            return renderWardleyAscii(model)
 
         case .zenuml:
             throw DiagramError.notYetImplemented("ZenUML ASCII rendering")
 
         case .c4:
-            throw DiagramError.notYetImplemented("C4 Diagram ASCII rendering")
+            let rawLines = DiagramSourceNormalizer.rawLines(preprocessedText)
+            let model = try parseC4Diagram(rawLines, frontmatter: preprocessed.frontmatter)
+            return renderC4Ascii(model)
 
         case .flowchart, .stateDiagram:
             let parsed = try parseMermaid(preprocessedText)
