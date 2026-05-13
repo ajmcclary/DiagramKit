@@ -32,22 +32,19 @@ enum AsciiRenderRegistry {
         .sequenceDiagram: AsciiRenderDescriptor(
             type: .sequenceDiagram,
             render: { source, _, config, colorMode, theme in
-                let mapped = _mapAsciiConfig(config)
-                return try _bmRenderSequenceAscii(source, mapped, _asciiMapColorMode(colorMode), _asciiMapTheme(theme))
+                try renderSequenceAscii(source, _mapAsciiConfig(config), _asciiMapColorMode(colorMode), _asciiMapTheme(theme))
             }
         ),
         .classDiagram: AsciiRenderDescriptor(
             type: .classDiagram,
             render: { source, _, config, colorMode, theme in
-                let mapped = _mapAsciiConfig(config)
-                return try _bmRenderClassAscii(source, mapped, _asciiMapColorMode(colorMode), _asciiMapTheme(theme))
+                try renderClassAscii(source, _mapAsciiConfig(config), _asciiMapColorMode(colorMode), _asciiMapTheme(theme))
             }
         ),
         .erDiagram: AsciiRenderDescriptor(
             type: .erDiagram,
             render: { source, _, config, colorMode, theme in
-                let mapped = _mapAsciiConfig(config)
-                return try _bmRenderErAscii(source, mapped, _asciiMapColorMode(colorMode), _asciiMapTheme(theme))
+                try renderErAscii(source, _mapAsciiConfig(config), _asciiMapColorMode(colorMode), _asciiMapTheme(theme))
             }
         ),
         .xyChart: AsciiRenderDescriptor(

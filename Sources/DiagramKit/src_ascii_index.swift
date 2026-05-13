@@ -191,35 +191,9 @@ private func _bmCanvasToString(
     canvasToString(canvas, options: CanvasToStringOptions(roleCanvas: roleCanvas, colorMode: colorMode, theme: theme))
 }
 
-// `_bmRender*Ascii` are file-scope (not `private`) so AsciiRenderRegistry
-// can dispatch to them. The wrappers exist to insulate ASCII rendering
-// from upstream identifier renames in the model layer.
-func _bmRenderSequenceAscii(
-    _ text: String,
-    _ config: AsciiConfig,
-    _ colorMode: ColorMode?,
-    _ theme: AsciiTheme?
-) throws -> String {
-    try renderSequenceAscii(text, config, colorMode, theme)
-}
-
-func _bmRenderClassAscii(
-    _ text: String,
-    _ config: AsciiConfig,
-    _ colorMode: ColorMode?,
-    _ theme: AsciiTheme?
-) throws -> String {
-    try renderClassAscii(text, config, colorMode, theme)
-}
-
-func _bmRenderErAscii(
-    _ text: String,
-    _ config: AsciiConfig,
-    _ colorMode: ColorMode?,
-    _ theme: AsciiTheme?
-) throws -> String {
-    try renderErAscii(text, config, colorMode, theme)
-}
+// (Sequence/class/ER ASCII rendering go straight to the model-layer
+// `renderXxxAscii(...)` functions from `AsciiRenderRegistry`; the
+// `_bm*` wrappers that previously lived here were deleted in Phase 2.)
 
 public final class original_src_ascii_index {
     public init() {}
@@ -515,51 +489,4 @@ public final class original_src_ascii_index {
         return _bmCanvasToString(canvas, roleCanvas: roleCanvas, colorMode: _mapColorMode(colorMode), theme: _mapTheme(theme))
     }
 
-    private static func renderSequenceAscii(
-        _ text: String,
-        _ config: AsciiConfig,
-        _ colorMode: AsciiThemeColorMode,
-        _ theme: AsciiTheme
-    ) throws -> String {
-        let mappedConfig = original_src_ascii_types.AsciiConfig(
-            useAscii: config.useAscii,
-            paddingX: config.paddingX,
-            paddingY: config.paddingY,
-            boxBorderPadding: config.boxBorderPadding,
-            graphDirection: config.graphDirection
-        )
-        return try _bmRenderSequenceAscii(text, mappedConfig, _mapColorMode(colorMode), _mapTheme(theme))
-    }
-
-    private static func renderClassAscii(
-        _ text: String,
-        _ config: AsciiConfig,
-        _ colorMode: AsciiThemeColorMode,
-        _ theme: AsciiTheme
-    ) throws -> String {
-        let mappedConfig = original_src_ascii_types.AsciiConfig(
-            useAscii: config.useAscii,
-            paddingX: config.paddingX,
-            paddingY: config.paddingY,
-            boxBorderPadding: config.boxBorderPadding,
-            graphDirection: config.graphDirection
-        )
-        return try _bmRenderClassAscii(text, mappedConfig, _mapColorMode(colorMode), _mapTheme(theme))
-    }
-
-    private static func renderErAscii(
-        _ text: String,
-        _ config: AsciiConfig,
-        _ colorMode: AsciiThemeColorMode,
-        _ theme: AsciiTheme
-    ) throws -> String {
-        let mappedConfig = original_src_ascii_types.AsciiConfig(
-            useAscii: config.useAscii,
-            paddingX: config.paddingX,
-            paddingY: config.paddingY,
-            boxBorderPadding: config.boxBorderPadding,
-            graphDirection: config.graphDirection
-        )
-        return try _bmRenderErAscii(text, mappedConfig, _mapColorMode(colorMode), _mapTheme(theme))
-    }
 }
