@@ -16,43 +16,9 @@ private enum ER {
 
 private typealias EntitySizeMap = [String: (width: Double, height: Double)]
 
-private struct _ElkLabel {
-    var text: String
-    var width: Double
-    var height: Double
-    var x: Double?
-    var y: Double?
-}
-
-private struct _ElkPoint {
-    var x: Double
-    var y: Double
-}
-
-private struct _ElkSection {
-    var startPoint: _ElkPoint
-    var endPoint: _ElkPoint
-    var bendPoints: [_ElkPoint]?
-}
-
-private struct _ElkEdge {
-    var id: String
-    var sources: [String]
-    var targets: [String]
-    var labels: [_ElkLabel]?
-    var sections: [_ElkSection]?
-}
-
-private struct _ElkNode {
-    var id: String
-    var width: Double?
-    var height: Double?
-    var x: Double?
-    var y: Double?
-    var layoutOptions: [String: String]?
-    var children: [_ElkNode]?
-    var edges: [_ElkEdge]?
-}
+// ELK adapter types live in ElkModels.swift (ElkGraphNode / ElkGraphEdge /
+// ElkGraphLabel / ElkEdgeSection). The local _ElkNode/_ElkEdge/... structs
+// that used to wrap them here were deleted in Phase 1 (audit A1).
 
 private func _mapDirection(_ dir: ErDirection) -> String {
     switch dir {
@@ -67,7 +33,7 @@ private func _buildErElkGraph(
     _ diagram: ErDiagram,
     _ options: RenderOptions,
     _ config: ErDiagramConfig?
-) -> (elkGraph: _ElkNode, entitySizes: EntitySizeMap) {
+) -> (elkGraph: ElkGraphNode, entitySizes: EntitySizeMap) {
     _ = options
     var entitySizes: EntitySizeMap = [:]
 
@@ -106,49 +72,33 @@ private func _buildErElkGraph(
         entitySizes[entity.nodeId] = (width, max(height, minH ?? height))
     }
 
-    var children: [_ElkNode] = []
+    var children: [ElkGraphNode] = []
     for entity in diagram.entities {
         let size = entitySizes[entity.nodeId] ?? (minW, hdrH + rowH)
-        children.append(
-            _ElkNode(
-                id: entity.nodeId,
-                width: size.width,
-                height: size.height,
-                x: nil,
-                y: nil,
-                layoutOptions: nil,
-                children: nil,
-                edges: nil
-            )
-        )
+        children.append(ElkGraphNode(id: entity.nodeId, width: size.width, height: size.height))
     }
 
-    var edges: [_ElkEdge] = []
+    var edges: [ElkGraphEdge] = []
     for (idx, rel) in diagram.relationships.enumerated() {
-        var edge = _ElkEdge(
-            id: "e\(idx)",
-            sources: [rel.entityAId],
-            targets: [rel.entityBId],
-            labels: nil,
-            sections: nil
-        )
+        var labels: [ElkGraphLabel] = []
         if !rel.roleA.isEmpty {
             let metrics = original_src_text_metrics.measureMultilineText(
                 rel.roleA,
                 fontSize: original_src_styles.FONT_SIZES.edgeLabel,
                 fontWeight: original_src_styles.FONT_WEIGHTS.edgeLabel
             )
-            edge.labels = [
-                _ElkLabel(
-                    text: rel.roleA,
-                    width: metrics.width + 8,
-                    height: metrics.height + 6,
-                    x: nil,
-                    y: nil
-                ),
-            ]
+            labels.append(ElkGraphLabel(
+                text: rel.roleA,
+                width: metrics.width + 8,
+                height: metrics.height + 6
+            ))
         }
-        edges.append(edge)
+        edges.append(ElkGraphEdge(
+            id: "e\(idx)",
+            sources: [rel.entityAId],
+            targets: [rel.entityBId],
+            labels: labels
+        ))
     }
 
     let directionStr = _mapDirection(config?.layoutDirection ?? diagram.direction)
@@ -156,12 +106,10 @@ private func _buildErElkGraph(
     let ls = config?.rankSpacing ?? ER.layerSpacing
     let pad = config?.diagramPadding ?? ER.padding
 
-    let elkGraph = _ElkNode(
+    let elkGraph = ElkGraphNode(
         id: "root",
-        width: nil,
-        height: nil,
-        x: nil,
-        y: nil,
+        children: children,
+        edges: edges,
         layoutOptions: [
             "elk.algorithm": "layered",
             "elk.direction": directionStr,
@@ -169,17 +117,15 @@ private func _buildErElkGraph(
             "elk.layered.spacing.nodeNodeBetweenLayers": String(ls),
             "elk.padding": "[top=\(pad),left=\(pad),bottom=\(pad),right=\(pad)]",
             "elk.edgeRouting": "ORTHOGONAL",
-            "elk.edgeLabels.placement": "CENTER",
-        ],
-        children: children,
-        edges: edges
+            "elk.edgeLabels.placement": "CENTER"
+        ]
     )
 
     return (elkGraph, entitySizes)
 }
 
 private func _extractErLayout(
-    _ result: _ElkNode,
+    _ result: ElkGraphNode,
     _ diagram: ErDiagram,
     _ entitySizes: EntitySizeMap,
     _ config: ErDiagramConfig?
@@ -187,10 +133,8 @@ private func _extractErLayout(
     let entityLookup = Dictionary(diagram.entities.map { ($0.nodeId, $0) }, uniquingKeysWith: { _, last in last })
 
     var positionedEntities: [PositionedErEntity] = []
-    for child in result.children ?? [] {
-        guard let entity = entityLookup[child.id] else {
-            continue
-        }
+    for child in result.children {
+        guard let entity = entityLookup[child.id] else { continue }
         let fallback = entitySizes[entity.nodeId] ?? (ER.minWidth, ER.headerHeight + ER.rowHeight)
         positionedEntities.append(
             PositionedErEntity(
@@ -198,10 +142,10 @@ private func _extractErLayout(
                 nodeId: entity.nodeId,
                 label: entity.label,
                 attributes: entity.attributes,
-                x: child.x ?? 0,
-                y: child.y ?? 0,
-                width: child.width ?? fallback.width,
-                height: child.height ?? fallback.height,
+                x: child.x,
+                y: child.y,
+                width: child.width != 0 ? child.width : fallback.width,
+                height: child.height != 0 ? child.height : fallback.height,
                 headerHeight: ER.headerHeight,
                 rowHeight: ER.rowHeight,
                 cssClasses: entity.cssClasses,
@@ -215,16 +159,13 @@ private func _extractErLayout(
     }
 
     var relationships: [PositionedErRelationship] = []
-    let resultEdges = result.edges ?? []
-    for (idx, elkEdge) in resultEdges.enumerated() {
-        guard idx < diagram.relationships.count else {
-            continue
-        }
+    for (idx, elkEdge) in result.edges.enumerated() {
+        guard idx < diagram.relationships.count else { continue }
         let rel = diagram.relationships[idx]
         var points: [ErPoint] = []
-        if let section = elkEdge.sections?.first {
+        if let section = elkEdge.sections.first {
             points.append(ErPoint(x: section.startPoint.x, y: section.startPoint.y))
-            for bp in section.bendPoints ?? [] {
+            for bp in section.bendPoints {
                 points.append(ErPoint(x: bp.x, y: bp.y))
             }
             points.append(ErPoint(x: section.endPoint.x, y: section.endPoint.y))
@@ -246,8 +187,8 @@ private func _extractErLayout(
     }
 
     return PositionedErDiagram(
-        width: result.width ?? 600,
-        height: result.height ?? 400,
+        width: result.width != 0 ? result.width : 600,
+        height: result.height != 0 ? result.height : 400,
         entities: positionedEntities,
         relationships: relationships,
         accTitle: diagram.accTitle,
@@ -257,147 +198,8 @@ private func _extractErLayout(
     )
 }
 
-private func _anyToDouble(_ value: Any?) -> Double? {
-    if let d = value as? Double { return d }
-    if let i = value as? Int { return Double(i) }
-    if let f = value as? Float { return Double(f) }
-    if let n = value as? NSNumber { return n.doubleValue }
-    return nil
-}
-
-private func _decodeElkPoint(_ any: Any?) -> _ElkPoint? {
-    guard let point = any as? [String: Any],
-          let x = _anyToDouble(point["x"]),
-          let y = _anyToDouble(point["y"])
-    else {
-        return nil
-    }
-    return _ElkPoint(x: x, y: y)
-}
-
-private func _encodeElkPoint(_ point: _ElkPoint) -> [String: Any] {
-    ["x": point.x, "y": point.y]
-}
-
-private func _decodeElkLabel(_ any: Any?) -> _ElkLabel? {
-    guard let label = any as? [String: Any],
-          let text = label["text"] as? String,
-          let width = _anyToDouble(label["width"]),
-          let height = _anyToDouble(label["height"])
-    else {
-        return nil
-    }
-
-    return _ElkLabel(
-        text: text,
-        width: width,
-        height: height,
-        x: _anyToDouble(label["x"]),
-        y: _anyToDouble(label["y"])
-    )
-}
-
-private func _encodeElkLabel(_ label: _ElkLabel) -> [String: Any] {
-    var out: [String: Any] = [
-        "text": label.text,
-        "width": label.width,
-        "height": label.height,
-    ]
-    if let x = label.x { out["x"] = x }
-    if let y = label.y { out["y"] = y }
-    return out
-}
-
-private func _decodeElkSection(_ any: Any?) -> _ElkSection? {
-    guard let section = any as? [String: Any],
-          let startPoint = _decodeElkPoint(section["startPoint"]),
-          let endPoint = _decodeElkPoint(section["endPoint"])
-    else {
-        return nil
-    }
-
-    let bendPoints = (section["bendPoints"] as? [Any])?.compactMap { _decodeElkPoint($0) }
-    return _ElkSection(startPoint: startPoint, endPoint: endPoint, bendPoints: bendPoints)
-}
-
-private func _encodeElkSection(_ section: _ElkSection) -> [String: Any] {
-    var out: [String: Any] = [
-        "startPoint": _encodeElkPoint(section.startPoint),
-        "endPoint": _encodeElkPoint(section.endPoint),
-    ]
-    if let bendPoints = section.bendPoints {
-        out["bendPoints"] = bendPoints.map(_encodeElkPoint)
-    }
-    return out
-}
-
-private func _decodeElkEdge(_ any: Any?) -> _ElkEdge? {
-    guard let edge = any as? [String: Any],
-          let id = edge["id"] as? String,
-          let sources = edge["sources"] as? [String],
-          let targets = edge["targets"] as? [String]
-    else {
-        return nil
-    }
-
-    let labels = (edge["labels"] as? [Any])?.compactMap { _decodeElkLabel($0) }
-    let sections = (edge["sections"] as? [Any])?.compactMap { _decodeElkSection($0) }
-    return _ElkEdge(id: id, sources: sources, targets: targets, labels: labels, sections: sections)
-}
-
-private func _encodeElkEdge(_ edge: _ElkEdge) -> [String: Any] {
-    var out: [String: Any] = [
-        "id": edge.id,
-        "sources": edge.sources,
-        "targets": edge.targets,
-    ]
-    if let labels = edge.labels {
-        out["labels"] = labels.map(_encodeElkLabel)
-    }
-    if let sections = edge.sections {
-        out["sections"] = sections.map(_encodeElkSection)
-    }
-    return out
-}
-
-private func _decodeElkNode(_ any: Any?) -> _ElkNode? {
-    guard let node = any as? [String: Any],
-          let id = node["id"] as? String
-    else {
-        return nil
-    }
-
-    let children = (node["children"] as? [Any])?.compactMap { _decodeElkNode($0) }
-    let edges = (node["edges"] as? [Any])?.compactMap { _decodeElkEdge($0) }
-
-    return _ElkNode(
-        id: id,
-        width: _anyToDouble(node["width"]),
-        height: _anyToDouble(node["height"]),
-        x: _anyToDouble(node["x"]),
-        y: _anyToDouble(node["y"]),
-        layoutOptions: node["layoutOptions"] as? [String: String],
-        children: children,
-        edges: edges
-    )
-}
-
-private func _encodeElkNode(_ node: _ElkNode) -> LayoutNode {
-    var out: LayoutNode = ["id": node.id]
-    if let width = node.width { out["width"] = width }
-    if let height = node.height { out["height"] = height }
-    if let x = node.x { out["x"] = x }
-    if let y = node.y { out["y"] = y }
-    if let layoutOptions = node.layoutOptions { out["layoutOptions"] = layoutOptions }
-    if let children = node.children { out["children"] = children.map(_encodeElkNode) }
-    if let edges = node.edges { out["edges"] = edges.map(_encodeElkEdge) }
-    return out
-}
-
-private func _layoutEngineSync(_ graph: _ElkNode) throws -> _ElkNode {
-    let laidOut = try layoutEngineSync(_encodeElkNode(graph))
-    return _decodeElkNode(laidOut) ?? graph
-}
+// Encoder/decoder helpers removed in Phase 1: ElkGraphNode.toDictionary()
+// and ElkGraphNode(from:) replace them.
 
 public func layoutErDiagramSync(
     _ diagram: ErDiagram,
@@ -427,7 +229,8 @@ private func _layoutErDiagramSyncEntry(
     }
 
     let built = _buildErElkGraph(diagram, options, effectiveConfig)
-    let result = try _layoutEngineSync(built.elkGraph)
+    let rawResult = try layoutEngineSync(built.elkGraph.toDictionary())
+    let result = ElkGraphNode(from: rawResult)
     return _extractErLayout(result, diagram, built.entitySizes, effectiveConfig)
 }
 
