@@ -62,6 +62,11 @@ public struct LiveEditorState: Codable, Equatable, Sendable {
     /// Auto (render on every change) or manual (render only on command).
     public var updateMode: UpdateMode
 
+    // MARK: - Inspector pane
+
+    /// Whether the floating Inspector drawer is currently open.
+    public var inspectorOpen: Bool
+
     // MARK: - Init
 
     public init(
@@ -74,7 +79,8 @@ public struct LiveEditorState: Codable, Equatable, Sendable {
         panZoomEnabled: Bool = true,
         zoomScale: CGFloat? = nil,
         panOffset: CGSize? = nil,
-        updateMode: UpdateMode = .auto
+        updateMode: UpdateMode = .auto,
+        inspectorOpen: Bool = false
     ) {
         self.source = source
         self.sourceFormat = sourceFormat
@@ -86,6 +92,7 @@ public struct LiveEditorState: Codable, Equatable, Sendable {
         self.zoomScale = zoomScale
         self.panOffset = panOffset
         self.updateMode = updateMode
+        self.inspectorOpen = inspectorOpen
     }
 
     // MARK: - Codable (handle legacy snapshots without sourceFormat)
@@ -101,6 +108,7 @@ public struct LiveEditorState: Codable, Equatable, Sendable {
         case zoomScale
         case panOffset
         case updateMode
+        case inspectorOpen
     }
 
     public init(from decoder: Decoder) throws {
@@ -115,6 +123,7 @@ public struct LiveEditorState: Codable, Equatable, Sendable {
         self.zoomScale = try c.decodeIfPresent(CGFloat.self, forKey: .zoomScale)
         self.panOffset = try c.decodeIfPresent(CGSize.self, forKey: .panOffset)
         self.updateMode = try c.decodeIfPresent(UpdateMode.self, forKey: .updateMode) ?? .auto
+        self.inspectorOpen = try c.decodeIfPresent(Bool.self, forKey: .inspectorOpen) ?? false
     }
 
     // MARK: - Defaults
