@@ -14,7 +14,7 @@ public struct PlantUMLImporter: DiagramSourceImporter {
     public let supportedDiagramTypes: Set<DiagramType> = [
         .sequenceDiagram,
         .classDiagram,
-        // .stateDiagram     — added in 6C
+        .stateDiagram,
         // .mindmap, .gantt  — added in 6D
         // .c4               — added in 6E
     ]
@@ -58,7 +58,12 @@ public struct PlantUMLImporter: DiagramSourceImporter {
 
         // Check State/Activity
         if isPlantUMLStateBody(body) {
-            throw DiagramError.notYetImplemented("PlantUML State/Activity diagrams not yet implemented (Slice 6C)")
+            let ast = PlantUMLStateParser().parse(body)
+            let (graph, diagnostics) = PlantUMLStateMapper().map(ast)
+            return DiagramImportResult(
+                document: DiagramDocument(payload: .stateDiagram(graph)),
+                diagnostics: diagnostics
+            )
         }
 
         // Check Class

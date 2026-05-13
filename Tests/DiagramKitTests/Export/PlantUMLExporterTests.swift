@@ -29,6 +29,30 @@ import DiagramKitPlantUML
         #expect(result.source.contains("+greet(): Void"))
     }
 
+    @Test("PlantUML state export round-trips through PlantUMLImporter")
+    func stateExportRoundTrip() throws {
+        let source = """
+        @startuml
+        [*] --> Idle
+        Idle --> Working : start
+        Working --> [*]
+        @enduml
+        """
+        let parsed = try PlantUMLImporter().parse(source).document
+        let exported = try PlantUMLExporter().export(parsed)
+        #expect(exported.source.contains("@startuml"))
+        #expect(exported.source.contains("[*] -->"))
+        #expect(exported.source.contains("--> [*]"))
+        // Re-import and confirm Idle/Working survive
+        let reparsed = try PlantUMLImporter().parse(exported.source).document
+        guard case .stateDiagram(let graph) = reparsed.payload else {
+            Issue.record("Expected stateDiagram payload"); return
+        }
+        let nodeIds = Set(graph.nodesInOrder.map(\.id))
+        #expect(nodeIds.contains("Idle"))
+        #expect(nodeIds.contains("Working"))
+    }
+
     @Test("PlantUML class export round-trips through PlantUMLImporter")
     func classExportRoundTrip() throws {
         let attr = ClassMember(id: "name", visibility: "+", memberType: .attribute, returnType: "String")
