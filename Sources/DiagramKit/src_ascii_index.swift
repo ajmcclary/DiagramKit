@@ -191,7 +191,10 @@ private func _bmCanvasToString(
     canvasToString(canvas, options: CanvasToStringOptions(roleCanvas: roleCanvas, colorMode: colorMode, theme: theme))
 }
 
-private func _bmRenderSequenceAscii(
+// `_bmRender*Ascii` are file-scope (not `private`) so AsciiRenderRegistry
+// can dispatch to them. The wrappers exist to insulate ASCII rendering
+// from upstream identifier renames in the model layer.
+func _bmRenderSequenceAscii(
     _ text: String,
     _ config: AsciiConfig,
     _ colorMode: ColorMode?,
@@ -200,7 +203,7 @@ private func _bmRenderSequenceAscii(
     try renderSequenceAscii(text, config, colorMode, theme)
 }
 
-private func _bmRenderClassAscii(
+func _bmRenderClassAscii(
     _ text: String,
     _ config: AsciiConfig,
     _ colorMode: ColorMode?,
@@ -209,7 +212,7 @@ private func _bmRenderClassAscii(
     try renderClassAscii(text, config, colorMode, theme)
 }
 
-private func _bmRenderErAscii(
+func _bmRenderErAscii(
     _ text: String,
     _ config: AsciiConfig,
     _ colorMode: ColorMode?,
@@ -403,133 +406,13 @@ public final class original_src_ascii_index {
 
         let theme = DEFAULT_ASCII_THEME.merged(with: options.theme)
 
-        switch DiagramRegistry.detect(from: preprocessedText).type {
-        case .sequenceDiagram:
-            return try renderSequenceAscii(preprocessedText, config, resolvedColorMode, theme)
+        let detected = DiagramRegistry.detect(from: preprocessedText).type
 
-        case .classDiagram:
-            return try renderClassAscii(preprocessedText, config, resolvedColorMode, theme)
-
-        case .erDiagram:
-            return try renderErAscii(preprocessedText, config, resolvedColorMode, theme)
-
-        case .xyChart:
-            let mappedColorMode = _mapColorMode(resolvedColorMode)
-            let mappedTheme = _mapTheme(theme, includeAccentBg: true)
-            let mappedConfig = original_src_ascii_types.AsciiConfig(
-                useAscii: config.useAscii,
-                paddingX: config.paddingX,
-                paddingY: config.paddingY,
-                boxBorderPadding: config.boxBorderPadding,
-                graphDirection: config.graphDirection
-            )
-            return renderXYChartAscii(preprocessedText, mappedConfig, mappedColorMode, mappedTheme)
-
-        case .pie:
-            let chart = try parsePieChart(preprocessedText)
-            return renderPieAscii(chart)
-
-        case .journey:
-            let rawLines = DiagramSourceNormalizer.rawLines(preprocessedText)
-            let model = try parseJourneyDiagram(rawLines, frontmatter: preprocessed.frontmatter)
-            return renderJourneyAscii(model)
-
-        case .gantt:
-            let rawLines = DiagramSourceNormalizer.rawLines(preprocessedText)
-            let model = try parseGanttDiagram(rawLines, frontmatter: preprocessed.frontmatter)
-            return renderGanttAscii(model)
-
-        case .quadrantChart:
-            let model = try parseQuadrantChart(preprocessedText)
-            return renderQuadrantAscii(model)
-
-        case .requirement:
-            let rawLines = DiagramSourceNormalizer.rawLines(preprocessedText)
-            let model = try parseRequirementDiagram(rawLines, frontmatter: preprocessed.frontmatter)
-            return renderRequirementAscii(model)
-
-        case .gitGraph:
-            let rawLines = DiagramSourceNormalizer.rawLines(preprocessedText)
-            let model = try parseGitGraph(rawLines, frontmatter: preprocessed.frontmatter)
-            return renderGitGraphAscii(model)
-
-        case .mindmap:
-            let rawLines = DiagramSourceNormalizer.rawLines(preprocessedText)
-            let model = try parseMindmap(rawLines, frontmatter: preprocessed.frontmatter)
-            return renderMindmapAscii(model)
-
-        case .timeline:
-            let rawLines = DiagramSourceNormalizer.rawLines(preprocessedText)
-            let model = try parseTimelineDiagram(rawLines, frontmatter: preprocessed.frontmatter)
-            return renderTimelineAscii(model)
-
-        case .sankey:
-            let rawLines = DiagramSourceNormalizer.rawLines(preprocessedText)
-            let model = try parseSankeyDiagram(rawLines, frontmatter: preprocessed.frontmatter)
-            return renderSankeyAscii(model)
-
-        case .block:
-            let model = try parseBlockDiagram(preprocessedText, frontmatter: preprocessed.frontmatter)
-            return renderBlockAscii(model)
-
-        case .packet:
-            let rawLines = DiagramSourceNormalizer.rawLines(preprocessedText)
-            let model = try parsePacketDiagram(rawLines, frontmatter: preprocessed.frontmatter)
-            return renderPacketAscii(model)
-
-        case .kanban:
-            let rawLines = DiagramSourceNormalizer.rawLines(preprocessedText)
-            let model = try parseKanbanDiagram(rawLines, frontmatter: preprocessed.frontmatter)
-            return renderKanbanAscii(model)
-
-        case .architecture:
-            let model = try parseArchitectureDiagram(preprocessedText, frontmatter: preprocessed.frontmatter)
-            return renderArchitectureAscii(model)
-
-        case .radar:
-            let model = try parseRadarDiagram(source: preprocessedText, frontmatter: preprocessed.frontmatter)
-            return renderRadarAscii(model)
-
-        case .treemap:
-            let model = try parseTreemapDiagramFromSource(preprocessedText, frontmatter: preprocessed.frontmatter)
-            return renderTreemapAscii(model)
-
-        case .venn:
-            let rawLines = DiagramSourceNormalizer.rawLines(preprocessedText)
-            let model = try parseVennDiagram(rawLines, frontmatter: preprocessed.frontmatter)
-            return renderVennAscii(model)
-
-        case .ishikawa:
-            let rawLines = DiagramSourceNormalizer.rawLines(preprocessedText)
-            let model = try parseIshikawaDiagram(rawLines, frontmatter: preprocessed.frontmatter)
-            return renderIshikawaAscii(model)
-
-        case .treeView:
-            let rawLines = DiagramSourceNormalizer.rawLines(preprocessedText)
-            let model = try parseTreeViewDiagram(rawLines, frontmatter: preprocessed.frontmatter)
-            return renderTreeViewAscii(model)
-
-        case .eventModeling:
-            let rawLines = DiagramSourceNormalizer.rawLines(preprocessedText)
-            let model = try parseEventModeling(rawLines, frontmatter: preprocessed.frontmatter)
-            return renderEventModelingAscii(model)
-
-        case .wardleyBeta:
-            let rawLines = DiagramSourceNormalizer.rawLines(preprocessedText)
-            let model = try parseWardleyMap(rawLines, frontmatter: preprocessed.frontmatter)
-            return renderWardleyAscii(model)
-
-        case .zenuml:
-            let rawLines = DiagramSourceNormalizer.rawLines(preprocessedText)
-            let model = try parseZenUMLDiagram(rawLines, frontmatter: preprocessed.frontmatter)
-            return renderZenUMLAscii(model)
-
-        case .c4:
-            let rawLines = DiagramSourceNormalizer.rawLines(preprocessedText)
-            let model = try parseC4Diagram(rawLines, frontmatter: preprocessed.frontmatter)
-            return renderC4Ascii(model)
-
-        case .flowchart, .stateDiagram:
+        // Flowchart and state share the same renderer and need class-private
+        // helpers (parseMermaid, convertToAsciiGraph, drawGraph, etc.); they
+        // stay inline. The remaining 26 families route through
+        // AsciiRenderRegistry.
+        if detected == .flowchart || detected == .stateDiagram {
             let parsed = try parseMermaid(preprocessedText)
 
             if parsed.direction == "LR" || parsed.direction == "RL" {
@@ -547,14 +430,26 @@ public final class original_src_ascii_index {
                 flipRoleCanvasVertically(&graph.drawGraph.roleCanvas)
             }
 
-            let result = try canvasToString(
+            return try canvasToString(
                 graph.drawGraph.canvas,
                 roleCanvas: graph.drawGraph.roleCanvas,
                 colorMode: resolvedColorMode,
                 theme: theme
             )
+        }
+
+        if let result = try AsciiRenderRegistry.render(
+            type: detected,
+            source: preprocessedText,
+            frontmatter: preprocessed.frontmatter,
+            config: config,
+            colorMode: resolvedColorMode,
+            theme: theme
+        ) {
             return result
         }
+
+        throw DiagramError.notYetImplemented("ASCII rendering for \(detected.rawValue)")
     }
 
     /// @deprecated Use `renderMermaidASCII`.
