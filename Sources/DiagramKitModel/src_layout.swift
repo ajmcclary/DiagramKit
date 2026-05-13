@@ -1185,42 +1185,39 @@ private func _layoutGraphSyncWithConfig(
         return PositionedGraph(diagram: graph)
     }
 
-    let typedGraph: ElkGraphNode
+    var elkGraph: ElkGraphNode
     if !parsed.subgraphs.isEmpty {
         let hasDirectionOverride = parsed.subgraphs.contains(where: { $0.direction != nil })
-        typedGraph = hasDirectionOverride
+        elkGraph = hasDirectionOverride
             ? _buildElkGraph(parsed)
             : _buildElkGraphNoCrossEdges(parsed)
     } else {
-        typedGraph = _buildElkGraph(parsed)
+        elkGraph = _buildElkGraph(parsed)
     }
-    var elkGraph: _ElkNode = typedGraph.toDictionary()
 
     // Override ELK spacing options with LayoutConfig values
     _applyLayoutConfig(config, to: &elkGraph)
 
     do {
-        let rawLaidOut = try layoutEngineSync(elkGraph)
+        let rawLaidOut = try layoutEngineSync(elkGraph.toDictionary())
         let laidOut = ElkGraphNode(from: rawLaidOut)
         return _extractPositionedGraph(parsed, laidOut, diagramType: graph.type)
     } catch {
-        var flatGraph = _buildFlatElkGraph(parsed).toDictionary()
+        var flatGraph = _buildFlatElkGraph(parsed)
         _applyLayoutConfig(config, to: &flatGraph)
-        let rawLaidOut = try layoutEngineSync(flatGraph)
+        let rawLaidOut = try layoutEngineSync(flatGraph.toDictionary())
         let laidOut = ElkGraphNode(from: rawLaidOut)
         return _extractPositionedGraph(parsed, laidOut, diagramType: graph.type)
     }
 }
 
 /// Patch ELK layout options on a built graph with LayoutConfig values.
-private func _applyLayoutConfig(_ config: LayoutConfig, to elkGraph: inout [String: Any]) {
-    var opts = (elkGraph["layoutOptions"] as? [String: String]) ?? [:]
+private func _applyLayoutConfig(_ config: LayoutConfig, to elkGraph: inout ElkGraphNode) {
     let p = Int(config.padding)
-    opts["elk.spacing.nodeNode"] = "\(Int(config.nodeSpacing))"
-    opts["elk.layered.spacing.nodeNodeBetweenLayers"] = "\(Int(config.layerSpacing))"
-    opts["elk.padding"] = "[top=\(p),left=\(p),bottom=\(p),right=\(p)]"
-    opts["elk.spacing.componentComponent"] = "\(Int(config.componentSpacing))"
-    elkGraph["layoutOptions"] = opts
+    elkGraph.layoutOptions["elk.spacing.nodeNode"] = "\(Int(config.nodeSpacing))"
+    elkGraph.layoutOptions["elk.layered.spacing.nodeNodeBetweenLayers"] = "\(Int(config.layerSpacing))"
+    elkGraph.layoutOptions["elk.padding"] = "[top=\(p),left=\(p),bottom=\(p),right=\(p)]"
+    elkGraph.layoutOptions["elk.spacing.componentComponent"] = "\(Int(config.componentSpacing))"
 }
 
 public func layoutGraphWithDiagnosticsSync(
