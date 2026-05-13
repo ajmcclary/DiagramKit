@@ -452,7 +452,7 @@ private func _memberToStringEntry(_ m: ClassMember) -> String {
     m.text
 }
 
-open class original_src_class_layout {
+final class original_src_class_layout {
     public init() {}
 
     public static func layoutClassDiagramSync(

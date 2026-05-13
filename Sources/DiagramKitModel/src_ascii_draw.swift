@@ -1103,6 +1103,6 @@ public func drawGraph(_ graph: inout AsciiGraph) -> Canvas {
     return graph.canvas
 }
 
-open class original_src_ascii_draw {
+final class original_src_ascii_draw {
     public init() {}
 }

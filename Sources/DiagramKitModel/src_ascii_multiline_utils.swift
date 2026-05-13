@@ -42,7 +42,7 @@ public func drawMultilineTextLeft(
     }
 }
 
-open class original_src_ascii_multiline_utils {
+final class original_src_ascii_multiline_utils {
     public init() {}
 
     // Export inventory from TypeScript source:

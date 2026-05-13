@@ -342,6 +342,6 @@ public let trapezoidAltRenderer: any ShapeRenderer = ClosureShapeRenderer(
     getAttachmentPointFn: _shapeBoxAttachmentPoint
 )
 
-open class original_src_ascii_shapes_special {
+final class original_src_ascii_shapes_special {
     public init() {}
 }

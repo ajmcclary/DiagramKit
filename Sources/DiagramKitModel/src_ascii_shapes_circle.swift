@@ -20,6 +20,6 @@ public struct CircleRenderer: ShapeRenderer {
 
 public let circleRenderer: any ShapeRenderer = CircleRenderer()
 
-open class original_src_ascii_shapes_circle {
+final class original_src_ascii_shapes_circle {
     public init() {}
 }

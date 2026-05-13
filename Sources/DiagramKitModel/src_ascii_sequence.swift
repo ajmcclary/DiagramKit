@@ -578,6 +578,6 @@ public func renderSequenceAsciiDiagram(
     )
 }
 
-open class original_src_ascii_sequence {
+final class original_src_ascii_sequence {
     public init() {}
 }

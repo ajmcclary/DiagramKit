@@ -20,6 +20,6 @@ public struct HexagonRenderer: ShapeRenderer {
 
 public let hexagonRenderer: any ShapeRenderer = HexagonRenderer()
 
-open class original_src_ascii_shapes_hexagon {
+final class original_src_ascii_shapes_hexagon {
     public init() {}
 }

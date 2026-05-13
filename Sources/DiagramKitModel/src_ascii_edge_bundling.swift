@@ -291,6 +291,6 @@ public func processBundles(_ graph: inout AsciiGraph) {
     }
 }
 
-open class original_src_ascii_edge_bundling {
+final class original_src_ascii_edge_bundling {
     public init() {}
 }

@@ -129,6 +129,6 @@ public let stateEndRenderer: any ShapeRenderer = ClosureShapeRenderer(
     getAttachmentPointFn: _stateAttachmentPoint
 )
 
-open class original_src_ascii_shapes_state {
+final class original_src_ascii_shapes_state {
     public init() {}
 }

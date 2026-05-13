@@ -145,6 +145,6 @@ public func getShapeAttachmentPoint(
     getShapeRenderer(shape).getAttachmentPoint(dir, dimensions, baseCoord)
 }
 
-open class original_src_ascii_shapes_index {
+final class original_src_ascii_shapes_index {
     public init() {}
 }

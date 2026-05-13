@@ -83,6 +83,6 @@ public struct ClosureShapeRenderer: ShapeRenderer {
     }
 }
 
-open class original_src_ascii_shapes_types {
+final class original_src_ascii_shapes_types {
     public init() {}
 }

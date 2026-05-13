@@ -11,7 +11,7 @@ public typealias PositionedClassNodeModel = PositionedClassNode
 public typealias PositionedClassRelationshipModel = PositionedClassRelationship
 public typealias ClassRelationshipType = RelationshipType
 
-open class original_src_class_types {
+final class original_src_class_types {
     public init() {}
 
     public static func makeMember(

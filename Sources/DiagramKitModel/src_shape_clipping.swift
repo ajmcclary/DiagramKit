@@ -1,7 +1,7 @@
 // Ported from original/src/shape-clipping.ts
 import Foundation
 
-open class original_src_shape_clipping {
+final class original_src_shape_clipping {
     public init() {}
 
     public typealias Point = original_src_types.Point

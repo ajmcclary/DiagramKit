@@ -1,7 +1,7 @@
 // Ported from original/src/ascii/shapes/stadium.ts
 import Foundation
 
-open class original_src_ascii_shapes_stadium {
+final class original_src_ascii_shapes_stadium {
     public init() {}
 
     // Export inventory from TypeScript source:

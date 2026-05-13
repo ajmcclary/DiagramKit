@@ -234,7 +234,7 @@ private func _layoutErDiagramSyncEntry(
     return _extractErLayout(result, diagram, built.entitySizes, effectiveConfig)
 }
 
-open class original_src_er_layout {
+final class original_src_er_layout {
     public init() {}
 
     public static func layoutErDiagramSync(

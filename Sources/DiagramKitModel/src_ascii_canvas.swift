@@ -341,6 +341,6 @@ public func setRoleCanvasSizeToGrid(
     _ = increaseRoleCanvasSize(&roleCanvas, maxX - 1, maxY - 1)
 }
 
-open class original_src_ascii_canvas {
+final class original_src_ascii_canvas {
     public init() {}
 }

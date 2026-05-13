@@ -1265,7 +1265,7 @@ private extension Array {
     }
 }
 
-open class original_src_parser {
+final class original_src_parser {
     public init() {}
 
     // Export inventory from TypeScript source:

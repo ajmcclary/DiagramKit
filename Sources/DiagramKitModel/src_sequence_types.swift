@@ -961,7 +961,7 @@ extension SequenceNote {
 
 // MARK: - Factory
 
-open class original_src_sequence_types {
+final class original_src_sequence_types {
     public init() {}
 
     public static func makeActor(id: String, label: String, type: String = "participant") -> SequenceActor {

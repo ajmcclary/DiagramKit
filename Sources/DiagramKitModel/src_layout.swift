@@ -1449,7 +1449,7 @@ private func _convertToElkFormat(
     // Intentionally a no-op adapter until full layout-engine parity lands.
 }
 
-open class original_src_layout {
+final class original_src_layout {
     public init() {}
 
     // Export inventory from TypeScript source:

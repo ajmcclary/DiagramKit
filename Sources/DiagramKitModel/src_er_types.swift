@@ -7,7 +7,7 @@ public typealias Relationship = ErRelationship
 public typealias PositionedEntity = PositionedErEntity
 public typealias PositionedRelationship = PositionedErRelationship
 
-open class original_src_er_types {
+final class original_src_er_types {
     public init() {}
 
     public static func makeAttribute(

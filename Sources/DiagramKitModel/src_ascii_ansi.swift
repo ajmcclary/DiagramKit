@@ -343,7 +343,7 @@ public func colorizeText(_ text: String, _ hex: String, _ mode: ColorMode) -> St
     return "\(colorCode)\(text)\(RESET)"
 }
 
-open class original_src_ascii_ansi {
+final class original_src_ascii_ansi {
     public init() {}
     public static let DEFAULT_ASCII_THEME = DEFAULT_ASCII_THEME_ANSI
 }

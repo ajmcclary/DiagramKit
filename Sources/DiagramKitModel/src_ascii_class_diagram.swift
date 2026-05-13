@@ -672,6 +672,6 @@ public func renderClassAsciiDiagram(
     )
 }
 
-open class original_src_ascii_class_diagram {
+final class original_src_ascii_class_diagram {
     public init() {}
 }

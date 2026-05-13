@@ -1,7 +1,7 @@
 // Ported from original/src/ascii/pathfinder.ts
 import Foundation
 
-open class original_src_ascii_pathfinder {
+final class original_src_ascii_pathfinder {
     public init() {}
 
     public typealias GridCoord = original_src_ascii_converter.GridCoord

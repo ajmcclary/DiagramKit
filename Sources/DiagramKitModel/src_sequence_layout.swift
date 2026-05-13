@@ -622,7 +622,7 @@ private func _sequenceLifecycleMessageIndices(_ diagram: SequenceDiagram) -> (cr
 
 // MARK: - Legacy class
 
-open class original_src_sequence_layout {
+final class original_src_sequence_layout {
     public init() {}
 
     public static func layoutSequenceDiagram(

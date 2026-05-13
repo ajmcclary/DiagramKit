@@ -484,6 +484,6 @@ public func renderErAsciiDiagram(
     )
 }
 
-open class original_src_ascii_er_diagram {
+final class original_src_ascii_er_diagram {
     public init() {}
 }

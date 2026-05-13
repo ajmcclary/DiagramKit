@@ -1416,7 +1416,7 @@ private extension Array {
 
 // MARK: - Legacy Export Class
 
-open class original_src_er_parser {
+final class original_src_er_parser {
     public init() {}
 
     public static func parseErDiagram(_ lines: [String], frontmatter: DiagramFrontmatter? = nil) throws -> ErDiagram {

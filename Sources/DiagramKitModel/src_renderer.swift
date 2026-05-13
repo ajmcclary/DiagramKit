@@ -1125,7 +1125,7 @@ private func _graphSecurityLevel(_ graph: DiagramDocument) -> String? {
     }
 }
 
-open class original_src_renderer {
+final class original_src_renderer {
     public init() {}
 
     // Export inventory from TypeScript source:

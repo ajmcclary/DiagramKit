@@ -109,7 +109,7 @@ public func renderMermaid(
     try await renderDiagramSVG(text, options)
 }
 
-public final class original_src_index {
+final class original_src_index {
     public init() {}
 }
 #endif

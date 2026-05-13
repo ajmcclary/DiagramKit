@@ -20,6 +20,6 @@ public struct RoundedRenderer: ShapeRenderer {
 
 public let roundedRenderer: any ShapeRenderer = RoundedRenderer()
 
-open class original_src_ascii_shapes_rounded {
+final class original_src_ascii_shapes_rounded {
     public init() {}
 }

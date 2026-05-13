@@ -129,6 +129,6 @@ public struct RectangleRenderer: ShapeRenderer {
 
 public let rectangleRenderer: any ShapeRenderer = RectangleRenderer()
 
-open class original_src_ascii_shapes_rectangle {
+final class original_src_ascii_shapes_rectangle {
     public init() {}
 }

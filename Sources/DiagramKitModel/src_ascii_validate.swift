@@ -98,6 +98,6 @@ public func assertNoDiagonals(_ asciiOutput: String, context: String? = nil) thr
     )
 }
 
-open class original_src_ascii_validate {
+final class original_src_ascii_validate {
     public init() {}
 }

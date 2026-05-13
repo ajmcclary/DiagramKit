@@ -1493,7 +1493,7 @@ private func _isUnsafeURL(_ url: String) -> Bool {
 
 // MARK: - Wrapper class
 
-open class original_src_class_parser {
+final class original_src_class_parser {
     public init() {}
 
     public static func parseClassDiagram(_ lines: [String], frontmatter: DiagramFrontmatter? = nil) throws -> ClassDiagram {

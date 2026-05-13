@@ -20,6 +20,6 @@ public struct DiamondRenderer: ShapeRenderer {
 
 public let diamondRenderer: any ShapeRenderer = DiamondRenderer()
 
-open class original_src_ascii_shapes_diamond {
+final class original_src_ascii_shapes_diamond {
     public init() {}
 }

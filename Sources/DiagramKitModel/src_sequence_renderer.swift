@@ -541,7 +541,7 @@ private func escapeAttr(_ value: String) -> String {
 
 // MARK: - Legacy class
 
-open class original_src_sequence_renderer {
+final class original_src_sequence_renderer {
     public init() {}
 
     public static func renderSequenceSvg(

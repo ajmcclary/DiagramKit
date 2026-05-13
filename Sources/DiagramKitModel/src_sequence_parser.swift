@@ -794,7 +794,7 @@ private func _match(_ pattern: String, _ text: String, caseInsensitive: Bool = t
 
 // MARK: - Legacy class
 
-open class original_src_sequence_parser {
+final class original_src_sequence_parser {
     public init() {}
 
     public static func parseSequenceDiagram(_ lines: [String]) throws -> SequenceDiagram {

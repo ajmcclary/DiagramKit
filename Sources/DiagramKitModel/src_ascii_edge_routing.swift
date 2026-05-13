@@ -406,6 +406,6 @@ private func calculateLineWidth(_ graph: AsciiGraph, _ line: (GridCoord, GridCoo
     return total
 }
 
-open class original_src_ascii_edge_routing {
+final class original_src_ascii_edge_routing {
     public init() {}
 }

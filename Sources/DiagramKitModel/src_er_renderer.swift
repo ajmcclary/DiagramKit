@@ -535,7 +535,7 @@ private func _escapeAttr(_ value: String) -> String {
     SVG.escapeAttribute(value)
 }
 
-open class original_src_er_renderer {
+final class original_src_er_renderer {
     public init() {}
 
     public static func renderErSvg(
