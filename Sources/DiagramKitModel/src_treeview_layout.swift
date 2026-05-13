@@ -181,11 +181,13 @@ private func _parseLabelFontSize(_ value: String) -> Double {
     return Double(cleaned) ?? 16
 }
 
+/// Resolve the label font through `DiagramFontResolver.shared` so layout
+/// and the CG renderer (`DiagramRenderer+TreeView`) measure text with
+/// the same font family. Previously this called `BMFont.systemFont(...)`
+/// directly, which let the bundled-font determinism guarantee leak
+/// out — labels could be measured in system Helvetica but rendered in
+/// Inter, drifting layout widths from snapshot baselines.
 private func _treeViewFont(size: CGFloat) -> BMFont {
-    #if targetEnvironment(macCatalyst) || canImport(UIKit)
-    return BMFont.systemFont(ofSize: size)
-    #elseif canImport(AppKit)
-    return BMFont.systemFont(ofSize: size)
-    #endif
+    DiagramFontResolver.shared.proportionalFont(size: size, weight: .regular)
 }
 #endif
