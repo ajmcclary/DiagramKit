@@ -87,11 +87,15 @@ Important-and-Minor backlog is closed across Phases 6A–6F + 7
   monolithic XCTest file. Splitting per-concern (parser / layout /
   renderer / corpus fixture) is a separate scoped phase. Documented at
   the suite-level so it remains discoverable.
-- **DOT exporter:** `DOTExporter` does not exist yet.
-  `DiagramExportLoader.export(to: .graphviz, …)` returns a `.unsupported`
-  diagnostic (Phase 6D), and PHASES.md flags the work.
 - **PlantUML family slices:** importer + exporter coverage for class,
-  state/activity, mindmap+gantt, and C4 import remains open.
+  state/activity, mindmap+gantt, and C4 import remains open
+  (PLAN.md Phases 2–6).
+
+## Post-remediation feature work
+
+| Feature | Phase | Tests |
+| --- | --- | --- |
+| DOT exporter (`DiagramKitGraphviz/DOTExporter`) | PLAN.md Phase 1 | `DOTExporterTests` (6 tests), `DiagramExportLoaderTests/graphvizExportSucceeds`, `ExportMatrixTests/dotExporterSupportedTypes` |
 
 ## ASCII renderer coverage
 

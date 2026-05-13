@@ -46,13 +46,14 @@ public enum DiagramPipeline {
 
     /// Default export registry, keyed by format ID.
     /// Mermaid is the primary exporter with the broadest type coverage.
-    /// D2, Structurizr, and PlantUML are registered for format conversion.
-    /// Dispatch is by format ID — callers request `.d2` and get the D2
-    /// exporter regardless of Mermaid's overlapping coverage.
+    /// D2, Graphviz, Structurizr, and PlantUML are registered for format
+    /// conversion. Dispatch is by format ID — callers request `.d2` and
+    /// get the D2 exporter regardless of Mermaid's overlapping coverage.
     public static let defaultExportRegistry: ExporterRegistry = {
         var registry = ExporterRegistry.empty
             .registering(MermaidExporter())
         registry = registry.registering(D2Exporter())
+        registry = registry.registering(DOTExporter())
         registry = registry.registering(StructurizrExporter())
         registry = registry.registering(PlantUMLExporter())
         return registry

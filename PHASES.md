@@ -37,9 +37,9 @@ closing-commit map for every Critical finding lives in
   Phase 7 cleanup because it was unwired. Class, state/activity,
   mindmap, gantt, and C4 importers + exporters are still open.
   Detailed scoping lives in [PLAN.md](PLAN.md) (Phases 2–6).
-- **DOT exporter** — `DOTExporter` does not exist yet. Calling
-  `DiagramExportLoader.export(to: .graphviz, …)` returns a
-  `.unsupported` diagnostic. Scoped as Phase 1 in [PLAN.md](PLAN.md).
+- ~~**DOT exporter**~~ — landed in PLAN.md Phase 1. `DOTExporter`
+  ships in `DiagramKitGraphviz` and is registered in
+  `DiagramPipeline.defaultExportRegistry`.
 - **ASCII renderer coverage** — 5 of 28 families ship an ASCII renderer
   today (flowchart, sequence, class, ER, xychart; state shares the
   flowchart dispatch). The other 22 `case`s in

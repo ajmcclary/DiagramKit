@@ -4,6 +4,7 @@ import DiagramKitImport
 import DiagramKitExport
 import DiagramKit
 import DiagramKitD2
+import DiagramKitGraphviz
 import DiagramKitStructurizr
 import DiagramKitPlantUML
 
@@ -32,6 +33,16 @@ import DiagramKitPlantUML
         #expect(!exporter.supportedDiagramTypes.contains(.erDiagram))
         #expect(!exporter.supportedDiagramTypes.contains(.architecture))
         #expect(!exporter.supportedDiagramTypes.contains(.sequenceDiagram))
+    }
+
+    // MARK: - DOT exporter
+
+    @Test("DOT exporter supports flowchart only")
+    func dotExporterSupportedTypes() {
+        let exporter = DOTExporter()
+        #expect(exporter.supportedDiagramTypes.contains(.flowchart))
+        #expect(!exporter.supportedDiagramTypes.contains(.sequenceDiagram))
+        #expect(!exporter.supportedDiagramTypes.contains(.classDiagram))
     }
 
     // MARK: - Structurizr exporter
@@ -71,6 +82,7 @@ import DiagramKitPlantUML
         let exporters: [any DiagramExporter] = [
             MermaidExporter(),
             D2Exporter(),
+            DOTExporter(),
             StructurizrExporter(),
             PlantUMLExporter()
         ]
@@ -97,6 +109,6 @@ import DiagramKitPlantUML
         #expect(registry.exporter(named: .d2) != nil)
         #expect(registry.exporter(named: .structurizr) != nil)
         #expect(registry.exporter(named: .plantuml) != nil)
-        #expect(registry.exporter(named: .graphviz) == nil) // deferred
+        #expect(registry.exporter(named: .graphviz) != nil)
     }
 }

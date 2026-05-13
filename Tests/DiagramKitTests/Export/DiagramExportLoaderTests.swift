@@ -2,6 +2,7 @@ import Testing
 import DiagramKitModel
 import DiagramKitImport
 import DiagramKitExport
+import DiagramKit
 
 /// A mock exporter that only supports flowchart.
 private struct FlowchartOnlyExporter: DiagramExporter {
@@ -46,14 +47,15 @@ private struct FlowchartOnlyExporter: DiagramExporter {
         #expect(result.diagnostics.contains { $0.severity == .unsupported })
     }
 
-    @Test("Loader throws for unknown format ID")
-    func loaderUnknownFormat() {
+    @Test("Loader returns unsupported diagnostic for unknown format ID")
+    func loaderUnknownFormat() throws {
         let registry = ExporterRegistry.empty
         let doc = DiagramDocument(type: .flowchart)
 
-        #expect(throws: DiagramExportError.self) {
-            try DiagramExportLoader.export(doc, to: .d2, registry: registry)
-        }
+        let result = try DiagramExportLoader.export(doc, to: .d2, registry: registry)
+
+        #expect(result.source.isEmpty)
+        #expect(result.diagnostics.contains { $0.severity == .unsupported })
     }
 
     @Test("Loader finds exporter by name")
@@ -75,5 +77,24 @@ private struct FlowchartOnlyExporter: DiagramExporter {
         #expect(throws: DiagramExportError.self) {
             try DiagramExportLoader.export(doc, using: "Not exist", registry: registry)
         }
+    }
+
+    @Test("DiagramExportLoader emits DOT source for graphviz format")
+    func graphvizExportSucceeds() throws {
+        let graph = ParsedGraphModel(
+            direction: .TB,
+            nodesInOrder: [
+                (id: "A", node: original_src_types.MermaidNode(id: "A", label: "A", shape: .rectangle))
+            ],
+            edges: []
+        )
+        let doc = DiagramDocument(payload: .flowchart(graph))
+        let result = try DiagramExportLoader.export(
+            doc,
+            to: .graphviz,
+            registry: DiagramPipeline.defaultExportRegistry
+        )
+        #expect(result.source.contains("digraph G {"))
+        #expect(result.diagnostics.allSatisfy { $0.severity != .unsupported })
     }
 }
