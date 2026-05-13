@@ -33,7 +33,6 @@ struct ActionsPanel: View {
     @SwiftUI.State private var showingSVGExporter = false
     @SwiftUI.State private var showingShareSheet = false
     @SwiftUI.State private var showingHistory = false
-    @SwiftUI.State private var showingInspector = false
 
     var body: some View {
         ActionsView(
@@ -43,8 +42,7 @@ struct ActionsPanel: View {
             onFullWindowPreview: { showingFullWindowPreview = true },
             onShareState: { showingShareSheet = true },
             onShowHistory: { showingHistory = true },
-            onConvertSource: { target in Task { await convertSource(to: target) } },
-            onShowInspector: { showingInspector = true }
+            onConvertSource: { target in Task { await convertSource(to: target) } }
         )
         .alert("Export Failed", isPresented: $showExportError) {
             Button("OK", role: .cancel) {}
@@ -101,18 +99,6 @@ struct ActionsPanel: View {
             #else
             HistoryView(store: store)
                 .frame(width: 460, height: 560)
-            #endif
-        }
-        .sheet(isPresented: $showingInspector) {
-            #if os(iOS)
-            NavigationStack {
-                InspectorView(store: store, isPresented: $showingInspector)
-                    .navigationTitle("Inspector")
-                    .navigationBarTitleDisplayMode(.inline)
-            }
-            .presentationDetents([.large])
-            #else
-            InspectorView(store: store, isPresented: $showingInspector)
             #endif
         }
     }
