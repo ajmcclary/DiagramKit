@@ -25,7 +25,12 @@ public struct MermaidImporter: DiagramSourceImporter {
         // so any non-empty source is potentially Mermaid. This is the
         // explicit fallback — narrower importers (d2, DOT, PlantUML,
         // Structurizr) are probed BEFORE this importer in the registry.
-        return true
+        //
+        // Empty / whitespace-only input is excluded: nothing claims that
+        // input, and `DiagramLoader.parse` surfaces the rejection as a
+        // `notYetImplemented` (or, after Phase 6D, `unrecognizedFormat`)
+        // diagnostic rather than dispatching to a parser.
+        return !source.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
     }
 
     public func parse(_ source: String) throws -> DiagramImportResult {

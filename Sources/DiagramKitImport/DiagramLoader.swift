@@ -21,8 +21,14 @@ public enum DiagramLoader {
         registry: ImporterRegistry
     ) throws -> DiagramImportResult {
         guard let importer = registry.importer(for: source) else {
-            throw DiagramError.notYetImplemented(
-                "No importer registered for source format"
+            // Distinguish "no importer claimed the source" from
+            // "implementation gap inside an importer" by routing through
+            // `.unrecognizedFormat`.
+            let preview = source.prefix(40).trimmingCharacters(in: .whitespacesAndNewlines)
+            throw DiagramError.unrecognizedFormat(
+                preview.isEmpty
+                    ? "source is empty or whitespace-only"
+                    : "no importer matched: \"\(preview)…\""
             )
         }
         return try importer.parse(source)

@@ -10,17 +10,21 @@ public func isD2Source(_ source: String) -> Bool {
     let firstLine = trimmed.split(separator: "\n").first?
         .trimmingCharacters(in: .whitespaces) ?? ""
 
-    // Explicit Mermaid headers → not d2
+    // Explicit Mermaid headers → not d2. Each header is matched as a token
+    // (followed by end-of-line, whitespace, or a non-identifier character)
+    // so probing a real diagram body like `block\n  columns 3\n  A --> B`
+    // is correctly rejected. Without the token check, `block\n  ... -->`
+    // would be claimed by D2 (because of the `->`) and fail downstream.
     let mermaidHeaders = [
         "graph", "flowchart", "sequenceDiagram", "classDiagram", "erDiagram",
         "stateDiagram", "gantt", "pie", "mindmap", "timeline", "requirementDiagram",
-        "gitGraph", "sankey-beta", "block-beta", "packet-beta", "kanban",
-        "architecture-beta", "radar-beta", "treemap-beta", "venn-beta",
+        "gitGraph", "sankey-beta", "block", "block-beta", "packet", "packet-beta",
+        "kanban", "architecture-beta", "radar-beta", "treemap-beta", "venn-beta",
         "ishikawa-beta", "treeView-beta", "eventModeling-beta", "wardley-beta",
         "c4Context", "zenuml"
     ]
     for header in mermaidHeaders {
-        if firstLine.hasPrefix(header) { return false }
+        if _firstLineStartsWithToken(firstLine, prefix: header) { return false }
     }
 
     // DOT headers → not d2
@@ -70,4 +74,16 @@ public func isD2Source(_ source: String) -> Bool {
     if hasBlockSyntax && hasColonAssign { return true }
 
     return false
+}
+
+/// True iff `line` begins with `prefix` followed by a token boundary
+/// (end of string or any non-letter/digit/underscore/hyphen). Hyphens are
+/// permitted as part of the boundary so `block-beta` still matches the
+/// `block-beta` prefix entry above.
+private func _firstLineStartsWithToken(_ line: String, prefix: String) -> Bool {
+    guard line.hasPrefix(prefix) else { return false }
+    let after = line.index(line.startIndex, offsetBy: prefix.count)
+    if after == line.endIndex { return true }
+    let next = line[after]
+    return !next.isLetter && !next.isNumber && next != "_"
 }

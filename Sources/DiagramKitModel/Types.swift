@@ -758,11 +758,22 @@ public struct MermaidNode: Sendable {
 
 public enum DiagramError: Error, LocalizedError {
     case notYetImplemented(String)
+    /// No importer claimed the source. Distinct from `notYetImplemented`
+    /// (which signals an implementation gap) — `unrecognizedFormat` means
+    /// the input did not match any registered format probe.
+    case unrecognizedFormat(String)
+    /// The source matched a format probe but the body could not be parsed.
+    /// Carries a human-readable description of the parse failure.
+    case malformedSource(message: String)
 
     public var errorDescription: String? {
         switch self {
         case .notYetImplemented(let feature):
             return "\(feature) is not yet implemented."
+        case .unrecognizedFormat(let detail):
+            return "Unrecognized diagram source format: \(detail)"
+        case .malformedSource(let message):
+            return "Malformed diagram source: \(message)"
         }
     }
 }

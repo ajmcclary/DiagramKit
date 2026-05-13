@@ -58,7 +58,7 @@ public struct DOTParser {
         mutating func expect(_ token: DOTToken) throws {
             let got = advance()
             guard got == token else {
-                throw DiagramError.notYetImplemented(
+                throw DiagramError.malformedSource(message:
                     "Expected \(token), got \(String(describing: got))"
                 )
             }
@@ -134,7 +134,7 @@ public struct DOTParser {
         }
 
         guard s.peek() == .closeBrace else {
-            throw DiagramError.notYetImplemented("Unbalanced braces: missing '}'")
+            throw DiagramError.malformedSource(message:"Unbalanced braces: missing '}'")
         }
         _ = s.advance() // consume '}'
 
@@ -152,7 +152,7 @@ public struct DOTParser {
         }
 
         guard let keyword = s.peekIdentifier()?.lowercased() else {
-            throw DiagramError.notYetImplemented("Expected 'graph' or 'digraph' at start of DOT document")
+            throw DiagramError.malformedSource(message:"Expected 'graph' or 'digraph' at start of DOT document")
         }
 
         let kind: DOTGraphKind
@@ -164,7 +164,7 @@ public struct DOTParser {
             kind = .digraph
             _ = s.advance()
         default:
-            throw DiagramError.notYetImplemented("Expected 'graph' or 'digraph', got '\(keyword)'")
+            throw DiagramError.malformedSource(message:"Expected 'graph' or 'digraph', got '\(keyword)'")
         }
 
         // Optional graph ID — consume if present and next token is '{'
@@ -236,7 +236,7 @@ public struct DOTParser {
                 _ = s.consumeIf(.semicolon)
             }
             guard s.peek() == .closeBrace else {
-                throw DiagramError.notYetImplemented("Unbalanced braces in anonymous subgraph")
+                throw DiagramError.malformedSource(message:"Unbalanced braces in anonymous subgraph")
             }
             _ = s.advance()
             return .subgraph(DOTSubgraph(id: nil, statements: statements))
@@ -264,7 +264,7 @@ public struct DOTParser {
 
     private func parseNodeStatement(_ s: inout State) throws -> DOTStatement {
         guard let id = s.consumeIdentifier() else {
-            throw DiagramError.notYetImplemented("Expected node identifier")
+            throw DiagramError.malformedSource(message:"Expected node identifier")
         }
 
         var attributes: [DOTAttribute] = []
@@ -284,7 +284,7 @@ public struct DOTParser {
 
         // Edge operator
         guard let edgeOp = s.advance() else {
-            throw DiagramError.notYetImplemented("Expected edge operator '->' or '--'")
+            throw DiagramError.malformedSource(message:"Expected edge operator '->' or '--'")
         }
 
         let directed: Bool
@@ -292,7 +292,7 @@ public struct DOTParser {
         case .directedEdge: directed = true
         case .undirectedEdge: directed = false
         default:
-            throw DiagramError.notYetImplemented("Expected '->' or '--'")
+            throw DiagramError.malformedSource(message:"Expected '->' or '--'")
         }
 
         if s.peekIdentifier()?.lowercased() == "subgraph" {
@@ -374,7 +374,7 @@ public struct DOTParser {
         _ = s.advance() // consume "graph", "node", or "edge"
 
         guard s.peek() == .openBracket else {
-            throw DiagramError.notYetImplemented("Expected '[' after '\(target)' attribute target")
+            throw DiagramError.malformedSource(message:"Expected '[' after '\(target)' attribute target")
         }
 
         let attributes = try parseAttrList(&s)
@@ -387,16 +387,16 @@ public struct DOTParser {
 
     private func parseGraphAttrStatement(_ s: inout State) throws -> DOTStatement {
         guard let key = s.consumeIdentifier() else {
-            throw DiagramError.notYetImplemented("Expected graph attribute key")
+            throw DiagramError.malformedSource(message:"Expected graph attribute key")
         }
 
         guard s.peek() == .equals else {
-            throw DiagramError.notYetImplemented("Expected '=' after graph attribute key")
+            throw DiagramError.malformedSource(message:"Expected '=' after graph attribute key")
         }
         _ = s.advance() // consume '='
 
         guard let value = s.consumeIdentifier() else {
-            throw DiagramError.notYetImplemented("Expected value after '=' in graph attribute")
+            throw DiagramError.malformedSource(message:"Expected value after '=' in graph attribute")
         }
 
         return .graphAttr(key, value)
@@ -417,7 +417,7 @@ public struct DOTParser {
         }
 
         guard s.peek() == .openBrace else {
-            throw DiagramError.notYetImplemented("Expected '{' after 'subgraph'")
+            throw DiagramError.malformedSource(message:"Expected '{' after 'subgraph'")
         }
         _ = s.advance() // consume '{'
 
@@ -432,7 +432,7 @@ public struct DOTParser {
         }
 
         guard s.peek() == .closeBrace else {
-            throw DiagramError.notYetImplemented("Unbalanced braces in subgraph")
+            throw DiagramError.malformedSource(message:"Unbalanced braces in subgraph")
         }
         _ = s.advance() // consume '}'
 

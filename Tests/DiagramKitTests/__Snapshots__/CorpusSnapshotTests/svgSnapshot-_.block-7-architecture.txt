@@ -1,4 +1,5 @@
-<svg id="55AFE815-F72B-E99C-2FFA-19F822D104C2" xmlns="http://www.w3.org/2000/svg" viewBox="-127.0 -67.0 254.0 135.0" width="264" height="135" style="max-width: 100%;"><rect width="100%" height="100%" fill="#FFFFFF"/><style>
+<svg role="graphics-document" aria-roledescription="diagram" id="55AFE815-F72B-E99C-2FFA-19F822D104C2" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="-127 -67 254 135" width="264" height="135" style="--bg:#FFFFFF;--fg:#27272A;--line:#27272A;--accent:#27272A;--muted:#27272A;--surface:#FFFFFF;--border:#27272A;background:#FFFFFF">
+<rect width="100%" height="100%" fill="#FFFFFF"/><style>
 .label {
     font-family: Inter;
     color: #27272A;
@@ -18,8 +19,8 @@
 .node ellipse,
 .node polygon,
 .node path {
-    fill: #F9F9F9;
-    stroke: #D4D4D4;
+    fill: #FFFFFF;
+    stroke: #27272A;
     stroke-width: 1px;
 }
 .flowchart-label text {
@@ -32,31 +33,31 @@
     cursor: pointer;
 }
 .arrowheadPath {
-    fill: #939394;
+    fill: #27272A;
 }
 .edgePath .path {
-    stroke: #939394;
+    stroke: #27272A;
     stroke-width: 2.0px;
 }
 .flowchart-link {
-    stroke: #939394;
+    stroke: #27272A;
     fill: none;
 }
 .edgeLabel {
-    background-color: #F9F9F9;
+    background-color: #FFFFFF;
     text-align: center;
 }
 .edgeLabel rect {
     opacity: 0.5;
-    background-color: #F9F9F9;
-    fill: #F9F9F9;
+    background-color: #FFFFFF;
+    fill: #FFFFFF;
 }
 .labelBkg {
-    background-color: #F9F9F9;
+    background-color: #FFFFFF;
 }
 .node .cluster {
-    fill: #F9F9F9;
-    stroke: #D4D4D4;
+    fill: #FFFFFF;
+    stroke: #27272A;
     stroke-width: 1px;
 }
 .cluster text {
@@ -69,21 +70,20 @@
 }
 </style><defs>
 <marker id="55AFE815-F72B-E99C-2FFA-19F822D104C2-block-point" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-  <path d="M 0 0 L 10 5 L 0 10 z" fill="#939394"/>
+  <path d="M 0 0 L 10 5 L 0 10 z" fill="#27272A"/>
 </marker>
 <marker id="55AFE815-F72B-E99C-2FFA-19F822D104C2-block-circle" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-  <circle cx="5" cy="5" r="4" fill="none" stroke="#939394" stroke-width="1"/>
+  <circle cx="5" cy="5" r="4" fill="none" stroke="#27272A" stroke-width="1"/>
 </marker>
 <marker id="55AFE815-F72B-E99C-2FFA-19F822D104C2-block-cross" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
-  <path d="M 1 1 L 9 9 M 9 1 L 1 9" stroke="#939394" stroke-width="1.5"/>
+  <path d="M 1 1 L 9 9 M 9 1 L 1 9" stroke="#27272A" stroke-width="1.5"/>
 </marker>
 </defs><g class="block"><g class="cluster" id="block-frontend">
-  <rect x="-122.0" y="-42.0" width="76.0" height="104.0" rx="2" ry="2" fill="#F9F9F9" stroke="#D4D4D4" stroke-width="1.5"/>
-  <text x="-84.0" y="-50.0" text-anchor="middle" font-family="Inter" font-size="14" font-weight="bold" fill="#27272A">Frontend</text><g class="node default flowchart-label" id="block-WebApp">  <rect x="-114.0" y="-34.0" width="60.0" height="40.0" fill="#F9F9F9" stroke="#D4D4D4" stroke-width="1.5"/>  <text x="-84.0" y="-14.0" text-anchor="middle" dominant-baseline="central" font-family="Inter" font-size="12" fill="#27272A">WebApp</text></g><g class="node default flowchart-label" id="block-MobileApp">  <rect x="-114.0" y="14.0" width="60.0" height="40.0" fill="#F9F9F9" stroke="#D4D4D4" stroke-width="1.5"/>  <text x="-84.0" y="34.0" text-anchor="middle" dominant-baseline="central" font-family="Inter" font-size="12" fill="#27272A">MobileApp</text></g></g><g class="cluster" id="block-backend">
-  <rect x="-38.0" y="-42.0" width="76.0" height="104.0" rx="2" ry="2" fill="#F9F9F9" stroke="#D4D4D4" stroke-width="1.5"/>
-  <text x="0.0" y="-50.0" text-anchor="middle" font-family="Inter" font-size="14" font-weight="bold" fill="#27272A">Backend</text><g class="node default flowchart-label" id="block-API">  <rect x="-30.0" y="-34.0" width="60.0" height="40.0" fill="#F9F9F9" stroke="#D4D4D4" stroke-width="1.5"/>  <text x="0.0" y="-14.0" text-anchor="middle" dominant-baseline="central" font-family="Inter" font-size="12" fill="#27272A">API</text></g><g class="node default flowchart-label" id="block-Workers">  <rect x="-30.0" y="14.0" width="60.0" height="40.0" fill="#F9F9F9" stroke="#D4D4D4" stroke-width="1.5"/>  <text x="0.0" y="34.0" text-anchor="middle" dominant-baseline="central" font-family="Inter" font-size="12" fill="#27272A">Workers</text></g></g><g class="cluster" id="block-data">
-  <rect x="46.0" y="-42.0" width="76.0" height="104.0" rx="2" ry="2" fill="#F9F9F9" stroke="#D4D4D4" stroke-width="1.5"/>
-  <text x="84.0" y="-50.0" text-anchor="middle" font-family="Inter" font-size="14" font-weight="bold" fill="#27272A">Data</text><g class="node default flowchart-label" id="block-DB">  <rect x="54.0" y="-34.0" width="60.0" height="40.0" fill="#F9F9F9" stroke="#D4D4D4" stroke-width="1.5"/>  <text x="84.0" y="-14.0" text-anchor="middle" dominant-baseline="central" font-family="Inter" font-size="12" fill="#27272A">DB</text></g><g class="node default flowchart-label" id="block-Cache">  <rect x="54.0" y="14.0" width="60.0" height="40.0" fill="#F9F9F9" stroke="#D4D4D4" stroke-width="1.5"/>  <text x="84.0" y="34.0" text-anchor="middle" dominant-baseline="central" font-family="Inter" font-size="12" fill="#27272A">Cache</text></g></g><g class="edgePath edge-thickness-normal edge-pattern-solid flowchart-link">
-  <path class="path" d="M -46.0,0.0 L -42.0,0.0 L -38.0,0.0" fill="none" stroke="#939394" stroke-width="1.5" style="" marker-end="url(#55AFE815-F72B-E99C-2FFA-19F822D104C2-block-point)"/></g><g class="edgePath edge-thickness-normal edge-pattern-solid flowchart-link">
-  <path class="path" d="M 38.0,0.0 L 42.0,0.0 L 46.0,0.0" fill="none" stroke="#939394" stroke-width="1.5" style="" marker-end="url(#55AFE815-F72B-E99C-2FFA-19F822D104C2-block-point)"/></g></g>
-</svg>
+  <rect x="-122.0" y="-42.0" width="76.0" height="104.0" rx="2" ry="2" fill="#FFFFFF" stroke="#27272A" stroke-width="1.5"/>
+  <text x="-84.0" y="-50.0" text-anchor="middle" font-family="Inter" font-size="14" font-weight="bold" fill="#27272A">Frontend</text><g class="node default flowchart-label" id="block-WebApp">  <rect x="-114.0" y="-34.0" width="60.0" height="40.0" fill="#FFFFFF" stroke="#27272A" stroke-width="1.5"/>  <text x="-84.0" y="-14.0" text-anchor="middle" dominant-baseline="central" font-family="Inter" font-size="12" fill="#27272A">WebApp</text></g><g class="node default flowchart-label" id="block-MobileApp">  <rect x="-114.0" y="14.0" width="60.0" height="40.0" fill="#FFFFFF" stroke="#27272A" stroke-width="1.5"/>  <text x="-84.0" y="34.0" text-anchor="middle" dominant-baseline="central" font-family="Inter" font-size="12" fill="#27272A">MobileApp</text></g></g><g class="cluster" id="block-backend">
+  <rect x="-38.0" y="-42.0" width="76.0" height="104.0" rx="2" ry="2" fill="#FFFFFF" stroke="#27272A" stroke-width="1.5"/>
+  <text x="0.0" y="-50.0" text-anchor="middle" font-family="Inter" font-size="14" font-weight="bold" fill="#27272A">Backend</text><g class="node default flowchart-label" id="block-API">  <rect x="-30.0" y="-34.0" width="60.0" height="40.0" fill="#FFFFFF" stroke="#27272A" stroke-width="1.5"/>  <text x="0.0" y="-14.0" text-anchor="middle" dominant-baseline="central" font-family="Inter" font-size="12" fill="#27272A">API</text></g><g class="node default flowchart-label" id="block-Workers">  <rect x="-30.0" y="14.0" width="60.0" height="40.0" fill="#FFFFFF" stroke="#27272A" stroke-width="1.5"/>  <text x="0.0" y="34.0" text-anchor="middle" dominant-baseline="central" font-family="Inter" font-size="12" fill="#27272A">Workers</text></g></g><g class="cluster" id="block-data">
+  <rect x="46.0" y="-42.0" width="76.0" height="104.0" rx="2" ry="2" fill="#FFFFFF" stroke="#27272A" stroke-width="1.5"/>
+  <text x="84.0" y="-50.0" text-anchor="middle" font-family="Inter" font-size="14" font-weight="bold" fill="#27272A">Data</text><g class="node default flowchart-label" id="block-DB">  <rect x="54.0" y="-34.0" width="60.0" height="40.0" fill="#FFFFFF" stroke="#27272A" stroke-width="1.5"/>  <text x="84.0" y="-14.0" text-anchor="middle" dominant-baseline="central" font-family="Inter" font-size="12" fill="#27272A">DB</text></g><g class="node default flowchart-label" id="block-Cache">  <rect x="54.0" y="14.0" width="60.0" height="40.0" fill="#FFFFFF" stroke="#27272A" stroke-width="1.5"/>  <text x="84.0" y="34.0" text-anchor="middle" dominant-baseline="central" font-family="Inter" font-size="12" fill="#27272A">Cache</text></g></g><g class="edgePath edge-thickness-normal edge-pattern-solid flowchart-link">
+  <path class="path" d="M -46.0,0.0 L -42.0,0.0 L -38.0,0.0" fill="none" stroke="#27272A" stroke-width="1.5" style="" marker-end="url(#55AFE815-F72B-E99C-2FFA-19F822D104C2-block-point)"/></g><g class="edgePath edge-thickness-normal edge-pattern-solid flowchart-link">
+  <path class="path" d="M 38.0,0.0 L 42.0,0.0 L 46.0,0.0" fill="none" stroke="#27272A" stroke-width="1.5" style="" marker-end="url(#55AFE815-F72B-E99C-2FFA-19F822D104C2-block-point)"/></g></g></svg>

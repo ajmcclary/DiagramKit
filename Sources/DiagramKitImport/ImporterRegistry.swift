@@ -22,6 +22,15 @@ public struct ImporterRegistry: Sendable {
         ImporterRegistry(importers: [importer] + importers)
     }
 
+    /// Returns a new registry with `importer` appended after every existing
+    /// importer. Use this when the new importer is a **broader fallback**
+    /// (e.g. a custom catch-all) and must be probed only after every existing
+    /// importer has rejected the source. For narrower importers that need
+    /// priority probing, use `prepending(_:)` instead.
+    public func appending(_ importer: any DiagramSourceImporter) -> Self {
+        ImporterRegistry(importers: importers + [importer])
+    }
+
     /// The first importer whose `supports(source:)` returns `true`,
     /// or `nil` when no importer claims the source.
     public func importer(for source: String) -> (any DiagramSourceImporter)? {

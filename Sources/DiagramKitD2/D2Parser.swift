@@ -218,7 +218,7 @@ public struct D2Parser {
         }
 
         guard let sepIdx = separatorIndex else {
-            throw DiagramError.notYetImplemented("Unparseable line \(lineNumber): \(line)")
+            throw DiagramError.malformedSource(message: "D2 parser: unparseable line \(lineNumber): \(line)")
         }
 
         let key = String(line[..<sepIdx]).trimmingCharacters(in: .whitespaces)

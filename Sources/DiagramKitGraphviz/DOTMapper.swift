@@ -179,7 +179,19 @@ public struct DOTMapper {
         guard !id.isEmpty else { return }
 
         let effectiveAttributes = defaultAttributes + explicitAttributes
-        let label = attributeValue("label", in: effectiveAttributes) ?? id
+        var label = attributeValue("label", in: effectiveAttributes) ?? id
+        // HTML-like labels (e.g. `<<TABLE>…</TABLE>>`) are valid Graphviz
+        // syntax but not yet rendered by DiagramKit. Detect and surface a
+        // diagnostic; render the node with its identifier as the label so
+        // the diagram is still usable.
+        if _isHTMLLabel(label) {
+            context.diagnostics.append(DiagramDiagnostic(
+                severity: .unsupported,
+                message: "HTML-like label on node '\(id)' is not yet supported; falling back to the node identifier as the rendered label",
+                location: nil
+            ))
+            label = id
+        }
         let shape = mapNodeShape(attributes: effectiveAttributes, context: &context)
 
         if var existing = context.nodesById[id] {
@@ -301,13 +313,30 @@ public struct DOTMapper {
 
         let shape = shapeAttr.value.lowercased()
         switch shape {
-        case "box", "rect", "rectangle": return .rectangle
+        case "box", "rect", "rectangle", "square": return .rectangle
         case "ellipse", "oval": return .ellipse
         case "circle": return .circle
         case "diamond": return .diamond
         case "cylinder": return .cylinder
         case "hexagon": return .hexagon
+        case "house", "invhouse": return .notchedPentagon
+        case "trapezium", "trapezoid": return .trapezoid
+        case "invtrapezium": return .trapezoidAlt
+        case "parallelogram": return .parallelogram
+        case "note": return .stateNote
+        case "tab", "folder": return .roundedWithTitle
+        case "component": return .dividedRectangle
+        case "triangle": return .triangle
+        case "invtriangle": return .flippedTriangle
+        case "doublecircle": return .doublecircle
         case "plaintext", "none": return .text
+        case "record", "mrecord":
+            context.diagnostics.append(DiagramDiagnostic(
+                severity: .unsupported,
+                message: "Graphviz '\(shape)' shape is not yet supported; rendered as rectangle",
+                location: nil
+            ))
+            return .rectangle
         default:
             context.diagnostics.append(DiagramDiagnostic(
                 severity: .unsupported,
@@ -348,6 +377,17 @@ public struct DOTMapper {
 
     private func attributeValue(_ name: String, in attributes: [DOTAttribute]) -> String? {
         attributes.first { $0.key.lowercased() == name }?.value
+    }
+
+    /// True if `value` is a Graphviz HTML-like label — i.e. begins with `<`
+    /// and ends with `>` (with internal markup). The DOT parser stores
+    /// HTML-like labels with the angle-brackets preserved.
+    private func _isHTMLLabel(_ value: String) -> Bool {
+        let trimmed = value.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard trimmed.hasPrefix("<"), trimmed.hasSuffix(">"), trimmed.count >= 2 else {
+            return false
+        }
+        return true
     }
 
 }

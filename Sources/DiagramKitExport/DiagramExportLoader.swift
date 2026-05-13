@@ -22,12 +22,18 @@ public enum DiagramExportLoader {
         registry: ExporterRegistry
     ) throws -> DiagramExportResult {
         guard let exporter = registry.exporter(named: formatID) else {
-            throw DiagramExportError(
-                message: "No exporter registered for format \(formatID)",
+            // Some formats are known but intentionally lack an exporter yet
+            // (e.g. `.graphviz` — `DOTExporter` is a separate feature phase).
+            // Return a `.unsupported` diagnostic instead of throwing so
+            // callers can degrade gracefully.
+            return DiagramExportResult(
+                source: "",
                 diagnostics: [
                     DiagramDiagnostic(
                         severity: .unsupported,
-                        message: "Format '\(formatID)' has no registered exporter"
+                        message: "No exporter registered for format '\(formatID)'. " +
+                            "If you expected one, ensure the corresponding exporter target is " +
+                            "registered with the `ExporterRegistry` you passed in."
                     )
                 ]
             )
