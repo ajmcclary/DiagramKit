@@ -73,6 +73,10 @@ struct DiagramEditorPane: View {
                 Divider()
                 LabelSection(store: store, editor: editor)
                 Divider()
+                InsertNodeSection(store: store, editor: editor)
+                Divider()
+                InsertEdgeSection(store: store, editor: editor)
+                Divider()
                 DeleteSection(store: store, editor: editor)
                 if let message = store.lastMutationError {
                     Text(message)
@@ -244,6 +248,193 @@ private struct LabelSection: View {
             return
         }
         draft = label
+    }
+}
+
+// MARK: - Insert-node section
+
+@available(iOS 26.0, macOS 26.0, macCatalyst 26.0, *)
+private struct InsertNodeSection: View {
+    @Bindable var store: LiveEditorStore
+    let editor: DiagramEditor
+
+    @SwiftUI.State private var idDraft: String = ""
+    @SwiftUI.State private var labelDraft: String = ""
+    @SwiftUI.State private var shape: ShapeChoice = .rectangle
+    @SwiftUI.State private var localError: String?
+
+    enum ShapeChoice: String, CaseIterable, Identifiable {
+        case rectangle, round, stadium, circle, rhombus
+        var id: String { rawValue }
+        var label: String { rawValue.capitalized }
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            sectionLabel("Insert node", store: store)
+            HStack(spacing: 6) {
+                TextField("ID (e.g. n3)", text: $idDraft)
+                    .textFieldStyle(.roundedBorder)
+                    .font(.system(size: 12))
+                    .frame(maxWidth: 80)
+                TextField("Label", text: $labelDraft)
+                    .textFieldStyle(.roundedBorder)
+                    .font(.system(size: 12))
+            }
+            HStack(spacing: 6) {
+                Picker("Shape", selection: $shape) {
+                    ForEach(ShapeChoice.allCases) { c in
+                        Text(c.label).tag(c)
+                    }
+                }
+                .pickerStyle(.menu)
+                .labelsHidden()
+                .frame(maxWidth: 140)
+                Spacer(minLength: 0)
+                Button("Insert") {
+                    insert()
+                }
+                .disabled(labelDraft.trimmingCharacters(in: .whitespaces).isEmpty)
+            }
+            if let localError {
+                Text(localError)
+                    .font(.system(size: 10))
+                    .foregroundColor(.orange)
+            }
+        }
+    }
+
+    private func insert() {
+        let id = idDraft.trimmingCharacters(in: .whitespaces).isEmpty
+            ? Self.nextDefaultID(existing: store.boundsLookup?.allElementIDs ?? [])
+            : idDraft
+        do {
+            try store.performFlowchartMutation(.insertNode(id: id, label: labelDraft, type: shape.rawValue))
+            idDraft = ""
+            labelDraft = ""
+            localError = nil
+        } catch {
+            localError = error.localizedDescription
+        }
+    }
+
+    static func nextDefaultID(existing: [String]) -> String {
+        let nodeIDs = Set(existing.compactMap { $0.hasPrefix("node:") ? String($0.dropFirst(5)) : nil })
+        var n = 1
+        while nodeIDs.contains("n\(n)") { n += 1 }
+        return "n\(n)"
+    }
+}
+
+// MARK: - Insert-edge section
+
+@available(iOS 26.0, macOS 26.0, macCatalyst 26.0, *)
+private struct InsertEdgeSection: View {
+    @Bindable var store: LiveEditorStore
+    let editor: DiagramEditor
+
+    @SwiftUI.State private var fromID: String?
+    @SwiftUI.State private var toID: String?
+    @SwiftUI.State private var labelDraft: String = ""
+    @SwiftUI.State private var idDraft: String = ""
+    @SwiftUI.State private var localError: String?
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            sectionLabel("Insert edge", store: store)
+            HStack(spacing: 6) {
+                fromPicker
+                Image(systemName: "arrow.right")
+                    .font(.system(size: 11))
+                    .foregroundColor(Color(store.theme.effectiveMuted()))
+                toPicker
+            }
+            HStack(spacing: 6) {
+                TextField("Label (optional)", text: $labelDraft)
+                    .textFieldStyle(.roundedBorder)
+                    .font(.system(size: 12))
+                TextField("Edge ID (optional)", text: $idDraft)
+                    .textFieldStyle(.roundedBorder)
+                    .font(.system(size: 12))
+                    .frame(maxWidth: 100)
+                Button("Insert") {
+                    insert()
+                }
+                .disabled(fromID == nil || toID == nil)
+            }
+            if let localError {
+                Text(localError)
+                    .font(.system(size: 10))
+                    .foregroundColor(.orange)
+            }
+        }
+        .onAppear { seedFromCurrentSelection() }
+        .onChange(of: editor.selection) { _, _ in seedFromCurrentSelection() }
+    }
+
+    private var fromPicker: some View {
+        Picker("From", selection: $fromID) {
+            Text("From…").tag(String?.none)
+            ForEach(nodeIDs(), id: \.self) { id in
+                Text(displayName(id: id)).tag(String?.some(id))
+            }
+        }
+        .pickerStyle(.menu)
+        .labelsHidden()
+    }
+
+    private var toPicker: some View {
+        Picker("To", selection: $toID) {
+            Text("To…").tag(String?.none)
+            ForEach(nodeIDs(), id: \.self) { id in
+                Text(displayName(id: id)).tag(String?.some(id))
+            }
+        }
+        .pickerStyle(.menu)
+        .labelsHidden()
+    }
+
+    private func nodeIDs() -> [String] {
+        (store.boundsLookup?.allElementIDs ?? []).filter { $0.hasPrefix("node:") }
+    }
+
+    private func displayName(id: String) -> String {
+        guard let sel = store.boundsLookup?.selection(for: id) else { return id }
+        if let label = store.boundsLookup?.label(for: sel), !label.isEmpty {
+            return label
+        }
+        return id
+    }
+
+    private func seedFromCurrentSelection() {
+        if let selection = editor.selection,
+           selection.elementID.hasPrefix("node:"),
+           fromID == nil {
+            fromID = selection.elementID
+        }
+    }
+
+    private func insert() {
+        guard
+            let fromID,
+            let toID,
+            let lookup = store.boundsLookup,
+            let fromSel = lookup.selection(for: fromID),
+            let toSel = lookup.selection(for: toID)
+        else { return }
+        let id = idDraft.trimmingCharacters(in: .whitespaces)
+        let label = labelDraft.trimmingCharacters(in: .whitespaces).isEmpty
+            ? nil : labelDraft
+        do {
+            try store.performFlowchartMutation(.insertEdge(id: id, from: fromSel, to: toSel, label: label))
+            labelDraft = ""
+            idDraft = ""
+            self.fromID = nil
+            self.toID = nil
+            localError = nil
+        } catch {
+            localError = error.localizedDescription
+        }
     }
 }
 
