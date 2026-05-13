@@ -108,11 +108,11 @@ public struct D2Parser {
             default: break
             }
             if depth < 0 {
-                throw DiagramError.notYetImplemented("Unbalanced braces in d2 source")
+                throw DiagramError.malformedSource(message: "Unbalanced braces in d2 source")
             }
         }
         if depth != 0 {
-            throw DiagramError.notYetImplemented("Unterminated block in d2 source")
+            throw DiagramError.malformedSource(message: "Unterminated block in d2 source")
         }
 
         return (D2Document(statements: statements), diagnostics)

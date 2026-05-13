@@ -22,12 +22,12 @@ public struct StructurizrParser: Sendable {
 
     private func parseWorkspace(_ s: inout StructurizrParserState) throws -> StructurizrWorkspace {
         guard let keyword = s.consumeIdentifier(), keyword == "workspace" else {
-            throw DiagramError.notYetImplemented("Structurizr source must start with 'workspace'")
+            throw DiagramError.malformedSource(message: "Structurizr source must start with 'workspace'")
         }
         let name = s.consumeString()
         let description = s.consumeString()
         guard s.peek() == .openBrace else {
-            throw DiagramError.notYetImplemented("Expected '{' after workspace declaration")
+            throw DiagramError.malformedSource(message: "Expected '{' after workspace declaration")
         }
         _ = s.advance()
 
@@ -54,7 +54,7 @@ public struct StructurizrParser: Sendable {
         }
 
         guard s.peek() == .closeBrace else {
-            throw DiagramError.notYetImplemented("Unbalanced braces in workspace: missing '}'")
+            throw DiagramError.malformedSource(message: "Unbalanced braces in workspace: missing '}'")
         }
         _ = s.advance()
         return StructurizrWorkspace(name: name, description: description, model: model, views: views)
@@ -65,7 +65,7 @@ public struct StructurizrParser: Sendable {
     private func parseModel(_ s: inout StructurizrParserState) throws -> StructurizrModel {
         _ = s.advance() // "model"
         guard s.peek() == .openBrace else {
-            throw DiagramError.notYetImplemented("Expected '{' after 'model'")
+            throw DiagramError.malformedSource(message: "Expected '{' after 'model'")
         }
         _ = s.advance()
 
@@ -98,7 +98,7 @@ public struct StructurizrParser: Sendable {
         }
 
         guard s.peek() == .closeBrace else {
-            throw DiagramError.notYetImplemented("Unbalanced braces in model: missing '}'")
+            throw DiagramError.malformedSource(message: "Unbalanced braces in model: missing '}'")
         }
         _ = s.advance()
         return StructurizrModel(elements: elements, relationships: relationships)
@@ -115,7 +115,7 @@ public struct StructurizrParser: Sendable {
         _ = s.advance() // '='
 
         guard let kindName = s.consumeIdentifier() else {
-            throw DiagramError.notYetImplemented("Expected element kind after '='")
+            throw DiagramError.malformedSource(message: "Expected element kind after '='")
         }
 
         let kind: StructurizrElementKind
@@ -128,11 +128,11 @@ public struct StructurizrParser: Sendable {
             kind = .deploymentNode
             s.diagnostic("deployment nodes not yet supported")
         default:
-            throw DiagramError.notYetImplemented("Unknown element kind: '\(kindName)'")
+            throw DiagramError.malformedSource(message: "Unknown element kind: '\(kindName)'")
         }
 
         guard let name = s.consumeString() else {
-            throw DiagramError.notYetImplemented("Expected element name string after '\(kindName)'")
+            throw DiagramError.malformedSource(message: "Expected element name string after '\(kindName)'")
         }
 
         let description: String?
@@ -175,7 +175,7 @@ public struct StructurizrParser: Sendable {
                 _ = s.advance()
             }
             guard s.peek() == .closeBrace else {
-                throw DiagramError.notYetImplemented("Unbalanced braces in element block: missing '}'")
+                throw DiagramError.malformedSource(message: "Unbalanced braces in element block: missing '}'")
             }
             _ = s.advance()
         }
@@ -193,7 +193,7 @@ public struct StructurizrParser: Sendable {
         guard let source = s.consumeIdentifier(), s.peek() == .arrow else { return nil }
         _ = s.advance()
         guard let target = s.consumeIdentifier() else {
-            throw DiagramError.notYetImplemented("Expected target identifier after '->'")
+            throw DiagramError.malformedSource(message: "Expected target identifier after '->'")
         }
         let label = s.consumeString()
         let technology = s.consumeString()
@@ -209,7 +209,7 @@ public struct StructurizrParser: Sendable {
     private func parseViews(_ s: inout StructurizrParserState) throws -> [StructurizrView] {
         _ = s.advance() // "views"
         guard s.peek() == .openBrace else {
-            throw DiagramError.notYetImplemented("Expected '{' after 'views'")
+            throw DiagramError.malformedSource(message: "Expected '{' after 'views'")
         }
         _ = s.advance()
 
@@ -236,13 +236,13 @@ public struct StructurizrParser: Sendable {
             _ = s.advance()
 
             guard let scopeAlias = s.consumeIdentifier() else {
-                throw DiagramError.notYetImplemented("Expected scope alias after view kind")
+                throw DiagramError.malformedSource(message: "Expected scope alias after view kind")
             }
             let title = s.consumeString()
             let description = s.consumeString()
 
             guard s.peek() == .openBrace else {
-                throw DiagramError.notYetImplemented("Expected '{' after view declaration")
+                throw DiagramError.malformedSource(message: "Expected '{' after view declaration")
             }
             _ = s.advance()
 
@@ -287,7 +287,7 @@ public struct StructurizrParser: Sendable {
             }
 
             guard s.peek() == .closeBrace else {
-                throw DiagramError.notYetImplemented("Unbalanced braces in view: missing '}'")
+                throw DiagramError.malformedSource(message: "Unbalanced braces in view: missing '}'")
             }
             _ = s.advance()
 
@@ -300,7 +300,7 @@ public struct StructurizrParser: Sendable {
         }
 
         guard s.peek() == .closeBrace else {
-            throw DiagramError.notYetImplemented("Unbalanced braces in views: missing '}'")
+            throw DiagramError.malformedSource(message: "Unbalanced braces in views: missing '}'")
         }
         _ = s.advance()
         return views

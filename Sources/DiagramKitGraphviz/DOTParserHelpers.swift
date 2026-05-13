@@ -31,7 +31,7 @@ extension DOTParser {
 
     func parseEndpoint(_ state: inout State, role: String) throws -> Endpoint {
         guard let id = state.consumeIdentifier() else {
-            throw DiagramError.notYetImplemented("Expected \(role) identifier")
+            throw DiagramError.malformedSource(message: "Expected \(role) identifier")
         }
 
         var usedPortSyntax = false
@@ -96,7 +96,7 @@ extension DOTParser {
         _ = state.consumeIf(.comma)
 
         guard state.peek() == .closeBracket else {
-            throw DiagramError.notYetImplemented("Unterminated attribute list: expected ']'")
+            throw DiagramError.malformedSource(message: "Unterminated attribute list: expected ']'")
         }
         _ = state.advance() // consume ']'
 
