@@ -221,10 +221,15 @@ extension DiagramEditor {
     }
 
     /// Compute the guaranteed stable edge ID (matches PositionedEdge.stableElementID).
+    /// Delegates to the single source-of-truth helper in DiagramKitModel so
+    /// the bounds-lookup and editor paths cannot drift.
     func _guaranteedEdgeID(for edge: original_src_types.MermaidEdge) -> String {
-        if let edgeId = edge.id, !edgeId.isEmpty { return "edge:\(edgeId)" }
-        let seed = [edge.source, edge.target, edge.label ?? ""].joined(separator: "→")
-        return "edge:\(StableID.derive(from: seed))"
+        _guaranteedDiagramEdgeID(
+            id: edge.id,
+            source: edge.source,
+            target: edge.target,
+            label: edge.label
+        )
     }
 
     func _validateSelection(

@@ -24,10 +24,23 @@ extension PositionedEdge {
     /// repeated edges with identical source+target+label; that ordinal is
     /// appended by the builder, not this property.
     public var guaranteedEdgeID: String {
-        if let edgeId, !edgeId.isEmpty { return "edge:\(edgeId)" }
-        let seed = [source, target, label ?? ""].joined(separator: "→")
-        return "edge:\(StableID.derive(from: seed))"
+        _guaranteedDiagramEdgeID(id: edgeId, source: source, target: target, label: label)
     }
+}
+
+/// Shared synthesizer for the "guaranteed" stable edge identifier used by
+/// both `PositionedEdge.guaranteedEdgeID` (bounds-lookup hit-testing) and
+/// `DiagramEditor`'s mutation helpers. Keeping a single source-of-truth
+/// here ensures the two call sites cannot drift.
+public func _guaranteedDiagramEdgeID(
+    id: String?,
+    source: String,
+    target: String,
+    label: String?
+) -> String {
+    if let id, !id.isEmpty { return "edge:\(id)" }
+    let seed = [source, target, label ?? ""].joined(separator: "→")
+    return "edge:\(StableID.derive(from: seed))"
 }
 
 extension PositionedEdge: DiagramStableElement {

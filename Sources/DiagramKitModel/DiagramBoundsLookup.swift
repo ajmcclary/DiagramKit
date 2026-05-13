@@ -74,9 +74,31 @@ public struct DiagramBoundsLookup: Sendable {
     /// the highest element-kind priority wins. When kind ties, the highest
     /// draw order wins. When draw order also ties, the element with the
     /// smallest area wins.
+    ///
+    /// Entries are stored sorted by `minY` ascending, so any entry with
+    /// `minY > point.y` cannot contain `point` and is skipped via a binary
+    /// search for the upper bound. Hit-test cost is therefore O(log N)
+    /// for the cutoff plus a linear scan over the qualifying y-range —
+    /// typically a small fraction of the full entry list for realistic
+    /// diagrams.
     public func element(at point: DiagramPoint) -> DiagramSelection? {
+        // Binary-search the first index whose minY > point.y. Everything
+        // before that index has minY <= point.y and is a hit-test candidate.
+        var lo = 0
+        var hi = entries.count
+        while lo < hi {
+            let mid = (lo + hi) / 2
+            if entries[mid].bounds.minY > point.y {
+                hi = mid
+            } else {
+                lo = mid + 1
+            }
+        }
+        let upper = lo
+
         var best: (entry: Entry, area: Double)? = nil
-        for entry in entries {
+        for i in 0..<upper {
+            let entry = entries[i]
             guard entry.bounds.contains(point) else { continue }
             let area = entry.bounds.width * entry.bounds.height
             if let current = best {

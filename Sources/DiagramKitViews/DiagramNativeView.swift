@@ -57,6 +57,7 @@ public class DiagramNativeView: UIView {
             self?.invalidateIntrinsicContentSize()
             self?.setNeedsDisplay()
         }
+        _assertPreparerEnvironmentConfigured()
     }
 
     public override func draw(_ rect: CGRect) {
@@ -158,6 +159,7 @@ public class DiagramNativeView: NSView {
             self?.invalidateIntrinsicContentSize()
             self?.needsDisplay = true
         }
+        _assertPreparerEnvironmentConfigured()
     }
 
     public override func draw(_ dirtyRect: NSRect) {
@@ -201,6 +203,27 @@ public class DiagramNativeView: NSView {
 }
 
 #endif
+
+// MARK: - Preparer environment assertion
+
+/// In DEBUG builds, fail loudly if `DiagramViewPreparerEnvironment` has not
+/// been configured by the time a view is constructed — that means the host
+/// app forgot to call `DiagramEngine.bootstrap()` (or equivalent setup)
+/// and view rendering will silently fall back to `DiagramPreparation.prepare`
+/// without the umbrella's canonical worker wiring.
+///
+/// In release builds the check is a no-op so the fallback path still works.
+@MainActor
+private func _assertPreparerEnvironmentConfigured() {
+    #if DEBUG
+    guard DiagramViewPreparerEnvironment.current == nil else { return }
+    assertionFailure(
+        "DiagramNativeView was constructed before DiagramViewPreparerEnvironment was configured. " +
+        "Call `DiagramEngine.bootstrap()` (from `import DiagramKit`) once at app startup, " +
+        "or install a stub preparer via `DiagramViewPreparerEnvironment.configure(_:)` in tests."
+    )
+    #endif
+}
 
 // MARK: - Phase 0 backward-compat deprecated alias
 

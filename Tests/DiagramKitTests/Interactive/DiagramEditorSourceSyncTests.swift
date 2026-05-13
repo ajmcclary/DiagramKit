@@ -152,16 +152,19 @@ struct DiagramEditorSourceSyncTests {
         #expect(editor.lastExportDiagnostics.contains { $0.severity == .unsupported })
     }
 
-    @Test("No registered exporter throws")
-    func noRegisteredExporterThrows() {
+    @Test("No registered exporter surfaces an unsupported diagnostic")
+    func noRegisteredExporterSurfacesDiagnostic() throws {
+        // Phase 6D: DiagramExportLoader no longer throws when no exporter is
+        // registered for a format. Instead it returns an empty source with a
+        // `.unsupported` diagnostic so callers can degrade gracefully.
         let doc = DiagramDocument(type: .flowchart)
         let editor = DiagramEditor(
             document: doc,
             preferredExportFormat: .mermaid,
             exportRegistry: ExporterRegistry.empty
         )
-        #expect(throws: (any Error).self) {
-            try editor.syncSource()
-        }
+        try editor.syncSource()
+        #expect(editor.source == "")
+        #expect(editor.lastExportDiagnostics.contains { $0.severity == .unsupported })
     }
 }
