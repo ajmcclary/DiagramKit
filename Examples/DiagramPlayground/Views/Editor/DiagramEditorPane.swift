@@ -65,16 +65,16 @@ struct DiagramEditorPane: View {
                 icon: "exclamationmark.triangle",
                 message: "Interactive editing is not yet available for \(editor.document.type.rawValue) diagrams."
             )
-        } else {
-            // Real sections land in Tasks 15–18.
-            placeholderSection
+        } else if let editor = store.editor {
+            VStack(alignment: .leading, spacing: 18) {
+                TitleSection(store: store, editor: editor)
+                if let message = store.lastMutationError {
+                    Text(message)
+                        .font(.system(size: 11))
+                        .foregroundColor(.orange)
+                }
+            }
         }
-    }
-
-    private var placeholderSection: some View {
-        Text("Editor sections will land in subsequent tasks.")
-            .font(.system(size: 12))
-            .foregroundColor(Color(store.theme.effectiveMuted()))
     }
 
     private func disabledBanner(icon: String, message: String) -> some View {
@@ -90,4 +90,50 @@ struct DiagramEditorPane: View {
         .padding(24)
         .frame(maxWidth: .infinity)
     }
+}
+
+// MARK: - Title section
+
+@available(iOS 26.0, macOS 26.0, macCatalyst 26.0, *)
+private struct TitleSection: View {
+    @Bindable var store: LiveEditorStore
+    let editor: DiagramEditor
+
+    @SwiftUI.State private var draft: String = ""
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            sectionLabel("Document title", store: store)
+            HStack(spacing: 6) {
+                TextField("Untitled", text: $draft)
+                    .textFieldStyle(.roundedBorder)
+                    .font(.system(size: 12))
+                Button("Set") {
+                    try? store.performMutation(.setTitle(draft.isEmpty ? nil : draft))
+                }
+                Button("Clear") {
+                    try? store.performMutation(.setTitle(nil))
+                }
+                .disabled(editor.document.title == nil)
+            }
+            Text("Currently: \(editor.document.title ?? "—")")
+                .font(.system(size: 10))
+                .foregroundColor(Color(store.theme.effectiveMuted()))
+        }
+        .onAppear {
+            draft = editor.document.title ?? ""
+        }
+        .onChange(of: editor.document.title) { _, newValue in
+            draft = newValue ?? ""
+        }
+    }
+}
+
+@available(iOS 26.0, macOS 26.0, macCatalyst 26.0, *)
+@MainActor
+private func sectionLabel(_ text: String, store: LiveEditorStore) -> some View {
+    Text(text)
+        .font(.system(size: 10, weight: .semibold))
+        .foregroundColor(Color(store.theme.effectiveMuted()))
+        .textCase(.uppercase)
 }
