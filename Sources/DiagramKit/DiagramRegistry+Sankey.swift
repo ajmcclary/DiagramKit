@@ -10,19 +10,19 @@ import DiagramKitCommon
 // At that point this type will become MermaidDiagramRegistry or be subsumed
 // into MermaidImporter.
 extension DiagramRegistry {
-    static let _sankey = DiagramDescriptor(
+    static let _sankey = _typed(
         type: .sankey,
         matches: { $0.normalized.hasPrefix("sankey") },
         parse: { source, frontmatter in
-            let lines = DiagramSourceNormalizer.statements(source)
-            let parsed = try parseSankeyDiagram(lines, frontmatter: frontmatter)
-            return DiagramDocument(payload: .sankey(parsed))
+            try parseSankeyDiagram(DiagramSourceNormalizer.statements(source), frontmatter: frontmatter)
         },
-        layout: { graph, _ in
-            guard case let .sankey(diagram) = graph.payload else {
-                throw DiagramStructuralError.payloadMismatch(.sankey)
-            }
-            let positioned = layoutSankeyDiagram(diagram)
+        wrap: DiagramPayload.sankey,
+        unwrap: { payload in
+            guard case let .sankey(value) = payload else { return nil }
+            return value
+        },
+        layout: { diagram, _ in layoutSankeyDiagram(diagram) },
+        positioned: { graph, positioned in
             let padding = positioned.config.useMaxWidth ? 0.0 : 10.0
             return PositionedGraph(
                 diagram: graph,

@@ -10,25 +10,26 @@ import DiagramKitCommon
 // At that point this type will become MermaidDiagramRegistry or be subsumed
 // into MermaidImporter.
 extension DiagramRegistry {
-    static let _treemap = DiagramDescriptor(
+    static let _treemap = _typed(
         type: .treemap,
         matches: { $0.normalized.hasPrefix("treemap") },
         parse: { source, frontmatter in
-            let rawLines = DiagramSourceNormalizer.rawLines(source)
-            var diagram = try parseTreemapDiagram(rawLines, frontmatter: frontmatter)
+            var diagram = try parseTreemapDiagram(DiagramSourceNormalizer.rawLines(source), frontmatter: frontmatter)
             if let fm = frontmatter {
                 if let cfg = fm.treemapConfig { diagram.config = cfg }
                 if let theme = fm.theme { diagram.themeName = theme }
                 if diagram.diagramTitle == nil, let fmTitle = fm.diagramTitle { diagram.diagramTitle = fmTitle }
             }
-            return DiagramDocument(payload: .treemap(diagram))
+            return diagram
         },
-        layout: { graph, _ in
-            guard case let .treemap(diagram) = graph.payload else {
-                throw DiagramStructuralError.payloadMismatch(.treemap)
-            }
-            let positioned = layoutTreemapDiagram(diagram)
-            return PositionedGraph(diagram: graph, width: positioned.width, height: positioned.height, content: .treemap(positioned))
+        wrap: DiagramPayload.treemap,
+        unwrap: { payload in
+            guard case let .treemap(value) = payload else { return nil }
+            return value
+        },
+        layout: { diagram, _ in layoutTreemapDiagram(diagram) },
+        positioned: { graph, positioned in
+            PositionedGraph(diagram: graph, width: positioned.width, height: positioned.height, content: .treemap(positioned))
         }
     )
 }

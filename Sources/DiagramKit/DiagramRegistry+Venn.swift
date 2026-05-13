@@ -10,26 +10,27 @@ import DiagramKitCommon
 // At that point this type will become MermaidDiagramRegistry or be subsumed
 // into MermaidImporter.
 extension DiagramRegistry {
-    static let _venn = DiagramDescriptor(
+    static let _venn = _typed(
         type: .venn,
         matches: { $0.normalized.hasPrefix("venn-beta") },
         parse: { source, frontmatter in
-            let rawLines = DiagramSourceNormalizer.rawLines(source)
-            var diagram = try parseVennDiagram(rawLines, frontmatter: frontmatter)
+            var diagram = try parseVennDiagram(DiagramSourceNormalizer.rawLines(source), frontmatter: frontmatter)
             if let fm = frontmatter {
                 if let cfg = fm.vennConfig { diagram.config = cfg }
                 if let theme = fm.theme { diagram.themeName = theme }
                 if let tv = fm.vennThemeVariables { diagram.themeVariables = tv }
                 if diagram.diagramTitle == nil, let fmTitle = fm.diagramTitle { diagram.diagramTitle = fmTitle }
             }
-            return DiagramDocument(payload: .venn(diagram))
+            return diagram
         },
-        layout: { graph, _ in
-            guard case let .venn(diagram) = graph.payload else {
-                throw DiagramStructuralError.payloadMismatch(.venn)
-            }
-            let positioned = layoutVennDiagram(diagram)
-            return PositionedGraph(diagram: graph, width: positioned.width, height: positioned.height, content: .venn(positioned))
+        wrap: DiagramPayload.venn,
+        unwrap: { payload in
+            guard case let .venn(value) = payload else { return nil }
+            return value
+        },
+        layout: { diagram, _ in layoutVennDiagram(diagram) },
+        positioned: { graph, positioned in
+            PositionedGraph(diagram: graph, width: positioned.width, height: positioned.height, content: .venn(positioned))
         }
     )
 }

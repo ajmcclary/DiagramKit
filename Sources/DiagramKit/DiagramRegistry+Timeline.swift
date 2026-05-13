@@ -10,20 +10,20 @@ import DiagramKitCommon
 // At that point this type will become MermaidDiagramRegistry or be subsumed
 // into MermaidImporter.
 extension DiagramRegistry {
-    static let _timeline = DiagramDescriptor(
+    static let _timeline = _typed(
         type: .timeline,
         matches: { $0.normalized.hasPrefix("timeline") },
         parse: { source, frontmatter in
-            let rawLines = DiagramSourceNormalizer.rawLines(source)
-            let parsed = try parseTimelineDiagram(rawLines, frontmatter: frontmatter)
-            return DiagramDocument(payload: .timeline(parsed))
+            try parseTimelineDiagram(DiagramSourceNormalizer.rawLines(source), frontmatter: frontmatter)
         },
-        layout: { graph, _ in
-            guard case let .timeline(diagram) = graph.payload else {
-                throw DiagramStructuralError.payloadMismatch(.timeline)
-            }
-            let positioned = layoutTimelineDiagram(diagram)
-            return PositionedGraph(diagram: graph, width: positioned.width, height: positioned.height, content: .timeline(positioned))
+        wrap: DiagramPayload.timeline,
+        unwrap: { payload in
+            guard case let .timeline(value) = payload else { return nil }
+            return value
+        },
+        layout: { diagram, _ in layoutTimelineDiagram(diagram) },
+        positioned: { graph, positioned in
+            PositionedGraph(diagram: graph, width: positioned.width, height: positioned.height, content: .timeline(positioned))
         }
     )
 }

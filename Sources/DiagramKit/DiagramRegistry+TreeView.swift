@@ -10,34 +10,35 @@ import DiagramKitCommon
 // At that point this type will become MermaidDiagramRegistry or be subsumed
 // into MermaidImporter.
 extension DiagramRegistry {
-    static let _treeView = DiagramDescriptor(
+    static let _treeView = _typed(
         type: .treeView,
-        matches: { header in
-            _isTreeViewHeader(rawLines: header.rawLines)
-        },
+        matches: { header in _isTreeViewHeader(rawLines: header.rawLines) },
         parse: { source, frontmatter in
-            let rawLines = DiagramSourceNormalizer.rawLines(source)
-            var diagram = try parseTreeViewDiagram(rawLines, frontmatter: frontmatter)
+            var diagram = try parseTreeViewDiagram(DiagramSourceNormalizer.rawLines(source), frontmatter: frontmatter)
             if let fm = frontmatter {
                 if let cfg = fm.treeViewConfig { diagram.config = cfg }
                 if let theme = fm.treeViewTheme { diagram.theme = theme }
                 if diagram.diagramTitle == nil, let fmTitle = fm.diagramTitle { diagram.diagramTitle = fmTitle }
             }
-            return DiagramDocument(payload: .treeView(diagram))
+            return diagram
         },
-        layout: { graph, _ in
-            guard case let .treeView(diagram) = graph.payload else {
-                throw DiagramStructuralError.payloadMismatch(.treeView)
-            }
+        wrap: DiagramPayload.treeView,
+        unwrap: { payload in
+            guard case let .treeView(value) = payload else { return nil }
+            return value
+        },
+        layout: { diagram, _ in
             #if canImport(UIKit) || canImport(AppKit)
-            let positioned = layoutTreeViewDiagram(diagram)
-            return PositionedGraph(diagram: graph, width: positioned.viewBoxWidth, height: positioned.viewBoxHeight, content: .treeView(positioned))
+            return layoutTreeViewDiagram(diagram)
             #else
             // Linux: layoutTreeViewDiagram depends on BMColor + CTLine.
             // Unreachable until the portable text-measurement shim lands.
             _ = diagram
             throw DiagramStructuralError.payloadMismatch(.treeView)
             #endif
+        },
+        positioned: { graph, positioned in
+            PositionedGraph(diagram: graph, width: positioned.viewBoxWidth, height: positioned.viewBoxHeight, content: .treeView(positioned))
         }
     )
 }
