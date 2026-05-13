@@ -754,8 +754,8 @@ Phase 10 is complete when:
       attributes, theme colors, SVG refinements from Phases 1–9.)
 - [x] `BASELINES.md` reflects current counts, build time, and gate status.
 - [x] README, ARCHITECTURE, CLAUDE, AGENTS, and CONTRIBUTING are updated.
-- [ ] `Scripts/bootstrap-smoke-check.sh` passes or Linux is recorded as
-      skipped due to environment.
+- [x] `Scripts/bootstrap-smoke-check.sh` passes or Linux is recorded as
+      skipped due to environment. (Linux: skipped — Docker/Podman not running)
 - [x] `swift build --build-tests` and `swift test` pass cleanly.
 
 ---

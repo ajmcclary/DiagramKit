@@ -175,10 +175,9 @@ outside the defining module.
 
 - Current test source count: 188 Swift files under `Tests/DiagramKitTests`.
 - The corpus is `Examples/MermaidPlayground/Resources/test-diagrams.json` with
-  408 entries (396 Mermaid + 12 multi-format: D2, DOT, Structurizr).
-- Corpus baselines under
-  `Tests/DiagramKitTests/__Snapshots__/CorpusSnapshotTests/` currently track
-  408 SVG, 408 image, and 174 ASCII files, plus format-suffixed multi-format baselines.
+  426 entries (408 Mermaid + 18 multi-format: D2, DOT, Structurizr, PlantUML).
+- Corpus baselines under `Tests/DiagramKitTests/__Snapshots__/` track
+  609 SVG, 435 image, and 174 ASCII files (1045 total).
 - Image snapshots use `precision: 0.99, perceptualPrecision: 0.98` to tolerate
   CoreText rasterization drift across CPU architectures.
 - Multi-format snapshot tests use format-suffixed names (`entry-id-format`) to
@@ -224,14 +223,11 @@ The portable text-measurement shim for `ishikawa`, `treeView`, and
 
 ## Forward Roadmap
 
-The next architecture work is not a parser port. Follow [PHASES.md](PHASES.md):
+Phases 0–10 are complete. The multi-format importer boundary is in place with
+importers for Mermaid, D2, Graphviz DOT, Structurizr, and PlantUML (sequence).
+The corpus carries ~422 entries across 28 diagram families. Remaining work:
 
-1. Close Phase 0 cleanly.
-2. Add the importer protocol/registry boundary and extract Mermaid as the first
-   importer.
-3. Make the corpus multi-format.
-4. Add d2, DOT, Structurizr, and PlantUML in vertical slices.
-5. Add exporters after multiple importers prove the canonical model.
-6. Add interactivity primitives after stable identity and exporter semantics are
-   clear.
+1. Complete remaining PlantUML importer slices (Phases 6B–6E in PHASES.md).
+2. Add exporter coverage for remaining diagram families.
+3. Follow [PHASES.md](PHASES.md) for the active roadmap.
 

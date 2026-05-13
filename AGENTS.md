@@ -85,27 +85,29 @@ and a multiplatform `xcodebuild` sweep.
 
 ## Current Roadmap
 
-Phase 0 is complete: format-neutral public names are primary, deprecated
-Mermaid aliases remain, and corpus baselines are current. The next work is the
-importer boundary:
+Phases 0–10 are complete: format-neutral public names are primary, Mermaid-prefixed
+aliases carry deprecation annotations (Tier 1) or have been removed (Tier 2),
+filenames are current, and the corpus is multi-format. The remaining PlantUML
+importer slices (Phases 6B–6E) continue independently.
 
-1. Add `DiagramSourceImporter`, `DiagramImportResult`, `DiagramDiagnostic`,
-   `ImporterRegistry`, and `DiagramLoader`.
-2. Extract the current Mermaid source routing behind `MermaidImporter`.
-3. Keep `DiagramDocument -> PositionedGraph -> render` source-format neutral.
-4. Make the corpus multi-format before adding d2/DOT/Structurizr/PlantUML.
-
-Do not start a new format parser before that boundary exists.
+Active work:
+- Complete remaining PlantUML importer slices (6B–6E).
+- Add exporter slice for remaining diagram families.
 
 ## Testing
 
 - Test sources: 188 Swift files under `Tests/DiagramKitTests`.
 - Corpus: `Examples/MermaidPlayground/Resources/test-diagrams.json`
-  (396 Mermaid entries).
+  (426 entries: 408 Mermaid + 18 multi-format with D2, DOT, Structurizr, PlantUML sources).
 - Snapshot baselines:
-  - SVG: 396
-  - Image: 396
-  - ASCII: 174
+  - SVG: 609 (Mermaid + multi-format)
+  - Image: 435 (Mermaid + multi-format)
+  - ASCII: 174 (Mermaid-only)
+- Total tracked: 1045 files
+- `CorpusMultiFormatSnapshotTests` renders every `(entry, format)` pair with
+  format-suffixed snapshot names (`entry-id-format`), honoring `skipSnapshots`.
+  Chunked execution with `SNAPSHOT_DIAGRAM_IDS` avoids the known signal-10
+  parameterized-suite issue.
 - Image snapshots use `precision: 0.99, perceptualPrecision: 0.98`.
 - Pure renames should not re-record snapshots. Re-record only for intentional
   rendering or fixture changes.

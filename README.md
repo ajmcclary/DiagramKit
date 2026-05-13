@@ -125,7 +125,7 @@ let positioned = try await DiagramEngine.layout(graph, config: .default)
 
 ## Diagram-type coverage
 
-DiagramKit parses and renders the families below. The corpus at [Examples/MermaidPlayground/Resources/test-diagrams.json](Examples/MermaidPlayground/Resources/test-diagrams.json) ships **396** sample diagrams across **28** families, used as the snapshot-test fixture set.
+DiagramKit parses and renders the families below. The corpus at [Examples/MermaidPlayground/Resources/test-diagrams.json](Examples/MermaidPlayground/Resources/test-diagrams.json) ships **426** sample diagrams across **28** families (408 Mermaid + 18 multi-format with D2, DOT, Structurizr, and PlantUML sources), used as the snapshot-test fixture set.
 
 `flowchart` · `stateDiagram-v2` · `sequenceDiagram` · `classDiagram` · `erDiagram` · `gantt` · `gitGraph` · `mindmap` · `journey` · `pie` · `quadrantChart` · `radar-beta` · `xychart-beta` · `timeline` · `sankey-beta` · `block-beta` · `kanban` · `requirementDiagram` · `c4Context` (and C4 variants) · `architecture-beta` · `packet-beta` · `treemap-beta` · `treeView-beta` · `ishikawa-beta` · `eventModeling-beta` · `wardley-beta` · `venn-beta` · `zenuml`
 
@@ -148,7 +148,7 @@ Verify Linux build: `./Scripts/linux-check.sh` (requires Docker or Podman; build
 
 ```bash
 swift build                           # ~50s clean, ~4s incremental
-swift test                            # full suite (150 test files; see BASELINES.md for caveats)
+swift test                            # full suite (188 test files; see BASELINES.md for caveats)
 swift test --filter <NameOrPattern>   # narrow run, e.g. SequenceSvgTests, CorpusSnapshotTests/svgSnapshot
 ./Scripts/bootstrap-smoke-check.sh    # local "is this branch healthy?" gate
 ```
@@ -157,14 +157,21 @@ The four governance scripts under `Scripts/` are described in [CONTRIBUTING.md](
 
 ## Snapshot tests
 
-Snapshot baselines live under `Tests/DiagramKitTests/__Snapshots__/`. The corpus harness covers all 396 sample diagrams across SVG / image / ASCII paths.
+Snapshot baselines live under `Tests/DiagramKitTests/__Snapshots__/`. The corpus harness covers all 426 sample diagrams across SVG / image / ASCII paths, plus multi-format baselines via `CorpusMultiFormatSnapshotTests`.
 
 ```bash
-SNAPSHOT_TESTING_RECORD=true swift test --filter CorpusSnapshotTests   # record/refresh
-swift test --filter CorpusSnapshotTests                                # verify
+SNAPSHOT_TESTING_RECORD=true swift test --filter CorpusSnapshotTests   # record/refresh Mermaid-only
+swift test --filter CorpusSnapshotTests                                # verify Mermaid-only
+swift test --filter CorpusMultiFormatSnapshotTests                     # verify multi-format
+SNAPSHOT_DIAGRAM_IDS=id1,id2,... SNAPSHOT_TESTING_RECORD=true \        # chunked record (avoids signal-10)
+  swift test --filter CorpusMultiFormatSnapshotTests/multiFormatSvgSnapshot
 ```
 
-> **Known caveat:** the full `CorpusSnapshotTests` parameterized suite hangs/segfaults (`unexpected signal code 10`) on `main` — a `swift-testing` × `swift-snapshot-testing` interaction over the 396-entry parameterized `@Test`. Snapshots themselves are green; verify in chunks (`--filter "CorpusSnapshotTests/svgSnapshot.*<family>-"`) until the harness issue is resolved.
+> **Known caveat:** the full `CorpusSnapshotTests` parameterized suite can encounter signal-10 on `main` — a `swift-testing` × `swift-snapshot-testing` interaction. Use chunked execution with `SNAPSHOT_DIAGRAM_IDS` when recording:
+> ```bash
+> SNAPSHOT_DIAGRAM_IDS=id1,id2,... SNAPSHOT_TESTING_RECORD=true \
+>   swift test --filter CorpusMultiFormatSnapshotTests/multiFormatSvgSnapshot
+> ```
 
 ## Examples
 
@@ -186,6 +193,32 @@ swift run MermaidPlayground
 - [CLAUDE.md](CLAUDE.md) — invariants, conventions, layer-import rules, where new files belong.
 - [PHASES.md](PHASES.md) — active multi-format roadmap from the current state.
 - [ANALYSIS.md](ANALYSIS.md) — long-form format analysis and rationale.
+
+## Migration from Mermaid-prefixed names
+
+Phase 10 (completed 2026-05-13) standardized all public entry points on Diagram-prefixed names. Mermaid-prefixed compatibility aliases remain available with compiler fix-its through the next major version.
+
+| Deprecated alias | Canonical name |
+|---|---|
+| `MermaidRenderer` | `DiagramEngine` |
+| `MermaidPipeline` | `DiagramPipeline` |
+| `MermaidImageRenderer` | `DiagramImageRenderer` |
+| `MermaidGraph` | `DiagramDocument` |
+| `BeautifulMermaidError` | `DiagramError` |
+| `MermaidStructuralError` | `DiagramStructuralError` |
+| `MermaidView` | `DiagramNativeView` |
+| `MermaidDiagramView` | `DiagramView` |
+| `MermaidLayer` | `DiagramLayer` |
+| `MermaidDiagram` | `DiagramViewModel` |
+| `parseMermaid()` on String | `parseDiagram()` |
+| `renderMermaidImage(...)` on String | `renderDiagramImage(...)` |
+| `renderMermaidSVG(...)` (String / free function) | `renderDiagramSVG(...)` |
+| `renderMermaidASCII(...)` on String | `renderDiagramASCII(...)` |
+| `renderImageAsync(...)` on DiagramEngine | `renderImage(...)` |
+| `renderSVGAsync(...)` on DiagramEngine | `renderSVG(...)` |
+
+Internal and SPI aliases (Tier 2) were removed entirely in Phase 10. See
+[CONTRIBUTING.md](CONTRIBUTING.md) for the full deprecation policy.
 
 ## License
 

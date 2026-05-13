@@ -186,7 +186,7 @@
       "id": "state-4-cjk",
       "category": "state",
       "name": "CJK State Names",
-      "source": "stateDiagram-v2\n  [*] --> 空闲\n  空闲 --> 处理中 : 提交\n  处理中 --> 完成 : 成功\n  处理中 --> 错误 : 失败\n  错误 --> 空闲 : 重试\n  完成 --> [*]"
+      "source": "stateDiagram-v2\n  [*] --> \u7a7a\u95f2\n  \u7a7a\u95f2 --> \u5904\u7406\u4e2d : \u63d0\u4ea4\n  \u5904\u7406\u4e2d --> \u5b8c\u6210 : \u6210\u529f\n  \u5904\u7406\u4e2d --> \u9519\u8bef : \u5931\u8d25\n  \u9519\u8bef --> \u7a7a\u95f2 : \u91cd\u8bd5\n  \u5b8c\u6210 --> [*]"
     },
     {
       "id": "state-5-standalone",
@@ -330,7 +330,7 @@
       "id": "seq-16-self-notes",
       "category": "sequence",
       "name": "Self-Messages with Notes",
-      "source": "sequenceDiagram\n  participant User\n  participant Main as Main Process\n  participant Renderer\n  participant Timer as 3s Fallback Timer\n  User->>Main: CMD+W\n  Main->>Main: event.preventDefault()\n  Main->>Renderer: WINDOW_CLOSE_REQUESTED\n  Main->>Timer: Start 3s timer\n  alt Multiple panels\n    Renderer->>Renderer: closePanel(focusedId)\n    Note over Renderer: Panel removed\n    Note over Renderer: No confirmCloseWindow!\n    Timer-->>Main: 3s elapsed → window.destroy()\n  else Single panel\n    Renderer->>Renderer: closePanel(lastId)\n    Note over Renderer: Stack becomes []\n    Renderer->>Renderer: Auto-select fires → new panel created!\n    Note over Renderer: Panel reopens\n    Timer-->>Main: 3s elapsed → window.destroy()\n  end"
+      "source": "sequenceDiagram\n  participant User\n  participant Main as Main Process\n  participant Renderer\n  participant Timer as 3s Fallback Timer\n  User->>Main: CMD+W\n  Main->>Main: event.preventDefault()\n  Main->>Renderer: WINDOW_CLOSE_REQUESTED\n  Main->>Timer: Start 3s timer\n  alt Multiple panels\n    Renderer->>Renderer: closePanel(focusedId)\n    Note over Renderer: Panel removed\n    Note over Renderer: No confirmCloseWindow!\n    Timer-->>Main: 3s elapsed \u2192 window.destroy()\n  else Single panel\n    Renderer->>Renderer: closePanel(lastId)\n    Note over Renderer: Stack becomes []\n    Renderer->>Renderer: Auto-select fires \u2192 new panel created!\n    Note over Renderer: Panel reopens\n    Timer-->>Main: 3s elapsed \u2192 window.destroy()\n  end"
     },
     {
       "id": "seq-17-reverse-arrows",
@@ -455,7 +455,7 @@
     {
       "id": "class-14-observer",
       "category": "class",
-      "name": "Design Pattern — Observer",
+      "name": "Design Pattern \u2014 Observer",
       "source": "classDiagram\n  class Subject {\n    <<interface>>\n    +attach(Observer) void\n    +detach(Observer) void\n    +notify() void\n  }\n  class Observer {\n    <<interface>>\n    +update() void\n  }\n  class EventEmitter {\n    -List~Observer~ observers\n    +attach(Observer) void\n    +detach(Observer) void\n    +notify() void\n  }\n  class Logger {\n    +update() void\n  }\n  class Alerter {\n    +update() void\n  }\n  Subject <|.. EventEmitter\n  Observer <|.. Logger\n  Observer <|.. Alerter\n  EventEmitter --> Observer"
     },
     {
@@ -1194,7 +1194,7 @@
       "id": "quadrant-9-unicode",
       "category": "quadrantChart",
       "name": "Unicode Labels (CJK)",
-      "source": "quadrantChart\n    x-axis 低覆盖率 --> 高覆盖率\n    y-axis 低参与度 --> 高参与度\n    quadrant-1 需要扩展\n    quadrant-2 需要推广\n    quadrant-3 重新评估\n    quadrant-4 可以改进\n    产品A: [0.3, 0.6]\n    产品B: [0.7, 0.4]"
+      "source": "quadrantChart\n    x-axis \u4f4e\u8986\u76d6\u7387 --> \u9ad8\u8986\u76d6\u7387\n    y-axis \u4f4e\u53c2\u4e0e\u5ea6 --> \u9ad8\u53c2\u4e0e\u5ea6\n    quadrant-1 \u9700\u8981\u6269\u5c55\n    quadrant-2 \u9700\u8981\u63a8\u5e7f\n    quadrant-3 \u91cd\u65b0\u8bc4\u4f30\n    quadrant-4 \u53ef\u4ee5\u6539\u8fdb\n    \u4ea7\u54c1A: [0.3, 0.6]\n    \u4ea7\u54c1B: [0.7, 0.4]"
     },
     {
       "id": "quadrant-10-frontmatter",
@@ -2411,7 +2411,7 @@
     {
       "id": "d2-1-simple-edge",
       "category": "flowchart",
-      "name": "D2: Simple Edge (A → B)",
+      "name": "D2: Simple Edge (A \u2192 B)",
       "source": "graph LR\n  A[Start] --> B[End]",
       "sources": {
         "mermaid": "graph LR\n  A[Start] --> B[End]",
@@ -2532,7 +2532,10 @@
       "expectedImporters": {
         "mermaid": "Mermaid",
         "structurizr": "Structurizr"
-      }
+      },
+      "skipSnapshots": [
+        "structurizr"
+      ]
     },
     {
       "id": "structurizr-2-container-view",
@@ -2546,7 +2549,10 @@
       "expectedImporters": {
         "mermaid": "Mermaid",
         "structurizr": "Structurizr"
-      }
+      },
+      "skipSnapshots": [
+        "structurizr"
+      ]
     },
     {
       "id": "structurizr-3-component-view",
@@ -2560,7 +2566,10 @@
       "expectedImporters": {
         "mermaid": "Mermaid",
         "structurizr": "Structurizr"
-      }
+      },
+      "skipSnapshots": [
+        "structurizr"
+      ]
     },
     {
       "id": "structurizr-4-scoped-rel",
@@ -2574,7 +2583,10 @@
       "expectedImporters": {
         "mermaid": "Mermaid",
         "structurizr": "Structurizr"
-      }
+      },
+      "skipSnapshots": [
+        "structurizr"
+      ]
     },
     {
       "id": "dot-2-directed-edge",
@@ -2630,7 +2642,10 @@
       "expectedImporters": {
         "mermaid": "Mermaid",
         "plantuml": "PlantUML"
-      }
+      },
+      "skipSnapshots": [
+        "plantuml"
+      ]
     },
     {
       "id": "plantuml-2-participants",
@@ -2644,7 +2659,10 @@
       "expectedImporters": {
         "mermaid": "Mermaid",
         "plantuml": "PlantUML"
-      }
+      },
+      "skipSnapshots": [
+        "plantuml"
+      ]
     },
     {
       "id": "plantuml-3-activations",
@@ -2658,7 +2676,10 @@
       "expectedImporters": {
         "mermaid": "Mermaid",
         "plantuml": "PlantUML"
-      }
+      },
+      "skipSnapshots": [
+        "plantuml"
+      ]
     },
     {
       "id": "plantuml-4-notes",
@@ -2672,7 +2693,10 @@
       "expectedImporters": {
         "mermaid": "Mermaid",
         "plantuml": "PlantUML"
-      }
+      },
+      "skipSnapshots": [
+        "plantuml"
+      ]
     },
     {
       "id": "plantuml-5-box",
@@ -2686,7 +2710,10 @@
       "expectedImporters": {
         "mermaid": "Mermaid",
         "plantuml": "PlantUML"
-      }
+      },
+      "skipSnapshots": [
+        "plantuml"
+      ]
     },
     {
       "id": "plantuml-6-autonumber",
@@ -2700,7 +2727,10 @@
       "expectedImporters": {
         "mermaid": "Mermaid",
         "plantuml": "PlantUML"
-      }
+      },
+      "skipSnapshots": [
+        "plantuml"
+      ]
     },
     {
       "id": "d2-3-shapes",

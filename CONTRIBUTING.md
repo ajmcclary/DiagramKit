@@ -117,7 +117,7 @@ Deprecated Mermaid-prefixed compatibility aliases (`MermaidRenderer`, `MermaidPi
 ## Style notes
 
 - `async throws` is the public default. `@MainActor` is reserved for methods that produce or consume native UI types (`BMImage`, `CGContext`).
-- Errors flow through `_withMermaidIssueReporting(operation:)` at every public boundary.
+- Errors flow through `_withDiagramIssueReporting(operation:)` at every public boundary.
 - Underscore-prefixed top-level names are SPI; public typealiases drop the underscore.
 - Don't hardcode font names (`"Menlo"`, `"Trebuchet MS"`, etc.) in renderers — route through `RenderConfig.*` so the bundled-font determinism story holds.
 - Prefer pattern-matching the typed payload enums (`DiagramPayload`, `PositionedContent`) over `as?` casts.
