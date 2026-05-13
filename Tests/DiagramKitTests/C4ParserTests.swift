@@ -8,7 +8,7 @@ import Foundation
 @Suite struct C4ParserTests {
 
     @Test func detectC4ContextHeader() throws {
-        let graph = try MermaidParser.parse("C4Context\nPerson(customer, \"Customer\")")
+        let graph = try DiagramPipeline.parse("C4Context\nPerson(customer, \"Customer\")")
         guard case .c4 = graph.payload else {
             #expect(Bool(false), "Expected .c4 payload")
             return
@@ -16,7 +16,7 @@ import Foundation
     }
 
     @Test func detectC4ContainerHeader() throws {
-        let graph = try MermaidParser.parse("C4Container\nContainer(app, \"App\")")
+        let graph = try DiagramPipeline.parse("C4Container\nContainer(app, \"App\")")
         guard case .c4 = graph.payload else {
             #expect(Bool(false), "Expected .c4 payload")
             return
@@ -24,7 +24,7 @@ import Foundation
     }
 
     @Test func detectC4ComponentHeader() throws {
-        let graph = try MermaidParser.parse("C4Component\nComponent(c, \"Component\")")
+        let graph = try DiagramPipeline.parse("C4Component\nComponent(c, \"Component\")")
         guard case .c4 = graph.payload else {
             #expect(Bool(false), "Expected .c4 payload")
             return
@@ -32,7 +32,7 @@ import Foundation
     }
 
     @Test func detectC4DynamicHeader() throws {
-        let graph = try MermaidParser.parse("C4Dynamic\nRel(a, b, \"Uses\")")
+        let graph = try DiagramPipeline.parse("C4Dynamic\nRel(a, b, \"Uses\")")
         guard case .c4 = graph.payload else {
             #expect(Bool(false), "Expected .c4 payload")
             return
@@ -40,7 +40,7 @@ import Foundation
     }
 
     @Test func detectC4DeploymentHeader() throws {
-        let graph = try MermaidParser.parse("C4Deployment\nDeployment_Node(n, \"Node\")")
+        let graph = try DiagramPipeline.parse("C4Deployment\nDeployment_Node(n, \"Node\")")
         guard case .c4 = graph.payload else {
             #expect(Bool(false), "Expected .c4 payload")
             return
@@ -49,7 +49,7 @@ import Foundation
 
     @Test func lowercaseHeaderNotRoutedAsC4() throws {
         do {
-            let graph = try MermaidParser.parse("c4context\nPerson(customer, \"Customer\")")
+            let graph = try DiagramPipeline.parse("c4context\nPerson(customer, \"Customer\")")
             if case .c4 = graph.payload {
                 Issue.record("Lowercase c4context should not route as C4")
             } else {

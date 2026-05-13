@@ -9,7 +9,7 @@ struct ZenUMLLayoutTests {
 
     @Test("Group declarations produce positioned group geometry")
     func groupGeometry() throws {
-        let graph = try MermaidParser.parse("zenuml\ngroup Backend { @EC2 svc @RDS db }\nClient->svc: request")
+        let graph = try DiagramPipeline.parse("zenuml\ngroup Backend { @EC2 svc @RDS db }\nClient->svc: request")
         guard case .zenuml(let diagram) = graph.payload else { return }
 
         let positioned = layoutZenUMLDiagram(diagram)
@@ -22,7 +22,7 @@ struct ZenUMLLayoutTests {
 
     @Test("Comment statements produce positioned comment geometry")
     func commentGeometry() throws {
-        let graph = try MermaidParser.parse("zenuml\nA->B: start\n// important\nB->A: finish")
+        let graph = try DiagramPipeline.parse("zenuml\nA->B: start\n// important\nB->A: finish")
         guard case .zenuml(let diagram) = graph.payload else { return }
 
         let positioned = layoutZenUMLDiagram(diagram)
@@ -33,7 +33,7 @@ struct ZenUMLLayoutTests {
 
     @Test("Async messages preserve open arrow style in positioned geometry")
     func asyncArrowStyle() throws {
-        let graph = try MermaidParser.parse("zenuml\nA->B: async")
+        let graph = try DiagramPipeline.parse("zenuml\nA->B: async")
         guard case .zenuml(let diagram) = graph.payload else { return }
 
         let positioned = layoutZenUMLDiagram(diagram)

@@ -147,7 +147,7 @@ final class PieRendererTests: XCTestCase {
         "A": 100
         """
 
-        let graph = try MermaidParser.parse(source)
+        let graph = try DiagramPipeline.parse(source)
         guard case .pie(let chart) = graph.payload else {
             XCTFail("Expected pie chart payload")
             return

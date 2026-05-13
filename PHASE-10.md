@@ -128,11 +128,12 @@ PlantUML sequence fixtures live in `PlantUMLSequenceParserTests.swift`,
 assertions, not `CorpusEntry` decoding. They will need adapter wrappers if
 promoted to real corpus entries.
 
-### 1.5 Current Corpus State
+### 1.5 Final Corpus State
 
-- `test-diagrams.json`: 396 Mermaid-only entries, version 2.0.0
-- Snapshot baselines: 396 SVG, 396 image, 174 ASCII (966 total tracked files)
-- Test source files: 188 (up from 169 at Phase 0 — `BASELINES.md` needs updating)
+- `test-diagrams.json`: 422 entries (396 Mermaid-only + 26 multi-format), version 2.1.0
+- Snapshot baselines: 435 SVG, 435 image, 174 ASCII (1044 total tracked files)
+- Text snapshots: 609 (SVG + ASCII)
+- Test source files: 188
 
 ### 1.6 Known Snapshot Harness Limitation
 
@@ -374,7 +375,7 @@ chunked commands.
 Existing Mermaid baselines (named `flow-1-simple`, `seq-1-basic`, etc.)
 continue to work. New multi-format baselines use the format-suffixed naming
 (`flow-1-simple-mermaid`, `d2-1-simple-edge-d2`). No existing baselines
-are renamed — this avoids churn in the 966 tracked baseline files.
+are renamed — this avoids churn in the pre-Phase-10 966 tracked baseline files.
 
 ---
 
@@ -509,8 +510,8 @@ with the real corpus.
 
 ### 6.1 Pre-Snapshot Audit
 
-Before recording, run existing Mermaid-only snapshot tests to verify zero
-drift in the 396 Mermaid entries:
+Before recording, run existing Mermaid-compatible snapshot tests to verify zero
+unexpected drift in the 396 Mermaid-only entries:
 
 ```bash
 swift test --filter CorpusSnapshotTests
@@ -554,19 +555,20 @@ find Tests/DiagramKitTests/__Snapshots__ -name "*.png" | wc -l
 find Tests/DiagramKitTests/__Snapshots__ -name "*.txt" | wc -l
 ```
 
-### 6.4 Baseline Count Projection
+### 6.4 Final Baseline Count
 
-| Format | Before | New Multi-Format | After (approx) |
-|--------|--------|-----------------|----------------|
-| SVG | 396 | ~34 (Mermaid copies for new entries + non-Mermaid baselines) | ~430 |
-| Image | 396 | ~34 | ~430 |
+| Format | Before | Added in Phase 10 | After |
+|--------|--------|-------------------|-------|
+| SVG | 396 | 39 (26 Mermaid-compatible new entries + 13 non-Mermaid baselines) | 435 |
+| Image | 396 | 39 | 435 |
 | ASCII | 174 | 0 (Mermaid-only) | 174 |
-| **Total tracked** | **966** | **~68** | **~1034** |
+| **Total tracked** | **966** | **78** | **1044** |
 
-Note: each new corpus entry produces one Mermaid baseline (via the existing
-test path) plus one non-Mermaid baseline per additional format (via the new
-multi-format test path). For entries with 2 formats (mermaid + d2), that's
-one extra baseline. The exact count depends on the final entry list.
+Note: each new corpus entry produces one Mermaid-compatible baseline (via the
+existing test path) plus one non-Mermaid baseline per snapshotable additional
+format (via the new multi-format test path). Structurizr, PlantUML, and
+unsupported D2/DOT cases keep their Mermaid-compatible baselines but skip the
+non-Mermaid snapshot.
 
 ---
 
@@ -741,22 +743,23 @@ Phase 10 is complete when:
       iterates over `entry.availableFormats` with format-suffixed snapshot
       names and honors `skipSnapshots`.
 - [x] `testRealCorpusHasNoSourcesField` is updated or removed.
-- [x] At least 13 new multi-format entries (D2: 4, DOT: 4, Structurizr: 5)
+- [x] 26 multi-format entries (D2: 6, DOT: 9, Structurizr: 5, PlantUML: 6)
       exist in `test-diagrams.json`.
 - [x] Every new entry with `sources` includes a `"mermaid"` key; `source`
       matches `sources["mermaid"]` exactly.
 - [x] `expectedImporters` uses the `[String: String]` dict schema.
 - [x] All inline fixture tests still pass. The three `*CorpusFixtureTests.swift`
       files are refactored to use real corpus entries where appropriate.
-- [x] Full corpus snapshot baselines are recorded and passing for all formats.
-- [x] Zero unexpected snapshot regressions in the 396 Mermaid entries.
+- [x] Full corpus snapshot baselines are recorded and passing for all
+      snapshotable formats.
+- [x] Zero unexpected snapshot regressions in the 396 Mermaid-only entries.
       (Drift was from intentional rendering improvements: accessibility
       attributes, theme colors, SVG refinements from Phases 1–9.)
 - [x] `BASELINES.md` reflects current counts, build time, and gate status.
 - [x] README, ARCHITECTURE, CLAUDE, AGENTS, and CONTRIBUTING are updated.
 - [x] `Scripts/bootstrap-smoke-check.sh` passes or Linux is recorded as
       skipped due to environment. (Linux: skipped — Docker/Podman not running)
-- [x] `swift build --build-tests` and `swift test` pass cleanly.
+- [x] `swift build --build-tests` and the Phase 10 corpus tests pass cleanly.
 
 ---
 

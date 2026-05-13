@@ -12,7 +12,7 @@ struct ERRendererTests {
 
     @Test("default look emits standard marker IDs")
     func defaultLookEmitsStandardMarkers() async throws {
-        let svg = try await renderMermaidSVG("""
+        let svg = try await renderDiagramSVG("""
             erDiagram
               CUSTOMER ||--o{ ORDER : places
             """)
@@ -23,7 +23,7 @@ struct ERRendererTests {
 
     @Test("neo look emits neo marker IDs")
     func neoLookEmitsNeoMarkers() async throws {
-        let svg = try await renderMermaidSVG("""
+        let svg = try await renderDiagramSVG("""
             ---
             config:
               look: neo
@@ -37,7 +37,7 @@ struct ERRendererTests {
 
     @Test("marker paths match Mermaid edgeMarker.ts parity")
     func markerPathsMatchMermaid() async throws {
-        let svg = try await renderMermaidSVG("""
+        let svg = try await renderDiagramSVG("""
             erDiagram
               CUSTOMER ||--o{ ORDER : places
             """)
@@ -50,7 +50,7 @@ struct ERRendererTests {
 
     @Test("entity with labelType text renders plain text label")
     func labelTypeTextRendersPlainLabel() async throws {
-        let svg = try await renderMermaidSVG("""
+        let svg = try await renderDiagramSVG("""
             ---
             config:
               htmlLabels: false
@@ -65,7 +65,7 @@ struct ERRendererTests {
 
     @Test("entity with labelType markdown renders formatted label")
     func labelTypeMarkdownRendersFormattedLabel() async throws {
-        let svg = try await renderMermaidSVG("""
+        let svg = try await renderDiagramSVG("""
             erDiagram
               "**Bold** name"
             """)
@@ -76,7 +76,7 @@ struct ERRendererTests {
 
     @Test("useMaxWidth true emits 100 percent width")
     func useMaxWidthTrueEmitsResponsiveWidth() async throws {
-        let svg = try await renderMermaidSVG("""
+        let svg = try await renderDiagramSVG("""
             ---
             config:
               er:
@@ -92,7 +92,7 @@ struct ERRendererTests {
 
     @Test("entity without attributes renders as simple rectangle")
     func entityWithoutAttributesRendersSimpleRect() async throws {
-        let svg = try await renderMermaidSVG("""
+        let svg = try await renderDiagramSVG("""
             erDiagram
               CUSTOMER
             """)
@@ -104,7 +104,7 @@ struct ERRendererTests {
 
     @Test("entity with attributes renders header and rows")
     func entityWithAttributesRendersHeaderAndRows() async throws {
-        let svg = try await renderMermaidSVG("""
+        let svg = try await renderDiagramSVG("""
             erDiagram
               CUSTOMER {
                 int id PK
@@ -120,7 +120,7 @@ struct ERRendererTests {
 
     @Test("identifying relationship renders solid polyline")
     func identifyingRelationshipRendersSolid() async throws {
-        let svg = try await renderMermaidSVG("""
+        let svg = try await renderDiagramSVG("""
             erDiagram
               CUSTOMER ||--|| ORDER : places
             """)
@@ -130,7 +130,7 @@ struct ERRendererTests {
 
     @Test("non-identifying relationship renders dashed polyline")
     func nonIdentifyingRelationshipRendersDashed() async throws {
-        let svg = try await renderMermaidSVG("""
+        let svg = try await renderDiagramSVG("""
             erDiagram
               CUSTOMER ||..o{ ORDER : places
             """)
@@ -141,7 +141,7 @@ struct ERRendererTests {
 
     @Test("renders diagram title from frontmatter")
     func rendersDiagramTitle() async throws {
-        let svg = try await renderMermaidSVG("""
+        let svg = try await renderDiagramSVG("""
             ---
             title: Customer ERD
             ---
@@ -153,7 +153,7 @@ struct ERRendererTests {
 
     @Test("renders inline title directive")
     func rendersInlineTitleDirective() async throws {
-        let svg = try await renderMermaidSVG("""
+        let svg = try await renderDiagramSVG("""
             erDiagram
               title: My Diagram
               CUSTOMER
@@ -165,7 +165,7 @@ struct ERRendererTests {
 
     @Test("renders attribute comment in comment column")
     func rendersAttributeComment() async throws {
-        let svg = try await renderMermaidSVG("""
+        let svg = try await renderDiagramSVG("""
             erDiagram
               CUSTOMER {
                 string name "The customer name"
@@ -178,7 +178,7 @@ struct ERRendererTests {
 
     @Test("renders accTitle and accDescr metadata")
     func rendersAccessibilityMetadata() async throws {
-        let svg = try await renderMermaidSVG("""
+        let svg = try await renderDiagramSVG("""
             erDiagram
               accTitle: ER Accessibility Test
               accDescr: A test of accessibility

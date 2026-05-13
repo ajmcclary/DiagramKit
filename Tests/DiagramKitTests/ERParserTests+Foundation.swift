@@ -432,7 +432,7 @@ struct ERParserFoundationTests {
 
     @Test("classDef styles render through class assignment")
     func classDefStylesRenderThroughClassAssignment() async throws {
-        let svg = try await renderMermaidSVG("""
+        let svg = try await renderDiagramSVG("""
             erDiagram
               CUSTOMER
               classDef highlighted fill:#f9f,stroke:#333
@@ -485,7 +485,7 @@ struct ERParserFoundationTests {
 
     @Test("ER accessibility renders title and desc")
     func erAccessibilityRendersTitleAndDesc() async throws {
-        let svg = try await renderMermaidSVG("""
+        let svg = try await renderDiagramSVG("""
             erDiagram
               accTitle: Customer graph
               accDescr: Customer order relationships
@@ -510,7 +510,7 @@ struct ERParserFoundationTests {
 
     @Test("quoted semicolons are not statement separators")
     func quotedSemicolonsAreNotStatementSeparators() async throws {
-        let svg = try await renderMermaidSVG(#"erDiagram; "A;B" ||--|| C : "owns;uses""#)
+        let svg = try await renderDiagramSVG(#"erDiagram; "A;B" ||--|| C : "owns;uses""#)
         #expect(svg.contains("A;B"))
         #expect(svg.contains("owns;uses"))
     }

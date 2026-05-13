@@ -13,17 +13,18 @@ Last updated: 2026-05-13 (Phase 10 completion)
 - `swift test --filter CorpusMultiFormatSnapshotTests`: ~0.15s (422 test cases per test)
 
 ## Corpus
-- `test-diagrams.json`: 426 entries (408 Mermaid + 18 multi-format: D2, DOT, Structurizr, PlantUML)
-- Version: 2.0.0
+- `test-diagrams.json`: 422 entries (396 Mermaid-only + 26 multi-format: D2, DOT, Structurizr, PlantUML)
+- Version: 2.1.0
 - Multi-format entries carry `sources`, `expectedImporters`, and (where needed) `skipSnapshots`
-- Structurizr and PlantUML snapshots skipped due to non-deterministic rendering
+- Non-Mermaid Structurizr and PlantUML snapshots are skipped due to non-deterministic rendering
 - Chunked execution via `SNAPSHOT_DIAGRAM_IDS` avoids signal-10 in parameterized suite
 
 ## Snapshot Baselines
-- SVG: 609 (Mermaid + multi-format)
-- Image: 435 (Mermaid + multi-format)
+- SVG: 435 (422 corpus entries + 13 non-Mermaid multi-format)
+- Image: 435 (422 corpus entries + 13 non-Mermaid multi-format)
 - ASCII: 174 (Mermaid-only)
-- Total tracked corpus baselines: 1045 files
+- Text snapshots: 609 (SVG + ASCII)
+- Total tracked corpus baselines: 1044 files
 
 ## Gate Status
 - `swift build --build-tests`: pass (2026-05-13)

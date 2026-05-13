@@ -9,7 +9,7 @@ struct ZenUMLSvgTests {
 
     @Test("SVG renders groups and comments from positioned geometry")
     func rendersGroupsAndComments() throws {
-        let graph = try MermaidParser.parse("zenuml\ngroup Backend { @EC2 svc @RDS db }\nClient->svc: request\n// important")
+        let graph = try DiagramPipeline.parse("zenuml\ngroup Backend { @EC2 svc @RDS db }\nClient->svc: request\n// important")
         guard case .zenuml(let diagram) = graph.payload else { return }
 
         let svg = renderZenUMLSvg(layoutZenUMLDiagram(diagram))

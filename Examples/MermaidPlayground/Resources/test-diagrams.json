@@ -1,6 +1,6 @@
 {
   "version": "2.1.0",
-  "description": "Mermaid diagram test suite with multi-format entries (D2, DOT, Structurizr)",
+  "description": "Mermaid diagram test suite with multi-format entries (D2, DOT, Structurizr, PlantUML)",
   "diagrams": [
     {
       "id": "flow-1-simple",

@@ -28,7 +28,7 @@ final class MindmapRendererTests: XCTestCase {
     }
 
     func test_parseReturnsMindmapPayload() throws {
-        let graph = try MermaidParser.parse("mindmap\n  root\n    A")
+        let graph = try DiagramPipeline.parse("mindmap\n  root\n    A")
         guard case .mindmap = graph.payload else {
             XCTFail("Expected .mindmap payload, got \(graph.payload)")
             return
@@ -38,7 +38,7 @@ final class MindmapRendererTests: XCTestCase {
     func test_pipelineParseLayoutRender_defaultLayout() async throws {
         // No frontmatter — default tidy-tree layout takes effect.
         let source = "mindmap\n  root((mindmap))\n    A\n    B"
-        let svg = try await renderMermaidSVG(source)
+        let svg = try await renderDiagramSVG(source)
         XCTAssertTrue(svg.contains("<svg"))
         XCTAssertTrue(svg.contains("mindmapDiagram"))
     }
@@ -78,7 +78,7 @@ final class MindmapRendererTests: XCTestCase {
     func test_layoutDispatch_usesMindmapLayout() throws {
         // Default layout resolves to tidy-tree; no frontmatter needed.
         let source = "mindmap\n  root\n    A"
-        let graph = try MermaidParser.parse(source)
+        let graph = try DiagramPipeline.parse(source)
         let layout = GraphLayout()
         let positioned = try layout.layout(graph)
         XCTAssertEqual(positioned.diagram.type, .mindmap)
@@ -94,7 +94,7 @@ final class MindmapRendererTests: XCTestCase {
 
         XCTAssertEqual(mindmaps.count, 9)
         for diagram in mindmaps {
-            let svg = try await renderMermaidSVG(diagram.source)
+            let svg = try await renderDiagramSVG(diagram.source)
             XCTAssertTrue(svg.contains("mindmapDiagram"), diagram.name)
         }
     }
@@ -113,7 +113,7 @@ final class MindmapRendererTests: XCTestCase {
             A
             B
         """
-        let svg = try await renderMermaidSVG(source)
+        let svg = try await renderDiagramSVG(source)
         XCTAssertTrue(svg.contains("<svg"))
         XCTAssertTrue(svg.contains("mindmapDiagram"))
         XCTAssertTrue(svg.contains("mindmap-node"), "Should contain mindmap node markup")
@@ -132,7 +132,7 @@ final class MindmapRendererTests: XCTestCase {
             A
             B
         """
-        let svg = try await renderMermaidSVG(source)
+        let svg = try await renderDiagramSVG(source)
         XCTAssertTrue(svg.contains("<svg"))
         XCTAssertTrue(svg.contains("mindmapDiagram"))
     }

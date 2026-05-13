@@ -158,7 +158,7 @@ final class StateDiagramReviewRegressionTests: XCTestCase {
         XCTAssertGreaterThan(visibleNode.height, hiddenNode.height)
     }
 
-    func testStateAsAliasAndLegacyChoiceSyntaxMatchMermaidParserFixtures() async throws {
+    func testStateAsAliasAndLegacyChoiceSyntaxMatchDiagramPipelineFixtures() async throws {
         let source = """
         stateDiagram-v2
           state "as" as as

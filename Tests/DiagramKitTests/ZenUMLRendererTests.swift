@@ -10,7 +10,7 @@ struct ZenUMLRendererTests {
 
     @Test("Renderer accepts positioned groups, comments, and open arrows")
     func rendersPositionedSurfaces() throws {
-        let graph = try MermaidParser.parse("zenuml\ngroup Backend { @EC2 svc @RDS db }\nClient->svc: request\n// important")
+        let graph = try DiagramPipeline.parse("zenuml\ngroup Backend { @EC2 svc @RDS db }\nClient->svc: request\n// important")
         guard case .zenuml(let diagram) = graph.payload else {
             Issue.record("Expected ZenUML payload")
             return

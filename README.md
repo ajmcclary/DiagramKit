@@ -117,15 +117,14 @@ struct ContentView: View {
 ### Parse without rendering (Linux-portable)
 
 ```swift
-let graph = try await DiagramEngine.parse(source)
-let positioned = try await DiagramEngine.layout(graph, config: .default)
+let positioned = try await DiagramEngine.layout(source, config: .default)
 // positioned is the laid-out scene graph; render with renderSVG / renderASCII
 // (renderImage requires CoreGraphics → Apple-only).
 ```
 
 ## Diagram-type coverage
 
-DiagramKit parses and renders the families below. The corpus at [Examples/MermaidPlayground/Resources/test-diagrams.json](Examples/MermaidPlayground/Resources/test-diagrams.json) ships **426** sample diagrams across **28** families (408 Mermaid + 18 multi-format with D2, DOT, Structurizr, and PlantUML sources), used as the snapshot-test fixture set.
+DiagramKit parses and renders the families below. The corpus at [Examples/MermaidPlayground/Resources/test-diagrams.json](Examples/MermaidPlayground/Resources/test-diagrams.json) ships **422** sample diagrams across **28** families (396 Mermaid-only + 26 multi-format with D2, DOT, Structurizr, and PlantUML sources), used as the snapshot-test fixture set.
 
 `flowchart` · `stateDiagram-v2` · `sequenceDiagram` · `classDiagram` · `erDiagram` · `gantt` · `gitGraph` · `mindmap` · `journey` · `pie` · `quadrantChart` · `radar-beta` · `xychart-beta` · `timeline` · `sankey-beta` · `block-beta` · `kanban` · `requirementDiagram` · `c4Context` (and C4 variants) · `architecture-beta` · `packet-beta` · `treemap-beta` · `treeView-beta` · `ishikawa-beta` · `eventModeling-beta` · `wardley-beta` · `venn-beta` · `zenuml`
 
@@ -157,13 +156,13 @@ The four governance scripts under `Scripts/` are described in [CONTRIBUTING.md](
 
 ## Snapshot tests
 
-Snapshot baselines live under `Tests/DiagramKitTests/__Snapshots__/`. The corpus harness covers all 426 sample diagrams across SVG / image / ASCII paths, plus multi-format baselines via `CorpusMultiFormatSnapshotTests`.
+Snapshot baselines live under `Tests/DiagramKitTests/__Snapshots__/`. The corpus harness covers all 422 sample diagrams across SVG and image paths, 174 Mermaid-only ASCII baselines, and 13 additional non-Mermaid multi-format baselines via `CorpusMultiFormatSnapshotTests`.
 
 ```bash
 SNAPSHOT_TESTING_RECORD=true swift test --filter CorpusSnapshotTests   # record/refresh Mermaid-only
 swift test --filter CorpusSnapshotTests                                # verify Mermaid-only
 swift test --filter CorpusMultiFormatSnapshotTests                     # verify multi-format
-SNAPSHOT_DIAGRAM_IDS=id1,id2,... SNAPSHOT_TESTING_RECORD=true \        # chunked record (avoids signal-10)
+SNAPSHOT_DIAGRAM_IDS=id1,id2,... SNAPSHOT_TESTING_RECORD=true \
   swift test --filter CorpusMultiFormatSnapshotTests/multiFormatSvgSnapshot
 ```
 

@@ -21,7 +21,7 @@ final class RequirementRendererTests: XCTestCase {
         test_entity - satisfies -> test_req
         """
 
-        let graph = try MermaidParser.parse(source)
+        let graph = try DiagramPipeline.parse(source)
         XCTAssertEqual(graph.type, .requirement)
 
         let positioned = try GraphLayout().layout(graph)
@@ -51,7 +51,7 @@ final class RequirementRendererTests: XCTestCase {
         test_entity - satisfies -> test_req
         """
 
-        let svg = try await renderMermaidSVG(source)
+        let svg = try await renderDiagramSVG(source)
         XCTAssertTrue(svg.hasPrefix("<svg"))
         XCTAssertTrue(svg.hasSuffix("</svg>"))
         XCTAssertTrue(svg.contains("class=\"relationshipLine\""))
@@ -75,7 +75,7 @@ final class RequirementRendererTests: XCTestCase {
         A - satisfies -> B
         """
 
-        let svg = try await renderMermaidSVG(source)
+        let svg = try await renderDiagramSVG(source)
         XCTAssertTrue(svg.contains("&lt;&lt;satisfies&gt;&gt;") || svg.contains("<<satisfies>>"))
         XCTAssertTrue(svg.contains("Risk: Low"))
         XCTAssertTrue(svg.contains("Risk: Medium"))
@@ -101,7 +101,7 @@ final class RequirementRendererTests: XCTestCase {
         A - traces -> B
         """
 
-        let svg = try await renderMermaidSVG(source)
+        let svg = try await renderDiagramSVG(source)
         for type in RequirementRelationshipType.allCases {
             let escaped = "&lt;&lt;\(type.rawValue)&gt;&gt;"
             let unescaped = "<<\(type.rawValue)>>"
@@ -116,7 +116,7 @@ final class RequirementRendererTests: XCTestCase {
         }
         """
 
-        let svg = try await renderMermaidSVG(source)
+        let svg = try await renderDiagramSVG(source)
         // With no fields, there should be no divider line
         // Just verify it renders without error
         XCTAssertTrue(svg.contains("node-X"))

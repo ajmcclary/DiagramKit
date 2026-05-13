@@ -24,7 +24,7 @@ final class WardleyMapEndToEndTests: XCTestCase {
 
         XCTAssertEqual(wardleyExamples.count, 12)
         for example in wardleyExamples {
-            let graph = try MermaidParser.parse(example.source)
+            let graph = try DiagramPipeline.parse(example.source)
             guard case .wardleyBeta = graph.payload else {
                 XCTFail("Expected Wardley payload for \(example.id)")
                 continue

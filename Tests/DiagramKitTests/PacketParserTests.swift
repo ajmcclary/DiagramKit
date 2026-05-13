@@ -256,10 +256,10 @@ final class PacketParserTests: XCTestCase {
         }
     }
 
-    // MARK: - MermaidParser integration test
+    // MARK: - DiagramPipeline integration test
 
-    func testParseThroughMermaidParser() throws {
-        let graph = try MermaidParser.parse("packet\n0-10: \"test\"")
+    func testParseThroughDiagramPipeline() throws {
+        let graph = try DiagramPipeline.parse("packet\n0-10: \"test\"")
         guard case .packet(let diagram) = graph.payload else {
             XCTFail("Expected packet payload")
             return

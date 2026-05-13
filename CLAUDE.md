@@ -175,9 +175,10 @@ outside the defining module.
 
 - Current test source count: 188 Swift files under `Tests/DiagramKitTests`.
 - The corpus is `Examples/MermaidPlayground/Resources/test-diagrams.json` with
-  426 entries (408 Mermaid + 18 multi-format: D2, DOT, Structurizr, PlantUML).
+  422 entries (396 Mermaid-only + 26 multi-format: D2, DOT, Structurizr, PlantUML).
 - Corpus baselines under `Tests/DiagramKitTests/__Snapshots__/` track
-  609 SVG, 435 image, and 174 ASCII files (1045 total).
+  435 SVG, 435 image, and 174 ASCII files (1044 total; 609 text snapshots
+  including SVG + ASCII).
 - Image snapshots use `precision: 0.99, perceptualPrecision: 0.98` to tolerate
   CoreText rasterization drift across CPU architectures.
 - Multi-format snapshot tests use format-suffixed names (`entry-id-format`) to
@@ -230,4 +231,3 @@ The corpus carries ~422 entries across 28 diagram families. Remaining work:
 1. Complete remaining PlantUML importer slices (Phases 6B–6E in PHASES.md).
 2. Add exporter coverage for remaining diagram families.
 3. Follow [PHASES.md](PHASES.md) for the active roadmap.
-

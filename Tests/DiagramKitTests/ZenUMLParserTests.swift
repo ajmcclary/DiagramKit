@@ -12,7 +12,7 @@ struct ZenUMLParserTests {
 
     @Test("Detects zenuml header")
     func detectsZenUMLHeader() throws {
-        let result = try MermaidParser.parse("zenuml\nAlice->Bob: Hello")
+        let result = try DiagramPipeline.parse("zenuml\nAlice->Bob: Hello")
         #expect(result.type == .zenuml)
     }
 
@@ -20,7 +20,7 @@ struct ZenUMLParserTests {
 
     @Test("Simple async message parses as async")
     func simpleAsyncMessage() throws {
-        let result = try MermaidParser.parse("zenuml\nAlice->Bob: Hello")
+        let result = try DiagramPipeline.parse("zenuml\nAlice->Bob: Hello")
         guard case .zenuml(let diagram) = result.payload else {
             Issue.record("Expected zenuml payload")
             return
@@ -38,7 +38,7 @@ struct ZenUMLParserTests {
     @Test("Multi-participant async detects all participants")
     func multiParticipantAsync() throws {
         let source = "zenuml\nAlice->Bob: hello\nBob->Charlie: process\nCharlie->Bob: result\nBob->Alice: done"
-        let result = try MermaidParser.parse(source)
+        let result = try DiagramPipeline.parse(source)
         guard case .zenuml(let diagram) = result.payload else { return }
         let names = diagram.participants.map(\.name)
         #expect(names.contains("Alice"))
@@ -51,7 +51,7 @@ struct ZenUMLParserTests {
     @Test("Sync call with method parses as message not participant")
     func syncCallWithMethod() throws {
         let source = "zenuml\nA.method() { B.process() }"
-        let result = try MermaidParser.parse(source)
+        let result = try DiagramPipeline.parse(source)
         guard case .zenuml(let diagram) = result.payload else { return }
         #expect(!diagram.statements.isEmpty)
         // A should be detected as implicit participant from message, not consumed as head participant
@@ -65,7 +65,7 @@ struct ZenUMLParserTests {
     @Test("Creation parses new keyword")
     func creation() throws {
         let source = "zenuml\nA.method() { new B() }"
-        let result = try MermaidParser.parse(source)
+        let result = try DiagramPipeline.parse(source)
         guard case .zenuml(let diagram) = result.payload else { return }
         var foundCreation = false
         for stmt in diagram.statements {
@@ -82,7 +82,7 @@ struct ZenUMLParserTests {
     @Test("Creation with assignment preserves assignee")
     func creationWithAssignment() throws {
         let source = "zenuml\nA.method() { b = new B() }"
-        let result = try MermaidParser.parse(source)
+        let result = try DiagramPipeline.parse(source)
         guard case .zenuml(let diagram) = result.payload else { return }
         var foundAssignee = false
         for stmt in diagram.statements {
@@ -102,7 +102,7 @@ struct ZenUMLParserTests {
     @Test("Return keyword")
     func returnKeyword() throws {
         let source = "zenuml\nA.method() { return result }"
-        let result = try MermaidParser.parse(source)
+        let result = try DiagramPipeline.parse(source)
         guard case .zenuml(let diagram) = result.payload else { return }
         var foundReturn = false
         for stmt in diagram.statements {
@@ -118,7 +118,7 @@ struct ZenUMLParserTests {
     @Test("Return arrow parses A --> B: result")
     func returnArrow() throws {
         let source = "zenuml\nA --> B: result"
-        let result = try MermaidParser.parse(source)
+        let result = try DiagramPipeline.parse(source)
         guard case .zenuml(let diagram) = result.payload else { return }
         guard case .return(let from, let to, let value, _) = diagram.statements.first else {
             Issue.record("Expected return statement")
@@ -134,7 +134,7 @@ struct ZenUMLParserTests {
     @Test("Alt fragment")
     func altFragment() throws {
         let source = "zenuml\nif(x) { A->B: yes } else { A->B: no }"
-        let result = try MermaidParser.parse(source)
+        let result = try DiagramPipeline.parse(source)
         guard case .zenuml(let diagram) = result.payload else { return }
         var foundAlt = false
         for stmt in diagram.statements {
@@ -146,7 +146,7 @@ struct ZenUMLParserTests {
     @Test("Loop fragment")
     func loopFragment() throws {
         let source = "zenuml\nwhile(processing) { A->B: tick }"
-        let result = try MermaidParser.parse(source)
+        let result = try DiagramPipeline.parse(source)
         guard case .zenuml(let diagram) = result.payload else { return }
         var foundLoop = false
         for stmt in diagram.statements {
@@ -158,7 +158,7 @@ struct ZenUMLParserTests {
     @Test("Try/catch/finally")
     func tryCatchFinally() throws {
         let source = "zenuml\ntry { B.process } catch(error) { C.handle } finally { D.cleanup }"
-        let result = try MermaidParser.parse(source)
+        let result = try DiagramPipeline.parse(source)
         guard case .zenuml(let diagram) = result.payload else { return }
         var foundTcf = false
         for stmt in diagram.statements {
@@ -170,7 +170,7 @@ struct ZenUMLParserTests {
     @Test("Nested fragments")
     func nestedFragments() throws {
         let source = "zenuml\nA.m { if(x) { loop(y) { B.process() } } }"
-        let result = try MermaidParser.parse(source)
+        let result = try DiagramPipeline.parse(source)
         guard case .zenuml(let diagram) = result.payload else { return }
         #expect(!diagram.statements.isEmpty)
     }
@@ -180,7 +180,7 @@ struct ZenUMLParserTests {
     @Test("Stereotype participant preserves type")
     func stereotypeParticipant() throws {
         let source = "zenuml\n@Actor Client\n@Database DB\nClient->DB: query"
-        let result = try MermaidParser.parse(source)
+        let result = try DiagramPipeline.parse(source)
         guard case .zenuml(let diagram) = result.payload else { return }
         let hasActor = diagram.participants.contains { $0.type == "Actor" }
         let hasDB = diagram.participants.contains { $0.type == "Database" }
@@ -191,7 +191,7 @@ struct ZenUMLParserTests {
     @Test("Emoji participant preserves emoji")
     func emojiParticipant() throws {
         let source = "zenuml\n[rocket] Production\nProduction.deploy()"
-        let result = try MermaidParser.parse(source)
+        let result = try DiagramPipeline.parse(source)
         guard case .zenuml(let diagram) = result.payload else { return }
         let hasEmoji = diagram.participants.contains { $0.emoji == "rocket" }
         #expect(hasEmoji)
@@ -202,7 +202,7 @@ struct ZenUMLParserTests {
     @Test("Group")
     func group() throws {
         let source = "zenuml\ngroup Backend { @EC2 svc @RDS db }\nClient->svc: request"
-        let result = try MermaidParser.parse(source)
+        let result = try DiagramPipeline.parse(source)
         guard case .zenuml(let diagram) = result.payload else { return }
         #expect(diagram.groups.first?.id == "Backend")
         #expect(diagram.groups.first?.participants == ["svc", "db"])
@@ -212,7 +212,7 @@ struct ZenUMLParserTests {
     @Test("Message comments are preserved as renderable statements")
     func messageCommentPreserved() throws {
         let source = "zenuml\nA->B: start\n// **important** comment\nB->A: finish"
-        let result = try MermaidParser.parse(source)
+        let result = try DiagramPipeline.parse(source)
         guard case .zenuml(let diagram) = result.payload else { return }
         guard diagram.statements.count == 3 else {
             Issue.record("Expected message, comment, message")
@@ -230,7 +230,7 @@ struct ZenUMLParserTests {
     @Test("Divider")
     func divider() throws {
         let source = "zenuml\nA->B: step1\n==Phase 2==\nB->C: step2"
-        let result = try MermaidParser.parse(source)
+        let result = try DiagramPipeline.parse(source)
         guard case .zenuml(let diagram) = result.payload else { return }
         var foundDivider = false
         for stmt in diagram.statements {
@@ -244,7 +244,7 @@ struct ZenUMLParserTests {
     @Test("Title")
     func title() throws {
         let source = "zenuml\ntitle My Diagram\nA->B: hello"
-        let result = try MermaidParser.parse(source)
+        let result = try DiagramPipeline.parse(source)
         guard case .zenuml(let diagram) = result.payload else { return }
         #expect(diagram.title == "My Diagram")
     }
@@ -253,7 +253,7 @@ struct ZenUMLParserTests {
 
     @Test("Empty input returns empty diagram")
     func emptyInput() throws {
-        let result = try MermaidParser.parse("zenuml")
+        let result = try DiagramPipeline.parse("zenuml")
         guard case .zenuml(let diagram) = result.payload else { return }
         #expect(diagram.statements.isEmpty)
         #expect(diagram.participants.isEmpty)
@@ -261,7 +261,7 @@ struct ZenUMLParserTests {
 
     @Test("Single participant declaration")
     func singleParticipant() throws {
-        let result = try MermaidParser.parse("zenuml\nAlice")
+        let result = try DiagramPipeline.parse("zenuml\nAlice")
         guard case .zenuml(let diagram) = result.payload else { return }
         #expect(diagram.participants.contains { $0.name == "Alice" })
     }
@@ -269,7 +269,7 @@ struct ZenUMLParserTests {
     @Test("Explicit participants then messages both preserved")
     func explicitParticipantThenMessages() throws {
         let source = "zenuml\nA\nB\nA->B: hello\nB->A: reply"
-        let result = try MermaidParser.parse(source)
+        let result = try DiagramPipeline.parse(source)
         guard case .zenuml(let diagram) = result.payload else { return }
         #expect(diagram.participants.count >= 2)
         #expect(diagram.statements.count >= 2)
@@ -280,7 +280,7 @@ struct ZenUMLParserTests {
     @Test("Participant order follows encounter order")
     func deterministicParticipantOrder() throws {
         let source = "zenuml\nCharlie\nAlice\nBob\nAlice->Bob: hello"
-        let result = try MermaidParser.parse(source)
+        let result = try DiagramPipeline.parse(source)
         guard case .zenuml(let diagram) = result.payload else { return }
         let names = diagram.participants.map(\.name)
         if let ci = names.firstIndex(of: "Charlie"), let ai = names.firstIndex(of: "Alice") {
@@ -293,7 +293,7 @@ struct ZenUMLParserTests {
     @Test("Alt condition preserved in fragment label")
     func altConditionPreserved() throws {
         let source = "zenuml\nif(x) { A->B: yes }"
-        let result = try MermaidParser.parse(source)
+        let result = try DiagramPipeline.parse(source)
         guard case .zenuml(let diagram) = result.payload else { return }
         for stmt in diagram.statements {
             if case .fragment(_, let condition, _) = stmt {
@@ -316,7 +316,7 @@ struct ZenUMLParserTests {
           A.no()
         }
         """
-        let result = try MermaidParser.parse(source)
+        let result = try DiagramPipeline.parse(source)
         guard case .zenuml(let diagram) = result.payload else { return }
         guard case .fragment(.alt, let condition, let sections) = diagram.statements.first else {
             Issue.record("Expected alt fragment")
@@ -329,7 +329,7 @@ struct ZenUMLParserTests {
     @Test("Loop condition preserved in fragment label")
     func loopConditionPreserved() throws {
         let source = "zenuml\nwhile(processing) { A->B: tick }"
-        let result = try MermaidParser.parse(source)
+        let result = try DiagramPipeline.parse(source)
         guard case .zenuml(let diagram) = result.payload else { return }
         for stmt in diagram.statements {
             if case .fragment(_, let condition, _) = stmt {

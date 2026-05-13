@@ -32,7 +32,7 @@ final class WardleyMapFrontmatterTests: XCTestCase {
         evolve A 0.7
         """
 
-        let graph = try MermaidParser.parse(source)
+        let graph = try DiagramPipeline.parse(source)
         guard case .wardleyBeta(let diagram) = graph.payload else {
             return XCTFail("Expected Wardley payload")
         }
@@ -66,7 +66,7 @@ final class WardleyMapFrontmatterTests: XCTestCase {
         evolve A 0.8
         """
 
-        let graph = try MermaidParser.parse(source)
+        let graph = try DiagramPipeline.parse(source)
         guard case .wardleyBeta(let diagram) = graph.payload else {
             return XCTFail("Expected Wardley payload")
         }

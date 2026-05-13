@@ -8,7 +8,7 @@ import Testing
 @Suite("Treemap End-to-End")
 struct TreemapEndToEndTests {
 
-    @Test("Parse to SVG pipeline through renderMermaidSVG")
+    @Test("Parse to SVG pipeline through renderDiagramSVG")
     func parseToSvg() throws {
         let source = """
         treemap
@@ -87,7 +87,7 @@ struct TreemapEndToEndTests {
         #expect(diagram.themeName == "dark")
     }
 
-    @Test("MermaidParser routes treemap")
+    @Test("DiagramPipeline routes treemap")
     func parserRoutesTreemap() async throws {
         let source = """
         treemap

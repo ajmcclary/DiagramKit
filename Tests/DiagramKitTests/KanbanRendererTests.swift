@@ -172,7 +172,7 @@ final class KanbanRendererTests: XCTestCase {
           Todo
             card1@{ priority: 'High' }
         """
-        let svg = try await renderMermaidSVG(source, RenderOptions())
+        let svg = try await renderDiagramSVG(source, RenderOptions())
         XCTAssertTrue(svg.contains("class=\"sections\""))
         XCTAssertTrue(svg.contains("class=\"items\""))
         XCTAssertTrue(svg.contains("<title>Release kanban</title>"))
@@ -262,7 +262,7 @@ final class KanbanRendererTests: XCTestCase {
           In Progress
             [Write Tests]
         """
-        let svg = try await renderMermaidSVG(source, RenderOptions())
+        let svg = try await renderDiagramSVG(source, RenderOptions())
         XCTAssertTrue(svg.hasPrefix("<svg"))
         XCTAssertTrue(svg.hasSuffix("</svg>"))
         XCTAssertTrue(svg.contains("class=\"sections\""))

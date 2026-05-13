@@ -12,7 +12,7 @@ final class BlockRendererTests: XCTestCase {
         block
           a b c
         """
-        let graph = try MermaidParser.parse(source)
+        let graph = try DiagramPipeline.parse(source)
         let positioned = try GraphLayout().layout(graph)
         guard case .block = positioned.content else {
             XCTFail("Expected block content")
@@ -25,12 +25,12 @@ final class BlockRendererTests: XCTestCase {
         block
           A["Hello"] B["World"]
         """
-        let graph = try MermaidParser.parse(source)
+        let graph = try DiagramPipeline.parse(source)
         XCTAssertEqual(graph.type, .block)
     }
 
     func testBlockNoLongerFallsThroughToFlowchart() throws {
-        let graph = try MermaidParser.parse("block\n  a")
+        let graph = try DiagramPipeline.parse("block\n  a")
         XCTAssertEqual(graph.type, .block)
         XCTAssertNotEqual(graph.type, .flowchart)
     }
@@ -124,7 +124,7 @@ final class BlockRendererTests: XCTestCase {
           classDef red fill:#ff0000,stroke:#ff0000
           class A red
         """
-        let graph = try MermaidParser.parse(source)
+        let graph = try DiagramPipeline.parse(source)
         let positioned = try GraphLayout().layout(graph)
         guard case .block(let diagram) = positioned.content else {
             XCTFail("Expected block content")
@@ -170,7 +170,7 @@ final class BlockRendererTests: XCTestCase {
           classDef red fill:#ff0000,stroke:#ff0000
           class A red
         """
-        let graph = try MermaidParser.parse(source)
+        let graph = try DiagramPipeline.parse(source)
         let positioned = try GraphLayout().layout(graph)
 
         let width = Int(ceil(positioned.width))
@@ -222,7 +222,7 @@ final class BlockRendererTests: XCTestCase {
     }
 
     private func renderBlockPixels(_ source: String) throws -> (pixels: [UInt8], width: Int, height: Int) {
-        let graph = try MermaidParser.parse(source)
+        let graph = try DiagramPipeline.parse(source)
         let positioned = try GraphLayout().layout(graph)
         let width = Int(ceil(positioned.width))
         let height = Int(ceil(positioned.height))

@@ -595,9 +595,9 @@ struct RadarParserTests {
         #expect(d.axes.count == 1)
     }
 
-    // MARK: - End-to-end MermaidParser.parse tests
+    // MARK: - End-to-end DiagramPipeline.parse tests
 
-    @Test("End-to-end parsing through MermaidParser")
+    @Test("End-to-end parsing through DiagramPipeline")
     func endToEndParsing() async throws {
         let graph = try await DiagramEngine.parse("radar-beta\n  axis A,B\n  curve c1{1,2}")
         guard case .radar(let diagram) = graph.payload else {

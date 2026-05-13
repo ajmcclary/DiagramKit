@@ -42,7 +42,7 @@ final class JourneyCGRendererTests: XCTestCase {
             section Go
             Do thing: 5: Me
         """
-        let graph = try MermaidParser.parse(source)
+        let graph = try DiagramPipeline.parse(source)
         let positioned = try GraphLayout().layout(graph)
         let renderer = DiagramRenderer()
         let size = CGSize(width: CGFloat(max(1, positioned.width)), height: CGFloat(max(1, positioned.height)))
@@ -62,7 +62,7 @@ final class JourneyCGRendererTests: XCTestCase {
             section Go
             Do thing: 5: Me
         """
-        let graph = try MermaidParser.parse(source)
+        let graph = try DiagramPipeline.parse(source)
         let positioned = try GraphLayout().layout(graph)
         let renderer = DiagramRenderer()
         let size = CGSize(width: CGFloat(max(1, positioned.width)), height: CGFloat(max(1, positioned.height)))
@@ -87,7 +87,7 @@ final class JourneyCGRendererTests: XCTestCase {
             Work: 1: Me, Boss
             Lunch: 5: Me
         """
-        let graph = try MermaidParser.parse(source)
+        let graph = try DiagramPipeline.parse(source)
         let positioned = try GraphLayout().layout(graph)
         let renderer = DiagramRenderer()
         let size = CGSize(width: CGFloat(max(1, positioned.width)), height: CGFloat(max(1, positioned.height)))
@@ -108,7 +108,7 @@ final class JourneyCGRendererTests: XCTestCase {
             section Go
             Do thing: 5: Me
         """
-        let graph = try MermaidParser.parse(source)
+        let graph = try DiagramPipeline.parse(source)
         let positioned = try GraphLayout().layout(graph)
         let renderer = DiagramRenderer()
         let size = CGSize(width: CGFloat(max(1, positioned.width)), height: CGFloat(max(1, positioned.height)))
@@ -136,7 +136,7 @@ final class JourneyCGRendererTests: XCTestCase {
             section Evening
             Sleep: 3: Bob
         """
-        let graph = try MermaidParser.parse(source)
+        let graph = try DiagramPipeline.parse(source)
         let positioned = try GraphLayout().layout(graph)
         let renderer = DiagramRenderer()
         let size = CGSize(width: CGFloat(max(1, positioned.width)), height: CGFloat(max(1, positioned.height)))

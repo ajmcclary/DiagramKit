@@ -19,7 +19,7 @@ final class XYChartSvgTests: XCTestCase {
             y-axis 0 --> 50
             bar [10, 20, 30]
         """
-        let svg = try await renderMermaidSVG(source, RenderOptions())
+        let svg = try await renderDiagramSVG(source, RenderOptions())
         XCTAssertTrue(svg.contains("viewBox=\"0 0 900 600\""), "Expected viewBox to use configured dimensions")
     }
 
@@ -33,7 +33,7 @@ final class XYChartSvgTests: XCTestCase {
             y-axis 0 --> 50
             bar [10, 20, 30]
         """
-        let svg = try await renderMermaidSVG(source, RenderOptions())
+        let svg = try await renderDiagramSVG(source, RenderOptions())
         XCTAssertTrue(svg.contains(">Frontmatter Sales</text>"), "Expected frontmatter title to render as chart title")
     }
 
@@ -44,7 +44,7 @@ final class XYChartSvgTests: XCTestCase {
             y-axis 0 --> 50
             bar [10, 20, 30]
         """
-        let svg = try await renderMermaidSVG(source, RenderOptions())
+        let svg = try await renderDiagramSVG(source, RenderOptions())
         XCTAssertTrue(svg.contains("class=\"xychart-background\""), "Expected background rect with class xychart-background")
     }
 
@@ -55,7 +55,7 @@ final class XYChartSvgTests: XCTestCase {
             y-axis 0 --> 50
             bar [10, 20, 30]
         """
-        let svg = try await renderMermaidSVG(source, RenderOptions())
+        let svg = try await renderDiagramSVG(source, RenderOptions())
         XCTAssertTrue(svg.contains("class=\"xychart-axis-line\""), "Expected axis lines in SVG")
     }
 
@@ -67,7 +67,7 @@ final class XYChartSvgTests: XCTestCase {
             bar [10, 20, 30]
             line [10, 20, 30]
         """
-        let svg = try await renderMermaidSVG(source, RenderOptions())
+        let svg = try await renderDiagramSVG(source, RenderOptions())
         XCTAssertTrue(svg.contains("class=\"xychart-bar-rect"), "Expected rect elements for bars in parity mode")
     }
 
@@ -79,7 +79,7 @@ final class XYChartSvgTests: XCTestCase {
             bar [10, 20, 30]
             line [10, 20, 30]
         """
-        let svg = try await renderMermaidSVG(source, RenderOptions())
+        let svg = try await renderDiagramSVG(source, RenderOptions())
         XCTAssertTrue(svg.contains(" L"), "Expected L path commands for straight lines in parity mode")
         XCTAssertFalse(svg.contains(" C"), "Expected no C curve path commands in parity mode")
     }
@@ -96,7 +96,7 @@ final class XYChartSvgTests: XCTestCase {
             y-axis 0 --> 50
             bar [10, 20, 30]
         """
-        let svg = try await renderMermaidSVG(source, RenderOptions())
+        let svg = try await renderDiagramSVG(source, RenderOptions())
         XCTAssertTrue(svg.contains("class=\"xychart-data-label\""), "Expected data labels when showDataLabel is true")
     }
 
@@ -113,7 +113,7 @@ final class XYChartSvgTests: XCTestCase {
             y-axis 0 --> 50
             bar [10, 20, 30]
         """
-        let svg = try await renderMermaidSVG(source, RenderOptions())
+        let svg = try await renderDiagramSVG(source, RenderOptions())
         XCTAssertTrue(svg.contains("class=\"xychart-data-label\""), "Expected data labels for horizontal bars")
     }
 
@@ -132,7 +132,7 @@ final class XYChartSvgTests: XCTestCase {
             y-axis "Revenue" 0 --> 50
             bar [10, 20, 30]
         """
-        let svg = try await renderMermaidSVG(source, RenderOptions())
+        let svg = try await renderDiagramSVG(source, RenderOptions())
         XCTAssertTrue(svg.contains("font-size=\"22\""), "Expected x-axis label font size from config")
         XCTAssertTrue(svg.contains("font-size=\"24\""), "Expected y-axis title font size from config")
     }
@@ -144,7 +144,7 @@ final class XYChartSvgTests: XCTestCase {
             y-axis 0 --> 50
             bar [10, 20, 30]
         """
-        let svg = try await renderMermaidSVG(source, RenderOptions())
+        let svg = try await renderDiagramSVG(source, RenderOptions())
         XCTAssertFalse(svg.contains("class=\"xychart-data-label\""), "Expected no data labels by default")
     }
 
@@ -156,7 +156,7 @@ final class XYChartSvgTests: XCTestCase {
             y-axis 0 --> 50
             bar [10, 20, 30]
         """
-        let svg = try await renderMermaidSVG(source, RenderOptions())
+        let svg = try await renderDiagramSVG(source, RenderOptions())
         XCTAssertTrue(svg.contains("<title>"), "Expected <title> element for accTitle")
     }
 
@@ -168,7 +168,7 @@ final class XYChartSvgTests: XCTestCase {
             y-axis 0 --> 50
             bar [10, 20, 30]
         """
-        let svg = try await renderMermaidSVG(source, RenderOptions())
+        let svg = try await renderDiagramSVG(source, RenderOptions())
         XCTAssertTrue(svg.contains("<desc>"), "Expected <desc> element for accDescr")
     }
 
@@ -188,7 +188,7 @@ final class XYChartSvgTests: XCTestCase {
             bar [10, 20]
             line [15, 25]
         """
-        let svg = try await renderMermaidSVG(source, RenderOptions())
+        let svg = try await renderDiagramSVG(source, RenderOptions())
         XCTAssertTrue(svg.contains("#FF0000") || svg.contains("#ff0000"), "Expected first palette color in SVG output")
     }
 
@@ -205,7 +205,7 @@ final class XYChartSvgTests: XCTestCase {
             y-axis 0 --> 50
             bar [10, 20]
         """
-        let svg = try await renderMermaidSVG(source, RenderOptions())
+        let svg = try await renderDiagramSVG(source, RenderOptions())
         XCTAssertTrue(svg.contains("class=\"xychart-bar-rect"), "Expected bars rendered with fallback colors when palette is empty")
     }
 
@@ -222,7 +222,7 @@ final class XYChartSvgTests: XCTestCase {
             y-axis 0 --> 10
             bar [5]
         """
-        let svg = try await renderMermaidSVG(source, RenderOptions())
+        let svg = try await renderDiagramSVG(source, RenderOptions())
         XCTAssertTrue(svg.contains("#f0f0f0"), "Expected background color from theme in SVG")
     }
 
@@ -242,7 +242,7 @@ final class XYChartSvgTests: XCTestCase {
             y-axis 0 --> 50
             bar [10, 20, 30]
         """
-        let svg = try await renderMermaidSVG(source, RenderOptions())
+        let svg = try await renderDiagramSVG(source, RenderOptions())
         XCTAssertTrue(svg.contains("text-anchor=\"start\""), "Expected start-anchored data labels when outside horizontal bars")
     }
 
@@ -259,7 +259,7 @@ final class XYChartSvgTests: XCTestCase {
             y-axis 0 --> 50
             bar [10, 20, 30]
         """
-        let svg = try await renderMermaidSVG(source, RenderOptions())
+        let svg = try await renderDiagramSVG(source, RenderOptions())
         XCTAssertTrue(svg.contains("class=\"xychart-data-label\""), "Expected data labels when outside bars enabled")
     }
 
@@ -278,7 +278,7 @@ final class XYChartSvgTests: XCTestCase {
             y-axis 0 --> 10
             bar [5]
         """
-        let svg = try await renderMermaidSVG(source, RenderOptions())
+        let svg = try await renderDiagramSVG(source, RenderOptions())
         XCTAssertFalse(svg.contains(">Should Be Hidden</text>"), "Expected chart title to be hidden when showTitle is false")
     }
 
@@ -297,7 +297,7 @@ final class XYChartSvgTests: XCTestCase {
             y-axis 0 --> 50
             bar [10, 20, 30]
         """
-        let svg = try await renderMermaidSVG(source, RenderOptions())
+        let svg = try await renderDiagramSVG(source, RenderOptions())
         XCTAssertFalse(svg.contains("class=\"xychart-tick\""), "Expected no tick marks when showTick is false")
     }
 
@@ -316,7 +316,7 @@ final class XYChartSvgTests: XCTestCase {
             y-axis 0 --> 50
             bar [10, 20, 30]
         """
-        let svg = try await renderMermaidSVG(source, RenderOptions())
+        let svg = try await renderDiagramSVG(source, RenderOptions())
         XCTAssertFalse(svg.contains("class=\"xychart-axis-line\""), "Expected no axis lines when showAxisLine is false")
     }
 
@@ -332,7 +332,7 @@ final class XYChartSvgTests: XCTestCase {
             y-axis 0 --> 10
             bar [5]
         """
-        let svg = try await renderMermaidSVG(source, RenderOptions())
+        let svg = try await renderDiagramSVG(source, RenderOptions())
         XCTAssertTrue(svg.contains("<desc>"), "Expected <desc> element for multiline accDescr")
     }
 }

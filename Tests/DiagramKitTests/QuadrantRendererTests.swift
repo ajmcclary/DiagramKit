@@ -550,7 +550,7 @@ final class QuadrantRendererTests: XCTestCase {
 
         for example in quadrantExamples {
             do {
-                let graph = try MermaidParser.parse(example.source)
+                let graph = try DiagramPipeline.parse(example.source)
                 let positioned = try GraphLayout().layout(graph)
 
                 let width = 400

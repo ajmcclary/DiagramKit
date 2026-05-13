@@ -63,7 +63,7 @@ struct ClassCGRendererTests {
 
     private func render(source: String) throws {
         try renderOnWorker {
-            let graph = try MermaidParser.parse(source)
+            let graph = try DiagramPipeline.parse(source)
             let positioned = try GraphLayout().layout(graph)
             let renderer = DiagramRenderer()
             let size = CGSize(

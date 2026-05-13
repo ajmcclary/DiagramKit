@@ -51,7 +51,7 @@ struct RadarRendererTests {
 
     private func render(source: String) throws {
         try renderOnWorker {
-            let graph = try MermaidParser.parse(source)
+            let graph = try DiagramPipeline.parse(source)
             let positioned = try GraphLayout().layout(graph)
             try render(positioned: positioned)
         }

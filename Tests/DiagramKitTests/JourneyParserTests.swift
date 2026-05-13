@@ -244,7 +244,7 @@ final class JourneyParserTests: XCTestCase {
     }
 
     func test_publicParserAcceptsSemicolonSeparatedJourney() throws {
-        let graph = try MermaidParser.parse("journey; title T; section S; A: 5: Me")
+        let graph = try DiagramPipeline.parse("journey; title T; section S; A: 5: Me")
         guard case let .journey(diagram) = graph.payload else {
             XCTFail("Expected journey payload, got \(graph.payload)")
             return
@@ -268,7 +268,7 @@ final class JourneyParserTests: XCTestCase {
             section S
             A: 5: Me
         """
-        let graph = try MermaidParser.parse(source)
+        let graph = try DiagramPipeline.parse(source)
         guard case let .journey(diagram) = graph.payload else {
             XCTFail("Expected journey payload, got \(graph.payload)")
             return

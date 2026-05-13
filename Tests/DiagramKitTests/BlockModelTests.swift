@@ -14,7 +14,7 @@ final class BlockModelTests: XCTestCase {
     }
 
     func testLabelDefaultsToId() throws {
-        let diagram = try MermaidParser.parse("block\n  a")
+        let diagram = try DiagramPipeline.parse("block\n  a")
         guard case .block(let bd) = diagram.payload else { XCTFail(); return }
         let node = bd.blockDatabase["a"]
         XCTAssertEqual(node?.label, "a")

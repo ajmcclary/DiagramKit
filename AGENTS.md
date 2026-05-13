@@ -98,12 +98,13 @@ Active work:
 
 - Test sources: 188 Swift files under `Tests/DiagramKitTests`.
 - Corpus: `Examples/MermaidPlayground/Resources/test-diagrams.json`
-  (426 entries: 408 Mermaid + 18 multi-format with D2, DOT, Structurizr, PlantUML sources).
+  (422 entries: 396 Mermaid-only + 26 multi-format with D2, DOT, Structurizr, PlantUML sources).
 - Snapshot baselines:
-  - SVG: 609 (Mermaid + multi-format)
-  - Image: 435 (Mermaid + multi-format)
+  - SVG: 435 (422 corpus entries + 13 non-Mermaid multi-format)
+  - Image: 435 (422 corpus entries + 13 non-Mermaid multi-format)
   - ASCII: 174 (Mermaid-only)
-- Total tracked: 1045 files
+- Text snapshots: 609 (SVG + ASCII)
+- Total tracked: 1044 files
 - `CorpusMultiFormatSnapshotTests` renders every `(entry, format)` pair with
   format-suffixed snapshot names (`entry-id-format`), honoring `skipSnapshots`.
   Chunked execution with `SNAPSHOT_DIAGRAM_IDS` avoids the known signal-10
@@ -120,4 +121,3 @@ Active work:
   `ajmcclary/swift-snapshot-testing`, branch `fix-swift-6.3-attachable`, while
   pointfreeco PR #1090 awaits an upstream tagged release.
 - `swiftLanguageModes: [.v6]` is enforced; public types are `Sendable`.
-

@@ -282,8 +282,8 @@ final class BlockParserTests: XCTestCase {
         XCTAssertEqual(diagram.blockDatabase["A"]?.classes, ["blue"])
     }
 
-    func testParseThroughMermaidParser() throws {
-        let graph = try MermaidParser.parse("block\n  a b c")
+    func testParseThroughDiagramPipeline() throws {
+        let graph = try DiagramPipeline.parse("block\n  a b c")
         guard case .block = graph.payload else {
             XCTFail("Expected block payload, got \(graph.payload)")
             return
@@ -291,7 +291,7 @@ final class BlockParserTests: XCTestCase {
     }
 
     func testBlockDetectionBeforeFlowchart() throws {
-        let graph = try MermaidParser.parse("block\n  a b c")
+        let graph = try DiagramPipeline.parse("block\n  a b c")
         XCTAssertEqual(graph.type, .block)
     }
 }

@@ -8,7 +8,7 @@ import Foundation
 @Suite("Radar End-to-End")
 struct RadarEndToEndTests {
 
-    @Test("MermaidParser.parse routes radar-beta sources to RadarDiagram")
+    @Test("DiagramPipeline.parse routes radar-beta sources to RadarDiagram")
     func parserRoutesRadarSource() async throws {
         let source = "radar-beta\n  axis A,B,C\n  curve c1{1,2,3}"
         let graph = try await DiagramEngine.parse(source)
@@ -23,24 +23,24 @@ struct RadarEndToEndTests {
         }
     }
 
-    @Test("renderMermaidSVG produces valid SVG for radar")
-    func renderMermaidSVGForRadar() async throws {
+    @Test("renderDiagramSVG produces valid SVG for radar")
+    func renderDiagramSVGForRadar() async throws {
         let source = "radar-beta\n  axis A,B,C\n  curve c1{1,2,3}"
-        let svg = try await renderMermaidSVG(source)
+        let svg = try await renderDiagramSVG(source)
         #expect(svg.hasPrefix("<svg "))
         #expect(svg.contains("radarGraticule"))
         #expect(svg.contains("radarAxisLine"))
         #expect(svg.contains("radarCurve-0"))
     }
 
-    @Test("MermaidParser.parse handles radar-beta: header variant")
+    @Test("DiagramPipeline.parse handles radar-beta: header variant")
     func parserHandlesRadarColon() async throws {
         let source = "radar-beta:\n  axis A\n  curve c1{1}"
         let graph = try await DiagramEngine.parse(source)
         #expect(graph.type == .radar)
     }
 
-    @Test("MermaidParser.parse handles radar-beta : header variant")
+    @Test("DiagramPipeline.parse handles radar-beta : header variant")
     func parserHandlesRadarSpaceColon() async throws {
         let source = "radar-beta :\n  axis A\n  curve c1{1}"
         let graph = try await DiagramEngine.parse(source)
@@ -61,24 +61,24 @@ struct RadarEndToEndTests {
         }
     }
 
-    @Test("renderMermaidSVG with showLegend false suppresses legend")
-    func renderMermaidSVGNoLegend() async throws {
+    @Test("renderDiagramSVG with showLegend false suppresses legend")
+    func renderDiagramSVGNoLegend() async throws {
         let source = "radar-beta\n  axis A,B,C\n  curve c1{1,2,3}\n  showLegend false"
-        let svg = try await renderMermaidSVG(source)
+        let svg = try await renderDiagramSVG(source)
         #expect(!svg.contains("radarLegendBox"))
     }
 
-    @Test("renderMermaidSVG with polygon graticule")
-    func renderMermaidSVGPolygon() async throws {
+    @Test("renderDiagramSVG with polygon graticule")
+    func renderDiagramSVGPolygon() async throws {
         let source = "radar-beta\n  axis A,B,C,D\n  curve c1{1,2,3,4}\n  graticule polygon"
-        let svg = try await renderMermaidSVG(source)
+        let svg = try await renderDiagramSVG(source)
         #expect(svg.contains("<polygon"))
     }
 
-    @Test("renderMermaidSVG includes title and accessibility")
-    func renderMermaidSVGWithMetadata() async throws {
+    @Test("renderDiagramSVG includes title and accessibility")
+    func renderDiagramSVGWithMetadata() async throws {
         let source = "radar-beta\n  title Radar Chart\n  accTitle: Radar Title\n  accDescr: Radar Description\n  axis A\n  curve c1{1}"
-        let svg = try await renderMermaidSVG(source)
+        let svg = try await renderDiagramSVG(source)
         #expect(svg.contains("Radar Chart"))
         #expect(svg.contains("<title>Radar Title</title>"))
     }
@@ -108,7 +108,7 @@ struct RadarEndToEndTests {
     @Test("Empty radar diagram produces valid SVG")
     func emptyRadarSVG() async throws {
         let source = "radar-beta"
-        let svg = try await renderMermaidSVG(source)
+        let svg = try await renderDiagramSVG(source)
         #expect(svg.hasPrefix("<svg "))
         #expect(svg.contains("radarGraticule"))
     }
@@ -141,7 +141,7 @@ struct RadarEndToEndTests {
     func labeledAxesRender() async throws {
         let source = #"radar-beta\n  axis A["Axis A"], B["Axis B"]\n  curve c1{1,2}"#
         let unescaped = source.replacingOccurrences(of: "\\n", with: "\n")
-        let svg = try await renderMermaidSVG(unescaped)
+        let svg = try await renderDiagramSVG(unescaped)
         #expect(svg.contains("Axis A"))
         #expect(svg.contains("Axis B"))
     }
