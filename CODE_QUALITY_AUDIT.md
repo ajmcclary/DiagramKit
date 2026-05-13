@@ -111,7 +111,7 @@ static let _classDiagram = _typed(
 )
 ```
 
-### Finding A3: ASCII rendering is a god object with its own dispatch and parse rules
+### Finding A3: ASCII rendering is a god object with its own dispatch and parse rules — RESOLVED 2026-05-13 (Phase 2, commits da58bae, 02b5561)
 
 Evidence:
 
@@ -148,7 +148,7 @@ enum AsciiRenderRegistry {
 }
 ```
 
-### Finding A4: SVG has both a registry and legacy source-case functions
+### Finding A4: SVG has both a registry and legacy source-case functions — RESOLVED 2026-05-13 (Phase 2, commits a11f5f3..38f5f69)
 
 Evidence:
 
@@ -618,7 +618,35 @@ Suggested sequence:
 4. Convert `_buildElkGraphNoCrossEdges`.
 5. Convert `_buildElkGraph`.
 
-### Priority 2: Make render dispatch descriptor-driven
+### Priority 2: Make render dispatch descriptor-driven — COMPLETE (Phase 2, 2026-05-13)
+
+Closure summary:
+
+- `DiagramPipeline.renderSVG(source:)` no longer falls back to the
+  source-based pipeline — every diagram family in `SVGRenderRegistry.all`
+  carries a `renderPositioned` closure, so the positioned path is the
+  only path.
+- `_renderDiagramSVG` was rewritten to parse + layout + positioned
+  render via `SVGRenderRegistry.render(positioned:)`. Its two callers
+  (`DiagramPipeline.renderSVG(_:options:)` and
+  `DiagramImageRenderer.renderSVGSync(from:idPolicy:)`) reach the
+  canonical SVG path without API changes.
+- The 27 `_render*SvgCase` functions in `src_index.swift`, the
+  source-based `SVGRenderRegistry.render(_:frontmatter:...)`, and the
+  `render` closure field on `SVGRenderDescriptor` were all deleted.
+  `src_index.swift` shrank from 401 → 115 lines.
+- `SVGRenderRegistry.swift` shrank from 457 → 323 lines after the
+  source-based closures were removed; `renderPositioned` is now a
+  required field on each descriptor.
+- `AsciiRenderRegistry` covers 26 families (every one except
+  flowchart/state, which still need class-private helpers in
+  `src_ascii_index.swift`). The 152-line `switch DiagramRegistry.detect(...)`
+  in `renderMermaidASCII` shrank to a 25-line dispatch (special-case
+  flowchart/state, otherwise `AsciiRenderRegistry.render(...)`).
+- `src_ascii_index.swift` shrank from 670 → 492 lines after removing
+  the migrated arms, three orphaned class-private renderer wrappers,
+  and three redundant `_bm*` ASCII delegate wrappers. It now sits
+  below the 500-line file-size warning.
 
 Files:
 
