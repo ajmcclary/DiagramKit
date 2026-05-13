@@ -2,6 +2,36 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
+## Status (last updated 2026-05-13)
+
+| Phase | Status | Closing commit range | Audit findings closed |
+| --- | --- | --- | --- |
+| Phase 1 — ELK dictionary boundary | **COMPLETE** | `625207d..aee8904` | A1, D2, Priority 1 |
+| Phase 2 — Descriptor-driven render dispatch | **COMPLETE** | `a11f5f3..bff4c71` | A3, A4, Priority 2 |
+| Phase 3 — `_typed` + frontmatter runners | **COMPLETE** | `095530a..8e3f626` | A2, D1, Priority 3 |
+| Phase 4 — Error taxonomy + target metadata | **COMPLETE** | `7e189a7..8debf64` | P1, P3, Priority 4 |
+| Phase 5 — Duplication clean-up | **COMPLETE** | `de2f713..a97b4bf` | D3, D4, D5, P2 |
+| Phase 6 — Public legacy port surface | **PENDING** | — | A5, Priority 5 |
+| Phase 7 — Comment hygiene + guard script | **PENDING** | — | P4 (residual) |
+
+**Notes on Phases 1–5 (history for the executor):**
+
+- Phase 1 found that ER, Class, and Requirement layouts each carried their own parallel `_ElkNode`/`_RElkNode` typed structs with full encode/decode chains; per the user's "Convert all three" choice we unified them onto the shared `ElkGraphNode` and deleted ~485 lines of encoder/decoder boilerplate. The closure criterion in the original plan said "rg `[String: Any]` returns only the encoder body" — interpret that scoped to the **builder** files (`src_layout.swift`, `src_class_layout.swift`, `src_er_layout.swift`, `src_requirement_layout.swift`), since `src_elk_instance.swift` still hosts the dict-based layout algorithm internally and is the single boundary by design.
+- Phase 2's premise was outdated: every diagram family already had `renderPositioned` in `SVGRenderRegistry.all`, so the real work was retiring `_renderDiagramSVG` + the 27 source-based `_render*SvgCase` functions and building `AsciiRenderRegistry`. The flowchart/state ASCII arm stays inline (needs class-private helpers).
+- Phase 3 covered 26 of 28 family descriptors with `_typed`; `_flowchart` and `_state` stay direct because they cross-emit (parse one type into another's payload). Frontmatter runners (`SingleSectionBinding`, `ConfigThemeBinding`) cover all 15 paired/single bindings the audit listed.
+- Phase 4 used TDD: 6-test `MalformedSourceErrorTaxonomyTests` were written first and failed with `.notYetImplemented` before the conversion.
+- Phase 5 introduced one SPI protocol (`_PointLike`) to bridge `DiagramPoint`/`ErPoint`/`ClassPoint`/`_PositionedPointPayload` for the bounding helper without forcing a unified Point type.
+
+**Operating preferences durably established during execution (apply for remaining phases):**
+
+- Direct commits on `main` (no worktrees/branches — see `feedback_branching` memory).
+- `swift test --filter <pattern>` only; never run the full corpus inline (signal-10 caveat).
+- The user prefers inline execution with batched edits; check in after each phase closes.
+- When migrating many similar files, batch 5-ish per commit with one snapshot regression at the end.
+- Skip running newly-created snapshots (the test runner auto-records them). Always verify against EXISTING baselines and delete unexpected new files via `git clean -fd Tests/DiagramKitTests/__Snapshots__/`.
+
+---
+
 **Goal:** Resolve every finding in `CODE_QUALITY_AUDIT.md` (2026-05-13) so DiagramKit's abstractions are uniformly adopted, dispatch is descriptor-driven, error taxonomy is correct, and legacy port surfaces are deliberately scoped.
 
 **Architecture:** Work proceeds in seven phases following the audit's five-priority roadmap plus duplication and comment-hygiene clean-up. Phases are independently shippable; each ends in a green `Scripts/bootstrap-smoke-check.sh` and a release-shaped commit on `main`. Phase 1 collapses the ELK dictionary boundary so subsequent layout changes are type-checked; Phase 2 unifies render dispatch so format drift becomes impossible; Phase 3 adopts the helpers the audit shows already exist; Phase 4 fixes the package manifest and error taxonomy; Phase 5 deduplicates the geometry/canvas/export walking helpers; Phase 6 retires the public `original_src_*` surface; Phase 7 sweeps stale "will be introduced" comments.
