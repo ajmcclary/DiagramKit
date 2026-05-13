@@ -11,9 +11,9 @@ extension PositionedGraph {
     public var lookup: DiagramBoundsLookup {
         switch content {
         case .flowchart(let nodes, let edges, let groups):
-            return _flowchartLookup(nodes: nodes, edges: edges, groups: groups)
+            return _flowchartLookup(diagramType: .flowchart, nodes: nodes, edges: edges, groups: groups)
         case .stateDiagram(let nodes, let edges, let groups):
-            return _flowchartLookup(nodes: nodes, edges: edges, groups: groups)
+            return _flowchartLookup(diagramType: .stateDiagram, nodes: nodes, edges: edges, groups: groups)
         case .sequenceDiagram(let actors, let messages, let blocks,
                               let lifelines, let activations, let notes,
                               let boxes, let bottomActors, let rectHighlights,

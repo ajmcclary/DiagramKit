@@ -308,7 +308,9 @@ extension PositionedZenUMLLifeline: DiagramStableElement {
 
 extension PositionedZenUMLMessage: DiagramStableElement {
     public var stableElementID: String {
-        "zenuml-msg:\(StableID.derive(from: "\(fromX)-\(toX)"))"
+        let seed = [label, arrowStyle.rawValue, String(isSelf), String(isReverse), number ?? ""]
+            .joined(separator: "|")
+        return "zenuml-msg:\(StableID.derive(from: seed))"
     }
     public var stableElementBounds: DiagramRect {
         let minX = Swift.min(fromX, toX)
@@ -335,7 +337,9 @@ func _zenumlLookup(_ diagram: PositionedZenUMLDiagram) -> DiagramBoundsLookup {
 
 extension PositionedBar: DiagramStableElement {
     public var stableElementID: String {
-        "xy-bar:\(StableID.derive(from: "\(x)-\(y)-\(width)-\(height)"))"
+        let seed = [String(seriesIndex), label ?? "", String(value)]
+            .joined(separator: "|")
+        return "xy-bar:\(StableID.derive(from: seed))"
     }
     public var stableElementBounds: DiagramRect {
         DiagramRect(x: x, y: y, width: width, height: height)
@@ -345,7 +349,7 @@ extension PositionedBar: DiagramStableElement {
 
 extension PositionedLine: DiagramStableElement {
     public var stableElementID: String {
-        "xy-line:\(StableID.derive(from: points.map { "\($0.x),\($0.y)" }.joined(separator: ";")))"
+        "xy-line:\(seriesIndex):\(colorIndex)"
     }
     public var stableElementBounds: DiagramRect {
         guard let first = points.first else { return .zero }

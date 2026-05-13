@@ -380,18 +380,21 @@ public struct DiagramBoundsLookup: Sendable {
     /// or nil if no element contains the point.
     ///
     /// When multiple elements overlap at the given point, the element with
-    /// the highest draw order wins. When draw order ties, the element with
-    /// the smallest area wins. Element kind is factored into draw order:
-    /// boundaries draw first, actors draw last.
+    /// the highest element-kind priority wins. When kind ties, the highest
+    /// draw order wins. When draw order also ties, the element with the
+    /// smallest area wins.
     public func element(at point: DiagramPoint) -> DiagramSelection? {
         var best: (entry: Entry, area: Double)? = nil
         for entry in entries {
             guard entry.bounds.contains(point) else { continue }
             let area = entry.bounds.width * entry.bounds.height
             if let current = best {
-                // Higher drawOrder wins; tiebreak by smaller area.
-                if entry.drawOrder < current.entry.drawOrder { continue }
-                if entry.drawOrder == current.entry.drawOrder && area >= current.area { continue }
+                // Higher kind priority wins; then draw order; then smaller area.
+                if entry.kind < current.entry.kind { continue }
+                if entry.kind == current.entry.kind {
+                    if entry.drawOrder < current.entry.drawOrder { continue }
+                    if entry.drawOrder == current.entry.drawOrder && area >= current.area { continue }
+                }
             }
             best = (entry, area)
         }
@@ -487,9 +490,11 @@ public struct DiagramBoundsLookup: Sendable {
 
 ### 3.5 PositionedGraph Integration
 
-The lookup is built from `PositionedGraph` and stored as a lazy-access
-property. The factory method dispatches on `PositionedContent` to extract
-bounded elements per family and delegates to `DiagramBoundsLookup.build`.
+The lookup is built from `PositionedGraph` as an eager computed property. The
+factory method dispatches on `PositionedContent` to extract bounded elements per
+family and delegates to `DiagramBoundsLookup.build`. Construction is cheap for
+the element counts DiagramKit handles, and eager computation avoids mutable cache
+state in a `Sendable` value type.
 
 **Where**: extension on `PositionedGraph` in
 `Sources/DiagramKitModel/DiagramBoundsLookup+PositionedGraph.swift`
@@ -499,29 +504,14 @@ bounded elements per family and delegates to `DiagramBoundsLookup.build`.
 
 extension PositionedGraph {
     /// A spatial index over all bounded elements in this positioned graph.
-    ///
-    /// Cached after first access. The lookup is derived from the positioned
-    /// content and survives as long as the `PositionedGraph` instance.
+    /// Built eagerly; element counts are small enough that construction
+    /// cost is negligible.
     public var lookup: DiagramBoundsLookup {
-        mutating get {
-            if let cached = _lookupCache { return cached }
-            let built = _buildLookup()
-            _lookupCache = built
-            return built
-        }
-    }
-
-    private var _lookupCache: DiagramBoundsLookup? {
-        get { _lookupStorage.value }
-        nonmutating set { _lookupStorage.value = newValue }
-    }
-
-    private func _buildLookup() -> DiagramBoundsLookup {
         switch content {
         case .flowchart(let nodes, let edges, let groups):
-            return _flowchartLookup(nodes: nodes, edges: edges, groups: groups)
+            return _flowchartLookup(diagramType: .flowchart, nodes: nodes, edges: edges, groups: groups)
         case .stateDiagram(let nodes, let edges, let groups):
-            return _flowchartLookup(nodes: nodes, edges: edges, groups: groups)
+            return _flowchartLookup(diagramType: .stateDiagram, nodes: nodes, edges: edges, groups: groups)
         case .sequenceDiagram(let actors, let messages, let blocks,
                               let lifelines, let activations, let notes,
                               let boxes, let bottomActors, let rectHighlights,
@@ -539,42 +529,21 @@ extension PositionedGraph {
             return _erLookup(entities: entities, relationships: relationships)
         case .c4(let c4):
             return _c4Lookup(c4)
-        // Long-tail families: return empty lookup.
-        // Each family gets a dedicated function in Slice 8G.
-        default:
-            return DiagramBoundsLookup.empty(diagramType: diagram.type)
+        // Abbreviated: long-tail families each dispatch to a dedicated
+        // Slice 8G builder.
+        case .xyChart(let chart):
+            return _xyChartLookup(chart)
+        // ...
+        case .zenuml(let zenuml):
+            return _zenumlLookup(zenuml)
         }
     }
 }
 ```
 
-The `_lookupStorage` is an internal associated-object-style storage:
-```swift
-// Inside PositionedGraph or a helper:
-private var _lookupStorage: _LookupBox {
-    // Use a class-backed box for mutating access in a struct.
-    ...
-}
-```
-
-Actually, since `PositionedGraph` is `Sendable` and a struct, we need a
-non-mutating cache. The simplest approach: make `lookup` a computed property
-that builds eagerly (not lazily), or use a `_LookupBox` class-holder. The
-eager approach is simpler and safe — building the lookup from a few hundred
-elements is sub-millisecond.
-
-```swift
-extension PositionedGraph {
-    /// A spatial index over all bounded elements in this positioned graph.
-    /// Built eagerly; element counts are small enough that construction
-    /// cost is negligible.
-    public var lookup: DiagramBoundsLookup {
-        _buildLookup()
-    }
-}
-```
-
-This avoids the mutating/caching problem entirely.
+State diagrams intentionally pass `.stateDiagram` into the shared flowchart
+builder. Flowchart and state positioned payloads are structurally identical, but
+selections must preserve the original family type.
 
 **Estimated**: ~100 lines across the factory method. Family-specific builders
 are in their respective slice files.
@@ -606,7 +575,7 @@ property that provides a deterministic fallback.
 **Where**: extension in `DiagramKitModel`:
 
 ```swift
-// Sources/DiagramKitModel/DiagramSelection+Flowchart.swift
+// Sources/DiagramKitModel/DiagramBoundsLookup+Flowchart.swift
 
 extension PositionedNode: DiagramStableElement {
     public var stableElementID: String { "node:\(id)" }
@@ -624,7 +593,7 @@ extension PositionedEdge {
     /// repeated edges with identical source+target+label; that ordinal is
     /// appended by the builder, not this property.
     public var guaranteedEdgeID: String {
-        if let edgeId, !edgeId.isEmpty { return edgeId }
+        if let edgeId, !edgeId.isEmpty { return "edge:\(edgeId)" }
         let seed = [source, target, label ?? ""].joined(separator: "→")
         return "edge:\(StableID.derive(from: seed))"
     }
@@ -682,6 +651,7 @@ extension PositionedGroup {
 // Sources/DiagramKitModel/DiagramBoundsLookup+Flowchart.swift
 
 private func _flowchartLookup(
+    diagramType: DiagramType,
     nodes: [PositionedNode],
     edges: [PositionedEdge],
     groups: [PositionedGroup]
@@ -689,36 +659,14 @@ private func _flowchartLookup(
     typealias E = DiagramBoundsLookup.ElementKind
     var elements: [(any DiagramStableElement, kind: E)] = []
 
-    // Track edge ID counts to disambiguate duplicates.
-    var edgeIDCounts: [String: Int] = [:]
-
-    for node in nodes {
-        elements.append((node, .node))
-    }
-    for edge in edges {
-        let baseID = edge.guaranteedEdgeID
-        let count = edgeIDCounts[baseID, default: 0]
-        edgeIDCounts[baseID] = count + 1
-        let disambiguatedID = count > 0 ? "\(baseID)/\(count)" : baseID
-        elements.append((_EdgeWrapper(edge: edge, overrideID: disambiguatedID), .edge))
-    }
+    _disambiguateIDs(nodes, kind: .node, into: &elements)
+    _disambiguateIDs(edges, kind: .edge, into: &elements)
     for group in groups {
         for el in group.allGroupElements() {
             elements.append((el, .group))
         }
     }
-    return DiagramBoundsLookup.build(diagramType: .flowchart, elements: elements)
-}
-
-/// Wraps a PositionedEdge with an override stable ID for duplicate
-/// disambiguation. The override is purely source-order-derived; no layout
-/// geometry is included.
-private struct _EdgeWrapper: DiagramStableElement {
-    let edge: PositionedEdge
-    let overrideID: String
-    var stableElementID: String { overrideID }
-    var stableElementBounds: DiagramRect { edge.stableElementBounds }
-    var stableElementLabel: String? { edge.stableElementLabel }
+    return DiagramBoundsLookup.build(diagramType: diagramType, elements: elements)
 }
 ```
 
@@ -746,7 +694,7 @@ Sequence positioned types with identity:
 ### 5.2 Stable ID Design
 
 ```swift
-// Sources/DiagramKitModel/DiagramSelection+Sequence.swift
+// Sources/DiagramKitModel/DiagramBoundsLookup+Sequence.swift
 
 extension PositionedSequenceActor: DiagramStableElement {
     public var stableElementID: String { "actor:\(id)" }
@@ -934,7 +882,7 @@ private struct _IDOverrideWrapper<T: DiagramStableElement>: DiagramStableElement
 ### 6.1 Stable ID Design
 
 ```swift
-// Sources/DiagramKitModel/DiagramSelection+Class.swift
+// Sources/DiagramKitModel/DiagramBoundsLookup+Class.swift
 
 extension PositionedClassNode: DiagramStableElement {
     public var stableElementID: String { "class:\(id)" }
@@ -1045,7 +993,7 @@ private func _classLookup(
 ### 7.1 Stable ID Design
 
 ```swift
-// Sources/DiagramKitModel/DiagramSelection+ER.swift
+// Sources/DiagramKitModel/DiagramBoundsLookup+ER.swift
 
 extension PositionedErEntity: DiagramStableElement {
     public var stableElementID: String { "entity:\(nodeId)" }
@@ -1132,7 +1080,7 @@ C4 positioned types:
 ### 8.2 Stable ID Design
 
 ```swift
-// Sources/DiagramKitModel/DiagramSelection+C4.swift
+// Sources/DiagramKitModel/DiagramBoundsLookup+C4.swift
 
 extension PositionedC4Shape: DiagramStableElement {
     public var stableElementID: String { "c4-shape:\(alias)" }
@@ -1222,7 +1170,7 @@ The remaining 23 diagram families produce positioned payloads. Most have
 element types with string IDs already. The work per family is:
 
 1. Conform each positioned element type to `DiagramStableElement`.
-2. Add a lookup builder case in `PositionedGraph._buildLookup()`.
+2. Add a lookup builder case in the `PositionedGraph.lookup` switch.
 
 ### 9.1 Family Inventory
 
@@ -1253,7 +1201,8 @@ element types with string IDs already. The work per family is:
 
 ### 9.2 Implementation Strategy
 
-For each family, create a `DiagramSelection+<Family>.swift` file containing:
+For each family group, create or extend a `DiagramBoundsLookup+<Family>.swift`
+file containing:
 
 1. `DiagramStableElement` conformances for each positioned type.
 2. ID synthesis for types lacking a string `id` field.
@@ -1266,8 +1215,11 @@ For each family, create a `DiagramSelection+<Family>.swift` file containing:
 - **Tier 3** (families needing synthetic IDs — medium effort): xyChart, pie, quadrantChart, radar, treemap, venn, ishikawa, treeView, eventModeling, wardleyBeta, packet
 - **Tier 4** (diagrams with minimal positioned geometry): journey
 
-Each family file is ~30-80 lines. The lookup builder dispatch grows by one
-`case` per family in `_buildLookup()`.
+The implementation grouped long-tail conformances into one
+`DiagramBoundsLookup+LongTail.swift` file to keep the dispatch easy to audit.
+That file is above the 500-line warning threshold but below the 1000-line error
+threshold. Future long-tail expansion should split it by family group before it
+approaches the error threshold.
 
 **Estimated total for 8G**: ~1,200 lines across ~25 files. No file over 150 lines.
 
@@ -1373,6 +1325,12 @@ Tests/DiagramKitTests/Interactivity/
 
 **Total estimated tests**: ~175 across 12 files.
 
+Current post-review coverage starts this matrix with
+`DiagramBoundsLookupRegressionTests`: state selections preserve
+`.stateDiagram`, element-kind priority beats append order, XY chart IDs survive
+size-driven relayout, and ZenUML message IDs ignore layout coordinates. The
+larger per-family suite remains deferred.
+
 ### 11.3 Regression Safety
 
 Lookup construction does not modify any existing types' stored properties.
@@ -1410,9 +1368,10 @@ git diff --check
 
 ### 12.3 File-Size Constraint
 
-No new `.swift` file exceeds 500 lines. Family conformance files are split by
-diagram type. `DiagramBoundsLookup.swift` is ~120 lines. `DiagramGeometry.swift`
-is ~120 lines.
+No new `.swift` file exceeds the 1000-line error threshold. The long-tail
+conformance file is a known 500-line warning because the implementation chose a
+single audited file instead of ~20 tiny family files. Do not add more long-tail
+coverage there without splitting it.
 
 ### 12.4 Sendable Annotation
 
@@ -1480,9 +1439,10 @@ Slice 8G (long tail) follows.
 | 8G    | Long tail (23 families) | ~1,200 | ~25 | 8A |
 | **Total** | | **~2,325** | **~175** | |
 
-**Estimated total source**: ~2,325 lines across ~40 new files. All files
-under 500 lines. No existing files materially modified beyond additive
-extensions.
+**Estimated total source**: ~2,325 lines across ~40 new files. The implemented
+source landed closer to ~1,538 lines by grouping the long-tail conformances into
+one known warning file. Future additions should split that file before it grows
+toward the 1000-line error threshold.
 
 **Slice order is 8A first**, then 8B-8F in parallel (they touch disjoint
 families), then 8G. A single implementer working sequentially should budget
@@ -1503,8 +1463,9 @@ adapted to DiagramKit's typed `PositionedContent` model.*
 
 ### 14.1 Status: COMPLETE
 
-All seven slices implemented and building. No existing files materially
-modified — all changes are additive extensions or new files.
+All seven slices implemented and building. The implementation is mostly
+additive extensions and new files; the post-review remediation below changes
+lookup behavior where the first cut exposed incorrect selection semantics.
 
 ### 14.2 Files Created
 
@@ -1513,27 +1474,33 @@ modified — all changes are additive extensions or new files.
 | `Sources/DiagramKitCommon/DiagramGeometry.swift` | DiagramKitCommon | 133 | 8A |
 | `Sources/DiagramKitModel/DiagramStableElement.swift` | DiagramKitModel | 25 | 8A |
 | `Sources/DiagramKitModel/DiagramSelection.swift` | DiagramKitModel | 27 | 8A |
-| `Sources/DiagramKitModel/DiagramBoundsLookup.swift` | DiagramKitModel | 174 | 8A |
-| `Sources/DiagramKitModel/DiagramBoundsLookup+PositionedGraph.swift` | DiagramKitModel | 130 | 8A |
-| `Sources/DiagramKitModel/DiagramBoundsLookup+Flowchart.swift` | DiagramKitModel | 91 | 8B |
+| `Sources/DiagramKitModel/DiagramBoundsLookup.swift` | DiagramKitModel | 177 | 8A |
+| `Sources/DiagramKitModel/DiagramBoundsLookup+PositionedGraph.swift` | DiagramKitModel | 124 | 8A |
+| `Sources/DiagramKitModel/DiagramBoundsLookup+Flowchart.swift` | DiagramKitModel | 92 | 8B |
 | `Sources/DiagramKitModel/DiagramBoundsLookup+Sequence.swift` | DiagramKitModel | 160 | 8C |
 | `Sources/DiagramKitModel/DiagramBoundsLookup+Class.swift` | DiagramKitModel | 94 | 8D |
 | `Sources/DiagramKitModel/DiagramBoundsLookup+ER.swift` | DiagramKitModel | 58 | 8E |
 | `Sources/DiagramKitModel/DiagramBoundsLookup+C4.swift` | DiagramKitModel | 78 | 8F |
-| `Sources/DiagramKitModel/DiagramBoundsLookup+LongTail.swift` | DiagramKitModel | 565 | 8G |
-| **Total** | | **~1,535** | |
+| `Sources/DiagramKitModel/DiagramBoundsLookup+LongTail.swift` | DiagramKitModel | 569 | 8G |
+| **Total source** | | **~1,538** | |
 
-### 14.3 Deviations from Plan
+### 14.3 Tests Created
+
+| File | Tests | Purpose |
+|------|-------|---------|
+| `Tests/DiagramKitTests/Interactivity/DiagramBoundsLookupRegressionTests.swift` | 4 | Locks down post-review fixes for state diagram selection type, hit-test kind priority, XY chart ID stability, and ZenUML message ID stability. |
+
+### 14.4 Deviations from Plan
 
 - **File naming**: Plan used `DiagramSelection+<Family>.swift`; implementation
   uses `DiagramBoundsLookup+<Family>.swift` because each file contains both
   conformances and the builder function — the builder is the primary artifact.
 - **Long tail**: Plan called for ~25 individual ~30-80 line files. Implemented
-  as a single 565-line file (`DiagramBoundsLookup+LongTail.swift`) organized
+  as a single 569-line file (`DiagramBoundsLookup+LongTail.swift`) organized
   by tier, which is easier to navigate and keeps the file count manageable.
   The file is under the 1000-line error threshold.
-- **Eager construction**: Plan explored lazy caching via `_lookupCache` then
-  settled on eager. Implementation uses the eager path — `lookup` is a
+- **Eager construction**: An early draft explored caching, then settled on
+  eager construction. Implementation uses the eager path — `lookup` is a
   computed property with no caching.
 - **C4 CGPoint bridging**: Plan proposed `DiagramPoint` migration for C4
   relationships. Implementation uses `#if canImport(CoreGraphics)` guards
@@ -1546,7 +1513,17 @@ modified — all changes are additive extensions or new files.
   `DiagramBoundsLookup+PositionedGraph.swift`, plus a `_BottomActorWrapper`
   in the sequence file where the distinct-prefix pattern is needed.
 
-### 14.4 Families Returning Empty Lookups
+### 14.5 Post-Review Remediation
+
+- State diagrams now pass `.stateDiagram` into the shared flowchart/state lookup
+  builder, so hit-test selections are typed correctly.
+- Hit-testing now applies `ElementKind` priority before draw order and area,
+  which keeps higher-priority elements such as nodes above containing groups.
+- XY chart bars and lines no longer derive stable IDs from rendered
+  coordinates.
+- ZenUML message IDs no longer derive from `fromX`/`toX` layout coordinates.
+
+### 14.6 Families Returning Empty Lookups
 
 The following families have positioned payloads that are complex or lack
 obvious hit-testable elements. They return `DiagramBoundsLookup.empty()`:
@@ -1557,22 +1534,24 @@ obvious hit-testable elements. They return `DiagramBoundsLookup.empty()`:
 
 These can be enhanced in future slices without API changes.
 
-### 14.5 Verification Gates Passed
+### 14.7 Verification Gates Passed
 
 ```bash
-swift build                       # passes
-swift build --build-tests          # passes
-Scripts/check-file-sizes.sh        # warnings only; no new errors
-Scripts/check-sendable-annotations.sh  # clean
+swift package dump-package                         # passes
+swift build --build-tests                         # passes
+swift test --filter DiagramBoundsLookupRegressionTests  # 4 tests, 0 failures
+Scripts/check-file-sizes.sh                       # warnings only; no errors
+Scripts/check-sendable-annotations.sh             # clean
+Scripts/strict-concurrency-check.sh               # clean
+git diff --check                                  # clean
 ```
 
 No snapshot baselines affected. No parsing, layout, or rendering code changes.
 
-### 14.6 Deferred to Phase 9 / Phase 10
+### 14.8 Deferred to Phase 9 / Phase 10
 
 Per §13: editor model, UI integration, selection-highlight rendering,
 per-element styling, `CGPoint` migration for positioned types, and
-`PreparedDiagram.bounds` migration remain deferred. Tests (~175 planned)
-not yet written — the test directory structure is stubbed in the plan
-but implementation was deferred per the "build-first, test-later" cadence
-of this delivery.
+`PreparedDiagram.bounds` migration remain deferred. The full per-family test
+matrix (~175 planned tests) is still future work; the current regression suite
+covers the issues found in review.

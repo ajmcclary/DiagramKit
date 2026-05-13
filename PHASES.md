@@ -2,16 +2,14 @@
 
 This is the active execution roadmap. `ANALYSIS.md` is the long-form rationale.
 Detailed phase records live in `PHASE-0.md`, `PHASE-1.md`, `PHASE-2.md`,
-`PHASE-3.md`, `PHASE-4.md`, `PHASE-5.md`, and `PHASE-6.md`.
-`PHASE-7.md` tracks the exporter protocol and sparse source-generation work.
+`PHASE-3.md`, `PHASE-4.md`, `PHASE-5.md`, `PHASE-6.md`, `PHASE-7.md`, and
+`PHASE-8.md`.
 
 ## Current State
 
-Phases 0, 1, 2, 3, 4, and 5 are implemented and committed locally. Phase 6A
-(PlantUML sequence diagrams) is complete; the remaining Phase 6 work is the
-planned PlantUML family slices: class, state/activity, mindmap+gantt, and
-C4-flavored PlantUML. Phase 7, the exporter protocol, is implemented locally
-with post-review remediation in this worktree.
+Phases 0, 1, 2, 3, 4, 5, 6A, 7, and 8 are implemented. The remaining Phase 6
+work is the planned PlantUML family slices: class, state/activity,
+mindmap+gantt, and C4-flavored PlantUML.
 
 What is true now:
 
@@ -47,6 +45,25 @@ What is true now:
   flowchart, sequence, class, ER, and C4; D2 exports flowchart; Structurizr
   exports C4; PlantUML exports sequence only until later PlantUML importer
   slices land.
+- Phase 8 interactivity primitives are in place. `DiagramKitCommon` owns
+  portable `DiagramPoint`, `DiagramSize`, and `DiagramRect`; `DiagramKitModel`
+  owns `DiagramStableElement`, `DiagramSelection`, and `DiagramBoundsLookup`.
+- `PositionedGraph.lookup` is an eager computed lookup derived from positioned
+  content. It does not cache and does not change `PreparedDiagram`.
+- Lookup coverage includes the priority families plus broad long-tail coverage:
+  flowchart, state, sequence, class, ER, C4, xyChart, journey, gantt,
+  quadrantChart, requirement, gitGraph, mindmap, timeline, sankey, block,
+  packet, kanban, architecture, treemap, ishikawa, treeView, eventModeling,
+  wardleyBeta, and ZenUML. Pie, radar, and venn currently return empty lookups
+  because their positioned geometry needs a deliberate hit-area design.
+- Hit-testing precedence is explicit: highest element kind priority wins, then
+  draw order, then smallest area. This keeps nodes above containing groups even
+  when builders append groups later.
+- Flowchart and state diagrams share positioned payloads, but lookup selections
+  preserve the correct `DiagramType` (`.flowchart` vs `.stateDiagram`).
+- Stable IDs must remain source/model-derived, not layout-coordinate-derived.
+  Current regression coverage locks this down for the reviewed XY chart and
+  ZenUML cases.
 - `MermaidImporter` remains the broad fallback importer and must stay last in
   the default registry.
 - `DiagramPipeline.defaultRegistry` is currently ordered as
@@ -119,22 +136,26 @@ What is true now:
 - Expect snapshot drift during the phased import and renderer-improvement work.
   Review diffs for mechanical regressions now, but defer baseline recording to
   the final snapshot pass unless a phase explicitly says otherwise.
-- Keep new and touched files below the 500-line warning threshold. Split tests
-  by concern before they become new file-size warnings.
+- Keep new and touched files below the 500-line warning threshold when
+  practical. Known warning files must stay below the 1000-line error threshold,
+  and future additions should split them before they grow further.
 
 ## Approach Going Forward
 
-1. Treat Phase 7 as the export boundary baseline. Future source-generation work
-   extends existing exporters and tests rather than inventing another dispatch
-   path.
-2. Proceed to Phase 8 interactivity primitives on top of
-   `DiagramDocument -> PositionedGraph -> PreparedDiagram`.
+1. Treat Phase 8 as the stable identity/geometry baseline. Future interaction
+   work should build on `DiagramSelection` and `DiagramBoundsLookup`, not new
+   ad hoc hit-testing surfaces.
+2. Backfill interactivity tests toward the full planned suite before adding an
+   editor model. The immediate guardrail is focused regression coverage for
+   diagram type preservation, hit-test priority, and layout-independent IDs.
 3. Continue PlantUML 6B-6E as independent importer/exporter expansion tracks.
    A PlantUML family becomes publicly exportable only after the same-format
    importer can parse it.
-4. Keep Graphviz/DOT export and long-tail Mermaid export as later exporter
-   extensions, after the Phase 8 identity/geometry primitives are settled.
-5. Save real multi-format corpus entries, snapshot recording, and accumulated
+4. Treat Phase 9 as optional consumer-driven work: selection state, undo, and
+   typed mutations should land only after there is a concrete editor need.
+5. Keep Graphviz/DOT export and long-tail Mermaid export as later exporter
+   extensions that reuse the Phase 7 export boundary.
+6. Save real multi-format corpus entries, snapshot recording, and accumulated
    visual drift cleanup for the final release/baseline pass.
 
 ## Verification Policy
@@ -163,8 +184,8 @@ Snapshot policy:
 
 - Run targeted `CorpusSnapshotTests` subsets when a change could affect parsing,
   layout, or rendering.
-- Do not record snapshots during Phase 1-7 unless the phase explicitly includes
-  an intentional rendering-baseline update.
+- Do not record snapshots during the phased import/export/interactivity work
+  unless the phase explicitly includes an intentional rendering-baseline update.
 - Treat crashes, 0x0 layout regressions, missing outputs, importer
   misrouting, and unexpected snapshot deletions as blockers.
 - Treat known visual improvements as reviewed drift and save baseline recording
@@ -437,7 +458,7 @@ Tests:
 
 Goal: add source generation after multiple importers prove the canonical model.
 
-Status: implemented locally with post-review remediation in this worktree.
+Status: complete and committed locally.
 
 Completed:
 
@@ -481,17 +502,32 @@ Deferred:
 
 Goal: expose stable identity and geometry without building a full editor.
 
-Approach:
+Status: implemented, with focused post-review remediation for state-diagram
+selection typing, hit-test precedence, and layout-independent long-tail IDs.
 
-- Add stable semantic IDs for nodes, edges, groups, and diagram-specific items.
-- Add `DiagramSelection`.
-- Add `DiagramBoundsLookup`.
-- Attach lookup data to `PreparedDiagram`.
-- Consider portable geometry types in `DiagramKitCommon` if `CGRect` would leak
-  Apple-only types into format-neutral surfaces.
+Completed:
 
-Start with flowchart, state, class, sequence, and ER, then fill in the long
-tail.
+- Added portable geometry types in `DiagramKitCommon`.
+- Added `DiagramStableElement`, `DiagramSelection`, and `DiagramBoundsLookup`
+  in `DiagramKitModel`.
+- Added eager `PositionedGraph.lookup` dispatch over positioned content.
+- Covered flowchart/state, sequence, class, ER, C4, and most long-tail
+  positioned families.
+- Kept `PreparedDiagram` unchanged; consumers access
+  `prepared.positioned.lookup`.
+- Left pie, radar, and venn as empty lookups pending a more precise hit-area
+  design.
+- Added focused regression coverage for the post-review fixes.
+
+Deferred:
+
+- Full interactivity test matrix from `PHASE-8.md`.
+- Better hit areas for pie/radar/venn.
+- Splitting `DiagramBoundsLookup+LongTail.swift` if future additions push it
+  toward the 1000-line file-size error threshold.
+- Editor model, undo, typed mutations, and selection-highlight rendering.
+
+Closure evidence lives in `PHASE-8.md`.
 
 ## Phase 9: Optional Interactive Model
 

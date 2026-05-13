@@ -73,6 +73,7 @@ extension PositionedGroup: DiagramStableElement {
 // MARK: - Flowchart lookup builder
 
 func _flowchartLookup(
+    diagramType: DiagramType,
     nodes: [PositionedNode],
     edges: [PositionedEdge],
     groups: [PositionedGroup]
@@ -87,5 +88,5 @@ func _flowchartLookup(
             elements.append((el, .group))
         }
     }
-    return DiagramBoundsLookup.build(diagramType: .flowchart, elements: elements)
+    return DiagramBoundsLookup.build(diagramType: diagramType, elements: elements)
 }

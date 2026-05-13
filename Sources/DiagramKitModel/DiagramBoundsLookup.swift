@@ -71,18 +71,21 @@ public struct DiagramBoundsLookup: Sendable {
     /// or nil if no element contains the point.
     ///
     /// When multiple elements overlap at the given point, the element with
-    /// the highest draw order wins. When draw order ties, the element with
-    /// the smallest area wins. Element kind is factored into draw order:
-    /// boundaries draw first, actors draw last.
+    /// the highest element-kind priority wins. When kind ties, the highest
+    /// draw order wins. When draw order also ties, the element with the
+    /// smallest area wins.
     public func element(at point: DiagramPoint) -> DiagramSelection? {
         var best: (entry: Entry, area: Double)? = nil
         for entry in entries {
             guard entry.bounds.contains(point) else { continue }
             let area = entry.bounds.width * entry.bounds.height
             if let current = best {
-                // Higher drawOrder wins; tiebreak by smaller area.
-                if entry.drawOrder < current.entry.drawOrder { continue }
-                if entry.drawOrder == current.entry.drawOrder && area >= current.area { continue }
+                // Higher kind priority wins; then draw order; then smaller area.
+                if entry.kind < current.entry.kind { continue }
+                if entry.kind == current.entry.kind {
+                    if entry.drawOrder < current.entry.drawOrder { continue }
+                    if entry.drawOrder == current.entry.drawOrder && area >= current.area { continue }
+                }
             }
             best = (entry, area)
         }
