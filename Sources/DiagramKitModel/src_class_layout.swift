@@ -21,28 +21,6 @@ public enum CLS {
 
 private typealias ClassSizeMap = [String: (width: Double, height: Double, headerHeight: Double, attrHeight: Double, methodHeight: Double)]
 
-private func _asDouble(_ value: Any?) -> Double? {
-    if let v = value as? Double { return v }
-    if let v = value as? Int { return Double(v) }
-    if let v = value as? Float { return Double(v) }
-    if let v = value as? NSNumber { return v.doubleValue }
-    return nil
-}
-
-private func _asString(_ value: Any?) -> String? {
-    value as? String
-}
-
-private func _asDict(_ value: Any?) -> [String: Any]? {
-    value as? [String: Any]
-}
-
-private func _asDictArray(_ value: Any?) -> [[String: Any]] {
-    if let direct = value as? [[String: Any]] { return direct }
-    if let anyArray = value as? [Any] { return anyArray.compactMap { $0 as? [String: Any] } }
-    return []
-}
-
 private func elkhDirection(from mermaidDir: String) -> String {
     switch mermaidDir.uppercased() {
     case "BT": return "UP"
@@ -68,14 +46,15 @@ private func _layoutClassDiagramSyncEntry(
     }
 
     let built = buildClassElkGraph(diagram, options)
-    let result = try layoutEngineSync(built.elkGraph)
+    let rawResult = try layoutEngineSync(built.elkGraph.toDictionary())
+    let result = ElkGraphNode(from: rawResult)
     return extractClassLayout(result, diagram, built.classSizes)
 }
 
 private func buildClassElkGraph(
     _ diagram: ClassDiagram,
     _ options: RenderOptions
-) -> (elkGraph: LayoutNode, classSizes: ClassSizeMap) {
+) -> (elkGraph: ElkGraphNode, classSizes: ClassSizeMap) {
     _ = options
 
     let config = diagram.config
@@ -132,18 +111,13 @@ private func buildClassElkGraph(
         )
     }
 
-    var children: [[String: Any]] = []
+    var children: [ElkGraphNode] = []
     for cls in diagram.classes {
         guard let size = classSizes[cls.id] else { continue }
-        children.append([
-            "id": cls.id,
-            "width": size.width,
-            "height": size.height,
-        ])
+        children.append(ElkGraphNode(id: cls.id, width: size.width, height: size.height))
     }
 
     // Add note nodes
-    var noteBoxes: [[String: Any]] = []
     for note in diagram.notes {
         let textMetrics = original_src_text_metrics.measureMultilineText(
             note.text,
@@ -152,67 +126,56 @@ private func buildClassElkGraph(
         )
         let noteW = max(CLS.minWidth * 0.6, textMetrics.width + 20)
         let noteH = max(40, textMetrics.height + 20)
-        noteBoxes.append([
-            "id": note.id,
-            "width": noteW,
-            "height": noteH,
-        ])
+        children.append(ElkGraphNode(id: note.id, width: noteW, height: noteH))
     }
-    children.append(contentsOf: noteBoxes)
 
     // Add interface nodes (for lollipops)
-    var interfaceBoxes: [[String: Any]] = []
     for iface in diagram.interfaces {
-        interfaceBoxes.append([
-            "id": iface.id,
-            "width": 1,
-            "height": 1,
-        ])
+        children.append(ElkGraphNode(id: iface.id, width: 1, height: 1))
     }
-    children.append(contentsOf: interfaceBoxes)
 
-    var edges: [[String: Any]] = []
+    var edges: [ElkGraphEdge] = []
     for (i, rel) in diagram.relationships.enumerated() {
-        var edge: [String: Any] = [
-            "id": "e\(i)",
-            "sources": [rel.id1],
-            "targets": [rel.id2],
-        ]
-
+        var labels: [ElkGraphLabel] = []
         if !rel.title.isEmpty {
             let metrics = original_src_text_metrics.measureMultilineText(
                 rel.title,
                 fontSize: original_src_styles.FONT_SIZES.edgeLabel,
                 fontWeight: original_src_styles.FONT_WEIGHTS.edgeLabel
             )
-            edge["labels"] = [[
-                "text": rel.title,
-                "width": metrics.width + 8,
-                "height": metrics.height + 6,
-            ]]
+            labels.append(ElkGraphLabel(
+                text: rel.title,
+                width: metrics.width + 8,
+                height: metrics.height + 6
+            ))
         }
-
-        edges.append(edge)
+        edges.append(ElkGraphEdge(
+            id: "e\(i)",
+            sources: [rel.id1],
+            targets: [rel.id2],
+            labels: labels
+        ))
     }
 
     // Add note-to-class edges
     for note in diagram.notes {
         guard let classId = note.class_ else { continue }
-        // Check if the class exists
         guard diagram.classMap[classId] != nil else { continue }
-        edges.append([
-            "id": "note-edge-\(note.id)",
-            "sources": [note.id],
-            "targets": [classId],
-        ])
+        edges.append(ElkGraphEdge(
+            id: "note-edge-\(note.id)",
+            sources: [note.id],
+            targets: [classId]
+        ))
     }
 
     let elkDir = elkhDirection(from: diagram.direction)
     let padding = CLS.padding
 
-    let elkGraph: LayoutNode = [
-        "id": "root",
-        "layoutOptions": [
+    let elkGraph = ElkGraphNode(
+        id: "root",
+        children: children,
+        edges: edges,
+        layoutOptions: [
             "elk.algorithm": "layered",
             "elk.direction": elkDir,
             "elk.spacing.nodeNode": String(CLS.nodeSpacing),
@@ -220,25 +183,23 @@ private func buildClassElkGraph(
             "elk.padding": "[top=\(padding),left=\(padding),bottom=\(padding),right=\(padding)]",
             "elk.edgeRouting": "ORTHOGONAL",
             "elk.edgeLabels.placement": "CENTER",
-            "elk.layered.edgeLabels.sideSelection": "ALWAYS_DOWN",
-        ],
-        "children": children,
-        "edges": edges,
-    ]
+            "elk.layered.edgeLabels.sideSelection": "ALWAYS_DOWN"
+        ]
+    )
 
     return (elkGraph, classSizes)
 }
 
 private func extractClassLayout(
-    _ result: LayoutNode,
+    _ result: ElkGraphNode,
     _ diagram: ClassDiagram,
     _ classSizes: ClassSizeMap
 ) -> PositionedClassDiagram {
     let classLookup = Dictionary(diagram.classes.map { ($0.id, $0) }, uniquingKeysWith: { _, last in last })
 
     var positionedClasses: [PositionedClassNode] = []
-    for child in _asDictArray(result["children"]) {
-        guard let id = _asString(child["id"]), let cls = classLookup[id], let size = classSizes[id] else { continue }
+    for child in result.children {
+        guard let cls = classLookup[child.id], let size = classSizes[child.id] else { continue }
 
         positionedClasses.append(
             PositionedClassNode(
@@ -248,10 +209,10 @@ private func extractClassLayout(
                 annotations: cls.annotations,
                 attributes: cls.attributes,
                 methods: cls.methods,
-                x: _asDouble(child["x"]) ?? 0,
-                y: _asDouble(child["y"]) ?? 0,
-                width: _asDouble(child["width"]) ?? size.width,
-                height: _asDouble(child["height"]) ?? size.height,
+                x: child.x,
+                y: child.y,
+                width: child.width != 0 ? child.width : size.width,
+                height: child.height != 0 ? child.height : size.height,
                 headerHeight: size.headerHeight,
                 attrHeight: size.attrHeight,
                 methodHeight: size.methodHeight,
@@ -265,41 +226,26 @@ private func extractClassLayout(
     }
 
     var relationships: [PositionedClassRelationship] = []
-    let resultEdges = _asDictArray(result["edges"])
     let relEdgeCount = diagram.relationships.count
 
-    for (i, elkEdge) in resultEdges.enumerated() {
+    for (i, elkEdge) in result.edges.enumerated() {
         guard i < relEdgeCount else { break }
         let rel = diagram.relationships[i]
 
         var points: [ClassPoint] = []
-        if let section = _asDictArray(elkEdge["sections"]).first {
-            if let start = _asDict(section["startPoint"]),
-               let sx = _asDouble(start["x"]),
-               let sy = _asDouble(start["y"]) {
-                points.append(ClassPoint(x: sx, y: sy))
+        if let section = elkEdge.sections.first {
+            points.append(ClassPoint(x: section.startPoint.x, y: section.startPoint.y))
+            for bp in section.bendPoints {
+                points.append(ClassPoint(x: bp.x, y: bp.y))
             }
-
-            for bp in _asDictArray(section["bendPoints"]) {
-                if let bx = _asDouble(bp["x"]), let by = _asDouble(bp["y"]) {
-                    points.append(ClassPoint(x: bx, y: by))
-                }
-            }
-
-            if let end = _asDict(section["endPoint"]),
-               let ex = _asDouble(end["x"]),
-               let ey = _asDouble(end["y"]) {
-                points.append(ClassPoint(x: ex, y: ey))
-            }
+            points.append(ClassPoint(x: section.endPoint.x, y: section.endPoint.y))
         }
 
         var labelPosition: ClassPoint?
-        if let label = _asDictArray(elkEdge["labels"]).first,
-           let lx = _asDouble(label["x"]),
-           let ly = _asDouble(label["y"]) {
+        if let label = elkEdge.labels.first {
             labelPosition = ClassPoint(
-                x: lx + (_asDouble(label["width"]) ?? 0) / 2,
-                y: ly + (_asDouble(label["height"]) ?? 0) / 2
+                x: label.x + label.width / 2,
+                y: label.y + label.height / 2
             )
         }
 
@@ -322,26 +268,22 @@ private func extractClassLayout(
     // Extract note positions
     var positionedNotes: [PositionedClassNote] = []
     let noteMap = diagram.noteMap
-    for child in _asDictArray(result["children"]) {
-        guard let id = _asString(child["id"]), noteMap[id] != nil else { continue }
-        let note = noteMap[id]!
+    for child in result.children {
+        guard noteMap[child.id] != nil else { continue }
+        let note = noteMap[child.id]!
 
         // Find note-to-class edge
         var edgePoints: [ClassPoint]? = nil
         let noteEdgeId = "note-edge-\(note.id)"
-        for edge in _asDictArray(result["edges"]) {
-            if _asString(edge["id"]) == noteEdgeId {
+        for edge in result.edges {
+            if edge.id == noteEdgeId {
                 var pts: [ClassPoint] = []
-                if let section = _asDictArray(edge["sections"]).first {
-                    if let start = _asDict(section["startPoint"]),
-                       let sx = _asDouble(start["x"]),
-                       let sy = _asDouble(start["y"]) { pts.append(ClassPoint(x: sx, y: sy)) }
-                    for bp in _asDictArray(section["bendPoints"]) {
-                        if let bx = _asDouble(bp["x"]), let by = _asDouble(bp["y"]) { pts.append(ClassPoint(x: bx, y: by)) }
+                if let section = edge.sections.first {
+                    pts.append(ClassPoint(x: section.startPoint.x, y: section.startPoint.y))
+                    for bp in section.bendPoints {
+                        pts.append(ClassPoint(x: bp.x, y: bp.y))
                     }
-                    if let end = _asDict(section["endPoint"]),
-                       let ex = _asDouble(end["x"]),
-                       let ey = _asDouble(end["y"]) { pts.append(ClassPoint(x: ex, y: ey)) }
+                    pts.append(ClassPoint(x: section.endPoint.x, y: section.endPoint.y))
                 }
                 if !pts.isEmpty { edgePoints = pts }
                 break
@@ -352,10 +294,10 @@ private func extractClassLayout(
             PositionedClassNote(
                 id: note.id,
                 text: note.text,
-                x: _asDouble(child["x"]) ?? 0,
-                y: _asDouble(child["y"]) ?? 0,
-                width: _asDouble(child["width"]) ?? 80,
-                height: _asDouble(child["height"]) ?? 40,
+                x: child.x,
+                y: child.y,
+                width: child.width != 0 ? child.width : 80,
+                height: child.height != 0 ? child.height : 40,
                 classId: note.class_,
                 edgePoints: edgePoints
             )
@@ -369,8 +311,8 @@ private func extractClassLayout(
     )
 
     return PositionedClassDiagram(
-        width: _asDouble(result["width"]) ?? 600,
-        height: _asDouble(result["height"]) ?? 400,
+        width: result.width != 0 ? result.width : 600,
+        height: result.height != 0 ? result.height : 400,
         classes: positionedClasses,
         relationships: relationships,
         namespaces: positionedNamespaces,
