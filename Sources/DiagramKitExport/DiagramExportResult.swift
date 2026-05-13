@@ -1,4 +1,4 @@
-import DiagramKitImport
+import DiagramKitCommon
 
 /// The result of exporting a `DiagramDocument` to a source format.
 public struct DiagramExportResult: Sendable {

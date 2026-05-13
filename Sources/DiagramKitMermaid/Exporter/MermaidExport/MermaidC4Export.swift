@@ -1,6 +1,7 @@
 import Foundation
 import DiagramKitModel
 import DiagramKitImport
+import DiagramKitExport
 
 /// Emits Mermaid C4 diagram source from a `C4Diagram`.
 enum MermaidC4Export {

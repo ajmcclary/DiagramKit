@@ -1,7 +1,7 @@
 import Testing
 import DiagramKitModel
 import DiagramKitImport
-import DiagramKit
+import DiagramKitMermaid
 
 @Suite struct MermaidEscapeTests {
 

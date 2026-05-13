@@ -1,5 +1,9 @@
 import Testing
 import DiagramKitModel
+import DiagramKitMermaid
+// `MermaidImporter` still lives in the umbrella; the umbrella import here
+// proves the exporter is constructible from `DiagramKitMermaid` while the
+// importer side keeps round-trip tests pointed at the same parser.
 import DiagramKit
 
 @Suite struct MermaidExporterTests {

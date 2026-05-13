@@ -1,5 +1,5 @@
 import Foundation
-import DiagramKitImport
+import DiagramKitCommon
 
 /// A fatal error during export.
 public struct DiagramExportError: Error, LocalizedError, Sendable {

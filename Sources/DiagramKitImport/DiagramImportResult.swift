@@ -1,4 +1,8 @@
 import DiagramKitModel
+// `DiagramDiagnostic` lives in DiagramKitCommon after Phase 4. Re-export it
+// so downstream code that only `import DiagramKitImport` still sees the type
+// without an extra import.
+@_exported import DiagramKitCommon
 
 /// The result of importing a diagram from a source format.
 public struct DiagramImportResult: Sendable {

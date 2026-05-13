@@ -7,6 +7,7 @@ import DiagramKitGraphviz
 import DiagramKitStructurizr
 import DiagramKitPlantUML
 import DiagramKitExport
+import DiagramKitMermaid
 #if canImport(CoreGraphics)
 import DiagramKitRenderingCG
 #endif

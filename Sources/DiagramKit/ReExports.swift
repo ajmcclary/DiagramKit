@@ -9,4 +9,5 @@
 @_exported import DiagramKitModel
 @_exported import DiagramKitImport
 @_exported import DiagramKitExport
+@_exported import DiagramKitMermaid
 @_exported import DiagramKitCommon

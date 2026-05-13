@@ -1,6 +1,7 @@
 import Foundation
 import DiagramKitModel
 import DiagramKitImport
+import DiagramKitExport
 
 /// Emits Mermaid erDiagram source from an `ErDiagram`.
 enum MermaidERExport {

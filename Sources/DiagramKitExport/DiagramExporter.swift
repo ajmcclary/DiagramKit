@@ -1,5 +1,5 @@
+import DiagramKitCommon
 import DiagramKitModel
-import DiagramKitImport
 
 /// A format exporter that emits source text from a `DiagramDocument`.
 ///

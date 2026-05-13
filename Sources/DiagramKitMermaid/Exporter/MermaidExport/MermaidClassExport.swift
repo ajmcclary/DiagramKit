@@ -1,6 +1,7 @@
 import Foundation
 import DiagramKitModel
 import DiagramKitImport
+import DiagramKitExport
 
 /// Emits Mermaid class diagram source from a `ClassDiagram`.
 enum MermaidClassExport {

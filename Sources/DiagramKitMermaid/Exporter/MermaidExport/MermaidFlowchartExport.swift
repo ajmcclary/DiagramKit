@@ -1,6 +1,7 @@
 import Foundation
 import DiagramKitModel
 import DiagramKitImport
+import DiagramKitExport
 
 /// Emits Mermaid flowchart source from a `ParsedGraphModel`.
 enum MermaidFlowchartExport {

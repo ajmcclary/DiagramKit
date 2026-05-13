@@ -1,5 +1,5 @@
+import DiagramKitCommon
 import DiagramKitModel
-import DiagramKitImport
 
 /// Stateless dispatch: export a `DiagramDocument` to a target format.
 /// The `to:` format ID is authoritative — it selects the exact exporter.
