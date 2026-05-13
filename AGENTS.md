@@ -85,14 +85,14 @@ and a multiplatform `xcodebuild` sweep.
 
 ## Current Roadmap
 
-Phases 0–10 are complete: format-neutral public names are primary, Mermaid-prefixed
-aliases carry deprecation annotations (Tier 1) or have been removed (Tier 2),
-filenames are current, and the corpus is multi-format. The remaining PlantUML
-importer slices (Phases 6B–6E) continue independently.
-
-Active work:
-- Complete remaining PlantUML importer slices (6B–6E).
-- Add exporter slice for remaining diagram families.
+Feature-complete. Phases 0–10 plus the follow-on Phases 1–11 (DOT
+exporter, full PlantUML family coverage, ASCII renderers for all 28
+families) have landed. Format-neutral public names are primary;
+Mermaid-prefixed aliases carry deprecation annotations (Tier 1) or
+have been removed (Tier 2). Importers and exporters cover Mermaid,
+D2, Graphviz DOT, Structurizr, and PlantUML (sequence + class +
+state/activity + mindmap + gantt + C4). See PHASES.md for the active
+backlog (currently empty).
 
 ## Testing
 

@@ -176,9 +176,10 @@ outside the defining module.
   importing `DiagramKit`.
 - `Sources/DiagramKitD2/` - D2 importer + exporter (`D2Importer`,
   `D2Parser`, `D2Mapper`, `D2Exporter`).
-- `Sources/DiagramKitGraphviz/` - Graphviz DOT importer (`GraphvizImporter`,
-  `DOTParser`, `DOTMapper`). No DOT exporter yet — `DiagramExportLoader`
-  returns a `.unsupported` diagnostic for `.graphviz`.
+- `Sources/DiagramKitGraphviz/` - Graphviz DOT importer + exporter
+  (`GraphvizImporter`, `DOTParser`, `DOTMapper`, `DOTExporter`).
+  `DOTExporter` covers the flowchart family; other families surface a
+  `.unsupported` diagnostic on `DiagramExportResult` rather than throwing.
 - `Sources/DiagramKitStructurizr/` - Structurizr DSL importer + exporter.
 - `Sources/DiagramKitPlantUML/` - PlantUML sequence importer + exporter
   (`PlantUMLImporter`, `PlantUMLExporter`, `PlantUMLSequenceExporter`).
@@ -243,10 +244,11 @@ The portable text-measurement shim for `ishikawa`, `treeView`, and
 
 ## Forward Roadmap
 
-Phases 0–10 are complete. The multi-format importer boundary is in place with
-importers for Mermaid, D2, Graphviz DOT, Structurizr, and PlantUML (sequence).
-The corpus carries ~422 entries across 28 diagram families. Remaining work:
-
-1. Complete remaining PlantUML importer slices (Phases 6B–6E in PHASES.md).
-2. Add exporter coverage for remaining diagram families.
-3. Follow [PHASES.md](PHASES.md) for the active roadmap.
+Feature-complete: Phases 0–10 plus the follow-on Phases 1–11 (DOT
+exporter, full PlantUML family coverage, ASCII renderers for all 28
+families) have all landed. Importers and exporters ship for Mermaid,
+D2, Graphviz DOT, Structurizr, and PlantUML (sequence + class +
+state/activity + mindmap + gantt + C4). The corpus carries ~422
+entries across 28 diagram families. See [PHASES.md](PHASES.md) for
+the active backlog (currently empty) and [BASELINES.md](BASELINES.md)
+for the closing-commit map.
