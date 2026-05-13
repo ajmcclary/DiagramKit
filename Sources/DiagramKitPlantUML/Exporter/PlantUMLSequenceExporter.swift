@@ -182,8 +182,13 @@ enum PlantUMLSequenceExport {
     }
 
     private static func escape(_ text: String) -> String {
+        // Mirrors PlantUMLC4Export.escape so multiline title/note/group/box/else
+        // labels do not break the @startuml/@enduml line model. PlantUML treats
+        // a literal `\n` inside a quoted/unquoted label as an inline newline.
         text.replacingOccurrences(of: "\\", with: "\\\\")
             .replacingOccurrences(of: "\"", with: "\\\"")
-            .replacingOccurrences(of: "\r", with: "")
+            .replacingOccurrences(of: "\r\n", with: "\\n")
+            .replacingOccurrences(of: "\r", with: "\\n")
+            .replacingOccurrences(of: "\n", with: "\\n")
     }
 }
