@@ -67,6 +67,32 @@ public func setRole(_ roleCanvas: inout RoleCanvas, _ x: Int, _ y: Int, _ role: 
     }
 }
 
+/// Place `ch` at `(x, y)` on `canvas`, growing `canvas` and `roleCanvas`
+/// to fit if needed, and write the matching `role` into the role canvas.
+/// Coordinates `< 0` are ignored.
+///
+/// Centralises the per-family `func setC(...)` closure that was
+/// duplicated across `src_ascii_sequence.swift`,
+/// `src_ascii_class_diagram.swift`, and `src_ascii_er_diagram.swift`.
+public func setCanvasCharacter(
+    _ canvas: inout Canvas,
+    _ roleCanvas: inout RoleCanvas,
+    _ x: Int,
+    _ y: Int,
+    _ ch: Character,
+    _ role: CharRole
+) {
+    guard x >= 0, y >= 0 else { return }
+    if x >= canvas.count || y >= (canvas.first?.count ?? 0) {
+        _ = increaseSize(&canvas, x, y)
+        _ = increaseRoleCanvasSize(&roleCanvas, x, y)
+    }
+    if x < canvas.count, y < (canvas.first?.count ?? 0) {
+        canvas[x][y] = ch
+        setRole(&roleCanvas, x, y, role)
+    }
+}
+
 public func mergeRoleCanvases(_ base: RoleCanvas, _ offset: DrawingCoord, _ overlays: RoleCanvas...) -> RoleCanvas {
     var maxX = max(0, base.count - 1)
     var maxY = max(0, (base.first?.count ?? 1) - 1)

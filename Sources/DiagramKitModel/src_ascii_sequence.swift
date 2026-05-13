@@ -332,16 +332,7 @@ public func renderSequenceAsciiDiagram(
     var rc = mkRoleCanvas(totalW, max(0, totalH - 1))
 
     func setC(_ x: Int, _ y: Int, _ ch: Character, _ role: CharRole) {
-        if x >= 0, y >= 0 {
-            if x >= canvas.count || y >= (canvas.first?.count ?? 0) {
-                _ = increaseSize(&canvas, x, y)
-                _ = increaseRoleCanvasSize(&rc, x, y)
-            }
-            if x < canvas.count, y < (canvas.first?.count ?? 0) {
-                canvas[x][y] = ch
-                setRole(&rc, x, y, role)
-            }
-        }
+        setCanvasCharacter(&canvas, &rc, x, y, ch, role)
     }
 
     func drawActorBox(_ cx: Int, _ topY: Int, _ label: String) {
