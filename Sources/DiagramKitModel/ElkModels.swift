@@ -168,3 +168,65 @@ extension ElkGraphLabel {
         self.layoutOptions = (dict["layoutOptions"] as? [String: String]) ?? [:]
     }
 }
+
+// MARK: - LayoutNode encoders
+//
+// These encoders are the single bridge that crosses into the dictionary
+// world consumed by `layoutEngineSync`. The output shape is byte-compatible
+// with the literals previously inlined in `src_layout.swift`: empty
+// collections are omitted so downstream code can rely on
+// `node["children"] as? [LayoutNode]` returning nil rather than an empty
+// array. Width/height are emitted only when set; the root node (which has
+// neither) round-trips faithfully and gets its dimensions overwritten by
+// `_layoutRecursively`.
+
+extension ElkGraphNode {
+    public func toDictionary() -> [String: Any] {
+        var out: [String: Any] = ["id": id]
+        if width != 0 { out["width"] = width }
+        if height != 0 { out["height"] = height }
+        if x != 0 { out["x"] = x }
+        if y != 0 { out["y"] = y }
+        if !layoutOptions.isEmpty { out["layoutOptions"] = layoutOptions }
+        if !labels.isEmpty { out["labels"] = labels.map { $0.toDictionary() } }
+        if !ports.isEmpty { out["ports"] = ports.map { ["id": $0.id] } }
+        if !children.isEmpty { out["children"] = children.map { $0.toDictionary() } }
+        if !edges.isEmpty { out["edges"] = edges.map { $0.toDictionary() } }
+        return out
+    }
+}
+
+extension ElkGraphEdge {
+    public func toDictionary() -> [String: Any] {
+        var out: [String: Any] = [
+            "id": id,
+            "sources": sources,
+            "targets": targets
+        ]
+        if !labels.isEmpty { out["labels"] = labels.map { $0.toDictionary() } }
+        if !sections.isEmpty { out["sections"] = sections.map { $0.toDictionary() } }
+        return out
+    }
+}
+
+extension ElkEdgeSection {
+    public func toDictionary() -> [String: Any] {
+        [
+            "startPoint": ["x": startPoint.x, "y": startPoint.y],
+            "endPoint": ["x": endPoint.x, "y": endPoint.y],
+            "bendPoints": bendPoints.map { ["x": $0.x, "y": $0.y] }
+        ]
+    }
+}
+
+extension ElkGraphLabel {
+    public func toDictionary() -> [String: Any] {
+        var out: [String: Any] = ["text": text]
+        if width != 0 { out["width"] = width }
+        if height != 0 { out["height"] = height }
+        if x != 0 { out["x"] = x }
+        if y != 0 { out["y"] = y }
+        if !layoutOptions.isEmpty { out["layoutOptions"] = layoutOptions }
+        return out
+    }
+}
