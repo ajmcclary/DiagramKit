@@ -21,7 +21,7 @@ Overall assessment: structurally sound but increasingly brittle. The next mainta
 
 ## Abstraction Analysis
 
-### Finding A1: Typed ELK models exist but dictionary-based layout remains dominant
+### Finding A1: Typed ELK models exist but dictionary-based layout remains dominant — RESOLVED 2026-05-13 (Phase 1, commits 625207d..47618c3)
 
 Evidence:
 
@@ -409,7 +409,7 @@ struct ConfigThemeBinding<Config, Theme> {
 }
 ```
 
-### Finding D2: ELK graph options and label dictionaries are repeated
+### Finding D2: ELK graph options and label dictionaries are repeated — RESOLVED 2026-05-13 (Phase 1, commit 625207d)
 
 Evidence:
 
@@ -574,7 +574,29 @@ Do not refactor declarative shape tables or grammar-specific parser bodies merel
 
 ## Prioritized Refactoring Roadmap
 
-### Priority 1: Collapse the ELK dictionary boundary
+### Priority 1: Collapse the ELK dictionary boundary — COMPLETE (Phase 1, 2026-05-13)
+
+Closure summary:
+
+- `Sources/DiagramKitModel/ElkLayoutOptions.swift` centralises the four
+  distinct option tables (`root .includeChildren`, `root .separate`,
+  `flatRoot`, `subgraph`) and the `mapDirection` helper.
+- `Sources/DiagramKitModel/ElkModels.swift` carries `toDictionary()`
+  encoders for `ElkGraphNode`, `ElkGraphEdge`, `ElkEdgeSection`, and
+  `ElkGraphLabel`, paired with the pre-existing `init(from:)` decoders.
+- All three flowchart/state builders (`_buildElkGraph`,
+  `_buildElkGraphNoCrossEdges`, `_buildFlatElkGraph`) now return
+  `ElkGraphNode`. `_applyLayoutConfig` mutates `inout ElkGraphNode`.
+  `.toDictionary()` lives only at the `layoutEngineSync(...)` call.
+- `src_class_layout.swift` migrated from raw `[String: Any]` to
+  `ElkGraphNode` end-to-end (build + extract); four dict navigation
+  helpers deleted.
+- `src_er_layout.swift` and `src_requirement_layout.swift` retired
+  their parallel `_ElkNode`/`_RElkNode` structs and ~150 lines each of
+  encoder/decoder boilerplate, in favour of the shared model.
+- Closure scan: `rg -n '\[String: Any\]|_ElkNode|_RElkNode'` over the
+  four builder files matches only the explanatory comments left to
+  signpost the migration.
 
 Files:
 

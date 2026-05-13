@@ -11,17 +11,10 @@ private let _MAX_SUBGRAPH_RECURSION_DEPTH = 1024
 private typealias _ParsedGraph = original_src_types.MermaidGraph
 private typealias _ParsedEdge = original_src_types.MermaidEdge
 
-private typealias _ElkNode = [String: Any]
-
 // Positioned-graph payload types moved to DiagramKitModel/PositionedPayloads.swift
 
 private func _mapDirection(_ direction: original_src_types.Direction) -> String {
-    switch direction {
-    case .LR: return "RIGHT"
-    case .RL: return "LEFT"
-    case .BT: return "UP"
-    case .TD, .TB: return "DOWN"
-    }
+    ElkLayoutOptions.mapDirection(direction)
 }
 
 private func _buildElkGraph(_ graph: _ParsedGraph) -> ElkGraphNode {
