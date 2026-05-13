@@ -395,7 +395,7 @@ func _renderZenUMLSvgCase(source: String, fm: DiagramFrontmatter?, colors: Diagr
     return renderZenUMLSvg(positioned, colors: colors, font: font, transparent: transparent)
 }
 
-open class original_src_index {
+public final class original_src_index {
     public init() {}
 }
 #endif

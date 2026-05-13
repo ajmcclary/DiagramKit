@@ -66,6 +66,9 @@ let package = Package(
                 .product(name: "IssueReporting", package: "xctest-dynamic-overlay"),
                 .product(name: "Crypto", package: "swift-crypto", condition: .when(platforms: [.linux]))
             ],
+            resources: [
+                .process("Resources")
+            ],
             swiftSettings: strictConcurrencySettings
         ),
         .target(

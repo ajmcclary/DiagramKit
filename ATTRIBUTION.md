@@ -22,7 +22,7 @@ The upstream MIT licence is reproduced inline at the URL above. The MIT licence 
 
 ## Bundled fonts
 
-Fonts are shipped as SwiftPM resources under [Sources/DiagramKitRenderingCG/Resources/Fonts/](Sources/DiagramKitRenderingCG/Resources/Fonts/) and registered process-wide on first use by `BeautifulMermaidFontRegistry` ([Sources/DiagramKitRenderingCG/FontRegistry.swift](Sources/DiagramKitRenderingCG/FontRegistry.swift)).
+Fonts are shipped as SwiftPM resources under [Sources/DiagramKitRenderingCG/Resources/Fonts/](Sources/DiagramKitRenderingCG/Resources/Fonts/) and registered process-wide on first use by `DiagramFontRegistry` ([Sources/DiagramKitRenderingCG/FontRegistry.swift](Sources/DiagramKitRenderingCG/FontRegistry.swift)).
 
 ### Noto Sans
 
@@ -72,7 +72,7 @@ These dependencies are declared in [Package.swift](Package.swift) and resolved b
 - **License:** MIT
 - **Copyright:** Copyright © 2022 Point-Free, Inc.
 - **SPDX Identifier:** MIT
-- **Used by:** `DiagramKitCommon` and `DiagramKit` for `_reportMermaidIssue(...)` and `_withMermaidIssueReporting(operation:)` — test-time issue surfaces that no-op in production.
+- **Used by:** `DiagramKitCommon` and `DiagramKit` for `_reportDiagramIssue(...)` and `_withDiagramIssueReporting(operation:)` — test-time issue surfaces that no-op in production.
 
 ### `swift-crypto`
 

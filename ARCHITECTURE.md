@@ -155,7 +155,7 @@ Files in `DiagramKitModel` cannot `import DiagramKitRenderingCG`. Files in `Diag
 - Public types implement `Sendable` explicitly: `DiagramType`, `DiagramPayload`, `DiagramDocument`, `PositionedContent`, `PositionedGraph`, `LayoutConfig`, `EdgeStyle`.
 - `async throws` is the public default. `@MainActor` is reserved for methods that produce or consume native UI types (`BMImage`, `CGContext`); `renderSVG` / `renderASCII` are intentionally **not** main-actor.
 - Errors flow through `_withDiagramIssueReporting(operation:)` at every public boundary so test-time observers see uncategorised failures without obstructing flow.
-- Underscore-prefixed top-level names are SPI (e.g. `_PositionedNodePayload`, `_renderMermaidSVG`). Public typealiases drop the underscore: `PositionedNode = _PositionedNodePayload`.
+- Underscore-prefixed top-level names are SPI (e.g. `_PositionedNodePayload`, `_renderDiagramSVG`). Public typealiases drop the underscore: `PositionedNode = _PositionedNodePayload`.
 
 ## Discipline gates
 

@@ -106,7 +106,8 @@ public struct D2Mapper {
 
         func normalizeEndpoint(_ endpoint: String) -> String {
             let trimmed = endpoint.trimmingCharacters(in: .whitespacesAndNewlines)
-            guard trimmed.isEmpty else { return trimmed }
+            if !trimmed.isEmpty { return trimmed }
+            // Empty endpoint → synthesize a stable anonymous identifier.
             anonymousCounter += 1
             return "__anonymous_\(anonymousCounter)"
         }

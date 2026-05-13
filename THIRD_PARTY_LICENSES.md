@@ -6,7 +6,7 @@ For the full attribution story — including upstream `mermaid-js` lineage and t
 
 ## Bundled fonts
 
-Fonts are shipped under [Sources/DiagramKitRenderingCG/Resources/Fonts/](Sources/DiagramKitRenderingCG/Resources/Fonts/) and registered at runtime by `BeautifulMermaidFontRegistry` ([Sources/DiagramKitRenderingCG/FontRegistry.swift](Sources/DiagramKitRenderingCG/FontRegistry.swift)).
+Fonts are shipped under [Sources/DiagramKitRenderingCG/Resources/Fonts/](Sources/DiagramKitRenderingCG/Resources/Fonts/) and registered at runtime by `DiagramFontRegistry` ([Sources/DiagramKitRenderingCG/FontRegistry.swift](Sources/DiagramKitRenderingCG/FontRegistry.swift)).
 
 ### Noto Sans
 

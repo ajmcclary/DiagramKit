@@ -50,20 +50,22 @@ discipline gates below.
 
 ## Target Layout
 
-The package has six layered SwiftPM targets. Imports flow only downward.
+The package ships 13 layered SwiftPM library products. Imports flow only
+downward; importers/exporters and the new `DiagramKitMermaid` slice sit
+beside `DiagramKitModel` so they can be consumed without the umbrella.
 
 ```text
-DiagramKitCommon           (Linux + Apple)  - SVG primitives, theme, text metrics, IssueReporting, StableID
+DiagramKitCommon           (Linux + Apple)  - SVG primitives, theme, text metrics, IssueReporting, StableID, DiagramDiagnostic, BlockRenderConstants, DiagramWorkerConfig
    ^
 DiagramKitModel            (Linux + Apple)  - parsers, layouts, SVG/ASCII renderers, payloads
    ^                                           UIKit/AppKit/CoreText files compile to empty on Linux
-   +------------------+
-DiagramKitRenderingCG     DiagramKitTestSupport
-   (Apple-only)            (Linux + Apple)
+   +-----------+-----------+-----------+-----------+-----------+
+DiagramKitRenderingCG  DiagramKitImport  DiagramKitExport  DiagramKitTestSupport  format slices:
+   (Apple-only)        (Linux + Apple)   (Linux + Apple)   (Linux + Apple)        DiagramKitMermaid / D2 / Graphviz / Structurizr / PlantUML
    ^
-DiagramKitViews            (Apple-only)     - DiagramView, DiagramNativeView, DiagramLayer, DiagramViewModel
-   ^
-DiagramKit                 (umbrella)       - public API + re-exports
+DiagramKitViews            (Apple-only)     - DiagramView, DiagramNativeView, DiagramLayer
+   ^                                           DiagramKitInteractive (Apple-only) — DiagramEditor + mutations
+DiagramKit                 (umbrella)       - public API + re-exports (DiagramKitMermaid, Views, RenderingCG, Interactive)
 ```
 
 `DiagramKit` re-exports the lower targets through `ReExports.swift`. Apple-only
@@ -160,11 +162,28 @@ outside the defining module.
   `DiagramPreparerWiring.swift`, `Parser.swift`, `Layout.swift`,
   `DiagramDescriptor.swift`, `src_index.swift`, `src_ascii_index.swift`,
   `ReExports.swift`, `MermaidImporter.swift`, and `SVGRenderRegistry.swift`.
-- `Sources/DiagramKitImport/` - importer protocol and registry boundary.
-- `Sources/DiagramKitD2/` - D2 importer (`D2Importer`, `D2Parser`, `D2Mapper`).
-- `Sources/DiagramKitGraphviz/` - Graphviz DOT importer (`GraphvizImporter`, `DOTParser`, `DOTMapper`).
-- `Sources/DiagramKitStructurizr/` - Structurizr DSL importer.
-- `Sources/DiagramKitExporter/` - multi-format exporter protocol (`MermaidExporter`, `D2Exporter`, `StructurizrExporter`, `PlantUMLExporter`).
+- `Sources/DiagramKitImport/` - importer protocol and registry boundary
+  (`DiagramSourceImporter`, `ImporterRegistry`, `DiagramLoader`,
+  `DiagramImportResult`). `DiagramDiagnostic` lives in `DiagramKitCommon`
+  (see Phase 4).
+- `Sources/DiagramKitExport/` - exporter protocol, registry, and loader
+  (`DiagramExporter`, `ExporterRegistry`, `DiagramExportLoader`,
+  `DiagramExportResult`, `DiagramExportError`). Depends only on
+  `DiagramKitCommon` and `DiagramKitModel`.
+- `Sources/DiagramKitMermaid/` - Mermaid source exporter
+  (`MermaidExporter` + per-family `MermaidExport/*.swift`). Moved out of
+  the umbrella in Phase 4 so consumers can construct it without
+  importing `DiagramKit`.
+- `Sources/DiagramKitD2/` - D2 importer + exporter (`D2Importer`,
+  `D2Parser`, `D2Mapper`, `D2Exporter`).
+- `Sources/DiagramKitGraphviz/` - Graphviz DOT importer (`GraphvizImporter`,
+  `DOTParser`, `DOTMapper`). No DOT exporter yet — `DiagramExportLoader`
+  returns a `.unsupported` diagnostic for `.graphviz`.
+- `Sources/DiagramKitStructurizr/` - Structurizr DSL importer + exporter.
+- `Sources/DiagramKitPlantUML/` - PlantUML sequence importer + exporter
+  (`PlantUMLImporter`, `PlantUMLExporter`, `PlantUMLSequenceExporter`).
+- `Sources/DiagramKitInteractive/` - Apple-only `DiagramEditor` plus
+  mutation/undo support.
 - `Sources/DiagramKitTestSupport/` - Linux-portable test helpers.
 - `Examples/MermaidPlayground/` - SwiftUI sample app and the current
   `test-diagrams.json` corpus source.

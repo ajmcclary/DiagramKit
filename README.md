@@ -2,7 +2,7 @@
 
 DiagramKit is a native Swift port of [mermaid-js](https://mermaid.js.org/) covering ~28 diagram families (flowchart, state, sequence, class, ER, Gantt, gitGraph, mindmap, C4, ZenUML, Wardley, Treemap, Sankey, XY chart, Quadrant, Radar, Block, Timeline, EventModeling, Architecture, Ishikawa, Kanban, Packet, Pie, Requirement, TreeView, Venn, ZenUML). It exposes three render backends — Core Graphics images, SVG, and ASCII — plus a SwiftUI/UIKit/AppKit view wrapper.
 
-> **Status:** incubating. Stages 1 (module split), 2 (Linux portability), and 3 (governance gates) of the layered-package import are complete. Stages 4 (this docs pass), 5 (examples app handling), and 6 (monorepo promotion) are open. See [ANALYSIS.md](ANALYSIS.md).
+> **Status:** active. Phases 0–10 of the multi-format port are complete (Mermaid + D2 + Graphviz DOT + Structurizr + PlantUML sequence, 13 SwiftPM library products, 1044 snapshot baselines). Review-driven remediation (see [REVIEW.md](REVIEW.md) + [PLAN.md](PLAN.md)) is in flight — every Critical finding is fixed, with Important and Minor backlog tracked phase-by-phase.
 
 ## Features
 
@@ -180,7 +180,7 @@ SNAPSHOT_DIAGRAM_IDS=id1,id2,... SNAPSHOT_TESTING_RECORD=true \
 swift run MermaidPlayground
 ```
 
-> **Stage 5 note:** the playground's Xcode-project surface and the location of `Resources/test-diagrams.json` (currently inside the app, not in `DiagramKitTestSupport`) are pending Stage 5 disposition. See [ANALYSIS.md](ANALYSIS.md).
+> The playground's Xcode-project surface and the location of `Resources/test-diagrams.json` (currently inside the app, not in `DiagramKitTestSupport`) is a deliberate trade-off so the corpus stays editable from the SwiftUI app. See [ANALYSIS.md](ANALYSIS.md) for the original rationale.
 
 ## Documentation
 

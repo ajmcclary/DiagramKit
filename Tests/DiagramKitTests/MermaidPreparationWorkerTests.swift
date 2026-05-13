@@ -29,7 +29,7 @@ final class DiagramPreparationWorkerTests: XCTestCase {
         let observed: (name: String?, isMain: Bool) = try await DiagramEngine._runOnWorker {
             (Thread.current.name, Thread.isMainThread)
         }
-        XCTAssertEqual(observed.name, "BeautifulMermaid worker")
+        XCTAssertEqual(observed.name, "DiagramKit worker")
         XCTAssertFalse(observed.isMain)
     }
 
@@ -47,7 +47,7 @@ final class DiagramPreparationWorkerTests: XCTestCase {
         let source = "flowchart TD\n  A[Start] --> B[End]\n"
         for _ in 0..<3 {
             let observed = try await _observeWorkerName()
-            XCTAssertEqual(observed, "BeautifulMermaid worker")
+            XCTAssertEqual(observed, "DiagramKit worker")
             _ = try await DiagramPreparation.prepare(source: source)
         }
     }

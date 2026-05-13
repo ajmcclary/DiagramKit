@@ -23,7 +23,7 @@ import DiagramKitCommon
 /// layout runs.
 public enum DiagramWorkerThread {
 
-    /// Run `work` on a fresh `Thread` named `"BeautifulMermaid worker"`
+    /// Run `work` on a fresh `Thread` named `"DiagramKit worker"`
     /// with an 8 MB stack.
     public static func run<T: Sendable>(
         _ work: @escaping @Sendable () throws -> T
@@ -36,7 +36,7 @@ public enum DiagramWorkerThread {
                     continuation.resume(throwing: error)
                 }
             }
-            thread.name = "BeautifulMermaid worker"
+            thread.name = "DiagramKit worker"
             thread.stackSize = DiagramWorkerConfig.stackSize
             thread.start()
         }

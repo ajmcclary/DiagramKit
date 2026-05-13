@@ -59,5 +59,6 @@ enum _DiagramPreparerBootstrap {
 
 // MARK: - Phase 0 backward-compat deprecated alias
 
+@available(*, deprecated, renamed: "_DiagramPreparerBootstrap", message: "Will be removed in the next major version.")
 typealias _MermaidPreparerBootstrap = _DiagramPreparerBootstrap
 #endif

@@ -15,16 +15,11 @@ import AppKit
 
 /// Main entry point for parsing, layout, and rendering Mermaid diagrams.
 public struct DiagramEngine {
-    /// Library version. Set via the `VERSION` file at the package root or `git describe --tags`.
-    /// To update: edit the `VERSION` file or tag a release commit.
-    public static let version: String = {
-        #if canImport(CoreGraphics)
-        return DiagramKitVersion.current
-        #else
-        // Linux: VERSION resource lives in the Apple-only RenderingCG bundle.
-        return "0.1.1"
-        #endif
-    }()
+    /// Library version. Reads the `VERSION` resource bundled with
+    /// `DiagramKitCommon` (Linux + Apple). To update the version, edit
+    /// `Sources/DiagramKitCommon/Resources/VERSION` (or tag a release commit
+    /// if a build-time script regenerates it).
+    public static let version: String = DiagramKitVersion.current
     public static let supportedDiagramTypes: [DiagramType] = DiagramType.allCases
 
     #if canImport(CoreGraphics)
@@ -175,7 +170,7 @@ public struct DiagramEngine {
                     continuation.resume(throwing: error)
                 }
             }
-            thread.name = "BeautifulMermaid worker"
+            thread.name = "DiagramKit worker"
             thread.stackSize = DiagramWorkerConfig.stackSize
             thread.start()
         }

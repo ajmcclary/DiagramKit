@@ -17,9 +17,14 @@ public struct ExporterRegistry: Sendable {
         self.exportersByID = exportersByID
     }
 
-    /// All registered exporters as an array.
+    /// All registered exporters as an array, sorted deterministically by
+    /// `formatID.rawValue`. Callers iterating this collection get the same
+    /// order across runs, which matters for diagnostic ordering and for
+    /// snapshot-style tests that compare the registered exporter list.
     public var exporters: [any DiagramExporter] {
-        Array(exportersByID.values)
+        exportersByID
+            .sorted { $0.key.rawValue < $1.key.rawValue }
+            .map(\.value)
     }
 
     /// Returns a new registry with `exporter` registered under its format ID.

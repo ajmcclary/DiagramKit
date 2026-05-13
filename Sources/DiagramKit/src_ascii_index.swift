@@ -218,7 +218,7 @@ private func _bmRenderErAscii(
     try renderErAscii(text, config, colorMode, theme)
 }
 
-open class original_src_ascii_index {
+public final class original_src_ascii_index {
     public init() {}
 
     // MARK: - Ported types (index.ts public API surface)
