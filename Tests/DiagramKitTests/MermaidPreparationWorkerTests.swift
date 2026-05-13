@@ -22,29 +22,15 @@ final class DiagramPreparationWorkerTests: XCTestCase {
         DiagramEngine.bootstrap()
     }
 
-    /// Captures values observed inside a worker closure, sendably.
-    private actor WorkerObservation {
-        var threadName: String?
-        var isMainThread: Bool?
-        func record(name: String?, isMain: Bool) {
-            self.threadName = name
-            self.isMainThread = isMain
-        }
-    }
-
     func test_runOnWorker_runsOnNamedNonMainThread() async throws {
-        let observation = WorkerObservation()
-        try await DiagramEngine._runOnWorker {
-            let name = Thread.current.name
-            let isMain = Thread.isMainThread
-            Task { await observation.record(name: name, isMain: isMain) }
+        // Return the observed values directly from the worker closure — both
+        // String? and Bool are Sendable, so we can carry them across the
+        // continuation without a fire-and-forget Task + actor + Task.sleep.
+        let observed: (name: String?, isMain: Bool) = try await DiagramEngine._runOnWorker {
+            (Thread.current.name, Thread.isMainThread)
         }
-        // Allow the recorder Task to drain.
-        try await Task.sleep(nanoseconds: 50_000_000)
-        let observedName = await observation.threadName
-        let observedIsMain = await observation.isMainThread
-        XCTAssertEqual(observedName, "BeautifulMermaid worker")
-        XCTAssertEqual(observedIsMain, false)
+        XCTAssertEqual(observed.name, "BeautifulMermaid worker")
+        XCTAssertFalse(observed.isMain)
     }
 
     func test_DiagramPreparation_prepareSucceeds() async throws {
@@ -70,22 +56,6 @@ final class DiagramPreparationWorkerTests: XCTestCase {
 /// Free function — kept outside the test class so it does not capture
 /// `self` (XCTestCase is not Sendable under strict concurrency).
 private func _observeWorkerName() async throws -> String? {
-    let observation = DiagramPreparationWorkerTests_WorkerObservation()
-    try await DiagramEngine._runOnWorker {
-        let name = Thread.current.name
-        let isMain = Thread.isMainThread
-        Task { await observation.record(name: name, isMain: isMain) }
-    }
-    try await Task.sleep(nanoseconds: 50_000_000)
-    return await observation.threadName
-}
-
-private actor DiagramPreparationWorkerTests_WorkerObservation {
-    var threadName: String?
-    var isMainThread: Bool?
-    func record(name: String?, isMain: Bool) {
-        self.threadName = name
-        self.isMainThread = isMain
-    }
+    try await DiagramEngine._runOnWorker { Thread.current.name }
 }
 #endif

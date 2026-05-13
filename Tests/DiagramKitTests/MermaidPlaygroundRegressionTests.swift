@@ -116,7 +116,14 @@ final class MermaidPlaygroundStoreRegressionTests: XCTestCase {
 
         coordinator.textDidChange(Notification(name: NSText.didChangeNotification, object: textView))
         coordinator.mode = .config
-        try await Task.sleep(for: .milliseconds(450))
+        // The debounce in NativeCodeEditor.Coordinator is 300ms. Poll for the
+        // expected commit until it lands or a generous ceiling expires —
+        // exits as soon as the condition holds so the test is not pinned to
+        // a sleep duration that becomes flaky on a slow runner.
+        let deadline = Date().addingTimeInterval(2.0)
+        while Date() < deadline, store.state.source != editedSource {
+            try await Task.sleep(for: .milliseconds(50))
+        }
 
         XCTAssertEqual(store.state.source, editedSource)
         XCTAssertEqual(store.state.configJSON, originalConfig)

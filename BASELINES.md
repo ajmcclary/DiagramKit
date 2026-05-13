@@ -33,6 +33,16 @@ Last updated: 2026-05-13 (Phase 10 completion)
 - `Scripts/strict-concurrency-check.sh`: pass (2026-05-13)
 - `Scripts/linux-check.sh`: skipped (2026-05-13; Docker/Podman not running)
 
+## Deferred Phase 6F follow-ups
+
+- **EventModeling tests:** `EventModelingTests.swift` is a single
+  monolithic XCTest file covering parser, layout, renderer, and corpus
+  fixtures for the 12 eventmodeling corpus entries. Splitting it into
+  per-concern files (parser / layout / renderer / corpus fixture)
+  remains a separate, scoped phase — the current consolidated file
+  passes and is a known size-warning entry in
+  `check-file-sizes-allowlist.txt`.
+
 ## ASCII renderer coverage
 
 Only 5 of the 28 diagram families ship ASCII renderers today
