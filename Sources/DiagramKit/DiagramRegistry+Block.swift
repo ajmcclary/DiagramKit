@@ -10,19 +10,20 @@ import DiagramKitCommon
 // At that point this type will become MermaidDiagramRegistry or be subsumed
 // into MermaidImporter.
 extension DiagramRegistry {
-    static let _block = DiagramDescriptor(
+    static let _block = _typed(
         type: .block,
         matches: { $0.startsWithToken("block") },
         parse: { source, frontmatter in
-            let parsed = try parseBlockDiagram(source, frontmatter: frontmatter)
-            return DiagramDocument(payload: .block(parsed))
+            try parseBlockDiagram(source, frontmatter: frontmatter)
         },
-        layout: { graph, _ in
-            guard case let .block(diagram) = graph.payload else {
-                throw DiagramStructuralError.payloadMismatch(.block)
-            }
-            let positioned = try layoutBlockDiagram(diagram)
-            return PositionedGraph(diagram: graph, width: positioned.width, height: positioned.height, content: .block(positioned))
+        wrap: DiagramPayload.block,
+        unwrap: { payload in
+            guard case let .block(value) = payload else { return nil }
+            return value
+        },
+        layout: { diagram, _ in try layoutBlockDiagram(diagram) },
+        positioned: { graph, positioned in
+            PositionedGraph(diagram: graph, width: positioned.width, height: positioned.height, content: .block(positioned))
         }
     )
 }

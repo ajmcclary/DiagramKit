@@ -10,23 +10,27 @@ import DiagramKitCommon
 // At that point this type will become MermaidDiagramRegistry or be subsumed
 // into MermaidImporter.
 extension DiagramRegistry {
-    static let _gantt = DiagramDescriptor(
+    static let _gantt = _typed(
         type: .gantt,
         matches: { $0.startsWithToken("gantt") },
         parse: { source, frontmatter in
-            let lines = DiagramSourceNormalizer.statements(source, separators: CharacterSet(charactersIn: "\n"))
-            let parsed = try parseGanttDiagram(lines, frontmatter: frontmatter)
-            return DiagramDocument(payload: .gantt(parsed))
+            try parseGanttDiagram(
+                DiagramSourceNormalizer.statements(source, separators: CharacterSet(charactersIn: "\n")),
+                frontmatter: frontmatter
+            )
         },
-        layout: { graph, _ in
-            guard case let .gantt(parsed) = graph.payload else {
-                throw DiagramStructuralError.payloadMismatch(.gantt)
-            }
-            let config = parsed.config ?? .default
+        wrap: DiagramPayload.gantt,
+        unwrap: { payload in
+            guard case let .gantt(value) = payload else { return nil }
+            return value
+        },
+        layout: { parsed, _ in
             var merged = parsed
-            merged.config = config
-            let positioned = layoutGanttDiagram(merged)
-            return PositionedGraph(diagram: graph, width: positioned.width, height: positioned.height, content: .gantt(positioned))
+            merged.config = parsed.config ?? .default
+            return layoutGanttDiagram(merged)
+        },
+        positioned: { graph, positioned in
+            PositionedGraph(diagram: graph, width: positioned.width, height: positioned.height, content: .gantt(positioned))
         }
     )
 }

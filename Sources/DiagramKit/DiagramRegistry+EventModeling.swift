@@ -10,26 +10,26 @@ import DiagramKitCommon
 // At that point this type will become MermaidDiagramRegistry or be subsumed
 // into MermaidImporter.
 extension DiagramRegistry {
-    static let _eventModeling = DiagramDescriptor(
+    static let _eventModeling = _typed(
         type: .eventModeling,
         matches: { $0.normalized.hasPrefix("eventmodeling") },
         parse: { source, frontmatter in
-            let rawLines = DiagramSourceNormalizer.rawLines(source)
-            var diagram = try parseEventModeling(rawLines, frontmatter: frontmatter)
+            var diagram = try parseEventModeling(DiagramSourceNormalizer.rawLines(source), frontmatter: frontmatter)
             if let fm = frontmatter {
                 if let cfg = fm.eventmodelingConfig { diagram.config = cfg }
                 if let theme = fm.eventmodelingThemeVariables { diagram.themeVariables = theme }
                 if diagram.diagramTitle == nil, let fmTitle = fm.diagramTitle { diagram.diagramTitle = fmTitle }
             }
-            return DiagramDocument(payload: .eventModeling(diagram))
+            return diagram
         },
-        layout: { graph, _ in
-            guard case let .eventModeling(diagram) = graph.payload else {
-                throw DiagramStructuralError.payloadMismatch(.eventModeling)
-            }
+        wrap: DiagramPayload.eventModeling,
+        unwrap: { payload in
+            guard case let .eventModeling(value) = payload else { return nil }
+            return value
+        },
+        layout: { diagram, _ in
             #if canImport(CoreText)
-            let positioned = layoutEventModeling(diagram)
-            return PositionedGraph(diagram: graph, width: positioned.width, height: positioned.height, content: .eventModeling(positioned))
+            return layoutEventModeling(diagram)
             #else
             // Linux: layoutEventModeling requires CoreText for text-bounds
             // measurement. Unreachable until the portable text-measurement
@@ -37,6 +37,9 @@ extension DiagramRegistry {
             _ = diagram
             throw DiagramStructuralError.payloadMismatch(.eventModeling)
             #endif
+        },
+        positioned: { graph, positioned in
+            PositionedGraph(diagram: graph, width: positioned.width, height: positioned.height, content: .eventModeling(positioned))
         }
     )
 }

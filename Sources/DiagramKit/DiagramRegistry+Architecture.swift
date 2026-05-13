@@ -10,25 +10,26 @@ import DiagramKitCommon
 // At that point this type will become MermaidDiagramRegistry or be subsumed
 // into MermaidImporter.
 extension DiagramRegistry {
-    static let _architecture = DiagramDescriptor(
+    static let _architecture = _typed(
         type: .architecture,
         matches: { $0.normalized.hasPrefix("architecture") },
         parse: { source, frontmatter in
-            let rawLines = DiagramSourceNormalizer.rawLines(source)
-            var diagram = try parseArchitectureDiagram(rawLines, frontmatter: frontmatter)
+            var diagram = try parseArchitectureDiagram(DiagramSourceNormalizer.rawLines(source), frontmatter: frontmatter)
             if let fm = frontmatter {
                 if let cfg = fm.archConfig { diagram.config = cfg }
                 if let theme = fm.archTheme { diagram.theme = theme }
                 if diagram.diagramTitle == nil, let fmTitle = fm.diagramTitle { diagram.diagramTitle = fmTitle }
             }
-            return DiagramDocument(payload: .architecture(diagram))
+            return diagram
         },
-        layout: { graph, _ in
-            guard case let .architecture(diagram) = graph.payload else {
-                throw DiagramStructuralError.payloadMismatch(.architecture)
-            }
-            let positioned = layoutArchitectureDiagram(diagram)
-            return PositionedGraph(diagram: graph, width: positioned.width, height: positioned.height, content: .architecture(positioned))
+        wrap: DiagramPayload.architecture,
+        unwrap: { payload in
+            guard case let .architecture(value) = payload else { return nil }
+            return value
+        },
+        layout: { diagram, _ in layoutArchitectureDiagram(diagram) },
+        positioned: { graph, positioned in
+            PositionedGraph(diagram: graph, width: positioned.width, height: positioned.height, content: .architecture(positioned))
         }
     )
 }
