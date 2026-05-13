@@ -28,17 +28,18 @@ public struct MermaidExporter: DiagramExporter {
     public init() {}
 
     public func export(_ document: DiagramDocument) throws -> DiagramExportResult {
+        let result: DiagramExportResult
         switch document.payload {
         case .flowchart(let model):
-            return try MermaidFlowchartExport.emit(model)
+            result = try MermaidFlowchartExport.emit(model)
         case .sequenceDiagram(let model):
-            return try MermaidSequenceExport.emit(model)
+            result = try MermaidSequenceExport.emit(model)
         case .classDiagram(let model):
-            return try MermaidClassExport.emit(model)
+            result = try MermaidClassExport.emit(model)
         case .erDiagram(let model):
-            return try MermaidERExport.emit(model)
+            result = try MermaidERExport.emit(model)
         case .c4(let model):
-            return try MermaidC4Export.emit(model)
+            result = try MermaidC4Export.emit(model)
         default:
             return DiagramExportResult(
                 source: "",
@@ -50,5 +51,29 @@ public struct MermaidExporter: DiagramExporter {
                 ]
             )
         }
+        return Self.prependingDocumentTitle(document.title, to: result)
+    }
+
+    private static func prependingDocumentTitle(
+        _ title: String?,
+        to result: DiagramExportResult
+    ) -> DiagramExportResult {
+        guard let title, !title.isEmpty, !result.source.isEmpty else {
+            return result
+        }
+        let normalizedTitle = singleLineTitle(title)
+        let frontmatter = "---\ntitle: \(normalizedTitle)\n---\n"
+        return DiagramExportResult(
+            source: frontmatter + result.source,
+            diagnostics: result.diagnostics
+        )
+    }
+
+    private static func singleLineTitle(_ title: String) -> String {
+        title
+            .replacingOccurrences(of: "\r\n", with: "\n")
+            .replacingOccurrences(of: "\r", with: "\n")
+            .split(separator: "\n", omittingEmptySubsequences: false)
+            .joined(separator: " ")
     }
 }

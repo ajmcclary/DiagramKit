@@ -863,8 +863,9 @@ Scripts/check-sendable-annotations.sh
 
 ```bash
 swift test                                                  # full suite
-swift test --filter Interactive                             # all editor tests
-swift test --filter Interactivity                           # Phase 8 regression
+swift test --filter DiagramEditor                           # editor suites
+swift test --filter DiagramMutation                         # mutation value suite
+swift test --filter DiagramBoundsLookupRegressionTests       # Phase 8 regression
 swift test --filter CorpusSnapshotTests                     # no regressions
 Scripts/check-file-sizes.sh
 Scripts/check-sendable-annotations.sh
@@ -921,20 +922,20 @@ Phase 9 is complete when:
 | Artifact | Plan | Actual |
 |----------|------|--------|
 | `DiagramEditor.swift` | ~80 | 115 |
-| `DiagramEditor+Mutations.swift` | ~180 | 244 |
-| `DiagramEditor+Flowchart.swift` | ~120 | 200 |
+| `DiagramEditor+Mutations.swift` | ~180 | 241 |
+| `DiagramEditor+Flowchart.swift` | ~120 | 202 |
 | `DiagramEditor+Undo.swift` | ~80 | 52 |
 | `DiagramEditor+SourceSync.swift` | ~30 | 36 |
 | `DiagramMutation.swift` | ~50 | 81 |
-| `DiagramEditorError.swift` | — | 42 (added) |
-| **Source subtotal** | **~710** | **770** |
+| `DiagramEditorError.swift` | — | 48 (added) |
+| **Source subtotal** | **~710** | **775** |
 | `DiagramEditorTests.swift` | — | 7 tests |
 | `DiagramMutationTests.swift` | — | 6 tests |
-| `DiagramEditorMutationTests.swift` | — | 15 tests |
-| `DiagramEditorFlowchartTests.swift` | — | 8 tests |
+| `DiagramEditorMutationTests.swift` | — | 19 tests |
+| `DiagramEditorFlowchartTests.swift` | — | 9 tests |
 | `DiagramEditorUndoTests.swift` | — | 9 tests |
-| `DiagramEditorSourceSyncTests.swift` | — | 5 tests |
-| **Test subtotal** | **~95** | **48 tests** |
+| `DiagramEditorSourceSyncTests.swift` | — | 6 tests |
+| **Test subtotal** | **~95** | **56 tests** |
 
 ## Implementation Notes
 
@@ -959,7 +960,10 @@ Phase 9 is complete when:
 3. **`DiagramDocument.title` added.** `setTitle` requires a diagram-level
    title independent of the typed payload. A `public var title: String?`
    property was added to `DiagramDocument` in `Types.swift` (5 lines). This
-   is additive and backward-compatible.
+   is additive and backward-compatible. Post-review remediation wired the real
+   Mermaid exporter/importer to persist this value through Mermaid frontmatter
+   and the D2 exporter/importer to preserve it through leading metadata
+   comments.
 
 4. **`@Observable` + `private(set)` setter access.** The `@Observable` macro
    restricts `private(set)` access to the defining type, not the whole
@@ -982,6 +986,17 @@ Phase 9 is complete when:
    The public API (`beginUndoGrouping()` / `endUndoGrouping()`) lets
    consumers control grouping explicitly.
 
+7. **Selection validation and duplicate edge IDs.** Post-review remediation
+   added `DiagramSelection.diagramType` validation for every selection-based
+   mutation. Edge selection now reconstructs source-order stable IDs using the
+   same `/1`, `/2`, ... duplicate suffix scheme as `DiagramBoundsLookup`, and
+   explicit edge IDs are matched exactly rather than by prefix.
+
+8. **Apple-only umbrella dependency.** `DiagramKitInteractive` remains a
+   product/target, but the umbrella `DiagramKit` target now depends on it only
+   for Apple platforms because the editor model uses `Observation` and
+   `UndoManager`.
+
 ### Unchanged from Plan
 
 - No SwiftUI views, gesture recognizers, or selection rendering shipped.
@@ -992,12 +1007,18 @@ Phase 9 is complete when:
 ### Verification Gates (Run)
 
 ```bash
-swift build                                 # clean
-swift test --filter DiagramEditor           # 48/48 passing
-swift test --filter DiagramMutation         # 6/6 passing
-Scripts/check-file-sizes.sh                 # no new warnings
-Scripts/check-sendable-annotations.sh       # passing
-Scripts/strict-concurrency-check.sh         # passing
+swift package resolve                      # clean
+swift package dump-package                 # clean
+swift build --build-tests                    # clean
+swift test --filter DiagramEditor            # 50/50 editor tests passing
+swift test --filter DiagramMutation          # 6/6 mutation value tests passing
+swift test --filter D2ExporterTests          # 6/6 D2 exporter tests passing
+swift test --filter MermaidExporterTests     # 10/10 Mermaid exporter tests passing
+swift test --filter DiagramBoundsLookupRegressionTests # 4/4 Phase 8 regression tests passing
+Scripts/check-file-sizes.sh                  # no errors; existing warnings only
+Scripts/check-sendable-annotations.sh        # passing
+Scripts/strict-concurrency-check.sh          # passing
+git diff --check                             # clean
 ```
 
 ---

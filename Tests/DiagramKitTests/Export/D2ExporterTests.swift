@@ -60,6 +60,25 @@ import DiagramKitD2
         #expect(reparsedGraph.edges.first?.label == #"use "edge"\path"#)
     }
 
+    @Test("D2 export preserves DiagramDocument title as importable metadata")
+    func flowchartExportTitleRoundTrips() throws {
+        let graph = ParsedGraphModel(
+            direction: .LR,
+            nodesInOrder: [
+                (id: "A", node: original_src_types.MermaidNode(id: "A", label: "Hello", shape: .rectangle))
+            ],
+            edges: []
+        )
+        var doc = DiagramDocument(payload: .flowchart(graph))
+        doc.title = "D2 Title"
+
+        let result = try D2Exporter().export(doc)
+        #expect(result.source.hasPrefix("# title: D2 Title\n"))
+
+        let reparsed = try D2Importer().parse(result.source).document
+        #expect(reparsed.title == "D2 Title")
+    }
+
     @Test("D2 export unsupported type returns diagnostic")
     func unsupportedType() throws {
         let doc = DiagramDocument(type: .sequenceDiagram)

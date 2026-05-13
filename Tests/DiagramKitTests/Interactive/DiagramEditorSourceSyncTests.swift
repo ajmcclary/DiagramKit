@@ -1,6 +1,7 @@
 // Phase 9: Interactive Model Tests — Source sync and format-ID-driven export
 
 import Testing
+import DiagramKit
 import DiagramKitModel
 import DiagramKitExport
 import DiagramKitImport
@@ -98,6 +99,28 @@ struct DiagramEditorSourceSyncTests {
 
         try editor.perform(.setTitle(nil))
         #expect(editor.source == "nodes: 0")
+    }
+
+    @Test("Source sync captures title changes through the real Mermaid exporter")
+    func sourceSyncCapturesTitleWithMermaidExporter() throws {
+        let doc = flowDoc(["A"])
+        let registry = ExporterRegistry.empty.registering(MermaidExporter())
+        let editor = DiagramEditor(
+            document: doc,
+            preferredExportFormat: .mermaid,
+            exportRegistry: registry
+        )
+
+        try editor.perform(.setTitle("Real Title"))
+
+        guard let source = editor.source else {
+            Issue.record("Expected exported source")
+            return
+        }
+        #expect(source.hasPrefix("---\ntitle: Real Title\n---\n"))
+
+        let reparsed = try MermaidImporter().parse(source).document
+        #expect(reparsed.title == "Real Title")
     }
 
     @Test("syncSource after init populates source")

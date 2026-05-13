@@ -139,6 +139,27 @@ struct DiagramEditorFlowchartTests {
         #expect(model.edges.first?.label == "connects")
     }
 
+    @Test("insertEdge rejects endpoint selections from another diagram type")
+    func insertEdgeSelectionTypeMismatch() {
+        let doc = flowDoc(["A", "B"])
+        let editor = DiagramEditor(
+            document: doc,
+            preferredExportFormat: .mermaid,
+            exportRegistry: mockRegistry()
+        )
+        let from = DiagramSelection(diagramType: .stateDiagram, elementID: "node:A")
+        let to = DiagramSelection(diagramType: .flowchart, elementID: "node:B")
+        #expect(throws: DiagramEditorError.self) {
+            try editor.performFlowchart(.insertEdge(id: "e1", from: from, to: to))
+        }
+
+        guard case .flowchart(let model) = editor.document.payload else {
+            #expect(Bool(false))
+            return
+        }
+        #expect(model.edges.isEmpty)
+    }
+
     @Test("insertEdge with nonexistent source throws")
     func insertEdgeNonexistentSource() {
         let doc = flowDoc(["B"])

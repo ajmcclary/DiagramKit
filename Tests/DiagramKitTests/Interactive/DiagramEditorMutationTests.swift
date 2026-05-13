@@ -50,6 +50,21 @@ private func flowDoc(_ nodes: [String], edges: [(String, String)] = []) -> Diagr
     return DiagramDocument(payload: .flowchart(model))
 }
 
+private func flowDoc(
+    _ nodes: [String],
+    mermaidEdges: [original_src_types.MermaidEdge]
+) -> DiagramDocument {
+    let mNodes = nodes.map { id in
+        (id: id, node: original_src_types.MermaidNode(id: id, label: "Node \(id)", shape: .rectangle))
+    }
+    let model = original_src_types.MermaidGraph(
+        direction: .TD,
+        nodesInOrder: mNodes,
+        edges: mermaidEdges
+    )
+    return DiagramDocument(payload: .flowchart(model))
+}
+
 // MARK: - DiagramEditorMutationTests
 
 @Suite @MainActor
@@ -132,6 +147,92 @@ struct DiagramEditorMutationTests {
         #expect(result.edges.count == 0)
     }
 
+    @Test("deleteElement removes only the selected duplicate implicit edge")
+    func deleteElementDuplicateImplicitEdge() throws {
+        let baseEdgeID = "edge:\(StableID.derive(from: "A→B→"))"
+        let doc = flowDoc(
+            ["A", "B"],
+            mermaidEdges: [
+                original_src_types.MermaidEdge(source: "A", target: "B", style: .solid),
+                original_src_types.MermaidEdge(source: "A", target: "B", style: .dotted)
+            ]
+        )
+        let editor = DiagramEditor(
+            document: doc,
+            preferredExportFormat: .mermaid,
+            exportRegistry: mockRegistry()
+        )
+
+        try editor.perform(.deleteElement(DiagramSelection(
+            diagramType: .flowchart,
+            elementID: baseEdgeID
+        )))
+
+        guard case .flowchart(let model) = editor.document.payload else {
+            #expect(Bool(false))
+            return
+        }
+        #expect(model.edges.count == 1)
+        #expect(model.edges.first?.style == .dotted)
+    }
+
+    @Test("deleteElement resolves duplicate implicit edge suffixes")
+    func deleteElementDuplicateImplicitEdgeSuffix() throws {
+        let baseEdgeID = "edge:\(StableID.derive(from: "A→B→"))"
+        let doc = flowDoc(
+            ["A", "B"],
+            mermaidEdges: [
+                original_src_types.MermaidEdge(source: "A", target: "B", style: .solid),
+                original_src_types.MermaidEdge(source: "A", target: "B", style: .dotted)
+            ]
+        )
+        let editor = DiagramEditor(
+            document: doc,
+            preferredExportFormat: .mermaid,
+            exportRegistry: mockRegistry()
+        )
+
+        try editor.perform(.deleteElement(DiagramSelection(
+            diagramType: .flowchart,
+            elementID: "\(baseEdgeID)/1"
+        )))
+
+        guard case .flowchart(let model) = editor.document.payload else {
+            #expect(Bool(false))
+            return
+        }
+        #expect(model.edges.count == 1)
+        #expect(model.edges.first?.style == .solid)
+    }
+
+    @Test("deleteElement explicit edge ID matching is exact")
+    func deleteElementExplicitEdgeIDExactMatch() throws {
+        let doc = flowDoc(
+            ["A", "B", "C"],
+            mermaidEdges: [
+                original_src_types.MermaidEdge(source: "A", target: "B", style: .solid, id: "e1"),
+                original_src_types.MermaidEdge(source: "B", target: "C", style: .solid, id: "e10")
+            ]
+        )
+        let editor = DiagramEditor(
+            document: doc,
+            preferredExportFormat: .mermaid,
+            exportRegistry: mockRegistry()
+        )
+
+        try editor.perform(.deleteElement(DiagramSelection(
+            diagramType: .flowchart,
+            elementID: "edge:e10"
+        )))
+
+        guard case .flowchart(let model) = editor.document.payload else {
+            #expect(Bool(false))
+            return
+        }
+        #expect(model.edges.count == 1)
+        #expect(model.edges.first?.id == "e1")
+    }
+
     @Test("deleteElement nonexistent throws elementNotFound")
     func deleteElementNonexistent() {
         let doc = flowDoc(["A"])
@@ -158,6 +259,25 @@ struct DiagramEditorMutationTests {
         #expect(throws: DiagramEditorError.self) {
             try editor.perform(.deleteElement(sel))
         }
+    }
+
+    @Test("deleteElement rejects selections from another diagram type")
+    func deleteElementSelectionTypeMismatch() {
+        let doc = flowDoc(["A"])
+        let editor = DiagramEditor(
+            document: doc,
+            preferredExportFormat: .mermaid,
+            exportRegistry: mockRegistry()
+        )
+        let sel = DiagramSelection(diagramType: .stateDiagram, elementID: "node:A")
+        #expect(throws: DiagramEditorError.self) {
+            try editor.perform(.deleteElement(sel))
+        }
+        guard case .flowchart(let model) = editor.document.payload else {
+            #expect(Bool(false))
+            return
+        }
+        #expect(model.nodesInOrder.contains { $0.id == "A" })
     }
 
     // MARK: - setLabel
@@ -200,6 +320,36 @@ struct DiagramEditorMutationTests {
         #expect(model.edges.first?.label == "connects")
     }
 
+    @Test("setLabel resolves duplicate implicit edge suffixes")
+    func setLabelDuplicateImplicitEdgeSuffix() throws {
+        let baseEdgeID = "edge:\(StableID.derive(from: "A→B→"))"
+        let doc = flowDoc(
+            ["A", "B"],
+            mermaidEdges: [
+                original_src_types.MermaidEdge(source: "A", target: "B", style: .solid),
+                original_src_types.MermaidEdge(source: "A", target: "B", style: .dotted)
+            ]
+        )
+        let editor = DiagramEditor(
+            document: doc,
+            preferredExportFormat: .mermaid,
+            exportRegistry: mockRegistry()
+        )
+
+        try editor.perform(.setLabel(
+            of: DiagramSelection(diagramType: .flowchart, elementID: "\(baseEdgeID)/1"),
+            to: "updated"
+        ))
+
+        guard case .flowchart(let model) = editor.document.payload else {
+            #expect(Bool(false))
+            return
+        }
+        #expect(model.edges.count == 2)
+        #expect(model.edges[0].label == nil)
+        #expect(model.edges[1].label == "updated")
+    }
+
     @Test("setLabel nonexistent throws elementNotFound")
     func setLabelNonexistent() {
         let doc = flowDoc(["A"])
@@ -212,6 +362,25 @@ struct DiagramEditorMutationTests {
         #expect(throws: DiagramEditorError.self) {
             try editor.perform(.setLabel(of: sel, to: "X"))
         }
+    }
+
+    @Test("setLabel rejects selections from another diagram type")
+    func setLabelSelectionTypeMismatch() {
+        let doc = flowDoc(["A"])
+        let editor = DiagramEditor(
+            document: doc,
+            preferredExportFormat: .mermaid,
+            exportRegistry: mockRegistry()
+        )
+        let sel = DiagramSelection(diagramType: .stateDiagram, elementID: "node:A")
+        #expect(throws: DiagramEditorError.self) {
+            try editor.perform(.setLabel(of: sel, to: "Wrong"))
+        }
+        guard case .flowchart(let model) = editor.document.payload else {
+            #expect(Bool(false))
+            return
+        }
+        #expect(model.nodesInOrder.first?.node.label == "Node A")
     }
 
     // MARK: - setTitle

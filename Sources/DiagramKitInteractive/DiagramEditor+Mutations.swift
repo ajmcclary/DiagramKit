@@ -74,6 +74,8 @@ extension DiagramEditor {
     func _deleteElement(
         _ selection: DiagramSelection, from document: DiagramDocument
     ) throws -> DiagramDocument {
+        try _validateSelection(selection, matches: document)
+
         var doc = document
         let id = selection.elementID
         switch doc.payload {
@@ -87,15 +89,10 @@ extension DiagramEditor {
                 model.edges.removeAll { $0.source == nodeID || $0.target == nodeID }
             } else if id.hasPrefix("edge:") {
                 let edgeID = String(id.dropFirst(5))
-                let matched = model.edges.contains { edge in
-                    _edgeMatches(selectionElementID: id, candidateElementID: edge.id, edge: edge)
-                }
-                guard matched else {
+                guard let index = _findEdge(in: model, selectionElementID: id) else {
                     throw DiagramEditorError.elementNotFound(id: edgeID, kind: "edge")
                 }
-                model.edges.removeAll { edge in
-                    _edgeMatches(selectionElementID: id, candidateElementID: edge.id, edge: edge)
-                }
+                model.edges.remove(at: index)
             } else {
                 throw DiagramEditorError.unknownElementKind(id: id)
             }
@@ -110,15 +107,10 @@ extension DiagramEditor {
                 model.edges.removeAll { $0.source == nodeID || $0.target == nodeID }
             } else if id.hasPrefix("edge:") {
                 let edgeID = String(id.dropFirst(5))
-                let matched = model.edges.contains { edge in
-                    _edgeMatches(selectionElementID: id, candidateElementID: edge.id, edge: edge)
-                }
-                guard matched else {
+                guard let index = _findEdge(in: model, selectionElementID: id) else {
                     throw DiagramEditorError.elementNotFound(id: edgeID, kind: "edge")
                 }
-                model.edges.removeAll { edge in
-                    _edgeMatches(selectionElementID: id, candidateElementID: edge.id, edge: edge)
-                }
+                model.edges.remove(at: index)
             } else {
                 throw DiagramEditorError.unknownElementKind(id: id)
             }
@@ -135,6 +127,8 @@ extension DiagramEditor {
     func _setLabel(
         of selection: DiagramSelection, to label: String, in document: DiagramDocument
     ) throws -> DiagramDocument {
+        try _validateSelection(selection, matches: document)
+
         var doc = document
         let id = selection.elementID
         switch doc.payload {
@@ -207,32 +201,23 @@ extension DiagramEditor {
 
     // MARK: - Edge matching helpers
 
-    /// Returns true if the edge matches the given selection element ID.
-    func _edgeMatches(
-        selectionElementID: String,
-        candidateElementID: String?,
-        edge: original_src_types.MermaidEdge
-    ) -> Bool {
-        // Exact match on the full stable ID
-        let guaranteed = _guaranteedEdgeID(for: edge)
-        if guaranteed == selectionElementID { return true }
-        // Also check by prefix for disambiguation suffixes
-        if let cid = candidateElementID, selectionElementID.hasPrefix("edge:\(cid)") { return true }
-        return false
-    }
-
     /// Find the index of an edge matching the selection element ID.
     func _findEdge(
         in model: original_src_types.MermaidGraph,
         selectionElementID: String
     ) -> Int? {
-        model.edges.firstIndex { edge in
-            _edgeMatches(
-                selectionElementID: selectionElementID,
-                candidateElementID: edge.id,
-                edge: edge
-            )
+        var counts: [String: Int] = [:]
+        for (index, edge) in model.edges.enumerated() {
+            let base = _guaranteedEdgeID(for: edge)
+            let count = counts[base, default: 0]
+            counts[base] = count + 1
+
+            let stableID = count > 0 ? "\(base)/\(count)" : base
+            if stableID == selectionElementID {
+                return index
+            }
         }
+        return nil
     }
 
     /// Compute the guaranteed stable edge ID (matches PositionedEdge.stableElementID).
@@ -240,5 +225,17 @@ extension DiagramEditor {
         if let edgeId = edge.id, !edgeId.isEmpty { return "edge:\(edgeId)" }
         let seed = [edge.source, edge.target, edge.label ?? ""].joined(separator: "→")
         return "edge:\(StableID.derive(from: seed))"
+    }
+
+    func _validateSelection(
+        _ selection: DiagramSelection,
+        matches document: DiagramDocument
+    ) throws {
+        guard selection.diagramType == document.type else {
+            throw DiagramEditorError.selectionTypeMismatch(
+                selection: selection.diagramType,
+                document: document.type
+            )
+        }
     }
 }

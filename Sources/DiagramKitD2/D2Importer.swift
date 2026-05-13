@@ -27,8 +27,34 @@ public struct D2Importer: DiagramSourceImporter {
 
         let allDiagnostics = parseDiagnostics + mapDiagnostics
         let payload = DiagramPayload.flowchart(graph)
-        let document = DiagramDocument(payload: payload)
+        var document = DiagramDocument(payload: payload)
+        document.title = Self.documentTitleMetadata(in: source)
 
         return DiagramImportResult(document: document, diagnostics: allDiagnostics)
+    }
+
+    private static func documentTitleMetadata(in source: String) -> String? {
+        for line in source.split(separator: "\n", omittingEmptySubsequences: false) {
+            let trimmed = line.trimmingCharacters(in: .whitespaces)
+            if trimmed.isEmpty { continue }
+            guard trimmed.hasPrefix("#") || trimmed.hasPrefix("//") else {
+                return nil
+            }
+
+            let comment: String
+            if trimmed.hasPrefix("#") {
+                comment = String(trimmed.dropFirst())
+            } else {
+                comment = String(trimmed.dropFirst(2))
+            }
+
+            let body = comment.trimmingCharacters(in: .whitespaces)
+            guard body.lowercased().hasPrefix("title:") else { continue }
+
+            let value = String(body.dropFirst("title:".count))
+                .trimmingCharacters(in: .whitespaces)
+            return value.isEmpty ? nil : value
+        }
+        return nil
     }
 }

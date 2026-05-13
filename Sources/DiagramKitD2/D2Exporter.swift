@@ -21,7 +21,7 @@ public struct D2Exporter: DiagramExporter {
     public func export(_ document: DiagramDocument) throws -> DiagramExportResult {
         switch document.payload {
         case .flowchart(let model):
-            return try D2FlowchartExport.emit(model)
+            return try D2FlowchartExport.emit(model, title: document.title)
         default:
             return DiagramExportResult(
                 source: "",
@@ -40,9 +40,13 @@ public struct D2Exporter: DiagramExporter {
 
 enum D2FlowchartExport {
 
-    static func emit(_ model: ParsedGraphModel) throws -> DiagramExportResult {
+    static func emit(_ model: ParsedGraphModel, title: String? = nil) throws -> DiagramExportResult {
         var lines: [String] = []
         let diagnostics: [DiagramDiagnostic] = []
+
+        if let title, !title.isEmpty {
+            lines.append("# title: \(singleLineTitle(title))")
+        }
 
         // Direction
         switch model.direction {
@@ -121,5 +125,13 @@ enum D2FlowchartExport {
             return "parallelogram"
         default: return "rectangle"
         }
+    }
+
+    private static func singleLineTitle(_ title: String) -> String {
+        title
+            .replacingOccurrences(of: "\r\n", with: "\n")
+            .replacingOccurrences(of: "\r", with: "\n")
+            .split(separator: "\n", omittingEmptySubsequences: false)
+            .joined(separator: " ")
     }
 }

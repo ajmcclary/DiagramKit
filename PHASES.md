@@ -2,13 +2,13 @@
 
 This is the active execution roadmap. `ANALYSIS.md` is the long-form rationale.
 Detailed phase records live in `PHASE-0.md`, `PHASE-1.md`, `PHASE-2.md`,
-`PHASE-3.md`, `PHASE-4.md`, `PHASE-5.md`, `PHASE-6.md`, `PHASE-7.md`, and
-`PHASE-8.md`.
+`PHASE-3.md`, `PHASE-4.md`, `PHASE-5.md`, `PHASE-6.md`, `PHASE-7.md`,
+`PHASE-8.md`, and `PHASE-9.md`.
 
 ## Current State
 
-Phases 0, 1, 2, 3, 4, 5, 6A, 7, and 8 are implemented. The remaining Phase 6
-work is the planned PlantUML family slices: class, state/activity,
+Phases 0, 1, 2, 3, 4, 5, 6A, 7, 8, and 9 are implemented. The remaining Phase
+6 work is the planned PlantUML family slices: class, state/activity,
 mindmap+gantt, and C4-flavored PlantUML.
 
 What is true now:
@@ -48,6 +48,13 @@ What is true now:
 - Phase 8 interactivity primitives are in place. `DiagramKitCommon` owns
   portable `DiagramPoint`, `DiagramSize`, and `DiagramRect`; `DiagramKitModel`
   owns `DiagramStableElement`, `DiagramSelection`, and `DiagramBoundsLookup`.
+- Phase 9 editor primitives are in place. `DiagramKitInteractive` owns the
+  Apple-only `@MainActor @Observable` `DiagramEditor`, undo/source-sync state,
+  core `DiagramMutation` values, and flowchart insertion mutations. The
+  umbrella `DiagramKit` target depends on it only on Apple platforms.
+- `DiagramDocument.title` is available as diagram-level metadata. Mermaid export
+  persists it through frontmatter, and D2 export persists it through an importable
+  leading metadata comment.
 - `PositionedGraph.lookup` is an eager computed lookup derived from positioned
   content. It does not cache and does not change `PreparedDiagram`.
 - Lookup coverage includes the priority families plus broad long-tail coverage:
@@ -64,6 +71,10 @@ What is true now:
 - Stable IDs must remain source/model-derived, not layout-coordinate-derived.
   Current regression coverage locks this down for the reviewed XY chart and
   ZenUML cases.
+- Selection-based editor mutations must reject stale selections whose
+  `DiagramSelection.diagramType` differs from the current `DiagramDocument.type`.
+- Flowchart/state edge mutations reconstruct the same source-order edge IDs as
+  Phase 8 lookup construction, including `/1`, `/2`, ... duplicate suffixes.
 - `MermaidImporter` remains the broad fallback importer and must stay last in
   the default registry.
 - `DiagramPipeline.defaultRegistry` is currently ordered as
@@ -145,17 +156,15 @@ What is true now:
 1. Treat Phase 8 as the stable identity/geometry baseline. Future interaction
    work should build on `DiagramSelection` and `DiagramBoundsLookup`, not new
    ad hoc hit-testing surfaces.
-2. Backfill interactivity tests toward the full planned suite before adding an
-   editor model. The immediate guardrail is focused regression coverage for
-   diagram type preservation, hit-test priority, and layout-independent IDs.
+2. Treat Phase 9 as the first editor primitive baseline. Future editor work
+   should stay consumer-driven, keep source sync exporter-backed, and add
+   regression tests before expanding the mutation surface.
 3. Continue PlantUML 6B-6E as independent importer/exporter expansion tracks.
    A PlantUML family becomes publicly exportable only after the same-format
    importer can parse it.
-4. Treat Phase 9 as optional consumer-driven work: selection state, undo, and
-   typed mutations should land only after there is a concrete editor need.
-5. Keep Graphviz/DOT export and long-tail Mermaid export as later exporter
+4. Keep Graphviz/DOT export and long-tail Mermaid export as later exporter
    extensions that reuse the Phase 7 export boundary.
-6. Save real multi-format corpus entries, snapshot recording, and accumulated
+5. Save real multi-format corpus entries, snapshot recording, and accumulated
    visual drift cleanup for the final release/baseline pass.
 
 ## Verification Policy
@@ -525,7 +534,7 @@ Deferred:
 - Better hit areas for pie/radar/venn.
 - Splitting `DiagramBoundsLookup+LongTail.swift` if future additions push it
   toward the 1000-line file-size error threshold.
-- Editor model, undo, typed mutations, and selection-highlight rendering.
+- Selection-highlight rendering and broader editor gestures/mutations.
 
 Closure evidence lives in `PHASE-8.md`.
 
@@ -534,13 +543,37 @@ Closure evidence lives in `PHASE-8.md`.
 Goal: provide editor primitives only after import/export and stable geometry are
 settled.
 
-Approach:
+Status: complete locally, with post-review remediation for stale selections,
+duplicate edge IDs, real-exporter title sync, and Apple-only umbrella wiring.
 
-- Add a `DiagramKitInteractive` target if real consumers need it.
-- Introduce a `@MainActor` editor model with selection state, undo, and typed
-  mutations.
-- Keep turnkey editor UI out of the first cut. Ship primitives first.
-- Source sync should go through exporters, not hand-written string patches.
+Completed:
+
+- Added `DiagramKitInteractive` as the editor-primitives target and product.
+- Added `DiagramEditor` with selection, undo, source sync, export diagnostics,
+  and atomic compute-then-commit mutation application.
+- Added `DiagramMutation` for `deleteElement`, `setLabel`, `setTitle`, and
+  `noop`.
+- Added `FlowchartMutation` for `insertNode` and `insertEdge`.
+- Kept editor state `@MainActor` and `@Observable`; consumers mutate through
+  `perform(_:)`, `performFlowchart(_:)`, and undo grouping helpers.
+- Added `DiagramDocument.title` and wired real Mermaid/D2 exporters and importers
+  so title metadata is not mock-only.
+- Guarded selection-based mutations against mismatched `DiagramSelection`
+  diagram families.
+- Mirrored Phase 8 source-order duplicate edge disambiguation for edge label and
+  deletion mutations.
+- Kept turnkey UI, gesture recognizers, selection rendering, and fixed-position
+  movement out of scope.
+
+Deferred:
+
+- Selection highlight rendering and gesture integration.
+- `moveNode` or any position mutation until layout respects fixed positions.
+- Broader family-specific mutations beyond the current graph-model surface.
+- Full editor UI and live layout loops.
+- Snapshot updates; Phase 9 is not a rendering-baseline phase.
+
+Closure evidence lives in `PHASE-9.md`.
 
 ## Phase 10: Release And Deprecation Cleanup
 

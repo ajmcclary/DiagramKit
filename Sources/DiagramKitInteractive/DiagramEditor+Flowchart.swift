@@ -160,6 +160,8 @@ extension DiagramEditor {
         guard case .flowchart(let model) = doc.payload else {
             throw DiagramEditorError.notAFlowchart
         }
+        try _validateSelection(from, matches: document)
+        try _validateSelection(to, matches: document)
 
         // Extract node IDs from selections
         let fromID: String

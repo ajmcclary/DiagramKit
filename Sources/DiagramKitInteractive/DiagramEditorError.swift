@@ -2,6 +2,7 @@
 // Error types for DiagramEditor mutations.
 
 import Foundation
+import DiagramKitModel
 
 /// Errors thrown by `DiagramEditor` during mutation application.
 public enum DiagramEditorError: Error, LocalizedError, Sendable {
@@ -16,6 +17,9 @@ public enum DiagramEditorError: Error, LocalizedError, Sendable {
 
     /// The element ID prefix does not match any known element kind.
     case unknownElementKind(id: String)
+
+    /// The selection belongs to a different diagram family than the document.
+    case selectionTypeMismatch(selection: DiagramType, document: DiagramType)
 
     /// The document is not a flowchart (required for flowchart-specific mutations).
     case notAFlowchart
@@ -33,6 +37,8 @@ public enum DiagramEditorError: Error, LocalizedError, Sendable {
             return "A node with id '\(id)' already exists"
         case .unknownElementKind(let id):
             return "Unknown element kind for id '\(id)'"
+        case .selectionTypeMismatch(let selection, let document):
+            return "Selection is for '\(selection.rawValue)', but document is '\(document.rawValue)'"
         case .notAFlowchart:
             return "Document is not a flowchart"
         case .sourceSyncFailed(let underlying):

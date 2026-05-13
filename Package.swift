@@ -139,7 +139,10 @@ let package = Package(
                 "DiagramKitModel",
                 "DiagramKitImport",
                 "DiagramKitExport",
-                "DiagramKitInteractive",
+                .target(
+                    name: "DiagramKitInteractive",
+                    condition: .when(platforms: [.macOS, .iOS, .tvOS, .visionOS, .macCatalyst])
+                ),
                 .target(name: "DiagramKitD2"),
                 .target(name: "DiagramKitGraphviz"),
                 .target(name: "DiagramKitStructurizr"),
