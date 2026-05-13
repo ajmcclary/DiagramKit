@@ -10,21 +10,20 @@ import DiagramKitCommon
 // At that point this type will become MermaidDiagramRegistry or be subsumed
 // into MermaidImporter.
 extension DiagramRegistry {
-    static let _mindmap = DiagramDescriptor(
+    static let _mindmap = _typed(
         type: .mindmap,
         matches: { $0.normalized.hasPrefix("mindmap") },
         parse: { source, frontmatter in
-            let rawLines = DiagramSourceNormalizer.rawLines(source)
-            let parsed = try parseMindmap(rawLines, frontmatter: frontmatter)
-            return DiagramDocument(payload: .mindmap(parsed))
+            try parseMindmap(DiagramSourceNormalizer.rawLines(source), frontmatter: frontmatter)
         },
-        layout: { graph, _ in
-            guard case let .mindmap(diagram) = graph.payload else {
-                throw DiagramStructuralError.payloadMismatch(.mindmap)
-            }
+        wrap: DiagramPayload.mindmap,
+        unwrap: { payload in
+            guard case let .mindmap(value) = payload else { return nil }
+            return value
+        },
+        layout: { diagram, _ in
             #if canImport(UIKit) || canImport(AppKit)
-            let positioned = try layoutMindmap(diagram)
-            return PositionedGraph(diagram: graph, width: positioned.width, height: positioned.height, content: .mindmap(positioned))
+            return try layoutMindmap(diagram)
             #else
             // Linux: layoutMindmap depends on BMFont + NSAttributedString
             // text measurement. Unreachable until the portable text-measurement
@@ -32,6 +31,9 @@ extension DiagramRegistry {
             _ = diagram
             throw DiagramStructuralError.payloadMismatch(.mindmap)
             #endif
+        },
+        positioned: { graph, positioned in
+            PositionedGraph(diagram: graph, width: positioned.width, height: positioned.height, content: .mindmap(positioned))
         }
     )
 }

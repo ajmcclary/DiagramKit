@@ -10,20 +10,20 @@ import DiagramKitCommon
 // At that point this type will become MermaidDiagramRegistry or be subsumed
 // into MermaidImporter.
 extension DiagramRegistry {
-    static let _kanban = DiagramDescriptor(
+    static let _kanban = _typed(
         type: .kanban,
         matches: { $0.normalized.hasPrefix("kanban") },
         parse: { source, frontmatter in
-            let rawLines = DiagramSourceNormalizer.rawLines(source)
-            let parsed = try parseKanbanDiagram(rawLines, frontmatter: frontmatter)
-            return DiagramDocument(payload: .kanban(parsed))
+            try parseKanbanDiagram(DiagramSourceNormalizer.rawLines(source), frontmatter: frontmatter)
         },
-        layout: { graph, _ in
-            guard case let .kanban(diagram) = graph.payload else {
-                throw DiagramStructuralError.payloadMismatch(.kanban)
-            }
-            let positioned = layoutKanbanDiagram(diagram)
-            return PositionedGraph(diagram: graph, width: positioned.width, height: positioned.height, content: .kanban(positioned))
+        wrap: DiagramPayload.kanban,
+        unwrap: { payload in
+            guard case let .kanban(value) = payload else { return nil }
+            return value
+        },
+        layout: { diagram, _ in layoutKanbanDiagram(diagram) },
+        positioned: { graph, positioned in
+            PositionedGraph(diagram: graph, width: positioned.width, height: positioned.height, content: .kanban(positioned))
         }
     )
 }

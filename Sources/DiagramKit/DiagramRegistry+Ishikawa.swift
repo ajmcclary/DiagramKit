@@ -10,23 +10,20 @@ import DiagramKitCommon
 // At that point this type will become MermaidDiagramRegistry or be subsumed
 // into MermaidImporter.
 extension DiagramRegistry {
-    static let _ishikawa = DiagramDescriptor(
+    static let _ishikawa = _typed(
         type: .ishikawa,
-        matches: { header in
-            _isIshikawaDiagramHeader(header.raw)
-        },
+        matches: { header in _isIshikawaDiagramHeader(header.raw) },
         parse: { source, frontmatter in
-            let rawLines = DiagramSourceNormalizer.rawLines(source)
-            let diagram = try parseIshikawaDiagram(rawLines, frontmatter: frontmatter)
-            return DiagramDocument(payload: .ishikawa(diagram))
+            try parseIshikawaDiagram(DiagramSourceNormalizer.rawLines(source), frontmatter: frontmatter)
         },
-        layout: { graph, _ in
-            guard case let .ishikawa(diagram) = graph.payload else {
-                throw DiagramStructuralError.payloadMismatch(.ishikawa)
-            }
+        wrap: DiagramPayload.ishikawa,
+        unwrap: { payload in
+            guard case let .ishikawa(value) = payload else { return nil }
+            return value
+        },
+        layout: { diagram, _ in
             #if canImport(CoreText)
-            let positioned = layoutIshikawaDiagram(diagram)
-            return PositionedGraph(diagram: graph, width: positioned.width, height: positioned.height, content: .ishikawa(positioned))
+            return layoutIshikawaDiagram(diagram)
             #else
             // Linux: layoutIshikawaDiagram requires CoreText for text-bounds
             // measurement. Unreachable until the portable text-measurement
@@ -34,6 +31,9 @@ extension DiagramRegistry {
             _ = diagram
             throw DiagramStructuralError.payloadMismatch(.ishikawa)
             #endif
+        },
+        positioned: { graph, positioned in
+            PositionedGraph(diagram: graph, width: positioned.width, height: positioned.height, content: .ishikawa(positioned))
         }
     )
 }

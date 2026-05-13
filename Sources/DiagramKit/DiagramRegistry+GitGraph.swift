@@ -10,20 +10,20 @@ import DiagramKitCommon
 // At that point this type will become MermaidDiagramRegistry or be subsumed
 // into MermaidImporter.
 extension DiagramRegistry {
-    static let _gitGraph = DiagramDescriptor(
+    static let _gitGraph = _typed(
         type: .gitGraph,
         matches: { $0.normalized.hasPrefix("gitgraph") },
         parse: { source, frontmatter in
-            let lines = DiagramSourceNormalizer.statements(source)
-            let parsed = try parseGitGraph(lines, frontmatter: frontmatter)
-            return DiagramDocument(payload: .gitGraph(parsed))
+            try parseGitGraph(DiagramSourceNormalizer.statements(source), frontmatter: frontmatter)
         },
-        layout: { graph, _ in
-            guard case let .gitGraph(diagram) = graph.payload else {
-                throw DiagramStructuralError.payloadMismatch(.gitGraph)
-            }
-            let positioned = layoutGitGraph(diagram)
-            return PositionedGraph(diagram: graph, width: positioned.width, height: positioned.height, content: .gitGraph(positioned))
+        wrap: DiagramPayload.gitGraph,
+        unwrap: { payload in
+            guard case let .gitGraph(value) = payload else { return nil }
+            return value
+        },
+        layout: { diagram, _ in layoutGitGraph(diagram) },
+        positioned: { graph, positioned in
+            PositionedGraph(diagram: graph, width: positioned.width, height: positioned.height, content: .gitGraph(positioned))
         }
     )
 }
