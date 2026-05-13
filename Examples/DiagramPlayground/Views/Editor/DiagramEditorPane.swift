@@ -78,10 +78,20 @@ struct DiagramEditorPane: View {
                 InsertEdgeSection(store: store, editor: editor)
                 Divider()
                 DeleteSection(store: store, editor: editor)
+                Divider()
+                UndoRedoFooter(store: store, editor: editor)
                 if let message = store.lastMutationError {
                     Text(message)
                         .font(.system(size: 11))
                         .foregroundColor(.orange)
+                }
+                if !editor.lastExportDiagnostics.isEmpty {
+                    ForEach(editor.lastExportDiagnostics.indices, id: \.self) { idx in
+                        let d = editor.lastExportDiagnostics[idx]
+                        Text("\(String(describing: d.severity)): \(d.message)")
+                            .font(.system(size: 10))
+                            .foregroundColor(.orange)
+                    }
                 }
             }
         }
@@ -453,6 +463,40 @@ private struct DeleteSection: View {
             }
             .disabled(editor.selection == nil)
             Spacer(minLength: 0)
+        }
+    }
+}
+
+// MARK: - Undo / redo footer
+
+@available(iOS 26.0, macOS 26.0, macCatalyst 26.0, *)
+private struct UndoRedoFooter: View {
+    @Bindable var store: LiveEditorStore
+    let editor: DiagramEditor
+
+    var body: some View {
+        HStack(spacing: 8) {
+            Button {
+                store.undoStructural()
+            } label: {
+                Label("Undo", systemImage: "arrow.uturn.backward")
+            }
+            .disabled(!editor.undoManager.canUndo)
+
+            Button {
+                store.redoStructural()
+            } label: {
+                Label("Redo", systemImage: "arrow.uturn.forward")
+            }
+            .disabled(!editor.undoManager.canRedo)
+
+            Spacer(minLength: 0)
+
+            if !editor.undoManager.undoActionName.isEmpty {
+                Text("Last: \(editor.undoManager.undoActionName)")
+                    .font(.system(size: 10))
+                    .foregroundColor(Color(store.theme.effectiveMuted()))
+            }
         }
     }
 }
