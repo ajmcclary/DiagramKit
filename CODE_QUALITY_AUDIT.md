@@ -65,7 +65,7 @@ struct ElkGraphBuilder {
 }
 ```
 
-### Finding A2: `DiagramRegistry._typed` is an unused abstraction
+### Finding A2: `DiagramRegistry._typed` is an unused abstraction — RESOLVED 2026-05-13 (Phase 3, commits 095530a..f2724d7)
 
 Evidence:
 
@@ -359,7 +359,7 @@ protocol DiagramFamilyModule {
 
 ## Duplication and Reuse Audit
 
-### Finding D1: Frontmatter bindings repeat the same state machine
+### Finding D1: Frontmatter bindings repeat the same state machine — RESOLVED 2026-05-13 (Phase 3, commits b8931f7..4f1571f)
 
 Evidence:
 
@@ -666,7 +666,27 @@ Suggested sequence:
 3. Keep legacy source-based helpers behind narrow adapters.
 4. Add tests that parse/layout once and render SVG/ASCII from the same document or positioned graph.
 
-### Priority 3: Adopt existing descriptor and frontmatter helpers
+### Priority 3: Adopt existing descriptor and frontmatter helpers — COMPLETE (Phase 3, 2026-05-13)
+
+Closure summary:
+
+- `DiagramRegistry._typed` is now used by every one-to-one family
+  descriptor (26 of 28). The two exceptions — `_flowchart` and
+  `_state` — keep direct `DiagramDescriptor(...)` construction because
+  they cross-emit (parse one type into another's payload), which
+  `_typed`'s strict wrap/unwrap pair cannot express.
+- `Sources/DiagramKitModel/FrontmatterBinding+Runners.swift` introduces
+  `FrontmatterPrefixMatcher`, `SingleSectionBinding<Config>`, and
+  `ConfigThemeBinding<Config, Theme>` with 9 unit tests.
+- All 8 single-section bindings (ER, Ishikawa, Journey, Kanban, Class,
+  C4, Mindmap, State) migrated to `SingleSectionBinding`.
+- All 7 paired config/theme bindings (Architecture, Packet, XYChart,
+  Timeline, Requirement, Venn, Quadrant) migrated to
+  `ConfigThemeBinding`.
+- Closure scan: `rg -c '_typed\(' Sources/DiagramKit/DiagramRegistry+*.swift`
+  reports 26 files using `_typed`. Hand-coded payload-guard +
+  payload-wrap blocks are gone from the migrated descriptors. The
+  bindings' apply methods are now a single delegation to the runner.
 
 Files:
 
