@@ -1251,7 +1251,7 @@ private func _layoutGraphSyncWithConfig(
         let laidOut = ElkGraphNode(from: rawLaidOut)
         return _extractPositionedGraph(parsed, laidOut, diagramType: graph.type)
     } catch {
-        var flatGraph = _buildFlatElkGraph(parsed)
+        var flatGraph = _buildFlatElkGraph(parsed).toDictionary()
         _applyLayoutConfig(config, to: &flatGraph)
         let rawLaidOut = try layoutEngineSync(flatGraph)
         let laidOut = ElkGraphNode(from: rawLaidOut)
@@ -1423,65 +1423,44 @@ private func _buildElkGraphNoCrossEdges(_ graph: _ParsedGraph) -> _ElkNode {
     ]
 }
 
-private func _buildFlatElkGraph(_ graph: _ParsedGraph) -> _ElkNode {
-    var children: [[String: Any]] = []
+private func _buildFlatElkGraph(_ graph: _ParsedGraph) -> ElkGraphNode {
+    var children: [ElkGraphNode] = []
     for entry in graph.nodesInOrder {
         let size = _nodeSize(entry.node, hideEmptyDescription: graph.stateConfig.hideEmptyDescription)
-        children.append([
-            "id": entry.id,
-            "width": size.width,
-            "height": size.height
-        ])
+        children.append(ElkGraphNode(id: entry.id, width: size.width, height: size.height))
     }
-    var edges: [[String: Any]] = []
+    var edges: [ElkGraphEdge] = []
     for (idx, edge) in graph.edges.enumerated() {
-        var out: [String: Any] = [
-            "id": "e\(idx)",
-            "sources": [edge.source],
-            "targets": [edge.target]
-        ]
+        var labels: [ElkGraphLabel] = []
         if let label = edge.label, !label.isEmpty {
             let m = original_src_text_metrics.measureMultilineText(
                 label,
                 fontSize: original_src_styles.FONT_SIZES.edgeLabel,
                 fontWeight: original_src_styles.FONT_WEIGHTS.edgeLabel
             )
-            out["labels"] = [[
-                "text": label,
-                "width": m.width + 8,
-                "height": m.height + 6,
-                "layoutOptions": [
+            labels.append(ElkGraphLabel(
+                text: label,
+                width: m.width + 8,
+                height: m.height + 6,
+                layoutOptions: [
                     "elk.edgeLabels.inline": "true",
                     "elk.edgeLabels.placement": "CENTER"
                 ]
-            ] as [String: Any]]
+            ))
         }
-        edges.append(out)
+        edges.append(ElkGraphEdge(
+            id: "e\(idx)",
+            sources: [edge.source],
+            targets: [edge.target],
+            labels: labels
+        ))
     }
-    return [
-        "id": "root",
-        "layoutOptions": [
-            "elk.algorithm": "layered",
-            "elk.direction": _mapDirection(graph.direction),
-            "elk.spacing.nodeNode": "28",
-            "elk.spacing.edgeEdge": "12",
-            "elk.layered.spacing.nodeNodeBetweenLayers": "48",
-            "elk.layered.spacing.edgeEdgeBetweenLayers": "12",
-            "elk.layered.spacing.edgeNodeBetweenLayers": "12",
-            "elk.padding": "[top=40,left=40,bottom=40,right=40]",
-            "elk.edgeRouting": "ORTHOGONAL",
-            "elk.contentAlignment": "H_CENTER V_CENTER",
-            "elk.layered.nodePlacement.bk.fixedAlignment": "BALANCED",
-            "elk.layered.considerModelOrder.strategy": "NODES_AND_EDGES",
-            "elk.layered.thoroughness": "3",
-            "elk.layered.compaction.postCompaction.strategy": "LEFT_RIGHT_CONSTRAINT_LOCKING",
-            "elk.layered.highDegreeNodes.treatment": "true",
-            "elk.layered.highDegreeNodes.threshold": "8",
-            "elk.randomSeed": "1"
-        ],
-        "children": children,
-        "edges": edges
-    ]
+    return ElkGraphNode(
+        id: "root",
+        children: children,
+        edges: edges,
+        layoutOptions: ElkLayoutOptions.flatRoot(direction: graph.direction)
+    )
 }
 
 private func _layoutGraphSyncFromLayoutEngine(
@@ -1515,7 +1494,7 @@ private func _layoutGraphSyncFromLayoutEngine(
         } catch {
             // Fallback: fully flat layout
             let flatGraph = _buildFlatElkGraph(parsed)
-            let rawLaidOut = try layoutEngineSync(flatGraph)
+            let rawLaidOut = try layoutEngineSync(flatGraph.toDictionary())
             let laidOut = ElkGraphNode(from: rawLaidOut)
             return _extractPositionedGraph(parsed, laidOut, diagramType: graph.type)
         }
