@@ -190,12 +190,38 @@ public struct ClassRelationship: Sendable {
     public var text: String
     public var style: [String]
     public var relation: ClassRelationEndpoint
+
+    public init(
+        id1: String,
+        id2: String,
+        relationTitle1: String = "",
+        relationTitle2: String = "",
+        title: String = "",
+        text: String = "",
+        style: [String] = [],
+        relation: ClassRelationEndpoint
+    ) {
+        self.id1 = id1
+        self.id2 = id2
+        self.relationTitle1 = relationTitle1
+        self.relationTitle2 = relationTitle2
+        self.title = title
+        self.text = text
+        self.style = style
+        self.relation = relation
+    }
 }
 
 public struct ClassRelationEndpoint: Sendable {
     public var type1: Int
     public var type2: Int
     public var lineType: Int
+
+    public init(type1: Int, type2: Int, lineType: Int) {
+        self.type1 = type1
+        self.type2 = type2
+        self.lineType = lineType
+    }
 }
 
 public enum ClassRelationType: Int, Sendable {
@@ -220,6 +246,20 @@ public struct ClassNote: Sendable {
     public var text: String
     public var index: Int
     public var parent: String?
+
+    public init(
+        id: String,
+        class_: String? = nil,
+        text: String,
+        index: Int,
+        parent: String? = nil
+    ) {
+        self.id = id
+        self.class_ = class_
+        self.text = text
+        self.index = index
+        self.parent = parent
+    }
 }
 
 public struct ClassInterface: Sendable {

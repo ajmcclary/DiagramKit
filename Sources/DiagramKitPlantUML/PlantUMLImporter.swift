@@ -12,8 +12,8 @@ public struct PlantUMLImporter: DiagramSourceImporter {
 
     public let name = "PlantUML"
     public let supportedDiagramTypes: Set<DiagramType> = [
-        .sequenceDiagram
-        // .classDiagram     — added in 6B
+        .sequenceDiagram,
+        .classDiagram,
         // .stateDiagram     — added in 6C
         // .mindmap, .gantt  — added in 6D
         // .c4               — added in 6E
@@ -63,7 +63,12 @@ public struct PlantUMLImporter: DiagramSourceImporter {
 
         // Check Class
         if isPlantUMLClassBody(body) {
-            throw DiagramError.notYetImplemented("PlantUML Class diagrams not yet implemented (Slice 6B)")
+            let ast = PlantUMLClassParser().parse(body)
+            let (model, diagnostics) = PlantUMLClassMapper().map(ast)
+            return DiagramImportResult(
+                document: DiagramDocument(payload: .classDiagram(model)),
+                diagnostics: diagnostics
+            )
         }
 
         // Sequence: broadest fallback within PlantUML

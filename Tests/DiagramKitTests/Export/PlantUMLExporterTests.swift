@@ -10,7 +10,62 @@ import DiagramKitPlantUML
         #expect(exporter.name == "PlantUML")
         #expect(exporter.formatID == .plantuml)
         #expect(exporter.supportedDiagramTypes.contains(.sequenceDiagram))
+        #expect(exporter.supportedDiagramTypes.contains(.classDiagram))
         #expect(!exporter.supportedDiagramTypes.contains(.c4))
+    }
+
+    @Test("PlantUML class export emits @startuml/@enduml with members")
+    func classExportBasic() throws {
+        let attr = ClassMember(id: "name", visibility: "+", memberType: .attribute, returnType: "String")
+        let method = ClassMember(id: "greet", visibility: "+", memberType: .method, returnType: "Void")
+        let node = ClassNode(id: "Person", label: "Person", attributes: [attr], methods: [method])
+        let model = ClassDiagram(classes: [node], classMap: ["Person": node])
+
+        let result = try PlantUMLExporter().export(DiagramDocument(payload: .classDiagram(model)))
+        #expect(result.source.contains("@startuml"))
+        #expect(result.source.contains("@enduml"))
+        #expect(result.source.contains("class Person {"))
+        #expect(result.source.contains("+name: String"))
+        #expect(result.source.contains("+greet(): Void"))
+    }
+
+    @Test("PlantUML class export round-trips through PlantUMLImporter")
+    func classExportRoundTrip() throws {
+        let attr = ClassMember(id: "name", visibility: "+", memberType: .attribute, returnType: "String")
+        let method = ClassMember(id: "greet", visibility: "+", memberType: .method, returnType: "Void")
+        let person = ClassNode(id: "Person", label: "Person", attributes: [attr], methods: [method])
+        let pet = ClassNode(id: "Pet", label: "Pet", annotations: ["Interface"])
+
+        let inheritance = ClassRelationship(
+            id1: "Animal",
+            id2: "Person",
+            relation: ClassRelationEndpoint(
+                type1: ClassRelationType.inheritance.rawValue,
+                type2: ClassRelationType.none.rawValue,
+                lineType: ClassLineType.solid.rawValue
+            )
+        )
+        let model = ClassDiagram(
+            classes: [
+                ClassNode(id: "Animal", label: "Animal"),
+                person,
+                pet
+            ],
+            relationships: [inheritance]
+        )
+
+        let exported = try PlantUMLExporter().export(DiagramDocument(payload: .classDiagram(model)))
+        let reparsed = try PlantUMLImporter().parse(exported.source).document
+        guard case .classDiagram(let model2) = reparsed.payload else {
+            Issue.record("Expected classDiagram payload after round-trip, got \(reparsed.payload)")
+            return
+        }
+        #expect(model2.classes.contains(where: { $0.id == "Person" }))
+        #expect(model2.classes.contains(where: { $0.id == "Animal" }))
+        #expect(model2.classes.first(where: { $0.id == "Pet" })?.annotations.contains("Interface") == true)
+        let rel = model2.relationships.first { $0.id1 == "Animal" && $0.id2 == "Person" }
+        #expect(rel?.relation.type1 == ClassRelationType.inheritance.rawValue)
+        #expect(rel?.relation.lineType == ClassLineType.solid.rawValue)
     }
 
     @Test("PlantUML sequence export produces @startuml/@enduml")
