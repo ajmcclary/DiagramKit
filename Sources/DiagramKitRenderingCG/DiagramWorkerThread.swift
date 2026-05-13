@@ -3,6 +3,7 @@
 // reaching back into the umbrella.
 #if canImport(CoreGraphics)
 import Foundation
+import DiagramKitCommon
 
 /// Worker-thread helper that runs synchronous Mermaid work on a fresh
 /// `Thread` with an 8 MB stack.
@@ -36,7 +37,7 @@ public enum DiagramWorkerThread {
                 }
             }
             thread.name = "BeautifulMermaid worker"
-            thread.stackSize = 8 * 1024 * 1024
+            thread.stackSize = DiagramWorkerConfig.stackSize
             thread.start()
         }
     }

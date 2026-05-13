@@ -1,4 +1,5 @@
 import Foundation
+import DiagramKitCommon
 import DiagramKitModel
 #if canImport(CoreGraphics)
 import DiagramKitRenderingCG
@@ -175,7 +176,7 @@ public struct DiagramEngine {
                 }
             }
             thread.name = "BeautifulMermaid worker"
-            thread.stackSize = 8 * 1024 * 1024
+            thread.stackSize = DiagramWorkerConfig.stackSize
             thread.start()
         }
     }

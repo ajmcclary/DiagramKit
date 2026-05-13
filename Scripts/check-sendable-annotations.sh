@@ -77,7 +77,7 @@ while IFS=: read -r file line rest; do
   [[ "$rest" =~ ^[[:space:]]*// ]] && continue
 
   TYPE_NAME=$(echo "$rest" | sed -nE \
-    's/.*(class|struct|enum|extension)[[:space:]]+([a-zA-Z_][a-zA-Z0-9_]*).*/\2/p')
+    's/.*(class|struct|enum|extension|actor)[[:space:]]+([a-zA-Z_][a-zA-Z0-9_]*).*/\2/p')
   [[ -z "$TYPE_NAME" ]] && TYPE_NAME="(unknown)"
 
   key="$file:$line"

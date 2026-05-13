@@ -11,22 +11,35 @@ import UIKit
 import AppKit
 #endif
 
+// MARK: - Concurrency Contract
+//
+// `DiagramTheme` is `@unchecked Sendable` because it stores `BMColor` /
+// `BMFont` references (the AppKit/UIKit `NSColor`/`UIColor`/`NSFont`/
+// `UIFont` types are not annotated `Sendable` in the stock SDK, even
+// though they are effectively thread-safe for read-only use).
+//
+// The struct itself is **immutable, construction-then-freeze**: every
+// stored property is `let`, and the only way to derive a modified theme
+// is via a builder method (`withTransparent`, `withBackground`, …) that
+// returns a new instance through the designated initializer. No call
+// site can mutate a `DiagramTheme` after it is published.
+
 public struct DiagramTheme: @unchecked Sendable, Equatable {
-    public var background: BMColor
-    public var foreground: BMColor
-    public var line: BMColor?
-    public var accent: BMColor?
-    public var muted: BMColor?
-    public var surface: BMColor?
-    public var border: BMColor?
-    public var noteBkg: BMColor?
-    public var noteBorder: BMColor?
-    public var font: BMFont
-    public var lineWidth: CGFloat
-    public var cornerRadius: CGFloat
+    public let background: BMColor
+    public let foreground: BMColor
+    public let line: BMColor?
+    public let accent: BMColor?
+    public let muted: BMColor?
+    public let surface: BMColor?
+    public let border: BMColor?
+    public let noteBkg: BMColor?
+    public let noteBorder: BMColor?
+    public let font: BMFont
+    public let lineWidth: CGFloat
+    public let cornerRadius: CGFloat
 
     /// When `true`, the diagram background is not filled — useful for overlay/compositing
-    public var transparent: Bool
+    public let transparent: Bool
 
     public static func == (lhs: DiagramTheme, rhs: DiagramTheme) -> Bool {
         lhs.background.bmColorEquals(rhs.background) &&
@@ -100,11 +113,26 @@ public struct DiagramTheme: @unchecked Sendable, Equatable {
         self.transparent = transparent
     }
 
-    /// Create a copy with transparent background (no fill)
+    /// Create a copy with transparent background (no fill).
+    ///
+    /// Builder method: returns a new `DiagramTheme` rather than mutating
+    /// in place, so the construction-then-freeze invariant holds.
     public func withTransparent(_ transparent: Bool = true) -> DiagramTheme {
-        var copy = self
-        copy.transparent = transparent
-        return copy
+        DiagramTheme(
+            background: background,
+            foreground: foreground,
+            line: line,
+            accent: accent,
+            muted: muted,
+            surface: surface,
+            border: border,
+            noteBkg: noteBkg,
+            noteBorder: noteBorder,
+            font: font,
+            lineWidth: lineWidth,
+            cornerRadius: cornerRadius,
+            transparent: transparent
+        )
     }
 
     // MARK: - Derived Colors

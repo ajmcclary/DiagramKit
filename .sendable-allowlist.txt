@@ -7,8 +7,6 @@
 # first 50 lines of the file or within 10 lines of the annotation) before
 # the sunset, or refactor to proper Sendable.
 
-Sources/DiagramKitModel/ArchitectureIconRegistry.swift:28:yellow:2027-06-30
-Sources/DiagramKitModel/Theme.swift:14:yellow:2027-06-30
 Sources/DiagramKitModel/src_ascii_converter.swift:59:yellow:2027-06-30
 Sources/DiagramKitModel/src_ascii_converter.swift:90:yellow:2027-06-30
 Sources/DiagramKitModel/src_ascii_converter.swift:125:yellow:2027-06-30

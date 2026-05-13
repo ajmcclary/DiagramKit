@@ -1,6 +1,15 @@
 import Foundation
 import DiagramKitCommon
 
+// MARK: - Concurrency Contract
+//
+// `ArchitectureIconRegistry` is `@unchecked Sendable` because it holds
+// mutable storage (`packs`) guarded by an internal `NSLock`. Every public
+// method enters the lock before reading or writing `packs`, so concurrent
+// `register(...)` and `iconSVG(for:)` calls are serialized: this is
+// **queue-confinement via NSLock**. The lock is the only place state is
+// touched; no published reference escapes without going through it.
+
 public typealias ArchitectureIconBody = String
 
 public struct ArchitectureIconEntry: Sendable, Equatable {
