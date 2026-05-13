@@ -35,6 +35,14 @@ struct DiagramPlaygroundApp: App {
             CommandGroup(replacing: .newItem) {
                 // Remove default "New" menu item
             }
+            CommandGroup(replacing: .undoRedo) {
+                Button("Undo") { store.undoStructural() }
+                    .keyboardShortcut("z", modifiers: [.command])
+                    .disabled(store.editor?.undoManager.canUndo != true)
+                Button("Redo") { store.redoStructural() }
+                    .keyboardShortcut("z", modifiers: [.command, .shift])
+                    .disabled(store.editor?.undoManager.canRedo != true)
+            }
         }
         #endif
     }
