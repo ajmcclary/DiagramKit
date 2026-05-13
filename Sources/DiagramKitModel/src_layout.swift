@@ -1185,15 +1185,16 @@ private func _layoutGraphSyncWithConfig(
         return PositionedGraph(diagram: graph)
     }
 
-    var elkGraph: _ElkNode
+    let typedGraph: ElkGraphNode
     if !parsed.subgraphs.isEmpty {
         let hasDirectionOverride = parsed.subgraphs.contains(where: { $0.direction != nil })
-        elkGraph = hasDirectionOverride
-            ? _buildElkGraph(parsed).toDictionary()
+        typedGraph = hasDirectionOverride
+            ? _buildElkGraph(parsed)
             : _buildElkGraphNoCrossEdges(parsed)
     } else {
-        elkGraph = _buildElkGraph(parsed).toDictionary()
+        typedGraph = _buildElkGraph(parsed)
     }
+    var elkGraph: _ElkNode = typedGraph.toDictionary()
 
     // Override ELK spacing options with LayoutConfig values
     _applyLayoutConfig(config, to: &elkGraph)
@@ -1246,7 +1247,7 @@ private func _layoutGraphWithDiagnosticsEntry(
 /// Build hierarchical ELK graph but EXCLUDE cross-subgraph edges that crash ELK JS.
 /// INCLUDE_CHILDREN mode: all edges at root level, ELK resolves nested node IDs.
 /// Used when no subgraph has a direction override.
-private func _buildElkGraphNoCrossEdges(_ graph: _ParsedGraph) -> _ElkNode {
+private func _buildElkGraphNoCrossEdges(_ graph: _ParsedGraph) -> ElkGraphNode {
     let subgraphOwnership = _buildSubgraphOwnership(graph.subgraphs)
     let allClaimedNodes = Set(subgraphOwnership.values.flatMap { $0 })
     let nodeById = Dictionary(graph.nodesInOrder.map { ($0.id, $0.node) }, uniquingKeysWith: { _, last in last })
@@ -1259,120 +1260,104 @@ private func _buildElkGraphNoCrossEdges(_ graph: _ParsedGraph) -> _ElkNode {
         return nil
     }
 
+    func _makeEdge(_ idx: Int, _ edge: original_src_types.MermaidEdge) -> ElkGraphEdge {
+        var labels: [ElkGraphLabel] = []
+        if let label = edge.label, !label.isEmpty {
+            let m = original_src_text_metrics.measureMultilineText(
+                label,
+                fontSize: original_src_styles.FONT_SIZES.edgeLabel,
+                fontWeight: original_src_styles.FONT_WEIGHTS.edgeLabel
+            )
+            labels.append(ElkGraphLabel(
+                text: label,
+                width: m.width + 8,
+                height: m.height + 6,
+                layoutOptions: [
+                    "elk.edgeLabels.inline": "true",
+                    "elk.edgeLabels.placement": "CENTER"
+                ]
+            ))
+        }
+        return ElkGraphEdge(
+            id: "e\(idx)",
+            sources: [edge.source],
+            targets: [edge.target],
+            labels: labels
+        )
+    }
+
     // Classify edges into: internal (same subgraph), root-level (no subgraph),
     // cross-hierarchy (different subgraph levels). Matching TS edge ordering:
     // root-level edges first, then cross-hierarchy edges.
-    var edgesBySubgraph: [String: [[String: Any]]] = [:]
-    var rootLevelEdges: [[String: Any]] = []
-    var crossHierarchyEdges: [[String: Any]] = []
-    var includedEdgeIndices = Set<Int>()
+    var edgesBySubgraph: [String: [ElkGraphEdge]] = [:]
+    var rootLevelEdges: [ElkGraphEdge] = []
+    var crossHierarchyEdges: [ElkGraphEdge] = []
     for (idx, edge) in graph.edges.enumerated() {
         let srcSub = _deepestSubgraph(for: edge.source, in: graph.subgraphs)
         let tgtSub = _deepestSubgraph(for: edge.target, in: graph.subgraphs)
-        var edict: [String: Any] = ["id": "e\(idx)", "sources": [edge.source], "targets": [edge.target]]
-        if let label = edge.label, !label.isEmpty {
-            let m = original_src_text_metrics.measureMultilineText(label, fontSize: original_src_styles.FONT_SIZES.edgeLabel, fontWeight: original_src_styles.FONT_WEIGHTS.edgeLabel)
-            edict["labels"] = [["text": label, "width": m.width + 8, "height": m.height + 6, "layoutOptions": ["elk.edgeLabels.inline": "true", "elk.edgeLabels.placement": "CENTER"]] as [String: Any]]
-        }
+        let typedEdge = _makeEdge(idx, edge)
         if let s = srcSub, let t = tgtSub, s == t {
-            // Internal edge: both endpoints in same subgraph
-            edgesBySubgraph[s, default: []].append(edict)
-            includedEdgeIndices.insert(idx)
+            edgesBySubgraph[s, default: []].append(typedEdge)
         } else if srcSub == nil && tgtSub == nil {
-            // Root-level edge: neither endpoint in a subgraph
-            rootLevelEdges.append(edict)
-            includedEdgeIndices.insert(idx)
+            rootLevelEdges.append(typedEdge)
         } else {
-            // Cross-hierarchy edge: endpoints in different levels
-            crossHierarchyEdges.append(edict)
-            includedEdgeIndices.insert(idx)
+            crossHierarchyEdges.append(typedEdge)
         }
     }
     // Match TS ordering: root-level edges first, then cross-hierarchy
     let rootEdges = rootLevelEdges + crossHierarchyEdges
 
-    func buildSubgraphNode(_ sub: original_src_types.MermaidSubgraph) -> [String: Any] {
+    func buildSubgraphNode(_ sub: original_src_types.MermaidSubgraph) -> ElkGraphNode {
         let directNodeIds = sub.nodeIds.filter { nodeId in
             !sub.children.contains { child in _subgraphContainsNode(child, nodeId: nodeId) }
         }
-        var children: [[String: Any]] = []
+        var children: [ElkGraphNode] = []
         for nodeId in directNodeIds {
             guard let node = nodeById[nodeId] else { continue }
             let size = _nodeSize(node, hideEmptyDescription: graph.stateConfig.hideEmptyDescription)
-            children.append(["id": nodeId, "width": size.width, "height": size.height, "labels": [["text": node.label]]])
+            children.append(ElkGraphNode(
+                id: nodeId,
+                labels: [ElkGraphLabel(text: node.label)],
+                width: size.width,
+                height: size.height
+            ))
         }
         for child in sub.children { children.append(buildSubgraphNode(child)) }
 
-        // Match TS subgraph options. Our Swift ELK port doesn't implement
-        // option inheritance, so we explicitly set considerModelOrder
-        // (elk.js inherits it from root via LayoutConfigurator).
-        var opts: [String: String] = [
-            "elk.algorithm": "layered",
-            "elk.padding": "[top=44,left=16,bottom=16,right=16]",
-            "elk.edgeRouting": "ORTHOGONAL",
-            "elk.contentAlignment": "H_CENTER V_CENTER",
-            "elk.spacing.edgeEdge": "12",
-            "elk.layered.spacing.edgeEdgeBetweenLayers": "12",
-            "elk.layered.spacing.edgeNodeBetweenLayers": "12",
-            "elk.layered.nodePlacement.bk.fixedAlignment": "BALANCED",
-            "elk.layered.spacing.nodeNodeBetweenLayers": "48",
-            "elk.spacing.nodeNode": "28"
-        ]
-        // Only set direction on subgraph if it has an explicit override.
-        // In INCLUDE_CHILDREN mode, direction inherits from root automatically.
-        // Setting it explicitly can cause ELK to create different external port
-        // dummy structures, leading to wider compound nodes.
-        if let dir = sub.direction {
-            opts["elk.direction"] = _mapDirection(dir)
-        }
-
-        let subLabel = sub.label
-        var result: [String: Any] = [
-            "id": sub.id,
-            "layoutOptions": opts,
-            "children": children,
-            "labels": [["text": subLabel]]
-        ]
-        if let subEdges = edgesBySubgraph[sub.id], !subEdges.isEmpty {
-            result["edges"] = subEdges
-        }
-        return result
+        // Direction is only set on a subgraph when it carries an explicit
+        // override. In INCLUDE_CHILDREN mode direction inherits from the
+        // root automatically; setting it can otherwise widen the compound
+        // node by creating different external-port dummy structures.
+        let subgraphEdges = edgesBySubgraph[sub.id] ?? []
+        return ElkGraphNode(
+            id: sub.id,
+            children: children,
+            edges: subgraphEdges,
+            layoutOptions: ElkLayoutOptions.subgraph(direction: sub.direction),
+            labels: [ElkGraphLabel(text: sub.label)]
+        )
     }
 
-    var rootChildren: [[String: Any]] = []
+    var rootChildren: [ElkGraphNode] = []
     for entry in graph.nodesInOrder {
         if !allClaimedNodes.contains(entry.id) {
             let size = _nodeSize(entry.node, hideEmptyDescription: graph.stateConfig.hideEmptyDescription)
-            rootChildren.append(["id": entry.id, "width": size.width, "height": size.height, "labels": [["text": entry.node.label]]])
+            rootChildren.append(ElkGraphNode(
+                id: entry.id,
+                labels: [ElkGraphLabel(text: entry.node.label)],
+                width: size.width,
+                height: size.height
+            ))
         }
     }
     for sub in graph.subgraphs { rootChildren.append(buildSubgraphNode(sub)) }
 
-    return [
-        "id": "root",
-        "layoutOptions": [
-            "elk.algorithm": "layered",
-            "elk.direction": _mapDirection(graph.direction),
-            "elk.spacing.nodeNode": "28",
-            "elk.spacing.edgeEdge": "12",
-            "elk.layered.spacing.nodeNodeBetweenLayers": "48",
-            "elk.layered.spacing.edgeEdgeBetweenLayers": "12",
-            "elk.layered.spacing.edgeNodeBetweenLayers": "12",
-            "elk.padding": "[top=40,left=40,bottom=40,right=40]",
-            "elk.edgeRouting": "ORTHOGONAL",
-            "elk.contentAlignment": "H_CENTER V_CENTER",
-            "elk.layered.nodePlacement.bk.fixedAlignment": "BALANCED",
-            "elk.layered.considerModelOrder.strategy": "NODES_AND_EDGES",
-            "elk.layered.thoroughness": "3",
-            "elk.layered.compaction.postCompaction.strategy": "LEFT_RIGHT_CONSTRAINT_LOCKING",
-            "elk.layered.highDegreeNodes.treatment": "true",
-            "elk.layered.highDegreeNodes.threshold": "8",
-            "elk.layered.wrapping.strategy": "OFF",
-            "elk.hierarchyHandling": "INCLUDE_CHILDREN"
-        ],
-        "children": rootChildren,
-        "edges": rootEdges
-    ]
+    return ElkGraphNode(
+        id: "root",
+        children: rootChildren,
+        edges: rootEdges,
+        layoutOptions: ElkLayoutOptions.root(direction: graph.direction, hierarchy: .includeChildren)
+    )
 }
 
 private func _buildFlatElkGraph(_ graph: _ParsedGraph) -> ElkGraphNode {
@@ -1431,16 +1416,16 @@ private func _layoutGraphSyncFromLayoutEngine(
     // INCLUDE_CHILDREN otherwise (simpler cross-hierarchy edge routing).
     if !parsed.subgraphs.isEmpty {
         let hasDirectionOverride = parsed.subgraphs.contains(where: { $0.direction != nil })
-        let elkGraph: _ElkNode
+        let elkGraph: ElkGraphNode
         if hasDirectionOverride {
             // SEPARATE mode: port-based edge splitting for proper direction handling
-            elkGraph = _buildElkGraph(parsed).toDictionary()
+            elkGraph = _buildElkGraph(parsed)
         } else {
             // INCLUDE_CHILDREN mode: ELK handles cross-hierarchy edges natively
             elkGraph = _buildElkGraphNoCrossEdges(parsed)
         }
         do {
-            let rawLaidOut = try layoutEngineSync(elkGraph)
+            let rawLaidOut = try layoutEngineSync(elkGraph.toDictionary())
             let laidOut = ElkGraphNode(from: rawLaidOut)
             return _extractPositionedGraph(parsed, laidOut, diagramType: graph.type)
         } catch {
@@ -1452,8 +1437,8 @@ private func _layoutGraphSyncFromLayoutEngine(
         }
     }
     // No subgraphs — use the standard flat graph builder
-    let elkGraph = _buildElkGraph(parsed).toDictionary()
-    let rawLaidOut = try layoutEngineSync(elkGraph)
+    let elkGraph = _buildElkGraph(parsed)
+    let rawLaidOut = try layoutEngineSync(elkGraph.toDictionary())
     let laidOut = ElkGraphNode(from: rawLaidOut)
     return _extractPositionedGraph(parsed, laidOut, diagramType: graph.type)
 }
