@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 275.6 312" width="275.6" height="312" style="--bg:#FFFFFF;--fg:#27272A;--line:#939394;--accent:#27272A;--muted:#A9A9AA;--surface:#F9F9F9;--border:#D4D4D4;background:#FFFFFF">
+<svg role="graphics-document" aria-roledescription="diagram" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 275.6 312" width="275.6" height="312" style="--bg:#FFFFFF;--fg:#27272A;--line:#27272A;--accent:#27272A;--muted:#27272A;--surface:#FFFFFF;--border:#27272A;background:#FFFFFF">
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap');
   @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&amp;display=swap');
@@ -6,13 +6,13 @@
   .mono { font-family: 'JetBrains Mono', 'SF Mono', 'Fira Code', ui-monospace, monospace; }
   svg {    /* Derived from --bg and --fg (overridable via --line, --accent, etc.) */
     --_text:          #27272A;
-    --_text-sec:      #A9A9AA 60%, #FFFFFF));
-    --_text-muted:    #A9A9AA 40%, #FFFFFF));
+    --_text-sec:      #27272A 60%, #FFFFFF));
+    --_text-muted:    #27272A 40%, #FFFFFF));
     --_text-faint:    #666666;
-    --_line:          #939394 50%, #FFFFFF));
+    --_line:          #27272A 50%, #FFFFFF));
     --_arrow:         #27272A 85%, #FFFFFF));
-    --_node-fill:     #F9F9F9 3%, #FFFFFF));
-    --_node-stroke:   #D4D4D4 20%, #FFFFFF));
+    --_node-fill:     #FFFFFF 3%, #FFFFFF));
+    --_node-stroke:   #27272A 20%, #FFFFFF));
     --_group-fill:    #FFFFFF;
     --_group-hdr:     #666666;
     --_inner-stroke:  #666666;
@@ -35,25 +35,25 @@
     <polyline points="0 0, 8 3, 0 6" fill="none" stroke="#27272A 85%, #FFFFFF))" stroke-width="1.5" />
   </marker>
   <marker id="lollipop" markerWidth="10" markerHeight="10" refX="5" refY="5">
-    <circle cx="5" cy="5" r="5" fill="#FFFFFF" stroke="#939394 50%, #FFFFFF))" stroke-width="1.5" />
+    <circle cx="5" cy="5" r="5" fill="#FFFFFF" stroke="#27272A 50%, #FFFFFF))" stroke-width="1.5" />
   </marker>
 </defs>
-<polyline class="class-relationship" data-from="Circle" data-to="Shape" points="137.8,128.0 137.8,158.0 137.8,158.0 137.8,188.0" fill="none" stroke="#939394 50%, #FFFFFF))" stroke-width="1.0" marker-end="url(#extension)" />
+<polyline class="class-relationship" data-from="Circle" data-to="Shape" points="137.8,128.0 137.8,158.0 137.8,158.0 137.8,188.0" fill="none" stroke="#27272A 50%, #FFFFFF))" stroke-width="1.0" marker-end="url(#extension)" />
 <g class="class-node default" data-id="Shape" data-label="Shape">
-  <rect x="40.0" y="188.0" width="195.6" height="84.0" rx="0" ry="0" fill="#F9F9F9 3%, #FFFFFF))" stroke="#D4D4D4 20%, #FFFFFF))" stroke-width="1.0" />
-  <rect x="40.0" y="188.0" width="195.6" height="48.0" rx="0" ry="0" fill="#666666" stroke="#D4D4D4 20%, #FFFFFF))" stroke-width="1.0" />
-  <text x="137.8" y="200.0" text-anchor="middle" dy="0.35em" font-size="10.0" font-weight="500" font-style="italic" fill="#A9A9AA 40%, #FFFFFF))">&lt;&lt;interface&gt;&gt;</text>
+  <rect x="40.0" y="188.0" width="195.6" height="84.0" rx="0" ry="0" fill="#FFFFFF 3%, #FFFFFF))" stroke="#27272A 20%, #FFFFFF))" stroke-width="1.0" />
+  <rect x="40.0" y="188.0" width="195.6" height="48.0" rx="0" ry="0" fill="#666666" stroke="#27272A 20%, #FFFFFF))" stroke-width="1.0" />
+  <text x="137.8" y="200.0" text-anchor="middle" dy="0.35em" font-size="10.0" font-weight="500" font-style="italic" fill="#27272A 40%, #FFFFFF))">&lt;&lt;interface&gt;&gt;</text>
   <text x="137.8" y="222.0" text-anchor="middle" font-size="13.0" font-weight="700" fill="#27272A" dy="4.55">Shape</text>
-  <line x1="40.0" y1="244.0" x2="235.6" y2="244.0" stroke="#D4D4D4 20%, #FFFFFF))" stroke-width="0.75" />
-  <text x="48.0" y="258.0" class="mono" dy="0.35em" font-size="11.0" font-weight="400"><tspan fill="#666666">+ </tspan><tspan fill="#A9A9AA 60%, #FFFFFF))">calculateArea()</tspan><tspan fill="#666666"> : </tspan><tspan fill="#A9A9AA 40%, #FFFFFF))">double</tspan></text>
+  <line x1="40.0" y1="244.0" x2="235.6" y2="244.0" stroke="#27272A 20%, #FFFFFF))" stroke-width="0.75" />
+  <text x="48.0" y="258.0" class="mono" dy="0.35em" font-size="11.0" font-weight="400"><tspan fill="#666666">+ </tspan><tspan fill="#27272A 60%, #FFFFFF))">calculateArea()</tspan><tspan fill="#666666"> : </tspan><tspan fill="#27272A 40%, #FFFFFF))">double</tspan></text>
 </g>
 <g class="class-node default" data-id="Circle" data-label="Circle">
-  <rect x="40.0" y="40.0" width="195.6" height="88.0" rx="0" ry="0" fill="#F9F9F9 3%, #FFFFFF))" stroke="#D4D4D4 20%, #FFFFFF))" stroke-width="1.0" />
-  <rect x="40.0" y="40.0" width="195.6" height="32.0" rx="0" ry="0" fill="#666666" stroke="#D4D4D4 20%, #FFFFFF))" stroke-width="1.0" />
+  <rect x="40.0" y="40.0" width="195.6" height="88.0" rx="0" ry="0" fill="#FFFFFF 3%, #FFFFFF))" stroke="#27272A 20%, #FFFFFF))" stroke-width="1.0" />
+  <rect x="40.0" y="40.0" width="195.6" height="32.0" rx="0" ry="0" fill="#666666" stroke="#27272A 20%, #FFFFFF))" stroke-width="1.0" />
   <text x="137.8" y="56.0" text-anchor="middle" font-size="13.0" font-weight="700" fill="#27272A" dy="4.55">Circle</text>
-  <line x1="40.0" y1="72.0" x2="235.6" y2="72.0" stroke="#D4D4D4 20%, #FFFFFF))" stroke-width="0.75" />
-  <text x="48.0" y="86.0" class="mono" dy="0.35em" font-size="11.0" font-weight="400"><tspan fill="#666666">- </tspan><tspan fill="#A9A9AA 60%, #FFFFFF))">radius double</tspan></text>
-  <line x1="40.0" y1="100.0" x2="235.6" y2="100.0" stroke="#D4D4D4 20%, #FFFFFF))" stroke-width="0.75" />
-  <text x="48.0" y="114.0" class="mono" dy="0.35em" font-size="11.0" font-weight="400"><tspan fill="#666666">+ </tspan><tspan fill="#A9A9AA 60%, #FFFFFF))">calculateArea()</tspan><tspan fill="#666666"> : </tspan><tspan fill="#A9A9AA 40%, #FFFFFF))">double</tspan></text>
+  <line x1="40.0" y1="72.0" x2="235.6" y2="72.0" stroke="#27272A 20%, #FFFFFF))" stroke-width="0.75" />
+  <text x="48.0" y="86.0" class="mono" dy="0.35em" font-size="11.0" font-weight="400"><tspan fill="#666666">- </tspan><tspan fill="#27272A 60%, #FFFFFF))">radius double</tspan></text>
+  <line x1="40.0" y1="100.0" x2="235.6" y2="100.0" stroke="#27272A 20%, #FFFFFF))" stroke-width="0.75" />
+  <text x="48.0" y="114.0" class="mono" dy="0.35em" font-size="11.0" font-weight="400"><tspan fill="#666666">+ </tspan><tspan fill="#27272A 60%, #FFFFFF))">calculateArea()</tspan><tspan fill="#666666"> : </tspan><tspan fill="#27272A 40%, #FFFFFF))">double</tspan></text>
 </g>
 </svg>

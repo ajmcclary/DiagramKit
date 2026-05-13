@@ -1,6 +1,6 @@
 {
-  "version": "2.0.0",
-  "description": "Mermaid diagram test suite — covers all 28 diagram families tracked in GAPS.md",
+  "version": "2.1.0",
+  "description": "Mermaid diagram test suite with multi-format entries (D2, DOT, Structurizr)",
   "diagrams": [
     {
       "id": "flow-1-simple",
@@ -2575,13 +2575,248 @@
         "mermaid": "Mermaid",
         "structurizr": "Structurizr"
       }
+    },
+    {
+      "id": "dot-2-directed-edge",
+      "category": "flowchart",
+      "name": "DOT: Directed Edge with Label",
+      "source": "graph LR\n  A[Start] -->|edge| B[End]",
+      "sources": {
+        "mermaid": "graph LR\n  A[Start] -->|edge| B[End]",
+        "graphviz": "digraph G {\n  rankdir=LR;\n  A [label=Start];\n  B [label=End];\n  A -> B [label=edge];\n}"
+      },
+      "expectedImporters": {
+        "mermaid": "Mermaid",
+        "graphviz": "Graphviz"
+      }
+    },
+    {
+      "id": "dot-3-subgraph",
+      "category": "flowchart",
+      "name": "DOT: Subgraph Cluster",
+      "source": "graph TD\n  subgraph Cluster\n    A --> B\n  end",
+      "sources": {
+        "mermaid": "graph TD\n  subgraph Cluster\n    A --> B\n  end",
+        "graphviz": "digraph G {\n  subgraph cluster_0 {\n    label=\"Cluster\";\n    A; B;\n  }\n}"
+      },
+      "expectedImporters": {
+        "mermaid": "Mermaid",
+        "graphviz": "Graphviz"
+      }
+    },
+    {
+      "id": "dot-4-undirected",
+      "category": "flowchart",
+      "name": "DOT: Undirected Graph",
+      "source": "graph TD\n  A --- B",
+      "sources": {
+        "mermaid": "graph TD\n  A --- B",
+        "graphviz": "graph G {\n  A -- B;\n}"
+      },
+      "expectedImporters": {
+        "mermaid": "Mermaid",
+        "graphviz": "Graphviz"
+      }
+    },
+    {
+      "id": "plantuml-1-basic",
+      "category": "sequence",
+      "name": "PlantUML: Basic Messages",
+      "source": "sequenceDiagram\n  Alice->>Bob: Hello Bob!\n  Bob-->>Alice: Hi Alice!",
+      "sources": {
+        "mermaid": "sequenceDiagram\n  Alice->>Bob: Hello Bob!\n  Bob-->>Alice: Hi Alice!",
+        "plantuml": "@startuml\nAlice -> Bob : Hello Bob!\nBob --> Alice : Hi Alice!\n@enduml"
+      },
+      "expectedImporters": {
+        "mermaid": "Mermaid",
+        "plantuml": "PlantUML"
+      }
+    },
+    {
+      "id": "plantuml-2-participants",
+      "category": "sequence",
+      "name": "PlantUML: Participants and Aliases",
+      "source": "sequenceDiagram\n  participant A as Alice\n  participant B as Bob\n  A->>B: Hello\n  B->>A: Hi",
+      "sources": {
+        "mermaid": "sequenceDiagram\n  participant A as Alice\n  participant B as Bob\n  A->>B: Hello\n  B->>A: Hi",
+        "plantuml": "@startuml\nparticipant A as Alice\nparticipant B as Bob\nA -> B : Hello\nB -> A : Hi\n@enduml"
+      },
+      "expectedImporters": {
+        "mermaid": "Mermaid",
+        "plantuml": "PlantUML"
+      }
+    },
+    {
+      "id": "plantuml-3-activations",
+      "category": "sequence",
+      "name": "PlantUML: Activations",
+      "source": "sequenceDiagram\n  Client->>+Server: Request\n  Server-->>-Client: Response",
+      "sources": {
+        "mermaid": "sequenceDiagram\n  Client->>+Server: Request\n  Server-->>-Client: Response",
+        "plantuml": "@startuml\nClient -> Server ++ : Request\nServer --> Client -- : Response\n@enduml"
+      },
+      "expectedImporters": {
+        "mermaid": "Mermaid",
+        "plantuml": "PlantUML"
+      }
+    },
+    {
+      "id": "plantuml-4-notes",
+      "category": "sequence",
+      "name": "PlantUML: Notes",
+      "source": "sequenceDiagram\n  Alice->>Bob: Hello\n  Note right of Bob: Bob thinks\n  Bob-->>Alice: Hi",
+      "sources": {
+        "mermaid": "sequenceDiagram\n  Alice->>Bob: Hello\n  Note right of Bob: Bob thinks\n  Bob-->>Alice: Hi",
+        "plantuml": "@startuml\nAlice -> Bob : Hello\nnote right of Bob : Bob thinks\nBob --> Alice : Hi\n@enduml"
+      },
+      "expectedImporters": {
+        "mermaid": "Mermaid",
+        "plantuml": "PlantUML"
+      }
+    },
+    {
+      "id": "plantuml-5-box",
+      "category": "sequence",
+      "name": "PlantUML: Box",
+      "source": "sequenceDiagram\n  box rgb(100,200,255) Services\n    participant API\n    participant DB\n  end\n  User->>API: Request",
+      "sources": {
+        "mermaid": "sequenceDiagram\n  box rgb(100,200,255) Services\n    participant API\n    participant DB\n  end\n  User->>API: Request",
+        "plantuml": "@startuml\nbox \"Services\" #LightBlue\nparticipant API\nparticipant DB\nend box\nactor User\nUser -> API : Request\n@enduml"
+      },
+      "expectedImporters": {
+        "mermaid": "Mermaid",
+        "plantuml": "PlantUML"
+      }
+    },
+    {
+      "id": "plantuml-6-autonumber",
+      "category": "sequence",
+      "name": "PlantUML: Autonumber",
+      "source": "sequenceDiagram\n  autonumber\n  Alice->>Bob: First\n  Bob->>Charlie: Second",
+      "sources": {
+        "mermaid": "sequenceDiagram\n  autonumber\n  Alice->>Bob: First\n  Bob->>Charlie: Second",
+        "plantuml": "@startuml\nautonumber\nAlice -> Bob : First\nBob -> Charlie : Second\n@enduml"
+      },
+      "expectedImporters": {
+        "mermaid": "Mermaid",
+        "plantuml": "PlantUML"
+      }
+    },
+    {
+      "id": "d2-3-shapes",
+      "category": "flowchart",
+      "name": "D2: Shape Hints",
+      "source": "graph LR\n  A[(Database)]",
+      "sources": {
+        "mermaid": "graph LR\n  A[(Database)]",
+        "d2": "A: Database\nA.shape: cylinder"
+      },
+      "expectedImporters": {
+        "mermaid": "Mermaid",
+        "d2": "D2"
+      }
+    },
+    {
+      "id": "d2-4-unsupported",
+      "category": "flowchart",
+      "name": "D2: Unsupported Constructs",
+      "source": "graph TD\n  A[Start] --> B[End]",
+      "sources": {
+        "mermaid": "graph TD\n  A[Start] --> B[End]",
+        "d2": "A: Start\nA.shape: sql_table\nA -> B\nstyle.fill: red"
+      },
+      "expectedImporters": {
+        "mermaid": "Mermaid",
+        "d2": "D2"
+      },
+      "expectedDiagnostics": [
+        {
+          "severity": "unsupported",
+          "messageContains": "sql_table"
+        },
+        {
+          "severity": "unsupported",
+          "messageContains": "style"
+        }
+      ],
+      "skipSnapshots": [
+        "d2"
+      ]
+    },
+    {
+      "id": "dot-2-container",
+      "category": "flowchart",
+      "name": "DOT: Subgraph Cluster",
+      "source": "graph TD\n  subgraph Cluster\n    A --> B\n  end",
+      "sources": {
+        "mermaid": "graph TD\n  subgraph Cluster\n    A --> B\n  end",
+        "graphviz": "digraph G {\n  subgraph cluster_0 {\n    label=\"Cluster\";\n    A; B;\n  }\n}"
+      },
+      "expectedImporters": {
+        "mermaid": "Mermaid",
+        "graphviz": "Graphviz"
+      }
+    },
+    {
+      "id": "dot-4-unsupported",
+      "category": "flowchart",
+      "name": "DOT: Unsupported Constructs",
+      "source": "graph TD\n  A[Start] --> B[End]",
+      "sources": {
+        "mermaid": "graph TD\n  A[Start] --> B[End]",
+        "graphviz": "digraph G {\n  A [shape=record, color=red];\n}"
+      },
+      "expectedImporters": {
+        "mermaid": "Mermaid",
+        "graphviz": "Graphviz"
+      },
+      "expectedDiagnostics": [
+        {
+          "severity": "unsupported",
+          "messageContains": "shape"
+        }
+      ],
+      "skipSnapshots": [
+        "graphviz"
+      ]
+    },
+    {
+      "id": "structurizr-5-unsupported",
+      "category": "c4",
+      "name": "Structurizr: Unsupported Constructs",
+      "source": "C4Context\n  Person(user, \"User\")",
+      "sources": {
+        "mermaid": "C4Context\n  Person(user, \"User\")",
+        "structurizr": "workspace {\n  model {\n    node = deploymentNode \"AWS\"\n    tags \"db\"\n    u = person \"User\"\n  }\n  views {\n    systemContext u {\n      include *\n      exclude y\n    }\n  }\n}"
+      },
+      "expectedImporters": {
+        "mermaid": "Mermaid",
+        "structurizr": "Structurizr"
+      },
+      "expectedDiagnostics": [
+        {
+          "severity": "unsupported",
+          "messageContains": "deployment"
+        },
+        {
+          "severity": "unsupported",
+          "messageContains": "tags"
+        },
+        {
+          "severity": "unsupported",
+          "messageContains": "exclude"
+        }
+      ],
+      "skipSnapshots": [
+        "structurizr"
+      ]
     }
   ],
   "metadata": {
     "counts": {
-      "flowchart": 27,
+      "flowchart": 50,
       "state": 12,
-      "sequence": 23,
+      "sequence": 29,
       "class": 61,
       "er": 25,
       "xychart": 27,
@@ -2605,18 +2840,18 @@
       "treeView": 10,
       "eventmodeling": 12,
       "wardleyBeta": 12,
-      "c4": 5,
+      "c4": 18,
       "zenuml": 15
     }
   },
   "_counts": {
     "architecture": 9,
     "block": 12,
-    "c4": 9,
+    "c4": 10,
     "class": 61,
     "er": 25,
     "eventmodeling": 12,
-    "flowchart": 35,
+    "flowchart": 42,
     "gantt": 7,
     "gitGraph": 18,
     "ishikawa": 7,
@@ -2629,7 +2864,7 @@
     "radar": 10,
     "requirement": 16,
     "sankey": 10,
-    "sequence": 23,
+    "sequence": 29,
     "state": 12,
     "timeline": 13,
     "treeView": 10,

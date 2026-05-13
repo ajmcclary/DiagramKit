@@ -1,8 +1,8 @@
-<svg id="architecture-b82f76e0d7495f82" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="100%" style="max-width: 580px;" viewBox="0 0 580 656">
+<svg role="graphics-document" aria-roledescription="diagram" id="FE252255-4375-B23D-7B9B-0C2A95DA38DD" preserveAspectRatio="xMinYMin meet" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 580 656" width="100%" height="656" style="max-width: 580px;--bg:#FFFFFF;--fg:#27272A;--line:#27272A;--accent:#27272A;--muted:#27272A;--surface:#FFFFFF;--border:#27272A;background:#FFFFFF">
 <rect width="100%" height="100%" fill="#FFFFFF"/>
 <style>
-.edge { stroke-width: 3; stroke: #939394; fill: none; }
-.arrow { fill: #939394; }
+.edge { stroke-width: 3; stroke: #27272A; fill: none; }
+.arrow { fill: #27272A; }
 .node-bkg { fill: none; stroke: #000000; stroke-width: 2px; stroke-dasharray: 8; }
 .arch-service-label { font-family: Inter; font-size: 16px; fill: #27272A; text-anchor: middle; }
 .arch-group-label { font-family: Inter; font-size: 16px; fill: #27272A; }
@@ -12,38 +12,38 @@
 <g class="architecture-groups">
 </g>
 <g class="architecture-edges">
-<path id="architecture-b82f76e0d7495f82-L_left_disk_junctionCenter_0" class="edge" d="M 144,316 L 230,316 L 316,316"/>
-<path id="architecture-b82f76e0d7495f82-L_top_disk_junctionCenter_1" class="edge" d="M 316,144 L 316,230 L 316,316"/>
-<path id="architecture-b82f76e0d7495f82-L_bottom_disk_junctionCenter_2" class="edge" d="M 316,488 L 316,402 L 316,316"/>
-<path id="architecture-b82f76e0d7495f82-L_junctionCenter_junctionRight_3" class="edge" d="M 316,316 L 428,316 L 540,316"/>
+<path id="FE252255-4375-B23D-7B9B-0C2A95DA38DD-L_left_disk_junctionCenter_0" class="edge" d="M 144,316 L 230,316 L 316,316"/>
+<path id="FE252255-4375-B23D-7B9B-0C2A95DA38DD-L_top_disk_junctionCenter_1" class="edge" d="M 316,144 L 316,230 L 316,316"/>
+<path id="FE252255-4375-B23D-7B9B-0C2A95DA38DD-L_bottom_disk_junctionCenter_2" class="edge" d="M 316,488 L 316,402 L 316,316"/>
+<path id="FE252255-4375-B23D-7B9B-0C2A95DA38DD-L_junctionCenter_junctionRight_3" class="edge" d="M 316,316 L 428,316 L 540,316"/>
 <polygon class="arrow" points="13.3,6.7 0,13.3 0,0" transform="translate(528.7,309.3)"/>
 </g>
 <g class="architecture-services">
-<g id="architecture-b82f76e0d7495f82-service-left_disk" class="architecture-service">
-<g id="architecture-b82f76e0d7495f82-node-left_disk" style="color: #27272A">
+<g id="FE252255-4375-B23D-7B9B-0C2A95DA38DD-service-left_disk" class="architecture-service">
+<g id="FE252255-4375-B23D-7B9B-0C2A95DA38DD-node-left_disk" style="color: #27272A">
 <rect x="40" y="264" width="104" height="104" fill="none" stroke="#27272A" stroke-width="1"/>
 <g transform="translate(68,292) scale(0.6)"><rect x="20" y="15" width="40" height="50" rx="1" fill="none" stroke="currentColor" stroke-width="2"/><ellipse cx="40" cy="33.75" rx="14" ry="14.58" fill="none" stroke="currentColor" stroke-width="2"/><ellipse cx="40" cy="33.75" rx="4" ry="4.17" fill="currentColor" stroke="currentColor" stroke-width="2"/></g>
 </g>
 <text x="92" y="388" class="arch-service-label">Disk</text>
 </g>
-<g id="architecture-b82f76e0d7495f82-service-top_disk" class="architecture-service">
-<g id="architecture-b82f76e0d7495f82-node-top_disk" style="color: #27272A">
+<g id="FE252255-4375-B23D-7B9B-0C2A95DA38DD-service-top_disk" class="architecture-service">
+<g id="FE252255-4375-B23D-7B9B-0C2A95DA38DD-node-top_disk" style="color: #27272A">
 <rect x="264" y="40" width="104" height="104" fill="none" stroke="#27272A" stroke-width="1"/>
 <g transform="translate(292,68) scale(0.6)"><rect x="20" y="15" width="40" height="50" rx="1" fill="none" stroke="currentColor" stroke-width="2"/><ellipse cx="40" cy="33.75" rx="14" ry="14.58" fill="none" stroke="currentColor" stroke-width="2"/><ellipse cx="40" cy="33.75" rx="4" ry="4.17" fill="currentColor" stroke="currentColor" stroke-width="2"/></g>
 </g>
 <text x="316" y="164" class="arch-service-label">Disk</text>
 </g>
-<g id="architecture-b82f76e0d7495f82-service-bottom_disk" class="architecture-service">
-<g id="architecture-b82f76e0d7495f82-node-bottom_disk" style="color: #27272A">
+<g id="FE252255-4375-B23D-7B9B-0C2A95DA38DD-service-bottom_disk" class="architecture-service">
+<g id="FE252255-4375-B23D-7B9B-0C2A95DA38DD-node-bottom_disk" style="color: #27272A">
 <rect x="264" y="488" width="104" height="104" fill="none" stroke="#27272A" stroke-width="1"/>
 <g transform="translate(292,516) scale(0.6)"><rect x="20" y="15" width="40" height="50" rx="1" fill="none" stroke="currentColor" stroke-width="2"/><ellipse cx="40" cy="33.75" rx="14" ry="14.58" fill="none" stroke="currentColor" stroke-width="2"/><ellipse cx="40" cy="33.75" rx="4" ry="4.17" fill="currentColor" stroke="currentColor" stroke-width="2"/></g>
 </g>
 <text x="316" y="612" class="arch-service-label">Disk</text>
 </g>
-<g id="architecture-b82f76e0d7495f82-node-junctionCenter" class="architecture-junction">
+<g id="FE252255-4375-B23D-7B9B-0C2A95DA38DD-node-junctionCenter" class="architecture-junction">
 <rect x="276" y="276" width="80" height="80" fill-opacity="0"/>
 </g>
-<g id="architecture-b82f76e0d7495f82-node-junctionRight" class="architecture-junction">
+<g id="FE252255-4375-B23D-7B9B-0C2A95DA38DD-node-junctionRight" class="architecture-junction">
 <rect x="500" y="276" width="80" height="80" fill-opacity="0"/>
 </g>
 </g>

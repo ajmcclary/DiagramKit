@@ -1,16 +1,16 @@
-<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 599.1 749.55" width="599.1" height="749.55" style="--bg:#FFFFFF;--fg:#27272A;--line:#939394;--accent:#27272A;--muted:#A9A9AA;--surface:#F9F9F9;--border:#D4D4D4;background:#FFFFFF">
+<svg role="graphics-document" aria-roledescription="diagram" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 599.1 749.55" width="599.1" height="749.55" style="--bg:#FFFFFF;--fg:#27272A;--line:#27272A;--accent:#27272A;--muted:#27272A;--surface:#FFFFFF;--border:#27272A;background:#FFFFFF">
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap');
   text { font-family: 'Inter', system-ui, sans-serif; }
   svg {    /* Derived from --bg and --fg (overridable via --line, --accent, etc.) */
     --_text:          #27272A;
-    --_text-sec:      #A9A9AA 60%, #FFFFFF));
-    --_text-muted:    #A9A9AA 40%, #FFFFFF));
+    --_text-sec:      #27272A 60%, #FFFFFF));
+    --_text-muted:    #27272A 40%, #FFFFFF));
     --_text-faint:    #666666;
-    --_line:          #939394 50%, #FFFFFF));
+    --_line:          #27272A 50%, #FFFFFF));
     --_arrow:         #27272A 85%, #FFFFFF));
-    --_node-fill:     #F9F9F9 3%, #FFFFFF));
-    --_node-stroke:   #D4D4D4 20%, #FFFFFF));
+    --_node-fill:     #FFFFFF 3%, #FFFFFF));
+    --_node-stroke:   #27272A 20%, #FFFFFF));
     --_group-fill:    #FFFFFF;
     --_group-hdr:     #666666;
     --_inner-stroke:  #666666;
@@ -56,12 +56,12 @@
   to { stroke-dashoffset: -24; }
 }
 .statediagram-state rect {
-  fill: #F9F9F9 3%, #FFFFFF));
-  stroke: #D4D4D4 20%, #FFFFFF));
+  fill: #FFFFFF 3%, #FFFFFF));
+  stroke: #27272A 20%, #FFFFFF));
 }
 .statediagram-cluster rect {
   fill: #FFFFFF;
-  stroke: #D4D4D4 20%, #FFFFFF));
+  stroke: #27272A 20%, #FFFFFF));
 }
 .statediagram-cluster rect.outer {
   rx: 5px;
@@ -84,7 +84,7 @@
   stroke-dasharray: 5;
 }
 .transition {
-  stroke: #939394 50%, #FFFFFF));
+  stroke: #27272A 50%, #FFFFFF));
 }
 [data-look="neo"].statediagram-cluster rect {
   rx: 12px;
@@ -92,74 +92,74 @@
 }
 </style>
 <g class="statediagram-cluster" data-id="Processing" data-label="Processing">
-  <rect x="96.0" y="200.9" width="463.1" height="508.65" rx="8" ry="8" fill="#FFFFFF" stroke="#D4D4D4 20%, #FFFFFF))" stroke-width="1.0" />
+  <rect x="96.0" y="200.9" width="463.1" height="508.65" rx="8" ry="8" fill="#FFFFFF" stroke="#27272A 20%, #FFFFFF))" stroke-width="1.0" />
   <rect x="96.0" y="200.9" width="463.1" height="35.0" rx="8" ry="8" fill="#666666" stroke="none" />
   <rect x="96.0" y="227.9" width="463.1" height="8" fill="#666666" stroke="none" />
-  <text x="327.55" y="218.4" text-anchor="middle" font-size="12.0" font-weight="600" fill="#A9A9AA 60%, #FFFFFF))" dy="4.199999999999999">Processing</text>
+  <text x="327.55" y="218.4" text-anchor="middle" font-size="12.0" font-weight="600" fill="#27272A 60%, #FFFFFF))" dy="4.199999999999999">Processing</text>
 <g class="subgraph" data-id="Processing_region_0" data-label="">
-  <rect x="112.0" y="244.9" width="212.072" height="448.65" rx="0" ry="0" fill="#FFFFFF" stroke="#D4D4D4 20%, #FFFFFF))" stroke-width="1.0" />
-  <rect x="112.0" y="244.9" width="212.072" height="28.0" rx="0" ry="0" fill="#666666" stroke="#D4D4D4 20%, #FFFFFF))" stroke-width="1.0" />
-  <text x="124.0" y="258.9" font-size="12.0" font-weight="600" fill="#A9A9AA 60%, #FFFFFF))" dy="4.199999999999999"></text>
+  <rect x="112.0" y="244.9" width="212.072" height="448.65" rx="0" ry="0" fill="#FFFFFF" stroke="#27272A 20%, #FFFFFF))" stroke-width="1.0" />
+  <rect x="112.0" y="244.9" width="212.072" height="28.0" rx="0" ry="0" fill="#666666" stroke="#27272A 20%, #FFFFFF))" stroke-width="1.0" />
+  <text x="124.0" y="258.9" font-size="12.0" font-weight="600" fill="#27272A 60%, #FFFFFF))" dy="4.199999999999999"></text>
 </g>
 <g class="subgraph" data-id="Processing_region_1" data-label="">
-  <rect x="352.072" y="244.9" width="191.02800000000002" height="100.0" rx="0" ry="0" fill="#FFFFFF" stroke="#D4D4D4 20%, #FFFFFF))" stroke-width="1.0" />
-  <rect x="352.072" y="244.9" width="191.02800000000002" height="28.0" rx="0" ry="0" fill="#666666" stroke="#D4D4D4 20%, #FFFFFF))" stroke-width="1.0" />
-  <text x="364.072" y="258.9" font-size="12.0" font-weight="600" fill="#A9A9AA 60%, #FFFFFF))" dy="4.199999999999999"></text>
+  <rect x="352.072" y="244.9" width="191.02800000000002" height="100.0" rx="0" ry="0" fill="#FFFFFF" stroke="#27272A 20%, #FFFFFF))" stroke-width="1.0" />
+  <rect x="352.072" y="244.9" width="191.02800000000002" height="28.0" rx="0" ry="0" fill="#666666" stroke="#27272A 20%, #FFFFFF))" stroke-width="1.0" />
+  <text x="364.072" y="258.9" font-size="12.0" font-weight="600" fill="#27272A 60%, #FFFFFF))" dy="4.199999999999999"></text>
 </g>
 </g>
-<polyline data-from="root_start" data-to="Idle" data-style="solid" data-arrow-start="false" data-arrow-end="true" class="edge transition" points="54.0,68.0 54.0,92.0 71.34899999999999,92.0 71.34899999999999,116.0" fill="none" stroke="#939394 50%, #FFFFFF))" stroke-width="1.0" marker-end="url(#arrowhead)" />
-<polyline data-from="Idle" data-to="Processing" data-style="solid" data-arrow-start="false" data-arrow-end="true" data-label="submit" class="edge transition" points="71.34899999999999,152.9 71.34899999999999,176.9 327.55,176.9 327.55,200.9" fill="none" stroke="#939394 50%, #FFFFFF))" stroke-width="1.0" marker-end="url(#arrowhead)" />
-<polyline data-from="Processing_start" data-to="Queued" data-style="solid" data-arrow-start="false" data-arrow-end="true" class="edge transition" points="142.0,316.9 142.0,340.9 171.946,340.9 171.946,364.9" fill="none" stroke="#939394 50%, #FFFFFF))" stroke-width="1.0" marker-end="url(#arrowhead)" />
-<polyline data-from="Queued" data-to="Running" data-style="solid" data-arrow-start="false" data-arrow-end="true" data-label="dequeue" class="edge transition" points="171.946,401.8 171.946,425.8 173.428,425.8 173.428,449.8" fill="none" stroke="#939394 50%, #FFFFFF))" stroke-width="1.0" marker-end="url(#arrowhead)" />
-<polyline data-from="Running" data-to="if_state" data-style="solid" data-arrow-start="false" data-arrow-end="true" class="edge transition" points="173.428,486.70000000000005 173.428,510.70000000000005 158.0,510.70000000000005 158.0,534.7" fill="none" stroke="#939394 50%, #FFFFFF))" stroke-width="1.0" marker-end="url(#arrowhead)" />
-<polyline data-from="if_state" data-to="Done" data-style="solid" data-arrow-start="false" data-arrow-end="true" data-label="success" class="edge transition" points="158.0,592.6500000000001 158.0,616.65 164.536,616.65 164.536,640.65" fill="none" stroke="#939394 50%, #FFFFFF))" stroke-width="1.0" marker-end="url(#arrowhead)" />
-<polyline data-from="if_state" data-to="Failed" data-style="solid" data-arrow-start="false" data-arrow-end="true" data-label="error" class="edge transition" points="188.0,563.6750000000001 208.536,563.6750000000001 208.536,659.1 229.072,659.1" fill="none" stroke="#939394 50%, #FFFFFF))" stroke-width="1.0" marker-end="url(#arrowhead)" />
+<polyline data-from="root_start" data-to="Idle" data-style="solid" data-arrow-start="false" data-arrow-end="true" class="edge transition" points="54.0,68.0 54.0,92.0 71.34899999999999,92.0 71.34899999999999,116.0" fill="none" stroke="#27272A 50%, #FFFFFF))" stroke-width="1.0" marker-end="url(#arrowhead)" />
+<polyline data-from="Idle" data-to="Processing" data-style="solid" data-arrow-start="false" data-arrow-end="true" data-label="submit" class="edge transition" points="71.34899999999999,152.9 71.34899999999999,176.9 327.55,176.9 327.55,200.9" fill="none" stroke="#27272A 50%, #FFFFFF))" stroke-width="1.0" marker-end="url(#arrowhead)" />
+<polyline data-from="Processing_start" data-to="Queued" data-style="solid" data-arrow-start="false" data-arrow-end="true" class="edge transition" points="142.0,316.9 142.0,340.9 171.946,340.9 171.946,364.9" fill="none" stroke="#27272A 50%, #FFFFFF))" stroke-width="1.0" marker-end="url(#arrowhead)" />
+<polyline data-from="Queued" data-to="Running" data-style="solid" data-arrow-start="false" data-arrow-end="true" data-label="dequeue" class="edge transition" points="171.946,401.8 171.946,425.8 173.428,425.8 173.428,449.8" fill="none" stroke="#27272A 50%, #FFFFFF))" stroke-width="1.0" marker-end="url(#arrowhead)" />
+<polyline data-from="Running" data-to="if_state" data-style="solid" data-arrow-start="false" data-arrow-end="true" class="edge transition" points="173.428,486.70000000000005 173.428,510.70000000000005 158.0,510.70000000000005 158.0,534.7" fill="none" stroke="#27272A 50%, #FFFFFF))" stroke-width="1.0" marker-end="url(#arrowhead)" />
+<polyline data-from="if_state" data-to="Done" data-style="solid" data-arrow-start="false" data-arrow-end="true" data-label="success" class="edge transition" points="158.0,592.6500000000001 158.0,616.65 164.536,616.65 164.536,640.65" fill="none" stroke="#27272A 50%, #FFFFFF))" stroke-width="1.0" marker-end="url(#arrowhead)" />
+<polyline data-from="if_state" data-to="Failed" data-style="solid" data-arrow-start="false" data-arrow-end="true" data-label="error" class="edge transition" points="188.0,563.6750000000001 208.536,563.6750000000001 208.536,659.1 229.072,659.1" fill="none" stroke="#27272A 50%, #FFFFFF))" stroke-width="1.0" marker-end="url(#arrowhead)" />
 
-<polyline data-from="Processing" data-to="Complete" data-style="solid" data-arrow-start="false" data-arrow-end="true" data-label="done" class="edge transition" points="327.55,200.9 327.55,176.9 178.349,176.9 178.349,152.9" fill="none" stroke="#939394 50%, #FFFFFF))" stroke-width="1.0" marker-end="url(#arrowhead)" />
-<polyline data-from="Processing" data-to="Error" data-style="solid" data-arrow-start="false" data-arrow-end="true" data-label="fail" class="edge transition" points="327.55,200.9 327.55,176.9 292.018,176.9 292.018,152.9" fill="none" stroke="#939394 50%, #FFFFFF))" stroke-width="1.0" marker-end="url(#arrowhead)" />
-<polyline data-from="Error" data-to="Idle" data-style="solid" data-arrow-start="false" data-arrow-end="true" data-label="retry" class="edge transition" points="253.99999999999997,134.45 178.349,134.45 178.349,134.45 102.698,134.45" fill="none" stroke="#939394 50%, #FFFFFF))" stroke-width="1.0" marker-end="url(#arrowhead)" />
-<polyline data-from="Complete" data-to="root_end" data-style="solid" data-arrow-start="false" data-arrow-end="true" class="edge transition" points="130.69799999999998,134.45 99.34899999999999,134.45 99.34899999999999,214.9 68.0,214.9" fill="none" stroke="#939394 50%, #FFFFFF))" stroke-width="1.0" marker-end="url(#arrowhead)" />
+<polyline data-from="Processing" data-to="Complete" data-style="solid" data-arrow-start="false" data-arrow-end="true" data-label="done" class="edge transition" points="327.55,200.9 327.55,176.9 178.349,176.9 178.349,152.9" fill="none" stroke="#27272A 50%, #FFFFFF))" stroke-width="1.0" marker-end="url(#arrowhead)" />
+<polyline data-from="Processing" data-to="Error" data-style="solid" data-arrow-start="false" data-arrow-end="true" data-label="fail" class="edge transition" points="327.55,200.9 327.55,176.9 292.018,176.9 292.018,152.9" fill="none" stroke="#27272A 50%, #FFFFFF))" stroke-width="1.0" marker-end="url(#arrowhead)" />
+<polyline data-from="Error" data-to="Idle" data-style="solid" data-arrow-start="false" data-arrow-end="true" data-label="retry" class="edge transition" points="253.99999999999997,134.45 178.349,134.45 178.349,134.45 102.698,134.45" fill="none" stroke="#27272A 50%, #FFFFFF))" stroke-width="1.0" marker-end="url(#arrowhead)" />
+<polyline data-from="Complete" data-to="root_end" data-style="solid" data-arrow-start="false" data-arrow-end="true" class="edge transition" points="130.69799999999998,134.45 99.34899999999999,134.45 99.34899999999999,214.9 68.0,214.9" fill="none" stroke="#27272A 50%, #FFFFFF))" stroke-width="1.0" marker-end="url(#arrowhead)" />
 <g class="edge-label" data-from="Idle" data-to="Processing" data-label="submit">
   <rect x="175.7745" y="161.75" width="47.35000000000001" height="30.3" rx="2" ry="2" fill="#FFFFFF" stroke="#666666" stroke-width="1" />
-  <text x="199.4495" y="176.9" text-anchor="middle" font-size="11.0" font-weight="400" fill="#A9A9AA 60%, #FFFFFF))" dy="3.8499999999999996">submit</text>
+  <text x="199.4495" y="176.9" text-anchor="middle" font-size="11.0" font-weight="400" fill="#27272A 60%, #FFFFFF))" dy="3.8499999999999996">submit</text>
 </g>
 <g class="edge-label" data-from="Queued" data-to="Running" data-label="dequeue">
   <rect x="143.072" y="410.65000000000003" width="59.230000000000004" height="30.3" rx="2" ry="2" fill="#FFFFFF" stroke="#666666" stroke-width="1" />
-  <text x="172.687" y="425.8" text-anchor="middle" font-size="11.0" font-weight="400" fill="#A9A9AA 60%, #FFFFFF))" dy="3.8499999999999996">dequeue</text>
+  <text x="172.687" y="425.8" text-anchor="middle" font-size="11.0" font-weight="400" fill="#27272A 60%, #FFFFFF))" dy="3.8499999999999996">dequeue</text>
 </g>
 <g class="edge-label" data-from="if_state" data-to="Done" data-label="success">
   <rect x="131.653" y="601.5" width="59.230000000000004" height="30.3" rx="2" ry="2" fill="#FFFFFF" stroke="#666666" stroke-width="1" />
-  <text x="161.268" y="616.65" text-anchor="middle" font-size="11.0" font-weight="400" fill="#A9A9AA 60%, #FFFFFF))" dy="3.8499999999999996">success</text>
+  <text x="161.268" y="616.65" text-anchor="middle" font-size="11.0" font-weight="400" fill="#27272A 60%, #FFFFFF))" dy="3.8499999999999996">success</text>
 </g>
 <g class="edge-label" data-from="if_state" data-to="Failed" data-label="error">
   <rect x="186.643" y="596.2375000000001" width="43.786" height="30.3" rx="2" ry="2" fill="#FFFFFF" stroke="#666666" stroke-width="1" />
-  <text x="208.536" y="611.3875" text-anchor="middle" font-size="11.0" font-weight="400" fill="#A9A9AA 60%, #FFFFFF))" dy="3.8499999999999996">error</text>
+  <text x="208.536" y="611.3875" text-anchor="middle" font-size="11.0" font-weight="400" fill="#27272A 60%, #FFFFFF))" dy="3.8499999999999996">error</text>
 </g>
 <g class="edge-label" data-from="Processing" data-to="Complete" data-label="done">
   <rect x="232.24450000000002" y="161.75" width="41.41" height="30.3" rx="2" ry="2" fill="#FFFFFF" stroke="#666666" stroke-width="1" />
-  <text x="252.9495" y="176.9" text-anchor="middle" font-size="11.0" font-weight="400" fill="#A9A9AA 60%, #FFFFFF))" dy="3.8499999999999996">done</text>
+  <text x="252.9495" y="176.9" text-anchor="middle" font-size="11.0" font-weight="400" fill="#27272A 60%, #FFFFFF))" dy="3.8499999999999996">done</text>
 </g>
 <g class="edge-label" data-from="Processing" data-to="Error" data-label="fail">
   <rect x="294.425" y="161.75" width="30.717999999999996" height="30.3" rx="2" ry="2" fill="#FFFFFF" stroke="#666666" stroke-width="1" />
-  <text x="309.784" y="176.9" text-anchor="middle" font-size="11.0" font-weight="400" fill="#A9A9AA 60%, #FFFFFF))" dy="3.8499999999999996">fail</text>
+  <text x="309.784" y="176.9" text-anchor="middle" font-size="11.0" font-weight="400" fill="#27272A 60%, #FFFFFF))" dy="3.8499999999999996">fail</text>
 </g>
 <g class="edge-label" data-from="Error" data-to="Idle" data-label="retry">
   <rect x="157.644" y="119.29999999999998" width="41.41" height="30.3" rx="2" ry="2" fill="#FFFFFF" stroke="#666666" stroke-width="1" />
-  <text x="178.349" y="134.45" text-anchor="middle" font-size="11.0" font-weight="400" fill="#A9A9AA 60%, #FFFFFF))" dy="3.8499999999999996">retry</text>
+  <text x="178.349" y="134.45" text-anchor="middle" font-size="11.0" font-weight="400" fill="#27272A 60%, #FFFFFF))" dy="3.8499999999999996">retry</text>
 </g>
 <g class="node statediagram-state" data-id="root_start" data-label="" data-shape="state-start">
-  <circle cx="54.0" cy="54.0" r="12.0" fill="#27272A" stroke="none" />
+  <path d="M 40.0 54.0 A 14.0 14.0 0 1 1 68.0 54.0 A 14.0 14.0 0 1 1 40.0 54.0 Z" fill="#27272A" stroke="none" stroke-width="0.75" />
 </g>
 <g class="node statediagram-state" data-id="Idle" data-label="Idle" data-shape="rounded">
-  <rect x="40.0" y="116.0" width="62.69799999999999" height="36.900000000000006" rx="6" ry="6" fill="#F9F9F9 3%, #FFFFFF))" stroke="#D4D4D4 20%, #FFFFFF))" stroke-width="0.75" />
+  <path d="M 46.0 116.0 L 96.698 116.0 Q 102.698 116.0 102.698 122.0 L 102.698 146.9 Q 102.698 152.9 96.698 152.9 L 46.0 152.9 Q 40.0 152.9 40.0 146.9 L 40.0 122.0 Q 40.0 116.0 46.0 116.0 Z" fill="#FFFFFF 3%, #FFFFFF))" stroke="#27272A 20%, #FFFFFF))" stroke-width="0.75" />
   <text x="71.34899999999999" y="134.45" text-anchor="middle" font-size="13.0" font-weight="500" fill="#27272A" dy="4.55">Idle</text>
 </g>
 <g class="node statediagram-state" data-id="Complete" data-label="Complete" data-shape="rounded">
-  <rect x="130.69799999999998" y="116.0" width="95.30199999999999" height="36.900000000000006" rx="6" ry="6" fill="#F9F9F9 3%, #FFFFFF))" stroke="#D4D4D4 20%, #FFFFFF))" stroke-width="0.75" />
+  <path d="M 136.69799999999998 116.0 L 219.99999999999997 116.0 Q 225.99999999999997 116.0 225.99999999999997 122.0 L 225.99999999999997 146.9 Q 225.99999999999997 152.9 219.99999999999997 152.9 L 136.69799999999998 152.9 Q 130.69799999999998 152.9 130.69799999999998 146.9 L 130.69799999999998 122.0 Q 130.69799999999998 116.0 136.69799999999998 116.0 Z" fill="#FFFFFF 3%, #FFFFFF))" stroke="#27272A 20%, #FFFFFF))" stroke-width="0.75" />
   <text x="178.349" y="134.45" text-anchor="middle" font-size="13.0" font-weight="500" fill="#27272A" dy="4.55">Complete</text>
 </g>
 <g class="node statediagram-state" data-id="Error" data-label="Error" data-shape="rounded">
-  <rect x="253.99999999999997" y="116.0" width="76.036" height="36.900000000000006" rx="6" ry="6" fill="#F9F9F9 3%, #FFFFFF))" stroke="#D4D4D4 20%, #FFFFFF))" stroke-width="0.75" />
+  <path d="M 260.0 116.0 L 324.03599999999994 116.0 Q 330.03599999999994 116.0 330.03599999999994 122.0 L 330.03599999999994 146.9 Q 330.03599999999994 152.9 324.03599999999994 152.9 L 260.0 152.9 Q 253.99999999999997 152.9 253.99999999999997 146.9 L 253.99999999999997 122.0 Q 253.99999999999997 116.0 260.0 116.0 Z" fill="#FFFFFF 3%, #FFFFFF))" stroke="#27272A 20%, #FFFFFF))" stroke-width="0.75" />
   <text x="292.018" y="134.45" text-anchor="middle" font-size="13.0" font-weight="500" fill="#27272A" dy="4.55">Error</text>
 </g>
 <g class="node statediagram-state" data-id="root_end" data-label="" data-shape="state-end">
@@ -167,26 +167,26 @@
   <circle cx="54.0" cy="214.9" r="8.0" fill="#27272A" stroke="none" />
 </g>
 <g class="node statediagram-state" data-id="Processing_start" data-label="" data-shape="state-start">
-  <circle cx="142.0" cy="302.9" r="12.0" fill="#27272A" stroke="none" />
+  <path d="M 128.0 302.9 A 14.0 14.0 0 1 1 156.0 302.9 A 14.0 14.0 0 1 1 128.0 302.9 Z" fill="#27272A" stroke="none" stroke-width="0.75" />
 </g>
 <g class="node statediagram-state" data-id="Queued" data-label="Queued" data-shape="rounded">
-  <rect x="128.0" y="364.9" width="87.892" height="36.900000000000006" rx="6" ry="6" fill="#F9F9F9 3%, #FFFFFF))" stroke="#D4D4D4 20%, #FFFFFF))" stroke-width="0.75" />
+  <path d="M 134.0 364.9 L 209.892 364.9 Q 215.892 364.9 215.892 370.9 L 215.892 395.79999999999995 Q 215.892 401.79999999999995 209.892 401.79999999999995 L 134.0 401.79999999999995 Q 128.0 401.79999999999995 128.0 395.79999999999995 L 128.0 370.9 Q 128.0 364.9 134.0 364.9 Z" fill="#FFFFFF 3%, #FFFFFF))" stroke="#27272A 20%, #FFFFFF))" stroke-width="0.75" />
   <text x="171.946" y="383.34999999999997" text-anchor="middle" font-size="13.0" font-weight="500" fill="#27272A" dy="4.55">Queued</text>
 </g>
 <g class="node statediagram-state" data-id="Running" data-label="Running" data-shape="rounded">
-  <rect x="128.0" y="449.8" width="90.856" height="36.900000000000006" rx="6" ry="6" fill="#F9F9F9 3%, #FFFFFF))" stroke="#D4D4D4 20%, #FFFFFF))" stroke-width="0.75" />
+  <path d="M 134.0 449.8 L 212.856 449.8 Q 218.856 449.8 218.856 455.8 L 218.856 480.70000000000005 Q 218.856 486.70000000000005 212.856 486.70000000000005 L 134.0 486.70000000000005 Q 128.0 486.70000000000005 128.0 480.70000000000005 L 128.0 455.8 Q 128.0 449.8 134.0 449.8 Z" fill="#FFFFFF 3%, #FFFFFF))" stroke="#27272A 20%, #FFFFFF))" stroke-width="0.75" />
   <text x="173.428" y="468.25" text-anchor="middle" font-size="13.0" font-weight="500" fill="#27272A" dy="4.55">Running</text>
 </g>
 <g class="node statediagram-state" data-id="if_state" data-label="" data-shape="choice">
-  <polygon points="158.0,534.7 188.0,563.6750000000001 158.0,592.6500000000001 128.0,563.6750000000001" fill="#F9F9F9 3%, #FFFFFF))" stroke="#D4D4D4 20%, #FFFFFF))" stroke-width="0.75" />
+  <path d="M 158.0 534.7 L 188.0 563.6750000000001 L 158.0 592.6500000000001 L 128.0 563.6750000000001 Z" fill="#FFFFFF 3%, #FFFFFF))" stroke="#27272A 20%, #FFFFFF))" stroke-width="0.75" />
   <text x="158.0" y="563.6750000000001" text-anchor="middle" font-size="13.0" font-weight="500" fill="#27272A" dy="4.55"></text>
 </g>
 <g class="node statediagram-state" data-id="Done" data-label="Done" data-shape="rounded">
-  <rect x="128.0" y="640.65" width="73.072" height="36.900000000000006" rx="6" ry="6" fill="#F9F9F9 3%, #FFFFFF))" stroke="#D4D4D4 20%, #FFFFFF))" stroke-width="0.75" />
+  <path d="M 134.0 640.65 L 195.072 640.65 Q 201.072 640.65 201.072 646.65 L 201.072 671.55 Q 201.072 677.55 195.072 677.55 L 134.0 677.55 Q 128.0 677.55 128.0 671.55 L 128.0 646.65 Q 128.0 640.65 134.0 640.65 Z" fill="#FFFFFF 3%, #FFFFFF))" stroke="#27272A 20%, #FFFFFF))" stroke-width="0.75" />
   <text x="164.536" y="659.1" text-anchor="middle" font-size="13.0" font-weight="500" fill="#27272A" dy="4.55">Done</text>
 </g>
 <g class="node statediagram-state" data-id="Failed" data-label="Failed" data-shape="rounded">
-  <rect x="229.072" y="640.65" width="79.0" height="36.900000000000006" rx="6" ry="6" fill="#F9F9F9 3%, #FFFFFF))" stroke="#D4D4D4 20%, #FFFFFF))" stroke-width="0.75" />
+  <path d="M 235.072 640.65 L 302.072 640.65 Q 308.072 640.65 308.072 646.65 L 308.072 671.55 Q 308.072 677.55 302.072 677.55 L 235.072 677.55 Q 229.072 677.55 229.072 671.55 L 229.072 646.65 Q 229.072 640.65 235.072 640.65 Z" fill="#FFFFFF 3%, #FFFFFF))" stroke="#27272A 20%, #FFFFFF))" stroke-width="0.75" />
   <text x="268.572" y="659.1" text-anchor="middle" font-size="13.0" font-weight="500" fill="#27272A" dy="4.55">Failed</text>
 </g>
 <g class="node statediagram-note" data-id="Running----note" data-label="This is the active job" data-shape="state-note">

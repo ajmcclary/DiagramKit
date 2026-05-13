@@ -99,7 +99,7 @@ Do not start a new format parser before that boundary exists.
 
 ## Testing
 
-- Test sources: 150 Swift files under `Tests/DiagramKitTests`.
+- Test sources: 188 Swift files under `Tests/DiagramKitTests`.
 - Corpus: `Examples/MermaidPlayground/Resources/test-diagrams.json`
   (396 Mermaid entries).
 - Snapshot baselines:

@@ -104,6 +104,16 @@ Before opening a PR:
 - [ ] If you added a public API, [README.md](README.md) and [ARCHITECTURE.md](ARCHITECTURE.md) reflect it.
 - [ ] If your change shifts clean-build time by ≥ 20% or changes snapshot counts, [BASELINES.md](BASELINES.md) is refreshed.
 
+## Deprecation policy
+
+Public API renames follow a two-release-cycle deprecation window:
+
+- **Tier 1 (public API):** deprecated aliases carry `@available(*, deprecated, renamed: "NewName", message: "Will be removed in the next major version.")`. The `renamed:` parameter preserves compiler fix-its. These are removed after two major releases.
+- **Tier 2 (internal/SPI):** removed immediately with no deprecation cycle. No downstream consumer should reference internal typealiases or underscore-prefixed symbols.
+- **New deprecations:** use the two-attribute form (`renamed:` + `message:`) for all public-facing aliases. The `message:` field documents the removal timeline.
+
+Deprecated Mermaid-prefixed compatibility aliases (`MermaidRenderer`, `MermaidPipeline`, `MermaidImageRenderer`, `MermaidGraph`, `BeautifulMermaidError`, `MermaidStructuralError`, `MermaidView`, `MermaidDiagramView`, `MermaidLayer`, `MermaidDiagram`) remain available through the next major version with compiler fix-its pointing to their Diagram-prefixed canonical names.
+
 ## Style notes
 
 - `async throws` is the public default. `@MainActor` is reserved for methods that produce or consume native UI types (`BMImage`, `CGContext`).

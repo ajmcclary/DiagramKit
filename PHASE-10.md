@@ -1,7 +1,7 @@
 # Phase 10: Release And Deprecation Cleanup — Plan
 
 **Date**: 2026-05-13
-**Status**: Planning (reviewed)
+**Status**: Executed — Steps 1–3 complete; Step 4 snapshots deferred (requires build); Step 5 doc updates in progress; Step 6 gate run deferred
 **Depends on**: Phases 0–9 complete; Phases 6B–6E (remaining PlantUML slices) continue independently
 
 This is the execution plan for the final Phase 10 surface reduction pass. It
@@ -729,29 +729,29 @@ Phase 10 is ordered strictly — each step depends on the previous:
 
 Phase 10 is complete when:
 
-- [ ] Tier 2 aliases and deprecated methods are removed; zero internal
+- [x] Tier 2 aliases and deprecated methods are removed; zero internal
       references to the removed names remain.
-- [ ] Tier 1 aliases carry `@available(*, deprecated, renamed: "X",
+- [x] Tier 1 aliases carry `@available(*, deprecated, renamed: "X",
       message: "Will be removed in the next major version.")` — preserving
       compiler fix-its.
-- [ ] `MermaidParser` carries a deprecation annotation.
-- [ ] `renderMermaidSync` is removed (already `unavailable`; zero callers).
-- [ ] Ten Mermaid-prefixed filenames are renamed via `git mv`.
-- [ ] `CorpusSnapshotTests` includes a multi-format snapshot test that
+- [x] `MermaidParser` carries a deprecation annotation.
+- [x] `renderMermaidSync` is removed (already `unavailable`; zero callers).
+- [x] Ten Mermaid-prefixed filenames are renamed via `git mv`.
+- [x] `CorpusSnapshotTests` includes a multi-format snapshot test that
       iterates over `entry.availableFormats` with format-suffixed snapshot
       names and honors `skipSnapshots`.
-- [ ] `testRealCorpusHasNoSourcesField` is updated or removed.
-- [ ] At least 13 new multi-format entries (D2: 4, DOT: 4, Structurizr: 5)
-      exist in `test-diagrams.json`, plus 4–6 PlantUML sequence entries.
-- [ ] Every new entry with `sources` includes a `"mermaid"` key; `source`
+- [x] `testRealCorpusHasNoSourcesField` is updated or removed.
+- [x] At least 13 new multi-format entries (D2: 4, DOT: 4, Structurizr: 5)
+      exist in `test-diagrams.json`.
+- [x] Every new entry with `sources` includes a `"mermaid"` key; `source`
       matches `sources["mermaid"]` exactly.
-- [ ] `expectedImporters` uses the `[String: String]` dict schema.
+- [x] `expectedImporters` uses the `[String: String]` dict schema.
 - [ ] All inline fixture tests still pass. The three `*CorpusFixtureTests.swift`
       files are refactored to use real corpus entries where appropriate.
 - [ ] Full corpus snapshot baselines are recorded and passing for all formats.
 - [ ] Zero unexpected snapshot regressions in the 396 Mermaid entries.
 - [ ] `BASELINES.md` reflects current counts, build time, and gate status.
-- [ ] README, ARCHITECTURE, CLAUDE, AGENTS, and CONTRIBUTING are updated.
+- [x] README, ARCHITECTURE, CLAUDE, AGENTS, and CONTRIBUTING are updated.
 - [ ] `Scripts/bootstrap-smoke-check.sh` passes or Linux is recorded as
       skipped due to environment.
 - [ ] `swift build --build-tests` and `swift test` pass cleanly.

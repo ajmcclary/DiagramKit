@@ -83,7 +83,7 @@ Source string
 Source preprocessing (frontmatter, multiline-string joining, comment stripping, `%%{init: …}%%` directive) is split across:
 
 - `Sources/DiagramKitModel/SourcePreprocessing.swift` — entry point `_parseFrontMatterAndStripped(...)`
-- `Sources/DiagramKitModel/MermaidSourceNormalizer.swift`
+- `Sources/DiagramKitModel/DiagramSourceNormalizer.swift`
 - `Sources/DiagramKitModel/FrontmatterDocumentParser.swift`
 - `Sources/DiagramKitModel/InitDirectiveParser.swift`
 
@@ -95,12 +95,12 @@ Per-diagram-type parsers receive a typed `frontmatter` argument and pull config 
 
 ## The worker-thread invariant
 
-`DiagramEngine` ([Sources/DiagramKit/MermaidRenderer.swift](Sources/DiagramKit/MermaidRenderer.swift)) is the public façade. Every `async throws` entry point dispatches its work onto a fresh **8 MB-stack `Thread`** via `_runOnWorker`.
+`DiagramEngine` ([Sources/DiagramKit/DiagramEngine.swift](Sources/DiagramKit/DiagramEngine.swift)) is the public façade. Every `async throws` entry point dispatches its work onto a fresh **8 MB-stack `Thread`** via `_runOnWorker`.
 
 **Do not reintroduce a thread pool.** It was attempted in commit `ff2622b` and intentionally reverted (see the doc-comment on `_runOnWorker`). Layout exceeds the cooperative pool's ~512 KB stack budget on nested-subgraph diagrams; running on a dedicated worker thread with an 8 MB stack is the only thing that keeps deeply nested mindmaps and flowcharts from crashing on stack overflow.
 
 Implementation details:
-- `DiagramPipeline` ([Sources/DiagramKit/MermaidPipeline.swift](Sources/DiagramKit/MermaidPipeline.swift)) is a stateless `enum` (NOT an actor) holding the synchronous, nonisolated implementations. Each public method calls `DiagramFontRegistry.registerBundledFontsIfNeeded()` first — critical for snapshot determinism.
+- `DiagramPipeline` ([Sources/DiagramKit/DiagramPipeline.swift](Sources/DiagramKit/DiagramPipeline.swift)) is a stateless `enum` (NOT an actor) holding the synchronous, nonisolated implementations. Each public method calls `DiagramFontRegistry.registerBundledFontsIfNeeded()` first — critical for snapshot determinism.
 - `DiagramImageRenderer` ([Sources/DiagramKit/DiagramImageRenderer.swift](Sources/DiagramKit/DiagramImageRenderer.swift)) routes through `DiagramEngine._runOnWorker` rather than a separate worker (the duplication was removed).
 
 ## Rendering backends — drift hazard

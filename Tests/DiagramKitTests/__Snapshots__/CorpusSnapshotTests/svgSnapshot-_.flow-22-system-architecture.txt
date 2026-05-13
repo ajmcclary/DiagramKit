@@ -1,16 +1,16 @@
-<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 612.035 525.6" width="612.035" height="525.6" style="--bg:#FFFFFF;--fg:#27272A;--line:#939394;--accent:#27272A;--muted:#A9A9AA;--surface:#F9F9F9;--border:#D4D4D4;background:#FFFFFF">
+<svg role="graphics-document" aria-roledescription="diagram" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 612.035 525.6" width="612.035" height="525.6" style="--bg:#FFFFFF;--fg:#27272A;--line:#27272A;--accent:#27272A;--muted:#27272A;--surface:#FFFFFF;--border:#27272A;background:#FFFFFF">
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap');
   text { font-family: 'Inter', system-ui, sans-serif; }
   svg {    /* Derived from --bg and --fg (overridable via --line, --accent, etc.) */
     --_text:          #27272A;
-    --_text-sec:      #A9A9AA 60%, #FFFFFF));
-    --_text-muted:    #A9A9AA 40%, #FFFFFF));
+    --_text-sec:      #27272A 60%, #FFFFFF));
+    --_text-muted:    #27272A 40%, #FFFFFF));
     --_text-faint:    #666666;
-    --_line:          #939394 50%, #FFFFFF));
+    --_line:          #27272A 50%, #FFFFFF));
     --_arrow:         #27272A 85%, #FFFFFF));
-    --_node-fill:     #F9F9F9 3%, #FFFFFF));
-    --_node-stroke:   #D4D4D4 20%, #FFFFFF));
+    --_node-fill:     #FFFFFF 3%, #FFFFFF));
+    --_node-stroke:   #27272A 20%, #FFFFFF));
     --_group-fill:    #FFFFFF;
     --_group-hdr:     #666666;
     --_inner-stroke:  #666666;
@@ -57,79 +57,79 @@
 }
 </style>
 <g class="subgraph" data-id="clients" data-label="Client Layer">
-  <rect x="40.0" y="40.0" width="260.978" height="181.8" rx="0" ry="0" fill="#FFFFFF" stroke="#D4D4D4 20%, #FFFFFF))" stroke-width="1.0" />
-  <rect x="40.0" y="40.0" width="260.978" height="28.0" rx="0" ry="0" fill="#666666" stroke="#D4D4D4 20%, #FFFFFF))" stroke-width="1.0" />
-  <text x="52.0" y="54.0" font-size="12.0" font-weight="600" fill="#A9A9AA 60%, #FFFFFF))" dy="4.199999999999999">Client Layer</text>
+  <rect x="40.0" y="40.0" width="260.978" height="181.8" rx="0" ry="0" fill="#FFFFFF" stroke="#27272A 20%, #FFFFFF))" stroke-width="1.0" />
+  <rect x="40.0" y="40.0" width="260.978" height="28.0" rx="0" ry="0" fill="#666666" stroke="#27272A 20%, #FFFFFF))" stroke-width="1.0" />
+  <text x="52.0" y="54.0" font-size="12.0" font-weight="600" fill="#27272A 60%, #FFFFFF))" dy="4.199999999999999">Client Layer</text>
 </g>
 <g class="subgraph" data-id="services" data-label="Service Layer">
-  <rect x="40.0" y="249.8" width="454.67499999999995" height="96.9" rx="0" ry="0" fill="#FFFFFF" stroke="#D4D4D4 20%, #FFFFFF))" stroke-width="1.0" />
-  <rect x="40.0" y="249.8" width="454.67499999999995" height="28.0" rx="0" ry="0" fill="#666666" stroke="#D4D4D4 20%, #FFFFFF))" stroke-width="1.0" />
-  <text x="52.0" y="263.8" font-size="12.0" font-weight="600" fill="#A9A9AA 60%, #FFFFFF))" dy="4.199999999999999">Service Layer</text>
+  <rect x="40.0" y="249.8" width="454.67499999999995" height="96.9" rx="0" ry="0" fill="#FFFFFF" stroke="#27272A 20%, #FFFFFF))" stroke-width="1.0" />
+  <rect x="40.0" y="249.8" width="454.67499999999995" height="28.0" rx="0" ry="0" fill="#666666" stroke="#27272A 20%, #FFFFFF))" stroke-width="1.0" />
+  <text x="52.0" y="263.8" font-size="12.0" font-weight="600" fill="#27272A 60%, #FFFFFF))" dy="4.199999999999999">Service Layer</text>
 </g>
 <g class="subgraph" data-id="data" data-label="Data Layer">
-  <rect x="40.0" y="374.70000000000005" width="532.035" height="110.9" rx="0" ry="0" fill="#FFFFFF" stroke="#D4D4D4 20%, #FFFFFF))" stroke-width="1.0" />
-  <rect x="40.0" y="374.70000000000005" width="532.035" height="28.0" rx="0" ry="0" fill="#666666" stroke="#D4D4D4 20%, #FFFFFF))" stroke-width="1.0" />
-  <text x="52.0" y="388.70000000000005" font-size="12.0" font-weight="600" fill="#A9A9AA 60%, #FFFFFF))" dy="4.199999999999999">Data Layer</text>
+  <rect x="40.0" y="374.70000000000005" width="532.035" height="110.9" rx="0" ry="0" fill="#FFFFFF" stroke="#27272A 20%, #FFFFFF))" stroke-width="1.0" />
+  <rect x="40.0" y="374.70000000000005" width="532.035" height="28.0" rx="0" ry="0" fill="#666666" stroke="#27272A 20%, #FFFFFF))" stroke-width="1.0" />
+  <text x="52.0" y="388.70000000000005" font-size="12.0" font-weight="600" fill="#27272A 60%, #FFFFFF))" dy="4.199999999999999">Data Layer</text>
 </g>
-<polyline data-from="A" data-to="B" data-style="solid" data-arrow-start="false" data-arrow-end="true" class="edge" points="102.91,120.9 102.91,144.9 113.65450000000001,144.9 113.65450000000001,168.9" fill="none" stroke="#939394 50%, #FFFFFF))" stroke-width="1.0" marker-end="url(#arrowhead)" />
-<polyline data-from="C" data-to="B" data-style="solid" data-arrow-start="false" data-arrow-end="true" class="edge" points="175.2265,102.45 174.5645,102.45 174.5645,187.35000000000002 171.30900000000003,187.35000000000002" fill="none" stroke="#939394 50%, #FFFFFF))" stroke-width="1.0" marker-end="url(#arrowhead)" />
+<polyline data-from="A" data-to="B" data-style="solid" data-arrow-start="false" data-arrow-end="true" class="edge" points="102.91,120.9 102.91,144.9 113.65450000000001,144.9 113.65450000000001,168.9" fill="none" stroke="#27272A 50%, #FFFFFF))" stroke-width="1.0" marker-end="url(#arrowhead)" />
+<polyline data-from="C" data-to="B" data-style="solid" data-arrow-start="false" data-arrow-end="true" class="edge" points="175.2265,102.45 174.5645,102.45 174.5645,187.35000000000002 171.30900000000003,187.35000000000002" fill="none" stroke="#27272A 50%, #FFFFFF))" stroke-width="1.0" marker-end="url(#arrowhead)" />
 
-<polyline data-from="B" data-to="E" data-style="solid" data-arrow-start="false" data-arrow-end="true" class="edge" points="171.30900000000003,187.35000000000002 186.791,187.35000000000002 186.791,312.25 202.27299999999997,312.25" fill="none" stroke="#939394 50%, #FFFFFF))" stroke-width="1.0" marker-end="url(#arrowhead)" />
-<polyline data-from="B" data-to="F" data-style="solid" data-arrow-start="false" data-arrow-end="true" class="edge" points="171.30900000000003,187.35000000000002 186.791,187.35000000000002 186.791,312.25 351.51,312.25" fill="none" stroke="#939394 50%, #FFFFFF))" stroke-width="1.0" marker-end="url(#arrowhead)" />
+<polyline data-from="B" data-to="E" data-style="solid" data-arrow-start="false" data-arrow-end="true" class="edge" points="171.30900000000003,187.35000000000002 186.791,187.35000000000002 186.791,312.25 202.27299999999997,312.25" fill="none" stroke="#27272A 50%, #FFFFFF))" stroke-width="1.0" marker-end="url(#arrowhead)" />
+<polyline data-from="B" data-to="F" data-style="solid" data-arrow-start="false" data-arrow-end="true" class="edge" points="171.30900000000003,187.35000000000002 186.791,187.35000000000002 186.791,312.25 351.51,312.25" fill="none" stroke="#27272A 50%, #FFFFFF))" stroke-width="1.0" marker-end="url(#arrowhead)" />
 
 
 
 
 <g class="node" data-id="A" data-label="Web App" data-shape="stadium">
-  <rect x="56.0" y="84.0" width="93.82" height="36.900000000000006" rx="18.450000000000003" ry="18.450000000000003" fill="#F9F9F9 3%, #FFFFFF))" stroke="#D4D4D4 20%, #FFFFFF))" stroke-width="0.75" />
+  <path d="M 74.45 84.0 L 131.37 84.0 A 18.450000000000003 18.450000000000003 0 0 1 149.82 102.45 L 149.82 102.45 A 18.450000000000003 18.450000000000003 0 0 1 131.37 120.9 L 74.45 120.9 A 18.450000000000003 18.450000000000003 0 0 1 56.0 102.45 L 56.0 102.45 A 18.450000000000003 18.450000000000003 0 0 1 74.45 84.0 Z" fill="#FFFFFF 3%, #FFFFFF))" stroke="#27272A 20%, #FFFFFF))" stroke-width="0.75" />
   <text x="102.91" y="102.45" text-anchor="middle" font-size="13.0" font-weight="500" fill="#27272A" dy="4.55">Web App</text>
 </g>
 <g class="node" data-id="B" data-label="API Gateway" data-shape="rectangle">
-  <rect x="56.0" y="168.9" width="115.30900000000001" height="36.900000000000006" rx="0" ry="0" fill="#F9F9F9 3%, #FFFFFF))" stroke="#D4D4D4 20%, #FFFFFF))" stroke-width="0.75" />
+  <path d="M 56.0 168.9 L 171.30900000000003 168.9 L 171.30900000000003 205.8 L 56.0 205.8 Z" fill="#FFFFFF 3%, #FFFFFF))" stroke="#27272A 20%, #FFFFFF))" stroke-width="0.75" />
   <text x="113.65450000000001" y="187.35000000000002" text-anchor="middle" font-size="13.0" font-weight="500" fill="#27272A" dy="4.55">API Gateway</text>
 </g>
 <g class="node" data-id="C" data-label="Mobile App" data-shape="stadium">
-  <rect x="175.2265" y="84.0" width="107.158" height="36.900000000000006" rx="18.450000000000003" ry="18.450000000000003" fill="#F9F9F9 3%, #FFFFFF))" stroke="#D4D4D4 20%, #FFFFFF))" stroke-width="0.75" />
+  <path d="M 193.67649999999998 84.0 L 263.9345 84.0 A 18.450000000000003 18.450000000000003 0 0 1 282.3845 102.45 L 282.3845 102.45 A 18.450000000000003 18.450000000000003 0 0 1 263.9345 120.9 L 193.67649999999998 120.9 A 18.450000000000003 18.450000000000003 0 0 1 175.2265 102.45 L 175.2265 102.45 A 18.450000000000003 18.450000000000003 0 0 1 193.67649999999998 84.0 Z" fill="#FFFFFF 3%, #FFFFFF))" stroke="#27272A 20%, #FFFFFF))" stroke-width="0.75" />
   <text x="228.8055" y="102.45" text-anchor="middle" font-size="13.0" font-weight="500" fill="#27272A" dy="4.55">Mobile App</text>
 </g>
 <g class="node" data-id="D" data-label="Auth Service" data-shape="rectangle">
-  <rect x="56.0" y="293.8" width="118.27299999999998" height="36.900000000000006" rx="0" ry="0" fill="#F9F9F9 3%, #FFFFFF))" stroke="#D4D4D4 20%, #FFFFFF))" stroke-width="0.75" />
+  <path d="M 56.0 293.8 L 174.27299999999997 293.8 L 174.27299999999997 330.70000000000005 L 56.0 330.70000000000005 Z" fill="#FFFFFF 3%, #FFFFFF))" stroke="#27272A 20%, #FFFFFF))" stroke-width="0.75" />
   <text x="115.13649999999998" y="312.25" text-anchor="middle" font-size="13.0" font-weight="500" fill="#27272A" dy="4.55">Auth Service</text>
 </g>
 <g class="node" data-id="E" data-label="User Service" data-shape="rectangle">
-  <rect x="202.27299999999997" y="293.8" width="121.23700000000001" height="36.900000000000006" rx="0" ry="0" fill="#F9F9F9 3%, #FFFFFF))" stroke="#D4D4D4 20%, #FFFFFF))" stroke-width="0.75" />
+  <path d="M 202.27299999999997 293.8 L 323.51 293.8 L 323.51 330.70000000000005 L 202.27299999999997 330.70000000000005 Z" fill="#FFFFFF 3%, #FFFFFF))" stroke="#27272A 20%, #FFFFFF))" stroke-width="0.75" />
   <text x="262.89149999999995" y="312.25" text-anchor="middle" font-size="13.0" font-weight="500" fill="#27272A" dy="4.55">User Service</text>
 </g>
 <g class="node" data-id="F" data-label="Order Service" data-shape="rectangle">
-  <rect x="351.51" y="293.8" width="127.16499999999999" height="36.900000000000006" rx="0" ry="0" fill="#F9F9F9 3%, #FFFFFF))" stroke="#D4D4D4 20%, #FFFFFF))" stroke-width="0.75" />
+  <path d="M 351.51 293.8 L 478.67499999999995 293.8 L 478.67499999999995 330.70000000000005 L 351.51 330.70000000000005 Z" fill="#FFFFFF 3%, #FFFFFF))" stroke="#27272A 20%, #FFFFFF))" stroke-width="0.75" />
   <text x="415.0925" y="312.25" text-anchor="middle" font-size="13.0" font-weight="500" fill="#27272A" dy="4.55">Order Service</text>
 </g>
 <g class="node" data-id="G" data-label="Auth DB" data-shape="cylinder">
-  <rect x="56.0" y="425.70000000000005" width="88.633" height="36.900000000000006" fill="#F9F9F9 3%, #FFFFFF))" stroke="none" />
-  <line x1="56.0" y1="425.70000000000005" x2="56.0" y2="462.6" stroke="#D4D4D4 20%, #FFFFFF))" stroke-width="0.75" />
-  <line x1="144.63299999999998" y1="425.70000000000005" x2="144.63299999999998" y2="462.6" stroke="#D4D4D4 20%, #FFFFFF))" stroke-width="0.75" />
-  <ellipse cx="100.31649999999999" cy="462.6" rx="44.3165" ry="7.0" fill="#F9F9F9 3%, #FFFFFF))" stroke="#D4D4D4 20%, #FFFFFF))" stroke-width="0.75" />
-  <ellipse cx="100.31649999999999" cy="425.70000000000005" rx="44.3165" ry="7.0" fill="#F9F9F9 3%, #FFFFFF))" stroke="#D4D4D4 20%, #FFFFFF))" stroke-width="0.75" />
+  <path d="M 56.0 418.70000000000005 L 144.63299999999998 418.70000000000005 L 144.63299999999998 469.6 L 56.0 469.6 Z" fill="#FFFFFF 3%, #FFFFFF))" stroke="#27272A 20%, #FFFFFF))" stroke-width="0.75" />
+  <path d="M 56 425.70 L 56 462.60" fill="none" stroke="#27272A 20%, #FFFFFF))" stroke-width="0.75" />
+  <path d="M 144.63 425.70 L 144.63 462.60" fill="none" stroke="#27272A 20%, #FFFFFF))" stroke-width="0.75" />
+  <path d="M 55.99999999999999 425.70000000000005 A 44.3165 7.0 0 1 1 144.63299999999998 425.70000000000005 A 44.3165 7.0 0 1 1 55.99999999999999 425.70000000000005 Z" fill="#FFFFFF 3%, #FFFFFF))" stroke="#27272A 20%, #FFFFFF))" stroke-width="0.75" />
+  <path d="M 55.99999999999999 462.6 A 44.3165 7.0 0 1 1 144.63299999999998 462.6 A 44.3165 7.0 0 1 1 55.99999999999999 462.6 Z" fill="#FFFFFF 3%, #FFFFFF))" stroke="#27272A 20%, #FFFFFF))" stroke-width="0.75" />
   <text x="100.31649999999999" y="444.15000000000003" text-anchor="middle" font-size="13.0" font-weight="500" fill="#27272A" dy="4.55">Auth DB</text>
 </g>
 <g class="node" data-id="H" data-label="User DB" data-shape="cylinder">
-  <rect x="175.2265" y="425.70000000000005" width="91.59700000000001" height="36.900000000000006" fill="#F9F9F9 3%, #FFFFFF))" stroke="none" />
-  <line x1="175.2265" y1="425.70000000000005" x2="175.2265" y2="462.6" stroke="#D4D4D4 20%, #FFFFFF))" stroke-width="0.75" />
-  <line x1="266.82349999999997" y1="425.70000000000005" x2="266.82349999999997" y2="462.6" stroke="#D4D4D4 20%, #FFFFFF))" stroke-width="0.75" />
-  <ellipse cx="221.02499999999998" cy="462.6" rx="45.798500000000004" ry="7.0" fill="#F9F9F9 3%, #FFFFFF))" stroke="#D4D4D4 20%, #FFFFFF))" stroke-width="0.75" />
-  <ellipse cx="221.02499999999998" cy="425.70000000000005" rx="45.798500000000004" ry="7.0" fill="#F9F9F9 3%, #FFFFFF))" stroke="#D4D4D4 20%, #FFFFFF))" stroke-width="0.75" />
+  <path d="M 175.2265 418.70000000000005 L 266.82349999999997 418.70000000000005 L 266.82349999999997 469.6 L 175.2265 469.6 Z" fill="#FFFFFF 3%, #FFFFFF))" stroke="#27272A 20%, #FFFFFF))" stroke-width="0.75" />
+  <path d="M 175.23 425.70 L 175.23 462.60" fill="none" stroke="#27272A 20%, #FFFFFF))" stroke-width="0.75" />
+  <path d="M 266.82 425.70 L 266.82 462.60" fill="none" stroke="#27272A 20%, #FFFFFF))" stroke-width="0.75" />
+  <path d="M 175.2265 425.70000000000005 A 45.798500000000004 7.0 0 1 1 266.82349999999997 425.70000000000005 A 45.798500000000004 7.0 0 1 1 175.2265 425.70000000000005 Z" fill="#FFFFFF 3%, #FFFFFF))" stroke="#27272A 20%, #FFFFFF))" stroke-width="0.75" />
+  <path d="M 175.2265 462.6 A 45.798500000000004 7.0 0 1 1 266.82349999999997 462.6 A 45.798500000000004 7.0 0 1 1 175.2265 462.6 Z" fill="#FFFFFF 3%, #FFFFFF))" stroke="#27272A 20%, #FFFFFF))" stroke-width="0.75" />
   <text x="221.02499999999998" y="444.15000000000003" text-anchor="middle" font-size="13.0" font-weight="500" fill="#27272A" dy="4.55">User DB</text>
 </g>
 <g class="node" data-id="I" data-label="Order DB" data-shape="cylinder">
-  <rect x="292.23" y="425.70000000000005" width="97.525" height="36.900000000000006" fill="#F9F9F9 3%, #FFFFFF))" stroke="none" />
-  <line x1="292.23" y1="425.70000000000005" x2="292.23" y2="462.6" stroke="#D4D4D4 20%, #FFFFFF))" stroke-width="0.75" />
-  <line x1="389.755" y1="425.70000000000005" x2="389.755" y2="462.6" stroke="#D4D4D4 20%, #FFFFFF))" stroke-width="0.75" />
-  <ellipse cx="340.9925" cy="462.6" rx="48.7625" ry="7.0" fill="#F9F9F9 3%, #FFFFFF))" stroke="#D4D4D4 20%, #FFFFFF))" stroke-width="0.75" />
-  <ellipse cx="340.9925" cy="425.70000000000005" rx="48.7625" ry="7.0" fill="#F9F9F9 3%, #FFFFFF))" stroke="#D4D4D4 20%, #FFFFFF))" stroke-width="0.75" />
+  <path d="M 292.23 418.70000000000005 L 389.755 418.70000000000005 L 389.755 469.6 L 292.23 469.6 Z" fill="#FFFFFF 3%, #FFFFFF))" stroke="#27272A 20%, #FFFFFF))" stroke-width="0.75" />
+  <path d="M 292.23 425.70 L 292.23 462.60" fill="none" stroke="#27272A 20%, #FFFFFF))" stroke-width="0.75" />
+  <path d="M 389.76 425.70 L 389.76 462.60" fill="none" stroke="#27272A 20%, #FFFFFF))" stroke-width="0.75" />
+  <path d="M 292.23 425.70000000000005 A 48.7625 7.0 0 1 1 389.755 425.70000000000005 A 48.7625 7.0 0 1 1 292.23 425.70000000000005 Z" fill="#FFFFFF 3%, #FFFFFF))" stroke="#27272A 20%, #FFFFFF))" stroke-width="0.75" />
+  <path d="M 292.23 462.6 A 48.7625 7.0 0 1 1 389.755 462.6 A 48.7625 7.0 0 1 1 292.23 462.6 Z" fill="#FFFFFF 3%, #FFFFFF))" stroke="#27272A 20%, #FFFFFF))" stroke-width="0.75" />
   <text x="340.9925" y="444.15000000000003" text-anchor="middle" font-size="13.0" font-weight="500" fill="#27272A" dy="4.55">Order DB</text>
 </g>
 <g class="node" data-id="J" data-label="Message Queue" data-shape="stadium">
-  <rect x="417.755" y="418.70000000000005" width="138.28" height="36.900000000000006" rx="18.450000000000003" ry="18.450000000000003" fill="#F9F9F9 3%, #FFFFFF))" stroke="#D4D4D4 20%, #FFFFFF))" stroke-width="0.75" />
+  <path d="M 436.205 418.70000000000005 L 537.5849999999999 418.70000000000005 A 18.450000000000003 18.450000000000003 0 0 1 556.035 437.15000000000003 L 556.035 437.15000000000003 A 18.450000000000003 18.450000000000003 0 0 1 537.5849999999999 455.6 L 436.205 455.6 A 18.450000000000003 18.450000000000003 0 0 1 417.755 437.15000000000003 L 417.755 437.15000000000003 A 18.450000000000003 18.450000000000003 0 0 1 436.205 418.70000000000005 Z" fill="#FFFFFF 3%, #FFFFFF))" stroke="#27272A 20%, #FFFFFF))" stroke-width="0.75" />
   <text x="486.895" y="437.15000000000003" text-anchor="middle" font-size="13.0" font-weight="500" fill="#27272A" dy="4.55">Message Queue</text>
 </g>
 </svg>

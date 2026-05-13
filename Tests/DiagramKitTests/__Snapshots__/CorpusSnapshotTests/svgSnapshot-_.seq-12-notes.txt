@@ -1,16 +1,16 @@
-<svg role="graphics-document" aria-roledescription="diagram" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 575 322" width="575" height="322" style="--bg:#FFFFFF;--fg:#27272A;--line:#939394;--accent:#27272A;--muted:#A9A9AA;--surface:#F9F9F9;--border:#D4D4D4;background:#FFFFFF">
+<svg role="graphics-document" aria-roledescription="diagram" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 575 322" width="575" height="322" style="--bg:#FFFFFF;--fg:#27272A;--line:#27272A;--accent:#27272A;--muted:#27272A;--surface:#FFFFFF;--border:#27272A;background:#FFFFFF">
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap');
   text { font-family: 'Inter', system-ui, sans-serif; }
   svg {    /* Derived from --bg and --fg (overridable via --line, --accent, etc.) */
     --_text:          #27272A;
-    --_text-sec:      #A9A9AA 60%, #FFFFFF));
-    --_text-muted:    #A9A9AA 40%, #FFFFFF));
+    --_text-sec:      #27272A 60%, #FFFFFF));
+    --_text-muted:    #27272A 40%, #FFFFFF));
     --_text-faint:    #666666;
-    --_line:          #939394 50%, #FFFFFF));
+    --_line:          #27272A 50%, #FFFFFF));
     --_arrow:         #27272A 85%, #FFFFFF));
-    --_node-fill:     #F9F9F9 3%, #FFFFFF));
-    --_node-stroke:   #D4D4D4 20%, #FFFFFF));
+    --_node-fill:     #FFFFFF 3%, #FFFFFF));
+    --_node-stroke:   #27272A 20%, #FFFFFF));
     --_group-fill:    #FFFFFF;
     --_group-hdr:     #666666;
     --_inner-stroke:  #666666;
@@ -77,46 +77,46 @@
   </marker>
 </defs>
 
-<line class="lifeline actor-line" data-actor="A" x1="217.5" y1="75.0" x2="217.5" y2="312.0" stroke="#939394 50%, #FFFFFF))" stroke-width="0.75" stroke-dasharray="6 4" />
-<line class="lifeline actor-line" data-actor="B" x1="357.5" y1="75.0" x2="357.5" y2="312.0" stroke="#939394 50%, #FFFFFF))" stroke-width="0.75" stroke-dasharray="6 4" />
+<line class="lifeline actor-line" data-actor="A" x1="217.5" y1="75.0" x2="217.5" y2="312.0" stroke="#27272A 50%, #FFFFFF))" stroke-width="0.75" stroke-dasharray="6 4" />
+<line class="lifeline actor-line" data-actor="B" x1="357.5" y1="75.0" x2="357.5" y2="312.0" stroke="#27272A 50%, #FFFFFF))" stroke-width="0.75" stroke-dasharray="6 4" />
 <g class="message" data-from="A" data-to="B" data-label="Hello" data-arrow-type="0" data-self="false">
-<line class="messageLine0" x1="217.5" y1="126.0" x2="357.5" y2="126.0" stroke="#939394 50%, #FFFFFF))" stroke-width="1.0" marker-end="url(#seq-arrow-filled)" />
-<text class="messageText" x="287.5" y="120.0" font-size="11.0" text-anchor="middle" fill="#A9A9AA 40%, #FFFFFF))">Hello</text>
+<line class="messageLine0" x1="217.5" y1="126.0" x2="357.5" y2="126.0" stroke="#27272A 50%, #FFFFFF))" stroke-width="1.0" marker-end="url(#seq-arrow-filled)" />
+<text class="messageText" x="287.5" y="120.0" font-size="11.0" text-anchor="middle" fill="#27272A 40%, #FFFFFF))">Hello</text>
 </g>
 <g class="message" data-from="B" data-to="A" data-label="Reply" data-arrow-type="1" data-self="false">
-<line class="messageLine1" x1="357.5" y1="202.0" x2="217.5" y2="202.0" stroke="#939394 50%, #FFFFFF))" stroke-width="1.0" stroke-dasharray="6 4" marker-end="url(#seq-arrow-filled)" />
-<text class="messageText" x="287.5" y="196.0" font-size="11.0" text-anchor="middle" fill="#A9A9AA 40%, #FFFFFF))">Reply</text>
+<line class="messageLine1" x1="357.5" y1="202.0" x2="217.5" y2="202.0" stroke="#27272A 50%, #FFFFFF))" stroke-width="1.0" stroke-dasharray="6 4" marker-end="url(#seq-arrow-filled)" />
+<text class="messageText" x="287.5" y="196.0" font-size="11.0" text-anchor="middle" fill="#27272A 40%, #FFFFFF))">Reply</text>
 </g>
 <g class="note" data-position="left" data-actors="A">
-  <rect class="note" x="50.0" y="79.0" width="120.0" height="27.0" fill="#666666" stroke="#D4D4D4 20%, #FFFFFF))" stroke-width="0.75" />
+  <rect class="note" x="50.0" y="79.0" width="120.0" height="27.0" fill="#666666" stroke="#27272A 20%, #FFFFFF))" stroke-width="0.75" />
   <polygon points="164.0,79.0 170.0,85.0 164.0,85.0" fill="#666666" />
-  <text class="noteText" x="110.0" y="92.5" font-size="11.0" text-anchor="middle" fill="#A9A9AA 40%, #FFFFFF))">Alice prepares</text>
+  <text class="noteText" x="110.0" y="92.5" font-size="11.0" text-anchor="middle" fill="#27272A 40%, #FFFFFF))">Alice prepares</text>
 </g>
 <g class="note" data-position="right" data-actors="B">
-  <rect class="note" x="405.0" y="130.0" width="120.0" height="27.0" fill="#666666" stroke="#D4D4D4 20%, #FFFFFF))" stroke-width="0.75" />
+  <rect class="note" x="405.0" y="130.0" width="120.0" height="27.0" fill="#666666" stroke="#27272A 20%, #FFFFFF))" stroke-width="0.75" />
   <polygon points="519.0,130.0 525.0,136.0 519.0,136.0" fill="#666666" />
-  <text class="noteText" x="465.0" y="143.5" font-size="11.0" text-anchor="middle" fill="#A9A9AA 40%, #FFFFFF))">Bob thinks</text>
+  <text class="noteText" x="465.0" y="143.5" font-size="11.0" text-anchor="middle" fill="#27272A 40%, #FFFFFF))">Bob thinks</text>
 </g>
 <g class="note" data-position="over" data-actors="A,B">
-  <rect class="note" x="224.91799999999998" y="206.0" width="125.16400000000003" height="27.0" fill="#666666" stroke="#D4D4D4 20%, #FFFFFF))" stroke-width="0.75" />
+  <rect class="note" x="224.91799999999998" y="206.0" width="125.16400000000003" height="27.0" fill="#666666" stroke="#27272A 20%, #FFFFFF))" stroke-width="0.75" />
   <polygon points="344.082,206.0 350.082,212.0 344.082,212.0" fill="#666666" />
-  <text class="noteText" x="287.5" y="219.5" font-size="11.0" text-anchor="middle" fill="#A9A9AA 40%, #FFFFFF))">Conversation complete</text>
+  <text class="noteText" x="287.5" y="219.5" font-size="11.0" text-anchor="middle" fill="#27272A 40%, #FFFFFF))">Conversation complete</text>
 </g>
 <g class="actor"data-id="A" data-label="Alice" data-type="participant">
-<rect x="180.0" y="10.0" width="75.0" height="65.0" rx="4" ry="4" fill="#F9F9F9 3%, #FFFFFF))" stroke="#D4D4D4 20%, #FFFFFF))" stroke-width="1.0" />
-<text class="actor-label" x="217.5" y="42.5" font-size="13.0" text-anchor="middle" fill="#A9A9AA 40%, #FFFFFF))">Alice</text>
+<rect x="180.0" y="10.0" width="75.0" height="65.0" rx="4" ry="4" fill="#FFFFFF 3%, #FFFFFF))" stroke="#27272A 20%, #FFFFFF))" stroke-width="1.0" />
+<text class="actor-label" x="217.5" y="42.5" font-size="13.0" text-anchor="middle" fill="#27272A 40%, #FFFFFF))">Alice</text>
 </g>
 <g class="actor"data-id="B" data-label="Bob" data-type="participant">
-<rect x="320.0" y="10.0" width="75.0" height="65.0" rx="4" ry="4" fill="#F9F9F9 3%, #FFFFFF))" stroke="#D4D4D4 20%, #FFFFFF))" stroke-width="1.0" />
-<text class="actor-label" x="357.5" y="42.5" font-size="13.0" text-anchor="middle" fill="#A9A9AA 40%, #FFFFFF))">Bob</text>
+<rect x="320.0" y="10.0" width="75.0" height="65.0" rx="4" ry="4" fill="#FFFFFF 3%, #FFFFFF))" stroke="#27272A 20%, #FFFFFF))" stroke-width="1.0" />
+<text class="actor-label" x="357.5" y="42.5" font-size="13.0" text-anchor="middle" fill="#27272A 40%, #FFFFFF))">Bob</text>
 </g>
 <g class="actor"data-id="A" data-label="Alice" data-type="participant">
-<rect x="180.0" y="247.0" width="75.0" height="65.0" rx="4" ry="4" fill="#F9F9F9 3%, #FFFFFF))" stroke="#D4D4D4 20%, #FFFFFF))" stroke-width="1.0" />
-<text class="actor-label" x="217.5" y="279.5" font-size="13.0" text-anchor="middle" fill="#A9A9AA 40%, #FFFFFF))">Alice</text>
+<rect x="180.0" y="247.0" width="75.0" height="65.0" rx="4" ry="4" fill="#FFFFFF 3%, #FFFFFF))" stroke="#27272A 20%, #FFFFFF))" stroke-width="1.0" />
+<text class="actor-label" x="217.5" y="279.5" font-size="13.0" text-anchor="middle" fill="#27272A 40%, #FFFFFF))">Alice</text>
 </g>
 <g class="actor"data-id="B" data-label="Bob" data-type="participant">
-<rect x="320.0" y="247.0" width="75.0" height="65.0" rx="4" ry="4" fill="#F9F9F9 3%, #FFFFFF))" stroke="#D4D4D4 20%, #FFFFFF))" stroke-width="1.0" />
-<text class="actor-label" x="357.5" y="279.5" font-size="13.0" text-anchor="middle" fill="#A9A9AA 40%, #FFFFFF))">Bob</text>
+<rect x="320.0" y="247.0" width="75.0" height="65.0" rx="4" ry="4" fill="#FFFFFF 3%, #FFFFFF))" stroke="#27272A 20%, #FFFFFF))" stroke-width="1.0" />
+<text class="actor-label" x="357.5" y="279.5" font-size="13.0" text-anchor="middle" fill="#27272A 40%, #FFFFFF))">Bob</text>
 </g>
 <script type="text/javascript">
 function popupMenuToggle(popId) {

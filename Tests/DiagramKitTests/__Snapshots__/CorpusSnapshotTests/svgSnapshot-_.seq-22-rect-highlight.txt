@@ -1,16 +1,16 @@
-<svg role="graphics-document" aria-roledescription="diagram" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 335 350" width="335" height="350" style="--bg:#FFFFFF;--fg:#27272A;--line:#939394;--accent:#27272A;--muted:#A9A9AA;--surface:#F9F9F9;--border:#D4D4D4;background:#FFFFFF">
+<svg role="graphics-document" aria-roledescription="diagram" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 335 350" width="335" height="350" style="--bg:#FFFFFF;--fg:#27272A;--line:#27272A;--accent:#27272A;--muted:#27272A;--surface:#FFFFFF;--border:#27272A;background:#FFFFFF">
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap');
   text { font-family: 'Inter', system-ui, sans-serif; }
   svg {    /* Derived from --bg and --fg (overridable via --line, --accent, etc.) */
     --_text:          #27272A;
-    --_text-sec:      #A9A9AA 60%, #FFFFFF));
-    --_text-muted:    #A9A9AA 40%, #FFFFFF));
+    --_text-sec:      #27272A 60%, #FFFFFF));
+    --_text-muted:    #27272A 40%, #FFFFFF));
     --_text-faint:    #666666;
-    --_line:          #939394 50%, #FFFFFF));
+    --_line:          #27272A 50%, #FFFFFF));
     --_arrow:         #27272A 85%, #FFFFFF));
-    --_node-fill:     #F9F9F9 3%, #FFFFFF));
-    --_node-stroke:   #D4D4D4 20%, #FFFFFF));
+    --_node-fill:     #FFFFFF 3%, #FFFFFF));
+    --_node-stroke:   #27272A 20%, #FFFFFF));
     --_group-fill:    #FFFFFF;
     --_group-hdr:     #666666;
     --_inner-stroke:  #666666;
@@ -78,39 +78,39 @@
 </defs>
 
 <rect class="rect-highlight" x="60.0" y="156.0" width="277.5" height="113.0" fill="rgb(191, 223, 255)" stroke="none" />
-<line class="lifeline actor-line" data-actor="Alice" x1="97.5" y1="75.0" x2="97.5" y2="340.0" stroke="#939394 50%, #FFFFFF))" stroke-width="0.75" stroke-dasharray="6 4" />
-<line class="lifeline actor-line" data-actor="Bob" x1="237.5" y1="75.0" x2="237.5" y2="340.0" stroke="#939394 50%, #FFFFFF))" stroke-width="0.75" stroke-dasharray="6 4" />
+<line class="lifeline actor-line" data-actor="Alice" x1="97.5" y1="75.0" x2="97.5" y2="340.0" stroke="#27272A 50%, #FFFFFF))" stroke-width="0.75" stroke-dasharray="6 4" />
+<line class="lifeline actor-line" data-actor="Bob" x1="237.5" y1="75.0" x2="237.5" y2="340.0" stroke="#27272A 50%, #FFFFFF))" stroke-width="0.75" stroke-dasharray="6 4" />
 <g class="message" data-from="Alice" data-to="Bob" data-label="Before highlight" data-arrow-type="0" data-self="false">
-<line class="messageLine0" x1="97.5" y1="85.0" x2="237.5" y2="85.0" stroke="#939394 50%, #FFFFFF))" stroke-width="1.0" marker-end="url(#seq-arrow-filled)" />
-<text class="messageText" x="167.5" y="79.0" font-size="11.0" text-anchor="middle" fill="#A9A9AA 40%, #FFFFFF))">Before highlight</text>
+<line class="messageLine0" x1="97.5" y1="85.0" x2="237.5" y2="85.0" stroke="#27272A 50%, #FFFFFF))" stroke-width="1.0" marker-end="url(#seq-arrow-filled)" />
+<text class="messageText" x="167.5" y="79.0" font-size="11.0" text-anchor="middle" fill="#27272A 40%, #FFFFFF))">Before highlight</text>
 </g>
 <g class="message" data-from="Alice" data-to="Bob" data-label="Inside highlight" data-arrow-type="0" data-self="false">
-<line class="messageLine1" x1="97.5" y1="160.0" x2="237.5" y2="160.0" stroke="#939394 50%, #FFFFFF))" stroke-width="1.0" marker-end="url(#seq-arrow-filled)" />
-<text class="messageText" x="167.5" y="154.0" font-size="11.0" text-anchor="middle" fill="#A9A9AA 40%, #FFFFFF))">Inside highlight</text>
+<line class="messageLine1" x1="97.5" y1="160.0" x2="237.5" y2="160.0" stroke="#27272A 50%, #FFFFFF))" stroke-width="1.0" marker-end="url(#seq-arrow-filled)" />
+<text class="messageText" x="167.5" y="154.0" font-size="11.0" text-anchor="middle" fill="#27272A 40%, #FFFFFF))">Inside highlight</text>
 </g>
 <g class="message" data-from="Bob" data-to="Alice" data-label="Response" data-arrow-type="1" data-self="false">
-<line class="messageLine0" x1="237.5" y1="195.0" x2="97.5" y2="195.0" stroke="#939394 50%, #FFFFFF))" stroke-width="1.0" stroke-dasharray="6 4" marker-end="url(#seq-arrow-filled)" />
-<text class="messageText" x="167.5" y="189.0" font-size="11.0" text-anchor="middle" fill="#A9A9AA 40%, #FFFFFF))">Response</text>
+<line class="messageLine0" x1="237.5" y1="195.0" x2="97.5" y2="195.0" stroke="#27272A 50%, #FFFFFF))" stroke-width="1.0" stroke-dasharray="6 4" marker-end="url(#seq-arrow-filled)" />
+<text class="messageText" x="167.5" y="189.0" font-size="11.0" text-anchor="middle" fill="#27272A 40%, #FFFFFF))">Response</text>
 </g>
 <g class="message" data-from="Alice" data-to="Bob" data-label="After highlight" data-arrow-type="0" data-self="false">
-<line class="messageLine1" x1="97.5" y1="230.0" x2="237.5" y2="230.0" stroke="#939394 50%, #FFFFFF))" stroke-width="1.0" marker-end="url(#seq-arrow-filled)" />
-<text class="messageText" x="167.5" y="224.0" font-size="11.0" text-anchor="middle" fill="#A9A9AA 40%, #FFFFFF))">After highlight</text>
+<line class="messageLine1" x1="97.5" y1="230.0" x2="237.5" y2="230.0" stroke="#27272A 50%, #FFFFFF))" stroke-width="1.0" marker-end="url(#seq-arrow-filled)" />
+<text class="messageText" x="167.5" y="224.0" font-size="11.0" text-anchor="middle" fill="#27272A 40%, #FFFFFF))">After highlight</text>
 </g>
 <g class="actor"data-id="Alice" data-label="Alice" data-type="participant">
-<rect x="60.0" y="10.0" width="75.0" height="65.0" rx="4" ry="4" fill="#F9F9F9 3%, #FFFFFF))" stroke="#D4D4D4 20%, #FFFFFF))" stroke-width="1.0" />
-<text class="actor-label" x="97.5" y="42.5" font-size="13.0" text-anchor="middle" fill="#A9A9AA 40%, #FFFFFF))">Alice</text>
+<rect x="60.0" y="10.0" width="75.0" height="65.0" rx="4" ry="4" fill="#FFFFFF 3%, #FFFFFF))" stroke="#27272A 20%, #FFFFFF))" stroke-width="1.0" />
+<text class="actor-label" x="97.5" y="42.5" font-size="13.0" text-anchor="middle" fill="#27272A 40%, #FFFFFF))">Alice</text>
 </g>
 <g class="actor"data-id="Bob" data-label="Bob" data-type="participant">
-<rect x="200.0" y="10.0" width="75.0" height="65.0" rx="4" ry="4" fill="#F9F9F9 3%, #FFFFFF))" stroke="#D4D4D4 20%, #FFFFFF))" stroke-width="1.0" />
-<text class="actor-label" x="237.5" y="42.5" font-size="13.0" text-anchor="middle" fill="#A9A9AA 40%, #FFFFFF))">Bob</text>
+<rect x="200.0" y="10.0" width="75.0" height="65.0" rx="4" ry="4" fill="#FFFFFF 3%, #FFFFFF))" stroke="#27272A 20%, #FFFFFF))" stroke-width="1.0" />
+<text class="actor-label" x="237.5" y="42.5" font-size="13.0" text-anchor="middle" fill="#27272A 40%, #FFFFFF))">Bob</text>
 </g>
 <g class="actor"data-id="Alice" data-label="Alice" data-type="participant">
-<rect x="60.0" y="275.0" width="75.0" height="65.0" rx="4" ry="4" fill="#F9F9F9 3%, #FFFFFF))" stroke="#D4D4D4 20%, #FFFFFF))" stroke-width="1.0" />
-<text class="actor-label" x="97.5" y="307.5" font-size="13.0" text-anchor="middle" fill="#A9A9AA 40%, #FFFFFF))">Alice</text>
+<rect x="60.0" y="275.0" width="75.0" height="65.0" rx="4" ry="4" fill="#FFFFFF 3%, #FFFFFF))" stroke="#27272A 20%, #FFFFFF))" stroke-width="1.0" />
+<text class="actor-label" x="97.5" y="307.5" font-size="13.0" text-anchor="middle" fill="#27272A 40%, #FFFFFF))">Alice</text>
 </g>
 <g class="actor"data-id="Bob" data-label="Bob" data-type="participant">
-<rect x="200.0" y="275.0" width="75.0" height="65.0" rx="4" ry="4" fill="#F9F9F9 3%, #FFFFFF))" stroke="#D4D4D4 20%, #FFFFFF))" stroke-width="1.0" />
-<text class="actor-label" x="237.5" y="307.5" font-size="13.0" text-anchor="middle" fill="#A9A9AA 40%, #FFFFFF))">Bob</text>
+<rect x="200.0" y="275.0" width="75.0" height="65.0" rx="4" ry="4" fill="#FFFFFF 3%, #FFFFFF))" stroke="#27272A 20%, #FFFFFF))" stroke-width="1.0" />
+<text class="actor-label" x="237.5" y="307.5" font-size="13.0" text-anchor="middle" fill="#27272A 40%, #FFFFFF))">Bob</text>
 </g>
 <script type="text/javascript">
 function popupMenuToggle(popId) {

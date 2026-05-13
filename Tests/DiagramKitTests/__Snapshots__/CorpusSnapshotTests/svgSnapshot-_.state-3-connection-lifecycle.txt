@@ -1,16 +1,16 @@
-<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 369.8625 447.6" width="369.8625" height="447.6" style="--bg:#FFFFFF;--fg:#27272A;--line:#939394;--accent:#27272A;--muted:#A9A9AA;--surface:#F9F9F9;--border:#D4D4D4;background:#FFFFFF">
+<svg role="graphics-document" aria-roledescription="diagram" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 369.8625 447.6" width="369.8625" height="447.6" style="--bg:#FFFFFF;--fg:#27272A;--line:#27272A;--accent:#27272A;--muted:#27272A;--surface:#FFFFFF;--border:#27272A;background:#FFFFFF">
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap');
   text { font-family: 'Inter', system-ui, sans-serif; }
   svg {    /* Derived from --bg and --fg (overridable via --line, --accent, etc.) */
     --_text:          #27272A;
-    --_text-sec:      #A9A9AA 60%, #FFFFFF));
-    --_text-muted:    #A9A9AA 40%, #FFFFFF));
+    --_text-sec:      #27272A 60%, #FFFFFF));
+    --_text-muted:    #27272A 40%, #FFFFFF));
     --_text-faint:    #666666;
-    --_line:          #939394 50%, #FFFFFF));
+    --_line:          #27272A 50%, #FFFFFF));
     --_arrow:         #27272A 85%, #FFFFFF));
-    --_node-fill:     #F9F9F9 3%, #FFFFFF));
-    --_node-stroke:   #D4D4D4 20%, #FFFFFF));
+    --_node-fill:     #FFFFFF 3%, #FFFFFF));
+    --_node-stroke:   #27272A 20%, #FFFFFF));
     --_group-fill:    #FFFFFF;
     --_group-hdr:     #666666;
     --_inner-stroke:  #666666;
@@ -56,12 +56,12 @@
   to { stroke-dashoffset: -24; }
 }
 .statediagram-state rect {
-  fill: #F9F9F9 3%, #FFFFFF));
-  stroke: #D4D4D4 20%, #FFFFFF));
+  fill: #FFFFFF 3%, #FFFFFF));
+  stroke: #27272A 20%, #FFFFFF));
 }
 .statediagram-cluster rect {
   fill: #FFFFFF;
-  stroke: #D4D4D4 20%, #FFFFFF));
+  stroke: #27272A 20%, #FFFFFF));
 }
 .statediagram-cluster rect.outer {
   rx: 5px;
@@ -84,76 +84,76 @@
   stroke-dasharray: 5;
 }
 .transition {
-  stroke: #939394 50%, #FFFFFF));
+  stroke: #27272A 50%, #FFFFFF));
 }
 [data-look="neo"].statediagram-cluster rect {
   rx: 12px;
   ry: 12px;
 }
 </style>
-<polyline data-from="root_start" data-to="Closed" data-style="solid" data-arrow-start="false" data-arrow-end="true" class="edge transition" points="65.9785,68.0 65.9785,92.0 93.7015,92.0 93.7015,116.0" fill="none" stroke="#939394 50%, #FFFFFF))" stroke-width="1.0" marker-end="url(#arrowhead)" />
-<polyline data-from="Closed" data-to="Connecting" data-style="solid" data-arrow-start="false" data-arrow-end="true" data-label="connect" class="edge transition" points="93.7015,152.9 93.7015,176.9 106.29849999999999,176.9 106.29849999999999,200.9" fill="none" stroke="#939394 50%, #FFFFFF))" stroke-width="1.0" marker-end="url(#arrowhead)" />
-<polyline data-from="Connecting" data-to="Connected" data-style="solid" data-arrow-start="false" data-arrow-end="true" data-label="success" class="edge transition" points="106.29849999999999,237.8 106.29849999999999,261.8 104.81649999999999,261.8 104.81649999999999,285.8" fill="none" stroke="#939394 50%, #FFFFFF))" stroke-width="1.0" marker-end="url(#arrowhead)" />
-<polyline data-from="Connecting" data-to="Closed" data-style="solid" data-arrow-start="false" data-arrow-end="true" data-label="timeout" class="edge transition" points="106.29849999999999,200.9 106.29849999999999,176.9 93.7015,176.9 93.7015,152.9" fill="none" stroke="#939394 50%, #FFFFFF))" stroke-width="1.0" marker-end="url(#arrowhead)" />
-<polyline data-from="Connected" data-to="Disconnecting" data-style="solid" data-arrow-start="false" data-arrow-end="true" data-label="close" class="edge transition" points="104.81649999999999,322.70000000000005 104.81649999999999,346.70000000000005 115.1905,346.70000000000005 115.1905,370.70000000000005" fill="none" stroke="#939394 50%, #FFFFFF))" stroke-width="1.0" marker-end="url(#arrowhead)" />
-<polyline data-from="Connected" data-to="Reconnecting" data-style="solid" data-arrow-start="false" data-arrow-end="true" data-label="error" class="edge transition" points="157.65449999999998,304.25 182.0285,304.25 182.0285,389.15000000000003 206.4025,389.15000000000003" fill="none" stroke="#939394 50%, #FFFFFF))" stroke-width="1.0" marker-end="url(#arrowhead)" />
-<polyline data-from="Reconnecting" data-to="Connected" data-style="solid" data-arrow-start="false" data-arrow-end="true" data-label="success" class="edge transition" points="206.4025,389.15000000000003 182.0285,389.15000000000003 182.0285,304.25 157.65449999999998,304.25" fill="none" stroke="#939394 50%, #FFFFFF))" stroke-width="1.0" marker-end="url(#arrowhead)" />
-<polyline data-from="Reconnecting" data-to="Closed" data-style="solid" data-arrow-start="false" data-arrow-end="true" data-label="max_retries" class="edge transition" points="268.1325,370.70000000000005 268.1325,261.8 93.7015,261.8 93.7015,152.9" fill="none" stroke="#939394 50%, #FFFFFF))" stroke-width="1.0" marker-end="url(#arrowhead)" />
-<polyline data-from="Disconnecting" data-to="Closed" data-style="solid" data-arrow-start="false" data-arrow-end="true" data-label="done" class="edge transition" points="115.1905,370.70000000000005 115.1905,261.8 93.7015,261.8 93.7015,152.9" fill="none" stroke="#939394 50%, #FFFFFF))" stroke-width="1.0" marker-end="url(#arrowhead)" />
-<polyline data-from="Closed" data-to="root_end" data-style="solid" data-arrow-start="false" data-arrow-end="true" class="edge transition" points="135.4245,134.45 162.0215,134.45 162.0215,214.9 188.61849999999998,214.9" fill="none" stroke="#939394 50%, #FFFFFF))" stroke-width="1.0" marker-end="url(#arrowhead)" />
+<polyline data-from="root_start" data-to="Closed" data-style="solid" data-arrow-start="false" data-arrow-end="true" class="edge transition" points="65.9785,68.0 65.9785,92.0 93.7015,92.0 93.7015,116.0" fill="none" stroke="#27272A 50%, #FFFFFF))" stroke-width="1.0" marker-end="url(#arrowhead)" />
+<polyline data-from="Closed" data-to="Connecting" data-style="solid" data-arrow-start="false" data-arrow-end="true" data-label="connect" class="edge transition" points="93.7015,152.9 93.7015,176.9 106.29849999999999,176.9 106.29849999999999,200.9" fill="none" stroke="#27272A 50%, #FFFFFF))" stroke-width="1.0" marker-end="url(#arrowhead)" />
+<polyline data-from="Connecting" data-to="Connected" data-style="solid" data-arrow-start="false" data-arrow-end="true" data-label="success" class="edge transition" points="106.29849999999999,237.8 106.29849999999999,261.8 104.81649999999999,261.8 104.81649999999999,285.8" fill="none" stroke="#27272A 50%, #FFFFFF))" stroke-width="1.0" marker-end="url(#arrowhead)" />
+<polyline data-from="Connecting" data-to="Closed" data-style="solid" data-arrow-start="false" data-arrow-end="true" data-label="timeout" class="edge transition" points="106.29849999999999,200.9 106.29849999999999,176.9 93.7015,176.9 93.7015,152.9" fill="none" stroke="#27272A 50%, #FFFFFF))" stroke-width="1.0" marker-end="url(#arrowhead)" />
+<polyline data-from="Connected" data-to="Disconnecting" data-style="solid" data-arrow-start="false" data-arrow-end="true" data-label="close" class="edge transition" points="104.81649999999999,322.70000000000005 104.81649999999999,346.70000000000005 115.1905,346.70000000000005 115.1905,370.70000000000005" fill="none" stroke="#27272A 50%, #FFFFFF))" stroke-width="1.0" marker-end="url(#arrowhead)" />
+<polyline data-from="Connected" data-to="Reconnecting" data-style="solid" data-arrow-start="false" data-arrow-end="true" data-label="error" class="edge transition" points="157.65449999999998,304.25 182.0285,304.25 182.0285,389.15000000000003 206.4025,389.15000000000003" fill="none" stroke="#27272A 50%, #FFFFFF))" stroke-width="1.0" marker-end="url(#arrowhead)" />
+<polyline data-from="Reconnecting" data-to="Connected" data-style="solid" data-arrow-start="false" data-arrow-end="true" data-label="success" class="edge transition" points="206.4025,389.15000000000003 182.0285,389.15000000000003 182.0285,304.25 157.65449999999998,304.25" fill="none" stroke="#27272A 50%, #FFFFFF))" stroke-width="1.0" marker-end="url(#arrowhead)" />
+<polyline data-from="Reconnecting" data-to="Closed" data-style="solid" data-arrow-start="false" data-arrow-end="true" data-label="max_retries" class="edge transition" points="268.1325,370.70000000000005 268.1325,261.8 93.7015,261.8 93.7015,152.9" fill="none" stroke="#27272A 50%, #FFFFFF))" stroke-width="1.0" marker-end="url(#arrowhead)" />
+<polyline data-from="Disconnecting" data-to="Closed" data-style="solid" data-arrow-start="false" data-arrow-end="true" data-label="done" class="edge transition" points="115.1905,370.70000000000005 115.1905,261.8 93.7015,261.8 93.7015,152.9" fill="none" stroke="#27272A 50%, #FFFFFF))" stroke-width="1.0" marker-end="url(#arrowhead)" />
+<polyline data-from="Closed" data-to="root_end" data-style="solid" data-arrow-start="false" data-arrow-end="true" class="edge transition" points="135.4245,134.45 162.0215,134.45 162.0215,214.9 188.61849999999998,214.9" fill="none" stroke="#27272A 50%, #FFFFFF))" stroke-width="1.0" marker-end="url(#arrowhead)" />
 <g class="edge-label" data-from="Closed" data-to="Connecting" data-label="connect">
   <rect x="72.167" y="161.75" width="55.666000000000004" height="30.3" rx="2" ry="2" fill="#FFFFFF" stroke="#666666" stroke-width="1" />
-  <text x="100.0" y="176.9" text-anchor="middle" font-size="11.0" font-weight="400" fill="#A9A9AA 60%, #FFFFFF))" dy="3.8499999999999996">connect</text>
+  <text x="100.0" y="176.9" text-anchor="middle" font-size="11.0" font-weight="400" fill="#27272A 60%, #FFFFFF))" dy="3.8499999999999996">connect</text>
 </g>
 <g class="edge-label" data-from="Connecting" data-to="Connected" data-label="success">
   <rect x="75.9425" y="246.65" width="59.230000000000004" height="30.3" rx="2" ry="2" fill="#FFFFFF" stroke="#666666" stroke-width="1" />
-  <text x="105.5575" y="261.8" text-anchor="middle" font-size="11.0" font-weight="400" fill="#A9A9AA 60%, #FFFFFF))" dy="3.8499999999999996">success</text>
+  <text x="105.5575" y="261.8" text-anchor="middle" font-size="11.0" font-weight="400" fill="#27272A 60%, #FFFFFF))" dy="3.8499999999999996">success</text>
 </g>
 <g class="edge-label" data-from="Connecting" data-to="Closed" data-label="timeout">
   <rect x="75.137" y="161.75" width="49.726000000000006" height="30.3" rx="2" ry="2" fill="#FFFFFF" stroke="#666666" stroke-width="1" />
-  <text x="100.0" y="176.9" text-anchor="middle" font-size="11.0" font-weight="400" fill="#A9A9AA 60%, #FFFFFF))" dy="3.8499999999999996">timeout</text>
+  <text x="100.0" y="176.9" text-anchor="middle" font-size="11.0" font-weight="400" fill="#27272A 60%, #FFFFFF))" dy="3.8499999999999996">timeout</text>
 </g>
 <g class="edge-label" data-from="Connected" data-to="Disconnecting" data-label="close">
   <rect x="88.1105" y="331.55000000000007" width="43.786" height="30.3" rx="2" ry="2" fill="#FFFFFF" stroke="#666666" stroke-width="1" />
-  <text x="110.0035" y="346.70000000000005" text-anchor="middle" font-size="11.0" font-weight="400" fill="#A9A9AA 60%, #FFFFFF))" dy="3.8499999999999996">close</text>
+  <text x="110.0035" y="346.70000000000005" text-anchor="middle" font-size="11.0" font-weight="400" fill="#27272A 60%, #FFFFFF))" dy="3.8499999999999996">close</text>
 </g>
 <g class="edge-label" data-from="Connected" data-to="Reconnecting" data-label="error">
   <rect x="160.1355" y="331.55000000000007" width="43.786" height="30.3" rx="2" ry="2" fill="#FFFFFF" stroke="#666666" stroke-width="1" />
-  <text x="182.0285" y="346.70000000000005" text-anchor="middle" font-size="11.0" font-weight="400" fill="#A9A9AA 60%, #FFFFFF))" dy="3.8499999999999996">error</text>
+  <text x="182.0285" y="346.70000000000005" text-anchor="middle" font-size="11.0" font-weight="400" fill="#27272A 60%, #FFFFFF))" dy="3.8499999999999996">error</text>
 </g>
 <g class="edge-label" data-from="Reconnecting" data-to="Connected" data-label="success">
   <rect x="152.4135" y="331.55000000000007" width="59.230000000000004" height="30.3" rx="2" ry="2" fill="#FFFFFF" stroke="#666666" stroke-width="1" />
-  <text x="182.0285" y="346.70000000000005" text-anchor="middle" font-size="11.0" font-weight="400" fill="#A9A9AA 60%, #FFFFFF))" dy="3.8499999999999996">success</text>
+  <text x="182.0285" y="346.70000000000005" text-anchor="middle" font-size="11.0" font-weight="400" fill="#27272A 60%, #FFFFFF))" dy="3.8499999999999996">success</text>
 </g>
 <g class="edge-label" data-from="Reconnecting" data-to="Closed" data-label="max_retries">
   <rect x="143.57999999999998" y="246.65" width="74.674" height="30.3" rx="2" ry="2" fill="#FFFFFF" stroke="#666666" stroke-width="1" />
-  <text x="180.91699999999997" y="261.8" text-anchor="middle" font-size="11.0" font-weight="400" fill="#A9A9AA 60%, #FFFFFF))" dy="3.8499999999999996">max_retries</text>
+  <text x="180.91699999999997" y="261.8" text-anchor="middle" font-size="11.0" font-weight="400" fill="#27272A 60%, #FFFFFF))" dy="3.8499999999999996">max_retries</text>
 </g>
 <g class="edge-label" data-from="Disconnecting" data-to="Closed" data-label="done">
   <rect x="83.741" y="246.65" width="41.41" height="30.3" rx="2" ry="2" fill="#FFFFFF" stroke="#666666" stroke-width="1" />
-  <text x="104.446" y="261.8" text-anchor="middle" font-size="11.0" font-weight="400" fill="#A9A9AA 60%, #FFFFFF))" dy="3.8499999999999996">done</text>
+  <text x="104.446" y="261.8" text-anchor="middle" font-size="11.0" font-weight="400" fill="#27272A 60%, #FFFFFF))" dy="3.8499999999999996">done</text>
 </g>
 <g class="node statediagram-state" data-id="root_start" data-label="" data-shape="state-start">
-  <circle cx="65.9785" cy="54.0" r="12.0" fill="#27272A" stroke="none" />
+  <path d="M 51.9785 54.0 A 14.0 14.0 0 1 1 79.9785 54.0 A 14.0 14.0 0 1 1 51.9785 54.0 Z" fill="#27272A" stroke="none" stroke-width="0.75" />
 </g>
 <g class="node statediagram-state" data-id="Closed" data-label="Closed" data-shape="rounded">
-  <rect x="51.9785" y="116.0" width="83.446" height="36.900000000000006" rx="6" ry="6" fill="#F9F9F9 3%, #FFFFFF))" stroke="#D4D4D4 20%, #FFFFFF))" stroke-width="0.75" />
+  <path d="M 57.9785 116.0 L 129.4245 116.0 Q 135.4245 116.0 135.4245 122.0 L 135.4245 146.9 Q 135.4245 152.9 129.4245 152.9 L 57.9785 152.9 Q 51.9785 152.9 51.9785 146.9 L 51.9785 122.0 Q 51.9785 116.0 57.9785 116.0 Z" fill="#FFFFFF 3%, #FFFFFF))" stroke="#27272A 20%, #FFFFFF))" stroke-width="0.75" />
   <text x="93.7015" y="134.45" text-anchor="middle" font-size="13.0" font-weight="500" fill="#27272A" dy="4.55">Closed</text>
 </g>
 <g class="node statediagram-state" data-id="Connecting" data-label="Connecting" data-shape="rounded">
-  <rect x="51.9785" y="200.9" width="108.64" height="36.900000000000006" rx="6" ry="6" fill="#F9F9F9 3%, #FFFFFF))" stroke="#D4D4D4 20%, #FFFFFF))" stroke-width="0.75" />
+  <path d="M 57.9785 200.9 L 154.61849999999998 200.9 Q 160.61849999999998 200.9 160.61849999999998 206.9 L 160.61849999999998 231.8 Q 160.61849999999998 237.8 154.61849999999998 237.8 L 57.9785 237.8 Q 51.9785 237.8 51.9785 231.8 L 51.9785 206.9 Q 51.9785 200.9 57.9785 200.9 Z" fill="#FFFFFF 3%, #FFFFFF))" stroke="#27272A 20%, #FFFFFF))" stroke-width="0.75" />
   <text x="106.29849999999999" y="219.35000000000002" text-anchor="middle" font-size="13.0" font-weight="500" fill="#27272A" dy="4.55">Connecting</text>
 </g>
 <g class="node statediagram-state" data-id="Connected" data-label="Connected" data-shape="rounded">
-  <rect x="51.9785" y="285.8" width="105.676" height="36.900000000000006" rx="6" ry="6" fill="#F9F9F9 3%, #FFFFFF))" stroke="#D4D4D4 20%, #FFFFFF))" stroke-width="0.75" />
+  <path d="M 57.9785 285.8 L 151.65449999999998 285.8 Q 157.65449999999998 285.8 157.65449999999998 291.8 L 157.65449999999998 316.70000000000005 Q 157.65449999999998 322.70000000000005 151.65449999999998 322.70000000000005 L 57.9785 322.70000000000005 Q 51.9785 322.70000000000005 51.9785 316.70000000000005 L 51.9785 291.8 Q 51.9785 285.8 57.9785 285.8 Z" fill="#FFFFFF 3%, #FFFFFF))" stroke="#27272A 20%, #FFFFFF))" stroke-width="0.75" />
   <text x="104.81649999999999" y="304.25" text-anchor="middle" font-size="13.0" font-weight="500" fill="#27272A" dy="4.55">Connected</text>
 </g>
 <g class="node statediagram-state" data-id="Disconnecting" data-label="Disconnecting" data-shape="rounded">
-  <rect x="51.9785" y="370.70000000000005" width="126.424" height="36.900000000000006" rx="6" ry="6" fill="#F9F9F9 3%, #FFFFFF))" stroke="#D4D4D4 20%, #FFFFFF))" stroke-width="0.75" />
+  <path d="M 57.9785 370.70000000000005 L 172.4025 370.70000000000005 Q 178.4025 370.70000000000005 178.4025 376.70000000000005 L 178.4025 401.6 Q 178.4025 407.6 172.4025 407.6 L 57.9785 407.6 Q 51.9785 407.6 51.9785 401.6 L 51.9785 376.70000000000005 Q 51.9785 370.70000000000005 57.9785 370.70000000000005 Z" fill="#FFFFFF 3%, #FFFFFF))" stroke="#27272A 20%, #FFFFFF))" stroke-width="0.75" />
   <text x="115.1905" y="389.15000000000003" text-anchor="middle" font-size="13.0" font-weight="500" fill="#27272A" dy="4.55">Disconnecting</text>
 </g>
 <g class="node statediagram-state" data-id="Reconnecting" data-label="Reconnecting" data-shape="rounded">
-  <rect x="206.4025" y="370.70000000000005" width="123.46" height="36.900000000000006" rx="6" ry="6" fill="#F9F9F9 3%, #FFFFFF))" stroke="#D4D4D4 20%, #FFFFFF))" stroke-width="0.75" />
+  <path d="M 212.4025 370.70000000000005 L 323.8625 370.70000000000005 Q 329.8625 370.70000000000005 329.8625 376.70000000000005 L 329.8625 401.6 Q 329.8625 407.6 323.8625 407.6 L 212.4025 407.6 Q 206.4025 407.6 206.4025 401.6 L 206.4025 376.70000000000005 Q 206.4025 370.70000000000005 212.4025 370.70000000000005 Z" fill="#FFFFFF 3%, #FFFFFF))" stroke="#27272A 20%, #FFFFFF))" stroke-width="0.75" />
   <text x="268.1325" y="389.15000000000003" text-anchor="middle" font-size="13.0" font-weight="500" fill="#27272A" dy="4.55">Reconnecting</text>
 </g>
 <g class="node statediagram-state" data-id="root_end" data-label="" data-shape="state-end">

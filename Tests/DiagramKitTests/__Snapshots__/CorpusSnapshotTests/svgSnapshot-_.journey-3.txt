@@ -1,4 +1,4 @@
-<svg id="mermaid-0" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="100%" viewBox="0 0 2108.2 565" preserveAspectRatio="xMinYMin meet" style="max-width: 2108.2px;--bg:#FFFFFF;--fg:#27272A;--line:#939394;--accent:#27272A;--muted:#A9A9AA;--surface:#F9F9F9;--border:#D4D4D4;background:#FFFFFF">
+<svg role="graphics-document" aria-roledescription="diagram" id="17EE06E3-09F1-2552-F4E9-29DAE80A67D8" preserveAspectRatio="xMinYMin meet" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 2108.176 565" width="100%" height="565" style="max-width: 2108.176px;--bg:#FFFFFF;--fg:#27272A;--line:#27272A;--accent:#27272A;--muted:#27272A;--surface:#FFFFFF;--border:#27272A;background:#FFFFFF">>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap');
   @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&amp;display=swap');
@@ -6,13 +6,13 @@
   .mono { font-family: 'JetBrains Mono', 'SF Mono', 'Fira Code', ui-monospace, monospace; }
   svg {    /* Derived from --bg and --fg (overridable via --line, --accent, etc.) */
     --_text:          #27272A;
-    --_text-sec:      #A9A9AA 60%, #FFFFFF));
-    --_text-muted:    #A9A9AA 40%, #FFFFFF));
+    --_text-sec:      #27272A 60%, #FFFFFF));
+    --_text-muted:    #27272A 40%, #FFFFFF));
     --_text-faint:    #666666;
-    --_line:          #939394 50%, #FFFFFF));
+    --_line:          #27272A 50%, #FFFFFF));
     --_arrow:         #27272A 85%, #FFFFFF));
-    --_node-fill:     #F9F9F9 3%, #FFFFFF));
-    --_node-stroke:   #D4D4D4 20%, #FFFFFF));
+    --_node-fill:     #FFFFFF 3%, #FFFFFF));
+    --_node-stroke:   #27272A 20%, #FFFFFF));
     --_group-fill:    #FFFFFF;
     --_group-hdr:     #666666;
     --_inner-stroke:  #666666;
@@ -27,7 +27,7 @@
 line { stroke: #27272A; }
 .legend { fill: #27272A; font-family: "Open Sans", sans-serif; }
 .face { fill: #FFF8DC; stroke: #999; }
-.arrowheadPath { fill: #939394; }
+.arrowheadPath { fill: #27272A; }
 .task-type-0, .section-type-0 { fill: #666666; }
 .task-type-1, .section-type-1 { fill: #666666; }
 .task-type-2, .section-type-2 { fill: #666666; }
@@ -44,21 +44,21 @@ line { stroke: #27272A; }
 .actor-5 { fill: #FFFFE0; }
 </style>
 <defs>
-<marker id="mermaid-0-arrowhead" refX="5" refY="2" markerWidth="6" markerHeight="4" orient="auto">
-<path d="M 0,0 V 4 L6,2 Z" class="arrowheadPath" fill="#939394"/>
+<marker id="17EE06E3-09F1-2552-F4E9-29DAE80A67D8-arrowhead" refX="5" refY="2" markerWidth="6" markerHeight="4" orient="auto">
+<path d="M 0,0 V 4 L6,2 Z" class="arrowheadPath" fill="#27272A"/>
 </marker>
 </defs>
 <g class="legend">
-<circle class="actor-0" cx="20" cy="60" r="7" fill="#8FBC8F" stroke="#939394"><title>Darkoob user</title></circle>
+<circle class="actor-0" cx="20" cy="60" r="7" fill="#8FBC8F" stroke="#27272A"><title>Darkoob user</title></circle>
 <text class="legend" x="40" y="67" fill="#27272A" font-size="14">Darkoob user</text>
-<circle class="actor-1" cx="20" cy="80" r="7" fill="#7CFC00" stroke="#939394"><title>Darkoob userf deliberately increasing the size of this label to check if distance between legend and diagram is maintained</title></circle>
+<circle class="actor-1" cx="20" cy="80" r="7" fill="#7CFC00" stroke="#27272A"><title>Darkoob userf deliberately increasing the size of this label to check if distance between legend and diagram is maintained</title></circle>
 <text class="legend" x="40" y="87" fill="#27272A" font-size="14">Darkoob userf deliberately increasing the size of this label to</text>
 <text class="legend" x="40" y="107" fill="#27272A" font-size="14">check if distance between legend and diagram is maintained</text>
-<circle class="actor-2" cx="20" cy="116.4" r="7" fill="#00FFFF" stroke="#939394"><title>admin Exjjjnjjjj qwerty</title></circle>
+<circle class="actor-2" cx="20" cy="116.4" r="7" fill="#00FFFF" stroke="#27272A"><title>admin Exjjjnjjjj qwerty</title></circle>
 <text class="legend" x="40" y="123.4" fill="#27272A" font-size="14">admin Exjjjnjjjj qwerty</text>
-<circle class="actor-3" cx="20" cy="136.4" r="7" fill="#20B2AA" stroke="#939394"><title>External Service</title></circle>
+<circle class="actor-3" cx="20" cy="136.4" r="7" fill="#20B2AA" stroke="#27272A"><title>External Service</title></circle>
 <text class="legend" x="40" y="143.4" fill="#27272A" font-size="14">External Service</text>
-<circle class="actor-4" cx="20" cy="156.4" r="7" fill="#B0E0E6" stroke="#939394"><title>DarkoobAPI</title></circle>
+<circle class="actor-4" cx="20" cy="156.4" r="7" fill="#B0E0E6" stroke="#27272A"><title>DarkoobAPI</title></circle>
 <text class="legend" x="40" y="163.4" fill="#27272A" font-size="14">DarkoobAPI</text>
 </g>
 <g class="journey-section section-type-0">
@@ -77,9 +77,9 @@ line { stroke: #27272A; }
 <rect x="508.2" y="160" width="150" height="50" fill="#191970" rx="3" ry="3"/>
 <switch><foreignObject x="508.2" y="174.5" width="150" height="21"><xhtml:div xmlns:xhtml="http://www.w3.org/1999/xhtml" style="display:table;width:100%;height:100%;text-align:center;color:#fff;font-size:14px"><xhtml:span style="display:table-cell;vertical-align:middle">Make preBuilt</xhtml:span></xhtml:div></foreignObject><text x="583.2" y="185" text-anchor="middle" dominant-baseline="central" fill="#fff" font-size="14"><tspan>Make preBuilt</tspan></text></switch>
 <circle class="actor-0" cx="583.2" cy="160" r="7" fill="#8FBC8F"><title>Darkoob user</title></circle>
-<line id="mermaid-0-task0" x1="583.2" y1="210" x2="583.2" y2="450" class="task-line" stroke="#939394" stroke-dasharray="4 2" stroke-width="1"/>
+<line id="17EE06E3-09F1-2552-F4E9-29DAE80A67D8-task0" x1="583.2" y1="210" x2="583.2" y2="450" class="task-line" stroke="#27272A" stroke-dasharray="4 2" stroke-width="1"/>
 <g class="face">
-<circle cx="583.2" cy="300" r="15" class="face" fill="#FFF8DC" stroke="#939394" stroke-width="2"/>
+<circle cx="583.2" cy="300" r="15" class="face" fill="#FFF8DC" stroke="#27272A" stroke-width="2"/>
 <circle cx="578.2" cy="295" r="1.5" fill="#27272A" stroke="#27272A" stroke-width="2"/>
 <circle cx="588.2" cy="295" r="1.5" fill="#27272A" stroke="#27272A" stroke-width="2"/>
 <path class="mouth" d="M 575.7 302 A 7.15 6.82 0 0 0 590.7 302" fill="none" stroke="#27272A" stroke-width="2"/>
@@ -89,9 +89,9 @@ line { stroke: #27272A; }
 <rect x="708.2" y="160" width="150" height="50" fill="#191970" rx="3" ry="3"/>
 <switch><foreignObject x="708.2" y="174.5" width="150" height="21"><xhtml:div xmlns:xhtml="http://www.w3.org/1999/xhtml" style="display:table;width:100%;height:100%;text-align:center;color:#fff;font-size:14px"><xhtml:span style="display:table-cell;vertical-align:middle">register slug</xhtml:span></xhtml:div></foreignObject><text x="783.2" y="185" text-anchor="middle" dominant-baseline="central" fill="#fff" font-size="14"><tspan>register slug</tspan></text></switch>
 <circle class="actor-1" cx="783.2" cy="160" r="7" fill="#7CFC00"><title>Darkoob userf deliberately increasing the size of this label to check if distance between legend and diagram is maintained</title></circle>
-<line id="mermaid-0-task1" x1="783.2" y1="210" x2="783.2" y2="450" class="task-line" stroke="#939394" stroke-dasharray="4 2" stroke-width="1"/>
+<line id="17EE06E3-09F1-2552-F4E9-29DAE80A67D8-task1" x1="783.2" y1="210" x2="783.2" y2="450" class="task-line" stroke="#27272A" stroke-dasharray="4 2" stroke-width="1"/>
 <g class="face">
-<circle cx="783.2" cy="300" r="15" class="face" fill="#FFF8DC" stroke="#939394" stroke-width="2"/>
+<circle cx="783.2" cy="300" r="15" class="face" fill="#FFF8DC" stroke="#27272A" stroke-width="2"/>
 <circle cx="778.2" cy="295" r="1.5" fill="#27272A" stroke="#27272A" stroke-width="2"/>
 <circle cx="788.2" cy="295" r="1.5" fill="#27272A" stroke="#27272A" stroke-width="2"/>
 <path class="mouth" d="M 775.7 302 A 7.15 6.82 0 0 0 790.7 302" fill="none" stroke="#27272A" stroke-width="2"/>
@@ -101,9 +101,9 @@ line { stroke: #27272A; }
 <rect x="908.2" y="160" width="150" height="50" fill="#191970" rx="3" ry="3"/>
 <switch><foreignObject x="908.2" y="174.5" width="150" height="21"><xhtml:div xmlns:xhtml="http://www.w3.org/1999/xhtml" style="display:table;width:100%;height:100%;text-align:center;color:#fff;font-size:14px"><xhtml:span style="display:table-cell;vertical-align:middle">Map slug to a Prebuilt Job</xhtml:span></xhtml:div></foreignObject><text x="983.2" y="185" text-anchor="middle" dominant-baseline="central" fill="#fff" font-size="14"><tspan>Map slug to a Prebuilt Job</tspan></text></switch>
 <circle class="actor-0" cx="983.2" cy="160" r="7" fill="#8FBC8F"><title>Darkoob user</title></circle>
-<line id="mermaid-0-task2" x1="983.2" y1="210" x2="983.2" y2="450" class="task-line" stroke="#939394" stroke-dasharray="4 2" stroke-width="1"/>
+<line id="17EE06E3-09F1-2552-F4E9-29DAE80A67D8-task2" x1="983.2" y1="210" x2="983.2" y2="450" class="task-line" stroke="#27272A" stroke-dasharray="4 2" stroke-width="1"/>
 <g class="face">
-<circle cx="983.2" cy="300" r="15" class="face" fill="#FFF8DC" stroke="#939394" stroke-width="2"/>
+<circle cx="983.2" cy="300" r="15" class="face" fill="#FFF8DC" stroke="#27272A" stroke-width="2"/>
 <circle cx="978.2" cy="295" r="1.5" fill="#27272A" stroke="#27272A" stroke-width="2"/>
 <circle cx="988.2" cy="295" r="1.5" fill="#27272A" stroke="#27272A" stroke-width="2"/>
 <path class="mouth" d="M 975.7 302 A 7.15 6.82 0 0 0 990.7 302" fill="none" stroke="#27272A" stroke-width="2"/>
@@ -113,9 +113,9 @@ line { stroke: #27272A; }
 <rect x="1108.2" y="160" width="150" height="50" fill="#8B008B" rx="3" ry="3"/>
 <switch><foreignObject x="1108.2" y="174.5" width="150" height="21"><xhtml:div xmlns:xhtml="http://www.w3.org/1999/xhtml" style="display:table;width:100%;height:100%;text-align:center;color:#fff;font-size:14px"><xhtml:span style="display:table-cell;vertical-align:middle">set Darkoob slug as hook for an Event</xhtml:span></xhtml:div></foreignObject><text x="1183.2" y="185" text-anchor="middle" dominant-baseline="central" fill="#fff" font-size="14"><tspan>set Darkoob slug as hook for an Event</tspan></text></switch>
 <circle class="actor-2" cx="1183.2" cy="160" r="7" fill="#00FFFF"><title>admin Exjjjnjjjj qwerty</title></circle>
-<line id="mermaid-0-task3" x1="1183.2" y1="210" x2="1183.2" y2="450" class="task-line" stroke="#939394" stroke-dasharray="4 2" stroke-width="1"/>
+<line id="17EE06E3-09F1-2552-F4E9-29DAE80A67D8-task3" x1="1183.2" y1="210" x2="1183.2" y2="450" class="task-line" stroke="#27272A" stroke-dasharray="4 2" stroke-width="1"/>
 <g class="face">
-<circle cx="1183.2" cy="300" r="15" class="face" fill="#FFF8DC" stroke="#939394" stroke-width="2"/>
+<circle cx="1183.2" cy="300" r="15" class="face" fill="#FFF8DC" stroke="#27272A" stroke-width="2"/>
 <circle cx="1178.2" cy="295" r="1.5" fill="#27272A" stroke="#27272A" stroke-width="2"/>
 <circle cx="1188.2" cy="295" r="1.5" fill="#27272A" stroke="#27272A" stroke-width="2"/>
 <path class="mouth" d="M 1175.7 302 A 7.15 6.82 0 0 0 1190.7 302" fill="none" stroke="#27272A" stroke-width="2"/>
@@ -125,9 +125,9 @@ line { stroke: #27272A; }
 <rect x="1308.2" y="160" width="150" height="50" fill="#8B008B" rx="3" ry="3"/>
 <switch><foreignObject x="1308.2" y="174.5" width="150" height="21"><xhtml:div xmlns:xhtml="http://www.w3.org/1999/xhtml" style="display:table;width:100%;height:100%;text-align:center;color:#fff;font-size:14px"><xhtml:span style="display:table-cell;vertical-align:middle">listen to the events</xhtml:span></xhtml:div></foreignObject><text x="1383.2" y="185" text-anchor="middle" dominant-baseline="central" fill="#fff" font-size="14"><tspan>listen to the events</tspan></text></switch>
 <circle class="actor-3" cx="1383.2" cy="160" r="7" fill="#20B2AA"><title>External Service</title></circle>
-<line id="mermaid-0-task4" x1="1383.2" y1="210" x2="1383.2" y2="450" class="task-line" stroke="#939394" stroke-dasharray="4 2" stroke-width="1"/>
+<line id="17EE06E3-09F1-2552-F4E9-29DAE80A67D8-task4" x1="1383.2" y1="210" x2="1383.2" y2="450" class="task-line" stroke="#27272A" stroke-dasharray="4 2" stroke-width="1"/>
 <g class="face">
-<circle cx="1383.2" cy="300" r="15" class="face" fill="#FFF8DC" stroke="#939394" stroke-width="2"/>
+<circle cx="1383.2" cy="300" r="15" class="face" fill="#FFF8DC" stroke="#27272A" stroke-width="2"/>
 <circle cx="1378.2" cy="295" r="1.5" fill="#27272A" stroke="#27272A" stroke-width="2"/>
 <circle cx="1388.2" cy="295" r="1.5" fill="#27272A" stroke="#27272A" stroke-width="2"/>
 <path class="mouth" d="M 1375.7 302 A 7.15 6.82 0 0 0 1390.7 302" fill="none" stroke="#27272A" stroke-width="2"/>
@@ -137,9 +137,9 @@ line { stroke: #27272A; }
 <rect x="1508.2" y="160" width="150" height="50" fill="#8B008B" rx="3" ry="3"/>
 <switch><foreignObject x="1508.2" y="174.5" width="150" height="21"><xhtml:div xmlns:xhtml="http://www.w3.org/1999/xhtml" style="display:table;width:100%;height:100%;text-align:center;color:#fff;font-size:14px"><xhtml:span style="display:table-cell;vertical-align:middle">call darkoob endpoint</xhtml:span></xhtml:div></foreignObject><text x="1583.2" y="185" text-anchor="middle" dominant-baseline="central" fill="#fff" font-size="14"><tspan>call darkoob endpoint</tspan></text></switch>
 <circle class="actor-3" cx="1583.2" cy="160" r="7" fill="#20B2AA"><title>External Service</title></circle>
-<line id="mermaid-0-task5" x1="1583.2" y1="210" x2="1583.2" y2="450" class="task-line" stroke="#939394" stroke-dasharray="4 2" stroke-width="1"/>
+<line id="17EE06E3-09F1-2552-F4E9-29DAE80A67D8-task5" x1="1583.2" y1="210" x2="1583.2" y2="450" class="task-line" stroke="#27272A" stroke-dasharray="4 2" stroke-width="1"/>
 <g class="face">
-<circle cx="1583.2" cy="300" r="15" class="face" fill="#FFF8DC" stroke="#939394" stroke-width="2"/>
+<circle cx="1583.2" cy="300" r="15" class="face" fill="#FFF8DC" stroke="#27272A" stroke-width="2"/>
 <circle cx="1578.2" cy="295" r="1.5" fill="#27272A" stroke="#27272A" stroke-width="2"/>
 <circle cx="1588.2" cy="295" r="1.5" fill="#27272A" stroke="#27272A" stroke-width="2"/>
 <path class="mouth" d="M 1575.7 302 A 7.15 6.82 0 0 0 1590.7 302" fill="none" stroke="#27272A" stroke-width="2"/>
@@ -149,9 +149,9 @@ line { stroke: #27272A; }
 <rect x="1708.2" y="160" width="150" height="50" fill="#4B0082" rx="3" ry="3"/>
 <switch><foreignObject x="1708.2" y="174.5" width="150" height="21"><xhtml:div xmlns:xhtml="http://www.w3.org/1999/xhtml" style="display:table;width:100%;height:100%;text-align:center;color:#fff;font-size:14px"><xhtml:span style="display:table-cell;vertical-align:middle">check for inputs</xhtml:span></xhtml:div></foreignObject><text x="1783.2" y="185" text-anchor="middle" dominant-baseline="central" fill="#fff" font-size="14"><tspan>check for inputs</tspan></text></switch>
 <circle class="actor-4" cx="1783.2" cy="160" r="7" fill="#B0E0E6"><title>DarkoobAPI</title></circle>
-<line id="mermaid-0-task6" x1="1783.2" y1="210" x2="1783.2" y2="450" class="task-line" stroke="#939394" stroke-dasharray="4 2" stroke-width="1"/>
+<line id="17EE06E3-09F1-2552-F4E9-29DAE80A67D8-task6" x1="1783.2" y1="210" x2="1783.2" y2="450" class="task-line" stroke="#27272A" stroke-dasharray="4 2" stroke-width="1"/>
 <g class="face">
-<circle cx="1783.2" cy="300" r="15" class="face" fill="#FFF8DC" stroke="#939394" stroke-width="2"/>
+<circle cx="1783.2" cy="300" r="15" class="face" fill="#FFF8DC" stroke="#27272A" stroke-width="2"/>
 <circle cx="1778.2" cy="295" r="1.5" fill="#27272A" stroke="#27272A" stroke-width="2"/>
 <circle cx="1788.2" cy="295" r="1.5" fill="#27272A" stroke="#27272A" stroke-width="2"/>
 <path class="mouth" d="M 1775.7 302 A 7.15 6.82 0 0 0 1790.7 302" fill="none" stroke="#27272A" stroke-width="2"/>
@@ -161,14 +161,14 @@ line { stroke: #27272A; }
 <rect x="1908.2" y="160" width="150" height="50" fill="#4B0082" rx="3" ry="3"/>
 <switch><foreignObject x="1908.2" y="174.5" width="150" height="21"><xhtml:div xmlns:xhtml="http://www.w3.org/1999/xhtml" style="display:table;width:100%;height:100%;text-align:center;color:#fff;font-size:14px"><xhtml:span style="display:table-cell;vertical-align:middle">run the prebuilt job</xhtml:span></xhtml:div></foreignObject><text x="1983.2" y="185" text-anchor="middle" dominant-baseline="central" fill="#fff" font-size="14"><tspan>run the prebuilt job</tspan></text></switch>
 <circle class="actor-4" cx="1983.2" cy="160" r="7" fill="#B0E0E6"><title>DarkoobAPI</title></circle>
-<line id="mermaid-0-task7" x1="1983.2" y1="210" x2="1983.2" y2="450" class="task-line" stroke="#939394" stroke-dasharray="4 2" stroke-width="1"/>
+<line id="17EE06E3-09F1-2552-F4E9-29DAE80A67D8-task7" x1="1983.2" y1="210" x2="1983.2" y2="450" class="task-line" stroke="#27272A" stroke-dasharray="4 2" stroke-width="1"/>
 <g class="face">
-<circle cx="1983.2" cy="300" r="15" class="face" fill="#FFF8DC" stroke="#939394" stroke-width="2"/>
+<circle cx="1983.2" cy="300" r="15" class="face" fill="#FFF8DC" stroke="#27272A" stroke-width="2"/>
 <circle cx="1978.2" cy="295" r="1.5" fill="#27272A" stroke="#27272A" stroke-width="2"/>
 <circle cx="1988.2" cy="295" r="1.5" fill="#27272A" stroke="#27272A" stroke-width="2"/>
 <path class="mouth" d="M 1975.7 302 A 7.15 6.82 0 0 0 1990.7 302" fill="none" stroke="#27272A" stroke-width="2"/>
 </g>
 </g>
 <text x="508.2" y="25" font-size="4ex" font-weight="bold" fill="#27272A" font-family=""trebuchet ms", verdana, arial, sans-serif">Web hook life cycle</text>
-<line x1="508.2" y1="220" x2="2098.2" y2="220" stroke="#939394" stroke-width="4" marker-end="url(#mermaid-0-arrowhead)"/>
+<line x1="508.2" y1="220" x2="2098.2" y2="220" stroke="#27272A" stroke-width="4" marker-end="url(#17EE06E3-09F1-2552-F4E9-29DAE80A67D8-arrowhead)"/>
 </svg>

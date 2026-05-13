@@ -1,4 +1,5 @@
-<svg id="D3AD7238-3F4F-BDAC-69E7-3DED59FFE42C" xmlns="http://www.w3.org/2000/svg" viewBox="-217.0 -39.2 434.0 79.4" width="444" height="79" style="max-width: 100%;"><rect width="100%" height="100%" fill="#FFFFFF"/><style>
+<svg role="graphics-document" aria-roledescription="diagram" id="D3AD7238-3F4F-BDAC-69E7-3DED59FFE42C" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="-217 -39.2 434 79.4" width="444" height="79.4" style="--bg:#FFFFFF;--fg:#27272A;--line:#27272A;--accent:#27272A;--muted:#27272A;--surface:#FFFFFF;--border:#27272A;background:#FFFFFF">
+<rect width="100%" height="100%" fill="#FFFFFF"/><style>
 .label {
     font-family: Inter;
     color: #27272A;
@@ -18,8 +19,8 @@
 .node ellipse,
 .node polygon,
 .node path {
-    fill: #F9F9F9;
-    stroke: #D4D4D4;
+    fill: #FFFFFF;
+    stroke: #27272A;
     stroke-width: 1px;
 }
 .flowchart-label text {
@@ -32,31 +33,31 @@
     cursor: pointer;
 }
 .arrowheadPath {
-    fill: #939394;
+    fill: #27272A;
 }
 .edgePath .path {
-    stroke: #939394;
+    stroke: #27272A;
     stroke-width: 2.0px;
 }
 .flowchart-link {
-    stroke: #939394;
+    stroke: #27272A;
     fill: none;
 }
 .edgeLabel {
-    background-color: #F9F9F9;
+    background-color: #FFFFFF;
     text-align: center;
 }
 .edgeLabel rect {
     opacity: 0.5;
-    background-color: #F9F9F9;
-    fill: #F9F9F9;
+    background-color: #FFFFFF;
+    fill: #FFFFFF;
 }
 .labelBkg {
-    background-color: #F9F9F9;
+    background-color: #FFFFFF;
 }
 .node .cluster {
-    fill: #F9F9F9;
-    stroke: #D4D4D4;
+    fill: #FFFFFF;
+    stroke: #27272A;
     stroke-width: 1px;
 }
 .cluster text {
@@ -69,18 +70,17 @@
 }
 </style><defs>
 <marker id="D3AD7238-3F4F-BDAC-69E7-3DED59FFE42C-block-point" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-  <path d="M 0 0 L 10 5 L 0 10 z" fill="#939394"/>
+  <path d="M 0 0 L 10 5 L 0 10 z" fill="#27272A"/>
 </marker>
 <marker id="D3AD7238-3F4F-BDAC-69E7-3DED59FFE42C-block-circle" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-  <circle cx="5" cy="5" r="4" fill="none" stroke="#939394" stroke-width="1"/>
+  <circle cx="5" cy="5" r="4" fill="none" stroke="#27272A" stroke-width="1"/>
 </marker>
 <marker id="D3AD7238-3F4F-BDAC-69E7-3DED59FFE42C-block-cross" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
-  <path d="M 1 1 L 9 9 M 9 1 L 1 9" stroke="#939394" stroke-width="1.5"/>
+  <path d="M 1 1 L 9 9 M 9 1 L 1 9" stroke="#27272A" stroke-width="1.5"/>
 </marker>
-</defs><g class="block"><g class="node default flowchart-label" id="block-A">  <rect x="-212.0" y="-34.2" width="40.0" height="30.2" fill="#F9F9F9" stroke="#D4D4D4" stroke-width="1.5"/>  <text x="-192.0" y="-19.1" text-anchor="middle" dominant-baseline="central" font-family="Inter" font-size="12" fill="#27272A">A</text></g><g class="node default flowchart-label" id="block-B">  <rect x="-116.0" y="-34.2" width="40.0" height="30.2" fill="#F9F9F9" stroke="#D4D4D4" stroke-width="1.5"/>  <text x="-96.0" y="-19.1" text-anchor="middle" dominant-baseline="central" font-family="Inter" font-size="12" fill="#27272A">B</text></g><g class="node default flowchart-label" id="block-C">  <rect x="-68.0" y="-34.2" width="40.0" height="30.2" fill="#F9F9F9" stroke="#D4D4D4" stroke-width="1.5"/>  <text x="-48.0" y="-19.1" text-anchor="middle" dominant-baseline="central" font-family="Inter" font-size="12" fill="#27272A">C</text></g><g class="node default flowchart-label" id="block-D">  <rect x="28.0" y="-34.2" width="40.0" height="30.2" fill="#F9F9F9" stroke="#D4D4D4" stroke-width="1.5"/>  <text x="48.0" y="-19.1" text-anchor="middle" dominant-baseline="central" font-family="Inter" font-size="12" fill="#27272A">D</text></g><g class="node default flowchart-label" id="block-E">  <rect x="76.0" y="-34.2" width="40.0" height="30.2" fill="#F9F9F9" stroke="#D4D4D4" stroke-width="1.5"/>  <text x="96.0" y="-19.1" text-anchor="middle" dominant-baseline="central" font-family="Inter" font-size="12" fill="#27272A">E</text></g><g class="node default flowchart-label" id="block-F">  <rect x="172.0" y="-34.2" width="40.0" height="30.2" fill="#F9F9F9" stroke="#D4D4D4" stroke-width="1.5"/>  <text x="192.0" y="-19.1" text-anchor="middle" dominant-baseline="central" font-family="Inter" font-size="12" fill="#27272A">F</text></g><g class="node default flowchart-label" id="block-G">  <rect x="-212.0" y="4.000000000000002" width="40.0" height="30.2" fill="#F9F9F9" stroke="#D4D4D4" stroke-width="1.5"/>  <text x="-192.0" y="19.1" text-anchor="middle" dominant-baseline="central" font-family="Inter" font-size="12" fill="#27272A">G</text></g><g class="node default flowchart-label" id="block-H">  <rect x="-116.0" y="4.000000000000002" width="40.0" height="30.2" fill="#F9F9F9" stroke="#D4D4D4" stroke-width="1.5"/>  <text x="-96.0" y="19.1" text-anchor="middle" dominant-baseline="central" font-family="Inter" font-size="12" fill="#27272A">H</text></g><g class="node default flowchart-label" id="block-I">  <rect x="-68.0" y="4.000000000000002" width="40.0" height="30.2" fill="#F9F9F9" stroke="#D4D4D4" stroke-width="1.5"/>  <text x="-48.0" y="19.1" text-anchor="middle" dominant-baseline="central" font-family="Inter" font-size="12" fill="#27272A">I</text></g><g class="node default flowchart-label" id="block-J">  <rect x="28.0" y="4.000000000000002" width="40.0" height="30.2" fill="#F9F9F9" stroke="#D4D4D4" stroke-width="1.5"/>  <text x="48.0" y="19.1" text-anchor="middle" dominant-baseline="central" font-family="Inter" font-size="12" fill="#27272A">J</text></g><g class="edgePath edge-thickness-normal edge-pattern-solid flowchart-link">
-  <path class="path" d="M -172.0,-19.1 L -144.0,-19.1 L -116.0,-19.1" fill="none" stroke="#939394" stroke-width="1.5" style=""/></g><g class="edgePath edge-thickness-normal edge-pattern-solid flowchart-link">
-  <path class="path" d="M -28.0,-19.1 L 0.0,-19.1 L 28.0,-19.1" fill="none" stroke="#939394" stroke-width="1.5" style="" marker-end="url(#D3AD7238-3F4F-BDAC-69E7-3DED59FFE42C-block-point)"/></g><g class="edgePath edge-thickness-normal edge-pattern-solid flowchart-link">
-  <path class="path" d="M 116.0,-19.1 L 144.0,-19.1 L 172.0,-19.1" fill="none" stroke="#939394" stroke-width="1.5" style="" marker-start="url(#D3AD7238-3F4F-BDAC-69E7-3DED59FFE42C-block-point)" marker-end="url(#D3AD7238-3F4F-BDAC-69E7-3DED59FFE42C-block-point)"/></g><g class="edgePath edge-thickness-thick edge-pattern-solid flowchart-link">
-  <path class="path" d="M -172.0,19.1 L -144.0,19.1 L -116.0,19.1" fill="none" stroke="#939394" stroke-width="3.5" style=""/></g><g class="edgePath edge-thickness-thick edge-pattern-solid flowchart-link">
-  <path class="path" d="M -28.0,19.1 L 0.0,19.1 L 28.0,19.1" fill="none" stroke="#939394" stroke-width="3.5" style="" marker-start="url(#D3AD7238-3F4F-BDAC-69E7-3DED59FFE42C-block-point)" marker-end="url(#D3AD7238-3F4F-BDAC-69E7-3DED59FFE42C-block-point)"/></g></g>
-</svg>
+</defs><g class="block"><g class="node default flowchart-label" id="block-A">  <rect x="-212.0" y="-34.2" width="40.0" height="30.2" fill="#FFFFFF" stroke="#27272A" stroke-width="1.5"/>  <text x="-192.0" y="-19.1" text-anchor="middle" dominant-baseline="central" font-family="Inter" font-size="12" fill="#27272A">A</text></g><g class="node default flowchart-label" id="block-B">  <rect x="-116.0" y="-34.2" width="40.0" height="30.2" fill="#FFFFFF" stroke="#27272A" stroke-width="1.5"/>  <text x="-96.0" y="-19.1" text-anchor="middle" dominant-baseline="central" font-family="Inter" font-size="12" fill="#27272A">B</text></g><g class="node default flowchart-label" id="block-C">  <rect x="-68.0" y="-34.2" width="40.0" height="30.2" fill="#FFFFFF" stroke="#27272A" stroke-width="1.5"/>  <text x="-48.0" y="-19.1" text-anchor="middle" dominant-baseline="central" font-family="Inter" font-size="12" fill="#27272A">C</text></g><g class="node default flowchart-label" id="block-D">  <rect x="28.0" y="-34.2" width="40.0" height="30.2" fill="#FFFFFF" stroke="#27272A" stroke-width="1.5"/>  <text x="48.0" y="-19.1" text-anchor="middle" dominant-baseline="central" font-family="Inter" font-size="12" fill="#27272A">D</text></g><g class="node default flowchart-label" id="block-E">  <rect x="76.0" y="-34.2" width="40.0" height="30.2" fill="#FFFFFF" stroke="#27272A" stroke-width="1.5"/>  <text x="96.0" y="-19.1" text-anchor="middle" dominant-baseline="central" font-family="Inter" font-size="12" fill="#27272A">E</text></g><g class="node default flowchart-label" id="block-F">  <rect x="172.0" y="-34.2" width="40.0" height="30.2" fill="#FFFFFF" stroke="#27272A" stroke-width="1.5"/>  <text x="192.0" y="-19.1" text-anchor="middle" dominant-baseline="central" font-family="Inter" font-size="12" fill="#27272A">F</text></g><g class="node default flowchart-label" id="block-G">  <rect x="-212.0" y="4.000000000000002" width="40.0" height="30.2" fill="#FFFFFF" stroke="#27272A" stroke-width="1.5"/>  <text x="-192.0" y="19.1" text-anchor="middle" dominant-baseline="central" font-family="Inter" font-size="12" fill="#27272A">G</text></g><g class="node default flowchart-label" id="block-H">  <rect x="-116.0" y="4.000000000000002" width="40.0" height="30.2" fill="#FFFFFF" stroke="#27272A" stroke-width="1.5"/>  <text x="-96.0" y="19.1" text-anchor="middle" dominant-baseline="central" font-family="Inter" font-size="12" fill="#27272A">H</text></g><g class="node default flowchart-label" id="block-I">  <rect x="-68.0" y="4.000000000000002" width="40.0" height="30.2" fill="#FFFFFF" stroke="#27272A" stroke-width="1.5"/>  <text x="-48.0" y="19.1" text-anchor="middle" dominant-baseline="central" font-family="Inter" font-size="12" fill="#27272A">I</text></g><g class="node default flowchart-label" id="block-J">  <rect x="28.0" y="4.000000000000002" width="40.0" height="30.2" fill="#FFFFFF" stroke="#27272A" stroke-width="1.5"/>  <text x="48.0" y="19.1" text-anchor="middle" dominant-baseline="central" font-family="Inter" font-size="12" fill="#27272A">J</text></g><g class="edgePath edge-thickness-normal edge-pattern-solid flowchart-link">
+  <path class="path" d="M -172.0,-19.1 L -144.0,-19.1 L -116.0,-19.1" fill="none" stroke="#27272A" stroke-width="1.5" style=""/></g><g class="edgePath edge-thickness-normal edge-pattern-solid flowchart-link">
+  <path class="path" d="M -28.0,-19.1 L 0.0,-19.1 L 28.0,-19.1" fill="none" stroke="#27272A" stroke-width="1.5" style="" marker-end="url(#D3AD7238-3F4F-BDAC-69E7-3DED59FFE42C-block-point)"/></g><g class="edgePath edge-thickness-normal edge-pattern-solid flowchart-link">
+  <path class="path" d="M 116.0,-19.1 L 144.0,-19.1 L 172.0,-19.1" fill="none" stroke="#27272A" stroke-width="1.5" style="" marker-start="url(#D3AD7238-3F4F-BDAC-69E7-3DED59FFE42C-block-point)" marker-end="url(#D3AD7238-3F4F-BDAC-69E7-3DED59FFE42C-block-point)"/></g><g class="edgePath edge-thickness-thick edge-pattern-solid flowchart-link">
+  <path class="path" d="M -172.0,19.1 L -144.0,19.1 L -116.0,19.1" fill="none" stroke="#27272A" stroke-width="3.5" style=""/></g><g class="edgePath edge-thickness-thick edge-pattern-solid flowchart-link">
+  <path class="path" d="M -28.0,19.1 L 0.0,19.1 L 28.0,19.1" fill="none" stroke="#27272A" stroke-width="3.5" style="" marker-start="url(#D3AD7238-3F4F-BDAC-69E7-3DED59FFE42C-block-point)" marker-end="url(#D3AD7238-3F4F-BDAC-69E7-3DED59FFE42C-block-point)"/></g></g></svg>

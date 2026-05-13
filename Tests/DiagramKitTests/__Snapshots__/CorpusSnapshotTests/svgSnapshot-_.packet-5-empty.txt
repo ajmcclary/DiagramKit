@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="100%" style="max-width: 1026.0px;" viewBox="0 0 1026.0 74.0">
+<svg role="graphics-document" aria-roledescription="diagram" preserveAspectRatio="xMinYMin meet" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 1026 74" width="100%" height="74" style="max-width: 1026px;--bg:#FFFFFF;--fg:#27272A;--line:#27272A;--accent:#27272A;--muted:#27272A;--surface:#FFFFFF;--border:#27272A;background:#FFFFFF">
 <rect width="100%" height="100%" fill="#FFFFFF"/>
 <style>
 .packetByte { font-size: 10px; }

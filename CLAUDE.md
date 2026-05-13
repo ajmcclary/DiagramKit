@@ -72,19 +72,18 @@ edges to RenderingCG and Views are guarded in `Package.swift` with
 
 ## Public Surface
 
-- `DiagramEngine` is the public async facade. The deprecated compatibility alias
-  is `MermaidRenderer`.
-- `DiagramPipeline` holds synchronous, nonisolated implementations. The
-  deprecated compatibility alias is `MermaidPipeline`.
-- `DiagramImageRenderer` renders `BMImage` / PNG / JPEG. The deprecated
-  compatibility alias is `MermaidImageRenderer`.
-- `DiagramDocument` is the canonical parsed model. The deprecated compatibility
-  alias is `MermaidGraph`.
+- `DiagramEngine` is the public async facade.
+- `DiagramPipeline` holds synchronous, nonisolated implementations.
+- `DiagramImageRenderer` renders `BMImage` / PNG / JPEG.
+- `DiagramDocument` is the canonical parsed model.
 - `DiagramView`, `DiagramNativeView`, `DiagramLayer`, and `DiagramViewModel`
-  live in `DiagramKitViews`; deprecated Mermaid-prefixed aliases remain.
+  live in `DiagramKitViews`.
 - `String` helpers use format-neutral names:
   `parseDiagram()`, `renderDiagramImage(...)`, `renderDiagramSVG(...)`, and
-  `renderDiagramASCII(...)`. Mermaid-prefixed helpers are deprecated wrappers.
+  `renderDiagramASCII(...)`.
+- Mermaid-prefixed public aliases carry `@available(*, deprecated, renamed:message:)`
+  annotations and will be removed in the next major version. Internal/SPI
+  aliases were removed in Phase 10.
 
 ## Critical Invariants
 
@@ -118,9 +117,8 @@ Source string
   -> DiagramRenderer.render (CG) | renderSVG | renderASCII
 ```
 
-`DiagramEngine` is defined in `Sources/DiagramKit/MermaidRenderer.swift` for now.
-`DiagramPipeline` is defined in `Sources/DiagramKit/MermaidPipeline.swift`.
-Those filenames are historical; use the public type names in new code.
+`DiagramEngine` is defined in `Sources/DiagramKit/DiagramEngine.swift`.
+`DiagramPipeline` is defined in `Sources/DiagramKit/DiagramPipeline.swift`.
 
 The view layer uses `DiagramViewPreparer` in `DiagramKitRenderingCG`. The umbrella
 registers the canonical prepare closure through `_DiagramPreparerBootstrap`.
@@ -154,12 +152,19 @@ outside the defining module.
   `DiagramWorkerThread`, `DiagramPreparation`, `DiagramBitmapRenderer`,
   `DiagramViewPreparer`, `DiagramFontRegistry`, bundled fonts, and version
   resources.
-- `Sources/DiagramKitViews/` - Apple-only SwiftUI/UIKit/AppKit wrappers.
-- `Sources/DiagramKit/` - umbrella public API: `MermaidRenderer.swift`
-  (`DiagramEngine`), `MermaidPipeline.swift` (`DiagramPipeline`),
-  `DiagramImageRenderer.swift`, `DiagramPreparerWiring.swift`, `Parser.swift`,
-  `Layout.swift`, `DiagramDescriptor.swift`, `src_index.swift`,
-  `src_ascii_index.swift`, and `ReExports.swift`.
+- `Sources/DiagramKitViews/` - Apple-only SwiftUI/UIKit/AppKit wrappers:
+  `DiagramView.swift`, `DiagramNativeView.swift`, `DiagramLayer.swift`,
+  `DiagramViewModel.swift`.
+- `Sources/DiagramKit/` - umbrella public API: `DiagramEngine.swift`,
+  `DiagramPipeline.swift`, `DiagramImageRenderer.swift`,
+  `DiagramPreparerWiring.swift`, `Parser.swift`, `Layout.swift`,
+  `DiagramDescriptor.swift`, `src_index.swift`, `src_ascii_index.swift`,
+  `ReExports.swift`, `MermaidImporter.swift`, and `SVGRenderRegistry.swift`.
+- `Sources/DiagramKitImport/` - importer protocol and registry boundary.
+- `Sources/DiagramKitD2/` - D2 importer (`D2Importer`, `D2Parser`, `D2Mapper`).
+- `Sources/DiagramKitGraphviz/` - Graphviz DOT importer (`GraphvizImporter`, `DOTParser`, `DOTMapper`).
+- `Sources/DiagramKitStructurizr/` - Structurizr DSL importer.
+- `Sources/DiagramKitExporter/` - multi-format exporter protocol (`MermaidExporter`, `D2Exporter`, `StructurizrExporter`, `PlantUMLExporter`).
 - `Sources/DiagramKitTestSupport/` - Linux-portable test helpers.
 - `Examples/MermaidPlayground/` - SwiftUI sample app and the current
   `test-diagrams.json` corpus source.
@@ -168,19 +173,19 @@ outside the defining module.
 
 ## Testing And Snapshots
 
-- Current test source count: 150 Swift files under `Tests/DiagramKitTests`.
+- Current test source count: 188 Swift files under `Tests/DiagramKitTests`.
 - The corpus is `Examples/MermaidPlayground/Resources/test-diagrams.json` with
-  396 Mermaid entries.
+  408 entries (396 Mermaid + 12 multi-format: D2, DOT, Structurizr).
 - Corpus baselines under
   `Tests/DiagramKitTests/__Snapshots__/CorpusSnapshotTests/` currently track
-  396 SVG, 396 image, and 174 ASCII files.
+  408 SVG, 408 image, and 174 ASCII files, plus format-suffixed multi-format baselines.
 - Image snapshots use `precision: 0.99, perceptualPrecision: 0.98` to tolerate
   CoreText rasterization drift across CPU architectures.
-- Pure symbol renames should not require snapshot re-recording. Re-record only
-  for intentional rendering or fixture changes.
+- Multi-format snapshot tests use format-suffixed names (`entry-id-format`) to
+  avoid collisions between formats sharing the same `diagram.id`.
 - The full parameterized `CorpusSnapshotTests` run has a known
-  `swift-testing` / `swift-snapshot-testing` signal-10 caveat. Verify in chunks
-  when needed until that harness issue is resolved.
+  `swift-testing` / `swift-snapshot-testing` signal-10 caveat. Use chunked
+  execution with `SNAPSHOT_DIAGRAM_IDS` when recording.
 
 ## Discipline Gates
 

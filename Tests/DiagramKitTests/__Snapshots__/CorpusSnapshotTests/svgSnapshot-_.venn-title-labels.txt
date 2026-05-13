@@ -1,4 +1,4 @@
-<svg id="519A3517-6271-D5E8-0180-63C7E8B0B059" viewBox="0 0 800 450" xmlns="http://www.w3.org/2000/svg">
+<svg role="graphics-document" aria-roledescription="diagram" id="519A3517-6271-D5E8-0180-63C7E8B0B059" preserveAspectRatio="xMinYMin meet" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 800 450" width="100%" height="450" style="max-width: 800px;--bg:#FFFFFF;--fg:#27272A;--line:#27272A;--accent:#27272A;--muted:#27272A;--surface:#FFFFFF;--border:#27272A;background:#FFFFFF">
 <rect width="100%" height="100%" fill="#FFFFFF" />
 <text class="venn-title" x="50%" y="16" text-anchor="middle" dominant-baseline="middle" font-family="Inter" font-size="16px" fill="#27272A">Team Overlap</text>
 <g transform="translate(0, 24)">

@@ -1,4 +1,5 @@
-<svg id="C8DC11D8-11E9-D485-286F-F06E5A487263" xmlns="http://www.w3.org/2000/svg" viewBox="-93.778 -96.5 187.556 194.0" width="197" height="194" style="max-width: 100%;"><rect width="100%" height="100%" fill="#FFFFFF"/><style>
+<svg role="graphics-document" aria-roledescription="diagram" id="C8DC11D8-11E9-D485-286F-F06E5A487263" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="-93.778 -96.5 187.556 194" width="197" height="194" style="--bg:#FFFFFF;--fg:#27272A;--line:#27272A;--accent:#27272A;--muted:#27272A;--surface:#FFFFFF;--border:#27272A;background:#FFFFFF">
+<rect width="100%" height="100%" fill="#FFFFFF"/><style>
 .label {
     font-family: Inter;
     color: #27272A;
@@ -18,8 +19,8 @@
 .node ellipse,
 .node polygon,
 .node path {
-    fill: #F9F9F9;
-    stroke: #D4D4D4;
+    fill: #FFFFFF;
+    stroke: #27272A;
     stroke-width: 1px;
 }
 .flowchart-label text {
@@ -32,31 +33,31 @@
     cursor: pointer;
 }
 .arrowheadPath {
-    fill: #939394;
+    fill: #27272A;
 }
 .edgePath .path {
-    stroke: #939394;
+    stroke: #27272A;
     stroke-width: 2.0px;
 }
 .flowchart-link {
-    stroke: #939394;
+    stroke: #27272A;
     fill: none;
 }
 .edgeLabel {
-    background-color: #F9F9F9;
+    background-color: #FFFFFF;
     text-align: center;
 }
 .edgeLabel rect {
     opacity: 0.5;
-    background-color: #F9F9F9;
-    fill: #F9F9F9;
+    background-color: #FFFFFF;
+    fill: #FFFFFF;
 }
 .labelBkg {
-    background-color: #F9F9F9;
+    background-color: #FFFFFF;
 }
 .node .cluster {
-    fill: #F9F9F9;
-    stroke: #D4D4D4;
+    fill: #FFFFFF;
+    stroke: #27272A;
     stroke-width: 1px;
 }
 .cluster text {
@@ -69,13 +70,12 @@
 }
 </style><defs>
 <marker id="C8DC11D8-11E9-D485-286F-F06E5A487263-block-point" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-  <path d="M 0 0 L 10 5 L 0 10 z" fill="#939394"/>
+  <path d="M 0 0 L 10 5 L 0 10 z" fill="#27272A"/>
 </marker>
 <marker id="C8DC11D8-11E9-D485-286F-F06E5A487263-block-circle" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-  <circle cx="5" cy="5" r="4" fill="none" stroke="#939394" stroke-width="1"/>
+  <circle cx="5" cy="5" r="4" fill="none" stroke="#27272A" stroke-width="1"/>
 </marker>
 <marker id="C8DC11D8-11E9-D485-286F-F06E5A487263-block-cross" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
-  <path d="M 1 1 L 9 9 M 9 1 L 1 9" stroke="#939394" stroke-width="1.5"/>
+  <path d="M 1 1 L 9 9 M 9 1 L 1 9" stroke="#27272A" stroke-width="1.5"/>
 </marker>
-</defs><g class="block"><g class="node default flowchart-label" id="block-blockArrowId1<">  <rect x="-26.926000000000002" y="-91.5" width="53.852000000000004" height="30.2" fill="#F9F9F9" stroke="#D4D4D4" stroke-width="1.5"/>  <text x="0.0" y="-76.4" text-anchor="middle" dominant-baseline="central" font-family="Inter" font-size="12" fill="#27272A">down</text></g><g class="node default flowchart-label" id="block-blockArrowId2<">  <rect x="-88.778" y="-53.3" width="53.852000000000004" height="30.2" fill="#F9F9F9" stroke="#D4D4D4" stroke-width="1.5"/>  <text x="-61.852000000000004" y="-38.199999999999996" text-anchor="middle" dominant-baseline="central" font-family="Inter" font-size="12" fill="#27272A">right</text></g><g class="node default flowchart-label" id="block-blockArrowId3<">  <rect x="-26.926000000000002" y="-53.3" width="53.852000000000004" height="30.2" fill="#F9F9F9" stroke="#D4D4D4" stroke-width="1.5"/>  <text x="0.0" y="-38.199999999999996" text-anchor="middle" dominant-baseline="central" font-family="Inter" font-size="12" fill="#27272A">Sync</text></g><g class="node default flowchart-label" id="block-y)">  <rect x="34.926" y="-53.3" width="53.852000000000004" height="30.2" fill="#F9F9F9" stroke="#D4D4D4" stroke-width="1.5"/>  <text x="61.852000000000004" y="-38.199999999999996" text-anchor="middle" dominant-baseline="central" font-family="Inter" font-size="12" fill="#27272A">y)</text></g><g class="node default flowchart-label" id="block-blockArrowId4<">  <rect x="-88.778" y="-15.099999999999994" width="53.852000000000004" height="30.2" fill="#F9F9F9" stroke="#D4D4D4" stroke-width="1.5"/>  <text x="-61.852000000000004" y="5.329070518200751e-15" text-anchor="middle" dominant-baseline="central" font-family="Inter" font-size="12" fill="#27272A">left</text></g><g class="node default flowchart-label" id="block-blockArrowId5<">  <rect x="34.926" y="-15.099999999999994" width="53.852000000000004" height="30.2" fill="#F9F9F9" stroke="#D4D4D4" stroke-width="1.5"/>  <text x="61.852000000000004" y="5.329070518200751e-15" text-anchor="middle" dominant-baseline="central" font-family="Inter" font-size="12" fill="#27272A">up</text></g><g class="node default flowchart-label" id="block-blockArrowId6<">  <rect x="-26.926000000000002" y="23.10000000000001" width="53.852000000000004" height="30.2" fill="#F9F9F9" stroke="#D4D4D4" stroke-width="1.5"/>  <text x="0.0" y="38.20000000000001" text-anchor="middle" dominant-baseline="central" font-family="Inter" font-size="12" fill="#27272A">x</text></g><g class="node default flowchart-label" id="block-blockArrowId7<">  <rect x="-88.778" y="61.300000000000004" width="53.852000000000004" height="30.2" fill="#F9F9F9" stroke="#D4D4D4" stroke-width="1.5"/>  <text x="-61.852000000000004" y="76.4" text-anchor="middle" dominant-baseline="central" font-family="Inter" font-size="12" fill="#27272A">y</text></g></g>
-</svg>
+</defs><g class="block"><g class="node default flowchart-label" id="block-blockArrowId1<">  <rect x="-26.926000000000002" y="-91.5" width="53.852000000000004" height="30.2" fill="#FFFFFF" stroke="#27272A" stroke-width="1.5"/>  <text x="0.0" y="-76.4" text-anchor="middle" dominant-baseline="central" font-family="Inter" font-size="12" fill="#27272A">down</text></g><g class="node default flowchart-label" id="block-blockArrowId2<">  <rect x="-88.778" y="-53.3" width="53.852000000000004" height="30.2" fill="#FFFFFF" stroke="#27272A" stroke-width="1.5"/>  <text x="-61.852000000000004" y="-38.199999999999996" text-anchor="middle" dominant-baseline="central" font-family="Inter" font-size="12" fill="#27272A">right</text></g><g class="node default flowchart-label" id="block-blockArrowId3<">  <rect x="-26.926000000000002" y="-53.3" width="53.852000000000004" height="30.2" fill="#FFFFFF" stroke="#27272A" stroke-width="1.5"/>  <text x="0.0" y="-38.199999999999996" text-anchor="middle" dominant-baseline="central" font-family="Inter" font-size="12" fill="#27272A">Sync</text></g><g class="node default flowchart-label" id="block-y)">  <rect x="34.926" y="-53.3" width="53.852000000000004" height="30.2" fill="#FFFFFF" stroke="#27272A" stroke-width="1.5"/>  <text x="61.852000000000004" y="-38.199999999999996" text-anchor="middle" dominant-baseline="central" font-family="Inter" font-size="12" fill="#27272A">y)</text></g><g class="node default flowchart-label" id="block-blockArrowId4<">  <rect x="-88.778" y="-15.099999999999994" width="53.852000000000004" height="30.2" fill="#FFFFFF" stroke="#27272A" stroke-width="1.5"/>  <text x="-61.852000000000004" y="5.329070518200751e-15" text-anchor="middle" dominant-baseline="central" font-family="Inter" font-size="12" fill="#27272A">left</text></g><g class="node default flowchart-label" id="block-blockArrowId5<">  <rect x="34.926" y="-15.099999999999994" width="53.852000000000004" height="30.2" fill="#FFFFFF" stroke="#27272A" stroke-width="1.5"/>  <text x="61.852000000000004" y="5.329070518200751e-15" text-anchor="middle" dominant-baseline="central" font-family="Inter" font-size="12" fill="#27272A">up</text></g><g class="node default flowchart-label" id="block-blockArrowId6<">  <rect x="-26.926000000000002" y="23.10000000000001" width="53.852000000000004" height="30.2" fill="#FFFFFF" stroke="#27272A" stroke-width="1.5"/>  <text x="0.0" y="38.20000000000001" text-anchor="middle" dominant-baseline="central" font-family="Inter" font-size="12" fill="#27272A">x</text></g><g class="node default flowchart-label" id="block-blockArrowId7<">  <rect x="-88.778" y="61.300000000000004" width="53.852000000000004" height="30.2" fill="#FFFFFF" stroke="#27272A" stroke-width="1.5"/>  <text x="-61.852000000000004" y="76.4" text-anchor="middle" dominant-baseline="central" font-family="Inter" font-size="12" fill="#27272A">y</text></g></g></svg>

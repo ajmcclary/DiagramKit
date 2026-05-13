@@ -1,4 +1,5 @@
-<svg id="443421E9-4FDB-24EC-616F-2C7520A2A04D" xmlns="http://www.w3.org/2000/svg" viewBox="-49.0 -20.1 98.0 41.2" width="108" height="41" style="max-width: 100%;"><rect width="100%" height="100%" fill="#FFFFFF"/><style>
+<svg role="graphics-document" aria-roledescription="diagram" id="443421E9-4FDB-24EC-616F-2C7520A2A04D" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="-49 -20.1 98 41.2" width="108" height="41.2" style="--bg:#FFFFFF;--fg:#27272A;--line:#27272A;--accent:#27272A;--muted:#27272A;--surface:#FFFFFF;--border:#27272A;background:#FFFFFF">
+<rect width="100%" height="100%" fill="#FFFFFF"/><style>
 .label {
     font-family: Inter;
     color: #27272A;
@@ -18,8 +19,8 @@
 .node ellipse,
 .node polygon,
 .node path {
-    fill: #F9F9F9;
-    stroke: #D4D4D4;
+    fill: #FFFFFF;
+    stroke: #27272A;
     stroke-width: 1px;
 }
 .flowchart-label text {
@@ -32,31 +33,31 @@
     cursor: pointer;
 }
 .arrowheadPath {
-    fill: #939394;
+    fill: #27272A;
 }
 .edgePath .path {
-    stroke: #939394;
+    stroke: #27272A;
     stroke-width: 2.0px;
 }
 .flowchart-link {
-    stroke: #939394;
+    stroke: #27272A;
     fill: none;
 }
 .edgeLabel {
-    background-color: #F9F9F9;
+    background-color: #FFFFFF;
     text-align: center;
 }
 .edgeLabel rect {
     opacity: 0.5;
-    background-color: #F9F9F9;
-    fill: #F9F9F9;
+    background-color: #FFFFFF;
+    fill: #FFFFFF;
 }
 .labelBkg {
-    background-color: #F9F9F9;
+    background-color: #FFFFFF;
 }
 .node .cluster {
-    fill: #F9F9F9;
-    stroke: #D4D4D4;
+    fill: #FFFFFF;
+    stroke: #27272A;
     stroke-width: 1px;
 }
 .cluster text {
@@ -69,13 +70,12 @@
 }
 </style><defs>
 <marker id="443421E9-4FDB-24EC-616F-2C7520A2A04D-block-point" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-  <path d="M 0 0 L 10 5 L 0 10 z" fill="#939394"/>
+  <path d="M 0 0 L 10 5 L 0 10 z" fill="#27272A"/>
 </marker>
 <marker id="443421E9-4FDB-24EC-616F-2C7520A2A04D-block-circle" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-  <circle cx="5" cy="5" r="4" fill="none" stroke="#939394" stroke-width="1"/>
+  <circle cx="5" cy="5" r="4" fill="none" stroke="#27272A" stroke-width="1"/>
 </marker>
 <marker id="443421E9-4FDB-24EC-616F-2C7520A2A04D-block-cross" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
-  <path d="M 1 1 L 9 9 M 9 1 L 1 9" stroke="#939394" stroke-width="1.5"/>
+  <path d="M 1 1 L 9 9 M 9 1 L 1 9" stroke="#27272A" stroke-width="1.5"/>
 </marker>
-</defs><g class="block"><g class="node blue flowchart-label" id="block-A">  <rect x="-44.0" y="-15.100000000000001" width="40.0" height="30.2" fill="#66f" stroke="#333" stroke-width="1.5"/>  <text x="-24.0" y="-1.7763568394002505e-15" text-anchor="middle" dominant-baseline="central" font-family="Inter" font-size="12" fill="#27272A">A</text></g><g class="node default flowchart-label" id="block-B">  <rect x="4.0" y="-15.100000000000001" width="40.0" height="30.2" fill="#f9F" stroke="#333" stroke-width="1.5"/>  <text x="24.0" y="-1.7763568394002505e-15" text-anchor="middle" dominant-baseline="central" font-family="Inter" font-size="12" fill="#27272A">B</text></g></g>
-</svg>
+</defs><g class="block"><g class="node blue flowchart-label" id="block-A">  <rect x="-44.0" y="-15.100000000000001" width="40.0" height="30.2" fill="#66f" stroke="#333" stroke-width="1.5"/>  <text x="-24.0" y="-1.7763568394002505e-15" text-anchor="middle" dominant-baseline="central" font-family="Inter" font-size="12" fill="#27272A">A</text></g><g class="node default flowchart-label" id="block-B">  <rect x="4.0" y="-15.100000000000001" width="40.0" height="30.2" fill="#f9F" stroke="#333" stroke-width="1.5"/>  <text x="24.0" y="-1.7763568394002505e-15" text-anchor="middle" dominant-baseline="central" font-family="Inter" font-size="12" fill="#27272A">B</text></g></g></svg>
