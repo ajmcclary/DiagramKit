@@ -31,12 +31,9 @@ closing-commit map for every Critical finding lives in
 
 ## Active work
 
-- **PlantUML family slices** — extend importer/exporter coverage beyond
-  sequence. Both sides of PlantUML are sequence-only today; the
-  earlier C4 exporter (`PlantUMLC4Exporter.swift`) was deleted in
-  Phase 7 cleanup because it was unwired. Class, state/activity,
-  mindmap, gantt, and C4 importers + exporters are still open.
-  Detailed scoping lives in [PLAN.md](PLAN.md) (Phases 2–6).
+- ~~**PlantUML family slices**~~ — landed in PLAN.md Phases 2–6.
+  PlantUML importer + exporter now cover sequence, class,
+  state/activity, mindmap, gantt, and C4.
 - ~~**DOT exporter**~~ — landed in PLAN.md Phase 1. `DOTExporter`
   ships in `DiagramKitGraphviz` and is registered in
   `DiagramPipeline.defaultExportRegistry`.

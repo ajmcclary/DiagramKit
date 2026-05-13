@@ -17,7 +17,7 @@ public struct PlantUMLImporter: DiagramSourceImporter {
         .stateDiagram,
         .mindmap,
         .gantt,
-        // .c4               — added in 6E
+        .c4,
     ]
 
     public init() {}
@@ -64,7 +64,12 @@ public struct PlantUMLImporter: DiagramSourceImporter {
 
         // Check C4 first (narrowest)
         if isPlantUMLC4Body(body) {
-            throw DiagramError.notYetImplemented("PlantUML C4 diagrams not yet implemented (Slice 6E)")
+            let ast = PlantUMLC4Parser().parse(body)
+            let (model, diagnostics) = PlantUMLC4Mapper().map(ast)
+            return DiagramImportResult(
+                document: DiagramDocument(payload: .c4(model)),
+                diagnostics: diagnostics
+            )
         }
 
         // Check State/Activity

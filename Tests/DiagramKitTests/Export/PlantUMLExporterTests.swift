@@ -11,7 +11,7 @@ import DiagramKitPlantUML
         #expect(exporter.formatID == .plantuml)
         #expect(exporter.supportedDiagramTypes.contains(.sequenceDiagram))
         #expect(exporter.supportedDiagramTypes.contains(.classDiagram))
-        #expect(!exporter.supportedDiagramTypes.contains(.c4))
+        #expect(exporter.supportedDiagramTypes.contains(.c4))
     }
 
     @Test("PlantUML class export emits @startuml/@enduml with members")
@@ -226,22 +226,33 @@ import DiagramKitPlantUML
         #expect(result.source.contains("box \"Box A\\nB\""))
     }
 
-    @Test("PlantUML C4 export is gated until the PlantUML C4 importer exists")
-    func c4ExportIsUnsupported() throws {
+    @Test("PlantUML C4 export round-trips through PlantUMLImporter")
+    func c4ExportRoundTrip() throws {
         let c4 = C4Diagram(
             kind: .context,
             shapes: [
-                C4Shape(alias: "customer", label: "Customer", typeC4Shape: .person),
-                C4Shape(alias: "system", label: "System", typeC4Shape: .system)
+                C4Shape(alias: "customer", label: "Customer", typeC4Shape: .person, description: "Buys things"),
+                C4Shape(alias: "system", label: "System", typeC4Shape: .system, description: "The thing")
             ],
             relationships: [
-                C4Relationship(kind: .rel, from: "customer", to: "system", label: "Uses")
+                C4Relationship(kind: .rel, from: "customer", to: "system", label: "Uses", technology: "HTTPS")
             ]
         )
         let doc = DiagramDocument(payload: .c4(c4))
         let result = try PlantUMLExporter().export(doc)
+        #expect(result.source.contains("@startuml"))
+        #expect(result.source.contains("Person(customer"))
+        #expect(result.source.contains("System(system"))
+        #expect(result.source.contains("Rel(customer, system"))
 
-        #expect(result.source.isEmpty)
-        #expect(result.diagnostics.contains { $0.severity == .unsupported })
+        let reparsed = try PlantUMLImporter().parse(result.source).document
+        guard case .c4(let model) = reparsed.payload else {
+            Issue.record("Expected c4 payload after round-trip, got \(reparsed.payload)")
+            return
+        }
+        #expect(model.shapes.first { $0.alias == "customer" }?.typeC4Shape == .person)
+        #expect(model.shapes.first { $0.alias == "system" }?.typeC4Shape == .system)
+        #expect(model.relationships.first?.label == "Uses")
+        #expect(model.relationships.first?.technology == "HTTPS")
     }
 }

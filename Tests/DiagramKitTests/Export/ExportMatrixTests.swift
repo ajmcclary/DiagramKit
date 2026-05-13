@@ -57,7 +57,7 @@ import DiagramKitPlantUML
 
     // MARK: - PlantUML exporter
 
-    @Test("PlantUML exporter supports sequence + class + state + mindmap + gantt until additional importer slices land")
+    @Test("PlantUML exporter supports the full Phase 6 family set (sequence + class + state + mindmap + gantt + c4)")
     func plantUMLExporterSupportedTypes() {
         let exporter = PlantUMLExporter()
         #expect(exporter.supportedDiagramTypes.contains(.sequenceDiagram))
@@ -65,7 +65,7 @@ import DiagramKitPlantUML
         #expect(exporter.supportedDiagramTypes.contains(.stateDiagram))
         #expect(exporter.supportedDiagramTypes.contains(.mindmap))
         #expect(exporter.supportedDiagramTypes.contains(.gantt))
-        #expect(!exporter.supportedDiagramTypes.contains(.c4))
+        #expect(exporter.supportedDiagramTypes.contains(.c4))
         #expect(!exporter.supportedDiagramTypes.contains(.flowchart))
     }
 
