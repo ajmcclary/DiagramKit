@@ -10,6 +10,17 @@ enum MermaidC4Export {
         var lines: [String] = []
         var diagnostics: [DiagramDiagnostic] = []
 
+        // Collision-aware identifier emission shared across shapes,
+        // boundaries, and relationships. Shapes and boundaries occupy
+        // the same alias namespace (a relationship can connect a shape
+        // to a boundary), so one shared `usedAliases` set and one
+        // shared `aliasMap` cover the whole pass. `$boundary=` /
+        // `$parent=` references and relationship endpoints look up
+        // through `aliasMap` with plain-sanitize fallback for
+        // references not in the model.
+        var usedAliases: Set<String> = []
+        var aliasMap: [String: String] = [:]
+
         // Kind header
         let kindStr: String
         switch model.kind {
@@ -30,8 +41,12 @@ enum MermaidC4Export {
         // Shapes
         for shape in model.shapes {
             let shapeFunc = c4ShapeFunction(shape.typeC4Shape)
-            let (sanitizedAlias, ad) = MermaidExportHelpers.sanitizeIdentifier(shape.alias)
+            let (sanitizedAlias, ad) = MermaidExportHelpers.sanitizeIdentifier(
+                shape.alias,
+                usedAliases: &usedAliases
+            )
             diagnostics.append(contentsOf: ad)
+            aliasMap[shape.alias] = sanitizedAlias
 
             let (ql, _) = MermaidExportHelpers.quote(shape.label)
             let desc = shape.description ?? ""
@@ -83,7 +98,7 @@ enum MermaidC4Export {
 
             // Parent boundary
             if shape.parentBoundary != "global" && !shape.parentBoundary.isEmpty {
-                let (pb, _) = MermaidExportHelpers.sanitizeIdentifier(shape.parentBoundary)
+                let pb = aliasMap[shape.parentBoundary] ?? MermaidExportHelpers.sanitizeIdentifier(shape.parentBoundary).sanitized
                 shapeLine += " $boundary=\(pb)"
             }
 
@@ -92,8 +107,12 @@ enum MermaidC4Export {
 
         // Boundaries
         for boundary in model.boundaries {
-            let (sanitizedAlias, ad) = MermaidExportHelpers.sanitizeIdentifier(boundary.alias)
+            let (sanitizedAlias, ad) = MermaidExportHelpers.sanitizeIdentifier(
+                boundary.alias,
+                usedAliases: &usedAliases
+            )
             diagnostics.append(contentsOf: ad)
+            aliasMap[boundary.alias] = sanitizedAlias
 
             let (ql, _) = MermaidExportHelpers.quote(boundary.label)
 
@@ -106,7 +125,7 @@ enum MermaidC4Export {
             }
 
             if boundary.parentBoundary != "global" && !boundary.parentBoundary.isEmpty {
-                let (pb, _) = MermaidExportHelpers.sanitizeIdentifier(boundary.parentBoundary)
+                let pb = aliasMap[boundary.parentBoundary] ?? MermaidExportHelpers.sanitizeIdentifier(boundary.parentBoundary).sanitized
                 boundaryLine += " $parent=\(pb)"
             }
 
@@ -115,8 +134,10 @@ enum MermaidC4Export {
 
         // Relationships
         for rel in model.relationships {
-            let (sanitizedFrom, fd) = MermaidExportHelpers.sanitizeIdentifier(rel.from)
-            let (sanitizedTo, td) = MermaidExportHelpers.sanitizeIdentifier(rel.to)
+            let (sanitizedFrom, fd): (String, [DiagramDiagnostic]) = aliasMap[rel.from].map { ($0, []) }
+                ?? MermaidExportHelpers.sanitizeIdentifier(rel.from)
+            let (sanitizedTo, td): (String, [DiagramDiagnostic]) = aliasMap[rel.to].map { ($0, []) }
+                ?? MermaidExportHelpers.sanitizeIdentifier(rel.to)
             diagnostics.append(contentsOf: fd)
             diagnostics.append(contentsOf: td)
 
