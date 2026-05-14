@@ -108,6 +108,50 @@ public final class DiagramEditor {
     @ObservationIgnored
     private var _mutationDepth: Int = 0
 
+    // MARK: - Observation-tracked undo state
+
+    /// Tickle counter bumped by NotificationCenter observers when the
+    /// undo/redo stack changes state. Reading this counter inside the
+    /// computed properties below registers an `@Observable` dependency
+    /// so SwiftUI modifiers like `.disabled(!editor.canUndo)` re-evaluate.
+    ///
+    /// `Foundation.UndoManager` is not Observation-tracked itself, so this
+    /// counter is the bridge.
+    @ObservationIgnored
+    private var _undoStateTickle: UInt64 = 0
+
+    /// Notification observer tokens. Held so `deinit` can release them.
+    @ObservationIgnored
+    private var _undoObservers: [NSObjectProtocol] = []
+
+    /// True when at least one undoable action is registered.
+    /// Observation-tracked; updates as the undo stack changes.
+    public var canUndo: Bool {
+        _ = _undoStateTickle
+        return undoManager.canUndo
+    }
+
+    /// True when at least one redoable action is registered.
+    /// Observation-tracked; updates as the redo stack changes.
+    public var canRedo: Bool {
+        _ = _undoStateTickle
+        return undoManager.canRedo
+    }
+
+    /// Display name of the action that `undo()` would reverse, or `""`
+    /// when no undo is available. Use for menu item / button labels.
+    public var undoActionName: String {
+        _ = _undoStateTickle
+        return undoManager.undoActionName
+    }
+
+    /// Display name of the action that `redo()` would re-apply, or `""`
+    /// when no redo is available.
+    public var redoActionName: String {
+        _ = _undoStateTickle
+        return undoManager.redoActionName
+    }
+
     // MARK: - Initialization
 
     /// Create an editor for the given document, preferred export format,
