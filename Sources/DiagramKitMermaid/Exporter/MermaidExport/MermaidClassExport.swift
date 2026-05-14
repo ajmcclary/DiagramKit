@@ -10,6 +10,16 @@ enum MermaidClassExport {
         var lines: [String] = []
         var diagnostics: [DiagramDiagnostic] = []
 
+        // Collision-aware identifier emission shared across namespaces,
+        // classes, notes, and relationships. Namespaces and classes
+        // occupy the same id namespace in Mermaid's class diagram, so
+        // one shared `usedAliases` set and one shared `aliasMap` cover
+        // both. Notes and relationship endpoints look up via `aliasMap`
+        // with a plain-sanitize fallback for references not in the
+        // namespace/class set.
+        var usedAliases: Set<String> = []
+        var aliasMap: [String: String] = [:]
+
         lines.append("classDiagram")
 
         // Direction
@@ -36,13 +46,17 @@ enum MermaidClassExport {
 
         // Namespaces
         for ns in model.namespaces.sorted(by: { $0.id < $1.id }) {
-            emitNamespace(ns, indent: 1, lines: &lines, diagnostics: &diagnostics)
+            emitNamespace(ns, indent: 1, usedAliases: &usedAliases, aliasMap: &aliasMap, lines: &lines, diagnostics: &diagnostics)
         }
 
         // Classes
         for cls in model.classes {
-            let (sanitizedId, idDiags) = MermaidExportHelpers.sanitizeIdentifier(cls.id)
+            let (sanitizedId, idDiags) = MermaidExportHelpers.sanitizeIdentifier(
+                cls.id,
+                usedAliases: &usedAliases
+            )
             diagnostics.append(contentsOf: idDiags)
+            aliasMap[cls.id] = sanitizedId
 
             // Annotations are emitted bare: Mermaid expects
             // `<<interface>> Foo`, not `<<"interface">> Foo`. The
@@ -104,7 +118,7 @@ enum MermaidClassExport {
             diagnostics.append(contentsOf: nd)
 
             if let classId = note.class_ {
-                let (sanitizedClassId, _) = MermaidExportHelpers.sanitizeIdentifier(classId)
+                let sanitizedClassId = aliasMap[classId] ?? MermaidExportHelpers.sanitizeIdentifier(classId).sanitized
                 lines.append("  note for \(sanitizedClassId) \(qText)")
             } else {
                 lines.append("  note \(qText)")
@@ -113,8 +127,10 @@ enum MermaidClassExport {
 
         // Relationships
         for rel in model.relationships {
-            let (sanitized1, d1) = MermaidExportHelpers.sanitizeIdentifier(rel.id1)
-            let (sanitized2, d2) = MermaidExportHelpers.sanitizeIdentifier(rel.id2)
+            let (sanitized1, d1): (String, [DiagramDiagnostic]) = aliasMap[rel.id1].map { ($0, []) }
+                ?? MermaidExportHelpers.sanitizeIdentifier(rel.id1)
+            let (sanitized2, d2): (String, [DiagramDiagnostic]) = aliasMap[rel.id2].map { ($0, []) }
+                ?? MermaidExportHelpers.sanitizeIdentifier(rel.id2)
             diagnostics.append(contentsOf: d1)
             diagnostics.append(contentsOf: d2)
 
@@ -153,12 +169,18 @@ enum MermaidClassExport {
     private static func emitNamespace(
         _ ns: ClassNamespace,
         indent: Int,
+        usedAliases: inout Set<String>,
+        aliasMap: inout [String: String],
         lines: inout [String],
         diagnostics: inout [DiagramDiagnostic]
     ) {
         let pad = String(repeating: "  ", count: indent)
-        let (sanitizedId, idDiags) = MermaidExportHelpers.sanitizeIdentifier(ns.id)
+        let (sanitizedId, idDiags) = MermaidExportHelpers.sanitizeIdentifier(
+            ns.id,
+            usedAliases: &usedAliases
+        )
         diagnostics.append(contentsOf: idDiags)
+        aliasMap[ns.id] = sanitizedId
 
         if ns.label.isEmpty || ns.label == ns.id {
             lines.append("\(pad)namespace \(sanitizedId) {")
@@ -168,7 +190,7 @@ enum MermaidClassExport {
         }
 
         for child in ns.children {
-            emitNamespace(child, indent: indent + 1, lines: &lines, diagnostics: &diagnostics)
+            emitNamespace(child, indent: indent + 1, usedAliases: &usedAliases, aliasMap: &aliasMap, lines: &lines, diagnostics: &diagnostics)
         }
 
         lines.append("\(pad)}")
