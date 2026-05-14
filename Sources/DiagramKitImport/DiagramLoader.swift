@@ -17,14 +17,11 @@ public enum DiagramLoader {
     /// - Returns: `DiagramImportResult` with the parsed document and diagnostics.
     /// - Throws: `DiagramError` on fatal parse failures. Throws a loader-level
     ///   error when no importer claims the source.
-    public static func parse(
+    public static func parseImportResult(
         _ source: String,
         registry: ImporterRegistry
     ) throws -> DiagramImportResult {
         guard let importer = registry.importer(for: source) else {
-            // Distinguish "no importer claimed the source" from
-            // "implementation gap inside an importer" by routing through
-            // `.unrecognizedFormat`.
             let preview = source.prefix(40).trimmingCharacters(in: .whitespacesAndNewlines)
             throw DiagramError.unrecognizedFormat(
                 preview.isEmpty
@@ -35,12 +32,21 @@ public enum DiagramLoader {
         return try importer.parse(source)
     }
 
+    /// Alias for `parseImportResult(_:registry:)` retained for callers that
+    /// adopted the original name.
+    public static func parse(
+        _ source: String,
+        registry: ImporterRegistry
+    ) throws -> DiagramImportResult {
+        try parseImportResult(source, registry: registry)
+    }
+
     /// Shorthand returning only the `DiagramDocument`, discarding diagnostics.
     public static func parseDocument(
         _ source: String,
         registry: ImporterRegistry
     ) throws -> DiagramDocument {
-        try parse(source, registry: registry).document
+        try parseImportResult(source, registry: registry).document
     }
 
     /// Parse `source` using the importer registered under `formatID`.
