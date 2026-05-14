@@ -90,14 +90,6 @@ struct StructurizrBoundaryRoundTripTests {
 
     @Test("Structurizr group exports to Mermaid with boundary + $boundary attribute")
     func structurizrToMermaidEmit() throws {
-        // This test verifies the Structurizr-side import + the Mermaid emit shape,
-        // which is what this spec controls. Re-parsing the Mermaid output back into
-        // a C4Diagram is intentionally NOT asserted here — the Mermaid C4 parser's
-        // `_addPersonOrSystem` doesn't honor the `$boundary=...` named attribute
-        // (src_c4_parser.swift:426 reads only `link`, `tags`, `sprite` from `named`),
-        // so the parent-boundary linkage doesn't survive Mermaid re-parse for
-        // un-nested shapes. That's a Mermaid parser/exporter consistency bug
-        // separate from this spec.
         let structurizrSource = """
         workspace {
           model {
@@ -118,5 +110,15 @@ struct StructurizrBoundaryRoundTripTests {
         #expect(mermaidSource.contains("Boundary(G0, \"G0\")"))
         #expect(mermaidSource.contains("$boundary=G0"))
         #expect(mermaidSource.contains("Person(p1"))
+
+        // Now that Mermaid C4 parser honours $boundary= named args
+        // (REVIEW.md §7), re-parse the emitted Mermaid and assert the
+        // boundary linkage survives end-to-end.
+        let (reparsed, _) = try _parseC4DiagramWithDiagnostics(
+            mermaidSource.components(separatedBy: "\n")
+        )
+        let reparsedP1 = try #require(reparsed.shapes.first { $0.alias == "p1" })
+        #expect(reparsedP1.parentBoundary == "G0")
+        #expect(reparsed.boundaries.contains { $0.alias == "G0" })
     }
 }
