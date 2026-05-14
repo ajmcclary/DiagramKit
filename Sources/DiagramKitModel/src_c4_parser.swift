@@ -138,9 +138,13 @@ public func _parseC4DiagramWithDiagnostics(
         }
 
         let argsString = String(trimmed[trimmed.index(after: openParen)..<closeParen])
-        let (positional, named) = parseMacroArguments(argsString)
+        let (positional, parsedNamed) = parseMacroArguments(argsString)
+        var named = parsedNamed
 
-        // Check for { boundary opening
+        // Check for { boundary opening, or merge trailing $key=value attributes.
+        // Mermaid C4 emits attributes like $boundary=alias, $parent=alias, $tags=...
+        // *outside* the paren list; merge them into the named dict so the macro
+        // dispatch can resolve them alongside in-paren named args.
         var hasBrace = false
         var braceLine: String? = nil
         let afterParen = String(trimmed[closeParen...].dropFirst()).trimmingCharacters(in: .whitespaces)
@@ -149,81 +153,152 @@ public func _parseC4DiagramWithDiagnostics(
         } else if i + 1 < lines.count && lines[i + 1].trimmingCharacters(in: .whitespacesAndNewlines) == "{" {
             hasBrace = true
             braceLine = "{"
+        } else if !afterParen.isEmpty {
+            for (k, v) in _parseTrailingC4Attributes(afterParen) {
+                named[k] = v
+            }
         }
 
         switch macroName {
-        // Person/System family
+        // Person/System family — shapes resolve their parent via $boundary= named arg.
         case "Person":
-            _addPersonOrSystem(type: .person, alias: positional.safe(0) ?? "", label: positional.safe(1) ?? "", descr: positional.safe(2), sprite: positional.safe(3), tags: positional.safe(4), named: named, shapes: &shapes, currentBoundary: currentBoundaryParse, wrap: wrapEnabled)
+            let alias = positional.safe(0) ?? ""
+            let effectiveBoundary = _resolveParentBoundary(named: named, lexical: currentBoundaryParse, key: "boundary", macroName: "Person", alias: alias, diagnostics: &diagnostics)
+            _addPersonOrSystem(type: .person, alias: alias, label: positional.safe(1) ?? "", descr: positional.safe(2), sprite: positional.safe(3), tags: positional.safe(4), named: named, shapes: &shapes, currentBoundary: effectiveBoundary, wrap: wrapEnabled)
         case "Person_Ext":
-            _addPersonOrSystem(type: .external_person, alias: positional.safe(0) ?? "", label: positional.safe(1) ?? "", descr: positional.safe(2), sprite: positional.safe(3), tags: positional.safe(4), named: named, shapes: &shapes, currentBoundary: currentBoundaryParse, wrap: wrapEnabled)
+            let alias = positional.safe(0) ?? ""
+            let effectiveBoundary = _resolveParentBoundary(named: named, lexical: currentBoundaryParse, key: "boundary", macroName: "Person_Ext", alias: alias, diagnostics: &diagnostics)
+            _addPersonOrSystem(type: .external_person, alias: alias, label: positional.safe(1) ?? "", descr: positional.safe(2), sprite: positional.safe(3), tags: positional.safe(4), named: named, shapes: &shapes, currentBoundary: effectiveBoundary, wrap: wrapEnabled)
         case "System":
-            _addPersonOrSystem(type: .system, alias: positional.safe(0) ?? "", label: positional.safe(1) ?? "", descr: positional.safe(2), sprite: positional.safe(3), tags: positional.safe(4), named: named, shapes: &shapes, currentBoundary: currentBoundaryParse, wrap: wrapEnabled)
+            let alias = positional.safe(0) ?? ""
+            let effectiveBoundary = _resolveParentBoundary(named: named, lexical: currentBoundaryParse, key: "boundary", macroName: "System", alias: alias, diagnostics: &diagnostics)
+            _addPersonOrSystem(type: .system, alias: alias, label: positional.safe(1) ?? "", descr: positional.safe(2), sprite: positional.safe(3), tags: positional.safe(4), named: named, shapes: &shapes, currentBoundary: effectiveBoundary, wrap: wrapEnabled)
         case "SystemDb":
-            _addPersonOrSystem(type: .system_db, alias: positional.safe(0) ?? "", label: positional.safe(1) ?? "", descr: positional.safe(2), sprite: positional.safe(3), tags: positional.safe(4), named: named, shapes: &shapes, currentBoundary: currentBoundaryParse, wrap: wrapEnabled)
+            let alias = positional.safe(0) ?? ""
+            let effectiveBoundary = _resolveParentBoundary(named: named, lexical: currentBoundaryParse, key: "boundary", macroName: "SystemDb", alias: alias, diagnostics: &diagnostics)
+            _addPersonOrSystem(type: .system_db, alias: alias, label: positional.safe(1) ?? "", descr: positional.safe(2), sprite: positional.safe(3), tags: positional.safe(4), named: named, shapes: &shapes, currentBoundary: effectiveBoundary, wrap: wrapEnabled)
         case "SystemQueue":
-            _addPersonOrSystem(type: .system_queue, alias: positional.safe(0) ?? "", label: positional.safe(1) ?? "", descr: positional.safe(2), sprite: positional.safe(3), tags: positional.safe(4), named: named, shapes: &shapes, currentBoundary: currentBoundaryParse, wrap: wrapEnabled)
+            let alias = positional.safe(0) ?? ""
+            let effectiveBoundary = _resolveParentBoundary(named: named, lexical: currentBoundaryParse, key: "boundary", macroName: "SystemQueue", alias: alias, diagnostics: &diagnostics)
+            _addPersonOrSystem(type: .system_queue, alias: alias, label: positional.safe(1) ?? "", descr: positional.safe(2), sprite: positional.safe(3), tags: positional.safe(4), named: named, shapes: &shapes, currentBoundary: effectiveBoundary, wrap: wrapEnabled)
         case "System_Ext":
-            _addPersonOrSystem(type: .external_system, alias: positional.safe(0) ?? "", label: positional.safe(1) ?? "", descr: positional.safe(2), sprite: positional.safe(3), tags: positional.safe(4), named: named, shapes: &shapes, currentBoundary: currentBoundaryParse, wrap: wrapEnabled)
+            let alias = positional.safe(0) ?? ""
+            let effectiveBoundary = _resolveParentBoundary(named: named, lexical: currentBoundaryParse, key: "boundary", macroName: "System_Ext", alias: alias, diagnostics: &diagnostics)
+            _addPersonOrSystem(type: .external_system, alias: alias, label: positional.safe(1) ?? "", descr: positional.safe(2), sprite: positional.safe(3), tags: positional.safe(4), named: named, shapes: &shapes, currentBoundary: effectiveBoundary, wrap: wrapEnabled)
         case "SystemDb_Ext":
-            _addPersonOrSystem(type: .external_system_db, alias: positional.safe(0) ?? "", label: positional.safe(1) ?? "", descr: positional.safe(2), sprite: positional.safe(3), tags: positional.safe(4), named: named, shapes: &shapes, currentBoundary: currentBoundaryParse, wrap: wrapEnabled)
+            let alias = positional.safe(0) ?? ""
+            let effectiveBoundary = _resolveParentBoundary(named: named, lexical: currentBoundaryParse, key: "boundary", macroName: "SystemDb_Ext", alias: alias, diagnostics: &diagnostics)
+            _addPersonOrSystem(type: .external_system_db, alias: alias, label: positional.safe(1) ?? "", descr: positional.safe(2), sprite: positional.safe(3), tags: positional.safe(4), named: named, shapes: &shapes, currentBoundary: effectiveBoundary, wrap: wrapEnabled)
         case "SystemQueue_Ext":
-            _addPersonOrSystem(type: .external_system_queue, alias: positional.safe(0) ?? "", label: positional.safe(1) ?? "", descr: positional.safe(2), sprite: positional.safe(3), tags: positional.safe(4), named: named, shapes: &shapes, currentBoundary: currentBoundaryParse, wrap: wrapEnabled)
+            let alias = positional.safe(0) ?? ""
+            let effectiveBoundary = _resolveParentBoundary(named: named, lexical: currentBoundaryParse, key: "boundary", macroName: "SystemQueue_Ext", alias: alias, diagnostics: &diagnostics)
+            _addPersonOrSystem(type: .external_system_queue, alias: alias, label: positional.safe(1) ?? "", descr: positional.safe(2), sprite: positional.safe(3), tags: positional.safe(4), named: named, shapes: &shapes, currentBoundary: effectiveBoundary, wrap: wrapEnabled)
 
-        // Container family
+        // Container family — shapes resolve their parent via $boundary= named arg.
         case "Container":
-            _addContainerOrComponent(type: .container, alias: positional.safe(0) ?? "", label: positional.safe(1) ?? "", techn: positional.safe(2), descr: positional.safe(3), sprite: positional.safe(4), tags: positional.safe(5), named: named, shapes: &shapes, currentBoundary: currentBoundaryParse, wrap: wrapEnabled)
+            let alias = positional.safe(0) ?? ""
+            let effectiveBoundary = _resolveParentBoundary(named: named, lexical: currentBoundaryParse, key: "boundary", macroName: "Container", alias: alias, diagnostics: &diagnostics)
+            _addContainerOrComponent(type: .container, alias: alias, label: positional.safe(1) ?? "", techn: positional.safe(2), descr: positional.safe(3), sprite: positional.safe(4), tags: positional.safe(5), named: named, shapes: &shapes, currentBoundary: effectiveBoundary, wrap: wrapEnabled)
         case "ContainerDb":
-            _addContainerOrComponent(type: .container_db, alias: positional.safe(0) ?? "", label: positional.safe(1) ?? "", techn: positional.safe(2), descr: positional.safe(3), sprite: positional.safe(4), tags: positional.safe(5), named: named, shapes: &shapes, currentBoundary: currentBoundaryParse, wrap: wrapEnabled)
+            let alias = positional.safe(0) ?? ""
+            let effectiveBoundary = _resolveParentBoundary(named: named, lexical: currentBoundaryParse, key: "boundary", macroName: "ContainerDb", alias: alias, diagnostics: &diagnostics)
+            _addContainerOrComponent(type: .container_db, alias: alias, label: positional.safe(1) ?? "", techn: positional.safe(2), descr: positional.safe(3), sprite: positional.safe(4), tags: positional.safe(5), named: named, shapes: &shapes, currentBoundary: effectiveBoundary, wrap: wrapEnabled)
         case "ContainerQueue":
-            _addContainerOrComponent(type: .container_queue, alias: positional.safe(0) ?? "", label: positional.safe(1) ?? "", techn: positional.safe(2), descr: positional.safe(3), sprite: positional.safe(4), tags: positional.safe(5), named: named, shapes: &shapes, currentBoundary: currentBoundaryParse, wrap: wrapEnabled)
+            let alias = positional.safe(0) ?? ""
+            let effectiveBoundary = _resolveParentBoundary(named: named, lexical: currentBoundaryParse, key: "boundary", macroName: "ContainerQueue", alias: alias, diagnostics: &diagnostics)
+            _addContainerOrComponent(type: .container_queue, alias: alias, label: positional.safe(1) ?? "", techn: positional.safe(2), descr: positional.safe(3), sprite: positional.safe(4), tags: positional.safe(5), named: named, shapes: &shapes, currentBoundary: effectiveBoundary, wrap: wrapEnabled)
         case "Container_Ext":
-            _addContainerOrComponent(type: .external_container, alias: positional.safe(0) ?? "", label: positional.safe(1) ?? "", techn: positional.safe(2), descr: positional.safe(3), sprite: positional.safe(4), tags: positional.safe(5), named: named, shapes: &shapes, currentBoundary: currentBoundaryParse, wrap: wrapEnabled)
+            let alias = positional.safe(0) ?? ""
+            let effectiveBoundary = _resolveParentBoundary(named: named, lexical: currentBoundaryParse, key: "boundary", macroName: "Container_Ext", alias: alias, diagnostics: &diagnostics)
+            _addContainerOrComponent(type: .external_container, alias: alias, label: positional.safe(1) ?? "", techn: positional.safe(2), descr: positional.safe(3), sprite: positional.safe(4), tags: positional.safe(5), named: named, shapes: &shapes, currentBoundary: effectiveBoundary, wrap: wrapEnabled)
         case "ContainerDb_Ext":
-            _addContainerOrComponent(type: .external_container_db, alias: positional.safe(0) ?? "", label: positional.safe(1) ?? "", techn: positional.safe(2), descr: positional.safe(3), sprite: positional.safe(4), tags: positional.safe(5), named: named, shapes: &shapes, currentBoundary: currentBoundaryParse, wrap: wrapEnabled)
+            let alias = positional.safe(0) ?? ""
+            let effectiveBoundary = _resolveParentBoundary(named: named, lexical: currentBoundaryParse, key: "boundary", macroName: "ContainerDb_Ext", alias: alias, diagnostics: &diagnostics)
+            _addContainerOrComponent(type: .external_container_db, alias: alias, label: positional.safe(1) ?? "", techn: positional.safe(2), descr: positional.safe(3), sprite: positional.safe(4), tags: positional.safe(5), named: named, shapes: &shapes, currentBoundary: effectiveBoundary, wrap: wrapEnabled)
         case "ContainerQueue_Ext":
-            _addContainerOrComponent(type: .external_container_queue, alias: positional.safe(0) ?? "", label: positional.safe(1) ?? "", techn: positional.safe(2), descr: positional.safe(3), sprite: positional.safe(4), tags: positional.safe(5), named: named, shapes: &shapes, currentBoundary: currentBoundaryParse, wrap: wrapEnabled)
+            let alias = positional.safe(0) ?? ""
+            let effectiveBoundary = _resolveParentBoundary(named: named, lexical: currentBoundaryParse, key: "boundary", macroName: "ContainerQueue_Ext", alias: alias, diagnostics: &diagnostics)
+            _addContainerOrComponent(type: .external_container_queue, alias: alias, label: positional.safe(1) ?? "", techn: positional.safe(2), descr: positional.safe(3), sprite: positional.safe(4), tags: positional.safe(5), named: named, shapes: &shapes, currentBoundary: effectiveBoundary, wrap: wrapEnabled)
 
-        // Component family
+        // Component family — shapes resolve their parent via $boundary= named arg.
         case "Component":
-            _addContainerOrComponent(type: .component, alias: positional.safe(0) ?? "", label: positional.safe(1) ?? "", techn: positional.safe(2), descr: positional.safe(3), sprite: positional.safe(4), tags: positional.safe(5), named: named, shapes: &shapes, currentBoundary: currentBoundaryParse, wrap: wrapEnabled)
+            let alias = positional.safe(0) ?? ""
+            let effectiveBoundary = _resolveParentBoundary(named: named, lexical: currentBoundaryParse, key: "boundary", macroName: "Component", alias: alias, diagnostics: &diagnostics)
+            _addContainerOrComponent(type: .component, alias: alias, label: positional.safe(1) ?? "", techn: positional.safe(2), descr: positional.safe(3), sprite: positional.safe(4), tags: positional.safe(5), named: named, shapes: &shapes, currentBoundary: effectiveBoundary, wrap: wrapEnabled)
         case "ComponentDb":
-            _addContainerOrComponent(type: .component_db, alias: positional.safe(0) ?? "", label: positional.safe(1) ?? "", techn: positional.safe(2), descr: positional.safe(3), sprite: positional.safe(4), tags: positional.safe(5), named: named, shapes: &shapes, currentBoundary: currentBoundaryParse, wrap: wrapEnabled)
+            let alias = positional.safe(0) ?? ""
+            let effectiveBoundary = _resolveParentBoundary(named: named, lexical: currentBoundaryParse, key: "boundary", macroName: "ComponentDb", alias: alias, diagnostics: &diagnostics)
+            _addContainerOrComponent(type: .component_db, alias: alias, label: positional.safe(1) ?? "", techn: positional.safe(2), descr: positional.safe(3), sprite: positional.safe(4), tags: positional.safe(5), named: named, shapes: &shapes, currentBoundary: effectiveBoundary, wrap: wrapEnabled)
         case "ComponentQueue":
-            _addContainerOrComponent(type: .component_queue, alias: positional.safe(0) ?? "", label: positional.safe(1) ?? "", techn: positional.safe(2), descr: positional.safe(3), sprite: positional.safe(4), tags: positional.safe(5), named: named, shapes: &shapes, currentBoundary: currentBoundaryParse, wrap: wrapEnabled)
+            let alias = positional.safe(0) ?? ""
+            let effectiveBoundary = _resolveParentBoundary(named: named, lexical: currentBoundaryParse, key: "boundary", macroName: "ComponentQueue", alias: alias, diagnostics: &diagnostics)
+            _addContainerOrComponent(type: .component_queue, alias: alias, label: positional.safe(1) ?? "", techn: positional.safe(2), descr: positional.safe(3), sprite: positional.safe(4), tags: positional.safe(5), named: named, shapes: &shapes, currentBoundary: effectiveBoundary, wrap: wrapEnabled)
         case "Component_Ext":
-            _addContainerOrComponent(type: .external_component, alias: positional.safe(0) ?? "", label: positional.safe(1) ?? "", techn: positional.safe(2), descr: positional.safe(3), sprite: positional.safe(4), tags: positional.safe(5), named: named, shapes: &shapes, currentBoundary: currentBoundaryParse, wrap: wrapEnabled)
+            let alias = positional.safe(0) ?? ""
+            let effectiveBoundary = _resolveParentBoundary(named: named, lexical: currentBoundaryParse, key: "boundary", macroName: "Component_Ext", alias: alias, diagnostics: &diagnostics)
+            _addContainerOrComponent(type: .external_component, alias: alias, label: positional.safe(1) ?? "", techn: positional.safe(2), descr: positional.safe(3), sprite: positional.safe(4), tags: positional.safe(5), named: named, shapes: &shapes, currentBoundary: effectiveBoundary, wrap: wrapEnabled)
         case "ComponentDb_Ext":
-            _addContainerOrComponent(type: .external_component_db, alias: positional.safe(0) ?? "", label: positional.safe(1) ?? "", techn: positional.safe(2), descr: positional.safe(3), sprite: positional.safe(4), tags: positional.safe(5), named: named, shapes: &shapes, currentBoundary: currentBoundaryParse, wrap: wrapEnabled)
+            let alias = positional.safe(0) ?? ""
+            let effectiveBoundary = _resolveParentBoundary(named: named, lexical: currentBoundaryParse, key: "boundary", macroName: "ComponentDb_Ext", alias: alias, diagnostics: &diagnostics)
+            _addContainerOrComponent(type: .external_component_db, alias: alias, label: positional.safe(1) ?? "", techn: positional.safe(2), descr: positional.safe(3), sprite: positional.safe(4), tags: positional.safe(5), named: named, shapes: &shapes, currentBoundary: effectiveBoundary, wrap: wrapEnabled)
         case "ComponentQueue_Ext":
-            _addContainerOrComponent(type: .external_component_queue, alias: positional.safe(0) ?? "", label: positional.safe(1) ?? "", techn: positional.safe(2), descr: positional.safe(3), sprite: positional.safe(4), tags: positional.safe(5), named: named, shapes: &shapes, currentBoundary: currentBoundaryParse, wrap: wrapEnabled)
+            let alias = positional.safe(0) ?? ""
+            let effectiveBoundary = _resolveParentBoundary(named: named, lexical: currentBoundaryParse, key: "boundary", macroName: "ComponentQueue_Ext", alias: alias, diagnostics: &diagnostics)
+            _addContainerOrComponent(type: .external_component_queue, alias: alias, label: positional.safe(1) ?? "", techn: positional.safe(2), descr: positional.safe(3), sprite: positional.safe(4), tags: positional.safe(5), named: named, shapes: &shapes, currentBoundary: effectiveBoundary, wrap: wrapEnabled)
 
-        // Boundaries
+        // Boundaries — resolve their parent via $parent= named arg. `_addBoundary`
+        // mutates currentBoundaryParse and pushes the lexical stack as a side
+        // effect; after that, override the just-added boundary's parentBoundary
+        // with the resolved value when the named arg differs from the lexical state.
         case "Boundary":
-            _addBoundary(alias: positional.safe(0) ?? "", label: positional.safe(1) ?? "", type: positional.safe(2) ?? "system", tags: positional.safe(3), named: named, nodeType: nil, boundaries: &boundaries, currentBoundary: &currentBoundaryParse, parentBoundary: &parentBoundaryParse, stack: &boundaryParseStack, wrap: wrapEnabled)
+            let alias = positional.safe(0) ?? ""
+            let effectiveParent = _resolveParentBoundary(named: named, lexical: currentBoundaryParse, key: "parent", macroName: "Boundary", alias: alias, diagnostics: &diagnostics)
+            _addBoundary(alias: alias, label: positional.safe(1) ?? "", type: positional.safe(2) ?? "system", tags: positional.safe(3), named: named, nodeType: nil, boundaries: &boundaries, currentBoundary: &currentBoundaryParse, parentBoundary: &parentBoundaryParse, stack: &boundaryParseStack, wrap: wrapEnabled)
+            if let idx = boundaries.firstIndex(where: { $0.alias == alias }) { boundaries[idx].parentBoundary = effectiveParent }
             if hasBrace { if braceLine != nil { i += 1 } }
         case "Enterprise_Boundary":
-            _addBoundary(alias: positional.safe(0) ?? "", label: positional.safe(1) ?? "", type: "ENTERPRISE", tags: positional.safe(2), named: named, nodeType: nil, boundaries: &boundaries, currentBoundary: &currentBoundaryParse, parentBoundary: &parentBoundaryParse, stack: &boundaryParseStack, wrap: wrapEnabled)
+            let alias = positional.safe(0) ?? ""
+            let effectiveParent = _resolveParentBoundary(named: named, lexical: currentBoundaryParse, key: "parent", macroName: "Enterprise_Boundary", alias: alias, diagnostics: &diagnostics)
+            _addBoundary(alias: alias, label: positional.safe(1) ?? "", type: "ENTERPRISE", tags: positional.safe(2), named: named, nodeType: nil, boundaries: &boundaries, currentBoundary: &currentBoundaryParse, parentBoundary: &parentBoundaryParse, stack: &boundaryParseStack, wrap: wrapEnabled)
+            if let idx = boundaries.firstIndex(where: { $0.alias == alias }) { boundaries[idx].parentBoundary = effectiveParent }
             if hasBrace { if braceLine != nil { i += 1 } }
         case "System_Boundary":
-            _addBoundary(alias: positional.safe(0) ?? "", label: positional.safe(1) ?? "", type: "SYSTEM", tags: positional.safe(2), named: named, nodeType: nil, boundaries: &boundaries, currentBoundary: &currentBoundaryParse, parentBoundary: &parentBoundaryParse, stack: &boundaryParseStack, wrap: wrapEnabled)
+            let alias = positional.safe(0) ?? ""
+            let effectiveParent = _resolveParentBoundary(named: named, lexical: currentBoundaryParse, key: "parent", macroName: "System_Boundary", alias: alias, diagnostics: &diagnostics)
+            _addBoundary(alias: alias, label: positional.safe(1) ?? "", type: "SYSTEM", tags: positional.safe(2), named: named, nodeType: nil, boundaries: &boundaries, currentBoundary: &currentBoundaryParse, parentBoundary: &parentBoundaryParse, stack: &boundaryParseStack, wrap: wrapEnabled)
+            if let idx = boundaries.firstIndex(where: { $0.alias == alias }) { boundaries[idx].parentBoundary = effectiveParent }
             if hasBrace { if braceLine != nil { i += 1 } }
         case "Container_Boundary":
-            _addBoundary(alias: positional.safe(0) ?? "", label: positional.safe(1) ?? "", type: "CONTAINER", tags: positional.safe(2), named: named, nodeType: nil, boundaries: &boundaries, currentBoundary: &currentBoundaryParse, parentBoundary: &parentBoundaryParse, stack: &boundaryParseStack, wrap: wrapEnabled)
+            let alias = positional.safe(0) ?? ""
+            let effectiveParent = _resolveParentBoundary(named: named, lexical: currentBoundaryParse, key: "parent", macroName: "Container_Boundary", alias: alias, diagnostics: &diagnostics)
+            _addBoundary(alias: alias, label: positional.safe(1) ?? "", type: "CONTAINER", tags: positional.safe(2), named: named, nodeType: nil, boundaries: &boundaries, currentBoundary: &currentBoundaryParse, parentBoundary: &parentBoundaryParse, stack: &boundaryParseStack, wrap: wrapEnabled)
+            if let idx = boundaries.firstIndex(where: { $0.alias == alias }) { boundaries[idx].parentBoundary = effectiveParent }
             if hasBrace { if braceLine != nil { i += 1 } }
 
-        // Deployment nodes
+        // Deployment nodes — same pattern as boundaries.
         case "Deployment_Node":
-            _addDeploymentNode(nodeType: "node", alias: positional.safe(0) ?? "", label: positional.safe(1) ?? "", type: positional.safe(2), descr: positional.safe(3), sprite: positional.safe(4), tags: positional.safe(5), named: named, boundaries: &boundaries, currentBoundary: &currentBoundaryParse, parentBoundary: &parentBoundaryParse, stack: &boundaryParseStack, wrap: wrapEnabled)
+            let alias = positional.safe(0) ?? ""
+            let effectiveParent = _resolveParentBoundary(named: named, lexical: currentBoundaryParse, key: "parent", macroName: "Deployment_Node", alias: alias, diagnostics: &diagnostics)
+            _addDeploymentNode(nodeType: "node", alias: alias, label: positional.safe(1) ?? "", type: positional.safe(2), descr: positional.safe(3), sprite: positional.safe(4), tags: positional.safe(5), named: named, boundaries: &boundaries, currentBoundary: &currentBoundaryParse, parentBoundary: &parentBoundaryParse, stack: &boundaryParseStack, wrap: wrapEnabled)
+            if let idx = boundaries.firstIndex(where: { $0.alias == alias }) { boundaries[idx].parentBoundary = effectiveParent }
             if hasBrace { if braceLine != nil { i += 1 } }
         case "Node":
-            _addDeploymentNode(nodeType: "node", alias: positional.safe(0) ?? "", label: positional.safe(1) ?? "", type: positional.safe(2), descr: positional.safe(3), sprite: positional.safe(4), tags: positional.safe(5), named: named, boundaries: &boundaries, currentBoundary: &currentBoundaryParse, parentBoundary: &parentBoundaryParse, stack: &boundaryParseStack, wrap: wrapEnabled)
+            let alias = positional.safe(0) ?? ""
+            let effectiveParent = _resolveParentBoundary(named: named, lexical: currentBoundaryParse, key: "parent", macroName: "Node", alias: alias, diagnostics: &diagnostics)
+            _addDeploymentNode(nodeType: "node", alias: alias, label: positional.safe(1) ?? "", type: positional.safe(2), descr: positional.safe(3), sprite: positional.safe(4), tags: positional.safe(5), named: named, boundaries: &boundaries, currentBoundary: &currentBoundaryParse, parentBoundary: &parentBoundaryParse, stack: &boundaryParseStack, wrap: wrapEnabled)
+            if let idx = boundaries.firstIndex(where: { $0.alias == alias }) { boundaries[idx].parentBoundary = effectiveParent }
             if hasBrace { if braceLine != nil { i += 1 } }
         case "Node_L":
-            _addDeploymentNode(nodeType: "nodeL", alias: positional.safe(0) ?? "", label: positional.safe(1) ?? "", type: positional.safe(2), descr: positional.safe(3), sprite: positional.safe(4), tags: positional.safe(5), named: named, boundaries: &boundaries, currentBoundary: &currentBoundaryParse, parentBoundary: &parentBoundaryParse, stack: &boundaryParseStack, wrap: wrapEnabled)
+            let alias = positional.safe(0) ?? ""
+            let effectiveParent = _resolveParentBoundary(named: named, lexical: currentBoundaryParse, key: "parent", macroName: "Node_L", alias: alias, diagnostics: &diagnostics)
+            _addDeploymentNode(nodeType: "nodeL", alias: alias, label: positional.safe(1) ?? "", type: positional.safe(2), descr: positional.safe(3), sprite: positional.safe(4), tags: positional.safe(5), named: named, boundaries: &boundaries, currentBoundary: &currentBoundaryParse, parentBoundary: &parentBoundaryParse, stack: &boundaryParseStack, wrap: wrapEnabled)
+            if let idx = boundaries.firstIndex(where: { $0.alias == alias }) { boundaries[idx].parentBoundary = effectiveParent }
             if hasBrace { if braceLine != nil { i += 1 } }
         case "Node_R":
-            _addDeploymentNode(nodeType: "nodeR", alias: positional.safe(0) ?? "", label: positional.safe(1) ?? "", type: positional.safe(2), descr: positional.safe(3), sprite: positional.safe(4), tags: positional.safe(5), named: named, boundaries: &boundaries, currentBoundary: &currentBoundaryParse, parentBoundary: &parentBoundaryParse, stack: &boundaryParseStack, wrap: wrapEnabled)
+            let alias = positional.safe(0) ?? ""
+            let effectiveParent = _resolveParentBoundary(named: named, lexical: currentBoundaryParse, key: "parent", macroName: "Node_R", alias: alias, diagnostics: &diagnostics)
+            _addDeploymentNode(nodeType: "nodeR", alias: alias, label: positional.safe(1) ?? "", type: positional.safe(2), descr: positional.safe(3), sprite: positional.safe(4), tags: positional.safe(5), named: named, boundaries: &boundaries, currentBoundary: &currentBoundaryParse, parentBoundary: &parentBoundaryParse, stack: &boundaryParseStack, wrap: wrapEnabled)
+            if let idx = boundaries.firstIndex(where: { $0.alias == alias }) { boundaries[idx].parentBoundary = effectiveParent }
             if hasBrace { if braceLine != nil { i += 1 } }
 
         // Relationships
@@ -275,6 +350,8 @@ public func _parseC4DiagramWithDiagnostics(
     diagram.boundaries = boundaries
     diagram.relationships = relationships
 
+    _validateBoundaryReferences(shapes: shapes, boundaries: boundaries, diagnostics: &diagnostics)
+
     return (diagram, diagnostics)
 }
 
@@ -306,6 +383,50 @@ public func parseMacroArguments(_ argsString: String) -> (positional: [String], 
     }
 
     return (positional, named)
+}
+
+/// Parse trailing `$key=value` attributes that Mermaid C4 emits after the
+/// paren list (e.g. `Person(p, "P") $boundary=alias $tags="v1"`). Whitespace-
+/// separated; values may be quoted. Strips the leading `$` from each key so
+/// callers see the same shape as in-paren named args.
+func _parseTrailingC4Attributes(_ s: String) -> [String: String] {
+    var result: [String: String] = [:]
+    var idx = s.startIndex
+    while idx < s.endIndex {
+        // Skip whitespace.
+        while idx < s.endIndex, s[idx].isWhitespace {
+            idx = s.index(after: idx)
+        }
+        guard idx < s.endIndex, s[idx] == "$" else { break }
+        // Consume key.
+        let keyStart = s.index(after: idx)
+        var keyEnd = keyStart
+        while keyEnd < s.endIndex, s[keyEnd] != "=", !s[keyEnd].isWhitespace {
+            keyEnd = s.index(after: keyEnd)
+        }
+        let key = String(s[keyStart..<keyEnd])
+        guard keyEnd < s.endIndex, s[keyEnd] == "=" else { break }
+        // Consume value.
+        var valueStart = s.index(after: keyEnd)
+        if valueStart < s.endIndex, s[valueStart] == "\"" || s[valueStart] == "'" {
+            let quote = s[valueStart]
+            valueStart = s.index(after: valueStart)
+            var valueEnd = valueStart
+            while valueEnd < s.endIndex, s[valueEnd] != quote {
+                valueEnd = s.index(after: valueEnd)
+            }
+            result[key] = String(s[valueStart..<valueEnd])
+            idx = valueEnd < s.endIndex ? s.index(after: valueEnd) : valueEnd
+        } else {
+            var valueEnd = valueStart
+            while valueEnd < s.endIndex, !s[valueEnd].isWhitespace {
+                valueEnd = s.index(after: valueEnd)
+            }
+            result[key] = String(s[valueStart..<valueEnd])
+            idx = valueEnd
+        }
+    }
+    return result
 }
 
 private func _stripC4Quotes(_ s: String) -> String {
