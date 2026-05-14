@@ -433,7 +433,7 @@ public final class LiveEditorStore {
             preferredExportFormat: formatID,
             exportRegistry: DiagramPipeline.defaultExportRegistry
         )
-        try? newEditor.syncSource()
+        try? await newEditor.syncSource()
 
         // Best-effort selection restore. If a lookup is current, validate the
         // element still exists. Otherwise, preserve the same DiagramSelection

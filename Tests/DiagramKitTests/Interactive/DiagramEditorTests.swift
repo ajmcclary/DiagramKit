@@ -68,20 +68,20 @@ struct DiagramEditorTests {
     }
 
     @Test("syncSource() populates source after init")
-    func syncSourcePopulatesSource() throws {
+    func syncSourcePopulatesSource() async throws {
         let doc = DiagramDocument(type: .flowchart)
         let editor = DiagramEditor(
             document: doc,
             preferredExportFormat: .mermaid,
             exportRegistry: mockRegistry()
         )
-        try editor.syncSource()
+        try await editor.syncSource()
         #expect(editor.source == "mock-diagram-flowchart-0")
         #expect(editor.lastExportDiagnostics.isEmpty)
     }
 
     @Test("syncSource() with unsupported format returns empty source with diagnostics")
-    func syncSourceUnsupportedFormat() throws {
+    func syncSourceUnsupportedFormat() async throws {
         // Use a registry with an exporter that supports the format but not
         // the diagram type — this returns empty source + diagnostics rather
         // than throwing.
@@ -93,7 +93,7 @@ struct DiagramEditorTests {
             preferredExportFormat: .mermaid,
             exportRegistry: registry
         )
-        try editor.syncSource()
+        try await editor.syncSource()
         // Exporter exists but doesn't support sequenceDiagram → empty source + diagnostic
         #expect(editor.source == "")
         #expect(!editor.lastExportDiagnostics.isEmpty)

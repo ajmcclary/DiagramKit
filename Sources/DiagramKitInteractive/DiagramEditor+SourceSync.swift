@@ -13,31 +13,16 @@ import DiagramKitRenderingCG
 extension DiagramEditor {
     /// Re-export the current document via `preferredExportFormat`.
     ///
-    /// Uses `DiagramExportLoader.export(_:to:registry:)` for deterministic
-    /// format-ID-based dispatch. Sets `source` to the exported source text
-    /// and `lastExportDiagnostics` to any non-fatal diagnostics.
+    /// Hops to a fresh 8 MB worker thread; sets `source` to the exported
+    /// source text and `lastExportDiagnostics` to any non-fatal
+    /// diagnostics on success.
     ///
     /// - Throws: `DiagramExportError` if no exporter is registered for
     ///   `preferredExportFormat`, or if the exporter throws a fatal error.
-    public func syncSource() throws {
-        let result = try DiagramExportLoader.export(
-            document,
-            to: preferredExportFormat,
-            registry: exportRegistry
-        )
+    public func syncSource() async throws {
+        let result = try await _exportAsync(document)
         _commitSource(result.source)
         _commitDiagnostics(result.diagnostics)
-    }
-
-    /// Internal helper: export without mutating state.
-    /// Used by remaining sync mutation paths (`performFlowchart`,
-    /// `syncSource`) until they migrate to async in later tasks.
-    func _export(_ document: DiagramDocument) throws -> DiagramExportResult {
-        try DiagramExportLoader.export(
-            document,
-            to: preferredExportFormat,
-            registry: exportRegistry
-        )
     }
 
     /// Internal helper: export without mutating state, off MainActor.

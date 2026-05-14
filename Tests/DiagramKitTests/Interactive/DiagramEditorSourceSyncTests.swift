@@ -74,7 +74,7 @@ struct DiagramEditorSourceSyncTests {
             preferredExportFormat: .mermaid,
             exportRegistry: registry
         )
-        try editor.syncSource()
+        try await editor.syncSource()
         #expect(editor.source == "mermaid-1")
 
         // Insert a node
@@ -124,7 +124,7 @@ struct DiagramEditorSourceSyncTests {
     }
 
     @Test("syncSource after init populates source")
-    func syncSourceAfterInit() throws {
+    func syncSourceAfterInit() async throws {
         let doc = flowDoc(["X", "Y"])
         let registry = ExporterRegistry.empty.registering(FlowchartOnlyExporter())
         let editor = DiagramEditor(
@@ -133,12 +133,12 @@ struct DiagramEditorSourceSyncTests {
             exportRegistry: registry
         )
         #expect(editor.source == nil)
-        try editor.syncSource()
+        try await editor.syncSource()
         #expect(editor.source == "mermaid-2")
     }
 
     @Test("Format mismatch returns empty source with diagnostic")
-    func formatMismatchReturnsEmpty() throws {
+    func formatMismatchReturnsEmpty() async throws {
         let doc = DiagramDocument(type: .sequenceDiagram)
         let registry = ExporterRegistry.empty.registering(FlowchartOnlyExporter())
         let editor = DiagramEditor(
@@ -146,14 +146,14 @@ struct DiagramEditorSourceSyncTests {
             preferredExportFormat: .mermaid,
             exportRegistry: registry
         )
-        try editor.syncSource()
+        try await editor.syncSource()
         #expect(editor.source == "")
         #expect(!editor.lastExportDiagnostics.isEmpty)
         #expect(editor.lastExportDiagnostics.contains { $0.severity == .unsupported })
     }
 
     @Test("No registered exporter surfaces an unsupported diagnostic")
-    func noRegisteredExporterSurfacesDiagnostic() throws {
+    func noRegisteredExporterSurfacesDiagnostic() async throws {
         // Phase 6D: DiagramExportLoader no longer throws when no exporter is
         // registered for a format. Instead it returns an empty source with a
         // `.unsupported` diagnostic so callers can degrade gracefully.
@@ -163,7 +163,7 @@ struct DiagramEditorSourceSyncTests {
             preferredExportFormat: .mermaid,
             exportRegistry: ExporterRegistry.empty
         )
-        try editor.syncSource()
+        try await editor.syncSource()
         #expect(editor.source == "")
         #expect(editor.lastExportDiagnostics.contains { $0.severity == .unsupported })
     }

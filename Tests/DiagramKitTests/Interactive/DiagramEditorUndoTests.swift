@@ -62,7 +62,7 @@ struct DiagramEditorUndoTests {
             preferredExportFormat: .mermaid,
             exportRegistry: mockRegistry()
         )
-        try editor.syncSource()
+        try await editor.syncSource()
         let originalSource = editor.source
 
         // Perform a mutation

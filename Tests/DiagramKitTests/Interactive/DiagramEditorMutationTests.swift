@@ -433,7 +433,7 @@ struct DiagramEditorMutationTests {
             preferredExportFormat: .mermaid,
             exportRegistry: mockRegistry()
         )
-        try editor.syncSource()
+        try await editor.syncSource()
         let originalSource = editor.source
 
         try await editor.perform(.noop)
@@ -450,7 +450,7 @@ struct DiagramEditorMutationTests {
             preferredExportFormat: .mermaid,
             exportRegistry: mockRegistry()
         )
-        try editor.syncSource()
+        try await editor.syncSource()
         let originalSource = editor.source
 
         let sel = DiagramSelection(diagramType: .flowchart, elementID: "node:Z")
