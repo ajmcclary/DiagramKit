@@ -142,11 +142,11 @@ public enum DiagramPipeline {
             let colors = DiagramColors(
                 bg: theme.background.cssColorString,
                 fg: theme.foreground.cssColorString,
-                line: (theme.line ?? theme.foreground).cssColorString,
-                accent: (theme.accent ?? theme.foreground).cssColorString,
-                muted: (theme.muted ?? theme.foreground).cssColorString,
-                surface: (theme.surface ?? theme.background).cssColorString,
-                border: (theme.border ?? theme.foreground).cssColorString
+                line: theme.effectiveLine().cssColorString,
+                accent: theme.effectiveAccent().cssColorString,
+                muted: theme.effectiveMuted().cssColorString,
+                surface: theme.effectiveSurface().cssColorString,
+                border: theme.effectiveBorder().cssColorString
             )
             let font = DiagramFontResolver.shared.svgFontFamily
             let diagramId = SVGIDGenerator.id(for: source, policy: idPolicy)
@@ -173,11 +173,11 @@ public enum DiagramPipeline {
             let colors = DiagramColors(
                 bg: theme.background.cssColorString,
                 fg: theme.foreground.cssColorString,
-                line: (theme.line ?? theme.foreground).cssColorString,
-                accent: (theme.accent ?? theme.foreground).cssColorString,
-                muted: (theme.muted ?? theme.foreground).cssColorString,
-                surface: (theme.surface ?? theme.background).cssColorString,
-                border: (theme.border ?? theme.foreground).cssColorString
+                line: theme.effectiveLine().cssColorString,
+                accent: theme.effectiveAccent().cssColorString,
+                muted: theme.effectiveMuted().cssColorString,
+                surface: theme.effectiveSurface().cssColorString,
+                border: theme.effectiveBorder().cssColorString
             )
             let font = DiagramFontResolver.shared.svgFontFamily
             let diagramId = SVGIDGenerator.id(
