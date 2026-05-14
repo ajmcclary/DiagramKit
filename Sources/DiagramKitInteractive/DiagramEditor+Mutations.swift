@@ -37,6 +37,7 @@ extension DiagramEditor {
         let oldDocument = document
         let oldSource = source
         let oldDiagnostics = lastExportDiagnostics
+        let oldSelection = selection
 
         _commitDocument(newDocument)
         _commitSource(exportResult.source)
@@ -46,7 +47,8 @@ extension DiagramEditor {
             editor._restoreSnapshot(
                 document: oldDocument,
                 source: oldSource,
-                diagnostics: oldDiagnostics
+                diagnostics: oldDiagnostics,
+                selection: oldSelection
             )
         }
         undoManager.setActionName(mutation.undoActionName)

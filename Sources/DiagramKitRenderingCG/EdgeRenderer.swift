@@ -116,7 +116,10 @@ public class EdgeRenderer {
             path.addLine(to: CGPoint(x: -arrowWidth, y: arrowHeight / 2))
             path.closeSubpath()
             context.setLineJoin(.round)
-            context.setLineWidth(0.75)
+            // Earlier versions hardcoded `setLineWidth(0.75)` here, which
+            // ignored the configured stroke width above (line 106). Inherit
+            // the already-set `lineWidth` for the outline stroke so SVG and
+            // image renderers diverge only on rasterization, not on width.
             context.addPath(path)
             context.drawPath(using: .fillStroke)
 

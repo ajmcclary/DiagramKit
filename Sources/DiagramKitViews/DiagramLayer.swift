@@ -88,10 +88,27 @@ public class DiagramLayer: CALayer {
         #if os(visionOS)
         contentsScale = 2.0
         #elseif targetEnvironment(macCatalyst) || canImport(UIKit)
+        // `UIScreen.main` is deprecated on iOS 13+ multi-scene apps; at
+        // init time the layer is not yet attached to a window so we
+        // have no scene to query. Hosts that need exact per-scene
+        // backing scale on iPad / Catalyst should call
+        // ``updateContentsScale(_:)`` from
+        // `traitCollectionDidChange(_:)` once the view is in a window.
         contentsScale = UIScreen.main.scale
         #elseif canImport(AppKit)
         contentsScale = NSScreen.main?.backingScaleFactor ?? 2.0
         #endif
+    }
+
+    /// Updates the layer's `contentsScale` from a host-provided value.
+    /// Use when the layer is hosted on iPad / Catalyst and the
+    /// `UIScreen.main.scale` fallback in ``commonInit()`` could be
+    /// wrong for the current `UIWindowScene`. No-op if the value is
+    /// equal to the current scale.
+    public func updateContentsScale(_ scale: CGFloat) {
+        guard scale > 0, scale != contentsScale else { return }
+        contentsScale = scale
+        setNeedsDisplay()
     }
 
     // MARK: - Preparation observers
@@ -183,8 +200,16 @@ public class DiagramLayer: CALayer {
             case .success(let prepared):
                 self.preparedDiagram = prepared
                 self.diagramBounds = prepared.bounds
+                self.parseError = nil
             case .failure(let error):
                 _reportDiagramIssueIfNeeded(error, operation: "DiagramLayer.prepareDiagram")
+                // Clear-on-failure semantics: stale `preparedDiagram`
+                // and `diagramBounds` would otherwise leave the previous
+                // successful render on screen with `parseError` floating
+                // separately. Bindings consumers can now observe failure
+                // as a state change (nil prepared + non-nil error).
+                self.preparedDiagram = nil
+                self.diagramBounds = .zero
                 self.parseError = error
             }
             self.setNeedsDisplay()
