@@ -1,8 +1,11 @@
+import DiagramKitCommon
 import DiagramKitModel
-// `DiagramDiagnostic` lives in DiagramKitCommon after Phase 4. Re-export it
-// so downstream code that only `import DiagramKitImport` still sees the type
-// without an extra import.
-@_exported import DiagramKitCommon
+
+// `DiagramDiagnostic` lives in DiagramKitCommon after Phase 4. Re-export
+// just that single type so `import DiagramKitImport` still resolves
+// `DiagramDiagnostic` without pulling the entire DiagramKitCommon namespace
+// in transitively.
+public typealias DiagramDiagnostic = DiagramKitCommon.DiagramDiagnostic
 
 /// The result of importing a diagram from a source format.
 public struct DiagramImportResult: Sendable {
