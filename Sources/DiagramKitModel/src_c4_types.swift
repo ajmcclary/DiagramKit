@@ -372,6 +372,17 @@ public struct C4Shape: Sendable, Equatable {
     }
 }
 
+public enum C4BoundaryOrigin: Sendable, Equatable {
+    /// Boundary was authored explicitly in the source (Mermaid `Boundary(...)`,
+    /// Structurizr `group "..." { ... }`). Exporters re-emit it.
+    case authored
+
+    /// Boundary was synthesized by the importer from the view scope.
+    /// Exporters do not re-emit it because the next import re-derives it
+    /// from the same view scope.
+    case viewScopeSynthesized
+}
+
 public struct C4Boundary: Sendable, Equatable {
     public var alias: String
     public var label: String
@@ -385,6 +396,7 @@ public struct C4Boundary: Sendable, Equatable {
     public var bgColor: String?
     public var fontColor: String?
     public var borderColor: String?
+    public var origin: C4BoundaryOrigin
 
     public init(
         alias: String,
@@ -398,7 +410,8 @@ public struct C4Boundary: Sendable, Equatable {
         wrap: Bool = false,
         bgColor: String? = nil,
         fontColor: String? = nil,
-        borderColor: String? = nil
+        borderColor: String? = nil,
+        origin: C4BoundaryOrigin = .authored
     ) {
         self.alias = alias
         self.label = label
@@ -412,6 +425,7 @@ public struct C4Boundary: Sendable, Equatable {
         self.bgColor = bgColor
         self.fontColor = fontColor
         self.borderColor = borderColor
+        self.origin = origin
     }
 }
 
