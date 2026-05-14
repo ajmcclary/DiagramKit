@@ -220,7 +220,7 @@ enum AsciiRenderRegistry {
             type: .c4,
             render: { source, frontmatter, _, _, _ in
                 let rawLines = DiagramSourceNormalizer.rawLines(source)
-                let model = try parseC4Diagram(rawLines, frontmatter: frontmatter)
+                let (model, _) = try _parseC4DiagramWithDiagnostics(rawLines, frontmatter: frontmatter)
                 return renderC4Ascii(model)
             }
         )

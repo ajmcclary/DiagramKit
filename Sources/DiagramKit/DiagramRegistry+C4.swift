@@ -13,7 +13,11 @@ extension DiagramRegistry {
         type: .c4,
         matches: { $0.raw.range(of: #"^C4(?:Context|Container|Component|Dynamic|Deployment)\s*$"#, options: .regularExpression) != nil },
         parse: { source, frontmatter in
-            try parseC4Diagram(DiagramSourceNormalizer.rawLines(source), frontmatter: frontmatter)
+            let (diagram, _) = try _parseC4DiagramWithDiagnostics(
+                DiagramSourceNormalizer.rawLines(source),
+                frontmatter: frontmatter
+            )
+            return diagram
         },
         wrap: DiagramPayload.c4,
         unwrap: { payload in
