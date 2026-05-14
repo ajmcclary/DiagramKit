@@ -37,6 +37,11 @@ swift test --filter CorpusSnapshotTests             # corpus snapshots (~5 min; 
 SNAPSHOT_DIAGRAM_IDS=block-1-simple,block-2-columns swift test --filter CorpusSnapshotTests/imageSnapshot
 swift run DiagramPlayground                         # SwiftUI sample app
 
+# Rebaseline snapshots after a renderer change (chunked to avoid signal-10):
+Scripts/rebaseline-snapshots.sh                     # all SVG + image
+Scripts/rebaseline-snapshots.sh --target svg        # SVG only
+Scripts/rebaseline-snapshots.sh --target image --chunk 10  # smaller chunks
+
 # Record/refresh snapshot baselines:
 SNAPSHOT_TESTING_RECORD=true swift test --filter CorpusSnapshotTests
 SNAPSHOT_TESTING_RECORD=all SNAPSHOT_DIAGRAM_IDS=block-1-simple,block-2-columns swift test --filter CorpusSnapshotTests/imageSnapshot
