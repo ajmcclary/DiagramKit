@@ -1,6 +1,6 @@
 import Foundation
-import DiagramKitModel
 import DiagramKitImport
+import DiagramKitModel
 
 /// Recursive-descent parser for the narrow Structurizr DSL subset.
 ///
@@ -74,6 +74,11 @@ public struct StructurizrParser: Sendable {
 
         while let token = s.peek() {
             if token == .closeBrace { break }
+            if case .identifier("group") = token {
+                let tagged = try parseGroup(&s, scopedRelationships: &relationships)
+                elements.append(contentsOf: tagged)
+                continue
+            }
             if case .identifier("tags") = token { s.skipTags(); continue }
             if case .bang = token {
                 _ = s.advance()
@@ -102,6 +107,63 @@ public struct StructurizrParser: Sendable {
         }
         _ = s.advance()
         return StructurizrModel(elements: elements, relationships: relationships)
+    }
+
+    // MARK: - group
+
+    private func parseGroup(
+        _ s: inout StructurizrParserState,
+        scopedRelationships: inout [StructurizrRelationshipDef]
+    ) throws -> [StructurizrModelElement] {
+        _ = s.advance() // 'group'
+        guard let label = s.consumeString() else {
+            throw DiagramError.malformedSource(message: "Expected string label after 'group'")
+        }
+        guard s.peek() == .openBrace else {
+            throw DiagramError.malformedSource(message: "Expected '{' after group label")
+        }
+        _ = s.advance()
+
+        var groupElements: [StructurizrModelElement] = []
+        while let token = s.peek() {
+            if token == .closeBrace { break }
+            if case .identifier("group") = token {
+                s.diagnostic("Structurizr `group` cannot nest; dropping inner group")
+                _ = s.advance() // inner 'group'
+                _ = s.consumeString() // optional inner label
+                if s.peek() == .openBrace { s.skipBlock() }
+                continue
+            }
+            if case .identifier("tags") = token { s.skipTags(); continue }
+            if case .bang = token {
+                _ = s.advance()
+                if let directive = s.consumeIdentifier() { s.skipDirective(directive: directive) }
+                continue
+            }
+            if case .identifier = token {
+                if s.peekAhead(1) == .equals {
+                    if let element = try parseElementDef(&s, parentAlias: nil, scopedRelationships: &scopedRelationships) {
+                        var tagged = element
+                        tagged.group = label
+                        groupElements.append(tagged)
+                    }
+                    continue
+                }
+                if s.peekAhead(1) == .arrow {
+                    if let rel = try parseRelationshipDef(&s) { scopedRelationships.append(rel) }
+                    continue
+                }
+                if let word = s.consumeIdentifier() { s.diagnostic("unexpected statement in group block: \(word)") }
+                continue
+            }
+            _ = s.advance()
+        }
+
+        guard s.peek() == .closeBrace else {
+            throw DiagramError.malformedSource(message: "Unbalanced braces in group: missing '}'")
+        }
+        _ = s.advance()
+        return groupElements
     }
 
     // MARK: - element_def
