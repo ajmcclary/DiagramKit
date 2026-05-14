@@ -57,36 +57,47 @@ enum StructurizrC4Export {
         lines.append("workspace {")
         lines.append("  model {")
 
-        // Emit shapes as model elements
-        for shape in model.shapes {
-            let safeAlias = aliasMap[shape.alias] ?? shape.alias
-            let stype = structurizrType(shape.typeC4Shape)
-            let escapedLabel = escape(shape.label)
-            let escapedDesc = shape.description.map { escape($0) } ?? ""
+        // Partition boundaries by origin. .authored entries emit as `group { ... }`
+        // blocks; .viewScopeSynthesized entries silently drop (the next import
+        // re-derives them from the same view scope).
+        let authoredBoundaries = model.boundaries.filter { $0.origin == .authored }
+        let authoredAliases = Set(authoredBoundaries.map(\.alias))
+        let shapesByBoundary: [String: [C4Shape]] = Dictionary(grouping: model.shapes) { $0.parentBoundary }
 
-            if !escapedDesc.isEmpty {
-                lines.append("    \(safeAlias) = \(stype) \"\(escapedLabel)\" \"\(escapedDesc)\"")
-            } else {
-                lines.append("    \(safeAlias) = \(stype) \"\(escapedLabel)\"")
-            }
-
-            if let tags = shape.tags, !tags.isEmpty {
+        // Authored boundaries → `group "label" { ... }`. Nested authored boundaries
+        // flatten to siblings with one `.warning` per dropped parent link. Empty
+        // authored boundaries (no direct shape members) are dropped with a `.warning`.
+        for boundary in authoredBoundaries {
+            if !boundary.parentBoundary.isEmpty && boundary.parentBoundary != "global" {
                 diagnostics.append(DiagramDiagnostic(
-                    severity: .unsupported,
-                    message: "Structurizr parser does not currently support element-scoped tags; dropping `tags \"\(tags)\"` for alias '\(shape.alias)'"
+                    severity: .warning,
+                    message: "Structurizr `group` is non-nestable; flattening boundary '\(boundary.alias)' (parent: '\(boundary.parentBoundary)') to top-level"
                 ))
             }
+
+            let members = shapesByBoundary[boundary.alias] ?? []
+            if members.isEmpty {
+                diagnostics.append(DiagramDiagnostic(
+                    severity: .warning,
+                    message: "Empty group '\(boundary.label)' (alias '\(boundary.alias)') has no direct shapes after Structurizr flattening; dropping"
+                ))
+                continue
+            }
+
+            lines.append("    group \"\(escape(boundary.label))\" {")
+            for shape in members {
+                emitShape(shape, indent: "      ", aliasMap: aliasMap, into: &lines, diagnostics: &diagnostics)
+            }
+            lines.append("    }")
         }
 
-        // Boundaries (Mermaid groups) — the bundled parser does not yet support
-        // `group ... { include ... }` inside `model`, so drop them but record
-        // the omission. Children remain emitted as flat elements above.
-        if !model.boundaries.isEmpty {
-            for boundary in model.boundaries {
-                diagnostics.append(DiagramDiagnostic(
-                    severity: .unsupported,
-                    message: "Structurizr parser does not currently support `group` boundaries inside `model`; dropping boundary '\(boundary.label)' (alias '\(boundary.alias)')"
-                ))
+        // Root-level shapes (parentBoundary == "global", empty, or pointing at
+        // a non-authored boundary like .viewScopeSynthesized) emit at the model
+        // root, exactly as today.
+        for shape in model.shapes {
+            let parent = shape.parentBoundary
+            if parent == "global" || parent.isEmpty || !authoredAliases.contains(parent) {
+                emitShape(shape, indent: "    ", aliasMap: aliasMap, into: &lines, diagnostics: &diagnostics)
             }
         }
 
@@ -137,6 +148,32 @@ enum StructurizrC4Export {
 
         let source = lines.joined(separator: "\n") + "\n"
         return DiagramExportResult(source: source, diagnostics: diagnostics)
+    }
+
+    private static func emitShape(
+        _ shape: C4Shape,
+        indent: String,
+        aliasMap: [String: String],
+        into lines: inout [String],
+        diagnostics: inout [DiagramDiagnostic]
+    ) {
+        let safeAlias = aliasMap[shape.alias] ?? shape.alias
+        let stype = structurizrType(shape.typeC4Shape)
+        let escapedLabel = escape(shape.label)
+        let escapedDesc = shape.description.map { escape($0) } ?? ""
+
+        if !escapedDesc.isEmpty {
+            lines.append("\(indent)\(safeAlias) = \(stype) \"\(escapedLabel)\" \"\(escapedDesc)\"")
+        } else {
+            lines.append("\(indent)\(safeAlias) = \(stype) \"\(escapedLabel)\"")
+        }
+
+        if let tags = shape.tags, !tags.isEmpty {
+            diagnostics.append(DiagramDiagnostic(
+                severity: .unsupported,
+                message: "Structurizr parser does not currently support element-scoped tags; dropping `tags \"\(tags)\"` for alias '\(shape.alias)'"
+            ))
+        }
     }
 
     private static func structurizrType(_ type: C4ShapeType) -> String {
