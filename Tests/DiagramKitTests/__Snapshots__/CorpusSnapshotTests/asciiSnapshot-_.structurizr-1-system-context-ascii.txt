@@ -1,0 +1,4 @@
+  • User — person
+  • My App — system
+
+u → app : Uses

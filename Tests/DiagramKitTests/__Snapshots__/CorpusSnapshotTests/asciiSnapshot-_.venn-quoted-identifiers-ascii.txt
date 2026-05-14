@@ -1,0 +1,3 @@
+Alpha Team [size=10]
+Beta Team [size=10]
+Alpha Team ∩ Beta Team [size=2.5]

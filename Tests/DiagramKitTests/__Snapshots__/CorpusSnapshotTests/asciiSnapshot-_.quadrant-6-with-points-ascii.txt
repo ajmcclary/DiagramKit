@@ -1,0 +1,4 @@
+x-axis: Urgent ↔ Not Urgent
+y-axis: Not Important ↕ Important
+• Task B [0.7, 0.3]
+• Task A [0.2, 0.8]

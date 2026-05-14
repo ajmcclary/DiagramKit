@@ -1,0 +1,10 @@
+Requirements:
+  • SRD (SRD-001) — The system shall respond within 100ms.
+  • FUNC (FUNC-001) — Process user input.
+  • CONST (CONST-001) — Must use standard protocols.
+Elements:
+  • test_suite [verification]
+  • simulator [simulation]
+Relationships:
+  • test_suite -verifies- SRD
+  • test_suite -contains- simulator

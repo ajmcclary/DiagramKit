@@ -1,0 +1,11 @@
+Requirements:
+  • A (1) — 
+  • B (2) — 
+Relationships:
+  • A -contains- B
+  • A -copies- B
+  • A -derives- B
+  • A -satisfies- B
+  • A -verifies- B
+  • A -refines- B
+  • A -traces- B

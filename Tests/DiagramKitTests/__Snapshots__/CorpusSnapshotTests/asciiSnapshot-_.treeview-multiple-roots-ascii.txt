@@ -1,0 +1,6 @@
+frontend
+└── App.tsx
+backend
+└── server.js
+package.json
+README.md

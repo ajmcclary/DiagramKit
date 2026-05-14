@@ -1,0 +1,11 @@
+* ZERO ZERO [main]
+|
+* A A [develop]
+|
+* ONE ONE [main]
+|
+* B B [develop]
+|
+* MERGE merged branch develop into main [main]
+|
+* 5-KqoPjWn cherry-picked merged branch develop into main into release [release] (cherry-pick:MERGE|parent:B)

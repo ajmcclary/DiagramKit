@@ -1,0 +1,1 @@
+SankeyNode(id: "A", rawID: "A") → SankeyNode(id: "B", rawID: "B") : 10

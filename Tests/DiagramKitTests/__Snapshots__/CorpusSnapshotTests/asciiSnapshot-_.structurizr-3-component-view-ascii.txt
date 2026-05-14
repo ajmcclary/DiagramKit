@@ -1,0 +1,7 @@
+  • User — person
+  • My App — system
+  • Web App — container
+  • Auth Service — component (OAuth2)
+  • API Service — component
+
+u → app : Uses

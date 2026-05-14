@@ -1,0 +1,6 @@
+Frames:
+  • 01 — UI
+  • 02 — Command
+  • 03 — Event
+  • 04 — Processor
+  • 05 — ReadModel

@@ -1,0 +1,2 @@
+x-axis: Urgent ↔ Not Urgent
+y-axis: Not Important ↕ Important

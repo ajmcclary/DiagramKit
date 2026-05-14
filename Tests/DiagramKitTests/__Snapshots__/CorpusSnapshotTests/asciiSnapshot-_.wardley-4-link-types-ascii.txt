@@ -1,0 +1,13 @@
+Link Types
+==========
+Components:
+  • A [x=10.0, y=10.0]
+  • B [x=20.0, y=30.0]
+  • C [x=30.0, y=50.0]
+  • D [x=40.0, y=70.0]
+Links:
+  • A → B
+  • B → C
+  • C → D
+  • A → C
+  • A → B : sync

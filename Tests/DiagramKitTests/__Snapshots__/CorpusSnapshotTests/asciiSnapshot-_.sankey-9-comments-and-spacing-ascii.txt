@@ -1,0 +1,3 @@
+SankeyNode(id: "A", rawID: "A") → SankeyNode(id: "B", rawID: "B") : 10
+SankeyNode(id: "C", rawID: "C") → SankeyNode(id: "D", rawID: "D") : 20
+SankeyNode(id: "E", rawID: "E") → SankeyNode(id: "F", rawID: "F") : 30

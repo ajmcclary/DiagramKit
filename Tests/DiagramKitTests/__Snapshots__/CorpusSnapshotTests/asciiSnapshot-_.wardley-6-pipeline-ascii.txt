@@ -1,0 +1,9 @@
+Pipeline Evolution
+==================
+Components:
+  • Compute [x=60.0, y=50.0]
+  • Virtual Machine [x=30.0, y=50.0]
+  • Container [x=55.00000000000001, y=50.0]
+  • Serverless [x=80.0, y=50.0]
+Links:
+  • Compute → Virtual Machine

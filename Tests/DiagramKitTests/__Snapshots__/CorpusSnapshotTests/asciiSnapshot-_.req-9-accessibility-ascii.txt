@@ -1,0 +1,6 @@
+Requirements:
+  • A (1) — 
+Elements:
+  • B [test]
+Relationships:
+  • A -satisfies- B

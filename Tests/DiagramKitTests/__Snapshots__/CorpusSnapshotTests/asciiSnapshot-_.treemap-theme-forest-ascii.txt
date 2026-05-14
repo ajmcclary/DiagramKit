@@ -1,0 +1,5 @@
+• Habitat
+  • Canopy : 38
+  • Understory : 27
+  • Forest Floor : 19
+  • Wetlands : 16

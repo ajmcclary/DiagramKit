@@ -1,0 +1,4 @@
+My Diagram
+==========
+Participants: A, B
+• asyncMessage

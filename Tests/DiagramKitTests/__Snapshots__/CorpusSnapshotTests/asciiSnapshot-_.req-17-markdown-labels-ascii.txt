@@ -1,0 +1,6 @@
+Requirements:
+  • md_req (MD-01) — the **system** shall *respond* within `<100ms>`.
+Elements:
+  • md_elem [**bold** type]
+Relationships:
+  • md_elem -satisfies- md_req

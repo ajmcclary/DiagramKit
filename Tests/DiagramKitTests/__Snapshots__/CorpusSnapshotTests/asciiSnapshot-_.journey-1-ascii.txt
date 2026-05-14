@@ -1,0 +1,9 @@
+My working day
+==============
+[Go to work]
+Make tea      | score: 5 — Me
+Go upstairs   | score: 3 — Me
+Do work       | score: 1 — Me, Cat
+[Go home]
+Go downstairs | score: 5 — Me
+Sit down      | score: 5 — Me

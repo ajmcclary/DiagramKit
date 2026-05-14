@@ -1,0 +1,9 @@
+Evolution Trends
+================
+Components:
+  • Manual Process [x=50.0, y=30.0]
+  • Automated [x=50.0, y=60.0]
+  • AI Driven [x=50.0, y=80.0]
+Links:
+  • Manual Process → Automated
+  • Automated → AI Driven

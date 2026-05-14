@@ -1,0 +1,7 @@
+Simple Architecture
+===================
+[API]
+  • Database
+  • Server
+
+db → server

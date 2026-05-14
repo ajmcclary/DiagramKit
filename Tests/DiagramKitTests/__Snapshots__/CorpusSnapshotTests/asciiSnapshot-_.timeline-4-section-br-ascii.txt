@@ -1,0 +1,4 @@
+[2023 Q1 <br> Release Personal Tier]
+• Bullet 1 → sub-point 1a
+• Bullet 1 → sub-point 1b
+• Bullet 1 → sub-point 1c

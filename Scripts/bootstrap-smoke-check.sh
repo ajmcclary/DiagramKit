@@ -54,7 +54,23 @@ run_build() {
 }
 
 run_gate "swift package dump-package" swift package dump-package
-run_gate "swift test" swift test
+# Corpus parameterized snapshot suites are run separately below so a known
+# swift-testing + swift-snapshot-testing signal-10 in the parameterized harness
+# does not abort the whole gate (see CLAUDE.md "Testing And Snapshots").
+run_gate "swift test (non-corpus)" \
+  swift test \
+  --skip "CorpusSnapshotTests" \
+  --skip "CorpusMultiFormatSnapshotTests"
+run_gate "swift test (corpus SVG)" \
+  swift test --filter "CorpusSnapshotTests/svgSnapshot"
+run_gate "swift test (corpus ASCII)" \
+  swift test --filter "CorpusSnapshotTests/asciiSnapshot"
+run_gate "swift test (corpus image)" \
+  swift test --filter "CorpusSnapshotTests/imageSnapshot"
+run_gate "swift test (corpus multi-format SVG)" \
+  swift test --filter "CorpusMultiFormatSnapshotTests/multiFormatSvgSnapshot"
+run_gate "swift test (corpus multi-format image)" \
+  swift test --filter "CorpusMultiFormatSnapshotTests/multiFormatImageSnapshot"
 run_gate "check-file-sizes.sh" "$ROOT/Scripts/check-file-sizes.sh"
 run_gate "strict-concurrency-check.sh" "$ROOT/Scripts/strict-concurrency-check.sh"
 run_gate "check-sendable-annotations.sh" "$ROOT/Scripts/check-sendable-annotations.sh"

@@ -1,0 +1,5 @@
+Frames:
+  • 01 — Inventory.InventoryChanged
+  • 02 — External.InventoryChanged
+  • 03 — Inventory.CartItems
+  • 04 — CartUI

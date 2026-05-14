@@ -1,0 +1,6 @@
+Custom Stages
+=============
+Components:
+  • Research [x=50.0, y=15.0]
+  • Prototype [x=50.0, y=40.0]
+  • Product [x=50.0, y=75.0]

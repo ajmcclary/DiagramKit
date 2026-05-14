@@ -1,0 +1,6 @@
+Requirements:
+  • A (1) — 
+  • B (2) — 
+Relationships:
+  • A -satisfies- B
+  • A -contains- B

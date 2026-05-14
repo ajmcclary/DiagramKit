@@ -1,0 +1,9 @@
+Tea Shop Value Chain
+====================
+Components:
+  • Business [x=63.0, y=95.0]
+  • Cup of Tea [x=61.0, y=79.0]
+  • Tea [x=81.0, y=63.0]
+Links:
+  • Business → Cup of Tea
+  • Cup of Tea → Tea

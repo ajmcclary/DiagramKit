@@ -1,0 +1,10 @@
+Sourcing Strategy
+=================
+Components:
+  • Internal API [x=50.0, y=50.0]
+  • Cloud DB [x=60.0, y=40.0]
+  • Payment [x=30.0, y=60.0]
+  • Email [x=80.0, y=30.0]
+Links:
+  • Internal API → Cloud DB
+  • Cloud DB → Payment

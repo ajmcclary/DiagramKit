@@ -1,0 +1,11 @@
+.env
+.env.local
+.env.production
+.gitignore
+.eslintrc
+Dockerfile
+docker-compose.yml
+Makefile
+LICENSE
+tsconfig.json
+package-lock.json

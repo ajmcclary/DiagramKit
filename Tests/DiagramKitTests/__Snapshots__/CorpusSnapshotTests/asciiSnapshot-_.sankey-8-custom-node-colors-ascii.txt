@@ -1,0 +1,2 @@
+SankeyNode(id: "Electricity grid", rawID: "Electricity grid") → SankeyNode(id: "Industry", rawID: "Industry") : 342.165
+SankeyNode(id: "Electricity grid", rawID: "Electricity grid") → SankeyNode(id: "Losses", rawID: "Losses") : 56.691

@@ -1,0 +1,13 @@
+Department Budget
+=================
+• Company
+  • Product
+    • Platform : 1.25e+06
+    • Mobile : 780000
+    • Research : 430000
+  • Operations
+    • Customer Success : 520000
+    • Infrastructure : 610000
+  • Go To Market
+    • Sales : 910000
+    • Marketing : 670000

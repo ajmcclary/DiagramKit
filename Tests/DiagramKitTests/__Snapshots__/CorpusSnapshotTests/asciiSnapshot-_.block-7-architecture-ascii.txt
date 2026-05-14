@@ -1,0 +1,12 @@
+[Frontend]
+  [WebApp]
+  [MobileApp]
+[Backend]
+  [API]
+  [Workers]
+[Data]
+  [DB]
+  [Cache]
+
+frontend → backend
+backend → data

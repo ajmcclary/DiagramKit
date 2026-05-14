@@ -1,0 +1,17 @@
+* 0-tdZnRsM 0-tdZnRsM [main]
+|
+* 1-q2mpjyF 1-q2mpjyF [main]
+|
+* 2-Dp0BRE8 2-Dp0BRE8 [develop]
+|
+* 3-AenCjK1 3-AenCjK1 [develop]
+|
+* 4-x3KDLPU merged branch develop into main [main]
+|
+* 5-KqoPjWn 5-KqoPjWn [feature]
+|
+* 6-HfLQL1h 6-HfLQL1h [feature]
+|
+* 7-E48Sd7a merged branch feature into main [main]
+|
+* 8-RrM3MdD 8-RrM3MdD [main]

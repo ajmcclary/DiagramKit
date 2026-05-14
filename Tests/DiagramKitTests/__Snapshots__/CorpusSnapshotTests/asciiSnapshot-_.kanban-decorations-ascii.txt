@@ -1,0 +1,3 @@
+[String containing []]
+  • String containing ()
+  • Ticketed [High] — assigned: K.Sveidqvist

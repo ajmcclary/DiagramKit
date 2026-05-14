@@ -1,0 +1,4 @@
+  • Web App — container
+  • Database — container
+
+web → db : Queries

@@ -1,0 +1,8 @@
+Frames:
+  • 01 — CartUI
+  • 02 — AddItem
+  • 03 — ItemAdded
+  • 04 — External.InventoryChanged
+  • 05 — InventoryProcessor
+  • 06 — ChangeInventory
+  • 07 — Cart.InventoryChanged

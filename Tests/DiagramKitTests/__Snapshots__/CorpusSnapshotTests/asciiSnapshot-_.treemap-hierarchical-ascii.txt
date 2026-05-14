@@ -1,0 +1,8 @@
+• Electronics
+  • Phones : 300
+  • Laptops : 500
+  • Tablets : 200
+• Clothing
+  • Shirts : 150
+  • Pants : 250
+  • Shoes : 180

@@ -1,0 +1,6 @@
+E-Commerce
+==========
+[Order from website]
+Add to cart         | score: 5 — Me
+[Checkout from website]
+Add payment details | score: 5 — Me

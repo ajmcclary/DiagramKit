@@ -1,0 +1,2 @@
+Components:
+  • My Service [x=50.0, y=50.0]

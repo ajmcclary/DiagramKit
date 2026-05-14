@@ -1,0 +1,11 @@
+Platform Strategy
+=================
+Components:
+  • Infrastructure [x=70.0, y=20.0]
+  • Platform [x=60.0, y=50.0]
+  • Product [x=40.0, y=70.0]
+  • User Need [x=20.0, y=90.0]
+Links:
+  • Infrastructure → Platform
+  • Platform → Product
+  • Product → User Need

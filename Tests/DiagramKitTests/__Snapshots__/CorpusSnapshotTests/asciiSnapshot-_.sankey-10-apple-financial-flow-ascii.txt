@@ -1,0 +1,12 @@
+SankeyNode(id: "iPhone", rawID: "iPhone") → SankeyNode(id: "Products", rawID: "Products") : 205
+SankeyNode(id: "Mac", rawID: "Mac") → SankeyNode(id: "Products", rawID: "Products") : 40
+SankeyNode(id: "iPad", rawID: "iPad") → SankeyNode(id: "Products", rawID: "Products") : 29
+SankeyNode(id: "Wearables", rawID: "Wearables") → SankeyNode(id: "Products", rawID: "Products") : 41
+SankeyNode(id: "Products", rawID: "Products") → SankeyNode(id: "Revenue", rawID: "Revenue") : 315
+SankeyNode(id: "Services", rawID: "Services") → SankeyNode(id: "Revenue", rawID: "Revenue") : 78
+SankeyNode(id: "Revenue", rawID: "Revenue") → SankeyNode(id: "Cost of Revenue", rawID: "Cost of Revenue") : 223
+SankeyNode(id: "Revenue", rawID: "Revenue") → SankeyNode(id: "Gross Profit", rawID: "Gross Profit") : 170
+SankeyNode(id: "Gross Profit", rawID: "Gross Profit") → SankeyNode(id: "Op Expenses", rawID: "Op Expenses") : 51
+SankeyNode(id: "Gross Profit", rawID: "Gross Profit") → SankeyNode(id: "Op Profit", rawID: "Op Profit") : 119
+SankeyNode(id: "Op Profit", rawID: "Op Profit") → SankeyNode(id: "Tax", rawID: "Tax") : 19
+SankeyNode(id: "Op Profit", rawID: "Op Profit") → SankeyNode(id: "Net Profit", rawID: "Net Profit") : 100

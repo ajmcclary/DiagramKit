@@ -1,0 +1,5 @@
+Student Grades
+==============
+Axes: Math, English, Science, History, Art
+Alice [90, 85, 92, 78, 95]
+Bob [75, 88, 82, 90, 80]

@@ -1,0 +1,18 @@
+Deployment Diagram for Internet Banking System
+==============================================
+  [Customer's mobile device]
+    • Mobile App — container (Xamarin)
+  [Customer's computer]
+    [Web Browser]
+      • Single Page Application — container (JavaScript and Angular)
+  [Big Bank plc]
+    [bigbank-api x8]
+      • API Application — container (Java and Spring MVC)
+    [bigbank-web x4]
+      • Web Application — container (Java and Spring MVC)
+    [bigbank-db01]
+      • Database — container_db (Relational Database Schema)
+
+mobile → api : Makes API calls to (json/HTTPS)
+spa → api : Makes API calls to (json/HTTPS)
+api → db : Reads from and writes to (JDBC)

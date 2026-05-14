@@ -1,0 +1,15 @@
+System Context diagram for Internet Banking System
+==================================================
+  [BankBoundary0]
+    • Banking Customer A — person
+    • Banking Customer C — external_person
+    • Internet Banking System — system
+    [BankBoundary]
+      • Mainframe Banking System — external_system_db
+      [BankBoundary2]
+        • Banking System A — system
+        • Banking System B — system
+
+customerA → SystemAA : Uses
+SystemAA → SystemE : Uses
+SystemAA → SystemC : Sends e-mails (SMTP)

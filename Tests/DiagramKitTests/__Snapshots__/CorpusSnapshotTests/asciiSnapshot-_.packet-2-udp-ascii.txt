@@ -1,0 +1,8 @@
+UDP Packet
+==========
+0-15 (16 bit) : Source Port
+16-31 (16 bit) : Destination Port
+32-47 (16 bit) : Length
+48-63 (16 bit) : Checksum
+64-95 (31 bit) : Data
+96-127 (31 bit) : Data

@@ -1,0 +1,5 @@
+[Todo]
+  • Create Documentation
+  • Create Blog about the new diagram
+[In progress]
+  • Design grammar — assigned: knsv

@@ -1,0 +1,9 @@
+Three overlapping sets
+======================
+A [size=10]
+B [size=10]
+C [size=10]
+A ∩ B [size=2.5] : AB
+B ∩ C [size=2.5] : BC
+A ∩ C [size=2.5] : AC
+A ∩ B ∩ C [size=1.11111] : ABC

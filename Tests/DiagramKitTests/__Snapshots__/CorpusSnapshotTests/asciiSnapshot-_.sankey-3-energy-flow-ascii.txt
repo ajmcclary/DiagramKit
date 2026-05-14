@@ -1,0 +1,25 @@
+SankeyNode(id: "Electricity grid", rawID: "Electricity grid") → SankeyNode(id: "Over generation / exports", rawID: "Over generation / exports") : 104.453
+SankeyNode(id: "Electricity grid", rawID: "Electricity grid") → SankeyNode(id: "Heating and cooling - homes", rawID: "Heating and cooling - homes") : 113.726
+SankeyNode(id: "Electricity grid", rawID: "Electricity grid") → SankeyNode(id: "H2 conversion", rawID: "H2 conversion") : 27.14
+SankeyNode(id: "Electricity grid", rawID: "Electricity grid") → SankeyNode(id: "Industry", rawID: "Industry") : 342.165
+SankeyNode(id: "Electricity grid", rawID: "Electricity grid") → SankeyNode(id: "Losses", rawID: "Losses") : 56.691
+SankeyNode(id: "Electricity grid", rawID: "Electricity grid") → SankeyNode(id: "National navigation", rawID: "National navigation") : 10.186
+SankeyNode(id: "Electricity grid", rawID: "Electricity grid") → SankeyNode(id: "Rail transport", rawID: "Rail transport") : 7.863
+SankeyNode(id: "Electricity grid", rawID: "Electricity grid") → SankeyNode(id: "Lighting & appliances - commercial", rawID: "Lighting & appliances - commercial") : 90.008
+SankeyNode(id: "Electricity grid", rawID: "Electricity grid") → SankeyNode(id: "Lighting & appliances - homes", rawID: "Lighting & appliances - homes") : 93.494
+SankeyNode(id: "Electricity grid", rawID: "Electricity grid") → SankeyNode(id: "Other", rawID: "Other") : 82.233
+SankeyNode(id: "Electricity grid", rawID: "Electricity grid") → SankeyNode(id: "Agriculture", rawID: "Agriculture") : 3.64
+SankeyNode(id: "Over generation / exports", rawID: "Over generation / exports") → SankeyNode(id: "National navigation", rawID: "National navigation") : 104.453
+SankeyNode(id: "Heating and cooling - homes", rawID: "Heating and cooling - homes") → SankeyNode(id: "District heating", rawID: "District heating") : 79.329
+SankeyNode(id: "Heating and cooling - homes", rawID: "Heating and cooling - homes") → SankeyNode(id: "Residential", rawID: "Residential") : 34.397
+SankeyNode(id: "H2 conversion", rawID: "H2 conversion") → SankeyNode(id: "Road transport", rawID: "Road transport") : 27.14
+SankeyNode(id: "Losses", rawID: "Losses") → SankeyNode(id: "National navigation", rawID: "National navigation") : 56.691
+SankeyNode(id: "Industry", rawID: "Industry") → SankeyNode(id: "Agriculture", rawID: "Agriculture") : 342.165
+SankeyNode(id: "National navigation", rawID: "National navigation") → SankeyNode(id: "Bio-conversion", rawID: "Bio-conversion") : 180.193
+SankeyNode(id: "National navigation", rawID: "National navigation") → SankeyNode(id: "Freight", rawID: "Freight") : 127.365
+SankeyNode(id: "National navigation", rawID: "National navigation") → SankeyNode(id: "Road transport", rawID: "Road transport") : 7.423
+SankeyNode(id: "Rail transport", rawID: "Rail transport") → SankeyNode(id: "Public lighting", rawID: "Public lighting") : 7.863
+SankeyNode(id: "Lighting & appliances - commercial", rawID: "Lighting & appliances - commercial") → SankeyNode(id: "Public lighting", rawID: "Public lighting") : 90.008
+SankeyNode(id: "Lighting & appliances - homes", rawID: "Lighting & appliances - homes") → SankeyNode(id: "Residential", rawID: "Residential") : 79.279
+SankeyNode(id: "Lighting & appliances - homes", rawID: "Lighting & appliances - homes") → SankeyNode(id: "Public lighting", rawID: "Public lighting") : 14.215
+SankeyNode(id: "Other", rawID: "Other") → SankeyNode(id: "Road transport", rawID: "Road transport") : 82.233

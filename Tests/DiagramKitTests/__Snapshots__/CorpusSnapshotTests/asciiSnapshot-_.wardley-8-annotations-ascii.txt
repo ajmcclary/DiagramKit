@@ -1,0 +1,7 @@
+With Annotations
+================
+Components:
+  • API Gateway [x=40.0, y=50.0]
+  • Auth Service [x=60.0, y=30.0]
+Links:
+  • API Gateway → Auth Service

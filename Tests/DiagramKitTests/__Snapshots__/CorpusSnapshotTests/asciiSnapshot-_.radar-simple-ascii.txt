@@ -1,0 +1,2 @@
+Axes: A, B, C
+mycurve [1, 2, 3]

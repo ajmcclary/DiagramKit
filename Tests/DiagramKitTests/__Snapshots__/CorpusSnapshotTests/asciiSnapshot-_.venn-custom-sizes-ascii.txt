@@ -1,0 +1,3 @@
+A [size=20] : Alpha
+B [size=12] : Beta
+A ∩ B [size=5.3] : AB

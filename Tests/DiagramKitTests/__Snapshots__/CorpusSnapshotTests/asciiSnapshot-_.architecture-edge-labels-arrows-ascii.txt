@@ -1,0 +1,8 @@
+• Ext
+[Core]
+  • DB
+  • API
+
+db → api : SQL
+api → ext
+ext → db : HTTPS

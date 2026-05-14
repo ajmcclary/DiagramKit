@@ -1,0 +1,10 @@
+Requirements:
+  • sys_req (1) — the system shall perform the action.
+  • func_req (1.1) — the system shall respond within 100ms.
+Elements:
+  • hw_element [hardware]
+  • sw_element [software]
+Relationships:
+  • hw_element -satisfies- sys_req
+  • sw_element -verifies- func_req
+  • sys_req -contains- func_req

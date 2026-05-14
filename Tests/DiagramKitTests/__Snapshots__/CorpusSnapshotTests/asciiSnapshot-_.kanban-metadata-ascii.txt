@@ -1,0 +1,7 @@
+[Backlog]
+  • Fix login bug [High] — assigned: K.Sveidqvist
+  • Refactor parser [Medium]
+[In Progress]
+  • Write tests
+[Done]
+  • Release v1.0

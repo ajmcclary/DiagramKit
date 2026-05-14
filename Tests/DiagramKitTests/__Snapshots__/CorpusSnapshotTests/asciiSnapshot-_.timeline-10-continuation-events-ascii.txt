@@ -1,0 +1,8 @@
+[Era]
+• 2020 → Event A
+• 2020 → Event B
+• 2020 → Event C
+• 2020 → Event D
+• 2020 → Event E
+• 2021 → Event F
+• 2021 → Event G

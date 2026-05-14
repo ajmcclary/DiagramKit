@@ -1,0 +1,5 @@
+SankeyNode(id: "Electricity grid", rawID: "Electricity grid") → SankeyNode(id: "Over generation / exports", rawID: "Over generation / exports") : 104.453
+SankeyNode(id: "Electricity grid", rawID: "Electricity grid") → SankeyNode(id: "Heating and cooling - homes", rawID: "Heating and cooling - homes") : 113.726
+SankeyNode(id: "Electricity grid", rawID: "Electricity grid") → SankeyNode(id: "H2 conversion", rawID: "H2 conversion") : 27.14
+SankeyNode(id: "Electricity grid", rawID: "Electricity grid") → SankeyNode(id: "Industry", rawID: "Industry") : 342.165
+SankeyNode(id: "Electricity grid", rawID: "Electricity grid") → SankeyNode(id: "Losses", rawID: "Losses") : 56.691

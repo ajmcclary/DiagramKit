@@ -1,0 +1,17 @@
+Component diagram for Internet Banking System
+=============================================
+  • Single Page Application — container (javascript and angular)
+  • Database — container_db (Relational Database Schema)
+  • Mainframe Banking System — external_system
+  [API Application]
+    • Sign In Controller — component (MVC Rest Controller)
+    • Accounts Summary Controller — component (MVC Rest Controller)
+    • Security Component — component (Spring Bean)
+    • Mainframe Banking System Facade — component (Spring Bean)
+
+sign → security : Uses
+accounts → mbsfacade : Uses
+security → db : Read & write to (JDBC)
+mbsfacade → mbs : Uses (XML/HTTPS)
+spa → sign : Uses (JSON/HTTPS)
+spa → accounts : Uses (JSON/HTTPS)

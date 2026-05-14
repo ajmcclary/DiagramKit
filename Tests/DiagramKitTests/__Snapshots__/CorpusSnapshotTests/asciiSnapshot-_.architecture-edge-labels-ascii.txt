@@ -1,0 +1,7 @@
+[API]
+  • Database
+  • Server
+  • External
+
+db → server
+ext → server : HTTPS

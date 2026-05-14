@@ -1,0 +1,14 @@
+[Todo]
+  • Create Documentation
+  • Create Blog about the new diagram
+[In progress]
+  • Wrap long text across multiple lines to test layout [Very High] — assigned: alice
+[Ready for deploy]
+  • Design grammar — assigned: knsv
+[Ready for test]
+  • Create parsing tests [High] — assigned: K.Sveidqvist
+  • last item [Very Low] — assigned: knsv
+[Done]
+  • define getData
+  • Long long long long long title [Medium]
+  • Update DB function [Low] — assigned: knsv

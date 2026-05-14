@@ -1,0 +1,10 @@
+• Disk
+• Disk
+• Disk
+• junction junctionCenter
+• junction junctionRight
+
+left_disk → junctionCenter
+top_disk → junctionCenter
+bottom_disk → junctionCenter
+junctionCenter → junctionRight

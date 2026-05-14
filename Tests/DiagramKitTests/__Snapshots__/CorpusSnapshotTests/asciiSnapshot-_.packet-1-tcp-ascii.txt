@@ -1,0 +1,20 @@
+TCP Packet
+==========
+0-15 (16 bit) : Source Port
+16-31 (16 bit) : Destination Port
+32-63 (32 bit) : Sequence Number
+64-95 (32 bit) : Acknowledgment Number
+96-99 (4 bit) : Data Offset
+100-105 (6 bit) : Reserved
+106-106 (1 bit) : URG
+107-107 (1 bit) : ACK
+108-108 (1 bit) : PSH
+109-109 (1 bit) : RST
+110-110 (1 bit) : SYN
+111-111 (1 bit) : FIN
+112-127 (16 bit) : Window
+128-143 (16 bit) : Checksum
+144-159 (16 bit) : Urgent Pointer
+160-191 (32 bit) : (Options and Padding)
+192-223 (31 bit) : Data (variable length)
+224-255 (31 bit) : Data (variable length)

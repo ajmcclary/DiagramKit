@@ -1,0 +1,9 @@
+Hyphenated Names
+================
+Components:
+  • real-time processing [x=40.0, y=50.0]
+  • end-user [x=20.0, y=80.0]
+  • batch-loader [x=60.0, y=30.0]
+Links:
+  • real-time processing → end-user
+  • batch-loader → real-time processing

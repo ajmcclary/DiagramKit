@@ -1,0 +1,6 @@
+Frames:
+  • 02 — CartCreated
+  • 03 — ItemAdded
+  • 04 — ItemRemoved
+  • 05 — CartCleared
+  • 01 — CartUI

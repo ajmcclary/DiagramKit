@@ -1,0 +1,6 @@
+Frames:
+  • 02 — AddItem
+Models:
+  • CartUI
+  • AddItem
+  • ItemAdded

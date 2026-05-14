@@ -1,0 +1,7 @@
+Requirements:
+  • req1 (1) — basic requirement
+  • req2 (2) — functional
+  • req3 (3) — interface
+  • req4 (4) — performance
+  • req5 (5) — physical
+  • req6 (6) — design constraint

@@ -1,0 +1,6 @@
+Requirements:
+  • test_req (1) — the test text.
+Elements:
+  • test_entity [simulation]
+Relationships:
+  • test_entity -satisfies- test_req

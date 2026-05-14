@@ -1,0 +1,6 @@
+Requirements:
+  • themed_req (1) — requirement with custom theme.
+Elements:
+  • themed_elem [test component]
+Relationships:
+  • themed_elem -verifies- themed_req

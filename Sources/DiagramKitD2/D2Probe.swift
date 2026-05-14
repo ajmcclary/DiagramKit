@@ -7,7 +7,13 @@ public func isD2Source(_ source: String) -> Bool {
     let trimmed = source.trimmingCharacters(in: .whitespacesAndNewlines)
     guard !trimmed.isEmpty else { return false }
 
-    let firstLine = trimmed.split(separator: "\n").first?
+    // Strip leading frontmatter (`---\n…\n---\n…`) so that Mermaid sources
+    // wrapped in YAML frontmatter still expose their family header for the
+    // dispatch check below. Mirrors `_parseFrontMatterAndStripped` in
+    // DiagramKitModel but kept local to avoid a heavyweight dependency for
+    // a probe call.
+    let dispatchSource = _stripLeadingFrontmatter(trimmed)
+    let firstLine = dispatchSource.split(separator: "\n").first?
         .trimmingCharacters(in: .whitespaces) ?? ""
 
     // Explicit Mermaid headers → not d2. Each header is matched as a token
@@ -15,13 +21,22 @@ public func isD2Source(_ source: String) -> Bool {
     // so probing a real diagram body like `block\n  columns 3\n  A --> B`
     // is correctly rejected. Without the token check, `block\n  ... -->`
     // would be claimed by D2 (because of the `->`) and fail downstream.
+    //
+    // Token matching with hyphen-as-boundary means the bare header also
+    // catches its `-beta` / `-v2` / `-elk` variants (e.g. `block` matches
+    // `block-beta`, `flowchart` matches `flowchart-elk`, `classDiagram`
+    // matches `classDiagram-v2`). Headers are compared case-insensitively
+    // so Mermaid's permissive header casing (e.g. `eventmodeling` vs
+    // `eventModeling-beta`) does not slip through.
     let mermaidHeaders = [
         "graph", "flowchart", "sequenceDiagram", "classDiagram", "erDiagram",
-        "stateDiagram", "gantt", "pie", "mindmap", "timeline", "requirementDiagram",
-        "gitGraph", "sankey-beta", "block", "block-beta", "packet", "packet-beta",
-        "kanban", "architecture-beta", "radar-beta", "treemap-beta", "venn-beta",
-        "ishikawa-beta", "treeView-beta", "eventModeling-beta", "wardley-beta",
-        "c4Context", "zenuml"
+        "stateDiagram", "state", "gantt", "pie", "mindmap", "timeline",
+        "requirementDiagram", "requirement", "gitGraph", "sankey", "block",
+        "packet", "kanban", "architecture", "radar", "treemap", "venn",
+        "ishikawa", "treeView", "eventModeling", "eventmodeling", "wardley",
+        "xychart", "quadrantChart", "journey", "zenuml",
+        "c4Context", "C4Context", "C4Container", "C4Component",
+        "C4Deployment", "C4Dynamic"
     ]
     for header in mermaidHeaders {
         if _firstLineStartsWithToken(firstLine, prefix: header) { return false }
@@ -77,13 +92,42 @@ public func isD2Source(_ source: String) -> Bool {
 }
 
 /// True iff `line` begins with `prefix` followed by a token boundary
-/// (end of string or any non-letter/digit/underscore/hyphen). Hyphens are
-/// permitted as part of the boundary so `block-beta` still matches the
-/// `block-beta` prefix entry above.
+/// (end of string or any non-letter/digit/underscore). Hyphens count as a
+/// boundary so `block` still matches `block-beta`. Matching is
+/// case-insensitive because Mermaid is permissive about header casing.
 private func _firstLineStartsWithToken(_ line: String, prefix: String) -> Bool {
-    guard line.hasPrefix(prefix) else { return false }
-    let after = line.index(line.startIndex, offsetBy: prefix.count)
-    if after == line.endIndex { return true }
-    let next = line[after]
+    let lowerLine = line.lowercased()
+    let lowerPrefix = prefix.lowercased()
+    guard lowerLine.hasPrefix(lowerPrefix) else { return false }
+    let after = lowerLine.index(lowerLine.startIndex, offsetBy: lowerPrefix.count)
+    if after == lowerLine.endIndex { return true }
+    let next = lowerLine[after]
     return !next.isLetter && !next.isNumber && next != "_"
+}
+
+/// Drop a leading YAML-frontmatter block delimited by `---` so the next
+/// header dispatch sees the actual diagram body. Mirrors the canonical
+/// behaviour in `DiagramKitModel._parseFrontMatterAndStripped` but does not
+/// pull in that module just for a probe.
+private func _stripLeadingFrontmatter(_ source: String) -> String {
+    let lines = source.split(separator: "\n", omittingEmptySubsequences: false).map(String.init)
+    guard let firstNonBlank = lines.firstIndex(where: {
+        !$0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+    }) else {
+        return source
+    }
+    guard lines[firstNonBlank].trimmingCharacters(in: .whitespacesAndNewlines) == "---" else {
+        return source
+    }
+    var lastMarker: Int?
+    var cursor = firstNonBlank + 1
+    while cursor < lines.endIndex {
+        if lines[cursor].trimmingCharacters(in: .whitespacesAndNewlines) == "---" {
+            lastMarker = cursor
+        }
+        cursor += 1
+    }
+    guard let marker = lastMarker else { return source }
+    let body = lines[(marker + 1)...].joined(separator: "\n")
+    return body.trimmingCharacters(in: .whitespacesAndNewlines)
 }

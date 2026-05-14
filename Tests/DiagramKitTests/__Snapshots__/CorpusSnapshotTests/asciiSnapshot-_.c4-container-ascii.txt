@@ -1,0 +1,14 @@
+Container diagram for Internet Banking System
+=============================================
+  • E-Mail System — external_system
+  • Customer — person
+  • Mainframe Banking System — external_system
+  [Internet Banking]
+    • Single-Page App — container (JavaScript, Angular)
+    • Web Application — container (Java, Spring MVC)
+    • Database — container_db (SQL Database)
+
+customer → web_app : Uses (HTTPS)
+customer → spa : Uses (HTTPS)
+web_app → spa : Delivers
+spa → database : Reads from (JDBC)

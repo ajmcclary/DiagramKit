@@ -1,0 +1,19 @@
+Software Platform Strategy
+==========================
+Components:
+  • Customer [x=78.0, y=95.0]
+  • Web App [x=59.0, y=82.0]
+  • API Gateway [x=55.00000000000001, y=72.0]
+  • Authentication [x=65.0, y=60.0]
+  • Database [x=75.0, y=50.0]
+  • Cache [x=70.0, y=55.00000000000001]
+  • PostgreSQL [x=35.0, y=50.0]
+  • MongoDB [x=60.0, y=50.0]
+  • DynamoDB [x=85.0, y=50.0]
+Links:
+  • Customer → Web App
+  • Web App → API Gateway
+  • API Gateway → Authentication
+  • Authentication → Database
+  • API Gateway → Cache
+  • Cache → Database

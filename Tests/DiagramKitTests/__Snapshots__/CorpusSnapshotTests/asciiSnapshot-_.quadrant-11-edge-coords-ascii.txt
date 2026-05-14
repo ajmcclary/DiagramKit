@@ -1,0 +1,6 @@
+x-axis: Low ↔ High
+y-axis: Low ↕ High
+• BR [1, 0]
+• BL [0, 0]
+• TR [1, 1]
+• TL [0, 1]

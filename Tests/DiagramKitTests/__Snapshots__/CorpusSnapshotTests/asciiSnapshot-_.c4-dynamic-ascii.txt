@@ -1,0 +1,11 @@
+Dynamic diagram for Internet Banking System
+===========================================
+  • Database — container_db (Relational Database Schema)
+  • Single-Page Application — container (JavaScript and Angular)
+  [API Application]
+    • Security Component — component (Spring Bean)
+    • Sign In Controller — component (Spring MVC Rest Controller)
+
+c1 → c2 : Submits credentials to (JSON/HTTPS)
+c2 → c3 : Calls isAuthenticated() on
+c3 → db : select * from users (JDBC)

@@ -1,0 +1,3 @@
+A [size=10]
+B [size=10]
+A ∩ B [size=2.5]

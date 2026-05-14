@@ -1,0 +1,13 @@
+Web hook life cycle
+===================
+[Darkoob]
+Make preBuilt                         | score: 5 — Darkoob user
+register slug                         | score: 5 — Darkoob userf deliberately increasing the size of this label to check if distance between legend and diagram is maintained
+Map slug to a Prebuilt Job            | score: 5 — Darkoob user
+[External Service]
+set Darkoob slug as hook for an Event | score: 5 — admin Exjjjnjjjj qwerty
+listen to the events                  | score: 5 — External Service
+call darkoob endpoint                 | score: 5 — External Service
+[Darkoob]
+check for inputs                      | score: 5 — DarkoobAPI
+run the prebuilt job                  | score: 5 — DarkoobAPI

@@ -1,0 +1,7 @@
+A [size=10]
+B [size=10]
+C [size=10]
+A ∩ B [size=2.5]
+B ∩ C [size=2.5]
+A ∩ C [size=2.5]
+A ∩ B ∩ C [size=1.11111]

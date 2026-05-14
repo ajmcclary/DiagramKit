@@ -1,0 +1,6 @@
+  • User — person
+  • My App — system
+  • Web App — container (Spring)
+  • Database — container (PostgreSQL)
+
+u → app : Uses

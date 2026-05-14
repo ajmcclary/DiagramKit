@@ -84,6 +84,7 @@ struct CorpusSnapshotTests {
 
     @Test("ASCII snapshot", arguments: try loadDiagrams())
     func asciiSnapshot(_ diagram: CorpusEntry) async throws {
+        guard !diagram.shouldSkipSnapshot(for: "ascii") else { return }
         let ascii = try await DiagramEngine.renderASCII(source: diagram.source)
         assertSnapshot(of: ascii, as: .lines, named: diagram.id + "-ascii")
     }

@@ -1,0 +1,4 @@
+**Root** with
+a second line
+├── The dog in **the** hog
+└── Regular labels still works
