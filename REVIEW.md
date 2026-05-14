@@ -46,6 +46,29 @@ Session-end verification: targeted `swift test --filter` across all touched suit
 
 ---
 
+## Resolution Status — Session 3 (2026-05-14)
+
+Mechanical follow-ups from the §5 "Minor / Polish" and §4 leftovers that needed no design call. Four commits on `main`; tasks reclassified or already-resolved are noted below the table.
+
+| # | Item | Commit | What landed |
+|---|---|---|---|
+| 1 | §5 Dead code purge | `8e5a13a` | `Sources/DiagramKitRenderingCG/ArrowRenderer.swift`, `Version.swift`, and the deprecated CG-layer `DiagramFontResolver` enum (the `.proportional`/`.boldProportional`/`.mono` shim) deleted. No in-tree callers remain. The live model-layer `DiagramFontResolver` struct is unaffected. |
+| 2 | §4 DiagramImportResult `@_exported` | `23a4be5` | `@_exported import DiagramKitCommon` in `Sources/DiagramKitImport/DiagramImportResult.swift` replaced with a plain `import DiagramKitCommon` plus `public typealias DiagramDiagnostic = DiagramKitCommon.DiagramDiagnostic`. Only the single cross-target type leaks, not the whole namespace. |
+| 3 | §5 DOT/D2 trailing newline | `fb8d6ad` | `DOTFlowchartExport.emit` now appends `"\n"` after joining lines, matching `D2FlowchartExport` and `MermaidFlowchartExport`. `DOTExporterTests.swift` updated from `hasSuffix("}")` to `hasSuffix("}\n")`. |
+| 4 | §5 MermaidFlowchartExport shape-downgrade `.warning` | `6a793c3` | `shapeMarker(for:)` return type widened to `(open, close, lossy)`. The canonical flowchart shapes (rectangle, rounded, stadium, subroutine, cylinder, diamond, hexagon, circle, doublecircle, trapezoid*, asymmetric, ellipse, parallelogram*) carry `lossy: false`; the ~45 non-flowchart shapes (state, mindmap, v11 icon shapes, etc.) carry `lossy: true`. The main emit loop appends a `.warning` diagnostic per lossy node, mirroring DOTMapper's discipline. |
+
+**Reclassified as design-required (intentionally skipped):**
+- §5 Generators (`AsciiVisualReportGenerator` / `VisualReportGenerator` / `ExampleImageExporter`): XCTest discovery is class-based, not filename-based, so file renames alone don't clean the `swift test` listing. A proper fix needs a separate test target — design work.
+- §4 `DiagramKitTestSupport` placeholder: re-read showed the file's own docstring already documents that the empty `public enum` is the intentional namespace surface and that the corpus loader lives in `CorpusEntry.swift` alongside it. No documented claim contradicts this; nothing to fix.
+
+**Already resolved upstream (verified during this pass):**
+- §4 `LiveEditorStore.didCompleteRender:306` dead `_ = parseError` — grep finds no such read; landed earlier in Session 2's `57a33da`.
+- §4 `NativeCodeEditor.Coordinator.textDidChange` retain — the `Task` closure already captures `[weak self, weak textView]` with `guard let self else { return }`; no cycle present.
+
+Session-end verification: targeted `swift test --filter` across `MermaidExporterTests`, `DOTExporterTests`, `MermaidImporterTests`, `ImporterRegistryTests`, `ExportMatrixTests`, `DiagramExportInfrastructureTests`, `DiagramExportLoaderTests` all green; `Scripts/check-sendable-annotations.sh` ✓ green; `Scripts/check-file-sizes.sh` reports only pre-existing yellow warnings (no new threshold crossings).
+
+---
+
 ## Deferred Effort — Recommendations
 
 Some review items were intentionally deferred during the five-phase pass; others surfaced during execution and were scoped out to keep individual commits coherent. Listed in priority order.
@@ -115,7 +138,6 @@ The following Important findings from the review remain. None are correctness-cr
 - `DiagramEditor.preferredExportFormat` is `let`; format swaps mid-edit can export under the old format. Either make mutable or rebuild the editor on format change.
 - `previewState` is captured pre-render; auto-save can record a state the user hasn't actually rendered. Capture post-render in `didCompleteRender`.
 - `_export` runs synchronously on `@MainActor`; large flowcharts block main. Hop to a worker for the export call.
-- `NativeCodeEditor.Coordinator.textDidChange` retains `self` through the debounce. Use `[weak self]` or cancel-and-replace the in-flight task.
 - `LiveEditorStore.performMutation` and `InsertNodeSection.insert` both surface mutation errors, producing duplicate UI. Pick one source of truth.
 - `SidebarView.loadDiagram` ignores `expectedDiagnostics` / `unsupportedNote`. Wire the corpus metadata into the load path.
 - `requestRender(reason:)` doesn't reset `parseError`; the error overlay sits atop a fresh render until completion. Clear on render request.
@@ -128,7 +150,7 @@ The following Important findings from the review remain. None are correctness-cr
 
 ### 5. Minor / polish items
 
-The "Minor" tier in the review (file-size warnings, dead code, header comments referencing removed files, accessibility labels, `MermaidFlowchartExport.shapeMarker` shape-downgrade diagnostics) is left as a backlog. Pick up opportunistically when touching the relevant file.
+Session-3 closed the dead-code purge (`8e5a13a`), the `MermaidFlowchartExport.shapeMarker` shape-downgrade `.warning` (`6a793c3`), and the DOT/D2 trailing-newline alignment (`fb8d6ad`). What remains in the original "Minor" tier — file-size warnings still over 500 lines, residual header comments referencing removed files, accessibility labels across the playground demo, and any small touches not yet picked up — is left as opportunistic backlog. Pick up when touching the relevant file.
 
 ### 6. Tautological probe tests (Critical, deferred)
 
