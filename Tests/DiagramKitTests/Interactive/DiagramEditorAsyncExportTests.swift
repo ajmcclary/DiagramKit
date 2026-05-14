@@ -78,6 +78,40 @@ struct DiagramEditorAsyncExportTests {
         }
     }
 
+    @Test("Export runs off MainActor")
+    func exportRunsOffMainActor() async throws {
+        actor ThreadObserver {
+            private(set) var sawOffMainActor: Bool = false
+            func record(isMain: Bool) { if !isMain { sawOffMainActor = true } }
+        }
+        let observer = ThreadObserver()
+
+        struct ObservingExporter: DiagramExporter {
+            let name: String = "Observing"
+            let formatID: DiagramFormatID = .mermaid
+            let supportedDiagramTypes: Set<DiagramType> = [.flowchart]
+            let observer: ThreadObserver
+            func export(_ document: DiagramDocument) throws -> DiagramExportResult {
+                let isMain = Thread.isMainThread
+                let sema = DispatchSemaphore(value: 0)
+                Task { await observer.record(isMain: isMain); sema.signal() }
+                sema.wait()
+                return DiagramExportResult(source: "observed")
+            }
+        }
+
+        let editor = DiagramEditor(
+            document: flowDoc(["A"]),
+            preferredExportFormat: .mermaid,
+            exportRegistry: ExporterRegistry.empty.registering(ObservingExporter(observer: observer))
+        )
+
+        try await editor.performFlowchart(.insertNode(id: "B", label: "B"))
+
+        let sawOff = await observer.sawOffMainActor
+        #expect(sawOff == true, "exporter must run off MainActor (DiagramWorkerThread)")
+    }
+
     @Test("Cancelling the outer Task does not abort the in-flight commit")
     func cancellationIsolation() async throws {
         let editor = makeEditor(["A"])
