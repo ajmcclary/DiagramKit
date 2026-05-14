@@ -36,7 +36,7 @@ Close the Mermaid C4 `$boundary` / `$parent` round-trip end-to-end:
 
 ## Architecture
 
-Single file: `Sources/DiagramKitModel/src_c4_parser.swift`. No model-type changes, no exporter changes, no public-API changes outside the C4 parser's return shape.
+Two files: `Sources/DiagramKitModel/src_c4_parser.swift` (parser) and two callers — `Sources/DiagramKit/DiagramRegistry+C4.swift` and `Sources/DiagramKit/AsciiRenderRegistry.swift`. No model-type changes, no exporter changes, no public-API changes — the existing `public func parseC4Diagram(_:frontmatter:) -> C4Diagram` keeps its signature; diagnostics flow through a new SPI variant.
 
 Current data flow has two parallel paths for parent linkage; only one is wired:
 
@@ -133,14 +133,37 @@ private func _validateBoundaryReferences(
 }
 ```
 
-### Diagnostic plumbing through `_parseC4Diagram`
+### Diagnostic plumbing via SPI variant
 
-Change the return type from `C4Diagram` to `(C4Diagram, [DiagramDiagnostic])`. The C4 parser is the only family-parser in the codebase that doesn't currently surface diagnostics from inside the parse pass; aligning it with the other slices matches the pattern Session 7 used for the sanitizeIdentifier rollout.
+`parseC4Diagram` is `public` and called from ~25 test sites plus two production sites; widening its return type would break the public API and force a test sweep. Instead, add a new public underscore-prefixed (SPI) variant:
 
-Affected callers:
+```swift
+public func _parseC4DiagramWithDiagnostics(
+    _ lines: [String],
+    frontmatter: DiagramFrontmatter? = nil
+) throws -> (C4Diagram, [DiagramDiagnostic])
+```
 
-- Production: `Sources/DiagramKit/DiagramRegistry+C4.swift` — one call site, destructure the tuple.
-- Tests: `Tests/DiagramKitTests/C4ParserTests.swift`'s `parseC4Diagram(_:)` test helper (~line 64) — destructure once.
+The existing `parseC4Diagram(_:frontmatter:)` becomes a thin wrapper:
+
+```swift
+public func parseC4Diagram(
+    _ lines: [String],
+    frontmatter: DiagramFrontmatter? = nil
+) throws -> C4Diagram {
+    let (diagram, _) = try _parseC4DiagramWithDiagnostics(lines, frontmatter: frontmatter)
+    return diagram
+}
+```
+
+The underscore prefix follows CLAUDE.md's SPI convention; the body of the existing function shrinks to one line.
+
+Affected production callers — both switch to the SPI variant so diagnostics reach the importer/loader boundary:
+
+- `Sources/DiagramKit/DiagramRegistry+C4.swift:16` — currently calls `parseC4Diagram(...)`; switches to `_parseC4DiagramWithDiagnostics(...)` and appends the diagnostics to the registry's `DiagramImportResult`.
+- `Sources/DiagramKit/AsciiRenderRegistry.swift:223` — same swap; this path renders ASCII and may surface diagnostics via the existing rendering result type.
+
+Existing test callers (~25 sites in `C4ParserTests.swift`) are not touched — they keep calling the public `parseC4Diagram` and never see the diagnostics. New parser unit tests call `_parseC4DiagramWithDiagnostics` directly to assert on the warning surface.
 
 ### Dispatch-site rewrites inside `_parseC4Diagram`
 
@@ -153,7 +176,7 @@ In the macro dispatch switch (`:144-230`), compute `effectiveBoundary` immediate
 
 One `_validateBoundaryReferences(...)` call lands right before `return diagram` at `:265`.
 
-Estimated diff size: ~80 lines added (two helpers + 28 dispatch-site one-liners + return-type plumbing through two call sites).
+Estimated diff size: ~90 lines added (two helpers + 28 dispatch-site one-liners + new SPI wrapper function + two production registry callers updated to use the SPI variant).
 
 ## Tests
 
@@ -187,12 +210,12 @@ The existing `structurizrToMermaidEmit` test (called out in REVIEW §7 as "stops
 ### Existing-test impact
 
 - `C4ParserTests.swift:71`'s `#expect(shape.parentBoundary == "global")` and similar assertions still hold — no `$boundary` named arg in those fixtures.
-- The return-type change for `_parseC4Diagram` touches the test helper; existing test sites destructure the tuple or use `.0`.
+- The existing ~25 `parseC4Diagram(...)` test sites in `C4ParserTests.swift` are not touched — the wrapper keeps the same signature.
 - Existing corpus snapshots stay green: sources that don't use `$boundary` / `$parent` keep their current zero-`.warning` count for boundary linkage.
 
 ## Risks
 
-- **Return-type change** of `_parseC4Diagram` is source-incompatible for external callers. Mitigated: one production caller (`DiagramRegistry+C4.swift`), one test helper. Both touched in the same commit as the helper additions.
+- **Public-API shape:** `parseC4Diagram` stays unchanged; the SPI variant `_parseC4DiagramWithDiagnostics` is the new diagnostic-aware entry point. Two production registry call sites (`DiagramRegistry+C4.swift:16`, `AsciiRenderRegistry.swift:223`) switch to the SPI variant in the same commit as the helper additions. Tests calling `parseC4Diagram` are unaffected.
 - **`.warning` severity for the mismatch case is opinionated.** A consumer that errors-on-warning treats mismatch as fatal. Mitigation: severity stays consistent with the REVIEW.md §4 + Session-2 identifier-sanitization alignment. A future "diagnostic severity policy doc" is the right place to revisit if needed.
 - **Forward-ref validation runs once at end-of-parse.** `_addBoundary` updates an existing boundary by alias (`:537`), so order between flat-emit and definition is fine — the validator reads the final state.
 - **`named["boundary"]` / `named["parent"]` key collision** with a hypothetical future Mermaid macro feature has the same risk profile as `$tags` / `$descr` / `$link` already in use.
@@ -203,7 +226,7 @@ Per the project's commit-by-commit-on-main standing default, the implementation 
 
 1. **Spec** (this document).
 2. **Plan** (written via the writing-plans skill).
-3. **Helpers + dispatch + return-type plumbing.** Two new private helpers, 28 dispatch-site rewrites, `_parseC4Diagram` return type widened, both callers updated. Parser unit tests in `C4BoundaryNamedArgTests.swift` accompany this commit.
+3. **Helpers + dispatch + SPI variant.** Two new private helpers, 28 dispatch-site rewrites, new `_parseC4DiagramWithDiagnostics` SPI variant (existing `parseC4Diagram` shrinks to a one-line wrapper), two production registry callers (`DiagramRegistry+C4.swift`, `AsciiRenderRegistry.swift`) switched to the SPI variant. Parser unit tests in `C4BoundaryNamedArgTests.swift` accompany this commit.
 4. **Mermaid → Mermaid round-trip tests.** New `MermaidC4BoundaryRoundTripTests.swift`.
 5. **Session 6 extension.** `StructurizrBoundaryRoundTripTests.structurizrToMermaidEmit` re-parse extension; updates to `REVIEW.md` Deferred Effort §7 closure note.
 
