@@ -75,12 +75,31 @@ extension FlowchartMutation: Equatable, Hashable {
 
 extension DiagramEditor {
 
-    /// Perform a flowchart-specific mutation.
+    /// Perform a flowchart-specific mutation. Same serialization +
+    /// atomicity contract as `perform`.
     ///
     /// - Parameter mutation: The flowchart mutation to apply.
     /// - Throws: `DiagramEditorError` if the document is not a flowchart,
     ///   the mutation cannot be applied, or source sync fails.
     public func performFlowchart(_ mutation: FlowchartMutation) async throws {
+        _enterMutationChain()
+        defer { _exitMutationChain() }
+
+        await _awaitPendingMutation()
+
+        let task = Task { @MainActor [weak self] in
+            guard let self else { return }
+            try await self._performFlowchartInner(mutation)
+        }
+        let generation = _setPendingMutation(task)
+        defer { _clearPendingMutationIfCurrent(generation: generation) }
+
+        try await task.value
+    }
+
+    /// Inner commit body. Always runs on `MainActor`. Atomic: a throw
+    /// from the worker leaves state untouched.
+    func _performFlowchartInner(_ mutation: FlowchartMutation) async throws {
         guard case .flowchart = document.payload else {
             throw DiagramEditorError.notAFlowchart
         }

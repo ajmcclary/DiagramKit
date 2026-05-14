@@ -80,6 +80,33 @@ public final class DiagramEditor {
     /// or `performFlowchart(_:)`, never by direct assignment.
     public private(set) var lastExportDiagnostics: [DiagramDiagnostic] = []
 
+    /// True while at least one async mutation is in flight on this
+    /// editor. Driven by the chained-Task pattern in `perform` and
+    /// `performFlowchart`; flips on the 0→1 transition of
+    /// `_mutationDepth` and back on the N→0 transition.
+    ///
+    /// SwiftUI hosts can read this to disable mutation buttons:
+    /// `.disabled(editor.isExporting)`.
+    public private(set) var isExporting: Bool = false
+
+    /// Most-recently-started in-flight mutation Task. Used to chain
+    /// the next caller behind the previous task so commits land in
+    /// registration order.
+    @ObservationIgnored
+    private var _pendingMutation: Task<Void, Error>?
+
+    /// Monotonic generation paired with `_pendingMutation`. Each call
+    /// to `_setPendingMutation` bumps this; the caller captures the
+    /// value at set-time and uses `_clearPendingMutationIfCurrent` on
+    /// exit so only the *latest* caller actually nils `_pendingMutation`.
+    @ObservationIgnored
+    private var _pendingMutationGeneration: UInt64 = 0
+
+    /// Refcount of `perform`/`performFlowchart` callers currently on
+    /// the chain. `isExporting` flips on transitions 0→1 and N→0.
+    @ObservationIgnored
+    private var _mutationDepth: Int = 0
+
     // MARK: - Initialization
 
     /// Create an editor for the given document, preferred export format,
@@ -116,5 +143,47 @@ public final class DiagramEditor {
     /// Commit new diagnostics.
     func _commitDiagnostics(_ newDiagnostics: [DiagramDiagnostic]) {
         lastExportDiagnostics = newDiagnostics
+    }
+
+    // MARK: - Async mutation chain helpers
+
+    /// Increment the in-flight refcount. Flips `isExporting` to `true`
+    /// on the 0→1 transition.
+    func _enterMutationChain() {
+        _mutationDepth += 1
+        if _mutationDepth == 1 { isExporting = true }
+    }
+
+    /// Decrement the in-flight refcount. Flips `isExporting` to `false`
+    /// on the N→0 transition.
+    func _exitMutationChain() {
+        _mutationDepth -= 1
+        if _mutationDepth == 0 { isExporting = false }
+    }
+
+    /// Await any currently-pending mutation Task before starting a
+    /// new one. Errors from the previous task are absorbed so a failed
+    /// mutation does not stop later ones from running.
+    func _awaitPendingMutation() async {
+        if let pending = _pendingMutation {
+            _ = try? await pending.value
+        }
+    }
+
+    /// Record `task` as the new pending mutation and return the
+    /// generation token. Callers pass the token to
+    /// `_clearPendingMutationIfCurrent(generation:)` on exit.
+    func _setPendingMutation(_ task: Task<Void, Error>) -> UInt64 {
+        _pendingMutationGeneration &+= 1
+        _pendingMutation = task
+        return _pendingMutationGeneration
+    }
+
+    /// Clear `_pendingMutation` only if the generation token matches
+    /// the current one — i.e., only the latest caller actually nils it.
+    func _clearPendingMutationIfCurrent(generation: UInt64) {
+        if _pendingMutationGeneration == generation {
+            _pendingMutation = nil
+        }
     }
 }

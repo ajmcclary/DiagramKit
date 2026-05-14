@@ -14,15 +14,34 @@ extension DiagramEditor {
 
     /// Perform a core mutation on the document.
     ///
-    /// Derives the new document from the mutation, exports it through
-    /// `preferredExportFormat` on a fresh worker thread, then commits
-    /// state and registers an undo action. If derivation or export
-    /// throws, no state changes.
+    /// Derives the new document, exports it on a fresh worker thread,
+    /// and commits state + undo atomically. Concurrent calls serialize:
+    /// each caller awaits the previous mutation's task before starting
+    /// its own, so commits land in registration order and each gets its
+    /// own undo entry.
     ///
     /// - Parameter mutation: The mutation to apply.
     /// - Throws: `DiagramEditorError` if the mutation cannot be applied
     ///   or source sync fails.
     public func perform(_ mutation: DiagramMutation) async throws {
+        _enterMutationChain()
+        defer { _exitMutationChain() }
+
+        await _awaitPendingMutation()
+
+        let task = Task { @MainActor [weak self] in
+            guard let self else { return }
+            try await self._performInner(mutation)
+        }
+        let generation = _setPendingMutation(task)
+        defer { _clearPendingMutationIfCurrent(generation: generation) }
+
+        try await task.value
+    }
+
+    /// Inner commit body. Always runs on `MainActor`. Atomic: a throw
+    /// from the worker leaves state untouched.
+    func _performInner(_ mutation: DiagramMutation) async throws {
         let newDocument = try _apply(mutation, to: document)
 
         let exportResult: DiagramExportResult
