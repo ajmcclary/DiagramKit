@@ -10,14 +10,14 @@ final class ClassSlice1Tests: XCTestCase {
 
     func test_classDiagram_v2_header() throws {
         let source = "classDiagram-v2\nclass Animal\nclass Dog\nAnimal <|-- Dog"
-        let diagram = try parseClassDiagram(source.splitByNewlines)
+        let (diagram, _) = try parseClassDiagram(source.splitByNewlines)
         XCTAssertEqual(diagram.classes.count, 2)
         XCTAssertEqual(diagram.relationships.count, 1)
     }
 
     func test_classDiagram_header_case_insensitive() throws {
         let source = "ClAsSdIaGrAm\nclass Animal"
-        let diagram = try parseClassDiagram(source.splitByNewlines)
+        let (diagram, _) = try parseClassDiagram(source.splitByNewlines)
         XCTAssertEqual(diagram.classes.count, 1)
     }
 
@@ -25,7 +25,7 @@ final class ClassSlice1Tests: XCTestCase {
 
     func test_square_bracket_label() throws {
         let source = "classDiagram\nclass Animal[\"Animal with a label\"]"
-        let diagram = try parseClassDiagram(source.splitByNewlines)
+        let (diagram, _) = try parseClassDiagram(source.splitByNewlines)
         XCTAssertEqual(diagram.classes.count, 1)
         let cls = diagram.classes[0]
         XCTAssertEqual(cls.label, "Animal with a label")
@@ -33,7 +33,7 @@ final class ClassSlice1Tests: XCTestCase {
 
     func test_square_bracket_label_with_class_body() throws {
         let source = "classDiagram\nclass Animal[\"Animal with a label\"] {\n    +name string\n}"
-        let diagram = try parseClassDiagram(source.splitByNewlines)
+        let (diagram, _) = try parseClassDiagram(source.splitByNewlines)
         XCTAssertEqual(diagram.classes.count, 1)
         let cls = diagram.classes[0]
         XCTAssertEqual(cls.label, "Animal with a label")
@@ -44,7 +44,7 @@ final class ClassSlice1Tests: XCTestCase {
 
     func test_backtick_class_name() throws {
         let source = "classDiagram\nclass `Animal Class!`"
-        let diagram = try parseClassDiagram(source.splitByNewlines)
+        let (diagram, _) = try parseClassDiagram(source.splitByNewlines)
         XCTAssertEqual(diagram.classes.count, 1)
         let cls = diagram.classes[0]
         XCTAssertEqual(cls.id, "Animal Class!")
@@ -52,7 +52,7 @@ final class ClassSlice1Tests: XCTestCase {
 
     func test_backtick_relationship() throws {
         let source = "classDiagram\nclass `Animal Class!`\nclass `Car`\n`Animal Class!` --> `Car`"
-        let diagram = try parseClassDiagram(source.splitByNewlines)
+        let (diagram, _) = try parseClassDiagram(source.splitByNewlines)
         XCTAssertEqual(diagram.classes.count, 2)
         XCTAssertEqual(diagram.relationships.count, 1)
     }
@@ -61,7 +61,7 @@ final class ClassSlice1Tests: XCTestCase {
 
     func test_generic_declaration() throws {
         let source = "classDiagram\nclass Box~T~"
-        let diagram = try parseClassDiagram(source.splitByNewlines)
+        let (diagram, _) = try parseClassDiagram(source.splitByNewlines)
         XCTAssertEqual(diagram.classes.count, 1)
         let cls = diagram.classes[0]
         XCTAssertEqual(cls.type, "T")
@@ -97,7 +97,7 @@ final class ClassSlice1Tests: XCTestCase {
 
     func test_end_to_end_v2_header() throws {
         let source = "classDiagram-v2\nclass Animal\nclass Dog\nAnimal <|-- Dog"
-        let positioned = try layoutClassDiagramSync(try parseClassDiagram(source.splitByNewlines))
+        let positioned = try layoutClassDiagramSync(try parseClassDiagram(source.splitByNewlines).0)
         let svg = try renderClassSvg(positioned, DiagramColors(bg: "#fff", fg: "#000"))
         XCTAssertTrue(svg.contains("<svg"))
     }

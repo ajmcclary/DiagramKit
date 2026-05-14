@@ -8,7 +8,7 @@ final class ClassReviewFindingRegressionTests: XCTestCase {
 
     func testGenericRelationshipEndpointNormalizesClassIdentityAndType() throws {
         let source = "classDiagram\nClass1~T~ <|-- Class02"
-        let diagram = try parseClassDiagram(source.splitByNewlines)
+        let (diagram, _) = try parseClassDiagram(source.splitByNewlines)
 
         XCTAssertNotNil(diagram.classes.first(where: { $0.id == "Class1" }))
         XCTAssertNil(diagram.classes.first(where: { $0.id == "Class1~T~" }))
@@ -18,7 +18,7 @@ final class ClassReviewFindingRegressionTests: XCTestCase {
 
     func testNamespaceOwnsClassesAndProducesRenderedNamespaceBox() throws {
         let source = "classDiagram\nnamespace Company {\n    class Employee\n    class Department\n}\nEmployee --> Department"
-        let diagram = try parseClassDiagram(source.splitByNewlines)
+        let (diagram, _) = try parseClassDiagram(source.splitByNewlines)
 
         XCTAssertEqual(diagram.namespaceMap["Company"]?.classIds, ["Employee", "Department"])
         XCTAssertEqual(diagram.classMap["Employee"]?.parent, "Company")
@@ -35,7 +35,7 @@ final class ClassReviewFindingRegressionTests: XCTestCase {
 
     func testLollipopNormalizationPreservesMarkerForRendering() throws {
         let source = "classDiagram\nbar ()-- foo"
-        let diagram = try parseClassDiagram(source.splitByNewlines)
+        let (diagram, _) = try parseClassDiagram(source.splitByNewlines)
 
         XCTAssertEqual(diagram.interfaces.first?.label, "bar")
         XCTAssertEqual(diagram.relationships.first?.id1, "interface0")
@@ -54,7 +54,7 @@ final class ClassReviewFindingRegressionTests: XCTestCase {
         classDef pink fill:#f9f,stroke:#333,stroke-width:4px,color:#111
         """
 
-        let diagram = try parseClassDiagram(source.splitByNewlines)
+        let (diagram, _) = try parseClassDiagram(source.splitByNewlines)
         let animal = try XCTUnwrap(diagram.classMap["Animal"])
         XCTAssertTrue(animal.styles.contains("fill:#f9f"))
         XCTAssertTrue(animal.styles.contains("stroke:#333"))

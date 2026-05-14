@@ -153,7 +153,7 @@ public func renderClassAscii(
         .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
         .filter { !$0.isEmpty && !$0.hasPrefix("%%") }
 
-    let diagram = try parseClassDiagram(lines)
+    let (diagram, _) = try parseClassDiagram(lines)
     let asciiDiagram = AsciiClassDiagram(
         classes: diagram.classes.map(_toAsciiClassNode),
         relationships: diagram.relationships.compactMap(_toAsciiClassRelationship)

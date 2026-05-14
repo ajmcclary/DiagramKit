@@ -325,8 +325,8 @@ public enum ErParserError: Error, LocalizedError, _RecoverableDiagramError {
 
 // MARK: - Public API
 
-public func parseErDiagram(_ lines: [String], frontmatter: DiagramFrontmatter? = nil) throws -> ErDiagram {
-    try _parseErDiagramEntry(lines, frontmatter: frontmatter)
+public func parseErDiagram(_ lines: [String], frontmatter: DiagramFrontmatter? = nil) throws -> (ErDiagram, [DiagramDiagnostic]) {
+    (try _parseErDiagramEntry(lines, frontmatter: frontmatter), [])
 }
 
 // MARK: - Parser Implementation

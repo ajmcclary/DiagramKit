@@ -471,8 +471,8 @@ private struct _RelationParseResult {
     var lineType: Int
 }
 
-public func parseClassDiagram(_ lines: [String], frontmatter: DiagramFrontmatter? = nil) throws -> ClassDiagram {
-    try _parseClassDiagramEntry(lines, frontmatter: frontmatter)
+public func parseClassDiagram(_ lines: [String], frontmatter: DiagramFrontmatter? = nil) throws -> (ClassDiagram, [DiagramDiagnostic]) {
+    (try _parseClassDiagramEntry(lines, frontmatter: frontmatter), [])
 }
 
 private func _parseClassDiagramEntry(_ lines: [String], frontmatter: DiagramFrontmatter? = nil) throws -> ClassDiagram {

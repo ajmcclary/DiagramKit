@@ -13,7 +13,7 @@ struct ERParserFoundationTests {
     @Test("detects erDiagram header")
     func detectsHeader() throws {
         let lines = ["erDiagram", "CUSTOMER {", "string name", "}"]
-        let diagram = try parseErDiagram(lines)
+        let (diagram, _) = try parseErDiagram(lines)
         #expect(!diagram.entities.isEmpty)
     }
 
@@ -28,7 +28,7 @@ struct ERParserFoundationTests {
     @Test("empty erDiagram produces empty diagram")
     func emptyErDiagram() throws {
         let lines = ["erDiagram"]
-        let diagram = try parseErDiagram(lines)
+        let (diagram, _) = try parseErDiagram(lines)
         #expect(diagram.entities.isEmpty)
         #expect(diagram.relationships.isEmpty)
     }
@@ -38,7 +38,7 @@ struct ERParserFoundationTests {
     @Test("parses direction LB")
     func parsesDirectionLR() throws {
         let lines = ["erDiagram", "direction LR", "CUSTOMER {", "string name", "}"]
-        let diagram = try parseErDiagram(lines)
+        let (diagram, _) = try parseErDiagram(lines)
         #expect(diagram.direction == .lr)
         #expect(!diagram.entities.isEmpty)
     }
@@ -46,21 +46,21 @@ struct ERParserFoundationTests {
     @Test("parses direction TB (default)")
     func defaultDirection() throws {
         let lines = ["erDiagram", "CUSTOMER {", "string name", "}"]
-        let diagram = try parseErDiagram(lines)
+        let (diagram, _) = try parseErDiagram(lines)
         #expect(diagram.direction == .tb)
     }
 
     @Test("parses direction BT")
     func parsesDirectionBT() throws {
         let lines = ["erDiagram", "direction BT", "CUSTOMER {", "string name", "}"]
-        let diagram = try parseErDiagram(lines)
+        let (diagram, _) = try parseErDiagram(lines)
         #expect(diagram.direction == .bt)
     }
 
     @Test("parses direction RL")
     func parsesDirectionRL() throws {
         let lines = ["erDiagram", "direction RL", "CUSTOMER {", "string name", "}"]
-        let diagram = try parseErDiagram(lines)
+        let (diagram, _) = try parseErDiagram(lines)
         #expect(diagram.direction == .rl)
     }
 
@@ -69,14 +69,14 @@ struct ERParserFoundationTests {
     @Test("parses accTitle")
     func parsesAccTitle() throws {
         let lines = ["erDiagram", "accTitle: My Diagram Title", "CUSTOMER {", "string name", "}"]
-        let diagram = try parseErDiagram(lines)
+        let (diagram, _) = try parseErDiagram(lines)
         #expect(diagram.accTitle == "My Diagram Title")
     }
 
     @Test("parses accDescr")
     func parsesAccDescr() throws {
         let lines = ["erDiagram", "accDescr: A description", "CUSTOMER {", "string name", "}"]
-        let diagram = try parseErDiagram(lines)
+        let (diagram, _) = try parseErDiagram(lines)
         #expect(diagram.accDescr == "A description")
     }
 
@@ -85,7 +85,7 @@ struct ERParserFoundationTests {
     @Test("parses standalone entity")
     func parsesStandaloneEntity() throws {
         let lines = ["erDiagram", "CUSTOMER"]
-        let diagram = try parseErDiagram(lines)
+        let (diagram, _) = try parseErDiagram(lines)
         #expect(diagram.entities.count == 1)
         #expect(diagram.entities[0].key == "CUSTOMER")
         #expect(diagram.entities[0].label == "CUSTOMER")
@@ -95,7 +95,7 @@ struct ERParserFoundationTests {
     @Test("parses multiple standalone entities")
     func parsesMultipleStandaloneEntities() throws {
         let lines = ["erDiagram", "ISLAND", "MAINLAND"]
-        let diagram = try parseErDiagram(lines)
+        let (diagram, _) = try parseErDiagram(lines)
         #expect(diagram.entities.count == 2)
         #expect(diagram.entities[0].key == "ISLAND")
         #expect(diagram.entities[1].key == "MAINLAND")
@@ -104,7 +104,7 @@ struct ERParserFoundationTests {
     @Test("standalone entity with underscore and hyphen")
     func standaloneEntitySpecialChars() throws {
         let lines = ["erDiagram", "DUCK-BILLED_PLATYPUS"]
-        let diagram = try parseErDiagram(lines)
+        let (diagram, _) = try parseErDiagram(lines)
         #expect(diagram.entities.count == 1)
         #expect(diagram.entities[0].key == "DUCK-BILLED_PLATYPUS")
     }
@@ -114,7 +114,7 @@ struct ERParserFoundationTests {
     @Test("parses entity with alias")
     func parsesEntityWithAlias() throws {
         let lines = ["erDiagram", "p[Person]"]
-        let diagram = try parseErDiagram(lines)
+        let (diagram, _) = try parseErDiagram(lines)
         #expect(diagram.entities.count == 1)
         #expect(diagram.entities[0].key == "p")
         #expect(diagram.entities[0].alias == "Person")
@@ -124,7 +124,7 @@ struct ERParserFoundationTests {
     @Test("parses entity with quoted alias")
     func parsesEntityWithQuotedAlias() throws {
         let lines = ["erDiagram", #"a["Customer Account"]"#]
-        let diagram = try parseErDiagram(lines)
+        let (diagram, _) = try parseErDiagram(lines)
         #expect(diagram.entities.count == 1)
         #expect(diagram.entities[0].key == "a")
         #expect(diagram.entities[0].alias == "Customer Account")
@@ -133,7 +133,7 @@ struct ERParserFoundationTests {
     @Test("alias merges onto existing entity")
     func aliasMergesOntoExistingEntity() throws {
         let lines = ["erDiagram", "CUSTOMER ||--o{ ORDER : places", #"CUSTOMER["Customer"]"#]
-        let diagram = try parseErDiagram(lines)
+        let (diagram, _) = try parseErDiagram(lines)
         let customer = diagram.entities.first { $0.key == "CUSTOMER" }
         #expect(customer != nil)
         #expect(customer?.alias == "Customer")
@@ -144,7 +144,7 @@ struct ERParserFoundationTests {
     @Test("parses quoted entity name with spaces")
     func quotedEntityNameWithSpaces() throws {
         let lines = ["erDiagram", "\"This has spaces\" ||--|| \"Another Space\" : label"]
-        let diagram = try parseErDiagram(lines)
+        let (diagram, _) = try parseErDiagram(lines)
         #expect(diagram.entities.count == 2)
         #expect(diagram.relationships.count == 1)
     }
@@ -154,7 +154,7 @@ struct ERParserFoundationTests {
     @Test("parses simple identifying relationship")
     func simpleIdentifyingRelationship() throws {
         let lines = ["erDiagram", "USER ||--o{ POST : writes"]
-        let diagram = try parseErDiagram(lines)
+        let (diagram, _) = try parseErDiagram(lines)
         #expect(diagram.entities.count == 2)
         #expect(diagram.relationships.count == 1)
         #expect(diagram.relationships[0].identifying)
@@ -166,7 +166,7 @@ struct ERParserFoundationTests {
     @Test("parses non-identifying relationship")
     func nonIdentifyingRelationship() throws {
         let lines = ["erDiagram", "USER ||..o{ POST : writes"]
-        let diagram = try parseErDiagram(lines)
+        let (diagram, _) = try parseErDiagram(lines)
         #expect(diagram.relationships.count == 1)
         #expect(!diagram.relationships[0].identifying)
     }
@@ -174,7 +174,7 @@ struct ERParserFoundationTests {
     @Test("parses relationship without label")
     func relationshipWithoutLabel() throws {
         let lines = ["erDiagram", "USER ||--|| POST"]
-        let diagram = try parseErDiagram(lines)
+        let (diagram, _) = try parseErDiagram(lines)
         #expect(diagram.relationships.count == 1)
         #expect(diagram.relationships[0].label.isEmpty)
     }
@@ -182,7 +182,7 @@ struct ERParserFoundationTests {
     @Test("parses recursive relationship")
     func recursiveRelationship() throws {
         let lines = ["erDiagram", "EMPLOYEE ||--o{ EMPLOYEE : manages"]
-        let diagram = try parseErDiagram(lines)
+        let (diagram, _) = try parseErDiagram(lines)
         #expect(diagram.relationships.count == 1)
         #expect(diagram.entities.count == 1)
     }
@@ -192,7 +192,7 @@ struct ERParserFoundationTests {
     @Test("parses only-one cardinality")
     func onlyOneCardinality() throws {
         let lines = ["erDiagram", "A ||--|| B : label"]
-        let diagram = try parseErDiagram(lines)
+        let (diagram, _) = try parseErDiagram(lines)
         #expect(diagram.relationships[0].cardinality1 == "ONLY_ONE")
         #expect(diagram.relationships[0].cardinality2 == "ONLY_ONE")
     }
@@ -200,7 +200,7 @@ struct ERParserFoundationTests {
     @Test("parses zero-or-one cardinality")
     func zeroOrOneCardinality() throws {
         let lines = ["erDiagram", "A |o--o| B : label"]
-        let diagram = try parseErDiagram(lines)
+        let (diagram, _) = try parseErDiagram(lines)
         #expect(diagram.relationships[0].cardinality1 == "ZERO_OR_ONE")
         #expect(diagram.relationships[0].cardinality2 == "ZERO_OR_ONE")
     }
@@ -208,7 +208,7 @@ struct ERParserFoundationTests {
     @Test("parses zero-or-more cardinality")
     func zeroOrMoreCardinality() throws {
         let lines = ["erDiagram", "A }o--o{ B : label"]
-        let diagram = try parseErDiagram(lines)
+        let (diagram, _) = try parseErDiagram(lines)
         let rel = diagram.relationships[0]
         #expect(rel.cardinality1 == "ZERO_OR_MORE" || rel.cardinality1 == "ZERO_OR_MORE")
         #expect(rel.cardinality2 == "ZERO_OR_MORE" || rel.cardinality2 == "ZERO_OR_MORE")
@@ -219,7 +219,7 @@ struct ERParserFoundationTests {
     @Test("parses empty entity block")
     func emptyEntityBlock() throws {
         let lines = ["erDiagram", "CUSTOMER {}"]
-        let diagram = try parseErDiagram(lines)
+        let (diagram, _) = try parseErDiagram(lines)
         #expect(diagram.entities.count == 1)
         #expect(diagram.entities[0].attributes.isEmpty)
     }
@@ -227,7 +227,7 @@ struct ERParserFoundationTests {
     @Test("parses inline attribute block")
     func inlineAttributeBlock() throws {
         let lines = ["erDiagram", "CUSTOMER{string name}"]
-        let diagram = try parseErDiagram(lines)
+        let (diagram, _) = try parseErDiagram(lines)
         #expect(diagram.entities.count == 1)
         #expect(diagram.entities[0].attributes.count == 1)
         #expect(diagram.entities[0].attributes[0].name == "name")
@@ -236,7 +236,7 @@ struct ERParserFoundationTests {
     @Test("parses entity block with keys")
     func entityBlockWithKeys() throws {
         let lines = ["erDiagram", "CUSTOMER {", "int id PK", "string name", "}"]
-        let diagram = try parseErDiagram(lines)
+        let (diagram, _) = try parseErDiagram(lines)
         #expect(diagram.entities.count == 1)
         #expect(diagram.entities[0].attributes[0].keys == ["PK"])
     }
@@ -244,14 +244,14 @@ struct ERParserFoundationTests {
     @Test("parses comma-separated keys")
     func commaSeparatedKeys() throws {
         let lines = ["erDiagram", "CUSTOMER {", "int id PK, FK", "}"]
-        let diagram = try parseErDiagram(lines)
+        let (diagram, _) = try parseErDiagram(lines)
         #expect(diagram.entities[0].attributes[0].keys == ["PK", "FK"])
     }
 
     @Test("parses attribute with comment")
     func attributeWithComment() throws {
         let lines = ["erDiagram", "CUSTOMER {", #"string name "The customer name""#, "}"]
-        let diagram = try parseErDiagram(lines)
+        let (diagram, _) = try parseErDiagram(lines)
         #expect(diagram.entities[0].attributes[0].comment == "The customer name")
     }
 
@@ -260,7 +260,7 @@ struct ERParserFoundationTests {
     @Test("parses generic type attribute")
     func genericTypeAttribute() throws {
         let lines = ["erDiagram", "CUSTOMER {", "type~T~ name", "}"]
-        let diagram = try parseErDiagram(lines)
+        let (diagram, _) = try parseErDiagram(lines)
         #expect(diagram.entities[0].attributes[0].type == "type<T>")
     }
 
@@ -269,7 +269,7 @@ struct ERParserFoundationTests {
     @Test("parses long-form one or zero cardinality")
     func longFormOneOrZero() throws {
         let lines = ["erDiagram", "CUSTOMER one or zero to one or more ORDER : places"]
-        let diagram = try parseErDiagram(lines)
+        let (diagram, _) = try parseErDiagram(lines)
         #expect(diagram.relationships.count == 1)
         #expect(diagram.relationships[0].identifying)
     }
@@ -277,7 +277,7 @@ struct ERParserFoundationTests {
     @Test("parses long-form zero or many cardinality")
     func longFormZeroOrMany() throws {
         let lines = ["erDiagram", "CUSTOMER zero or more optionally to only one ORDER : places"]
-        let diagram = try parseErDiagram(lines)
+        let (diagram, _) = try parseErDiagram(lines)
         #expect(diagram.relationships.count == 1)
         #expect(!diagram.relationships[0].identifying)
     }
@@ -287,14 +287,14 @@ struct ERParserFoundationTests {
     @Test("parses .- operator")
     func dotDashOperator() throws {
         let lines = ["erDiagram", "A ||.-o{ B : label"]
-        let diagram = try parseErDiagram(lines)
+        let (diagram, _) = try parseErDiagram(lines)
         #expect(!diagram.relationships[0].identifying)
     }
 
     @Test("parses -. operator")
     func dashDotOperator() throws {
         let lines = ["erDiagram", "A ||-.o{ B : label"]
-        let diagram = try parseErDiagram(lines)
+        let (diagram, _) = try parseErDiagram(lines)
         #expect(!diagram.relationships[0].identifying)
     }
 
@@ -303,28 +303,28 @@ struct ERParserFoundationTests {
     @Test("parses style statement")
     func parsesStyleStatement() throws {
         let lines = ["erDiagram", "CUSTOMER {", "string name", "}", "style CUSTOMER fill:#f9f,stroke:#333"]
-        let diagram = try parseErDiagram(lines)
+        let (diagram, _) = try parseErDiagram(lines)
         #expect(!diagram.entities[0].cssStyles.isEmpty)
     }
 
     @Test("parses classDef statement")
     func parsesClassDefStatement() throws {
         let lines = ["erDiagram", "classDef myClass fill:#f9f"]
-        let diagram = try parseErDiagram(lines)
+        let (diagram, _) = try parseErDiagram(lines)
         #expect(diagram.classes["myClass"] != nil)
     }
 
     @Test("parses class statement")
     func parsesClassStatement() throws {
         let lines = ["erDiagram", "CUSTOMER {", "string name", "}", "classDef myClass fill:#f9f", "class CUSTOMER myClass"]
-        let diagram = try parseErDiagram(lines)
+        let (diagram, _) = try parseErDiagram(lines)
         #expect(diagram.entities[0].cssClasses.contains("myClass"))
     }
 
     @Test("parses default classDef")
     func parsesDefaultClassDef() throws {
         let lines = ["erDiagram", "CUSTOMER {", "string name", "}", "classDef default fill:#f9f"]
-        let diagram = try parseErDiagram(lines)
+        let (diagram, _) = try parseErDiagram(lines)
         #expect(diagram.classes["default"] != nil)
         #expect(!diagram.entities[0].cssCompiledStyles.isEmpty)
     }
@@ -334,7 +334,7 @@ struct ERParserFoundationTests {
     @Test("parses ::: shorthand on standalone entity")
     func shorthandOnStandalone() throws {
         let lines = ["erDiagram", "CUSTOMER:::important"]
-        let diagram = try parseErDiagram(lines)
+        let (diagram, _) = try parseErDiagram(lines)
         let ent = diagram.entities.first { $0.key == "CUSTOMER" }
         #expect(ent != nil)
         #expect(ent?.cssClasses.contains("important") ?? false)
@@ -343,7 +343,7 @@ struct ERParserFoundationTests {
     @Test("parses ::: shorthand on entity block")
     func shorthandOnEntityBlock() throws {
         let lines = ["erDiagram", "CUSTOMER:::important {", "string name", "}"]
-        let diagram = try parseErDiagram(lines)
+        let (diagram, _) = try parseErDiagram(lines)
         let ent = diagram.entities.first { $0.key == "CUSTOMER" }
         #expect(ent != nil)
         #expect(ent?.cssClasses.contains("important") ?? false)
@@ -352,7 +352,7 @@ struct ERParserFoundationTests {
     @Test("parses ::: shorthand on alias")
     func shorthandOnAlias() throws {
         let lines = ["erDiagram", "c[\"Customer\"]:::important"]
-        let diagram = try parseErDiagram(lines)
+        let (diagram, _) = try parseErDiagram(lines)
         let ent = diagram.entities.first { $0.key == "c" }
         #expect(ent != nil)
         #expect(ent?.cssClasses.contains("important") ?? false)
@@ -373,7 +373,7 @@ struct ERParserFoundationTests {
     @Test("generates unique nodeIds")
     func generatesUniqueNodeIds() throws {
         let lines = ["erDiagram", "CUSTOMER ||--o{ ORDER : places"]
-        let diagram = try parseErDiagram(lines)
+        let (diagram, _) = try parseErDiagram(lines)
         let nodeIds = Set(diagram.entities.map(\.nodeId))
         #expect(nodeIds.count == 2)
     }
@@ -381,7 +381,7 @@ struct ERParserFoundationTests {
     @Test("nodeId differs from key")
     func nodeIdDiffersFromKey() throws {
         let lines = ["erDiagram", "CUSTOMER {", "string name", "}"]
-        let diagram = try parseErDiagram(lines)
+        let (diagram, _) = try parseErDiagram(lines)
         #expect(diagram.entities[0].nodeId != diagram.entities[0].key)
         #expect(diagram.entities[0].nodeId.hasPrefix("entity-"))
     }
@@ -397,7 +397,7 @@ struct ERParserFoundationTests {
             "string name",
             "}",
         ]
-        let diagram = try parseErDiagram(lines)
+        let (diagram, _) = try parseErDiagram(lines)
         let customer = try #require(diagram.entities.first { $0.key == "CUSTOMER" })
         let rel = try #require(diagram.relationships.first)
         #expect(customer.nodeId == rel.entityAId)
@@ -410,7 +410,7 @@ struct ERParserFoundationTests {
             "erDiagram",
             "PERSON:::owner ||--|| CAR:::asset : owns",
         ]
-        let diagram = try parseErDiagram(lines)
+        let (diagram, _) = try parseErDiagram(lines)
         let person = try #require(diagram.entities.first { $0.key == "PERSON" })
         let car = try #require(diagram.entities.first { $0.key == "CAR" })
         #expect(person.cssClasses.split(separator: " ").contains("owner"))
@@ -424,7 +424,7 @@ struct ERParserFoundationTests {
             "classDef default fill:#f9f,stroke:#333",
             "CUSTOMER",
         ]
-        let diagram = try parseErDiagram(lines)
+        let (diagram, _) = try parseErDiagram(lines)
         let customer = try #require(diagram.entities.first)
         #expect(customer.cssCompiledStyles.contains("fill:#f9f"))
         #expect(customer.cssCompiledStyles.contains("stroke:#333"))
@@ -504,7 +504,7 @@ struct ERParserFoundationTests {
             "}",
             "CUSTOMER",
         ]
-        let diagram = try parseErDiagram(lines)
+        let (diagram, _) = try parseErDiagram(lines)
         #expect(diagram.accDescr == "this graph is\nabout customer orders")
     }
 
@@ -517,7 +517,7 @@ struct ERParserFoundationTests {
 
     @Test("parses plain one cardinality alias")
     func parsesPlainOneCardinalityAlias() throws {
-        let diagram = try parseErDiagram(["erDiagram", "A one to one B : has"])
+        let (diagram, _) = try parseErDiagram(["erDiagram", "A one to one B : has"])
         let rel = try #require(diagram.relationships.first)
         #expect(rel.cardinality1 == "ONLY_ONE")
         #expect(rel.cardinality2 == "ONLY_ONE")
@@ -527,7 +527,7 @@ struct ERParserFoundationTests {
 
     @Test("parses u parent marker cardinality before operator")
     func parsesUParentMarkerCardinality() throws {
-        let diagram = try parseErDiagram(["erDiagram", "PROJECT u--o{ TEAM_MEMBER : assigned"])
+        let (diagram, _) = try parseErDiagram(["erDiagram", "PROJECT u--o{ TEAM_MEMBER : assigned"])
         let rel = try #require(diagram.relationships.first)
         #expect(rel.cardinality1 == "MD_PARENT")
         #expect(rel.cardinality2 == "ZERO_OR_MORE")
@@ -536,14 +536,14 @@ struct ERParserFoundationTests {
 
     @Test("parses u as standalone entity name")
     func parsesUAsStandaloneEntity() throws {
-        let diagram = try parseErDiagram(["erDiagram", "u"])
+        let (diagram, _) = try parseErDiagram(["erDiagram", "u"])
         #expect(diagram.entities.count == 1)
         #expect(diagram.entities[0].key == "u")
     }
 
     @Test("parses u as entity in relationship")
     func parsesUAsEntityInRelationship() throws {
-        let diagram = try parseErDiagram(["erDiagram", "u ||--|| OTHER : label"])
+        let (diagram, _) = try parseErDiagram(["erDiagram", "u ||--|| OTHER : label"])
         #expect(diagram.entities.count == 2)
         #expect(diagram.relationships.count == 1)
         #expect(diagram.entities.map { $0.key }.contains("u"))
@@ -552,7 +552,7 @@ struct ERParserFoundationTests {
 
     @Test("parses 1 shorthand cardinality before identification operator")
     func parses1ShorthandCardinality() throws {
-        let diagram = try parseErDiagram(["erDiagram", "CUSTOMER 1--1 ORDER : places"])
+        let (diagram, _) = try parseErDiagram(["erDiagram", "CUSTOMER 1--1 ORDER : places"])
         let rel = try #require(diagram.relationships.first)
         #expect(rel.cardinality1 == "ONLY_ONE")
         #expect(rel.cardinality2 == "ONLY_ONE")
@@ -561,7 +561,7 @@ struct ERParserFoundationTests {
 
     @Test("parses 1 cardinality alias before long-form cardinality")
     func parses1BeforeLongFormCardinality() throws {
-        let diagram = try parseErDiagram(["erDiagram", "CUSTOMER 1 to zero or more ORDER : places"])
+        let (diagram, _) = try parseErDiagram(["erDiagram", "CUSTOMER 1 to zero or more ORDER : places"])
         let rel = try #require(diagram.relationships.first)
         #expect(rel.cardinality1 == "ONLY_ONE")
         #expect(rel.cardinality2 == "ZERO_OR_MORE")
@@ -570,7 +570,7 @@ struct ERParserFoundationTests {
 
     @Test("parses decimal entity name in relationship")
     func parsesDecimalEntityName() throws {
-        let diagram = try parseErDiagram(["erDiagram", "1.0 ||--|{ ORDER : contains"])
+        let (diagram, _) = try parseErDiagram(["erDiagram", "1.0 ||--|{ ORDER : contains"])
         #expect(diagram.entities.count == 2)
         #expect(diagram.relationships.count == 1)
         #expect(diagram.entities.map { $0.key }.contains("1.0"))
@@ -591,14 +591,14 @@ struct ERParserFoundationTests {
     @Test("parses inline title directive")
     func parsesInlineTitle() throws {
         let lines = ["erDiagram", "title: My ER Diagram", "CUSTOMER"]
-        let diagram = try parseErDiagram(lines)
+        let (diagram, _) = try parseErDiagram(lines)
         #expect(diagram.diagramTitle == "My ER Diagram")
     }
 
     @Test("inline title does not interfere with accTitle")
     func inlineTitleAndAccTitle() throws {
         let lines = ["erDiagram", "title: Visual Title", "accTitle: Screen Reader Title", "CUSTOMER"]
-        let diagram = try parseErDiagram(lines)
+        let (diagram, _) = try parseErDiagram(lines)
         #expect(diagram.diagramTitle == "Visual Title")
         #expect(diagram.accTitle == "Screen Reader Title")
     }
@@ -608,14 +608,14 @@ struct ERParserFoundationTests {
     @Test("parses asterisk-prefixed attribute name")
     func asteriskPrefixedAttributeName() throws {
         let lines = ["erDiagram", "CUSTOMER {", "string *id", "}"]
-        let diagram = try parseErDiagram(lines)
+        let (diagram, _) = try parseErDiagram(lines)
         #expect(diagram.entities[0].attributes[0].name == "*id")
     }
 
     @Test("rejects digit-first attribute type")
     func rejectsDigitFirstAttributeType() throws {
         let lines = ["erDiagram", "CUSTOMER {", "123type name", "}"]
-        let diagram = try parseErDiagram(lines)
+        let (diagram, _) = try parseErDiagram(lines)
         // Attribute with digit-first type is invalid per Mermaid ATTRIBUTE_WORD pattern
         // Entity should exist but attribute should be skipped
         #expect(diagram.entities[0].attributes.isEmpty)
@@ -631,7 +631,7 @@ struct ERParserFoundationTests {
             "B ||--|| C : b_to_c",
             "C ||--|| A : c_to_a",
         ]
-        let diagram = try parseErDiagram(lines)
+        let (diagram, _) = try parseErDiagram(lines)
         #expect(diagram.entities.count == 3)
         #expect(diagram.relationships.count == 3)
     }
@@ -643,32 +643,32 @@ struct ERParserFoundationTests {
             "CUSTOMER ||--o{ ADDRESS : primary",
             "CUSTOMER ||--o{ ADDRESS : secondary",
         ]
-        let diagram = try parseErDiagram(lines)
+        let (diagram, _) = try parseErDiagram(lines)
         #expect(diagram.entities.count == 2)
         #expect(diagram.relationships.count == 2)
     }
 
     @Test("parses empty quoted label")
     func parsesEmptyQuotedLabel() throws {
-        let diagram = try parseErDiagram(["erDiagram", #"A ||--|| B : """#])
+        let (diagram, _) = try parseErDiagram(["erDiagram", #"A ||--|| B : """#])
         #expect(diagram.relationships[0].label.isEmpty)
     }
 
     @Test("parses blank quoted label with spaces")
     func parsesBlankQuotedLabel() throws {
-        let diagram = try parseErDiagram(["erDiagram", #"A ||--|| B : "  ""#])
+        let (diagram, _) = try parseErDiagram(["erDiagram", #"A ||--|| B : "  ""#])
         #expect(diagram.relationships[0].label.isEmpty)
     }
 
     @Test("parses label with br tag")
     func parsesLabelWithBrTag() throws {
-        let diagram = try parseErDiagram(["erDiagram", #"A ||--|| B : "line1<br />line2""#])
+        let (diagram, _) = try parseErDiagram(["erDiagram", #"A ||--|| B : "line1<br />line2""#])
         #expect(diagram.relationships[0].label.contains("<br>") || diagram.relationships[0].label.contains("\n"))
     }
 
     @Test("parses 1 dash dot 1 cardinality variant")
     func parses1DashDot1() throws {
-        let diagram = try parseErDiagram(["erDiagram", "A 1.-1 B : has"])
+        let (diagram, _) = try parseErDiagram(["erDiagram", "A 1.-1 B : has"])
         let rel = try #require(diagram.relationships.first)
         #expect(rel.cardinality1 == "ONLY_ONE")
         #expect(rel.cardinality2 == "ONLY_ONE")
@@ -677,7 +677,7 @@ struct ERParserFoundationTests {
 
     @Test("parses 1 dot dash 1 cardinality variant")
     func parses1DotDash1() throws {
-        let diagram = try parseErDiagram(["erDiagram", "A 1-.1 B : has"])
+        let (diagram, _) = try parseErDiagram(["erDiagram", "A 1-.1 B : has"])
         let rel = try #require(diagram.relationships.first)
         #expect(rel.cardinality1 == "ONLY_ONE")
         #expect(rel.cardinality2 == "ONLY_ONE")
@@ -686,7 +686,7 @@ struct ERParserFoundationTests {
 
     @Test("parses style on comma-separated nodes")
     func parsesStyleOnMultipleNodes() throws {
-        let diagram = try parseErDiagram([
+        let (diagram, _) = try parseErDiagram([
             "erDiagram",
             "CUSTOMER {", "string name", "}",
             "ORDER {", "int id", "}",
@@ -698,7 +698,7 @@ struct ERParserFoundationTests {
 
     @Test("parses classDef with comma-separated names")
     func parsesClassDefWithCommaSeparatedNames() throws {
-        let diagram = try parseErDiagram([
+        let (diagram, _) = try parseErDiagram([
             "erDiagram",
             "classDef firstClass,secondClass fill:red",
         ])
@@ -709,27 +709,27 @@ struct ERParserFoundationTests {
     @Test("parses varchar limited-length attribute type")
     func parsesVarcharType() throws {
         let lines = ["erDiagram", "CUSTOMER {", "varchar(99) name", "}"]
-        let diagram = try parseErDiagram(lines)
+        let (diagram, _) = try parseErDiagram(lines)
         #expect(diagram.entities[0].attributes[0].type == "varchar(99)")
     }
 
     @Test("parses string array attribute type")
     func parsesStringArrayType() throws {
         let lines = ["erDiagram", "CUSTOMER {", "string[] tags", "}"]
-        let diagram = try parseErDiagram(lines)
+        let (diagram, _) = try parseErDiagram(lines)
         #expect(diagram.entities[0].attributes[0].type == "string[]")
     }
 
     @Test("parses numeric entity name 1")
     func parsesNumericEntityName1() throws {
-        let diagram = try parseErDiagram(["erDiagram", "1"])
+        let (diagram, _) = try parseErDiagram(["erDiagram", "1"])
         #expect(diagram.entities.count == 1)
         #expect(diagram.entities[0].key == "1")
     }
 
     @Test("parses numeric entity name with decimal")
     func parsesDecimalStandaloneEntityName() throws {
-        let diagram = try parseErDiagram(["erDiagram", "2.5"])
+        let (diagram, _) = try parseErDiagram(["erDiagram", "2.5"])
         #expect(diagram.entities.count == 1)
         #expect(diagram.entities[0].key == "2.5")
     }
@@ -737,21 +737,21 @@ struct ERParserFoundationTests {
     @Test("parses numeric entity with attribute block")
     func parsesNumericEntityWithAttributes() throws {
         let lines = ["erDiagram", "1 {", "string name", "}"]
-        let diagram = try parseErDiagram(lines)
+        let (diagram, _) = try parseErDiagram(lines)
         #expect(diagram.entities[0].key == "1")
         #expect(diagram.entities[0].attributes.first?.name == "name")
     }
 
     @Test("parses quoted Unicode entity name")
     func parsesQuotedUnicodeEntityName() throws {
-        let diagram = try parseErDiagram(["erDiagram", "\"Blo~rf\" ||--|| OTHER : label"])
+        let (diagram, _) = try parseErDiagram(["erDiagram", "\"Blo~rf\" ||--|| OTHER : label"])
         #expect(diagram.entities.count == 2)
         #expect(diagram.entities.map { $0.key }.contains("Blo~rf"))
     }
 
     @Test("parses 1 as entity in both positions")
     func parses1AsBothEntities() throws {
-        let diagram = try parseErDiagram(["erDiagram", "1 ||--|| 1 : self"])
+        let (diagram, _) = try parseErDiagram(["erDiagram", "1 ||--|| 1 : self"])
         #expect(diagram.entities.count == 1)
         #expect(diagram.relationships.count == 1)
         #expect(diagram.relationships[0].entity1 == "1")

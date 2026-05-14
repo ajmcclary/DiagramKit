@@ -12,14 +12,14 @@ extension DiagramRegistry {
     static let _xyChart = _typed(
         type: .xyChart,
         matches: { $0.startsWithToken("xychart") },
-        parse: { source, frontmatter in
-            var chart = try parseXYChart(DiagramSourceNormalizer.diagramLines(source))
+        parseWithDiagnostics: { source, frontmatter in
+            var (chart, diagnostics) = try parseXYChart(DiagramSourceNormalizer.diagramLines(source))
             if let fm = frontmatter {
                 chart.config = fm.xyChartConfig
                 chart.theme = fm.xyChartTheme
                 if chart.titleText == nil, let fmTitle = fm.diagramTitle { chart.diagramTitle = fmTitle }
             }
-            return chart
+            return (chart, diagnostics)
         },
         wrap: DiagramPayload.xyChart,
         unwrap: { payload in

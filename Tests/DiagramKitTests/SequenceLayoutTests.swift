@@ -16,7 +16,7 @@ final class SequenceLayoutTests: XCTestCase {
     // MARK: - Created Actor Repositioning
 
     func testCreatedActorRepositioned() throws {
-        let diagram = try parseSequenceDiagram(lines("""
+        let (diagram, _) = try parseSequenceDiagram(lines("""
         sequenceDiagram
             Alice->>Bob: First
             create participant Carol
@@ -36,7 +36,7 @@ final class SequenceLayoutTests: XCTestCase {
     // MARK: - Destroyed Actor Lifeline
 
     func testDestroyedActorLifelineTruncated() throws {
-        let diagram = try parseSequenceDiagram(lines("""
+        let (diagram, _) = try parseSequenceDiagram(lines("""
         sequenceDiagram
             Alice->>Bob: Hello
             destroy Bob
@@ -53,7 +53,7 @@ final class SequenceLayoutTests: XCTestCase {
     // MARK: - Mirror Actors
 
     func testMirrorActorsProducesBottomActors() throws {
-        let diagram = try parseSequenceDiagram(lines("""
+        let (diagram, _) = try parseSequenceDiagram(lines("""
         sequenceDiagram
             Alice->>Bob: Hello
         """))
@@ -62,7 +62,7 @@ final class SequenceLayoutTests: XCTestCase {
     }
 
     func testNoMirrorWhenDisabled() throws {
-        let diagram = try parseSequenceDiagram(lines("""
+        let (diagram, _) = try parseSequenceDiagram(lines("""
         sequenceDiagram
             Alice->>Bob: Hello
         """))
@@ -73,7 +73,7 @@ final class SequenceLayoutTests: XCTestCase {
     // MARK: - Hide Unused Participants
 
     func testHideUnusedParticipantsFilters() throws {
-        let diagram = try parseSequenceDiagram(lines("""
+        let (diagram, _) = try parseSequenceDiagram(lines("""
         sequenceDiagram
             participant Alice
             participant Bob
@@ -90,7 +90,7 @@ final class SequenceLayoutTests: XCTestCase {
     // MARK: - Autonumber
 
     func testAutonumberSequenceNumbersAttached() throws {
-        let diagram = try parseSequenceDiagram(lines("""
+        let (diagram, _) = try parseSequenceDiagram(lines("""
         sequenceDiagram
             autonumber
             Alice->>Bob: First
@@ -104,7 +104,7 @@ final class SequenceLayoutTests: XCTestCase {
     }
 
     func testShowSequenceNumbersConfigOverride() throws {
-        let diagram = try parseSequenceDiagram(lines("""
+        let (diagram, _) = try parseSequenceDiagram(lines("""
         sequenceDiagram
             Alice->>Bob: Hello
         """))
@@ -114,7 +114,7 @@ final class SequenceLayoutTests: XCTestCase {
     }
 
     func testAutonumberOffRespectsConfig() throws {
-        let diagram = try parseSequenceDiagram(lines("""
+        let (diagram, _) = try parseSequenceDiagram(lines("""
         sequenceDiagram
             autonumber off
             Alice->>Bob: Hello
@@ -128,7 +128,7 @@ final class SequenceLayoutTests: XCTestCase {
     // MARK: - Rect Highlights
 
     func testRectHighlightsPositioned() throws {
-        let diagram = try parseSequenceDiagram(lines("""
+        let (diagram, _) = try parseSequenceDiagram(lines("""
         sequenceDiagram
             Alice->>Bob: Hello
             rect rgb(191, 223, 255)
@@ -143,7 +143,7 @@ final class SequenceLayoutTests: XCTestCase {
     // MARK: - Boxes
 
     func testBoxBoundingArea() throws {
-        let diagram = try parseSequenceDiagram(lines("""
+        let (diagram, _) = try parseSequenceDiagram(lines("""
         sequenceDiagram
             box rgb(100,200,100) Group
                 participant Alice
@@ -163,7 +163,7 @@ final class SequenceLayoutTests: XCTestCase {
     // MARK: - Block Dividers
 
     func testBlockDividersInCritical() throws {
-        let diagram = try parseSequenceDiagram(lines("""
+        let (diagram, _) = try parseSequenceDiagram(lines("""
         sequenceDiagram
             Alice->>Bob: Start
             critical Transaction
@@ -181,7 +181,7 @@ final class SequenceLayoutTests: XCTestCase {
     // MARK: - Multiline Text
 
     func testMultilineMessageAdjustsRowHeight() throws {
-        let diagram = try parseSequenceDiagram(lines("""
+        let (diagram, _) = try parseSequenceDiagram(lines("""
         sequenceDiagram
             Alice->>Bob: Line1
             Alice->>Bob: Line1<br>Line2

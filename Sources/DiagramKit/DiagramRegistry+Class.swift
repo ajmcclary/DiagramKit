@@ -12,7 +12,7 @@ extension DiagramRegistry {
     static let _classDiagram = _typed(
         type: .classDiagram,
         matches: { $0.startsWithToken("classdiagram") },
-        parse: { source, frontmatter in
+        parseWithDiagnostics: { source, frontmatter in
             try parseClassDiagram(DiagramSourceNormalizer.diagramLines(source), frontmatter: frontmatter)
         },
         wrap: DiagramPayload.classDiagram,

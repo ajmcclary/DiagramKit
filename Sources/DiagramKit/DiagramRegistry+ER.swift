@@ -12,7 +12,7 @@ extension DiagramRegistry {
     static let _erDiagram = _typed(
         type: .erDiagram,
         matches: { $0.startsWithToken("erdiagram") },
-        parse: { source, frontmatter in
+        parseWithDiagnostics: { source, frontmatter in
             try parseErDiagram(DiagramSourceNormalizer.diagramLines(source), frontmatter: frontmatter)
         },
         wrap: DiagramPayload.erDiagram,

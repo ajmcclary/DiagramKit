@@ -16,7 +16,7 @@ final class SequenceParserTests: XCTestCase {
     // MARK: - Participant Parsing
 
     func testParticipantBasic() throws {
-        let diagram = try parseSequenceDiagram(lines("""
+        let (diagram, _) = try parseSequenceDiagram(lines("""
         sequenceDiagram
             participant Alice
             actor Bob
@@ -31,7 +31,7 @@ final class SequenceParserTests: XCTestCase {
     }
 
     func testParticipantWithAlias() throws {
-        let diagram = try parseSequenceDiagram(lines("""
+        let (diagram, _) = try parseSequenceDiagram(lines("""
         sequenceDiagram
             participant A as Alice
             actor B as Bob
@@ -43,7 +43,7 @@ final class SequenceParserTests: XCTestCase {
     }
 
     func testParticipantWithConfig() throws {
-        let diagram = try parseSequenceDiagram(lines("""
+        let (diagram, _) = try parseSequenceDiagram(lines("""
         sequenceDiagram
             participant API@{ "type": "boundary" } as Public API
             participant DB@{ "type": "database", "alias": "User DB" }
@@ -58,7 +58,7 @@ final class SequenceParserTests: XCTestCase {
 
     func testParticipantAliasPrecedence() throws {
         // External 'as' takes precedence over inline alias
-        let diagram = try parseSequenceDiagram(lines("""
+        let (diagram, _) = try parseSequenceDiagram(lines("""
         sequenceDiagram
             participant Svc@{ "type": "control", "alias": "Auth" } as Auth Service
         """))
@@ -70,7 +70,7 @@ final class SequenceParserTests: XCTestCase {
     // MARK: - Arrow Type Parsing
 
     func testArrowSolidFilled() throws {
-        let diagram = try parseSequenceDiagram(lines("""
+        let (diagram, _) = try parseSequenceDiagram(lines("""
         sequenceDiagram
             A->>B: solid filled
         """))
@@ -78,7 +78,7 @@ final class SequenceParserTests: XCTestCase {
     }
 
     func testArrowDottedFilled() throws {
-        let diagram = try parseSequenceDiagram(lines("""
+        let (diagram, _) = try parseSequenceDiagram(lines("""
         sequenceDiagram
             A-->>B: dotted filled
         """))
@@ -86,7 +86,7 @@ final class SequenceParserTests: XCTestCase {
     }
 
     func testArrowSolidOpen() throws {
-        let diagram = try parseSequenceDiagram(lines("""
+        let (diagram, _) = try parseSequenceDiagram(lines("""
         sequenceDiagram
             A->B: no arrowhead
         """))
@@ -95,7 +95,7 @@ final class SequenceParserTests: XCTestCase {
     }
 
     func testArrowDottedOpen() throws {
-        let diagram = try parseSequenceDiagram(lines("""
+        let (diagram, _) = try parseSequenceDiagram(lines("""
         sequenceDiagram
             A-->B: no arrowhead dotted
         """))
@@ -105,7 +105,7 @@ final class SequenceParserTests: XCTestCase {
     }
 
     func testArrowCross() throws {
-        let diagram = try parseSequenceDiagram(lines("""
+        let (diagram, _) = try parseSequenceDiagram(lines("""
         sequenceDiagram
             A-xB: cross
             A--xB: dotted cross
@@ -115,7 +115,7 @@ final class SequenceParserTests: XCTestCase {
     }
 
     func testArrowAsync() throws {
-        let diagram = try parseSequenceDiagram(lines("""
+        let (diagram, _) = try parseSequenceDiagram(lines("""
         sequenceDiagram
             A-)B: async
             A--)B: dotted async
@@ -125,7 +125,7 @@ final class SequenceParserTests: XCTestCase {
     }
 
     func testArrowBidirectional() throws {
-        let diagram = try parseSequenceDiagram(lines("""
+        let (diagram, _) = try parseSequenceDiagram(lines("""
         sequenceDiagram
             A<<->>B: bidirectional
             A<<-->>B: bidirectional dotted
@@ -135,7 +135,7 @@ final class SequenceParserTests: XCTestCase {
     }
 
     func testArrowHalfArrowTop() throws {
-        let diagram = try parseSequenceDiagram(lines("""
+        let (diagram, _) = try parseSequenceDiagram(lines("""
         sequenceDiagram
             A-|\\B: half top
         """))
@@ -146,7 +146,7 @@ final class SequenceParserTests: XCTestCase {
     }
 
     func testArrowStickBottom() throws {
-        let diagram = try parseSequenceDiagram(lines("""
+        let (diagram, _) = try parseSequenceDiagram(lines("""
         sequenceDiagram
             A-//B: stick bottom
         """))
@@ -158,7 +158,7 @@ final class SequenceParserTests: XCTestCase {
 
     func testArrowReverseHalfTop() throws {
         // /\|-  — reverse half arrow top
-        let diagram = try parseSequenceDiagram(lines("""
+        let (diagram, _) = try parseSequenceDiagram(lines("""
         sequenceDiagram
             A/\\|-B: reverse half top
         """))
@@ -170,7 +170,7 @@ final class SequenceParserTests: XCTestCase {
     }
 
     func testArrowReverseStickBottom() throws {
-        let diagram = try parseSequenceDiagram(lines("""
+        let (diagram, _) = try parseSequenceDiagram(lines("""
         sequenceDiagram
             A\\\\-B: reverse stick bottom
         """))
@@ -183,7 +183,7 @@ final class SequenceParserTests: XCTestCase {
 
     func testReverseMarkersInSVG() throws {
         // Verify SVG output contains reverse marker definitions
-        let diagram = try parseSequenceDiagram(lines("""
+        let (diagram, _) = try parseSequenceDiagram(lines("""
         sequenceDiagram
             A/\\|-B: rev arrow
             A\\\\-B: rev stick
@@ -197,7 +197,7 @@ final class SequenceParserTests: XCTestCase {
     // MARK: - Central Connection
 
     func testCentralConnectionDest() throws {
-        let diagram = try parseSequenceDiagram(lines("""
+        let (diagram, _) = try parseSequenceDiagram(lines("""
         sequenceDiagram
             Alice->>()John: Hello
         """))
@@ -205,7 +205,7 @@ final class SequenceParserTests: XCTestCase {
     }
 
     func testCentralConnectionSource() throws {
-        let diagram = try parseSequenceDiagram(lines("""
+        let (diagram, _) = try parseSequenceDiagram(lines("""
         sequenceDiagram
             Alice()->>John: How are you
         """))
@@ -213,7 +213,7 @@ final class SequenceParserTests: XCTestCase {
     }
 
     func testCentralConnectionBoth() throws {
-        let diagram = try parseSequenceDiagram(lines("""
+        let (diagram, _) = try parseSequenceDiagram(lines("""
         sequenceDiagram
             Alice()->>()John: Great
         """))
@@ -223,7 +223,7 @@ final class SequenceParserTests: XCTestCase {
     // MARK: - Lifecycle: create / destroy
 
     func testCreateParticipant() throws {
-        let diagram = try parseSequenceDiagram(lines("""
+        let (diagram, _) = try parseSequenceDiagram(lines("""
         sequenceDiagram
             Alice->>Bob: Hello
             create participant Charlie
@@ -234,7 +234,7 @@ final class SequenceParserTests: XCTestCase {
     }
 
     func testDestroyParticipant() throws {
-        let diagram = try parseSequenceDiagram(lines("""
+        let (diagram, _) = try parseSequenceDiagram(lines("""
         sequenceDiagram
             Alice->>Bob: Hello
             destroy Bob
@@ -246,7 +246,7 @@ final class SequenceParserTests: XCTestCase {
     // MARK: - Activation
 
     func testDedicatedActivateDeactivate() throws {
-        let diagram = try parseSequenceDiagram(lines("""
+        let (diagram, _) = try parseSequenceDiagram(lines("""
         sequenceDiagram
             Alice->>John: Hello
             activate John
@@ -260,7 +260,7 @@ final class SequenceParserTests: XCTestCase {
     }
 
     func testSuffixActivation() throws {
-        let diagram = try parseSequenceDiagram(lines("""
+        let (diagram, _) = try parseSequenceDiagram(lines("""
         sequenceDiagram
             Alice->>+John: Activate
             John-->>-Alice: Deactivate
@@ -272,7 +272,7 @@ final class SequenceParserTests: XCTestCase {
     // MARK: - BR Tags
 
     func testBrTagInMessageLabel() throws {
-        let diagram = try parseSequenceDiagram(lines("""
+        let (diagram, _) = try parseSequenceDiagram(lines("""
         sequenceDiagram
             A->>B: Line1<br>Line2
         """))
@@ -280,7 +280,7 @@ final class SequenceParserTests: XCTestCase {
     }
 
     func testBrTagInActorLabel() throws {
-        let diagram = try parseSequenceDiagram(lines("""
+        let (diagram, _) = try parseSequenceDiagram(lines("""
         sequenceDiagram
             participant A as First<br>Second
             A->>B: Hello
@@ -292,7 +292,7 @@ final class SequenceParserTests: XCTestCase {
     // MARK: - Autonumber
 
     func testAutonumberBasic() throws {
-        let diagram = try parseSequenceDiagram(lines("""
+        let (diagram, _) = try parseSequenceDiagram(lines("""
         sequenceDiagram
             autonumber
             Alice->>Bob: One
@@ -304,7 +304,7 @@ final class SequenceParserTests: XCTestCase {
     }
 
     func testAutonumberOff() throws {
-        let diagram = try parseSequenceDiagram(lines("""
+        let (diagram, _) = try parseSequenceDiagram(lines("""
         sequenceDiagram
             autonumber off
             Alice->>Bob: Msg
@@ -313,7 +313,7 @@ final class SequenceParserTests: XCTestCase {
     }
 
     func testAutonumberWithStart() throws {
-        let diagram = try parseSequenceDiagram(lines("""
+        let (diagram, _) = try parseSequenceDiagram(lines("""
         sequenceDiagram
             autonumber 10
             Alice->>Bob: Msg
@@ -323,7 +323,7 @@ final class SequenceParserTests: XCTestCase {
     }
 
     func testAutonumberWithStartAndStep() throws {
-        let diagram = try parseSequenceDiagram(lines("""
+        let (diagram, _) = try parseSequenceDiagram(lines("""
         sequenceDiagram
             autonumber 10 2
             Alice->>Bob: Msg
@@ -336,7 +336,7 @@ final class SequenceParserTests: XCTestCase {
     // MARK: - Box
 
     func testBoxGrouping() throws {
-        let diagram = try parseSequenceDiagram(lines("""
+        let (diagram, _) = try parseSequenceDiagram(lines("""
         sequenceDiagram
             box rgb(33,66,99) Services
                 participant API
@@ -353,7 +353,7 @@ final class SequenceParserTests: XCTestCase {
     // MARK: - Control Structures
 
     func testLoopBlock() throws {
-        let diagram = try parseSequenceDiagram(lines("""
+        let (diagram, _) = try parseSequenceDiagram(lines("""
         sequenceDiagram
             loop Every minute
                 Alice->>Bob: Hello
@@ -366,7 +366,7 @@ final class SequenceParserTests: XCTestCase {
     }
 
     func testAltWithElse() throws {
-        let diagram = try parseSequenceDiagram(lines("""
+        let (diagram, _) = try parseSequenceDiagram(lines("""
         sequenceDiagram
             alt Success
                 Alice->>Bob: OK
@@ -381,7 +381,7 @@ final class SequenceParserTests: XCTestCase {
     }
 
     func testCriticalWithOption() throws {
-        let diagram = try parseSequenceDiagram(lines("""
+        let (diagram, _) = try parseSequenceDiagram(lines("""
         sequenceDiagram
             critical Perform check
                 A->>B: Check
@@ -396,7 +396,7 @@ final class SequenceParserTests: XCTestCase {
     }
 
     func testNestedBlocks() throws {
-        let diagram = try parseSequenceDiagram(lines("""
+        let (diagram, _) = try parseSequenceDiagram(lines("""
         sequenceDiagram
             loop Outer
                 alt Inner
@@ -411,7 +411,7 @@ final class SequenceParserTests: XCTestCase {
     // MARK: - Title and Accessibility
 
     func testTitle() throws {
-        let diagram = try parseSequenceDiagram(lines("""
+        let (diagram, _) = try parseSequenceDiagram(lines("""
         sequenceDiagram
             title My Sequence Diagram
             Alice->>Bob: Hello
@@ -420,7 +420,7 @@ final class SequenceParserTests: XCTestCase {
     }
 
     func testAccTitle() throws {
-        let diagram = try parseSequenceDiagram(lines("""
+        let (diagram, _) = try parseSequenceDiagram(lines("""
         sequenceDiagram
             accTitle: Accessible Title
             Alice->>Bob: Hello
@@ -429,7 +429,7 @@ final class SequenceParserTests: XCTestCase {
     }
 
     func testAccDescr() throws {
-        let diagram = try parseSequenceDiagram(lines("""
+        let (diagram, _) = try parseSequenceDiagram(lines("""
         sequenceDiagram
             accDescr: A description of this diagram
             Alice->>Bob: Hello
@@ -440,7 +440,7 @@ final class SequenceParserTests: XCTestCase {
     // MARK: - Links and Interactivity
 
     func testLinkStatement() throws {
-        let diagram = try parseSequenceDiagram(lines("""
+        let (diagram, _) = try parseSequenceDiagram(lines("""
         sequenceDiagram
             link Alice: Dashboard @ https://example.com
             Alice->>Bob: Hello
@@ -450,7 +450,7 @@ final class SequenceParserTests: XCTestCase {
     }
 
     func testPropertiesStatement() throws {
-        let diagram = try parseSequenceDiagram(lines("""
+        let (diagram, _) = try parseSequenceDiagram(lines("""
         sequenceDiagram
             properties Svc: {"class": "internal"}
             Svc->>DB: Query
@@ -462,7 +462,7 @@ final class SequenceParserTests: XCTestCase {
     // MARK: - Case Insensitive
 
     func testCaseInsensitiveKeywords() throws {
-        let diagram = try parseSequenceDiagram(lines("""
+        let (diagram, _) = try parseSequenceDiagram(lines("""
         SequenceDiagram
             PARTICIPANT Alice
             ACTOR Bob
@@ -479,7 +479,7 @@ final class SequenceParserTests: XCTestCase {
     // MARK: - Entity Decoding
 
     func testEntityDecoding() throws {
-        let diagram = try parseSequenceDiagram(lines("""
+        let (diagram, _) = try parseSequenceDiagram(lines("""
         sequenceDiagram
             Alice->>Bob: Hello #infin; World
         """))
@@ -487,7 +487,7 @@ final class SequenceParserTests: XCTestCase {
     }
 
     func testDecimalEntityDecoding() throws {
-        let diagram = try parseSequenceDiagram(lines("""
+        let (diagram, _) = try parseSequenceDiagram(lines("""
         sequenceDiagram
             Alice->>Bob: Heart #9829;
         """))
@@ -497,7 +497,7 @@ final class SequenceParserTests: XCTestCase {
     // MARK: - URL Sanitization
 
     func testLinkSanitizationBlocksJavascript() throws {
-        let diagram = try parseSequenceDiagram(lines("""
+        let (diagram, _) = try parseSequenceDiagram(lines("""
         sequenceDiagram
             link Alice: Bad @ javascript:alert(1)
             Alice->>Bob: Hello
@@ -507,7 +507,7 @@ final class SequenceParserTests: XCTestCase {
     }
 
     func testLinkSanitizationBlocksDataUri() throws {
-        let diagram = try parseSequenceDiagram(lines("""
+        let (diagram, _) = try parseSequenceDiagram(lines("""
         sequenceDiagram
             link Alice: Bad @ data:text/html,<script>alert(1)</script>
             Alice->>Bob: Hello
@@ -517,7 +517,7 @@ final class SequenceParserTests: XCTestCase {
     }
 
     func testLinkSanitizationAllowsHttps() throws {
-        let diagram = try parseSequenceDiagram(lines("""
+        let (diagram, _) = try parseSequenceDiagram(lines("""
         sequenceDiagram
             link Alice: Dashboard @ https://example.com
             Alice->>Bob: Hello
@@ -527,7 +527,7 @@ final class SequenceParserTests: XCTestCase {
     }
 
     func testLinkSanitizationAllowsMailto() throws {
-        let diagram = try parseSequenceDiagram(lines("""
+        let (diagram, _) = try parseSequenceDiagram(lines("""
         sequenceDiagram
             link Alice: Email @ mailto:alice@example.com
             Alice->>Bob: Hello
@@ -537,7 +537,7 @@ final class SequenceParserTests: XCTestCase {
     }
 
     func testLinkSanitizationBlocksVbscript() throws {
-        let diagram = try parseSequenceDiagram(lines("""
+        let (diagram, _) = try parseSequenceDiagram(lines("""
         sequenceDiagram
             link Alice: Bad @ vBScript:msgbox(1)
             Alice->>Bob: Hello
@@ -549,7 +549,7 @@ final class SequenceParserTests: XCTestCase {
     // MARK: - Notes
 
     func testNoteLeftOf() throws {
-        let diagram = try parseSequenceDiagram(lines("""
+        let (diagram, _) = try parseSequenceDiagram(lines("""
         sequenceDiagram
             Alice->>Bob: Hello
             Note left of Alice: A note
@@ -560,7 +560,7 @@ final class SequenceParserTests: XCTestCase {
     }
 
     func testNoteOver() throws {
-        let diagram = try parseSequenceDiagram(lines("""
+        let (diagram, _) = try parseSequenceDiagram(lines("""
         sequenceDiagram
             Alice->>Bob: Hello
             Note over Alice,Bob: A note over both

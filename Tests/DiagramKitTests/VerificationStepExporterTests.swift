@@ -81,7 +81,7 @@ final class VerificationStepExporterTests: XCTestCase {
 
         switch diagram.category {
         case "sequence":
-            let parsed = try parseSequenceDiagram(lines)
+            let (parsed, _) = try parseSequenceDiagram(lines)
             let positioned = try layoutSequenceDiagram(parsed, RenderOptions())
             return [
                 ["diagramId": diagram.id, "step": "1-parsed", "timestamp": timestamp, "data": serializeSequenceParsed(parsed)],
@@ -89,7 +89,7 @@ final class VerificationStepExporterTests: XCTestCase {
             ]
 
         case "class":
-            let parsed = try parseClassDiagram(lines)
+            let (parsed, _) = try parseClassDiagram(lines)
             let positioned = try layoutClassDiagramSync(parsed, options: RenderOptions())
             let posData = serializeClassPositionedDetailed(positioned)
             let classes = (posData["classes"] as? [[String: Any]] ?? [])
@@ -102,7 +102,7 @@ final class VerificationStepExporterTests: XCTestCase {
             ]
 
         case "er":
-            let parsed = try parseErDiagram(lines)
+            let (parsed, _) = try parseErDiagram(lines)
             let positioned = try layoutErDiagramSync(parsed, options: RenderOptions())
             return [
                 ["diagramId": diagram.id, "step": "1-parsed", "timestamp": timestamp, "data": serializeErParsed(parsed)],
@@ -110,7 +110,7 @@ final class VerificationStepExporterTests: XCTestCase {
             ]
 
         case "xychart":
-            let parsed = try parseXYChart(lines)
+            let (parsed, _) = try parseXYChart(lines)
             let positioned = layoutXYChart(parsed)
             return [
                 ["diagramId": diagram.id, "step": "1-parsed", "timestamp": timestamp, "data": serializeXYChartParsed(parsed)],

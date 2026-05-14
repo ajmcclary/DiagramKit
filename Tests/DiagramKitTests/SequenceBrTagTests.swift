@@ -20,7 +20,7 @@ final class SequenceBrTagTests: XCTestCase {
             A->>B: Hello
         """
 
-        let diagram = try parseSequenceDiagram(lines(source))
+        let (diagram, _) = try parseSequenceDiagram(lines(source))
 
         XCTAssertEqual(diagram.notes.count, 1)
         XCTAssertEqual(diagram.notes[0].text, "line 1\nline 2\nline 3\nline 4")
@@ -43,8 +43,8 @@ final class SequenceBrTagTests: XCTestCase {
             A->>B: Hello
         """
 
-        let single = try layoutSequenceDiagram(try parseSequenceDiagram(lines(singleSource)))
-        let multi = try layoutSequenceDiagram(try parseSequenceDiagram(lines(multiSource)))
+        let single = try layoutSequenceDiagram(try parseSequenceDiagram(lines(singleSource)).0)
+        let multi = try layoutSequenceDiagram(try parseSequenceDiagram(lines(multiSource)).0)
 
         XCTAssertEqual(single.notes.count, 1)
         XCTAssertEqual(multi.notes.count, 1)

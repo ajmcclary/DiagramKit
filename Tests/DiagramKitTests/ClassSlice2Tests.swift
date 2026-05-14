@@ -8,7 +8,7 @@ final class ClassSlice2Tests: XCTestCase {
 
     func test_separate_line_annotation() throws {
         let source = "classDiagram\nclass Shape\n<<interface>> Shape\nclass Circle\nCircle --|> Shape"
-        let diagram = try parseClassDiagram(source.splitByNewlines)
+        let (diagram, _) = try parseClassDiagram(source.splitByNewlines)
         let shape = diagram.classes.first(where: { $0.id == "Shape" })
         XCTAssertNotNil(shape)
         XCTAssertEqual(shape!.annotations, ["interface"])
@@ -16,14 +16,14 @@ final class ClassSlice2Tests: XCTestCase {
 
     func test_inline_annotation() throws {
         let source = "classDiagram\nclass Shape <<interface>>"
-        let diagram = try parseClassDiagram(source.splitByNewlines)
+        let (diagram, _) = try parseClassDiagram(source.splitByNewlines)
         let cls = diagram.classes[0]
         XCTAssertEqual(cls.annotations, ["interface"])
     }
 
     func test_inline_annotation_with_members() throws {
         let source = "classDiagram\nclass Shape <<interface>> {\n    +calculateArea() double\n}"
-        let diagram = try parseClassDiagram(source.splitByNewlines)
+        let (diagram, _) = try parseClassDiagram(source.splitByNewlines)
         let cls = diagram.classes[0]
         XCTAssertEqual(cls.annotations, ["interface"])
         XCTAssertFalse(cls.methods.isEmpty)
@@ -31,7 +31,7 @@ final class ClassSlice2Tests: XCTestCase {
 
     func test_inline_annotation_empty_class() throws {
         let source = "classDiagram\nclass Shape <<interface>> {}"
-        let diagram = try parseClassDiagram(source.splitByNewlines)
+        let (diagram, _) = try parseClassDiagram(source.splitByNewlines)
         let cls = diagram.classes[0]
         XCTAssertEqual(cls.annotations, ["interface"])
         XCTAssertTrue(cls.attributes.isEmpty)
@@ -40,7 +40,7 @@ final class ClassSlice2Tests: XCTestCase {
 
     func test_multiple_annotations() throws {
         let source = "classDiagram\n<<interface>> Shape\n<<serializable>> Shape"
-        let diagram = try parseClassDiagram(source.splitByNewlines)
+        let (diagram, _) = try parseClassDiagram(source.splitByNewlines)
         let shape = diagram.classes.first(where: { $0.id == "Shape" })
         XCTAssertNotNil(shape)
         XCTAssertEqual(shape!.annotations, ["interface", "serializable"])
@@ -48,7 +48,7 @@ final class ClassSlice2Tests: XCTestCase {
 
     func test_annotations_render_in_svg() throws {
         let source = "classDiagram\nclass Shape <<interface>>"
-        let diagram = try parseClassDiagram(source.splitByNewlines)
+        let (diagram, _) = try parseClassDiagram(source.splitByNewlines)
         let positioned = try layoutClassDiagramSync(diagram)
         let svg = try renderClassSvg(positioned, DiagramColors(bg: "#fff", fg: "#000"))
         XCTAssertTrue(svg.contains("&lt;&lt;interface&gt;&gt;"))

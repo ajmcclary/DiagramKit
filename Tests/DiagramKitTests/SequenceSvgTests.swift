@@ -21,7 +21,7 @@ final class SequenceSvgTests: XCTestCase {
     // MARK: - Arrow Markers
 
     func testAllArrowMarkersDefined() throws {
-        let diagram = try parseSequenceDiagram(lines("""
+        let (diagram, _) = try parseSequenceDiagram(lines("""
         sequenceDiagram
             A->>B: filled
             A-->B: open
@@ -38,7 +38,7 @@ final class SequenceSvgTests: XCTestCase {
     }
 
     func testReverseMarkersInSvgOutput() throws {
-        let diagram = try parseSequenceDiagram(lines("""
+        let (diagram, _) = try parseSequenceDiagram(lines("""
         sequenceDiagram
             A/\\|-B: rev half
             A\\\\-B: rev stick
@@ -50,7 +50,7 @@ final class SequenceSvgTests: XCTestCase {
 
     func testAllMarkerDefinitionsEmitted() throws {
         // Even without using all arrow types, marker defs should be complete
-        let diagram = try parseSequenceDiagram(lines("""
+        let (diagram, _) = try parseSequenceDiagram(lines("""
         sequenceDiagram
             A->>B: hello
         """))
@@ -64,7 +64,7 @@ final class SequenceSvgTests: XCTestCase {
     // MARK: - Popup Menus
 
     func testPopupMenuPresentForLinks() throws {
-        let diagram = try parseSequenceDiagram(lines("""
+        let (diagram, _) = try parseSequenceDiagram(lines("""
         sequenceDiagram
             link Alice: Dashboard @ https://example.com
             Alice->>Bob: Hello
@@ -77,7 +77,7 @@ final class SequenceSvgTests: XCTestCase {
     }
 
     func testForceMenusRendersVisiblePopup() throws {
-        let diagram = try parseSequenceDiagram(lines("""
+        let (diagram, _) = try parseSequenceDiagram(lines("""
         sequenceDiagram
             link Alice: Dashboard @ https://example.com
             Alice->>Bob: Hello
@@ -89,7 +89,7 @@ final class SequenceSvgTests: XCTestCase {
     // MARK: - Rect Highlights
 
     func testRectHighlightsBehindContent() throws {
-        let diagram = try parseSequenceDiagram(lines("""
+        let (diagram, _) = try parseSequenceDiagram(lines("""
         sequenceDiagram
             Alice->>Bob: Hello
             rect rgb(191, 223, 255)
@@ -105,7 +105,7 @@ final class SequenceSvgTests: XCTestCase {
     // MARK: - Sequence Numbers
 
     func testSequenceNumbersInSvg() throws {
-        let diagram = try parseSequenceDiagram(lines("""
+        let (diagram, _) = try parseSequenceDiagram(lines("""
         sequenceDiagram
             autonumber
             Alice->>Bob: Hello
@@ -117,7 +117,7 @@ final class SequenceSvgTests: XCTestCase {
     // MARK: - Title and Accessibility
 
     func testTitleInSvg() throws {
-        let diagram = try parseSequenceDiagram(lines("""
+        let (diagram, _) = try parseSequenceDiagram(lines("""
         sequenceDiagram
             title My Diagram
             Alice->>Bob: Hello
@@ -127,7 +127,7 @@ final class SequenceSvgTests: XCTestCase {
     }
 
     func testAccessibilityElementsInSvg() throws {
-        let diagram = try parseSequenceDiagram(lines("""
+        let (diagram, _) = try parseSequenceDiagram(lines("""
         sequenceDiagram
             accTitle: Accessible Title
             accDescr: A description
@@ -152,7 +152,7 @@ final class SequenceSvgTests: XCTestCase {
         let rawLines = source
             .components(separatedBy: .newlines)
             .filter { !$0.trimmingCharacters(in: .whitespaces).hasPrefix("%%") }
-        let diagram = try parseSequenceDiagram(rawLines)
+        let (diagram, _) = try parseSequenceDiagram(rawLines)
         let svg = try renderSvg(diagram)
         XCTAssertTrue(svg.contains("<desc>"), "SVG should contain desc element")
         // Multiline accDescr should render its content
@@ -162,7 +162,7 @@ final class SequenceSvgTests: XCTestCase {
     // MARK: - Actor Type Rendering
 
     func testActorTypesRenderDistinctShapes() throws {
-        let diagram = try parseSequenceDiagram(lines("""
+        let (diagram, _) = try parseSequenceDiagram(lines("""
         sequenceDiagram
             participant P@{ "type": "boundary" } as Boundary
             participant C@{ "type": "control" } as Control
@@ -183,7 +183,7 @@ final class SequenceSvgTests: XCTestCase {
     // MARK: - Central Connection
 
     func testCentralConnectionCirclesInSvg() throws {
-        let diagram = try parseSequenceDiagram(lines("""
+        let (diagram, _) = try parseSequenceDiagram(lines("""
         sequenceDiagram
             Alice()->>()John: Great
         """))
@@ -194,7 +194,7 @@ final class SequenceSvgTests: XCTestCase {
     // MARK: - BR Tag Rendering
 
     func testBrTagInMessageRendersMultiline() throws {
-        let diagram = try parseSequenceDiagram(lines("""
+        let (diagram, _) = try parseSequenceDiagram(lines("""
         sequenceDiagram
             Alice->>Bob: Line1<br>Line2
         """))

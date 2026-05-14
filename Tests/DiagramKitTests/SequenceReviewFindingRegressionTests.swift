@@ -14,7 +14,7 @@ final class SequenceReviewFindingRegressionTests: XCTestCase {
     }
 
     private func parse(_ source: String) throws -> SequenceDiagram {
-        try parseSequenceDiagram(lines(source))
+        try parseSequenceDiagram(lines(source)).0
     }
 
     func testMermaidHalfArrowSyntaxParses() throws {

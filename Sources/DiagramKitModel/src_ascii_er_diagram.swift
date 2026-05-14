@@ -209,7 +209,7 @@ public func renderErAscii(
     let lines = splitAsciiErLines(text)
         .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
         .filter { !$0.isEmpty && !$0.hasPrefix("%%") }
-    let parsed = try parseErDiagram(lines)
+    let (parsed, _) = try parseErDiagram(lines)
 
     if parsed.entities.isEmpty {
         return ""

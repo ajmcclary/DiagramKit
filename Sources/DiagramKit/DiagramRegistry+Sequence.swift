@@ -12,7 +12,7 @@ extension DiagramRegistry {
     static let _sequenceDiagram = _typed(
         type: .sequenceDiagram,
         matches: { $0.startsWithToken("sequencediagram") },
-        parse: { source, _ in
+        parseWithDiagnostics: { source, _ in
             try parseSequenceDiagram(DiagramSourceNormalizer.diagramLines(source))
         },
         wrap: DiagramPayload.sequenceDiagram,

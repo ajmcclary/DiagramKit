@@ -70,8 +70,8 @@ private let _arrowPatterns: [(pattern: String, type: SequenceArrowType)] = [
 
 // MARK: - Public API
 
-public func parseSequenceDiagram(_ lines: [String]) throws -> SequenceDiagram {
-    try _parseSequenceDiagramEntry(lines)
+public func parseSequenceDiagram(_ lines: [String]) throws -> (SequenceDiagram, [DiagramDiagnostic]) {
+    (try _parseSequenceDiagramEntry(lines), [])
 }
 
 // MARK: - Main Parser

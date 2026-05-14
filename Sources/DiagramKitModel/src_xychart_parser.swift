@@ -1,5 +1,6 @@
 // Ported from original/src/xychart/parser.ts + xychart.jison
 import Foundation
+import DiagramKitCommon
 
 // MARK: - Sanitization
 
@@ -999,7 +1000,7 @@ private func _formatNumber(_ d: Double) -> String {
 
 // MARK: - Public API
 
-public func parseXYChart(_ lines: [String]) throws -> XYChart {
+public func parseXYChart(_ lines: [String]) throws -> (XYChart, [DiagramDiagnostic]) {
     let source = lines.joined(separator: "\n")
     let tokens = try _tokenizeXYChart(source)
     let parser = XYChartTokenParser(tokens: tokens)
@@ -1010,10 +1011,10 @@ public func parseXYChart(_ lines: [String]) throws -> XYChart {
         throw XYChartParserError.noPlotData
     }
 
-    return chart
+    return (chart, [])
 }
 
-public func parseXYChart(_ source: String) throws -> XYChart {
+public func parseXYChart(_ source: String) throws -> (XYChart, [DiagramDiagnostic]) {
     let tokens = try _tokenizeXYChart(source)
     let parser = XYChartTokenParser(tokens: tokens)
     let chart = try parser.parse()
@@ -1022,5 +1023,5 @@ public func parseXYChart(_ source: String) throws -> XYChart {
         throw XYChartParserError.noPlotData
     }
 
-    return chart
+    return (chart, [])
 }

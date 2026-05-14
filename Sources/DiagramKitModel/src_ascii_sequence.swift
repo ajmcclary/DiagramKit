@@ -122,7 +122,7 @@ public func renderSequenceAscii(
         .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
         .filter { !$0.isEmpty && !$0.hasPrefix("%%") }
 
-    let parsed = try parseSequenceDiagram(lines)
+    let (parsed, _) = try parseSequenceDiagram(lines)
 
     let asciiActors = parsed.actors.map { actor in
         AsciiSequenceActor(id: actor.id, label: actor.label)

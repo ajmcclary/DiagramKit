@@ -68,7 +68,7 @@ public func renderXYChartAscii(
         .filter { !$0.isEmpty && !$0.hasPrefix("%%") }
     let chart: XYChart
     do {
-        chart = try parseXYChart(lines)
+        chart = try parseXYChart(lines).0
     } catch {
         return "XY Chart parse error: \(error.localizedDescription)"
     }
