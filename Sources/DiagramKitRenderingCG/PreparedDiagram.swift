@@ -6,6 +6,7 @@
 // (umbrella in Stage 1) and DiagramKitViews can consume it.
 
 import Foundation
+import DiagramKitCommon
 import DiagramKitModel
 import CoreGraphics
 
@@ -15,8 +16,16 @@ public struct PreparedDiagram: Sendable {
     public let bounds: CGRect
     public let positioned: PositionedGraph
     public let theme: DiagramTheme
+    /// Aggregated `importDiagnostics + positioned.diagnostics` in that order.
+    /// The ASCII path returns `AsciiRenderOutput` instead; see the design
+    /// spec at docs/superpowers/specs/2026-05-14-parser-diagnostics-surfacing-design.md.
+    public let diagnostics: [DiagramDiagnostic]
 
-    public init(positioned: PositionedGraph, theme: DiagramTheme) {
+    public init(
+        positioned: PositionedGraph,
+        theme: DiagramTheme,
+        importDiagnostics: [DiagramDiagnostic] = []
+    ) {
         self.bounds = CGRect(
             x: 0,
             y: 0,
@@ -25,6 +34,7 @@ public struct PreparedDiagram: Sendable {
         )
         self.positioned = positioned
         self.theme = theme
+        self.diagnostics = importDiagnostics + positioned.diagnostics
     }
 
     @MainActor
