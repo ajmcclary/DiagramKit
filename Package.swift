@@ -113,7 +113,18 @@ let package = Package(
         ),
         .target(
             name: "DiagramKitInteractive",
-            dependencies: ["DiagramKitCommon", "DiagramKitModel", "DiagramKitImport", "DiagramKitExport"],
+            dependencies: [
+                "DiagramKitCommon",
+                "DiagramKitModel",
+                "DiagramKitImport",
+                "DiagramKitExport",
+                .target(
+                    name: "DiagramKitRenderingCG",
+                    condition: .when(platforms: [
+                        .macOS, .iOS, .tvOS, .visionOS, .macCatalyst
+                    ])
+                )
+            ],
             swiftSettings: strictConcurrencySettings
         ),
         .target(
