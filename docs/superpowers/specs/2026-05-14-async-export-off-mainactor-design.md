@@ -138,10 +138,38 @@ func _exportAsync(_ document: DiagramDocument) async throws
 }
 ```
 
-`DiagramWorkerThread` already lives in `DiagramKitRenderingCG`, which
-`DiagramKitInteractive` already depends on. `DiagramDocument`,
-`DiagramFormatID`, and `ExporterRegistry` are `Sendable` (verified
-during plan phase). The closure captures by value.
+`DiagramWorkerThread` lives in `DiagramKitRenderingCG`, which
+`DiagramKitInteractive` does **not** currently depend on. The plan
+adds it as an **Apple-conditional** target dependency in `Package.swift`,
+mirroring the existing umbrella → Interactive edge (lines 153–155 today):
+
+```swift
+.target(
+    name: "DiagramKitInteractive",
+    dependencies: [
+        "DiagramKitCommon", "DiagramKitModel",
+        "DiagramKitImport", "DiagramKitExport",
+        .target(
+            name: "DiagramKitRenderingCG",
+            condition: .when(platforms: [
+                .macOS, .iOS, .tvOS, .visionOS, .macCatalyst
+            ])
+        )
+    ],
+    swiftSettings: strictConcurrencySettings
+),
+```
+
+On Linux, `Interactive` falls back to a private fresh-`Thread` helper
+that mirrors `DiagramEngine._runOnWorker`'s Linux branch and uses
+`DiagramWorkerConfig.stackSize` from `DiagramKitCommon` (already
+Linux-portable). `Dockerfile.linux-check` does not explicitly build
+`DiagramKitInteractive` today, so this change does not affect the
+existing Linux gate — but the Linux fallback is still wired so the
+target builds on Linux if a downstream consumer imports it.
+
+`DiagramDocument`, `DiagramFormatID`, and `ExporterRegistry` are
+`Sendable` (verified during plan phase). The closure captures by value.
 
 The synchronous `_export` is replaced wholesale: deleted in the same
 commit that introduces `_exportAsync`. No deprecated internal stub
