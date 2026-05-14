@@ -50,6 +50,7 @@ public struct StructurizrModelElement: Sendable {
     public var tags: [String]
     public var parentAlias: String?
     public var children: [StructurizrModelElement]
+    public var group: String?
 
     public init(
         alias: String,
@@ -59,7 +60,8 @@ public struct StructurizrModelElement: Sendable {
         technology: String? = nil,
         tags: [String] = [],
         parentAlias: String? = nil,
-        children: [StructurizrModelElement] = []
+        children: [StructurizrModelElement] = [],
+        group: String? = nil
     ) {
         self.alias = alias
         self.kind = kind
@@ -69,6 +71,7 @@ public struct StructurizrModelElement: Sendable {
         self.tags = tags
         self.parentAlias = parentAlias
         self.children = children
+        self.group = group
     }
 }
 
