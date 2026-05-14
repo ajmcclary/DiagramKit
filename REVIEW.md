@@ -181,6 +181,25 @@ Session-end verification: targeted `swift test --filter` across `DiagramFormatID
 
 ---
 
+## Resolution Status — Session 9 (2026-05-14)
+
+Closes Deferred Effort §7 → Mermaid C4 parser ignores `$boundary` named arg (surfaced Session 6). Spec at `docs/superpowers/specs/2026-05-14-mermaid-c4-boundary-named-arg-design.md`; plan at `docs/superpowers/plans/2026-05-14-mermaid-c4-boundary-named-arg.md`. Six commits on `main` (two docs + six implementation/test).
+
+| # | Item | Commit | What landed |
+|---|---|---|---|
+| 1 | §7 SPI variant + helpers | `4e2a6e3` | `Sources/DiagramKitModel/src_c4_parser.swift` gains `_parseC4DiagramWithDiagnostics` returning `(C4Diagram, [DiagramDiagnostic])`. Existing `parseC4Diagram` shrinks to a one-line wrapper. Two private helpers (`_resolveParentBoundary`, `_validateBoundaryReferences`) land but aren't wired yet. |
+| 2 | §7 Parser unit tests (red) | `c63446b` | New `Tests/DiagramKitTests/C4BoundaryNamedArgTests.swift` — thirteen `@Test`s covering shape `$boundary`, boundary `$parent`, deployment-node `$parent`, lexical fallback, mismatch warning, forward-ref, unresolved-ref. Tests use forward-ref ordering so lexical state can't masquerade as the named-arg path. |
+| 3 | §7 Dispatch rewrite (green) | `556432d` | 28 macro-dispatch sites in the SPI variant route through `_resolveParentBoundary`. Validator call lands before `return`. New `_parseTrailingC4Attributes` merges Mermaid C4's *post-paren* `$key=value` syntax (e.g., `Person(p) $boundary=b`) into the named dict — the root cause behind §7 was the in-paren-only `parseMacroArguments` silently dropping every trailing attribute the exporter emits. |
+| 4 | §7 Registry sites | `b6e5efe` | `Sources/DiagramKit/DiagramRegistry+C4.swift:16` and `Sources/DiagramKit/AsciiRenderRegistry.swift:223` call `_parseC4DiagramWithDiagnostics`. Diagnostics are discarded at this layer for now — surfacing through `DiagramImportResult.diagnostics` is a separate concern. |
+| 5 | §7 Round-trip tests | `37b547b` | New `Tests/DiagramKitTests/MermaidC4BoundaryRoundTripTests.swift` — two `@Test`s pinning flat-emit round-trip and nested↔flat semantic equivalence. |
+| 6 | §7 Structurizr extension | `ffe5573` | `Tests/DiagramKitTests/StructurizrBoundaryRoundTripTests.swift`'s `structurizrToMermaidEmit` re-parses the Mermaid output and asserts `p1.parentBoundary == "G0"` survives end-to-end. |
+
+Session-end verification: `swift test --filter "C4ParserTests|C4BoundaryNamedArgTests|MermaidC4BoundaryRoundTripTests|C4SlotSemanticsTests|C4LayoutTests|C4SvgTests|StructurizrBoundaryRoundTripTests"` all green (77 tests / 8 suites). `Scripts/check-sendable-annotations.sh` ✓ green. `Scripts/check-file-sizes.sh` reports only pre-existing yellow warnings; `src_c4_parser.swift` grows by ~120 lines and stays well under the 500-line warn threshold.
+
+**Deferred follow-up**: surfacing parser diagnostics through `DiagramImportResult.diagnostics` requires widening the registry `parse:` closure shape. Out of scope for this session.
+
+---
+
 ## Deferred Effort — Recommendations
 
 Some review items were intentionally deferred during the five-phase pass; others surfaced during execution and were scoped out to keep individual commits coherent. Listed in priority order.
@@ -261,6 +280,8 @@ Session-3 closed the dead-code purge (`8e5a13a`), the `MermaidFlowchartExport.sh
 ✅ **Closed by `dba530b` (Session 2):** `Tests/DiagramKitTests/ProbeCollisionMatrixTests.swift:30-48` — three `@Test` cases (`d2ProbeSignature`, `plantumlProbeSignature`, `structurizrProbeSignature`) construct a literal then `#expect` the same literal contains its own substring. Tautological. Delete or replace with real importer-probe assertions. Three fixture-checks-fixture tests replaced with real `PlantUMLImporter().supports(...)` assertions.
 
 ### 7. Mermaid C4 parser ignores `$boundary` named arg (new, surfaced Session 6)
+
+✅ **Closed by Session 9 (`4e2a6e3` → `ffe5573`):** `_parseC4DiagramWithDiagnostics` is the SPI variant surfacing diagnostics; `_resolveParentBoundary` honours `named["boundary"]` for shapes and `named["parent"]` for boundaries / deployment nodes across all 28 dispatch sites, with `.warning` on lexical-vs-named mismatch and on unresolved refs. The root cause was actually deeper than the original framing suggests — `parseMacroArguments` only read in-paren named args while the exporter emits trailing `$key=value` *after* the paren list, so every `$boundary=` / `$parent=` / `$tags=` was being silently dropped. New `_parseTrailingC4Attributes` merges those into the named dict before dispatch. Mermaid → Mermaid round-trip pinned; Session 6's `structurizrToMermaidEmit` now re-parses end-to-end.
 
 `Sources/DiagramKitModel/src_c4_parser.swift:426` — `_addPersonOrSystem` reads `link`, `tags`, and `sprite` from the parsed `named` arg dictionary but ignores `$boundary`. `Sources/DiagramKitMermaid/Exporter/MermaidExport/MermaidC4Export.swift` emits `$boundary=<alias>` for any shape whose `parentBoundary != "global"` (`shapeLine += " $boundary=\(pb)"`), but the Mermaid parser sets `parentBoundary` only from the lexical boundary stack — so on re-parse, shapes that aren't physically nested inside a `Boundary(...) { … }` block lose their boundary linkage.
 
