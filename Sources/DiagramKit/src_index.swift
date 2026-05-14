@@ -66,7 +66,14 @@ func _renderDiagramSVG(
 }
 
 // MARK: - Public SVG rendering API
+//
+// Cross-cutting observation #3 from REVIEW.md: the umbrella exposes
+// two paths for the same operation — this top-level free function and
+// `DiagramEngine.renderSVG`. `DiagramEngine` is the canonical public
+// async facade (per CLAUDE.md "Public Surface"); the free functions
+// below are deprecated and will be removed in the next major version.
 
+@available(*, deprecated, renamed: "DiagramEngine.renderSVG(source:theme:layoutConfig:idPolicy:)", message: "Use DiagramEngine.renderSVG (the canonical async facade). Will be removed in the next major version.")
 public func renderDiagramSVG(
     _ text: String,
     _ options: RenderOptions = RenderOptions()
@@ -76,11 +83,14 @@ public func renderDiagramSVG(
     }
 }
 
+@available(*, deprecated, renamed: "DiagramEngine.renderSVG(source:theme:layoutConfig:idPolicy:)", message: "Use DiagramEngine.renderSVG (the canonical async facade). Will be removed in the next major version.")
 public func renderDiagramSVGAsync(
     _ text: String,
     _ options: RenderOptions = RenderOptions()
 ) async throws -> String {
-    try await renderDiagramSVG(text, options)
+    try await DiagramEngine._runOnWorker {
+        try DiagramPipeline.renderSVG(text, options: options)
+    }
 }
 
 // MARK: - Deprecated compat wrappers
