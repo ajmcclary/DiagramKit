@@ -68,6 +68,13 @@ public enum DiagramPipeline {
         try DiagramLoader.parseDocument(source, registry: registry)
     }
 
+    private static func loadImportResult(
+        _ source: String,
+        registry: ImporterRegistry
+    ) throws -> DiagramImportResult {
+        try DiagramLoader.parseImportResult(source, registry: registry)
+    }
+
     public static func parse(_ source: String) throws -> DiagramDocument {
         try runPipeline(operation: "DiagramPipeline.parse", registerFonts: true) {
             try loadDocument(source, registry: defaultRegistry)
@@ -115,9 +122,13 @@ public enum DiagramPipeline {
         registry: ImporterRegistry = defaultRegistry
     ) throws -> PreparedDiagram {
         try runPipeline(operation: "DiagramPipeline.prepare") {
-            let graph = try loadDocument(source, registry: registry)
-            let positioned = try GraphLayout(config: layoutConfig).layout(graph)
-            return PreparedDiagram(positioned: positioned, theme: theme)
+            let importResult = try loadImportResult(source, registry: registry)
+            let positioned = try GraphLayout(config: layoutConfig).layout(importResult.document)
+            return PreparedDiagram(
+                positioned: positioned,
+                theme: theme,
+                importDiagnostics: importResult.diagnostics
+            )
         }
     }
 

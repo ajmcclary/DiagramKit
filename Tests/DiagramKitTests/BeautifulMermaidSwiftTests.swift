@@ -129,7 +129,8 @@ final class BeautifulMermaidSwiftTests: XCTestCase {
     }
 
     @MainActor
-    func testLayerKeepsLastPreparedDiagramWhenSourceBecomesInvalid() async throws {
+    func testLayerClearsPreparedDiagramWhenSourceBecomesInvalid() async throws {
+        DiagramEngine.bootstrap()
         let layer = DiagramLayer()
         layer.source = """
         graph TD
@@ -140,8 +141,7 @@ final class BeautifulMermaidSwiftTests: XCTestCase {
             layer.preparedDiagram != nil
         }
 
-        let previousBounds = layer.diagramBounds
-        XCTAssertNotEqual(previousBounds, .zero)
+        XCTAssertNotEqual(layer.diagramBounds, .zero)
 
         layer.source = "not a diagram"
 
@@ -149,8 +149,12 @@ final class BeautifulMermaidSwiftTests: XCTestCase {
             layer.parseError != nil
         }
 
-        XCTAssertNotNil(layer.preparedDiagram, "Expected layer to keep the last good diagram while reporting the new error")
-        XCTAssertEqual(layer.diagramBounds, previousBounds)
+        // Clear-on-failure semantics (see DiagramLayer.prepareDiagram): a
+        // failed parse must surface as `preparedDiagram == nil` so bindings
+        // consumers can observe the transition rather than rendering stale
+        // geometry alongside a floating parseError.
+        XCTAssertNil(layer.preparedDiagram)
+        XCTAssertEqual(layer.diagramBounds, .zero)
     }
 
     func testFlow6EdgeStyles() async throws {
