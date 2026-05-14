@@ -1,16 +1,16 @@
-<svg data-xychart-colors="0" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 700 500" width="700" height="500" style="--bg:#FFFFFF;--fg:#27272A;--line:#939394;--accent:#27272A;--muted:#A9A9AA;--surface:#F9F9F9;--border:#D4D4D4;background:#FFFFFF">
+<svg role="graphics-document" aria-roledescription="diagram" data-xychart-colors="0" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 700 500" width="700" height="500" style="--bg:#FFFFFF;--fg:#27272A;--line:#939394;--accent:#27272A;--muted:#A9A9AA;--surface:#F9F9F9;--border:#D4D4D4;background:#FFFFFF">
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap');
   text { font-family: 'Inter', system-ui, sans-serif; }
   svg {    /* Derived from --bg and --fg (overridable via --line, --accent, etc.) */
     --_text:          #27272A;
-    --_text-sec:      #A9A9AA 60%, #FFFFFF));
-    --_text-muted:    #A9A9AA 40%, #FFFFFF));
+    --_text-sec:      #A9A9AA;
+    --_text-muted:    #A9A9AA;
     --_text-faint:    #666666;
-    --_line:          #939394 50%, #FFFFFF));
-    --_arrow:         #27272A 85%, #FFFFFF));
-    --_node-fill:     #F9F9F9 3%, #FFFFFF));
-    --_node-stroke:   #D4D4D4 20%, #FFFFFF));
+    --_line:          #939394;
+    --_arrow:         #27272A;
+    --_node-fill:     #F9F9F9;
+    --_node-stroke:   #D4D4D4;
     --_group-fill:    #FFFFFF;
     --_group-hdr:     #666666;
     --_inner-stroke:  #666666;
@@ -44,56 +44,56 @@
 </style>
 <rect width="700" height="500" fill="#FFFFFF" class="xychart-background"/>
 <path d="M132.3,440 L158.9,426.2 L185.5,398.7 L212.2,361.9 L238.8,316 L265.4,260.9 L292,192 L318.6,132.2 L345.3,72.5 L371.9,40.4 L398.5,22 L425.1,40.4 L451.7,72.5 L478.4,132.2 L505,192 L531.6,260.9 L558.2,316 L584.8,361.9 L611.5,398.7 L638.1,426.2 L664.7,440" class="xychart-line xychart-color-0" fill="none" stroke="#27272A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-<line x1="119" y1="440" x2="678" y2="440" stroke="#A9A9AA 40%, #FFFFFF))" stroke-width="2.0" class="xychart-axis-line"/>
-<line x1="119" y1="22" x2="119" y2="440" stroke="#A9A9AA 40%, #FFFFFF))" stroke-width="2.0" class="xychart-axis-line"/>
-<line x1="132.3" y1="445" x2="132.3" y2="440" stroke="#A9A9AA 40%, #FFFFFF))" stroke-width="2.0" class="xychart-tick"/>
-<line x1="158.9" y1="445" x2="158.9" y2="440" stroke="#A9A9AA 40%, #FFFFFF))" stroke-width="2.0" class="xychart-tick"/>
-<line x1="185.5" y1="445" x2="185.5" y2="440" stroke="#A9A9AA 40%, #FFFFFF))" stroke-width="2.0" class="xychart-tick"/>
-<line x1="212.2" y1="445" x2="212.2" y2="440" stroke="#A9A9AA 40%, #FFFFFF))" stroke-width="2.0" class="xychart-tick"/>
-<line x1="238.8" y1="445" x2="238.8" y2="440" stroke="#A9A9AA 40%, #FFFFFF))" stroke-width="2.0" class="xychart-tick"/>
-<line x1="265.4" y1="445" x2="265.4" y2="440" stroke="#A9A9AA 40%, #FFFFFF))" stroke-width="2.0" class="xychart-tick"/>
-<line x1="292" y1="445" x2="292" y2="440" stroke="#A9A9AA 40%, #FFFFFF))" stroke-width="2.0" class="xychart-tick"/>
-<line x1="318.6" y1="445" x2="318.6" y2="440" stroke="#A9A9AA 40%, #FFFFFF))" stroke-width="2.0" class="xychart-tick"/>
-<line x1="345.3" y1="445" x2="345.3" y2="440" stroke="#A9A9AA 40%, #FFFFFF))" stroke-width="2.0" class="xychart-tick"/>
-<line x1="371.9" y1="445" x2="371.9" y2="440" stroke="#A9A9AA 40%, #FFFFFF))" stroke-width="2.0" class="xychart-tick"/>
-<line x1="398.5" y1="445" x2="398.5" y2="440" stroke="#A9A9AA 40%, #FFFFFF))" stroke-width="2.0" class="xychart-tick"/>
-<line x1="425.1" y1="445" x2="425.1" y2="440" stroke="#A9A9AA 40%, #FFFFFF))" stroke-width="2.0" class="xychart-tick"/>
-<line x1="451.7" y1="445" x2="451.7" y2="440" stroke="#A9A9AA 40%, #FFFFFF))" stroke-width="2.0" class="xychart-tick"/>
-<line x1="478.4" y1="445" x2="478.4" y2="440" stroke="#A9A9AA 40%, #FFFFFF))" stroke-width="2.0" class="xychart-tick"/>
-<line x1="505" y1="445" x2="505" y2="440" stroke="#A9A9AA 40%, #FFFFFF))" stroke-width="2.0" class="xychart-tick"/>
-<line x1="531.6" y1="445" x2="531.6" y2="440" stroke="#A9A9AA 40%, #FFFFFF))" stroke-width="2.0" class="xychart-tick"/>
-<line x1="558.2" y1="445" x2="558.2" y2="440" stroke="#A9A9AA 40%, #FFFFFF))" stroke-width="2.0" class="xychart-tick"/>
-<line x1="584.8" y1="445" x2="584.8" y2="440" stroke="#A9A9AA 40%, #FFFFFF))" stroke-width="2.0" class="xychart-tick"/>
-<line x1="611.5" y1="445" x2="611.5" y2="440" stroke="#A9A9AA 40%, #FFFFFF))" stroke-width="2.0" class="xychart-tick"/>
-<line x1="638.1" y1="445" x2="638.1" y2="440" stroke="#A9A9AA 40%, #FFFFFF))" stroke-width="2.0" class="xychart-tick"/>
-<line x1="664.7" y1="445" x2="664.7" y2="440" stroke="#A9A9AA 40%, #FFFFFF))" stroke-width="2.0" class="xychart-tick"/>
-<line x1="114" y1="366.5" x2="119" y2="366.5" stroke="#A9A9AA 40%, #FFFFFF))" stroke-width="2.0" class="xychart-tick"/>
-<line x1="114" y1="274.6" x2="119" y2="274.6" stroke="#A9A9AA 40%, #FFFFFF))" stroke-width="2.0" class="xychart-tick"/>
-<line x1="114" y1="182.8" x2="119" y2="182.8" stroke="#A9A9AA 40%, #FFFFFF))" stroke-width="2.0" class="xychart-tick"/>
-<line x1="114" y1="90.9" x2="119" y2="90.9" stroke="#A9A9AA 40%, #FFFFFF))" stroke-width="2.0" class="xychart-tick"/>
-<text x="132.3095238095238" y="458.0" text-anchor="middle" font-size="14" font-weight="400" fill="#A9A9AA 40%, #FFFFFF))" dy="0.35em" class="xychart-label">0</text>
-<text x="158.92857142857144" y="458.0" text-anchor="middle" font-size="14" font-weight="400" fill="#A9A9AA 40%, #FFFFFF))" dy="0.35em" class="xychart-label">5</text>
-<text x="185.54761904761904" y="458.0" text-anchor="middle" font-size="14" font-weight="400" fill="#A9A9AA 40%, #FFFFFF))" dy="0.35em" class="xychart-label">10</text>
-<text x="212.16666666666669" y="458.0" text-anchor="middle" font-size="14" font-weight="400" fill="#A9A9AA 40%, #FFFFFF))" dy="0.35em" class="xychart-label">15</text>
-<text x="238.78571428571428" y="458.0" text-anchor="middle" font-size="14" font-weight="400" fill="#A9A9AA 40%, #FFFFFF))" dy="0.35em" class="xychart-label">20</text>
-<text x="265.4047619047619" y="458.0" text-anchor="middle" font-size="14" font-weight="400" fill="#A9A9AA 40%, #FFFFFF))" dy="0.35em" class="xychart-label">25</text>
-<text x="292.0238095238095" y="458.0" text-anchor="middle" font-size="14" font-weight="400" fill="#A9A9AA 40%, #FFFFFF))" dy="0.35em" class="xychart-label">30</text>
-<text x="318.64285714285717" y="458.0" text-anchor="middle" font-size="14" font-weight="400" fill="#A9A9AA 40%, #FFFFFF))" dy="0.35em" class="xychart-label">35</text>
-<text x="345.26190476190476" y="458.0" text-anchor="middle" font-size="14" font-weight="400" fill="#A9A9AA 40%, #FFFFFF))" dy="0.35em" class="xychart-label">40</text>
-<text x="371.8809523809524" y="458.0" text-anchor="middle" font-size="14" font-weight="400" fill="#A9A9AA 40%, #FFFFFF))" dy="0.35em" class="xychart-label">45</text>
-<text x="398.5" y="458.0" text-anchor="middle" font-size="14" font-weight="400" fill="#A9A9AA 40%, #FFFFFF))" dy="0.35em" class="xychart-label">50</text>
-<text x="425.11904761904765" y="458.0" text-anchor="middle" font-size="14" font-weight="400" fill="#A9A9AA 40%, #FFFFFF))" dy="0.35em" class="xychart-label">55</text>
-<text x="451.73809523809524" y="458.0" text-anchor="middle" font-size="14" font-weight="400" fill="#A9A9AA 40%, #FFFFFF))" dy="0.35em" class="xychart-label">60</text>
-<text x="478.3571428571429" y="458.0" text-anchor="middle" font-size="14" font-weight="400" fill="#A9A9AA 40%, #FFFFFF))" dy="0.35em" class="xychart-label">65</text>
-<text x="504.9761904761905" y="458.0" text-anchor="middle" font-size="14" font-weight="400" fill="#A9A9AA 40%, #FFFFFF))" dy="0.35em" class="xychart-label">70</text>
-<text x="531.5952380952381" y="458.0" text-anchor="middle" font-size="14" font-weight="400" fill="#A9A9AA 40%, #FFFFFF))" dy="0.35em" class="xychart-label">75</text>
-<text x="558.2142857142858" y="458.0" text-anchor="middle" font-size="14" font-weight="400" fill="#A9A9AA 40%, #FFFFFF))" dy="0.35em" class="xychart-label">80</text>
-<text x="584.8333333333334" y="458.0" text-anchor="middle" font-size="14" font-weight="400" fill="#A9A9AA 40%, #FFFFFF))" dy="0.35em" class="xychart-label">85</text>
-<text x="611.452380952381" y="458.0" text-anchor="middle" font-size="14" font-weight="400" fill="#A9A9AA 40%, #FFFFFF))" dy="0.35em" class="xychart-label">90</text>
-<text x="638.0714285714286" y="458.0" text-anchor="middle" font-size="14" font-weight="400" fill="#A9A9AA 40%, #FFFFFF))" dy="0.35em" class="xychart-label">95</text>
-<text x="664.6904761904763" y="458.0" text-anchor="middle" font-size="14" font-weight="400" fill="#A9A9AA 40%, #FFFFFF))" dy="0.35em" class="xychart-label">100</text>
-<text x="101.0" y="366.5054945054945" text-anchor="end" font-size="14" font-weight="400" fill="#A9A9AA 40%, #FFFFFF))" dy="0.35em" class="xychart-label">20</text>
-<text x="101.0" y="274.6373626373627" text-anchor="end" font-size="14" font-weight="400" fill="#A9A9AA 40%, #FFFFFF))" dy="0.35em" class="xychart-label">40</text>
-<text x="101.0" y="182.76923076923077" text-anchor="end" font-size="14" font-weight="400" fill="#A9A9AA 40%, #FFFFFF))" dy="0.35em" class="xychart-label">60</text>
-<text x="101.0" y="90.90109890109886" text-anchor="end" font-size="14" font-weight="400" fill="#A9A9AA 40%, #FFFFFF))" dy="0.35em" class="xychart-label">80</text>
+<line x1="119" y1="440" x2="678" y2="440" stroke="#A9A9AA" stroke-width="2.0" class="xychart-axis-line"/>
+<line x1="119" y1="22" x2="119" y2="440" stroke="#A9A9AA" stroke-width="2.0" class="xychart-axis-line"/>
+<line x1="132.3" y1="445" x2="132.3" y2="440" stroke="#A9A9AA" stroke-width="2.0" class="xychart-tick"/>
+<line x1="158.9" y1="445" x2="158.9" y2="440" stroke="#A9A9AA" stroke-width="2.0" class="xychart-tick"/>
+<line x1="185.5" y1="445" x2="185.5" y2="440" stroke="#A9A9AA" stroke-width="2.0" class="xychart-tick"/>
+<line x1="212.2" y1="445" x2="212.2" y2="440" stroke="#A9A9AA" stroke-width="2.0" class="xychart-tick"/>
+<line x1="238.8" y1="445" x2="238.8" y2="440" stroke="#A9A9AA" stroke-width="2.0" class="xychart-tick"/>
+<line x1="265.4" y1="445" x2="265.4" y2="440" stroke="#A9A9AA" stroke-width="2.0" class="xychart-tick"/>
+<line x1="292" y1="445" x2="292" y2="440" stroke="#A9A9AA" stroke-width="2.0" class="xychart-tick"/>
+<line x1="318.6" y1="445" x2="318.6" y2="440" stroke="#A9A9AA" stroke-width="2.0" class="xychart-tick"/>
+<line x1="345.3" y1="445" x2="345.3" y2="440" stroke="#A9A9AA" stroke-width="2.0" class="xychart-tick"/>
+<line x1="371.9" y1="445" x2="371.9" y2="440" stroke="#A9A9AA" stroke-width="2.0" class="xychart-tick"/>
+<line x1="398.5" y1="445" x2="398.5" y2="440" stroke="#A9A9AA" stroke-width="2.0" class="xychart-tick"/>
+<line x1="425.1" y1="445" x2="425.1" y2="440" stroke="#A9A9AA" stroke-width="2.0" class="xychart-tick"/>
+<line x1="451.7" y1="445" x2="451.7" y2="440" stroke="#A9A9AA" stroke-width="2.0" class="xychart-tick"/>
+<line x1="478.4" y1="445" x2="478.4" y2="440" stroke="#A9A9AA" stroke-width="2.0" class="xychart-tick"/>
+<line x1="505" y1="445" x2="505" y2="440" stroke="#A9A9AA" stroke-width="2.0" class="xychart-tick"/>
+<line x1="531.6" y1="445" x2="531.6" y2="440" stroke="#A9A9AA" stroke-width="2.0" class="xychart-tick"/>
+<line x1="558.2" y1="445" x2="558.2" y2="440" stroke="#A9A9AA" stroke-width="2.0" class="xychart-tick"/>
+<line x1="584.8" y1="445" x2="584.8" y2="440" stroke="#A9A9AA" stroke-width="2.0" class="xychart-tick"/>
+<line x1="611.5" y1="445" x2="611.5" y2="440" stroke="#A9A9AA" stroke-width="2.0" class="xychart-tick"/>
+<line x1="638.1" y1="445" x2="638.1" y2="440" stroke="#A9A9AA" stroke-width="2.0" class="xychart-tick"/>
+<line x1="664.7" y1="445" x2="664.7" y2="440" stroke="#A9A9AA" stroke-width="2.0" class="xychart-tick"/>
+<line x1="114" y1="366.5" x2="119" y2="366.5" stroke="#A9A9AA" stroke-width="2.0" class="xychart-tick"/>
+<line x1="114" y1="274.6" x2="119" y2="274.6" stroke="#A9A9AA" stroke-width="2.0" class="xychart-tick"/>
+<line x1="114" y1="182.8" x2="119" y2="182.8" stroke="#A9A9AA" stroke-width="2.0" class="xychart-tick"/>
+<line x1="114" y1="90.9" x2="119" y2="90.9" stroke="#A9A9AA" stroke-width="2.0" class="xychart-tick"/>
+<text x="132.3095238095238" y="458.0" text-anchor="middle" font-size="14" font-weight="400" fill="#A9A9AA" dy="0.35em" class="xychart-label">0</text>
+<text x="158.92857142857144" y="458.0" text-anchor="middle" font-size="14" font-weight="400" fill="#A9A9AA" dy="0.35em" class="xychart-label">5</text>
+<text x="185.54761904761904" y="458.0" text-anchor="middle" font-size="14" font-weight="400" fill="#A9A9AA" dy="0.35em" class="xychart-label">10</text>
+<text x="212.16666666666669" y="458.0" text-anchor="middle" font-size="14" font-weight="400" fill="#A9A9AA" dy="0.35em" class="xychart-label">15</text>
+<text x="238.78571428571428" y="458.0" text-anchor="middle" font-size="14" font-weight="400" fill="#A9A9AA" dy="0.35em" class="xychart-label">20</text>
+<text x="265.4047619047619" y="458.0" text-anchor="middle" font-size="14" font-weight="400" fill="#A9A9AA" dy="0.35em" class="xychart-label">25</text>
+<text x="292.0238095238095" y="458.0" text-anchor="middle" font-size="14" font-weight="400" fill="#A9A9AA" dy="0.35em" class="xychart-label">30</text>
+<text x="318.64285714285717" y="458.0" text-anchor="middle" font-size="14" font-weight="400" fill="#A9A9AA" dy="0.35em" class="xychart-label">35</text>
+<text x="345.26190476190476" y="458.0" text-anchor="middle" font-size="14" font-weight="400" fill="#A9A9AA" dy="0.35em" class="xychart-label">40</text>
+<text x="371.8809523809524" y="458.0" text-anchor="middle" font-size="14" font-weight="400" fill="#A9A9AA" dy="0.35em" class="xychart-label">45</text>
+<text x="398.5" y="458.0" text-anchor="middle" font-size="14" font-weight="400" fill="#A9A9AA" dy="0.35em" class="xychart-label">50</text>
+<text x="425.11904761904765" y="458.0" text-anchor="middle" font-size="14" font-weight="400" fill="#A9A9AA" dy="0.35em" class="xychart-label">55</text>
+<text x="451.73809523809524" y="458.0" text-anchor="middle" font-size="14" font-weight="400" fill="#A9A9AA" dy="0.35em" class="xychart-label">60</text>
+<text x="478.3571428571429" y="458.0" text-anchor="middle" font-size="14" font-weight="400" fill="#A9A9AA" dy="0.35em" class="xychart-label">65</text>
+<text x="504.9761904761905" y="458.0" text-anchor="middle" font-size="14" font-weight="400" fill="#A9A9AA" dy="0.35em" class="xychart-label">70</text>
+<text x="531.5952380952381" y="458.0" text-anchor="middle" font-size="14" font-weight="400" fill="#A9A9AA" dy="0.35em" class="xychart-label">75</text>
+<text x="558.2142857142858" y="458.0" text-anchor="middle" font-size="14" font-weight="400" fill="#A9A9AA" dy="0.35em" class="xychart-label">80</text>
+<text x="584.8333333333334" y="458.0" text-anchor="middle" font-size="14" font-weight="400" fill="#A9A9AA" dy="0.35em" class="xychart-label">85</text>
+<text x="611.452380952381" y="458.0" text-anchor="middle" font-size="14" font-weight="400" fill="#A9A9AA" dy="0.35em" class="xychart-label">90</text>
+<text x="638.0714285714286" y="458.0" text-anchor="middle" font-size="14" font-weight="400" fill="#A9A9AA" dy="0.35em" class="xychart-label">95</text>
+<text x="664.6904761904763" y="458.0" text-anchor="middle" font-size="14" font-weight="400" fill="#A9A9AA" dy="0.35em" class="xychart-label">100</text>
+<text x="101.0" y="366.5054945054945" text-anchor="end" font-size="14" font-weight="400" fill="#A9A9AA" dy="0.35em" class="xychart-label">20</text>
+<text x="101.0" y="274.6373626373627" text-anchor="end" font-size="14" font-weight="400" fill="#A9A9AA" dy="0.35em" class="xychart-label">40</text>
+<text x="101.0" y="182.76923076923077" text-anchor="end" font-size="14" font-weight="400" fill="#A9A9AA" dy="0.35em" class="xychart-label">60</text>
+<text x="101.0" y="90.90109890109886" text-anchor="end" font-size="14" font-weight="400" fill="#A9A9AA" dy="0.35em" class="xychart-label">80</text>
 </svg>

@@ -1,7 +1,7 @@
-<svg role="graphics-document" aria-roledescription="diagram" id="B2C1EB33-6480-44B9-C770-CFD501512134" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 700 591.7" width="700" height="591.7" style="--bg:#FFFFFF;--fg:#27272A;--line:#27272A;--accent:#27272A;--muted:#27272A;--surface:#FFFFFF;--border:#27272A;background:#FFFFFF">>
+<svg role="graphics-document" aria-roledescription="diagram" id="B2C1EB33-6480-44B9-C770-CFD501512134" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 700 591.7" width="700" height="591.7" style="--bg:#FFFFFF;--fg:#27272A;--line:#939394;--accent:#27272A;--muted:#A9A9AA;--surface:#F9F9F9;--border:#D4D4D4;background:#FFFFFF">>
 <defs>
 <marker id="B2C1EB33-6480-44B9-C770-CFD501512134-arrowhead" refX="5" refY="2" markerWidth="6" markerHeight="4" orient="auto">
-<path d="M 0,0 V 4 L6,2 Z" class="arrowheadPath" fill="#27272A"/>
+<path d="M 0,0 V 4 L6,2 Z" class="arrowheadPath" fill="#939394"/>
 </marker>
 </defs>
 <g class="timeline-node section-0">
@@ -77,13 +77,13 @@
 </switch>
 </g>
 <g class="lineWrapper">
-<line x1="225" y1="186.2" x2="225" y2="286.2" stroke="#27272A" stroke-dasharray="5,5" stroke-width="2" marker-end="url(#B2C1EB33-6480-44B9-C770-CFD501512134-arrowhead)"/>
-<line x1="225" y1="186.2" x2="225" y2="339.3" stroke="#27272A" stroke-dasharray="5,5" stroke-width="2" marker-end="url(#B2C1EB33-6480-44B9-C770-CFD501512134-arrowhead)"/>
-<line x1="225" y1="186.2" x2="225" y2="392.4" stroke="#27272A" stroke-dasharray="5,5" stroke-width="2" marker-end="url(#B2C1EB33-6480-44B9-C770-CFD501512134-arrowhead)"/>
-<line x1="225" y1="186.2" x2="225" y2="445.5" stroke="#27272A" stroke-dasharray="5,5" stroke-width="2" marker-end="url(#B2C1EB33-6480-44B9-C770-CFD501512134-arrowhead)"/>
-<line x1="225" y1="186.2" x2="225" y2="498.6" stroke="#27272A" stroke-dasharray="5,5" stroke-width="2" marker-end="url(#B2C1EB33-6480-44B9-C770-CFD501512134-arrowhead)"/>
-<line x1="425" y1="186.2" x2="425" y2="286.2" stroke="#27272A" stroke-dasharray="5,5" stroke-width="2" marker-end="url(#B2C1EB33-6480-44B9-C770-CFD501512134-arrowhead)"/>
-<line x1="425" y1="186.2" x2="425" y2="339.3" stroke="#27272A" stroke-dasharray="5,5" stroke-width="2" marker-end="url(#B2C1EB33-6480-44B9-C770-CFD501512134-arrowhead)"/>
+<line x1="225" y1="186.2" x2="225" y2="286.2" stroke="#939394" stroke-dasharray="5,5" stroke-width="2" marker-end="url(#B2C1EB33-6480-44B9-C770-CFD501512134-arrowhead)"/>
+<line x1="225" y1="186.2" x2="225" y2="339.3" stroke="#939394" stroke-dasharray="5,5" stroke-width="2" marker-end="url(#B2C1EB33-6480-44B9-C770-CFD501512134-arrowhead)"/>
+<line x1="225" y1="186.2" x2="225" y2="392.4" stroke="#939394" stroke-dasharray="5,5" stroke-width="2" marker-end="url(#B2C1EB33-6480-44B9-C770-CFD501512134-arrowhead)"/>
+<line x1="225" y1="186.2" x2="225" y2="445.5" stroke="#939394" stroke-dasharray="5,5" stroke-width="2" marker-end="url(#B2C1EB33-6480-44B9-C770-CFD501512134-arrowhead)"/>
+<line x1="225" y1="186.2" x2="225" y2="498.6" stroke="#939394" stroke-dasharray="5,5" stroke-width="2" marker-end="url(#B2C1EB33-6480-44B9-C770-CFD501512134-arrowhead)"/>
+<line x1="425" y1="186.2" x2="425" y2="286.2" stroke="#939394" stroke-dasharray="5,5" stroke-width="2" marker-end="url(#B2C1EB33-6480-44B9-C770-CFD501512134-arrowhead)"/>
+<line x1="425" y1="186.2" x2="425" y2="339.3" stroke="#939394" stroke-dasharray="5,5" stroke-width="2" marker-end="url(#B2C1EB33-6480-44B9-C770-CFD501512134-arrowhead)"/>
 </g>
-<line x1="150" y1="236.2" x2="650" y2="236.2" stroke="#27272A" stroke-width="4" marker-end="url(#B2C1EB33-6480-44B9-C770-CFD501512134-arrowhead)"/>
+<line x1="150" y1="236.2" x2="650" y2="236.2" stroke="#939394" stroke-width="4" marker-end="url(#B2C1EB33-6480-44B9-C770-CFD501512134-arrowhead)"/>
 </svg>

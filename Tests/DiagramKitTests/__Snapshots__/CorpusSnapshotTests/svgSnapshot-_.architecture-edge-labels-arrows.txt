@@ -1,8 +1,8 @@
-<svg role="graphics-document" aria-roledescription="diagram" id="C16402D3-7C70-1932-2FF5-882646E990E9" preserveAspectRatio="xMinYMin meet" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 652 228" width="100%" height="228" style="max-width: 652px;--bg:#FFFFFF;--fg:#27272A;--line:#27272A;--accent:#27272A;--muted:#27272A;--surface:#FFFFFF;--border:#27272A;background:#FFFFFF">
+<svg role="graphics-document" aria-roledescription="diagram" id="C16402D3-7C70-1932-2FF5-882646E990E9" preserveAspectRatio="xMinYMin meet" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 652 228" width="100%" height="228" style="max-width: 652px;--bg:#FFFFFF;--fg:#27272A;--line:#939394;--accent:#27272A;--muted:#A9A9AA;--surface:#F9F9F9;--border:#D4D4D4;background:#FFFFFF">
 <rect width="100%" height="100%" fill="#FFFFFF"/>
 <style>
-.edge { stroke-width: 3; stroke: #27272A; fill: none; }
-.arrow { fill: #27272A; }
+.edge { stroke-width: 3; stroke: #939394; fill: none; }
+.arrow { fill: #939394; }
 .node-bkg { fill: none; stroke: #000000; stroke-width: 2px; stroke-dasharray: 8; }
 .arch-service-label { font-family: Inter; font-size: 16px; fill: #27272A; text-anchor: middle; }
 .arch-group-label { font-family: Inter; font-size: 16px; fill: #27272A; }

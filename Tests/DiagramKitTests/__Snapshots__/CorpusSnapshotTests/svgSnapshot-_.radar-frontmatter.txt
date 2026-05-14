@@ -1,8 +1,8 @@
-<svg role="graphics-document" aria-roledescription="diagram" id="graphDiv" preserveAspectRatio="xMinYMin meet" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 700 700" width="100%" height="700" style="max-width: 700px;--bg:#FFFFFF;--fg:#27272A;--line:#27272A;--accent:#27272A;--muted:#27272A;--surface:#FFFFFF;--border:#27272A;background:#FFFFFF">
+<svg role="graphics-document" aria-roledescription="diagram" id="graphDiv" preserveAspectRatio="xMinYMin meet" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 700 700" width="100%" height="700" style="max-width: 700px;--bg:#FFFFFF;--fg:#27272A;--line:#939394;--accent:#27272A;--muted:#A9A9AA;--surface:#F9F9F9;--border:#D4D4D4;background:#FFFFFF">
 <style>
 .radarTitle { font-size: 16px; color: #27272A; dominant-baseline: hanging; text-anchor: middle; }
-.radarAxisLine { stroke: #27272A; stroke-width: 2; }
-.radarAxisLabel { dominant-baseline: middle; text-anchor: middle; font-size: 12px; color: #27272A; }
+.radarAxisLine { stroke: #939394; stroke-width: 2; }
+.radarAxisLabel { dominant-baseline: middle; text-anchor: middle; font-size: 12px; color: #939394; }
 .radarGraticule { fill: #DEDEDE; fill-opacity: 0.3; stroke: #DEDEDE; stroke-width: 1; }
 .radarLegendText { text-anchor: start; font-size: 12px; dominant-baseline: hanging; }
 .radarCurve-0 { color: #FF0000; fill: #FF0000; fill-opacity: 0; stroke: #FF0000; stroke-width: 2; }

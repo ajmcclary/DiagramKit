@@ -1,16 +1,16 @@
-<svg role="graphics-document" aria-roledescription="diagram" data-xychart-colors="1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 700 500" width="700" height="500" style="--bg:#FFFFFF;--fg:#27272A;--line:#27272A;--accent:#27272A;--muted:#27272A;--surface:#FFFFFF;--border:#27272A;background:#FFFFFF">
+<svg role="graphics-document" aria-roledescription="diagram" data-xychart-colors="1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 700 500" width="700" height="500" style="--bg:#FFFFFF;--fg:#27272A;--line:#939394;--accent:#27272A;--muted:#A9A9AA;--surface:#F9F9F9;--border:#D4D4D4;background:#FFFFFF">
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap');
   text { font-family: 'Inter', system-ui, sans-serif; }
   svg {    /* Derived from --bg and --fg (overridable via --line, --accent, etc.) */
     --_text:          #27272A;
-    --_text-sec:      #27272A 60%, #FFFFFF));
-    --_text-muted:    #27272A 40%, #FFFFFF));
+    --_text-sec:      #A9A9AA;
+    --_text-muted:    #A9A9AA;
     --_text-faint:    #666666;
-    --_line:          #27272A 50%, #FFFFFF));
-    --_arrow:         #27272A 85%, #FFFFFF));
-    --_node-fill:     #FFFFFF 3%, #FFFFFF));
-    --_node-stroke:   #27272A 20%, #FFFFFF));
+    --_line:          #939394;
+    --_arrow:         #27272A;
+    --_node-fill:     #F9F9F9;
+    --_node-stroke:   #D4D4D4;
     --_group-fill:    #FFFFFF;
     --_group-hdr:     #666666;
     --_inner-stroke:  #666666;
@@ -50,37 +50,37 @@
 <rect width="700" height="500" fill="#FFFFFF" class="xychart-background"/>
 <path d="M153.9,429.2 L223.8,380.3 L293.7,331.5 L363.6,277.3 L433.4,233.9 L503.3,190.5 L573.2,147.1 L643.1,103.7" class="xychart-line xychart-color-0" fill="none" stroke="#27272A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
 <path d="M153.9,440 L223.8,396.6 L293.7,336.9 L363.6,282.7 L433.4,239.3 L503.3,168.8 L573.2,125.4 L643.1,82" class="xychart-line xychart-color-1" fill="none" stroke="#28358a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-<line x1="119" y1="440" x2="678" y2="440" stroke="#27272A 40%, #FFFFFF))" stroke-width="2.0" class="xychart-axis-line"/>
-<line x1="119" y1="82" x2="119" y2="440" stroke="#27272A 40%, #FFFFFF))" stroke-width="2.0" class="xychart-axis-line"/>
-<line x1="153.9" y1="445" x2="153.9" y2="440" stroke="#27272A 40%, #FFFFFF))" stroke-width="2.0" class="xychart-tick"/>
-<line x1="223.8" y1="445" x2="223.8" y2="440" stroke="#27272A 40%, #FFFFFF))" stroke-width="2.0" class="xychart-tick"/>
-<line x1="293.7" y1="445" x2="293.7" y2="440" stroke="#27272A 40%, #FFFFFF))" stroke-width="2.0" class="xychart-tick"/>
-<line x1="363.6" y1="445" x2="363.6" y2="440" stroke="#27272A 40%, #FFFFFF))" stroke-width="2.0" class="xychart-tick"/>
-<line x1="433.4" y1="445" x2="433.4" y2="440" stroke="#27272A 40%, #FFFFFF))" stroke-width="2.0" class="xychart-tick"/>
-<line x1="503.3" y1="445" x2="503.3" y2="440" stroke="#27272A 40%, #FFFFFF))" stroke-width="2.0" class="xychart-tick"/>
-<line x1="573.2" y1="445" x2="573.2" y2="440" stroke="#27272A 40%, #FFFFFF))" stroke-width="2.0" class="xychart-tick"/>
-<line x1="643.1" y1="445" x2="643.1" y2="440" stroke="#27272A 40%, #FFFFFF))" stroke-width="2.0" class="xychart-tick"/>
-<line x1="114" y1="429.2" x2="119" y2="429.2" stroke="#27272A 40%, #FFFFFF))" stroke-width="2.0" class="xychart-tick"/>
-<line x1="114" y1="374.9" x2="119" y2="374.9" stroke="#27272A 40%, #FFFFFF))" stroke-width="2.0" class="xychart-tick"/>
-<line x1="114" y1="320.7" x2="119" y2="320.7" stroke="#27272A 40%, #FFFFFF))" stroke-width="2.0" class="xychart-tick"/>
-<line x1="114" y1="266.4" x2="119" y2="266.4" stroke="#27272A 40%, #FFFFFF))" stroke-width="2.0" class="xychart-tick"/>
-<line x1="114" y1="212.2" x2="119" y2="212.2" stroke="#27272A 40%, #FFFFFF))" stroke-width="2.0" class="xychart-tick"/>
-<line x1="114" y1="157.9" x2="119" y2="157.9" stroke="#27272A 40%, #FFFFFF))" stroke-width="2.0" class="xychart-tick"/>
-<line x1="114" y1="103.7" x2="119" y2="103.7" stroke="#27272A 40%, #FFFFFF))" stroke-width="2.0" class="xychart-tick"/>
-<text x="153.9375" y="458.0" text-anchor="middle" font-size="14" font-weight="400" fill="#27272A 40%, #FFFFFF))" dy="0.35em" class="xychart-label">Jan</text>
-<text x="223.8125" y="458.0" text-anchor="middle" font-size="14" font-weight="400" fill="#27272A 40%, #FFFFFF))" dy="0.35em" class="xychart-label">Feb</text>
-<text x="293.6875" y="458.0" text-anchor="middle" font-size="14" font-weight="400" fill="#27272A 40%, #FFFFFF))" dy="0.35em" class="xychart-label">Mar</text>
-<text x="363.5625" y="458.0" text-anchor="middle" font-size="14" font-weight="400" fill="#27272A 40%, #FFFFFF))" dy="0.35em" class="xychart-label">Apr</text>
-<text x="433.4375" y="458.0" text-anchor="middle" font-size="14" font-weight="400" fill="#27272A 40%, #FFFFFF))" dy="0.35em" class="xychart-label">May</text>
-<text x="503.3125" y="458.0" text-anchor="middle" font-size="14" font-weight="400" fill="#27272A 40%, #FFFFFF))" dy="0.35em" class="xychart-label">Jun</text>
-<text x="573.1875" y="458.0" text-anchor="middle" font-size="14" font-weight="400" fill="#27272A 40%, #FFFFFF))" dy="0.35em" class="xychart-label">Jul</text>
-<text x="643.0625" y="458.0" text-anchor="middle" font-size="14" font-weight="400" fill="#27272A 40%, #FFFFFF))" dy="0.35em" class="xychart-label">Aug</text>
-<text x="101.0" y="429.1515151515151" text-anchor="end" font-size="14" font-weight="400" fill="#27272A 40%, #FFFFFF))" dy="0.35em" class="xychart-label">100</text>
-<text x="101.0" y="374.9090909090909" text-anchor="end" font-size="14" font-weight="400" fill="#27272A 40%, #FFFFFF))" dy="0.35em" class="xychart-label">150</text>
-<text x="101.0" y="320.6666666666667" text-anchor="end" font-size="14" font-weight="400" fill="#27272A 40%, #FFFFFF))" dy="0.35em" class="xychart-label">200</text>
-<text x="101.0" y="266.4242424242424" text-anchor="end" font-size="14" font-weight="400" fill="#27272A 40%, #FFFFFF))" dy="0.35em" class="xychart-label">250</text>
-<text x="101.0" y="212.1818181818182" text-anchor="end" font-size="14" font-weight="400" fill="#27272A 40%, #FFFFFF))" dy="0.35em" class="xychart-label">300</text>
-<text x="101.0" y="157.93939393939394" text-anchor="end" font-size="14" font-weight="400" fill="#27272A 40%, #FFFFFF))" dy="0.35em" class="xychart-label">350</text>
-<text x="101.0" y="103.69696969696969" text-anchor="end" font-size="14" font-weight="400" fill="#27272A 40%, #FFFFFF))" dy="0.35em" class="xychart-label">400</text>
+<line x1="119" y1="440" x2="678" y2="440" stroke="#A9A9AA" stroke-width="2.0" class="xychart-axis-line"/>
+<line x1="119" y1="82" x2="119" y2="440" stroke="#A9A9AA" stroke-width="2.0" class="xychart-axis-line"/>
+<line x1="153.9" y1="445" x2="153.9" y2="440" stroke="#A9A9AA" stroke-width="2.0" class="xychart-tick"/>
+<line x1="223.8" y1="445" x2="223.8" y2="440" stroke="#A9A9AA" stroke-width="2.0" class="xychart-tick"/>
+<line x1="293.7" y1="445" x2="293.7" y2="440" stroke="#A9A9AA" stroke-width="2.0" class="xychart-tick"/>
+<line x1="363.6" y1="445" x2="363.6" y2="440" stroke="#A9A9AA" stroke-width="2.0" class="xychart-tick"/>
+<line x1="433.4" y1="445" x2="433.4" y2="440" stroke="#A9A9AA" stroke-width="2.0" class="xychart-tick"/>
+<line x1="503.3" y1="445" x2="503.3" y2="440" stroke="#A9A9AA" stroke-width="2.0" class="xychart-tick"/>
+<line x1="573.2" y1="445" x2="573.2" y2="440" stroke="#A9A9AA" stroke-width="2.0" class="xychart-tick"/>
+<line x1="643.1" y1="445" x2="643.1" y2="440" stroke="#A9A9AA" stroke-width="2.0" class="xychart-tick"/>
+<line x1="114" y1="429.2" x2="119" y2="429.2" stroke="#A9A9AA" stroke-width="2.0" class="xychart-tick"/>
+<line x1="114" y1="374.9" x2="119" y2="374.9" stroke="#A9A9AA" stroke-width="2.0" class="xychart-tick"/>
+<line x1="114" y1="320.7" x2="119" y2="320.7" stroke="#A9A9AA" stroke-width="2.0" class="xychart-tick"/>
+<line x1="114" y1="266.4" x2="119" y2="266.4" stroke="#A9A9AA" stroke-width="2.0" class="xychart-tick"/>
+<line x1="114" y1="212.2" x2="119" y2="212.2" stroke="#A9A9AA" stroke-width="2.0" class="xychart-tick"/>
+<line x1="114" y1="157.9" x2="119" y2="157.9" stroke="#A9A9AA" stroke-width="2.0" class="xychart-tick"/>
+<line x1="114" y1="103.7" x2="119" y2="103.7" stroke="#A9A9AA" stroke-width="2.0" class="xychart-tick"/>
+<text x="153.9375" y="458.0" text-anchor="middle" font-size="14" font-weight="400" fill="#A9A9AA" dy="0.35em" class="xychart-label">Jan</text>
+<text x="223.8125" y="458.0" text-anchor="middle" font-size="14" font-weight="400" fill="#A9A9AA" dy="0.35em" class="xychart-label">Feb</text>
+<text x="293.6875" y="458.0" text-anchor="middle" font-size="14" font-weight="400" fill="#A9A9AA" dy="0.35em" class="xychart-label">Mar</text>
+<text x="363.5625" y="458.0" text-anchor="middle" font-size="14" font-weight="400" fill="#A9A9AA" dy="0.35em" class="xychart-label">Apr</text>
+<text x="433.4375" y="458.0" text-anchor="middle" font-size="14" font-weight="400" fill="#A9A9AA" dy="0.35em" class="xychart-label">May</text>
+<text x="503.3125" y="458.0" text-anchor="middle" font-size="14" font-weight="400" fill="#A9A9AA" dy="0.35em" class="xychart-label">Jun</text>
+<text x="573.1875" y="458.0" text-anchor="middle" font-size="14" font-weight="400" fill="#A9A9AA" dy="0.35em" class="xychart-label">Jul</text>
+<text x="643.0625" y="458.0" text-anchor="middle" font-size="14" font-weight="400" fill="#A9A9AA" dy="0.35em" class="xychart-label">Aug</text>
+<text x="101.0" y="429.1515151515151" text-anchor="end" font-size="14" font-weight="400" fill="#A9A9AA" dy="0.35em" class="xychart-label">100</text>
+<text x="101.0" y="374.9090909090909" text-anchor="end" font-size="14" font-weight="400" fill="#A9A9AA" dy="0.35em" class="xychart-label">150</text>
+<text x="101.0" y="320.6666666666667" text-anchor="end" font-size="14" font-weight="400" fill="#A9A9AA" dy="0.35em" class="xychart-label">200</text>
+<text x="101.0" y="266.4242424242424" text-anchor="end" font-size="14" font-weight="400" fill="#A9A9AA" dy="0.35em" class="xychart-label">250</text>
+<text x="101.0" y="212.1818181818182" text-anchor="end" font-size="14" font-weight="400" fill="#A9A9AA" dy="0.35em" class="xychart-label">300</text>
+<text x="101.0" y="157.93939393939394" text-anchor="end" font-size="14" font-weight="400" fill="#A9A9AA" dy="0.35em" class="xychart-label">350</text>
+<text x="101.0" y="103.69696969696969" text-anchor="end" font-size="14" font-weight="400" fill="#A9A9AA" dy="0.35em" class="xychart-label">400</text>
 <text x="350.0" y="42.0" text-anchor="middle" font-size="20" font-weight="600" fill="#27272A" dy="0.35em" class="xychart-title">Planned vs Actual</text>
 </svg>

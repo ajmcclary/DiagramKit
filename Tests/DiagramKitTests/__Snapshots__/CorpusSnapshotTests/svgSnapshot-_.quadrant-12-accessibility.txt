@@ -1,4 +1,4 @@
-<svg id="graphDiv" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 500" role="graphics-document document" aria-roledescription="quadrant-chart" width="100%" preserveAspectRatio="xMinYMin meet" style="max-width: 500px; background-color: #FFFFFF">
+<svg role="graphics-document" id="graphDiv" aria-roledescription="quadrant-chart" preserveAspectRatio="xMinYMin meet" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 500 500" width="100%" height="500" style="max-width: 500px;--bg:#FFFFFF;--fg:#27272A;--line:#939394;--accent:#27272A;--muted:#A9A9AA;--surface:#F9F9F9;--border:#D4D4D4;background:#FFFFFF">
 <title>Quadrant Chart</title>
 <desc>A 2x2 matrix showing task distribution</desc>
 <g class="main">

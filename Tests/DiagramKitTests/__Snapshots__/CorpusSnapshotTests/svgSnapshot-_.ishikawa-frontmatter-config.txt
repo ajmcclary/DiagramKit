@@ -1,8 +1,8 @@
-<svg role="graphics-document" aria-roledescription="diagram" preserveAspectRatio="xMinYMin meet" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="-123.80679957925328 -50 233.80679957925327 600" width="100%" height="600" style="max-width: 233.80679957925327px;--bg:#FFFFFF;--fg:#27272A;--line:#27272A;--accent:#27272A;--muted:#27272A;--surface:#FFFFFF;--border:#27272A;background:#FFFFFF">><rect width="100%" height="100%" fill="#FFFFFF"/><g class="ishikawa"><defs><marker id="ishikawa-arrow-0B4A7ACE-BE81-AB19-B6A6-1C37C6024C8B" viewBox="0 0 10 10" refX="0" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M 10 0 L 0 5 L 10 10 Z" class="ishikawa-arrow" fill="#27272A"/></marker></defs><style>
+<svg role="graphics-document" aria-roledescription="diagram" preserveAspectRatio="xMinYMin meet" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="-123.80679957925328 -50 233.80679957925327 600" width="100%" height="600" style="max-width: 233.80679957925327px;--bg:#FFFFFF;--fg:#27272A;--line:#939394;--accent:#27272A;--muted:#A9A9AA;--surface:#F9F9F9;--border:#D4D4D4;background:#FFFFFF">><rect width="100%" height="100%" fill="#FFFFFF"/><g class="ishikawa"><defs><marker id="ishikawa-arrow-0B4A7ACE-BE81-AB19-B6A6-1C37C6024C8B" viewBox="0 0 10 10" refX="0" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M 10 0 L 0 5 L 10 10 Z" class="ishikawa-arrow" fill="#939394"/></marker></defs><style>
 .ishikawa .ishikawa-spine,
 .ishikawa .ishikawa-branch,
 .ishikawa .ishikawa-sub-branch {
-  stroke: #27272A;
+  stroke: #939394;
   fill: none;
 }
 .ishikawa .ishikawa-spine,
@@ -13,16 +13,16 @@
   stroke-width: 1;
 }
 .ishikawa .ishikawa-arrow {
-  fill: #27272A;
+  fill: #939394;
 }
 .ishikawa .ishikawa-head {
-  fill: #FFFFFF;
-  stroke: #27272A;
+  fill: #F9F9F9;
+  stroke: #939394;
   stroke-width: 2;
 }
 .ishikawa .ishikawa-label-box {
-  fill: #FFFFFF;
-  stroke: #27272A;
+  fill: #F9F9F9;
+  stroke: #939394;
   stroke-width: 2;
 }
 .ishikawa text {
@@ -53,4 +53,4 @@
 .ishikawa .ishikawa-label.down {
   dominant-baseline: hanging;
 }
-</style><g class="ishikawa-head-group" transform="translate(0.0,250.0)"><path class="ishikawa-head" d="M 0 -34.7 L 0 34.7 Q 144.0 0 0 -34.7 Z" fill="#FFFFFF" stroke="#27272A" stroke-width="2"/><text class="ishikawa-head-label" text-anchor="middle" dominant-baseline="middle" transform="translate(33.0,0.0)" fill="#27272A" font-size="14.0" font-weight="600"><tspan x="0.0" dy="0.0">Problem</tspan></text></g><line class="ishikawa-spine" x1="-53.80679957925328" y1="250.0" x2="0.0" y2="250.0" stroke="#27272A" stroke-width="2" marker-start="url(#ishikawa-arrow-0B4A7ACE-BE81-AB19-B6A6-1C37C6024C8B)"/><g class="ishikawa-pair"><line class="ishikawa-branch" x1="-20.0" y1="250.0" x2="-26.958655048003283" y2="200.48659656292148" stroke="#27272A" stroke-width="2" marker-start="url(#ishikawa-arrow-0B4A7ACE-BE81-AB19-B6A6-1C37C6024C8B)"/><g class="ishikawa-label-group"><rect class="ishikawa-label-box" x="-73.80679957925328" y="172.7865965629215" width="93.6962890625" height="18.700000000000003" fill="#FFFFFF" stroke="#27272A" stroke-width="2"/><text class="ishikawa-label cause" text-anchor="middle" dominant-baseline="middle" x="-26.958655048003283" y="189.48659656292148" fill="#27272A" font-size="14.0"><tspan x="-26.958655048003283" dy="0.0">Cause A</tspan></text></g></g></g></svg>
+</style><g class="ishikawa-head-group" transform="translate(0.0,250.0)"><path class="ishikawa-head" d="M 0 -34.7 L 0 34.7 Q 144.0 0 0 -34.7 Z" fill="#F9F9F9" stroke="#939394" stroke-width="2"/><text class="ishikawa-head-label" text-anchor="middle" dominant-baseline="middle" transform="translate(33.0,0.0)" fill="#27272A" font-size="14.0" font-weight="600"><tspan x="0.0" dy="0.0">Problem</tspan></text></g><line class="ishikawa-spine" x1="-53.80679957925328" y1="250.0" x2="0.0" y2="250.0" stroke="#939394" stroke-width="2" marker-start="url(#ishikawa-arrow-0B4A7ACE-BE81-AB19-B6A6-1C37C6024C8B)"/><g class="ishikawa-pair"><line class="ishikawa-branch" x1="-20.0" y1="250.0" x2="-26.958655048003283" y2="200.48659656292148" stroke="#939394" stroke-width="2" marker-start="url(#ishikawa-arrow-0B4A7ACE-BE81-AB19-B6A6-1C37C6024C8B)"/><g class="ishikawa-label-group"><rect class="ishikawa-label-box" x="-73.80679957925328" y="172.7865965629215" width="93.6962890625" height="18.700000000000003" fill="#F9F9F9" stroke="#939394" stroke-width="2"/><text class="ishikawa-label cause" text-anchor="middle" dominant-baseline="middle" x="-26.958655048003283" y="189.48659656292148" fill="#27272A" font-size="14.0"><tspan x="-26.958655048003283" dy="0.0">Cause A</tspan></text></g></g></g></svg>

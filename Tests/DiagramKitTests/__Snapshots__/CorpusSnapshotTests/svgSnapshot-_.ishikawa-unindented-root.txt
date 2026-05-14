@@ -1,8 +1,8 @@
-<svg role="graphics-document" aria-roledescription="diagram" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="-188.0755018025164 -42.83403437078512 268.07550180251644 637.8340343707852" width="268.07550180251644" height="637.8340343707852" style="--bg:#FFFFFF;--fg:#27272A;--line:#27272A;--accent:#27272A;--muted:#27272A;--surface:#FFFFFF;--border:#27272A;background:#FFFFFF">><rect width="100%" height="100%" fill="#FFFFFF"/><g class="ishikawa"><defs><marker id="ishikawa-arrow-B2475783-B4F4-00C9-B99B-0BF96E268BAE" viewBox="0 0 10 10" refX="0" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M 10 0 L 0 5 L 10 10 Z" class="ishikawa-arrow" fill="#27272A"/></marker></defs><style>
+<svg role="graphics-document" aria-roledescription="diagram" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="-188.0755018025164 -42.83403437078512 268.07550180251644 637.8340343707852" width="268.07550180251644" height="637.8340343707852" style="--bg:#FFFFFF;--fg:#27272A;--line:#939394;--accent:#27272A;--muted:#A9A9AA;--surface:#F9F9F9;--border:#D4D4D4;background:#FFFFFF">><rect width="100%" height="100%" fill="#FFFFFF"/><g class="ishikawa"><defs><marker id="ishikawa-arrow-B2475783-B4F4-00C9-B99B-0BF96E268BAE" viewBox="0 0 10 10" refX="0" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M 10 0 L 0 5 L 10 10 Z" class="ishikawa-arrow" fill="#939394"/></marker></defs><style>
 .ishikawa .ishikawa-spine,
 .ishikawa .ishikawa-branch,
 .ishikawa .ishikawa-sub-branch {
-  stroke: #27272A;
+  stroke: #939394;
   fill: none;
 }
 .ishikawa .ishikawa-spine,
@@ -13,16 +13,16 @@
   stroke-width: 1;
 }
 .ishikawa .ishikawa-arrow {
-  fill: #27272A;
+  fill: #939394;
 }
 .ishikawa .ishikawa-head {
-  fill: #FFFFFF;
-  stroke: #27272A;
+  fill: #F9F9F9;
+  stroke: #939394;
   stroke-width: 2;
 }
 .ishikawa .ishikawa-label-box {
-  fill: #FFFFFF;
-  stroke: #27272A;
+  fill: #F9F9F9;
+  stroke: #939394;
   stroke-width: 2;
 }
 .ishikawa text {
@@ -53,4 +53,4 @@
 .ishikawa .ishikawa-label.down {
   dominant-baseline: hanging;
 }
-</style><g class="ishikawa-head-group" transform="translate(0.0,500.0)"><path class="ishikawa-head" d="M 0 -34.7 L 0 34.7 Q 144.0 0 0 -34.7 Z" fill="#FFFFFF" stroke="#27272A" stroke-width="2"/><text class="ishikawa-head-label" text-anchor="middle" dominant-baseline="middle" transform="translate(33.0,0.0)" fill="#27272A" font-size="14.0" font-weight="600"><tspan x="0.0" dy="0.0">Problem</tspan></text></g><line class="ishikawa-spine" x1="-168.0755018025164" y1="500.0" x2="0.0" y2="500.0" stroke="#27272A" stroke-width="2" marker-start="url(#ishikawa-arrow-B2475783-B4F4-00C9-B99B-0BF96E268BAE)"/><g class="ishikawa-pair"><line class="ishikawa-branch" x1="-20.0" y1="500.0" x2="-89.58655048003284" y2="4.865965629214884" stroke="#27272A" stroke-width="2" marker-start="url(#ishikawa-arrow-B2475783-B4F4-00C9-B99B-0BF96E268BAE)"/><g class="ishikawa-label-group"><rect class="ishikawa-label-box" x="-136.43469501128283" y="-22.83403437078512" width="93.6962890625" height="18.700000000000003" fill="#FFFFFF" stroke="#27272A" stroke-width="2"/><text class="ishikawa-label cause" text-anchor="middle" dominant-baseline="middle" x="-89.58655048003284" y="-6.134034370785116" fill="#27272A" font-size="14.0"><tspan x="-89.58655048003284" dy="0.0">Cause A</tspan></text></g><g class="ishikawa-sub-group"><line class="ishikawa-sub-branch" x1="-54.79327524001642" y1="252.43298281460744" x2="-84.79327524001641" y2="252.43298281460744" stroke="#27272A" stroke-width="1" marker-start="url(#ishikawa-arrow-B2475783-B4F4-00C9-B99B-0BF96E268BAE)"/><text class="ishikawa-label align" text-anchor="end" dominant-baseline="middle" x="-84.79327524001641" y="252.43298281460744" fill="#27272A" font-size="14.0"><tspan x="-84.79327524001641" dy="0.0">Subcause A1</tspan></text></g><line class="ishikawa-branch" x1="-20.0" y1="500.0" x2="-22.087596514400985" y2="514.8540210311236" stroke="#27272A" stroke-width="2" marker-start="url(#ishikawa-arrow-B2475783-B4F4-00C9-B99B-0BF96E268BAE)"/><g class="ishikawa-label-group"><rect class="ishikawa-label-box" x="-68.93574104565099" y="509.1540210311236" width="93.6962890625" height="18.700000000000003" fill="#FFFFFF" stroke="#27272A" stroke-width="2"/><text class="ishikawa-label cause" text-anchor="middle" dominant-baseline="middle" x="-22.087596514400985" y="525.8540210311236" fill="#27272A" font-size="14.0"><tspan x="-22.087596514400985" dy="0.0">Cause B</tspan></text></g></g></g></svg>
+</style><g class="ishikawa-head-group" transform="translate(0.0,500.0)"><path class="ishikawa-head" d="M 0 -34.7 L 0 34.7 Q 144.0 0 0 -34.7 Z" fill="#F9F9F9" stroke="#939394" stroke-width="2"/><text class="ishikawa-head-label" text-anchor="middle" dominant-baseline="middle" transform="translate(33.0,0.0)" fill="#27272A" font-size="14.0" font-weight="600"><tspan x="0.0" dy="0.0">Problem</tspan></text></g><line class="ishikawa-spine" x1="-168.0755018025164" y1="500.0" x2="0.0" y2="500.0" stroke="#939394" stroke-width="2" marker-start="url(#ishikawa-arrow-B2475783-B4F4-00C9-B99B-0BF96E268BAE)"/><g class="ishikawa-pair"><line class="ishikawa-branch" x1="-20.0" y1="500.0" x2="-89.58655048003284" y2="4.865965629214884" stroke="#939394" stroke-width="2" marker-start="url(#ishikawa-arrow-B2475783-B4F4-00C9-B99B-0BF96E268BAE)"/><g class="ishikawa-label-group"><rect class="ishikawa-label-box" x="-136.43469501128283" y="-22.83403437078512" width="93.6962890625" height="18.700000000000003" fill="#F9F9F9" stroke="#939394" stroke-width="2"/><text class="ishikawa-label cause" text-anchor="middle" dominant-baseline="middle" x="-89.58655048003284" y="-6.134034370785116" fill="#27272A" font-size="14.0"><tspan x="-89.58655048003284" dy="0.0">Cause A</tspan></text></g><g class="ishikawa-sub-group"><line class="ishikawa-sub-branch" x1="-54.79327524001642" y1="252.43298281460744" x2="-84.79327524001641" y2="252.43298281460744" stroke="#939394" stroke-width="1" marker-start="url(#ishikawa-arrow-B2475783-B4F4-00C9-B99B-0BF96E268BAE)"/><text class="ishikawa-label align" text-anchor="end" dominant-baseline="middle" x="-84.79327524001641" y="252.43298281460744" fill="#27272A" font-size="14.0"><tspan x="-84.79327524001641" dy="0.0">Subcause A1</tspan></text></g><line class="ishikawa-branch" x1="-20.0" y1="500.0" x2="-22.087596514400985" y2="514.8540210311236" stroke="#939394" stroke-width="2" marker-start="url(#ishikawa-arrow-B2475783-B4F4-00C9-B99B-0BF96E268BAE)"/><g class="ishikawa-label-group"><rect class="ishikawa-label-box" x="-68.93574104565099" y="509.1540210311236" width="93.6962890625" height="18.700000000000003" fill="#F9F9F9" stroke="#939394" stroke-width="2"/><text class="ishikawa-label cause" text-anchor="middle" dominant-baseline="middle" x="-22.087596514400985" y="525.8540210311236" fill="#27272A" font-size="14.0"><tspan x="-22.087596514400985" dy="0.0">Cause B</tspan></text></g></g></g></svg>

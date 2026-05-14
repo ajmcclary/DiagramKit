@@ -1,16 +1,16 @@
-<svg role="graphics-document" aria-roledescription="diagram" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 271.68 438.70000000000005" width="271.68" height="438.70000000000005" style="--bg:#FFFFFF;--fg:#27272A;--line:#27272A;--accent:#27272A;--muted:#27272A;--surface:#FFFFFF;--border:#27272A;background:#FFFFFF">
+<svg role="graphics-document" aria-roledescription="diagram" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 271.68 438.70000000000005" width="271.68" height="438.70000000000005" style="--bg:#FFFFFF;--fg:#27272A;--line:#939394;--accent:#27272A;--muted:#A9A9AA;--surface:#F9F9F9;--border:#D4D4D4;background:#FFFFFF">
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap');
   text { font-family: 'Inter', system-ui, sans-serif; }
   svg {    /* Derived from --bg and --fg (overridable via --line, --accent, etc.) */
     --_text:          #27272A;
-    --_text-sec:      #27272A 60%, #FFFFFF));
-    --_text-muted:    #27272A 40%, #FFFFFF));
+    --_text-sec:      #A9A9AA;
+    --_text-muted:    #A9A9AA;
     --_text-faint:    #666666;
-    --_line:          #27272A 50%, #FFFFFF));
-    --_arrow:         #27272A 85%, #FFFFFF));
-    --_node-fill:     #FFFFFF 3%, #FFFFFF));
-    --_node-stroke:   #27272A 20%, #FFFFFF));
+    --_line:          #939394;
+    --_arrow:         #27272A;
+    --_node-fill:     #F9F9F9;
+    --_node-stroke:   #D4D4D4;
     --_group-fill:    #FFFFFF;
     --_group-hdr:     #666666;
     --_inner-stroke:  #666666;
@@ -21,30 +21,30 @@
 </style>
 <defs>
   <marker id="arrowhead" markerWidth="8.0" markerHeight="5.0" refX="7.0" refY="2.5" orient="auto">
-    <polygon points="0 0, 8.0 2.5, 0 5.0" fill="#27272A 85%, #FFFFFF))" stroke="#27272A 85%, #FFFFFF))" stroke-width="0.75" stroke-linejoin="round" />
+    <polygon points="0 0, 8.0 2.5, 0 5.0" fill="#27272A" stroke="#27272A" stroke-width="0.75" stroke-linejoin="round" />
   </marker>
   <marker id="arrowhead-start" markerWidth="8.0" markerHeight="5.0" refX="1" refY="2.5" orient="auto-start-reverse">
-    <polygon points="8.0 0, 0 2.5, 8.0 5.0" fill="#27272A 85%, #FFFFFF))" stroke="#27272A 85%, #FFFFFF))" stroke-width="0.75" stroke-linejoin="round" />
+    <polygon points="8.0 0, 0 2.5, 8.0 5.0" fill="#27272A" stroke="#27272A" stroke-width="0.75" stroke-linejoin="round" />
   </marker>
   <marker id="circlehead" markerWidth="5.5" markerHeight="3.5" refX="2.75" refY="1.75" orient="auto">
-    <circle cx="1.75" cy="1.75" r="1.25" fill="#27272A 85%, #FFFFFF))" stroke="#27272A 85%, #FFFFFF))" stroke-width="0.75" stroke-linejoin="round" />
+    <circle cx="1.75" cy="1.75" r="1.25" fill="#27272A" stroke="#27272A" stroke-width="0.75" stroke-linejoin="round" />
   </marker>
   <marker id="circlehead-start" markerWidth="5.5" markerHeight="3.5" refX="0.75" refY="1.75" orient="auto-start-reverse">
-    <circle cx="1.75" cy="1.75" r="1.25" fill="#27272A 85%, #FFFFFF))" stroke="#27272A 85%, #FFFFFF))" stroke-width="0.75" stroke-linejoin="round" />
+    <circle cx="1.75" cy="1.75" r="1.25" fill="#27272A" stroke="#27272A" stroke-width="0.75" stroke-linejoin="round" />
   </marker>
   <marker id="crosshead" markerWidth="3.0" markerHeight="3.0" refX="1.5" refY="1.5" orient="auto">
-    <line x1="0" y1="0" x2="3.0" y2="3.0" stroke="#27272A 85%, #FFFFFF))" stroke-width="1.5" />
-    <line x1="3.0" y1="0" x2="0" y2="3.0" stroke="#27272A 85%, #FFFFFF))" stroke-width="1.5" />
+    <line x1="0" y1="0" x2="3.0" y2="3.0" stroke="#27272A" stroke-width="1.5" />
+    <line x1="3.0" y1="0" x2="0" y2="3.0" stroke="#27272A" stroke-width="1.5" />
   </marker>
   <marker id="crosshead-start" markerWidth="3.0" markerHeight="3.0" refX="1.5" refY="1.5" orient="auto-start-reverse">
-    <line x1="0" y1="0" x2="3.0" y2="3.0" stroke="#27272A 85%, #FFFFFF))" stroke-width="1.5" />
-    <line x1="3.0" y1="0" x2="0" y2="3.0" stroke="#27272A 85%, #FFFFFF))" stroke-width="1.5" />
+    <line x1="0" y1="0" x2="3.0" y2="3.0" stroke="#27272A" stroke-width="1.5" />
+    <line x1="3.0" y1="0" x2="0" y2="3.0" stroke="#27272A" stroke-width="1.5" />
   </marker>
   <marker id="diamondhead" markerWidth="9.6" markerHeight="5.0" refX="8.0" refY="2.5" orient="auto">
-    <polygon points="0 2.5, 4.8 0, 9.6 2.5, 4.8 5.0" fill="#27272A 85%, #FFFFFF))" stroke="#27272A 85%, #FFFFFF))" stroke-width="0.75" stroke-linejoin="round" />
+    <polygon points="0 2.5, 4.8 0, 9.6 2.5, 4.8 5.0" fill="#27272A" stroke="#27272A" stroke-width="0.75" stroke-linejoin="round" />
   </marker>
   <marker id="diamondhead-start" markerWidth="9.6" markerHeight="5.0" refX="1.6" refY="2.5" orient="auto-start-reverse">
-    <polygon points="4.8 2.5, 0 0, 9.6 2.5, 0 5.0" fill="#27272A 85%, #FFFFFF))" stroke="#27272A 85%, #FFFFFF))" stroke-width="0.75" stroke-linejoin="round" />
+    <polygon points="4.8 2.5, 0 0, 9.6 2.5, 0 5.0" fill="#27272A" stroke="#27272A" stroke-width="0.75" stroke-linejoin="round" />
   </marker>
 </defs>
 <style>
@@ -56,12 +56,12 @@
   to { stroke-dashoffset: -24; }
 }
 .statediagram-state rect {
-  fill: #FFFFFF 3%, #FFFFFF));
-  stroke: #27272A 20%, #FFFFFF));
+  fill: #F9F9F9;
+  stroke: #D4D4D4;
 }
 .statediagram-cluster rect {
   fill: #FFFFFF;
-  stroke: #27272A 20%, #FFFFFF));
+  stroke: #D4D4D4;
 }
 .statediagram-cluster rect.outer {
   rx: 5px;
@@ -84,52 +84,52 @@
   stroke-dasharray: 5;
 }
 .transition {
-  stroke: #27272A 50%, #FFFFFF));
+  stroke: #939394;
 }
 [data-look="neo"].statediagram-cluster rect {
   rx: 12px;
   ry: 12px;
 }
 </style>
-<polyline data-from="root_start" data-to="空闲" data-style="solid" data-arrow-start="false" data-arrow-end="true" class="edge transition" points="74.5,68.0 74.5,92.0 96.295,92.0 96.295,116.0" fill="none" stroke="#27272A 50%, #FFFFFF))" stroke-width="1.0" marker-end="url(#arrowhead)" />
-<polyline data-from="空闲" data-to="处理中" data-style="solid" data-arrow-start="false" data-arrow-end="true" data-label="提交" class="edge transition" points="96.295,152.9 96.295,176.9 103.705,176.9 103.705,200.9" fill="none" stroke="#27272A 50%, #FFFFFF))" stroke-width="1.0" marker-end="url(#arrowhead)" />
-<polyline data-from="处理中" data-to="完成" data-style="solid" data-arrow-start="false" data-arrow-end="true" data-label="成功" class="edge transition" points="103.705,237.8 103.705,261.8 96.295,261.8 96.295,285.8" fill="none" stroke="#27272A 50%, #FFFFFF))" stroke-width="1.0" marker-end="url(#arrowhead)" />
-<polyline data-from="处理中" data-to="错误" data-style="solid" data-arrow-start="false" data-arrow-end="true" data-label="失败" class="edge transition" points="146.91,219.35000000000002 153.5,219.35000000000002 153.5,304.25 160.09,304.25" fill="none" stroke="#27272A 50%, #FFFFFF))" stroke-width="1.0" marker-end="url(#arrowhead)" />
-<polyline data-from="错误" data-to="空闲" data-style="solid" data-arrow-start="false" data-arrow-end="true" data-label="重试" class="edge transition" points="195.885,285.8 195.885,219.35000000000002 96.295,219.35000000000002 96.295,152.9" fill="none" stroke="#27272A 50%, #FFFFFF))" stroke-width="1.0" marker-end="url(#arrowhead)" />
-<polyline data-from="完成" data-to="root_end" data-style="solid" data-arrow-start="false" data-arrow-end="true" class="edge transition" points="96.295,322.70000000000005 96.295,346.70000000000005 74.5,346.70000000000005 74.5,370.70000000000005" fill="none" stroke="#27272A 50%, #FFFFFF))" stroke-width="1.0" marker-end="url(#arrowhead)" />
+<polyline data-from="root_start" data-to="空闲" data-style="solid" data-arrow-start="false" data-arrow-end="true" class="edge transition" points="74.5,68.0 74.5,92.0 96.295,92.0 96.295,116.0" fill="none" stroke="#939394" stroke-width="1.0" marker-end="url(#arrowhead)" />
+<polyline data-from="空闲" data-to="处理中" data-style="solid" data-arrow-start="false" data-arrow-end="true" data-label="提交" class="edge transition" points="96.295,152.9 96.295,176.9 103.705,176.9 103.705,200.9" fill="none" stroke="#939394" stroke-width="1.0" marker-end="url(#arrowhead)" />
+<polyline data-from="处理中" data-to="完成" data-style="solid" data-arrow-start="false" data-arrow-end="true" data-label="成功" class="edge transition" points="103.705,237.8 103.705,261.8 96.295,261.8 96.295,285.8" fill="none" stroke="#939394" stroke-width="1.0" marker-end="url(#arrowhead)" />
+<polyline data-from="处理中" data-to="错误" data-style="solid" data-arrow-start="false" data-arrow-end="true" data-label="失败" class="edge transition" points="146.91,219.35000000000002 153.5,219.35000000000002 153.5,304.25 160.09,304.25" fill="none" stroke="#939394" stroke-width="1.0" marker-end="url(#arrowhead)" />
+<polyline data-from="错误" data-to="空闲" data-style="solid" data-arrow-start="false" data-arrow-end="true" data-label="重试" class="edge transition" points="195.885,285.8 195.885,219.35000000000002 96.295,219.35000000000002 96.295,152.9" fill="none" stroke="#939394" stroke-width="1.0" marker-end="url(#arrowhead)" />
+<polyline data-from="完成" data-to="root_end" data-style="solid" data-arrow-start="false" data-arrow-end="true" class="edge transition" points="96.295,322.70000000000005 96.295,346.70000000000005 74.5,346.70000000000005 74.5,370.70000000000005" fill="none" stroke="#939394" stroke-width="1.0" marker-end="url(#arrowhead)" />
 <g class="edge-label" data-from="空闲" data-to="处理中" data-label="提交">
   <rect x="79.295" y="161.75" width="41.41" height="30.3" rx="2" ry="2" fill="#FFFFFF" stroke="#666666" stroke-width="1" />
-  <text x="100.0" y="176.9" text-anchor="middle" font-size="11.0" font-weight="400" fill="#27272A 60%, #FFFFFF))" dy="3.8499999999999996">提交</text>
+  <text x="100.0" y="176.9" text-anchor="middle" font-size="11.0" font-weight="400" fill="#A9A9AA" dy="3.8499999999999996">提交</text>
 </g>
 <g class="edge-label" data-from="处理中" data-to="完成" data-label="成功">
   <rect x="79.295" y="246.65" width="41.41" height="30.3" rx="2" ry="2" fill="#FFFFFF" stroke="#666666" stroke-width="1" />
-  <text x="100.0" y="261.8" text-anchor="middle" font-size="11.0" font-weight="400" fill="#27272A 60%, #FFFFFF))" dy="3.8499999999999996">成功</text>
+  <text x="100.0" y="261.8" text-anchor="middle" font-size="11.0" font-weight="400" fill="#A9A9AA" dy="3.8499999999999996">成功</text>
 </g>
 <g class="edge-label" data-from="处理中" data-to="错误" data-label="失败">
   <rect x="132.79500000000002" y="246.65" width="41.41" height="30.3" rx="2" ry="2" fill="#FFFFFF" stroke="#666666" stroke-width="1" />
-  <text x="153.5" y="261.8" text-anchor="middle" font-size="11.0" font-weight="400" fill="#27272A 60%, #FFFFFF))" dy="3.8499999999999996">失败</text>
+  <text x="153.5" y="261.8" text-anchor="middle" font-size="11.0" font-weight="400" fill="#A9A9AA" dy="3.8499999999999996">失败</text>
 </g>
 <g class="edge-label" data-from="错误" data-to="空闲" data-label="重试">
   <rect x="125.385" y="204.20000000000002" width="41.41" height="30.3" rx="2" ry="2" fill="#FFFFFF" stroke="#666666" stroke-width="1" />
-  <text x="146.09" y="219.35000000000002" text-anchor="middle" font-size="11.0" font-weight="400" fill="#27272A 60%, #FFFFFF))" dy="3.8499999999999996">重试</text>
+  <text x="146.09" y="219.35000000000002" text-anchor="middle" font-size="11.0" font-weight="400" fill="#A9A9AA" dy="3.8499999999999996">重试</text>
 </g>
 <g class="node statediagram-state" data-id="root_start" data-label="" data-shape="state-start">
   <path d="M 60.5 54.0 A 14.0 14.0 0 1 1 88.5 54.0 A 14.0 14.0 0 1 1 60.5 54.0 Z" fill="#27272A" stroke="none" stroke-width="0.75" />
 </g>
 <g class="node statediagram-state" data-id="空闲" data-label="空闲" data-shape="rounded">
-  <path d="M 66.5 116.0 L 126.09 116.0 Q 132.09 116.0 132.09 122.0 L 132.09 146.9 Q 132.09 152.9 126.09 152.9 L 66.5 152.9 Q 60.5 152.9 60.5 146.9 L 60.5 122.0 Q 60.5 116.0 66.5 116.0 Z" fill="#FFFFFF 3%, #FFFFFF))" stroke="#27272A 20%, #FFFFFF))" stroke-width="0.75" />
+  <path d="M 66.5 116.0 L 126.09 116.0 Q 132.09 116.0 132.09 122.0 L 132.09 146.9 Q 132.09 152.9 126.09 152.9 L 66.5 152.9 Q 60.5 152.9 60.5 146.9 L 60.5 122.0 Q 60.5 116.0 66.5 116.0 Z" fill="#F9F9F9" stroke="#D4D4D4" stroke-width="0.75" />
   <text x="96.295" y="134.45" text-anchor="middle" font-size="13.0" font-weight="500" fill="#27272A" dy="4.55">空闲</text>
 </g>
 <g class="node statediagram-state" data-id="处理中" data-label="处理中" data-shape="rounded">
-  <path d="M 66.5 200.9 L 140.91 200.9 Q 146.91 200.9 146.91 206.9 L 146.91 231.8 Q 146.91 237.8 140.91 237.8 L 66.5 237.8 Q 60.5 237.8 60.5 231.8 L 60.5 206.9 Q 60.5 200.9 66.5 200.9 Z" fill="#FFFFFF 3%, #FFFFFF))" stroke="#27272A 20%, #FFFFFF))" stroke-width="0.75" />
+  <path d="M 66.5 200.9 L 140.91 200.9 Q 146.91 200.9 146.91 206.9 L 146.91 231.8 Q 146.91 237.8 140.91 237.8 L 66.5 237.8 Q 60.5 237.8 60.5 231.8 L 60.5 206.9 Q 60.5 200.9 66.5 200.9 Z" fill="#F9F9F9" stroke="#D4D4D4" stroke-width="0.75" />
   <text x="103.705" y="219.35000000000002" text-anchor="middle" font-size="13.0" font-weight="500" fill="#27272A" dy="4.55">处理中</text>
 </g>
 <g class="node statediagram-state" data-id="完成" data-label="完成" data-shape="rounded">
-  <path d="M 66.5 285.8 L 126.09 285.8 Q 132.09 285.8 132.09 291.8 L 132.09 316.70000000000005 Q 132.09 322.70000000000005 126.09 322.70000000000005 L 66.5 322.70000000000005 Q 60.5 322.70000000000005 60.5 316.70000000000005 L 60.5 291.8 Q 60.5 285.8 66.5 285.8 Z" fill="#FFFFFF 3%, #FFFFFF))" stroke="#27272A 20%, #FFFFFF))" stroke-width="0.75" />
+  <path d="M 66.5 285.8 L 126.09 285.8 Q 132.09 285.8 132.09 291.8 L 132.09 316.70000000000005 Q 132.09 322.70000000000005 126.09 322.70000000000005 L 66.5 322.70000000000005 Q 60.5 322.70000000000005 60.5 316.70000000000005 L 60.5 291.8 Q 60.5 285.8 66.5 285.8 Z" fill="#F9F9F9" stroke="#D4D4D4" stroke-width="0.75" />
   <text x="96.295" y="304.25" text-anchor="middle" font-size="13.0" font-weight="500" fill="#27272A" dy="4.55">完成</text>
 </g>
 <g class="node statediagram-state" data-id="错误" data-label="错误" data-shape="rounded">
-  <path d="M 166.09 285.8 L 225.68 285.8 Q 231.68 285.8 231.68 291.8 L 231.68 316.70000000000005 Q 231.68 322.70000000000005 225.68 322.70000000000005 L 166.09 322.70000000000005 Q 160.09 322.70000000000005 160.09 316.70000000000005 L 160.09 291.8 Q 160.09 285.8 166.09 285.8 Z" fill="#FFFFFF 3%, #FFFFFF))" stroke="#27272A 20%, #FFFFFF))" stroke-width="0.75" />
+  <path d="M 166.09 285.8 L 225.68 285.8 Q 231.68 285.8 231.68 291.8 L 231.68 316.70000000000005 Q 231.68 322.70000000000005 225.68 322.70000000000005 L 166.09 322.70000000000005 Q 160.09 322.70000000000005 160.09 316.70000000000005 L 160.09 291.8 Q 160.09 285.8 166.09 285.8 Z" fill="#F9F9F9" stroke="#D4D4D4" stroke-width="0.75" />
   <text x="195.885" y="304.25" text-anchor="middle" font-size="13.0" font-weight="500" fill="#27272A" dy="4.55">错误</text>
 </g>
 <g class="node statediagram-state" data-id="root_end" data-label="" data-shape="state-end">

@@ -1,7 +1,7 @@
-<svg role="graphics-document" aria-roledescription="diagram" id="B87B45F2-7CED-823E-BAF3-3AAAB525EF5F" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 670 522.4000000000001" width="670" height="522.4000000000001" style="--bg:#FFFFFF;--fg:#27272A;--line:#27272A;--accent:#27272A;--muted:#27272A;--surface:#FFFFFF;--border:#27272A;background:#FFFFFF">>
+<svg role="graphics-document" aria-roledescription="diagram" id="B87B45F2-7CED-823E-BAF3-3AAAB525EF5F" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 670 522.4000000000001" width="670" height="522.4000000000001" style="--bg:#FFFFFF;--fg:#27272A;--line:#939394;--accent:#27272A;--muted:#A9A9AA;--surface:#F9F9F9;--border:#D4D4D4;background:#FFFFFF">>
 <defs>
 <marker id="B87B45F2-7CED-823E-BAF3-3AAAB525EF5F-arrowhead" refX="5" refY="2" markerWidth="6" markerHeight="4" orient="auto">
-<path d="M 0,0 V 4 L6,2 Z" class="arrowheadPath" fill="#27272A"/>
+<path d="M 0,0 V 4 L6,2 Z" class="arrowheadPath" fill="#939394"/>
 </marker>
 </defs>
 <g class="timeline-node section-0">
@@ -79,10 +79,10 @@
 </switch>
 </g>
 <g class="lineWrapper">
-<line x1="270" y1="126.5" x2="320" y2="126.5" stroke="#27272A" stroke-dasharray="5,5" stroke-width="2" marker-end="url(#B87B45F2-7CED-823E-BAF3-3AAAB525EF5F-arrowhead)"/>
-<line x1="270" y1="189.7" x2="320" y2="189.7" stroke="#27272A" stroke-dasharray="5,5" stroke-width="2" marker-end="url(#B87B45F2-7CED-823E-BAF3-3AAAB525EF5F-arrowhead)"/>
-<line x1="270" y1="312.8" x2="320" y2="312.8" stroke="#27272A" stroke-dasharray="5,5" stroke-width="2" marker-end="url(#B87B45F2-7CED-823E-BAF3-3AAAB525EF5F-arrowhead)"/>
-<line x1="270" y1="375.9" x2="320" y2="375.9" stroke="#27272A" stroke-dasharray="5,5" stroke-width="2" marker-end="url(#B87B45F2-7CED-823E-BAF3-3AAAB525EF5F-arrowhead)"/>
+<line x1="270" y1="126.5" x2="320" y2="126.5" stroke="#939394" stroke-dasharray="5,5" stroke-width="2" marker-end="url(#B87B45F2-7CED-823E-BAF3-3AAAB525EF5F-arrowhead)"/>
+<line x1="270" y1="189.7" x2="320" y2="189.7" stroke="#939394" stroke-dasharray="5,5" stroke-width="2" marker-end="url(#B87B45F2-7CED-823E-BAF3-3AAAB525EF5F-arrowhead)"/>
+<line x1="270" y1="312.8" x2="320" y2="312.8" stroke="#939394" stroke-dasharray="5,5" stroke-width="2" marker-end="url(#B87B45F2-7CED-823E-BAF3-3AAAB525EF5F-arrowhead)"/>
+<line x1="270" y1="375.9" x2="320" y2="375.9" stroke="#939394" stroke-dasharray="5,5" stroke-width="2" marker-end="url(#B87B45F2-7CED-823E-BAF3-3AAAB525EF5F-arrowhead)"/>
 </g>
-<line x1="270" y1="22" x2="270" y2="449.4" stroke="#27272A" stroke-width="4" marker-end="url(#B87B45F2-7CED-823E-BAF3-3AAAB525EF5F-arrowhead)"/>
+<line x1="270" y1="22" x2="270" y2="449.4" stroke="#939394" stroke-width="4" marker-end="url(#B87B45F2-7CED-823E-BAF3-3AAAB525EF5F-arrowhead)"/>
 </svg>

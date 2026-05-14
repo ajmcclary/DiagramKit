@@ -1,7 +1,7 @@
-<svg role="graphics-document" aria-roledescription="diagram" id="7E1627A0-DF8C-4B61-BC9F-6A56B2EE67D2" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 550 500.9000000000001" width="550" height="500.9000000000001" style="--bg:#FFFFFF;--fg:#27272A;--line:#27272A;--accent:#27272A;--muted:#27272A;--surface:#FFFFFF;--border:#27272A;background:#FFFFFF">>
+<svg role="graphics-document" aria-roledescription="diagram" id="7E1627A0-DF8C-4B61-BC9F-6A56B2EE67D2" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 550 500.9000000000001" width="550" height="500.9000000000001" style="--bg:#FFFFFF;--fg:#27272A;--line:#939394;--accent:#27272A;--muted:#A9A9AA;--surface:#F9F9F9;--border:#D4D4D4;background:#FFFFFF">>
 <defs>
 <marker id="7E1627A0-DF8C-4B61-BC9F-6A56B2EE67D2-arrowhead" refX="5" refY="2" markerWidth="6" markerHeight="4" orient="auto">
-<path d="M 0,0 V 4 L6,2 Z" class="arrowheadPath" fill="#27272A"/>
+<path d="M 0,0 V 4 L6,2 Z" class="arrowheadPath" fill="#939394"/>
 </marker>
 </defs>
 <g class="timeline-node section-0">
@@ -41,9 +41,9 @@
 </switch>
 </g>
 <g class="lineWrapper">
-<line x1="225" y1="201.6" x2="225" y2="301.6" stroke="#27272A" stroke-dasharray="5,5" stroke-width="2" marker-end="url(#7E1627A0-DF8C-4B61-BC9F-6A56B2EE67D2-arrowhead)"/>
-<line x1="225" y1="201.6" x2="225" y2="354.7" stroke="#27272A" stroke-dasharray="5,5" stroke-width="2" marker-end="url(#7E1627A0-DF8C-4B61-BC9F-6A56B2EE67D2-arrowhead)"/>
-<line x1="225" y1="201.6" x2="225" y2="407.8" stroke="#27272A" stroke-dasharray="5,5" stroke-width="2" marker-end="url(#7E1627A0-DF8C-4B61-BC9F-6A56B2EE67D2-arrowhead)"/>
+<line x1="225" y1="201.6" x2="225" y2="301.6" stroke="#939394" stroke-dasharray="5,5" stroke-width="2" marker-end="url(#7E1627A0-DF8C-4B61-BC9F-6A56B2EE67D2-arrowhead)"/>
+<line x1="225" y1="201.6" x2="225" y2="354.7" stroke="#939394" stroke-dasharray="5,5" stroke-width="2" marker-end="url(#7E1627A0-DF8C-4B61-BC9F-6A56B2EE67D2-arrowhead)"/>
+<line x1="225" y1="201.6" x2="225" y2="407.8" stroke="#939394" stroke-dasharray="5,5" stroke-width="2" marker-end="url(#7E1627A0-DF8C-4B61-BC9F-6A56B2EE67D2-arrowhead)"/>
 </g>
-<line x1="150" y1="251.6" x2="500" y2="251.6" stroke="#27272A" stroke-width="4" marker-end="url(#7E1627A0-DF8C-4B61-BC9F-6A56B2EE67D2-arrowhead)"/>
+<line x1="150" y1="251.6" x2="500" y2="251.6" stroke="#939394" stroke-width="4" marker-end="url(#7E1627A0-DF8C-4B61-BC9F-6A56B2EE67D2-arrowhead)"/>
 </svg>
