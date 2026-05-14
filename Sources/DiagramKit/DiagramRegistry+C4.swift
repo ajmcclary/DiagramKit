@@ -9,24 +9,28 @@ import DiagramKitCommon
 // DiagramKitImport (`ImporterRegistry` + `DiagramSourceImporter`). This
 // registry remains as the Mermaid family detector and descriptor catalog.
 extension DiagramRegistry {
-    static let _c4 = _typed(
+    static let _c4 = DiagramDescriptor(
         type: .c4,
         matches: { $0.raw.range(of: #"^C4(?:Context|Container|Component|Dynamic|Deployment)\s*$"#, options: .regularExpression) != nil },
         parse: { source, frontmatter in
-            let (diagram, _) = try _parseC4DiagramWithDiagnostics(
+            let (diagram, diagnostics) = try parseC4Diagram(
                 DiagramSourceNormalizer.rawLines(source),
                 frontmatter: frontmatter
             )
-            return diagram
+            return (DiagramDocument(payload: .c4(diagram)), diagnostics)
         },
-        wrap: DiagramPayload.c4,
-        unwrap: { payload in
-            guard case let .c4(value) = payload else { return nil }
-            return value
-        },
-        layout: { parsed, _ in layoutC4Diagram(parsed) },
-        positioned: { graph, positioned in
-            PositionedGraph(diagram: graph, width: positioned.width, height: positioned.height, content: .c4(positioned))
+        layout: { graph, _ in
+            guard case let .c4(diagram) = graph.payload else {
+                throw DiagramStructuralError.payloadMismatch(.c4)
+            }
+            let positioned = layoutC4Diagram(diagram)
+            let result = PositionedGraph(
+                diagram: graph,
+                width: positioned.width,
+                height: positioned.height,
+                content: .c4(positioned)
+            )
+            return (result, [])
         }
     )
 }

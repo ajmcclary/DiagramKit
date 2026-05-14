@@ -114,7 +114,7 @@ struct StructurizrBoundaryRoundTripTests {
         // Now that Mermaid C4 parser honours $boundary= named args
         // (REVIEW.md §7), re-parse the emitted Mermaid and assert the
         // boundary linkage survives end-to-end.
-        let (reparsed, _) = try _parseC4DiagramWithDiagnostics(
+        let (reparsed, _) = try parseC4Diagram(
             mermaidSource.components(separatedBy: "\n")
         )
         let reparsedP1 = try #require(reparsed.shapes.first { $0.alias == "p1" })

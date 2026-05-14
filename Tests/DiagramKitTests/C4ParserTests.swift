@@ -61,7 +61,7 @@ import Foundation
     }
 
     @Test func personMacro() throws {
-        let diagram = try parseC4Diagram(["C4Context", "Person(customerA, \"Banking Customer A\", \"A customer of the bank.\")"])
+        let (diagram, _) = try parseC4Diagram(["C4Context", "Person(customerA, \"Banking Customer A\", \"A customer of the bank.\")"])
         #expect(diagram.shapes.count == 1)
         let shape = diagram.shapes[0]
         #expect(shape.alias == "customerA")
@@ -72,7 +72,7 @@ import Foundation
     }
 
     @Test func personExtMacro() throws {
-        let diagram = try parseC4Diagram(["C4Context", "Person_Ext(customerC, \"Banking Customer C\", \"desc\")"])
+        let (diagram, _) = try parseC4Diagram(["C4Context", "Person_Ext(customerC, \"Banking Customer C\", \"desc\")"])
         #expect(diagram.shapes.count == 1)
         let shape = diagram.shapes[0]
         #expect(shape.alias == "customerC")
@@ -89,7 +89,7 @@ import Foundation
             "SystemDb_Ext(sde, \"External DB\")",
             "SystemQueue_Ext(sqe, \"External Queue\")"
         ]
-        let diagram = try parseC4Diagram(lines)
+        let (diagram, _) = try parseC4Diagram(lines)
         #expect(diagram.shapes.count == 6)
         let types = diagram.shapes.map(\.typeC4Shape)
         #expect(types.contains(.system))
@@ -105,7 +105,7 @@ import Foundation
             "C4Container",
             "Container(c, \"Container\", \"Java\", \"A container.\")"
         ]
-        let diagram = try parseC4Diagram(lines)
+        let (diagram, _) = try parseC4Diagram(lines)
         #expect(diagram.shapes.count == 1)
         let shape = diagram.shapes[0]
         #expect(shape.typeC4Shape == .container)
@@ -118,7 +118,7 @@ import Foundation
             "C4Component",
             "Component(c, \"Component\", \"Spring\", \"A component.\")"
         ]
-        let diagram = try parseC4Diagram(lines)
+        let (diagram, _) = try parseC4Diagram(lines)
         #expect(diagram.shapes.count == 1)
         let shape = diagram.shapes[0]
         #expect(shape.typeC4Shape == .component)
@@ -130,7 +130,7 @@ import Foundation
             "C4Context",
             "Person(customerA, \"Customer\", $link=\"https://example.com\", $tags=\"v1.0\")"
         ]
-        let diagram = try parseC4Diagram(lines)
+        let (diagram, _) = try parseC4Diagram(lines)
         let shape = diagram.shapes[0]
         #expect(shape.link == "https://example.com")
         #expect(shape.tags == "v1.0")
@@ -144,7 +144,7 @@ import Foundation
             "  System(s1, \"System1\")",
             "}"
         ]
-        let diagram = try parseC4Diagram(lines)
+        let (diagram, _) = try parseC4Diagram(lines)
         #expect(diagram.shapes.count == 2)
         let innerShapes = diagram.shapes.filter { $0.parentBoundary == "b1" }
         #expect(innerShapes.count == 2)
@@ -157,7 +157,7 @@ import Foundation
             "  Person(customerA, \"Customer A\")",
             "}"
         ]
-        let diagram = try parseC4Diagram(lines)
+        let (diagram, _) = try parseC4Diagram(lines)
         let boundary = diagram.boundaries.first { $0.alias == "b0" }
         #expect(boundary != nil)
         #expect(boundary?.type == "ENTERPRISE")
@@ -170,7 +170,7 @@ import Foundation
             "  System(SystemA, \"Banking System A\")",
             "}"
         ]
-        let diagram = try parseC4Diagram(lines)
+        let (diagram, _) = try parseC4Diagram(lines)
         let boundary = diagram.boundaries.first { $0.alias == "b2" }
         #expect(boundary != nil)
         #expect(boundary?.type == "SYSTEM")
@@ -183,7 +183,7 @@ import Foundation
             "  Container(mobile, \"Mobile App\")",
             "}"
         ]
-        let diagram = try parseC4Diagram(lines)
+        let (diagram, _) = try parseC4Diagram(lines)
         let boundary = diagram.boundaries.first { $0.alias == "mob" }
         #expect(boundary != nil)
         #expect(boundary?.nodeType == "node")
@@ -198,7 +198,7 @@ import Foundation
             "BiRel(system, customer, \"Bidirectional\")",
             "Rel_Back(system, customer, \"Back\")"
         ]
-        let diagram = try parseC4Diagram(lines)
+        let (diagram, _) = try parseC4Diagram(lines)
         #expect(diagram.relationships.count == 3)
         let kinds = diagram.relationships.map(\.kind)
         #expect(kinds.contains(.rel))
@@ -213,7 +213,7 @@ import Foundation
             "System(system, \"System\")",
             "RelIndex(99, customer, system, \"Uses\")"
         ]
-        let diagram = try parseC4Diagram(lines)
+        let (diagram, _) = try parseC4Diagram(lines)
         #expect(diagram.relationships.count == 1)
         let rel = diagram.relationships[0]
         #expect(rel.kind == .rel)
@@ -228,7 +228,7 @@ import Foundation
             "Person(customerA, \"Original\")",
             "Person(customerA, \"Updated\", \"New description\")"
         ]
-        let diagram = try parseC4Diagram(lines)
+        let (diagram, _) = try parseC4Diagram(lines)
         #expect(diagram.shapes.count == 1)
         let shape = diagram.shapes[0]
         #expect(shape.label == "Updated")
@@ -241,7 +241,7 @@ import Foundation
             "Person(customerA, \"Customer\")",
             "UpdateElementStyle(customerA, $fontColor=\"red\", $bgColor=\"grey\")"
         ]
-        let diagram = try parseC4Diagram(lines)
+        let (diagram, _) = try parseC4Diagram(lines)
         let shape = diagram.shapes[0]
         #expect(shape.fontColor == "red")
         #expect(shape.bgColor == "grey")
@@ -255,7 +255,7 @@ import Foundation
             "Rel(customer, system, \"Uses\")",
             "UpdateRelStyle(customer, system, $textColor=\"blue\", $offsetX=\"5\")"
         ]
-        let diagram = try parseC4Diagram(lines)
+        let (diagram, _) = try parseC4Diagram(lines)
         let rel = diagram.relationships[0]
         #expect(rel.textColor == "blue")
         #expect(rel.offsetX == 5)
@@ -266,7 +266,7 @@ import Foundation
             "C4Context",
             "UpdateLayoutConfig($c4ShapeInRow=\"3\", $c4BoundaryInRow=\"1\")"
         ]
-        let diagram = try parseC4Diagram(lines)
+        let (diagram, _) = try parseC4Diagram(lines)
         #expect(diagram.config.c4ShapeInRow == 3)
         #expect(diagram.config.c4BoundaryInRow == 1)
     }
@@ -277,7 +277,7 @@ import Foundation
             "%% This is a comment",
             "Person(customer, \"Customer\")"
         ]
-        let diagram = try parseC4Diagram(lines)
+        let (diagram, _) = try parseC4Diagram(lines)
         #expect(diagram.shapes.count == 1)
     }
 
@@ -288,7 +288,7 @@ import Foundation
             "accDescr: A description of the system",
             "Person(customer, \"Customer\")"
         ]
-        let diagram = try parseC4Diagram(lines)
+        let (diagram, _) = try parseC4Diagram(lines)
         #expect(diagram.title == "System Context diagram")
         #expect(diagram.accDescr == "A description of the system")
     }
@@ -299,7 +299,7 @@ import Foundation
             "accTitle: My Diagram Title",
             "Person(customer, \"Customer\")"
         ]
-        let diagram = try parseC4Diagram(lines)
+        let (diagram, _) = try parseC4Diagram(lines)
         #expect(diagram.title == "My Diagram Title")
     }
 
@@ -323,7 +323,7 @@ import Foundation
         BiRel(SystemAA, SystemE, "Uses")
         UpdateElementStyle(customerA, $fontColor="red", $bgColor="grey")
         """.split(separator: "\n").map(String.init)
-        let diagram = try parseC4Diagram(lines)
+        let (diagram, _) = try parseC4Diagram(lines)
         #expect(diagram.kind == .context)
         #expect(diagram.title == "System Context diagram for Internet Banking System")
         #expect(diagram.shapes.count > 0)

@@ -13,7 +13,7 @@ import Foundation
     // path that lands `parentBoundary` on the named-arg value.
 
     @Test func personFlatEmitHonoursBoundary() throws {
-        let (diagram, diagnostics) = try _parseC4DiagramWithDiagnostics([
+        let (diagram, diagnostics) = try parseC4Diagram([
             "C4Context",
             "Person(p, \"P\") $boundary=b",
             "Boundary(b, \"B\")"
@@ -24,7 +24,7 @@ import Foundation
     }
 
     @Test func systemFlatEmitHonoursBoundary() throws {
-        let (diagram, _) = try _parseC4DiagramWithDiagnostics([
+        let (diagram, _) = try parseC4Diagram([
             "C4Context",
             "System(s, \"S\") $boundary=b",
             "Boundary(b, \"B\")"
@@ -34,7 +34,7 @@ import Foundation
     }
 
     @Test func containerFlatEmitHonoursBoundary() throws {
-        let (diagram, _) = try _parseC4DiagramWithDiagnostics([
+        let (diagram, _) = try parseC4Diagram([
             "C4Container",
             "Container(c, \"C\", \"Tech\") $boundary=b",
             "Boundary(b, \"B\")"
@@ -44,7 +44,7 @@ import Foundation
     }
 
     @Test func componentFlatEmitHonoursBoundary() throws {
-        let (diagram, _) = try _parseC4DiagramWithDiagnostics([
+        let (diagram, _) = try parseC4Diagram([
             "C4Component",
             "Component(c, \"C\", \"Tech\") $boundary=b",
             "Boundary(b, \"B\")"
@@ -56,7 +56,7 @@ import Foundation
     // MARK: - Boundary side: $parent on flat-emit
 
     @Test func boundaryFlatEmitHonoursParent() throws {
-        let (diagram, _) = try _parseC4DiagramWithDiagnostics([
+        let (diagram, _) = try parseC4Diagram([
             "C4Context",
             "Boundary(inner, \"Inner\") $parent=outer",
             "Boundary(outer, \"Outer\")"
@@ -66,7 +66,7 @@ import Foundation
     }
 
     @Test func enterpriseBoundaryFlatEmitHonoursParent() throws {
-        let (diagram, _) = try _parseC4DiagramWithDiagnostics([
+        let (diagram, _) = try parseC4Diagram([
             "C4Context",
             "Enterprise_Boundary(inner, \"Inner\") $parent=outer",
             "Boundary(outer, \"Outer\")"
@@ -76,7 +76,7 @@ import Foundation
     }
 
     @Test func systemBoundaryFlatEmitHonoursParent() throws {
-        let (diagram, _) = try _parseC4DiagramWithDiagnostics([
+        let (diagram, _) = try parseC4Diagram([
             "C4Context",
             "System_Boundary(inner, \"Inner\") $parent=outer",
             "Boundary(outer, \"Outer\")"
@@ -86,7 +86,7 @@ import Foundation
     }
 
     @Test func containerBoundaryFlatEmitHonoursParent() throws {
-        let (diagram, _) = try _parseC4DiagramWithDiagnostics([
+        let (diagram, _) = try parseC4Diagram([
             "C4Container",
             "Container_Boundary(inner, \"Inner\") $parent=outer",
             "Boundary(outer, \"Outer\")"
@@ -96,7 +96,7 @@ import Foundation
     }
 
     @Test func deploymentNodeFlatEmitHonoursParent() throws {
-        let (diagram, _) = try _parseC4DiagramWithDiagnostics([
+        let (diagram, _) = try parseC4Diagram([
             "C4Deployment",
             "Deployment_Node(inner, \"Inner\") $parent=outer",
             "Deployment_Node(outer, \"Outer\")"
@@ -108,7 +108,7 @@ import Foundation
     // MARK: - Lexical-only path still works
 
     @Test func nestedWithoutNamedArgUsesLexical() throws {
-        let (diagram, diagnostics) = try _parseC4DiagramWithDiagnostics([
+        let (diagram, diagnostics) = try parseC4Diagram([
             "C4Context",
             "Boundary(outer, \"Outer\") {",
             "  System(s, \"S\")",
@@ -122,7 +122,7 @@ import Foundation
     // MARK: - Mismatch warning
 
     @Test func mismatchEmitsWarningAndNamedWins() throws {
-        let (diagram, diagnostics) = try _parseC4DiagramWithDiagnostics([
+        let (diagram, diagnostics) = try parseC4Diagram([
             "C4Context",
             "Boundary(other, \"Other\")",
             "Boundary(outer, \"Outer\") {",
@@ -140,7 +140,7 @@ import Foundation
     // MARK: - Forward-ref OK
 
     @Test func forwardRefSetsParentNoWarning() throws {
-        let (diagram, diagnostics) = try _parseC4DiagramWithDiagnostics([
+        let (diagram, diagnostics) = try parseC4Diagram([
             "C4Context",
             "System(s, \"S\") $boundary=later",
             "Boundary(later, \"Later\")"
@@ -153,7 +153,7 @@ import Foundation
     // MARK: - Unresolved-ref warning
 
     @Test func unresolvedRefEmitsWarning() throws {
-        let (diagram, diagnostics) = try _parseC4DiagramWithDiagnostics([
+        let (diagram, diagnostics) = try parseC4Diagram([
             "C4Context",
             "System(s, \"S\") $boundary=nowhere"
         ])

@@ -3,20 +3,25 @@ import DiagramKitCommon
 
 // MARK: - C4 Parser (Line-oriented macro parser)
 
+/// Deprecated SPI alias for `parseC4Diagram`. Both names now return the same
+/// `(C4Diagram, [DiagramDiagnostic])` tuple; this forwarding shim exists only
+/// to give one release of source compatibility for any out-of-tree caller.
+@available(*, deprecated, renamed: "parseC4Diagram", message: "Use parseC4Diagram which now returns the diagnostics tuple directly.")
+public func _parseC4DiagramWithDiagnostics(
+    _ lines: [String],
+    frontmatter: DiagramFrontmatter? = nil
+) throws -> (C4Diagram, [DiagramDiagnostic]) {
+    try parseC4Diagram(lines, frontmatter: frontmatter)
+}
+
 /// Parse a C4 diagram from source lines.
 /// - Parameters:
 ///   - lines: Raw lines of the diagram source (after frontmatter stripping)
 ///   - frontmatter: Optional frontmatter with C4 config overrides
-/// - Returns: A parsed `C4Diagram`
-public func parseC4Diagram(_ lines: [String], frontmatter: DiagramFrontmatter? = nil) throws -> C4Diagram {
-    let (diagram, _) = try _parseC4DiagramWithDiagnostics(lines, frontmatter: frontmatter)
-    return diagram
-}
-
-/// SPI variant of `parseC4Diagram` that also returns the diagnostics produced
-/// during the parse pass. Used by registry call sites that route diagnostics
-/// upward, and by tests that assert on the warning surface.
-public func _parseC4DiagramWithDiagnostics(
+/// - Returns: The parsed `C4Diagram` plus any non-fatal diagnostics emitted
+///   during parsing (boundary-reference mismatches, lexical-vs-named-arg
+///   conflicts, etc.).
+public func parseC4Diagram(
     _ lines: [String],
     frontmatter: DiagramFrontmatter? = nil
 ) throws -> (C4Diagram, [DiagramDiagnostic]) {

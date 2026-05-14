@@ -13,9 +13,9 @@ import Foundation
         Boundary(outer, "Outer")
         Boundary(inner, "Inner") $parent=outer
         """
-        let (firstPass, _) = try _parseC4DiagramWithDiagnostics(source.components(separatedBy: "\n"))
+        let (firstPass, _) = try parseC4Diagram(source.components(separatedBy: "\n"))
         let exported = try MermaidC4Export.emit(firstPass)
-        let (secondPass, _) = try _parseC4DiagramWithDiagnostics(exported.source.components(separatedBy: "\n"))
+        let (secondPass, _) = try parseC4Diagram(exported.source.components(separatedBy: "\n"))
 
         let firstS = try #require(firstPass.shapes.first { $0.alias == "s" })
         let secondS = try #require(secondPass.shapes.first { $0.alias == "s" })
@@ -40,8 +40,8 @@ import Foundation
         Boundary(biz, "Biz")
         System(s, "S") $boundary=biz
         """
-        let (nestedDoc, _) = try _parseC4DiagramWithDiagnostics(nested.components(separatedBy: "\n"))
-        let (flatDoc, _) = try _parseC4DiagramWithDiagnostics(flat.components(separatedBy: "\n"))
+        let (nestedDoc, _) = try parseC4Diagram(nested.components(separatedBy: "\n"))
+        let (flatDoc, _) = try parseC4Diagram(flat.components(separatedBy: "\n"))
 
         let nestedS = try #require(nestedDoc.shapes.first { $0.alias == "s" })
         let flatS = try #require(flatDoc.shapes.first { $0.alias == "s" })
