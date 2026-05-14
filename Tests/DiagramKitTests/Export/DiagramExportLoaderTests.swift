@@ -59,6 +59,7 @@ private struct FlowchartOnlyExporter: DiagramExporter {
         #expect(result.diagnostics.contains { $0.severity == .unsupported })
     }
 
+    @available(*, deprecated, message: "Tests legacy name-based export form.")
     @Test("Loader finds exporter by name")
     func loaderByName() throws {
         let exporter = FlowchartOnlyExporter()
@@ -70,6 +71,7 @@ private struct FlowchartOnlyExporter: DiagramExporter {
         #expect(result.source == "graph TD\n")
     }
 
+    @available(*, deprecated, message: "Tests legacy name-based export form.")
     @Test("Loader throws for unknown exporter name")
     func loaderUnknownName() {
         let registry = ExporterRegistry.empty

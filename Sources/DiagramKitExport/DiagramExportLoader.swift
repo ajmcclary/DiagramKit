@@ -58,6 +58,8 @@ public enum DiagramExportLoader {
 
     /// Convenience: export using a specific exporter by display name.
     /// Prefer `export(_:to:registry:)` with a format ID for type safety.
+    @available(*, deprecated, renamed: "export(_:to:registry:)",
+               message: "Use formatID-based dispatch instead of display-name lookup.")
     public static func export(
         _ document: DiagramDocument,
         using exporterName: String,
