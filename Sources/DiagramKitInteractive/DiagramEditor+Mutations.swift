@@ -15,25 +15,23 @@ extension DiagramEditor {
     /// Perform a core mutation on the document.
     ///
     /// Derives the new document from the mutation, exports it through
-    /// `preferredExportFormat`, and only then commits state and registers
-    /// an undo action. If derivation or export throws, no state changes.
+    /// `preferredExportFormat` on a fresh worker thread, then commits
+    /// state and registers an undo action. If derivation or export
+    /// throws, no state changes.
     ///
     /// - Parameter mutation: The mutation to apply.
     /// - Throws: `DiagramEditorError` if the mutation cannot be applied
     ///   or source sync fails.
-    public func perform(_ mutation: DiagramMutation) throws {
-        // 1. Derive new document
+    public func perform(_ mutation: DiagramMutation) async throws {
         let newDocument = try _apply(mutation, to: document)
 
-        // 2. Export to validate source round-trip
         let exportResult: DiagramExportResult
         do {
-            exportResult = try _export(newDocument)
+            exportResult = try await _exportAsync(newDocument)
         } catch {
             throw DiagramEditorError.sourceSyncFailed(underlying: error.localizedDescription)
         }
 
-        // 3. Commit: capture old state → swap → register undo
         let oldDocument = document
         let oldSource = source
         let oldDiagnostics = lastExportDiagnostics

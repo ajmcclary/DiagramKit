@@ -30,13 +30,29 @@ extension DiagramEditor {
     }
 
     /// Internal helper: export without mutating state.
-    /// Used during atomic commit to validate before state swap.
+    /// Used by remaining sync mutation paths (`performFlowchart`,
+    /// `syncSource`) until they migrate to async in later tasks.
     func _export(_ document: DiagramDocument) throws -> DiagramExportResult {
         try DiagramExportLoader.export(
             document,
             to: preferredExportFormat,
             registry: exportRegistry
         )
+    }
+
+    /// Internal helper: export without mutating state, off MainActor.
+    ///
+    /// Used by `perform`/`performFlowchart` to validate the round-trip
+    /// before state swap. Hops to a fresh worker thread per CLAUDE.md's
+    /// no-thread-pool rule.
+    func _exportAsync(_ document: DiagramDocument) async throws -> DiagramExportResult {
+        let format = preferredExportFormat
+        let registry = exportRegistry
+        return try await Self._runOnWorker {
+            try DiagramExportLoader.export(
+                document, to: format, registry: registry
+            )
+        }
     }
 
     // MARK: - Worker hop

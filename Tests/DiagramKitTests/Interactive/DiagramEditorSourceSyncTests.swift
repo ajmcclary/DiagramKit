@@ -66,7 +66,7 @@ private func flowDoc(_ nodes: [String]) -> DiagramDocument {
 struct DiagramEditorSourceSyncTests {
 
     @Test("Source reflects mutations through preferred format")
-    func sourceReflectsMutation() throws {
+    func sourceReflectsMutation() async throws {
         let doc = flowDoc(["A"])
         let registry = ExporterRegistry.empty.registering(FlowchartOnlyExporter())
         let editor = DiagramEditor(
@@ -85,7 +85,7 @@ struct DiagramEditorSourceSyncTests {
     }
 
     @Test("Source sync captures title changes")
-    func sourceSyncCapturesTitle() throws {
+    func sourceSyncCapturesTitle() async throws {
         let doc = DiagramDocument(type: .flowchart)
         let registry = ExporterRegistry.empty.registering(TitleAwareExporter())
         let editor = DiagramEditor(
@@ -94,15 +94,15 @@ struct DiagramEditorSourceSyncTests {
             exportRegistry: registry
         )
 
-        try editor.perform(.setTitle("Hello"))
+        try await editor.perform(.setTitle("Hello"))
         #expect(editor.source == "title: Hello\nnodes: 0")
 
-        try editor.perform(.setTitle(nil))
+        try await editor.perform(.setTitle(nil))
         #expect(editor.source == "nodes: 0")
     }
 
     @Test("Source sync captures title changes through the real Mermaid exporter")
-    func sourceSyncCapturesTitleWithMermaidExporter() throws {
+    func sourceSyncCapturesTitleWithMermaidExporter() async throws {
         let doc = flowDoc(["A"])
         let registry = ExporterRegistry.empty.registering(MermaidExporter())
         let editor = DiagramEditor(
@@ -111,7 +111,7 @@ struct DiagramEditorSourceSyncTests {
             exportRegistry: registry
         )
 
-        try editor.perform(.setTitle("Real Title"))
+        try await editor.perform(.setTitle("Real Title"))
 
         guard let source = editor.source else {
             Issue.record("Expected exported source")

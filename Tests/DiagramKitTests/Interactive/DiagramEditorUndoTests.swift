@@ -55,7 +55,7 @@ private func flowDoc(_ nodes: [String], edges: [(String, String)] = []) -> Diagr
 struct DiagramEditorUndoTests {
 
     @Test("Single mutation undo restores previous document and source")
-    func singleUndoRestores() throws {
+    func singleUndoRestores() async throws {
         let doc = flowDoc(["A", "B"])
         let editor = DiagramEditor(
             document: doc,
@@ -67,7 +67,7 @@ struct DiagramEditorUndoTests {
 
         // Perform a mutation
         let sel = DiagramSelection(diagramType: .flowchart, elementID: "node:B")
-        try editor.perform(.deleteElement(sel))
+        try await editor.perform(.deleteElement(sel))
 
         // Verify mutation applied
         guard case .flowchart(let afterDelete) = editor.document.payload else {
@@ -90,7 +90,7 @@ struct DiagramEditorUndoTests {
     }
 
     @Test("Single mutation redo reapplies mutation")
-    func singleRedoReapplies() throws {
+    func singleRedoReapplies() async throws {
         let doc = flowDoc(["A", "B"])
         let editor = DiagramEditor(
             document: doc,
@@ -98,7 +98,7 @@ struct DiagramEditorUndoTests {
             exportRegistry: mockRegistry()
         )
         let sel = DiagramSelection(diagramType: .flowchart, elementID: "node:B")
-        try editor.perform(.deleteElement(sel))
+        try await editor.perform(.deleteElement(sel))
 
         // Undo
         editor.undoManager.undo()
@@ -117,8 +117,8 @@ struct DiagramEditorUndoTests {
         #expect(afterRedo.nodesInOrder.count == 1)
     }
 
-    @Test("Undo after multiple sequential mutations restores to initial state")
-    func sequentialMutationsUndo() throws {
+    @Test("Sequential mutations get one undo step each under async perform")
+    func sequentialMutationsUndo() async throws {
         let doc = flowDoc(["A", "B", "C"])
         let editor = DiagramEditor(
             document: doc,
@@ -126,26 +126,34 @@ struct DiagramEditorUndoTests {
             exportRegistry: mockRegistry()
         )
 
-        // Apply two sequential mutations (same implicit group)
-        try editor.perform(.deleteElement(DiagramSelection(diagramType: .flowchart, elementID: "node:B")))
-        try editor.perform(.setLabel(of: DiagramSelection(diagramType: .flowchart, elementID: "node:A"), to: "Changed"))
+        // Each async perform yields to the worker, so each one becomes its
+        // own undo step (the old implicit per-run-loop grouping of sync
+        // perform no longer applies). Spec: every mutation gets an undo
+        // entry.
+        try await editor.perform(.deleteElement(DiagramSelection(diagramType: .flowchart, elementID: "node:B")))
+        try await editor.perform(.setLabel(of: DiagramSelection(diagramType: .flowchart, elementID: "node:A"), to: "Changed"))
 
-        // Without explicit grouping, UndoManager groups sequential
-        // mutations with the same target into one undo step.
+        // One undo reverts the most-recent mutation (setLabel).
         editor.undoManager.undo()
-
-        // After undo, everything should be restored
-        guard case .flowchart(let afterUndo) = editor.document.payload else {
+        guard case .flowchart(let afterFirstUndo) = editor.document.payload else {
             #expect(Bool(false))
             return
         }
-        #expect(afterUndo.nodesInOrder.count == 3)
-        #expect(afterUndo.nodesInOrder.contains(where: { $0.id == "B" }))
-        #expect(afterUndo.nodesInOrder.first(where: { $0.id == "A" })?.node.label == "Node A")
+        #expect(afterFirstUndo.nodesInOrder.first(where: { $0.id == "A" })?.node.label == "Node A")
+        #expect(afterFirstUndo.nodesInOrder.contains(where: { $0.id == "B" }) == false)
+
+        // A second undo reverts the delete.
+        editor.undoManager.undo()
+        guard case .flowchart(let afterSecondUndo) = editor.document.payload else {
+            #expect(Bool(false))
+            return
+        }
+        #expect(afterSecondUndo.nodesInOrder.count == 3)
+        #expect(afterSecondUndo.nodesInOrder.contains(where: { $0.id == "B" }))
     }
 
     @Test("Undo grouping: beginUndoGrouping/endUndoGrouping → one undo step")
-    func undoGrouping() throws {
+    func undoGrouping() async throws {
         let doc = flowDoc(["A", "B", "C"])
         let editor = DiagramEditor(
             document: doc,
@@ -154,8 +162,8 @@ struct DiagramEditorUndoTests {
         )
 
         editor.beginUndoGrouping()
-        try editor.perform(.deleteElement(DiagramSelection(diagramType: .flowchart, elementID: "node:B")))
-        try editor.perform(.deleteElement(DiagramSelection(diagramType: .flowchart, elementID: "node:C")))
+        try await editor.perform(.deleteElement(DiagramSelection(diagramType: .flowchart, elementID: "node:B")))
+        try await editor.perform(.deleteElement(DiagramSelection(diagramType: .flowchart, elementID: "node:C")))
         editor.endUndoGrouping()
 
         // Both mutations should be grouped as one undo step
@@ -170,14 +178,14 @@ struct DiagramEditorUndoTests {
     }
 
     @Test("Redo after undo reapplies mutation")
-    func redoAfterUndo() throws {
+    func redoAfterUndo() async throws {
         let doc = flowDoc(["A"])
         let editor = DiagramEditor(
             document: doc,
             preferredExportFormat: .mermaid,
             exportRegistry: mockRegistry()
         )
-        try editor.perform(.setTitle("New Title"))
+        try await editor.perform(.setTitle("New Title"))
 
         #expect(editor.document.title == "New Title")
         editor.undoManager.undo()
@@ -188,19 +196,19 @@ struct DiagramEditorUndoTests {
     }
 
     @Test("Undo action name matches mutation")
-    func undoActionName() throws {
+    func undoActionName() async throws {
         let doc = flowDoc(["A"])
         let editor = DiagramEditor(
             document: doc,
             preferredExportFormat: .mermaid,
             exportRegistry: mockRegistry()
         )
-        try editor.perform(.setTitle("T"))
+        try await editor.perform(.setTitle("T"))
         #expect(editor.undoManager.undoActionName == "Set Title")
     }
 
     @Test("Failed mutation does not pollute undo stack")
-    func failedMutationCleanUndo() throws {
+    func failedMutationCleanUndo() async throws {
         let doc = flowDoc(["A", "B"])
         let editor = DiagramEditor(
             document: doc,
@@ -209,13 +217,13 @@ struct DiagramEditorUndoTests {
         )
 
         // First, a successful mutation
-        try editor.perform(.setTitle("Before"))
+        try await editor.perform(.setTitle("Before"))
         #expect(editor.document.title == "Before")
 
         // Then, a failed mutation
         let sel = DiagramSelection(diagramType: .flowchart, elementID: "node:Z")
         do {
-            try editor.perform(.deleteElement(sel))
+            try await editor.perform(.deleteElement(sel))
             #expect(Bool(false), "expected error")
         } catch {
             // Expected
@@ -227,7 +235,7 @@ struct DiagramEditorUndoTests {
     }
 
     @Test("Depth limiting forwards to UndoManager")
-    func depthLimitingForwarded() throws {
+    func depthLimitingForwarded() async throws {
         let doc = DiagramDocument(type: .flowchart)
         let editor = DiagramEditor(
             document: doc,
@@ -241,8 +249,8 @@ struct DiagramEditorUndoTests {
         #expect(editor.undoManager.levelsOfUndo == 3)
     }
 
-    @Test("Multiple mutations can be undone at least once")
-    func multipleMutationCanUndo() throws {
+    @Test("Multiple async mutations each get their own undo step")
+    func multipleMutationCanUndo() async throws {
         let doc = DiagramDocument(type: .flowchart)
         let editor = DiagramEditor(
             document: doc,
@@ -250,17 +258,19 @@ struct DiagramEditorUndoTests {
             exportRegistry: mockRegistry()
         )
 
-        // Apply several mutations
-        try editor.perform(.setTitle("T1"))
-        try editor.perform(.setTitle("T2"))
-        try editor.perform(.setTitle("T3"))
+        try await editor.perform(.setTitle("T1"))
+        try await editor.perform(.setTitle("T2"))
+        try await editor.perform(.setTitle("T3"))
 
         #expect(editor.document.title == "T3")
         #expect(editor.undoManager.canUndo)
 
+        // Each mutation is its own undo step. Walk back to nil.
         editor.undoManager.undo()
-
-        // After undo, title should be nil (all grouped mutations undone)
+        #expect(editor.document.title == "T2")
+        editor.undoManager.undo()
+        #expect(editor.document.title == "T1")
+        editor.undoManager.undo()
         #expect(editor.document.title == nil)
         #expect(!editor.undoManager.canUndo)
     }

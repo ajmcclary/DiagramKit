@@ -139,10 +139,10 @@ private struct TitleSection: View {
                     .textFieldStyle(.roundedBorder)
                     .font(.system(size: 12))
                 Button("Set") {
-                    try? store.performMutation(.setTitle(draft.isEmpty ? nil : draft))
+                    Task { try? await store.performMutation(.setTitle(draft.isEmpty ? nil : draft)) }
                 }
                 Button("Clear") {
-                    try? store.performMutation(.setTitle(nil))
+                    Task { try? await store.performMutation(.setTitle(nil)) }
                 }
                 .disabled(editor.document.title == nil)
             }
@@ -250,7 +250,7 @@ private struct LabelSection: View {
                     .font(.system(size: 12))
                 Button("Rename") {
                     guard let selection = editor.selection else { return }
-                    try? store.performMutation(.setLabel(of: selection, to: draft))
+                    Task { try? await store.performMutation(.setLabel(of: selection, to: draft)) }
                 }
                 .disabled(editor.selection == nil)
             }
@@ -460,7 +460,7 @@ private struct DeleteSection: View {
         HStack {
             Button("Delete selected", role: .destructive) {
                 guard let selection = editor.selection else { return }
-                try? store.performMutation(.deleteElement(selection))
+                Task { try? await store.performMutation(.deleteElement(selection)) }
             }
             .disabled(editor.selection == nil)
             Spacer(minLength: 0)

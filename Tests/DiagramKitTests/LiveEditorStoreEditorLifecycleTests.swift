@@ -49,7 +49,7 @@ final class LiveEditorStoreEditorLifecycleTests: XCTestCase {
         let selection = DiagramSelection(diagramType: .flowchart, elementID: "node:A")
         store.setSelection(selection)
 
-        try store.performMutation(.setLabel(of: selection, to: "Renamed"))
+        try await store.performMutation(.setLabel(of: selection, to: "Renamed"))
         try await waitForRenderTick(store: store)
 
         XCTAssertTrue(store.state.source.contains("Renamed"))

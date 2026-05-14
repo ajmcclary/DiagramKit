@@ -73,7 +73,7 @@ struct DiagramEditorMutationTests {
     // MARK: - deleteElement
 
     @Test("deleteElement removes node and incident edges")
-    func deleteElementNode() throws {
+    func deleteElementNode() async throws {
         let doc = flowDoc(["A", "B", "C"], edges: [("A", "B"), ("B", "C")])
         let editor = DiagramEditor(
             document: doc,
@@ -81,7 +81,7 @@ struct DiagramEditorMutationTests {
             exportRegistry: mockRegistry()
         )
         let sel = DiagramSelection(diagramType: .flowchart, elementID: "node:B")
-        try editor.perform(.deleteElement(sel))
+        try await editor.perform(.deleteElement(sel))
 
         // Node B should be gone
         let payload = editor.document.payload
@@ -96,7 +96,7 @@ struct DiagramEditorMutationTests {
     }
 
     @Test("deleteElement removes edge only")
-    func deleteElementEdge() throws {
+    func deleteElementEdge() async throws {
         let doc = flowDoc(["A", "B"], edges: [("A", "B")])
         let editor = DiagramEditor(
             document: doc,
@@ -107,7 +107,7 @@ struct DiagramEditorMutationTests {
         // edge:StableID.derive(from: "A→B→")
         let edgeID = "edge:\(StableID.derive(from: "A→B→"))"
         let sel = DiagramSelection(diagramType: .flowchart, elementID: edgeID)
-        try editor.perform(.deleteElement(sel))
+        try await editor.perform(.deleteElement(sel))
 
         guard case .flowchart(let model) = editor.document.payload else {
             #expect(Bool(false))
@@ -118,7 +118,7 @@ struct DiagramEditorMutationTests {
     }
 
     @Test("deleteElement with explicit edge ID")
-    func deleteElementExplicitEdgeID() throws {
+    func deleteElementExplicitEdgeID() async throws {
         // Create doc with explicit edge ID
         let model = original_src_types.MermaidGraph(
             direction: .TD,
@@ -138,7 +138,7 @@ struct DiagramEditorMutationTests {
             exportRegistry: mockRegistry()
         )
         let sel = DiagramSelection(diagramType: .flowchart, elementID: "edge:e1")
-        try editor.perform(.deleteElement(sel))
+        try await editor.perform(.deleteElement(sel))
 
         guard case .flowchart(let result) = editor.document.payload else {
             #expect(Bool(false))
@@ -148,7 +148,7 @@ struct DiagramEditorMutationTests {
     }
 
     @Test("deleteElement removes only the selected duplicate implicit edge")
-    func deleteElementDuplicateImplicitEdge() throws {
+    func deleteElementDuplicateImplicitEdge() async throws {
         let baseEdgeID = "edge:\(StableID.derive(from: "A→B→"))"
         let doc = flowDoc(
             ["A", "B"],
@@ -163,7 +163,7 @@ struct DiagramEditorMutationTests {
             exportRegistry: mockRegistry()
         )
 
-        try editor.perform(.deleteElement(DiagramSelection(
+        try await editor.perform(.deleteElement(DiagramSelection(
             diagramType: .flowchart,
             elementID: baseEdgeID
         )))
@@ -177,7 +177,7 @@ struct DiagramEditorMutationTests {
     }
 
     @Test("deleteElement resolves duplicate implicit edge suffixes")
-    func deleteElementDuplicateImplicitEdgeSuffix() throws {
+    func deleteElementDuplicateImplicitEdgeSuffix() async throws {
         let baseEdgeID = "edge:\(StableID.derive(from: "A→B→"))"
         let doc = flowDoc(
             ["A", "B"],
@@ -192,7 +192,7 @@ struct DiagramEditorMutationTests {
             exportRegistry: mockRegistry()
         )
 
-        try editor.perform(.deleteElement(DiagramSelection(
+        try await editor.perform(.deleteElement(DiagramSelection(
             diagramType: .flowchart,
             elementID: "\(baseEdgeID)/1"
         )))
@@ -206,7 +206,7 @@ struct DiagramEditorMutationTests {
     }
 
     @Test("deleteElement explicit edge ID matching is exact")
-    func deleteElementExplicitEdgeIDExactMatch() throws {
+    func deleteElementExplicitEdgeIDExactMatch() async throws {
         let doc = flowDoc(
             ["A", "B", "C"],
             mermaidEdges: [
@@ -220,7 +220,7 @@ struct DiagramEditorMutationTests {
             exportRegistry: mockRegistry()
         )
 
-        try editor.perform(.deleteElement(DiagramSelection(
+        try await editor.perform(.deleteElement(DiagramSelection(
             diagramType: .flowchart,
             elementID: "edge:e10"
         )))
@@ -234,7 +234,7 @@ struct DiagramEditorMutationTests {
     }
 
     @Test("deleteElement nonexistent throws elementNotFound")
-    func deleteElementNonexistent() {
+    func deleteElementNonexistent() async {
         let doc = flowDoc(["A"])
         let editor = DiagramEditor(
             document: doc,
@@ -242,13 +242,13 @@ struct DiagramEditorMutationTests {
             exportRegistry: mockRegistry()
         )
         let sel = DiagramSelection(diagramType: .flowchart, elementID: "node:Nonexistent")
-        #expect(throws: DiagramEditorError.self) {
-            try editor.perform(.deleteElement(sel))
+        await #expect(throws: DiagramEditorError.self) {
+            try await editor.perform(.deleteElement(sel))
         }
     }
 
     @Test("deleteElement on non-flowchart throws unsupportedMutation")
-    func deleteElementNonFlowchart() {
+    func deleteElementNonFlowchart() async {
         let doc = DiagramDocument(type: .sequenceDiagram)
         let editor = DiagramEditor(
             document: doc,
@@ -256,13 +256,13 @@ struct DiagramEditorMutationTests {
             exportRegistry: mockRegistry()
         )
         let sel = DiagramSelection(diagramType: .sequenceDiagram, elementID: "actor:A")
-        #expect(throws: DiagramEditorError.self) {
-            try editor.perform(.deleteElement(sel))
+        await #expect(throws: DiagramEditorError.self) {
+            try await editor.perform(.deleteElement(sel))
         }
     }
 
     @Test("deleteElement rejects selections from another diagram type")
-    func deleteElementSelectionTypeMismatch() {
+    func deleteElementSelectionTypeMismatch() async {
         let doc = flowDoc(["A"])
         let editor = DiagramEditor(
             document: doc,
@@ -270,8 +270,8 @@ struct DiagramEditorMutationTests {
             exportRegistry: mockRegistry()
         )
         let sel = DiagramSelection(diagramType: .stateDiagram, elementID: "node:A")
-        #expect(throws: DiagramEditorError.self) {
-            try editor.perform(.deleteElement(sel))
+        await #expect(throws: DiagramEditorError.self) {
+            try await editor.perform(.deleteElement(sel))
         }
         guard case .flowchart(let model) = editor.document.payload else {
             #expect(Bool(false))
@@ -283,7 +283,7 @@ struct DiagramEditorMutationTests {
     // MARK: - setLabel
 
     @Test("setLabel on node updates label")
-    func setLabelNode() throws {
+    func setLabelNode() async throws {
         let doc = flowDoc(["A", "B"])
         let editor = DiagramEditor(
             document: doc,
@@ -291,7 +291,7 @@ struct DiagramEditorMutationTests {
             exportRegistry: mockRegistry()
         )
         let sel = DiagramSelection(diagramType: .flowchart, elementID: "node:A")
-        try editor.perform(.setLabel(of: sel, to: "Updated A"))
+        try await editor.perform(.setLabel(of: sel, to: "Updated A"))
 
         guard case .flowchart(let model) = editor.document.payload else {
             #expect(Bool(false))
@@ -302,7 +302,7 @@ struct DiagramEditorMutationTests {
     }
 
     @Test("setLabel on edge updates label")
-    func setLabelEdge() throws {
+    func setLabelEdge() async throws {
         let doc = flowDoc(["A", "B"], edges: [("A", "B")])
         let editor = DiagramEditor(
             document: doc,
@@ -311,7 +311,7 @@ struct DiagramEditorMutationTests {
         )
         let edgeID = "edge:\(StableID.derive(from: "A→B→"))"
         let sel = DiagramSelection(diagramType: .flowchart, elementID: edgeID)
-        try editor.perform(.setLabel(of: sel, to: "connects"))
+        try await editor.perform(.setLabel(of: sel, to: "connects"))
 
         guard case .flowchart(let model) = editor.document.payload else {
             #expect(Bool(false))
@@ -321,7 +321,7 @@ struct DiagramEditorMutationTests {
     }
 
     @Test("setLabel resolves duplicate implicit edge suffixes")
-    func setLabelDuplicateImplicitEdgeSuffix() throws {
+    func setLabelDuplicateImplicitEdgeSuffix() async throws {
         let baseEdgeID = "edge:\(StableID.derive(from: "A→B→"))"
         let doc = flowDoc(
             ["A", "B"],
@@ -336,7 +336,7 @@ struct DiagramEditorMutationTests {
             exportRegistry: mockRegistry()
         )
 
-        try editor.perform(.setLabel(
+        try await editor.perform(.setLabel(
             of: DiagramSelection(diagramType: .flowchart, elementID: "\(baseEdgeID)/1"),
             to: "updated"
         ))
@@ -351,7 +351,7 @@ struct DiagramEditorMutationTests {
     }
 
     @Test("setLabel nonexistent throws elementNotFound")
-    func setLabelNonexistent() {
+    func setLabelNonexistent() async {
         let doc = flowDoc(["A"])
         let editor = DiagramEditor(
             document: doc,
@@ -359,13 +359,13 @@ struct DiagramEditorMutationTests {
             exportRegistry: mockRegistry()
         )
         let sel = DiagramSelection(diagramType: .flowchart, elementID: "node:Z")
-        #expect(throws: DiagramEditorError.self) {
-            try editor.perform(.setLabel(of: sel, to: "X"))
+        await #expect(throws: DiagramEditorError.self) {
+            try await editor.perform(.setLabel(of: sel, to: "X"))
         }
     }
 
     @Test("setLabel rejects selections from another diagram type")
-    func setLabelSelectionTypeMismatch() {
+    func setLabelSelectionTypeMismatch() async {
         let doc = flowDoc(["A"])
         let editor = DiagramEditor(
             document: doc,
@@ -373,8 +373,8 @@ struct DiagramEditorMutationTests {
             exportRegistry: mockRegistry()
         )
         let sel = DiagramSelection(diagramType: .stateDiagram, elementID: "node:A")
-        #expect(throws: DiagramEditorError.self) {
-            try editor.perform(.setLabel(of: sel, to: "Wrong"))
+        await #expect(throws: DiagramEditorError.self) {
+            try await editor.perform(.setLabel(of: sel, to: "Wrong"))
         }
         guard case .flowchart(let model) = editor.document.payload else {
             #expect(Bool(false))
@@ -386,47 +386,47 @@ struct DiagramEditorMutationTests {
     // MARK: - setTitle
 
     @Test("setTitle updates title")
-    func setTitle() throws {
+    func setTitle() async throws {
         let doc = DiagramDocument(type: .flowchart)
         let editor = DiagramEditor(
             document: doc,
             preferredExportFormat: .mermaid,
             exportRegistry: mockRegistry()
         )
-        try editor.perform(.setTitle("My Diagram"))
+        try await editor.perform(.setTitle("My Diagram"))
         #expect(editor.document.title == "My Diagram")
     }
 
     @Test("setTitle to nil clears title")
-    func setTitleNil() throws {
+    func setTitleNil() async throws {
         let doc = DiagramDocument(type: .flowchart)
         let editor = DiagramEditor(
             document: doc,
             preferredExportFormat: .mermaid,
             exportRegistry: mockRegistry()
         )
-        try editor.perform(.setTitle("Temp"))
+        try await editor.perform(.setTitle("Temp"))
         #expect(editor.document.title == "Temp")
-        try editor.perform(.setTitle(nil))
+        try await editor.perform(.setTitle(nil))
         #expect(editor.document.title == nil)
     }
 
     @Test("setTitle works on sequence diagram")
-    func setTitleSequence() throws {
+    func setTitleSequence() async throws {
         let doc = DiagramDocument(type: .sequenceDiagram)
         let editor = DiagramEditor(
             document: doc,
             preferredExportFormat: .mermaid,
             exportRegistry: mockRegistry()
         )
-        try editor.perform(.setTitle("Seq Title"))
+        try await editor.perform(.setTitle("Seq Title"))
         #expect(editor.document.title == "Seq Title")
     }
 
     // MARK: - noop
 
     @Test("noop does not change document or source")
-    func noop() throws {
+    func noop() async throws {
         let doc = DiagramDocument(type: .flowchart)
         let editor = DiagramEditor(
             document: doc,
@@ -436,14 +436,14 @@ struct DiagramEditorMutationTests {
         try editor.syncSource()
         let originalSource = editor.source
 
-        try editor.perform(.noop)
+        try await editor.perform(.noop)
         #expect(editor.source == originalSource)
     }
 
     // MARK: - Atomicity
 
     @Test("Failed mutation does not pollute undo stack or change state")
-    func mutationAtomicity() throws {
+    func mutationAtomicity() async throws {
         let doc = flowDoc(["A"])
         let editor = DiagramEditor(
             document: doc,
@@ -455,7 +455,7 @@ struct DiagramEditorMutationTests {
 
         let sel = DiagramSelection(diagramType: .flowchart, elementID: "node:Z")
         do {
-            try editor.perform(.deleteElement(sel))
+            try await editor.perform(.deleteElement(sel))
             #expect(Bool(false), "expected error")
         } catch {
             // Expected: element not found

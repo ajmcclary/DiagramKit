@@ -849,10 +849,10 @@ public final class LiveEditorStore {
     ///
     /// No-ops silently when `editor` is nil — the pane gates buttons on
     /// `store.editor != nil`, so this only protects against races.
-    public func performMutation(_ mutation: DiagramMutation) throws {
+    public func performMutation(_ mutation: DiagramMutation) async throws {
         guard let editor else { return }
         do {
-            try editor.perform(mutation)
+            try await editor.perform(mutation)
             lastMutationError = nil
             if let source = editor.source, source != state.source {
                 setSource(source, origin: .mutation)
