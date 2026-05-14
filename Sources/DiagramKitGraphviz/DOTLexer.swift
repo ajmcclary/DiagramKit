@@ -5,6 +5,7 @@ import Foundation
 public enum DOTToken: Sendable, Equatable {
     case identifier(String)          // `A`, `graph`, `digraph`, `shape`, etc.
     case string(String)              // quoted string, quotes stripped
+    case htmlString(String)          // Graphviz HTML-like label `<<TABLE>…</TABLE>>` — outer angles preserved
     case openBrace                   // `{`
     case closeBrace                  // `}`
     case openBracket                 // `[`
@@ -240,6 +241,29 @@ public struct DOTLexer {
                     }
                 }
                 tokens.append(.string(value))
+                continue
+            }
+
+            // HTML-like label: `<…>` with internal `<>` allowed via depth counting.
+            // Graphviz uses this in place of a quoted string for HTML labels
+            // (e.g. `label=<<TABLE>…</TABLE>>`). The outer angles are preserved
+            // in the captured value so DOTMapper._isHTMLLabel can detect them.
+            if c == "<" {
+                var value = ""
+                value.append(c)
+                advance() // opening '<'
+                var depth = 1
+                while i < end, depth > 0 {
+                    let ch = source[i]
+                    value.append(ch)
+                    if ch == "<" {
+                        depth += 1
+                    } else if ch == ">" {
+                        depth -= 1
+                    }
+                    advance()
+                }
+                tokens.append(.htmlString(value))
                 continue
             }
 

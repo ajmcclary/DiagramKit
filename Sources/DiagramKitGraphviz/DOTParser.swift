@@ -69,6 +69,7 @@ public struct DOTParser {
             switch tokens[at] {
             case .identifier(let s): return s
             case .string(let s): return s
+            case .htmlString(let s): return s
             default: return nil
             }
         }
@@ -84,6 +85,11 @@ public struct DOTParser {
                 pos += 1
                 return s
             case .string(let s):
+                pos += 1
+                return s
+            case .htmlString(let s):
+                // Graphviz HTML-like labels — outer angles preserved so
+                // DOTMapper can dispatch via _isHTMLLabel.
                 pos += 1
                 return s
             default:
