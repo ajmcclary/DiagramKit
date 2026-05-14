@@ -867,10 +867,10 @@ public final class LiveEditorStore {
     /// Apply a flowchart-specific mutation through the persistent editor.
     ///
     /// No-ops silently when `editor` is nil.
-    public func performFlowchartMutation(_ mutation: FlowchartMutation) throws {
+    public func performFlowchartMutation(_ mutation: FlowchartMutation) async throws {
         guard let editor else { return }
         do {
-            try editor.performFlowchart(mutation)
+            try await editor.performFlowchart(mutation)
             lastMutationError = nil
             if let source = editor.source, source != state.source {
                 setSource(source, origin: .mutation)

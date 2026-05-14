@@ -78,7 +78,7 @@ struct DiagramEditorSourceSyncTests {
         #expect(editor.source == "mermaid-1")
 
         // Insert a node
-        try editor.performFlowchart(.insertNode(id: "B", label: "NB"))
+        try await editor.performFlowchart(.insertNode(id: "B", label: "NB"))
 
         // Source should reflect the new node count
         #expect(editor.source == "mermaid-2")

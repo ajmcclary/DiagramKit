@@ -325,12 +325,14 @@ private struct InsertNodeSection: View {
         let id = idDraft.trimmingCharacters(in: .whitespaces).isEmpty
             ? Self.nextDefaultID(existing: store.boundsLookup?.allElementIDs ?? [])
             : idDraft
-        do {
-            try store.performFlowchartMutation(.insertNode(id: id, label: labelDraft, type: shape.rawValue))
-            idDraft = ""
-            labelDraft = ""
-        } catch {
-            // Error already surfaced via `store.lastMutationError`.
+        Task {
+            do {
+                try await store.performFlowchartMutation(.insertNode(id: id, label: labelDraft, type: shape.rawValue))
+                idDraft = ""
+                labelDraft = ""
+            } catch {
+                // Error already surfaced via `store.lastMutationError`.
+            }
         }
     }
 
@@ -437,14 +439,16 @@ private struct InsertEdgeSection: View {
         let id = idDraft.trimmingCharacters(in: .whitespaces)
         let label = labelDraft.trimmingCharacters(in: .whitespaces).isEmpty
             ? nil : labelDraft
-        do {
-            try store.performFlowchartMutation(.insertEdge(id: id, from: fromSel, to: toSel, label: label))
-            labelDraft = ""
-            idDraft = ""
-            self.fromID = nil
-            self.toID = nil
-        } catch {
-            // Error already surfaced via `store.lastMutationError`.
+        Task {
+            do {
+                try await store.performFlowchartMutation(.insertEdge(id: id, from: fromSel, to: toSel, label: label))
+                labelDraft = ""
+                idDraft = ""
+                self.fromID = nil
+                self.toID = nil
+            } catch {
+                // Error already surfaced via `store.lastMutationError`.
+            }
         }
     }
 }

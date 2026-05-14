@@ -80,8 +80,7 @@ extension DiagramEditor {
     /// - Parameter mutation: The flowchart mutation to apply.
     /// - Throws: `DiagramEditorError` if the document is not a flowchart,
     ///   the mutation cannot be applied, or source sync fails.
-    public func performFlowchart(_ mutation: FlowchartMutation) throws {
-        // Validate document type
+    public func performFlowchart(_ mutation: FlowchartMutation) async throws {
         guard case .flowchart = document.payload else {
             throw DiagramEditorError.notAFlowchart
         }
@@ -90,7 +89,7 @@ extension DiagramEditor {
 
         let exportResult: DiagramExportResult
         do {
-            exportResult = try _export(newDocument)
+            exportResult = try await _exportAsync(newDocument)
         } catch {
             throw DiagramEditorError.sourceSyncFailed(underlying: error.localizedDescription)
         }

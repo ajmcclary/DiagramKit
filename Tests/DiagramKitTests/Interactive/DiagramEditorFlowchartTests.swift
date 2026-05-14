@@ -55,14 +55,14 @@ private func flowDoc(_ nodes: [String], edges: [(String, String)] = []) -> Diagr
 struct DiagramEditorFlowchartTests {
 
     @Test("insertNode adds node to flowchart")
-    func insertNode() throws {
+    func insertNode() async throws {
         let doc = flowDoc(["A"])
         let editor = DiagramEditor(
             document: doc,
             preferredExportFormat: .mermaid,
             exportRegistry: mockRegistry()
         )
-        try editor.performFlowchart(.insertNode(id: "B", label: "Node B"))
+        try await editor.performFlowchart(.insertNode(id: "B", label: "Node B"))
 
         guard case .flowchart(let model) = editor.document.payload else {
             #expect(Bool(false))
@@ -74,14 +74,14 @@ struct DiagramEditorFlowchartTests {
     }
 
     @Test("insertNode with explicit type")
-    func insertNodeWithType() throws {
+    func insertNodeWithType() async throws {
         let doc = flowDoc(["A"])
         let editor = DiagramEditor(
             document: doc,
             preferredExportFormat: .mermaid,
             exportRegistry: mockRegistry()
         )
-        try editor.performFlowchart(.insertNode(id: "D", label: "Decision", type: "diamond"))
+        try await editor.performFlowchart(.insertNode(id: "D", label: "Decision", type: "diamond"))
 
         guard case .flowchart(let model) = editor.document.payload else {
             #expect(Bool(false))
@@ -92,33 +92,33 @@ struct DiagramEditorFlowchartTests {
     }
 
     @Test("insertNode duplicate ID throws")
-    func insertNodeDuplicate() {
+    func insertNodeDuplicate() async {
         let doc = flowDoc(["A"])
         let editor = DiagramEditor(
             document: doc,
             preferredExportFormat: .mermaid,
             exportRegistry: mockRegistry()
         )
-        #expect(throws: DiagramEditorError.self) {
-            try editor.performFlowchart(.insertNode(id: "A", label: "Duplicate"))
+        await #expect(throws: DiagramEditorError.self) {
+            try await editor.performFlowchart(.insertNode(id: "A", label: "Duplicate"))
         }
     }
 
     @Test("insertNode on non-flowchart throws notAFlowchart")
-    func insertNodeNonFlowchart() {
+    func insertNodeNonFlowchart() async {
         let doc = DiagramDocument(type: .sequenceDiagram)
         let editor = DiagramEditor(
             document: doc,
             preferredExportFormat: .mermaid,
             exportRegistry: mockRegistry()
         )
-        #expect(throws: DiagramEditorError.self) {
-            try editor.performFlowchart(.insertNode(id: "X", label: "X"))
+        await #expect(throws: DiagramEditorError.self) {
+            try await editor.performFlowchart(.insertNode(id: "X", label: "X"))
         }
     }
 
     @Test("insertEdge creates edge between existing nodes")
-    func insertEdge() throws {
+    func insertEdge() async throws {
         let doc = flowDoc(["A", "B"])
         let editor = DiagramEditor(
             document: doc,
@@ -127,7 +127,7 @@ struct DiagramEditorFlowchartTests {
         )
         let from = DiagramSelection(diagramType: .flowchart, elementID: "node:A")
         let to = DiagramSelection(diagramType: .flowchart, elementID: "node:B")
-        try editor.performFlowchart(.insertEdge(id: "e1", from: from, to: to, label: "connects"))
+        try await editor.performFlowchart(.insertEdge(id: "e1", from: from, to: to, label: "connects"))
 
         guard case .flowchart(let model) = editor.document.payload else {
             #expect(Bool(false))
@@ -140,7 +140,7 @@ struct DiagramEditorFlowchartTests {
     }
 
     @Test("insertEdge rejects endpoint selections from another diagram type")
-    func insertEdgeSelectionTypeMismatch() {
+    func insertEdgeSelectionTypeMismatch() async {
         let doc = flowDoc(["A", "B"])
         let editor = DiagramEditor(
             document: doc,
@@ -149,8 +149,8 @@ struct DiagramEditorFlowchartTests {
         )
         let from = DiagramSelection(diagramType: .stateDiagram, elementID: "node:A")
         let to = DiagramSelection(diagramType: .flowchart, elementID: "node:B")
-        #expect(throws: DiagramEditorError.self) {
-            try editor.performFlowchart(.insertEdge(id: "e1", from: from, to: to))
+        await #expect(throws: DiagramEditorError.self) {
+            try await editor.performFlowchart(.insertEdge(id: "e1", from: from, to: to))
         }
 
         guard case .flowchart(let model) = editor.document.payload else {
@@ -161,7 +161,7 @@ struct DiagramEditorFlowchartTests {
     }
 
     @Test("insertEdge with nonexistent source throws")
-    func insertEdgeNonexistentSource() {
+    func insertEdgeNonexistentSource() async {
         let doc = flowDoc(["B"])
         let editor = DiagramEditor(
             document: doc,
@@ -170,13 +170,13 @@ struct DiagramEditorFlowchartTests {
         )
         let from = DiagramSelection(diagramType: .flowchart, elementID: "node:Z")
         let to = DiagramSelection(diagramType: .flowchart, elementID: "node:B")
-        #expect(throws: DiagramEditorError.self) {
-            try editor.performFlowchart(.insertEdge(id: "e", from: from, to: to))
+        await #expect(throws: DiagramEditorError.self) {
+            try await editor.performFlowchart(.insertEdge(id: "e", from: from, to: to))
         }
     }
 
     @Test("insertEdge with nonexistent target throws")
-    func insertEdgeNonexistentTarget() {
+    func insertEdgeNonexistentTarget() async {
         let doc = flowDoc(["A"])
         let editor = DiagramEditor(
             document: doc,
@@ -185,13 +185,13 @@ struct DiagramEditorFlowchartTests {
         )
         let from = DiagramSelection(diagramType: .flowchart, elementID: "node:A")
         let to = DiagramSelection(diagramType: .flowchart, elementID: "node:Z")
-        #expect(throws: DiagramEditorError.self) {
-            try editor.performFlowchart(.insertEdge(id: "e", from: from, to: to))
+        await #expect(throws: DiagramEditorError.self) {
+            try await editor.performFlowchart(.insertEdge(id: "e", from: from, to: to))
         }
     }
 
     @Test("insertEdge on non-flowchart throws notAFlowchart")
-    func insertEdgeNonFlowchart() {
+    func insertEdgeNonFlowchart() async {
         let doc = DiagramDocument(type: .sequenceDiagram)
         let editor = DiagramEditor(
             document: doc,
@@ -199,8 +199,8 @@ struct DiagramEditorFlowchartTests {
             exportRegistry: mockRegistry()
         )
         let sel = DiagramSelection(diagramType: .sequenceDiagram, elementID: "actor:A")
-        #expect(throws: DiagramEditorError.self) {
-            try editor.performFlowchart(.insertEdge(id: "e", from: sel, to: sel))
+        await #expect(throws: DiagramEditorError.self) {
+            try await editor.performFlowchart(.insertEdge(id: "e", from: sel, to: sel))
         }
     }
 }
