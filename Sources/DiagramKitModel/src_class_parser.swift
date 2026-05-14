@@ -6,6 +6,13 @@ import DiagramKitCommon
 
 // MARK: - Type Model (Phase 2)
 
+public enum ClassDirection: String, Sendable {
+    case TB
+    case BT
+    case LR
+    case RL
+}
+
 public struct ClassDiagram: Sendable {
     public var classes: [ClassNode]
     public var classMap: [String: ClassNode]
@@ -16,7 +23,7 @@ public struct ClassDiagram: Sendable {
     public var noteMap: [String: ClassNote]
     public var interfaces: [ClassInterface]
     public var styleClasses: [ClassStyleClass]
-    public var direction: String
+    public var direction: ClassDirection
     public var accTitle: String?
     public var accDescription: String?
     public var diagramTitle: String?
@@ -32,7 +39,7 @@ public struct ClassDiagram: Sendable {
         noteMap: [String: ClassNote] = [:],
         interfaces: [ClassInterface] = [],
         styleClasses: [ClassStyleClass] = [],
-        direction: String = "TB",
+        direction: ClassDirection = .TB,
         accTitle: String? = nil,
         accDescription: String? = nil,
         diagramTitle: String? = nil,
@@ -730,8 +737,9 @@ private func _parseClassDiagramEntry(_ lines: [String], frontmatter: DiagramFron
         }
 
         // Direction
-        if let dir = _firstGroup(#"^direction\s+(TB|BT|RL|LR)\s*$"#, rawLine, caseInsensitive: true) {
-            diagram.direction = dir.uppercased()
+        if let dir = _firstGroup(#"^direction\s+(TB|BT|RL|LR)\s*$"#, rawLine, caseInsensitive: true),
+           let typed = ClassDirection(rawValue: dir.uppercased()) {
+            diagram.direction = typed
             continue
         }
 

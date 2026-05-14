@@ -431,9 +431,16 @@ private func _parseFlowchart(_ lines: [String], config: original_src_types.Flowc
             continue
         }
 
-        // Anonymous subgraph (bare "subgraph" keyword)
+        // Anonymous subgraph (bare "subgraph" keyword). Collision guard:
+        // a user-defined subgraph already named `subgraph_0` would
+        // otherwise be silently shadowed; bump the index until unique.
         if line.trimmingCharacters(in: .whitespaces) == "subgraph" {
-            let autoId = "subgraph_\(graph.subgraphIds.count)"
+            var index = graph.subgraphIds.count
+            var autoId = "subgraph_\(index)"
+            while graph.subgraphIds.contains(autoId) {
+                index += 1
+                autoId = "subgraph_\(index)"
+            }
             graph.subgraphIds.insert(autoId)
             subgraphStack.append(ParsedSubgraph(id: autoId, label: "", nodeIds: [], children: [], direction: nil))
             continue

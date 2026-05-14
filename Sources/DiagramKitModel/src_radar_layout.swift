@@ -16,7 +16,20 @@ public func layoutRadarDiagram(_ diagram: RadarDiagram) -> PositionedRadarDiagra
     let centerY = config.marginTop + config.height / 2
     let radius = min(config.width, config.height) / 2
 
-    let maxValue = options.max ?? curves.flatMap(\.entries).max() ?? -Double.infinity
+    // Empty curves + no explicit `options.max` would otherwise leave
+    // `maxValue` as -.infinity. `relativeRadius(...)` guards against
+    // non-finite maxValue but the implicit -.infinity is confusing on
+    // its own; fall back to a sane unit-range so the empty radar
+    // still renders cleanly.
+    let entryMax = curves.flatMap(\.entries).max()
+    let maxValue: Double
+    if let supplied = options.max {
+        maxValue = supplied
+    } else if let computed = entryMax {
+        maxValue = computed
+    } else {
+        maxValue = 1.0
+    }
     let minValue = options.min
     let numAxes = axes.count
 

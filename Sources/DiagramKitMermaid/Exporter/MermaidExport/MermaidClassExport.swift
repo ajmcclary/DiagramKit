@@ -13,9 +13,8 @@ enum MermaidClassExport {
         lines.append("classDiagram")
 
         // Direction
-        let dir = model.direction.uppercased()
-        if dir != "TB" {
-            lines.append("  direction \(dir)")
+        if model.direction != .TB {
+            lines.append("  direction \(model.direction.rawValue)")
         }
 
         // Title / accessibility

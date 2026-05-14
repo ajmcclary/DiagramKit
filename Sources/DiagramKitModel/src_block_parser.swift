@@ -343,7 +343,9 @@ public func parseBlockDiagramLines(_ lines: [String]) throws -> BlockDiagram {
                 var span = 1
                 if t.contains(":") {
                     let parts = t.split(separator: ":")
-                    if parts.count == 2, let n = Int(parts[1]) { span = n }
+                    // Reject non-positive spans at parse time. Downstream layout
+                    // divides `size.width` by widthInColumns; 0 → NaN.
+                    if parts.count == 2, let n = Int(parts[1]), n > 0 { span = n }
                 }
                 for j in 0..<span {
                     let spaceId = generateBlockId() + "-s\(j)"
@@ -530,7 +532,7 @@ private func parseNodeToken(_ token: String) -> (id: String?, type: BlockNodeTyp
         }
         if let lastColon = t.range(of: ":", options: .backwards) {
             let afterColon = t[lastColon.upperBound...]
-            if let n = Int(String(afterColon)) { span = n }
+            if let n = Int(String(afterColon)), n > 0 { span = n }
         }
         return (generateBlockId(), .blockArrow, label, span, dirs)
     }
@@ -543,7 +545,9 @@ private func parseNodeToken(_ token: String) -> (id: String?, type: BlockNodeTyp
     var mainPart = t
     if t.contains(":") {
         let parts = t.split(separator: ":", maxSplits: 1)
-        if parts.count == 2, let n = Int(parts[1]) {
+        // Reject non-positive spans at parse time. Downstream layout
+        // divides `size.width` by widthInColumns; 0 → NaN.
+        if parts.count == 2, let n = Int(parts[1]), n > 0 {
             span = n
             mainPart = String(parts[0])
         }

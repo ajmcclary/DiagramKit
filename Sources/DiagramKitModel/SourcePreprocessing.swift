@@ -61,29 +61,24 @@ private func _parseFrontMatterAndStrippedSlow(_ normalized: String, originalSour
     var combinedFmLines: [String] = []
     if firstNonBlank < lines.endIndex,
        lines[firstNonBlank].trimmingCharacters(in: .whitespacesAndNewlines) == "---" {
-        // Find every `---` marker contiguously from the start (separated only
-        // by blank lines or YAML body content — never by another non-`---`
-        // non-YAML line).
-        var markers: [Int] = [firstNonBlank]
+        // YAML-style frontmatter: exactly one closing `---` after the
+        // opener. The previous greedy implementation collected every
+        // `---` marker in the document and treated all inter-marker
+        // sections as frontmatter, which silently ate any body that
+        // legitimately contained a `---` separator line.
+        var closingMarker: Int? = nil
         var cursor = firstNonBlank + 1
         while cursor < lines.endIndex {
             if lines[cursor].trimmingCharacters(in: .whitespacesAndNewlines) == "---" {
-                markers.append(cursor)
+                closingMarker = cursor
+                break
             }
             cursor += 1
         }
-        // We need at least two `---` markers to have one frontmatter section.
-        // With N markers, there are N-1 sections (or floor((N)/1) frontmatter
-        // sections separated by `---`). If the last marker has no trailing
-        // body, treat all sections as frontmatter and body is empty.
-        if markers.count >= 2 {
-            for i in 0..<(markers.count - 1) {
-                let blockStart = markers[i] + 1
-                let blockEnd = markers[i + 1]
-                combinedFmLines.append(contentsOf: lines[blockStart..<blockEnd])
-            }
-            let lastMarker = markers.last!
-            strippedSource = lines[(lastMarker + 1)...].joined(separator: "\n")
+        if let closingMarker {
+            let blockStart = firstNonBlank + 1
+            combinedFmLines.append(contentsOf: lines[blockStart..<closingMarker])
+            strippedSource = lines[(closingMarker + 1)...].joined(separator: "\n")
             consumedFrontmatter = true
         }
     }

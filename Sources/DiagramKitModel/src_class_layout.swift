@@ -21,12 +21,12 @@ public enum CLS {
 
 private typealias ClassSizeMap = [String: (width: Double, height: Double, headerHeight: Double, attrHeight: Double, methodHeight: Double)]
 
-private func elkhDirection(from mermaidDir: String) -> String {
-    switch mermaidDir.uppercased() {
-    case "BT": return "UP"
-    case "LR": return "RIGHT"
-    case "RL": return "LEFT"
-    default: return "DOWN"
+private func elkhDirection(from dir: ClassDirection) -> String {
+    switch dir {
+    case .BT: return "UP"
+    case .LR: return "RIGHT"
+    case .RL: return "LEFT"
+    case .TB: return "DOWN"
     }
 }
 

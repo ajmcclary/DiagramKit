@@ -136,7 +136,7 @@ import DiagramKit
     func classExportBasic() throws {
         let cls = ClassDiagram(
             classes: [ClassNode(id: "Animal", label: "Animal")],
-            direction: "TB"
+            direction: .TB
         )
         let doc = DiagramDocument(payload: .classDiagram(cls))
         let result = try MermaidExporter().export(doc)

@@ -407,19 +407,36 @@ private func _translateDayjsFormat(_ format: String) -> String {
     return result
 }
 
+// Concurrency Contract
+// Each `DiagramEngine` worker spawns a fresh 8 MB Thread (no shared
+// pool, see CLAUDE.md). The Gantt parser can run on multiple of those
+// threads at once, which means `_dateFormatter(for:)` can be invoked
+// concurrently. `NSCache` itself is thread-safe, but a `DateFormatter`
+// returned to two callers could see `date(from:)` invoked
+// concurrently. DateFormatter became thread-safe on iOS 7+/macOS 10.9+,
+// but the documentation is inconsistent and the strict-concurrency
+// build rejects shared mutable state without a discipline marker.
+//
+// We serialize cache reads/writes through a private queue and return
+// formatters that are then read-only for callers.
 private nonisolated(unsafe) let _dateFormatterCache = NSCache<NSString, DateFormatter>()
+private let _dateFormatterCacheQueue = DispatchQueue(
+    label: "diagramkit.gantt.dateFormatterCache"
+)
 
 private func _dateFormatter(for dateFormat: String) -> DateFormatter {
     let key = dateFormat as NSString
-    if let cached = _dateFormatterCache.object(forKey: key) {
-        return cached
+    return _dateFormatterCacheQueue.sync {
+        if let cached = _dateFormatterCache.object(forKey: key) {
+            return cached
+        }
+        let formatter = DateFormatter()
+        formatter.locale = Locale(identifier: "en_US_POSIX")
+        formatter.dateFormat = _translateDayjsFormat(dateFormat)
+        formatter.timeZone = TimeZone.current
+        _dateFormatterCache.setObject(formatter, forKey: key)
+        return formatter
     }
-    let formatter = DateFormatter()
-    formatter.locale = Locale(identifier: "en_US_POSIX")
-    formatter.dateFormat = _translateDayjsFormat(dateFormat)
-    formatter.timeZone = TimeZone.current
-    _dateFormatterCache.setObject(formatter, forKey: key)
-    return formatter
 }
 
 private func _isTimestampFormat(_ format: String) -> Bool {

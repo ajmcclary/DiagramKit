@@ -9,25 +9,25 @@ final class ClassSlice7Tests: XCTestCase {
     func test_direction_tb_default() throws {
         let source = "classDiagram\nclass A"
         let diagram = try parseClassDiagram(source.splitByNewlines)
-        XCTAssertEqual(diagram.direction, "TB")
+        XCTAssertEqual(diagram.direction, .TB)
     }
 
     func test_direction_lr() throws {
         let source = "classDiagram\ndirection LR\nclass A"
         let diagram = try parseClassDiagram(source.splitByNewlines)
-        XCTAssertEqual(diagram.direction, "LR")
+        XCTAssertEqual(diagram.direction, .LR)
     }
 
     func test_direction_bt() throws {
         let source = "classDiagram\ndirection BT\nclass A"
         let diagram = try parseClassDiagram(source.splitByNewlines)
-        XCTAssertEqual(diagram.direction, "BT")
+        XCTAssertEqual(diagram.direction, .BT)
     }
 
     func test_direction_rl() throws {
         let source = "classDiagram\ndirection RL\nclass A"
         let diagram = try parseClassDiagram(source.splitByNewlines)
-        XCTAssertEqual(diagram.direction, "RL")
+        XCTAssertEqual(diagram.direction, .RL)
     }
 
     func test_acctitle() throws {
