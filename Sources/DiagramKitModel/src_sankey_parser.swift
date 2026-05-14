@@ -30,7 +30,7 @@ public enum SankeyParserError: Error, LocalizedError, _RecoverableDiagramError {
 public func parseSankeyDiagram(
     _ lines: [String],
     frontmatter: DiagramFrontmatter? = nil
-) throws -> SankeyDiagram {
+) throws -> (SankeyDiagram, [DiagramDiagnostic]) {
     try _withDiagramIssueReporting(operation: "parseSankeyDiagram") {
         let source = lines.joined(separator: "\n")
         let prepared = _prepareSankeyText(source)
@@ -56,7 +56,7 @@ public func parseSankeyDiagram(
             .filter { !$0.isEmpty && !$0.hasPrefix("%%") }
 
         let records = try _tokenizeSankeyCSV(csvLines)
-        return try _buildSankeyDiagram(records: records, config: sankeyConfig, frontmatter: frontmatter)
+        return (try _buildSankeyDiagram(records: records, config: sankeyConfig, frontmatter: frontmatter), [])
     }
 }
 

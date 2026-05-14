@@ -8,7 +8,7 @@ final class TimelineParserTests: XCTestCase {
 
     private func parse(_ source: String) throws -> TimelineDiagram {
         let lines = source.split(separator: "\n", omittingEmptySubsequences: false).map(String.init)
-        return try parseTimelineDiagram(lines, frontmatter: nil)
+        return try parseTimelineDiagram(lines, frontmatter: nil).0
     }
 
     // MARK: - Headers

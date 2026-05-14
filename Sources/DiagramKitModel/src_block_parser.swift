@@ -644,7 +644,7 @@ private func populateBlockDB(
     }
 }
 
-public func parseBlockDiagram(_ source: String, frontmatter: DiagramFrontmatter? = nil) throws -> BlockDiagram {
+public func parseBlockDiagram(_ source: String, frontmatter: DiagramFrontmatter? = nil) throws -> (BlockDiagram, [DiagramDiagnostic]) {
     let (processed, fm) = _parseFrontMatterAndStripped(source)
     let resolvedFM = frontmatter ?? fm
     let lines = _mermaidSourceLines(from: processed, separatedBy: CharacterSet(charactersIn: "\n"))
@@ -653,5 +653,5 @@ public func parseBlockDiagram(_ source: String, frontmatter: DiagramFrontmatter?
         diagram.diagramTitle = fmc.title
         if let bc = fmc.blockConfig { diagram.config = bc }
     }
-    return diagram
+    return (diagram, [])
 }

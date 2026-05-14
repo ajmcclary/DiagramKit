@@ -12,7 +12,7 @@ extension DiagramRegistry {
     static let _block = _typed(
         type: .block,
         matches: { $0.startsWithToken("block") },
-        parse: { source, frontmatter in
+        parseWithDiagnostics: { source, frontmatter in
             try parseBlockDiagram(source, frontmatter: frontmatter)
         },
         wrap: DiagramPayload.block,

@@ -8,7 +8,7 @@ final class TimelineSvgTests: XCTestCase {
 
     private func renderSVG(_ source: String) throws -> String {
         let lines = source.split(separator: "\n", omittingEmptySubsequences: false).map(String.init)
-        let diagram = try parseTimelineDiagram(lines, frontmatter: nil)
+        let (diagram, _) = try parseTimelineDiagram(lines, frontmatter: nil)
         let positioned = layoutTimelineDiagram(diagram)
         return try renderTimelineSvg(positioned, DiagramColors(bg: "#ffffff", fg: "#000000"), "Inter", false)
     }
@@ -231,7 +231,7 @@ final class TimelineSvgTests: XCTestCase {
             2020 : Event
         """
         let lines = source.split(separator: "\n", omittingEmptySubsequences: false).map(String.init)
-        var diagram = try parseTimelineDiagram(lines, frontmatter: nil)
+        var (diagram, _) = try parseTimelineDiagram(lines, frontmatter: nil)
         diagram.config.useMaxWidth = true
         let positioned = layoutTimelineDiagram(diagram)
         let svg = try renderTimelineSvg(positioned, DiagramColors(bg: "#fff", fg: "#000"), "Inter", false)
@@ -255,7 +255,7 @@ final class TimelineSvgTests: XCTestCase {
     // MARK: - Neo look
     private func renderNeoSVG(_ source: String, look: String = "neo", themeName: String = "default", useGradient: Bool = true) throws -> String {
         let lines = source.split(separator: "\n", omittingEmptySubsequences: false).map(String.init)
-        var diagram = try parseTimelineDiagram(lines, frontmatter: nil)
+        var (diagram, _) = try parseTimelineDiagram(lines, frontmatter: nil)
         diagram.look = look
         diagram.themeName = themeName
         if useGradient {

@@ -112,7 +112,7 @@ enum AsciiRenderRegistry {
             type: .timeline,
             render: { source, frontmatter, _, _, _ in
                 let rawLines = DiagramSourceNormalizer.rawLines(source)
-                let model = try parseTimelineDiagram(rawLines, frontmatter: frontmatter)
+                let (model, _) = try parseTimelineDiagram(rawLines, frontmatter: frontmatter)
                 return renderTimelineAscii(model)
             }
         ),
@@ -120,14 +120,14 @@ enum AsciiRenderRegistry {
             type: .sankey,
             render: { source, frontmatter, _, _, _ in
                 let rawLines = DiagramSourceNormalizer.rawLines(source)
-                let model = try parseSankeyDiagram(rawLines, frontmatter: frontmatter)
+                let (model, _) = try parseSankeyDiagram(rawLines, frontmatter: frontmatter)
                 return renderSankeyAscii(model)
             }
         ),
         .block: AsciiRenderDescriptor(
             type: .block,
             render: { source, frontmatter, _, _, _ in
-                let model = try parseBlockDiagram(source, frontmatter: frontmatter)
+                let (model, _) = try parseBlockDiagram(source, frontmatter: frontmatter)
                 return renderBlockAscii(model)
             }
         ),
@@ -157,7 +157,7 @@ enum AsciiRenderRegistry {
         .radar: AsciiRenderDescriptor(
             type: .radar,
             render: { source, frontmatter, _, _, _ in
-                let model = try parseRadarDiagram(source: source, frontmatter: frontmatter)
+                let (model, _) = try parseRadarDiagram(source: source, frontmatter: frontmatter)
                 return renderRadarAscii(model)
             }
         ),

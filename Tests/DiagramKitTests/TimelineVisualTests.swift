@@ -8,7 +8,7 @@ final class TimelineVisualTests: XCTestCase {
 
     private func parseLayoutRenderSVG(_ source: String) throws -> String {
         let lines = source.split(separator: "\n", omittingEmptySubsequences: false).map(String.init)
-        let diagram = try parseTimelineDiagram(lines, frontmatter: nil)
+        let (diagram, _) = try parseTimelineDiagram(lines, frontmatter: nil)
         let positioned = layoutTimelineDiagram(diagram)
         return try renderTimelineSvg(positioned, DiagramColors(bg: "#ffffff", fg: "#000000"), "Inter", false)
     }
@@ -92,7 +92,7 @@ final class TimelineVisualTests: XCTestCase {
 
     func test_disableMulticolor() throws {
         let lines = "timeline\n    2020 : A\n    2021 : B".split(separator: "\n", omittingEmptySubsequences: false).map(String.init)
-        var diagram = try parseTimelineDiagram(lines, frontmatter: nil)
+        var (diagram, _) = try parseTimelineDiagram(lines, frontmatter: nil)
         diagram.config.disableMulticolor = true
         let positioned = layoutTimelineDiagram(diagram)
         let svg = try renderTimelineSvg(positioned, DiagramColors(bg: "#fff", fg: "#000"), "Inter", false)
@@ -125,7 +125,7 @@ final class TimelineVisualTests: XCTestCase {
 
     func test_neoLook_structure() throws {
         let lines = "timeline\n    section Era 1\n    2020 : Event".split(separator: "\n", omittingEmptySubsequences: false).map(String.init)
-        var diagram = try parseTimelineDiagram(lines, frontmatter: nil)
+        var (diagram, _) = try parseTimelineDiagram(lines, frontmatter: nil)
         diagram.look = "neo"
         diagram.themeName = "default"
         diagram.theme.useGradient = true
@@ -137,7 +137,7 @@ final class TimelineVisualTests: XCTestCase {
 
     func test_neoRedux_structure() throws {
         let lines = "timeline\n    2020 : Event A : Event B".split(separator: "\n", omittingEmptySubsequences: false).map(String.init)
-        var diagram = try parseTimelineDiagram(lines, frontmatter: nil)
+        var (diagram, _) = try parseTimelineDiagram(lines, frontmatter: nil)
         diagram.look = "neo"
         diagram.themeName = "redux"
         diagram.theme.useGradient = false

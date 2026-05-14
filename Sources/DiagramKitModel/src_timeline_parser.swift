@@ -22,8 +22,8 @@ public enum TimelineParserError: Error, LocalizedError, _RecoverableDiagramError
 
 // MARK: - Parser
 
-public func parseTimelineDiagram(_ lines: [String], frontmatter: DiagramFrontmatter?) throws -> TimelineDiagram {
-    try _parseTimelineDiagram(lines, frontmatter: frontmatter)
+public func parseTimelineDiagram(_ lines: [String], frontmatter: DiagramFrontmatter?) throws -> (TimelineDiagram, [DiagramDiagnostic]) {
+    (try _parseTimelineDiagram(lines, frontmatter: frontmatter), [])
 }
 
 private func _parseTimelineDiagram(_ lines: [String], frontmatter: DiagramFrontmatter?) throws -> TimelineDiagram {

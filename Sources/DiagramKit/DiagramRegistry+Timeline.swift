@@ -12,7 +12,7 @@ extension DiagramRegistry {
     static let _timeline = _typed(
         type: .timeline,
         matches: { $0.startsWithToken("timeline") },
-        parse: { source, frontmatter in
+        parseWithDiagnostics: { source, frontmatter in
             try parseTimelineDiagram(DiagramSourceNormalizer.rawLines(source), frontmatter: frontmatter)
         },
         wrap: DiagramPayload.timeline,

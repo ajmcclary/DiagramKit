@@ -12,7 +12,7 @@ extension DiagramRegistry {
     static let _sankey = _typed(
         type: .sankey,
         matches: { $0.startsWithToken("sankey") },
-        parse: { source, frontmatter in
+        parseWithDiagnostics: { source, frontmatter in
             try parseSankeyDiagram(DiagramSourceNormalizer.statements(source), frontmatter: frontmatter)
         },
         wrap: DiagramPayload.sankey,

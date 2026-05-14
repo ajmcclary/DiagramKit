@@ -1,9 +1,10 @@
 import Foundation
+import DiagramKitCommon
 
 public func parseRadarDiagram(
     source: String,
     frontmatter: DiagramFrontmatter? = nil
-) throws -> RadarDiagram {
+) throws -> (RadarDiagram, [DiagramDiagnostic]) {
     let lines = source.split(separator: "\n", omittingEmptySubsequences: false).map(String.init)
 
     var diagramTitle: String?
@@ -249,7 +250,7 @@ public func parseRadarDiagram(
     }
     diagram.curves = curves
 
-    return diagram
+    return (diagram, [])
 }
 
 // MARK: - Entry types

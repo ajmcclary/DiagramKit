@@ -8,7 +8,7 @@ final class TimelineRendererTests: XCTestCase {
 
     private func parseAndLayout(_ source: String) throws -> (DiagramDocument, PositionedTimelineDiagram) {
         let lines = source.split(separator: "\n", omittingEmptySubsequences: false).map(String.init)
-        let diagram = try parseTimelineDiagram(lines, frontmatter: nil)
+        let (diagram, _) = try parseTimelineDiagram(lines, frontmatter: nil)
         let positioned = layoutTimelineDiagram(diagram)
         let graph = DiagramDocument(payload: .timeline(diagram))
         return (graph, positioned)
@@ -75,7 +75,7 @@ final class TimelineRendererTests: XCTestCase {
             2020 : Event
         """
         let lines = source.split(separator: "\n", omittingEmptySubsequences: false).map(String.init)
-        let diagram = try parseTimelineDiagram(lines, frontmatter: nil)
+        let (diagram, _) = try parseTimelineDiagram(lines, frontmatter: nil)
         XCTAssertEqual(diagram.accTitle, "Accessible Timeline")
         XCTAssertEqual(diagram.accDescr, "A description")
     }

@@ -6,11 +6,11 @@ import Foundation
 @testable import DiagramKitRenderingCG
 
 private func parse(_ source: String) throws -> RadarDiagram {
-    try parseRadarDiagram(source: source, frontmatter: nil)
+    try parseRadarDiagram(source: source, frontmatter: nil).0
 }
 
 private func parseWithFrontmatter(_ source: String, frontmatter: DiagramFrontmatter) throws -> RadarDiagram {
-    try parseRadarDiagram(source: source, frontmatter: frontmatter)
+    try parseRadarDiagram(source: source, frontmatter: frontmatter).0
 }
 
 // MARK: - Radar Parser Suite

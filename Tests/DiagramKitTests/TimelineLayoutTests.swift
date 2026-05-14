@@ -8,7 +8,7 @@ final class TimelineLayoutTests: XCTestCase {
 
     private func parseAndLayout(_ source: String) throws -> PositionedTimelineDiagram {
         let lines = source.split(separator: "\n", omittingEmptySubsequences: false).map(String.init)
-        let diagram = try parseTimelineDiagram(lines, frontmatter: nil)
+        let (diagram, _) = try parseTimelineDiagram(lines, frontmatter: nil)
         return layoutTimelineDiagram(diagram)
     }
 
@@ -186,7 +186,7 @@ final class TimelineLayoutTests: XCTestCase {
             2021 : Event B
         """
         let lines = source.split(separator: "\n", omittingEmptySubsequences: false).map(String.init)
-        var diagram = try parseTimelineDiagram(lines, frontmatter: nil)
+        var (diagram, _) = try parseTimelineDiagram(lines, frontmatter: nil)
         diagram.config.disableMulticolor = true
         let positioned = layoutTimelineDiagram(diagram)
         for task in positioned.tasks {

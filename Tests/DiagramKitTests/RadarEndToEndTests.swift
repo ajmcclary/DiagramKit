@@ -98,7 +98,7 @@ struct RadarEndToEndTests {
     func detailedEntriesWithFrontmatter() throws {
         let fm = DiagramFrontmatter(radarConfig: RadarDiagramConfig(width: 800, height: 400))
         let source = "radar-beta\n  axis A,B,C\n  curve c1{C: 3, A: 1, B: 2}"
-        let diagram = try parseRadarDiagram(source: source, frontmatter: fm)
+        let (diagram, _) = try parseRadarDiagram(source: source, frontmatter: fm)
         #expect(diagram.config.width == 800)
         #expect(diagram.config.height == 400)
         #expect(diagram.curves.count == 1)
