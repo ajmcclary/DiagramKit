@@ -227,8 +227,3 @@ public struct DiagramStructuralError: Error, LocalizedError {
         "DiagramStructuralError: expected payload of type \(expectedType.rawValue)"
     }
 }
-
-// MARK: - Phase 0 backward-compat deprecated alias
-
-@available(*, deprecated, renamed: "DiagramStructuralError", message: "Will be removed in the next major version.")
-public typealias MermaidStructuralError = DiagramStructuralError

@@ -215,9 +215,4 @@ extension DiagramImageRenderer {
         return try await renderer.renderImage(from: source, size: size)
     }
 }
-
-// MARK: - Phase 0 backward-compat deprecated alias
-
-@available(*, deprecated, renamed: "DiagramImageRenderer", message: "Will be removed in the next major version.")
-public typealias MermaidImageRenderer = DiagramImageRenderer
 #endif

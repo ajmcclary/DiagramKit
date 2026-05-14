@@ -1,7 +1,7 @@
 // Ported from original/src/theme.ts
 import Foundation
 
-open class original_src_theme {
+public final class original_src_theme {
     public init() {}
 
     public struct DiagramColors: Sendable {

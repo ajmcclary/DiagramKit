@@ -5,6 +5,7 @@
 #if canImport(CoreGraphics)
 @_exported import DiagramKitViews
 @_exported import DiagramKitRenderingCG
+@_exported import DiagramKitInteractive
 #endif
 @_exported import DiagramKitModel
 @_exported import DiagramKitImport

@@ -5,6 +5,15 @@ import DiagramKitModel
 /// Conformers register with `ImporterRegistry`. The registry probes each
 /// importer in order; the first `supports(source:)` match wins.
 ///
+/// ## Identity model
+/// Importers are identified by `name: String` (a free-form human label),
+/// while exporters use the closed `DiagramFormatID` enum in
+/// `DiagramKitExport`. The asymmetry is intentional: importer probing is
+/// content-driven (the text drives selection), and pluggable third-party
+/// importers — which cannot extend a closed enum without a major version
+/// bump — must be addressable by name. Exporter dispatch is user-driven
+/// (a chosen target format), where a closed, type-safe enum is preferable.
+///
 /// ## Concurrency Contract
 /// `DiagramSourceImporter` is `Sendable`. Implementations must be safe for
 /// concurrent use. All parsing state (including diagnostics) is returned in
@@ -17,6 +26,14 @@ public protocol DiagramSourceImporter: Sendable {
     /// The set of `DiagramType` values this importer can produce.
     /// Used for UI discovery and sparse-matrix validation.
     var supportedDiagramTypes: Set<DiagramType> { get }
+
+    /// Whether this importer is the registry-wide fallback. Fallback
+    /// importers MUST return `true` from `supports(source:)` for any
+    /// non-empty input. `ImporterRegistry` enforces "at most one
+    /// fallback, ordered last."
+    ///
+    /// Default: `false` (most importers are narrow / format-specific).
+    var isFallback: Bool { get }
 
     /// Returns `true` when `source` appears to be in this importer's format.
     /// This is a text-only probe — it should be fast and avoid full parsing.
@@ -38,4 +55,9 @@ public protocol DiagramSourceImporter: Sendable {
     /// - Throws: `DiagramError` or a format-specific error on fatal parse
     ///   failures.
     func parse(_ source: String) throws -> DiagramImportResult
+}
+
+public extension DiagramSourceImporter {
+    /// Default: narrow / format-specific importer (not a fallback).
+    var isFallback: Bool { false }
 }

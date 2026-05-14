@@ -1,7 +1,7 @@
 // Ported from original/src/text-metrics.ts
 import Foundation
 
-open class original_src_text_metrics {
+public final class original_src_text_metrics {
     public init() {}
 
     private static let NARROW_CHARS: Set<Character> = Set("iltfjI1!|.,:;'".map { $0 })

@@ -17,6 +17,7 @@ public struct MermaidImporter: DiagramSourceImporter {
 
     public let name = "Mermaid"
     public let supportedDiagramTypes: Set<DiagramType> = Set(DiagramType.allCases)
+    public let isFallback: Bool = true
 
     public init() {}
 

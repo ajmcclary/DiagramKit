@@ -1,7 +1,7 @@
 // Ported from original/src/multiline-utils.ts
 import Foundation
 
-open class original_src_multiline_utils {
+public final class original_src_multiline_utils {
     public init() {}
 
     private struct StyledSegment {

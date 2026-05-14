@@ -220,11 +220,6 @@ extension DiagramEngine {
     #endif
 }
 
-// MARK: - Phase 0 backward-compat deprecated alias
-
-@available(*, deprecated, renamed: "DiagramEngine", message: "Will be removed in the next major version.")
-public typealias MermaidRenderer = DiagramEngine
-
 extension String {
     public func parseDiagram() async throws -> DiagramDocument {
         try await DiagramEngine.parse(self)
