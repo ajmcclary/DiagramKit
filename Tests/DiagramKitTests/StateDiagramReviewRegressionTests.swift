@@ -350,7 +350,7 @@ final class StateDiagramReviewRegressionTests: XCTestCase {
     func testSandboxSecurityLevelPersistsOnStateConfig() throws {
         var config = original_src_types.StateConfig()
         config.securityLevel = "sandbox"
-        let graph = try parseMermaid("stateDiagram-v2\n  [*] --> Idle", stateConfig: config)
+        let (graph, _) = try parseMermaid("stateDiagram-v2\n  [*] --> Idle", stateConfig: config)
         guard case .stateDiagram(let parsed) = graph.payload else {
             return XCTFail("Expected state diagram")
         }

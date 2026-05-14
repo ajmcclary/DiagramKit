@@ -118,7 +118,7 @@ final class VerificationStepExporterTests: XCTestCase {
             ]
 
         default:
-            let parsed = try parseMermaid(diagram.source)
+            let (parsed, _) = try parseMermaid(diagram.source)
             let svg = try await renderDiagramSVG(diagram.source, RenderOptions())
             let size = extractSvgSize(svg)
             return [

@@ -3,7 +3,7 @@ import Foundation
 import DiagramKitModel
 
 private func _bmParseMermaid(_ text: String, config: original_src_types.FlowchartConfig? = nil) throws -> DiagramDocument {
-    try parseMermaid(text, config: config)
+    try parseMermaid(text, config: config).0
 }
 
 private func _bmConvertToAsciiGraph(
