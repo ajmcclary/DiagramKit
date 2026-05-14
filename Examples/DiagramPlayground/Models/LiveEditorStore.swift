@@ -63,8 +63,17 @@ public final class LiveEditorStore {
     /// Layout configuration currently committed to the preview surface.
     public private(set) var previewLayoutConfig: LayoutConfig
 
-    /// Full editor state from the last render request.
+    /// Full editor state from the last completed render. Used by
+    /// `didCompleteRender(...)` to decide what to auto-save.
     private var previewState: LiveEditorState
+
+    /// Snapshot of `state` taken at the most recent `requestRender(...)`.
+    /// Promoted into `previewState` by `didCompleteRender(...)` on success
+    /// so the auto-saved snapshot reflects the source/theme/config that
+    /// was actually rendered, not whatever the user has typed since. The
+    /// race against late layer events (uncancelled in-flight renders) is
+    /// out of scope here — this only narrows the interim-keystroke race.
+    private var pendingRenderState: LiveEditorState?
 
     /// Origin of the most recent `setSource(...)` call. Used by
     /// `didCompleteRender(...)` to decide whether to re-seed the
@@ -323,6 +332,11 @@ public final class LiveEditorStore {
     /// Explicitly request a render (e.g. from manual update mode).
     public func requestRender(reason: RenderReason) {
         commitCurrentStateToPreview()
+        // Snapshot the state we're requesting a render for; the eventual
+        // `didCompleteRender(...)` promotes this into `previewState` so the
+        // auto-save reflects what was actually rendered, not what the user
+        // has typed since the request was issued.
+        pendingRenderState = state
         renderGeneration &+= 1
         renderStatus = .rendering
         // Clear any stale parseError — leaving it set would draw the
@@ -351,9 +365,13 @@ public final class LiveEditorStore {
         if parseError != nil {
             // Keep the last valid preview visible alongside the error.
             renderStatus = .failed
+            // Discard the snapshot — a failed render shouldn't seed the
+            // auto-save state next time around.
+            pendingRenderState = nil
         } else if state.source.isEmpty {
             renderStatus = .idle
             editor = nil
+            pendingRenderState = nil
             _bumpUndoTickle()
         } else {
             renderStatus = .rendered
@@ -363,6 +381,13 @@ public final class LiveEditorStore {
             // discard its `UndoManager` stack.
             if lastSourceOrigin != .mutation {
                 seedEditorFromSource()
+            }
+            // Promote the snapshot taken at requestRender time into
+            // previewState so the auto-save reflects what was actually
+            // rendered, not whatever has been typed since.
+            if let snapshot = pendingRenderState {
+                previewState = snapshot
+                pendingRenderState = nil
             }
             // Auto-save history after successful renders
             historyStore.autoSaveIfNeeded(state: previewState)
@@ -768,11 +793,15 @@ public final class LiveEditorStore {
     }
 
     /// Commit the editable state/config to the preview snapshot.
+    ///
+    /// `previewState` is intentionally NOT updated here — it's promoted
+    /// from `pendingRenderState` in `didCompleteRender(...)` so the
+    /// auto-saved state matches what was actually rendered, not whatever
+    /// the user has typed between request and completion.
     private func commitCurrentStateToPreview() {
         previewSource = state.source
         previewThemeName = state.selectedThemeName
         previewLayoutConfig = layoutConfig
-        previewState = state
     }
 
     // MARK: - Selection (Phase 7)
