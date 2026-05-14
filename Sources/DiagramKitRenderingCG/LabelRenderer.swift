@@ -183,5 +183,28 @@ public final class LabelRenderer {
         let attributes: [NSAttributedString.Key: Any] = [.font: font]
         return NSAttributedString(string: text, attributes: attributes).size()
     }
+
+    /// Block extent for a newline-delimited multiline string. Width is the
+    /// widest line's `NSAttributedString.size().width`; height is
+    /// `lines.count * pointSize * 1.3` (matches `drawMultilineText`'s
+    /// internal line-height). Blank lines contribute 0 to width but still
+    /// bump the line count, mirroring the placement loop's row-index
+    /// advance for skipped empty rows. `lineSpacing` is reserved for
+    /// signature symmetry with `drawMultilineText` and is not consumed
+    /// today; line-height already absorbs spacing.
+    public func measureMultilineExtent(
+        _ text: String,
+        font: BMFont,
+        lineSpacing: CGFloat = 4
+    ) -> CGSize {
+        let lines = text.components(separatedBy: "\n")
+        let attributes: [NSAttributedString.Key: Any] = [.font: font]
+        let maxWidth = lines.reduce(CGFloat(0)) { acc, line in
+            let w = NSAttributedString(string: line, attributes: attributes).size().width
+            return max(acc, w)
+        }
+        let lineHeight = font.pointSize * 1.3
+        return CGSize(width: maxWidth, height: CGFloat(lines.count) * lineHeight)
+    }
 }
 #endif
