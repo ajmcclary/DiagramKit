@@ -14,7 +14,7 @@ import DiagramKit
             section Work
                 Code: 4: Me
         """
-        let output = try DiagramPipeline.renderASCII(source: source)
+        let output = try DiagramPipeline.renderASCII(source: source).text
         #expect(output.contains("My Journey"))
         #expect(output.contains("Morning"))
         #expect(output.contains("Coffee"))

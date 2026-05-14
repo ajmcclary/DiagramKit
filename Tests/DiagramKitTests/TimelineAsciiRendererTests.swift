@@ -11,7 +11,7 @@ import DiagramKit
             2021 : Started
             2022 : Grew
         """
-        let output = try DiagramPipeline.renderASCII(source: source)
+        let output = try DiagramPipeline.renderASCII(source: source).text
         #expect(output.contains("History"))
         #expect(output.contains("2021"))
         #expect(output.contains("Started"))

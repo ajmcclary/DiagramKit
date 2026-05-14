@@ -14,7 +14,7 @@ import DiagramKit
           DiagramKitModel
             Types.swift
         """
-        let output = try DiagramPipeline.renderASCII(source: source)
+        let output = try DiagramPipeline.renderASCII(source: source).text
         #expect(output.contains("src"))
         #expect(output.contains("DiagramKit"))
         #expect(output.contains("DiagramEngine.swift"))

@@ -603,7 +603,7 @@ struct AsciiPreviewView: View {
         do {
             let rendered = try await DiagramEngine.renderASCII(source: source, theme: theme)
             await MainActor.run {
-                ascii = rendered
+                ascii = rendered.text
                 isLoading = false
             }
         } catch {

@@ -71,7 +71,7 @@ final class XYChartCrashRegressionTests: XCTestCase {
             bar [1, 2, 3]
             line [1, 2, 3]
         """
-        let ascii = try await DiagramEngine.renderASCII(source: source)
+        let ascii = try await DiagramEngine.renderASCII(source: source).text
         XCTAssertFalse(ascii.isEmpty)
     }
 }

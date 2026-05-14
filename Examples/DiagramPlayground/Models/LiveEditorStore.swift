@@ -520,7 +520,7 @@ public final class LiveEditorStore {
     /// (flowchart, sequence, class, ER, state). For unsupported families
     /// the pipeline returns an empty/whitespace string.
     public func exportASCII() async throws -> String {
-        try await DiagramEngine.renderASCII(source: state.source, theme: theme)
+        try await DiagramEngine.renderASCII(source: state.source, theme: theme).text
     }
 
     /// Convert the current source to another format via parse → export.

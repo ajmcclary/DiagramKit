@@ -79,7 +79,7 @@ struct DiagramPipelineConcurrencyTests {
                     let graph = try await DiagramEngine.parse(source)
                     let positioned = try await DiagramEngine.layout(source)
                     let svg = try await DiagramEngine.renderSVG(source: source)
-                    let ascii = try await DiagramEngine.renderASCII(source: source)
+                    let ascii = try await DiagramEngine.renderASCII(source: source).text
                     return Snapshot(
                         index: index,
                         type: graph.type,

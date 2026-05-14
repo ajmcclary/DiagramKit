@@ -10,7 +10,7 @@ import DiagramKit
         A,B,10
         B,C,5
         """
-        let output = try DiagramPipeline.renderASCII(source: source)
+        let output = try DiagramPipeline.renderASCII(source: source).text
         #expect(output.contains("A"))
         #expect(output.contains("B"))
         #expect(output.contains("C"))
@@ -23,7 +23,7 @@ import DiagramKit
             axis Speed, Strength, Endurance
             curve a["Athlete"]{80, 60, 90}
         """
-        let output = try DiagramPipeline.renderASCII(source: source)
+        let output = try DiagramPipeline.renderASCII(source: source).text
         #expect(output.contains("Speed") || output.contains("Athlete"))
     }
 
@@ -35,7 +35,7 @@ import DiagramKit
                 \"A\": 10
                 \"B\": 20
         """
-        let output = try DiagramPipeline.renderASCII(source: source)
+        let output = try DiagramPipeline.renderASCII(source: source).text
         #expect(output.contains("A") || output.contains("Root"))
     }
 
@@ -47,7 +47,7 @@ import DiagramKit
             set Banana
             union Apple, Banana
         """
-        let output = try DiagramPipeline.renderASCII(source: source)
+        let output = try DiagramPipeline.renderASCII(source: source).text
         #expect(output.contains("Apple"))
         #expect(output.contains("Banana"))
     }
@@ -62,7 +62,7 @@ import DiagramKit
             Engagement: [0.3, 0.7]
             Refactor: [0.8, 0.5]
         """
-        let output = try DiagramPipeline.renderASCII(source: source)
+        let output = try DiagramPipeline.renderASCII(source: source).text
         #expect(output.contains("Effort vs Impact"))
         #expect(output.contains("Engagement"))
         #expect(output.contains("Refactor"))
@@ -76,7 +76,7 @@ import DiagramKit
         0-7: \"Version\"
         8-15: \"Length\"
         """
-        let output = try DiagramPipeline.renderASCII(source: source)
+        let output = try DiagramPipeline.renderASCII(source: source).text
         #expect(output.contains("Version") || output.contains("0-7"))
     }
 
@@ -95,7 +95,7 @@ import DiagramKit
             }
             test_entity - satisfies -> test_req
         """
-        let output = try DiagramPipeline.renderASCII(source: source)
+        let output = try DiagramPipeline.renderASCII(source: source).text
         #expect(output.contains("test_req"))
         #expect(output.contains("test_entity"))
     }
@@ -106,7 +106,7 @@ import DiagramKit
         zenuml
             Alice -> Bob: Hello
         """
-        let output = try DiagramPipeline.renderASCII(source: source)
+        let output = try DiagramPipeline.renderASCII(source: source).text
         #expect(output.contains("Alice") || output.contains("Bob"))
     }
 }

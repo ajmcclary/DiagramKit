@@ -134,14 +134,29 @@ public struct DiagramEngine {
         }
     }
 
-    /// Render a Mermaid diagram to an ASCII/Unicode string.
+    /// Render a Mermaid diagram to an ASCII/Unicode string paired with any
+    /// diagnostics emitted during parse / layout / ASCII rendering. Callers
+    /// that only want the rendered text can access `.text`.
     public static func renderASCII(
         source: String,
         theme: DiagramTheme = .default
-    ) async throws -> String {
+    ) async throws -> AsciiRenderOutput {
         _ = _DiagramPreparerBootstrap.didInstall
         return try await _runOnWorker {
             try DiagramPipeline.renderASCII(source: source, theme: theme)
+        }
+    }
+
+    /// Parse `source` and return the full `DiagramImportResult`, including
+    /// any diagnostics surfaced by the matched importer. Use this when you
+    /// need the diagnostics without going through `prepare(...)`.
+    public static func parseImportResult(
+        source: String,
+        registry: ImporterRegistry = DiagramPipeline.defaultRegistry
+    ) async throws -> DiagramImportResult {
+        _ = _DiagramPreparerBootstrap.didInstall
+        return try await _runOnWorker {
+            try DiagramLoader.parseImportResult(source, registry: registry)
         }
     }
     #endif
@@ -200,12 +215,12 @@ extension DiagramEngine {
         try await renderSVG(source: source, theme: theme)
     }
 
-    @available(*, deprecated, renamed: "renderASCII(source:theme:)", message: "Will be removed in the next major version.")
+    @available(*, deprecated, renamed: "renderASCII(source:theme:)", message: "renderASCII now returns AsciiRenderOutput; access `.text` for the previous String shape. Will be removed in the next major version.")
     public static func renderASCIIAsync(
         source: String,
         theme: DiagramTheme = .default
     ) async throws -> String {
-        try await renderASCII(source: source, theme: theme)
+        try await renderASCII(source: source, theme: theme).text
     }
     #endif
 
@@ -272,7 +287,7 @@ extension String {
     public func renderDiagramASCII(
         theme: DiagramTheme = .default
     ) async throws -> String {
-        try await DiagramEngine.renderASCII(source: self, theme: theme)
+        try await DiagramEngine.renderASCII(source: self, theme: theme).text
     }
 
     @available(*, deprecated, renamed: "renderDiagramASCII(theme:)", message: "Will be removed in the next major version.")

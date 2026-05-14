@@ -124,7 +124,7 @@ final class BeautifulMermaidSwiftTests: XCTestCase {
         XCTAssertTrue(svg.contains("<svg"), "Expected frontmatter state diagram to render SVG")
         XCTAssertTrue(svg.contains("start moving"), "Expected transition label text to render in SVG")
 
-        let ascii = try await DiagramEngine.renderASCII(source: source)
+        let ascii = try await DiagramEngine.renderASCII(source: source).text
         XCTAssertFalse(ascii.isEmpty, "Expected frontmatter state diagram to render ASCII")
     }
 

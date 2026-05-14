@@ -10,7 +10,7 @@ import DiagramKit
             A
             B
         """
-        let output = try DiagramPipeline.renderASCII(source: source)
+        let output = try DiagramPipeline.renderASCII(source: source).text
         #expect(output.contains("A"))
         #expect(output.contains("B"))
     }
@@ -24,7 +24,7 @@ import DiagramKit
             System(api, "API")
             Rel(customer, api, "Uses")
         """
-        let output = try DiagramPipeline.renderASCII(source: source)
+        let output = try DiagramPipeline.renderASCII(source: source).text
         #expect(output.contains("System Context"))
         #expect(output.contains("Customer"))
         #expect(output.contains("API"))
@@ -38,7 +38,7 @@ import DiagramKit
             service db(database)[Database]
             api:R --> L:db
         """
-        let output = try DiagramPipeline.renderASCII(source: source)
+        let output = try DiagramPipeline.renderASCII(source: source).text
         #expect(output.contains("API"))
         #expect(output.contains("Database"))
     }
@@ -50,7 +50,7 @@ import DiagramKit
             frame "Frame A"
             frame "Frame B"
         """
-        let output = try DiagramPipeline.renderASCII(source: source)
+        let output = try DiagramPipeline.renderASCII(source: source).text
         // Best-effort: parser may reject some shapes, but rendering should not crash.
         // We check the title-style placeholder is at least present.
         #expect(!output.isEmpty || output.isEmpty) // tolerant — see renderer
@@ -65,7 +65,7 @@ import DiagramKit
         component B [0.7, 0.3]
         A -> B
         """
-        let output = try DiagramPipeline.renderASCII(source: source)
+        let output = try DiagramPipeline.renderASCII(source: source).text
         #expect(output.contains("My Map"))
         let hasContent = output.contains("A") || output.contains("B") || output.contains("Components")
         #expect(hasContent)
@@ -80,7 +80,7 @@ import DiagramKit
             Done
                 task2[Done task]
         """
-        let output = try DiagramPipeline.renderASCII(source: source)
+        let output = try DiagramPipeline.renderASCII(source: source).text
         #expect(output.contains("Todo") || output.contains("First task"))
         #expect(output.contains("Done") || output.contains("Done task"))
     }

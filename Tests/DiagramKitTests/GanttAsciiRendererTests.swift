@@ -20,7 +20,7 @@ import DiagramKit
                 Task1 :a1, 2024-06-10, 5d
                 Task2 :after a1, 5d
         """
-        let output = try DiagramPipeline.renderASCII(source: source)
+        let output = try DiagramPipeline.renderASCII(source: source).text
         #expect(output.contains("Project Plan"))
         #expect(output.contains("Task1"))
         #expect(output.contains("Task2"))

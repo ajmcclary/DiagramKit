@@ -11,7 +11,7 @@ import DiagramKit
             "Banana" : 20
             "Cherry" : 10
         """
-        let output = try DiagramPipeline.renderASCII(source: source)
+        let output = try DiagramPipeline.renderASCII(source: source).text
         #expect(output.contains("Fruit"))
         #expect(output.contains("Apple"))
         #expect(output.contains("Banana"))
@@ -27,7 +27,7 @@ import DiagramKit
         pie
             "Alone" : 100
         """
-        let output = try DiagramPipeline.renderASCII(source: source)
+        let output = try DiagramPipeline.renderASCII(source: source).text
         #expect(output.contains("Alone"))
         #expect(output.contains("100"))
     }
@@ -37,7 +37,7 @@ import DiagramKit
         let source = """
         pie title Nothing
         """
-        let output = try DiagramPipeline.renderASCII(source: source)
+        let output = try DiagramPipeline.renderASCII(source: source).text
         // Should at least include the title without crashing.
         #expect(output.contains("Nothing"))
     }

@@ -10,7 +10,7 @@ import DiagramKit
             commit id: "init"
             commit id: "feat"
         """
-        let output = try DiagramPipeline.renderASCII(source: source)
+        let output = try DiagramPipeline.renderASCII(source: source).text
         #expect(output.contains("init"))
         #expect(output.contains("feat"))
         #expect(output.contains("*"))

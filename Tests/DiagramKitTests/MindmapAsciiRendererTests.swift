@@ -12,7 +12,7 @@ import DiagramKit
               Grandchild A1
             Child B
         """
-        let output = try DiagramPipeline.renderASCII(source: source)
+        let output = try DiagramPipeline.renderASCII(source: source).text
         #expect(output.contains("Root"))
         #expect(output.contains("Child A"))
         #expect(output.contains("Grandchild A1"))

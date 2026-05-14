@@ -42,4 +42,18 @@ struct DiagramLoaderParseImportResultTests {
             )
         }
     }
+
+    @Test("DiagramEngine.parseImportResult surfaces diagnostics async")
+    func engineParseImportResult() async throws {
+        let source = """
+        C4Context
+        Boundary(other, "Other")
+        Boundary(outer, "Outer") {
+          System(s, "S") $boundary=other
+        }
+        """
+        let result = try await DiagramEngine.parseImportResult(source: source)
+        #expect(result.document.type == .c4)
+        #expect(result.diagnostics.contains { $0.severity == .warning })
+    }
 }

@@ -13,7 +13,7 @@ import DiagramKit
             [Material]
               [Cause Mat1]
         """
-        let output = try DiagramPipeline.renderASCII(source: source)
+        let output = try DiagramPipeline.renderASCII(source: source).text
         #expect(output.contains("Problem"))
         #expect(output.contains("Method"))
         #expect(output.contains("Material"))

@@ -221,7 +221,7 @@ public enum DiagramPipeline {
     public static func renderASCII(
         source: String,
         theme: DiagramTheme = .default
-    ) throws -> String {
+    ) throws -> AsciiRenderOutput {
         try runPipeline(operation: "DiagramPipeline.renderASCII") {
             let colors: [String: String] = [
                 "fg": theme.foreground.hexString,
@@ -231,7 +231,11 @@ public enum DiagramPipeline {
             ]
             let asciiTheme = original_src_ascii_index.diagramColorsToAsciiTheme(colors)
             let options = original_src_ascii_index.AsciiRenderOptions(theme: asciiTheme)
-            return try original_src_ascii_index.renderMermaidASCII(source, options: options)
+            let text = try original_src_ascii_index.renderMermaidASCII(source, options: options)
+            // G1 will widen the ASCII registry's `render` closure to surface
+            // parse + render diagnostics through this output; until then the
+            // bag is empty.
+            return AsciiRenderOutput(text: text, diagnostics: [])
         }
     }
     #endif

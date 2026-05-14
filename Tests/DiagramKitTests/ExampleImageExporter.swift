@@ -220,7 +220,7 @@ final class ExampleImageExporter: XCTestCase {
             }
 
             // Export ASCII art
-            let ascii = try await DiagramEngine.renderASCII(source: example.code, theme: .zincDark)
+            let ascii = try await DiagramEngine.renderASCII(source: example.code, theme: .zincDark).text
             let asciiFilename = "\(example.name)-ascii.txt"
             let asciiPath = (outputDir as NSString).appendingPathComponent(asciiFilename)
             try ascii.write(toFile: asciiPath, atomically: true, encoding: .utf8)
