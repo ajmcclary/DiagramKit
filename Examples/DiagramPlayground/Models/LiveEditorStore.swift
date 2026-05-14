@@ -66,6 +66,13 @@ public final class LiveEditorStore {
     /// Full editor state from the last render request.
     private var previewState: LiveEditorState
 
+    /// Origin of the most recent `setSource(...)` call. Used by
+    /// `didCompleteRender(...)` to decide whether to re-seed the
+    /// persistent `DiagramEditor` from the new source — a structural
+    /// mutation already produced the new source, so re-seeding would
+    /// throw away the editor's undo history.
+    private var lastSourceOrigin: SourceOrigin = .system
+
     // MARK: - Config (Phase 3)
 
     /// Parsed representation of the current `state.configJSON`.
@@ -189,10 +196,12 @@ public final class LiveEditorStore {
     public func setSource(_ source: String, origin: SourceOrigin) {
         guard state.source != source else { return }
         state.source = source
+        lastSourceOrigin = origin
 
         // Non-user sources (sample picker, remote loader) drop a fresh diagram in;
         // reset preview transform so it auto-fits instead of inheriting the previous
-        // diagram's zoom and pan.
+        // diagram's zoom and pan. Mutation-origin changes preserve the existing
+        // zoom/pan because the user is mid-edit on the same diagram.
         if origin == .system || origin == .loader {
             state.zoomScale = nil
             state.panOffset = nil
@@ -233,6 +242,7 @@ public final class LiveEditorStore {
 
         state.source = source
         state.sourceFormat = format
+        lastSourceOrigin = origin
 
         if origin == .system || origin == .loader {
             state.zoomScale = nil
@@ -302,15 +312,21 @@ public final class LiveEditorStore {
         self.parseError = parseError
         self.diagramBounds = diagramBounds
 
-        if let parseError {
-            _ = parseError  // keep the last valid preview visible
+        if parseError != nil {
+            // Keep the last valid preview visible alongside the error.
             renderStatus = .failed
         } else if state.source.isEmpty {
             renderStatus = .idle
             editor = nil
         } else {
             renderStatus = .rendered
-            seedEditorFromSource()
+            // Skip re-seeding when the source change originated from a
+            // structural mutation — `performMutation` already updated the
+            // editor's document in-place, and replacing the editor would
+            // discard its `UndoManager` stack.
+            if lastSourceOrigin != .mutation {
+                seedEditorFromSource()
+            }
             // Auto-save history after successful renders
             historyStore.autoSaveIfNeeded(state: previewState)
         }
@@ -735,8 +751,9 @@ public final class LiveEditorStore {
     public private(set) var lastMutationError: String?
 
     /// Apply a core mutation through the persistent editor, then push the
-    /// exported source back into `state.source` (origin: `.system` so manual
-    /// mode does not block the round-trip).
+    /// exported source back into `state.source` (origin: `.mutation` so the
+    /// post-render seed step skips re-creating the editor and preserves
+    /// the undo stack).
     ///
     /// No-ops silently when `editor` is nil — the pane gates buttons on
     /// `store.editor != nil`, so this only protects against races.
@@ -746,7 +763,7 @@ public final class LiveEditorStore {
             try editor.perform(mutation)
             lastMutationError = nil
             if let source = editor.source, source != state.source {
-                setSource(source, origin: .system)
+                setSource(source, origin: .mutation)
             }
         } catch {
             lastMutationError = error.localizedDescription
@@ -763,7 +780,7 @@ public final class LiveEditorStore {
             try editor.performFlowchart(mutation)
             lastMutationError = nil
             if let source = editor.source, source != state.source {
-                setSource(source, origin: .system)
+                setSource(source, origin: .mutation)
             }
         } catch {
             lastMutationError = error.localizedDescription
@@ -838,8 +855,15 @@ public final class LiveEditorStore {
 public enum SourceOrigin: Sendable {
     /// The user typed or pasted into the editor.
     case user
-    /// A corpus sample, history restore, or other programmatic change.
+    /// A corpus sample picker or other programmatic source swap that
+    /// replaces the document wholesale; the persistent editor must be
+    /// re-seeded from the new source.
     case system
+    /// A structural mutation performed through `DiagramEditor`. The
+    /// editor's document is already in sync with the new source, so
+    /// `didCompleteRender` must NOT re-seed the editor — doing so would
+    /// throw away the editor's `UndoManager` stack.
+    case mutation
     /// Restored from history.
     case history
     /// Loaded from a remote URL or Gist.
