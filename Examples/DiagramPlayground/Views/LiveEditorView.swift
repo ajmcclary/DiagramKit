@@ -17,9 +17,28 @@ struct LiveEditorView: View {
     @SwiftUI.State private var columnVisibility: NavigationSplitViewVisibility = .all
     @SwiftUI.State private var showingControls = false
     @SwiftUI.State private var showingFullWindowPreview = false
-    @SwiftUI.State private var compactMode: CompactMode = .edit
+    @SwiftUI.State private var nonInspectorMode: CompactMode = .edit
 
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
+
+    // Bridges the iPhone compact-layout picker to `store.state.inspectorOpen`
+    // so the Cmd-I shortcut (which flips `inspectorOpen` via `toggleInspector`)
+    // and the segmented picker stay in lockstep. Picking `.inspector` opens
+    // the inspector; picking `.edit`/`.view` closes it and is remembered as
+    // the preferred non-inspector mode.
+    private var compactMode: Binding<CompactMode> {
+        Binding(
+            get: { store.state.inspectorOpen ? .inspector : nonInspectorMode },
+            set: { newValue in
+                if newValue == .inspector {
+                    store.state.inspectorOpen = true
+                } else {
+                    store.state.inspectorOpen = false
+                    nonInspectorMode = newValue
+                }
+            }
+        )
+    }
 
     var body: some View {
         Group {
@@ -53,7 +72,7 @@ struct LiveEditorView: View {
     private var compactLayout: some View {
         VStack(spacing: 0) {
             // Edit / View segmented toggle
-            Picker("Mode", selection: $compactMode) {
+            Picker("Mode", selection: compactMode) {
                 ForEach(CompactMode.allCases, id: \.self) { mode in
                     Text(mode.label).tag(mode)
                 }
@@ -65,7 +84,7 @@ struct LiveEditorView: View {
 
             // Main content
             Group {
-                switch compactMode {
+                switch compactMode.wrappedValue {
                 case .edit:
                     EditorPane(store: store)
                 case .view:
