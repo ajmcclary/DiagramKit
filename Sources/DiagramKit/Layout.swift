@@ -16,7 +16,10 @@ public struct GraphLayout {
     public func layout(_ graph: DiagramDocument) throws -> PositionedGraph {
         try _withDiagramIssueReporting(operation: "GraphLayout.layout") {
             let descriptor = try DiagramRegistry.descriptor(for: graph.type)
-            return try descriptor.layout(graph, config)
+            let (positioned, diagnostics) = try descriptor.layout(graph, config)
+            var result = positioned
+            result.diagnostics = diagnostics
+            return result
         }
     }
 }

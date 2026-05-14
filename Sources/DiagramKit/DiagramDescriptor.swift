@@ -92,18 +92,21 @@ public struct DiagramDescriptor: Sendable {
     /// the first match wins.
     public let matches: @Sendable (DiagramHeader) -> Bool
 
-    /// Parse the preprocessed source into a `DiagramDocument`.
+    /// Parse the preprocessed source into a `DiagramDocument` plus any
+    /// non-fatal diagnostics emitted during parsing.
     /// `frontmatter` is the parsed and bound frontmatter (optional).
-    public let parse: @Sendable (String, DiagramFrontmatter?) throws -> DiagramDocument
+    public let parse: @Sendable (String, DiagramFrontmatter?) throws -> (DiagramDocument, [DiagramDiagnostic])
 
-    /// Layout a parsed graph into a `PositionedGraph`.
-    public let layout: @Sendable (DiagramDocument, LayoutConfig) throws -> PositionedGraph
+    /// Layout a parsed graph into a `PositionedGraph` plus any non-fatal
+    /// diagnostics emitted during layout (subgraph recursion truncations,
+    /// Ishikawa overflow, gitgraph fallbacks, etc.).
+    public let layout: @Sendable (DiagramDocument, LayoutConfig) throws -> (PositionedGraph, [DiagramDiagnostic])
 
     public init(
         type: DiagramType,
         matches: @escaping @Sendable (DiagramHeader) -> Bool,
-        parse: @escaping @Sendable (String, DiagramFrontmatter?) throws -> DiagramDocument,
-        layout: @escaping @Sendable (DiagramDocument, LayoutConfig) throws -> PositionedGraph
+        parse: @escaping @Sendable (String, DiagramFrontmatter?) throws -> (DiagramDocument, [DiagramDiagnostic]),
+        layout: @escaping @Sendable (DiagramDocument, LayoutConfig) throws -> (PositionedGraph, [DiagramDiagnostic])
     ) {
         self.type = type
         self.matches = matches

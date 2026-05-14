@@ -18,15 +18,17 @@ extension DiagramRegistry {
         matches: { $0.startsWithToken("statediagram") || $0.startsWithToken("state") },
         parse: { source, frontmatter in
             let parsed = try parseMermaid(source, config: frontmatter?.flowchartConfig, stateConfig: frontmatter?.stateConfig)
+            let document: DiagramDocument
             switch parsed.payload {
             case .flowchart(let model), .stateDiagram(let model):
-                return DiagramDocument(payload: .stateDiagram(model))
+                document = DiagramDocument(payload: .stateDiagram(model))
             default:
-                return parsed
+                document = parsed
             }
+            return (document, [])
         },
         layout: { graph, config in
-            try layoutGraphSync(graph, config: config)
+            (try layoutGraphSync(graph, config: config), [])
         }
     )
 }

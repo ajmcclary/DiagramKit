@@ -34,13 +34,13 @@ extension DiagramRegistry {
             matches: matches,
             parse: { source, fm in
                 let parsed = try parse(source, fm)
-                return DiagramDocument(payload: wrap(parsed))
+                return (DiagramDocument(payload: wrap(parsed)), [])
             },
             layout: { graph, config in
                 guard let parsed = unwrap(graph.payload) else {
                     throw DiagramStructuralError.payloadMismatch(type)
                 }
-                return positioned(graph, try layout(parsed, config))
+                return (positioned(graph, try layout(parsed, config)), [])
             }
         )
     }
