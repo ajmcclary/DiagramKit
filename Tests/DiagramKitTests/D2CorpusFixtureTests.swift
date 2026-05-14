@@ -1,5 +1,6 @@
 import Foundation
 import Testing
+import DiagramKitCommon
 import DiagramKitTestSupport
 @testable import DiagramKit
 import DiagramKitD2
@@ -24,8 +25,8 @@ struct D2FixtureTests {
                         "d2": "direction: right\\nA: Start\\nB: End\\nA -> B"
                     },
                     "expectedImporters": {
-                        "mermaid": "Mermaid",
-                        "d2": "D2"
+                        "mermaid": "mermaid",
+                        "d2": "d2"
                     },
                     "skipSnapshots": ["d2"]
                 }
@@ -35,7 +36,7 @@ struct D2FixtureTests {
         let file = try JSONDecoder().decode(CorpusFile.self, from: json)
         let entry = try #require(file.diagrams.first)
         #expect(entry.id == "multi-format-d2-simple-flow")
-        #expect(entry.expectedImporters?["d2"] == "D2")
+        #expect(entry.expectedImporters?[.d2] == .d2)
         #expect(entry.shouldSkipSnapshot(for: "d2"))
         #expect(entry.hasSource(for: "d2"))
     }
@@ -55,8 +56,8 @@ struct D2FixtureTests {
                         "d2": "Group {\\n  A -> B\\n}"
                     },
                     "expectedImporters": {
-                        "mermaid": "Mermaid",
-                        "d2": "D2"
+                        "mermaid": "mermaid",
+                        "d2": "d2"
                     },
                     "skipSnapshots": ["d2"]
                 }
@@ -84,8 +85,8 @@ struct D2FixtureTests {
                         "d2": "A: Database\\nA.shape: cylinder"
                     },
                     "expectedImporters": {
-                        "mermaid": "Mermaid",
-                        "d2": "D2"
+                        "mermaid": "mermaid",
+                        "d2": "d2"
                     },
                     "skipSnapshots": ["d2"]
                 }
@@ -112,8 +113,8 @@ struct D2FixtureTests {
                         "d2": "A: Start\\nA.shape: sql_table\\nA -> B\\nstyle.fill: red"
                     },
                     "expectedImporters": {
-                        "mermaid": "Mermaid",
-                        "d2": "D2"
+                        "mermaid": "mermaid",
+                        "d2": "d2"
                     },
                     "expectedDiagnostics": [
                         { "severity": "unsupported", "messageContains": "sql_table" },

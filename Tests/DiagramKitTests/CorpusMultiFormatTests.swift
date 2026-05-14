@@ -1,5 +1,6 @@
 import Foundation
 import Testing
+import DiagramKitCommon
 import DiagramKitTestSupport
 @testable import DiagramKit
 #if canImport(CoreGraphics)
@@ -147,8 +148,8 @@ struct MultiFormatFixtureMetadataTests {
                     "name": "Test",
                     "source": "graph TD\\n  A --> B",
                     "expectedImporters": {
-                        "mermaid": "Mermaid",
-                        "d2": "D2"
+                        "mermaid": "mermaid",
+                        "d2": "d2"
                     }
                 }
             ]
@@ -156,8 +157,8 @@ struct MultiFormatFixtureMetadataTests {
         """.data(using: .utf8)!
         let file = try JSONDecoder().decode(CorpusFile.self, from: json)
         let entry = try #require(file.diagrams.first)
-        #expect(entry.expectedImporters?["mermaid"] == "Mermaid")
-        #expect(entry.expectedImporters?["d2"] == "D2")
+        #expect(entry.expectedImporters?[.mermaid] == .mermaid)
+        #expect(entry.expectedImporters?[.d2] == .d2)
     }
 
     @Test("expectedDiagnostics available")
@@ -307,8 +308,8 @@ struct MultiFormatFixtureMetadataTests {
         #expect(entry.sources?["mermaid"] == "graph TD\n  A --> B")
         #expect(entry.sources?["d2"] == "A -> B")
         #expect(entry.source(for: "D2") == "A -> B")
-        #expect(entry.expectedImporters?["mermaid"] == "Mermaid")
-        #expect(entry.expectedImporters?["d2"] == "D2")
+        #expect(entry.expectedImporters?[.mermaid] == .mermaid)
+        #expect(entry.expectedImporters?[.d2] == .d2)
         #expect(entry.shouldSkipSnapshot(for: "d2"))
     }
 }

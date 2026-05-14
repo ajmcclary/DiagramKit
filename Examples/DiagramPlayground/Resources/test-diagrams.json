@@ -2418,8 +2418,8 @@
         "d2": "direction: right\nA: Start\nB: End\nA -> B"
       },
       "expectedImporters": {
-        "mermaid": "Mermaid",
-        "d2": "D2"
+        "mermaid": "mermaid",
+        "d2": "d2"
       }
     },
     {
@@ -2432,8 +2432,8 @@
         "d2": "Cluster {\n  A -> B\n}"
       },
       "expectedImporters": {
-        "mermaid": "Mermaid",
-        "d2": "D2"
+        "mermaid": "mermaid",
+        "d2": "d2"
       }
     },
     {
@@ -2446,8 +2446,8 @@
         "d2": "A: Database\nA.shape: cylinder"
       },
       "expectedImporters": {
-        "mermaid": "Mermaid",
-        "d2": "D2"
+        "mermaid": "mermaid",
+        "d2": "d2"
       }
     },
     {
@@ -2460,8 +2460,8 @@
         "d2": "# A comment\nA: Start\nA -> B: label"
       },
       "expectedImporters": {
-        "mermaid": "Mermaid",
-        "d2": "D2"
+        "mermaid": "mermaid",
+        "d2": "d2"
       }
     },
     {
@@ -2474,8 +2474,8 @@
         "graphviz": "digraph G {\n  rankdir=LR;\n  A [label=Start];\n  B [label=End];\n  A -> B;\n}"
       },
       "expectedImporters": {
-        "mermaid": "Mermaid",
-        "graphviz": "Graphviz"
+        "mermaid": "mermaid",
+        "graphviz": "graphviz"
       }
     },
     {
@@ -2488,8 +2488,8 @@
         "graphviz": "digraph G {\n  subgraph cluster_0 {\n    label=\"Cluster\";\n    A; B;\n  }\n}"
       },
       "expectedImporters": {
-        "mermaid": "Mermaid",
-        "graphviz": "Graphviz"
+        "mermaid": "mermaid",
+        "graphviz": "graphviz"
       }
     },
     {
@@ -2502,8 +2502,8 @@
         "graphviz": "graph G {\n  A -- B;\n}"
       },
       "expectedImporters": {
-        "mermaid": "Mermaid",
-        "graphviz": "Graphviz"
+        "mermaid": "mermaid",
+        "graphviz": "graphviz"
       }
     },
     {
@@ -2516,8 +2516,8 @@
         "graphviz": "digraph G {\n  node [shape=box];\n  A [label=Start];\n  B [label=End];\n  A -> B;\n}"
       },
       "expectedImporters": {
-        "mermaid": "Mermaid",
-        "graphviz": "Graphviz"
+        "mermaid": "mermaid",
+        "graphviz": "graphviz"
       }
     },
     {
@@ -2530,8 +2530,8 @@
         "structurizr": "workspace {\n  model {\n    u = person \"User\" \"A user\"\n    app = softwareSystem \"My App\" \"Core\"\n    u -> app \"Uses\" \"HTTPS\"\n  }\n  views {\n    systemContext app \"System Context\" {\n      include *\n    }\n  }\n}"
       },
       "expectedImporters": {
-        "mermaid": "Mermaid",
-        "structurizr": "Structurizr"
+        "mermaid": "mermaid",
+        "structurizr": "structurizr"
       },
       "skipSnapshots": [
         "structurizr"
@@ -2547,8 +2547,8 @@
         "structurizr": "workspace {\n  model {\n    u = person \"User\"\n    app = softwareSystem \"My App\" {\n      web = container \"Web App\" \"Public UI\" \"Spring\"\n      db = container \"Database\" \"PostgreSQL\"\n    }\n    u -> app \"Uses\"\n  }\n  views {\n    container app \"Container View\" {\n      include *\n    }\n  }\n}"
       },
       "expectedImporters": {
-        "mermaid": "Mermaid",
-        "structurizr": "Structurizr"
+        "mermaid": "mermaid",
+        "structurizr": "structurizr"
       },
       "skipSnapshots": [
         "structurizr"
@@ -2564,8 +2564,8 @@
         "structurizr": "workspace {\n  model {\n    u = person \"User\"\n    app = softwareSystem \"My App\" {\n      web = container \"Web App\" {\n        auth = component \"Auth Service\" \"Handles login\" \"OAuth2\"\n        api = component \"API Service\"\n      }\n    }\n    u -> app \"Uses\"\n  }\n  views {\n    component web \"Component View\" {\n      include *\n    }\n  }\n}"
       },
       "expectedImporters": {
-        "mermaid": "Mermaid",
-        "structurizr": "Structurizr"
+        "mermaid": "mermaid",
+        "structurizr": "structurizr"
       },
       "skipSnapshots": [
         "structurizr"
@@ -2581,8 +2581,8 @@
         "structurizr": "workspace {\n  model {\n    u = person \"User\"\n    app = softwareSystem \"My App\" {\n      web = container \"Web App\"\n      db = container \"Database\"\n      web -> db \"Queries\" \"SQL\"\n    }\n    u -> app \"Uses\"\n  }\n  views {\n    container app {\n      include *\n    }\n  }\n}"
       },
       "expectedImporters": {
-        "mermaid": "Mermaid",
-        "structurizr": "Structurizr"
+        "mermaid": "mermaid",
+        "structurizr": "structurizr"
       },
       "skipSnapshots": [
         "structurizr"
@@ -2598,8 +2598,8 @@
         "structurizr": "workspace {\n  model {\n    group \"Group 0\" {\n      u = person \"User\"\n      app = softwareSystem \"My App\"\n    }\n    u -> app \"Uses\"\n  }\n  views {\n    systemContext app {\n      include *\n    }\n  }\n}"
       },
       "expectedImporters": {
-        "mermaid": "Mermaid",
-        "structurizr": "Structurizr"
+        "mermaid": "mermaid",
+        "structurizr": "structurizr"
       },
       "skipSnapshots": [
         "structurizr"
@@ -2615,8 +2615,8 @@
         "graphviz": "digraph G {\n  rankdir=LR;\n  A [label=Start];\n  B [label=End];\n  A -> B [label=edge];\n}"
       },
       "expectedImporters": {
-        "mermaid": "Mermaid",
-        "graphviz": "Graphviz"
+        "mermaid": "mermaid",
+        "graphviz": "graphviz"
       }
     },
     {
@@ -2629,8 +2629,8 @@
         "graphviz": "digraph G {\n  subgraph cluster_0 {\n    label=\"Cluster\";\n    A; B;\n  }\n}"
       },
       "expectedImporters": {
-        "mermaid": "Mermaid",
-        "graphviz": "Graphviz"
+        "mermaid": "mermaid",
+        "graphviz": "graphviz"
       }
     },
     {
@@ -2643,8 +2643,8 @@
         "graphviz": "graph G {\n  A -- B;\n}"
       },
       "expectedImporters": {
-        "mermaid": "Mermaid",
-        "graphviz": "Graphviz"
+        "mermaid": "mermaid",
+        "graphviz": "graphviz"
       }
     },
     {
@@ -2657,8 +2657,8 @@
         "plantuml": "@startuml\nAlice -> Bob : Hello Bob!\nBob --> Alice : Hi Alice!\n@enduml"
       },
       "expectedImporters": {
-        "mermaid": "Mermaid",
-        "plantuml": "PlantUML"
+        "mermaid": "mermaid",
+        "plantuml": "plantuml"
       },
       "skipSnapshots": [
         "plantuml"
@@ -2674,8 +2674,8 @@
         "plantuml": "@startuml\nparticipant A as Alice\nparticipant B as Bob\nA -> B : Hello\nB -> A : Hi\n@enduml"
       },
       "expectedImporters": {
-        "mermaid": "Mermaid",
-        "plantuml": "PlantUML"
+        "mermaid": "mermaid",
+        "plantuml": "plantuml"
       },
       "skipSnapshots": [
         "plantuml"
@@ -2691,8 +2691,8 @@
         "plantuml": "@startuml\nClient -> Server ++ : Request\nServer --> Client -- : Response\n@enduml"
       },
       "expectedImporters": {
-        "mermaid": "Mermaid",
-        "plantuml": "PlantUML"
+        "mermaid": "mermaid",
+        "plantuml": "plantuml"
       },
       "skipSnapshots": [
         "plantuml"
@@ -2708,8 +2708,8 @@
         "plantuml": "@startuml\nAlice -> Bob : Hello\nnote right of Bob : Bob thinks\nBob --> Alice : Hi\n@enduml"
       },
       "expectedImporters": {
-        "mermaid": "Mermaid",
-        "plantuml": "PlantUML"
+        "mermaid": "mermaid",
+        "plantuml": "plantuml"
       },
       "skipSnapshots": [
         "plantuml"
@@ -2725,8 +2725,8 @@
         "plantuml": "@startuml\nbox \"Services\" #LightBlue\nparticipant API\nparticipant DB\nend box\nactor User\nUser -> API : Request\n@enduml"
       },
       "expectedImporters": {
-        "mermaid": "Mermaid",
-        "plantuml": "PlantUML"
+        "mermaid": "mermaid",
+        "plantuml": "plantuml"
       },
       "skipSnapshots": [
         "plantuml"
@@ -2742,8 +2742,8 @@
         "plantuml": "@startuml\nautonumber\nAlice -> Bob : First\nBob -> Charlie : Second\n@enduml"
       },
       "expectedImporters": {
-        "mermaid": "Mermaid",
-        "plantuml": "PlantUML"
+        "mermaid": "mermaid",
+        "plantuml": "plantuml"
       },
       "skipSnapshots": [
         "plantuml"
@@ -2759,8 +2759,8 @@
         "d2": "A: Database\nA.shape: cylinder"
       },
       "expectedImporters": {
-        "mermaid": "Mermaid",
-        "d2": "D2"
+        "mermaid": "mermaid",
+        "d2": "d2"
       }
     },
     {
@@ -2773,8 +2773,8 @@
         "d2": "A: Start\nA.shape: sql_table\nA -> B\nstyle.fill: red"
       },
       "expectedImporters": {
-        "mermaid": "Mermaid",
-        "d2": "D2"
+        "mermaid": "mermaid",
+        "d2": "d2"
       },
       "expectedDiagnostics": [
         {
@@ -2800,8 +2800,8 @@
         "graphviz": "digraph G {\n  subgraph cluster_0 {\n    label=\"Cluster\";\n    A; B;\n  }\n}"
       },
       "expectedImporters": {
-        "mermaid": "Mermaid",
-        "graphviz": "Graphviz"
+        "mermaid": "mermaid",
+        "graphviz": "graphviz"
       }
     },
     {
@@ -2814,8 +2814,8 @@
         "graphviz": "digraph G {\n  A [shape=record, color=red];\n}"
       },
       "expectedImporters": {
-        "mermaid": "Mermaid",
-        "graphviz": "Graphviz"
+        "mermaid": "mermaid",
+        "graphviz": "graphviz"
       },
       "expectedDiagnostics": [
         {
@@ -2837,8 +2837,8 @@
         "structurizr": "workspace {\n  model {\n    node = deploymentNode \"AWS\"\n    tags \"db\"\n    u = person \"User\"\n  }\n  views {\n    systemContext u {\n      include *\n      exclude y\n    }\n  }\n}"
       },
       "expectedImporters": {
-        "mermaid": "Mermaid",
-        "structurizr": "Structurizr"
+        "mermaid": "mermaid",
+        "structurizr": "structurizr"
       },
       "expectedDiagnostics": [
         {

@@ -1,5 +1,6 @@
 import Foundation
 import Testing
+import DiagramKitCommon
 import DiagramKitTestSupport
 @testable import DiagramKit
 import DiagramKitGraphviz
@@ -24,8 +25,8 @@ struct DOTFixtureTests {
                         "graphviz": "digraph G {\\n  rankdir=LR;\\n  A [label=Start];\\n  B [label=End];\\n  A -> B;\\n}"
                     },
                     "expectedImporters": {
-                        "mermaid": "Mermaid",
-                        "graphviz": "Graphviz"
+                        "mermaid": "mermaid",
+                        "graphviz": "graphviz"
                     },
                     "skipSnapshots": ["graphviz"]
                 }
@@ -35,7 +36,7 @@ struct DOTFixtureTests {
         let file = try JSONDecoder().decode(CorpusFile.self, from: json)
         let entry = try #require(file.diagrams.first)
         #expect(entry.id == "multi-format-dot-simple-flow")
-        #expect(entry.expectedImporters?["graphviz"] == "Graphviz")
+        #expect(entry.expectedImporters?[.graphviz] == .graphviz)
         #expect(entry.shouldSkipSnapshot(for: "graphviz"))
         #expect(entry.hasSource(for: "graphviz"))
     }
@@ -55,8 +56,8 @@ struct DOTFixtureTests {
                         "graphviz": "digraph G {\\n  subgraph cluster_0 {\\n    label=\\"Cluster\\";\\n    A; B;\\n  }\\n}"
                     },
                     "expectedImporters": {
-                        "mermaid": "Mermaid",
-                        "graphviz": "Graphviz"
+                        "mermaid": "mermaid",
+                        "graphviz": "graphviz"
                     },
                     "skipSnapshots": ["graphviz"]
                 }
@@ -84,8 +85,8 @@ struct DOTFixtureTests {
                         "graphviz": "graph G {\\n  A -- B;\\n}"
                     },
                     "expectedImporters": {
-                        "mermaid": "Mermaid",
-                        "graphviz": "Graphviz"
+                        "mermaid": "mermaid",
+                        "graphviz": "graphviz"
                     },
                     "skipSnapshots": ["graphviz"]
                 }
@@ -112,8 +113,8 @@ struct DOTFixtureTests {
                         "graphviz": "digraph G {\\n  A [shape=record, color=red];\\n}"
                     },
                     "expectedImporters": {
-                        "mermaid": "Mermaid",
-                        "graphviz": "Graphviz"
+                        "mermaid": "mermaid",
+                        "graphviz": "graphviz"
                     },
                     "expectedDiagnostics": [
                         { "severity": "unsupported", "messageContains": "shape" }

@@ -1,4 +1,5 @@
 import Foundation
+import DiagramKitCommon
 
 /// A single entry in the diagram corpus (test-diagrams.json).
 /// Decodes both the legacy single-format schema and the new multi-format schema.
@@ -16,8 +17,10 @@ public struct CorpusEntry: Codable, Identifiable, Sendable {
     /// (e.g. "mermaid", "d2", "graphviz").
     public let sources: [String: String]?
 
-    /// Format identifier to expected importer name for routing tests.
-    public let expectedImporters: [String: String]?
+    /// Format identifier to expected importer formatID, for routing tests.
+    /// Keys are the source formats present in `sources`; values are the
+    /// formatID the registry should select.
+    public let expectedImporters: [DiagramFormatID: DiagramFormatID]?
 
     /// Expected non-fatal diagnostics.
     public let expectedDiagnostics: [ExpectedDiagnostic]?
@@ -47,7 +50,7 @@ public struct CorpusEntry: Codable, Identifiable, Sendable {
         sources = try Self.normalizedFormatMap(
             container.decodeIfPresent([String: String].self, forKey: .sources)
         )
-        expectedImporters = try Self.normalizedFormatMap(
+        expectedImporters = try Self.decodeFormatIDMap(
             container.decodeIfPresent([String: String].self, forKey: .expectedImporters)
         )
         expectedDiagnostics = try container.decodeIfPresent(
@@ -82,7 +85,12 @@ public struct CorpusEntry: Codable, Identifiable, Sendable {
         try container.encode(name, forKey: .name)
         try container.encode(source, forKey: .source)
         try container.encodeIfPresent(sources, forKey: .sources)
-        try container.encodeIfPresent(expectedImporters, forKey: .expectedImporters)
+        if let expectedImporters {
+            let stringified = Dictionary(
+                uniqueKeysWithValues: expectedImporters.map { ($0.key.rawValue, $0.value.rawValue) }
+            )
+            try container.encode(stringified, forKey: .expectedImporters)
+        }
         try container.encodeIfPresent(expectedDiagnostics, forKey: .expectedDiagnostics)
         try container.encodeIfPresent(unsupportedNote, forKey: .unsupportedNote)
         try container.encodeIfPresent(skipSnapshots, forKey: .skipSnapshots)
@@ -145,6 +153,24 @@ public struct CorpusEntry: Codable, Identifiable, Sendable {
             normalized[normalizedKey] = value
         }
         return normalized
+    }
+
+    private static func decodeFormatIDMap(
+        _ values: [String: String]?
+    ) throws -> [DiagramFormatID: DiagramFormatID]? {
+        guard let values else { return nil }
+        var result: [DiagramFormatID: DiagramFormatID] = [:]
+        for (key, value) in values {
+            let normalizedKey = normalizedFormat(key)
+            let formatKey = DiagramFormatID(rawValue: normalizedKey)
+            let normalizedValue = normalizedFormat(value)
+            let formatValue = DiagramFormatID(rawValue: normalizedValue)
+            if result[formatKey] != nil {
+                throw CorpusEntryError.duplicateFormatKey(key: normalizedKey)
+            }
+            result[formatKey] = formatValue
+        }
+        return result
     }
 }
 

@@ -1,5 +1,6 @@
 import Foundation
 import Testing
+import DiagramKitCommon
 import DiagramKitModel
 import DiagramKitImport
 import DiagramKitTestSupport
@@ -39,8 +40,8 @@ struct StructurizrCorpusFixtureTests {
                         "structurizr": "workspace {\\n  model {\\n    u = person \\\"User\\\" \\\"A user\\\"\\n    app = softwareSystem \\\"My App\\\" \\\"Core\\\"\\n    u -> app \\\"Uses\\\" \\\"HTTPS\\\"\\n  }\\n  views {\\n    systemContext app \\\"System Context\\\" {\\n      include *\\n    }\\n  }\\n}"
                     },
                     "expectedImporters": {
-                        "mermaid": "Mermaid",
-                        "structurizr": "Structurizr"
+                        "mermaid": "mermaid",
+                        "structurizr": "structurizr"
                     },
                     "skipSnapshots": ["structurizr"]
                 }
@@ -49,7 +50,7 @@ struct StructurizrCorpusFixtureTests {
         """.data(using: .utf8)!
         let entry = try decodeEntry(json)
         #expect(entry.id == "structurizr-system-context")
-        #expect(entry.expectedImporters?["structurizr"] == "Structurizr")
+        #expect(entry.expectedImporters?[.structurizr] == .structurizr)
         #expect(entry.shouldSkipSnapshot(for: "structurizr"))
 
         let (diagram, diagnostics) = try structurizrDiagram(for: entry)
@@ -75,7 +76,7 @@ struct StructurizrCorpusFixtureTests {
                         "structurizr": "workspace {\\n  model {\\n    u = person \\\"User\\\"\\n    app = softwareSystem \\\"My App\\\" {\\n      web = container \\\"Web App\\\" \\\"Public UI\\\" \\\"Spring\\\"\\n      db = container \\\"Database\\\" \\\"PostgreSQL\\\"\\n    }\\n    u -> app \\\"Uses\\\"\\n  }\\n  views {\\n    container app \\\"Container View\\\" {\\n      include *\\n    }\\n  }\\n}"
                     },
                     "expectedImporters": {
-                        "structurizr": "Structurizr"
+                        "structurizr": "structurizr"
                     },
                     "skipSnapshots": ["structurizr"]
                 }
@@ -108,7 +109,7 @@ struct StructurizrCorpusFixtureTests {
                         "structurizr": "workspace {\\n  model {\\n    u = person \\\"User\\\"\\n    app = softwareSystem \\\"My App\\\" {\\n      web = container \\\"Web App\\\" {\\n        auth = component \\\"Auth Service\\\" \\\"Handles login\\\" \\\"OAuth2\\\"\\n        api = component \\\"API Service\\\"\\n      }\\n    }\\n    u -> app \\\"Uses\\\"\\n  }\\n  views {\\n    component web \\\"Component View\\\" {\\n      include *\\n    }\\n  }\\n}"
                     },
                     "expectedImporters": {
-                        "structurizr": "Structurizr"
+                        "structurizr": "structurizr"
                     },
                     "skipSnapshots": ["structurizr"]
                 }
@@ -140,8 +141,8 @@ struct StructurizrCorpusFixtureTests {
                         "structurizr": "workspace {\\n  model {\\n    u = person \\\"User\\\"\\n    app = softwareSystem \\\"My App\\\" {\\n      web = container \\\"Web App\\\"\\n      db = container \\\"Database\\\"\\n      web -> db \\\"Queries\\\" \\\"SQL\\\"\\n    }\\n    u -> app \\\"Uses\\\"\\n  }\\n  views {\\n    container app {\\n      include *\\n    }\\n  }\\n}"
                     },
                     "expectedImporters": {
-                        "mermaid": "Mermaid",
-                        "structurizr": "Structurizr"
+                        "mermaid": "mermaid",
+                        "structurizr": "structurizr"
                     },
                     "skipSnapshots": ["structurizr"]
                 }
@@ -173,8 +174,8 @@ struct StructurizrCorpusFixtureTests {
                         "structurizr": "workspace {\\n  !include x\\n  model {\\n    node = deploymentNode \\\"AWS\\\"\\n    tags \\\"db\\\"\\n    u = person \\\"User\\\"\\n  }\\n  views {\\n    systemContext u {\\n      include *\\n      exclude y\\n    }\\n  }\\n}"
                     },
                     "expectedImporters": {
-                        "mermaid": "Mermaid",
-                        "structurizr": "Structurizr"
+                        "mermaid": "mermaid",
+                        "structurizr": "structurizr"
                     },
                     "expectedDiagnostics": [
                         { "severity": "unsupported", "messageContains": "deployment" },
@@ -262,8 +263,8 @@ struct StructurizrCorpusFixtureTests {
                         "structurizr": "workspace {\\n  model {\\n    group \\\"Group 0\\\" {\\n      u = person \\\"User\\\"\\n      app = softwareSystem \\\"My App\\\"\\n    }\\n    u -> app \\\"Uses\\\"\\n  }\\n  views {\\n    systemContext app {\\n      include *\\n    }\\n  }\\n}"
                     },
                     "expectedImporters": {
-                        "mermaid": "Mermaid",
-                        "structurizr": "Structurizr"
+                        "mermaid": "mermaid",
+                        "structurizr": "structurizr"
                     },
                     "skipSnapshots": ["structurizr"]
                 }
@@ -272,7 +273,7 @@ struct StructurizrCorpusFixtureTests {
         """.data(using: .utf8)!
         let entry = try decodeEntry(json)
         #expect(entry.id == "structurizr-5-group")
-        #expect(entry.expectedImporters?["structurizr"] == "Structurizr")
+        #expect(entry.expectedImporters?[.structurizr] == .structurizr)
 
         let (diagram, _) = try structurizrDiagram(for: entry)
         let authored = diagram.boundaries.filter { $0.origin == .authored }
