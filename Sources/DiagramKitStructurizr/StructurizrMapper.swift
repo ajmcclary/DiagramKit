@@ -30,6 +30,15 @@ public struct StructurizrMapper: Sendable {
             relationships: model.relationships
         )
 
+        // Build a stable alias for each unique group label encountered in the model.
+        var groupAliasMap: [String: String] = [:]
+        var usedGroupAliases: Set<String> = []
+        for element in registry.elementsByAlias.values {
+            guard let label = element.group, groupAliasMap[label] == nil else { continue }
+            let alias = uniqueSanitizedGroupAlias(label, used: &usedGroupAliases)
+            groupAliasMap[label] = alias
+        }
+
         // Handle views
         if workspace.views.isEmpty {
             diagnostics.append(DiagramDiagnostic(
@@ -154,13 +163,19 @@ public struct StructurizrMapper: Sendable {
                 boundaryName = "global"
             }
 
+            // Group tagging takes precedence over view-scope-derived boundaryName.
+            var effectiveBoundary = boundaryName
+            if let groupLabel = element.group, let groupAlias = groupAliasMap[groupLabel] {
+                effectiveBoundary = groupAlias
+            }
+
             let shape = C4Shape(
                 alias: element.alias,
                 label: element.name,
                 typeC4Shape: shapeType,
                 technology: element.technology,
                 description: element.description,
-                parentBoundary: boundaryName
+                parentBoundary: effectiveBoundary
             )
             c4Shapes.append(shape)
         }
@@ -179,6 +194,20 @@ public struct StructurizrMapper: Sendable {
         // the StructurizrExporter's drop diagnostic at the other end of the
         // round-trip.
         var c4Boundaries: [C4Boundary] = []
+
+        // Authored boundaries from `group "..." { ... }` (appended first so
+        // .authored entries precede .viewScopeSynthesized entries in the
+        // resulting C4Diagram.boundaries list).
+        for (label, alias) in groupAliasMap {
+            c4Boundaries.append(C4Boundary(
+                alias: alias,
+                label: label,
+                type: "group",
+                parentBoundary: "global",
+                origin: .authored
+            ))
+        }
+
         for alias in boundaryAliases {
             guard let element = registry.element(for: alias) else { continue }
 
@@ -187,7 +216,8 @@ public struct StructurizrMapper: Sendable {
                 label: element.name,
                 type: boundaryType(for: element.kind),
                 description: element.description,
-                parentBoundary: "global"
+                parentBoundary: "global",
+                origin: .viewScopeSynthesized
             )
             c4Boundaries.append(boundary)
 
@@ -283,5 +313,22 @@ public struct StructurizrMapper: Sendable {
         for child in element.children {
             checkTags(child, &diagnostics)
         }
+    }
+
+    // MARK: - group alias helper
+
+    private func uniqueSanitizedGroupAlias(
+        _ label: String,
+        used: inout Set<String>
+    ) -> String {
+        let sanitized = StructurizrC4Export.sanitizeStructurizrIdentifier(label)
+        var candidate = sanitized
+        var counter = 2
+        while used.contains(candidate) {
+            candidate = "\(sanitized)_\(counter)"
+            counter += 1
+        }
+        used.insert(candidate)
+        return candidate
     }
 }
