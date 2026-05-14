@@ -1,6 +1,7 @@
 import Foundation
 import Testing
 import DiagramKitImport
+import DiagramKitModel
 @testable import DiagramKitStructurizr
 
 @Suite("StructurizrParser group")
@@ -65,5 +66,73 @@ struct StructurizrParserGroupTests {
         let map = elementsByAlias(workspace)
         #expect(map["p1"]?.group == "A")
         #expect(map["p2"]?.group == "B")
+    }
+
+    @Test("Nested group emits .unsupported and skips inner body")
+    func nestedGroupUnsupported() throws {
+        let source = """
+        workspace {
+          model {
+            group "Outer" {
+              group "Inner" {
+                inner_p = person "Inner P"
+              }
+              outer_p = person "Outer P"
+            }
+          }
+          views {
+            systemContext outer_p {
+              include *
+            }
+          }
+        }
+        """
+        let (workspace, diagnostics) = try parse(source)
+        let map = elementsByAlias(workspace)
+        #expect(map["inner_p"] == nil)
+        #expect(map["outer_p"]?.group == "Outer")
+        #expect(diagnostics.contains { $0.message.contains("`group` cannot nest") })
+    }
+
+    @Test("group inside softwareSystem block emits .unsupported")
+    func groupInsideElementUnsupported() throws {
+        let source = """
+        workspace {
+          model {
+            app = softwareSystem "App" {
+              group "Inner" {
+                api = container "API"
+              }
+              web = container "Web"
+            }
+          }
+          views {
+            container app {
+              include *
+            }
+          }
+        }
+        """
+        let (workspace, diagnostics) = try parse(source)
+        let map = elementsByAlias(workspace)
+        #expect(map["api"] == nil)
+        #expect(map["web"] != nil)
+        #expect(diagnostics.contains { $0.message.contains("`group` inside element blocks") })
+    }
+
+    @Test("Missing label throws malformedSource")
+    func missingLabelThrows() {
+        let source = """
+        workspace {
+          model {
+            group {
+              p = person "P"
+            }
+          }
+        }
+        """
+        #expect(throws: DiagramError.self) {
+            _ = try self.parse(source)
+        }
     }
 }

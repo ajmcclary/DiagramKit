@@ -214,6 +214,13 @@ public struct StructurizrParser: Sendable {
             _ = s.advance()
             while let token = s.peek() {
                 if token == .closeBrace { break }
+                if case .identifier("group") = token {
+                    s.diagnostic("`group` inside element blocks not yet supported; dropping block")
+                    _ = s.advance() // 'group'
+                    _ = s.consumeString() // optional label
+                    if s.peek() == .openBrace { s.skipBlock() }
+                    continue
+                }
                 if case .identifier("tags") = token { s.skipTags(); continue }
                 if case .bang = token {
                     _ = s.advance()
