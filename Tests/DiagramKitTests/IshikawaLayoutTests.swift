@@ -12,7 +12,7 @@ struct IshikawaLayoutTests {
         let diagram = IshikawaDiagram(
             root: IshikawaNode(text: "Problem")
         )
-        let positioned = layoutIshikawaDiagram(diagram)
+        let (positioned, _) = layoutIshikawaDiagram(diagram)
         #expect(positioned.head != nil)
         #expect(positioned.head?.lines.count == 1)
         #expect(positioned.head?.lines[0] == "Problem")
@@ -30,7 +30,7 @@ struct IshikawaLayoutTests {
                 IshikawaNode(text: "Cause A")
             ])
         )
-        let positioned = layoutIshikawaDiagram(diagram)
+        let (positioned, _) = layoutIshikawaDiagram(diagram)
         #expect(positioned.head != nil)
         #expect(positioned.bones.contains(where: { $0.kind == .spine }))
         #expect(positioned.bones.contains(where: { $0.kind == .branch }))
@@ -49,7 +49,7 @@ struct IshikawaLayoutTests {
                 IshikawaNode(text: "Cause B")
             ])
         )
-        let positioned = layoutIshikawaDiagram(diagram)
+        let (positioned, _) = layoutIshikawaDiagram(diagram)
         #expect(positioned.bones.filter { $0.kind == .branch }.count == 2)
         let branches = positioned.bones.filter { $0.kind == .branch }
         #expect(branches.contains(where: { $0.direction == .upper }))
@@ -67,7 +67,7 @@ struct IshikawaLayoutTests {
         let diagram = IshikawaDiagram(
             root: IshikawaNode(text: "Effect", children: children)
         )
-        let positioned = layoutIshikawaDiagram(diagram)
+        let (positioned, _) = layoutIshikawaDiagram(diagram)
         let branches = positioned.bones.filter { $0.kind == .branch }
         #expect(branches.count == 6)
         let upperBranches = branches.filter { $0.direction == .upper }
@@ -88,7 +88,7 @@ struct IshikawaLayoutTests {
                 ])
             ])
         )
-        let positioned = layoutIshikawaDiagram(diagram)
+        let (positioned, _) = layoutIshikawaDiagram(diagram)
         #expect(positioned.bones.contains(where: { $0.kind == .subBranch }))
         #expect(positioned.labels.count >= 3)
         #expect(positioned.width > 0)
@@ -107,7 +107,7 @@ struct IshikawaLayoutTests {
                 IshikawaNode(text: "Cause B")
             ])
         )
-        let positioned = layoutIshikawaDiagram(diagram)
+        let (positioned, _) = layoutIshikawaDiagram(diagram)
         #expect(positioned.bones.filter { $0.kind == .branch }.count == 2)
         #expect(positioned.bones.filter { $0.kind == .subBranch }.count >= 3)
     }
@@ -120,7 +120,7 @@ struct IshikawaLayoutTests {
             root: IshikawaNode(text: "Effect"),
             config: config
         )
-        let positioned = layoutIshikawaDiagram(diagram)
+        let (positioned, _) = layoutIshikawaDiagram(diagram)
         #expect(positioned.config.diagramPadding == 50)
         #expect(positioned.viewBox.width > 0)
         #expect(positioned.viewBox.height > 0)
@@ -131,7 +131,7 @@ struct IshikawaLayoutTests {
         let diagram = IshikawaDiagram(
             root: IshikawaNode(text: "Effect")
         )
-        let positioned = layoutIshikawaDiagram(diagram)
+        let (positioned, _) = layoutIshikawaDiagram(diagram)
         let path = positioned.head?.path ?? ""
         #expect(path.contains("M"))
         #expect(path.contains("L"))
@@ -146,7 +146,7 @@ struct IshikawaLayoutTests {
                 IshikawaNode(text: "Cause A")
             ])
         )
-        let positioned = layoutIshikawaDiagram(diagram)
+        let (positioned, _) = layoutIshikawaDiagram(diagram)
         let causeLabels = positioned.labels.filter { $0.labelClass == .cause }
         #expect(causeLabels.count == 1)
         #expect(causeLabels[0].box != nil)
@@ -159,7 +159,7 @@ struct IshikawaLayoutTests {
                 IshikawaNode(text: "Cause A")
             ])
         )
-        let positioned = layoutIshikawaDiagram(diagram)
+        let (positioned, _) = layoutIshikawaDiagram(diagram)
         #expect(positioned.usesMarkerDefinition == true)
     }
 
@@ -174,7 +174,7 @@ struct IshikawaLayoutTests {
                 IshikawaNode(text: "Cause C")
             ])
         )
-        let positioned = layoutIshikawaDiagram(diagram)
+        let (positioned, _) = layoutIshikawaDiagram(diagram)
         let branches = positioned.bones.filter { $0.kind == .branch }.sorted { $0.id < $1.id }
         #expect(branches.count == 3)
 

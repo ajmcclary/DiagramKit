@@ -18,7 +18,7 @@ struct IshikawaRendererTests {
             height: 400,
             content: .ishikawa(layoutIshikawaDiagram(IshikawaDiagram(
                 root: IshikawaNode(text: "Problem")
-            )))
+            )).0)
         )
         var pixels = [UInt8](repeating: 0, count: 320 * 240 * 4)
         guard let colorSpace = CGColorSpace(name: CGColorSpace.sRGB),

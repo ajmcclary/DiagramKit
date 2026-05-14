@@ -9,7 +9,7 @@ struct IshikawaSvgTests {
 
     @Test("SVG has correct root and viewBox attributes")
     func rootSvgAttributes() throws {
-        let positioned = layoutIshikawaDiagram(IshikawaDiagram(
+        let (positioned, _) = layoutIshikawaDiagram(IshikawaDiagram(
             root: IshikawaNode(text: "Problem")
         ))
         let svg = renderIshikawaSvg(positioned, diagramId: "test-id", colors: DiagramColors(bg: "#FFF", fg: "#000"), fontFamily: "Inter", transparent: false)
@@ -20,7 +20,7 @@ struct IshikawaSvgTests {
 
     @Test("SVG contains g.ishikawa group")
     func ishikawaGroup() throws {
-        let positioned = layoutIshikawaDiagram(IshikawaDiagram(
+        let (positioned, _) = layoutIshikawaDiagram(IshikawaDiagram(
             root: IshikawaNode(text: "Problem")
         ))
         let svg = renderIshikawaSvg(positioned, diagramId: "test-id", colors: DiagramColors(bg: "#FFF", fg: "#000"), fontFamily: "Inter", transparent: false)
@@ -29,7 +29,7 @@ struct IshikawaSvgTests {
 
     @Test("SVG contains marker definition")
     func markerDefinition() throws {
-        let positioned = layoutIshikawaDiagram(IshikawaDiagram(
+        let (positioned, _) = layoutIshikawaDiagram(IshikawaDiagram(
             root: IshikawaNode(text: "Problem", children: [
                 IshikawaNode(text: "Cause A")
             ])
@@ -42,7 +42,7 @@ struct IshikawaSvgTests {
 
     @Test("SVG contains head path and label")
     func headPathAndLabel() throws {
-        let positioned = layoutIshikawaDiagram(IshikawaDiagram(
+        let (positioned, _) = layoutIshikawaDiagram(IshikawaDiagram(
             root: IshikawaNode(text: "Problem")
         ))
         let svg = renderIshikawaSvg(positioned, diagramId: "test-id", colors: DiagramColors(bg: "#FFF", fg: "#000"), fontFamily: "Inter", transparent: false)
@@ -53,7 +53,7 @@ struct IshikawaSvgTests {
 
     @Test("SVG contains spine line")
     func spineLine() throws {
-        let positioned = layoutIshikawaDiagram(IshikawaDiagram(
+        let (positioned, _) = layoutIshikawaDiagram(IshikawaDiagram(
             root: IshikawaNode(text: "Problem", children: [
                 IshikawaNode(text: "Cause A")
             ])
@@ -64,7 +64,7 @@ struct IshikawaSvgTests {
 
     @Test("SVG contains branch lines with marker-start")
     func branchLinesWithMarkers() throws {
-        let positioned = layoutIshikawaDiagram(IshikawaDiagram(
+        let (positioned, _) = layoutIshikawaDiagram(IshikawaDiagram(
             root: IshikawaNode(text: "Problem", children: [
                 IshikawaNode(text: "Cause A"),
                 IshikawaNode(text: "Cause B")
@@ -77,7 +77,7 @@ struct IshikawaSvgTests {
 
     @Test("SVG contains sub-branch lines for nested causes")
     func subBranchLines() throws {
-        let positioned = layoutIshikawaDiagram(IshikawaDiagram(
+        let (positioned, _) = layoutIshikawaDiagram(IshikawaDiagram(
             root: IshikawaNode(text: "Problem", children: [
                 IshikawaNode(text: "Cause A", children: [
                     IshikawaNode(text: "Sub A1")
@@ -90,7 +90,7 @@ struct IshikawaSvgTests {
 
     @Test("SVG contains label box rect for top-level causes")
     func labelBoxRects() throws {
-        let positioned = layoutIshikawaDiagram(IshikawaDiagram(
+        let (positioned, _) = layoutIshikawaDiagram(IshikawaDiagram(
             root: IshikawaNode(text: "Problem", children: [
                 IshikawaNode(text: "Cause A")
             ])
@@ -101,7 +101,7 @@ struct IshikawaSvgTests {
 
     @Test("SVG contains cause label with correct class")
     func causeLabelClass() throws {
-        let positioned = layoutIshikawaDiagram(IshikawaDiagram(
+        let (positioned, _) = layoutIshikawaDiagram(IshikawaDiagram(
             root: IshikawaNode(text: "Problem", children: [
                 IshikawaNode(text: "Cause A")
             ])
@@ -112,7 +112,7 @@ struct IshikawaSvgTests {
 
     @Test("SVG contains sub-label with align class for even-depth")
     func subLabelAlignClass() throws {
-        let positioned = layoutIshikawaDiagram(IshikawaDiagram(
+        let (positioned, _) = layoutIshikawaDiagram(IshikawaDiagram(
             root: IshikawaNode(text: "Problem", children: [
                 IshikawaNode(text: "Cause A", children: [
                     IshikawaNode(text: "Sub A1")
@@ -125,7 +125,7 @@ struct IshikawaSvgTests {
 
     @Test("SVG contains tspan elements for multiline text")
     func tspanElements() throws {
-        let positioned = layoutIshikawaDiagram(IshikawaDiagram(
+        let (positioned, _) = layoutIshikawaDiagram(IshikawaDiagram(
             root: IshikawaNode(text: "Problem")
         ))
         let svg = renderIshikawaSvg(positioned, diagramId: "test-id", colors: DiagramColors(bg: "#FFF", fg: "#000"), fontFamily: "Inter", transparent: false)
@@ -134,7 +134,7 @@ struct IshikawaSvgTests {
 
     @Test("Head label tspan uses local x after group transform")
     func headLabelTspanUsesLocalX() throws {
-        let positioned = layoutIshikawaDiagram(IshikawaDiagram(
+        let (positioned, _) = layoutIshikawaDiagram(IshikawaDiagram(
             root: IshikawaNode(text: "Problem")
         ))
         let svg = renderIshikawaSvg(positioned, diagramId: "test-id", colors: DiagramColors(bg: "#FFF", fg: "#000"), fontFamily: "Inter", transparent: false)
@@ -145,7 +145,7 @@ struct IshikawaSvgTests {
     @Test("SVG applies useMaxWidth sizing")
     func useMaxWidthSizing() throws {
         let config = IshikawaDiagramConfig(useMaxWidth: true)
-        let positioned = layoutIshikawaDiagram(IshikawaDiagram(
+        let (positioned, _) = layoutIshikawaDiagram(IshikawaDiagram(
             root: IshikawaNode(text: "Problem", children: [
                 IshikawaNode(text: "Cause A")
             ]),
@@ -158,7 +158,7 @@ struct IshikawaSvgTests {
 
     @Test("SVG groups branch pairs and sub-branches with labels")
     func pairAndSubBranchGrouping() throws {
-        let positioned = layoutIshikawaDiagram(IshikawaDiagram(
+        let (positioned, _) = layoutIshikawaDiagram(IshikawaDiagram(
             root: IshikawaNode(text: "Problem", children: [
                 IshikawaNode(text: "Cause A", children: [
                     IshikawaNode(text: "Sub A1")
@@ -173,7 +173,7 @@ struct IshikawaSvgTests {
 
     @Test("SVG escapes XML special characters")
     func xmlEscaping() throws {
-        let positioned = layoutIshikawaDiagram(IshikawaDiagram(
+        let (positioned, _) = layoutIshikawaDiagram(IshikawaDiagram(
             root: IshikawaNode(text: "A < B & C > D")
         ))
         let svg = renderIshikawaSvg(positioned, diagramId: "test-id", colors: DiagramColors(bg: "#FFF", fg: "#000"), fontFamily: "Inter", transparent: false)

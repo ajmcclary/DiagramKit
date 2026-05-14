@@ -20,7 +20,7 @@ extension DiagramRegistry {
             guard case let .ishikawa(value) = payload else { return nil }
             return value
         },
-        layout: { diagram, _ in
+        layoutWithDiagnostics: { diagram, _ in
             #if canImport(CoreText)
             return layoutIshikawaDiagram(diagram)
             #else

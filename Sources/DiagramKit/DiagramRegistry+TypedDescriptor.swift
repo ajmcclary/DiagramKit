@@ -72,4 +72,34 @@ extension DiagramRegistry {
             }
         )
     }
+
+    /// `_typed` variant where the family layout returns a
+    /// `(Positioned, [DiagramDiagnostic])` tuple. Used by families that emit
+    /// non-fatal diagnostics during layout (Ishikawa recursion truncation,
+    /// gitGraph parallelCommits missing-position fallback, etc.).
+    static func _typed<Parsed: Sendable, Positioned: Sendable>(
+        type: DiagramType,
+        matches: @escaping @Sendable (DiagramHeader) -> Bool,
+        parse: @escaping @Sendable (String, DiagramFrontmatter?) throws -> Parsed,
+        wrap: @escaping @Sendable (Parsed) -> DiagramPayload,
+        unwrap: @escaping @Sendable (DiagramPayload) -> Parsed?,
+        layoutWithDiagnostics: @escaping @Sendable (Parsed, LayoutConfig) throws -> (Positioned, [DiagramDiagnostic]),
+        positioned: @escaping @Sendable (DiagramDocument, Positioned) -> PositionedGraph
+    ) -> DiagramDescriptor {
+        DiagramDescriptor(
+            type: type,
+            matches: matches,
+            parse: { source, fm in
+                let parsed = try parse(source, fm)
+                return (DiagramDocument(payload: wrap(parsed)), [])
+            },
+            layout: { graph, config in
+                guard let parsed = unwrap(graph.payload) else {
+                    throw DiagramStructuralError.payloadMismatch(type)
+                }
+                let (positionedValue, diagnostics) = try layoutWithDiagnostics(parsed, config)
+                return (positioned(graph, positionedValue), diagnostics)
+            }
+        )
+    }
 }

@@ -10,6 +10,16 @@ import CoreText
 // MARK: - Layout Constants
 
 private let FONT_SIZE_DEFAULT: Double = 14
+
+/// Mutable accumulator for Ishikawa layout-time diagnostics. Mirrors
+/// `_LayoutDiagnostics` from `src_layout.swift`; `@unchecked Sendable` is
+/// safe because each layout call runs on a single 8 MB worker thread.
+final class _IshikawaDiagnostics: @unchecked Sendable {
+    var items: [DiagramDiagnostic] = []
+    func warn(_ message: String) {
+        items.append(DiagramDiagnostic(severity: .warning, message: message, location: nil))
+    }
+}
 private let SPINE_BASE_LENGTH: Double = 250
 private let BONE_STUB: Double = 30
 private let BONE_BASE: Double = 60
@@ -123,13 +133,13 @@ private struct _IshikawaBoneInfo {
 /// reports a diagnostic and stops the walk gracefully.
 private let _MAX_ISHIKAWA_RECURSION_DEPTH = 1024
 
-private func _flattenIshikawaTree(_ children: [IshikawaNode], direction: Int) -> (entries: [_IshikawaLabelEntry], yOrder: [Int]) {
+private func _flattenIshikawaTree(_ children: [IshikawaNode], direction: Int, diagnostics: _IshikawaDiagnostics? = nil) -> (entries: [_IshikawaLabelEntry], yOrder: [Int]) {
     var entries: [_IshikawaLabelEntry] = []
     var yOrder: [Int] = []
 
     func walk(_ nodes: [IshikawaNode], pid: Int, depth: Int) {
         if depth >= _MAX_ISHIKAWA_RECURSION_DEPTH {
-            _reportDiagramIssue("Ishikawa recursion depth exceeded \(_MAX_ISHIKAWA_RECURSION_DEPTH); truncating tree walk.")
+            diagnostics?.warn("Ishikawa recursion depth exceeded \(_MAX_ISHIKAWA_RECURSION_DEPTH); truncating tree walk.")
             return
         }
         let ordered = direction == -1 ? Array(nodes.reversed()) : nodes
@@ -218,11 +228,17 @@ private func _ishikawaLabelBottomEdge(_ label: PositionedIshikawaLabel) -> Doubl
 
 // MARK: - Public layout
 
-public func layoutIshikawaDiagram(_ diagram: IshikawaDiagram) -> PositionedIshikawaDiagram {
-    return _layoutIshikawa(diagram, fontSize: FONT_SIZE_DEFAULT)
+public func layoutIshikawaDiagram(_ diagram: IshikawaDiagram) -> (PositionedIshikawaDiagram, [DiagramDiagnostic]) {
+    let bag = _IshikawaDiagnostics()
+    let positioned = _layoutIshikawaInternal(diagram, fontSize: FONT_SIZE_DEFAULT, diagnostics: bag)
+    return (positioned, bag.items)
 }
 
 public func _layoutIshikawa(_ diagram: IshikawaDiagram, fontSize: Double) -> PositionedIshikawaDiagram {
+    _layoutIshikawaInternal(diagram, fontSize: fontSize, diagnostics: nil)
+}
+
+func _layoutIshikawaInternal(_ diagram: IshikawaDiagram, fontSize: Double, diagnostics: _IshikawaDiagnostics? = nil) -> PositionedIshikawaDiagram {
     var result = PositionedIshikawaDiagram(config: diagram.config)
     result.diagramTitle = diagram.diagramTitle
     result.accTitle = diagram.accTitle
@@ -323,12 +339,12 @@ public func _layoutIshikawa(_ diagram: IshikawaDiagram, fontSize: Double) -> Pos
 
         if let cause = upperCause {
             _drawBranch(&bones, &labels, &boneId, node: cause, startX: spineX, startY: spineY,
-                        direction: -1, length: upperLen, fontSize: fontSize)
+                        direction: -1, length: upperLen, fontSize: fontSize, diagnostics: diagnostics)
         }
 
         if let cause = lowerCause {
             _drawBranch(&bones, &labels, &boneId, node: cause, startX: spineX, startY: spineY,
-                        direction: 1, length: lowerLen, fontSize: fontSize)
+                        direction: 1, length: lowerLen, fontSize: fontSize, diagnostics: diagnostics)
         }
 
         for label in labels[pairLabelStart..<labels.count] {
@@ -383,7 +399,8 @@ private func _drawBranch(
     startY: Double,
     direction: Int,
     length: Double,
-    fontSize: Double
+    fontSize: Double,
+    diagnostics: _IshikawaDiagnostics? = nil
 ) -> [PositionedIshikawaBone] {
     let children = node.children
     let lineLen = length * (children.isEmpty ? 0.2 : 1.0)
@@ -430,7 +447,7 @@ private func _drawBranch(
         return [branchBone]
     }
 
-    let (entries, yOrder) = _flattenIshikawaTree(children, direction: direction)
+    let (entries, yOrder) = _flattenIshikawaTree(children, direction: direction, diagnostics: diagnostics)
     let entryCount = entries.count
     var ys = Array(repeating: 0.0, count: entryCount)
     for (slot, entryIdx) in yOrder.enumerated() {
