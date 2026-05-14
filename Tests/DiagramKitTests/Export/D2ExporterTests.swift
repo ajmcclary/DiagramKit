@@ -1,4 +1,5 @@
 import Testing
+import DiagramKitCommon
 import DiagramKitModel
 import DiagramKitD2
 
@@ -93,5 +94,26 @@ import DiagramKitD2
         let result = try D2Exporter().export(doc)
         #expect(!result.source.isEmpty)
         #expect(result.source.contains("direction:"))
+    }
+
+    @Test("D2 flowchart with subgraph surfaces a .warning diagnostic (drop disclosure)")
+    func subgraphProducesWarning() throws {
+        let graph = ParsedGraphModel(
+            direction: .TD,
+            nodesInOrder: [
+                (id: "A", node: original_src_types.MermaidNode(id: "A", label: "A", shape: .rectangle)),
+                (id: "B", node: original_src_types.MermaidNode(id: "B", label: "B", shape: .rectangle))
+            ],
+            edges: [original_src_types.MermaidEdge(source: "A", target: "B", style: .solid)],
+            subgraphs: [
+                original_src_types.MermaidSubgraph(
+                    id: "cluster1",
+                    label: "Cluster One",
+                    nodeIds: ["A", "B"]
+                )
+            ]
+        )
+        let result = try D2Exporter().export(DiagramDocument(payload: .flowchart(graph)))
+        #expect(result.diagnostics.contains { $0.severity == .warning && $0.message.contains("cluster1") })
     }
 }

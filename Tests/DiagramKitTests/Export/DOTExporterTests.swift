@@ -102,4 +102,25 @@ import DiagramKit
         #expect(reparsedGraph.edges.first?.target == "B")
         #expect(reparsedGraph.edges.first?.label == "go")
     }
+
+    @Test("DOT flowchart with subgraph surfaces a .warning diagnostic (drop disclosure)")
+    func subgraphProducesWarning() throws {
+        let graph = ParsedGraphModel(
+            direction: .TD,
+            nodesInOrder: [
+                (id: "A", node: original_src_types.MermaidNode(id: "A", label: "A", shape: .rectangle)),
+                (id: "B", node: original_src_types.MermaidNode(id: "B", label: "B", shape: .rectangle))
+            ],
+            edges: [original_src_types.MermaidEdge(source: "A", target: "B", style: .solid)],
+            subgraphs: [
+                original_src_types.MermaidSubgraph(
+                    id: "cluster1",
+                    label: "Cluster One",
+                    nodeIds: ["A", "B"]
+                )
+            ]
+        )
+        let result = try DOTExporter().export(DiagramDocument(payload: .flowchart(graph)))
+        #expect(result.diagnostics.contains { $0.severity == .warning && $0.message.contains("cluster1") })
+    }
 }

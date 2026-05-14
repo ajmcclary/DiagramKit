@@ -8,10 +8,10 @@ enum DOTFlowchartExport {
 
     static func emit(_ model: ParsedGraphModel, title: String? = nil) throws -> DiagramExportResult {
         var sink = DOTFlowchartExportSink()
-        FlowchartExportWalker.walk(model, title: title, into: &sink)
+        let diagnostics = FlowchartExportWalker.walk(model, title: title, into: &sink)
         return DiagramExportResult(
             source: sink.lines.joined(separator: "\n"),
-            diagnostics: []
+            diagnostics: diagnostics
         )
     }
 

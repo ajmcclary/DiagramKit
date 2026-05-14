@@ -42,10 +42,10 @@ enum D2FlowchartExport {
 
     static func emit(_ model: ParsedGraphModel, title: String? = nil) throws -> DiagramExportResult {
         var sink = D2FlowchartExportSink()
-        FlowchartExportWalker.walk(model, title: title, into: &sink)
+        let diagnostics = FlowchartExportWalker.walk(model, title: title, into: &sink)
         return DiagramExportResult(
             source: sink.lines.joined(separator: "\n") + "\n",
-            diagnostics: []
+            diagnostics: diagnostics
         )
     }
 
