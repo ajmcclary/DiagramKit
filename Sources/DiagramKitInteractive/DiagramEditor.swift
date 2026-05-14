@@ -1,6 +1,7 @@
 // Phase 9: Interactive Model — Slice 9B
 // Core DiagramEditor class.
 
+import DiagramKitCommon
 import DiagramKitModel
 import DiagramKitExport
 import DiagramKitImport

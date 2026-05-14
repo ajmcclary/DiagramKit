@@ -1,6 +1,7 @@
 // Phase 9: Interactive Model Tests — DiagramEditor initialization and selection
 
 import Testing
+import DiagramKitCommon
 import DiagramKitModel
 import DiagramKitExport
 import DiagramKitImport

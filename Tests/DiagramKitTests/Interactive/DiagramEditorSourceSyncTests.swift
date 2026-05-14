@@ -2,6 +2,7 @@
 
 import Testing
 import DiagramKit
+import DiagramKitCommon
 import DiagramKitModel
 import DiagramKitExport
 import DiagramKitImport

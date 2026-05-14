@@ -1,4 +1,5 @@
 import Testing
+import DiagramKitCommon
 import DiagramKitModel
 import DiagramKitImport
 import DiagramKitExport

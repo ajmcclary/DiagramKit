@@ -1,3 +1,4 @@
+import DiagramKitCommon
 import DiagramKitModel
 
 /// A collection of format exporters, keyed by `DiagramFormatID`.

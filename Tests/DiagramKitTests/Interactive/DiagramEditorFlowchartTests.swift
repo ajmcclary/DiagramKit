@@ -1,6 +1,7 @@
 // Phase 9: Interactive Model Tests — Flowchart-specific mutations
 
 import Testing
+import DiagramKitCommon
 import DiagramKitModel
 import DiagramKitExport
 import DiagramKitImport
