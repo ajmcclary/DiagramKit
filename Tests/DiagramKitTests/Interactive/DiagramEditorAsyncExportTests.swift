@@ -78,6 +78,29 @@ struct DiagramEditorAsyncExportTests {
         }
     }
 
+    @Test("Cancelling the outer Task does not abort the in-flight commit")
+    func cancellationIsolation() async throws {
+        let editor = makeEditor(["A"])
+
+        let task = Task { @MainActor in
+            try await editor.performFlowchart(.insertNode(id: "B", label: "B"))
+        }
+        // Let the inner Task start the worker hop, then cancel the outer.
+        try await Task.sleep(for: .milliseconds(10))
+        task.cancel()
+        _ = try? await task.value
+
+        // Drain any continuation work.
+        try await Task.sleep(for: .milliseconds(50))
+
+        guard case .flowchart(let model) = editor.document.payload else {
+            #expect(Bool(false), "expected flowchart")
+            return
+        }
+        #expect(model.nodesInOrder.map(\.id).contains("B"))
+        #expect(editor.isExporting == false)
+    }
+
     @Test("A throwing exporter leaves document, source, and undo stack untouched")
     func atomicityUnderExporterThrow() async throws {
         struct FailingExporter: DiagramExporter {
