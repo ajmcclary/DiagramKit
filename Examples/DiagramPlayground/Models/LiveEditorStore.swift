@@ -294,6 +294,11 @@ public final class LiveEditorStore {
         commitCurrentStateToPreview()
         renderGeneration &+= 1
         renderStatus = .rendering
+        // Clear any stale parseError — leaving it set would draw the
+        // overlay atop a fresh render until completion. The eventual
+        // `didCompleteRender(...)` reassigns from the layer's actual
+        // post-parse state.
+        parseError = nil
     }
 
     /// Trigger a render in manual update mode.

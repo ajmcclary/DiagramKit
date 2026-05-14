@@ -43,7 +43,12 @@ public final class DiagramEditor {
 
     /// The preferred export format for source sync.
     /// Mutations re-export through this format via `DiagramExportLoader`.
-    public let preferredExportFormat: DiagramFormatID
+    ///
+    /// Made `var` so a host can swap formats mid-edit without rebuilding
+    /// the editor. Setting this does not re-export the current document
+    /// — call `syncSource()` afterwards if the source string should
+    /// reflect the new format immediately.
+    public var preferredExportFormat: DiagramFormatID
 
     /// The exporter registry used for source sync.
     public let exportRegistry: ExporterRegistry

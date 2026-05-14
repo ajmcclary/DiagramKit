@@ -271,7 +271,9 @@ private struct InsertNodeSection: View {
     @SwiftUI.State private var idDraft: String = ""
     @SwiftUI.State private var labelDraft: String = ""
     @SwiftUI.State private var shape: ShapeChoice = .rectangle
-    @SwiftUI.State private var localError: String?
+    // Mutation errors are surfaced from `store.lastMutationError` so the
+    // single source of truth (the store) drives the UI. Previously this
+    // pane mirrored the error locally too, producing duplicate display.
 
     enum ShapeChoice: String, CaseIterable, Identifiable {
         case rectangle, round, stadium, circle, rhombus
@@ -306,11 +308,6 @@ private struct InsertNodeSection: View {
                 }
                 .disabled(labelDraft.trimmingCharacters(in: .whitespaces).isEmpty)
             }
-            if let localError {
-                Text(localError)
-                    .font(.system(size: 10))
-                    .foregroundColor(.orange)
-            }
         }
     }
 
@@ -322,9 +319,8 @@ private struct InsertNodeSection: View {
             try store.performFlowchartMutation(.insertNode(id: id, label: labelDraft, type: shape.rawValue))
             idDraft = ""
             labelDraft = ""
-            localError = nil
         } catch {
-            localError = error.localizedDescription
+            // Error already surfaced via `store.lastMutationError`.
         }
     }
 
@@ -347,7 +343,8 @@ private struct InsertEdgeSection: View {
     @SwiftUI.State private var toID: String?
     @SwiftUI.State private var labelDraft: String = ""
     @SwiftUI.State private var idDraft: String = ""
-    @SwiftUI.State private var localError: String?
+    // Mutation errors are surfaced from `store.lastMutationError` —
+    // see InsertNodeSection for rationale.
 
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
@@ -371,11 +368,6 @@ private struct InsertEdgeSection: View {
                     insert()
                 }
                 .disabled(fromID == nil || toID == nil)
-            }
-            if let localError {
-                Text(localError)
-                    .font(.system(size: 10))
-                    .foregroundColor(.orange)
             }
         }
         .onAppear { seedFromCurrentSelection() }
@@ -441,9 +433,8 @@ private struct InsertEdgeSection: View {
             idDraft = ""
             self.fromID = nil
             self.toID = nil
-            localError = nil
         } catch {
-            localError = error.localizedDescription
+            // Error already surfaced via `store.lastMutationError`.
         }
     }
 }
