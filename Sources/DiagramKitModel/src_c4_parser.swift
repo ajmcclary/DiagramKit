@@ -1,4 +1,5 @@
 import Foundation
+import DiagramKitCommon
 
 // MARK: - C4 Parser (Line-oriented macro parser)
 
@@ -8,12 +9,24 @@ import Foundation
 ///   - frontmatter: Optional frontmatter with C4 config overrides
 /// - Returns: A parsed `C4Diagram`
 public func parseC4Diagram(_ lines: [String], frontmatter: DiagramFrontmatter? = nil) throws -> C4Diagram {
+    let (diagram, _) = try _parseC4DiagramWithDiagnostics(lines, frontmatter: frontmatter)
+    return diagram
+}
+
+/// SPI variant of `parseC4Diagram` that also returns the diagnostics produced
+/// during the parse pass. Used by registry call sites that route diagnostics
+/// upward, and by tests that assert on the warning surface.
+public func _parseC4DiagramWithDiagnostics(
+    _ lines: [String],
+    frontmatter: DiagramFrontmatter? = nil
+) throws -> (C4Diagram, [DiagramDiagnostic]) {
     var diagram = C4Diagram()
     if let fm = frontmatter {
         if let cfg = fm.c4Config { diagram.config = cfg }
         if diagram.title == nil, let fmTitle = fm.diagramTitle { diagram.title = fmTitle }
     }
 
+    var diagnostics: [DiagramDiagnostic] = []
     var shapes: [C4Shape] = []
     var boundaries: [C4Boundary] = [
         C4Boundary(alias: "global", label: "global", type: "global", parentBoundary: "")
@@ -262,7 +275,7 @@ public func parseC4Diagram(_ lines: [String], frontmatter: DiagramFrontmatter? =
     diagram.boundaries = boundaries
     diagram.relationships = relationships
 
-    return diagram
+    return (diagram, diagnostics)
 }
 
 // MARK: - Argument Parsing
@@ -419,6 +432,56 @@ private func _findMatchingParen(_ s: String, from start: String.Index) -> String
         idx = s.index(after: idx)
     }
     return nil
+}
+
+// MARK: - Boundary resolution helpers
+
+/// Resolve the effective parent boundary for a C4 macro, preferring the
+/// `$boundary=` (shapes) or `$parent=` (boundaries / deployment nodes)
+/// named arg over the lexical-stack value. Emits a `.warning` when the
+/// named arg conflicts with a non-`global` enclosing scope.
+private func _resolveParentBoundary(
+    named: [String: String],
+    lexical: String,
+    key: String,
+    macroName: String,
+    alias: String,
+    diagnostics: inout [DiagramDiagnostic]
+) -> String {
+    guard let namedValue = named[key], !namedValue.isEmpty else {
+        return lexical
+    }
+    if lexical != "global" && lexical != namedValue {
+        diagnostics.append(DiagramDiagnostic(
+            severity: .warning,
+            message: "Mermaid C4 \(macroName)(\(alias)) named arg \(key)=\(namedValue) overrides enclosing \(lexical) — using named value"
+        ))
+    }
+    return namedValue
+}
+
+/// Walk the fully-populated shapes and boundaries arrays and emit a
+/// `.warning` for any `parentBoundary` value that doesn't resolve to a
+/// known boundary alias. `"global"` and `""` are the documented sentinels
+/// for the synthetic root.
+private func _validateBoundaryReferences(
+    shapes: [C4Shape],
+    boundaries: [C4Boundary],
+    diagnostics: inout [DiagramDiagnostic]
+) {
+    let known: Set<String> = Set(boundaries.map(\.alias)).union(["global", ""])
+    for s in shapes where !known.contains(s.parentBoundary) {
+        diagnostics.append(DiagramDiagnostic(
+            severity: .warning,
+            message: "Mermaid C4 shape '\(s.alias)' parentBoundary=\(s.parentBoundary) references undefined boundary"
+        ))
+    }
+    for b in boundaries where !known.contains(b.parentBoundary) {
+        diagnostics.append(DiagramDiagnostic(
+            severity: .warning,
+            message: "Mermaid C4 boundary '\(b.alias)' parentBoundary=\(b.parentBoundary) references undefined boundary"
+        ))
+    }
 }
 
 // MARK: - DB Functions
