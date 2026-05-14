@@ -37,20 +37,42 @@ enum MermaidC4Export {
             let desc = shape.description ?? ""
             let tech = shape.technology ?? ""
 
+            // Mermaid C4 macros are positional and shape-family-dependent
+            // (see C4ShapeType.hasTechnologySlot):
+            //   Person/System:     (alias, label, descr?)
+            //   Container/Component: (alias, label, techn?, descr?)
             var shapeLine: String
-
-            if !desc.isEmpty && !tech.isEmpty {
-                let (qd, _) = MermaidExportHelpers.quote(desc)
-                let (qt, _) = MermaidExportHelpers.quote(tech)
-                shapeLine = "  \(shapeFunc)(\(sanitizedAlias), \(ql), \(qd), \(qt))"
-            } else if !desc.isEmpty {
-                let (qd, _) = MermaidExportHelpers.quote(desc)
-                shapeLine = "  \(shapeFunc)(\(sanitizedAlias), \(ql), \(qd))"
-            } else if !tech.isEmpty {
-                let (qt, _) = MermaidExportHelpers.quote(tech)
-                shapeLine = "  \(shapeFunc)(\(sanitizedAlias), \(ql), \(qt))"
+            if shape.typeC4Shape.hasTechnologySlot {
+                if !desc.isEmpty && !tech.isEmpty {
+                    let (qt, _) = MermaidExportHelpers.quote(tech)
+                    let (qd, _) = MermaidExportHelpers.quote(desc)
+                    shapeLine = "  \(shapeFunc)(\(sanitizedAlias), \(ql), \(qt), \(qd))"
+                } else if !tech.isEmpty {
+                    let (qt, _) = MermaidExportHelpers.quote(tech)
+                    shapeLine = "  \(shapeFunc)(\(sanitizedAlias), \(ql), \(qt))"
+                } else if !desc.isEmpty {
+                    // Description but no technology: emit empty techn placeholder
+                    // so Mermaid's parser routes the text into descr (slot 3).
+                    let (qd, _) = MermaidExportHelpers.quote(desc)
+                    shapeLine = "  \(shapeFunc)(\(sanitizedAlias), \(ql), \"\", \(qd))"
+                } else {
+                    shapeLine = "  \(shapeFunc)(\(sanitizedAlias), \(ql))"
+                }
             } else {
-                shapeLine = "  \(shapeFunc)(\(sanitizedAlias), \(ql))"
+                // Person/System: no positional technology slot. Drop technology
+                // with an .info diagnostic so users know it didn't survive.
+                if !desc.isEmpty {
+                    let (qd, _) = MermaidExportHelpers.quote(desc)
+                    shapeLine = "  \(shapeFunc)(\(sanitizedAlias), \(ql), \(qd))"
+                } else {
+                    shapeLine = "  \(shapeFunc)(\(sanitizedAlias), \(ql))"
+                }
+                if !tech.isEmpty {
+                    diagnostics.append(DiagramDiagnostic(
+                        severity: .info,
+                        message: "Mermaid C4 \(shapeFunc) has no positional technology slot; dropping technology '\(tech)' for alias '\(shape.alias)'"
+                    ))
+                }
             }
 
             // Tags

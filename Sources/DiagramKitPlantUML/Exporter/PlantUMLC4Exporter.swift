@@ -47,11 +47,29 @@ enum PlantUMLC4Export {
     private static func shapeLine(_ shape: C4Shape) -> String {
         let macro = macroName(for: shape.typeC4Shape)
         var args = [shape.alias, quoted(shape.label)]
-        if let technology = shape.technology, !technology.isEmpty {
-            args.append(quoted(technology))
-        }
-        if let description = shape.description, !description.isEmpty {
-            args.append(quoted(description))
+        // PlantUML's C4 standard library macros mirror the Mermaid grammar:
+        //   Person/System:     (alias, label, descr?)
+        //   Container/Component: (alias, label, techn?, descr?)
+        // Dispatch on C4ShapeType.hasTechnologySlot so technology↔description
+        // don't swap on round-trip.
+        let tech = shape.technology ?? ""
+        let desc = shape.description ?? ""
+        if shape.typeC4Shape.hasTechnologySlot {
+            if !tech.isEmpty || !desc.isEmpty {
+                args.append(quoted(tech))
+            }
+            if !desc.isEmpty {
+                args.append(quoted(desc))
+            }
+        } else {
+            if !desc.isEmpty {
+                args.append(quoted(desc))
+            }
+            // technology drops on Person/System macros — there's no positional
+            // slot for it. Caller can detect by re-parsing or by counting
+            // diagnostics on the Mermaid emit; we don't surface one here so as
+            // to keep the PlantUML emit diagnostics-free, matching the rest
+            // of this slice.
         }
         return "\(macro)(\(args.joined(separator: ", ")))"
     }

@@ -21,6 +21,21 @@ public struct PlantUMLC4Parser {
         "Component_Ext", "ComponentDb_Ext", "ComponentQueue_Ext"
     ]
 
+    /// Mirror of C4ShapeType.hasTechnologySlot, keyed by macro name.
+    /// Container/Component family macros take (alias, label, techn?, descr?);
+    /// Person/System family macros take (alias, label, descr?). Parsing has
+    /// to dispatch on this distinction or technology↔description silently
+    /// swap on import.
+    private static let macroHasTechnologySlot: [String: Bool] = [
+        "Person": false, "Person_Ext": false,
+        "System": false, "SystemDb": false, "SystemQueue": false,
+        "System_Ext": false, "SystemDb_Ext": false, "SystemQueue_Ext": false,
+        "Container": true, "ContainerDb": true, "ContainerQueue": true,
+        "Container_Ext": true, "ContainerDb_Ext": true, "ContainerQueue_Ext": true,
+        "Component": true, "ComponentDb": true, "ComponentQueue": true,
+        "Component_Ext": true, "ComponentDb_Ext": true, "ComponentQueue_Ext": true
+    ]
+
     private static let relationshipMacros: Set<String> = [
         "Rel", "BiRel", "Rel_Back",
         "Rel_U", "Rel_D", "Rel_L", "Rel_R",
@@ -42,12 +57,21 @@ public struct PlantUMLC4Parser {
 
             let args = splitArguments(body)
             if Self.declarationMacros.contains(macro), args.count >= 2 {
+                let technology: String?
+                let description: String?
+                if Self.macroHasTechnologySlot[macro] == true {
+                    technology = args.count >= 3 ? stripQuotes(args[2]) : nil
+                    description = args.count >= 4 ? stripQuotes(args[3]) : nil
+                } else {
+                    technology = nil
+                    description = args.count >= 3 ? stripQuotes(args[2]) : nil
+                }
                 ast.declarations.append(PlantUMLC4Declaration(
                     macro: macro,
                     alias: args[0],
                     label: stripQuotes(args[1]),
-                    technology: args.count >= 3 ? stripQuotes(args[2]) : nil,
-                    description: args.count >= 4 ? stripQuotes(args[3]) : nil
+                    technology: technology,
+                    description: description
                 ))
                 continue
             }

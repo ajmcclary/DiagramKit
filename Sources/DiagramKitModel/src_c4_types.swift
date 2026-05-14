@@ -36,6 +36,26 @@ public enum C4ShapeType: String, Sendable, Equatable, CaseIterable {
     case external_component
     case external_component_db
     case external_component_queue
+
+    // C4 macro families have shape-type-dependent positional grammars in both
+    // Mermaid (src_c4_parser.swift) and PlantUML's standard library:
+    //   Person/System macros:    (alias, label, descr?, ...)
+    //   Container/Component:     (alias, label, techn?, descr?, ...)
+    // Exporters and parsers must dispatch on this distinction or
+    // technology↔description silently swap on round-trip.
+    public var hasTechnologySlot: Bool {
+        switch self {
+        case .container, .container_db, .container_queue,
+             .external_container, .external_container_db, .external_container_queue,
+             .component, .component_db, .component_queue,
+             .external_component, .external_component_db, .external_component_queue:
+            return true
+        case .person, .external_person,
+             .system, .system_db, .system_queue,
+             .external_system, .external_system_db, .external_system_queue:
+            return false
+        }
+    }
 }
 
 // MARK: - C4 Relationship Kind
