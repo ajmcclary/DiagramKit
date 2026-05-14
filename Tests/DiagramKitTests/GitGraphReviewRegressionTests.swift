@@ -69,7 +69,7 @@ final class GitGraphReviewRegressionTests: XCTestCase {
            commit id:"B"
            commit id:"C"
         """)
-        let positioned = layoutGitGraph(diagram)
+        let (positioned, _) = layoutGitGraph(diagram)
         let byID = Dictionary(uniqueKeysWithValues: positioned.commits.map { ($0.id, $0) })
 
         XCTAssertGreaterThan(byID["A"]!.y, byID["B"]!.y)
@@ -81,7 +81,7 @@ final class GitGraphReviewRegressionTests: XCTestCase {
         gitGraph
            commit id:"A" tag:"v1.0"
         """)
-        let svg = renderGitGraphSvg(layoutGitGraph(diagram))
+        let svg = renderGitGraphSvg(layoutGitGraph(diagram).0)
 
         XCTAssertTrue(svg.contains("class=\"tag-label-bkg\""))
         XCTAssertTrue(svg.contains("class=\"tag-hole\""))
@@ -97,7 +97,7 @@ final class GitGraphReviewRegressionTests: XCTestCase {
            title Release Flow
            commit id:"A"
         """), frontmatter: DiagramFrontmatter(gitGraphConfig: config))
-        let positioned = layoutGitGraph(diagram)
+        let (positioned, _) = layoutGitGraph(diagram)
         let title = try XCTUnwrap(positioned.title)
         let firstCommit = try XCTUnwrap(positioned.commits.first)
         let svg = renderGitGraphSvg(positioned)
@@ -155,7 +155,7 @@ final class GitGraphReviewRegressionTests: XCTestCase {
         gitGraph
            commit id:"A"
         """), frontmatter: DiagramFrontmatter(gitGraphConfig: config))
-        let svg = renderGitGraphSvg(layoutGitGraph(diagram))
+        let svg = renderGitGraphSvg(layoutGitGraph(diagram).0)
 
         XCTAssertTrue(svg.contains("rotate(-45"))
     }
@@ -169,7 +169,7 @@ final class GitGraphReviewRegressionTests: XCTestCase {
            branch dev
            commit
         """), frontmatter: DiagramFrontmatter(gitGraphConfig: config))
-        let svg = renderGitGraphSvg(layoutGitGraph(diagram))
+        let svg = renderGitGraphSvg(layoutGitGraph(diagram).0)
 
         XCTAssertFalse(svg.contains("class=\"branch branch"))
         XCTAssertFalse(svg.contains("branchLabel"))
@@ -193,7 +193,7 @@ final class GitGraphReviewRegressionTests: XCTestCase {
         """
         let preprocessed = _preprocessMermaidSource(source)
         let diagram = try parseGitGraph(_mermaidSourceLines(from: preprocessed.source), frontmatter: preprocessed.frontmatter)
-        let svg = renderGitGraphSvg(layoutGitGraph(diagram))
+        let svg = renderGitGraphSvg(layoutGitGraph(diagram).0)
 
         XCTAssertEqual(diagram.theme.git0, "#123456")
         XCTAssertEqual(diagram.theme.gitBranchLabel0, "#654321")

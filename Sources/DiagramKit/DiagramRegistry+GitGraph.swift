@@ -20,7 +20,7 @@ extension DiagramRegistry {
             guard case let .gitGraph(value) = payload else { return nil }
             return value
         },
-        layout: { diagram, _ in layoutGitGraph(diagram) },
+        layoutWithDiagnostics: { diagram, _ in layoutGitGraph(diagram) },
         positioned: { graph, positioned in
             PositionedGraph(diagram: graph, width: positioned.width, height: positioned.height, content: .gitGraph(positioned))
         }

@@ -195,7 +195,8 @@ private func _gitGraphShiftSegments(_ segments: [GitGraphArrowSegment], dx: Doub
 
 // MARK: - Layout Function
 
-public func layoutGitGraph(_ diagram: GitGraphDiagram) -> PositionedGitGraphDiagram {
+public func layoutGitGraph(_ diagram: GitGraphDiagram) -> (PositionedGitGraphDiagram, [DiagramDiagnostic]) {
+    var diagnostics: [DiagramDiagnostic] = []
     var _gitGraphLanes: [Double] = []
     let commits = diagram.commits
     let branches = diagram.branches
@@ -270,15 +271,17 @@ public func layoutGitGraph(_ diagram: GitGraphDiagram) -> PositionedGitGraphDiag
         // not an invariant violation.
         guard let firstCommit = commitsByID[firstKey],
               let firstBranchP = branchPos[firstCommit.branch] else {
-            _reportDiagramIssue(
-                "gitGraph parallelCommits layout: missing commit or branch position for first key '\(firstKey)'; falling back to empty layout."
-            )
-            return PositionedGitGraphDiagram(
+            diagnostics.append(DiagramDiagnostic(
+                severity: .warning,
+                message: "gitGraph parallelCommits layout: missing commit or branch position for first key '\(firstKey)'; falling back to empty layout.",
+                location: nil
+            ))
+            return (PositionedGitGraphDiagram(
                 accTitle: diagram.accTitle,
                 accDescr: diagram.accDescr,
                 config: config,
                 direction: direction
-            )
+            ), diagnostics)
         }
         let initialPos: Double
         if direction == .TB {
@@ -713,7 +716,7 @@ public func layoutGitGraph(_ diagram: GitGraphDiagram) -> PositionedGitGraphDiag
         finalTitle = PositionedGitGraphTitle(text: diagramTitle, x: totalWidth / 2, y: finalTitle?.y ?? max(config.titleTopMargin, 0))
     }
 
-    return PositionedGitGraphDiagram(
+    let positioned = PositionedGitGraphDiagram(
         width: totalWidth,
         height: totalHeight,
         commits: finalCommits,
@@ -730,4 +733,5 @@ public func layoutGitGraph(_ diagram: GitGraphDiagram) -> PositionedGitGraphDiag
         themeName: diagram.themeName,
         direction: diagram.direction
     )
+    return (positioned, diagnostics)
 }
