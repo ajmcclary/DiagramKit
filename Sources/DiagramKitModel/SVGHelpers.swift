@@ -112,13 +112,17 @@ public func _resolveSvgCssVariables(_ svg: String) -> String {
 
 /// Walk `input` and replace every `var(--name[, fallback])` call with
 /// its resolved value, using a paren-counting parser so nested calls
-/// in the fallback slot don't truncate at the first `)`. Iterates up
-/// to 16 times so an early `var()` whose fallback expands to another
-/// `var()` resolves fully in one call.
+/// in the fallback slot don't truncate at the first `)`. Loops until
+/// no `var(...)` remains; a safety cap of 4096 replacements guards
+/// against pathological self-referential definitions.
 internal func _resolveVarFunctions(in input: String, vars: [String: String]) -> String {
     var out = input
-    for _ in 0..<16 {
-        guard let call = _findFirstBalancedFunction(in: out, name: "var") else {
+    var replacements = 0
+    while let call = _findFirstBalancedFunction(in: out, name: "var") {
+        replacements += 1
+        if replacements > 4096 {
+            // Pathological input — bail out and let the final flatten
+            // pass turn whatever's left into the fallback color.
             return out
         }
         // Parse the call body: `--name[, fallback]`.
@@ -129,7 +133,12 @@ internal func _resolveVarFunctions(in input: String, vars: [String: String]) -> 
             out.replaceSubrange(call.callRange, with: "")
             continue
         }
-        let replacement = vars[key] ?? fallback ?? ""
+        // When the variable is undefined and no fallback is present,
+        // emit the same gray the final flatten pass would assign. This
+        // keeps the loop progressing (replacing the call with itself
+        // would infinite-loop) and avoids emitting empty stroke="" /
+        // fill="" attributes.
+        let replacement = vars[key] ?? fallback ?? "#666666"
         out.replaceSubrange(call.callRange, with: replacement)
     }
     return out
