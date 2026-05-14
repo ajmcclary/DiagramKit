@@ -2589,6 +2589,23 @@
       ]
     },
     {
+      "id": "structurizr-5-group",
+      "category": "c4",
+      "name": "Structurizr: Group Block",
+      "source": "C4Context\n  Boundary(b0, \"Group 0\") {\n    Person(u, \"User\")\n    System(app, \"My App\")\n  }\n  Rel(u, app, \"Uses\")",
+      "sources": {
+        "mermaid": "C4Context\n  Boundary(b0, \"Group 0\") {\n    Person(u, \"User\")\n    System(app, \"My App\")\n  }\n  Rel(u, app, \"Uses\")",
+        "structurizr": "workspace {\n  model {\n    group \"Group 0\" {\n      u = person \"User\"\n      app = softwareSystem \"My App\"\n    }\n    u -> app \"Uses\"\n  }\n  views {\n    systemContext app {\n      include *\n    }\n  }\n}"
+      },
+      "expectedImporters": {
+        "mermaid": "Mermaid",
+        "structurizr": "Structurizr"
+      },
+      "skipSnapshots": [
+        "structurizr"
+      ]
+    },
+    {
       "id": "dot-2-directed-edge",
       "category": "flowchart",
       "name": "DOT: Directed Edge with Label",

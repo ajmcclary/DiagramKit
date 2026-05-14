@@ -246,4 +246,37 @@ struct StructurizrCorpusFixtureTests {
         let positioned = try DiagramPipeline.layout(result.document)
         #expect(!(positioned.c4Data?.shapes.isEmpty ?? true))
     }
+
+    @Test("Structurizr group fixture decodes and tags element with group")
+    func structurizrGroupFixtureDecodes() throws {
+        let json = """
+        {
+            "diagrams": [
+                {
+                    "id": "structurizr-5-group",
+                    "category": "c4",
+                    "name": "Structurizr: Group Block",
+                    "source": "C4Context\\n  Boundary(b0, \\\"Group 0\\\") {\\n    Person(u, \\\"User\\\")\\n    System(app, \\\"My App\\\")\\n  }\\n  Rel(u, app, \\\"Uses\\\")",
+                    "sources": {
+                        "mermaid": "C4Context\\n  Boundary(b0, \\\"Group 0\\\") {\\n    Person(u, \\\"User\\\")\\n    System(app, \\\"My App\\\")\\n  }\\n  Rel(u, app, \\\"Uses\\\")",
+                        "structurizr": "workspace {\\n  model {\\n    group \\\"Group 0\\\" {\\n      u = person \\\"User\\\"\\n      app = softwareSystem \\\"My App\\\"\\n    }\\n    u -> app \\\"Uses\\\"\\n  }\\n  views {\\n    systemContext app {\\n      include *\\n    }\\n  }\\n}"
+                    },
+                    "expectedImporters": {
+                        "mermaid": "Mermaid",
+                        "structurizr": "Structurizr"
+                    },
+                    "skipSnapshots": ["structurizr"]
+                }
+            ]
+        }
+        """.data(using: .utf8)!
+        let entry = try decodeEntry(json)
+        #expect(entry.id == "structurizr-5-group")
+        #expect(entry.expectedImporters?["structurizr"] == "Structurizr")
+
+        let (diagram, _) = try structurizrDiagram(for: entry)
+        let authored = diagram.boundaries.filter { $0.origin == .authored }
+        #expect(authored.count == 1)
+        #expect(authored.first?.label == "Group 0")
+    }
 }
