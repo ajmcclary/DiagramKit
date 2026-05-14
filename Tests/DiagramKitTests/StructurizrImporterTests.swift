@@ -279,6 +279,44 @@ import DiagramKitStructurizr
         #expect(diagram.boundaries[0].alias == "web")
     }
 
+    @Test("parse: container view boundary emits round-trip-fidelity warning")
+    func parseContainerViewBoundaryEmitsRoundTripWarning() throws {
+        let source = """
+        workspace {
+            model {
+                u = person "U"
+                app = softwareSystem "App" {
+                    web = container "Web"
+                }
+                u -> web "Uses"
+            }
+            views { container app { include * } }
+        }
+        """
+        let result = try importer.parse(source)
+        #expect(result.diagnostics.contains { d in
+            d.severity == .warning
+                && d.message.contains("Boundary 'app'")
+                && d.message.contains("synthesized from the Structurizr view scope")
+        })
+    }
+
+    @Test("parse: systemContext view emits no boundary-fidelity warning")
+    func parseSystemContextEmitsNoBoundaryWarning() throws {
+        let source = """
+        workspace {
+            model {
+                u = person "U"
+                app = softwareSystem "App"
+                u -> app "Uses"
+            }
+            views { systemContext app { include * } }
+        }
+        """
+        let result = try importer.parse(source)
+        #expect(!result.diagnostics.contains { $0.message.contains("synthesized from the Structurizr view scope") })
+    }
+
     @Test("parse: boundary children have matching parentBoundary")
     func parseBoundaryHasChildrenWithMatchingParentBoundary() throws {
         let source = """

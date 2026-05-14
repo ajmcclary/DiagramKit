@@ -165,7 +165,19 @@ public struct StructurizrMapper: Sendable {
             c4Shapes.append(shape)
         }
 
-        // Map boundaries
+        // Map boundaries.
+        //
+        // Structurizr DSL has no first-class `Boundary(...)` macro; boundaries
+        // are inferred from the view scope (see
+        // StructurizrModelRegistry.classifyViewElements — container and
+        // component views reclassify the scopeAlias element as a boundary).
+        // When a diagram round-trips through Structurizr from a format that
+        // does carry boundary metadata (e.g. Mermaid C4 `Boundary(alias,
+        // label, descr)`), the original label/description cannot be recovered:
+        // we surface the scope element's name/description instead. Emit a
+        // .warning per synthesized boundary so the user can correlate with
+        // the StructurizrExporter's drop diagnostic at the other end of the
+        // round-trip.
         var c4Boundaries: [C4Boundary] = []
         for alias in boundaryAliases {
             guard let element = registry.element(for: alias) else { continue }
@@ -178,6 +190,11 @@ public struct StructurizrMapper: Sendable {
                 parentBoundary: "global"
             )
             c4Boundaries.append(boundary)
+
+            diagnostics.append(DiagramDiagnostic(
+                severity: .warning,
+                message: "Boundary '\(element.alias)' was synthesized from the Structurizr view scope; if the source originated as an authored boundary in another format, the original label/description may differ from '\(element.name)'"
+            ))
         }
 
         // Map relationships — only those whose both endpoints are visible

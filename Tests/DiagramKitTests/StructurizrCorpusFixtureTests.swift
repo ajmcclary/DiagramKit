@@ -86,7 +86,7 @@ struct StructurizrCorpusFixtureTests {
         #expect(entry.id == "structurizr-container-view")
 
         let (diagram, diagnostics) = try structurizrDiagram(for: entry)
-        #expect(diagnostics.isEmpty)
+        #expect(diagnostics.allSatisfy { $0.severity == .warning && $0.message.contains("synthesized from the Structurizr view scope") })
         #expect(diagram.boundaries.contains { $0.alias == "app" })
         #expect(diagram.shapes.contains { $0.alias == "web" && $0.parentBoundary == "app" })
         #expect(diagram.shapes.contains { $0.alias == "db" && $0.parentBoundary == "app" })
@@ -119,7 +119,7 @@ struct StructurizrCorpusFixtureTests {
         #expect(entry.id == "structurizr-component-view")
 
         let (diagram, diagnostics) = try structurizrDiagram(for: entry)
-        #expect(diagnostics.isEmpty)
+        #expect(diagnostics.allSatisfy { $0.severity == .warning && $0.message.contains("synthesized from the Structurizr view scope") })
         #expect(diagram.boundaries.contains { $0.alias == "web" })
         #expect(diagram.shapes.contains { $0.alias == "auth" && $0.parentBoundary == "web" })
         #expect(diagram.shapes.contains { $0.alias == "api" && $0.parentBoundary == "web" })
@@ -152,7 +152,7 @@ struct StructurizrCorpusFixtureTests {
         #expect(entry.id == "structurizr-scoped-rel")
 
         let (diagram, diagnostics) = try structurizrDiagram(for: entry)
-        #expect(diagnostics.isEmpty)
+        #expect(diagnostics.allSatisfy { $0.severity == .warning && $0.message.contains("synthesized from the Structurizr view scope") })
         #expect(diagram.relationships.contains {
             $0.from == "web" && $0.to == "db" && $0.label == "Queries" && $0.technology == "SQL"
         })
