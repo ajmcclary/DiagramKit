@@ -8,6 +8,111 @@ The library's structural discipline is real and load-bearing: the no-thread-pool
 
 ---
 
+## Resolution Status
+
+The "Suggested fix order" at the bottom of this review was executed across five commits on `main`. Each commit lands one phase; subsequent phases assume the gate from the previous one is in place.
+
+| # | Phase | Commit | What landed |
+|---|---|---|---|
+| 1 | ASCII baselines + smoke-check filter | `7143128` | 247 missing ASCII baselines recorded; `asciiSnapshot` honours `shouldSkipSnapshot(for: "ascii")`; `bootstrap-smoke-check.sh` stops invoking the signal-10-prone unfiltered `swift test` and runs per-suite passes instead. Bonus: D2 probe extended to cover `xychart`/`quadrantChart`/`journey`/`treemap`/`ishikawa`/`eventModeling`/C4* headers and strip leading frontmatter before header dispatch (case-insensitive token boundary). |
+| 2 | Playground undo | `138e367` | `SourceOrigin` split into `.system` (wholesale swap, do re-seed) and `.mutation` (editor's document already in sync, skip re-seed). `performMutation` / `performFlowchartMutation` switched to `.mutation`. Cmd-Z command routes through `performScopedUndo` — the focused `NSTextView.undoManager` gets first refusal, falling back to `store.undoStructural()` only when no text view is focused. |
+| 3 | Exporter correctness batch | `a13b67c` | `MermaidFlowchartExport.shapeMarker` returns `(open, close)` tuple; subgraph emission walks `model.subgraphs` after the node loop; trapezoid vs parallelogram open/close disambiguated. PlantUML state pseudostate restoration switched from id-suffix matching to `NodeShape.stateStart`/`.stateEnd`. PlantUML sequence message escape routes through the slice's `escape()` helper. PlantUML class parser tracks an `inBlockComment` flag so `/' … '/` multi-line comments are skipped entirely. MermaidClass annotation emitted bare (`<<interface>>`, not `<<"interface">>`); stray space after `:::` removed. |
+| 4 | Parser dispatch tokenization | `633bec4` | 21 `DiagramRegistry+*.swift` matchers migrated from `$0.normalized.hasPrefix("…")` to `$0.startsWithToken("…")`. State's compound expression split into `startsWithToken("statediagram") || startsWithToken("state")`. Block/Gantt/Pie were already correct; C4 uses an anchored regex; Flowchart is the `{ _ in true }` fallback. |
+| 5 | Renderer color/flip | `f7990d5` | `ShapeRenderer` fill/stroke suppression checks now use `bmColorEquals(.clear)` so AppKit color-space differences don't slip past. `LabelRenderer` always installs its own `NSGraphicsContext(flipped: false)` (save + restore), eliminating the bitmap-path vs AppKit-NSView-path double-flip. |
+
+`er-25-parent-marker` is now tagged `skipSnapshots: ["ascii"]` so the ASCII gate is green; SVG/image still cover the entry. The underlying `.invalidCardinality("MD_PARENT")` in the ER ASCII renderer remains and is recorded in the deferred list below.
+
+---
+
+## Deferred Effort — Recommendations
+
+Some review items were intentionally deferred during the five-phase pass; others surfaced during execution and were scoped out to keep individual commits coherent. Listed in priority order.
+
+### 1. SVG color-mix variable resolver (renderer-deep)
+
+**Status:** investigated and rolled back in Phase 1. The malformed `stroke="#27272A 40%, #FFFFFF))"` strings the reviewer observed come from `Sources/DiagramKitModel/SVGHelpers.swift:138-145` (`color-mix\([^)]+\)`) and `:88-89` (`var\(\s*--…\s*(?:,\s*([^)]+))?\)`) — both regexes use `[^)]+` for the fallback/body, which stops at the first `)` and so mis-parses nested calls like `var(--muted, color-mix(in srgb, var(--fg) 40%, var(--bg)))`. A paren-counting walker (drafted during Phase 1, reverted before commit) produced correct output but changed 182 SVG baselines in addition to the 28 entries already failing.
+
+**Recommendation:** treat as a dedicated phase. Steps:
+- Land the paren-counting `_resolveVarFunctions` + `_flattenBalancedFunction` rewrite (the drafted version is in the Phase 1 reflog if useful — search for `"_resolveVarFunctions"`).
+- Re-record all SVG and image baselines as one commit, with a commit message that says "rebaseline after color-mix resolver fix" and links here so future readers know why the diff is enormous.
+- Audit whether the simultaneous theme-default regression (`flow-1-simple` baseline has `--muted:#A9A9AA;--line:#939394`; current renderer emits `--muted:#27272A;--line:#27272A`) is intentional. If unintentional, fix the theme system before rebaselining so the new baselines reflect the intended palette.
+
+### 2. D2 / DOT `FlowchartExportWalker` subgraph traversal
+
+**Status:** Mermaid flowchart export now emits subgraphs (Phase 3 fix). The walker shared by D2 and DOT exporters at `Sources/DiagramKitExport/FlowchartExportWalker.swift:42-52` still iterates only `nodesInOrder` and `edges`. D2 and DOT continue to silently drop subgraphs.
+
+**Recommendation:** add two new methods to `FlowchartExportSink` (`subgraphBegin(_:depth:)` / `subgraphEnd(_:depth:)`) with default no-op implementations that emit a `.warning` diagnostic. Have the walker invoke them around the contained nodes. Existing D2/DOT sinks inherit the warning behavior; full subgraph emission for D2 (`subgraph: { … }`) and DOT (`subgraph cluster_… { … }`) can ship as follow-ups in each slice.
+
+### 3. ER ASCII renderer `.invalidCardinality("MD_PARENT")`
+
+**Status:** `er-25-parent-marker` is marked `skipSnapshots: ["ascii"]` to keep the gate green. SVG and image renderers handle the parent-marker (`u--o{`) cardinality correctly; only ASCII throws.
+
+**Recommendation:** add `MD_PARENT` to the ER ASCII renderer's cardinality table in `Sources/DiagramKitModel/src_er_renderer.swift` (or wherever the ASCII variant lives). Remove the `skipSnapshots` entry once fixed and record the new ASCII baseline.
+
+### 4. Important-tier review items not in the original fix plan
+
+The following Important findings from the review remain. None are correctness-critical but each is either an architecture hazard, a long-term debt, or a fragility the next major release should address.
+
+**Architecture & API**
+- `ReExports.swift:6-13` does not re-export `DiagramKitInteractive` despite `Package.swift` adding it as an umbrella dep. Add the re-export so `import DiagramKit` surfaces `DiagramEditor`.
+- `src_theme.swift:4`, `src_styles.swift:4`, `src_text_metrics.swift:4`, `src_multiline_utils.swift:4` are `open class`. Lock down to `internal` or `public final` — these are JS-port shims with no documented subclassing contract.
+- `DiagramFormatID` exists only on the exporter side; importers identify by `name: String`. Either move `DiagramFormatID` to `DiagramKitCommon` and adopt symmetrically, or document the asymmetry.
+- Deprecated typealiases (`MermaidParser`, `MermaidRenderer`, `MermaidPipeline`, `MermaidImageRenderer`, `MermaidStructuralError`) are scattered across the umbrella. Consolidate in a single `Deprecations.swift` so the next major can sunset them atomically.
+- `MermaidImporter.swift:23-34` — `supports(source:)` returns true for any non-empty source. Add an explicit `isFallback: Bool` to the protocol so the registry can mechanically validate "exactly one fallback, last."
+
+**Model: numeric & concurrency edges**
+- `src_block_parser.swift:546-547` accepts non-positive `span` values; at `src_block_layout.swift:117` this becomes a divide-by-zero / NaN. Reject `Int(parts[1])` ≤ 0 at parse time.
+- `src_class_parser.swift:19` stores `direction: String`; every other family uses a typed enum. Migrate to a typed `ClassDirection` enum (`TB`/`BT`/`LR`/`RL`).
+- `src_radar_layout.swift:19-20` — `maxValue = -.infinity` when entries are empty and `options.max` is nil. Add an empty-curve guard and clamp `relativeRadius(...)` against `min == max`.
+- `src_gantt_parser.swift:410-423` — `_dateFormatterCache` is `nonisolated(unsafe)`; `DateFormatter.date(from:)` is not documented thread-safe. Wrap with a serial queue, or per-call instantiate, or migrate to `Date.ParseStrategy`.
+- `SourcePreprocessing.swift:69-89` — every `---`-bounded section between the first and last marker is treated as frontmatter; a body containing a literal `---` separator line is partially eaten. Tighten to "exactly one closing `---` after the opener, no greedy consumption."
+- `src_parser.swift:438-440` — anonymous-subgraph id `"subgraph_\(graph.subgraphIds.count)"` has no collision guard against user-defined ids.
+
+**Rendering & views**
+- `EdgeRenderer.swift:119` — `.arrow` case hardcodes `context.setLineWidth(0.75)`, ignoring the configured `lineWidth`. Source the width from the configured stroke.
+- `DiagramLayer.swift:182-189` — on parse failure, `preparedDiagram` is not cleared. Pick an intentional semantics (clear-on-failure vs preserve-with-error-overlay) and document it.
+- `DiagramEditor+Undo.swift:29-51` — undo snapshot does not capture `selection`. After `.deleteElement(...)`, undo restores doc/source/diagnostics but the dangling selection can throw on the next mutation. Capture selection in the snapshot.
+- `DiagramRenderer.swift:147-161` — 4000pt multiline bounding box is a band-aid. Replace with a `measure-first` strategy so the box matches the actual text extent.
+- `DiagramLayer.swift:91` — `UIScreen.main.scale` is deprecated on iOS 13+ multi-scene. Source scale from the view's window scene (`view.window?.windowScene?.screen.scale`).
+
+**Format slices: round-trip & diagnostic discipline**
+- Identifier-sanitization severity is inconsistent between `MermaidExportHelpers.sanitizeIdentifier` (`.info`) and Structurizr's `uniqueSanitizedAlias` (`.warning`). Pick one (`.warning` is closer to the right severity for lossy operations) and apply across slices.
+- `MermaidC4Export.swift:42-54` and `PlantUMLC4Export.swift:47-56` disagree on the slot semantics of the third positional arg (`desc` vs `tech`). Cross-format C4 round-trip silently swaps technology↔description. Align via a single `C4ArgsEmitter` helper.
+- `PlantUMLImporter.swift:30-32, 110` throws `.notYetImplemented` for two distinct conditions (malformed source vs unrecognized family). Split into `.malformedSource` and `.unsupportedFamily`.
+- `PlantUMLSequenceParser.swift:409-411` declares `title` unsupported; both exporters emit it. Add title parsing to close the round-trip.
+- `PlantUMLFamilyProbe.swift:58-61` — class probe false-matches any text containing `--`. Tighten the heuristic.
+- `MermaidExportHelpers.sanitizeIdentifier` silently drops non-`[A-Za-z0-9_-]` chars without collision checking. Mirror Structurizr's `usedAliases` set.
+- `D2Parser.swift:43-49` only strips `#` as inline-comment marker; `// note` trailing values leak into the value.
+- `DOTLexer` does not enter HTML-label mode; `label=<<TABLE>…</TABLE>>` drops the rest of the attribute list. `DOTMapper._isHTMLLabel` (`DOTMapper.swift:382-391`) is dead code until the lexer is fixed.
+- `StructurizrExporter.swift:84-91` drops boundary metadata; the companion importer rebuilds boundaries from parent relationships, so export → import loses information. Emit a paired `.warning` on the import side or close the round-trip.
+- `D2Mapper.swift:74-101` silently drops direction/icon/tooltip/link from second occurrences in duplicate-node-ID paths.
+
+**Playground state machine**
+- `UndoManager.canUndo`/`canRedo` are not Observation-tracked; SwiftUI `.disabled(!editor.undoManager.canUndo)` modifiers drift. Phase 2 sidesteps this by dropping `.disabled` and routing in the action body, but the structural undo footer still has the issue. Mirror `canUndo`/`canRedo` as `@Observable` shims on `DiagramEditor`.
+- `DiagramEditor.preferredExportFormat` is `let`; format swaps mid-edit can export under the old format. Either make mutable or rebuild the editor on format change.
+- `previewState` is captured pre-render; auto-save can record a state the user hasn't actually rendered. Capture post-render in `didCompleteRender`.
+- `_export` runs synchronously on `@MainActor`; large flowcharts block main. Hop to a worker for the export call.
+- `NativeCodeEditor.Coordinator.textDidChange` retains `self` through the debounce. Use `[weak self]` or cancel-and-replace the in-flight task.
+- `LiveEditorStore.performMutation` and `InsertNodeSection.insert` both surface mutation errors, producing duplicate UI. Pick one source of truth.
+- `SidebarView.loadDiagram` ignores `expectedDiagnostics` / `unsupportedNote`. Wire the corpus metadata into the load path.
+- `requestRender(reason:)` doesn't reset `parseError`; the error overlay sits atop a fresh render until completion. Clear on render request.
+
+**Tests, gates, concurrency**
+- `GanttAsciiRendererTests.swift:9-10` sets+defers `DIAGRAMKIT_GANTT_TODAY`; `CorpusSnapshotTests.swift:46` only sets it. Pin the env var process-wide in a shared suite bootstrap.
+- `Scripts/strict-concurrency-check.sh:24` ignores `swift build`'s exit code. Capture and surface it.
+- `CLAUDE.md` claims 188 test files; actual is 216. Sync the doc.
+- No targeted test for the parser dispatch-order invariant. Add a small suite that pins "stateDiagram-v2 does not fall into state branch", "flowchart-elk does not fall into flowchart branch", etc.
+
+### 5. Minor / polish items
+
+The "Minor" tier in the review (file-size warnings, dead code, header comments referencing removed files, accessibility labels, `MermaidFlowchartExport.shapeMarker` shape-downgrade diagnostics) is left as a backlog. Pick up opportunistically when touching the relevant file.
+
+### 6. Tautological probe tests (Critical, deferred)
+
+`Tests/DiagramKitTests/ProbeCollisionMatrixTests.swift:30-48` — three `@Test` cases (`d2ProbeSignature`, `plantumlProbeSignature`, `structurizrProbeSignature`) construct a literal then `#expect` the same literal contains its own substring. Tautological. Delete or replace with real importer-probe assertions.
+
+---
+
 ## Critical (Must Fix)
 
 ### Exporters silently corrupt valid input
@@ -132,6 +237,10 @@ The library's structural discipline is real and load-bearing: the no-thread-pool
 
 ## Assessment
 
-**Ready to merge to main as-is?** No — the exporter correctness bugs (Mermaid flowchart shapes, sub-graph drops, PlantUML state pseudostate rewrite, sequence/class escape gaps) silently corrupt valid input on common cases and should be fixed before relying on the multi-format export matrix. The playground undo regression makes the recent Cmd-Z work non-functional in practice and is a clean fix at `LiveEditorStore.didCompleteRender`. The ASCII snapshot baseline gap is the single most consequential testing issue — recording the missing 248 baselines (and gating ASCII to honour `shouldSkipSnapshot` like the multi-format paths do) closes a real blind spot.
+**Original verdict (pre-fix):** Not ready to merge — the exporter correctness bugs silently corrupt valid input on common cases, the playground undo regression makes the recent Cmd-Z work non-functional in practice, and the ASCII snapshot baseline gap leaves renderer drift in 22 families invisible to CI.
 
-**Suggested fix order**: 1) ASCII baselines + bootstrap-smoke-check filtering (so subsequent fixes have a real gate), 2) playground undo (`didCompleteRender` re-seed loop + Cmd-Z text-edit conflict), 3) exporter correctness batch (Mermaid flowchart shape, subgraph walker, PlantUML state pseudostate, sequence escape, class comments), 4) parser dispatch tokenization across `DiagramRegistry+*.swift`, 5) renderer color/flip cleanups.
+**Updated verdict (post-fix, commits `7143128` → `f7990d5`):** The five-phase fix plan landed end-to-end. The originally critical exporter, playground-undo, and ASCII-gate failures are addressed; the renderer color/flip discipline issues are addressed; and a bonus D2-probe header fix unblocks Mermaid sources the importer had been wrongly claiming.
+
+Remaining work is captured in the **Deferred Effort — Recommendations** section above. The highest-priority deferred item is the SVG color-mix paren-balancing bug in `_resolveSvgCssVariables` — fixing it correctly requires re-recording all 422 SVG + image baselines, so it deserves its own phase rather than a tail-on to Phase 5. None of the deferred items block merge of the five commits to date.
+
+**Suggested fix order (executed):** 1) ASCII baselines + bootstrap-smoke-check filtering (so subsequent fixes have a real gate) — **shipped in `7143128`**, 2) playground undo (`didCompleteRender` re-seed loop + Cmd-Z text-edit conflict) — **shipped in `138e367`**, 3) exporter correctness batch (Mermaid flowchart shape, subgraph walker, PlantUML state pseudostate, sequence escape, class comments) — **shipped in `a13b67c`**, 4) parser dispatch tokenization across `DiagramRegistry+*.swift` — **shipped in `633bec4`**, 5) renderer color/flip cleanups — **shipped in `f7990d5`**.
