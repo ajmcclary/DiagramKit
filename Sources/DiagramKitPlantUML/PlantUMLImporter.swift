@@ -28,7 +28,14 @@ public struct PlantUMLImporter: DiagramSourceImporter {
 
     public func parse(_ source: String) throws -> DiagramImportResult {
         guard let (body, startKind) = extractPlantUMLBody(source) else {
-            throw DiagramError.notYetImplemented("PlantUML: could not extract body from @startuml/@enduml block")
+            // Source claimed to be PlantUML (probe accepted) but the
+            // body could not be extracted from `@start…`/`@end…`.
+            // That's a structural source failure, not an implementation
+            // gap, so we throw `.malformedSource` rather than
+            // `.notYetImplemented`.
+            throw DiagramError.malformedSource(
+                message: "PlantUML: could not extract body from @startuml/@enduml block"
+            )
         }
 
         // Family routing probes (in PHASE-6.md order):
@@ -106,7 +113,12 @@ public struct PlantUMLImporter: DiagramSourceImporter {
             return DiagramImportResult(document: document, diagnostics: mapDiagnostics)
         }
 
-        // No family matched
-        throw DiagramError.notYetImplemented("PlantUML family not recognized in @startuml block")
+        // No family matched. All major PlantUML families are implemented
+        // (sequence/class/state/mindmap/gantt/C4); a body that matches
+        // none of them is malformed for our purposes — we cannot parse
+        // it. (`.notYetImplemented` would be misleading here.)
+        throw DiagramError.malformedSource(
+            message: "PlantUML body did not match any supported family probe"
+        )
     }
 }

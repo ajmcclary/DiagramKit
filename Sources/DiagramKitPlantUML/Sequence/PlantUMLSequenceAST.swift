@@ -3,15 +3,22 @@ public struct PlantUMLSequenceAST: Sendable, Equatable {
     public var participants: [PlantUMLParticipant]
     public var items: [PlantUMLSequenceItem]
     public var hasAutoNumber: Bool
+    /// Source-level `title <text>` line, if any. Mermaid + PlantUML
+    /// sequence exporters both emit a title; previously the PlantUML
+    /// parser flagged `title` as unsupported and the value was dropped
+    /// during round-trip.
+    public var title: String?
 
     public init(
         participants: [PlantUMLParticipant] = [],
         items: [PlantUMLSequenceItem] = [],
-        hasAutoNumber: Bool = false
+        hasAutoNumber: Bool = false,
+        title: String? = nil
     ) {
         self.participants = participants
         self.items = items
         self.hasAutoNumber = hasAutoNumber
+        self.title = title
     }
 }
 

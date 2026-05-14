@@ -54,10 +54,15 @@ public func isPlantUMLClassBody(_ body: String) -> Bool {
         if trimmed.contains("*--") || trimmed.contains("--*") { return true }
         if trimmed.contains("o--") || trimmed.contains("--o") { return true }
         if trimmed.contains("<|--") || trimmed.contains("<|..") { return true }
-        // Plain association: -- (but NOT --> which is a sequence arrow)
-        if trimmed.contains("--") && !trimmed.contains("-->") && !trimmed.contains("-->>") {
-            // Verify it's not a sequence arrow in disguise
-            if !trimmed.contains("->") { return true }
+        // Plain association: `Word -- Word` (allowing optional surrounding
+        // whitespace and dotted qualifiers). Bare `--` inside text (e.g.
+        // `note: --some-flag`) no longer false-matches.
+        if !trimmed.contains("-->") && !trimmed.contains("->"),
+           trimmed.range(
+               of: #"[A-Za-z_][A-Za-z0-9_.]*\s*--\s*[A-Za-z_][A-Za-z0-9_.]*"#,
+               options: .regularExpression
+           ) != nil {
+            return true
         }
         // Dependency: ..> (but needs to be a word relationship, not just any ..>)
         if trimmed.contains("..>") && !trimmed.contains("->") { return true }

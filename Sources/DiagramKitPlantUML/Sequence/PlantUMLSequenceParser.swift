@@ -14,6 +14,7 @@ public struct PlantUMLSequenceParser {
         var participants: [PlantUMLParticipant] = []
         var items: [PlantUMLSequenceItem] = []
         var hasAutoNumber = false
+        var title: String?
 
         // First pass: collect participant/actor declarations
         var lineNumber = 0
@@ -192,6 +193,17 @@ public struct PlantUMLSequenceParser {
                 continue
             }
 
+            // Title (Mermaid + PlantUML sequence exporters both emit
+            // `title …`; we keep it on the AST so the mapper can lift
+            // it to `DiagramDocument.title`).
+            if lower.hasPrefix("title ") {
+                let value = String(trimmed.dropFirst(6)).trimmingCharacters(in: .whitespaces)
+                if !value.isEmpty {
+                    title = value
+                }
+                continue
+            }
+
             // Unsupported constructs — emit diagnostics
             let unsupported = _detectUnsupported(trimmed, lineNumber: lineNumber)
             if let unsup = unsupported {
@@ -208,7 +220,8 @@ public struct PlantUMLSequenceParser {
         return PlantUMLSequenceAST(
             participants: participants,
             items: items,
-            hasAutoNumber: hasAutoNumber
+            hasAutoNumber: hasAutoNumber,
+            title: title
         )
     }
 
@@ -406,9 +419,8 @@ public struct PlantUMLSequenceParser {
         if lower.hasPrefix("newpage") {
             return .unsupported("PlantUML newpage is not supported", line: lineNumber)
         }
-        if lower.hasPrefix("title ") {
-            return .unsupported("PlantUML title is not supported", line: lineNumber)
-        }
+        // `title` is no longer unsupported — handled in the main loop
+        // and lifted to `PlantUMLSequenceAST.title`.
         if lower.hasPrefix("footer ") || lower.hasPrefix("header ") {
             return .unsupported("PlantUML footer/header not supported", line: lineNumber)
         }

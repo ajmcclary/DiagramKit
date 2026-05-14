@@ -59,6 +59,12 @@ enum MermaidExportHelpers {
 
     /// Sanitize a Mermaid identifier (node ID, participant alias).
     /// Spaces → underscores, strips leading digits, removes non-`[a-zA-Z0-9_-]`.
+    ///
+    /// Severity is `.warning`: this is a lossy operation that can collide
+    /// distinct inputs into the same output (`foo bar` and `foo!bar` both
+    /// become `foo_bar`) and changes a load-bearing identifier the caller
+    /// referenced elsewhere. Structurizr's `uniqueSanitizedAlias` already
+    /// uses `.warning` for the same operation; this aligns with that.
     static func sanitizeIdentifier(_ raw: String) -> (sanitized: String, diagnostics: [DiagramDiagnostic]) {
         var diagnostics: [DiagramDiagnostic] = []
         var result = ""
@@ -89,12 +95,41 @@ enum MermaidExportHelpers {
 
         if needsDiagnostic {
             diagnostics.append(DiagramDiagnostic(
-                severity: .info,
+                severity: .warning,
                 message: "Identifier '\(raw)' sanitized to '\(result)'"
             ))
         }
 
         return (result, diagnostics)
+    }
+
+    /// Collision-aware variant of `sanitizeIdentifier`. Tracks every alias
+    /// already emitted in the current export and appends a numeric suffix
+    /// (`_2`, `_3`, …) to disambiguate collisions. Mirrors
+    /// `StructurizrExporter.uniqueSanitizedAlias`. Use this when multiple
+    /// inputs in the same diagram could sanitize to the same identifier
+    /// (e.g. `foo bar` and `foo!bar` both → `foo_bar`).
+    static func sanitizeIdentifier(
+        _ raw: String,
+        usedAliases: inout Set<String>
+    ) -> (sanitized: String, diagnostics: [DiagramDiagnostic]) {
+        var (base, diagnostics) = sanitizeIdentifier(raw)
+        if !usedAliases.contains(base) {
+            usedAliases.insert(base)
+            return (base, diagnostics)
+        }
+        var counter = 2
+        var candidate = "\(base)_\(counter)"
+        while usedAliases.contains(candidate) {
+            counter += 1
+            candidate = "\(base)_\(counter)"
+        }
+        usedAliases.insert(candidate)
+        diagnostics.append(DiagramDiagnostic(
+            severity: .warning,
+            message: "Identifier '\(raw)' sanitized to '\(base)' collided with another alias; renamed to '\(candidate)'"
+        ))
+        return (candidate, diagnostics)
     }
 
     // MARK: - Quoted values: `"text"`

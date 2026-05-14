@@ -16,6 +16,15 @@ public struct D2Parser {
 
     // MARK: - Preprocessing
 
+    private func _stripInlineComment(_ line: String, marker: String) -> String {
+        guard let r = line.range(of: marker) else { return line }
+        let idx = line.distance(from: line.startIndex, to: r.lowerBound)
+        if idx == 0 || line[line.index(before: r.lowerBound)] == " " {
+            return String(line[..<r.lowerBound])
+        }
+        return line
+    }
+
     private func preprocess(_ source: String) -> String {
         var result = ""
         var inBlockComment = false
@@ -38,16 +47,13 @@ public struct D2Parser {
             if trimmed.hasPrefix("#") || trimmed.hasPrefix("//") {
                 continue
             }
-            // Strip inline comments (anything after # not inside quotes)
-            // For simplicity: strip from # to end of line if # is preceded by space or at start
+            // Strip inline comments. Both `#` and `//` are valid D2
+            // inline-comment markers. Only strip when the marker is at
+            // line-start or preceded by whitespace, so identifiers
+            // containing `#`/`//` aren't truncated.
             var cleanLine = String(line)
-            if let hashIndex = cleanLine.firstIndex(of: "#") {
-                // Only strip if # is at start or preceded by space
-                let idx = cleanLine.distance(from: cleanLine.startIndex, to: hashIndex)
-                if idx == 0 || cleanLine[cleanLine.index(before: hashIndex)] == " " {
-                    cleanLine = String(cleanLine[..<hashIndex])
-                }
-            }
+            cleanLine = _stripInlineComment(cleanLine, marker: "#")
+            cleanLine = _stripInlineComment(cleanLine, marker: "//")
             if !result.isEmpty { result.append("\n") }
             result.append(cleanLine)
         }

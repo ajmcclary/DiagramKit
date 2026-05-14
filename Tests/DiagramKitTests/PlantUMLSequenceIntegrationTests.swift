@@ -245,28 +245,31 @@ import DiagramKit
         // Verify that state probe fires, and the importer routes to state.
         let body = "state Idle\n[*] --> Idle"
         #expect(isPlantUMLStateBody(body))
-        // Verify the importer rejects this (state not yet implemented in 6A)
+        // State import landed in a later phase — verify it produces a
+        // `.stateDiagram` payload rather than throwing.
         let source = "@startuml\nstate Idle\n[*] --> Idle\n@enduml"
         let importer = PlantUMLImporter()
         do {
-            _ = try importer.parse(source)
-            Issue.record("Expected notYetImplemented error for state diagram")
-        } catch DiagramError.notYetImplemented(let msg) {
-            #expect(msg.contains("State"))
+            let result = try importer.parse(source)
+            if case .stateDiagram = result.document.payload {
+                // expected
+            } else {
+                Issue.record("Expected .stateDiagram payload, got \(result.document.payload)")
+            }
         } catch {
-            Issue.record("Wrong error: \(error)")
+            Issue.record("State import threw: \(error)")
         }
     }
 
-    @Test("PlantUML importer throws notYetImplemented for unrecognized body")
+    @Test("PlantUML importer throws malformedSource for unrecognized body")
     func importerThrowsForUnrecognizedBody() {
         let source = "@startuml\njust some random text\n@enduml"
         let importer = PlantUMLImporter()
         do {
             _ = try importer.parse(source)
             Issue.record("Expected throw")
-        } catch DiagramError.notYetImplemented {
-            // Expected
+        } catch DiagramError.malformedSource {
+            // Expected — no family probe matched.
         } catch {
             Issue.record("Wrong error type: \(error)")
         }

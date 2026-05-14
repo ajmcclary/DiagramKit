@@ -12,6 +12,12 @@ public struct PlantUMLSequenceMapper {
         var diagnostics: [DiagramDiagnostic] = []
         var knownActorIds = Set<String>()
 
+        // Title (so both Mermaid and PlantUML sequence exporters
+        // round-trip through `DiagramDocument.title`).
+        if let title = ast.title {
+            items.append(.title(title))
+        }
+
         // Emit actor items first from participants, preserving box grouping.
         var openBox: (title: String?, fill: String)?
         for p in ast.participants {
