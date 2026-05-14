@@ -150,13 +150,7 @@ Some review items were intentionally deferred during the five-phase pass; others
 
 ### 1. SVG color-mix variable resolver (renderer-deep)
 
-**Status:** investigated and rolled back in Phase 1. The malformed `stroke="#27272A 40%, #FFFFFF))"` strings the reviewer observed come from `Sources/DiagramKitModel/SVGHelpers.swift:138-145` (`color-mix\([^)]+\)`) and `:88-89` (`var\(\s*--…\s*(?:,\s*([^)]+))?\)`) — both regexes use `[^)]+` for the fallback/body, which stops at the first `)` and so mis-parses nested calls like `var(--muted, color-mix(in srgb, var(--fg) 40%, var(--bg)))`. A paren-counting walker (drafted during Phase 1, reverted before commit) produced correct output but changed 182 SVG baselines in addition to the 28 entries already failing.
-
-**Session-2 outcome (partial):** the resolver rewrite landed in `1c2f18f` with 13 dedicated unit tests covering nested fallbacks, `color-mix(var(...), var(...))`, word boundaries, and the original REVIEW regression input. **The 422 SVG + 422 image baseline regeneration was intentionally deferred** — the malformed output the old resolver produced is what every existing baseline records, so rebaselining is a separate, large-diff commit that wants its own scrutiny.
-
-**Remaining steps:**
-- Audit whether the simultaneous theme-default regression (`flow-1-simple` baseline has `--muted:#A9A9AA;--line:#939394`; current renderer emits `--muted:#27272A;--line:#27272A`) is intentional. If unintentional, fix the theme system before rebaselining so the new baselines reflect the intended palette.
-- Re-record all SVG and image baselines in a single commit, message "rebaseline after color-mix resolver fix" linking back to `1c2f18f`.
+✅ **Closed by Session 4 (`b222b15` → `5cf2186` + image rebaseline commit):** the paren-counting resolver rewrite landed in Session 2's `1c2f18f`; Session 4 added palette-pin and SVG structural-sweep gates (`a5596f8`), fixed the resolver iteration bound caught by the first recording attempt (`d6bdec7`), re-recorded 390 of 435 SVG baselines (`5cf2186`), and re-recorded 57 image baselines (51 single-format + 6 multi-format). The theme-default audit was bundled into the same pass via `DiagramPipeline.renderSVG` routing through `theme.effective<Token>()` color-mix derivations (`6b35c80`). Audit and rebaseline both done.
 
 ### 2. D2 / DOT `FlowchartExportWalker` subgraph traversal
 
