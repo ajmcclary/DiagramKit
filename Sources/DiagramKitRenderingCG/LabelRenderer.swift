@@ -115,17 +115,17 @@ public class LabelRenderer {
         context.scaleBy(x: 1, y: -1)
         context.translateBy(x: 0, y: -centerY)
 
-        // Ensure NSGraphicsContext is available (required for NSAttributedString.draw).
-        // flipped: false because the local CTM unflip above restored y=0-at-bottom.
-        let needsContext = NSGraphicsContext.current == nil
-        if needsContext {
-            let nsCtx = NSGraphicsContext(cgContext: context, flipped: false)
-            NSGraphicsContext.current = nsCtx
-        }
+        // Always swap in our own `NSGraphicsContext(flipped: false)` so
+        // `NSAttributedString.draw(in:)` does not compound a parent view's
+        // flip flag with the local CTM unflip above. Previously the code
+        // only installed a context when `current == nil` (the bitmap
+        // path); on the AppKit NSView path the host view's flipped
+        // context was reused, which combined with the local CTM unflip
+        // to double-flip text and miscentre labels.
+        let savedContext = NSGraphicsContext.current
+        NSGraphicsContext.current = NSGraphicsContext(cgContext: context, flipped: false)
         attributedString.draw(in: rect)
-        if needsContext {
-            NSGraphicsContext.current = nil
-        }
+        NSGraphicsContext.current = savedContext
         #endif
 
         context.restoreGState()

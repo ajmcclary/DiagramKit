@@ -74,15 +74,20 @@ public class NodeShapeRenderer {
             strokeColor = theme.nodeStrokeColor(for: inlineStyles)
         }
 
-        // Only fill if override doesn't suppress it.
-        if fillColor != .clear {
+        // Only fill if override doesn't suppress it. Use the cross-platform
+        // `bmColorEquals` helper rather than `!=`: on AppKit, `NSColor.==`
+        // is calibrated-color-space-sensitive, so a `BMColor(hex:)`-derived
+        // clear (deviceRGB, alpha 0) is not equal to `NSColor.clear`
+        // (calibratedWhite, alpha 0). `bmColorEquals` normalizes both to
+        // deviceRGB before comparing components.
+        if !fillColor.bmColorEquals(.clear) {
             context.setFillColor(fillColor.cgColor)
             context.addPath(path)
             context.fillPath()
         }
 
         // Only stroke if override doesn't suppress it.
-        if strokeColor != .clear {
+        if !strokeColor.bmColorEquals(.clear) {
             context.setStrokeColor(strokeColor.cgColor)
             context.setLineWidth(tokens.strokeWidthInnerBox)
             context.addPath(path)
