@@ -10,7 +10,7 @@ enum DOTFlowchartExport {
         var sink = DOTFlowchartExportSink()
         let diagnostics = FlowchartExportWalker.walk(model, title: title, into: &sink)
         return DiagramExportResult(
-            source: sink.lines.joined(separator: "\n"),
+            source: sink.lines.joined(separator: "\n") + "\n",
             diagnostics: diagnostics
         )
     }

@@ -35,7 +35,7 @@ import DiagramKit
         #expect(result.source.contains("rankdir=LR;"))
         #expect(result.source.contains("A [label=\"Start\""))
         #expect(result.source.contains("A -> B [label=\"go\"];"))
-        #expect(result.source.hasSuffix("}"))
+        #expect(result.source.hasSuffix("}\n"))
     }
 
     @Test("DOT exporter quotes non-bareword identifiers")
