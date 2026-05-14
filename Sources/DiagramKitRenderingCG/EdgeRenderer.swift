@@ -4,7 +4,7 @@ import Foundation
 import DiagramKitModel
 import CoreGraphics
 
-public class EdgeRenderer {
+public final class EdgeRenderer {
 
     let config: RenderConfig
 

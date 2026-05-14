@@ -3,8 +3,8 @@
 //  DiagramPlayground
 //
 //  Floating Inspector drawer that hosts DiagramKitInteractive's
-//  DiagramEditor. Replaces the modal InspectorView. Renders disabled
-//  banners when the document is missing or non-flowchart.
+//  DiagramEditor. Renders disabled banners when the document is missing
+//  or non-flowchart.
 //
 
 import SwiftUI

@@ -108,10 +108,14 @@ public enum DiagramColorParser {
         let values = components.compactMap { Double($0) }
         guard values.count == components.count else { return nil }
 
-        let r = CGFloat(values[0]) / 255
-        let g = CGFloat(values[1]) / 255
-        let b = CGFloat(values[2]) / 255
-        let a: CGFloat = values.count >= 4 ? CGFloat(values[3]) : 1.0
+        // Clamp each component into the renderer-acceptable [0,1] range.
+        // CSS `rgb(...)` allows values outside 0-255 / 0-1, but most CG
+        // and AppKit/UIKit fill stacks accept clamped inputs only.
+        let r = max(0, min(1, CGFloat(values[0]) / 255))
+        let g = max(0, min(1, CGFloat(values[1]) / 255))
+        let b = max(0, min(1, CGFloat(values[2]) / 255))
+        let aRaw: CGFloat = values.count >= 4 ? CGFloat(values[3]) : 1.0
+        let a = max(0, min(1, aRaw))
 
         return BMColor(red: r, green: g, blue: b, alpha: a)
     }

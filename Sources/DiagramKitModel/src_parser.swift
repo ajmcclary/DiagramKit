@@ -1212,7 +1212,9 @@ private func _parseDirection(_ token: String) -> ParsedDirection? {
     case "BT", "^": return .BT
     case "LR", ">": return .LR
     case "RL", "<": return .RL
-    case "BR": return .BT  // Bottom-Right = Bottom-to-Top
+    // `BR` is treated as a `BT` synonym (Mermaid parity). The "Right" half
+    // is not a direction in this enum, so we collapse onto Bottom-to-Top.
+    case "BR": return .BT
     default: return ParsedDirection(rawValue: token.uppercased())
     }
 }

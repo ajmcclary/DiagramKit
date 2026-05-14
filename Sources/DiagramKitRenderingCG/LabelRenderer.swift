@@ -25,7 +25,7 @@ public enum VerticalAlignment {
     case bottom
 }
 
-public class LabelRenderer {
+public final class LabelRenderer {
 
     public init() {}
 
