@@ -1,9 +1,14 @@
 // Phase 9: Interactive Model — Slice 9C
 // Source sync via export protocol.
 
+import DiagramKitCommon
 import DiagramKitModel
 import DiagramKitExport
 import Foundation
+
+#if canImport(CoreGraphics)
+import DiagramKitRenderingCG
+#endif
 
 extension DiagramEditor {
     /// Re-export the current document via `preferredExportFormat`.
@@ -32,5 +37,33 @@ extension DiagramEditor {
             to: preferredExportFormat,
             registry: exportRegistry
         )
+    }
+
+    // MARK: - Worker hop
+
+    /// Dispatch `work` to a fresh 8 MB worker thread per CLAUDE.md's
+    /// no-thread-pool rule. On Apple platforms this forwards to
+    /// `DiagramWorkerThread.run` from `DiagramKitRenderingCG`. On Linux,
+    /// spins a fresh `Thread` with the stack size from
+    /// `DiagramWorkerConfig`.
+    static func _runOnWorker<T: Sendable>(
+        _ work: @escaping @Sendable () throws -> T
+    ) async throws -> T {
+        #if canImport(CoreGraphics)
+        return try await DiagramWorkerThread.run(work)
+        #else
+        return try await withCheckedThrowingContinuation { continuation in
+            let thread = Thread {
+                do {
+                    continuation.resume(returning: try work())
+                } catch {
+                    continuation.resume(throwing: error)
+                }
+            }
+            thread.name = "DiagramKit editor worker"
+            thread.stackSize = DiagramWorkerConfig.stackSize
+            thread.start()
+        }
+        #endif
     }
 }
