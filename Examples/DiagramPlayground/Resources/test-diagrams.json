@@ -888,8 +888,7 @@
       "id": "er-25-parent-marker",
       "category": "er",
       "name": "Parent Marker (u)",
-      "source": "erDiagram\n  PROJECT u--o{ TEAM_MEMBER : assigned\n  TEAM_MEMBER ||--|| PROJECT : leads",
-      "skipSnapshots": ["ascii"]
+      "source": "erDiagram\n  PROJECT u--o{ TEAM_MEMBER : assigned\n  TEAM_MEMBER ||--|| PROJECT : leads"
     },
     {
       "id": "xychart-1-bar",

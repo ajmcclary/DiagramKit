@@ -30,6 +30,7 @@ public enum AsciiErCardinality: String {
     case zeroOne = "zero-one"
     case many = "many"
     case zeroMany = "zero-many"
+    case parent = "md-parent"
 }
 
 public struct AsciiErRelationship {
@@ -110,6 +111,8 @@ private func getCrowsFootChars(_ card: AsciiErCardinality, _ useAscii: Bool, _ i
             return isRight ? "<" : ">"
         case .zeroMany:
             return isRight ? "o<" : ">o"
+        case .parent:
+            return "*"
         }
     }
 
@@ -122,6 +125,8 @@ private func getCrowsFootChars(_ card: AsciiErCardinality, _ useAscii: Bool, _ i
         return isRight ? "╟" : "╢"
     case .zeroMany:
         return isRight ? "○╟" : "╢○"
+    case .parent:
+        return "◆"
     }
 }
 
@@ -188,6 +193,8 @@ private func _toAsciiCardinality(_ raw: String) throws -> AsciiErCardinality {
         return .many
     case AsciiErCardinality.zeroMany.rawValue, "ZERO_OR_MORE", "ZERO-MANY":
         return .zeroMany
+    case AsciiErCardinality.parent.rawValue, "MD_PARENT":
+        return .parent
     default:
         throw AsciiErRenderError.invalidCardinality(raw)
     }
