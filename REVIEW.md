@@ -91,6 +91,33 @@ Non-resolver drift captured in the rebaseline window `1c2f18f..HEAD`: `8546f813`
 
 ---
 
+## Resolution Status — Session 5 (2026-05-14)
+
+Closes Deferred Effort §4 → Playground state machine → "`_export` runs synchronously on `@MainActor`; large flowcharts block main." Spec at `docs/superpowers/specs/2026-05-14-async-export-off-mainactor-design.md`; plan at `docs/superpowers/plans/2026-05-14-async-export-off-mainactor.md`. Fourteen commits on `main` (three docs + eleven implementation).
+
+| # | Item | Commit | What landed |
+|---|---|---|---|
+| 1 | §4 Spec | `eed1531` | Async export off MainActor design — serialize-and-preserve-atomicity policy, clean break to `async throws`, chained-Task with refcounted `isExporting`. |
+| 2 | §4 Spec correction | `f64abd7` | Initial draft claimed Interactive already depended on `DiagramKitRenderingCG`; `Package.swift:116` shows it did not. Plan adds the dep as an Apple-conditional edge and routes Linux through a private fresh-`Thread` fallback. |
+| 3 | §4 Plan | `ae2abfc` | Eleven-task implementation plan honoring TDD where the refactor permits. |
+| 4 | §4 SPM dep | `8a101e0` | `Package.swift` adds `.target(name: "DiagramKitRenderingCG", condition: .when(platforms: [Apple]))` to `DiagramKitInteractive`'s dependencies. Edge is platform-gated so Linux stays buildable. |
+| 5 | §4 Worker helper | `26e7a27` | `DiagramEditor._runOnWorker<T>` forwards to `DiagramWorkerThread.run` on Apple; spins a fresh `Thread` with `DiagramWorkerConfig.stackSize` on Linux. Lives in `DiagramEditor+SourceSync.swift`. |
+| 6 | §4 `perform` async | `9033d26` | `DiagramEditor.perform(_:)` becomes `async throws`. New `_exportAsync` hops to the worker; sync `_export` retained one more commit because `performFlowchart`/`syncSource` still call it. `LiveEditorStore.performMutation` and the four `DiagramEditorPane` button callsites (`setTitle` set/clear, `setLabel`, `deleteElement`) migrate to `await`. 28 callsites in `DiagramEditorMutationTests` + 10 in `DiagramEditorUndoTests` swept; two undo tests (`sequentialMutationsUndo`, `multipleMutationCanUndo`) updated because async perform yields between mutations and Foundation's per-run-loop implicit undo grouping no longer applies — the new contract is "every mutation gets an undo entry," verified by stepping the undo stack one entry at a time. |
+| 7 | §4 `performFlowchart` async | `073c3f2` | Same worker-hop migration. `LiveEditorStore.performFlowchartMutation`, the two insert sections in `DiagramEditorPane`, and `DiagramEditorFlowchartTests` (9 callsites) migrate. |
+| 8 | §4 `syncSource` async + delete `_export` | `285eeab` | Last sync entry point promoted. With no callers remaining, the sync `_export` helper is deleted in the same commit. `DiagramEditorTests`, `DiagramEditorSourceSyncTests`, plus `applySeededEditor` in `LiveEditorStore` migrate to `await`. |
+| 9 | §4 Chained-Task + `isExporting` | `aa6ebc5` | `DiagramEditor` gains `isExporting: Bool` (Observable), `_pendingMutation: Task<Void, Error>?`, `_pendingMutationGeneration: UInt64`, and `_mutationDepth: Int` (all `@ObservationIgnored`). `perform` and `performFlowchart` extract their commit bodies into `_performInner` / `_performFlowchartInner` and wrap them in a `Task` that the next caller awaits. The refcount drives `isExporting` on 0→1 / N→0 transitions only, avoiding mid-chain flicker. A monotonic generation token replaces identity comparison (Task is a struct — `===` doesn't apply). New `DiagramEditorAsyncExportTests` covers the two-call ordering and the `isExporting` on/off transitions via a gated test exporter. |
+| 10 | §4 Atomicity-under-throw test | `76f9064` | `FailingExporter` throws `DiagramExportError(message: "boom")`; test asserts `document.payload`, `source`, `undoManager.canUndo`, and `isExporting` are all unchanged from pre-call state. |
+| 11 | §4 Cancellation isolation test | `6ba9347` | Outer `Task` is `.cancel()`'d while the worker is mid-hop; the inner commit still lands. Verified by checking `model.nodesInOrder.contains("B")` and `isExporting == false` after a 50 ms drain. |
+| 12 | §4 Off-MainActor test | `6d65dfe` | `ObservingExporter` records `Thread.isMainThread` from within `export(_:)`; test asserts `false`. Pins that the worker hop actually fires. |
+| 13 | §4 UI wiring | `3d23e7f` | `DiagramEditorPane` mutation buttons (title set/clear, rename, delete, insert-node, insert-edge) gain `.disabled(editor.isExporting || …)`. Prevents rapid-fire taps from piling up Tasks during a slow export. |
+| 14 | §4 CLAUDE.md sync | `98f5f6e` | Test source count 218 → 225 (the new `DiagramEditorAsyncExportTests.swift` plus six other files that landed between sessions). |
+
+Session-end verification: targeted `swift test --filter` across `DiagramEditorTests`, `DiagramEditorMutationTests`, `DiagramEditorUndoTests`, `DiagramEditorFlowchartTests`, `DiagramEditorSourceSyncTests`, `DiagramEditorAsyncExportTests`, `LiveEditorStoreEditorLifecycleTests` all green (55 tests / 6 suites). `Scripts/check-sendable-annotations.sh` ✓ green. `Scripts/strict-concurrency-check.sh` ✓ first-party clean. `Scripts/check-file-sizes.sh` reports only pre-existing yellow warnings; no new threshold crossings from this work.
+
+The deferred item §4 "`_export` runs synchronously on `@MainActor`" is now closed. Atomic-commit and per-mutation undo contracts preserved; the worker rule (8 MB fresh-Thread per dispatch) honored on both Apple and Linux.
+
+---
+
 ## Deferred Effort — Recommendations
 
 Some review items were intentionally deferred during the five-phase pass; others surfaced during execution and were scoped out to keep individual commits coherent. Listed in priority order.
