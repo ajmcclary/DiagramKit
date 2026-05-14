@@ -69,12 +69,12 @@ public func _flattenKnownSvgTokens(_ svg: String, theme: DiagramTheme) -> String
 }
 
 public func _resolveSvgCssVariables(_ svg: String) -> String {
+    // 1. Collect `--name: value` definitions from <style> blocks.
     let ns = svg as NSString
     let pattern = "--([a-zA-Z0-9_-]+)\\s*:\\s*([^;\\\"]+)"
     guard let regex = try? NSRegularExpression(pattern: pattern) else {
         return svg
     }
-
     let matches = regex.matches(in: svg, range: NSRange(location: 0, length: ns.length))
     if matches.isEmpty { return svg }
 
@@ -85,44 +85,11 @@ public func _resolveSvgCssVariables(_ svg: String) -> String {
         vars[name] = value
     }
 
-    guard let varRegex = try? NSRegularExpression(
-        pattern: #"var\(\s*--([a-zA-Z0-9_-]+)\s*(?:,\s*([^)]+))?\)"#
-    ) else {
-        return svg
-    }
-
-    func resolveVars(in input: String) -> String {
-        var out = input
-        for _ in 0..<16 {
-            let source = out as NSString
-            let range = NSRange(location: 0, length: source.length)
-            let varMatches = varRegex.matches(in: out, range: range)
-            if varMatches.isEmpty { break }
-
-            var changed = false
-            for m in varMatches.reversed() {
-                guard m.numberOfRanges >= 2 else { continue }
-                let key = source.substring(with: m.range(at: 1))
-                let fallback: String? = (m.numberOfRanges >= 3 && m.range(at: 2).location != NSNotFound)
-                    ? source.substring(with: m.range(at: 2)).trimmingCharacters(in: .whitespacesAndNewlines)
-                    : nil
-
-                let replacement = vars[key] ?? fallback ?? ""
-                if !replacement.isEmpty {
-                    out = (out as NSString).replacingCharacters(in: m.range(at: 0), with: replacement)
-                    changed = true
-                }
-            }
-            if !changed { break }
-        }
-        return out
-    }
-
-    // First resolve variable definitions themselves.
+    // 2. Resolve `var(...)` recursively in the variable definitions.
     for _ in 0..<8 {
         var changed = false
         for (k, v) in vars {
-            let rv = resolveVars(in: v)
+            let rv = _resolveVarFunctions(in: v, vars: vars)
             if rv != v {
                 vars[k] = rv
                 changed = true
@@ -131,28 +98,140 @@ public func _resolveSvgCssVariables(_ svg: String) -> String {
         if !changed { break }
     }
 
-    var out = resolveVars(in: svg)
+    // 3. Resolve `var(...)` in the main SVG body.
+    var out = _resolveVarFunctions(in: svg, vars: vars)
 
-    // AppKit/UIKit SVG rasterizers do not reliably support color-mix().
-    // Replace remaining dynamic CSS with deterministic solid colors.
-    let mixPattern = #"color-mix\([^)]+\)"#
-    if let mixRegex = try? NSRegularExpression(pattern: mixPattern) {
-        let nsOut = out as NSString
-        let matches = mixRegex.matches(in: out, range: NSRange(location: 0, length: nsOut.length))
-        for m in matches.reversed() {
-            out = (out as NSString).replacingCharacters(in: m.range, with: "#666666")
-        }
-    }
-
-    let unresolvedVarPattern = #"var\([^)]+\)"#
-    if let unresolvedVarRegex = try? NSRegularExpression(pattern: unresolvedVarPattern) {
-        let nsOut = out as NSString
-        let matches = unresolvedVarRegex.matches(in: out, range: NSRange(location: 0, length: nsOut.length))
-        for m in matches.reversed() {
-            out = (out as NSString).replacingCharacters(in: m.range, with: "#666666")
-        }
-    }
+    // 4. Flatten any remaining `color-mix(...)` and unresolved `var(...)`
+    //    calls to a deterministic solid color, since AppKit/UIKit SVG
+    //    rasterizers don't reliably support those CSS functions.
+    out = _flattenBalancedFunction(out, name: "color-mix", replacement: "#666666")
+    out = _flattenBalancedFunction(out, name: "var", replacement: "#666666")
 
     return out
+}
+
+/// Walk `input` and replace every `var(--name[, fallback])` call with
+/// its resolved value, using a paren-counting parser so nested calls
+/// in the fallback slot don't truncate at the first `)`. Iterates up
+/// to 16 times so an early `var()` whose fallback expands to another
+/// `var()` resolves fully in one call.
+internal func _resolveVarFunctions(in input: String, vars: [String: String]) -> String {
+    var out = input
+    for _ in 0..<16 {
+        guard let call = _findFirstBalancedFunction(in: out, name: "var") else {
+            return out
+        }
+        // Parse the call body: `--name[, fallback]`.
+        let body = String(out[call.bodyRange])
+        guard let (key, fallback) = _parseVarBody(body) else {
+            // Malformed call; replace with empty string to avoid an
+            // infinite loop.
+            out.replaceSubrange(call.callRange, with: "")
+            continue
+        }
+        let replacement = vars[key] ?? fallback ?? ""
+        out.replaceSubrange(call.callRange, with: replacement)
+    }
+    return out
+}
+
+/// Replace every top-level occurrence of `name(...)` with `replacement`,
+/// matching parens so nested arguments don't trip up the scan.
+internal func _flattenBalancedFunction(
+    _ input: String,
+    name: String,
+    replacement: String
+) -> String {
+    var out = input
+    while let call = _findFirstBalancedFunction(in: out, name: name) {
+        out.replaceSubrange(call.callRange, with: replacement)
+    }
+    return out
+}
+
+internal struct _BalancedFunctionCall {
+    /// Range covering `name(...)` — the function name through the
+    /// matching close paren.
+    var callRange: Range<String.Index>
+    /// Range covering just the body inside the outermost parens.
+    var bodyRange: Range<String.Index>
+}
+
+internal func _findFirstBalancedFunction(
+    in source: String,
+    name: String
+) -> _BalancedFunctionCall? {
+    let needle = name + "("
+    var searchStart = source.startIndex
+    while searchStart < source.endIndex,
+          let nameRange = source.range(of: needle, range: searchStart..<source.endIndex) {
+        // Ensure the match is at a word boundary on the left.
+        // Otherwise `foovar(--x)` would match `var(--x)` mid-identifier.
+        if nameRange.lowerBound > source.startIndex {
+            let before = source[source.index(before: nameRange.lowerBound)]
+            if before.isLetter || before.isNumber || before == "_" || before == "-" {
+                searchStart = nameRange.upperBound
+                continue
+            }
+        }
+        let bodyStart = nameRange.upperBound
+        var depth = 1
+        var cursor = bodyStart
+        while cursor < source.endIndex {
+            let ch = source[cursor]
+            if ch == "(" {
+                depth += 1
+            } else if ch == ")" {
+                depth -= 1
+                if depth == 0 {
+                    return _BalancedFunctionCall(
+                        callRange: nameRange.lowerBound..<source.index(after: cursor),
+                        bodyRange: bodyStart..<cursor
+                    )
+                }
+            }
+            cursor = source.index(after: cursor)
+        }
+        // Unbalanced parens — no further matches are sensible.
+        return nil
+    }
+    return nil
+}
+
+/// Split a `var(...)` body into `(name, fallback)`. Names match
+/// `--[a-zA-Z0-9_-]+`; the fallback (if present) is everything after
+/// the first top-level comma.
+internal func _parseVarBody(_ body: String) -> (name: String, fallback: String?)? {
+    let trimmed = body.trimmingCharacters(in: .whitespacesAndNewlines)
+    guard trimmed.hasPrefix("--") else { return nil }
+
+    // Find the first top-level comma (depth-0). Anything before is the
+    // name, anything after is the fallback (which may itself contain
+    // nested calls).
+    var depth = 0
+    var splitIndex: String.Index? = nil
+    var cursor = trimmed.startIndex
+    while cursor < trimmed.endIndex {
+        let ch = trimmed[cursor]
+        if ch == "(" {
+            depth += 1
+        } else if ch == ")" {
+            depth -= 1
+        } else if ch == "," && depth == 0 {
+            splitIndex = cursor
+            break
+        }
+        cursor = trimmed.index(after: cursor)
+    }
+
+    if let splitIndex {
+        let rawName = trimmed[..<splitIndex].trimmingCharacters(in: .whitespacesAndNewlines)
+        let rawFallback = trimmed[trimmed.index(after: splitIndex)...].trimmingCharacters(in: .whitespacesAndNewlines)
+        let name = String(rawName.dropFirst(2)) // strip leading "--"
+        return (name, rawFallback.isEmpty ? nil : rawFallback)
+    } else {
+        let name = String(trimmed.dropFirst(2))
+        return (name, nil)
+    }
 }
 #endif
