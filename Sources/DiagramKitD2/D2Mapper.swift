@@ -40,9 +40,15 @@ public struct D2Mapper {
 
         func upsertNode(_ nodeDef: D2NodeDefinition) {
             guard !nodeDef.id.isEmpty else { return }
+            let wasDuplicate = nodesById[nodeDef.id] != nil
             ensureNode(id: nodeDef.id)
 
             var node = nodesById[nodeDef.id]!
+            let oldLabel = node.label
+            let oldShape = node.shape
+            let oldWidth = node.properties?.w
+            let oldHeight = node.properties?.h
+
             if let label = nodeDef.label {
                 node.label = label
             }
@@ -71,31 +77,64 @@ public struct D2Mapper {
             }
             node.properties = hasProperties ? properties : nil
 
+            if wasDuplicate {
+                if node.label != oldLabel {
+                    diagnostics.append(DiagramDiagnostic(
+                        severity: .warning,
+                        message: "Duplicate node '\(nodeDef.id)': label '\(oldLabel)' overwritten by '\(node.label)'",
+                        location: nil
+                    ))
+                }
+                if node.shape != oldShape {
+                    diagnostics.append(DiagramDiagnostic(
+                        severity: .warning,
+                        message: "Duplicate node '\(nodeDef.id)': shape \(oldShape) overwritten by \(node.shape)",
+                        location: nil
+                    ))
+                }
+                if let newWidth = node.properties?.w, newWidth != oldWidth {
+                    let oldDesc = oldWidth.map { String($0) } ?? "nil"
+                    diagnostics.append(DiagramDiagnostic(
+                        severity: .warning,
+                        message: "Duplicate node '\(nodeDef.id)': width \(oldDesc) overwritten by \(newWidth)",
+                        location: nil
+                    ))
+                }
+                if let newHeight = node.properties?.h, newHeight != oldHeight {
+                    let oldDesc = oldHeight.map { String($0) } ?? "nil"
+                    diagnostics.append(DiagramDiagnostic(
+                        severity: .warning,
+                        message: "Duplicate node '\(nodeDef.id)': height \(oldDesc) overwritten by \(newHeight)",
+                        location: nil
+                    ))
+                }
+            }
+
             if nodeDef.direction != nil {
                 diagnostics.append(DiagramDiagnostic(
                     severity: .unsupported,
-                    message: "node direction not yet supported",
+                    message: "node '\(nodeDef.id)' direction not yet supported",
                     location: nil
                 ))
             }
             if nodeDef.icon != nil {
                 diagnostics.append(DiagramDiagnostic(
                     severity: .unsupported,
-                    message: "icon not yet supported",
+                    message: "node '\(nodeDef.id)' icon not yet supported",
                     location: nil
                 ))
             }
             if nodeDef.tooltip != nil {
                 diagnostics.append(DiagramDiagnostic(
                     severity: .unsupported,
-                    message: "tooltips not yet supported",
+                    message: "node '\(nodeDef.id)' tooltip not yet supported",
                     location: nil
                 ))
             }
             if nodeDef.link != nil {
                 diagnostics.append(DiagramDiagnostic(
                     severity: .unsupported,
-                    message: "links not yet supported",
+                    message: "node '\(nodeDef.id)' link not yet supported",
                     location: nil
                 ))
             }
