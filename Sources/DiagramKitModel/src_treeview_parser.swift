@@ -42,7 +42,7 @@ public func _isTreeViewHeader(rawLines: [String]) -> Bool {
     return firstLine == "treeView-beta" || firstLine.hasPrefix("treeView-beta ") || firstLine.hasPrefix("treeView-beta\t")
 }
 
-public func parseTreeViewDiagram(_ rawLines: [String], frontmatter: DiagramFrontmatter?) throws -> TreeViewDiagram {
+public func parseTreeViewDiagram(_ rawLines: [String], frontmatter: DiagramFrontmatter?) throws -> (TreeViewDiagram, [DiagramDiagnostic]) {
     guard !rawLines.isEmpty else {
         throw TreeViewParserError.emptySource
     }
@@ -180,7 +180,7 @@ public func parseTreeViewDiagram(_ rawLines: [String], frontmatter: DiagramFront
     }
     collect(convertedRoot)
 
-    return TreeViewDiagram(
+    return (TreeViewDiagram(
         root: convertedRoot,
         nodes: nodeList,
         diagramTitle: diagramTitle,
@@ -188,7 +188,7 @@ public func parseTreeViewDiagram(_ rawLines: [String], frontmatter: DiagramFront
         accDescr: accDescr,
         config: TreeViewDiagramConfig.default,
         theme: frontmatter.flatMap { _ in nil }
-    )
+    ), [])
 }
 
 private func _parseTreeViewLine(_ line: String) throws -> (level: Int, name: String, nodeType: TreeViewNodeType, cssClass: String?, iconId: String?, description: String?) {

@@ -8,7 +8,7 @@ final class PacketLayoutTests: XCTestCase {
 
     private func parse(_ source: String) throws -> PacketDiagram {
         let lines = _mermaidSourceLines(from: source)
-        return try parsePacketDiagram(lines, frontmatter: nil)
+        return try parsePacketDiagram(lines, frontmatter: nil).0
     }
 
     func testSingleBlockLayout() throws {

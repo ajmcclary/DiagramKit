@@ -1,11 +1,12 @@
 import Foundation
+import DiagramKitCommon
 
 // MARK: - Public parse entry point
 
 public func parseEventModeling(
     _ rawLines: [String],
     frontmatter fm: DiagramFrontmatter? = nil
-) throws -> EventModelingDiagram {
+) throws -> (EventModelingDiagram, [DiagramDiagnostic]) {
     let normalized = rawLines
     var diagram = EventModelingDiagram()
 
@@ -209,7 +210,7 @@ public func parseEventModeling(
         }
     }
 
-    return diagram
+    return (diagram, [])
 }
 
 // MARK: - Frame parsing

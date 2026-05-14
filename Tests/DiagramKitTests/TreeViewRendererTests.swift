@@ -24,7 +24,7 @@ struct TreeViewRendererTests {
     private func _parseAndLayout(_ source: String) throws -> PositionedGraph {
         let normalized = source.replacingOccurrences(of: "\r\n", with: "\n").replacingOccurrences(of: "\r", with: "\n")
         let rawLines = normalized.split(separator: "\n", omittingEmptySubsequences: false).map(String.init)
-        let diagram = try parseTreeViewDiagram(rawLines, frontmatter: nil)
+        let (diagram, _) = try parseTreeViewDiagram(rawLines, frontmatter: nil)
         let positioned = layoutTreeViewDiagram(diagram)
         let graph = DiagramDocument(payload: .treeView(diagram))
         return PositionedGraph(diagram: graph, width: positioned.viewBoxWidth, height: positioned.viewBoxHeight, content: .treeView(positioned))
@@ -99,7 +99,7 @@ struct TreeViewRendererTests {
         let source = "treeView-beta\n    file.js\n"
         let normalized = source.replacingOccurrences(of: "\r\n", with: "\n").replacingOccurrences(of: "\r", with: "\n")
         let rawLines = normalized.split(separator: "\n", omittingEmptySubsequences: false).map(String.init)
-        var diagram = try parseTreeViewDiagram(rawLines, frontmatter: nil)
+        var (diagram, _) = try parseTreeViewDiagram(rawLines, frontmatter: nil)
         diagram.theme = TreeViewThemeVariables(
             labelColor: "#FF0000",
             lineColor: "#00FF00",
@@ -120,7 +120,7 @@ struct TreeViewRendererTests {
         let source = "treeView-beta\n    Dockerfile icon(docker)\n"
         let normalized = source.replacingOccurrences(of: "\r\n", with: "\n").replacingOccurrences(of: "\r", with: "\n")
         let rawLines = normalized.split(separator: "\n", omittingEmptySubsequences: false).map(String.init)
-        let diagram = try parseTreeViewDiagram(rawLines, frontmatter: nil)
+        let (diagram, _) = try parseTreeViewDiagram(rawLines, frontmatter: nil)
         let positioned = layoutTreeViewDiagram(diagram)
         let graph = DiagramDocument(payload: .treeView(diagram))
         let positionedGraph = PositionedGraph(

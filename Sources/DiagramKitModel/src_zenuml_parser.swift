@@ -1,4 +1,5 @@
 import Foundation
+import DiagramKitCommon
 
 // MARK: - ZenUML Parser
 
@@ -13,7 +14,7 @@ import Foundation
 ///   - lines: Raw source lines after frontmatter stripping and header removal
 ///   - frontmatter: Optional frontmatter with config overrides
 /// - Returns: A parsed `ZenUMLDiagram`
-public func parseZenUMLDiagram(_ lines: [String], frontmatter: DiagramFrontmatter? = nil) throws -> ZenUMLDiagram {
+public func parseZenUMLDiagram(_ lines: [String], frontmatter: DiagramFrontmatter? = nil) throws -> (ZenUMLDiagram, [DiagramDiagnostic]) {
     var diagram = ZenUMLDiagram()
 
     // Apply frontmatter title if available
@@ -38,18 +39,18 @@ public func parseZenUMLDiagram(_ lines: [String], frontmatter: DiagramFrontmatte
 
     let body = bodyLines.joined(separator: "\n")
     if body.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-        return diagram
+        return (diagram, [])
     }
 
     let tokens = tokenizeZenUML(body)
     if tokens.isEmpty || (tokens.count == 1 && tokens[0].kind == .eof) {
-        return diagram
+        return (diagram, [])
     }
 
     let parser = ZenUMLRecursiveDescentParser(tokens: tokens)
     guard let ast = parser.parseProg() else {
         diagram.errors = parser.errors
-        return diagram
+        return (diagram, [])
     }
 
     // Semantic extraction passes on the AST
@@ -60,7 +61,7 @@ public func parseZenUMLDiagram(_ lines: [String], frontmatter: DiagramFrontmatte
         diagram.title = fmTitle
     }
 
-    return diagram
+    return (diagram, [])
 }
 
 // MARK: - Tokenizer

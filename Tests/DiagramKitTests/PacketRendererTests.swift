@@ -69,7 +69,7 @@ final class PacketRendererTests: XCTestCase {
         192-255: "Data (variable length)"
         """
         let lines = _mermaidSourceLines(from: source)
-        let diagram = try parsePacketDiagram(lines, frontmatter: nil)
+        let (diagram, _) = try parsePacketDiagram(lines, frontmatter: nil)
         let positioned = layoutPacketDiagram(diagram)
         let graph = DiagramDocument(payload: .packet(diagram))
         let positionedGraph = PositionedGraph(diagram: graph, width: positioned.width, height: positioned.height, content: .packet(positioned))
@@ -109,7 +109,7 @@ final class PacketRendererTests: XCTestCase {
     }
 
     func testPositionedGraphPacketAccessor() throws {
-        let diagram = try parsePacketDiagram(_mermaidSourceLines(from: "packet\n0-15: \"test\""), frontmatter: nil)
+        let (diagram, _) = try parsePacketDiagram(_mermaidSourceLines(from: "packet\n0-15: \"test\""), frontmatter: nil)
         let positioned = layoutPacketDiagram(diagram)
         let graph = DiagramDocument(payload: .packet(diagram))
         let positionedGraph = PositionedGraph(
@@ -123,7 +123,7 @@ final class PacketRendererTests: XCTestCase {
     }
 
     func testCoreGraphicsUsesPacketThemeBlockFillColor() throws {
-        var diagram = try parsePacketDiagram(_mermaidSourceLines(from: "packet\n0-15: \"test\""), frontmatter: nil)
+        var (diagram, _) = try parsePacketDiagram(_mermaidSourceLines(from: "packet\n0-15: \"test\""), frontmatter: nil)
         diagram.theme = PacketThemeConfig(blockFillColor: "#ff0000")
         let positioned = layoutPacketDiagram(diagram)
         let graph = DiagramDocument(payload: .packet(diagram))
@@ -163,7 +163,7 @@ final class PacketRendererTests: XCTestCase {
     }
 
     func testCoreGraphicsKeepsBitLabelsAbovePacketBlocks() throws {
-        var diagram = try parsePacketDiagram(_mermaidSourceLines(from: "packet\n0-15: \"test\""), frontmatter: nil)
+        var (diagram, _) = try parsePacketDiagram(_mermaidSourceLines(from: "packet\n0-15: \"test\""), frontmatter: nil)
         diagram.theme = PacketThemeConfig(
             byteFontSize: "10px",
             startByteColor: "#ff0000",

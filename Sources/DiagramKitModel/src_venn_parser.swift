@@ -1,8 +1,9 @@
 import Foundation
+import DiagramKitCommon
 
 // MARK: - Public Entry Point
 
-public func parseVennDiagram(_ rawLines: [String], frontmatter: DiagramFrontmatter? = nil) throws -> VennDiagram {
+public func parseVennDiagram(_ rawLines: [String], frontmatter: DiagramFrontmatter? = nil) throws -> (VennDiagram, [DiagramDiagnostic]) {
     guard !rawLines.isEmpty else {
         throw VennParserError.emptySource
     }
@@ -105,7 +106,7 @@ public func parseVennDiagram(_ rawLines: [String], frontmatter: DiagramFrontmatt
         }
     }
 
-    return diagram
+    return (diagram, [])
 }
 
 // MARK: - Helpers

@@ -1,4 +1,5 @@
 import Foundation
+import DiagramKitCommon
 
 private final class _MutableNode: @unchecked Sendable {
     var name: String
@@ -25,7 +26,7 @@ private final class _MutableNode: @unchecked Sendable {
     }
 }
 
-public func parseTreemapDiagram(_ rawLines: [String], frontmatter: DiagramFrontmatter?) throws -> TreemapDiagram {
+public func parseTreemapDiagram(_ rawLines: [String], frontmatter: DiagramFrontmatter?) throws -> (TreemapDiagram, [DiagramDiagnostic]) {
     guard !rawLines.isEmpty else {
         throw TreemapParserError.emptySource
     }
@@ -147,7 +148,7 @@ public func parseTreemapDiagram(_ rawLines: [String], frontmatter: DiagramFrontm
     }
 
     let styledNodes = _resolveTreemapClassStyles(root.children?.map { $0.toTreemapNode() } ?? [], classDefs: classDefs)
-    return TreemapDiagram(
+    return (TreemapDiagram(
         nodes: styledNodes,
         classDefs: classDefs,
         diagramTitle: diagramTitle,
@@ -156,7 +157,7 @@ public func parseTreemapDiagram(_ rawLines: [String], frontmatter: DiagramFrontm
         config: TreemapDiagramConfig.default,
         themeName: frontmatter?.theme,
         themeVariables: frontmatter?.treemapThemeVariables
-    )
+    ), [])
 }
 
 private func _parseTreemapLine(_ line: String) throws -> (indent: Int, name: String, value: Double?, classSelector: String?) {
@@ -276,7 +277,7 @@ private func _unescapeQuotes(_ s: String) -> String {
      .replacingOccurrences(of: "\\\\", with: "\\")
 }
 
-public func parseTreemapDiagramFromSource(_ source: String, frontmatter: DiagramFrontmatter?) throws -> TreemapDiagram {
+public func parseTreemapDiagramFromSource(_ source: String, frontmatter: DiagramFrontmatter?) throws -> (TreemapDiagram, [DiagramDiagnostic]) {
     let normalized = source
         .replacingOccurrences(of: "\r\n", with: "\n")
         .replacingOccurrences(of: "\r", with: "\n")

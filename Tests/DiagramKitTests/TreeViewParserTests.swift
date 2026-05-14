@@ -11,7 +11,7 @@ struct TreeViewParserTests {
     func emptyTree() throws {
         let source = "treeView-beta\n"
         let rawLines = source.split(separator: "\n", omittingEmptySubsequences: false).map(String.init)
-        let result = try parseTreeViewDiagram(rawLines, frontmatter: nil)
+        let (result, _) = try parseTreeViewDiagram(rawLines, frontmatter: nil)
         #expect(result.root.children.isEmpty)
         #expect(result.nodes.count == 1)
         #expect(result.root.id == 0)
@@ -26,7 +26,7 @@ struct TreeViewParserTests {
             file.js
         """
         let rawLines = source.split(separator: "\n", omittingEmptySubsequences: false).map(String.init)
-        let result = try parseTreeViewDiagram(rawLines, frontmatter: nil)
+        let (result, _) = try parseTreeViewDiagram(rawLines, frontmatter: nil)
         #expect(result.root.children.count == 1)
         #expect(result.root.children[0].name == "file.js")
         #expect(result.root.children[0].nodeType == .file)
@@ -41,7 +41,7 @@ struct TreeViewParserTests {
                 index.js
         """
         let rawLines = source.split(separator: "\n", omittingEmptySubsequences: false).map(String.init)
-        let result = try parseTreeViewDiagram(rawLines, frontmatter: nil)
+        let (result, _) = try parseTreeViewDiagram(rawLines, frontmatter: nil)
         #expect(result.root.children.count == 1)
         #expect(result.root.children[0].name == "src")
         #expect(result.root.children[0].nodeType == .directory)
@@ -58,7 +58,7 @@ struct TreeViewParserTests {
                     "file.js"
         """
         let rawLines = source.split(separator: "\n", omittingEmptySubsequences: false).map(String.init)
-        let result = try parseTreeViewDiagram(rawLines, frontmatter: nil)
+        let (result, _) = try parseTreeViewDiagram(rawLines, frontmatter: nil)
         #expect(result.root.children.count == 1)
         #expect(result.root.children[0].name == "my project")
         #expect(result.root.children[0].children[0].name == "folder with spaces")
@@ -72,7 +72,7 @@ struct TreeViewParserTests {
                 'child'
         """
         let rawLines = source.split(separator: "\n", omittingEmptySubsequences: false).map(String.init)
-        let result = try parseTreeViewDiagram(rawLines, frontmatter: nil)
+        let (result, _) = try parseTreeViewDiagram(rawLines, frontmatter: nil)
         #expect(result.root.children[0].name == "single")
         #expect(result.root.children[0].children[0].name == "child")
     }
@@ -84,7 +84,7 @@ struct TreeViewParserTests {
             ""
         """
         let rawLines = source.split(separator: "\n", omittingEmptySubsequences: false).map(String.init)
-        let result = try parseTreeViewDiagram(rawLines, frontmatter: nil)
+        let (result, _) = try parseTreeViewDiagram(rawLines, frontmatter: nil)
         #expect(result.root.children.count == 1)
         #expect(result.root.children[0].name == "")
     }
@@ -100,7 +100,7 @@ struct TreeViewParserTests {
             "Child"
         """
         let rawLines = source.split(separator: "\n", omittingEmptySubsequences: false).map(String.init)
-        let result = try parseTreeViewDiagram(rawLines, frontmatter: nil)
+        let (result, _) = try parseTreeViewDiagram(rawLines, frontmatter: nil)
         #expect(result.diagramTitle == "Project Tree")
         #expect(result.accTitle == "Project files")
         #expect(result.accDescr == "Directory structure")
@@ -117,7 +117,7 @@ struct TreeViewParserTests {
         "Root"
         """
         let rawLines = source.split(separator: "\n", omittingEmptySubsequences: false).map(String.init)
-        let result = try parseTreeViewDiagram(rawLines, frontmatter: nil)
+        let (result, _) = try parseTreeViewDiagram(rawLines, frontmatter: nil)
         #expect(result.accDescr == "Line one Line two")
     }
 
@@ -129,7 +129,7 @@ struct TreeViewParserTests {
         "Root"
         """
         let rawLines = source.split(separator: "\n", omittingEmptySubsequences: false).map(String.init)
-        let result = try parseTreeViewDiagram(rawLines, frontmatter: nil)
+        let (result, _) = try parseTreeViewDiagram(rawLines, frontmatter: nil)
         #expect(result.accDescr == "Short description")
     }
 
@@ -140,7 +140,7 @@ struct TreeViewParserTests {
             file.js :::highlight
         """
         let rawLines = source.split(separator: "\n", omittingEmptySubsequences: false).map(String.init)
-        let result = try parseTreeViewDiagram(rawLines, frontmatter: nil)
+        let (result, _) = try parseTreeViewDiagram(rawLines, frontmatter: nil)
         #expect(result.root.children[0].cssClass == "highlight")
     }
 
@@ -151,7 +151,7 @@ struct TreeViewParserTests {
             App.tsx icon(react)
         """
         let rawLines = source.split(separator: "\n", omittingEmptySubsequences: false).map(String.init)
-        let result = try parseTreeViewDiagram(rawLines, frontmatter: nil)
+        let (result, _) = try parseTreeViewDiagram(rawLines, frontmatter: nil)
         #expect(result.root.children[0].iconId == "react")
     }
 
@@ -162,7 +162,7 @@ struct TreeViewParserTests {
             file.js icon(none)
         """
         let rawLines = source.split(separator: "\n", omittingEmptySubsequences: false).map(String.init)
-        let result = try parseTreeViewDiagram(rawLines, frontmatter: nil)
+        let (result, _) = try parseTreeViewDiagram(rawLines, frontmatter: nil)
         #expect(result.root.children[0].iconId == "none")
     }
 
@@ -173,7 +173,7 @@ struct TreeViewParserTests {
             file.js icon()
         """
         let rawLines = source.split(separator: "\n", omittingEmptySubsequences: false).map(String.init)
-        let result = try parseTreeViewDiagram(rawLines, frontmatter: nil)
+        let (result, _) = try parseTreeViewDiagram(rawLines, frontmatter: nil)
         #expect(result.root.children[0].iconId == "none")
     }
 
@@ -184,7 +184,7 @@ struct TreeViewParserTests {
             file.js ## entry point
         """
         let rawLines = source.split(separator: "\n", omittingEmptySubsequences: false).map(String.init)
-        let result = try parseTreeViewDiagram(rawLines, frontmatter: nil)
+        let (result, _) = try parseTreeViewDiagram(rawLines, frontmatter: nil)
         #expect(result.root.children[0].description?.contains("entry point") == true)
     }
 
@@ -195,7 +195,7 @@ struct TreeViewParserTests {
             App.tsx :::highlight icon(react) ## main component
         """
         let rawLines = source.split(separator: "\n", omittingEmptySubsequences: false).map(String.init)
-        let result = try parseTreeViewDiagram(rawLines, frontmatter: nil)
+        let (result, _) = try parseTreeViewDiagram(rawLines, frontmatter: nil)
         #expect(result.root.children[0].cssClass == "highlight")
         #expect(result.root.children[0].iconId == "react")
         #expect(result.root.children[0].description?.contains("main component") == true)
@@ -211,7 +211,7 @@ struct TreeViewParserTests {
             README.md
         """
         let rawLines = source.split(separator: "\n", omittingEmptySubsequences: false).map(String.init)
-        let result = try parseTreeViewDiagram(rawLines, frontmatter: nil)
+        let (result, _) = try parseTreeViewDiagram(rawLines, frontmatter: nil)
         #expect(result.root.children.count == 3)
         #expect(result.root.children[0].name == "src")
         #expect(result.root.children[1].name == "package.json")
@@ -227,7 +227,7 @@ struct TreeViewParserTests {
             file2.js
         """
         let rawLines = source.split(separator: "\n", omittingEmptySubsequences: false).map(String.init)
-        let result = try parseTreeViewDiagram(rawLines, frontmatter: nil)
+        let (result, _) = try parseTreeViewDiagram(rawLines, frontmatter: nil)
         #expect(result.root.children.count == 2)
         #expect(result.root.children[0].name == "file1.js")
         #expect(result.root.children[1].name == "file2.js")
@@ -262,7 +262,7 @@ struct TreeViewParserTests {
             tsconfig.json
         """
         let rawLines = source.split(separator: "\n", omittingEmptySubsequences: false).map(String.init)
-        let result = try parseTreeViewDiagram(rawLines, frontmatter: nil)
+        let (result, _) = try parseTreeViewDiagram(rawLines, frontmatter: nil)
         #expect(result.root.children.count == 5)
         #expect(result.root.children[0].name == ".env")
         #expect(result.root.children[1].name == ".gitignore")
@@ -278,7 +278,7 @@ struct TreeViewParserTests {
                         d.js
         """
         let rawLines = source.split(separator: "\n", omittingEmptySubsequences: false).map(String.init)
-        let result = try parseTreeViewDiagram(rawLines, frontmatter: nil)
+        let (result, _) = try parseTreeViewDiagram(rawLines, frontmatter: nil)
         let a = result.root.children[0]
         let b = a.children[0]
         let c = b.children[0]
@@ -294,7 +294,7 @@ struct TreeViewParserTests {
 
         """
         let rawLines = source.split(separator: "\n", omittingEmptySubsequences: false).map(String.init)
-        let result = try parseTreeViewDiagram(rawLines, frontmatter: nil)
+        let (result, _) = try parseTreeViewDiagram(rawLines, frontmatter: nil)
         #expect(result.root.children.count == 1)
     }
 
@@ -313,7 +313,7 @@ struct TreeViewParserTests {
                 file.js
         """
         let rawLines = source.split(separator: "\n", omittingEmptySubsequences: false).map(String.init)
-        let result = try parseTreeViewDiagram(rawLines, frontmatter: nil)
+        let (result, _) = try parseTreeViewDiagram(rawLines, frontmatter: nil)
         #expect(result.root.children[0].iconId == "folder")
     }
 
@@ -324,7 +324,7 @@ struct TreeViewParserTests {
             Dockerfile
         """
         let rawLines = source.split(separator: "\n", omittingEmptySubsequences: false).map(String.init)
-        let result = try parseTreeViewDiagram(rawLines, frontmatter: nil)
+        let (result, _) = try parseTreeViewDiagram(rawLines, frontmatter: nil)
         #expect(result.root.children[0].iconId == "docker")
     }
 
@@ -335,7 +335,7 @@ struct TreeViewParserTests {
             app.tsx
         """
         let rawLines = source.split(separator: "\n", omittingEmptySubsequences: false).map(String.init)
-        let result = try parseTreeViewDiagram(rawLines, frontmatter: nil)
+        let (result, _) = try parseTreeViewDiagram(rawLines, frontmatter: nil)
         #expect(result.root.children[0].iconId == "react")
     }
 
@@ -346,7 +346,7 @@ struct TreeViewParserTests {
             unknown.xyz
         """
         let rawLines = source.split(separator: "\n", omittingEmptySubsequences: false).map(String.init)
-        let result = try parseTreeViewDiagram(rawLines, frontmatter: nil)
+        let (result, _) = try parseTreeViewDiagram(rawLines, frontmatter: nil)
         #expect(result.root.children[0].iconId == "file")
     }
 
@@ -358,7 +358,7 @@ struct TreeViewParserTests {
             index.js ## entry point
         """
         let rawLines = source.split(separator: "\n", omittingEmptySubsequences: false).map(String.init)
-        let result = try parseTreeViewDiagram(rawLines, frontmatter: nil)
+        let (result, _) = try parseTreeViewDiagram(rawLines, frontmatter: nil)
         #expect(result.root.children[0].name == "App.tsx")
         #expect(result.root.children[0].cssClass == "highlight")
         #expect(result.root.children[0].iconId == "react")
@@ -371,7 +371,7 @@ struct TreeViewParserTests {
             My Documents/
         """
         let rawLines = source.split(separator: "\n", omittingEmptySubsequences: false).map(String.init)
-        let result = try parseTreeViewDiagram(rawLines, frontmatter: nil)
+        let (result, _) = try parseTreeViewDiagram(rawLines, frontmatter: nil)
         #expect(result.root.children[0].name == "My Documents")
         #expect(result.root.children[0].nodeType == .directory)
         #expect(result.root.children[0].iconId == "folder")
@@ -384,7 +384,7 @@ struct TreeViewParserTests {
             My Documents/ :::highlight
         """
         let rawLines = source.split(separator: "\n", omittingEmptySubsequences: false).map(String.init)
-        let result = try parseTreeViewDiagram(rawLines, frontmatter: nil)
+        let (result, _) = try parseTreeViewDiagram(rawLines, frontmatter: nil)
         #expect(result.root.children[0].name == "My Documents")
         #expect(result.root.children[0].nodeType == .directory)
         #expect(result.root.children[0].cssClass == "highlight")
@@ -397,7 +397,7 @@ struct TreeViewParserTests {
             my file.ts ## some description
         """
         let rawLines = source.split(separator: "\n", omittingEmptySubsequences: false).map(String.init)
-        let result = try parseTreeViewDiagram(rawLines, frontmatter: nil)
+        let (result, _) = try parseTreeViewDiagram(rawLines, frontmatter: nil)
         #expect(result.root.children[0].name == "my file.ts")
         #expect(result.root.children[0].nodeType == .file)
         #expect(result.root.children[0].iconId == "typescript")
@@ -411,7 +411,7 @@ struct TreeViewParserTests {
             file.txt ##
         """
         let rawLines = source.split(separator: "\n", omittingEmptySubsequences: false).map(String.init)
-        let result = try parseTreeViewDiagram(rawLines, frontmatter: nil)
+        let (result, _) = try parseTreeViewDiagram(rawLines, frontmatter: nil)
         #expect(result.root.children[0].name == "file.txt")
         #expect(result.root.children[0].description == nil)
     }
@@ -423,7 +423,7 @@ struct TreeViewParserTests {
             app.ts icon(none) :::highlight ## entry point
         """
         let rawLines = source.split(separator: "\n", omittingEmptySubsequences: false).map(String.init)
-        let result = try parseTreeViewDiagram(rawLines, frontmatter: nil)
+        let (result, _) = try parseTreeViewDiagram(rawLines, frontmatter: nil)
         #expect(result.root.children[0].name == "app.ts")
         #expect(result.root.children[0].iconId == "none")
         #expect(result.root.children[0].cssClass == "highlight")
@@ -437,7 +437,7 @@ struct TreeViewParserTests {
             src/ :::highlight
         """
         let rawLines = source.split(separator: "\n", omittingEmptySubsequences: false).map(String.init)
-        let result = try parseTreeViewDiagram(rawLines, frontmatter: nil)
+        let (result, _) = try parseTreeViewDiagram(rawLines, frontmatter: nil)
         #expect(result.root.children[0].name == "src")
         #expect(result.root.children[0].nodeType == .directory)
         #expect(result.root.children[0].cssClass == "highlight")
@@ -451,7 +451,7 @@ struct TreeViewParserTests {
             file.ts :::my-class
         """
         let rawLines = source.split(separator: "\n", omittingEmptySubsequences: false).map(String.init)
-        let result = try parseTreeViewDiagram(rawLines, frontmatter: nil)
+        let (result, _) = try parseTreeViewDiagram(rawLines, frontmatter: nil)
         #expect(result.root.children[0].cssClass == "my-class")
     }
 }

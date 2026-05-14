@@ -16,7 +16,7 @@ final class WardleyMapRendererTests: XCTestCase {
         accelerator "Cloud Migration" [0.3, 0.7]
         deaccelerator "Legacy Contracts" [0.7, 0.3]
         """
-        var diagram = try parseWardleyMap(lines(source))
+        var (diagram, _) = try parseWardleyMap(lines(source))
         diagram.theme = WardleyThemeVariables(
             componentFill: "#ff0000",
             componentStroke: "#ff0000",

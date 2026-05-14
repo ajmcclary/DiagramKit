@@ -1,8 +1,9 @@
 import Foundation
+import DiagramKitCommon
 
 // MARK: - Public parse entry point
 
-public func parseIshikawaDiagram(_ rawLines: [String], frontmatter: DiagramFrontmatter? = nil) throws -> IshikawaDiagram {
+public func parseIshikawaDiagram(_ rawLines: [String], frontmatter: DiagramFrontmatter? = nil) throws -> (IshikawaDiagram, [DiagramDiagnostic]) {
     guard !rawLines.isEmpty else {
         throw IshikawaParserError.emptySource
     }
@@ -24,7 +25,7 @@ public func parseIshikawaDiagram(_ rawLines: [String], frontmatter: DiagramFront
         diagram.diagramTitle = diagram.diagramTitle ?? dbTitle
     }
 
-    return diagram
+    return (diagram, [])
 }
 
 // MARK: - DB-level parser

@@ -20,7 +20,7 @@ final class WardleyMapParserTests: XCTestCase {
     // MARK: - Header tests
 
     func testBareHeader() throws {
-        let diagram = try parseWardleyMap(lines("wardley-beta"))
+        let (diagram, _) = try parseWardleyMap(lines("wardley-beta"))
         XCTAssertTrue(diagram.nodes.isEmpty)
     }
 
@@ -37,24 +37,24 @@ final class WardleyMapParserTests: XCTestCase {
     }
 
     func testCaseInsensitiveHeader() throws {
-        let diagram = try parseWardleyMap(lines("Wardley-Beta"))
+        let (diagram, _) = try parseWardleyMap(lines("Wardley-Beta"))
         XCTAssertTrue(diagram.nodes.isEmpty)
     }
 
     // MARK: - Title and accessibility tests
 
     func testTitle() throws {
-        let diagram = try parseWardleyMap(lines("wardley-beta\ntitle Example"))
+        let (diagram, _) = try parseWardleyMap(lines("wardley-beta\ntitle Example"))
         XCTAssertEqual(diagram.diagramTitle, "Example")
     }
 
     func testAccTitle() throws {
-        let diagram = try parseWardleyMap(lines("wardley-beta\naccTitle: Accessibility Title"))
+        let (diagram, _) = try parseWardleyMap(lines("wardley-beta\naccTitle: Accessibility Title"))
         XCTAssertEqual(diagram.accTitle, "Accessibility Title")
     }
 
     func testAccDescrSingleLine() throws {
-        let diagram = try parseWardleyMap(lines("wardley-beta\naccDescr: Single-line description"))
+        let (diagram, _) = try parseWardleyMap(lines("wardley-beta\naccDescr: Single-line description"))
         XCTAssertEqual(diagram.accDescr, "Single-line description")
     }
 
@@ -68,7 +68,7 @@ final class WardleyMapParserTests: XCTestCase {
             "component Beta [0.4, 0.3]",
             "Alpha -> Beta",
         ].joined(separator: "\n")
-        let diagram = try parseWardleyMap(lines(input))
+        let (diagram, _) = try parseWardleyMap(lines(input))
         XCTAssertEqual(diagram.nodes.count, 2)
         XCTAssertEqual(diagram.links.count, 1)
         XCTAssertEqual(diagram.diagramTitle, "Example")
@@ -83,7 +83,7 @@ final class WardleyMapParserTests: XCTestCase {
             "evolution Genesis -> Custom -> Product -> Commodity",
             "component A [0.5, 0.5]",
         ].joined(separator: "\n")
-        let diagram = try parseWardleyMap(lines(input))
+        let (diagram, _) = try parseWardleyMap(lines(input))
         XCTAssertEqual(diagram.axes.stages, ["Genesis", "Custom", "Product", "Commodity"])
     }
 
@@ -96,7 +96,7 @@ final class WardleyMapParserTests: XCTestCase {
             "evolution Genesis / Concept -> Custom / Emerging -> Product / Converging -> Commodity / Accepted",
             "component A [0.5, 0.5]",
         ].joined(separator: "\n")
-        let diagram = try parseWardleyMap(lines(input))
+        let (diagram, _) = try parseWardleyMap(lines(input))
         XCTAssertEqual(diagram.axes.stages, [
             "Genesis / Concept",
             "Custom / Emerging",
@@ -117,7 +117,7 @@ final class WardleyMapParserTests: XCTestCase {
             "  component Electric Kettle [0.53]",
             "}",
         ].joined(separator: "\n")
-        let diagram = try parseWardleyMap(lines(input))
+        let (diagram, _) = try parseWardleyMap(lines(input))
 
         let kettleNode = diagram.nodes.first(where: { $0.label == "Kettle" })
         let campfireNode = diagram.nodes.first(where: { $0.label == "Campfire Kettle" })
@@ -150,7 +150,7 @@ final class WardleyMapParserTests: XCTestCase {
             "evolution Genesis@0.3 -> Custom@0.6 -> Product@0.85 -> Commodity@1.0",
             "component A [0.5, 0.5]",
         ].joined(separator: "\n")
-        let diagram = try parseWardleyMap(lines(input))
+        let (diagram, _) = try parseWardleyMap(lines(input))
         XCTAssertEqual(diagram.axes.stages, ["Genesis", "Custom", "Product", "Commodity"])
         XCTAssertEqual(diagram.axes.stageBoundaries, [0.3, 0.6, 0.85, 1.0])
     }
@@ -164,7 +164,7 @@ final class WardleyMapParserTests: XCTestCase {
             "component API [0.6, 0.7]",
             "note \"Critical decision point\" [0.65, 0.55]",
         ].joined(separator: "\n")
-        let diagram = try parseWardleyMap(lines(input))
+        let (diagram, _) = try parseWardleyMap(lines(input))
         XCTAssertEqual(diagram.notes.count, 1)
         XCTAssertEqual(diagram.notes[0].text, "Critical decision point")
     }
@@ -180,7 +180,7 @@ final class WardleyMapParserTests: XCTestCase {
             "annotation 1,[0.6, 0.65] \"Critical component\"",
             "annotation 2,[0.5, 0.5] \"Performance layer\"",
         ].joined(separator: "\n")
-        let diagram = try parseWardleyMap(lines(input))
+        let (diagram, _) = try parseWardleyMap(lines(input))
         XCTAssertEqual(diagram.annotations.count, 2)
         XCTAssertEqual(diagram.annotations[0].text, "Critical component")
         XCTAssertEqual(diagram.annotations[1].text, "Performance layer")
@@ -196,7 +196,7 @@ final class WardleyMapParserTests: XCTestCase {
             "anchor Public [0.95, 0.78]",
             "component Tea [0.63, 0.81]",
         ].joined(separator: "\n")
-        let diagram = try parseWardleyMap(lines(input))
+        let (diagram, _) = try parseWardleyMap(lines(input))
         let anchors = diagram.nodes.filter { $0.className == .anchor }
         XCTAssertEqual(anchors.count, 2)
         XCTAssertEqual(anchors[0].label, "Business")
@@ -211,7 +211,7 @@ final class WardleyMapParserTests: XCTestCase {
             "component Kettle [0.35, 0.43]",
             "evolve Kettle 0.62",
         ].joined(separator: "\n")
-        let diagram = try parseWardleyMap(lines(input))
+        let (diagram, _) = try parseWardleyMap(lines(input))
         XCTAssertEqual(diagram.trends.count, 1)
         assertDouble(diagram.trends[0].targetX, 62, accuracy: 0.01)
     }
@@ -222,7 +222,7 @@ final class WardleyMapParserTests: XCTestCase {
             "component Manual Process [0.3, 0.5]",
             "evolve Manual Process 0.65",
         ].joined(separator: "\n")
-        let diagram = try parseWardleyMap(lines(input))
+        let (diagram, _) = try parseWardleyMap(lines(input))
         XCTAssertEqual(diagram.trends.count, 1)
         XCTAssertEqual(diagram.trends[0].nodeId, "Manual Process")
         assertDouble(diagram.trends[0].targetX, 65, accuracy: 0.01)
@@ -238,7 +238,7 @@ final class WardleyMapParserTests: XCTestCase {
             "component Database [0.4, 0.5] (buy)",
             "component Cache [0.5, 0.6] (outsource)",
         ].joined(separator: "\n")
-        let diagram = try parseWardleyMap(lines(input))
+        let (diagram, _) = try parseWardleyMap(lines(input))
         let api = diagram.nodes.first(where: { $0.label == "API" })
         let database = diagram.nodes.first(where: { $0.label == "Database" })
         let cache = diagram.nodes.first(where: { $0.label == "Cache" })
@@ -257,7 +257,7 @@ final class WardleyMapParserTests: XCTestCase {
             "size [1200, 900]",
             "component A [0.5, 0.5]",
         ].joined(separator: "\n")
-        let diagram = try parseWardleyMap(lines(input))
+        let (diagram, _) = try parseWardleyMap(lines(input))
         XCTAssertEqual(diagram.size?.width, 1200)
         XCTAssertEqual(diagram.size?.height, 900)
     }
@@ -277,7 +277,7 @@ final class WardleyMapParserTests: XCTestCase {
             "accelerator \"Cloud Native\" [0.20, 0.85]",
             "deaccelerator \"Legacy Data\" [0.40, 0.35]",
         ].joined(separator: "\n")
-        let diagram = try parseWardleyMap(lines(input))
+        let (diagram, _) = try parseWardleyMap(lines(input))
 
         let mobile = diagram.nodes.first(where: { $0.label == "Mobile App" })
         assertDouble(mobile?.x, 40)
@@ -317,7 +317,7 @@ final class WardleyMapParserTests: XCTestCase {
             "component real-time processing [0.5, 0.5]",
             "component end-user [0.8, 0.9]",
         ].joined(separator: "\n")
-        let diagram = try parseWardleyMap(lines(input))
+        let (diagram, _) = try parseWardleyMap(lines(input))
         let realtime = diagram.nodes.first(where: { $0.label == "real-time processing" })
         let enduser = diagram.nodes.first(where: { $0.label == "end-user" })
         assertDouble(realtime?.x, 50)
@@ -335,7 +335,7 @@ final class WardleyMapParserTests: XCTestCase {
             "component end-user [0.8, 0.9]",
             "real-time processing -> end-user",
         ].joined(separator: "\n")
-        let diagram = try parseWardleyMap(lines(input))
+        let (diagram, _) = try parseWardleyMap(lines(input))
         XCTAssertEqual(diagram.links.count, 1)
         XCTAssertEqual(diagram.links[0].source, "real-time processing")
         XCTAssertEqual(diagram.links[0].target, "end-user")
@@ -348,7 +348,7 @@ final class WardleyMapParserTests: XCTestCase {
             "wardley-beta",
             "anchor on-call engineer [0.9, 0.95]",
         ].joined(separator: "\n")
-        let diagram = try parseWardleyMap(lines(input))
+        let (diagram, _) = try parseWardleyMap(lines(input))
         let anchor = diagram.nodes.first(where: { $0.label == "on-call engineer" })
         XCTAssertEqual(anchor?.className, .anchor)
         assertDouble(anchor?.x, 95)
@@ -364,7 +364,7 @@ final class WardleyMapParserTests: XCTestCase {
             "component B [0.2, 0.2]",
             "A->B",
         ].joined(separator: "\n")
-        let diagram = try parseWardleyMap(lines(input))
+        let (diagram, _) = try parseWardleyMap(lines(input))
         XCTAssertEqual(diagram.links.count, 1)
         XCTAssertEqual(diagram.links[0].source, "A")
         XCTAssertEqual(diagram.links[0].target, "B")
@@ -379,7 +379,7 @@ final class WardleyMapParserTests: XCTestCase {
             "component baz [0.6, 0.6]",
             "foo-bar->baz",
         ].joined(separator: "\n")
-        let diagram = try parseWardleyMap(lines(input))
+        let (diagram, _) = try parseWardleyMap(lines(input))
         XCTAssertEqual(diagram.links.count, 1)
         XCTAssertEqual(diagram.links[0].source, "foo-bar")
         XCTAssertEqual(diagram.links[0].target, "baz")
@@ -396,7 +396,7 @@ final class WardleyMapParserTests: XCTestCase {
             "  component batch-loader [0.7]",
             "}",
         ].joined(separator: "\n")
-        let diagram = try parseWardleyMap(lines(input))
+        let (diagram, _) = try parseWardleyMap(lines(input))
         let realtime = diagram.nodes.first(where: { $0.label == "real-time queue" })
         let batch = diagram.nodes.first(where: { $0.label == "batch-loader" })
         XCTAssertEqual(realtime?.className, .pipelineComponent)
@@ -414,7 +414,7 @@ final class WardleyMapParserTests: XCTestCase {
             "wardley-beta",
             "component foo--bar [0.3, 0.4]",
         ].joined(separator: "\n")
-        let diagram = try parseWardleyMap(lines(input))
+        let (diagram, _) = try parseWardleyMap(lines(input))
         let node = diagram.nodes.first(where: { $0.label == "foo--bar" })
         XCTAssertNotNil(node)
         assertDouble(node?.x, 40)
@@ -428,7 +428,7 @@ final class WardleyMapParserTests: XCTestCase {
             "wardley-beta",
             "component foo- [0.2, 0.3]",
         ].joined(separator: "\n")
-        let diagram = try parseWardleyMap(lines(input))
+        let (diagram, _) = try parseWardleyMap(lines(input))
         let node = diagram.nodes.first(where: { $0.label == "foo-" })
         XCTAssertNotNil(node)
         assertDouble(node?.x, 30)
@@ -442,7 +442,7 @@ final class WardleyMapParserTests: XCTestCase {
             "wardley-beta",
             "component A [0.5, 0.5] inertia",
         ].joined(separator: "\n")
-        let diagram = try parseWardleyMap(lines(input))
+        let (diagram, _) = try parseWardleyMap(lines(input))
         XCTAssertTrue(diagram.nodes[0].inertia)
     }
 
@@ -451,7 +451,7 @@ final class WardleyMapParserTests: XCTestCase {
             "wardley-beta",
             "component A [0.5, 0.5] (inertia)",
         ].joined(separator: "\n")
-        let diagram = try parseWardleyMap(lines(input))
+        let (diagram, _) = try parseWardleyMap(lines(input))
         XCTAssertTrue(diagram.nodes[0].inertia)
     }
 
@@ -462,7 +462,7 @@ final class WardleyMapParserTests: XCTestCase {
             "wardley-beta",
             "component A [0.5, 0.5] (build) (inertia)",
         ].joined(separator: "\n")
-        let diagram = try parseWardleyMap(lines(input))
+        let (diagram, _) = try parseWardleyMap(lines(input))
         XCTAssertEqual(diagram.nodes[0].sourceStrategy, .build)
         XCTAssertTrue(diagram.nodes[0].inertia)
     }
@@ -474,7 +474,7 @@ final class WardleyMapParserTests: XCTestCase {
             "wardley-beta",
             "component A [0.5, 0.5] (market)",
         ].joined(separator: "\n")
-        let diagram = try parseWardleyMap(lines(input))
+        let (diagram, _) = try parseWardleyMap(lines(input))
         XCTAssertEqual(diagram.nodes[0].sourceStrategy, .market)
     }
 
@@ -487,7 +487,7 @@ final class WardleyMapParserTests: XCTestCase {
             "component B [0.5, 0.5]",
             "A +> B",
         ].joined(separator: "\n")
-        let diagram = try parseWardleyMap(lines(input))
+        let (diagram, _) = try parseWardleyMap(lines(input))
         XCTAssertEqual(diagram.links[0].flow, .forward)
     }
 
@@ -500,7 +500,7 @@ final class WardleyMapParserTests: XCTestCase {
             "component B [0.5, 0.5]",
             "A +< B",
         ].joined(separator: "\n")
-        let diagram = try parseWardleyMap(lines(input))
+        let (diagram, _) = try parseWardleyMap(lines(input))
         XCTAssertEqual(diagram.links[0].flow, .backward)
     }
 
@@ -513,7 +513,7 @@ final class WardleyMapParserTests: XCTestCase {
             "component B [0.5, 0.5]",
             "A -.-> B",
         ].joined(separator: "\n")
-        let diagram = try parseWardleyMap(lines(input))
+        let (diagram, _) = try parseWardleyMap(lines(input))
         XCTAssertTrue(diagram.links[0].dashed)
     }
 
@@ -526,7 +526,7 @@ final class WardleyMapParserTests: XCTestCase {
             "component B [0.5, 0.5]",
             "A -.-> B",
         ].joined(separator: "\n")
-        let diagram = try parseWardleyMap(lines(input))
+        let (diagram, _) = try parseWardleyMap(lines(input))
         XCTAssertTrue(diagram.links[0].dashed)
     }
 
@@ -539,7 +539,7 @@ final class WardleyMapParserTests: XCTestCase {
             "component B [0.5, 0.5]",
             "A +'text'> B",
         ].joined(separator: "\n")
-        let diagram = try parseWardleyMap(lines(input))
+        let (diagram, _) = try parseWardleyMap(lines(input))
         XCTAssertEqual(diagram.links[0].flow, .forward)
         XCTAssertEqual(diagram.links[0].label, "text")
     }
@@ -553,7 +553,7 @@ final class WardleyMapParserTests: XCTestCase {
             "component B [0.5, 0.5]",
             "A +'sync'<> B",
         ].joined(separator: "\n")
-        let diagram = try parseWardleyMap(lines(input))
+        let (diagram, _) = try parseWardleyMap(lines(input))
         XCTAssertEqual(diagram.links[0].flow, .bidirectional)
         XCTAssertEqual(diagram.links[0].label, "sync")
     }
@@ -567,14 +567,14 @@ final class WardleyMapParserTests: XCTestCase {
             "component B [0.5, 0.5]",
             "A -> B; some constraint",
         ].joined(separator: "\n")
-        let diagram = try parseWardleyMap(lines(input))
+        let (diagram, _) = try parseWardleyMap(lines(input))
         XCTAssertEqual(diagram.links[0].label, "some constraint")
     }
 
     // MARK: - Empty diagram
 
     func testEmptyDiagram() throws {
-        let diagram = try parseWardleyMap(lines("wardley-beta"))
+        let (diagram, _) = try parseWardleyMap(lines("wardley-beta"))
         XCTAssertTrue(diagram.nodes.isEmpty)
         XCTAssertTrue(diagram.links.isEmpty)
         XCTAssertTrue(diagram.trends.isEmpty)
@@ -593,7 +593,7 @@ final class WardleyMapParserTests: XCTestCase {
             "Cup of Tea -> Tea",
             "evolve Tea 0.89",
         ].joined(separator: "\n")
-        let diagram = try parseWardleyMap(lines(input))
+        let (diagram, _) = try parseWardleyMap(lines(input))
         XCTAssertEqual(diagram.diagramTitle, "Tea Shop Value Chain")
         XCTAssertEqual(diagram.nodes.count, 3)
         XCTAssertEqual(diagram.links.count, 2)
@@ -616,7 +616,7 @@ final class WardleyMapParserTests: XCTestCase {
             "component C [0.2, 0.2]",
             "component D [0.6, 0.6]",
         ].joined(separator: "\n")
-        let diagram = try parseWardleyMap(lines(input))
+        let (diagram, _) = try parseWardleyMap(lines(input))
         XCTAssertEqual(diagram.links.count, 2)
         XCTAssertEqual(diagram.links[0].flow, .forward)
         XCTAssertEqual(diagram.links[1].flow, .backward)
@@ -629,7 +629,7 @@ final class WardleyMapParserTests: XCTestCase {
             "wardley-beta",
             "component \"My Node\" [0.5, 0.5]",
         ].joined(separator: "\n")
-        let diagram = try parseWardleyMap(lines(input))
+        let (diagram, _) = try parseWardleyMap(lines(input))
         let resolved = diagram.resolveNodeId("My Node")
         XCTAssertEqual(resolved, "My Node")
     }
@@ -642,7 +642,7 @@ final class WardleyMapParserTests: XCTestCase {
             "  component Child [0.5]",
             "}",
         ].joined(separator: "\n")
-        let diagram = try parseWardleyMap(lines(input))
+        let (diagram, _) = try parseWardleyMap(lines(input))
         // Pipeline creates node with id="Parent_Child" and label="Child"
         let resolved = diagram.resolveNodeId("Child")
         XCTAssertNotEqual(resolved, "Child")
@@ -654,7 +654,7 @@ final class WardleyMapParserTests: XCTestCase {
             "wardley-beta",
             "component A [0.5, 0.5]",
         ].joined(separator: "\n")
-        let diagram = try parseWardleyMap(lines(input))
+        let (diagram, _) = try parseWardleyMap(lines(input))
         let resolved = diagram.resolveNodeId("Nonexistent")
         XCTAssertEqual(resolved, "Nonexistent")
     }

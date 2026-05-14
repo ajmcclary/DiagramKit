@@ -28,7 +28,7 @@ final class WardleyMapLayoutTests: XCTestCase {
             "evolve Database 0.80",
         ].joined(separator: "\n")
 
-        let diagram = try parseWardleyMap(lines(source))
+        let (diagram, _) = try parseWardleyMap(lines(source))
         let positioned = layoutWardleyMap(diagram)
         let parent = try XCTUnwrap(positioned.nodes.first { $0.id == "Database" && $0.isPipelineParent })
         let link = try XCTUnwrap(positioned.validLinks.first { $0.target == "Database" })

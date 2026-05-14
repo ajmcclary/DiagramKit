@@ -11,7 +11,7 @@ struct TreeViewSvgTests {
     func svgContainsTreeViewClass() throws {
         let source = "treeView-beta\n    file.js\n"
         let rawLines = source.split(separator: "\n", omittingEmptySubsequences: false).map(String.init)
-        let diagram = try parseTreeViewDiagram(rawLines, frontmatter: nil)
+        let (diagram, _) = try parseTreeViewDiagram(rawLines, frontmatter: nil)
         let positioned = layoutTreeViewDiagram(diagram)
         let svg = renderTreeViewSvg(positioned, diagramId: "test", font: "Inter")
 
@@ -22,7 +22,7 @@ struct TreeViewSvgTests {
     func svgContainsLabelClass() throws {
         let source = "treeView-beta\n    file.js\n"
         let rawLines = source.split(separator: "\n", omittingEmptySubsequences: false).map(String.init)
-        let diagram = try parseTreeViewDiagram(rawLines, frontmatter: nil)
+        let (diagram, _) = try parseTreeViewDiagram(rawLines, frontmatter: nil)
         let positioned = layoutTreeViewDiagram(diagram)
         let svg = renderTreeViewSvg(positioned, diagramId: "test", font: "Inter")
 
@@ -33,7 +33,7 @@ struct TreeViewSvgTests {
     func svgContainsDirClass() throws {
         let source = "treeView-beta\n    src/\n"
         let rawLines = source.split(separator: "\n", omittingEmptySubsequences: false).map(String.init)
-        let diagram = try parseTreeViewDiagram(rawLines, frontmatter: nil)
+        let (diagram, _) = try parseTreeViewDiagram(rawLines, frontmatter: nil)
         let positioned = layoutTreeViewDiagram(diagram)
         let svg = renderTreeViewSvg(positioned, diagramId: "test", font: "Inter")
 
@@ -44,7 +44,7 @@ struct TreeViewSvgTests {
     func svgContainsIconDefs() throws {
         let source = "treeView-beta\n    file.js\n    App.tsx\n"
         let rawLines = source.split(separator: "\n", omittingEmptySubsequences: false).map(String.init)
-        let diagram = try parseTreeViewDiagram(rawLines, frontmatter: nil)
+        let (diagram, _) = try parseTreeViewDiagram(rawLines, frontmatter: nil)
         let positioned = layoutTreeViewDiagram(diagram)
         let svg = renderTreeViewSvg(positioned, diagramId: "test", font: "Inter")
 
@@ -56,7 +56,7 @@ struct TreeViewSvgTests {
     func svgContainsIconUse() throws {
         let source = "treeView-beta\n    App.tsx\n"
         let rawLines = source.split(separator: "\n", omittingEmptySubsequences: false).map(String.init)
-        let diagram = try parseTreeViewDiagram(rawLines, frontmatter: nil)
+        let (diagram, _) = try parseTreeViewDiagram(rawLines, frontmatter: nil)
         let positioned = layoutTreeViewDiagram(diagram)
         let svg = renderTreeViewSvg(positioned, diagramId: "test", font: "Inter")
 
@@ -68,7 +68,7 @@ struct TreeViewSvgTests {
     func svgContainsConnectorLine() throws {
         let source = "treeView-beta\n    src/\n        index.js\n"
         let rawLines = source.split(separator: "\n", omittingEmptySubsequences: false).map(String.init)
-        let diagram = try parseTreeViewDiagram(rawLines, frontmatter: nil)
+        let (diagram, _) = try parseTreeViewDiagram(rawLines, frontmatter: nil)
         let positioned = layoutTreeViewDiagram(diagram)
         let svg = renderTreeViewSvg(positioned, diagramId: "test", font: "Inter")
 
@@ -79,7 +79,7 @@ struct TreeViewSvgTests {
     func svgContainsHighlightBg() throws {
         let source = "treeView-beta\n    file.js :::highlight\n"
         let rawLines = source.split(separator: "\n", omittingEmptySubsequences: false).map(String.init)
-        let diagram = try parseTreeViewDiagram(rawLines, frontmatter: nil)
+        let (diagram, _) = try parseTreeViewDiagram(rawLines, frontmatter: nil)
         let positioned = layoutTreeViewDiagram(diagram)
         let svg = renderTreeViewSvg(positioned, diagramId: "test", font: "Inter")
 
@@ -90,7 +90,7 @@ struct TreeViewSvgTests {
     func svgContainsDescription() throws {
         let source = "treeView-beta\n    file.js ## entry point\n"
         let rawLines = source.split(separator: "\n", omittingEmptySubsequences: false).map(String.init)
-        let diagram = try parseTreeViewDiagram(rawLines, frontmatter: nil)
+        let (diagram, _) = try parseTreeViewDiagram(rawLines, frontmatter: nil)
         let positioned = layoutTreeViewDiagram(diagram)
         let svg = renderTreeViewSvg(positioned, diagramId: "test", font: "Inter")
 
@@ -101,7 +101,7 @@ struct TreeViewSvgTests {
     func svgContainsViewBox() throws {
         let source = "treeView-beta\n    file.js\n"
         let rawLines = source.split(separator: "\n", omittingEmptySubsequences: false).map(String.init)
-        let diagram = try parseTreeViewDiagram(rawLines, frontmatter: nil)
+        let (diagram, _) = try parseTreeViewDiagram(rawLines, frontmatter: nil)
         let positioned = layoutTreeViewDiagram(diagram)
         let svg = renderTreeViewSvg(positioned, diagramId: "test", font: "Inter")
 
@@ -112,7 +112,7 @@ struct TreeViewSvgTests {
     func svgContainsStyleBlock() throws {
         let source = "treeView-beta\n    file.js\n"
         let rawLines = source.split(separator: "\n", omittingEmptySubsequences: false).map(String.init)
-        let diagram = try parseTreeViewDiagram(rawLines, frontmatter: nil)
+        let (diagram, _) = try parseTreeViewDiagram(rawLines, frontmatter: nil)
         let positioned = layoutTreeViewDiagram(diagram)
         let svg = renderTreeViewSvg(positioned, diagramId: "test", font: "Inter")
 
@@ -124,7 +124,7 @@ struct TreeViewSvgTests {
     func xmlEscaping() throws {
         let source = "treeView-beta\n    \"file<test>.js\"\n"
         let rawLines = source.split(separator: "\n", omittingEmptySubsequences: false).map(String.init)
-        let diagram = try parseTreeViewDiagram(rawLines, frontmatter: nil)
+        let (diagram, _) = try parseTreeViewDiagram(rawLines, frontmatter: nil)
         let positioned = layoutTreeViewDiagram(diagram)
         let svg = renderTreeViewSvg(positioned, diagramId: "test", font: "Inter")
 
@@ -140,7 +140,7 @@ struct TreeViewSvgTests {
             file.js
         """
         let rawLines = source.split(separator: "\n", omittingEmptySubsequences: false).map(String.init)
-        let diagram = try parseTreeViewDiagram(rawLines, frontmatter: nil)
+        let (diagram, _) = try parseTreeViewDiagram(rawLines, frontmatter: nil)
         let positioned = layoutTreeViewDiagram(diagram)
         let svg = renderTreeViewSvg(positioned, diagramId: "test", font: "Inter")
 
@@ -155,7 +155,7 @@ struct TreeViewSvgTests {
             App.tsx :::highlight icon(react) ## main component
         """
         let rawLines = source.split(separator: "\n", omittingEmptySubsequences: false).map(String.init)
-        let diagram = try parseTreeViewDiagram(rawLines, frontmatter: nil)
+        let (diagram, _) = try parseTreeViewDiagram(rawLines, frontmatter: nil)
         let positioned = layoutTreeViewDiagram(diagram)
         let svg = renderTreeViewSvg(positioned, diagramId: "test", font: "Inter")
 
@@ -177,7 +177,7 @@ struct TreeViewSvgTests {
             file.js :::highlight
         """
         let rawLines = source.split(separator: "\n", omittingEmptySubsequences: false).map(String.init)
-        let diagram = try parseTreeViewDiagram(rawLines, frontmatter: nil)
+        let (diagram, _) = try parseTreeViewDiagram(rawLines, frontmatter: nil)
         let positioned = layoutTreeViewDiagram(diagram)
         let svg = renderTreeViewSvg(positioned, diagramId: "test", font: "Inter")
 
@@ -192,7 +192,7 @@ struct TreeViewSvgTests {
             normal.js
         """
         let rawLines = source.split(separator: "\n", omittingEmptySubsequences: false).map(String.init)
-        let diagram = try parseTreeViewDiagram(rawLines, frontmatter: nil)
+        let (diagram, _) = try parseTreeViewDiagram(rawLines, frontmatter: nil)
         let positioned = layoutTreeViewDiagram(diagram)
         let svg = renderTreeViewSvg(positioned, diagramId: "test", font: "Inter")
 
@@ -217,7 +217,7 @@ struct TreeViewSvgTests {
                 "file7.ts"
         """
         let rawLines = source.split(separator: "\n", omittingEmptySubsequences: false).map(String.init)
-        let diagram = try parseTreeViewDiagram(rawLines, frontmatter: nil)
+        let (diagram, _) = try parseTreeViewDiagram(rawLines, frontmatter: nil)
         let positioned = layoutTreeViewDiagram(diagram)
         let svg = renderTreeViewSvg(positioned, diagramId: "test", font: "Inter")
 
@@ -245,7 +245,7 @@ struct TreeViewSvgTests {
             "file7.ts"
         """
         let rawLines = source.split(separator: "\n", omittingEmptySubsequences: false).map(String.init)
-        let diagram = try parseTreeViewDiagram(rawLines, frontmatter: nil)
+        let (diagram, _) = try parseTreeViewDiagram(rawLines, frontmatter: nil)
         let positioned = layoutTreeViewDiagram(diagram)
         let svg = renderTreeViewSvg(positioned, diagramId: "test", font: "Inter")
 
@@ -305,7 +305,7 @@ struct TreeViewSvgTests {
                 README.md
         """
         let rawLines = source.split(separator: "\n", omittingEmptySubsequences: false).map(String.init)
-        let diagram = try parseTreeViewDiagram(rawLines, frontmatter: nil)
+        let (diagram, _) = try parseTreeViewDiagram(rawLines, frontmatter: nil)
         let positioned = layoutTreeViewDiagram(diagram)
         let svg = renderTreeViewSvg(positioned, diagramId: "test", font: "Inter")
 
@@ -328,7 +328,7 @@ struct TreeViewSvgTests {
                 index.js
         """
         let rawLines = source.split(separator: "\n", omittingEmptySubsequences: false).map(String.init)
-        let diagram = try parseTreeViewDiagram(rawLines, frontmatter: nil)
+        let (diagram, _) = try parseTreeViewDiagram(rawLines, frontmatter: nil)
         let positioned = layoutTreeViewDiagram(diagram)
         let svg = renderTreeViewSvg(positioned, diagramId: "test", font: "Inter")
 
@@ -349,7 +349,7 @@ struct TreeViewSvgTests {
                 package.json
         """
         let rawLines = source.split(separator: "\n", omittingEmptySubsequences: false).map(String.init)
-        let diagram = try parseTreeViewDiagram(rawLines, frontmatter: nil)
+        let (diagram, _) = try parseTreeViewDiagram(rawLines, frontmatter: nil)
         let positioned = layoutTreeViewDiagram(diagram)
         let svg = renderTreeViewSvg(positioned, diagramId: "test", font: "Inter")
 

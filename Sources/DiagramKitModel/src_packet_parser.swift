@@ -68,7 +68,7 @@ public enum PacketParserError: Error, LocalizedError, _RecoverableDiagramError {
 
 // MARK: - Public entry point
 
-public func parsePacketDiagram(_ lines: [String], frontmatter: DiagramFrontmatter? = nil) throws -> PacketDiagram {
+public func parsePacketDiagram(_ lines: [String], frontmatter: DiagramFrontmatter? = nil) throws -> (PacketDiagram, [DiagramDiagnostic]) {
     var diagramTitle: String?
     var accTitle: String?
     var accDescr: String?
@@ -188,14 +188,14 @@ public func parsePacketDiagram(_ lines: [String], frontmatter: DiagramFrontmatte
         diagramTitle = fmTitle
     }
 
-    return PacketDiagram(
+    return (PacketDiagram(
         rows: rows,
         diagramTitle: diagramTitle,
         accTitle: accTitle,
         accDescr: accDescr,
         config: config,
         theme: theme
-    )
+    ), [])
 }
 
 // MARK: - Block line parsing

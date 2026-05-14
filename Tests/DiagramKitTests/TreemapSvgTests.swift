@@ -272,5 +272,5 @@ struct TreemapSvgTests {
 private func parseTreemapDiagram(_ source: String) throws -> TreemapDiagram {
     let normalized = source.replacingOccurrences(of: "\r\n", with: "\n").replacingOccurrences(of: "\r", with: "\n")
     let rawLines = normalized.split(separator: "\n", omittingEmptySubsequences: false).map(String.init)
-    return try parseTreemapDiagram(rawLines, frontmatter: nil)
+    return try parseTreemapDiagram(rawLines, frontmatter: nil).0
 }

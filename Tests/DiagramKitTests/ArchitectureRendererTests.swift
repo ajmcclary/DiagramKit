@@ -9,7 +9,7 @@ final class ArchitectureRendererTests: XCTestCase {
 
     func testCgRenderDoesNotCrash() throws {
         let source = "architecture-beta\n    service srv[Server]"
-        let diagram = try parseArchitectureDiagram(source)
+        let (diagram, _) = try parseArchitectureDiagram(source)
         let positioned = layoutArchitectureDiagram(diagram)
         let graph = DiagramDocument(payload: .architecture(diagram))
         let positionedGraph = PositionedGraph(diagram: graph, width: positioned.width, height: positioned.height, content: .architecture(positioned))
@@ -36,7 +36,7 @@ final class ArchitectureRendererTests: XCTestCase {
 
     func testCgRenderEdgeDiagram() throws {
         let source = "architecture-beta\n    service db[DB]\n    service srv[Server]\n    db:R --> L:srv"
-        let diagram = try parseArchitectureDiagram(source)
+        let (diagram, _) = try parseArchitectureDiagram(source)
         let positioned = layoutArchitectureDiagram(diagram)
         let graph = DiagramDocument(payload: .architecture(diagram))
         let positionedGraph = PositionedGraph(diagram: graph, width: positioned.width, height: positioned.height, content: .architecture(positioned))
@@ -63,7 +63,7 @@ final class ArchitectureRendererTests: XCTestCase {
 
     func testCgRenderWithGroups() throws {
         let source = "architecture-beta\n    group api(cloud)[API]\n    service db(database)[DB] in api\n    service srv(server)[Server] in api\n    db:R --> L:srv"
-        let diagram = try parseArchitectureDiagram(source)
+        let (diagram, _) = try parseArchitectureDiagram(source)
         let positioned = layoutArchitectureDiagram(diagram)
         let graph = DiagramDocument(payload: .architecture(diagram))
         let positionedGraph = PositionedGraph(diagram: graph, width: positioned.width, height: positioned.height, content: .architecture(positioned))
@@ -90,7 +90,7 @@ final class ArchitectureRendererTests: XCTestCase {
 
     func testCgRenderWithJunctions() throws {
         let source = "architecture-beta\n    service left[Left]\n    junction center\n    left:R --> L:center"
-        let diagram = try parseArchitectureDiagram(source)
+        let (diagram, _) = try parseArchitectureDiagram(source)
         let positioned = layoutArchitectureDiagram(diagram)
         let graph = DiagramDocument(payload: .architecture(diagram))
         let positionedGraph = PositionedGraph(diagram: graph, width: positioned.width, height: positioned.height, content: .architecture(positioned))
@@ -143,7 +143,7 @@ final class ArchitectureRendererTests: XCTestCase {
 
     func testCgRenderPreservesPlacement() throws {
         let source = "architecture-beta\n    service db[DB]\n    service srv[Server]\n    db:R --> L:srv"
-        let diagram = try parseArchitectureDiagram(source)
+        let (diagram, _) = try parseArchitectureDiagram(source)
         let positioned = layoutArchitectureDiagram(diagram)
 
         XCTAssertEqual(positioned.services.count, 2)
@@ -153,7 +153,7 @@ final class ArchitectureRendererTests: XCTestCase {
     }
 
     func testCgRenderUsesArchitectureThemeColorsAndKeepsArrowAtEndpoint() throws {
-        var diagram = try parseArchitectureDiagram("""
+        var (diagram, _) = try parseArchitectureDiagram("""
         architecture-beta
             group api(cloud)[API]
             service db(database)[DB] in api
@@ -182,7 +182,7 @@ final class ArchitectureRendererTests: XCTestCase {
     }
 
     func testCgRenderDrawsServiceIconInterior() throws {
-        let diagram = try parseArchitectureDiagram("architecture-beta\n    service db(database)")
+        let (diagram, _) = try parseArchitectureDiagram("architecture-beta\n    service db(database)")
         let positioned = layoutArchitectureDiagram(diagram)
         let service = try XCTUnwrap(positioned.services.first)
         let graph = DiagramDocument(payload: .architecture(diagram))
@@ -278,11 +278,11 @@ final class ArchitectureSvgRendererTests: XCTestCase {
         let rawLines = source.split(separator: "\n", omittingEmptySubsequences: false).map(String.init)
         var d: ArchitectureDiagram
         if rawLines.first?.lowercased().hasPrefix("architecture-beta") ?? false {
-            d = try parseArchitectureDiagram(rawLines, frontmatter: nil)
+            d = try parseArchitectureDiagram(rawLines, frontmatter: nil).0
         } else {
             let (stripped, fm) = _parseFrontMatterAndStripped(source)
             let fmLines = stripped.split(separator: "\n", omittingEmptySubsequences: false).map(String.init)
-            d = try parseArchitectureDiagram(fmLines, frontmatter: fm)
+            d = try parseArchitectureDiagram(fmLines, frontmatter: fm).0
         }
         let p = layoutArchitectureDiagram(d)
         let colors = DiagramColors(bg: "#FFF", fg: "#000")
@@ -388,7 +388,7 @@ final class ArchitectureSvgRendererTests: XCTestCase {
         """
         let (stripped, fm) = _parseFrontMatterAndStripped(source)
         let rawLines = stripped.split(separator: "\n", omittingEmptySubsequences: false).map(String.init)
-        var d = try parseArchitectureDiagram(rawLines, frontmatter: fm)
+        var (d, _) = try parseArchitectureDiagram(rawLines, frontmatter: fm)
         if let fmc = fm?.archConfig { d.config = fmc }
         if let fmt = fm?.archTheme { d.theme = fmt }
         let p = layoutArchitectureDiagram(d)
@@ -410,7 +410,7 @@ final class ArchitectureSvgRendererTests: XCTestCase {
         """
         let (stripped, fm) = _parseFrontMatterAndStripped(source)
         let rawLines = stripped.split(separator: "\n", omittingEmptySubsequences: false).map(String.init)
-        var d = try parseArchitectureDiagram(rawLines, frontmatter: fm)
+        var (d, _) = try parseArchitectureDiagram(rawLines, frontmatter: fm)
         if let fmc = fm?.archConfig { d.config = fmc }
         if let fmt = fm?.archTheme { d.theme = fmt }
         let p = layoutArchitectureDiagram(d)
@@ -453,7 +453,7 @@ final class ArchitectureSvgRendererTests: XCTestCase {
         """
         let (stripped, fm) = _parseFrontMatterAndStripped(source)
         let rawLines = stripped.split(separator: "\n", omittingEmptySubsequences: false).map(String.init)
-        var d = try parseArchitectureDiagram(rawLines, frontmatter: fm)
+        var (d, _) = try parseArchitectureDiagram(rawLines, frontmatter: fm)
         if let fmc = fm?.archConfig { d.config = fmc }
         if let fmt = fm?.archTheme { d.theme = fmt }
         XCTAssertEqual(d.config.padding, 20)
@@ -463,7 +463,7 @@ final class ArchitectureSvgRendererTests: XCTestCase {
     func testDefaultThemeUsesLineColorForArchitectureEdges() throws {
         let source = "architecture-beta\n    service db[DB]\n    service srv[Server]\n    db:R --> L:srv"
         let rawLines = source.split(separator: "\n", omittingEmptySubsequences: false).map(String.init)
-        let d = try parseArchitectureDiagram(rawLines, frontmatter: nil)
+        let (d, _) = try parseArchitectureDiagram(rawLines, frontmatter: nil)
         let p = layoutArchitectureDiagram(d)
         let svg = try renderArchitectureSvg(
             p,

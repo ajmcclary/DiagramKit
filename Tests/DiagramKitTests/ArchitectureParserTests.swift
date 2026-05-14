@@ -6,11 +6,11 @@ import Foundation
 @testable import DiagramKitRenderingCG
 
 private func parse(_ source: String) throws -> ArchitectureDiagram {
-    try parseArchitectureDiagram(source)
+    try parseArchitectureDiagram(source).0
 }
 
 private func parseLines(_ lines: [String]) throws -> ArchitectureDiagram {
-    try parseArchitectureDiagram(lines)
+    try parseArchitectureDiagram(lines).0
 }
 
 @Suite("Architecture Parser")

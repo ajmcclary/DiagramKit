@@ -12,7 +12,7 @@ extension DiagramRegistry {
     static let _packet = _typed(
         type: .packet,
         matches: { $0.startsWithToken("packet") },
-        parse: { source, frontmatter in
+        parseWithDiagnostics: { source, frontmatter in
             try parsePacketDiagram(DiagramSourceNormalizer.statements(source), frontmatter: frontmatter)
         },
         wrap: DiagramPayload.packet,

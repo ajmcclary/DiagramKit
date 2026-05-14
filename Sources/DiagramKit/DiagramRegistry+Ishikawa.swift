@@ -12,7 +12,7 @@ extension DiagramRegistry {
     static let _ishikawa = _typed(
         type: .ishikawa,
         matches: { header in _isIshikawaDiagramHeader(header.raw) },
-        parse: { source, frontmatter in
+        parseWithDiagnostics: { source, frontmatter in
             try parseIshikawaDiagram(DiagramSourceNormalizer.rawLines(source), frontmatter: frontmatter)
         },
         wrap: DiagramPayload.ishikawa,

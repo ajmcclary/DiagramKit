@@ -12,14 +12,14 @@ extension DiagramRegistry {
     static let _treemap = _typed(
         type: .treemap,
         matches: { $0.startsWithToken("treemap") },
-        parse: { source, frontmatter in
-            var diagram = try parseTreemapDiagram(DiagramSourceNormalizer.rawLines(source), frontmatter: frontmatter)
+        parseWithDiagnostics: { source, frontmatter in
+            var (diagram, diagnostics) = try parseTreemapDiagram(DiagramSourceNormalizer.rawLines(source), frontmatter: frontmatter)
             if let fm = frontmatter {
                 if let cfg = fm.treemapConfig { diagram.config = cfg }
                 if let theme = fm.theme { diagram.themeName = theme }
                 if diagram.diagramTitle == nil, let fmTitle = fm.diagramTitle { diagram.diagramTitle = fmTitle }
             }
-            return diagram
+            return (diagram, diagnostics)
         },
         wrap: DiagramPayload.treemap,
         unwrap: { payload in

@@ -12,14 +12,14 @@ extension DiagramRegistry {
     static let _wardley = _typed(
         type: .wardleyBeta,
         matches: { $0.startsWithToken("wardley-beta") },
-        parse: { source, frontmatter in
-            var diagram = try parseWardleyMap(DiagramSourceNormalizer.rawLines(source), frontmatter: frontmatter)
+        parseWithDiagnostics: { source, frontmatter in
+            var (diagram, diagnostics) = try parseWardleyMap(DiagramSourceNormalizer.rawLines(source), frontmatter: frontmatter)
             if let fm = frontmatter {
                 if let cfg = fm.wardleyBetaConfig { diagram.config = cfg }
                 if let theme = fm.wardleyTheme { diagram.theme = theme }
                 if diagram.diagramTitle == nil, let fmTitle = fm.diagramTitle { diagram.diagramTitle = fmTitle }
             }
-            return diagram
+            return (diagram, diagnostics)
         },
         wrap: DiagramPayload.wardleyBeta,
         unwrap: { payload in

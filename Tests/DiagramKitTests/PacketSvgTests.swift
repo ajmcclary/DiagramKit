@@ -8,7 +8,7 @@ final class PacketSvgTests: XCTestCase {
 
     private func parseAndRender(_ source: String, theme: PacketThemeConfig = .default) throws -> String {
         let lines = _mermaidSourceLines(from: source)
-        let diagram = try parsePacketDiagram(lines, frontmatter: nil)
+        let (diagram, _) = try parsePacketDiagram(lines, frontmatter: nil)
         // default title precedence
         let positioned = layoutPacketDiagram(diagram)
         let colors = DiagramColors(bg: "#FFFFFF", fg: "#000000")
@@ -80,7 +80,7 @@ final class PacketSvgTests: XCTestCase {
         var diagram: PacketDiagram
         do {
             let lines = _mermaidSourceLines(from: "packet\n0-15: \"test\"")
-            diagram = try parsePacketDiagram(lines, frontmatter: nil)
+            diagram = try parsePacketDiagram(lines, frontmatter: nil).0
         }
         diagram.config.showBits = false
         let positioned = layoutPacketDiagram(diagram)
@@ -131,7 +131,7 @@ final class PacketSvgTests: XCTestCase {
         0-15: "test"
         """
         let lines = _mermaidSourceLines(from: source)
-        let diagram = try parsePacketDiagram(lines, frontmatter: nil)
+        let (diagram, _) = try parsePacketDiagram(lines, frontmatter: nil)
         let positioned = layoutPacketDiagram(diagram)
         let colors = DiagramColors(bg: "#FFFFFF", fg: "#000000")
         let svg = renderPacketSvg(positioned, colors, "Inter", false, theme: diagram.theme)
@@ -147,7 +147,7 @@ final class PacketSvgTests: XCTestCase {
 
     func testSvgExplicitSize() throws {
         let lines = _mermaidSourceLines(from: "packet\n0-15: \"test\"")
-        var diagram = try parsePacketDiagram(lines, frontmatter: nil)
+        var (diagram, _) = try parsePacketDiagram(lines, frontmatter: nil)
         diagram.config.useMaxWidth = false
         let positioned = layoutPacketDiagram(diagram)
         let colors = DiagramColors(bg: "#FFFFFF", fg: "#000000")

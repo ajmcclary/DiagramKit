@@ -1,4 +1,5 @@
 import Foundation
+import DiagramKitCommon
 
 // MARK: - Error types
 
@@ -294,7 +295,7 @@ private func splitLinkLine(_ line: String, arrow: String) -> (String, String)? {
 
 // MARK: - Main parser
 
-public func parseWardleyMap(_ lines: [String], frontmatter: DiagramFrontmatter? = nil) throws -> WardleyMapDiagram {
+public func parseWardleyMap(_ lines: [String], frontmatter: DiagramFrontmatter? = nil) throws -> (WardleyMapDiagram, [DiagramDiagnostic]) {
     var diagram = WardleyMapDiagram()
 
     guard !lines.isEmpty else {
@@ -739,7 +740,7 @@ public func parseWardleyMap(_ lines: [String], frontmatter: DiagramFrontmatter? 
         }
     }
 
-    return diagram
+    return (diagram, [])
 }
 
 // MARK: - Parsing helpers

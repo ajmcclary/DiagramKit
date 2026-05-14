@@ -12,14 +12,14 @@ extension DiagramRegistry {
     static let _treeView = _typed(
         type: .treeView,
         matches: { header in _isTreeViewHeader(rawLines: header.rawLines) },
-        parse: { source, frontmatter in
-            var diagram = try parseTreeViewDiagram(DiagramSourceNormalizer.rawLines(source), frontmatter: frontmatter)
+        parseWithDiagnostics: { source, frontmatter in
+            var (diagram, diagnostics) = try parseTreeViewDiagram(DiagramSourceNormalizer.rawLines(source), frontmatter: frontmatter)
             if let fm = frontmatter {
                 if let cfg = fm.treeViewConfig { diagram.config = cfg }
                 if let theme = fm.treeViewTheme { diagram.theme = theme }
                 if diagram.diagramTitle == nil, let fmTitle = fm.diagramTitle { diagram.diagramTitle = fmTitle }
             }
-            return diagram
+            return (diagram, diagnostics)
         },
         wrap: DiagramPayload.treeView,
         unwrap: { payload in

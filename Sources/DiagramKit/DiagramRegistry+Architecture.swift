@@ -12,14 +12,14 @@ extension DiagramRegistry {
     static let _architecture = _typed(
         type: .architecture,
         matches: { $0.startsWithToken("architecture") },
-        parse: { source, frontmatter in
-            var diagram = try parseArchitectureDiagram(DiagramSourceNormalizer.rawLines(source), frontmatter: frontmatter)
+        parseWithDiagnostics: { source, frontmatter in
+            var (diagram, diagnostics) = try parseArchitectureDiagram(DiagramSourceNormalizer.rawLines(source), frontmatter: frontmatter)
             if let fm = frontmatter {
                 if let cfg = fm.archConfig { diagram.config = cfg }
                 if let theme = fm.archTheme { diagram.theme = theme }
                 if diagram.diagramTitle == nil, let fmTitle = fm.diagramTitle { diagram.diagramTitle = fmTitle }
             }
-            return diagram
+            return (diagram, diagnostics)
         },
         wrap: DiagramPayload.architecture,
         unwrap: { payload in

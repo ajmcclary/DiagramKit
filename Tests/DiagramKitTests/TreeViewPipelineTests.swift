@@ -34,16 +34,9 @@ struct TreeViewPipelineTests {
         #expect(svg.contains("class=\"tree-view\""))
         #expect(svg.contains("package.json"))
 
-        do {
-            _ = try original_src_ascii_index.renderMermaidASCII(source)
-            Issue.record("Expected TreeView ASCII to be explicitly not implemented")
-        } catch let error as DiagramError {
-            guard case .notYetImplemented(let message) = error else {
-                Issue.record("Expected notYetImplemented, got \(error)")
-                return
-            }
-            #expect(message.contains("TreeView ASCII rendering"))
-        }
+        let ascii = try original_src_ascii_index.renderMermaidASCII(source)
+        #expect(ascii.contains("src"))
+        #expect(ascii.contains("package.json"))
     }
 
     @Test("SVG TreeView detection is case-sensitive")

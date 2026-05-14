@@ -135,7 +135,7 @@ enum AsciiRenderRegistry {
             type: .packet,
             render: { source, frontmatter, _, _, _ in
                 let rawLines = DiagramSourceNormalizer.rawLines(source)
-                let model = try parsePacketDiagram(rawLines, frontmatter: frontmatter)
+                let (model, _) = try parsePacketDiagram(rawLines, frontmatter: frontmatter)
                 return renderPacketAscii(model)
             }
         ),
@@ -150,7 +150,7 @@ enum AsciiRenderRegistry {
         .architecture: AsciiRenderDescriptor(
             type: .architecture,
             render: { source, frontmatter, _, _, _ in
-                let model = try parseArchitectureDiagram(source, frontmatter: frontmatter)
+                let (model, _) = try parseArchitectureDiagram(source, frontmatter: frontmatter)
                 return renderArchitectureAscii(model)
             }
         ),
@@ -164,7 +164,7 @@ enum AsciiRenderRegistry {
         .treemap: AsciiRenderDescriptor(
             type: .treemap,
             render: { source, frontmatter, _, _, _ in
-                let model = try parseTreemapDiagramFromSource(source, frontmatter: frontmatter)
+                let (model, _) = try parseTreemapDiagramFromSource(source, frontmatter: frontmatter)
                 return renderTreemapAscii(model)
             }
         ),
@@ -172,7 +172,7 @@ enum AsciiRenderRegistry {
             type: .venn,
             render: { source, frontmatter, _, _, _ in
                 let rawLines = DiagramSourceNormalizer.rawLines(source)
-                let model = try parseVennDiagram(rawLines, frontmatter: frontmatter)
+                let (model, _) = try parseVennDiagram(rawLines, frontmatter: frontmatter)
                 return renderVennAscii(model)
             }
         ),
@@ -180,7 +180,7 @@ enum AsciiRenderRegistry {
             type: .ishikawa,
             render: { source, frontmatter, _, _, _ in
                 let rawLines = DiagramSourceNormalizer.rawLines(source)
-                let model = try parseIshikawaDiagram(rawLines, frontmatter: frontmatter)
+                let (model, _) = try parseIshikawaDiagram(rawLines, frontmatter: frontmatter)
                 return renderIshikawaAscii(model)
             }
         ),
@@ -188,7 +188,7 @@ enum AsciiRenderRegistry {
             type: .treeView,
             render: { source, frontmatter, _, _, _ in
                 let rawLines = DiagramSourceNormalizer.rawLines(source)
-                let model = try parseTreeViewDiagram(rawLines, frontmatter: frontmatter)
+                let (model, _) = try parseTreeViewDiagram(rawLines, frontmatter: frontmatter)
                 return renderTreeViewAscii(model)
             }
         ),
@@ -196,7 +196,7 @@ enum AsciiRenderRegistry {
             type: .eventModeling,
             render: { source, frontmatter, _, _, _ in
                 let rawLines = DiagramSourceNormalizer.rawLines(source)
-                let model = try parseEventModeling(rawLines, frontmatter: frontmatter)
+                let (model, _) = try parseEventModeling(rawLines, frontmatter: frontmatter)
                 return renderEventModelingAscii(model)
             }
         ),
@@ -204,7 +204,7 @@ enum AsciiRenderRegistry {
             type: .wardleyBeta,
             render: { source, frontmatter, _, _, _ in
                 let rawLines = DiagramSourceNormalizer.rawLines(source)
-                let model = try parseWardleyMap(rawLines, frontmatter: frontmatter)
+                let (model, _) = try parseWardleyMap(rawLines, frontmatter: frontmatter)
                 return renderWardleyAscii(model)
             }
         ),
@@ -212,7 +212,7 @@ enum AsciiRenderRegistry {
             type: .zenuml,
             render: { source, frontmatter, _, _, _ in
                 let rawLines = DiagramSourceNormalizer.rawLines(source)
-                let model = try parseZenUMLDiagram(rawLines, frontmatter: frontmatter)
+                let (model, _) = try parseZenUMLDiagram(rawLines, frontmatter: frontmatter)
                 return renderZenUMLAscii(model)
             }
         ),

@@ -8,7 +8,7 @@ final class PacketParserTests: XCTestCase {
 
     private func parse(_ source: String) throws -> PacketDiagram {
         let lines = _mermaidSourceLines(from: source)
-        return try parsePacketDiagram(lines, frontmatter: nil)
+        return try parsePacketDiagram(lines, frontmatter: nil).0
     }
 
     // MARK: - Header tests
@@ -292,7 +292,7 @@ final class PacketParserTests: XCTestCase {
 
         let preprocessed = _preprocessMermaidSource(source)
         let lines = _mermaidSourceLines(from: preprocessed.source)
-        let diagram = try parsePacketDiagram(lines, frontmatter: preprocessed.frontmatter)
+        let (diagram, _) = try parsePacketDiagram(lines, frontmatter: preprocessed.frontmatter)
 
         XCTAssertEqual(diagram.diagramTitle, "Frontmatter Packet")
         XCTAssertEqual(diagram.config.rowHeight, 40)
@@ -318,7 +318,7 @@ final class PacketParserTests: XCTestCase {
 
         let preprocessed = _preprocessMermaidSource(source)
         let lines = _mermaidSourceLines(from: preprocessed.source)
-        let diagram = try parsePacketDiagram(lines, frontmatter: preprocessed.frontmatter)
+        let (diagram, _) = try parsePacketDiagram(lines, frontmatter: preprocessed.frontmatter)
 
         XCTAssertEqual(diagram.diagramTitle, "Source Packet")
     }
@@ -337,7 +337,7 @@ final class PacketParserTests: XCTestCase {
         """
         let preprocessed = _preprocessMermaidSource(source)
         let lines = _mermaidSourceLines(from: preprocessed.source)
-        let diagram = try parsePacketDiagram(lines, frontmatter: preprocessed.frontmatter)
+        let (diagram, _) = try parsePacketDiagram(lines, frontmatter: preprocessed.frontmatter)
         XCTAssertEqual(diagram.config.rowHeight, 1)
     }
 
@@ -353,7 +353,7 @@ final class PacketParserTests: XCTestCase {
         """
         let preprocessed = _preprocessMermaidSource(source)
         let lines = _mermaidSourceLines(from: preprocessed.source)
-        let diagram = try parsePacketDiagram(lines, frontmatter: preprocessed.frontmatter)
+        let (diagram, _) = try parsePacketDiagram(lines, frontmatter: preprocessed.frontmatter)
         XCTAssertEqual(diagram.config.bitWidth, 1)
     }
 
@@ -369,7 +369,7 @@ final class PacketParserTests: XCTestCase {
         """
         let preprocessed = _preprocessMermaidSource(source)
         let lines = _mermaidSourceLines(from: preprocessed.source)
-        let diagram = try parsePacketDiagram(lines, frontmatter: preprocessed.frontmatter)
+        let (diagram, _) = try parsePacketDiagram(lines, frontmatter: preprocessed.frontmatter)
         XCTAssertEqual(diagram.config.bitsPerRow, 1)
     }
 
@@ -385,7 +385,7 @@ final class PacketParserTests: XCTestCase {
         """
         let preprocessed = _preprocessMermaidSource(source)
         let lines = _mermaidSourceLines(from: preprocessed.source)
-        let diagram = try parsePacketDiagram(lines, frontmatter: preprocessed.frontmatter)
+        let (diagram, _) = try parsePacketDiagram(lines, frontmatter: preprocessed.frontmatter)
         XCTAssertEqual(diagram.config.paddingX, 0)
     }
 
@@ -401,7 +401,7 @@ final class PacketParserTests: XCTestCase {
         """
         let preprocessed = _preprocessMermaidSource(source)
         let lines = _mermaidSourceLines(from: preprocessed.source)
-        let diagram = try parsePacketDiagram(lines, frontmatter: preprocessed.frontmatter)
+        let (diagram, _) = try parsePacketDiagram(lines, frontmatter: preprocessed.frontmatter)
         XCTAssertEqual(diagram.config.paddingY, 0)
     }
 

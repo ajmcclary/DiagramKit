@@ -13,8 +13,14 @@ public func isD2Source(_ source: String) -> Bool {
     // DiagramKitModel but kept local to avoid a heavyweight dependency for
     // a probe call.
     let dispatchSource = _stripLeadingFrontmatter(trimmed)
-    let firstLine = dispatchSource.split(separator: "\n").first?
-        .trimmingCharacters(in: .whitespaces) ?? ""
+    // Skip leading Mermaid `%%` comment / `%%{init:…}%%` directive lines so
+    // sources like `%%{init: {…}}%%\nzenuml\nA->B` still expose `zenuml`
+    // as the dispatch header instead of being claimed by the `->` probe
+    // below.
+    let firstLine = dispatchSource.split(separator: "\n")
+        .lazy
+        .map { $0.trimmingCharacters(in: .whitespaces) }
+        .first { !$0.isEmpty && !$0.hasPrefix("%%") } ?? ""
 
     // Explicit Mermaid headers → not d2. Each header is matched as a token
     // (followed by end-of-line, whitespace, or a non-identifier character)

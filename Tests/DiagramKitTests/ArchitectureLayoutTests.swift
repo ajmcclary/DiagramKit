@@ -10,7 +10,7 @@ struct ArchitectureLayoutTests {
 
     @Test("Empty diagram produces empty positioned output")
     func emptyDiagram() throws {
-        let d = try parseArchitectureDiagram("architecture-beta")
+        let (d, _) = try parseArchitectureDiagram("architecture-beta")
         let p = layoutArchitectureDiagram(d)
         #expect(p.services.isEmpty)
         #expect(p.junctions.isEmpty)
@@ -20,7 +20,7 @@ struct ArchitectureLayoutTests {
 
     @Test("Single service layout")
     func singleService() throws {
-        let d = try parseArchitectureDiagram("architecture-beta\n    service srv[Server]")
+        let (d, _) = try parseArchitectureDiagram("architecture-beta\n    service srv[Server]")
         let p = layoutArchitectureDiagram(d)
         #expect(p.services.count == 1)
         #expect(p.services[0].id == "srv")
@@ -30,7 +30,7 @@ struct ArchitectureLayoutTests {
 
     @Test("Simple group with services")
     func groupWithServices() throws {
-        let d = try parseArchitectureDiagram("""
+        let (d, _) = try parseArchitectureDiagram("""
         architecture-beta
             group api(cloud)[API]
             service db(database)[Database] in api
@@ -45,7 +45,7 @@ struct ArchitectureLayoutTests {
 
     @Test("Edge geometry")
     func edgeGeometry() throws {
-        let d = try parseArchitectureDiagram("""
+        let (d, _) = try parseArchitectureDiagram("""
         architecture-beta
             service db[DB]
             service srv[Server]
@@ -62,7 +62,7 @@ struct ArchitectureLayoutTests {
 
     @Test("Junction fan-out")
     func junctionFanOut() throws {
-        let d = try parseArchitectureDiagram("""
+        let (d, _) = try parseArchitectureDiagram("""
         architecture-beta
             service left[Left]
             service top[Top]
@@ -80,7 +80,7 @@ struct ArchitectureLayoutTests {
 
     @Test("Group boundary edge layout")
     func groupBoundaryEdge() throws {
-        let d = try parseArchitectureDiagram("""
+        let (d, _) = try parseArchitectureDiagram("""
         architecture-beta
             group groupOne(cloud)[G1]
             group groupTwo(cloud)[G2]
@@ -96,7 +96,7 @@ struct ArchitectureLayoutTests {
 
     @Test("Disconnected graphs produce separate spatial maps")
     func disconnectedGraphs() throws {
-        let d = try parseArchitectureDiagram("""
+        let (d, _) = try parseArchitectureDiagram("""
         architecture-beta
             service a[A]
             service b[B]
@@ -111,7 +111,7 @@ struct ArchitectureLayoutTests {
 
     @Test("Nested groups")
     func nestedGroups() throws {
-        let d = try parseArchitectureDiagram("""
+        let (d, _) = try parseArchitectureDiagram("""
         architecture-beta
             group core(cloud)[Core]
             group storage(database)[Storage] in core
@@ -124,14 +124,14 @@ struct ArchitectureLayoutTests {
 
     @Test("Layout preserves diagram title")
     func preservesTitle() throws {
-        let d = try parseArchitectureDiagram("architecture-beta title Test\n    service srv[Server]")
+        let (d, _) = try parseArchitectureDiagram("architecture-beta title Test\n    service srv[Server]")
         let p = layoutArchitectureDiagram(d)
         #expect(p.diagramTitle == "Test")
     }
 
     @Test("Layout preserves accessibility metadata")
     func preservesAccessibility() throws {
-        let d = try parseArchitectureDiagram("architecture-beta\n    accTitle: AT\n    accDescr {AD}\n    service srv")
+        let (d, _) = try parseArchitectureDiagram("architecture-beta\n    accTitle: AT\n    accDescr {AD}\n    service srv")
         let p = layoutArchitectureDiagram(d)
         #expect(p.accTitle == "AT")
         #expect(p.accDescr?.contains("AD") ?? false)
@@ -144,7 +144,7 @@ struct ArchitectureLayoutTests {
             service a[A]
             service b[B]
             a:R -- L:b
-        """))
+        """).0)
         let rightA = try #require(right.services.first { $0.id == "a" })
         let rightB = try #require(right.services.first { $0.id == "b" })
         #expect(rightB.x > rightA.x)
@@ -155,7 +155,7 @@ struct ArchitectureLayoutTests {
             service a[A]
             service b[B]
             a:L -- R:b
-        """))
+        """).0)
         let leftA = try #require(left.services.first { $0.id == "a" })
         let leftB = try #require(left.services.first { $0.id == "b" })
         #expect(leftB.x < leftA.x)
@@ -164,7 +164,7 @@ struct ArchitectureLayoutTests {
 
     @Test("Parent groups enclose nested child groups")
     func parentGroupsEncloseNestedGroups() throws {
-        let d = try parseArchitectureDiagram("""
+        let (d, _) = try parseArchitectureDiagram("""
         architecture-beta
             group core(cloud)[Core]
             group storage(database)[Storage] in core
@@ -182,7 +182,7 @@ struct ArchitectureLayoutTests {
 
     @Test("Alignment constraint enforces same-row y-coordinate match")
     func horizontalAlignmentEnforced() throws {
-        let d = try parseArchitectureDiagram("""
+        let (d, _) = try parseArchitectureDiagram("""
         architecture-beta
             service a[A]
             service b[B]
@@ -200,7 +200,7 @@ struct ArchitectureLayoutTests {
 
     @Test("Relative placement enforces minimum gap between adjacent nodes")
     func relativePlacementGap() throws {
-        let d = try parseArchitectureDiagram("""
+        let (d, _) = try parseArchitectureDiagram("""
         architecture-beta
             service a[A]
             service b[B]
@@ -215,7 +215,7 @@ struct ArchitectureLayoutTests {
 
     @Test("XY edge bend point at port intersection")
     func xyEdgeBendPointAtPort() throws {
-        let d = try parseArchitectureDiagram("""
+        let (d, _) = try parseArchitectureDiagram("""
         architecture-beta
             service topR[A]
             service botL[B]
@@ -229,7 +229,7 @@ struct ArchitectureLayoutTests {
 
     @Test("Junction endpoint shift differs from group boundary shift")
     func junctionShiftNotGroupBoundary() throws {
-        let d = try parseArchitectureDiagram("""
+        let (d, _) = try parseArchitectureDiagram("""
         architecture-beta
             group g1(cloud)[G1]
             service a[A] in g1
@@ -244,7 +244,7 @@ struct ArchitectureLayoutTests {
 
     @Test("Bottom group boundary shift includes label offset")
     func bottomGroupBoundaryShift() throws {
-        let d = try parseArchitectureDiagram("""
+        let (d, _) = try parseArchitectureDiagram("""
         architecture-beta
             group g1(cloud)[G1]
             group g2(cloud)[G2]
@@ -262,7 +262,7 @@ struct ArchitectureLayoutTests {
 
     @Test("Disconnected graphs produce separate spatial maps with positioned output")
     func disconnectedSpatialMaps() throws {
-        let d = try parseArchitectureDiagram("""
+        let (d, _) = try parseArchitectureDiagram("""
         architecture-beta
             service a[A]
             service b[B]
@@ -285,8 +285,8 @@ struct ArchitectureLayoutTests {
             service b[B]
             a:R --> L:b
         """
-        let d1 = try parseArchitectureDiagram(source)
-        let d2 = try parseArchitectureDiagram(source)
+        let (d1, _) = try parseArchitectureDiagram(source)
+        let (d2, _) = try parseArchitectureDiagram(source)
         let p1 = layoutArchitectureDiagram(d1)
         let p2 = layoutArchitectureDiagram(d2)
         #expect(p1.services[0].x == p2.services[0].x)
@@ -297,7 +297,7 @@ struct ArchitectureLayoutTests {
 
     @Test("Group bounds include service labels")
     func groupBoundsIncludeServiceLabels() throws {
-        let d = try parseArchitectureDiagram("""
+        let (d, _) = try parseArchitectureDiagram("""
         architecture-beta
             group api(cloud)[API]
             service db(database)[Database] in api
@@ -315,7 +315,7 @@ struct ArchitectureLayoutTests {
 
     @Test("Nested parent groups keep outer padding")
     func nestedParentGroupsKeepOuterPadding() throws {
-        let d = try parseArchitectureDiagram("""
+        let (d, _) = try parseArchitectureDiagram("""
         architecture-beta
             group core(cloud)[Core]
             group storage(database)[Storage] in core
@@ -331,7 +331,7 @@ struct ArchitectureLayoutTests {
 
     @Test("Group boundary edges land on group rectangles")
     func groupBoundaryEdgesUseGroupRectPorts() throws {
-        let d = try parseArchitectureDiagram("""
+        let (d, _) = try parseArchitectureDiagram("""
         architecture-beta
             group groupOne(cloud)[Group One]
             group groupTwo(cloud)[Group Two]
@@ -349,7 +349,7 @@ struct ArchitectureLayoutTests {
 
     @Test("Junctions use point geometry")
     func junctionsUsePointGeometry() throws {
-        let d = try parseArchitectureDiagram("""
+        let (d, _) = try parseArchitectureDiagram("""
         architecture-beta
             service left_disk(disk)[Disk]
             junction junctionCenter
@@ -366,7 +366,7 @@ struct ArchitectureLayoutTests {
 
     @Test("Misaligned vertical ports route orthogonally")
     func misalignedVerticalPortsRouteOrthogonally() throws {
-        let d = try parseArchitectureDiagram("""
+        let (d, _) = try parseArchitectureDiagram("""
         architecture-beta
             group core(cloud)[Core]
             service db(database)[DB] in core
@@ -390,11 +390,11 @@ struct ArchitectureLayoutTests {
         let titled = layoutArchitectureDiagram(try parseArchitectureDiagram("""
         architecture-beta title Simple Architecture
             service srv[Service]
-        """))
+        """).0)
         let untitled = layoutArchitectureDiagram(try parseArchitectureDiagram("""
         architecture-beta
             service srv[Service]
-        """))
+        """).0)
         #expect(titled.height > untitled.height)
         #expect((titled.services.first?.y ?? 0) > (untitled.services.first?.y ?? 0))
     }

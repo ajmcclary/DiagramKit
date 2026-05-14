@@ -11,7 +11,7 @@ struct TreeViewModelTests {
     func syntheticRoot() throws {
         let source = "treeView-beta\n    file.js\n"
         let rawLines = source.split(separator: "\n", omittingEmptySubsequences: false).map(String.init)
-        let result = try parseTreeViewDiagram(rawLines, frontmatter: nil)
+        let (result, _) = try parseTreeViewDiagram(rawLines, frontmatter: nil)
         #expect(result.root.id == 0)
         #expect(result.root.level == -1)
         #expect(result.root.name == "/")
@@ -28,7 +28,7 @@ struct TreeViewModelTests {
             c
         """
         let rawLines = source.split(separator: "\n", omittingEmptySubsequences: false).map(String.init)
-        let result = try parseTreeViewDiagram(rawLines, frontmatter: nil)
+        let (result, _) = try parseTreeViewDiagram(rawLines, frontmatter: nil)
         #expect(result.root.children[0].id == 1)
         #expect(result.root.children[1].id == 2)
         #expect(result.root.children[2].id == 3)
@@ -43,7 +43,7 @@ struct TreeViewModelTests {
             c
         """
         let rawLines = source.split(separator: "\n", omittingEmptySubsequences: false).map(String.init)
-        let result = try parseTreeViewDiagram(rawLines, frontmatter: nil)
+        let (result, _) = try parseTreeViewDiagram(rawLines, frontmatter: nil)
         #expect(result.root.children.count == 2)
         #expect(result.root.children[0].name == "a")
         #expect(result.root.children[1].name == "c")
@@ -57,7 +57,7 @@ struct TreeViewModelTests {
             file2.js
         """
         let rawLines = source.split(separator: "\n", omittingEmptySubsequences: false).map(String.init)
-        let result = try parseTreeViewDiagram(rawLines, frontmatter: nil)
+        let (result, _) = try parseTreeViewDiagram(rawLines, frontmatter: nil)
         #expect(result.root.children.count == 2)
         #expect(result.root.children[0].name == "file1.js")
         #expect(result.root.children[1].name == "file2.js")
@@ -70,7 +70,7 @@ struct TreeViewModelTests {
             src/
         """
         let rawLines = source.split(separator: "\n", omittingEmptySubsequences: false).map(String.init)
-        let result = try parseTreeViewDiagram(rawLines, frontmatter: nil)
+        let (result, _) = try parseTreeViewDiagram(rawLines, frontmatter: nil)
         #expect(result.root.children[0].name == "src")
         #expect(result.root.children[0].nodeType == .directory)
     }
@@ -82,7 +82,7 @@ struct TreeViewModelTests {
             Dockerfile/
         """
         let rawLines = source.split(separator: "\n", omittingEmptySubsequences: false).map(String.init)
-        let result = try parseTreeViewDiagram(rawLines, frontmatter: nil)
+        let (result, _) = try parseTreeViewDiagram(rawLines, frontmatter: nil)
         #expect(result.root.children[0].iconId == "folder")
     }
 
@@ -119,7 +119,7 @@ struct TreeViewModelTests {
             m.js
         """
         let rawLines = source.split(separator: "\n", omittingEmptySubsequences: false).map(String.init)
-        let result = try parseTreeViewDiagram(rawLines, frontmatter: nil)
+        let (result, _) = try parseTreeViewDiagram(rawLines, frontmatter: nil)
         #expect(result.root.children[0].name == "z.js")
         #expect(result.root.children[1].name == "a.js")
         #expect(result.root.children[2].name == "m.js")
@@ -132,7 +132,7 @@ struct TreeViewModelTests {
             Dockerfile icon(database)
         """
         let rawLines = source.split(separator: "\n", omittingEmptySubsequences: false).map(String.init)
-        let result = try parseTreeViewDiagram(rawLines, frontmatter: nil)
+        let (result, _) = try parseTreeViewDiagram(rawLines, frontmatter: nil)
         #expect(result.root.children[0].iconId == "database")
     }
 
@@ -143,7 +143,7 @@ struct TreeViewModelTests {
             file.js ## <script>alert('xss')</script>
         """
         let rawLines = source.split(separator: "\n", omittingEmptySubsequences: false).map(String.init)
-        let result = try parseTreeViewDiagram(rawLines, frontmatter: nil)
+        let (result, _) = try parseTreeViewDiagram(rawLines, frontmatter: nil)
         let desc = result.root.children[0].description
         #expect(desc?.contains("&lt;") == true)
         #expect(desc?.contains("<script>") == false)

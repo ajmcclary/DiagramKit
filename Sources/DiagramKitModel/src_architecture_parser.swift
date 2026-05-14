@@ -1,4 +1,5 @@
 import Foundation
+import DiagramKitCommon
 
 public enum ArchitectureParserError: Error, LocalizedError {
     case missingHeader
@@ -217,13 +218,13 @@ private func _scanId(from text: String) -> String.Index? {
 
 // MARK: - Public API
 
-public func parseArchitectureDiagram(_ source: String, frontmatter: DiagramFrontmatter? = nil) throws -> ArchitectureDiagram {
+public func parseArchitectureDiagram(_ source: String, frontmatter: DiagramFrontmatter? = nil) throws -> (ArchitectureDiagram, [DiagramDiagnostic]) {
     let processed = source.replacingOccurrences(of: "\r\n", with: "\n").replacingOccurrences(of: "\r", with: "\n")
     let rawLines = processed.split(separator: "\n", omittingEmptySubsequences: false).map(String.init)
     return try parseArchitectureDiagram(rawLines, frontmatter: frontmatter)
 }
 
-public func parseArchitectureDiagram(_ lines: [String], frontmatter: DiagramFrontmatter? = nil) throws -> ArchitectureDiagram {
+public func parseArchitectureDiagram(_ lines: [String], frontmatter: DiagramFrontmatter? = nil) throws -> (ArchitectureDiagram, [DiagramDiagnostic]) {
     var state = _ArchitectureParserState()
     var headerFound = false
     var inMultilineAccDescr = false
@@ -364,7 +365,7 @@ public func parseArchitectureDiagram(_ lines: [String], frontmatter: DiagramFron
         result.diagramTitle = fmTitle
     }
 
-    return result
+    return (result, [])
 }
 
 // MARK: - Statement Parsers

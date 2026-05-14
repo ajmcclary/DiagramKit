@@ -16,7 +16,7 @@ struct TreeViewLayoutTests {
             package.json
         """
         let rawLines = source.split(separator: "\n", omittingEmptySubsequences: false).map(String.init)
-        let diagram = try parseTreeViewDiagram(rawLines, frontmatter: nil)
+        let (diagram, _) = try parseTreeViewDiagram(rawLines, frontmatter: nil)
         let positioned = layoutTreeViewDiagram(diagram)
 
         #expect(positioned.nodes.isEmpty == false)
@@ -27,7 +27,7 @@ struct TreeViewLayoutTests {
     func rootNodePosition() throws {
         let source = "treeView-beta\n    file.js\n"
         let rawLines = source.split(separator: "\n", omittingEmptySubsequences: false).map(String.init)
-        let diagram = try parseTreeViewDiagram(rawLines, frontmatter: nil)
+        let (diagram, _) = try parseTreeViewDiagram(rawLines, frontmatter: nil)
         let positioned = layoutTreeViewDiagram(diagram)
 
         let rootPos = positioned.nodes.first(where: { $0.id == 0 })
@@ -45,7 +45,7 @@ struct TreeViewLayoutTests {
                     c.js
         """
         let rawLines = source.split(separator: "\n", omittingEmptySubsequences: false).map(String.init)
-        let diagram = try parseTreeViewDiagram(rawLines, frontmatter: nil)
+        let (diagram, _) = try parseTreeViewDiagram(rawLines, frontmatter: nil)
         let positioned = layoutTreeViewDiagram(diagram)
 
         let aPos = positioned.nodes.first(where: { $0.name == "a" })
@@ -68,7 +68,7 @@ struct TreeViewLayoutTests {
             package.json
         """
         let rawLines = source.split(separator: "\n", omittingEmptySubsequences: false).map(String.init)
-        let diagram = try parseTreeViewDiagram(rawLines, frontmatter: nil)
+        let (diagram, _) = try parseTreeViewDiagram(rawLines, frontmatter: nil)
         let positioned = layoutTreeViewDiagram(diagram)
 
         #expect(positioned.connectorLines.count > 0)
@@ -81,7 +81,7 @@ struct TreeViewLayoutTests {
             file.js :::highlight
         """
         let rawLines = source.split(separator: "\n", omittingEmptySubsequences: false).map(String.init)
-        let diagram = try parseTreeViewDiagram(rawLines, frontmatter: nil)
+        let (diagram, _) = try parseTreeViewDiagram(rawLines, frontmatter: nil)
         let positioned = layoutTreeViewDiagram(diagram)
 
         #expect(positioned.highlightRects.isEmpty == false)
@@ -95,7 +95,7 @@ struct TreeViewLayoutTests {
             very-long-file-name.js ## very long description too
         """
         let rawLines = source.split(separator: "\n", omittingEmptySubsequences: false).map(String.init)
-        let diagram = try parseTreeViewDiagram(rawLines, frontmatter: nil)
+        let (diagram, _) = try parseTreeViewDiagram(rawLines, frontmatter: nil)
         let positioned = layoutTreeViewDiagram(diagram)
 
         #expect(positioned.descriptionX != nil)
@@ -105,7 +105,7 @@ struct TreeViewLayoutTests {
     func emptyTree() throws {
         let source = "treeView-beta\n"
         let rawLines = source.split(separator: "\n", omittingEmptySubsequences: false).map(String.init)
-        let diagram = try parseTreeViewDiagram(rawLines, frontmatter: nil)
+        let (diagram, _) = try parseTreeViewDiagram(rawLines, frontmatter: nil)
         let positioned = layoutTreeViewDiagram(diagram)
 
         #expect(positioned.nodes.isEmpty == false)
@@ -118,7 +118,7 @@ struct TreeViewLayoutTests {
     func viewBoxOffset() throws {
         let source = "treeView-beta\n    file.js\n"
         let rawLines = source.split(separator: "\n", omittingEmptySubsequences: false).map(String.init)
-        let diagram = try parseTreeViewDiagram(rawLines, frontmatter: nil)
+        let (diagram, _) = try parseTreeViewDiagram(rawLines, frontmatter: nil)
         let positioned = layoutTreeViewDiagram(diagram)
 
         #expect(positioned.viewBoxX < 0)
@@ -130,7 +130,7 @@ struct TreeViewLayoutTests {
     func showIconsDisabled() throws {
         let source = "treeView-beta\n    file.js\n"
         let rawLines = source.split(separator: "\n", omittingEmptySubsequences: false).map(String.init)
-        var diagram = try parseTreeViewDiagram(rawLines, frontmatter: nil)
+        var (diagram, _) = try parseTreeViewDiagram(rawLines, frontmatter: nil)
         diagram.config.showIcons = false
         let positioned = layoutTreeViewDiagram(diagram)
 
@@ -142,7 +142,7 @@ struct TreeViewLayoutTests {
     func explicitIconSuppressionRemovesOffset() throws {
         let source = "treeView-beta\n    file.js icon(none)\n"
         let rawLines = source.split(separator: "\n", omittingEmptySubsequences: false).map(String.init)
-        let diagram = try parseTreeViewDiagram(rawLines, frontmatter: nil)
+        let (diagram, _) = try parseTreeViewDiagram(rawLines, frontmatter: nil)
         let positioned = layoutTreeViewDiagram(diagram)
 
         let nodePos = try #require(positioned.nodes.first(where: { $0.name == "file.js" }))
@@ -154,7 +154,7 @@ struct TreeViewLayoutTests {
     func customConfig() throws {
         let source = "treeView-beta\n    file.js\n"
         let rawLines = source.split(separator: "\n", omittingEmptySubsequences: false).map(String.init)
-        var diagram = try parseTreeViewDiagram(rawLines, frontmatter: nil)
+        var (diagram, _) = try parseTreeViewDiagram(rawLines, frontmatter: nil)
         diagram.config.rowIndent = 20
         diagram.config.paddingX = 10
         let positioned = layoutTreeViewDiagram(diagram)
@@ -166,7 +166,7 @@ struct TreeViewLayoutTests {
     func rowHeightProportionalToText() throws {
         let source = "treeView-beta\n    a\n    wwwwwwwwwwwwwwww\n"
         let rawLines = source.split(separator: "\n", omittingEmptySubsequences: false).map(String.init)
-        let diagram = try parseTreeViewDiagram(rawLines, frontmatter: nil)
+        let (diagram, _) = try parseTreeViewDiagram(rawLines, frontmatter: nil)
         let positioned = layoutTreeViewDiagram(diagram)
 
         let shortNode = try #require(positioned.nodes.first(where: { $0.name == "a" }))
@@ -186,7 +186,7 @@ struct TreeViewLayoutTests {
                     c.js
         """
         let rawLines = source.split(separator: "\n", omittingEmptySubsequences: false).map(String.init)
-        let diagram = try parseTreeViewDiagram(rawLines, frontmatter: nil)
+        let (diagram, _) = try parseTreeViewDiagram(rawLines, frontmatter: nil)
         let positioned = layoutTreeViewDiagram(diagram)
 
         let parentPos = try #require(positioned.nodes.first(where: { $0.name == "a" }))
@@ -209,7 +209,7 @@ struct TreeViewLayoutTests {
             README.md
         """
         let rawLines = source.split(separator: "\n", omittingEmptySubsequences: false).map(String.init)
-        let diagram = try parseTreeViewDiagram(rawLines, frontmatter: nil)
+        let (diagram, _) = try parseTreeViewDiagram(rawLines, frontmatter: nil)
         let positioned = layoutTreeViewDiagram(diagram)
 
         #expect(positioned.descriptionX != nil)
@@ -225,7 +225,7 @@ struct TreeViewLayoutTests {
             very-long-file-name-with-many-chars.js
         """
         let rawLines = source.split(separator: "\n", omittingEmptySubsequences: false).map(String.init)
-        let diagram = try parseTreeViewDiagram(rawLines, frontmatter: nil)
+        let (diagram, _) = try parseTreeViewDiagram(rawLines, frontmatter: nil)
         let positioned = layoutTreeViewDiagram(diagram)
 
         #expect(positioned.highlightRects.isEmpty == false)
@@ -238,7 +238,7 @@ struct TreeViewLayoutTests {
     func viewBoxXOffset() throws {
         let source = "treeView-beta\n    file.js\n"
         let rawLines = source.split(separator: "\n", omittingEmptySubsequences: false).map(String.init)
-        var diagram = try parseTreeViewDiagram(rawLines, frontmatter: nil)
+        var (diagram, _) = try parseTreeViewDiagram(rawLines, frontmatter: nil)
         diagram.config.lineThickness = 3
         let positioned = layoutTreeViewDiagram(diagram)
 

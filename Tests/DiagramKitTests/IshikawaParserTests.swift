@@ -12,7 +12,7 @@ struct IshikawaParserTests {
     @Test("Parses ishikawa-beta header")
     func ishikawaBetaHeader() throws {
         let lines = ["ishikawa-beta", "Problem", "    Cause A"]
-        let result = try parseIshikawaDiagram(lines)
+        let (result, _) = try parseIshikawaDiagram(lines)
         #expect(result.root?.text == "Problem")
         #expect(result.root?.children.count == 1)
         #expect(result.root?.children[0].text == "Cause A")
@@ -21,7 +21,7 @@ struct IshikawaParserTests {
     @Test("Parses ishikawa header")
     func ishikawaHeader() throws {
         let lines = ["ishikawa", "Problem", "Cause A", "  Subcause A1", "Cause B"]
-        let result = try parseIshikawaDiagram(lines)
+        let (result, _) = try parseIshikawaDiagram(lines)
         #expect(result.root?.text == "Problem")
         #expect(result.root?.children.count == 2)
     }
@@ -29,7 +29,7 @@ struct IshikawaParserTests {
     @Test("Parses case-insensitive header ISHIKAWA-BETA")
     func caseInsensitiveHeader() throws {
         let lines = ["ISHIKAWA-BETA", "Problem", "    Cause A"]
-        let result = try parseIshikawaDiagram(lines)
+        let (result, _) = try parseIshikawaDiagram(lines)
         #expect(result.root?.text == "Problem")
         #expect(result.root?.children.first?.text == "Cause A")
     }
@@ -37,7 +37,7 @@ struct IshikawaParserTests {
     @Test("Parses case-insensitive header Ishikawa")
     func mixedCaseHeader() throws {
         let lines = ["Ishikawa", "Problem", "    Cause A"]
-        let result = try parseIshikawaDiagram(lines)
+        let (result, _) = try parseIshikawaDiagram(lines)
         #expect(result.root?.text == "Problem")
     }
 
@@ -46,7 +46,7 @@ struct IshikawaParserTests {
     @Test("Parses basic hierarchy from Mermaid spec")
     func basicHierarchy() throws {
         let lines = ["ishikawa-beta", "    Blurry Photo", "        Process", "            Out of focus", "        User", "            Shaky hands"]
-        let result = try parseIshikawaDiagram(lines)
+        let (result, _) = try parseIshikawaDiagram(lines)
         #expect(result.root?.text == "Blurry Photo")
         #expect(result.root?.children.count == 2)
         #expect(result.root?.children[0].text == "Process")
@@ -58,7 +58,7 @@ struct IshikawaParserTests {
     @Test("Parses unindented root with nested causes")
     func unindentedRootWithNestedCauses() throws {
         let lines = ["ishikawa", "Problem", "Cause A", "  Subcause A1", "Cause B"]
-        let result = try parseIshikawaDiagram(lines)
+        let (result, _) = try parseIshikawaDiagram(lines)
         #expect(result.root?.text == "Problem")
         #expect(result.root?.children.count == 2)
         #expect(result.root?.children[0].text == "Cause A")
@@ -69,7 +69,7 @@ struct IshikawaParserTests {
     @Test("Parses root indented more than causes")
     func rootIndentedMoreThanCauses() throws {
         let lines = ["ishikawa-beta", "    Problem", "Cause A", "  Subcause A1", "  Subcause A2", "Cause B"]
-        let result = try parseIshikawaDiagram(lines)
+        let (result, _) = try parseIshikawaDiagram(lines)
         #expect(result.root?.text == "Problem")
         #expect(result.root?.children.count == 2)
         #expect(result.root?.children[0].text == "Cause A")
@@ -81,7 +81,7 @@ struct IshikawaParserTests {
     @Test("Parses with leading blank lines")
     func leadingBlankLines() throws {
         let lines = ["", "", "ishikawa-beta", "Problem", "    Cause A"]
-        let result = try parseIshikawaDiagram(lines)
+        let (result, _) = try parseIshikawaDiagram(lines)
         #expect(result.root?.text == "Problem")
         #expect(result.root?.children.first?.text == "Cause A")
     }
@@ -89,14 +89,14 @@ struct IshikawaParserTests {
     @Test("Parses with leading %% comments")
     func leadingComments() throws {
         let lines = ["%% leading comment", "ishikawa-beta", "Problem", "    Cause A"]
-        let result = try parseIshikawaDiagram(lines)
+        let (result, _) = try parseIshikawaDiagram(lines)
         #expect(result.root?.text == "Problem")
     }
 
     @Test("Parses with %% separator comments")
     func separatorComments() throws {
         let lines = ["%% leading comment", "ishikawa-beta", "Problem", "    Cause A", "%% separator comment", "    Cause B"]
-        let result = try parseIshikawaDiagram(lines)
+        let (result, _) = try parseIshikawaDiagram(lines)
         #expect(result.root?.children.count == 2)
         #expect(result.root?.children[0].text == "Cause A")
         #expect(result.root?.children[1].text == "Cause B")
@@ -107,7 +107,7 @@ struct IshikawaParserTests {
     @Test("Parses root-only diagram")
     func rootOnly() throws {
         let lines = ["ishikawa-beta", "Problem"]
-        let result = try parseIshikawaDiagram(lines)
+        let (result, _) = try parseIshikawaDiagram(lines)
         #expect(result.root?.text == "Problem")
         #expect(result.root?.children.isEmpty == true)
     }
@@ -115,7 +115,7 @@ struct IshikawaParserTests {
     @Test("Root-only with trailing blank")
     func rootOnlyWithTrailingBlank() throws {
         let lines = ["ishikawa-beta", "Problem", ""]
-        let result = try parseIshikawaDiagram(lines)
+        let (result, _) = try parseIshikawaDiagram(lines)
         #expect(result.root?.text == "Problem")
         #expect(result.root?.children.isEmpty == true)
     }
@@ -123,7 +123,7 @@ struct IshikawaParserTests {
     @Test("Deep nesting 4+ levels")
     func deepNesting() throws {
         let lines = ["ishikawa-beta", "Effect", "  Cause1", "    Sub1", "      SubSub1", "        Leaf1"]
-        let result = try parseIshikawaDiagram(lines)
+        let (result, _) = try parseIshikawaDiagram(lines)
         #expect(result.root?.children.first?.text == "Cause1")
         let sub1 = result.root?.children.first?.children.first
         #expect(sub1?.text == "Sub1")
@@ -135,7 +135,7 @@ struct IshikawaParserTests {
     @Test("Trims whitespace from labels")
     func trimsWhitespace() throws {
         let lines = ["ishikawa-beta", "  Problem  ", "    Cause A  "]
-        let result = try parseIshikawaDiagram(lines)
+        let (result, _) = try parseIshikawaDiagram(lines)
         #expect(result.root?.text == "Problem")
         #expect(result.root?.children.first?.text == "Cause A")
     }
@@ -143,7 +143,7 @@ struct IshikawaParserTests {
     @Test("Diagram title is set from root label")
     func diagramTitleFromRoot() throws {
         let lines = ["ishikawa-beta", "Defect Analysis", "    Materials"]
-        let result = try parseIshikawaDiagram(lines)
+        let (result, _) = try parseIshikawaDiagram(lines)
         #expect(result.diagramTitle == "Defect Analysis")
     }
 
@@ -151,7 +151,7 @@ struct IshikawaParserTests {
     func frontmatterTitleOverrides() throws {
         let fm = DiagramFrontmatter(diagramTitle: "Custom Title")
         let lines = ["ishikawa-beta", "Defect Analysis", "    Materials"]
-        let result = try parseIshikawaDiagram(lines, frontmatter: fm)
+        let (result, _) = try parseIshikawaDiagram(lines, frontmatter: fm)
         #expect(result.diagramTitle == "Custom Title")
     }
 
@@ -202,7 +202,7 @@ struct IshikawaParserTests {
     @Test("Parses trailing text after header as root node")
     func trailingTextOnHeaderLine() throws {
         let lines = ["ishikawa-beta lingering text", "Problem", "  Cause A"]
-        let result = try parseIshikawaDiagram(lines)
+        let (result, _) = try parseIshikawaDiagram(lines)
         #expect(result.root?.text == "lingering text")
         #expect(result.root?.children.first?.text == "Problem")
     }
@@ -212,7 +212,7 @@ struct IshikawaParserTests {
     @Test("Parses with whitespace-only line between statements")
     func whitespaceOnlyLineBetweenStatements() throws {
         let lines = ["ishikawa-beta", "Problem", "  Cause A", "   ", "  Cause B"]
-        let result = try parseIshikawaDiagram(lines)
+        let (result, _) = try parseIshikawaDiagram(lines)
         #expect(result.root?.children.count == 2)
         #expect(result.root?.children[0].text == "Cause A")
         #expect(result.root?.children[1].text == "Cause B")
@@ -221,7 +221,7 @@ struct IshikawaParserTests {
     @Test("Parses with multiple consecutive blank lines")
     func multipleConsecutiveBlankLines() throws {
         let lines = ["ishikawa-beta", "", "", "Problem", "    Cause A"]
-        let result = try parseIshikawaDiagram(lines)
+        let (result, _) = try parseIshikawaDiagram(lines)
         #expect(result.root?.text == "Problem")
         #expect(result.root?.children.first?.text == "Cause A")
     }
@@ -229,7 +229,7 @@ struct IshikawaParserTests {
     @Test("Parses with %% comment immediately after header")
     func commentImmediatelyAfterHeader() throws {
         let lines = ["ishikawa-beta", "%% right after header", "Problem", "    Cause A"]
-        let result = try parseIshikawaDiagram(lines)
+        let (result, _) = try parseIshikawaDiagram(lines)
         #expect(result.root?.text == "Problem")
         #expect(result.root?.children.first?.text == "Cause A")
     }
@@ -237,7 +237,7 @@ struct IshikawaParserTests {
     @Test("Parses with tab-indented causes")
     func tabIndentedCauses() throws {
         let lines = ["ishikawa-beta", "Problem", "\tCause A", "\t\tSub A1"]
-        let result = try parseIshikawaDiagram(lines)
+        let (result, _) = try parseIshikawaDiagram(lines)
         #expect(result.root?.children.first?.text == "Cause A")
         #expect(result.root?.children.first?.children.first?.text == "Sub A1")
     }
