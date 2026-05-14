@@ -7,10 +7,11 @@ import DiagramKitExport
 /// Emits PlantUML state diagram source from a `ParsedGraphModel`
 /// (the `DiagramPayload.stateDiagram` payload).
 ///
-/// Pseudostates encoded as `<parent>_start` / `<parent>_end` are
-/// rewritten back into `[*]`. Composite subgraphs become
-/// `state Name { … }` blocks. Notes are not currently round-tripped
-/// because the payload doesn't carry them.
+/// Pseudostate node ids (those whose `NodeShape` is `.stateStart` or
+/// `.stateEnd`) are rewritten back into `[*]` on edge endpoints. The
+/// previous implementation rewrote any id ending in `_start`/`_end`,
+/// which silently corrupted legitimately-named states like
+/// `customer_start`.
 enum PlantUMLStateExport {
 
     static func emit(_ graph: ParsedGraphModel) throws -> DiagramExportResult {
@@ -26,6 +27,16 @@ enum PlantUMLStateExport {
             collectOwnership(subgraph, ownerID: subgraph.id, into: &ownedBy)
         }
 
+        // Identify pseudostate node ids by shape rather than by id
+        // suffix so user-authored ids like `customer_start` are not
+        // mis-rewritten as `[*]`.
+        var pseudostateIDs = Set<String>()
+        for entry in graph.nodesInOrder {
+            if isPseudostate(entry.node) {
+                pseudostateIDs.insert(entry.id)
+            }
+        }
+
         // Top-level simple states first
         for entry in graph.nodesInOrder where ownedBy[entry.id] == nil {
             if shouldSkipNode(entry.node) { continue }
@@ -39,8 +50,8 @@ enum PlantUMLStateExport {
 
         // Edges — rewrite pseudostate IDs back to [*].
         for edge in graph.edges {
-            let source = restorePseudostate(edge.source)
-            let target = restorePseudostate(edge.target)
+            let source = restorePseudostate(edge.source, pseudostateIDs: pseudostateIDs)
+            let target = restorePseudostate(edge.target, pseudostateIDs: pseudostateIDs)
             if let label = edge.label, !label.isEmpty {
                 lines.append("\(source) --> \(target) : \(escape(label))")
             } else {
@@ -54,6 +65,13 @@ enum PlantUMLStateExport {
             source: lines.joined(separator: "\n"),
             diagnostics: diagnostics
         )
+    }
+
+    private static func isPseudostate(_ node: original_src_types.MermaidNode) -> Bool {
+        switch node.shape {
+        case .stateStart, .stateEnd: return true
+        default: return false
+        }
     }
 
     private static func collectOwnership(
@@ -104,11 +122,8 @@ enum PlantUMLStateExport {
         return "state \(id)"
     }
 
-    private static func restorePseudostate(_ id: String) -> String {
-        if id.hasSuffix("_start") || id.hasSuffix("_end") {
-            return "[*]"
-        }
-        return id
+    private static func restorePseudostate(_ id: String, pseudostateIDs: Set<String>) -> String {
+        pseudostateIDs.contains(id) ? "[*]" : id
     }
 
     private static func escape(_ s: String) -> String {

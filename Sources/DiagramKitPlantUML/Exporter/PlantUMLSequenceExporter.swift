@@ -38,8 +38,12 @@ enum PlantUMLSequenceExport {
                 if msg.activate {
                     lines.append("activate \(to)")
                 }
-                let escapedLabelWithNewlines = msg.label.replacingOccurrences(of: "\n", with: "\\n")
-                lines.append("\(from) \(arrow) \(to): \(escapedLabelWithNewlines)")
+                // Route through the shared `escape()` helper so messages
+                // with backslashes or double quotes are emitted as valid
+                // PlantUML. Previously only `\n` was escaped, leaving the
+                // line vulnerable to corruption when labels contained
+                // `\` or `"`.
+                lines.append("\(from) \(arrow) \(to): \(escape(msg.label))")
                 if msg.deactivate {
                     lines.append("deactivate \(to)")
                 }

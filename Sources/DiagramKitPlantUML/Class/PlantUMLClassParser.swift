@@ -19,11 +19,31 @@ public struct PlantUMLClassParser {
         let lines = body.split(separator: "\n", omittingEmptySubsequences: false)
 
         var iterator = lines.makeIterator()
+        var inBlockComment = false
         while let raw = iterator.next() {
             let trimmed = raw.trimmingCharacters(in: .whitespaces)
+            if inBlockComment {
+                // Skip every line inside a `/' ... '/` block until we
+                // see the closing `'/` marker. PlantUML block comments
+                // can span multiple lines and may contain class/relation
+                // syntax that must not be parsed as content.
+                if trimmed.contains("'/") {
+                    inBlockComment = false
+                }
+                continue
+            }
             if trimmed.isEmpty { continue }
             if trimmed.hasPrefix("'") { continue } // PlantUML single-line comment
-            if trimmed.hasPrefix("/'") { continue } // multi-line comment opener; skipped naively
+            if trimmed.hasPrefix("/'") {
+                // Opening `/' … '/` block. If the close marker is on
+                // the same line we consume the line and stay out of
+                // block-comment mode; otherwise enter block-comment
+                // mode and skip until `'/` is seen.
+                if !trimmed.dropFirst(2).contains("'/") {
+                    inBlockComment = true
+                }
+                continue
+            }
 
             if let note = parseNote(trimmed) {
                 ast.notes.append(note)

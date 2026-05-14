@@ -35,14 +35,14 @@ enum MermaidFlowchartExport {
                 let (sanitizedId, idDiags) = MermaidExportHelpers.sanitizeIdentifier(nodeId)
                 diagnostics.append(contentsOf: idDiags)
 
-                let shapeStr = shapeMarker(for: node.shape)
+                let shape = shapeMarker(for: node.shape)
                 var nodeLine: String
                 if node.label.isEmpty || node.label == nodeId {
-                    nodeLine = "  \(sanitizedId)\(shapeStr)"
+                    nodeLine = "  \(sanitizedId)\(shape.open)\(shape.close)"
                 } else {
                     let (escaped, escDiags) = MermaidExportHelpers.escapeBracketLabel(node.label)
                     diagnostics.append(contentsOf: escDiags)
-                    nodeLine = "  \(sanitizedId)\(shapeStr.prefix(1))\(escaped)\(shapeStr.suffix(from: shapeStr.index(after: shapeStr.startIndex)))"
+                    nodeLine = "  \(sanitizedId)\(shape.open)\(escaped)\(shape.close)"
                 }
                 lines.append(nodeLine)
 
@@ -52,6 +52,15 @@ enum MermaidFlowchartExport {
                     lines.append(styleLine)
                 }
             }
+        }
+
+        // Emit any subgraph whose id didn't appear in `nodesInOrder`.
+        // The earlier loop only fires `emitSubgraph` when a node id
+        // collides with a subgraph id; subgraphs declared independently
+        // (the common case) would otherwise be silently dropped from
+        // the exported source.
+        for subgraph in model.subgraphs where !emittedSubgraphs.contains(subgraph.id) {
+            emitSubgraph(subgraph, subgraphMap: subgraphMap, emitted: &emittedSubgraphs, lines: &lines, diagnostics: &diagnostics, indent: 0)
         }
 
         // Emit edges
@@ -153,75 +162,79 @@ enum MermaidFlowchartExport {
 
     // MARK: - Shape markers
 
-    private static func shapeMarker(for shape: original_src_types.NodeShape) -> String {
+    /// Mermaid open/close wrappers for each `NodeShape`. The exporter
+    /// uses these as `id<open><label><close>` — the previous
+    /// single-string encoding split a literal `prefix(1)/suffix(from:1)`
+    /// and emitted `(label())` for `(())`, etc.
+    private static func shapeMarker(for shape: original_src_types.NodeShape) -> (open: String, close: String) {
         switch shape {
-        case .rectangle: return "[]"
-        case .rounded: return "()"
-        case .stadium: return "([])"
-        case .subroutine: return "[[]]"
-        case .cylinder: return "[(%)]"
-        case .diamond: return "{}"
-        case .hexagon: return "{{}}"
-        case .circle: return "(())"
-        case .doublecircle: return "((()))"
-        case .trapezoid: return "[/]"
-        case .trapezoidAlt: return "[\\]"
-        case .asymmetric: return ">]"
-        case .ellipse: return "(-)"
-        case .parallelogram: return "[/]"
-        case .parallelogramAlt: return "[\\]"
-        case .bang: return ">]"
-        case .cloud: return "[]"
-        case .dataStore: return "[]"
-        case .text: return "[]"
-        case .notchedRectangle: return "[]"
-        case .linedRectangle: return "[]"
-        case .smallCircle: return "(())"
-        case .framedCircle: return "(())"
-        case .fork: return "{}"
-        case .join: return "{}"
-        case .hourglass: return "{}"
-        case .braceL: return "{}"
-        case .braceR: return "{}"
-        case .braces: return "{}"
-        case .lightningBolt: return "[]"
-        case .document: return "[]"
-        case .delay: return "[]"
-        case .horizontalCylinder: return "[]"
-        case .linedCylinder: return "[]"
-        case .curvedTrapezoid: return "[]"
-        case .dividedRectangle: return "[]"
-        case .triangle: return "[]"
-        case .windowPane: return "[]"
-        case .filledCircle: return "(())"
-        case .linedDocument: return "[]"
-        case .notchedPentagon: return "[]"
-        case .flippedTriangle: return "[]"
-        case .slopedRectangle: return "[]"
-        case .stackedDocument: return "[]"
-        case .stackedRectangle: return "[]"
-        case .flag: return "[]"
-        case .bowTieRectangle: return "[]"
-        case .crossedCircle: return "(())"
-        case .taggedDocument: return "[]"
-        case .taggedRectangle: return "[]"
-        case .iconSquare: return "[]"
-        case .iconCircle: return "(())"
-        case .icon: return "[]"
-        case .iconRounded: return "()"
-        case .imageSquare: return "[]"
-        case .state: return "[]"
-        case .choice: return "{}"
-        case .note: return "[]"
-        case .stateStart: return "([])"
-        case .stateEnd: return "([])"
-        case .stateDivider: return "[]"
-        case .stateNote: return "[]"
-        case .roundedWithTitle: return "()"
-        case .rectWithTitle: return "[]"
-        case .labelRect: return "[]"
-        case .anchor: return "[]"
-        case .invisible: return "[]"
+        case .rectangle: return ("[", "]")
+        case .rounded: return ("(", ")")
+        case .stadium: return ("([", "])")
+        case .subroutine: return ("[[", "]]")
+        case .cylinder: return ("[(", ")]")
+        case .diamond: return ("{", "}")
+        case .hexagon: return ("{{", "}}")
+        case .circle: return ("((", "))")
+        case .doublecircle: return ("(((", ")))")
+        case .trapezoid: return ("[/", "/]")
+        case .trapezoidAlt: return ("[\\", "\\]")
+        case .asymmetric: return (">", "]")
+        case .ellipse: return ("(-", "-)")
+        case .parallelogram: return ("[/", "\\]")
+        case .parallelogramAlt: return ("[\\", "/]")
+        case .bang: return (">", "]")
+        case .cloud: return ("[", "]")
+        case .dataStore: return ("[", "]")
+        case .text: return ("[", "]")
+        case .notchedRectangle: return ("[", "]")
+        case .linedRectangle: return ("[", "]")
+        case .smallCircle: return ("((", "))")
+        case .framedCircle: return ("((", "))")
+        case .fork: return ("{", "}")
+        case .join: return ("{", "}")
+        case .hourglass: return ("{", "}")
+        case .braceL: return ("{", "}")
+        case .braceR: return ("{", "}")
+        case .braces: return ("{", "}")
+        case .lightningBolt: return ("[", "]")
+        case .document: return ("[", "]")
+        case .delay: return ("[", "]")
+        case .horizontalCylinder: return ("[", "]")
+        case .linedCylinder: return ("[", "]")
+        case .curvedTrapezoid: return ("[", "]")
+        case .dividedRectangle: return ("[", "]")
+        case .triangle: return ("[", "]")
+        case .windowPane: return ("[", "]")
+        case .filledCircle: return ("((", "))")
+        case .linedDocument: return ("[", "]")
+        case .notchedPentagon: return ("[", "]")
+        case .flippedTriangle: return ("[", "]")
+        case .slopedRectangle: return ("[", "]")
+        case .stackedDocument: return ("[", "]")
+        case .stackedRectangle: return ("[", "]")
+        case .flag: return ("[", "]")
+        case .bowTieRectangle: return ("[", "]")
+        case .crossedCircle: return ("((", "))")
+        case .taggedDocument: return ("[", "]")
+        case .taggedRectangle: return ("[", "]")
+        case .iconSquare: return ("[", "]")
+        case .iconCircle: return ("((", "))")
+        case .icon: return ("[", "]")
+        case .iconRounded: return ("(", ")")
+        case .imageSquare: return ("[", "]")
+        case .state: return ("[", "]")
+        case .choice: return ("{", "}")
+        case .note: return ("[", "]")
+        case .stateStart: return ("([", "])")
+        case .stateEnd: return ("([", "])")
+        case .stateDivider: return ("[", "]")
+        case .stateNote: return ("[", "]")
+        case .roundedWithTitle: return ("(", ")")
+        case .rectWithTitle: return ("[", "]")
+        case .labelRect: return ("[", "]")
+        case .anchor: return ("[", "]")
+        case .invisible: return ("[", "]")
         }
     }
 

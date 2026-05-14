@@ -45,10 +45,12 @@ enum MermaidClassExport {
             let (sanitizedId, idDiags) = MermaidExportHelpers.sanitizeIdentifier(cls.id)
             diagnostics.append(contentsOf: idDiags)
 
-            // Annotations
+            // Annotations are emitted bare: Mermaid expects
+            // `<<interface>> Foo`, not `<<"interface">> Foo`. The
+            // previous code interpolated the quoted form straight into
+            // the angle brackets.
             for annotation in cls.annotations {
-                let (q, _) = MermaidExportHelpers.quote(annotation)
-                lines.append("  <<\(q)>> \(sanitizedId)")
+                lines.append("  <<\(annotation)>> \(sanitizedId)")
             }
 
             // Class declaration
@@ -70,7 +72,9 @@ enum MermaidClassExport {
                     .filter { !$0.isEmpty }
                     .sorted()
                 if !uniqueClasses.isEmpty {
-                    classLine += "::: \(uniqueClasses.joined(separator: ","))"
+                    // Mermaid syntax is `class Foo:::cssClass` (no
+                    // whitespace between `:::` and the class name).
+                    classLine += ":::\(uniqueClasses.joined(separator: ","))"
                 }
             }
 
