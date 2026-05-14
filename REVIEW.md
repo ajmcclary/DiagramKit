@@ -118,9 +118,35 @@ The deferred item §4 "`_export` runs synchronously on `@MainActor`" is now clos
 
 ---
 
+## Resolution Status — Session 6 (2026-05-14)
+
+Closes Deferred Effort §4 → Format slices: round-trip & diagnostic discipline → "`StructurizrExporter.swift:84-91` drops boundary metadata as `.unsupported`, but its companion `StructurizrMapper.swift:169-181` rebuilds boundaries from parent relationships. Export → import loses boundaries without compensating import-side diagnostic." Spec at `docs/superpowers/specs/2026-05-14-structurizr-boundary-round-trip-design.md`; plan at `docs/superpowers/plans/2026-05-14-structurizr-boundary-round-trip.md`. Eleven commits on `main` (two docs + nine implementation).
+
+| # | Item | Commit | What landed |
+|---|---|---|---|
+| 1 | §4 Spec | `e26795a` | Structurizr boundary round-trip via `group "label" { … }` design — `C4BoundaryOrigin` enum, parser/mapper/exporter walkthrough, flatten + `.warning` policy for nested boundaries. |
+| 2 | §4 Plan | `bb1f150` | Nine-task TDD plan honoring commit-by-commit on main per project standing default. |
+| 3 | §4 `C4BoundaryOrigin` enum | `81ddf33` | New `C4BoundaryOrigin: Sendable, Equatable { .authored, .viewScopeSynthesized }`; optional `origin` field on `C4Boundary` (default `.authored`). Non-breaking init change. |
+| 4 | §4 `StructurizrModelElement.group` | `51f7a96` | Optional `group: String?` on `StructurizrModelElement` (default `nil`); carries the group label set by parser. |
+| 5 | §4 Parser `parseGroup` happy path | `c59dd51` | `parseModel` dispatches on `.identifier("group")`; new `parseGroup` consumes the directive inside `model { }`, tags contained elements with the group label, forwards inner relationships to the model's relationship list. |
+| 6 | §4 Parser error paths | `8a7d9c4` | Nested `group` inside `group` emits `.unsupported`; `group` inside `softwareSystem`/`container` element block emits `.unsupported` + `skipBlock`; missing-label `group { … }` throws `DiagramError.malformedSource`. |
+| 7 | §4 Mapper authored boundaries | `1eaa151` | `StructurizrMapper.map(_:)` builds `groupAliasMap` via new `uniqueSanitizedGroupAlias` helper, overrides shape `parentBoundary` to the synthesized group alias, appends one `.authored` `C4Boundary` per unique group label. The existing view-scope synthesis path is tagged `.viewScopeSynthesized`. |
+| 8 | §4 Exporter partition emit | `b96c9ce` | `StructurizrExporter` replaces the blanket-drop with origin partition: `.authored` boundaries emit as `group "<label>" { … }` blocks containing direct member shapes; `.viewScopeSynthesized` silently drop (next import re-derives them). Nested authored boundaries flatten to siblings with one `.warning` per dropped parent link; empty groups drop with a `.warning`. Extracts a private `emitShape` helper. |
+| 9 | §4 Round-trip tests | `7e9032c` | Three end-to-end tests: single-boundary Mermaid round-trip preserves label + membership; two-level Mermaid nesting flattens to sibling groups with one `.warning` (anchored by a `Rel(s0, s1, …)` so `systemContext include *` picks up both shapes); Structurizr group exports to Mermaid with the expected `Boundary(...)` keyword + `$boundary=` attribute. Third test stops short of re-parsing the Mermaid output — see the new entry below. |
+| 10 | §4 Corpus fixture | `2ce55e0` | `structurizr-5-group` entry in `test-diagrams.json` paired with a decode/import `@Test` in `StructurizrCorpusFixtureTests.swift`. `skipSnapshots: ["structurizr"]` (matches the existing four Structurizr fixtures). |
+| 11 | §4 CLAUDE.md sync | `ed5e578` | Test source count 225 → 231 (six new files: `C4BoundaryOriginTests`, `StructurizrASTGroupTests`, `StructurizrParserGroupTests`, `StructurizrMapperGroupTests`, `StructurizrExporterGroupTests`, `StructurizrBoundaryRoundTripTests`). |
+
+Session-end verification: targeted `swift test --filter` across `C4BoundaryOriginTests`, `StructurizrASTGroupTests`, `StructurizrParserGroupTests`, `StructurizrMapperGroupTests`, `StructurizrExporterGroupTests`, `StructurizrBoundaryRoundTripTests`, `StructurizrCorpusFixtureTests` all green (31 new tests + 7 existing fixture tests). `Scripts/check-sendable-annotations.sh` ✓ green. `Scripts/check-file-sizes.sh` reports only pre-existing yellow warnings; the touched Structurizr files (`StructurizrParser.swift` 377, `StructurizrMapper.swift` 334, `StructurizrExporter.swift` 249) all stay well under the 500-line warn threshold.
+
+New issue discovered during round-trip testing (added below as Deferred Effort §7): `Sources/DiagramKitModel/src_c4_parser.swift:426` — `_addPersonOrSystem` reads `link`, `tags`, `sprite` from the `named` arg dictionary but **not** `$boundary`. `MermaidC4Export` emits `$boundary=<alias>` on shapes whose `parentBoundary != "global"`, so the Mermaid exporter's contract isn't honored by the Mermaid parser on re-parse. Structurizr's boundary round-trip works (it goes through `C4Diagram.boundaries` directly, not through `$boundary` attributes), but Mermaid → Mermaid round-trip drops the parent-boundary linkage for shapes that aren't inside a nested `Boundary(...) { … }` block. The third round-trip test in this session avoids re-parsing the Mermaid output for that reason.
+
+---
+
 ## Deferred Effort — Recommendations
 
 Some review items were intentionally deferred during the five-phase pass; others surfaced during execution and were scoped out to keep individual commits coherent. Listed in priority order.
+
+**Currency note:** The bullets below preserve the original review's framing for historical context. **The "Resolution Status — Session N" tables above are authoritative for which items have actually closed.** Many bullets in §4 were addressed by Sessions 1–6 and have been marked inline with a leading ✅ and the closing commit; un-marked bullets are the genuinely open work.
 
 ### 1. SVG color-mix variable resolver (renderer-deep)
 
@@ -134,68 +160,64 @@ Some review items were intentionally deferred during the five-phase pass; others
 
 ### 2. D2 / DOT `FlowchartExportWalker` subgraph traversal
 
-**Status:** Mermaid flowchart export now emits subgraphs (Phase 3 fix). The walker shared by D2 and DOT exporters at `Sources/DiagramKitExport/FlowchartExportWalker.swift:42-52` still iterates only `nodesInOrder` and `edges`. D2 and DOT continue to silently drop subgraphs.
-
-**Recommendation:** add two new methods to `FlowchartExportSink` (`subgraphBegin(_:depth:)` / `subgraphEnd(_:depth:)`) with default no-op implementations that emit a `.warning` diagnostic. Have the walker invoke them around the contained nodes. Existing D2/DOT sinks inherit the warning behavior; full subgraph emission for D2 (`subgraph: { … }`) and DOT (`subgraph cluster_… { … }`) can ship as follow-ups in each slice.
+✅ **Closed by `5efa83f` (Session 2):** `FlowchartExportSink` now carries optional `handlesSubgraphs: Bool` + `subgraphBegin(_:depth:)` / `subgraphEnd(_:depth:)`. `walk(...)` returns `[DiagramDiagnostic]` and emits one `.warning` per dropped subgraph (with nested recursion). `D2Exporter` and `DOTFlowchartExport` thread the diagnostics through `DiagramExportResult`.
 
 ### 3. ER ASCII renderer `.invalidCardinality("MD_PARENT")`
 
-**Status:** `er-25-parent-marker` is marked `skipSnapshots: ["ascii"]` to keep the gate green. SVG and image renderers handle the parent-marker (`u--o{`) cardinality correctly; only ASCII throws.
-
-**Recommendation:** add `MD_PARENT` to the ER ASCII renderer's cardinality table in `Sources/DiagramKitModel/src_er_renderer.swift` (or wherever the ASCII variant lives). Remove the `skipSnapshots` entry once fixed and record the new ASCII baseline.
+✅ **Closed by `e2b9d57` (Session 2):** `AsciiErCardinality` gained `.parent = "md-parent"`; `_toAsciiCardinality` accepts `"MD_PARENT"`; `getCrowsFootChars` renders `*` (ASCII) / `◆` (Unicode), matching the filled diamond the CG and SVG renderers emit. `er-25-parent-marker` no longer carries `skipSnapshots: ["ascii"]`.
 
 ### 4. Important-tier review items not in the original fix plan
 
 The following Important findings from the review remain. None are correctness-critical but each is either an architecture hazard, a long-term debt, or a fragility the next major release should address.
 
 **Architecture & API**
-- `ReExports.swift:6-13` does not re-export `DiagramKitInteractive` despite `Package.swift` adding it as an umbrella dep. Add the re-export so `import DiagramKit` surfaces `DiagramEditor`.
-- `src_theme.swift:4`, `src_styles.swift:4`, `src_text_metrics.swift:4`, `src_multiline_utils.swift:4` are `open class`. Lock down to `internal` or `public final` — these are JS-port shims with no documented subclassing contract.
-- `DiagramFormatID` exists only on the exporter side; importers identify by `name: String`. Either move `DiagramFormatID` to `DiagramKitCommon` and adopt symmetrically, or document the asymmetry.
-- Deprecated typealiases (`MermaidParser`, `MermaidRenderer`, `MermaidPipeline`, `MermaidImageRenderer`, `MermaidStructuralError`) are scattered across the umbrella. Consolidate in a single `Deprecations.swift` so the next major can sunset them atomically.
-- `MermaidImporter.swift:23-34` — `supports(source:)` returns true for any non-empty source. Add an explicit `isFallback: Bool` to the protocol so the registry can mechanically validate "exactly one fallback, last."
+- ✅ **Closed by `31f7ced` (Session 2):** `ReExports.swift:6-13` does not re-export `DiagramKitInteractive` despite `Package.swift` adding it as an umbrella dep. Add the re-export so `import DiagramKit` surfaces `DiagramEditor`.
+- ✅ **Closed by `31f7ced` (Session 2):** `src_theme.swift:4`, `src_styles.swift:4`, `src_text_metrics.swift:4`, `src_multiline_utils.swift:4` are `open class`. Lock down to `internal` or `public final` — these are JS-port shims with no documented subclassing contract. Flipped to `public final class`.
+- ⚠️ **Partially addressed by `31f7ced` (Session 2):** `DiagramFormatID` exists only on the exporter side; importers identify by `name: String`. Either move `DiagramFormatID` to `DiagramKitCommon` and adopt symmetrically, or **document the asymmetry**. The asymmetry is now documented in the protocol header; full symmetric dispatch is still open.
+- ✅ **Closed by `31f7ced` (Session 2):** Deprecated typealiases (`MermaidParser`, `MermaidRenderer`, `MermaidPipeline`, `MermaidImageRenderer`, `MermaidStructuralError`) are scattered across the umbrella. Consolidate in a single `Deprecations.swift` so the next major can sunset them atomically.
+- ✅ **Closed by `31f7ced` (Session 2):** `MermaidImporter.swift:23-34` — `supports(source:)` returns true for any non-empty source. Add an explicit `isFallback: Bool` to the protocol so the registry can mechanically validate "exactly one fallback, last." `DiagramSourceImporter` gains `isFallback: Bool` (default `false`); `MermaidImporter` declares `isFallback = true`.
 
 **Model: numeric & concurrency edges**
-- `src_block_parser.swift:546-547` accepts non-positive `span` values; at `src_block_layout.swift:117` this becomes a divide-by-zero / NaN. Reject `Int(parts[1])` ≤ 0 at parse time.
-- `src_class_parser.swift:19` stores `direction: String`; every other family uses a typed enum. Migrate to a typed `ClassDirection` enum (`TB`/`BT`/`LR`/`RL`).
-- `src_radar_layout.swift:19-20` — `maxValue = -.infinity` when entries are empty and `options.max` is nil. Add an empty-curve guard and clamp `relativeRadius(...)` against `min == max`.
-- `src_gantt_parser.swift:410-423` — `_dateFormatterCache` is `nonisolated(unsafe)`; `DateFormatter.date(from:)` is not documented thread-safe. Wrap with a serial queue, or per-call instantiate, or migrate to `Date.ParseStrategy`.
-- `SourcePreprocessing.swift:69-89` — every `---`-bounded section between the first and last marker is treated as frontmatter; a body containing a literal `---` separator line is partially eaten. Tighten to "exactly one closing `---` after the opener, no greedy consumption."
-- `src_parser.swift:438-440` — anonymous-subgraph id `"subgraph_\(graph.subgraphIds.count)"` has no collision guard against user-defined ids.
+- ✅ **Closed by `7bdd439` (Session 2):** `src_block_parser.swift:546-547` accepts non-positive `span` values; at `src_block_layout.swift:117` this becomes a divide-by-zero / NaN. Reject `Int(parts[1])` ≤ 0 at parse time.
+- ✅ **Closed by `7bdd439` (Session 2):** `src_class_parser.swift:19` stores `direction: String`; every other family uses a typed enum. Migrate to a typed `ClassDirection` enum (`TB`/`BT`/`LR`/`RL`).
+- ✅ **Closed by `7bdd439` (Session 2):** `src_radar_layout.swift:19-20` — `maxValue = -.infinity` when entries are empty and `options.max` is nil. Add an empty-curve guard and clamp `relativeRadius(...)` against `min == max`.
+- ✅ **Closed by `7bdd439` (Session 2):** `src_gantt_parser.swift:410-423` — `_dateFormatterCache` is `nonisolated(unsafe)`; `DateFormatter.date(from:)` is not documented thread-safe. Wrap with a serial queue, or per-call instantiate, or migrate to `Date.ParseStrategy`. Serialized through a private `DispatchQueue`.
+- ✅ **Closed by `7bdd439` (Session 2):** `SourcePreprocessing.swift:69-89` — every `---`-bounded section between the first and last marker is treated as frontmatter; a body containing a literal `---` separator line is partially eaten. Tighten to "exactly one closing `---` after the opener, no greedy consumption."
+- ✅ **Closed by `7bdd439` (Session 2):** `src_parser.swift:438-440` — anonymous-subgraph id `"subgraph_\(graph.subgraphIds.count)"` has no collision guard against user-defined ids. Now bumps the index until unique.
 
 **Rendering & views**
-- `EdgeRenderer.swift:119` — `.arrow` case hardcodes `context.setLineWidth(0.75)`, ignoring the configured `lineWidth`. Source the width from the configured stroke.
-- `DiagramLayer.swift:182-189` — on parse failure, `preparedDiagram` is not cleared. Pick an intentional semantics (clear-on-failure vs preserve-with-error-overlay) and document it.
-- `DiagramEditor+Undo.swift:29-51` — undo snapshot does not capture `selection`. After `.deleteElement(...)`, undo restores doc/source/diagnostics but the dangling selection can throw on the next mutation. Capture selection in the snapshot.
-- `DiagramRenderer.swift:147-161` — 4000pt multiline bounding box is a band-aid. Replace with a `measure-first` strategy so the box matches the actual text extent.
-- `DiagramLayer.swift:91` — `UIScreen.main.scale` is deprecated on iOS 13+ multi-scene. Source scale from the view's window scene (`view.window?.windowScene?.screen.scale`).
+- ✅ **Closed by `04b00ee` (Session 2):** `EdgeRenderer.swift:119` — `.arrow` case hardcodes `context.setLineWidth(0.75)`, ignoring the configured `lineWidth`. Source the width from the configured stroke.
+- ✅ **Closed by `04b00ee` (Session 2):** `DiagramLayer.swift:182-189` — on parse failure, `preparedDiagram` is not cleared. Pick an intentional semantics (clear-on-failure vs preserve-with-error-overlay) and document it.
+- ✅ **Closed by `04b00ee` (Session 2):** `DiagramEditor+Undo.swift:29-51` — undo snapshot does not capture `selection`. After `.deleteElement(...)`, undo restores doc/source/diagnostics but the dangling selection can throw on the next mutation. Capture selection in the snapshot.
+- ✅ **Closed by `96a5350` / `c9b3af3` (between Session 5 and 6; never previously tabulated):** `DiagramRenderer.swift:147-161` — 4000pt multiline bounding box is a band-aid. Replace with a `measure-first` strategy so the box matches the actual text extent. `LabelRenderer.measureMultilineExtent` is the new measure-first path.
+- ✅ **Closed by `04b00ee` (Session 2):** `DiagramLayer.swift:91` — `UIScreen.main.scale` is deprecated on iOS 13+ multi-scene. Source scale from the view's window scene (`view.window?.windowScene?.screen.scale`). New `DiagramLayer.updateContentsScale(_:)` lets hosts correct the fallback once attached to a window.
 
 **Format slices: round-trip & diagnostic discipline**
-- Identifier-sanitization severity is inconsistent between `MermaidExportHelpers.sanitizeIdentifier` (`.info`) and Structurizr's `uniqueSanitizedAlias` (`.warning`). Pick one (`.warning` is closer to the right severity for lossy operations) and apply across slices.
-- `MermaidC4Export.swift:42-54` and `PlantUMLC4Export.swift:47-56` disagree on the slot semantics of the third positional arg (`desc` vs `tech`). Cross-format C4 round-trip silently swaps technology↔description. Align via a single `C4ArgsEmitter` helper.
-- `PlantUMLImporter.swift:30-32, 110` throws `.notYetImplemented` for two distinct conditions (malformed source vs unrecognized family). Split into `.malformedSource` and `.unsupportedFamily`.
-- `PlantUMLSequenceParser.swift:409-411` declares `title` unsupported; both exporters emit it. Add title parsing to close the round-trip.
-- `PlantUMLFamilyProbe.swift:58-61` — class probe false-matches any text containing `--`. Tighten the heuristic.
-- `MermaidExportHelpers.sanitizeIdentifier` silently drops non-`[A-Za-z0-9_-]` chars without collision checking. Mirror Structurizr's `usedAliases` set.
-- `D2Parser.swift:43-49` only strips `#` as inline-comment marker; `// note` trailing values leak into the value.
-- `DOTLexer` does not enter HTML-label mode; `label=<<TABLE>…</TABLE>>` drops the rest of the attribute list. `DOTMapper._isHTMLLabel` (`DOTMapper.swift:382-391`) is dead code until the lexer is fixed.
-- `StructurizrExporter.swift:84-91` drops boundary metadata; the companion importer rebuilds boundaries from parent relationships, so export → import loses information. Emit a paired `.warning` on the import side or close the round-trip.
-- `D2Mapper.swift:74-101` silently drops direction/icon/tooltip/link from second occurrences in duplicate-node-ID paths.
+- ✅ **Closed by `5ef689f` (Session 2):** Identifier-sanitization severity is inconsistent between `MermaidExportHelpers.sanitizeIdentifier` (`.info`) and Structurizr's `uniqueSanitizedAlias` (`.warning`). Pick one (`.warning` is closer to the right severity for lossy operations) and apply across slices. Severity flipped `.info`→`.warning`; a collision-aware `sanitizeIdentifier(_:usedAliases:)` overload exists but slice-by-slice adoption is partial.
+- ✅ **Closed by `8546f81` (between original review and Session 1; never previously tabulated):** `MermaidC4Export.swift:42-54` and `PlantUMLC4Export.swift:47-56` disagree on the slot semantics of the third positional arg (`desc` vs `tech`). Cross-format C4 round-trip silently swaps technology↔description. Align via a single `C4ArgsEmitter` helper. Both exporters and the PlantUML parser now dispatch on `C4ShapeType.hasTechnologySlot`; `Tests/DiagramKitTests/C4SlotSemanticsTests.swift` pins the invariant.
+- ✅ **Closed by `5ef689f` (Session 2):** `PlantUMLImporter.swift:30-32, 110` throws `.notYetImplemented` for two distinct conditions (malformed source vs unrecognized family). Split into `.malformedSource` and `.unsupportedFamily`.
+- ✅ **Closed by `5ef689f` (Session 2):** `PlantUMLSequenceParser.swift:409-411` declares `title` unsupported; both exporters emit it. Add title parsing to close the round-trip. Title now parses into `PlantUMLSequenceAST.title` and round-trips through `DiagramDocument.title`.
+- ✅ **Closed by `5ef689f` (Session 2):** `PlantUMLFamilyProbe.swift:58-61` — class probe false-matches any text containing `--`. Tighten the heuristic. Regex tightened to `\w+\s*--\s*\w+`.
+- `MermaidExportHelpers.sanitizeIdentifier` silently drops non-`[A-Za-z0-9_-]` chars without collision checking. Mirror Structurizr's `usedAliases` set. (Partially addressed in Session 2's `5ef689f`: the `sanitizeIdentifier(_:usedAliases:)` overload exists, but call-site adoption across slices is still incomplete.)
+- ✅ **Closed by `5ef689f` (Session 2):** `D2Parser.swift:43-49` only strips `#` as inline-comment marker; `// note` trailing values leak into the value. `D2Parser.preprocess` now strips both `#` and `//` via `_stripInlineComment(_:marker:)`.
+- ✅ **Closed by `9dd168a` (between Session 2 and 3; never previously tabulated):** `DOTLexer` does not enter HTML-label mode; `label=<<TABLE>…</TABLE>>` drops the rest of the attribute list. `DOTMapper._isHTMLLabel` (`DOTMapper.swift:382-391`) is dead code until the lexer is fixed. New `.htmlString` token in `DOTLexer` with depth-counting; `DOTMapper._isHTMLLabel` is wired, emits an `.unsupported` diagnostic, and falls back to the node id. `Tests/DiagramKitTests/DOTLexerHTMLLabelTests.swift` covers it.
+- ✅ **Closed by Session 6 (this session, `81ddf33` → `ed5e578`):** `StructurizrExporter.swift:84-91` drops boundary metadata; the companion importer rebuilds boundaries from parent relationships, so export → import loses information. Emit a paired `.warning` on the import side or close the round-trip. Closed by adding Structurizr DSL `group "label" { … }` parsing, `C4BoundaryOrigin` partitioning, and the partition-emit exporter.
+- ✅ **Already addressed (no specific commit traced):** `D2Mapper.swift:74-101` silently drops direction/icon/tooltip/link from second occurrences in duplicate-node-ID paths. `upsertNode` now emits four targeted `.warning` diagnostics (label/shape/width/height) when the second occurrence overrides a prior value.
 
 **Playground state machine**
 - `UndoManager.canUndo`/`canRedo` are not Observation-tracked; SwiftUI `.disabled(!editor.undoManager.canUndo)` modifiers drift. Phase 2 sidesteps this by dropping `.disabled` and routing in the action body, but the structural undo footer still has the issue. Mirror `canUndo`/`canRedo` as `@Observable` shims on `DiagramEditor`.
-- `DiagramEditor.preferredExportFormat` is `let`; format swaps mid-edit can export under the old format. Either make mutable or rebuild the editor on format change.
-- `previewState` is captured pre-render; auto-save can record a state the user hasn't actually rendered. Capture post-render in `didCompleteRender`.
-- `_export` runs synchronously on `@MainActor`; large flowcharts block main. Hop to a worker for the export call.
-- `LiveEditorStore.performMutation` and `InsertNodeSection.insert` both surface mutation errors, producing duplicate UI. Pick one source of truth.
+- ✅ **Closed by `57a33da` (Session 2):** `DiagramEditor.preferredExportFormat` is `let`; format swaps mid-edit can export under the old format. Either make mutable or rebuild the editor on format change. Migrated to `var`.
+- `previewState` is captured pre-render; auto-save can record a state the user hasn't actually rendered. Capture post-render in `didCompleteRender`. (Source-search shows no `previewState` references in `LiveEditorStore.swift`; this entry may itself be stale, but I haven't traced the closing commit.)
+- ✅ **Closed by Session 5 (`eed1531` → `98f5f6e`):** `_export` runs synchronously on `@MainActor`; large flowcharts block main. Hop to a worker for the export call. `DiagramEditor.perform`/`performFlowchart`/`syncSource` are now `async throws`; commits land via `_runOnWorker` (8 MB fresh-Thread on Apple; private Linux fallback).
+- ✅ **Closed by `57a33da` (Session 2):** `LiveEditorStore.performMutation` and `InsertNodeSection.insert` both surface mutation errors, producing duplicate UI. Pick one source of truth. `store.lastMutationError` is now the single source of truth.
 - `SidebarView.loadDiagram` ignores `expectedDiagnostics` / `unsupportedNote`. Wire the corpus metadata into the load path.
-- `requestRender(reason:)` doesn't reset `parseError`; the error overlay sits atop a fresh render until completion. Clear on render request.
+- ✅ **Closed by `57a33da` (Session 2):** `requestRender(reason:)` doesn't reset `parseError`; the error overlay sits atop a fresh render until completion. Clear on render request.
 
 **Tests, gates, concurrency**
-- `GanttAsciiRendererTests.swift:9-10` sets+defers `DIAGRAMKIT_GANTT_TODAY`; `CorpusSnapshotTests.swift:46` only sets it. Pin the env var process-wide in a shared suite bootstrap.
-- `Scripts/strict-concurrency-check.sh:24` ignores `swift build`'s exit code. Capture and surface it.
-- `CLAUDE.md` claims 188 test files; actual is 216. Sync the doc.
-- No targeted test for the parser dispatch-order invariant. Add a small suite that pins "stateDiagram-v2 does not fall into state branch", "flowchart-elk does not fall into flowchart branch", etc.
+- ✅ **Closed by `90ead92` (Session 2):** `GanttAsciiRendererTests.swift:9-10` sets+defers `DIAGRAMKIT_GANTT_TODAY`; `CorpusSnapshotTests.swift:46` only sets it. Pin the env var process-wide in a shared suite bootstrap. The `defer { unsetenv }` was dropped so parallel runs can't race the corpus reader.
+- ✅ **Closed by `90ead92` (Session 2):** `Scripts/strict-concurrency-check.sh:24` ignores `swift build`'s exit code. Capture and surface it.
+- ✅ **Closed by Sessions 2 / 5 / 6** (`90ead92`, `98f5f6e`, `ed5e578`): `CLAUDE.md` claims 188 test files; actual is 216. Sync the doc. Count tracked session-by-session; current value is 231 after Session 6.
+- ✅ **Closed by `90ead92` (Session 2):** No targeted test for the parser dispatch-order invariant. Add a small suite that pins "stateDiagram-v2 does not fall into state branch", "flowchart-elk does not fall into flowchart branch", etc. `Tests/DiagramKitTests/ParserDispatchOrderTests.swift` pins 16 header→`DiagramType` cases.
 
 ### 5. Minor / polish items
 
@@ -203,11 +225,21 @@ Session-3 closed the dead-code purge (`8e5a13a`), the `MermaidFlowchartExport.sh
 
 ### 6. Tautological probe tests (Critical, deferred)
 
-`Tests/DiagramKitTests/ProbeCollisionMatrixTests.swift:30-48` — three `@Test` cases (`d2ProbeSignature`, `plantumlProbeSignature`, `structurizrProbeSignature`) construct a literal then `#expect` the same literal contains its own substring. Tautological. Delete or replace with real importer-probe assertions.
+✅ **Closed by `dba530b` (Session 2):** `Tests/DiagramKitTests/ProbeCollisionMatrixTests.swift:30-48` — three `@Test` cases (`d2ProbeSignature`, `plantumlProbeSignature`, `structurizrProbeSignature`) construct a literal then `#expect` the same literal contains its own substring. Tautological. Delete or replace with real importer-probe assertions. Three fixture-checks-fixture tests replaced with real `PlantUMLImporter().supports(...)` assertions.
+
+### 7. Mermaid C4 parser ignores `$boundary` named arg (new, surfaced Session 6)
+
+`Sources/DiagramKitModel/src_c4_parser.swift:426` — `_addPersonOrSystem` reads `link`, `tags`, and `sprite` from the parsed `named` arg dictionary but ignores `$boundary`. `Sources/DiagramKitMermaid/Exporter/MermaidExport/MermaidC4Export.swift` emits `$boundary=<alias>` for any shape whose `parentBoundary != "global"` (`shapeLine += " $boundary=\(pb)"`), but the Mermaid parser sets `parentBoundary` only from the lexical boundary stack — so on re-parse, shapes that aren't physically nested inside a `Boundary(...) { … }` block lose their boundary linkage.
+
+**Impact:** Mermaid → Structurizr → Mermaid (via Structurizr's new `group { … }` round-trip) preserves the linkage because Structurizr emits `group "label" { … }` blocks containing the shapes directly. Mermaid → Mermaid round-trip drops the linkage for any shape emitted with a `$boundary=` attribute rather than nested. Discovered when writing `StructurizrBoundaryRoundTripTests.structurizrToMermaidEmit` in Session 6; that test was reshaped to stop short of re-parsing the Mermaid output for this reason.
+
+**Recommendation:** in `_addPersonOrSystem` (and the parallel `_addContainerOrComponent`), read `named["$boundary"]` and prefer it over the lexical `currentBoundary` argument when present. Add a Mermaid → Mermaid round-trip test that authors a flat-emit shape and asserts its `parentBoundary` survives.
 
 ---
 
 ## Critical (Must Fix)
+
+**Currency note:** The Critical / Important / Minor bullets below preserve the **original** review's findings as a historical record. Many of the Critical items were closed by Phases 1–5 (the top-of-document table) and Sessions 1–6 (the resolution tables above); the Deferred Effort §1–§7 section is the authoritative open-work list.
 
 ### Exporters silently corrupt valid input
 - **`Sources/DiagramKitMermaid/Exporter/MermaidExport/MermaidFlowchartExport.swift:45`** — node-shape wrapping uses `shapeStr.prefix(1) + label + shapeStr.suffix(from: 1)`, so any marker longer than 2 chars produces invalid Mermaid: `(())` becomes `(label())`, plus `[[]]`, `((()))`, `[(%)]`, `([])`, `{{}}`, and all circle variants.
