@@ -247,6 +247,13 @@ public final class LiveEditorStore {
             state.panOffset = nil
         }
 
+        // The user is editing a fresh document — drop any stale corpus
+        // metadata from a previous sample-picker load so "expected
+        // diagnostics" hints don't follow them across diagrams.
+        if origin == .user || origin == .loader {
+            loadedCorpusMetadata = nil
+        }
+
         if state.updateMode == .manual && origin == .user {
             // In manual mode, mark dirty but don't render automatically.
             // System-origin changes (corpus, history) always trigger a render.
@@ -287,6 +294,10 @@ public final class LiveEditorStore {
         if origin == .system || origin == .loader {
             state.zoomScale = nil
             state.panOffset = nil
+        }
+
+        if origin == .user || origin == .loader {
+            loadedCorpusMetadata = nil
         }
 
         if state.updateMode == .manual && origin == .user {
@@ -814,6 +825,19 @@ public final class LiveEditorStore {
 
     // MARK: - Mutations (Phase 7)
 
+    /// Corpus metadata for the most recently loaded sample, populated by
+    /// `SampleDiagramPanel.loadDiagram`. Cleared when the user types or
+    /// when a non-corpus source replaces the current diagram, so stale
+    /// "expected diagnostics" annotations don't follow the user as they
+    /// edit.
+    public private(set) var loadedCorpusMetadata: CorpusMetadata?
+
+    /// Surface the corpus metadata for a sample being loaded into the
+    /// editor. Called by the sample-picker right before `setSource`.
+    public func setLoadedCorpusMetadata(_ metadata: CorpusMetadata?) {
+        loadedCorpusMetadata = metadata
+    }
+
     /// Most recent mutation error, surfaced inline by the editor pane.
     /// Cleared automatically on the next successful mutation.
     public private(set) var lastMutationError: String?
@@ -922,6 +946,22 @@ public final class LiveEditorStore {
 }
 
 // MARK: - Supporting types
+
+/// Annotations from `test-diagrams.json` that follow a sample into the
+/// editor so the user can compare expected vs actual diagnostics or see
+/// the unsupported-note explaining why an entry is partially supported.
+public struct CorpusMetadata: Sendable {
+    public let expectedDiagnostics: [TestExpectedDiagnostic]?
+    public let unsupportedNote: String?
+
+    public init(
+        expectedDiagnostics: [TestExpectedDiagnostic]? = nil,
+        unsupportedNote: String? = nil
+    ) {
+        self.expectedDiagnostics = expectedDiagnostics
+        self.unsupportedNote = unsupportedNote
+    }
+}
 
 /// Tracks where a source change originated.
 public enum SourceOrigin: Sendable {

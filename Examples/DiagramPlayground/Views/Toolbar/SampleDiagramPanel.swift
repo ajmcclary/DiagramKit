@@ -230,6 +230,14 @@ struct SampleDiagramPanel: View {
     private func loadDiagram(_ diagram: TestDiagram, format: SourceFormat) {
         guard let source = diagram.source(for: format.rawValue) else { return }
         selectedDiagramID = diagram.id
+        // Surface the corpus annotations so the editor pane can show
+        // expected vs actual diagnostics and any unsupportedNote. Set
+        // BEFORE setSource — the .system-origin setSource preserves
+        // metadata; .user/.loader paths clear it.
+        store.setLoadedCorpusMetadata(CorpusMetadata(
+            expectedDiagnostics: diagram.expectedDiagnostics,
+            unsupportedNote: diagram.unsupportedNote
+        ))
         store.setSource(source, format: format, origin: .system)
     }
 

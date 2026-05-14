@@ -55,6 +55,16 @@ struct DiagramEditorPane: View {
 
     @ViewBuilder
     private var content: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            if let metadata = store.loadedCorpusMetadata {
+                CorpusMetadataBanner(metadata: metadata, store: store)
+            }
+            primaryContent
+        }
+    }
+
+    @ViewBuilder
+    private var primaryContent: some View {
         if store.editor == nil {
             disabledBanner(
                 icon: "doc.text",
@@ -489,5 +499,54 @@ private struct UndoRedoFooter: View {
                     .foregroundColor(Color(store.theme.effectiveMuted()))
             }
         }
+    }
+}
+
+// MARK: - CorpusMetadataBanner
+
+@available(iOS 26.0, macOS 26.0, macCatalyst 26.0, *)
+private struct CorpusMetadataBanner: View {
+    let metadata: CorpusMetadata
+    let store: LiveEditorStore
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            if let note = metadata.unsupportedNote, !note.isEmpty {
+                HStack(alignment: .top, spacing: 6) {
+                    Image(systemName: "minus.circle")
+                        .font(.system(size: 11))
+                        .foregroundColor(Color(store.theme.effectiveMuted()))
+                    Text(note)
+                        .font(.system(size: 11))
+                        .foregroundColor(Color(store.theme.effectiveMuted()))
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+            }
+            if let diagnostics = metadata.expectedDiagnostics, !diagnostics.isEmpty {
+                HStack(alignment: .top, spacing: 6) {
+                    Image(systemName: "exclamationmark.bubble")
+                        .font(.system(size: 11))
+                        .foregroundColor(Color(store.theme.effectiveAccent()))
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Expected diagnostics from corpus (\(diagnostics.count)):")
+                            .font(.system(size: 11, weight: .medium))
+                            .foregroundColor(Color(store.theme.effectiveAccent()))
+                        ForEach(diagnostics.indices, id: \.self) { idx in
+                            let d = diagnostics[idx]
+                            Text("• \(d.severity)\(d.messageContains.map { ": \($0)" } ?? "")")
+                                .font(.system(size: 10))
+                                .foregroundColor(Color(store.theme.effectiveMuted()))
+                                .fixedSize(horizontal: false, vertical: true)
+                        }
+                    }
+                }
+            }
+        }
+        .padding(8)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(
+            RoundedRectangle(cornerRadius: 6)
+                .fill(Color(store.theme.effectiveAccent()).opacity(0.06))
+        )
     }
 }
