@@ -266,7 +266,7 @@ final class QuadrantSvgTests: XCTestCase {
         B: [0.2, 0.2]
         C: [0.3, 0.3]
         """
-        let chart = try parseQuadrantChart(source.split(separator: "\n").map(String.init), frontmatter: nil)
+        let (chart, _) = try parseQuadrantChart(source.split(separator: "\n").map(String.init), frontmatter: nil)
         let positioned = layoutQuadrantChart(chart)
         let svg = renderQuadrantSvg(positioned, colors)
 

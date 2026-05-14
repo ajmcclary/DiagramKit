@@ -1,4 +1,5 @@
 import Foundation
+import DiagramKitCommon
 
 // MARK: - Text Sanitization
 
@@ -624,7 +625,7 @@ public func _gitGraphParseHeader(_ line: String) throws -> (direction: GitGraphO
 
 // MARK: - Main Parse Function
 
-public func parseGitGraph(_ lines: [String], frontmatter: DiagramFrontmatter?) throws -> GitGraphDiagram {
+public func parseGitGraph(_ lines: [String], frontmatter: DiagramFrontmatter?) throws -> (GitGraphDiagram, [DiagramDiagnostic]) {
     guard let firstLine = lines.first(where: { !$0.trimmingCharacters(in: .whitespaces).isEmpty && !$0.trimmingCharacters(in: .whitespaces).hasPrefix("%%") }) else {
         throw GitGraphParserError.emptySource
     }
@@ -769,7 +770,7 @@ public func parseGitGraph(_ lines: [String], frontmatter: DiagramFrontmatter?) t
         publicBranchHeads[branchName] = .some(dbState.branchHeads[branchName] ?? nil)
     }
 
-    return GitGraphDiagram(
+    return (GitGraphDiagram(
         statements: statements,
         commits: dbState.getCommitsArray(),
         branches: dbState.getBranchesAsObjArray(),
@@ -784,5 +785,5 @@ public func parseGitGraph(_ lines: [String], frontmatter: DiagramFrontmatter?) t
         warnings: dbState.warnings,
         look: look,
         themeName: themeName
-    )
+    ), [])
 }

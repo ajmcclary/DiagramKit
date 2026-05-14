@@ -13,7 +13,7 @@ final class GitGraphModelTests: XCTestCase {
     private func parse(_ source: String) throws -> GitGraphDiagram {
         var config = GitGraphConfig()
         config.mainBranchName = "main"
-        return try parseGitGraph(lines(source), frontmatter: nil)
+        return try parseGitGraph(lines(source), frontmatter: nil).0
     }
 
     // MARK: - Commit model tests
@@ -217,7 +217,7 @@ final class GitGraphModelTests: XCTestCase {
     func testMainBranchNameConfig() throws {
         var config = GitGraphConfig()
         config.mainBranchName = "trunk"
-        let diagram = try parseGitGraph(lines("gitGraph\n   commit"), frontmatter: DiagramFrontmatter(gitGraphConfig: config))
+        let (diagram, _) = try parseGitGraph(lines("gitGraph\n   commit"), frontmatter: DiagramFrontmatter(gitGraphConfig: config))
         XCTAssertEqual(diagram.currentBranch, "trunk")
         let commit = diagram.commits[0]
         XCTAssertEqual(commit.branch, "trunk")
@@ -246,7 +246,7 @@ final class GitGraphModelTests: XCTestCase {
     func testMainBranchNameChangesInitialBranch() throws {
         var config = GitGraphConfig()
         config.mainBranchName = "trunk"
-        let diagram = try parseGitGraph(lines("gitGraph\n   commit"), frontmatter: DiagramFrontmatter(gitGraphConfig: config))
+        let (diagram, _) = try parseGitGraph(lines("gitGraph\n   commit"), frontmatter: DiagramFrontmatter(gitGraphConfig: config))
         XCTAssertEqual(diagram.currentBranch, "trunk")
         XCTAssertEqual(diagram.branches.first, "trunk")
     }
@@ -256,7 +256,7 @@ final class GitGraphModelTests: XCTestCase {
     func testMainBranchOrderAffectsSorting() throws {
         var config = GitGraphConfig()
         config.mainBranchOrder = 5
-        let diagram = try parseGitGraph(lines("gitGraph\n   branch dev\n   commit"),
+        let (diagram, _) = try parseGitGraph(lines("gitGraph\n   branch dev\n   commit"),
             frontmatter: DiagramFrontmatter(gitGraphConfig: config))
         if let mainIdx = diagram.branches.firstIndex(of: "main"),
            let devIdx = diagram.branches.firstIndex(of: "dev") {

@@ -8,7 +8,7 @@ final class MindmapSvgTests: XCTestCase {
 
     private func renderSvg(_ source: String) throws -> String {
         let rawLines = source.split(separator: "\n", omittingEmptySubsequences: false).map(String.init)
-        let diagram = try parseMindmap(rawLines, frontmatter: nil)
+        let (diagram, _) = try parseMindmap(rawLines, frontmatter: nil)
         let positioned = try layoutMindmap(diagram)
         let colors = DiagramColors(bg: "#FFFFFF", fg: "#27272A")
         return renderMindmapSvg(positioned, diagramId: "test-id", colors, "Inter", false)
@@ -102,7 +102,7 @@ final class MindmapSvgTests: XCTestCase {
     }
 
     func test_accessibilityTitlePresent() throws {
-        let diagram = try parseMindmap(["mindmap", "accTitle: Test Title", "  root"], frontmatter: nil)
+        let (diagram, _) = try parseMindmap(["mindmap", "accTitle: Test Title", "  root"], frontmatter: nil)
         let positioned = try layoutMindmap(diagram)
         let colors = DiagramColors(bg: "#FFFFFF", fg: "#27272A")
         let svg = renderMindmapSvg(positioned, diagramId: "test-id", colors, "Inter", false)
@@ -111,7 +111,7 @@ final class MindmapSvgTests: XCTestCase {
     }
 
     func test_accessibilityDescrPresent() throws {
-        let diagram = try parseMindmap(["mindmap", "accDescr: Test Desc", "  root"], frontmatter: nil)
+        let (diagram, _) = try parseMindmap(["mindmap", "accDescr: Test Desc", "  root"], frontmatter: nil)
         let positioned = try layoutMindmap(diagram)
         let colors = DiagramColors(bg: "#FFFFFF", fg: "#27272A")
         let svg = renderMindmapSvg(positioned, diagramId: "test-id", colors, "Inter", false)
@@ -140,7 +140,7 @@ final class MindmapSvgTests: XCTestCase {
     }
 
     func test_markdownNeoLookDataAttribute() throws {
-        var diagram = try parseMindmap(["mindmap", "  root", "    A"], frontmatter: nil)
+        var (diagram, _) = try parseMindmap(["mindmap", "  root", "    A"], frontmatter: nil)
         diagram.config.look = "neo"
         let positioned = try layoutMindmap(diagram)
         let colors = DiagramColors(bg: "#FFFFFF", fg: "#27272A")
@@ -154,7 +154,7 @@ final class MindmapSvgTests: XCTestCase {
     }
 
     func test_gradientNeoStrokeRule() throws {
-        let diagram = try parseMindmap(["mindmap", "  root", "    A"], frontmatter: nil)
+        let (diagram, _) = try parseMindmap(["mindmap", "  root", "    A"], frontmatter: nil)
         var configured = diagram
         configured.config.look = "neo"
         configured.theme.useGradient = true

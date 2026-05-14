@@ -85,7 +85,7 @@ final class QuadrantThemeTests: XCTestCase {
         """
         let processed = _preprocessMermaidSource(source)
         let lines = _mermaidSourceLines(from: processed.source)
-        var chart = try parseQuadrantChart(lines, frontmatter: processed.frontmatter)
+        var (chart, _) = try parseQuadrantChart(lines, frontmatter: processed.frontmatter)
         if let fm = processed.frontmatter {
             if let theme = fm.quadrantChartTheme { chart.theme = theme }
         }
@@ -111,7 +111,7 @@ final class QuadrantThemeTests: XCTestCase {
         """
         let processed = _preprocessMermaidSource(source)
         let lines = _mermaidSourceLines(from: processed.source)
-        var chart = try parseQuadrantChart(lines, frontmatter: processed.frontmatter)
+        var (chart, _) = try parseQuadrantChart(lines, frontmatter: processed.frontmatter)
         if let fm = processed.frontmatter {
             if let cfg = fm.quadrantChartConfig { chart.config = cfg }
         }
@@ -139,7 +139,7 @@ final class QuadrantThemeTests: XCTestCase {
         """
         let processed = _preprocessMermaidSource(source)
         let lines = _mermaidSourceLines(from: processed.source)
-        var chart = try parseQuadrantChart(lines, frontmatter: processed.frontmatter)
+        var (chart, _) = try parseQuadrantChart(lines, frontmatter: processed.frontmatter)
         if let fm = processed.frontmatter {
             if let cfg = fm.quadrantChartConfig { chart.config = cfg }
         }
@@ -165,7 +165,7 @@ final class QuadrantThemeTests: XCTestCase {
         """
         let processed = _preprocessMermaidSource(source)
         let lines = _mermaidSourceLines(from: processed.source)
-        var chart = try parseQuadrantChart(lines, frontmatter: processed.frontmatter)
+        var (chart, _) = try parseQuadrantChart(lines, frontmatter: processed.frontmatter)
         if let fm = processed.frontmatter {
             if let theme = fm.quadrantChartTheme { chart.theme = theme }
         }

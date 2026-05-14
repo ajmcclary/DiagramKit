@@ -1,8 +1,9 @@
 import Foundation
+import DiagramKitCommon
 
 private let MAX_SECTIONS = 12
 
-public func parseMindmap(_ rawLines: [String], frontmatter: DiagramFrontmatter?) throws -> MindmapDiagram {
+public func parseMindmap(_ rawLines: [String], frontmatter: DiagramFrontmatter?) throws -> (MindmapDiagram, [DiagramDiagnostic]) {
     var config = frontmatter?.mindmapConfig ?? MindmapConfig()
     if let fmLayout = frontmatter?.layout { config.layout = fmLayout }
     if let fmLook = frontmatter?.look { config.look = fmLook }
@@ -188,7 +189,7 @@ public func parseMindmap(_ rawLines: [String], frontmatter: DiagramFrontmatter?)
         diagram.nodes = updatedNodes
     }
 
-    return diagram
+    return (diagram, [])
 }
 
 private func _stripInlineComment(_ line: String) -> String {

@@ -13,7 +13,7 @@ final class RequirementParserTests: XCTestCase {
     // MARK: - Basic
 
     func testBareHeader() throws {
-        let d = try parseRequirementDiagram(lines("requirementDiagram"))
+        let (d, _) = try parseRequirementDiagram(lines("requirementDiagram"))
         XCTAssertEqual(d.requirements.count, 0)
         XCTAssertEqual(d.elements.count, 0)
         XCTAssertEqual(d.relationships.count, 0)
@@ -29,7 +29,7 @@ final class RequirementParserTests: XCTestCase {
         verifymethod: analysis
         }
         """
-        let d = try parseRequirementDiagram(lines(source))
+        let (d, _) = try parseRequirementDiagram(lines(source))
         XCTAssertEqual(d.requirements.count, 1)
         let req = d.requirements[0]
         XCTAssertEqual(req.name, "test_req")
@@ -48,7 +48,7 @@ final class RequirementParserTests: XCTestCase {
         docref: test_ref
         }
         """
-        let d = try parseRequirementDiagram(lines(source))
+        let (d, _) = try parseRequirementDiagram(lines(source))
         XCTAssertEqual(d.elements.count, 1)
         let el = d.elements[0]
         XCTAssertEqual(el.name, "test_el")
@@ -67,7 +67,7 @@ final class RequirementParserTests: XCTestCase {
         type: Y
         }
         """
-        let d = try parseRequirementDiagram(lines(source))
+        let (d, _) = try parseRequirementDiagram(lines(source))
         XCTAssertEqual(d.accTitle, "Test Title")
         XCTAssertEqual(d.accDescr, "Test Description")
     }
@@ -83,7 +83,7 @@ final class RequirementParserTests: XCTestCase {
         element X {
         }
         """
-        let d = try parseRequirementDiagram(lines(source))
+        let (d, _) = try parseRequirementDiagram(lines(source))
         XCTAssertEqual(d.accTitle, "T")
         XCTAssertEqual(d.accDescr, "line 1\nline 2")
     }
@@ -105,7 +105,7 @@ final class RequirementParserTests: XCTestCase {
             id: 1
             }
             """
-            let d = try parseRequirementDiagram(lines(source))
+            let (d, _) = try parseRequirementDiagram(lines(source))
             XCTAssertEqual(d.requirements.count, 1)
             XCTAssertEqual(d.requirements[0].type, expectedType, "Failed for type: \(typeStr)")
         }
@@ -125,7 +125,7 @@ final class RequirementParserTests: XCTestCase {
             risk: \(riskStr)
             }
             """
-            let d = try parseRequirementDiagram(lines(source))
+            let (d, _) = try parseRequirementDiagram(lines(source))
             XCTAssertEqual(d.requirements[0].risk, expectedRisk, "Failed for risk: \(riskStr)")
         }
     }
@@ -145,7 +145,7 @@ final class RequirementParserTests: XCTestCase {
             verifymethod: \(verifyStr)
             }
             """
-            let d = try parseRequirementDiagram(lines(source))
+            let (d, _) = try parseRequirementDiagram(lines(source))
             XCTAssertEqual(d.requirements[0].verifyMethod, expectedVerify, "Failed for verify: \(verifyStr)")
         }
     }
@@ -166,7 +166,7 @@ final class RequirementParserTests: XCTestCase {
             requirementDiagram
             A - \(relStr) -> B
             """
-            let d = try parseRequirementDiagram(lines(source))
+            let (d, _) = try parseRequirementDiagram(lines(source))
             XCTAssertEqual(d.relationships.count, 1, "Failed for rel: \(relStr)")
             XCTAssertEqual(d.relationships[0].type, expectedRel, "Failed for rel: \(relStr)")
         }
@@ -179,7 +179,7 @@ final class RequirementParserTests: XCTestCase {
         requirementDiagram
         A - satisfies -> B
         """
-        let d = try parseRequirementDiagram(lines(source))
+        let (d, _) = try parseRequirementDiagram(lines(source))
         XCTAssertEqual(d.relationships.count, 1)
         XCTAssertEqual(d.relationships[0].sourceName, "A")
         XCTAssertEqual(d.relationships[0].destinationName, "B")
@@ -192,7 +192,7 @@ final class RequirementParserTests: XCTestCase {
         requirementDiagram
         B <- satisfies - A
         """
-        let d = try parseRequirementDiagram(lines(source))
+        let (d, _) = try parseRequirementDiagram(lines(source))
         XCTAssertEqual(d.relationships.count, 1)
         // In reverse syntax, source is the rightmost name (A), destination is the leftmost (B)
         XCTAssertEqual(d.relationships[0].sourceName, "A")
@@ -209,7 +209,7 @@ final class RequirementParserTests: XCTestCase {
         requirement X {
         }
         """
-        let d = try parseRequirementDiagram(lines(source))
+        let (d, _) = try parseRequirementDiagram(lines(source))
         XCTAssertEqual(d.requirements.count, 1)
         XCTAssertEqual(d.requirements[0].name, "X")
         XCTAssertTrue(d.requirements[0].requirementId.isEmpty)
@@ -224,7 +224,7 @@ final class RequirementParserTests: XCTestCase {
         element X {
         }
         """
-        let d = try parseRequirementDiagram(lines(source))
+        let (d, _) = try parseRequirementDiagram(lines(source))
         XCTAssertEqual(d.elements.count, 1)
         XCTAssertEqual(d.elements[0].name, "X")
     }
@@ -240,7 +240,7 @@ final class RequirementParserTests: XCTestCase {
         id: 42
         }
         """
-        let d = try parseRequirementDiagram(lines(source))
+        let (d, _) = try parseRequirementDiagram(lines(source))
         XCTAssertEqual(d.requirements[0].risk, .low)
         XCTAssertEqual(d.requirements[0].text, "hello")
         XCTAssertEqual(d.requirements[0].requirementId, "42")
@@ -256,7 +256,7 @@ final class RequirementParserTests: XCTestCase {
         }
         "my req" - satisfies -> B
         """
-        let d = try parseRequirementDiagram(lines(source))
+        let (d, _) = try parseRequirementDiagram(lines(source))
         XCTAssertEqual(d.requirements.count, 1)
         XCTAssertEqual(d.requirements[0].name, "my req")
         XCTAssertEqual(d.relationships.count, 1)
@@ -273,7 +273,7 @@ final class RequirementParserTests: XCTestCase {
         }
         style X fill:#f9f,stroke:#333
         """
-        let d = try parseRequirementDiagram(lines(source))
+        let (d, _) = try parseRequirementDiagram(lines(source))
         XCTAssertTrue(d.requirements[0].cssStyles.contains { $0.contains("fill:#f9f") || $0 == "fill:#f9f" })
     }
 
@@ -288,7 +288,7 @@ final class RequirementParserTests: XCTestCase {
         }
         style X,Y fill:#f9f
         """
-        let d = try parseRequirementDiagram(lines(source))
+        let (d, _) = try parseRequirementDiagram(lines(source))
         let hasStyle: (RequirementNode) -> Bool = { node in
             node.cssStyles.contains { $0.contains("fill:#f9f") }
         }
@@ -306,7 +306,7 @@ final class RequirementParserTests: XCTestCase {
         }
         class X myClass
         """
-        let d = try parseRequirementDiagram(lines(source))
+        let (d, _) = try parseRequirementDiagram(lines(source))
         XCTAssertTrue(d.classDefs.contains { $0.id == "myClass" })
         XCTAssertTrue(d.requirements[0].classes.contains("myClass"))
     }
@@ -321,7 +321,7 @@ final class RequirementParserTests: XCTestCase {
         }
         X:::myClass
         """
-        let d = try parseRequirementDiagram(lines(source))
+        let (d, _) = try parseRequirementDiagram(lines(source))
         XCTAssertTrue(d.requirements[0].classes.contains("myClass"))
     }
 
@@ -332,7 +332,7 @@ final class RequirementParserTests: XCTestCase {
         requirementDiagram
         direction LR
         """
-        let d = try parseRequirementDiagram(lines(source))
+        let (d, _) = try parseRequirementDiagram(lines(source))
         XCTAssertEqual(d.direction, .LR)
     }
 
@@ -341,7 +341,7 @@ final class RequirementParserTests: XCTestCase {
         requirementDiagram
         direction BT
         """
-        let d = try parseRequirementDiagram(lines(source))
+        let (d, _) = try parseRequirementDiagram(lines(source))
         XCTAssertEqual(d.direction, .BT)
     }
 
@@ -355,7 +355,7 @@ final class RequirementParserTests: XCTestCase {
         RISK: HIGH
         }
         """
-        let d = try parseRequirementDiagram(lines(source))
+        let (d, _) = try parseRequirementDiagram(lines(source))
         XCTAssertEqual(d.requirements[0].type, .requirement)
         XCTAssertEqual(d.requirements[0].requirementId, "1")
         XCTAssertEqual(d.requirements[0].risk, .high)
@@ -373,7 +373,7 @@ final class RequirementParserTests: XCTestCase {
         id: 2
         }
         """
-        let d = try parseRequirementDiagram(lines(source))
+        let (d, _) = try parseRequirementDiagram(lines(source))
         XCTAssertEqual(d.requirements.count, 1)
         XCTAssertEqual(d.requirements[0].requirementId, "1")
     }
@@ -389,7 +389,7 @@ final class RequirementParserTests: XCTestCase {
         id: 1
         }
         """
-        let d = try parseRequirementDiagram(lines(source))
+        let (d, _) = try parseRequirementDiagram(lines(source))
         XCTAssertEqual(d.requirements.count, 1)
     }
 
@@ -405,7 +405,7 @@ final class RequirementParserTests: XCTestCase {
         id: 2
         }
         """
-        let d = try parseRequirementDiagram(lines(source))
+        let (d, _) = try parseRequirementDiagram(lines(source))
         XCTAssertEqual(d.requirements.count, 2)
         XCTAssertEqual(d.requirements[0].name, "__proto__")
         XCTAssertEqual(d.requirements[1].name, "constructor")
@@ -420,7 +420,7 @@ final class RequirementParserTests: XCTestCase {
         id: 1
         }
         """
-        let d = try parseRequirementDiagram(lines(source))
+        let (d, _) = try parseRequirementDiagram(lines(source))
         XCTAssertTrue(d.requirements[0].classes.contains("default"))
     }
 
@@ -434,7 +434,7 @@ final class RequirementParserTests: XCTestCase {
         id: 1
         }
         """
-        let d = try parseRequirementDiagram(lines(source))
+        let (d, _) = try parseRequirementDiagram(lines(source))
         XCTAssertEqual(d.relationships.count, 1)
         XCTAssertEqual(d.relationships[0].sourceName, "X")
         XCTAssertEqual(d.relationships[0].destinationName, "Y")
@@ -452,7 +452,7 @@ final class RequirementParserTests: XCTestCase {
         verifyMethod: test
         }
         """
-        let d = try parseRequirementDiagram(lines(source))
+        let (d, _) = try parseRequirementDiagram(lines(source))
         XCTAssertEqual(d.requirements[0].verifyMethod, .test)
     }
 
@@ -466,7 +466,7 @@ final class RequirementParserTests: XCTestCase {
         docRef: some_doc
         }
         """
-        let d = try parseRequirementDiagram(lines(source))
+        let (d, _) = try parseRequirementDiagram(lines(source))
         XCTAssertEqual(d.elements[0].docRef, "some_doc")
     }
 
@@ -486,7 +486,7 @@ final class RequirementParserTests: XCTestCase {
         }
         test_entity - satisfies -> test_req
         """
-        let d = try parseRequirementDiagram(lines(source))
+        let (d, _) = try parseRequirementDiagram(lines(source))
         XCTAssertEqual(d.requirements.count, 1)
         XCTAssertEqual(d.requirements[0].name, "test_req")
         XCTAssertEqual(d.elements.count, 1)

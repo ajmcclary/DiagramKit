@@ -8,13 +8,13 @@ final class MindmapModelTests: XCTestCase {
 
     func test_sectionAssignment_rootNil() throws {
         let source = "mindmap\n  root\n    A\n    B"
-        let diagram = try parseMindmap(source.split(separator: "\n", omittingEmptySubsequences: false).map(String.init), frontmatter: nil)
+        let (diagram, _) = try parseMindmap(source.split(separator: "\n", omittingEmptySubsequences: false).map(String.init), frontmatter: nil)
         XCTAssertNil(diagram.root?.section)
     }
 
     func test_sectionAssignment_childrenNumbered() throws {
         let source = "mindmap\n  root\n    A\n    B\n    C"
-        let diagram = try parseMindmap(source.split(separator: "\n", omittingEmptySubsequences: false).map(String.init), frontmatter: nil)
+        let (diagram, _) = try parseMindmap(source.split(separator: "\n", omittingEmptySubsequences: false).map(String.init), frontmatter: nil)
         let children = diagram.root?.children ?? []
         XCTAssertEqual(children.count, 3)
         XCTAssertEqual(children[0].section, 0)
@@ -24,7 +24,7 @@ final class MindmapModelTests: XCTestCase {
 
     func test_sectionAssignment_grandchildInherits() throws {
         let source = "mindmap\n  root\n    A\n      A1\n    B\n      B1"
-        let diagram = try parseMindmap(source.split(separator: "\n", omittingEmptySubsequences: false).map(String.init), frontmatter: nil)
+        let (diagram, _) = try parseMindmap(source.split(separator: "\n", omittingEmptySubsequences: false).map(String.init), frontmatter: nil)
         let children = diagram.root?.children ?? []
         let a = children.first(where: { $0.descr == "A" })
         let b = children.first(where: { $0.descr == "B" })
@@ -39,7 +39,7 @@ final class MindmapModelTests: XCTestCase {
         for i in 0..<15 {
             source += "\n    Node\(i)"
         }
-        let diagram = try parseMindmap(source.split(separator: "\n", omittingEmptySubsequences: false).map(String.init), frontmatter: nil)
+        let (diagram, _) = try parseMindmap(source.split(separator: "\n", omittingEmptySubsequences: false).map(String.init), frontmatter: nil)
         let children = diagram.root?.children ?? []
         XCTAssertEqual(children.count, 15)
         XCTAssertEqual(children[0].section, 0)
@@ -50,7 +50,7 @@ final class MindmapModelTests: XCTestCase {
 
     func test_edgeIdGeneration() throws {
         let source = "mindmap\n  root\n    A\n    B"
-        let diagram = try parseMindmap(source.split(separator: "\n", omittingEmptySubsequences: false).map(String.init), frontmatter: nil)
+        let (diagram, _) = try parseMindmap(source.split(separator: "\n", omittingEmptySubsequences: false).map(String.init), frontmatter: nil)
         let (_, edges) = generateMindmapLayoutData(diagram)
         XCTAssertEqual(edges.count, 2)
         XCTAssertTrue(edges.allSatisfy { $0.id.hasPrefix("edge_") })
@@ -60,7 +60,7 @@ final class MindmapModelTests: XCTestCase {
 
     func test_edgeClassGeneration() throws {
         let source = "mindmap\n  root\n    A\n    B"
-        let diagram = try parseMindmap(source.split(separator: "\n", omittingEmptySubsequences: false).map(String.init), frontmatter: nil)
+        let (diagram, _) = try parseMindmap(source.split(separator: "\n", omittingEmptySubsequences: false).map(String.init), frontmatter: nil)
         let (_, edges) = generateMindmapLayoutData(diagram)
         let edge = edges.first!
         XCTAssertTrue(edge.edgeCssClass.contains("edge"))
@@ -82,13 +82,13 @@ final class MindmapModelTests: XCTestCase {
 
     func test_noFakeRootNode() throws {
         let source = "mindmap\n  root\n    A"
-        let diagram = try parseMindmap(source.split(separator: "\n", omittingEmptySubsequences: false).map(String.init), frontmatter: nil)
+        let (diagram, _) = try parseMindmap(source.split(separator: "\n", omittingEmptySubsequences: false).map(String.init), frontmatter: nil)
         XCTAssertFalse(diagram.nodes.contains(where: { $0.descr == "mindmap" }))
     }
 
     func test_flatNodesIncludesAll() throws {
         let source = "mindmap\n  root\n    A\n      A1\n    B"
-        let diagram = try parseMindmap(source.split(separator: "\n", omittingEmptySubsequences: false).map(String.init), frontmatter: nil)
+        let (diagram, _) = try parseMindmap(source.split(separator: "\n", omittingEmptySubsequences: false).map(String.init), frontmatter: nil)
         guard let root = diagram.root else { XCTFail("No root"); return }
         let flat = flattenMindmapNodes(root)
         XCTAssertEqual(flat.count, 4)

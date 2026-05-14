@@ -12,15 +12,15 @@ extension DiagramRegistry {
     static let _quadrantChart = _typed(
         type: .quadrantChart,
         matches: { $0.startsWithToken("quadrantchart") },
-        parse: { source, frontmatter in
-            var chart = try parseQuadrantChart(DiagramSourceNormalizer.diagramLines(source), frontmatter: frontmatter)
+        parseWithDiagnostics: { source, frontmatter in
+            var (chart, diagnostics) = try parseQuadrantChart(DiagramSourceNormalizer.diagramLines(source), frontmatter: frontmatter)
             if let fm = frontmatter {
                 if let cfg = fm.quadrantChartConfig { chart.config = cfg }
                 if let theme = fm.quadrantChartTheme { chart.theme = theme }
                 if chart.diagramTitle == nil, let fmTitle = fm.diagramTitle { chart.diagramTitle = fmTitle }
             }
             if chart.titleText == nil, let dt = chart.diagramTitle { chart.titleText = dt }
-            return chart
+            return (chart, diagnostics)
         },
         wrap: DiagramPayload.quadrantChart,
         unwrap: { payload in

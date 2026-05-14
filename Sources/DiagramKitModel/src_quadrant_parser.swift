@@ -1,4 +1,5 @@
 import Foundation
+import DiagramKitCommon
 
 // MARK: - Error types
 
@@ -470,12 +471,12 @@ private func _stripQuotes(_ s: String) -> String {
 
 // MARK: - Public API
 
-public func parseQuadrantChart(_ source: String) throws -> QuadrantChart {
+public func parseQuadrantChart(_ source: String) throws -> (QuadrantChart, [DiagramDiagnostic]) {
     let lines = _mermaidSourceLines(from: source)
     return try parseQuadrantChart(lines, frontmatter: nil)
 }
 
-public func parseQuadrantChart(_ lines: [String], frontmatter: DiagramFrontmatter? = nil) throws -> QuadrantChart {
+public func parseQuadrantChart(_ lines: [String], frontmatter: DiagramFrontmatter? = nil) throws -> (QuadrantChart, [DiagramDiagnostic]) {
     var chart = QuadrantChart()
 
     guard !lines.isEmpty else {
@@ -615,7 +616,7 @@ public func parseQuadrantChart(_ lines: [String], frontmatter: DiagramFrontmatte
         throw QuadrantChartParserError.invalidHeader("")
     }
 
-    return chart
+    return (chart, [])
 }
 
 private func _parseInlineHeaderContent(_ content: String, chart: inout QuadrantChart) throws {

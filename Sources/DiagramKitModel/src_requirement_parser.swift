@@ -1,7 +1,8 @@
 import Foundation
+import DiagramKitCommon
 
-public func parseRequirementDiagram(_ sourceLines: [String], frontmatter: DiagramFrontmatter? = nil) throws -> RequirementDiagram {
-    try _parseRequirementDiagram(lines: sourceLines, frontmatter: frontmatter)
+public func parseRequirementDiagram(_ sourceLines: [String], frontmatter: DiagramFrontmatter? = nil) throws -> (RequirementDiagram, [DiagramDiagnostic]) {
+    (try _parseRequirementDiagram(lines: sourceLines, frontmatter: frontmatter), [])
 }
 
 // MARK: - Tokenizer

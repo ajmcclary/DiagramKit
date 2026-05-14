@@ -80,7 +80,7 @@ enum AsciiRenderRegistry {
         .quadrantChart: AsciiRenderDescriptor(
             type: .quadrantChart,
             render: { source, _, _, _, _ in
-                let model = try parseQuadrantChart(source)
+                let (model, _) = try parseQuadrantChart(source)
                 return renderQuadrantAscii(model)
             }
         ),
@@ -88,7 +88,7 @@ enum AsciiRenderRegistry {
             type: .requirement,
             render: { source, frontmatter, _, _, _ in
                 let rawLines = DiagramSourceNormalizer.rawLines(source)
-                let model = try parseRequirementDiagram(rawLines, frontmatter: frontmatter)
+                let (model, _) = try parseRequirementDiagram(rawLines, frontmatter: frontmatter)
                 return renderRequirementAscii(model)
             }
         ),
@@ -96,7 +96,7 @@ enum AsciiRenderRegistry {
             type: .gitGraph,
             render: { source, frontmatter, _, _, _ in
                 let rawLines = DiagramSourceNormalizer.rawLines(source)
-                let model = try parseGitGraph(rawLines, frontmatter: frontmatter)
+                let (model, _) = try parseGitGraph(rawLines, frontmatter: frontmatter)
                 return renderGitGraphAscii(model)
             }
         ),
@@ -104,7 +104,7 @@ enum AsciiRenderRegistry {
             type: .mindmap,
             render: { source, frontmatter, _, _, _ in
                 let rawLines = DiagramSourceNormalizer.rawLines(source)
-                let model = try parseMindmap(rawLines, frontmatter: frontmatter)
+                let (model, _) = try parseMindmap(rawLines, frontmatter: frontmatter)
                 return renderMindmapAscii(model)
             }
         ),

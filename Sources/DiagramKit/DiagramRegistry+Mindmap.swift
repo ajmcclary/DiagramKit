@@ -12,7 +12,7 @@ extension DiagramRegistry {
     static let _mindmap = _typed(
         type: .mindmap,
         matches: { $0.startsWithToken("mindmap") },
-        parse: { source, frontmatter in
+        parseWithDiagnostics: { source, frontmatter in
             try parseMindmap(DiagramSourceNormalizer.rawLines(source), frontmatter: frontmatter)
         },
         wrap: DiagramPayload.mindmap,

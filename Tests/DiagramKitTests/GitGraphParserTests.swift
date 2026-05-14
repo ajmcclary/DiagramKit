@@ -11,7 +11,7 @@ final class GitGraphParserTests: XCTestCase {
     }
 
     private func parse(_ source: String) throws -> GitGraphDiagram {
-        try parseGitGraph(lines(source), frontmatter: nil)
+        try parseGitGraph(lines(source), frontmatter: nil).0
     }
 
     // MARK: - Header tests
@@ -310,7 +310,7 @@ final class GitGraphParserTests: XCTestCase {
     func testMainBranchNameFromConfig() throws {
         var config = GitGraphConfig()
         config.mainBranchName = "trunk"
-        let diagram = try parseGitGraph(lines("gitGraph\n   commit"), frontmatter: DiagramFrontmatter(gitGraphConfig: config))
+        let (diagram, _) = try parseGitGraph(lines("gitGraph\n   commit"), frontmatter: DiagramFrontmatter(gitGraphConfig: config))
         XCTAssertEqual(diagram.currentBranch, "trunk")
         XCTAssertEqual(diagram.commits[0].branch, "trunk")
     }
@@ -318,7 +318,7 @@ final class GitGraphParserTests: XCTestCase {
     func testMainBranchOrderFromConfig() throws {
         var config = GitGraphConfig()
         config.mainBranchOrder = 99
-        let diagram = try parseGitGraph(lines("gitGraph\n   branch dev\n   commit"), frontmatter: DiagramFrontmatter(gitGraphConfig: config))
+        let (diagram, _) = try parseGitGraph(lines("gitGraph\n   branch dev\n   commit"), frontmatter: DiagramFrontmatter(gitGraphConfig: config))
         XCTAssertEqual(diagram.branches, ["dev", "main"])
     }
 }

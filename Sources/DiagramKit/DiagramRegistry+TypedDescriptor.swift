@@ -102,4 +102,34 @@ extension DiagramRegistry {
             }
         )
     }
+
+    /// `_typed` variant where both the family parser and layout return
+    /// `(_, [DiagramDiagnostic])` tuples. Diagnostics from both phases are
+    /// concatenated, with parse diagnostics surfacing during parse and layout
+    /// diagnostics during layout (matching the descriptor's two-stage shape).
+    static func _typed<Parsed: Sendable, Positioned: Sendable>(
+        type: DiagramType,
+        matches: @escaping @Sendable (DiagramHeader) -> Bool,
+        parseWithDiagnostics: @escaping @Sendable (String, DiagramFrontmatter?) throws -> (Parsed, [DiagramDiagnostic]),
+        wrap: @escaping @Sendable (Parsed) -> DiagramPayload,
+        unwrap: @escaping @Sendable (DiagramPayload) -> Parsed?,
+        layoutWithDiagnostics: @escaping @Sendable (Parsed, LayoutConfig) throws -> (Positioned, [DiagramDiagnostic]),
+        positioned: @escaping @Sendable (DiagramDocument, Positioned) -> PositionedGraph
+    ) -> DiagramDescriptor {
+        DiagramDescriptor(
+            type: type,
+            matches: matches,
+            parse: { source, fm in
+                let (parsed, diagnostics) = try parseWithDiagnostics(source, fm)
+                return (DiagramDocument(payload: wrap(parsed)), diagnostics)
+            },
+            layout: { graph, config in
+                guard let parsed = unwrap(graph.payload) else {
+                    throw DiagramStructuralError.payloadMismatch(type)
+                }
+                let (positionedValue, diagnostics) = try layoutWithDiagnostics(parsed, config)
+                return (positioned(graph, positionedValue), diagnostics)
+            }
+        )
+    }
 }

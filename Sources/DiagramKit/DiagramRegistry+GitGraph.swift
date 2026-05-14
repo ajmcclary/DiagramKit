@@ -12,7 +12,7 @@ extension DiagramRegistry {
     static let _gitGraph = _typed(
         type: .gitGraph,
         matches: { $0.startsWithToken("gitgraph") },
-        parse: { source, frontmatter in
+        parseWithDiagnostics: { source, frontmatter in
             try parseGitGraph(DiagramSourceNormalizer.statements(source), frontmatter: frontmatter)
         },
         wrap: DiagramPayload.gitGraph,

@@ -23,7 +23,7 @@ final class GitGraphReviewRegressionTests: XCTestCase {
     }
 
     private func parse(_ source: String) throws -> GitGraphDiagram {
-        try parseGitGraph(lines(source), frontmatter: nil)
+        try parseGitGraph(lines(source), frontmatter: nil).0
     }
 
     private static func projectRoot() -> String {
@@ -92,7 +92,7 @@ final class GitGraphReviewRegressionTests: XCTestCase {
     func testTitleLayoutAndSvgDoNotOverlapFirstCommitLane() throws {
         var config = GitGraphConfig()
         config.titleTopMargin = 42
-        let diagram = try parseGitGraph(lines("""
+        let (diagram, _) = try parseGitGraph(lines("""
         gitGraph
            title Release Flow
            commit id:"A"
@@ -151,7 +151,7 @@ final class GitGraphReviewRegressionTests: XCTestCase {
     func testRotateCommitLabelAddsSvgRotation() throws {
         var config = GitGraphConfig()
         config.rotateCommitLabel = true
-        let diagram = try parseGitGraph(lines("""
+        let (diagram, _) = try parseGitGraph(lines("""
         gitGraph
            commit id:"A"
         """), frontmatter: DiagramFrontmatter(gitGraphConfig: config))
@@ -163,7 +163,7 @@ final class GitGraphReviewRegressionTests: XCTestCase {
     func testShowBranchesFalseSuppressesBranchLinesAndLabels() throws {
         var config = GitGraphConfig()
         config.showBranches = false
-        let diagram = try parseGitGraph(lines("""
+        let (diagram, _) = try parseGitGraph(lines("""
         gitGraph
            commit
            branch dev
@@ -192,7 +192,7 @@ final class GitGraphReviewRegressionTests: XCTestCase {
            commit id:"A" tag:"v1"
         """
         let preprocessed = _preprocessMermaidSource(source)
-        let diagram = try parseGitGraph(_mermaidSourceLines(from: preprocessed.source), frontmatter: preprocessed.frontmatter)
+        let (diagram, _) = try parseGitGraph(_mermaidSourceLines(from: preprocessed.source), frontmatter: preprocessed.frontmatter)
         let svg = renderGitGraphSvg(layoutGitGraph(diagram).0)
 
         XCTAssertEqual(diagram.theme.git0, "#123456")

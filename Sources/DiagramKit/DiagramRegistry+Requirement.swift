@@ -12,12 +12,12 @@ extension DiagramRegistry {
     static let _requirement = _typed(
         type: .requirement,
         matches: { $0.startsWithToken("requirement") },
-        parse: { source, frontmatter in
-            var diagram = try parseRequirementDiagram(DiagramSourceNormalizer.diagramLines(source), frontmatter: frontmatter)
+        parseWithDiagnostics: { source, frontmatter in
+            var (diagram, diagnostics) = try parseRequirementDiagram(DiagramSourceNormalizer.diagramLines(source), frontmatter: frontmatter)
             if let theme = frontmatter?.requirementTheme {
                 diagram.config.theme = theme
             }
-            return diagram
+            return (diagram, diagnostics)
         },
         wrap: DiagramPayload.requirement,
         unwrap: { payload in
