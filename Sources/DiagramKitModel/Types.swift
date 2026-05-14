@@ -1,4 +1,5 @@
 import Foundation
+import DiagramKitCommon
 #if canImport(CoreGraphics)
 import CoreGraphics
 #endif
@@ -318,6 +319,8 @@ public struct PositionedGraph: Sendable {
     /// }
     /// ```
     public var content: PositionedContent
+
+    public var diagnostics: [DiagramDiagnostic] = []
 
     public init(diagram: DiagramDocument, width: Double = 0, height: Double = 0, content: PositionedContent) {
         self.diagram = diagram
