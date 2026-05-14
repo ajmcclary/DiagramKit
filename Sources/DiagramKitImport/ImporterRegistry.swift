@@ -1,3 +1,4 @@
+import DiagramKitCommon
 import DiagramKitModel
 
 /// An ordered collection of source-format importers.
@@ -60,6 +61,15 @@ public struct ImporterRegistry: Sendable {
     /// or `nil` when no importer claims the source.
     public func importer(for source: String) -> (any DiagramSourceImporter)? {
         importers.first { $0.supports(source: source) }
+    }
+
+    /// The first importer in this registry whose `formatID` matches, or
+    /// `nil` when none declares this format. Orthogonal to probe-based
+    /// dispatch — does not call `supports(source:)`. Use this when the
+    /// caller has already asserted the source format and wants typed
+    /// routing instead of content-driven detection.
+    public func importer(for formatID: DiagramFormatID) -> (any DiagramSourceImporter)? {
+        importers.first { $0.formatID == formatID }
     }
 
     /// Empty registry — no importers registered.

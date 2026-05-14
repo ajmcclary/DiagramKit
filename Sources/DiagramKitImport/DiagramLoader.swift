@@ -1,3 +1,4 @@
+import DiagramKitCommon
 import DiagramKitModel
 
 /// Stateless dispatch: probe an `ImporterRegistry` and parse through the
@@ -40,5 +41,40 @@ public enum DiagramLoader {
         registry: ImporterRegistry
     ) throws -> DiagramDocument {
         try parse(source, registry: registry).document
+    }
+
+    /// Parse `source` using the importer registered under `formatID`.
+    /// Bypasses content-driven probing — the caller has asserted the
+    /// format. If no importer in the registry declares this format,
+    /// throws `DiagramError.unrecognizedFormat`.
+    ///
+    /// - Parameters:
+    ///   - source: Raw diagram source text.
+    ///   - formatID: The format to route through.
+    ///   - registry: The importer registry to search.
+    /// - Returns: `DiagramImportResult` with the parsed document and diagnostics.
+    /// - Throws: `DiagramError.unrecognizedFormat` when no importer in the
+    ///   registry declares `formatID`; otherwise whatever the matched
+    ///   importer's `parse(_:)` throws on malformed input.
+    public static func parse(
+        _ source: String,
+        as formatID: DiagramFormatID,
+        registry: ImporterRegistry
+    ) throws -> DiagramImportResult {
+        guard let importer = registry.importer(for: formatID) else {
+            throw DiagramError.unrecognizedFormat(
+                "no importer registered for format '\(formatID.rawValue)' in registry"
+            )
+        }
+        return try importer.parse(source)
+    }
+
+    /// Shorthand returning only the `DiagramDocument`, discarding diagnostics.
+    public static func parseDocument(
+        _ source: String,
+        as formatID: DiagramFormatID,
+        registry: ImporterRegistry
+    ) throws -> DiagramDocument {
+        try parse(source, as: formatID, registry: registry).document
     }
 }
