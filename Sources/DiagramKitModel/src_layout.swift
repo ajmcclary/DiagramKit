@@ -8,6 +8,19 @@ import DiagramKitCommon
 /// the traversal rather than continuing.
 private let _MAX_SUBGRAPH_RECURSION_DEPTH = 1024
 
+/// Mutable accumulator for layout-time non-fatal diagnostics. Created at the
+/// entry of `_layoutGraphSyncFromLayoutEngine`, threaded as an optional
+/// parameter through subgraph-walking helpers. The 8 MB-per-call worker
+/// invariant means each layout runs on a single thread, so `@unchecked
+/// Sendable` is safe here.
+final class _LayoutDiagnostics: @unchecked Sendable {
+    var items: [DiagramDiagnostic] = []
+
+    func warn(_ message: String) {
+        items.append(DiagramDiagnostic(severity: .warning, message: message, location: nil))
+    }
+}
+
 private typealias _ParsedGraph = original_src_types.MermaidGraph
 private typealias _ParsedEdge = original_src_types.MermaidEdge
 
@@ -17,8 +30,8 @@ private func _mapDirection(_ direction: original_src_types.Direction) -> String 
     ElkLayoutOptions.mapDirection(direction)
 }
 
-private func _buildElkGraph(_ graph: _ParsedGraph) -> ElkGraphNode {
-    let subgraphOwnership = _buildSubgraphOwnership(graph.subgraphs)
+private func _buildElkGraph(_ graph: _ParsedGraph, diagnostics: _LayoutDiagnostics? = nil) -> ElkGraphNode {
+    let subgraphOwnership = _buildSubgraphOwnership(graph.subgraphs, diagnostics: diagnostics)
 
     func _makeEdge(_ idx: Int, _ edge: original_src_types.MermaidEdge) -> ElkGraphEdge {
         var labels: [ElkGraphLabel] = []
@@ -186,7 +199,7 @@ private func _buildElkGraph(_ graph: _ParsedGraph) -> ElkGraphNode {
     func buildSubgraphNode(_ sub: original_src_types.MermaidSubgraph) -> ElkGraphNode {
         let directNodeIds = sub.nodeIds.filter { nodeId in
             !sub.children.contains { child in
-                _subgraphContainsNode(child, nodeId: nodeId)
+                _subgraphContainsNode(child, nodeId: nodeId, diagnostics: diagnostics)
             }
         }
 
@@ -253,37 +266,47 @@ private func _buildElkGraph(_ graph: _ParsedGraph) -> ElkGraphNode {
 
 /// Build a map of subgraph ID -> set of all transitively contained node IDs
 private func _buildSubgraphOwnership(
-    _ subs: [original_src_types.MermaidSubgraph]
+    _ subs: [original_src_types.MermaidSubgraph],
+    diagnostics: _LayoutDiagnostics? = nil
 ) -> [String: Set<String>] {
     var result: [String: Set<String>] = [:]
     for sub in subs {
-        result[sub.id] = _allNodeIds(in: sub)
-        for (k, v) in _buildSubgraphOwnership(sub.children) {
+        result[sub.id] = _allNodeIds(in: sub, diagnostics: diagnostics)
+        for (k, v) in _buildSubgraphOwnership(sub.children, diagnostics: diagnostics) {
             result[k] = v
         }
     }
     return result
 }
 
-private func _allNodeIds(in sub: original_src_types.MermaidSubgraph, depth: Int = 0) -> Set<String> {
+private func _allNodeIds(
+    in sub: original_src_types.MermaidSubgraph,
+    depth: Int = 0,
+    diagnostics: _LayoutDiagnostics? = nil
+) -> Set<String> {
     if depth >= _MAX_SUBGRAPH_RECURSION_DEPTH {
-        _reportDiagramIssue("_allNodeIds: subgraph recursion depth exceeded \(_MAX_SUBGRAPH_RECURSION_DEPTH); truncating.")
+        diagnostics?.warn("_allNodeIds: subgraph recursion depth exceeded \(_MAX_SUBGRAPH_RECURSION_DEPTH); truncating.")
         return Set(sub.nodeIds)
     }
     var ids = Set(sub.nodeIds)
     for child in sub.children {
-        ids.formUnion(_allNodeIds(in: child, depth: depth + 1))
+        ids.formUnion(_allNodeIds(in: child, depth: depth + 1, diagnostics: diagnostics))
     }
     return ids
 }
 
-private func _subgraphContainsNode(_ sub: original_src_types.MermaidSubgraph, nodeId: String, depth: Int = 0) -> Bool {
+private func _subgraphContainsNode(
+    _ sub: original_src_types.MermaidSubgraph,
+    nodeId: String,
+    depth: Int = 0,
+    diagnostics: _LayoutDiagnostics? = nil
+) -> Bool {
     if depth >= _MAX_SUBGRAPH_RECURSION_DEPTH {
-        _reportDiagramIssue("_subgraphContainsNode: subgraph recursion depth exceeded \(_MAX_SUBGRAPH_RECURSION_DEPTH); reporting absent.")
+        diagnostics?.warn("_subgraphContainsNode: subgraph recursion depth exceeded \(_MAX_SUBGRAPH_RECURSION_DEPTH); reporting absent.")
         return false
     }
     if sub.nodeIds.contains(nodeId) { return true }
-    return sub.children.contains { _subgraphContainsNode($0, nodeId: nodeId, depth: depth + 1) }
+    return sub.children.contains { _subgraphContainsNode($0, nodeId: nodeId, depth: depth + 1, diagnostics: diagnostics) }
 }
 
 // _PositionedGroupPayload moved to DiagramKitModel/PositionedPayloads.swift
@@ -792,7 +815,8 @@ private func _extractSubgraphGroups(
     source: _ParsedGraph,
     graphHeight: Double,
     parentOffset: (x: Double, y: Double) = (0, 0),
-    depth: Int = 0
+    depth: Int = 0,
+    diagnostics: _LayoutDiagnostics? = nil
 ) -> [_PositionedGroupPayload] {
     let subgraphIds = Set(_allSubgraphIds(source.subgraphs))
     var groups: [_PositionedGroupPayload] = []
@@ -802,14 +826,15 @@ private func _extractSubgraphGroups(
         let rawY = child.y + parentOffset.y
         let w = child.width
         let h = child.height
-        let sub = _findSubgraph(child.id, in: source.subgraphs)
+        let sub = _findSubgraph(child.id, in: source.subgraphs, diagnostics: diagnostics)
         let label = sub?.label ?? child.id
         let shape = sub?.shape?.rawValue
         let altBkg = sub?.altBkg ?? false
         let childGroups = _extractSubgraphGroups(
             child, source: source, graphHeight: graphHeight,
             parentOffset: (rawX, rawY),
-            depth: depth + 1
+            depth: depth + 1,
+            diagnostics: diagnostics
         )
         groups.append(_PositionedGroupPayload(
             id: child.id, label: label,
@@ -827,20 +852,25 @@ private func _allSubgraphIds(_ subs: [original_src_types.MermaidSubgraph]) -> [S
     subs.flatMap { [$0.id] + _allSubgraphIds($0.children) }
 }
 
-private func _findSubgraph(_ id: String, in subs: [original_src_types.MermaidSubgraph], depth: Int = 0) -> original_src_types.MermaidSubgraph? {
+private func _findSubgraph(
+    _ id: String,
+    in subs: [original_src_types.MermaidSubgraph],
+    depth: Int = 0,
+    diagnostics: _LayoutDiagnostics? = nil
+) -> original_src_types.MermaidSubgraph? {
     if depth >= _MAX_SUBGRAPH_RECURSION_DEPTH {
-        _reportDiagramIssue("_findSubgraph: subgraph recursion depth exceeded \(_MAX_SUBGRAPH_RECURSION_DEPTH); aborting search for '\(id)'.")
+        diagnostics?.warn("_findSubgraph: subgraph recursion depth exceeded \(_MAX_SUBGRAPH_RECURSION_DEPTH); aborting search for '\(id)'.")
         return nil
     }
     for sub in subs {
         if sub.id == id { return sub }
-        if let found = _findSubgraph(id, in: sub.children, depth: depth + 1) { return found }
+        if let found = _findSubgraph(id, in: sub.children, depth: depth + 1, diagnostics: diagnostics) { return found }
     }
     return nil
 }
 
-private func _findSubgraphLabel(_ id: String, in subs: [original_src_types.MermaidSubgraph]) -> String? {
-    _findSubgraph(id, in: subs)?.label
+private func _findSubgraphLabel(_ id: String, in subs: [original_src_types.MermaidSubgraph], diagnostics: _LayoutDiagnostics? = nil) -> String? {
+    _findSubgraph(id, in: subs, diagnostics: diagnostics)?.label
 }
 
 private func _scaleGroups(_ groups: inout [_PositionedGroupPayload], by factor: Double) {
@@ -902,7 +932,8 @@ private func _resolveEdgeStyle(edgeIndex: Int, edgeId: String?, graph: _ParsedGr
 private func _extractPositionedGraph(
     _ source: _ParsedGraph,
     _ laidOut: ElkGraphNode,
-    diagramType: DiagramType
+    diagramType: DiagramType,
+    diagnostics: _LayoutDiagnostics? = nil
 ) -> PositionedGraph {
     let nodeById = Dictionary(source.nodesInOrder.map { ($0.id, $0.node) }, uniquingKeysWith: { _, last in last })
     let graphHeight = laidOut.height
@@ -943,7 +974,7 @@ private func _extractPositionedGraph(
     _collectEdgeSegments(laidOut, segments: &segmentsByIndex, offsetX: 0, offsetY: 0)
 
     // Extract subgraph groups — needed for margin routing
-    var groups = _extractSubgraphGroups(laidOut, source: source, graphHeight: graphHeight)
+    var groups = _extractSubgraphGroups(laidOut, source: source, graphHeight: graphHeight, diagnostics: diagnostics)
 
     // Compute margin positions for cross-hierarchy edge routing.
     // Margins sit outside all group bounding boxes so edges don't cross through subgraphs.
@@ -1178,14 +1209,15 @@ private func _layoutGraphSyncWithConfig(
         return PositionedGraph(diagram: graph)
     }
 
+    let diagnostics = _LayoutDiagnostics()
     var elkGraph: ElkGraphNode
     if !parsed.subgraphs.isEmpty {
         let hasDirectionOverride = parsed.subgraphs.contains(where: { $0.direction != nil })
         elkGraph = hasDirectionOverride
-            ? _buildElkGraph(parsed)
-            : _buildElkGraphNoCrossEdges(parsed)
+            ? _buildElkGraph(parsed, diagnostics: diagnostics)
+            : _buildElkGraphNoCrossEdges(parsed, diagnostics: diagnostics)
     } else {
-        elkGraph = _buildElkGraph(parsed)
+        elkGraph = _buildElkGraph(parsed, diagnostics: diagnostics)
     }
 
     // Override ELK spacing options with LayoutConfig values
@@ -1194,13 +1226,17 @@ private func _layoutGraphSyncWithConfig(
     do {
         let rawLaidOut = try layoutEngineSync(elkGraph.toDictionary())
         let laidOut = ElkGraphNode(from: rawLaidOut)
-        return _extractPositionedGraph(parsed, laidOut, diagramType: graph.type)
+        var positioned = _extractPositionedGraph(parsed, laidOut, diagramType: graph.type, diagnostics: diagnostics)
+        positioned.diagnostics = diagnostics.items
+        return positioned
     } catch {
-        var flatGraph = _buildFlatElkGraph(parsed)
+        var flatGraph = _buildFlatElkGraph(parsed, diagnostics: diagnostics)
         _applyLayoutConfig(config, to: &flatGraph)
         let rawLaidOut = try layoutEngineSync(flatGraph.toDictionary())
         let laidOut = ElkGraphNode(from: rawLaidOut)
-        return _extractPositionedGraph(parsed, laidOut, diagramType: graph.type)
+        var positioned = _extractPositionedGraph(parsed, laidOut, diagramType: graph.type, diagnostics: diagnostics)
+        positioned.diagnostics = diagnostics.items
+        return positioned
     }
 }
 
@@ -1237,8 +1273,8 @@ private func _layoutGraphWithDiagnosticsEntry(
 /// Build hierarchical ELK graph but EXCLUDE cross-subgraph edges that crash ELK JS.
 /// INCLUDE_CHILDREN mode: all edges at root level, ELK resolves nested node IDs.
 /// Used when no subgraph has a direction override.
-private func _buildElkGraphNoCrossEdges(_ graph: _ParsedGraph) -> ElkGraphNode {
-    let subgraphOwnership = _buildSubgraphOwnership(graph.subgraphs)
+private func _buildElkGraphNoCrossEdges(_ graph: _ParsedGraph, diagnostics: _LayoutDiagnostics? = nil) -> ElkGraphNode {
+    let subgraphOwnership = _buildSubgraphOwnership(graph.subgraphs, diagnostics: diagnostics)
     let allClaimedNodes = Set(subgraphOwnership.values.flatMap { $0 })
     let nodeById = Dictionary(graph.nodesInOrder.map { ($0.id, $0.node) }, uniquingKeysWith: { _, last in last })
 
@@ -1299,7 +1335,7 @@ private func _buildElkGraphNoCrossEdges(_ graph: _ParsedGraph) -> ElkGraphNode {
 
     func buildSubgraphNode(_ sub: original_src_types.MermaidSubgraph) -> ElkGraphNode {
         let directNodeIds = sub.nodeIds.filter { nodeId in
-            !sub.children.contains { child in _subgraphContainsNode(child, nodeId: nodeId) }
+            !sub.children.contains { child in _subgraphContainsNode(child, nodeId: nodeId, diagnostics: diagnostics) }
         }
         var children: [ElkGraphNode] = []
         for nodeId in directNodeIds {
@@ -1350,7 +1386,7 @@ private func _buildElkGraphNoCrossEdges(_ graph: _ParsedGraph) -> ElkGraphNode {
     )
 }
 
-private func _buildFlatElkGraph(_ graph: _ParsedGraph) -> ElkGraphNode {
+private func _buildFlatElkGraph(_ graph: _ParsedGraph, diagnostics: _LayoutDiagnostics? = nil) -> ElkGraphNode {
     var children: [ElkGraphNode] = []
     for entry in graph.nodesInOrder {
         let size = _nodeSize(entry.node, hideEmptyDescription: graph.stateConfig.hideEmptyDescription)
@@ -1402,6 +1438,7 @@ private func _layoutGraphSyncFromLayoutEngine(
     default:
         return PositionedGraph(diagram: graph)
     }
+    let diagnostics = _LayoutDiagnostics()
     // Matching TS: use SEPARATE when any subgraph has a direction override,
     // INCLUDE_CHILDREN otherwise (simpler cross-hierarchy edge routing).
     if !parsed.subgraphs.isEmpty {
@@ -1409,28 +1446,34 @@ private func _layoutGraphSyncFromLayoutEngine(
         let elkGraph: ElkGraphNode
         if hasDirectionOverride {
             // SEPARATE mode: port-based edge splitting for proper direction handling
-            elkGraph = _buildElkGraph(parsed)
+            elkGraph = _buildElkGraph(parsed, diagnostics: diagnostics)
         } else {
             // INCLUDE_CHILDREN mode: ELK handles cross-hierarchy edges natively
-            elkGraph = _buildElkGraphNoCrossEdges(parsed)
+            elkGraph = _buildElkGraphNoCrossEdges(parsed, diagnostics: diagnostics)
         }
         do {
             let rawLaidOut = try layoutEngineSync(elkGraph.toDictionary())
             let laidOut = ElkGraphNode(from: rawLaidOut)
-            return _extractPositionedGraph(parsed, laidOut, diagramType: graph.type)
+            var positioned = _extractPositionedGraph(parsed, laidOut, diagramType: graph.type, diagnostics: diagnostics)
+            positioned.diagnostics = diagnostics.items
+            return positioned
         } catch {
             // Fallback: fully flat layout
-            let flatGraph = _buildFlatElkGraph(parsed)
+            let flatGraph = _buildFlatElkGraph(parsed, diagnostics: diagnostics)
             let rawLaidOut = try layoutEngineSync(flatGraph.toDictionary())
             let laidOut = ElkGraphNode(from: rawLaidOut)
-            return _extractPositionedGraph(parsed, laidOut, diagramType: graph.type)
+            var positioned = _extractPositionedGraph(parsed, laidOut, diagramType: graph.type, diagnostics: diagnostics)
+            positioned.diagnostics = diagnostics.items
+            return positioned
         }
     }
     // No subgraphs — use the standard flat graph builder
-    let elkGraph = _buildElkGraph(parsed)
+    let elkGraph = _buildElkGraph(parsed, diagnostics: diagnostics)
     let rawLaidOut = try layoutEngineSync(elkGraph.toDictionary())
     let laidOut = ElkGraphNode(from: rawLaidOut)
-    return _extractPositionedGraph(parsed, laidOut, diagramType: graph.type)
+    var positioned = _extractPositionedGraph(parsed, laidOut, diagramType: graph.type, diagnostics: diagnostics)
+    positioned.diagnostics = diagnostics.items
+    return positioned
 }
 
 private func _layoutGraphWithDiagnosticsSyncFromLayoutEngine(
