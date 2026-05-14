@@ -1,4 +1,5 @@
 import Foundation
+import DiagramKitCommon
 import DiagramKitModel
 import DiagramKitImport
 
@@ -10,6 +11,7 @@ import DiagramKitImport
 public struct D2Importer: DiagramSourceImporter {
 
     public let name = "D2"
+    public let formatID = DiagramFormatID.d2
     public let supportedDiagramTypes: Set<DiagramType> = [.flowchart]
 
     public init() {}

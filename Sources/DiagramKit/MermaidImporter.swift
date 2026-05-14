@@ -1,6 +1,6 @@
 import Foundation
-import DiagramKitModel
 import DiagramKitCommon
+import DiagramKitModel
 import DiagramKitImport
 
 /// Mermaid source-format importer.
@@ -16,6 +16,7 @@ import DiagramKitImport
 public struct MermaidImporter: DiagramSourceImporter {
 
     public let name = "Mermaid"
+    public let formatID = DiagramFormatID.mermaid
     public let supportedDiagramTypes: Set<DiagramType> = Set(DiagramType.allCases)
     public let isFallback: Bool = true
 

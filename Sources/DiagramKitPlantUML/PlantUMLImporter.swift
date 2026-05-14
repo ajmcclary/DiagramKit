@@ -1,4 +1,5 @@
 import Foundation
+import DiagramKitCommon
 import DiagramKitModel
 import DiagramKitImport
 
@@ -11,6 +12,7 @@ import DiagramKitImport
 public struct PlantUMLImporter: DiagramSourceImporter {
 
     public let name = "PlantUML"
+    public let formatID = DiagramFormatID.plantuml
     public let supportedDiagramTypes: Set<DiagramType> = [
         .sequenceDiagram,
         .classDiagram,

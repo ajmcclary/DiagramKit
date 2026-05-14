@@ -1,5 +1,6 @@
 import Testing
 @testable import DiagramKit
+import DiagramKitCommon
 import DiagramKitModel
 import DiagramKitImport
 import DiagramKitD2
@@ -161,6 +162,7 @@ import DiagramKitPlantUML
 
 private struct FixtureImporter: DiagramSourceImporter {
     let name = "Fixture"
+    let formatID = DiagramFormatID(rawValue: "fixture")
     let supportedDiagramTypes: Set<DiagramType> = [.flowchart]
 
     func supports(source: String) -> Bool {

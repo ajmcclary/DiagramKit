@@ -1,4 +1,5 @@
 import DiagramKitModel
+import DiagramKitCommon
 
 /// A source-format importer that parses text into a `DiagramDocument`.
 ///
@@ -6,13 +7,14 @@ import DiagramKitModel
 /// importer in order; the first `supports(source:)` match wins.
 ///
 /// ## Identity model
-/// Importers are identified by `name: String` (a free-form human label),
-/// while exporters use the closed `DiagramFormatID` enum in
-/// `DiagramKitExport`. The asymmetry is intentional: importer probing is
-/// content-driven (the text drives selection), and pluggable third-party
-/// importers — which cannot extend a closed enum without a major version
-/// bump — must be addressable by name. Exporter dispatch is user-driven
-/// (a chosen target format), where a closed, type-safe enum is preferable.
+/// Importers carry both a `name: String` display label and a typed
+/// `formatID: DiagramFormatID` dispatch key. The name is for UI /
+/// diagnostics; the formatID is for typed registry lookup (e.g.
+/// `ImporterRegistry.importer(for: .d2)`) and round-trip pairing with
+/// the matching exporter. Probe-based first-match-wins selection on
+/// `supports(source:)` remains the primary dispatch path for content-
+/// driven detection — the typed by-ID lookup is an orthogonal,
+/// caller-asserted path.
 ///
 /// ## Concurrency Contract
 /// `DiagramSourceImporter` is `Sendable`. Implementations must be safe for
@@ -20,8 +22,13 @@ import DiagramKitModel
 /// `DiagramImportResult` — there is no shared mutable diagnostics property.
 /// This keeps importers stateless at the protocol boundary.
 public protocol DiagramSourceImporter: Sendable {
-    /// Human-readable name (e.g. "Mermaid", "d2", "DOT").
+    /// Human-readable name (e.g. "Mermaid", "D2", "DOT").
+    /// Display label only — not used for routing.
     var name: String { get }
+
+    /// Canonical format identifier. Used by `ImporterRegistry.importer(for:)`
+    /// and `DiagramLoader.parse(_:as:registry:)` for typed dispatch.
+    var formatID: DiagramFormatID { get }
 
     /// The set of `DiagramType` values this importer can produce.
     /// Used for UI discovery and sparse-matrix validation.

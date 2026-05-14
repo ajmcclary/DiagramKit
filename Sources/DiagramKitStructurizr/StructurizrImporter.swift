@@ -1,4 +1,5 @@
 import Foundation
+import DiagramKitCommon
 import DiagramKitModel
 import DiagramKitImport
 
@@ -11,6 +12,7 @@ import DiagramKitImport
 public struct StructurizrImporter: DiagramSourceImporter {
 
     public let name = "Structurizr"
+    public let formatID = DiagramFormatID.structurizr
     public let supportedDiagramTypes: Set<DiagramType> = [.c4]
 
     public init() {}
