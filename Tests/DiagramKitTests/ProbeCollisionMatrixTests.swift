@@ -5,6 +5,7 @@ import DiagramKitImport
 import DiagramKitD2
 import DiagramKitGraphviz
 import DiagramKitStructurizr
+import DiagramKitPlantUML
 
 @Suite struct ProbeCollisionMatrixTests {
 
@@ -22,29 +23,22 @@ import DiagramKitStructurizr
         #expect(importer.supports(source: source))
     }
 
-    // Future-phase probe signatures documented as tests.
-    // These verify that the probe signatures for future formats are
-    // distinguishable. When those importers land, they are prepended
-    // before MermaidImporter so their probes fire first.
-
-    @Test("d2 probe signature: edge syntax with colon assignment")
-    func d2ProbeSignature() {
-        let source = "a -> b\nb: c"
-        let containsEdgeArrow = source.contains("->") || source.contains("-->")
-        let containsColonAssign = source.contains(": ")
-        #expect(containsEdgeArrow && containsColonAssign)
+    @Test("PlantUML probe accepts @startuml source")
+    func plantumlProbeAcceptsStartuml() {
+        let p = PlantUMLImporter()
+        #expect(p.supports(source: "@startuml\nAlice -> Bob: Hello\n@enduml"))
     }
 
-    @Test("PlantUML probe signature: @startuml")
-    func plantumlProbeSignature() {
-        let source = "@startuml\nAlice -> Bob: Hello\n@enduml"
-        #expect(source.contains("@startuml"))
+    @Test("PlantUML probe rejects Mermaid graph TD")
+    func plantumlProbeRejectsMermaidGraphTD() {
+        let p = PlantUMLImporter()
+        #expect(!p.supports(source: "graph TD\nA-->B"))
     }
 
-    @Test("Structurizr probe signature: workspace keyword")
-    func structurizrProbeSignature() {
-        let source = "workspace {\n  model {\n    user = person \"User\"\n  }\n}"
-        #expect(source.contains("workspace {"))
+    @Test("PlantUML probe rejects D2 bare edge")
+    func plantumlProbeRejectsD2BareEdge() {
+        let p = PlantUMLImporter()
+        #expect(!p.supports(source: "A -> B"))
     }
 
     // MARK: - Structurizr probe collision tests (Phase 5)
