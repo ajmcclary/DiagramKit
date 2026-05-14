@@ -11,7 +11,7 @@ import DiagramKitCommon
 extension DiagramRegistry {
     static let _quadrantChart = _typed(
         type: .quadrantChart,
-        matches: { $0.normalized.hasPrefix("quadrantchart") },
+        matches: { $0.startsWithToken("quadrantchart") },
         parse: { source, frontmatter in
             var chart = try parseQuadrantChart(DiagramSourceNormalizer.diagramLines(source), frontmatter: frontmatter)
             if let fm = frontmatter {

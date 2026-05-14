@@ -11,7 +11,7 @@ import DiagramKitCommon
 extension DiagramRegistry {
     static let _treemap = _typed(
         type: .treemap,
-        matches: { $0.normalized.hasPrefix("treemap") },
+        matches: { $0.startsWithToken("treemap") },
         parse: { source, frontmatter in
             var diagram = try parseTreemapDiagram(DiagramSourceNormalizer.rawLines(source), frontmatter: frontmatter)
             if let fm = frontmatter {

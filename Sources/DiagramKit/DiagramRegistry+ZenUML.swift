@@ -11,7 +11,7 @@ import DiagramKitCommon
 extension DiagramRegistry {
     static let _zenuml = _typed(
         type: .zenuml,
-        matches: { $0.normalized.hasPrefix("zenuml") },
+        matches: { $0.startsWithToken("zenuml") },
         parse: { source, frontmatter in
             var parsed = try parseZenUMLDiagram(DiagramSourceNormalizer.rawLines(source), frontmatter: frontmatter)
             parsed.useMaxWidth = frontmatter?.sequenceConfig?.useMaxWidth ?? true

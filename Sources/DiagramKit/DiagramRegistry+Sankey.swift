@@ -11,7 +11,7 @@ import DiagramKitCommon
 extension DiagramRegistry {
     static let _sankey = _typed(
         type: .sankey,
-        matches: { $0.normalized.hasPrefix("sankey") },
+        matches: { $0.startsWithToken("sankey") },
         parse: { source, frontmatter in
             try parseSankeyDiagram(DiagramSourceNormalizer.statements(source), frontmatter: frontmatter)
         },

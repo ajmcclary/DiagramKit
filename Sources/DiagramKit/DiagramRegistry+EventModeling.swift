@@ -11,7 +11,7 @@ import DiagramKitCommon
 extension DiagramRegistry {
     static let _eventModeling = _typed(
         type: .eventModeling,
-        matches: { $0.normalized.hasPrefix("eventmodeling") },
+        matches: { $0.startsWithToken("eventmodeling") },
         parse: { source, frontmatter in
             var diagram = try parseEventModeling(DiagramSourceNormalizer.rawLines(source), frontmatter: frontmatter)
             if let fm = frontmatter {

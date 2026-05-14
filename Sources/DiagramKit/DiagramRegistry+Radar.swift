@@ -11,7 +11,7 @@ import DiagramKitCommon
 extension DiagramRegistry {
     static let _radar = _typed(
         type: .radar,
-        matches: { $0.normalized.hasPrefix("radar-beta") },
+        matches: { $0.startsWithToken("radar-beta") },
         parse: { source, frontmatter in
             var diagram = try parseRadarDiagram(source: source, frontmatter: frontmatter)
             if let fm = frontmatter {

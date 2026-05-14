@@ -11,7 +11,7 @@ import DiagramKitCommon
 extension DiagramRegistry {
     static let _architecture = _typed(
         type: .architecture,
-        matches: { $0.normalized.hasPrefix("architecture") },
+        matches: { $0.startsWithToken("architecture") },
         parse: { source, frontmatter in
             var diagram = try parseArchitectureDiagram(DiagramSourceNormalizer.rawLines(source), frontmatter: frontmatter)
             if let fm = frontmatter {

@@ -11,7 +11,7 @@ import DiagramKitCommon
 extension DiagramRegistry {
     static let _mindmap = _typed(
         type: .mindmap,
-        matches: { $0.normalized.hasPrefix("mindmap") },
+        matches: { $0.startsWithToken("mindmap") },
         parse: { source, frontmatter in
             try parseMindmap(DiagramSourceNormalizer.rawLines(source), frontmatter: frontmatter)
         },

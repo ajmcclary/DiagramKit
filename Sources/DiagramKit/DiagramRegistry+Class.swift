@@ -11,7 +11,7 @@ import DiagramKitCommon
 extension DiagramRegistry {
     static let _classDiagram = _typed(
         type: .classDiagram,
-        matches: { $0.normalized.hasPrefix("classdiagram") },
+        matches: { $0.startsWithToken("classdiagram") },
         parse: { source, frontmatter in
             try parseClassDiagram(DiagramSourceNormalizer.diagramLines(source), frontmatter: frontmatter)
         },

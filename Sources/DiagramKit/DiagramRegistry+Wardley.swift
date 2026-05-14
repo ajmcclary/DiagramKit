@@ -11,7 +11,7 @@ import DiagramKitCommon
 extension DiagramRegistry {
     static let _wardley = _typed(
         type: .wardleyBeta,
-        matches: { $0.normalized.hasPrefix("wardley-beta") },
+        matches: { $0.startsWithToken("wardley-beta") },
         parse: { source, frontmatter in
             var diagram = try parseWardleyMap(DiagramSourceNormalizer.rawLines(source), frontmatter: frontmatter)
             if let fm = frontmatter {

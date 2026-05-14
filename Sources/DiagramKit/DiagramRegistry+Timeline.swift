@@ -11,7 +11,7 @@ import DiagramKitCommon
 extension DiagramRegistry {
     static let _timeline = _typed(
         type: .timeline,
-        matches: { $0.normalized.hasPrefix("timeline") },
+        matches: { $0.startsWithToken("timeline") },
         parse: { source, frontmatter in
             try parseTimelineDiagram(DiagramSourceNormalizer.rawLines(source), frontmatter: frontmatter)
         },

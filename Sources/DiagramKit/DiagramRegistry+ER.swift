@@ -11,7 +11,7 @@ import DiagramKitCommon
 extension DiagramRegistry {
     static let _erDiagram = _typed(
         type: .erDiagram,
-        matches: { $0.normalized.hasPrefix("erdiagram") },
+        matches: { $0.startsWithToken("erdiagram") },
         parse: { source, frontmatter in
             try parseErDiagram(DiagramSourceNormalizer.diagramLines(source), frontmatter: frontmatter)
         },

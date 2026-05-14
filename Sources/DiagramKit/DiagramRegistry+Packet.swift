@@ -11,7 +11,7 @@ import DiagramKitCommon
 extension DiagramRegistry {
     static let _packet = _typed(
         type: .packet,
-        matches: { $0.normalized.hasPrefix("packet") },
+        matches: { $0.startsWithToken("packet") },
         parse: { source, frontmatter in
             try parsePacketDiagram(DiagramSourceNormalizer.statements(source), frontmatter: frontmatter)
         },

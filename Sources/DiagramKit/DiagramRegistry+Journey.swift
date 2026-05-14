@@ -11,7 +11,7 @@ import DiagramKitCommon
 extension DiagramRegistry {
     static let _journey = _typed(
         type: .journey,
-        matches: { $0.normalized.hasPrefix("journey") },
+        matches: { $0.startsWithToken("journey") },
         parse: { source, frontmatter in
             try parseJourneyDiagram(DiagramSourceNormalizer.statements(source), frontmatter: frontmatter)
         },

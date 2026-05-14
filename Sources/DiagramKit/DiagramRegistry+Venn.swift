@@ -11,7 +11,7 @@ import DiagramKitCommon
 extension DiagramRegistry {
     static let _venn = _typed(
         type: .venn,
-        matches: { $0.normalized.hasPrefix("venn-beta") },
+        matches: { $0.startsWithToken("venn-beta") },
         parse: { source, frontmatter in
             var diagram = try parseVennDiagram(DiagramSourceNormalizer.rawLines(source), frontmatter: frontmatter)
             if let fm = frontmatter {

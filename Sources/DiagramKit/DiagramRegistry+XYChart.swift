@@ -11,7 +11,7 @@ import DiagramKitCommon
 extension DiagramRegistry {
     static let _xyChart = _typed(
         type: .xyChart,
-        matches: { $0.normalized.hasPrefix("xychart") },
+        matches: { $0.startsWithToken("xychart") },
         parse: { source, frontmatter in
             var chart = try parseXYChart(DiagramSourceNormalizer.diagramLines(source))
             if let fm = frontmatter {

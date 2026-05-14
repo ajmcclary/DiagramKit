@@ -15,7 +15,7 @@ extension DiagramRegistry {
     // strict `unwrap` cannot express that branching.
     static let _stateDiagram = DiagramDescriptor(
         type: .stateDiagram,
-        matches: { $0.normalized.hasPrefix("statediagram") || $0.normalized == "state" },
+        matches: { $0.startsWithToken("statediagram") || $0.startsWithToken("state") },
         parse: { source, frontmatter in
             let parsed = try parseMermaid(source, config: frontmatter?.flowchartConfig, stateConfig: frontmatter?.stateConfig)
             switch parsed.payload {

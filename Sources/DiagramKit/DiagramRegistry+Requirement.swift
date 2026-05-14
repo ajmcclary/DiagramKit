@@ -11,7 +11,7 @@ import DiagramKitCommon
 extension DiagramRegistry {
     static let _requirement = _typed(
         type: .requirement,
-        matches: { $0.normalized.hasPrefix("requirement") },
+        matches: { $0.startsWithToken("requirement") },
         parse: { source, frontmatter in
             var diagram = try parseRequirementDiagram(DiagramSourceNormalizer.diagramLines(source), frontmatter: frontmatter)
             if let theme = frontmatter?.requirementTheme {

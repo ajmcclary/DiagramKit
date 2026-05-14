@@ -11,7 +11,7 @@ import DiagramKitCommon
 extension DiagramRegistry {
     static let _sequenceDiagram = _typed(
         type: .sequenceDiagram,
-        matches: { $0.normalized.hasPrefix("sequencediagram") },
+        matches: { $0.startsWithToken("sequencediagram") },
         parse: { source, _ in
             try parseSequenceDiagram(DiagramSourceNormalizer.diagramLines(source))
         },
