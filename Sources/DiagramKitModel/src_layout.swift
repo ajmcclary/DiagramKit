@@ -10,9 +10,14 @@ private let _MAX_SUBGRAPH_RECURSION_DEPTH = 1024
 
 /// Mutable accumulator for layout-time non-fatal diagnostics. Created at the
 /// entry of `_layoutGraphSyncFromLayoutEngine`, threaded as an optional
-/// parameter through subgraph-walking helpers. The 8 MB-per-call worker
-/// invariant means each layout runs on a single thread, so `@unchecked
-/// Sendable` is safe here.
+/// parameter through subgraph-walking helpers.
+///
+/// Concurrency Contract: each `_layoutGraphSyncFromLayoutEngine` call runs
+/// on its own fresh worker thread (the 8 MB-per-call invariant in
+/// `DiagramEngine._runOnWorker` / `DiagramWorkerThread.run`). The instance
+/// is created on that worker, mutated only by the synchronous layout walk
+/// on the same worker, and never escapes. No cross-thread access ever
+/// happens, so `@unchecked Sendable` is safe.
 final class _LayoutDiagnostics: @unchecked Sendable {
     var items: [DiagramDiagnostic] = []
 

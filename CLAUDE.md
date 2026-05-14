@@ -88,6 +88,22 @@ edges to RenderingCG and Views are guarded in `Package.swift` with
 - `String` helpers use format-neutral names:
   `parseDiagram()`, `renderDiagramImage(...)`, `renderDiagramSVG(...)`, and
   `renderDiagramASCII(...)`.
+- `AsciiRenderOutput` (`text: String`, `diagnostics: [DiagramDiagnostic]`) is
+  the return type of `DiagramEngine.renderASCII(...)` and
+  `DiagramPipeline.renderASCII(...)`. The String-returning
+  `String.renderDiagramASCII(...)` instance method forwards `.text` for
+  backward compatibility.
+- `PreparedDiagram.diagnostics` aggregates parse-time
+  `DiagramImportResult.diagnostics` and layout-time
+  `PositionedGraph.diagnostics`, in that order.
+- `DiagramEngine.parseImportResult(source:registry:)` is the
+  diagnostic-aware async entry; `DiagramEngine.parse(_:)` and
+  `String.parseDiagram()` keep their single-return shape for callers that
+  don't need diagnostics.
+- `MermaidImporter` populates `DiagramImportResult.diagnostics` for
+  diagnostic-emitting families (currently C4 \$boundary mismatch and
+  Kanban duplicate-node warnings; other Mermaid families surface only
+  layout-tier diagnostics via `PositionedGraph`).
 - Mermaid-prefixed public aliases carry `@available(*, deprecated, renamed:message:)`
   annotations and will be removed in the next major version. Internal/SPI
   aliases were removed in Phase 10.
@@ -117,11 +133,14 @@ edges to RenderingCG and Views are guarded in `Package.swift` with
 
 ```text
 Source string
-  -> MermaidParser.parse
-  -> DiagramDocument
+  -> DiagramLoader.parseImportResult (registry probe → MermaidImporter / D2 / DOT / …)
+  -> DiagramImportResult { document, diagnostics }      # parse-tier diagnostics
   -> GraphLayout(...).layout
-  -> PositionedGraph
+  -> PositionedGraph { …, diagnostics }                  # + layout-tier diagnostics
   -> DiagramRenderer.render (CG) | renderSVG | renderASCII
+                              |                      \
+                              v                       \-> AsciiRenderOutput { text, diagnostics }
+                       PreparedDiagram { diagnostics = import + layout }
 ```
 
 `DiagramEngine` is defined in `Sources/DiagramKit/DiagramEngine.swift`.
@@ -198,7 +217,7 @@ outside the defining module.
 
 ## Testing And Snapshots
 
-- Current test source count: 238 Swift files under `Tests/DiagramKitTests`.
+- Current test source count: 244 Swift files under `Tests/DiagramKitTests`.
 - The corpus is `Examples/DiagramPlayground/Resources/test-diagrams.json` with
   422 entries (396 Mermaid-only + 26 multi-format: D2, DOT, Structurizr, PlantUML).
 - Corpus baselines under `Tests/DiagramKitTests/__Snapshots__/` track

@@ -93,6 +93,10 @@ Per-diagram-type parsers receive a typed `frontmatter` argument and pull config 
 
 `DiagramDocument.payload: DiagramPayload` and `PositionedGraph.content: PositionedContent` are enums with one case per diagram type — never `Any` or untyped dictionaries. `Layout.swift` performs the parse-payload → layout dispatch via these enums and uses `_reportDiagramIssue(...)` for "shouldn't happen" mismatches (logged in tests via `IssueReporting`, swallowed in production).
 
+### Diagnostics
+
+`DiagramImportResult.diagnostics` carries parse-tier warnings (currently emitted by the Mermaid C4 `$boundary` mismatch path and the Kanban duplicate-node check, plus every non-Mermaid importer). `PositionedGraph.diagnostics` carries layout-tier warnings (subgraph recursion truncations in `src_layout.swift`, Ishikawa recursion-depth overflow, gitgraph `parallelCommits` missing-position fallback). `PreparedDiagram.diagnostics` aggregates the two in `[parse, layout]` order. The ASCII path bypasses `PreparedDiagram` and returns `AsciiRenderOutput { text, diagnostics }`, where `diagnostics = renderRegistryDiagnostics` (parse-tier signals reach the ASCII path through the family parsers invoked inside the registry closure). Fatal conditions still `throw`; the diagnostic array carries only `.warning` and `.info` severities.
+
 ## The worker-thread invariant
 
 `DiagramEngine` ([Sources/DiagramKit/DiagramEngine.swift](Sources/DiagramKit/DiagramEngine.swift)) is the public façade. Every `async throws` entry point dispatches its work onto a fresh **8 MB-stack `Thread`** via `_runOnWorker`.

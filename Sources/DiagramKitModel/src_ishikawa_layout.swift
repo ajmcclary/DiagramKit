@@ -12,8 +12,14 @@ import CoreText
 private let FONT_SIZE_DEFAULT: Double = 14
 
 /// Mutable accumulator for Ishikawa layout-time diagnostics. Mirrors
-/// `_LayoutDiagnostics` from `src_layout.swift`; `@unchecked Sendable` is
-/// safe because each layout call runs on a single 8 MB worker thread.
+/// `_LayoutDiagnostics` from `src_layout.swift`.
+///
+/// Concurrency Contract: each Ishikawa layout call runs on its own fresh
+/// worker thread (the 8 MB-per-call invariant in
+/// `DiagramEngine._runOnWorker` / `DiagramWorkerThread.run`). The instance
+/// is created on that worker, mutated only by the synchronous layout walk
+/// on the same worker, and never escapes. No cross-thread access ever
+/// happens, so `@unchecked Sendable` is safe.
 final class _IshikawaDiagnostics: @unchecked Sendable {
     var items: [DiagramDiagnostic] = []
     func warn(_ message: String) {

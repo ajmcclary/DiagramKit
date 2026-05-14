@@ -1,6 +1,13 @@
 import Foundation
 import DiagramKitCommon
 
+/// Concurrency Contract: `_MutableNode` is a parser-internal scratch tree
+/// constructed and consumed inside a single `parseTreemapDiagramFromSource`
+/// call. Each call runs on its own fresh worker thread (the 8 MB-per-call
+/// invariant in `DiagramEngine._runOnWorker` / `DiagramWorkerThread.run`),
+/// the nodes are built into the local `root`, frozen into the immutable
+/// `TreemapDiagram.root`, and never escape the call. No cross-thread
+/// access ever happens, so `@unchecked Sendable` is safe.
 private final class _MutableNode: @unchecked Sendable {
     var name: String
     var children: [_MutableNode]?

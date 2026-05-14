@@ -196,7 +196,38 @@ Closes Deferred Effort §7 → Mermaid C4 parser ignores `$boundary` named arg (
 
 Session-end verification: `swift test --filter "C4ParserTests|C4BoundaryNamedArgTests|MermaidC4BoundaryRoundTripTests|C4SlotSemanticsTests|C4LayoutTests|C4SvgTests|StructurizrBoundaryRoundTripTests"` all green (79 tests / 7 suites). `Scripts/check-sendable-annotations.sh` ✓ green. `Scripts/check-file-sizes.sh` reports only pre-existing yellow warnings; `src_c4_parser.swift` grows from 744 → 928 lines, both already in the yellow band (over 500-line warn, under 1000-line error).
 
-**Deferred follow-up**: surfacing parser diagnostics through `DiagramImportResult.diagnostics` requires widening the registry `parse:` closure shape. Out of scope for this session.
+**Deferred follow-up**: surfacing parser diagnostics through `DiagramImportResult.diagnostics` requires widening the registry `parse:` closure shape. Out of scope for this session. **Closed by Session 10.**
+
+---
+
+## Resolution Status — Session 10 (2026-05-14)
+
+Closes Session 9's deferred follow-up: surfacing parser diagnostics through `DiagramImportResult.diagnostics` required widening the registry `parse:` closure shape. Spec at `docs/superpowers/specs/2026-05-14-parser-diagnostics-surfacing-design.md` (`02fc245`); plan at `docs/superpowers/plans/2026-05-14-parser-diagnostics-surfacing.md` (`ee679ce`). Twenty commits on `main` between `02fc245..d45b2ae` (two docs + eighteen implementation/test).
+
+| # | Item | Commit | What landed |
+|---|---|---|---|
+| 1 | A1 — `PositionedGraph.diagnostics` field | `2291313` | Adds a layout-tier diagnostic bag on `PositionedGraph`; existing emit sites still untouched. |
+| 2 | A2 — `PreparedDiagram` aggregation | `a7cd641` | `PreparedDiagram` gains the `importDiagnostics:` initializer parameter and exposes `diagnostics = importDiagnostics + positioned.diagnostics`. |
+| 3 | A3 — `AsciiRenderOutput` public type | `123ca2a` | Standalone diagnostic surface for the ASCII path that bypasses `PreparedDiagram`. |
+| 4 | B1 — Closure-shape widen | `da8700d` | `DiagramDescriptor.parse` and `.layout` closures return `(Document/Graph, [DiagramDiagnostic])`. Atomic across all family descriptors. |
+| 5 | C1 — C4 `$boundary` diagnostics | `d2599ef` | The C4 registry descriptor stops discarding `_parseC4DiagramWithDiagnostics`'s diagnostic bag — boundary mismatch warnings now reach `MermaidImporter.parse`'s `DiagramImportResult.diagnostics`. |
+| 6 | D1 — Kanban duplicate-node | `4b7a140` | Kanban duplicate-node `_reportDiagramIssue` converts to tuple-append. |
+| 7 | D2 — Flowchart subgraph recursion | `bc1ada9` | Three `src_layout.swift` recursion-truncation emit sites convert to `_LayoutDiagnostics` bag append. |
+| 8 | D3 — Ishikawa recursion-depth | `66cf2f8` | Ishikawa depth-overflow emit converts to `_IshikawaDiagnostics` bag append. |
+| 9 | D4 — GitGraph parallelCommits | `1596bee` | `parallelCommits` missing-position emit routes through `PositionedGraph.diagnostics`. |
+| 10 | E1a — Pie/Journey/Gantt parsers | `2d1bc9f` | Per-family parser signatures widen to tuple return. |
+| 11 | E1b — Quadrant/Requirement/GitGraph/Mindmap | `e171d5f` | Per-family parser signatures widen to tuple return. |
+| 12 | E1c — Timeline/Block/Radar/Sankey | `402d627` | Per-family parser signatures widen to tuple return. |
+| 13 | E1d — Class/ER/Sequence/XYChart | `ee5dbeb` | Per-family parser signatures widen to tuple return. |
+| 14 | E1e — Arch/EventModel/Packet/TreeView/Treemap/Venn/Wardley/ZenUML/Ishikawa | `305be4a` | Final bulk parser widen; drive-by fixes for D2 probe (skip `%%{init:…}%%` lines) and obsolete `notYetImplemented` assertions in TreeView/EventModeling tests. |
+| 15 | E1 tail — `parseMermaid` top-level | `7bf6d86` | The flowchart/state-diagram top-level entry in `src_parser.swift:179` returns `(DiagramDocument, [DiagramDiagnostic])`. |
+| 16 | F1 — `DiagramLoader.parseImportResult` | `a1ea1a3` | Diagnostic-aware loader entry replaces `parse(_:registry:)` as the canonical name; `parseDocument` routes through it. |
+| 17 | F2 — `DiagramPipeline.prepare` aggregation | `8f20e5b` | `prepare(...)` threads `DiagramImportResult.diagnostics` into `PreparedDiagram` via the new `importDiagnostics:` parameter. New `ParserDiagnosticAggregationTests`; drive-by inversion of the obsolete-on-arrival `testLayerKeepsLastPreparedDiagramWhenSourceBecomesInvalid` to match `DiagramLayer`'s documented clear-on-failure semantics. |
+| 18 | F3 — Engine + renderASCII | `f9bd6c2` | `DiagramEngine.parseImportResult(source:registry:)` lands; `renderASCII` on both `DiagramEngine` and `DiagramPipeline` returns `AsciiRenderOutput`. Sweep covers 10 ASCII renderer test files, the corpus snapshot path, and the playground. Drive-by fix for the `_requirement` matcher (claims both `requirement` and `requirementdiagram`). |
+| 19 | G1 — ASCII registry widen | `d45b2ae` | `AsciiRenderDescriptor.render` returns `(String, [DiagramDiagnostic])`; all 26 family entries thread parser diagnostics through. `src_ascii_index` gains `renderMermaidASCIIWithDiagnostics`; `DiagramPipeline.renderASCII` routes through it so C4 `$boundary` warnings reach `AsciiRenderOutput.diagnostics`. |
+| 20 | H1 — Docs sync | _this commit_ | `CLAUDE.md` pipeline diagram + Public Surface bullets reflect the new shapes. `ARCHITECTURE.md` gains a Diagnostics paragraph under "Three-stage pipeline". |
+
+Session-end verification: `swift test --filter "PositionedGraphDiagnosticsTests|PreparedDiagramDiagnosticsTests|AsciiRenderOutputTests|MermaidImporterDiagnosticsTests|DiagramLoaderParseImportResultTests|ParserDiagnosticAggregationTests"` green. C4 boundary diagnostics now flow end-to-end from parser → importer → `PreparedDiagram.diagnostics` and through to the ASCII path's `AsciiRenderOutput.diagnostics`. `Scripts/check-sendable-annotations.sh` and `Scripts/check-file-sizes.sh` carry only pre-existing warnings.
 
 ---
 
