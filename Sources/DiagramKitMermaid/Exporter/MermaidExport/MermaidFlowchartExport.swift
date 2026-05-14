@@ -10,6 +10,16 @@ enum MermaidFlowchartExport {
         var lines: [String] = []
         var diagnostics: [DiagramDiagnostic] = []
 
+        // Collision-aware identifier emission shared across nodes,
+        // subgraphs, edges, classAssignments, and nodeStyles. Nodes and
+        // subgraphs occupy the same id namespace, so a single
+        // `usedAliases` set and a single `aliasMap` cover both. Edges
+        // and post-pass styles look up via `aliasMap` so collided ids
+        // (`foo bar`, `foo!bar` → `foo_bar` / `foo_bar_2`) resolve to
+        // the right endpoint.
+        var usedAliases: Set<String> = []
+        var aliasMap: [String: String] = [:]
+
         // Direction
         let dirString: String
         switch model.direction {
@@ -30,10 +40,14 @@ enum MermaidFlowchartExport {
         // Emit nodes
         for (nodeId, node) in model.nodesInOrder {
             if let subgraph = subgraphMap[nodeId] {
-                emitSubgraph(subgraph, subgraphMap: subgraphMap, emitted: &emittedSubgraphs, lines: &lines, diagnostics: &diagnostics, indent: 0)
+                emitSubgraph(subgraph, subgraphMap: subgraphMap, emitted: &emittedSubgraphs, usedAliases: &usedAliases, aliasMap: &aliasMap, lines: &lines, diagnostics: &diagnostics, indent: 0)
             } else {
-                let (sanitizedId, idDiags) = MermaidExportHelpers.sanitizeIdentifier(nodeId)
+                let (sanitizedId, idDiags) = MermaidExportHelpers.sanitizeIdentifier(
+                    nodeId,
+                    usedAliases: &usedAliases
+                )
                 diagnostics.append(contentsOf: idDiags)
+                aliasMap[nodeId] = sanitizedId
 
                 let shape = shapeMarker(for: node.shape)
                 if shape.lossy {
@@ -66,13 +80,15 @@ enum MermaidFlowchartExport {
         // (the common case) would otherwise be silently dropped from
         // the exported source.
         for subgraph in model.subgraphs where !emittedSubgraphs.contains(subgraph.id) {
-            emitSubgraph(subgraph, subgraphMap: subgraphMap, emitted: &emittedSubgraphs, lines: &lines, diagnostics: &diagnostics, indent: 0)
+            emitSubgraph(subgraph, subgraphMap: subgraphMap, emitted: &emittedSubgraphs, usedAliases: &usedAliases, aliasMap: &aliasMap, lines: &lines, diagnostics: &diagnostics, indent: 0)
         }
 
         // Emit edges
         for (i, edge) in model.edges.enumerated() {
-            let (sanitizedSrc, srcDiags) = MermaidExportHelpers.sanitizeIdentifier(edge.source)
-            let (sanitizedTgt, tgtDiags) = MermaidExportHelpers.sanitizeIdentifier(edge.target)
+            let (sanitizedSrc, srcDiags): (String, [DiagramDiagnostic]) = aliasMap[edge.source].map { ($0, []) }
+                ?? MermaidExportHelpers.sanitizeIdentifier(edge.source)
+            let (sanitizedTgt, tgtDiags): (String, [DiagramDiagnostic]) = aliasMap[edge.target].map { ($0, []) }
+                ?? MermaidExportHelpers.sanitizeIdentifier(edge.target)
             diagnostics.append(contentsOf: srcDiags)
             diagnostics.append(contentsOf: tgtDiags)
 
@@ -117,13 +133,13 @@ enum MermaidFlowchartExport {
 
         // Class assignments
         for (nodeId, classNames) in model.classAssignments.sorted(by: { $0.key < $1.key }) {
-            let (sanitizedId, _) = MermaidExportHelpers.sanitizeIdentifier(nodeId)
+            let sanitizedId = aliasMap[nodeId] ?? MermaidExportHelpers.sanitizeIdentifier(nodeId).sanitized
             lines.append("  class \(sanitizedId) \(classNames.joined(separator: ","))")
         }
 
         // Node styles
         for (nodeId, styles) in model.nodeStyles.sorted(by: { $0.key < $1.key }) {
-            let (sanitizedId, _) = MermaidExportHelpers.sanitizeIdentifier(nodeId)
+            let sanitizedId = aliasMap[nodeId] ?? MermaidExportHelpers.sanitizeIdentifier(nodeId).sanitized
             lines.append("  style \(sanitizedId) \(formatCSS(styles))")
         }
 
@@ -137,13 +153,19 @@ enum MermaidFlowchartExport {
         _ subgraph: original_src_types.MermaidSubgraph,
         subgraphMap: [String: original_src_types.MermaidSubgraph],
         emitted: inout Set<String>,
+        usedAliases: inout Set<String>,
+        aliasMap: inout [String: String],
         lines: inout [String],
         diagnostics: inout [DiagramDiagnostic],
         indent: Int
     ) {
         let pad = String(repeating: "  ", count: indent)
-        let (sanitizedId, idDiags) = MermaidExportHelpers.sanitizeIdentifier(subgraph.id)
+        let (sanitizedId, idDiags) = MermaidExportHelpers.sanitizeIdentifier(
+            subgraph.id,
+            usedAliases: &usedAliases
+        )
         diagnostics.append(contentsOf: idDiags)
+        aliasMap[subgraph.id] = sanitizedId
 
         if subgraph.label.isEmpty {
             lines.append("\(pad)subgraph \(sanitizedId)")
@@ -160,7 +182,7 @@ enum MermaidFlowchartExport {
         emitted.insert(subgraph.id)
 
         for childSubgraph in subgraph.children {
-            emitSubgraph(childSubgraph, subgraphMap: subgraphMap, emitted: &emitted, lines: &lines, diagnostics: &diagnostics, indent: indent + 1)
+            emitSubgraph(childSubgraph, subgraphMap: subgraphMap, emitted: &emitted, usedAliases: &usedAliases, aliasMap: &aliasMap, lines: &lines, diagnostics: &diagnostics, indent: indent + 1)
         }
 
         lines.append("\(pad)end")
