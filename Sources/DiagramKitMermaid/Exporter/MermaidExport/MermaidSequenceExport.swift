@@ -13,13 +13,26 @@ enum MermaidSequenceExport {
         lines.append("sequenceDiagram")
 
         var emittedActorIds = Set<String>()
+        // Collision-aware identifier emission for actors. Messages,
+        // notes, activations, links, properties, details, and destroy
+        // all reference actors; look up via `aliasMap` so collisions
+        // (`foo bar` and `foo!bar` → `foo_bar` / `foo_bar_2`) resolve
+        // to the right participant. Plain-sanitize fallback covers
+        // references to actors that were never explicitly declared
+        // (Mermaid permits lazy actor creation).
+        var usedAliases: Set<String> = []
+        var aliasMap: [String: String] = [:]
 
         for item in model.items {
             switch item {
             case .actor(let actor):
                 if actor.isExplicit {
-                    let (sanitizedId, idDiags) = MermaidExportHelpers.sanitizeIdentifier(actor.id)
+                    let (sanitizedId, idDiags) = MermaidExportHelpers.sanitizeIdentifier(
+                        actor.id,
+                        usedAliases: &usedAliases
+                    )
                     diagnostics.append(contentsOf: idDiags)
+                    aliasMap[actor.id] = sanitizedId
                     if !emittedActorIds.insert(sanitizedId).inserted {
                         // Already emitted this actor
                         continue
@@ -50,8 +63,10 @@ enum MermaidSequenceExport {
                 }
 
             case .message(let msg):
-                let (sanitizedFrom, fd) = MermaidExportHelpers.sanitizeIdentifier(msg.from)
-                let (sanitizedTo, td) = MermaidExportHelpers.sanitizeIdentifier(msg.to)
+                let (sanitizedFrom, fd): (String, [DiagramDiagnostic]) = aliasMap[msg.from].map { ($0, []) }
+                    ?? MermaidExportHelpers.sanitizeIdentifier(msg.from)
+                let (sanitizedTo, td): (String, [DiagramDiagnostic]) = aliasMap[msg.to].map { ($0, []) }
+                    ?? MermaidExportHelpers.sanitizeIdentifier(msg.to)
                 diagnostics.append(contentsOf: fd)
                 diagnostics.append(contentsOf: td)
 
@@ -70,8 +85,7 @@ enum MermaidSequenceExport {
 
             case .note(let note):
                 let actorList = note.actorIds.map { id in
-                    let (s, _) = MermaidExportHelpers.sanitizeIdentifier(id)
-                    return s
+                    aliasMap[id] ?? MermaidExportHelpers.sanitizeIdentifier(id).sanitized
                 }.joined(separator: ", ")
 
                 let rawPosition = note.position.isEmpty ? "over" : note.position.lowercased()
@@ -82,11 +96,11 @@ enum MermaidSequenceExport {
                 lines.append("  Note \(position) \(actorList): \(qText)")
 
             case .activationStart(let actorId):
-                let (sanitized, _) = MermaidExportHelpers.sanitizeIdentifier(actorId)
+                let sanitized = aliasMap[actorId] ?? MermaidExportHelpers.sanitizeIdentifier(actorId).sanitized
                 lines.append("  activate \(sanitized)")
 
             case .activationEnd(let actorId):
-                let (sanitized, _) = MermaidExportHelpers.sanitizeIdentifier(actorId)
+                let sanitized = aliasMap[actorId] ?? MermaidExportHelpers.sanitizeIdentifier(actorId).sanitized
                 lines.append("  deactivate \(sanitized)")
 
             case .blockStart(let type, let label):
@@ -134,8 +148,12 @@ enum MermaidSequenceExport {
                 }
 
             case .createParticipant(let actor):
-                let (sanitizedId, idDiags) = MermaidExportHelpers.sanitizeIdentifier(actor.id)
+                let (sanitizedId, idDiags) = MermaidExportHelpers.sanitizeIdentifier(
+                    actor.id,
+                    usedAliases: &usedAliases
+                )
                 diagnostics.append(contentsOf: idDiags)
+                aliasMap[actor.id] = sanitizedId
                 if !emittedActorIds.insert(sanitizedId).inserted { continue }
                 let typePrefix = actor.type.rawValue
                 if actor.label.isEmpty || actor.label == actor.id {
@@ -147,7 +165,7 @@ enum MermaidSequenceExport {
                 }
 
             case .destroyParticipant(let actorId):
-                let (sanitized, _) = MermaidExportHelpers.sanitizeIdentifier(actorId)
+                let sanitized = aliasMap[actorId] ?? MermaidExportHelpers.sanitizeIdentifier(actorId).sanitized
                 lines.append("  destroy \(sanitized)")
 
             case .title(let t):
@@ -163,23 +181,23 @@ enum MermaidSequenceExport {
                 lines.append("  accDescr: \(q)")
 
             case .link(let actorId, let label, let url):
-                let (sanitized, _) = MermaidExportHelpers.sanitizeIdentifier(actorId)
+                let sanitized = aliasMap[actorId] ?? MermaidExportHelpers.sanitizeIdentifier(actorId).sanitized
                 let (ql, _) = MermaidExportHelpers.quote(label)
                 let (qu, _) = MermaidExportHelpers.quote(url)
                 lines.append("  link \(sanitized): \(ql) @ \(qu)")
 
             case .links(let actorId, let json):
-                let (sanitized, _) = MermaidExportHelpers.sanitizeIdentifier(actorId)
+                let sanitized = aliasMap[actorId] ?? MermaidExportHelpers.sanitizeIdentifier(actorId).sanitized
                 let (qj, _) = MermaidExportHelpers.quote(json)
                 lines.append("  links \(sanitized): \(qj)")
 
             case .properties(let actorId, let json):
-                let (sanitized, _) = MermaidExportHelpers.sanitizeIdentifier(actorId)
+                let sanitized = aliasMap[actorId] ?? MermaidExportHelpers.sanitizeIdentifier(actorId).sanitized
                 let (qj, _) = MermaidExportHelpers.quote(json)
                 lines.append("  properties \(sanitized): \(qj)")
 
             case .details(let actorId, let elementId):
-                let (sanitized, _) = MermaidExportHelpers.sanitizeIdentifier(actorId)
+                let sanitized = aliasMap[actorId] ?? MermaidExportHelpers.sanitizeIdentifier(actorId).sanitized
                 lines.append("  details \(sanitized): \(elementId)")
             }
         }
