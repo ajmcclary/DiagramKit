@@ -45,6 +45,12 @@ Last updated: 2026-05-13 (Phase 8 — review remediation release verification)
   Phase 8 caught the corresponding image drift that exceeded the
   precision threshold.
 
+## Rebaseline Events
+
+| Date | Reason | Commits | Notes |
+| --- | --- | --- | --- |
+| 2026-05-14 | SVG color-mix resolver rebaseline | `5cf2186` (SVG) + *image commit* | REVIEW.md §1 Session 4. Re-records 390 of 435 SVG and 57 of 435 image baselines against the post-resolver-fix output (`1c2f18f`, `6b35c80`, `d6bdec7`). Unmodified entries are 17 pre-failing IDs (`req-*`, `xychart-27-full-config`) plus byte-identical outputs. Visual canary set: flow-1-simple, seq-1-basic, class-1-basic, er-1-basic, state-1-basic, xychart-1-bar. |
+
 ## Gate Status
 - `swift build --build-tests`: pass (2026-05-13)
 - `Scripts/check-file-sizes.sh`: pass — pre-existing warnings only

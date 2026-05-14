@@ -69,6 +69,28 @@ Session-end verification: targeted `swift test --filter` across `MermaidExporter
 
 ---
 
+## Resolution Status — Session 4 (2026-05-14)
+
+Closes Deferred Effort §1 (SVG color-mix variable resolver) — the rebaseline phase deferred from Session 2's `1c2f18f`. Brainstormed spec at `docs/superpowers/specs/2026-05-14-svg-palette-audit-rebaseline-design.md`; plan at `docs/superpowers/plans/2026-05-14-svg-palette-audit-rebaseline.md`. Eight commits on `main`.
+
+| # | Item | Commit | What landed |
+|---|---|---|---|
+| 1 | §1 Spec | `b222b15` | SVG palette audit + baseline regeneration design — audit-gated five-phase plan. |
+| 2 | §1 Plan | `ed7fa87` | Implementation plan honoring the C1–C5 commit map. |
+| 3 | §1 Renderer palette routing | `6b35c80` | `DiagramPipeline.renderSVG(source:theme:)` and `(positioned:theme:)` no longer collapse nil tokens to fg/bg directly; route through `theme.effective<Token>()` color-mix derivations. For zinc-light, line=#27272A → #939394 and surface=#FFFFFF → #F9F9F9. |
+| 4 | §1 Audit gate | `a5596f8` | New `PalettePinTests.swift` (per-theme assertion of `_hex(theme.effective<Token>())` across all 17 built-in themes). New `SVGStructuralSweepTests.swift` (live + on-disk modes; rejects `var(--…)` leakage, `))` tails, NaN, empty stroke/fill in attribute values; skips 17 pre-failing corpus IDs). CLAUDE.md test count 216 → 218. |
+| 5 | §1 Recording driver | `c8c33bf` | New `Scripts/rebaseline-snapshots.sh` chunks `SNAPSHOT_TESTING_RECORD=all` runs at `--chunk 20` to dodge the signal-10 hang. Idempotent via `.rebaseline-logs/missing-<target>.txt`. Not part of `bootstrap-smoke-check.sh` — explicit operator action only. |
+| 6 | §1 On-disk skip set | `83204f9` | C1 follow-up: on-disk SVG sweep mirrors the live sweep's `preFailingEntryIDs` skip set so stale baselines for unsupported families don't trip the structural check. |
+| 7 | §1 Resolver iteration fix | `d6bdec7` | Caught by C4's first recording attempt: `_resolveVarFunctions` was bounded by `for _ in 0..<16` performing 16 *total* replacements, not 16 *depth* iterations. A typical 20+ var() SVG left most calls for step 4's flatten, masquerading as `#666666`. Switched to `while let` with a 4096 safety cap; undefined-with-no-fallback now emits `#666666` directly to keep the loop progressing and avoid empty `stroke=""`/`fill=""`. |
+| 8 | §1 SVG rebaseline | `5cf2186` | 390 of 435 SVG baselines re-recorded (45 unmodified: 17 pre-failing entries + 28 byte-identical outputs). |
+| 9 | §1 Image rebaseline | *this commit* | 57 image baselines re-recorded (51 imageSnapshot + 6 multiFormatImageSnapshot). The CG image renderer paths bypass `DiagramPipeline.renderSVG`, so most image bitmaps were already correct; only diagrams whose CG-direct rendering or layout shifted got new pixels. Visual canary set spot-checked (flow/seq/class/er/state/xychart). |
+
+Session-end verification: `swift test --filter PalettePinTests`, `SVGStructuralSweepTests` (both modes), `CorpusSnapshotTests/svgSnapshot`, `CorpusSnapshotTests/imageSnapshot`, `SVGCssVariableResolverTests` all green. `Scripts/check-sendable-annotations.sh` ✓ green. `Scripts/check-file-sizes.sh` reports only pre-existing yellow warnings.
+
+Non-resolver drift captured in the rebaseline window `1c2f18f..HEAD`: `8546f813` (`fix(c4): dispatch on shape family for tech vs description slots`) changed C4 family emit, expected in C4/C5 baseline diffs for that family.
+
+---
+
 ## Deferred Effort — Recommendations
 
 Some review items were intentionally deferred during the five-phase pass; others surfaced during execution and were scoped out to keep individual commits coherent. Listed in priority order.
