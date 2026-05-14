@@ -194,7 +194,7 @@ Closes Deferred Effort §7 → Mermaid C4 parser ignores `$boundary` named arg (
 | 5 | §7 Round-trip tests | `37b547b` | New `Tests/DiagramKitTests/MermaidC4BoundaryRoundTripTests.swift` — two `@Test`s pinning flat-emit round-trip and nested↔flat semantic equivalence. |
 | 6 | §7 Structurizr extension | `ffe5573` | `Tests/DiagramKitTests/StructurizrBoundaryRoundTripTests.swift`'s `structurizrToMermaidEmit` re-parses the Mermaid output and asserts `p1.parentBoundary == "G0"` survives end-to-end. |
 
-Session-end verification: `swift test --filter "C4ParserTests|C4BoundaryNamedArgTests|MermaidC4BoundaryRoundTripTests|C4SlotSemanticsTests|C4LayoutTests|C4SvgTests|StructurizrBoundaryRoundTripTests"` all green (77 tests / 8 suites). `Scripts/check-sendable-annotations.sh` ✓ green. `Scripts/check-file-sizes.sh` reports only pre-existing yellow warnings; `src_c4_parser.swift` grows by ~120 lines and stays well under the 500-line warn threshold.
+Session-end verification: `swift test --filter "C4ParserTests|C4BoundaryNamedArgTests|MermaidC4BoundaryRoundTripTests|C4SlotSemanticsTests|C4LayoutTests|C4SvgTests|StructurizrBoundaryRoundTripTests"` all green (79 tests / 7 suites). `Scripts/check-sendable-annotations.sh` ✓ green. `Scripts/check-file-sizes.sh` reports only pre-existing yellow warnings; `src_c4_parser.swift` grows from 744 → 928 lines, both already in the yellow band (over 500-line warn, under 1000-line error).
 
 **Deferred follow-up**: surfacing parser diagnostics through `DiagramImportResult.diagnostics` requires widening the registry `parse:` closure shape. Out of scope for this session.
 
