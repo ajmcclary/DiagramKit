@@ -231,11 +231,9 @@ public enum DiagramPipeline {
             ]
             let asciiTheme = original_src_ascii_index.diagramColorsToAsciiTheme(colors)
             let options = original_src_ascii_index.AsciiRenderOptions(theme: asciiTheme)
-            let text = try original_src_ascii_index.renderMermaidASCII(source, options: options)
-            // G1 will widen the ASCII registry's `render` closure to surface
-            // parse + render diagnostics through this output; until then the
-            // bag is empty.
-            return AsciiRenderOutput(text: text, diagnostics: [])
+            let (text, renderDiagnostics) =
+                try original_src_ascii_index.renderMermaidASCIIWithDiagnostics(source, options: options)
+            return AsciiRenderOutput(text: text, diagnostics: renderDiagnostics)
         }
     }
     #endif

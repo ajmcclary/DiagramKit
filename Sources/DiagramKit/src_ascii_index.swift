@@ -1,5 +1,6 @@
 // Ported from original/src/ascii/index.ts
 import Foundation
+import DiagramKitCommon
 import DiagramKitModel
 
 private func _bmParseMermaid(_ text: String, config: original_src_types.FlowchartConfig? = nil) throws -> DiagramDocument {
@@ -354,12 +355,14 @@ public final class original_src_ascii_index {
         }
     }
 
-    /// Render Mermaid diagram text to an ASCII/Unicode string.
-    /// Control-flow/API parity with original/src/ascii/index.ts.
-    public static func renderMermaidASCII(
+    /// Render Mermaid diagram text to an ASCII/Unicode string paired with
+    /// any diagnostics surfaced by the family parser / renderer. Callers
+    /// that only want the text use `renderMermaidASCII(_:options:)`, which
+    /// forwards to this method and drops the diagnostic bag.
+    public static func renderMermaidASCIIWithDiagnostics(
         _ text: String,
         options: AsciiRenderOptions = AsciiRenderOptions()
-    ) throws -> String {
+    ) throws -> (String, [DiagramDiagnostic]) {
         let preprocessed = _preprocessMermaidSource(text)
         let preprocessedText = preprocessed.source
         var config = AsciiConfig(
@@ -404,15 +407,16 @@ public final class original_src_ascii_index {
                 flipRoleCanvasVertically(&graph.drawGraph.roleCanvas)
             }
 
-            return try canvasToString(
+            let rendered = try canvasToString(
                 graph.drawGraph.canvas,
                 roleCanvas: graph.drawGraph.roleCanvas,
                 colorMode: resolvedColorMode,
                 theme: theme
             )
+            return (rendered, [])
         }
 
-        if let result = try AsciiRenderRegistry.render(
+        if let (rendered, diagnostics) = try AsciiRenderRegistry.render(
             type: detected,
             source: preprocessedText,
             frontmatter: preprocessed.frontmatter,
@@ -420,10 +424,20 @@ public final class original_src_ascii_index {
             colorMode: resolvedColorMode,
             theme: theme
         ) {
-            return result
+            return (rendered, diagnostics)
         }
 
         throw DiagramError.notYetImplemented("ASCII rendering for \(detected.rawValue)")
+    }
+
+    /// Render Mermaid diagram text to an ASCII/Unicode string. Drops any
+    /// diagnostics surfaced during rendering; use
+    /// `renderMermaidASCIIWithDiagnostics(_:options:)` to receive them.
+    public static func renderMermaidASCII(
+        _ text: String,
+        options: AsciiRenderOptions = AsciiRenderOptions()
+    ) throws -> String {
+        try renderMermaidASCIIWithDiagnostics(text, options: options).0
     }
 
     /// @deprecated Use `renderMermaidASCII`.

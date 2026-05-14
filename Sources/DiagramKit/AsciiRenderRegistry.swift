@@ -1,14 +1,16 @@
 import Foundation
+import DiagramKitCommon
 import DiagramKitModel
 
 // MARK: - AsciiRenderDescriptor
 
 /// Per-diagram-family ASCII rendering descriptor. Each closure consumes
 /// preprocessed Mermaid source plus its parsed frontmatter and emits an
-/// ASCII/Unicode string. Replaces 26 arms of the previous switch that
-/// lived inline in `original_src_ascii_index.renderMermaidASCII`; the
-/// flowchart/state arm still lives inline because it needs class-private
-/// helpers (`parseMermaid`, `convertToAsciiGraph`, etc.).
+/// ASCII/Unicode string paired with any diagnostics surfaced during the
+/// family-specific parse/render. Replaces 26 arms of the previous switch
+/// that lived inline in `original_src_ascii_index.renderMermaidASCII`;
+/// the flowchart/state arm still lives inline because it needs
+/// class-private helpers (`parseMermaid`, `convertToAsciiGraph`, etc.).
 struct AsciiRenderDescriptor: Sendable {
     let type: DiagramType
     let render: @Sendable (
@@ -17,7 +19,7 @@ struct AsciiRenderDescriptor: Sendable {
         _ config: original_src_ascii_index.AsciiConfig,
         _ colorMode: original_src_ascii_index.AsciiThemeColorMode,
         _ theme: original_src_ascii_index.AsciiTheme
-    ) throws -> String
+    ) throws -> (String, [DiagramDiagnostic])
 }
 
 // MARK: - AsciiRenderRegistry
@@ -32,196 +34,200 @@ enum AsciiRenderRegistry {
         .sequenceDiagram: AsciiRenderDescriptor(
             type: .sequenceDiagram,
             render: { source, _, config, colorMode, theme in
-                try renderSequenceAscii(source, _mapAsciiConfig(config), _asciiMapColorMode(colorMode), _asciiMapTheme(theme))
+                let rendered = try renderSequenceAscii(source, _mapAsciiConfig(config), _asciiMapColorMode(colorMode), _asciiMapTheme(theme))
+                return (rendered, [])
             }
         ),
         .classDiagram: AsciiRenderDescriptor(
             type: .classDiagram,
             render: { source, _, config, colorMode, theme in
-                try renderClassAscii(source, _mapAsciiConfig(config), _asciiMapColorMode(colorMode), _asciiMapTheme(theme))
+                let rendered = try renderClassAscii(source, _mapAsciiConfig(config), _asciiMapColorMode(colorMode), _asciiMapTheme(theme))
+                return (rendered, [])
             }
         ),
         .erDiagram: AsciiRenderDescriptor(
             type: .erDiagram,
             render: { source, _, config, colorMode, theme in
-                try renderErAscii(source, _mapAsciiConfig(config), _asciiMapColorMode(colorMode), _asciiMapTheme(theme))
+                let rendered = try renderErAscii(source, _mapAsciiConfig(config), _asciiMapColorMode(colorMode), _asciiMapTheme(theme))
+                return (rendered, [])
             }
         ),
         .xyChart: AsciiRenderDescriptor(
             type: .xyChart,
             render: { source, _, config, colorMode, theme in
                 let mapped = _mapAsciiConfig(config)
-                return renderXYChartAscii(source, mapped, _asciiMapColorMode(colorMode), _asciiMapTheme(theme, includeAccentBg: true))
+                let rendered = renderXYChartAscii(source, mapped, _asciiMapColorMode(colorMode), _asciiMapTheme(theme, includeAccentBg: true))
+                return (rendered, [])
             }
         ),
         .pie: AsciiRenderDescriptor(
             type: .pie,
             render: { source, _, _, _, _ in
-                let (chart, _) = try parsePieChart(source)
-                return renderPieAscii(chart)
+                let (chart, diagnostics) = try parsePieChart(source)
+                return (renderPieAscii(chart), diagnostics)
             }
         ),
         .journey: AsciiRenderDescriptor(
             type: .journey,
             render: { source, frontmatter, _, _, _ in
                 let rawLines = DiagramSourceNormalizer.rawLines(source)
-                let (model, _) = try parseJourneyDiagram(rawLines, frontmatter: frontmatter)
-                return renderJourneyAscii(model)
+                let (model, diagnostics) = try parseJourneyDiagram(rawLines, frontmatter: frontmatter)
+                return (renderJourneyAscii(model), diagnostics)
             }
         ),
         .gantt: AsciiRenderDescriptor(
             type: .gantt,
             render: { source, frontmatter, _, _, _ in
                 let rawLines = DiagramSourceNormalizer.rawLines(source)
-                let (model, _) = try parseGanttDiagram(rawLines, frontmatter: frontmatter)
-                return renderGanttAscii(model)
+                let (model, diagnostics) = try parseGanttDiagram(rawLines, frontmatter: frontmatter)
+                return (renderGanttAscii(model), diagnostics)
             }
         ),
         .quadrantChart: AsciiRenderDescriptor(
             type: .quadrantChart,
             render: { source, _, _, _, _ in
-                let (model, _) = try parseQuadrantChart(source)
-                return renderQuadrantAscii(model)
+                let (model, diagnostics) = try parseQuadrantChart(source)
+                return (renderQuadrantAscii(model), diagnostics)
             }
         ),
         .requirement: AsciiRenderDescriptor(
             type: .requirement,
             render: { source, frontmatter, _, _, _ in
                 let rawLines = DiagramSourceNormalizer.rawLines(source)
-                let (model, _) = try parseRequirementDiagram(rawLines, frontmatter: frontmatter)
-                return renderRequirementAscii(model)
+                let (model, diagnostics) = try parseRequirementDiagram(rawLines, frontmatter: frontmatter)
+                return (renderRequirementAscii(model), diagnostics)
             }
         ),
         .gitGraph: AsciiRenderDescriptor(
             type: .gitGraph,
             render: { source, frontmatter, _, _, _ in
                 let rawLines = DiagramSourceNormalizer.rawLines(source)
-                let (model, _) = try parseGitGraph(rawLines, frontmatter: frontmatter)
-                return renderGitGraphAscii(model)
+                let (model, diagnostics) = try parseGitGraph(rawLines, frontmatter: frontmatter)
+                return (renderGitGraphAscii(model), diagnostics)
             }
         ),
         .mindmap: AsciiRenderDescriptor(
             type: .mindmap,
             render: { source, frontmatter, _, _, _ in
                 let rawLines = DiagramSourceNormalizer.rawLines(source)
-                let (model, _) = try parseMindmap(rawLines, frontmatter: frontmatter)
-                return renderMindmapAscii(model)
+                let (model, diagnostics) = try parseMindmap(rawLines, frontmatter: frontmatter)
+                return (renderMindmapAscii(model), diagnostics)
             }
         ),
         .timeline: AsciiRenderDescriptor(
             type: .timeline,
             render: { source, frontmatter, _, _, _ in
                 let rawLines = DiagramSourceNormalizer.rawLines(source)
-                let (model, _) = try parseTimelineDiagram(rawLines, frontmatter: frontmatter)
-                return renderTimelineAscii(model)
+                let (model, diagnostics) = try parseTimelineDiagram(rawLines, frontmatter: frontmatter)
+                return (renderTimelineAscii(model), diagnostics)
             }
         ),
         .sankey: AsciiRenderDescriptor(
             type: .sankey,
             render: { source, frontmatter, _, _, _ in
                 let rawLines = DiagramSourceNormalizer.rawLines(source)
-                let (model, _) = try parseSankeyDiagram(rawLines, frontmatter: frontmatter)
-                return renderSankeyAscii(model)
+                let (model, diagnostics) = try parseSankeyDiagram(rawLines, frontmatter: frontmatter)
+                return (renderSankeyAscii(model), diagnostics)
             }
         ),
         .block: AsciiRenderDescriptor(
             type: .block,
             render: { source, frontmatter, _, _, _ in
-                let (model, _) = try parseBlockDiagram(source, frontmatter: frontmatter)
-                return renderBlockAscii(model)
+                let (model, diagnostics) = try parseBlockDiagram(source, frontmatter: frontmatter)
+                return (renderBlockAscii(model), diagnostics)
             }
         ),
         .packet: AsciiRenderDescriptor(
             type: .packet,
             render: { source, frontmatter, _, _, _ in
                 let rawLines = DiagramSourceNormalizer.rawLines(source)
-                let (model, _) = try parsePacketDiagram(rawLines, frontmatter: frontmatter)
-                return renderPacketAscii(model)
+                let (model, diagnostics) = try parsePacketDiagram(rawLines, frontmatter: frontmatter)
+                return (renderPacketAscii(model), diagnostics)
             }
         ),
         .kanban: AsciiRenderDescriptor(
             type: .kanban,
             render: { source, frontmatter, _, _, _ in
                 let rawLines = DiagramSourceNormalizer.rawLines(source)
-                let (model, _) = try parseKanbanDiagram(rawLines, frontmatter: frontmatter)
-                return renderKanbanAscii(model)
+                let (model, diagnostics) = try parseKanbanDiagram(rawLines, frontmatter: frontmatter)
+                return (renderKanbanAscii(model), diagnostics)
             }
         ),
         .architecture: AsciiRenderDescriptor(
             type: .architecture,
             render: { source, frontmatter, _, _, _ in
-                let (model, _) = try parseArchitectureDiagram(source, frontmatter: frontmatter)
-                return renderArchitectureAscii(model)
+                let (model, diagnostics) = try parseArchitectureDiagram(source, frontmatter: frontmatter)
+                return (renderArchitectureAscii(model), diagnostics)
             }
         ),
         .radar: AsciiRenderDescriptor(
             type: .radar,
             render: { source, frontmatter, _, _, _ in
-                let (model, _) = try parseRadarDiagram(source: source, frontmatter: frontmatter)
-                return renderRadarAscii(model)
+                let (model, diagnostics) = try parseRadarDiagram(source: source, frontmatter: frontmatter)
+                return (renderRadarAscii(model), diagnostics)
             }
         ),
         .treemap: AsciiRenderDescriptor(
             type: .treemap,
             render: { source, frontmatter, _, _, _ in
-                let (model, _) = try parseTreemapDiagramFromSource(source, frontmatter: frontmatter)
-                return renderTreemapAscii(model)
+                let (model, diagnostics) = try parseTreemapDiagramFromSource(source, frontmatter: frontmatter)
+                return (renderTreemapAscii(model), diagnostics)
             }
         ),
         .venn: AsciiRenderDescriptor(
             type: .venn,
             render: { source, frontmatter, _, _, _ in
                 let rawLines = DiagramSourceNormalizer.rawLines(source)
-                let (model, _) = try parseVennDiagram(rawLines, frontmatter: frontmatter)
-                return renderVennAscii(model)
+                let (model, diagnostics) = try parseVennDiagram(rawLines, frontmatter: frontmatter)
+                return (renderVennAscii(model), diagnostics)
             }
         ),
         .ishikawa: AsciiRenderDescriptor(
             type: .ishikawa,
             render: { source, frontmatter, _, _, _ in
                 let rawLines = DiagramSourceNormalizer.rawLines(source)
-                let (model, _) = try parseIshikawaDiagram(rawLines, frontmatter: frontmatter)
-                return renderIshikawaAscii(model)
+                let (model, diagnostics) = try parseIshikawaDiagram(rawLines, frontmatter: frontmatter)
+                return (renderIshikawaAscii(model), diagnostics)
             }
         ),
         .treeView: AsciiRenderDescriptor(
             type: .treeView,
             render: { source, frontmatter, _, _, _ in
                 let rawLines = DiagramSourceNormalizer.rawLines(source)
-                let (model, _) = try parseTreeViewDiagram(rawLines, frontmatter: frontmatter)
-                return renderTreeViewAscii(model)
+                let (model, diagnostics) = try parseTreeViewDiagram(rawLines, frontmatter: frontmatter)
+                return (renderTreeViewAscii(model), diagnostics)
             }
         ),
         .eventModeling: AsciiRenderDescriptor(
             type: .eventModeling,
             render: { source, frontmatter, _, _, _ in
                 let rawLines = DiagramSourceNormalizer.rawLines(source)
-                let (model, _) = try parseEventModeling(rawLines, frontmatter: frontmatter)
-                return renderEventModelingAscii(model)
+                let (model, diagnostics) = try parseEventModeling(rawLines, frontmatter: frontmatter)
+                return (renderEventModelingAscii(model), diagnostics)
             }
         ),
         .wardleyBeta: AsciiRenderDescriptor(
             type: .wardleyBeta,
             render: { source, frontmatter, _, _, _ in
                 let rawLines = DiagramSourceNormalizer.rawLines(source)
-                let (model, _) = try parseWardleyMap(rawLines, frontmatter: frontmatter)
-                return renderWardleyAscii(model)
+                let (model, diagnostics) = try parseWardleyMap(rawLines, frontmatter: frontmatter)
+                return (renderWardleyAscii(model), diagnostics)
             }
         ),
         .zenuml: AsciiRenderDescriptor(
             type: .zenuml,
             render: { source, frontmatter, _, _, _ in
                 let rawLines = DiagramSourceNormalizer.rawLines(source)
-                let (model, _) = try parseZenUMLDiagram(rawLines, frontmatter: frontmatter)
-                return renderZenUMLAscii(model)
+                let (model, diagnostics) = try parseZenUMLDiagram(rawLines, frontmatter: frontmatter)
+                return (renderZenUMLAscii(model), diagnostics)
             }
         ),
         .c4: AsciiRenderDescriptor(
             type: .c4,
             render: { source, frontmatter, _, _, _ in
                 let rawLines = DiagramSourceNormalizer.rawLines(source)
-                let (model, _) = try parseC4Diagram(rawLines, frontmatter: frontmatter)
-                return renderC4Ascii(model)
+                let (model, diagnostics) = try parseC4Diagram(rawLines, frontmatter: frontmatter)
+                return (renderC4Ascii(model), diagnostics)
             }
         )
     ]
@@ -237,7 +243,7 @@ enum AsciiRenderRegistry {
         config: original_src_ascii_index.AsciiConfig,
         colorMode: original_src_ascii_index.AsciiThemeColorMode,
         theme: original_src_ascii_index.AsciiTheme
-    ) throws -> String? {
+    ) throws -> (String, [DiagramDiagnostic])? {
         guard let descriptor = all[type] else { return nil }
         return try descriptor.render(source, frontmatter, config, colorMode, theme)
     }

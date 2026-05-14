@@ -20,4 +20,17 @@ struct AsciiRenderOutputTests {
         let output = AsciiRenderOutput(text: "x", diagnostics: diags)
         #expect(output.diagnostics.map(\.message) == ["first", "second"])
     }
+
+    @Test("C4 ASCII renderASCII surfaces \\$boundary diagnostics")
+    func c4AsciiSurfacesDiagnostics() async throws {
+        let source = """
+        C4Context
+        Boundary(other, "Other")
+        Boundary(outer, "Outer") {
+          System(s, "S") $boundary=other
+        }
+        """
+        let output = try await DiagramEngine.renderASCII(source: source)
+        #expect(output.diagnostics.contains { $0.severity == .warning })
+    }
 }
