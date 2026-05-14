@@ -141,10 +141,11 @@ private struct TitleSection: View {
                 Button("Set") {
                     Task { try? await store.performMutation(.setTitle(draft.isEmpty ? nil : draft)) }
                 }
+                .disabled(editor.isExporting)
                 Button("Clear") {
                     Task { try? await store.performMutation(.setTitle(nil)) }
                 }
-                .disabled(editor.document.title == nil)
+                .disabled(editor.isExporting || editor.document.title == nil)
             }
             Text("Currently: \(editor.document.title ?? "—")")
                 .font(.system(size: 10))
@@ -252,7 +253,7 @@ private struct LabelSection: View {
                     guard let selection = editor.selection else { return }
                     Task { try? await store.performMutation(.setLabel(of: selection, to: draft)) }
                 }
-                .disabled(editor.selection == nil)
+                .disabled(editor.selection == nil || editor.isExporting)
             }
         }
         .onChange(of: editor.selection) { _, _ in
@@ -316,7 +317,7 @@ private struct InsertNodeSection: View {
                 Button("Insert") {
                     insert()
                 }
-                .disabled(labelDraft.trimmingCharacters(in: .whitespaces).isEmpty)
+                .disabled(labelDraft.trimmingCharacters(in: .whitespaces).isEmpty || editor.isExporting)
             }
         }
     }
@@ -379,7 +380,7 @@ private struct InsertEdgeSection: View {
                 Button("Insert") {
                     insert()
                 }
-                .disabled(fromID == nil || toID == nil)
+                .disabled(fromID == nil || toID == nil || editor.isExporting)
             }
         }
         .onAppear { seedFromCurrentSelection() }
@@ -466,7 +467,7 @@ private struct DeleteSection: View {
                 guard let selection = editor.selection else { return }
                 Task { try? await store.performMutation(.deleteElement(selection)) }
             }
-            .disabled(editor.selection == nil)
+            .disabled(editor.selection == nil || editor.isExporting)
             Spacer(minLength: 0)
         }
     }
