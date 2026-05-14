@@ -13,7 +13,32 @@ public struct ImporterRegistry: Sendable {
     public let importers: [any DiagramSourceImporter]
 
     public init(importers: [any DiagramSourceImporter]) {
+        ImporterRegistry._validateFallbackContract(importers)
         self.importers = importers
+    }
+
+    /// Enforces the fallback-importer contract documented on
+    /// `DiagramSourceImporter.isFallback`: at most one fallback may be
+    /// registered, and if present it must occupy the last slot. A
+    /// fallback ahead of any narrower importer would short-circuit
+    /// detection — its broad `supports(source:) → true` probe would
+    /// claim the source before the narrower importer ever runs.
+    /// Empty / fallback-free registries are allowed (third-party
+    /// narrow-only registries are a legitimate use case).
+    private static func _validateFallbackContract(
+        _ importers: [any DiagramSourceImporter]
+    ) {
+        let fallbackIndices = importers.indices.filter { importers[$0].isFallback }
+        precondition(
+            fallbackIndices.count <= 1,
+            "ImporterRegistry: at most one importer may declare isFallback = true (found \(fallbackIndices.count): \(fallbackIndices.map { importers[$0].name }))"
+        )
+        if let fallbackIndex = fallbackIndices.first {
+            precondition(
+                fallbackIndex == importers.count - 1,
+                "ImporterRegistry: fallback importer '\(importers[fallbackIndex].name)' must be last (at index \(importers.count - 1)), found at index \(fallbackIndex)"
+            )
+        }
     }
 
     /// Returns a new registry with `importer` prepended (not appended).

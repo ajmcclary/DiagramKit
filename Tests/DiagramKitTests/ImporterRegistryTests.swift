@@ -84,6 +84,41 @@ import DiagramKitPlantUML
         #expect(withStructurizr.importers[3].name == "Mermaid")
     }
 
+    @Test("Fallback contract: only Mermaid declares isFallback in the default registry")
+    func fallbackContractDefaultRegistry() {
+        let registry = DiagramPipeline.defaultRegistry
+        let fallbacks = registry.importers.filter(\.isFallback)
+        #expect(fallbacks.count == 1)
+        #expect(fallbacks.first?.name == "Mermaid")
+        #expect(registry.importers.last?.isFallback == true)
+        // Every non-Mermaid importer must declare isFallback = false.
+        for importer in registry.importers.dropLast() {
+            #expect(importer.isFallback == false, "Importer '\(importer.name)' must not declare isFallback = true (only the last importer may).")
+        }
+    }
+
+    @Test("Fallback contract: empty and narrow-only registries pass the precondition")
+    func fallbackContractAllowsNoFallback() {
+        // Empty registry — allowed.
+        _ = ImporterRegistry.empty
+        // Single narrow importer, no fallback — allowed.
+        _ = ImporterRegistry(importers: [D2Importer()])
+        // Multiple narrow importers, no fallback — allowed.
+        _ = ImporterRegistry(importers: [StructurizrImporter(), D2Importer()])
+    }
+
+    @Test("Fallback contract: prepending/appending preserve the invariant on known-good shapes")
+    func fallbackContractCombinatorsRespectInvariant() {
+        let base = ImporterRegistry(importers: [MermaidImporter()])
+        // prepending a narrow importer keeps Mermaid last — allowed.
+        let prepended = base.prepending(D2Importer())
+        #expect(prepended.importers.last?.name == "Mermaid")
+        // appending a narrow importer onto an empty registry — allowed.
+        let appended = ImporterRegistry.empty.appending(D2Importer())
+        #expect(appended.importers.count == 1)
+        #expect(appended.importers[0].isFallback == false)
+    }
+
     @Test("layout(source:registry:) uses the importer registry")
     func layoutUsesImporterRegistry() throws {
         let registry = ImporterRegistry(importers: [FixtureImporter()])
