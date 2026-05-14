@@ -193,7 +193,7 @@ outside the defining module.
 
 ## Testing And Snapshots
 
-- Current test source count: 216 Swift files under `Tests/DiagramKitTests`.
+- Current test source count: 218 Swift files under `Tests/DiagramKitTests`.
 - The corpus is `Examples/DiagramPlayground/Resources/test-diagrams.json` with
   422 entries (396 Mermaid-only + 26 multi-format: D2, DOT, Structurizr, PlantUML).
 - Corpus baselines under `Tests/DiagramKitTests/__Snapshots__/` track
