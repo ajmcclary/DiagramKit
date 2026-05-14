@@ -143,7 +143,7 @@ enum AsciiRenderRegistry {
             type: .kanban,
             render: { source, frontmatter, _, _, _ in
                 let rawLines = DiagramSourceNormalizer.rawLines(source)
-                let model = try parseKanbanDiagram(rawLines, frontmatter: frontmatter)
+                let (model, _) = try parseKanbanDiagram(rawLines, frontmatter: frontmatter)
                 return renderKanbanAscii(model)
             }
         ),

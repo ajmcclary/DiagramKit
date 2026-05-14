@@ -12,7 +12,7 @@ extension DiagramRegistry {
     static let _kanban = _typed(
         type: .kanban,
         matches: { $0.startsWithToken("kanban") },
-        parse: { source, frontmatter in
+        parseWithDiagnostics: { source, frontmatter in
             try parseKanbanDiagram(DiagramSourceNormalizer.rawLines(source), frontmatter: frontmatter)
         },
         wrap: DiagramPayload.kanban,

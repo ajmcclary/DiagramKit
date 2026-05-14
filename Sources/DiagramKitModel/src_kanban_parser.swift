@@ -24,12 +24,13 @@ public enum KanbanParserError: Error, LocalizedError {
     }
 }
 
-public func parseKanbanDiagram(_ lines: [String], frontmatter: DiagramFrontmatter? = nil) throws -> KanbanDiagram {
+public func parseKanbanDiagram(_ lines: [String], frontmatter: DiagramFrontmatter? = nil) throws -> (KanbanDiagram, [DiagramDiagnostic]) {
     let config = frontmatter?.kanbanConfig ?? KanbanDiagramConfig()
     var diagramTitle = frontmatter?.diagramTitle ?? frontmatter?.title
     var accTitle: String?
     var accDescr: String?
     var kbnCounter = 0
+    var diagnostics: [DiagramDiagnostic] = []
 
     func nextKbnId() -> String {
         kbnCounter += 1
@@ -194,12 +195,16 @@ public func parseKanbanDiagram(_ lines: [String], frontmatter: DiagramFrontmatte
     var seenIds = Set<String>()
     for node in sanitizedNodes {
         if seenIds.contains(node.id) {
-            _reportDiagramIssue("[Kanban] duplicate node ID \"\(node.id)\"")
+            diagnostics.append(DiagramDiagnostic(
+                severity: .warning,
+                message: "[Kanban] duplicate node ID \"\(node.id)\"",
+                location: nil
+            ))
         }
         seenIds.insert(node.id)
     }
 
-    return KanbanDiagram(
+    let diagram = KanbanDiagram(
         nodes: sanitizedNodes,
         sections: sanitizedSections,
         config: config,
@@ -207,6 +212,7 @@ public func parseKanbanDiagram(_ lines: [String], frontmatter: DiagramFrontmatte
         accDescr: accDescr,
         diagramTitle: diagramTitle
     )
+    return (diagram, diagnostics)
 }
 
 private func _kanbanTitleValue(_ line: String) -> String? {

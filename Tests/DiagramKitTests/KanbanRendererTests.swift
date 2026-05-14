@@ -13,7 +13,7 @@ final class KanbanRendererTests: XCTestCase {
 
     func test_svgContainsSectionGroup() throws {
         let source = "kanban\n  Todo\n    [Task]"
-        let diagram = try parseKanbanDiagram(rawLines(source), frontmatter: nil)
+        let (diagram, _) = try parseKanbanDiagram(rawLines(source), frontmatter: nil)
         let positioned = layoutKanbanDiagram(diagram)
         let colors = DiagramColors(bg: "#fff", fg: "#000")
         let svg = try renderKanbanSvg(positioned, diagramId: "test", colors, "Inter", false)
@@ -22,7 +22,7 @@ final class KanbanRendererTests: XCTestCase {
 
     func test_svgContainsItemsGroup() throws {
         let source = "kanban\n  Todo\n    [Task]"
-        let diagram = try parseKanbanDiagram(rawLines(source), frontmatter: nil)
+        let (diagram, _) = try parseKanbanDiagram(rawLines(source), frontmatter: nil)
         let positioned = layoutKanbanDiagram(diagram)
         let colors = DiagramColors(bg: "#fff", fg: "#000")
         let svg = try renderKanbanSvg(positioned, diagramId: "test", colors, "Inter", false)
@@ -31,7 +31,7 @@ final class KanbanRendererTests: XCTestCase {
 
     func test_svgSectionClassesStartAtOne() throws {
         let source = "kanban\n  S1\n  S2"
-        let diagram = try parseKanbanDiagram(rawLines(source), frontmatter: nil)
+        let (diagram, _) = try parseKanbanDiagram(rawLines(source), frontmatter: nil)
         let positioned = layoutKanbanDiagram(diagram)
         let colors = DiagramColors(bg: "#fff", fg: "#000")
         let svg = try renderKanbanSvg(positioned, diagramId: "test", colors, "Inter", false)
@@ -41,7 +41,7 @@ final class KanbanRendererTests: XCTestCase {
 
     func test_svgHasValidSvgWrapper() throws {
         let source = "kanban\n  S"
-        let diagram = try parseKanbanDiagram(rawLines(source), frontmatter: nil)
+        let (diagram, _) = try parseKanbanDiagram(rawLines(source), frontmatter: nil)
         let positioned = layoutKanbanDiagram(diagram)
         let colors = DiagramColors(bg: "#fff", fg: "#000")
         let svg = try renderKanbanSvg(positioned, diagramId: "test", colors, "Inter", false)
@@ -51,7 +51,7 @@ final class KanbanRendererTests: XCTestCase {
 
     func test_svgIncludesCardRect() throws {
         let source = "kanban\n  S\n    card1"
-        let diagram = try parseKanbanDiagram(rawLines(source), frontmatter: nil)
+        let (diagram, _) = try parseKanbanDiagram(rawLines(source), frontmatter: nil)
         let positioned = layoutKanbanDiagram(diagram)
         let colors = DiagramColors(bg: "#fff", fg: "#000")
         let svg = try renderKanbanSvg(positioned, diagramId: "test", colors, "Inter", false)
@@ -60,7 +60,7 @@ final class KanbanRendererTests: XCTestCase {
 
     func test_priorityStripeColors() throws {
         let source = "kanban\n  S\n    card1@{ priority: 'High' }"
-        let diagram = try parseKanbanDiagram(rawLines(source), frontmatter: nil)
+        let (diagram, _) = try parseKanbanDiagram(rawLines(source), frontmatter: nil)
         let positioned = layoutKanbanDiagram(diagram)
         let colors = DiagramColors(bg: "#fff", fg: "#000")
         let svg = try renderKanbanSvg(positioned, diagramId: "test", colors, "Inter", false)
@@ -77,7 +77,7 @@ final class KanbanRendererTests: XCTestCase {
 
     func test_lowercasePriorityIsPreservedButNotRenderedAsVisibleStripe() throws {
         let source = "kanban\n  S\n    card1@{ priority: high }"
-        let diagram = try parseKanbanDiagram(rawLines(source), frontmatter: nil)
+        let (diagram, _) = try parseKanbanDiagram(rawLines(source), frontmatter: nil)
         XCTAssertEqual(diagram.nodes.first(where: { !$0.isGroup })?.priority, "high")
         let positioned = layoutKanbanDiagram(diagram)
         let colors = DiagramColors(bg: "#fff", fg: "#000")
@@ -88,7 +88,7 @@ final class KanbanRendererTests: XCTestCase {
 
     func test_veryLowPriorityRendersLightblueStripe() throws {
         let source = "kanban\n  S\n    card1@{ priority: 'Very Low' }"
-        let diagram = try parseKanbanDiagram(rawLines(source), frontmatter: nil)
+        let (diagram, _) = try parseKanbanDiagram(rawLines(source), frontmatter: nil)
         let positioned = layoutKanbanDiagram(diagram)
         let colors = DiagramColors(bg: "#fff", fg: "#000")
         let svg = try renderKanbanSvg(positioned, diagramId: "test", colors, "Inter", false)
@@ -97,7 +97,7 @@ final class KanbanRendererTests: XCTestCase {
 
     func test_mediumPriorityRendersNoStripe() throws {
         let source = "kanban\n  S\n    card1@{ priority: Medium }"
-        let diagram = try parseKanbanDiagram(rawLines(source), frontmatter: nil)
+        let (diagram, _) = try parseKanbanDiagram(rawLines(source), frontmatter: nil)
         let positioned = layoutKanbanDiagram(diagram)
         let colors = DiagramColors(bg: "#fff", fg: "#000")
         let svg = try renderKanbanSvg(positioned, diagramId: "test", colors, "Inter", false)
@@ -107,7 +107,7 @@ final class KanbanRendererTests: XCTestCase {
 
     func test_veryHighPriorityRendersRedStripe() throws {
         let source = "kanban\n  S\n    card1@{ priority: 'Very High' }"
-        let diagram = try parseKanbanDiagram(rawLines(source), frontmatter: nil)
+        let (diagram, _) = try parseKanbanDiagram(rawLines(source), frontmatter: nil)
         let positioned = layoutKanbanDiagram(diagram)
         let colors = DiagramColors(bg: "#fff", fg: "#000")
         let svg = try renderKanbanSvg(positioned, diagramId: "test", colors, "Inter", false)
@@ -120,7 +120,7 @@ final class KanbanRendererTests: XCTestCase {
         var frontmatter = DiagramFrontmatter()
         frontmatter.kanbanConfig = config
         let source = "kanban\n  S\n    card1@{ ticket: MC-1234 }"
-        let diagram = try parseKanbanDiagram(rawLines(source), frontmatter: frontmatter)
+        let (diagram, _) = try parseKanbanDiagram(rawLines(source), frontmatter: frontmatter)
         let positioned = layoutKanbanDiagram(diagram)
         let colors = DiagramColors(bg: "#fff", fg: "#000")
         let svg = try renderKanbanSvg(positioned, diagramId: "test", colors, "Inter", false)
@@ -130,7 +130,7 @@ final class KanbanRendererTests: XCTestCase {
 
     func test_svgSectionsAndCardsShareCenteredCoordinateSystem() throws {
         let source = "kanban\n  S\n    card1"
-        let diagram = try parseKanbanDiagram(rawLines(source), frontmatter: nil)
+        let (diagram, _) = try parseKanbanDiagram(rawLines(source), frontmatter: nil)
         let positioned = layoutKanbanDiagram(diagram)
         let colors = DiagramColors(bg: "#fff", fg: "#000")
         let svg = try renderKanbanSvg(positioned, diagramId: "test", colors, "Inter", false)
@@ -141,7 +141,7 @@ final class KanbanRendererTests: XCTestCase {
 
     func test_svgWrapsLongCardLabels() throws {
         let source = "kanban\n  S\n    card1[Wrap long text across multiple lines to test layout]"
-        let diagram = try parseKanbanDiagram(rawLines(source), frontmatter: nil)
+        let (diagram, _) = try parseKanbanDiagram(rawLines(source), frontmatter: nil)
         let positioned = layoutKanbanDiagram(diagram)
         let colors = DiagramColors(bg: "#fff", fg: "#000")
         let svg = try renderKanbanSvg(positioned, diagramId: "test", colors, "Inter", false)
@@ -157,7 +157,7 @@ final class KanbanRendererTests: XCTestCase {
         accDescr: Tracks release tasks
           Todo
         """
-        let diagram = try parseKanbanDiagram(rawLines(source), frontmatter: nil)
+        let (diagram, _) = try parseKanbanDiagram(rawLines(source), frontmatter: nil)
         let positioned = layoutKanbanDiagram(diagram)
         let colors = DiagramColors(bg: "#fff", fg: "#000")
         let svg = try renderKanbanSvg(positioned, diagramId: "test", colors, "Inter", false)
@@ -181,7 +181,7 @@ final class KanbanRendererTests: XCTestCase {
 
     func test_svgStyleBlockIsEmitted() throws {
         let source = "kanban\n  S1\n  S2"
-        let diagram = try parseKanbanDiagram(rawLines(source), frontmatter: nil)
+        let (diagram, _) = try parseKanbanDiagram(rawLines(source), frontmatter: nil)
         let positioned = layoutKanbanDiagram(diagram)
         let colors = DiagramColors(bg: "#fff", fg: "#000")
         let svg = try renderKanbanSvg(positioned, diagramId: "test", colors, "Inter", false)
@@ -193,7 +193,7 @@ final class KanbanRendererTests: XCTestCase {
 
     func test_styleBlockHasPerSectionColors() throws {
         let source = "kanban\n  S1\n  S2\n  S3"
-        let diagram = try parseKanbanDiagram(rawLines(source), frontmatter: nil)
+        let (diagram, _) = try parseKanbanDiagram(rawLines(source), frontmatter: nil)
         let positioned = layoutKanbanDiagram(diagram)
         let colors = DiagramColors(bg: "#fff", fg: "#000")
         let svg = try renderKanbanSvg(positioned, diagramId: "test", colors, "Inter", false)
@@ -204,7 +204,7 @@ final class KanbanRendererTests: XCTestCase {
 
     func test_perSectionInlinedFillsAreDistinct() throws {
         let source = "kanban\n  A\n  B\n  C"
-        let diagram = try parseKanbanDiagram(rawLines(source), frontmatter: nil)
+        let (diagram, _) = try parseKanbanDiagram(rawLines(source), frontmatter: nil)
         let positioned = layoutKanbanDiagram(diagram)
         let colors = DiagramColors(bg: "#fff", fg: "#000")
         let svg = try renderKanbanSvg(positioned, diagramId: "test", colors, "Inter", false)
@@ -231,7 +231,7 @@ final class KanbanRendererTests: XCTestCase {
         var frontmatter = DiagramFrontmatter()
         frontmatter.kanbanConfig = config
         let source = "kanban\n  S"
-        let diagram = try parseKanbanDiagram(rawLines(source), frontmatter: frontmatter)
+        let (diagram, _) = try parseKanbanDiagram(rawLines(source), frontmatter: frontmatter)
         let positioned = layoutKanbanDiagram(diagram)
         let colors = DiagramColors(bg: "#fff", fg: "#000")
         let svg = try renderKanbanSvg(positioned, diagramId: "test", colors, "Inter", false)
@@ -245,7 +245,7 @@ final class KanbanRendererTests: XCTestCase {
         var frontmatter = DiagramFrontmatter()
         frontmatter.kanbanConfig = config
         let source = "kanban\n  S\n    card1@{ ticket: MC-1234 }"
-        let diagram = try parseKanbanDiagram(rawLines(source), frontmatter: frontmatter)
+        let (diagram, _) = try parseKanbanDiagram(rawLines(source), frontmatter: frontmatter)
         let positioned = layoutKanbanDiagram(diagram)
         let colors = DiagramColors(bg: "#fff", fg: "#000")
         let svg = try renderKanbanSvg(positioned, diagramId: "test", colors, "Inter", false)
@@ -276,7 +276,7 @@ final class KanbanRendererTests: XCTestCase {
 
     func test_coreGraphicsPriorityStripeIsVisible() throws {
         let source = "kanban\n  S\n    card1@{ priority: 'High' }"
-        let diagram = try parseKanbanDiagram(rawLines(source), frontmatter: nil)
+        let (diagram, _) = try parseKanbanDiagram(rawLines(source), frontmatter: nil)
         let positioned = layoutKanbanDiagram(diagram)
         let graph = DiagramDocument(payload: .kanban(diagram))
         let positionedGraph = PositionedGraph(

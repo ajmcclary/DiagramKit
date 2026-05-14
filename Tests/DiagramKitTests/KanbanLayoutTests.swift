@@ -12,7 +12,7 @@ final class KanbanLayoutTests: XCTestCase {
 
     func test_singleSectionLayout() throws {
         let source = "kanban\n  Todo\n    [Create Docs]"
-        let diagram = try parseKanbanDiagram(rawLines(source), frontmatter: nil)
+        let (diagram, _) = try parseKanbanDiagram(rawLines(source), frontmatter: nil)
         let positioned = layoutKanbanDiagram(diagram)
         XCTAssertEqual(positioned.sections.count, 1)
         XCTAssertGreaterThan(positioned.sections[0].width, 0)
@@ -21,7 +21,7 @@ final class KanbanLayoutTests: XCTestCase {
 
     func test_horizontalSectionPlacement() throws {
         let source = "kanban\n  A\n    a\n  B\n    b\n  C\n    c"
-        let diagram = try parseKanbanDiagram(rawLines(source), frontmatter: nil)
+        let (diagram, _) = try parseKanbanDiagram(rawLines(source), frontmatter: nil)
         let positioned = layoutKanbanDiagram(diagram)
         XCTAssertEqual(positioned.sections.count, 3)
         XCTAssertLessThan(positioned.sections[0].x, positioned.sections[1].x)
@@ -30,7 +30,7 @@ final class KanbanLayoutTests: XCTestCase {
 
     func test_cardWidthCalculation() throws {
         let source = "kanban\n  S\n    card1\n    card2"
-        let diagram = try parseKanbanDiagram(rawLines(source), frontmatter: nil)
+        let (diagram, _) = try parseKanbanDiagram(rawLines(source), frontmatter: nil)
         let positioned = layoutKanbanDiagram(diagram)
         let sectionWidth = diagram.config.sectionWidth
         let expectedCardWidth = sectionWidth - 1.5 * 10
@@ -39,14 +39,14 @@ final class KanbanLayoutTests: XCTestCase {
 
     func test_emptySectionsMinimumHeight() throws {
         let source = "kanban\n  S"
-        let diagram = try parseKanbanDiagram(rawLines(source), frontmatter: nil)
+        let (diagram, _) = try parseKanbanDiagram(rawLines(source), frontmatter: nil)
         let positioned = layoutKanbanDiagram(diagram)
         XCTAssertGreaterThan(positioned.sections[0].height, 0)
     }
 
     func test_sectionIndexStartsAtOne() throws {
         let source = "kanban\n  A\n  B\n  C"
-        let diagram = try parseKanbanDiagram(rawLines(source), frontmatter: nil)
+        let (diagram, _) = try parseKanbanDiagram(rawLines(source), frontmatter: nil)
         let positioned = layoutKanbanDiagram(diagram)
         XCTAssertEqual(positioned.sections[0].sectionIndex, 1)
         XCTAssertEqual(positioned.sections[1].sectionIndex, 2)
@@ -55,7 +55,7 @@ final class KanbanLayoutTests: XCTestCase {
 
     func test_configPaddingAffectsTotalWidth() throws {
         let source = "kanban\n  S"
-        let diagram = try parseKanbanDiagram(rawLines(source), frontmatter: nil)
+        let (diagram, _) = try parseKanbanDiagram(rawLines(source), frontmatter: nil)
         let positioned = layoutKanbanDiagram(diagram)
         XCTAssertGreaterThan(positioned.width, 0)
         XCTAssertGreaterThan(positioned.height, 0)
@@ -63,7 +63,7 @@ final class KanbanLayoutTests: XCTestCase {
 
     func test_totalWidthMatchesContentBounds() throws {
         let source = "kanban\n  A\n    a\n  B\n    b"
-        let diagram = try parseKanbanDiagram(rawLines(source), frontmatter: nil)
+        let (diagram, _) = try parseKanbanDiagram(rawLines(source), frontmatter: nil)
         let positioned = layoutKanbanDiagram(diagram)
         let expectedRightEdge = positioned.sections.last!.x + positioned.sections.last!.width / 2
         let expectedWidth = expectedRightEdge + diagram.config.padding * 2
@@ -72,7 +72,7 @@ final class KanbanLayoutTests: XCTestCase {
 
     func test_totalHeightMatchesContentBounds() throws {
         let source = "kanban\n  S\n    card1\n    card2\n    card3"
-        let diagram = try parseKanbanDiagram(rawLines(source), frontmatter: nil)
+        let (diagram, _) = try parseKanbanDiagram(rawLines(source), frontmatter: nil)
         let positioned = layoutKanbanDiagram(diagram)
         let sectionBottom = positioned.sections.map { $0.y + $0.height }.max() ?? 0
         let cardBottom = positioned.cards.map { $0.y + $0.height / 2 }.max() ?? 0
@@ -84,12 +84,12 @@ final class KanbanLayoutTests: XCTestCase {
         let source = "kanban\n  A\n    a\n  B\n    b"
         var frontmatterA = DiagramFrontmatter()
         frontmatterA.kanbanConfig = KanbanDiagramConfig(padding: 8)
-        let diagramA = try parseKanbanDiagram(rawLines(source), frontmatter: frontmatterA)
+        let (diagramA, _) = try parseKanbanDiagram(rawLines(source), frontmatter: frontmatterA)
         let positionedA = layoutKanbanDiagram(diagramA)
 
         var frontmatterB = DiagramFrontmatter()
         frontmatterB.kanbanConfig = KanbanDiagramConfig(padding: 48)
-        let diagramB = try parseKanbanDiagram(rawLines(source), frontmatter: frontmatterB)
+        let (diagramB, _) = try parseKanbanDiagram(rawLines(source), frontmatter: frontmatterB)
         let positionedB = layoutKanbanDiagram(diagramB)
 
         XCTAssertEqual(positionedA.cards[0].width, positionedB.cards[0].width)
@@ -99,7 +99,7 @@ final class KanbanLayoutTests: XCTestCase {
 
     func test_firstCardStartsBelowSectionHeader() throws {
         let source = "kanban\n  Todo\n    [Create Documentation]"
-        let diagram = try parseKanbanDiagram(rawLines(source), frontmatter: nil)
+        let (diagram, _) = try parseKanbanDiagram(rawLines(source), frontmatter: nil)
         let positioned = layoutKanbanDiagram(diagram)
         let section = positioned.sections[0]
         let card = positioned.cards[0]
@@ -112,7 +112,7 @@ final class KanbanLayoutTests: XCTestCase {
 
     func test_longCardLabelsIncreaseCardHeightForWrapping() throws {
         let source = "kanban\n  Todo\n    [Wrap long text across multiple lines to test layout]@{ assigned: alice }"
-        let diagram = try parseKanbanDiagram(rawLines(source), frontmatter: nil)
+        let (diagram, _) = try parseKanbanDiagram(rawLines(source), frontmatter: nil)
         let positioned = layoutKanbanDiagram(diagram)
 
         XCTAssertGreaterThan(positioned.cards[0].height, 66)

@@ -44,4 +44,32 @@ extension DiagramRegistry {
             }
         )
     }
+
+    /// `_typed` variant where the family parser already returns a
+    /// `(Parsed, [DiagramDiagnostic])` tuple. Used by families that emit
+    /// non-fatal diagnostics during parse (Kanban duplicate-node, etc.).
+    static func _typed<Parsed: Sendable, Positioned: Sendable>(
+        type: DiagramType,
+        matches: @escaping @Sendable (DiagramHeader) -> Bool,
+        parseWithDiagnostics: @escaping @Sendable (String, DiagramFrontmatter?) throws -> (Parsed, [DiagramDiagnostic]),
+        wrap: @escaping @Sendable (Parsed) -> DiagramPayload,
+        unwrap: @escaping @Sendable (DiagramPayload) -> Parsed?,
+        layout: @escaping @Sendable (Parsed, LayoutConfig) throws -> Positioned,
+        positioned: @escaping @Sendable (DiagramDocument, Positioned) -> PositionedGraph
+    ) -> DiagramDescriptor {
+        DiagramDescriptor(
+            type: type,
+            matches: matches,
+            parse: { source, fm in
+                let (parsed, diagnostics) = try parseWithDiagnostics(source, fm)
+                return (DiagramDocument(payload: wrap(parsed)), diagnostics)
+            },
+            layout: { graph, config in
+                guard let parsed = unwrap(graph.payload) else {
+                    throw DiagramStructuralError.payloadMismatch(type)
+                }
+                return (positioned(graph, try layout(parsed, config)), [])
+            }
+        )
+    }
 }
