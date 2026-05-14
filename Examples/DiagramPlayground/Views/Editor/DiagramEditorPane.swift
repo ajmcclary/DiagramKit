@@ -472,19 +472,19 @@ private struct UndoRedoFooter: View {
             } label: {
                 Label("Undo", systemImage: "arrow.uturn.backward")
             }
-            .disabled(!editor.undoManager.canUndo)
+            .disabled(!store.canUndoStructural)
 
             Button {
                 store.redoStructural()
             } label: {
                 Label("Redo", systemImage: "arrow.uturn.forward")
             }
-            .disabled(!editor.undoManager.canRedo)
+            .disabled(!store.canRedoStructural)
 
             Spacer(minLength: 0)
 
-            if !editor.undoManager.undoActionName.isEmpty {
-                Text("Last: \(editor.undoManager.undoActionName)")
+            if !store.undoStructuralActionName.isEmpty {
+                Text("Last: \(store.undoStructuralActionName)")
                     .font(.system(size: 10))
                     .foregroundColor(Color(store.theme.effectiveMuted()))
             }
