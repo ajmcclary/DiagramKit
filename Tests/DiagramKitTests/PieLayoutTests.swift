@@ -13,7 +13,7 @@ final class PieLayoutTests: XCTestCase {
     // MARK: - Arc filtering
 
     func testLowPercentageFiltered() throws {
-        let chart = try parsePieChart(lines("pie\n\"A\": 100\n\"B\": 1"))
+        let (chart, _) = try parsePieChart(lines("pie\n\"A\": 100\n\"B\": 1"))
         let positioned = layoutPieChart(chart)
 
         // B should be filtered (<1%)
@@ -23,7 +23,7 @@ final class PieLayoutTests: XCTestCase {
     }
 
     func testZeroPercentFiltered() throws {
-        let chart = try parsePieChart(lines("pie\n\"A\": 10000\n\"B\": 1"))
+        let (chart, _) = try parsePieChart(lines("pie\n\"A\": 10000\n\"B\": 1"))
         let positioned = layoutPieChart(chart)
 
         // B should be filtered (rounds to 0%)
@@ -34,7 +34,7 @@ final class PieLayoutTests: XCTestCase {
     // MARK: - Legend
 
     func testAllSectionsInLegend() throws {
-        let chart = try parsePieChart(lines("pie\n\"A\": 100\n\"B\": 0"))
+        let (chart, _) = try parsePieChart(lines("pie\n\"A\": 100\n\"B\": 0"))
         let positioned = layoutPieChart(chart)
 
         let legendLabels = positioned.legend.map(\.label)
@@ -42,7 +42,7 @@ final class PieLayoutTests: XCTestCase {
     }
 
     func testLegendSwatchAtOrigin() throws {
-        let chart = try parsePieChart(lines("pie\n\"A\": 100\n\"B\": 50"))
+        let (chart, _) = try parsePieChart(lines("pie\n\"A\": 100\n\"B\": 50"))
         let positioned = layoutPieChart(chart)
 
         for entry in positioned.legend {
@@ -54,7 +54,7 @@ final class PieLayoutTests: XCTestCase {
     // MARK: - Color indexing
 
     func testColorDomainStability() throws {
-        let chart = try parsePieChart(lines("pie\n\"A\": 100\n\"B\": 1\n\"C\": 50\n\"D\": 50"))
+        let (chart, _) = try parsePieChart(lines("pie\n\"A\": 100\n\"B\": 1\n\"C\": 50\n\"D\": 50"))
         let positioned = layoutPieChart(chart)
 
         // B is hidden, but D should still be color[3]
@@ -71,7 +71,7 @@ final class PieLayoutTests: XCTestCase {
         for i in 1...14 {
             source += "\"S\(i)\": \(i * 10)\n"
         }
-        let chart = try parsePieChart(lines(String(source.dropLast())))
+        let (chart, _) = try parsePieChart(lines(String(source.dropLast())))
         let positioned = layoutPieChart(chart)
 
         // 13th section should get color index 12 % 12 = 0 (pie1)
@@ -94,7 +94,7 @@ final class PieLayoutTests: XCTestCase {
     // MARK: - Source order
 
     func testArcsInSourceOrder() throws {
-        let chart = try parsePieChart(lines("pie\n\"C\": 100\n\"A\": 100\n\"B\": 100"))
+        let (chart, _) = try parsePieChart(lines("pie\n\"C\": 100\n\"A\": 100\n\"B\": 100"))
         let positioned = layoutPieChart(chart)
 
         let labels = positioned.arcs.map(\.label)
@@ -104,7 +104,7 @@ final class PieLayoutTests: XCTestCase {
     // MARK: - Percentage labels
 
     func testWholePercentLabels() throws {
-        let chart = try parsePieChart(lines("pie\n\"A\": 60\n\"B\": 40"))
+        let (chart, _) = try parsePieChart(lines("pie\n\"A\": 60\n\"B\": 40"))
         let positioned = layoutPieChart(chart)
 
         let pctLabels = Set(positioned.sliceLabels.map(\.text))
@@ -114,7 +114,7 @@ final class PieLayoutTests: XCTestCase {
     // MARK: - showData legend
 
     func testShowDataLegend() throws {
-        let chart = try parsePieChart(lines("pie showData\n\"A\": 60\n\"B\": 40"))
+        let (chart, _) = try parsePieChart(lines("pie showData\n\"A\": 60\n\"B\": 40"))
         let positioned = layoutPieChart(chart)
 
         let displayTexts = positioned.legend.map(\.displayText)
@@ -124,7 +124,7 @@ final class PieLayoutTests: XCTestCase {
     // MARK: - viewBox
 
     func testViewBoxForTitle() throws {
-        let chart = try parsePieChart(lines("pie title A Very Long Title That Should Expand The ViewBox\n\"A\": 100"))
+        let (chart, _) = try parsePieChart(lines("pie title A Very Long Title That Should Expand The ViewBox\n\"A\": 100"))
         let positioned = layoutPieChart(chart)
 
         // viewBox width should expand to accommodate title
@@ -133,7 +133,7 @@ final class PieLayoutTests: XCTestCase {
 
     func testLongTitleStoresNegativeViewBoxOrigin() throws {
         let title = String(repeating: "Long title ", count: 20)
-        let chart = try parsePieChart(lines("pie title \(title)\n\"A\": 100"))
+        let (chart, _) = try parsePieChart(lines("pie title \(title)\n\"A\": 100"))
         let positioned = layoutPieChart(chart)
 
         XCTAssertLessThan(positioned.viewBoxX, 0)
@@ -141,7 +141,7 @@ final class PieLayoutTests: XCTestCase {
     }
 
     func testViewBoxForWideLegend() throws {
-        let chart = try parsePieChart(lines("pie showData\n\"A Very Long Label Name\": 100\n\"Another Long Label\": 50"))
+        let (chart, _) = try parsePieChart(lines("pie showData\n\"A Very Long Label Name\": 100\n\"Another Long Label\": 50"))
         let positioned = layoutPieChart(chart)
 
         // viewBox width should expand to accommodate legend text
@@ -151,7 +151,7 @@ final class PieLayoutTests: XCTestCase {
     // MARK: - textPosition
 
     func testTextPositionCloserToCenter() throws {
-        let chart1 = try parsePieChart(lines("pie\n\"A\": 100"))
+        let (chart1, _) = try parsePieChart(lines("pie\n\"A\": 100"))
         let cfg1 = PieChartConfig(textPosition: 0.5)
         let chart1WithConfig = PieChart(
             sections: chart1.sections,
@@ -160,7 +160,7 @@ final class PieLayoutTests: XCTestCase {
         )
         let positioned1 = layoutPieChart(chart1WithConfig)
 
-        let chart2 = try parsePieChart(lines("pie\n\"A\": 100"))
+        let (chart2, _) = try parsePieChart(lines("pie\n\"A\": 100"))
         let cfg2 = PieChartConfig(textPosition: 0.9)
         let chart2WithConfig = PieChart(
             sections: chart2.sections,
@@ -176,7 +176,7 @@ final class PieLayoutTests: XCTestCase {
     }
 
     func testTextPositionClampedBelowZero() throws {
-        let chart = try parsePieChart(lines("pie\n\"A\": 100"))
+        let (chart, _) = try parsePieChart(lines("pie\n\"A\": 100"))
         let cfg = PieChartConfig(textPosition: -0.5)
         let chartWithConfig = PieChart(
             sections: chart.sections,
@@ -191,7 +191,7 @@ final class PieLayoutTests: XCTestCase {
     }
 
     func testTextPositionClampedAboveOne() throws {
-        let chart = try parsePieChart(lines("pie\n\"A\": 100"))
+        let (chart, _) = try parsePieChart(lines("pie\n\"A\": 100"))
         let cfg = PieChartConfig(textPosition: 1.5)
         let chartWithConfig = PieChart(
             sections: chart.sections,
@@ -209,7 +209,7 @@ final class PieLayoutTests: XCTestCase {
     // MARK: - Zero-sum edge cases
 
     func testZeroSumNoArcs() throws {
-        let chart = try parsePieChart(lines("pie\n\"A\": 0\n\"B\": 0"))
+        let (chart, _) = try parsePieChart(lines("pie\n\"A\": 0\n\"B\": 0"))
         let positioned = layoutPieChart(chart)
 
         XCTAssertEqual(positioned.arcs.count, 0)
@@ -219,7 +219,7 @@ final class PieLayoutTests: XCTestCase {
     }
 
     func testNoSections() throws {
-        let chart = try parsePieChart(lines("pie"))
+        let (chart, _) = try parsePieChart(lines("pie"))
         let positioned = layoutPieChart(chart)
 
         XCTAssertEqual(positioned.arcs.count, 0)
@@ -230,7 +230,7 @@ final class PieLayoutTests: XCTestCase {
     // MARK: - Outer circle
 
     func testOuterCirclePresent() throws {
-        let chart = try parsePieChart(lines("pie\n\"A\": 100"))
+        let (chart, _) = try parsePieChart(lines("pie\n\"A\": 100"))
         let positioned = layoutPieChart(chart)
 
         XCTAssertEqual(positioned.outerCircle.cx, 0)
@@ -241,7 +241,7 @@ final class PieLayoutTests: XCTestCase {
     // MARK: - Title
 
     func testTitlePresent() throws {
-        let chart = try parsePieChart(lines("pie title My Chart\n\"A\": 100"))
+        let (chart, _) = try parsePieChart(lines("pie title My Chart\n\"A\": 100"))
         let positioned = layoutPieChart(chart)
 
         XCTAssertNotNil(positioned.title)
@@ -250,7 +250,7 @@ final class PieLayoutTests: XCTestCase {
     }
 
     func testNoTitle() throws {
-        let chart = try parsePieChart(lines("pie\n\"A\": 100"))
+        let (chart, _) = try parsePieChart(lines("pie\n\"A\": 100"))
         let positioned = layoutPieChart(chart)
 
         XCTAssertNil(positioned.title)
@@ -259,7 +259,7 @@ final class PieLayoutTests: XCTestCase {
     // MARK: - Accessibility metadata flow-through
 
     func testAccessibilityFlowThrough() throws {
-        let chart = try parsePieChart(lines("pie\naccTitle: AT\naccDescr: AD\n\"A\": 100"))
+        let (chart, _) = try parsePieChart(lines("pie\naccTitle: AT\naccDescr: AD\n\"A\": 100"))
         let positioned = layoutPieChart(chart)
 
         XCTAssertEqual(positioned.accTitle, "AT")

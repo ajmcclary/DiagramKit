@@ -11,7 +11,7 @@ final class JourneyRendererTests: XCTestCase {
     }
 
     private func positionedFromSource(_ source: String, config: JourneyDiagramConfig? = nil) throws -> PositionedJourneyDiagram {
-        let diagram = try parseJourneyDiagram(lines(source))
+        let (diagram, _) = try parseJourneyDiagram(lines(source))
         let merged = JourneyDiagram(
             title: diagram.title,
             accTitle: diagram.accTitle,

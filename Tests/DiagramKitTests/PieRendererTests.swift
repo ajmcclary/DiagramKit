@@ -160,7 +160,7 @@ final class PieRendererTests: XCTestCase {
 
     func testSvgUsesNegativeViewBoxOriginForLongTitle() throws {
         let title = String(repeating: "Long title ", count: 20)
-        let chart = try parsePieChart(lines("pie title \(title)\n\"A\": 100"))
+        let (chart, _) = try parsePieChart(lines("pie title \(title)\n\"A\": 100"))
         var positioned = layoutPieChart(chart)
         positioned.config.useMaxWidth = false
         let svg = renderPieSvg(positioned, defaultColors())
@@ -342,13 +342,13 @@ final class PieRendererTests: XCTestCase {
     // MARK: - Convenience helper
 
     private func renderPieSVG(_ source: String) throws -> String {
-        let chart = try parsePieChart(lines(source))
+        let (chart, _) = try parsePieChart(lines(source))
         let positioned = layoutPieChart(chart)
         return renderPieSvg(positioned, defaultColors())
     }
 
     private func renderPiePixels(_ source: String) throws -> (pixels: [UInt8], width: Int, height: Int) {
-        let chart = try parsePieChart(lines(source))
+        let (chart, _) = try parsePieChart(lines(source))
         let positionedPie = layoutPieChart(chart)
         let graph = DiagramDocument(payload: .pie(chart))
         let positioned = PositionedGraph(

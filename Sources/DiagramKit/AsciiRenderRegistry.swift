@@ -57,7 +57,7 @@ enum AsciiRenderRegistry {
         .pie: AsciiRenderDescriptor(
             type: .pie,
             render: { source, _, _, _, _ in
-                let chart = try parsePieChart(source)
+                let (chart, _) = try parsePieChart(source)
                 return renderPieAscii(chart)
             }
         ),
@@ -65,7 +65,7 @@ enum AsciiRenderRegistry {
             type: .journey,
             render: { source, frontmatter, _, _, _ in
                 let rawLines = DiagramSourceNormalizer.rawLines(source)
-                let model = try parseJourneyDiagram(rawLines, frontmatter: frontmatter)
+                let (model, _) = try parseJourneyDiagram(rawLines, frontmatter: frontmatter)
                 return renderJourneyAscii(model)
             }
         ),
@@ -73,7 +73,7 @@ enum AsciiRenderRegistry {
             type: .gantt,
             render: { source, frontmatter, _, _, _ in
                 let rawLines = DiagramSourceNormalizer.rawLines(source)
-                let model = try parseGanttDiagram(rawLines, frontmatter: frontmatter)
+                let (model, _) = try parseGanttDiagram(rawLines, frontmatter: frontmatter)
                 return renderGanttAscii(model)
             }
         ),

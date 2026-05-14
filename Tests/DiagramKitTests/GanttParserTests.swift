@@ -18,7 +18,7 @@ struct GanttParserTests {
             "A task       :a1, 2014-01-01, 30d",
             "Another task :after a1, 20d",
         ]
-        let diagram = try parseGanttDiagram(source)
+        let (diagram, _) = try parseGanttDiagram(source)
         #expect(diagram.title == "A Gantt Diagram")
         #expect(diagram.dateFormat == "YYYY-MM-DD")
         #expect(diagram.sections.count == 1)
@@ -33,42 +33,42 @@ struct GanttParserTests {
     @Test("dateFormat parsing")
     func dateFormat() throws {
         let source = ["gantt", "dateFormat YYYY-MM-DD"]
-        let diagram = try parseGanttDiagram(source)
+        let (diagram, _) = try parseGanttDiagram(source)
         #expect(diagram.dateFormat == "YYYY-MM-DD")
     }
 
     @Test("inclusiveEndDates flag")
     func inclusiveEndDates() throws {
         let source = ["gantt", "inclusiveEndDates"]
-        let diagram = try parseGanttDiagram(source)
+        let (diagram, _) = try parseGanttDiagram(source)
         #expect(diagram.inclusiveEndDates == true)
     }
 
     @Test("title parsing")
     func diagramTitle() throws {
         let source = ["gantt", "title My Gantt"]
-        let diagram = try parseGanttDiagram(source)
+        let (diagram, _) = try parseGanttDiagram(source)
         #expect(diagram.title == "My Gantt")
     }
 
     @Test("Title beginning with semicolon")
     func titleWithSemicolon() throws {
         let source = ["gantt", "title ;My Title"]
-        let diagram = try parseGanttDiagram(source)
+        let (diagram, _) = try parseGanttDiagram(source)
         #expect(diagram.title == ";My Title")
     }
 
     @Test("Title beginning with hash")
     func titleWithHash() throws {
         let source = ["gantt", "title #My Title"]
-        let diagram = try parseGanttDiagram(source)
+        let (diagram, _) = try parseGanttDiagram(source)
         #expect(diagram.title == "#My Title")
     }
 
     @Test("section parsing")
     func sectionStatement() throws {
         let source = ["gantt", "section My Section"]
-        let diagram = try parseGanttDiagram(source)
+        let (diagram, _) = try parseGanttDiagram(source)
         #expect(diagram.sections.count == 1)
         #expect(diagram.sections[0].name == "My Section")
     }
@@ -76,21 +76,21 @@ struct GanttParserTests {
     @Test("Section title with semicolon")
     func sectionWithSemicolon() throws {
         let source = ["gantt", "section ;My Section"]
-        let diagram = try parseGanttDiagram(source)
+        let (diagram, _) = try parseGanttDiagram(source)
         #expect(diagram.sections[0].name == ";My Section")
     }
 
     @Test("Section title with <br>")
     func sectionWithBrTag() throws {
         let source = ["gantt", "section First<br>Second"]
-        let diagram = try parseGanttDiagram(source)
+        let (diagram, _) = try parseGanttDiagram(source)
         #expect(diagram.sections[0].name == "First<br>Second")
     }
 
     @Test("excludes parsing")
     func excludesStatement() throws {
         let source = ["gantt", "excludes weekends, 2024-01-01"]
-        let diagram = try parseGanttDiagram(source)
+        let (diagram, _) = try parseGanttDiagram(source)
         #expect(diagram.excludes.contains("weekends"))
         #expect(diagram.excludes.contains("2024-01-01"))
     }
@@ -98,63 +98,63 @@ struct GanttParserTests {
     @Test("includes parsing")
     func includesStatement() throws {
         let source = ["gantt", "includes 2024-01-01"]
-        let diagram = try parseGanttDiagram(source)
+        let (diagram, _) = try parseGanttDiagram(source)
         #expect(diagram.includes.contains("2024-01-01"))
     }
 
     @Test("todayMarker parsing")
     func todayMarker() throws {
         let source = ["gantt", "todayMarker off"]
-        let diagram = try parseGanttDiagram(source)
+        let (diagram, _) = try parseGanttDiagram(source)
         #expect(diagram.todayMarker == "off")
     }
 
     @Test("todayMarker with style")
     func todayMarkerStyle() throws {
         let source = ["gantt", "todayMarker stroke-width:2px,stroke:#00f"]
-        let diagram = try parseGanttDiagram(source)
+        let (diagram, _) = try parseGanttDiagram(source)
         #expect(diagram.todayMarker == "stroke-width:2px,stroke:#00f")
     }
 
     @Test("weekday parsing")
     func weekdayStatement() throws {
         let source = ["gantt", "weekday monday"]
-        let diagram = try parseGanttDiagram(source)
+        let (diagram, _) = try parseGanttDiagram(source)
         #expect(diagram.weekday == "monday")
     }
 
     @Test("weekend parsing")
     func weekendStatement() throws {
         let source = ["gantt", "weekend friday"]
-        let diagram = try parseGanttDiagram(source)
+        let (diagram, _) = try parseGanttDiagram(source)
         #expect(diagram.weekend == "friday")
     }
 
     @Test("Default weekend saturday")
     func defaultWeekend() throws {
         let source = ["gantt"]
-        let diagram = try parseGanttDiagram(source)
+        let (diagram, _) = try parseGanttDiagram(source)
         #expect(diagram.weekend == "saturday")
     }
 
     @Test("topAxis flag")
     func topAxisFlag() throws {
         let source = ["gantt", "topAxis"]
-        let diagram = try parseGanttDiagram(source)
+        let (diagram, _) = try parseGanttDiagram(source)
         #expect(diagram.topAxis == true)
     }
 
     @Test("axisFormat parsing")
     func axisFormat() throws {
         let source = ["gantt", "axisFormat %Y-%m-%d"]
-        let diagram = try parseGanttDiagram(source)
+        let (diagram, _) = try parseGanttDiagram(source)
         #expect(diagram.axisFormat == "%Y-%m-%d")
     }
 
     @Test("tickInterval parsing")
     func tickInterval() throws {
         let source = ["gantt", "tickInterval 1day"]
-        let diagram = try parseGanttDiagram(source)
+        let (diagram, _) = try parseGanttDiagram(source)
         #expect(diagram.tickInterval == "1day")
     }
 
@@ -166,7 +166,7 @@ struct GanttParserTests {
             "section S1",
             "My Task :t1, 2024-01-01, 2024-01-10",
         ]
-        let diagram = try parseGanttDiagram(source)
+        let (diagram, _) = try parseGanttDiagram(source)
         #expect(diagram.tasks.count == 1)
         #expect(diagram.tasks[0].id == "t1")
         #expect(diagram.tasks[0].task == "My Task")
@@ -181,7 +181,7 @@ struct GanttParserTests {
             "section S1",
             "My Task :2024-01-01, 10d",
         ]
-        let diagram = try parseGanttDiagram(source)
+        let (diagram, _) = try parseGanttDiagram(source)
         #expect(diagram.tasks.count == 1)
         #expect(diagram.tasks[0].id.hasPrefix("task"))
     }
@@ -194,7 +194,7 @@ struct GanttParserTests {
             "section S1",
             "My Task :10d",
         ]
-        let diagram = try parseGanttDiagram(source)
+        let (diagram, _) = try parseGanttDiagram(source)
         #expect(diagram.tasks.count == 1)
         #expect(diagram.tasks[0].id.hasPrefix("task"))
     }
@@ -207,7 +207,7 @@ struct GanttParserTests {
             "section S1",
             "My Task :active, t1, 2024-01-01, 10d",
         ]
-        let diagram = try parseGanttDiagram(source)
+        let (diagram, _) = try parseGanttDiagram(source)
         #expect(diagram.tasks[0].tags.contains(.active))
     }
 
@@ -219,7 +219,7 @@ struct GanttParserTests {
             "section S1",
             "My Task :done, t1, 2024-01-01, 10d",
         ]
-        let diagram = try parseGanttDiagram(source)
+        let (diagram, _) = try parseGanttDiagram(source)
         #expect(diagram.tasks[0].tags.contains(.done))
     }
 
@@ -231,7 +231,7 @@ struct GanttParserTests {
             "section S1",
             "My Task :crit, t1, 2024-01-01, 10d",
         ]
-        let diagram = try parseGanttDiagram(source)
+        let (diagram, _) = try parseGanttDiagram(source)
         #expect(diagram.tasks[0].tags.contains(.crit))
     }
 
@@ -243,7 +243,7 @@ struct GanttParserTests {
             "section S1",
             "My Task :milestone, t1, 2024-01-01, 0d",
         ]
-        let diagram = try parseGanttDiagram(source)
+        let (diagram, _) = try parseGanttDiagram(source)
         #expect(diagram.tasks[0].tags.contains(.milestone))
     }
 
@@ -255,7 +255,7 @@ struct GanttParserTests {
             "section S1",
             "My Task :vert, t1, 2024-01-01, 0d",
         ]
-        let diagram = try parseGanttDiagram(source)
+        let (diagram, _) = try parseGanttDiagram(source)
         #expect(diagram.tasks[0].tags.contains(.vert))
     }
 
@@ -267,7 +267,7 @@ struct GanttParserTests {
             "section S1",
             "My Task :done, crit, t1, 2024-01-01, 10d",
         ]
-        let diagram = try parseGanttDiagram(source)
+        let (diagram, _) = try parseGanttDiagram(source)
         #expect(diagram.tasks[0].tags.contains(.done))
         #expect(diagram.tasks[0].tags.contains(.crit))
     }
@@ -281,7 +281,7 @@ struct GanttParserTests {
             "Task 1 :t1, 2024-01-01, 10d",
             "Task 2 :after t1, 5d",
         ]
-        let diagram = try parseGanttDiagram(source)
+        let (diagram, _) = try parseGanttDiagram(source)
         #expect(diagram.tasks.count == 2)
         #expect(diagram.tasks[1].startTime >= diagram.tasks[0].endTime)
     }
@@ -295,7 +295,7 @@ struct GanttParserTests {
             "Task 1 :2024-01-01, 10d",
             "Task 2 :2024-01-15, 5d",
         ]
-        let diagram = try parseGanttDiagram(source)
+        let (diagram, _) = try parseGanttDiagram(source)
         #expect(diagram.tasks[0].id.hasPrefix("task"))
         #expect(diagram.tasks[1].id.hasPrefix("task"))
     }
@@ -310,7 +310,7 @@ struct GanttParserTests {
             "section Development",
             "Task B :b, 2024-01-06, 10d",
         ]
-        let diagram = try parseGanttDiagram(source)
+        let (diagram, _) = try parseGanttDiagram(source)
         #expect(diagram.sections.count == 2)
         #expect(diagram.tasks[0].section == "Planning")
         #expect(diagram.tasks[1].section == "Development")
@@ -319,14 +319,14 @@ struct GanttParserTests {
     @Test("accTitle parsing")
     func accTitle() throws {
         let source = ["gantt", "accTitle: My Accessible Title"]
-        let diagram = try parseGanttDiagram(source)
+        let (diagram, _) = try parseGanttDiagram(source)
         #expect(diagram.accTitle == "My Accessible Title")
     }
 
     @Test("Single-line accDescr")
     func accDescrSingleLine() throws {
         let source = ["gantt", "accDescr: A simple description"]
-        let diagram = try parseGanttDiagram(source)
+        let (diagram, _) = try parseGanttDiagram(source)
         #expect(diagram.accDescr == "A simple description")
     }
 
@@ -339,7 +339,7 @@ struct GanttParserTests {
             "  description",
             "}",
         ]
-        let diagram = try parseGanttDiagram(source)
+        let (diagram, _) = try parseGanttDiagram(source)
         #expect(diagram.accDescr != nil)
         #expect(diagram.accDescr!.contains("A multiline"))
         #expect(diagram.accDescr!.contains("description"))
@@ -354,7 +354,7 @@ struct GanttParserTests {
             "Task 1 :t1, 2024-01-01, 10d",
             "click t1 href \"https://example.com\"",
         ]
-        let diagram = try parseGanttDiagram(source)
+        let (diagram, _) = try parseGanttDiagram(source)
         #expect(diagram.tasks[0].classes.contains("clickable"))
     }
 
@@ -367,7 +367,7 @@ struct GanttParserTests {
             "Task 1 :t1, 2024-01-01, 10d",
             "click t1 call myCallback()",
         ]
-        let diagram = try parseGanttDiagram(source)
+        let (diagram, _) = try parseGanttDiagram(source)
         #expect(diagram.tasks[0].classes.contains("clickable"))
     }
 
@@ -379,7 +379,7 @@ struct GanttParserTests {
             "section S1",
             ";Special Task :t1, 2024-01-01, 10d",
         ]
-        let diagram = try parseGanttDiagram(source)
+        let (diagram, _) = try parseGanttDiagram(source)
         #expect(diagram.tasks[0].task == ";Special Task")
     }
 
@@ -391,7 +391,7 @@ struct GanttParserTests {
             "section S1",
             "#Task :t1, 2024-01-01, 10d",
         ]
-        let diagram = try parseGanttDiagram(source)
+        let (diagram, _) = try parseGanttDiagram(source)
         #expect(diagram.tasks[0].task == "#Task")
     }
 
@@ -403,7 +403,7 @@ struct GanttParserTests {
             "section S1",
             "Task 1 :t1, 2024-01-01, 10d",
         ]
-        let diagram = try parseGanttDiagram(source)
+        let (diagram, _) = try parseGanttDiagram(source)
         let cal = Calendar.current
         let expected = cal.date(byAdding: .day, value: 10, to: _date(2024, 1, 1))!
         #expect(abs(diagram.tasks[0].endTime.timeIntervalSince(expected)) < 60)
@@ -417,7 +417,7 @@ struct GanttParserTests {
             "section S1",
             "Task 1 :t1, 2024-01-01, 2w",
         ]
-        let diagram = try parseGanttDiagram(source)
+        let (diagram, _) = try parseGanttDiagram(source)
         let cal = Calendar.current
         let expected = cal.date(byAdding: .day, value: 14, to: _date(2024, 1, 1))!
         #expect(abs(diagram.tasks[0].endTime.timeIntervalSince(expected)) < 60)
@@ -431,7 +431,7 @@ struct GanttParserTests {
             "section S1",
             "Task 1 :t1, 2024-01-01, 1M",
         ]
-        let diagram = try parseGanttDiagram(source)
+        let (diagram, _) = try parseGanttDiagram(source)
         let cal = Calendar.current
         let expected = cal.date(byAdding: .month, value: 1, to: _date(2024, 1, 1))!
         #expect(abs(diagram.tasks[0].endTime.timeIntervalSince(expected)) < 60)
@@ -445,7 +445,7 @@ struct GanttParserTests {
             "section S1",
             "Task 1 :t1, 2024-01-01, 24h",
         ]
-        let diagram = try parseGanttDiagram(source)
+        let (diagram, _) = try parseGanttDiagram(source)
         let expected = _date(2024, 1, 1).addingTimeInterval(86400)
         #expect(abs(diagram.tasks[0].endTime.timeIntervalSince(expected)) < 60)
     }
@@ -458,7 +458,7 @@ struct GanttParserTests {
             "section S1",
             "Task 1 :t1, 2024-01-01, 60m",
         ]
-        let diagram = try parseGanttDiagram(source)
+        let (diagram, _) = try parseGanttDiagram(source)
         let expected = _date(2024, 1, 1).addingTimeInterval(3600)
         #expect(abs(diagram.tasks[0].endTime.timeIntervalSince(expected)) < 60)
     }
@@ -471,7 +471,7 @@ struct GanttParserTests {
             "section S1",
             "Task 1 :t1, 2024-01-01, 1.5d",
         ]
-        let diagram = try parseGanttDiagram(source)
+        let (diagram, _) = try parseGanttDiagram(source)
         let cal = Calendar.current
         let expected = cal.date(byAdding: .day, value: 1, to: _date(2024, 1, 1))!
         let expectedEnd = expected.addingTimeInterval(43200)
@@ -486,7 +486,7 @@ struct GanttParserTests {
             "section S1",
             "Task 1 :t1, 2024-01-01, 1f",
         ]
-        let diagram = try parseGanttDiagram(source)
+        let (diagram, _) = try parseGanttDiagram(source)
         #expect(diagram.tasks[0].endTime == diagram.tasks[0].startTime)
     }
 
@@ -504,7 +504,7 @@ struct GanttParserTests {
             "%% This is a comment",
             "title My Title",
         ]
-        let diagram = try parseGanttDiagram(source)
+        let (diagram, _) = try parseGanttDiagram(source)
         #expect(diagram.title == "My Title")
     }
 
@@ -517,7 +517,7 @@ struct GanttParserTests {
             "Task 1 :t1, 2024-01-01, 20d",
             "Task 2 :t2, 2024-01-01, until t1",
         ]
-        let diagram = try parseGanttDiagram(source)
+        let (diagram, _) = try parseGanttDiagram(source)
         #expect(diagram.tasks.count == 2)
     }
 
@@ -532,7 +532,7 @@ struct GanttParserTests {
             "section sec2",
             "Task 3 :id3, after id1, 2d",
         ]
-        let diagram = try parseGanttDiagram(source)
+        let (diagram, _) = try parseGanttDiagram(source)
         #expect(diagram.tasks[1].startTime == _date(2013, 1, 17))
         #expect(diagram.tasks[1].endTime == _date(2013, 1, 18))
     }
@@ -548,7 +548,7 @@ struct GanttParserTests {
             "Task 2 :id2, 2013-01-10, until id3",
             "Task 3 :id3, 2013-02-01, 2d",
         ]
-        let diagram = try parseGanttDiagram(source)
+        let (diagram, _) = try parseGanttDiagram(source)
         #expect(diagram.tasks[0].endTime == _date(2013, 2, 1))
         #expect(diagram.tasks[1].endTime == _date(2013, 2, 1))
     }
@@ -564,7 +564,7 @@ struct GanttParserTests {
             "Task 3 :id3, 2013-02-01, 3d",
             "Task 4 :id4, 2013-02-01, 2d",
         ]
-        let diagram = try parseGanttDiagram(source)
+        let (diagram, _) = try parseGanttDiagram(source)
         #expect(diagram.tasks[0].startTime == _date(2013, 2, 4))
         #expect(diagram.tasks[0].endTime == _date(2013, 2, 5))
     }
@@ -580,7 +580,7 @@ struct GanttParserTests {
             "Task 3 :id3, 2013-02-10, 1d",
             "Task 4 :id4, 2013-02-12, 1d",
         ]
-        let diagram = try parseGanttDiagram(source)
+        let (diagram, _) = try parseGanttDiagram(source)
         #expect(diagram.tasks[0].endTime == _date(2013, 1, 11))
     }
 
@@ -594,7 +594,7 @@ struct GanttParserTests {
             "section Work",
             "Task 1 :id1, 2024-02-28, 3d",
         ]
-        let diagram = try parseGanttDiagram(source)
+        let (diagram, _) = try parseGanttDiagram(source)
         #expect(diagram.tasks[0].endTime == _date(2024, 3, 4))
         #expect(diagram.tasks[0].renderEndTime == _date(2024, 3, 4))
     }
@@ -608,7 +608,7 @@ struct GanttParserTests {
             "section Work",
             "Task 1 :id1, 2019-02-01, 1d",
         ]
-        let diagram = try parseGanttDiagram(source)
+        let (diagram, _) = try parseGanttDiagram(source)
         #expect(diagram.tasks[0].endTime == _date(2019, 2, 5))
         #expect(diagram.tasks[0].renderEndTime == _date(2019, 2, 5))
     }
@@ -622,7 +622,7 @@ struct GanttParserTests {
             "Task 1 :t1, 2024-01-01, 10d",
             "click t1 href \"https://example.com\" call myCallback(\"a,b\", c)",
         ]
-        let diagram = try parseGanttDiagram(source)
+        let (diagram, _) = try parseGanttDiagram(source)
         #expect(diagram.links["t1"] == "https://example.com")
         #expect(diagram.tasks[0].link == "https://example.com")
         #expect(diagram.tasks[0].callbackName == "myCallback")
@@ -639,7 +639,7 @@ struct GanttParserTests {
             "Task 1 :t1, 2024-01-01, 10d",
             "click t1 call myCallback()",
         ]
-        let diagram = try parseGanttDiagram(source)
+        let (diagram, _) = try parseGanttDiagram(source)
         #expect(diagram.tasks[0].callbackName == "myCallback")
         #expect(diagram.tasks[0].callbackArgs == ["t1"])
     }
@@ -653,7 +653,7 @@ struct GanttParserTests {
             "  description",
             "}",
         ]
-        let diagram = try parseGanttDiagram(source)
+        let (diagram, _) = try parseGanttDiagram(source)
         #expect(diagram.accDescr?.contains("A multiline") == true)
         #expect(diagram.accDescr?.contains("description") == true)
     }
@@ -667,7 +667,7 @@ struct GanttParserTests {
             "section S1",
             "Task 1 :t1, 2024-01-01, 1d",
         ]
-        let diagram = try parseGanttDiagram(source)
+        let (diagram, _) = try parseGanttDiagram(source)
         #expect(diagram.tasks[0].endTime == _date(2024, 1, 3))
     }
 
@@ -681,7 +681,7 @@ struct GanttParserTests {
             "section S1",
             "Task 1 :t1, 2024-01-05, 1d",
         ]
-        let diagram = try parseGanttDiagram(source)
+        let (diagram, _) = try parseGanttDiagram(source)
         #expect(diagram.tasks[0].endTime == _date(2024, 1, 6))
     }
 
@@ -695,7 +695,7 @@ struct GanttParserTests {
             "section S1",
             "Task 1 :t1, 2023-06-01, 3d",
         ]
-        let diagram = try parseGanttDiagram(source)
+        let (diagram, _) = try parseGanttDiagram(source)
         #expect(diagram.tasks[0].endTime == _date(2023, 6, 7))
     }
 
@@ -708,7 +708,7 @@ struct GanttParserTests {
             "Task 1 :t1, 2024-01-01, 10d",
             "click t1 href \"javascript:alert(1)\"",
         ]
-        let diagram = try parseGanttDiagram(source)
+        let (diagram, _) = try parseGanttDiagram(source)
         #expect(diagram.tasks[0].link == nil)
     }
 
@@ -721,7 +721,7 @@ struct GanttParserTests {
             "Task 1 :t1, 2024-01-01, 10d",
             "click t1 href \"vbscript:msgbox(1)\"",
         ]
-        let diagram = try parseGanttDiagram(source)
+        let (diagram, _) = try parseGanttDiagram(source)
         #expect(diagram.tasks[0].link == nil)
     }
 
@@ -734,7 +734,7 @@ struct GanttParserTests {
             "Task 1 :t1, 2024-01-01, 10d",
             "click t1 href \"file:///etc/hosts\"",
         ]
-        let diagram = try parseGanttDiagram(source)
+        let (diagram, _) = try parseGanttDiagram(source)
         #expect(diagram.tasks[0].link == nil)
     }
 
@@ -744,7 +744,7 @@ struct GanttParserTests {
             "gantt",
             "todayMarker stroke-width:2px,stroke:#00f,stroke-dasharray:4",
         ]
-        let diagram = try parseGanttDiagram(source)
+        let (diagram, _) = try parseGanttDiagram(source)
         #expect(diagram.todayMarker == "stroke-width:2px,stroke:#00f,stroke-dasharray:4")
     }
 }

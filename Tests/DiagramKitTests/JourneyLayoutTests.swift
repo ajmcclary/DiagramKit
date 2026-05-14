@@ -11,7 +11,7 @@ final class JourneyLayoutTests: XCTestCase {
     }
 
     private func parsedDiagram(_ source: String) throws -> JourneyDiagram {
-        try parseJourneyDiagram(lines(source))
+        try parseJourneyDiagram(lines(source)).0
     }
 
     // MARK: - Basic layout

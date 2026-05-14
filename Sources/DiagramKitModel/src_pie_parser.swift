@@ -1,4 +1,5 @@
 import Foundation
+import DiagramKitCommon
 
 // MARK: - Error types
 
@@ -138,12 +139,12 @@ private func parseSectionLine(_ line: String) throws -> SectionLineResult {
 
 // MARK: - Public API
 
-public func parsePieChart(_ source: String) throws -> PieChart {
+public func parsePieChart(_ source: String) throws -> (PieChart, [DiagramDiagnostic]) {
     let lines = _mermaidSourceLines(from: source)
     return try parsePieChart(lines, frontmatter: nil)
 }
 
-public func parsePieChart(_ lines: [String], frontmatter: DiagramFrontmatter? = nil) throws -> PieChart {
+public func parsePieChart(_ lines: [String], frontmatter: DiagramFrontmatter? = nil) throws -> (PieChart, [DiagramDiagnostic]) {
     var chart = PieChart()
 
     guard !lines.isEmpty else {
@@ -325,5 +326,5 @@ public func parsePieChart(_ lines: [String], frontmatter: DiagramFrontmatter? = 
         }
     }
 
-    return chart
+    return (chart, [])
 }

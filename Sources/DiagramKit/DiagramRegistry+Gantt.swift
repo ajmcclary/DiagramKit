@@ -12,7 +12,7 @@ extension DiagramRegistry {
     static let _gantt = _typed(
         type: .gantt,
         matches: { $0.startsWithToken("gantt") },
-        parse: { source, frontmatter in
+        parseWithDiagnostics: { source, frontmatter in
             try parseGanttDiagram(
                 DiagramSourceNormalizer.statements(source, separators: CharacterSet(charactersIn: "\n")),
                 frontmatter: frontmatter

@@ -28,8 +28,8 @@ public enum GanttParserError: Error, LocalizedError, _RecoverableDiagramError {
 public func parseGanttDiagram(
     _ lines: [String],
     frontmatter: DiagramFrontmatter? = nil
-) throws -> GanttDiagram {
-    try _parseGanttDiagramEntry(lines, frontmatter: frontmatter)
+) throws -> (GanttDiagram, [DiagramDiagnostic]) {
+    (try _parseGanttDiagramEntry(lines, frontmatter: frontmatter), [])
 }
 
 private func _parseGanttDiagramEntry(

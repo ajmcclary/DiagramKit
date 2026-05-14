@@ -12,14 +12,14 @@ extension DiagramRegistry {
     static let _pie = _typed(
         type: .pie,
         matches: { $0.startsWithToken("pie") },
-        parse: { source, frontmatter in
-            var chart = try parsePieChart(DiagramSourceNormalizer.diagramLines(source), frontmatter: frontmatter)
+        parseWithDiagnostics: { source, frontmatter in
+            var (chart, diagnostics) = try parsePieChart(DiagramSourceNormalizer.diagramLines(source), frontmatter: frontmatter)
             if let fm = frontmatter {
                 if let cfg = fm.pieConfig { chart.config = cfg }
                 if let theme = fm.pieTheme { chart.theme = theme }
                 if chart.diagramTitle == nil, let fmTitle = fm.diagramTitle { chart.diagramTitle = fmTitle }
             }
-            return chart
+            return (chart, diagnostics)
         },
         wrap: DiagramPayload.pie,
         unwrap: { payload in

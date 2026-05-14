@@ -24,7 +24,7 @@ final class JourneyParserTests: XCTestCase {
               Go downstairs: 5: Me
               Sit down: 5: Me
         """
-        let diagram = try parseJourneyDiagram(lines(source))
+        let (diagram, _) = try parseJourneyDiagram(lines(source))
         XCTAssertEqual(diagram.title, "My working day")
         XCTAssertEqual(diagram.sections.count, 2)
         XCTAssertEqual(diagram.sections[0], "Go to work")
@@ -38,7 +38,7 @@ final class JourneyParserTests: XCTestCase {
         journey
             title Adding journey diagram functionality to mermaid
         """
-        let diagram = try parseJourneyDiagram(lines(source))
+        let (diagram, _) = try parseJourneyDiagram(lines(source))
         XCTAssertEqual(diagram.title, "Adding journey diagram functionality to mermaid")
     }
 
@@ -47,7 +47,7 @@ final class JourneyParserTests: XCTestCase {
         journey
             accTitle: The title
         """
-        let diagram = try parseJourneyDiagram(lines(source))
+        let (diagram, _) = try parseJourneyDiagram(lines(source))
         XCTAssertEqual(diagram.accTitle, "The title")
     }
 
@@ -56,7 +56,7 @@ final class JourneyParserTests: XCTestCase {
         journey
             accDescr: A user journey for family shopping
         """
-        let diagram = try parseJourneyDiagram(lines(source))
+        let (diagram, _) = try parseJourneyDiagram(lines(source))
         XCTAssertEqual(diagram.accDescr, "A user journey for family shopping")
     }
 
@@ -68,7 +68,7 @@ final class JourneyParserTests: XCTestCase {
             family shopping
             }
         """
-        let diagram = try parseJourneyDiagram(lines(source))
+        let (diagram, _) = try parseJourneyDiagram(lines(source))
         XCTAssertEqual(diagram.accDescr, "A user journey for\nfamily shopping")
     }
 
@@ -77,7 +77,7 @@ final class JourneyParserTests: XCTestCase {
         journey
             accDescr { A one-line journey description }
         """
-        let diagram = try parseJourneyDiagram(lines(source))
+        let (diagram, _) = try parseJourneyDiagram(lines(source))
         XCTAssertEqual(diagram.accDescr, "A one-line journey description")
     }
 
@@ -88,7 +88,7 @@ final class JourneyParserTests: XCTestCase {
             family shopping
             }
         """
-        let diagram = try parseJourneyDiagram(lines(source))
+        let (diagram, _) = try parseJourneyDiagram(lines(source))
         XCTAssertEqual(diagram.accDescr, "A user journey for\nfamily shopping")
     }
 
@@ -99,7 +99,7 @@ final class JourneyParserTests: XCTestCase {
             accDescr: A journey description
             title My Title
         """
-        let diagram = try parseJourneyDiagram(lines(source))
+        let (diagram, _) = try parseJourneyDiagram(lines(source))
         XCTAssertEqual(diagram.accTitle, "A journey")
         XCTAssertEqual(diagram.accDescr, "A journey description")
         XCTAssertEqual(diagram.title, "My Title")
@@ -110,7 +110,7 @@ final class JourneyParserTests: XCTestCase {
         journey
             section Order from website
         """
-        let diagram = try parseJourneyDiagram(lines(source))
+        let (diagram, _) = try parseJourneyDiagram(lines(source))
         XCTAssertEqual(diagram.sections.count, 1)
         XCTAssertEqual(diagram.sections[0], "Order from website")
     }
@@ -120,7 +120,7 @@ final class JourneyParserTests: XCTestCase {
         journey
             section Line1<br>Line2<br/>Line3</br />Line4<br\t/>Line5
         """
-        let diagram = try parseJourneyDiagram(lines(source))
+        let (diagram, _) = try parseJourneyDiagram(lines(source))
         XCTAssertEqual(diagram.sections.count, 1)
         XCTAssertTrue(diagram.sections[0].contains("<br>"))
     }
@@ -131,7 +131,7 @@ final class JourneyParserTests: XCTestCase {
             section Test
             C task: 5
         """
-        let diagram = try parseJourneyDiagram(lines(source))
+        let (diagram, _) = try parseJourneyDiagram(lines(source))
         XCTAssertEqual(diagram.tasks.count, 1)
         XCTAssertEqual(diagram.tasks[0].task, "C task")
         XCTAssertEqual(diagram.tasks[0].score, 5)
@@ -144,7 +144,7 @@ final class JourneyParserTests: XCTestCase {
             section Test
             A task: 5: Alice, Bob, Charlie
         """
-        let diagram = try parseJourneyDiagram(lines(source))
+        let (diagram, _) = try parseJourneyDiagram(lines(source))
         XCTAssertEqual(diagram.tasks.count, 1)
         XCTAssertEqual(diagram.tasks[0].score, 5)
         XCTAssertEqual(diagram.tasks[0].people, ["Alice", "Bob", "Charlie"])
@@ -156,7 +156,7 @@ final class JourneyParserTests: XCTestCase {
             section Test
             E task: 5:
         """
-        let diagram = try parseJourneyDiagram(lines(source))
+        let (diagram, _) = try parseJourneyDiagram(lines(source))
         XCTAssertEqual(diagram.tasks.count, 1)
         XCTAssertEqual(diagram.tasks[0].score, 5)
         XCTAssertEqual(diagram.tasks[0].people, [""])
@@ -170,7 +170,7 @@ final class JourneyParserTests: XCTestCase {
             section Another section
             Task2: 3: You
         """
-        let diagram = try parseJourneyDiagram(lines(source))
+        let (diagram, _) = try parseJourneyDiagram(lines(source))
         XCTAssertEqual(diagram.sections.count, 2)
         XCTAssertEqual(diagram.tasks[0].section, "Documentation")
         XCTAssertEqual(diagram.tasks[1].section, "Another section")
@@ -183,7 +183,7 @@ final class JourneyParserTests: XCTestCase {
             Task1: 1: Charlie, Alice
             Task2: 3: Bob, Alice
         """
-        let diagram = try parseJourneyDiagram(lines(source))
+        let (diagram, _) = try parseJourneyDiagram(lines(source))
         XCTAssertEqual(diagram.actors, ["Charlie", "Alice", "Bob"])
     }
 
@@ -192,7 +192,7 @@ final class JourneyParserTests: XCTestCase {
         journey
         title Test
         """
-        let diagram = try parseJourneyDiagram(lines(source))
+        let (diagram, _) = try parseJourneyDiagram(lines(source))
         XCTAssertEqual(diagram.title, "Test")
         XCTAssertEqual(diagram.sections.count, 0)
         XCTAssertEqual(diagram.tasks.count, 0)
@@ -204,7 +204,7 @@ final class JourneyParserTests: XCTestCase {
         journey
             section Checkout # this is a comment
         """
-        let diagram = try parseJourneyDiagram(lines(source))
+        let (diagram, _) = try parseJourneyDiagram(lines(source))
         XCTAssertEqual(diagram.sections[0], "Checkout")
     }
 
@@ -214,7 +214,7 @@ final class JourneyParserTests: XCTestCase {
             section Test
             Do work: 5: Me # priority task
         """
-        let diagram = try parseJourneyDiagram(lines(source))
+        let (diagram, _) = try parseJourneyDiagram(lines(source))
         XCTAssertEqual(diagram.tasks[0].task, "Do work")
         XCTAssertEqual(diagram.tasks[0].score, 5)
         XCTAssertEqual(diagram.tasks[0].people, ["Me"])
@@ -239,7 +239,7 @@ final class JourneyParserTests: XCTestCase {
             section Test
             F task: 5: Alice,
         """
-        let diagram = try parseJourneyDiagram(lines(source))
+        let (diagram, _) = try parseJourneyDiagram(lines(source))
         XCTAssertEqual(diagram.tasks[0].people, ["Alice", ""])
     }
 
@@ -286,7 +286,7 @@ final class JourneyParserTests: XCTestCase {
             section Test
             A task: abc: Me
         """
-        let diagram = try parseJourneyDiagram(lines(source))
+        let (diagram, _) = try parseJourneyDiagram(lines(source))
         XCTAssertEqual(diagram.tasks.count, 1)
         XCTAssertEqual(diagram.tasks[0].task, "A task")
         XCTAssertEqual(diagram.tasks[0].score, 0)
@@ -299,7 +299,7 @@ final class JourneyParserTests: XCTestCase {
             section Test
             A task: : Me
         """
-        let diagram = try parseJourneyDiagram(lines(source))
+        let (diagram, _) = try parseJourneyDiagram(lines(source))
         XCTAssertEqual(diagram.tasks.count, 1)
         XCTAssertEqual(diagram.tasks[0].score, 0)
         XCTAssertEqual(diagram.tasks[0].people, ["Me"])
@@ -311,7 +311,7 @@ final class JourneyParserTests: XCTestCase {
             section Test
             A task: -5: Me
         """
-        let diagram = try parseJourneyDiagram(lines(source))
+        let (diagram, _) = try parseJourneyDiagram(lines(source))
         XCTAssertEqual(diagram.tasks.count, 1)
         XCTAssertEqual(diagram.tasks[0].score, -5)
     }
@@ -322,7 +322,7 @@ final class JourneyParserTests: XCTestCase {
             section Test
             A task: 100: Me
         """
-        let diagram = try parseJourneyDiagram(lines(source))
+        let (diagram, _) = try parseJourneyDiagram(lines(source))
         XCTAssertEqual(diagram.tasks.count, 1)
         XCTAssertEqual(diagram.tasks[0].score, 100)
     }

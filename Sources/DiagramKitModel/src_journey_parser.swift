@@ -19,8 +19,8 @@ public enum JourneyParserError: Error, LocalizedError, _RecoverableDiagramError 
 
 // MARK: - Parser
 
-public func parseJourneyDiagram(_ lines: [String], frontmatter: DiagramFrontmatter? = nil) throws -> JourneyDiagram {
-    try _parseJourneyDiagramEntry(lines, frontmatter: frontmatter)
+public func parseJourneyDiagram(_ lines: [String], frontmatter: DiagramFrontmatter? = nil) throws -> (JourneyDiagram, [DiagramDiagnostic]) {
+    (try _parseJourneyDiagramEntry(lines, frontmatter: frontmatter), [])
 }
 
 private func _parseJourneyDiagramEntry(_ lines: [String], frontmatter: DiagramFrontmatter? = nil) throws -> JourneyDiagram {
