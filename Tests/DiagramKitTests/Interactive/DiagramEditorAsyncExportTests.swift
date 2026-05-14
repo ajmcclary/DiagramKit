@@ -78,6 +78,40 @@ struct DiagramEditorAsyncExportTests {
         }
     }
 
+    @Test("A throwing exporter leaves document, source, and undo stack untouched")
+    func atomicityUnderExporterThrow() async throws {
+        struct FailingExporter: DiagramExporter {
+            let name: String = "Failing"
+            let formatID: DiagramFormatID = .mermaid
+            let supportedDiagramTypes: Set<DiagramType> = [.flowchart]
+            func export(_ document: DiagramDocument) throws -> DiagramExportResult {
+                throw DiagramExportError(message: "boom")
+            }
+        }
+        let editor = DiagramEditor(
+            document: flowDoc(["A"]),
+            preferredExportFormat: .mermaid,
+            exportRegistry: ExporterRegistry.empty.registering(FailingExporter())
+        )
+        let preCanUndo = editor.undoManager.canUndo
+
+        do {
+            try await editor.performFlowchart(.insertNode(id: "B", label: "B"))
+            #expect(Bool(false), "expected throw")
+        } catch {
+            // pass — expecting sourceSyncFailed
+        }
+
+        guard case .flowchart(let model) = editor.document.payload else {
+            #expect(Bool(false), "expected flowchart")
+            return
+        }
+        #expect(model.nodesInOrder.map(\.id) == ["A"])
+        #expect(editor.source == nil)
+        #expect(editor.undoManager.canUndo == preCanUndo)
+        #expect(editor.isExporting == false)
+    }
+
     @Test("isExporting is false at rest, true during a mutation, false after")
     func isExportingTransitions() async throws {
         actor Gate {
