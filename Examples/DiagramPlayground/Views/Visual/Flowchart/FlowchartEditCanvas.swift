@@ -28,6 +28,13 @@ struct FlowchartEditCanvas: View {
     @SwiftUI.State private var liveBoundsLookup: DiagramBoundsLookup?
     @SwiftUI.State private var liveParseError: Error?
 
+    // Phase 3 / Task 3.4 — drag state for marquee + connector tools.
+    @SwiftUI.State private var marqueeStart: CGPoint?
+    @SwiftUI.State private var marqueeCurrent: CGPoint?
+    @SwiftUI.State private var edgeDragStart: CGPoint?
+    @SwiftUI.State private var edgeDragCurrent: CGPoint?
+    @SwiftUI.State private var edgeDragSourceID: String?
+
     var body: some View {
         GeometryReader { geometry in
             ZStack(alignment: .topLeading) {
@@ -51,10 +58,19 @@ struct FlowchartEditCanvas: View {
                 if !store.state.marqueeSelection.isEmpty {
                     marqueeOverlay(in: geometry)
                 }
+
+                if let start = marqueeStart, let current = marqueeCurrent {
+                    marqueeRect(start: start, current: current)
+                }
+
+                if let start = edgeDragStart, let current = edgeDragCurrent {
+                    edgeRubberBand(start: start, current: current)
+                }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .contentShape(Rectangle())
-            .gesture(tapGesture(in: geometry))
+            .gesture(dragGesture(in: geometry))
+            .simultaneousGesture(tapGesture(in: geometry))
             .simultaneousGesture(doubleTapGesture(in: geometry))
             .onChange(of: liveDiagramBounds) { _, _ in
                 store.boundsLookup = liveBoundsLookup
@@ -194,5 +210,130 @@ struct FlowchartEditCanvas: View {
             x: Double(viewPoint.x - centerX),
             y: Double(viewPoint.y - centerY)
         )
+    }
+
+    // MARK: - Drag gestures (Phase 3 / Task 3.4)
+
+    private func dragGesture(in geometry: GeometryProxy) -> some Gesture {
+        DragGesture(minimumDistance: 4)
+            .onChanged { value in
+                handleDragChanged(value, in: geometry.size)
+            }
+            .onEnded { value in
+                handleDragEnded(value, in: geometry.size)
+            }
+    }
+
+    private func handleDragChanged(_ value: DragGesture.Value, in viewSize: CGSize) {
+        switch store.state.visualTool {
+        case .marquee:
+            if marqueeStart == nil {
+                marqueeStart = value.startLocation
+                store.setVisualStage(.marquee)
+            }
+            marqueeCurrent = value.location
+        case .connector:
+            if edgeDragStart == nil {
+                edgeDragStart = value.startLocation
+                edgeDragSourceID = nodeID(at: value.startLocation, in: viewSize)
+                store.setVisualStage(.edgeDrag)
+            }
+            edgeDragCurrent = value.location
+        case .select, .pan:
+            // Phase 3.3 reserves these for click + pan; drag is a no-op.
+            break
+        }
+    }
+
+    private func handleDragEnded(_ value: DragGesture.Value, in viewSize: CGSize) {
+        defer {
+            marqueeStart = nil
+            marqueeCurrent = nil
+            edgeDragStart = nil
+            edgeDragCurrent = nil
+            edgeDragSourceID = nil
+        }
+        switch store.state.visualTool {
+        case .marquee:
+            commitMarquee(start: value.startLocation, end: value.location, viewSize: viewSize)
+        case .connector:
+            commitEdgeDrag(end: value.location, viewSize: viewSize)
+        case .select, .pan:
+            break
+        }
+    }
+
+    // MARK: - Marquee commit
+
+    private func commitMarquee(start: CGPoint, end: CGPoint, viewSize: CGSize) {
+        guard let lookup = liveBoundsLookup else { return }
+        let p1 = diagramPoint(from: start, viewSize: viewSize)
+        let p2 = diagramPoint(from: end, viewSize: viewSize)
+        let rect = DiagramRect(
+            x: min(p1.x, p2.x),
+            y: min(p1.y, p2.y),
+            width: abs(p2.x - p1.x),
+            height: abs(p2.y - p1.y)
+        )
+        let elements = lookup.elements(in: rect)
+        store.setMarqueeSelection(Set(elements.map(\.elementID)))
+        store.setVisualStage(elements.isEmpty ? .idle : .marquee)
+    }
+
+    // MARK: - Edge drag commit
+
+    private func commitEdgeDrag(end: CGPoint, viewSize: CGSize) {
+        defer { store.setVisualStage(.idle) }
+        guard
+            let sourceID = edgeDragSourceID,
+            let targetID = nodeID(at: end, in: viewSize),
+            sourceID != targetID
+        else { return }
+        let type = editorType
+        let from = DiagramSelection(diagramType: type, elementID: sourceID)
+        let to = DiagramSelection(diagramType: type, elementID: targetID)
+        let id = "e_\(sourceID)_\(targetID)_\(Int(Date().timeIntervalSince1970))"
+        Task {
+            do {
+                try await store.performFlowchartMutation(
+                    .insertEdge(id: id, from: from, to: to, label: nil)
+                )
+            } catch {
+                // performFlowchartMutation already records the error on
+                // store.lastMutationError; nothing more to do here.
+            }
+        }
+    }
+
+    private func nodeID(at viewPoint: CGPoint, in viewSize: CGSize) -> String? {
+        guard let lookup = liveBoundsLookup else { return nil }
+        let local = diagramPoint(from: viewPoint, viewSize: viewSize)
+        return lookup.element(at: local)?.elementID
+    }
+
+    // MARK: - Drag overlays
+
+    private func marqueeRect(start: CGPoint, current: CGPoint) -> some View {
+        let rect = CGRect(
+            x: min(start.x, current.x),
+            y: min(start.y, current.y),
+            width: abs(current.x - start.x),
+            height: abs(current.y - start.y)
+        )
+        return Rectangle()
+            .stroke(Color.accentColor, style: StrokeStyle(lineWidth: 1, dash: [4, 3]))
+            .background(Rectangle().fill(Color.accentColor.opacity(0.08)))
+            .frame(width: rect.width, height: rect.height)
+            .position(x: rect.midX, y: rect.midY)
+            .allowsHitTesting(false)
+    }
+
+    private func edgeRubberBand(start: CGPoint, current: CGPoint) -> some View {
+        Path { p in
+            p.move(to: start)
+            p.addLine(to: current)
+        }
+        .stroke(Color.accentColor, style: StrokeStyle(lineWidth: 2, dash: [6, 3]))
+        .allowsHitTesting(false)
     }
 }
