@@ -83,8 +83,13 @@ enum MermaidC4Export {
                     shapeLine = "  \(shapeFunc)(\(sanitizedAlias), \(ql))"
                 }
                 if !tech.isEmpty {
-                    diagnostics.append(DiagramDiagnostic(
-                        severity: .info,
+                    // Spec §1 Test 1: target shape has no slot at all → no future
+                    // export-side change restores it. Result: .unsupported
+                    // .slotUnsupported, not .warning .c4SlotDrop. Promotes from
+                    // pre-migration .info (which the harness's .warning/.unsupported
+                    // filter never paired anyway — see spec §6 migration probe).
+                    diagnostics.append(.featureDropped(
+                        .slotUnsupported,
                         message: "Mermaid C4 \(shapeFunc) has no positional technology slot; dropping technology '\(tech)' for alias '\(shape.alias)'"
                     ))
                 }

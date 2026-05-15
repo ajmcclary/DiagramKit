@@ -48,7 +48,7 @@ import DiagramKitImport
         #expect(result.source.contains("Container(web, \"Web\", \"\", \"Public UI\")"))
     }
 
-    @Test("Mermaid Person with technology drops it with .info diagnostic")
+    @Test("Mermaid Person with technology drops it with .unsupported slotUnsupported diagnostic")
     func mermaidPersonTechnologyDropped() throws {
         let model = C4Diagram(
             kind: .context,
@@ -59,8 +59,11 @@ import DiagramKitImport
         let result = try MermaidC4Export.emit(model)
         // descr lands at slot 3; technology has no slot and surfaces a diagnostic.
         #expect(result.source.contains("Person(u, \"User\", \"End user\")"))
+        // Spec §1 Test 1: target shape (Person) has no tech slot at all, so the
+        // drop is .unsupported .slotUnsupported, not .info. Promoted in plan Task 10.
         #expect(result.diagnostics.contains { d in
-            d.severity == .info
+            d.severity == .unsupported
+                && d.category == .slotUnsupported
                 && d.message.contains("technology")
                 && d.message.contains("u")
         })
