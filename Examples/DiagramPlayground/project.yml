@@ -87,13 +87,32 @@ targets:
         LD_RUNPATH_SEARCH_PATHS:
           - $(inherited)
           - "@executable_path/Frameworks"
+  DiagramPlaygroundUITests:
+    type: bundle.ui-testing
+    platform: macOS
+    deploymentTarget: "26.0"
+    sources:
+      - UITests
+    dependencies:
+      - target: DiagramPlayground
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.lukilabs.DiagramPlaygroundUITests
+        TEST_TARGET_NAME: DiagramPlayground
+        GENERATE_INFOPLIST_FILE: YES
+        SWIFT_VERSION: "6.0"
 schemes:
   DiagramPlayground:
     build:
       targets:
         DiagramPlayground: all
+        DiagramPlaygroundUITests: test
     run:
       config: Debug
+    test:
+      config: Debug
+      targets:
+        - DiagramPlaygroundUITests
     archive:
       config: Release
   DiagramPlayground-iOS:
