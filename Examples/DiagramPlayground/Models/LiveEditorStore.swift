@@ -858,6 +858,12 @@ public final class LiveEditorStore {
         state.inspectorOpen.toggle()
     }
 
+    /// Force-opens the inspector regardless of prior state. Used by
+    /// UI tests that need a deterministic starting state.
+    public func openInspector() {
+        state.inspectorOpen = true
+    }
+
     /// Delegate to `editor.undoManager.undo()`. Observation updates flow
     /// through `DiagramEditor.canUndo` / `canRedo` via the editor's
     /// NotificationCenter wiring — no manual tickle needed.

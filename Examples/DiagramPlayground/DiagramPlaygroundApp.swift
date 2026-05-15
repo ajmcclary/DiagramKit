@@ -20,7 +20,47 @@ struct DiagramPlaygroundApp: App {
 
     init() {
         DiagramEngine.bootstrap()
+        #if DEBUG
+        Self.seedFromLaunchArgumentsIfNeeded(store: store)
+        #endif
     }
+
+    #if DEBUG
+    /// Reads the `-uitest-state <state-id>` launch argument and seeds
+    /// the store accordingly. Used by the UI test target's
+    /// `launchPlayground(initialState:)` helper. No-op when the arg is
+    /// missing or unrecognized.
+    @MainActor
+    private static func seedFromLaunchArgumentsIfNeeded(store: LiveEditorStore) {
+        let args = CommandLine.arguments
+        guard let flagIdx = args.firstIndex(of: "-uitest-state"),
+              flagIdx + 1 < args.count else { return }
+        let stateID = args[flagIdx + 1]
+        switch stateID {
+        case "empty":
+            store.setSource("", origin: .system)
+        case "editing-flow-1":
+            if let sample = TestDiagrams.all.first(where: { $0.id == "flow-1-simple" }),
+               let src = sample.source(for: "mermaid") {
+                store.setSource(src, origin: .system)
+                store.openInspector()
+            }
+        case "selection-flow-1":
+            if let sample = TestDiagrams.all.first(where: { $0.id == "flow-1-simple" }),
+               let src = sample.source(for: "mermaid") {
+                store.setSource(src, origin: .system)
+                store.openInspector()
+            }
+        case "error-garbage":
+            store.setSource("not a real diagram \n garbage", origin: .system)
+        case "theme-open":
+            // Empty source — the test pops the Theme menu directly.
+            store.setSource("", origin: .system)
+        default:
+            break
+        }
+    }
+    #endif
 
     var body: some Scene {
         WindowGroup {
