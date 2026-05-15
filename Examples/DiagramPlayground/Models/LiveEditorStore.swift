@@ -1186,6 +1186,24 @@ public final class LiveEditorStore {
         probeSampleIndex = max(0, min(ImporterProbeRunner.sampleSources.count - 1, index))
     }
 
+    // MARK: - Snippets library (Phase 9 / Task 9.3)
+
+    public var snippetSearch: String = ""
+
+    public func setSnippetSearch(_ value: String) {
+        snippetSearch = value
+    }
+
+    /// Insert a snippet into the workspace. Phase 9 replaces the
+    /// source wholesale — Code-mode cursor insertion would require
+    /// NativeCodeEditor selection plumbing not in scope here. After
+    /// insert: dismisses the snippets surface and bounces to .split.
+    public func insertSnippet(_ snippet: Snippet) {
+        setSource(snippet.body, format: snippet.format, origin: .system)
+        setFullScreen(.none)
+        setWorkspaceMode(.split)
+    }
+
     public func openCorpusEntry(_ entry: CorpusEntry) {
         let format: SourceFormat
         if entry.formats.contains("mermaid") {
