@@ -31,6 +31,7 @@ struct TitlebarView: View {
             WorkspaceModePicker(store: store)
             Spacer()
             renderButton
+            convertButton
             exportButton
         }
         .padding(.horizontal, 14)
@@ -60,6 +61,16 @@ struct TitlebarView: View {
         }
         .keyboardShortcut("r", modifiers: .command)
         .a11y(label: "Render now", id: A11yID.Titlebar.render)
+    }
+
+    private var convertButton: some View {
+        Button {
+            store.openConvertSheet()
+        } label: {
+            Image(systemName: "arrow.left.arrow.right")
+        }
+        .keyboardShortcut("k", modifiers: [.command, .shift])
+        .a11y(label: "Convert", id: "titlebar.convert")
     }
 
     private var exportButton: some View {
