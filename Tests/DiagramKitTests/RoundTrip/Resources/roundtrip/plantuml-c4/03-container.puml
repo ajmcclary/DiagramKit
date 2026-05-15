@@ -1,0 +1,8 @@
+@startuml
+!include <C4/C4_Container>
+Person(customer, "Customer")
+Container(api, "API", "Java")
+Container(db, "Database", "PostgreSQL")
+Rel(customer, api, "Calls")
+Rel(api, db, "Reads/Writes")
+@enduml

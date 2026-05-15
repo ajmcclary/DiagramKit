@@ -1,0 +1,8 @@
+@startuml
+!include <C4/C4_Context>
+Person(customer, "Customer")
+System(banking, "Banking")
+System(mainframe, "Mainframe")
+Rel(customer, banking, "Uses")
+Rel(banking, mainframe, "Reads from")
+@enduml

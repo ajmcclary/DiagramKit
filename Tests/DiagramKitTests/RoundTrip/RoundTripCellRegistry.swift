@@ -107,5 +107,10 @@ enum RoundTripCellRegistry {
         allowedLosses: [.idSanitization, .configDrop]
     )
 
-    // Subsequent cells declared by later tasks: plantumlC4
+    static let plantumlC4 = RoundTripCell(
+        importer: PlantUMLImporter(),
+        exporter: PlantUMLExporter(),
+        family: DiagramType.c4,
+        allowedLosses: [.idSanitization, .boundaryFlatten, .c4SlotDrop]
+    )
 }
