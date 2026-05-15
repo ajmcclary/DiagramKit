@@ -129,38 +129,12 @@ public final class LiveEditorStore {
 
     /// Persistent DiagramEditor. Re-seeded from `state.source` on every
     /// successful parse; nil until at least one render has succeeded.
+    ///
+    /// Undo/redo state is Observation-tracked on `DiagramEditor` directly
+    /// (`editor?.canUndo`, `editor?.canRedo`, `editor?.undoActionName`,
+    /// `editor?.redoActionName`). View modifiers should read those rather
+    /// than going through the store.
     public private(set) var editor: DiagramEditor?
-
-    /// Tickle counter that bumps every time `editor.undoManager.canUndo`
-    /// or `canRedo` could have changed (mutations, undo/redo invocations,
-    /// editor re-seed). `Foundation.UndoManager` is not Observation-tracked,
-    /// so SwiftUI `.disabled(!store.canUndoStructural)` modifiers re-evaluate
-    /// when this counter changes via the observable property accesses below.
-    private var _undoTickle: Int = 0
-
-    /// Observable mirror of `editor?.undoManager.canUndo`.
-    /// Read this from view modifiers instead of touching the UndoManager
-    /// directly so SwiftUI tracks updates through the store.
-    public var canUndoStructural: Bool {
-        _ = _undoTickle
-        return editor?.undoManager.canUndo ?? false
-    }
-
-    /// Observable mirror of `editor?.undoManager.canRedo`.
-    public var canRedoStructural: Bool {
-        _ = _undoTickle
-        return editor?.undoManager.canRedo ?? false
-    }
-
-    /// Observable mirror of `editor?.undoManager.undoActionName`.
-    public var undoStructuralActionName: String {
-        _ = _undoTickle
-        return editor?.undoManager.undoActionName ?? ""
-    }
-
-    private func _bumpUndoTickle() {
-        _undoTickle &+= 1
-    }
 
     /// Mirrors what `DiagramView` publishes for the current preview source.
     /// Used by the canvas tap dispatch and the selection overlay.
@@ -383,7 +357,6 @@ public final class LiveEditorStore {
             renderStatus = .idle
             editor = nil
             pendingRenderState = nil
-            _bumpUndoTickle()
         } else {
             renderStatus = .rendered
             // Skip re-seeding when the source change originated from a
@@ -451,8 +424,6 @@ public final class LiveEditorStore {
         }
 
         editor = newEditor
-        // Editor swap → fresh UndoManager → canUndo/canRedo just flipped.
-        _bumpUndoTickle()
     }
 
     // MARK: - Preview transform
@@ -857,7 +828,6 @@ public final class LiveEditorStore {
             if let source = editor.source, source != state.source {
                 setSource(source, origin: .mutation)
             }
-            _bumpUndoTickle()
         } catch {
             lastMutationError = error.localizedDescription
             throw error
@@ -875,7 +845,6 @@ public final class LiveEditorStore {
             if let source = editor.source, source != state.source {
                 setSource(source, origin: .mutation)
             }
-            _bumpUndoTickle()
         } catch {
             lastMutationError = error.localizedDescription
             throw error
@@ -889,16 +858,16 @@ public final class LiveEditorStore {
         state.inspectorOpen.toggle()
     }
 
-    /// Delegate to `editor.undoManager.undo()`.
+    /// Delegate to `editor.undoManager.undo()`. Observation updates flow
+    /// through `DiagramEditor.canUndo` / `canRedo` via the editor's
+    /// NotificationCenter wiring — no manual tickle needed.
     public func undoStructural() {
         editor?.undoManager.undo()
-        _bumpUndoTickle()
     }
 
     /// Delegate to `editor.undoManager.redo()`.
     public func redoStructural() {
         editor?.undoManager.redo()
-        _bumpUndoTickle()
     }
 
     /// Convert a view-space tap into a selection on `editor`.
