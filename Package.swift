@@ -222,6 +222,16 @@ let package = Package(
             ],
             exclude: ["__Snapshots__"],
             swiftSettings: strictConcurrencySettings
+        ),
+        .testTarget(
+            name: "DiagramKitLinuxTests",
+            dependencies: [
+                "DiagramKit",
+                "DiagramKitCommon",
+                "DiagramKitModel",
+                "DiagramKitTestSupport",
+            ],
+            swiftSettings: strictConcurrencySettings
         )
     ],
     swiftLanguageModes: [.v6]
