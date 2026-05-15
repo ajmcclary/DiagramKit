@@ -60,4 +60,32 @@ struct CrossFormatRoundTripTests {
             fixture: fixture
         )
     }
+
+    // MARK: D2 ↔ DOT (flowchart)
+
+    @Test(
+        "D2 → DOT → D2 (flowchart)",
+        arguments: try fixtures(for: "cross-d2-dot-flowchart", fromRoot: roundTripResourcesRoot())
+    )
+    func d2DotFlowchart(fixture: RoundTripFixture) throws {
+        try runCrossFormatRoundTrip(
+            legA: RoundTripCellRegistry.d2Flowchart,
+            legB: RoundTripCellRegistry.dotFlowchart,
+            additionalAllowedLosses: RoundTripCrossRegistry.d2DotFlowchart,
+            fixture: fixture
+        )
+    }
+
+    @Test(
+        "DOT → D2 → DOT (flowchart)",
+        arguments: try fixtures(for: "cross-dot-d2-flowchart", fromRoot: roundTripResourcesRoot())
+    )
+    func dotD2Flowchart(fixture: RoundTripFixture) throws {
+        try runCrossFormatRoundTrip(
+            legA: RoundTripCellRegistry.dotFlowchart,
+            legB: RoundTripCellRegistry.d2Flowchart,
+            additionalAllowedLosses: RoundTripCrossRegistry.dotD2Flowchart,
+            fixture: fixture
+        )
+    }
 }
