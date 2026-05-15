@@ -74,6 +74,7 @@ struct ActionsPanel: View {
                     .toolbar {
                         ToolbarItem(placement: .confirmationAction) {
                             Button("Done") { showingShareSheet = false }
+                                .a11yIdentifier(A11yID.Panels.actionsShareDone)
                         }
                     }
             }
@@ -92,6 +93,7 @@ struct ActionsPanel: View {
                     .toolbar {
                         ToolbarItem(placement: .confirmationAction) {
                             Button("Done") { showingHistory = false }
+                                .a11yIdentifier(A11yID.Panels.actionsHistoryDone)
                         }
                     }
             }

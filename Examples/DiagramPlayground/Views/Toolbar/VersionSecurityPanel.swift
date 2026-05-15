@@ -31,6 +31,7 @@ struct VersionSecurityPanel: View {
                     Image(systemName: "chart.bar.doc.horizontal")
                         .font(.system(size: 28))
                         .foregroundColor(.accentColor)
+                        .accessibilityHidden(true)
                     VStack(alignment: .leading, spacing: 2) {
                         Text("DiagramKit Playground")
                             .font(.system(size: 15, weight: .semibold))
@@ -87,6 +88,7 @@ struct VersionSecurityPanel: View {
                 .font(.system(size: 14))
                 .foregroundColor(.secondary)
                 .frame(width: 20)
+                .accessibilityHidden(true)
 
             Text(label)
                 .font(.system(size: 13, weight: .medium))
@@ -121,6 +123,7 @@ struct VersionSecurityPanel: View {
                     .font(.system(size: 14))
                     .foregroundColor(.green)
                     .frame(width: 20)
+                    .accessibilityHidden(true)
 
                 Text("Privacy & Security")
                     .font(.system(size: 13, weight: .semibold))
@@ -184,6 +187,7 @@ struct VersionSecurityPanel: View {
                     Button("Done") {
                         showingPrivacySheet = false
                     }
+                    .a11yIdentifier(A11yID.Panels.versionInfoDone)
                 }
             }
         }
@@ -209,6 +213,7 @@ struct VersionSecurityPanel: View {
                     .font(.system(size: 14))
                     .foregroundColor(.secondary)
                     .frame(width: 20)
+                    .accessibilityHidden(true)
 
                 Text("Links")
                     .font(.system(size: 13, weight: .semibold))
@@ -218,6 +223,7 @@ struct VersionSecurityPanel: View {
                 HStack {
                     Image(systemName: "arrow.up.right")
                         .font(.system(size: 10))
+                        .accessibilityHidden(true)
                     Text("DiagramKit on GitHub")
                         .font(.system(size: 12))
                 }
@@ -228,6 +234,7 @@ struct VersionSecurityPanel: View {
                 HStack {
                     Image(systemName: "arrow.up.right")
                         .font(.system(size: 10))
+                        .accessibilityHidden(true)
                     Text("Mermaid.js Documentation")
                         .font(.system(size: 12))
                 }

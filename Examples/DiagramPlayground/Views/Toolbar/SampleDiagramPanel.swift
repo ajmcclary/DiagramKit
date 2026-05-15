@@ -56,11 +56,13 @@ struct SampleDiagramPanel: View {
             Image(systemName: "magnifyingglass")
                 .foregroundColor(Color(store.theme.effectiveMuted()))
                 .font(.system(size: 14))
+                .accessibilityHidden(true)
 
             TextField("Search samples...", text: $searchText)
                 .textFieldStyle(.plain)
                 .font(.system(size: 13))
                 .foregroundColor(Color(store.theme.foreground))
+                .a11yIdentifier(A11yID.Pickers.sampleSearch)
 
             if !searchText.isEmpty {
                 Button {
@@ -71,6 +73,7 @@ struct SampleDiagramPanel: View {
                         .font(.system(size: 14))
                 }
                 .buttonStyle(.plain)
+                .a11y(label: "Clear search", id: A11yID.Pickers.sampleSearchClear)
             }
         }
         .padding(8)
@@ -110,6 +113,7 @@ struct SampleDiagramPanel: View {
                         : "chevron.right")
                         .font(.system(size: 10, weight: .medium))
                         .foregroundColor(Color(store.theme.effectiveMuted()))
+                        .accessibilityHidden(true)
 
                     Text(category.title)
                         .font(.system(size: 12, weight: .semibold))
@@ -164,6 +168,7 @@ struct SampleDiagramPanel: View {
                         Image(systemName: "checkmark")
                             .font(.system(size: 11, weight: .medium))
                             .foregroundColor(Color(store.theme.effectiveAccent()))
+                            .accessibilityHidden(true)
                     }
                 }
                 .padding(.vertical, 4)
@@ -197,6 +202,7 @@ struct SampleDiagramPanel: View {
         HStack(spacing: 3) {
             Image(systemName: badge.systemImage)
                 .font(.system(size: 9, weight: .medium))
+                .accessibilityHidden(true)
             Text(badge.text)
                 .font(.system(size: 10, weight: .medium))
         }
@@ -303,6 +309,7 @@ struct SampleDiagramPanel: View {
                     Image(systemName: "magnifyingglass")
                         .font(.system(size: 24))
                         .foregroundColor(Color(store.theme.effectiveMuted()))
+                        .accessibilityHidden(true)
                     Text("No samples match \"\(searchText)\"")
                         .font(.system(size: 13))
                         .foregroundColor(Color(store.theme.effectiveMuted()))

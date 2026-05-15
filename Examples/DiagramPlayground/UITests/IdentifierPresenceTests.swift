@@ -38,6 +38,20 @@ final class IdentifierPresenceTests: XCTestCase {
         }
     }
 
+    // MARK: - Sample panel
+
+    @MainActor
+    func testSamplePanel_searchControlsPresent() {
+        let app = launchPlayground(initialState: .editingFlow1)
+        let search = app.descendants(matching: .any).matching(identifier: "picker.sampleSearch").firstMatch
+        XCTAssertTrue(search.waitForExistence(timeout: 3), "Sample search field missing")
+        // Type a query to surface the clear button.
+        search.click()
+        search.typeText("flow")
+        let clear = app.descendants(matching: .any).matching(identifier: "picker.sampleSearchClear").firstMatch
+        XCTAssertTrue(clear.waitForExistence(timeout: 3), "Sample search clear button missing")
+    }
+
     // MARK: - LiveEditorToolbar
 
     // MARK: - Small pickers
