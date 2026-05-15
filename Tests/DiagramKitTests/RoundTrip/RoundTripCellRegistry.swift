@@ -65,8 +65,14 @@ enum RoundTripCellRegistry {
         allowedLosses: [.subgraphFlatten, .styleDrop, .shapeDowngrade, .idSanitization]
     )
 
+    static let structurizrC4 = RoundTripCell(
+        importer: StructurizrImporter(),
+        exporter: StructurizrExporter(),
+        family: DiagramType.c4,
+        allowedLosses: [.idSanitization, .boundaryFlatten, .c4SlotDrop]
+    )
+
     // Subsequent cells declared by later tasks:
-    //   structurizrC4,
     //   plantumlSequence, plantumlClass, plantumlState,
     //   plantumlMindmap, plantumlGantt, plantumlC4
 }
