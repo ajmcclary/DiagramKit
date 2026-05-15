@@ -38,6 +38,8 @@ extension DiagramRegistry {
         },
         positioned: { graph, positioned in
             PositionedGraph(diagram: graph, width: positioned.viewBoxWidth, height: positioned.viewBoxHeight, content: .treeView(positioned))
-        }
+        },
+        linuxSupport: false,
+        linuxUnsupportedReason: "requires CoreText text-measurement"
     )
 }

@@ -33,6 +33,8 @@ extension DiagramRegistry {
         },
         positioned: { graph, positioned in
             PositionedGraph(diagram: graph, width: positioned.width, height: positioned.height, content: .ishikawa(positioned))
-        }
+        },
+        linuxSupport: false,
+        linuxUnsupportedReason: "requires CoreText text-measurement"
     )
 }

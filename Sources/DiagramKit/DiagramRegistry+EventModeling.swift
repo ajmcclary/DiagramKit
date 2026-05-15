@@ -39,6 +39,8 @@ extension DiagramRegistry {
         },
         positioned: { graph, positioned in
             PositionedGraph(diagram: graph, width: positioned.width, height: positioned.height, content: .eventModeling(positioned))
-        }
+        },
+        linuxSupport: false,
+        linuxUnsupportedReason: "requires CoreText text-measurement"
     )
 }
