@@ -37,4 +37,26 @@ final class IdentifierPresenceTests: XCTestCase {
             )
         }
     }
+
+    // MARK: - LiveEditorToolbar
+
+    @MainActor
+    func testToolbar_macOS_allIdentifiersPresent() {
+        let app = launchPlayground(initialState: .editingFlow1)
+        let ids = [
+            "toolbar.theme",
+            "toolbar.view",
+            "toolbar.actions",
+            "toolbar.info",
+            "toolbar.inspector",
+            "toolbar.updateMode",
+        ]
+        for id in ids {
+            let candidate = app.descendants(matching: .any).matching(identifier: id).firstMatch
+            XCTAssertTrue(
+                candidate.waitForExistence(timeout: 3),
+                "Expected toolbar control with identifier '\(id)' to exist"
+            )
+        }
+    }
 }

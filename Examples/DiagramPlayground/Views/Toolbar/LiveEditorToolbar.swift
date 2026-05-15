@@ -55,6 +55,7 @@ struct LiveEditorToolbar: ToolbarContent {
                     .frame(width: 280)
             }
             .help("Theme")
+            .a11yIdentifier(A11yID.Toolbar.theme)
 
             // View button
             Button {
@@ -68,6 +69,7 @@ struct LiveEditorToolbar: ToolbarContent {
                     .frame(width: 220)
             }
             .help("View options")
+            .a11yIdentifier(A11yID.Toolbar.view)
 
             // Actions button
             Button {
@@ -80,6 +82,7 @@ struct LiveEditorToolbar: ToolbarContent {
                     .frame(width: 300, height: 520)
             }
             .help("Export, copy, and share")
+            .a11yIdentifier(A11yID.Toolbar.actions)
 
             // Version / Security button
             Button {
@@ -92,6 +95,7 @@ struct LiveEditorToolbar: ToolbarContent {
                     .frame(width: 320, height: 280)
             }
             .help("Version and security information")
+            .a11yIdentifier(A11yID.Toolbar.info)
 
             // Inspector toggle (Cmd-I)
             Button {
@@ -102,6 +106,12 @@ struct LiveEditorToolbar: ToolbarContent {
                     : "slider.horizontal.below.rectangle")
             }
             .help("Inspector (⌘I)")
+            .a11yToggle(
+                label: "Inspector",
+                isOn: store.state.inspectorOpen,
+                hint: "Shows the editing controls panel",
+                id: A11yID.Toolbar.inspectorToggle
+            )
             .keyboardShortcut("i", modifiers: [.command])
         }
     }
@@ -120,6 +130,7 @@ struct LiveEditorToolbar: ToolbarContent {
         }
         .disabled(!store.isDirty)
         .help("Render the current diagram")
+        .a11yIdentifier(A11yID.Toolbar.render)
     }
 }
 
@@ -154,6 +165,7 @@ struct LiveEditorToolbar: ToolbarContent {
             } label: {
                 Image(systemName: "paintpalette")
             }
+            .a11y(label: "Theme", id: A11yID.Toolbar.theme)
 
             // View button
             Button {
@@ -161,6 +173,7 @@ struct LiveEditorToolbar: ToolbarContent {
             } label: {
                 Image(systemName: "eye")
             }
+            .a11y(label: "View options", id: A11yID.Toolbar.view)
 
             // Actions button
             Button {
@@ -168,6 +181,7 @@ struct LiveEditorToolbar: ToolbarContent {
             } label: {
                 Image(systemName: "square.and.arrow.up")
             }
+            .a11y(label: "Actions", hint: "Export, copy, share, history", id: A11yID.Toolbar.actions)
 
             // Info button
             Button {
@@ -175,6 +189,7 @@ struct LiveEditorToolbar: ToolbarContent {
             } label: {
                 Image(systemName: "info.circle")
             }
+            .a11y(label: "Version and security info", id: A11yID.Toolbar.info)
 
             // Inspector toggle (Cmd-I on hardware keyboards)
             Button {
@@ -184,6 +199,12 @@ struct LiveEditorToolbar: ToolbarContent {
                     ? "slider.horizontal.below.rectangle.fill"
                     : "slider.horizontal.below.rectangle")
             }
+            .a11yToggle(
+                label: "Inspector",
+                isOn: store.state.inspectorOpen,
+                hint: "Shows the editing controls panel",
+                id: A11yID.Toolbar.inspectorToggle
+            )
             .keyboardShortcut("i", modifiers: [.command])
         }
 
@@ -198,6 +219,7 @@ struct LiveEditorToolbar: ToolbarContent {
                     .toolbar {
                         ToolbarItem(placement: .confirmationAction) {
                             Button("Done") { showingTheme = false }
+                                .a11yIdentifier(A11yID.Panels.themePickerDone)
                         }
                     }
             }
@@ -213,6 +235,7 @@ struct LiveEditorToolbar: ToolbarContent {
                     .toolbar {
                         ToolbarItem(placement: .confirmationAction) {
                             Button("Done") { showingView = false }
+                                .a11yIdentifier(A11yID.Panels.viewOptionsDone)
                         }
                     }
             }
@@ -227,6 +250,7 @@ struct LiveEditorToolbar: ToolbarContent {
                     .toolbar {
                         ToolbarItem(placement: .confirmationAction) {
                             Button("Done") { showingActions = false }
+                                .a11yIdentifier(A11yID.Panels.actionsShareDone)
                         }
                     }
             }
@@ -240,6 +264,7 @@ struct LiveEditorToolbar: ToolbarContent {
                     .toolbar {
                         ToolbarItem(placement: .confirmationAction) {
                             Button("Done") { showingVersionInfo = false }
+                                .a11yIdentifier(A11yID.Panels.versionInfoDone)
                         }
                     }
             }
@@ -268,6 +293,7 @@ struct UpdateModePicker: View {
         .help(updateMode == .auto
             ? "Render automatically on changes"
             : "Render only when you click Render")
+        .a11yIdentifier(A11yID.Toolbar.updateMode)
     }
 }
 
