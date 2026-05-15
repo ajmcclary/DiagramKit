@@ -116,8 +116,9 @@ public final class DiagramEditor {
     /// so SwiftUI modifiers like `.disabled(!editor.canUndo)` re-evaluate.
     ///
     /// `Foundation.UndoManager` is not Observation-tracked itself, so this
-    /// counter is the bridge.
-    @ObservationIgnored
+    /// counter is the bridge. This property is intentionally NOT
+    /// `@ObservationIgnored` — the macro must instrument it so mutations
+    /// fire change notifications.
     private var _undoStateTickle: UInt64 = 0
 
     /// Notification observer tokens. Held so `deinit` can release them.
@@ -169,6 +170,53 @@ public final class DiagramEditor {
         self.exportRegistry = exportRegistry
         self.undoManager = UndoManager()
         self.undoManager.levelsOfUndo = maximumUndoDepth
+        _registerUndoObservers()
+    }
+
+    /// Subscribe to the four `UndoManager` notifications that gate
+    /// undo/redo state transitions. Observers are scoped to this
+    /// editor's `undoManager` via the `object:` parameter so two
+    /// `DiagramEditor` instances never cross-tickle.
+    ///
+    /// Each observer increments `_undoStateTickle`, which is read inside
+    /// the four `canUndo` / `canRedo` / `undoActionName` /
+    /// `redoActionName` computed properties — that's the bridge into
+    /// the `@Observable` change-tracking system.
+    private func _registerUndoObservers() {
+        let names: [Notification.Name] = [
+            .NSUndoManagerDidUndoChange,
+            .NSUndoManagerDidRedoChange,
+            .NSUndoManagerDidCloseUndoGroup,
+            .NSUndoManagerCheckpoint
+        ]
+        for name in names {
+            // `queue: nil` delivers synchronously on the posting thread.
+            // All `UndoManager` state changes that matter to us happen on
+            // MainActor (mutations, direct .undo()/.redo() calls from UI
+            // code), so MainActor.assumeIsolated holds. Synchronous
+            // delivery also keeps Observation tracking deterministic for
+            // tests — the tickle fires before `await perform(_:)` returns.
+            let token = NotificationCenter.default.addObserver(
+                forName: name,
+                object: undoManager,
+                queue: nil
+            ) { [weak self] _ in
+                MainActor.assumeIsolated {
+                    self?._undoStateTickle &+= 1
+                }
+            }
+            _undoObservers.append(token)
+        }
+    }
+
+    isolated deinit {
+        // `isolated deinit` keeps `@MainActor` isolation through teardown
+        // so the array of observer tokens — which is not Sendable —
+        // remains accessible. `NotificationCenter.removeObserver(_:)` is
+        // safe to call from MainActor.
+        for token in _undoObservers {
+            NotificationCenter.default.removeObserver(token)
+        }
     }
 
     // MARK: - Internal mutation helpers
