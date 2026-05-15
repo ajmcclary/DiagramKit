@@ -14,7 +14,6 @@ import DiagramKit
 struct LiveEditorView: View {
     @Bindable var store: LiveEditorStore
 
-    @SwiftUI.State private var columnVisibility: NavigationSplitViewVisibility = .all
     @SwiftUI.State private var showingControls = false
     @SwiftUI.State private var showingFullWindowPreview = false
     @SwiftUI.State private var nonInspectorMode: CompactMode = .edit
@@ -136,68 +135,10 @@ struct LiveEditorView: View {
     // MARK: - Regular Layout (iPad / macOS)
 
     private var regularLayout: some View {
-        NavigationSplitView(columnVisibility: $columnVisibility) {
-            SidebarView(store: store)
-                .navigationTitle("Samples")
-                #if os(iOS)
-                .navigationBarTitleDisplayMode(.inline)
-                .toolbarBackground(Color(store.theme.background), for: .navigationBar)
-                .toolbarColorScheme(store.theme.background.isLight ? .light : .dark, for: .navigationBar)
-                #endif
-                #if os(macOS)
-                .navigationSplitViewColumnWidth(min: 240, ideal: 280, max: 320)
-                #endif
-        } detail: {
-            editorPreviewSplit
-                .navigationTitle("Editor")
-                #if os(iOS)
-                .navigationBarTitleDisplayMode(.inline)
-                .toolbarBackground(Color(store.theme.background), for: .navigationBar)
-                .toolbarColorScheme(store.theme.background.isLight ? .light : .dark, for: .navigationBar)
-                #endif
-                .sheet(isPresented: $showingFullWindowPreview) {
-                    fullWindowPreviewSheet
-                }
-        }
-        .navigationSplitViewStyle(.automatic)
-        #if os(macOS)
-        .frame(minWidth: 900, minHeight: 600)
-        #endif
-    }
-
-    private var editorPreviewSplit: some View {
-        #if os(macOS)
-        HSplitView {
-            EditorPane(store: store)
-                .frame(minWidth: 300)
-            previewWithDrawer
-                .frame(minWidth: 400)
-        }
-        #else
-        HStack(spacing: 0) {
-            EditorPane(store: store)
-                .frame(minWidth: 280)
-
-            Divider()
-                .background(Color(store.theme.effectiveLine()).opacity(0.3))
-
-            previewWithDrawer
-                .frame(minWidth: 300)
-        }
-        #endif
-    }
-
-    private var previewWithDrawer: some View {
-        ZStack(alignment: .trailing) {
-            PreviewCanvas(store: store, onFullWindowPreview: { showingFullWindowPreview = true })
-            if store.state.inspectorOpen {
-                DiagramEditorPane(store: store)
-                    .padding(.vertical, 12)
-                    .padding(.trailing, 12)
-                    .transition(.move(edge: .trailing).combined(with: .opacity))
+        PlaygroundShell(store: store)
+            .sheet(isPresented: $showingFullWindowPreview) {
+                fullWindowPreviewSheet
             }
-        }
-        .animation(.easeInOut(duration: 0.18), value: store.state.inspectorOpen)
     }
 
     // MARK: - Full-window preview sheet
