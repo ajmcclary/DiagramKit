@@ -38,6 +38,15 @@ final class IdentifierPresenceTests: XCTestCase {
         }
     }
 
+    // MARK: - PreviewCanvas
+
+    @MainActor
+    func testPreviewCanvas_modePickerPresent() {
+        let app = launchPlayground(initialState: .editingFlow1)
+        let picker = app.descendants(matching: .any).matching(identifier: "preview.mode").firstMatch
+        XCTAssertTrue(picker.waitForExistence(timeout: 3), "Preview mode picker missing")
+    }
+
     // MARK: - Sample panel
 
     @MainActor

@@ -151,6 +151,7 @@ struct PreviewCanvas: View {
                     HStack(spacing: 4) {
                         Image(systemName: mode.iconName)
                             .font(.system(size: 10, weight: .medium))
+                            .accessibilityHidden(true)
                         Text(mode.label)
                             .font(.system(size: 11, weight: .medium))
                     }
@@ -167,6 +168,7 @@ struct PreviewCanvas: View {
                     )
                 }
                 .buttonStyle(.plain)
+                .accessibilityAddTraits(previewMode == mode ? .isSelected : [])
             }
         }
         .padding(.horizontal, 4)
@@ -178,6 +180,12 @@ struct PreviewCanvas: View {
                     RoundedRectangle(cornerRadius: 8)
                         .stroke(Color(store.previewTheme.effectiveLine()).opacity(0.2), lineWidth: 0.5)
                 )
+        )
+        .accessibilityElement(children: .contain)
+        .a11y(
+            label: "Preview mode",
+            hint: "Switches between SVG, image, and ASCII preview",
+            id: A11yID.Preview.modePicker
         )
         .shadow(color: .black.opacity(0.12), radius: 6, x: 0, y: 2)
     }
@@ -444,6 +452,7 @@ struct PreviewCanvas: View {
                     Image(systemName: warning.level.iconName)
                         .font(.system(size: 10))
                         .foregroundColor(warning.level.color)
+                        .accessibilityHidden(true)
 
                     VStack(alignment: .leading, spacing: 1) {
                         Text(warning.keyPath)
@@ -473,6 +482,7 @@ struct PreviewCanvas: View {
             Image(systemName: "exclamationmark.triangle.fill")
                 .font(.system(size: 28))
                 .foregroundColor(.red)
+                .accessibilityHidden(true)
             Text("Parse Error")
                 .font(.headline)
                 .foregroundColor(.red)
@@ -495,6 +505,7 @@ struct PreviewCanvas: View {
             Image(systemName: "doc.text")
                 .font(.system(size: 36))
                 .foregroundColor(Color(store.previewTheme.effectiveMuted()))
+                .accessibilityHidden(true)
             Text("Enter \(store.state.sourceFormat.displayName) syntax to preview")
                 .font(.body)
                 .foregroundColor(Color(store.previewTheme.effectiveMuted()))
@@ -550,6 +561,7 @@ struct AsciiPreviewView: View {
                     Image(systemName: "text.badge.xmark")
                         .font(.system(size: 28))
                         .foregroundColor(Color(store.previewTheme.effectiveMuted()))
+                        .accessibilityHidden(true)
                     Text(errorMessage)
                         .font(.body)
                         .multilineTextAlignment(.center)
