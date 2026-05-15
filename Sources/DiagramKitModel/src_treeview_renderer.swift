@@ -1,5 +1,3 @@
-// Apple-only — depends on gated symbols (ShapePath/BMFont/etc.). Gated by `#if canImport(UIKit) || canImport(AppKit)`.
-#if canImport(UIKit) || canImport(AppKit)
 import Foundation
 import DiagramKitCommon
 
@@ -94,4 +92,3 @@ public func renderTreeViewSvg(_ positioned: PositionedTreeViewDiagram, diagramId
 private func _xmlEscape(_ value: String) -> String {
     SVG.escapeText(value)
 }
-#endif
