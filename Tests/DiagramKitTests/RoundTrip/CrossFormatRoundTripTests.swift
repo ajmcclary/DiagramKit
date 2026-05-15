@@ -144,5 +144,89 @@ struct CrossFormatRoundTripTests {
             fixture: fixture
         )
     }
+
+    // MARK: PlantUML ↔ Structurizr (C4)
+
+    @Test(
+        "PlantUML → Structurizr → PlantUML (C4)",
+        arguments: try fixtures(for: "cross-plantuml-structurizr-c4", fromRoot: roundTripResourcesRoot())
+    )
+    func plantumlStructurizrC4(fixture: RoundTripFixture) throws {
+        try runCrossFormatRoundTrip(
+            legA: RoundTripCellRegistry.plantumlC4,
+            legB: RoundTripCellRegistry.structurizrC4,
+            additionalAllowedLosses: RoundTripCrossRegistry.plantumlStructurizrC4,
+            fixture: fixture
+        )
+    }
+
+    @Test(
+        "Structurizr → PlantUML → Structurizr (C4)",
+        arguments: try fixtures(for: "cross-structurizr-plantuml-c4", fromRoot: roundTripResourcesRoot())
+    )
+    func structurizrPlantumlC4(fixture: RoundTripFixture) throws {
+        try runCrossFormatRoundTrip(
+            legA: RoundTripCellRegistry.structurizrC4,
+            legB: RoundTripCellRegistry.plantumlC4,
+            additionalAllowedLosses: RoundTripCrossRegistry.structurizrPlantumlC4,
+            fixture: fixture
+        )
+    }
+
+    // MARK: Mermaid ↔ PlantUML (sequence)
+
+    @Test(
+        "Mermaid → PlantUML → Mermaid (sequence)",
+        arguments: try fixtures(for: "cross-mermaid-plantuml-sequence", fromRoot: roundTripResourcesRoot())
+    )
+    func mermaidPlantumlSequence(fixture: RoundTripFixture) throws {
+        try runCrossFormatRoundTrip(
+            legA: RoundTripCellRegistry.mermaidSequence,
+            legB: RoundTripCellRegistry.plantumlSequence,
+            additionalAllowedLosses: RoundTripCrossRegistry.mermaidPlantumlSequence,
+            fixture: fixture
+        )
+    }
+
+    @Test(
+        "PlantUML → Mermaid → PlantUML (sequence)",
+        arguments: try fixtures(for: "cross-plantuml-mermaid-sequence", fromRoot: roundTripResourcesRoot())
+    )
+    func plantumlMermaidSequence(fixture: RoundTripFixture) throws {
+        try runCrossFormatRoundTrip(
+            legA: RoundTripCellRegistry.plantumlSequence,
+            legB: RoundTripCellRegistry.mermaidSequence,
+            additionalAllowedLosses: RoundTripCrossRegistry.plantumlMermaidSequence,
+            fixture: fixture
+        )
+    }
+
+    // MARK: Mermaid ↔ PlantUML (class)
+
+    @Test(
+        "Mermaid → PlantUML → Mermaid (class)",
+        arguments: try fixtures(for: "cross-mermaid-plantuml-class", fromRoot: roundTripResourcesRoot())
+    )
+    func mermaidPlantumlClass(fixture: RoundTripFixture) throws {
+        try runCrossFormatRoundTrip(
+            legA: RoundTripCellRegistry.mermaidClass,
+            legB: RoundTripCellRegistry.plantumlClass,
+            additionalAllowedLosses: RoundTripCrossRegistry.mermaidPlantumlClass,
+            fixture: fixture
+        )
+    }
+
+    @Test(
+        "PlantUML → Mermaid → PlantUML (class)",
+        arguments: try fixtures(for: "cross-plantuml-mermaid-class", fromRoot: roundTripResourcesRoot())
+    )
+    func plantumlMermaidClass(fixture: RoundTripFixture) throws {
+        try runCrossFormatRoundTrip(
+            legA: RoundTripCellRegistry.plantumlClass,
+            legB: RoundTripCellRegistry.mermaidClass,
+            additionalAllowedLosses: RoundTripCrossRegistry.plantumlMermaidClass,
+            fixture: fixture
+        )
+    }
 }
 
