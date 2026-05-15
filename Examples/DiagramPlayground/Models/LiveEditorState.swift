@@ -135,6 +135,9 @@ public struct LiveEditorState: Codable, Equatable, Sendable {
     /// `.none` shows the standard workspace body.
     public var fullScreen: FullScreenSurface
 
+    /// Theme override map used by the Inspector ThemeBuilder card.
+    public var themeBuilder: ThemeBuilderState
+
     // MARK: - Init
 
     public init(
@@ -166,7 +169,8 @@ public struct LiveEditorState: Codable, Equatable, Sendable {
         diagDrawer: DiagnosticsDrawerState = .default,
         exportSheet: ExportSheetState = .default,
         convertSheet: ConvertSheetState = .default,
-        fullScreen: FullScreenSurface = .none
+        fullScreen: FullScreenSurface = .none,
+        themeBuilder: ThemeBuilderState = .default
     ) {
         self.source = source
         self.sourceFormat = sourceFormat
@@ -197,6 +201,7 @@ public struct LiveEditorState: Codable, Equatable, Sendable {
         self.exportSheet = exportSheet
         self.convertSheet = convertSheet
         self.fullScreen = fullScreen
+        self.themeBuilder = themeBuilder
     }
 
     // MARK: - Codable (handle legacy snapshots without sourceFormat)
@@ -229,6 +234,7 @@ public struct LiveEditorState: Codable, Equatable, Sendable {
         case exportSheet
         case convertSheet
         case fullScreen
+        case themeBuilder
     }
 
     public init(from decoder: Decoder) throws {
@@ -262,6 +268,7 @@ public struct LiveEditorState: Codable, Equatable, Sendable {
         self.exportSheet = try c.decodeIfPresent(ExportSheetState.self, forKey: .exportSheet) ?? .default
         self.convertSheet = try c.decodeIfPresent(ConvertSheetState.self, forKey: .convertSheet) ?? .default
         self.fullScreen = try c.decodeIfPresent(FullScreenSurface.self, forKey: .fullScreen) ?? .none
+        self.themeBuilder = try c.decodeIfPresent(ThemeBuilderState.self, forKey: .themeBuilder) ?? .default
     }
 
     // MARK: - Defaults

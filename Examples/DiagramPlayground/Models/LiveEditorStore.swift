@@ -1147,6 +1147,16 @@ public final class LiveEditorStore {
         state.fullScreen = .none
     }
 
+    // MARK: - Theme builder (Phase 10 / Task 10.1)
+
+    public func setThemeOverride(_ token: ThemeBuilderState.Token, hex: String?) {
+        state.themeBuilder.setOverride(token, hex: hex)
+    }
+
+    public func resetThemeOverrides() {
+        state.themeBuilder.reset()
+    }
+
     // MARK: - Corpus browser (Phase 8 / Task 8.5)
 
     public var corpusSearch: String = ""
