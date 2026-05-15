@@ -26,7 +26,7 @@ struct RadarEndToEndTests {
     @Test("renderDiagramSVG produces valid SVG for radar")
     func renderDiagramSVGForRadar() async throws {
         let source = "radar-beta\n  axis A,B,C\n  curve c1{1,2,3}"
-        let svg = try await renderDiagramSVG(source)
+        let svg = try await DiagramEngine.renderSVG(source: source)
         #expect(svg.hasPrefix("<svg "))
         #expect(svg.contains("radarGraticule"))
         #expect(svg.contains("radarAxisLine"))
@@ -64,21 +64,21 @@ struct RadarEndToEndTests {
     @Test("renderDiagramSVG with showLegend false suppresses legend")
     func renderDiagramSVGNoLegend() async throws {
         let source = "radar-beta\n  axis A,B,C\n  curve c1{1,2,3}\n  showLegend false"
-        let svg = try await renderDiagramSVG(source)
+        let svg = try await DiagramEngine.renderSVG(source: source)
         #expect(!svg.contains("radarLegendBox"))
     }
 
     @Test("renderDiagramSVG with polygon graticule")
     func renderDiagramSVGPolygon() async throws {
         let source = "radar-beta\n  axis A,B,C,D\n  curve c1{1,2,3,4}\n  graticule polygon"
-        let svg = try await renderDiagramSVG(source)
+        let svg = try await DiagramEngine.renderSVG(source: source)
         #expect(svg.contains("<polygon"))
     }
 
     @Test("renderDiagramSVG includes title and accessibility")
     func renderDiagramSVGWithMetadata() async throws {
         let source = "radar-beta\n  title Radar Chart\n  accTitle: Radar Title\n  accDescr: Radar Description\n  axis A\n  curve c1{1}"
-        let svg = try await renderDiagramSVG(source)
+        let svg = try await DiagramEngine.renderSVG(source: source)
         #expect(svg.contains("Radar Chart"))
         #expect(svg.contains("<title>Radar Title</title>"))
     }
@@ -108,7 +108,7 @@ struct RadarEndToEndTests {
     @Test("Empty radar diagram produces valid SVG")
     func emptyRadarSVG() async throws {
         let source = "radar-beta"
-        let svg = try await renderDiagramSVG(source)
+        let svg = try await DiagramEngine.renderSVG(source: source)
         #expect(svg.hasPrefix("<svg "))
         #expect(svg.contains("radarGraticule"))
     }
@@ -141,7 +141,7 @@ struct RadarEndToEndTests {
     func labeledAxesRender() async throws {
         let source = #"radar-beta\n  axis A["Axis A"], B["Axis B"]\n  curve c1{1,2}"#
         let unescaped = source.replacingOccurrences(of: "\\n", with: "\n")
-        let svg = try await renderDiagramSVG(unescaped)
+        let svg = try await DiagramEngine.renderSVG(source: unescaped)
         #expect(svg.contains("Axis A"))
         #expect(svg.contains("Axis B"))
     }

@@ -282,7 +282,7 @@ struct TreeViewSvgTests {
               "file7.ts"
         """
 
-        let svg = try await renderDiagramSVG(source)
+        let svg = try await DiagramEngine.renderSVG(source: source)
 
         #expect(svg.contains("font-size:20px"))
         #expect(svg.contains("fill:#FF0000"))

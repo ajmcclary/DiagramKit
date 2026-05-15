@@ -9,30 +9,30 @@ final class SemicolonSeparatorTests: XCTestCase {
     // MARK: - Semicolon-separated diagrams render without error
 
     func testFlowchartWithSemicolonSeparator() async throws {
-        let svg = try await renderDiagramSVG("graph LR; A --> B")
+        let svg = try await DiagramEngine.renderSVG(source:"graph LR; A --> B")
         XCTAssertTrue(svg.contains("<svg"), "Should produce valid SVG")
         XCTAssertFalse(svg.contains("Syntax error"), "Should not contain syntax error")
     }
 
     func testFlowchartTDWithMultipleSemicolons() async throws {
-        let svg = try await renderDiagramSVG("graph TD; A --> B; B --> C")
+        let svg = try await DiagramEngine.renderSVG(source:"graph TD; A --> B; B --> C")
         XCTAssertTrue(svg.contains("<svg"), "Should produce valid SVG")
     }
 
     func testSequenceDiagramWithSemicolon() async throws {
-        let svg = try await renderDiagramSVG("sequenceDiagram; Alice ->> Bob: hi")
+        let svg = try await DiagramEngine.renderSVG(source:"sequenceDiagram; Alice ->> Bob: hi")
         XCTAssertTrue(svg.contains("<svg"), "Should produce valid SVG")
     }
 
     func testErDiagramWithSemicolon() async throws {
-        let svg = try await renderDiagramSVG("erDiagram; CUSTOMER ||--o{ ORDER : places")
+        let svg = try await DiagramEngine.renderSVG(source:"erDiagram; CUSTOMER ||--o{ ORDER : places")
         XCTAssertTrue(svg.contains("<svg"), "Should produce valid SVG")
     }
 
     // MARK: - Newline-separated diagrams still work (regression check)
 
     func testFlowchartWithNewlines() async throws {
-        let svg = try await renderDiagramSVG("""
+        let svg = try await DiagramEngine.renderSVG(source:"""
             graph LR
                 A --> B
                 B --> C
@@ -41,7 +41,7 @@ final class SemicolonSeparatorTests: XCTestCase {
     }
 
     func testSequenceDiagramWithNewlines() async throws {
-        let svg = try await renderDiagramSVG("""
+        let svg = try await DiagramEngine.renderSVG(source:"""
             sequenceDiagram
                 Alice ->> Bob: hello
             """)

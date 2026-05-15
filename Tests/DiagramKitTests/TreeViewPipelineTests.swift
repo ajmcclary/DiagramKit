@@ -30,7 +30,7 @@ struct TreeViewPipelineTests {
         #expect(data.nodes.contains { $0.name == "src" })
         #expect(data.nodes.contains { $0.name == "package.json" })
 
-        let svg = try await renderDiagramSVG(source)
+        let svg = try await DiagramEngine.renderSVG(source: source)
         #expect(svg.contains("class=\"tree-view\""))
         #expect(svg.contains("package.json"))
 
@@ -42,7 +42,7 @@ struct TreeViewPipelineTests {
     @Test("SVG TreeView detection is case-sensitive")
     func svgTreeViewDetectionIsCaseSensitive() async throws {
         do {
-            _ = try await renderDiagramSVG("TreeView-beta\n    file.js\n")
+            _ = try await DiagramEngine.renderSVG(source: "TreeView-beta\n    file.js\n")
         } catch {
             #expect(!String(describing: error).contains("Invalid treeView header"))
         }
@@ -97,7 +97,7 @@ struct TreeViewPipelineTests {
             file.js
         """
 
-        let svg = try await renderDiagramSVG(source)
+        let svg = try await DiagramEngine.renderSVG(source: source)
         #expect(svg.contains("font-size:18px"))
         #expect(svg.contains("fill:#AA0000"))
         #expect(!svg.contains("<use"))
@@ -115,7 +115,7 @@ struct TreeViewPipelineTests {
             file.js
         """
 
-        let svg = try await renderDiagramSVG(source)
+        let svg = try await DiagramEngine.renderSVG(source: source)
         #expect(svg.contains("width=\"100%\""))
     }
 
@@ -126,7 +126,7 @@ struct TreeViewPipelineTests {
             file.js
         """
 
-        let svg = try await renderDiagramSVG(source)
+        let svg = try await DiagramEngine.renderSVG(source: source)
         #expect(svg.contains("width=\""))
         #expect(!svg.contains("width=\"100%\""))
     }
