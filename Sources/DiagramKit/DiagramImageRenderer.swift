@@ -101,21 +101,12 @@ public final class DiagramImageRenderer {
     }
 
     func renderSVGSync(from source: String, idPolicy: SVGIDPolicy = .unique) throws -> String {
-        let options = RenderOptions(
-            bg: _hex(theme.background),
-            fg: _hex(theme.foreground),
-            line: _hex(theme.effectiveLine()),
-            accent: _hex(theme.effectiveAccent()),
-            muted: _hex(theme.effectiveMuted()),
-            surface: _hex(theme.effectiveSurface()),
-            border: _hex(theme.effectiveBorder()),
-            transparent: false,
+        try DiagramPipeline.renderSVG(
+            source: source,
+            theme: theme,
+            layoutConfig: layoutConfig,
             idPolicy: idPolicy
         )
-
-        let svg = try _renderDiagramSVG(source, options, layoutConfig: layoutConfig)
-        let resolvedSvg = _resolveSvgCssVariables(svg)
-        return _flattenKnownSvgTokens(resolvedSvg, theme: theme)
     }
 
     #if targetEnvironment(macCatalyst) || canImport(UIKit)

@@ -36,7 +36,6 @@ public struct MermaidImporter: DiagramSourceImporter {
     }
 
     public func parse(_ source: String) throws -> DiagramImportResult {
-        // Replicate existing MermaidParser.parse() logic.
         let decoded = _HTMLEntities.decode(source)
         let (processed, frontmatter) = _parseFrontMatterAndStripped(decoded)
 
