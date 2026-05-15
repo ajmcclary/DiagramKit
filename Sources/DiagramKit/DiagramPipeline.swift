@@ -131,6 +131,7 @@ public enum DiagramPipeline {
             )
         }
     }
+    #endif
 
     // MARK: - Render SVG
 
@@ -227,5 +228,4 @@ public enum DiagramPipeline {
             return AsciiRenderOutput(text: text, diagnostics: renderDiagnostics)
         }
     }
-    #endif
 }
