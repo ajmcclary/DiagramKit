@@ -72,7 +72,14 @@ enum RoundTripCellRegistry {
         allowedLosses: [.idSanitization, .boundaryFlatten, .c4SlotDrop]
     )
 
+    static let plantumlSequence = RoundTripCell(
+        importer: PlantUMLImporter(),
+        exporter: PlantUMLExporter(),
+        family: DiagramType.sequenceDiagram,
+        allowedLosses: [.idSanitization]
+    )
+
     // Subsequent cells declared by later tasks:
-    //   plantumlSequence, plantumlClass, plantumlState,
+    //   plantumlClass, plantumlState,
     //   plantumlMindmap, plantumlGantt, plantumlC4
 }
