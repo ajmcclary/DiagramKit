@@ -44,6 +44,34 @@ struct VisualPane: View {
             }
 
             stageBanner
+
+            stagePopover
+        }
+    }
+
+    @ViewBuilder
+    private var stagePopover: some View {
+        switch store.state.visualStage {
+        case .labelEdited:
+            VStack {
+                Spacer()
+                NodeEditPopover(store: store)
+                    .padding(.bottom, 60)
+            }
+        default:
+            EmptyView()
+        }
+
+        if !store.diagnostics.isEmpty {
+            VStack {
+                Spacer()
+                HStack {
+                    Spacer()
+                    QuickFixCard(store: store)
+                        .padding(.trailing, 12)
+                        .padding(.bottom, 60)
+                }
+            }
         }
     }
 
