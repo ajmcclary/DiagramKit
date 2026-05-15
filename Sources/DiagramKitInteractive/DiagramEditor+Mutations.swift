@@ -88,57 +88,57 @@ extension DiagramEditor {
         }
     }
 
+    // MARK: - Flow-graph payload helper
+
+    /// Apply `body` to the `MermaidGraph` inside a `.flowchart` or
+    /// `.stateDiagram` payload. Throws `.unsupportedMutation` for any
+    /// other payload. The body's throws propagate unchanged.
+    private func _withFlowGraphPayload(
+        in document: inout DiagramDocument,
+        mutation: String,
+        body: (inout original_src_types.MermaidGraph) throws -> Void
+    ) throws {
+        switch document.payload {
+        case .flowchart(var graph):
+            try body(&graph)
+            document.payload = .flowchart(graph)
+        case .stateDiagram(var graph):
+            try body(&graph)
+            document.payload = .stateDiagram(graph)
+        default:
+            throw DiagramEditorError.unsupportedMutation(
+                mutation: mutation,
+                diagramType: String(describing: document.type)
+            )
+        }
+    }
+
     // MARK: - Core mutation implementations
 
     func _deleteElement(
         _ selection: DiagramSelection, from document: DiagramDocument
     ) throws -> DiagramDocument {
         try _validateSelection(selection, matches: document)
-
         var doc = document
         let id = selection.elementID
-        switch doc.payload {
-        case .flowchart(var model):
+        try _withFlowGraphPayload(in: &doc, mutation: "deleteElement") { graph in
             if id.hasPrefix("node:") {
                 let nodeID = String(id.dropFirst(5))
-                guard model.nodesInOrder.contains(where: { $0.id == nodeID }) else {
+                guard graph.nodesInOrder.contains(where: { $0.id == nodeID }) else {
                     throw DiagramEditorError.elementNotFound(id: nodeID, kind: "node")
                 }
-                model.nodesInOrder.removeAll { $0.id == nodeID }
-                model.edges.removeAll { $0.source == nodeID || $0.target == nodeID }
+                graph.nodesInOrder.removeAll { $0.id == nodeID }
+                graph.edges.removeAll { $0.source == nodeID || $0.target == nodeID }
             } else if id.hasPrefix("edge:") {
-                let edgeID = String(id.dropFirst(5))
-                guard let index = _findEdge(in: model, selectionElementID: id) else {
-                    throw DiagramEditorError.elementNotFound(id: edgeID, kind: "edge")
+                guard let index = _findEdge(in: graph, selectionElementID: id) else {
+                    throw DiagramEditorError.elementNotFound(
+                        id: String(id.dropFirst(5)), kind: "edge"
+                    )
                 }
-                model.edges.remove(at: index)
+                graph.edges.remove(at: index)
             } else {
                 throw DiagramEditorError.unknownElementKind(id: id)
             }
-            doc.payload = .flowchart(model)
-        case .stateDiagram(var model):
-            if id.hasPrefix("node:") {
-                let nodeID = String(id.dropFirst(5))
-                guard model.nodesInOrder.contains(where: { $0.id == nodeID }) else {
-                    throw DiagramEditorError.elementNotFound(id: nodeID, kind: "node")
-                }
-                model.nodesInOrder.removeAll { $0.id == nodeID }
-                model.edges.removeAll { $0.source == nodeID || $0.target == nodeID }
-            } else if id.hasPrefix("edge:") {
-                let edgeID = String(id.dropFirst(5))
-                guard let index = _findEdge(in: model, selectionElementID: id) else {
-                    throw DiagramEditorError.elementNotFound(id: edgeID, kind: "edge")
-                }
-                model.edges.remove(at: index)
-            } else {
-                throw DiagramEditorError.unknownElementKind(id: id)
-            }
-            doc.payload = .stateDiagram(model)
-        default:
-            throw DiagramEditorError.unsupportedMutation(
-                mutation: "deleteElement",
-                diagramType: String(describing: doc.type)
-            )
         }
         return doc
     }
