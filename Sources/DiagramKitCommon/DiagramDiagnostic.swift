@@ -1,7 +1,8 @@
 import Foundation
 
-/// A non-fatal issue discovered during import.
-/// Returned in `DiagramImportResult.diagnostics`.
+/// A non-fatal issue discovered during import or export.
+/// Returned in `DiagramImportResult.diagnostics` and
+/// `DiagramExportResult.diagnostics`.
 public struct DiagramDiagnostic: Sendable, Hashable, CustomStringConvertible {
     /// Severity level.
     public enum Severity: Sendable, Hashable {
@@ -11,6 +12,9 @@ public struct DiagramDiagnostic: Sendable, Hashable, CustomStringConvertible {
     }
 
     public let severity: Severity
+    /// Typed category — populated by the static factories on this type.
+    /// `nil` when constructed via the public raw `init(severity:message:)`.
+    public let category: DiagnosticCategory?
     public let message: String
     /// Optional source location hint (line number, span, etc.)
     public let location: SourceLocation?
@@ -24,8 +28,26 @@ public struct DiagramDiagnostic: Sendable, Hashable, CustomStringConvertible {
         }
     }
 
-    public init(severity: Severity, message: String, location: SourceLocation? = nil) {
+    /// Back-compatible raw init. Use the `.lossyTransform` /
+    /// `.featureDropped` / `.informational` factories for new code; see
+    /// `docs/diagnostic-severity-discipline.md`. (Deprecation marker
+    /// lands once the in-tree migration completes.)
+    public init(severity: Severity,
+                message: String,
+                location: SourceLocation? = nil) {
         self.severity = severity
+        self.category = nil
+        self.message = message
+        self.location = location
+    }
+
+    /// Internal designated init — factories route here.
+    internal init(severity: Severity,
+                  category: DiagnosticCategory?,
+                  message: String,
+                  location: SourceLocation? = nil) {
+        self.severity = severity
+        self.category = category
         self.message = message
         self.location = location
     }
