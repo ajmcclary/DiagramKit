@@ -2,9 +2,9 @@
 
 Native Swift mermaid-js port moving toward a multi-format DiagramKit. For
 invariants and conventions, read `CLAUDE.md` first. For architecture details,
-read [ARCHITECTURE.md](ARCHITECTURE.md). For the active roadmap, read
-[PHASES.md](PHASES.md). For Phase 0 rename history, read
-[PHASE-0.md](PHASE-0.md). For current metrics, read
+read [ARCHITECTURE.md](ARCHITECTURE.md). For the completed roadmap, read
+[docs/archive/PHASES.md](docs/archive/PHASES.md). For Phase 0 rename history,
+read [docs/archive/PHASE-0.md](docs/archive/PHASE-0.md). For current metrics, read
 [BASELINES.md](BASELINES.md).
 
 The package has six layered targets:
@@ -48,8 +48,8 @@ and a multiplatform `xcodebuild` sweep.
   allowlisted or carry a "Concurrency Contract" banner.
 - `Scripts/strict-concurrency-check.sh` - first-party strict-concurrency build.
 - `Scripts/linux-check.sh` - Docker/Podman build of the Linux-portable matrix.
-  If Docker/Podman is not running locally, record it as skipped due to
-  environment; do not treat that as a source failure.
+  If Docker/Podman is missing or not running locally, record it as skipped due
+  to environment; do not treat that as a source failure.
 
 ## Critical Constraints
 
@@ -91,12 +91,12 @@ families) have landed. Format-neutral public names are primary;
 Mermaid-prefixed aliases carry deprecation annotations (Tier 1) or
 have been removed (Tier 2). Importers and exporters cover Mermaid,
 D2, Graphviz DOT, Structurizr, and PlantUML (sequence + class +
-state/activity + mindmap + gantt + C4). See PHASES.md for the active
-backlog (currently empty).
+state/activity + mindmap + gantt + C4). The active backlog is currently
+empty; the completed roadmap lives in [docs/archive/PHASES.md](docs/archive/PHASES.md).
 
 ## Testing
 
-- Test sources: 188 Swift files under `Tests/DiagramKitTests`.
+- Test sources: 258 Swift files under `Tests/DiagramKitTests`.
 - Corpus: `Examples/DiagramPlayground/Resources/test-diagrams.json`
   (422 entries: 396 Mermaid-only + 26 multi-format with D2, DOT, Structurizr, PlantUML sources).
 - Snapshot baselines:

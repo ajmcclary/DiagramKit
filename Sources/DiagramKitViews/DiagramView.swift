@@ -8,13 +8,14 @@ import DiagramKitRenderingCG
 #if canImport(UIKit)
 import UIKit
 
-/// A SwiftUI view that renders a Mermaid diagram.
+/// A SwiftUI view that renders a diagram.
 @available(iOS 26.0, macCatalyst 26.0, visionOS 26.0, *)
 @MainActor
 public struct DiagramView: UIViewRepresentable {
     private let source: String
     private let theme: DiagramTheme
     private let layoutConfig: LayoutConfig
+    private let sourceFormat: DiagramFormatID?
     @Binding private var parseError: Error?
     @Binding private var diagramBounds: CGRect
     @Binding private var boundsLookup: DiagramBoundsLookup?
@@ -23,6 +24,7 @@ public struct DiagramView: UIViewRepresentable {
         source: String,
         theme: DiagramTheme = .default,
         layoutConfig: LayoutConfig = LayoutConfig(),
+        sourceFormat: DiagramFormatID? = nil,
         parseError: Binding<Error?> = .constant(nil),
         diagramBounds: Binding<CGRect> = .constant(.zero),
         boundsLookup: Binding<DiagramBoundsLookup?> = .constant(nil)
@@ -30,6 +32,7 @@ public struct DiagramView: UIViewRepresentable {
         self.source = source
         self.theme = theme
         self.layoutConfig = layoutConfig
+        self.sourceFormat = sourceFormat
         self._parseError = parseError
         self._diagramBounds = diagramBounds
         self._boundsLookup = boundsLookup
@@ -48,6 +51,7 @@ public struct DiagramView: UIViewRepresentable {
         context.coordinator.attach(to: view)
         view.theme = theme
         view.layoutConfig = layoutConfig
+        view.sourceFormat = sourceFormat
         view.source = source
         return view
     }
@@ -65,6 +69,10 @@ public struct DiagramView: UIViewRepresentable {
 
         if view.layoutConfig != layoutConfig {
             view.layoutConfig = layoutConfig
+        }
+
+        if view.sourceFormat != sourceFormat {
+            view.sourceFormat = sourceFormat
         }
 
         if view.source != source {
@@ -121,13 +129,14 @@ public struct DiagramView: UIViewRepresentable {
 #elseif canImport(AppKit)
 import AppKit
 
-/// A SwiftUI view that renders a Mermaid diagram.
+/// A SwiftUI view that renders a diagram.
 @available(macOS 26.0, *)
 @MainActor
 public struct DiagramView: NSViewRepresentable {
     private let source: String
     private let theme: DiagramTheme
     private let layoutConfig: LayoutConfig
+    private let sourceFormat: DiagramFormatID?
     @Binding private var parseError: Error?
     @Binding private var diagramBounds: CGRect
     @Binding private var boundsLookup: DiagramBoundsLookup?
@@ -136,6 +145,7 @@ public struct DiagramView: NSViewRepresentable {
         source: String,
         theme: DiagramTheme = .default,
         layoutConfig: LayoutConfig = LayoutConfig(),
+        sourceFormat: DiagramFormatID? = nil,
         parseError: Binding<Error?> = .constant(nil),
         diagramBounds: Binding<CGRect> = .constant(.zero),
         boundsLookup: Binding<DiagramBoundsLookup?> = .constant(nil)
@@ -143,6 +153,7 @@ public struct DiagramView: NSViewRepresentable {
         self.source = source
         self.theme = theme
         self.layoutConfig = layoutConfig
+        self.sourceFormat = sourceFormat
         self._parseError = parseError
         self._diagramBounds = diagramBounds
         self._boundsLookup = boundsLookup
@@ -161,6 +172,7 @@ public struct DiagramView: NSViewRepresentable {
         context.coordinator.attach(to: view)
         view.theme = theme
         view.layoutConfig = layoutConfig
+        view.sourceFormat = sourceFormat
         view.source = source
         return view
     }
@@ -178,6 +190,10 @@ public struct DiagramView: NSViewRepresentable {
 
         if view.layoutConfig != layoutConfig {
             view.layoutConfig = layoutConfig
+        }
+
+        if view.sourceFormat != sourceFormat {
+            view.sourceFormat = sourceFormat
         }
 
         if view.source != source {

@@ -29,7 +29,7 @@ public enum DiagramLoader {
                     : "no importer matched: \"\(preview)…\""
             )
         }
-        return try importer.parse(source)
+        return try withImporterFormat(importer.parse(source), importer: importer)
     }
 
     /// Alias for `parseImportResult(_:registry:)` retained for callers that
@@ -72,7 +72,7 @@ public enum DiagramLoader {
                 "no importer registered for format '\(formatID.rawValue)' in registry"
             )
         }
-        return try importer.parse(source)
+        return try withImporterFormat(importer.parse(source), importer: importer)
     }
 
     /// Shorthand returning only the `DiagramDocument`, discarding diagnostics.
@@ -82,5 +82,17 @@ public enum DiagramLoader {
         registry: ImporterRegistry
     ) throws -> DiagramDocument {
         try parse(source, as: formatID, registry: registry).document
+    }
+
+    private static func withImporterFormat(
+        _ result: DiagramImportResult,
+        importer: any DiagramSourceImporter
+    ) -> DiagramImportResult {
+        guard result.formatID == nil else { return result }
+        return DiagramImportResult(
+            document: result.document,
+            diagnostics: result.diagnostics,
+            formatID: importer.formatID
+        )
     }
 }

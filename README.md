@@ -147,7 +147,7 @@ Verify Linux build: `./Scripts/linux-check.sh` (requires Docker or Podman; build
 
 ```bash
 swift build                           # ~50s clean, ~4s incremental
-swift test                            # full suite (188 test files; see BASELINES.md for caveats)
+swift test                            # full suite (258 test files; see BASELINES.md for caveats)
 swift test --filter <NameOrPattern>   # narrow run, e.g. SequenceSvgTests, CorpusSnapshotTests/svgSnapshot
 ./Scripts/bootstrap-smoke-check.sh    # local "is this branch healthy?" gate
 ```
@@ -190,7 +190,7 @@ swift run DiagramPlayground
 - [ATTRIBUTION.md](ATTRIBUTION.md) — upstream `mermaid-js` lineage, bundled fonts, library dependencies.
 - [THIRD_PARTY_LICENSES.md](THIRD_PARTY_LICENSES.md) — bundled assets with copyright + license text references.
 - [CLAUDE.md](CLAUDE.md) — invariants, conventions, layer-import rules, where new files belong.
-- [PHASES.md](PHASES.md) — active multi-format roadmap from the current state.
+- [docs/archive/PHASES.md](docs/archive/PHASES.md) — completed multi-format roadmap.
 - [ANALYSIS.md](ANALYSIS.md) — long-form format analysis and rationale.
 
 ## Migration from Mermaid-prefixed names

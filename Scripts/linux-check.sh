@@ -27,5 +27,10 @@ else
     exit 0
 fi
 
+if ! "$runtime" info >/dev/null 2>&1; then
+    echo "linux-check.sh: $runtime found but not usable; recording environment skip."
+    exit 0
+fi
+
 "$runtime" build -f Dockerfile.linux-check -t diagramkit-linux-check .
 "$runtime" run --rm diagramkit-linux-check

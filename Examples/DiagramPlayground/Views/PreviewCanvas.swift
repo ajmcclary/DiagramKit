@@ -204,6 +204,7 @@ struct PreviewCanvas: View {
                     source: store.previewSource,
                     theme: store.previewTheme,
                     layoutConfig: store.previewLayoutConfig,
+                    sourceFormat: store.state.sourceFormat.formatID,
                     parseError: parseErrorBinding,
                     diagramBounds: $liveDiagramBounds,
                     boundsLookup: $liveBoundsLookup
@@ -540,9 +541,10 @@ enum PreviewMode: CaseIterable, Hashable {
 /// Renders `DiagramEngine.renderASCII(...)` of the live preview source
 /// into a scrollable monospaced text view.
 ///
-/// Only flowchart, sequence, class, ER, and state diagrams support ASCII
-/// today; other families come back empty or with a `notYetImplemented`
-/// error, which is rendered as a friendly inline message.
+/// Mermaid sources render directly; supported imported formats are normalized
+/// through Mermaid export before ASCII rendering. Unsupported families come
+/// back empty or with a `notYetImplemented` error, rendered as a friendly
+/// inline message.
 @available(iOS 26.0, macOS 26.0, macCatalyst 26.0, *)
 struct AsciiPreviewView: View {
     @Bindable var store: LiveEditorStore
@@ -613,7 +615,11 @@ struct AsciiPreviewView: View {
 
         let theme = store.previewTheme
         do {
-            let rendered = try await DiagramEngine.renderASCII(source: source, theme: theme)
+            let rendered = try await DiagramEngine.renderASCII(
+                source: source,
+                theme: theme,
+                sourceFormat: store.state.sourceFormat.formatID
+            )
             await MainActor.run {
                 ascii = rendered.text
                 isLoading = false

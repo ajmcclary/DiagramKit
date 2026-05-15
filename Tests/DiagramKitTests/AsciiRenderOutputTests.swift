@@ -33,4 +33,13 @@ struct AsciiRenderOutputTests {
         let output = try await DiagramEngine.renderASCII(source: source)
         #expect(output.diagnostics.contains { $0.severity == .warning })
     }
+
+    @Test("D2 ASCII routes through importer before Mermaid ASCII rendering")
+    func d2AsciiRoutesThroughImporter() async throws {
+        let output = try await DiagramEngine.renderASCII(source: "A -> B")
+
+        #expect(!output.text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+        #expect(output.text.contains("A"))
+        #expect(output.text.contains("B"))
+    }
 }

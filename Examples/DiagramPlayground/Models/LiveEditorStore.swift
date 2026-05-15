@@ -246,7 +246,7 @@ public final class LiveEditorStore {
     public func setSourceFormat(_ format: SourceFormat) {
         guard state.sourceFormat != format else { return }
         state.sourceFormat = format
-        // Re-render: the same text under a new format will be re-probed.
+        // Re-render: the same text is now parsed through the selected format.
         requestRender(reason: .sourceChanged)
     }
 
@@ -386,7 +386,10 @@ public final class LiveEditorStore {
         Task { [weak self] in
             guard let self else { return }
             do {
-                let document = try await DiagramEngine.parse(self.state.source)
+                let document = try await DiagramEngine.parse(
+                    self.state.source,
+                    as: self.state.sourceFormat.formatID
+                )
                 await self.applySeededEditor(document: document)
             } catch {
                 // Parse failures are already surfaced via parseError; leave
@@ -448,6 +451,7 @@ public final class LiveEditorStore {
     public func exportPNG(options: ExportOptions) async throws -> URL {
         let renderer = DiagramImageRenderer(theme: theme)
         renderer.layoutConfig = layoutConfig
+        renderer.sourceFormat = state.sourceFormat.formatID
 
         let image: BMImage?
         switch options.sizing {
@@ -481,23 +485,27 @@ public final class LiveEditorStore {
         try await DiagramEngine.renderSVG(
             source: state.source,
             theme: theme,
-            layoutConfig: layoutConfig
+            layoutConfig: layoutConfig,
+            sourceFormat: state.sourceFormat.formatID
         )
     }
 
     /// Export the current diagram as an ASCII / Unicode string.
     ///
-    /// Only a subset of diagram families supports ASCII rendering
-    /// (flowchart, sequence, class, ER, state). For unsupported families
-    /// the pipeline returns an empty/whitespace string.
+    /// Mermaid sources render directly; supported imported formats are
+    /// normalized through Mermaid export before ASCII rendering.
     public func exportASCII() async throws -> String {
-        try await DiagramEngine.renderASCII(source: state.source, theme: theme).text
+        try await DiagramEngine.renderASCII(
+            source: state.source,
+            theme: theme,
+            sourceFormat: state.sourceFormat.formatID
+        ).text
     }
 
     /// Convert the current source to another format via parse → export.
     ///
-    /// Parses through `DiagramPipeline.defaultRegistry` (auto-detects the
-    /// current format), then dispatches to the target exporter through
+    /// Parses through the selected source format, then dispatches to the
+    /// target exporter through
     /// `DiagramPipeline.defaultExportRegistry`. All five formats have
     /// registered exporters; an exporter may still emit a `.unsupported`
     /// diagnostic when the parsed document's diagram family is outside
@@ -508,7 +516,10 @@ public final class LiveEditorStore {
     /// - Returns: The exporter's `DiagramExportResult` with `source` and
     ///   `diagnostics`.
     public func exportSource(to target: SourceFormat) async throws -> DiagramExportResult {
-        let document = try await DiagramEngine.parse(state.source)
+        let document = try await DiagramEngine.parse(
+            state.source,
+            as: state.sourceFormat.formatID
+        )
         return try DiagramExportLoader.export(
             document,
             to: target.formatID,
@@ -545,6 +556,7 @@ public final class LiveEditorStore {
     public func copyPNGImage(options: ExportOptions) async throws {
         let renderer = DiagramImageRenderer(theme: theme)
         renderer.layoutConfig = layoutConfig
+        renderer.sourceFormat = state.sourceFormat.formatID
 
         let image: BMImage?
         switch options.sizing {

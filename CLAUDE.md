@@ -17,8 +17,8 @@ overlap, preserve the constraints here and use the other docs for detail.
 - [README.md](README.md) - public install and quick-start examples.
 - [ARCHITECTURE.md](ARCHITECTURE.md) - layer diagram, pipeline details, drift
   hazards, and import rules.
-- [PHASES.md](PHASES.md) - active multi-format roadmap from the current state.
-- [PHASE-0.md](PHASE-0.md) - completed rename plan/history.
+- [docs/archive/PHASES.md](docs/archive/PHASES.md) - completed multi-format roadmap.
+- [docs/archive/PHASE-0.md](docs/archive/PHASE-0.md) - completed rename plan/history.
 - [ANALYSIS.md](ANALYSIS.md) - long-form rationale and format analysis.
 - [BASELINES.md](BASELINES.md) - current build, test, snapshot, and gate
   metrics.
@@ -337,6 +337,6 @@ exporter, full PlantUML family coverage, ASCII renderers for all 28
 families) have all landed. Importers and exporters ship for Mermaid,
 D2, Graphviz DOT, Structurizr, and PlantUML (sequence + class +
 state/activity + mindmap + gantt + C4). The corpus carries ~422
-entries across 28 diagram families. See [PHASES.md](PHASES.md) for
-the active backlog (currently empty) and [BASELINES.md](BASELINES.md)
-for the closing-commit map.
+entries across 28 diagram families. The active backlog is currently empty;
+the completed roadmap lives in [docs/archive/PHASES.md](docs/archive/PHASES.md),
+and [BASELINES.md](BASELINES.md) has the closing-commit map.

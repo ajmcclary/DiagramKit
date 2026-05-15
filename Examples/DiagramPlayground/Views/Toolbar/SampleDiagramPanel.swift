@@ -357,7 +357,7 @@ struct SampleStatusBadge {
     }
 }
 
-#if DEBUG
+#if DEBUG && !DIAGRAMKIT_SWIFTPM
 @available(iOS 26.0, macOS 26.0, macCatalyst 26.0, *)
 #Preview {
     let store = LiveEditorStore()

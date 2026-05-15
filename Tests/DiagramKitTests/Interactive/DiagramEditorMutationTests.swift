@@ -110,6 +110,22 @@ struct DiagramEditorMutationTests {
         #expect(model.edges.count == 0)
     }
 
+    @Test("deleteElement clears selection when selected node is removed")
+    func deleteElementClearsRemovedNodeSelection() async throws {
+        let doc = flowDoc(["A", "B"], edges: [("A", "B")])
+        let editor = DiagramEditor(
+            document: doc,
+            preferredExportFormat: .mermaid,
+            exportRegistry: mockRegistry()
+        )
+        let sel = DiagramSelection(diagramType: .flowchart, elementID: "node:B")
+        editor.selection = sel
+
+        try await editor.perform(.deleteElement(sel))
+
+        #expect(editor.selection == nil)
+    }
+
     @Test("deleteElement removes edge only")
     func deleteElementEdge() async throws {
         let doc = flowDoc(["A", "B"], edges: [("A", "B")])

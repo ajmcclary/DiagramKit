@@ -13,7 +13,7 @@ import UIKit
 import AppKit
 #endif
 
-/// Main entry point for parsing, layout, and rendering Mermaid diagrams.
+/// Main entry point for parsing, layout, and rendering diagrams.
 public struct DiagramEngine {
     /// Library version. Reads the `VERSION` resource bundled with
     /// `DiagramKitCommon` (Linux + Apple). To update the version, edit
@@ -48,7 +48,7 @@ public struct DiagramEngine {
     }
     #endif
 
-    /// Parse a Mermaid diagram.
+    /// Parse a diagram, auto-detecting its source format.
     public static func parse(_ source: String) async throws -> DiagramDocument {
         #if canImport(CoreGraphics)
         _ = _DiagramPreparerBootstrap.didInstall
@@ -58,32 +58,48 @@ public struct DiagramEngine {
         }
     }
 
-    /// Parse and layout a Mermaid diagram.
+    /// Parse a diagram using an authoritative source format.
+    public static func parse(
+        _ source: String,
+        as sourceFormat: DiagramFormatID
+    ) async throws -> DiagramDocument {
+        #if canImport(CoreGraphics)
+        _ = _DiagramPreparerBootstrap.didInstall
+        #endif
+        return try await _runOnWorker {
+            try DiagramPipeline.parse(source, as: sourceFormat)
+        }
+    }
+
+    /// Parse and layout a diagram.
     public static func layout(
         _ source: String,
-        config: LayoutConfig = LayoutConfig()
+        config: LayoutConfig = LayoutConfig(),
+        sourceFormat: DiagramFormatID? = nil
     ) async throws -> PositionedGraph {
         #if canImport(CoreGraphics)
         _ = _DiagramPreparerBootstrap.didInstall
         #endif
         return try await _runOnWorker {
-            try DiagramPipeline.layout(source, config: config)
+            try DiagramPipeline.layout(source, config: config, sourceFormat: sourceFormat)
         }
     }
 
     #if canImport(CoreGraphics)
-    /// Prepare a Mermaid diagram for direct CGContext rendering.
+    /// Prepare a diagram for direct CGContext rendering.
     public static func prepare(
         source: String,
         theme: DiagramTheme = .default,
-        layoutConfig: LayoutConfig = LayoutConfig()
+        layoutConfig: LayoutConfig = LayoutConfig(),
+        sourceFormat: DiagramFormatID? = nil
     ) async throws -> PreparedDiagram {
         _ = _DiagramPreparerBootstrap.didInstall
         return try await _runOnWorker {
             try DiagramPipeline.prepare(
                 source: source,
                 theme: theme,
-                layoutConfig: layoutConfig
+                layoutConfig: layoutConfig,
+                sourceFormat: sourceFormat
             )
         }
     }
@@ -94,44 +110,50 @@ public struct DiagramEngine {
         source: String,
         in context: CGContext,
         bounds: CGRect,
-        theme: DiagramTheme = .default
+        theme: DiagramTheme = .default,
+        sourceFormat: DiagramFormatID? = nil
     ) async throws {
-        let prepared = try await prepare(source: source, theme: theme)
+        let prepared = try await prepare(source: source, theme: theme, sourceFormat: sourceFormat)
         prepared.render(in: context, bounds: bounds)
     }
 
-    /// Render a Mermaid diagram to a native image.
+    /// Render a diagram to a native image.
     @MainActor
     public static func renderImage(
         source: String,
         theme: DiagramTheme = .default,
-        scale: CGFloat = 2.0
+        scale: CGFloat = 2.0,
+        sourceFormat: DiagramFormatID? = nil
     ) async throws -> BMImage? {
         _ = _DiagramPreparerBootstrap.didInstall
         let renderer = DiagramImageRenderer(theme: theme)
+        renderer.sourceFormat = sourceFormat
         renderer.scale = scale
         return try await renderer.renderImage(from: source)
     }
 
-    /// Render a Mermaid diagram to a native image with specific size.
+    /// Render a diagram to a native image with specific size.
     @MainActor
     public static func renderImage(
         source: String,
         size: CGSize,
-        theme: DiagramTheme = .default
+        theme: DiagramTheme = .default,
+        sourceFormat: DiagramFormatID? = nil
     ) async throws -> BMImage? {
         _ = _DiagramPreparerBootstrap.didInstall
         let renderer = DiagramImageRenderer(theme: theme)
+        renderer.sourceFormat = sourceFormat
         return try await renderer.renderImage(from: source, size: size)
     }
     #endif
 
-    /// Render a Mermaid diagram to an SVG string.
+    /// Render a diagram to an SVG string.
     public static func renderSVG(
         source: String,
         theme: DiagramTheme = .default,
         layoutConfig: LayoutConfig = LayoutConfig(),
-        idPolicy: SVGIDPolicy = .unique
+        idPolicy: SVGIDPolicy = .unique,
+        sourceFormat: DiagramFormatID? = nil
     ) async throws -> String {
         #if canImport(CoreGraphics)
         _ = _DiagramPreparerBootstrap.didInstall
@@ -141,23 +163,29 @@ public struct DiagramEngine {
                 source: source,
                 theme: theme,
                 layoutConfig: layoutConfig,
-                idPolicy: idPolicy
+                idPolicy: idPolicy,
+                sourceFormat: sourceFormat
             )
         }
     }
 
-    /// Render a Mermaid diagram to an ASCII/Unicode string paired with any
+    /// Render a diagram to an ASCII/Unicode string paired with any
     /// diagnostics emitted during parse / layout / ASCII rendering. Callers
     /// that only want the rendered text can access `.text`.
     public static func renderASCII(
         source: String,
-        theme: DiagramTheme = .default
+        theme: DiagramTheme = .default,
+        sourceFormat: DiagramFormatID? = nil
     ) async throws -> AsciiRenderOutput {
         #if canImport(CoreGraphics)
         _ = _DiagramPreparerBootstrap.didInstall
         #endif
         return try await _runOnWorker {
-            try DiagramPipeline.renderASCII(source: source, theme: theme)
+            try DiagramPipeline.renderASCII(
+                source: source,
+                theme: theme,
+                sourceFormat: sourceFormat
+            )
         }
     }
 
@@ -166,13 +194,17 @@ public struct DiagramEngine {
     /// need the diagnostics without going through `prepare(...)`.
     public static func parseImportResult(
         source: String,
+        sourceFormat: DiagramFormatID? = nil,
         registry: ImporterRegistry = DiagramPipeline.defaultRegistry
     ) async throws -> DiagramImportResult {
         #if canImport(CoreGraphics)
         _ = _DiagramPreparerBootstrap.didInstall
         #endif
         return try await _runOnWorker {
-            try DiagramLoader.parseImportResult(source, registry: registry)
+            if let sourceFormat {
+                return try DiagramLoader.parse(source, as: sourceFormat, registry: registry)
+            }
+            return try DiagramLoader.parseImportResult(source, registry: registry)
         }
     }
 
@@ -209,34 +241,50 @@ public struct DiagramEngine {
 }
 
 extension String {
-    public func parseDiagram() async throws -> DiagramDocument {
-        try await DiagramEngine.parse(self)
+    public func parseDiagram(sourceFormat: DiagramFormatID? = nil) async throws -> DiagramDocument {
+        if let sourceFormat {
+            return try await DiagramEngine.parse(self, as: sourceFormat)
+        }
+        return try await DiagramEngine.parse(self)
     }
 
     #if canImport(CoreGraphics)
     @MainActor
     public func renderDiagramImage(
         theme: DiagramTheme = .default,
-        scale: CGFloat = 2.0
+        scale: CGFloat = 2.0,
+        sourceFormat: DiagramFormatID? = nil
     ) async throws -> BMImage? {
-        try await DiagramEngine.renderImage(source: self, theme: theme, scale: scale)
+        try await DiagramEngine.renderImage(
+            source: self,
+            theme: theme,
+            scale: scale,
+            sourceFormat: sourceFormat
+        )
     }
     #endif
 
     public func renderDiagramSVG(
         theme: DiagramTheme = .default,
-        layoutConfig: LayoutConfig = LayoutConfig()
+        layoutConfig: LayoutConfig = LayoutConfig(),
+        sourceFormat: DiagramFormatID? = nil
     ) async throws -> String {
         try await DiagramEngine.renderSVG(
             source: self,
             theme: theme,
-            layoutConfig: layoutConfig
+            layoutConfig: layoutConfig,
+            sourceFormat: sourceFormat
         )
     }
 
     public func renderDiagramASCII(
-        theme: DiagramTheme = .default
+        theme: DiagramTheme = .default,
+        sourceFormat: DiagramFormatID? = nil
     ) async throws -> String {
-        try await DiagramEngine.renderASCII(source: self, theme: theme).text
+        try await DiagramEngine.renderASCII(
+            source: self,
+            theme: theme,
+            sourceFormat: sourceFormat
+        ).text
     }
 }

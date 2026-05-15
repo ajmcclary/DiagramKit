@@ -34,11 +34,12 @@ enum _DiagramPreparerBootstrap {
         // 1. Register the synchronous pipeline implementation. View code
         //    that calls `DiagramPreparation.prepare(...)` directly will
         //    find this closure here.
-        DiagramPreparation.registerImplementation { source, theme, config in
+        DiagramPreparation.registerImplementation { source, theme, config, sourceFormat in
             try DiagramPipeline.prepare(
                 source: source,
                 theme: theme,
-                layoutConfig: config
+                layoutConfig: config,
+                sourceFormat: sourceFormat
             )
         }
 
@@ -46,11 +47,12 @@ enum _DiagramPreparerBootstrap {
         //    async wrapper. Tests can override this without disturbing
         //    `DiagramPreparation` itself.
         DiagramViewPreparerEnvironment.configure(
-            DiagramViewPreparer { source, theme, config in
+            DiagramViewPreparer { source, theme, config, sourceFormat in
                 try await DiagramPreparation.prepare(
                     source: source,
                     theme: theme,
-                    layoutConfig: config
+                    layoutConfig: config,
+                    sourceFormat: sourceFormat
                 )
             }
         )

@@ -5,6 +5,7 @@
 // registers that closure via `registerImplementation(_:)` on first use.
 #if canImport(CoreGraphics)
 import Foundation
+import DiagramKitCommon
 import DiagramKitModel
 
 /// Canonical async wrapper around the umbrella's synchronous prepare
@@ -41,7 +42,8 @@ public enum DiagramPreparation {
     public typealias SyncImplementation = @Sendable (
         _ source: String,
         _ theme: DiagramTheme,
-        _ layoutConfig: LayoutConfig
+        _ layoutConfig: LayoutConfig,
+        _ sourceFormat: DiagramFormatID?
     ) throws -> PreparedDiagram
 
     nonisolated(unsafe) private static var _impl: SyncImplementation?
@@ -62,14 +64,15 @@ public enum DiagramPreparation {
     public static func prepare(
         source: String,
         theme: DiagramTheme = .default,
-        layoutConfig: LayoutConfig = LayoutConfig()
+        layoutConfig: LayoutConfig = LayoutConfig(),
+        sourceFormat: DiagramFormatID? = nil
     ) async throws -> PreparedDiagram {
         let impl = _currentImpl
         guard let impl else {
             throw DiagramPreparationError.notConfigured
         }
         return try await DiagramWorkerThread.run {
-            try impl(source, theme, layoutConfig)
+            try impl(source, theme, layoutConfig, sourceFormat)
         }
     }
 

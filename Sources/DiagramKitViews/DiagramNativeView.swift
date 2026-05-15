@@ -1,6 +1,7 @@
 // Apple-only SwiftUI/UIView wrappers gated by `#if canImport(UIKit) || canImport(AppKit)`. On Linux this file is empty.
 #if canImport(UIKit) || canImport(AppKit)
 import Foundation
+import DiagramKitCommon
 import DiagramKitModel
 import DiagramKitRenderingCG
 import CoreGraphics
@@ -35,6 +36,11 @@ public class DiagramNativeView: UIView {
     public var layoutConfig: LayoutConfig {
         get { diagramLayer.layoutConfig }
         set { diagramLayer.layoutConfig = newValue }
+    }
+
+    public var sourceFormat: DiagramFormatID? {
+        get { diagramLayer.sourceFormat }
+        set { diagramLayer.sourceFormat = newValue }
     }
 
     public var parseError: Error? { diagramLayer.parseError }
@@ -143,6 +149,11 @@ public class DiagramNativeView: NSView {
     public var layoutConfig: LayoutConfig {
         get { diagramLayer.layoutConfig }
         set { diagramLayer.layoutConfig = newValue }
+    }
+
+    public var sourceFormat: DiagramFormatID? {
+        get { diagramLayer.sourceFormat }
+        set { diagramLayer.sourceFormat = newValue }
     }
 
     public var parseError: Error? { diagramLayer.parseError }

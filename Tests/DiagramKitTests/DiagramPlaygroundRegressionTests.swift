@@ -188,6 +188,23 @@ final class DiagramPlaygroundExportRegressionTests: XCTestCase {
 
         XCTAssertNotEqual(defaultSVG, paddedSVG)
     }
+
+    @MainActor
+    func testExportSourceHonorsSelectedSourceFormatInsteadOfAutoDetecting() async throws {
+        let store = LiveEditorStore(
+            state: LiveEditorState(
+                source: "graph TD\n  A --> B",
+                sourceFormat: .structurizr
+            )
+        )
+
+        do {
+            _ = try await store.exportSource(to: .mermaid)
+            XCTFail("Expected Structurizr parsing to reject Mermaid-shaped source")
+        } catch {
+            // Expected: selected source format is authoritative.
+        }
+    }
 }
 
 @available(iOS 26.0, macOS 26.0, macCatalyst 26.0, *)
@@ -221,6 +238,17 @@ final class DiagramPlaygroundVersionRegressionTests: XCTestCase {
 @available(iOS 26.0, macOS 26.0, macCatalyst 26.0, *)
 @MainActor
 final class DiagramPlaygroundSyntaxHighlighterRegressionTests: XCTestCase {
+    func testStaleHighlightPayloadsAreRejected() {
+        XCTAssertTrue(DiagramSyntaxHighlighter.shouldApplyHighlight(
+            capturedSource: "graph TD\nA --> B",
+            currentText: "graph TD\nA --> B"
+        ))
+        XCTAssertFalse(DiagramSyntaxHighlighter.shouldApplyHighlight(
+            capturedSource: "graph TD\nA --> B",
+            currentText: "graph TD\nA --> C"
+        ))
+    }
+
     func testHighlightsCurrentRegistryHeaders() async throws {
         #if canImport(AppKit)
         let headers = ["venn-beta", "wardley-beta", "ishikawa", "treeView-beta"]

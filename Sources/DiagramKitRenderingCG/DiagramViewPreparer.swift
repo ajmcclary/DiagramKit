@@ -1,5 +1,6 @@
 #if canImport(CoreGraphics)
 import Foundation
+import DiagramKitCommon
 import DiagramKitModel
 
 /// Indirection for view-side diagram preparation.
@@ -21,11 +22,17 @@ public struct DiagramViewPreparer: Sendable {
     public var prepare: @Sendable (
         _ source: String,
         _ theme: DiagramTheme,
-        _ config: LayoutConfig
+        _ config: LayoutConfig,
+        _ sourceFormat: DiagramFormatID?
     ) async throws -> PreparedDiagram
 
     public init(
-        prepare: @escaping @Sendable (String, DiagramTheme, LayoutConfig) async throws -> PreparedDiagram
+        prepare: @escaping @Sendable (
+            String,
+            DiagramTheme,
+            LayoutConfig,
+            DiagramFormatID?
+        ) async throws -> PreparedDiagram
     ) {
         self.prepare = prepare
     }

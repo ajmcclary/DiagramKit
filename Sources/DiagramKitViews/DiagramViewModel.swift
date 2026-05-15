@@ -6,12 +6,13 @@ import DiagramKitCommon
 import DiagramKitModel
 import DiagramKitRenderingCG
 
-/// A value-type model that manages the Mermaid diagram pipeline.
+/// A value-type model that manages the diagram pipeline.
 @MainActor
 public struct DiagramViewModel {
     public var source: String
     public var theme: DiagramTheme
     public var layoutConfig: LayoutConfig
+    public var sourceFormat: DiagramFormatID?
 
     public private(set) var parseError: Error?
     public private(set) var diagramBounds: CGRect = .zero
@@ -20,11 +21,13 @@ public struct DiagramViewModel {
     public init(
         source: String = "",
         theme: DiagramTheme = .default,
-        layoutConfig: LayoutConfig = LayoutConfig()
+        layoutConfig: LayoutConfig = LayoutConfig(),
+        sourceFormat: DiagramFormatID? = nil
     ) {
         self.source = source
         self.theme = theme
         self.layoutConfig = layoutConfig
+        self.sourceFormat = sourceFormat
     }
 
     /// Parse and layout the current source.
@@ -45,17 +48,24 @@ public struct DiagramViewModel {
         let snapshotSource = source
         let snapshotTheme = theme
         let snapshotConfig = layoutConfig
+        let snapshotSourceFormat = sourceFormat
 
         let preparer = DiagramViewPreparerEnvironment.current
 
         do {
             let prepared = if let preparer {
-                try await preparer.prepare(snapshotSource, snapshotTheme, snapshotConfig)
+                try await preparer.prepare(
+                    snapshotSource,
+                    snapshotTheme,
+                    snapshotConfig,
+                    snapshotSourceFormat
+                )
             } else {
                 try await DiagramPreparation.prepare(
                     source: snapshotSource,
                     theme: snapshotTheme,
-                    layoutConfig: snapshotConfig
+                    layoutConfig: snapshotConfig,
+                    sourceFormat: snapshotSourceFormat
                 )
             }
             preparedDiagram = prepared
@@ -84,7 +94,8 @@ extension DiagramView {
         self.init(
             source: diagram.source,
             theme: diagram.theme,
-            layoutConfig: diagram.layoutConfig
+            layoutConfig: diagram.layoutConfig,
+            sourceFormat: diagram.sourceFormat
         )
     }
 }
@@ -99,7 +110,8 @@ extension DiagramView {
         self.init(
             source: diagram.source,
             theme: diagram.theme,
-            layoutConfig: diagram.layoutConfig
+            layoutConfig: diagram.layoutConfig,
+            sourceFormat: diagram.sourceFormat
         )
     }
 }

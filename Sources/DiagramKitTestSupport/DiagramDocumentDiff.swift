@@ -52,7 +52,5 @@ public func compare(_ a: DiagramDocument, _ b: DiagramDocument) -> [RoundTripDel
     return deltas
 }
 
-// MARK: - Per-family stubs (filled in by subsequent cell tasks)
-// Each stub returns `[.unexpected("not-yet-implemented", "<family>")]` until
-// its cell task lands the real comparator.
-
+// Per-family comparators live in sibling files so each round-trip family can
+// evolve independently while preserving a single public dispatcher.

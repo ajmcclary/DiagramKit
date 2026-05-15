@@ -17,7 +17,7 @@ import AppKit
 
 // PreparedDiagram moved to DiagramKitRenderingCG/PreparedDiagram.swift
 
-/// A CALayer subclass that manages the Mermaid diagram rendering pipeline:
+/// A CALayer subclass that manages the diagram rendering pipeline:
 /// parse -> layout -> draw.
 @MainActor
 public class DiagramLayer: CALayer {
@@ -36,6 +36,12 @@ public class DiagramLayer: CALayer {
 
     public var layoutConfig: LayoutConfig = LayoutConfig() {
         didSet { prepareDiagram() }
+    }
+
+    public var sourceFormat: DiagramFormatID? {
+        didSet {
+            if sourceFormat != oldValue { prepareDiagram() }
+        }
     }
 
     public private(set) var parseError: Error?
@@ -175,6 +181,7 @@ public class DiagramLayer: CALayer {
         let source = source
         let theme = theme
         let layoutConfig = layoutConfig
+        let sourceFormat = sourceFormat
 
         let preparer = DiagramViewPreparerEnvironment.current
 
@@ -183,10 +190,13 @@ public class DiagramLayer: CALayer {
             do {
                 let prepared: PreparedDiagram
                 if let preparer {
-                    prepared = try await preparer.prepare(source, theme, layoutConfig)
+                    prepared = try await preparer.prepare(source, theme, layoutConfig, sourceFormat)
                 } else {
                     prepared = try await DiagramPreparation.prepare(
-                        source: source, theme: theme, layoutConfig: layoutConfig
+                        source: source,
+                        theme: theme,
+                        layoutConfig: layoutConfig,
+                        sourceFormat: sourceFormat
                     )
                 }
                 result = .success(prepared)

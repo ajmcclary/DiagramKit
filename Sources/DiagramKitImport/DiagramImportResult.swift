@@ -13,9 +13,16 @@ public struct DiagramImportResult: Sendable {
     public let document: DiagramDocument
     /// Non-fatal diagnostics collected during import.
     public let diagnostics: [DiagramDiagnostic]
+    /// Source format that produced this document, when known.
+    public let formatID: DiagramFormatID?
 
-    public init(document: DiagramDocument, diagnostics: [DiagramDiagnostic] = []) {
+    public init(
+        document: DiagramDocument,
+        diagnostics: [DiagramDiagnostic] = [],
+        formatID: DiagramFormatID? = nil
+    ) {
         self.document = document
         self.diagnostics = diagnostics
+        self.formatID = formatID
     }
 }

@@ -200,7 +200,12 @@ let package = Package(
             resources: [
                 .process("Resources")
             ],
-            swiftSettings: strictConcurrencySettings
+            swiftSettings: strictConcurrencySettings + [
+                // SwiftPM debug builds define DEBUG and expand SwiftUI
+                // #Preview macros, but the preview macro plugin is only
+                // available in the Xcode app-preview build path.
+                .define("DIAGRAMKIT_SWIFTPM")
+            ]
         ),
         .testTarget(
             name: "DiagramKitTests",

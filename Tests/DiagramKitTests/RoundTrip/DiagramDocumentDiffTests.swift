@@ -11,12 +11,7 @@ struct DiagramDocumentDiffTests {
         let a = DiagramDocument(payload: .flowchart(model))
         let b = DiagramDocument(payload: .flowchart(model))
         let deltas = compare(a, b)
-        // Stub for flowchart returns .unexpected("flowchart", ...); cell tasks
-        // replace it. This test pins the dispatcher routing, not the arm.
-        #expect(deltas.contains { delta in
-            if case .unexpected(let path, _) = delta { return path == "flowchart" }
-            return false
-        })
+        #expect(deltas.isEmpty)
     }
 
     @Test("Mismatched payload types report unexpected delta")

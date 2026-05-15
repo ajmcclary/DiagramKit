@@ -79,6 +79,7 @@ run_gate "check-sendable-annotations.sh" "$ROOT/Scripts/check-sendable-annotatio
 run_gate "check-diagnostic-discipline.sh" "$ROOT/Scripts/check-diagnostic-discipline.sh"
 run_gate "check-diagnostic-discipline-tests/run.sh" "$ROOT/Scripts/check-diagnostic-discipline-tests/run.sh"
 run_gate "check-stale-phase-comments.sh" "$ROOT/Scripts/check-stale-phase-comments.sh"
+run_gate "check-linux-check-runtime-skip.sh" "$ROOT/Scripts/check-linux-check-runtime-skip.sh"
 run_gate "linux-check.sh" "$ROOT/Scripts/linux-check.sh"
 
 run_build "iOS" 'generic/platform=iOS'

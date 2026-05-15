@@ -1,6 +1,6 @@
 # BASELINES.md
 
-Last updated: 2026-05-13 (Phase 8 — review remediation release verification)
+Last updated: 2026-05-15 (review remediation follow-up verification)
 
 ## Build
 - `swift build --build-tests`: ~22–27s on a MacBook Pro M4 (24 GB) after
@@ -8,9 +8,8 @@ Last updated: 2026-05-13 (Phase 8 — review remediation release verification)
   sub-2s. `Scripts/strict-concurrency-check.sh`: clean.
 
 ## Tests
-- Test source files: 191 Swift files under `Tests/DiagramKitTests`
-  (added in remediation: `DiagramPipelineReviewRegressionTests`,
-  `DiagramViewReviewRegressionTests`, `FlowchartStateERReviewRegressionTests`).
+- Test source files: 258 Swift files under `Tests/DiagramKitTests`
+  (264 total when including `Tests/DiagramKitLinuxTests` and playground UI tests).
 - `swift test` excluding corpus snapshots: ~30s
 - `swift test --filter CorpusSnapshotTests`: ~5 min; use chunked execution
   for recording. The known signal-10 hang on a full corpus run is
@@ -52,16 +51,15 @@ Last updated: 2026-05-13 (Phase 8 — review remediation release verification)
 | 2026-05-14 | SVG color-mix resolver rebaseline | `5cf2186` (SVG) + *image commit* | REVIEW.md §1 Session 4. Re-records 390 of 435 SVG and 57 of 435 image baselines against the post-resolver-fix output (`1c2f18f`, `6b35c80`, `d6bdec7`). Unmodified entries are 17 pre-failing IDs (`req-*`, `xychart-27-full-config`) plus byte-identical outputs. Visual canary set: flow-1-simple, seq-1-basic, class-1-basic, er-1-basic, state-1-basic, xychart-1-bar. |
 
 ## Gate Status
-- `swift build --build-tests`: pass (2026-05-13)
-- `Scripts/check-file-sizes.sh`: pass — pre-existing warnings only
-  (10 files between 500–600 lines; `check-file-sizes-allowlist.txt`
-  unchanged).
-- `Scripts/check-sendable-annotations.sh`: pass — 12 yellow allowlist
-  entries remaining (down from 14: `DiagramTheme` and
-  `ArchitectureIconRegistry` went green in Phase 6A).
+- `swift build --build-tests`: pass (2026-05-15)
+- `Scripts/check-file-sizes.sh`: pass — warning-only surface, no 1000-line
+  errors (60 files over the 500-line warning threshold).
+- `Scripts/check-sendable-annotations.sh`: pass — 11 yellow allowlist
+  entries remaining.
 - `Scripts/strict-concurrency-check.sh`: pass
-- `Scripts/linux-check.sh`: skipped (Docker/Podman not running in this
-  workspace). CI honors `SKIP_LINUX_CHECK=1`.
+- `Scripts/linux-check.sh`: skips as an environment condition when
+  Docker/Podman is missing or installed but not usable. CI honors
+  `SKIP_LINUX_CHECK=1`.
 - `Scripts/bootstrap-smoke-check.sh`: aggregating gates pass; Xcode
   platform builds are skipped in the headless workspace and recorded as
   environment skips by `run_build`.
@@ -100,7 +98,7 @@ Important-and-Minor backlog is closed across Phases 6A–6F + 7
 ## Post-remediation feature work
 
 The follow-on plan ([docs/archive/PLAN-followup.md](docs/archive/PLAN-followup.md))
-closed the three open work items from PHASES.md:
+closed the three open work items from `docs/archive/PHASES.md`:
 
 | # | Feature | Phase | Commit |
 | --- | --- | --- | --- |
@@ -142,8 +140,9 @@ for the 23 families added in this cycle.
   script exits non-zero only if at least one gate reported failure. The
   complete failure surface is visible in a single local invocation.
 - `Scripts/linux-check.sh` is environment-aware: if neither `docker` nor
-  `podman` is on `PATH`, or if `SKIP_LINUX_CHECK=1` is set, it exits 0
-  with a notice. Real container failures still exit non-zero.
+  `podman` is on `PATH`, if the selected runtime is installed but not usable,
+  or if `SKIP_LINUX_CHECK=1` is set, it exits 0 with a notice. Real container
+  build/run failures still exit non-zero.
 - `swift test` still hits the documented signal-10 hang on a full corpus
   run; chunked execution via `SNAPSHOT_DIAGRAM_IDS` remains the
   recommended workflow for recording or verifying snapshots.

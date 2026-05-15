@@ -16,38 +16,53 @@ import AppKit
 public final class DiagramImageRenderer {
     public var theme: DiagramTheme
     public var layoutConfig: LayoutConfig
+    public var sourceFormat: DiagramFormatID?
     public var scale: CGFloat = 2.0
 
-    public init(theme: DiagramTheme = .default, config: LayoutConfig = LayoutConfig()) {
+    public init(
+        theme: DiagramTheme = .default,
+        config: LayoutConfig = LayoutConfig(),
+        sourceFormat: DiagramFormatID? = nil
+    ) {
         self.theme = theme
         self.layoutConfig = config
+        self.sourceFormat = sourceFormat
     }
 
     public func prepare(from source: String) async throws -> PreparedDiagram {
         let theme = theme
         let layoutConfig = layoutConfig
+        let sourceFormat = sourceFormat
         return try await DiagramEngine._runOnWorker {
             try DiagramPipeline.prepare(
                 source: source,
                 theme: theme,
-                layoutConfig: layoutConfig
+                layoutConfig: layoutConfig,
+                sourceFormat: sourceFormat
             )
         }
     }
 
     func prepareSync(from source: String) throws -> PreparedDiagram {
-        try DiagramPipeline.prepare(source: source, theme: theme, layoutConfig: layoutConfig)
+        try DiagramPipeline.prepare(
+            source: source,
+            theme: theme,
+            layoutConfig: layoutConfig,
+            sourceFormat: sourceFormat
+        )
     }
 
     @MainActor
     public func renderImage(from source: String, scale overrideScale: CGFloat? = nil) async throws -> BMImage? {
         let theme = theme
         let layoutConfig = layoutConfig
+        let sourceFormat = sourceFormat
         let prepared = try await DiagramEngine._runOnWorker {
             try DiagramPipeline.prepare(
                 source: source,
                 theme: theme,
-                layoutConfig: layoutConfig
+                layoutConfig: layoutConfig,
+                sourceFormat: sourceFormat
             )
         }
         let image = _renderPrepared(prepared, scale: overrideScale ?? scale)
@@ -73,11 +88,13 @@ public final class DiagramImageRenderer {
     public func renderImage(from source: String, size: CGSize) async throws -> BMImage? {
         let theme = theme
         let layoutConfig = layoutConfig
+        let sourceFormat = sourceFormat
         let prepared = try await DiagramEngine._runOnWorker {
             try DiagramPipeline.prepare(
                 source: source,
                 theme: theme,
-                layoutConfig: layoutConfig
+                layoutConfig: layoutConfig,
+                sourceFormat: sourceFormat
             )
         }
         let image = _renderPreparedFitted(prepared, size: size)
@@ -90,12 +107,14 @@ public final class DiagramImageRenderer {
     public func renderSVG(from source: String, idPolicy: SVGIDPolicy = .unique) async throws -> String {
         let theme = theme
         let layoutConfig = layoutConfig
+        let sourceFormat = sourceFormat
         return try await DiagramEngine._runOnWorker {
             try DiagramPipeline.renderSVG(
                 source: source,
                 theme: theme,
                 layoutConfig: layoutConfig,
-                idPolicy: idPolicy
+                idPolicy: idPolicy,
+                sourceFormat: sourceFormat
             )
         }
     }
@@ -105,7 +124,8 @@ public final class DiagramImageRenderer {
             source: source,
             theme: theme,
             layoutConfig: layoutConfig,
-            idPolicy: idPolicy
+            idPolicy: idPolicy,
+            sourceFormat: sourceFormat
         )
     }
 
@@ -189,9 +209,10 @@ extension DiagramImageRenderer {
     public static func render(
         _ source: String,
         theme: DiagramTheme = .default,
-        scale: CGFloat = 2.0
+        scale: CGFloat = 2.0,
+        sourceFormat: DiagramFormatID? = nil
     ) async throws -> BMImage? {
-        let renderer = DiagramImageRenderer(theme: theme)
+        let renderer = DiagramImageRenderer(theme: theme, sourceFormat: sourceFormat)
         renderer.scale = scale
         return try await renderer.renderImage(from: source)
     }
@@ -200,9 +221,10 @@ extension DiagramImageRenderer {
     public static func render(
         _ source: String,
         size: CGSize,
-        theme: DiagramTheme = .default
+        theme: DiagramTheme = .default,
+        sourceFormat: DiagramFormatID? = nil
     ) async throws -> BMImage? {
-        let renderer = DiagramImageRenderer(theme: theme)
+        let renderer = DiagramImageRenderer(theme: theme, sourceFormat: sourceFormat)
         return try await renderer.renderImage(from: source, size: size)
     }
 }

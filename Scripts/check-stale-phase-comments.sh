@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 # Discipline gate: fail when stale "will be introduced" / "will become"
-# transition markers reappear in Sources/. The remediation plan (PHASES.md,
+# transition markers reappear in Sources/. The remediation plan (docs/archive/PHASES.md,
 # CODE_QUALITY_AUDIT.md finding P4) sweeps these on every phase close; this
 # guard keeps them swept.
 #

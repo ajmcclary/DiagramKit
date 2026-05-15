@@ -225,6 +225,13 @@ public final class DiagramSyntaxHighlighter: Sendable {
         self.mode = mode
     }
 
+    public nonisolated static func shouldApplyHighlight(
+        capturedSource: String,
+        currentText: String
+    ) -> Bool {
+        capturedSource == currentText
+    }
+
     /// Tokenize the source and apply highlighting to the text view.
     ///
     /// - Parameters:
@@ -291,8 +298,15 @@ public final class DiagramSyntaxHighlighter: Sendable {
             attributed.addAttribute(.foregroundColor, value: color, range: clampedRange)
         }
 
-        // Only update if not currently typing
+        guard Self.shouldApplyHighlight(
+            capturedSource: source,
+            currentText: textView.text ?? ""
+        ) else {
+            return
+        }
+        let selection = textView.selectedRange
         textView.attributedText = attributed
+        textView.selectedRange = Self._clampSelection(selection, to: fullRange)
     }
     #endif
 
@@ -416,6 +430,13 @@ public final class DiagramSyntaxHighlighter: Sendable {
         let end = min(NSMaxRange(range), NSMaxRange(fullRange))
         guard location < end else { return NSRange(location: 0, length: 0) }
         return NSRange(location: location, length: end - location)
+    }
+
+    private nonisolated static func _clampSelection(_ range: NSRange, to fullRange: NSRange) -> NSRange {
+        let maxLocation = NSMaxRange(fullRange)
+        let location = min(max(range.location, fullRange.location), maxLocation)
+        let maxLength = max(0, maxLocation - location)
+        return NSRange(location: location, length: min(range.length, maxLength))
     }
 
     // MARK: - Color mapping

@@ -61,18 +61,32 @@ public enum DiagramPipeline {
 
     // MARK: - Parse
 
-    private static func loadDocument(
-        _ source: String,
-        registry: ImporterRegistry
-    ) throws -> DiagramDocument {
-        try DiagramLoader.parseDocument(source, registry: registry)
-    }
-
     private static func loadImportResult(
         _ source: String,
+        sourceFormat: DiagramFormatID? = nil,
         registry: ImporterRegistry
     ) throws -> DiagramImportResult {
-        try DiagramLoader.parseImportResult(source, registry: registry)
+        if let sourceFormat {
+            return try DiagramLoader.parse(source, as: sourceFormat, registry: registry)
+        }
+        return try DiagramLoader.parseImportResult(source, registry: registry)
+    }
+
+    private static func loadDocument(
+        _ source: String,
+        sourceFormat: DiagramFormatID? = nil,
+        registry: ImporterRegistry
+    ) throws -> DiagramDocument {
+        try loadImportResult(source, sourceFormat: sourceFormat, registry: registry).document
+    }
+
+    private static func uniqueDiagnostics(_ diagnostics: [DiagramDiagnostic]) -> [DiagramDiagnostic] {
+        var seen: Set<DiagramDiagnostic> = []
+        var result: [DiagramDiagnostic] = []
+        for diagnostic in diagnostics where seen.insert(diagnostic).inserted {
+            result.append(diagnostic)
+        }
+        return result
     }
 
     /// Throw `DiagramError.unsupportedOnPlatform` if `document.type`'s
@@ -99,6 +113,16 @@ public enum DiagramPipeline {
 
     public static func parse(
         _ source: String,
+        as sourceFormat: DiagramFormatID,
+        registry: ImporterRegistry = defaultRegistry
+    ) throws -> DiagramDocument {
+        try runPipeline(operation: "DiagramPipeline.parse(as:)", registerFonts: true) {
+            try loadDocument(source, sourceFormat: sourceFormat, registry: registry)
+        }
+    }
+
+    public static func parse(
+        _ source: String,
         registry: ImporterRegistry
     ) throws -> DiagramDocument {
         try runPipeline(operation: "DiagramPipeline.parse(registry:)", registerFonts: true) {
@@ -111,10 +135,11 @@ public enum DiagramPipeline {
     public static func layout(
         _ source: String,
         config: LayoutConfig = LayoutConfig(),
+        sourceFormat: DiagramFormatID? = nil,
         registry: ImporterRegistry = defaultRegistry
     ) throws -> PositionedGraph {
         try runPipeline(operation: "DiagramPipeline.layout(source:)") {
-            let graph = try loadDocument(source, registry: registry)
+            let graph = try loadDocument(source, sourceFormat: sourceFormat, registry: registry)
             return try GraphLayout(config: config).layout(graph)
         }
     }
@@ -135,10 +160,15 @@ public enum DiagramPipeline {
         source: String,
         theme: DiagramTheme = .default,
         layoutConfig: LayoutConfig = LayoutConfig(),
+        sourceFormat: DiagramFormatID? = nil,
         registry: ImporterRegistry = defaultRegistry
     ) throws -> PreparedDiagram {
         try runPipeline(operation: "DiagramPipeline.prepare") {
-            let importResult = try loadImportResult(source, registry: registry)
+            let importResult = try loadImportResult(
+                source,
+                sourceFormat: sourceFormat,
+                registry: registry
+            )
             let positioned = try GraphLayout(config: layoutConfig).layout(importResult.document)
             return PreparedDiagram(
                 positioned: positioned,
@@ -161,10 +191,11 @@ public enum DiagramPipeline {
         theme: DiagramTheme = .default,
         layoutConfig: LayoutConfig = LayoutConfig(),
         idPolicy: SVGIDPolicy = .unique,
+        sourceFormat: DiagramFormatID? = nil,
         registry: ImporterRegistry = defaultRegistry
     ) throws -> String {
         try runPipeline(operation: "DiagramPipeline.renderSVG") {
-            let graph = try loadDocument(source, registry: registry)
+            let graph = try loadDocument(source, sourceFormat: sourceFormat, registry: registry)
             try _assertPlatformSupport(graph)
             let positioned = try GraphLayout(config: layoutConfig).layout(graph)
 
@@ -230,11 +261,16 @@ public enum DiagramPipeline {
 
     public static func renderASCII(
         source: String,
-        theme: DiagramTheme = .default
+        theme: DiagramTheme = .default,
+        sourceFormat: DiagramFormatID? = nil
     ) throws -> AsciiRenderOutput {
         try runPipeline(operation: "DiagramPipeline.renderASCII") {
-            let graph = try loadDocument(source, registry: defaultRegistry)
-            try _assertPlatformSupport(graph)
+            let importResult = try loadImportResult(
+                source,
+                sourceFormat: sourceFormat,
+                registry: defaultRegistry
+            )
+            try _assertPlatformSupport(importResult.document)
             let colors: [String: String] = [
                 "fg": theme.foreground.hexString,
                 "border": (theme.border ?? theme.foreground).hexString,
@@ -243,9 +279,31 @@ public enum DiagramPipeline {
             ]
             let asciiTheme = original_src_ascii_index.diagramColorsToAsciiTheme(colors)
             let options = original_src_ascii_index.AsciiRenderOptions(theme: asciiTheme)
+            let mermaidSource: String
+            var diagnostics = importResult.diagnostics
+
+            if importResult.formatID == .mermaid {
+                mermaidSource = source
+            } else {
+                let exportResult = try DiagramExportLoader.export(
+                    importResult.document,
+                    to: .mermaid,
+                    registry: defaultExportRegistry
+                )
+                diagnostics.append(contentsOf: exportResult.diagnostics)
+                guard !exportResult.source.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
+                    return AsciiRenderOutput(text: "", diagnostics: uniqueDiagnostics(diagnostics))
+                }
+                mermaidSource = exportResult.source
+            }
+
             let (text, renderDiagnostics) =
-                try original_src_ascii_index.renderMermaidASCIIWithDiagnostics(source, options: options)
-            return AsciiRenderOutput(text: text, diagnostics: renderDiagnostics)
+                try original_src_ascii_index.renderMermaidASCIIWithDiagnostics(
+                    mermaidSource,
+                    options: options
+                )
+            diagnostics.append(contentsOf: renderDiagnostics)
+            return AsciiRenderOutput(text: text, diagnostics: uniqueDiagnostics(diagnostics))
         }
     }
 }

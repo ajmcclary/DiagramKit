@@ -59,6 +59,7 @@ extension DiagramEditor {
         _commitDocument(newDocument)
         _commitSource(exportResult.source)
         _commitDiagnostics(exportResult.diagnostics)
+        selection = _selectionAfterMutation(previousSelection: oldSelection, in: newDocument)
 
         undoManager.registerUndo(withTarget: self) { editor in
             editor._restoreSnapshot(
@@ -69,6 +70,35 @@ extension DiagramEditor {
             )
         }
         undoManager.setActionName(mutation.undoActionName)
+    }
+
+    private func _selectionAfterMutation(
+        previousSelection: DiagramSelection?,
+        in document: DiagramDocument
+    ) -> DiagramSelection? {
+        guard let previousSelection else { return nil }
+        guard previousSelection.diagramType == document.type else { return nil }
+        return _selectionExists(previousSelection, in: document) ? previousSelection : nil
+    }
+
+    private func _selectionExists(
+        _ selection: DiagramSelection,
+        in document: DiagramDocument
+    ) -> Bool {
+        switch document.payload {
+        case .flowchart(let graph), .stateDiagram(let graph):
+            let id = selection.elementID
+            if id.hasPrefix("node:") {
+                let nodeID = String(id.dropFirst(5))
+                return graph.nodesInOrder.contains { $0.id == nodeID }
+            }
+            if id.hasPrefix("edge:") {
+                return _findEdge(in: graph, selectionElementID: id) != nil
+            }
+            return false
+        default:
+            return true
+        }
     }
 
     // MARK: - Internal derivation methods

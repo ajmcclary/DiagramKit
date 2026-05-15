@@ -760,7 +760,7 @@ public struct MermaidNode: Sendable {
     }
 }
 
-public enum DiagramError: Error, LocalizedError {
+public enum DiagramError: Error, LocalizedError, _RecoverableDiagramError {
     case notYetImplemented(String)
     /// No importer claimed the source. Distinct from `notYetImplemented`
     /// (which signals an implementation gap) — `unrecognizedFormat` means

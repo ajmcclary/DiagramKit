@@ -35,13 +35,9 @@ final class BlockRendererTests: XCTestCase {
         XCTAssertNotEqual(graph.type, .flowchart)
     }
 
-    func testAsciiBlockReturnsNotYetImplemented() {
-        XCTAssertThrowsError(try original_src_ascii_index.renderMermaidASCII("block\n  a")) { error in
-            guard case DiagramError.notYetImplemented = error else {
-                XCTFail("Expected notYetImplemented error")
-                return
-            }
-        }
+    func testAsciiBlockRendersBlockDiagram() throws {
+        let rendered = try original_src_ascii_index.renderMermaidASCII("block\n  a")
+        XCTAssertEqual(rendered, "[a]")
     }
 
     func testDiagramTypeAllCasesContainsBlock() {
