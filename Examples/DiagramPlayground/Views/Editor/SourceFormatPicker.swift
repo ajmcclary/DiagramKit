@@ -27,6 +27,7 @@ struct SourceFormatPicker: View {
                         if format == sourceFormat {
                             Spacer()
                             Image(systemName: "checkmark")
+                                .accessibilityHidden(true)
                         }
                     }
                 }
@@ -35,10 +36,12 @@ struct SourceFormatPicker: View {
             HStack(spacing: 4) {
                 Image(systemName: "doc.text")
                     .font(.system(size: 10, weight: .medium))
+                    .accessibilityHidden(true)
                 Text(sourceFormat.shortName)
                     .font(.system(size: 12, weight: .medium))
                 Image(systemName: "chevron.down")
                     .font(.system(size: 8, weight: .bold))
+                    .accessibilityHidden(true)
             }
             .padding(.horizontal, 8)
             .padding(.vertical, 4)
@@ -52,6 +55,11 @@ struct SourceFormatPicker: View {
         .menuIndicator(.hidden)
         .fixedSize()
         .help("Source format — drives import dispatch and the export menu")
+        .a11y(
+            label: "Source format",
+            hint: "Drives import dispatch and the export menu",
+            id: A11yID.Pickers.sourceFormat
+        )
     }
 }
 

@@ -41,8 +41,11 @@ struct EditorModePicker: View {
                         ? Color(theme.foreground).opacity(0.08)
                         : Color.clear
                 )
+                .accessibilityAddTraits(editorMode == mode ? .isSelected : [])
             }
         }
+        .accessibilityElement(children: .contain)
+        .a11y(label: "Editor mode", id: A11yID.Pickers.editorMode)
     }
 }
 

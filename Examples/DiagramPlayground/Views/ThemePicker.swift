@@ -47,6 +47,7 @@ struct ThemePicker: View {
                             if isThemeSelected(name) {
                                 Spacer()
                                 Image(systemName: "checkmark")
+                                    .accessibilityHidden(true)
                             }
                         }
                     }
@@ -56,12 +57,14 @@ struct ThemePicker: View {
                     Image(systemName: "paintpalette")
                         .font(.system(size: 11, weight: .medium))
                         .foregroundColor(Color(store.theme.effectiveMuted()))
+                        .accessibilityHidden(true)
                     Text("All \(DiagramTheme.allThemes.count) themes")
                         .font(.system(size: 12, weight: .medium))
                     Spacer(minLength: 4)
                     Image(systemName: "chevron.up.chevron.down")
                         .font(.system(size: 9, weight: .semibold))
                         .foregroundColor(Color(store.theme.effectiveMuted()))
+                        .accessibilityHidden(true)
                 }
                 .padding(.vertical, 8)
                 .padding(.horizontal, 12)
@@ -74,6 +77,11 @@ struct ThemePicker: View {
             }
             .buttonStyle(.plain)
             .foregroundColor(Color(store.theme.foreground))
+            .a11y(
+                label: "All themes",
+                hint: "Opens the full theme list",
+                id: A11yID.Pickers.themeMenu
+            )
         }
     }
 

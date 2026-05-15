@@ -40,6 +40,25 @@ final class IdentifierPresenceTests: XCTestCase {
 
     // MARK: - LiveEditorToolbar
 
+    // MARK: - Small pickers
+
+    @MainActor
+    func testSmallPickers_allIdentifiersPresent() {
+        let app = launchPlayground(initialState: .editingFlow1)
+        let ids = [
+            "picker.editorMode",
+            "picker.sourceFormat",
+            "picker.themeMenu",
+        ]
+        for id in ids {
+            let candidate = app.descendants(matching: .any).matching(identifier: id).firstMatch
+            XCTAssertTrue(
+                candidate.waitForExistence(timeout: 3),
+                "Expected picker with identifier '\(id)' to exist"
+            )
+        }
+    }
+
     @MainActor
     func testToolbar_macOS_allIdentifiersPresent() {
         let app = launchPlayground(initialState: .editingFlow1)
