@@ -23,6 +23,8 @@ struct StatusbarView: View {
             KPill(text: "worker · 8 MB stack", systemImage: "cpu", tone: .info)
             divider
             KPill(text: swiftVersion, systemImage: "swift", tone: .neutral)
+            divider
+            diagnosticsButton
             Spacer()
             KPill(
                 text: store.state.renderBackend.label,
@@ -79,6 +81,26 @@ struct StatusbarView: View {
             .fill(Color.secondary.opacity(0.3))
             .frame(width: 1, height: 10)
             .accessibilityHidden(true)
+    }
+
+    private var diagnosticsButton: some View {
+        let count = store.allDiagnostics.count
+        let tone: KPillTone = count > 0 ? .warn : .neutral
+        return Button {
+            store.toggleDiagnosticsDrawer()
+        } label: {
+            KPill(
+                text: "Diagnostics · \(count)",
+                systemImage: "exclamationmark.bubble",
+                tone: tone
+            )
+        }
+        .buttonStyle(.plain)
+        .a11yToggle(
+            label: "Diagnostics drawer",
+            isOn: store.state.diagDrawer.isOpen,
+            id: "statusbar.diagnostics"
+        )
     }
 
     private var swiftVersion: String {

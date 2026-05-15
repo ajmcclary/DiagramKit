@@ -121,6 +121,10 @@ public struct LiveEditorState: Codable, Equatable, Sendable {
     /// production UI; UITests flip this on to walk the seven stages.
     public var demoStepperVisible: Bool
 
+    /// Bottom diagnostics drawer state (open/close + four facet
+    /// filters). See DiagnosticsDrawerState.
+    public var diagDrawer: DiagnosticsDrawerState
+
     // MARK: - Init
 
     public init(
@@ -148,7 +152,8 @@ public struct LiveEditorState: Codable, Equatable, Sendable {
         visualStage: VisualEditorState.Stage = .idle,
         visualTool: VisualEditorState.Tool = .select,
         marqueeSelection: Set<String> = [],
-        demoStepperVisible: Bool = false
+        demoStepperVisible: Bool = false,
+        diagDrawer: DiagnosticsDrawerState = .default
     ) {
         self.source = source
         self.sourceFormat = sourceFormat
@@ -175,6 +180,7 @@ public struct LiveEditorState: Codable, Equatable, Sendable {
         self.visualTool = visualTool
         self.marqueeSelection = marqueeSelection
         self.demoStepperVisible = demoStepperVisible
+        self.diagDrawer = diagDrawer
     }
 
     // MARK: - Codable (handle legacy snapshots without sourceFormat)
@@ -203,6 +209,7 @@ public struct LiveEditorState: Codable, Equatable, Sendable {
         case visualTool
         case marqueeSelection
         case demoStepperVisible
+        case diagDrawer
     }
 
     public init(from decoder: Decoder) throws {
@@ -232,6 +239,7 @@ public struct LiveEditorState: Codable, Equatable, Sendable {
         self.visualTool = try c.decodeIfPresent(VisualEditorState.Tool.self, forKey: .visualTool) ?? .select
         self.marqueeSelection = try c.decodeIfPresent(Set<String>.self, forKey: .marqueeSelection) ?? []
         self.demoStepperVisible = try c.decodeIfPresent(Bool.self, forKey: .demoStepperVisible) ?? false
+        self.diagDrawer = try c.decodeIfPresent(DiagnosticsDrawerState.self, forKey: .diagDrawer) ?? .default
     }
 
     // MARK: - Defaults
