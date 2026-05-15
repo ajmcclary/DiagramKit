@@ -40,6 +40,13 @@ struct DiagramPlaygroundApp: App {
         case "empty":
             store.setSource("", origin: .system)
         case "editing-flow-1":
+            // Inspector closed by default — preview is visible.
+            // Editor-pane tests use "editing-flow-1-inspector" instead.
+            if let sample = TestDiagrams.all.first(where: { $0.id == "flow-1-simple" }),
+               let src = sample.source(for: "mermaid") {
+                store.setSource(src, origin: .system)
+            }
+        case "editing-flow-1-inspector":
             if let sample = TestDiagrams.all.first(where: { $0.id == "flow-1-simple" }),
                let src = sample.source(for: "mermaid") {
                 store.setSource(src, origin: .system)

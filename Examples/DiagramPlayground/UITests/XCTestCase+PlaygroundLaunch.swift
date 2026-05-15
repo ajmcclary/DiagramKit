@@ -10,7 +10,10 @@ import XCTest
 
 enum PlaygroundState: String {
     case empty
+    /// Source loaded, inspector closed — preview surface is visible.
     case editingFlow1 = "editing-flow-1"
+    /// Source loaded, inspector open — DiagramEditorPane visible (covers preview).
+    case editingFlow1Inspector = "editing-flow-1-inspector"
     case selectionFlow1 = "selection-flow-1"
     case errorGarbage = "error-garbage"
     case themeOpen = "theme-open"

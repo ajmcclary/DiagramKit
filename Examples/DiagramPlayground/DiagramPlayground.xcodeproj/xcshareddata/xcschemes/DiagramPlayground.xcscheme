@@ -21,6 +21,20 @@
                ReferencedContainer = "container:DiagramPlayground.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
+         <BuildActionEntry
+            buildForTesting = "YES"
+            buildForRunning = "YES"
+            buildForProfiling = "YES"
+            buildForArchiving = "YES"
+            buildForAnalyzing = "YES">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "8454156B5DF401800B7EEDB4"
+               BuildableName = "DiagramPlaygroundUITests.xctest"
+               BlueprintName = "DiagramPlaygroundUITests"
+               ReferencedContainer = "container:DiagramPlayground.xcodeproj">
+            </BuildableReference>
+         </BuildActionEntry>
       </BuildActionEntries>
    </BuildAction>
    <TestAction
@@ -39,7 +53,20 @@
          </BuildableReference>
       </MacroExpansion>
       <Testables>
+         <TestableReference
+            skipped = "NO"
+            parallelizable = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "8454156B5DF401800B7EEDB4"
+               BuildableName = "DiagramPlaygroundUITests.xctest"
+               BlueprintName = "DiagramPlaygroundUITests"
+               ReferencedContainer = "container:DiagramPlayground.xcodeproj">
+            </BuildableReference>
+         </TestableReference>
       </Testables>
+      <CommandLineArguments>
+      </CommandLineArguments>
    </TestAction>
    <LaunchAction
       buildConfiguration = "Debug"

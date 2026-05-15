@@ -20,8 +20,15 @@ final class IdentifierPresenceTests: XCTestCase {
     @MainActor
     func testPreviewToolbar_allIdentifiersPresent() {
         let app = launchPlayground(initialState: .editingFlow1)
-        let ids = [
-            "preview.fit",
+        // Preview surface renders async after launch; wait for the first
+        // identifier with a generous timeout, then poll the rest with
+        // shorter timeouts since the surface is now stable.
+        let fit = app.descendants(matching: .any).matching(identifier: "preview.fit").firstMatch
+        XCTAssertTrue(
+            fit.waitForExistence(timeout: 10),
+            "Preview toolbar did not appear within 10 s"
+        )
+        let remaining = [
             "preview.zoomOut",
             "preview.zoomIn",
             "preview.actualSize",
@@ -29,7 +36,7 @@ final class IdentifierPresenceTests: XCTestCase {
             "preview.gridToggle",
             "preview.fullWindow",
         ]
-        for id in ids {
+        for id in remaining {
             let element = app.descendants(matching: .any).matching(identifier: id).firstMatch
             XCTAssertTrue(
                 element.waitForExistence(timeout: 3),
@@ -42,7 +49,7 @@ final class IdentifierPresenceTests: XCTestCase {
 
     @MainActor
     func testEditorPane_allIdentifiersPresent() {
-        let app = launchPlayground(initialState: .editingFlow1)
+        let app = launchPlayground(initialState: .editingFlow1Inspector)
         let ids = [
             "editor.title.set",
             "editor.title.clear",
@@ -73,7 +80,8 @@ final class IdentifierPresenceTests: XCTestCase {
     func testPreviewCanvas_modePickerPresent() {
         let app = launchPlayground(initialState: .editingFlow1)
         let picker = app.descendants(matching: .any).matching(identifier: "preview.mode").firstMatch
-        XCTAssertTrue(picker.waitForExistence(timeout: 3), "Preview mode picker missing")
+        // Preview surface renders async; allow 10 s for it to appear.
+        XCTAssertTrue(picker.waitForExistence(timeout: 10), "Preview mode picker missing")
     }
 
     // MARK: - Sample panel
@@ -95,20 +103,33 @@ final class IdentifierPresenceTests: XCTestCase {
     // MARK: - Small pickers
 
     @MainActor
-    func testSmallPickers_allIdentifiersPresent() {
+    func testSmallPickers_alwaysVisibleIdentifiersPresent() {
         let app = launchPlayground(initialState: .editingFlow1)
+        // EditorModePicker (Code/Config tabs) and SourceFormatPicker
+        // (Mermaid/D2/…) live in the always-visible editor pane.
         let ids = [
             "picker.editorMode",
             "picker.sourceFormat",
-            "picker.themeMenu",
         ]
         for id in ids {
             let candidate = app.descendants(matching: .any).matching(identifier: id).firstMatch
             XCTAssertTrue(
-                candidate.waitForExistence(timeout: 3),
+                candidate.waitForExistence(timeout: 5),
                 "Expected picker with identifier '\(id)' to exist"
             )
         }
+    }
+
+    @MainActor
+    func testSmallPickers_themeMenuVisibleAfterPopoverOpens() {
+        let app = launchPlayground(initialState: .editingFlow1)
+        // The ThemePicker's "All N themes" menu only renders inside
+        // the Theme popover. Click the toolbar Theme button first.
+        let themeButton = app.descendants(matching: .any).matching(identifier: "toolbar.theme").firstMatch
+        XCTAssertTrue(themeButton.waitForExistence(timeout: 5), "Theme toolbar button missing")
+        themeButton.click()
+        let menu = app.descendants(matching: .any).matching(identifier: "picker.themeMenu").firstMatch
+        XCTAssertTrue(menu.waitForExistence(timeout: 5), "Theme menu not present after opening Theme popover")
     }
 
     @MainActor
