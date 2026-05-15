@@ -104,14 +104,21 @@ private static func _assertPlatformSupport(_ document: DiagramDocument) throws {
 
 ### Gate removal
 
-Two `#if canImport(CoreGraphics)` / `#endif` blocks in `Sources/DiagramKit/DiagramEngine.swift` get removed:
+Gates need to come off at TWO levels — `DiagramEngine` (the async facade) and `DiagramPipeline` (the sync implementation it dispatches to). Without the `DiagramPipeline` fix, the `DiagramEngine` async fns reference funcs that don't exist on Linux.
+
+**`Sources/DiagramKit/DiagramPipeline.swift`** — the `#if canImport(CoreGraphics)` block at lines 115–230 over-gates: it wraps `prepare` (which legitimately needs `PreparedDiagram` from `DiagramKitRenderingCG`) AND `renderSVG` / `renderSVG(positioned:)` / `renderASCII` (which don't). Split the block:
+- Keep a tight `#if canImport(CoreGraphics)` / `#endif` around `prepare` (lines 118–133) only.
+- Pull `renderSVG` (142–175), `renderSVG(positioned:)` (179–208), and `renderASCII` (212–229) out of the gate. Their bodies use only `DiagramKitModel` / `DiagramKitCommon` symbols (`loadDocument`, `GraphLayout`, `DiagramColors`, `DiagramFontResolver`, `SVGIDGenerator`, `SVGRenderRegistry`, `original_src_ascii_index.*`) — all Linux-portable.
+
+**`Sources/DiagramKit/DiagramEngine.swift`** — two `#if canImport(CoreGraphics)` / `#endif` blocks get removed:
 - Lines 118–162: wraps `DiagramEngine.renderSVG`, `renderASCII`, and `parseImportResult` (three funcs in one block).
 - Lines 211–228: wraps `String.renderDiagramSVG` and `String.renderDiagramASCII` (two funcs in one block).
 
-Everything else in the file stays unchanged. In particular:
-- The import gate at line 4 (`#if canImport(CoreGraphics) import DiagramKitRenderingCG #endif`) stays — `renderSVG`/`renderASCII` paths don't use `DiagramKitRenderingCG`.
+Everything else stays unchanged. In particular:
+- The import gate at `DiagramEngine.swift:4` (`#if canImport(CoreGraphics) import DiagramKitRenderingCG #endif`) stays — `renderSVG`/`renderASCII` paths don't use `DiagramKitRenderingCG`.
 - The `prepare` / `parse` / `renderImage` gates and the Apple variant of `_runOnWorker` stay.
 - `String.renderDiagramImage` (lines 201–209) stays gated — it's genuinely CG-bound.
+- The `_DiagramPreparerBootstrap.didInstall` bootstrap call inside `parse` (line 42) and `layout` (line 55) stays gated — it's CG-bound; the un-gated `renderSVG`/`renderASCII`/`parseImportResult` bodies will only call it under `#if canImport(CoreGraphics)`.
 
 ### Introspection API
 
@@ -214,14 +221,15 @@ No deprecations needed.
 The implementation plan will land in commit-by-commit-on-main order per the project's standing default. Sketch:
 
 1. `DiagramError.unsupportedOnPlatform(family:reason:platform:)` case + LocalizedError text.
-2. `DiagramDescriptor` two new fields + default init.
+2. `DiagramDescriptor` two new fields + default init; thread defaults through all four `_typed` overloads in `DiagramRegistry+TypedDescriptor.swift`.
 3. Three family descriptors flipped (`+Ishikawa`, `+TreeView`, `+EventModeling`).
-4. `_assertPlatformSupport` helper in `DiagramPipeline`, called from `renderSVG` (both overloads) and `renderASCII`.
-5. `DiagramEngine.linuxSupport(for:)` public API.
-6. Drop the 2 `#if canImport(CoreGraphics)` blocks on `DiagramEngine`'s async facades and the `String` extensions.
-7. Add `.testTarget(name: "DiagramKitLinuxTests")` to `Package.swift`.
-8. New `Tests/DiagramKitLinuxTests/LinuxPlatformGateTests.swift` (7 tests).
-9. Extend `Dockerfile.linux-check` to build `DiagramKitLinuxTests` and run `swift test --filter LinuxPlatformGateTests`.
-10. CLAUDE.md test count + "Target Layout" sync; REVIEW.md Session entry.
+4. Split the `#if canImport(CoreGraphics)` block in `DiagramPipeline.swift` so `renderSVG` (both overloads) and `renderASCII` are no longer gated; `prepare` stays gated.
+5. `_assertPlatformSupport` helper in `DiagramPipeline`, called from `renderSVG` (both overloads) and `renderASCII`.
+6. `DiagramEngine.linuxSupport(for:)` public API.
+7. Drop the 2 `#if canImport(CoreGraphics)` blocks on `DiagramEngine`'s async facades and the `String` extensions.
+8. Add `.testTarget(name: "DiagramKitLinuxTests")` to `Package.swift`.
+9. New `Tests/DiagramKitLinuxTests/LinuxPlatformGateTests.swift` (7 tests).
+10. Extend `Dockerfile.linux-check` to build `DiagramKitLinuxTests` and run `swift test --filter LinuxPlatformGateTests`.
+11. CLAUDE.md test count + "Target Layout" sync; REVIEW.md Session entry.
 
 Per-step diagnostic/verification details come in the writing-plans pass.
