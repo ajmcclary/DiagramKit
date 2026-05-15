@@ -106,6 +106,21 @@ public struct LiveEditorState: Codable, Equatable, Sendable {
     /// Preview node id currently hovered or paired with `biSelLine`.
     public var biSelNode: String?
 
+    // MARK: - Visual mode (Phase 3)
+
+    /// Stage of the FlowchartEditCanvas state machine.
+    public var visualStage: VisualEditorState.Stage
+
+    /// Active tool palette selection in the VisualPane.
+    public var visualTool: VisualEditorState.Tool
+
+    /// Marquee multi-selection. Empty when no marquee selection is active.
+    public var marqueeSelection: Set<String>
+
+    /// When true, StateStepper is rendered above the canvas. Off in
+    /// production UI; UITests flip this on to walk the seven stages.
+    public var demoStepperVisible: Bool
+
     // MARK: - Init
 
     public init(
@@ -129,7 +144,11 @@ public struct LiveEditorState: Codable, Equatable, Sendable {
         activeTabId: String? = nil,
         showMinimap: Bool = true,
         biSelLine: Int? = nil,
-        biSelNode: String? = nil
+        biSelNode: String? = nil,
+        visualStage: VisualEditorState.Stage = .idle,
+        visualTool: VisualEditorState.Tool = .select,
+        marqueeSelection: Set<String> = [],
+        demoStepperVisible: Bool = false
     ) {
         self.source = source
         self.sourceFormat = sourceFormat
@@ -152,6 +171,10 @@ public struct LiveEditorState: Codable, Equatable, Sendable {
         self.showMinimap = showMinimap
         self.biSelLine = biSelLine
         self.biSelNode = biSelNode
+        self.visualStage = visualStage
+        self.visualTool = visualTool
+        self.marqueeSelection = marqueeSelection
+        self.demoStepperVisible = demoStepperVisible
     }
 
     // MARK: - Codable (handle legacy snapshots without sourceFormat)
@@ -176,6 +199,10 @@ public struct LiveEditorState: Codable, Equatable, Sendable {
         case openTabs
         case activeTabId
         case showMinimap
+        case visualStage
+        case visualTool
+        case marqueeSelection
+        case demoStepperVisible
     }
 
     public init(from decoder: Decoder) throws {
@@ -201,6 +228,10 @@ public struct LiveEditorState: Codable, Equatable, Sendable {
         let decodedActive = try c.decodeIfPresent(String.self, forKey: .activeTabId)
         self.activeTabId = decodedActive ?? decodedTabs.first
         self.showMinimap = try c.decodeIfPresent(Bool.self, forKey: .showMinimap) ?? true
+        self.visualStage = try c.decodeIfPresent(VisualEditorState.Stage.self, forKey: .visualStage) ?? .idle
+        self.visualTool = try c.decodeIfPresent(VisualEditorState.Tool.self, forKey: .visualTool) ?? .select
+        self.marqueeSelection = try c.decodeIfPresent(Set<String>.self, forKey: .marqueeSelection) ?? []
+        self.demoStepperVisible = try c.decodeIfPresent(Bool.self, forKey: .demoStepperVisible) ?? false
     }
 
     // MARK: - Defaults

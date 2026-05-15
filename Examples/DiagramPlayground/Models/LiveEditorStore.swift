@@ -950,6 +950,35 @@ public final class LiveEditorStore {
         }
     }
 
+    // MARK: - Visual mode (Phase 3 / Task 3.1)
+
+    /// Alias for the persistent `editor` so call sites in VisualPane /
+    /// FlowchartEditCanvas read with the JSX's vocabulary. Same
+    /// instance, same lifecycle.
+    public var visualEditor: DiagramEditor? { editor }
+
+    /// Update the visual stage. Wraps direct field assignment so call
+    /// sites and tests use one entry point.
+    public func setVisualStage(_ stage: VisualEditorState.Stage) {
+        state.visualStage = stage
+    }
+
+    /// Switch the active VisualPane tool.
+    public func setVisualTool(_ tool: VisualEditorState.Tool) {
+        state.visualTool = tool
+    }
+
+    /// Replace the marquee selection set. Pass `[]` to clear.
+    public func setMarqueeSelection(_ ids: Set<String>) {
+        state.marqueeSelection = ids
+    }
+
+    /// Toggle the StateStepper demo widget. Off in production UI;
+    /// flipped on by UITests that walk the seven stages.
+    public func setDemoStepperVisible(_ flag: Bool) {
+        state.demoStepperVisible = flag
+    }
+
     // MARK: - Inspector pane (Phase 7)
 
     /// Toggle the floating Inspector drawer.
