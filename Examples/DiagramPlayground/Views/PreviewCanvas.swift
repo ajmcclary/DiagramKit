@@ -18,7 +18,15 @@ struct PreviewCanvas: View {
     @SwiftUI.State private var automaticZoomScale: CGFloat = 1.0
     @SwiftUI.State private var gestureBaseZoomScale: CGFloat?
     @SwiftUI.State private var activePanTranslation: CGSize = .zero
-    @SwiftUI.State private var previewMode: PreviewMode = .diagram
+
+    /// Derived from `store.state.renderBackend` so the Inspector's
+    /// 3-way segmented picker is the single source of truth for which
+    /// preview surface is active. `.svg` and `.image` both feed
+    /// DiagramView (the playground hosts a single CG renderer on
+    /// Apple); `.ascii` feeds AsciiPreviewView.
+    private var previewMode: PreviewMode {
+        store.state.renderBackend == .ascii ? .ascii : .diagram
+    }
 
     // Bridges DiagramView's @Binding-based completion publishing into
     // the store's didCompleteRender(...) entry point. liveParseError
@@ -93,12 +101,18 @@ struct PreviewCanvas: View {
                     idleOverlay
                 }
 
-                // Preview-mode toggle (top-trailing)
+                // Preview-mode badge (read-only — Inspector drives the backend).
                 VStack {
                     HStack {
+                        backendLabel
+                            .padding(.leading, 12)
+                            .padding(.top, 12)
                         Spacer()
-                        previewModePicker
-                            .padding(12)
+                        if store.renderStatus == .rendered {
+                            RenderHealthPill(state: .ok(layoutMs: 0, paintMs: 0))
+                                .padding(.trailing, 12)
+                                .padding(.top, 12)
+                        }
                     }
                     Spacer()
                 }
@@ -140,54 +154,21 @@ struct PreviewCanvas: View {
         }
     }
 
-    // MARK: - Preview mode picker
+    // MARK: - Backend label (read-only — Inspector drives the choice)
 
-    private var previewModePicker: some View {
-        HStack(spacing: 2) {
-            ForEach(PreviewMode.allCases, id: \.self) { mode in
-                Button {
-                    previewMode = mode
-                } label: {
-                    HStack(spacing: 4) {
-                        Image(systemName: mode.iconName)
-                            .font(.system(size: 10, weight: .medium))
-                            .accessibilityHidden(true)
-                        Text(mode.label)
-                            .font(.system(size: 11, weight: .medium))
-                    }
-                    .padding(.horizontal, 8)
-                    .frame(height: 26)
-                    .foregroundColor(previewMode == mode
-                        ? Color(store.previewTheme.effectiveAccent())
-                        : Color(store.previewTheme.foreground))
-                    .background(
-                        RoundedRectangle(cornerRadius: 5)
-                            .fill(previewMode == mode
-                                ? Color(store.previewTheme.effectiveAccent()).opacity(0.15)
-                                : Color.clear)
-                    )
-                }
-                .buttonStyle(.plain)
-                .accessibilityAddTraits(previewMode == mode ? .isSelected : [])
-            }
+    private var backendLabel: some View {
+        let backend = store.state.renderBackend
+        return HStack(spacing: 4) {
+            Image(systemName: backend.sfSymbol)
+                .font(.system(size: 9, weight: .semibold))
+            Text(backend.label)
+                .font(.system(size: 11, weight: .semibold))
         }
-        .padding(.horizontal, 4)
-        .padding(.vertical, 2)
-        .background(
-            RoundedRectangle(cornerRadius: 8)
-                .fill(.regularMaterial)
-                .overlay(
-                    RoundedRectangle(cornerRadius: 8)
-                        .stroke(Color(store.previewTheme.effectiveLine()).opacity(0.2), lineWidth: 0.5)
-                )
-        )
-        .accessibilityElement(children: .contain)
-        .a11y(
-            label: "Preview mode",
-            hint: "Switches between SVG, image, and ASCII preview",
-            id: A11yID.Preview.modePicker
-        )
-        .shadow(color: .black.opacity(0.12), radius: 6, x: 0, y: 2)
+        .padding(.horizontal, 8)
+        .padding(.vertical, 3)
+        .background(Capsule().fill(.regularMaterial))
+        .foregroundStyle(.secondary)
+        .accessibilityIdentifier("preview.backend.\(backend.rawValue)")
     }
 
     // MARK: - Diagram content (extracted so the body can swap in ASCII)
