@@ -27,20 +27,10 @@ extension DiagramRegistry {
             return value
         },
         layout: { diagram, _ in
-            #if canImport(CoreText)
             return layoutEventModeling(diagram)
-            #else
-            // Linux: layoutEventModeling requires CoreText for text-bounds
-            // measurement. Unreachable until the portable text-measurement
-            // shim lands.
-            _ = diagram
-            throw DiagramStructuralError.payloadMismatch(.eventModeling)
-            #endif
         },
         positioned: { graph, positioned in
             PositionedGraph(diagram: graph, width: positioned.width, height: positioned.height, content: .eventModeling(positioned))
-        },
-        linuxSupport: false,
-        linuxUnsupportedReason: "requires CoreText text-measurement"
+        }
     )
 }

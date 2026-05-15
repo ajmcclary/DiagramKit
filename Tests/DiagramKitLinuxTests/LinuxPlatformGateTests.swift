@@ -202,4 +202,24 @@ struct LinuxPlatformGateTests {
         let output = try await DiagramEngine.renderASCII(source: source)
         #expect(!output.text.isEmpty)
     }
+
+    @Test func eventModelingIsLinuxSupported() {
+        let descriptor = DiagramRegistry.all.first { $0.type == .eventModeling }
+        #expect(descriptor?.linuxSupport == true)
+        #expect(descriptor?.linuxUnsupportedReason == nil)
+    }
+
+    @Test func eventModelingRenderSVGSucceedsOnLinux() async throws {
+        let source = "eventmodeling\ntf 01 ui CartUI\ntf 02 cmd AddItem\ntf 03 evt ItemAdded"
+        let svg = try await DiagramEngine.renderSVG(source: source)
+        #expect(svg.contains("<svg"))
+        #expect(svg.contains("</svg>"))
+        #expect(!svg.lowercased().contains("nan"))
+    }
+
+    @Test func eventModelingRenderASCIISucceedsOnLinux() async throws {
+        let source = "eventmodeling\ntf 01 ui CartUI\ntf 02 cmd AddItem\ntf 03 evt ItemAdded"
+        let output = try await DiagramEngine.renderASCII(source: source)
+        #expect(!output.text.isEmpty)
+    }
 }
