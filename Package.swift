@@ -221,7 +221,14 @@ let package = Package(
                 .product(name: "CustomDump", package: "swift-custom-dump"),
                 .product(name: "SnapshotTesting", package: "swift-snapshot-testing"),
             ],
-            exclude: ["__Snapshots__"],
+            exclude: [
+                "__Snapshots__",
+                // RoundTrip fixtures are loaded directly from the source tree
+                // via `#filePath`, not from the test bundle. Excluding them
+                // here avoids SwiftPM's "unhandled file" warnings for the
+                // `.md` / `.puml` / `.d2` / `.dot` / `.dsl` corpus files.
+                "RoundTrip/Resources"
+            ],
             swiftSettings: strictConcurrencySettings
         ),
         .testTarget(
