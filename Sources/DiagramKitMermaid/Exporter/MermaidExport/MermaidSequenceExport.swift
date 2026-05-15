@@ -249,8 +249,11 @@ enum MermaidSequenceExport {
             switch ch {
             case "\n":
                 result += "<br/>"
-                diagnostics.append(DiagramDiagnostic(
-                    severity: .info,
+                // Encoding-only: `<br/>` re-parses to a newline, so the round-trip
+                // is stable. `.identifierEscape` is the closest fit in the current
+                // category catalog — escape-style cosmetic that survives re-parse.
+                diagnostics.append(.informational(
+                    .identifierEscape,
                     message: "Newline in sequence text replaced with <br/>"
                 ))
             case "\r":

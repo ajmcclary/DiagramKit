@@ -94,8 +94,8 @@ enum MermaidExportHelpers {
         }
 
         if needsDiagnostic {
-            diagnostics.append(DiagramDiagnostic(
-                severity: .warning,
+            diagnostics.append(.lossyTransform(
+                .idSanitization,
                 message: "Identifier '\(raw)' sanitized to '\(result)'"
             ))
         }
@@ -125,8 +125,8 @@ enum MermaidExportHelpers {
             candidate = "\(base)_\(counter)"
         }
         usedAliases.insert(candidate)
-        diagnostics.append(DiagramDiagnostic(
-            severity: .warning,
+        diagnostics.append(.lossyTransform(
+            .idSanitization,
             message: "Identifier '\(raw)' sanitized to '\(base)' collided with another alias; renamed to '\(candidate)'"
         ))
         return (candidate, diagnostics)

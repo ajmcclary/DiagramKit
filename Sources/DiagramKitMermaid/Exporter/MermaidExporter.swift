@@ -45,8 +45,8 @@ public struct MermaidExporter: DiagramExporter {
             return DiagramExportResult(
                 source: "",
                 diagnostics: [
-                    DiagramDiagnostic(
-                        severity: .unsupported,
+                    .featureDropped(
+                        .diagramFamilyUnsupported,
                         message: "Mermaid export for '\(document.type.rawValue)' not yet implemented (7A-P1/7A-P2/Phase 10)"
                     )
                 ]

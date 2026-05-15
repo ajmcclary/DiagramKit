@@ -51,8 +51,8 @@ enum MermaidFlowchartExport {
 
                 let shape = shapeMarker(for: node.shape)
                 if shape.lossy {
-                    diagnostics.append(DiagramDiagnostic(
-                        severity: .warning,
+                    diagnostics.append(.lossyTransform(
+                        .shapeDowngrade,
                         message: "Mermaid flowchart has no native marker for shape '\(node.shape)'; emitted with fallback marker (node '\(nodeId)')"
                     ))
                 }
