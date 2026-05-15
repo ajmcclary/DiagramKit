@@ -82,6 +82,10 @@ public struct LiveEditorState: Codable, Equatable, Sendable {
     /// Optional format chip selection in the v2 Sidebar (nil = all).
     public var sidebarFormatFilter: SourceFormat?
 
+    /// Active render backend (SVG / Image / ASCII) chosen in the
+    /// Inspector. Phase 2 routes PreviewCanvas through this.
+    public var renderBackend: RenderBackend
+
     // MARK: - Init
 
     public init(
@@ -99,7 +103,8 @@ public struct LiveEditorState: Codable, Equatable, Sendable {
         workspaceMode: WorkspaceMode = .default,
         showCitations: Bool = false,
         sidebarSearch: String = "",
-        sidebarFormatFilter: SourceFormat? = nil
+        sidebarFormatFilter: SourceFormat? = nil,
+        renderBackend: RenderBackend = .svg
     ) {
         self.source = source
         self.sourceFormat = sourceFormat
@@ -116,6 +121,7 @@ public struct LiveEditorState: Codable, Equatable, Sendable {
         self.showCitations = showCitations
         self.sidebarSearch = sidebarSearch
         self.sidebarFormatFilter = sidebarFormatFilter
+        self.renderBackend = renderBackend
     }
 
     // MARK: - Codable (handle legacy snapshots without sourceFormat)
@@ -136,6 +142,7 @@ public struct LiveEditorState: Codable, Equatable, Sendable {
         case showCitations
         case sidebarSearch
         case sidebarFormatFilter
+        case renderBackend
     }
 
     public init(from decoder: Decoder) throws {
@@ -155,6 +162,7 @@ public struct LiveEditorState: Codable, Equatable, Sendable {
         self.showCitations = try c.decodeIfPresent(Bool.self, forKey: .showCitations) ?? false
         self.sidebarSearch = try c.decodeIfPresent(String.self, forKey: .sidebarSearch) ?? ""
         self.sidebarFormatFilter = try c.decodeIfPresent(SourceFormat.self, forKey: .sidebarFormatFilter)
+        self.renderBackend = try c.decodeIfPresent(RenderBackend.self, forKey: .renderBackend) ?? .svg
     }
 
     // MARK: - Defaults

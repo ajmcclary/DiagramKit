@@ -22,10 +22,16 @@ final class WorkspaceModePersistenceTests: XCTestCase {
         var state = LiveEditorState()
         state.workspaceMode = .visual
         state.showCitations = true
+        state.sidebarSearch = "flow"
+        state.sidebarFormatFilter = .d2
+        state.renderBackend = .ascii
         let encoded = LiveEditorStateCodec.encode(state)
         let decoded = try LiveEditorStateCodec.decode(encoded)
         XCTAssertEqual(decoded.workspaceMode, .visual)
         XCTAssertTrue(decoded.showCitations)
+        XCTAssertEqual(decoded.sidebarSearch, "flow")
+        XCTAssertEqual(decoded.sidebarFormatFilter, .d2)
+        XCTAssertEqual(decoded.renderBackend, .ascii)
     }
 
     func test_legacySnapshotDecodesWithDefaults() throws {
@@ -36,6 +42,9 @@ final class WorkspaceModePersistenceTests: XCTestCase {
         let decoded = try JSONDecoder().decode(LiveEditorState.self, from: data)
         XCTAssertEqual(decoded.workspaceMode, .default)
         XCTAssertFalse(decoded.showCitations)
+        XCTAssertEqual(decoded.sidebarSearch, "")
+        XCTAssertNil(decoded.sidebarFormatFilter)
+        XCTAssertEqual(decoded.renderBackend, .svg)
     }
 
     @MainActor
