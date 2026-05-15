@@ -1178,6 +1178,14 @@ public final class LiveEditorStore {
     /// Open `entry` in the workspace: dismiss the browser, set the
     /// active source / format, and bounce the workspace back to
     /// .split so the user sees the rendered preview alongside.
+    // MARK: - Importer probe (Phase 9 / Task 9.2)
+
+    public var probeSampleIndex: Int = 0
+
+    public func setProbeSampleIndex(_ index: Int) {
+        probeSampleIndex = max(0, min(ImporterProbeRunner.sampleSources.count - 1, index))
+    }
+
     public func openCorpusEntry(_ entry: CorpusEntry) {
         let format: SourceFormat
         if entry.formats.contains("mermaid") {
