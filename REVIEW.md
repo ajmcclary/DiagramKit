@@ -277,6 +277,27 @@ Cross-cutting Observation #3 closed. Three pre-existing failures uncovered durin
 
 ---
 
+## Resolution Status — Session 14 (2026-05-15)
+
+Closes Cross-cutting Observation #5 + Critical "Public API contract holes" (`DiagramEngine.renderSVG` / `renderASCII` Linux gating). Spec at `docs/superpowers/specs/2026-05-15-linux-svg-ascii-parity-design.md` (`92ba4f6` → `4771774`); plan at `docs/superpowers/plans/2026-05-15-linux-svg-ascii-parity.md` (`5e8fbe6`). Ten commits on `main`.
+
+| # | Item | Commit | What landed |
+|---|---|---|---|
+| 1 | Test target scaffold | `f97887c` | New `.testTarget(name: "DiagramKitLinuxTests")` in `Package.swift` with Linux-portable deps (`DiagramKit`, `DiagramKitCommon`, `DiagramKitModel`, `DiagramKitTestSupport`); placeholder test pins target compiles. |
+| 2 | `DiagramError.unsupportedOnPlatform` | `544bbd6` | New case `unsupportedOnPlatform(family: DiagramType, reason: String, platform: String)` on `DiagramError`; `errorDescription` renders `"<family.rawValue> layout is not supported on <platform>: <reason>"`. |
+| 3 | `DiagramDescriptor` linuxSupport fields | `e62db30` | `linuxSupport: Bool = true` + `linuxUnsupportedReason: String? = nil` on `DiagramDescriptor`; threaded through all four `_typed` factory overloads in `DiagramRegistry+TypedDescriptor`. |
+| 4 | Three families flipped | `712ad0c` | Ishikawa, TreeView, EventModeling each declare `linuxSupport: false` with `"requires CoreText text-measurement"` reason. Drift-lock test pins exactly these three. |
+| 5 | `DiagramPipeline` gate split | `ad05382` | `#if canImport(CoreGraphics)` block at `DiagramPipeline.swift:115-230` split: `prepare` stays gated, `renderSVG` (both overloads) + `renderASCII` pulled out. Bodies depend only on Linux-portable Model/Common symbols. |
+| 6 | `_assertPlatformSupport` helper | `0f62d04` | Private helper looks up the descriptor and throws `DiagramError.unsupportedOnPlatform` on Linux when `linuxSupport == false`. Called from `renderSVG(source:)`, `renderSVG(positioned:)`, and `renderASCII` after parse. `renderASCII` grows one `loadDocument` call up front so the gate fires before the legacy ASCII path's internal re-parse. |
+| 7 | `DiagramEngine.linuxSupport(for:)` | `a7a35d1` | Public introspection API. Returns `(true, nil)` for unknown families. |
+| 8 | `DiagramEngine` gate drops | `f0add76` | Two `#if canImport(CoreGraphics)` blocks on `DiagramEngine` (`renderSVG`/`renderASCII`/`parseImportResult` cohort + `String.renderDiagramSVG`/`renderDiagramASCII`) removed. `_DiagramPreparerBootstrap.didInstall` calls inside the three engine funcs are now individually CG-gated. |
+| 9 | `Dockerfile.linux-check` wires tests | `6233040` | Build matrix gains `DiagramKitLinuxTests`; new `RUN` step runs `swift test --filter LinuxPlatformGateTests` and fails the container on non-zero exit. First Linux test execution from CI on this repo. Drive-by: header-comment update from `MermaidStructuralError.payloadMismatch` to `DiagramError.unsupportedOnPlatform`. |
+| 10 | Docs sync | _this commit_ | CLAUDE.md test source count 258 → 260; "What Lives Where" gains the new test target; "Linux Portability" section documents the new public Linux surface + introspection API; this REVIEW.md Session 14 entry. |
+
+Session-end verification: `swift test --filter LinuxPlatformGateTests` green on Apple (12 tests / 1 suite). `swift build` green. `Scripts/linux-check.sh` recorded as environment-skipped this session (Docker daemon not running locally; container runtime absence is not a source failure per CLAUDE.md "Discipline Gates" policy). Dockerfile changes are textual and unblock the next session running the container to confirm the Linux throw path actually fires.
+
+---
+
 ## Deferred Effort — Recommendations
 
 Some review items were intentionally deferred during the five-phase pass; others surfaced during execution and were scoped out to keep individual commits coherent. Listed in priority order.

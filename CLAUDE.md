@@ -221,10 +221,13 @@ outside the defining module.
   `test-diagrams.json` corpus source.
 - `Tests/DiagramKitTests/` - XCTest and swift-testing suites plus corpus
   snapshots.
+- `Tests/DiagramKitLinuxTests/` - Linux-portable swift-testing suite that
+  pins the `DiagramError.unsupportedOnPlatform` contract for the 3
+  CoreText-bound families. Built and run under `Dockerfile.linux-check`.
 
 ## Testing And Snapshots
 
-- Current test source count: 258 Swift files under `Tests/DiagramKitTests`.
+- Current test source count: 260 Swift files (258 under `Tests/DiagramKitTests`, 2 under `Tests/DiagramKitLinuxTests`).
 - The corpus is `Examples/DiagramPlayground/Resources/test-diagrams.json` with
   422 entries (396 Mermaid-only + 26 multi-format: D2, DOT, Structurizr, PlantUML).
 - Corpus baselines under `Tests/DiagramKitTests/__Snapshots__/` track
@@ -289,6 +292,13 @@ and CoreText-bound layout/rendering remain Apple-only or gated out.
 
 `BMColor`, `BMFont`, `BMImage`, `BMView`, and `BMBezierPath` are intentionally
 undefined on Linux. Any callsite using them must be platform-gated.
+
+`DiagramEngine.renderSVG`, `renderASCII`, and `parseImportResult` (plus
+`String.renderDiagramSVG` / `renderDiagramASCII`) are available on Linux.
+Families that depend on CoreText measurement (`ishikawa`, `treeView`,
+`eventModeling`) throw `DiagramError.unsupportedOnPlatform(family:reason:platform:)`
+on Linux; `DiagramDescriptor.linuxSupport: Bool` is the per-family flag
+and `DiagramEngine.linuxSupport(for:)` is the public introspection API.
 
 The portable text-measurement shim for `ishikawa`, `treeView`, and
 `eventModeling` remains a deferred follow-up.
