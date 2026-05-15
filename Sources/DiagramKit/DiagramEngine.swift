@@ -193,56 +193,9 @@ public struct DiagramEngine {
     #endif
 }
 
-extension DiagramEngine {
-    #if canImport(CoreGraphics)
-    @available(*, deprecated, renamed: "renderImage(source:theme:scale:)", message: "Will be removed in the next major version.")
-    @MainActor
-    public static func renderImageAsync(
-        source: String,
-        theme: DiagramTheme = .default,
-        scale: CGFloat = 2.0
-    ) async throws -> BMImage? {
-        try await renderImage(source: source, theme: theme, scale: scale)
-    }
-    #endif
-
-    #if canImport(CoreGraphics)
-    @available(*, deprecated, renamed: "renderSVG(source:theme:layoutConfig:)", message: "Will be removed in the next major version.")
-    public static func renderSVGAsync(
-        source: String,
-        theme: DiagramTheme = .default
-    ) async throws -> String {
-        try await renderSVG(source: source, theme: theme)
-    }
-
-    @available(*, deprecated, renamed: "renderASCII(source:theme:)", message: "renderASCII now returns AsciiRenderOutput; access `.text` for the previous String shape. Will be removed in the next major version.")
-    public static func renderASCIIAsync(
-        source: String,
-        theme: DiagramTheme = .default
-    ) async throws -> String {
-        try await renderASCII(source: source, theme: theme).text
-    }
-    #endif
-
-    #if canImport(CoreGraphics)
-    @available(*, deprecated, renamed: "prepare(source:theme:layoutConfig:)", message: "Will be removed in the next major version.")
-    public static func prepareAsync(
-        source: String,
-        theme: DiagramTheme = .default
-    ) async throws -> PreparedDiagram {
-        try await prepare(source: source, theme: theme)
-    }
-    #endif
-}
-
 extension String {
     public func parseDiagram() async throws -> DiagramDocument {
         try await DiagramEngine.parse(self)
-    }
-
-    @available(*, deprecated, renamed: "parseDiagram()", message: "Will be removed in the next major version.")
-    public func parseMermaid() async throws -> DiagramDocument {
-        try await parseDiagram()
     }
 
     #if canImport(CoreGraphics)
@@ -252,15 +205,6 @@ extension String {
         scale: CGFloat = 2.0
     ) async throws -> BMImage? {
         try await DiagramEngine.renderImage(source: self, theme: theme, scale: scale)
-    }
-
-    @available(*, deprecated, renamed: "renderDiagramImage(theme:scale:)", message: "Will be removed in the next major version.")
-    @MainActor
-    public func renderMermaidImage(
-        theme: DiagramTheme = .default,
-        scale: CGFloat = 2.0
-    ) async throws -> BMImage? {
-        try await renderDiagramImage(theme: theme, scale: scale)
     }
     #endif
 
@@ -276,25 +220,10 @@ extension String {
         )
     }
 
-    @available(*, deprecated, renamed: "renderDiagramSVG(theme:layoutConfig:)", message: "Will be removed in the next major version.")
-    public func renderMermaidSVG(
-        theme: DiagramTheme = .default,
-        layoutConfig: LayoutConfig = LayoutConfig()
-    ) async throws -> String {
-        try await renderDiagramSVG(theme: theme, layoutConfig: layoutConfig)
-    }
-
     public func renderDiagramASCII(
         theme: DiagramTheme = .default
     ) async throws -> String {
         try await DiagramEngine.renderASCII(source: self, theme: theme).text
-    }
-
-    @available(*, deprecated, renamed: "renderDiagramASCII(theme:)", message: "Will be removed in the next major version.")
-    public func renderMermaidASCII(
-        theme: DiagramTheme = .default
-    ) async throws -> String {
-        try await renderDiagramASCII(theme: theme)
     }
     #endif
 }

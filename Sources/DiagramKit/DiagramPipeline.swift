@@ -207,15 +207,6 @@ public enum DiagramPipeline {
         }
     }
 
-    public static func renderSVG(
-        _ text: String,
-        options: RenderOptions = RenderOptions()
-    ) throws -> String {
-        try runPipeline(operation: "DiagramPipeline.renderSVG(options:)") {
-            try _renderDiagramSVG(text, options)
-        }
-    }
-
     // MARK: - Render ASCII
 
     public static func renderASCII(
