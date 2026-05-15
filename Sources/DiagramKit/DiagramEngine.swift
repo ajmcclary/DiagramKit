@@ -22,6 +22,17 @@ public struct DiagramEngine {
     public static let version: String = DiagramKitVersion.current
     public static let supportedDiagramTypes: [DiagramType] = DiagramType.allCases
 
+    /// Returns whether `family` is supported on Linux, and if not, the
+    /// human-readable reason. On non-Linux platforms always returns
+    /// `(true, nil)` — the contract is "would a renderSVG/renderASCII call
+    /// for this family throw `DiagramError.unsupportedOnPlatform` on Linux?"
+    public static func linuxSupport(for family: DiagramType) -> (supported: Bool, reason: String?) {
+        guard let descriptor = DiagramRegistry.all.first(where: { $0.type == family }) else {
+            return (true, nil)
+        }
+        return (descriptor.linuxSupport, descriptor.linuxUnsupportedReason)
+    }
+
     #if canImport(CoreGraphics)
     /// Eagerly trigger the view-preparer bootstrap.
     ///

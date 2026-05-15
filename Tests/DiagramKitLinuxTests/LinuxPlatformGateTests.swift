@@ -51,6 +51,27 @@ struct LinuxPlatformGateTests {
         #expect(Set(unsupported) == Set<DiagramType>([.ishikawa, .treeView, .eventModeling]))
     }
 
+    // MARK: - DiagramEngine.linuxSupport public API
+
+    @Test func linuxSupportReturnsTrueForSupportedFamily() {
+        let result = DiagramEngine.linuxSupport(for: .flowchart)
+        #expect(result.supported == true)
+        #expect(result.reason == nil)
+    }
+
+    @Test func linuxSupportReturnsFalseForIshikawa() {
+        let result = DiagramEngine.linuxSupport(for: .ishikawa)
+        #expect(result.supported == false)
+        #expect(result.reason?.isEmpty == false)
+    }
+
+    @Test(arguments: [DiagramType.ishikawa, .treeView, .eventModeling])
+    func linuxSupportReportsAllThreeUnsupported(family: DiagramType) {
+        let result = DiagramEngine.linuxSupport(for: family)
+        #expect(result.supported == false)
+        #expect(result.reason?.isEmpty == false)
+    }
+
     // MARK: - DiagramPipeline.renderSVG enforcement
 
     @Test func pipelineRenderSVGGatesIshikawaOnLinux() throws {
