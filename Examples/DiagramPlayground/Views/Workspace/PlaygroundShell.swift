@@ -112,29 +112,13 @@ struct PlaygroundShell: View {
             CoverageMatrixView(store: store)
         case .corpus:
             CorpusBrowserView(store: store)
-        case .crossFormat, .probe, .snippets:
-            placeholderFullScreen(for: store.state.fullScreen)
+        case .crossFormat:
+            ThreeFormatView(store: store)
+        case .probe:
+            ImporterProbeView(store: store)
+        case .snippets:
+            SnippetsLibraryView(store: store)
         }
     }
 
-    private func placeholderFullScreen(_: Void = ()) -> some View {
-        VStack(spacing: 8) {
-            Image(systemName: store.state.fullScreen.sfSymbol)
-                .font(.system(size: 28))
-                .foregroundStyle(.secondary)
-            Text("\(store.state.fullScreen.label) — coming in Phase 9")
-                .font(.system(size: 12))
-                .foregroundStyle(.secondary)
-            Button("Back to workspace") {
-                store.dismissFullScreen()
-            }
-            .buttonStyle(.bordered)
-        }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(Color(store.theme.background))
-    }
-
-    private func placeholderFullScreen(for surface: FullScreenSurface) -> some View {
-        placeholderFullScreen()
-    }
 }
