@@ -1147,6 +1147,51 @@ public final class LiveEditorStore {
         state.fullScreen = .none
     }
 
+    // MARK: - Corpus browser (Phase 8 / Task 8.5)
+
+    public var corpusSearch: String = ""
+    public var corpusCategoryFilter: String?
+    public var corpusFormatFilter: String?
+    public var corpusDiagnosticFilter: CorpusEntry.DiagnosticFacet?
+    public var corpusLinuxFilter: CorpusEntry.LinuxFacet?
+
+    public func setCorpusSearch(_ value: String) {
+        corpusSearch = value
+    }
+
+    public func setCorpusCategoryFilter(_ value: String?) {
+        corpusCategoryFilter = value
+    }
+
+    public func setCorpusFormatFilter(_ value: String?) {
+        corpusFormatFilter = value
+    }
+
+    public func setCorpusDiagnosticFilter(_ value: CorpusEntry.DiagnosticFacet?) {
+        corpusDiagnosticFilter = value
+    }
+
+    public func setCorpusLinuxFilter(_ value: CorpusEntry.LinuxFacet?) {
+        corpusLinuxFilter = value
+    }
+
+    /// Open `entry` in the workspace: dismiss the browser, set the
+    /// active source / format, and bounce the workspace back to
+    /// .split so the user sees the rendered preview alongside.
+    public func openCorpusEntry(_ entry: CorpusEntry) {
+        let format: SourceFormat
+        if entry.formats.contains("mermaid") {
+            format = .mermaid
+        } else if let first = entry.formats.first.flatMap({ SourceFormat(rawValue: $0) }) {
+            format = first
+        } else {
+            format = .mermaid
+        }
+        setSource(entry.source, format: format, origin: .system)
+        setFullScreen(.none)
+        setWorkspaceMode(.split)
+    }
+
     /// One-shot source export against the current document for the
     /// Convert + Export sheets. Returns the exporter's source +
     /// diagnostics, or nil when the format isn't a source target.
