@@ -19,8 +19,15 @@ enum RoundTripCellRegistry {
         allowedLosses: [.idSanitization, .anonymousSubgraphRename]
     )
 
+    static let mermaidSequence = RoundTripCell(
+        importer: MermaidImporter(),
+        exporter: MermaidExporter(),
+        family: DiagramType.sequenceDiagram,
+        allowedLosses: [.idSanitization]
+    )
+
     // Subsequent cells declared by later tasks:
-    //   mermaidSequence, mermaidClass, mermaidEr, mermaidC4,
+    //   mermaidClass, mermaidEr, mermaidC4,
     //   d2Flowchart, dotFlowchart, structurizrC4,
     //   plantumlSequence, plantumlClass, plantumlState,
     //   plantumlMindmap, plantumlGantt, plantumlC4
