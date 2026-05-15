@@ -919,6 +919,37 @@ public final class LiveEditorStore {
         setSource(entry.source, origin: .system)
     }
 
+    // MARK: - Bidirectional selection (Phase 2 / Task 2.3)
+
+    /// Heuristic source-line ↔ node-id map rebuilt whenever the source
+    /// or sourceFormat changes. Used by hoverEditorLine / hoverPreviewNode.
+    public var sourceMap: SourceMap {
+        SourceMap(source: state.source, format: state.sourceFormat)
+    }
+
+    /// Editor → preview hover. Sets the active source line and the
+    /// node id at that line (when the source map resolves one). Pass
+    /// `nil` to clear the hover.
+    public func hoverEditorLine(_ line: Int?) {
+        state.biSelLine = line
+        if let line {
+            state.biSelNode = sourceMap.lineToNode[line]
+        } else {
+            state.biSelNode = nil
+        }
+    }
+
+    /// Preview → editor hover. Sets the active node and the source
+    /// line of its declaration (when the source map resolves one).
+    public func hoverPreviewNode(_ nodeId: String?) {
+        state.biSelNode = nodeId
+        if let nodeId {
+            state.biSelLine = sourceMap.nodeToLine[nodeId]
+        } else {
+            state.biSelLine = nil
+        }
+    }
+
     // MARK: - Inspector pane (Phase 7)
 
     /// Toggle the floating Inspector drawer.
