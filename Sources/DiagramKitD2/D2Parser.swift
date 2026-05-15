@@ -9,26 +9,31 @@ public struct D2Parser {
     public init() {}
 
     public func parse(_ source: String) throws -> (document: D2Document, diagnostics: [DiagramDiagnostic]) {
-        let preprocessed = preprocess(source)
+        let (preprocessed, preDiagnostics) = preprocess(source)
         let lines = preprocessed.split(separator: "\n", omittingEmptySubsequences: false).map(String.init)
-        return try parseLines(lines)
+        var (document, diagnostics) = try parseLines(lines)
+        diagnostics.insert(contentsOf: preDiagnostics, at: 0)
+        return (document, diagnostics)
     }
 
     // MARK: - Preprocessing
 
-    private func _stripInlineComment(_ line: String, marker: String) -> String {
-        guard let r = line.range(of: marker) else { return line }
+    private func _stripInlineComment(_ line: String, marker: String) -> (stripped: String, wasStripped: Bool) {
+        guard let r = line.range(of: marker) else { return (line, false) }
         let idx = line.distance(from: line.startIndex, to: r.lowerBound)
         if idx == 0 || line[line.index(before: r.lowerBound)] == " " {
-            return String(line[..<r.lowerBound])
+            return (String(line[..<r.lowerBound]), true)
         }
-        return line
+        return (line, false)
     }
 
-    private func preprocess(_ source: String) -> String {
+    private func preprocess(_ source: String) -> (cleaned: String, diagnostics: [DiagramDiagnostic]) {
         var result = ""
+        var diagnostics: [DiagramDiagnostic] = []
         var inBlockComment = false
+        var lineNo = 0
         for line in source.split(separator: "\n", omittingEmptySubsequences: false) {
+            lineNo += 1
             let trimmed = line.trimmingCharacters(in: .whitespaces)
             if inBlockComment {
                 if trimmed.contains("\"\"\"") {
@@ -52,12 +57,21 @@ public struct D2Parser {
             // line-start or preceded by whitespace, so identifiers
             // containing `#`/`//` aren't truncated.
             var cleanLine = String(line)
-            cleanLine = _stripInlineComment(cleanLine, marker: "#")
-            cleanLine = _stripInlineComment(cleanLine, marker: "//")
+            let hashResult = _stripInlineComment(cleanLine, marker: "#")
+            cleanLine = hashResult.stripped
+            let slashResult = _stripInlineComment(cleanLine, marker: "//")
+            cleanLine = slashResult.stripped
+            if hashResult.wasStripped || slashResult.wasStripped {
+                diagnostics.append(.lossyTransform(
+                    .d2InlineCommentStripped,
+                    message: "D2 inline comment stripped from line \(lineNo); the comment value is not preserved in the parsed document.",
+                    location: DiagramDiagnostic.SourceLocation(line: lineNo)
+                ))
+            }
             if !result.isEmpty { result.append("\n") }
             result.append(cleanLine)
         }
-        return result
+        return (result, diagnostics)
     }
 
     // MARK: - Parse
