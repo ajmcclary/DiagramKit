@@ -116,5 +116,33 @@ struct CrossFormatRoundTripTests {
             fixture: fixture
         )
     }
+
+    // MARK: Mermaid ↔ PlantUML (C4)
+
+    @Test(
+        "Mermaid → PlantUML → Mermaid (C4)",
+        arguments: try fixtures(for: "cross-mermaid-plantuml-c4", fromRoot: roundTripResourcesRoot())
+    )
+    func mermaidPlantumlC4(fixture: RoundTripFixture) throws {
+        try runCrossFormatRoundTrip(
+            legA: RoundTripCellRegistry.mermaidC4,
+            legB: RoundTripCellRegistry.plantumlC4,
+            additionalAllowedLosses: RoundTripCrossRegistry.mermaidPlantumlC4,
+            fixture: fixture
+        )
+    }
+
+    @Test(
+        "PlantUML → Mermaid → PlantUML (C4)",
+        arguments: try fixtures(for: "cross-plantuml-mermaid-c4", fromRoot: roundTripResourcesRoot())
+    )
+    func plantumlMermaidC4(fixture: RoundTripFixture) throws {
+        try runCrossFormatRoundTrip(
+            legA: RoundTripCellRegistry.plantumlC4,
+            legB: RoundTripCellRegistry.mermaidC4,
+            additionalAllowedLosses: RoundTripCrossRegistry.plantumlMermaidC4,
+            fixture: fixture
+        )
+    }
 }
 
