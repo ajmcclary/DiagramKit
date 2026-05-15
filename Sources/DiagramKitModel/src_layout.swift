@@ -22,7 +22,9 @@ final class _LayoutDiagnostics: @unchecked Sendable {
     var items: [DiagramDiagnostic] = []
 
     func warn(_ message: String) {
-        items.append(DiagramDiagnostic(severity: .warning, message: message, location: nil))
+        // Layout-tier diagnostic helper. Flowchart subgraph recursion
+        // truncation is the load-bearing caller — .subgraphFlatten covers it.
+        items.append(.lossyTransform(.subgraphFlatten, message: message, location: nil))
     }
 }
 

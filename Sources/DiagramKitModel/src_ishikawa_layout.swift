@@ -23,7 +23,10 @@ private let FONT_SIZE_DEFAULT: Double = 14
 final class _IshikawaDiagnostics: @unchecked Sendable {
     var items: [DiagramDiagnostic] = []
     func warn(_ message: String) {
-        items.append(DiagramDiagnostic(severity: .warning, message: message, location: nil))
+        // Layout-tier diagnostic emit for ishikawa depth/recursion overflow.
+        // .subgraphFlatten is the closest fit: the nested branch was truncated
+        // (rendered "flat") because the recursive layout couldn't go deeper.
+        items.append(.lossyTransform(.subgraphFlatten, message: message, location: nil))
     }
 }
 private let SPINE_BASE_LENGTH: Double = 250

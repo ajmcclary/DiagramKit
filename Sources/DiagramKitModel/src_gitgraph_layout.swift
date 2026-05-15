@@ -271,8 +271,8 @@ public func layoutGitGraph(_ diagram: GitGraphDiagram) -> (PositionedGitGraphDia
         // not an invariant violation.
         guard let firstCommit = commitsByID[firstKey],
               let firstBranchP = branchPos[firstCommit.branch] else {
-            diagnostics.append(DiagramDiagnostic(
-                severity: .warning,
+            diagnostics.append(.lossyTransform(
+                .configDrop,
                 message: "gitGraph parallelCommits layout: missing commit or branch position for first key '\(firstKey)'; falling back to empty layout.",
                 location: nil
             ))

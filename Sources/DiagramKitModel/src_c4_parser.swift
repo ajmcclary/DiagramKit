@@ -578,8 +578,8 @@ private func _resolveParentBoundary(
         return lexical
     }
     if lexical != "global" && lexical != namedValue {
-        diagnostics.append(DiagramDiagnostic(
-            severity: .warning,
+        diagnostics.append(.lossyTransform(
+            .boundaryFlatten,
             message: "Mermaid C4 \(macroName)(\(alias)) named arg \(key)=\(namedValue) overrides enclosing \(lexical) — using named value"
         ))
     }
@@ -597,14 +597,14 @@ private func _validateBoundaryReferences(
 ) {
     let known: Set<String> = Set(boundaries.map(\.alias)).union(["global", ""])
     for s in shapes where !known.contains(s.parentBoundary) {
-        diagnostics.append(DiagramDiagnostic(
-            severity: .warning,
+        diagnostics.append(.lossyTransform(
+            .boundaryFlatten,
             message: "Mermaid C4 shape '\(s.alias)' parentBoundary=\(s.parentBoundary) references undefined boundary"
         ))
     }
     for b in boundaries where !known.contains(b.parentBoundary) {
-        diagnostics.append(DiagramDiagnostic(
-            severity: .warning,
+        diagnostics.append(.lossyTransform(
+            .boundaryFlatten,
             message: "Mermaid C4 boundary '\(b.alias)' parentBoundary=\(b.parentBoundary) references undefined boundary"
         ))
     }

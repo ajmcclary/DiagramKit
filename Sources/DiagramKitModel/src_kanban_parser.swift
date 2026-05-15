@@ -195,8 +195,8 @@ public func parseKanbanDiagram(_ lines: [String], frontmatter: DiagramFrontmatte
     var seenIds = Set<String>()
     for node in sanitizedNodes {
         if seenIds.contains(node.id) {
-            diagnostics.append(DiagramDiagnostic(
-                severity: .warning,
+            diagnostics.append(.lossyTransform(
+                .idSanitization,
                 message: "[Kanban] duplicate node ID \"\(node.id)\"",
                 location: nil
             ))
