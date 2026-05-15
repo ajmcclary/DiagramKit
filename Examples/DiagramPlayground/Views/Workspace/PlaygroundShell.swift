@@ -88,6 +88,9 @@ struct PlaygroundShell: View {
                     }
                 }
             }
+
+            // Source-citation overlay (Phase 10 / Task 10.5)
+            CitationOverlay(store: store)
         }
         #if os(macOS)
         .frame(minWidth: 900, minHeight: 600)
