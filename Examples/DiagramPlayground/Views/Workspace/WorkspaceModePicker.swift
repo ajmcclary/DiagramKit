@@ -59,13 +59,14 @@ struct WorkspaceModePicker: View {
         }
     }
 
-    /// Phase 1 leaves visual/split disabled — visual canvases land in
-    /// Phase 3 and the side-by-side body lands in Phase 2.
+    /// Phase 2 unlocks `.split` (PlaygroundShell renders editor +
+    /// preview side-by-side). `.visual` stays disabled until Phase 3
+    /// lands the visual canvases.
     private func isDisabled(_ mode: WorkspaceMode) -> Bool {
         switch mode {
         case .code:   return false
         case .visual: return true
-        case .split:  return true
+        case .split:  return false
         }
     }
 }

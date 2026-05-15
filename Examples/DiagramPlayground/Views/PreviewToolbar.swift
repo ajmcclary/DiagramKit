@@ -79,6 +79,7 @@ struct PreviewToolbar: View {
         }
         .buttonStyle(.plain)
         .help("Fit diagram to view")
+        .keyboardShortcut("0", modifiers: .command)
         .a11yIdentifier(A11yID.Preview.fit)
     }
 
@@ -93,6 +94,7 @@ struct PreviewToolbar: View {
         .disabled(!panZoomEnabled || zoomScale <= minZoom)
         .opacity(!panZoomEnabled || zoomScale <= minZoom ? 0.35 : 1.0)
         .help("Zoom out")
+        .keyboardShortcut("-", modifiers: .command)
         .a11y(label: "Zoom out", id: A11yID.Preview.zoomOut)
     }
 
@@ -107,6 +109,7 @@ struct PreviewToolbar: View {
         .disabled(!panZoomEnabled || zoomScale >= maxZoom)
         .opacity(!panZoomEnabled || zoomScale >= maxZoom ? 0.35 : 1.0)
         .help("Zoom in")
+        .keyboardShortcut("=", modifiers: .command)
         .a11y(label: "Zoom in", id: A11yID.Preview.zoomIn)
     }
 
@@ -118,6 +121,7 @@ struct PreviewToolbar: View {
         }
         .buttonStyle(.plain)
         .help("Actual size (100%)")
+        .keyboardShortcut("1", modifiers: .command)
         .a11yIdentifier(A11yID.Preview.actualSize)
     }
 

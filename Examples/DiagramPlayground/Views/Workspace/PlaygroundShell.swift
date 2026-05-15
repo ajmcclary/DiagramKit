@@ -27,7 +27,7 @@ struct PlaygroundShell: View {
                         .frame(width: 260)
                     Divider()
                 }
-                EditorPane(store: store)
+                bodyForMode
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                 if inspectorVisible {
                     Divider()
@@ -41,5 +41,26 @@ struct PlaygroundShell: View {
         #if os(macOS)
         .frame(minWidth: 900, minHeight: 600)
         #endif
+    }
+
+    @ViewBuilder
+    private var bodyForMode: some View {
+        switch store.state.workspaceMode {
+        case .code:
+            EditorPane(store: store)
+        case .split:
+            HStack(spacing: 0) {
+                EditorPane(store: store)
+                    .frame(minWidth: 320)
+                Divider()
+                PreviewCanvas(store: store, onFullWindowPreview: nil)
+                    .frame(minWidth: 320)
+            }
+        case .visual:
+            // Phase 3 wires VisualPane here. Until then, fall back to
+            // the Code surface so an out-of-band workspaceMode write
+            // can't blank the body.
+            EditorPane(store: store)
+        }
     }
 }
