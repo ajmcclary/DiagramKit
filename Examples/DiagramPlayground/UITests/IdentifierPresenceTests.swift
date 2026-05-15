@@ -14,5 +14,27 @@
 import XCTest
 
 final class IdentifierPresenceTests: XCTestCase {
-    // Cases are appended task by task as view modifiers land.
+
+    // MARK: - Preview toolbar
+
+    @MainActor
+    func testPreviewToolbar_allIdentifiersPresent() {
+        let app = launchPlayground(initialState: .editingFlow1)
+        let ids = [
+            "preview.fit",
+            "preview.zoomOut",
+            "preview.zoomIn",
+            "preview.actualSize",
+            "preview.panZoomToggle",
+            "preview.gridToggle",
+            "preview.fullWindow",
+        ]
+        for id in ids {
+            let element = app.descendants(matching: .any).matching(identifier: id).firstMatch
+            XCTAssertTrue(
+                element.waitForExistence(timeout: 3),
+                "Expected preview toolbar control with identifier '\(id)' to exist"
+            )
+        }
+    }
 }

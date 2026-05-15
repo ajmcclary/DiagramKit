@@ -79,6 +79,7 @@ struct PreviewToolbar: View {
         }
         .buttonStyle(.plain)
         .help("Fit diagram to view")
+        .a11yIdentifier(A11yID.Preview.fit)
     }
 
     private var zoomOutButton: some View {
@@ -92,6 +93,7 @@ struct PreviewToolbar: View {
         .disabled(!panZoomEnabled || zoomScale <= minZoom)
         .opacity(!panZoomEnabled || zoomScale <= minZoom ? 0.35 : 1.0)
         .help("Zoom out")
+        .a11y(label: "Zoom out", id: A11yID.Preview.zoomOut)
     }
 
     private var zoomInButton: some View {
@@ -105,6 +107,7 @@ struct PreviewToolbar: View {
         .disabled(!panZoomEnabled || zoomScale >= maxZoom)
         .opacity(!panZoomEnabled || zoomScale >= maxZoom ? 0.35 : 1.0)
         .help("Zoom in")
+        .a11y(label: "Zoom in", id: A11yID.Preview.zoomIn)
     }
 
     private var actualSizeButton: some View {
@@ -115,6 +118,7 @@ struct PreviewToolbar: View {
         }
         .buttonStyle(.plain)
         .help("Actual size (100%)")
+        .a11yIdentifier(A11yID.Preview.actualSize)
     }
 
     private var panZoomToggleButton: some View {
@@ -129,6 +133,12 @@ struct PreviewToolbar: View {
             ? Color(theme.effectiveAccent())
             : Color(theme.foreground))
         .help(panZoomEnabled ? "Disable pan and zoom" : "Enable pan and zoom")
+        .a11yToggle(
+            label: "Pan and zoom",
+            isOn: panZoomEnabled,
+            hint: "Allows dragging and pinch-to-zoom on the preview",
+            id: A11yID.Preview.panZoomToggle
+        )
     }
 
     private var gridToggleButton: some View {
@@ -143,6 +153,12 @@ struct PreviewToolbar: View {
             ? Color(theme.effectiveAccent())
             : Color(theme.foreground))
         .help(gridEnabled ? "Hide grid" : "Show grid")
+        .a11yToggle(
+            label: "Grid overlay",
+            isOn: gridEnabled,
+            hint: "Shows a reference grid behind the diagram",
+            id: A11yID.Preview.gridToggle
+        )
     }
 
     private var fullWindowButton: some View {
@@ -152,6 +168,7 @@ struct PreviewToolbar: View {
         }
         .buttonStyle(.plain)
         .help("Full-window preview")
+        .a11y(label: "Full-window preview", id: A11yID.Preview.fullWindow)
     }
 
     private var zoomLabel: some View {
