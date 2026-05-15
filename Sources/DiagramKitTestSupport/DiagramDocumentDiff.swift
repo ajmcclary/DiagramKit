@@ -56,10 +56,6 @@ public func compare(_ a: DiagramDocument, _ b: DiagramDocument) -> [RoundTripDel
 // Each stub returns `[.unexpected("not-yet-implemented", "<family>")]` until
 // its cell task lands the real comparator.
 
-func diffC4Diagram(_ a: C4Diagram, _ b: C4Diagram) -> [RoundTripDelta] {
-    [.unexpected(path: "c4", detail: "not-yet-implemented")]
-}
-
 func diffMindmapDiagram(_ a: MindmapDiagram, _ b: MindmapDiagram) -> [RoundTripDelta] {
     [.unexpected(path: "mindmap", detail: "not-yet-implemented")]
 }

@@ -48,4 +48,15 @@ struct SameFormatRoundTripTests {
             fixture: fixture
         )
     }
+
+    @Test(
+        "Mermaid C4 round-trip",
+        arguments: try fixtures(for: "mermaid-c4", fromRoot: roundTripResourcesRoot())
+    )
+    func mermaidC4(fixture: RoundTripFixture) throws {
+        try runSameFormatRoundTrip(
+            cell: RoundTripCellRegistry.mermaidC4,
+            fixture: fixture
+        )
+    }
 }
