@@ -95,6 +95,17 @@ public struct LiveEditorState: Codable, Equatable, Sendable {
     /// `openTabs` is non-empty.
     public var activeTabId: String?
 
+    /// Whether the editor minimap overlay is visible.
+    public var showMinimap: Bool
+
+    /// Source line index currently hovered in the editor or pointed at
+    /// from a preview node (bidirectional selection). `nil` when no
+    /// hover is active.
+    public var biSelLine: Int?
+
+    /// Preview node id currently hovered or paired with `biSelLine`.
+    public var biSelNode: String?
+
     // MARK: - Init
 
     public init(
@@ -115,7 +126,10 @@ public struct LiveEditorState: Codable, Equatable, Sendable {
         sidebarFormatFilter: SourceFormat? = nil,
         renderBackend: RenderBackend = .svg,
         openTabs: [String] = Self.defaultOpenTabs,
-        activeTabId: String? = nil
+        activeTabId: String? = nil,
+        showMinimap: Bool = true,
+        biSelLine: Int? = nil,
+        biSelNode: String? = nil
     ) {
         self.source = source
         self.sourceFormat = sourceFormat
@@ -135,6 +149,9 @@ public struct LiveEditorState: Codable, Equatable, Sendable {
         self.renderBackend = renderBackend
         self.openTabs = openTabs
         self.activeTabId = activeTabId ?? openTabs.first
+        self.showMinimap = showMinimap
+        self.biSelLine = biSelLine
+        self.biSelNode = biSelNode
     }
 
     // MARK: - Codable (handle legacy snapshots without sourceFormat)
@@ -158,6 +175,7 @@ public struct LiveEditorState: Codable, Equatable, Sendable {
         case renderBackend
         case openTabs
         case activeTabId
+        case showMinimap
     }
 
     public init(from decoder: Decoder) throws {
@@ -182,6 +200,7 @@ public struct LiveEditorState: Codable, Equatable, Sendable {
         self.openTabs = decodedTabs
         let decodedActive = try c.decodeIfPresent(String.self, forKey: .activeTabId)
         self.activeTabId = decodedActive ?? decodedTabs.first
+        self.showMinimap = try c.decodeIfPresent(Bool.self, forKey: .showMinimap) ?? true
     }
 
     // MARK: - Defaults

@@ -29,6 +29,13 @@ struct InspectorRenderBackendSection: View {
                 KPill(text: "worker · 8 MB stack", systemImage: "cpu", tone: .info)
                 Spacer()
             }
+
+            Toggle(isOn: $store.state.showMinimap) {
+                Text("Show minimap")
+                    .font(.system(size: 11, weight: .medium))
+            }
+            .toggleStyle(.switch)
+            .controlSize(.mini)
         }
         .padding(8)
         .background(

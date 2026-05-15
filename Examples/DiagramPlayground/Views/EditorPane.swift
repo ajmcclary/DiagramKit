@@ -48,15 +48,20 @@ struct EditorPane: View {
                 configValidationHeader
             }
 
-            // Native code editor
-            NativeCodeEditor(
-                store: store,
-                mode: store.state.editorMode,
-                theme: store.theme,
-                diagnostics: store.diagnostics,
-                highlighter: currentHighlighter
-            )
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            // Native code editor (+ optional minimap rail on the trailing edge)
+            HStack(spacing: 0) {
+                NativeCodeEditor(
+                    store: store,
+                    mode: store.state.editorMode,
+                    theme: store.theme,
+                    diagnostics: store.diagnostics,
+                    highlighter: currentHighlighter
+                )
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                if store.state.showMinimap && store.state.editorMode == .code {
+                    EditorMinimap(store: store)
+                }
+            }
         }
         .background(Color(store.theme.background))
     }
