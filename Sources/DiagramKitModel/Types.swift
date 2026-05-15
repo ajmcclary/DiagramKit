@@ -769,6 +769,11 @@ public enum DiagramError: Error, LocalizedError {
     /// The source matched a format probe but the body could not be parsed.
     /// Carries a human-readable description of the parse failure.
     case malformedSource(message: String)
+    /// The diagram family is not supported on the current runtime platform.
+    /// `platform` is the human-readable platform name (e.g. `"Linux"`).
+    /// `reason` is a short explanation suitable for surfacing to end users
+    /// (e.g. `"requires CoreText text-measurement"`).
+    case unsupportedOnPlatform(family: DiagramType, reason: String, platform: String)
 
     public var errorDescription: String? {
         switch self {
@@ -778,6 +783,8 @@ public enum DiagramError: Error, LocalizedError {
             return "Unrecognized diagram source format: \(detail)"
         case .malformedSource(let message):
             return "Malformed diagram source: \(message)"
+        case .unsupportedOnPlatform(let family, let reason, let platform):
+            return "\(family.rawValue) layout is not supported on \(platform): \(reason)"
         }
     }
 }
