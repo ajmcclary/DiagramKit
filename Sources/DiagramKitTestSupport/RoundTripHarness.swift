@@ -207,14 +207,42 @@ private func enforce(
 }
 
 /// Tests whether the diagnostic bag contains at least one entry that
-/// plausibly "explains" this loss. The matcher is keyword-based against
-/// `DiagramDiagnostic.message` so exporters can phrase their diagnostics
-/// naturally; new loss kinds require extending this table alongside the
-/// loss enum case.
+/// "explains" this loss.
+///
+/// Two-phase pairing:
+///   1. Typed-first: any diagnostic with `category == loss.kind.expectedCategory`
+///      counts as paired.
+///   2. Fallback: for nil-category diagnostics (raw `init(severity:message:)`),
+///      consult the legacy keyword matcher. The fallback is deleted in
+///      Phase 2 of the migration (plan Task 14).
+///
+/// `.anonymousSubgraphRename` is exempt — anonymous renames are positional
+/// parser artifacts, not exporter-driven, and never carry a paired diagnostic.
 public func diagnosticsCover(loss: RoundTripLoss, in diagnostics: [DiagramDiagnostic]) -> Bool {
+    // Exemption: anonymous subgraph rename is positional, not exporter-driven.
+    if case .anonymousSubgraphRename = loss { return true }
+
+    let expected = loss.kind.expectedCategory
     let relevant = diagnostics.filter {
         $0.severity == .warning || $0.severity == .unsupported
     }
+
+    // Typed-first.
+    if relevant.contains(where: { $0.category == expected }) {
+        return true
+    }
+
+    // Legacy keyword fallback — only consulted for nil-category diagnostics.
+    return relevant.contains { diag in
+        guard diag.category == nil else { return false }
+        return _legacyKeywordCover(loss: loss, message: diag.message)
+    }
+}
+
+/// Legacy keyword matcher — preserved for the migration window so the
+/// harness stays green while emission sites are converted slice-by-slice.
+/// Deleted in Phase 2 (plan Task 14).
+private func _legacyKeywordCover(loss: RoundTripLoss, message: String) -> Bool {
     let keywords: [String]
     switch loss {
     case .idSanitization(let original, _):
@@ -236,14 +264,10 @@ public func diagnosticsCover(loss: RoundTripLoss, in diagnostics: [DiagramDiagno
     case .accessibilityDrop(let field):
         keywords = [field.rawValue, "accessib", "acctitle", "accdescr"]
     case .anonymousSubgraphRename:
-        // Anonymous subgraph renames are positional artifacts of the parser,
-        // not exporter-driven. Exempt from the paired-diagnostic rule.
-        return true
+        return true  // unreachable; exemption is handled in diagnosticsCover
     case .d2DuplicateOverride(let id, _):
         keywords = ["duplicate", id]
     }
-    return relevant.contains { diagnostic in
-        let message = diagnostic.message.lowercased()
-        return keywords.contains { message.contains($0.lowercased()) }
-    }
+    let m = message.lowercased()
+    return keywords.contains { m.contains($0.lowercased()) }
 }
