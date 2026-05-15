@@ -1,9 +1,11 @@
-// Apple-only — depends on CoreText. Gated by `#if canImport(CoreText)`.
-#if canImport(CoreText)
 import Foundation
 import DiagramKitCommon
+#if canImport(CoreGraphics)
 import CoreGraphics
+#endif
+#if canImport(CoreText)
 import CoreText
+#endif
 
 // MARK: - Layout Constants
 
@@ -22,7 +24,11 @@ private struct EMPDefaults {
     static let boxTextPadding: Double = 10
     static let fontSize: Double = 16
     static let fontWeight: Double = 700
+#if canImport(CoreText)
     static var fontFamily: String { DiagramFontResolver().svgProportionalFamilyChain }
+#else
+    static var fontFamily: String { "Inter, Verdana, sans-serif" }
+#endif
 }
 
 // MARK: - Public layout entry point
@@ -393,8 +399,6 @@ private func _measureTextDimensions(
     maxWidth: Double,
     fontSize: Double
 ) -> (width: Double, height: Double) {
-    let font = DiagramFontResolver().proportionalCTFont(size: CGFloat(fontSize))
-
     let plainText: String
     if hasRenderedData, let data = dataText, !data.isEmpty {
         plainText = entityName + "\n\n" + data
@@ -402,6 +406,8 @@ private func _measureTextDimensions(
         plainText = entityName
     }
 
+#if canImport(CoreText)
+    let font = DiagramFontResolver().proportionalCTFont(size: CGFloat(fontSize))
     let attr: [NSAttributedString.Key: Any] = [.font: font]
     let attrStr = NSAttributedString(string: plainText, attributes: attr)
 
@@ -422,5 +428,34 @@ private func _measureTextDimensions(
     let height = Double(frameSize.height)
 
     return (width, height)
-}
+#else
+    // Linux fallback: per-line char-count estimation, clamped to maxWidth.
+    // Approximates the CoreText framesetter's wrap+measure behavior without
+    // glyph metrics. Geometric validity only.
+    let lines = plainText.components(separatedBy: "\n")
+    var maxLineWidth: Double = 0
+    var lineCount = 0
+    for line in lines {
+        if line.isEmpty {
+            lineCount += 1
+            continue
+        }
+        let raw = Double(TextMetrics.shared.estimateTextWidth(
+            line, fontSize: CGFloat(fontSize), fontWeight: 400))
+        if raw <= maxWidth {
+            maxLineWidth = max(maxLineWidth, raw)
+            lineCount += 1
+        } else {
+            // Wrap into ceil(raw / maxWidth) visual lines.
+            maxLineWidth = max(maxLineWidth, maxWidth)
+            lineCount += Int((raw / maxWidth).rounded(.up))
+        }
+    }
+    var width = maxLineWidth
+    if hasRenderedData {
+        width = width / 3.0
+    }
+    let height = Double(lineCount) * fontSize * 1.2
+    return (width, height)
 #endif
+}
