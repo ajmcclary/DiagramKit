@@ -1,0 +1,4 @@
+@startgantt
+[Task1] lasts 3 days
+[Task2] lasts 5 days
+@endgantt

@@ -1,0 +1,5 @@
+@startgantt
+[Design] lasts 5 days
+[Build] lasts 10 days
+[Test] lasts 3 days
+@endgantt
