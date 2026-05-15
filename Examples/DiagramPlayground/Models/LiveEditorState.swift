@@ -76,6 +76,12 @@ public struct LiveEditorState: Codable, Equatable, Sendable {
     /// Whether per-screen citation pins overlay the active surface.
     public var showCitations: Bool
 
+    /// Free-text filter applied to the v2 Sidebar's sample tree.
+    public var sidebarSearch: String
+
+    /// Optional format chip selection in the v2 Sidebar (nil = all).
+    public var sidebarFormatFilter: SourceFormat?
+
     // MARK: - Init
 
     public init(
@@ -91,7 +97,9 @@ public struct LiveEditorState: Codable, Equatable, Sendable {
         updateMode: UpdateMode = .auto,
         inspectorOpen: Bool = false,
         workspaceMode: WorkspaceMode = .default,
-        showCitations: Bool = false
+        showCitations: Bool = false,
+        sidebarSearch: String = "",
+        sidebarFormatFilter: SourceFormat? = nil
     ) {
         self.source = source
         self.sourceFormat = sourceFormat
@@ -106,6 +114,8 @@ public struct LiveEditorState: Codable, Equatable, Sendable {
         self.inspectorOpen = inspectorOpen
         self.workspaceMode = workspaceMode
         self.showCitations = showCitations
+        self.sidebarSearch = sidebarSearch
+        self.sidebarFormatFilter = sidebarFormatFilter
     }
 
     // MARK: - Codable (handle legacy snapshots without sourceFormat)
@@ -124,6 +134,8 @@ public struct LiveEditorState: Codable, Equatable, Sendable {
         case inspectorOpen
         case workspaceMode
         case showCitations
+        case sidebarSearch
+        case sidebarFormatFilter
     }
 
     public init(from decoder: Decoder) throws {
@@ -141,6 +153,8 @@ public struct LiveEditorState: Codable, Equatable, Sendable {
         self.inspectorOpen = try c.decodeIfPresent(Bool.self, forKey: .inspectorOpen) ?? false
         self.workspaceMode = try c.decodeIfPresent(WorkspaceMode.self, forKey: .workspaceMode) ?? .default
         self.showCitations = try c.decodeIfPresent(Bool.self, forKey: .showCitations) ?? false
+        self.sidebarSearch = try c.decodeIfPresent(String.self, forKey: .sidebarSearch) ?? ""
+        self.sidebarFormatFilter = try c.decodeIfPresent(SourceFormat.self, forKey: .sidebarFormatFilter)
     }
 
     // MARK: - Defaults
