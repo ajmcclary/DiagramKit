@@ -61,6 +61,11 @@ enum StructurizrC4Export {
         // Partition boundaries by origin. .authored entries emit as `group { ... }`
         // blocks; .viewScopeSynthesized entries silently drop (the next import
         // re-derives them from the same view scope).
+        //
+        // SILENT-DROP(viewScopeSynthesized boundaries are re-derived from the
+        // view scope on the next Structurizr import; round-trip-stable).
+        // Pinned by: viewScopeBoundariesRoundTrip
+        // Allowed under §4 of docs/diagnostic-severity-discipline.md.
         let authoredBoundaries = model.boundaries.filter { $0.origin == .authored }
         let authoredAliases = Set(authoredBoundaries.map(\.alias))
         let shapesByBoundary: [String: [C4Shape]] = Dictionary(grouping: model.shapes) { $0.parentBoundary }

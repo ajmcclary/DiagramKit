@@ -234,7 +234,12 @@ public struct StructurizrLexer: Sendable {
                 continue
             }
 
-            // Unknown character — skip for lenience.
+            // SILENT-DROP(unrecognized lexer characters are skipped to allow
+            // graceful degradation of malformed input; canonical Structurizr
+            // sources never contain unrecognized chars, so this path is unreachable
+            // on supported input).
+            // Pinned by: canonicalSourceDoesNotTriggerLexerSkip
+            // Allowed under §4 of docs/diagnostic-severity-discipline.md.
             advance()
         }
 

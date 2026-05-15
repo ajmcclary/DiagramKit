@@ -89,4 +89,43 @@ import DiagramKitStructurizr
         }
         #expect(identifiers == ["workspace"])
     }
+
+    /// Pinned by the `// SILENT-DROP(...)` marker at
+    /// `StructurizrLexer.swift:~237` — the unknown-character branch is only
+    /// reached when input contains characters outside the recognized token
+    /// classes. This test exercises a comprehensive canonical source and
+    /// verifies every identifier survives, demonstrating the silent skip
+    /// path was not entered.
+    @Test("canonicalSourceDoesNotTriggerLexerSkip")
+    func canonicalSourceDoesNotTriggerLexerSkip() {
+        let canonical = """
+        workspace "Example" "An example" {
+          model {
+            user = person "User" "An end user."
+            sys  = softwareSystem "System" {
+              tags "Internal"
+              app = container "App" "Web app" "Swift"
+            }
+            user -> sys "Uses"
+          }
+          views {
+            systemContext sys "ctx" {
+              include *
+            }
+          }
+        }
+        """
+        let tokens = lexer.tokenize(canonical)
+        let identifiers = tokens.compactMap { token -> String? in
+            if case .identifier(let s) = token { return s }
+            return nil
+        }
+        // Note: "ctx" is the quoted view-key string, not an identifier token.
+        let expectedIdents = ["workspace", "model", "user", "person", "sys",
+                              "softwareSystem", "tags", "app", "container",
+                              "user", "sys", "views", "systemContext", "sys",
+                              "include"]
+        #expect(identifiers == expectedIdents,
+                "Canonical Structurizr source must not trigger the lexer skip path")
+    }
 }

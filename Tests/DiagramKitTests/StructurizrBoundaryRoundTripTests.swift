@@ -88,6 +88,46 @@ struct StructurizrBoundaryRoundTripTests {
         #expect(flattenWarnings.count == 1)
     }
 
+    /// Pinned by the `// SILENT-DROP(...)` marker at
+    /// `StructurizrExporter.swift:~63` — viewScopeSynthesized boundaries
+    /// silently drop on Structurizr export because the next import re-derives
+    /// them from the view scope. This test exercises that re-derivation.
+    @Test("viewScopeBoundariesRoundTrip — viewScopeSynthesized boundaries re-derive on import")
+    func viewScopeBoundariesRoundTrip() throws {
+        // The first import will synthesize a boundary for the view scope.
+        let structurizrSource = """
+        workspace {
+          model {
+            sys = softwareSystem "Sys" {
+              app = container "App"
+            }
+          }
+          views {
+            container sys {
+              include *
+            }
+          }
+        }
+        """
+        let first = try structurizrImport(structurizrSource)
+        // sys is the view scope; mapper synthesizes a boundary for it.
+        let synthesizedBoundary = first.boundaries.first { $0.origin == .viewScopeSynthesized }
+        #expect(synthesizedBoundary != nil, "Expected viewScopeSynthesized boundary on first import")
+
+        // Re-export to Structurizr — synthesized boundaries silently drop.
+        let exportSource = try structurizrExport(first)
+        #expect(!exportSource.contains("group \"\(synthesizedBoundary?.label ?? "??")\""),
+                "viewScopeSynthesized boundary must not emit as group block")
+
+        // Re-import — a viewScopeSynthesized boundary should be re-derived from
+        // the same view scope. This is the round-trip stability the silent drop
+        // depends on; the specific alias may shift because export rewrites the
+        // model element graph, but the synthesized origin re-establishes.
+        let second = try structurizrImport(exportSource)
+        let resynthesized = second.boundaries.first { $0.origin == .viewScopeSynthesized }
+        #expect(resynthesized != nil, "Expected viewScopeSynthesized boundary on re-import")
+    }
+
     @Test("Structurizr group exports to Mermaid with boundary + $boundary attribute")
     func structurizrToMermaidEmit() throws {
         let structurizrSource = """
