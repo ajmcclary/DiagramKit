@@ -131,6 +131,10 @@ public struct LiveEditorState: Codable, Equatable, Sendable {
     /// Convert sheet state (open/close + target).
     public var convertSheet: ConvertSheetState
 
+    /// Body-replacing full-window surface (Coverage / Corpus / etc.).
+    /// `.none` shows the standard workspace body.
+    public var fullScreen: FullScreenSurface
+
     // MARK: - Init
 
     public init(
@@ -161,7 +165,8 @@ public struct LiveEditorState: Codable, Equatable, Sendable {
         demoStepperVisible: Bool = false,
         diagDrawer: DiagnosticsDrawerState = .default,
         exportSheet: ExportSheetState = .default,
-        convertSheet: ConvertSheetState = .default
+        convertSheet: ConvertSheetState = .default,
+        fullScreen: FullScreenSurface = .none
     ) {
         self.source = source
         self.sourceFormat = sourceFormat
@@ -191,6 +196,7 @@ public struct LiveEditorState: Codable, Equatable, Sendable {
         self.diagDrawer = diagDrawer
         self.exportSheet = exportSheet
         self.convertSheet = convertSheet
+        self.fullScreen = fullScreen
     }
 
     // MARK: - Codable (handle legacy snapshots without sourceFormat)
@@ -222,6 +228,7 @@ public struct LiveEditorState: Codable, Equatable, Sendable {
         case diagDrawer
         case exportSheet
         case convertSheet
+        case fullScreen
     }
 
     public init(from decoder: Decoder) throws {
@@ -254,6 +261,7 @@ public struct LiveEditorState: Codable, Equatable, Sendable {
         self.diagDrawer = try c.decodeIfPresent(DiagnosticsDrawerState.self, forKey: .diagDrawer) ?? .default
         self.exportSheet = try c.decodeIfPresent(ExportSheetState.self, forKey: .exportSheet) ?? .default
         self.convertSheet = try c.decodeIfPresent(ConvertSheetState.self, forKey: .convertSheet) ?? .default
+        self.fullScreen = try c.decodeIfPresent(FullScreenSurface.self, forKey: .fullScreen) ?? .none
     }
 
     // MARK: - Defaults

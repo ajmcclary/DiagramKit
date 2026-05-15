@@ -83,19 +83,58 @@ struct PlaygroundShell: View {
 
     @ViewBuilder
     private var bodyForMode: some View {
-        switch store.state.workspaceMode {
-        case .code:
-            EditorPane(store: store)
-        case .split:
-            HStack(spacing: 0) {
+        if store.state.fullScreen != .none {
+            fullScreenBody
+        } else {
+            switch store.state.workspaceMode {
+            case .code:
                 EditorPane(store: store)
-                    .frame(minWidth: 320)
-                Divider()
-                PreviewCanvas(store: store, onFullWindowPreview: nil)
-                    .frame(minWidth: 320)
+            case .split:
+                HStack(spacing: 0) {
+                    EditorPane(store: store)
+                        .frame(minWidth: 320)
+                    Divider()
+                    PreviewCanvas(store: store, onFullWindowPreview: nil)
+                        .frame(minWidth: 320)
+                }
+            case .visual:
+                VisualPane(store: store)
             }
-        case .visual:
-            VisualPane(store: store)
         }
+    }
+
+    @ViewBuilder
+    private var fullScreenBody: some View {
+        switch store.state.fullScreen {
+        case .none:
+            EmptyView()
+        case .coverage:
+            CoverageMatrixView(store: store)
+        case .corpus:
+            CorpusBrowserView(store: store)
+        case .crossFormat, .probe, .snippets:
+            placeholderFullScreen(for: store.state.fullScreen)
+        }
+    }
+
+    private func placeholderFullScreen(_: Void = ()) -> some View {
+        VStack(spacing: 8) {
+            Image(systemName: store.state.fullScreen.sfSymbol)
+                .font(.system(size: 28))
+                .foregroundStyle(.secondary)
+            Text("\(store.state.fullScreen.label) — coming in Phase 9")
+                .font(.system(size: 12))
+                .foregroundStyle(.secondary)
+            Button("Back to workspace") {
+                store.dismissFullScreen()
+            }
+            .buttonStyle(.bordered)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(Color(store.theme.background))
+    }
+
+    private func placeholderFullScreen(for surface: FullScreenSurface) -> some View {
+        placeholderFullScreen()
     }
 }

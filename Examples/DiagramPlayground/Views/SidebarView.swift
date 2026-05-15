@@ -20,6 +20,7 @@ struct SidebarView: View {
             brandRow
             searchField
             formatChips
+            fullScreenLinks
             Divider().padding(.horizontal, -8)
             SampleDiagramPanel(store: store)
                 .frame(maxHeight: .infinity)
@@ -27,6 +28,50 @@ struct SidebarView: View {
         .padding(.horizontal, 12)
         .padding(.top, 12)
         .background(Color(store.theme.background))
+    }
+
+    // MARK: - Full-screen surface launchers (Phase 8 / Task 8.1)
+
+    private var fullScreenLinks: some View {
+        VStack(alignment: .leading, spacing: 2) {
+            Text("Browse")
+                .font(.system(size: 9, weight: .semibold))
+                .foregroundStyle(.secondary)
+                .textCase(.uppercase)
+                .padding(.bottom, 2)
+            link(.coverage, label: "Coverage matrix · 28×5")
+            link(.corpus, label: "Corpus · \(TestDiagrams.all.count)")
+            link(.crossFormat, label: "Cross-format")
+            link(.probe, label: "Importer probe")
+            link(.snippets, label: "Snippets library")
+        }
+    }
+
+    private func link(_ surface: FullScreenSurface, label: String) -> some View {
+        let isOn = store.state.fullScreen == surface
+        return Button {
+            store.setFullScreen(isOn ? .none : surface)
+        } label: {
+            HStack(spacing: 6) {
+                Image(systemName: surface.sfSymbol)
+                    .frame(width: 14)
+                    .foregroundStyle(isOn ? Color.accentColor : .secondary)
+                Text(label)
+                    .font(.system(size: 11, weight: isOn ? .semibold : .regular))
+                    .foregroundStyle(isOn ? Color.accentColor : .primary)
+                Spacer()
+            }
+            .padding(.horizontal, 4)
+            .padding(.vertical, 3)
+            .background(isOn ? Color.accentColor.opacity(0.12) : Color.clear)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .a11yToggle(
+            label: LocalizedStringKey(label),
+            isOn: isOn,
+            id: "sidebar.fullscreen.\(surface.rawValue)"
+        )
     }
 
     // MARK: - Brand row

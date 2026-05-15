@@ -1137,6 +1137,16 @@ public final class LiveEditorStore {
         state.convertSheet.target = target
     }
 
+    // MARK: - Full-screen surfaces (Phase 8 / Task 8.1)
+
+    public func setFullScreen(_ surface: FullScreenSurface) {
+        state.fullScreen = surface
+    }
+
+    public func dismissFullScreen() {
+        state.fullScreen = .none
+    }
+
     /// One-shot source export against the current document for the
     /// Convert + Export sheets. Returns the exporter's source +
     /// diagnostics, or nil when the format isn't a source target.
