@@ -43,8 +43,8 @@ public struct PlantUMLExporter: DiagramExporter {
             return DiagramExportResult(
                 source: "",
                 diagnostics: [
-                    DiagramDiagnostic(
-                        severity: .unsupported,
+                    .featureDropped(
+                        .diagramFamilyUnsupported,
                         message: "PlantUML export for '\(document.type.rawValue)' is not yet implemented"
                     )
                 ]

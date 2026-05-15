@@ -69,8 +69,8 @@ public struct PlantUMLClassMapper {
         }
 
         for line in ast.unsupportedLines {
-            diagnostics.append(DiagramDiagnostic(
-                severity: .unsupported,
+            diagnostics.append(.featureDropped(
+                .diagramFamilyUnsupported,
                 message: "PlantUML class line not yet supported: \(line)"
             ))
         }

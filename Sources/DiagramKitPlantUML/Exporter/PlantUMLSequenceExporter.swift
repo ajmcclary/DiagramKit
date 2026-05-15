@@ -119,9 +119,12 @@ enum PlantUMLSequenceExport {
                 lines.append("destroy \(participantAlias(actorId))")
 
             case .link, .links, .properties, .details:
-                // Not directly translatable to PlantUML; skip with diagnostic
-                diagnostics.append(DiagramDiagnostic(
-                    severity: .info,
+                // Not directly translatable to PlantUML; skip with diagnostic.
+                // Severity preserved as .info from pre-migration; a future
+                // recategorization pass may promote to .unsupported since the
+                // sequence item is genuinely dropped.
+                diagnostics.append(.informational(
+                    .identifierEscape,
                     message: "PlantUML export: link/properties/detail not directly supported in sequence diagram"
                 ))
             }

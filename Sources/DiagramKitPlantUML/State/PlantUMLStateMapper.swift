@@ -28,8 +28,8 @@ public struct PlantUMLStateMapper {
         graph.accDescr = nil
 
         for line in ast.unsupportedLines {
-            context.diagnostics.append(DiagramDiagnostic(
-                severity: .unsupported,
+            context.diagnostics.append(.featureDropped(
+                .diagramFamilyUnsupported,
                 message: "PlantUML state line not yet supported: \(line)"
             ))
         }

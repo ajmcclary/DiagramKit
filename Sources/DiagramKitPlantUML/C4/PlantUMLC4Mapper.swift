@@ -16,8 +16,8 @@ public struct PlantUMLC4Mapper {
 
         for decl in ast.declarations {
             guard let shapeType = c4ShapeType(for: decl.macro) else {
-                diagnostics.append(DiagramDiagnostic(
-                    severity: .unsupported,
+                diagnostics.append(.featureDropped(
+                    .diagramFamilyUnsupported,
                     message: "PlantUML C4 macro '\(decl.macro)' is not recognized"
                 ))
                 continue
@@ -43,8 +43,8 @@ public struct PlantUMLC4Mapper {
         }
 
         for line in ast.unsupportedLines {
-            diagnostics.append(DiagramDiagnostic(
-                severity: .unsupported,
+            diagnostics.append(.featureDropped(
+                .diagramFamilyUnsupported,
                 message: "PlantUML C4 line not yet supported: \(line)"
             ))
         }

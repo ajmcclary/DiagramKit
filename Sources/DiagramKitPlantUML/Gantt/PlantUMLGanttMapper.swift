@@ -53,8 +53,8 @@ public struct PlantUMLGanttMapper {
 
             case .startsAtOtherEnd(let name, let other):
                 guard let otherTask = tasks[other] else {
-                    diagnostics.append(DiagramDiagnostic(
-                        severity: .warning,
+                    diagnostics.append(.lossyTransform(
+                        .configDrop,
                         message: "PlantUML gantt: [\(name)] starts at [\(other)]'s end but [\(other)] is unknown"
                     ))
                     continue
@@ -70,8 +70,8 @@ public struct PlantUMLGanttMapper {
         }
 
         for line in ast.unsupportedLines {
-            diagnostics.append(DiagramDiagnostic(
-                severity: .unsupported,
+            diagnostics.append(.featureDropped(
+                .diagramFamilyUnsupported,
                 message: "PlantUML gantt line not yet supported: \(line)"
             ))
         }

@@ -11,8 +11,8 @@ public struct PlantUMLMindmapMapper {
     public func map(_ tree: PlantUMLMindmapTree) -> (model: MindmapDiagram, diagnostics: [DiagramDiagnostic]) {
         var diagnostics: [DiagramDiagnostic] = []
         for line in tree.unsupportedLines {
-            diagnostics.append(DiagramDiagnostic(
-                severity: .unsupported,
+            diagnostics.append(.featureDropped(
+                .diagramFamilyUnsupported,
                 message: "PlantUML mindmap line not yet supported: \(line)"
             ))
         }
