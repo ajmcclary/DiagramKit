@@ -65,6 +65,21 @@ private func flowDoc(
     return DiagramDocument(payload: .flowchart(model))
 }
 
+private func stateDoc(_ nodes: [String], edges: [(String, String)] = []) -> DiagramDocument {
+    let mNodes = nodes.map { id in
+        (id: id, node: original_src_types.MermaidNode(id: id, label: "Node \(id)", shape: .rectangle))
+    }
+    let mEdges = edges.map { (src, tgt) in
+        original_src_types.MermaidEdge(source: src, target: tgt, style: .solid)
+    }
+    let model = original_src_types.MermaidGraph(
+        direction: .TD,
+        nodesInOrder: mNodes,
+        edges: mEdges
+    )
+    return DiagramDocument(payload: .stateDiagram(model))
+}
+
 // MARK: - DiagramEditorMutationTests
 
 @Suite @MainActor
