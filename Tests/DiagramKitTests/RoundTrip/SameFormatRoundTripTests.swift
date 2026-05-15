@@ -26,4 +26,15 @@ struct SameFormatRoundTripTests {
             fixture: fixture
         )
     }
+
+    @Test(
+        "Mermaid class round-trip",
+        arguments: try fixtures(for: "mermaid-class", fromRoot: roundTripResourcesRoot())
+    )
+    func mermaidClass(fixture: RoundTripFixture) throws {
+        try runSameFormatRoundTrip(
+            cell: RoundTripCellRegistry.mermaidClass,
+            fixture: fixture
+        )
+    }
 }
