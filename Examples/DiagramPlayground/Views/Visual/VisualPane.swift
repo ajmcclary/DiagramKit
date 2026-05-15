@@ -81,6 +81,10 @@ struct VisualPane: View {
             switch editor.document.type {
             case .flowchart, .stateDiagram:
                 FlowchartEditCanvas(store: store)
+            case .sequenceDiagram:
+                SequenceEditCanvas(store: store)
+            case .gantt:
+                GanttEditCanvas(store: store)
             default:
                 unsupportedFamily(editor.document.type)
             }
