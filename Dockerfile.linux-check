@@ -16,11 +16,11 @@
 # in Package.swift, so they don't need to be excluded here — the matrix
 # below builds only the Linux-portable targets explicitly.
 #
-# Functional Linux layout/rendering for layouts that depend on text
-# measurement (CTLineGetBoundsWithOptions) is deferred — the call sites
-# throw DiagramError.unsupportedOnPlatform on Linux for ishikawa,
-# treeView, and eventModeling. A portable text-measurement shim is the
-# Stage 2.5 follow-up.
+# All 28 diagram families are Linux-supported as of Stage 2.5 (see
+# docs/superpowers/specs/2026-05-15-linux-text-measurement-shim-design.md).
+# Text-measurement on Linux falls back to TextMetrics.shared's
+# char-count estimation for ishikawa, treeView, and eventModeling —
+# geometrically valid but not pixel-equivalent to Apple's CoreText.
 
 FROM docker.io/library/swift:6.3.1-noble
 

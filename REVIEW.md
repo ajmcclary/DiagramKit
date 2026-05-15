@@ -298,6 +298,34 @@ Session-end verification: `swift test --filter LinuxPlatformGateTests` green on 
 
 ---
 
+## Resolution Status — Session 15 (2026-05-15)
+
+Closes the CLAUDE.md deferred follow-up flagged at the end of Session 14:
+portable text-measurement shim for `ishikawa`, `treeView`, and
+`eventModeling`. Spec at
+`docs/superpowers/specs/2026-05-15-linux-text-measurement-shim-design.md`
+(`4f5ff5d`); plan at
+`docs/superpowers/plans/2026-05-15-linux-text-measurement-shim.md`
+(`6c42054`). Nine commits on `main`.
+
+| # | Item | Commit | What landed |
+|---|---|---|---|
+| 1 | TextMetrics inline-gate | `9b1bfe7` | `fontResolver` field + Apple init gated under `canImport(CoreText)`; Linux init is no-arg; fixes latent Linux build break (`DiagramFontResolver` was whole-file gated to UIKit/AppKit but `TextMetrics` referenced it unconditionally). |
+| 2 | TreeView renderer gate lift | `7744e7a` | Stale Apple-only file gate on `renderTreeViewSvg` removed — body is pure SVG-string emission with no `BMFont` / `CTFont` / `NSAttributedString` references. |
+| 3 | TreeView layout gate lift | `0718f45` | File-level `canImport(UIKit) || canImport(AppKit)` gate replaced with inner `measureText` branch: CoreText path unchanged; Linux path routes through `TextMetrics.shared.estimateTextWidth` with 1.2× line-height. `_treeViewFont` retained behind its own inner Apple-only gate. |
+| 4 | EventModeling layout gate lift | `0a55b20` | File-level `canImport(CoreText)` gate replaced with inner `_measureTextDimensions` branch: CoreText `CTFramesetter` path unchanged; Linux path approximates the framesetter wrap by counting `ceil(rawWidth / maxWidth)` visual lines per source line. Static `fontFamily` getter returns the literal `"Inter, Verdana, sans-serif"` chain on Linux. |
+| 5 | Ishikawa linuxSupport=true | `36c8bb4` | Inner `#if canImport(CoreText) / #else throw` in `DiagramRegistry+Ishikawa.swift` removed; `linuxSupport: false` flipped to default `true`; `linuxUnsupportedReason` dropped. Three new `LinuxPlatformGateTests`: descriptor flag, `renderSVG` success + serialized-NaN scan, `renderASCII` success. |
+| 6 | TreeView linuxSupport=true | `9d6b1cc` | Same shape — registry inner gate + throw fallback removed; flag flipped; three new tests using `treeView-beta\n    src/\n        index.js\n    package.json` fixture. |
+| 7 | EventModeling linuxSupport=true | `773f18d` | Same shape — registry inner gate + throw fallback removed; flag flipped; three new tests using a corpus-derived `"eventmodeling\ntf 01 ui CartUI\ntf 02 cmd AddItem\ntf 03 evt ItemAdded"` fixture. |
+| 8 | LinuxPlatformGateTests cleanup | `865bfef` | Eight obsolete tests deleted (`ishikawa/treeView/eventModelingIsLinuxUnsupported`, `exactlyThreeFamiliesAreLinuxUnsupported`, `linuxSupportReturnsFalseForIshikawa`, the parameterized `linuxSupportReportsAllThreeUnsupported`, the two `pipelineRenderSVGGatesIshikawaOnLinux` / `engineRenderSVGGatesIshikawaOnLinux`). New `exactlyZeroFamiliesAreLinuxUnsupported` is the lockdown. Replaced the naive `svg.lowercased().contains("nan")` substring check (which false-positives on `dominant-baseline`) with `_svgHasNoSerializedNaN`, a helper that scans for actual `="nan"` / `(nan,` / ` nan ` / `,-nan` patterns plus `inf` / `-inf` variants. |
+| 9 | Docs sync | _this commit_ | `CLAUDE.md` Linux Portability section rewritten — no longer mentions a deferred shim; describes the char-count fallback and the geometric-validity-only contract. `Dockerfile.linux-check` header comment updated. This Session 15 entry added. |
+
+Session-end verification: `swift test --filter LinuxPlatformGateTests` runs 14 tests in 3.7 s — all green on Apple (the new validity tests prove the CoreText branch continues to produce valid geometry; the Linux char-count branch is verified by `swift build` and will be validated end-to-end by the next `Scripts/linux-check.sh` container run). `Scripts/linux-check.sh` recorded as environment-skipped this session (no Docker daemon locally).
+
+The `--filter` substring trap: targeted runs by exact suite struct name (`LinuxPlatformGateTests`, `TreeViewModelTests`) are fast; broad substring filters (`--filter TreeView`) substring-match into `CorpusSnapshotTests` parameterized entries (`treeView-*`) and trip the pre-existing signal-10 hang. Saved to auto-memory.
+
+---
+
 ## Deferred Effort — Recommendations
 
 Some review items were intentionally deferred during the five-phase pass; others surfaced during execution and were scoped out to keep individual commits coherent. Listed in priority order.

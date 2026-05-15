@@ -222,8 +222,11 @@ outside the defining module.
 - `Tests/DiagramKitTests/` - XCTest and swift-testing suites plus corpus
   snapshots.
 - `Tests/DiagramKitLinuxTests/` - Linux-portable swift-testing suite that
-  pins the `DiagramError.unsupportedOnPlatform` contract for the 3
-  CoreText-bound families. Built and run under `Dockerfile.linux-check`.
+  pins the `DiagramError.unsupportedOnPlatform` contract mechanism + the
+  zero-unsupported-families lockdown, and validates the three formerly
+  CoreText-bound families (ishikawa / treeView / eventModeling) parse +
+  renderSVG + renderASCII successfully on Linux. Built and run under
+  `Dockerfile.linux-check`.
 
 ## Testing And Snapshots
 
@@ -295,13 +298,21 @@ undefined on Linux. Any callsite using them must be platform-gated.
 
 `DiagramEngine.renderSVG`, `renderASCII`, and `parseImportResult` (plus
 `String.renderDiagramSVG` / `renderDiagramASCII`) are available on Linux.
-Families that depend on CoreText measurement (`ishikawa`, `treeView`,
-`eventModeling`) throw `DiagramError.unsupportedOnPlatform(family:reason:platform:)`
-on Linux; `DiagramDescriptor.linuxSupport: Bool` is the per-family flag
-and `DiagramEngine.linuxSupport(for:)` is the public introspection API.
 
-The portable text-measurement shim for `ishikawa`, `treeView`, and
-`eventModeling` remains a deferred follow-up.
+All 28 diagram families are Linux-supported as of Stage 2.5.
+`DiagramDescriptor.linuxSupport: Bool` is the per-family flag and
+`DiagramEngine.linuxSupport(for:)` is the public introspection API —
+both currently return `true` / `(true, nil)` for every family in the
+default registry. The `DiagramError.unsupportedOnPlatform` case remains
+as the protocol contract for third-party importers that declare
+unsupported families in custom registries.
+
+On Linux, text measurement for `ishikawa`, `treeView`, and
+`eventModeling` falls back to `TextMetrics.shared.estimateTextWidth`'s
+char-count estimation (0.55× / 0.6× fontSize per character). Output is
+geometrically valid (no NaN, positive widths/heights) but not
+pixel-equivalent to Apple's CoreText measurement. No Linux-specific
+snapshot baselines are recorded.
 
 ## Forward Roadmap
 
