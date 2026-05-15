@@ -67,10 +67,17 @@ final class PlaygroundExampleCatalogTests: XCTestCase {
 
         XCTAssertEqual(catalogIDs, expectedGapsCategoryIDs)
 
+        // The v2 PlaygroundShell sidebar (SidebarView.swift) embeds the existing
+        // SampleDiagramPanel; the orderedCategories drive is now in the panel.
+        let panelURL = Self.projectRoot()
+            .appendingPathComponent("Examples/DiagramPlayground/Views/Toolbar/SampleDiagramPanel.swift")
+        let panelSource = try String(contentsOf: panelURL, encoding: .utf8)
+        XCTAssertTrue(panelSource.contains("ForEach(TestDiagrams.orderedCategories)"))
+
         let sidebarURL = Self.projectRoot()
             .appendingPathComponent("Examples/DiagramPlayground/Views/SidebarView.swift")
         let sidebarSource = try String(contentsOf: sidebarURL, encoding: .utf8)
-        XCTAssertTrue(sidebarSource.contains("ForEach(TestDiagrams.orderedCategories)"))
+        XCTAssertTrue(sidebarSource.contains("SampleDiagramPanel(store: store)"))
     }
 
     func testEmbeddedFallbackContainsEveryGapsDiagramFamily() throws {
