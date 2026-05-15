@@ -16,4 +16,13 @@ struct LinuxPlatformGateTests {
         )
         #expect(error.errorDescription == "ishikawa layout is not supported on Linux: requires CoreText text-measurement")
     }
+
+    // MARK: - DiagramDescriptor fields
+
+    @Test func descriptorDefaultsLinuxSupportToTrue() {
+        let descriptor = DiagramRegistry.all.first { $0.type == .flowchart }
+        #expect(descriptor != nil)
+        #expect(descriptor?.linuxSupport == true)
+        #expect(descriptor?.linuxUnsupportedReason == nil)
+    }
 }

@@ -102,16 +102,29 @@ public struct DiagramDescriptor: Sendable {
     /// Ishikawa overflow, gitgraph fallbacks, etc.).
     public let layout: @Sendable (DiagramDocument, LayoutConfig) throws -> (PositionedGraph, [DiagramDiagnostic])
 
+    /// Whether this family can be laid out and rendered on Linux. Defaults
+    /// to `true`. Set to `false` for families that depend on CoreText (or
+    /// other Apple-only) measurement until a portable shim lands.
+    public let linuxSupport: Bool
+
+    /// Human-readable reason surfaced in `DiagramError.unsupportedOnPlatform`
+    /// when `linuxSupport` is `false`. Nil for supported families.
+    public let linuxUnsupportedReason: String?
+
     public init(
         type: DiagramType,
         matches: @escaping @Sendable (DiagramHeader) -> Bool,
         parse: @escaping @Sendable (String, DiagramFrontmatter?) throws -> (DiagramDocument, [DiagramDiagnostic]),
-        layout: @escaping @Sendable (DiagramDocument, LayoutConfig) throws -> (PositionedGraph, [DiagramDiagnostic])
+        layout: @escaping @Sendable (DiagramDocument, LayoutConfig) throws -> (PositionedGraph, [DiagramDiagnostic]),
+        linuxSupport: Bool = true,
+        linuxUnsupportedReason: String? = nil
     ) {
         self.type = type
         self.matches = matches
         self.parse = parse
         self.layout = layout
+        self.linuxSupport = linuxSupport
+        self.linuxUnsupportedReason = linuxUnsupportedReason
     }
 }
 

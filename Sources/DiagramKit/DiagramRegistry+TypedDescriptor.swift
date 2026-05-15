@@ -27,7 +27,9 @@ extension DiagramRegistry {
         wrap: @escaping @Sendable (Parsed) -> DiagramPayload,
         unwrap: @escaping @Sendable (DiagramPayload) -> Parsed?,
         layout: @escaping @Sendable (Parsed, LayoutConfig) throws -> Positioned,
-        positioned: @escaping @Sendable (DiagramDocument, Positioned) -> PositionedGraph
+        positioned: @escaping @Sendable (DiagramDocument, Positioned) -> PositionedGraph,
+        linuxSupport: Bool = true,
+        linuxUnsupportedReason: String? = nil
     ) -> DiagramDescriptor {
         DiagramDescriptor(
             type: type,
@@ -41,7 +43,9 @@ extension DiagramRegistry {
                     throw DiagramStructuralError.payloadMismatch(type)
                 }
                 return (positioned(graph, try layout(parsed, config)), [])
-            }
+            },
+            linuxSupport: linuxSupport,
+            linuxUnsupportedReason: linuxUnsupportedReason
         )
     }
 
@@ -55,7 +59,9 @@ extension DiagramRegistry {
         wrap: @escaping @Sendable (Parsed) -> DiagramPayload,
         unwrap: @escaping @Sendable (DiagramPayload) -> Parsed?,
         layout: @escaping @Sendable (Parsed, LayoutConfig) throws -> Positioned,
-        positioned: @escaping @Sendable (DiagramDocument, Positioned) -> PositionedGraph
+        positioned: @escaping @Sendable (DiagramDocument, Positioned) -> PositionedGraph,
+        linuxSupport: Bool = true,
+        linuxUnsupportedReason: String? = nil
     ) -> DiagramDescriptor {
         DiagramDescriptor(
             type: type,
@@ -69,7 +75,9 @@ extension DiagramRegistry {
                     throw DiagramStructuralError.payloadMismatch(type)
                 }
                 return (positioned(graph, try layout(parsed, config)), [])
-            }
+            },
+            linuxSupport: linuxSupport,
+            linuxUnsupportedReason: linuxUnsupportedReason
         )
     }
 
@@ -84,7 +92,9 @@ extension DiagramRegistry {
         wrap: @escaping @Sendable (Parsed) -> DiagramPayload,
         unwrap: @escaping @Sendable (DiagramPayload) -> Parsed?,
         layoutWithDiagnostics: @escaping @Sendable (Parsed, LayoutConfig) throws -> (Positioned, [DiagramDiagnostic]),
-        positioned: @escaping @Sendable (DiagramDocument, Positioned) -> PositionedGraph
+        positioned: @escaping @Sendable (DiagramDocument, Positioned) -> PositionedGraph,
+        linuxSupport: Bool = true,
+        linuxUnsupportedReason: String? = nil
     ) -> DiagramDescriptor {
         DiagramDescriptor(
             type: type,
@@ -99,7 +109,9 @@ extension DiagramRegistry {
                 }
                 let (positionedValue, diagnostics) = try layoutWithDiagnostics(parsed, config)
                 return (positioned(graph, positionedValue), diagnostics)
-            }
+            },
+            linuxSupport: linuxSupport,
+            linuxUnsupportedReason: linuxUnsupportedReason
         )
     }
 
@@ -114,7 +126,9 @@ extension DiagramRegistry {
         wrap: @escaping @Sendable (Parsed) -> DiagramPayload,
         unwrap: @escaping @Sendable (DiagramPayload) -> Parsed?,
         layoutWithDiagnostics: @escaping @Sendable (Parsed, LayoutConfig) throws -> (Positioned, [DiagramDiagnostic]),
-        positioned: @escaping @Sendable (DiagramDocument, Positioned) -> PositionedGraph
+        positioned: @escaping @Sendable (DiagramDocument, Positioned) -> PositionedGraph,
+        linuxSupport: Bool = true,
+        linuxUnsupportedReason: String? = nil
     ) -> DiagramDescriptor {
         DiagramDescriptor(
             type: type,
@@ -129,7 +143,9 @@ extension DiagramRegistry {
                 }
                 let (positionedValue, diagnostics) = try layoutWithDiagnostics(parsed, config)
                 return (positioned(graph, positionedValue), diagnostics)
-            }
+            },
+            linuxSupport: linuxSupport,
+            linuxUnsupportedReason: linuxUnsupportedReason
         )
     }
 }
