@@ -418,6 +418,27 @@ struct DiagramEditorMutationTests {
         #expect(model.nodesInOrder.first?.node.label == "Node A")
     }
 
+    @Test("setLabel on state-diagram node updates label")
+    func setLabelStateDiagramNode() async throws {
+        let doc = stateDoc(["A", "B"])
+        let editor = DiagramEditor(
+            document: doc,
+            preferredExportFormat: .mermaid,
+            exportRegistry: mockRegistry()
+        )
+        let sel = DiagramSelection(diagramType: .stateDiagram, elementID: "node:A")
+        try await editor.perform(.setLabel(of: sel, to: "Renamed A"))
+
+        guard case .stateDiagram(let model) = editor.document.payload else {
+            #expect(Bool(false), "expected stateDiagram")
+            return
+        }
+        let nodeA = model.nodesInOrder.first { $0.id == "A" }
+        #expect(nodeA?.node.label == "Renamed A")
+        let nodeB = model.nodesInOrder.first { $0.id == "B" }
+        #expect(nodeB?.node.label == "Node B")
+    }
+
     // MARK: - setTitle
 
     @Test("setTitle updates title")
