@@ -140,4 +140,37 @@ struct LinuxPlatformGateTests {
         let result = try await DiagramEngine.parseImportResult(source: source)
         #expect(result.document.type == .ishikawa)
     }
+
+    // MARK: - Stage 2.5: Linux-supported families
+
+    @Test func ishikawaIsLinuxSupported() {
+        let descriptor = DiagramRegistry.all.first { $0.type == .ishikawa }
+        #expect(descriptor?.linuxSupport == true)
+        #expect(descriptor?.linuxUnsupportedReason == nil)
+    }
+
+    @Test func ishikawaRenderSVGSucceedsOnLinux() async throws {
+        let source = """
+        ishikawa
+        Problem
+            Cause A
+                Sub A1
+            Cause B
+        """
+        let svg = try await DiagramEngine.renderSVG(source: source)
+        #expect(svg.contains("<svg"))
+        #expect(svg.contains("</svg>"))
+        #expect(!svg.lowercased().contains("nan"))
+    }
+
+    @Test func ishikawaRenderASCIISucceedsOnLinux() async throws {
+        let source = """
+        ishikawa
+        Problem
+            Cause A
+            Cause B
+        """
+        let output = try await DiagramEngine.renderASCII(source: source)
+        #expect(!output.text.isEmpty)
+    }
 }

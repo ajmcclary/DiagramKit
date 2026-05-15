@@ -21,20 +21,10 @@ extension DiagramRegistry {
             return value
         },
         layoutWithDiagnostics: { diagram, _ in
-            #if canImport(CoreText)
             return layoutIshikawaDiagram(diagram)
-            #else
-            // Linux: layoutIshikawaDiagram requires CoreText for text-bounds
-            // measurement. Unreachable until the portable text-measurement
-            // shim lands (Stage 2.5 follow-up).
-            _ = diagram
-            throw DiagramStructuralError.payloadMismatch(.ishikawa)
-            #endif
         },
         positioned: { graph, positioned in
             PositionedGraph(diagram: graph, width: positioned.width, height: positioned.height, content: .ishikawa(positioned))
-        },
-        linuxSupport: false,
-        linuxUnsupportedReason: "requires CoreText text-measurement"
+        }
     )
 }
