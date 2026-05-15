@@ -194,7 +194,8 @@ let package = Package(
             exclude: [
                 "Info.plist",
                 "project.yml",
-                "Scripts"
+                "Scripts",
+                "UITests"
             ],
             resources: [
                 .process("Resources")
