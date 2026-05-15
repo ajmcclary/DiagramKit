@@ -49,6 +49,7 @@ struct DiagramEditorPane: View {
             .buttonStyle(.plain)
             // Cmd-I lives on the toolbar button (Task 24) — keep this button
             // shortcut-free to avoid duplicate shortcut warnings.
+            .a11y(label: "Close inspector", id: A11yID.Editor.titleClose)
         }
         .padding(12)
     }
@@ -112,6 +113,7 @@ struct DiagramEditorPane: View {
             Image(systemName: icon)
                 .font(.system(size: 24))
                 .foregroundColor(Color(store.theme.effectiveMuted()))
+                .accessibilityHidden(true)
             Text(message)
                 .font(.system(size: 12))
                 .multilineTextAlignment(.center)
@@ -142,10 +144,12 @@ private struct TitleSection: View {
                     Task { try? await store.performMutation(.setTitle(draft.isEmpty ? nil : draft)) }
                 }
                 .disabled(editor.isExporting)
+                .a11yIdentifier(A11yID.Editor.titleSet)
                 Button("Clear") {
                     Task { try? await store.performMutation(.setTitle(nil)) }
                 }
                 .disabled(editor.isExporting || editor.document.title == nil)
+                .a11yIdentifier(A11yID.Editor.titleClear)
             }
             Text("Currently: \(editor.document.title ?? "—")")
                 .font(.system(size: 10))
@@ -195,6 +199,7 @@ private struct SelectionSection: View {
                 }
                 .pickerStyle(.menu)
                 .labelsHidden()
+                .a11yIdentifier(A11yID.Editor.selectionPicker)
             } else {
                 Text("No selectable elements in this diagram.")
                     .font(.system(size: 11))
@@ -254,6 +259,7 @@ private struct LabelSection: View {
                     Task { try? await store.performMutation(.setLabel(of: selection, to: draft)) }
                 }
                 .disabled(editor.selection == nil || editor.isExporting)
+                .a11yIdentifier(A11yID.Editor.labelRename)
             }
         }
         .onChange(of: editor.selection) { _, _ in
@@ -313,11 +319,13 @@ private struct InsertNodeSection: View {
                 .pickerStyle(.menu)
                 .labelsHidden()
                 .frame(maxWidth: 140)
+                .a11yIdentifier(A11yID.Editor.insertNodeShapePicker)
                 Spacer(minLength: 0)
                 Button("Insert") {
                     insert()
                 }
                 .disabled(labelDraft.trimmingCharacters(in: .whitespaces).isEmpty || editor.isExporting)
+                .a11yIdentifier(A11yID.Editor.insertNodeButton)
             }
         }
     }
@@ -367,6 +375,7 @@ private struct InsertEdgeSection: View {
                 Image(systemName: "arrow.right")
                     .font(.system(size: 11))
                     .foregroundColor(Color(store.theme.effectiveMuted()))
+                    .accessibilityHidden(true)
                 toPicker
             }
             HStack(spacing: 6) {
@@ -381,6 +390,7 @@ private struct InsertEdgeSection: View {
                     insert()
                 }
                 .disabled(fromID == nil || toID == nil || editor.isExporting)
+                .a11yIdentifier(A11yID.Editor.insertEdgeButton)
             }
         }
         .onAppear { seedFromCurrentSelection() }
@@ -396,6 +406,7 @@ private struct InsertEdgeSection: View {
         }
         .pickerStyle(.menu)
         .labelsHidden()
+        .a11yIdentifier(A11yID.Editor.insertEdgeFromPicker)
     }
 
     private var toPicker: some View {
@@ -407,6 +418,7 @@ private struct InsertEdgeSection: View {
         }
         .pickerStyle(.menu)
         .labelsHidden()
+        .a11yIdentifier(A11yID.Editor.insertEdgeToPicker)
     }
 
     private func nodeIDs() -> [String] {
@@ -468,6 +480,7 @@ private struct DeleteSection: View {
                 Task { try? await store.performMutation(.deleteElement(selection)) }
             }
             .disabled(editor.selection == nil || editor.isExporting)
+            .a11yIdentifier(A11yID.Editor.deleteSelected)
             Spacer(minLength: 0)
         }
     }
@@ -488,6 +501,12 @@ private struct UndoRedoFooter: View {
                 Label("Undo", systemImage: "arrow.uturn.backward")
             }
             .disabled(!(store.editor?.canUndo ?? false))
+            .a11yToggle(
+                label: "Undo",
+                isOn: store.editor?.canUndo ?? false,
+                hint: LocalizedStringKey(store.editor?.undoActionName ?? ""),
+                id: A11yID.Editor.undo
+            )
 
             Button {
                 store.redoStructural()
@@ -495,6 +514,12 @@ private struct UndoRedoFooter: View {
                 Label("Redo", systemImage: "arrow.uturn.forward")
             }
             .disabled(!(store.editor?.canRedo ?? false))
+            .a11yToggle(
+                label: "Redo",
+                isOn: store.editor?.canRedo ?? false,
+                hint: LocalizedStringKey(store.editor?.redoActionName ?? ""),
+                id: A11yID.Editor.redo
+            )
 
             Spacer(minLength: 0)
 
@@ -521,6 +546,7 @@ private struct CorpusMetadataBanner: View {
                     Image(systemName: "minus.circle")
                         .font(.system(size: 11))
                         .foregroundColor(Color(store.theme.effectiveMuted()))
+                        .accessibilityHidden(true)
                     Text(note)
                         .font(.system(size: 11))
                         .foregroundColor(Color(store.theme.effectiveMuted()))
@@ -532,6 +558,7 @@ private struct CorpusMetadataBanner: View {
                     Image(systemName: "exclamationmark.bubble")
                         .font(.system(size: 11))
                         .foregroundColor(Color(store.theme.effectiveAccent()))
+                        .accessibilityHidden(true)
                     VStack(alignment: .leading, spacing: 2) {
                         Text("Expected diagnostics from corpus (\(diagnostics.count)):")
                             .font(.system(size: 11, weight: .medium))

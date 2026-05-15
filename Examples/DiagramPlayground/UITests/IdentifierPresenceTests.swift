@@ -38,6 +38,35 @@ final class IdentifierPresenceTests: XCTestCase {
         }
     }
 
+    // MARK: - DiagramEditorPane
+
+    @MainActor
+    func testEditorPane_allIdentifiersPresent() {
+        let app = launchPlayground(initialState: .editingFlow1)
+        let ids = [
+            "editor.title.set",
+            "editor.title.clear",
+            "editor.title.close",
+            "editor.selection.picker",
+            "editor.label.rename",
+            "editor.insertNode.button",
+            "editor.insertNode.shape",
+            "editor.insertEdge.button",
+            "editor.insertEdge.from",
+            "editor.insertEdge.to",
+            "editor.delete.selected",
+            "editor.undo",
+            "editor.redo",
+        ]
+        for id in ids {
+            let candidate = app.descendants(matching: .any).matching(identifier: id).firstMatch
+            XCTAssertTrue(
+                candidate.waitForExistence(timeout: 3),
+                "Expected editor-pane control with identifier '\(id)' to exist"
+            )
+        }
+    }
+
     // MARK: - PreviewCanvas
 
     @MainActor
