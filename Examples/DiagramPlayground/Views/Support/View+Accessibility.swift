@@ -68,6 +68,36 @@ public enum A11yID {
         public static let themePickerDone = "panel.themePicker.done"
         public static let viewOptionsDone = "panel.viewOptions.done"
     }
+
+    // MARK: - v2 PlaygroundShell
+
+    public enum Titlebar {
+        public static let modeCode = "titlebar.mode.code"
+        public static let modeVisual = "titlebar.mode.visual"
+        public static let modeSplit = "titlebar.mode.split"
+        public static let render = "titlebar.render"
+        public static let export = "titlebar.export"
+    }
+
+    public enum Sidebar {
+        public static let search = "sidebar.search"
+        public static func formatChip(_ format: String) -> String {
+            "sidebar.formatChip.\(format)"
+        }
+    }
+
+    public enum Inspector {
+        public static let documentSection = "inspector.section.document"
+        public static let renderBackendSection = "inspector.section.renderBackend"
+        public static let themeSection = "inspector.section.theme"
+        public static let diagnosticsSection = "inspector.section.diagnostics"
+        public static let historySection = "inspector.section.history"
+        public static let citationsToggle = "inspector.citationsToggle"
+    }
+
+    public enum Statusbar {
+        public static let backend = "statusbar.backend"
+    }
 }
 
 // MARK: - View modifiers
