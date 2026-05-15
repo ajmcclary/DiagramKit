@@ -48,6 +48,9 @@ SNAPSHOT_TESTING_RECORD=all SNAPSHOT_DIAGRAM_IDS=block-1-simple,block-2-columns 
 
 # After editing Package.swift:
 swift package resolve
+
+# Playground accessibility audit (opt-in, requires Xcode + xcodegen):
+Scripts/playground-a11y-check.sh
 ```
 
 There is no separate lint/format command. Verification is `swift test` plus the
@@ -227,10 +230,18 @@ outside the defining module.
   CoreText-bound families (ishikawa / treeView / eventModeling) parse +
   renderSVG + renderASCII successfully on Linux. Built and run under
   `Dockerfile.linux-check`.
+- `Examples/DiagramPlayground/UITests/` - macOS-only XCUI test bundle
+  (`DiagramPlaygroundUITests`). `SmokeTests` proves the harness boots;
+  `IdentifierPresenceTests` pins `A11yID` constants to real controls;
+  `AccessibilityAuditTests` drives `performAccessibilityAudit()` across
+  five screen states. Invoked via `Scripts/playground-a11y-check.sh`.
+  `XCTestCase+PlaygroundLaunch` exposes `launchPlayground(initialState:)`,
+  which seeds initial state via `-uitest-state <id>` (read at startup
+  by `DiagramPlaygroundApp.init()` under `#if DEBUG`).
 
 ## Testing And Snapshots
 
-- Current test source count: 260 Swift files (258 under `Tests/DiagramKitTests`, 2 under `Tests/DiagramKitLinuxTests`).
+- Current test source count: 264 Swift files (258 under `Tests/DiagramKitTests`, 2 under `Tests/DiagramKitLinuxTests`, 4 under `Examples/DiagramPlayground/UITests`).
 - The corpus is `Examples/DiagramPlayground/Resources/test-diagrams.json` with
   422 entries (396 Mermaid-only + 26 multi-format: D2, DOT, Structurizr, PlantUML).
 - Corpus baselines under `Tests/DiagramKitTests/__Snapshots__/` track
@@ -278,9 +289,14 @@ no keyword matching.
   under Swift 6.
 - `Scripts/linux-check.sh` - Docker/Podman build of the Linux-portable target
   matrix on `swift:6.3.1-noble`.
+- `Scripts/playground-a11y-check.sh` - opt-in XCUI accessibility audit of the
+  DiagramPlayground demo app via `xcodebuild test`. Not part of
+  `bootstrap-smoke-check.sh`; same environment-dependent / slow policy as
+  `linux-check.sh`. Requires Xcode 15+ and `xcodegen`.
 
 If Docker/Podman is not running locally, record `linux-check.sh` as skipped due
-to environment. Do not treat that as a source failure.
+to environment. Do not treat that as a source failure. Same convention applies
+to `playground-a11y-check.sh` when Xcode is unavailable.
 
 `Package.swift` applies `strictConcurrencySettings` using the `StrictConcurrency`
 upcoming feature. `InferSendableFromCaptures` is intentionally omitted because it

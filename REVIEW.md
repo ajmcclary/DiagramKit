@@ -326,6 +326,38 @@ The `--filter` substring trap: targeted runs by exact suite struct name (`LinuxP
 
 ---
 
+## Resolution Status — Session 16 (2026-05-15)
+
+Closes the §5 Minor / polish bullet: "Accessibility labels missing across `DiagramEditorPane` insert/delete/undo controls — for a demo app, this is a missed showcase." Spec at `docs/superpowers/specs/2026-05-15-playground-accessibility-pass-design.md` (`479e321`); plan at `docs/superpowers/plans/2026-05-15-playground-accessibility-pass.md` (`b9bc59a`). Fourteen commits on `main` (two docs + twelve implementation).
+
+| # | Item | Commit | What landed |
+|---|---|---|---|
+| 1 | Spec | `479e321` | DiagramPlayground accessibility pass design — hybrid labeling idiom, XCUI audit gate, opt-in CI lane. |
+| 2 | Plan | `b9bc59a` | Thirteen-task implementation plan. |
+| 3 | T1 — a11y helper + namespace | `531dce6` | New `View+Accessibility.swift` with typed `a11y` / `a11yToggle` / `a11yIdentifier` modifiers plus `A11yID` namespace. |
+| 4 | T2 — UITests target + skeletons | `a076355` | `project.yml` declares `DiagramPlaygroundUITests` (xcodegen, macOS host). Skeleton sources land upfront so the single end-of-pass xcodegen regen captures them all. |
+| 5 | Package.swift exclude | `21c6db3` | SPM `DiagramPlayground` executable target excludes `UITests/` so the directory belongs to the xcodegen target only. |
+| 6 | T3 — Launch-arg seeding | `4944354` | `DiagramPlaygroundApp.init()` reads `-uitest-state <id>` under `#if DEBUG`. State IDs: `empty`, `editing-flow-1` (no inspector), `editing-flow-1-inspector`, `selection-flow-1`, `error-garbage`, `theme-open`. `LiveEditorStore.openInspector()` added. |
+| 7 | T5 — PreviewToolbar | `31c9f59` | 7 controls: fit / zoom-out / zoom-in / actual-size / pan-zoom toggle / grid toggle / full-window. |
+| 8 | T6 — LiveEditorToolbar | `e0fefe7` | macOS + iOS arms: Theme / View / Actions / Info / Inspector / Render / UpdateMode, plus 4 sheet-Done buttons. |
+| 9 | T7 — Small pickers | `8fd19bd` | EditorModePicker / SourceFormatPicker / ThemePicker; decorative checkmark / chevron / paintpalette glyphs hidden. |
+| 10 | T8 — Side panels | `09e4f98` | Sample search field + clear; VersionSecurityPanel + ActionsPanel Done buttons + decorative glyph hides. |
+| 11 | T9 — PreviewCanvas | `6f8e054` | Preview mode picker labeled + per-segment `.isSelected` trait; warning / empty-state / error decorative glyphs hidden. |
+| 12 | T10 — DiagramEditorPane | `dfd92df` | Title / Selection / Label / InsertNode / InsertEdge / Delete / Undo / Redo. Undo/Redo use `a11yToggle` with dynamic action-name in `accessibilityHint`. |
+| 13 | T11 — Audit + identifier tests | `4c30080` | `AccessibilityAuditTests` covers five screen states via `performAccessibilityAudit()`; `IdentifierPresenceTests` pins `A11yID` constants. Documents two issues surfaced during verification (see below). |
+| 14 | T12 — Audit script | `fec9c5d` | `Scripts/playground-a11y-check.sh` wraps the xcodegen + xcodebuild flow. Tests enumerated explicitly by class/method as a workaround for an Xcode 26.4 quirk. |
+| 15 | T13 — Docs sync | _this commit_ | CLAUDE.md test count 260 → 264; Commands section gains the script; Discipline Gates section documents the opt-in lane; What Lives Where gains the UITests entry. This REVIEW Session 16 entry. |
+
+**Issues surfaced during verification (deferred):**
+
+1. **Inspector layout bug (product issue).** With the inspector open, the playground's right-side inspector panel covers the preview surface entirely instead of sitting alongside it. Preview-related controls (`preview.fit`, `preview.mode`, etc.) are not visible while the inspector is open. The UI tests work around this by loading the diagram with the inspector closed for preview tests (`editingFlow1`) and opening it only for editor-pane tests (`editingFlow1Inspector`), but the underlying layout regression needs a separate fix in `LiveEditorView` / inspector docking. Spotted by the user during T11 verification.
+
+2. **Xcode 26.4 / xcodebuild quirk.** Class-level `-only-testing:<class>` filters reproducibly fail with `The bundle identifier for DiagramPlayground couldn't be read. No such file or directory: ".../Debug/DiagramPlayground"` (note the missing `.app` extension). The error fires during pre-test setup, before any test runs. Single test-method runs (`-only-testing:<class>/<method>`) work. Setting `TEST_HOST` explicitly conflicts with `USES_XCTRUNNER` (`bundle.ui-testing` type). Documented workaround in `Scripts/playground-a11y-check.sh`: enumerate every test by `<class>/<method>`. Tracking deeper investigation as a follow-up.
+
+Session-end verification: `swift build --target DiagramPlayground` ✓ green; `Scripts/check-sendable-annotations.sh` ✓ green; `Scripts/check-file-sizes.sh` reports only pre-existing yellow warnings. The new `View+Accessibility.swift` is 111 lines; per-view edits add 5–15 lines each (no new threshold crossings). Smoke test + a subset of identifier-presence tests pass individually; the script's explicit enumeration is the recommended invocation.
+
+---
+
 ## Deferred Effort — Recommendations
 
 Some review items were intentionally deferred during the five-phase pass; others surfaced during execution and were scoped out to keep individual commits coherent. Listed in priority order.
