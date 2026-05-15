@@ -1,14 +1,17 @@
-// Apple-only — depends on BMColor/BMFont (UIKit/AppKit). Gated by `#if canImport(UIKit) || canImport(AppKit)`.
-#if canImport(UIKit) || canImport(AppKit)
 import Foundation
+import DiagramKitCommon
+#if canImport(CoreGraphics)
 import CoreGraphics
+#endif
+#if canImport(CoreText)
 import CoreText
-#if targetEnvironment(macCatalyst)
-import UIKit
-#elseif canImport(UIKit)
+#endif
+#if canImport(UIKit) || canImport(AppKit)
+#if targetEnvironment(macCatalyst) || canImport(UIKit)
 import UIKit
 #elseif canImport(AppKit)
 import AppKit
+#endif
 #endif
 
 public let ICON_SIZE: Double = 14
@@ -27,10 +30,17 @@ public func layoutTreeViewDiagram(_ diagram: TreeViewDiagram) -> PositionedTreeV
     var nodeStack: [(node: TreeViewNode, depth: Int)] = []
 
     func measureText(_ text: String, fontSize: Double) -> (width: Double, height: Double) {
+#if canImport(CoreText)
         let font = _treeViewFont(size: CGFloat(fontSize))
         let attributes: [NSAttributedString.Key: Any] = [.font: font]
         let size = (text as NSString).size(withAttributes: attributes)
         return (Double(size.width), Double(size.height))
+#else
+        let width = Double(TextMetrics.shared.estimateTextWidth(
+            text, fontSize: CGFloat(fontSize), fontWeight: 400))
+        let height = fontSize * 1.2
+        return (width, height)
+#endif
     }
 
     func layoutNode(_ node: TreeViewNode, depth: Int) {
@@ -181,6 +191,7 @@ private func _parseLabelFontSize(_ value: String) -> Double {
     return Double(cleaned) ?? 16
 }
 
+#if canImport(UIKit) || canImport(AppKit)
 /// Resolve the label font through `DiagramFontResolver.shared` so layout
 /// and the CG renderer (`DiagramRenderer+TreeView`) measure text with
 /// the same font family. Previously this called `BMFont.systemFont(...)`
