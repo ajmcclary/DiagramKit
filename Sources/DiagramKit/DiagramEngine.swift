@@ -126,7 +126,6 @@ public struct DiagramEngine {
     }
     #endif
 
-    #if canImport(CoreGraphics)
     /// Render a Mermaid diagram to an SVG string.
     public static func renderSVG(
         source: String,
@@ -134,7 +133,9 @@ public struct DiagramEngine {
         layoutConfig: LayoutConfig = LayoutConfig(),
         idPolicy: SVGIDPolicy = .unique
     ) async throws -> String {
+        #if canImport(CoreGraphics)
         _ = _DiagramPreparerBootstrap.didInstall
+        #endif
         return try await _runOnWorker {
             try DiagramPipeline.renderSVG(
                 source: source,
@@ -152,7 +153,9 @@ public struct DiagramEngine {
         source: String,
         theme: DiagramTheme = .default
     ) async throws -> AsciiRenderOutput {
+        #if canImport(CoreGraphics)
         _ = _DiagramPreparerBootstrap.didInstall
+        #endif
         return try await _runOnWorker {
             try DiagramPipeline.renderASCII(source: source, theme: theme)
         }
@@ -165,12 +168,13 @@ public struct DiagramEngine {
         source: String,
         registry: ImporterRegistry = DiagramPipeline.defaultRegistry
     ) async throws -> DiagramImportResult {
+        #if canImport(CoreGraphics)
         _ = _DiagramPreparerBootstrap.didInstall
+        #endif
         return try await _runOnWorker {
             try DiagramLoader.parseImportResult(source, registry: registry)
         }
     }
-    #endif
 
     /// Forwarding shim onto `DiagramWorkerThread.run` (defined in
     /// `DiagramKitRenderingCG`). The canonical worker now lives in the
@@ -219,7 +223,6 @@ extension String {
     }
     #endif
 
-    #if canImport(CoreGraphics)
     public func renderDiagramSVG(
         theme: DiagramTheme = .default,
         layoutConfig: LayoutConfig = LayoutConfig()
@@ -236,5 +239,4 @@ extension String {
     ) async throws -> String {
         try await DiagramEngine.renderASCII(source: self, theme: theme).text
     }
-    #endif
 }

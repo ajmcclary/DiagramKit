@@ -104,4 +104,40 @@ struct LinuxPlatformGateTests {
         }
         #endif
     }
+
+    // MARK: - End-to-end via DiagramEngine
+
+    @Test func engineRenderSVGGatesIshikawaOnLinux() async throws {
+        let source = "ishikawa\nProblem\nCause A\nCause B"
+        #if os(Linux)
+        do {
+            _ = try await DiagramEngine.renderSVG(source: source)
+            Issue.record("expected DiagramEngine.renderSVG(source:) to throw on Linux for ishikawa")
+        } catch let error as DiagramError {
+            if case let .unsupportedOnPlatform(family, _, platform) = error {
+                #expect(family == .ishikawa)
+                #expect(platform == "Linux")
+            } else {
+                Issue.record("expected .unsupportedOnPlatform, got \(error)")
+            }
+        }
+        #else
+        do {
+            _ = try await DiagramEngine.renderSVG(source: source)
+        } catch let error as DiagramError {
+            if case .unsupportedOnPlatform = error {
+                Issue.record("did not expect .unsupportedOnPlatform on non-Linux")
+            }
+        } catch {
+            // Other failures are fine.
+        }
+        #endif
+    }
+
+    @Test func parseImportResultDoesNotGateOnLinux() async throws {
+        let source = "ishikawa\nProblem\nCause A\nCause B"
+        // Parsing succeeds on every platform — only layout/render is gated.
+        let result = try await DiagramEngine.parseImportResult(source: source)
+        #expect(result.document.type == .ishikawa)
+    }
 }
