@@ -224,7 +224,7 @@ outside the defining module.
 
 ## Testing And Snapshots
 
-- Current test source count: 254 Swift files under `Tests/DiagramKitTests`.
+- Current test source count: 258 Swift files under `Tests/DiagramKitTests`.
 - The corpus is `Examples/DiagramPlayground/Resources/test-diagrams.json` with
   422 entries (396 Mermaid-only + 26 multi-format: D2, DOT, Structurizr, PlantUML).
 - Corpus baselines under `Tests/DiagramKitTests/__Snapshots__/` track
@@ -247,6 +247,16 @@ admits no `case other(_)`, and every observed loss must have a paired
 `.warning`/`.unsupported` diagnostic on the export step that produced it.
 Fixtures live under `Tests/DiagramKitTests/RoundTrip/Resources/roundtrip/`.
 Run with `swift test --filter "RoundTrip"`.
+
+**Diagnostic discipline.** Emission sites use the typed
+`DiagramDiagnostic.lossyTransform(.<category>, ...)` /
+`.featureDropped(.<category>, ...)` / `.informational(.<category>, ...)`
+factories; raw `DiagramDiagnostic(severity:message:)` is deprecated.
+Decision tree, category table, silent-drop policy, and throw boundary
+live in [docs/diagnostic-severity-discipline.md](docs/diagnostic-severity-discipline.md).
+Enforced by `Scripts/check-diagnostic-discipline.sh`. The harness pairs
+`RoundTripLoss` to diagnostics by typed `DiagnosticCategory` equality —
+no keyword matching.
 
 ## Discipline Gates
 

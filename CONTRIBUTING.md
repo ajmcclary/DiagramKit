@@ -92,6 +92,7 @@ When porting a new mermaid diagram family from upstream `mermaid-js`:
 7. **Frontmatter binding** — `Sources/DiagramKitModel/FrontmatterBinding+<Type>.swift`. Defines how YAML frontmatter and `%%{init: …}%%` directives map to the per-diagram `RenderConfig` slice.
 8. **Corpus fixtures** — add 2–4 representative diagrams to `Examples/DiagramPlayground/Resources/test-diagrams.json` and re-run `PlaygroundExampleCatalogTests`.
 9. **Snapshot baselines** — `SNAPSHOT_TESTING_RECORD=true swift test --filter "CorpusSnapshotTests/.*<type>-"` to generate SVG / image / ASCII baselines. Inspect each visually before committing.
+10. **Diagnostics** — emit via the typed factories (`DiagramDiagnostic.lossyTransform` / `.featureDropped` / `.informational`); pick a `DiagnosticCategory` per the decision tree in [docs/diagnostic-severity-discipline.md](docs/diagnostic-severity-discipline.md). Silent drops require a `// SILENT-DROP(...)` marker with a `Pinned by:` line.
 
 ## Snapshot tests
 

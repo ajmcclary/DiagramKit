@@ -99,6 +99,8 @@ Per-diagram-type parsers receive a typed `frontmatter` argument and pull config 
 
 Round-trip discipline (`DiagramKitTestSupport.RoundTripHarness`) cross-references this diagnostic surface: an exporter that introduces a structural loss without emitting a paired `.warning` or `.unsupported` diagnostic fails the round-trip gate. See `docs/superpowers/specs/2026-05-15-roundtrip-exporter-tests-design.md`.
 
+Emission sites use the typed `DiagramDiagnostic.lossyTransform(.<category>, ...)` / `.featureDropped(.<category>, ...)` / `.informational(.<category>, ...)` factories; raw `DiagramDiagnostic(severity:message:)` is deprecated. The harness pairs `RoundTripLoss` to diagnostics by typed `DiagnosticCategory` equality. See [docs/diagnostic-severity-discipline.md](docs/diagnostic-severity-discipline.md) for the per-severity contract and category catalog, enforced by `Scripts/check-diagnostic-discipline.sh`.
+
 ## The worker-thread invariant
 
 `DiagramEngine` ([Sources/DiagramKit/DiagramEngine.swift](Sources/DiagramKit/DiagramEngine.swift)) is the public façade. Every `async throws` entry point dispatches its work onto a fresh **8 MB-stack `Thread`** via `_runOnWorker`.
