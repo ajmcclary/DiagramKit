@@ -147,17 +147,15 @@ extension DiagramEditor {
         of selection: DiagramSelection, to label: String, in document: DiagramDocument
     ) throws -> DiagramDocument {
         try _validateSelection(selection, matches: document)
-
         var doc = document
         let id = selection.elementID
-        switch doc.payload {
-        case .flowchart(var model):
+        try _withFlowGraphPayload(in: &doc, mutation: "setLabel") { graph in
             if id.hasPrefix("node:") {
                 let nodeID = String(id.dropFirst(5))
-                guard model.nodesInOrder.contains(where: { $0.id == nodeID }) else {
+                guard graph.nodesInOrder.contains(where: { $0.id == nodeID }) else {
                     throw DiagramEditorError.elementNotFound(id: nodeID, kind: "node")
                 }
-                model.nodesInOrder = model.nodesInOrder.map { entry in
+                graph.nodesInOrder = graph.nodesInOrder.map { entry in
                     if entry.id == nodeID {
                         var node = entry.node
                         node.label = label
@@ -166,48 +164,15 @@ extension DiagramEditor {
                     return entry
                 }
             } else if id.hasPrefix("edge:") {
-                let matched = _findEdge(in: model, selectionElementID: id)
-                guard let index = matched else {
+                guard let index = _findEdge(in: graph, selectionElementID: id) else {
                     throw DiagramEditorError.elementNotFound(
                         id: String(id.dropFirst(5)), kind: "edge"
                     )
                 }
-                model.edges[index].label = label
+                graph.edges[index].label = label
             } else {
                 throw DiagramEditorError.unknownElementKind(id: id)
             }
-            doc.payload = .flowchart(model)
-        case .stateDiagram(var model):
-            if id.hasPrefix("node:") {
-                let nodeID = String(id.dropFirst(5))
-                guard model.nodesInOrder.contains(where: { $0.id == nodeID }) else {
-                    throw DiagramEditorError.elementNotFound(id: nodeID, kind: "node")
-                }
-                model.nodesInOrder = model.nodesInOrder.map { entry in
-                    if entry.id == nodeID {
-                        var node = entry.node
-                        node.label = label
-                        return (id: entry.id, node: node)
-                    }
-                    return entry
-                }
-            } else if id.hasPrefix("edge:") {
-                let matched = _findEdge(in: model, selectionElementID: id)
-                guard let index = matched else {
-                    throw DiagramEditorError.elementNotFound(
-                        id: String(id.dropFirst(5)), kind: "edge"
-                    )
-                }
-                model.edges[index].label = label
-            } else {
-                throw DiagramEditorError.unknownElementKind(id: id)
-            }
-            doc.payload = .stateDiagram(model)
-        default:
-            throw DiagramEditorError.unsupportedMutation(
-                mutation: "setLabel",
-                diagramType: String(describing: doc.type)
-            )
         }
         return doc
     }
