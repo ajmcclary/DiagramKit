@@ -1,0 +1,5 @@
+# Diagnostic discipline allowlist. Format: <file>:<line>
+# Each entry permits a raw DiagramDiagnostic(severity:) construction at that
+# exact location. Use only for documented escape-hatch cases (third-party
+# test utility echoing, fixture builders, etc.). Production code targets zero
+# entries.

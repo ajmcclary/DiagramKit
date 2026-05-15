@@ -76,6 +76,8 @@ run_gate "swift test (corpus multi-format image)" \
 run_gate "check-file-sizes.sh" "$ROOT/Scripts/check-file-sizes.sh"
 run_gate "strict-concurrency-check.sh" "$ROOT/Scripts/strict-concurrency-check.sh"
 run_gate "check-sendable-annotations.sh" "$ROOT/Scripts/check-sendable-annotations.sh"
+run_gate "check-diagnostic-discipline.sh" "$ROOT/Scripts/check-diagnostic-discipline.sh"
+run_gate "check-diagnostic-discipline-tests/run.sh" "$ROOT/Scripts/check-diagnostic-discipline-tests/run.sh"
 run_gate "check-stale-phase-comments.sh" "$ROOT/Scripts/check-stale-phase-comments.sh"
 run_gate "linux-check.sh" "$ROOT/Scripts/linux-check.sh"
 
