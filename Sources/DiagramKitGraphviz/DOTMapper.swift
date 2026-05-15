@@ -75,8 +75,8 @@ public struct DOTMapper {
 
         // Emit strict diagnostic
         if document.strict {
-            context.diagnostics.append(DiagramDiagnostic(
-                severity: .unsupported,
+            context.diagnostics.append(.featureDropped(
+                .slotUnsupported,
                 message: "strict mode not yet supported; duplicate edges preserved",
                 location: nil
             ))
@@ -120,8 +120,8 @@ public struct DOTMapper {
                     emitUnsupportedNodeDefaults(attrStmt.attributes, context: &context)
                 case .edge:
                     context.defaultEdgeAttrs = attrStmt.attributes
-                    context.diagnostics.append(DiagramDiagnostic(
-                        severity: .unsupported,
+                    context.diagnostics.append(.featureDropped(
+                        .slotUnsupported,
                         message: "default edge attributes not yet supported",
                         location: nil
                     ))
@@ -185,8 +185,8 @@ public struct DOTMapper {
         // diagnostic; render the node with its identifier as the label so
         // the diagram is still usable.
         if _isHTMLLabel(label) {
-            context.diagnostics.append(DiagramDiagnostic(
-                severity: .unsupported,
+            context.diagnostics.append(.featureDropped(
+                .slotUnsupported,
                 message: "HTML-like label on node '\(id)' is not yet supported; falling back to the node identifier as the rendered label",
                 location: nil
             ))
@@ -197,8 +197,8 @@ public struct DOTMapper {
         if var existing = context.nodesById[id] {
             if let explicitLabel = attributeValue("label", in: explicitAttributes) {
                 if context.explicitNodeLabels.contains(id), explicitLabel != existing.label {
-                    context.diagnostics.append(DiagramDiagnostic(
-                        severity: .unsupported,
+                    context.diagnostics.append(.featureDropped(
+                        .slotUnsupported,
                         message: "Duplicate node '\(id)' with different label; keeping first label '\(existing.label)'",
                         location: nil
                     ))
@@ -211,8 +211,8 @@ public struct DOTMapper {
             if let explicitShapeAttr = explicitAttributes.first(where: { $0.key.lowercased() == "shape" }) {
                 let explicitShape = mapNodeShape(attributes: [explicitShapeAttr], context: &context)
                 if context.explicitNodeShapes.contains(id), explicitShape != existing.shape {
-                    context.diagnostics.append(DiagramDiagnostic(
-                        severity: .unsupported,
+                    context.diagnostics.append(.featureDropped(
+                        .slotUnsupported,
                         message: "Duplicate node '\(id)' with different shape; keeping first shape",
                         location: nil
                     ))
@@ -331,15 +331,15 @@ public struct DOTMapper {
         case "doublecircle": return .doublecircle
         case "plaintext", "none": return .text
         case "record", "mrecord":
-            context.diagnostics.append(DiagramDiagnostic(
-                severity: .unsupported,
+            context.diagnostics.append(.featureDropped(
+                .slotUnsupported,
                 message: "Graphviz '\(shape)' shape is not yet supported; rendered as rectangle",
                 location: nil
             ))
             return .rectangle
         default:
-            context.diagnostics.append(DiagramDiagnostic(
-                severity: .unsupported,
+            context.diagnostics.append(.featureDropped(
+                .slotUnsupported,
                 message: "\(shapeAttr.value) shape not yet supported; rendered as rectangle",
                 location: nil
             ))

@@ -27,8 +27,8 @@ public struct D2Exporter: DiagramExporter {
             return DiagramExportResult(
                 source: "",
                 diagnostics: [
-                    DiagramDiagnostic(
-                        severity: .unsupported,
+                    .featureDropped(
+                        .diagramFamilyUnsupported,
                         message: "D2 export for '\(document.type.rawValue)' is not supported"
                     )
                 ]

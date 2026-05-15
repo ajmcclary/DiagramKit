@@ -57,8 +57,8 @@ public struct D2Mapper {
                 if let mapped = mapD2Shape(d2Shape) {
                     node.shape = mapped
                 } else {
-                    diagnostics.append(DiagramDiagnostic(
-                        severity: .unsupported,
+                    diagnostics.append(.featureDropped(
+                        .slotUnsupported,
                         message: "\(d2Shape) shape not yet supported",
                         location: nil
                     ))
@@ -79,31 +79,31 @@ public struct D2Mapper {
 
             if wasDuplicate {
                 if node.label != oldLabel {
-                    diagnostics.append(DiagramDiagnostic(
-                        severity: .warning,
+                    diagnostics.append(.lossyTransform(
+                        .d2DuplicateOverride,
                         message: "Duplicate node '\(nodeDef.id)': label '\(oldLabel)' overwritten by '\(node.label)'",
                         location: nil
                     ))
                 }
                 if node.shape != oldShape {
-                    diagnostics.append(DiagramDiagnostic(
-                        severity: .warning,
+                    diagnostics.append(.lossyTransform(
+                        .d2DuplicateOverride,
                         message: "Duplicate node '\(nodeDef.id)': shape \(oldShape) overwritten by \(node.shape)",
                         location: nil
                     ))
                 }
                 if let newWidth = node.properties?.w, newWidth != oldWidth {
                     let oldDesc = oldWidth.map { String($0) } ?? "nil"
-                    diagnostics.append(DiagramDiagnostic(
-                        severity: .warning,
+                    diagnostics.append(.lossyTransform(
+                        .d2DuplicateOverride,
                         message: "Duplicate node '\(nodeDef.id)': width \(oldDesc) overwritten by \(newWidth)",
                         location: nil
                     ))
                 }
                 if let newHeight = node.properties?.h, newHeight != oldHeight {
                     let oldDesc = oldHeight.map { String($0) } ?? "nil"
-                    diagnostics.append(DiagramDiagnostic(
-                        severity: .warning,
+                    diagnostics.append(.lossyTransform(
+                        .d2DuplicateOverride,
                         message: "Duplicate node '\(nodeDef.id)': height \(oldDesc) overwritten by \(newHeight)",
                         location: nil
                     ))
@@ -111,29 +111,29 @@ public struct D2Mapper {
             }
 
             if nodeDef.direction != nil {
-                diagnostics.append(DiagramDiagnostic(
-                    severity: .unsupported,
+                diagnostics.append(.featureDropped(
+                    .slotUnsupported,
                     message: "node '\(nodeDef.id)' direction not yet supported",
                     location: nil
                 ))
             }
             if nodeDef.icon != nil {
-                diagnostics.append(DiagramDiagnostic(
-                    severity: .unsupported,
+                diagnostics.append(.featureDropped(
+                    .slotUnsupported,
                     message: "node '\(nodeDef.id)' icon not yet supported",
                     location: nil
                 ))
             }
             if nodeDef.tooltip != nil {
-                diagnostics.append(DiagramDiagnostic(
-                    severity: .unsupported,
+                diagnostics.append(.featureDropped(
+                    .slotUnsupported,
                     message: "node '\(nodeDef.id)' tooltip not yet supported",
                     location: nil
                 ))
             }
             if nodeDef.link != nil {
-                diagnostics.append(DiagramDiagnostic(
-                    severity: .unsupported,
+                diagnostics.append(.featureDropped(
+                    .slotUnsupported,
                     message: "node '\(nodeDef.id)' link not yet supported",
                     location: nil
                 ))

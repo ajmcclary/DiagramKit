@@ -29,8 +29,8 @@ public enum DiagramExportLoader {
             return DiagramExportResult(
                 source: "",
                 diagnostics: [
-                    DiagramDiagnostic(
-                        severity: .unsupported,
+                    .featureDropped(
+                        .diagramFamilyUnsupported,
                         message: "No exporter registered for format '\(formatID)'. " +
                             "If you expected one, ensure the corresponding exporter target is " +
                             "registered with the `ExporterRegistry` you passed in."
@@ -45,8 +45,8 @@ public enum DiagramExportLoader {
             return DiagramExportResult(
                 source: "",
                 diagnostics: [
-                    DiagramDiagnostic(
-                        severity: .unsupported,
+                    .featureDropped(
+                        .diagramFamilyUnsupported,
                         message: "Diagram type '\(document.type.rawValue)' is not supported for export to '\(formatID)'"
                     )
                 ]
@@ -75,8 +75,8 @@ public enum DiagramExportLoader {
             return DiagramExportResult(
                 source: "",
                 diagnostics: [
-                    DiagramDiagnostic(
-                        severity: .unsupported,
+                    .featureDropped(
+                        .diagramFamilyUnsupported,
                         message: "Diagram type '\(document.type.rawValue)' is not supported by exporter '\(exporterName)'"
                     )
                 ]

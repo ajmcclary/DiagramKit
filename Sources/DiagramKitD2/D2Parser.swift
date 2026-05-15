@@ -290,88 +290,88 @@ public struct D2Parser {
         let lowerKey = key.lowercased()
 
         if lowerKey.hasPrefix("style") {
-            return DiagramDiagnostic(
-                severity: .unsupported,
+            return .featureDropped(
+                .slotUnsupported,
                 message: "style blocks not yet supported for d2 import",
                 location: DiagramDiagnostic.SourceLocation(line: lineNumber)
             )
         }
 
         if lowerKey.hasPrefix("vars") {
-            return DiagramDiagnostic(
-                severity: .unsupported,
+            return .featureDropped(
+                .slotUnsupported,
                 message: "variable blocks not yet supported",
                 location: DiagramDiagnostic.SourceLocation(line: lineNumber)
             )
         }
 
         if lowerKey.hasPrefix("layers") || lowerKey.hasPrefix("scenarios") || lowerKey.hasPrefix("steps") {
-            return DiagramDiagnostic(
-                severity: .unsupported,
+            return .featureDropped(
+                .slotUnsupported,
                 message: "board layers not yet supported; map to subgraphs instead",
                 location: DiagramDiagnostic.SourceLocation(line: lineNumber)
             )
         }
 
         if lowerKey.hasPrefix("classes") {
-            return DiagramDiagnostic(
-                severity: .unsupported,
+            return .featureDropped(
+                .slotUnsupported,
                 message: "class definitions not yet supported",
                 location: DiagramDiagnostic.SourceLocation(line: lineNumber)
             )
         }
 
         if lowerKey.hasPrefix("constraint") {
-            return DiagramDiagnostic(
-                severity: .unsupported,
+            return .featureDropped(
+                .slotUnsupported,
                 message: "layout constraints not yet supported",
                 location: DiagramDiagnostic.SourceLocation(line: lineNumber)
             )
         }
 
         if lowerKey.hasPrefix("grid-rows") || lowerKey.hasPrefix("grid-columns") {
-            return DiagramDiagnostic(
-                severity: .unsupported,
+            return .featureDropped(
+                .slotUnsupported,
                 message: "grid layout not yet supported",
                 location: DiagramDiagnostic.SourceLocation(line: lineNumber)
             )
         }
 
         if lowerKey == "near" {
-            return DiagramDiagnostic(
-                severity: .unsupported,
+            return .featureDropped(
+                .slotUnsupported,
                 message: "near placement not yet supported",
                 location: DiagramDiagnostic.SourceLocation(line: lineNumber)
             )
         }
 
         if value.contains("$") || lowerKey.contains("$") {
-            return DiagramDiagnostic(
-                severity: .unsupported,
+            return .featureDropped(
+                .slotUnsupported,
                 message: "variable substitution not yet supported",
                 location: DiagramDiagnostic.SourceLocation(line: lineNumber)
             )
         }
 
         if lowerKey.contains("@import") || value.contains("@import") {
-            return DiagramDiagnostic(
-                severity: .unsupported,
+            return .featureDropped(
+                .slotUnsupported,
                 message: "imports not yet supported",
                 location: DiagramDiagnostic.SourceLocation(line: lineNumber)
             )
         }
 
         if lowerKey.contains("*") || value.contains("*") {
-            return DiagramDiagnostic(
-                severity: .unsupported,
+            return .featureDropped(
+                .slotUnsupported,
                 message: "glob patterns not yet supported",
                 location: DiagramDiagnostic.SourceLocation(line: lineNumber)
             )
         }
 
         if lowerKey.contains("&") || value.contains("&") {
-            return DiagramDiagnostic(
-                severity: .unsupported,
+            return .featureDropped(
+                .slotUnsupported,
                 message: "filter selectors not yet supported",
                 location: DiagramDiagnostic.SourceLocation(line: lineNumber)
             )

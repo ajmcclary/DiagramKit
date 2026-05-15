@@ -256,8 +256,8 @@ public struct DOTParser {
 
         default:
             // Skip unrecognized token
-            s.diagnostics.append(DiagramDiagnostic(
-                severity: .unsupported,
+            s.diagnostics.append(.featureDropped(
+                .slotUnsupported,
                 message: "Skipping unexpected token in DOT source",
                 location: nil
             ))
@@ -303,8 +303,8 @@ public struct DOTParser {
 
         if s.peekIdentifier()?.lowercased() == "subgraph" {
             emitPortDiagnosticIfNeeded(firstEndpoint, state: &s)
-            s.diagnostics.append(DiagramDiagnostic(
-                severity: .unsupported,
+            s.diagnostics.append(.featureDropped(
+                .slotUnsupported,
                 message: "edges to subgraphs not yet supported; preserving subgraph contents without the edge",
                 location: nil
             ))

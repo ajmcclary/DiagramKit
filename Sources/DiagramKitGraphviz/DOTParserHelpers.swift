@@ -38,8 +38,8 @@ extension DOTParser {
         while state.consumeIf(.colon) {
             usedPortSyntax = true
             if state.consumeIdentifier() == nil {
-                state.diagnostics.append(DiagramDiagnostic(
-                    severity: .unsupported,
+                state.diagnostics.append(.featureDropped(
+                    .slotUnsupported,
                     message: "DOT port syntax is incomplete; using node id '\(id)'",
                     location: nil
                 ))
@@ -52,8 +52,8 @@ extension DOTParser {
 
     func emitPortDiagnosticIfNeeded(_ endpoint: Endpoint, state: inout State) {
         guard endpoint.usedPortSyntax else { return }
-        state.diagnostics.append(DiagramDiagnostic(
-            severity: .unsupported,
+        state.diagnostics.append(.featureDropped(
+            .slotUnsupported,
             message: "DOT port syntax not yet supported; using node id '\(endpoint.id)' without port",
             location: nil
         ))
@@ -78,8 +78,8 @@ extension DOTParser {
             }
 
             guard state.peek() == .equals else {
-                state.diagnostics.append(DiagramDiagnostic(
-                    severity: .unsupported,
+                state.diagnostics.append(.featureDropped(
+                    .slotUnsupported,
                     message: "Expected '=' after attribute key '\(key)'",
                     location: nil
                 ))

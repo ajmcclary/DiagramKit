@@ -103,8 +103,8 @@ public enum FlowchartExportWalker {
                 sink.subgraphEnd(sg, depth: depth)
             } else {
                 diagnostics.append(
-                    DiagramDiagnostic(
-                        severity: .warning,
+                    .lossyTransform(
+                        .subgraphFlatten,
                         message: "Subgraph '\(sg.id)' dropped — exporter does not yet support subgraph emission"
                     )
                 )

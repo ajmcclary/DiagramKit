@@ -24,8 +24,8 @@ public struct DOTExporter: DiagramExporter {
             return DiagramExportResult(
                 source: "",
                 diagnostics: [
-                    DiagramDiagnostic(
-                        severity: .unsupported,
+                    .featureDropped(
+                        .diagramFamilyUnsupported,
                         message: "DOT export for '\(document.type.rawValue)' is not supported"
                     )
                 ]
