@@ -50,4 +50,37 @@ struct LinuxPlatformGateTests {
         let unsupported = DiagramRegistry.all.filter { !$0.linuxSupport }.map(\.type)
         #expect(Set(unsupported) == Set<DiagramType>([.ishikawa, .treeView, .eventModeling]))
     }
+
+    // MARK: - DiagramPipeline.renderSVG enforcement
+
+    @Test func pipelineRenderSVGGatesIshikawaOnLinux() throws {
+        let source = "ishikawa\nProblem\nCause A\nCause B"
+        #if os(Linux)
+        do {
+            _ = try DiagramPipeline.renderSVG(source: source)
+            Issue.record("expected DiagramPipeline.renderSVG(source:) to throw on Linux for ishikawa")
+        } catch let error as DiagramError {
+            if case let .unsupportedOnPlatform(family, reason, platform) = error {
+                #expect(family == .ishikawa)
+                #expect(reason.isEmpty == false)
+                #expect(platform == "Linux")
+            } else {
+                Issue.record("expected .unsupportedOnPlatform, got \(error)")
+            }
+        }
+        #else
+        // On Apple platforms the helper is a no-op; just confirm we don't
+        // see DiagramError.unsupportedOnPlatform when running this source.
+        do {
+            _ = try DiagramPipeline.renderSVG(source: source)
+        } catch let error as DiagramError {
+            if case .unsupportedOnPlatform = error {
+                Issue.record("did not expect .unsupportedOnPlatform on non-Linux platform")
+            }
+            // Other DiagramError cases are fine — the test isn't asserting success here.
+        } catch {
+            // Non-DiagramError throws are fine (the fixture might be incomplete).
+        }
+        #endif
+    }
 }

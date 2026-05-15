@@ -75,6 +75,22 @@ public enum DiagramPipeline {
         try DiagramLoader.parseImportResult(source, registry: registry)
     }
 
+    /// Throw `DiagramError.unsupportedOnPlatform` if `document.type`'s
+    /// descriptor declares `linuxSupport == false` and the current
+    /// runtime platform is Linux. No-op on every other platform.
+    private static func _assertPlatformSupport(_ document: DiagramDocument) throws {
+        #if os(Linux)
+        let descriptor = try DiagramRegistry.descriptor(for: document.type)
+        if !descriptor.linuxSupport {
+            throw DiagramError.unsupportedOnPlatform(
+                family: document.type,
+                reason: descriptor.linuxUnsupportedReason ?? "no reason provided",
+                platform: "Linux"
+            )
+        }
+        #endif
+    }
+
     public static func parse(_ source: String) throws -> DiagramDocument {
         try runPipeline(operation: "DiagramPipeline.parse", registerFonts: true) {
             try loadDocument(source, registry: defaultRegistry)
@@ -149,6 +165,7 @@ public enum DiagramPipeline {
     ) throws -> String {
         try runPipeline(operation: "DiagramPipeline.renderSVG") {
             let graph = try loadDocument(source, registry: registry)
+            try _assertPlatformSupport(graph)
             let positioned = try GraphLayout(config: layoutConfig).layout(graph)
 
             let colors = DiagramColors(
@@ -182,6 +199,7 @@ public enum DiagramPipeline {
         theme: DiagramTheme = .default
     ) throws -> String {
         try runPipeline(operation: "DiagramPipeline.renderSVG(positioned:)") {
+            try _assertPlatformSupport(positioned.diagram)
             let colors = DiagramColors(
                 bg: theme.background.cssColorString,
                 fg: theme.foreground.cssColorString,
@@ -215,6 +233,8 @@ public enum DiagramPipeline {
         theme: DiagramTheme = .default
     ) throws -> AsciiRenderOutput {
         try runPipeline(operation: "DiagramPipeline.renderASCII") {
+            let graph = try loadDocument(source, registry: defaultRegistry)
+            try _assertPlatformSupport(graph)
             let colors: [String: String] = [
                 "fg": theme.foreground.hexString,
                 "border": (theme.border ?? theme.foreground).hexString,
