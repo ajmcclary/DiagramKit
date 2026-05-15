@@ -18,8 +18,8 @@ public struct StructurizrMapper: Sendable {
 
         // Build registry
         guard let model = workspace.model else {
-            diagnostics.append(DiagramDiagnostic(
-                severity: .unsupported,
+            diagnostics.append(.featureDropped(
+                .diagramFamilyUnsupported,
                 message: "workspace contains no model section"
             ))
             return (.empty, diagnostics)
@@ -41,8 +41,8 @@ public struct StructurizrMapper: Sendable {
 
         // Handle views
         if workspace.views.isEmpty {
-            diagnostics.append(DiagramDiagnostic(
-                severity: .unsupported,
+            diagnostics.append(.featureDropped(
+                .diagramFamilyUnsupported,
                 message: "workspace contains no views; no diagram produced"
             ))
             return (.empty, diagnostics)
@@ -50,8 +50,8 @@ public struct StructurizrMapper: Sendable {
 
         // Multiple views diagnostic
         if workspace.views.count > 1 {
-            diagnostics.append(DiagramDiagnostic(
-                severity: .unsupported,
+            diagnostics.append(.featureDropped(
+                .diagramFamilyUnsupported,
                 message: "workspace contains \(workspace.views.count) views; only the first view is imported in this release"
             ))
         }
@@ -61,14 +61,14 @@ public struct StructurizrMapper: Sendable {
         // Deferred view kinds
         switch view.kind {
         case .dynamic:
-            diagnostics.append(DiagramDiagnostic(
-                severity: .unsupported,
+            diagnostics.append(.featureDropped(
+                .diagramFamilyUnsupported,
                 message: "dynamic views not yet supported"
             ))
             return (.empty, diagnostics)
         case .deployment:
-            diagnostics.append(DiagramDiagnostic(
-                severity: .unsupported,
+            diagnostics.append(.featureDropped(
+                .diagramFamilyUnsupported,
                 message: "deployment views not yet supported"
             ))
             return (.empty, diagnostics)
@@ -77,8 +77,8 @@ public struct StructurizrMapper: Sendable {
         }
 
         guard registry.element(for: view.scopeAlias) != nil else {
-            diagnostics.append(DiagramDiagnostic(
-                severity: .unsupported,
+            diagnostics.append(.featureDropped(
+                .diagramFamilyUnsupported,
                 message: "unknown view scope alias: \(view.scopeAlias)"
             ))
             return (.empty, diagnostics)
@@ -99,8 +99,8 @@ public struct StructurizrMapper: Sendable {
                     if registry.element(for: alias) != nil {
                         aliases.insert(alias)
                     } else {
-                        diagnostics.append(DiagramDiagnostic(
-                            severity: .unsupported,
+                        diagnostics.append(.featureDropped(
+                            .diagramFamilyUnsupported,
                             message: "unknown included element alias: \(alias)"
                         ))
                     }
@@ -221,8 +221,8 @@ public struct StructurizrMapper: Sendable {
             )
             c4Boundaries.append(boundary)
 
-            diagnostics.append(DiagramDiagnostic(
-                severity: .warning,
+            diagnostics.append(.lossyTransform(
+                .boundaryFlatten,
                 message: "Boundary '\(element.alias)' was synthesized from the Structurizr view scope; if the source originated as an authored boundary in another format, the original label/description may differ from '\(element.name)'"
             ))
         }
@@ -293,8 +293,8 @@ public struct StructurizrMapper: Sendable {
 
     private func checkDeploymentNodes(_ element: StructurizrModelElement, _ diagnostics: inout [DiagramDiagnostic]) {
         if element.kind == .deploymentNode {
-            diagnostics.append(DiagramDiagnostic(
-                severity: .unsupported,
+            diagnostics.append(.featureDropped(
+                .diagramFamilyUnsupported,
                 message: "deployment nodes not yet supported"
             ))
         }
@@ -305,8 +305,8 @@ public struct StructurizrMapper: Sendable {
 
     private func checkTags(_ element: StructurizrModelElement, _ diagnostics: inout [DiagramDiagnostic]) {
         if !element.tags.isEmpty {
-            diagnostics.append(DiagramDiagnostic(
-                severity: .unsupported,
+            diagnostics.append(.featureDropped(
+                .diagramFamilyUnsupported,
                 message: "tag-based shape refinement not yet supported; rendered as base type"
             ))
         }

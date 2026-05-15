@@ -22,8 +22,8 @@ public struct StructurizrExporter: DiagramExporter {
             return DiagramExportResult(
                 source: "",
                 diagnostics: [
-                    DiagramDiagnostic(
-                        severity: .unsupported,
+                    .featureDropped(
+                        .diagramFamilyUnsupported,
                         message: "Structurizr export for '\(document.type.rawValue)' is not supported"
                     )
                 ]
@@ -70,16 +70,16 @@ enum StructurizrC4Export {
         // authored boundaries (no direct shape members) are dropped with a `.warning`.
         for boundary in authoredBoundaries {
             if !boundary.parentBoundary.isEmpty && boundary.parentBoundary != "global" {
-                diagnostics.append(DiagramDiagnostic(
-                    severity: .warning,
+                diagnostics.append(.lossyTransform(
+                    .boundaryFlatten,
                     message: "Structurizr `group` is non-nestable; flattening boundary '\(boundary.alias)' (parent: '\(boundary.parentBoundary)') to top-level"
                 ))
             }
 
             let members = shapesByBoundary[boundary.alias] ?? []
             if members.isEmpty {
-                diagnostics.append(DiagramDiagnostic(
-                    severity: .warning,
+                diagnostics.append(.lossyTransform(
+                    .boundaryFlatten,
                     message: "Empty group '\(boundary.label)' (alias '\(boundary.alias)') has no direct shapes after Structurizr flattening; dropping"
                 ))
                 continue
@@ -170,8 +170,8 @@ enum StructurizrC4Export {
         }
 
         if let tags = shape.tags, !tags.isEmpty {
-            diagnostics.append(DiagramDiagnostic(
-                severity: .unsupported,
+            diagnostics.append(.featureDropped(
+                .diagramFamilyUnsupported,
                 message: "Structurizr parser does not currently support element-scoped tags; dropping `tags \"\(tags)\"` for alias '\(shape.alias)'"
             ))
         }
@@ -240,8 +240,8 @@ enum StructurizrC4Export {
         }
         used.insert(candidate)
         if candidate != original {
-            diagnostics.append(DiagramDiagnostic(
-                severity: .warning,
+            diagnostics.append(.lossyTransform(
+                .idSanitization,
                 message: "Renamed alias '\(original)' to '\(candidate)' for Structurizr parser compatibility"
             ))
         }

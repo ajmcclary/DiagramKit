@@ -175,8 +175,8 @@ import DiagramKitStructurizr
         _ = try StructurizrImporter().parse(result.source)
     }
 
-    @Test("Structurizr export drops boundary `group` blocks and reports diagnostic")
-    func dropsBoundaryGroupsAndReportsDiagnostic() throws {
+    @Test("Structurizr export emits `group` block for authored boundaries; bare elements round-trip")
+    func authoredBoundaryGroupsAndRoundTrips() throws {
         let c4 = C4Diagram(
             kind: .context,
             shapes: [
@@ -192,14 +192,13 @@ import DiagramKitStructurizr
         )
         let result = try StructurizrExporter().export(DiagramDocument(payload: .c4(c4)))
 
-        #expect(!result.source.contains("group "))
-        #expect(!result.source.contains("include customer"))
-        #expect(result.diagnostics.contains {
-            $0.severity == .unsupported && $0.message.contains("`group` boundaries")
-        })
+        // Session 6 (commit 81ddf33..ed5e578) added Structurizr DSL `group "label" { ... }`
+        // emission for authored boundaries. The `customer` shape sits inside `platform`,
+        // so it should be wrapped in a group block; the `system` shape sits at the model
+        // root because it has no parent boundary.
+        #expect(result.source.contains("group \"Platform\" {"))
 
-        // The bare elements still round-trip through the parser, just without
-        // the boundary grouping that the parser cannot represent.
+        // The bare elements still round-trip through the parser.
         let reparsed = try StructurizrImporter().parse(result.source).document
         guard case .c4(let reparsedC4) = reparsed.payload else {
             Issue.record("Expected C4 payload")

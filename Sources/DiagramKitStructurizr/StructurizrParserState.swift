@@ -11,8 +11,8 @@ struct StructurizrParserState {
     var diagnostics: [DiagramDiagnostic] = []
 
     mutating func diagnostic(_ message: String, line: Int? = nil) {
-        diagnostics.append(DiagramDiagnostic(
-            severity: .unsupported,
+        diagnostics.append(.featureDropped(
+            .diagramFamilyUnsupported,
             message: message,
             location: DiagramDiagnostic.SourceLocation(line: line)
         ))
