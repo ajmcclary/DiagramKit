@@ -28,10 +28,12 @@ public struct DiagramDiagnostic: Sendable, Hashable, CustomStringConvertible {
         }
     }
 
-    /// Back-compatible raw init. Use the `.lossyTransform` /
-    /// `.featureDropped` / `.informational` factories for new code; see
-    /// `docs/diagnostic-severity-discipline.md`. (Deprecation marker
-    /// lands once the in-tree migration completes.)
+    /// Back-compatible raw init. **Deprecated** — use the
+    /// `.lossyTransform` / `.featureDropped` / `.informational`
+    /// factories with a `DiagnosticCategory`.
+    /// See `docs/diagnostic-severity-discipline.md`.
+    @available(*, deprecated,
+      message: "Use .lossyTransform/.featureDropped/.informational with a DiagnosticCategory. See docs/diagnostic-severity-discipline.md.")
     public init(severity: Severity,
                 message: String,
                 location: SourceLocation? = nil) {

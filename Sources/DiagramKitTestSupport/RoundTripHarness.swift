@@ -207,67 +207,15 @@ private func enforce(
 }
 
 /// Tests whether the diagnostic bag contains at least one entry that
-/// "explains" this loss.
-///
-/// Two-phase pairing:
-///   1. Typed-first: any diagnostic with `category == loss.kind.expectedCategory`
-///      counts as paired.
-///   2. Fallback: for nil-category diagnostics (raw `init(severity:message:)`),
-///      consult the legacy keyword matcher. The fallback is deleted in
-///      Phase 2 of the migration (plan Task 14).
+/// "explains" this loss — typed-category equality, exclusively.
 ///
 /// `.anonymousSubgraphRename` is exempt — anonymous renames are positional
 /// parser artifacts, not exporter-driven, and never carry a paired diagnostic.
 public func diagnosticsCover(loss: RoundTripLoss, in diagnostics: [DiagramDiagnostic]) -> Bool {
-    // Exemption: anonymous subgraph rename is positional, not exporter-driven.
     if case .anonymousSubgraphRename = loss { return true }
-
     let expected = loss.kind.expectedCategory
-    let relevant = diagnostics.filter {
-        $0.severity == .warning || $0.severity == .unsupported
+    return diagnostics.contains { diag in
+        (diag.severity == .warning || diag.severity == .unsupported)
+            && diag.category == expected
     }
-
-    // Typed-first.
-    if relevant.contains(where: { $0.category == expected }) {
-        return true
-    }
-
-    // Legacy keyword fallback — only consulted for nil-category diagnostics.
-    return relevant.contains { diag in
-        guard diag.category == nil else { return false }
-        return _legacyKeywordCover(loss: loss, message: diag.message)
-    }
-}
-
-/// Legacy keyword matcher — preserved for the migration window so the
-/// harness stays green while emission sites are converted slice-by-slice.
-/// Deleted in Phase 2 (plan Task 14).
-private func _legacyKeywordCover(loss: RoundTripLoss, message: String) -> Bool {
-    let keywords: [String]
-    switch loss {
-    case .idSanitization(let original, _):
-        keywords = ["sanitiz", "alias", "renamed", original]
-    case .shapeDowngrade(let nodeID, _, _):
-        keywords = ["shape", nodeID]
-    case .subgraphFlatten(let id, _):
-        keywords = ["subgraph", "cluster", id]
-    case .boundaryFlatten(let id, _):
-        keywords = ["boundary", id]
-    case .c4SlotDrop(let id, let slot):
-        keywords = [slot.rawValue, id]
-    case .titleDrop:
-        keywords = ["title"]
-    case .configDrop(let key):
-        keywords = [key, "config", "frontmatter"]
-    case .styleDrop(let target, let attribute):
-        keywords = [target, attribute, "style"]
-    case .accessibilityDrop(let field):
-        keywords = [field.rawValue, "accessib", "acctitle", "accdescr"]
-    case .anonymousSubgraphRename:
-        return true  // unreachable; exemption is handled in diagnosticsCover
-    case .d2DuplicateOverride(let id, _):
-        keywords = ["duplicate", id]
-    }
-    let m = message.lowercased()
-    return keywords.contains { m.contains($0.lowercased()) }
 }

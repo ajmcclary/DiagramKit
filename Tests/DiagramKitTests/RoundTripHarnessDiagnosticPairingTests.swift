@@ -22,14 +22,6 @@ struct RoundTripHarnessDiagnosticPairingTests {
         #expect(!diagnosticsCover(loss: loss, in: [diag]))
     }
 
-    @Test("legacy keyword fallback covers a nil-category diagnostic")
-    func keywordFallback() {
-        let loss = RoundTripLoss.idSanitization(original: "x", sanitized: "x_")
-        // Raw init → category == nil; fallback path runs.
-        let diag = DiagramDiagnostic(severity: .warning, message: "Identifier 'x' sanitized to 'x_'")
-        #expect(diagnosticsCover(loss: loss, in: [diag]))
-    }
-
     @Test("anonymousSubgraphRename remains exempt (returns true with empty bag)")
     func anonymousExempt() {
         let loss = RoundTripLoss.anonymousSubgraphRename(old: "subgraph_0", new: "subgraph_1")
