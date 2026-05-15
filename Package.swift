@@ -149,7 +149,12 @@ let package = Package(
         ),
         .target(
             name: "DiagramKitTestSupport",
-            dependencies: ["DiagramKitModel"],
+            dependencies: [
+                "DiagramKitCommon",
+                "DiagramKitModel",
+                "DiagramKitImport",
+                "DiagramKitExport"
+            ],
             swiftSettings: strictConcurrencySettings
         ),
         .target(
