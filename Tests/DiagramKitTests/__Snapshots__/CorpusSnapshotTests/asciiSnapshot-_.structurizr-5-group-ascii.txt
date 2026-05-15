@@ -1,0 +1,5 @@
+  [Group 0]
+    • User — person
+    • My App — system
+
+u → app : Uses

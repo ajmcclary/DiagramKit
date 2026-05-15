@@ -335,15 +335,15 @@ import DiagramKit
         }))
     }
 
-    @Test("Emits diagnostic for title")
-    func diagnosticTitle() {
+    @Test("Parses title directive into title item")
+    func parsesTitle() {
+        // PlantUML sequence title parsing landed in Session 2's
+        // `5ef689f`; what was previously emitted as a .unsupported
+        // diagnostic now parses into PlantUMLSequenceAST.title.
         let body = "title My Diagram"
         let parser = PlantUMLSequenceParser()
         let ast = parser.parse(body)
-        #expect(ast.items.contains(where: {
-            if case .unsupported(let msg, _) = $0, msg.contains("title") { return true }
-            return false
-        }))
+        #expect(ast.title == "My Diagram")
     }
 
     @Test("Emits diagnostic for skinparam")

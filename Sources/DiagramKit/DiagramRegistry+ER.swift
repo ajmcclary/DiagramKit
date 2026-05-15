@@ -13,7 +13,7 @@ extension DiagramRegistry {
         type: .erDiagram,
         matches: { $0.startsWithToken("erdiagram") },
         parseWithDiagnostics: { source, frontmatter in
-            try parseErDiagram(DiagramSourceNormalizer.diagramLines(source), frontmatter: frontmatter)
+            try parseErDiagram(DiagramSourceNormalizer.statements(source), frontmatter: frontmatter)
         },
         wrap: DiagramPayload.erDiagram,
         unwrap: { payload in

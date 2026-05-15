@@ -13,7 +13,7 @@ extension DiagramRegistry {
         type: .sequenceDiagram,
         matches: { $0.startsWithToken("sequencediagram") },
         parseWithDiagnostics: { source, _ in
-            try parseSequenceDiagram(DiagramSourceNormalizer.diagramLines(source))
+            try parseSequenceDiagram(DiagramSourceNormalizer.statements(source))
         },
         wrap: DiagramPayload.sequenceDiagram,
         unwrap: { payload in
