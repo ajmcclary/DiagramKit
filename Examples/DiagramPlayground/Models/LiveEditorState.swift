@@ -125,6 +125,12 @@ public struct LiveEditorState: Codable, Equatable, Sendable {
     /// filters). See DiagnosticsDrawerState.
     public var diagDrawer: DiagnosticsDrawerState
 
+    /// Export sheet state (open/close + target + round-trip toggle).
+    public var exportSheet: ExportSheetState
+
+    /// Convert sheet state (open/close + target).
+    public var convertSheet: ConvertSheetState
+
     // MARK: - Init
 
     public init(
@@ -153,7 +159,9 @@ public struct LiveEditorState: Codable, Equatable, Sendable {
         visualTool: VisualEditorState.Tool = .select,
         marqueeSelection: Set<String> = [],
         demoStepperVisible: Bool = false,
-        diagDrawer: DiagnosticsDrawerState = .default
+        diagDrawer: DiagnosticsDrawerState = .default,
+        exportSheet: ExportSheetState = .default,
+        convertSheet: ConvertSheetState = .default
     ) {
         self.source = source
         self.sourceFormat = sourceFormat
@@ -181,6 +189,8 @@ public struct LiveEditorState: Codable, Equatable, Sendable {
         self.marqueeSelection = marqueeSelection
         self.demoStepperVisible = demoStepperVisible
         self.diagDrawer = diagDrawer
+        self.exportSheet = exportSheet
+        self.convertSheet = convertSheet
     }
 
     // MARK: - Codable (handle legacy snapshots without sourceFormat)
@@ -210,6 +220,8 @@ public struct LiveEditorState: Codable, Equatable, Sendable {
         case marqueeSelection
         case demoStepperVisible
         case diagDrawer
+        case exportSheet
+        case convertSheet
     }
 
     public init(from decoder: Decoder) throws {
@@ -240,6 +252,8 @@ public struct LiveEditorState: Codable, Equatable, Sendable {
         self.marqueeSelection = try c.decodeIfPresent(Set<String>.self, forKey: .marqueeSelection) ?? []
         self.demoStepperVisible = try c.decodeIfPresent(Bool.self, forKey: .demoStepperVisible) ?? false
         self.diagDrawer = try c.decodeIfPresent(DiagnosticsDrawerState.self, forKey: .diagDrawer) ?? .default
+        self.exportSheet = try c.decodeIfPresent(ExportSheetState.self, forKey: .exportSheet) ?? .default
+        self.convertSheet = try c.decodeIfPresent(ConvertSheetState.self, forKey: .convertSheet) ?? .default
     }
 
     // MARK: - Defaults

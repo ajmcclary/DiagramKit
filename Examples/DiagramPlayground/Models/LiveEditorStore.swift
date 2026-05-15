@@ -1105,6 +1105,49 @@ public final class LiveEditorStore {
         diagnosticExplainTarget = nil
     }
 
+    // MARK: - Export sheet (Phase 7 / Task 7.1)
+
+    public func openExportSheet(at target: ExportTarget? = nil) {
+        if let target { state.exportSheet.target = target }
+        state.exportSheet.isOpen = true
+    }
+
+    public func closeExportSheet() {
+        state.exportSheet.isOpen = false
+    }
+
+    public func setExportTarget(_ target: ExportTarget) {
+        state.exportSheet.target = target
+    }
+
+    public func setExportRoundTripCheck(_ flag: Bool) {
+        state.exportSheet.rtCheck = flag
+    }
+
+    public func openConvertSheet(at target: SourceFormat? = nil) {
+        if let target { state.convertSheet.target = target }
+        state.convertSheet.isOpen = true
+    }
+
+    public func closeConvertSheet() {
+        state.convertSheet.isOpen = false
+    }
+
+    public func setConvertTarget(_ target: SourceFormat) {
+        state.convertSheet.target = target
+    }
+
+    /// One-shot source export against the current document for the
+    /// Convert + Export sheets. Returns the exporter's source +
+    /// diagnostics, or nil when the format isn't a source target.
+    public func exportSourcePreview(to target: SourceFormat) async -> DiagramExportResult? {
+        do {
+            return try await exportSource(to: target)
+        } catch {
+            return nil
+        }
+    }
+
     /// Map editor diagnostics into the drawer's tier-aware row model.
     /// Phase 6 derives a tier from EditorDiagnostic.source — the
     /// playground store doesn't yet preserve typed `DiagnosticCategory`

@@ -55,6 +55,26 @@ struct PlaygroundShell: View {
                     DiagnosticExplainPopover(store: store, row: target)
                 }
             }
+
+            // Export sheet (Phase 7 / Task 7.1)
+            if store.state.exportSheet.isOpen {
+                ZStack {
+                    Color.black.opacity(0.35)
+                        .ignoresSafeArea()
+                        .onTapGesture { store.closeExportSheet() }
+                    ExportSheet(store: store)
+                }
+            }
+
+            // Convert sheet (Phase 7 / Task 7.2)
+            if store.state.convertSheet.isOpen {
+                ZStack {
+                    Color.black.opacity(0.35)
+                        .ignoresSafeArea()
+                        .onTapGesture { store.closeConvertSheet() }
+                    ConvertSheet(store: store)
+                }
+            }
         }
         #if os(macOS)
         .frame(minWidth: 900, minHeight: 600)

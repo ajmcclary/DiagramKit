@@ -100,6 +100,22 @@ public enum A11yID {
         public static let diagnostics = "statusbar.diagnostics"
     }
 
+    public enum Sheets {
+        public static let exportSheet = "sheet.export"
+        public static let convertSheet = "sheet.convert"
+        public static func exportTarget(_ value: String) -> String {
+            "sheet.export.target.\(value)"
+        }
+        public static let exportRoundTripToggle = "sheet.export.rtToggle"
+        public static let exportCopyButton = "sheet.export.copy"
+        public static let exportSaveButton = "sheet.export.save"
+        public static let exportRoundTripFooter = "sheet.export.rtFooter"
+        public static func convertTarget(_ value: String) -> String {
+            "sheet.convert.target.\(value)"
+        }
+        public static let convertLossList = "sheet.convert.lossList"
+    }
+
     public enum Diagnostics {
         public static let drawer = "diagnostics.drawer"
         public static let categoryList = "diagnostics.categoryList"

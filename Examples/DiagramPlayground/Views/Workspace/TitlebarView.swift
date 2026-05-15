@@ -63,16 +63,12 @@ struct TitlebarView: View {
     }
 
     private var exportButton: some View {
-        // Phase 7 swaps this for the real ExportSheet trigger.
-        // Phase 1 surfaces a disabled placeholder so the a11y
-        // identifier is present and the layout is stable.
         Button {
-            // Phase 7
+            store.openExportSheet()
         } label: {
             Image(systemName: "square.and.arrow.up")
         }
         .keyboardShortcut("e", modifiers: .command)
         .a11y(label: "Export", id: A11yID.Titlebar.export)
-        .disabled(true)
     }
 }
