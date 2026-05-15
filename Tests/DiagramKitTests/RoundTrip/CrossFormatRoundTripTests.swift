@@ -88,4 +88,33 @@ struct CrossFormatRoundTripTests {
             fixture: fixture
         )
     }
+
+    // MARK: Mermaid ↔ Structurizr (C4)
+
+    @Test(
+        "Mermaid → Structurizr → Mermaid (C4)",
+        arguments: try fixtures(for: "cross-mermaid-structurizr-c4", fromRoot: roundTripResourcesRoot())
+    )
+    func mermaidStructurizrC4(fixture: RoundTripFixture) throws {
+        try runCrossFormatRoundTrip(
+            legA: RoundTripCellRegistry.mermaidC4,
+            legB: RoundTripCellRegistry.structurizrC4,
+            additionalAllowedLosses: RoundTripCrossRegistry.mermaidStructurizrC4,
+            fixture: fixture
+        )
+    }
+
+    @Test(
+        "Structurizr → Mermaid → Structurizr (C4)",
+        arguments: try fixtures(for: "cross-structurizr-mermaid-c4", fromRoot: roundTripResourcesRoot())
+    )
+    func structurizrMermaidC4(fixture: RoundTripFixture) throws {
+        try runCrossFormatRoundTrip(
+            legA: RoundTripCellRegistry.structurizrC4,
+            legB: RoundTripCellRegistry.mermaidC4,
+            additionalAllowedLosses: RoundTripCrossRegistry.structurizrMermaidC4,
+            fixture: fixture
+        )
+    }
 }
+
