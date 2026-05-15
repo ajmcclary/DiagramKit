@@ -38,7 +38,7 @@ final class MindmapRendererTests: XCTestCase {
     func test_pipelineParseLayoutRender_defaultLayout() async throws {
         // No frontmatter — default tidy-tree layout takes effect.
         let source = "mindmap\n  root((mindmap))\n    A\n    B"
-        let svg = try await renderDiagramSVG(source)
+        let svg = try await DiagramEngine.renderSVG(source: source)
         XCTAssertTrue(svg.contains("<svg"))
         XCTAssertTrue(svg.contains("mindmapDiagram"))
     }
@@ -94,7 +94,7 @@ final class MindmapRendererTests: XCTestCase {
 
         XCTAssertEqual(mindmaps.count, 9)
         for diagram in mindmaps {
-            let svg = try await renderDiagramSVG(diagram.source)
+            let svg = try await DiagramEngine.renderSVG(source: diagram.source)
             XCTAssertTrue(svg.contains("mindmapDiagram"), diagram.name)
         }
     }
@@ -113,7 +113,7 @@ final class MindmapRendererTests: XCTestCase {
             A
             B
         """
-        let svg = try await renderDiagramSVG(source)
+        let svg = try await DiagramEngine.renderSVG(source: source)
         XCTAssertTrue(svg.contains("<svg"))
         XCTAssertTrue(svg.contains("mindmapDiagram"))
         XCTAssertTrue(svg.contains("mindmap-node"), "Should contain mindmap node markup")
@@ -132,7 +132,7 @@ final class MindmapRendererTests: XCTestCase {
             A
             B
         """
-        let svg = try await renderDiagramSVG(source)
+        let svg = try await DiagramEngine.renderSVG(source: source)
         XCTAssertTrue(svg.contains("<svg"))
         XCTAssertTrue(svg.contains("mindmapDiagram"))
     }

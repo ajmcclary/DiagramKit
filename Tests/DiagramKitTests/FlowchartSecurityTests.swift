@@ -158,7 +158,7 @@ final class FlowchartSecurityTests: XCTestCase {
           A[Start] --> B[End]
           click A href "https://safe.com"
         """
-        let svg = try await renderDiagramSVG(source, RenderOptions())
+        let svg = try await DiagramEngine.renderSVG(source: source)
         XCTAssertTrue(svg.contains("<svg"), "SVG should render")
         XCTAssertFalse(svg.contains("xlink:href=\"https://safe.com\""), "href should be suppressed in sandbox mode")
     }
@@ -173,7 +173,7 @@ final class FlowchartSecurityTests: XCTestCase {
           A[Start] --> B[End]
           click A href "https://safe.com"
         """
-        let svg = try await renderDiagramSVG(source, RenderOptions())
+        let svg = try await DiagramEngine.renderSVG(source: source)
         XCTAssertTrue(svg.contains("<svg"), "SVG should render")
         XCTAssertTrue(svg.contains("xlink:href=\"https://safe.com\""), "href should be preserved in loose mode")
     }
@@ -185,7 +185,7 @@ final class FlowchartSecurityTests: XCTestCase {
         graph LR
           A@{ img: "javascript:alert(1)", shape: image-square, label: "test" }
         """
-        let svg = try await renderDiagramSVG(source, RenderOptions())
+        let svg = try await DiagramEngine.renderSVG(source: source)
         XCTAssertFalse(svg.contains("<image"), "Unsafe image URL should not produce <image> tag")
     }
 }

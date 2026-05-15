@@ -9,9 +9,8 @@ final class FlowchartVisualDiffTests: XCTestCase {
     // MARK: - Structural SVG assertions
 
     func testSimpleGraphTDProducesSVGWithNodes() async throws {
-        let svg = try await renderDiagramSVG(
-            "graph TD\n  A[Start] --> B[End]",
-            RenderOptions()
+        let svg = try await DiagramEngine.renderSVG(
+            source: "graph TD\n  A[Start] --> B[End]"
         )
         XCTAssertTrue(svg.contains("<svg"))
         XCTAssertTrue(svg.contains("class=\"node\""), "Should have node elements")
@@ -21,26 +20,23 @@ final class FlowchartVisualDiffTests: XCTestCase {
     }
 
     func testCircleArrowhead() async throws {
-        let svg = try await renderDiagramSVG(
-            "graph LR\n  A --o B",
-            RenderOptions()
+        let svg = try await DiagramEngine.renderSVG(
+            source: "graph LR\n  A --o B"
         )
         XCTAssertTrue(svg.contains("<svg"))
         XCTAssertTrue(svg.contains("marker-end"), "Should contain arrow markers")
     }
 
     func testCrossArrowhead() async throws {
-        let svg = try await renderDiagramSVG(
-            "graph LR\n  A --x B",
-            RenderOptions()
+        let svg = try await DiagramEngine.renderSVG(
+            source: "graph LR\n  A --x B"
         )
         XCTAssertTrue(svg.contains("<svg"))
     }
 
     func testInvisibleEdge() async throws {
-        let svg = try await renderDiagramSVG(
-            "graph LR\n  A ~~~ B\n  A --> C",
-            RenderOptions()
+        let svg = try await DiagramEngine.renderSVG(
+            source: "graph LR\n  A ~~~ B\n  A --> C"
         )
         XCTAssertTrue(svg.contains("<svg"))
         XCTAssertTrue(svg.contains("C"), "Visible edge target should be present")
@@ -48,18 +44,16 @@ final class FlowchartVisualDiffTests: XCTestCase {
     }
 
     func testEdgeWithTextLabel() async throws {
-        let svg = try await renderDiagramSVG(
-            "graph TD\n  A --|text| B",
-            RenderOptions()
+        let svg = try await DiagramEngine.renderSVG(
+            source: "graph TD\n  A --|text| B"
         )
         XCTAssertTrue(svg.contains("<svg"))
         XCTAssertTrue(svg.contains("text"), "Edge label text should be present")
     }
 
     func testChainedEdgesWithAmpersand() async throws {
-        let svg = try await renderDiagramSVG(
-            "graph TD\n  A & B --> C",
-            RenderOptions()
+        let svg = try await DiagramEngine.renderSVG(
+            source: "graph TD\n  A & B --> C"
         )
         XCTAssertTrue(svg.contains("<svg"))
         XCTAssertTrue(svg.contains("A"))
@@ -72,14 +66,13 @@ final class FlowchartVisualDiffTests: XCTestCase {
         graph TD
           A@{ shape: bang } --> B
         """
-        let svg = try await renderDiagramSVG(source, RenderOptions())
+        let svg = try await DiagramEngine.renderSVG(source: source)
         XCTAssertTrue(svg.contains("<svg"))
     }
 
     func testClickHrefInSVG() async throws {
-        let svg = try await renderDiagramSVG(
-            "graph LR\n  A[Link] --> B\n  click A href \"https://safe.com\"",
-            RenderOptions()
+        let svg = try await DiagramEngine.renderSVG(
+            source: "graph LR\n  A[Link] --> B\n  click A href \"https://safe.com\""
         )
         XCTAssertTrue(svg.contains("<svg"))
         XCTAssertTrue(svg.contains("xlink:href=\"https://safe.com\""), "Should contain link")
@@ -92,7 +85,7 @@ final class FlowchartVisualDiffTests: XCTestCase {
           accDescr: A test diagram
           A --> B
         """
-        let svg = try await renderDiagramSVG(source, RenderOptions())
+        let svg = try await DiagramEngine.renderSVG(source: source)
         XCTAssertTrue(svg.contains("<title>My Diagram</title>"))
         XCTAssertTrue(svg.contains("<desc>A test diagram</desc>"))
     }
@@ -105,7 +98,7 @@ final class FlowchartVisualDiffTests: XCTestCase {
           end
           C --> A
         """
-        let svg = try await renderDiagramSVG(source, RenderOptions())
+        let svg = try await DiagramEngine.renderSVG(source: source)
         XCTAssertTrue(svg.contains("<svg"))
         XCTAssertTrue(svg.contains("My Group"), "Subgraph label should be present")
         XCTAssertTrue(svg.contains("class=\"subgraph\""), "Should have subgraph elements")
@@ -121,7 +114,7 @@ final class FlowchartVisualDiffTests: XCTestCase {
         graph TD
           A --> B
         """
-        let svg = try await renderDiagramSVG(source, RenderOptions())
+        let svg = try await DiagramEngine.renderSVG(source: source)
         XCTAssertTrue(svg.contains("<svg"))
     }
 
@@ -132,7 +125,7 @@ final class FlowchartVisualDiffTests: XCTestCase {
             ("flowchart-elk LR\n  A --> B", "flowchart-elk LR"),
         ]
         for (source, _) in variants {
-            let svg = try await renderDiagramSVG(source, RenderOptions())
+            let svg = try await DiagramEngine.renderSVG(source: source)
             XCTAssertTrue(svg.contains("<svg"))
         }
     }

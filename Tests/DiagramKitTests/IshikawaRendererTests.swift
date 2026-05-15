@@ -99,7 +99,7 @@ struct IshikawaRendererTests {
     @Test("SVG render produces valid SVG for simple diagram")
     func svgRenderSimple() async throws {
         let source = "ishikawa-beta\nProblem\n    Cause A"
-        let svg = try await renderDiagramSVG(source)
+        let svg = try await DiagramEngine.renderSVG(source: source)
         #expect(svg.contains("<svg"))
         #expect(svg.contains("ishikawa"))
         #expect(svg.contains("</svg>"))
@@ -108,7 +108,7 @@ struct IshikawaRendererTests {
     @Test("SVG render handles root-only")
     func svgRenderRootOnly() async throws {
         let source = "ishikawa-beta\nProblem"
-        let svg = try await renderDiagramSVG(source)
+        let svg = try await DiagramEngine.renderSVG(source: source)
         #expect(svg.contains("<svg"))
         #expect(svg.contains("ishikawa"))
         #expect(svg.contains("</svg>"))

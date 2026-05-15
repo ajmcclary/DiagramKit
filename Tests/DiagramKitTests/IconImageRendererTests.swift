@@ -30,7 +30,7 @@ final class IconImageRendererTests: XCTestCase {
         graph LR
           A@{ icon: "fa:user", shape: icon-square, label: "User" }
         """
-        let svg = try await renderDiagramSVG(source, RenderOptions())
+        let svg = try await DiagramEngine.renderSVG(source: source)
         XCTAssertTrue(svg.contains("<svg"), "Should produce valid SVG")
         XCTAssertTrue(svg.contains("icon-label"), "Should contain icon label text")
     }
@@ -40,7 +40,7 @@ final class IconImageRendererTests: XCTestCase {
         graph LR
           A@{ img: "https://example.com/img.png", shape: image-square, label: "Image" }
         """
-        let svg = try await renderDiagramSVG(source, RenderOptions())
+        let svg = try await DiagramEngine.renderSVG(source: source)
         XCTAssertTrue(svg.contains("<image"), "Should contain image tag")
     }
 
@@ -49,7 +49,7 @@ final class IconImageRendererTests: XCTestCase {
         graph LR
           A@{ icon: "fa:check", form: "square", label: "OK", pos: "t" }
         """
-        let svg = try await renderDiagramSVG(source, RenderOptions())
+        let svg = try await DiagramEngine.renderSVG(source: source)
         XCTAssertTrue(svg.contains("<svg"))
     }
 
@@ -58,7 +58,7 @@ final class IconImageRendererTests: XCTestCase {
         graph LR
           A@{ icon: "fa:check", form: "square", label: "OK", pos: "b" }
         """
-        let svg = try await renderDiagramSVG(source, RenderOptions())
+        let svg = try await DiagramEngine.renderSVG(source: source)
         XCTAssertTrue(svg.contains("<svg"))
     }
 
