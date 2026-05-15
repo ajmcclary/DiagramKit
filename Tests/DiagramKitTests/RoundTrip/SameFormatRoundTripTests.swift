@@ -114,4 +114,15 @@ struct SameFormatRoundTripTests {
             fixture: fixture
         )
     }
+
+    @Test(
+        "PlantUML state round-trip",
+        arguments: try fixtures(for: "plantuml-state", fromRoot: roundTripResourcesRoot())
+    )
+    func plantumlState(fixture: RoundTripFixture) throws {
+        try runSameFormatRoundTrip(
+            cell: RoundTripCellRegistry.plantumlState,
+            fixture: fixture
+        )
+    }
 }

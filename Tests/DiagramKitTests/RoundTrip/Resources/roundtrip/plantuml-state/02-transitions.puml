@@ -1,0 +1,7 @@
+@startuml
+state Login
+state Authenticated
+state LoggedOut
+Login -> Authenticated
+Authenticated -> LoggedOut
+@enduml

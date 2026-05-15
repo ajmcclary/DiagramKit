@@ -1,0 +1,7 @@
+@startuml
+state customer_start
+state processing
+state done
+customer_start -> processing
+processing -> done
+@enduml
