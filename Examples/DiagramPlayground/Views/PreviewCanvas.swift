@@ -108,11 +108,9 @@ struct PreviewCanvas: View {
                             .padding(.leading, 12)
                             .padding(.top, 12)
                         Spacer()
-                        if store.renderStatus == .rendered {
-                            RenderHealthPill(state: .ok(layoutMs: 0, paintMs: 0))
-                                .padding(.trailing, 12)
-                                .padding(.top, 12)
-                        }
+                        renderHealthPill
+                            .padding(.trailing, 12)
+                            .padding(.top, 12)
                     }
                     Spacer()
                 }
@@ -152,6 +150,31 @@ struct PreviewCanvas: View {
                 }
             }
         }
+    }
+
+    // MARK: - Render health (Phase 10 / Task 10.4)
+
+    @ViewBuilder
+    private var renderHealthPill: some View {
+        switch store.renderStatus {
+        case .rendered:
+            RenderHealthPill(state: .ok(layoutMs: 0, paintMs: 0))
+        case .failed:
+            RenderHealthPill(state: .failed(error: failureMessage))
+                .help(failureMessage)
+        case .pending, .rendering:
+            RenderHealthPill(state: .slow(layoutMs: 0, paintMs: 0))
+                .help("Render in flight on the worker · 8 MB stack")
+        case .idle:
+            EmptyView()
+        }
+    }
+
+    private var failureMessage: String {
+        if let error = store.parseError {
+            return error.localizedDescription
+        }
+        return "Render failed"
     }
 
     // MARK: - Backend label (read-only — Inspector drives the choice)

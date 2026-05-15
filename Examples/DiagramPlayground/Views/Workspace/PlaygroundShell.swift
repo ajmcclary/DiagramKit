@@ -75,6 +75,19 @@ struct PlaygroundShell: View {
                     ConvertSheet(store: store)
                 }
             }
+
+            // Render-failed sheet (Phase 10 / Task 10.4)
+            if store.renderStatus == .failed {
+                VStack {
+                    Spacer()
+                    HStack {
+                        Spacer()
+                        RenderFailedSheet(store: store)
+                            .padding(.trailing, 18)
+                            .padding(.bottom, 70)
+                    }
+                }
+            }
         }
         #if os(macOS)
         .frame(minWidth: 900, minHeight: 600)
