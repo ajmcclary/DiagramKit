@@ -1,0 +1,7 @@
+digraph G {
+    a [label="Start"];
+    b [label="Process"];
+    c [label="End"];
+    a -> b;
+    b -> c;
+}

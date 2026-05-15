@@ -1,0 +1,7 @@
+digraph G {
+    client [label="Client"];
+    server [label="Server"];
+    db [label="Database"];
+    client -> server;
+    server -> db;
+}

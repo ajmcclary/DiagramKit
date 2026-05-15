@@ -58,8 +58,15 @@ enum RoundTripCellRegistry {
         allowedLosses: [.subgraphFlatten, .styleDrop, .shapeDowngrade, .d2DuplicateOverride, .idSanitization]
     )
 
+    static let dotFlowchart = RoundTripCell(
+        importer: GraphvizImporter(),
+        exporter: DOTExporter(),
+        family: DiagramType.flowchart,
+        allowedLosses: [.subgraphFlatten, .styleDrop, .shapeDowngrade, .idSanitization]
+    )
+
     // Subsequent cells declared by later tasks:
-    //   dotFlowchart, structurizrC4,
+    //   structurizrC4,
     //   plantumlSequence, plantumlClass, plantumlState,
     //   plantumlMindmap, plantumlGantt, plantumlC4
 }
