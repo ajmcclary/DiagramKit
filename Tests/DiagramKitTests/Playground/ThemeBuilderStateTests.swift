@@ -65,4 +65,20 @@ final class ThemeBuilderStateTests: XCTestCase {
         store.resetThemeOverrides()
         XCTAssertFalse(store.state.themeBuilder.dirty)
     }
+
+    @MainActor
+    func test_themeOverridesFlowIntoPreviewTheme() {
+        let store = LiveEditorStore()
+        let original = store.previewTheme
+
+        store.setThemeOverride(.bg, hex: "112233")
+        store.setThemeOverride(.fg, hex: "AABBCC")
+
+        let overridden = store.previewTheme
+        XCTAssertFalse(original.background.bmColorEquals(overridden.background))
+        XCTAssertFalse(original.foreground.bmColorEquals(overridden.foreground))
+
+        store.resetThemeOverrides()
+        XCTAssertTrue(original.background.bmColorEquals(store.previewTheme.background))
+    }
 }

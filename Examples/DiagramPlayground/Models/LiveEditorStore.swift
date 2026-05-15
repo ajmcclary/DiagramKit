@@ -144,13 +144,19 @@ public final class LiveEditorStore {
 
     /// Resolved theme from ``LiveEditorState/selectedThemeName``.
     /// Falls back to `.default` when the name is unrecognized.
+    /// ThemeBuilder overrides (`state.themeBuilder.overrides`) are
+    /// applied on top.
     public var theme: DiagramTheme {
-        DiagramTheme.theme(named: state.selectedThemeName) ?? .default
+        let base = DiagramTheme.theme(named: state.selectedThemeName) ?? .default
+        return applyingThemeOverrides(to: base)
     }
 
     /// Resolved theme for the committed preview snapshot.
+    /// ThemeBuilder overrides apply here too so the preview repaints
+    /// the instant the user toggles a swatch.
     public var previewTheme: DiagramTheme {
-        DiagramTheme.theme(named: previewThemeName) ?? .default
+        let base = DiagramTheme.theme(named: previewThemeName) ?? .default
+        return applyingThemeOverrides(to: base)
     }
 
     /// Incremented every time source or theme changes.

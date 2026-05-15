@@ -111,4 +111,37 @@ extension LiveEditorStore {
     public func resetThemeOverrides() {
         state.themeBuilder.reset()
     }
+
+    /// Apply the current `state.themeBuilder.overrides` onto `base` and
+    /// return a new `DiagramTheme`. Bare passthrough when no overrides
+    /// are set. Tokens that don't map to a `DiagramTheme` field (the
+    /// three semantic colors — success / warning / error) are silently
+    /// skipped; only the nine palette tokens carry through to the
+    /// renderer for now.
+    func applyingThemeOverrides(to base: DiagramTheme) -> DiagramTheme {
+        let overrides = state.themeBuilder.overrides
+        guard !overrides.isEmpty else { return base }
+
+        func color(for token: ThemeBuilderState.Token) -> BMColor? {
+            guard let hex = overrides[token.rawValue] else { return nil }
+            // ThemeBuilderState stores hex without the `#` prefix.
+            return DiagramColorParser.hexColor(hex)
+        }
+
+        return DiagramTheme(
+            background: color(for: .bg) ?? base.background,
+            foreground: color(for: .fg) ?? base.foreground,
+            line: color(for: .line) ?? base.line,
+            accent: color(for: .accent) ?? base.accent,
+            muted: color(for: .muted) ?? base.muted,
+            surface: color(for: .surface) ?? base.surface,
+            border: color(for: .border) ?? base.border,
+            noteBkg: color(for: .noteBkg) ?? base.noteBkg,
+            noteBorder: color(for: .noteBorder) ?? base.noteBorder,
+            font: base.font,
+            lineWidth: base.lineWidth,
+            cornerRadius: base.cornerRadius,
+            transparent: base.transparent
+        )
+    }
 }
