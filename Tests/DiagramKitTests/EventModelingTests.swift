@@ -370,8 +370,8 @@ struct EventModelingSvgTests {
 
     @Test func svg_markerIdsAreUniqueAcrossPublicRenders() async throws {
         let source = "eventmodeling\ntf 01 ui CartUI\ntf 02 cmd AddItem"
-        let first = try await renderDiagramSVG(source)
-        let second = try await renderDiagramSVG(source)
+        let first = try await DiagramEngine.renderSVG(source: source)
+        let second = try await DiagramEngine.renderSVG(source: source)
         let firstId = extractMarkerId(from: first)
         let secondId = extractMarkerId(from: second)
         #expect(firstId != nil)
@@ -514,7 +514,7 @@ struct EventModelingEndToEndTests {
 
     @Test func e2e_svgRendering() async throws {
         let source = "eventmodeling\ntf 01 ui CartUI\ntf 02 cmd AddItem\ntf 03 evt ItemAdded"
-        let svg = try await renderDiagramSVG(source)
+        let svg = try await DiagramEngine.renderSVG(source: source)
         #expect(svg.contains("em-swimlane"))
         #expect(svg.contains("svg"))
     }

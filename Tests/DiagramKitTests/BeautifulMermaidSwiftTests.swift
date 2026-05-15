@@ -11,12 +11,11 @@ final class BeautifulMermaidSwiftTests: XCTestCase {
     }
 
     func testFlowSvgContainsNodes() async throws {
-        let svg = try await renderDiagramSVG(
-            """
+        let svg = try await DiagramEngine.renderSVG(
+            source: """
             graph TD
               A[Start] --> B[End]
-            """,
-            RenderOptions()
+            """
         )
         XCTAssertTrue(svg.contains("class=\"node\""), "Expected flow SVG to include rendered nodes")
     }
@@ -70,7 +69,7 @@ final class BeautifulMermaidSwiftTests: XCTestCase {
           E[Source] --> A
           D --> F[Sink]
         """
-        let svg = try await renderDiagramSVG(source, RenderOptions())
+        let svg = try await DiagramEngine.renderSVG(source: source)
         XCTAssertFalse(svg.isEmpty)
     }
 
@@ -89,7 +88,7 @@ final class BeautifulMermaidSwiftTests: XCTestCase {
           Error --> Idle : retry
           Complete --> [*]
         """
-        let svg = try await renderDiagramSVG(source, RenderOptions())
+        let svg = try await DiagramEngine.renderSVG(source: source)
         XCTAssertFalse(svg.isEmpty)
     }
 
@@ -159,13 +158,13 @@ final class BeautifulMermaidSwiftTests: XCTestCase {
 
     func testFlow6EdgeStyles() async throws {
         let source = "graph TD\n  A[Source] -->|solid| B[Target 1]\n  A -.->|dotted| C[Target 2]\n  A ==>|thick| D[Target 3]"
-        let svg = try await renderDiagramSVG(source, RenderOptions())
+        let svg = try await DiagramEngine.renderSVG(source: source)
         XCTAssertFalse(svg.isEmpty)
     }
 
     func testFlow8BidirectionalEdgeLabels() async throws {
         let source = "graph LR\n  A[Client] <-->|sync| B[Server]\n  B <-.->|heartbeat| C[Monitor]\n  C <==>|data| D[Storage]"
-        let svg = try await renderDiagramSVG(source, RenderOptions())
+        let svg = try await DiagramEngine.renderSVG(source: source)
         XCTAssertFalse(svg.isEmpty)
     }
 

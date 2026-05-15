@@ -16,7 +16,7 @@ final class FlowchartELKFallbackTests: XCTestCase {
 
     func testFlowchartElkRendersSVG() async throws {
         let source = "flowchart-elk LR\n  A[Start] --> B[End]"
-        let svg = try await renderDiagramSVG(source, RenderOptions())
+        let svg = try await DiagramEngine.renderSVG(source: source)
         XCTAssertTrue(svg.contains("<svg"), "flowchart-elk should produce valid SVG with dagre fallback")
         XCTAssertTrue(svg.contains("A"), "Node A should be present")
         XCTAssertTrue(svg.contains("B"), "Node B should be present")
@@ -27,7 +27,7 @@ final class FlowchartELKFallbackTests: XCTestCase {
         flowchart-elk TD
           A[Process]@{ shape: bang } --> B[Result]
         """
-        let svg = try await renderDiagramSVG(source, RenderOptions())
+        let svg = try await DiagramEngine.renderSVG(source: source)
         XCTAssertTrue(svg.contains("<svg"))
     }
 
@@ -35,7 +35,7 @@ final class FlowchartELKFallbackTests: XCTestCase {
         let source = "flowchart-elk\n  A --> B"
         let graph = try await DiagramEngine.parse(source)
         XCTAssertEqual(graph.type, .flowchart)
-        let svg = try await renderDiagramSVG(source, RenderOptions())
+        let svg = try await DiagramEngine.renderSVG(source: source)
         XCTAssertTrue(svg.contains("<svg"))
     }
 }

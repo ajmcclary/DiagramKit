@@ -205,7 +205,7 @@ final class BlockSvgTests: XCTestCase {
     }
 
     func testSVGRenderThroughPublicPipeline() async throws {
-        let svg = try await renderDiagramSVG("block\n  a b c")
+        let svg = try await DiagramEngine.renderSVG(source: "block\n  a b c")
         XCTAssertTrue(svg.contains("<svg"))
         XCTAssertTrue(svg.contains("class=\"block\""))
         XCTAssertTrue(svg.contains("flowchart-label"))
