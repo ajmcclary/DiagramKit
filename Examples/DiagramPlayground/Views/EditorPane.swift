@@ -21,6 +21,9 @@ struct EditorPane: View {
 
     var body: some View {
         VStack(spacing: 0) {
+            // Multi-tab bar (Phase 2 / Task 2.1)
+            EditorTabBar(store: store)
+
             // Tab bar with format picker on the trailing edge
             HStack(spacing: 8) {
                 EditorModePicker(

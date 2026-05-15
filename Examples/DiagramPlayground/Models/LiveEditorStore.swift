@@ -877,6 +877,48 @@ public final class LiveEditorStore {
         state.showCitations = flag
     }
 
+    // MARK: - Editor tabs (Phase 2 / Task 2.1)
+
+    /// Append `id` to `openTabs` if absent and make it active. If the
+    /// tab is already open this is a no-op besides activating it.
+    public func openTab(_ id: String) {
+        if !state.openTabs.contains(id) {
+            state.openTabs.append(id)
+        }
+        state.activeTabId = id
+        loadTabSource(id: id)
+    }
+
+    /// Make `id` the active tab. No-op when `id` is not currently open.
+    public func activateTab(_ id: String) {
+        guard state.openTabs.contains(id) else { return }
+        state.activeTabId = id
+        loadTabSource(id: id)
+    }
+
+    /// Remove `id` from `openTabs`. When the closed tab was active,
+    /// activation falls back to the first remaining tab; if no tabs
+    /// remain `activeTabId` becomes nil.
+    public func closeTab(_ id: String) {
+        guard state.openTabs.contains(id) else { return }
+        state.openTabs.removeAll { $0 == id }
+        if state.activeTabId == id {
+            state.activeTabId = state.openTabs.first
+            if let next = state.openTabs.first {
+                loadTabSource(id: next)
+            }
+        }
+    }
+
+    /// Apply the source for a given tab id. Looks the entry up in
+    /// `TestDiagrams.all` and falls back to leaving the source
+    /// unchanged if no match exists (tabs may carry pinned ids that
+    /// haven't been loaded yet, e.g. fresh corpus entries).
+    private func loadTabSource(id: String) {
+        guard let entry = TestDiagrams.all.first(where: { $0.id == id }) else { return }
+        setSource(entry.source, origin: .system)
+    }
+
     // MARK: - Inspector pane (Phase 7)
 
     /// Toggle the floating Inspector drawer.

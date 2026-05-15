@@ -86,6 +86,15 @@ public struct LiveEditorState: Codable, Equatable, Sendable {
     /// Inspector. Phase 2 routes PreviewCanvas through this.
     public var renderBackend: RenderBackend
 
+    /// Ordered list of open editor tabs (by sample id). Phase 2 wires
+    /// the EditorTabBar; tab activation drives `state.source` via
+    /// `LiveEditorStore.activateTab(_:)`.
+    public var openTabs: [String]
+
+    /// Currently focused tab id. Always a member of `openTabs` when
+    /// `openTabs` is non-empty.
+    public var activeTabId: String?
+
     // MARK: - Init
 
     public init(
@@ -104,7 +113,9 @@ public struct LiveEditorState: Codable, Equatable, Sendable {
         showCitations: Bool = false,
         sidebarSearch: String = "",
         sidebarFormatFilter: SourceFormat? = nil,
-        renderBackend: RenderBackend = .svg
+        renderBackend: RenderBackend = .svg,
+        openTabs: [String] = Self.defaultOpenTabs,
+        activeTabId: String? = nil
     ) {
         self.source = source
         self.sourceFormat = sourceFormat
@@ -122,6 +133,8 @@ public struct LiveEditorState: Codable, Equatable, Sendable {
         self.sidebarSearch = sidebarSearch
         self.sidebarFormatFilter = sidebarFormatFilter
         self.renderBackend = renderBackend
+        self.openTabs = openTabs
+        self.activeTabId = activeTabId ?? openTabs.first
     }
 
     // MARK: - Codable (handle legacy snapshots without sourceFormat)
@@ -143,6 +156,8 @@ public struct LiveEditorState: Codable, Equatable, Sendable {
         case sidebarSearch
         case sidebarFormatFilter
         case renderBackend
+        case openTabs
+        case activeTabId
     }
 
     public init(from decoder: Decoder) throws {
@@ -163,6 +178,10 @@ public struct LiveEditorState: Codable, Equatable, Sendable {
         self.sidebarSearch = try c.decodeIfPresent(String.self, forKey: .sidebarSearch) ?? ""
         self.sidebarFormatFilter = try c.decodeIfPresent(SourceFormat.self, forKey: .sidebarFormatFilter)
         self.renderBackend = try c.decodeIfPresent(RenderBackend.self, forKey: .renderBackend) ?? .svg
+        let decodedTabs = try c.decodeIfPresent([String].self, forKey: .openTabs) ?? Self.defaultOpenTabs
+        self.openTabs = decodedTabs
+        let decodedActive = try c.decodeIfPresent(String.self, forKey: .activeTabId)
+        self.activeTabId = decodedActive ?? decodedTabs.first
     }
 
     // MARK: - Defaults
@@ -173,6 +192,15 @@ public struct LiveEditorState: Codable, Equatable, Sendable {
     """
 
     public static let defaultThemeName = "Zinc Light"
+
+    /// Initial tab set surfaced by the v2 PlaygroundShell. Picks one
+    /// each from the flowchart / timeline / gantt families so the
+    /// design's three-tab default has real samples behind it.
+    public static let defaultOpenTabs: [String] = [
+        "flow-1-simple",
+        "timeline-1-basic",
+        "gantt-1-basic"
+    ]
 }
 
 // MARK: - Supporting enums
