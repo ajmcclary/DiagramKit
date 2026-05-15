@@ -19,8 +19,8 @@ enum MermaidExportHelpers {
             case "\\": result.append("\\\\")
             case "\n", "\r":
                 if result.last != " " { result.append(" ") }
-                diagnostics.append(DiagramDiagnostic(
-                    severity: .info,
+                diagnostics.append(.lossyTransform(
+                    .labelNewlineEscape,
                     message: "Newline in bracket label replaced with space"
                 ))
             default:
@@ -44,8 +44,8 @@ enum MermaidExportHelpers {
             case "\\": result.append("\\\\")
             case "\n", "\r":
                 if result.last != " " { result.append(" ") }
-                diagnostics.append(DiagramDiagnostic(
-                    severity: .info,
+                diagnostics.append(.lossyTransform(
+                    .labelNewlineEscape,
                     message: "Newline in edge label replaced with space"
                 ))
             default:
@@ -145,8 +145,8 @@ enum MermaidExportHelpers {
             case "\\": inner.append("\\\\")
             case "\n", "\r":
                 inner.append(" ")
-                diagnostics.append(DiagramDiagnostic(
-                    severity: .info,
+                diagnostics.append(.lossyTransform(
+                    .labelNewlineEscape,
                     message: "Newline in quoted value replaced with space"
                 ))
             default:
