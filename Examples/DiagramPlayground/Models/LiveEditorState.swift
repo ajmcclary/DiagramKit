@@ -67,6 +67,15 @@ public struct LiveEditorState: Codable, Equatable, Sendable {
     /// Whether the floating Inspector drawer is currently open.
     public var inspectorOpen: Bool
 
+    // MARK: - v2 Workspace shell
+
+    /// Active workspace mode (Code / Visual / Split). Drives the
+    /// Titlebar picker and the body layout in `PlaygroundShell`.
+    public var workspaceMode: WorkspaceMode
+
+    /// Whether per-screen citation pins overlay the active surface.
+    public var showCitations: Bool
+
     // MARK: - Init
 
     public init(
@@ -80,7 +89,9 @@ public struct LiveEditorState: Codable, Equatable, Sendable {
         zoomScale: CGFloat? = nil,
         panOffset: CGSize? = nil,
         updateMode: UpdateMode = .auto,
-        inspectorOpen: Bool = false
+        inspectorOpen: Bool = false,
+        workspaceMode: WorkspaceMode = .default,
+        showCitations: Bool = false
     ) {
         self.source = source
         self.sourceFormat = sourceFormat
@@ -93,6 +104,8 @@ public struct LiveEditorState: Codable, Equatable, Sendable {
         self.panOffset = panOffset
         self.updateMode = updateMode
         self.inspectorOpen = inspectorOpen
+        self.workspaceMode = workspaceMode
+        self.showCitations = showCitations
     }
 
     // MARK: - Codable (handle legacy snapshots without sourceFormat)
@@ -109,6 +122,8 @@ public struct LiveEditorState: Codable, Equatable, Sendable {
         case panOffset
         case updateMode
         case inspectorOpen
+        case workspaceMode
+        case showCitations
     }
 
     public init(from decoder: Decoder) throws {
@@ -124,6 +139,8 @@ public struct LiveEditorState: Codable, Equatable, Sendable {
         self.panOffset = try c.decodeIfPresent(CGSize.self, forKey: .panOffset)
         self.updateMode = try c.decodeIfPresent(UpdateMode.self, forKey: .updateMode) ?? .auto
         self.inspectorOpen = try c.decodeIfPresent(Bool.self, forKey: .inspectorOpen) ?? false
+        self.workspaceMode = try c.decodeIfPresent(WorkspaceMode.self, forKey: .workspaceMode) ?? .default
+        self.showCitations = try c.decodeIfPresent(Bool.self, forKey: .showCitations) ?? false
     }
 
     // MARK: - Defaults

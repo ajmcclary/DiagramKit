@@ -863,6 +863,20 @@ public final class LiveEditorStore {
         }
     }
 
+    // MARK: - v2 Workspace shell (Phase 1)
+
+    /// Switch the active workspace mode (Code / Visual / Split).
+    /// Visual/Split are wired by later phases; Phase 1 already accepts
+    /// every value so the codec round-trip is exercisable.
+    public func setWorkspaceMode(_ mode: WorkspaceMode) {
+        state.workspaceMode = mode
+    }
+
+    /// Toggle the per-screen citation overlay.
+    public func setShowCitations(_ flag: Bool) {
+        state.showCitations = flag
+    }
+
     // MARK: - Inspector pane (Phase 7)
 
     /// Toggle the floating Inspector drawer.
