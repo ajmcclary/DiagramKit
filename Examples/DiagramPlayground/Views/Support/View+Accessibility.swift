@@ -97,6 +97,29 @@ public enum A11yID {
 
     public enum Statusbar {
         public static let backend = "statusbar.backend"
+        public static let diagnostics = "statusbar.diagnostics"
+    }
+
+    public enum Diagnostics {
+        public static let drawer = "diagnostics.drawer"
+        public static let categoryList = "diagnostics.categoryList"
+        public static let rowList = "diagnostics.rowList"
+        public static let explainPopover = "diagnostics.explainPopover"
+        public static func severityChip(_ value: String) -> String {
+            "diagnostics.severity.\(value)"
+        }
+        public static func tierChip(_ value: String) -> String {
+            "diagnostics.tier.\(value)"
+        }
+        public static func pairedChip(_ value: String) -> String {
+            "diagnostics.paired.\(value)"
+        }
+        public static func categoryChip(_ value: String) -> String {
+            "diagnostics.category.\(value)"
+        }
+        public static func explainButton(forRow id: String) -> String {
+            "diagnostics.explain.\(id)"
+        }
     }
 
     public enum Visual {

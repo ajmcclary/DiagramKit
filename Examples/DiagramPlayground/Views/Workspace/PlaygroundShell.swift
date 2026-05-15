@@ -18,25 +18,43 @@ struct PlaygroundShell: View {
     @AppStorage("playground.shell.inspectorVisible") private var inspectorVisible = true
 
     var body: some View {
-        VStack(spacing: 0) {
-            TitlebarView(store: store)
-            Divider()
-            HStack(spacing: 0) {
-                if sidebarVisible {
-                    SidebarView(store: store)
-                        .frame(width: 260)
-                    Divider()
+        ZStack(alignment: .bottom) {
+            VStack(spacing: 0) {
+                TitlebarView(store: store)
+                Divider()
+                HStack(spacing: 0) {
+                    if sidebarVisible {
+                        SidebarView(store: store)
+                            .frame(width: 260)
+                        Divider()
+                    }
+                    bodyForMode
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    if inspectorVisible {
+                        Divider()
+                        InspectorView(store: store)
+                    }
                 }
-                bodyForMode
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-                if inspectorVisible {
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                if store.state.diagDrawer.isOpen {
                     Divider()
-                    InspectorView(store: store)
+                    DiagnosticsDrawer(store: store)
+                        .transition(.move(edge: .bottom).combined(with: .opacity))
+                }
+                Divider()
+                StatusbarView(store: store)
+            }
+            .animation(.easeInOut(duration: 0.18), value: store.state.diagDrawer.isOpen)
+
+            // Explain popover overlays the entire shell.
+            if let target = store.diagnosticExplainTarget {
+                ZStack {
+                    Color.black.opacity(0.25)
+                        .ignoresSafeArea()
+                        .onTapGesture { store.dismissExplain() }
+                    DiagnosticExplainPopover(store: store, row: target)
                 }
             }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-            Divider()
-            StatusbarView(store: store)
         }
         #if os(macOS)
         .frame(minWidth: 900, minHeight: 600)

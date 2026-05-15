@@ -1093,6 +1093,18 @@ public final class LiveEditorStore {
         state.diagDrawer.paired = filter
     }
 
+    /// Diagnostic row currently feeding the Explain popover, or nil
+    /// when no popover is on screen. Transient — not codec-persisted.
+    public var diagnosticExplainTarget: DrawerDiagnostic?
+
+    public func presentExplain(for diagnostic: DrawerDiagnostic) {
+        diagnosticExplainTarget = diagnostic
+    }
+
+    public func dismissExplain() {
+        diagnosticExplainTarget = nil
+    }
+
     /// Map editor diagnostics into the drawer's tier-aware row model.
     /// Phase 6 derives a tier from EditorDiagnostic.source — the
     /// playground store doesn't yet preserve typed `DiagnosticCategory`
