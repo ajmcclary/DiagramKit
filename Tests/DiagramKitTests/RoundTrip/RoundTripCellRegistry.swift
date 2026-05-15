@@ -3,6 +3,10 @@ import DiagramKitImport
 import DiagramKitExport
 import DiagramKit
 import DiagramKitMermaid
+import DiagramKitD2
+import DiagramKitGraphviz
+import DiagramKitStructurizr
+import DiagramKitPlantUML
 import DiagramKitModel
 
 /// Static declarations for every same-format round-trip cell in the matrix.
@@ -47,8 +51,15 @@ enum RoundTripCellRegistry {
         allowedLosses: [.idSanitization, .boundaryFlatten, .c4SlotDrop]
     )
 
+    static let d2Flowchart = RoundTripCell(
+        importer: D2Importer(),
+        exporter: D2Exporter(),
+        family: DiagramType.flowchart,
+        allowedLosses: [.subgraphFlatten, .styleDrop, .shapeDowngrade, .d2DuplicateOverride, .idSanitization]
+    )
+
     // Subsequent cells declared by later tasks:
-    //   d2Flowchart, dotFlowchart, structurizrC4,
+    //   dotFlowchart, structurizrC4,
     //   plantumlSequence, plantumlClass, plantumlState,
     //   plantumlMindmap, plantumlGantt, plantumlC4
 }

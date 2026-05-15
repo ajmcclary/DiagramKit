@@ -59,4 +59,15 @@ struct SameFormatRoundTripTests {
             fixture: fixture
         )
     }
+
+    @Test(
+        "D2 flowchart round-trip",
+        arguments: try fixtures(for: "d2-flowchart", fromRoot: roundTripResourcesRoot())
+    )
+    func d2Flowchart(fixture: RoundTripFixture) throws {
+        try runSameFormatRoundTrip(
+            cell: RoundTripCellRegistry.d2Flowchart,
+            fixture: fixture
+        )
+    }
 }
