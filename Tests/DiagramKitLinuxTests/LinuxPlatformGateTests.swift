@@ -173,4 +173,33 @@ struct LinuxPlatformGateTests {
         let output = try await DiagramEngine.renderASCII(source: source)
         #expect(!output.text.isEmpty)
     }
+
+    @Test func treeViewIsLinuxSupported() {
+        let descriptor = DiagramRegistry.all.first { $0.type == .treeView }
+        #expect(descriptor?.linuxSupport == true)
+        #expect(descriptor?.linuxUnsupportedReason == nil)
+    }
+
+    @Test func treeViewRenderSVGSucceedsOnLinux() async throws {
+        let source = """
+        treeView-beta
+            src/
+                index.js
+            package.json
+        """
+        let svg = try await DiagramEngine.renderSVG(source: source)
+        #expect(svg.contains("<svg"))
+        #expect(svg.contains("</svg>"))
+        #expect(!svg.lowercased().contains("nan"))
+    }
+
+    @Test func treeViewRenderASCIISucceedsOnLinux() async throws {
+        let source = """
+        treeView-beta
+            src/
+            package.json
+        """
+        let output = try await DiagramEngine.renderASCII(source: source)
+        #expect(!output.text.isEmpty)
+    }
 }

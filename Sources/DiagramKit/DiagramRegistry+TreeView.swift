@@ -27,19 +27,10 @@ extension DiagramRegistry {
             return value
         },
         layout: { diagram, _ in
-            #if canImport(UIKit) || canImport(AppKit)
             return layoutTreeViewDiagram(diagram)
-            #else
-            // Linux: layoutTreeViewDiagram depends on BMColor + CTLine.
-            // Unreachable until the portable text-measurement shim lands.
-            _ = diagram
-            throw DiagramStructuralError.payloadMismatch(.treeView)
-            #endif
         },
         positioned: { graph, positioned in
             PositionedGraph(diagram: graph, width: positioned.viewBoxWidth, height: positioned.viewBoxHeight, content: .treeView(positioned))
-        },
-        linuxSupport: false,
-        linuxUnsupportedReason: "requires CoreText text-measurement"
+        }
     )
 }
