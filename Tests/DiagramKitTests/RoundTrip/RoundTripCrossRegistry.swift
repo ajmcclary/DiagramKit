@@ -1,0 +1,33 @@
+import DiagramKitTestSupport
+
+/// Cross-format additional-allowed-loss sets per ordered direction. Each entry
+/// names the foreign format's narrower vocabulary losses that surface only
+/// when that format is the intermediate leg of an A→B→A round-trip. The
+/// cells themselves come from `RoundTripCellRegistry` directly at the @Test
+/// call sites — keeping this registry payload-free avoids generic-shape
+/// gymnastics around RoundTripCell<I, E>.
+enum RoundTripCrossRegistry {
+    // Flowchart pairs
+    static let mermaidD2Flowchart: Set<RoundTripLossKind> = [.subgraphFlatten, .styleDrop, .shapeDowngrade]
+    static let d2MermaidFlowchart: Set<RoundTripLossKind> = [.idSanitization, .shapeDowngrade]
+    static let mermaidDotFlowchart: Set<RoundTripLossKind> = [.subgraphFlatten, .styleDrop, .shapeDowngrade]
+    static let dotMermaidFlowchart: Set<RoundTripLossKind> = [.idSanitization, .shapeDowngrade]
+    static let d2DotFlowchart: Set<RoundTripLossKind> = [.subgraphFlatten, .styleDrop, .shapeDowngrade]
+    static let dotD2Flowchart: Set<RoundTripLossKind> = [.subgraphFlatten, .styleDrop, .shapeDowngrade]
+
+    // C4 pairs
+    static let mermaidStructurizrC4: Set<RoundTripLossKind> = [.idSanitization, .boundaryFlatten, .c4SlotDrop, .configDrop]
+    static let structurizrMermaidC4: Set<RoundTripLossKind> = [.idSanitization, .boundaryFlatten, .c4SlotDrop, .configDrop]
+    static let mermaidPlantumlC4: Set<RoundTripLossKind> = [.idSanitization, .c4SlotDrop, .configDrop]
+    static let plantumlMermaidC4: Set<RoundTripLossKind> = [.idSanitization, .c4SlotDrop, .configDrop]
+    static let plantumlStructurizrC4: Set<RoundTripLossKind> = [.idSanitization, .boundaryFlatten, .c4SlotDrop]
+    static let structurizrPlantumlC4: Set<RoundTripLossKind> = [.idSanitization, .boundaryFlatten, .c4SlotDrop]
+
+    // Sequence pair
+    static let mermaidPlantumlSequence: Set<RoundTripLossKind> = [.idSanitization, .configDrop]
+    static let plantumlMermaidSequence: Set<RoundTripLossKind> = [.idSanitization, .configDrop]
+
+    // Class pair
+    static let mermaidPlantumlClass: Set<RoundTripLossKind> = [.idSanitization]
+    static let plantumlMermaidClass: Set<RoundTripLossKind> = [.idSanitization]
+}
