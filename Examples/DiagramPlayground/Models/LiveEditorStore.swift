@@ -979,6 +979,42 @@ public final class LiveEditorStore {
         state.demoStepperVisible = flag
     }
 
+    /// Undo entries surfaced by UndoTimelineView. Phase 3 / Task 3.6
+    /// fills this in by recording mutation history; Task 3.2 ships
+    /// a placeholder that derives the current undo/redo action names
+    /// from the persistent editor.
+    public var undoEntries: [UndoEntry] {
+        var entries: [UndoEntry] = []
+        if let editor {
+            if editor.canUndo, !editor.undoActionName.isEmpty {
+                entries.append(UndoEntry(displayLabel: editor.undoActionName, isCurrent: true))
+            }
+            if editor.canRedo, !editor.redoActionName.isEmpty {
+                entries.append(UndoEntry(displayLabel: editor.redoActionName, isCurrent: false))
+            }
+        }
+        return entries
+    }
+}
+
+// MARK: - UndoEntry
+
+public struct UndoEntry: Hashable, Sendable {
+    public let displayLabel: String
+    public let isCurrent: Bool
+    public init(displayLabel: String, isCurrent: Bool) {
+        self.displayLabel = displayLabel
+        self.isCurrent = isCurrent
+    }
+}
+
+@available(iOS 26.0, macOS 26.0, macCatalyst 26.0, *)
+extension LiveEditorStore {
+    /// Convenience kept here so call sites in Visual views read clean.
+    public var hasFlowchartDocument: Bool {
+        editor?.document.type == .flowchart
+    }
+
     // MARK: - Inspector pane (Phase 7)
 
     /// Toggle the floating Inspector drawer.

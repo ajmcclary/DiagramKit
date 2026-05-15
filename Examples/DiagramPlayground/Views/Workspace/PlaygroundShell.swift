@@ -57,10 +57,7 @@ struct PlaygroundShell: View {
                     .frame(minWidth: 320)
             }
         case .visual:
-            // Phase 3 wires VisualPane here. Until then, fall back to
-            // the Code surface so an out-of-band workspaceMode write
-            // can't blank the body.
-            EditorPane(store: store)
+            VisualPane(store: store)
         }
     }
 }

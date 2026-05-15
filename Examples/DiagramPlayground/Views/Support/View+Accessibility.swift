@@ -98,6 +98,23 @@ public enum A11yID {
     public enum Statusbar {
         public static let backend = "statusbar.backend"
     }
+
+    public enum Visual {
+        public static let pane = "visual.pane"
+        public static let canvas = "visual.canvas"
+        public static let toolPalette = "visual.toolPalette"
+        public static func tool(_ name: String) -> String { "visual.tool.\(name)" }
+        public static let selectionHUD = "visual.selectionHUD"
+        public static let undoTimeline = "visual.undoTimeline"
+        public static let stateStepper = "visual.stateStepper"
+        public static func stateBanner(_ stage: String) -> String {
+            "visual.state.\(stage).banner"
+        }
+        public static func node(_ id: String) -> String { "visual.node.\(id)" }
+        public static let nodePopover = "visual.nodePopover"
+        public static let edgePopover = "visual.edgePopover"
+        public static let quickFixCard = "visual.quickFixCard"
+    }
 }
 
 // MARK: - View modifiers
