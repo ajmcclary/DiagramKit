@@ -840,6 +840,7 @@ public final class LiveEditorStore {
             if let source = editor.source, source != state.source {
                 setSource(source, origin: .mutation)
             }
+            recordUndoEntry(undoKind(for: mutation), label: undoLabel(for: mutation))
         } catch {
             lastMutationError = error.localizedDescription
             throw error
@@ -857,9 +858,44 @@ public final class LiveEditorStore {
             if let source = editor.source, source != state.source {
                 setSource(source, origin: .mutation)
             }
+            recordUndoEntry(undoKind(for: mutation), label: undoLabel(for: mutation))
         } catch {
             lastMutationError = error.localizedDescription
             throw error
+        }
+    }
+
+    private func undoKind(for mutation: DiagramMutation) -> UndoEntry.Kind {
+        switch mutation {
+        case .deleteElement: return .deleteElement
+        case .setLabel:      return .setLabel
+        case .setTitle:      return .setTitle
+        case .noop:          return .noop
+        }
+    }
+
+    private func undoLabel(for mutation: DiagramMutation) -> String {
+        switch mutation {
+        case .deleteElement(let sel):     return "Delete \(sel.elementID)"
+        case .setLabel(let sel, let lbl): return "Label \(sel.elementID) → \(lbl)"
+        case .setTitle(let title):        return "Title → \(title ?? "—")"
+        case .noop:                       return "No-op"
+        }
+    }
+
+    private func undoKind(for mutation: FlowchartMutation) -> UndoEntry.Kind {
+        switch mutation {
+        case .insertNode: return .insertNode
+        case .insertEdge: return .insertEdge
+        }
+    }
+
+    private func undoLabel(for mutation: FlowchartMutation) -> String {
+        switch mutation {
+        case .insertNode(let id, let label, _):
+            return "Insert node \(id) (\(label))"
+        case .insertEdge(_, let from, let to, _):
+            return "Insert edge \(from.elementID) → \(to.elementID)"
         }
     }
 
@@ -979,32 +1015,73 @@ public final class LiveEditorStore {
         state.demoStepperVisible = flag
     }
 
-    /// Undo entries surfaced by UndoTimelineView. Phase 3 / Task 3.6
-    /// fills this in by recording mutation history; Task 3.2 ships
-    /// a placeholder that derives the current undo/redo action names
-    /// from the persistent editor.
+    /// Recorded mutation history surfaced by UndoTimelineView. Each
+    /// successful performMutation / performFlowchartMutation call
+    /// appends a kind-tagged entry; undo / redo move `_undoCursor`
+    /// without removing entries so future state can be redone.
+    private var _recordedUndoEntries: [UndoEntry] = []
+    private var _undoCursor: Int = 0
+
     public var undoEntries: [UndoEntry] {
-        var entries: [UndoEntry] = []
-        if let editor {
-            if editor.canUndo, !editor.undoActionName.isEmpty {
-                entries.append(UndoEntry(displayLabel: editor.undoActionName, isCurrent: true))
-            }
-            if editor.canRedo, !editor.redoActionName.isEmpty {
-                entries.append(UndoEntry(displayLabel: editor.redoActionName, isCurrent: false))
-            }
+        // Mark entries past the cursor as future (dimmed); entries up
+        // to the cursor are past with the current one highlighted.
+        _recordedUndoEntries.enumerated().map { index, entry in
+            UndoEntry(
+                displayLabel: entry.displayLabel,
+                kind: entry.kind,
+                isCurrent: index == _undoCursor - 1,
+                isFuture: index >= _undoCursor
+            )
         }
-        return entries
+    }
+
+    func recordUndoEntry(_ kind: UndoEntry.Kind, label: String) {
+        // Drop any "future" entries that the new mutation invalidates
+        // (standard redo-stack semantics).
+        if _undoCursor < _recordedUndoEntries.count {
+            _recordedUndoEntries.removeSubrange(_undoCursor..<_recordedUndoEntries.count)
+        }
+        _recordedUndoEntries.append(
+            UndoEntry(displayLabel: label, kind: kind, isCurrent: false, isFuture: false)
+        )
+        _undoCursor = _recordedUndoEntries.count
+    }
+
+    func moveUndoCursor(by delta: Int) {
+        let new = _undoCursor + delta
+        guard new >= 0 && new <= _recordedUndoEntries.count else { return }
+        _undoCursor = new
     }
 }
 
 // MARK: - UndoEntry
 
 public struct UndoEntry: Hashable, Sendable {
+    public enum Kind: String, Sendable {
+        case noop
+        case setLabel
+        case setTitle
+        case insertNode
+        case insertEdge
+        case deleteElement
+        case groupIntoSubgraph
+    }
+
     public let displayLabel: String
+    public let kind: Kind
     public let isCurrent: Bool
-    public init(displayLabel: String, isCurrent: Bool) {
+    public let isFuture: Bool
+
+    public init(
+        displayLabel: String,
+        kind: Kind = .noop,
+        isCurrent: Bool = false,
+        isFuture: Bool = false
+    ) {
         self.displayLabel = displayLabel
+        self.kind = kind
         self.isCurrent = isCurrent
+        self.isFuture = isFuture
     }
 }
 
@@ -1033,11 +1110,13 @@ extension LiveEditorStore {
     /// NotificationCenter wiring — no manual tickle needed.
     public func undoStructural() {
         editor?.undoManager.undo()
+        moveUndoCursor(by: -1)
     }
 
     /// Delegate to `editor.undoManager.redo()`.
     public func redoStructural() {
         editor?.undoManager.redo()
+        moveUndoCursor(by: 1)
     }
 
     /// Convert a view-space tap into a selection on `editor`.
