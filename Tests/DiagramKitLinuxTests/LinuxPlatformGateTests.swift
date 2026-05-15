@@ -26,29 +26,11 @@ struct LinuxPlatformGateTests {
         #expect(descriptor?.linuxUnsupportedReason == nil)
     }
 
-    // MARK: - Per-family linuxSupport
+    // MARK: - Zero-unsupported lockdown
 
-    @Test func ishikawaIsLinuxUnsupported() {
-        let descriptor = DiagramRegistry.all.first { $0.type == .ishikawa }
-        #expect(descriptor?.linuxSupport == false)
-        #expect(descriptor?.linuxUnsupportedReason?.isEmpty == false)
-    }
-
-    @Test func treeViewIsLinuxUnsupported() {
-        let descriptor = DiagramRegistry.all.first { $0.type == .treeView }
-        #expect(descriptor?.linuxSupport == false)
-        #expect(descriptor?.linuxUnsupportedReason?.isEmpty == false)
-    }
-
-    @Test func eventModelingIsLinuxUnsupported() {
-        let descriptor = DiagramRegistry.all.first { $0.type == .eventModeling }
-        #expect(descriptor?.linuxSupport == false)
-        #expect(descriptor?.linuxUnsupportedReason?.isEmpty == false)
-    }
-
-    @Test func exactlyThreeFamiliesAreLinuxUnsupported() {
+    @Test func exactlyZeroFamiliesAreLinuxUnsupported() {
         let unsupported = DiagramRegistry.all.filter { !$0.linuxSupport }.map(\.type)
-        #expect(Set(unsupported) == Set<DiagramType>([.ishikawa, .treeView, .eventModeling]))
+        #expect(unsupported.isEmpty, "Expected zero linuxSupport==false families, got: \(unsupported)")
     }
 
     // MARK: - DiagramEngine.linuxSupport public API
@@ -59,79 +41,23 @@ struct LinuxPlatformGateTests {
         #expect(result.reason == nil)
     }
 
-    @Test func linuxSupportReturnsFalseForIshikawa() {
-        let result = DiagramEngine.linuxSupport(for: .ishikawa)
-        #expect(result.supported == false)
-        #expect(result.reason?.isEmpty == false)
-    }
-
-    @Test(arguments: [DiagramType.ishikawa, .treeView, .eventModeling])
-    func linuxSupportReportsAllThreeUnsupported(family: DiagramType) {
-        let result = DiagramEngine.linuxSupport(for: family)
-        #expect(result.supported == false)
-        #expect(result.reason?.isEmpty == false)
-    }
-
-    // MARK: - DiagramPipeline.renderSVG enforcement
-
-    @Test func pipelineRenderSVGGatesIshikawaOnLinux() throws {
-        let source = "ishikawa\nProblem\nCause A\nCause B"
-        #if os(Linux)
-        do {
-            _ = try DiagramPipeline.renderSVG(source: source)
-            Issue.record("expected DiagramPipeline.renderSVG(source:) to throw on Linux for ishikawa")
-        } catch let error as DiagramError {
-            if case let .unsupportedOnPlatform(family, reason, platform) = error {
-                #expect(family == .ishikawa)
-                #expect(reason.isEmpty == false)
-                #expect(platform == "Linux")
-            } else {
-                Issue.record("expected .unsupportedOnPlatform, got \(error)")
-            }
+    /// Returns true when the SVG contains no NaN/Infinity numeric literals.
+    /// Looks for the patterns Swift's `String(describing: Double.nan)` emits
+    /// when serialized into SVG (`nan`, `-nan`, `inf`, `-inf`) as attribute
+    /// values or inside coordinate / viewBox lists. Word-internal substrings
+    /// like "dominant-baseline" are deliberately ignored.
+    private func _svgHasNoSerializedNaN(_ svg: String) -> Bool {
+        let lower = svg.lowercased()
+        // Attribute values: `="nan"`, `="-nan"`, `="inf"`, `="-inf"`.
+        for needle in ["=\"nan\"", "=\"-nan\"", "=\"inf\"", "=\"-inf\""] {
+            if lower.contains(needle) { return false }
         }
-        #else
-        // On Apple platforms the helper is a no-op; just confirm we don't
-        // see DiagramError.unsupportedOnPlatform when running this source.
-        do {
-            _ = try DiagramPipeline.renderSVG(source: source)
-        } catch let error as DiagramError {
-            if case .unsupportedOnPlatform = error {
-                Issue.record("did not expect .unsupportedOnPlatform on non-Linux platform")
-            }
-            // Other DiagramError cases are fine — the test isn't asserting success here.
-        } catch {
-            // Non-DiagramError throws are fine (the fixture might be incomplete).
+        // Inside attribute lists (viewBox, transform, points): bare tokens
+        // separated by space, comma, or paren.
+        for delim in [" nan ", " -nan ", " inf ", " -inf ", ",nan", ",-nan", ",inf", ",-inf", "(nan", "(-nan", "(inf", "(-inf"] {
+            if lower.contains(delim) { return false }
         }
-        #endif
-    }
-
-    // MARK: - End-to-end via DiagramEngine
-
-    @Test func engineRenderSVGGatesIshikawaOnLinux() async throws {
-        let source = "ishikawa\nProblem\nCause A\nCause B"
-        #if os(Linux)
-        do {
-            _ = try await DiagramEngine.renderSVG(source: source)
-            Issue.record("expected DiagramEngine.renderSVG(source:) to throw on Linux for ishikawa")
-        } catch let error as DiagramError {
-            if case let .unsupportedOnPlatform(family, _, platform) = error {
-                #expect(family == .ishikawa)
-                #expect(platform == "Linux")
-            } else {
-                Issue.record("expected .unsupportedOnPlatform, got \(error)")
-            }
-        }
-        #else
-        do {
-            _ = try await DiagramEngine.renderSVG(source: source)
-        } catch let error as DiagramError {
-            if case .unsupportedOnPlatform = error {
-                Issue.record("did not expect .unsupportedOnPlatform on non-Linux")
-            }
-        } catch {
-            // Other failures are fine.
-        }
-        #endif
+        return true
     }
 
     @Test func parseImportResultDoesNotGateOnLinux() async throws {
@@ -160,7 +86,7 @@ struct LinuxPlatformGateTests {
         let svg = try await DiagramEngine.renderSVG(source: source)
         #expect(svg.contains("<svg"))
         #expect(svg.contains("</svg>"))
-        #expect(!svg.lowercased().contains("nan"))
+        #expect(_svgHasNoSerializedNaN(svg))
     }
 
     @Test func ishikawaRenderASCIISucceedsOnLinux() async throws {
@@ -190,7 +116,7 @@ struct LinuxPlatformGateTests {
         let svg = try await DiagramEngine.renderSVG(source: source)
         #expect(svg.contains("<svg"))
         #expect(svg.contains("</svg>"))
-        #expect(!svg.lowercased().contains("nan"))
+        #expect(_svgHasNoSerializedNaN(svg))
     }
 
     @Test func treeViewRenderASCIISucceedsOnLinux() async throws {
@@ -214,7 +140,7 @@ struct LinuxPlatformGateTests {
         let svg = try await DiagramEngine.renderSVG(source: source)
         #expect(svg.contains("<svg"))
         #expect(svg.contains("</svg>"))
-        #expect(!svg.lowercased().contains("nan"))
+        #expect(_svgHasNoSerializedNaN(svg))
     }
 
     @Test func eventModelingRenderASCIISucceedsOnLinux() async throws {
