@@ -295,6 +295,26 @@ struct DiagramEditorMutationTests {
         #expect(model.nodesInOrder.contains { $0.id == "A" })
     }
 
+    @Test("deleteElement removes state-diagram node and incident edges")
+    func deleteElementStateDiagramNode() async throws {
+        let doc = stateDoc(["A", "B", "C"], edges: [("A", "B"), ("B", "C")])
+        let editor = DiagramEditor(
+            document: doc,
+            preferredExportFormat: .mermaid,
+            exportRegistry: mockRegistry()
+        )
+        let sel = DiagramSelection(diagramType: .stateDiagram, elementID: "node:B")
+        try await editor.perform(.deleteElement(sel))
+
+        guard case .stateDiagram(let model) = editor.document.payload else {
+            #expect(Bool(false), "expected stateDiagram")
+            return
+        }
+        #expect(model.nodesInOrder.count == 2)
+        #expect(!model.nodesInOrder.contains(where: { $0.id == "B" }))
+        #expect(model.edges.count == 0)
+    }
+
     // MARK: - setLabel
 
     @Test("setLabel on node updates label")
