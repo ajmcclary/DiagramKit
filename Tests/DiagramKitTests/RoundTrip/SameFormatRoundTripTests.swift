@@ -125,4 +125,15 @@ struct SameFormatRoundTripTests {
             fixture: fixture
         )
     }
+
+    @Test(
+        "PlantUML mindmap round-trip",
+        arguments: try fixtures(for: "plantuml-mindmap", fromRoot: roundTripResourcesRoot())
+    )
+    func plantumlMindmap(fixture: RoundTripFixture) throws {
+        try runSameFormatRoundTrip(
+            cell: RoundTripCellRegistry.plantumlMindmap,
+            fixture: fixture
+        )
+    }
 }

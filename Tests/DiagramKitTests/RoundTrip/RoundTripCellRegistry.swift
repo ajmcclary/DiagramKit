@@ -93,6 +93,13 @@ enum RoundTripCellRegistry {
         allowedLosses: [.idSanitization]
     )
 
+    static let plantumlMindmap = RoundTripCell(
+        importer: PlantUMLImporter(),
+        exporter: PlantUMLExporter(),
+        family: DiagramType.mindmap,
+        allowedLosses: [.idSanitization]
+    )
+
     // Subsequent cells declared by later tasks:
-    //   plantumlMindmap, plantumlGantt, plantumlC4
+    //   plantumlGantt, plantumlC4
 }
