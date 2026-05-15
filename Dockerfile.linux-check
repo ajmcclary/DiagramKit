@@ -18,8 +18,9 @@
 #
 # Functional Linux layout/rendering for layouts that depend on text
 # measurement (CTLineGetBoundsWithOptions) is deferred — the call sites
-# throw MermaidStructuralError.payloadMismatch on Linux. A portable
-# text-measurement shim is the Stage 2.5 follow-up.
+# throw DiagramError.unsupportedOnPlatform on Linux for ishikawa,
+# treeView, and eventModeling. A portable text-measurement shim is the
+# Stage 2.5 follow-up.
 
 FROM docker.io/library/swift:6.3.1-noble
 
@@ -29,7 +30,7 @@ COPY . /work/
 RUN swift --version > /tmp/results.txt 2>&1 && echo "" >> /tmp/results.txt
 
 RUN echo "=== Build matrix ===" >> /tmp/results.txt && \
-    for tgt in DiagramKitCommon DiagramKitModel DiagramKitTestSupport DiagramKit; do \
+    for tgt in DiagramKitCommon DiagramKitModel DiagramKitTestSupport DiagramKit DiagramKitLinuxTests; do \
         echo "--- swift build --target $tgt ---" >> /tmp/results.txt; \
         swift build --target "$tgt" >> /tmp/results.txt 2>&1 \
             && echo "RESULT: $tgt PASS" >> /tmp/results.txt \
@@ -37,4 +38,9 @@ RUN echo "=== Build matrix ===" >> /tmp/results.txt && \
         echo "" >> /tmp/results.txt; \
     done
 
-CMD ["bash", "-c", "echo '=== Build matrix ==='; cat /tmp/results.txt | grep -E 'RESULT:|swift build'"]
+RUN echo "=== swift test --filter LinuxPlatformGateTests ===" >> /tmp/results.txt && \
+    swift test --filter LinuxPlatformGateTests >> /tmp/results.txt 2>&1 \
+        && echo "RESULT: LinuxPlatformGateTests PASS" >> /tmp/results.txt \
+        || (echo "RESULT: LinuxPlatformGateTests FAIL" >> /tmp/results.txt && exit 1)
+
+CMD ["bash", "-c", "echo '=== Results ==='; cat /tmp/results.txt | grep -E 'RESULT:|swift build|=== '"]
