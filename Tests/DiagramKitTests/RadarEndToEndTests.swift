@@ -83,15 +83,14 @@ struct RadarEndToEndTests {
         #expect(svg.contains("<title>Radar Title</title>"))
     }
 
-    @Test("ASCII dispatch returns notYetImplemented for radar")
-    func asciiReturnsNotYetImplemented() throws {
+    @Test("ASCII dispatch produces output for radar")
+    func asciiProducesOutput() throws {
+        // Radar ASCII rendering landed during the parser-diagnostics
+        // surfacing work (Session 10); the previous notYetImplemented
+        // expectation no longer holds.
         let source = "radar-beta\n  axis A\n  curve c1{1}"
-        do {
-            _ = try original_src_ascii_index.renderMermaidASCII(source)
-            #expect(Bool(false), "Expected notYetImplemented error")
-        } catch DiagramError.notYetImplemented(let msg) {
-            #expect(msg.contains("Radar Chart"))
-        }
+        let ascii = try original_src_ascii_index.renderMermaidASCII(source)
+        #expect(!ascii.isEmpty)
     }
 
     @Test("Detailed entries with frontmatter radarConfig")

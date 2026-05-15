@@ -43,18 +43,13 @@ final class MindmapRendererTests: XCTestCase {
         XCTAssertTrue(svg.contains("mindmapDiagram"))
     }
 
-    func test_renderASCII_throwsNotYetImplemented() {
-        XCTAssertThrowsError(try original_src_ascii_index.renderMermaidASCII("mindmap\n  root")) { error in
-            guard let bmError = error as? DiagramError else {
-                XCTFail("Expected DiagramError, got \(error)")
-                return
-            }
-            if case .notYetImplemented(let msg) = bmError {
-                XCTAssertTrue(msg.contains("Mindmap"))
-            } else {
-                XCTFail("Expected notYetImplemented, got \(bmError)")
-            }
-        }
+    func test_renderASCII_producesOutput() throws {
+        // Mindmap ASCII rendering landed during the parser-diagnostics
+        // surfacing work (Session 10); the previous notYetImplemented
+        // expectation no longer holds.
+        let ascii = try original_src_ascii_index.renderMermaidASCII("mindmap\n  root")
+        XCTAssertFalse(ascii.isEmpty)
+        XCTAssertTrue(ascii.contains("root"))
     }
 
     func test_detectDiagramType_recognizesMindmap() {
