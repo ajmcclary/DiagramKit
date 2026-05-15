@@ -104,9 +104,16 @@ edges to RenderingCG and Views are guarded in `Package.swift` with
   diagnostic-emitting families (currently C4 \$boundary mismatch and
   Kanban duplicate-node warnings; other Mermaid families surface only
   layout-tier diagnostics via `PositionedGraph`).
-- Mermaid-prefixed public aliases carry `@available(*, deprecated, renamed:message:)`
-  annotations and will be removed in the next major version. Internal/SPI
-  aliases were removed in Phase 10.
+- The Mermaid-prefixed public alias cohort (`MermaidParser`,
+  `MermaidRenderer`, `MermaidPipeline`, `MermaidImageRenderer`,
+  `MermaidStructuralError`, `renderMermaidSVG`, etc.) was sunset in
+  Session 12. The free-function SVG entry points (`renderDiagramSVG`,
+  `renderDiagramSVGAsync`) and `DiagramPipeline.renderSVG(_:options:)`
+  / `_renderDiagramSVG` SPI deprecated in Session 7 (`381fd81`) went
+  away in the same change. Use `DiagramEngine.renderSVG(source:…)`,
+  `DiagramPipeline.renderSVG(source:…)`, or the canonical `String`
+  instance methods (`parseDiagram()`, `renderDiagramImage(…)`,
+  `renderDiagramSVG(…)`, `renderDiagramASCII(…)`).
 
 ## Critical Invariants
 
@@ -217,7 +224,7 @@ outside the defining module.
 
 ## Testing And Snapshots
 
-- Current test source count: 245 Swift files under `Tests/DiagramKitTests`.
+- Current test source count: 244 Swift files under `Tests/DiagramKitTests`.
 - The corpus is `Examples/DiagramPlayground/Resources/test-diagrams.json` with
   422 entries (396 Mermaid-only + 26 multi-format: D2, DOT, Structurizr, PlantUML).
 - Corpus baselines under `Tests/DiagramKitTests/__Snapshots__/` track

@@ -57,8 +57,8 @@ Source string
     │
     ▼
 ┌────────────────────┐
-│  MermaidParser     │   Parse: source → DiagramDocument (typed payload enum)
-│   .parse(_:)       │   Lives in: DiagramKit umbrella + DiagramKitModel
+│  DiagramLoader     │   Parse: source → DiagramDocument (typed payload enum)
+│   .parseDocument   │   Lives in: DiagramKitImport + DiagramKit umbrella
 └─────────┬──────────┘
           │
           ▼
@@ -78,7 +78,7 @@ Source string
 
 ### Parser dispatch
 
-`Sources/DiagramKit/Parser.swift` houses the `MermaidParser` enum, which delegates to `MermaidImporter` for Mermaid-family dispatch. Multi-format import dispatch goes through `DiagramLoader` + `ImporterRegistry` (Structurizr, PlantUML, Graphviz, D2, Mermaid — in probe order). See `Sources/DiagramKit/DiagramPipeline.swift` for the default registry.
+Multi-format import dispatch goes through `DiagramLoader` + `ImporterRegistry` (Structurizr, PlantUML, Graphviz, D2, Mermaid — in probe order). Mermaid-family dispatch within `MermaidImporter` then routes through `DiagramRegistry.detect(header)` to the per-family descriptor in `Sources/DiagramKit/DiagramRegistry+<Family>.swift`. See `Sources/DiagramKit/DiagramPipeline.swift` for the default registry.
 
 Source preprocessing (frontmatter, multiline-string joining, comment stripping, `%%{init: …}%%` directive) is split across:
 

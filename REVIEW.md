@@ -252,6 +252,31 @@ The §4 deferred bullet "`UndoManager.canUndo`/`canRedo` are not Observation-tra
 
 ---
 
+## Resolution Status — Session 12 (2026-05-14)
+
+Closes Cross-cutting Observation #3 (umbrella exposes two paths for the same SVG operation — the deprecated free function in `src_index.swift` and `DiagramEngine.renderSVG`). Bundle deletes the full Phase-0 / Session-7 deprecation cohort atomically. Spec at `docs/superpowers/specs/2026-05-14-deprecated-surface-sunset-design.md` (`040573f`); plan at `docs/superpowers/plans/2026-05-14-deprecated-surface-sunset.md` (`48717fb`). Thirteen commits on `main` (two docs + four async test sweeps + one sync test sweep + one source-side + one legacy-test delete + one atomic deletion + two pre-existing-failure fixes + one outdated-test fix).
+
+| # | Item | Commit | What landed |
+|---|---|---|---|
+| 1 | Phase 1a — async test sweep batch A | `7e28c80` | Six test files (BeautifulMermaidSwift, Block, ERParser+Foundation, ERRenderer, EventModeling, FlowchartELKFallback) migrate `renderDiagramSVG(…)` → `DiagramEngine.renderSVG(source:)`. One ERRenderer test (entityWithAttributesRendersHeaderAndRows) was asserting against raw `var(--…)` tokens that the engine path resolves; assertion flipped to structural checks. |
+| 2 | Test-expectation fix — outdated notYetImplemented | `bdd3e9a` | Mindmap and Radar ASCII rendering landed during Session 10's parser-diagnostics surfacing work. Both tests still asserted `notYetImplemented`; rewrite to assert canonical output. |
+| 3 | Pre-existing fix — ER config propagation | `cdfcf3c` | `PositionedGraph.content.erDiagram` enum case carried entities/relationships/accTitle/accDescr/diagramTitle but NOT config. ER registry's positioned closure dropped `PositionedErDiagram.config`; SVG render descriptor's reconstructed `PositionedErDiagram` had `config=nil`. Frontmatter `useMaxWidth: true` and `look: neo` reached the parser correctly but were silently lost at the SVG render boundary. Add `config: ErDiagramConfig?` to the enum case; populate and consume across registry + descriptor. Closes pre-existing `useMaxWidthTrueEmitsResponsiveWidth` and `neoLookEmitsNeoMarkers` failures. |
+| 4 | Pre-existing fix — ER/Sequence semicolon parsing | `a618bdd` | `DiagramRegistry+ER.swift` and `+Sequence.swift` were passing `DiagramSourceNormalizer.diagramLines(source)` (newline-only) to their parsers, so `erDiagram; CUSTOMER ||--o{ ORDER : places` hit the parser as one giant header line. Switch both to `.statements(source)` (matches Journey/Sankey/GitGraph/Packet pattern), which is quote-aware so `"A;B"` is preserved. Drive-by: PlantUMLSequenceParserTests' "Emits diagnostic for title" was pinning pre-Session-2 behavior — Session 2's `5ef689f` made title a parsed AST node; rewrite the test. Also includes three untracked `structurizr-5-group` snapshot baselines that arrived between Session 6 and now. |
+| 5 | Phase 1b — async test sweep batch B | `930b95f` | Seven test files (FlowchartSecurity, FlowchartVisualDiff, IconImageRenderer, IshikawaRenderer, KanbanRenderer, MindmapRenderer, QuadrantSvg-async-portion). FlowchartVisualDiff's seven multi-line `(source, RenderOptions())` → `(source: source)` shape collapses. |
+| 6 | Phase 1c — async test sweep batch C | `bff7928` | Five test files (Radar, Requirement, SemicolonSeparator, TreeView×2). Timeline×2 had no async callsites. |
+| 7 | Phase 1d — async test sweep batch D | `b245f1a` | Four test files (Venn, VerificationStepExporter, XYChartCrashRegression, XYChartSvg). Closes Phase 1 — every async free-function callsite under `Tests/` is now retired. |
+| 8 | Phase 2 — sync `_renderDiagramSVG` test sweep | `96e2aae` | Seven test files (Architecture, Block, Quadrant, Timeline×2, Wardley, ZenUML) retire the underscored sync SPI in favor of `DiagramPipeline.renderSVG(source:theme:layoutConfig:idPolicy:registry:)`. `.stable` idPolicy routes through the canonical first-class parameter. |
+| 9 | Phase 4 — source-side renderSVGSync migration | `a028709` | `DiagramImageRenderer.renderSVGSync` no longer round-trips theme through a `RenderOptions` allocation + `_renderDiagramSVG` SPI; calls `DiagramPipeline.renderSVG(source:theme:layoutConfig:idPolicy:)` directly. Drive-by: strip stale `// Replicate existing MermaidParser.parse() logic.` comment. |
+| 10 | Phase 5 — delete `MermaidLegacyAPITests.swift` | `be0ffcf` | Sole purpose was exercising the deprecated `Mermaid*` aliases; three of its four tests duplicated canonical coverage. |
+| 11 | Phase 6 — atomic deletion of deprecated surface | `6993a40` | **Breaking change.** Files deleted: `src_index.swift` (free functions + `_renderDiagramSVG` + `buildColors` + `original_src_index` empty placeholder), `Deprecations.swift` (all `Mermaid*` typealiases + `MermaidParser` enum). Symbols deleted in-place: `DiagramEngine.{renderImageAsync, renderSVGAsync, renderASCIIAsync, prepareAsync}` (zero callers), `String.{parseMermaid, renderMermaidImage, renderMermaidSVG, renderMermaidASCII}`, `DiagramPipeline.renderSVG(_:options:)` orphan, internal `_MermaidPreparerBootstrap` alias. Acceptance grep clean; snapshot canary on `block-1-simple` + `c4-context` passes without rebaselining. |
+| 12 | Phase 7 — Docs sync | _this commit_ | CLAUDE.md "Public Surface" sentence rewritten to point at the canonical APIs and reference Session 12 as the sunset point. Test source count 245 → 244 (the `MermaidLegacyAPITests` deletion). ARCHITECTURE.md pipeline diagram and parser-dispatch paragraph updated — `MermaidParser` no longer exists. |
+
+Session-end verification: targeted `swift test --filter` across the touched suites all green; `Scripts/check-sendable-annotations.sh` ✓ green; `Scripts/check-file-sizes.sh` reports only pre-existing yellow warnings; snapshot canary on `block-1-simple` + `c4-context` passed.
+
+Cross-cutting Observation #3 closed. Three pre-existing failures uncovered during the migration (ER config propagation, ER+Sequence single-line semicolon parsing, outdated `notYetImplemented` expectations) were fixed in the same line of work per project standing default.
+
+---
+
 ## Deferred Effort — Recommendations
 
 Some review items were intentionally deferred during the five-phase pass; others surfaced during execution and were scoped out to keep individual commits coherent. Listed in priority order.
