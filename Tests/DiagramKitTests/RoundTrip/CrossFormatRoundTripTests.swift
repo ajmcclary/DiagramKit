@@ -32,4 +32,32 @@ struct CrossFormatRoundTripTests {
             fixture: fixture
         )
     }
+
+    // MARK: Mermaid ↔ DOT (flowchart)
+
+    @Test(
+        "Mermaid → DOT → Mermaid (flowchart)",
+        arguments: try fixtures(for: "cross-mermaid-dot-flowchart", fromRoot: roundTripResourcesRoot())
+    )
+    func mermaidDotFlowchart(fixture: RoundTripFixture) throws {
+        try runCrossFormatRoundTrip(
+            legA: RoundTripCellRegistry.mermaidFlowchart,
+            legB: RoundTripCellRegistry.dotFlowchart,
+            additionalAllowedLosses: RoundTripCrossRegistry.mermaidDotFlowchart,
+            fixture: fixture
+        )
+    }
+
+    @Test(
+        "DOT → Mermaid → DOT (flowchart)",
+        arguments: try fixtures(for: "cross-dot-mermaid-flowchart", fromRoot: roundTripResourcesRoot())
+    )
+    func dotMermaidFlowchart(fixture: RoundTripFixture) throws {
+        try runCrossFormatRoundTrip(
+            legA: RoundTripCellRegistry.dotFlowchart,
+            legB: RoundTripCellRegistry.mermaidFlowchart,
+            additionalAllowedLosses: RoundTripCrossRegistry.dotMermaidFlowchart,
+            fixture: fixture
+        )
+    }
 }
