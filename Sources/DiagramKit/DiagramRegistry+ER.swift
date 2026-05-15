@@ -25,7 +25,8 @@ extension DiagramRegistry {
             PositionedGraph(diagram: graph, width: positioned.width, height: positioned.height, content: .erDiagram(
                 entities: positioned.entities, relationships: positioned.relationships,
                 accTitle: positioned.accTitle, accDescr: positioned.accDescr,
-                diagramTitle: positioned.diagramTitle
+                diagramTitle: positioned.diagramTitle,
+                config: positioned.config
             ))
         }
     )

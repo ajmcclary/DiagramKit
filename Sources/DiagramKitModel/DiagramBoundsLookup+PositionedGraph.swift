@@ -31,7 +31,7 @@ extension PositionedGraph {
                 classes: classes, relationships: relationships,
                 namespaces: namespaces, notes: notes
             )
-        case .erDiagram(let entities, let relationships, _, _, _):
+        case .erDiagram(let entities, let relationships, _, _, _, _):
             return _erLookup(entities: entities, relationships: relationships)
         case .c4(let c4):
             return _c4Lookup(c4)

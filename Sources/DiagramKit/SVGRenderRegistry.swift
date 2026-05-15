@@ -67,14 +67,15 @@ enum SVGRenderRegistry {
         .erDiagram: SVGRenderDescriptor(
             type: .erDiagram,
             renderPositioned: { positioned, _, colors, font, transparent in
-                guard case let .erDiagram(entities, relationships, accTitle, accDescr, diagramTitle) = positioned.content else {
+                guard case let .erDiagram(entities, relationships, accTitle, accDescr, diagramTitle, config) = positioned.content else {
                     throw DiagramStructuralError.payloadMismatch(.erDiagram)
                 }
                 let diagram = PositionedErDiagram(
                     width: positioned.width, height: positioned.height,
                     entities: entities, relationships: relationships,
                     accTitle: accTitle, accDescr: accDescr,
-                    diagramTitle: diagramTitle
+                    diagramTitle: diagramTitle,
+                    config: config
                 )
                 return try renderErSvg(diagram, colors, font, transparent)
             }
