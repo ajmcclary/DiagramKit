@@ -218,8 +218,8 @@ final class BlockSvgTests: XCTestCase {
           A B
           A --> B
         """
-        let svg1 = try _renderDiagramSVG(source)
-        let svg2 = try _renderDiagramSVG(source)
+        let svg1 = try DiagramPipeline.renderSVG(source: source)
+        let svg2 = try DiagramPipeline.renderSVG(source: source)
         let id1 = try XCTUnwrap(rootId(in: svg1))
         let id2 = try XCTUnwrap(rootId(in: svg2))
         XCTAssertNotEqual(id1, id2)

@@ -89,7 +89,7 @@ final class TimelineRendererTests: XCTestCase {
             2020 : COVID-19
             2021 : Vaccines
         """
-        let svg = try _renderDiagramSVG(source)
+        let svg = try DiagramPipeline.renderSVG(source: source)
         XCTAssertTrue(svg.contains("<svg"))
         XCTAssertTrue(svg.contains("COVID-19"))
         XCTAssertTrue(svg.contains("Vaccines"))

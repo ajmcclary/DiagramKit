@@ -434,8 +434,8 @@ final class ArchitectureSvgRendererTests: XCTestCase {
 
     func testPipelineArchitectureIdsAreStable() throws {
         let source = "architecture-beta\n    service a"
-        let svg1 = try _renderDiagramSVG(source, RenderOptions(idPolicy: .stable))
-        let svg2 = try _renderDiagramSVG(source, RenderOptions(idPolicy: .stable))
+        let svg1 = try DiagramPipeline.renderSVG(source: source, idPolicy: .stable)
+        let svg2 = try DiagramPipeline.renderSVG(source: source, idPolicy: .stable)
         XCTAssertEqual(svg1, svg2)
         XCTAssertTrue(svg1.contains("id=\""))
     }

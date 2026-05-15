@@ -31,7 +31,7 @@ final class WardleyMapEndToEndTests: XCTestCase {
             }
             let positioned = try GraphLayout().layout(graph)
             XCTAssertNotNil(positioned.wardleyMapData, "Expected positioned Wardley data for \(example.id)")
-            let svg = try _renderDiagramSVG(example.source)
+            let svg = try DiagramPipeline.renderSVG(source: example.source)
             XCTAssertTrue(svg.contains("class=\"wardley-map\""), "Expected Wardley SVG root for \(example.id)")
         }
     }
@@ -59,7 +59,7 @@ final class WardleyMapEndToEndTests: XCTestCase {
         deaccelerator "Legacy" [0.7, 0.2]
         """
 
-        let svg = try _renderDiagramSVG(source)
+        let svg = try DiagramPipeline.renderSVG(source: source)
 
         for expected in [
             "class=\"wardley-map\"",
