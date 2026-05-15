@@ -23,6 +23,12 @@ struct VisualToolPalette: View {
                 .padding(.vertical, 2)
             undoButton
             redoButton
+            if !store.state.marqueeSelection.isEmpty {
+                Divider()
+                    .frame(width: 22)
+                    .padding(.vertical, 2)
+                groupButton
+            }
         }
         .padding(6)
         .background(
@@ -86,5 +92,18 @@ struct VisualToolPalette: View {
         .opacity(canRedo ? 1 : 0.35)
         .help(store.editor?.redoActionName ?? "Redo")
         .a11y(label: "Redo", id: A11yID.Visual.tool("redo"))
+    }
+
+    private var groupButton: some View {
+        Button {
+            store.openSubgraphPrompt()
+        } label: {
+            Image(systemName: "rectangle.stack.badge.plus")
+                .frame(width: 30, height: 30)
+                .foregroundStyle(Color.accentColor)
+        }
+        .buttonStyle(.plain)
+        .help("Group selected nodes into a subgraph")
+        .a11y(label: "Group selection", id: A11yID.Visual.groupButton)
     }
 }

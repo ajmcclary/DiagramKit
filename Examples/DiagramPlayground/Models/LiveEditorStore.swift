@@ -1018,6 +1018,55 @@ public final class LiveEditorStore {
         state.demoStepperVisible = flag
     }
 
+    // MARK: - Subgraph commit (Phase 5 / Task 5.2)
+
+    /// True when the marquee → "Group" prompt sheet is on screen.
+    public var isSubgraphPromptOpen: Bool = false
+
+    /// True briefly after a successful groupIntoSubgraph commit so
+    /// VisualPane's SubgraphCommitToast renders. Auto-dismisses after
+    /// ~2.5s via the view's task modifier.
+    public var lastSubgraphCommit: SubgraphCommit?
+
+    public func openSubgraphPrompt() {
+        guard !state.marqueeSelection.isEmpty else { return }
+        isSubgraphPromptOpen = true
+    }
+
+    public func cancelSubgraphPrompt() {
+        isSubgraphPromptOpen = false
+    }
+
+    /// Commit the marquee selection as a subgraph titled `title`.
+    /// On success: clears the marquee, drops the prompt, records a
+    /// SubgraphCommit so the toast appears, and bounces visualStage
+    /// to .subgraphCommitted.
+    public func commitSubgraph(title: String) async {
+        let ids = state.marqueeSelection
+        guard !ids.isEmpty else { return }
+        let selections = ids.map { id in
+            DiagramSelection(diagramType: .flowchart, elementID: "node:\(id)")
+        }
+        do {
+            try await performFlowchartMutation(
+                .groupIntoSubgraph(selections: selections, title: title)
+            )
+            isSubgraphPromptOpen = false
+            lastSubgraphCommit = SubgraphCommit(title: title, memberIDs: ids)
+            setMarqueeSelection([])
+            setVisualStage(.subgraphCommitted)
+        } catch {
+            // performFlowchartMutation already records the error on
+            // store.lastMutationError; drop the prompt either way so
+            // the user can re-marquee.
+            isSubgraphPromptOpen = false
+        }
+    }
+
+    public func dismissSubgraphToast() {
+        lastSubgraphCommit = nil
+    }
+
     /// Recorded mutation history surfaced by UndoTimelineView. Each
     /// successful performMutation / performFlowchartMutation call
     /// appends a kind-tagged entry; undo / redo move `_undoCursor`
@@ -1054,6 +1103,22 @@ public final class LiveEditorStore {
         let new = _undoCursor + delta
         guard new >= 0 && new <= _recordedUndoEntries.count else { return }
         _undoCursor = new
+    }
+}
+
+// MARK: - SubgraphCommit
+
+/// Snapshot of the most-recent groupIntoSubgraph commit. Drives the
+/// transient SubgraphCommitToast.
+public struct SubgraphCommit: Hashable, Sendable {
+    public let title: String
+    public let memberIDs: Set<String>
+    public let timestamp: Date
+
+    public init(title: String, memberIDs: Set<String>, timestamp: Date = Date()) {
+        self.title = title
+        self.memberIDs = memberIDs
+        self.timestamp = timestamp
     }
 }
 

@@ -46,6 +46,34 @@ struct VisualPane: View {
             stageBanner
 
             stagePopover
+
+            subgraphLayer
+        }
+    }
+
+    @ViewBuilder
+    private var subgraphLayer: some View {
+        // Bottom-trailing toast.
+        if let commit = store.lastSubgraphCommit {
+            VStack {
+                Spacer()
+                HStack {
+                    Spacer()
+                    SubgraphCommitToast(store: store, commit: commit)
+                        .padding(.trailing, 12)
+                        .padding(.bottom, 60)
+                }
+            }
+        }
+
+        // Centered prompt sheet.
+        if store.isSubgraphPromptOpen {
+            ZStack {
+                Color.black.opacity(0.3)
+                    .ignoresSafeArea()
+                    .onTapGesture { store.cancelSubgraphPrompt() }
+                SubgraphPromptSheet(store: store)
+            }
         }
     }
 

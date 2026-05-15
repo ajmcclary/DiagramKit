@@ -59,6 +59,13 @@ struct FlowchartEditCanvas: View {
                     marqueeOverlay(in: geometry)
                 }
 
+                SubgraphOverlay(
+                    store: store,
+                    viewSize: geometry.size,
+                    liveDiagramBounds: liveDiagramBounds,
+                    liveBoundsLookup: liveBoundsLookup
+                )
+
                 if let start = marqueeStart, let current = marqueeCurrent {
                     marqueeRect(start: start, current: current)
                 }

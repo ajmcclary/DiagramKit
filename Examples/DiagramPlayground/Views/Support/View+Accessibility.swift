@@ -114,6 +114,11 @@ public enum A11yID {
         public static let nodePopover = "visual.nodePopover"
         public static let edgePopover = "visual.edgePopover"
         public static let quickFixCard = "visual.quickFixCard"
+        public static let groupButton = "visual.tool.group"
+        public static let groupNameField = "visual.subgraph.nameField"
+        public static let groupCommitButton = "visual.subgraph.commit"
+        public static let subgraphOverlay = "visual.subgraphOverlay"
+        public static let subgraphToast = "visual.subgraphToast"
     }
 }
 
