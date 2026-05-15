@@ -119,7 +119,7 @@ final class VerificationStepExporterTests: XCTestCase {
 
         default:
             let (parsed, _) = try parseMermaid(diagram.source)
-            let svg = try await renderDiagramSVG(diagram.source, RenderOptions())
+            let svg = try await DiagramEngine.renderSVG(source: diagram.source)
             let size = extractSvgSize(svg)
             return [
                 ["diagramId": diagram.id, "step": "1-parsed", "timestamp": timestamp, "data": ["type": parsed.type.rawValue]],

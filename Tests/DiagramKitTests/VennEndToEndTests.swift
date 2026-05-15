@@ -16,7 +16,7 @@ struct VennEndToEndTests {
           set B
           union A,B
         """
-        let svg = try await renderDiagramSVG(source)
+        let svg = try await DiagramEngine.renderSVG(source: source)
         #expect(svg.contains("venn-circle"))
         #expect(svg.contains("venn-set-0"))
         #expect(svg.contains("venn-title"))
@@ -97,7 +97,7 @@ struct VennEndToEndTests {
     @Test("Venn SVG detectDiagramType returns venn")
     func detectDiagramType() async throws {
         // Verify through the public pipeline that venn-beta is detected
-        let svg = try await renderDiagramSVG("venn-beta\n  set A\n  set B\n  union A,B")
+        let svg = try await DiagramEngine.renderSVG(source: "venn-beta\n  set A\n  set B\n  union A,B")
         #expect(svg.contains("venn-circle"))
     }
 

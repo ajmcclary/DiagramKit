@@ -29,7 +29,7 @@ final class XYChartCrashRegressionTests: XCTestCase {
         ]
 
         for source in variants {
-            let svg = try await renderDiagramSVG(source, RenderOptions())
+            let svg = try await DiagramEngine.renderSVG(source: source)
             XCTAssertFalse(svg.isEmpty, "Expected non-empty SVG for source:\n\(source)")
         }
     }
@@ -44,7 +44,7 @@ final class XYChartCrashRegressionTests: XCTestCase {
             bar [1, 2, 3]
             line [1, 2, 3]
         """
-        let svg1 = try await renderDiagramSVG(infSource, RenderOptions())
+        let svg1 = try await DiagramEngine.renderSVG(source: infSource)
         XCTAssertFalse(svg1.isEmpty)
 
         // Very large Mermaid-valid decimal literals can overflow when multiplied by scaling factors.
@@ -57,7 +57,7 @@ final class XYChartCrashRegressionTests: XCTestCase {
             bar [\(huge), \(huge), \(huge)]
             line [\(huge), \(huge), \(huge)]
         """
-        let svg2 = try await renderDiagramSVG(overflowSource, RenderOptions())
+        let svg2 = try await DiagramEngine.renderSVG(source: overflowSource)
         XCTAssertFalse(svg2.isEmpty)
     }
 
