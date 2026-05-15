@@ -10,13 +10,21 @@ import Foundation
 /// Previously these methods lived on `RenderConfig`. They are extracted
 /// here as part of the A5 `RenderConfig` three-way split.
 public struct TextMetrics: Sendable {
+#if canImport(CoreText)
     public let fontResolver: DiagramFontResolver
 
     public init(fontResolver: DiagramFontResolver = .shared) {
         self.fontResolver = fontResolver
     }
+#else
+    public init() {}
+#endif
 
-    /// Shared instance using the default font resolver.
+    /// Shared instance.
+    ///
+    /// On Apple this uses `DiagramFontResolver.shared` for CoreText
+    /// measurement. On Linux this is a no-state struct that drives the
+    /// char-count fallback in `estimateTextWidth` / `estimateMonoTextWidth`.
     public static let shared = TextMetrics()
 
     /// Measure proportional text width. Uses CoreText on Apple,
