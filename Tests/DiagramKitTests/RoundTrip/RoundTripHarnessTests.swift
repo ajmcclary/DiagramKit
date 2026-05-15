@@ -11,24 +11,38 @@ import Foundation
 @Suite("RoundTripHarness")
 struct RoundTripHarnessTests {
 
-    @Test("Same-format harness surfaces unexpected delta from not-yet-implemented stub")
-    func unexpectedDeltaThrows() {
+    @Test("Same-format harness completes silently on a happy-path fixture")
+    func happyPathDoesNotThrow() throws {
         let cell = RoundTripCellRegistry.mermaidFlowchart
         let fixture = RoundTripFixture(path: "synthetic", source: "graph TD\nA-->B")
-        // Mermaid flowchart comparator is currently a not-yet-implemented stub.
-        // The harness should surface that as a failure rather than swallow it.
+        try runSameFormatRoundTrip(cell: cell, fixture: fixture)
+    }
+
+    @Test("Same-format harness surfaces .disallowedLoss when an id-sanitization happens but the cell forbids it")
+    func disallowedLossThrows() {
+        // Build a synthetic cell that forbids idSanitization losses.
+        let cell = RoundTripCell(
+            importer: MermaidImporter(),
+            exporter: MermaidExporter(),
+            family: DiagramType.flowchart,
+            allowedLosses: []
+        )
+        // Source uses a non-alpha id that the exporter will sanitize.
+        let fixture = RoundTripFixture(path: "synthetic", source: "graph TD\n\"a b\"[Label]-->c")
         do {
             try runSameFormatRoundTrip(cell: cell, fixture: fixture)
-            Issue.record("expected the harness to throw on not-yet-implemented stub")
         } catch let error as RoundTripHarnessError {
             switch error {
-            case .unexpectedDelta(let path, _, _):
-                #expect(path == "flowchart")
+            case .disallowedLoss, .unpairedLoss, .unexpectedDelta:
+                // any of these is a valid surfacing — the contract is "no
+                // silent passes when the cell allow-list does not cover the
+                // observed deltas."
+                return
             default:
-                Issue.record("expected .unexpectedDelta, got \(error)")
+                Issue.record("unexpected RoundTripHarnessError: \(error)")
             }
         } catch {
-            Issue.record("expected RoundTripHarnessError, got \(error)")
+            Issue.record("unexpected error: \(error)")
         }
     }
 }

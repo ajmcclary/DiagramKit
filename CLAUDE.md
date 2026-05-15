@@ -224,7 +224,7 @@ outside the defining module.
 
 ## Testing And Snapshots
 
-- Current test source count: 244 Swift files under `Tests/DiagramKitTests`.
+- Current test source count: 254 Swift files under `Tests/DiagramKitTests`.
 - The corpus is `Examples/DiagramPlayground/Resources/test-diagrams.json` with
   422 entries (396 Mermaid-only + 26 multi-format: D2, DOT, Structurizr, PlantUML).
 - Corpus baselines under `Tests/DiagramKitTests/__Snapshots__/` track
@@ -237,6 +237,16 @@ outside the defining module.
 - The full parameterized `CorpusSnapshotTests` run has a known
   `swift-testing` / `swift-snapshot-testing` signal-10 caveat. Use chunked
   execution with `SNAPSHOT_DIAGRAM_IDS` when recording.
+
+**Round-trip discipline.** Beyond snapshot equality, every importer/exporter
+pair the library ships is gated on `parse → export → parse → assert structurally
+equal` via the `DiagramKitTestSupport.RoundTripHarness`. Same-format (14 cells)
+and cross-format (8 unordered pairs / 16 ordered directions) cover every
+intersecting family. Allowed losses are typed and closed — `RoundTripLoss`
+admits no `case other(_)`, and every observed loss must have a paired
+`.warning`/`.unsupported` diagnostic on the export step that produced it.
+Fixtures live under `Tests/DiagramKitTests/RoundTrip/Resources/roundtrip/`.
+Run with `swift test --filter "RoundTrip"`.
 
 ## Discipline Gates
 

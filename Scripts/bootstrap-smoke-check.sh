@@ -61,6 +61,8 @@ run_gate "swift test (non-corpus)" \
   swift test \
   --skip "CorpusSnapshotTests" \
   --skip "CorpusMultiFormatSnapshotTests"
+run_gate "swift test (round-trip)" \
+  swift test --filter "RoundTrip"
 run_gate "swift test (corpus SVG)" \
   swift test --filter "CorpusSnapshotTests/svgSnapshot"
 run_gate "swift test (corpus ASCII)" \
