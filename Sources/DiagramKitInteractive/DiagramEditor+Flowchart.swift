@@ -23,6 +23,13 @@ public enum FlowchartMutation: Sendable {
         to: DiagramSelection,
         label: String? = nil
     )
+
+    /// Wrap the named nodes in a fresh `MermaidSubgraph` whose id is a
+    /// deterministic slug of `title` plus a stable hash of the sorted
+    /// member node ids. The inverse is registered as a snapshot
+    /// restore through `DiagramEditor+Undo`, which functions as the
+    /// "flatten" path for free.
+    case groupIntoSubgraph(selections: [DiagramSelection], title: String)
 }
 
 // MARK: - Undo action names
@@ -35,6 +42,8 @@ extension FlowchartMutation {
             return "Insert Node"
         case .insertEdge:
             return "Insert Edge"
+        case .groupIntoSubgraph:
+            return "Group Into Subgraph"
         }
     }
 }
@@ -49,6 +58,8 @@ extension FlowchartMutation: Equatable, Hashable {
         case (.insertEdge(let aId, let aFrom, let aTo, let aLabel),
               .insertEdge(let bId, let bFrom, let bTo, let bLabel)):
             return aId == bId && aFrom == bFrom && aTo == bTo && aLabel == bLabel
+        case (.groupIntoSubgraph(let aSels, let aTitle), .groupIntoSubgraph(let bSels, let bTitle)):
+            return aSels == bSels && aTitle == bTitle
         default:
             return false
         }
@@ -67,6 +78,10 @@ extension FlowchartMutation: Equatable, Hashable {
             hasher.combine(from)
             hasher.combine(to)
             hasher.combine(label)
+        case .groupIntoSubgraph(let sels, let title):
+            hasher.combine(2)
+            hasher.combine(sels)
+            hasher.combine(title)
         }
     }
 }
@@ -143,6 +158,8 @@ extension DiagramEditor {
             return try _insertFlowchartNode(id: id, label: label, type: type, into: document)
         case .insertEdge(let id, let from, let to, let label):
             return try _insertFlowchartEdge(id: id, from: from, to: to, label: label, into: document)
+        case .groupIntoSubgraph(let selections, let title):
+            return try _groupIntoSubgraph(selections: selections, title: title, into: document)
         }
     }
 

@@ -885,8 +885,9 @@ public final class LiveEditorStore {
 
     private func undoKind(for mutation: FlowchartMutation) -> UndoEntry.Kind {
         switch mutation {
-        case .insertNode: return .insertNode
-        case .insertEdge: return .insertEdge
+        case .insertNode:        return .insertNode
+        case .insertEdge:        return .insertEdge
+        case .groupIntoSubgraph: return .groupIntoSubgraph
         }
     }
 
@@ -896,6 +897,8 @@ public final class LiveEditorStore {
             return "Insert node \(id) (\(label))"
         case .insertEdge(_, let from, let to, _):
             return "Insert edge \(from.elementID) → \(to.elementID)"
+        case .groupIntoSubgraph(let selections, let title):
+            return "Group \(selections.count) nodes into subgraph \(title)"
         }
     }
 

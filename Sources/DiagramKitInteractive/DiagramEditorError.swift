@@ -27,6 +27,11 @@ public enum DiagramEditorError: Error, LocalizedError, Sendable {
     /// The source export failed during atomic commit.
     case sourceSyncFailed(underlying: String)
 
+    /// Selection passed to `groupIntoSubgraph` is empty, contains
+    /// elements that aren't nodes, or references nodes that aren't
+    /// in the document.
+    case invalidSubgraphSelection(reason: String)
+
     public var errorDescription: String? {
         switch self {
         case .elementNotFound(let id, let kind):
@@ -43,6 +48,8 @@ public enum DiagramEditorError: Error, LocalizedError, Sendable {
             return "Document is not a flowchart"
         case .sourceSyncFailed(let underlying):
             return "Source sync failed: \(underlying)"
+        case .invalidSubgraphSelection(let reason):
+            return "Invalid subgraph selection: \(reason)"
         }
     }
 }
