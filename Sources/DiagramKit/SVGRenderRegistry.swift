@@ -22,6 +22,156 @@ struct SVGRenderDescriptor: Sendable {
     ) throws -> String
 }
 
+// MARK: - Typed factory
+
+extension SVGRenderDescriptor {
+    /// Factory for descriptors whose render closure operates on a typed
+    /// payload extracted from `PositionedGraph`. The `extract` key path
+    /// resolves the family-specific payload; on payload mismatch the
+    /// descriptor throws `DiagramStructuralError.payloadMismatch(type)`.
+    /// Eliminates the per-entry `guard case let .X(...)` boilerplate
+    /// (audit A7).
+    static func typed<Payload: Sendable>(
+        _ type: DiagramType,
+        _ extract: @Sendable @escaping (PositionedGraph) -> Payload?,
+        render: @Sendable @escaping (
+            _ payload: Payload,
+            _ diagramId: String?,
+            _ colors: DiagramColors,
+            _ font: String,
+            _ transparent: Bool
+        ) throws -> String
+    ) -> SVGRenderDescriptor {
+        SVGRenderDescriptor(type: type) { positioned, diagramId, colors, font, transparent in
+            guard let payload = extract(positioned) else {
+                throw DiagramStructuralError.payloadMismatch(type)
+            }
+            return try render(payload, diagramId, colors, font, transparent)
+        }
+    }
+}
+
+// MARK: - Payload extraction
+
+/// File-private payload accessors that consolidate the
+/// `if case let .X(...) = content` ceremony so the descriptor table reads
+/// as a flat `(type, payload accessor, renderer)` triple per family.
+private extension PositionedGraph {
+    var pieChart: PositionedPieChart? {
+        if case let .pie(chart) = content { return chart } else { return nil }
+    }
+    var xyChart: PositionedXYChart? {
+        if case let .xyChart(chart) = content { return chart } else { return nil }
+    }
+    var journeyDiagram: PositionedJourneyDiagram? {
+        if case let .journey(diagram) = content { return diagram } else { return nil }
+    }
+    var ganttDiagram: PositionedGanttDiagram? {
+        if case let .gantt(data) = content { return data } else { return nil }
+    }
+    var quadrantChart: PositionedQuadrantChart? {
+        if case let .quadrantChart(chart) = content { return chart } else { return nil }
+    }
+    var requirementDiagram: PositionedRequirementDiagram? {
+        if case let .requirement(data) = content { return data } else { return nil }
+    }
+    var gitGraphDiagram: PositionedGitGraphDiagram? {
+        if case let .gitGraph(data) = content { return data } else { return nil }
+    }
+    var mindmapDiagram: PositionedMindmapDiagram? {
+        if case let .mindmap(data) = content { return data } else { return nil }
+    }
+    var timelineDiagram: PositionedTimelineDiagram? {
+        if case let .timeline(data) = content { return data } else { return nil }
+    }
+    var sankeyDiagram: PositionedSankeyDiagram? {
+        if case let .sankey(diagram) = content { return diagram } else { return nil }
+    }
+    var blockDiagram: PositionedBlockDiagram? {
+        if case let .block(data) = content { return data } else { return nil }
+    }
+    var packetDiagram: PositionedPacketDiagram? {
+        if case let .packet(data) = content { return data } else { return nil }
+    }
+    var kanbanDiagram: PositionedKanbanDiagram? {
+        if case let .kanban(data) = content { return data } else { return nil }
+    }
+    var architectureDiagram: PositionedArchitectureDiagram? {
+        if case let .architecture(data) = content { return data } else { return nil }
+    }
+    var radarDiagram: PositionedRadarDiagram? {
+        if case let .radar(diagram) = content { return diagram } else { return nil }
+    }
+    var treemapDiagram: PositionedTreemapDiagram? {
+        if case let .treemap(data) = content { return data } else { return nil }
+    }
+    var vennDiagram: PositionedVennDiagram? {
+        if case let .venn(data) = content { return data } else { return nil }
+    }
+    var ishikawaDiagram: PositionedIshikawaDiagram? {
+        if case let .ishikawa(data) = content { return data } else { return nil }
+    }
+    var treeViewDiagram: PositionedTreeViewDiagram? {
+        if case let .treeView(data) = content { return data } else { return nil }
+    }
+    var eventModelingDiagram: PositionedEventModelingDiagram? {
+        if case let .eventModeling(data) = content { return data } else { return nil }
+    }
+    var wardleyMapDiagram: PositionedWardleyMapDiagram? {
+        if case let .wardleyBeta(diagram) = content { return diagram } else { return nil }
+    }
+    var c4Diagram: PositionedC4Diagram? {
+        if case let .c4(diagram) = content { return diagram } else { return nil }
+    }
+    var zenumlDiagram: PositionedZenUMLDiagram? {
+        if case let .zenuml(data) = content { return data } else { return nil }
+    }
+
+    /// Reconstructs `PositionedSequenceDiagram` from the multi-arg enum case
+    /// so the registry entry can use the typed-descriptor factory.
+    var sequenceDiagramStruct: PositionedSequenceDiagram? {
+        guard case let .sequenceDiagram(
+            actors, messages, blocks, lifelines, activations, notes, boxes,
+            bottomActors, rectHighlights, title, accTitle, accDescr
+        ) = content else { return nil }
+        return PositionedSequenceDiagram(
+            width: width, height: height,
+            actors: actors, lifelines: lifelines, messages: messages,
+            activations: activations, blocks: blocks, notes: notes,
+            boxes: boxes, bottomActors: bottomActors,
+            rectHighlights: rectHighlights, title: title,
+            accTitle: accTitle, accDescr: accDescr
+        )
+    }
+
+    /// Reconstructs `PositionedClassDiagram` for the typed-descriptor factory.
+    var classDiagramStruct: PositionedClassDiagram? {
+        guard case let .classDiagram(
+            classes, relationships, namespaces, notes, accTitle, accDescr, diagramTitle
+        ) = content else { return nil }
+        return PositionedClassDiagram(
+            width: width, height: height,
+            classes: classes, relationships: relationships,
+            namespaces: namespaces, notes: notes,
+            accTitle: accTitle, accDescription: accDescr,
+            diagramTitle: diagramTitle
+        )
+    }
+
+    /// Reconstructs `PositionedErDiagram` for the typed-descriptor factory.
+    var erDiagramStruct: PositionedErDiagram? {
+        guard case let .erDiagram(
+            entities, relationships, accTitle, accDescr, diagramTitle, config
+        ) = content else { return nil }
+        return PositionedErDiagram(
+            width: width, height: height,
+            entities: entities, relationships: relationships,
+            accTitle: accTitle, accDescr: accDescr,
+            diagramTitle: diagramTitle, config: config
+        )
+    }
+}
+
 // MARK: - SVGRenderRegistry
 
 /// Canonical SVG rendering dispatcher. Routes `PositionedGraph.diagram.type`
@@ -31,113 +181,37 @@ struct SVGRenderDescriptor: Sendable {
 enum SVGRenderRegistry {
 
     static let all: [DiagramType: SVGRenderDescriptor] = [
-        .sequenceDiagram: SVGRenderDescriptor(
-            type: .sequenceDiagram,
-            renderPositioned: { positioned, _, colors, font, transparent in
-                guard case let .sequenceDiagram(actors, messages, blocks, lifelines, activations, notes, boxes, bottomActors, rectHighlights, title, accTitle, accDescr) = positioned.content else {
-                    throw DiagramStructuralError.payloadMismatch(.sequenceDiagram)
-                }
-                let diagram = PositionedSequenceDiagram(
-                    width: positioned.width, height: positioned.height,
-                    actors: actors, lifelines: lifelines, messages: messages,
-                    activations: activations, blocks: blocks, notes: notes,
-                    boxes: boxes, bottomActors: bottomActors,
-                    rectHighlights: rectHighlights, title: title,
-                    accTitle: accTitle, accDescr: accDescr
-                )
-                return try renderSequenceSvg(diagram, colors, font, transparent)
-            }
-        ),
-        .classDiagram: SVGRenderDescriptor(
-            type: .classDiagram,
-            renderPositioned: { positioned, _, colors, font, transparent in
-                guard case let .classDiagram(classes, relationships, namespaces, notes, accTitle, accDescr, diagramTitle) = positioned.content else {
-                    throw DiagramStructuralError.payloadMismatch(.classDiagram)
-                }
-                let diagram = PositionedClassDiagram(
-                    width: positioned.width, height: positioned.height,
-                    classes: classes, relationships: relationships,
-                    namespaces: namespaces, notes: notes,
-                    accTitle: accTitle, accDescription: accDescr,
-                    diagramTitle: diagramTitle
-                )
-                return try renderClassSvg(diagram, colors, font, transparent)
-            }
-        ),
-        .erDiagram: SVGRenderDescriptor(
-            type: .erDiagram,
-            renderPositioned: { positioned, _, colors, font, transparent in
-                guard case let .erDiagram(entities, relationships, accTitle, accDescr, diagramTitle, config) = positioned.content else {
-                    throw DiagramStructuralError.payloadMismatch(.erDiagram)
-                }
-                let diagram = PositionedErDiagram(
-                    width: positioned.width, height: positioned.height,
-                    entities: entities, relationships: relationships,
-                    accTitle: accTitle, accDescr: accDescr,
-                    diagramTitle: diagramTitle,
-                    config: config
-                )
-                return try renderErSvg(diagram, colors, font, transparent)
-            }
-        ),
-        .xyChart: SVGRenderDescriptor(
-            type: .xyChart,
-            renderPositioned: { positioned, _, colors, font, transparent in
-                guard case let .xyChart(chart) = positioned.content else {
-                    throw DiagramStructuralError.payloadMismatch(.xyChart)
-                }
-                return renderXYChartSvg(chart, colors, font, transparent, interactive: false)
-            }
-        ),
-        .pie: SVGRenderDescriptor(
-            type: .pie,
-            renderPositioned: { positioned, _, colors, font, transparent in
-                guard case let .pie(chart) = positioned.content else {
-                    throw DiagramStructuralError.payloadMismatch(.pie)
-                }
-                return renderPieSvg(chart, colors, font, transparent)
-            }
-        ),
-        .journey: SVGRenderDescriptor(
-            type: .journey,
-            renderPositioned: { positioned, diagramId, colors, font, transparent in
-                guard case let .journey(diagram) = positioned.content else {
-                    throw DiagramStructuralError.payloadMismatch(.journey)
-                }
-                return try renderJourneySvg(diagram, colors, font, transparent, diagramId: diagramId ?? "mermaid-0")
-            }
-        ),
-        .gantt: SVGRenderDescriptor(
-            type: .gantt,
-            renderPositioned: { positioned, diagramId, colors, font, transparent in
-                guard case let .gantt(data) = positioned.content else {
-                    throw DiagramStructuralError.payloadMismatch(.gantt)
-                }
-                return try renderGanttSvg(data, diagramId: diagramId ?? "", colors, font, transparent)
-            }
-        ),
-        .quadrantChart: SVGRenderDescriptor(
-            type: .quadrantChart,
-            renderPositioned: { positioned, _, colors, font, transparent in
-                guard case let .quadrantChart(chart) = positioned.content else {
-                    throw DiagramStructuralError.payloadMismatch(.quadrantChart)
-                }
-                return renderQuadrantSvg(chart, colors, font, transparent)
-            }
-        ),
-        .requirement: SVGRenderDescriptor(
-            type: .requirement,
-            renderPositioned: { positioned, diagramId, colors, font, transparent in
-                guard case let .requirement(data) = positioned.content else {
-                    throw DiagramStructuralError.payloadMismatch(.requirement)
-                }
-                return try renderRequirementSvg(data, colors, font, transparent,
-                    diagramId: diagramId,
-                    look: data.config.look,
-                    theme: data.config.theme,
-                    htmlLabels: data.config.htmlLabels)
-            }
-        ),
+        .sequenceDiagram: .typed(.sequenceDiagram, { $0.sequenceDiagramStruct }) { diagram, _, colors, font, transparent in
+            try renderSequenceSvg(diagram, colors, font, transparent)
+        },
+        .classDiagram: .typed(.classDiagram, { $0.classDiagramStruct }) { diagram, _, colors, font, transparent in
+            try renderClassSvg(diagram, colors, font, transparent)
+        },
+        .erDiagram: .typed(.erDiagram, { $0.erDiagramStruct }) { diagram, _, colors, font, transparent in
+            try renderErSvg(diagram, colors, font, transparent)
+        },
+        .xyChart: .typed(.xyChart, { $0.xyChart }) { chart, _, colors, font, transparent in
+            renderXYChartSvg(chart, colors, font, transparent, interactive: false)
+        },
+        .pie: .typed(.pie, { $0.pieChart }) { chart, _, colors, font, transparent in
+            renderPieSvg(chart, colors, font, transparent)
+        },
+        .journey: .typed(.journey, { $0.journeyDiagram }) { diagram, diagramId, colors, font, transparent in
+            try renderJourneySvg(diagram, colors, font, transparent, diagramId: diagramId ?? "mermaid-0")
+        },
+        .gantt: .typed(.gantt, { $0.ganttDiagram }) { data, diagramId, colors, font, transparent in
+            try renderGanttSvg(data, diagramId: diagramId ?? "", colors, font, transparent)
+        },
+        .quadrantChart: .typed(.quadrantChart, { $0.quadrantChart }) { chart, _, colors, font, transparent in
+            renderQuadrantSvg(chart, colors, font, transparent)
+        },
+        .requirement: .typed(.requirement, { $0.requirementDiagram }) { data, diagramId, colors, font, transparent in
+            try renderRequirementSvg(data, colors, font, transparent,
+                diagramId: diagramId,
+                look: data.config.look,
+                theme: data.config.theme,
+                htmlLabels: data.config.htmlLabels)
+        },
         .flowchart: SVGRenderDescriptor(
             type: .flowchart,
             renderPositioned: { positioned, _, colors, font, transparent in
@@ -150,159 +224,57 @@ enum SVGRenderRegistry {
                 try renderSvg(positioned, colors, font, transparent)
             }
         ),
-        .gitGraph: SVGRenderDescriptor(
-            type: .gitGraph,
-            renderPositioned: { positioned, diagramId, _, _, _ in
-                guard case let .gitGraph(data) = positioned.content else {
-                    throw DiagramStructuralError.payloadMismatch(.gitGraph)
-                }
-                return renderGitGraphSvg(data, diagramId: diagramId ?? "")
-            }
-        ),
-        .mindmap: SVGRenderDescriptor(
-            type: .mindmap,
-            renderPositioned: { positioned, diagramId, colors, font, transparent in
-                guard case let .mindmap(data) = positioned.content else {
-                    throw DiagramStructuralError.payloadMismatch(.mindmap)
-                }
-                return renderMindmapSvg(data, diagramId: diagramId ?? "", colors, font, transparent)
-            }
-        ),
-        .timeline: SVGRenderDescriptor(
-            type: .timeline,
-            renderPositioned: { positioned, diagramId, colors, font, transparent in
-                guard case let .timeline(data) = positioned.content else {
-                    throw DiagramStructuralError.payloadMismatch(.timeline)
-                }
-                return try renderTimelineSvg(data, diagramId: diagramId ?? "mermaid-0", colors, font, transparent)
-            }
-        ),
-        .sankey: SVGRenderDescriptor(
-            type: .sankey,
-            renderPositioned: { positioned, diagramId, colors, font, transparent in
-                guard case let .sankey(diagram) = positioned.content else {
-                    throw DiagramStructuralError.payloadMismatch(.sankey)
-                }
-                return renderSankeySvg(diagram, colors, font, transparent, diagramId: diagramId)
-            }
-        ),
-        .block: SVGRenderDescriptor(
-            type: .block,
-            renderPositioned: { positioned, diagramId, colors, font, transparent in
-                guard case let .block(data) = positioned.content else {
-                    throw DiagramStructuralError.payloadMismatch(.block)
-                }
-                return try renderBlockSvg(data, diagramId: diagramId ?? "", colors: colors, fontFamily: font, transparent: transparent)
-            }
-        ),
-        .packet: SVGRenderDescriptor(
-            type: .packet,
-            renderPositioned: { positioned, _, colors, font, transparent in
-                guard case let .packet(data) = positioned.content else {
-                    throw DiagramStructuralError.payloadMismatch(.packet)
-                }
-                return renderPacketSvg(data, colors, font, transparent, theme: data.theme)
-            }
-        ),
-        .kanban: SVGRenderDescriptor(
-            type: .kanban,
-            renderPositioned: { positioned, diagramId, colors, font, transparent in
-                guard case let .kanban(data) = positioned.content else {
-                    throw DiagramStructuralError.payloadMismatch(.kanban)
-                }
-                return try renderKanbanSvg(data, diagramId: diagramId ?? "", colors, font, transparent)
-            }
-        ),
-        .architecture: SVGRenderDescriptor(
-            type: .architecture,
-            renderPositioned: { positioned, diagramId, colors, font, transparent in
-                guard case let .architecture(data) = positioned.content else {
-                    throw DiagramStructuralError.payloadMismatch(.architecture)
-                }
-                return try renderArchitectureSvg(data, diagramId: diagramId ?? "", colors, font, transparent)
-            }
-        ),
-        .radar: SVGRenderDescriptor(
-            type: .radar,
-            renderPositioned: { positioned, _, colors, font, transparent in
-                guard case let .radar(diagram) = positioned.content else {
-                    throw DiagramStructuralError.payloadMismatch(.radar)
-                }
-                return renderRadarSvg(diagram, colors: colors, font: font, transparent: transparent)
-            }
-        ),
-        .treemap: SVGRenderDescriptor(
-            type: .treemap,
-            renderPositioned: { positioned, diagramId, colors, font, transparent in
-                guard case let .treemap(data) = positioned.content else {
-                    throw DiagramStructuralError.payloadMismatch(.treemap)
-                }
-                return renderTreemapSvg(data, diagramId: diagramId ?? "", colors, font, transparent)
-            }
-        ),
-        .venn: SVGRenderDescriptor(
-            type: .venn,
-            renderPositioned: { positioned, diagramId, colors, font, transparent in
-                guard case let .venn(data) = positioned.content else {
-                    throw DiagramStructuralError.payloadMismatch(.venn)
-                }
-                return renderVennSvg(data, diagramId: diagramId ?? "", colors, font, transparent)
-            }
-        ),
-        .ishikawa: SVGRenderDescriptor(
-            type: .ishikawa,
-            renderPositioned: { positioned, diagramId, colors, font, transparent in
-                guard case let .ishikawa(data) = positioned.content else {
-                    throw DiagramStructuralError.payloadMismatch(.ishikawa)
-                }
-                return renderIshikawaSvg(data, diagramId: diagramId ?? "", colors: colors, fontFamily: font, transparent: transparent)
-            }
-        ),
-        .treeView: SVGRenderDescriptor(
-            type: .treeView,
-            renderPositioned: { positioned, diagramId, _, font, _ in
-                guard case let .treeView(data) = positioned.content else {
-                    throw DiagramStructuralError.payloadMismatch(.treeView)
-                }
-                return renderTreeViewSvg(data, diagramId: diagramId ?? "", font: font)
-            }
-        ),
-        .eventModeling: SVGRenderDescriptor(
-            type: .eventModeling,
-            renderPositioned: { positioned, diagramId, colors, font, transparent in
-                guard case let .eventModeling(data) = positioned.content else {
-                    throw DiagramStructuralError.payloadMismatch(.eventModeling)
-                }
-                return renderEventModelingSvg(data, diagramId: diagramId ?? "", colors: colors, font: font, transparent: transparent)
-            }
-        ),
-        .wardleyBeta: SVGRenderDescriptor(
-            type: .wardleyBeta,
-            renderPositioned: { positioned, _, colors, font, transparent in
-                guard case let .wardleyBeta(diagram) = positioned.content else {
-                    throw DiagramStructuralError.payloadMismatch(.wardleyBeta)
-                }
-                return renderWardleyMapSvg(diagram, colors: colors, font: font, transparent: transparent)
-            }
-        ),
-        .c4: SVGRenderDescriptor(
-            type: .c4,
-            renderPositioned: { positioned, diagramId, colors, font, transparent in
-                guard case let .c4(diagram) = positioned.content else {
-                    throw DiagramStructuralError.payloadMismatch(.c4)
-                }
-                return try renderC4Svg(diagram, diagramId: diagramId ?? "", colors, font, transparent)
-            }
-        ),
-        .zenuml: SVGRenderDescriptor(
-            type: .zenuml,
-            renderPositioned: { positioned, _, colors, font, transparent in
-                guard case let .zenuml(data) = positioned.content else {
-                    throw DiagramStructuralError.payloadMismatch(.zenuml)
-                }
-                return renderZenUMLSvg(data, colors: colors, font: font, transparent: transparent)
-            }
-        ),
+        .gitGraph: .typed(.gitGraph, { $0.gitGraphDiagram }) { data, diagramId, _, _, _ in
+            renderGitGraphSvg(data, diagramId: diagramId ?? "")
+        },
+        .mindmap: .typed(.mindmap, { $0.mindmapDiagram }) { data, diagramId, colors, font, transparent in
+            renderMindmapSvg(data, diagramId: diagramId ?? "", colors, font, transparent)
+        },
+        .timeline: .typed(.timeline, { $0.timelineDiagram }) { data, diagramId, colors, font, transparent in
+            try renderTimelineSvg(data, diagramId: diagramId ?? "mermaid-0", colors, font, transparent)
+        },
+        .sankey: .typed(.sankey, { $0.sankeyDiagram }) { diagram, diagramId, colors, font, transparent in
+            renderSankeySvg(diagram, colors, font, transparent, diagramId: diagramId)
+        },
+        .block: .typed(.block, { $0.blockDiagram }) { data, diagramId, colors, font, transparent in
+            try renderBlockSvg(data, diagramId: diagramId ?? "", colors: colors, fontFamily: font, transparent: transparent)
+        },
+        .packet: .typed(.packet, { $0.packetDiagram }) { data, _, colors, font, transparent in
+            renderPacketSvg(data, colors, font, transparent, theme: data.theme)
+        },
+        .kanban: .typed(.kanban, { $0.kanbanDiagram }) { data, diagramId, colors, font, transparent in
+            try renderKanbanSvg(data, diagramId: diagramId ?? "", colors, font, transparent)
+        },
+        .architecture: .typed(.architecture, { $0.architectureDiagram }) { data, diagramId, colors, font, transparent in
+            try renderArchitectureSvg(data, diagramId: diagramId ?? "", colors, font, transparent)
+        },
+        .radar: .typed(.radar, { $0.radarDiagram }) { diagram, _, colors, font, transparent in
+            renderRadarSvg(diagram, colors: colors, font: font, transparent: transparent)
+        },
+        .treemap: .typed(.treemap, { $0.treemapDiagram }) { data, diagramId, colors, font, transparent in
+            renderTreemapSvg(data, diagramId: diagramId ?? "", colors, font, transparent)
+        },
+        .venn: .typed(.venn, { $0.vennDiagram }) { data, diagramId, colors, font, transparent in
+            renderVennSvg(data, diagramId: diagramId ?? "", colors, font, transparent)
+        },
+        .ishikawa: .typed(.ishikawa, { $0.ishikawaDiagram }) { data, diagramId, colors, font, transparent in
+            renderIshikawaSvg(data, diagramId: diagramId ?? "", colors: colors, fontFamily: font, transparent: transparent)
+        },
+        .treeView: .typed(.treeView, { $0.treeViewDiagram }) { data, diagramId, _, font, _ in
+            renderTreeViewSvg(data, diagramId: diagramId ?? "", font: font)
+        },
+        .eventModeling: .typed(.eventModeling, { $0.eventModelingDiagram }) { data, diagramId, colors, font, transparent in
+            renderEventModelingSvg(data, diagramId: diagramId ?? "", colors: colors, font: font, transparent: transparent)
+        },
+        .wardleyBeta: .typed(.wardleyBeta, { $0.wardleyMapDiagram }) { diagram, _, colors, font, transparent in
+            renderWardleyMapSvg(diagram, colors: colors, font: font, transparent: transparent)
+        },
+        .c4: .typed(.c4, { $0.c4Diagram }) { diagram, diagramId, colors, font, transparent in
+            try renderC4Svg(diagram, diagramId: diagramId ?? "", colors, font, transparent)
+        },
+        .zenuml: .typed(.zenuml, { $0.zenumlDiagram }) { data, _, colors, font, transparent in
+            renderZenUMLSvg(data, colors: colors, font: font, transparent: transparent)
+        },
     ]
 
     /// Render a pre-parsed / pre-laid-out `PositionedGraph` to SVG.

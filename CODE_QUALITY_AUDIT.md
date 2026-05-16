@@ -284,11 +284,20 @@ The split should be internal first. Public API behavior should remain snapshot-d
 
 ### A7. SVG render registration does not reuse the typed descriptor pattern
 
+**Status:** Resolved. `SVGRenderDescriptor.typed<Payload>` is now the
+canonical factory and consumes a typed payload accessor on
+`PositionedGraph`. The 26 entries that used to repeat the
+`guard case let .X(...) else { throw payloadMismatch(.X) }` block
+(everything except `flowchart` / `stateDiagram`, which pass the whole
+`PositionedGraph` through `renderSvg`) now resolve to one-line entries.
+Sequence/Class/ER additionally use struct-reconstructing accessors so the
+factory shape stays uniform.
+
 **Evidence**
 
 - `Sources/DiagramKit/DiagramRegistry+TypedDescriptor.swift:13` defines a `_typed` descriptor factory that removes parse/layout boilerplate.
-- `Sources/DiagramKit/SVGRenderRegistry.swift:33` manually builds a dictionary of render closures for each diagram type.
-- `Sources/DiagramKit/SVGRenderRegistry.swift:44`, `Sources/DiagramKit/SVGRenderRegistry.swift:61`, `Sources/DiagramKit/SVGRenderRegistry.swift:78`, and many following closures all repeat the same pattern: check `positioned.graph.content`, wrap the payload into a family-specific positioned type, call a family-specific renderer.
+- `Sources/DiagramKit/SVGRenderRegistry.swift:33` manually builds a dictionary of render closures for each diagram type. **(resolved — entries now go through `.typed(type, accessor) { … }`)**
+- `Sources/DiagramKit/SVGRenderRegistry.swift:44`, `Sources/DiagramKit/SVGRenderRegistry.swift:61`, `Sources/DiagramKit/SVGRenderRegistry.swift:78`, and many following closures all repeat the same pattern. **(resolved — boilerplate eliminated)**
 
 **Impact**
 
