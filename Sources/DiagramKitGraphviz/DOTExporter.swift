@@ -21,15 +21,7 @@ public struct DOTExporter: DiagramExporter {
         case .flowchart(let model):
             return try DOTFlowchartExport.emit(model, title: document.title)
         default:
-            return DiagramExportResult(
-                source: "",
-                diagnostics: [
-                    .featureDropped(
-                        .diagramFamilyUnsupported,
-                        message: "DOT export for '\(document.type.rawValue)' is not supported"
-                    )
-                ]
-            )
+            return .unsupportedDiagram(formatName: name, type: document.type)
         }
     }
 }

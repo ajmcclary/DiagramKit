@@ -45,15 +45,7 @@ public struct MermaidExporter: DiagramExporter {
         case .stateDiagram(let model):
             result = try MermaidStateExport.emit(model)
         default:
-            return DiagramExportResult(
-                source: "",
-                diagnostics: [
-                    .featureDropped(
-                        .diagramFamilyUnsupported,
-                        message: "Mermaid export for '\(document.type.rawValue)' not yet implemented (7A-P1/7A-P2/Phase 10)"
-                    )
-                ]
-            )
+            return .unsupportedDiagram(formatName: name, type: document.type)
         }
         return Self.prependingDocumentTitle(document.title, to: result)
     }

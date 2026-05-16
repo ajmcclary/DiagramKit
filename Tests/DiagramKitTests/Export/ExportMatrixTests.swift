@@ -12,16 +12,16 @@ import DiagramKitPlantUML
 
     // MARK: - Mermaid exporter
 
-    @Test("Mermaid exporter P0 supported types")
-    func mermaidExporterP0Types() {
+    @Test("Mermaid exporter supports flowchart, sequence, class, ER, C4, gantt, state")
+    func mermaidExporterSupportedTypes() {
         let exporter = MermaidExporter()
         #expect(exporter.supportedDiagramTypes.contains(.flowchart))
         #expect(exporter.supportedDiagramTypes.contains(.sequenceDiagram))
         #expect(exporter.supportedDiagramTypes.contains(.classDiagram))
         #expect(exporter.supportedDiagramTypes.contains(.erDiagram))
         #expect(exporter.supportedDiagramTypes.contains(.c4))
-        // P1/P2 types not yet implemented
-        #expect(!exporter.supportedDiagramTypes.contains(.stateDiagram))
+        #expect(exporter.supportedDiagramTypes.contains(.gantt))
+        #expect(exporter.supportedDiagramTypes.contains(.stateDiagram))
     }
 
     // MARK: - D2 exporter

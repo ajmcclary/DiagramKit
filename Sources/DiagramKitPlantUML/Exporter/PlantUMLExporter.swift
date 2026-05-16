@@ -40,15 +40,7 @@ public struct PlantUMLExporter: DiagramExporter {
         case .c4(let model):
             return try PlantUMLC4Export.emit(model)
         default:
-            return DiagramExportResult(
-                source: "",
-                diagnostics: [
-                    .featureDropped(
-                        .diagramFamilyUnsupported,
-                        message: "PlantUML export for '\(document.type.rawValue)' is not yet implemented"
-                    )
-                ]
-            )
+            return .unsupportedDiagram(formatName: name, type: document.type)
         }
     }
 }

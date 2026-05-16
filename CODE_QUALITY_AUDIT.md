@@ -650,14 +650,22 @@ Shape renderers can then focus on the border algorithm.
 
 ### D4. Unsupported exporter diagnostics are repeated
 
+**Status:** Resolved. `DiagramExportResult.unsupportedDiagram(formatName:type:)`
+is the single source of wording: `"<formatName> export for '<type>' is not
+supported"`. All five exporters (D2, DOT/Graphviz, Structurizr, PlantUML,
+Mermaid) now delegate to it. PlantUML and Mermaid lost their "is not yet
+implemented" and "(7A-P1/7A-P2/Phase 10)" wording in the process. The
+loader's distinct "No exporter registered for format" path stays untouched
+because it is conceptually different.
+
 **Evidence**
 
-- `Sources/DiagramKitExport/DiagramExportLoader.swift:24` emits a diagnostic for unsupported export formats.
-- `Sources/DiagramKitD2/D2Exporter.swift:22` emits an unsupported diagram diagnostic.
-- `Sources/DiagramKitDOT/DOTExporter.swift:19` emits an unsupported diagram diagnostic.
-- `Sources/DiagramKitStructurizr/StructurizrExporter.swift:17` emits an unsupported diagram diagnostic.
-- `Sources/DiagramKitPlantUML/PlantUMLExporter.swift:28` emits an unsupported diagram diagnostic.
-- `Sources/DiagramKitExport/MermaidExporter.swift:30` emits an unsupported diagram diagnostic.
+- `Sources/DiagramKitExport/DiagramExportLoader.swift:24` emits a diagnostic for unsupported export formats. **(distinct concern — left as-is)**
+- `Sources/DiagramKitD2/D2Exporter.swift:22` emits an unsupported diagram diagnostic. **(resolved)**
+- `Sources/DiagramKitGraphviz/DOTExporter.swift:19` emits an unsupported diagram diagnostic. **(resolved — was `DiagramKitDOT` in original audit; actual target is `DiagramKitGraphviz`)**
+- `Sources/DiagramKitStructurizr/StructurizrExporter.swift:17` emits an unsupported diagram diagnostic. **(resolved)**
+- `Sources/DiagramKitPlantUML/Exporter/PlantUMLExporter.swift:28` emits an unsupported diagram diagnostic. **(resolved)**
+- `Sources/DiagramKitMermaid/Exporter/MermaidExporter.swift:30` emits an unsupported diagram diagnostic. **(resolved — was `DiagramKitExport` in original audit; actual target is `DiagramKitMermaid`)**
 
 **Impact**
 
@@ -806,7 +814,10 @@ Extend `ConfigThemeBinding` and `SingleSectionBinding` to cover fallback prefixe
 
 **Impact:** Medium productivity gain.
 
-Add shared unsupported-format and unsupported-diagram result constructors in `DiagramKitExport`. Migrate exporters opportunistically.
+**Status:** Landed. `DiagramExportResult.unsupportedDiagram(formatName:type:)`
+in `DiagramKitExport` is the single canonical constructor; D2, DOT,
+Structurizr, PlantUML, and Mermaid exporters all use it. The loader's
+"no exporter registered" path stays separate (different concern).
 
 ### Priority 7: Split `original_src_ascii_draw`
 

@@ -19,15 +19,7 @@ public struct StructurizrExporter: DiagramExporter {
         case .c4(let model):
             return try StructurizrC4Export.emit(model)
         default:
-            return DiagramExportResult(
-                source: "",
-                diagnostics: [
-                    .featureDropped(
-                        .diagramFamilyUnsupported,
-                        message: "Structurizr export for '\(document.type.rawValue)' is not supported"
-                    )
-                ]
-            )
+            return .unsupportedDiagram(formatName: name, type: document.type)
         }
     }
 }

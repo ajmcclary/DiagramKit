@@ -24,15 +24,7 @@ public struct D2Exporter: DiagramExporter {
         case .flowchart(let model):
             return try D2FlowchartExport.emit(model, title: document.title)
         default:
-            return DiagramExportResult(
-                source: "",
-                diagnostics: [
-                    .featureDropped(
-                        .diagramFamilyUnsupported,
-                        message: "D2 export for '\(document.type.rawValue)' is not supported"
-                    )
-                ]
-            )
+            return .unsupportedDiagram(formatName: name, type: document.type)
         }
     }
 }
