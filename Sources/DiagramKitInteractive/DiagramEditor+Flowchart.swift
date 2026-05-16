@@ -30,6 +30,32 @@ public enum FlowchartMutation: Sendable {
     /// restore through `DiagramEditor+Undo`, which functions as the
     /// "flatten" path for free.
     case groupIntoSubgraph(selections: [DiagramSelection], title: String)
+
+    /// Change the style of an existing edge. Matches first on the
+    /// edge's explicit `id` (the `eN@` Mermaid prefix syntax) if
+    /// provided, then by source+target identity. Throws
+    /// `.elementNotFound` if neither match locates the edge.
+    case setEdgeStyle(edgeId: String?, source: String, target: String, to: FlowchartEdgeStyle)
+}
+
+/// Subset of `original_src_types.EdgeStyle` exposed through the
+/// public mutation surface. Pinned here so consumers don't have to
+/// import the `original_src_types` namespace just to set an edge
+/// style.
+public enum FlowchartEdgeStyle: String, Sendable, CaseIterable {
+    case solid
+    case dotted
+    case thick
+    case invisible
+
+    var internalStyle: original_src_types.EdgeStyle {
+        switch self {
+        case .solid:     return .solid
+        case .dotted:    return .dotted
+        case .thick:     return .thick
+        case .invisible: return .invisible
+        }
+    }
 }
 
 // MARK: - Undo action names
@@ -44,6 +70,8 @@ extension FlowchartMutation {
             return "Insert Edge"
         case .groupIntoSubgraph:
             return "Group Into Subgraph"
+        case .setEdgeStyle:
+            return "Set Edge Style"
         }
     }
 }
@@ -60,6 +88,9 @@ extension FlowchartMutation: Equatable, Hashable {
             return aId == bId && aFrom == bFrom && aTo == bTo && aLabel == bLabel
         case (.groupIntoSubgraph(let aSels, let aTitle), .groupIntoSubgraph(let bSels, let bTitle)):
             return aSels == bSels && aTitle == bTitle
+        case (.setEdgeStyle(let aId, let aSrc, let aTgt, let aStyle),
+              .setEdgeStyle(let bId, let bSrc, let bTgt, let bStyle)):
+            return aId == bId && aSrc == bSrc && aTgt == bTgt && aStyle == bStyle
         default:
             return false
         }
@@ -82,6 +113,12 @@ extension FlowchartMutation: Equatable, Hashable {
             hasher.combine(2)
             hasher.combine(sels)
             hasher.combine(title)
+        case .setEdgeStyle(let id, let src, let tgt, let style):
+            hasher.combine(3)
+            hasher.combine(id)
+            hasher.combine(src)
+            hasher.combine(tgt)
+            hasher.combine(style)
         }
     }
 }
@@ -160,7 +197,41 @@ extension DiagramEditor {
             return try _insertFlowchartEdge(id: id, from: from, to: to, label: label, into: document)
         case .groupIntoSubgraph(let selections, let title):
             return try _groupIntoSubgraph(selections: selections, title: title, into: document)
+        case .setEdgeStyle(let edgeId, let source, let target, let style):
+            return try _setFlowchartEdgeStyle(
+                edgeId: edgeId, source: source, target: target,
+                style: style.internalStyle, into: document
+            )
         }
+    }
+
+    func _setFlowchartEdgeStyle(
+        edgeId: String?,
+        source: String,
+        target: String,
+        style: original_src_types.EdgeStyle,
+        into document: DiagramDocument
+    ) throws -> DiagramDocument {
+        var doc = document
+        guard case .flowchart(var model) = doc.payload else {
+            throw DiagramEditorError.notAFlowchart
+        }
+        // Prefer matching by edge id when one is provided; fall back
+        // to source+target identity for edges parsed without an
+        // explicit `eN@` prefix.
+        let index = model.edges.firstIndex { edge in
+            if let edgeId, let candidateId = edge.id, candidateId == edgeId {
+                return true
+            }
+            return edgeId == nil && edge.source == source && edge.target == target
+        }
+        guard let index else {
+            let descriptor = edgeId ?? "\(source)→\(target)"
+            throw DiagramEditorError.elementNotFound(id: descriptor, kind: "edge")
+        }
+        model.edges[index].style = style
+        doc.payload = .flowchart(model)
+        return doc
     }
 
     // MARK: - Flowchart insertion implementations

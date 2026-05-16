@@ -831,6 +831,13 @@ public final class LiveEditorStore {
     /// Cleared automatically on the next successful mutation.
     public private(set) var lastMutationError: String?
 
+    /// Internal setter used by sibling extensions (`+Visual.swift`)
+    /// that need to record / clear mutation errors. Mirrors the
+    /// `lastMutationError = …` writes the main class makes inline.
+    func _setLastMutationError(_ value: String?) {
+        lastMutationError = value
+    }
+
     /// Apply a core mutation through the persistent editor, then push the
     /// exported source back into `state.source` (origin: `.mutation` so the
     /// post-render seed step skips re-creating the editor and preserves
@@ -894,6 +901,7 @@ public final class LiveEditorStore {
         case .insertNode:        return .insertNode
         case .insertEdge:        return .insertEdge
         case .groupIntoSubgraph: return .groupIntoSubgraph
+        case .setEdgeStyle:      return .setLabel
         }
     }
 
@@ -905,6 +913,8 @@ public final class LiveEditorStore {
             return "Insert edge \(from.elementID) → \(to.elementID)"
         case .groupIntoSubgraph(let selections, let title):
             return "Group \(selections.count) nodes into subgraph \(title)"
+        case .setEdgeStyle(_, let source, let target, let style):
+            return "Edge \(source)→\(target) style → \(style.rawValue)"
         }
     }
 

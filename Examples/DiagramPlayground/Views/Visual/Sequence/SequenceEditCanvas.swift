@@ -5,13 +5,12 @@
 //  Phase 4 / Task 4.1 — sequence diagram editor surface. Reads
 //  SequenceDiagram (actors + messages) from the persistent editor
 //  and paints lifelines as columns and messages as rows. Dragging a
-//  message ghost reorders its target index visually; commit is
-//  intentionally deferred — the library doesn't ship a
-//  SequenceMutation.move yet, so this canvas surfaces a banner
-//  noting the limitation rather than mutating the source.
+//  message ghost reorders its target index and commits the move on
+//  release via DiagramKitInteractive's SequenceMutation.moveMessage.
 //
 
 import SwiftUI
+import DiagramKitInteractive
 import DiagramKitModel
 
 @available(iOS 26.0, macOS 26.0, macCatalyst 26.0, *)
@@ -40,7 +39,6 @@ struct SequenceEditCanvas: View {
                 missingDocumentPlaceholder
             }
 
-            mutationBanner
         }
         .accessibilityIdentifier(A11yID.Visual.canvas)
     }
@@ -114,9 +112,25 @@ struct SequenceEditCanvas: View {
                 store.setVisualStage(.edgeDrag) // reuse for drag-feedback
             }
             .onEnded { _ in
+                guard let dragging = draggingIndex,
+                      let diagram = sequenceDiagram else {
+                    draggingIndex = nil
+                    dragOffsetY = 0
+                    store.setVisualStage(.idle)
+                    return
+                }
+                let messageCount = diagram.messages.count
+                let target = max(0, min(messageCount - 1, dragging + Int(round(dragOffsetY / rowHeight))))
                 draggingIndex = nil
                 dragOffsetY = 0
                 store.setVisualStage(.idle)
+                if target != dragging {
+                    Task {
+                        try? await store.performSequenceMutation(
+                            .moveMessage(at: dragging, to: target)
+                        )
+                    }
+                }
             }
     }
 
@@ -203,25 +217,4 @@ struct SequenceEditCanvas: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 
-    private var mutationBanner: some View {
-        VStack {
-            HStack {
-                Spacer()
-                HStack(spacing: 4) {
-                    Image(systemName: "info.circle")
-                        .font(.system(size: 9, weight: .semibold))
-                    Text("Reorder ghost · commit deferred (no SequenceMutation yet)")
-                        .font(.system(size: 10, weight: .medium))
-                }
-                .padding(.horizontal, 8)
-                .padding(.vertical, 3)
-                .background(Capsule().fill(.regularMaterial))
-                .foregroundStyle(.secondary)
-                .padding(.trailing, 12)
-                .padding(.top, 12)
-                Spacer()
-            }
-            Spacer()
-        }
-    }
 }

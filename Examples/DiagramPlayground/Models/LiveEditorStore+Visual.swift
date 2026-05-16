@@ -43,6 +43,26 @@ extension LiveEditorStore {
         state.demoStepperVisible = flag
     }
 
+    /// Apply a sequence-diagram mutation through the persistent editor
+    /// and push the exported source back onto the store (origin
+    /// `.mutation` so the post-render seed step skips re-creating the
+    /// editor and preserves its undo stack). Mirrors
+    /// `performFlowchartMutation`.
+    public func performSequenceMutation(_ mutation: SequenceMutation) async throws {
+        guard let editor else { return }
+        do {
+            try await editor.performSequence(mutation)
+            _setLastMutationError(nil)
+            if let source = editor.source, source != state.source {
+                setSource(source, origin: .mutation)
+            }
+            recordUndoEntry(.setLabel, label: mutation.undoActionName)
+        } catch {
+            _setLastMutationError(error.localizedDescription)
+            throw error
+        }
+    }
+
     // MARK: - Subgraph commit (Phase 5 / Task 5.2)
 
     public func openSubgraphPrompt() {

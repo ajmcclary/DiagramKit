@@ -6,9 +6,10 @@
 //  GanttDiagram (sections + tasks) from the persistent editor and
 //  paints section bands, week ticks, the today marker, and one bar
 //  per task. Dragging the right-end handle of a bar shows a +Nw /
-//  -Nw delta tooltip; commit is deferred — the library doesn't ship
-//  a GanttMutation yet, so this canvas surfaces a banner noting the
-//  limitation rather than rewriting the source.
+//  -Nw delta tooltip; commit is deferred — gantt source sync needs a
+//  Mermaid Gantt exporter (not yet implemented), so this canvas
+//  surfaces a banner instead of rewriting the source and blanking
+//  the user's document.
 //
 
 import SwiftUI
@@ -308,7 +309,7 @@ struct GanttEditCanvas: View {
                 HStack(spacing: 4) {
                     Image(systemName: "info.circle")
                         .font(.system(size: 9, weight: .semibold))
-                    Text("Resize ghost · commit deferred (no GanttMutation yet)")
+                    Text("Resize ghost · commit deferred (Mermaid Gantt exporter not yet implemented)")
                         .font(.system(size: 10, weight: .medium))
                 }
                 .padding(.horizontal, 8)
