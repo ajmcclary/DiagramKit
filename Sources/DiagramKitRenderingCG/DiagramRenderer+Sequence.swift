@@ -286,83 +286,11 @@ extension DiagramRenderer {
         context.setFillColor(arrowColor)
         context.setLineWidth(lineWidth)
 
-        if style.isCross {
-            // X mark
-            let cs: CGFloat = arrowHeight * 0.7
-            context.move(to: CGPoint(x: -cs, y: -cs))
-            context.addLine(to: CGPoint(x: 0, y: cs))
-            context.move(to: CGPoint(x: -cs, y: cs))
-            context.addLine(to: CGPoint(x: 0, y: -cs))
-            context.strokePath()
-        } else if style.isOpenArrow {
-            // Async open arc
-            context.move(to: CGPoint(x: -arrowWidth, y: -arrowHeight / 2))
-            context.addQuadCurve(to: CGPoint(x: -arrowWidth * 0.2, y: arrowHeight / 2), control: CGPoint(x: -arrowWidth * 1.5, y: 0))
-            context.strokePath()
-        } else if !style.hasArrowEnd {
-            // No arrowhead — nothing to draw
-        } else if style.isHalfArrow {
-            _drawHalfArrowHead(at: style, in: context, arrowWidth: arrowWidth, arrowHeight: arrowHeight)
-        } else {
-            // Filled triangle
-            let path = CGMutablePath()
-            path.move(to: CGPoint(x: 0, y: 0))
-            path.addLine(to: CGPoint(x: -arrowWidth, y: -arrowHeight / 2))
-            path.addLine(to: CGPoint(x: -arrowWidth, y: arrowHeight / 2))
-            path.closeSubpath()
-            context.addPath(path)
-            context.fillPath()
+        if let geometry = SequenceArrowheadCatalog.geometry(for: style) {
+            geometry.draw(in: context, arrowWidth: arrowWidth, arrowHeight: arrowHeight)
         }
 
         context.restoreGState()
-    }
-
-    private func _drawHalfArrowHead(at style: SequenceArrowStyle, in context: CGContext, arrowWidth: CGFloat, arrowHeight: CGFloat) {
-        let isStick = style.halfArrowStyle == .stick
-        let isTop = style.halfArrowDirection == .top
-        let isReversed = style.isReversed
-
-        if isStick {
-            // Stick: thin vertical line + horizontal tick
-            let half = arrowHeight / 2
-            let top = isTop ? -half : 0
-            let bottom = isTop ? 0 : half
-            context.move(to: CGPoint(x: 0, y: top))
-            context.addLine(to: CGPoint(x: 0, y: bottom))
-            // Horizontal tick
-            let tickX = isReversed ? arrowWidth * 0.7 : -arrowWidth * 0.7
-            let tickY = isReversed ? (isTop ? top : bottom) : (isTop ? top : bottom)
-            let tickDelta: CGFloat = isReversed ? (isTop ? -2 : 2) : (isTop ? -2 : 2)
-            context.move(to: CGPoint(x: 0, y: tickY))
-            context.addLine(to: CGPoint(x: tickX, y: tickY + tickDelta))
-            context.strokePath()
-        } else {
-            // Half triangle
-            let path = CGMutablePath()
-            path.move(to: CGPoint(x: 0, y: 0))
-            if isReversed {
-                if isTop {
-                    // Reverse top: triangle points right-up (mirrored)
-                    path.addLine(to: CGPoint(x: arrowWidth, y: -arrowHeight / 2))
-                    path.addLine(to: CGPoint(x: arrowWidth, y: 0))
-                } else {
-                    // Reverse bottom: triangle points right-down (mirrored)
-                    path.addLine(to: CGPoint(x: arrowWidth, y: 0))
-                    path.addLine(to: CGPoint(x: arrowWidth, y: arrowHeight / 2))
-                }
-            } else {
-                if isTop {
-                    path.addLine(to: CGPoint(x: -arrowWidth, y: -arrowHeight / 2))
-                    path.addLine(to: CGPoint(x: -arrowWidth, y: 0))
-                } else {
-                    path.addLine(to: CGPoint(x: -arrowWidth, y: 0))
-                    path.addLine(to: CGPoint(x: -arrowWidth, y: arrowHeight / 2))
-                }
-            }
-            path.closeSubpath()
-            context.addPath(path)
-            context.fillPath()
-        }
     }
 
     private func _drawCentralCircle(at point: CGPoint, in ctx: CGContext, theme: DiagramTheme) {

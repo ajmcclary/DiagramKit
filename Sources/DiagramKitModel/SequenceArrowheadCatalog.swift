@@ -59,4 +59,23 @@ public enum SequenceArrowheadCatalog {
         guard let id = markerID(for: style) else { return nil }
         return markersByID[id]
     }
+
+    /// Renderer-neutral geometry for a classified arrow style. Returns `nil`
+    /// when the style has no arrowhead (`!hasArrowEnd`). Unlike `marker(for:)`,
+    /// this is independent of whether the composed marker ID is registered in
+    /// `allMarkers` — the CG renderer uses this to draw the half/stick variants
+    /// whose IDs the SVG `<defs>` list doesn't explicitly enumerate.
+    public static func geometry(for style: SequenceArrowStyle) -> SequenceArrowheadGeometry? {
+        if style.isCross { return .cross }
+        if style.isOpenArrow { return .asyncArc }
+        if !style.hasArrowEnd { return nil }
+        if style.isHalfArrow {
+            let direction: SequenceArrowheadDirection = (style.halfArrowDirection == .top) ? .top : .bottom
+            if style.halfArrowStyle == .stick {
+                return .stick(direction: direction, reversed: style.isReversed)
+            }
+            return .halfTriangle(direction: direction, reversed: style.isReversed)
+        }
+        return .filledTriangle
+    }
 }
