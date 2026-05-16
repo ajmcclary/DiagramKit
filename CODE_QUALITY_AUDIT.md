@@ -534,6 +534,40 @@ Deprecation shims can remain for compatibility, but new renderer code should use
 
 ### P5. Dual renderer drift is acknowledged but not structurally reduced
 
+**Status:** Resolved for sequence arrowheads, block edge arrowheads, block
+composite/cluster geometry, and block edge-label geometry. Five new shared
+helpers land alongside the renderers:
+
+- `SequenceArrowheadGeometry` (Common) + `SequenceArrowheadCatalog` (Model)
+  — both renderers consume the same 16-marker catalog and the same six-case
+  geometry enum. CG `_drawSequenceArrowHead` collapses to a saveGState /
+  translate / rotate / setup block plus a one-line geometry dispatch, and
+  `_drawHalfArrowHead` is deleted (folded into the geometry's CG draw).
+- `BlockEdgeArrowheadKind` (Common) — point / circle / cross / none. SVG
+  marker `<defs>` and `blockMarkerAttribute` route through the kind; CG
+  `_cgBlockArrowHead` does the same and bridges to its existing `ArrowHead`
+  enum.
+- `BlockClusterLayout` (Common) — 20pt title-band height and 12pt title
+  baseline now live in one place; both renderers build a `DiagramRect`
+  from cluster bounds and consume `bodyRect` / `titleBaseline`.
+- `BlockEdgeLabelLayout` (Common) — text baseline (+3), background-rect
+  geometry, and label-width heuristic. The CG side previously used +5 for
+  the text baseline; both sides now snap to +3, which rebaselines the
+  `block-5-edges` image snapshot by two pixels and emits the cosmetic SVG
+  diff `height="20"` → `height="20.0"` in the same file.
+
+Snapshot impact at the time of landing: 1 SVG file and 1 PNG file
+rebaselined for `block-5-edges`; everything else (all 12 block corpus
+entries and four arrow-heavy sequence corpus entries —
+`seq-1-basic`, `seq-4-arrow-types`, `seq-6-self-messages`,
+`seq-7-loop`) stays byte-identical.
+
+Remaining open items (not part of P5 by audit wording, but flagged
+during the work): block node fill/stroke/text-color helpers and block
+font-size drift between renderers (CG 11pt vs SVG 12pt for edge
+labels, similar small drifts elsewhere). Same approach would apply if
+those become priorities.
+
 **Evidence**
 
 - `AGENTS.md` documents that CG/image renderers live in `DiagramKitRenderingCG` while SVG renderers live in `DiagramKitModel`, and that they drift.
@@ -541,8 +575,8 @@ Deprecation shims can remain for compatibility, but new renderer code should use
 - `Sources/DiagramKitRenderingCG/DiagramRenderer+Block.swift:31` implements CG block node drawing.
 - `Sources/DiagramKitModel/src_block_renderer.swift:186` implements separate SVG block node drawing.
 - `Sources/DiagramKitCommon/SequenceRenderConstants.swift:3` provides shared sequence constants.
-- `Sources/DiagramKitRenderingCG/DiagramRenderer+Sequence.swift:273` implements CG sequence arrowheads.
-- `Sources/DiagramKitModel/src_sequence_renderer.swift:122` implements separate SVG marker definitions.
+- `Sources/DiagramKitRenderingCG/DiagramRenderer+Sequence.swift:273` implements CG sequence arrowheads. **(resolved — routes through `SequenceArrowheadCatalog.geometry(for:)` + `SequenceArrowheadGeometry.draw`)**
+- `Sources/DiagramKitModel/src_sequence_renderer.swift:122` implements separate SVG marker definitions. **(resolved — `_arrowMarkerDefs()` is now a one-line `SequenceArrowheadCatalog.allMarkers.map { $0.svgMarkerBlock() }`)**
 - `Sources/DiagramKitModel/src_sequence_types.swift:394` centralizes sequence arrow style classification, which is a good partial abstraction.
 
 **Impact**
