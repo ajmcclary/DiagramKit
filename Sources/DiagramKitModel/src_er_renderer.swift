@@ -41,11 +41,9 @@ private func _renderErSvgEntry(
         useMaxWidth: config?.useMaxWidth ?? false
     )
     parts.append(builder.open())
-    if let accTitle = diagram.accTitle, !accTitle.isEmpty {
-        parts.append("<title>\(SVG.escapeText(accTitle))</title>")
-    }
-    if let accDescr = diagram.accDescr, !accDescr.isEmpty {
-        parts.append("<desc>\(SVG.escapeText(accDescr))</desc>")
+    let accessibility = builder.accessibility()
+    if !accessibility.isEmpty {
+        parts.append(accessibility)
     }
     parts.append(builder.style())
     parts.append("<defs>")

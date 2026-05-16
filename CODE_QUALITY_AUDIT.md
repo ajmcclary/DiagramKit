@@ -380,16 +380,22 @@ Example:
 
 ### P3. SVG builder usage is inconsistent across renderers
 
+**Status:** Resolved. All five hand-written `<title>` / `<desc>` sites now go
+through `SVGDocumentBuilder.accessibility()`. Gantt and block additionally
+forward `accTitle` / `accDescr` into the builder constructor; class lost the
+ad-hoc 2-space indent on the accessibility lines (3 corpus snapshots
+rebaselined accordingly).
+
 **Evidence**
 
 - `Sources/DiagramKitModel/SVGUtilities.swift:8` says `SVGDocumentBuilder` replaces hand-written wrappers and accessibility markup.
 - `Sources/DiagramKitModel/SVGUtilities.swift:130` provides `accessibility()`.
 - `Sources/DiagramKitModel/src_sequence_renderer.swift:43` appends `svgBuilder.accessibility()`.
-- `Sources/DiagramKitModel/src_gantt_renderer.swift:89` manually writes `<title>` and `<desc>`.
-- `Sources/DiagramKitModel/src_er_renderer.swift:44` manually writes `<title>` and `<desc>`.
-- `Sources/DiagramKitModel/src_class_renderer.swift:45` manually writes `<title>` and `<desc>`.
-- `Sources/DiagramKitModel/src_block_renderer.swift:37` manually writes `<title>` and `<desc>`.
-- `Sources/DiagramKitModel/src_renderer.swift:84` manually writes `<title>` and `<desc>`.
+- `Sources/DiagramKitModel/src_gantt_renderer.swift:89` manually writes `<title>` and `<desc>`. **(resolved)**
+- `Sources/DiagramKitModel/src_er_renderer.swift:44` manually writes `<title>` and `<desc>`. **(resolved)**
+- `Sources/DiagramKitModel/src_class_renderer.swift:45` manually writes `<title>` and `<desc>`. **(resolved)**
+- `Sources/DiagramKitModel/src_block_renderer.swift:37` manually writes `<title>` and `<desc>`. **(resolved)**
+- `Sources/DiagramKitModel/src_renderer.swift:84` manually writes `<title>` and `<desc>`. **(resolved)**
 
 **Impact**
 
@@ -772,7 +778,11 @@ Ungate portable `ShapeSpec`, `ShapePath`, and `SVGPathSerializer` from Apple-onl
 
 **Impact:** Medium-high consistency gain with low implementation risk.
 
-Migrate renderers to `SVGDocumentBuilder.accessibility()` and direct `SVG.escapeText` / `SVG.escapeAttribute` calls. This is a good low-risk cleanup because snapshots should quickly reveal markup changes.
+**Status:** Accessibility half landed. All five renderers
+(`gantt`/`er`/`class`/`block`/flowchart `src_renderer`) now emit
+`<title>`/`<desc>` via `SVGDocumentBuilder.accessibility()`. The escaping
+half (audit P4) — migrating per-family `_escapeXml` shims onto
+`SVG.escapeText` / `SVG.escapeAttribute` — is still open.
 
 ### Priority 5: Consolidate frontmatter binding patterns
 

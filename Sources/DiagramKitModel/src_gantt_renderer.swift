@@ -47,6 +47,8 @@ public func renderGanttSvg(
         width: w, height: h,
         colors: colors, transparent: transparent,
         fontFamily: font,
+        accessibilityTitle: positioned.accTitle,
+        accessibilityDescription: positioned.accDescr,
         useMaxWidth: true
     )
     svg += _builder.open(className: "mermaid", extraAttributes: "id=\"\(diagramId)\"") + "\n"
@@ -86,11 +88,9 @@ public func renderGanttSvg(
     svg += "</style>\n"
 
     // Accessibility
-    if let accTitle = positioned.accTitle, !accTitle.isEmpty {
-        svg += "<title>\(_escapeXml(accTitle))</title>\n"
-    }
-    if let accDescr = positioned.accDescr, !accDescr.isEmpty {
-        svg += "<desc>\(_escapeXml(accDescr))</desc>\n"
+    let accessibilityMarkup = _builder.accessibility()
+    if !accessibilityMarkup.isEmpty {
+        svg += accessibilityMarkup + "\n"
     }
 
     // 1. Excluded ranges

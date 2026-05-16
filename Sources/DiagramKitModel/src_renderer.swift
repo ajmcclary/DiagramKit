@@ -92,11 +92,9 @@ private func _renderSvgEntry(
         accessibilityDescription: accessibility.descr
     )
     parts.append(builder.open())
-    if let title = accessibility.title, !title.isEmpty {
-        parts.append("<title>\(SVG.escapeText(title))</title>")
-    }
-    if let descr = accessibility.descr, !descr.isEmpty {
-        parts.append("<desc>\(SVG.escapeText(descr))</desc>")
+    let accessibilityMarkup = builder.accessibility()
+    if !accessibilityMarkup.isEmpty {
+        parts.append(accessibilityMarkup)
     }
     parts.append(builder.style())
     parts.append("<defs>")

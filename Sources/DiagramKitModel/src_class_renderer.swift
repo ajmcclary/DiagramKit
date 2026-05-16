@@ -42,11 +42,9 @@ private func _renderClassSvgEntry(
     parts.append(builder.open())
 
     // Accessibility metadata
-    if let title = diagram.accTitle, !title.isEmpty {
-        parts.append("  <title>\(SVG.escapeText(title))</title>")
-    }
-    if let descr = diagram.accDescription, !descr.isEmpty {
-        parts.append("  <desc>\(SVG.escapeText(descr))</desc>")
+    let accessibility = builder.accessibility()
+    if !accessibility.isEmpty {
+        parts.append(accessibility)
     }
     if let diagramTitle = diagram.diagramTitle, !diagramTitle.isEmpty {
         parts.append("  <text x=\"\(diagram.width / 2)\" y=\"24\" text-anchor=\"middle\" font-size=\"16\" font-weight=\"700\" fill=\"var(--_text)\">\(SVG.escapeText(diagramTitle))</text>")

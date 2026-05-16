@@ -28,21 +28,17 @@ public func renderBlockSvg(
         width: viewBoxW, height: viewBoxH,
         colors: colors, transparent: transparent,
         fontFamily: fontFamily,
+        accessibilityTitle: diagram.accTitle,
+        accessibilityDescription: diagram.accDescr,
         viewBoxX: viewBoxX, viewBoxY: viewBoxY
     )
     var _openTag = _builder.open(extraAttributes: "id=\"\(SVG.escapeAttribute(diagramId))\"")
     _openTag = _openTag.replacingOccurrences(of: "width=\"\(_viewBoxWFmt)\"", with: "width=\"\(Int(width))\"")
     svg += _openTag + "\n"
 
-    if let accTitle = diagram.accTitle, !accTitle.isEmpty {
-        svg += """
-        <title>\(accTitle.escapedXML)</title>
-        """
-    }
-    if let accDescr = diagram.accDescr, !accDescr.isEmpty {
-        svg += """
-        <desc>\(accDescr.escapedXML)</desc>
-        """
+    let accessibilityMarkup = _builder.accessibility()
+    if !accessibilityMarkup.isEmpty {
+        svg += accessibilityMarkup
     }
 
     if !transparent {
