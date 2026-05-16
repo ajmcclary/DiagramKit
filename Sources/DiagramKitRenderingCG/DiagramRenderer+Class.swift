@@ -1,6 +1,7 @@
 // Apple-only target gated by `#if canImport(CoreGraphics)`. On Linux this file is empty.
 #if canImport(CoreGraphics)
 import Foundation
+import DiagramKitCommon
 import DiagramKitModel
 import CoreGraphics
 
@@ -84,8 +85,12 @@ extension DiagramRenderer {
                     nameY = cls.y + cls.headerHeight / 2 + 4 + CGFloat(cls.annotations.count) * 6
                 }
 
-                // Class name
-                let nameFont = self.fontResolver.proportionalFont(size: config.fontSizeNodeLabel, weight: .bold)
+                // Class name. Routes through `FONT_WEIGHTS.classTitle`
+                // so SVG and CG always agree on the class-title weight.
+                let nameFont = self.fontResolver.proportionalFont(
+                    size: config.fontSizeNodeLabel,
+                    weight: original_src_styles.FONT_WEIGHTS.classTitle
+                )
                 let labelText = cls.text.isEmpty ? cls.label : cls.text
                 self._drawTextInFlipped(
                     labelText,

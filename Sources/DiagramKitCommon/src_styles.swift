@@ -20,11 +20,16 @@ public final class original_src_styles {
         public var nodeLabel: Int
         public var edgeLabel: Int
         public var groupHeader: Int
+        /// Bold weight used for class-diagram titles (`font-weight="700"`).
+        /// Both the SVG and CG class renderers must agree, so the
+        /// constant lives here rather than as a literal in the renderer.
+        public var classTitle: Int
 
-        public init(nodeLabel: Int, edgeLabel: Int, groupHeader: Int) {
+        public init(nodeLabel: Int, edgeLabel: Int, groupHeader: Int, classTitle: Int = 700) {
             self.nodeLabel = nodeLabel
             self.edgeLabel = edgeLabel
             self.groupHeader = groupHeader
+            self.classTitle = classTitle
         }
     }
 

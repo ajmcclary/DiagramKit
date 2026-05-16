@@ -210,7 +210,7 @@ private func _renderClassBox(_ cls: PositionedClassNode, securityLevel: String? 
             cx: x + width / 2,
             cy: nameY,
             fontSize: original_src_styles.FONT_SIZES.nodeLabel,
-            attrs: "text-anchor=\"middle\" font-size=\"\(original_src_styles.FONT_SIZES.nodeLabel)\" font-weight=\"700\" fill=\"\(textFill)\""
+            attrs: "text-anchor=\"middle\" font-size=\"\(original_src_styles.FONT_SIZES.nodeLabel)\" font-weight=\"\(original_src_styles.FONT_WEIGHTS.classTitle)\" fill=\"\(textFill)\""
         )
     )
 

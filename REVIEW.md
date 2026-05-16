@@ -2,7 +2,7 @@
 
 **Method.** Six parallel agents reviewed: (1) architecture/layering/portability, (2) concurrency, (3) invariants + dual-renderer symmetry, (4) diagnostics + error handling, (5) code quality, (6) correctness/perf/test coverage. Critical and high-impact findings were spot-verified against the working tree. The diagnostic-discipline and `@unchecked Sendable` gates pass clean; the worker-thread invariant, `@MainActor` placement, `bmColorEquals`, type-safe payloads, retain cycles, cross-format round-trip matrix, and empty-source handling all checked out with no findings.
 
-**Summary.** 1 Critical (verified build break) — **resolved**, 10 High (10 resolved), 13 Medium (+2 added during follow-up; 5 resolved), 7 Low.
+**Summary.** 1 Critical (verified build break) — **resolved**, 10 High (10 resolved), 13 Medium (+2 added during follow-up; 6 resolved), 7 Low.
 
 ---
 
@@ -162,11 +162,15 @@ Four new tests pin the contract: clean titles emit no diagnostic; titles with dr
 
 Pure refactor: 5 block-using sequence corpus entries (`seq-7-loop`, `seq-8-alt`, `seq-9-opt`, `seq-10-par`, `seq-11-critical`, `seq-21-box-groups`) pass byte-identical image + SVG. This was the last residual dual-renderer drift item from the review.
 
-### [Severity: Medium] Class-title font weight literal in SVG
+### [Severity: Medium] ~~Class-title font weight literal in SVG~~ — RESOLVED
 **File:** `Sources/DiagramKitModel/src_class_renderer.swift#L213`
 **Category:** Code Quality
 **Problem:** SVG class title uses literal `font-weight="700"`; CG uses `.bold` via the resolver. There's no `FONT_WEIGHTS.classTitle` token; the rest of the file uses `original_src_styles.FONT_WEIGHTS.nodeLabel` (500). The `700` is the only weight in the file that bypasses the token table.
-**Fix:** Add `FONT_WEIGHTS.classTitle` and `RenderTokens.classTitleFontWeight`; reference from both renderers.
+**Fix applied.** Extended `original_src_styles.FontWeights` with `classTitle: Int = 700` (defaulted on the initializer so the existing call sites for `FONT_WEIGHTS` keep compiling). SVG class renderer now interpolates `original_src_styles.FONT_WEIGHTS.classTitle` instead of the `"700"` literal. CG class renderer (`DiagramRenderer+Class.swift`) replaced `weight: .bold` with `weight: original_src_styles.FONT_WEIGHTS.classTitle` on the `proportionalFont(size:weight:)` int overload — same effective weight (700), just sourced from one place.
+
+Skipped adding a separate `RenderTokens.classTitleFontWeight` field per the reviewer's hint — the token would just forward `FONT_WEIGHTS.classTitle`, and the CG path can reach the constant directly through `DiagramKitCommon` without going through `RenderTokens`. Less indirection for the same outcome.
+
+Pure refactor: 4 class corpus entries (`class-1-basic`, `class-2-visibility`, `class-3-interface`, `class-16-full-hierarchy`) pass byte-identical image + SVG.
 
 ### [Severity: Medium] Hardcoded fallback hex literals in CG renderers
 **Files:** `+C4.swift#L35-173` (`#1168BD`, `#3C7FC0`, `#FFFFFF`, `#444444` x4); `+Block.swift#L125` (`#e8f0fe`); `+Journey.swift#L156` and `src_journey_renderer.swift#L183,L287` (`#8FBC8F` — duplicated CG↔SVG); `+XYChart.swift#L39,L274` (`#3b82f6`); `+Sankey.swift#L88` and `+Radar.swift#L20` (`#27272A`); `+Pie.swift#L30` (`#ECECFF`); `+Packet.swift#L29` (`#efefef`); `+Kanban.swift#L38` (`#a1a1aa`)
