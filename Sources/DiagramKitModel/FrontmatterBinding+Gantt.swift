@@ -54,6 +54,6 @@ public struct GanttFrontmatterBinding: FrontmatterBinding {
     }
 
     public func commit(into frontmatter: inout DiagramFrontmatter) {
-        if binding.hasSection { frontmatter.ganttConfig = binding.config }
+        if binding.hasSection { frontmatter.perDiagram.gantt.config = binding.config }
     }
 }

@@ -76,7 +76,7 @@ public struct RequirementFrontmatterBinding: FrontmatterBinding {
     }
 
     public func commit(into frontmatter: inout DiagramFrontmatter) {
-        if binding.hasConfig { frontmatter.requirementConfig = binding.config }
-        if binding.hasTheme { frontmatter.requirementTheme = binding.theme }
+        if binding.hasConfig { frontmatter.perDiagram.requirement.config = binding.config }
+        if binding.hasTheme { frontmatter.perDiagram.requirement.theme = binding.theme }
     }
 }

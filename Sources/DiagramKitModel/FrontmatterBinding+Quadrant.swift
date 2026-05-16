@@ -75,7 +75,7 @@ public struct QuadrantFrontmatterBinding: FrontmatterBinding {
     }
 
     public func commit(into frontmatter: inout DiagramFrontmatter) {
-        if binding.hasConfig { frontmatter.quadrantChartConfig = binding.config }
-        if binding.hasTheme { frontmatter.quadrantChartTheme = binding.theme }
+        if binding.hasConfig { frontmatter.perDiagram.quadrant.config = binding.config }
+        if binding.hasTheme { frontmatter.perDiagram.quadrant.theme = binding.theme }
     }
 }

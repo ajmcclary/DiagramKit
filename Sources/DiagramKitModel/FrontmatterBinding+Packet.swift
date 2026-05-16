@@ -57,7 +57,7 @@ public struct PacketFrontmatterBinding: FrontmatterBinding {
     }
 
     public func commit(into frontmatter: inout DiagramFrontmatter) {
-        if binding.hasConfig { frontmatter.packetConfig = binding.config }
-        if binding.hasTheme { frontmatter.packetTheme = binding.theme }
+        if binding.hasConfig { frontmatter.perDiagram.packet.config = binding.config }
+        if binding.hasTheme { frontmatter.perDiagram.packet.theme = binding.theme }
     }
 }

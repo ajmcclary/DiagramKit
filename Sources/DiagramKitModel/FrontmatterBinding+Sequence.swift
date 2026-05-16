@@ -87,6 +87,6 @@ public struct SequenceFrontmatterBinding: FrontmatterBinding {
     }
 
     public func commit(into frontmatter: inout DiagramFrontmatter) {
-        if hasSection { frontmatter.sequenceConfig = config }
+        if hasSection { frontmatter.perDiagram.sequence.config = config }
     }
 }

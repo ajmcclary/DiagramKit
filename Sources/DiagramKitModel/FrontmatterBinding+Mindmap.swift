@@ -22,6 +22,6 @@ public struct MindmapFrontmatterBinding: FrontmatterBinding {
     }
 
     public func commit(into frontmatter: inout DiagramFrontmatter) {
-        if section.hasSection { frontmatter.mindmapConfig = section.config }
+        if section.hasSection { frontmatter.perDiagram.mindmap.config = section.config }
     }
 }

@@ -35,6 +35,6 @@ public struct FlowchartFrontmatterBinding: FrontmatterBinding {
     }
 
     public func commit(into frontmatter: inout DiagramFrontmatter) {
-        if hasSection { frontmatter.flowchartConfig = config }
+        if hasSection { frontmatter.perDiagram.flowchart.config = config }
     }
 }

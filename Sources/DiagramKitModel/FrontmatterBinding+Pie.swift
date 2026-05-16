@@ -72,7 +72,7 @@ public struct PieFrontmatterBinding: FrontmatterBinding {
     }
 
     public func commit(into frontmatter: inout DiagramFrontmatter) {
-        if binding.hasConfig { frontmatter.pieConfig = binding.config }
-        if binding.hasTheme { frontmatter.pieTheme = binding.theme }
+        if binding.hasConfig { frontmatter.perDiagram.pie.config = binding.config }
+        if binding.hasTheme { frontmatter.perDiagram.pie.theme = binding.theme }
     }
 }

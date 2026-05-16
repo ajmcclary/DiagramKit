@@ -19,6 +19,6 @@ public struct IshikawaFrontmatterBinding: FrontmatterBinding {
     }
 
     public func commit(into frontmatter: inout DiagramFrontmatter) {
-        if section.hasSection { frontmatter.ishikawaConfig = section.config }
+        if section.hasSection { frontmatter.perDiagram.ishikawa.config = section.config }
     }
 }

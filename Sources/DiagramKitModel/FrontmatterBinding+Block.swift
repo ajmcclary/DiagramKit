@@ -26,6 +26,6 @@ public struct BlockFrontmatterBinding: FrontmatterBinding {
     }
 
     public func commit(into frontmatter: inout DiagramFrontmatter) {
-        if hasSection { frontmatter.blockConfig = config }
+        if hasSection { frontmatter.perDiagram.block.config = config }
     }
 }

@@ -126,7 +126,7 @@ public struct GitGraphFrontmatterBinding: FrontmatterBinding {
     }
 
     public func commit(into frontmatter: inout DiagramFrontmatter) {
-        if hasConfig { frontmatter.gitGraphConfig = config }
-        if hasTheme { frontmatter.gitGraphTheme = theme }
+        if hasConfig { frontmatter.perDiagram.gitGraph.config = config }
+        if hasTheme { frontmatter.perDiagram.gitGraph.theme = theme }
     }
 }

@@ -51,7 +51,7 @@ public struct ArchitectureFrontmatterBinding: FrontmatterBinding {
     }
 
     public func commit(into frontmatter: inout DiagramFrontmatter) {
-        if binding.hasConfig { frontmatter.archConfig = binding.config }
-        if binding.hasTheme { frontmatter.archTheme = binding.theme }
+        if binding.hasConfig { frontmatter.perDiagram.architecture.config = binding.config }
+        if binding.hasTheme { frontmatter.perDiagram.architecture.theme = binding.theme }
     }
 }

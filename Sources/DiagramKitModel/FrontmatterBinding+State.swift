@@ -41,6 +41,6 @@ public struct StateFrontmatterBinding: FrontmatterBinding {
     }
 
     public func commit(into frontmatter: inout DiagramFrontmatter) {
-        if section.hasSection { frontmatter.stateConfig = section.config }
+        if section.hasSection { frontmatter.perDiagram.state.config = section.config }
     }
 }

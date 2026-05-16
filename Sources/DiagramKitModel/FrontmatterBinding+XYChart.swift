@@ -67,8 +67,8 @@ public struct XYChartFrontmatterBinding: FrontmatterBinding {
     }
 
     public func commit(into frontmatter: inout DiagramFrontmatter) {
-        if binding.hasConfig { frontmatter.xyChartConfig = binding.config }
-        if binding.hasTheme { frontmatter.xyChartTheme = binding.theme }
+        if binding.hasConfig { frontmatter.perDiagram.xyChart.config = binding.config }
+        if binding.hasTheme { frontmatter.perDiagram.xyChart.theme = binding.theme }
     }
 }
 

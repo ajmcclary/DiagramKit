@@ -38,7 +38,7 @@ public struct VennFrontmatterBinding: FrontmatterBinding {
     }
 
     public func commit(into frontmatter: inout DiagramFrontmatter) {
-        if binding.hasConfig { frontmatter.vennConfig = binding.config }
-        if binding.hasTheme { frontmatter.vennThemeVariables = binding.theme }
+        if binding.hasConfig { frontmatter.perDiagram.venn.config = binding.config }
+        if binding.hasTheme { frontmatter.perDiagram.venn.theme = binding.theme }
     }
 }

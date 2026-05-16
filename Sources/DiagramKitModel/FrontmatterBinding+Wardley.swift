@@ -76,7 +76,7 @@ public struct WardleyFrontmatterBinding: FrontmatterBinding {
     }
 
     public func commit(into frontmatter: inout DiagramFrontmatter) {
-        if hasConfig { frontmatter.wardleyBetaConfig = config }
-        if hasTheme { frontmatter.wardleyTheme = theme }
+        if hasConfig { frontmatter.perDiagram.wardley.config = config }
+        if hasTheme { frontmatter.perDiagram.wardley.theme = theme }
     }
 }

@@ -49,6 +49,6 @@ public struct SankeyFrontmatterBinding: FrontmatterBinding {
     }
 
     public func commit(into frontmatter: inout DiagramFrontmatter) {
-        if hasSection { frontmatter.sankeyConfig = config }
+        if hasSection { frontmatter.perDiagram.sankey.config = config }
     }
 }

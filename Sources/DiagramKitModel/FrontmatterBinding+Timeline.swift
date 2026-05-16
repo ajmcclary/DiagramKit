@@ -78,7 +78,7 @@ public struct TimelineFrontmatterBinding: FrontmatterBinding {
     }
 
     public func commit(into frontmatter: inout DiagramFrontmatter) {
-        if binding.hasConfig { frontmatter.timelineConfig = binding.config }
-        if binding.hasTheme { frontmatter.timelineTheme = binding.theme }
+        if binding.hasConfig { frontmatter.perDiagram.timeline.config = binding.config }
+        if binding.hasTheme { frontmatter.perDiagram.timeline.theme = binding.theme }
     }
 }

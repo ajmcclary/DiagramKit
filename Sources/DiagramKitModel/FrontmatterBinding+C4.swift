@@ -30,6 +30,6 @@ public struct C4FrontmatterBinding: FrontmatterBinding {
     }
 
     public func commit(into frontmatter: inout DiagramFrontmatter) {
-        if section.hasSection { frontmatter.c4Config = section.config }
+        if section.hasSection { frontmatter.perDiagram.c4.config = section.config }
     }
 }

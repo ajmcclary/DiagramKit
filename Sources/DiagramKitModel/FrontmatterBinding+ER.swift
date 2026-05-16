@@ -31,6 +31,6 @@ public struct ERFrontmatterBinding: FrontmatterBinding {
     }
 
     public func commit(into frontmatter: inout DiagramFrontmatter) {
-        if section.hasSection { frontmatter.erConfig = section.config }
+        if section.hasSection { frontmatter.perDiagram.er.config = section.config }
     }
 }

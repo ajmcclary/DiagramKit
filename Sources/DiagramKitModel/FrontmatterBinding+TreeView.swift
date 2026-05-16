@@ -64,7 +64,7 @@ public struct TreeViewFrontmatterBinding: FrontmatterBinding {
     }
 
     public func commit(into frontmatter: inout DiagramFrontmatter) {
-        if hasConfig { frontmatter.treeViewConfig = config }
-        if hasTheme { frontmatter.treeViewTheme = theme }
+        if hasConfig { frontmatter.perDiagram.treeView.config = config }
+        if hasTheme { frontmatter.perDiagram.treeView.theme = theme }
     }
 }

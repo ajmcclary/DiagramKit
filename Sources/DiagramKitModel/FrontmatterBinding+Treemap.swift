@@ -29,6 +29,6 @@ public struct TreemapFrontmatterBinding: FrontmatterBinding {
     }
 
     public func commit(into frontmatter: inout DiagramFrontmatter) {
-        if hasSection { frontmatter.treemapConfig = config }
+        if hasSection { frontmatter.perDiagram.treemap.config = config }
     }
 }

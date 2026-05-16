@@ -69,7 +69,7 @@ public struct RadarFrontmatterBinding: FrontmatterBinding {
     }
 
     public func commit(into frontmatter: inout DiagramFrontmatter) {
-        if binding.hasConfig { frontmatter.radarConfig = binding.config }
-        if binding.hasTheme { frontmatter.radarTheme = binding.theme }
+        if binding.hasConfig { frontmatter.perDiagram.radar.config = binding.config }
+        if binding.hasTheme { frontmatter.perDiagram.radar.theme = binding.theme }
     }
 }

@@ -52,7 +52,7 @@ public struct EventModelingFrontmatterBinding: FrontmatterBinding {
     }
 
     public func commit(into frontmatter: inout DiagramFrontmatter) {
-        if binding.hasConfig { frontmatter.eventmodelingConfig = binding.config }
-        if binding.hasTheme { frontmatter.eventmodelingThemeVariables = binding.theme }
+        if binding.hasConfig { frontmatter.perDiagram.eventModeling.config = binding.config }
+        if binding.hasTheme { frontmatter.perDiagram.eventModeling.theme = binding.theme }
     }
 }

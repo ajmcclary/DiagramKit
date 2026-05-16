@@ -47,6 +47,6 @@ public struct JourneyFrontmatterBinding: FrontmatterBinding {
     }
 
     public func commit(into frontmatter: inout DiagramFrontmatter) {
-        if section.hasSection { frontmatter.journeyConfig = section.config }
+        if section.hasSection { frontmatter.perDiagram.journey.config = section.config }
     }
 }
