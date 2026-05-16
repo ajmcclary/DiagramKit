@@ -275,8 +275,8 @@ public enum DiagramPipeline {
 
     // MARK: - Render ASCII
 
-    /// Parse + lay out + emit ASCII art. Returns the rendered text and
-    /// any diagnostics produced during import/layout. The string-only
+    /// Parse + emit ASCII art. Returns the rendered text and any
+    /// diagnostics produced during import/render. The string-only
     /// `String.renderDiagramASCII(...)` helper forwards `.text` for
     /// callers that don't need the diagnostics tuple.
     ///
@@ -284,6 +284,15 @@ public enum DiagramPipeline {
     /// importer probe so callers can inject custom format importers; this
     /// matches `renderSVG(source:…)` and closes the source-side
     /// asymmetry called out in audit P1.
+    ///
+    /// Dispatch goes through `AsciiDocumentRenderRegistry`, which routes
+    /// each family on `document.type` to either a typed-payload renderer
+    /// (22 families) or the legacy source-based `AsciiRenderRegistry`
+    /// shim (sequence / class / ER / xychart / flowchart / state). The
+    /// Mermaid round-trip (`DiagramExportLoader.export(…, to: .mermaid)`)
+    /// is lazy — only the source-fallback descriptors invoke it, so
+    /// non-Mermaid inputs of the 22 typed-payload families no longer pay
+    /// the export cost (audit A1).
     public static func renderASCII(
         source: String,
         theme: DiagramTheme = .default,
@@ -304,30 +313,29 @@ public enum DiagramPipeline {
                 "arrow": (theme.line ?? theme.foreground).hexString,
             ]
             let asciiTheme = original_src_ascii_index.diagramColorsToAsciiTheme(colors)
-            let options = original_src_ascii_index.AsciiRenderOptions(theme: asciiTheme)
-            let mermaidSource: String
-            var diagnostics = importResult.diagnostics
 
-            if importResult.formatID == .mermaid {
-                mermaidSource = source
-            } else {
-                let exportResult = try DiagramExportLoader.export(
-                    importResult.document,
-                    to: .mermaid,
-                    registry: defaultExportRegistry
-                )
-                diagnostics.append(contentsOf: exportResult.diagnostics)
-                guard !exportResult.source.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
-                    return AsciiRenderOutput(text: "", diagnostics: uniqueDiagnostics(diagnostics))
+            let formatID = importResult.formatID
+            let document = importResult.document
+            let context = AsciiRenderContext(
+                asciiTheme: asciiTheme,
+                mermaidSourceProvider: {
+                    if formatID == .mermaid {
+                        return (source, [])
+                    }
+                    let exportResult = try DiagramExportLoader.export(
+                        document,
+                        to: .mermaid,
+                        registry: defaultExportRegistry
+                    )
+                    return (exportResult.source, exportResult.diagnostics)
                 }
-                mermaidSource = exportResult.source
-            }
+            )
 
-            let (text, renderDiagnostics) =
-                try original_src_ascii_index.renderMermaidASCIIWithDiagnostics(
-                    mermaidSource,
-                    options: options
-                )
+            let (text, renderDiagnostics) = try AsciiDocumentRenderRegistry.render(
+                document: document,
+                context: context
+            )
+            var diagnostics = importResult.diagnostics
             diagnostics.append(contentsOf: renderDiagnostics)
             return AsciiRenderOutput(text: text, diagnostics: uniqueDiagnostics(diagnostics))
         }
