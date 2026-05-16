@@ -2,7 +2,7 @@
 
 **Method.** Six parallel agents reviewed: (1) architecture/layering/portability, (2) concurrency, (3) invariants + dual-renderer symmetry, (4) diagnostics + error handling, (5) code quality, (6) correctness/perf/test coverage. Critical and high-impact findings were spot-verified against the working tree. The diagnostic-discipline and `@unchecked Sendable` gates pass clean; the worker-thread invariant, `@MainActor` placement, `bmColorEquals`, type-safe payloads, retain cycles, cross-format round-trip matrix, and empty-source handling all checked out with no findings.
 
-**Summary.** 1 Critical (verified build break) — **resolved**, 10 High (1 resolved), 13 Medium (+2 added during follow-up), 7 Low.
+**Summary.** 1 Critical (verified build break) — **resolved**, 10 High (2 resolved), 13 Medium (+2 added during follow-up), 7 Low.
 
 ---
 
@@ -49,11 +49,12 @@ Verified: clean `swift build --target DiagramKitMermaid` succeeds; full `swift b
 
 Affected snapshots (CG/image only — SVG values unchanged): `seq-5-activations`, `seq-6-self-messages`, `seq-16-self-notes`. All three image baselines rebaselined in the same commit; SVG baselines were already on these values and pass unchanged.
 
-### [Severity: High] SVG renderers bypass `RenderTokens` font sizes — parallel sources of truth
+### [Severity: High] ~~SVG renderers bypass `RenderTokens` font sizes — parallel sources of truth~~ — RESOLVED (drift hazard; override-gap remains)
 **Files:** `Sources/DiagramKitModel/src_renderer.swift`, `src_sequence_renderer.swift`, `src_class_renderer.swift`, plus most other `src_*_renderer.swift`
 **Category:** Architecture
 **Problem:** Two parallel constant tables: `RenderTokens.fontSizeNodeLabel = 13` (Model) and `original_src_styles.FONT_SIZES = FontSizes(nodeLabel: 13, edgeLabel: 11, groupHeader: 12)` (Common). CG renderers read `RenderTokens` (responding to `RenderConfig` overrides); SVG renderers read `original_src_styles.FONT_SIZES` directly (ignoring overrides). Equal today, drift hazard the next time someone bumps a `RenderTokens` default. Same applies to `FONT_WEIGHTS`, `STROKE_WIDTHS`, `NODE_PADDING`, `GROUP_HEADER_CONTENT_PAD`, `ARROW_HEAD`.
-**Fix:** Make `original_src_styles.FONT_SIZES` derive from `RenderTokens.shared` via computed properties, or route SVG renderers through `DiagramFontResolver` for sizing the way CG does.
+**Fix applied — drift hazard.** The reviewer's first option ("make `original_src_styles.FONT_SIZES` derive from `RenderTokens.shared`") isn't directly feasible because `RenderTokens` is Apple-gated and `original_src_styles` is Linux-portable; the Linux side has to be the source. Inverted the derivation instead: every `RenderTokens` field whose value is also present in `original_src_styles` (font sizes, font weights, stroke widths, node padding, arrow-head dimensions, `groupHeaderContentPad`) now has its default sourced from the matching `original_src_styles.*` constant. Bumping any shared default requires editing exactly one number in `Sources/DiagramKitCommon/src_styles.swift`; CG (via `RenderConfig.tokens`) and SVG (directly off `original_src_styles`) pick it up together. Docstring on `RenderTokens` updated to document the contract. Values byte-identical to before — full non-corpus suite (1776 tests in 161 suites) green, sequence/class/ER/flow image and SVG corpus spot-checks green, full SVG corpus shows only the pre-existing 17 stale-baseline mismatches (no new drift).
+**Follow-up — runtime override gap (Medium, separate concern).** SVG renderers reading `original_src_styles.FONT_SIZES.nodeLabel` directly still ignore mutations to `RenderConfig.tokens` at runtime; only CG output responds to overrides. The reviewer's second option (route SVG through `DiagramFontResolver` for sizing) closes that gap but is a larger refactor and was not in scope here. Worth tracking as its own item; until then, "configurable" effectively means "configurable for the CG path only" for these constants.
 
 ### [Severity: High] Duplicated hex-to-color parsers across CG renderers
 **Files:** `Sources/DiagramKitRenderingCG/DiagramRenderer+C4.swift#L208-219` (`_c4CGColor`), `+ER.swift#L216-227` (`_parseCGColor`), `+Mindmap.swift#L384-393` (`_cgColor(from:)`), `+Mindmap.swift#L406-417` (`_bmColor(from:)`)
