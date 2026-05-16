@@ -502,11 +502,28 @@ Start with block shapes and sequence arrowheads because both already have shared
 
 ### P6. Apple platform import boilerplate is repeated in CG renderer extensions
 
+**Status:** Resolved as far as the boilerplate variants are concerned. All 17
+renderer files that needed a UIKit/AppKit gate now use the canonical form
+
+```swift
+#if canImport(UIKit)
+import UIKit
+#elseif canImport(AppKit)
+import AppKit
+#endif
+```
+
+The redundant `targetEnvironment(macCatalyst)` branches (macCatalyst always
+satisfies `canImport(UIKit)`) and the Flow-only AppKit-first ordering are
+gone. A shared typealias shim was not introduced because Swift file-level
+imports still require each renderer to opt in to the framework it uses,
+so a shim would not reduce the per-file import line by itself.
+
 **Evidence**
 
-- `Sources/DiagramKitRenderingCG/DiagramRenderer+Kanban.swift:1` contains repeated `#if canImport(UIKit)` / `#elseif canImport(AppKit)` import boilerplate.
-- `Sources/DiagramKitRenderingCG/DiagramRenderer+Radar.swift:1` contains the same boilerplate.
-- A duplicate-cluster pass found the same platform import block repeated across more than 20 `DiagramRenderer+*.swift` files.
+- `Sources/DiagramKitRenderingCG/DiagramRenderer+Kanban.swift:1` contains repeated `#if canImport(UIKit)` / `#elseif canImport(AppKit)` import boilerplate. **(resolved — canonical form)**
+- `Sources/DiagramKitRenderingCG/DiagramRenderer+Radar.swift:1` contains the same boilerplate. **(resolved)**
+- A duplicate-cluster pass found the same platform import block repeated across more than 20 `DiagramRenderer+*.swift` files. **(resolved — 17 files normalized in one pass)**
 
 **Impact**
 
@@ -846,7 +863,13 @@ comment flagged in the original P2 evidence was not actually stale.
 
 **Impact:** Low but useful readability improvement.
 
-Add a small RenderingCG platform shim for native color/image aliases and remove repeated imports where possible.
+**Status:** Landed in the form that actually shrinks the boilerplate:
+the three variant `#if` blocks (macCatalyst-prefixed, combined-OR, and
+AppKit-first) were collapsed to the canonical
+`#if canImport(UIKit) ... #elseif canImport(AppKit)` shape across all 17
+renderer files. A typealias shim would not reduce per-file framework
+imports further; existing `BMColor` / `BMImage` in `DiagramKitCommon`
+already serve that role.
 
 ## Closing Assessment
 
