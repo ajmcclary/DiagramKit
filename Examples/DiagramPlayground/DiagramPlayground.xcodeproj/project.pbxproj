@@ -71,6 +71,7 @@
 		2F09890E95F3859F43B78EA3 /* LiveEditorStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0C4A0AFF6EB55A7CA868F2CD /* LiveEditorStore.swift */; };
 		2FE407DEFB720281FB490F1A /* LiveEditorStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0C4A0AFF6EB55A7CA868F2CD /* LiveEditorStore.swift */; };
 		303EDD65C21EC6DD8F84E60E /* Environment+PlaygroundTokens.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1476B64952F7B42F2BD280B0 /* Environment+PlaygroundTokens.swift */; };
+		33153E20B514CC7CF1DC23D1 /* CanvasTopToolbar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 357E2EBADDE797B66F87D142 /* CanvasTopToolbar.swift */; };
 		352BFBB371F341F5DB616CF9 /* WorkspaceModePicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0DC34F8DFA2500595F18559D /* WorkspaceModePicker.swift */; };
 		364D97211F4E791BC030A5B4 /* InspectorHistorySection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2181810B30E909A9FF799386 /* InspectorHistorySection.swift */; };
 		36A6734543F74A7CDD485176 /* LiveEditorStore+Sheets.swift in Sources */ = {isa = PBXBuildFile; fileRef = 440C637A5BA08FE1079B0CC8 /* LiveEditorStore+Sheets.swift */; };
@@ -162,6 +163,7 @@
 		8FEA31F7475EE8A8FAFA3082 /* ImporterProbeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 055BDAA27DDD11A403327230 /* ImporterProbeView.swift */; };
 		90845A2528C081C2A065D431 /* InspectorThemeSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = C099BC8F1B674FEE3A04398A /* InspectorThemeSection.swift */; };
 		943CC1EBB719DE87112AD31A /* LiveHistoryEntry.swift in Sources */ = {isa = PBXBuildFile; fileRef = E14E34154801238D6F24FD9B /* LiveHistoryEntry.swift */; };
+		95F07C086F4285CED956FE53 /* CanvasTopToolbar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 357E2EBADDE797B66F87D142 /* CanvasTopToolbar.swift */; };
 		9676B8F67EA57BF7B895B7F9 /* QuickFixCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96F9AB09F0AE2EF700801DEC /* QuickFixCard.swift */; };
 		97FE05D98049D770F7F03346 /* LiveEditorToolbar.swift in Sources */ = {isa = PBXBuildFile; fileRef = D00071A30CD213F32533C552 /* LiveEditorToolbar.swift */; };
 		980B5D7515C8A1654E154504 /* SmokeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 566F244D00183EEA1897A21D /* SmokeTests.swift */; };
@@ -311,6 +313,7 @@
 		2FF3AC82F7BAD9CD6A298588 /* LiveRenderStatus.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveRenderStatus.swift; sourceTree = "<group>"; };
 		31AAC4645DED28DFBCD9F56B /* SourceMap.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SourceMap.swift; sourceTree = "<group>"; };
 		33F2205BE455753911EEE253 /* LiveHistoryStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveHistoryStore.swift; sourceTree = "<group>"; };
+		357E2EBADDE797B66F87D142 /* CanvasTopToolbar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CanvasTopToolbar.swift; sourceTree = "<group>"; };
 		36DBAB8485866ED673632179 /* UndoTimelineView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UndoTimelineView.swift; sourceTree = "<group>"; };
 		3777CBBAE9D9F5361A5FAAC7 /* EditorMinimap.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditorMinimap.swift; sourceTree = "<group>"; };
 		381AD2BB7215BB6E4D873DAA /* GistLoader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GistLoader.swift; sourceTree = "<group>"; };
@@ -646,6 +649,7 @@
 			children = (
 				EDBDE755FB1EFA4AA2789A90 /* ActionsView.swift */,
 				A48C795B7F2C7C9C0AB49326 /* BMColor+IsLight.swift */,
+				357E2EBADDE797B66F87D142 /* CanvasTopToolbar.swift */,
 				417F719FF3F57CADAAE73526 /* EditorPane.swift */,
 				C16F5A868192706936A052FB /* LiveEditorView.swift */,
 				D243A9D2978231797DC76F9D /* PreviewCanvas.swift */,
@@ -941,6 +945,7 @@
 				E63F07229AF09F55C2F90442 /* ActionsPanel.swift in Sources */,
 				883FA6075C244743F7544DB5 /* ActionsView.swift in Sources */,
 				5BC7D79242A7F75FC8228ACE /* BMColor+IsLight.swift in Sources */,
+				95F07C086F4285CED956FE53 /* CanvasTopToolbar.swift in Sources */,
 				59747BC8ACFC104CE6792DCC /* ChipGroup.swift in Sources */,
 				253D458FDF5D3BA3CC1D5277 /* CitationOverlay.swift in Sources */,
 				284AC99EA59C9631FAC2D025 /* CitationSet.swift in Sources */,
@@ -1086,6 +1091,7 @@
 				AC569C58B233875AA964F016 /* ActionsPanel.swift in Sources */,
 				7661B8E80D57D3395AA9C01A /* ActionsView.swift in Sources */,
 				F5B7AD18D16D0271C6F8CE71 /* BMColor+IsLight.swift in Sources */,
+				33153E20B514CC7CF1DC23D1 /* CanvasTopToolbar.swift in Sources */,
 				0BBB689E5467761FBE3F7F29 /* ChipGroup.swift in Sources */,
 				8BF7BED544281F5A7DF84E46 /* CitationOverlay.swift in Sources */,
 				9DF4E8200A69BF0224BCD15D /* CitationSet.swift in Sources */,

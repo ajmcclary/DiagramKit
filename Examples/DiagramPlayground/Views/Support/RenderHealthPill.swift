@@ -2,9 +2,9 @@
 //  RenderHealthPill.swift
 //  DiagramPlayground
 //
-//  Phase 2 / Task 2.4 — preview-header pill that summarises the most
-//  recent render. Phase 2 only ships the `.ok` flavor; `.slow` and
-//  `.failed` land in Phase 10 with the full health surface.
+//  Preview-header pill summarising the most recent render. Adopts
+//  the v2.1 chrome tokens so the .ok / .slow / .failed states line
+//  up with the rest of the canvas toolbar.
 //
 
 import SwiftUI
@@ -18,26 +18,27 @@ enum RenderHealthState {
 struct RenderHealthPill: View {
     let state: RenderHealthState
 
+    @Environment(\.playgroundTokens) private var tokens
+
     var body: some View {
         HStack(spacing: 5) {
-            Image(systemName: icon)
-                .font(.system(size: 9, weight: .semibold))
+            Circle()
+                .fill(tint)
+                .frame(width: 7, height: 7)
             Text(label)
-                .font(.system(size: 11, weight: .medium).monospacedDigit())
+                .font(PlaygroundFont.metric)
+                .foregroundStyle(tokens.palette.fg1)
         }
-        .padding(.horizontal, 8)
-        .padding(.vertical, 3)
-        .background(Capsule().fill(tint.opacity(0.18)))
-        .foregroundStyle(tint)
+        .padding(.horizontal, 10)
+        .padding(.vertical, 5)
+        .background(
+            Capsule()
+                .fill(tokens.palette.glassBg)
+                .overlay(
+                    Capsule().stroke(tokens.palette.borderHairline, lineWidth: 0.5)
+                )
+        )
         .accessibilityIdentifier("preview.renderHealth")
-    }
-
-    private var icon: String {
-        switch state {
-        case .ok:     return "checkmark.circle.fill"
-        case .slow:   return "hare.fill"
-        case .failed: return "exclamationmark.triangle.fill"
-        }
     }
 
     private var label: String {
@@ -53,9 +54,9 @@ struct RenderHealthPill: View {
 
     private var tint: Color {
         switch state {
-        case .ok:     return .green
-        case .slow:   return .orange
-        case .failed: return .red
+        case .ok:     return tokens.palette.statusSuccess
+        case .slow:   return tokens.palette.statusWarning
+        case .failed: return tokens.palette.statusError
         }
     }
 }
