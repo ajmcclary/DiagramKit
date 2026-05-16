@@ -197,10 +197,16 @@ private func renderBlockNodeSvg(_ node: PositionedBlockNode, colors: DiagramColo
     if node.type == .composite {
         let clusterBkg = colors.surface ?? colors.bg
         let clusterBorder = colors.border ?? "#333"
+        let full = DiagramRect(
+            origin: DiagramPoint(x: x, y: y),
+            size: DiagramSize(width: w, height: h)
+        )
+        let body = BlockClusterLayout.bodyRect(in: full)
+        let title = BlockClusterLayout.titleBaseline(in: full)
         var svg = """
         <g class="cluster" id="\(id)">
-          <rect x="\(x)" y="\(y + 20)" width="\(w)" height="\(max(0, h - 20))" rx="2" ry="2" fill="\(clusterBkg)" stroke="\(clusterBorder)" stroke-width="\(BlockRenderConstants.strokeWidth)"/>
-          <text x="\(node.x)" y="\(y + 12)" text-anchor="middle" font-family="\(fontFamily)" font-size="14" font-weight="bold" fill="\(textColor)">\(node.label.escapedXML)</text>
+          <rect x="\(body.x)" y="\(body.y)" width="\(body.width)" height="\(body.height)" rx="2" ry="2" fill="\(clusterBkg)" stroke="\(clusterBorder)" stroke-width="\(BlockRenderConstants.strokeWidth)"/>
+          <text x="\(title.x)" y="\(title.y)" text-anchor="middle" font-family="\(fontFamily)" font-size="14" font-weight="bold" fill="\(textColor)">\(node.label.escapedXML)</text>
         """
         for child in node.children {
             svg += renderBlockNodeSvg(child, colors: colors, fontFamily: fontFamily)

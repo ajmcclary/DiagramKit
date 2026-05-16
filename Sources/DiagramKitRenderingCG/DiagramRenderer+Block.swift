@@ -41,11 +41,16 @@ extension DiagramRenderer {
         ctx.setLineWidth(CGFloat(BlockRenderConstants.strokeWidth))
 
         if node.type == .composite {
-            let clusterRect = CGRect(x: x, y: y + 20, width: node.width, height: max(0, node.height - 20))
+            let full = DiagramRect(
+                origin: DiagramPoint(x: x, y: y),
+                size: DiagramSize(width: node.width, height: node.height)
+            )
+            let body = BlockClusterLayout.bodyRect(in: full).cgRect
+            let title = BlockClusterLayout.titleBaseline(in: full).cgPoint
             ctx.setFillColor(fillColor.withAlphaComponent(0.1).cgColor)
-            ctx.fill(clusterRect)
-            ctx.stroke(clusterRect)
-            _drawTextInFlipped(node.label, at: CGPoint(x: node.x, y: y + 12), context: ctx, contentHeight: 0, color: strokeColor, font: _monoFont(size: 12))
+            ctx.fill(body)
+            ctx.stroke(body)
+            _drawTextInFlipped(node.label, at: title, context: ctx, contentHeight: 0, color: strokeColor, font: _monoFont(size: 12))
             for child in node.children {
                 _drawBlockCgNode(child, in: ctx)
             }
