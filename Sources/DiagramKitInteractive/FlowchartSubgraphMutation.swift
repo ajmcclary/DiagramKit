@@ -10,6 +10,7 @@
 // diagnostics, and selection in a single hop.
 
 import Foundation
+import DiagramKitCommon
 import DiagramKitModel
 
 extension DiagramEditor {
@@ -18,7 +19,7 @@ extension DiagramEditor {
         selections: [DiagramSelection],
         title: String,
         into document: DiagramDocument
-    ) throws -> DiagramDocument {
+    ) throws -> (DiagramDocument, [DiagramDiagnostic]) {
         guard !selections.isEmpty else {
             throw DiagramEditorError.invalidSubgraphSelection(reason: "selection is empty")
         }
@@ -43,7 +44,7 @@ extension DiagramEditor {
             nodeIDs.append(id)
         }
 
-        let subgraphID = Self.subgraphID(title: title, members: nodeIDs)
+        let (subgraphID, diagnostics) = Self.subgraphID(title: title, members: nodeIDs)
         guard !model.subgraphs.contains(where: { $0.id == subgraphID }) else {
             throw DiagramEditorError.invalidSubgraphSelection(
                 reason: "a subgraph with id '\(subgraphID)' already exists"
@@ -59,38 +60,65 @@ extension DiagramEditor {
 
         var newDoc = document
         newDoc.payload = .flowchart(model)
-        return newDoc
+        return (newDoc, diagnostics)
     }
 
     /// Deterministic id for a subgraph wrapping `members` titled `title`.
     /// Slug + 8-char hex hash keeps two calls with the same arguments
     /// idempotent and keeps two calls with different members distinct
     /// even when the title collides.
-    static func subgraphID(title: String, members: [String]) -> String {
-        let slug = slugify(title)
+    ///
+    /// Returns the resolved id alongside any diagnostics produced
+    /// while sanitizing `title` into the slug component. Callers should
+    /// surface those diagnostics so the user sees what their title
+    /// became.
+    static func subgraphID(
+        title: String,
+        members: [String]
+    ) -> (id: String, diagnostics: [DiagramDiagnostic]) {
+        let (slug, slugDiagnostics) = slugify(title)
         let hashSeed = (members.sorted() + [title]).joined(separator: "|")
         var hasher = Hasher()
         hasher.combine(hashSeed)
         let raw = UInt(bitPattern: hasher.finalize())
         let hex = String(raw, radix: 16, uppercase: false)
         let suffix = String(hex.suffix(8))
-        return "\(slug)_\(suffix)"
+        return ("\(slug)_\(suffix)", slugDiagnostics)
     }
 
-    private static func slugify(_ input: String) -> String {
+    private static func slugify(_ input: String) -> (slug: String, diagnostics: [DiagramDiagnostic]) {
         let trimmed = input.lowercased().trimmingCharacters(in: .whitespacesAndNewlines)
         var out = ""
+        var droppedAny = false
         for ch in trimmed {
             if ch.isLetter || ch.isNumber {
                 out.append(ch)
             } else if ch == " " || ch == "_" || ch == "-" {
                 out.append("_")
+            } else {
+                // drop non-alphanumeric / non-whitespace characters
+                droppedAny = true
             }
-            // drop everything else
         }
+        let emptied: Bool
         if out.isEmpty {
             out = "subgraph"
+            emptied = true
+        } else {
+            emptied = false
         }
-        return out
+
+        // Only emit a diagnostic when the slug observably differs from
+        // the user's input (ignoring whitespace + case). A pure
+        // lowercase + whitespace→underscore mapping is round-trip
+        // recoverable and not worth surfacing.
+        var diagnostics: [DiagramDiagnostic] = []
+        if droppedAny || emptied {
+            diagnostics.append(.lossyTransform(
+                .idSanitization,
+                message: "Subgraph title '\(input)' sanitized to id slug '\(out)'"
+            ))
+        }
+        return (out, diagnostics)
     }
 }

@@ -1,6 +1,7 @@
 // Phase 9: Interactive Model — Slice 9F
 // Flowchart-specific mutations.
 
+import DiagramKitCommon
 import DiagramKitModel
 import DiagramKitExport
 
@@ -156,7 +157,7 @@ extension DiagramEditor {
             throw DiagramEditorError.notAFlowchart
         }
 
-        let newDocument = try _applyFlowchart(mutation, to: document)
+        let (newDocument, mutationDiagnostics) = try _applyFlowchart(mutation, to: document)
 
         let exportResult: DiagramExportResult
         do {
@@ -172,7 +173,10 @@ extension DiagramEditor {
 
         _commitDocument(newDocument)
         _commitSource(exportResult.source)
-        _commitDiagnostics(exportResult.diagnostics)
+        // Mutation-tier diagnostics (e.g. subgraph-title sanitization)
+        // ride alongside export-tier diagnostics on the editor's
+        // `lastExportDiagnostics` channel.
+        _commitDiagnostics(mutationDiagnostics + exportResult.diagnostics)
 
         undoManager.registerUndo(withTarget: self) { editor in
             editor._restoreSnapshot(
@@ -189,19 +193,19 @@ extension DiagramEditor {
 
     func _applyFlowchart(
         _ mutation: FlowchartMutation, to document: DiagramDocument
-    ) throws -> DiagramDocument {
+    ) throws -> (DiagramDocument, [DiagramDiagnostic]) {
         switch mutation {
         case .insertNode(let id, let label, let type):
-            return try _insertFlowchartNode(id: id, label: label, type: type, into: document)
+            return (try _insertFlowchartNode(id: id, label: label, type: type, into: document), [])
         case .insertEdge(let id, let from, let to, let label):
-            return try _insertFlowchartEdge(id: id, from: from, to: to, label: label, into: document)
+            return (try _insertFlowchartEdge(id: id, from: from, to: to, label: label, into: document), [])
         case .groupIntoSubgraph(let selections, let title):
             return try _groupIntoSubgraph(selections: selections, title: title, into: document)
         case .setEdgeStyle(let edgeId, let source, let target, let style):
-            return try _setFlowchartEdgeStyle(
+            return (try _setFlowchartEdgeStyle(
                 edgeId: edgeId, source: source, target: target,
                 style: style.internalStyle, into: document
-            )
+            ), [])
         }
     }
 

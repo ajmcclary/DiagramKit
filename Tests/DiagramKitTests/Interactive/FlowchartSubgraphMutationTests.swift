@@ -144,10 +144,61 @@ struct FlowchartSubgraphMutationTests {
 
     @Test("subgraphID is deterministic for the same inputs")
     func subgraphIDDeterministic() {
-        let id1 = DiagramEditor.subgraphID(title: "renderers", members: ["A", "B", "C"])
-        let id2 = DiagramEditor.subgraphID(title: "renderers", members: ["C", "B", "A"])
-        let id3 = DiagramEditor.subgraphID(title: "renderers", members: ["A", "B", "D"])
+        let id1 = DiagramEditor.subgraphID(title: "renderers", members: ["A", "B", "C"]).id
+        let id2 = DiagramEditor.subgraphID(title: "renderers", members: ["C", "B", "A"]).id
+        let id3 = DiagramEditor.subgraphID(title: "renderers", members: ["A", "B", "D"]).id
         #expect(id1 == id2) // member order doesn't matter
         #expect(id1 != id3) // different members ⇒ different id
+    }
+
+    @Test("subgraphID emits no diagnostic for a clean alphanumeric title")
+    func subgraphIDNoDiagnosticForCleanTitle() {
+        let result = DiagramEditor.subgraphID(title: "renderers", members: ["A", "B"])
+        #expect(result.diagnostics.isEmpty)
+    }
+
+    @Test("subgraphID emits an .idSanitization diagnostic when characters are dropped")
+    func subgraphIDDiagnosticOnSanitization() {
+        // The "@" and "!" can't survive the slug — slugify drops them.
+        let result = DiagramEditor.subgraphID(
+            title: "Build @ Deploy!",
+            members: ["A", "B"]
+        )
+        #expect(result.diagnostics.contains { d in
+            d.category == .idSanitization &&
+                d.message.contains("Build @ Deploy!") &&
+                d.message.contains("build__deploy")
+        }, "expected an .idSanitization diagnostic naming the input and slug, got: \(result.diagnostics)")
+    }
+
+    @Test("subgraphID emits an .idSanitization diagnostic when the title slug is empty")
+    func subgraphIDDiagnosticOnEmptySlug() {
+        let result = DiagramEditor.subgraphID(title: "!!!", members: ["A"])
+        // All chars were dropped, so the slug falls back to "subgraph"
+        // — that's a meaningful rename and worth surfacing.
+        #expect(result.diagnostics.contains { d in
+            d.category == .idSanitization &&
+                d.message.contains("'!!!'") &&
+                d.message.contains("subgraph")
+        }, "expected an .idSanitization diagnostic for the empty-slug fallback, got: \(result.diagnostics)")
+    }
+
+    @Test("groupIntoSubgraph surfaces slug-sanitization diagnostic to the editor")
+    func groupIntoSubgraphSurfacesDiagnostic() async throws {
+        let editor = DiagramEditor(
+            document: flowDoc(["A", "B"]),
+            preferredExportFormat: .mermaid,
+            exportRegistry: mockRegistry()
+        )
+        try await editor.performFlowchart(
+            .groupIntoSubgraph(
+                selections: [nodeSelection("A"), nodeSelection("B")],
+                title: "Build @ Deploy!"
+            )
+        )
+        #expect(editor.lastExportDiagnostics.contains { d in
+            d.category == .idSanitization
+                && d.message.contains("Build @ Deploy!")
+        }, "expected lastExportDiagnostics to carry the .idSanitization diagnostic from the mutation, got: \(editor.lastExportDiagnostics)")
     }
 }

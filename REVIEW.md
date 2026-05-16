@@ -2,7 +2,7 @@
 
 **Method.** Six parallel agents reviewed: (1) architecture/layering/portability, (2) concurrency, (3) invariants + dual-renderer symmetry, (4) diagnostics + error handling, (5) code quality, (6) correctness/perf/test coverage. Critical and high-impact findings were spot-verified against the working tree. The diagnostic-discipline and `@unchecked Sendable` gates pass clean; the worker-thread invariant, `@MainActor` placement, `bmColorEquals`, type-safe payloads, retain cycles, cross-format round-trip matrix, and empty-source handling all checked out with no findings.
 
-**Summary.** 1 Critical (verified build break) — **resolved**, 10 High (10 resolved), 13 Medium (+2 added during follow-up; 3 resolved), 7 Low.
+**Summary.** 1 Critical (verified build break) — **resolved**, 10 High (10 resolved), 13 Medium (+2 added during follow-up; 4 resolved), 7 Low.
 
 ---
 
@@ -142,11 +142,17 @@ No pinning test added: the fallback path only fires when the ELK adapter throws,
 
 New `XYChartAsciiRendererTests` (2 tests) pin the contract: a basic vertical bar chart renders with no `"XY Chart parse error"` substring; malformed source throws (captured with `withKnownIssue` since the reporter records an Issue before re-throwing). XYChart corpus ASCII spot-check (3 entries) byte-identical — only the previously-buggy path changes behavior.
 
-### [Severity: Medium] `FlowchartSubgraphMutation.slugify` drops characters with no diagnostic
+### [Severity: Medium] ~~`FlowchartSubgraphMutation.slugify` drops characters with no diagnostic~~ — RESOLVED
 **File:** `Sources/DiagramKitInteractive/FlowchartSubgraphMutation.swift#L80-95`
 **Category:** Diagnostics
 **Problem:** `slugify` is used to derive a subgraph id from a user-provided `title`. Characters that aren't letters/numbers/space/`_`/`-` are dropped silently. The discipline calls this id-sanitization (`.lossyTransform(.idSanitization, ...)`). The id is surfaced back to the user (collision check, error).
-**Fix:** When `slugify(title)` differs from `title.lowercased()` modulo whitespace, emit `.lossyTransform(.idSanitization, message: "Subgraph title '\(title)' sanitized to id '\(slug)'")` onto the mutation result.
+**Fix applied.** Restructured the slug pipeline to carry diagnostics through the mutation result:
+- `slugify(_:)` returns `(slug: String, diagnostics: [DiagramDiagnostic])`. Tracks whether any non-alphanumeric/non-`_-` characters were dropped and whether the slug emptied out (forcing the `"subgraph"` fallback). When either condition fires, emits `.lossyTransform(.idSanitization, message: "Subgraph title '<input>' sanitized to id slug '<slug>'")`. A pure lowercase + whitespace→underscore mapping is round-trip recoverable and does *not* emit a diagnostic.
+- `DiagramEditor.subgraphID(title:members:)` now returns `(id: String, diagnostics: [DiagramDiagnostic])` and forwards the slug diagnostics.
+- `_groupIntoSubgraph(...)` returns `(DiagramDocument, [DiagramDiagnostic])`.
+- `_applyFlowchart(_:to:)` returns `(DiagramDocument, [DiagramDiagnostic])` — other flowchart mutations (`insertNode`, `insertEdge`, `setEdgeStyle`) return `(doc, [])`. The commit site concatenates mutation-tier and export-tier diagnostics: `_commitDiagnostics(mutationDiagnostics + exportResult.diagnostics)`. Users see the sanitization on `editor.lastExportDiagnostics`.
+
+Four new tests pin the contract: clean titles emit no diagnostic; titles with dropped characters emit `.idSanitization` naming both input and slug; the empty-slug fallback (`"!!!"` → `"subgraph"`) emits a diagnostic; the full `groupIntoSubgraph` path surfaces the diagnostic onto `editor.lastExportDiagnostics`. The existing `subgraphIDDeterministic` test updated for the new tuple return. All 9 `FlowchartSubgraphMutationTests` pass.
 
 ### [Severity: Medium] Sequence block tab height open-coded in SVG
 **File:** `Sources/DiagramKitModel/src_sequence_renderer.swift#L493` vs `Sources/DiagramKitRenderingCG/DiagramRenderer+Sequence.swift#L82` + `RenderTokens+Sequence.swift#L14`
