@@ -2,7 +2,7 @@
 
 **Method.** Six parallel agents reviewed: (1) architecture/layering/portability, (2) concurrency, (3) invariants + dual-renderer symmetry, (4) diagnostics + error handling, (5) code quality, (6) correctness/perf/test coverage. Critical and high-impact findings were spot-verified against the working tree. The diagnostic-discipline and `@unchecked Sendable` gates pass clean; the worker-thread invariant, `@MainActor` placement, `bmColorEquals`, type-safe payloads, retain cycles, cross-format round-trip matrix, and empty-source handling all checked out with no findings.
 
-**Summary.** 1 Critical (verified build break) — **resolved**, 10 High (6 resolved), 13 Medium (+2 added during follow-up), 7 Low.
+**Summary.** 1 Critical (verified build break) — **resolved**, 10 High (7 resolved), 13 Medium (+2 added during follow-up), 7 Low.
 
 ---
 
@@ -94,11 +94,11 @@ This is the last of the dual-renderer-drift items from the original review. Veri
 **Problem:** `_compileTasks` swallows `getStartDate` errors at L736-738 (`catch { startTime = nil }`) and `_getEndDate` errors at L748 (`try?`). Public entry `parseGanttDiagram` at L31 returns `(GanttDiagram, [DiagramDiagnostic])` and hardcodes `[]` for the diagnostics slot at L32. Unreported data loss on the parse path — exactly what diagnostic discipline forbids.
 **Fix:** Thread a diagnostics sink into `_compileTasks` and emit `.lossyTransform(.configDrop, message: "Gantt task '\(id)' date parse failed: \(error)")`. Return through the existing tuple slot. If the path is provably unreachable on canonical sources, add a `SILENT-DROP` marker with a real test reference instead.
 
-### [Severity: High] SPI underscore types crossing module boundary without public typealias
+### [Severity: High] ~~SPI underscore types crossing module boundary without public typealias~~ — RESOLVED
 **File:** `Sources/DiagramKitRenderingCG/DiagramRenderer+Flow.swift#L167,L202,L216,L300`
 **Category:** Architecture
 **Problem:** RenderingCG references `_PositionedGroupPayload` and `_PositionedNodePayload` (defined in `Sources/DiagramKitModel/PositionedPayloads.swift#L13-53`) directly. CLAUDE.md: "Use public typealiases such as `PositionedNode` outside the defining module." The typealiases (`PositionedGroup`, `PositionedNode`, `PositionedEdge`, `PositionedPoint`) exist at `Sources/DiagramKitModel/Types.swift#L232-238`. Every other cross-module callsite uses the alias; only this file violates.
-**Fix:** Replace `_PositionedGroupPayload` → `PositionedGroup`, `_PositionedNodePayload` → `PositionedNode` in the four signatures.
+**Fix applied.** Replaced `_PositionedGroupPayload` → `PositionedGroup` (3 sites) and `_PositionedNodePayload` → `PositionedNode` (1 site) in the four function signatures. Build clean; flowchart corpus image snapshots (sample of 4) pass unchanged. Verified by grep — no `_Positioned*Payload` references remain in any non-defining module (`DiagramKitRenderingCG`, `DiagramKitViews`, `DiagramKitInteractive`, `DiagramKitImport`, `DiagramKitExport`, `DiagramKitMermaid`, `DiagramKit`).
 
 ### [Severity: High] Public API missing docstrings — canonical surface is undocumented
 **Files:** `Sources/DiagramKit/DiagramImageRenderer.swift#L16-230` (~14 public decls), `Sources/DiagramKit/DiagramPipeline.swift#L108-262` (7 of 9 public methods undocumented: `parse` x3, `layout` x2, `prepare`, `renderASCII`), `Sources/DiagramKit/DiagramEngine.swift#L243-290` (the 4 canonical `String` helpers `parseDiagram`/`renderDiagramImage`/`renderDiagramSVG`/`renderDiagramASCII`), `Sources/DiagramKit/DiagramDescriptor.swift#L235-245` (`DiagramStructuralError`)

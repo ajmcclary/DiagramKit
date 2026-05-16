@@ -164,7 +164,7 @@ extension DiagramRenderer {
         }
     }
 
-    private func _drawSubgraphBackgrounds(_ groups: [_PositionedGroupPayload], in context: CGContext) {
+    private func _drawSubgraphBackgrounds(_ groups: [PositionedGroup], in context: CGContext) {
         for group in groups {
             let rect = CGRect(x: group.x, y: group.y, width: group.width, height: group.height)
             let path = BMBezierPath(rect: rect)
@@ -199,7 +199,7 @@ extension DiagramRenderer {
         }
     }
 
-    private func _drawSubgraphLabels(_ groups: [_PositionedGroupPayload], in context: CGContext) {
+    private func _drawSubgraphLabels(_ groups: [PositionedGroup], in context: CGContext) {
         let headerFont = self.fontResolver.groupHeaderFont()
         for group in groups {
             if group.label.contains("\n") {
@@ -213,7 +213,7 @@ extension DiagramRenderer {
         }
     }
 
-    private func _drawSubgraphLabelsInFlipped(_ groups: [_PositionedGroupPayload], in context: CGContext, contentHeight ch: CGFloat) {
+    private func _drawSubgraphLabelsInFlipped(_ groups: [PositionedGroup], in context: CGContext, contentHeight ch: CGFloat) {
         let headerFont = self.fontResolver.groupHeaderFont()
         for group in groups {
             let labelPoint = CGPoint(x: group.x + 8, y: group.y + group.headerHeight / 2)
@@ -297,7 +297,7 @@ extension DiagramRenderer {
         )
     }
 
-    private func _labelCenterForNode(_ node: _PositionedNodePayload, pos: String?) -> CGPoint {
+    private func _labelCenterForNode(_ node: PositionedNode, pos: String?) -> CGPoint {
         guard let pos else { return CGPoint(x: node.x + node.width / 2, y: node.y + node.height / 2) }
         switch pos.lowercased() {
         case "t":
