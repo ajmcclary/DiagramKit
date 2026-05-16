@@ -2,7 +2,7 @@
 
 **Method.** Six parallel agents reviewed: (1) architecture/layering/portability, (2) concurrency, (3) invariants + dual-renderer symmetry, (4) diagnostics + error handling, (5) code quality, (6) correctness/perf/test coverage. Critical and high-impact findings were spot-verified against the working tree. The diagnostic-discipline and `@unchecked Sendable` gates pass clean; the worker-thread invariant, `@MainActor` placement, `bmColorEquals`, type-safe payloads, retain cycles, cross-format round-trip matrix, and empty-source handling all checked out with no findings.
 
-**Summary.** 1 Critical (verified build break) — **resolved**, 10 High (10 resolved), 13 Medium (+2 added during follow-up; 11 resolved, 1 deferred), 7 Low (6 resolved).
+**Summary.** 1 Critical (verified build break) — **resolved**, 10 High (10 resolved), 13 Medium (+2 added during follow-up; 12 resolved, 0 deferred), 7 Low (6 resolved).
 
 ---
 
@@ -199,13 +199,19 @@ Skipped going further and inlining `fontResolver.eventModelingFont(...)` at the 
 
 Pure refactor: 4 EventModeling corpus entries (`eventmodeling-simple-state-change`, `eventmodeling-multi-relation`, `eventmodeling-all-entity-types`, `eventmodeling-state-view`) byte-identical image + SVG.
 
-### [Severity: Medium] Mermaid State same-format round-trip cell missing from the matrix — BLOCKED on missing Mermaid state exporter
+### [Severity: Medium] ~~Mermaid State same-format round-trip cell missing from the matrix~~ — RESOLVED
 **File:** `Tests/DiagramKitTests/RoundTrip/RoundTripCellRegistry.swift#L19-122`
 **Category:** Test Coverage
-**Problem:** Mermaid cells exist for flowchart, sequence, class, ER, c4, gantt. PlantUML has `plantumlState`, but there is no `mermaidState`. State is a first-class supported family with its own diagnostic discipline; without a same-format round-trip, regressions in `MermaidExporter`'s state emission stay silent until snapshot drift catches them.
-**Status: blocked.** The reviewer's premise — "regressions in `MermaidExporter`'s state emission stay silent" — assumes the exporter emits state. Inspection of `Sources/DiagramKitMermaid/Exporter/MermaidExporter.swift` shows `.stateDiagram` is commented out of `supportedDiagramTypes` (line 23: *"`stateDiagram` — added in 7A-P1"*) and the `switch document.payload` default arm returns an empty source with a `.diagramFamilyUnsupported` diagnostic. There is no state emission to round-trip against today. Adding the cell as the reviewer specified would produce empty output and immediately fail.
+**Problem (original).** Mermaid cells existed for flowchart, sequence, class, ER, c4, gantt. PlantUML had `plantumlState`, but there was no `mermaidState`. Adding the cell as the reviewer originally specified would have produced empty output and immediately failed: `.stateDiagram` was commented out of `MermaidExporter.supportedDiagramTypes` (line 23) and the `switch document.payload` default arm returned an empty source with a `.diagramFamilyUnsupported` diagnostic. There was no state emission to round-trip against.
+**Fix applied.** Implemented the missing `MermaidStateExport` slice and wired the round-trip cell.
+- **New file `Sources/DiagramKitMermaid/Exporter/MermaidExport/MermaidStateExport.swift`** (320 lines). Mirrors the per-family-emit pattern of `MermaidFlowchartExport`/`MermaidSequenceExport`/etc. Emits `stateDiagram-v2` header, simple/labeled transitions, `[*]` start/end sentinels (detected by `.stateStart`/`.stateEnd` *shape* not id suffix — same convention `PlantUMLStateExport` uses to avoid corrupting user-authored ids like `customer_start`), `state "Name" as id` aliasing, `state foo <<choice>>`/`<<fork>>`/`<<join>>` pseudo-states, and `note left/right of <target> : <text>` (notes are reconstructed from the `.stateNote` shape + the dotted edges the parser emits in `_addStateNote`). Composite states (`state Foo { ... }`) are emitted recursively, matching `PlantUMLStateExport.emitSubgraph`. Concurrency dividers (`--`), `classDef`/`class`/`style`/`click`, and `accTitle`/`accDescr` are deferred from v1 — they surface via `.subgraphFlatten` / `.styleDrop` / `.accessibilityDrop` diagnostics on `DiagramExportResult` so the discipline gate still holds.
+- **`MermaidExporter.swift`**: added `.stateDiagram` to `supportedDiagramTypes` and a `case .stateDiagram(let model): result = try MermaidStateExport.emit(model)` arm to the dispatch switch.
+- **`Tests/DiagramKitTests/Export/MermaidStateExportTests.swift`** (9 tests): empty diagram → header-only output; `[*]` pseudostate round-trip via shape; `state "Name" as id` alias round-trip; labeled transitions; `<<choice>>` pseudo-state; `note left of` round-trip; `nodeStyles` → `.styleDrop` diagnostic; `accTitle` → `.accessibilityDrop` diagnostic.
+- **Round-trip cell**: `RoundTripCellRegistry.mermaidState` with `allowedLosses: [.idSanitization]`, plus a parameterized `mermaidState` test in `SameFormatRoundTripTests.swift` pointed at `Tests/DiagramKitTests/RoundTrip/Resources/roundtrip/mermaid-state/{01-basic,02-aliased,03-notes}.md`. All 3 fixtures round-trip clean.
 
-**Real fix.** Implement `MermaidStateExport` (a per-family emit module alongside `MermaidFlowchartExport` etc.) covering at minimum: `stateDiagram-v2` header, simple transitions (`A --> B : label`), the `[*]` start/end sentinels, the `state "Name" as id` aliasing, and notes. Wire it into the exporter's switch, add `.stateDiagram` to `supportedDiagramTypes`, *then* the round-trip cell becomes meaningful. That's feature work in the same shape as the original "7A-P1" plan, not the small-scope cleanup the other Mediums are. Tracked as a follow-up rather than rolled into the review-followup cadence.
+Verified: 9 `MermaidStateExportTests` pass; 3 `mermaidState` round-trip cells pass; full 16-cell `SameFormatRoundTripTests` passes (no neighbor disturbance); `MermaidExporterTests` (10) unchanged; `Scripts/check-diagnostic-discipline.sh` clean; `Scripts/check-file-sizes.sh` — new file at 320 lines (under 500-line warning threshold).
+
+The closed `MermaidExporter`'s state arm now matches the other supported families and the round-trip matrix is symmetric for state across `mermaid ↔ mermaid` and `plantuml ↔ plantuml`. Cross-format state round-trip (`mermaid ↔ plantuml`) remains a future addition once both sides cover composites equivalently.
 
 ### [Severity: Medium] Several families have far fewer dedicated test files than peers
 **Path:** `Tests/DiagramKitTests/`
