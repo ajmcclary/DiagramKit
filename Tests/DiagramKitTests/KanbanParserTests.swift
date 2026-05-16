@@ -412,8 +412,8 @@ final class KanbanParserTests: XCTestCase {
 
     func test_frontmatterTitleIsPreservedWhenInlineTitleAbsent() throws {
         let source = "kanban\n  Todo"
-        var frontmatter = DiagramFrontmatter(title: "Frontmatter Board")
-        frontmatter.kanbanConfig = KanbanDiagramConfig()
+        var frontmatter = DiagramFrontmatter.with { $0.shared.title = "Frontmatter Board" }
+        frontmatter.perDiagram.kanban.config = KanbanDiagramConfig()
         let (diagram, _) = try parseKanbanDiagram(rawLines(source), frontmatter: frontmatter)
         XCTAssertEqual(diagram.diagramTitle, "Frontmatter Board")
     }

@@ -118,7 +118,7 @@ final class KanbanRendererTests: XCTestCase {
         var config = KanbanDiagramConfig()
         config.ticketBaseUrl = "https://jira.example.com/browse/#TICKET#"
         var frontmatter = DiagramFrontmatter()
-        frontmatter.kanbanConfig = config
+        frontmatter.perDiagram.kanban.config = config
         let source = "kanban\n  S\n    card1@{ ticket: MC-1234 }"
         let (diagram, _) = try parseKanbanDiagram(rawLines(source), frontmatter: frontmatter)
         let positioned = layoutKanbanDiagram(diagram)
@@ -229,7 +229,7 @@ final class KanbanRendererTests: XCTestCase {
         var config = KanbanDiagramConfig()
         config.useMaxWidth = true
         var frontmatter = DiagramFrontmatter()
-        frontmatter.kanbanConfig = config
+        frontmatter.perDiagram.kanban.config = config
         let source = "kanban\n  S"
         let (diagram, _) = try parseKanbanDiagram(rawLines(source), frontmatter: frontmatter)
         let positioned = layoutKanbanDiagram(diagram)
@@ -243,7 +243,7 @@ final class KanbanRendererTests: XCTestCase {
         var config = KanbanDiagramConfig()
         config.ticketBaseUrl = "javascript:alert('#TICKET#')"
         var frontmatter = DiagramFrontmatter()
-        frontmatter.kanbanConfig = config
+        frontmatter.perDiagram.kanban.config = config
         let source = "kanban\n  S\n    card1@{ ticket: MC-1234 }"
         let (diagram, _) = try parseKanbanDiagram(rawLines(source), frontmatter: frontmatter)
         let positioned = layoutKanbanDiagram(diagram)

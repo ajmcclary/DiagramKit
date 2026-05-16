@@ -238,9 +238,7 @@ final class MindmapParserTests: XCTestCase {
     }
 
     func test_frontmatterConfig() throws {
-        let fm = DiagramFrontmatter(
-            mindmapConfig: MindmapConfig(padding: 20, maxNodeWidth: 300)
-        )
+        let fm = DiagramFrontmatter.with { $0.perDiagram.mindmap.config = MindmapConfig(padding: 20, maxNodeWidth: 300) }
         let source = "mindmap\n  root\n    A"
         let (diagram, _) = try parseMindmap(rawLines(source), frontmatter: fm)
         XCTAssertEqual(diagram.config.padding, 20)

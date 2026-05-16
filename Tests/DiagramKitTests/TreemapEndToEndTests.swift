@@ -24,7 +24,7 @@ struct TreemapEndToEndTests {
             .split(separator: "\n", omittingEmptySubsequences: false)
             .map(String.init)
         var (diagram, _) = try parseTreemapDiagram(rawLines, frontmatter: preprocessed.frontmatter)
-        if let cfg = preprocessed.frontmatter?.treemapConfig { diagram.config = cfg }
+        if let cfg = preprocessed.frontmatter?.perDiagram.treemap.config { diagram.config = cfg }
 
         let positioned = layoutTreemapDiagram(diagram)
         let colors = DiagramColors(bg: "#ffffff", fg: "#000000")
@@ -57,7 +57,7 @@ struct TreemapEndToEndTests {
             .split(separator: "\n", omittingEmptySubsequences: false)
             .map(String.init)
         var (diagram, _) = try parseTreemapDiagram(rawLines, frontmatter: preprocessed.frontmatter)
-        if let cfg = preprocessed.frontmatter?.treemapConfig { diagram.config = cfg }
+        if let cfg = preprocessed.frontmatter?.perDiagram.treemap.config { diagram.config = cfg }
 
         let positioned = layoutTreemapDiagram(diagram)
         #expect(positioned.config.showValues == false)
@@ -82,7 +82,7 @@ struct TreemapEndToEndTests {
             .split(separator: "\n", omittingEmptySubsequences: false)
             .map(String.init)
         var (diagram, _) = try parseTreemapDiagram(rawLines, frontmatter: preprocessed.frontmatter)
-        if let theme = preprocessed.frontmatter?.theme { diagram.themeName = theme }
+        if let theme = preprocessed.frontmatter?.shared.theme { diagram.themeName = theme }
 
         #expect(diagram.themeName == "dark")
     }

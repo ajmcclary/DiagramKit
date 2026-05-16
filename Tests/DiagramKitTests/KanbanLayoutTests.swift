@@ -83,12 +83,12 @@ final class KanbanLayoutTests: XCTestCase {
     func test_configPaddingDoesNotChangeCardWidthOrColumnGap() throws {
         let source = "kanban\n  A\n    a\n  B\n    b"
         var frontmatterA = DiagramFrontmatter()
-        frontmatterA.kanbanConfig = KanbanDiagramConfig(padding: 8)
+        frontmatterA.perDiagram.kanban.config = KanbanDiagramConfig(padding: 8)
         let (diagramA, _) = try parseKanbanDiagram(rawLines(source), frontmatter: frontmatterA)
         let positionedA = layoutKanbanDiagram(diagramA)
 
         var frontmatterB = DiagramFrontmatter()
-        frontmatterB.kanbanConfig = KanbanDiagramConfig(padding: 48)
+        frontmatterB.perDiagram.kanban.config = KanbanDiagramConfig(padding: 48)
         let (diagramB, _) = try parseKanbanDiagram(rawLines(source), frontmatter: frontmatterB)
         let positionedB = layoutKanbanDiagram(diagramB)
 

@@ -389,8 +389,8 @@ final class ArchitectureSvgRendererTests: XCTestCase {
         let (stripped, fm) = _parseFrontMatterAndStripped(source)
         let rawLines = stripped.split(separator: "\n", omittingEmptySubsequences: false).map(String.init)
         var (d, _) = try parseArchitectureDiagram(rawLines, frontmatter: fm)
-        if let fmc = fm?.archConfig { d.config = fmc }
-        if let fmt = fm?.archTheme { d.theme = fmt }
+        if let fmc = fm?.perDiagram.architecture.config { d.config = fmc }
+        if let fmt = fm?.perDiagram.architecture.theme { d.theme = fmt }
         let p = layoutArchitectureDiagram(d)
         let colors = DiagramColors(bg: "#FFF", fg: "#000")
         let svg = try renderArchitectureSvg(p, diagramId: "test-id", colors, "Inter", false)
@@ -411,8 +411,8 @@ final class ArchitectureSvgRendererTests: XCTestCase {
         let (stripped, fm) = _parseFrontMatterAndStripped(source)
         let rawLines = stripped.split(separator: "\n", omittingEmptySubsequences: false).map(String.init)
         var (d, _) = try parseArchitectureDiagram(rawLines, frontmatter: fm)
-        if let fmc = fm?.archConfig { d.config = fmc }
-        if let fmt = fm?.archTheme { d.theme = fmt }
+        if let fmc = fm?.perDiagram.architecture.config { d.config = fmc }
+        if let fmt = fm?.perDiagram.architecture.theme { d.theme = fmt }
         let p = layoutArchitectureDiagram(d)
         let colors = DiagramColors(bg: "#FFF", fg: "#000")
         let svg = try renderArchitectureSvg(p, diagramId: "test-id", colors, "Inter", false)
@@ -454,8 +454,8 @@ final class ArchitectureSvgRendererTests: XCTestCase {
         let (stripped, fm) = _parseFrontMatterAndStripped(source)
         let rawLines = stripped.split(separator: "\n", omittingEmptySubsequences: false).map(String.init)
         var (d, _) = try parseArchitectureDiagram(rawLines, frontmatter: fm)
-        if let fmc = fm?.archConfig { d.config = fmc }
-        if let fmt = fm?.archTheme { d.theme = fmt }
+        if let fmc = fm?.perDiagram.architecture.config { d.config = fmc }
+        if let fmt = fm?.perDiagram.architecture.theme { d.theme = fmt }
         XCTAssertEqual(d.config.padding, 20)
         XCTAssertEqual(d.config.iconSize, 60)
     }

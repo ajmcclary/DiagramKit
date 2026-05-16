@@ -78,7 +78,7 @@ final class SankeySvgTests: XCTestCase {
 
     func testSvgWithSourceLinkColor() throws {
         let config = SankeyDiagramConfig(linkColor: .source)
-        let fm = DiagramFrontmatter(sankeyConfig: config)
+        let fm = DiagramFrontmatter.with { $0.perDiagram.sankey.config = config }
         let (diagram, _) = try parseSankeyDiagram(lines("sankey\nA,B,10"), frontmatter: fm)
         let positioned = layoutSankeyDiagram(diagram)
         let colors = DiagramColors(bg: "#FFFFFF", fg: "#27272A")
@@ -88,7 +88,7 @@ final class SankeySvgTests: XCTestCase {
 
     func testSvgWithTargetLinkColor() throws {
         let config = SankeyDiagramConfig(linkColor: .target)
-        let fm = DiagramFrontmatter(sankeyConfig: config)
+        let fm = DiagramFrontmatter.with { $0.perDiagram.sankey.config = config }
         let (diagram, _) = try parseSankeyDiagram(lines("sankey\nA,B,10"), frontmatter: fm)
         let positioned = layoutSankeyDiagram(diagram)
         let colors = DiagramColors(bg: "#FFFFFF", fg: "#27272A")
@@ -98,7 +98,7 @@ final class SankeySvgTests: XCTestCase {
 
     func testSvgWithFixedLinkColor() throws {
         let config = SankeyDiagramConfig(linkColor: .fixed("#ff0000"))
-        let fm = DiagramFrontmatter(sankeyConfig: config)
+        let fm = DiagramFrontmatter.with { $0.perDiagram.sankey.config = config }
         let (diagram, _) = try parseSankeyDiagram(lines("sankey\nA,B,10"), frontmatter: fm)
         let positioned = layoutSankeyDiagram(diagram)
         let colors = DiagramColors(bg: "#FFFFFF", fg: "#27272A")
@@ -126,7 +126,7 @@ final class SankeySvgTests: XCTestCase {
 
     func testSvgWithShowValues() throws {
         let config = SankeyDiagramConfig(showValues: true, prefix: "$", suffix: "k")
-        let fm = DiagramFrontmatter(sankeyConfig: config)
+        let fm = DiagramFrontmatter.with { $0.perDiagram.sankey.config = config }
         let (diagram, _) = try parseSankeyDiagram(lines("sankey\nA,B,10"), frontmatter: fm)
         let positioned = layoutSankeyDiagram(diagram)
         let colors = DiagramColors(bg: "#FFFFFF", fg: "#27272A")
@@ -141,7 +141,7 @@ final class SankeySvgTests: XCTestCase {
 
     func testSvgOutlinedLabelStyle() throws {
         let config = SankeyDiagramConfig(labelStyle: .outlined)
-        let fm = DiagramFrontmatter(sankeyConfig: config)
+        let fm = DiagramFrontmatter.with { $0.perDiagram.sankey.config = config }
         let (diagram, _) = try parseSankeyDiagram(lines("sankey\nA,B,10"), frontmatter: fm)
         let positioned = layoutSankeyDiagram(diagram)
         let colors = DiagramColors(bg: "#FFFFFF", fg: "#27272A")
@@ -163,7 +163,7 @@ final class SankeySvgTests: XCTestCase {
     }
 
     func testSvgAccessibility() throws {
-        let fm = DiagramFrontmatter(title: "Test Title")
+        let fm = DiagramFrontmatter.with { $0.shared.title = "Test Title" }
         let (diagram, _) = try parseSankeyDiagram(lines("sankey\nA,B,10"), frontmatter: fm)
         let positioned = layoutSankeyDiagram(diagram)
         let colors = DiagramColors(bg: "#FFFFFF", fg: "#27272A")
@@ -176,7 +176,7 @@ final class SankeySvgTests: XCTestCase {
 
     func testSvgUseMaxWidth() throws {
         let config = SankeyDiagramConfig(useMaxWidth: true)
-        let fm = DiagramFrontmatter(sankeyConfig: config)
+        let fm = DiagramFrontmatter.with { $0.perDiagram.sankey.config = config }
         let (diagram, _) = try parseSankeyDiagram(lines("sankey\nA,B,10"), frontmatter: fm)
         let positioned = layoutSankeyDiagram(diagram)
         let colors = DiagramColors(bg: "#FFFFFF", fg: "#27272A")
@@ -247,7 +247,7 @@ final class SankeySvgTests: XCTestCase {
 
     func testNodeRectWidthEqualsNodeWidthConfig() throws {
         let config = SankeyDiagramConfig(useMaxWidth: false, nodeWidth: 20)
-        let fm = DiagramFrontmatter(sankeyConfig: config)
+        let fm = DiagramFrontmatter.with { $0.perDiagram.sankey.config = config }
         let (diagram, _) = try parseSankeyDiagram(lines("sankey\nA,B,10"), frontmatter: fm)
         let positioned = layoutSankeyDiagram(diagram)
         let svg = renderSankeySvg(positioned, DiagramColors(bg: "#FFFFFF", fg: "#27272A"))

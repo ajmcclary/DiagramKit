@@ -129,10 +129,7 @@ final class MindmapLayoutTests: XCTestCase {
 
     func test_frontmatterLayoutAlgorithm_tidyTree_succeeds() throws {
         // config.mindmap.layoutAlgorithm: tidy-tree should work
-        let fm = DiagramFrontmatter(
-            mindmapConfig: MindmapConfig(padding: 10, maxNodeWidth: 200, layoutAlgorithm: "tidy-tree"),
-            layout: nil
-        )
+        let fm = DiagramFrontmatter.with { $0.perDiagram.mindmap.config = MindmapConfig(padding: 10, maxNodeWidth: 200, layoutAlgorithm: "tidy-tree"); $0.shared.layout = nil }
         let source = "mindmap\n  root\n    A\n    B"
         let (diagram, _) = try parseMindmap(source.split(separator: "\n", omittingEmptySubsequences: false).map(String.init), frontmatter: fm)
         let positioned = try layoutMindmap(diagram)
@@ -142,10 +139,7 @@ final class MindmapLayoutTests: XCTestCase {
 
     func test_frontmatterLayoutAlgorithm_coseBilkent_throws() throws {
         // config.mindmap.layoutAlgorithm: cose-bilkent should throw notYetImplemented
-        let fm = DiagramFrontmatter(
-            mindmapConfig: MindmapConfig(padding: 10, maxNodeWidth: 200, layoutAlgorithm: "cose-bilkent"),
-            layout: nil
-        )
+        let fm = DiagramFrontmatter.with { $0.perDiagram.mindmap.config = MindmapConfig(padding: 10, maxNodeWidth: 200, layoutAlgorithm: "cose-bilkent"); $0.shared.layout = nil }
         let source = "mindmap\n  root\n    A\n    B"
         let (diagram, _) = try parseMindmap(source.split(separator: "\n", omittingEmptySubsequences: false).map(String.init), frontmatter: fm)
         XCTAssertThrowsError(try layoutMindmap(diagram)) { error in
@@ -166,10 +160,7 @@ final class MindmapLayoutTests: XCTestCase {
 
     func test_globalLayout_tidyTree_overrides_layoutAlgorithm_coseBilkent() throws {
         // config.layout: tidy-tree should override config.mindmap.layoutAlgorithm: cose-bilkent
-        let fm = DiagramFrontmatter(
-            mindmapConfig: MindmapConfig(padding: 10, maxNodeWidth: 200, layoutAlgorithm: "cose-bilkent"),
-            layout: "tidy-tree"
-        )
+        let fm = DiagramFrontmatter.with { $0.perDiagram.mindmap.config = MindmapConfig(padding: 10, maxNodeWidth: 200, layoutAlgorithm: "cose-bilkent"); $0.shared.layout = "tidy-tree" }
         let source = "mindmap\n  root\n    A\n    B"
         let (diagram, _) = try parseMindmap(source.split(separator: "\n", omittingEmptySubsequences: false).map(String.init), frontmatter: fm)
         // resolvedLayout = layout ?? layoutAlgorithm = "tidy-tree"
@@ -180,10 +171,7 @@ final class MindmapLayoutTests: XCTestCase {
 
     func test_globalLayout_coseBilkent_overrides_layoutAlgorithm_tidyTree() throws {
         // config.layout: cose-bilkent should override config.mindmap.layoutAlgorithm: tidy-tree
-        let fm = DiagramFrontmatter(
-            mindmapConfig: MindmapConfig(padding: 10, maxNodeWidth: 200, layoutAlgorithm: "tidy-tree"),
-            layout: "cose-bilkent"
-        )
+        let fm = DiagramFrontmatter.with { $0.perDiagram.mindmap.config = MindmapConfig(padding: 10, maxNodeWidth: 200, layoutAlgorithm: "tidy-tree"); $0.shared.layout = "cose-bilkent" }
         let source = "mindmap\n  root\n    A\n    B"
         let (diagram, _) = try parseMindmap(source.split(separator: "\n", omittingEmptySubsequences: false).map(String.init), frontmatter: fm)
         // resolvedLayout = layout ?? layoutAlgorithm = "cose-bilkent"
@@ -202,10 +190,7 @@ final class MindmapLayoutTests: XCTestCase {
     }
 
     func test_frontmatterTidyTreeLayout() throws {
-        let fm = DiagramFrontmatter(
-            mindmapConfig: MindmapConfig(padding: 10, maxNodeWidth: 200),
-            layout: "tidy-tree"
-        )
+        let fm = DiagramFrontmatter.with { $0.perDiagram.mindmap.config = MindmapConfig(padding: 10, maxNodeWidth: 200); $0.shared.layout = "tidy-tree" }
         let source = "mindmap\n  root\n    A\n    B"
         let (diagram, _) = try parseMindmap(source.split(separator: "\n", omittingEmptySubsequences: false).map(String.init), frontmatter: fm)
         let positioned = try layoutMindmap(diagram)

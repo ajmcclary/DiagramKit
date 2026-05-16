@@ -149,7 +149,7 @@ struct IshikawaParserTests {
 
     @Test("Frontmatter title overrides root title")
     func frontmatterTitleOverrides() throws {
-        let fm = DiagramFrontmatter(diagramTitle: "Custom Title")
+        let fm = DiagramFrontmatter.with { $0.shared.diagramTitle = "Custom Title" }
         let lines = ["ishikawa-beta", "Defect Analysis", "    Materials"]
         let (result, _) = try parseIshikawaDiagram(lines, frontmatter: fm)
         #expect(result.diagramTitle == "Custom Title")

@@ -44,7 +44,7 @@ final class SankeyLayoutTests: XCTestCase {
 
     func testLayoutNodeWidthCustom() throws {
         let config = SankeyDiagramConfig(nodeWidth: 20)
-        let fm = DiagramFrontmatter(sankeyConfig: config)
+        let fm = DiagramFrontmatter.with { $0.perDiagram.sankey.config = config }
         let (diagram, _) = try parseSankeyDiagram(lines("sankey\nA,B,10"), frontmatter: fm)
         let positioned = layoutSankeyDiagram(diagram)
         for node in positioned.nodes {
@@ -54,12 +54,12 @@ final class SankeyLayoutTests: XCTestCase {
 
     func testLayoutShowValuesPadding() throws {
         let config1 = SankeyDiagramConfig(showValues: false)
-        let fm1 = DiagramFrontmatter(sankeyConfig: config1)
+        let fm1 = DiagramFrontmatter.with { $0.perDiagram.sankey.config = config1 }
         let (diagram1, _) = try parseSankeyDiagram(lines("sankey\nA,B,10\nA,C,20"), frontmatter: fm1)
         let pos1 = layoutSankeyDiagram(diagram1)
 
         let config2 = SankeyDiagramConfig(showValues: true)
-        let fm2 = DiagramFrontmatter(sankeyConfig: config2)
+        let fm2 = DiagramFrontmatter.with { $0.perDiagram.sankey.config = config2 }
         let (diagram2, _) = try parseSankeyDiagram(lines("sankey\nA,B,10\nA,C,20"), frontmatter: fm2)
         let pos2 = layoutSankeyDiagram(diagram2)
 
@@ -70,7 +70,7 @@ final class SankeyLayoutTests: XCTestCase {
 
     func testLayoutDimensionsFromConfig() throws {
         let config = SankeyDiagramConfig(width: 800, height: 600)
-        let fm = DiagramFrontmatter(sankeyConfig: config)
+        let fm = DiagramFrontmatter.with { $0.perDiagram.sankey.config = config }
         let (diagram, _) = try parseSankeyDiagram(lines("sankey\nA,B,10"), frontmatter: fm)
         let positioned = layoutSankeyDiagram(diagram)
         XCTAssertEqual(positioned.width, 800)
@@ -121,7 +121,7 @@ final class SankeyLayoutTests: XCTestCase {
 
     func testLayoutWithLeftAlignment() throws {
         let config = SankeyDiagramConfig(nodeAlignment: .left)
-        let fm = DiagramFrontmatter(sankeyConfig: config)
+        let fm = DiagramFrontmatter.with { $0.perDiagram.sankey.config = config }
         let (diagram, _) = try parseSankeyDiagram(lines("sankey\nA,B,10\nB,C,20"), frontmatter: fm)
         let positioned = layoutSankeyDiagram(diagram)
         XCTAssertEqual(positioned.nodes.count, 3)
@@ -129,7 +129,7 @@ final class SankeyLayoutTests: XCTestCase {
 
     func testLayoutWithRightAlignment() throws {
         let config = SankeyDiagramConfig(nodeAlignment: .right)
-        let fm = DiagramFrontmatter(sankeyConfig: config)
+        let fm = DiagramFrontmatter.with { $0.perDiagram.sankey.config = config }
         let (diagram, _) = try parseSankeyDiagram(lines("sankey\nA,B,10\nB,C,20"), frontmatter: fm)
         let positioned = layoutSankeyDiagram(diagram)
         XCTAssertEqual(positioned.nodes.count, 3)
@@ -137,7 +137,7 @@ final class SankeyLayoutTests: XCTestCase {
 
     func testLayoutWithCenterAlignment() throws {
         let config = SankeyDiagramConfig(nodeAlignment: .center)
-        let fm = DiagramFrontmatter(sankeyConfig: config)
+        let fm = DiagramFrontmatter.with { $0.perDiagram.sankey.config = config }
         let (diagram, _) = try parseSankeyDiagram(lines("sankey\nA,B,10\nB,C,20"), frontmatter: fm)
         let positioned = layoutSankeyDiagram(diagram)
         XCTAssertEqual(positioned.nodes.count, 3)
@@ -145,7 +145,7 @@ final class SankeyLayoutTests: XCTestCase {
 
     func testLayoutWithJustifyAlignment() throws {
         let config = SankeyDiagramConfig(nodeAlignment: .justify)
-        let fm = DiagramFrontmatter(sankeyConfig: config)
+        let fm = DiagramFrontmatter.with { $0.perDiagram.sankey.config = config }
         let (diagram, _) = try parseSankeyDiagram(lines("sankey\nA,B,10\nB,C,20"), frontmatter: fm)
         let positioned = layoutSankeyDiagram(diagram)
         XCTAssertEqual(positioned.nodes.count, 3)
@@ -178,7 +178,7 @@ final class SankeyLayoutTests: XCTestCase {
         c,y,4
         """
         let config = SankeyDiagramConfig(width: 410, nodeAlignment: .justify, useMaxWidth: false)
-        let fm = DiagramFrontmatter(sankeyConfig: config)
+        let fm = DiagramFrontmatter.with { $0.perDiagram.sankey.config = config }
         let (diagram, _) = try parseSankeyDiagram(lines(source), frontmatter: fm)
         let positioned = layoutSankeyDiagram(diagram)
 
@@ -202,7 +202,7 @@ final class SankeyLayoutTests: XCTestCase {
         c,y,4
         """
         let config = SankeyDiagramConfig(width: 410, nodeAlignment: .left, useMaxWidth: false)
-        let fm = DiagramFrontmatter(sankeyConfig: config)
+        let fm = DiagramFrontmatter.with { $0.perDiagram.sankey.config = config }
         let (diagram, _) = try parseSankeyDiagram(lines(source), frontmatter: fm)
         let positioned = layoutSankeyDiagram(diagram)
 
@@ -226,7 +226,7 @@ final class SankeyLayoutTests: XCTestCase {
         c,y,4
         """
         let config = SankeyDiagramConfig(width: 410, nodeAlignment: .right, useMaxWidth: false)
-        let fm = DiagramFrontmatter(sankeyConfig: config)
+        let fm = DiagramFrontmatter.with { $0.perDiagram.sankey.config = config }
         let (diagram, _) = try parseSankeyDiagram(lines(source), frontmatter: fm)
         let positioned = layoutSankeyDiagram(diagram)
 
@@ -250,7 +250,7 @@ final class SankeyLayoutTests: XCTestCase {
         c,y,4
         """
         let config = SankeyDiagramConfig(width: 410, nodeAlignment: .center, useMaxWidth: false)
-        let fm = DiagramFrontmatter(sankeyConfig: config)
+        let fm = DiagramFrontmatter.with { $0.perDiagram.sankey.config = config }
         let (diagram, _) = try parseSankeyDiagram(lines(source), frontmatter: fm)
         let positioned = layoutSankeyDiagram(diagram)
 
@@ -272,7 +272,7 @@ final class SankeyLayoutTests: XCTestCase {
         d,e,1
         """
         let config = SankeyDiagramConfig(width: 410, nodeAlignment: .left)
-        let fm = DiagramFrontmatter(sankeyConfig: config)
+        let fm = DiagramFrontmatter.with { $0.perDiagram.sankey.config = config }
         let (diagram, _) = try parseSankeyDiagram(lines(source), frontmatter: fm)
         let positioned = layoutSankeyDiagram(diagram)
 

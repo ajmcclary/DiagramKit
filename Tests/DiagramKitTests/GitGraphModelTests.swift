@@ -217,7 +217,7 @@ final class GitGraphModelTests: XCTestCase {
     func testMainBranchNameConfig() throws {
         var config = GitGraphConfig()
         config.mainBranchName = "trunk"
-        let (diagram, _) = try parseGitGraph(lines("gitGraph\n   commit"), frontmatter: DiagramFrontmatter(gitGraphConfig: config))
+        let (diagram, _) = try parseGitGraph(lines("gitGraph\n   commit"), frontmatter: DiagramFrontmatter.with { $0.perDiagram.gitGraph.config = config })
         XCTAssertEqual(diagram.currentBranch, "trunk")
         let commit = diagram.commits[0]
         XCTAssertEqual(commit.branch, "trunk")
@@ -246,7 +246,7 @@ final class GitGraphModelTests: XCTestCase {
     func testMainBranchNameChangesInitialBranch() throws {
         var config = GitGraphConfig()
         config.mainBranchName = "trunk"
-        let (diagram, _) = try parseGitGraph(lines("gitGraph\n   commit"), frontmatter: DiagramFrontmatter(gitGraphConfig: config))
+        let (diagram, _) = try parseGitGraph(lines("gitGraph\n   commit"), frontmatter: DiagramFrontmatter.with { $0.perDiagram.gitGraph.config = config })
         XCTAssertEqual(diagram.currentBranch, "trunk")
         XCTAssertEqual(diagram.branches.first, "trunk")
     }
@@ -257,7 +257,7 @@ final class GitGraphModelTests: XCTestCase {
         var config = GitGraphConfig()
         config.mainBranchOrder = 5
         let (diagram, _) = try parseGitGraph(lines("gitGraph\n   branch dev\n   commit"),
-            frontmatter: DiagramFrontmatter(gitGraphConfig: config))
+            frontmatter: DiagramFrontmatter.with { $0.perDiagram.gitGraph.config = config })
         if let mainIdx = diagram.branches.firstIndex(of: "main"),
            let devIdx = diagram.branches.firstIndex(of: "dev") {
             XCTAssertGreaterThan(mainIdx, devIdx)

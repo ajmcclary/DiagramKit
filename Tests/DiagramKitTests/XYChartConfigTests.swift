@@ -32,7 +32,7 @@ final class XYChartConfigTests: XCTestCase {
         """
         let (_, fm) = _parseFrontMatterAndStripped(yaml)
         XCTAssertNotNil(fm)
-        let config = fm?.xyChartConfig
+        let config = fm?.perDiagram.xyChart.config
         XCTAssertNotNil(config)
         XCTAssertEqual(config?.width, 900)
         XCTAssertEqual(config?.height, 600)
@@ -50,7 +50,7 @@ final class XYChartConfigTests: XCTestCase {
         """
         let (_, fm) = _parseFrontMatterAndStripped(yaml)
         XCTAssertNotNil(fm)
-        let config = fm?.xyChartConfig
+        let config = fm?.perDiagram.xyChart.config
         XCTAssertNotNil(config)
         XCTAssertEqual(config?.showDataLabel, true)
     }
@@ -67,7 +67,7 @@ final class XYChartConfigTests: XCTestCase {
         """
         let (_, fm) = _parseFrontMatterAndStripped(yaml)
         XCTAssertNotNil(fm)
-        let config = fm?.xyChartConfig
+        let config = fm?.perDiagram.xyChart.config
         XCTAssertNotNil(config)
         XCTAssertEqual(config?.chartOrientation, "horizontal")
     }
@@ -85,7 +85,7 @@ final class XYChartConfigTests: XCTestCase {
         """
         let (_, fm) = _parseFrontMatterAndStripped(yaml)
         XCTAssertNotNil(fm)
-        let config = fm?.xyChartConfig
+        let config = fm?.perDiagram.xyChart.config
         XCTAssertNotNil(config)
         XCTAssertEqual(config?.xAxis.showTick, false)
     }
@@ -103,7 +103,7 @@ final class XYChartConfigTests: XCTestCase {
         """
         let (_, fm) = _parseFrontMatterAndStripped(yaml)
         XCTAssertNotNil(fm)
-        let config = fm?.xyChartConfig
+        let config = fm?.perDiagram.xyChart.config
         XCTAssertNotNil(config)
         XCTAssertEqual(config?.yAxis.showAxisLine, false)
     }
@@ -120,7 +120,7 @@ final class XYChartConfigTests: XCTestCase {
         """
         let (_, fm) = _parseFrontMatterAndStripped(yaml)
         XCTAssertNotNil(fm)
-        let config = fm?.xyChartConfig
+        let config = fm?.perDiagram.xyChart.config
         XCTAssertNotNil(config)
         XCTAssertEqual(config?.plotReservedSpacePercent, 60)
     }
@@ -151,7 +151,7 @@ final class XYChartConfigTests: XCTestCase {
         """
         let (_, fm) = _parseFrontMatterAndStripped(yaml)
         XCTAssertNotNil(fm)
-        let config = fm?.xyChartConfig
+        let config = fm?.perDiagram.xyChart.config
         XCTAssertNotNil(config)
         XCTAssertEqual(config?.width, 800)
         XCTAssertEqual(config?.height, 600)

@@ -220,9 +220,9 @@ final class PieParserTests: XCTestCase {
 
     func testFrontmatterOverrides() throws {
         var fm = DiagramFrontmatter()
-        fm.pieConfig = PieChartConfig(textPosition: 0.5)
-        fm.pieTheme = PieChartThemeConfig(pie1: "#FF0000")
-        fm.diagramTitle = "Frontmatter Title"
+        fm.perDiagram.pie.config = PieChartConfig(textPosition: 0.5)
+        fm.perDiagram.pie.theme = PieChartThemeConfig(pie1: "#FF0000")
+        fm.shared.diagramTitle = "Frontmatter Title"
 
         let (chart, _) = try parsePieChart(lines("pie\n\"A\": 100"), frontmatter: fm)
         XCTAssertEqual(chart.config.textPosition, 0.5)
@@ -232,7 +232,7 @@ final class PieParserTests: XCTestCase {
 
     func testFrontmatterDoesNotOverrideExistingTitle() throws {
         var fm = DiagramFrontmatter()
-        fm.diagramTitle = "Frontmatter Title"
+        fm.shared.diagramTitle = "Frontmatter Title"
 
         let (chart, _) = try parsePieChart(lines("pie title Source Title\n\"A\": 100"), frontmatter: fm)
         XCTAssertEqual(chart.diagramTitle, "Source Title")

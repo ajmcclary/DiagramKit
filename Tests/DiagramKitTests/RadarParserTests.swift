@@ -646,8 +646,8 @@ struct RadarParserTests {
         let (processed, frontmatter) = _parseFrontMatterAndStripped(source)
         #expect(processed.trimmingCharacters(in: .whitespacesAndNewlines).hasPrefix("radar-beta"))
         let parsedFrontmatter = try #require(frontmatter)
-        let radarConfig = try #require(parsedFrontmatter.radarConfig)
-        let radarTheme = try #require(parsedFrontmatter.radarTheme)
+        let radarConfig = try #require(parsedFrontmatter.perDiagram.radar.config)
+        let radarTheme = try #require(parsedFrontmatter.perDiagram.radar.theme)
         #expect(parsedFrontmatter.theme == "base")
         #expect(radarConfig.marginTop == 80)
         #expect(radarConfig.axisLabelFactor == 1.25)
@@ -727,7 +727,7 @@ struct RadarParserTests {
         config.height = 800
         config.marginTop = 20
         config.curveTension = 0.25
-        fm.radarConfig = config
+        fm.perDiagram.radar.config = config
 
         let d = try parseWithFrontmatter("radar-beta\n  axis A\n  curve c1{1}", frontmatter: fm)
         #expect(d.config.width == 800)
@@ -743,7 +743,7 @@ struct RadarParserTests {
         theme.fontSize = 24
         theme.axisColor = "#FF0000"
         theme.curveOpacity = 0.8
-        fm.radarTheme = theme
+        fm.perDiagram.radar.theme = theme
 
         let d = try parseWithFrontmatter("radar-beta\n  axis A\n  curve c1{1}", frontmatter: fm)
         #expect(d.theme.fontSize == 24)
@@ -754,7 +754,7 @@ struct RadarParserTests {
     @Test("Frontmatter diagramTitle when diagram has no title")
     func frontmatterDiagramTitleFallback() throws {
         var fm = DiagramFrontmatter()
-        fm.diagramTitle = "Fallback Title"
+        fm.shared.diagramTitle = "Fallback Title"
 
         let d = try parseWithFrontmatter("radar-beta\n  axis A\n  curve c1{1}", frontmatter: fm)
         #expect(d.diagramTitle == "Fallback Title")
@@ -763,7 +763,7 @@ struct RadarParserTests {
     @Test("Frontmatter title does not override diagram title")
     func frontmatterTitleNoOverride() throws {
         var fm = DiagramFrontmatter()
-        fm.diagramTitle = "Fallback Title"
+        fm.shared.diagramTitle = "Fallback Title"
 
         let d = try parseWithFrontmatter("radar-beta title My Title\n  axis A\n  curve c1{1}", frontmatter: fm)
         #expect(d.diagramTitle == "My Title")

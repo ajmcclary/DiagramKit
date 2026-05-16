@@ -24,7 +24,7 @@ import Foundation
         let fm = _parseYamlFrontmatter(yamlLines)
         #expect(fm != nil, "Frontmatter should be non-nil")
 
-        let yamlSeq = fm?.sequenceConfig
+        let yamlSeq = fm?.perDiagram.sequence.config
         #expect(yamlSeq != nil, "YAML should produce sequenceConfig via bindings")
         #expect(yamlSeq?.diagramMarginX == 50)
         #expect(yamlSeq?.useMaxWidth == false)
@@ -49,7 +49,7 @@ import Foundation
         let fm = _parseYamlFrontmatter(yamlLines)
         #expect(fm != nil)
 
-        let yamlReq = fm?.requirementConfig
+        let yamlReq = fm?.perDiagram.requirement.config
         #expect(yamlReq != nil, "YAML should produce requirementConfig via bindings")
         #expect(yamlReq?.useMaxWidth == false)
         #expect(yamlReq?.rect_fill == "#FFEEDD")
@@ -69,10 +69,10 @@ import Foundation
 
         let fm = _parseYamlFrontmatter(yamlLines)
         #expect(fm != nil)
-        #expect(fm?.ganttConfig != nil)
-        #expect(fm?.ganttConfig?.useMaxWidth == false)
-        #expect(fm?.ganttConfig?.barHeight == 24)
-        #expect(fm?.theme == "forest")
+        #expect(fm?.perDiagram.gantt.config != nil)
+        #expect(fm?.perDiagram.gantt.config?.useMaxWidth == false)
+        #expect(fm?.perDiagram.gantt.config?.barHeight == 24)
+        #expect(fm?.shared.theme == "forest")
     }
 
     @Test("YAML Radar config is parsed through bindings")
@@ -88,10 +88,10 @@ import Foundation
 
         let fm = _parseYamlFrontmatter(yamlLines)
         #expect(fm != nil)
-        #expect(fm?.radarConfig != nil)
-        #expect(fm?.radarConfig?.width == 800)
-        #expect(fm?.radarConfig?.height == 600)
-        #expect(fm?.radarConfig?.useMaxWidth == false)
+        #expect(fm?.perDiagram.radar.config != nil)
+        #expect(fm?.perDiagram.radar.config?.width == 800)
+        #expect(fm?.perDiagram.radar.config?.height == 600)
+        #expect(fm?.perDiagram.radar.config?.useMaxWidth == false)
     }
 
     @Test("YAML Ishikawa config is parsed through bindings")
@@ -105,9 +105,9 @@ import Foundation
 
         let fm = _parseYamlFrontmatter(yamlLines)
         #expect(fm != nil)
-        #expect(fm?.ishikawaConfig != nil)
-        #expect(fm?.ishikawaConfig?.diagramPadding == 20)
-        #expect(fm?.ishikawaConfig?.useMaxWidth == true)
+        #expect(fm?.perDiagram.ishikawa.config != nil)
+        #expect(fm?.perDiagram.ishikawa.config?.diagramPadding == 20)
+        #expect(fm?.perDiagram.ishikawa.config?.useMaxWidth == true)
     }
 
     @Test("YAML C4 config is parsed through bindings")
@@ -120,7 +120,7 @@ import Foundation
 
         let fm = _parseYamlFrontmatter(yamlLines)
         #expect(fm != nil)
-        #expect(fm?.c4Config != nil)
+        #expect(fm?.perDiagram.c4.config != nil)
     }
 
     @Test("YAML TreeView config is parsed through bindings")
@@ -134,9 +134,9 @@ import Foundation
 
         let fm = _parseYamlFrontmatter(yamlLines)
         #expect(fm != nil)
-        #expect(fm?.treeViewConfig != nil)
-        #expect(fm?.treeViewConfig?.rowIndent == 40)
-        #expect(fm?.treeViewConfig?.useMaxWidth == true)
+        #expect(fm?.perDiagram.treeView.config != nil)
+        #expect(fm?.perDiagram.treeView.config?.rowIndent == 40)
+        #expect(fm?.perDiagram.treeView.config?.useMaxWidth == true)
     }
 
     @Test("YAML Venn config is parsed through bindings")
@@ -150,7 +150,7 @@ import Foundation
 
         let fm = _parseYamlFrontmatter(yamlLines)
         #expect(fm != nil)
-        #expect(fm?.vennConfig != nil)
-        #expect(fm?.vennConfig?.useMaxWidth == false)
+        #expect(fm?.perDiagram.venn.config != nil)
+        #expect(fm?.perDiagram.venn.config?.useMaxWidth == false)
     }
 }

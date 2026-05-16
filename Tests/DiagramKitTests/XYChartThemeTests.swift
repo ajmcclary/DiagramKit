@@ -18,7 +18,7 @@ final class XYChartThemeTests: XCTestCase {
         line [1, 2, 3]
         """
         let (_, fm) = _parseFrontMatterAndStripped(yaml)
-        let theme = fm?.xyChartTheme
+        let theme = fm?.perDiagram.xyChart.theme
         XCTAssertEqual(theme?.titleColor, "#ff0000")
     }
 
@@ -34,7 +34,7 @@ final class XYChartThemeTests: XCTestCase {
         line [1, 2, 3]
         """
         let (_, fm) = _parseFrontMatterAndStripped(yaml)
-        let theme = fm?.xyChartTheme
+        let theme = fm?.perDiagram.xyChart.theme
         XCTAssertEqual(theme?.backgroundColor, "#1a1a1a")
     }
 
@@ -50,7 +50,7 @@ final class XYChartThemeTests: XCTestCase {
         line [1, 2, 3]
         """
         let (_, fm) = _parseFrontMatterAndStripped(yaml)
-        let theme = fm?.xyChartTheme
+        let theme = fm?.perDiagram.xyChart.theme
         XCTAssertEqual(theme?.plotColorPalette, "#000000, #0000FF, #00FF00, #FF0000")
     }
 
@@ -71,7 +71,7 @@ final class XYChartThemeTests: XCTestCase {
         line [1, 2, 3]
         """
         let (_, fm) = _parseFrontMatterAndStripped(yaml)
-        let theme = fm?.xyChartTheme
+        let theme = fm?.perDiagram.xyChart.theme
         XCTAssertEqual(theme?.xAxisLabelColor, "#aaaaaa")
         XCTAssertEqual(theme?.xAxisTitleColor, "#bbbbbb")
         XCTAssertEqual(theme?.xAxisTickColor, "#cccccc")
@@ -103,7 +103,7 @@ final class XYChartThemeTests: XCTestCase {
         line [1, 2, 3]
         """
         let (_, fm) = _parseFrontMatterAndStripped(yaml)
-        let theme = fm?.xyChartTheme
+        let theme = fm?.perDiagram.xyChart.theme
         XCTAssertEqual(theme?.backgroundColor, "#111111")
         XCTAssertEqual(theme?.titleColor, "#222222")
         XCTAssertEqual(theme?.dataLabelColor, "#333333")
@@ -130,7 +130,7 @@ final class XYChartThemeTests: XCTestCase {
         line [1, 2, 3]
         """
         let (_, fm) = _parseFrontMatterAndStripped(yaml)
-        let theme = fm?.xyChartTheme
+        let theme = fm?.perDiagram.xyChart.theme
         XCTAssertEqual(theme?.dataLabelColor, "#ffffff")
     }
 }

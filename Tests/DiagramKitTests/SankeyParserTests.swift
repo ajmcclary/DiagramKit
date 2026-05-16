@@ -212,14 +212,14 @@ final class SankeyParserTests: XCTestCase {
     }
 
     func testConfigFromFrontmatter() throws {
-        let fm = DiagramFrontmatter(sankeyConfig: SankeyDiagramConfig(
+        let fm = DiagramFrontmatter.with { $0.perDiagram.sankey.config = SankeyDiagramConfig(
             width: 800,
             height: 600,
             linkColor: .source,
             nodeAlignment: .left,
             showValues: false,
             labelStyle: .outlined
-        ))
+        ) }
         let (diagram, _) = try parseSankeyDiagram(lines("sankey\nA,B,10"), frontmatter: fm)
         XCTAssertEqual(diagram.config.width, 800)
         XCTAssertEqual(diagram.config.height, 600)

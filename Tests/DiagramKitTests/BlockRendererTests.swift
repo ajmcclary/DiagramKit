@@ -53,7 +53,7 @@ final class BlockRendererTests: XCTestCase {
           a
         """
         let (_, fm) = _parseFrontMatterAndStripped(source)
-        XCTAssertEqual(fm?.blockConfig?.padding, 12)
+        XCTAssertEqual(fm?.perDiagram.block.config?.padding, 12)
     }
 
     func testCoreGraphicsDiamondDoesNotRenderAsBoundingRectangle() {

@@ -43,7 +43,7 @@ final class TimelineConfigTests: XCTestCase {
             2020 : Event
         """
         let (_, fm) = _parseFrontMatterAndStripped(yaml)
-        let config = fm?.timelineConfig
+        let config = fm?.perDiagram.timeline.config
         XCTAssertNotNil(config)
         XCTAssertEqual(config?.disableMulticolor, true)
     }
@@ -59,7 +59,7 @@ final class TimelineConfigTests: XCTestCase {
             2020 : Event
         """
         let (_, fm) = _parseFrontMatterAndStripped(yaml)
-        let config = fm?.timelineConfig
+        let config = fm?.perDiagram.timeline.config
         XCTAssertNotNil(config)
         XCTAssertEqual(config?.leftMargin, 200)
     }
@@ -75,7 +75,7 @@ final class TimelineConfigTests: XCTestCase {
             2020 : Event
         """
         let (_, fm) = _parseFrontMatterAndStripped(yaml)
-        let config = fm?.timelineConfig
+        let config = fm?.perDiagram.timeline.config
         XCTAssertNotNil(config)
         XCTAssertEqual(config?.padding, 75)
     }
@@ -91,7 +91,7 @@ final class TimelineConfigTests: XCTestCase {
             2020 : Event
         """
         let (_, fm) = _parseFrontMatterAndStripped(yaml)
-        let config = fm?.timelineConfig
+        let config = fm?.perDiagram.timeline.config
         XCTAssertNotNil(config)
         XCTAssertEqual(config?.useMaxWidth, true)
     }
@@ -107,7 +107,7 @@ final class TimelineConfigTests: XCTestCase {
             2020 : Event
         """
         let (_, fm) = _parseFrontMatterAndStripped(yaml)
-        let config = fm?.timelineConfig
+        let config = fm?.perDiagram.timeline.config
         XCTAssertNotNil(config)
         XCTAssertEqual(config?.taskFontSize, 18)
     }
@@ -123,7 +123,7 @@ final class TimelineConfigTests: XCTestCase {
             2020 : Event
         """
         let (_, fm) = _parseFrontMatterAndStripped(yaml)
-        let config = fm?.timelineConfig
+        let config = fm?.perDiagram.timeline.config
         XCTAssertNotNil(config)
         XCTAssertEqual(config?.taskFontFamily, "Arial")
     }
@@ -139,7 +139,7 @@ final class TimelineConfigTests: XCTestCase {
             2020 : Event
         """
         let (_, fm) = _parseFrontMatterAndStripped(yaml)
-        let config = fm?.timelineConfig
+        let config = fm?.perDiagram.timeline.config
         XCTAssertNotNil(config)
         XCTAssertEqual(config?.textPlacement, "tspan")
     }
@@ -155,7 +155,7 @@ final class TimelineConfigTests: XCTestCase {
             2020 : Event
         """
         let (_, fm) = _parseFrontMatterAndStripped(yaml)
-        let config = fm?.timelineConfig
+        let config = fm?.perDiagram.timeline.config
         XCTAssertNotNil(config)
         XCTAssertEqual(config?.width, 200)
     }
@@ -171,7 +171,7 @@ final class TimelineConfigTests: XCTestCase {
             2020 : Event
         """
         let (_, fm) = _parseFrontMatterAndStripped(yaml)
-        let config = fm?.timelineConfig
+        let config = fm?.perDiagram.timeline.config
         XCTAssertNotNil(config)
         XCTAssertEqual(config?.height, 60)
     }
@@ -191,7 +191,7 @@ final class TimelineConfigTests: XCTestCase {
             2020 : Event
         """
         let (_, fm) = _parseFrontMatterAndStripped(yaml)
-        let theme = fm?.timelineTheme
+        let theme = fm?.perDiagram.timeline.theme
         XCTAssertNotNil(theme)
         XCTAssertEqual(theme?.cScale[0], "#FF0000")
         XCTAssertEqual(theme?.cScale[1], "#00FF00")
@@ -209,7 +209,7 @@ final class TimelineConfigTests: XCTestCase {
             2020 : Event
         """
         let (_, fm) = _parseFrontMatterAndStripped(yaml)
-        let theme = fm?.timelineTheme
+        let theme = fm?.perDiagram.timeline.theme
         XCTAssertNotNil(theme)
         XCTAssertEqual(theme?.cScaleLabel[0], "#000000")
     }
@@ -225,7 +225,7 @@ final class TimelineConfigTests: XCTestCase {
             2020 : Event
         """
         let (_, fm) = _parseFrontMatterAndStripped(yaml)
-        let theme = fm?.timelineTheme
+        let theme = fm?.perDiagram.timeline.theme
         XCTAssertNotNil(theme)
         XCTAssertEqual(theme?.cScaleInv[0], "#111111")
     }
@@ -241,7 +241,7 @@ final class TimelineConfigTests: XCTestCase {
             2020 : Event
         """
         let (_, fm) = _parseFrontMatterAndStripped(yaml)
-        let theme = fm?.timelineTheme
+        let theme = fm?.perDiagram.timeline.theme
         XCTAssertNotNil(theme)
         XCTAssertEqual(theme?.themeColorLimit, 6)
     }
@@ -259,7 +259,7 @@ final class TimelineConfigTests: XCTestCase {
             2020 : Event
         """
         let (_, fm) = _parseFrontMatterAndStripped(yaml)
-        let theme = fm?.timelineTheme
+        let theme = fm?.perDiagram.timeline.theme
         XCTAssertNotNil(theme)
         XCTAssertEqual(theme?.useGradient, true)
         XCTAssertEqual(theme?.gradientStart, "#ececff")
@@ -277,7 +277,7 @@ final class TimelineConfigTests: XCTestCase {
             2020 : Event
         """
         let (_, fm) = _parseFrontMatterAndStripped(yaml)
-        let theme = fm?.timelineTheme
+        let theme = fm?.perDiagram.timeline.theme
         XCTAssertNotNil(theme)
         XCTAssertEqual(theme?.cScale[0], "#AAAAAA")
         XCTAssertEqual(theme?.fontSize, 20)
@@ -295,7 +295,7 @@ final class TimelineConfigTests: XCTestCase {
             2020 : Event
         """
         let (_, fm) = _parseFrontMatterAndStripped(yaml)
-        XCTAssertEqual(fm?.theme, "forest")
+        XCTAssertEqual(fm?.shared.theme, "forest")
     }
 
     func test_frontmatter_globalLook() {
@@ -308,7 +308,7 @@ final class TimelineConfigTests: XCTestCase {
             2020 : Event
         """
         let (_, fm) = _parseFrontMatterAndStripped(yaml)
-        XCTAssertEqual(fm?.look, "neo")
+        XCTAssertEqual(fm?.shared.look, "neo")
     }
 
     // MARK: - colorIndex helper

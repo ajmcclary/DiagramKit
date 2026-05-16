@@ -96,7 +96,7 @@ final class GitGraphReviewRegressionTests: XCTestCase {
         gitGraph
            title Release Flow
            commit id:"A"
-        """), frontmatter: DiagramFrontmatter(gitGraphConfig: config))
+        """), frontmatter: DiagramFrontmatter.with { $0.perDiagram.gitGraph.config = config })
         let (positioned, _) = layoutGitGraph(diagram)
         let title = try XCTUnwrap(positioned.title)
         let firstCommit = try XCTUnwrap(positioned.commits.first)
@@ -154,7 +154,7 @@ final class GitGraphReviewRegressionTests: XCTestCase {
         let (diagram, _) = try parseGitGraph(lines("""
         gitGraph
            commit id:"A"
-        """), frontmatter: DiagramFrontmatter(gitGraphConfig: config))
+        """), frontmatter: DiagramFrontmatter.with { $0.perDiagram.gitGraph.config = config })
         let svg = renderGitGraphSvg(layoutGitGraph(diagram).0)
 
         XCTAssertTrue(svg.contains("rotate(-45"))
@@ -168,7 +168,7 @@ final class GitGraphReviewRegressionTests: XCTestCase {
            commit
            branch dev
            commit
-        """), frontmatter: DiagramFrontmatter(gitGraphConfig: config))
+        """), frontmatter: DiagramFrontmatter.with { $0.perDiagram.gitGraph.config = config })
         let svg = renderGitGraphSvg(layoutGitGraph(diagram).0)
 
         XCTAssertFalse(svg.contains("class=\"branch branch"))

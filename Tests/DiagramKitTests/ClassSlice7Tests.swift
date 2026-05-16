@@ -53,21 +53,21 @@ final class ClassSlice7Tests: XCTestCase {
         let source = "---\nclass:\n  hideEmptyMembersBox: true\n---\nclassDiagram\nclass A"
         let (_, fm) = _parseFrontMatterAndStripped(source)
         XCTAssertNotNil(fm)
-        XCTAssertTrue(fm!.classConfig?.hideEmptyMembersBox ?? false)
+        XCTAssertTrue(fm!.perDiagram.classDiagram.config?.hideEmptyMembersBox ?? false)
     }
 
     func test_frontmatter_config_hierarchical() throws {
         let source = "---\nclass:\n  hierarchicalNamespaces: false\n---\nclassDiagram\nclass A"
         let (_, fm) = _parseFrontMatterAndStripped(source)
         XCTAssertNotNil(fm)
-        XCTAssertEqual(fm!.classConfig?.hierarchicalNamespaces, false)
+        XCTAssertEqual(fm!.perDiagram.classDiagram.config?.hierarchicalNamespaces, false)
     }
 
     func test_frontmatter_padding() throws {
         let source = "---\nclass:\n  padding: 20\n---\nclassDiagram\nclass A"
         let (_, fm) = _parseFrontMatterAndStripped(source)
         XCTAssertNotNil(fm)
-        XCTAssertEqual(fm!.classConfig?.padding, 20)
+        XCTAssertEqual(fm!.perDiagram.classDiagram.config?.padding, 20)
     }
 
     func test_accessibility_in_svg() throws {
@@ -92,7 +92,7 @@ final class ClassSlice7Tests: XCTestCase {
     }
 
     func test_hide_empty_rendered() throws {
-        let fm = DiagramFrontmatter(classConfig: ClassConfig(hideEmptyMembersBox: true))
+        let fm = DiagramFrontmatter.with { $0.perDiagram.classDiagram.config = ClassConfig(hideEmptyMembersBox: true) }
         let source = "classDiagram\nclass Animal\nAnimal --> Dog"
         let (diagram, _) = try parseClassDiagram(source.splitByNewlines, frontmatter: fm)
         let positioned = try layoutClassDiagramSync(diagram)
@@ -103,7 +103,7 @@ final class ClassSlice7Tests: XCTestCase {
     }
 
     func test_hide_empty_not_applied_when_members_present() throws {
-        let fm = DiagramFrontmatter(classConfig: ClassConfig(hideEmptyMembersBox: true))
+        let fm = DiagramFrontmatter.with { $0.perDiagram.classDiagram.config = ClassConfig(hideEmptyMembersBox: true) }
         let source = "classDiagram\nclass Animal {\n    +species string\n}\nAnimal --> Dog"
         let (diagram, _) = try parseClassDiagram(source.splitByNewlines, frontmatter: fm)
         let positioned = try layoutClassDiagramSync(diagram)

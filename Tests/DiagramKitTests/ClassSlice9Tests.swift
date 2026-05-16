@@ -66,7 +66,7 @@ final class ClassSlice9Tests: XCTestCase {
     }
 
     func test_security_sandbox_suppresses_link_attrs() throws {
-        let fm = DiagramFrontmatter(securityLevel: "sandbox")
+        let fm = DiagramFrontmatter.with { $0.shared.securityLevel = "sandbox" }
         let source = "classDiagram\nclass Animal\nlink Animal \"https://example.com\" \"Click me\" _self"
         let (diagram, _) = try parseClassDiagram(source.splitByNewlines, frontmatter: fm)
         let positioned = try layoutClassDiagramSync(diagram)
@@ -77,7 +77,7 @@ final class ClassSlice9Tests: XCTestCase {
     }
 
     func test_security_sandbox_target_top() throws {
-        let fm = DiagramFrontmatter(securityLevel: "sandbox")
+        let fm = DiagramFrontmatter.with { $0.shared.securityLevel = "sandbox" }
         let source = "classDiagram\nclass Animal\nlink Animal \"https://example.com\" \"Click me\" _blank"
         let (diagram, _) = try parseClassDiagram(source.splitByNewlines, frontmatter: fm)
         let cls = diagram.classes.first!

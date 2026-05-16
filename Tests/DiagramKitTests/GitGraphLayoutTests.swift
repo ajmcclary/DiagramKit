@@ -240,7 +240,7 @@ final class GitGraphLayoutTests: XCTestCase {
     func testShowBranchesFalse() throws {
         var config = GitGraphConfig()
         config.showBranches = false
-        let (diagram, _) = try parseGitGraph(lines("gitGraph\n   commit"), frontmatter: DiagramFrontmatter(gitGraphConfig: config))
+        let (diagram, _) = try parseGitGraph(lines("gitGraph\n   commit"), frontmatter: DiagramFrontmatter.with { $0.perDiagram.gitGraph.config = config })
         let (positioned, _) = layoutGitGraph(diagram)
         XCTAssertEqual(positioned.branchLines.count, 1)
     }
@@ -250,7 +250,7 @@ final class GitGraphLayoutTests: XCTestCase {
     func testParallelCommitsAlignsRoots() throws {
         var config = GitGraphConfig()
         config.parallelCommits = true
-        let (diagram, _) = try parseGitGraph(lines("gitGraph\n   commit id:\"A\"\n   branch dev\n   commit id:\"B\"\n   checkout main\n   commit id:\"C\""), frontmatter: DiagramFrontmatter(gitGraphConfig: config))
+        let (diagram, _) = try parseGitGraph(lines("gitGraph\n   commit id:\"A\"\n   branch dev\n   commit id:\"B\"\n   checkout main\n   commit id:\"C\""), frontmatter: DiagramFrontmatter.with { $0.perDiagram.gitGraph.config = config })
         let (positioned, _) = layoutGitGraph(diagram)
         let posA = positioned.commits.first(where: { $0.id == "A" })
         let posB = positioned.commits.first(where: { $0.id == "B" })
@@ -267,7 +267,7 @@ final class GitGraphLayoutTests: XCTestCase {
         var config = GitGraphConfig()
         config.parallelCommits = true
         let (diagram, _) = try parseGitGraph(lines("gitGraph BT:\n   commit\n   branch dev\n   commit\n   commit\n   checkout main\n   commit"),
-            frontmatter: DiagramFrontmatter(gitGraphConfig: config))
+            frontmatter: DiagramFrontmatter.with { $0.perDiagram.gitGraph.config = config })
         let (positioned, _) = layoutGitGraph(diagram)
         XCTAssertGreaterThan(positioned.commits.count, 0)
     }
@@ -276,7 +276,7 @@ final class GitGraphLayoutTests: XCTestCase {
         var config = GitGraphConfig()
         config.parallelCommits = true
         let (diagram, _) = try parseGitGraph(lines("gitGraph TB:\n   commit\n   commit\n   branch dev\n   commit"),
-            frontmatter: DiagramFrontmatter(gitGraphConfig: config))
+            frontmatter: DiagramFrontmatter.with { $0.perDiagram.gitGraph.config = config })
         let (positioned, _) = layoutGitGraph(diagram)
         XCTAssertEqual(positioned.commits.count, 3)
     }
@@ -285,14 +285,14 @@ final class GitGraphLayoutTests: XCTestCase {
 
     func testReduxThemeBranchLabelNoBorderRadius() throws {
         let (diagram, _) = try parseGitGraph(lines("gitGraph\n   commit\n   branch dev\n   commit"),
-            frontmatter: DiagramFrontmatter(theme: "redux"))
+            frontmatter: DiagramFrontmatter.with { $0.shared.theme = "redux" })
         let (positioned, _) = layoutGitGraph(diagram)
         XCTAssertEqual(positioned.branchLabels.first?.borderRadius, 0)
     }
 
     func testReduxThemeBranchLabelPadding() throws {
         let (diagram, _) = try parseGitGraph(lines("gitGraph\n   commit\n   branch dev\n   commit"),
-            frontmatter: DiagramFrontmatter(theme: "redux"))
+            frontmatter: DiagramFrontmatter.with { $0.shared.theme = "redux" })
         let (positioned, _) = layoutGitGraph(diagram)
         for label in positioned.branchLabels {
             XCTAssertGreaterThan(label.bkgWidth, 20)

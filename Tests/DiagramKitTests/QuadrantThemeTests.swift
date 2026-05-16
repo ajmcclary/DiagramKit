@@ -87,7 +87,7 @@ final class QuadrantThemeTests: XCTestCase {
         let lines = _mermaidSourceLines(from: processed.source)
         var (chart, _) = try parseQuadrantChart(lines, frontmatter: processed.frontmatter)
         if let fm = processed.frontmatter {
-            if let theme = fm.quadrantChartTheme { chart.theme = theme }
+            if let theme = fm.perDiagram.quadrant.theme { chart.theme = theme }
         }
 
         XCTAssertEqual(chart.theme.quadrant1Fill, "#FF0000")
@@ -113,7 +113,7 @@ final class QuadrantThemeTests: XCTestCase {
         let lines = _mermaidSourceLines(from: processed.source)
         var (chart, _) = try parseQuadrantChart(lines, frontmatter: processed.frontmatter)
         if let fm = processed.frontmatter {
-            if let cfg = fm.quadrantChartConfig { chart.config = cfg }
+            if let cfg = fm.perDiagram.quadrant.config { chart.config = cfg }
         }
 
         XCTAssertEqual(chart.config.chartWidth, 600)
@@ -141,7 +141,7 @@ final class QuadrantThemeTests: XCTestCase {
         let lines = _mermaidSourceLines(from: processed.source)
         var (chart, _) = try parseQuadrantChart(lines, frontmatter: processed.frontmatter)
         if let fm = processed.frontmatter {
-            if let cfg = fm.quadrantChartConfig { chart.config = cfg }
+            if let cfg = fm.perDiagram.quadrant.config { chart.config = cfg }
         }
 
         XCTAssertEqual(chart.config.chartWidth, 777)
@@ -167,7 +167,7 @@ final class QuadrantThemeTests: XCTestCase {
         let lines = _mermaidSourceLines(from: processed.source)
         var (chart, _) = try parseQuadrantChart(lines, frontmatter: processed.frontmatter)
         if let fm = processed.frontmatter {
-            if let theme = fm.quadrantChartTheme { chart.theme = theme }
+            if let theme = fm.perDiagram.quadrant.theme { chart.theme = theme }
         }
 
         XCTAssertEqual(chart.theme.quadrant1Fill, "#ABCDEF")
