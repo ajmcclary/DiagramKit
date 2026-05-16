@@ -167,108 +167,11 @@ public struct SharedFrontmatter: Sendable {
 /// Per-diagram-family configs and themes. Each field is `nil` unless the
 /// frontmatter actually committed at least one value for that family.
 public struct PerDiagramFrontmatter: Sendable {
-    /// Concurrency Contract:
-    /// `Storage` is private, and public mutations go through copy-on-write
-    /// setters before touching the reference. The reference exists only to keep
-    /// this value type small enough for cooperative executor stacks.
-    private final class Storage: @unchecked Sendable {
-        var classConfig: ClassConfig?
-        var flowchartConfig: original_src_types.FlowchartConfig?
-        var erConfig: ErDiagramConfig?
-        var xyChartConfig: XYChartConfig?
-        var xyChartTheme: XYChartThemeConfig?
-        var pieConfig: PieChartConfig?
-        var pieTheme: PieChartThemeConfig?
-        var sequenceConfig: SequenceDiagramConfig?
-        var stateConfig: original_src_types.StateConfig?
-        var journeyConfig: JourneyDiagramConfig?
-        var ganttConfig: GanttDiagramConfig?
-        var quadrantChartConfig: QuadrantChartConfig?
-        var quadrantChartTheme: QuadrantChartThemeConfig?
-        var requirementConfig: RequirementDiagramConfig?
-        var requirementTheme: RequirementThemeVariables?
-        var gitGraphConfig: GitGraphConfig?
-        var gitGraphTheme: GitGraphThemeConfig?
-        var mindmapConfig: MindmapConfig?
-        var timelineConfig: TimelineDiagramConfig?
-        var timelineTheme: TimelineThemeConfig?
-        var sankeyConfig: SankeyDiagramConfig?
-        var blockConfig: BlockDiagramConfig?
-        var packetConfig: PacketDiagramConfig?
-        var packetTheme: PacketThemeConfig?
-        var kanbanConfig: KanbanDiagramConfig?
-        var archConfig: ArchitectureDiagramConfig?
-        var archTheme: ArchitectureThemeConfig?
-        var radarConfig: RadarDiagramConfig?
-        var radarTheme: RadarThemeConfig?
-        var treemapConfig: TreemapDiagramConfig?
-        var treemapThemeVariables: [String: String]?
-        var vennConfig: VennDiagramConfig?
-        var vennThemeVariables: [String: String]?
-        var ishikawaConfig: IshikawaDiagramConfig?
-        var treeViewConfig: TreeViewDiagramConfig?
-        var treeViewTheme: TreeViewThemeVariables?
-        var eventmodelingConfig: EventModelingDiagramConfig?
-        var eventmodelingThemeVariables: EventModelingThemeVariables?
-        var wardleyBetaConfig: WardleyDiagramConfig?
-        var wardleyTheme: WardleyThemeVariables?
-        var c4Config: C4DiagramConfig?
-
-        init() {}
-
-        init(copying other: Storage) {
-            classConfig = other.classConfig
-            flowchartConfig = other.flowchartConfig
-            erConfig = other.erConfig
-            xyChartConfig = other.xyChartConfig
-            xyChartTheme = other.xyChartTheme
-            pieConfig = other.pieConfig
-            pieTheme = other.pieTheme
-            sequenceConfig = other.sequenceConfig
-            stateConfig = other.stateConfig
-            journeyConfig = other.journeyConfig
-            ganttConfig = other.ganttConfig
-            quadrantChartConfig = other.quadrantChartConfig
-            quadrantChartTheme = other.quadrantChartTheme
-            requirementConfig = other.requirementConfig
-            requirementTheme = other.requirementTheme
-            gitGraphConfig = other.gitGraphConfig
-            gitGraphTheme = other.gitGraphTheme
-            mindmapConfig = other.mindmapConfig
-            timelineConfig = other.timelineConfig
-            timelineTheme = other.timelineTheme
-            sankeyConfig = other.sankeyConfig
-            blockConfig = other.blockConfig
-            packetConfig = other.packetConfig
-            packetTheme = other.packetTheme
-            kanbanConfig = other.kanbanConfig
-            archConfig = other.archConfig
-            archTheme = other.archTheme
-            radarConfig = other.radarConfig
-            radarTheme = other.radarTheme
-            treemapConfig = other.treemapConfig
-            treemapThemeVariables = other.treemapThemeVariables
-            vennConfig = other.vennConfig
-            vennThemeVariables = other.vennThemeVariables
-            ishikawaConfig = other.ishikawaConfig
-            treeViewConfig = other.treeViewConfig
-            treeViewTheme = other.treeViewTheme
-            eventmodelingConfig = other.eventmodelingConfig
-            eventmodelingThemeVariables = other.eventmodelingThemeVariables
-            wardleyBetaConfig = other.wardleyBetaConfig
-            wardleyTheme = other.wardleyTheme
-            c4Config = other.c4Config
-        }
-    }
-
-    private var storage: Storage
 
     // MARK: - Typed family sections
     //
-    // New canonical storage (audit A4). Each family lives in one slot;
-    // config-only families parameterize on `Theme = Never`. Storage above
-    // is still the source of truth for the legacy `var <flat>Config`
-    // proxies below until those proxies are rewired in the next commit.
+    // Canonical storage (audit A4). Each family lives in one slot;
+    // config-only families parameterize on `Theme = Never`.
 
     // Config + theme pairs (14)
     public var xyChart       = DiagramFamilyFrontmatter<XYChartConfig,            XYChartThemeConfig>()
@@ -301,179 +204,177 @@ public struct PerDiagramFrontmatter: Sendable {
     public var ishikawa      = DiagramFamilyFrontmatter<IshikawaDiagramConfig,             Never>()
     public var c4            = DiagramFamilyFrontmatter<C4DiagramConfig,                   Never>()
 
-    public init() {
-        storage = Storage()
-    }
+    public init() {}
 
-    private mutating func ensureUniqueStorage() {
-        if !isKnownUniquelyReferenced(&storage) {
-            storage = Storage(copying: storage)
-        }
-    }
+    // MARK: - Legacy flat-name proxies
+    //
+    // Forwarding shims kept until callers and the 49-arg DiagramFrontmatter
+    // init migrate to typed-section paths. Each pair reads/writes a single
+    // typed section above; no separate Storage is involved.
 
     public var classConfig: ClassConfig? {
-        get { storage.classConfig }
-        set { ensureUniqueStorage(); storage.classConfig = newValue }
+        get { classDiagram.config }
+        set { classDiagram.config = newValue }
     }
     public var flowchartConfig: original_src_types.FlowchartConfig? {
-        get { storage.flowchartConfig }
-        set { ensureUniqueStorage(); storage.flowchartConfig = newValue }
+        get { flowchart.config }
+        set { flowchart.config = newValue }
     }
     public var erConfig: ErDiagramConfig? {
-        get { storage.erConfig }
-        set { ensureUniqueStorage(); storage.erConfig = newValue }
+        get { er.config }
+        set { er.config = newValue }
     }
     public var xyChartConfig: XYChartConfig? {
-        get { storage.xyChartConfig }
-        set { ensureUniqueStorage(); storage.xyChartConfig = newValue }
+        get { xyChart.config }
+        set { xyChart.config = newValue }
     }
     public var xyChartTheme: XYChartThemeConfig? {
-        get { storage.xyChartTheme }
-        set { ensureUniqueStorage(); storage.xyChartTheme = newValue }
+        get { xyChart.theme }
+        set { xyChart.theme = newValue }
     }
     public var pieConfig: PieChartConfig? {
-        get { storage.pieConfig }
-        set { ensureUniqueStorage(); storage.pieConfig = newValue }
+        get { pie.config }
+        set { pie.config = newValue }
     }
     public var pieTheme: PieChartThemeConfig? {
-        get { storage.pieTheme }
-        set { ensureUniqueStorage(); storage.pieTheme = newValue }
+        get { pie.theme }
+        set { pie.theme = newValue }
     }
     public var sequenceConfig: SequenceDiagramConfig? {
-        get { storage.sequenceConfig }
-        set { ensureUniqueStorage(); storage.sequenceConfig = newValue }
+        get { sequence.config }
+        set { sequence.config = newValue }
     }
     public var stateConfig: original_src_types.StateConfig? {
-        get { storage.stateConfig }
-        set { ensureUniqueStorage(); storage.stateConfig = newValue }
+        get { state.config }
+        set { state.config = newValue }
     }
     public var journeyConfig: JourneyDiagramConfig? {
-        get { storage.journeyConfig }
-        set { ensureUniqueStorage(); storage.journeyConfig = newValue }
+        get { journey.config }
+        set { journey.config = newValue }
     }
     public var ganttConfig: GanttDiagramConfig? {
-        get { storage.ganttConfig }
-        set { ensureUniqueStorage(); storage.ganttConfig = newValue }
+        get { gantt.config }
+        set { gantt.config = newValue }
     }
     public var quadrantChartConfig: QuadrantChartConfig? {
-        get { storage.quadrantChartConfig }
-        set { ensureUniqueStorage(); storage.quadrantChartConfig = newValue }
+        get { quadrant.config }
+        set { quadrant.config = newValue }
     }
     public var quadrantChartTheme: QuadrantChartThemeConfig? {
-        get { storage.quadrantChartTheme }
-        set { ensureUniqueStorage(); storage.quadrantChartTheme = newValue }
+        get { quadrant.theme }
+        set { quadrant.theme = newValue }
     }
     public var requirementConfig: RequirementDiagramConfig? {
-        get { storage.requirementConfig }
-        set { ensureUniqueStorage(); storage.requirementConfig = newValue }
+        get { requirement.config }
+        set { requirement.config = newValue }
     }
     public var requirementTheme: RequirementThemeVariables? {
-        get { storage.requirementTheme }
-        set { ensureUniqueStorage(); storage.requirementTheme = newValue }
+        get { requirement.theme }
+        set { requirement.theme = newValue }
     }
     public var gitGraphConfig: GitGraphConfig? {
-        get { storage.gitGraphConfig }
-        set { ensureUniqueStorage(); storage.gitGraphConfig = newValue }
+        get { gitGraph.config }
+        set { gitGraph.config = newValue }
     }
     public var gitGraphTheme: GitGraphThemeConfig? {
-        get { storage.gitGraphTheme }
-        set { ensureUniqueStorage(); storage.gitGraphTheme = newValue }
+        get { gitGraph.theme }
+        set { gitGraph.theme = newValue }
     }
     public var mindmapConfig: MindmapConfig? {
-        get { storage.mindmapConfig }
-        set { ensureUniqueStorage(); storage.mindmapConfig = newValue }
+        get { mindmap.config }
+        set { mindmap.config = newValue }
     }
     public var timelineConfig: TimelineDiagramConfig? {
-        get { storage.timelineConfig }
-        set { ensureUniqueStorage(); storage.timelineConfig = newValue }
+        get { timeline.config }
+        set { timeline.config = newValue }
     }
     public var timelineTheme: TimelineThemeConfig? {
-        get { storage.timelineTheme }
-        set { ensureUniqueStorage(); storage.timelineTheme = newValue }
+        get { timeline.theme }
+        set { timeline.theme = newValue }
     }
     public var sankeyConfig: SankeyDiagramConfig? {
-        get { storage.sankeyConfig }
-        set { ensureUniqueStorage(); storage.sankeyConfig = newValue }
+        get { sankey.config }
+        set { sankey.config = newValue }
     }
     public var blockConfig: BlockDiagramConfig? {
-        get { storage.blockConfig }
-        set { ensureUniqueStorage(); storage.blockConfig = newValue }
+        get { block.config }
+        set { block.config = newValue }
     }
     public var packetConfig: PacketDiagramConfig? {
-        get { storage.packetConfig }
-        set { ensureUniqueStorage(); storage.packetConfig = newValue }
+        get { packet.config }
+        set { packet.config = newValue }
     }
     public var packetTheme: PacketThemeConfig? {
-        get { storage.packetTheme }
-        set { ensureUniqueStorage(); storage.packetTheme = newValue }
+        get { packet.theme }
+        set { packet.theme = newValue }
     }
     public var kanbanConfig: KanbanDiagramConfig? {
-        get { storage.kanbanConfig }
-        set { ensureUniqueStorage(); storage.kanbanConfig = newValue }
+        get { kanban.config }
+        set { kanban.config = newValue }
     }
     public var archConfig: ArchitectureDiagramConfig? {
-        get { storage.archConfig }
-        set { ensureUniqueStorage(); storage.archConfig = newValue }
+        get { architecture.config }
+        set { architecture.config = newValue }
     }
     public var archTheme: ArchitectureThemeConfig? {
-        get { storage.archTheme }
-        set { ensureUniqueStorage(); storage.archTheme = newValue }
+        get { architecture.theme }
+        set { architecture.theme = newValue }
     }
     public var radarConfig: RadarDiagramConfig? {
-        get { storage.radarConfig }
-        set { ensureUniqueStorage(); storage.radarConfig = newValue }
+        get { radar.config }
+        set { radar.config = newValue }
     }
     public var radarTheme: RadarThemeConfig? {
-        get { storage.radarTheme }
-        set { ensureUniqueStorage(); storage.radarTheme = newValue }
+        get { radar.theme }
+        set { radar.theme = newValue }
     }
     public var treemapConfig: TreemapDiagramConfig? {
-        get { storage.treemapConfig }
-        set { ensureUniqueStorage(); storage.treemapConfig = newValue }
+        get { treemap.config }
+        set { treemap.config = newValue }
     }
     public var treemapThemeVariables: [String: String]? {
-        get { storage.treemapThemeVariables }
-        set { ensureUniqueStorage(); storage.treemapThemeVariables = newValue }
+        get { treemap.theme }
+        set { treemap.theme = newValue }
     }
     public var vennConfig: VennDiagramConfig? {
-        get { storage.vennConfig }
-        set { ensureUniqueStorage(); storage.vennConfig = newValue }
+        get { venn.config }
+        set { venn.config = newValue }
     }
     public var vennThemeVariables: [String: String]? {
-        get { storage.vennThemeVariables }
-        set { ensureUniqueStorage(); storage.vennThemeVariables = newValue }
+        get { venn.theme }
+        set { venn.theme = newValue }
     }
     public var ishikawaConfig: IshikawaDiagramConfig? {
-        get { storage.ishikawaConfig }
-        set { ensureUniqueStorage(); storage.ishikawaConfig = newValue }
+        get { ishikawa.config }
+        set { ishikawa.config = newValue }
     }
     public var treeViewConfig: TreeViewDiagramConfig? {
-        get { storage.treeViewConfig }
-        set { ensureUniqueStorage(); storage.treeViewConfig = newValue }
+        get { treeView.config }
+        set { treeView.config = newValue }
     }
     public var treeViewTheme: TreeViewThemeVariables? {
-        get { storage.treeViewTheme }
-        set { ensureUniqueStorage(); storage.treeViewTheme = newValue }
+        get { treeView.theme }
+        set { treeView.theme = newValue }
     }
     public var eventmodelingConfig: EventModelingDiagramConfig? {
-        get { storage.eventmodelingConfig }
-        set { ensureUniqueStorage(); storage.eventmodelingConfig = newValue }
+        get { eventModeling.config }
+        set { eventModeling.config = newValue }
     }
     public var eventmodelingThemeVariables: EventModelingThemeVariables? {
-        get { storage.eventmodelingThemeVariables }
-        set { ensureUniqueStorage(); storage.eventmodelingThemeVariables = newValue }
+        get { eventModeling.theme }
+        set { eventModeling.theme = newValue }
     }
     public var wardleyBetaConfig: WardleyDiagramConfig? {
-        get { storage.wardleyBetaConfig }
-        set { ensureUniqueStorage(); storage.wardleyBetaConfig = newValue }
+        get { wardley.config }
+        set { wardley.config = newValue }
     }
     public var wardleyTheme: WardleyThemeVariables? {
-        get { storage.wardleyTheme }
-        set { ensureUniqueStorage(); storage.wardleyTheme = newValue }
+        get { wardley.theme }
+        set { wardley.theme = newValue }
     }
     public var c4Config: C4DiagramConfig? {
-        get { storage.c4Config }
-        set { ensureUniqueStorage(); storage.c4Config = newValue }
+        get { c4.config }
+        set { c4.config = newValue }
     }
 }
 
