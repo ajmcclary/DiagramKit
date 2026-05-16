@@ -21,4 +21,10 @@ public enum SequenceRenderConstants {
     /// Horizontal gap between the right edge of the self-loop and the
     /// start of the message label.
     public static let selfLoopLabelGap: Double = 8
+
+    /// Height of the rectangular tab that labels a sequence block
+    /// (`loop`, `alt`, `opt`, `par`, `critical`, …). The CG and SVG
+    /// renderers both draw this tab at the block's top-left corner and
+    /// must agree on its height for the label to land in the same row.
+    public static let blockTabHeight: Double = 18
 }

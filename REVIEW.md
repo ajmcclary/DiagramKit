@@ -2,7 +2,7 @@
 
 **Method.** Six parallel agents reviewed: (1) architecture/layering/portability, (2) concurrency, (3) invariants + dual-renderer symmetry, (4) diagnostics + error handling, (5) code quality, (6) correctness/perf/test coverage. Critical and high-impact findings were spot-verified against the working tree. The diagnostic-discipline and `@unchecked Sendable` gates pass clean; the worker-thread invariant, `@MainActor` placement, `bmColorEquals`, type-safe payloads, retain cycles, cross-format round-trip matrix, and empty-source handling all checked out with no findings.
 
-**Summary.** 1 Critical (verified build break) — **resolved**, 10 High (10 resolved), 13 Medium (+2 added during follow-up; 4 resolved), 7 Low.
+**Summary.** 1 Critical (verified build break) — **resolved**, 10 High (10 resolved), 13 Medium (+2 added during follow-up; 5 resolved), 7 Low.
 
 ---
 
@@ -154,11 +154,13 @@ New `XYChartAsciiRendererTests` (2 tests) pin the contract: a basic vertical bar
 
 Four new tests pin the contract: clean titles emit no diagnostic; titles with dropped characters emit `.idSanitization` naming both input and slug; the empty-slug fallback (`"!!!"` → `"subgraph"`) emits a diagnostic; the full `groupIntoSubgraph` path surfaces the diagnostic onto `editor.lastExportDiagnostics`. The existing `subgraphIDDeterministic` test updated for the new tuple return. All 9 `FlowchartSubgraphMutationTests` pass.
 
-### [Severity: Medium] Sequence block tab height open-coded in SVG
+### [Severity: Medium] ~~Sequence block tab height open-coded in SVG~~ — RESOLVED
 **File:** `Sources/DiagramKitModel/src_sequence_renderer.swift#L493` vs `Sources/DiagramKitRenderingCG/DiagramRenderer+Sequence.swift#L82` + `RenderTokens+Sequence.swift#L14`
 **Category:** Code Quality (dual-renderer drift)
 **Problem:** SVG hardcodes `tabHeight = 18.0`; CG reads `cfg.sequenceTabHeight` (= 18). Equal today; same drift hazard as the self-loop above.
-**Fix:** Promote `sequenceTabHeight` to an SVG-visible token namespace and reference from both renderers.
+**Fix applied.** Added `SequenceRenderConstants.blockTabHeight: Double = 18` to the Linux-portable enum I introduced when fixing the self-loop geometry (High #4). SVG now reads `SequenceRenderConstants.blockTabHeight` directly. `RenderTokens+Sequence.swift` updated so `sequenceTabHeight` and `sequenceLoopH` both derive from `SequenceRenderConstants` (`CGFloat(SequenceRenderConstants.blockTabHeight)` / `selfLoopHeight`) — that closes the loop on the Apple-side too, so the value is sourced in one place no matter which renderer you read it from.
+
+Pure refactor: 5 block-using sequence corpus entries (`seq-7-loop`, `seq-8-alt`, `seq-9-opt`, `seq-10-par`, `seq-11-critical`, `seq-21-box-groups`) pass byte-identical image + SVG. This was the last residual dual-renderer drift item from the review.
 
 ### [Severity: Medium] Class-title font weight literal in SVG
 **File:** `Sources/DiagramKitModel/src_class_renderer.swift#L213`

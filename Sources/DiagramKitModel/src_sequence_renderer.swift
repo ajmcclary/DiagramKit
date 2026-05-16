@@ -490,7 +490,7 @@ private func _renderBlock(_ block: PositionedSequenceBlock) -> String {
     let labelText = block.label.isEmpty ? block.type : "\(block.type) [\(block.label)]"
     let firstLine = labelText.components(separatedBy: "\n").first ?? labelText
     let tabWidth = original_src_styles.estimateTextWidth(firstLine, original_src_styles.FONT_SIZES.edgeLabel, original_src_styles.FONT_WEIGHTS.groupHeader) + 16
-    let tabHeight = 18.0
+    let tabHeight = SequenceRenderConstants.blockTabHeight
 
     parts.append("<rect class=\"labelBox\" x=\"\(block.x)\" y=\"\(block.y)\" width=\"\(tabWidth)\" height=\"\(tabHeight)\" fill=\"var(--_group-hdr)\" stroke=\"var(--_node-stroke)\" stroke-width=\"\(original_src_styles.STROKE_WIDTHS.outerBox)\" />")
     parts.append(_textEl(labelText, cx: block.x + 6, cy: block.y + tabHeight / 2, fontSize: original_src_styles.FONT_SIZES.edgeLabel, anchor: "start", cls: "labelText loopText", weight: original_src_styles.FONT_WEIGHTS.groupHeader))
