@@ -156,50 +156,6 @@ func _buildElkGraph(_ graph: _ParsedGraph, diagnostics: _LayoutDiagnostics? = ni
         ))
     }
 
-    func buildSubgraphNode(_ sub: original_src_types.MermaidSubgraph) -> ElkGraphNode {
-        let directNodeIds = sub.nodeIds.filter { nodeId in
-            !sub.children.contains { child in
-                _subgraphContainsNode(child, nodeId: nodeId, diagnostics: diagnostics)
-            }
-        }
-
-        var children: [ElkGraphNode] = []
-        for nodeId in directNodeIds {
-            guard let node = nodeById[nodeId] else { continue }
-            let size = _nodeSize(node, hideEmptyDescription: graph.stateConfig.hideEmptyDescription)
-            children.append(ElkGraphNode(
-                id: nodeId,
-                labels: [ElkGraphLabel(text: node.label)],
-                width: size.width,
-                height: size.height
-            ))
-        }
-        for child in sub.children {
-            children.append(buildSubgraphNode(child))
-        }
-
-        var ports: [ElkGraphPort] = []
-        var internalEdges: [ElkGraphEdge] = []
-        if let pairs = portsBySubgraph[sub.id] {
-            for (port, edge) in pairs {
-                ports.append(port)
-                internalEdges.append(edge)
-            }
-        }
-
-        var subgraphEdges = edgesBySubgraph[sub.id] ?? []
-        subgraphEdges.append(contentsOf: internalEdges)
-
-        return ElkGraphNode(
-            id: sub.id,
-            children: children,
-            edges: subgraphEdges,
-            ports: ports,
-            layoutOptions: ElkLayoutOptions.subgraph(direction: sub.direction),
-            labels: [ElkGraphLabel(text: sub.label)]
-        )
-    }
-
     var rootChildren: [ElkGraphNode] = []
     for entry in graph.nodesInOrder {
         if !allClaimedNodes.contains(entry.id) {
@@ -213,7 +169,14 @@ func _buildElkGraph(_ graph: _ParsedGraph, diagnostics: _LayoutDiagnostics? = ni
         }
     }
     for sub in graph.subgraphs {
-        rootChildren.append(buildSubgraphNode(sub))
+        rootChildren.append(_buildSubgraphNode(
+            sub,
+            nodeById: nodeById,
+            edgesBySubgraph: edgesBySubgraph,
+            portsBySubgraph: portsBySubgraph,
+            hideEmptyDescription: graph.stateConfig.hideEmptyDescription,
+            diagnostics: diagnostics
+        ))
     }
 
     return ElkGraphNode(
@@ -221,6 +184,67 @@ func _buildElkGraph(_ graph: _ParsedGraph, diagnostics: _LayoutDiagnostics? = ni
         children: rootChildren,
         edges: rootEdges,
         layoutOptions: ElkLayoutOptions.root(direction: graph.direction, hierarchy: .separate)
+    )
+}
+
+/// Build an `ElkGraphNode` for a single Mermaid subgraph. Used by both the
+/// SEPARATE-mode (port-aware) and INCLUDE_CHILDREN-mode (no-cross-edges)
+/// graph builders — pass `portsBySubgraph: nil` for the no-cross-edges
+/// shape, which omits ports and the matching internal edges. When the map
+/// is provided, ports and per-port internal edges land inside the
+/// returned compound node.
+private func _buildSubgraphNode(
+    _ sub: original_src_types.MermaidSubgraph,
+    nodeById: [String: original_src_types.MermaidNode],
+    edgesBySubgraph: [String: [ElkGraphEdge]],
+    portsBySubgraph: [String: [(ElkGraphPort, ElkGraphEdge)]]?,
+    hideEmptyDescription: Bool,
+    diagnostics: _LayoutDiagnostics?
+) -> ElkGraphNode {
+    let directNodeIds = sub.nodeIds.filter { nodeId in
+        !sub.children.contains { child in
+            _subgraphContainsNode(child, nodeId: nodeId, diagnostics: diagnostics)
+        }
+    }
+
+    var children: [ElkGraphNode] = []
+    for nodeId in directNodeIds {
+        guard let node = nodeById[nodeId] else { continue }
+        let size = _nodeSize(node, hideEmptyDescription: hideEmptyDescription)
+        children.append(ElkGraphNode(
+            id: nodeId,
+            labels: [ElkGraphLabel(text: node.label)],
+            width: size.width,
+            height: size.height
+        ))
+    }
+    for child in sub.children {
+        children.append(_buildSubgraphNode(
+            child,
+            nodeById: nodeById,
+            edgesBySubgraph: edgesBySubgraph,
+            portsBySubgraph: portsBySubgraph,
+            hideEmptyDescription: hideEmptyDescription,
+            diagnostics: diagnostics
+        ))
+    }
+
+    var ports: [ElkGraphPort] = []
+    var subgraphEdges = edgesBySubgraph[sub.id] ?? []
+    if let pairs = portsBySubgraph?[sub.id] {
+        for (port, edge) in pairs {
+            ports.append(port)
+            subgraphEdges.append(edge)
+        }
+    }
+
+    return ElkGraphNode(
+        id: sub.id,
+        children: children,
+        edges: subgraphEdges,
+        ports: ports,
+        layoutOptions: ElkLayoutOptions.subgraph(direction: sub.direction),
+        labels: [ElkGraphLabel(text: sub.label)]
     )
 }
 
@@ -298,37 +322,6 @@ func _buildElkGraphNoCrossEdges(_ graph: _ParsedGraph, diagnostics: _LayoutDiagn
     // Match TS ordering: root-level edges first, then cross-hierarchy
     let rootEdges = rootLevelEdges + crossHierarchyEdges
 
-    func buildSubgraphNode(_ sub: original_src_types.MermaidSubgraph) -> ElkGraphNode {
-        let directNodeIds = sub.nodeIds.filter { nodeId in
-            !sub.children.contains { child in _subgraphContainsNode(child, nodeId: nodeId, diagnostics: diagnostics) }
-        }
-        var children: [ElkGraphNode] = []
-        for nodeId in directNodeIds {
-            guard let node = nodeById[nodeId] else { continue }
-            let size = _nodeSize(node, hideEmptyDescription: graph.stateConfig.hideEmptyDescription)
-            children.append(ElkGraphNode(
-                id: nodeId,
-                labels: [ElkGraphLabel(text: node.label)],
-                width: size.width,
-                height: size.height
-            ))
-        }
-        for child in sub.children { children.append(buildSubgraphNode(child)) }
-
-        // Direction is only set on a subgraph when it carries an explicit
-        // override. In INCLUDE_CHILDREN mode direction inherits from the
-        // root automatically; setting it can otherwise widen the compound
-        // node by creating different external-port dummy structures.
-        let subgraphEdges = edgesBySubgraph[sub.id] ?? []
-        return ElkGraphNode(
-            id: sub.id,
-            children: children,
-            edges: subgraphEdges,
-            layoutOptions: ElkLayoutOptions.subgraph(direction: sub.direction),
-            labels: [ElkGraphLabel(text: sub.label)]
-        )
-    }
-
     var rootChildren: [ElkGraphNode] = []
     for entry in graph.nodesInOrder {
         if !allClaimedNodes.contains(entry.id) {
@@ -341,7 +334,21 @@ func _buildElkGraphNoCrossEdges(_ graph: _ParsedGraph, diagnostics: _LayoutDiagn
             ))
         }
     }
-    for sub in graph.subgraphs { rootChildren.append(buildSubgraphNode(sub)) }
+    // INCLUDE_CHILDREN mode: pass `portsBySubgraph: nil` so the shared
+    // builder omits ports and per-port internal edges. Direction is only
+    // set on a subgraph when it carries an explicit override; ELK inherits
+    // from the root otherwise, and setting it widens the compound node by
+    // creating different external-port dummy structures.
+    for sub in graph.subgraphs {
+        rootChildren.append(_buildSubgraphNode(
+            sub,
+            nodeById: nodeById,
+            edgesBySubgraph: edgesBySubgraph,
+            portsBySubgraph: nil,
+            hideEmptyDescription: graph.stateConfig.hideEmptyDescription,
+            diagnostics: diagnostics
+        ))
+    }
 
     return ElkGraphNode(
         id: "root",
