@@ -2,7 +2,7 @@
 
 **Method.** Six parallel agents reviewed: (1) architecture/layering/portability, (2) concurrency, (3) invariants + dual-renderer symmetry, (4) diagnostics + error handling, (5) code quality, (6) correctness/perf/test coverage. Critical and high-impact findings were spot-verified against the working tree. The diagnostic-discipline and `@unchecked Sendable` gates pass clean; the worker-thread invariant, `@MainActor` placement, `bmColorEquals`, type-safe payloads, retain cycles, cross-format round-trip matrix, and empty-source handling all checked out with no findings.
 
-**Summary.** 1 Critical (verified build break) — **resolved**, 10 High (10 resolved), 13 Medium (+2 added during follow-up; 7 resolved), 7 Low.
+**Summary.** 1 Critical (verified build break) — **resolved**, 10 High (10 resolved), 13 Medium (+2 added during follow-up; 8 resolved, 1 deferred), 7 Low.
 
 ---
 
@@ -191,11 +191,13 @@ Skipped going further and inlining `fontResolver.eventModelingFont(...)` at the 
 
 Pure refactor: 4 EventModeling corpus entries (`eventmodeling-simple-state-change`, `eventmodeling-multi-relation`, `eventmodeling-all-entity-types`, `eventmodeling-state-view`) byte-identical image + SVG.
 
-### [Severity: Medium] Mermaid State same-format round-trip cell missing from the matrix
+### [Severity: Medium] Mermaid State same-format round-trip cell missing from the matrix — BLOCKED on missing Mermaid state exporter
 **File:** `Tests/DiagramKitTests/RoundTrip/RoundTripCellRegistry.swift#L19-122`
 **Category:** Test Coverage
 **Problem:** Mermaid cells exist for flowchart, sequence, class, ER, c4, gantt. PlantUML has `plantumlState`, but there is no `mermaidState`. State is a first-class supported family with its own diagnostic discipline; without a same-format round-trip, regressions in `MermaidExporter`'s state emission stay silent until snapshot drift catches them.
-**Fix:** Add `mermaidState = RoundTripCell(importer: MermaidImporter(), exporter: MermaidExporter(), family: .stateDiagram, allowedLosses: [.idSanitization])` and wire into `SameFormatRoundTripTests`.
+**Status: blocked.** The reviewer's premise — "regressions in `MermaidExporter`'s state emission stay silent" — assumes the exporter emits state. Inspection of `Sources/DiagramKitMermaid/Exporter/MermaidExporter.swift` shows `.stateDiagram` is commented out of `supportedDiagramTypes` (line 23: *"`stateDiagram` — added in 7A-P1"*) and the `switch document.payload` default arm returns an empty source with a `.diagramFamilyUnsupported` diagnostic. There is no state emission to round-trip against today. Adding the cell as the reviewer specified would produce empty output and immediately fail.
+
+**Real fix.** Implement `MermaidStateExport` (a per-family emit module alongside `MermaidFlowchartExport` etc.) covering at minimum: `stateDiagram-v2` header, simple transitions (`A --> B : label`), the `[*]` start/end sentinels, the `state "Name" as id` aliasing, and notes. Wire it into the exporter's switch, add `.stateDiagram` to `supportedDiagramTypes`, *then* the round-trip cell becomes meaningful. That's feature work in the same shape as the original "7A-P1" plan, not the small-scope cleanup the other Mediums are. Tracked as a follow-up rather than rolled into the review-followup cadence.
 
 ### [Severity: Medium] Several families have far fewer dedicated test files than peers
 **Path:** `Tests/DiagramKitTests/`
@@ -215,11 +217,20 @@ Pure refactor: 4 EventModeling corpus entries (`eventmodeling-simple-state-chang
 **Problem:** Same provenance as the `req-*` drift above. Baseline has `<marker id="er-onlyOneStart" ...>`; current output emits `<marker id="er-onlyOne_neoStart" ...>`. The marker IDs were renamed (presumably to disambiguate the neo-look variants) but the one ER neo-look baseline wasn't rebaselined. Distinct root cause from the requirement drift, hence a separate entry.
 **Fix:** `SNAPSHOT_TESTING_RECORD=all SNAPSHOT_DIAGRAM_IDS=er-23-neo-look swift test --filter "CorpusSnapshotTests/svgSnapshot"`. While there, verify the rename's full callsite coverage in ER's `_arrowMarkerDefs`-equivalent so other neo-look ER entries don't have lurking marker mismatches that the precision threshold is hiding.
 
-### [Severity: Medium] Frontmatter parser silently drops escaped quotes and tab indentation
+### [Severity: Medium] ~~Frontmatter parser silently drops escaped quotes and tab indentation~~ — RESOLVED (3 of 5 cases; 2 deferred)
 **File:** `Sources/DiagramKitModel/FrontmatterDocumentParser.swift#L19-63`
 **Category:** Correctness
 **Problem:** `flatten(_:)` computes indent via `prefix(while: { $0 == " " }).count` — tabs collapse to depth 0. Quote stripping (`key.hasPrefix("\"") && key.hasSuffix("\"")`) doesn't handle escaped inner quotes. No mid-line `#` comment stripping. Malformed YAML (e.g. `key: "unterminated`) is accepted without a diagnostic. Test fixtures contain none of these cases.
-**Fix:** Either reject tab indent with a diagnostic or normalize to 2 spaces. Strip escapes inside quoted values. Add a `FrontmatterDocumentParserTests` suite covering tab indent, escaped quote, mid-line `#`, unterminated quote, and `null`/`~` scalars.
+**Fix applied.**
+- **Tab indent.** Indent counting now walks `\t` as 2 columns and `" "` as 1 column, matching the 2-space-per-level convention. Tab-only and mixed-tab/space indent now nest correctly. Comment block in the function documents the contract.
+- **Escaped quotes.** Inside double-quoted values, `\"` → `"` and `\\` → `\`. Single-quoted values stay literal per YAML's single-quote semantics.
+- **Mid-line `#` comments.** Added `_stripTrailingComment(_:)` that drops ` # …` from unquoted scalars (requires whitespace before `#` so `color: #abc123` hex literals survive). `#` inside quoted values is preserved.
+
+**Deferred from the reviewer's list** with rationale:
+- *Unterminated quote diagnostic*: the parser is a pure `(lines) -> [(path, value)]` function with no diagnostic channel. Threading one through would touch every binding callsite. Out of scope for the cleanup cadence.
+- *`null` / `~` scalars*: these are about `FrontmatterValue.raw` semantics (treating the string `"null"` as `nil`), not the parser's tokenization. Separate change, separate type.
+
+New `FrontmatterDocumentParserTests` (8 tests) pin all three fixes: tab-indent equivalence with space-indent; mixed indent; escaped `\"` and `\\` unescape in double quotes; single-quote literal semantics; trailing comment stripped; hex literal preserved (no whitespace before `#`); `#` inside a quoted value preserved. Existing frontmatter-using corpus entries (`class-60-frontmatter-title`, `class-61-frontmatter-config`, `xychart-18-config-size`, `xychart-19-data-labels`) pass byte-identical image + SVG.
 
 ---
 
