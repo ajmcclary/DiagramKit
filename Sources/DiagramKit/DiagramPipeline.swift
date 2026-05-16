@@ -279,16 +279,22 @@ public enum DiagramPipeline {
     /// any diagnostics produced during import/layout. The string-only
     /// `String.renderDiagramASCII(...)` helper forwards `.text` for
     /// callers that don't need the diagnostics tuple.
+    ///
+    /// `registry` defaults to `defaultRegistry` and is forwarded to the
+    /// importer probe so callers can inject custom format importers; this
+    /// matches `renderSVG(source:…)` and closes the source-side
+    /// asymmetry called out in audit P1.
     public static func renderASCII(
         source: String,
         theme: DiagramTheme = .default,
-        sourceFormat: DiagramFormatID? = nil
+        sourceFormat: DiagramFormatID? = nil,
+        registry: ImporterRegistry = defaultRegistry
     ) throws -> AsciiRenderOutput {
         try runPipeline(operation: "DiagramPipeline.renderASCII") {
             let importResult = try loadImportResult(
                 source,
                 sourceFormat: sourceFormat,
-                registry: defaultRegistry
+                registry: registry
             )
             try _assertPlatformSupport(importResult.document)
             let colors: [String: String] = [

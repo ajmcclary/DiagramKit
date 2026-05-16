@@ -320,11 +320,16 @@ The exact shape should follow existing `PositionedGraph` APIs, but the goal is t
 
 ### P1. SVG and ASCII public pipeline signatures are inconsistent
 
+**Status:** Partially resolved. Source-based `renderASCII` now accepts
+`registry: ImporterRegistry = defaultRegistry` on both `DiagramPipeline` and
+`DiagramEngine`, matching `renderSVG`. The positioned-graph asymmetry remains
+open and is tracked alongside audit A1 (structured document-aware ASCII path).
+
 **Evidence**
 
 - `Sources/DiagramKit/DiagramPipeline.swift:205` exposes `renderSVG(..., registry: ImporterRegistry = defaultRegistry)`.
-- `Sources/DiagramKit/DiagramPipeline.swift:282` exposes `renderASCII(..., sourceFormat: DiagramFormatID? = nil)` without a registry parameter.
-- `Sources/DiagramKit/DiagramPipeline.swift:244` exposes `renderSVG(positioned:config:)`, but there is no equivalent positioned ASCII renderer.
+- `Sources/DiagramKit/DiagramPipeline.swift:282` exposes `renderASCII(..., sourceFormat: DiagramFormatID? = nil)` without a registry parameter. **(resolved — registry now injected)**
+- `Sources/DiagramKit/DiagramPipeline.swift:244` exposes `renderSVG(positioned:config:)`, but there is no equivalent positioned ASCII renderer. **(open — requires A1 structured path)**
 
 **Impact**
 

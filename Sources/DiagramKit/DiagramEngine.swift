@@ -172,10 +172,16 @@ public struct DiagramEngine {
     /// Render a diagram to an ASCII/Unicode string paired with any
     /// diagnostics emitted during parse / layout / ASCII rendering. Callers
     /// that only want the rendered text can access `.text`.
+    ///
+    /// `registry` mirrors `renderSVG(source:…)` so non-Mermaid sources can
+    /// be resolved by a custom `ImporterRegistry`. Closes the source-side
+    /// half of audit P1; the structured document-aware path (audit A1) is
+    /// still open.
     public static func renderASCII(
         source: String,
         theme: DiagramTheme = .default,
-        sourceFormat: DiagramFormatID? = nil
+        sourceFormat: DiagramFormatID? = nil,
+        registry: ImporterRegistry = DiagramPipeline.defaultRegistry
     ) async throws -> AsciiRenderOutput {
         #if canImport(CoreGraphics)
         _ = _DiagramPreparerBootstrap.didInstall
@@ -184,7 +190,8 @@ public struct DiagramEngine {
             try DiagramPipeline.renderASCII(
                 source: source,
                 theme: theme,
-                sourceFormat: sourceFormat
+                sourceFormat: sourceFormat,
+                registry: registry
             )
         }
     }
