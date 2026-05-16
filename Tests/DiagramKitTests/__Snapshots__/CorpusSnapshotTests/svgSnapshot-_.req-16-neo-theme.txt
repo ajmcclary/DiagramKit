@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 278.346 370" width="278.346" height="370" style="--bg:#FFFFFF;--fg:#27272A;--line:#939394;--accent:#27272A;--muted:#A9A9AA;--surface:#F9F9F9;--border:#D4D4D4;background:#FFFFFF">
+<svg role="graphics-document" aria-roledescription="diagram" preserveAspectRatio="xMinYMin meet" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 278.346 370" width="100%" height="370" style="max-width: 278.346px;--bg:#FFFFFF;--fg:#27272A;--line:#939394;--accent:#27272A;--muted:#A9A9AA;--surface:#F9F9F9;--border:#D4D4D4;background:#FFFFFF">
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap');
 text { font-family: 'Inter', system-ui, sans-serif; }
@@ -9,7 +9,7 @@ text { font-family: 'Inter', system-ui, sans-serif; }
   .reqTitle, .reqLabel { fill: #1a365d; }
   .reqLabelBox { fill: #666666; fill-opacity: 1.0; }
   .req-title-line { stroke: #2b6cb0; stroke-width: 1; }
-  .relationshipLine { stroke: #e53e3e; stroke-width: 3; }
+  .relationshipLine { stroke: #e53e3e; stroke-width: 1px; }
   .relationshipLabel { fill: #2d3748; }
   .edgeLabel { background-color: #666666; }
   .edgeLabel .label rect { fill: #666666; }
@@ -24,33 +24,33 @@ text { font-family: 'Inter', system-ui, sans-serif; }
   }
 </style>
 <defs>
-<marker id="C91088C2-F9BC-A078-4E29-FEADB9598BCF_requirement-containsStart" refX="0" refY="10" markerWidth="20" markerHeight="20" orient="auto" markerUnits="userSpaceOnUse" stroke-width="3">
+<marker id="7AD662E9-5613-4B20-FDB1-14E78329EA74_requirement-containsStart" refX="0" refY="10" markerWidth="20" markerHeight="20" orient="auto">
   <g>
     <circle cx="10" cy="10" r="9" fill="none" />
     <line x1="1" x2="19" y1="10" y2="10" />
     <line y1="1" y2="19" x1="10" x2="10" />
   </g>
 </marker>
-<marker id="C91088C2-F9BC-A078-4E29-FEADB9598BCF_requirement-arrowEnd" refX="20" refY="10" markerWidth="20" markerHeight="20" orient="auto" markerUnits="userSpaceOnUse" stroke-width="3" viewBox="0 0 25 20">
-  <path d="M0,0 L20,10 M20,10 L0,20" stroke-linejoin="miter" />
+<marker id="7AD662E9-5613-4B20-FDB1-14E78329EA74_requirement-arrowEnd" refX="20" refY="10" markerWidth="20" markerHeight="20" orient="auto">
+  <path d="M0,0 L20,10 M20,10 L0,20" />
 </marker>
 </defs>
-<g class="relationshipLine"><polyline class="relationshipLine" points="130.0,142.0 130.0,167.0 139.173,167.0 139.173,192.0" fill="none" stroke="#666666" stroke-width="3" stroke-dasharray="10,7" marker-end="url(#C91088C2-F9BC-A078-4E29-FEADB9598BCF_requirement-arrowEnd)" /></g>
-<g class="node default" id="node-themed_req" data-color-id="color-0" data-look="neo">
+<g class="relationshipLine"><polyline class="relationshipLine" points="130.0,142.0 130.0,167.0 139.173,167.0 139.173,192.0" fill="none" stroke="#666666" stroke-width="3" stroke-dasharray="10,7" marker-end="url(#7AD662E9-5613-4B20-FDB1-14E78329EA74_requirement-arrowEnd)" /></g>
+<g class="node default" id="node-themed_req" data-color-id="color-0" data-look="classic">
   <rect class="basic label-container outer-path" x="40.0" y="192.0" width="198.34599999999998" height="138.0" rx="4" ry="4" fill="#e8f4f8" stroke="#2b6cb0" stroke-width="1" />
   <g class="label" transform="translate(139.173, 206.0)"><text text-anchor="middle" font-size="11" fill="#666666">&lt;&lt;Requirement&gt;&gt;</text></g>
   <g class="label" transform="translate(139.173, 226.0)"><text text-anchor="middle" font-size="13" font-weight="bold" fill="#666666">themed_req</text></g>
-  <polygon class="divider" points="40.0,238.0 238.34599999999998,238.0 238.34599999999998,238.5 40.0,238.5" fill="#666666" />
+  <line class="divider" x1="44.0" y1="238.0" x2="234.34599999999998" y2="238.0" stroke="#666666" stroke-width="1" />
   <g class="label" transform="translate(139.173, 254.0)"><text text-anchor="middle" font-size="11" fill="#666666">ID: 1</text></g>
   <g class="label" transform="translate(139.173, 272.0)"><text text-anchor="middle" font-size="11" fill="#666666">Text: requirement with custom theme.</text></g>
   <g class="label" transform="translate(139.173, 290.0)"><text text-anchor="middle" font-size="11" fill="#666666">Risk: High</text></g>
   <g class="label" transform="translate(139.173, 308.0)"><text text-anchor="middle" font-size="11" fill="#666666">Verification: Test</text></g>
 </g>
-<g class="node default" id="node-themed_elem" data-color-id="color-1" data-look="neo">
+<g class="node default" id="node-themed_elem" data-color-id="color-1" data-look="classic">
   <rect class="basic label-container outer-path" x="40.0" y="40.0" width="180.0" height="102.0" rx="4" ry="4" fill="#e8f4f8" stroke="#2b6cb0" stroke-width="1" />
   <g class="label" transform="translate(130.0, 54.0)"><text text-anchor="middle" font-size="11" fill="#666666">&lt;&lt;Element&gt;&gt;</text></g>
   <g class="label" transform="translate(130.0, 74.0)"><text text-anchor="middle" font-size="13" font-weight="bold" fill="#666666">themed_elem</text></g>
-  <polygon class="divider" points="40.0,86.0 220.0,86.0 220.0,86.5 40.0,86.5" fill="#666666" />
+  <line class="divider" x1="44.0" y1="86.0" x2="216.0" y2="86.0" stroke="#666666" stroke-width="1" />
   <g class="label" transform="translate(130.0, 102.0)"><text text-anchor="middle" font-size="11" fill="#666666">Type: test component</text></g>
   <g class="label" transform="translate(130.0, 120.0)"><text text-anchor="middle" font-size="11" fill="#666666">Doc Ref: spec-v3</text></g>
 </g>

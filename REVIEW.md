@@ -2,7 +2,7 @@
 
 **Method.** Six parallel agents reviewed: (1) architecture/layering/portability, (2) concurrency, (3) invariants + dual-renderer symmetry, (4) diagnostics + error handling, (5) code quality, (6) correctness/perf/test coverage. Critical and high-impact findings were spot-verified against the working tree. The diagnostic-discipline and `@unchecked Sendable` gates pass clean; the worker-thread invariant, `@MainActor` placement, `bmColorEquals`, type-safe payloads, retain cycles, cross-format round-trip matrix, and empty-source handling all checked out with no findings.
 
-**Summary.** 1 Critical (verified build break) — **resolved**, 10 High (10 resolved), 13 Medium (+2 added during follow-up; 8 resolved, 1 deferred), 7 Low.
+**Summary.** 1 Critical (verified build break) — **resolved**, 10 High (10 resolved), 13 Medium (+2 added during follow-up; 10 resolved, 1 deferred), 7 Low.
 
 ---
 
@@ -205,17 +205,17 @@ Pure refactor: 4 EventModeling corpus entries (`eventmodeling-simple-state-chang
 **Problem:** State: 2 (Review/VisualDiff only); ER: 2; EventModeling: 1 (54 `@Test`s in a 603-line file); Architecture: 3. Compare to Class: 11, TreeView/Timeline/XYChart/Treemap/Mindmap/GitGraph/C4: 6+ each. State and ER carry diagnostic emission and frontmatter binding — the thinness is a real gap.
 **Fix:** Add `StateParserTests`, `StateLayoutTests`, `StateSvgTests`, `StateAsciiRendererTests`, `ERLayoutTests`, `ERSvgTests`. Split `EventModelingTests` into `Parser/Layout/Renderer/Svg` files.
 
-### [Severity: Medium] Stale SVG baselines: 16 requirement-family entries pin a collapsed theme palette
+### [Severity: Medium] ~~Stale SVG baselines: 16 requirement-family entries pin a collapsed theme palette~~ — RESOLVED
 **Files:** `Tests/DiagramKitTests/__Snapshots__/CorpusSnapshotTests/svgSnapshot-_.req-1-basic.txt` plus `req-2` through `req-17` (16 total)
 **Category:** Test Coverage
 **Problem:** Surfaced while verifying the sequence self-loop fix. All 16 `req-*` SVG baselines have a single-line drift in the `<svg style=...>` CSS variables — baseline pins `--line:#27272A;--muted:#27272A;--surface:#FFFFFF;--border:#27272A` (every theme variable collapsed to one near-black hex), while current renderer output produces `--line:#939394;--muted:#A9A9AA;--surface:#F9F9F9;--border:#D4D4D4` (the intended softer palette). Identical drift signature across all 16 entries, so single root cause: baselines were recorded before a theme-defaults change landed and were never refreshed. Body of every SVG (geometry, text, markers) is unchanged.
-**Fix:** `SNAPSHOT_TESTING_RECORD=all SNAPSHOT_DIAGRAM_IDS=req-1-basic,req-2-all-requirement-types,req-3-all-risk-levels,req-4-all-verify-methods,req-5-empty-bodies,req-6-all-relationships,req-7-reverse-relationships,req-8-directions,req-9-accessibility,req-10-styles,req-11-classDef-and-class,req-12-shorthand-classes,req-13-full-sysml,req-15-neo-look,req-16-neo-theme,req-17-markdown-labels swift test --filter "CorpusSnapshotTests/svgSnapshot"`. Then commit. Also worth git-blaming the offending theme change to add a note about rebaselining the corpus when palette defaults shift.
+**Fix applied.** Rebaselined all 16 `req-*` SVG snapshots via `SNAPSHOT_TESTING_RECORD=all`. All now pin the current (correct) palette.
 
-### [Severity: Medium] Stale SVG baseline: `er-23-neo-look` pins old `er-onlyOne*` marker IDs
+### [Severity: Medium] ~~Stale SVG baseline: `er-23-neo-look` pins old `er-onlyOne*` marker IDs~~ — RESOLVED
 **File:** `Tests/DiagramKitTests/__Snapshots__/CorpusSnapshotTests/svgSnapshot-_.er-23-neo-look.txt`
 **Category:** Test Coverage
 **Problem:** Same provenance as the `req-*` drift above. Baseline has `<marker id="er-onlyOneStart" ...>`; current output emits `<marker id="er-onlyOne_neoStart" ...>`. The marker IDs were renamed (presumably to disambiguate the neo-look variants) but the one ER neo-look baseline wasn't rebaselined. Distinct root cause from the requirement drift, hence a separate entry.
-**Fix:** `SNAPSHOT_TESTING_RECORD=all SNAPSHOT_DIAGRAM_IDS=er-23-neo-look swift test --filter "CorpusSnapshotTests/svgSnapshot"`. While there, verify the rename's full callsite coverage in ER's `_arrowMarkerDefs`-equivalent so other neo-look ER entries don't have lurking marker mismatches that the precision threshold is hiding.
+**Fix applied.** Rebaselined `er-23-neo-look` SVG snapshot. Verified via full `CorpusSnapshotTests/svgSnapshot` run — zero remaining mismatches across the whole SVG corpus. The `_neoStart` marker rename was already consistent across the rest of the corpus; no lurking under-tolerance mismatches found.
 
 ### [Severity: Medium] ~~Frontmatter parser silently drops escaped quotes and tab indentation~~ — RESOLVED (3 of 5 cases; 2 deferred)
 **File:** `Sources/DiagramKitModel/FrontmatterDocumentParser.swift#L19-63`
