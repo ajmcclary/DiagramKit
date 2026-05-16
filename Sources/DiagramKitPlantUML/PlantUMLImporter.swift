@@ -5,10 +5,15 @@ import DiagramKitImport
 
 /// PlantUML source-format importer.
 ///
-/// Detects `@startuml`/`@enduml` blocks, probes family-specific syntax
-/// inside the body, and dispatches to the matching family parser.
+/// Detects `@startuml` / `@startgantt` / `@startmindmap` blocks, probes
+/// family-specific syntax inside the body, and dispatches to the matching
+/// family parser. Covers Sequence, Class, State/Activity, Mindmap, Gantt,
+/// and C4.
 ///
-/// Implements the two-level dispatch described in PHASE-6.md.
+/// Family routing intentionally probes from narrow markers (`@startgantt`,
+/// `@startmindmap`, C4 keywords, `state`/`activity` headers, class shapes)
+/// to broad sequence syntax so families that share the generic `@startuml`
+/// header resolve to the right parser.
 public struct PlantUMLImporter: DiagramSourceImporter {
 
     public let name = "PlantUML"
@@ -40,16 +45,15 @@ public struct PlantUMLImporter: DiagramSourceImporter {
             )
         }
 
-        // Family routing probes (in PHASE-6.md order):
-        // 1. C4    — deferred to 6E
-        // 2. Gantt — deferred to 6D
-        // 3. Mindmap — deferred to 6D
-        // 4. State/Activity — deferred to 6C
-        // 5. Class — deferred to 6B
-        // 6. Sequence (fallback)
-
-        // Slice 6A: only Sequence is implemented.
-        // Explicit header families that aren't sequence are rejected early.
+        // Family routing order — narrow markers first so generic `@startuml`
+        // sources only fall through to Sequence after explicit families have
+        // had a chance to claim them:
+        //   1. Gantt   (`@startgantt`)
+        //   2. Mindmap (`@startmindmap`)
+        //   3. C4      (C4-specific keywords inside `@startuml`)
+        //   4. State / Activity (`state`/`activity` headers)
+        //   5. Class   (class shape syntax)
+        //   6. Sequence (fallback)
         if startKind == "gantt" {
             let ast = PlantUMLGanttParser().parse(body)
             let (model, diagnostics) = PlantUMLGanttMapper().map(ast)

@@ -350,16 +350,24 @@ public static func renderASCII(
 
 ### P2. Some source comments describe old phase limitations rather than current behavior
 
+**Status:** PlantUML headers refreshed. PlantUMLImporter and PlantUMLExporter
+now describe current capability (Sequence/Class/State/Mindmap/Gantt/C4) and
+the dispatch order is documented without phase-tag references. The
+`MermaidExporter.swift:8` line referenced in the original audit was already
+accurate (REVIEW.md cross-references, not roadmap archive references) so
+no change there. The stale Mermaid `7A-P1/7A-P2/Phase 10` diagnostic text
+was already removed under D4.
+
 **Evidence**
 
-- `Sources/DiagramKitPlantUML/PlantUMLImporter.swift:43` says C4, Gantt, Mindmap, State, Activity, and ER coverage is deferred.
+- `Sources/DiagramKitPlantUML/PlantUMLImporter.swift:43` says C4, Gantt, Mindmap, State, Activity, and ER coverage is deferred. **(resolved)**
 - `Sources/DiagramKitPlantUML/PlantUMLImporter.swift:53` now dispatches C4.
 - `Sources/DiagramKitPlantUML/PlantUMLImporter.swift:59` now dispatches Gantt.
 - `Sources/DiagramKitPlantUML/PlantUMLImporter.swift:63` now dispatches Mindmap.
 - `Sources/DiagramKitPlantUML/PlantUMLImporter.swift:67` now dispatches State/Activity.
-- `Sources/DiagramKitPlantUML/PlantUMLExporter.swift:9` says the exporter supports Sequence and Class diagrams only.
+- `Sources/DiagramKitPlantUML/PlantUMLExporter.swift:9` says the exporter supports Sequence and Class diagrams only. **(resolved)**
 - `Sources/DiagramKitPlantUML/PlantUMLExporter.swift:16` includes State, Mindmap, Gantt, and C4 diagram types.
-- `Sources/DiagramKitExport/MermaidExporter.swift:8` still describes a Phase 10 sub-slice even though the roadmap is archived as complete.
+- `Sources/DiagramKitExport/MermaidExporter.swift:8` still describes a Phase 10 sub-slice even though the roadmap is archived as complete. **(not stale — comment references REVIEW.md, not archived roadmap)**
 
 **Impact**
 
@@ -829,7 +837,10 @@ Extract node, edge, bundle, subgraph, and role overlay drawers. This should foll
 
 **Impact:** Medium cognitive-load reduction with very low risk.
 
-Replace phase-era comments in active importer/exporter code with current capability descriptions. Keep phase history in archived documentation.
+**Status:** Resolved for the PlantUML importer + exporter headers (the only
+genuinely stale comments the audit identified). Both files now describe
+current capabilities without phase-tag references. The MermaidExporter
+comment flagged in the original P2 evidence was not actually stale.
 
 ### Priority 9: Centralize CG platform boilerplate
 

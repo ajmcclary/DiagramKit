@@ -6,14 +6,15 @@ import DiagramKitExport
 
 /// PlantUML source-format exporter.
 ///
-/// Emits valid PlantUML source. Coverage tracks the importer slices:
-/// sequence (6A), class (6B). Additional families land with their
-/// respective importer phases.
+/// Emits valid PlantUML source for every family `PlantUMLImporter` accepts:
+/// Sequence, Class, State, Mindmap, Gantt, and C4. Family routing matches
+/// the importer's coverage so source round-trips through `parse → export
+/// → parse`.
 public struct PlantUMLExporter: DiagramExporter {
     public let name = "PlantUML"
     public let formatID = DiagramFormatID.plantuml
 
-    /// Matches the current PlantUMLImporter family coverage.
+    /// Mirrors `PlantUMLImporter.supportedDiagramTypes`.
     public let supportedDiagramTypes: Set<DiagramType> = [
         .sequenceDiagram,
         .classDiagram,
