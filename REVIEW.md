@@ -2,7 +2,7 @@
 
 **Method.** Six parallel agents reviewed: (1) architecture/layering/portability, (2) concurrency, (3) invariants + dual-renderer symmetry, (4) diagnostics + error handling, (5) code quality, (6) correctness/perf/test coverage. Critical and high-impact findings were spot-verified against the working tree. The diagnostic-discipline and `@unchecked Sendable` gates pass clean; the worker-thread invariant, `@MainActor` placement, `bmColorEquals`, type-safe payloads, retain cycles, cross-format round-trip matrix, and empty-source handling all checked out with no findings.
 
-**Summary.** 1 Critical (verified build break) — **resolved**, 10 High (10 resolved), 13 Medium (+2 added during follow-up; 11 resolved, 1 deferred), 7 Low.
+**Summary.** 1 Critical (verified build break) — **resolved**, 10 High (10 resolved), 13 Medium (+2 added during follow-up; 11 resolved, 1 deferred), 7 Low (1 resolved).
 
 ---
 
@@ -256,11 +256,11 @@ New `FrontmatterDocumentParserTests` (8 tests) pin all three fixes: tab-indent e
 **Problem:** `_reportDiagramIssueIfNeeded` skips `reportIssue(...)` for any `_RecoverableDiagramError` and `CancellationError`. The protocol is empty (`public protocol _RecoverableDiagramError: Error {}`), so adopting it is a one-line opt-out from telemetry. No audit trail.
 **Fix:** Either replace with an explicit `switch` over known adoption cases, or document adopters and rationale in the protocol's doc comment.
 
-### [Severity: Low] `try!` for regex in `+TreeView` renderer
+### [Severity: Low] ~~`try!` for regex in `+TreeView` renderer~~ — RESOLVED
 **File:** `Sources/DiagramKitRenderingCG/DiagramRenderer+TreeView.swift#L273-275`
 **Category:** Error Handling
 **Problem:** `_tokenizeSVGPath` uses `try! NSRegularExpression(pattern: pattern)` for a compile-time constant. Safe today, but a future edit to the regex string is a footgun. Other parsers consistently use `guard let regex = try? ... else { return [] }`.
-**Fix:** Switch to the `try?` + guard pattern for consistency.
+**Fix applied.** Swapped to `guard let regex = try? NSRegularExpression(pattern: pattern) else { return [] }`. Returns an empty token array on the impossible-today bad-pattern path, matching the prevailing convention.
 
 ### [Severity: Low] Requirement-parser regex cache has a benign TOCTOU race with no documented contract
 **File:** `Sources/DiagramKitModel/src_requirement_parser.swift#L125-140`

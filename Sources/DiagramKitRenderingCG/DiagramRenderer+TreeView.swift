@@ -272,7 +272,7 @@ extension DiagramRenderer {
 
     private func _tokenizeSVGPath(_ d: String) -> [String] {
         let pattern = #"[A-Za-z]|[-+]?(?:(?:\d*\.\d+)|(?:\d+\.?))(?:[eE][-+]?\d+)?"#
-        let regex = try! NSRegularExpression(pattern: pattern)
+        guard let regex = try? NSRegularExpression(pattern: pattern) else { return [] }
         let range = NSRange(d.startIndex..<d.endIndex, in: d)
         return regex.matches(in: d, range: range).compactMap { match in
             guard let range = Range(match.range, in: d) else { return nil }
