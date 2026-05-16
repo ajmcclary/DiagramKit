@@ -120,148 +120,15 @@ private func _renderSequenceSvgEntry(
 // MARK: - SVG Defs
 
 private func _arrowMarkerDefs() -> String {
-    let w: Double = 8
-    let h: Double = 5
-    var defs: [String] = []
-
-    // filled triangle
-    defs.append("""
-      <marker id="seq-arrow-filled" markerWidth="\(w)" markerHeight="\(h)" refX="\(w)" refY="\(h / 2)" orient="auto-start-reverse">
-        <polygon points="0 0, \(w) \(h / 2), 0 \(h)" fill="var(--_arrow)" />
-      </marker>
-    """)
-
-    // open V
-    defs.append("""
-      <marker id="seq-arrow-open" markerWidth="\(w)" markerHeight="\(h)" refX="\(w)" refY="\(h / 2)" orient="auto-start-reverse">
-        <polyline points="0 0, \(w) \(h / 2), 0 \(h)" fill="none" stroke="var(--_arrow)" stroke-width="1" />
-      </marker>
-    """)
-
-    // cross (X)
-    defs.append("""
-      <marker id="seq-arrow-cross" markerWidth="\(w * 2)" markerHeight="\(h * 2)" refX="\(w * 2)" refY="\(h)" orient="auto-start-reverse">
-        <line x1="\(w)" y1="-\(h)" x2="0" y2="\(h)" stroke="var(--_arrow)" stroke-width="1.5" />
-        <line x1="\(w)" y1="\(h)" x2="0" y2="-\(h)" stroke="var(--_arrow)" stroke-width="1.5" />
-      </marker>
-    """)
-
-    // async open arc
-    defs.append("""
-      <marker id="seq-arrow-async" markerWidth="\(w)" markerHeight="\(h)" refX="\(w)" refY="\(h / 2)" orient="auto-start-reverse">
-        <path d="M 1 \(h / 2) Q \(w / 2) -1, \(w - 1) \(h / 2)" fill="none" stroke="var(--_arrow)" stroke-width="1" />
-      </marker>
-    """)
-
-    // Half arrow top
-    defs.append("""
-      <marker id="seq-arrow-half-top" markerWidth="\(w)" markerHeight="\(h)" refX="\(w)" refY="\(h / 2)" orient="auto-start-reverse">
-        <polygon points="0 0, \(w) \(h / 2), 0 \(h / 2)" fill="var(--_arrow)" />
-      </marker>
-    """)
-
-    // Half arrow bottom
-    defs.append("""
-      <marker id="seq-arrow-half-bottom" markerWidth="\(w)" markerHeight="\(h)" refX="\(w)" refY="\(h / 2)" orient="auto-start-reverse">
-        <polygon points="0 \(h / 2), \(w) \(h / 2), 0 \(h)" fill="var(--_arrow)" />
-      </marker>
-    """)
-
-    // Stick top
-    defs.append("""
-      <marker id="seq-arrow-stick-top" markerWidth="\(w)" markerHeight="\(h)" refX="\(w)" refY="\(h / 2)" orient="auto-start-reverse">
-        <line x1="0" y1="0" x2="0" y2="\(h / 2)" stroke="var(--_arrow)" stroke-width="1.5" />
-        <line x1="\(w)" y1="0" x2="0" y2="0" stroke="var(--_arrow)" stroke-width="1.5" />
-      </marker>
-    """)
-
-    // Stick bottom
-    defs.append("""
-      <marker id="seq-arrow-stick-bottom" markerWidth="\(w)" markerHeight="\(h)" refX="\(w)" refY="\(h / 2)" orient="auto-start-reverse">
-        <line x1="0" y1="\(h / 2)" x2="0" y2="\(h)" stroke="var(--_arrow)" stroke-width="1.5" />
-        <line x1="\(w)" y1="\(h / 2)" x2="0" y2="\(h / 2)" stroke="var(--_arrow)" stroke-width="1.5" />
-      </marker>
-    """)
-
-    // Reverse: Half arrow top (mirrored)
-    defs.append("""
-      <marker id="seq-arrow-half-top-rev" markerWidth="\(w)" markerHeight="\(h)" refX="\(w)" refY="\(h / 2)" orient="auto-start-reverse">
-        <polygon points="0 \(h / 2), \(w) 0, 0 0" fill="var(--_arrow)" />
-      </marker>
-    """)
-
-    // Reverse: Half arrow bottom (mirrored)
-    defs.append("""
-      <marker id="seq-arrow-half-bottom-rev" markerWidth="\(w)" markerHeight="\(h)" refX="\(w)" refY="\(h / 2)" orient="auto-start-reverse">
-        <polygon points="0 \(h / 2), \(w) \(h), 0 \(h)" fill="var(--_arrow)" />
-      </marker>
-    """)
-
-    // Reverse: Stick top (mirrored)
-    defs.append("""
-      <marker id="seq-arrow-stick-top-rev" markerWidth="\(w)" markerHeight="\(h)" refX="\(w)" refY="\(h / 2)" orient="auto-start-reverse">
-        <line x1="0" y1="0" x2="0" y2="\(h / 2)" stroke="var(--_arrow)" stroke-width="1.5" />
-        <line x1="\(w)" y1="\(h / 2)" x2="0" y2="\(h / 2)" stroke="var(--_arrow)" stroke-width="1.5" />
-      </marker>
-    """)
-
-    // Reverse: Stick bottom (mirrored)
-    defs.append("""
-      <marker id="seq-arrow-stick-bottom-rev" markerWidth="\(w)" markerHeight="\(h)" refX="\(w)" refY="\(h / 2)" orient="auto-start-reverse">
-        <line x1="0" y1="\(h / 2)" x2="0" y2="\(h)" stroke="var(--_arrow)" stroke-width="1.5" />
-        <line x1="\(w)" y1="0" x2="0" y2="0" stroke="var(--_arrow)" stroke-width="1.5" />
-      </marker>
-    """)
-
-    // Dotted reverse variants use same geometry, marker ID suffices for identification
-    // Reverse dotted: Half arrow top
-    defs.append("""
-      <marker id="seq-arrow-half-top-rev-dot" markerWidth="\(w)" markerHeight="\(h)" refX="\(w)" refY="\(h / 2)" orient="auto-start-reverse">
-        <polygon points="0 \(h / 2), \(w) 0, 0 0" fill="var(--_arrow)" />
-      </marker>
-    """)
-
-    // Reverse dotted: Half arrow bottom
-    defs.append("""
-      <marker id="seq-arrow-half-bottom-rev-dot" markerWidth="\(w)" markerHeight="\(h)" refX="\(w)" refY="\(h / 2)" orient="auto-start-reverse">
-        <polygon points="0 \(h / 2), \(w) \(h), 0 \(h)" fill="var(--_arrow)" />
-      </marker>
-    """)
-
-    // Reverse dotted: Stick top
-    defs.append("""
-      <marker id="seq-arrow-stick-top-rev-dot" markerWidth="\(w)" markerHeight="\(h)" refX="\(w)" refY="\(h / 2)" orient="auto-start-reverse">
-        <line x1="0" y1="0" x2="0" y2="\(h / 2)" stroke="var(--_arrow)" stroke-width="1.5" />
-        <line x1="\(w)" y1="\(h / 2)" x2="0" y2="\(h / 2)" stroke="var(--_arrow)" stroke-width="1.5" />
-      </marker>
-    """)
-
-    // Reverse dotted: Stick bottom
-    defs.append("""
-      <marker id="seq-arrow-stick-bottom-rev-dot" markerWidth="\(w)" markerHeight="\(h)" refX="\(w)" refY="\(h / 2)" orient="auto-start-reverse">
-        <line x1="0" y1="\(h / 2)" x2="0" y2="\(h)" stroke="var(--_arrow)" stroke-width="1.5" />
-        <line x1="\(w)" y1="0" x2="0" y2="0" stroke="var(--_arrow)" stroke-width="1.5" />
-      </marker>
-    """)
-
-    return defs.joined(separator: "\n")
+    SequenceArrowheadCatalog.allMarkers
+        .map { $0.svgMarkerBlock() }
+        .joined(separator: "\n")
 }
 
 // MARK: - Marker ID by arrow type
 
 private func _markerId(for arrowType: SequenceArrowType) -> String? {
-    let style = SequenceArrowStyle(type: arrowType)
-    if style.isCross { return "seq-arrow-cross" }
-    if style.isOpenArrow { return "seq-arrow-async" }
-    if !style.hasArrowEnd { return nil }
-    if style.isHalfArrow {
-        let suffix = style.isReversed ? "-rev" : ""
-        let dotSuffix = style.isDotted ? "-dot" : ""
-        let dir = style.halfArrowDirection == .top ? "top" : "bottom"
-        let kind = style.halfArrowStyle == .stick ? "stick" : "half"
-        return "seq-arrow-\(kind)-\(dir)\(suffix)\(dotSuffix)"
-    }
-    return "seq-arrow-filled"
+    SequenceArrowheadCatalog.markerID(for: SequenceArrowStyle(type: arrowType))
 }
 
 // MARK: - Title
