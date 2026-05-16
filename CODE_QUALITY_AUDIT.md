@@ -193,23 +193,53 @@ Then both `DiagramRenderer+Block.swift` and `src_block_renderer.swift` can use t
 
 ### A4. `DiagramFrontmatter` is a compatibility god object
 
-**Evidence**
+**Status:** Resolved. The 652-line god object split into 4 files (113 lines
+total) and the entire flat-compatibility surface is gone:
 
-- `Sources/DiagramKitModel/DiagramFrontmatter.swift:23` defines `DiagramFrontmatter`.
-- `Sources/DiagramKitModel/DiagramFrontmatter.swift:28` starts an initializer with dozens of optional per-family config and theme parameters.
-- `Sources/DiagramKitModel/DiagramFrontmatter.swift:167` defines `PerDiagramFrontmatter.Storage` with one stored property per family config/theme pair.
-- `Sources/DiagramKitModel/DiagramFrontmatter.swift:276` starts proxy accessors for every family.
-- `Sources/DiagramKitModel/DiagramFrontmatter.swift:451` starts flat-field compatibility shims that mirror many of the storage fields.
+- `Sources/DiagramKitModel/DiagramFrontmatter.swift` (33 lines) — top-level
+  struct + two-field memberwise init only.
+- `Sources/DiagramKitModel/SharedFrontmatter.swift` (17 lines) — shared
+  field section.
+- `Sources/DiagramKitModel/PerDiagramFrontmatter.swift` (44 lines) — 27 typed
+  `DiagramFamilyFrontmatter<Config, Theme>` family sections (14 paired +
+  13 with `Theme = Never` for config-only families).
+- `Sources/DiagramKitModel/DiagramFamilyFrontmatter.swift` (19 lines) — the
+  generic per-family slot.
 
-**Impact**
+Deleted in-band: the 49-arg flat init, the 41 proxy properties on
+`PerDiagramFrontmatter`, the 49 extension-shim block, the
+`@unchecked Sendable` `Storage` class, and `init(copying:)`. All 28
+`FrontmatterBinding+*.swift` commit() writes, every Sources/ flat-shim
+read across DiagramRegistry+*.swift / src_*_parser.swift / src_renderer.swift /
+src_layout_*.swift / SourcePreprocessing.swift, and all ~70 test
+constructor sites were migrated to typed paths (e.g.
+`fm.perDiagram.block.config` / `fm.shared.title`). A
+`DiagramFrontmatter.with { … }` closure helper lives in
+`Tests/DiagramKitTests/FrontmatterFactory.swift` as the sole sugar for
+the migrated tests; production code constructs `DiagramFrontmatter`
+directly. `Scripts/check-file-sizes.sh` and
+`Scripts/check-sendable-annotations.sh` both clean for this surface.
 
-Every new diagram family or frontmatter shape requires edits across initializer parameters, storage, accessors, and compatibility shims. This concentrates unrelated ownership in a single file and makes additions noisy. The broad `@unchecked Sendable` storage also becomes harder to audit as fields are added.
+**Evidence (historical, pre-refactor)**
 
-**Recommendation**
+- `Sources/DiagramKitModel/DiagramFrontmatter.swift:23` defined `DiagramFrontmatter`. **(resolved — same file, now 33 lines, only the top struct)**
+- `Sources/DiagramKitModel/DiagramFrontmatter.swift:28` started a 49-argument initializer. **(resolved — deleted; canonical init is `init(shared:perDiagram:)`)**
+- `Sources/DiagramKitModel/DiagramFrontmatter.swift:167` defined `PerDiagramFrontmatter.Storage`. **(resolved — Storage class and `@unchecked Sendable` deleted; typed sections replace the 41 optional fields)**
+- `Sources/DiagramKitModel/DiagramFrontmatter.swift:276` started 41 proxy accessors. **(resolved — deleted)**
+- `Sources/DiagramKitModel/DiagramFrontmatter.swift:451` started 49 flat-field compatibility shims. **(resolved — extension block deleted)**
 
-Keep public compatibility shims, but move the canonical model toward typed sections and generated or table-driven accessors. At minimum, split family sections into smaller files and make the large initializer delegate to a typed storage builder.
+**Impact (pre-refactor)**
 
-Illustrative direction:
+Every new diagram family or frontmatter shape required edits across initializer parameters, storage, accessors, and compatibility shims. This concentrated unrelated ownership in a single file and made additions noisy. The broad `@unchecked Sendable` storage was also harder to audit as fields were added.
+
+**Recommendation (as implemented)**
+
+Move the canonical model to typed sections per family. Use a single generic
+`DiagramFamilyFrontmatter<Config, Theme>` with `Never` for config-only
+families so the field shape is uniform. Migrate every caller and test to
+typed paths in the same line of work rather than leaving deprecated
+forwarding accessors behind — the audit explicitly allowed the shim path,
+but a decisive cut removed two-track surface area entirely.
 
 ```swift
 public struct DiagramFamilyFrontmatter<Config: Sendable, Theme: Sendable>: Sendable {
@@ -218,13 +248,15 @@ public struct DiagramFamilyFrontmatter<Config: Sendable, Theme: Sendable>: Senda
 }
 
 public struct PerDiagramFrontmatter: Sendable {
-  public var block = DiagramFamilyFrontmatter<BlockDiagramConfig, ThemeVariables>()
-  public var sequence = DiagramFamilyFrontmatter<SequenceDiagramConfig, ThemeVariables>()
-  public var flowchart = DiagramFamilyFrontmatter<FlowchartDiagramConfig, FlowchartThemeVariables>()
+  public var block = DiagramFamilyFrontmatter<BlockDiagramConfig, Never>()
+  public var pie   = DiagramFamilyFrontmatter<PieChartConfig, PieChartThemeConfig>()
+  // ... 25 more
 }
 ```
 
-Flat properties such as `blockConfig` can remain deprecated forwarding accessors while new code uses structured sections.
+Adding a new family now requires one field on `PerDiagramFrontmatter`
+plus the family's existing binding — no init parameter, no shim, no
+storage entry, no proxy.
 
 ### A5. Frontmatter binding helpers are under-utilized
 
