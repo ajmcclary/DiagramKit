@@ -501,17 +501,26 @@ public typealias DiagramNativeColor = NSColor
 
 ### D1. ELK edge and subgraph construction are repeated inside `src_layout.swift`
 
+**Status:** Partially resolved. The edge, label, and deepest-subgraph helpers
+were extracted to file-private top-level functions (`_makeElkEdge`,
+`_makeEdgeLabels`, `_deepestSubgraphID`) and the three graph builders
+(`_buildElkGraph`, `_buildElkGraphNoCrossEdges`, `_buildFlatElkGraph`) now share
+them. `buildSubgraphNode` remains duplicated because the port-aware and
+no-cross-edges variants have structurally different bodies (port allocation
+versus none); deferring that split until the larger A2 file split lands.
+`src_layout.swift` dropped from 1,519 to 1,441 lines as a result.
+
 **Evidence**
 
-- `Sources/DiagramKitModel/src_layout.swift:43` defines an inner `_makeEdge`.
-- `Sources/DiagramKitModel/src_layout.swift:1301` repeats an inner `_makeEdge` with the same core purpose.
-- `Sources/DiagramKitModel/src_layout.swift:143` builds edge labels.
-- `Sources/DiagramKitModel/src_layout.swift:181` builds another edge label path.
-- `Sources/DiagramKitModel/src_layout.swift:1409` repeats label construction.
-- `Sources/DiagramKitModel/src_layout.swift:95` defines `_deepestSubgraph`.
-- `Sources/DiagramKitModel/src_layout.swift:1293` repeats deepest-subgraph logic.
-- `Sources/DiagramKitModel/src_layout.swift:206` builds subgraph nodes.
-- `Sources/DiagramKitModel/src_layout.swift:1348` repeats subgraph-node construction.
+- `Sources/DiagramKitModel/src_layout.swift:43` defines an inner `_makeEdge`. **(resolved)**
+- `Sources/DiagramKitModel/src_layout.swift:1301` repeats an inner `_makeEdge` with the same core purpose. **(resolved)**
+- `Sources/DiagramKitModel/src_layout.swift:143` builds edge labels. **(resolved)**
+- `Sources/DiagramKitModel/src_layout.swift:181` builds another edge label path. **(resolved)**
+- `Sources/DiagramKitModel/src_layout.swift:1409` repeats label construction. **(resolved)**
+- `Sources/DiagramKitModel/src_layout.swift:95` defines `_deepestSubgraph`. **(resolved)**
+- `Sources/DiagramKitModel/src_layout.swift:1293` repeats deepest-subgraph logic. **(resolved)**
+- `Sources/DiagramKitModel/src_layout.swift:206` builds subgraph nodes. **(open — port-aware variant)**
+- `Sources/DiagramKitModel/src_layout.swift:1348` repeats subgraph-node construction. **(open — no-cross-edges variant)**
 
 **Impact**
 
@@ -735,7 +744,12 @@ Refactoring these areas would likely reduce readability or increase indirection 
 
 **Impact:** Very high maintainability and scalability gain.
 
-Start by extracting `ElkEdgeBuilder` and subgraph construction helpers. Then split ELK graph construction, layout execution, positioned extraction, and edge post-processing into separate internal files. Run the full layout and snapshot suites after each mechanical move.
+**Status:** Step 1 (D1 helper extraction) landed. `_makeElkEdge`,
+`_makeEdgeLabels`, and `_deepestSubgraphID` now back all three graph builders.
+Remaining work: split ELK graph construction, layout execution, positioned
+extraction, and edge post-processing into separate internal files, and unify
+the two `buildSubgraphNode` variants. Run the full layout and snapshot suites
+after each mechanical move.
 
 ### Priority 2: Create a structured ASCII rendering path
 

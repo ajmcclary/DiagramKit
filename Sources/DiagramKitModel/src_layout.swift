@@ -37,34 +37,55 @@ private func _mapDirection(_ direction: original_src_types.Direction) -> String 
     ElkLayoutOptions.mapDirection(direction)
 }
 
+/// Builds the measured `[ElkGraphLabel]` ELK uses for an edge label.
+/// Returns `[]` when the label is nil or empty so callers can pass the result
+/// directly into `ElkGraphEdge(labels:)` without conditional wrapping.
+private func _makeEdgeLabels(_ label: String?) -> [ElkGraphLabel] {
+    guard let label, !label.isEmpty else { return [] }
+    let m = original_src_text_metrics.measureMultilineText(
+        label,
+        fontSize: original_src_styles.FONT_SIZES.edgeLabel,
+        fontWeight: original_src_styles.FONT_WEIGHTS.edgeLabel
+    )
+    return [ElkGraphLabel(
+        text: label,
+        width: m.width + 8,
+        height: m.height + 6,
+        layoutOptions: [
+            "elk.edgeLabels.inline": "true",
+            "elk.edgeLabels.placement": "CENTER"
+        ]
+    )]
+}
+
+/// Constructs the canonical root-level `ElkGraphEdge` for a parsed Mermaid edge.
+/// Shared between hierarchical, flat-fallback, and no-cross-edges graph builders
+/// so edge ID, source/target, and label measurement stay identical across paths.
+private func _makeElkEdge(idx: Int, edge: original_src_types.MermaidEdge) -> ElkGraphEdge {
+    ElkGraphEdge(
+        id: "e\(idx)",
+        sources: [edge.source],
+        targets: [edge.target],
+        labels: _makeEdgeLabels(edge.label)
+    )
+}
+
+/// Walks the subgraph tree and returns the most-nested subgraph that directly
+/// contains `nodeId`, or nil if the node lives at the root.
+private func _deepestSubgraphID(for nodeId: String, in subs: [original_src_types.MermaidSubgraph]) -> String? {
+    for sub in subs {
+        if let deeper = _deepestSubgraphID(for: nodeId, in: sub.children) {
+            return deeper
+        }
+        if sub.nodeIds.contains(nodeId) {
+            return sub.id
+        }
+    }
+    return nil
+}
+
 private func _buildElkGraph(_ graph: _ParsedGraph, diagnostics: _LayoutDiagnostics? = nil) -> ElkGraphNode {
     let subgraphOwnership = _buildSubgraphOwnership(graph.subgraphs, diagnostics: diagnostics)
-
-    func _makeEdge(_ idx: Int, _ edge: original_src_types.MermaidEdge) -> ElkGraphEdge {
-        var labels: [ElkGraphLabel] = []
-        if let label = edge.label, !label.isEmpty {
-            let m = original_src_text_metrics.measureMultilineText(
-                label,
-                fontSize: original_src_styles.FONT_SIZES.edgeLabel,
-                fontWeight: original_src_styles.FONT_WEIGHTS.edgeLabel
-            )
-            labels.append(ElkGraphLabel(
-                text: label,
-                width: m.width + 8,
-                height: m.height + 6,
-                layoutOptions: [
-                    "elk.edgeLabels.inline": "true",
-                    "elk.edgeLabels.placement": "CENTER"
-                ]
-            ))
-        }
-        return ElkGraphEdge(
-            id: "e\(idx)",
-            sources: [edge.source],
-            targets: [edge.target],
-            labels: labels
-        )
-    }
 
     if graph.subgraphs.isEmpty {
         var children: [ElkGraphNode] = []
@@ -79,7 +100,7 @@ private func _buildElkGraph(_ graph: _ParsedGraph, diagnostics: _LayoutDiagnosti
         }
         var edges: [ElkGraphEdge] = []
         for (idx, edge) in graph.edges.enumerated() {
-            edges.append(_makeEdge(idx, edge))
+            edges.append(_makeElkEdge(idx: idx, edge: edge))
         }
         return ElkGraphNode(
             id: "root",
@@ -92,21 +113,9 @@ private func _buildElkGraph(_ graph: _ParsedGraph, diagnostics: _LayoutDiagnosti
     let allClaimedNodes = Set(subgraphOwnership.values.flatMap { $0 })
     let nodeById = Dictionary(graph.nodesInOrder.map { ($0.id, $0.node) }, uniquingKeysWith: { _, last in last })
 
-    func _deepestSubgraph(for nodeId: String, in subs: [original_src_types.MermaidSubgraph]) -> String? {
-        for sub in subs {
-            if let deeper = _deepestSubgraph(for: nodeId, in: sub.children) {
-                return deeper
-            }
-            if sub.nodeIds.contains(nodeId) {
-                return sub.id
-            }
-        }
-        return nil
-    }
-
     var nodeToSubgraph: [String: String] = [:]
     for entry in graph.nodesInOrder {
-        if let sg = _deepestSubgraph(for: entry.id, in: graph.subgraphs) {
+        if let sg = _deepestSubgraphID(for: entry.id, in: graph.subgraphs) {
             nodeToSubgraph[entry.id] = sg
         }
     }
@@ -125,9 +134,9 @@ private func _buildElkGraph(_ graph: _ParsedGraph, diagnostics: _LayoutDiagnosti
         let srcSub = nodeToSubgraph[edge.source]
         let tgtSub = nodeToSubgraph[edge.target]
         if let s = srcSub, let t = tgtSub, s == t {
-            edgesBySubgraph[s, default: []].append(_makeEdge(idx, edge))
+            edgesBySubgraph[s, default: []].append(_makeElkEdge(idx: idx, edge: edge))
         } else if srcSub == nil && tgtSub == nil {
-            rootOnlyEdges.append(_makeEdge(idx, edge))
+            rootOnlyEdges.append(_makeElkEdge(idx: idx, edge: edge))
         } else {
             crossEdges.append(CrossEdge(idx: idx, edge: edge, srcSub: srcSub, tgtSub: tgtSub))
         }
@@ -140,28 +149,11 @@ private func _buildElkGraph(_ graph: _ParsedGraph, diagnostics: _LayoutDiagnosti
         let idx = ce.idx
         if let srcSg = ce.srcSub {
             let portId = "\(srcSg)_out_\(idx)"
-            var labels: [ElkGraphLabel] = []
-            if let label = ce.edge.label, !label.isEmpty {
-                let m = original_src_text_metrics.measureMultilineText(
-                    label,
-                    fontSize: original_src_styles.FONT_SIZES.edgeLabel,
-                    fontWeight: original_src_styles.FONT_WEIGHTS.edgeLabel
-                )
-                labels.append(ElkGraphLabel(
-                    text: label,
-                    width: m.width + 8,
-                    height: m.height + 6,
-                    layoutOptions: [
-                        "elk.edgeLabels.inline": "true",
-                        "elk.edgeLabels.placement": "CENTER"
-                    ]
-                ))
-            }
             let internalEdge = ElkGraphEdge(
                 id: "e\(idx)_out",
                 sources: [ce.edge.source],
                 targets: [portId],
-                labels: labels
+                labels: _makeEdgeLabels(ce.edge.label)
             )
             portsBySubgraph[srcSg, default: []].append((ElkGraphPort(id: portId), internalEdge))
         }
@@ -178,23 +170,9 @@ private func _buildElkGraph(_ graph: _ParsedGraph, diagnostics: _LayoutDiagnosti
 
         let srcId = ce.srcSub.map { "\($0)_out_\(idx)" } ?? ce.edge.source
         let tgtId = ce.tgtSub.map { "\($0)_in_\(idx)" } ?? ce.edge.target
-        var rootLabels: [ElkGraphLabel] = []
-        if ce.srcSub == nil, let label = ce.edge.label, !label.isEmpty {
-            let m = original_src_text_metrics.measureMultilineText(
-                label,
-                fontSize: original_src_styles.FONT_SIZES.edgeLabel,
-                fontWeight: original_src_styles.FONT_WEIGHTS.edgeLabel
-            )
-            rootLabels.append(ElkGraphLabel(
-                text: label,
-                width: m.width + 8,
-                height: m.height + 6,
-                layoutOptions: [
-                    "elk.edgeLabels.inline": "true",
-                    "elk.edgeLabels.placement": "CENTER"
-                ]
-            ))
-        }
+        // Root label only when the source is at root; when source is in a
+        // subgraph, the out-port internal edge already carries the label.
+        let rootLabels = ce.srcSub == nil ? _makeEdgeLabels(ce.edge.label) : []
         rootEdges.append(ElkGraphEdge(
             id: "e\(idx)",
             sources: [srcId],
@@ -1290,40 +1268,6 @@ private func _buildElkGraphNoCrossEdges(_ graph: _ParsedGraph, diagnostics: _Lay
     let allClaimedNodes = Set(subgraphOwnership.values.flatMap { $0 })
     let nodeById = Dictionary(graph.nodesInOrder.map { ($0.id, $0.node) }, uniquingKeysWith: { _, last in last })
 
-    func _deepestSubgraph(for nodeId: String, in subs: [original_src_types.MermaidSubgraph]) -> String? {
-        for sub in subs {
-            if let deeper = _deepestSubgraph(for: nodeId, in: sub.children) { return deeper }
-            if sub.nodeIds.contains(nodeId) { return sub.id }
-        }
-        return nil
-    }
-
-    func _makeEdge(_ idx: Int, _ edge: original_src_types.MermaidEdge) -> ElkGraphEdge {
-        var labels: [ElkGraphLabel] = []
-        if let label = edge.label, !label.isEmpty {
-            let m = original_src_text_metrics.measureMultilineText(
-                label,
-                fontSize: original_src_styles.FONT_SIZES.edgeLabel,
-                fontWeight: original_src_styles.FONT_WEIGHTS.edgeLabel
-            )
-            labels.append(ElkGraphLabel(
-                text: label,
-                width: m.width + 8,
-                height: m.height + 6,
-                layoutOptions: [
-                    "elk.edgeLabels.inline": "true",
-                    "elk.edgeLabels.placement": "CENTER"
-                ]
-            ))
-        }
-        return ElkGraphEdge(
-            id: "e\(idx)",
-            sources: [edge.source],
-            targets: [edge.target],
-            labels: labels
-        )
-    }
-
     // Classify edges into: internal (same subgraph), root-level (no subgraph),
     // cross-hierarchy (different subgraph levels). Matching TS edge ordering:
     // root-level edges first, then cross-hierarchy edges.
@@ -1331,9 +1275,9 @@ private func _buildElkGraphNoCrossEdges(_ graph: _ParsedGraph, diagnostics: _Lay
     var rootLevelEdges: [ElkGraphEdge] = []
     var crossHierarchyEdges: [ElkGraphEdge] = []
     for (idx, edge) in graph.edges.enumerated() {
-        let srcSub = _deepestSubgraph(for: edge.source, in: graph.subgraphs)
-        let tgtSub = _deepestSubgraph(for: edge.target, in: graph.subgraphs)
-        let typedEdge = _makeEdge(idx, edge)
+        let srcSub = _deepestSubgraphID(for: edge.source, in: graph.subgraphs)
+        let tgtSub = _deepestSubgraphID(for: edge.target, in: graph.subgraphs)
+        let typedEdge = _makeElkEdge(idx: idx, edge: edge)
         if let s = srcSub, let t = tgtSub, s == t {
             edgesBySubgraph[s, default: []].append(typedEdge)
         } else if srcSub == nil && tgtSub == nil {
@@ -1406,29 +1350,7 @@ private func _buildFlatElkGraph(_ graph: _ParsedGraph, diagnostics: _LayoutDiagn
     }
     var edges: [ElkGraphEdge] = []
     for (idx, edge) in graph.edges.enumerated() {
-        var labels: [ElkGraphLabel] = []
-        if let label = edge.label, !label.isEmpty {
-            let m = original_src_text_metrics.measureMultilineText(
-                label,
-                fontSize: original_src_styles.FONT_SIZES.edgeLabel,
-                fontWeight: original_src_styles.FONT_WEIGHTS.edgeLabel
-            )
-            labels.append(ElkGraphLabel(
-                text: label,
-                width: m.width + 8,
-                height: m.height + 6,
-                layoutOptions: [
-                    "elk.edgeLabels.inline": "true",
-                    "elk.edgeLabels.placement": "CENTER"
-                ]
-            ))
-        }
-        edges.append(ElkGraphEdge(
-            id: "e\(idx)",
-            sources: [edge.source],
-            targets: [edge.target],
-            labels: labels
-        ))
+        edges.append(_makeElkEdge(idx: idx, edge: edge))
     }
     return ElkGraphNode(
         id: "root",
