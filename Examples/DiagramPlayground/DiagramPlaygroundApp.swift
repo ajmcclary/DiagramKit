@@ -63,8 +63,64 @@ struct DiagramPlaygroundApp: App {
         case "theme-open":
             // Empty source — the test pops the Theme menu directly.
             store.setSource("", origin: .system)
+
+        // v2 PlaygroundShell screens
+        case "visual-flow":
+            seedSample(id: "flow-1-simple", store: store)
+            store.setWorkspaceMode(.visual)
+        case "visual-sequence":
+            seedFirstSample(matching: "sequence", store: store)
+            store.setWorkspaceMode(.visual)
+        case "visual-gantt":
+            seedFirstSample(matching: "gantt", store: store)
+            store.setWorkspaceMode(.visual)
+        case "diag-drawer-open":
+            seedSample(id: "flow-1-simple", store: store)
+            store.setDiagnosticsDrawerOpen(true)
+        case "export-sheet-open":
+            seedSample(id: "flow-1-simple", store: store)
+            store.openExportSheet()
+        case "convert-sheet-open":
+            seedSample(id: "flow-1-simple", store: store)
+            store.openConvertSheet()
+        case "coverage":
+            seedSample(id: "flow-1-simple", store: store)
+            store.setFullScreen(.coverage)
+        case "corpus":
+            seedSample(id: "flow-1-simple", store: store)
+            store.setFullScreen(.corpus)
+        case "cross-format":
+            seedSample(id: "flow-1-simple", store: store)
+            store.setFullScreen(.crossFormat)
+        case "probe":
+            seedSample(id: "flow-1-simple", store: store)
+            store.setFullScreen(.probe)
+        case "snippets":
+            seedSample(id: "flow-1-simple", store: store)
+            store.setFullScreen(.snippets)
+        case "citations-on":
+            seedSample(id: "flow-1-simple", store: store)
+            store.openInspector()
+            store.setShowCitations(true)
+
         default:
             break
+        }
+    }
+
+    @MainActor
+    private static func seedSample(id: String, store: LiveEditorStore) {
+        if let sample = TestDiagrams.all.first(where: { $0.id == id }),
+           let src = sample.source(for: "mermaid") {
+            store.setSource(src, origin: .system)
+        }
+    }
+
+    @MainActor
+    private static func seedFirstSample(matching prefix: String, store: LiveEditorStore) {
+        if let sample = TestDiagrams.all.first(where: { $0.id.hasPrefix(prefix) }),
+           let src = sample.source(for: "mermaid") {
+            store.setSource(src, origin: .system)
         }
     }
     #endif

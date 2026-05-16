@@ -58,4 +58,78 @@ final class AccessibilityAuditTests: XCTestCase {
         theme.click()
         try app.performAccessibilityAudit()
     }
+
+    // MARK: - v2 PlaygroundShell screens (Phase 10 / Task 10.6)
+
+    @MainActor
+    func testVisualFlowState() throws {
+        let app = launchPlayground(initialState: .visualFlow)
+        try app.performAccessibilityAudit()
+    }
+
+    @MainActor
+    func testVisualSequenceState() throws {
+        let app = launchPlayground(initialState: .visualSequence)
+        try app.performAccessibilityAudit()
+    }
+
+    @MainActor
+    func testVisualGanttState() throws {
+        let app = launchPlayground(initialState: .visualGantt)
+        try app.performAccessibilityAudit()
+    }
+
+    @MainActor
+    func testDiagnosticsDrawerState() throws {
+        let app = launchPlayground(initialState: .diagDrawerOpen)
+        try app.performAccessibilityAudit()
+    }
+
+    @MainActor
+    func testExportSheetState() throws {
+        let app = launchPlayground(initialState: .exportSheetOpen)
+        try app.performAccessibilityAudit()
+    }
+
+    @MainActor
+    func testConvertSheetState() throws {
+        let app = launchPlayground(initialState: .convertSheetOpen)
+        try app.performAccessibilityAudit()
+    }
+
+    @MainActor
+    func testCoverageMatrixState() throws {
+        let app = launchPlayground(initialState: .coverage)
+        try app.performAccessibilityAudit()
+    }
+
+    @MainActor
+    func testCorpusBrowserState() throws {
+        let app = launchPlayground(initialState: .corpus)
+        try app.performAccessibilityAudit()
+    }
+
+    @MainActor
+    func testCrossFormatState() throws {
+        let app = launchPlayground(initialState: .crossFormat)
+        try app.performAccessibilityAudit()
+    }
+
+    @MainActor
+    func testProbeState() throws {
+        let app = launchPlayground(initialState: .probe)
+        try app.performAccessibilityAudit()
+    }
+
+    @MainActor
+    func testSnippetsState() throws {
+        let app = launchPlayground(initialState: .snippets)
+        try app.performAccessibilityAudit()
+    }
+
+    @MainActor
+    func testCitationsOnState() throws {
+        let app = launchPlayground(initialState: .citationsOn)
+        try app.performAccessibilityAudit()
+    }
 }

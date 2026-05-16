@@ -17,6 +17,33 @@ enum PlaygroundState: String {
     case selectionFlow1 = "selection-flow-1"
     case errorGarbage = "error-garbage"
     case themeOpen = "theme-open"
+
+    // MARK: - v2 PlaygroundShell screens
+
+    /// Pipeline flowchart source + visual workspace mode.
+    case visualFlow = "visual-flow"
+    /// First sequence sample + visual workspace mode.
+    case visualSequence = "visual-sequence"
+    /// First gantt sample + visual workspace mode.
+    case visualGantt = "visual-gantt"
+    /// Source + diagnostics drawer pre-opened.
+    case diagDrawerOpen = "diag-drawer-open"
+    /// Source + export sheet pre-opened.
+    case exportSheetOpen = "export-sheet-open"
+    /// Source + convert sheet pre-opened.
+    case convertSheetOpen = "convert-sheet-open"
+    /// Coverage matrix full-screen surface.
+    case coverage
+    /// Corpus browser full-screen surface.
+    case corpus
+    /// Cross-format full-screen surface.
+    case crossFormat = "cross-format"
+    /// Importer probe full-screen surface.
+    case probe
+    /// Snippets library full-screen surface.
+    case snippets
+    /// Source + inspector open + citation overlay on.
+    case citationsOn = "citations-on"
 }
 
 extension XCTestCase {
