@@ -248,27 +248,27 @@ private func _applySharedInitValues(_ object: [String: Any], to frontmatter: ino
     var applied = false
 
     if let theme = _jsonString(object["theme"]) {
-        frontmatter.theme = theme
+        frontmatter.shared.theme = theme
         applied = true
     }
     if let layout = _jsonString(object["layout"]) {
-        frontmatter.layout = layout
+        frontmatter.shared.layout = layout
         applied = true
     }
     if let look = _jsonString(object["look"]) {
-        frontmatter.look = look
+        frontmatter.shared.look = look
         applied = true
     }
     if let htmlLabels = _jsonBool(object["htmlLabels"]) {
-        frontmatter.htmlLabels = htmlLabels
+        frontmatter.shared.htmlLabels = htmlLabels
         applied = true
     }
     if let fontSize = _jsonDouble(object["fontSize"]) {
-        frontmatter.fontSize = fontSize
+        frontmatter.shared.fontSize = fontSize
         applied = true
     }
     if let securityLevel = _jsonString(object["securityLevel"]) {
-        frontmatter.securityLevel = securityLevel
+        frontmatter.shared.securityLevel = securityLevel
         applied = true
     }
 
@@ -340,27 +340,27 @@ public func _parseYamlFrontmatter(_ lines: [String]) -> DiagramFrontmatter? {
         switch path {
         case "title", "config.title":
             if !value.string.isEmpty {
-                frontmatter.title = value.string
-                frontmatter.diagramTitle = value.string
+                frontmatter.shared.title = value.string
+                frontmatter.shared.diagramTitle = value.string
                 hasContent = true
             }
         case "config.theme":
-            frontmatter.theme = value.string
+            frontmatter.shared.theme = value.string
             hasContent = true
         case "config.layout":
-            frontmatter.layout = value.string
+            frontmatter.shared.layout = value.string
             hasContent = true
         case "config.look":
-            frontmatter.look = value.string
+            frontmatter.shared.look = value.string
             hasContent = true
         case "config.htmlLabels":
-            frontmatter.htmlLabels = value.bool
+            frontmatter.shared.htmlLabels = value.bool
             hasContent = true
         case "config.fontSize":
-            frontmatter.fontSize = value.double
+            frontmatter.shared.fontSize = value.double
             hasContent = true
         case "config.securityLevel":
-            frontmatter.securityLevel = value.string
+            frontmatter.shared.securityLevel = value.string
             hasContent = true
         default:
             hasContent = true
@@ -373,22 +373,22 @@ public func _parseYamlFrontmatter(_ lines: [String]) -> DiagramFrontmatter? {
     _propagateGlobalErConfig(into: &frontmatter)
 
     // Legacy: propagate securityLevel to flowchart and state configs
-    if let sl = frontmatter.securityLevel {
-        if var fc = frontmatter.flowchartConfig {
+    if let sl = frontmatter.shared.securityLevel {
+        if var fc = frontmatter.perDiagram.flowchart.config {
             fc.securityLevel = sl
-            frontmatter.flowchartConfig = fc
+            frontmatter.perDiagram.flowchart.config = fc
         } else {
             var fc = original_src_types.FlowchartConfig()
             fc.securityLevel = sl
-            frontmatter.flowchartConfig = fc
+            frontmatter.perDiagram.flowchart.config = fc
         }
-        if var sc = frontmatter.stateConfig {
+        if var sc = frontmatter.perDiagram.state.config {
             sc.securityLevel = sl
-            frontmatter.stateConfig = sc
+            frontmatter.perDiagram.state.config = sc
         } else {
             var sc = original_src_types.StateConfig()
             sc.securityLevel = sl
-            frontmatter.stateConfig = sc
+            frontmatter.perDiagram.state.config = sc
         }
     }
 
@@ -396,13 +396,13 @@ public func _parseYamlFrontmatter(_ lines: [String]) -> DiagramFrontmatter? {
 }
 
 private func _propagateGlobalErConfig(into frontmatter: inout DiagramFrontmatter) {
-    guard frontmatter.layout != nil || frontmatter.look != nil || frontmatter.htmlLabels != nil else {
+    guard frontmatter.shared.layout != nil || frontmatter.shared.look != nil || frontmatter.shared.htmlLabels != nil else {
         return
     }
 
-    var er = frontmatter.erConfig ?? ErDiagramConfig()
-    if let layout = frontmatter.layout { er.layout = layout }
-    if let look = frontmatter.look { er.look = look }
-    if let htmlLabels = frontmatter.htmlLabels { er.htmlLabels = htmlLabels }
-    frontmatter.erConfig = er
+    var er = frontmatter.perDiagram.er.config ?? ErDiagramConfig()
+    if let layout = frontmatter.shared.layout { er.layout = layout }
+    if let look = frontmatter.shared.look { er.look = look }
+    if let htmlLabels = frontmatter.shared.htmlLabels { er.htmlLabels = htmlLabels }
+    frontmatter.perDiagram.er.config = er
 }
