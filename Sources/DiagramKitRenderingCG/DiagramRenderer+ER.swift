@@ -207,21 +207,8 @@ extension DiagramRenderer {
         for style in styles.reversed() {
             let parts = style.split(separator: ":", maxSplits: 1).map { $0.trimmingCharacters(in: .whitespaces) }
             if parts.count == 2, parts[0] == property {
-                return _parseCGColor(String(parts[1]))
+                return DiagramColorParser.cgHex(String(parts[1]))
             }
-        }
-        return nil
-    }
-
-    private func _parseCGColor(_ hex: String) -> CGColor? {
-        let hex = hex.trimmingCharacters(in: CharacterSet(charactersIn: "#"))
-        if hex.count == 6 {
-            var rgb: UInt64 = 0
-            Scanner(string: hex).scanHexInt64(&rgb)
-            return CGColor(red: CGFloat((rgb >> 16) & 0xFF) / 255.0,
-                           green: CGFloat((rgb >> 8) & 0xFF) / 255.0,
-                           blue: CGFloat(rgb & 0xFF) / 255.0,
-                           alpha: 1.0)
         }
         return nil
     }

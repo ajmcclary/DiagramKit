@@ -50,7 +50,7 @@ extension DiagramRenderer {
     private func _drawMindmapEdge(_ edge: PositionedMindmapEdge, context: CGContext, theme: MindmapThemeConfig, config: MindmapConfig) {
         guard !edge.points.isEmpty else { return }
         let section = edge.section ?? 0
-        let color = _cgColor(from: theme.cScale(for: section))
+        let color = _mindmapCgColor(theme.cScale(for: section))
         let isNeo = config.look == "neo"
         let depth = edge.depth
         let sw: CGFloat = isNeo ? max(10 - CGFloat(depth - 1) * 2, 2) : max(17 - 3 * CGFloat(depth), 2)
@@ -76,8 +76,8 @@ extension DiagramRenderer {
         let rect = CGRect(x: x, y: y, width: w, height: h)
         let fill = node.isRoot ? theme.git0 : theme.cScale(for: node.section ?? 0)
         let stroke = theme.nodeBorder
-        let fillColor = _cgColor(from: fill)
-        let strokeColor = _cgColor(from: stroke)
+        let fillColor = _mindmapCgColor(fill)
+        let strokeColor = _mindmapCgColor(stroke)
         let isNeo = config.look == "neo"
 
         context.setFillColor(fillColor)
@@ -102,7 +102,7 @@ extension DiagramRenderer {
                 _addRoundedRectToContext(context, rect: rect, radius: 5)
                 context.drawPath(using: .fillStroke)
 
-                let lineColor = _cgColor(from: node.section.map { theme.cScaleInv(for: $0) } ?? theme.cScaleInv0)
+                let lineColor = _mindmapCgColor(node.section.map { theme.cScaleInv(for: $0) } ?? theme.cScaleInv0)
                 context.setStrokeColor(lineColor)
                 context.setLineWidth(2)
                 context.move(to: CGPoint(x: x, y: y + h))
@@ -121,7 +121,7 @@ extension DiagramRenderer {
                 context.addPath(path)
                 context.drawPath(using: .fill)
 
-                let lineColor = _cgColor(from: node.section.map { theme.cScaleInv(for: $0) } ?? theme.cScaleInv0)
+                let lineColor = _mindmapCgColor(node.section.map { theme.cScaleInv(for: $0) } ?? theme.cScaleInv0)
                 context.setStrokeColor(lineColor)
                 context.setLineWidth(2)
                 context.move(to: CGPoint(x: x, y: y + h))
@@ -257,7 +257,7 @@ extension DiagramRenderer {
         let y = node.y - node.height / 2
         let w = node.width
         let h = node.height
-        let textColor = _bmColor(from: fill)
+        let textColor = _mindmapBmColor(fill)
 
         let hasIcon = node.icon != nil
         let isCircle = node.type == .circle
@@ -318,7 +318,7 @@ extension DiagramRenderer {
         let h = node.height
         let isCircle = node.type == .circle
 
-        let iconColor = _bmColor(from: theme.cScaleLabel(for: node.section ?? 0))
+        let iconColor = _mindmapBmColor(theme.cScaleLabel(for: node.section ?? 0))
         let iconFont = self.fontResolver.proportionalFont(size: 12, weight: .regular)
 
         let iconX: CGFloat
@@ -381,15 +381,8 @@ extension DiagramRenderer {
         return "\u{1F517}"
     }
 
-    private func _cgColor(from hex: String) -> CGColor {
-        var hexSanitized = hex.trimmingCharacters(in: .whitespacesAndNewlines)
-        hexSanitized = hexSanitized.replacingOccurrences(of: "#", with: "")
-        var rgb: UInt64 = 0
-        Scanner(string: hexSanitized).scanHexInt64(&rgb)
-        let r = CGFloat((rgb & 0xFF0000) >> 16) / 255.0
-        let g = CGFloat((rgb & 0x00FF00) >> 8) / 255.0
-        let b = CGFloat(rgb & 0x0000FF) / 255.0
-        return CGColor(red: r, green: g, blue: b, alpha: 1.0)
+    private func _mindmapCgColor(_ hex: String) -> CGColor {
+        DiagramColorParser.cgHex(hex) ?? BMColor.black.cgColor
     }
 
     private func _addRoundedRectToContext(_ context: CGContext, rect: CGRect, radius: CGFloat) {
@@ -403,19 +396,8 @@ extension DiagramRenderer {
         context.addPath(path)
     }
 
-    private func _bmColor(from hex: String) -> BMColor {
-        var hexSanitized = hex.trimmingCharacters(in: .whitespacesAndNewlines)
-        hexSanitized = hexSanitized.replacingOccurrences(of: "#", with: "")
-        var rgb: UInt64 = 0
-        Scanner(string: hexSanitized).scanHexInt64(&rgb)
-        let r = CGFloat((rgb & 0xFF0000) >> 16) / 255.0
-        let g = CGFloat((rgb & 0x00FF00) >> 8) / 255.0
-        let b = CGFloat(rgb & 0x0000FF) / 255.0
-        #if targetEnvironment(macCatalyst) || canImport(UIKit)
-        return UIColor(red: r, green: g, blue: b, alpha: 1.0)
-        #elseif canImport(AppKit)
-        return NSColor(red: r, green: g, blue: b, alpha: 1.0)
-        #endif
+    private func _mindmapBmColor(_ hex: String) -> BMColor {
+        DiagramColorParser.hexColor(hex) ?? BMColor.black
     }
 }
 #endif

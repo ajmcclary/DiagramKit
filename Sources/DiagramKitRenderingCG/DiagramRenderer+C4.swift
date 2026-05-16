@@ -32,9 +32,9 @@ extension DiagramRenderer {
     }
 
     private func _drawC4Shape(_ shape: PositionedC4Shape, in context: CGContext) {
-        let fillColor = _c4CGColor(from: shape.bgColor ?? "#1168BD")
-        let strokeColor = _c4CGColor(from: shape.borderColor ?? "#3C7FC0")
-        let fontColor = _c4CGColor(from: shape.fontColor ?? "#FFFFFF")
+        let fillColor = DiagramColorParser.cgHex(shape.bgColor ?? "#1168BD") ?? BMColor.black.cgColor
+        let strokeColor = DiagramColorParser.cgHex(shape.borderColor ?? "#3C7FC0") ?? BMColor.black.cgColor
+        let fontColor = DiagramColorParser.cgHex(shape.fontColor ?? "#FFFFFF") ?? BMColor.black.cgColor
 
         let rect = CGRect(x: shape.x, y: shape.y, width: shape.width, height: shape.height)
 
@@ -117,9 +117,9 @@ extension DiagramRenderer {
     }
 
     private func _drawC4Boundary(_ boundary: PositionedC4Boundary, in context: CGContext) {
-        let fillColor = _c4CGColor(from: boundary.bgColor ?? "none", allowClear: true)
-        let strokeColor = _c4CGColor(from: boundary.borderColor ?? "#444444")
-        let fontColor = _c4CGColor(from: boundary.fontColor ?? "#444444")
+        let fillColor = DiagramColorParser.cgHex(boundary.bgColor ?? "none", allowClear: true) ?? CGColor(red: 0, green: 0, blue: 0, alpha: 0)
+        let strokeColor = DiagramColorParser.cgHex(boundary.borderColor ?? "#444444") ?? BMColor.black.cgColor
+        let fontColor = DiagramColorParser.cgHex(boundary.fontColor ?? "#444444") ?? BMColor.black.cgColor
 
         let rect = CGRect(x: boundary.x, y: boundary.y, width: boundary.width, height: boundary.height)
         let bezierPath = CGPath(roundedRect: rect, cornerWidth: 2.5, cornerHeight: 2.5, transform: nil)
@@ -169,8 +169,8 @@ extension DiagramRenderer {
         context.saveGState()
 
         for (i, rel) in rels.enumerated() {
-            let strokeColor = _c4CGColor(from: rel.lineColor ?? "#444444")
-            let textColor = BMColor(cgColor: _c4CGColor(from: rel.textColor ?? "#444444")) ?? theme.foreground
+            let strokeColor = DiagramColorParser.cgHex(rel.lineColor ?? "#444444") ?? BMColor.black.cgColor
+            let textColor = DiagramColorParser.hexColor(rel.textColor ?? "#444444") ?? theme.foreground
             let ox = CGFloat(rel.offsetX ?? 0)
             let oy = CGFloat(rel.offsetY ?? 0)
 
@@ -205,17 +205,5 @@ extension DiagramRenderer {
         context.restoreGState()
     }
 
-    private func _c4CGColor(from hex: String, allowClear: Bool = false) -> CGColor {
-        if allowClear && (hex == "none" || hex.isEmpty) {
-            return CGColor.clear
-        }
-        let hex = hex.trimmingCharacters(in: CharacterSet(charactersIn: "#"))
-        var rgb: UInt64 = 0
-        Scanner(string: hex).scanHexInt64(&rgb)
-        let r = CGFloat((rgb >> 16) & 0xFF) / 255.0
-        let g = CGFloat((rgb >> 8) & 0xFF) / 255.0
-        let b = CGFloat(rgb & 0xFF) / 255.0
-        return CGColor(red: r, green: g, blue: b, alpha: 1.0)
-    }
 }
 #endif

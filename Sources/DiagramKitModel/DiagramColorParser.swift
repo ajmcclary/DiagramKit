@@ -86,6 +86,20 @@ public enum DiagramColorParser {
         return hexColor(value)?.cgColor
     }
 
+    /// Hex parse with an `allowClear` escape hatch. When `allowClear` is
+    /// `true`, the sentinel inputs `"none"` and `""` resolve to
+    /// `CGColor.clear` instead of returning `nil`. C4 boundary fill is the
+    /// primary caller — the source format encodes "no fill" as `"none"`.
+    public static func cgHex(_ value: String, allowClear: Bool) -> CGColor? {
+        if allowClear {
+            let trimmed = value.trimmingCharacters(in: .whitespacesAndNewlines)
+            if trimmed.isEmpty || trimmed.lowercased() == "none" {
+                return CGColor(red: 0, green: 0, blue: 0, alpha: 0)
+            }
+        }
+        return cgHex(value)
+    }
+
     // MARK: - Private
 
     private static func _parseHex(_ value: String) -> BMColor? {
