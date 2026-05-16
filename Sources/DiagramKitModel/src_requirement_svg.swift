@@ -4,7 +4,7 @@ import DiagramKitCommon
 public func renderRequirementSvg(
     _ diagram: PositionedRequirementDiagram,
     _ colors: DiagramColors,
-    _ font: String = "Inter",
+    _ font: String = DiagramFontResolver.shared.svgFontFamily,
     _ transparent: Bool = false,
     diagramId: String? = nil,
     look: String? = nil,

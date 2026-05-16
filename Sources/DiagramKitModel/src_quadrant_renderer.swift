@@ -6,7 +6,7 @@ import DiagramKitCommon
 public func renderQuadrantSvg(
     _ chart: PositionedQuadrantChart,
     _ colors: DiagramColors,
-    _ font: String = "Inter",
+    _ font: String = DiagramFontResolver.shared.svgFontFamily,
     _ transparent: Bool = false
 ) -> String {
     var parts: [String] = []

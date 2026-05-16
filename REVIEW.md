@@ -2,7 +2,7 @@
 
 **Method.** Six parallel agents reviewed: (1) architecture/layering/portability, (2) concurrency, (3) invariants + dual-renderer symmetry, (4) diagnostics + error handling, (5) code quality, (6) correctness/perf/test coverage. Critical and high-impact findings were spot-verified against the working tree. The diagnostic-discipline and `@unchecked Sendable` gates pass clean; the worker-thread invariant, `@MainActor` placement, `bmColorEquals`, type-safe payloads, retain cycles, cross-format round-trip matrix, and empty-source handling all checked out with no findings.
 
-**Summary.** 1 Critical (verified build break) — **resolved**, 10 High (10 resolved), 13 Medium (+2 added during follow-up; 11 resolved, 1 deferred), 7 Low (3 resolved).
+**Summary.** 1 Critical (verified build break) — **resolved**, 10 High (10 resolved), 13 Medium (+2 added during follow-up; 11 resolved, 1 deferred), 7 Low (4 resolved).
 
 ---
 
@@ -280,11 +280,13 @@ New `FrontmatterDocumentParserTests` (8 tests) pin all three fixes: tab-indent e
 **Problem:** Inside `prepareDiagram()`, parse failure clears state. Ordering between three rapid `source` writes is guarded solely by `Task.isCancelled` at L208. Today MainActor isolation makes the race practically unreachable; a future split that lifts publication off MainActor would break it silently.
 **Fix:** Tag each task with a monotonic generation ID; ignore publication when the live generation has advanced. Document the invariant on the file header.
 
-### [Severity: Low] `DiagramFontResolver.svgProportionalFamily` documented intent vs callsites
+### [Severity: Low] ~~`DiagramFontResolver.svgProportionalFamily` documented intent vs callsites~~ — RESOLVED
 **File:** `Sources/DiagramKitModel/DiagramFontResolver.swift` (the comment-documented `"Inter"` hardcode)
 **Category:** Code Quality
 **Problem:** The resolver intentionally pins SVG font-family to `"Inter"` (with rationale that SVG `font-family` is a hint while measurement comes from `RenderTokens.defaultProportionalFontFamily`). But several `src_*_renderer.swift` files still have their own `_ font: String = "Inter"` default parameter. If SVG font policy ever changes, callers all need updates.
-**Fix:** Either drop the default parameter on the SVG renderer entrypoints (force callers to thread through `fontResolver.svgFontFamily`), or assert at runtime that the passed `font` equals the resolver's value.
+**Fix applied.** Picked the third option (the reviewer offered two: drop the default, or runtime-assert): the literal `"Inter"` default expression on every SVG renderer entry point now reads `DiagramFontResolver.shared.svgFontFamily`. Same effective default today (still `"Inter"`); the moment the resolver's value changes, every renderer's default tracks automatically. Public API stays compatible — callers that omit the parameter still work — and no runtime check needs to be threaded.
+
+Replaced across 12 files: `src_class_renderer`, `src_er_renderer`, `src_quadrant_renderer`, `src_xychart_renderer`, `src_pie_renderer`, `src_renderer`, `src_radar_svg`, `src_timeline_renderer`, `src_journey_renderer`, `src_sequence_renderer`, `src_sankey_renderer`, `src_requirement_svg`. SVG corpus spot-check (flow / class / sequence / ER / pie, one entry each) passes byte-identical.
 
 ---
 

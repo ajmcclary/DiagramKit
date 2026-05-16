@@ -65,7 +65,7 @@ private struct _SvgGraphModel {
 public func renderSvg(
     _ graph: PositionedGraph,
     _ colors: DiagramColors,
-    _ font: String = "Inter",
+    _ font: String = DiagramFontResolver.shared.svgFontFamily,
     _ transparent: Bool = false
 ) throws -> String {
     try _renderSvgEntry(graph, colors, font, transparent)
@@ -1133,7 +1133,7 @@ final class original_src_renderer {
     public static func renderSvg(
         _ graph: PositionedGraph,
         _ colors: DiagramColors,
-        _ font: String = "Inter",
+        _ font: String = DiagramFontResolver.shared.svgFontFamily,
         _ transparent: Bool = false
     ) throws -> String {
         try _renderSvgEntry(graph, colors, font, transparent)

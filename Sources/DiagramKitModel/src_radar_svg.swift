@@ -4,7 +4,7 @@ import DiagramKitCommon
 public func renderRadarSvg(
     _ positioned: PositionedRadarDiagram,
     colors: DiagramColors,
-    font: String = "Inter",
+    font: String = DiagramFontResolver.shared.svgFontFamily,
     transparent: Bool = false
 ) -> String {
     var parts: [String] = []

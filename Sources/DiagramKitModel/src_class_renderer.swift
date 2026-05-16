@@ -13,7 +13,7 @@ private enum _ClassFont {
 public func renderClassSvg(
     _ diagram: PositionedClassDiagram,
     _ colors: DiagramColors,
-    _ font: String = "Inter",
+    _ font: String = DiagramFontResolver.shared.svgFontFamily,
     _ transparent: Bool = false,
     securityLevel: String? = nil
 ) throws -> String {
@@ -507,7 +507,7 @@ final class original_src_class_renderer {
     public static func renderClassSvg(
         _ diagram: PositionedClassDiagram,
         _ colors: DiagramColors,
-        _ font: String = "Inter",
+        _ font: String = DiagramFontResolver.shared.svgFontFamily,
         _ transparent: Bool = false
     ) throws -> String {
         try _renderClassSvgEntry(diagram, colors, font, transparent)

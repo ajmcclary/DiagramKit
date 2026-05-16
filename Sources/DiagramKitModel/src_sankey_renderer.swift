@@ -36,7 +36,7 @@ private final class _SankeyRenderScopeCounter: @unchecked Sendable {
 public func renderSankeySvg(
     _ positioned: PositionedSankeyDiagram,
     _ colors: DiagramColors,
-    _ font: String = "Inter",
+    _ font: String = DiagramFontResolver.shared.svgFontFamily,
     _ transparent: Bool = false,
     diagramId: String? = nil
 ) -> String {
