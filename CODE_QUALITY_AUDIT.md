@@ -417,19 +417,29 @@ If a renderer needs custom title or description text, pass it through `SVGDocume
 
 ### P4. XML and SVG escaping helpers are duplicated around the codebase
 
+**Status:** SVG-renderer half resolved. Every per-family pass-through wrapper
+in `Sources/DiagramKitModel/` (16 wrappers across 16 files) now resolves to
+`SVG.escapeText` / `SVG.escapeAttribute` directly: `_escapeXml`,
+`_escapePieXml`, `_escapeQuadrantXml`, `_escapeRadarXml`, `_sankeyEscapeXml`,
+`_tescapeXml`, `_gitGraphEscapeXml`, `escapeXml`, and `_escapeAttr` are all
+deleted. The remaining open items are the cross-format exporters' local
+`escapeString` helpers (D2, Structurizr, DOT, PlantUML, Mermaid) and the
+`String.escapedXML` extension defined in `src_block_renderer.swift` and
+shared with the packet renderer.
+
 **Evidence**
 
 - `Sources/DiagramKitCommon/SVG.swift:17` defines `SVG.escapeText`.
 - `Sources/DiagramKitCommon/SVG.swift:28` defines `SVG.escapeAttribute`.
 - `Sources/DiagramKitCommon/src_multiline_utils.swift:45` keeps deprecated `escapeXml`.
-- `Sources/DiagramKitModel/src_sequence_renderer.swift:534` defines `escapeXML`.
-- `Sources/DiagramKitModel/src_gantt_renderer.swift:201` defines `ganttEscapeXML`.
-- `Sources/DiagramKitModel/src_architecture_renderer.swift:318` defines `architectureEscapeXML`.
-- `Sources/DiagramKitModel/src_renderer.swift:1010` defines `_flowchartEscapeXML`.
-- `Sources/DiagramKitModel/src_class_renderer.swift:500` defines `classEscapeXML`.
-- `Sources/DiagramKitModel/src_er_renderer.swift:534` defines `erEscapeXML`.
-- `Sources/DiagramKitD2/D2Exporter.swift:68` defines a local `escapeString`.
-- `Sources/DiagramKitStructurizr/StructurizrExporter.swift:200` defines a local `escapeString`.
+- `Sources/DiagramKitModel/src_sequence_renderer.swift:534` defines `escapeXML`. **(resolved)**
+- `Sources/DiagramKitModel/src_gantt_renderer.swift:201` defines `ganttEscapeXML`. **(resolved)**
+- `Sources/DiagramKitModel/src_architecture_renderer.swift:318` defines `architectureEscapeXML`. **(resolved)**
+- `Sources/DiagramKitModel/src_renderer.swift:1010` defines `_flowchartEscapeXML`. **(resolved as `_escapeAttr`)**
+- `Sources/DiagramKitModel/src_class_renderer.swift:500` defines `classEscapeXML`. **(resolved as `_escapeAttr`)**
+- `Sources/DiagramKitModel/src_er_renderer.swift:534` defines `erEscapeXML`. **(resolved as `_escapeAttr`)**
+- `Sources/DiagramKitD2/D2Exporter.swift:68` defines a local `escapeString`. **(open — exporter scope)**
+- `Sources/DiagramKitStructurizr/StructurizrExporter.swift:200` defines a local `escapeString`. **(open — exporter scope)**
 
 **Impact**
 
@@ -778,11 +788,13 @@ Ungate portable `ShapeSpec`, `ShapePath`, and `SVGPathSerializer` from Apple-onl
 
 **Impact:** Medium-high consistency gain with low implementation risk.
 
-**Status:** Accessibility half landed. All five renderers
-(`gantt`/`er`/`class`/`block`/flowchart `src_renderer`) now emit
-`<title>`/`<desc>` via `SVGDocumentBuilder.accessibility()`. The escaping
-half (audit P4) — migrating per-family `_escapeXml` shims onto
-`SVG.escapeText` / `SVG.escapeAttribute` — is still open.
+**Status:** Both halves landed for the SVG renderers. Accessibility now
+goes through `SVGDocumentBuilder.accessibility()` (P3), and every
+per-family `_escapeXml` / `_escapeAttr` pass-through shim has been deleted
+in favor of direct `SVG.escapeText` / `SVG.escapeAttribute` calls (P4).
+Cross-format exporter helpers (D2/Structurizr/DOT/PlantUML/Mermaid
+`escapeString`) and the `String.escapedXML` extension shared by the block
+and packet renderers remain as follow-ups.
 
 ### Priority 5: Consolidate frontmatter binding patterns
 

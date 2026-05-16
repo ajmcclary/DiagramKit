@@ -81,10 +81,10 @@ public func renderXYChartSvg(
 
     // Accessibility
     if let accTitle = chart.accTitle {
-        parts.append("<title>\(_escapeXml(accTitle))</title>")
+        parts.append("<title>\(SVG.escapeText(accTitle))</title>")
     }
     if let accDescr = chart.accDescr {
-        parts.append("<desc>\(_escapeXml(accDescr))</desc>")
+        parts.append("<desc>\(SVG.escapeText(accDescr))</desc>")
     }
 
     parts.append(builder.style())
@@ -152,7 +152,7 @@ public func renderXYChartSvg(
                 "<text x=\"\(dl.x)\" y=\"\(dl.y)\" text-anchor=\"\(dl.textAnchor)\" " +
                 "font-size=\"\(dl.fontSize)\" " +
                 "dy=\"\(original_src_styles.TEXT_BASELINE_SHIFT)\" " +
-                "fill=\"\(labelColor)\" class=\"xychart-data-label\">\(_escapeXml(dl.text))</text>"
+                "fill=\"\(labelColor)\" class=\"xychart-data-label\">\(SVG.escapeText(dl.text))</text>"
             )
         }
 
@@ -264,7 +264,7 @@ public func renderXYChartSvg(
             parts.append(
                 "<text x=\"\(tick.labelX)\" y=\"\(tick.labelY)\" text-anchor=\"\(tick.textAnchor)\" " +
                 "font-size=\"\(_r(config.xAxis.labelFontSize))\" font-weight=\"\(ChartFont.labelWeight)\" " +
-                "fill=\"\(xLabelColor)\" dy=\"\(TEXT_BASELINE)\" class=\"xychart-label\">\(_escapeXml(tick.label))</text>"
+                "fill=\"\(xLabelColor)\" dy=\"\(TEXT_BASELINE)\" class=\"xychart-label\">\(SVG.escapeText(tick.label))</text>"
             )
         }
     }
@@ -274,7 +274,7 @@ public func renderXYChartSvg(
             parts.append(
                 "<text x=\"\(tick.labelX)\" y=\"\(tick.labelY)\" text-anchor=\"\(tick.textAnchor)\" " +
                 "font-size=\"\(_r(config.yAxis.labelFontSize))\" font-weight=\"\(ChartFont.labelWeight)\" " +
-                "fill=\"\(yLabelColor)\" dy=\"\(TEXT_BASELINE)\" class=\"xychart-label\">\(_escapeXml(tick.label))</text>"
+                "fill=\"\(yLabelColor)\" dy=\"\(TEXT_BASELINE)\" class=\"xychart-label\">\(SVG.escapeText(tick.label))</text>"
             )
         }
     }
@@ -287,7 +287,7 @@ public func renderXYChartSvg(
         parts.append(
             "<text x=\"\(t.x)\" y=\"\(t.y)\" text-anchor=\"middle\"\(transform) " +
             "font-size=\"\(_r(config.xAxis.titleFontSize))\" font-weight=\"\(ChartFont.axisTitleWeight)\" " +
-            "fill=\"\(xTitleColor)\" dy=\"\(TEXT_BASELINE)\" class=\"xychart-axis-title\">\(_escapeXml(t.text))</text>"
+            "fill=\"\(xTitleColor)\" dy=\"\(TEXT_BASELINE)\" class=\"xychart-axis-title\">\(SVG.escapeText(t.text))</text>"
         )
     }
     if let t = chart.yAxis.title, config.yAxis.showTitle {
@@ -295,7 +295,7 @@ public func renderXYChartSvg(
         parts.append(
             "<text x=\"\(t.x)\" y=\"\(t.y)\" text-anchor=\"middle\"\(transform) " +
             "font-size=\"\(_r(config.yAxis.titleFontSize))\" font-weight=\"\(ChartFont.axisTitleWeight)\" " +
-            "fill=\"\(yTitleColor)\" dy=\"\(TEXT_BASELINE)\" class=\"xychart-axis-title\">\(_escapeXml(t.text))</text>"
+            "fill=\"\(yTitleColor)\" dy=\"\(TEXT_BASELINE)\" class=\"xychart-axis-title\">\(SVG.escapeText(t.text))</text>"
         )
     }
 
@@ -305,7 +305,7 @@ public func renderXYChartSvg(
         parts.append(
             "<text x=\"\(title.x)\" y=\"\(title.y)\" text-anchor=\"middle\" " +
             "font-size=\"\(_r(config.titleFontSize))\" font-weight=\"600\" " +
-            "fill=\"\(titleColor)\" dy=\"\(TEXT_BASELINE)\" class=\"xychart-title\">\(_escapeXml(title.text))</text>"
+            "fill=\"\(titleColor)\" dy=\"\(TEXT_BASELINE)\" class=\"xychart-title\">\(SVG.escapeText(title.text))</text>"
         )
     }
 
@@ -328,7 +328,7 @@ public func renderXYChartSvg(
             parts.append(
                 "<text x=\"\(item.x + swatchW + gap)\" y=\"\(item.y)\" text-anchor=\"start\" " +
                 "font-size=\"\(ChartFont.legendSize)\" font-weight=\"\(ChartFont.legendWeight)\" " +
-                "dy=\"\(TEXT_BASELINE)\" fill=\"var(--_text-muted)\" class=\"xychart-legend-text\">\(_escapeXml(item.label))</text>"
+                "dy=\"\(TEXT_BASELINE)\" fill=\"var(--_text-muted)\" class=\"xychart-legend-text\">\(SVG.escapeText(item.label))</text>"
             )
         }
     }
@@ -534,7 +534,7 @@ private func _tooltipAbove(_ cx: Double, _ topY: Double, _ text: String) -> Stri
 
     return "<rect x=\"\(_r(bgX))\" y=\"\(_r(tipY))\" width=\"\(_r(bgW))\" height=\"\(bgH)\" rx=\"\(TIP.rx)\" class=\"xychart-tip xychart-tip-bg\"/>" +
         pointer +
-        "<text x=\"\(_r(textX))\" y=\"\(_r(textY))\" text-anchor=\"middle\" dy=\"\(original_src_styles.TEXT_BASELINE_SHIFT)\" class=\"xychart-tip xychart-tip-text\">\(_escapeXml(text))</text>"
+        "<text x=\"\(_r(textX))\" y=\"\(_r(textY))\" text-anchor=\"middle\" dy=\"\(original_src_styles.TEXT_BASELINE_SHIFT)\" class=\"xychart-tip xychart-tip-text\">\(SVG.escapeText(text))</text>"
 }
 
 private func _multiTooltipAbove(_ cx: Double, _ topY: Double, _ label: String, _ entries: [(text: String, legendLabel: String)]) -> String {
@@ -559,14 +559,14 @@ private func _multiTooltipAbove(_ cx: Double, _ topY: Double, _ label: String, _
     svg += pointer
 
     var textY = tipY + padY + lineH / 2
-    svg += "<text x=\"\(_r(cx))\" y=\"\(_r(textY))\" text-anchor=\"middle\" font-weight=\"600\" font-size=\"\(TIP.fontSize)\" dy=\"\(original_src_styles.TEXT_BASELINE_SHIFT)\" class=\"xychart-tip xychart-tip-text\">\(_escapeXml(label))</text>"
+    svg += "<text x=\"\(_r(cx))\" y=\"\(_r(textY))\" text-anchor=\"middle\" font-weight=\"600\" font-size=\"\(TIP.fontSize)\" dy=\"\(original_src_styles.TEXT_BASELINE_SHIFT)\" class=\"xychart-tip xychart-tip-text\">\(SVG.escapeText(label))</text>"
 
     let rowLeft = bgX + TIP.padX
     let rowRight = bgX + bgW - TIP.padX
     for entry in entries {
         textY += lineH
-        svg += "<text x=\"\(_r(rowLeft))\" y=\"\(_r(textY))\" text-anchor=\"start\" font-size=\"\(TIP.fontSize)\" font-weight=\"\(TIP.fontWeight)\" dy=\"\(original_src_styles.TEXT_BASELINE_SHIFT)\" class=\"xychart-tip xychart-tip-text\">\(_escapeXml(entry.legendLabel))</text>"
-        svg += "<text x=\"\(_r(rowRight))\" y=\"\(_r(textY))\" text-anchor=\"end\" font-size=\"\(TIP.fontSize)\" font-weight=\"\(TIP.fontWeight)\" dy=\"\(original_src_styles.TEXT_BASELINE_SHIFT)\" class=\"xychart-tip xychart-tip-text\">\(_escapeXml(entry.text))</text>"
+        svg += "<text x=\"\(_r(rowLeft))\" y=\"\(_r(textY))\" text-anchor=\"start\" font-size=\"\(TIP.fontSize)\" font-weight=\"\(TIP.fontWeight)\" dy=\"\(original_src_styles.TEXT_BASELINE_SHIFT)\" class=\"xychart-tip xychart-tip-text\">\(SVG.escapeText(entry.legendLabel))</text>"
+        svg += "<text x=\"\(_r(rowRight))\" y=\"\(_r(textY))\" text-anchor=\"end\" font-size=\"\(TIP.fontSize)\" font-weight=\"\(TIP.fontWeight)\" dy=\"\(original_src_styles.TEXT_BASELINE_SHIFT)\" class=\"xychart-tip xychart-tip-text\">\(SVG.escapeText(entry.text))</text>"
     }
 
     return svg
@@ -594,6 +594,3 @@ private func _r(_ n: Double) -> String {
     return String(format: "%.1f", rounded)
 }
 
-private func _escapeXml(_ text: String) -> String {
-    SVG.escapeText(text)
-}

@@ -34,10 +34,10 @@ public func renderArchitectureSvg(
     svg += _builder.open(extraAttributes: "id=\"\(SVG.escapeAttribute(diagramId))\"") + "\n"
 
     if let accTitle = positioned.accTitle, !accTitle.isEmpty {
-        svg += "<title>\(_escapeXml(accTitle))</title>\n"
+        svg += "<title>\(SVG.escapeText(accTitle))</title>\n"
     }
     if let accDescr = positioned.accDescr, !accDescr.isEmpty {
-        svg += "<desc>\(_escapeXml(accDescr))</desc>\n"
+        svg += "<desc>\(SVG.escapeText(accDescr))</desc>\n"
     }
 
     if !transparent {
@@ -55,7 +55,7 @@ public func renderArchitectureSvg(
     svg += "</style>\n"
 
     if let title = positioned.diagramTitle, !title.isEmpty {
-        svg += "<text x=\"\(_fmt(positioned.width / 2))\" y=\"\(_fmt(positioned.config.padding / 2 + fontSize))\" class=\"arch-diagram-title\">\(_escapeXml(title))</text>\n"
+        svg += "<text x=\"\(_fmt(positioned.width / 2))\" y=\"\(_fmt(positioned.config.padding / 2 + fontSize))\" class=\"arch-diagram-title\">\(SVG.escapeText(title))</text>\n"
     }
 
     svg += "<g class=\"architecture-groups\">\n"
@@ -78,7 +78,7 @@ public func renderArchitectureSvg(
             groupLabelX += groupIconSize
         }
         if let title = group.title, !title.isEmpty {
-            svg += "<text x=\"\(_fmt(groupLabelX))\" y=\"\(_fmt(group.y + fontSize))\" class=\"arch-group-label\">\(_escapeXml(title))</text>\n"
+            svg += "<text x=\"\(_fmt(groupLabelX))\" y=\"\(_fmt(group.y + fontSize))\" class=\"arch-group-label\">\(SVG.escapeText(title))</text>\n"
         }
         svg += "</g>\n"
     }
@@ -121,13 +121,13 @@ public func renderArchitectureSvg(
                     midX: edge.midX,
                     midY: edge.midY
                 )
-                svg += "<text x=\"\(_fmt(edge.midX))\" y=\"\(_fmt(edge.midY - 4))\" class=\"arch-edge-label\" transform=\"rotate(\(_fmt(rotation)),\(_fmt(rotOriginX)),\(_fmt(rotOriginY)))\">\(_escapeXml(label))</text>\n"
+                svg += "<text x=\"\(_fmt(edge.midX))\" y=\"\(_fmt(edge.midY - 4))\" class=\"arch-edge-label\" transform=\"rotate(\(_fmt(rotation)),\(_fmt(rotOriginX)),\(_fmt(rotOriginY)))\">\(SVG.escapeText(label))</text>\n"
             } else {
                 let isVertical = (edge.lhsDirection == .T || edge.lhsDirection == .B) && (edge.rhsDirection == .T || edge.rhsDirection == .B)
                 if isVertical {
-                    svg += "<text x=\"\(_fmt(edge.midX))\" y=\"\(_fmt(edge.midY - 4))\" class=\"arch-edge-label\" transform=\"rotate(-90,\(_fmt(edge.midX)),\(_fmt(edge.midY)))\">\(_escapeXml(label))</text>\n"
+                    svg += "<text x=\"\(_fmt(edge.midX))\" y=\"\(_fmt(edge.midY - 4))\" class=\"arch-edge-label\" transform=\"rotate(-90,\(_fmt(edge.midX)),\(_fmt(edge.midY)))\">\(SVG.escapeText(label))</text>\n"
                 } else {
-                    svg += "<text x=\"\(_fmt(edge.midX))\" y=\"\(_fmt(edge.midY - 4))\" class=\"arch-edge-label\">\(_escapeXml(label))</text>\n"
+                    svg += "<text x=\"\(_fmt(edge.midX))\" y=\"\(_fmt(edge.midY - 4))\" class=\"arch-edge-label\">\(SVG.escapeText(label))</text>\n"
                 }
             }
         }
@@ -144,7 +144,7 @@ public func renderArchitectureSvg(
         svg += _iconSvg(for: service.icon, iconText: service.iconText, cx: service.x, cy: service.y, size: positioned.config.iconSize, iconSize: iconSize)
         svg += "</g>\n"
         if let title = service.title, !title.isEmpty {
-            svg += "<text x=\"\(_fmt(service.x))\" y=\"\(_fmt(service.y + service.height / 2 + fontSize + 4))\" class=\"arch-service-label\">\(_escapeXml(title))</text>\n"
+            svg += "<text x=\"\(_fmt(service.x))\" y=\"\(_fmt(service.y + service.height / 2 + fontSize + 4))\" class=\"arch-service-label\">\(SVG.escapeText(title))</text>\n"
         }
         svg += "</g>\n"
     }
@@ -169,7 +169,7 @@ private func _iconSvg(for iconName: String?, iconText: String?, cx: Double, cy: 
     let y = cy - halfIcon
 
     if let iconText = iconText, !iconText.isEmpty {
-        return "<text x=\"\(_fmt(cx))\" y=\"\(_fmt(cy + 4))\" font-size=\"\(Int(size * 0.3))\" text-anchor=\"middle\" fill=\"currentColor\">\(_escapeXml(iconText))</text>\n"
+        return "<text x=\"\(_fmt(cx))\" y=\"\(_fmt(cy + 4))\" font-size=\"\(Int(size * 0.3))\" text-anchor=\"middle\" fill=\"currentColor\">\(SVG.escapeText(iconText))</text>\n"
     }
 
     if let iconName = iconName?.trimmingCharacters(in: .whitespaces), !iconName.isEmpty {
@@ -313,10 +313,6 @@ private func _arrowPoints(cx: Double, cy: Double, angle: Double) -> String {
 private func _fmt(_ d: Double) -> String {
     let r = round(d * 10) / 10
     return (r == floor(r)) ? String(Int(r)) : String(r)
-}
-
-private func _escapeXml(_ text: String) -> String {
-    SVG.escapeText(text)
 }
 
 private let _cloudPath = "M24 12c0-4.4-3.6-8-8-8-3 0-5.6 1.7-7 4.2C7 7.5 5.3 7 3.6 7.6 1.3 8.5 0 10.9 0 13.5 0 17.1 2.9 20 6.5 20H30c3.3 0 6-2.7 6-6 0-3.3-2.7-6-6-6h-.5c-.5-2.4-2.6-4-4.9-4-1.5 0-2.8.6-3.7 1.7C20.3 12.3 20 12 20 12h-4z"

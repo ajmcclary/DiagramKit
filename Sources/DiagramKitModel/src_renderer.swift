@@ -204,7 +204,7 @@ private func _renderGroup(_ group: _SvgGroup, _ font: String) -> String {
     var parts: [String] = []
 
     if isStateComposite {
-        parts.append("<g class=\"\(clusterClass)\" data-id=\"\(_escapeAttr(group.id))\" data-label=\"\(_escapeAttr(group.label))\">")
+        parts.append("<g class=\"\(clusterClass)\" data-id=\"\(SVG.escapeAttribute(group.id))\" data-label=\"\(SVG.escapeAttribute(group.label))\">")
         let titleH: Double = 35
         let fill = "var(--_group-fill)"
         let stroke = "var(--_node-stroke)"
@@ -222,7 +222,7 @@ private func _renderGroup(_ group: _SvgGroup, _ font: String) -> String {
         parts.append("  \(titleText)")
     } else {
         let headerHeight = original_src_styles.FONT_SIZES.groupHeader + 16
-        parts.append("<g class=\"subgraph\" data-id=\"\(_escapeAttr(group.id))\" data-label=\"\(_escapeAttr(group.label))\">")
+        parts.append("<g class=\"subgraph\" data-id=\"\(SVG.escapeAttribute(group.id))\" data-label=\"\(SVG.escapeAttribute(group.label))\">")
         parts.append(
             "  <rect x=\"\(group.x)\" y=\"\(group.y)\" width=\"\(group.width)\" height=\"\(group.height)\" " +
                 "rx=\"0\" ry=\"0\" fill=\"var(--_group-fill)\" stroke=\"var(--_node-stroke)\" stroke-width=\"\(original_src_styles.STROKE_WIDTHS.outerBox)\" />"
@@ -261,8 +261,8 @@ private func _renderEdge(_ edge: _SvgEdge, isStateDiagram: Bool = false) -> Stri
     let baseStrokeWidth = edge.style == "thick"
         ? original_src_styles.STROKE_WIDTHS.connector * 2
         : original_src_styles.STROKE_WIDTHS.connector
-    let strokeColor = isInvisible ? "none" : _escapeAttr(edge.inlineStyle?["stroke"] ?? "var(--_line)")
-    let strokeWidth = isInvisible ? "0" : _escapeAttr(edge.inlineStyle?["stroke-width"] ?? "\(baseStrokeWidth)")
+    let strokeColor = isInvisible ? "none" : SVG.escapeAttribute(edge.inlineStyle?["stroke"] ?? "var(--_line)")
+    let strokeWidth = isInvisible ? "0" : SVG.escapeAttribute(edge.inlineStyle?["stroke-width"] ?? "\(baseStrokeWidth)")
 
     // Compute edge CSS class
     var edgeClass = "edge"
@@ -296,20 +296,20 @@ private func _renderEdge(_ edge: _SvgEdge, isStateDiagram: Bool = false) -> Stri
 
 private func _edgeDataAttrs(_ edge: _SvgEdge) -> String {
     var dataAttrs: [String] = [
-        "data-from=\"\(_escapeAttr(edge.source))\"",
-        "data-to=\"\(_escapeAttr(edge.target))\"",
-        "data-style=\"\(_escapeAttr(edge.style))\"",
+        "data-from=\"\(SVG.escapeAttribute(edge.source))\"",
+        "data-to=\"\(SVG.escapeAttribute(edge.target))\"",
+        "data-style=\"\(SVG.escapeAttribute(edge.style))\"",
         "data-arrow-start=\"\(edge.arrowHeadStart != .none)\"",
         "data-arrow-end=\"\(edge.arrowHeadEnd != .none)\"",
     ]
     if let label = edge.label {
-        dataAttrs.append("data-label=\"\(_escapeAttr(label))\"")
+        dataAttrs.append("data-label=\"\(SVG.escapeAttribute(label))\"")
     }
     if let edgeId = edge.edgeId {
-        dataAttrs.append("data-edge-id=\"\(_escapeAttr(edgeId))\"")
+        dataAttrs.append("data-edge-id=\"\(SVG.escapeAttribute(edgeId))\"")
     }
     if let curve = edge.curve {
-        dataAttrs.append("data-curve=\"\(_escapeAttr(curve))\"")
+        dataAttrs.append("data-curve=\"\(SVG.escapeAttribute(curve))\"")
     }
     if edge.animate == true {
         dataAttrs.append("data-animate=\"true\"")
@@ -382,7 +382,7 @@ private func _renderEdgeLabel(_ edge: _SvgEdge, _ font: String) -> String {
         bgAttrs: "rx=\"2\" ry=\"2\" fill=\"var(--bg)\" stroke=\"var(--_inner-stroke)\" stroke-width=\"1\""
     )
 
-    return "<g class=\"edge-label\" data-from=\"\(_escapeAttr(edge.source))\" data-to=\"\(_escapeAttr(edge.target))\" data-label=\"\(_escapeAttr(label))\">\n" +
+    return "<g class=\"edge-label\" data-from=\"\(SVG.escapeAttribute(edge.source))\" data-to=\"\(SVG.escapeAttribute(edge.target))\" data-label=\"\(SVG.escapeAttribute(label))\">\n" +
         "  \(content.replacingOccurrences(of: "\n", with: "\n  "))\n" +
         "</g>"
 }
@@ -436,7 +436,7 @@ private func _renderNode(_ node: _SvgNode, _ font: String, isStateDiagram: Bool 
     }
 
     var parts: [String] = []
-    parts.append("<g class=\"\(nodeClass)\" data-id=\"\(_escapeAttr(node.id))\" data-label=\"\(_escapeAttr(node.label))\" data-shape=\"\(_escapeAttr(node.shape))\">")
+    parts.append("<g class=\"\(nodeClass)\" data-id=\"\(SVG.escapeAttribute(node.id))\" data-label=\"\(SVG.escapeAttribute(node.label))\" data-shape=\"\(SVG.escapeAttribute(node.shape))\">")
     parts.append("  \(shape.replacingOccurrences(of: "\n", with: "\n  "))")
     if !label.isEmpty {
         parts.append("  \(label.replacingOccurrences(of: "\n", with: "\n  "))")
@@ -463,11 +463,11 @@ private func _nodeAnchorAttributes(_ node: _SvgNode) -> String? {
     }
     let target = (interaction.target?.isEmpty == false) ? interaction.target! : "_blank"
     var attrs = [
-        #"xlink:href="\#(_escapeAttr(url))""#,
-        #"target="\#(_escapeAttr(target))""#,
+        #"xlink:href="\#(SVG.escapeAttribute(url))""#,
+        #"target="\#(SVG.escapeAttribute(target))""#,
     ]
     if let tooltip = interaction.tooltip, !tooltip.isEmpty {
-        attrs.append(#"title="\#(_escapeAttr(tooltip))""#)
+        attrs.append(#"title="\#(SVG.escapeAttribute(tooltip))""#)
     }
     return attrs.joined(separator: " ")
 }
@@ -544,9 +544,9 @@ private func _renderNodeShape(_ node: _SvgNode) -> String {
     let shape = node.shape
     let inlineStyle = node.inlineStyle
 
-    let fill = _escapeAttr(inlineStyle["fill"] ?? "var(--_node-fill)")
-    let stroke = _escapeAttr(inlineStyle["stroke"] ?? "var(--_node-stroke)")
-    let sw = _escapeAttr(inlineStyle["stroke-width"] ?? "\(original_src_styles.STROKE_WIDTHS.innerBox)")
+    let fill = SVG.escapeAttribute(inlineStyle["fill"] ?? "var(--_node-fill)")
+    let stroke = SVG.escapeAttribute(inlineStyle["stroke"] ?? "var(--_node-stroke)")
+    let sw = SVG.escapeAttribute(inlineStyle["stroke-width"] ?? "\(original_src_styles.STROKE_WIDTHS.innerBox)")
 
     // Shapes with special color semantics or embedded content that bypass
     // the generic spec-driven path.
@@ -560,8 +560,8 @@ private func _renderNodeShape(_ node: _SvgNode) -> String {
     case "small-circle":
         return _renderFilledCircle(x: x, y: y, w: width, h: height)
     case "state-note":
-        let noteFill = _escapeAttr(inlineStyle["fill"] ?? "var(--_note-bkg)")
-        let noteStroke = _escapeAttr(inlineStyle["stroke"] ?? "var(--_note-border)")
+        let noteFill = SVG.escapeAttribute(inlineStyle["fill"] ?? "var(--_note-bkg)")
+        let noteStroke = SVG.escapeAttribute(inlineStyle["stroke"] ?? "var(--_note-border)")
         return _renderRoundedRect(x: x, y: y, w: width, h: height, fill: noteFill, stroke: noteStroke, sw: sw)
     case "icon-square":
         return _renderIconSquare(x: x, y: y, w: width, h: height, fill: fill, stroke: stroke, sw: sw, icon: node.icon, img: node.img)
@@ -925,7 +925,7 @@ private func _renderIconContent(icon: String?, img: String?, x: Double, y: Doubl
         let isSafe = !dangerous.contains(where: { lowered.hasPrefix($0) })
         if isSafe {
             let pad: Double = 4
-            return "<image x=\"\(x + pad)\" y=\"\(y + pad)\" width=\"\(w - pad * 2)\" height=\"\(h - pad * 2)\" xlink:href=\"\(_escapeAttr(imageUrl))\" preserveAspectRatio=\"xMidYMid meet\" />"
+            return "<image x=\"\(x + pad)\" y=\"\(y + pad)\" width=\"\(w - pad * 2)\" height=\"\(h - pad * 2)\" xlink:href=\"\(SVG.escapeAttribute(imageUrl))\" preserveAspectRatio=\"xMidYMid meet\" />"
         }
     }
     if let iconName = icon, !iconName.isEmpty {
@@ -974,7 +974,7 @@ private func _renderNodeLabel(_ node: _SvgNode, _ font: String) -> String {
 
     let cx = node.x + node.width / 2
     let cy = node.y + node.height / 2
-    let textColor = _escapeAttr(node.inlineStyle["color"] ?? "var(--_text)")
+    let textColor = SVG.escapeAttribute(node.inlineStyle["color"] ?? "var(--_text)")
 
     if node.shape == "rect-with-title", node.descriptions.count > 1 {
         let titleY = node.y + 12
@@ -1003,10 +1003,6 @@ private func _renderNodeLabel(_ node: _SvgNode, _ font: String) -> String {
         fontSize: original_src_styles.FONT_SIZES.nodeLabel,
         attrs: "text-anchor=\"middle\" font-size=\"\(original_src_styles.FONT_SIZES.nodeLabel)\" font-weight=\"\(original_src_styles.FONT_WEIGHTS.nodeLabel)\" fill=\"\(textColor)\""
     )
-}
-
-private func _escapeAttr(_ value: String) -> String {
-    SVG.escapeAttribute(value)
 }
 
 // MARK: - Typed SVG model adapters (replaces Mirror-based extraction)

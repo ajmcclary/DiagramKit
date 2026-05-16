@@ -23,10 +23,10 @@ public func renderPieSvg(
 
     // Accessibility
     if let accTitle = chart.accTitle {
-        parts.append("<title>\(_escapePieXml(accTitle))</title>")
+        parts.append("<title>\(SVG.escapeText(accTitle))</title>")
     }
     if let accDescr = chart.accDescr {
-        parts.append("<desc>\(_escapePieXml(accDescr))</desc>")
+        parts.append("<desc>\(SVG.escapeText(accDescr))</desc>")
     }
 
     // CSS styles
@@ -81,21 +81,21 @@ public func renderPieSvg(
     for arc in chart.arcs {
         let fillColor = chart.theme.resolvedPieColor(at: arc.fillColorIndex, primary: basePrimary, secondary: baseSecondary, tertiary: baseTertiary)
         parts.append(
-            #"<path d="\#(_escapePieXml(arc.path))" fill="\#(_escapePieXml(fillColor))" class="pieCircle"/>"#
+            #"<path d="\#(SVG.escapeText(arc.path))" fill="\#(SVG.escapeText(fillColor))" class="pieCircle"/>"#
         )
     }
 
     // Slice labels
     for label in chart.sliceLabels {
         parts.append(
-            #"<text transform="translate(\#(_pieR(label.x)), \#(_pieR(label.y)))" class="slice">\#(_escapePieXml(label.text))</text>"#
+            #"<text transform="translate(\#(_pieR(label.x)), \#(_pieR(label.y)))" class="slice">\#(SVG.escapeText(label.text))</text>"#
         )
     }
 
     // Title
     if let title = chart.title {
         parts.append(
-            #"<text x="\#(_pieR(title.x))" y="\#(_pieR(title.y))" class="pieTitleText">\#(_escapePieXml(title.text))</text>"#
+            #"<text x="\#(_pieR(title.x))" y="\#(_pieR(title.y))" class="pieTitleText">\#(SVG.escapeText(title.text))</text>"#
         )
     }
 
@@ -107,10 +107,10 @@ public func renderPieSvg(
             let groupTransform = "translate(\(_pieR(entry.x)), \(_pieR(entry.y)))"
             parts.append(#"<g transform="\#(groupTransform)">"#)
             parts.append(
-                #"<rect width="18" height="18" fill="\#(_escapePieXml(fillColor))" stroke="\#(_escapePieXml(fillColor))"/>"#
+                #"<rect width="18" height="18" fill="\#(SVG.escapeText(fillColor))" stroke="\#(SVG.escapeText(fillColor))"/>"#
             )
             parts.append(
-                #"<text x="22" y="14">\#(_escapePieXml(entry.displayText))</text>"#
+                #"<text x="22" y="14">\#(SVG.escapeText(entry.displayText))</text>"#
             )
             parts.append("</g>")
         }
@@ -134,6 +134,3 @@ private func _pieR(_ n: Double) -> String {
     return String(format: "%.1f", rounded)
 }
 
-private func _escapePieXml(_ text: String) -> String {
-    SVG.escapeText(text)
-}

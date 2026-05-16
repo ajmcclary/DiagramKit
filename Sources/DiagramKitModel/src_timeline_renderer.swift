@@ -41,10 +41,10 @@ private func _renderTimelineSvg(
 
     // Accessibility
     if let accTitle = diagram.accTitle, !accTitle.isEmpty {
-        parts.append("<title>\(_tescapeXml(accTitle))</title>")
+        parts.append("<title>\(SVG.escapeText(accTitle))</title>")
     }
     if let accDescr = diagram.accDescr, !accDescr.isEmpty {
-        parts.append("<desc>\(_tescapeXml(accDescr))</desc>")
+        parts.append("<desc>\(SVG.escapeText(accDescr))</desc>")
     }
 
     // Defs with arrowhead marker, gradient, and drop-shadow
@@ -208,7 +208,7 @@ private func _renderTimelineSvg(
 
     // Title
     if let title = diagram.title, !title.text.isEmpty {
-        let escapedTitle = _tescapeXml(title.text)
+        let escapedTitle = SVG.escapeText(title.text)
         parts.append("""
         <text x="\(_tfmt(title.x))" y="\(_tfmt(title.y))" font-size="4ex" font-weight="bold" fill="var(--fg, #000)">\(escapedTitle)</text>
         """)
@@ -234,10 +234,6 @@ private func _tfmt(_ value: Double) -> String {
     return String(format: "%.1f", value)
 }
 
-private func _tescapeXml(_ text: String) -> String {
-    SVG.escapeText(text)
-}
-
 private func _trenderTimelineLabel(
     _ text: String,
     x: Double,
@@ -254,7 +250,7 @@ private func _trenderTimelineLabel(
     if normalizedPlacement == "old" {
         let joined = lines.joined(separator: " ")
         return """
-        <text x="\(_tfmt(x + width / 2))" y="\(_tfmt(y + height / 2))" text-anchor="middle" dominant-baseline="central" fill="\(_tescapeXml(fill))" font-size="\(_tfmt(fontSize))" font-family="\(_tescapeXml(fontFamily))">\(_tescapeXml(joined))</text>
+        <text x="\(_tfmt(x + width / 2))" y="\(_tfmt(y + height / 2))" text-anchor="middle" dominant-baseline="central" fill="\(SVG.escapeText(fill))" font-size="\(_tfmt(fontSize))" font-family="\(SVG.escapeText(fontFamily))">\(SVG.escapeText(joined))</text>
         """
     }
 
@@ -271,10 +267,10 @@ private func _trenderTimelineLabel(
         return fallback
     }
 
-    let html = lines.map(_tescapeXml).joined(separator: "<br/>")
+    let html = lines.map(SVG.escapeText).joined(separator: "<br/>")
     return """
     <switch>
-    <foreignObject x="\(_tfmt(x))" y="\(_tfmt(y))" width="\(_tfmt(width))" height="\(_tfmt(height))" position="fixed"><div xmlns="http://www.w3.org/1999/xhtml" class="label" style="display:table;width:100%;height:100%;text-align:center;font-size:\(_tfmt(fontSize))px;font-family:\(_tescapeXml(fontFamily));color:\(_tescapeXml(fill))"><div style="display:table-cell;vertical-align:middle">\(html)</div></div></foreignObject>
+    <foreignObject x="\(_tfmt(x))" y="\(_tfmt(y))" width="\(_tfmt(width))" height="\(_tfmt(height))" position="fixed"><div xmlns="http://www.w3.org/1999/xhtml" class="label" style="display:table;width:100%;height:100%;text-align:center;font-size:\(_tfmt(fontSize))px;font-family:\(SVG.escapeText(fontFamily));color:\(SVG.escapeText(fill))"><div style="display:table-cell;vertical-align:middle">\(html)</div></div></foreignObject>
     \(fallback)
     </switch>
     """
@@ -291,10 +287,10 @@ private func _trenderTimelineTspans(
     let lineHeight = max(1, fontSize * 1.2)
     let startY = centerY - (Double(lines.count - 1) * lineHeight / 2)
     let tspanText = lines.enumerated().map { index, line in
-        "<tspan x=\"\(_tfmt(centerX))\" y=\"\(_tfmt(startY + Double(index) * lineHeight))\">\(_tescapeXml(line))</tspan>"
+        "<tspan x=\"\(_tfmt(centerX))\" y=\"\(_tfmt(startY + Double(index) * lineHeight))\">\(SVG.escapeText(line))</tspan>"
     }.joined()
     return """
-    <text text-anchor="middle" dominant-baseline="central" fill="\(_tescapeXml(fill))" font-size="\(_tfmt(fontSize))" font-family="\(_tescapeXml(fontFamily))">\(tspanText)</text>
+    <text text-anchor="middle" dominant-baseline="central" fill="\(SVG.escapeText(fill))" font-size="\(_tfmt(fontSize))" font-family="\(SVG.escapeText(fontFamily))">\(tspanText)</text>
     """
 }
 

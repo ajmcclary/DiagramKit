@@ -14,10 +14,10 @@ public func renderRadarSvg(
     parts.append(_radarSvgOpenTag(positioned, colors: colors, transparent: transparent, font: font))
 
     if let accTitle = positioned.accTitle {
-        parts.append("<title>\(_escapeRadarXml(accTitle))</title>")
+        parts.append("<title>\(SVG.escapeText(accTitle))</title>")
     }
     if let accDescr = positioned.accDescr {
-        parts.append("<desc>\(_escapeRadarXml(accDescr))</desc>")
+        parts.append("<desc>\(SVG.escapeText(accDescr))</desc>")
     }
 
     parts.append(_radarStyleBlock(effectiveTheme, includeLegend: positioned.showLegend))
@@ -26,7 +26,7 @@ public func renderRadarSvg(
 
     if let title = positioned.title {
         parts.append(
-            #"<text class="radarTitle" x="\#(_rN(title.x))" y="\#(_rN(title.y))" dominant-baseline="hanging" text-anchor="middle">\#(_escapeRadarXml(title.text))</text>"#
+            #"<text class="radarTitle" x="\#(_rN(title.x))" y="\#(_rN(title.y))" dominant-baseline="hanging" text-anchor="middle">\#(SVG.escapeText(title.text))</text>"#
         )
     }
 
@@ -52,7 +52,7 @@ public func renderRadarSvg(
 
     for label in positioned.axisLabels {
         parts.append(
-            #"<text class="radarAxisLabel" x="\#(_rN(label.x))" y="\#(_rN(label.y))" dominant-baseline="middle" text-anchor="middle">\#(_escapeRadarXml(label.text))</text>"#
+            #"<text class="radarAxisLabel" x="\#(_rN(label.x))" y="\#(_rN(label.y))" dominant-baseline="middle" text-anchor="middle">\#(SVG.escapeText(label.text))</text>"#
         )
     }
 
@@ -71,7 +71,7 @@ public func renderRadarSvg(
         for item in positioned.legendItems {
             parts.append(#"<g transform="translate(\#(_rN(item.x)), \#(_rN(item.y)))">"#)
             parts.append(#"<rect class="radarLegendBox-\#(item.index)" width="\#(_rN(item.boxSize))" height="\#(_rN(item.boxSize))"/>"#)
-            parts.append(#"<text class="radarLegendText" x="16" y="0" dominant-baseline="hanging" text-anchor="start">\#(_escapeRadarXml(item.label))</text>"#)
+            parts.append(#"<text class="radarLegendText" x="16" y="0" dominant-baseline="hanging" text-anchor="start">\#(SVG.escapeText(item.label))</text>"#)
             parts.append("</g>")
         }
     }
@@ -124,10 +124,6 @@ private func _radarSvgOpenTag(
 }
 
 // MARK: - XML escaping and number formatting
-
-private func _escapeRadarXml(_ text: String) -> String {
-    SVG.escapeText(text)
-}
 
 private func _rN(_ n: Double) -> String {
     let rounded = (n * 10).rounded() / 10

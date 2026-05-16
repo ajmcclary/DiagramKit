@@ -1,12 +1,6 @@
 import Foundation
 import DiagramKitCommon
 
-// MARK: - SVG Escape
-
-public func _gitGraphEscapeXml(_ text: String) -> String {
-    SVG.escapeText(text)
-}
-
 private let _gitGraphFallbackBranchColors = [
     "#2f80ed", "#27ae60", "#f2994a", "#eb5757",
     "#9b51e0", "#00acc1", "#8d6e63", "#607d8b",
@@ -193,10 +187,10 @@ public func renderGitGraphSvg(_ positioned: PositionedGitGraphDiagram, diagramId
     svg += "<svg id=\"gitgraph-\(svgId)\" viewBox=\"\(vb)\" width=\"\(Int(positioned.width))\" height=\"\(Int(positioned.height))\" xmlns=\"http://www.w3.org/2000/svg\">\n"
 
     if let accTitle = positioned.accTitle, !accTitle.isEmpty {
-        svg += "  <title>\(_gitGraphEscapeXml(accTitle))</title>\n"
+        svg += "  <title>\(SVG.escapeText(accTitle))</title>\n"
     }
     if let accDescr = positioned.accDescr, !accDescr.isEmpty {
-        svg += "  <desc>\(_gitGraphEscapeXml(accDescr))</desc>\n"
+        svg += "  <desc>\(SVG.escapeText(accDescr))</desc>\n"
     }
 
     // CSS style block
@@ -212,8 +206,8 @@ public func renderGitGraphSvg(_ positioned: PositionedGitGraphDiagram, diagramId
 
     // Gradient defs for neo look
     if themeConfig.useGradient && useNeoColorGen {
-        let gradStart = _gitGraphEscapeXml(themeConfig.gradientStart ?? "#ffffff")
-        let gradStop = _gitGraphEscapeXml(themeConfig.gradientStop ?? "#000000")
+        let gradStart = SVG.escapeText(themeConfig.gradientStart ?? "#ffffff")
+        let gradStop = SVG.escapeText(themeConfig.gradientStop ?? "#000000")
         svg += "  <defs>\n"
         svg += "    <linearGradient id=\"\(svgId)-gradient\" gradientUnits=\"objectBoundingBox\" x1=\"0%\" y1=\"0%\" x2=\"100%\" y2=\"0%\">\n"
         svg += "      <stop offset=\"0%\" stop-color=\"\(gradStart)\" stop-opacity=\"1\" />\n"
@@ -225,7 +219,7 @@ public func renderGitGraphSvg(_ positioned: PositionedGitGraphDiagram, diagramId
     // Drop-shadow filter for neo+redux
     let hasDropShadow = isNeo && useReduxGeometry
     if hasDropShadow {
-        let filterColor = _gitGraphEscapeXml(_gitGraphResolved(themeConfig.filterColor ?? "", fallback: "#000000"))
+        let filterColor = SVG.escapeText(_gitGraphResolved(themeConfig.filterColor ?? "", fallback: "#000000"))
         svg += "  <defs>\n"
         svg += "    <filter id=\"\(svgId)-drop-shadow\" height=\"130%\" width=\"130%\">\n"
         svg += "      <feDropShadow dx=\"4\" dy=\"4\" stdDeviation=\"0\" flood-opacity=\"0.06\" flood-color=\"\(filterColor)\" />\n"
@@ -254,9 +248,9 @@ public func renderGitGraphSvg(_ positioned: PositionedGitGraphDiagram, diagramId
             let cx = commit.x
             let cy = commit.y
             let colorClass = "commit \(commit.id) commit\(commit.colorIndex)"
-            let branchColor = _gitGraphEscapeXml(_gitGraphBranchColor(themeConfig, commit.colorIndex))
-            let inverseColor = isDark ? "#000000" : (_gitGraphEscapeXml(_gitGraphInverseColor(themeConfig, commit.colorIndex)))
-            let borderColor = _gitGraphEscapeXml(_gitGraphResolved(themeConfig.nodeBorder, fallback: branchColor))
+            let branchColor = SVG.escapeText(_gitGraphBranchColor(themeConfig, commit.colorIndex))
+            let inverseColor = isDark ? "#000000" : (SVG.escapeText(_gitGraphInverseColor(themeConfig, commit.colorIndex)))
+            let borderColor = SVG.escapeText(_gitGraphResolved(themeConfig.nodeBorder, fallback: branchColor))
             let effectiveType = commit.customType ?? commit.type
             let typeClass: String
             switch commit.type {
@@ -305,11 +299,11 @@ public func renderGitGraphSvg(_ positioned: PositionedGitGraphDiagram, diagramId
             let showLabelConfig = positioned.config.showCommitLabel
             for commit in positioned.commits {
                 if showLabelConfig && commit.showLabel {
-                    let labelText = _gitGraphEscapeXml(commit.id)
+                    let labelText = SVG.escapeText(commit.id)
                     let labelLen = Double(labelText.count) * 4
-                    let textColor = _gitGraphEscapeXml(_gitGraphResolved(themeConfig.commitLabelColor, fallback: "#333333"))
-                    let background = _gitGraphEscapeXml(_gitGraphResolved(themeConfig.commitLabelBackground, fallback: "#f2f2f2"))
-                    let fontSize = _gitGraphEscapeXml(_gitGraphResolved(themeConfig.commitLabelFontSize, fallback: "12"))
+                    let textColor = SVG.escapeText(_gitGraphResolved(themeConfig.commitLabelColor, fallback: "#333333"))
+                    let background = SVG.escapeText(_gitGraphResolved(themeConfig.commitLabelBackground, fallback: "#f2f2f2"))
+                    let fontSize = SVG.escapeText(_gitGraphResolved(themeConfig.commitLabelFontSize, fallback: "12"))
                     if isVertical {
                         let lx = commit.x - labelLen * 2 - 20
                         let ly = commit.y
@@ -329,12 +323,12 @@ public func renderGitGraphSvg(_ positioned: PositionedGitGraphDiagram, diagramId
                 }
 
                 guard !commit.tags.isEmpty else { continue }
-                let tagTextColor = _gitGraphEscapeXml(_gitGraphResolved(themeConfig.tagLabelColor, fallback: "#333333"))
-                let tagBackground = _gitGraphEscapeXml(_gitGraphResolved(themeConfig.tagLabelBackground, fallback: "#eeeeee"))
-                let tagBorder = _gitGraphEscapeXml(_gitGraphResolved(themeConfig.tagLabelBorder, fallback: "#777777"))
-                let tagFontSize = _gitGraphEscapeXml(_gitGraphResolved(themeConfig.tagLabelFontSize, fallback: "10"))
+                let tagTextColor = SVG.escapeText(_gitGraphResolved(themeConfig.tagLabelColor, fallback: "#333333"))
+                let tagBackground = SVG.escapeText(_gitGraphResolved(themeConfig.tagLabelBackground, fallback: "#eeeeee"))
+                let tagBorder = SVG.escapeText(_gitGraphResolved(themeConfig.tagLabelBorder, fallback: "#777777"))
+                let tagFontSize = SVG.escapeText(_gitGraphResolved(themeConfig.tagLabelFontSize, fallback: "10"))
                 for (tagIndex, rawTag) in commit.tags.reversed().enumerated() {
-                    let tagText = _gitGraphEscapeXml(rawTag)
+                    let tagText = SVG.escapeText(rawTag)
                     let tagWidth = Double(max(rawTag.count, 1)) * 7 + 22
                     let tagHeight: Double = 16
                     if isVertical {
@@ -373,7 +367,7 @@ public func renderGitGraphSvg(_ positioned: PositionedGitGraphDiagram, diagramId
                     pathStr += i == 0 ? "M \(from.x) \(from.y) A \(rx) \(ry) \(xRot) \(large ? 1 : 0) \(sweep ? 1 : 0) \(to.x) \(to.y)" : " A \(rx) \(ry) \(xRot) \(large ? 1 : 0) \(sweep ? 1 : 0) \(to.x) \(to.y)"
                 }
             }
-            let stroke = _gitGraphEscapeXml(_gitGraphBranchColor(themeConfig, arrow.colorIndex))
+            let stroke = SVG.escapeText(_gitGraphBranchColor(themeConfig, arrow.colorIndex))
             lines.append("<path d=\"\(pathStr)\" class=\"arrow \(arrow.arrowClass) branch\" fill=\"none\" stroke=\"\(stroke)\" stroke-width=\"2\" marker-end=\"url(#arrowhead-\(svgId))\" />")
         }
         return lines
@@ -384,7 +378,7 @@ public func renderGitGraphSvg(_ positioned: PositionedGitGraphDiagram, diagramId
     if positioned.config.showBranches {
         var branchLinesStr = ""
         for bl in positioned.branchLines {
-            let stroke = _gitGraphEscapeXml(_gitGraphBranchColor(themeConfig, bl.colorIndex))
+            let stroke = SVG.escapeText(_gitGraphBranchColor(themeConfig, bl.colorIndex))
             branchLinesStr += "<line x1=\"\(bl.x1)\" y1=\"\(bl.y1)\" x2=\"\(bl.x2)\" y2=\"\(bl.y2)\" class=\"branch branch\(bl.colorIndex)\" stroke=\"\(stroke)\" stroke-width=\"1\" stroke-dasharray=\"\(useNeoColorGen ? "4,2" : "2")\" />\n"
         }
         svg += branchLinesStr
@@ -403,10 +397,10 @@ public func renderGitGraphSvg(_ positioned: PositionedGitGraphDiagram, diagramId
                 } else {
                     dy = "1.1em"
                 }
-                textContent += "<tspan x=\"0\" dy=\"\(dy)\">\(_gitGraphEscapeXml(line))</tspan>"
+                textContent += "<tspan x=\"0\" dy=\"\(dy)\">\(SVG.escapeText(line))</tspan>"
             }
-            let labelFill = _gitGraphEscapeXml(_gitGraphBranchLabelColor(themeConfig, bl.colorIndex))
-            let textFill = _gitGraphEscapeXml(_gitGraphResolved(themeConfig.labelTextColor, fallback: "#ffffff"))
+            let labelFill = SVG.escapeText(_gitGraphBranchLabelColor(themeConfig, bl.colorIndex))
+            let textFill = SVG.escapeText(_gitGraphResolved(themeConfig.labelTextColor, fallback: "#ffffff"))
             let useRedux = useReduxGeometry
             let filterStyle: String
             if isLookNeo {
@@ -424,8 +418,8 @@ public func renderGitGraphSvg(_ positioned: PositionedGitGraphDiagram, diagramId
 
     // Title
     if let title = positioned.title {
-        let escText = _gitGraphEscapeXml(title.text)
-        let titleColor = _gitGraphEscapeXml(_gitGraphResolved(themeConfig.textColor, fallback: "#333333"))
+        let escText = SVG.escapeText(title.text)
+        let titleColor = SVG.escapeText(_gitGraphResolved(themeConfig.textColor, fallback: "#333333"))
         svg += "<text x=\"\(title.x)\" y=\"\(title.y)\" class=\"gitTitleText\" text-anchor=\"middle\" font-size=\"18\" fill=\"\(titleColor)\">\(escText)</text>\n"
     }
 

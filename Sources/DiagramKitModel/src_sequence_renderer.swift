@@ -267,23 +267,23 @@ private func _markerId(for arrowType: SequenceArrowType) -> String? {
 // MARK: - Title
 
 private func _renderTitle(_ title: String, width: Double) -> String {
-    "<text x=\"\(width / 2)\" y=\"18\" text-anchor=\"middle\" font-size=\"16\" font-weight=\"600\" fill=\"var(--_text)\">\(escapeXml(title))</text>"
+    "<text x=\"\(width / 2)\" y=\"18\" text-anchor=\"middle\" font-size=\"16\" font-weight=\"600\" fill=\"var(--_text)\">\(SVG.escapeText(title))</text>"
 }
 
 // MARK: - Rect Highlight
 
 private func _renderRectHighlight(_ rect: PositionedRectHighlight) -> String {
-    "<rect class=\"rect-highlight\" x=\"\(rect.x)\" y=\"\(rect.y)\" width=\"\(max(rect.width, 0))\" height=\"\(max(rect.height, 0))\" fill=\"\(escapeAttr(rect.fill))\" stroke=\"none\" />"
+    "<rect class=\"rect-highlight\" x=\"\(rect.x)\" y=\"\(rect.y)\" width=\"\(max(rect.width, 0))\" height=\"\(max(rect.height, 0))\" fill=\"\(SVG.escapeAttribute(rect.fill))\" stroke=\"none\" />"
 }
 
 // MARK: - Box
 
 private func _renderBox(_ box: PositionedSequenceBox) -> String {
     var parts: [String] = []
-    parts.append("<g class=\"box\" data-id=\"\(escapeAttr(box.id))\">")
-    parts.append("  <rect x=\"\(box.x)\" y=\"\(box.y)\" width=\"\(box.width)\" height=\"\(box.height)\" fill=\"\(escapeAttr(box.fill))\" fill-opacity=\"0.1\" stroke=\"\(escapeAttr(box.fill))\" stroke-width=\"1\" stroke-dasharray=\"6 4\" rx=\"4\" ry=\"4\" />")
+    parts.append("<g class=\"box\" data-id=\"\(SVG.escapeAttribute(box.id))\">")
+    parts.append("  <rect x=\"\(box.x)\" y=\"\(box.y)\" width=\"\(box.width)\" height=\"\(box.height)\" fill=\"\(SVG.escapeAttribute(box.fill))\" fill-opacity=\"0.1\" stroke=\"\(SVG.escapeAttribute(box.fill))\" stroke-width=\"1\" stroke-dasharray=\"6 4\" rx=\"4\" ry=\"4\" />")
     if let name = box.name, !name.isEmpty {
-        parts.append("  <text x=\"\(box.x + 6)\" y=\"\(box.y + 14)\" font-size=\"12\" font-weight=\"500\" fill=\"var(--_text-muted)\">\(escapeXml(name))</text>")
+        parts.append("  <text x=\"\(box.x + 6)\" y=\"\(box.y + 14)\" font-size=\"12\" font-weight=\"500\" fill=\"var(--_text-muted)\">\(SVG.escapeText(name))</text>")
     }
     parts.append("</g>")
     return parts.joined(separator: "\n")
@@ -307,13 +307,13 @@ private func _renderPopup(_ actor: PositionedSequenceActor, index: Int, forceMen
     let menuX = actor.x - menuWidth / 2
     let menuY = actor.y + actor.height + 6
 
-    parts.append("<g class=\"popup\" id=\"\(popId)\" visibility=\"\(vis)\" data-actors=\"\(escapeAttr(actor.id))\">")
+    parts.append("<g class=\"popup\" id=\"\(popId)\" visibility=\"\(vis)\" data-actors=\"\(SVG.escapeAttribute(actor.id))\">")
     parts.append("  <rect x=\"\(menuX)\" y=\"\(menuY)\" width=\"\(menuWidth)\" height=\"\(menuHeight)\" fill=\"var(--_node-fill)\" stroke=\"var(--_node-stroke)\" stroke-width=\"1\" rx=\"4\" ry=\"4\" />")
 
     var linkY = menuY + 14
     for (label, url) in links.sorted(by: { $0.key < $1.key }) {
-        parts.append("  <a xlink:href=\"\(escapeAttr(url))\" target=\"_blank\">")
-        parts.append("    <text x=\"\(menuX + 12)\" y=\"\(linkY)\" font-size=\"10\" fill=\"var(--_text-muted)\">\(escapeXml(label))</text>")
+        parts.append("  <a xlink:href=\"\(SVG.escapeAttribute(url))\" target=\"_blank\">")
+        parts.append("    <text x=\"\(menuX + 12)\" y=\"\(linkY)\" font-size=\"10\" fill=\"var(--_text-muted)\">\(SVG.escapeText(label))</text>")
         parts.append("  </a>")
         linkY += lineHeight
     }
@@ -334,15 +334,15 @@ private func _renderActor(_ actor: PositionedSequenceActor, index: Int) -> Strin
     let hasLinks = !actor.links.isEmpty
 
     var parts: [String] = []
-    var dataAttrs = "data-id=\"\(escapeAttr(actor.id))\" data-label=\"\(escapeAttr(label))\" data-type=\"\(escapeAttr(pType.rawValue))\""
+    var dataAttrs = "data-id=\"\(SVG.escapeAttribute(actor.id))\" data-label=\"\(SVG.escapeAttribute(label))\" data-type=\"\(SVG.escapeAttribute(pType.rawValue))\""
     for (key, url) in actor.links.sorted(by: { $0.key < $1.key }) {
-        dataAttrs += " data-link-\(escapeAttr(key))=\"\(escapeAttr(url))\""
+        dataAttrs += " data-link-\(SVG.escapeAttribute(key))=\"\(SVG.escapeAttribute(url))\""
     }
     for (key, value) in actor.properties.sorted(by: { $0.key < $1.key }) {
-        dataAttrs += " data-prop-\(escapeAttr(key))=\"\(escapeAttr(value))\""
+        dataAttrs += " data-prop-\(SVG.escapeAttribute(key))=\"\(SVG.escapeAttribute(value))\""
     }
     if let detailsId = actor.detailsElementId {
-        dataAttrs += " data-details=\"\(escapeAttr(detailsId))\""
+        dataAttrs += " data-details=\"\(SVG.escapeAttribute(detailsId))\""
     }
     let interactive = hasLinks ? " onclick=\"popupMenuToggle('actor\(index)_popup')\" cursor=\"pointer\"" : ""
     parts.append("<g class=\"actor\"\(dataAttrs)\(interactive)>")
@@ -421,13 +421,13 @@ private func _renderActor(_ actor: PositionedSequenceActor, index: Int) -> Strin
 // MARK: - Lifeline
 
 private func _renderLifeline(_ lifeline: SequenceLifeline) -> String {
-    "<line class=\"lifeline actor-line\" data-actor=\"\(escapeAttr(lifeline.actorId))\" x1=\"\(lifeline.x)\" y1=\"\(lifeline.topY)\" x2=\"\(lifeline.x)\" y2=\"\(lifeline.bottomY)\" stroke=\"var(--_line)\" stroke-width=\"0.75\" stroke-dasharray=\"6 4\" />"
+    "<line class=\"lifeline actor-line\" data-actor=\"\(SVG.escapeAttribute(lifeline.actorId))\" x1=\"\(lifeline.x)\" y1=\"\(lifeline.topY)\" x2=\"\(lifeline.x)\" y2=\"\(lifeline.bottomY)\" stroke=\"var(--_line)\" stroke-width=\"0.75\" stroke-dasharray=\"6 4\" />"
 }
 
 // MARK: - Activation
 
 private func _renderActivation(_ activation: SequenceActivation, altClass: String = "") -> String {
-    "<rect class=\"activation\(altClass)\" data-actor=\"\(escapeAttr(activation.actorId))\" x=\"\(activation.x)\" y=\"\(activation.topY)\" width=\"\(activation.width)\" height=\"\(max(0, activation.bottomY - activation.topY))\" fill=\"var(--_node-fill)\" stroke=\"var(--_node-stroke)\" stroke-width=\"\(original_src_styles.STROKE_WIDTHS.innerBox)\" />"
+    "<rect class=\"activation\(altClass)\" data-actor=\"\(SVG.escapeAttribute(activation.actorId))\" x=\"\(activation.x)\" y=\"\(activation.topY)\" width=\"\(activation.width)\" height=\"\(max(0, activation.bottomY - activation.topY))\" fill=\"var(--_node-fill)\" stroke=\"var(--_node-stroke)\" stroke-width=\"\(original_src_styles.STROKE_WIDTHS.innerBox)\" />"
 }
 
 // MARK: - Message
@@ -442,7 +442,7 @@ private func _renderMessage(_ msg: PositionedSequenceMessage, index: Int = 0) ->
     _ = style.isBidirectional
     let lineClass = "messageLine\(index % 2)"
 
-    parts.append("<g class=\"message\" data-from=\"\(escapeAttr(msg.from))\" data-to=\"\(escapeAttr(msg.to))\" data-label=\"\(escapeAttr(msg.label))\" data-arrow-type=\"\(escapeAttr(String(msg.arrowType.rawValue)))\" data-self=\"\(msg.isSelf)\">")
+    parts.append("<g class=\"message\" data-from=\"\(SVG.escapeAttribute(msg.from))\" data-to=\"\(SVG.escapeAttribute(msg.to))\" data-label=\"\(SVG.escapeAttribute(msg.label))\" data-arrow-type=\"\(SVG.escapeAttribute(String(msg.arrowType.rawValue)))\" data-self=\"\(msg.isSelf)\">")
 
     // Sequence number
     if msg.sequenceVisible, let num = msg.sequenceNumber {
@@ -483,8 +483,8 @@ private func _renderMessage(_ msg: PositionedSequenceMessage, index: Int = 0) ->
 
 private func _renderBlock(_ block: PositionedSequenceBlock) -> String {
     var parts: [String] = []
-    let labelAttr = block.label.isEmpty ? "" : " data-label=\"\(escapeAttr(block.label))\""
-    parts.append("<g class=\"block\" data-type=\"\(escapeAttr(block.type))\"\(labelAttr)>")
+    let labelAttr = block.label.isEmpty ? "" : " data-label=\"\(SVG.escapeAttribute(block.label))\""
+    parts.append("<g class=\"block\" data-type=\"\(SVG.escapeAttribute(block.type))\"\(labelAttr)>")
     parts.append("<rect class=\"loopLine\" x=\"\(block.x)\" y=\"\(block.y)\" width=\"\(block.width)\" height=\"\(block.height)\" rx=\"0\" ry=\"0\" fill=\"none\" stroke=\"var(--_node-stroke)\" stroke-width=\"\(original_src_styles.STROKE_WIDTHS.outerBox)\" />")
 
     let labelText = block.label.isEmpty ? block.type : "\(block.type) [\(block.label)]"
@@ -510,8 +510,8 @@ private func _renderBlock(_ block: PositionedSequenceBlock) -> String {
 
 private func _renderNote(_ note: PositionedSequenceNote) -> String {
     let foldSize = 6.0
-    let actorsAttr = note.actors.isEmpty ? "" : " data-actors=\"\(note.actors.map(escapeAttr).joined(separator: ","))\""
-    let positionAttr = note.position.isEmpty ? "" : " data-position=\"\(escapeAttr(note.position))\""
+    let actorsAttr = note.actors.isEmpty ? "" : " data-actors=\"\(note.actors.map(SVG.escapeAttribute).joined(separator: ","))\""
+    let positionAttr = note.position.isEmpty ? "" : " data-position=\"\(SVG.escapeAttribute(note.position))\""
 
     let noteText = _textEl(note.text, cx: note.x + note.width / 2, cy: note.y + note.height / 2, fontSize: original_src_styles.FONT_SIZES.edgeLabel, anchor: "middle", cls: "noteText")
 
@@ -526,18 +526,9 @@ private func _renderNote(_ note: PositionedSequenceNote) -> String {
 
 private func _textEl(_ text: String, cx: Double, cy: Double, fontSize: Double, anchor: String, cls: String, weight: Int? = nil) -> String {
     let w = weight.map { " font-weight=\"\($0)\"" } ?? ""
-    return "<text class=\"\(cls)\" x=\"\(cx)\" y=\"\(cy)\" font-size=\"\(fontSize)\" text-anchor=\"\(anchor)\" fill=\"var(--_text-muted)\"\(w)>\(escapeXml(text))</text>"
+    return "<text class=\"\(cls)\" x=\"\(cx)\" y=\"\(cy)\" font-size=\"\(fontSize)\" text-anchor=\"\(anchor)\" fill=\"var(--_text-muted)\"\(w)>\(SVG.escapeText(text))</text>"
 }
 
-// MARK: - XML helpers
-
-private func escapeXml(_ value: String) -> String {
-    SVG.escapeText(value)
-}
-
-private func escapeAttr(_ value: String) -> String {
-    SVG.escapeAttribute(value)
-}
 
 // MARK: - Legacy class
 

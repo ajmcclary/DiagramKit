@@ -159,21 +159,21 @@ private func _renderClassBox(_ cls: PositionedClassNode, securityLevel: String? 
     let cssClasses = cls.cssClasses.map { " \($0)" } ?? ""
     let styleAttr = cls.styles.map { " style=\"\($0.joined(separator: ";"))\"" } ?? ""
     let parsedStyle = _parseClassSvgStyle(cls.styles)
-    let boxFill = parsedStyle.fill.map(_escapeAttr) ?? "var(--_node-fill)"
-    let headerFill = parsedStyle.fill.map(_escapeAttr) ?? "var(--_group-hdr)"
-    let boxStroke = parsedStyle.stroke.map(_escapeAttr) ?? "var(--_node-stroke)"
-    let boxStrokeWidth = parsedStyle.strokeWidth.map(_escapeAttr) ?? "\(original_src_styles.STROKE_WIDTHS.outerBox)"
-    let dividerStrokeWidth = parsedStyle.strokeWidth.map(_escapeAttr) ?? "\(original_src_styles.STROKE_WIDTHS.innerBox)"
-    let dashAttr = parsedStyle.strokeDasharray.map { " stroke-dasharray=\"\(_escapeAttr($0))\"" } ?? ""
-    let textFill = parsedStyle.color.map(_escapeAttr) ?? "var(--_text)"
+    let boxFill = parsedStyle.fill.map(SVG.escapeAttribute) ?? "var(--_node-fill)"
+    let headerFill = parsedStyle.fill.map(SVG.escapeAttribute) ?? "var(--_group-hdr)"
+    let boxStroke = parsedStyle.stroke.map(SVG.escapeAttribute) ?? "var(--_node-stroke)"
+    let boxStrokeWidth = parsedStyle.strokeWidth.map(SVG.escapeAttribute) ?? "\(original_src_styles.STROKE_WIDTHS.outerBox)"
+    let dividerStrokeWidth = parsedStyle.strokeWidth.map(SVG.escapeAttribute) ?? "\(original_src_styles.STROKE_WIDTHS.innerBox)"
+    let dashAttr = parsedStyle.strokeDasharray.map { " stroke-dasharray=\"\(SVG.escapeAttribute($0))\"" } ?? ""
+    let textFill = parsedStyle.color.map(SVG.escapeAttribute) ?? "var(--_text)"
 
     let isSandbox = securityLevel?.lowercased() == "sandbox" || securityLevel?.lowercased() == "strict"
-    let linkAttr = (!isSandbox && cls.link != nil) ? " data-link=\"\(_escapeAttr(cls.link!))\"" : ""
-    let linkTargetAttr = (!isSandbox && cls.linkTarget != nil) ? " data-link-target=\"\(_escapeAttr(cls.linkTarget!))\"" : ""
-    let tooltipAttr = (!isSandbox && cls.tooltip != nil) ? " data-tooltip=\"\(_escapeAttr(cls.tooltip!))\"" : ""
+    let linkAttr = (!isSandbox && cls.link != nil) ? " data-link=\"\(SVG.escapeAttribute(cls.link!))\"" : ""
+    let linkTargetAttr = (!isSandbox && cls.linkTarget != nil) ? " data-link-target=\"\(SVG.escapeAttribute(cls.linkTarget!))\"" : ""
+    let tooltipAttr = (!isSandbox && cls.tooltip != nil) ? " data-tooltip=\"\(SVG.escapeAttribute(cls.tooltip!))\"" : ""
 
     parts.append(
-        "<g class=\"class-node\(cssClasses)\" data-id=\"\(_escapeAttr(cls.id))\" data-label=\"\(_escapeAttr(cls.label))\"\(linkAttr)\(linkTargetAttr)\(tooltipAttr)\(styleAttr)>"
+        "<g class=\"class-node\(cssClasses)\" data-id=\"\(SVG.escapeAttribute(cls.id))\" data-label=\"\(SVG.escapeAttribute(cls.label))\"\(linkAttr)\(linkTargetAttr)\(tooltipAttr)\(styleAttr)>"
     )
 
     // Full box
@@ -294,17 +294,17 @@ private func _renderRelationship(_ rel: PositionedClassRelationship) -> String {
 
     var dataAttrs: [String] = [
         "class=\"class-relationship\"",
-        "data-from=\"\(_escapeAttr(rel.from))\"",
-        "data-to=\"\(_escapeAttr(rel.to))\"",
+        "data-from=\"\(SVG.escapeAttribute(rel.from))\"",
+        "data-to=\"\(SVG.escapeAttribute(rel.to))\"",
     ]
     if let title = rel.title, !title.isEmpty {
-        dataAttrs.append("data-label=\"\(_escapeAttr(title))\"")
+        dataAttrs.append("data-label=\"\(SVG.escapeAttribute(title))\"")
     }
     if let rt1 = rel.relationTitle1, !rt1.isEmpty {
-        dataAttrs.append("data-title1=\"\(_escapeAttr(rt1))\"")
+        dataAttrs.append("data-title1=\"\(SVG.escapeAttribute(rt1))\"")
     }
     if let rt2 = rel.relationTitle2, !rt2.isEmpty {
-        dataAttrs.append("data-title2=\"\(_escapeAttr(rt2))\"")
+        dataAttrs.append("data-title2=\"\(SVG.escapeAttribute(rt2))\"")
     }
 
     return "<polyline \(dataAttrs.joined(separator: " ")) points=\"\(pathData)\" fill=\"none\" stroke=\"var(--_line)\" " +
@@ -381,7 +381,7 @@ private func _renderRelationshipLabels(_ rel: PositionedClassRelationship) -> St
 private func _renderNamespace(_ ns: PositionedClassNamespace) -> String {
     var parts: [String] = []
 
-    parts.append("<g class=\"class-namespace\" data-id=\"\(_escapeAttr(ns.id))\">")
+    parts.append("<g class=\"class-namespace\" data-id=\"\(SVG.escapeAttribute(ns.id))\">")
 
     // Background rect with dashed border
     parts.append(
@@ -418,7 +418,7 @@ private func _renderNamespace(_ ns: PositionedClassNamespace) -> String {
 private func _renderNote(_ note: PositionedClassNote) -> String {
     var parts: [String] = []
 
-    parts.append("<g class=\"class-note\" data-id=\"\(_escapeAttr(note.id))\" data-class=\"\(_escapeAttr(note.classId ?? ""))\">")
+    parts.append("<g class=\"class-note\" data-id=\"\(SVG.escapeAttribute(note.id))\" data-class=\"\(SVG.escapeAttribute(note.classId ?? ""))\">")
 
     // UML note shape: rectangle with folded corner
     let foldSize = 12.0
@@ -493,10 +493,6 @@ private func _cardinalityOffset(from: ClassPoint, to: ClassPoint) -> ClassPoint 
         return ClassPoint(x: dx > 0 ? 14 : -14, y: -10)
     }
     return ClassPoint(x: -14, y: dy > 0 ? 14 : -14)
-}
-
-private func _escapeAttr(_ value: String) -> String {
-    SVG.escapeAttribute(value)
 }
 
 final class original_src_class_renderer {

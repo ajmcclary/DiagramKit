@@ -75,23 +75,23 @@ public func renderSankeySvg(
     parts.append(builder.open(extraAttributes: extraAttrs.joined(separator: " ")))
 
     if let accTitle = positioned.accTitle {
-        parts.append("<title>\(_sankeyEscapeXml(accTitle))</title>")
+        parts.append("<title>\(SVG.escapeText(accTitle))</title>")
     }
     if let accDescr = positioned.accDescr {
-        parts.append("<desc>\(_sankeyEscapeXml(accDescr))</desc>")
+        parts.append("<desc>\(SVG.escapeText(accDescr))</desc>")
     }
 
     parts.append("<style>")
     parts.append("""
     .node rect { shape-rendering: crispEdges; }
-    .node-labels { font-family: \(_sankeyEscapeXml(font)), sans-serif; font-size: 14px; fill: \(_sankeyEscapeXml(colors.fg)); }
+    .node-labels { font-family: \(SVG.escapeText(font)), sans-serif; font-size: 14px; fill: \(SVG.escapeText(colors.fg)); }
     .sankey-label-bg {
-        stroke: \(_sankeyEscapeXml(colors.bg));
+        stroke: \(SVG.escapeText(colors.bg));
         stroke-width: 4px;
         stroke-linejoin: round;
         paint-order: stroke;
     }
-    .sankey-label-fg { fill: \(_sankeyEscapeXml(colors.fg)); }
+    .sankey-label-fg { fill: \(SVG.escapeText(colors.fg)); }
     .link { fill: none; stroke-opacity: 0.5; mix-blend-mode: multiply; }
     """)
     parts.append("</style>")
@@ -111,8 +111,8 @@ public func renderSankeySvg(
             case .gradient:
                 parts.append("<defs>")
                 parts.append(#"<linearGradient id="\#(gradientId)" gradientUnits="userSpaceOnUse" x1="\#(_sankeyFmt(positioned.nodes.first(where: { $0.id == link.sourceID })?.x1 ?? link.path.sourceX))" x2="\#(_sankeyFmt(positioned.nodes.first(where: { $0.id == link.targetID })?.x0 ?? link.path.targetX))">"#)
-                parts.append(#"<stop offset="0%" stop-color="\#(_sankeyEscapeXml(sourceColor))"/>"#)
-                parts.append(#"<stop offset="100%" stop-color="\#(_sankeyEscapeXml(targetColor))"/>"#)
+                parts.append(#"<stop offset="0%" stop-color="\#(SVG.escapeText(sourceColor))"/>"#)
+                parts.append(#"<stop offset="100%" stop-color="\#(SVG.escapeText(targetColor))"/>"#)
                 parts.append("</linearGradient>")
                 parts.append("</defs>")
                 strokeValue = "url(#\(gradientId))"
@@ -125,7 +125,7 @@ public func renderSankeySvg(
             }
 
             parts.append(#"<g class="link" style="mix-blend-mode: multiply;">"#)
-            parts.append(#"<path d="\#(link.path.svgD)" fill="none" stroke="\#(_sankeyEscapeXml(strokeValue))" stroke-width="\#(_sankeyFmt(strokeWidth))" stroke-opacity="0.5"/>"#)
+            parts.append(#"<path d="\#(link.path.svgD)" fill="none" stroke="\#(SVG.escapeText(strokeValue))" stroke-width="\#(_sankeyFmt(strokeWidth))" stroke-opacity="0.5"/>"#)
             parts.append("</g>")
         }
         parts.append("</g>")
@@ -144,7 +144,7 @@ public func renderSankeySvg(
             let nodeWidth = node.x1 - node.x0
 
             parts.append(#"<g class="node" id="\#(nodeId)" transform="translate(\#(_sankeyFmt(node.x0)),\#(_sankeyFmt(node.y0)))" x="\#(_sankeyFmt(node.x0))" y="\#(_sankeyFmt(node.y0)))">"#)
-            parts.append(#"<rect x="0" y="0" width="\#(_sankeyFmt(nodeWidth))" height="\#(_sankeyFmt(nodeHeight))" fill="\#(_sankeyEscapeXml(nodeColor))" shape-rendering="crispEdges"/>"#)
+            parts.append(#"<rect x="0" y="0" width="\#(_sankeyFmt(nodeWidth))" height="\#(_sankeyFmt(nodeHeight))" fill="\#(SVG.escapeText(nodeColor))" shape-rendering="crispEdges"/>"#)
             parts.append("</g>")
         }
         parts.append("</g>")
@@ -169,12 +169,12 @@ public func renderSankeySvg(
                     let labelX = node.x1 + 6
                     let labelY = node.y0 + (node.y1 - node.y0) / 2
                     let dy = positioned.config.showValues ? "0" : "0.35em"
-                    parts.append(#"<text x="\#(_sankeyFmt(labelX))" y="\#(_sankeyFmt(labelY))" dy="\#(dy)" text-anchor="start" fill="\#(_sankeyEscapeXml(colors.fg))">\#(_sankeyEscapeXml(labelText))</text>"#)
+                    parts.append(#"<text x="\#(_sankeyFmt(labelX))" y="\#(_sankeyFmt(labelY))" dy="\#(dy)" text-anchor="start" fill="\#(SVG.escapeText(colors.fg))">\#(SVG.escapeText(labelText))</text>"#)
                 } else {
                     let labelX = node.x0 - 6
                     let labelY = node.y0 + (node.y1 - node.y0) / 2
                     let dy = positioned.config.showValues ? "0" : "0.35em"
-                    parts.append(#"<text x="\#(_sankeyFmt(labelX))" y="\#(_sankeyFmt(labelY))" dy="\#(dy)" text-anchor="end" fill="\#(_sankeyEscapeXml(colors.fg))">\#(_sankeyEscapeXml(labelText))</text>"#)
+                    parts.append(#"<text x="\#(_sankeyFmt(labelX))" y="\#(_sankeyFmt(labelY))" dy="\#(dy)" text-anchor="end" fill="\#(SVG.escapeText(colors.fg))">\#(SVG.escapeText(labelText))</text>"#)
                 }
             case .outlined:
                 let isLeftOfCenter = node.layer < centerLayer
@@ -182,14 +182,14 @@ public func renderSankeySvg(
                     let labelX = node.x0 - 6
                     let labelY = node.y0 + (node.y1 - node.y0) / 2
                     let dy = positioned.config.showValues ? "0" : "0.35em"
-                    parts.append(#"<text class="sankey-label-bg" x="\#(_sankeyFmt(labelX))" y="\#(_sankeyFmt(labelY))" dy="\#(dy)" text-anchor="end">\#(_sankeyEscapeXml(labelText))</text>"#)
-                    parts.append(#"<text class="sankey-label-fg" x="\#(_sankeyFmt(labelX))" y="\#(_sankeyFmt(labelY))" dy="\#(dy)" text-anchor="end">\#(_sankeyEscapeXml(labelText))</text>"#)
+                    parts.append(#"<text class="sankey-label-bg" x="\#(_sankeyFmt(labelX))" y="\#(_sankeyFmt(labelY))" dy="\#(dy)" text-anchor="end">\#(SVG.escapeText(labelText))</text>"#)
+                    parts.append(#"<text class="sankey-label-fg" x="\#(_sankeyFmt(labelX))" y="\#(_sankeyFmt(labelY))" dy="\#(dy)" text-anchor="end">\#(SVG.escapeText(labelText))</text>"#)
                 } else {
                     let labelX = node.x1 + 6
                     let labelY = node.y0 + (node.y1 - node.y0) / 2
                     let dy = positioned.config.showValues ? "0" : "0.35em"
-                    parts.append(#"<text class="sankey-label-bg" x="\#(_sankeyFmt(labelX))" y="\#(_sankeyFmt(labelY))" dy="\#(dy)" text-anchor="start">\#(_sankeyEscapeXml(labelText))</text>"#)
-                    parts.append(#"<text class="sankey-label-fg" x="\#(_sankeyFmt(labelX))" y="\#(_sankeyFmt(labelY))" dy="\#(dy)" text-anchor="start">\#(_sankeyEscapeXml(labelText))</text>"#)
+                    parts.append(#"<text class="sankey-label-bg" x="\#(_sankeyFmt(labelX))" y="\#(_sankeyFmt(labelY))" dy="\#(dy)" text-anchor="start">\#(SVG.escapeText(labelText))</text>"#)
+                    parts.append(#"<text class="sankey-label-fg" x="\#(_sankeyFmt(labelX))" y="\#(_sankeyFmt(labelY))" dy="\#(dy)" text-anchor="start">\#(SVG.escapeText(labelText))</text>"#)
                 }
             }
         }
@@ -209,10 +209,6 @@ private func _sankeyFmt(_ n: Double) -> String {
     }
     if !rounded.isFinite { return "0" }
     return String(format: "%.1f", rounded)
-}
-
-private func _sankeyEscapeXml(_ text: String) -> String {
-    SVG.escapeText(text)
 }
 
 private func _sankeyInjectSvgAttributes(_ svgTag: String, _ attributes: [String]) -> String {

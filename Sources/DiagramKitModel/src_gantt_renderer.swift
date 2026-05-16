@@ -109,7 +109,7 @@ public func renderGanttSvg(
     for tick in positioned.axisTicks {
         let relX = tick.x - config.leftPadding
         svg += "<line x1=\"\(relX)\" x2=\"\(relX)\" y1=\"0\" y2=\"\(gridLineHeight)\"/>\n"
-        svg += "<text x=\"\(relX)\" y=\"15\" dy=\"1em\" text-anchor=\"middle\" fill=\"#000\" stroke=\"none\" font-size=\"10\">\(_escapeXml(tick.label))</text>\n"
+        svg += "<text x=\"\(relX)\" y=\"15\" dy=\"1em\" text-anchor=\"middle\" fill=\"#000\" stroke=\"none\" font-size=\"10\">\(SVG.escapeText(tick.label))</text>\n"
     }
     svg += "</g>\n"
 
@@ -120,7 +120,7 @@ public func renderGanttSvg(
         for tick in topTicks {
             let relX = tick.x - config.leftPadding
             svg += "<line x1=\"\(relX)\" x2=\"\(relX)\" y1=\"0\" y2=\"\(topGridLineHeight)\"/>\n"
-            svg += "<text x=\"\(relX)\" y=\"15\" dy=\"1em\" text-anchor=\"middle\" fill=\"#000\" stroke=\"none\" font-size=\"10\">\(_escapeXml(tick.label))</text>\n"
+            svg += "<text x=\"\(relX)\" y=\"15\" dy=\"1em\" text-anchor=\"middle\" fill=\"#000\" stroke=\"none\" font-size=\"10\">\(SVG.escapeText(tick.label))</text>\n"
         }
         svg += "</g>\n"
     }
@@ -148,11 +148,11 @@ public func renderGanttSvg(
         }
 
         // 5. Task labels
-        let textMarkup = #"<text id="\#(diagramId)-\#(ptask.task.id)-text" class="\#(ptask.labelClass)" x="\#(ptask.labelPoint.x)" y="\#(ptask.labelPoint.y)"\#(interactionAttrs)>\#(_escapeXml(ptask.task.task))</text>"#
+        let textMarkup = #"<text id="\#(diagramId)-\#(ptask.task.id)-text" class="\#(ptask.labelClass)" x="\#(ptask.labelPoint.x)" y="\#(ptask.labelPoint.y)"\#(interactionAttrs)>\#(SVG.escapeText(ptask.task.task))</text>"#
 
         let taskMarkup = rectMarkup + "\n" + textMarkup + "\n"
         if let link = ptask.task.link {
-            svg += #"<a xlink:href="\#(_escapeXml(link))" target="_self">"#
+            svg += #"<a xlink:href="\#(SVG.escapeText(link))" target="_self">"#
             svg += "\n"
             svg += taskMarkup
             svg += "</a>\n"
@@ -171,7 +171,7 @@ public func renderGanttSvg(
 
         for (li, line) in lines.enumerated() {
             let y = startY + Double(li) * lineHeight
-            svg += #"<text class="\#(cls)" x="\#(section.labelPoint.x)" y="\#(y)">\#(_escapeXml(line))</text>"#
+            svg += #"<text class="\#(cls)" x="\#(section.labelPoint.x)" y="\#(y)">\#(SVG.escapeText(line))</text>"#
             svg += "\n"
         }
     }
@@ -181,14 +181,14 @@ public func renderGanttSvg(
         let style = positioned.todayMarkerStyle ?? ""
         svg += #"<g class="today">"#
         svg += "\n"
-        svg += #"<line class="today" x1="\#(todayX)" x2="\#(todayX)" y1="\#(config.titleTopMargin)" y2="\#(h - config.titleTopMargin)" style="\#(_escapeXml(style))"/>"#
+        svg += #"<line class="today" x1="\#(todayX)" x2="\#(todayX)" y1="\#(config.titleTopMargin)" y2="\#(h - config.titleTopMargin)" style="\#(SVG.escapeText(style))"/>"#
         svg += "\n"
         svg += "</g>\n"
     }
 
     // 8. Title
     if let title = positioned.title, !title.isEmpty {
-        svg += #"<text class="titleText" x="\#(w / 2)" y="\#(config.titleTopMargin)">\#(_escapeXml(title))</text>"#
+        svg += #"<text class="titleText" x="\#(w / 2)" y="\#(config.titleTopMargin)">\#(SVG.escapeText(title))</text>"#
         svg += "\n"
     }
 
@@ -198,17 +198,13 @@ public func renderGanttSvg(
 
 // MARK: - Helpers
 
-private func _escapeXml(_ text: String) -> String {
-    SVG.escapeText(text)
-}
-
 private func _interactionAttributes(for task: GanttTask) -> String {
     var attrs: [String] = []
     if let callbackName = task.callbackName, !callbackName.isEmpty {
-        attrs.append(#"data-callback="\#(_escapeXml(callbackName))""#)
+        attrs.append(#"data-callback="\#(SVG.escapeText(callbackName))""#)
     }
     if let callbackArgs = task.callbackArgs, !callbackArgs.isEmpty {
-        attrs.append(#"data-callback-args="\#(_escapeXml(callbackArgs.joined(separator: ",")))""#)
+        attrs.append(#"data-callback-args="\#(SVG.escapeText(callbackArgs.joined(separator: ",")))""#)
     }
     return attrs.isEmpty ? "" : " " + attrs.joined(separator: " ")
 }

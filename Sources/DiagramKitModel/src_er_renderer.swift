@@ -111,7 +111,7 @@ private func _renderErMarkerDefs(_ config: ErDiagramConfig?) -> String {
 }
 
 private func _renderMarkerDef(_ id: String, _ path: String, _ config: ErDiagramConfig?, look: String = "default") -> String {
-    let stroke = _escapeAttr(config?.stroke ?? "var(--_line)")
+    let stroke = SVG.escapeAttribute(config?.stroke ?? "var(--_line)")
     let sw = (look == "neo") ? "2" : "1"
     return """
     <marker id="\(id)Start" viewBox="0 -7 17 14" refX="8.4" refY="0" markerWidth="17" markerHeight="14" orient="auto-start-reverse">
@@ -137,11 +137,11 @@ private func _renderEntityBox(_ entity: PositionedErEntity, _ config: ErDiagramC
     let cssClasses = entity.cssClasses
     let effectiveStyles = _effectiveErStyles(entity)
     let cssStyles = effectiveStyles.joined(separator: "; ")
-    let styleAttr = cssStyles.isEmpty ? "" : " style=\"\(_escapeAttr(cssStyles))\""
+    let styleAttr = cssStyles.isEmpty ? "" : " style=\"\(SVG.escapeAttribute(cssStyles))\""
     let labelFontSize = config?.fontSize ?? original_src_styles.FONT_SIZES.nodeLabel
 
     var parts: [String] = []
-    parts.append("<g class=\"entity \(_escapeAttr(cssClasses))\" data-id=\"\(_escapeAttr(entity.id))\" data-node-id=\"\(_escapeAttr(entity.nodeId))\" data-label=\"\(_escapeAttr(label))\"\(styleAttr)>")
+    parts.append("<g class=\"entity \(SVG.escapeAttribute(cssClasses))\" data-id=\"\(SVG.escapeAttribute(entity.id))\" data-node-id=\"\(SVG.escapeAttribute(entity.nodeId))\" data-label=\"\(SVG.escapeAttribute(label))\"\(styleAttr)>")
 
     // Fill color from styles or default
     let fill = _extractCssValue(effectiveStyles, property: "fill") ?? config?.fill ?? "var(--_node-fill)"
@@ -151,21 +151,21 @@ private func _renderEntityBox(_ entity: PositionedErEntity, _ config: ErDiagramC
 
     parts.append(
         "  <rect x=\"\(x)\" y=\"\(y)\" width=\"\(width)\" height=\"\(height)\" " +
-            "rx=\"0\" ry=\"0\" fill=\"\(_escapeAttr(fill))\" stroke=\"\(_escapeAttr(stroke))\" " +
-            "stroke-width=\"\(_escapeAttr(strokeW))\" />"
+            "rx=\"0\" ry=\"0\" fill=\"\(SVG.escapeAttribute(fill))\" stroke=\"\(SVG.escapeAttribute(stroke))\" " +
+            "stroke-width=\"\(SVG.escapeAttribute(strokeW))\" />"
     )
 
     parts.append(
         "  <rect x=\"\(x)\" y=\"\(y)\" width=\"\(width)\" height=\"\(headerHeight)\" " +
-            "rx=\"0\" ry=\"0\" fill=\"var(--_group-hdr)\" stroke=\"\(_escapeAttr(stroke))\" " +
-            "stroke-width=\"\(_escapeAttr(strokeW))\" />"
+            "rx=\"0\" ry=\"0\" fill=\"var(--_group-hdr)\" stroke=\"\(SVG.escapeAttribute(stroke))\" " +
+            "stroke-width=\"\(SVG.escapeAttribute(strokeW))\" />"
     )
 
     if entity.labelType == "text" {
         // Plain text label — no markdown formatting (htmlLabels: false behavior)
         parts.append(
             "<text x=\"\(x + width / 2)\" y=\"\(y + headerHeight / 2)\" text-anchor=\"middle\" " +
-                "font-size=\"\(labelFontSize)\" font-weight=\"700\" fill=\"\(_escapeAttr(textFill))\" " +
+                "font-size=\"\(labelFontSize)\" font-weight=\"700\" fill=\"\(SVG.escapeAttribute(textFill))\" " +
                 "dy=\"\(original_src_styles.TEXT_BASELINE_SHIFT)\">\(SVG.escapeText(label))</text>"
         )
     } else {
@@ -176,7 +176,7 @@ private func _renderEntityBox(_ entity: PositionedErEntity, _ config: ErDiagramC
                 cy: y + headerHeight / 2,
                 fontSize: labelFontSize,
                 attrs: "text-anchor=\"middle\" font-size=\"\(labelFontSize)\" " +
-                    "font-weight=\"700\" fill=\"\(_escapeAttr(textFill))\""
+                    "font-weight=\"700\" fill=\"\(SVG.escapeAttribute(textFill))\""
             )
         )
     }
@@ -337,14 +337,14 @@ private func _renderRelationshipLine(_ rel: PositionedErRelationship, _ config: 
     }
     let pathData = rel.points.map { "\($0.x),\($0.y)" }.joined(separator: " ")
     let dashArray = rel.identifying ? "" : " stroke-dasharray=\"6 4\""
-    let labelAttr = rel.label.isEmpty ? "" : " data-label=\"\(_escapeAttr(rel.label))\""
-    let stroke = _escapeAttr(config?.stroke ?? "var(--_line)")
+    let labelAttr = rel.label.isEmpty ? "" : " data-label=\"\(SVG.escapeAttribute(rel.label))\""
+    let stroke = SVG.escapeAttribute(config?.stroke ?? "var(--_line)")
     let attrs = [
         "class=\"er-relationship\"",
-        "data-entity1=\"\(_escapeAttr(rel.entity1))\"",
-        "data-entity2=\"\(_escapeAttr(rel.entity2))\"",
-        "data-entityAId=\"\(_escapeAttr(rel.entityAId))\"",
-        "data-entityBId=\"\(_escapeAttr(rel.entityBId))\"",
+        "data-entity1=\"\(SVG.escapeAttribute(rel.entity1))\"",
+        "data-entity2=\"\(SVG.escapeAttribute(rel.entity2))\"",
+        "data-entityAId=\"\(SVG.escapeAttribute(rel.entityAId))\"",
+        "data-entityBId=\"\(SVG.escapeAttribute(rel.entityBId))\"",
         "data-cardinality1=\"\(rel.cardinality1)\"",
         "data-cardinality2=\"\(rel.cardinality2)\"",
         "data-identifying=\"\(rel.identifying)\"",
@@ -371,7 +371,7 @@ private func _renderRelationshipLabel(_ rel: PositionedErRelationship, _ config:
 
     let labelBgFill = config?.erEdgeLabelBackground ?? "var(--bg)"
     return "<rect x=\"\(mid.x - bgW / 2)\" y=\"\(mid.y - bgH / 2)\" width=\"\(bgW)\" height=\"\(bgH)\" rx=\"2\" ry=\"2\" " +
-        "fill=\"\(_escapeAttr(labelBgFill))\" stroke=\"var(--_inner-stroke)\" stroke-width=\"0.5\" />\n" +
+        "fill=\"\(SVG.escapeAttribute(labelBgFill))\" stroke=\"var(--_inner-stroke)\" stroke-width=\"0.5\" />\n" +
         original_src_multiline_utils.renderMultilineText(
             rel.label,
             cx: mid.x,
@@ -403,7 +403,7 @@ private func _renderCardinality(_ rel: PositionedErRelationship, _ config: ErDia
 
 private func _renderCrowsFoot(point: ErPoint, toward: ErPoint, cardinality: String, _ config: ErDiagramConfig?) -> String {
     let sw = original_src_styles.STROKE_WIDTHS.connector + 0.25
-    let stroke = _escapeAttr(config?.stroke ?? "var(--_line)")
+    let stroke = SVG.escapeAttribute(config?.stroke ?? "var(--_line)")
     let dx = point.x - toward.x
     let dy = point.y - toward.y
     let len = sqrt(dx * dx + dy * dy)
@@ -527,10 +527,6 @@ private func _midpoint(_ points: [ErPoint]) -> ErPoint {
     }
 
     return points[points.count - 1]
-}
-
-private func _escapeAttr(_ value: String) -> String {
-    SVG.escapeAttribute(value)
 }
 
 final class original_src_er_renderer {

@@ -20,10 +20,10 @@ public func renderVennSvg(
     svg += _builder.open(extraAttributes: "id=\"\(diagramId)\"") + "\n"
 
     if let accTitle = positioned.accTitle {
-        svg += "<title>\(_escapeXml(accTitle))</title>\n"
+        svg += "<title>\(SVG.escapeText(accTitle))</title>\n"
     }
     if let accDescr = positioned.accDescr {
-        svg += "<desc>\(_escapeXml(accDescr))</desc>\n"
+        svg += "<desc>\(SVG.escapeText(accDescr))</desc>\n"
     }
 
     if !transparent {
@@ -33,7 +33,7 @@ public func renderVennSvg(
     let titleColor = positioned.themeVariables?["vennTitleTextColor"] ?? colors.fg
 
     if let title = positioned.title {
-        svg += "<text class=\"venn-title\" x=\"50%\" y=\"\(Int(title.y))\" text-anchor=\"middle\" dominant-baseline=\"middle\" font-family=\"\(font)\" font-size=\"\(Int(title.fontSize))px\" fill=\"\(titleColor)\">\(_escapeXml(title.text))</text>\n"
+        svg += "<text class=\"venn-title\" x=\"50%\" y=\"\(Int(title.y))\" text-anchor=\"middle\" dominant-baseline=\"middle\" font-family=\"\(font)\" font-size=\"\(Int(title.fontSize))px\" fill=\"\(titleColor)\">\(SVG.escapeText(title.text))</text>\n"
     }
 
     svg += "<g transform=\"translate(0, \(Int(positioned.titleHeight)))\">\n"
@@ -100,7 +100,7 @@ private func renderVennCircleSvg(_ area: PositionedVennArea, font: String, isHan
 
         let labelText = area.label ?? area.sets.first ?? ""
         if !labelText.isEmpty {
-            result += "<text x=\"\(fmt(circle.center.x))\" y=\"\(fmt(circle.center.y))\" font-size=\"\(Int(area.textFontSize))px\" fill=\"\(area.textColor)\" text-anchor=\"middle\" dominant-baseline=\"middle\" font-family=\"\(font)\">\(_escapeXml(labelText))</text>\n"
+            result += "<text x=\"\(fmt(circle.center.x))\" y=\"\(fmt(circle.center.y))\" font-size=\"\(Int(area.textFontSize))px\" fill=\"\(area.textColor)\" text-anchor=\"middle\" dominant-baseline=\"middle\" font-family=\"\(font)\">\(SVG.escapeText(labelText))</text>\n"
         }
 
         result += "</g>\n"
@@ -136,7 +136,7 @@ private func renderVennIntersectionSvg(_ area: PositionedVennArea, font: String,
 
     let labelText = area.label ?? area.sets.joined(separator: " & ")
     if !labelText.isEmpty {
-        result += "<text x=\"\(fmt(area.textPoint.x))\" y=\"\(fmt(area.textPoint.y))\" font-size=\"\(Int(area.textFontSize))px\" fill=\"\(area.textColor)\" text-anchor=\"middle\" dominant-baseline=\"middle\" font-family=\"\(font)\">\(_escapeXml(labelText))</text>\n"
+        result += "<text x=\"\(fmt(area.textPoint.x))\" y=\"\(fmt(area.textPoint.y))\" font-size=\"\(Int(area.textFontSize))px\" fill=\"\(area.textColor)\" text-anchor=\"middle\" dominant-baseline=\"middle\" font-family=\"\(font)\">\(SVG.escapeText(labelText))</text>\n"
     }
 
     result += "</g>\n"
@@ -154,7 +154,7 @@ private func renderVennTextNodeSvg(_ node: PositionedVennTextNode, font: String,
     let fontSize = Int(node.fontSize)
 
     result += "<foreignObject class=\"venn-text-node-fo\" width=\"\(fmt(node.width))\" height=\"\(fmt(node.height))\" x=\"\(fmt(node.x))\" y=\"\(fmt(node.y))\" overflow=\"visible\">\n"
-    result += "<span xmlns=\"http://www.w3.org/1999/xhtml\" class=\"venn-text-node\" style=\"display:flex;width:100%;height:100%;align-items:center;justify-content:center;text-align:center;color:\(node.textColor);font-family:\(font);font-size:\(fontSize)px;word-wrap:break-word;overflow-wrap:break-word;\">\(_escapeXml(displayText))</span>\n"
+    result += "<span xmlns=\"http://www.w3.org/1999/xhtml\" class=\"venn-text-node\" style=\"display:flex;width:100%;height:100%;align-items:center;justify-content:center;text-align:center;color:\(node.textColor);font-family:\(font);font-size:\(fontSize)px;word-wrap:break-word;overflow-wrap:break-word;\">\(SVG.escapeText(displayText))</span>\n"
     result += "</foreignObject>\n"
 
     if debugLayout {
@@ -304,6 +304,3 @@ private func handDrawnHachureForPath(_ pathSpec: String, angle: Double, gap: Dou
     return handDrawnHachureLines(cx: cx, cy: cy, r: r * 0.9, seed: seed, angle: angle, gap: gap, strokeColor: strokeColor)
 }
 
-private func _escapeXml(_ s: String) -> String {
-    SVG.escapeText(s)
-}

@@ -36,10 +36,10 @@ public func renderKanbanSvg(
     svg += _builder.open(extraAttributes: "id=\"\(SVG.escapeAttribute(diagramId))\"") + "\n"
 
     if let accTitle = positioned.accTitle, !accTitle.isEmpty {
-        svg += "<title>\(_escapeXml(accTitle))</title>\n"
+        svg += "<title>\(SVG.escapeText(accTitle))</title>\n"
     }
     if let accDescr = positioned.accDescr, !accDescr.isEmpty {
-        svg += "<desc>\(_escapeXml(accDescr))</desc>\n"
+        svg += "<desc>\(SVG.escapeText(accDescr))</desc>\n"
     }
 
     svg += _kanbanSvgStyleBlock(bg: bgColor, border: borderColor, fg: fgColor, sectionPalette: sectionPalette, limit: _kanbanThemeColorLimit)
@@ -63,7 +63,7 @@ public func renderKanbanSvg(
 
         svg += "<g id=\"\(SVG.escapeAttribute(diagramId))-\(SVG.escapeAttribute(section.id))\" class=\"cluster \(sectionClass)\">\n"
         svg += "<rect x=\"\(sx)\" y=\"\(sy)\" width=\"\(sw)\" height=\"\(sh)\" rx=\"5\" ry=\"5\" fill=\"\(sectionFill)\" stroke=\"\(sectionStroke)\" stroke-width=\"1\"/>\n"
-        svg += "<text x=\"\(Int(ceil(section.x)))\" y=\"\(sy + 25)\" text-anchor=\"middle\" dominant-baseline=\"middle\" fill=\"\(sectionTextFill)\" font-family=\"\(font)\" font-size=\"14\">\(_escapeXml(section.label))</text>\n"
+        svg += "<text x=\"\(Int(ceil(section.x)))\" y=\"\(sy + 25)\" text-anchor=\"middle\" dominant-baseline=\"middle\" fill=\"\(sectionTextFill)\" font-family=\"\(font)\" font-size=\"14\">\(SVG.escapeText(section.label))</text>\n"
         svg += "</g>\n"
     }
     svg += "</g>\n"
@@ -104,15 +104,15 @@ public func renderKanbanSvg(
             let baseUrl = positioned.config.ticketBaseUrl
             if let url = _safeKanbanTicketURL(baseUrl: baseUrl, ticket: ticket) {
                 svg += "<a xlink:href=\"\(SVG.escapeAttribute(url))\" class=\"kanban-ticket-link\" target=\"_blank\">\n"
-                svg += "<text x=\"\(labelX)\" y=\"\(metadataY)\" text-anchor=\"start\" fill=\"\(accentColor)\" font-family=\"\(font)\" font-size=\"10\" text-decoration=\"underline\">\(_escapeXml(ticket))</text>\n"
+                svg += "<text x=\"\(labelX)\" y=\"\(metadataY)\" text-anchor=\"start\" fill=\"\(accentColor)\" font-family=\"\(font)\" font-size=\"10\" text-decoration=\"underline\">\(SVG.escapeText(ticket))</text>\n"
                 svg += "</a>\n"
             } else {
-                svg += "<text x=\"\(labelX)\" y=\"\(metadataY)\" text-anchor=\"start\" fill=\"\(fgColor)\" font-family=\"\(font)\" font-size=\"10\">\(_escapeXml(ticket))</text>\n"
+                svg += "<text x=\"\(labelX)\" y=\"\(metadataY)\" text-anchor=\"start\" fill=\"\(fgColor)\" font-family=\"\(font)\" font-size=\"10\">\(SVG.escapeText(ticket))</text>\n"
             }
         }
 
         if let assigned = card.assigned {
-            svg += "<text x=\"\(cx + cw / 2 - 10)\" y=\"\(cy + ch / 2 - 8)\" text-anchor=\"end\" fill=\"\(fgColor)\" font-family=\"\(font)\" font-size=\"10\">\(_escapeXml(assigned))</text>\n"
+            svg += "<text x=\"\(cx + cw / 2 - 10)\" y=\"\(cy + ch / 2 - 8)\" text-anchor=\"end\" fill=\"\(fgColor)\" font-family=\"\(font)\" font-size=\"10\">\(SVG.escapeText(assigned))</text>\n"
         }
 
         svg += "</g>\n"
@@ -126,13 +126,13 @@ public func renderKanbanSvg(
 private func _kanbanSvgLabelText(lines: [String], x: Int, y: Int, fill: String, font: String) -> String {
     let lineHeight = Int(ceil(_kanbanCardLabelLineHeight))
     if lines.count <= 1 {
-        return "<text x=\"\(x)\" y=\"\(y)\" text-anchor=\"start\" fill=\"\(fill)\" font-family=\"\(font)\" font-size=\"12\" class=\"kanban-label\">\(_escapeXml(lines.first ?? ""))</text>\n"
+        return "<text x=\"\(x)\" y=\"\(y)\" text-anchor=\"start\" fill=\"\(fill)\" font-family=\"\(font)\" font-size=\"12\" class=\"kanban-label\">\(SVG.escapeText(lines.first ?? ""))</text>\n"
     }
 
     var svg = "<text x=\"\(x)\" y=\"\(y)\" text-anchor=\"start\" fill=\"\(fill)\" font-family=\"\(font)\" font-size=\"12\" class=\"kanban-label\">"
     for (index, line) in lines.enumerated() {
         let dy = index == 0 ? 0 : lineHeight
-        svg += "<tspan x=\"\(x)\" dy=\"\(dy)\">\(_escapeXml(line))</tspan>"
+        svg += "<tspan x=\"\(x)\" dy=\"\(dy)\">\(SVG.escapeText(line))</tspan>"
     }
     svg += "</text>\n"
     return svg
@@ -328,6 +328,3 @@ private func _safeKanbanTicketURL(baseUrl: String, ticket: String) -> String? {
     return trimmed.replacingOccurrences(of: "#TICKET#", with: ticket)
 }
 
-private func _escapeXml(_ text: String) -> String {
-    SVG.escapeText(text)
-}
