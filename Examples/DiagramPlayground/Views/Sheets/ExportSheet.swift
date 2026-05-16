@@ -23,6 +23,7 @@ struct ExportSheet: View {
     @SwiftUI.State private var sourceDiagnostics: [DiagramDiagnostic] = []
     @SwiftUI.State private var rtSummary: RoundTripSummary?
     @SwiftUI.State private var copyFeedback = false
+    @SwiftUI.State private var saveFeedback: SaveFeedback?
 
     var body: some View {
         VStack(spacing: 0) {
@@ -230,6 +231,13 @@ struct ExportSheet: View {
                     .foregroundStyle(Color.green)
                     .transition(.opacity)
             }
+
+            if let feedback = saveFeedback {
+                Text(feedback.label)
+                    .font(.system(size: 10, weight: .medium))
+                    .foregroundStyle(feedback.tone)
+                    .transition(.opacity)
+            }
         }
         .padding(.horizontal, 14)
         .padding(.vertical, 8)
@@ -333,10 +341,106 @@ struct ExportSheet: View {
 
     @MainActor
     private func save() async {
-        // Save using the existing per-format APIs. Phase 7 ships
-        // copy-to-clipboard as the primary path; full NSSavePanel
-        // routing stays a Phase 10 polish item.
-        copyToClipboard()
+        let target = store.state.exportSheet.target
+        do {
+            let payload = try await buildPayload(for: target)
+            try writePayload(payload, target: target)
+            flashSave(.success("Saved · \(target.fileExtension.uppercased())"))
+        } catch SaveError.cancelled {
+            // User dismissed the panel — no feedback.
+            return
+        } catch {
+            flashSave(.failure("Save failed · \(error.localizedDescription)"))
+        }
+    }
+
+    // MARK: - Save helpers
+
+    private enum Payload {
+        case text(String)
+        case data(Data)
+    }
+
+    private enum SaveError: Swift.Error {
+        case cancelled
+        case noWindow
+        case writeFailed
+        case unsupportedPlatform
+    }
+
+    @MainActor
+    private func buildPayload(for target: ExportTarget) async throws -> Payload {
+        switch target {
+        case .svg:
+            return .text(try await store.exportSVG())
+        case .ascii:
+            return .text(try await store.exportASCII())
+        case .mermaid, .d2, .dot, .structurizr, .plantuml:
+            if let format = target.sourceFormat {
+                let result = try await store.exportSource(to: format)
+                return .text(result.source)
+            }
+            return .text("")
+        case .png1x, .png2x, .png3x:
+            let scale: CGFloat = {
+                switch target {
+                case .png2x: return 2
+                case .png3x: return 3
+                default:     return 1
+                }
+            }()
+            let options = ExportOptions(sizing: store.exportOptions.sizing, scale: scale)
+            let url = try await store.exportPNG(options: options)
+            return .data(try Data(contentsOf: url))
+        }
+    }
+
+    @MainActor
+    private func writePayload(_ payload: Payload, target: ExportTarget) throws {
+        let suggestedName = "diagram.\(target.fileExtension)"
+
+        #if os(macOS)
+        let panel = NSSavePanel()
+        panel.nameFieldStringValue = suggestedName
+        panel.canCreateDirectories = true
+        if let utType = UTType(filenameExtension: target.fileExtension) {
+            panel.allowedContentTypes = [utType]
+        }
+        let response = panel.runModal()
+        guard response == .OK, let url = panel.url else { throw SaveError.cancelled }
+        try writeData(payload, to: url)
+        #else
+        // iOS / iPadOS fallback: write to the user's Documents directory
+        // so a follow-up Share / Files surface can pick it up. A real
+        // UIDocumentPickerViewController flow is out of scope here.
+        let documents = try FileManager.default.url(
+            for: .documentDirectory,
+            in: .userDomainMask,
+            appropriateFor: nil,
+            create: true
+        )
+        let url = documents.appendingPathComponent(suggestedName)
+        try writeData(payload, to: url)
+        #endif
+    }
+
+    private func writeData(_ payload: Payload, to url: URL) throws {
+        switch payload {
+        case .text(let string):
+            guard let data = string.data(using: .utf8) else { throw SaveError.writeFailed }
+            try data.write(to: url)
+        case .data(let data):
+            try data.write(to: url)
+        }
+    }
+
+    @MainActor
+    private func flashSave(_ feedback: SaveFeedback) {
+        withAnimation { saveFeedback = feedback }
+        Task {
+            try? await Task.sleep(nanoseconds: 2_500_000_000)
+            await MainActor.run { withAnimation { saveFeedback = nil } }
+        }
     }
 }
 
@@ -347,5 +451,20 @@ private struct RoundTripSummary: Equatable {
     let categories: [String]
     let tone: Color
     let label: String
+}
+
+// MARK: - SaveFeedback
+
+private struct SaveFeedback: Equatable {
+    let label: String
+    let tone: Color
+
+    static func success(_ message: String) -> SaveFeedback {
+        SaveFeedback(label: message, tone: .green)
+    }
+
+    static func failure(_ message: String) -> SaveFeedback {
+        SaveFeedback(label: message, tone: .red)
+    }
 }
 
