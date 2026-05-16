@@ -2,7 +2,7 @@
 
 **Method.** Six parallel agents reviewed: (1) architecture/layering/portability, (2) concurrency, (3) invariants + dual-renderer symmetry, (4) diagnostics + error handling, (5) code quality, (6) correctness/perf/test coverage. Critical and high-impact findings were spot-verified against the working tree. The diagnostic-discipline and `@unchecked Sendable` gates pass clean; the worker-thread invariant, `@MainActor` placement, `bmColorEquals`, type-safe payloads, retain cycles, cross-format round-trip matrix, and empty-source handling all checked out with no findings.
 
-**Summary.** 1 Critical (verified build break) — **resolved**, 10 High (10 resolved), 13 Medium (+2 added during follow-up; 11 resolved, 1 deferred), 7 Low (4 resolved).
+**Summary.** 1 Critical (verified build break) — **resolved**, 10 High (10 resolved), 13 Medium (+2 added during follow-up; 11 resolved, 1 deferred), 7 Low (5 resolved).
 
 ---
 
@@ -250,11 +250,11 @@ New `FrontmatterDocumentParserTests` (8 tests) pin all three fixes: tab-indent e
 **Problem:** Verified — `DiagramTheme` is the only declaration in the codebase and is entirely Apple-gated. The `DiagramEngine.renderSVG`/`renderASCII` overloads that reference it cannot exist on Linux as written, yet CLAUDE.md states these entry points are Linux-available. Either the umbrella `DiagramKit` target is not actually buildable on Linux (and docs need updating), or a Linux stub for `DiagramTheme` is missing.
 **Fix:** Add a Linux-side `DiagramTheme` stub (hex-only, no `BMColor`, `Sendable` not `@unchecked`), or guard the affected overloads on Apple platforms. Either way, run `Scripts/linux-check.sh` end-to-end to confirm what the current state actually is.
 
-### [Severity: Low] `_RecoverableDiagramError` marker protocol can hide structural errors centrally
+### [Severity: Low] ~~`_RecoverableDiagramError` marker protocol can hide structural errors centrally~~ — RESOLVED
 **File:** `Sources/DiagramKitCommon/IssueReportingSupport.swift#L32-37`
 **Category:** Error Handling
 **Problem:** `_reportDiagramIssueIfNeeded` skips `reportIssue(...)` for any `_RecoverableDiagramError` and `CancellationError`. The protocol is empty (`public protocol _RecoverableDiagramError: Error {}`), so adopting it is a one-line opt-out from telemetry. No audit trail.
-**Fix:** Either replace with an explicit `switch` over known adoption cases, or document adopters and rationale in the protocol's doc comment.
+**Fix applied.** Picked the documentation option (the explicit-switch alternative would have required a closed set, which doesn't fit a protocol that third-party importers / parsers also adopt). Added a docstring to `_RecoverableDiagramError` enumerating every adopter found in the tree at the time of writing: `DiagramError`, `DiagramEditorError`, `DiagramExportError`, the 5 importer error types (Mermaid/D2/Graphviz/Structurizr/PlantUML), and the 8 parser error types. Notes that new adopters should be added to the list when they land. Grep-based audit (`grep -rn ": _RecoverableDiagramError"`) was used to enumerate; the protocol stays cheap to adopt but every adoption is now visible in one place.
 
 ### [Severity: Low] ~~`try!` for regex in `+TreeView` renderer~~ — RESOLVED
 **File:** `Sources/DiagramKitRenderingCG/DiagramRenderer+TreeView.swift#L273-275`
