@@ -2,10 +2,10 @@
 //  InspectorDocumentSection.swift
 //  DiagramPlayground
 //
-//  KV grid summarising the active document. Phase 1 surfaces what
-//  the store can answer today (format, source length, dirty state).
-//  Layout/paint timing + node/edge counts land in Phase 2 when the
-//  PreviewCanvas exposes its last-render stats on the store.
+//  DOCUMENT section of the v2.1 inspector. KV grid covering file,
+//  family, format, line/char counts, and placeholders for node /
+//  edge / layout / paint readouts that Phase 4 will populate from
+//  PreparedDiagram SPI.
 //
 
 import SwiftUI
@@ -14,22 +14,36 @@ import SwiftUI
 struct InspectorDocumentSection: View {
     @Bindable var store: LiveEditorStore
 
+    @Environment(\.playgroundTokens) private var tokens
+
     var body: some View {
-        InspectorSectionHeader(title: "Document", systemImage: "doc.text")
-            .padding(.bottom, 4)
-        VStack(alignment: .leading, spacing: 4) {
-            row("Format", value: store.state.sourceFormat.displayName)
-            row("Theme", value: store.state.selectedThemeName)
-            row("Lines", value: "\(lineCount)")
-            row("Characters", value: "\(store.state.source.count)")
-            row("Dirty", value: store.isDirty ? "yes" : "no")
+        VStack(alignment: .leading, spacing: PlaygroundSpacing.sm) {
+            SectionHeader("Document", systemImage: "doc.text") {
+                Text(store.state.sourceFormat.shortName)
+                    .font(PlaygroundFont.badge)
+                    .foregroundStyle(tokens.palette.fg2)
+                    .padding(.horizontal, 5)
+                    .padding(.vertical, 1)
+                    .background(
+                        RoundedRectangle(cornerRadius: 3, style: .continuous)
+                            .stroke(tokens.palette.borderHairline, lineWidth: 0.5)
+                    )
+            }
+            Surface(.card, padding: PlaygroundSpacing.md) {
+                VStack(spacing: 4) {
+                    KeyValueRow("File", value: fileLabel, copyable: false)
+                    KeyValueRow("Family", value: store.state.sourceFormat.displayName)
+                    KeyValueRow("Format", value: store.state.sourceFormat.shortName)
+                    KeyValueRow("Nodes", value: nodeCountText)
+                    KeyValueRow("Edges", value: edgeCountText)
+                    KeyValueRow("Layout", value: layoutText)
+                    KeyValueRow("Paint", value: paintText)
+                    KeyValueRow("Lines", value: "\(lineCount)")
+                    KeyValueRow("Characters", value: "\(store.state.source.count)")
+                    KeyValueRow("Bundled fonts", value: bundledFontsText)
+                }
+            }
         }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(8)
-        .background(
-            RoundedRectangle(cornerRadius: 8, style: .continuous)
-                .fill(Color.gray.opacity(0.06))
-        )
         .accessibilityIdentifier(A11yID.Inspector.documentSection)
         .accessibilityElement(children: .contain)
     }
@@ -38,33 +52,26 @@ struct InspectorDocumentSection: View {
         store.state.source.split(separator: "\n", omittingEmptySubsequences: false).count
     }
 
-    private func row(_ key: String, value: String) -> some View {
-        HStack(alignment: .firstTextBaseline) {
-            Text(key)
-                .font(.system(size: 11, weight: .medium))
-                .foregroundStyle(.secondary)
-            Spacer(minLength: 8)
-            Text(value)
-                .font(.system(size: 11, weight: .regular).monospacedDigit())
-                .lineLimit(1)
-                .truncationMode(.middle)
-        }
+    private var fileLabel: String {
+        store.state.activeTabId ?? "untitled"
     }
+
+    // Phase 4 will replace these placeholders with PreparedDiagram SPI.
+    private var nodeCountText: String { "—" }
+    private var edgeCountText: String { "—" }
+    private var layoutText: String { "—" }
+    private var paintText: String { "—" }
+    private var bundledFontsText: String { "Noto Sans · Mono" }
 }
 
+/// Bridge for legacy sections still calling `InspectorSectionHeader`.
+/// New code should use `SectionHeader` directly.
 @available(iOS 26.0, macOS 26.0, macCatalyst 26.0, *)
 struct InspectorSectionHeader: View {
     let title: String
     let systemImage: String
 
     var body: some View {
-        HStack(spacing: 6) {
-            Image(systemName: systemImage)
-                .foregroundStyle(.tint)
-                .accessibilityHidden(true)
-            Text(title)
-                .font(.system(size: 12, weight: .semibold))
-            Spacer()
-        }
+        SectionHeader(title, systemImage: systemImage)
     }
 }

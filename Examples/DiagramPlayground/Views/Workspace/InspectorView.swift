@@ -2,10 +2,9 @@
 //  InspectorView.swift
 //  DiagramPlayground
 //
-//  Phase 1 / Task 1.5 — five-section accordion on the right edge of
-//  the v2 PlaygroundShell. Replaces the bespoke DiagramEditorPane
-//  drawer for the Code workspace mode; the drawer keeps being used
-//  by the existing inspector toggle in iPad compact layouts.
+//  v2.1 inspector. Scrollable column of section cards:
+//  DOCUMENT / RENDER BACKEND / THEME / PLATFORM / MUTATIONS /
+//  DIAGNOSTICS / HISTORY / CITATIONS.
 //
 
 import SwiftUI
@@ -14,22 +13,56 @@ import SwiftUI
 struct InspectorView: View {
     @Bindable var store: LiveEditorStore
 
+    @Environment(\.playgroundTokens) private var tokens
+
     var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 16) {
-                InspectorDocumentSection(store: store)
-                InspectorRenderBackendSection(store: store)
-                InspectorThemeSection(store: store)
-                ThemeBuilderCard(store: store)
-                MutationsCatalogCard(store: store)
-                PlatformRow(store: store)
-                InspectorDiagnosticsSection(store: store)
-                InspectorHistorySection(store: store)
-                InspectorCitationsToggle(store: store)
+        VStack(alignment: .leading, spacing: 0) {
+            header
+            ScrollView {
+                VStack(alignment: .leading, spacing: PlaygroundSpacing.lg) {
+                    InspectorDocumentSection(store: store)
+                    InspectorRenderBackendSection(store: store)
+                    InspectorThemeSection(store: store)
+                    PlatformRow(store: store)
+                    MutationsCatalogCard(store: store)
+                    InspectorDiagnosticsSection(store: store)
+                    InspectorHistorySection(store: store)
+                    InspectorCitationsToggle(store: store)
+                }
+                .padding(PlaygroundSpacing.md)
             }
-            .padding(16)
         }
         .frame(width: 320)
-        .background(.regularMaterial)
+        .background(tokens.palette.bgApp)
+    }
+
+    private var header: some View {
+        HStack(spacing: PlaygroundSpacing.sm) {
+            Text("INSPECTOR")
+                .font(PlaygroundFont.overline)
+                .tracking(0.6)
+                .foregroundStyle(tokens.palette.fg2)
+            Spacer()
+            Text(store.state.sourceFormat.shortName)
+                .font(PlaygroundFont.codeChip)
+                .foregroundStyle(tokens.palette.fg2)
+                .padding(.horizontal, 6)
+                .padding(.vertical, 1)
+                .background(
+                    Capsule()
+                        .stroke(tokens.palette.borderHairline, lineWidth: 0.5)
+                )
+        }
+        .padding(.horizontal, PlaygroundSpacing.md)
+        .padding(.vertical, PlaygroundSpacing.sm)
+        .background(
+            Rectangle()
+                .fill(tokens.palette.bgApp)
+                .overlay(alignment: .bottom) {
+                    Rectangle()
+                        .fill(tokens.palette.borderHairline)
+                        .frame(height: 0.5)
+                }
+        )
     }
 }

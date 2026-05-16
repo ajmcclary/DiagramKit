@@ -18,7 +18,14 @@ struct LiveEditorView: View {
     @SwiftUI.State private var showingFullWindowPreview = false
     @SwiftUI.State private var nonInspectorMode: CompactMode = .edit
 
+    @AppStorage(PlaygroundChromePersistence.appearanceKey)
+    private var chromeAppearanceRaw: String = PlaygroundAppearance.dark.rawValue
+
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
+
+    private var chromeAppearance: PlaygroundAppearance {
+        PlaygroundAppearance(rawValue: chromeAppearanceRaw) ?? .dark
+    }
 
     // Bridges the iPhone compact-layout picker to `store.state.inspectorOpen`
     // so the Cmd-I shortcut (which flips `inspectorOpen` via `toggleInspector`)
@@ -63,7 +70,7 @@ struct LiveEditorView: View {
             regularLayout
             #endif
         }
-        .playgroundAppearance(.dark)
+        .playgroundAppearance(chromeAppearance)
     }
 
     // MARK: - Compact Layout (iPhone)
