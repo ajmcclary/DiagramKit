@@ -40,7 +40,7 @@ The local merge gate is the authoritative health check: it adds the Xcode multi-
 | 500–1000 lines | warns (`Scripts/check-file-sizes.sh` prints `WARNING:`); still passes |
 | > 1000 lines | errors unless allowlisted in `Scripts/check-file-sizes-allowlist.txt` |
 
-The 11 currently-allowlisted files are JS-port parsers/layouts/renderers in `DiagramKitModel` that mirror upstream `mermaid-js` source files line-for-line. Splitting them would diverge from upstream and create maintenance churn. **Don't add new allowlist entries without a comment block explaining why** — file size is a code smell signal, and the allowlist is for genuine exceptions.
+The 9 currently-allowlisted files are JS-port parsers/layouts/renderers in `DiagramKitModel` that mirror upstream `mermaid-js` source files line-for-line. Splitting them would diverge from upstream and create maintenance churn. **Don't add new allowlist entries without a comment block explaining why** — file size is a code smell signal, and the allowlist is for genuine exceptions.
 
 When you find yourself wanting to add to the allowlist:
 
@@ -55,7 +55,7 @@ When you find yourself wanting to add to the allowlist:
 For `@unchecked Sendable`, the policy is **green > yellow > red**:
 
 - **Green (preferred):** add a "Concurrency Contract" banner explaining the invariant — single-pass / construction-then-freeze / queue-confinement / setup-then-share / etc. The banner must appear in the first 50 lines of the file or within 10 lines of the annotation. The gate at `Scripts/check-sendable-annotations.sh` searches for the banner pattern.
-- **Yellow:** add a `file:line:yellow:YYYY-MM-DD` entry to `.sendable-allowlist.txt` with a sunset date you intend to hit. Existing yellow entries (14 of them, all grandfathered when Stage 3 landed) sunset on `2027-06-30`.
+- **Yellow:** add a `file:line:yellow:YYYY-MM-DD` entry to `.sendable-allowlist.txt` with a sunset date you intend to hit. Existing yellow entries (12 of them, all grandfathered when Stage 3 landed) sunset on `2027-06-30`.
 - **Red:** entry-format `file:line:red:` — the gate fails immediately. Use only as a self-imposed deadline, never as a permanent state.
 
 Banner example:

@@ -2,7 +2,7 @@
 
 DiagramKit is a native Swift port of [mermaid-js](https://mermaid.js.org/) covering ~28 diagram families (flowchart, state, sequence, class, ER, Gantt, gitGraph, mindmap, C4, ZenUML, Wardley, Treemap, Sankey, XY chart, Quadrant, Radar, Block, Timeline, EventModeling, Architecture, Ishikawa, Kanban, Packet, Pie, Requirement, TreeView, Venn, ZenUML). It exposes three render backends — Core Graphics images, SVG, and ASCII — plus a SwiftUI/UIKit/AppKit view wrapper.
 
-> **Status:** active and feature-complete. Phases 0–10 of the multi-format port + the follow-on Phases 1–11 (DOT exporter, full PlantUML family coverage, ASCII renderers for all 28 diagram families) all landed. 13 SwiftPM library products. 1044 snapshot baselines. Closing-commit map for every Critical review finding and follow-on feature item lives in [BASELINES.md](BASELINES.md); the archived plans are at [docs/archive/PLAN.md](docs/archive/PLAN.md) and [docs/archive/PLAN-followup.md](docs/archive/PLAN-followup.md).
+> **Status:** active and feature-complete. Phases 0–10 of the multi-format port + the follow-on Phases 1–11 (DOT exporter, full PlantUML family coverage, ASCII renderers for all 28 diagram families) all landed. 14 SwiftPM library products. 1,298 snapshot baselines (437 image + 437 SVG + 424 ASCII). Closing-commit map for every Critical review finding and follow-on feature item lives in [docs/archive/BASELINES-history.md](docs/archive/BASELINES-history.md); the archived plans are at [docs/archive/PLAN.md](docs/archive/PLAN.md) and [docs/archive/PLAN-followup.md](docs/archive/PLAN-followup.md).
 
 ## Features
 
@@ -124,7 +124,7 @@ let positioned = try await DiagramEngine.layout(source, config: .default)
 
 ## Diagram-type coverage
 
-DiagramKit parses and renders the families below. The corpus at [Examples/DiagramPlayground/Resources/test-diagrams.json](Examples/DiagramPlayground/Resources/test-diagrams.json) ships **422** sample diagrams across **28** families (396 Mermaid-only + 26 multi-format with D2, DOT, Structurizr, and PlantUML sources), used as the snapshot-test fixture set.
+DiagramKit parses and renders the families below. The corpus at [Examples/DiagramPlayground/Resources/test-diagrams.json](Examples/DiagramPlayground/Resources/test-diagrams.json) ships **424** sample diagrams across **28** families (397 Mermaid-only + 27 multi-format with D2, DOT, Structurizr, and PlantUML sources), used as the snapshot-test fixture set.
 
 `flowchart` · `stateDiagram-v2` · `sequenceDiagram` · `classDiagram` · `erDiagram` · `gantt` · `gitGraph` · `mindmap` · `journey` · `pie` · `quadrantChart` · `radar-beta` · `xychart-beta` · `timeline` · `sankey-beta` · `block-beta` · `kanban` · `requirementDiagram` · `c4Context` (and C4 variants) · `architecture-beta` · `packet-beta` · `treemap-beta` · `treeView-beta` · `ishikawa-beta` · `eventModeling-beta` · `wardley-beta` · `venn-beta` · `zenuml`
 
@@ -147,7 +147,7 @@ Verify Linux build: `./Scripts/linux-check.sh` (requires Docker or Podman; build
 
 ```bash
 swift build                           # ~50s clean, ~4s incremental
-swift test                            # full suite (258 test files; see BASELINES.md for caveats)
+swift test                            # full suite (298 test files; see BASELINES.md for caveats)
 swift test --filter <NameOrPattern>   # narrow run, e.g. SequenceSvgTests, CorpusSnapshotTests/svgSnapshot
 ./Scripts/bootstrap-smoke-check.sh    # local "is this branch healthy?" gate
 ```
@@ -156,7 +156,7 @@ The four governance scripts under `Scripts/` are described in [CONTRIBUTING.md](
 
 ## Snapshot tests
 
-Snapshot baselines live under `Tests/DiagramKitTests/__Snapshots__/`. The corpus harness covers all 422 sample diagrams across SVG and image paths, 174 Mermaid-only ASCII baselines, and 13 additional non-Mermaid multi-format baselines via `CorpusMultiFormatSnapshotTests`.
+Snapshot baselines live under `Tests/DiagramKitTests/__Snapshots__/`. The corpus harness covers all 424 sample diagrams across SVG, image, and ASCII paths (one baseline per kind per entry), plus 13 additional non-Mermaid multi-format SVG + image baselines via `CorpusMultiFormatSnapshotTests`. Total: 1,298 files (`swift-snapshot-testing` writes SVG and ASCII as `.txt`).
 
 ```bash
 SNAPSHOT_TESTING_RECORD=true swift test --filter CorpusSnapshotTests   # record/refresh Mermaid-only

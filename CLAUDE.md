@@ -58,8 +58,8 @@ discipline gates below.
 
 ## Target Layout
 
-The package ships 13 layered SwiftPM library products. Imports flow only
-downward; importers/exporters and the new `DiagramKitMermaid` slice sit
+The package ships 14 layered SwiftPM library products. Imports flow only
+downward; importers/exporters and the `DiagramKitMermaid` slice sit
 beside `DiagramKitModel` so they can be consumed without the umbrella.
 
 ```text
@@ -241,12 +241,13 @@ outside the defining module.
 
 ## Testing And Snapshots
 
-- Current test source count: 264 Swift files (258 under `Tests/DiagramKitTests`, 2 under `Tests/DiagramKitLinuxTests`, 4 under `Examples/DiagramPlayground/UITests`).
+- Current test source count: 315 Swift files (298 under `Tests/DiagramKitTests`, 2 under `Tests/DiagramKitLinuxTests`, 15 under `Examples/DiagramPlayground/UITests`).
 - The corpus is `Examples/DiagramPlayground/Resources/test-diagrams.json` with
-  422 entries (396 Mermaid-only + 26 multi-format: D2, DOT, Structurizr, PlantUML).
+  424 entries (397 Mermaid-only + 27 multi-format: D2, DOT, Structurizr, PlantUML).
 - Corpus baselines under `Tests/DiagramKitTests/__Snapshots__/` track
-  435 SVG, 435 image, and 174 ASCII files (1044 total; 609 text snapshots
-  including SVG + ASCII).
+  437 SVG, 437 image, and 424 ASCII snapshots (1298 total; stored on
+  disk as 437 PNG + 861 `.txt` — `swift-snapshot-testing` writes SVG
+  and ASCII to `.txt`).
 - Image snapshots use `precision: 0.99, perceptualPrecision: 0.98` to tolerate
   CoreText rasterization drift across CPU architectures.
 - Multi-format snapshot tests use format-suffixed names (`entry-id-format`) to

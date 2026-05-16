@@ -96,15 +96,16 @@ empty; the completed roadmap lives in [docs/archive/PHASES.md](docs/archive/PHAS
 
 ## Testing
 
-- Test sources: 258 Swift files under `Tests/DiagramKitTests`.
+- Test sources: 298 Swift files under `Tests/DiagramKitTests`
+  (315 total incl. `Tests/DiagramKitLinuxTests` + `Examples/DiagramPlayground/UITests`).
 - Corpus: `Examples/DiagramPlayground/Resources/test-diagrams.json`
-  (422 entries: 396 Mermaid-only + 26 multi-format with D2, DOT, Structurizr, PlantUML sources).
+  (424 entries: 397 Mermaid-only + 27 multi-format with D2, DOT, Structurizr, PlantUML sources).
 - Snapshot baselines:
-  - SVG: 435 (422 corpus entries + 13 non-Mermaid multi-format)
-  - Image: 435 (422 corpus entries + 13 non-Mermaid multi-format)
-  - ASCII: 174 (Mermaid-only)
-- Text snapshots: 609 (SVG + ASCII)
-- Total tracked: 1044 files
+  - SVG: 437 (424 Mermaid corpus + 13 non-Mermaid multi-format)
+  - Image: 437 (424 Mermaid corpus + 13 non-Mermaid multi-format)
+  - ASCII: 424 (one per corpus entry — Phases 7–11 closed the renderer-coverage gap)
+- Total tracked: 1,298 files (437 PNG + 861 `.txt`;
+  `swift-snapshot-testing` writes SVG and ASCII as `.txt`).
 - `CorpusMultiFormatSnapshotTests` renders every `(entry, format)` pair with
   format-suffixed snapshot names (`entry-id-format`), honoring `skipSnapshots`.
   Chunked execution with `SNAPSHOT_DIAGRAM_IDS` avoids the known signal-10
