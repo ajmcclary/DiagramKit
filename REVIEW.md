@@ -244,11 +244,13 @@ New `FrontmatterDocumentParserTests` (8 tests) pin all three fixes: tab-indent e
 
 ## LOW
 
-### [Severity: Low] `DiagramEngine.renderSVG`/`renderASCII` parameter list uses Apple-only `DiagramTheme`
+### [Severity: Low] `DiagramEngine.renderSVG`/`renderASCII` parameter list uses Apple-only `DiagramTheme` — DEFERRED (needs Docker access to choose between stub or gate)
 **Files:** `Sources/DiagramKit/DiagramEngine.swift#L151-190` references `DiagramTheme = .default` (lines 153, 177); `Sources/DiagramKitModel/Theme.swift#L2,L301` wraps the entire file in `#if canImport(UIKit) || canImport(AppKit) ... #endif`
 **Category:** Portability
 **Problem:** Verified — `DiagramTheme` is the only declaration in the codebase and is entirely Apple-gated. The `DiagramEngine.renderSVG`/`renderASCII` overloads that reference it cannot exist on Linux as written, yet CLAUDE.md states these entry points are Linux-available. Either the umbrella `DiagramKit` target is not actually buildable on Linux (and docs need updating), or a Linux stub for `DiagramTheme` is missing.
-**Fix:** Add a Linux-side `DiagramTheme` stub (hex-only, no `BMColor`, `Sendable` not `@unchecked`), or guard the affected overloads on Apple platforms. Either way, run `Scripts/linux-check.sh` end-to-end to confirm what the current state actually is.
+**Investigation.** Audited the gating in `DiagramEngine.swift` and `DiagramPipeline.swift`: `prepare`, `render(in:context:)`, and the two `renderImage` overloads ARE inside `#if canImport(CoreGraphics)` blocks (Engine L88-148 + Pipeline L168-196). `renderSVG` (Engine L151, Pipeline L189, L228) and `renderASCII` (Engine L175, Pipeline L262) are NOT gated, yet they take `theme: DiagramTheme = .default` parameters. The `Dockerfile.linux-check` matrix builds the umbrella target with `swift build --target DiagramKit … || echo "RESULT: $tgt FAIL"` — failure is recorded but doesn't block the run, so the umbrella likely already fails on Linux without anyone noticing.
+
+**Status: deferred.** The reviewer offered two paths: (a) Linux-side `DiagramTheme` stub, or (b) guard the affected overloads on Apple platforms. Picking between them needs the actual Linux build outcome verified in Docker first, plus a design pass on which API surface the stub has to expose (`renderSVG` reads `.background.cssColorString` / `.effectiveLine()` / etc.; `renderASCII` reads `.hexString`-shaped values; both call chains need the stub to be type-compatible with `BMColor` everywhere they touch shared types). That's stub-design + container verification, not the small-scope cleanup the rest of the Low tier has been. Tracked here rather than rushed.
 
 ### [Severity: Low] ~~`_RecoverableDiagramError` marker protocol can hide structural errors centrally~~ — RESOLVED
 **File:** `Sources/DiagramKitCommon/IssueReportingSupport.swift#L32-37`
