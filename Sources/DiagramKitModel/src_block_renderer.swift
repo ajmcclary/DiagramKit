@@ -424,30 +424,15 @@ public func blockNodeShapeName(_ type: BlockNodeType) -> String {
 }
 
 private func resolveBlockFill(_ node: PositionedBlockNode, defaultFill: String) -> String {
-    for style in node.styles.reversed() {
-        if style.hasPrefix("fill:") { return style.replacingOccurrences(of: "fill:", with: "").trimmingCharacters(in: .whitespaces) }
-    }
-    return defaultFill
+    return BlockStyleDecoder.fillHex(from: node.styles) ?? defaultFill
 }
 
 private func resolveBlockStroke(_ node: PositionedBlockNode, defaultColor: String) -> String {
-    for style in node.styles.reversed() {
-        if style.hasPrefix("stroke:") { return style.replacingOccurrences(of: "stroke:", with: "").trimmingCharacters(in: .whitespaces) }
-    }
-    return defaultColor
+    return BlockStyleDecoder.strokeHex(from: node.styles) ?? defaultColor
 }
 
 private func resolveBlockTextColor(_ node: PositionedBlockNode, defaultColor: String) -> String {
-    if let labelStyle = node.labelStyle {
-        for style in labelStyle.split(separator: ";").map(String.init).reversed() {
-            if style.hasPrefix("fill:") { return style.replacingOccurrences(of: "fill:", with: "").trimmingCharacters(in: .whitespaces) }
-            if style.hasPrefix("color:") { return style.replacingOccurrences(of: "color:", with: "").trimmingCharacters(in: .whitespaces) }
-        }
-    }
-    for style in node.styles.reversed() {
-        if style.hasPrefix("color:") { return style.replacingOccurrences(of: "color:", with: "").trimmingCharacters(in: .whitespaces) }
-    }
-    return defaultColor
+    return BlockStyleDecoder.textColorHex(labelStyle: node.labelStyle, styles: node.styles) ?? defaultColor
 }
 
 extension String {

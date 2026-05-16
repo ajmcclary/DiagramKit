@@ -2,7 +2,7 @@
 
 **Method.** Six parallel agents reviewed: (1) architecture/layering/portability, (2) concurrency, (3) invariants + dual-renderer symmetry, (4) diagnostics + error handling, (5) code quality, (6) correctness/perf/test coverage. Critical and high-impact findings were spot-verified against the working tree. The diagnostic-discipline and `@unchecked Sendable` gates pass clean; the worker-thread invariant, `@MainActor` placement, `bmColorEquals`, type-safe payloads, retain cycles, cross-format round-trip matrix, and empty-source handling all checked out with no findings.
 
-**Summary.** 1 Critical (verified build break) — **resolved**, 10 High (5 resolved), 13 Medium (+2 added during follow-up), 7 Low.
+**Summary.** 1 Critical (verified build break) — **resolved**, 10 High (6 resolved), 13 Medium (+2 added during follow-up), 7 Low.
 
 ---
 
@@ -80,11 +80,13 @@ Image snapshots drifted on 16 entries: 5 c4 + 8 mindmap + 1 c4-cjk-emoji + 1 er-
 
 ER's `_parseCGColor` used to require exactly 6 hex chars; `DiagramColorParser.hexColor` accepts 3/6/8. ER's CSS style values are uniformly 6-char in the corpus, so no behavior change observed, but malformed-3-char inputs (`"#fff"`) will now succeed where they used to fail silently — strictly better behavior.
 
-### [Severity: High] Duplicated block-style string parsing between CG and SVG renderers
+### [Severity: High] ~~Duplicated block-style string parsing between CG and SVG renderers~~ — RESOLVED
 **Files:** `Sources/DiagramKitRenderingCG/DiagramRenderer+Block.swift#L122-150` vs `Sources/DiagramKitModel/src_block_renderer.swift#L428-448`
 **Category:** Code Quality (dual-renderer drift)
 **Problem:** Both strip `"fill:"/"stroke:"/"color:"` prefixes with identical `replacingOccurrences(of: "...", with: "").trimmingCharacters(...)` chains. CG path inlines `BMColor(hex: "#e8f0fe")` as a default while the SVG path uses different defaults. Any new style key must be added in two places.
-**Fix:** Add a shared `BlockStyleDecoder` (or extend `BlockRenderConstants`) in `DiagramKitCommon`/`Model` with `fillHex/strokeHex/colorHex(from:)`. Both renderers call into it; defaults live next to the parser.
+**Fix applied.** Added `Sources/DiagramKitCommon/BlockStyleDecoder.swift` with `fillHex(from:)`, `strokeHex(from:)`, and `textColorHex(labelStyle:styles:)` — pure string-extraction, returns `nil` when no matching style is present so each renderer keeps its own default. CG side (`_cgBlockFill` / `_cgBlockStroke` / `_cgBlockTextColor`) now reads `BlockStyleDecoder.<helper>(...) ?? <its-CG-default>`; SVG side (`resolveBlockFill` / `resolveBlockStroke` / `resolveBlockTextColor`) collapses to `BlockStyleDecoder.<helper>(...) ?? defaultColor`. The `textColorHex` decoder keeps the `fill:`-in-`labelStyle` wins over `color:` precedence both renderers had inlined.
+
+This is the last of the dual-renderer-drift items from the original review. Verified: block corpus snapshots (image + SVG, all 12 entries) pass unchanged — pure-refactor with byte-identical output. CG's idiosyncratic `BMColor(hex: "#e8f0fe")` fill default stays in CG; SVG's theme-derived defaults stay in SVG.
 
 ### [Severity: High] Gantt parser silently swallows date-parse errors with no diagnostic plumbing
 **File:** `Sources/DiagramKitModel/src_gantt_parser.swift#L728-748`

@@ -117,38 +117,22 @@ extension DiagramRenderer {
     }
 
     private func _cgBlockFill(_ node: PositionedBlockNode) -> BMColor {
-        for style in node.styles.reversed() {
-            if style.hasPrefix("fill:") {
-                return BMColor(hex: style.replacingOccurrences(of: "fill:", with: "").trimmingCharacters(in: .whitespaces))
-            }
+        if let hex = BlockStyleDecoder.fillHex(from: node.styles) {
+            return BMColor(hex: hex)
         }
         return BMColor(hex: "#e8f0fe")
     }
 
     private func _cgBlockStroke(_ node: PositionedBlockNode) -> BMColor {
-        for style in node.styles.reversed() {
-            if style.hasPrefix("stroke:") {
-                return BMColor(hex: style.replacingOccurrences(of: "stroke:", with: "").trimmingCharacters(in: .whitespaces))
-            }
+        if let hex = BlockStyleDecoder.strokeHex(from: node.styles) {
+            return BMColor(hex: hex)
         }
         return theme.border ?? theme.foreground
     }
 
     private func _cgBlockTextColor(_ node: PositionedBlockNode) -> BMColor {
-        if let labelStyle = node.labelStyle {
-            for style in labelStyle.split(separator: ";").map(String.init).reversed() {
-                if style.hasPrefix("fill:") {
-                    return BMColor(hex: style.replacingOccurrences(of: "fill:", with: "").trimmingCharacters(in: .whitespaces))
-                }
-                if style.hasPrefix("color:") {
-                    return BMColor(hex: style.replacingOccurrences(of: "color:", with: "").trimmingCharacters(in: .whitespaces))
-                }
-            }
-        }
-        for style in node.styles.reversed() {
-            if style.hasPrefix("color:") {
-                return BMColor(hex: style.replacingOccurrences(of: "color:", with: "").trimmingCharacters(in: .whitespaces))
-            }
+        if let hex = BlockStyleDecoder.textColorHex(labelStyle: node.labelStyle, styles: node.styles) {
+            return BMColor(hex: hex)
         }
         return theme.foreground
     }
