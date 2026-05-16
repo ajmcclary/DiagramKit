@@ -29,14 +29,15 @@ public func parseGanttDiagram(
     _ lines: [String],
     frontmatter: DiagramFrontmatter? = nil
 ) throws -> (GanttDiagram, [DiagramDiagnostic]) {
-    (try _parseGanttDiagramEntry(lines, frontmatter: frontmatter), [])
+    try _parseGanttDiagramEntry(lines, frontmatter: frontmatter)
 }
 
 private func _parseGanttDiagramEntry(
     _ lines: [String],
     frontmatter: DiagramFrontmatter?
-) throws -> GanttDiagram {
+) throws -> (GanttDiagram, [DiagramDiagnostic]) {
     var diagram = GanttDiagram()
+    var diagnostics: [DiagramDiagnostic] = []
 
     // Configure from frontmatter
     if let fm = frontmatter {
@@ -266,7 +267,8 @@ private func _parseGanttDiagramEntry(
         includes: diagram.includes,
         weekend: diagram.weekend,
         weekday: diagram.weekday,
-        taskIdLookup: taskIdLookup
+        taskIdLookup: taskIdLookup,
+        diagnostics: &diagnostics
     )
 
     // Convert to GanttTask array (preserving insertion order)
@@ -291,7 +293,7 @@ private func _parseGanttDiagramEntry(
 
     diagram.sections = sections
     diagram.links = _linksFromTasks(rawTasks)
-    return diagram
+    return (diagram, diagnostics)
 }
 
 // MARK: - Keyword Extraction Helpers
@@ -709,7 +711,8 @@ private func _compileTasks(
     includes: [String],
     weekend: String,
     weekday: String,
-    taskIdLookup: [String: Int]
+    taskIdLookup: [String: Int],
+    diagnostics: inout [DiagramDiagnostic]
 ) {
     let maxDepth = 10
     var allProcessed = false
@@ -735,6 +738,10 @@ private func _compileTasks(
                         startTime = try _getStartDate(prevTime: nil, dateFormat: dateFormat, str: startData, taskIdLookup: taskIdLookup, rawTasks: rawTasks)
                     } catch {
                         startTime = nil
+                        diagnostics.append(.lossyTransform(
+                            .configDrop,
+                            message: "Gantt task '\(raw.id)' start-date parse failed (\(startData)): \(error.localizedDescription)"
+                        ))
                     }
                 }
             }
@@ -745,7 +752,17 @@ private func _compileTasks(
                 // Resolve endTime
                 if let endType = raw.raw.endTime {
                     if case .data(let endData) = endType {
-                        if let et = try? _getEndDate(prevTime: st, dateFormat: dateFormat, str: endData, inclusive: inclusiveEndDates, taskIdLookup: taskIdLookup, rawTasks: rawTasks) {
+                        let endResolved: Date?
+                        do {
+                            endResolved = try _getEndDate(prevTime: st, dateFormat: dateFormat, str: endData, inclusive: inclusiveEndDates, taskIdLookup: taskIdLookup, rawTasks: rawTasks)
+                        } catch {
+                            endResolved = nil
+                            diagnostics.append(.lossyTransform(
+                                .configDrop,
+                                message: "Gantt task '\(raw.id)' end-date parse failed (\(endData)): \(error.localizedDescription)"
+                            ))
+                        }
+                        if let et = endResolved {
                             rawTasks[i].endTime = et
                             rawTasks[i].processed = true
 

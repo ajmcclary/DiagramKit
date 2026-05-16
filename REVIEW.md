@@ -2,7 +2,7 @@
 
 **Method.** Six parallel agents reviewed: (1) architecture/layering/portability, (2) concurrency, (3) invariants + dual-renderer symmetry, (4) diagnostics + error handling, (5) code quality, (6) correctness/perf/test coverage. Critical and high-impact findings were spot-verified against the working tree. The diagnostic-discipline and `@unchecked Sendable` gates pass clean; the worker-thread invariant, `@MainActor` placement, `bmColorEquals`, type-safe payloads, retain cycles, cross-format round-trip matrix, and empty-source handling all checked out with no findings.
 
-**Summary.** 1 Critical (verified build break) — **resolved**, 10 High (7 resolved), 13 Medium (+2 added during follow-up), 7 Low.
+**Summary.** 1 Critical (verified build break) — **resolved**, 10 High (8 resolved), 13 Medium (+2 added during follow-up), 7 Low.
 
 ---
 
@@ -88,11 +88,15 @@ ER's `_parseCGColor` used to require exactly 6 hex chars; `DiagramColorParser.he
 
 This is the last of the dual-renderer-drift items from the original review. Verified: block corpus snapshots (image + SVG, all 12 entries) pass unchanged — pure-refactor with byte-identical output. CG's idiosyncratic `BMColor(hex: "#e8f0fe")` fill default stays in CG; SVG's theme-derived defaults stay in SVG.
 
-### [Severity: High] Gantt parser silently swallows date-parse errors with no diagnostic plumbing
+### [Severity: High] ~~Gantt parser silently swallows date-parse errors with no diagnostic plumbing~~ — RESOLVED
 **File:** `Sources/DiagramKitModel/src_gantt_parser.swift#L728-748`
 **Category:** Diagnostics
 **Problem:** `_compileTasks` swallows `getStartDate` errors at L736-738 (`catch { startTime = nil }`) and `_getEndDate` errors at L748 (`try?`). Public entry `parseGanttDiagram` at L31 returns `(GanttDiagram, [DiagramDiagnostic])` and hardcodes `[]` for the diagnostics slot at L32. Unreported data loss on the parse path — exactly what diagnostic discipline forbids.
-**Fix:** Thread a diagnostics sink into `_compileTasks` and emit `.lossyTransform(.configDrop, message: "Gantt task '\(id)' date parse failed: \(error)")`. Return through the existing tuple slot. If the path is provably unreachable on canonical sources, add a `SILENT-DROP` marker with a real test reference instead.
+**Fix applied.** Threaded `diagnostics: inout [DiagramDiagnostic]` through `_parseGanttDiagramEntry` and `_compileTasks`. The previously-hardcoded `[]` diagnostics slot on `parseGanttDiagram` now carries the accumulated diagnostics. Both date-parse catches in `_compileTasks` emit `.lossyTransform(.configDrop, message: "Gantt task '\(id)' start-date parse failed (\(input)): \(error)")` (and the matching end-date variant) before nil-ing out the field.
+
+Investigation surfaced that `_getEndDate` is permissive — it falls back to `prevTime` on inputs it can't parse as a date / `until` reference / duration — so the end-date catch is unreachable on canonical sources today. Kept the catch as defensive plumbing for any future refactor that adds a throwing validation path; documented the unreachable status in the test file's comment block.
+
+Three new tests pin the contract: malformed start date emits a `.configDrop` diagnostic naming the task id and the offending input; well-formed source produces zero diagnostics; the unreachable end-date case is documented (no asserting test). The full `GanttParserTests` suite (66 tests) passes.
 
 ### [Severity: High] ~~SPI underscore types crossing module boundary without public typealias~~ — RESOLVED
 **File:** `Sources/DiagramKitRenderingCG/DiagramRenderer+Flow.swift#L167,L202,L216,L300`

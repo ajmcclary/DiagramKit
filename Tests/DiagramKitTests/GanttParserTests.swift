@@ -747,6 +747,43 @@ struct GanttParserTests {
         let (diagram, _) = try parseGanttDiagram(source)
         #expect(diagram.todayMarker == "stroke-width:2px,stroke:#00f,stroke-dasharray:4")
     }
+
+    @Test("Malformed start date emits a .configDrop diagnostic")
+    func malformedStartDateEmitsDiagnostic() throws {
+        // `not-a-date` doesn't match the dateFormat, so `_getStartDate`
+        // throws and the task's startTime is dropped. Used to be silent.
+        let source = [
+            "gantt",
+            "dateFormat YYYY-MM-DD",
+            "section S",
+            "Bad task :bad1, not-a-date, 5d",
+        ]
+        let (_, diagnostics) = try parseGanttDiagram(source)
+        #expect(diagnostics.contains { d in
+            d.category == .configDrop &&
+                d.message.contains("bad1") &&
+                d.message.contains("not-a-date")
+        }, "expected a .configDrop diagnostic naming task 'bad1' and the malformed date, got: \(diagnostics)")
+    }
+
+    // NB: No test for malformed end dates. `_getEndDate` is permissive —
+    // it falls back to `prevTime` on input it can't parse as a date,
+    // `until` reference, or duration. The catch added in `_compileTasks`
+    // is defensive plumbing for any future refactor that introduces a
+    // throwing validation path; today it is unreachable on canonical
+    // sources.
+
+    @Test("Well-formed Gantt source produces no diagnostics")
+    func wellFormedHasNoDiagnostics() throws {
+        let source = [
+            "gantt",
+            "dateFormat YYYY-MM-DD",
+            "section S",
+            "Good :g1, 2024-01-01, 5d",
+        ]
+        let (_, diagnostics) = try parseGanttDiagram(source)
+        #expect(diagnostics.isEmpty, "well-formed source should not emit diagnostics, got: \(diagnostics)")
+    }
 }
 
 private func _date(_ y: Int, _ m: Int, _ d: Int) -> Date {
