@@ -2,18 +2,17 @@
 //  GanttEditCanvas.swift
 //  DiagramPlayground
 //
-//  Phase 4 / Task 4.2 — gantt diagram editor surface. Reads
-//  GanttDiagram (sections + tasks) from the persistent editor and
-//  paints section bands, week ticks, the today marker, and one bar
-//  per task. Dragging the right-end handle of a bar shows a +Nw /
-//  -Nw delta tooltip; commit is deferred — gantt source sync needs a
-//  Mermaid Gantt exporter (not yet implemented), so this canvas
-//  surfaces a banner instead of rewriting the source and blanking
-//  the user's document.
+//  Gantt diagram editor surface. Reads GanttDiagram (sections + tasks)
+//  from the persistent editor and paints section bands, week ticks,
+//  the today marker, and one bar per task. Dragging the right-end
+//  handle of a bar shows a +Nw / -Nw delta tooltip and commits the new
+//  end time through `LiveEditorStore.performGanttMutation(.resizeTask)`,
+//  which round-trips through `MermaidExporter`'s gantt arm.
 //
 
 import SwiftUI
 import DiagramKitModel
+import DiagramKitInteractive
 
 @available(iOS 26.0, macOS 26.0, macCatalyst 26.0, *)
 struct GanttEditCanvas: View {
@@ -34,8 +33,6 @@ struct GanttEditCanvas: View {
             } else {
                 missingDocumentPlaceholder
             }
-
-            mutationBanner
         }
         .accessibilityIdentifier(A11yID.Visual.canvas)
     }
@@ -259,9 +256,24 @@ struct GanttEditCanvas: View {
                             store.setVisualStage(.edgeDrag)
                         }
                         .onEnded { _ in
+                            let committedDelta = dragDeltaWeeks
+                            let committedTaskId = task.id
+                            let committedEnd = task.endTime.addingTimeInterval(
+                                Double(committedDelta) * 7 * 86400
+                            )
                             draggingTaskID = nil
                             dragDeltaWeeks = 0
                             store.setVisualStage(.idle)
+                            if committedDelta != 0 {
+                                Task {
+                                    try? await store.performGanttMutation(
+                                        .resizeTask(
+                                            taskId: committedTaskId,
+                                            newEndTime: committedEnd
+                                        )
+                                    )
+                                }
+                            }
                         }
                 )
 
@@ -302,25 +314,4 @@ struct GanttEditCanvas: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 
-    private var mutationBanner: some View {
-        VStack {
-            HStack {
-                Spacer()
-                HStack(spacing: 4) {
-                    Image(systemName: "info.circle")
-                        .font(.system(size: 9, weight: .semibold))
-                    Text("Resize ghost · commit deferred (Mermaid Gantt exporter not yet implemented)")
-                        .font(.system(size: 10, weight: .medium))
-                }
-                .padding(.horizontal, 8)
-                .padding(.vertical, 3)
-                .background(Capsule().fill(.regularMaterial))
-                .foregroundStyle(.secondary)
-                .padding(.trailing, 12)
-                .padding(.top, 12)
-                Spacer()
-            }
-            Spacer()
-        }
-    }
 }

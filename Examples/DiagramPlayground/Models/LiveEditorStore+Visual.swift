@@ -63,6 +63,24 @@ extension LiveEditorStore {
         }
     }
 
+    /// Apply a gantt-diagram mutation through the persistent editor.
+    /// Same atomic source-sync + undo recording contract as
+    /// `performSequenceMutation`.
+    public func performGanttMutation(_ mutation: GanttMutation) async throws {
+        guard let editor else { return }
+        do {
+            try await editor.performGantt(mutation)
+            _setLastMutationError(nil)
+            if let source = editor.source, source != state.source {
+                setSource(source, origin: .mutation)
+            }
+            recordUndoEntry(.setLabel, label: mutation.undoActionName)
+        } catch {
+            _setLastMutationError(error.localizedDescription)
+            throw error
+        }
+    }
+
     // MARK: - Subgraph commit (Phase 5 / Task 5.2)
 
     public func openSubgraphPrompt() {

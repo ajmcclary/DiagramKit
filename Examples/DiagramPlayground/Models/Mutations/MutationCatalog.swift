@@ -110,6 +110,13 @@ public enum MutationCatalog {
             wasFiction: true
         ),
         MutationCatalogEntry(
+            id: "resizeTask",
+            group: .node,
+            label: "GanttMutation.resizeTask(taskId:newEndTime:)",
+            rationale: "Commit a Gantt bar drag as a new task end date — round-trips through MermaidExporter's gantt arm.",
+            demoStage: .edgeDrag
+        ),
+        MutationCatalogEntry(
             id: "performMutation",
             group: .sentinel,
             label: "DiagramEditor.perform(_:)",

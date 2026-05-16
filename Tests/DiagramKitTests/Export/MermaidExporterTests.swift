@@ -27,7 +27,8 @@ import DiagramKit
     @Test("Exporting unsupported type returns diagnostic")
     func unsupportedTypeDiagnostic() throws {
         let exporter = MermaidExporter()
-        let doc = DiagramDocument(type: .gantt)
+        // Mindmap export is still pending (7A-P1).
+        let doc = DiagramDocument(type: .mindmap)
         let result = try exporter.export(doc)
         #expect(result.source.isEmpty)
         #expect(!result.diagnostics.isEmpty)
