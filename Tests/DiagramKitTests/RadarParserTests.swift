@@ -648,7 +648,7 @@ struct RadarParserTests {
         let parsedFrontmatter = try #require(frontmatter)
         let radarConfig = try #require(parsedFrontmatter.perDiagram.radar.config)
         let radarTheme = try #require(parsedFrontmatter.perDiagram.radar.theme)
-        #expect(parsedFrontmatter.theme == "base")
+        #expect(parsedFrontmatter.shared.theme == "base")
         #expect(radarConfig.marginTop == 80)
         #expect(radarConfig.axisLabelFactor == 1.25)
         #expect(radarTheme.fontSize == 10)

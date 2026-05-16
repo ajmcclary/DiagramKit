@@ -650,7 +650,7 @@ public func parseBlockDiagram(_ source: String, frontmatter: DiagramFrontmatter?
     let lines = _mermaidSourceLines(from: processed, separatedBy: CharacterSet(charactersIn: "\n"))
     var diagram = try parseBlockDiagramLines(lines)
     if let fmc = resolvedFM {
-        diagram.diagramTitle = fmc.title
+        diagram.diagramTitle = fmc.shared.title
         if let bc = fmc.perDiagram.block.config { diagram.config = bc }
     }
     return (diagram, [])
