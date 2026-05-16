@@ -3,10 +3,11 @@
 This release closes every Critical finding from the comprehensive code
 review and burns down the Important + Minor backlog called out alongside
 it. Phases 1–8 (plus 6A–6F) of the archived
-[docs/archive/PLAN.md](docs/archive/PLAN.md) landed as focused commits on
-`main` (see `git log 1f7361e..HEAD --oneline`). REVIEW.md itself was
-removed once the work shipped; the closing-commit map is preserved in
-[BASELINES.md](BASELINES.md).
+[PLAN.md](PLAN.md) landed as focused commits on `main` (see
+`git log 1f7361e..HEAD --oneline`). The review document that drove the
+work was removed once it shipped; the closing-commit map is preserved
+in [BASELINES-history.md](BASELINES-history.md) (see also
+[../../BASELINES.md](../../BASELINES.md) for current metrics).
 
 ## Renderer correctness
 
@@ -15,7 +16,7 @@ removed once the work shipped; the closing-commit map is preserved in
   `BMColor.cssColorString` helper so non-opaque `BMColor` survives as
   `rgba(r,g,b,a)` instead of being truncated to `#RRGGBB`. Opaque
   colors still emit `#RRGGBB` so existing snapshots stay byte-identical.
-  *(REVIEW.md Critical 1; Phase 1, commit `75d3244`)*
+  *(Critical 1; Phase 1, commit `75d3244`)*
 - **Block `.round` renders the same in CG and SVG.** The block layout
   now stores a 6-pt corner radius (matching the CG `ShapeRenderer`
   default) so SVG no longer emits `rx=0`. *(Critical 2; Phase 1)*
