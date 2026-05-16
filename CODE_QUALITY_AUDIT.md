@@ -1,0 +1,790 @@
+# Code Quality Audit
+
+## Executive Summary
+
+DiagramKit has a generally strong architectural foundation. The package is split into clear layered targets, the public `DiagramEngine` API centralizes worker-thread execution, and format import/export is organized around registries rather than hard-coded call sites. The most important abstractions already exist: `DiagramDescriptor`, `ImporterRegistry`, `ExporterRegistry`, `SVGDocumentBuilder`, `ShapeSpecRegistry`, render constants, and frontmatter binding runners.
+
+The primary structural risk is that several of those abstractions are only partially adopted. Older ported modules still contain large, multi-responsibility implementations, especially flowchart/state layout, ASCII rendering, SVG rendering, and frontmatter compatibility. This creates avoidable cognitive load because maintainers must understand both the newer abstraction model and older family-specific paths that duplicate it.
+
+The highest-value refactoring work is not a broad rewrite. It is targeted consolidation:
+
+1. Split the large layout and ASCII drawing modules along existing responsibilities.
+2. Make SVG and ASCII render registries match the typed descriptor pattern already used by parsing and layout.
+3. Move portable shape geometry out of Apple-gated model code so SVG and CG renderers can share it.
+4. Standardize frontmatter binding, SVG escaping, accessibility generation, and exporter diagnostics.
+
+Overall structural health: **moderate to good**, with strong boundaries at the package level and meaningful technical debt concentrated in a small number of large modules and duplicated renderer paths.
+
+## Scope and Method
+
+This audit reviewed source structure, package boundaries, helper and utility modules, registry patterns, renderer implementations, parser/layout abstractions, frontmatter handling, and duplication hotspots under `Sources`. Tests and snapshots were considered as guardrails, but the focus was structural maintainability rather than behavioral correctness.
+
+Quantitative observations:
+
+- Source Swift files under `Sources`: 445.
+- Source Swift lines of code: approximately 104,641.
+- Swift test files under `Tests`: 299.
+- Test Swift lines of code: approximately 51,854.
+- Source files over 500 lines: 59.
+- Source files over 1,000 lines: 11.
+- Repeated normalized 8-line code clusters found in a sampling pass: 932, many benign, but several high-signal clusters are discussed below.
+
+## Abstraction Analysis
+
+### A1. ASCII rendering bypasses the newer parse/layout abstraction
+
+**Evidence**
+
+- `Sources/DiagramKit/DiagramPipeline.swift:282` defines `renderASCII(source:theme:sourceFormat:)`.
+- `Sources/DiagramKit/DiagramPipeline.swift:288` creates `let registry = defaultRegistry` internally, while SVG rendering accepts an injectable registry at `Sources/DiagramKit/DiagramPipeline.swift:209`.
+- `Sources/DiagramKit/DiagramPipeline.swift:305` converts non-Mermaid documents back to Mermaid source with `DiagramExportLoader.export`.
+- `Sources/DiagramKit/DiagramPipeline.swift:319` passes source to `original_src_ascii_index().renderMermaidToAscii`.
+- `Sources/DiagramKit/src_ascii_index.swift:386` dispatches ASCII rendering by source syntax and only uses `AsciiRenderRegistry` after re-detecting Mermaid diagram type.
+- `Sources/DiagramKit/AsciiRenderRegistry.swift:7` explicitly states that ASCII renderers still consume preprocessed Mermaid source.
+
+**Impact**
+
+ASCII rendering has a different abstraction model from parsing, layout, and SVG rendering. It re-parses source after import/export normalization, which increases drift risk and makes non-Mermaid formats depend on Mermaid exporter fidelity. It also prevents callers and tests from injecting a custom importer registry, unlike the SVG path.
+
+**Recommendation**
+
+Introduce a document-aware ASCII render path that mirrors SVG rendering. Keep the source-based registry as a compatibility layer while gradually moving families to typed payload or positioned graph renderers.
+
+Illustrative shape:
+
+```swift
+public struct AsciiRenderContext: Sendable {
+  public var theme: DiagramTheme
+  public var config: RenderConfig
+}
+
+public struct TypedAsciiRenderDescriptor<Payload>: Sendable {
+  public let diagramType: DiagramType
+  public let render: @Sendable (Payload, AsciiRenderContext) throws -> AsciiRenderOutput
+}
+
+extension DiagramPipeline {
+  public static func renderASCII(
+    source: String,
+    theme: DiagramTheme = .default,
+    sourceFormat: DiagramFormatID? = nil,
+    registry: ImporterRegistry = defaultRegistry
+  ) throws -> AsciiRenderOutput {
+    try runPipeline {
+      let document = try DiagramLoader.parse(source, as: sourceFormat, registry: registry)
+      return try AsciiDocumentRenderRegistry.defaultRegistry.render(document, theme: theme)
+    }
+  }
+}
+```
+
+This would align ASCII with the existing SVG path at `Sources/DiagramKit/DiagramPipeline.swift:205` and reduce the need for Mermaid round-trips.
+
+### A2. Flowchart/state layout is an overburdened module
+
+**Evidence**
+
+- `Sources/DiagramKitModel/src_layout.swift` is 1,519 lines.
+- `Sources/DiagramKitModel/src_layout.swift:40` starts `_buildElkGraph`, which builds the ELK graph, assigns ports, splits edges, and handles nested subgraphs.
+- `Sources/DiagramKitModel/src_layout.swift:357` starts `_collectEdgeSegments`, a separate edge extraction concern.
+- `Sources/DiagramKitModel/src_layout.swift:461` starts `_orthogonalizeEdgePoints`, a path normalization concern.
+- `Sources/DiagramKitModel/src_layout.swift:511` starts `_alignLayerNodes`, a layout post-processing concern.
+- `Sources/DiagramKitModel/src_layout.swift:627` starts `_bundleEdgePaths`, another edge post-processing concern.
+- `Sources/DiagramKitModel/src_layout.swift:943` starts `_extractPositionedGraph`, which converts ELK output into public positioned graph data.
+- `Sources/DiagramKitModel/src_layout.swift:1211` starts `_layoutGraphSyncWithConfig`, while `Sources/DiagramKitModel/src_layout.swift:1441` starts `_layoutGraphSyncFromLayoutEngine`; both orchestrate layout with overlapping fallback behavior.
+
+**Impact**
+
+This file is effectively a layout subsystem in one file. Local changes to edge construction, ELK conversion, fallback behavior, or positioned graph extraction require understanding unrelated responsibilities. The file size allowlist confirms the size is known, but the current structure still slows maintenance and increases regression risk.
+
+**Recommendation**
+
+Extract along existing internal seams without changing behavior:
+
+- `ElkGraphFactory`: `_buildElkGraph`, `_makeEdge`, subgraph node construction.
+- `ElkLayoutRunner`: ELK invocation, fallback layout, worker-safe execution boundaries.
+- `PositionedGraphExtractor`: `_extractPositionedGraph` and node/edge conversion helpers.
+- `FlowEdgePostProcessor`: `_collectEdgeSegments`, `_orthogonalizeEdgePoints`, `_bundleEdgePaths`.
+
+Illustrative extraction:
+
+```swift
+struct ElkGraphFactory {
+  func makeGraph(
+    from graph: GraphModel,
+    direction: LayoutDirection,
+    diagnostics: _LayoutDiagnostics?
+  ) -> ElkGraph {
+    // Existing _buildElkGraph body, minus layout execution.
+  }
+
+  private func makeEdge(
+    index: Int,
+    edge: MermaidEdge,
+    sourceID: String,
+    targetID: String
+  ) -> ElkGraphEdge {
+    // Shared edge construction currently repeated in src_layout.swift.
+  }
+}
+```
+
+The first extraction should be mechanical and should preserve snapshot output exactly.
+
+### A3. Portable shape geometry exists but is gated away from portable SVG usage
+
+**Evidence**
+
+- `Sources/DiagramKitModel/ShapeSpec.swift:1` is gated by `#if canImport(UIKit) || canImport(AppKit)`.
+- `Sources/DiagramKitModel/ShapeSpec.swift:10` describes `ShapeSpec` as the single source of truth for layout, CoreGraphics, and SVG rendering.
+- `Sources/DiagramKitModel/SVGPathSerializer.swift:1` is also platform-gated, even though SVG path serialization is not inherently Apple-only.
+- `Sources/DiagramKitRenderingCG/ShapeRenderer.swift:18` uses `ShapeSpecRegistry` for CG shape drawing.
+- `Sources/DiagramKitModel/src_block_renderer.swift:186` manually switches over block node shapes for SVG.
+- `Sources/DiagramKitModel/src_block_renderer.swift:404` maps block node shapes to names separately from the CG path.
+- `Sources/DiagramKitRenderingCG/DiagramRenderer+Block.swift:150` contains a separate `_cgBlockShapeName` mapping.
+
+**Impact**
+
+The intended shape abstraction cannot serve Linux-portable SVG renderers because it is behind Apple platform gates. As a result, block SVG and CG renderers duplicate shape naming and geometry. This directly undermines the stated role of `ShapeSpec` and increases renderer drift.
+
+**Recommendation**
+
+Move platform-neutral shape definitions and SVG path serialization to a Linux-portable target, preferably `DiagramKitCommon` or an ungated part of `DiagramKitModel`. Keep only native `CGPath`, `UIColor`, and `NSColor` adapters behind Apple gates.
+
+Illustrative split:
+
+```swift
+public struct PortableShapeSpec: Sendable {
+  public var semanticName: String
+  public var path: @Sendable (CGRect) -> ShapePath
+  public var textInsets: EdgeInsets
+}
+
+public enum PortableShapeRegistry {
+  public static func spec(named name: String) -> PortableShapeSpec {
+    // Existing defaults from ShapeSpecRegistry+Defaults.swift.
+  }
+}
+
+public enum SVGPathSerializer {
+  public static func pathData(for path: ShapePath) -> String {
+    // Existing portable serializer without UIKit/AppKit gating.
+  }
+}
+```
+
+Then both `DiagramRenderer+Block.swift` and `src_block_renderer.swift` can use the same shape registry.
+
+### A4. `DiagramFrontmatter` is a compatibility god object
+
+**Evidence**
+
+- `Sources/DiagramKitModel/DiagramFrontmatter.swift:23` defines `DiagramFrontmatter`.
+- `Sources/DiagramKitModel/DiagramFrontmatter.swift:28` starts an initializer with dozens of optional per-family config and theme parameters.
+- `Sources/DiagramKitModel/DiagramFrontmatter.swift:167` defines `PerDiagramFrontmatter.Storage` with one stored property per family config/theme pair.
+- `Sources/DiagramKitModel/DiagramFrontmatter.swift:276` starts proxy accessors for every family.
+- `Sources/DiagramKitModel/DiagramFrontmatter.swift:451` starts flat-field compatibility shims that mirror many of the storage fields.
+
+**Impact**
+
+Every new diagram family or frontmatter shape requires edits across initializer parameters, storage, accessors, and compatibility shims. This concentrates unrelated ownership in a single file and makes additions noisy. The broad `@unchecked Sendable` storage also becomes harder to audit as fields are added.
+
+**Recommendation**
+
+Keep public compatibility shims, but move the canonical model toward typed sections and generated or table-driven accessors. At minimum, split family sections into smaller files and make the large initializer delegate to a typed storage builder.
+
+Illustrative direction:
+
+```swift
+public struct DiagramFamilyFrontmatter<Config: Sendable, Theme: Sendable>: Sendable {
+  public var config: Config?
+  public var theme: Theme?
+}
+
+public struct PerDiagramFrontmatter: Sendable {
+  public var block = DiagramFamilyFrontmatter<BlockDiagramConfig, ThemeVariables>()
+  public var sequence = DiagramFamilyFrontmatter<SequenceDiagramConfig, ThemeVariables>()
+  public var flowchart = DiagramFamilyFrontmatter<FlowchartDiagramConfig, FlowchartThemeVariables>()
+}
+```
+
+Flat properties such as `blockConfig` can remain deprecated forwarding accessors while new code uses structured sections.
+
+### A5. Frontmatter binding helpers are under-utilized
+
+**Evidence**
+
+- `Sources/DiagramKitModel/FrontmatterBinding.swift:41` defines the common `FrontmatterBinding` protocol.
+- `Sources/DiagramKitModel/FrontmatterBinding+Runners.swift:21` defines `SingleSectionBinding`.
+- `Sources/DiagramKitModel/FrontmatterBinding+Runners.swift:55` defines `ConfigThemeBinding`.
+- `Sources/DiagramKitModel/FrontmatterBinding+Packet.swift:13` uses `ConfigThemeBinding`.
+- `Sources/DiagramKitModel/FrontmatterBinding+Radar.swift:3` manually implements a config/theme binding.
+- `Sources/DiagramKitModel/FrontmatterBinding+EventModeling.swift:3` manually implements a config/theme binding.
+- `Sources/DiagramKitModel/FrontmatterBinding+Pie.swift:5` manually implements a config/theme binding with fallback prefixes.
+- `Sources/DiagramKitModel/FrontmatterBinding+Gantt.swift:4` manually implements a single config binding because it has top-level aliases.
+
+**Impact**
+
+The project has a good abstraction for frontmatter binding, but family files use it inconsistently. Manual implementations make it harder to tell which behavior is intentional and which is historical. Fallback prefixes and top-level aliases are the main reasons helper adoption is incomplete.
+
+**Recommendation**
+
+Extend the binding runners to support fallback prefixes and top-level aliases, then migrate manual family bindings to the shared helpers.
+
+Illustrative helper:
+
+```swift
+struct ConfigThemeBinding<Config: Decodable & Sendable, Theme: Decodable & Sendable> {
+  var configPrefixes: [String]
+  var themePrefixes: [String]
+  var topLevelConfigAliases: [String: WritableKeyPath<Config, String?>] = [:]
+}
+```
+
+This keeps special cases explicit while avoiding full manual binders per family.
+
+### A6. `original_src_ascii_draw` is a large procedural drawing object
+
+**Evidence**
+
+- `Sources/DiagramKitModel/src_ascii_draw.swift` is 1,108 lines.
+- `Sources/DiagramKitModel/src_ascii_draw.swift:37` starts `drawNode`.
+- `Sources/DiagramKitModel/src_ascii_draw.swift:177` starts `drawLine`.
+- `Sources/DiagramKitModel/src_ascii_draw.swift:523` starts `drawArrow`.
+- `Sources/DiagramKitModel/src_ascii_draw.swift:608`, `Sources/DiagramKitModel/src_ascii_draw.swift:688`, `Sources/DiagramKitModel/src_ascii_draw.swift:747`, and `Sources/DiagramKitModel/src_ascii_draw.swift:780` handle bundled edge variants.
+- `Sources/DiagramKitModel/src_ascii_draw.swift:871` starts `drawSubgraphBox`.
+- `Sources/DiagramKitModel/src_ascii_draw.swift:928`, `Sources/DiagramKitModel/src_ascii_draw.swift:948`, and `Sources/DiagramKitModel/src_ascii_draw.swift:967` fill role overlays.
+- `Sources/DiagramKitModel/src_ascii_draw.swift:1001` starts `drawGraph`.
+
+**Impact**
+
+The class combines node drawing, edge routing, arrowheads, bundles, subgraphs, role overlays, and whole-graph orchestration. This makes simple ASCII improvements expensive because unrelated drawing rules live in the same procedural object.
+
+**Recommendation**
+
+Split by drawing responsibility while sharing the same canvas type:
+
+```swift
+struct AsciiNodeDrawer {
+  func drawNode(_ node: PositionedNode, into canvas: inout AsciiCanvas)
+}
+
+struct AsciiEdgeDrawer {
+  func drawEdge(_ edge: PositionedEdge, into canvas: inout AsciiCanvas)
+}
+
+struct AsciiGraphDrawer {
+  var nodes: AsciiNodeDrawer
+  var edges: AsciiEdgeDrawer
+  var subgraphs: AsciiSubgraphDrawer
+}
+```
+
+The split should be internal first. Public API behavior should remain snapshot-driven.
+
+### A7. SVG render registration does not reuse the typed descriptor pattern
+
+**Evidence**
+
+- `Sources/DiagramKit/DiagramRegistry+TypedDescriptor.swift:13` defines a `_typed` descriptor factory that removes parse/layout boilerplate.
+- `Sources/DiagramKit/SVGRenderRegistry.swift:33` manually builds a dictionary of render closures for each diagram type.
+- `Sources/DiagramKit/SVGRenderRegistry.swift:44`, `Sources/DiagramKit/SVGRenderRegistry.swift:61`, `Sources/DiagramKit/SVGRenderRegistry.swift:78`, and many following closures all repeat the same pattern: check `positioned.graph.content`, wrap the payload into a family-specific positioned type, call a family-specific renderer.
+
+**Impact**
+
+Adding or modifying a diagram family requires editing one large registry with repetitive type checks. The implementation pattern is conceptually the same as `DiagramRegistry._typed`, but SVG does not get the same reduction in boilerplate.
+
+**Recommendation**
+
+Add a typed SVG render descriptor factory:
+
+```swift
+extension SVGRenderDescriptor {
+  static func typed<Content>(
+    _ type: DiagramType,
+    render: @escaping @Sendable (PositionedDiagram<Content>, RenderConfig) throws -> String
+  ) -> SVGRenderDescriptor {
+    SVGRenderDescriptor(type) { positioned, config in
+      guard case let .typed(content as Content) = positioned.graph.content else {
+        throw DiagramError.renderingFailed("Expected \(Content.self) for \(type)")
+      }
+      return try render(positioned.mapContent { content }, config)
+    }
+  }
+}
+```
+
+The exact shape should follow existing `PositionedGraph` APIs, but the goal is to move the repetitive payload verification out of the central registry.
+
+## Pattern Consistency Review
+
+### P1. SVG and ASCII public pipeline signatures are inconsistent
+
+**Evidence**
+
+- `Sources/DiagramKit/DiagramPipeline.swift:205` exposes `renderSVG(..., registry: ImporterRegistry = defaultRegistry)`.
+- `Sources/DiagramKit/DiagramPipeline.swift:282` exposes `renderASCII(..., sourceFormat: DiagramFormatID? = nil)` without a registry parameter.
+- `Sources/DiagramKit/DiagramPipeline.swift:244` exposes `renderSVG(positioned:config:)`, but there is no equivalent positioned ASCII renderer.
+
+**Impact**
+
+Developers must remember that registry injection and positioned rendering work for SVG but not ASCII. This increases API surprise and makes non-Mermaid ASCII rendering depend on source conversion rather than the structured model.
+
+**Recommendation**
+
+Make ASCII API capabilities converge with SVG. Start by adding `registry:` to source-based ASCII rendering, then add a structured render path once `AsciiDocumentRenderRegistry` exists.
+
+```swift
+public static func renderASCII(
+  source: String,
+  theme: DiagramTheme = .default,
+  sourceFormat: DiagramFormatID? = nil,
+  registry: ImporterRegistry = defaultRegistry
+) throws -> AsciiRenderOutput
+```
+
+### P2. Some source comments describe old phase limitations rather than current behavior
+
+**Evidence**
+
+- `Sources/DiagramKitPlantUML/PlantUMLImporter.swift:43` says C4, Gantt, Mindmap, State, Activity, and ER coverage is deferred.
+- `Sources/DiagramKitPlantUML/PlantUMLImporter.swift:53` now dispatches C4.
+- `Sources/DiagramKitPlantUML/PlantUMLImporter.swift:59` now dispatches Gantt.
+- `Sources/DiagramKitPlantUML/PlantUMLImporter.swift:63` now dispatches Mindmap.
+- `Sources/DiagramKitPlantUML/PlantUMLImporter.swift:67` now dispatches State/Activity.
+- `Sources/DiagramKitPlantUML/PlantUMLExporter.swift:9` says the exporter supports Sequence and Class diagrams only.
+- `Sources/DiagramKitPlantUML/PlantUMLExporter.swift:16` includes State, Mindmap, Gantt, and C4 diagram types.
+- `Sources/DiagramKitExport/MermaidExporter.swift:8` still describes a Phase 10 sub-slice even though the roadmap is archived as complete.
+
+**Impact**
+
+Stale comments create false constraints. A maintainer may avoid using or extending existing PlantUML coverage because the file header claims it is not implemented.
+
+**Recommendation**
+
+Replace phase-history comments with durable capability comments. Keep historical phase information in archived docs, not in active source headers.
+
+Example:
+
+```swift
+/// Imports supported PlantUML families into DiagramDocument.
+///
+/// Detection is intentionally ordered from narrow families to broad families
+/// so C4 and Gantt markers are considered before generic sequence syntax.
+```
+
+### P3. SVG builder usage is inconsistent across renderers
+
+**Evidence**
+
+- `Sources/DiagramKitModel/SVGUtilities.swift:8` says `SVGDocumentBuilder` replaces hand-written wrappers and accessibility markup.
+- `Sources/DiagramKitModel/SVGUtilities.swift:130` provides `accessibility()`.
+- `Sources/DiagramKitModel/src_sequence_renderer.swift:43` appends `svgBuilder.accessibility()`.
+- `Sources/DiagramKitModel/src_gantt_renderer.swift:89` manually writes `<title>` and `<desc>`.
+- `Sources/DiagramKitModel/src_er_renderer.swift:44` manually writes `<title>` and `<desc>`.
+- `Sources/DiagramKitModel/src_class_renderer.swift:45` manually writes `<title>` and `<desc>`.
+- `Sources/DiagramKitModel/src_block_renderer.swift:37` manually writes `<title>` and `<desc>`.
+- `Sources/DiagramKitModel/src_renderer.swift:84` manually writes `<title>` and `<desc>`.
+
+**Impact**
+
+Renderer files mix two conventions for the same SVG document boilerplate. That makes accessibility behavior harder to change globally and increases the chance of inconsistent escaping or markup ordering.
+
+**Recommendation**
+
+Standardize every SVG renderer on the builder:
+
+```swift
+let builder = SVGDocumentBuilder(...)
+var parts: [String] = []
+parts.append(builder.open())
+parts.append(builder.accessibility())
+parts.append(builder.style())
+```
+
+If a renderer needs custom title or description text, pass it through `SVGDocumentBuilder` rather than writing raw tags locally.
+
+### P4. XML and SVG escaping helpers are duplicated around the codebase
+
+**Evidence**
+
+- `Sources/DiagramKitCommon/SVG.swift:17` defines `SVG.escapeText`.
+- `Sources/DiagramKitCommon/SVG.swift:28` defines `SVG.escapeAttribute`.
+- `Sources/DiagramKitCommon/src_multiline_utils.swift:45` keeps deprecated `escapeXml`.
+- `Sources/DiagramKitModel/src_sequence_renderer.swift:534` defines `escapeXML`.
+- `Sources/DiagramKitModel/src_gantt_renderer.swift:201` defines `ganttEscapeXML`.
+- `Sources/DiagramKitModel/src_architecture_renderer.swift:318` defines `architectureEscapeXML`.
+- `Sources/DiagramKitModel/src_renderer.swift:1010` defines `_flowchartEscapeXML`.
+- `Sources/DiagramKitModel/src_class_renderer.swift:500` defines `classEscapeXML`.
+- `Sources/DiagramKitModel/src_er_renderer.swift:534` defines `erEscapeXML`.
+- `Sources/DiagramKitD2/D2Exporter.swift:68` defines a local `escapeString`.
+- `Sources/DiagramKitStructurizr/StructurizrExporter.swift:200` defines a local `escapeString`.
+
+**Impact**
+
+Most of these wrappers are simple pass-throughs, but their presence makes escaping policy look family-specific. The local exporter helpers also make it harder to audit whether text and attribute contexts are handled correctly.
+
+**Recommendation**
+
+Use `SVG.escapeText` and `SVG.escapeAttribute` directly in SVG renderers. For non-SVG exporters, introduce format-specific shared helpers only when the escaping rules differ.
+
+```swift
+let title = SVG.escapeText(diagramTitle)
+let id = SVG.escapeAttribute(nodeID)
+```
+
+Deprecation shims can remain for compatibility, but new renderer code should use the common namespace directly.
+
+### P5. Dual renderer drift is acknowledged but not structurally reduced
+
+**Evidence**
+
+- `AGENTS.md` documents that CG/image renderers live in `DiagramKitRenderingCG` while SVG renderers live in `DiagramKitModel`, and that they drift.
+- `Sources/DiagramKitCommon/BlockRenderConstants.swift:3` provides shared block constants.
+- `Sources/DiagramKitRenderingCG/DiagramRenderer+Block.swift:31` implements CG block node drawing.
+- `Sources/DiagramKitModel/src_block_renderer.swift:186` implements separate SVG block node drawing.
+- `Sources/DiagramKitCommon/SequenceRenderConstants.swift:3` provides shared sequence constants.
+- `Sources/DiagramKitRenderingCG/DiagramRenderer+Sequence.swift:273` implements CG sequence arrowheads.
+- `Sources/DiagramKitModel/src_sequence_renderer.swift:122` implements separate SVG marker definitions.
+- `Sources/DiagramKitModel/src_sequence_types.swift:394` centralizes sequence arrow style classification, which is a good partial abstraction.
+
+**Impact**
+
+Shared constants reduce some drift, but shape geometry, marker behavior, arrowheads, and name mappings still live in renderer-specific code. Snapshot tests catch differences after the fact, but they do not reduce the effort required to make synchronized changes.
+
+**Recommendation**
+
+Extract renderer-neutral geometry and semantic classification first, leaving paint operations renderer-specific:
+
+```swift
+struct ArrowheadGeometry: Sendable {
+  var points: [CGPoint]
+  var fill: Bool
+  var stroke: Bool
+}
+
+protocol DiagramArrowheadRenderer {
+  associatedtype Output
+  func render(_ geometry: ArrowheadGeometry, style: StrokeStyle) -> Output
+}
+```
+
+Start with block shapes and sequence arrowheads because both already have shared constants and visible duplicated mappings.
+
+### P6. Apple platform import boilerplate is repeated in CG renderer extensions
+
+**Evidence**
+
+- `Sources/DiagramKitRenderingCG/DiagramRenderer+Kanban.swift:1` contains repeated `#if canImport(UIKit)` / `#elseif canImport(AppKit)` import boilerplate.
+- `Sources/DiagramKitRenderingCG/DiagramRenderer+Radar.swift:1` contains the same boilerplate.
+- A duplicate-cluster pass found the same platform import block repeated across more than 20 `DiagramRenderer+*.swift` files.
+
+**Impact**
+
+The cost is low, but the repeated boilerplate adds visual noise and makes renderer files look more platform-dependent than they often are.
+
+**Recommendation**
+
+Centralize platform type aliases and common imports in one RenderingCG shim file when possible. Individual renderer extensions should import only what they directly need.
+
+```swift
+#if canImport(UIKit)
+import UIKit
+public typealias DiagramNativeColor = UIColor
+#elseif canImport(AppKit)
+import AppKit
+public typealias DiagramNativeColor = NSColor
+#endif
+```
+
+## Duplication and Reuse Audit
+
+### D1. ELK edge and subgraph construction are repeated inside `src_layout.swift`
+
+**Evidence**
+
+- `Sources/DiagramKitModel/src_layout.swift:43` defines an inner `_makeEdge`.
+- `Sources/DiagramKitModel/src_layout.swift:1301` repeats an inner `_makeEdge` with the same core purpose.
+- `Sources/DiagramKitModel/src_layout.swift:143` builds edge labels.
+- `Sources/DiagramKitModel/src_layout.swift:181` builds another edge label path.
+- `Sources/DiagramKitModel/src_layout.swift:1409` repeats label construction.
+- `Sources/DiagramKitModel/src_layout.swift:95` defines `_deepestSubgraph`.
+- `Sources/DiagramKitModel/src_layout.swift:1293` repeats deepest-subgraph logic.
+- `Sources/DiagramKitModel/src_layout.swift:206` builds subgraph nodes.
+- `Sources/DiagramKitModel/src_layout.swift:1348` repeats subgraph-node construction.
+
+**Impact**
+
+The same graph-construction rules exist in multiple places. Any correction to edge IDs, labels, subgraph containment, or port handling can be applied incompletely.
+
+**Recommendation**
+
+Extract reusable functions before splitting the file. This is a lower-risk first step than moving entire subsystems:
+
+```swift
+private struct ElkEdgeBuilder {
+  func makeEdge(
+    id: String,
+    model: MermaidEdge,
+    sourceID: String,
+    targetID: String,
+    label: String?
+  ) -> ElkGraphEdge {
+    ElkGraphEdge(
+      id: id,
+      sources: [sourceID],
+      targets: [targetID],
+      labels: label.map { [ElkLabel(text: $0)] } ?? []
+    )
+  }
+}
+```
+
+After this consolidation, snapshot tests can verify that the extraction was behavior-preserving.
+
+### D2. Block shape rendering is duplicated between SVG and CG
+
+**Evidence**
+
+- `Sources/DiagramKitRenderingCG/DiagramRenderer+Block.swift:31` draws block nodes in CG.
+- `Sources/DiagramKitRenderingCG/DiagramRenderer+Block.swift:150` maps block node shapes for CG.
+- `Sources/DiagramKitRenderingCG/DiagramRenderer+Block.swift:185` maps block arrow heads for CG.
+- `Sources/DiagramKitModel/src_block_renderer.swift:186` draws block nodes in SVG.
+- `Sources/DiagramKitModel/src_block_renderer.swift:318` calculates block arrow geometry for SVG.
+- `Sources/DiagramKitModel/src_block_renderer.swift:404` maps block node shapes for SVG.
+- `Sources/DiagramKitCommon/BlockRenderConstants.swift:3` already provides shared constants, but not shared geometry.
+
+**Impact**
+
+The renderers are forced to evolve in parallel. Shape support, arrowhead changes, and geometry fixes must be made twice.
+
+**Recommendation**
+
+Move shape and arrowhead semantics into portable shared helpers:
+
+```swift
+enum BlockShapeMapper {
+  static func shapeName(for node: BlockNode) -> String {
+    // Single mapping used by SVG and CG renderers.
+  }
+}
+
+enum BlockArrowGeometry {
+  static func arrowHead(for edge: PositionedBlockEdge) -> ArrowheadGeometry {
+    // Renderer-neutral points and fill/stroke semantics.
+  }
+}
+```
+
+The CG renderer should convert shared geometry to `CGPath`; the SVG renderer should convert the same geometry to path data or marker elements.
+
+### D3. ASCII shape files duplicate dimension scaffolding
+
+**Evidence**
+
+- `Sources/DiagramKitModel/src_ascii_shapes_rectangle.swift:8` calculates box dimensions.
+- `Sources/DiagramKitModel/src_ascii_shapes_special.swift:4` calculates base box dimensions.
+- `Sources/DiagramKitModel/src_ascii_shapes_index.swift:4` calculates basic box dimensions.
+- `Sources/DiagramKitModel/src_ascii_shapes_stadium.swift:11` calculates stadium dimensions with very similar width and height constraints.
+
+**Impact**
+
+Shape-specific rendering should differ in border glyphs and contours, not in repeated minimum-size and label-centering rules. The current repetition makes text fitting behavior harder to keep consistent across shapes.
+
+**Recommendation**
+
+Introduce a shared dimension helper:
+
+```swift
+struct AsciiShapeMetrics: Sendable {
+  var width: Int
+  var height: Int
+  var labelRow: Int
+  var labelColumn: Int
+}
+
+func makeBoxMetrics(
+  label: String,
+  horizontalPadding: Int = 2,
+  verticalPadding: Int = 1,
+  minWidth: Int = 5,
+  minHeight: Int = 3
+) -> AsciiShapeMetrics {
+  let width = max(minWidth, label.count + horizontalPadding * 2)
+  let height = max(minHeight, 1 + verticalPadding * 2)
+  return AsciiShapeMetrics(width: width, height: height, labelRow: height / 2, labelColumn: horizontalPadding)
+}
+```
+
+Shape renderers can then focus on the border algorithm.
+
+### D4. Unsupported exporter diagnostics are repeated
+
+**Evidence**
+
+- `Sources/DiagramKitExport/DiagramExportLoader.swift:24` emits a diagnostic for unsupported export formats.
+- `Sources/DiagramKitD2/D2Exporter.swift:22` emits an unsupported diagram diagnostic.
+- `Sources/DiagramKitDOT/DOTExporter.swift:19` emits an unsupported diagram diagnostic.
+- `Sources/DiagramKitStructurizr/StructurizrExporter.swift:17` emits an unsupported diagram diagnostic.
+- `Sources/DiagramKitPlantUML/PlantUMLExporter.swift:28` emits an unsupported diagram diagnostic.
+- `Sources/DiagramKitExport/MermaidExporter.swift:30` emits an unsupported diagram diagnostic.
+
+**Impact**
+
+Diagnostic wording and severity can drift by exporter. New exporters are likely to copy one of the existing blocks, spreading the pattern further.
+
+**Recommendation**
+
+Add a shared constructor in `DiagramKitExport`:
+
+```swift
+extension DiagramExportResult {
+  static func unsupported(
+    format: DiagramFormatID,
+    document: DiagramDocument,
+    reason: String? = nil
+  ) -> DiagramExportResult {
+    .failure(
+      DiagramDiagnostic(
+        severity: .error,
+        message: reason ?? "\(format.rawValue) export does not support \(document.type)",
+        range: nil
+      )
+    )
+  }
+}
+```
+
+Exporters can then return the same structured diagnostic without repeating message construction.
+
+### D5. String escaping and quoting helpers are repeated across exporters
+
+**Evidence**
+
+- `Sources/DiagramKitD2/D2Exporter.swift:68` defines `escapeString`.
+- `Sources/DiagramKitStructurizr/StructurizrExporter.swift:200` defines `escapeString`.
+- `Sources/DiagramKitDOT/DOTFlowchartExport.swift:18` defines DOT-specific escaping.
+- `Sources/DiagramKitPlantUML/PlantUMLSequenceExporter.swift:175` and nearby lines define PlantUML escaping helpers.
+- `Sources/DiagramKitExport/MermaidExportHelpers.swift:11` defines Mermaid string escaping helpers.
+
+**Impact**
+
+Some repetition is appropriate because D2, DOT, Structurizr, PlantUML, and Mermaid have different escaping rules. The current structure, however, makes it difficult to tell which helpers differ by format and which are repeated accidentally.
+
+**Recommendation**
+
+Keep format-specific escaping, but place it behind clearly named reusable helpers in each exporter module. Avoid local nested escape functions in individual exporter files.
+
+```swift
+enum DOTEscaper {
+  static func quoted(_ value: String) -> String {
+    "\"\(value.replacingOccurrences(of: "\"", with: "\\\""))\""
+  }
+}
+```
+
+This preserves format-specific behavior while making escaping policy auditable.
+
+### D6. Public API worker wrappers repeat similar boilerplate
+
+**Evidence**
+
+- `Sources/DiagramKit/DiagramEngine.swift:52` wraps `parse`.
+- `Sources/DiagramKit/DiagramEngine.swift:62` wraps `layout`.
+- `Sources/DiagramKit/DiagramEngine.swift:75` wraps `renderSVG`.
+- `Sources/DiagramKit/DiagramEngine.swift:151` wraps `renderASCII`.
+- `Sources/DiagramKit/DiagramEngine.swift:217` implements `_runOnWorker`.
+- `Sources/DiagramKit/DiagramPipeline.swift:27` separately centralizes font registration and error reporting in `runPipeline`.
+
+**Impact**
+
+The repeated wrapper pattern is acceptable because these are public API entry points with different signatures. The risk is that future methods could miss `DiagramFontRegistry.registerBundledFontsIfNeeded()` or worker execution requirements.
+
+**Recommendation**
+
+Do not over-abstract the public API signatures. Instead, add a small internal helper that makes the required pattern harder to bypass:
+
+```swift
+private static func runEngineOperation<T: Sendable>(
+  _ operation: @escaping @Sendable () throws -> T
+) async throws -> T {
+  try await _runOnWorker {
+    try DiagramPipeline.runPipeline(operation)
+  }
+}
+```
+
+Public methods stay readable, but the font and worker invariants are enforced in one place.
+
+### D7. Acceptable repetition that should not be refactored aggressively
+
+The following repetition appears intentional or low-value to abstract:
+
+- Snapshot baselines under `Tests`, because duplication is the point of regression fixtures.
+- Per-family descriptor registration files when they are short and declarative.
+- Large data tables such as icon maps and corpus fixtures.
+- Format-specific escaping where grammar rules genuinely differ.
+- Platform gates where a file directly uses native Apple UI or image types.
+- Parser code that intentionally mirrors upstream Mermaid behavior for easier port comparison.
+
+Refactoring these areas would likely reduce readability or increase indirection without meaningful maintainability gains.
+
+## Prioritized Refactoring Roadmap
+
+### Priority 1: Split `src_layout.swift` along existing responsibilities
+
+**Impact:** Very high maintainability and scalability gain.
+
+Start by extracting `ElkEdgeBuilder` and subgraph construction helpers. Then split ELK graph construction, layout execution, positioned extraction, and edge post-processing into separate internal files. Run the full layout and snapshot suites after each mechanical move.
+
+### Priority 2: Create a structured ASCII rendering path
+
+**Impact:** Very high developer productivity gain for new formats.
+
+Add registry injection to `renderASCII`, then introduce document-aware ASCII rendering. Keep the source-based path as a compatibility fallback while migrating families one by one.
+
+### Priority 3: Make shape geometry portable and shared by SVG and CG
+
+**Impact:** High maintainability gain and reduced renderer drift.
+
+Ungate portable `ShapeSpec`, `ShapePath`, and `SVGPathSerializer` from Apple-only imports. Use the shared registry first in block rendering, then expand to additional shape-heavy families.
+
+### Priority 4: Standardize SVG document construction and escaping
+
+**Impact:** Medium-high consistency gain with low implementation risk.
+
+Migrate renderers to `SVGDocumentBuilder.accessibility()` and direct `SVG.escapeText` / `SVG.escapeAttribute` calls. This is a good low-risk cleanup because snapshots should quickly reveal markup changes.
+
+### Priority 5: Consolidate frontmatter binding patterns
+
+**Impact:** Medium-high scalability gain for future families.
+
+Extend `ConfigThemeBinding` and `SingleSectionBinding` to cover fallback prefixes and top-level aliases. Migrate manual binders after the helper supports their existing behavior.
+
+### Priority 6: Reduce exporter diagnostic duplication
+
+**Impact:** Medium productivity gain.
+
+Add shared unsupported-format and unsupported-diagram result constructors in `DiagramKitExport`. Migrate exporters opportunistically.
+
+### Priority 7: Split `original_src_ascii_draw`
+
+**Impact:** Medium maintainability gain.
+
+Extract node, edge, bundle, subgraph, and role overlay drawers. This should follow the structured ASCII rendering work so the split supports the target architecture rather than preserving source-based assumptions.
+
+### Priority 8: Refresh stale source comments
+
+**Impact:** Medium cognitive-load reduction with very low risk.
+
+Replace phase-era comments in active importer/exporter code with current capability descriptions. Keep phase history in archived documentation.
+
+### Priority 9: Centralize CG platform boilerplate
+
+**Impact:** Low but useful readability improvement.
+
+Add a small RenderingCG platform shim for native color/image aliases and remove repeated imports where possible.
+
+## Closing Assessment
+
+DiagramKit is not structurally weak; it is structurally uneven. The package-level layering and registry-based architecture are solid, and the most useful abstractions already exist. The maintainability opportunity is to finish the migration toward those abstractions, especially in layout, rendering, ASCII output, and frontmatter. A focused refactoring sequence can reduce the largest modules, remove duplicated renderer logic, and make future diagram-family work more predictable without destabilizing the public API.
