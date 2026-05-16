@@ -185,7 +185,7 @@ The four governance scripts originated as ports from the sibling `MusicToolkit` 
 - **CG/SVG renderer drift** — long-term plan is a single canonical render path; snapshot tests are the only guardrail in the meantime.
 - **`RenderConfig.swift` magic constants** — should be lifted into theme tokens.
 - **View interactivity** — `DiagramKitViews` is split out, but selection, hit-testing, and editor-oriented state remain future work.
-- **`<Module>Bootstrap.phase: Int` markers** — deferred to Stage 6 monorepo promotion (per [ANALYSIS.md](ANALYSIS.md)).
+- **`<Module>Bootstrap.phase: Int` markers** — deferred to a future monorepo-promotion stage.
 
 ## Suggested reading map
 
@@ -196,4 +196,4 @@ For new contributors, in order:
 3. [CLAUDE.md](CLAUDE.md) — invariants, conventions, "where new files belong" decision tree.
 4. [CONTRIBUTING.md](CONTRIBUTING.md) — the governance gates and PR workflow.
 5. [BASELINES.md](BASELINES.md) — current metrics and known caveats.
-6. [ANALYSIS.md](ANALYSIS.md) — six-stage import plan and current status.
+6. [docs/archive/PHASES.md](docs/archive/PHASES.md) — completed multi-format roadmap, useful for understanding why the package is shaped the way it is.

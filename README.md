@@ -180,7 +180,7 @@ SNAPSHOT_DIAGRAM_IDS=id1,id2,... SNAPSHOT_TESTING_RECORD=true \
 swift run DiagramPlayground
 ```
 
-> The playground's Xcode-project surface and the location of `Resources/test-diagrams.json` (currently inside the app, not in `DiagramKitTestSupport`) is a deliberate trade-off so the corpus stays editable from the SwiftUI app. See [ANALYSIS.md](ANALYSIS.md) for the original rationale.
+> The playground's Xcode-project surface and the location of `Resources/test-diagrams.json` (currently inside the app, not in `DiagramKitTestSupport`) is a deliberate trade-off so the corpus stays editable from the SwiftUI app.
 
 ## Documentation
 
@@ -190,8 +190,8 @@ swift run DiagramPlayground
 - [ATTRIBUTION.md](ATTRIBUTION.md) — upstream `mermaid-js` lineage, bundled fonts, library dependencies.
 - [THIRD_PARTY_LICENSES.md](THIRD_PARTY_LICENSES.md) — bundled assets with copyright + license text references.
 - [CLAUDE.md](CLAUDE.md) — invariants, conventions, layer-import rules, where new files belong.
-- [docs/archive/PHASES.md](docs/archive/PHASES.md) — completed multi-format roadmap.
-- [ANALYSIS.md](ANALYSIS.md) — long-form format analysis and rationale.
+- [docs/diagnostic-severity-discipline.md](docs/diagnostic-severity-discipline.md) — typed-factory decision tree for parser/exporter diagnostics.
+- [docs/archive/](docs/archive/) — historical record: completed roadmap (PHASES.md, PHASE-0.md … PHASE-10.md), execution plans (PLAN.md, PLAN-followup.md), the shipped review-remediation release notes, and the closing-commit map (BASELINES-history.md).
 
 ## Migration from Mermaid-prefixed names
 

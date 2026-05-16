@@ -1,20 +1,33 @@
 # AGENTS.md
 
-Native Swift mermaid-js port moving toward a multi-format DiagramKit. For
-invariants and conventions, read `CLAUDE.md` first. For architecture details,
-read [ARCHITECTURE.md](ARCHITECTURE.md). For the completed roadmap, read
-[docs/archive/PHASES.md](docs/archive/PHASES.md). For Phase 0 rename history,
-read [docs/archive/PHASE-0.md](docs/archive/PHASE-0.md). For current metrics, read
-[BASELINES.md](BASELINES.md).
+Native Swift mermaid-js port that now ships a multi-format DiagramKit
+(Mermaid + D2 + Graphviz DOT + Structurizr + PlantUML). For invariants
+and conventions, read `CLAUDE.md` first. For architecture details, read
+[ARCHITECTURE.md](ARCHITECTURE.md). For current metrics, read
+[BASELINES.md](BASELINES.md). For historical context (completed phases,
+plans, and the shipped review-remediation cycle), see
+[docs/archive/](docs/archive/).
 
-The package has six layered targets:
+The package ships **14 layered SwiftPM library products**. Imports flow
+strictly downward:
 
-`DiagramKitCommon` (Linux+Apple) -> `DiagramKitModel` (Linux+Apple) ->
-`DiagramKitRenderingCG` (Apple-only) / `DiagramKitTestSupport` (Linux+Apple) /
-`DiagramKitViews` (Apple-only) -> `DiagramKit` (umbrella public API and
-re-exports).
+```text
+DiagramKitCommon           (Linux + Apple)
+   ^
+DiagramKitModel            (Linux + Apple, partial)
+   ^
+   +-----------+-----------+-----------+-----------+-----------+
+DiagramKitRenderingCG  DiagramKitImport  DiagramKitExport  DiagramKitTestSupport  format slices:
+   (Apple-only)        (Linux + Apple)   (Linux + Apple)   (Linux + Apple)        DiagramKitMermaid / D2 / Graphviz / Structurizr / PlantUML
+   ^
+DiagramKitViews            (Apple-only)
+   ^                       DiagramKitInteractive (Apple-only)
+DiagramKit                 (umbrella public API + re-exports)
+```
 
-Imports flow strictly along that direction.
+Apple-only edges to `DiagramKitRenderingCG`, `DiagramKitViews`, and
+`DiagramKitInteractive` are guarded in `Package.swift` with
+`condition: .when(platforms: [Apple])`.
 
 ## Commands
 

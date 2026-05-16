@@ -17,15 +17,23 @@ overlap, preserve the constraints here and use the other docs for detail.
 - [README.md](README.md) - public install and quick-start examples.
 - [ARCHITECTURE.md](ARCHITECTURE.md) - layer diagram, pipeline details, drift
   hazards, and import rules.
-- [docs/archive/PHASES.md](docs/archive/PHASES.md) - completed multi-format roadmap.
-- [docs/archive/PHASE-0.md](docs/archive/PHASE-0.md) - completed rename plan/history.
-- [ANALYSIS.md](ANALYSIS.md) - long-form rationale and format analysis.
 - [BASELINES.md](BASELINES.md) - current build, test, snapshot, and gate
   metrics.
 - [CONTRIBUTING.md](CONTRIBUTING.md) - PR workflow, file-size policy, and
   green/yellow/red `@unchecked Sendable` policy.
 - [ATTRIBUTION.md](ATTRIBUTION.md) - upstream Mermaid lineage and licenses.
 - [AGENTS.md](AGENTS.md) - terse companion instructions for non-Claude agents.
+- [docs/diagnostic-severity-discipline.md](docs/diagnostic-severity-discipline.md) -
+  the typed-factory decision tree for parser/exporter diagnostics, enforced by
+  `Scripts/check-diagnostic-discipline.sh`.
+- [docs/archive/](docs/archive/) - historical record: completed roadmap
+  ([PHASES.md](docs/archive/PHASES.md), [PHASE-0.md](docs/archive/PHASE-0.md) …
+  [PHASE-10.md](docs/archive/PHASE-10.md)), execution plans
+  ([PLAN.md](docs/archive/PLAN.md), [PLAN-followup.md](docs/archive/PLAN-followup.md)),
+  shipped-cycle release notes
+  ([RELEASE_NOTES-review-remediation.md](docs/archive/RELEASE_NOTES-review-remediation.md)),
+  and the review-remediation closing-commit map
+  ([BASELINES-history.md](docs/archive/BASELINES-history.md)).
 
 ## Commands
 

@@ -141,4 +141,4 @@ Deprecated Mermaid-prefixed compatibility aliases (`MermaidRenderer`, `MermaidPi
 
 - Architectural questions / unclear invariants: open a discussion referencing the relevant section of [ARCHITECTURE.md](ARCHITECTURE.md) or [CLAUDE.md](CLAUDE.md).
 - "Should this go in Common, Model, or RenderingCG?": see the layer-import rules above; if still unsure, ask in the PR.
-- Stage-plan questions (what's open, what's deferred): [ANALYSIS.md](ANALYSIS.md).
+- Stage-plan questions (what's open, what's deferred): the live deferrals are in [BASELINES.md](BASELINES.md); for the historical phase plan, see [docs/archive/PHASES.md](docs/archive/PHASES.md).

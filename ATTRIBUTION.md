@@ -93,7 +93,7 @@ These dependencies are declared in [Package.swift](Package.swift) and resolved b
 
 ## Inspirational / convention sources
 
-- **Sibling `MusicToolkit` package** — DiagramKit's layered-target shape, governance scripts, and bundled-font / `@unchecked Sendable` policies are direct ports from MusicToolkit. The relationship is documented in [ANALYSIS.md](ANALYSIS.md) ("Diff vs MusicToolkit conventions").
+- **Sibling `MusicToolkit` package** — DiagramKit's layered-target shape, governance scripts, and bundled-font / `@unchecked Sendable` policies are direct ports from MusicToolkit.
 
 ## License texts
 
