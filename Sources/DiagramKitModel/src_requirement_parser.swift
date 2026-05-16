@@ -124,19 +124,28 @@ private func _reqParseIdList(_ tokens: [_ReqToken], from start: Int) -> (names: 
 
 // MARK: - Regex cache
 
-private let _reqRegexCache = NSLock()
-private nonisolated(unsafe) var _reqCompiledRegex: [String: NSRegularExpression] = [:]
+// Concurrency Contract: requirement-parser regex lookups go through
+// `NSCache` + a private serial dispatch queue. The cache caps its own
+// size under varied input (no unbounded growth on user-controllable
+// patterns), and the queue guarantees the get-or-insert is atomic. The
+// shape mirrors `_dateFormatterCache` in `src_gantt_parser.swift`.
+private nonisolated(unsafe) let _reqCompiledRegex = NSCache<NSString, NSRegularExpression>()
+private let _reqRegexCacheQueue = DispatchQueue(
+    label: "diagramkit.requirement.regexCache"
+)
 
 private func _reqCachedRegex(_ pattern: String, _ options: NSRegularExpression.Options = []) -> NSRegularExpression? {
-    let key = "\(pattern)|\(options.rawValue)"
-    _reqRegexCache.lock()
-    if let cached = _reqCompiledRegex[key] { _reqRegexCache.unlock(); return cached }
-    _reqRegexCache.unlock()
-    guard let regex = try? NSRegularExpression(pattern: pattern, options: options) else { return nil }
-    _reqRegexCache.lock()
-    _reqCompiledRegex[key] = regex
-    _reqRegexCache.unlock()
-    return regex
+    let key = "\(pattern)|\(options.rawValue)" as NSString
+    return _reqRegexCacheQueue.sync {
+        if let cached = _reqCompiledRegex.object(forKey: key) {
+            return cached
+        }
+        guard let regex = try? NSRegularExpression(pattern: pattern, options: options) else {
+            return nil
+        }
+        _reqCompiledRegex.setObject(regex, forKey: key)
+        return regex
+    }
 }
 
 private func _reqGroups(_ pattern: String, _ value: String, caseInsensitive: Bool = false) -> [String]? {

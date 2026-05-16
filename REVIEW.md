@@ -2,7 +2,7 @@
 
 **Method.** Six parallel agents reviewed: (1) architecture/layering/portability, (2) concurrency, (3) invariants + dual-renderer symmetry, (4) diagnostics + error handling, (5) code quality, (6) correctness/perf/test coverage. Critical and high-impact findings were spot-verified against the working tree. The diagnostic-discipline and `@unchecked Sendable` gates pass clean; the worker-thread invariant, `@MainActor` placement, `bmColorEquals`, type-safe payloads, retain cycles, cross-format round-trip matrix, and empty-source handling all checked out with no findings.
 
-**Summary.** 1 Critical (verified build break) — **resolved**, 10 High (10 resolved), 13 Medium (+2 added during follow-up; 11 resolved, 1 deferred), 7 Low (1 resolved).
+**Summary.** 1 Critical (verified build break) — **resolved**, 10 High (10 resolved), 13 Medium (+2 added during follow-up; 11 resolved, 1 deferred), 7 Low (3 resolved).
 
 ---
 
@@ -262,17 +262,17 @@ New `FrontmatterDocumentParserTests` (8 tests) pin all three fixes: tab-indent e
 **Problem:** `_tokenizeSVGPath` uses `try! NSRegularExpression(pattern: pattern)` for a compile-time constant. Safe today, but a future edit to the regex string is a footgun. Other parsers consistently use `guard let regex = try? ... else { return [] }`.
 **Fix applied.** Swapped to `guard let regex = try? NSRegularExpression(pattern: pattern) else { return [] }`. Returns an empty token array on the impossible-today bad-pattern path, matching the prevailing convention.
 
-### [Severity: Low] Requirement-parser regex cache has a benign TOCTOU race with no documented contract
+### [Severity: Low] ~~Requirement-parser regex cache has a benign TOCTOU race with no documented contract~~ — RESOLVED (folded into Low #5)
 **File:** `Sources/DiagramKitModel/src_requirement_parser.swift#L125-140`
 **Category:** Concurrency
 **Problem:** `_reqCachedRegex` locks for read, unlocks, compiles outside the lock, then re-locks for write. Two threads can compile the same pattern twice (correctness preserved since `NSRegularExpression` is stateless once compiled). Missing the "Concurrency Contract" banner that every other locked cache carries (e.g., gantt cache at L410-422).
-**Fix:** Add a Concurrency Contract banner documenting the lock-release-compile-relock pattern as intentional.
+**Fix applied.** Folded into the Low #5 migration below — the TOCTOU race goes away entirely when the cache moves to `NSCache + DispatchQueue.sync` (atomic get-or-insert).
 
-### [Severity: Low] `_reqCompiledRegex` cache has no eviction
+### [Severity: Low] ~~`_reqCompiledRegex` cache has no eviction~~ — RESOLVED
 **File:** `Sources/DiagramKitModel/src_requirement_parser.swift#L127-140`
 **Category:** Performance
 **Problem:** Plain `[String: NSRegularExpression]` keyed on user-controllable strings, grows unbounded under varied inputs. `_dateFormatterCache` in `src_gantt_parser.swift#L422-440` already uses `NSCache` for the same problem; this is the only outlier.
-**Fix:** Convert to `NSCache<NSString, NSRegularExpression>` for parity.
+**Fix applied.** Replaced the `NSLock` + `[String: NSRegularExpression]` pair with `NSCache<NSString, NSRegularExpression>` + a private serial `DispatchQueue` — mirroring the `_dateFormatterCache` shape in the Gantt parser exactly. The `DispatchQueue.sync` block makes the get-or-insert atomic (closes the TOCTOU race from Low #4), and `NSCache` caps its own size so user-controllable input patterns can't grow the cache unbounded. Concurrency Contract banner documents the design. All 30 `RequirementParserTests` pass.
 
 ### [Severity: Low] `DiagramLayer.preparedDiagram` clear-on-failure relies on `Task.isCancelled` alone
 **File:** `Sources/DiagramKitViews/DiagramLayer.swift#L169-228`
