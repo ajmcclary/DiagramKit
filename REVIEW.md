@@ -2,7 +2,7 @@
 
 **Method.** Six parallel agents reviewed: (1) architecture/layering/portability, (2) concurrency, (3) invariants + dual-renderer symmetry, (4) diagnostics + error handling, (5) code quality, (6) correctness/perf/test coverage. Critical and high-impact findings were spot-verified against the working tree. The diagnostic-discipline and `@unchecked Sendable` gates pass clean; the worker-thread invariant, `@MainActor` placement, `bmColorEquals`, type-safe payloads, retain cycles, cross-format round-trip matrix, and empty-source handling all checked out with no findings.
 
-**Summary.** 1 Critical (verified build break) — **resolved**, 10 High (10 resolved), 13 Medium (+2 added during follow-up; 11 resolved, 1 deferred), 7 Low (5 resolved).
+**Summary.** 1 Critical (verified build break) — **resolved**, 10 High (10 resolved), 13 Medium (+2 added during follow-up; 11 resolved, 1 deferred), 7 Low (6 resolved).
 
 ---
 
@@ -274,11 +274,13 @@ New `FrontmatterDocumentParserTests` (8 tests) pin all three fixes: tab-indent e
 **Problem:** Plain `[String: NSRegularExpression]` keyed on user-controllable strings, grows unbounded under varied inputs. `_dateFormatterCache` in `src_gantt_parser.swift#L422-440` already uses `NSCache` for the same problem; this is the only outlier.
 **Fix applied.** Replaced the `NSLock` + `[String: NSRegularExpression]` pair with `NSCache<NSString, NSRegularExpression>` + a private serial `DispatchQueue` — mirroring the `_dateFormatterCache` shape in the Gantt parser exactly. The `DispatchQueue.sync` block makes the get-or-insert atomic (closes the TOCTOU race from Low #4), and `NSCache` caps its own size so user-controllable input patterns can't grow the cache unbounded. Concurrency Contract banner documents the design. All 30 `RequirementParserTests` pass.
 
-### [Severity: Low] `DiagramLayer.preparedDiagram` clear-on-failure relies on `Task.isCancelled` alone
+### [Severity: Low] ~~`DiagramLayer.preparedDiagram` clear-on-failure relies on `Task.isCancelled` alone~~ — RESOLVED
 **File:** `Sources/DiagramKitViews/DiagramLayer.swift#L169-228`
 **Category:** Correctness
 **Problem:** Inside `prepareDiagram()`, parse failure clears state. Ordering between three rapid `source` writes is guarded solely by `Task.isCancelled` at L208. Today MainActor isolation makes the race practically unreachable; a future split that lifts publication off MainActor would break it silently.
-**Fix:** Tag each task with a monotonic generation ID; ignore publication when the live generation has advanced. Document the invariant on the file header.
+**Fix applied.** Added `private var preparationGeneration: UInt64 = 0` on `DiagramLayer`, bumped (`&+=`) at the top of `prepareDiagram()`, captured into a local `myGeneration` before kicking off the task. The publication guard now reads `guard !Task.isCancelled, let self, self.preparationGeneration == myGeneration else { return }` — a task whose generation has already been superseded drops its result on the floor instead of publishing stale state. Docstring on the new property documents the contract explicitly so a future move of publication off MainActor can't silently regress it.
+
+Full `DiagramLayer`-touching test suite (6 tests across `DiagramViewReviewRegressionTests` + `DiagramViewBoundsLookupBindingTests`, including the `cancelledPreparationDoesNotFireCallback` test that exercises rapid-double-call cancellation) passes.
 
 ### [Severity: Low] ~~`DiagramFontResolver.svgProportionalFamily` documented intent vs callsites~~ — RESOLVED
 **File:** `Sources/DiagramKitModel/DiagramFontResolver.swift` (the comment-documented `"Inter"` hardcode)

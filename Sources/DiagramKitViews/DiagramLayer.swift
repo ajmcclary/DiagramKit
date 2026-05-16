@@ -49,6 +49,15 @@ public class DiagramLayer: CALayer {
     public private(set) var preparedDiagram: PreparedDiagram?
     private var preparationTask: Task<Void, Never>?
 
+    /// Monotonic generation token bumped each time `prepareDiagram` starts a
+    /// new task. Publication is gated on `preparationGeneration ==
+    /// captured`, so a task that finishes after the next call started will
+    /// drop its result on the floor instead of publishing stale state.
+    /// Today the MainActor isolation makes the race practically
+    /// unreachable; this guard makes the invariant explicit so a future
+    /// move of publication off MainActor can't silently break it.
+    private var preparationGeneration: UInt64 = 0
+
     /// Compatibility callback fired after a non-cancelled preparation completes.
     /// For multiple observers (e.g. host view + SwiftUI binding), prefer
     /// ``addPrepareCompletionHandler(_:)`` which supports fan-out.
@@ -168,6 +177,8 @@ public class DiagramLayer: CALayer {
 
     private func prepareDiagram() {
         preparationTask?.cancel()
+        preparationGeneration &+= 1
+        let myGeneration = preparationGeneration
         parseError = nil
 
         guard !source.isEmpty else {
@@ -204,8 +215,10 @@ public class DiagramLayer: CALayer {
                 result = .failure(error)
             }
 
-            // Cancelled tasks must not publish stale state or fire callbacks.
-            guard !Task.isCancelled, let self else { return }
+            // Cancelled tasks (or tasks whose live generation has
+            // already advanced past this one) must not publish stale
+            // state or fire callbacks.
+            guard !Task.isCancelled, let self, self.preparationGeneration == myGeneration else { return }
             switch result {
             case .success(let prepared):
                 self.preparedDiagram = prepared
