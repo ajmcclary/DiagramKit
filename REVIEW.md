@@ -2,7 +2,7 @@
 
 **Method.** Six parallel agents reviewed: (1) architecture/layering/portability, (2) concurrency, (3) invariants + dual-renderer symmetry, (4) diagnostics + error handling, (5) code quality, (6) correctness/perf/test coverage. Critical and high-impact findings were spot-verified against the working tree. The diagnostic-discipline and `@unchecked Sendable` gates pass clean; the worker-thread invariant, `@MainActor` placement, `bmColorEquals`, type-safe payloads, retain cycles, cross-format round-trip matrix, and empty-source handling all checked out with no findings.
 
-**Summary.** 1 Critical (verified build break) — **resolved**, 10 High, 11 Medium, 7 Low.
+**Summary.** 1 Critical (verified build break) — **resolved**, 10 High (1 resolved), 11 Medium, 7 Low.
 
 ---
 
@@ -41,11 +41,13 @@ Verified: clean `swift build --target DiagramKitMermaid` succeeds; full `swift b
 **Problem:** Verified — `renderQuadrantSvg` accepts `font: String`, but `_quadrantSvgOpenTag` builds `SVGDocumentBuilder(... fontFamily: "Inter", ...)` instead of forwarding `font`. Every other SVG family threads `font` through. Today both end up as `"Inter"`, but the moment `DiagramFontResolver.svgProportionalFamily` or `RenderTokens.defaultProportionalFontFamily` changes, quadrant diverges silently.
 **Fix:** Thread `font` into `_quadrantSvgOpenTag` and pass it to `SVGDocumentBuilder`. Drop the `"Inter"` literal.
 
-### [Severity: High] Dual-renderer drift in sequence self-loop geometry
+### [Severity: High] ~~Dual-renderer drift in sequence self-loop geometry~~ — RESOLVED
 **Files:** `Sources/DiagramKitRenderingCG/DiagramRenderer+Sequence.swift#L179-L193` vs `Sources/DiagramKitModel/src_sequence_renderer.swift#L464-L469`
 **Category:** Correctness (invariant #4 — dual-renderer symmetry)
 **Problem:** Verified — CG hardcodes `loopW=28, loopH=20, labelGap=+4`; SVG hardcodes `loopW=30, loopH=20, labelGap=+8`. Same `PositionedSequenceMessage.x1/x2` input produces shapes that differ by 2 px in width and 4 px in label gap between CG and SVG output. Snapshot tests cannot catch this since they use independent baselines per format.
-**Fix:** Lift to shared tokens (e.g., `RenderTokens+Sequence.sequenceSelfLoopWidth/Height/LabelGap`). Pick one canonical value, rebaseline both formats in the same commit.
+**Fix applied.** Could not use `RenderTokens+Sequence.swift` directly — that file is Apple-gated (`#if canImport(UIKit) || canImport(AppKit)`) and the SVG renderer is Linux-portable. Followed the existing `BlockRenderConstants` pattern instead: created `Sources/DiagramKitCommon/SequenceRenderConstants.swift` with plain-`Double` constants reachable from both targets. CG reads `CGFloat(SequenceRenderConstants.selfLoopWidth/Height/LabelGap)`; SVG reads the `Double` values directly. SVG values (`w=30, h=20, gap=+8`) were chosen as canonical — they give the label more breathing room and are already what the Linux-supported path produces.
+
+Affected snapshots (CG/image only — SVG values unchanged): `seq-5-activations`, `seq-6-self-messages`, `seq-16-self-notes`. All three image baselines rebaselined in the same commit; SVG baselines were already on these values and pass unchanged.
 
 ### [Severity: High] SVG renderers bypass `RenderTokens` font sizes — parallel sources of truth
 **Files:** `Sources/DiagramKitModel/src_renderer.swift`, `src_sequence_renderer.swift`, `src_class_renderer.swift`, plus most other `src_*_renderer.swift`

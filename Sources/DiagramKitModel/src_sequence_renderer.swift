@@ -462,9 +462,9 @@ private func _renderMessage(_ msg: PositionedSequenceMessage, index: Int = 0) ->
     }
 
     if msg.isSelf {
-        let loopW = 30.0
-        let loopH = 20.0
-        let labelPadding = 8.0
+        let loopW = SequenceRenderConstants.selfLoopWidth
+        let loopH = SequenceRenderConstants.selfLoopHeight
+        let labelPadding = SequenceRenderConstants.selfLoopLabelGap
         parts.append("<polyline class=\"\(lineClass)\" points=\"\(msg.x1),\(msg.y) \(msg.x1 + loopW),\(msg.y) \(msg.x1 + loopW),\(msg.y + loopH) \(msg.x2),\(msg.y + loopH)\" fill=\"none\" stroke=\"var(--_line)\" stroke-width=\"\(original_src_styles.STROKE_WIDTHS.connector)\"\(dashArray)\(markerEnd) />")
         parts.append(_textEl(msg.label, cx: msg.x1 + loopW + labelPadding, cy: msg.y + loopH / 2, fontSize: original_src_styles.FONT_SIZES.edgeLabel, anchor: "start", cls: "messageText"))
     } else {

@@ -1,6 +1,7 @@
 // Apple-only target gated by `#if canImport(CoreGraphics)`. On Linux this file is empty.
 #if canImport(CoreGraphics)
 import Foundation
+import DiagramKitCommon
 import DiagramKitModel
 import CoreGraphics
 
@@ -176,7 +177,9 @@ extension DiagramRenderer {
                 }
 
                 if msg.isSelf {
-                    let loopW: CGFloat = 28, loopH: CGFloat = 20
+                    let loopW = CGFloat(SequenceRenderConstants.selfLoopWidth)
+                    let loopH = CGFloat(SequenceRenderConstants.selfLoopHeight)
+                    let labelGap = CGFloat(SequenceRenderConstants.selfLoopLabelGap)
                     let pts = [
                         CGPoint(x: msg.x1, y: msg.y),
                         CGPoint(x: msg.x1 + loopW, y: msg.y),
@@ -190,7 +193,7 @@ extension DiagramRenderer {
 
                     guard let lastPt = pts.last else { continue }
                     _drawSequenceArrowHead(at: lastPt, from: pts[pts.count - 2], arrowType: msg.arrowType, in: ctx)
-                    self._drawTextInFlipped(msg.label, at: CGPoint(x: msg.x1 + loopW + 4, y: msg.y + loopH / 2),
+                    self._drawTextInFlipped(msg.label, at: CGPoint(x: msg.x1 + loopW + labelGap, y: msg.y + loopH / 2),
                         context: ctx, contentHeight: ch,
                         color: theme.effectiveMuted(),
                         font: cfg.edgeLabelFont(),
