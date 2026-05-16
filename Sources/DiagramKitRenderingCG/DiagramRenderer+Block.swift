@@ -152,15 +152,11 @@ extension DiagramRenderer {
     }
 
     private func _cgBlockArrowHead(_ type: String) -> ArrowHead {
-        switch type {
-        case "arrow_point":
-            return .arrow
-        case "arrow_circle":
-            return .circle
-        case "arrow_cross":
-            return .cross
-        default:
-            return .none
+        switch BlockEdgeArrowheadKind(rawArrowType: type) {
+        case .point:  return .arrow
+        case .circle: return .circle
+        case .cross:  return .cross
+        case .none:   return .none
         }
     }
 }

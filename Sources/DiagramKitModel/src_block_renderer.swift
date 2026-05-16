@@ -49,17 +49,15 @@ public func renderBlockSvg(
 
     svg += renderBlockStyles(colors: colors, fontFamily: fontFamily)
 
+    let markerLineColor = colors.line ?? "#333"
+    let pointMarker = BlockEdgeArrowheadKind.point.svgMarkerBlock(id: markerIds.point, lineColor: markerLineColor)!
+    let circleMarker = BlockEdgeArrowheadKind.circle.svgMarkerBlock(id: markerIds.circle, lineColor: markerLineColor)!
+    let crossMarker = BlockEdgeArrowheadKind.cross.svgMarkerBlock(id: markerIds.cross, lineColor: markerLineColor)!
     svg += """
     <defs>
-    <marker id="\(markerIds.point)" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 0 L 10 5 L 0 10 z" fill="\(colors.line ?? "#333")"/>
-    </marker>
-    <marker id="\(markerIds.circle)" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <circle cx="5" cy="5" r="4" fill="none" stroke="\(colors.line ?? "#333")" stroke-width="1"/>
-    </marker>
-    <marker id="\(markerIds.cross)" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
-      <path d="M 1 1 L 9 9 M 9 1 L 1 9" stroke="\(colors.line ?? "#333")" stroke-width="\(BlockRenderConstants.strokeWidth)"/>
-    </marker>
+    \(pointMarker)
+    \(circleMarker)
+    \(crossMarker)
     </defs>
     """
 
@@ -360,15 +358,11 @@ private func renderBlockEdgeSvg(_ edge: PositionedBlockEdge, colors: DiagramColo
 }
 
 private func blockMarkerAttribute(name: String, arrowType: String, markerIds: BlockMarkerIds) -> String {
-    switch arrowType {
-    case "arrow_point":
-        return " \(name)=\"url(#\(markerIds.point))\""
-    case "arrow_circle":
-        return " \(name)=\"url(#\(markerIds.circle))\""
-    case "arrow_cross":
-        return " \(name)=\"url(#\(markerIds.cross))\""
-    default:
-        return ""
+    switch BlockEdgeArrowheadKind(rawArrowType: arrowType) {
+    case .point:  return " \(name)=\"url(#\(markerIds.point))\""
+    case .circle: return " \(name)=\"url(#\(markerIds.circle))\""
+    case .cross:  return " \(name)=\"url(#\(markerIds.cross))\""
+    case .none:   return ""
     }
 }
 
