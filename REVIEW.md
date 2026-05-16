@@ -2,7 +2,7 @@
 
 **Method.** Six parallel agents reviewed: (1) architecture/layering/portability, (2) concurrency, (3) invariants + dual-renderer symmetry, (4) diagnostics + error handling, (5) code quality, (6) correctness/perf/test coverage. Critical and high-impact findings were spot-verified against the working tree. The diagnostic-discipline and `@unchecked Sendable` gates pass clean; the worker-thread invariant, `@MainActor` placement, `bmColorEquals`, type-safe payloads, retain cycles, cross-format round-trip matrix, and empty-source handling all checked out with no findings.
 
-**Summary.** 1 Critical (verified build break) — **resolved**, 10 High (2 resolved), 13 Medium (+2 added during follow-up), 7 Low.
+**Summary.** 1 Critical (verified build break) — **resolved**, 10 High (3 resolved), 13 Medium (+2 added during follow-up), 7 Low.
 
 ---
 
@@ -29,11 +29,17 @@ Verified: clean `swift build --target DiagramKitMermaid` succeeds; full `swift b
 **Problem:** `processNode` (TreeView), `appendNode` (shared ASCII tree util used by mindmap/treeView/Ishikawa), and `_collectAllChildren` (ELK compound traversal) all recurse on Swift's call stack with no depth caps. The 8 MB worker-stack invariant is treated as adequate but never quantified. A pathological 50k-deep mindmap/treeview source crashes the process with SIGSEGV rather than throwing.
 **Fix:** Add a `_recursionGuard(depth: Int, limit: 1024)` helper in `DiagramKitCommon` that throws `DiagramError.depthLimitExceeded`. Wire it through the three recursion sites and add a corpus entry pinning the typed error.
 
-### [Severity: High] Char-count width estimates corrupt layout for CJK / emoji / combining marks
+### [Severity: High] ~~Char-count width estimates corrupt layout for CJK / emoji / combining marks~~ — RESOLVED (Apple path; Linux follow-up tracked)
 **Files:** `Sources/DiagramKitModel/src_c4_layout.swift#L527-538`, `Sources/DiagramKitModel/src_architecture_layout.swift#L272`, `Sources/DiagramKitModel/src_gitgraph_layout.swift#L64,L528`, `Sources/DiagramKitModel/src_treemap_layout.swift#L397-554`
 **Category:** Correctness
 **Problem:** Four layouts compute `Double(text.count) * fontSize * 0.6`. `String.count` is grapheme-cluster count. CJK ideographs (~1.0–1.1× em-width) clip, emoji (~2.0×) clip, and combining marks (0×) leak whitespace. `TextMetrics.shared.estimateTextWidth` exists and is used by `src_treeview_layout.swift` on Linux; these four bypass it.
-**Fix:** Route through `TextMetrics.shared.estimateTextWidth(...)`. Extend the `NARROW_CHARS`/`WIDE_CHARS` tables in `src_text_metrics.swift` for CJK ranges. Add a per-family corpus entry with non-Latin labels.
+**Fix applied.** Audit surfaced eight `Double(.count) * fontSize * 0.6` (and `0.65`) sites across five files, not the four originally flagged — added `src_pie_layout.swift#L216` and two more `src_treemap_layout.swift` sites (L492, L496) plus the second `src_architecture_layout.swift` site (L347). All eight now route through `TextMetrics.shared.estimateTextWidth(text, fontSize: fontSize, fontWeight: original_src_styles.FONT_WEIGHTS.<role>)`. Imports of `DiagramKitCommon` were added to the four layouts that didn't already pull it in.
+
+The reviewer's `NARROW_CHARS`/`WIDE_CHARS` table extension is not needed: `Sources/DiagramKitCommon/src_text_metrics.swift` already has `isFullwidth(_ code: UInt32)` covering the full CJK / Hangul / Kana ranges plus `isCombiningMark` and an `EMOJI_REGEX`. CoreText handles all of this natively on Apple. The remaining gap is that `TextMetrics.estimateTextWidth`'s Linux branch is still the naive `count * fontSize * 0.55`; for CJK-aware Linux output it would need to route into `original_src_text_metrics.measureTextWidth`. Tracked as a smaller Medium follow-up — out of scope for this commit.
+
+Snapshot drift was the expected geometric tightening of containers when CoreText replaced `count * 0.6`. 6 entries went outside the 0.99 image precision threshold and got rebaselined (image + SVG): `c4-context`, `c4-component`, `c4-container`, `c4-deployment`, `c4-dynamic`, `architecture-external-icons`. Adding gitgraph's branch-label site widened the scope to all 18 git corpus entries — likewise rebaselined image + SVG. Pie and treemap corpus entries stayed within precision tolerance and didn't need rebaselining. Added `c4-cjk-emoji` corpus entry (Japanese + emoji labels) as a regression pin; SVG output confirms CJK and emoji glyphs render with correct measured widths.
+
+`venn-three-set` SVG snapshot is flaky (2 of 3 runs pass against the same baseline) — pre-existing, unrelated to this change, worth a separate Medium finding if it stays flaky.
 
 ### [Severity: High] Quadrant SVG renderer ignores its `font` parameter
 **File:** `Sources/DiagramKitModel/src_quadrant_renderer.swift#L9,L119`

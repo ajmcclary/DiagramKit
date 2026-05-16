@@ -117,11 +117,11 @@
 <line x1="104.0" y1="200.0" x2="104.0" y2="30.0" class="branch branch0" stroke="#2f80ed" stroke-width="1" stroke-dasharray="2" />
 <line x1="230.0" y1="200.0" x2="230.0" y2="30.0" class="branch branch1" stroke="#27ae60" stroke-width="1" stroke-dasharray="2" />
 <g transform="translate(104.0 222.5)" class="branchLabel label">
-  <rect x="-26.8" y="-14.5" width="53.6" height="29.0" rx="4.0" ry="4.0" class="branchLabelBkg label0" fill="#2f80ed" style="" />
+  <rect x="-26.0" y="-14.5" width="52.0" height="29.0" rx="4.0" ry="4.0" class="branchLabelBkg label0" fill="#2f80ed" style="" />
   <text class="branch-label branch-label0" fill="#ffffff" text-anchor="middle" dominant-baseline="middle"><tspan x="0" dy="0">main</tspan></text>
 </g>
 <g transform="translate(230.0 222.5)" class="branchLabel label">
-  <rect x="-35.2" y="-14.5" width="70.4" height="29.0" rx="4.0" ry="4.0" class="branchLabelBkg label1" fill="#27ae60" style="" />
+  <rect x="-29.0" y="-14.5" width="58.0" height="29.0" rx="4.0" ry="4.0" class="branchLabelBkg label1" fill="#27ae60" style="" />
   <text class="branch-label branch-label1" fill="#ffffff" text-anchor="middle" dominant-baseline="middle"><tspan x="0" dy="0">hotfix</tspan></text>
 </g>
 </svg>

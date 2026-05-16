@@ -525,7 +525,7 @@ public func layoutGitGraph(_ diagram: GitGraphDiagram) -> (PositionedGitGraphDia
         let labelText = branch
         let rawColorIdx = bp.index
         let colorIndex = _gitGraphCalcColorIndex(rawColorIdx, limit: _GITGRAPH_THEME_COLOR_LIMIT, avoidDefaultColor: _gitGraphIsColorTheme(diagram.themeName))
-        let labelWidth = Double(labelText.count) * (labelFontSize * 0.6) + 20 + labelPaddingX
+        let labelWidth = Double(TextMetrics.shared.estimateTextWidth(labelText, fontSize: labelFontSize, fontWeight: original_src_styles.FONT_WEIGHTS.nodeLabel)) + 20 + labelPaddingX
         let labelHeight = labelFontSize * 1.5 + 8 + labelPaddingY
         let spineY = (direction == .TB || direction == .BT)
             ? bp.pos

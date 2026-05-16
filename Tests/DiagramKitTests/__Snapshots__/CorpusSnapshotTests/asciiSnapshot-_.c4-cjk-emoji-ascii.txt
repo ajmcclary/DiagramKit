@@ -1,0 +1,8 @@
+銀行システム コンテキスト
+=============
+  • 顧客 👥 — person
+  • インターネットバンキング 🏦 — system
+  • メール送信サービス — external_system
+
+customer → banking : 利用
+banking → email : 通知送信 (SMTP)

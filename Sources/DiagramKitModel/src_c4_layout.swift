@@ -1,4 +1,5 @@
 import Foundation
+import DiagramKitCommon
 #if canImport(CoreGraphics)
 import CoreGraphics
 #endif
@@ -527,10 +528,13 @@ private func _getIntersectPoint(fromNode: PositionedC4Shape, endPoint: CGPoint) 
 private func _measureText(_ text: String, fontSize: Double, bold: Bool) -> CGSize {
     guard !text.isEmpty else { return .zero }
     let lines = text.components(separatedBy: "<br/>")
+    let weight = bold
+        ? original_src_styles.FONT_WEIGHTS.groupHeader
+        : original_src_styles.FONT_WEIGHTS.nodeLabel
     var maxWidth: Double = 0
     var totalHeight: Double = 0
     for line in lines {
-        let width = Double(line.count) * fontSize * 0.6 // rough estimate
+        let width = Double(TextMetrics.shared.estimateTextWidth(line, fontSize: fontSize, fontWeight: weight))
         maxWidth = max(maxWidth, width)
         totalHeight += fontSize * 1.4
     }

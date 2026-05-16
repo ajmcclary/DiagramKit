@@ -35,14 +35,14 @@
 <text x="208.0" y="65.8" text-anchor="middle" font-size="14" fill="#444444">[Apple IOS or Android]</text>
 </g>
 <g class="c4-boundary">
-<rect x="0.0" y="60.0" width="360.79999999999995" height="324.6" rx="2.5" ry="2.5" fill="none" stroke="#444444" stroke-width="1.0"/>
-<text x="180.39999999999998" y="76.2" text-anchor="middle" font-size="16" font-weight="bold" fill="#444444">Web Browser</text>
-<text x="180.39999999999998" y="105.8" text-anchor="middle" font-size="14" fill="#444444">[Google Chrome, Mozilla Firefox]</text>
+<rect x="0.0" y="60.0" width="319.0" height="324.6" rx="2.5" ry="2.5" fill="none" stroke="#444444" stroke-width="1.0"/>
+<text x="159.5" y="76.2" text-anchor="middle" font-size="16" font-weight="bold" fill="#444444">Web Browser</text>
+<text x="159.5" y="105.8" text-anchor="middle" font-size="14" fill="#444444">[Google Chrome, Mozilla Firefox]</text>
 </g>
 <g class="c4-boundary">
-<rect x="0.0" y="-74.6" width="410.79999999999995" height="509.20000000000005" rx="2.5" ry="2.5" fill="none" stroke="#444444" stroke-width="1.0"/>
-<text x="205.39999999999998" y="-58.39999999999999" text-anchor="middle" font-size="16" font-weight="bold" fill="#444444">Customer's computer</text>
-<text x="205.39999999999998" y="-28.799999999999997" text-anchor="middle" font-size="14" fill="#444444">[Microsoft Windows or Apple macOS]</text>
+<rect x="0.0" y="-74.6" width="369.0" height="509.20000000000005" rx="2.5" ry="2.5" fill="none" stroke="#444444" stroke-width="1.0"/>
+<text x="184.5" y="-58.39999999999999" text-anchor="middle" font-size="16" font-weight="bold" fill="#444444">Customer's computer</text>
+<text x="184.5" y="-28.799999999999997" text-anchor="middle" font-size="14" fill="#444444">[Microsoft Windows or Apple macOS]</text>
 </g>
 <g class="c4-boundary">
 <rect x="50.0" y="629.2" width="316.0" height="324.6" rx="2.5" ry="2.5" fill="none" stroke="#444444" stroke-width="1.0"/>
@@ -71,10 +71,10 @@
 <text x="208.0" y="279.59999999999997" text-anchor="middle" font-size="14" font-style="italic" fill="#FFFFFF">[Xamarin]</text>
 </g>
 <g class="c4-shape">
-<rect x="50.0" y="234.6" width="260.79999999999995" height="100.0" rx="2.5" ry="2.5" fill="#1168BD" stroke="#3C7FC0" stroke-width="0.5"/>
-<text x="180.39999999999998" y="264.6" text-anchor="middle" font-size="12" font-style="italic" fill="#FFFFFF">«container»</text>
-<text x="180.39999999999998" y="293.59999999999997" text-anchor="middle" font-size="16" font-weight="bold" fill="#FFFFFF">Single Page Application</text>
-<text x="180.39999999999998" y="319.59999999999997" text-anchor="middle" font-size="14" font-style="italic" fill="#FFFFFF">[JavaScript and Angular]</text>
+<rect x="50.0" y="234.6" width="219.0" height="100.0" rx="2.5" ry="2.5" fill="#1168BD" stroke="#3C7FC0" stroke-width="0.5"/>
+<text x="159.5" y="264.6" text-anchor="middle" font-size="12" font-style="italic" fill="#FFFFFF">«container»</text>
+<text x="159.5" y="293.59999999999997" text-anchor="middle" font-size="16" font-weight="bold" fill="#FFFFFF">Single Page Application</text>
+<text x="159.5" y="319.59999999999997" text-anchor="middle" font-size="14" font-style="italic" fill="#FFFFFF">[JavaScript and Angular]</text>
 </g>
 <g class="c4-shape">
 <rect x="100.0" y="803.8000000000001" width="216.0" height="100.0" rx="2.5" ry="2.5" fill="#1168BD" stroke="#3C7FC0" stroke-width="0.5"/>
@@ -99,9 +99,9 @@
 <line x1="216.19174757281553" y1="294.6" x2="217.656652360515" y2="803.8000000000001" stroke="#444444" stroke-width="1" fill="none" marker-end="url(#66B966A1-6775-5FB9-C11F-C071F9004AE4-arrowhead)"/>
 <text x="216.92419996666527" y="549.2" text-anchor="middle" font-size="12" fill="#444444">Makes API calls to</text>
 <text x="216.92419996666527" y="566.2" text-anchor="middle" font-size="12" font-style="italic" fill="#444444">[json/HTTPS]</text>
-<path d="M193.1583979328165,334.6 Q198.80446871155382,569.2 215.74268104776579,803.8000000000001" stroke="#444444" stroke-width="1" fill="none" marker-end="url(#66B966A1-6775-5FB9-C11F-C071F9004AE4-arrowhead)"/>
-<text x="204.45053949029113" y="569.2" text-anchor="middle" font-size="12" fill="#444444">Makes API calls to</text>
-<text x="204.45053949029113" y="586.2" text-anchor="middle" font-size="12" font-style="italic" fill="#444444">[json/HTTPS]</text>
+<path d="M172.25839793281654,334.6 Q182.62629074545214,569.2 213.729969183359,803.8000000000001" stroke="#444444" stroke-width="1" fill="none" marker-end="url(#66B966A1-6775-5FB9-C11F-C071F9004AE4-arrowhead)"/>
+<text x="192.99418355808777" y="569.2" text-anchor="middle" font-size="12" fill="#444444">Makes API calls to</text>
+<text x="192.99418355808777" y="586.2" text-anchor="middle" font-size="12" font-style="italic" fill="#444444">[json/HTTPS]</text>
 <path d="M220.42521859180857,903.8000000000001 Q221.3535822044661,1046.1000000000001 224.13867304243874,1188.4" stroke="#444444" stroke-width="1" fill="none" marker-end="url(#66B966A1-6775-5FB9-C11F-C071F9004AE4-arrowhead)"/>
 <text x="222.28194581712364" y="1046.1000000000001" text-anchor="middle" font-size="12" fill="#444444">Reads from and writes to</text>
 <text x="222.28194581712364" y="1063.1000000000001" text-anchor="middle" font-size="12" font-style="italic" fill="#444444">[JDBC]</text>

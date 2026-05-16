@@ -1,4 +1,5 @@
 import Foundation
+import DiagramKitCommon
 
 // MARK: - Constants (matching pieRenderer.ts)
 
@@ -213,7 +214,7 @@ private func layoutTitle(text: String?, theme: PieChartThemeConfig, pieWidth: Do
     let titleY = -(PIE_HEIGHT - 50) / 2
 
     let fontSize = parsePieLength(theme.pieTitleTextSize) ?? 25
-    let estimatedWidth = Double(text.count) * fontSize * 0.6
+    let estimatedWidth = Double(TextMetrics.shared.estimateTextWidth(text, fontSize: fontSize, fontWeight: original_src_styles.FONT_WEIGHTS.groupHeader))
 
     return PieTitle(text: text, x: 0, y: titleY, width: estimatedWidth)
 }

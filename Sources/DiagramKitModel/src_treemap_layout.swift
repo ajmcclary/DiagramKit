@@ -1,4 +1,5 @@
 import Foundation
+import DiagramKitCommon
 
 public let SECTION_HEADER_HEIGHT: Double = 25
 public let SECTION_INNER_PADDING: Double = 10
@@ -439,7 +440,8 @@ private func _makeSectionValue(value: String, width: Double, labelColor: String,
 }
 
 private func _truncateTreemapLabel(_ text: String, fontSize: Double, availableWidth: Double) -> String {
-    let estimatedWidth = Double(text.count) * 0.6 * fontSize
+    let weight = original_src_styles.FONT_WEIGHTS.nodeLabel
+    let estimatedWidth = Double(TextMetrics.shared.estimateTextWidth(text, fontSize: fontSize, fontWeight: weight))
     if estimatedWidth <= availableWidth { return text }
 
     let ellipsis = "..."
@@ -447,11 +449,11 @@ private func _truncateTreemapLabel(_ text: String, fontSize: Double, availableWi
     while !truncated.isEmpty {
         truncated = String(text.prefix(truncated.count - 1))
         let candidate = truncated + ellipsis
-        if Double(candidate.count) * 0.6 * fontSize <= availableWidth {
+        if Double(TextMetrics.shared.estimateTextWidth(candidate, fontSize: fontSize, fontWeight: weight)) <= availableWidth {
             return candidate
         }
     }
-    let finalEllipsisWidth = Double(ellipsis.count) * 0.6 * fontSize
+    let finalEllipsisWidth = Double(TextMetrics.shared.estimateTextWidth(ellipsis, fontSize: fontSize, fontWeight: weight))
     return finalEllipsisWidth <= availableWidth ? ellipsis : ""
 }
 
@@ -488,12 +490,13 @@ private func _fitLeafText(
     let spacingBetweenLabelAndValue: Double = 2
 
     var currentLabelFontSize = maxLabelFontSize
+    let labelWeight = original_src_styles.FONT_WEIGHTS.nodeLabel
 
-    while Double(name.count) * 0.6 * currentLabelFontSize > availableWidth && currentLabelFontSize > minLabelFontSize {
+    while Double(TextMetrics.shared.estimateTextWidth(name, fontSize: currentLabelFontSize, fontWeight: labelWeight)) > availableWidth && currentLabelFontSize > minLabelFontSize {
         currentLabelFontSize -= 1
     }
 
-    let textWidthEstimate = Double(name.count) * 0.6 * currentLabelFontSize
+    let textWidthEstimate = Double(TextMetrics.shared.estimateTextWidth(name, fontSize: currentLabelFontSize, fontWeight: labelWeight))
     if currentLabelFontSize < minLabelFontSize || textWidthEstimate > availableWidth || availableHeight < currentLabelFontSize {
         return (
             PositionedTreemapText(

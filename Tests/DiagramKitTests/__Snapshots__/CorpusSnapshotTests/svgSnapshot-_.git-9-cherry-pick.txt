@@ -1,4 +1,4 @@
-<svg id="gitgraph-2DBC7DB2-CEFA-9C00-0413-393615BEE0AF" viewBox="0 0 282 170" width="282" height="170" xmlns="http://www.w3.org/2000/svg">
+<svg id="gitgraph-2DBC7DB2-CEFA-9C00-0413-393615BEE0AF" viewBox="0 0 271 170" width="271" height="170" xmlns="http://www.w3.org/2000/svg">
   <style>
 .branch-label0 { fill: #333; }
 .commit0 { stroke: #333; fill: #333; }
@@ -88,44 +88,44 @@
     </marker>
   </defs>
   <g class="commit-bullets">
-    <circle cx="136.8" cy="42.0" r="10" class="commit A commit0 commit-normal" fill="#2f80ed" stroke="#2f80ed" />
-    <circle cx="176.8" cy="132.0" r="10" class="commit B commit1 commit-normal" fill="#27ae60" stroke="#27ae60" />
-    <circle cx="216.8" cy="42.0" r="10" class="commit 2-Dp0BRE8 commit0 commit-cherry-pick" fill="#2f80ed" stroke="#2f80ed" />
-    <circle cx="213.8" cy="44.0" r="2.75" fill="#ffffff" class="commit 2-Dp0BRE8 commit-cherry-pick" />
-    <circle cx="219.8" cy="44.0" r="2.75" fill="#ffffff" class="commit 2-Dp0BRE8 commit-cherry-pick" />
-    <line x1="219.8" y1="43.0" x2="216.8" y2="37.0" stroke="#ffffff" class="commit 2-Dp0BRE8 commit-cherry-pick" />
-    <line x1="213.8" y1="43.0" x2="216.8" y2="37.0" stroke="#ffffff" class="commit 2-Dp0BRE8 commit-cherry-pick" />
+    <circle cx="126.0" cy="42.0" r="10" class="commit A commit0 commit-normal" fill="#2f80ed" stroke="#2f80ed" />
+    <circle cx="166.0" cy="132.0" r="10" class="commit B commit1 commit-normal" fill="#27ae60" stroke="#27ae60" />
+    <circle cx="206.0" cy="42.0" r="10" class="commit 2-Dp0BRE8 commit0 commit-cherry-pick" fill="#2f80ed" stroke="#2f80ed" />
+    <circle cx="203.0" cy="44.0" r="2.75" fill="#ffffff" class="commit 2-Dp0BRE8 commit-cherry-pick" />
+    <circle cx="209.0" cy="44.0" r="2.75" fill="#ffffff" class="commit 2-Dp0BRE8 commit-cherry-pick" />
+    <line x1="209.0" y1="43.0" x2="206.0" y2="37.0" stroke="#ffffff" class="commit 2-Dp0BRE8 commit-cherry-pick" />
+    <line x1="203.0" y1="43.0" x2="206.0" y2="37.0" stroke="#ffffff" class="commit 2-Dp0BRE8 commit-cherry-pick" />
   </g>
   <g class="commit-labels">
-    <g transform="rotate(-45 136.8 42.0)">
-      <rect x="128.8" y="58.0" width="16.0" height="18" class="commit-label-bkg" rx="3" fill="#f2f2f2" />
-      <text x="136.8" y="72.0" class="commit-label" font-size="12" fill="#333333">A</text>
+    <g transform="rotate(-45 126.0 42.0)">
+      <rect x="118.0" y="58.0" width="16.0" height="18" class="commit-label-bkg" rx="3" fill="#f2f2f2" />
+      <text x="126.0" y="72.0" class="commit-label" font-size="12" fill="#333333">A</text>
     </g>
-    <g transform="rotate(-45 176.8 132.0)">
-      <rect x="168.8" y="148.0" width="16.0" height="18" class="commit-label-bkg" rx="3" fill="#f2f2f2" />
-      <text x="176.8" y="162.0" class="commit-label" font-size="12" fill="#333333">B</text>
+    <g transform="rotate(-45 166.0 132.0)">
+      <rect x="158.0" y="148.0" width="16.0" height="18" class="commit-label-bkg" rx="3" fill="#f2f2f2" />
+      <text x="166.0" y="162.0" class="commit-label" font-size="12" fill="#333333">B</text>
     </g>
-    <g transform="rotate(-45 216.8 42.0)">
-      <rect x="176.8" y="58.0" width="80.0" height="18" class="commit-label-bkg" rx="3" fill="#f2f2f2" />
-      <text x="184.8" y="72.0" class="commit-label" font-size="12" fill="#333333">2-Dp0BRE8</text>
+    <g transform="rotate(-45 206.0 42.0)">
+      <rect x="166.0" y="58.0" width="80.0" height="18" class="commit-label-bkg" rx="3" fill="#f2f2f2" />
+      <text x="174.0" y="72.0" class="commit-label" font-size="12" fill="#333333">2-Dp0BRE8</text>
     </g>
-    <polygon points="160.3,16.0 168.3,8.0 273.3,8.0 273.3,24.0 168.3,24.0" class="tag-label-bkg" fill="#eeeeee" stroke="#777777" />
-    <circle cx="167.3" cy="16.0" r="1.5" class="tag-hole" fill="#777777" />
-    <text x="174.3" y="19.0" class="tag-label" font-size="10" fill="#333333">cherry-pick:B</text>
+    <polygon points="149.5,16.0 157.5,8.0 262.5,8.0 262.5,24.0 157.5,24.0" class="tag-label-bkg" fill="#eeeeee" stroke="#777777" />
+    <circle cx="156.5" cy="16.0" r="1.5" class="tag-hole" fill="#777777" />
+    <text x="163.5" y="19.0" class="tag-label" font-size="10" fill="#333333">cherry-pick:B</text>
   </g>
   <g class="commit-arrows">
-    <path d="M 136.8 42.0 L 156.8 42.0 L 156.8 132.0 L 176.8 132.0" class="arrow arrow arrow1 branch" fill="none" stroke="#27ae60" stroke-width="2" marker-end="url(#arrowhead-2DBC7DB2-CEFA-9C00-0413-393615BEE0AF)" />
-    <path d="M 136.8 42.0 L 176.8 42.0 L 176.8 42.0 L 216.8 42.0" class="arrow arrow arrow0 branch" fill="none" stroke="#2f80ed" stroke-width="2" marker-end="url(#arrowhead-2DBC7DB2-CEFA-9C00-0413-393615BEE0AF)" />
-    <path d="M 176.8 132.0 L 196.8 132.0 L 196.8 42.0 L 216.8 42.0" class="arrow arrow arrow0 branch" fill="none" stroke="#2f80ed" stroke-width="2" marker-end="url(#arrowhead-2DBC7DB2-CEFA-9C00-0413-393615BEE0AF)" />
+    <path d="M 126.0 42.0 L 146.0 42.0 L 146.0 132.0 L 166.0 132.0" class="arrow arrow arrow1 branch" fill="none" stroke="#27ae60" stroke-width="2" marker-end="url(#arrowhead-2DBC7DB2-CEFA-9C00-0413-393615BEE0AF)" />
+    <path d="M 126.0 42.0 L 166.0 42.0 L 166.0 42.0 L 206.0 42.0" class="arrow arrow arrow0 branch" fill="none" stroke="#2f80ed" stroke-width="2" marker-end="url(#arrowhead-2DBC7DB2-CEFA-9C00-0413-393615BEE0AF)" />
+    <path d="M 166.0 132.0 L 186.0 132.0 L 186.0 42.0 L 206.0 42.0" class="arrow arrow arrow0 branch" fill="none" stroke="#2f80ed" stroke-width="2" marker-end="url(#arrowhead-2DBC7DB2-CEFA-9C00-0413-393615BEE0AF)" />
   </g>
-<line x1="126.80000000000001" y1="40.0" x2="256.8" y2="40.0" class="branch branch0" stroke="#2f80ed" stroke-width="1" stroke-dasharray="2" />
-<line x1="126.80000000000001" y1="130.0" x2="256.8" y2="130.0" class="branch branch1" stroke="#27ae60" stroke-width="1" stroke-dasharray="2" />
-<g transform="translate(60.000000000000014 40.0)" class="branchLabel label">
-  <rect x="-26.8" y="-14.5" width="53.6" height="29.0" rx="4.0" ry="4.0" class="branchLabelBkg label0" fill="#2f80ed" style="" />
+<line x1="116.0" y1="40.0" x2="246.0" y2="40.0" class="branch branch0" stroke="#2f80ed" stroke-width="1" stroke-dasharray="2" />
+<line x1="116.0" y1="130.0" x2="246.0" y2="130.0" class="branch branch1" stroke="#27ae60" stroke-width="1" stroke-dasharray="2" />
+<g transform="translate(50.0 40.0)" class="branchLabel label">
+  <rect x="-26.0" y="-14.5" width="52.0" height="29.0" rx="4.0" ry="4.0" class="branchLabelBkg label0" fill="#2f80ed" style="" />
   <text class="branch-label branch-label0" fill="#ffffff" text-anchor="middle" dominant-baseline="middle"><tspan x="0" dy="0">main</tspan></text>
 </g>
-<g transform="translate(47.400000000000006 130.0)" class="branchLabel label">
-  <rect x="-39.400000000000006" y="-14.5" width="78.80000000000001" height="29.0" rx="4.0" ry="4.0" class="branchLabelBkg label1" fill="#27ae60" style="" />
+<g transform="translate(42.0 130.0)" class="branchLabel label">
+  <rect x="-34.0" y="-14.5" width="68.0" height="29.0" rx="4.0" ry="4.0" class="branchLabelBkg label1" fill="#27ae60" style="" />
   <text class="branch-label branch-label1" fill="#ffffff" text-anchor="middle" dominant-baseline="middle"><tspan x="0" dy="0">feature</tspan></text>
 </g>
 </svg>

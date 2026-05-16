@@ -1,4 +1,4 @@
-<svg id="gitgraph-70D5875D-1C12-5137-A468-428B67943808" viewBox="0 0 252 91" width="252" height="91" xmlns="http://www.w3.org/2000/svg">
+<svg id="gitgraph-70D5875D-1C12-5137-A468-428B67943808" viewBox="0 0 251 91" width="251" height="91" xmlns="http://www.w3.org/2000/svg">
   <style>
 .branch-label0 { fill: #333; }
 .commit0 { stroke: #333; fill: #333; }
@@ -88,31 +88,31 @@
     </marker>
   </defs>
   <g class="commit-bullets">
-    <circle cx="111.6" cy="30.0" r="10" class="commit 0-tdZnRsM commit0 commit-normal" fill="#2f80ed" stroke="#2f80ed" />
-    <circle cx="151.6" cy="30.0" r="10" class="commit 1-q2mpjyF commit0 commit-normal" fill="#2f80ed" stroke="#2f80ed" />
-    <circle cx="191.6" cy="30.0" r="10" class="commit 2-Dp0BRE8 commit0 commit-normal" fill="#2f80ed" stroke="#2f80ed" />
+    <circle cx="110.0" cy="30.0" r="10" class="commit 0-tdZnRsM commit0 commit-normal" fill="#2f80ed" stroke="#2f80ed" />
+    <circle cx="150.0" cy="30.0" r="10" class="commit 1-q2mpjyF commit0 commit-normal" fill="#2f80ed" stroke="#2f80ed" />
+    <circle cx="190.0" cy="30.0" r="10" class="commit 2-Dp0BRE8 commit0 commit-normal" fill="#2f80ed" stroke="#2f80ed" />
   </g>
   <g class="commit-labels">
-    <g transform="rotate(-45 111.6 30.0)">
-      <rect x="71.6" y="46.0" width="80.0" height="18" class="commit-label-bkg" rx="3" fill="#f2f2f2" />
-      <text x="79.6" y="60.0" class="commit-label" font-size="12" fill="#333333">0-tdZnRsM</text>
+    <g transform="rotate(-45 110.0 30.0)">
+      <rect x="70.0" y="46.0" width="80.0" height="18" class="commit-label-bkg" rx="3" fill="#f2f2f2" />
+      <text x="78.0" y="60.0" class="commit-label" font-size="12" fill="#333333">0-tdZnRsM</text>
     </g>
-    <g transform="rotate(-45 151.6 30.0)">
-      <rect x="111.6" y="46.0" width="80.0" height="18" class="commit-label-bkg" rx="3" fill="#f2f2f2" />
-      <text x="119.6" y="60.0" class="commit-label" font-size="12" fill="#333333">1-q2mpjyF</text>
+    <g transform="rotate(-45 150.0 30.0)">
+      <rect x="110.0" y="46.0" width="80.0" height="18" class="commit-label-bkg" rx="3" fill="#f2f2f2" />
+      <text x="118.0" y="60.0" class="commit-label" font-size="12" fill="#333333">1-q2mpjyF</text>
     </g>
-    <g transform="rotate(-45 191.6 30.0)">
-      <rect x="151.6" y="46.0" width="80.0" height="18" class="commit-label-bkg" rx="3" fill="#f2f2f2" />
-      <text x="159.6" y="60.0" class="commit-label" font-size="12" fill="#333333">2-Dp0BRE8</text>
+    <g transform="rotate(-45 190.0 30.0)">
+      <rect x="150.0" y="46.0" width="80.0" height="18" class="commit-label-bkg" rx="3" fill="#f2f2f2" />
+      <text x="158.0" y="60.0" class="commit-label" font-size="12" fill="#333333">2-Dp0BRE8</text>
     </g>
   </g>
   <g class="commit-arrows">
-    <path d="M 111.6 30.0 L 131.6 30.0 L 131.6 30.0 L 151.6 30.0" class="arrow arrow arrow0 branch" fill="none" stroke="#2f80ed" stroke-width="2" marker-end="url(#arrowhead-70D5875D-1C12-5137-A468-428B67943808)" />
-    <path d="M 151.6 30.0 L 171.6 30.0 L 171.6 30.0 L 191.6 30.0" class="arrow arrow arrow0 branch" fill="none" stroke="#2f80ed" stroke-width="2" marker-end="url(#arrowhead-70D5875D-1C12-5137-A468-428B67943808)" />
+    <path d="M 110.0 30.0 L 130.0 30.0 L 130.0 30.0 L 150.0 30.0" class="arrow arrow arrow0 branch" fill="none" stroke="#2f80ed" stroke-width="2" marker-end="url(#arrowhead-70D5875D-1C12-5137-A468-428B67943808)" />
+    <path d="M 150.0 30.0 L 170.0 30.0 L 170.0 30.0 L 190.0 30.0" class="arrow arrow arrow0 branch" fill="none" stroke="#2f80ed" stroke-width="2" marker-end="url(#arrowhead-70D5875D-1C12-5137-A468-428B67943808)" />
   </g>
-<line x1="101.6" y1="28.0" x2="231.6" y2="28.0" class="branch branch0" stroke="#2f80ed" stroke-width="1" stroke-dasharray="2" />
-<g transform="translate(34.8 28.0)" class="branchLabel label">
-  <rect x="-26.8" y="-14.5" width="53.6" height="29.0" rx="4.0" ry="4.0" class="branchLabelBkg label0" fill="#2f80ed" style="" />
+<line x1="100.0" y1="28.0" x2="230.0" y2="28.0" class="branch branch0" stroke="#2f80ed" stroke-width="1" stroke-dasharray="2" />
+<g transform="translate(34.0 28.0)" class="branchLabel label">
+  <rect x="-26.0" y="-14.5" width="52.0" height="29.0" rx="4.0" ry="4.0" class="branchLabelBkg label0" fill="#2f80ed" style="" />
   <text class="branch-label branch-label0" fill="#ffffff" text-anchor="middle" dominant-baseline="middle"><tspan x="0" dy="0">main</tspan></text>
 </g>
 </svg>

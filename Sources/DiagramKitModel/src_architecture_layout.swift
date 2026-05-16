@@ -1,4 +1,5 @@
 import Foundation
+import DiagramKitCommon
 
 public func layoutArchitectureDiagram(_ diagram: ArchitectureDiagram) -> PositionedArchitectureDiagram {
     let config = diagram.config
@@ -269,7 +270,7 @@ public func layoutArchitectureDiagram(_ diagram: ArchitectureDiagram) -> Positio
     }
 
     if let title = diagram.diagramTitle, !title.isEmpty {
-        let titleWidth = max(Double(title.count) * fontSize * 0.65, iconSize)
+        let titleWidth = max(Double(TextMetrics.shared.estimateTextWidth(title, fontSize: fontSize, fontWeight: original_src_styles.FONT_WEIGHTS.nodeLabel)), iconSize)
         diagramBounds = _unionBounds(
             diagramBounds,
             _ArchitectureBounds(
@@ -344,7 +345,7 @@ private func _serviceVisualBounds(_ service: PositionedArchitectureService, font
     var maxY = service.y + service.height / 2
 
     if let title = service.title, !title.isEmpty {
-        let labelWidth = max(service.width, Double(title.count) * fontSize * 0.65)
+        let labelWidth = max(service.width, Double(TextMetrics.shared.estimateTextWidth(title, fontSize: fontSize, fontWeight: original_src_styles.FONT_WEIGHTS.nodeLabel)))
         minX = min(minX, service.x - labelWidth / 2)
         maxX = max(maxX, service.x + labelWidth / 2)
         maxY = max(maxY, service.y + service.height / 2 + fontSize + 8)
