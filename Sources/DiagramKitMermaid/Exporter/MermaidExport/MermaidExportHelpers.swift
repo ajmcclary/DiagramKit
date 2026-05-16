@@ -1,5 +1,5 @@
 import Foundation
-import DiagramKitImport
+import DiagramKitCommon
 
 /// Shared escape and sanitization helpers for Mermaid source emission.
 enum MermaidExportHelpers {

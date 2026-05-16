@@ -1,6 +1,6 @@
 import Foundation
+import DiagramKitCommon
 import DiagramKitModel
-import DiagramKitImport
 import DiagramKitExport
 
 /// Emits Mermaid C4 diagram source from a `C4Diagram`.

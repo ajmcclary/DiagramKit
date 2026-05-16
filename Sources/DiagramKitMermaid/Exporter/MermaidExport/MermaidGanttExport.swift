@@ -1,7 +1,6 @@
 import Foundation
 import DiagramKitCommon
 import DiagramKitModel
-import DiagramKitImport
 import DiagramKitExport
 
 /// Emits Mermaid gantt source from a `GanttDiagram`.

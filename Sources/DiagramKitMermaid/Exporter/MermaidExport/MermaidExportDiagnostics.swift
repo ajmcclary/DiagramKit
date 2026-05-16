@@ -1,4 +1,4 @@
-import DiagramKitImport
+import DiagramKitCommon
 
 /// Diagnostics helpers for Mermaid export.
 enum MermaidExportDiagnostics {

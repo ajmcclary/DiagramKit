@@ -54,6 +54,11 @@ run_build() {
 }
 
 run_gate "swift package dump-package" swift package dump-package
+# Catch undeclared-module-dep regressions that incremental builds mask. Each
+# format-slice target compiles in isolation against only its declared
+# dependencies; a stray `import` of a non-dep module fails here loudly.
+run_gate "swift build (clean, DiagramKitMermaid)" \
+  bash -c "swift package clean && swift build --target DiagramKitMermaid"
 # Corpus parameterized snapshot suites are run separately below so a known
 # swift-testing + swift-snapshot-testing signal-10 in the parameterized harness
 # does not abort the whole gate (see CLAUDE.md "Testing And Snapshots").
