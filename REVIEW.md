@@ -2,7 +2,7 @@
 
 **Method.** Six parallel agents reviewed: (1) architecture/layering/portability, (2) concurrency, (3) invariants + dual-renderer symmetry, (4) diagnostics + error handling, (5) code quality, (6) correctness/perf/test coverage. Critical and high-impact findings were spot-verified against the working tree. The diagnostic-discipline and `@unchecked Sendable` gates pass clean; the worker-thread invariant, `@MainActor` placement, `bmColorEquals`, type-safe payloads, retain cycles, cross-format round-trip matrix, and empty-source handling all checked out with no findings.
 
-**Summary.** 1 Critical (verified build break) — **resolved**, 10 High (8 resolved), 13 Medium (+2 added during follow-up), 7 Low.
+**Summary.** 1 Critical (verified build break) — **resolved**, 10 High (9 resolved), 13 Medium (+2 added during follow-up), 7 Low.
 
 ---
 
@@ -104,11 +104,17 @@ Three new tests pin the contract: malformed start date emits a `.configDrop` dia
 **Problem:** RenderingCG references `_PositionedGroupPayload` and `_PositionedNodePayload` (defined in `Sources/DiagramKitModel/PositionedPayloads.swift#L13-53`) directly. CLAUDE.md: "Use public typealiases such as `PositionedNode` outside the defining module." The typealiases (`PositionedGroup`, `PositionedNode`, `PositionedEdge`, `PositionedPoint`) exist at `Sources/DiagramKitModel/Types.swift#L232-238`. Every other cross-module callsite uses the alias; only this file violates.
 **Fix applied.** Replaced `_PositionedGroupPayload` → `PositionedGroup` (3 sites) and `_PositionedNodePayload` → `PositionedNode` (1 site) in the four function signatures. Build clean; flowchart corpus image snapshots (sample of 4) pass unchanged. Verified by grep — no `_Positioned*Payload` references remain in any non-defining module (`DiagramKitRenderingCG`, `DiagramKitViews`, `DiagramKitInteractive`, `DiagramKitImport`, `DiagramKitExport`, `DiagramKitMermaid`, `DiagramKit`).
 
-### [Severity: High] Public API missing docstrings — canonical surface is undocumented
+### [Severity: High] ~~Public API missing docstrings — canonical surface is undocumented~~ — RESOLVED
 **Files:** `Sources/DiagramKit/DiagramImageRenderer.swift#L16-230` (~14 public decls), `Sources/DiagramKit/DiagramPipeline.swift#L108-262` (7 of 9 public methods undocumented: `parse` x3, `layout` x2, `prepare`, `renderASCII`), `Sources/DiagramKit/DiagramEngine.swift#L243-290` (the 4 canonical `String` helpers `parseDiagram`/`renderDiagramImage`/`renderDiagramSVG`/`renderDiagramASCII`), `Sources/DiagramKit/DiagramDescriptor.swift#L235-245` (`DiagramStructuralError`)
 **Category:** Code Quality
 **Problem:** CLAUDE.md lists exactly these as the canonical public surface. `DiagramImageRenderer` has zero `///` comments — including stored vars (`theme`, `layoutConfig`, `scale`, `sourceFormat`), every `renderImage` overload, `renderPNG`, `renderJPEG`, and the static `render(_:)`. The README's quick-start examples lean on these.
-**Fix:** Add one-line `///` summaries to each public symbol. The file headers on `DiagramEngine`/`DiagramPipeline` give a template.
+**Fix applied.** Added one-line `///` summaries to every flagged public symbol:
+- `DiagramImageRenderer`: class header + 4 stored properties + `init` + `prepare` + 3 `renderImage` overloads + `renderSVG` + `renderPNG` + `renderJPEG` (UIKit + AppKit branches) + 2 static `render` overloads.
+- `DiagramPipeline`: 3 `parse` overloads + 2 `layout` overloads + `prepare` + `renderASCII`. (The two `renderSVG` variants already had docstrings.)
+- `DiagramEngine` `String` extension: `parseDiagram`, `renderDiagramImage`, `renderDiagramSVG`, `renderDiagramASCII`.
+- `DiagramStructuralError`: struct header + `expectedType` property + `payloadMismatch` factory.
+
+Each comment leads with the WHY (when to use, what input shape, what's returned) rather than restating the name. Build clean.
 
 ---
 

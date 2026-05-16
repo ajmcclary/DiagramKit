@@ -241,6 +241,9 @@ public struct DiagramEngine {
 }
 
 extension String {
+    /// Parse this string as diagram source, optionally forcing a
+    /// specific `sourceFormat`. Convenience wrapper over
+    /// `DiagramEngine.parse(_:)` / `parse(_:as:)`.
     public func parseDiagram(sourceFormat: DiagramFormatID? = nil) async throws -> DiagramDocument {
         if let sourceFormat {
             return try await DiagramEngine.parse(self, as: sourceFormat)
@@ -249,6 +252,8 @@ extension String {
     }
 
     #if canImport(CoreGraphics)
+    /// Parse + lay out + render this string to a `BMImage`. Apple-only.
+    /// Convenience wrapper over `DiagramEngine.renderImage(source:…)`.
     @MainActor
     public func renderDiagramImage(
         theme: DiagramTheme = .default,
@@ -264,6 +269,9 @@ extension String {
     }
     #endif
 
+    /// Parse + lay out + render this string to SVG markup. Convenience
+    /// wrapper over `DiagramEngine.renderSVG(source:…)`. Available on
+    /// Linux as well as Apple.
     public func renderDiagramSVG(
         theme: DiagramTheme = .default,
         layoutConfig: LayoutConfig = LayoutConfig(),
@@ -277,6 +285,10 @@ extension String {
         )
     }
 
+    /// Parse + lay out + render this string to ASCII art (just the
+    /// text, no diagnostics). Use `DiagramEngine.renderASCII(source:…)`
+    /// directly if you need the `AsciiRenderOutput` tuple with
+    /// diagnostics.
     public func renderDiagramASCII(
         theme: DiagramTheme = .default,
         sourceFormat: DiagramFormatID? = nil

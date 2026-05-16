@@ -232,9 +232,17 @@ public enum DiagramRegistry {
 
 // MARK: - Error type for payload mismatches
 
+/// Thrown by descriptor-level code paths when a `DiagramDocument`'s
+/// payload case does not match the diagram family it claims to be —
+/// e.g. a `.flowchart`-typed document carrying a `c4` payload. Should
+/// be impossible to construct through the parser path; usually
+/// indicates a bug in a custom importer or test fixture.
 public struct DiagramStructuralError: Error, LocalizedError {
+    /// The diagram family whose payload shape was expected.
     public let expectedType: DiagramType
 
+    /// Convenience factory for the common case: "this document's
+    /// payload should have been `<type>` but wasn't."
     public static func payloadMismatch(_ type: DiagramType) -> DiagramStructuralError {
         DiagramStructuralError(expectedType: type)
     }

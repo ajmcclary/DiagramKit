@@ -105,12 +105,17 @@ public enum DiagramPipeline {
         #endif
     }
 
+    /// Parse `source` into a `DiagramDocument` using the default
+    /// importer registry's format-probe order. Throws on parse failure
+    /// or if no importer claims the source.
     public static func parse(_ source: String) throws -> DiagramDocument {
         try runPipeline(operation: "DiagramPipeline.parse", registerFonts: true) {
             try loadDocument(source, registry: defaultRegistry)
         }
     }
 
+    /// Parse `source` and force interpretation as `sourceFormat`. Skips
+    /// the registry's probe step.
     public static func parse(
         _ source: String,
         as sourceFormat: DiagramFormatID,
@@ -121,6 +126,8 @@ public enum DiagramPipeline {
         }
     }
 
+    /// Parse `source` against a caller-supplied registry. Use when you
+    /// need a custom importer set (e.g. test fixtures, restricted formats).
     public static func parse(
         _ source: String,
         registry: ImporterRegistry
@@ -132,6 +139,8 @@ public enum DiagramPipeline {
 
     // MARK: - Layout
 
+    /// Parse + lay out `source` in one call. Returns the
+    /// `PositionedGraph` that downstream renderers consume.
     public static func layout(
         _ source: String,
         config: LayoutConfig = LayoutConfig(),
@@ -144,6 +153,9 @@ public enum DiagramPipeline {
         }
     }
 
+    /// Lay out an already-parsed `DiagramDocument`. Use when you've
+    /// cached the parsed model and want to re-layout with different
+    /// config.
     public static func layout(
         _ graph: DiagramDocument,
         config: LayoutConfig = LayoutConfig()
@@ -156,6 +168,10 @@ public enum DiagramPipeline {
     #if canImport(CoreGraphics)
     // MARK: - Prepare
 
+    /// Parse + lay out + bind to `theme` so the result can be rendered
+    /// multiple times without redoing parse/layout. The returned
+    /// `PreparedDiagram` carries both parse-tier and layout-tier
+    /// diagnostics on its `diagnostics` slot.
     public static func prepare(
         source: String,
         theme: DiagramTheme = .default,
@@ -259,6 +275,10 @@ public enum DiagramPipeline {
 
     // MARK: - Render ASCII
 
+    /// Parse + lay out + emit ASCII art. Returns the rendered text and
+    /// any diagnostics produced during import/layout. The string-only
+    /// `String.renderDiagramASCII(...)` helper forwards `.text` for
+    /// callers that don't need the diagnostics tuple.
     public static func renderASCII(
         source: String,
         theme: DiagramTheme = .default,
