@@ -62,16 +62,11 @@ public func renderXYChartAscii(
     _ config: AsciiConfig,
     _ colorMode: ColorMode,
     _ theme: AsciiTheme
-) -> String {
+) throws -> String {
     let lines = text.split(separator: "\n", omittingEmptySubsequences: false)
         .map { $0.trimmingCharacters(in: .whitespaces) }
         .filter { !$0.isEmpty && !$0.hasPrefix("%%") }
-    let chart: XYChart
-    do {
-        chart = try parseXYChart(lines).0
-    } catch {
-        return "XY Chart parse error: \(error.localizedDescription)"
-    }
+    let chart = try parseXYChart(lines).0
     let ch = config.useAscii ? ASC : UNI
 
     if chart.horizontal {

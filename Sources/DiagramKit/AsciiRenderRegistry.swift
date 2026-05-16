@@ -56,7 +56,7 @@ enum AsciiRenderRegistry {
             type: .xyChart,
             render: { source, _, config, colorMode, theme in
                 let mapped = _mapAsciiConfig(config)
-                let rendered = renderXYChartAscii(source, mapped, _asciiMapColorMode(colorMode), _asciiMapTheme(theme, includeAccentBg: true))
+                let rendered = try renderXYChartAscii(source, mapped, _asciiMapColorMode(colorMode), _asciiMapTheme(theme, includeAccentBg: true))
                 return (rendered, [])
             }
         ),

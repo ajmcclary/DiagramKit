@@ -2,7 +2,7 @@
 
 **Method.** Six parallel agents reviewed: (1) architecture/layering/portability, (2) concurrency, (3) invariants + dual-renderer symmetry, (4) diagnostics + error handling, (5) code quality, (6) correctness/perf/test coverage. Critical and high-impact findings were spot-verified against the working tree. The diagnostic-discipline and `@unchecked Sendable` gates pass clean; the worker-thread invariant, `@MainActor` placement, `bmColorEquals`, type-safe payloads, retain cycles, cross-format round-trip matrix, and empty-source handling all checked out with no findings.
 
-**Summary.** 1 Critical (verified build break) — **resolved**, 10 High (10 resolved), 13 Medium (+2 added during follow-up; 2 resolved), 7 Low.
+**Summary.** 1 Critical (verified build break) — **resolved**, 10 High (10 resolved), 13 Medium (+2 added during follow-up; 3 resolved), 7 Low.
 
 ---
 
@@ -134,11 +134,13 @@ Each comment leads with the WHY (when to use, what input shape, what's returned)
 
 No pinning test added: the fallback path only fires when the ELK adapter throws, which requires a graph shape it can't handle, and no corpus entry exercises that case today (otherwise they'd already be producing silently-flattened output). Documenting the contract through the typed diagnostic was the actionable part; constructing a synthetic ELK-failing graph is out of scope. Spot-check on flowchart snapshots (4 entries including the subgraph-heavy `flow-16-subgraphs` and `flow-21-cicd-pipeline`) passes unchanged — pure diagnostic-channel addition, no geometric drift.
 
-### [Severity: Medium] XY chart ASCII renderer encodes parse errors as user-visible output text
+### [Severity: Medium] ~~XY chart ASCII renderer encodes parse errors as user-visible output text~~ — RESOLVED
 **File:** `Sources/DiagramKitModel/src_ascii_xychart.swift#L70-74`
 **Category:** Error Handling
 **Problem:** Returns `"XY Chart parse error: \(error.localizedDescription)"` as the rendered ASCII string on failure. Bypasses the canonical `AsciiRenderOutput { text, diagnostics }` shape — no diagnostic, no exception, just an error sentinel in the output that consumers cannot distinguish from real output.
-**Fix:** Throw and let `DiagramEngine.renderASCII` aggregate the diagnostic, or thread a diagnostics-out parameter and emit `.lossyTransform(.configDrop, ...)`.
+**Fix applied.** Made `renderXYChartAscii` throw — removed the inline `do/catch` that swallowed `parseXYChart` failures into the rendered string. Updated the registry caller (`AsciiRenderRegistry.xyChart`) to `try renderXYChartAscii(...)`, matching the existing pattern for `.er` and `.pie`. Failures now propagate through `DiagramPipeline.renderASCII`, which already routes them through `_withDiagramIssueReporting` so the IssueReporting reporter sees them.
+
+New `XYChartAsciiRendererTests` (2 tests) pin the contract: a basic vertical bar chart renders with no `"XY Chart parse error"` substring; malformed source throws (captured with `withKnownIssue` since the reporter records an Issue before re-throwing). XYChart corpus ASCII spot-check (3 entries) byte-identical — only the previously-buggy path changes behavior.
 
 ### [Severity: Medium] `FlowchartSubgraphMutation.slugify` drops characters with no diagnostic
 **File:** `Sources/DiagramKitInteractive/FlowchartSubgraphMutation.swift#L80-95`
