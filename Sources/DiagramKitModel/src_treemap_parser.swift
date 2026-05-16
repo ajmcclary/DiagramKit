@@ -162,8 +162,8 @@ public func parseTreemapDiagram(_ rawLines: [String], frontmatter: DiagramFrontm
         accTitle: accTitle,
         accDescr: accDescr,
         config: TreemapDiagramConfig.default,
-        themeName: frontmatter?.theme,
-        themeVariables: frontmatter?.treemapThemeVariables
+        themeName: frontmatter?.shared.theme,
+        themeVariables: frontmatter?.perDiagram.treemap.theme
     ), [])
 }
 

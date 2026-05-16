@@ -12,10 +12,10 @@ public func parseIshikawaDiagram(_ rawLines: [String], frontmatter: DiagramFront
 
     var diagram = IshikawaDiagram()
     if let fm = frontmatter {
-        if let cfg = fm.ishikawaConfig { diagram.config = cfg }
-        if let theme = fm.theme { diagram.themeName = theme }
-        if let look = fm.look { diagram.look = look }
-        if let title = fm.diagramTitle { diagram.diagramTitle = title }
+        if let cfg = fm.perDiagram.ishikawa.config { diagram.config = cfg }
+        if let theme = fm.shared.theme { diagram.themeName = theme }
+        if let look = fm.shared.look { diagram.look = look }
+        if let title = fm.shared.diagramTitle { diagram.diagramTitle = title }
     }
 
     let (root, dbTitle) = try _parseIshikawaTokens(_tokenizeIshikawa(lines))

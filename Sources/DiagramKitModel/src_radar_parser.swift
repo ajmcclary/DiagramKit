@@ -236,9 +236,9 @@ public func parseRadarDiagram(
     )
 
     if let fm = frontmatter {
-        if let rc = fm.radarConfig { diagram.config = rc }
-        if let rt = fm.radarTheme { diagram.theme = rt }
-        if diagram.diagramTitle == nil, let fmTitle = fm.diagramTitle {
+        if let rc = fm.perDiagram.radar.config { diagram.config = rc }
+        if let rt = fm.perDiagram.radar.theme { diagram.theme = rt }
+        if diagram.diagramTitle == nil, let fmTitle = fm.shared.diagramTitle {
             diagram.diagramTitle = fmTitle
         }
     }

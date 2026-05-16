@@ -15,9 +15,9 @@ extension DiagramRegistry {
         parseWithDiagnostics: { source, frontmatter in
             var (diagram, diagnostics) = try parseArchitectureDiagram(DiagramSourceNormalizer.rawLines(source), frontmatter: frontmatter)
             if let fm = frontmatter {
-                if let cfg = fm.archConfig { diagram.config = cfg }
-                if let theme = fm.archTheme { diagram.theme = theme }
-                if diagram.diagramTitle == nil, let fmTitle = fm.diagramTitle { diagram.diagramTitle = fmTitle }
+                if let cfg = fm.perDiagram.architecture.config { diagram.config = cfg }
+                if let theme = fm.perDiagram.architecture.theme { diagram.theme = theme }
+                if diagram.diagramTitle == nil, let fmTitle = fm.shared.diagramTitle { diagram.diagramTitle = fmTitle }
             }
             return (diagram, diagnostics)
         },

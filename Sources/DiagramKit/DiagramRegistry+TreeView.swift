@@ -15,9 +15,9 @@ extension DiagramRegistry {
         parseWithDiagnostics: { source, frontmatter in
             var (diagram, diagnostics) = try parseTreeViewDiagram(DiagramSourceNormalizer.rawLines(source), frontmatter: frontmatter)
             if let fm = frontmatter {
-                if let cfg = fm.treeViewConfig { diagram.config = cfg }
-                if let theme = fm.treeViewTheme { diagram.theme = theme }
-                if diagram.diagramTitle == nil, let fmTitle = fm.diagramTitle { diagram.diagramTitle = fmTitle }
+                if let cfg = fm.perDiagram.treeView.config { diagram.config = cfg }
+                if let theme = fm.perDiagram.treeView.theme { diagram.theme = theme }
+                if diagram.diagramTitle == nil, let fmTitle = fm.shared.diagramTitle { diagram.diagramTitle = fmTitle }
             }
             return (diagram, diagnostics)
         },

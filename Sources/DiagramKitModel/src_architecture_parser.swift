@@ -355,13 +355,13 @@ public func parseArchitectureDiagram(_ lines: [String], frontmatter: DiagramFron
     )
 
     if let fm = frontmatter {
-        if let cfg = fm.archConfig { result.config = cfg }
-        if let theme = fm.archTheme { result.theme = theme }
+        if let cfg = fm.perDiagram.architecture.config { result.config = cfg }
+        if let theme = fm.perDiagram.architecture.theme { result.theme = theme }
     }
-    if let fmTitle = frontmatter?.diagramTitle, result.diagramTitle == nil {
+    if let fmTitle = frontmatter?.shared.diagramTitle, result.diagramTitle == nil {
         result.diagramTitle = fmTitle
     }
-    if let fmTitle = frontmatter?.title, result.diagramTitle == nil {
+    if let fmTitle = frontmatter?.shared.title, result.diagramTitle == nil {
         result.diagramTitle = fmTitle
     }
 

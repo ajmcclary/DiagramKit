@@ -27,8 +27,8 @@ public func parseC4Diagram(
 ) throws -> (C4Diagram, [DiagramDiagnostic]) {
     var diagram = C4Diagram()
     if let fm = frontmatter {
-        if let cfg = fm.c4Config { diagram.config = cfg }
-        if diagram.title == nil, let fmTitle = fm.diagramTitle { diagram.title = fmTitle }
+        if let cfg = fm.perDiagram.c4.config { diagram.config = cfg }
+        if diagram.title == nil, let fmTitle = fm.shared.diagramTitle { diagram.title = fmTitle }
     }
 
     var diagnostics: [DiagramDiagnostic] = []

@@ -342,8 +342,8 @@ private func _parseErDiagramEntry(_ lines: [String], frontmatter: DiagramFrontma
     var diagram = ErDiagram(
         entities: [],
         relationships: [],
-        diagramTitle: frontmatter?.diagramTitle ?? frontmatter?.title,
-        config: frontmatter?.erConfig
+        diagramTitle: frontmatter?.shared.diagramTitle ?? frontmatter?.shared.title,
+        config: frontmatter?.perDiagram.er.config
     )
     var entityMap: [String: ErEntity] = [:]
     var entityOrder: [String] = []

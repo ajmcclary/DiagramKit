@@ -42,7 +42,7 @@ public struct MermaidImporter: DiagramSourceImporter {
         let header = DiagramHeader.detect(from: processed)
         let descriptor = DiagramRegistry.detect(header)
         var (document, diagnostics) = try descriptor.parse(processed, frontmatter)
-        if let title = frontmatter?.diagramTitle ?? frontmatter?.title, !title.isEmpty {
+        if let title = frontmatter?.shared.diagramTitle ?? frontmatter?.shared.title, !title.isEmpty {
             document.title = title
         }
 

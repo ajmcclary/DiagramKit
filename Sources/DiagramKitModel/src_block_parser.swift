@@ -651,7 +651,7 @@ public func parseBlockDiagram(_ source: String, frontmatter: DiagramFrontmatter?
     var diagram = try parseBlockDiagramLines(lines)
     if let fmc = resolvedFM {
         diagram.diagramTitle = fmc.title
-        if let bc = fmc.blockConfig { diagram.config = bc }
+        if let bc = fmc.perDiagram.block.config { diagram.config = bc }
     }
     return (diagram, [])
 }

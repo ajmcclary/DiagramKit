@@ -15,9 +15,9 @@ extension DiagramRegistry {
         parseWithDiagnostics: { source, frontmatter in
             var (chart, diagnostics) = try parseQuadrantChart(DiagramSourceNormalizer.diagramLines(source), frontmatter: frontmatter)
             if let fm = frontmatter {
-                if let cfg = fm.quadrantChartConfig { chart.config = cfg }
-                if let theme = fm.quadrantChartTheme { chart.theme = theme }
-                if chart.diagramTitle == nil, let fmTitle = fm.diagramTitle { chart.diagramTitle = fmTitle }
+                if let cfg = fm.perDiagram.quadrant.config { chart.config = cfg }
+                if let theme = fm.perDiagram.quadrant.theme { chart.theme = theme }
+                if chart.diagramTitle == nil, let fmTitle = fm.shared.diagramTitle { chart.diagramTitle = fmTitle }
             }
             if chart.titleText == nil, let dt = chart.diagramTitle { chart.titleText = dt }
             return (chart, diagnostics)

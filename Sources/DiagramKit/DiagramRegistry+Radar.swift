@@ -15,9 +15,9 @@ extension DiagramRegistry {
         parseWithDiagnostics: { source, frontmatter in
             var (diagram, diagnostics) = try parseRadarDiagram(source: source, frontmatter: frontmatter)
             if let fm = frontmatter {
-                if let cfg = fm.radarConfig { diagram.config = cfg }
-                if let theme = fm.radarTheme { diagram.theme = theme }
-                if diagram.diagramTitle == nil, let fmTitle = fm.diagramTitle { diagram.diagramTitle = fmTitle }
+                if let cfg = fm.perDiagram.radar.config { diagram.config = cfg }
+                if let theme = fm.perDiagram.radar.theme { diagram.theme = theme }
+                if diagram.diagramTitle == nil, let fmTitle = fm.shared.diagramTitle { diagram.diagramTitle = fmTitle }
             }
             return (diagram, diagnostics)
         },

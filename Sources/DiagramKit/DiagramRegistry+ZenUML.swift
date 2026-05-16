@@ -14,7 +14,7 @@ extension DiagramRegistry {
         matches: { $0.startsWithToken("zenuml") },
         parseWithDiagnostics: { source, frontmatter in
             var (parsed, diagnostics) = try parseZenUMLDiagram(DiagramSourceNormalizer.rawLines(source), frontmatter: frontmatter)
-            parsed.useMaxWidth = frontmatter?.sequenceConfig?.useMaxWidth ?? true
+            parsed.useMaxWidth = frontmatter?.perDiagram.sequence.config?.useMaxWidth ?? true
             return (parsed, diagnostics)
         },
         wrap: DiagramPayload.zenuml,

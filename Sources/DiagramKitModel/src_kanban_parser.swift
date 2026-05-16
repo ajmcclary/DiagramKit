@@ -25,8 +25,8 @@ public enum KanbanParserError: Error, LocalizedError {
 }
 
 public func parseKanbanDiagram(_ lines: [String], frontmatter: DiagramFrontmatter? = nil) throws -> (KanbanDiagram, [DiagramDiagnostic]) {
-    let config = frontmatter?.kanbanConfig ?? KanbanDiagramConfig()
-    var diagramTitle = frontmatter?.diagramTitle ?? frontmatter?.title
+    let config = frontmatter?.perDiagram.kanban.config ?? KanbanDiagramConfig()
+    var diagramTitle = frontmatter?.shared.diagramTitle ?? frontmatter?.shared.title
     var accTitle: String?
     var accDescr: String?
     var kbnCounter = 0

@@ -15,9 +15,9 @@ extension DiagramRegistry {
         parseWithDiagnostics: { source, frontmatter in
             var (chart, diagnostics) = try parsePieChart(DiagramSourceNormalizer.diagramLines(source), frontmatter: frontmatter)
             if let fm = frontmatter {
-                if let cfg = fm.pieConfig { chart.config = cfg }
-                if let theme = fm.pieTheme { chart.theme = theme }
-                if chart.diagramTitle == nil, let fmTitle = fm.diagramTitle { chart.diagramTitle = fmTitle }
+                if let cfg = fm.perDiagram.pie.config { chart.config = cfg }
+                if let theme = fm.perDiagram.pie.theme { chart.theme = theme }
+                if chart.diagramTitle == nil, let fmTitle = fm.shared.diagramTitle { chart.diagramTitle = fmTitle }
             }
             return (chart, diagnostics)
         },

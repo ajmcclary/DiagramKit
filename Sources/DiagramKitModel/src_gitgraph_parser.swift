@@ -657,12 +657,12 @@ public func parseGitGraph(_ lines: [String], frontmatter: DiagramFrontmatter?) t
     }
 
     if let fm = frontmatter {
-        if diagramTitle == nil { diagramTitle = fm.title ?? fm.diagramTitle }
+        if diagramTitle == nil { diagramTitle = fm.shared.title ?? fm.shared.diagramTitle }
     }
 
     var config = GitGraphConfig()
     if let fm = frontmatter {
-        if let gc = fm.gitGraphConfig { config = gc }
+        if let gc = fm.perDiagram.gitGraph.config { config = gc }
     }
 
     let remainingLines = lines.drop(while: { $0.trimmingCharacters(in: .whitespaces) == firstLine.trimmingCharacters(in: .whitespaces) || $0.trimmingCharacters(in: .whitespaces).isEmpty || $0.trimmingCharacters(in: .whitespaces).hasPrefix("%%") })
@@ -761,9 +761,9 @@ public func parseGitGraph(_ lines: [String], frontmatter: DiagramFrontmatter?) t
         }
     }
 
-    let theme = frontmatter?.gitGraphTheme ?? GitGraphThemeConfig()
-    let look = frontmatter?.look
-    let themeName = frontmatter?.theme
+    let theme = frontmatter?.perDiagram.gitGraph.theme ?? GitGraphThemeConfig()
+    let look = frontmatter?.shared.look
+    let themeName = frontmatter?.shared.theme
 
     var publicBranchHeads: [String: String?] = [:]
     for branchName in dbState.branchInsertionOrder {

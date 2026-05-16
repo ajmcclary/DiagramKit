@@ -42,7 +42,7 @@ public func parseSankeyDiagram(
         }
 
         var sankeyConfig = SankeyDiagramConfig()
-        if let fm = frontmatter, let sc = fm.sankeyConfig {
+        if let fm = frontmatter, let sc = fm.perDiagram.sankey.config {
             sankeyConfig = sc
         }
 
@@ -255,8 +255,8 @@ private func _buildSankeyDiagram(
         nodes: nodes,
         links: links,
         config: config,
-        diagramTitle: frontmatter?.diagramTitle,
-        accTitle: frontmatter?.title,
+        diagramTitle: frontmatter?.shared.diagramTitle,
+        accTitle: frontmatter?.shared.title,
         accDescr: nil
     )
 }

@@ -18,7 +18,7 @@ public func parseZenUMLDiagram(_ lines: [String], frontmatter: DiagramFrontmatte
     var diagram = ZenUMLDiagram()
 
     // Apply frontmatter title if available
-    if let fm = frontmatter, let fmTitle = fm.diagramTitle {
+    if let fm = frontmatter, let fmTitle = fm.shared.diagramTitle {
         diagram.title = fmTitle
     }
 
@@ -57,7 +57,7 @@ public func parseZenUMLDiagram(_ lines: [String], frontmatter: DiagramFrontmatte
     diagram = extractSemantics(from: ast, errors: parser.errors)
 
     // Frontmatter title overrides inline title
-    if let fm = frontmatter, let fmTitle = fm.diagramTitle, diagram.title == nil {
+    if let fm = frontmatter, let fmTitle = fm.shared.diagramTitle, diagram.title == nil {
         diagram.title = fmTitle
     }
 

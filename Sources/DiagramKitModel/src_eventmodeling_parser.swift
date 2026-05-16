@@ -11,9 +11,9 @@ public func parseEventModeling(
     var diagram = EventModelingDiagram()
 
     // Apply frontmatter config/theme
-    if let cfg = fm?.eventmodelingConfig { diagram.config = cfg }
-    if let theme = fm?.eventmodelingThemeVariables { diagram.themeVariables = theme }
-    if let title = fm?.diagramTitle { diagram.diagramTitle = title }
+    if let cfg = fm?.perDiagram.eventModeling.config { diagram.config = cfg }
+    if let theme = fm?.perDiagram.eventModeling.theme { diagram.themeVariables = theme }
+    if let title = fm?.shared.diagramTitle { diagram.diagramTitle = title }
 
     // Skip blank/comment lines to find the header
     let firstNonBlank = normalized.firstIndex(where: {

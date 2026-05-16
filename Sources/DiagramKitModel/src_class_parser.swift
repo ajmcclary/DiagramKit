@@ -506,11 +506,11 @@ private func _parseClassDiagramEntry(_ lines: [String], frontmatter: DiagramFron
     var accDescrLines: [String] = []
 
     if let fm = frontmatter {
-        diagram.diagramTitle = fm.title
-        diagram.config = fm.classConfig
+        diagram.diagramTitle = fm.shared.title
+        diagram.config = fm.perDiagram.classDiagram.config
     }
 
-    let securityLevel = frontmatter?.securityLevel?.lowercased()
+    let securityLevel = frontmatter?.shared.securityLevel?.lowercased()
 
     let bodyLines = Array(lines[(headerIdx + 1)...])
 

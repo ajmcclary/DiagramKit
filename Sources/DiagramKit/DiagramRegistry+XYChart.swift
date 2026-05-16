@@ -15,9 +15,9 @@ extension DiagramRegistry {
         parseWithDiagnostics: { source, frontmatter in
             var (chart, diagnostics) = try parseXYChart(DiagramSourceNormalizer.diagramLines(source))
             if let fm = frontmatter {
-                chart.config = fm.xyChartConfig
-                chart.theme = fm.xyChartTheme
-                if chart.titleText == nil, let fmTitle = fm.diagramTitle { chart.diagramTitle = fmTitle }
+                chart.config = fm.perDiagram.xyChart.config
+                chart.theme = fm.perDiagram.xyChart.theme
+                if chart.titleText == nil, let fmTitle = fm.shared.diagramTitle { chart.diagramTitle = fmTitle }
             }
             return (chart, diagnostics)
         },

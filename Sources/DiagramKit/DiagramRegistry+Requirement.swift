@@ -14,7 +14,7 @@ extension DiagramRegistry {
         matches: { $0.startsWithToken("requirementdiagram") || $0.startsWithToken("requirement") },
         parseWithDiagnostics: { source, frontmatter in
             var (diagram, diagnostics) = try parseRequirementDiagram(DiagramSourceNormalizer.diagramLines(source), frontmatter: frontmatter)
-            if let theme = frontmatter?.requirementTheme {
+            if let theme = frontmatter?.perDiagram.requirement.theme {
                 diagram.config.theme = theme
             }
             return (diagram, diagnostics)

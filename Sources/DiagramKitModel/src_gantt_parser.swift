@@ -41,8 +41,8 @@ private func _parseGanttDiagramEntry(
 
     // Configure from frontmatter
     if let fm = frontmatter {
-        if diagram.title == nil { diagram.title = fm.title ?? fm.diagramTitle }
-        if let gc = fm.ganttConfig {
+        if diagram.title == nil { diagram.title = fm.shared.title ?? fm.shared.diagramTitle }
+        if let gc = fm.perDiagram.gantt.config {
             diagram.config = gc
             if !gc.displayMode.isEmpty { diagram.displayMode = gc.displayMode }
         }

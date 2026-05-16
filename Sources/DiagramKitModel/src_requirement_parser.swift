@@ -178,10 +178,10 @@ private func _parseRequirementDiagram(lines: [String], frontmatter: DiagramFront
         relationships: [],
         classDefs: [],
         direction: .TB,
-        diagramTitle: frontmatter?.diagramTitle,
+        diagramTitle: frontmatter?.shared.diagramTitle,
         accTitle: nil,
         accDescr: nil,
-        config: frontmatter?.requirementConfig ?? RequirementDiagramConfig()
+        config: frontmatter?.perDiagram.requirement.config ?? RequirementDiagramConfig()
     )
 
     var requirementMap: [String: RequirementNode] = [:]

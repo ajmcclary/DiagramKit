@@ -181,11 +181,11 @@ private func _parseTimelineDiagram(_ lines: [String], frontmatter: DiagramFrontm
     )
 
     if let fm = frontmatter {
-        if diagram.diagramTitle == nil { diagram.diagramTitle = fm.title }
-        if let tc = fm.timelineConfig { diagram.config = tc }
-        if let tt = fm.timelineTheme { diagram.theme = tt }
-        diagram.themeName = fm.theme
-        diagram.look = fm.look
+        if diagram.diagramTitle == nil { diagram.diagramTitle = fm.shared.title }
+        if let tc = fm.perDiagram.timeline.config { diagram.config = tc }
+        if let tt = fm.perDiagram.timeline.theme { diagram.theme = tt }
+        diagram.themeName = fm.shared.theme
+        diagram.look = fm.shared.look
     }
 
     return diagram

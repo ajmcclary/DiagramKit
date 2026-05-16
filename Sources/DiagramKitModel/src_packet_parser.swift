@@ -76,7 +76,7 @@ public func parsePacketDiagram(_ lines: [String], frontmatter: DiagramFrontmatte
 
     // Parse title and accessibility from frontmatter first
     if let fm = frontmatter {
-        diagramTitle = fm.diagramTitle
+        diagramTitle = fm.shared.diagramTitle
     }
 
     var i = 0
@@ -176,15 +176,15 @@ public func parsePacketDiagram(_ lines: [String], frontmatter: DiagramFrontmatte
     }
 
     // Build config from frontmatter, clamped to schema minimums
-    var config = frontmatter?.packetConfig ?? PacketDiagramConfig.default
+    var config = frontmatter?.perDiagram.packet.config ?? PacketDiagramConfig.default
     config = config.clampedToMinimums
-    let theme = frontmatter?.packetTheme ?? PacketThemeConfig.default
+    let theme = frontmatter?.perDiagram.packet.theme ?? PacketThemeConfig.default
 
     // Normalize blocks (contiguity, defaults, row splitting)
     let rows = try normalizePacketBlocks(rawBlocks, config: config)
 
     // Frontmatter title does not override source title
-    if diagramTitle == nil, let fmTitle = frontmatter?.diagramTitle, frontmatter?.title != nil {
+    if diagramTitle == nil, let fmTitle = frontmatter?.shared.diagramTitle, frontmatter?.shared.title != nil {
         diagramTitle = fmTitle
     }
 

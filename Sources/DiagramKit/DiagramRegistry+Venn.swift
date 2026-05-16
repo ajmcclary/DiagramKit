@@ -15,10 +15,10 @@ extension DiagramRegistry {
         parseWithDiagnostics: { source, frontmatter in
             var (diagram, diagnostics) = try parseVennDiagram(DiagramSourceNormalizer.rawLines(source), frontmatter: frontmatter)
             if let fm = frontmatter {
-                if let cfg = fm.vennConfig { diagram.config = cfg }
-                if let theme = fm.theme { diagram.themeName = theme }
-                if let tv = fm.vennThemeVariables { diagram.themeVariables = tv }
-                if diagram.diagramTitle == nil, let fmTitle = fm.diagramTitle { diagram.diagramTitle = fmTitle }
+                if let cfg = fm.perDiagram.venn.config { diagram.config = cfg }
+                if let theme = fm.shared.theme { diagram.themeName = theme }
+                if let tv = fm.perDiagram.venn.theme { diagram.themeVariables = tv }
+                if diagram.diagramTitle == nil, let fmTitle = fm.shared.diagramTitle { diagram.diagramTitle = fmTitle }
             }
             return (diagram, diagnostics)
         },

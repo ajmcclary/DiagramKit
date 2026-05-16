@@ -177,8 +177,8 @@ private func _parseJourneyDiagramEntry(_ lines: [String], frontmatter: DiagramFr
     )
 
     if let fm = frontmatter {
-        if diagram.title == nil { diagram.title = fm.title }
-        diagram.config = fm.journeyConfig
+        if diagram.title == nil { diagram.title = fm.shared.title }
+        diagram.config = fm.perDiagram.journey.config
     }
 
     return diagram

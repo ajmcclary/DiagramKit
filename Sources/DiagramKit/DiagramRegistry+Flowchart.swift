@@ -15,7 +15,7 @@ extension DiagramRegistry {
         type: .flowchart,
         matches: { _ in true },
         parse: { source, frontmatter in
-            let (parsed, diagnostics) = try parseMermaid(source, config: frontmatter?.flowchartConfig, stateConfig: frontmatter?.stateConfig)
+            let (parsed, diagnostics) = try parseMermaid(source, config: frontmatter?.perDiagram.flowchart.config, stateConfig: frontmatter?.perDiagram.state.config)
             let document: DiagramDocument
             switch parsed.payload {
             case .flowchart(let model), .stateDiagram(let model):

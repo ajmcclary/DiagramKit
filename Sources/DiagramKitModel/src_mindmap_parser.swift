@@ -4,13 +4,13 @@ import DiagramKitCommon
 private let MAX_SECTIONS = 12
 
 public func parseMindmap(_ rawLines: [String], frontmatter: DiagramFrontmatter?) throws -> (MindmapDiagram, [DiagramDiagnostic]) {
-    var config = frontmatter?.mindmapConfig ?? MindmapConfig()
-    if let fmLayout = frontmatter?.layout { config.layout = fmLayout }
-    if let fmLook = frontmatter?.look { config.look = fmLook }
-    if let fmTheme = frontmatter?.theme { config.theme = fmTheme }
-    if let fmHtmlLabels = frontmatter?.htmlLabels { config.htmlLabels = fmHtmlLabels }
-    if let fmFontSize = frontmatter?.fontSize { config.fontSize = fmFontSize }
-    if let fmSecurityLevel = frontmatter?.securityLevel { config.securityLevel = fmSecurityLevel }
+    var config = frontmatter?.perDiagram.mindmap.config ?? MindmapConfig()
+    if let fmLayout = frontmatter?.shared.layout { config.layout = fmLayout }
+    if let fmLook = frontmatter?.shared.look { config.look = fmLook }
+    if let fmTheme = frontmatter?.shared.theme { config.theme = fmTheme }
+    if let fmHtmlLabels = frontmatter?.shared.htmlLabels { config.htmlLabels = fmHtmlLabels }
+    if let fmFontSize = frontmatter?.shared.fontSize { config.fontSize = fmFontSize }
+    if let fmSecurityLevel = frontmatter?.shared.securityLevel { config.securityLevel = fmSecurityLevel }
 
     let theme = MindmapThemeConfig.default
     var accTitle: String?
