@@ -23,6 +23,15 @@ public enum DiagramFontRegistry {
     /// must hold the lock — see `registerBundledFontsIfNeeded()` below.
     private nonisolated(unsafe) static var didRegister = false
 
+    /// Snapshot of the bundled font family names registered with the
+    /// process-wide CTFontManager. Returns the families
+    /// `registerBundledFontsIfNeeded()` ships with — the value is stable
+    /// across calls; the list is the set of families, not the individual
+    /// faces.
+    public static var registeredFontNames: [String] {
+        ["Noto Sans", "Noto Sans Mono"]
+    }
+
     /// Registers Noto Sans + Noto Sans Mono with the process-wide CTFontManager.
     ///
     /// Idempotent and thread-safe. Subsequent calls are a single locked bool

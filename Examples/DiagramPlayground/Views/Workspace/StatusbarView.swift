@@ -12,6 +12,7 @@
 //
 
 import SwiftUI
+import DiagramKit
 
 @available(iOS 26.0, macOS 26.0, macCatalyst 26.0, *)
 struct StatusbarView: View {
@@ -81,8 +82,9 @@ struct StatusbarView: View {
     }
 
     private var fontsSegment: some View {
-        // Phase 4 will populate from DiagramFontRegistry.registeredFontNames.
-        labeledMetric(key: "fonts", value: "Noto Sans · Mono")
+        let names = DiagramFontRegistry.registeredFontNames
+        let label = names.isEmpty ? "—" : names.joined(separator: " · ")
+        return labeledMetric(key: "fonts", value: label)
     }
 
     private var backendSegment: some View {
