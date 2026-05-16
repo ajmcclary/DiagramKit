@@ -212,16 +212,27 @@ Flat properties such as `blockConfig` can remain deprecated forwarding accessors
 
 ### A5. Frontmatter binding helpers are under-utilized
 
+**Status:** Resolved. `ConfigThemeBinding.apply` now accepts an optional
+`themeFallbackPrefixes` array so a binding can route theme keys through a
+family-specific prefix first (e.g. `themeVariables.radar.`) and fall back
+to a flat prefix (`themeVariables.`). Radar, EventModeling, and Pie now
+delegate through the shared runner — they no longer reimplement the
+`hasConfig`/`hasTheme` state machine. Gantt delegates through
+`SingleSectionBinding` and keeps only its top-level `displayMode` quirk
+as a small special-case branch inside its `apply` method (the
+"only `compact` actually changes the rendered output" rule is too narrow
+to belong in the generic runner).
+
 **Evidence**
 
 - `Sources/DiagramKitModel/FrontmatterBinding.swift:41` defines the common `FrontmatterBinding` protocol.
 - `Sources/DiagramKitModel/FrontmatterBinding+Runners.swift:21` defines `SingleSectionBinding`.
-- `Sources/DiagramKitModel/FrontmatterBinding+Runners.swift:55` defines `ConfigThemeBinding`.
+- `Sources/DiagramKitModel/FrontmatterBinding+Runners.swift:55` defines `ConfigThemeBinding` (now also `themeFallbackPrefixes`).
 - `Sources/DiagramKitModel/FrontmatterBinding+Packet.swift:13` uses `ConfigThemeBinding`.
-- `Sources/DiagramKitModel/FrontmatterBinding+Radar.swift:3` manually implements a config/theme binding.
-- `Sources/DiagramKitModel/FrontmatterBinding+EventModeling.swift:3` manually implements a config/theme binding.
-- `Sources/DiagramKitModel/FrontmatterBinding+Pie.swift:5` manually implements a config/theme binding with fallback prefixes.
-- `Sources/DiagramKitModel/FrontmatterBinding+Gantt.swift:4` manually implements a single config binding because it has top-level aliases.
+- `Sources/DiagramKitModel/FrontmatterBinding+Radar.swift:3` manually implements a config/theme binding. **(resolved — delegates to `ConfigThemeBinding` with fallback prefixes)**
+- `Sources/DiagramKitModel/FrontmatterBinding+EventModeling.swift:3` manually implements a config/theme binding. **(resolved — delegates to `ConfigThemeBinding`)**
+- `Sources/DiagramKitModel/FrontmatterBinding+Pie.swift:5` manually implements a config/theme binding with fallback prefixes. **(resolved — delegates to `ConfigThemeBinding` with fallback prefixes)**
+- `Sources/DiagramKitModel/FrontmatterBinding+Gantt.swift:4` manually implements a single config binding because it has top-level aliases. **(resolved — delegates to `SingleSectionBinding` with the `displayMode` alias handled before delegation)**
 
 **Impact**
 
@@ -842,7 +853,10 @@ and packet renderers remain as follow-ups.
 
 **Impact:** Medium-high scalability gain for future families.
 
-Extend `ConfigThemeBinding` and `SingleSectionBinding` to cover fallback prefixes and top-level aliases. Migrate manual binders after the helper supports their existing behavior.
+**Status:** Landed. `ConfigThemeBinding.apply` gained an optional
+`themeFallbackPrefixes` parameter. Radar, EventModeling, Pie, and Gantt
+binders now delegate to the shared runners. Adding a new
+config-and-theme family is a single closure pair plus a prefix list.
 
 ### Priority 6: Reduce exporter diagnostic duplication
 

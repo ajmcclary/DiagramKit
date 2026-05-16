@@ -67,15 +67,21 @@ public struct ConfigThemeBinding<Config: Sendable, Theme: Sendable>: Sendable {
         self.theme = theme
     }
 
-    /// Try the config prefixes first, then the theme prefixes. On a
-    /// match, call the corresponding applier and flip the matching
-    /// flag. Returns `false` when neither prefix matches or when the
-    /// applier rejects the key/value.
+    /// Try the config prefixes first, then the theme prefixes, then any
+    /// theme fallback prefixes. On a match, call the corresponding applier
+    /// and flip the matching flag. Returns `false` when no prefix matches
+    /// or when the applier rejects the key/value.
+    ///
+    /// `themeFallbackPrefixes` lets bindings whose theme keys can arrive
+    /// under either a family-specific sub-namespace (e.g. `themeVariables.pie.`)
+    /// or a flat top-level namespace (e.g. `themeVariables.`) share a
+    /// single applier. Specific prefixes win when both forms match.
     public mutating func apply(
         path: String,
         value: FrontmatterValue,
         configPrefixes: [String],
         themePrefixes: [String],
+        themeFallbackPrefixes: [String] = [],
         applyConfig: (String, FrontmatterValue, inout Config) -> Bool,
         applyTheme: (String, FrontmatterValue, inout Theme) -> Bool
     ) -> Bool {
@@ -85,6 +91,12 @@ public struct ConfigThemeBinding<Config: Sendable, Theme: Sendable>: Sendable {
             return true
         }
         if let key = FrontmatterPrefixMatcher.extractKey(path: path, prefixes: themePrefixes) {
+            guard applyTheme(key, value, &theme) else { return false }
+            hasTheme = true
+            return true
+        }
+        if !themeFallbackPrefixes.isEmpty,
+           let key = FrontmatterPrefixMatcher.extractKey(path: path, prefixes: themeFallbackPrefixes) {
             guard applyTheme(key, value, &theme) else { return false }
             hasTheme = true
             return true
