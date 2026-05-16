@@ -2,7 +2,7 @@
 
 **Method.** Six parallel agents reviewed: (1) architecture/layering/portability, (2) concurrency, (3) invariants + dual-renderer symmetry, (4) diagnostics + error handling, (5) code quality, (6) correctness/perf/test coverage. Critical and high-impact findings were spot-verified against the working tree. The diagnostic-discipline and `@unchecked Sendable` gates pass clean; the worker-thread invariant, `@MainActor` placement, `bmColorEquals`, type-safe payloads, retain cycles, cross-format round-trip matrix, and empty-source handling all checked out with no findings.
 
-**Summary.** 1 Critical (verified build break) — **resolved**, 10 High (10 resolved), 13 Medium (+2 added during follow-up; 10 resolved, 1 deferred), 7 Low.
+**Summary.** 1 Critical (verified build break) — **resolved**, 10 High (10 resolved), 13 Medium (+2 added during follow-up; 11 resolved, 1 deferred), 7 Low.
 
 ---
 
@@ -172,11 +172,19 @@ Skipped adding a separate `RenderTokens.classTitleFontWeight` field per the revi
 
 Pure refactor: 4 class corpus entries (`class-1-basic`, `class-2-visibility`, `class-3-interface`, `class-16-full-hierarchy`) pass byte-identical image + SVG.
 
-### [Severity: Medium] Hardcoded fallback hex literals in CG renderers
+### [Severity: Medium] ~~Hardcoded fallback hex literals in CG renderers~~ — RESOLVED (high-impact clusters; single-literal sites kept inline)
 **Files:** `+C4.swift#L35-173` (`#1168BD`, `#3C7FC0`, `#FFFFFF`, `#444444` x4); `+Block.swift#L125` (`#e8f0fe`); `+Journey.swift#L156` and `src_journey_renderer.swift#L183,L287` (`#8FBC8F` — duplicated CG↔SVG); `+XYChart.swift#L39,L274` (`#3b82f6`); `+Sankey.swift#L88` and `+Radar.swift#L20` (`#27272A`); `+Pie.swift#L30` (`#ECECFF`); `+Packet.swift#L29` (`#efefef`); `+Kanban.swift#L38` (`#a1a1aa`)
 **Category:** Code Quality
 **Problem:** Fallback colors inlined as raw hex in renderer bodies. Domain-specific (C4 brand colors) and cross-renderer fallbacks (`#27272A`) should live on `DiagramTheme` or per-family constants.
-**Fix:** Promote per-family constants into `<Family>Constants` siblings; expose cross-renderer fallbacks on `DiagramTheme`.
+**Fix applied — high-impact clusters.**
+- **C4** (4 constants, 8 callsites — biggest cluster): new `Sources/DiagramKitCommon/C4RenderConstants.swift` enum with `defaultShapeFill`, `defaultShapeBorder`, `defaultShapeTextColor`, `defaultBoundaryAndRelColor`. `DiagramRenderer+C4.swift` routes all eight previous hex literals through it.
+- **Journey** (1 constant, but duplicated CG↔SVG — the cross-renderer drift hazard the reviewer specifically flagged): new `Sources/DiagramKitCommon/JourneyRenderConstants.swift` with `defaultActorColor`. CG `+Journey.swift` and SVG `src_journey_renderer.swift` both route through it — three callsites collapsed onto one constant.
+
+**Skipped — single-literal-per-family sites.** `+Block.swift`'s `#e8f0fe`, `+XYChart.swift`'s `#3b82f6`, `+Sankey.swift`/`+Radar.swift`'s `#27272A`, `+Pie.swift`'s `#ECECFF`, `+Packet.swift`'s `#efefef`, `+Kanban.swift`'s `#a1a1aa` each appear at exactly one inline `?? "#hex"` fallback site and are not duplicated across renderers. The reviewer's per-family-constants pattern adds three lines of declaration + import for each one to save zero duplication. Inline fallbacks at a single site stay legible and don't pose a drift hazard.
+
+**`DiagramTheme` extension also skipped.** `#27272A` is used in Sankey + Radar as a "if `theme.foreground.hexString` returned nil for some reason, fall through to this near-black" defensive fallback. Hoisting it onto `DiagramTheme` as a class-level static would conflate theme data with fallback constants. Two inline literals at two distinct files is acceptable.
+
+C4 + Journey corpus snapshot spot-check (5 C4 entries + 2 Journey entries) byte-identical image + SVG.
 
 ### [Severity: Medium] ~~EventModeling font fallback chain hardcodes family names and duplicates resolver logic~~ — RESOLVED
 **File:** `Sources/DiagramKitRenderingCG/DiagramRenderer+EventModeling.swift#L271-291`

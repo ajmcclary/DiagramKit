@@ -1,6 +1,7 @@
 // Apple-only target gated by `#if canImport(CoreGraphics)`. On Linux this file is empty.
 #if canImport(CoreGraphics)
 import Foundation
+import DiagramKitCommon
 import DiagramKitModel
 import CoreGraphics
 import DiagramKitCommon
@@ -153,7 +154,7 @@ extension DiagramRenderer {
                             let dotX = dotXs[di]
                             let dotY = task.y
                             let dotRect = CGRect(x: dotX - 7, y: dotY - 7, width: 14, height: 14)
-                            let actorColor = _journeyCGPaletteValue(config.actorColours, index: actorIdx, fallback: "#8FBC8F")
+                            let actorColor = _journeyCGPaletteValue(config.actorColours, index: actorIdx, fallback: JourneyRenderConstants.defaultActorColor)
                             if let cgColor = DiagramColorParser.cgHex(actorColor) {
                                 ctx.setFillColor(cgColor)
                             } else {

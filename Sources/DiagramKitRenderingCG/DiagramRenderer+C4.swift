@@ -1,6 +1,7 @@
 // Apple-only target gated by `#if canImport(CoreGraphics)`. On Linux this file is empty.
 #if canImport(CoreGraphics)
 import Foundation
+import DiagramKitCommon
 import DiagramKitModel
 import CoreGraphics
 
@@ -32,9 +33,9 @@ extension DiagramRenderer {
     }
 
     private func _drawC4Shape(_ shape: PositionedC4Shape, in context: CGContext) {
-        let fillColor = DiagramColorParser.cgHex(shape.bgColor ?? "#1168BD") ?? BMColor.black.cgColor
-        let strokeColor = DiagramColorParser.cgHex(shape.borderColor ?? "#3C7FC0") ?? BMColor.black.cgColor
-        let fontColor = DiagramColorParser.cgHex(shape.fontColor ?? "#FFFFFF") ?? BMColor.black.cgColor
+        let fillColor = DiagramColorParser.cgHex(shape.bgColor ?? C4RenderConstants.defaultShapeFill) ?? BMColor.black.cgColor
+        let strokeColor = DiagramColorParser.cgHex(shape.borderColor ?? C4RenderConstants.defaultShapeBorder) ?? BMColor.black.cgColor
+        let fontColor = DiagramColorParser.cgHex(shape.fontColor ?? C4RenderConstants.defaultShapeTextColor) ?? BMColor.black.cgColor
 
         let rect = CGRect(x: shape.x, y: shape.y, width: shape.width, height: shape.height)
 
@@ -118,8 +119,8 @@ extension DiagramRenderer {
 
     private func _drawC4Boundary(_ boundary: PositionedC4Boundary, in context: CGContext) {
         let fillColor = DiagramColorParser.cgHex(boundary.bgColor ?? "none", allowClear: true) ?? CGColor(red: 0, green: 0, blue: 0, alpha: 0)
-        let strokeColor = DiagramColorParser.cgHex(boundary.borderColor ?? "#444444") ?? BMColor.black.cgColor
-        let fontColor = DiagramColorParser.cgHex(boundary.fontColor ?? "#444444") ?? BMColor.black.cgColor
+        let strokeColor = DiagramColorParser.cgHex(boundary.borderColor ?? C4RenderConstants.defaultBoundaryAndRelColor) ?? BMColor.black.cgColor
+        let fontColor = DiagramColorParser.cgHex(boundary.fontColor ?? C4RenderConstants.defaultBoundaryAndRelColor) ?? BMColor.black.cgColor
 
         let rect = CGRect(x: boundary.x, y: boundary.y, width: boundary.width, height: boundary.height)
         let bezierPath = CGPath(roundedRect: rect, cornerWidth: 2.5, cornerHeight: 2.5, transform: nil)
@@ -169,8 +170,8 @@ extension DiagramRenderer {
         context.saveGState()
 
         for (i, rel) in rels.enumerated() {
-            let strokeColor = DiagramColorParser.cgHex(rel.lineColor ?? "#444444") ?? BMColor.black.cgColor
-            let textColor = DiagramColorParser.hexColor(rel.textColor ?? "#444444") ?? theme.foreground
+            let strokeColor = DiagramColorParser.cgHex(rel.lineColor ?? C4RenderConstants.defaultBoundaryAndRelColor) ?? BMColor.black.cgColor
+            let textColor = DiagramColorParser.hexColor(rel.textColor ?? C4RenderConstants.defaultBoundaryAndRelColor) ?? theme.foreground
             let ox = CGFloat(rel.offsetX ?? 0)
             let oy = CGFloat(rel.offsetY ?? 0)
 

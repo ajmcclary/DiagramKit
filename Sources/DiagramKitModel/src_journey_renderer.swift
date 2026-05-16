@@ -180,7 +180,7 @@ private func _renderJourneySvgEntry(
             for (di, person) in task.people.enumerated() {
                 if let actorIdx = diagram.actors.firstIndex(where: { $0.name == person }) {
                     let dotX = dotXs[di]
-                    let actorColor = _journeySvgPaletteValue(conf.actorColours, index: actorIdx, fallback: "#8FBC8F")
+                    let actorColor = _journeySvgPaletteValue(conf.actorColours, index: actorIdx, fallback: JourneyRenderConstants.defaultActorColor)
                     let escapedPerson = SVG.escapeText(person)
                     parts.append("""
                     <circle class="actor-\(actorIdx)" cx="\(_fmt(dotX))" cy="\(ty)" r="7" fill="\(actorColor)"><title>\(escapedPerson)</title></circle>
@@ -284,7 +284,7 @@ private func _journeyCSSBlock(conf: JourneyDiagramConfig, colors: DiagramColors)
 
     // Actor colors (0-5)
     for i in 0..<6 {
-        let actorColor = i < conf.actorColours.count ? conf.actorColours[i] : "#8FBC8F"
+        let actorColor = i < conf.actorColours.count ? conf.actorColours[i] : JourneyRenderConstants.defaultActorColor
         rules.append(".actor-\(i) { fill: \(actorColor); }")
     }
 
