@@ -189,6 +189,43 @@ public struct DiagramFontResolver: Sendable {
         return BMFont.monospacedSystemFont(ofSize: size, weight: weight)
     }
 
+    /// EventModeling-family font with a three-step fallback ladder:
+    /// `tokens.defaultProportionalFontFamily` → `tokens.eventModelingFontFamily`
+    /// → system. Mermaid-js's reference SVG output uses Trebuchet MS
+    /// for EventModeling, so the second tier honors that whenever the
+    /// bundled proportional family fails to register. Lives here so the
+    /// renderer doesn't duplicate the family-name strings.
+    public func eventModelingFont(size: CGFloat, weight: Int = 400) -> BMFont {
+        let bold = weight >= 650
+        if let family = tokens.defaultProportionalFontFamily {
+            if bold {
+                for name in ["\(family)-Bold", "\(family) Bold"] {
+                    if let f = BMFont(name: name, size: size) { return f }
+                }
+            }
+            if let f = BMFont(name: family, size: size) { return f }
+        }
+        if let family = tokens.eventModelingFontFamily {
+            if bold {
+                // Match the legacy fallback candidates: "TrebuchetMS-Bold"
+                // (canonical PostScript), "Trebuchet-BoldMS" (preserved
+                // for older registrations), and the spaced variant.
+                let stripped = family.replacingOccurrences(of: " ", with: "")
+                for name in ["\(stripped)-Bold", "\(family.replacingOccurrences(of: " MS", with: ""))-BoldMS", "\(family) Bold"] {
+                    if let f = BMFont(name: name, size: size) { return f }
+                }
+            }
+            // Family lookup tolerates both with-space and without-space
+            // forms; macOS sometimes registers it under either.
+            let stripped = family.replacingOccurrences(of: " ", with: "")
+            for name in [family, stripped] {
+                if let f = BMFont(name: name, size: size) { return f }
+            }
+        }
+        if bold { return BMFont.boldSystemFont(ofSize: size) }
+        return BMFont.systemFont(ofSize: size, weight: Self.bmWeight(forCSS: weight))
+    }
+
     // MARK: - Semantic font helpers
 
     /// Resolve the node-label font.

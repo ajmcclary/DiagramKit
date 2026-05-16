@@ -1,6 +1,7 @@
 // Apple-only target gated by `#if canImport(CoreGraphics)`. On Linux this file is empty.
 #if canImport(CoreGraphics)
 import Foundation
+import DiagramKitCommon
 import DiagramKitModel
 import CoreGraphics
 import CoreText
@@ -265,29 +266,17 @@ extension DiagramRenderer {
         return BMColor.black
     }
 
-    /// Mermaid's reference SVG output uses Trebuchet MS for EventModeling.
-    /// We honor that as a fallback chain: bundled proportional family →
-    /// Trebuchet MS (variants) → system font.
+    /// EventModeling fonts route through `DiagramFontResolver` so the
+    /// Trebuchet-MS fallback ladder lives in one place. The legacy
+    /// `_emFont` / `_emBoldFont` helpers used to duplicate the
+    /// `BMFont(name: "TrebuchetMS", ...) ?? BMFont(name: "Trebuchet
+    /// MS", ...)` chain here.
     private func _emFont(size: CGFloat) -> BMFont {
-        if let family = config.defaultProportionalFontFamily,
-           let bundled = BMFont(name: family, size: size) {
-            return bundled
-        }
-        return BMFont(name: "TrebuchetMS", size: size)
-            ?? BMFont(name: "Trebuchet MS", size: size)
-            ?? BMFont.systemFont(ofSize: size)
+        fontResolver.eventModelingFont(size: size)
     }
 
     private func _emBoldFont(size: CGFloat) -> BMFont {
-        if let family = config.defaultProportionalFontFamily {
-            let candidates = ["\(family)-Bold", "\(family) Bold"]
-            for name in candidates {
-                if let f = BMFont(name: name, size: size) { return f }
-            }
-        }
-        return BMFont(name: "TrebuchetMS-Bold", size: size)
-            ?? BMFont(name: "Trebuchet-BoldMS", size: size)
-            ?? BMFont.boldSystemFont(ofSize: size)
+        fontResolver.eventModelingFont(size: size, weight: original_src_styles.FONT_WEIGHTS.classTitle)
     }
 
     private func _emMonoFont(size: CGFloat) -> BMFont {

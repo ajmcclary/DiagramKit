@@ -115,6 +115,13 @@ public struct RenderTokens: Sendable {
     /// `nil` to fall back to the system font.
     public var defaultProportionalFontFamily: String? = "Noto Sans"
 
+    /// EventModeling-specific font family, used as the secondary
+    /// fallback when the bundled proportional family fails to register.
+    /// Matches mermaid-js's reference SVG output, which uses Trebuchet
+    /// MS for EventModeling diagrams. Resolved by
+    /// `DiagramFontResolver.eventModelingFont(size:weight:)`.
+    public var eventModelingFontFamily: String? = "Trebuchet MS"
+
     // MARK: - Initialization
 
     public init() {}

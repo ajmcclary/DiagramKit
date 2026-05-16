@@ -2,7 +2,7 @@
 
 **Method.** Six parallel agents reviewed: (1) architecture/layering/portability, (2) concurrency, (3) invariants + dual-renderer symmetry, (4) diagnostics + error handling, (5) code quality, (6) correctness/perf/test coverage. Critical and high-impact findings were spot-verified against the working tree. The diagnostic-discipline and `@unchecked Sendable` gates pass clean; the worker-thread invariant, `@MainActor` placement, `bmColorEquals`, type-safe payloads, retain cycles, cross-format round-trip matrix, and empty-source handling all checked out with no findings.
 
-**Summary.** 1 Critical (verified build break) — **resolved**, 10 High (10 resolved), 13 Medium (+2 added during follow-up; 6 resolved), 7 Low.
+**Summary.** 1 Critical (verified build break) — **resolved**, 10 High (10 resolved), 13 Medium (+2 added during follow-up; 7 resolved), 7 Low.
 
 ---
 
@@ -178,11 +178,18 @@ Pure refactor: 4 class corpus entries (`class-1-basic`, `class-2-visibility`, `c
 **Problem:** Fallback colors inlined as raw hex in renderer bodies. Domain-specific (C4 brand colors) and cross-renderer fallbacks (`#27272A`) should live on `DiagramTheme` or per-family constants.
 **Fix:** Promote per-family constants into `<Family>Constants` siblings; expose cross-renderer fallbacks on `DiagramTheme`.
 
-### [Severity: Medium] EventModeling font fallback chain hardcodes family names and duplicates resolver logic
+### [Severity: Medium] ~~EventModeling font fallback chain hardcodes family names and duplicates resolver logic~~ — RESOLVED
 **File:** `Sources/DiagramKitRenderingCG/DiagramRenderer+EventModeling.swift#L271-291`
 **Category:** Code Quality (invariant #7 — font routing)
 **Problem:** `_emFont` / `_emBoldFont` re-implement `BMFont(name: "TrebuchetMS", ...) ?? BMFont(name: "Trebuchet MS", ...) ?? BMFont.systemFont(...)` — the only `"Trebuchet*"` strings in `DiagramKitRenderingCG` and the only file that duplicates the fallback ladder that already lives in `DiagramFontResolver.proportionalFont(size:weight:)`.
-**Fix:** Add an `eventModelingFont(size:weight:)` helper to `DiagramFontResolver` driven from `RenderTokens.eventModelingFontFamily`. Delete the local helpers.
+**Fix applied.**
+- Added `eventModelingFontFamily: String? = "Trebuchet MS"` to `RenderTokens` — the EventModeling-specific font-family token that previously lived as `"TrebuchetMS"` / `"Trebuchet MS"` string literals inside the renderer.
+- Added `DiagramFontResolver.eventModelingFont(size:weight:)` that walks the three-step fallback ladder (`defaultProportionalFontFamily` → `eventModelingFontFamily` → system) for both regular and bold weights. Preserves the legacy fallback candidates by trying both with-space (`"Trebuchet MS"`) and without-space (`"TrebuchetMS"`) forms plus the `"-BoldMS"` PostScript suffix variant that the renderer used to attempt.
+- Reduced `DiagramRenderer+EventModeling.swift` `_emFont` / `_emBoldFont` to one-line delegates to `fontResolver.eventModelingFont(size:weight:)`. Bold variant uses `FONT_WEIGHTS.classTitle` (700) — same value the original `boldSystemFont` fallback resolved to.
+
+Skipped going further and inlining `fontResolver.eventModelingFont(...)` at the 12 call sites in `+EventModeling.swift` — keeping `_emFont` / `_emBoldFont` as one-line indirections preserves all the existing call sites and keeps the local "we use Trebuchet here" intent visible in the renderer's own file.
+
+Pure refactor: 4 EventModeling corpus entries (`eventmodeling-simple-state-change`, `eventmodeling-multi-relation`, `eventmodeling-all-entity-types`, `eventmodeling-state-view`) byte-identical image + SVG.
 
 ### [Severity: Medium] Mermaid State same-format round-trip cell missing from the matrix
 **File:** `Tests/DiagramKitTests/RoundTrip/RoundTripCellRegistry.swift#L19-122`
