@@ -2,7 +2,7 @@
 
 **Method.** Six parallel agents reviewed: (1) architecture/layering/portability, (2) concurrency, (3) invariants + dual-renderer symmetry, (4) diagnostics + error handling, (5) code quality, (6) correctness/perf/test coverage. Critical and high-impact findings were spot-verified against the working tree. The diagnostic-discipline and `@unchecked Sendable` gates pass clean; the worker-thread invariant, `@MainActor` placement, `bmColorEquals`, type-safe payloads, retain cycles, cross-format round-trip matrix, and empty-source handling all checked out with no findings.
 
-**Summary.** 1 Critical (verified build break) — **resolved**, 10 High (10 resolved), 13 Medium (+2 added during follow-up; 1 resolved), 7 Low.
+**Summary.** 1 Critical (verified build break) — **resolved**, 10 High (10 resolved), 13 Medium (+2 added during follow-up; 2 resolved), 7 Low.
 
 ---
 
@@ -126,11 +126,13 @@ Each comment leads with the WHY (when to use, what input shape, what's returned)
 **Problem:** `_registerUndoObservers()` uses `NotificationCenter.default.addObserver(...queue: nil) { ... MainActor.assumeIsolated { ... } }`. `queue: nil` delivers synchronously on the posting thread. `UndoManager` itself is documented as thread-safe but not typed `@MainActor`; any notification posted off-main trips `assumeIsolated`'s precondition.
 **Fix applied.** Picked neither of the reviewer's two specific options outright — both have a real downside. `OperationQueue.main` makes delivery async on every post, breaking the test-determinism property the existing comment block (L193-198) relies on (the synchronous tickle has to fire before `await perform(_:)` returns or `@Observable` subscribers race). `Task { @MainActor in ... }` likewise loses synchronous delivery on the typical (on-main) post path. Used a conditional split instead: `if Thread.isMainThread { MainActor.assumeIsolated { ... } } else { Task { @MainActor in ... } }`. The fast path preserves the documented synchronous tickle the comment guards; the slow path schedules safely on MainActor so the off-main precondition trap is impossible. Rewrote the comment to reflect the new policy. Full editor suite (63 tests across 7 suites — including `DiagramEditorUndoObservationTests` which exercises the tickle) passes.
 
-### [Severity: Medium] Subgraph-layout ELK fallback silently rebuilds as flat graph
+### [Severity: Medium] ~~Subgraph-layout ELK fallback silently rebuilds as flat graph~~ — RESOLVED
 **File:** `Sources/DiagramKitModel/src_layout.swift#L1233-1247` and `#L1461-1475`
 **Category:** Error Handling
 **Problem:** Two ELK call sites `catch` and silently rebuild a flat graph (second site comment: `// Fallback: fully flat layout`). User receives geometrically different output (subgraph nesting collapsed) with no diagnostic. `PositionedGraph.diagnostics` is the channel for exactly this case.
-**Fix:** Append `.lossyTransform(.subgraphFlatten, message: "ELK nested layout failed; falling back to flat: \(error)")` before the fallback runs.
+**Fix applied.** Added `diagnostics.warn("ELK nested layout failed; falling back to flat layout (subgraph nesting collapsed): \(error.localizedDescription)")` at the start of each catch block — before the fallback `_buildFlatElkGraph` call runs. `_LayoutDiagnostics.warn(_:)` already routes to `.lossyTransform(.subgraphFlatten, ...)`, the typed category that exactly matches the lossy transform happening here. The diagnostic flows through the existing `positioned.diagnostics = diagnostics.items` line that both fallback paths already had, surfacing on `PositionedGraph.diagnostics` for downstream consumers (and through `PreparedDiagram.diagnostics` for the umbrella facade).
+
+No pinning test added: the fallback path only fires when the ELK adapter throws, which requires a graph shape it can't handle, and no corpus entry exercises that case today (otherwise they'd already be producing silently-flattened output). Documenting the contract through the typed diagnostic was the actionable part; constructing a synthetic ELK-failing graph is out of scope. Spot-check on flowchart snapshots (4 entries including the subgraph-heavy `flow-16-subgraphs` and `flow-21-cicd-pipeline`) passes unchanged — pure diagnostic-channel addition, no geometric drift.
 
 ### [Severity: Medium] XY chart ASCII renderer encodes parse errors as user-visible output text
 **File:** `Sources/DiagramKitModel/src_ascii_xychart.swift#L70-74`

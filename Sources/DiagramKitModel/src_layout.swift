@@ -1241,6 +1241,7 @@ private func _layoutGraphSyncWithConfig(
         positioned.diagnostics = diagnostics.items
         return positioned
     } catch {
+        diagnostics.warn("ELK nested layout failed; falling back to flat layout (subgraph nesting collapsed): \(error.localizedDescription)")
         var flatGraph = _buildFlatElkGraph(parsed, diagnostics: diagnostics)
         _applyLayoutConfig(config, to: &flatGraph)
         let rawLaidOut = try layoutEngineSync(flatGraph.toDictionary())
@@ -1469,7 +1470,8 @@ private func _layoutGraphSyncFromLayoutEngine(
             positioned.diagnostics = diagnostics.items
             return positioned
         } catch {
-            // Fallback: fully flat layout
+            // Fallback: fully flat layout (subgraph nesting collapsed).
+            diagnostics.warn("ELK nested layout failed; falling back to flat layout (subgraph nesting collapsed): \(error.localizedDescription)")
             let flatGraph = _buildFlatElkGraph(parsed, diagnostics: diagnostics)
             let rawLaidOut = try layoutEngineSync(flatGraph.toDictionary())
             let laidOut = ElkGraphNode(from: rawLaidOut)
