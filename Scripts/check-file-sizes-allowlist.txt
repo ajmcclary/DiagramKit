@@ -8,7 +8,6 @@
 #
 # Format: one path per line, blank lines and #-comments ignored.
 
-Sources/DiagramKitModel/src_ascii_draw.swift
 Sources/DiagramKitModel/src_class_parser.swift
 Sources/DiagramKitModel/src_er_parser.swift
 Sources/DiagramKitModel/src_layout.swift
