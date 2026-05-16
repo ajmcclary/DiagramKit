@@ -191,18 +191,31 @@ public final class DiagramEditor {
         ]
         for name in names {
             // `queue: nil` delivers synchronously on the posting thread.
-            // All `UndoManager` state changes that matter to us happen on
-            // MainActor (mutations, direct .undo()/.redo() calls from UI
-            // code), so MainActor.assumeIsolated holds. Synchronous
-            // delivery also keeps Observation tracking deterministic for
-            // tests — the tickle fires before `await perform(_:)` returns.
+            // Almost all `UndoManager` state changes we care about happen
+            // on MainActor (mutations + direct .undo()/.redo() calls
+            // from UI code), and synchronous delivery on that path keeps
+            // Observation tracking deterministic for tests — the tickle
+            // fires before `await perform(_:)` returns.
+            //
+            // `UndoManager` is documented thread-safe but not typed
+            // `@MainActor`, so we cannot assume the post site. If a
+            // notification arrives off-main, a bare `MainActor
+            // .assumeIsolated` would trip its precondition and abort the
+            // process; gate it on `Thread.isMainThread` and otherwise
+            // schedule the tickle on MainActor.
             let token = NotificationCenter.default.addObserver(
                 forName: name,
                 object: undoManager,
                 queue: nil
             ) { [weak self] _ in
-                MainActor.assumeIsolated {
-                    self?._undoStateTickle &+= 1
+                if Thread.isMainThread {
+                    MainActor.assumeIsolated {
+                        self?._undoStateTickle &+= 1
+                    }
+                } else {
+                    Task { @MainActor [weak self] in
+                        self?._undoStateTickle &+= 1
+                    }
                 }
             }
             _undoObservers.append(token)

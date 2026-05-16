@@ -2,7 +2,7 @@
 
 **Method.** Six parallel agents reviewed: (1) architecture/layering/portability, (2) concurrency, (3) invariants + dual-renderer symmetry, (4) diagnostics + error handling, (5) code quality, (6) correctness/perf/test coverage. Critical and high-impact findings were spot-verified against the working tree. The diagnostic-discipline and `@unchecked Sendable` gates pass clean; the worker-thread invariant, `@MainActor` placement, `bmColorEquals`, type-safe payloads, retain cycles, cross-format round-trip matrix, and empty-source handling all checked out with no findings.
 
-**Summary.** 1 Critical (verified build break) — **resolved**, 10 High (9 resolved), 13 Medium (+2 added during follow-up), 7 Low.
+**Summary.** 1 Critical (verified build break) — **resolved**, 10 High (10 resolved), 13 Medium (+2 added during follow-up; 1 resolved), 7 Low.
 
 ---
 
@@ -120,11 +120,11 @@ Each comment leads with the WHY (when to use, what input shape, what's returned)
 
 ## MEDIUM
 
-### [Severity: Medium] `MainActor.assumeIsolated` in `NotificationCenter` observer can crash off-main
+### [Severity: Medium] ~~`MainActor.assumeIsolated` in `NotificationCenter` observer can crash off-main~~ — RESOLVED
 **File:** `Sources/DiagramKitInteractive/DiagramEditor.swift#L185-210`
 **Category:** Concurrency
 **Problem:** `_registerUndoObservers()` uses `NotificationCenter.default.addObserver(...queue: nil) { ... MainActor.assumeIsolated { ... } }`. `queue: nil` delivers synchronously on the posting thread. `UndoManager` itself is documented as thread-safe but not typed `@MainActor`; any notification posted off-main trips `assumeIsolated`'s precondition.
-**Fix:** Use `OperationQueue.main` as the observer's `queue:`, or wrap the body in `Task { @MainActor in ... }`. The hop cost is negligible — body is a counter increment.
+**Fix applied.** Picked neither of the reviewer's two specific options outright — both have a real downside. `OperationQueue.main` makes delivery async on every post, breaking the test-determinism property the existing comment block (L193-198) relies on (the synchronous tickle has to fire before `await perform(_:)` returns or `@Observable` subscribers race). `Task { @MainActor in ... }` likewise loses synchronous delivery on the typical (on-main) post path. Used a conditional split instead: `if Thread.isMainThread { MainActor.assumeIsolated { ... } } else { Task { @MainActor in ... } }`. The fast path preserves the documented synchronous tickle the comment guards; the slow path schedules safely on MainActor so the off-main precondition trap is impossible. Rewrote the comment to reflect the new policy. Full editor suite (63 tests across 7 suites — including `DiagramEditorUndoObservationTests` which exercises the tickle) passes.
 
 ### [Severity: Medium] Subgraph-layout ELK fallback silently rebuilds as flat graph
 **File:** `Sources/DiagramKitModel/src_layout.swift#L1233-1247` and `#L1461-1475`
