@@ -148,38 +148,7 @@ extension DiagramRenderer {
     }
 
     private func _cgBlockShapeName(_ type: BlockNodeType) -> String {
-        switch type {
-        case .square, .na:
-            return "rectangle"
-        case .round:
-            return "rounded"
-        case .circle:
-            return "circle"
-        case .doublecircle:
-            return "doublecircle"
-        case .diamond:
-            return "diamond"
-        case .hexagon:
-            return "hexagon"
-        case .stadium:
-            return "stadium"
-        case .subroutine:
-            return "subroutine"
-        case .cylinder:
-            return "cylinder"
-        case .leanRight:
-            return "parallelogram"
-        case .leanLeft:
-            return "parallelogram-alt"
-        case .trapezoid:
-            return "trapezoid"
-        case .invTrapezoid:
-            return "trapezoid-alt"
-        case .rectLeftInvArrow:
-            return "asymmetric"
-        default:
-            return "rectangle"
-        }
+        BlockShapeMapper.shapeSpecName(for: type)
     }
 
     private func _cgBlockArrowHead(_ type: String) -> ArrowHead {

@@ -229,8 +229,11 @@ final class BlockSvgTests: XCTestCase {
         XCTAssertTrue(svg2.contains("marker-end=\"url(#\(id2)-block-point)\""))
     }
 
-    // Critical 2: SVG `.round` shape must emit non-zero rx/ry so it matches
-    // the CG path's 6 pt rounded rectangle. Plain `.square` keeps rx=0.
+    // Critical 2: SVG `.round` shape must produce visibly rounded corners that
+    // match the CG path's 6 pt rounded rectangle. Since the block SVG renderer
+    // now routes through `ShapeSpecRegistry` + `SVGPathSerializer` (audit D2),
+    // `.round` resolves to the `"rounded"` ShapeSpec and serializes as a
+    // `<path>` with `Q` (quadratic) curve commands at each corner.
     func testRoundBlockNodeEmitsRoundedRectInSVG() throws {
         let source = """
         block
@@ -245,8 +248,8 @@ final class BlockSvgTests: XCTestCase {
         let colors = DiagramColors(bg: "#FFF", fg: "#000")
         let svg = try renderBlockSvg(positioned, colors: colors, fontFamily: "Inter", transparent: false)
 
-        XCTAssertTrue(svg.contains("rx=\"6"), "Expected `.round` SVG rect to include rx=\"6\". Got:\n\(svg)")
-        XCTAssertTrue(svg.contains("ry=\"6"), "Expected `.round` SVG rect to include ry=\"6\". Got:\n\(svg)")
+        XCTAssertTrue(svg.contains("<path "), "Expected `.round` to emit a <path> element. Got:\n\(svg)")
+        XCTAssertTrue(svg.contains(" Q "), "Expected `.round` <path> to use Q curve commands for rounded corners. Got:\n\(svg)")
     }
 
     func testSquareBlockNodeEmitsPlainRectInSVG() throws {

@@ -217,98 +217,73 @@ private func renderBlockNodeSvg(_ node: PositionedBlockNode, colors: DiagramColo
         return svg
     }
 
-    let shape = blockNodeShapeName(node.type)
-    let rx = node.rx ?? 0
-    let ry = node.ry ?? 0
-    let roundStr = rx > 0 ? " rx=\"\(rx)\" ry=\"\(ry)\"" : ""
-
     var svg = """
     <g class="node \(fullClassList)" id="\(id)">
     """
 
-    switch shape {
-    case "rect":
-        svg += """
-          <rect x="\(x)" y="\(y)" width="\(w)" height="\(h)"\(roundStr) fill="\(fill)" stroke="\(stroke)" stroke-width="\(BlockRenderConstants.strokeWidth)"/>
-        """
-    case "circle":
-        let r = min(w, h) / 2
-        svg += """
-          <circle cx="\(node.x)" cy="\(node.y)" r="\(r)" fill="\(fill)" stroke="\(stroke)" stroke-width="\(BlockRenderConstants.strokeWidth)"/>
-        """
-    case "doublecircle":
-        let outerR = min(w, h) / 2
-        let innerR = outerR * 0.8
-        svg += """
-          <circle cx="\(node.x)" cy="\(node.y)" r="\(outerR)" fill="\(fill)" stroke="\(stroke)" stroke-width="\(BlockRenderConstants.strokeWidth)"/>
-          <circle cx="\(node.x)" cy="\(node.y)" r="\(innerR)" fill="none" stroke="\(stroke)" stroke-width="\(BlockRenderConstants.strokeWidth)"/>
-        """
-    case "diamond":
-        let mx = node.x; let my = node.y
-        let hw = w / 2; let hh = h / 2
-        svg += """
-          <polygon points="\(mx),\(my - hh) \(mx + hw),\(my) \(mx),\(my + hh) \(mx - hw),\(my)" fill="\(fill)" stroke="\(stroke)" stroke-width="\(BlockRenderConstants.strokeWidth)"/>
-        """
-    case "hexagon":
-        let mx = node.x; let my = node.y
-        let hw = w / 2; let hh = h / 2
-        let qw = w / 4
-        svg += """
-          <polygon points="\(mx - qw),\(my - hh) \(mx + qw),\(my - hh) \(mx + hw),\(my) \(mx + qw),\(my + hh) \(mx - qw),\(my + hh) \(mx - hw),\(my)" fill="\(fill)" stroke="\(stroke)" stroke-width="\(BlockRenderConstants.strokeWidth)"/>
-        """
-    case "stadium":
-        let rx_s = min(w, h) / 2
-        svg += """
-          <rect x="\(x)" y="\(y)" width="\(w)" height="\(h)" rx="\(rx_s)" ry="\(rx_s)" fill="\(fill)" stroke="\(stroke)" stroke-width="\(BlockRenderConstants.strokeWidth)"/>
-        """
-    case "subroutine":
-        let inset = w * 0.1
-        svg += """
-          <rect x="\(x + inset)" y="\(y)" width="\(max(0, w - 2 * inset))" height="\(h)" fill="\(fill)" stroke="\(stroke)" stroke-width="\(BlockRenderConstants.strokeWidth)"/>
-          <rect x="\(x)" y="\(y)" width="\(inset + 3)" height="\(h)" fill="\(fill)" stroke="\(stroke)" stroke-width="\(BlockRenderConstants.strokeWidth)"/>
-          <rect x="\(x + w - inset - 3)" y="\(y)" width="\(inset + 3)" height="\(h)" fill="\(fill)" stroke="\(stroke)" stroke-width="\(BlockRenderConstants.strokeWidth)"/>
-        """
-    case "cylinder":
-        let arcH = h * 0.15
-        svg += """
-          <path d="M \(x),\(y + arcH) L \(x),\(y + h - arcH) A \(w/2),\(arcH) 0 0,0 \(x + w),\(y + h - arcH) L \(x + w),\(y + arcH) A \(w/2),\(arcH) 0 0,1 \(x),\(y + arcH)" fill="\(fill)" stroke="\(stroke)" stroke-width="\(BlockRenderConstants.strokeWidth)"/>
-          <path d="M \(x),\(y + arcH) A \(w/2),\(arcH) 0 0,1 \(x + w),\(y + arcH)" fill="none" stroke="\(stroke)" stroke-width="\(BlockRenderConstants.strokeWidth)"/>
-        """
-    case "lean_right":
-        let skew = w * 0.15
-        svg += """
-          <polygon points="\(x + skew),\(y) \(x + w),\(y) \(x + w - skew),\(y + h) \(x),\(y + h)" fill="\(fill)" stroke="\(stroke)" stroke-width="\(BlockRenderConstants.strokeWidth)"/>
-        """
-    case "lean_left":
-        let skew = w * 0.15
-        svg += """
-          <polygon points="\(x),\(y) \(x + w - skew),\(y) \(x + w),\(y + h) \(x + skew),\(y + h)" fill="\(fill)" stroke="\(stroke)" stroke-width="\(BlockRenderConstants.strokeWidth)"/>
-        """
-    case "trapezoid":
-        let skew = w * 0.15
-        svg += """
-          <polygon points="\(x + skew),\(y) \(x + w),\(y) \(x + w),\(y + h) \(x),\(y + h)" fill="\(fill)" stroke="\(stroke)" stroke-width="\(BlockRenderConstants.strokeWidth)"/>
-        """
-    case "inv_trapezoid":
-        let skew = w * 0.15
-        svg += """
-          <polygon points="\(x),\(y) \(x + w),\(y) \(x + w - skew),\(y + h) \(x + skew),\(y + h)" fill="\(fill)" stroke="\(stroke)" stroke-width="\(BlockRenderConstants.strokeWidth)"/>
-        """
-    case "rect_left_inv_arrow":
-        let mx = node.x; let my = node.y
-        let hw = w / 2; let hh = h / 2
-        svg += """
-          <polygon points="\(mx - hw),\(my - hh) \(mx + hw),\(my - hh) \(mx + hw),\(my + hh) \(mx - hw),\(my + hh) \(mx - hw * 1.5),\(my)" fill="\(fill)" stroke="\(stroke)" stroke-width="\(BlockRenderConstants.strokeWidth)"/>
-        """
-    default:
-        svg += """
-          <rect x="\(x)" y="\(y)" width="\(w)" height="\(h)" fill="\(fill)" stroke="\(stroke)" stroke-width="\(BlockRenderConstants.strokeWidth)"/>
-        """
-    }
+    svg += _renderBlockShapeBody(
+        node: node, x: x, y: y, w: w, h: h,
+        fill: fill, stroke: stroke, colors: colors
+    )
 
     svg += renderBlockLabelSvg(label: node.label, x: node.x, y: node.y, color: textColor, fontFamily: fontFamily)
     svg += "</g>"
     return svg
+}
+
+/// Routes block-node shape rendering through `ShapeSpecRegistry` +
+/// `SVGPathSerializer` so the SVG renderer agrees with `DiagramRenderer+Block`
+/// on every shape's geometry (audit D2). Falls back to a plain rectangle
+/// when no spec resolves — `BlockShapeMapper` is total over the user-facing
+/// block shape set, so the fallback is reserved for future enum cases.
+private func _renderBlockShapeBody(
+    node: PositionedBlockNode,
+    x: Double, y: Double, w: Double, h: Double,
+    fill: String, stroke: String,
+    colors: DiagramColors
+) -> String {
+    let aliasName = BlockShapeMapper.shapeSpecName(for: node.type)
+    let bounds = CGRect(x: x, y: y, width: w, height: h)
+    let config = RenderConfig.shared
+    let strokeWidth = BlockRenderConstants.strokeWidth
+
+    guard let spec = ShapeSpecRegistry.spec(for: aliasName) else {
+        return """
+          <rect x="\(x)" y="\(y)" width="\(w)" height="\(h)" fill="\(fill)" stroke="\(stroke)" stroke-width="\(strokeWidth)"/>
+        """
+    }
+
+    var parts: [String] = []
+    let mainD = SVGPathSerializer.serialize(spec.path(bounds, config), in: bounds)
+    parts.append(
+        "  <path d=\"\(mainD)\" fill=\"\(fill)\" stroke=\"\(stroke)\" stroke-width=\"\(strokeWidth)\"/>"
+    )
+    for decoration in spec.decorations {
+        let decBounds = decoration.bounds(bounds, config)
+        let decPath = decoration.path(decBounds, config)
+        let decD = SVGPathSerializer.serialize(decPath, in: decBounds)
+        let decFill: String
+        switch decoration.fill {
+        case .none:       decFill = "none"
+        case .inherit:    decFill = fill
+        case .surface:    decFill = colors.surface ?? colors.bg
+        case .foreground: decFill = colors.fg
+        }
+        var decStroke = stroke
+        var dashAttr = ""
+        switch decoration.stroke {
+        case .none:
+            decStroke = "none"
+        case .mainStroke, .thinStroke:
+            break
+        case .dashed(let lengths):
+            dashAttr = " stroke-dasharray=\"" + lengths.map { String(describing: $0) }.joined(separator: " ") + "\""
+        }
+        parts.append(
+            "  <path d=\"\(decD)\" fill=\"\(decFill)\" stroke=\"\(decStroke)\" stroke-width=\"\(strokeWidth)\"\(dashAttr)/>"
+        )
+    }
+    return parts.joined()
 }
 
 private func renderBlockArrowSvg(node: PositionedBlockNode, id: String, fill: String, stroke: String, classList: String) -> String {

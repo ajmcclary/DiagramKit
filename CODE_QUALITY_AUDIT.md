@@ -133,15 +133,31 @@ The first extraction should be mechanical and should preserve snapshot output ex
 
 ### A3. Portable shape geometry exists but is gated away from portable SVG usage
 
+**Status:** Open. The Apple gate on `ShapeSpec` / `SVGPathSerializer` /
+`RenderConfig` is over-conservative — the comments cite `BMColor` / `BMFont`
+but the geometry surfaces don't actually depend on those types. The real
+blocker is that `ShapeSpec` uses `CGFloat` / `CGRect` / `CGSize` /
+`CGPoint` extensively, and this codebase treats CoreGraphics as Apple-only
+(`DiagramGeometry.swift` gates `CGPoint` / `CGRect` bridging behind
+`#if canImport(CoreGraphics)`). Ungating ShapeSpec for Linux would require
+porting its public surface to `Double` / `DiagramPoint` / `DiagramRect`
+across ~70 specs, the `SVGPathSerializer`, every decoration callback, and
+every callsite — a multi-day refactor in its own right.
+
+D2 was tackled in the same commit because most of A3's downstream payoff
+(SVG-vs-CG unification) doesn't actually need Linux portability; it just
+needs both renderers to route through `ShapeSpecRegistry` on Apple, which
+is now true.
+
 **Evidence**
 
-- `Sources/DiagramKitModel/ShapeSpec.swift:1` is gated by `#if canImport(UIKit) || canImport(AppKit)`.
+- `Sources/DiagramKitModel/ShapeSpec.swift:1` is gated by `#if canImport(UIKit) || canImport(AppKit)`. **(open — Linux port deferred)**
 - `Sources/DiagramKitModel/ShapeSpec.swift:10` describes `ShapeSpec` as the single source of truth for layout, CoreGraphics, and SVG rendering.
-- `Sources/DiagramKitModel/SVGPathSerializer.swift:1` is also platform-gated, even though SVG path serialization is not inherently Apple-only.
+- `Sources/DiagramKitModel/SVGPathSerializer.swift:1` is also platform-gated, even though SVG path serialization is not inherently Apple-only. **(open — Linux port deferred)**
 - `Sources/DiagramKitRenderingCG/ShapeRenderer.swift:18` uses `ShapeSpecRegistry` for CG shape drawing.
-- `Sources/DiagramKitModel/src_block_renderer.swift:186` manually switches over block node shapes for SVG.
-- `Sources/DiagramKitModel/src_block_renderer.swift:404` maps block node shapes to names separately from the CG path.
-- `Sources/DiagramKitRenderingCG/DiagramRenderer+Block.swift:150` contains a separate `_cgBlockShapeName` mapping.
+- `Sources/DiagramKitModel/src_block_renderer.swift:186` manually switches over block node shapes for SVG. **(resolved — now routes through `ShapeSpecRegistry` + `SVGPathSerializer`)**
+- `Sources/DiagramKitModel/src_block_renderer.swift:404` maps block node shapes to names separately from the CG path. **(resolved — `BlockShapeMapper` is the shared mapper)**
+- `Sources/DiagramKitRenderingCG/DiagramRenderer+Block.swift:150` contains a separate `_cgBlockShapeName` mapping. **(resolved — delegates to `BlockShapeMapper`)**
 
 **Impact**
 
@@ -619,15 +635,26 @@ After this consolidation, snapshot tests can verify that the extraction was beha
 
 ### D2. Block shape rendering is duplicated between SVG and CG
 
+**Status:** Resolved. Both renderers now agree on shape selection via the
+shared `BlockShapeMapper.shapeSpecName(for:)` and consume the same
+`ShapeSpecRegistry` entries for geometry. Snapshot impact: 12 block SVG
+corpus snapshots rebaselined to the unified output (which differs from the
+old SVG markup for cylinder cap geometry, `rect_left_inv_arrow` shape, and
+`.round` corner radius — these now match CG instead of having SVG-only
+behavior). CG output is unchanged because `_cgBlockShapeName` already
+returned the canonical aliases. The block-arrow geometry (`renderBlockArrowSvg`)
+is still custom because the arrow shape has no `ShapeSpec` analog yet; it
+stays as the residual D2 follow-up.
+
 **Evidence**
 
 - `Sources/DiagramKitRenderingCG/DiagramRenderer+Block.swift:31` draws block nodes in CG.
-- `Sources/DiagramKitRenderingCG/DiagramRenderer+Block.swift:150` maps block node shapes for CG.
+- `Sources/DiagramKitRenderingCG/DiagramRenderer+Block.swift:150` maps block node shapes for CG. **(resolved — delegates to `BlockShapeMapper`)**
 - `Sources/DiagramKitRenderingCG/DiagramRenderer+Block.swift:185` maps block arrow heads for CG.
-- `Sources/DiagramKitModel/src_block_renderer.swift:186` draws block nodes in SVG.
-- `Sources/DiagramKitModel/src_block_renderer.swift:318` calculates block arrow geometry for SVG.
-- `Sources/DiagramKitModel/src_block_renderer.swift:404` maps block node shapes for SVG.
-- `Sources/DiagramKitCommon/BlockRenderConstants.swift:3` already provides shared constants, but not shared geometry.
+- `Sources/DiagramKitModel/src_block_renderer.swift:186` draws block nodes in SVG. **(resolved — routes through `ShapeSpecRegistry` + `SVGPathSerializer`)**
+- `Sources/DiagramKitModel/src_block_renderer.swift:318` calculates block arrow geometry for SVG. **(open — block-arrow has no `ShapeSpec` analog)**
+- `Sources/DiagramKitModel/src_block_renderer.swift:404` maps block node shapes for SVG. **(resolved — `BlockShapeMapper` is the single source)**
+- `Sources/DiagramKitCommon/BlockRenderConstants.swift:3` already provides shared constants, but not shared geometry. **(resolved — geometry now also shared via `ShapeSpec`)**
 
 **Impact**
 
@@ -835,7 +862,14 @@ Add registry injection to `renderASCII`, then introduce document-aware ASCII ren
 
 **Impact:** High maintainability gain and reduced renderer drift.
 
-Ungate portable `ShapeSpec`, `ShapePath`, and `SVGPathSerializer` from Apple-only imports. Use the shared registry first in block rendering, then expand to additional shape-heavy families.
+**Status:** SVG-CG unification half landed. The block SVG renderer now
+routes through `ShapeSpecRegistry` + `SVGPathSerializer`, and
+`BlockShapeMapper` is the single source of truth for `BlockNodeType` →
+shape-alias mapping. Linux portability for `ShapeSpec` (the audit's "A3"
+half) stays open: it requires porting the public surface from `CGFloat` /
+`CGRect` to `Double` / `DiagramRect` across the registry and every
+decoration callback. Expanding the shared registry to additional
+shape-heavy families is the next incremental step.
 
 ### Priority 4: Standardize SVG document construction and escaping
 
