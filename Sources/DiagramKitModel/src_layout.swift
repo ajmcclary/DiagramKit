@@ -323,9 +323,13 @@ private func _subgraphContainsNode(
 private func _collectAllChildren(
     _ elkNode: ElkGraphNode,
     nodeById: [String: original_src_types.MermaidNode],
-    parentOffset: (x: Double, y: Double) = (0, 0)
+    parentOffset: (x: Double, y: Double) = (0, 0),
+    depth: Int = 0
 ) -> [(ElkGraphNode, (x: Double, y: Double))] {
     var result: [(ElkGraphNode, (x: Double, y: Double))] = []
+    guard _recursionGuard(depth: depth, location: "ELK._collectAllChildren") else {
+        return result
+    }
     for child in elkNode.children {
         if nodeById[child.id] != nil && child.children.isEmpty {
             // Leaf node
@@ -334,7 +338,7 @@ private func _collectAllChildren(
             // Compound node — recurse into its children with accumulated offset
             let cx = child.x + parentOffset.x
             let cy = child.y + parentOffset.y
-            result += _collectAllChildren(child, nodeById: nodeById, parentOffset: (cx, cy))
+            result += _collectAllChildren(child, nodeById: nodeById, parentOffset: (cx, cy), depth: depth + 1)
         }
     }
     return result

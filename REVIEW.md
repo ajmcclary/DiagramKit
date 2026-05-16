@@ -2,7 +2,7 @@
 
 **Method.** Six parallel agents reviewed: (1) architecture/layering/portability, (2) concurrency, (3) invariants + dual-renderer symmetry, (4) diagnostics + error handling, (5) code quality, (6) correctness/perf/test coverage. Critical and high-impact findings were spot-verified against the working tree. The diagnostic-discipline and `@unchecked Sendable` gates pass clean; the worker-thread invariant, `@MainActor` placement, `bmColorEquals`, type-safe payloads, retain cycles, cross-format round-trip matrix, and empty-source handling all checked out with no findings.
 
-**Summary.** 1 Critical (verified build break) — **resolved**, 10 High (3 resolved), 13 Medium (+2 added during follow-up), 7 Low.
+**Summary.** 1 Critical (verified build break) — **resolved**, 10 High (4 resolved), 13 Medium (+2 added during follow-up), 7 Low.
 
 ---
 
@@ -23,11 +23,19 @@ Verified: clean `swift build --target DiagramKitMermaid` succeeds; full `swift b
 
 ## HIGH
 
-### [Severity: High] Recursive layouts/renderers have no depth caps; 8 MB stack is bounded
+### [Severity: High] ~~Recursive layouts/renderers have no depth caps; 8 MB stack is bounded~~ — RESOLVED (truncate + IssueReporting, not throw)
 **Files:** `Sources/DiagramKitModel/src_treeview_layout.swift#L100-119`, `Sources/DiagramKitModel/src_ascii_tree_utils.swift#L26-59`, `Sources/DiagramKitModel/src_layout.swift#L323-341`
 **Category:** Performance / Correctness
 **Problem:** `processNode` (TreeView), `appendNode` (shared ASCII tree util used by mindmap/treeView/Ishikawa), and `_collectAllChildren` (ELK compound traversal) all recurse on Swift's call stack with no depth caps. The 8 MB worker-stack invariant is treated as adequate but never quantified. A pathological 50k-deep mindmap/treeview source crashes the process with SIGSEGV rather than throwing.
-**Fix:** Add a `_recursionGuard(depth: Int, limit: 1024)` helper in `DiagramKitCommon` that throws `DiagramError.depthLimitExceeded`. Wire it through the three recursion sites and add a corpus entry pinning the typed error.
+**Fix applied.** Added `Sources/DiagramKitCommon/RecursionGuard.swift` with `_recursionGuard(depth:limit:location:) -> Bool` and `_diagramDefaultRecursionLimit: Int = 1024`. Wired into all three recursion sites: `processNode` (treeview), `appendNode` (ascii tree util — also added explicit `depth: Int` parameter; existing `renderAsciiTree` callers unchanged), and `_collectAllChildren` (ELK; new optional `depth: Int = 0` parameter, default keeps existing callers working).
+
+The fix deviates from the reviewer's specific suggestion ("throws `DiagramError.depthLimitExceeded`") in two ways:
+1. **Truncate instead of throw.** Making three internal helpers throwing would force `throws` to ripple through every layout/render top-level (`layoutTreeViewDiagram`, `renderAsciiTree`, `_finalizePositionedGraph`, …) — a public-API break across multiple files. Truncation at the depth cap preserves a partial render, which is strictly better UX for the adversarial-input scenario than failing the whole document, and avoids the API ripple.
+2. **`_reportDiagramIssue` instead of a typed error.** The truncation is surfaced via the existing `IssueReporting` channel — same path the codebase already uses for soft failures. In tests, the truncation appears as an `Issue` that can be captured with `withKnownIssue`; in production it surfaces wherever the IssueReporting reporter is configured. No new error case was added to `DiagramError`.
+
+`Tests/DiagramKitTests/RecursionGuardTests.swift` pins the contract: returns `true` under the limit, returns `false` and reports at the limit, custom limits work, and a recursive walk that would normally run away (50-deep with a limit of 50) terminates at exactly the limit with one reported issue. The reviewer's "corpus entry pinning the typed error" was redirected into these direct unit tests because (a) corpus entries can't carry `withKnownIssue` capture, and (b) a 2 k-deep corpus source would inflate the JSON without adding signal beyond the unit tests.
+
+Verified: full build green; mindmap, treeview, ishikawa unit suites green; corpus ASCII snapshots for those families green.
 
 ### [Severity: High] ~~Char-count width estimates corrupt layout for CJK / emoji / combining marks~~ — RESOLVED (Apple path; Linux follow-up tracked)
 **Files:** `Sources/DiagramKitModel/src_c4_layout.swift#L527-538`, `Sources/DiagramKitModel/src_architecture_layout.swift#L272`, `Sources/DiagramKitModel/src_gitgraph_layout.swift#L64,L528`, `Sources/DiagramKitModel/src_treemap_layout.swift#L397-554`

@@ -99,6 +99,9 @@ public func layoutTreeViewDiagram(_ diagram: TreeViewDiagram) -> PositionedTreeV
 
     func processNode(_ node: TreeViewNode, depth: Int = 0) {
         layoutNode(node, depth: depth)
+        guard _recursionGuard(depth: depth, location: "TreeView.processNode") else {
+            return
+        }
         for child in node.children {
             processNode(child, depth: depth + 1)
         }

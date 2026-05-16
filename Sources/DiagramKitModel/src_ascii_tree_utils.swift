@@ -3,6 +3,7 @@
 // Used by mindmap, treeView, and Ishikawa renderers to draw recursive
 // node hierarchies with `├── child` / `└── child` connectors.
 import Foundation
+import DiagramKitCommon
 
 public protocol AsciiTreeNode {
     var asciiLabel: String { get }
@@ -19,7 +20,7 @@ public func renderAsciiTree<Node: AsciiTreeNode>(
     style: AsciiTreeStyle = .unicode
 ) -> String {
     var lines: [String] = []
-    appendNode(root, prefix: "", isTail: true, isRoot: true, style: style, lines: &lines)
+    appendNode(root, prefix: "", isTail: true, isRoot: true, style: style, depth: 0, lines: &lines)
     return lines.joined(separator: "\n")
 }
 
@@ -29,6 +30,7 @@ private func appendNode<Node: AsciiTreeNode>(
     isTail: Bool,
     isRoot: Bool,
     style: AsciiTreeStyle,
+    depth: Int,
     lines: inout [String]
 ) {
     let branch: String
@@ -44,6 +46,9 @@ private func appendNode<Node: AsciiTreeNode>(
     } else {
         lines.append(prefix + branch + node.asciiLabel)
     }
+    guard _recursionGuard(depth: depth, location: "ascii.appendNode") else {
+        return
+    }
     let nextPrefix = isRoot ? "" : prefix + cont
     let children = node.asciiChildren
     for (idx, child) in children.enumerated() {
@@ -53,6 +58,7 @@ private func appendNode<Node: AsciiTreeNode>(
             isTail: idx == children.count - 1,
             isRoot: false,
             style: style,
+            depth: depth + 1,
             lines: &lines
         )
     }
