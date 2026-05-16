@@ -63,6 +63,7 @@ struct LiveEditorView: View {
             regularLayout
             #endif
         }
+        .playgroundAppearance(.dark)
     }
 
     // MARK: - Compact Layout (iPhone)
