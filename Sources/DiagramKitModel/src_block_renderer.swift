@@ -349,12 +349,15 @@ private func renderBlockEdgeSvg(_ edge: PositionedBlockEdge, colors: DiagramColo
     """
 
     if let label = edge.label, !label.isEmpty {
-        let labelWidth = max(40.0, Double(label.count) * 8.0)
+        let mid = DiagramPoint(x: pts[1].x, y: pts[1].y)
+        let labelWidth = BlockEdgeLabelLayout.labelWidth(for: label)
+        let bg = BlockEdgeLabelLayout.backgroundRect(at: mid, labelWidth: labelWidth)
+        let baseline = BlockEdgeLabelLayout.textBaseline(at: mid)
         let labelBg = colors.surface ?? colors.bg
         svg += """
       <g class="edgeLabel">
-        <rect x="\(pts[1].x - labelWidth / 2)" y="\(pts[1].y - 12)" width="\(labelWidth)" height="20" rx="\(BlockRenderConstants.edgeLabelCornerRadius)" fill="\(labelBg)" opacity="0.5" stroke="none"/>
-        <text x="\(pts[1].x)" y="\(pts[1].y + 3)" text-anchor="middle" font-family="\(fontFamily)" font-size="12" fill="\(colors.fg)">\(label.escapedXML)</text>
+        <rect x="\(bg.x)" y="\(bg.y)" width="\(bg.width)" height="\(bg.height)" rx="\(BlockEdgeLabelLayout.backgroundCornerRadius)" fill="\(labelBg)" opacity="0.5" stroke="none"/>
+        <text x="\(baseline.x)" y="\(baseline.y)" text-anchor="middle" font-family="\(fontFamily)" font-size="12" fill="\(colors.fg)">\(label.escapedXML)</text>
       </g>
       """
     }

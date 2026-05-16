@@ -82,6 +82,6 @@
   <path class="path" d="M -4.0,-19.1 L 0.0,-19.1 L 4.0,-19.1" fill="none" stroke="#939394" stroke-width="1.5" style=""/></g><g class="edgePath edge-thickness-normal edge-pattern-solid flowchart-link">
   <path class="path" d="M -4.0,19.1 L 0.0,19.1 L 4.0,19.1" fill="none" stroke="#939394" stroke-width="1.5" style="" marker-end="url(#DFB46449-6E28-478E-4BD4-929BEEA4F0F8-block-point)"/></g><g class="edgePath edge-thickness-normal edge-pattern-solid flowchart-link">
   <path class="path" d="M -5.999703955483678,-4.000000000000002 L 0.0,0.0 L 5.999703955483678,4.000000000000002" fill="none" stroke="#939394" stroke-width="1.5" style="" marker-end="url(#DFB46449-6E28-478E-4BD4-929BEEA4F0F8-block-point)"/><g class="edgeLabel">
-  <rect x="-20.0" y="-12.0" width="40.0" height="20" rx="2.0" fill="#F9F9F9" opacity="0.5" stroke="none"/>
+  <rect x="-20.0" y="-12.0" width="40.0" height="20.0" rx="2.0" fill="#F9F9F9" opacity="0.5" stroke="none"/>
   <text x="0.0" y="3.0" text-anchor="middle" font-family="Inter" font-size="12" fill="#27272A">label</text>
 </g></g></g></svg>

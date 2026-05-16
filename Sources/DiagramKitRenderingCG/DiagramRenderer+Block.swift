@@ -117,7 +117,9 @@ extension DiagramRenderer {
 
         if let label = edge.label, !label.isEmpty {
             let font = _monoFont(size: 11)
-            _drawTextInFlipped(label, at: CGPoint(x: points[1].x, y: points[1].y + 5), context: ctx, contentHeight: 0, color: theme.foreground, font: font)
+            let mid = DiagramPoint(x: points[1].x, y: points[1].y)
+            let baseline = BlockEdgeLabelLayout.textBaseline(at: mid).cgPoint
+            _drawTextInFlipped(label, at: baseline, context: ctx, contentHeight: 0, color: theme.foreground, font: font)
         }
     }
 
