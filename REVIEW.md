@@ -174,6 +174,19 @@ Recommendation:
 
 ### M2. `DiagramEngine.parseImportResult` bypasses the centralized pipeline boundary
 
+Status: RESOLVED (2026-05-17)
+
+Fix:
+- `Sources/DiagramKit/DiagramPipeline.swift` — new public `parseImportResult(_:sourceFormat:registry:)` that wraps the existing private `loadImportResult` in `runPipeline(operation: …, registerFonts: true)`. Font registration + `_withDiagramIssueReporting` now apply to import-result parses on the same footing as `parse`, `layout`, `renderSVG`, `renderASCII`.
+- `Sources/DiagramKit/DiagramEngine.swift` — `parseImportResult` now delegates to `DiagramPipeline.parseImportResult` inside `_runOnWorker` instead of calling `DiagramLoader.parse` / `DiagramLoader.parseImportResult` directly.
+- `Tests/DiagramKitTests/DiagramLoaderParseImportResultTests.swift` — two regressions: result equivalence between the new `DiagramPipeline.parseImportResult` and the raw `DiagramLoader.parseImportResult`, and explicit `sourceFormat: .mermaid` routing.
+
+Verification:
+- `swift test --filter "DiagramLoaderParseImportResultTests"` — PASS, 6 tests.
+- `./Scripts/strict-concurrency-check.sh` — PASS.
+
+Original finding (kept for reference):
+
 Evidence:
 - Most public `DiagramEngine` methods dispatch to `_runOnWorker` and then call a `DiagramPipeline` method.
 - `DiagramEngine.parseImportResult` dispatches to `_runOnWorker`, but then calls `DiagramLoader.parse(...)` / `DiagramLoader.parseImportResult(...)` directly at `Sources/DiagramKit/DiagramEngine.swift:210-215`.

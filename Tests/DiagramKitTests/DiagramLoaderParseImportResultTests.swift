@@ -56,4 +56,29 @@ struct DiagramLoaderParseImportResultTests {
         #expect(result.document.type == .c4)
         #expect(result.diagnostics.contains { $0.severity == .warning })
     }
+
+    @Test("DiagramPipeline.parseImportResult routes through the centralized boundary")
+    func pipelineParseImportResultRoutes() throws {
+        let source = """
+        C4Context
+        Boundary(other, "Other")
+        Boundary(outer, "Outer") {
+          System(s, "S") $boundary=other
+        }
+        """
+        let viaPipeline = try DiagramPipeline.parseImportResult(source)
+        let viaLoader = try DiagramLoader.parseImportResult(source, registry: DiagramPipeline.defaultRegistry)
+        // Result equivalence — DiagramPipeline.parseImportResult is the
+        // documented entry point and must match DiagramLoader directly
+        // while additionally applying font registration / issue reporting.
+        #expect(viaPipeline.document.type == viaLoader.document.type)
+        #expect(viaPipeline.diagnostics == viaLoader.diagnostics)
+    }
+
+    @Test("DiagramPipeline.parseImportResult honors explicit sourceFormat")
+    func pipelineParseImportResultRespectsSourceFormat() throws {
+        let source = "flowchart TD\nA --> B"
+        let result = try DiagramPipeline.parseImportResult(source, sourceFormat: .mermaid)
+        #expect(result.document.type == .flowchart)
+    }
 }

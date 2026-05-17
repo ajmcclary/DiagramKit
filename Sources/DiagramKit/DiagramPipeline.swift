@@ -137,6 +137,20 @@ public enum DiagramPipeline {
         }
     }
 
+    /// Parse `source` and return the full `DiagramImportResult`,
+    /// including the matched importer's diagnostics. Routed through
+    /// `runPipeline` so font registration and the issue-reporting
+    /// boundary apply uniformly with the rest of the public surface.
+    public static func parseImportResult(
+        _ source: String,
+        sourceFormat: DiagramFormatID? = nil,
+        registry: ImporterRegistry = defaultRegistry
+    ) throws -> DiagramImportResult {
+        try runPipeline(operation: "DiagramPipeline.parseImportResult", registerFonts: true) {
+            try loadImportResult(source, sourceFormat: sourceFormat, registry: registry)
+        }
+    }
+
     // MARK: - Layout
 
     /// Parse + lay out `source` in one call. Returns the

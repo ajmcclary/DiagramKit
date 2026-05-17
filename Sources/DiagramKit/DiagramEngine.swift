@@ -208,10 +208,11 @@ public struct DiagramEngine {
         _ = _DiagramPreparerBootstrap.didInstall
         #endif
         return try await _runOnWorker {
-            if let sourceFormat {
-                return try DiagramLoader.parse(source, as: sourceFormat, registry: registry)
-            }
-            return try DiagramLoader.parseImportResult(source, registry: registry)
+            try DiagramPipeline.parseImportResult(
+                source,
+                sourceFormat: sourceFormat,
+                registry: registry
+            )
         }
     }
 
