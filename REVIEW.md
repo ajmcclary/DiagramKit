@@ -231,6 +231,23 @@ Recommendation:
 
 ### L1. File-size gate passes with many warning-level overages
 
+Status: PARTIALLY RESOLVED (2026-05-17)
+
+Fix:
+- `Sources/DiagramKitModel/ShapeSpecRegistry+Defaults.swift` (805 → 417 lines) — split at `_makeBracesSpec` / `_makeLightningBoltSpec`. Both halves of the registry now live in their own files and clear the 500-line warning threshold. The largest of the review's named files (the default registry table) is the natural starting point because it's pure data with no shared mutable state.
+- `Sources/DiagramKitModel/ShapeSpecRegistry+DefaultsSpecial.swift` (NEW, 408 lines) — holds `_makeLightningBoltSpec` through `_makeEllipseSpec` (document / cylinder / specialized / state / icon factories). `ShapeSpec._buildSpecs()` consumes both halves unchanged.
+
+The four remaining warning-level files named in the original finding (`src_c4_parser.swift` 933, `src_gantt_parser.swift` 907, `Tests/.../RadarParserTests.swift` 889, `src_requirement_parser.swift` 826) are parser/test files where extraction requires unwinding shared parser-state objects and is a heavier, family-by-family piece of work. They remain warnings — still well under the 1000-line error threshold — and are tracked here as follow-ups. The review explicitly framed this finding as preventive ("before they cross 1000 lines"), and splitting the registry table demonstrates the pattern.
+
+Verification:
+- `swift build --target DiagramKitModel` — PASS.
+- `swift test --filter "RoundTrip"` — PASS, 85 tests.
+- `SNAPSHOT_DIAGRAM_IDS=block-1-simple,architecture-basic swift test --filter "CorpusSnapshotTests/svgSnapshot"` — PASS (block + architecture both exercise `ShapeSpec` lookup).
+- `./Scripts/check-file-sizes.sh` — `ShapeSpecRegistry+Defaults.swift` no longer in the warning list.
+- `./Scripts/strict-concurrency-check.sh` — PASS.
+
+Original finding (kept for reference):
+
 Evidence:
 - `Scripts/check-file-sizes.sh` exited 0 but emitted warnings for files over 500 lines.
 - Largest warnings:
