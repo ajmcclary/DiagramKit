@@ -391,4 +391,36 @@ final class QuadrantSvgTests: XCTestCase {
 
         XCTAssertTrue(svg.contains("拡張が必要"), "CJK text should be present in SVG output")
     }
+
+    // MARK: - Font threading (REVIEW.md M1)
+
+    func testSvgRootStyleIncludesDefaultFontFamily() throws {
+        let chart = QuadrantChart(
+            config: QuadrantChartConfig(showXAxis: false, showYAxis: false, showTitle: false)
+        )
+        let positioned = layoutQuadrantChart(chart)
+        let svg = renderQuadrantSvg(positioned, colors)
+
+        XCTAssertTrue(
+            svg.contains("font-family:Inter"),
+            "Default font family should reach the root SVG style. svg=\(svg.prefix(400))"
+        )
+    }
+
+    func testSvgRootStyleIncludesCustomFontFamily() throws {
+        let chart = QuadrantChart(
+            config: QuadrantChartConfig(showXAxis: false, showYAxis: false, showTitle: false)
+        )
+        let positioned = layoutQuadrantChart(chart)
+        let svg = renderQuadrantSvg(positioned, colors, "Atkinson Hyperlegible")
+
+        XCTAssertTrue(
+            svg.contains("font-family:Atkinson Hyperlegible"),
+            "Non-default font family should reach the root SVG style. svg=\(svg.prefix(400))"
+        )
+        XCTAssertFalse(
+            svg.contains("font-family:Inter"),
+            "Custom font should replace the default in the root SVG style"
+        )
+    }
 }

@@ -146,6 +146,19 @@ Recommendation:
 
 ### M1. Quadrant SVG ignores the injected font family
 
+Status: RESOLVED (2026-05-17)
+
+Fix:
+- `Sources/DiagramKitModel/src_quadrant_renderer.swift` — `_quadrantSvgOpenTag` now takes `font` and threads it into `SVGDocumentBuilder(fontFamily: font, …, rootStyles: ["font-family:\(font)"])`. Quadrant `<text>` elements carry no inline `font-family`, so the root `<svg style="…">` is the single CSS-inheritance point that propagates the font.
+- `Tests/DiagramKitTests/QuadrantSvgTests.swift` — two regressions: default font reaches the root style (`font-family:Inter`), and a non-default font (`"Atkinson Hyperlegible"`) replaces it.
+- `Tests/DiagramKitTests/__Snapshots__/CorpusSnapshotTests/svgSnapshot-_.quadrant-*.txt` — 12 corpus baselines rebaselined; the only diff per file is the addition of `font-family:Inter;` to the root style.
+
+Verification:
+- `swift test --filter "QuadrantSvgTests"` — PASS, 26 tests.
+- `SNAPSHOT_DIAGRAM_IDS=quadrant-* swift test --filter "CorpusSnapshotTests/svgSnapshot"` — PASS, 12 tests.
+
+Original finding (kept for reference):
+
 Evidence:
 - `SVGRenderRegistry` passes the resolved font into `renderQuadrantSvg(...)` at `Sources/DiagramKit/SVGRenderRegistry.swift:206`.
 - `renderQuadrantSvg` accepts `_ font` at `Sources/DiagramKitModel/src_quadrant_renderer.swift:9`.

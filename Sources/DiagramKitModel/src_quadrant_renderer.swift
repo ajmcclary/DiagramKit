@@ -11,7 +11,7 @@ public func renderQuadrantSvg(
 ) -> String {
     var parts: [String] = []
 
-    let svgTag = _quadrantSvgOpenTag(chart, colors, transparent)
+    let svgTag = _quadrantSvgOpenTag(chart, colors, font, transparent)
     parts.append(svgTag)
 
     if let accTitle = chart.accTitle {
@@ -107,13 +107,19 @@ private func _qR(_ n: Double) -> String {
 private func _quadrantSvgOpenTag(
     _ chart: PositionedQuadrantChart,
     _ colors: DiagramColors,
+    _ font: String,
     _ transparent: Bool
 ) -> String {
+    // Inject `font-family` into the root <svg style="…"> so the caller-
+    // supplied family propagates to every text child via CSS inheritance
+    // — quadrant text elements have no inline `font-family`, so the root
+    // style is the single point where the font reaches the rendered SVG.
     let builder = SVGDocumentBuilder(
         width: chart.width, height: chart.height,
         colors: colors, transparent: transparent,
-        fontFamily: "Inter",
-        useMaxWidth: chart.config.useMaxWidth
+        fontFamily: font,
+        useMaxWidth: chart.config.useMaxWidth,
+        rootStyles: ["font-family:\(font)"]
     )
     return builder.open(extraAttributes: #"id="graphDiv" aria-roledescription="quadrant-chart""#)
 }
