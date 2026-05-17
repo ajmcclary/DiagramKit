@@ -105,7 +105,15 @@ Emission sites use the typed `DiagramDiagnostic.lossyTransform(.<category>, ...)
 
 `DiagramEngine` ([Sources/DiagramKit/DiagramEngine.swift](Sources/DiagramKit/DiagramEngine.swift)) is the public façade. Every `async throws` entry point dispatches its work onto a fresh **8 MB-stack `Thread`** via `_runOnWorker`.
 
-**Do not reintroduce a thread pool.** It was attempted in commit `ff2622b` and intentionally reverted (see the doc-comment on `_runOnWorker`). Layout exceeds the cooperative pool's ~512 KB stack budget on nested-subgraph diagrams; running on a dedicated worker thread with an 8 MB stack is the only thing that keeps deeply nested mindmaps and flowcharts from crashing on stack overflow.
+**Do not reintroduce a thread pool in production parse/layout/render code.** It was attempted in commit `ff2622b` and intentionally reverted (see the doc-comment on `_runOnWorker`). Layout exceeds the cooperative pool's ~512 KB stack budget on nested-subgraph diagrams; running on a dedicated worker thread with an 8 MB stack is the only thing that keeps deeply nested mindmaps and flowcharts from crashing on stack overflow.
+
+Scope. This invariant covers `Sources/DiagramKit*/` parse/layout/render code. It does **not** cover:
+
+- **Tests** — `Tests/DiagramKitTests/MermaidPipelineConcurrencyTests.swift` deliberately drives `DiagramEngine` from `withThrowingTaskGroup` to validate determinism under concurrent callers.
+- **The `DiagramPlayground` sample app** — UI work uses `Task.detached`, `async let`, and `DispatchQueue.main.async` for syntax highlighting, history persistence, and file loading.
+- **Narrow per-parser caches** — `_dateFormatterCacheQueue` (`src_gantt_parser.swift`) and `_reqRegexCacheQueue` (`src_requirement_parser.swift`) are single-element `DispatchQueue` serializers around `DateFormatter` / `NSRegularExpression` reuse, not pools.
+
+Grep audits that surface `TaskGroup` / `Task.detached` / `DispatchQueue` should consult this scope before flagging hits as policy violations.
 
 Implementation details:
 - `DiagramPipeline` ([Sources/DiagramKit/DiagramPipeline.swift](Sources/DiagramKit/DiagramPipeline.swift)) is a stateless `enum` (NOT an actor) holding the synchronous, nonisolated implementations. Each public method calls `DiagramFontRegistry.registerBundledFontsIfNeeded()` first — critical for snapshot determinism.

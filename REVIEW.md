@@ -297,6 +297,16 @@ Recommendation:
 
 ### L3. Thread-pool invariant is clean in production, but literal searches still find test/example concurrency
 
+Status: RESOLVED (2026-05-17, documentation track)
+
+Fix:
+- `CLAUDE.md` — "Never introduce a thread pool" bullet now explicitly scopes the invariant to production parse/layout/render code under `Sources/DiagramKit*/`, and lists the three categories that are explicitly out of scope: tests (`MermaidPipelineConcurrencyTests`), the `DiagramPlayground` sample app, and narrow per-parser regex/formatter cache queues (`_dateFormatterCacheQueue`, `_reqRegexCacheQueue`).
+- `ARCHITECTURE.md` — same scope clarification under "The worker-thread invariant", with a note for future grep audits to consult before flagging hits.
+
+This addresses the review's only recommendation directly: "Document that the no-pool invariant applies to production parse/layout/render entry points, not tests and playground utility tasks." The invariant itself is correctly enforced in production code; the change is purely scope-clarifying.
+
+Original finding (kept for reference):
+
 Evidence:
 - No production rendering/layout `TaskGroup`, `OperationQueue`, or persistent worker pool was found.
 - Production hits are narrow cache queues:

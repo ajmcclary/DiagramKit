@@ -128,11 +128,20 @@ edges to RenderingCG and Views are guarded in `Package.swift` with
 
 ## Critical Invariants
 
-- **Never introduce a thread pool.** Every public entry point must dispatch work
-  to a fresh 8 MB-stack `Thread` via `DiagramEngine._runOnWorker` /
+- **Never introduce a thread pool in production parse/layout/render code.**
+  Every public engine/pipeline entry point must dispatch work to a fresh
+  8 MB-stack `Thread` via `DiagramEngine._runOnWorker` /
   `DiagramWorkerThread.run`. This was tried and reverted in `ff2622b`; the
   cooperative pool's roughly 512 KB stack cannot handle deeply nested subgraph
-  layouts.
+  layouts. Scope: this invariant applies to `Sources/DiagramKit*/` production
+  code on the parse/layout/render path. Test suites
+  (`MermaidPipelineConcurrencyTests` exercises the engine under
+  `withThrowingTaskGroup` to validate determinism) and the
+  `DiagramPlayground` sample app (`Task.detached`, `async let` for UI
+  loading) are explicitly out of scope. Narrow `DispatchQueue` caches
+  serializing a single regex/formatter cache inside a parser
+  (e.g. `_dateFormatterCacheQueue`, `_reqRegexCacheQueue`) are not
+  pools and are allowed.
 - **Register bundled fonts first.** `DiagramFontRegistry.registerBundledFontsIfNeeded()`
   must run at the start of every pipeline method. Skipping it breaks snapshot
   determinism across OS versions.
