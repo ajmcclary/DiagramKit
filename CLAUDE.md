@@ -146,6 +146,13 @@ edges to RenderingCG and Views are guarded in `Package.swift` with
   geometry/text-measurement logic. Snapshot tests are the guardrail.
 - **Use `bmColorEquals()` for color comparisons.** Do not compare colors through
   `hexString` round-trips; AppKit normalizes `NSColor` through `.deviceRGB`.
+- **`DiagramKitModel` free functions are SPI-equivalent.** `layoutC4Diagram`,
+  `renderQuadrantSvg`, `parseIshikawaDiagram`, etc. are implementation hooks for
+  the umbrella module, format slices, and tests — not the supported public API.
+  Callers that use them directly must handle worker-thread dispatch, font
+  registration, and issue-reporting context themselves. The supported public
+  surface is `DiagramEngine.*` / `DiagramImageRenderer.*`. See
+  [ARCHITECTURE.md](ARCHITECTURE.md#model-layer-free-functions-are-spi-equivalent).
 
 ## Pipeline
 

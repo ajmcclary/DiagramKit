@@ -201,6 +201,16 @@ Recommendation:
 
 ### M3. Public model-layer parser/layout/render functions expose bypass paths around engine invariants
 
+Status: RESOLVED (2026-05-17, documentation track)
+
+Fix:
+- `ARCHITECTURE.md` — new "Model-layer free functions are SPI-equivalent" subsection under the worker-thread invariant. Documents (a) that these helpers are not the supported public API, (b) the supported API is `DiagramEngine.*` / `DiagramImageRenderer.*`, and (c) the three caller-side invariants when direct use is intentional: thread/stack management, font registration, issue-reporting context.
+- `CLAUDE.md` — Critical Invariants bullet pointing to the same ARCHITECTURE section, so future agents see the constraint immediately.
+
+Why documentation rather than renaming: ~30 public free functions span `parse*`, `layout*`, `render*` patterns and are imported by name from `DiagramKit`, every format slice, and the test target. Underscore-prefixing all of them would be a broad consumer-side breaking change well outside M3's scope. The review explicitly accepts documentation as a sufficient fix for intentionally public low-level helpers. The C1 fix (font lock in `DiagramFontResolver`) already neutralizes the concrete CoreText-stall consequence of bypassing the boundary.
+
+Original finding (kept for reference):
+
 Evidence:
 - `Sources/DiagramKitModel` exposes many public free functions such as:
   - `layoutC4Diagram(_:)` at `Sources/DiagramKitModel/src_c4_layout.swift:94`

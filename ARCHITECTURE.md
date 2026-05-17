@@ -111,6 +111,20 @@ Implementation details:
 - `DiagramPipeline` ([Sources/DiagramKit/DiagramPipeline.swift](Sources/DiagramKit/DiagramPipeline.swift)) is a stateless `enum` (NOT an actor) holding the synchronous, nonisolated implementations. Each public method calls `DiagramFontRegistry.registerBundledFontsIfNeeded()` first — critical for snapshot determinism.
 - `DiagramImageRenderer` ([Sources/DiagramKit/DiagramImageRenderer.swift](Sources/DiagramKit/DiagramImageRenderer.swift)) routes through `DiagramEngine._runOnWorker` rather than a separate worker (the duplication was removed).
 
+### Model-layer free functions are SPI-equivalent
+
+`DiagramKitModel` exposes ~30 public free functions (`parseIshikawaDiagram`, `layoutC4Diagram`, `layoutTreemapDiagram`, `layoutMindmap`, `renderQuadrantSvg`, `renderC4Svg`, `renderClassSvg`, `renderErSvg`, `renderKanbanSvg`, …). They exist for the umbrella `DiagramKit` module, the format-slice exporters, the test target, and other lower-level consumers — not as the supported public surface.
+
+These helpers are **synchronous, not worker-thread mediated, and do not perform their own font registration or issue-reporting setup**. They are SPI-equivalent: the underscore prefix used elsewhere (`_renderDiagramSVG`, `_PositionedNodePayload`) is not applied here only because too many existing call sites import them by their bare names.
+
+**The supported public API is `DiagramEngine.*` and `DiagramImageRenderer.*`.** Anything else is an implementation hook. Callers that reach into `DiagramKitModel` free functions directly are themselves responsible for:
+
+- **Thread / stack management** — call from a worker with an 8 MB stack (see [`_runOnWorker`](Sources/DiagramKit/DiagramEngine.swift)) when laying out diagrams with deep recursion (mindmap, nested subgraphs); the cooperative thread pool's ~512 KB budget is not enough.
+- **Font registration** — call `DiagramFontRegistry.registerBundledFontsIfNeeded()` before any Apple-side layout / render path; without it bundled-font snapshot determinism breaks and CoreText falls back to system fonts that drift across OS versions. (Font construction is locked at the resolver since [REVIEW.md C1](REVIEW.md), so concurrent calls won't stall on the font-provider XPC even without registration — but registration is still required for snapshot stability.)
+- **Issue reporting context** — wrap with `_withDiagramIssueReporting(operation:)` if you want emitted diagnostics to flow through the central issue-reporting boundary.
+
+When in doubt: go through `DiagramEngine`. The model-layer free functions are for cases where the caller has explicit reasons to skip the engine (e.g., test fixtures that pin behavior of one layout function without paying for the full pipeline).
+
 ## Rendering backends — drift hazard
 
 Every diagram type has **two independent renderers** that share no geometry or text-measurement logic:
