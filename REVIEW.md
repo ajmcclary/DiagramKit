@@ -326,6 +326,17 @@ Recommendation:
 
 ### L4. Dead generic no-op remains in sequence layout
 
+Status: RESOLVED (2026-05-17)
+
+Fix:
+- `Sources/DiagramKitModel/src_sequence_layout.swift` — deleted the dead `func shift(_ arr: inout [some Any], _ keyPaths: [WritableKeyPath<(some Any), Double>]) {} // Not used` no-op. The function had no callers and no semantics.
+
+Verification:
+- `swift build --target DiagramKitModel` — PASS.
+- `swift test --filter "SequenceLayoutTests"` — PASS, 12 tests.
+
+Original finding (kept for reference):
+
 Evidence:
 - `Sources/DiagramKitModel/src_sequence_layout.swift:476` defines `func shift(_ arr: inout [some Any], _ keyPaths: [WritableKeyPath<(some Any), Double>]) {}` with `// Not used`.
 

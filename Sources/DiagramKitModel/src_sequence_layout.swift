@@ -473,8 +473,6 @@ private func _layoutSequenceDiagramEntry(
 
     let shiftX = globalMinX < cfg.diagramMarginX ? cfg.diagramMarginX - globalMinX : 0
 
-    func shift(_ arr: inout [some Any], _ keyPaths: [WritableKeyPath<(some Any), Double>]) {} // Not used
-
     var shiftedActors = positionedActors
     var shiftedMessages = positionedMessages
     var shiftedActivations = positionedActivations
