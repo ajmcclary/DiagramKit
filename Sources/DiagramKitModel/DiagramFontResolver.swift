@@ -29,7 +29,11 @@ import AppKit
 /// bypass the bundled-font determinism guarantee.
 public struct DiagramFontResolver: Sendable {
     public let tokens: RenderTokens
-    private static let ctFontLock = NSLock()
+    // Serializes BOTH `CTFontCreateWithName` and `BMFont(name:size:)` /
+    // `BMFont.systemFont(...)` calls. The underlying CoreText font-provider
+    // XPC is contention-sensitive — multiple parallel `NSFont(name:size:)` /
+    // `UIFont(name:size:)` calls can stall waiting on the same XPC service.
+    private static let fontLock = NSLock()
 
     public init(tokens: RenderTokens = .shared) {
         self.tokens = tokens
@@ -88,9 +92,27 @@ public struct DiagramFontResolver: Sendable {
     }
 
     private static func makeCTFont(name: String, size: CGFloat) -> CTFont {
-        ctFontLock.lock()
-        defer { ctFontLock.unlock() }
+        fontLock.lock()
+        defer { fontLock.unlock() }
         return CTFontCreateWithName(name as CFString, size, nil)
+    }
+
+    private static func makeBMFont(name: String, size: CGFloat) -> BMFont? {
+        fontLock.lock()
+        defer { fontLock.unlock() }
+        return BMFont(name: name, size: size)
+    }
+
+    private static func makeSystemBMFont(size: CGFloat, weight: BMFont.Weight) -> BMFont {
+        fontLock.lock()
+        defer { fontLock.unlock() }
+        return BMFont.systemFont(ofSize: size, weight: weight)
+    }
+
+    private static func makeMonospacedSystemBMFont(size: CGFloat, weight: BMFont.Weight) -> BMFont {
+        fontLock.lock()
+        defer { fontLock.unlock() }
+        return BMFont.monospacedSystemFont(ofSize: size, weight: weight)
     }
 
     // MARK: - CSS weight mapping
@@ -134,14 +156,14 @@ public struct DiagramFontResolver: Sendable {
             if weight >= 550 {
                 let boldCandidates = ["\(family)-Bold", "\(family) Bold"]
                 for name in boldCandidates {
-                    if let f = BMFont(name: name, size: size) { return f }
+                    if let f = Self.makeBMFont(name: name, size: size) { return f }
                 }
             }
-            if let named = BMFont(name: family, size: size) {
+            if let named = Self.makeBMFont(name: family, size: size) {
                 return named
             }
         }
-        return BMFont.monospacedSystemFont(ofSize: size, weight: Self.bmWeight(forCSS: weight))
+        return Self.makeMonospacedSystemBMFont(size: size, weight: Self.bmWeight(forCSS: weight))
     }
 
     /// Resolves a proportional (non-monospace) font for the given size and weight.
@@ -158,14 +180,14 @@ public struct DiagramFontResolver: Sendable {
             if let s = suffix {
                 let candidates = ["\(family)-\(s)", "\(family) \(s)"]
                 for name in candidates {
-                    if let f = BMFont(name: name, size: size) { return f }
+                    if let f = Self.makeBMFont(name: name, size: size) { return f }
                 }
             }
-            if let named = BMFont(name: family, size: size) {
+            if let named = Self.makeBMFont(name: family, size: size) {
                 return named
             }
         }
-        return BMFont.systemFont(ofSize: size, weight: Self.bmWeight(forCSS: weight))
+        return Self.makeSystemBMFont(size: size, weight: Self.bmWeight(forCSS: weight))
     }
 
     /// Shorthand for proportional font with a `BMFont.Weight` literal.

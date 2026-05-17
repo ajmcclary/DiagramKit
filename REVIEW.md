@@ -20,7 +20,19 @@ Notes on repository shape:
 
 ### C1. Non-corpus test gate stalls in CoreText font resolution
 
-Status: Critical gate failure / local reproducibility blocker
+Status: RESOLVED (2026-05-17)
+
+Fix:
+- `Sources/DiagramKitModel/DiagramFontResolver.swift` — renamed `ctFontLock` → `fontLock` and added locked `makeBMFont(name:size:)`, `makeSystemBMFont(size:weight:)`, and `makeMonospacedSystemBMFont(size:weight:)` helpers. `proportionalFont(size:weight:)` and `defaultFont(size:weight:)` (the two paths reached from `TextMetrics`) now route every `BMFont` construction through the lock, so parallel `NSFont(name:size:)` / `UIFont(name:size:)` calls into the CoreText font-provider XPC are serialized.
+- `Tests/DiagramKitTests/DiagramFontResolverConcurrencyTests.swift` — new swift-testing regression that runs 32 parallel `layoutC4Diagram` + `layoutTreemapDiagram` calls (the public model-layer entry points the review flagged as bypassing `DiagramPipeline`). Passes in 0.02s.
+
+Verification:
+- `swift test --filter "DiagramFontResolverConcurrencyTests"` — PASS, 0.021s.
+- `swift test --filter "C4LayoutTests"` — PASS, 13 tests.
+- `swift test --filter "TreemapSvgTests"` — PASS, 16 tests.
+- `./Scripts/strict-concurrency-check.sh` — PASS.
+
+Original finding (kept for reference):
 
 Evidence:
 - Command: `swift test --skip CorpusSnapshotTests --skip CorpusMultiFormatSnapshotTests`
