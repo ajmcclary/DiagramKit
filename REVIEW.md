@@ -107,7 +107,18 @@ Recommendation:
 
 ### H2. CI does not enforce the same governance surface as the documented local gate
 
-Status: CI coverage gap.
+Status: RESOLVED (2026-05-17)
+
+Fix:
+- `.github/workflows/ci.yml` — `swift test` replaced with the same 7-step chunked sequence used by `Scripts/bootstrap-smoke-check.sh` (non-corpus skip + round-trip filter + 5 corpus chunks). Added the clean `swift build --target DiagramKitMermaid` undeclared-module-dep gate, plus the four omitted governance scripts: `check-diagnostic-discipline.sh`, `check-diagnostic-discipline-tests/run.sh`, `check-stale-phase-comments.sh`, `check-linux-check-runtime-skip.sh`. Existing `linux-check.sh` env-skip step kept.
+
+Verification:
+- `./Scripts/check-diagnostic-discipline-tests/run.sh` — PASS locally (all fixtures).
+- `./Scripts/check-stale-phase-comments.sh` — PASS locally.
+- `./Scripts/check-linux-check-runtime-skip.sh` — PASS locally (exit 0).
+- CI run on this commit will validate the chunked corpus sequence against macos-15.
+
+Original finding (kept for reference):
 
 Evidence:
 - `.github/workflows/ci.yml:35` runs plain `swift test`.

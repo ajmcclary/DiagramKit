@@ -29,11 +29,40 @@ jobs:
       - name: swift package dump-package
         run: swift package dump-package > /dev/null
 
+      # Catches undeclared-module-dep regressions that incremental builds
+      # mask — mirrors the clean-build gate in
+      # Scripts/bootstrap-smoke-check.sh.
+      - name: swift build (clean, DiagramKitMermaid)
+        run: swift package clean && swift build --target DiagramKitMermaid
+
       - name: swift build --build-tests
         run: swift build --build-tests
 
-      - name: swift test
-        run: swift test
+      # Test execution is split to mirror Scripts/bootstrap-smoke-check.sh
+      # — the parameterized corpus snapshot suites carry a known
+      # swift-testing / swift-snapshot-testing signal-10 caveat when run
+      # alongside the rest of the test surface, so they're filtered out
+      # of the non-corpus chunk and re-run separately.
+      - name: swift test (non-corpus)
+        run: swift test --skip "CorpusSnapshotTests" --skip "CorpusMultiFormatSnapshotTests"
+
+      - name: swift test (round-trip)
+        run: swift test --filter "RoundTrip"
+
+      - name: swift test (corpus SVG)
+        run: swift test --filter "CorpusSnapshotTests/svgSnapshot"
+
+      - name: swift test (corpus ASCII)
+        run: swift test --filter "CorpusSnapshotTests/asciiSnapshot"
+
+      - name: swift test (corpus image)
+        run: swift test --filter "CorpusSnapshotTests/imageSnapshot"
+
+      - name: swift test (corpus multi-format SVG)
+        run: swift test --filter "CorpusMultiFormatSnapshotTests/multiFormatSvgSnapshot"
+
+      - name: swift test (corpus multi-format image)
+        run: swift test --filter "CorpusMultiFormatSnapshotTests/multiFormatImageSnapshot"
 
       - name: Scripts/check-file-sizes.sh
         run: ./Scripts/check-file-sizes.sh
@@ -43,6 +72,18 @@ jobs:
 
       - name: Scripts/strict-concurrency-check.sh
         run: ./Scripts/strict-concurrency-check.sh
+
+      - name: Scripts/check-diagnostic-discipline.sh
+        run: ./Scripts/check-diagnostic-discipline.sh
+
+      - name: Scripts/check-diagnostic-discipline-tests/run.sh
+        run: ./Scripts/check-diagnostic-discipline-tests/run.sh
+
+      - name: Scripts/check-stale-phase-comments.sh
+        run: ./Scripts/check-stale-phase-comments.sh
+
+      - name: Scripts/check-linux-check-runtime-skip.sh
+        run: ./Scripts/check-linux-check-runtime-skip.sh
 
       # Skip the container build on the PR runner; docker/podman aren't
       # provisioned by default on macos runners and the local merge gate
