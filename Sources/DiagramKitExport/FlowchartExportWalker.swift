@@ -29,6 +29,12 @@ public protocol FlowchartExportSink {
     /// subgraphs. Default: `false`.
     var handlesSubgraphs: Bool { get }
 
+    /// Diagnostics accumulated by the sink during emission — e.g. node-
+    /// shape downgrades that the walker can't detect because the shape
+    /// map is sink-private. The walker concatenates these with its own
+    /// (subgraph-flatten) diagnostics at the end of `walk`. Default: `[]`.
+    var diagnostics: [DiagramDiagnostic] { get }
+
     /// Called once per subgraph before walking its children. `depth`
     /// counts nesting: 0 for top-level subgraphs, 1+ for nested.
     /// Default no-op. Override to emit container syntax (D2
@@ -46,6 +52,7 @@ public protocol FlowchartExportSink {
 
 public extension FlowchartExportSink {
     var handlesSubgraphs: Bool { false }
+    var diagnostics: [DiagramDiagnostic] { [] }
     mutating func subgraphBegin(_ subgraph: original_src_types.MermaidSubgraph, depth: Int) {}
     mutating func subgraphEnd(_ subgraph: original_src_types.MermaidSubgraph, depth: Int) {}
 }
@@ -80,7 +87,7 @@ public enum FlowchartExportWalker {
             diagnostics: &diagnostics
         )
         sink.end()
-        return diagnostics
+        return sink.diagnostics + diagnostics
     }
 
     private static func walkSubgraphs<Sink: FlowchartExportSink>(

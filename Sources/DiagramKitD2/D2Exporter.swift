@@ -64,20 +64,28 @@ enum D2FlowchartExport {
             .replacingOccurrences(of: "\r", with: "")
     }
 
-    fileprivate static func d2Shape(for shape: original_src_types.NodeShape) -> String {
+    /// Map a Mermaid `NodeShape` to a D2 shape name. `lossy == true`
+    /// means the mapping discards visual identity (multiple Mermaid
+    /// shapes collapse to the same D2 shape, or D2 has no native
+    /// equivalent) and a `.lossyTransform(.shapeDowngrade, …)`
+    /// diagnostic must be paired with this node.
+    fileprivate static func d2Shape(for shape: original_src_types.NodeShape) -> (name: String, lossy: Bool) {
         switch shape {
-        case .rectangle: return "rectangle"
-        case .rounded: return "rectangle"  // TODO: border-radius
-        case .diamond: return "diamond"
-        case .circle, .doublecircle, .smallCircle, .framedCircle, .filledCircle, .crossedCircle:
-            return "circle"
-        case .hexagon: return "hexagon"
-        case .cylinder, .horizontalCylinder, .linedCylinder:
-            return "cylinder"
-        case .stadium: return "stadium"
-        case .parallelogram, .parallelogramAlt, .trapezoid, .trapezoidAlt:
-            return "parallelogram"
-        default: return "rectangle"
+        case .rectangle: return ("rectangle", false)
+        case .rounded: return ("rectangle", true)
+        case .diamond: return ("diamond", false)
+        case .circle: return ("circle", false)
+        case .doublecircle, .smallCircle, .framedCircle, .filledCircle, .crossedCircle:
+            return ("circle", true)
+        case .hexagon: return ("hexagon", false)
+        case .cylinder: return ("cylinder", false)
+        case .horizontalCylinder, .linedCylinder:
+            return ("cylinder", true)
+        case .stadium: return ("stadium", false)
+        case .parallelogram: return ("parallelogram", false)
+        case .parallelogramAlt, .trapezoid, .trapezoidAlt:
+            return ("parallelogram", true)
+        default: return ("rectangle", true)
         }
     }
 
@@ -94,6 +102,7 @@ enum D2FlowchartExport {
 
 private struct D2FlowchartExportSink: FlowchartExportSink {
     var lines: [String] = []
+    var diagnostics: [DiagramDiagnostic] = []
 
     mutating func begin(title: String?) {
         if let title, !title.isEmpty {
@@ -110,12 +119,22 @@ private struct D2FlowchartExportSink: FlowchartExportSink {
 
     mutating func node(id: String, node: original_src_types.MermaidNode) {
         let sanitizedId = D2FlowchartExport.sanitizeD2ID(id)
-        let shape = D2FlowchartExport.d2Shape(for: node.shape)
-        var nodeBlock = "\(sanitizedId): \"\(D2FlowchartExport.escapeD2String(node.label))\""
-        if shape != "rectangle" {
-            nodeBlock += " {\n    shape: \(shape)\n  }"
+        let mapped = D2FlowchartExport.d2Shape(for: node.shape)
+        lines.append("\(sanitizedId): \"\(D2FlowchartExport.escapeD2String(node.label))\"")
+        if mapped.name != "rectangle" {
+            // `id.shape: value` attribute syntax round-trips cleanly
+            // through D2Parser, unlike the multi-line `id { shape: … }`
+            // block (which D2Parser reads as a subgraph).
+            lines.append("\(sanitizedId).shape: \(mapped.name)")
         }
-        lines.append(nodeBlock)
+        if mapped.lossy {
+            diagnostics.append(
+                .lossyTransform(
+                    .shapeDowngrade,
+                    message: "Node '\(id)' shape '\(node.shape.rawValue)' downgraded to D2 '\(mapped.name)' — D2 has no native equivalent"
+                )
+            )
+        }
     }
 
     mutating func edge(_ edge: original_src_types.MermaidEdge) {

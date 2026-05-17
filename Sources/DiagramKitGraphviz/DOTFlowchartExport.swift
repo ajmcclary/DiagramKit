@@ -42,21 +42,33 @@ enum DOTFlowchartExport {
              .replacingOccurrences(of: "\r", with: " ")
     }
 
-    fileprivate static func dotShape(for shape: original_src_types.NodeShape) -> String {
+    /// Map a Mermaid `NodeShape` to a DOT shape name. `lossy == true`
+    /// means the mapping discards visual identity (multiple Mermaid
+    /// shapes collapse to the same DOT shape, or DOT has no native
+    /// equivalent) and a `.lossyTransform(.shapeDowngrade, …)`
+    /// diagnostic must be paired with this node.
+    fileprivate static func dotShape(for shape: original_src_types.NodeShape) -> (name: String, lossy: Bool) {
         switch shape {
-        case .rectangle, .rounded: return "box"
-        case .stadium: return "ellipse"
-        case .circle, .doublecircle, .smallCircle, .framedCircle, .filledCircle, .crossedCircle: return "circle"
-        case .diamond: return "diamond"
-        case .hexagon: return "hexagon"
-        case .parallelogram, .parallelogramAlt: return "parallelogram"
-        case .trapezoid, .trapezoidAlt: return "trapezium"
-        case .cylinder, .horizontalCylinder, .linedCylinder: return "cylinder"
-        case .subroutine: return "box3d"
-        case .triangle, .flippedTriangle: return "triangle"
-        case .ellipse: return "ellipse"
-        case .document, .linedDocument, .stackedDocument, .taggedDocument: return "note"
-        default: return "box"
+        case .rectangle: return ("box", false)
+        case .rounded: return ("box", true)
+        case .stadium: return ("ellipse", true)
+        case .circle: return ("circle", false)
+        case .doublecircle, .smallCircle, .framedCircle, .filledCircle, .crossedCircle: return ("circle", true)
+        case .diamond: return ("diamond", false)
+        case .hexagon: return ("hexagon", false)
+        case .parallelogram: return ("parallelogram", false)
+        case .parallelogramAlt: return ("parallelogram", true)
+        case .trapezoid: return ("trapezium", false)
+        case .trapezoidAlt: return ("trapezium", true)
+        case .cylinder: return ("cylinder", false)
+        case .horizontalCylinder, .linedCylinder: return ("cylinder", true)
+        case .subroutine: return ("box3d", true)
+        case .triangle: return ("triangle", false)
+        case .flippedTriangle: return ("triangle", true)
+        case .ellipse: return ("ellipse", false)
+        case .document: return ("note", true)
+        case .linedDocument, .stackedDocument, .taggedDocument: return ("note", true)
+        default: return ("box", true)
         }
     }
 }
@@ -65,6 +77,7 @@ enum DOTFlowchartExport {
 
 private struct DOTFlowchartExportSink: FlowchartExportSink {
     var lines: [String] = []
+    var diagnostics: [DiagramDiagnostic] = []
 
     mutating func begin(title: String?) {
         lines.append("digraph G {")
@@ -83,9 +96,17 @@ private struct DOTFlowchartExportSink: FlowchartExportSink {
 
     mutating func node(id: String, node: original_src_types.MermaidNode) {
         let sanitizedId = DOTFlowchartExport.sanitizeDOTID(id)
-        let shape = DOTFlowchartExport.dotShape(for: node.shape)
+        let mapped = DOTFlowchartExport.dotShape(for: node.shape)
         let label = node.label.isEmpty ? id : node.label
-        lines.append("  \(sanitizedId) [label=\(DOTFlowchartExport.quoted(label)), shape=\(shape)];")
+        lines.append("  \(sanitizedId) [label=\(DOTFlowchartExport.quoted(label)), shape=\(mapped.name)];")
+        if mapped.lossy {
+            diagnostics.append(
+                .lossyTransform(
+                    .shapeDowngrade,
+                    message: "Node '\(id)' shape '\(node.shape.rawValue)' downgraded to DOT '\(mapped.name)' — DOT has no native equivalent"
+                )
+            )
+        }
     }
 
     mutating func edge(_ edge: original_src_types.MermaidEdge) {

@@ -123,4 +123,60 @@ import DiagramKit
         let result = try DOTExporter().export(DiagramDocument(payload: .flowchart(graph)))
         #expect(result.diagnostics.contains { $0.severity == .warning && $0.message.contains("cluster1") })
     }
+
+    @Test(
+        "DOT flowchart shape downgrade emits paired .shapeDowngrade diagnostic",
+        arguments: [
+            original_src_types.NodeShape.rounded,
+            .stadium,
+            .doublecircle,
+            .smallCircle,
+            .framedCircle,
+            .filledCircle,
+            .crossedCircle,
+            .parallelogramAlt,
+            .trapezoidAlt,
+            .horizontalCylinder,
+            .linedCylinder,
+            .subroutine,
+            .flippedTriangle,
+            .document,
+            .linedDocument,
+            .stackedDocument,
+            .taggedDocument,
+        ]
+    )
+    func lossyShapeEmitsDiagnostic(shape: original_src_types.NodeShape) throws {
+        let graph = ParsedGraphModel(
+            direction: .TD,
+            nodesInOrder: [
+                (id: "n", node: original_src_types.MermaidNode(id: "n", label: "x", shape: shape))
+            ],
+            edges: []
+        )
+        let result = try DOTExporter().export(DiagramDocument(payload: .flowchart(graph)))
+        let shapeDiags = result.diagnostics.filter { $0.category == .shapeDowngrade && $0.severity == .warning }
+        #expect(shapeDiags.count == 1)
+        #expect(shapeDiags.first?.message.contains("'n'") == true)
+        #expect(shapeDiags.first?.message.contains(shape.rawValue) == true)
+    }
+
+    @Test("DOT flowchart lossless shapes emit no shape diagnostic")
+    func losslessShapesEmitNoDiagnostic() throws {
+        let lossless: [original_src_types.NodeShape] = [
+            .rectangle, .diamond, .circle, .hexagon, .cylinder,
+            .parallelogram, .trapezoid, .triangle, .ellipse,
+        ]
+        for shape in lossless {
+            let graph = ParsedGraphModel(
+                direction: .TD,
+                nodesInOrder: [
+                    (id: "n", node: original_src_types.MermaidNode(id: "n", label: "x", shape: shape))
+                ],
+                edges: []
+            )
+            let result = try DOTExporter().export(DiagramDocument(payload: .flowchart(graph)))
+            #expect(!result.diagnostics.contains { $0.category == .shapeDowngrade })
+        }
+    }
 }

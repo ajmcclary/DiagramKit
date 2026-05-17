@@ -63,7 +63,22 @@ Recommendation:
 
 ### H1. D2 and DOT exporters silently downgrade flowchart shapes without paired diagnostics
 
-Status: Source bug; current round-trip fixtures do not cover it.
+Status: RESOLVED (2026-05-17)
+
+Fix:
+- `Sources/DiagramKitExport/FlowchartExportWalker.swift` — `FlowchartExportSink` gained a `var diagnostics: [DiagramDiagnostic] { get }` requirement (default `[]`). The walker now concatenates `sink.diagnostics + subgraphDiagnostics` so per-node lossy mappings surface alongside subgraph-flatten warnings.
+- `Sources/DiagramKitD2/D2Exporter.swift` — `d2Shape(for:)` now returns `(name: String, lossy: Bool)`. The sink emits `.lossyTransform(.shapeDowngrade, …)` for every non-bijective mapping (`rounded`, `doublecircle`, `smallCircle`, `framedCircle`, `filledCircle`, `crossedCircle`, `horizontalCylinder`, `linedCylinder`, `parallelogramAlt`, `trapezoid`, `trapezoidAlt`, plus the catch-all). Shape attributes now emit as `id.shape: value` so they round-trip cleanly through `D2Parser` (the old `id { shape: … }` block was misparsed as a subgraph).
+- `Sources/DiagramKitGraphviz/DOTFlowchartExport.swift` — `dotShape(for:)` returns `(name, lossy)`. Sink emits paired diagnostics for `rounded`, `stadium`, doublecircle/smallCircle/framedCircle/filledCircle/crossedCircle, `parallelogramAlt`, `trapezoidAlt`, horizontal/linedCylinder, `subroutine`, `flippedTriangle`, and document variants.
+- `Tests/DiagramKitTests/Export/{D2,DOT}ExporterTests.swift` — parameterized tests cover 12 D2 + 17 DOT lossy shapes plus a lossless-emits-nothing guard.
+- `Tests/.../RoundTrip/Resources/roundtrip/cross-mermaid-d2-flowchart/04-shape-downgrades.md`, `cross-mermaid-dot-flowchart/04-shape-downgrades.md` — Mermaid fixtures with `rounded`, `doublecircle`, `trapezoidAlt`, `subroutine` to exercise the new diagnostic pairing through `runCrossFormatRoundTrip`.
+
+Verification:
+- `swift test --filter "D2ExporterTests|DOTExporterTests"` — PASS, 18 tests including 29 parameterized shape rows.
+- `swift test --filter "RoundTrip"` — PASS, 85 tests across 20 suites.
+- `./Scripts/check-diagnostic-discipline.sh` — PASS.
+- `./Scripts/strict-concurrency-check.sh` — PASS.
+
+Original finding (kept for reference):
 
 Evidence:
 - `Sources/DiagramKitD2/D2Exporter.swift:67` maps shapes to D2 names.
