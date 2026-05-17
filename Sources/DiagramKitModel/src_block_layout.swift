@@ -1,6 +1,13 @@
 import Foundation
 import DiagramKitCommon
 
+/// Concurrency Contract: `BlockWarnings` is the process-wide store
+/// backing the public `blockWarnings()` / `resetBlockWarnings()`
+/// surface for the block-diagram layout. Every `append` / `all` /
+/// `reset` is wrapped in the internal `NSLock`, so concurrent layout
+/// calls from worker threads can drain or reset the bag without
+/// racing. The `@unchecked Sendable` annotation is sound. (Resolves
+/// yellow → green per REVIEW.md L2.)
 private final class BlockWarnings: @unchecked Sendable {
     private var warnings: [String] = []
     private let lock = NSLock()

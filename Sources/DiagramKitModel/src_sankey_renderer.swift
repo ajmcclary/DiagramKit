@@ -1,7 +1,12 @@
 import Foundation
 import DiagramKitCommon
 
-private final class _SankeyUidGenerator: @unchecked Sendable {
+// `_SankeyUidGenerator` was a reference type with `@unchecked Sendable` and
+// no synchronization — single-pass-safe in practice because it's constructed
+// and consumed inside one `renderSankeySvg` call, but the annotation was a
+// misleading thread-safety claim. The value-type form makes the single-pass
+// contract structural instead of conventional (REVIEW.md L2).
+private struct _SankeyUidGenerator {
     private var counter = 0
     private let scope: String
 
@@ -9,16 +14,23 @@ private final class _SankeyUidGenerator: @unchecked Sendable {
         self.scope = scope
     }
 
-    func next(_ prefix: String) -> String {
+    mutating func next(_ prefix: String) -> String {
         counter += 1
         return "\(prefix)\(scope)-\(counter)"
     }
 
-    func reset() {
+    mutating func reset() {
         counter = 0
     }
 }
 
+/// Concurrency Contract: `_SankeyRenderScopeCounter` is a process-wide
+/// singleton that hands out monotonically increasing scope IDs to
+/// `renderSankeySvg` calls when no explicit `diagramId` is supplied.
+/// The internal `NSLock` serializes every read/write of `counter`, so
+/// concurrent calls from worker threads see consistent IDs and the
+/// `@unchecked Sendable` annotation is sound. (Resolves yellow → green
+/// per REVIEW.md L2.)
 private final class _SankeyRenderScopeCounter: @unchecked Sendable {
     static let shared = _SankeyRenderScopeCounter()
 
@@ -40,7 +52,7 @@ public func renderSankeySvg(
     _ transparent: Bool = false,
     diagramId: String? = nil
 ) -> String {
-    let uid = _SankeyUidGenerator(scope: diagramId ?? _SankeyRenderScopeCounter.shared.next())
+    var uid = _SankeyUidGenerator(scope: diagramId ?? _SankeyRenderScopeCounter.shared.next())
 
     let nodeColorMap = _buildNodeColorMap(positioned)
 

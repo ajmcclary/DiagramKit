@@ -266,6 +266,23 @@ Recommendation:
 
 ### L2. Remaining yellow `@unchecked Sendable` entries are tracked but still carry residual risk
 
+Status: PARTIALLY RESOLVED (2026-05-17) — 11 yellow → 7 yellow
+
+Fix:
+- `Sources/DiagramKitModel/src_sankey_renderer.swift` — `_SankeyUidGenerator` converted from `final class` (with an unsynchronized `@unchecked Sendable` claim) to a value-type `struct`. It was only ever used as a function-local UID generator inside `renderSankeySvg`, so the class form was misleading; `var uid` + `mutating func next` makes single-pass safety structural. `_SankeyRenderScopeCounter` (the process-wide singleton with a real `NSLock`) got a Concurrency Contract banner — yellow → green.
+- `Sources/DiagramKitModel/src_block_types.swift` — `AtomicInt` (lock-backed monotonic counter behind `generateBlockId()`) got a Concurrency Contract banner — yellow → green.
+- `Sources/DiagramKitModel/src_block_layout.swift` — `BlockWarnings` (lock-backed warning bag behind `blockWarnings()` / `resetBlockWarnings()`) got a Concurrency Contract banner — yellow → green.
+- `.sendable-allowlist.txt` — five entries removed: the four entries above plus the stale `src_treemap_parser.swift:3` (`_MutableNode` already had a contract banner; the allowlist entry pointed at an out-of-date line and was dead weight).
+
+Verification:
+- `./Scripts/check-sendable-annotations.sh` — PASS, now reports 7 yellow entries (down from 11).
+- `swift test --filter "SankeyRendererTests|BlockRendererTests"` — PASS, 28 tests.
+- `./Scripts/strict-concurrency-check.sh` — PASS.
+
+The seven remaining yellow entries (`AsciiNode` / `AsciiEdge` / `AsciiSubgraph` / `AsciiGraph` / `MermaidSubgraphInput` in `src_ascii_converter.swift`, `_MutableTreeNode` in `src_treeview_parser.swift`, `MermaidSubgraph` in `src_types.swift`) are reference-typed model structures whose conversion requires API/migration work; they remain tracked toward the 2027-06-30 sunset.
+
+Original finding (kept for reference):
+
 Evidence:
 - `Scripts/check-sendable-annotations.sh` passes.
 - The script reports 11 allowlisted yellow entries with sunset `2027-06-30`, including `AsciiNode`, `AsciiGraph`, `_MutableTreeNode`, `MermaidSubgraph`, `AtomicInt`, `_SankeyUidGenerator`, `_SankeyRenderScopeCounter`, and `BlockWarnings`.
