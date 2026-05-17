@@ -145,10 +145,11 @@ edges to RenderingCG and Views are guarded in `Package.swift` with
 - **Register bundled fonts first.** `DiagramFontRegistry.registerBundledFontsIfNeeded()`
   must run at the start of every pipeline method. Skipping it breaks snapshot
   determinism across OS versions.
-- **Parser dispatch order matters.** `Parser.swift` still uses a cascading
-  `firstLine.hasPrefix(...)` chain. Narrower prefixes must precede broader
-  prefixes; the fallback handles `flowchart`, `graph`, `stateDiagram-v2`, and
-  `state`.
+- **Parser dispatch order matters.** `Sources/DiagramKit/DiagramDescriptor.swift`
+  uses a cascading `firstLine.hasPrefix(...)` chain (matchers prefer
+  `startsWithToken` over raw `hasPrefix` for non-trivial prefixes).
+  Narrower prefixes must precede broader prefixes; the fallback handles
+  `flowchart`, `graph`, `stateDiagram-v2`, and `state`.
 - **Two independent renderers exist.** CG/image renderers live under
   `Sources/DiagramKitRenderingCG/DiagramRenderer+<Type>.swift`; SVG renderers
   live under `Sources/DiagramKitModel/src_<type>_renderer.swift`. They share no
@@ -217,9 +218,13 @@ outside the defining module.
   `DiagramViewModel.swift`.
 - `Sources/DiagramKit/` - umbrella public API: `DiagramEngine.swift`,
   `DiagramPipeline.swift`, `DiagramImageRenderer.swift`,
-  `DiagramPreparerWiring.swift`, `Parser.swift`, `Layout.swift`,
-  `DiagramDescriptor.swift`, `src_index.swift`, `src_ascii_index.swift`,
-  `ReExports.swift`, `MermaidImporter.swift`, and `SVGRenderRegistry.swift`.
+  `DiagramPreparerWiring.swift`, `DiagramDescriptor.swift` (parser
+  dispatch), `DiagramRegistry+<Type>.swift` (per-family descriptor
+  registration, 28 files), `Layout.swift`, `src_ascii_index.swift`,
+  `MermaidImporter.swift`, `SVGRenderRegistry.swift`,
+  `AsciiRenderRegistry.swift`, `AsciiDocumentRenderRegistry.swift`,
+  `AsciiRenderOutput.swift`, `SVGIDGenerator.swift`, and
+  `ReExports.swift`.
 - `Sources/DiagramKitImport/` - importer protocol and registry boundary
   (`DiagramSourceImporter`, `ImporterRegistry`, `DiagramLoader`,
   `DiagramImportResult`). `DiagramDiagnostic` lives in `DiagramKitCommon`

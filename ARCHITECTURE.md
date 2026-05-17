@@ -48,7 +48,7 @@ Apple-platform-only edges in [Package.swift](Package.swift) are guarded with `co
 | `DiagramKitRenderingCG` | Apple-only CG renderer: `DiagramRenderer+<Type>.swift` per diagram family, plus `EdgeRenderer`, `LabelRenderer`, `ShapeRenderer`, `ArrowRenderer`, `CGPathRenderer`, `PreparedDiagram`, `FontRegistry` (`DiagramFontRegistry`), `Version`. Bundled fonts under `Resources/Fonts/`. | none | full |
 | `DiagramKitTestSupport` | Linux-portable test helpers (no CG/CT/UI deps). | full | full |
 | `DiagramKitViews` | Apple-only SwiftUI/UIKit/AppKit wrappers: `DiagramNativeView`, `DiagramView`, `DiagramLayer`, `DiagramViewModel`. | none | full |
-| `DiagramKit` | Umbrella: `DiagramEngine`, `DiagramImageRenderer`, `DiagramPipeline`, `Parser.swift`, `Layout.swift`, `DiagramDescriptor.swift`, `src_index.swift`, `src_ascii_index.swift`. | partial | full |
+| `DiagramKit` | Umbrella: `DiagramEngine`, `DiagramImageRenderer`, `DiagramPipeline`, `DiagramDescriptor.swift` (parser dispatch), `DiagramRegistry+<Type>.swift` (28 family descriptors), `Layout.swift`, `src_ascii_index.swift`. | partial | full |
 
 ## Three-stage pipeline
 

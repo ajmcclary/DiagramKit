@@ -83,7 +83,7 @@ Files in `DiagramKitModel` cannot `import DiagramKitRenderingCG`. Files in `Diag
 
 When porting a new mermaid diagram family from upstream `mermaid-js`:
 
-1. **Parser** — `Sources/DiagramKitModel/src_<type>_parser.swift`. Follow the cascading `firstLine.hasPrefix(...)` discipline in [Parser.swift](Sources/DiagramKit/Parser.swift) — narrower prefixes before broader ones.
+1. **Parser** — `Sources/DiagramKitModel/src_<type>_parser.swift`. Follow the cascading `firstLine.hasPrefix(...)` discipline in [DiagramDescriptor.swift](Sources/DiagramKit/DiagramDescriptor.swift) — narrower prefixes before broader ones.
 2. **Types** — `Sources/DiagramKitModel/src_<type>_types.swift` (only if the family has substantial domain types beyond what `Types.swift` covers).
 3. **Layout** — `Sources/DiagramKitModel/src_<type>_layout.swift`. Returns a `PositionedContent.<type>(...)` case — extend the enum in `Sources/DiagramKitModel/PositionedPayloads.swift`.
 4. **SVG renderer** — `Sources/DiagramKitModel/src_<type>_renderer.swift` (or `_svg.swift`).

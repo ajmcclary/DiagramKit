@@ -348,6 +348,20 @@ Recommendation:
 
 ### L5. Review prompt and repository docs contain stale file/product references
 
+Status: RESOLVED (2026-05-17)
+
+Fix:
+- `CLAUDE.md` — "Parser dispatch order matters" bullet now names `Sources/DiagramKit/DiagramDescriptor.swift` (not `Parser.swift`). The "What Lives Where" `Sources/DiagramKit/` entry was rewritten to reflect the current file layout: dropped non-existent `Parser.swift` / `src_index.swift`; added `DiagramRegistry+<Type>.swift` (28 family descriptors), `AsciiRenderRegistry.swift`, `AsciiDocumentRenderRegistry.swift`, `AsciiRenderOutput.swift`, `SVGIDGenerator.swift`.
+- `ARCHITECTURE.md` — target table row for `DiagramKit` updated the same way.
+- `AGENTS.md` — "Parser dispatch order matters" bullet now points at `DiagramDescriptor.swift`.
+- `CONTRIBUTING.md` — porting checklist's link `[Parser.swift](Sources/DiagramKit/Parser.swift)` redirected to `[DiagramDescriptor.swift](Sources/DiagramKit/DiagramDescriptor.swift)`.
+
+Verification:
+- `grep -n "Parser\.swift" CLAUDE.md ARCHITECTURE.md AGENTS.md README.md BASELINES.md CONTRIBUTING.md` returns only `FrontmatterDocumentParser.swift` and `InitDirectiveParser.swift` — both real files, not the stale reference.
+- `grep -nE "13 (library|SwiftPM)|13 products" <active-docs>` returns nothing; the 14-library count is already current in CLAUDE.md's target layout (the L5 evidence about "13 products" was the external review prompt, not the repo docs).
+
+Original finding (kept for reference):
+
 Evidence:
 - The prompt names `Sources/DiagramKit/Parser.swift`; this checkout routes through `Sources/DiagramKit/DiagramDescriptor.swift`.
 - The prompt says 13 SwiftPM library products; `swift package dump-package` reports 14 library products.

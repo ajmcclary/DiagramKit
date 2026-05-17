@@ -71,8 +71,9 @@ and a multiplatform `xcodebuild` sweep.
   This was tried and reverted in `ff2622b`.
 - **`DiagramFontRegistry.registerBundledFontsIfNeeded()` must be called first**
   in every pipeline method. Skipping it breaks snapshot determinism.
-- **Parser dispatch order matters.** `Parser.swift` uses cascading
-  `firstLine.hasPrefix(...)`; narrower prefixes must come before broader ones.
+- **Parser dispatch order matters.** `Sources/DiagramKit/DiagramDescriptor.swift`
+  uses cascading `firstLine.hasPrefix(...)`; narrower prefixes must come
+  before broader ones.
 - **Two independent renderers exist.** CG/image renderers live in
   `DiagramKitRenderingCG`; SVG renderers live in `DiagramKitModel`. They drift;
   snapshots are the guardrail.
