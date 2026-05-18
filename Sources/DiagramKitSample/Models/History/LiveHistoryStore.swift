@@ -19,6 +19,15 @@ import IssueReporting
 ///
 /// All mutations update the in-memory array immediately and persist
 /// to disk asynchronously. The store is `@MainActor` for safe UI binding.
+///
+/// ## Concurrency Contract
+/// All mutable state (`entries`, `lastAutoSaveTime`, `lastAutoSaveStateKey`)
+/// is `@MainActor`-isolated and only touched from the main actor. Disk
+/// persistence runs on the serial `writeQueue` and closes over an immutable
+/// `snapshot` plus the storage `URL` — the closure never reads or writes
+/// `self`'s state, so there is no cross-actor data race. `@unchecked Sendable`
+/// is required only because `@Observable`-style stored `var` properties on a
+/// `@MainActor` class don't satisfy Swift's automatic `Sendable` inference.
 @MainActor
 public final class LiveHistoryStore: @unchecked Sendable {
 

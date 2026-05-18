@@ -82,6 +82,11 @@ public final class DiagramSyntaxHighlighter: Sendable {
 
     // MARK: - Compiled patterns
 
+    /// Concurrency Contract: construction-then-freeze. Every stored property is
+    /// `let` and assigned once in `init()`; the only non-`Sendable` members are
+    /// `NSRegularExpression` instances, which Foundation documents as safe to
+    /// share read-only across threads. After init the value is effectively
+    /// immutable, so off-main tokenization can read it without synchronization.
     private struct Patterns: @unchecked Sendable {
         // Diagram type keywords (first line only)
         let diagramTypePattern: NSRegularExpression
