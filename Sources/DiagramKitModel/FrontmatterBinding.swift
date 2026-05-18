@@ -75,10 +75,12 @@ extension FrontmatterBinding {
     ///
     /// Returns the trailing key after the first matching prefix, or `nil`
     /// if no prefix matches.
+    ///
+    /// Forwards to ``FrontmatterPrefixMatcher/extractKey(path:prefixes:)``
+    /// — the protocol-extension method and the free function used to
+    /// implement the same prefix-stripping behavior side by side; the
+    /// free function is the source of truth now.
     public static func extractKey(path: String, prefixes: [String]) -> String? {
-        for prefix in prefixes where path.hasPrefix(prefix) {
-            return String(path.dropFirst(prefix.count))
-        }
-        return nil
+        FrontmatterPrefixMatcher.extractKey(path: path, prefixes: prefixes)
     }
 }
