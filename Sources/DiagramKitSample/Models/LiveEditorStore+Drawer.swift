@@ -10,7 +10,6 @@ import SwiftUI
 import DiagramKit
 import DiagramKitImport
 
-@available(iOS 26.0, macOS 26.0, *)
 extension LiveEditorStore {
 
     // MARK: - Diagnostics drawer (Phase 6 / Task 6.1)

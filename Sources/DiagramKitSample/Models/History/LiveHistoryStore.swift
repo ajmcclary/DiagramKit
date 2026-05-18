@@ -20,7 +20,6 @@ import IssueReporting
 /// All mutations update the in-memory array immediately and persist
 /// to disk asynchronously. The store is `@MainActor` for safe UI binding.
 @MainActor
-@available(iOS 26.0, macOS 26.0, *)
 public final class LiveHistoryStore: @unchecked Sendable {
 
     // MARK: - Published state

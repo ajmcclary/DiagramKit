@@ -19,7 +19,6 @@ import DiagramKitModel
 /// macOS unified-window toolbar content.
 ///
 /// Attached to the WindowGroup via `.toolbar { LiveEditorToolbar(store: store) }`.
-@available(macOS 26.0, *)
 struct LiveEditorToolbar: ToolbarContent {
     @Bindable var store: LiveEditorStore
 
@@ -170,7 +169,6 @@ struct LiveEditorToolbar: ToolbarContent {
 /// Provides the same action buttons as the macOS toolbar via the
 /// navigation bar's trailing item area. Panels open as sheets on
 /// compact width and popovers on regular width.
-@available(iOS 26.0, *)
 struct LiveEditorToolbar: ToolbarContent {
     @Bindable var store: LiveEditorStore
 
@@ -302,7 +300,6 @@ struct LiveEditorToolbar: ToolbarContent {
 // MARK: - Update Mode Picker
 
 /// Segmented control for Auto / Manual update mode.
-@available(iOS 26.0, macOS 26.0, *)
 struct UpdateModePicker: View {
     @Binding var updateMode: UpdateMode
     let theme: DiagramTheme
@@ -334,7 +331,6 @@ extension UpdateMode {
 // MARK: - View Options Panel
 
 /// Grid overlay and pan & zoom toggles, hosted in the toolbar's View popover.
-@available(iOS 26.0, macOS 26.0, *)
 struct ViewOptionsPanel: View {
     @Bindable var store: LiveEditorStore
 
@@ -354,7 +350,6 @@ struct ViewOptionsPanel: View {
 }
 
 #if DEBUG && !DIAGRAMKIT_SWIFTPM
-@available(iOS 26.0, macOS 26.0, *)
 #Preview("UpdateModePicker") {
     @Previewable @SwiftUI.State var mode: UpdateMode = .auto
     UpdateModePicker(updateMode: $mode, theme: .default)

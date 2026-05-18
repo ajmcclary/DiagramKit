@@ -16,7 +16,6 @@ import AppKit
 
 // MARK: - macOS NativeCodeEditor
 
-@available(iOS 26.0, macOS 26.0, *)
 struct NativeCodeEditor: NSViewRepresentable {
     let store: LiveEditorStore
     let mode: EditorMode
@@ -271,7 +270,6 @@ import UIKit
 
 // MARK: - iOS NativeCodeEditor
 
-@available(iOS 26.0, macOS 26.0, *)
 struct NativeCodeEditor: UIViewRepresentable {
     let store: LiveEditorStore
     let mode: EditorMode

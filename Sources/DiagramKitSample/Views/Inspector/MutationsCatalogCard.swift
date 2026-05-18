@@ -10,7 +10,6 @@
 
 import SwiftUI
 
-@available(iOS 26.0, macOS 26.0, *)
 struct MutationsCatalogCard: View {
     @Bindable var store: LiveEditorStore
 

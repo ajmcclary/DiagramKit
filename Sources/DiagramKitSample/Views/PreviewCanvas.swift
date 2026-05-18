@@ -10,7 +10,6 @@ import SwiftUI
 import DiagramKit
 import DiagramKitModel
 
-@available(iOS 26.0, macOS 26.0, *)
 struct PreviewCanvas: View {
     @Bindable var store: LiveEditorStore
     let onFullWindowPreview: (() -> Void)?
@@ -504,7 +503,6 @@ enum PreviewMode: CaseIterable, Hashable {
 /// through Mermaid export before ASCII rendering. Unsupported families come
 /// back empty or with a `notYetImplemented` error, rendered as a friendly
 /// inline message.
-@available(iOS 26.0, macOS 26.0, *)
 struct AsciiPreviewView: View {
     @Bindable var store: LiveEditorStore
 

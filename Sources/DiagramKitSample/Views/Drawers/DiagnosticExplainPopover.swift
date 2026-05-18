@@ -9,7 +9,6 @@
 import SwiftUI
 import DiagramKitCommon
 
-@available(iOS 26.0, macOS 26.0, *)
 struct DiagnosticExplainPopover: View {
     @Bindable var store: LiveEditorStore
     let row: DrawerDiagnostic

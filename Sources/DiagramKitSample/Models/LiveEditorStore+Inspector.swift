@@ -11,7 +11,6 @@ import SwiftUI
 import DiagramKit
 import DiagramKitModel
 
-@available(iOS 26.0, macOS 26.0, *)
 extension LiveEditorStore {
     /// Convenience kept here so call sites in Visual views read clean.
     public var hasFlowchartDocument: Bool {

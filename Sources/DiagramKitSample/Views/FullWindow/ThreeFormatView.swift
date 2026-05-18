@@ -15,7 +15,6 @@ import DiagramKitCommon
 import DiagramKitExport
 import DiagramKitModel
 
-@available(iOS 26.0, macOS 26.0, *)
 struct ThreeFormatView: View {
     @Bindable var store: LiveEditorStore
 

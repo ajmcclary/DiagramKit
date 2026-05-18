@@ -10,7 +10,6 @@
 import SwiftUI
 import DiagramKit
 
-@available(iOS 26.0, macOS 26.0, *)
 extension LiveEditorStore {
 
     // MARK: - Full-screen surfaces (Phase 8 / Task 8.1)

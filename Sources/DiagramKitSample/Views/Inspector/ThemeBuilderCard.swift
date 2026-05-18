@@ -10,7 +10,6 @@
 
 import SwiftUI
 
-@available(iOS 26.0, macOS 26.0, *)
 struct ThemeBuilderCard: View {
     @Bindable var store: LiveEditorStore
 
@@ -124,7 +123,6 @@ struct ThemeBuilderCard: View {
 
 // MARK: - Color hex helper
 
-@available(iOS 26.0, macOS 26.0, *)
 private extension Color {
     init?(hex: String) {
         let trimmed = hex.trimmingCharacters(in: .whitespacesAndNewlines).replacingOccurrences(of: "#", with: "")

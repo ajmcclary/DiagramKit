@@ -10,7 +10,6 @@
 import SwiftUI
 import DiagramKit
 
-@available(iOS 26.0, macOS 26.0, *)
 struct SourceFormatPicker: View {
     @Binding var sourceFormat: SourceFormat
     let theme: DiagramTheme
@@ -64,7 +63,6 @@ struct SourceFormatPicker: View {
 }
 
 #if DEBUG && !DIAGRAMKIT_SWIFTPM
-@available(iOS 26.0, macOS 26.0, *)
 #Preview {
     @Previewable @SwiftUI.State var format: SourceFormat = .mermaid
     SourceFormatPicker(

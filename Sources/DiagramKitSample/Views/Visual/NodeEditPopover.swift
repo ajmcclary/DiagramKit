@@ -12,7 +12,6 @@ import SwiftUI
 import DiagramKitInteractive
 import DiagramKitModel
 
-@available(iOS 26.0, macOS 26.0, *)
 struct NodeEditPopover: View {
     @Bindable var store: LiveEditorStore
 

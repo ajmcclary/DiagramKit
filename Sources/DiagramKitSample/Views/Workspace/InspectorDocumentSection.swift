@@ -10,7 +10,6 @@
 
 import SwiftUI
 
-@available(iOS 26.0, macOS 26.0, *)
 struct InspectorDocumentSection: View {
     @Bindable var store: LiveEditorStore
 
@@ -66,7 +65,6 @@ struct InspectorDocumentSection: View {
 
 /// Bridge for legacy sections still calling `InspectorSectionHeader`.
 /// New code should use `SectionHeader` directly.
-@available(iOS 26.0, macOS 26.0, *)
 struct InspectorSectionHeader: View {
     let title: String
     let systemImage: String

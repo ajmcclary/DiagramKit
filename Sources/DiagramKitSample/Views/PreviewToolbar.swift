@@ -10,7 +10,6 @@ import SwiftUI
 import DiagramKit
 import DiagramKitModel
 
-@available(iOS 26.0, macOS 26.0, *)
 struct PreviewToolbar: View {
     let theme: DiagramTheme
     @Binding var zoomScale: CGFloat

@@ -10,7 +10,6 @@
 import SwiftUI
 import DiagramKit
 
-@available(iOS 26.0, macOS 26.0, *)
 struct VersionSecurityPanel: View {
     @SwiftUI.State private var showingPrivacySheet = false
 
@@ -245,7 +244,6 @@ struct VersionSecurityPanel: View {
 }
 
 #if DEBUG && !DIAGRAMKIT_SWIFTPM
-@available(iOS 26.0, macOS 26.0, *)
 #Preview {
     VersionSecurityPanel()
         .frame(width: 320, height: 280)

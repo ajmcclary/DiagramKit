@@ -31,7 +31,6 @@ import UIKit
 /// former `PlaygroundConfiguration` singleton.
 @MainActor
 @Observable
-@available(iOS 26.0, macOS 26.0, *)
 public final class LiveEditorStore {
 
     // MARK: - Serialized state

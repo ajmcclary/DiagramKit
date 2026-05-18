@@ -14,7 +14,6 @@
 import SwiftUI
 import DiagramKit
 
-@available(iOS 26.0, macOS 26.0, *)
 struct StatusbarView: View {
     @Bindable var store: LiveEditorStore
 

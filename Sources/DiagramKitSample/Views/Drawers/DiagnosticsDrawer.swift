@@ -12,7 +12,6 @@
 import SwiftUI
 import DiagramKitCommon
 
-@available(iOS 26.0, macOS 26.0, *)
 struct DiagnosticsDrawer: View {
     @Bindable var store: LiveEditorStore
 

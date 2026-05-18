@@ -10,7 +10,6 @@ import SwiftUI
 import DiagramKit
 import DiagramKitExport
 
-@available(iOS 26.0, macOS 26.0, *)
 extension LiveEditorStore {
 
     // MARK: - Export sheet (Phase 7 / Task 7.1)

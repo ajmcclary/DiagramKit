@@ -12,7 +12,6 @@ import DiagramKit
 import DiagramKitModel
 import UniformTypeIdentifiers
 
-@available(iOS 26.0, macOS 26.0, *)
 struct SidebarView: View {
     @Bindable var store: LiveEditorStore
 

@@ -14,7 +14,6 @@ import AppKit
 #endif
 
 @main
-@available(iOS 26.0, macOS 26.0, *)
 struct DiagramKitSampleApp: App {
     @SwiftUI.State private var store = LiveEditorStore()
 
@@ -165,7 +164,6 @@ struct DiagramKitSampleApp: App {
 }
 
 #if os(macOS)
-@available(macOS 26.0, *)
 @MainActor
 private func focusedTextViewUndoManager() -> UndoManager? {
     guard let responder = NSApp.keyWindow?.firstResponder as? NSTextView else {
@@ -174,7 +172,6 @@ private func focusedTextViewUndoManager() -> UndoManager? {
     return responder.undoManager
 }
 
-@available(macOS 26.0, *)
 @MainActor
 private func performScopedUndo(store: LiveEditorStore) {
     if let textUndo = focusedTextViewUndoManager(), textUndo.canUndo {
@@ -184,7 +181,6 @@ private func performScopedUndo(store: LiveEditorStore) {
     store.undoStructural()
 }
 
-@available(macOS 26.0, *)
 @MainActor
 private func performScopedRedo(store: LiveEditorStore) {
     if let textUndo = focusedTextViewUndoManager(), textUndo.canRedo {

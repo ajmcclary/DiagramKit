@@ -14,7 +14,6 @@ import DiagramKit
 import DiagramKitCommon
 import DiagramKitExport
 
-@available(iOS 26.0, macOS 26.0, *)
 struct ConvertSheet: View {
     @Bindable var store: LiveEditorStore
 

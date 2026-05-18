@@ -10,7 +10,6 @@
 import SwiftUI
 import DiagramKit
 
-@available(iOS 26.0, macOS 26.0, *)
 struct SampleDiagramPanel: View {
     @Bindable var store: LiveEditorStore
 
@@ -358,7 +357,6 @@ struct SampleStatusBadge {
 }
 
 #if DEBUG && !DIAGRAMKIT_SWIFTPM
-@available(iOS 26.0, macOS 26.0, *)
 #Preview {
     let store = LiveEditorStore()
     return SampleDiagramPanel(store: store)

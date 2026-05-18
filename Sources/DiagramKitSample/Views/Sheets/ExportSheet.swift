@@ -15,7 +15,6 @@ import DiagramKitModel
 import DiagramKitExport
 import UniformTypeIdentifiers
 
-@available(iOS 26.0, macOS 26.0, *)
 struct ExportSheet: View {
     @Bindable var store: LiveEditorStore
 

@@ -12,7 +12,6 @@
 import SwiftUI
 import DiagramKitModel
 
-@available(iOS 26.0, macOS 26.0, *)
 struct SnippetsLibraryView: View {
     @Bindable var store: LiveEditorStore
 

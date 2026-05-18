@@ -11,7 +11,6 @@
 
 import SwiftUI
 
-@available(iOS 26.0, macOS 26.0, *)
 struct CitationOverlay: View {
     @Bindable var store: LiveEditorStore
 
@@ -115,7 +114,6 @@ struct CitationOverlay: View {
     }
 }
 
-@available(iOS 26.0, macOS 26.0, *)
 extension CitationSet.Surface {
     var label: String {
         switch self {

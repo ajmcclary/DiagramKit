@@ -21,7 +21,6 @@ import AppKit
 import UIKit
 #endif
 
-@available(iOS 26.0, macOS 26.0, *)
 struct ActionsPanel: View {
     @Bindable var store: LiveEditorStore
     @Binding var showingFullWindowPreview: Bool
@@ -217,7 +216,6 @@ struct PlainTextDocument: FileDocument {
 }
 
 #if DEBUG && !DIAGRAMKIT_SWIFTPM
-@available(iOS 26.0, macOS 26.0, *)
 #Preview {
     @Previewable @SwiftUI.State var showingFull: Bool = false
     let store = LiveEditorStore()

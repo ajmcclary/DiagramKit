@@ -14,7 +14,6 @@ import DiagramKitModel
 ///
 /// Extracted from ``EditorPane`` so it can be reused in toolbar or
 /// navigation contexts.
-@available(iOS 26.0, macOS 26.0, *)
 struct EditorModePicker: View {
     @Binding var editorMode: EditorMode
     let theme: DiagramTheme
@@ -59,7 +58,6 @@ extension EditorMode {
 }
 
 #if DEBUG && !DIAGRAMKIT_SWIFTPM
-@available(iOS 26.0, macOS 26.0, *)
 #Preview {
     @Previewable @SwiftUI.State var mode: EditorMode = .code
     let previewTheme = DiagramTheme.default

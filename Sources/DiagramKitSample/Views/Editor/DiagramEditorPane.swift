@@ -12,7 +12,6 @@ import DiagramKit
 import DiagramKitInteractive
 import DiagramKitModel
 
-@available(iOS 26.0, macOS 26.0, *)
 struct DiagramEditorPane: View {
     @Bindable var store: LiveEditorStore
 
@@ -126,7 +125,6 @@ struct DiagramEditorPane: View {
 
 // MARK: - Title section
 
-@available(iOS 26.0, macOS 26.0, *)
 private struct TitleSection: View {
     @Bindable var store: LiveEditorStore
     let editor: DiagramEditor
@@ -164,7 +162,6 @@ private struct TitleSection: View {
     }
 }
 
-@available(iOS 26.0, macOS 26.0, *)
 @MainActor
 private func sectionLabel(_ text: String, store: LiveEditorStore) -> some View {
     Text(text)
@@ -175,7 +172,6 @@ private func sectionLabel(_ text: String, store: LiveEditorStore) -> some View {
 
 // MARK: - Selection section
 
-@available(iOS 26.0, macOS 26.0, *)
 private struct SelectionSection: View {
     @Bindable var store: LiveEditorStore
     let editor: DiagramEditor
@@ -240,7 +236,6 @@ private struct SelectionSection: View {
 
 // MARK: - Label section
 
-@available(iOS 26.0, macOS 26.0, *)
 private struct LabelSection: View {
     @Bindable var store: LiveEditorStore
     let editor: DiagramEditor
@@ -280,7 +275,6 @@ private struct LabelSection: View {
 
 // MARK: - Insert-node section
 
-@available(iOS 26.0, macOS 26.0, *)
 private struct InsertNodeSection: View {
     @Bindable var store: LiveEditorStore
     let editor: DiagramEditor
@@ -355,7 +349,6 @@ private struct InsertNodeSection: View {
 
 // MARK: - Insert-edge section
 
-@available(iOS 26.0, macOS 26.0, *)
 private struct InsertEdgeSection: View {
     @Bindable var store: LiveEditorStore
     let editor: DiagramEditor
@@ -468,7 +461,6 @@ private struct InsertEdgeSection: View {
 
 // MARK: - Delete section
 
-@available(iOS 26.0, macOS 26.0, *)
 private struct DeleteSection: View {
     @Bindable var store: LiveEditorStore
     let editor: DiagramEditor
@@ -488,7 +480,6 @@ private struct DeleteSection: View {
 
 // MARK: - Undo / redo footer
 
-@available(iOS 26.0, macOS 26.0, *)
 private struct UndoRedoFooter: View {
     @Bindable var store: LiveEditorStore
     let editor: DiagramEditor
@@ -534,7 +525,6 @@ private struct UndoRedoFooter: View {
 
 // MARK: - CorpusMetadataBanner
 
-@available(iOS 26.0, macOS 26.0, *)
 private struct CorpusMetadataBanner: View {
     let metadata: CorpusMetadata
     let store: LiveEditorStore

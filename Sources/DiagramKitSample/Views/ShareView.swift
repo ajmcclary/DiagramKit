@@ -10,7 +10,6 @@ import SwiftUI
 import DiagramKit
 import DiagramKitModel
 
-@available(iOS 26.0, macOS 26.0, *)
 struct ShareView: View {
     @Bindable var store: LiveEditorStore
 
@@ -210,7 +209,6 @@ struct ShareView: View {
 }
 
 #if DEBUG && !DIAGRAMKIT_SWIFTPM
-@available(iOS 26.0, macOS 26.0, *)
 #Preview {
     let store = LiveEditorStore()
     ShareView(store: store)

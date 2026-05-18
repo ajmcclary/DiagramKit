@@ -11,7 +11,6 @@ import SwiftUI
 import DiagramKit
 import DiagramKitInteractive
 
-@available(iOS 26.0, macOS 26.0, *)
 extension LiveEditorStore {
 
     // MARK: - Visual mode (Phase 3 / Task 3.1)
