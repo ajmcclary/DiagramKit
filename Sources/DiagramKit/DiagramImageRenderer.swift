@@ -5,9 +5,7 @@ import DiagramKitModel
 import DiagramKitRenderingCG
 import DiagramKitCommon
 import CoreGraphics
-#if targetEnvironment(macCatalyst)
-import UIKit
-#elseif canImport(UIKit)
+#if canImport(UIKit)
 import UIKit
 #elseif canImport(AppKit)
 import AppKit
@@ -158,7 +156,7 @@ public final class DiagramImageRenderer {
         )
     }
 
-    #if targetEnvironment(macCatalyst) || canImport(UIKit)
+    #if canImport(UIKit)
     /// Render `source` and encode as PNG `Data`. Returns `nil` if the
     /// underlying image was empty.
     @MainActor

@@ -9,7 +9,7 @@ import DiagramKitRenderingCG
 import UIKit
 
 /// A SwiftUI view that renders a diagram.
-@available(iOS 26.0, macCatalyst 26.0, visionOS 26.0, *)
+@available(iOS 26.0, *)
 @MainActor
 public struct DiagramView: UIViewRepresentable {
     private let source: String
@@ -251,7 +251,7 @@ public struct DiagramView: NSViewRepresentable {
 
 // MARK: - Phase 0 backward-compat deprecated alias
 
-@available(iOS 26.0, macCatalyst 26.0, visionOS 26.0, macOS 26.0, *)
+@available(iOS 26.0, macOS 26.0, *)
 @available(*, deprecated, renamed: "DiagramView", message: "Will be removed in the next major version.")
 public typealias MermaidDiagramView = DiagramView
 #endif

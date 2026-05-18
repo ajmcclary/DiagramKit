@@ -5,9 +5,7 @@ import DiagramKitModel
 import DiagramKitRenderingCG
 import CoreGraphics
 #endif
-#if targetEnvironment(macCatalyst)
-import UIKit
-#elseif canImport(UIKit)
+#if canImport(UIKit)
 import UIKit
 #elseif canImport(AppKit)
 import AppKit

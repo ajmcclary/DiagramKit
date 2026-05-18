@@ -18,7 +18,7 @@ import DiagramKitModel
 import AppKit
 #endif
 
-@available(iOS 26.0, macOS 26.0, macCatalyst 26.0, *)
+@available(iOS 26.0, macOS 26.0, *)
 @MainActor
 final class DiagramPlaygroundStoreRegressionTests: XCTestCase {
     func testManualConfigThemeChangeMarksDirtyWithoutRequestingRender() {
@@ -131,7 +131,7 @@ final class DiagramPlaygroundStoreRegressionTests: XCTestCase {
     }
 }
 
-@available(iOS 26.0, macOS 26.0, macCatalyst 26.0, *)
+@available(iOS 26.0, macOS 26.0, *)
 final class DiagramPlaygroundLoaderRegressionTests: XCTestCase {
     func testGistRevisionURLExtractsGistIDNotRevisionID() throws {
         let url = try XCTUnwrap(URL(string: "https://gist.github.com/octocat/0123456789abcdef0123456789abcdef/fedcba9876543210fedcba9876543210"))
@@ -171,7 +171,7 @@ final class DiagramPlaygroundLoaderRegressionTests: XCTestCase {
     }
 }
 
-@available(iOS 26.0, macOS 26.0, macCatalyst 26.0, *)
+@available(iOS 26.0, macOS 26.0, *)
 final class DiagramPlaygroundExportRegressionTests: XCTestCase {
     func testSVGRendererHonorsLayoutConfig() async throws {
         let source = "graph TD\n  A[Start] --> B[End]"
@@ -207,7 +207,7 @@ final class DiagramPlaygroundExportRegressionTests: XCTestCase {
     }
 }
 
-@available(iOS 26.0, macOS 26.0, macCatalyst 26.0, *)
+@available(iOS 26.0, macOS 26.0, *)
 final class DiagramPlaygroundActionsRegressionTests: XCTestCase {
     func testRawURLLoadIsEnabledWhenOnlyConfigURLIsProvided() {
         XCTAssertFalse(ActionsView.isRawURLLoadDisabled(
@@ -228,14 +228,14 @@ final class DiagramPlaygroundActionsRegressionTests: XCTestCase {
     }
 }
 
-@available(iOS 26.0, macOS 26.0, macCatalyst 26.0, *)
+@available(iOS 26.0, macOS 26.0, *)
 final class DiagramPlaygroundVersionRegressionTests: XCTestCase {
     func testVersionSecurityPanelReportsRendererVersion() {
         XCTAssertEqual(VersionSecurityPanel.diagramKitVersion, DiagramEngine.version)
     }
 }
 
-@available(iOS 26.0, macOS 26.0, macCatalyst 26.0, *)
+@available(iOS 26.0, macOS 26.0, *)
 @MainActor
 final class DiagramPlaygroundSyntaxHighlighterRegressionTests: XCTestCase {
     func testStaleHighlightPayloadsAreRejected() {

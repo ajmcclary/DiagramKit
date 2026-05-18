@@ -4,9 +4,7 @@
 import Foundation
 import CoreGraphics
 import CoreText
-#if targetEnvironment(macCatalyst)
-import UIKit
-#elseif canImport(UIKit)
+#if canImport(UIKit)
 import UIKit
 #elseif canImport(AppKit)
 import AppKit
@@ -289,7 +287,7 @@ public struct DiagramFontResolver: Sendable {
                 if let f = BMFont(name: name, size: size) { return f }
             }
             if let baseFont = BMFont(name: family, size: size) {
-                #if targetEnvironment(macCatalyst) || canImport(UIKit)
+                #if canImport(UIKit)
                 if let descriptor = baseFont.fontDescriptor.withSymbolicTraits(.traitItalic) {
                     return BMFont(descriptor: descriptor, size: size)
                 }
@@ -299,7 +297,7 @@ public struct DiagramFontResolver: Sendable {
                 #endif
             }
         }
-        #if targetEnvironment(macCatalyst) || canImport(UIKit)
+        #if canImport(UIKit)
         let baseFont = BMFont.systemFont(ofSize: size, weight: UIFont.Weight(weight))
         if let descriptor = baseFont.fontDescriptor.withSymbolicTraits(.traitItalic) {
             return BMFont(descriptor: descriptor, size: size)
@@ -322,7 +320,7 @@ public struct DiagramFontResolver: Sendable {
             }
             if let f = BMFont(name: family, size: size) { return f }
         }
-        #if targetEnvironment(macCatalyst) || canImport(UIKit)
+        #if canImport(UIKit)
         return UIFont(name: "Menlo-Italic", size: size)
             ?? UIFont.monospacedSystemFont(ofSize: size, weight: .regular)
         #elseif canImport(AppKit)

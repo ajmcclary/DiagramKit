@@ -13,10 +13,8 @@ let strictConcurrencySettings: [SwiftSetting] = [
 let package = Package(
     name: "DiagramKit",
     platforms: [
-        .iOS(.v17),
-        .macOS(.v14),
-        .macCatalyst(.v17),
-        .visionOS(.v1)
+        .macOS(.v26),
+        .iOS(.v26)
     ],
     products: [
         .library(name: "DiagramKit", targets: ["DiagramKit"]),
@@ -33,11 +31,10 @@ let package = Package(
         .library(name: "DiagramKitExport", targets: ["DiagramKitExport"]),
         .library(name: "DiagramKitMermaid", targets: ["DiagramKitMermaid"]),
         .library(name: "DiagramKitInteractive", targets: ["DiagramKitInteractive"]),
-        // SwiftPM has a package-wide platform floor, while the Playground app
-        // intentionally targets the latest Apple UI APIs. The library products
-        // support the platforms declared above; the Playground executable is
-        // additionally guarded by `@available(iOS/macOS/macCatalyst 26.0, *)`
-        // and the Xcode project sets its deployment target to 26.0.
+        // Library products and the sample share the same macOS 26 / iOS 26 floor
+        // declared above. The Xcode project that previously bundled the sample
+        // (along with its UI test bundle and xcodegen project.yml) has been
+        // removed in favor of pure SwiftPM (see commit history 2026-05-18).
         .executable(name: "DiagramPlayground", targets: ["DiagramPlayground"])
     ],
     dependencies: [
@@ -118,12 +115,7 @@ let package = Package(
                 "DiagramKitModel",
                 "DiagramKitImport",
                 "DiagramKitExport",
-                .target(
-                    name: "DiagramKitRenderingCG",
-                    condition: .when(platforms: [
-                        .macOS, .iOS, .tvOS, .visionOS, .macCatalyst
-                    ])
-                )
+                "DiagramKitRenderingCG"
             ],
             swiftSettings: strictConcurrencySettings
         ),
@@ -165,16 +157,13 @@ let package = Package(
                 "DiagramKitImport",
                 "DiagramKitExport",
                 "DiagramKitMermaid",
-                .target(
-                    name: "DiagramKitInteractive",
-                    condition: .when(platforms: [.macOS, .iOS, .tvOS, .visionOS, .macCatalyst])
-                ),
-                .target(name: "DiagramKitD2"),
-                .target(name: "DiagramKitGraphviz"),
-                .target(name: "DiagramKitStructurizr"),
-                .target(name: "DiagramKitPlantUML"),
-                .target(name: "DiagramKitRenderingCG", condition: .when(platforms: [.macOS, .iOS, .tvOS, .visionOS, .macCatalyst])),
-                .target(name: "DiagramKitViews", condition: .when(platforms: [.macOS, .iOS, .tvOS, .visionOS, .macCatalyst]))
+                "DiagramKitInteractive",
+                "DiagramKitD2",
+                "DiagramKitGraphviz",
+                "DiagramKitStructurizr",
+                "DiagramKitPlantUML",
+                "DiagramKitRenderingCG",
+                "DiagramKitViews"
             ],
             swiftSettings: strictConcurrencySettings
         ),
@@ -187,7 +176,7 @@ let package = Package(
                 "DiagramKitGraphviz",
                 "DiagramKitStructurizr",
                 "DiagramKitPlantUML",
-                .target(name: "DiagramKitInteractive", condition: .when(platforms: [.macOS, .iOS, .tvOS, .visionOS, .macCatalyst])),
+                "DiagramKitInteractive",
                 .product(name: "IssueReporting", package: "xctest-dynamic-overlay")
             ],
             path: "Examples/DiagramPlayground",
@@ -222,7 +211,7 @@ let package = Package(
                 "DiagramKitGraphviz",
                 "DiagramKitStructurizr",
                 "DiagramKitPlantUML",
-                .target(name: "DiagramKitRenderingCG", condition: .when(platforms: [.macOS, .iOS, .tvOS, .visionOS, .macCatalyst])),
+                "DiagramKitRenderingCG",
                 .product(name: "CustomDump", package: "swift-custom-dump"),
                 .product(name: "SnapshotTesting", package: "swift-snapshot-testing"),
             ],

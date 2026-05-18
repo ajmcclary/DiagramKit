@@ -59,7 +59,7 @@ struct DiagramViewBoundsLookupBindingTests {
     func defaultInitializerCompiles() {
         // Compile-time check: existing call sites must keep working with the
         // new parameter's default value. Success is a clean build.
-        if #available(macOS 26.0, iOS 26.0, macCatalyst 26.0, *) {
+        if #available(macOS 26.0, iOS 26.0, *) {
             _ = DiagramView(source: "")
         }
     }

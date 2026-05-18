@@ -9,7 +9,7 @@ import SwiftUI
 import DiagramKit
 import DiagramKitModel
 
-#if targetEnvironment(macCatalyst) || canImport(UIKit)
+#if canImport(UIKit)
 import UIKit
 #elseif canImport(AppKit)
 import AppKit
@@ -23,7 +23,7 @@ extension BMColor {
         var blue: CGFloat = 0
         var alpha: CGFloat = 0
 
-        #if targetEnvironment(macCatalyst) || canImport(UIKit)
+        #if canImport(UIKit)
         getRed(&red, green: &green, blue: &blue, alpha: &alpha)
         #elseif canImport(AppKit)
         guard let rgb = usingColorSpace(.sRGB) else { return true }

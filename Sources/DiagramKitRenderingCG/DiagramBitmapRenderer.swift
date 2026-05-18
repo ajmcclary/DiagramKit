@@ -39,7 +39,7 @@ public enum DiagramBitmapRenderer {
     ) -> BMImage? {
         guard size.width > 0, size.height > 0, scale > 0 else { return nil }
 
-        #if targetEnvironment(macCatalyst) || canImport(UIKit)
+        #if canImport(UIKit)
         let format = UIGraphicsImageRendererFormat()
         format.scale = scale
         let renderer = UIGraphicsImageRenderer(size: size, format: format)

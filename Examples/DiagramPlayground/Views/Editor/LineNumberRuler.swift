@@ -170,7 +170,7 @@ final class LineNumberRulerView: NSRulerView {
     }
 }
 
-#elseif canImport(UIKit) && !targetEnvironment(macCatalyst)
+#elseif canImport(UIKit)
 import UIKit
 
 // MARK: - iOS UIView

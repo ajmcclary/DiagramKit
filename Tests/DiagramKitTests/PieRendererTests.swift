@@ -5,7 +5,7 @@ import CoreGraphics
 @testable import DiagramKitModel
 @testable import DiagramKitRenderingCG
 
-#if targetEnvironment(macCatalyst) || canImport(UIKit)
+#if canImport(UIKit)
 import UIKit
 #elseif canImport(AppKit)
 import AppKit
@@ -436,7 +436,7 @@ final class PieRendererTests: XCTestCase {
     }
 
     private func testPieFont(size: CGFloat) -> BMFont {
-        #if targetEnvironment(macCatalyst) || canImport(UIKit)
+        #if canImport(UIKit)
         return UIFont.systemFont(ofSize: size)
         #elseif canImport(AppKit)
         return NSFont.systemFont(ofSize: size)

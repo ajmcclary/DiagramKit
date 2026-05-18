@@ -87,7 +87,7 @@ public typealias MermaidDiagram = DiagramViewModel
 #if canImport(UIKit)
 import UIKit
 
-@available(iOS 26.0, macCatalyst 26.0, visionOS 26.0, *)
+@available(iOS 26.0, *)
 extension DiagramView {
     /// Create a diagram view driven by a ``DiagramViewModel`` value.
     public init(_ diagram: DiagramViewModel) {

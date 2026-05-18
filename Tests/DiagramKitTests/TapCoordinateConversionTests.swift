@@ -4,7 +4,7 @@ import Foundation
 import XCTest
 @testable import DiagramPlayground
 
-@available(iOS 26.0, macOS 26.0, macCatalyst 26.0, *)
+@available(iOS 26.0, macOS 26.0, *)
 final class TapCoordinateConversionTests: XCTestCase {
 
     func test_identityTransformReturnsTapMinusCenteringOffset() {

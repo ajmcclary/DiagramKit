@@ -88,8 +88,6 @@ run_gate "check-linux-check-runtime-skip.sh" "$ROOT/Scripts/check-linux-check-ru
 run_gate "linux-check.sh" "$ROOT/Scripts/linux-check.sh"
 
 run_build "iOS" 'generic/platform=iOS'
-run_build "visionOS" 'generic/platform=visionOS'
-run_build "tvOS" 'generic/platform=tvOS'
 
 if [[ "$status" -eq 0 ]]; then
   printf '\n✓ All gates passed.\n'

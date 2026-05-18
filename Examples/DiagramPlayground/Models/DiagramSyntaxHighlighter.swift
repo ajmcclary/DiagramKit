@@ -272,7 +272,7 @@ public final class DiagramSyntaxHighlighter: Sendable {
     }
     #endif
 
-    #if canImport(UIKit) && !targetEnvironment(macCatalyst)
+    #if canImport(UIKit)
     public func highlight(
         _ source: String,
         in textView: UITextView,

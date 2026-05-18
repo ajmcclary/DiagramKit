@@ -266,7 +266,7 @@ struct NativeCodeEditor: NSViewRepresentable {
     }
 }
 
-#elseif canImport(UIKit) && !targetEnvironment(macCatalyst)
+#elseif canImport(UIKit)
 import UIKit
 
 // MARK: - iOS NativeCodeEditor

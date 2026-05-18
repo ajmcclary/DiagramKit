@@ -7,7 +7,7 @@ import DiagramKitInteractive
 import DiagramKitModel
 @testable import DiagramPlayground
 
-@available(iOS 26.0, macOS 26.0, macCatalyst 26.0, *)
+@available(iOS 26.0, macOS 26.0, *)
 @MainActor
 final class LiveEditorStoreEditorLifecycleTests: XCTestCase {
 

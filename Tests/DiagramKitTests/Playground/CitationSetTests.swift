@@ -10,7 +10,7 @@
 import XCTest
 @testable import DiagramPlayground
 
-@available(iOS 26.0, macOS 26.0, macCatalyst 26.0, *)
+@available(iOS 26.0, macOS 26.0, *)
 final class CitationSetTests: XCTestCase {
 
     func test_everySurfaceHasPins() {

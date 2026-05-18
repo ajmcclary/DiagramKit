@@ -7,7 +7,7 @@ import CoreGraphics
 import CoreText
 #endif
 #if canImport(UIKit) || canImport(AppKit)
-#if targetEnvironment(macCatalyst) || canImport(UIKit)
+#if canImport(UIKit)
 import UIKit
 #elseif canImport(AppKit)
 import AppKit

@@ -7,7 +7,7 @@ import DiagramKitRenderingCG
 import CoreGraphics
 import QuartzCore
 
-#if targetEnvironment(macCatalyst) || canImport(UIKit)
+#if canImport(UIKit)
 import UIKit
 
 /// A UIView subclass that renders diagrams

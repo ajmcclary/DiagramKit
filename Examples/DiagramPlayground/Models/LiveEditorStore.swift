@@ -769,7 +769,7 @@ public final class LiveEditorStore {
 
     /// Convert a platform image to PNG data.
     private func platformPNGData(from image: BMImage) -> Data? {
-        #if targetEnvironment(macCatalyst) || canImport(UIKit)
+        #if canImport(UIKit)
         return image.pngData()
         #elseif canImport(AppKit)
         guard let tiffData = image.tiffRepresentation,

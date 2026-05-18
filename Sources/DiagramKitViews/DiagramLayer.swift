@@ -7,9 +7,7 @@ import DiagramKitCommon
 import CoreGraphics
 @preconcurrency import QuartzCore
 
-#if targetEnvironment(macCatalyst)
-import UIKit
-#elseif canImport(UIKit)
+#if canImport(UIKit)
 import UIKit
 #elseif canImport(AppKit)
 import AppKit
@@ -100,15 +98,13 @@ public class DiagramLayer: CALayer {
     /// inits are visible as `@MainActor`.
     private nonisolated func commonInit() {
         needsDisplayOnBoundsChange = true
-        #if os(visionOS)
-        contentsScale = 2.0
-        #elseif targetEnvironment(macCatalyst) || canImport(UIKit)
+        #if canImport(UIKit)
         // `UIScreen.main` is deprecated on iOS 13+ multi-scene apps; at
         // init time the layer is not yet attached to a window so we
         // have no scene to query. Hosts that need exact per-scene
-        // backing scale on iPad / Catalyst should call
-        // ``updateContentsScale(_:)`` from
-        // `traitCollectionDidChange(_:)` once the view is in a window.
+        // backing scale on iPad should call ``updateContentsScale(_:)``
+        // from `traitCollectionDidChange(_:)` once the view is in a
+        // window.
         contentsScale = UIScreen.main.scale
         #elseif canImport(AppKit)
         contentsScale = NSScreen.main?.backingScaleFactor ?? 2.0

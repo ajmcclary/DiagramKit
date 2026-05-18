@@ -3,9 +3,7 @@
 import Foundation
 import DiagramKitCommon
 import CoreGraphics
-#if targetEnvironment(macCatalyst)
-import UIKit
-#elseif canImport(UIKit)
+#if canImport(UIKit)
 import UIKit
 #elseif canImport(AppKit)
 import AppKit

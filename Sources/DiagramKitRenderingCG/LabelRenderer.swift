@@ -5,9 +5,7 @@ import DiagramKitModel
 import CoreGraphics
 import CoreText
 
-#if targetEnvironment(macCatalyst)
-import UIKit
-#elseif canImport(UIKit)
+#if canImport(UIKit)
 import UIKit
 #elseif canImport(AppKit)
 import AppKit
@@ -107,7 +105,7 @@ public final class LabelRenderer {
     ) {
         context.saveGState()
 
-        #if targetEnvironment(macCatalyst) || canImport(UIKit)
+        #if canImport(UIKit)
         attributedString.draw(in: rect)
         #elseif canImport(AppKit)
         let centerY = rect.midY

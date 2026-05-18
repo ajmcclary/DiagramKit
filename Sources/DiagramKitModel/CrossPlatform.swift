@@ -4,29 +4,7 @@ import DiagramKitCommon
 import CoreGraphics
 #endif
 
-#if targetEnvironment(macCatalyst)
-import UIKit
-public typealias BMView = UIView
-public typealias BMColor = UIColor
-public typealias BMBezierPath = UIBezierPath
-public typealias BMFont = UIFont
-public typealias BMImage = UIImage
-
-extension BMBezierPath {
-    public func bm_line(to point: CGPoint) {
-        addLine(to: point)
-    }
-
-    public func bm_curve(to point: CGPoint, controlPoint1: CGPoint, controlPoint2: CGPoint) {
-        addCurve(to: point, controlPoint1: controlPoint1, controlPoint2: controlPoint2)
-    }
-
-    public var bm_cgPath: CGPath {
-        cgPath
-    }
-}
-
-#elseif canImport(UIKit)
+#if canImport(UIKit)
 import UIKit
 public typealias BMView = UIView
 public typealias BMColor = UIColor
@@ -153,7 +131,7 @@ extension BMColor {
     public func bmColorEquals(_ other: BMColor) -> Bool {
         var r1: CGFloat = 0, g1: CGFloat = 0, b1: CGFloat = 0, a1: CGFloat = 0
         var r2: CGFloat = 0, g2: CGFloat = 0, b2: CGFloat = 0, a2: CGFloat = 0
-        #if targetEnvironment(macCatalyst) || canImport(UIKit)
+        #if canImport(UIKit)
         getRed(&r1, green: &g1, blue: &b1, alpha: &a1)
         other.getRed(&r2, green: &g2, blue: &b2, alpha: &a2)
         #elseif canImport(AppKit)
@@ -169,7 +147,7 @@ extension BMColor {
 
     public var hexString: String {
         var r: CGFloat = 0, g: CGFloat = 0, b: CGFloat = 0, a: CGFloat = 0
-        #if targetEnvironment(macCatalyst) || canImport(UIKit)
+        #if canImport(UIKit)
         getRed(&r, green: &g, blue: &b, alpha: &a)
         #elseif canImport(AppKit)
         guard let rgbColor = usingColorSpace(.deviceRGB) else { return "#000000" }
@@ -183,7 +161,7 @@ extension BMColor {
     /// `rgba(r,g,b,a)` so alpha survives — `hexString` would truncate it.
     public var cssColorString: String {
         var r: CGFloat = 0, g: CGFloat = 0, b: CGFloat = 0, a: CGFloat = 0
-        #if targetEnvironment(macCatalyst) || canImport(UIKit)
+        #if canImport(UIKit)
         getRed(&r, green: &g, blue: &b, alpha: &a)
         #elseif canImport(AppKit)
         guard let rgbColor = usingColorSpace(.deviceRGB) else { return "#000000" }
@@ -203,7 +181,7 @@ extension BMColor {
         var r1: CGFloat = 0, g1: CGFloat = 0, b1: CGFloat = 0, a1: CGFloat = 0
         var r2: CGFloat = 0, g2: CGFloat = 0, b2: CGFloat = 0, a2: CGFloat = 0
 
-        #if targetEnvironment(macCatalyst) || canImport(UIKit)
+        #if canImport(UIKit)
         getRed(&r1, green: &g1, blue: &b1, alpha: &a1)
         other.getRed(&r2, green: &g2, blue: &b2, alpha: &a2)
         #elseif canImport(AppKit)

@@ -12,7 +12,7 @@ import XCTest
 @testable import DiagramPlayground
 import DiagramKitModel
 
-@available(iOS 26.0, macOS 26.0, macCatalyst 26.0, *)
+@available(iOS 26.0, macOS 26.0, *)
 final class SnippetLibraryTests: XCTestCase {
 
     func test_libraryHas28Snippets() {

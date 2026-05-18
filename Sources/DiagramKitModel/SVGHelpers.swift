@@ -2,16 +2,14 @@
 #if canImport(UIKit) || canImport(AppKit)
 import Foundation
 import CoreGraphics
-#if targetEnvironment(macCatalyst)
-import UIKit
-#elseif canImport(UIKit)
+#if canImport(UIKit)
 import UIKit
 #elseif canImport(AppKit)
 import AppKit
 #endif
 
 public func _hex(_ color: BMColor) -> String? {
-    #if targetEnvironment(macCatalyst) || canImport(UIKit)
+    #if canImport(UIKit)
     var r: CGFloat = 0
     var g: CGFloat = 0
     var b: CGFloat = 0
