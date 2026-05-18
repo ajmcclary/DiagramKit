@@ -261,7 +261,7 @@ outside the defining module.
 
 ## Testing And Snapshots
 
-- Current test source count: 300 Swift files (298 under `Tests/DiagramKitTests`, 2 under `Tests/DiagramKitLinuxTests`). The 15-file XCUI accessibility bundle was removed alongside the 2026-05-18 sample-app relocation; the Xcode-side accessibility audit is no longer gated.
+- Current test source count: 301 Swift files (299 under `Tests/DiagramKitTests`, 2 under `Tests/DiagramKitLinuxTests`). The 15-file XCUI accessibility bundle was removed alongside the 2026-05-18 sample-app relocation; the Xcode-side accessibility audit is no longer gated.
 - The corpus is `Sources/DiagramKitSample/Resources/test-diagrams.json` with
   424 entries (397 Mermaid-only + 27 multi-format: D2, DOT, Structurizr, PlantUML).
 - Corpus baselines under `Tests/DiagramKitTests/__Snapshots__/` track
@@ -352,7 +352,7 @@ Feature-complete: Phases 0–10 plus the follow-on Phases 1–11 (DOT
 exporter, full PlantUML family coverage, ASCII renderers for all 28
 families) have all landed. Importers and exporters ship for Mermaid,
 D2, Graphviz DOT, Structurizr, and PlantUML (sequence + class +
-state/activity + mindmap + gantt + C4). The corpus carries ~422
+state/activity + mindmap + gantt + C4). The corpus carries 424
 entries across 28 diagram families. The active backlog is currently empty;
 the completed roadmap lives in [docs/archive/PHASES.md](docs/archive/PHASES.md),
 and [BASELINES.md](BASELINES.md) has the closing-commit map.

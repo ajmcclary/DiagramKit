@@ -145,7 +145,7 @@ Verify Linux build: `./Scripts/linux-check.sh` (requires Docker or Podman; build
 
 ```bash
 swift build                           # ~50s clean, ~4s incremental
-swift test                            # full suite (298 test files; see BASELINES.md for caveats)
+swift test                            # full suite (299 test files; see BASELINES.md for caveats)
 swift test --filter <NameOrPattern>   # narrow run, e.g. SequenceSvgTests, CorpusSnapshotTests/svgSnapshot
 ./Scripts/bootstrap-smoke-check.sh    # local "is this branch healthy?" gate
 ```

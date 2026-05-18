@@ -110,8 +110,8 @@ empty; the completed roadmap lives in [docs/archive/PHASES.md](docs/archive/PHAS
 
 ## Testing
 
-- Test sources: 298 Swift files under `Tests/DiagramKitTests`
-  (300 total incl. `Tests/DiagramKitLinuxTests`). The XCUI bundle was
+- Test sources: 299 Swift files under `Tests/DiagramKitTests`
+  (301 total incl. `Tests/DiagramKitLinuxTests`). The XCUI bundle was
   removed alongside the 2026-05-18 sample-app relocation.
 - Corpus: `Sources/DiagramKitSample/Resources/test-diagrams.json`
   (424 entries: 397 Mermaid-only + 27 multi-format with D2, DOT, Structurizr, PlantUML sources).
