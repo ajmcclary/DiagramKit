@@ -54,15 +54,7 @@ struct CorpusBrowserView: View {
                 .font(.system(size: 11))
                 .foregroundStyle(.secondary)
             Spacer()
-            Button {
-                store.dismissFullScreen()
-            } label: {
-                Image(systemName: "xmark")
-                    .font(.system(size: 11, weight: .semibold))
-                    .foregroundStyle(.secondary)
-            }
-            .buttonStyle(.plain)
-            .keyboardShortcut(.cancelAction)
+            HeaderCloseButton { store.dismissFullScreen() }
         }
         .padding(.horizontal, 14)
         .padding(.vertical, 8)

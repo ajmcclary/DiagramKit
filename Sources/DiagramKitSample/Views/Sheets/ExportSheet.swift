@@ -56,15 +56,7 @@ struct ExportSheet: View {
             Text("Export")
                 .font(.system(size: 13, weight: .semibold))
             Spacer()
-            Button {
-                store.closeExportSheet()
-            } label: {
-                Image(systemName: "xmark")
-                    .font(.system(size: 11, weight: .semibold))
-                    .foregroundStyle(.secondary)
-            }
-            .buttonStyle(.plain)
-            .keyboardShortcut(.cancelAction)
+            HeaderCloseButton { store.closeExportSheet() }
         }
         .padding(.horizontal, 14)
         .padding(.vertical, 8)
