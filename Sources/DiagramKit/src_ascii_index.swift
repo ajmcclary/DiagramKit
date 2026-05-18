@@ -292,29 +292,12 @@ public final class original_src_ascii_index {
     }
 
     // MARK: - Internal theme/colorMode mapping helpers
-
-    private static func _mapColorMode(_ colorMode: AsciiThemeColorMode) -> ColorMode {
-        switch colorMode {
-        case .none:   return .none
-        case .ansi16: return .ansi16
-        case .ansi256: return .ansi256
-        case .truecolor: return .truecolor
-        case .html:   return .html
-        }
-    }
-
-    private static func _mapTheme(_ theme: AsciiTheme, includeAccentBg: Bool = false) -> original_src_ascii_types.AsciiTheme {
-        original_src_ascii_types.AsciiTheme(
-            fg: theme.values["fg"] ?? "#27272a",
-            border: theme.values["border"] ?? "#a1a1aa",
-            line: theme.values["line"] ?? "#71717a",
-            arrow: theme.values["arrow"] ?? "#52525b",
-            corner: theme.values["corner"],
-            junction: theme.values["junction"],
-            accent: includeAccentBg ? theme.values["accent"] : nil,
-            bg: includeAccentBg ? theme.values["bg"] : nil
-        )
-    }
+    //
+    // `_mapColorMode` and `_mapTheme` used to live here as private
+    // statics, byte-for-byte identical to the free `_asciiMapColorMode`
+    // and `_asciiMapTheme` in `AsciiRenderRegistry.swift`. Removed to
+    // give theme conversion a single source of truth in this module —
+    // `canvasToString` below now calls the free functions directly.
 
     /// Detect the diagram type from the mermaid source text.
     /// Delegates to `DiagramRegistry.detect` and maps the resulting
@@ -500,7 +483,7 @@ public final class original_src_ascii_index {
         colorMode: AsciiThemeColorMode,
         theme: AsciiTheme
     ) throws -> String {
-        return _bmCanvasToString(canvas, roleCanvas: roleCanvas, colorMode: _mapColorMode(colorMode), theme: _mapTheme(theme))
+        return _bmCanvasToString(canvas, roleCanvas: roleCanvas, colorMode: _asciiMapColorMode(colorMode), theme: _asciiMapTheme(theme))
     }
 
 }
