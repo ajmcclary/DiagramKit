@@ -15,8 +15,8 @@ Measured indicators:
 - Swift source files inspected: 585 under `Sources/`.
 - Swift test files inspected: 301 under `Tests/`.
 - Source LOC: approximately 124,391.
-- Files over 500 lines: 60.
-- Files over 1000 lines: 10.
+- Files over 500 lines: 61.
+- Files over 1000 lines: 11.
 - `Scripts/check-file-sizes.sh` currently fails because `Sources/DiagramKitSample/Models/LiveEditorStore.swift` is 1053 lines and is not allowlisted.
 
 Overall structural health: good, with targeted refactoring needed. The highest-impact work is to finish existing abstraction migrations rather than introduce new architectural concepts.
@@ -40,7 +40,7 @@ References:
 Negative impact:
 
 - The code advertises two shape authorities, but only one is reachable.
-- Dead path builders increase maintenance cost and make renderer behavior harder to reason about.
+- The ~19 private path builders in `ShapeRenderer.swift` increase maintenance cost and make renderer behavior harder to reason about.
 - Future shape fixes may be applied to the fallback implementation and never affect output.
 - The optional API shape implies failure semantics that no longer exist.
 
@@ -271,7 +271,7 @@ References:
 - `Sources/DiagramKitImport/ImporterRegistry.swift:1`
 - `Sources/DiagramKitExport/ExporterRegistry.swift:1`
 - `Sources/DiagramKitExport/FlowchartExportWalker.swift:1`
-- `Sources/DiagramKitModel/DiagramRegistry+TypedDescriptor.swift:11`
+- `Sources/DiagramKit/DiagramRegistry+TypedDescriptor.swift:11`
 
 Several abstractions are effective and should be treated as preferred patterns:
 
@@ -425,7 +425,7 @@ Or, if `FrontmatterBinding` is not the right owner, delete the protocol extensio
 
 References:
 
-- `Sources/DiagramKitModel/DiagramRegistry+TypedDescriptor.swift:11`
+- `Sources/DiagramKit/DiagramRegistry+TypedDescriptor.swift:11`
 - `Sources/DiagramKitModel/DiagramRegistry.swift:15`
 - `Sources/DiagramKitModel/DiagramRegistry.swift:40`
 - `Sources/DiagramKitModel/DiagramRegistry.swift:59`
@@ -455,7 +455,7 @@ References:
 - `Sources/DiagramKitSample/Views/FullWindow/ImporterProbeView.swift:57`
 - `Sources/DiagramKitSample/Views/Sheets/ExportSheet.swift:59`
 
-Multiple sample views repeat the same `xmark.circle.fill` close button styling and placement. Similar instances also appear in other full-window and sheet views.
+Multiple sample views repeat the same plain `xmark` close button styling and placement (audit drafted referenced `xmark.circle.fill`; the cited views actually use plain `xmark` — `xmark.circle.fill` is used elsewhere in the sample for the search-field clear button, a different pattern).
 
 Negative impact:
 
@@ -474,11 +474,12 @@ struct HeaderCloseButton: View {
 
     var body: some View {
         Button(action: action) {
-            Image(systemName: "xmark.circle.fill")
-                .font(.title2)
+            Image(systemName: "xmark")
+                .font(.system(size: 11, weight: .semibold))
                 .foregroundStyle(.secondary)
         }
         .buttonStyle(.plain)
+        .keyboardShortcut(.cancelAction)
         .accessibilityLabel("Close")
     }
 }
@@ -501,7 +502,7 @@ This is genuine redundancy, not acceptable repetition. Shape geometry should hav
 Duplication estimate:
 
 - One large fallback switch.
-- Dozens of private shape-builder helpers.
+- ~19 private shape-builder helpers in `ShapeRenderer.swift`.
 - Parallel path-construction behavior in `CGPathRenderer`.
 
 Recommendation:
@@ -803,3 +804,23 @@ Expected outcome: minor reduction in drift and visual inconsistency without over
 DiagramKit's core architecture is sound. The package already has the right major boundaries: common geometry and color types, model-level descriptors, import/export registries, renderer-specific products, and platform-guarded Apple rendering/UI modules. The main opportunity is consolidation: finish migrations that are already underway, remove dead compatibility code, and make the strongest existing patterns the default for new work.
 
 The recommended roadmap intentionally starts with changes that restore governance and delete unreachable code before broader registry alignment. That sequencing should produce immediate maintenance wins while keeping rendering behavior protected by the existing snapshot suite.
+
+## Remediation Status (2026-05-18)
+
+The prioritized roadmap above landed as a series of commits on `main`. Findings are paired with their shipping commit below; two are partially deferred and noted as such.
+
+| Finding | Priority | Status | Commit |
+|---|---|---|---|
+| A3 — Split `LiveEditorStore` (restore gate) | P0 | Landed | `5e783aa` |
+| A1 + D1 — Remove unreachable shape fallback | P1 | Landed | `65efa2f` |
+| A2 — Finish font/text resolver migration | P1 | Landed | `a3939aa` |
+| P1 — `CGRenderRegistry` alignment | P2 | Landed | `75560fa` |
+| D4 — Centralize `DiagramEditor` mutation commits | P2 | Landed | `8a5d7db` |
+| A4 — Typed ASCII renderers for 6 source-fallback families | P3 | **Partial** — theme-mapper dedup landed (`5256079`); typed renderer migration deferred (each family's typed payload differs from the ASCII renderer's internal model, so per-family converters belong in follow-up commits with their own snapshot review). |
+| D2 — Reuse `DiagramRect.bounding` in long-tail bounds | P3 | Landed | `761454d` |
+| P3 — Forward `FrontmatterBinding.extractKey` | P4 | Landed | `95c7970` |
+| P5 — Extract `HeaderCloseButton` (corrected icon) | P4 | Landed | `c9c376c` |
+| P2 — `DiagramEngine._runEngine` helper | P4 | Landed | `e38e7f6` |
+| D3 — Centralize theme conversion in `DiagramPipeline` | P4 | **Partial** — SVG `_diagramColors` helper landed (`c0cacf4`); the ASCII path's `hexString` → `cssColorString` alpha-handling change deferred (no-op for alpha-1.0 corpus today, but a behavior change in principle and belongs in its own commit). |
+
+A5, D5, D6 were observational findings (preserved patterns / acceptable repetition / allowlisted ports) and required no code changes.
