@@ -211,137 +211,60 @@ public struct RenderConfig: Sendable {
         TextMetrics(fontResolver: fontResolver)
     }
 
-    // MARK: - Font Resolution
+    // MARK: - Font Resolution (deprecated wrappers)
     //
-    // NOTE: These methods will move to `DiagramFontResolver` in Phase 2
-    // of the A5 `RenderConfig` split. They remain here for backward
-    // compatibility during the migration.
+    // These instance methods forward to `DiagramFontResolver` and
+    // `TextMetrics`. New code should reach those types directly via
+    // `self.fontResolver` and `self.textMetrics` so the determinism
+    // guarantees of the lock-protected font factories aren't bypassed.
 
     /// Maps a CSS-style numeric weight (100..900) to a `BMFont.Weight`.
     public static func bmWeight(forCSS weight: Int) -> BMFont.Weight {
-        switch weight {
-        case ..<150:    return .ultraLight
-        case 150..<250: return .thin
-        case 250..<350: return .light
-        case 350..<450: return .regular
-        case 450..<550: return .medium
-        case 550..<650: return .semibold
-        case 650..<750: return .bold
-        case 750..<850: return .heavy
-        default:        return .black
-        }
+        DiagramFontResolver.bmWeight(forCSS: weight)
     }
 
-    /// Resolves a monospace font, preferring `defaultFontFamily` when set.
+    @available(*, deprecated, message: "Use config.fontResolver.defaultFont(size:weight:)")
     public func defaultFont(size: CGFloat, weight: Int = 400) -> BMFont {
-        if let family = tokens.defaultFontFamily {
-            if weight >= 550 {
-                let boldCandidates = ["\(family)-Bold", "\(family) Bold"]
-                for name in boldCandidates {
-                    if let f = BMFont(name: name, size: size) { return f }
-                }
-            }
-            if let named = BMFont(name: family, size: size) {
-                return named
-            }
-        }
-        return BMFont.monospacedSystemFont(ofSize: size, weight: Self.bmWeight(forCSS: weight))
+        fontResolver.defaultFont(size: size, weight: weight)
     }
 
-    /// Resolves a proportional (non-monospace) font for the given size and weight.
+    @available(*, deprecated, message: "Use config.fontResolver.proportionalFont(size:weight:)")
     public func proportionalFont(size: CGFloat, weight: Int = 400) -> BMFont {
-        if let family = tokens.defaultProportionalFontFamily {
-            let suffix: String?
-            switch weight {
-            case ..<350:    suffix = nil
-            case 350..<450: suffix = nil
-            case 450..<650: suffix = nil
-            case 650..<850: suffix = "Bold"
-            default:        suffix = "Bold"
-            }
-            if let s = suffix {
-                let candidates = ["\(family)-\(s)", "\(family) \(s)"]
-                for name in candidates {
-                    if let f = BMFont(name: name, size: size) { return f }
-                }
-            }
-            if let named = BMFont(name: family, size: size) {
-                return named
-            }
-        }
-        return BMFont.systemFont(ofSize: size, weight: Self.bmWeight(forCSS: weight))
+        fontResolver.proportionalFont(size: size, weight: weight)
     }
 
-    // MARK: - Font Helpers
+    // MARK: - Font Helpers (deprecated wrappers)
 
+    @available(*, deprecated, message: "Use DiagramFontResolver.fontWeight(from:)")
     public func fontWeight(from weight: Int) -> BMFont.Weight {
-        switch weight {
-        case 100: return .ultraLight
-        case 200: return .thin
-        case 300: return .light
-        case 400: return .regular
-        case 500: return .medium
-        case 600: return .semibold
-        case 700: return .bold
-        case 800: return .heavy
-        case 900: return .black
-        default: return .regular
-        }
+        DiagramFontResolver.fontWeight(from: weight)
     }
 
-    /// Resolve the node-label font, honoring `defaultProportionalFontFamily`
-    /// when no explicit `family` is provided.
+    @available(*, deprecated, message: "Use config.fontResolver.nodeLabelFont(family:)")
     public func nodeLabelFont(family: String? = nil) -> BMFont {
-        if let family,
-           let f = BMFont(name: family, size: tokens.fontSizeNodeLabel) {
-            return f
-        }
-        return proportionalFont(size: tokens.fontSizeNodeLabel, weight: tokens.fontWeightNodeLabel)
+        fontResolver.nodeLabelFont(family: family)
     }
 
-    /// Resolve the edge-label font.
+    @available(*, deprecated, message: "Use config.fontResolver.edgeLabelFont(family:)")
     public func edgeLabelFont(family: String? = nil) -> BMFont {
-        if let family,
-           let f = BMFont(name: family, size: tokens.fontSizeEdgeLabel) {
-            return f
-        }
-        return proportionalFont(size: tokens.fontSizeEdgeLabel, weight: tokens.fontWeightEdgeLabel)
+        fontResolver.edgeLabelFont(family: family)
     }
 
-    /// Resolve the group-header font.
+    @available(*, deprecated, message: "Use config.fontResolver.groupHeaderFont(family:)")
     public func groupHeaderFont(family: String? = nil) -> BMFont {
-        if let family,
-           let f = BMFont(name: family, size: tokens.fontSizeGroupHeader) {
-            return f
-        }
-        return proportionalFont(size: tokens.fontSizeGroupHeader, weight: tokens.fontWeightGroupHeader)
+        fontResolver.groupHeaderFont(family: family)
     }
 
-    // MARK: - Text Measurement
-    //
-    // NOTE: These methods will move to `TextMetrics` in Phase 3 of the A5
-    // `RenderConfig` split. They remain here for backward compatibility.
+    // MARK: - Text Measurement (deprecated wrappers)
 
-    /// Measure text width using CoreText for accurate, deterministic results.
+    @available(*, deprecated, message: "Use config.textMetrics.estimateTextWidth(_:fontSize:fontWeight:)")
     public func estimateTextWidth(_ text: String, fontSize: CGFloat, fontWeight: Int) -> CGFloat {
-        guard !text.isEmpty else { return 0 }
-        let font = proportionalFont(size: fontSize, weight: fontWeight)
-        let attributes: [NSAttributedString.Key: Any] = [.font: font]
-        let attrStr = NSAttributedString(string: text, attributes: attributes)
-        let line = CTLineCreateWithAttributedString(attrStr)
-        let bounds = CTLineGetBoundsWithOptions(line, .useOpticalBounds)
-        return ceil(bounds.width)
+        textMetrics.estimateTextWidth(text, fontSize: fontSize, fontWeight: fontWeight)
     }
 
-    /// Measure monospace text width using CoreText.
+    @available(*, deprecated, message: "Use config.textMetrics.estimateMonoTextWidth(_:fontSize:)")
     public func estimateMonoTextWidth(_ text: String, fontSize: CGFloat) -> CGFloat {
-        guard !text.isEmpty else { return 0 }
-        let font = defaultFont(size: fontSize)
-        let attributes: [NSAttributedString.Key: Any] = [.font: font]
-        let attrStr = NSAttributedString(string: text, attributes: attributes)
-        let line = CTLineCreateWithAttributedString(attrStr)
-        let bounds = CTLineGetBoundsWithOptions(line, .useOpticalBounds)
-        return ceil(bounds.width)
+        textMetrics.estimateMonoTextWidth(text, fontSize: fontSize)
     }
 }
 #endif

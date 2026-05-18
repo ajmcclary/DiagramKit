@@ -101,14 +101,14 @@ extension DiagramRenderer {
                 var maxKeyW: CGFloat = 0
                 for attr in entity.attributes where !attr.keys.isEmpty {
                     let kt = attr.keys.joined(separator: ",")
-                    let w = config.estimateTextWidth(kt, fontSize: 9, fontWeight: 600) + 8
+                    let w = config.textMetrics.estimateTextWidth(kt, fontSize: 9, fontWeight: 600) + 8
                     maxKeyW = max(maxKeyW, w)
                 }
 
                 // Compute comment column position
                 var maxCommentW: CGFloat = 0
                 for attr in entity.attributes where !attr.comment.isEmpty {
-                    let w = config.estimateTextWidth(attr.comment, fontSize: 9, fontWeight: 400)
+                    let w = config.textMetrics.estimateTextWidth(attr.comment, fontSize: 9, fontWeight: 400)
                     maxCommentW = max(maxCommentW, w + 12)
                 }
 
@@ -145,7 +145,7 @@ extension DiagramRenderer {
                     // Key badges
                     if !attr.keys.isEmpty {
                         let keyText = attr.keys.joined(separator: ",")
-                        let keyWidth = config.estimateTextWidth(keyText, fontSize: 9, fontWeight: 600) + 8
+                        let keyWidth = config.textMetrics.estimateTextWidth(keyText, fontSize: 9, fontWeight: 600) + 8
                         let badgeRect = CGRect(x: entity.x + 6, y: rowY - 7, width: keyWidth, height: 14)
                         let badgePath = BMBezierPath(roundedRect: badgeRect, cornerRadius: 2)
                         ctx.setFillColor(self.theme.keyBadgeColor().cgColor)
@@ -186,8 +186,8 @@ extension DiagramRenderer {
                 guard !rel.label.isEmpty else { continue }
                 let pts = rel.points.map { CGPoint(x: $0.x, y: $0.y) }
                 let mid = self._arcLengthMidpoint(pts)
-                let labelFont = config.edgeLabelFont()
-                let textW = config.estimateTextWidth(rel.label, fontSize: config.fontSizeEdgeLabel, fontWeight: 400) + 8
+                let labelFont = config.fontResolver.edgeLabelFont()
+                let textW = config.textMetrics.estimateTextWidth(rel.label, fontSize: config.fontSizeEdgeLabel, fontWeight: 400) + 8
                 let textH = config.fontSizeEdgeLabel + 6
                 let bgRect = CGRect(x: mid.x - textW / 2, y: mid.y - textH / 2, width: textW, height: textH)
                 let bgPath = BMBezierPath(roundedRect: bgRect, cornerRadius: 2)

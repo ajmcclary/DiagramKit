@@ -144,7 +144,7 @@ extension DiagramRenderer {
                 guard hasLabel || hasTitle1 || hasTitle2 else { continue }
                 let pts = rel.points.map { CGPoint(x: $0.x, y: $0.y) }
                 guard pts.count >= 2 else { continue }
-                let labelFont = config.edgeLabelFont()
+                let labelFont = config.fontResolver.edgeLabelFont()
 
                 if let label = rel.title, !label.isEmpty {
                     let pos = rel.labelPosition.map { CGPoint(x: $0.x, y: $0.y) } ?? pts[pts.count / 2]
@@ -256,7 +256,7 @@ extension DiagramRenderer {
         if !member.visibility.isEmpty {
             let visText = member.visibility + " "
             _drawTextInFlipped(visText, at: CGPoint(x: currentX, y: point.y), context: ctx, contentHeight: ch, color: theme.effectiveTextFaint(), font: memberFont, alignment: .left)
-            currentX += config.estimateMonoTextWidth(visText, fontSize: config.classMemberFontSize)
+            currentX += config.textMetrics.estimateMonoTextWidth(visText, fontSize: config.classMemberFontSize)
         }
 
         // Member name (include params if method)
@@ -272,7 +272,7 @@ extension DiagramRenderer {
 
         // Underline for static
         if member.cssStyle.contains("underline") {
-            let nameWidth = config.estimateMonoTextWidth(displayName, fontSize: config.classMemberFontSize)
+            let nameWidth = config.textMetrics.estimateMonoTextWidth(displayName, fontSize: config.classMemberFontSize)
             let underlineY = point.y + 6
             ctx.saveGState()
             ctx.setStrokeColor(theme.effectiveTextSecondary().cgColor)
@@ -283,14 +283,14 @@ extension DiagramRenderer {
             ctx.restoreGState()
         }
 
-        currentX += config.estimateMonoTextWidth(displayName, fontSize: config.classMemberFontSize)
+        currentX += config.textMetrics.estimateMonoTextWidth(displayName, fontSize: config.classMemberFontSize)
 
         // Return type
         if !member.returnType.isEmpty {
             let genReturn = parseGenericTypes(member.returnType)
             let colonText = " : "
             _drawTextInFlipped(colonText, at: CGPoint(x: currentX, y: point.y), context: ctx, contentHeight: ch, color: theme.effectiveTextFaint(), font: memberFont, alignment: .left)
-            currentX += config.estimateMonoTextWidth(colonText, fontSize: config.classMemberFontSize)
+            currentX += config.textMetrics.estimateMonoTextWidth(colonText, fontSize: config.classMemberFontSize)
             _drawTextInFlipped(genReturn, at: CGPoint(x: currentX, y: point.y), context: ctx, contentHeight: ch, color: theme.effectiveMuted(), font: memberFont, alignment: .left)
         }
     }
@@ -310,8 +310,8 @@ extension DiagramRenderer {
 
         // Label
         if ns.height > 20 {
-            let labelFont = config.edgeLabelFont()
-            let labelW = config.estimateTextWidth(ns.label, fontSize: config.fontSizeEdgeLabel, fontWeight: 400) + 16
+            let labelFont = config.fontResolver.edgeLabelFont()
+            let labelW = config.textMetrics.estimateTextWidth(ns.label, fontSize: config.fontSizeEdgeLabel, fontWeight: 400) + 16
             let labelH = config.fontSizeEdgeLabel + 8
             let labelRect = CGRect(x: ns.x + config.classBoxPadX, y: ns.y - labelH / 2, width: labelW, height: labelH)
             context.saveGState()
@@ -366,7 +366,7 @@ extension DiagramRenderer {
         context.restoreGState()
 
         // Text centered
-        let labelFont = config.edgeLabelFont()
+        let labelFont = config.fontResolver.edgeLabelFont()
         _drawTextInFlipped(note.text, at: CGPoint(x: x + w / 2, y: y + h / 2), context: context, contentHeight: ch, color: theme.foreground, font: labelFont, alignment: .center)
 
         // Dotted edge to class

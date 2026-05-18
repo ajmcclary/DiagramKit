@@ -201,12 +201,17 @@ public struct DiagramFontResolver: Sendable {
     }
 
     /// Monospace font with explicit `BMFont.Weight`.
+    ///
+    /// Routes through the lock-protected font factories so concurrent
+    /// renderers don't stall on the CoreText/UIFont/NSFont XPC service —
+    /// the same pattern used by ``defaultFont(size:weight:)`` and
+    /// ``proportionalFont(size:weight:)``.
     public func monoFont(size: CGFloat, weight: BMFont.Weight = .regular) -> BMFont {
         if let family = tokens.defaultFontFamily,
-           let f = BMFont(name: family, size: size) {
+           let f = Self.makeBMFont(name: family, size: size) {
             return f
         }
-        return BMFont.monospacedSystemFont(ofSize: size, weight: weight)
+        return Self.makeMonospacedSystemBMFont(size: size, weight: weight)
     }
 
     /// EventModeling-family font with a three-step fallback ladder:

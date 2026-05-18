@@ -31,7 +31,7 @@ extension DiagramRenderer {
             }
 
             let halfWidth = diagram.width / 2
-            let font = config.proportionalFont(size: 14)
+            let font = config.fontResolver.proportionalFont(size: 14)
 
             for link in diagram.links {
                 let sourceColor = nodeColorMap[link.sourceID] ?? defaultColor(link.sourceID)

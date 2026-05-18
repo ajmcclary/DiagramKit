@@ -66,7 +66,7 @@ extension DiagramRenderer {
                     self._drawTextInFlipped(name, at: CGPoint(x: box.x + 6, y: box.y + 14),
                         context: ctx, contentHeight: ch,
                         color: theme.effectiveMuted(),
-                        font: cfg.edgeLabelFont(),
+                        font: cfg.fontResolver.edgeLabelFont(),
                         alignment: .left)
                 }
             }
@@ -79,7 +79,7 @@ extension DiagramRenderer {
                 ctx.stroke(blockRect)
 
                 let labelText = block.label.isEmpty ? block.type : "\(block.type) [\(block.label)]"
-                let tabWidth = cfg.estimateTextWidth(labelText, fontSize: cfg.fontSizeEdgeLabel, fontWeight: cfg.fontWeightGroupHeader) + 16
+                let tabWidth = cfg.textMetrics.estimateTextWidth(labelText, fontSize: cfg.fontSizeEdgeLabel, fontWeight: cfg.fontWeightGroupHeader) + 16
                 let tabHeight = cfg.sequenceTabHeight
                 let tabRect = CGRect(x: block.x, y: block.y, width: tabWidth, height: tabHeight)
                 ctx.setFillColor(theme.subgraphHeaderColor().cgColor)
@@ -90,7 +90,7 @@ extension DiagramRenderer {
                 self._drawTextInFlipped(labelText, at: CGPoint(x: block.x + 6, y: block.y + tabHeight / 2),
                     context: ctx, contentHeight: ch,
                     color: theme.effectiveTextSecondary(),
-                    font: cfg.groupHeaderFont(),
+                    font: cfg.fontResolver.groupHeaderFont(),
                     alignment: .left)
 
                 for divider in block.dividers {
@@ -106,7 +106,7 @@ extension DiagramRenderer {
                         self._drawTextInFlipped("[\(divider.label)]", at: CGPoint(x: block.x + 8, y: divider.y + 14),
                             context: ctx, contentHeight: ch,
                             color: theme.effectiveMuted(),
-                            font: cfg.edgeLabelFont(),
+                            font: cfg.fontResolver.edgeLabelFont(),
                             alignment: .left)
                     }
                 }
@@ -164,7 +164,7 @@ extension DiagramRenderer {
                     self._drawTextInFlipped("\(Int(num))", at: CGPoint(x: numX, y: msg.y - 2),
                         context: ctx, contentHeight: ch,
                         color: theme.effectiveMuted(),
-                        font: cfg.edgeLabelFont(),
+                        font: cfg.fontResolver.edgeLabelFont(),
                         alignment: .right)
                 }
 
@@ -196,7 +196,7 @@ extension DiagramRenderer {
                     self._drawTextInFlipped(msg.label, at: CGPoint(x: msg.x1 + loopW + labelGap, y: msg.y + loopH / 2),
                         context: ctx, contentHeight: ch,
                         color: theme.effectiveMuted(),
-                        font: cfg.edgeLabelFont(),
+                        font: cfg.fontResolver.edgeLabelFont(),
                         alignment: .left)
                 } else {
                     ctx.move(to: CGPoint(x: msg.x1, y: msg.y))
@@ -214,7 +214,7 @@ extension DiagramRenderer {
                     self._drawTextInFlipped(msg.label, at: CGPoint(x: (msg.x1 + msg.x2) / 2, y: msg.y - 8),
                         context: ctx, contentHeight: ch,
                         color: theme.effectiveMuted(),
-                        font: cfg.edgeLabelFont(),
+                        font: cfg.fontResolver.edgeLabelFont(),
                         alignment: .center)
                 }
             }
@@ -252,7 +252,7 @@ extension DiagramRenderer {
                 if !note.text.isEmpty {
                     let inset = noteRect.insetBy(dx: 6, dy: 4)
                     self.labelRenderer.drawMultilineText(note.text, in: inset, context: ctx,
-                        color: theme.effectiveMuted(), font: cfg.edgeLabelFont(), alignment: .center)
+                        color: theme.effectiveMuted(), font: cfg.fontResolver.edgeLabelFont(), alignment: .center)
                 }
             }
 
@@ -342,7 +342,7 @@ extension DiagramRenderer {
         context.strokePath()
         _drawTextInFlipped(actor.label, at: CGPoint(x: box.midX, y: box.midY),
             context: context, contentHeight: contentHeight,
-            color: theme.foreground, font: config.nodeLabelFont(), alignment: .center)
+            color: theme.foreground, font: config.fontResolver.nodeLabelFont(), alignment: .center)
     }
 
     private func _drawActorStickFigure(_ actor: PositionedSequenceActor, in context: CGContext, contentHeight: Double) {
@@ -375,7 +375,7 @@ extension DiagramRenderer {
 
         _drawTextInFlipped(actor.label, at: CGPoint(x: cx, y: boxTop + figH + 8),
             context: context, contentHeight: contentHeight,
-            color: theme.foreground, font: config.nodeLabelFont(), alignment: .center)
+            color: theme.foreground, font: config.fontResolver.nodeLabelFont(), alignment: .center)
     }
 
     private func _drawActorBoundary(_ actor: PositionedSequenceActor, in context: CGContext, contentHeight: Double) {
@@ -393,7 +393,7 @@ extension DiagramRenderer {
         context.restoreGState()
         _drawTextInFlipped(actor.label, at: CGPoint(x: actor.x, y: actor.y + actor.height + 14),
             context: context, contentHeight: contentHeight,
-            color: theme.foreground, font: config.nodeLabelFont(), alignment: .center)
+            color: theme.foreground, font: config.fontResolver.nodeLabelFont(), alignment: .center)
     }
 
     private func _drawActorControl(_ actor: PositionedSequenceActor, in context: CGContext, contentHeight: Double) {
@@ -416,7 +416,7 @@ extension DiagramRenderer {
         context.restoreGState()
         _drawTextInFlipped(actor.label, at: CGPoint(x: actor.x, y: actor.y + actor.height + 14),
             context: context, contentHeight: contentHeight,
-            color: theme.foreground, font: config.nodeLabelFont(), alignment: .center)
+            color: theme.foreground, font: config.fontResolver.nodeLabelFont(), alignment: .center)
     }
 
     private func _drawActorEntity(_ actor: PositionedSequenceActor, in context: CGContext, contentHeight: Double) {
@@ -434,7 +434,7 @@ extension DiagramRenderer {
         context.restoreGState()
         _drawTextInFlipped(actor.label, at: CGPoint(x: actor.x, y: actor.y + actor.height + 14),
             context: context, contentHeight: contentHeight,
-            color: theme.foreground, font: config.nodeLabelFont(), alignment: .center)
+            color: theme.foreground, font: config.fontResolver.nodeLabelFont(), alignment: .center)
     }
 
     private func _drawActorDatabase(_ actor: PositionedSequenceActor, in context: CGContext, contentHeight: Double) {
@@ -464,7 +464,7 @@ extension DiagramRenderer {
         context.restoreGState()
         _drawTextInFlipped(actor.label, at: CGPoint(x: actor.x, y: actor.y + h + 14),
             context: context, contentHeight: contentHeight,
-            color: theme.foreground, font: config.nodeLabelFont(), alignment: .center)
+            color: theme.foreground, font: config.fontResolver.nodeLabelFont(), alignment: .center)
     }
 
     private func _drawActorCollections(_ actor: PositionedSequenceActor, in context: CGContext, contentHeight: Double) {
@@ -484,7 +484,7 @@ extension DiagramRenderer {
         context.restoreGState()
         _drawTextInFlipped(actor.label, at: CGPoint(x: actor.x + offsetX / 2, y: actor.y + actor.height + 14),
             context: context, contentHeight: contentHeight,
-            color: theme.foreground, font: config.nodeLabelFont(), alignment: .center)
+            color: theme.foreground, font: config.fontResolver.nodeLabelFont(), alignment: .center)
     }
 
     private func _drawActorQueue(_ actor: PositionedSequenceActor, in context: CGContext, contentHeight: Double) {
@@ -511,7 +511,7 @@ extension DiagramRenderer {
         context.restoreGState()
         _drawTextInFlipped(actor.label, at: CGPoint(x: actor.x, y: actor.y + h + 14),
             context: context, contentHeight: contentHeight,
-            color: theme.foreground, font: config.nodeLabelFont(), alignment: .center)
+            color: theme.foreground, font: config.fontResolver.nodeLabelFont(), alignment: .center)
     }
 
     // MARK: - Color helper
