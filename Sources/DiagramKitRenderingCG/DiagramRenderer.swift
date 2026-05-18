@@ -42,7 +42,8 @@ public final class DiagramRenderer {
         self.labelRenderer = LabelRenderer()
     }
 
-    public func render(_ positioned: PositionedGraph, in context: CGContext, bounds: CGRect) {        context.saveGState()
+    public func render(_ positioned: PositionedGraph, in context: CGContext, bounds: CGRect) {
+        context.saveGState()
         defer { context.restoreGState() }
 
         if !theme.transparent {
@@ -50,62 +51,7 @@ public final class DiagramRenderer {
             context.fill(bounds)
         }
 
-        switch positioned.content {
-        case .classDiagram:
-            _drawClass(positioned, in: context, bounds: bounds)
-        case .erDiagram:
-            _drawEr(positioned, in: context, bounds: bounds)
-        case .sequenceDiagram:
-            _drawSequence(positioned, in: context, bounds: bounds)
-        case .stateDiagram, .flowchart:
-            _drawFlowOrState(positioned, in: context, bounds: bounds)
-        case .xyChart:
-            _drawXYChart(positioned, in: context, bounds: bounds)
-        case .pie:
-            _drawPie(positioned, in: context, bounds: bounds)
-        case .journey:
-            _drawJourney(positioned, in: context, bounds: bounds)
-        case .gantt:
-            _drawGantt(positioned, in: context, bounds: bounds)
-        case .quadrantChart:
-            _drawQuadrant(positioned, in: context, bounds: bounds)
-        case .requirement:
-            _drawRequirement(positioned, in: context, bounds: bounds)
-        case .gitGraph:
-            _drawGitGraph(positioned, in: context, bounds: bounds)
-        case .mindmap:
-            _drawMindmap(positioned, in: context, bounds: bounds)
-        case .timeline:
-            _drawTimeline(positioned, in: context, bounds: bounds)
-        case .sankey:
-            _drawSankey(positioned, in: context, bounds: bounds)
-        case .block:
-            _drawBlock(positioned, in: context, bounds: bounds)
-        case .packet:
-            _drawPacket(positioned, in: context, bounds: bounds)
-        case .kanban:
-            _drawKanban(positioned, in: context, bounds: bounds)
-        case .architecture:
-            _drawArchitecture(positioned, in: context, bounds: bounds)
-        case .radar:
-            _drawRadar(positioned, in: context, bounds: bounds)
-        case .treemap:
-            _drawTreemap(positioned, in: context, bounds: bounds)
-        case .venn:
-            _drawVenn(positioned, in: context, bounds: bounds)
-        case .ishikawa:
-            _drawIshikawa(positioned, in: context, bounds: bounds)
-        case .treeView:
-            _drawTreeView(positioned, in: context, bounds: bounds)
-        case .eventModeling:
-            _drawEventModeling(positioned, in: context, bounds: bounds)
-        case .wardleyBeta:
-            _drawWardley(positioned, in: context, bounds: bounds)
-        case .zenuml:
-            _drawZenUML(positioned, in: context, bounds: bounds)
-        case .c4:
-            _drawC4(positioned, in: context, bounds: bounds)
-        }
+        CGRenderRegistry.render(positioned, renderer: self, in: context, bounds: bounds)
     }
 
     // MARK: - Utility
