@@ -229,15 +229,7 @@ public enum DiagramPipeline {
             try _assertPlatformSupport(graph)
             let positioned = try GraphLayout(config: layoutConfig).layout(graph)
 
-            let colors = DiagramColors(
-                bg: theme.background.cssColorString,
-                fg: theme.foreground.cssColorString,
-                line: theme.effectiveLine().cssColorString,
-                accent: theme.effectiveAccent().cssColorString,
-                muted: theme.effectiveMuted().cssColorString,
-                surface: theme.effectiveSurface().cssColorString,
-                border: theme.effectiveBorder().cssColorString
-            )
+            let colors = _diagramColors(from: theme)
             let font = DiagramFontResolver.shared.svgFontFamily
             let diagramId = SVGIDGenerator.id(for: source, policy: idPolicy)
 
@@ -261,15 +253,7 @@ public enum DiagramPipeline {
     ) throws -> String {
         try runPipeline(operation: "DiagramPipeline.renderSVG(positioned:)") {
             try _assertPlatformSupport(positioned.diagram)
-            let colors = DiagramColors(
-                bg: theme.background.cssColorString,
-                fg: theme.foreground.cssColorString,
-                line: theme.effectiveLine().cssColorString,
-                accent: theme.effectiveAccent().cssColorString,
-                muted: theme.effectiveMuted().cssColorString,
-                surface: theme.effectiveSurface().cssColorString,
-                border: theme.effectiveBorder().cssColorString
-            )
+            let colors = _diagramColors(from: theme)
             let font = DiagramFontResolver.shared.svgFontFamily
             let diagramId = SVGIDGenerator.id(
                 for: "\(positioned.diagram.type.rawValue)-\(positioned.width)x\(positioned.height)",
@@ -353,5 +337,22 @@ public enum DiagramPipeline {
             diagnostics.append(contentsOf: renderDiagnostics)
             return AsciiRenderOutput(text: text, diagnostics: uniqueDiagnostics(diagnostics))
         }
+    }
+
+    // MARK: - Theme conversion
+
+    /// Build the SVG-side `DiagramColors` from a `DiagramTheme`.
+    /// Centralizes the alpha-safe `cssColorString` conversion the two
+    /// `renderSVG(...)` paths used to do inline so they can't drift.
+    private static func _diagramColors(from theme: DiagramTheme) -> DiagramColors {
+        DiagramColors(
+            bg: theme.background.cssColorString,
+            fg: theme.foreground.cssColorString,
+            line: theme.effectiveLine().cssColorString,
+            accent: theme.effectiveAccent().cssColorString,
+            muted: theme.effectiveMuted().cssColorString,
+            surface: theme.effectiveSurface().cssColorString,
+            border: theme.effectiveBorder().cssColorString
+        )
     }
 }
