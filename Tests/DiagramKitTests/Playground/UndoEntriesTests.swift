@@ -8,7 +8,7 @@
 //
 
 import XCTest
-@testable import DiagramPlayground
+@testable import DiagramKitSample
 import DiagramKitInteractive
 import DiagramKitModel
 

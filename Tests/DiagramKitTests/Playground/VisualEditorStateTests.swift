@@ -7,7 +7,7 @@
 //
 
 import XCTest
-@testable import DiagramPlayground
+@testable import DiagramKitSample
 
 @available(iOS 26.0, macOS 26.0, *)
 final class VisualEditorStateTests: XCTestCase {

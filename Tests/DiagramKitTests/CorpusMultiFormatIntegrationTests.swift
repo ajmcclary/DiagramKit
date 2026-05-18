@@ -23,7 +23,7 @@ struct MultiFormatBackwardCompatibilityTests {
 
     private static func loadRealCorpus() throws -> [CorpusEntry] {
         let jsonURL = projectRoot()
-            .appendingPathComponent("Examples/DiagramPlayground/Resources/test-diagrams.json")
+            .appendingPathComponent("Sources/DiagramKitSample/Resources/test-diagrams.json")
         let data = try Data(contentsOf: jsonURL)
         let file = try JSONDecoder().decode(CorpusFile.self, from: data)
         return file.diagrams

@@ -28,7 +28,7 @@ final class SVGStructuralSweepTests: XCTestCase {
         // Pin gantt today-marker the same way CorpusSnapshotTests does.
         setenv("DIAGRAMKIT_GANTT_TODAY", "2024-06-15", 1)
         let jsonURL = projectRoot()
-            .appendingPathComponent("Examples/DiagramPlayground/Resources/test-diagrams.json")
+            .appendingPathComponent("Sources/DiagramKitSample/Resources/test-diagrams.json")
         let data = try Data(contentsOf: jsonURL)
         let file = try JSONDecoder().decode(CorpusFile.self, from: data)
         for entry in file.diagrams {

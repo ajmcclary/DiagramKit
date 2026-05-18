@@ -4,7 +4,7 @@ import Foundation
 import XCTest
 import DiagramKit
 import DiagramKitModel
-@testable import DiagramPlayground
+@testable import DiagramKitSample
 
 @available(iOS 26.0, macOS 26.0, *)
 @MainActor

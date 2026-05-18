@@ -35,7 +35,7 @@ let package = Package(
         // declared above. The Xcode project that previously bundled the sample
         // (along with its UI test bundle and xcodegen project.yml) has been
         // removed in favor of pure SwiftPM (see commit history 2026-05-18).
-        .executable(name: "DiagramPlayground", targets: ["DiagramPlayground"])
+        .executable(name: "DiagramKitSample", targets: ["DiagramKitSample"])
     ],
     dependencies: [
         .package(url: "https://github.com/pointfreeco/swift-custom-dump", from: "1.0.0"),
@@ -169,7 +169,7 @@ let package = Package(
         ),
 
         .executableTarget(
-            name: "DiagramPlayground",
+            name: "DiagramKitSample",
             dependencies: [
                 "DiagramKit",
                 "DiagramKitD2",
@@ -179,7 +179,7 @@ let package = Package(
                 "DiagramKitInteractive",
                 .product(name: "IssueReporting", package: "xctest-dynamic-overlay")
             ],
-            path: "Examples/DiagramPlayground",
+            // No `path:` — SwiftPM's default Sources/<TargetName>/ convention applies.
             resources: [
                 .process("Resources")
             ],
@@ -200,7 +200,7 @@ let package = Package(
                 "DiagramKitMermaid",
                 "DiagramKitInteractive",
                 "DiagramKitTestSupport",
-                "DiagramPlayground",
+                "DiagramKitSample",
                 "DiagramKitD2",
                 "DiagramKitGraphviz",
                 "DiagramKitStructurizr",

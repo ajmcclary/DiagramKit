@@ -43,7 +43,7 @@ final class PlaygroundExampleCatalogTests: XCTestCase {
 
     func testPlaygroundCorpusContainsEveryGapsDiagramFamily() throws {
         let diagramsURL = Self.projectRoot()
-            .appendingPathComponent("Examples/DiagramPlayground/Resources/test-diagrams.json")
+            .appendingPathComponent("Sources/DiagramKitSample/Resources/test-diagrams.json")
         let data = try Data(contentsOf: diagramsURL)
         let file = try JSONDecoder().decode(DiagramFile.self, from: data)
         let categories = Set(file.diagrams.map(\.category))
@@ -59,7 +59,7 @@ final class PlaygroundExampleCatalogTests: XCTestCase {
 
     func testPlaygroundPickerUsesGapsCatalogOrder() throws {
         let modelURL = Self.projectRoot()
-            .appendingPathComponent("Examples/DiagramPlayground/Models/SampleDiagrams.swift")
+            .appendingPathComponent("Sources/DiagramKitSample/Models/SampleDiagrams.swift")
         let modelSource = try String(contentsOf: modelURL, encoding: .utf8)
         let catalogIDs = modelSource
             .components(separatedBy: "\n")
@@ -70,19 +70,19 @@ final class PlaygroundExampleCatalogTests: XCTestCase {
         // The v2 PlaygroundShell sidebar (SidebarView.swift) embeds the existing
         // SampleDiagramPanel; the orderedCategories drive is now in the panel.
         let panelURL = Self.projectRoot()
-            .appendingPathComponent("Examples/DiagramPlayground/Views/Toolbar/SampleDiagramPanel.swift")
+            .appendingPathComponent("Sources/DiagramKitSample/Views/Toolbar/SampleDiagramPanel.swift")
         let panelSource = try String(contentsOf: panelURL, encoding: .utf8)
         XCTAssertTrue(panelSource.contains("ForEach(TestDiagrams.orderedCategories)"))
 
         let sidebarURL = Self.projectRoot()
-            .appendingPathComponent("Examples/DiagramPlayground/Views/SidebarView.swift")
+            .appendingPathComponent("Sources/DiagramKitSample/Views/SidebarView.swift")
         let sidebarSource = try String(contentsOf: sidebarURL, encoding: .utf8)
         XCTAssertTrue(sidebarSource.contains("SampleDiagramPanel(store: store)"))
     }
 
     func testEmbeddedFallbackContainsEveryGapsDiagramFamily() throws {
         let modelURL = Self.projectRoot()
-            .appendingPathComponent("Examples/DiagramPlayground/Models/SampleDiagrams.swift")
+            .appendingPathComponent("Sources/DiagramKitSample/Models/SampleDiagrams.swift")
         let modelSource = try String(contentsOf: modelURL, encoding: .utf8)
         let fallbackCategoryIDs = Set(
             modelSource
@@ -95,7 +95,7 @@ final class PlaygroundExampleCatalogTests: XCTestCase {
 
     func testLoaderHasDevelopmentResourceFallback() throws {
         let modelURL = Self.projectRoot()
-            .appendingPathComponent("Examples/DiagramPlayground/Models/SampleDiagrams.swift")
+            .appendingPathComponent("Sources/DiagramKitSample/Models/SampleDiagrams.swift")
         let modelSource = try String(contentsOf: modelURL, encoding: .utf8)
 
         XCTAssertTrue(modelSource.contains("developmentResourceURL()"))

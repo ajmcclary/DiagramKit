@@ -43,7 +43,7 @@ final class VisualReportGenerator: XCTestCase {
 
         let projectRoot = Self.findProjectRoot()
         let jsonPath = (projectRoot as NSString).appendingPathComponent(
-            "Examples/DiagramPlayground/Resources/test-diagrams.json"
+            "Sources/DiagramKitSample/Resources/test-diagrams.json"
         )
 
         try requireFixtureExists(atPath: jsonPath)

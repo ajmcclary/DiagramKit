@@ -7,7 +7,7 @@
 //
 
 import XCTest
-@testable import DiagramPlayground
+@testable import DiagramKitSample
 
 final class WorkspaceModeTests: XCTestCase {
 

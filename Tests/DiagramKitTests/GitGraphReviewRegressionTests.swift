@@ -40,7 +40,7 @@ final class GitGraphReviewRegressionTests: XCTestCase {
 
     func testPlaygroundFixtureJsonIsValidAndContainsGitGraphExamples() throws {
         let path = (Self.projectRoot() as NSString).appendingPathComponent(
-            "Examples/DiagramPlayground/Resources/test-diagrams.json"
+            "Sources/DiagramKitSample/Resources/test-diagrams.json"
         )
         let data = try Data(contentsOf: URL(fileURLWithPath: path))
         let fixture = try JSONDecoder().decode(PlaygroundFixture.self, from: data)

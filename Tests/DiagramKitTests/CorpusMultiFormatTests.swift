@@ -4,7 +4,7 @@ import DiagramKitCommon
 import DiagramKitTestSupport
 @testable import DiagramKit
 #if canImport(CoreGraphics)
-@testable import DiagramPlayground
+@testable import DiagramKitSample
 #endif
 
 // MARK: - Decode Tests
