@@ -43,7 +43,7 @@ swift build --build-tests                           # also compile tests
 swift test --filter <NameOrPattern>                 # one suite/test
 swift test --filter CorpusSnapshotTests             # corpus snapshots (~5 min; see caveats)
 SNAPSHOT_DIAGRAM_IDS=block-1-simple,block-2-columns swift test --filter CorpusSnapshotTests/imageSnapshot
-swift run DiagramPlayground                         # SwiftUI sample app
+swift run DiagramKitSample                          # SwiftUI sample app
 
 # Rebaseline snapshots after a renderer change (chunked to avoid signal-10):
 Scripts/rebaseline-snapshots.sh                     # all SVG + image
@@ -56,9 +56,6 @@ SNAPSHOT_TESTING_RECORD=all SNAPSHOT_DIAGRAM_IDS=block-1-simple,block-2-columns 
 
 # After editing Package.swift:
 swift package resolve
-
-# Playground accessibility audit (opt-in, requires Xcode + xcodegen):
-Scripts/playground-a11y-check.sh
 ```
 
 There is no separate lint/format command. Verification is `swift test` plus the
@@ -84,9 +81,11 @@ DiagramKitViews            (Apple-only)     - DiagramView, DiagramNativeView, Di
 DiagramKit                 (umbrella)       - public API + re-exports (DiagramKitMermaid, Views, RenderingCG, Interactive)
 ```
 
-`DiagramKit` re-exports the lower targets through `ReExports.swift`. Apple-only
-edges to RenderingCG and Views are guarded in `Package.swift` with
-`condition: .when(platforms: [.macOS, .iOS, .tvOS, .visionOS, .macCatalyst])`.
+`DiagramKit` re-exports the lower targets through `ReExports.swift`. The
+package-wide `platforms:` floor is macOS 26 + iOS 26; Apple-only targets like
+`DiagramKitRenderingCG`, `DiagramKitViews`, and `DiagramKitInteractive` are
+gated at the source level with `#if canImport(UIKit) || canImport(AppKit)` /
+`#if canImport(CoreGraphics)` and compile to empty on Linux.
 
 ## Public Surface
 
@@ -137,7 +136,7 @@ edges to RenderingCG and Views are guarded in `Package.swift` with
   code on the parse/layout/render path. Test suites
   (`MermaidPipelineConcurrencyTests` exercises the engine under
   `withThrowingTaskGroup` to validate determinism) and the
-  `DiagramPlayground` sample app (`Task.detached`, `async let` for UI
+  `DiagramKitSample` sample app (`Task.detached`, `async let` for UI
   loading) are explicitly out of scope. Narrow `DispatchQueue` caches
   serializing a single regex/formatter cache inside a parser
   (e.g. `_dateFormatterCacheQueue`, `_reqRegexCacheQueue`) are not
@@ -249,8 +248,8 @@ outside the defining module.
 - `Sources/DiagramKitInteractive/` - Apple-only `DiagramEditor` plus
   mutation/undo support.
 - `Sources/DiagramKitTestSupport/` - Linux-portable test helpers.
-- `Examples/DiagramPlayground/` - SwiftUI sample app and the current
-  `test-diagrams.json` corpus source.
+- `Sources/DiagramKitSample/` - SwiftUI sample app (executable target
+  `DiagramKitSample`) and the current `test-diagrams.json` corpus source.
 - `Tests/DiagramKitTests/` - XCTest and swift-testing suites plus corpus
   snapshots.
 - `Tests/DiagramKitLinuxTests/` - Linux-portable swift-testing suite that
@@ -259,19 +258,11 @@ outside the defining module.
   CoreText-bound families (ishikawa / treeView / eventModeling) parse +
   renderSVG + renderASCII successfully on Linux. Built and run under
   `Dockerfile.linux-check`.
-- `Examples/DiagramPlayground/UITests/` - macOS-only XCUI test bundle
-  (`DiagramPlaygroundUITests`). `SmokeTests` proves the harness boots;
-  `IdentifierPresenceTests` pins `A11yID` constants to real controls;
-  `AccessibilityAuditTests` drives `performAccessibilityAudit()` across
-  five screen states. Invoked via `Scripts/playground-a11y-check.sh`.
-  `XCTestCase+PlaygroundLaunch` exposes `launchPlayground(initialState:)`,
-  which seeds initial state via `-uitest-state <id>` (read at startup
-  by `DiagramPlaygroundApp.init()` under `#if DEBUG`).
 
 ## Testing And Snapshots
 
-- Current test source count: 315 Swift files (298 under `Tests/DiagramKitTests`, 2 under `Tests/DiagramKitLinuxTests`, 15 under `Examples/DiagramPlayground/UITests`).
-- The corpus is `Examples/DiagramPlayground/Resources/test-diagrams.json` with
+- Current test source count: 300 Swift files (298 under `Tests/DiagramKitTests`, 2 under `Tests/DiagramKitLinuxTests`). The 15-file XCUI accessibility bundle was removed alongside the 2026-05-18 sample-app relocation; the Xcode-side accessibility audit is no longer gated.
+- The corpus is `Sources/DiagramKitSample/Resources/test-diagrams.json` with
   424 entries (397 Mermaid-only + 27 multi-format: D2, DOT, Structurizr, PlantUML).
 - Corpus baselines under `Tests/DiagramKitTests/__Snapshots__/` track
   437 SVG, 437 image, and 424 ASCII snapshots (1298 total; stored on
@@ -319,14 +310,9 @@ no keyword matching.
   under Swift 6.
 - `Scripts/linux-check.sh` - Docker/Podman build of the Linux-portable target
   matrix on `swift:6.3.1-noble`.
-- `Scripts/playground-a11y-check.sh` - opt-in XCUI accessibility audit of the
-  DiagramPlayground demo app via `xcodebuild test`. Not part of
-  `bootstrap-smoke-check.sh`; same environment-dependent / slow policy as
-  `linux-check.sh`. Requires Xcode 15+ and `xcodegen`.
 
 If Docker/Podman is not running locally, record `linux-check.sh` as skipped due
-to environment. Do not treat that as a source failure. Same convention applies
-to `playground-a11y-check.sh` when Xcode is unavailable.
+to environment. Do not treat that as a source failure.
 
 `Package.swift` applies `strictConcurrencySettings` using the `StrictConcurrency`
 upcoming feature. `InferSendableFromCaptures` is intentionally omitted because it

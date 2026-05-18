@@ -39,7 +39,7 @@ DiagramKit is structured as a layered Swift package: a small portable foundation
               └─────────────────────────────────────┘
 ```
 
-Apple-platform-only edges in [Package.swift](Package.swift) are guarded with `condition: .when(platforms: [.macOS, .iOS, .tvOS, .visionOS, .macCatalyst])`. Source-level platform gates use `#if canImport(CoreGraphics)`, `#if canImport(CoreText)`, and `#if canImport(UIKit) || canImport(AppKit)`.
+The package-wide `platforms:` floor in [Package.swift](Package.swift) is macOS 26 + iOS 26 (Catalyst, tvOS, and visionOS were dropped on 2026-05-18). Apple-only targets like `DiagramKitRenderingCG`, `DiagramKitViews`, and `DiagramKitInteractive` are gated at the source level via `#if canImport(CoreGraphics)`, `#if canImport(CoreText)`, and `#if canImport(UIKit) || canImport(AppKit)`.
 
 | Target | What lives there | Linux | Apple |
 |---|---|---|---|
@@ -110,7 +110,7 @@ Emission sites use the typed `DiagramDiagnostic.lossyTransform(.<category>, ...)
 Scope. This invariant covers `Sources/DiagramKit*/` parse/layout/render code. It does **not** cover:
 
 - **Tests** — `Tests/DiagramKitTests/MermaidPipelineConcurrencyTests.swift` deliberately drives `DiagramEngine` from `withThrowingTaskGroup` to validate determinism under concurrent callers.
-- **The `DiagramPlayground` sample app** — UI work uses `Task.detached`, `async let`, and `DispatchQueue.main.async` for syntax highlighting, history persistence, and file loading.
+- **The `DiagramKitSample` sample app** — UI work uses `Task.detached`, `async let`, and `DispatchQueue.main.async` for syntax highlighting, history persistence, and file loading.
 - **Narrow per-parser caches** — `_dateFormatterCacheQueue` (`src_gantt_parser.swift`) and `_reqRegexCacheQueue` (`src_requirement_parser.swift`) are single-element `DispatchQueue` serializers around `DateFormatter` / `NSRegularExpression` reuse, not pools.
 
 Grep audits that surface `TaskGroup` / `Task.detached` / `DispatchQueue` should consult this scope before flagging hits as policy violations.

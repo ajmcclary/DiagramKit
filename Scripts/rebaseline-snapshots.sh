@@ -44,7 +44,7 @@ cd "$PROJECT_ROOT"
 
 mkdir -p .rebaseline-logs
 
-JSON="Examples/DiagramPlayground/Resources/test-diagrams.json"
+JSON="Sources/DiagramKitSample/Resources/test-diagrams.json"
 if [ ! -f "$JSON" ]; then
     echo "Corpus file missing: $JSON" >&2
     exit 1

@@ -57,47 +57,47 @@ public enum CitationSet {
     }
 
     private static let code: [CitationPin] = [
-        CitationPin(id: 1, label: "PlaygroundShell", path: "Examples/DiagramPlayground/Views/Workspace/PlaygroundShell.swift"),
+        CitationPin(id: 1, label: "PlaygroundShell", path: "Sources/DiagramKitSample/Views/Workspace/PlaygroundShell.swift"),
         CitationPin(id: 2, label: "EditorPane + multi-tab",
-                    path: "Examples/DiagramPlayground/Views/EditorPane.swift"),
+                    path: "Sources/DiagramKitSample/Views/EditorPane.swift"),
         CitationPin(id: 3, label: "EditorMinimap",
-                    path: "Examples/DiagramPlayground/Views/Editor/EditorMinimap.swift"),
+                    path: "Sources/DiagramKitSample/Views/Editor/EditorMinimap.swift"),
         CitationPin(id: 4, label: "InspectorView accordion",
-                    path: "Examples/DiagramPlayground/Views/Workspace/InspectorView.swift")
+                    path: "Sources/DiagramKitSample/Views/Workspace/InspectorView.swift")
     ]
 
     private static let split: [CitationPin] = code + [
         CitationPin(id: 5, label: "PreviewCanvas backend routing",
-                    path: "Examples/DiagramPlayground/Views/PreviewCanvas.swift"),
+                    path: "Sources/DiagramKitSample/Views/PreviewCanvas.swift"),
         CitationPin(id: 6, label: "RenderHealthPill states",
-                    path: "Examples/DiagramPlayground/Views/Support/RenderHealthPill.swift")
+                    path: "Sources/DiagramKitSample/Views/Support/RenderHealthPill.swift")
     ]
 
     private static let visual: [CitationPin] = [
         CitationPin(id: 1, label: "VisualPane shell",
-                    path: "Examples/DiagramPlayground/Views/Visual/VisualPane.swift"),
+                    path: "Sources/DiagramKitSample/Views/Visual/VisualPane.swift"),
         CitationPin(id: 2, label: "FlowchartEditCanvas gestures",
-                    path: "Examples/DiagramPlayground/Views/Visual/Flowchart/FlowchartEditCanvas.swift"),
+                    path: "Sources/DiagramKitSample/Views/Visual/Flowchart/FlowchartEditCanvas.swift"),
         CitationPin(id: 3, label: "FlowchartSubgraphMutation",
                     path: "Sources/DiagramKitInteractive/FlowchartSubgraphMutation.swift"),
         CitationPin(id: 4, label: "UndoTimelineView entries",
-                    path: "Examples/DiagramPlayground/Views/Visual/UndoTimelineView.swift")
+                    path: "Sources/DiagramKitSample/Views/Visual/UndoTimelineView.swift")
     ]
 
     private static let diagDrawer: [CitationPin] = [
         CitationPin(id: 1, label: "DiagnosticsDrawerState filters",
-                    path: "Examples/DiagramPlayground/Models/Workspace/DiagnosticsDrawerState.swift"),
+                    path: "Sources/DiagramKitSample/Models/Workspace/DiagnosticsDrawerState.swift"),
         CitationPin(id: 2, label: "DiagnosticCategory enum",
                     path: "Sources/DiagramKitCommon/DiagnosticCategory.swift"),
         CitationPin(id: 3, label: "DiagnosticExplainPopover",
-                    path: "Examples/DiagramPlayground/Views/Drawers/DiagnosticExplainPopover.swift"),
+                    path: "Sources/DiagramKitSample/Views/Drawers/DiagnosticExplainPopover.swift"),
         CitationPin(id: 4, label: "docs/diagnostic-severity-discipline.md",
                     path: "docs/diagnostic-severity-discipline.md")
     ]
 
     private static let exportSheet: [CitationPin] = [
         CitationPin(id: 1, label: "ExportSheetState",
-                    path: "Examples/DiagramPlayground/Models/Workspace/ExportSheetState.swift"),
+                    path: "Sources/DiagramKitSample/Models/Workspace/ExportSheetState.swift"),
         CitationPin(id: 2, label: "DiagramExportLoader",
                     path: "Sources/DiagramKitExport/DiagramExportLoader.swift"),
         CitationPin(id: 3, label: "MermaidExporter family routing",
@@ -113,36 +113,36 @@ public enum CitationSet {
 
     private static let coverage: [CitationPin] = [
         CitationPin(id: 1, label: "CoverageMatrixProvider",
-                    path: "Examples/DiagramPlayground/Models/Coverage/CoverageMatrixProvider.swift"),
+                    path: "Sources/DiagramKitSample/Models/Coverage/CoverageMatrixProvider.swift"),
         CitationPin(id: 2, label: "ExporterRegistry",
                     path: "Sources/DiagramKitExport/ExporterRegistry.swift"),
         CitationPin(id: 3, label: "DiagramExporter protocol",
                     path: "Sources/DiagramKitExport/DiagramExporter.swift"),
         CitationPin(id: 4, label: "CoverageMatrixSeed glyphs",
-                    path: "Examples/DiagramPlayground/Models/Coverage/CoverageMatrixSeed.swift")
+                    path: "Sources/DiagramKitSample/Models/Coverage/CoverageMatrixSeed.swift")
     ]
 
     private static let corpus: [CitationPin] = [
         CitationPin(id: 1, label: "CorpusIndex.shared",
-                    path: "Examples/DiagramPlayground/Models/Corpus/CorpusIndex.swift"),
+                    path: "Sources/DiagramKitSample/Models/Corpus/CorpusIndex.swift"),
         CitationPin(id: 2, label: "test-diagrams.json",
-                    path: "Examples/DiagramPlayground/Resources/test-diagrams.json"),
+                    path: "Sources/DiagramKitSample/Resources/test-diagrams.json"),
         CitationPin(id: 3, label: "CorpusEntry facets",
-                    path: "Examples/DiagramPlayground/Models/Corpus/CorpusEntry.swift"),
+                    path: "Sources/DiagramKitSample/Models/Corpus/CorpusEntry.swift"),
         CitationPin(id: 4, label: "CorpusThumbnail",
-                    path: "Examples/DiagramPlayground/Views/FullWindow/CorpusThumbnail.swift")
+                    path: "Sources/DiagramKitSample/Views/FullWindow/CorpusThumbnail.swift")
     ]
 
     private static let crossFormat: [CitationPin] = [
         CitationPin(id: 1, label: "ThreeFormatView refresh path",
-                    path: "Examples/DiagramPlayground/Views/FullWindow/ThreeFormatView.swift"),
+                    path: "Sources/DiagramKitSample/Views/FullWindow/ThreeFormatView.swift"),
         CitationPin(id: 2, label: "DiagramPipeline.defaultExportRegistry",
                     path: "Sources/DiagramKit/DiagramPipeline.swift")
     ]
 
     private static let probe: [CitationPin] = [
         CitationPin(id: 1, label: "ImporterProbeRunner",
-                    path: "Examples/DiagramPlayground/Models/Probe/ImporterProbeRunner.swift"),
+                    path: "Sources/DiagramKitSample/Models/Probe/ImporterProbeRunner.swift"),
         CitationPin(id: 2, label: "ImporterRegistry fallback contract",
                     path: "Sources/DiagramKitImport/ImporterRegistry.swift"),
         CitationPin(id: 3, label: "DiagramSourceImporter",
@@ -151,14 +151,14 @@ public enum CitationSet {
 
     private static let snippets: [CitationPin] = [
         CitationPin(id: 1, label: "SnippetLibrary embedded set",
-                    path: "Examples/DiagramPlayground/Models/Snippets/SnippetLibrary.swift"),
+                    path: "Sources/DiagramKitSample/Models/Snippets/SnippetLibrary.swift"),
         CitationPin(id: 2, label: "Snippet model",
-                    path: "Examples/DiagramPlayground/Models/Snippets/Snippet.swift")
+                    path: "Sources/DiagramKitSample/Models/Snippets/Snippet.swift")
     ]
 
     private static let renderFailed: [CitationPin] = [
         CitationPin(id: 1, label: "RenderFailedSheet",
-                    path: "Examples/DiagramPlayground/Views/Visual/RenderFailedSheet.swift"),
+                    path: "Sources/DiagramKitSample/Views/Visual/RenderFailedSheet.swift"),
         CitationPin(id: 2, label: "DiagramEngine worker thread",
                     path: "Sources/DiagramKit/DiagramEngine.swift")
     ]

@@ -19,10 +19,8 @@ DiagramKit is a native Swift port of [mermaid-js](https://mermaid.js.org/) cover
 | Component | Minimum |
 |---|---|
 | Swift tools | 6.3 |
-| macOS | 14 (Sonoma) |
-| iOS | 17 |
-| macCatalyst | 17 |
-| visionOS | 1 |
+| macOS | 26 |
+| iOS | 26 |
 | Linux | `swift:6.3.1-noble` (parse + layout subset; no rendering) |
 
 ## Install
@@ -124,7 +122,7 @@ let positioned = try await DiagramEngine.layout(source, config: .default)
 
 ## Diagram-type coverage
 
-DiagramKit parses and renders the families below. The corpus at [Examples/DiagramPlayground/Resources/test-diagrams.json](Examples/DiagramPlayground/Resources/test-diagrams.json) ships **424** sample diagrams across **28** families (397 Mermaid-only + 27 multi-format with D2, DOT, Structurizr, and PlantUML sources), used as the snapshot-test fixture set.
+DiagramKit parses and renders the families below. The corpus at [Sources/DiagramKitSample/Resources/test-diagrams.json](Sources/DiagramKitSample/Resources/test-diagrams.json) ships **424** sample diagrams across **28** families (397 Mermaid-only + 27 multi-format with D2, DOT, Structurizr, and PlantUML sources), used as the snapshot-test fixture set.
 
 `flowchart` · `stateDiagram-v2` · `sequenceDiagram` · `classDiagram` · `erDiagram` · `gantt` · `gitGraph` · `mindmap` · `journey` · `pie` · `quadrantChart` · `radar-beta` · `xychart-beta` · `timeline` · `sankey-beta` · `block-beta` · `kanban` · `requirementDiagram` · `c4Context` (and C4 variants) · `architecture-beta` · `packet-beta` · `treemap-beta` · `treeView-beta` · `ishikawa-beta` · `eventModeling-beta` · `wardley-beta` · `venn-beta` · `zenuml`
 
@@ -138,7 +136,7 @@ For the per-diagram-type parser/layout/renderer file map, see the "What lives wh
 | `DiagramKitModel` | partial | UIKit/AppKit/CoreText files compile to empty on Linux. SVG/ASCII paths that don't measure text work; layouts requiring `CTLineGetBoundsWithOptions` (`ishikawa`, `treeView`, `eventModeling`) are unreachable until Stage 2.5 ships a portable measurement shim. |
 | `DiagramKitTestSupport` | full | No CG/CT/UI dependencies. |
 | `DiagramKit` (umbrella) | partial | `parse(_:)` and `layout(_:config:)` portable. `renderImage`, `renderSVG`, `renderASCII`, and `render(in: CGContext)` are Apple-only. |
-| `DiagramKitRenderingCG` | none | Apple-only via `condition: .when(platforms: [Apple])` + `#if canImport(CoreGraphics)`. |
+| `DiagramKitRenderingCG` | none | Apple-only via `#if canImport(CoreGraphics)`. |
 | `DiagramKitViews` | none | Apple-only. |
 
 Verify Linux build: `./Scripts/linux-check.sh` (requires Docker or Podman; builds the Linux-portable matrix in `swift:6.3.1-noble`).
@@ -174,13 +172,13 @@ SNAPSHOT_DIAGRAM_IDS=id1,id2,... SNAPSHOT_TESTING_RECORD=true \
 
 ## Examples
 
-`Examples/DiagramPlayground/` is a SwiftUI sample app that exercises every diagram family and renderer:
+`Sources/DiagramKitSample/` is a SwiftUI sample app that exercises every diagram family and renderer:
 
 ```bash
-swift run DiagramPlayground
+swift run DiagramKitSample
 ```
 
-> The playground's Xcode-project surface and the location of `Resources/test-diagrams.json` (currently inside the app, not in `DiagramKitTestSupport`) is a deliberate trade-off so the corpus stays editable from the SwiftUI app.
+> The location of `Resources/test-diagrams.json` (currently inside the sample app, not in `DiagramKitTestSupport`) is a deliberate trade-off so the corpus stays editable from the SwiftUI app.
 
 ## Documentation
 

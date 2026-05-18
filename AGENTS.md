@@ -37,7 +37,7 @@ swift build --build-tests                           # compile tests
 swift test --filter <NameOrPattern>                 # one suite/test
 swift test --filter CorpusSnapshotTests             # corpus snapshots (~5 min; see caveats)
 SNAPSHOT_DIAGRAM_IDS=block-1-simple,block-2-columns swift test --filter CorpusSnapshotTests/imageSnapshot
-swift run DiagramPlayground                         # SwiftUI sample app
+swift run DiagramKitSample                          # SwiftUI sample app
 
 # Record/refresh snapshot baselines:
 SNAPSHOT_TESTING_RECORD=true swift test --filter CorpusSnapshotTests
@@ -111,8 +111,9 @@ empty; the completed roadmap lives in [docs/archive/PHASES.md](docs/archive/PHAS
 ## Testing
 
 - Test sources: 298 Swift files under `Tests/DiagramKitTests`
-  (315 total incl. `Tests/DiagramKitLinuxTests` + `Examples/DiagramPlayground/UITests`).
-- Corpus: `Examples/DiagramPlayground/Resources/test-diagrams.json`
+  (300 total incl. `Tests/DiagramKitLinuxTests`). The XCUI bundle was
+  removed alongside the 2026-05-18 sample-app relocation.
+- Corpus: `Sources/DiagramKitSample/Resources/test-diagrams.json`
   (424 entries: 397 Mermaid-only + 27 multi-format with D2, DOT, Structurizr, PlantUML sources).
 - Snapshot baselines:
   - SVG: 437 (424 Mermaid corpus + 13 non-Mermaid multi-format)

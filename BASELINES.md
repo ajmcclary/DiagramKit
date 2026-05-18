@@ -15,8 +15,9 @@ event log, and the post-remediation feature-work table, see
 ## Tests
 
 - Test source files: 298 Swift files under `Tests/DiagramKitTests`
-  (315 total: 298 + 2 in `Tests/DiagramKitLinuxTests` + 15 in
-  `Examples/DiagramPlayground/UITests`).
+  (300 total: 298 + 2 in `Tests/DiagramKitLinuxTests`). The 15-file XCUI
+  bundle that previously lived alongside the sample was removed on
+  2026-05-18 when the sample relocated to `Sources/DiagramKitSample/`.
 - `swift test` excluding corpus snapshots: ~30s.
 - `swift test --filter CorpusSnapshotTests`: ~5 min; use chunked
   execution for recording. The known signal-10 hang on a full corpus
@@ -26,7 +27,7 @@ event log, and the post-remediation feature-work table, see
 
 ## Corpus
 
-- `Examples/DiagramPlayground/Resources/test-diagrams.json`:
+- `Sources/DiagramKitSample/Resources/test-diagrams.json`:
   **424 entries** (397 Mermaid-only + 27 multi-format: D2, DOT,
   Structurizr, PlantUML).
 - Multi-format entries carry `sources`, `expectedImporters`, and
