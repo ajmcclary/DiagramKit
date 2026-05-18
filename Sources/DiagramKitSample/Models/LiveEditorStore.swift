@@ -183,8 +183,11 @@ public final class LiveEditorStore {
 
     /// Parse the current `state.configJSON`, extract known settings,
     /// and apply them to the store's runtime state.
+    ///
+    /// Not `private` because the `+Loaders` extension needs to re-parse
+    /// after replacing `state.configJSON` from a remote source.
     @discardableResult
-    private func parseConfig() -> Bool {
+    func parseConfig() -> Bool {
         let previousThemeName = state.selectedThemeName
         let previousLayoutConfig = layoutConfig
 
@@ -446,145 +449,11 @@ public final class LiveEditorStore {
         state.panOffset = offset
     }
 
-    // MARK: - Export (Phase 4)
-
-    /// Export the current diagram as a PNG image to a temporary file.
-    ///
-    /// - Parameter options: Sizing and scale parameters.
-    /// - Throws: Rendering or file I/O errors.
-    /// - Returns: The URL of the temporary PNG file (caller cleans up).
-    public func exportPNG(options: ExportOptions) async throws -> URL {
-        let renderer = DiagramImageRenderer(theme: theme)
-        renderer.layoutConfig = layoutConfig
-        renderer.sourceFormat = state.sourceFormat.formatID
-
-        let image: BMImage?
-        switch options.sizing {
-        case .auto:
-            image = try await renderer.renderImage(from: state.source, scale: options.scale)
-        case .fixed(let size):
-            image = try await renderer.renderImage(from: state.source, size: size)
-        }
-
-        guard let image else {
-            throw ExportError.renderFailed
-        }
-
-        guard let pngData = platformPNGData(from: image) else {
-            throw ExportError.pngConversionFailed
-        }
-
-        let tempDir = FileManager.default.temporaryDirectory
-        let fileName = "diagram-\(Int(Date().timeIntervalSince1970)).png"
-        let tempURL = tempDir.appendingPathComponent(fileName)
-        try pngData.write(to: tempURL)
-
-        return tempURL
-    }
-
-    /// Export the current diagram as an SVG string.
-    ///
-    /// - Throws: Rendering errors.
-    /// - Returns: The SVG markup string.
-    public func exportSVG() async throws -> String {
-        try await DiagramEngine.renderSVG(
-            source: state.source,
-            theme: theme,
-            layoutConfig: layoutConfig,
-            sourceFormat: state.sourceFormat.formatID
-        )
-    }
-
-    /// Export the current diagram as an ASCII / Unicode string.
-    ///
-    /// Mermaid sources render directly; supported imported formats are
-    /// normalized through Mermaid export before ASCII rendering.
-    public func exportASCII() async throws -> String {
-        try await DiagramEngine.renderASCII(
-            source: state.source,
-            theme: theme,
-            sourceFormat: state.sourceFormat.formatID
-        ).text
-    }
-
-    /// Convert the current source to another format via parse → export.
-    ///
-    /// Parses through the selected source format, then dispatches to the
-    /// target exporter through
-    /// `DiagramPipeline.defaultExportRegistry`. All five formats have
-    /// registered exporters; an exporter may still emit a `.unsupported`
-    /// diagnostic when the parsed document's diagram family is outside
-    /// its `supportedDiagramTypes`.
-    ///
-    /// - Parameter target: Destination format.
-    /// - Throws: Parse errors from the source side, or fatal export errors.
-    /// - Returns: The exporter's `DiagramExportResult` with `source` and
-    ///   `diagnostics`.
-    public func exportSource(to target: SourceFormat) async throws -> DiagramExportResult {
-        let document = try await DiagramEngine.parse(
-            state.source,
-            as: state.sourceFormat.formatID
-        )
-        return try DiagramExportLoader.export(
-            document,
-            to: target.formatID,
-            registry: DiagramPipeline.defaultExportRegistry
-        )
-    }
-
-    // MARK: - Copy to clipboard (Phase 4)
-
-    /// Copy the diagram source text to the system pasteboard.
-    /// - Returns: `true` if the copy succeeded.
-    @discardableResult
-    public func copySource() -> Bool {
-        writeToPasteboard(state.source)
-    }
-
-    /// Copy the config JSON text to the system pasteboard.
-    /// - Returns: `true` if the copy succeeded.
-    @discardableResult
-    public func copyConfig() -> Bool {
-        writeToPasteboard(state.configJSON)
-    }
-
-    /// Render and copy the SVG markup to the system pasteboard.
-    /// - Throws: Rendering errors.
-    public func copySVG() async throws {
-        let svg = try await exportSVG()
-        _ = writeToPasteboard(svg)
-    }
-
-    /// Render and copy the PNG image to the system pasteboard.
-    /// - Parameter options: Sizing and scale parameters.
-    /// - Throws: Rendering errors.
-    public func copyPNGImage(options: ExportOptions) async throws {
-        let renderer = DiagramImageRenderer(theme: theme)
-        renderer.layoutConfig = layoutConfig
-        renderer.sourceFormat = state.sourceFormat.formatID
-
-        let image: BMImage?
-        switch options.sizing {
-        case .auto:
-            image = try await renderer.renderImage(from: state.source, scale: options.scale)
-        case .fixed(let size):
-            image = try await renderer.renderImage(from: state.source, size: size)
-        }
-
-        guard let image else {
-            throw ExportError.renderFailed
-        }
-
-        #if os(macOS)
-        let pasteboard = NSPasteboard.general
-        pasteboard.clearContents()
-        pasteboard.writeObjects([image])
-        #elseif os(iOS)
-        UIPasteboard.general.image = image
-        #endif
-    }
-
     // MARK: - Share state (Phase 4)
+    //
+    // Export, format conversion, and clipboard helpers live in
+    // `LiveEditorStore+Export.swift` so the root file stays under the
+    // file-size gate.
 
     /// Serialize the current editor state to a shareable base64url string.
     ///
@@ -693,103 +562,13 @@ public final class LiveEditorStore {
     }
 
     // MARK: - Loader actions (Phase 5)
-
-    /// Load diagram source and config from a GitHub Gist URL.
-    ///
-    /// Fetches the Gist via the public API, extracts a recognized
-    /// diagram source file (Mermaid/D2/DOT/Structurizr/PlantUML by
-    /// extension), and reads config from `config.json`. Config is
-    /// sanitized before application. A loader history entry is saved
-    /// automatically.
-    ///
-    /// - Parameter url: A GitHub Gist URL.
-    /// - Throws: ``GistLoader.LoadError`` on failure.
-    public func loadFromGist(url: URL) async throws {
-        let result = try await GistLoader.load(from: url)
-
-        state.source = result.source
-        if let sniffed = result.sourceFormat {
-            state.sourceFormat = sniffed
-        }
-
-        if let configJSON = result.configJSON {
-            state.configJSON = configJSON
-            parseConfig()
-        }
-
-        // Save loader history entry
-        historyStore.saveLoaderEntry(
-            state: state,
-            label: result.label,
-            sourceURL: result.sourceURL
-        )
-
-        isDirty = false
-        requestRender(reason: .sourceChanged)
-    }
-
-    /// Load diagram source and/or config from raw HTTP(S) URLs.
-    ///
-    /// The source URL's path extension is sniffed for a `SourceFormat`;
-    /// when no extension is present, the current `state.sourceFormat`
-    /// is left untouched.
-    ///
-    /// - Parameters:
-    ///   - codeURL: URL to load source from (optional).
-    ///   - configURL: URL to load config JSON from (optional).
-    /// - Throws: ``RawFileLoader.LoadError`` on failure.
-    public func loadFromRawURL(codeURL: URL?, configURL: URL?) async throws {
-        let result = try await RawFileLoader.load(codeURL: codeURL, configURL: configURL)
-
-        if !result.source.isEmpty {
-            state.source = result.source
-            if let sniffed = result.sourceFormat {
-                state.sourceFormat = sniffed
-            }
-        }
-
-        if let configJSON = result.configJSON {
-            state.configJSON = configJSON
-            parseConfig()
-        }
-
-        // Save loader history entry
-        historyStore.saveLoaderEntry(
-            state: state,
-            label: result.label,
-            sourceURL: result.sourceURL
-        )
-
-        isDirty = false
-        requestRender(reason: .sourceChanged)
-    }
+    //
+    // Remote-source loaders (Gist, raw HTTP) live in
+    // `LiveEditorStore+Loaders.swift`. They reach into `state`,
+    // `historyStore`, and `parseConfig()` (the last bumped to internal
+    // for cross-file extension access).
 
     // MARK: - Private helpers
-
-    /// Convert a platform image to PNG data.
-    private func platformPNGData(from image: BMImage) -> Data? {
-        #if canImport(UIKit)
-        return image.pngData()
-        #elseif canImport(AppKit)
-        guard let tiffData = image.tiffRepresentation,
-              let bitmap = NSBitmapImageRep(data: tiffData) else { return nil }
-        return bitmap.representation(using: .png, properties: [:])
-        #endif
-    }
-
-    /// Write a string to the system pasteboard.
-    /// - Returns: `true` if the write succeeded.
-    @discardableResult
-    private func writeToPasteboard(_ string: String) -> Bool {
-        #if os(macOS)
-        let pasteboard = NSPasteboard.general
-        pasteboard.clearContents()
-        return pasteboard.setString(string, forType: .string)
-        #elseif os(iOS)
-        UIPasteboard.general.string = string
-        return true
-        #endif
-    }
 
     /// Commit the editable state/config to the preview snapshot.
     ///
