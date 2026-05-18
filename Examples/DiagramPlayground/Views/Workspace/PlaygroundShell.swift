@@ -15,17 +15,23 @@ struct PlaygroundShell: View {
     @Bindable var store: LiveEditorStore
 
     @AppStorage("playground.shell.sidebarVisible") private var sidebarVisible = true
-    @AppStorage("playground.shell.inspectorVisible") private var inspectorVisible = true
+
+    /// Inspector visibility is driven by `store.state.inspectorOpen` so the
+    /// toolbar toggle button and the `⌘I` shortcut stay in lockstep with
+    /// the shell layout.
+    private var inspectorVisible: Bool { store.state.inspectorOpen }
 
     var body: some View {
         ZStack(alignment: .bottom) {
             VStack(spacing: 0) {
+                #if !os(macOS)
                 TitlebarView(store: store)
                 Divider()
+                #endif
                 HStack(spacing: 0) {
                     if sidebarVisible {
                         SidebarView(store: store)
-                            .frame(width: 260)
+                            .frame(width: 220)
                         Divider()
                     }
                     bodyForMode
@@ -45,6 +51,9 @@ struct PlaygroundShell: View {
                 StatusbarView(store: store)
             }
             .animation(.easeInOut(duration: 0.18), value: store.state.diagDrawer.isOpen)
+            .onChange(of: store.state.inspectorOpen) { _, newValue in
+                UserDefaults.standard.set(newValue, forKey: "playground.shell.inspectorVisible")
+            }
 
             // Explain popover overlays the entire shell.
             if let target = store.diagnosticExplainTarget {
@@ -108,10 +117,10 @@ struct PlaygroundShell: View {
             case .split:
                 HStack(spacing: 0) {
                     EditorPane(store: store)
-                        .frame(minWidth: 320)
+                        .frame(minWidth: 260)
                     Divider()
                     PreviewCanvas(store: store, onFullWindowPreview: nil)
-                        .frame(minWidth: 320)
+                        .frame(minWidth: 260)
                 }
             case .visual:
                 VisualPane(store: store)

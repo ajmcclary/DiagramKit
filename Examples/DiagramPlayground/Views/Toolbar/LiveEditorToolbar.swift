@@ -41,6 +41,19 @@ struct LiveEditorToolbar: ToolbarContent {
             }
         }
 
+        // Principal: file title + workspace mode picker (replaces the
+        // sunset custom TitlebarView on macOS).
+        ToolbarItem(placement: .principal) {
+            HStack(spacing: 12) {
+                Text(titleText)
+                    .font(.system(size: 13, weight: .medium))
+                    .lineLimit(1)
+                    .truncationMode(.middle)
+                    .frame(maxWidth: 260, alignment: .leading)
+                WorkspaceModePicker(store: store)
+            }
+        }
+
         // Primary actions: theme, view, actions, info
         ToolbarItemGroup(placement: .primaryAction) {
             // Theme button
@@ -131,6 +144,18 @@ struct LiveEditorToolbar: ToolbarContent {
         .disabled(!store.isDirty)
         .help("Render the current diagram")
         .a11yIdentifier(A11yID.Toolbar.render)
+    }
+
+    // MARK: - Title
+
+    private var titleText: String {
+        let firstLine = store.state.source
+            .split(separator: "\n", omittingEmptySubsequences: true)
+            .first
+            .map(String.init)?
+            .trimmingCharacters(in: .whitespaces) ?? ""
+        let preview = firstLine.isEmpty ? "untitled" : firstLine
+        return "\(store.state.sourceFormat.displayName) · \(preview)"
     }
 }
 

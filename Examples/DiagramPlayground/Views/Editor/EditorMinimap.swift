@@ -19,7 +19,15 @@ struct EditorMinimap: View {
         let lines = sourceLines
         Canvas { ctx, size in
             guard !lines.isEmpty else { return }
-            let rowHeight = max(2, size.height / CGFloat(lines.count))
+            // Fit-or-fixed: prefer a fixed 3pt row, but compress when the
+            // file is long enough to overflow the canvas. Never expand
+            // beyond `maxRowHeight` so short files don't render as a few
+            // giant bars.
+            let preferredRow: CGFloat = 3
+            let maxRowHeight: CGFloat = 4
+            let fittedRow = size.height / CGFloat(lines.count)
+            let rowHeight = max(1, min(maxRowHeight, min(preferredRow, fittedRow)))
+            let barHeight = max(1, rowHeight - 1)
             let maxLen = max(1, lines.map(\.count).max() ?? 1)
             for (index, line) in lines.enumerated() {
                 let widthRatio = CGFloat(min(line.count, maxLen)) / CGFloat(maxLen)
@@ -27,7 +35,7 @@ struct EditorMinimap: View {
                     x: 4,
                     y: CGFloat(index) * rowHeight,
                     width: max(4, (size.width - 8) * widthRatio),
-                    height: max(1, rowHeight - 1)
+                    height: barHeight
                 )
                 let color = highlightedLine == index
                     ? Color.accentColor
@@ -35,7 +43,7 @@ struct EditorMinimap: View {
                 ctx.fill(Path(rect), with: .color(color))
             }
         }
-        .frame(width: 84)
+        .frame(width: 64)
         .padding(.vertical, 6)
         .background(Color.secondary.opacity(0.05))
         .accessibilityHidden(true)

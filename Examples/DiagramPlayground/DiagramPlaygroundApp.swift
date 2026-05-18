@@ -20,6 +20,12 @@ struct DiagramPlaygroundApp: App {
 
     init() {
         DiagramEngine.bootstrap()
+        // First-launch UX: surface the inspector. Remembered across sessions
+        // via the legacy "playground.shell.inspectorVisible" key (now mirrored
+        // into `state.inspectorOpen` so the toolbar toggle is the single
+        // source of truth).
+        let hint = UserDefaults.standard.object(forKey: "playground.shell.inspectorVisible") as? Bool ?? true
+        store.state.inspectorOpen = hint
         #if DEBUG
         Self.seedFromLaunchArgumentsIfNeeded(store: store)
         #endif
