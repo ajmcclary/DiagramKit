@@ -87,32 +87,10 @@ extension DiagramEditor {
         }
 
         let newDocument = try _applyGantt(mutation, to: document)
-
-        let exportResult: DiagramExportResult
-        do {
-            exportResult = try await _exportAsync(newDocument)
-        } catch {
-            throw DiagramEditorError.sourceSyncFailed(underlying: error.localizedDescription)
-        }
-
-        let oldDocument = document
-        let oldSource = source
-        let oldDiagnostics = lastExportDiagnostics
-        let oldSelection = selection
-
-        _commitDocument(newDocument)
-        _commitSource(exportResult.source)
-        _commitDiagnostics(exportResult.diagnostics)
-
-        undoManager.registerUndo(withTarget: self) { editor in
-            editor._restoreSnapshot(
-                document: oldDocument,
-                source: oldSource,
-                diagnostics: oldDiagnostics,
-                selection: oldSelection
-            )
-        }
-        undoManager.setActionName(mutation.undoActionName)
+        try await _commitMutation(
+            newDocument: newDocument,
+            actionName: mutation.undoActionName
+        )
     }
 
     // MARK: - Mutation application

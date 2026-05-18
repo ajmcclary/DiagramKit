@@ -152,41 +152,22 @@ extension DiagramEditor {
 
     /// Inner commit body. Always runs on `MainActor`. Atomic: a throw
     /// from the worker leaves state untouched.
+    ///
+    /// Mutation-tier diagnostics (e.g. subgraph-title sanitization) are
+    /// passed through `_commitMutation`, which layers them ahead of the
+    /// export-tier diagnostics on the editor's `lastExportDiagnostics`
+    /// channel.
     func _performFlowchartInner(_ mutation: FlowchartMutation) async throws {
         guard case .flowchart = document.payload else {
             throw DiagramEditorError.notAFlowchart
         }
 
         let (newDocument, mutationDiagnostics) = try _applyFlowchart(mutation, to: document)
-
-        let exportResult: DiagramExportResult
-        do {
-            exportResult = try await _exportAsync(newDocument)
-        } catch {
-            throw DiagramEditorError.sourceSyncFailed(underlying: error.localizedDescription)
-        }
-
-        let oldDocument = document
-        let oldSource = source
-        let oldDiagnostics = lastExportDiagnostics
-        let oldSelection = selection
-
-        _commitDocument(newDocument)
-        _commitSource(exportResult.source)
-        // Mutation-tier diagnostics (e.g. subgraph-title sanitization)
-        // ride alongside export-tier diagnostics on the editor's
-        // `lastExportDiagnostics` channel.
-        _commitDiagnostics(mutationDiagnostics + exportResult.diagnostics)
-
-        undoManager.registerUndo(withTarget: self) { editor in
-            editor._restoreSnapshot(
-                document: oldDocument,
-                source: oldSource,
-                diagnostics: oldDiagnostics,
-                selection: oldSelection
-            )
-        }
-        undoManager.setActionName(mutation.undoActionName)
+        try await _commitMutation(
+            newDocument: newDocument,
+            mutationDiagnostics: mutationDiagnostics,
+            actionName: mutation.undoActionName
+        )
     }
 
     // MARK: - Flowchart mutation application

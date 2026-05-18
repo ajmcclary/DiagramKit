@@ -43,7 +43,28 @@ extension DiagramEditor {
     /// from the worker leaves state untouched.
     func _performInner(_ mutation: DiagramMutation) async throws {
         let newDocument = try _apply(mutation, to: document)
+        try await _commitMutation(
+            newDocument: newDocument,
+            actionName: mutation.undoActionName,
+            updateSelection: { [self] previous, document in
+                _selectionAfterMutation(previousSelection: previous, in: document)
+            }
+        )
+    }
 
+    /// Shared transaction: exports `newDocument`, snapshots the current
+    /// state, commits the new document/source/diagnostics (optionally
+    /// updating selection), and registers an undo entry. Atomic — a
+    /// throw from `_exportAsync` propagates with no state change. The
+    /// family-specific `_performXInner` methods all funnel here so the
+    /// commit sequence, diagnostic layering, and undo registration stay
+    /// in one place.
+    func _commitMutation(
+        newDocument: DiagramDocument,
+        mutationDiagnostics: [DiagramDiagnostic] = [],
+        actionName: String,
+        updateSelection: ((_ previous: DiagramSelection?, _ in: DiagramDocument) -> DiagramSelection?)? = nil
+    ) async throws {
         let exportResult: DiagramExportResult
         do {
             exportResult = try await _exportAsync(newDocument)
@@ -58,8 +79,10 @@ extension DiagramEditor {
 
         _commitDocument(newDocument)
         _commitSource(exportResult.source)
-        _commitDiagnostics(exportResult.diagnostics)
-        selection = _selectionAfterMutation(previousSelection: oldSelection, in: newDocument)
+        _commitDiagnostics(mutationDiagnostics + exportResult.diagnostics)
+        if let updateSelection {
+            selection = updateSelection(oldSelection, newDocument)
+        }
 
         undoManager.registerUndo(withTarget: self) { editor in
             editor._restoreSnapshot(
@@ -69,7 +92,7 @@ extension DiagramEditor {
                 selection: oldSelection
             )
         }
-        undoManager.setActionName(mutation.undoActionName)
+        undoManager.setActionName(actionName)
     }
 
     private func _selectionAfterMutation(
