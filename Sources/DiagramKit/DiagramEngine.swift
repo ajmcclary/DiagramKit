@@ -46,12 +46,26 @@ public struct DiagramEngine {
     }
     #endif
 
-    /// Parse a diagram, auto-detecting its source format.
-    public static func parse(_ source: String) async throws -> DiagramDocument {
+    /// Wraps bootstrap + worker-thread dispatch in one place. Every
+    /// non-MainActor public entry point on `DiagramEngine` funnels
+    /// through this helper so the invariant "register fonts and install
+    /// the view preparer before doing real work, on a fresh 8 MB-stack
+    /// worker thread" cannot be skipped accidentally when a new entry
+    /// point is added (the CLAUDE.md "never introduce a thread pool"
+    /// constraint is preserved — `_runOnWorker` still routes through
+    /// `DiagramWorkerThread.run` on Apple and a fresh `Thread` on Linux).
+    private static func _runEngine<T: Sendable>(
+        _ operation: @escaping @Sendable () throws -> T
+    ) async throws -> T {
         #if canImport(CoreGraphics)
         _ = _DiagramPreparerBootstrap.didInstall
         #endif
-        return try await _runOnWorker {
+        return try await _runOnWorker(operation)
+    }
+
+    /// Parse a diagram, auto-detecting its source format.
+    public static func parse(_ source: String) async throws -> DiagramDocument {
+        try await _runEngine {
             try DiagramPipeline.parse(source)
         }
     }
@@ -61,10 +75,7 @@ public struct DiagramEngine {
         _ source: String,
         as sourceFormat: DiagramFormatID
     ) async throws -> DiagramDocument {
-        #if canImport(CoreGraphics)
-        _ = _DiagramPreparerBootstrap.didInstall
-        #endif
-        return try await _runOnWorker {
+        try await _runEngine {
             try DiagramPipeline.parse(source, as: sourceFormat)
         }
     }
@@ -75,10 +86,7 @@ public struct DiagramEngine {
         config: LayoutConfig = LayoutConfig(),
         sourceFormat: DiagramFormatID? = nil
     ) async throws -> PositionedGraph {
-        #if canImport(CoreGraphics)
-        _ = _DiagramPreparerBootstrap.didInstall
-        #endif
-        return try await _runOnWorker {
+        try await _runEngine {
             try DiagramPipeline.layout(source, config: config, sourceFormat: sourceFormat)
         }
     }
@@ -91,8 +99,7 @@ public struct DiagramEngine {
         layoutConfig: LayoutConfig = LayoutConfig(),
         sourceFormat: DiagramFormatID? = nil
     ) async throws -> PreparedDiagram {
-        _ = _DiagramPreparerBootstrap.didInstall
-        return try await _runOnWorker {
+        try await _runEngine {
             try DiagramPipeline.prepare(
                 source: source,
                 theme: theme,
@@ -153,10 +160,7 @@ public struct DiagramEngine {
         idPolicy: SVGIDPolicy = .unique,
         sourceFormat: DiagramFormatID? = nil
     ) async throws -> String {
-        #if canImport(CoreGraphics)
-        _ = _DiagramPreparerBootstrap.didInstall
-        #endif
-        return try await _runOnWorker {
+        try await _runEngine {
             try DiagramPipeline.renderSVG(
                 source: source,
                 theme: theme,
@@ -181,10 +185,7 @@ public struct DiagramEngine {
         sourceFormat: DiagramFormatID? = nil,
         registry: ImporterRegistry = DiagramPipeline.defaultRegistry
     ) async throws -> AsciiRenderOutput {
-        #if canImport(CoreGraphics)
-        _ = _DiagramPreparerBootstrap.didInstall
-        #endif
-        return try await _runOnWorker {
+        try await _runEngine {
             try DiagramPipeline.renderASCII(
                 source: source,
                 theme: theme,
@@ -202,10 +203,7 @@ public struct DiagramEngine {
         sourceFormat: DiagramFormatID? = nil,
         registry: ImporterRegistry = DiagramPipeline.defaultRegistry
     ) async throws -> DiagramImportResult {
-        #if canImport(CoreGraphics)
-        _ = _DiagramPreparerBootstrap.didInstall
-        #endif
-        return try await _runOnWorker {
+        try await _runEngine {
             try DiagramPipeline.parseImportResult(
                 source,
                 sourceFormat: sourceFormat,
