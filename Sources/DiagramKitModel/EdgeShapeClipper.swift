@@ -57,23 +57,10 @@ public func _clipPoint(
     cx: Double, cy: Double,
     halfW: Double, halfH: Double
 ) -> _PositionedPointPayload? {
-    // Prefer ShapeSpecRegistry for typed dispatch.
-    if let spec = ShapeSpecRegistry.spec(for: shape) {
-        return _clipPoint(endpoint: endpoint, adjacent: adjacent,
-                          shapePath: spec.path(.zero, RenderConfig.shared),
-                          cx: cx, cy: cy, halfW: halfW, halfH: halfH)
-    }
-    // Fallback to legacy string dispatch for shapes not in registry.
-    switch shape {
-    case "diamond", "rhombus", "choice":
-        return _clipToDiamond(endpoint: endpoint, adjacent: adjacent, cx: cx, cy: cy, halfW: halfW, halfH: halfH)
-    case "circle", "doublecircle", "double-circle":
-        return _clipToCircle(endpoint: endpoint, adjacent: adjacent, cx: cx, cy: cy, halfW: halfW, halfH: halfH)
-    case "hexagon":
-        return _clipToHexagon(endpoint: endpoint, adjacent: adjacent, cx: cx, cy: cy, halfW: halfW, halfH: halfH)
-    default:
-        return _clipToEllipseApprox(endpoint: endpoint, adjacent: adjacent, cx: cx, cy: cy, halfW: halfW, halfH: halfH)
-    }
+    let spec = ShapeSpecRegistry.spec(for: shape)
+    return _clipPoint(endpoint: endpoint, adjacent: adjacent,
+                      shapePath: spec.path(.zero, RenderConfig.shared),
+                      cx: cx, cy: cy, halfW: halfW, halfH: halfH)
 }
 
 /// ShapePath-keyed dispatch for edge clipping.

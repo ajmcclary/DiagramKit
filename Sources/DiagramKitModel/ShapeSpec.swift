@@ -213,12 +213,22 @@ public enum ShapePath: Sendable {
 /// Registry mapping shape-name strings to `ShapeSpec` values.
 ///
 /// Use `spec(for:)` to look up a shape by any of its aliases
-/// (case-insensitive).
+/// (case-insensitive). Unknown names resolve to the rectangle
+/// fallback, so the lookup never fails — use ``registeredSpec(for:)``
+/// when you specifically need to distinguish registered shapes from
+/// the fallback (e.g. to drive shape-availability UI).
 public enum ShapeSpecRegistry {
 
-    public static func spec(for shapeName: String) -> ShapeSpec? {
-        let key = shapeName.lowercased()
-        return aliasIndex[key] ?? fallbackSpec
+    /// Look up a shape by any of its aliases (case-insensitive). Always
+    /// returns a `ShapeSpec`; unknown names yield the rectangle fallback.
+    public static func spec(for shapeName: String) -> ShapeSpec {
+        registeredSpec(for: shapeName) ?? fallbackSpec
+    }
+
+    /// Look up a registered shape without the rectangle fallback.
+    /// Returns `nil` for unknown shape names.
+    public static func registeredSpec(for shapeName: String) -> ShapeSpec? {
+        aliasIndex[shapeName.lowercased()]
     }
 
     public static let all: [ShapeSpec] = _buildSpecs()

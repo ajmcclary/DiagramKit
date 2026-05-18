@@ -251,11 +251,7 @@ private func _renderBlockShapeBody(
     let config = RenderConfig.shared
     let strokeWidth = BlockRenderConstants.strokeWidth
 
-    guard let spec = ShapeSpecRegistry.spec(for: aliasName) else {
-        return """
-          <rect x="\(x)" y="\(y)" width="\(w)" height="\(h)" fill="\(fill)" stroke="\(stroke)" stroke-width="\(strokeWidth)"/>
-        """
-    }
+    let spec = ShapeSpecRegistry.spec(for: aliasName)
 
     var parts: [String] = []
     let mainD = SVGPathSerializer.serialize(spec.path(bounds, config), in: bounds)

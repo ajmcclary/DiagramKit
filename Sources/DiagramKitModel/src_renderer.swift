@@ -481,9 +481,7 @@ private func _renderNodeShapeGeneric(
     shape: String, fill: String, stroke: String, sw: String
 ) -> String {
     let bounds = CGRect(x: x, y: y, width: w, height: h)
-    guard let spec = ShapeSpecRegistry.spec(for: shape) else {
-        return _renderRect(x: x, y: y, w: w, h: h, fill: fill, stroke: stroke, sw: sw)
-    }
+    let spec = ShapeSpecRegistry.spec(for: shape)
 
     let shapePath = spec.path(bounds, RenderConfig.shared)
     let d = SVGPathSerializer.serialize(shapePath, in: bounds)
