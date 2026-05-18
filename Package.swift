@@ -180,12 +180,6 @@ let package = Package(
                 .product(name: "IssueReporting", package: "xctest-dynamic-overlay")
             ],
             path: "Examples/DiagramPlayground",
-            exclude: [
-                "Info.plist",
-                "project.yml",
-                "Scripts",
-                "UITests"
-            ],
             resources: [
                 .process("Resources")
             ],
