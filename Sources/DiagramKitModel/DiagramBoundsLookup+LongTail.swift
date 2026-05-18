@@ -9,6 +9,29 @@ import CoreGraphics
 #endif
 
 // ============================================================================
+// MARK: - Helpers
+// ============================================================================
+
+#if canImport(CoreGraphics)
+/// Build the bounding rect for a `[CGPoint]` edge path, padded on all sides.
+/// Forwards to the shared `DiagramRect.bounding(points:paddedBy:)` helper
+/// so edge-hit-target geometry stays consistent across families.
+private func _boundingRect(_ points: [CGPoint], paddedBy pad: Double) -> DiagramRect {
+    DiagramRect.bounding(points: points.map(DiagramPoint.init), paddedBy: pad)
+}
+#endif
+
+/// Build the bounding rect for a `[LinePoint]` (xychart series), padded
+/// on all sides. Same forwarder pattern as `_boundingRect(_:paddedBy:)`
+/// for CGPoint paths above.
+private func _boundingRect(_ points: [LinePoint], paddedBy pad: Double) -> DiagramRect {
+    DiagramRect.bounding(
+        points: points.map { DiagramPoint(x: $0.x, y: $0.y) },
+        paddedBy: pad
+    )
+}
+
+// ============================================================================
 // MARK: - Tier 1: Families with explicit string IDs
 // ============================================================================
 
@@ -46,18 +69,7 @@ extension PositionedRequirementNode: DiagramStableElement {
 
 extension PositionedRequirementEdge: DiagramStableElement {
     public var stableElementID: String { "req-edge:\(id)" }
-    public var stableElementBounds: DiagramRect {
-        guard let first = path.first else { return .zero }
-        var minX = first.x, maxX = first.x, minY = first.y, maxY = first.y
-        for p in path {
-            minX = Swift.min(minX, p.x); maxX = Swift.max(maxX, p.x)
-            minY = Swift.min(minY, p.y); maxY = Swift.max(maxY, p.y)
-        }
-        let pad: Double = 8
-        return DiagramRect(x: Double(minX) - pad, y: Double(minY) - pad,
-                           width: Double(maxX - minX) + pad * 2,
-                           height: Double(maxY - minY) + pad * 2)
-    }
+    public var stableElementBounds: DiagramRect { _boundingRect(path, paddedBy: 8) }
     public var stableElementLabel: String? { labelText.isEmpty ? nil : labelText }
 }
 
@@ -81,18 +93,7 @@ extension PositionedMindmapNode: DiagramStableElement {
 
 extension PositionedMindmapEdge: DiagramStableElement {
     public var stableElementID: String { "mindmap-edge:\(id)" }
-    public var stableElementBounds: DiagramRect {
-        guard let first = points.first else { return .zero }
-        var minX = first.x, maxX = first.x, minY = first.y, maxY = first.y
-        for p in points {
-            minX = Swift.min(minX, p.x); maxX = Swift.max(maxX, p.x)
-            minY = Swift.min(minY, p.y); maxY = Swift.max(maxY, p.y)
-        }
-        let pad: Double = 6
-        return DiagramRect(x: Double(minX) - pad, y: Double(minY) - pad,
-                           width: Double(maxX - minX) + pad * 2,
-                           height: Double(maxY - minY) + pad * 2)
-    }
+    public var stableElementBounds: DiagramRect { _boundingRect(points, paddedBy: 6) }
     public var stableElementLabel: String? { nil }
 }
 
@@ -124,18 +125,7 @@ extension PositionedBlockNode: DiagramStableElement {
 
 extension PositionedBlockEdge: DiagramStableElement {
     public var stableElementID: String { "block-edge:\(id)" }
-    public var stableElementBounds: DiagramRect {
-        guard let first = points.first else { return .zero }
-        var minX = first.x, maxX = first.x, minY = first.y, maxY = first.y
-        for p in points {
-            minX = Swift.min(minX, p.x); maxX = Swift.max(maxX, p.x)
-            minY = Swift.min(minY, p.y); maxY = Swift.max(maxY, p.y)
-        }
-        let pad: Double = 8
-        return DiagramRect(x: Double(minX) - pad, y: Double(minY) - pad,
-                           width: Double(maxX - minX) + pad * 2,
-                           height: Double(maxY - minY) + pad * 2)
-    }
+    public var stableElementBounds: DiagramRect { _boundingRect(points, paddedBy: 8) }
     public var stableElementLabel: String? { label }
 }
 
@@ -352,13 +342,12 @@ extension PositionedLine: DiagramStableElement {
         "xy-line:\(seriesIndex):\(colorIndex)"
     }
     public var stableElementBounds: DiagramRect {
-        guard let first = points.first else { return .zero }
-        var minX = first.x, maxX = first.x, minY = first.y, maxY = first.y
-        for p in points {
-            minX = Swift.min(minX, p.x); maxX = Swift.max(maxX, p.x)
-            minY = Swift.min(minY, p.y); maxY = Swift.max(maxY, p.y)
-        }
-        return DiagramRect(x: minX, y: minY, width: max(1, maxX - minX), height: max(1, maxY - minY))
+        // PositionedLine series get a 1-pt minimum extent so that
+        // perfectly horizontal/vertical hit-targets aren't degenerate.
+        let rect = _boundingRect(points, paddedBy: 0)
+        return DiagramRect(x: rect.x, y: rect.y,
+                           width: max(1, rect.width),
+                           height: max(1, rect.height))
     }
     public var stableElementLabel: String? { nil }
 }
