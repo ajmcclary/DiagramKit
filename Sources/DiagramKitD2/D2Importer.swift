@@ -15,6 +15,7 @@ public struct D2Importer: DiagramSourceImporter {
     public let supportedDiagramTypes: Set<DiagramType> = [
         .flowchart,
         .classDiagram,
+        .stateDiagram,
     ]
 
     public init() {}
@@ -34,6 +35,16 @@ public struct D2Importer: DiagramSourceImporter {
             return DiagramImportResult(
                 document: document,
                 diagnostics: parseDiagnostics + classDiagnostics
+            )
+        }
+
+        if D2StateProbe.detectsStateDiagram(d2Doc) {
+            let (graph, stateDiagnostics) = D2StateMapper().map(d2Doc)
+            var document = DiagramDocument(payload: .stateDiagram(graph))
+            document.title = Self.documentTitleMetadata(in: source)
+            return DiagramImportResult(
+                document: document,
+                diagnostics: parseDiagnostics + stateDiagnostics
             )
         }
 

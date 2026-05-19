@@ -26,11 +26,12 @@ import DiagramKitPlantUML
 
     // MARK: - D2 exporter
 
-    @Test("D2 exporter supports flowchart and classDiagram")
+    @Test("D2 exporter supports flowchart, classDiagram, stateDiagram")
     func d2ExporterSupportedTypes() {
         let exporter = D2Exporter()
         #expect(exporter.supportedDiagramTypes.contains(.flowchart))
         #expect(exporter.supportedDiagramTypes.contains(.classDiagram))
+        #expect(exporter.supportedDiagramTypes.contains(.stateDiagram))
         #expect(!exporter.supportedDiagramTypes.contains(.architecture))
         #expect(!exporter.supportedDiagramTypes.contains(.sequenceDiagram))
     }
