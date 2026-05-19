@@ -79,15 +79,44 @@ public struct StructurizrMapper: Sendable {
             return (.empty, diagnostics)
         }
 
-        // Multiple views diagnostic
-        if workspace.views.count > 1 {
-            diagnostics.append(.featureDropped(
-                .diagramFamilyUnsupported,
-                message: "workspace contains \(workspace.views.count) views; only the first view is imported in this release"
-            ))
+        var firstViewDiagram: C4Diagram?
+        for (viewIndex, view) in workspace.views.enumerated() {
+            let (viewDiagram, viewDiagnostics) = mapSingleView(
+                view,
+                registry: registry,
+                groupAliasMap: groupAliasMap,
+                recoveredTagsByAlias: recoveredTagsByAlias,
+                recoveredParentByGroupLabel: recoveredParentByGroupLabel,
+                model: model
+            )
+            diagnostics.append(contentsOf: viewDiagnostics)
+            if viewIndex == 0 {
+                firstViewDiagram = viewDiagram
+            }
         }
 
-        let view = workspace.views[0]
+        // Deployment nodes diagnostic
+        for element in model.elements {
+            checkDeploymentNodes(element, &diagnostics)
+        }
+
+        // Tags diagnostic
+        for element in model.elements {
+            checkTags(element, &diagnostics)
+        }
+
+        return (firstViewDiagram ?? .empty, diagnostics)
+    }
+
+    private func mapSingleView(
+        _ view: StructurizrView,
+        registry: StructurizrModelRegistry,
+        groupAliasMap: [String: String],
+        recoveredTagsByAlias: [String: [String]],
+        recoveredParentByGroupLabel: [String: String],
+        model: StructurizrModel
+    ) -> (diagram: C4Diagram?, diagnostics: [DiagramDiagnostic]) {
+        var diagnostics: [DiagramDiagnostic] = []
 
         // Deferred view kinds
         switch view.kind {
@@ -96,13 +125,13 @@ public struct StructurizrMapper: Sendable {
                 .diagramFamilyUnsupported,
                 message: "dynamic views not yet supported"
             ))
-            return (.empty, diagnostics)
+            return (nil, diagnostics)
         case .deployment:
             diagnostics.append(.featureDropped(
                 .diagramFamilyUnsupported,
                 message: "deployment views not yet supported"
             ))
-            return (.empty, diagnostics)
+            return (nil, diagnostics)
         default:
             break
         }
@@ -112,7 +141,7 @@ public struct StructurizrMapper: Sendable {
                 .diagramFamilyUnsupported,
                 message: "unknown view scope alias: \(view.scopeAlias)"
             ))
-            return (.empty, diagnostics)
+            return (nil, diagnostics)
         }
 
         // Resolve visible elements
@@ -297,16 +326,6 @@ public struct StructurizrMapper: Sendable {
                 description: rel.description
             )
             c4Relationships.append(c4Rel)
-        }
-
-        // Deployment nodes diagnostic
-        for element in model.elements {
-            checkDeploymentNodes(element, &diagnostics)
-        }
-
-        // Tags diagnostic
-        for element in model.elements {
-            checkTags(element, &diagnostics)
         }
 
         // Title / description
