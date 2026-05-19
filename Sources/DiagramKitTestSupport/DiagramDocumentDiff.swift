@@ -70,6 +70,8 @@ public func compare(_ a: DiagramDocument, _ b: DiagramDocument) -> [RoundTripDel
         deltas.append(contentsOf: diffVennDiagram(lhs, rhs))
     case (.ishikawa(let lhs), .ishikawa(let rhs)):
         deltas.append(contentsOf: diffIshikawaDiagram(lhs, rhs))
+    case (.treeView(let lhs), .treeView(let rhs)):
+        deltas.append(contentsOf: diffTreeViewDiagram(lhs, rhs))
     default:
         deltas.append(.unexpected(
             path: "payload.type",
