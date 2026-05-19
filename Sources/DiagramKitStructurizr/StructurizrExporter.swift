@@ -184,10 +184,6 @@ enum StructurizrC4Export {
                     .replacingOccurrences(of: "\"", with: " ")
                 lines.append("\(indent)# diagramkit:tag=\(sanitized)")
             }
-            diagnostics.append(.featureDropped(
-                .diagramFamilyUnsupported,
-                message: "Structurizr parser does not currently support element-scoped tags; dropping `tags \"\(tags)\"` for alias '\(shape.alias)'"
-            ))
         }
     }
 
