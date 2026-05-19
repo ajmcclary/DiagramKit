@@ -22,6 +22,8 @@ public struct StructurizrImporter: DiagramSourceImporter {
     }
 
     public func parse(_ source: String) throws -> DiagramImportResult {
+        let scan = scanStructurizrPreLexer(source)
+
         let lexer = StructurizrLexer()
         let tokens = lexer.tokenize(source)
 
@@ -29,7 +31,7 @@ public struct StructurizrImporter: DiagramSourceImporter {
         let (workspace, parseDiagnostics) = try parser.parse(tokens)
 
         let mapper = StructurizrMapper()
-        let (c4Diagram, mapDiagnostics) = mapper.map(workspace)
+        let (c4Diagram, mapDiagnostics) = mapper.map(workspace, scan: scan)
 
         let allDiagnostics = parseDiagnostics + mapDiagnostics
         let payload = DiagramPayload.c4(c4Diagram)

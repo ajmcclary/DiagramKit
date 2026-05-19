@@ -12,8 +12,15 @@ public struct StructurizrMapper: Sendable {
 
     /// Map a parsed workspace to a `C4Diagram`.
     /// - Parameter workspace: The parsed Structurizr workspace AST.
+    /// - Parameter scan: Pre-lexer scan output (recovery markers +
+    ///   declaration-line index). Defaults to `.empty` for callers that
+    ///   bypass the importer.
     /// - Returns: A tuple of the mapped `C4Diagram` and any diagnostics.
-    public func map(_ workspace: StructurizrWorkspace) -> (diagram: C4Diagram, diagnostics: [DiagramDiagnostic]) {
+    public func map(
+        _ workspace: StructurizrWorkspace,
+        scan: StructurizrPreLexerScanResult = .empty
+    ) -> (diagram: C4Diagram, diagnostics: [DiagramDiagnostic]) {
+        _ = scan
         var diagnostics: [DiagramDiagnostic] = []
 
         // Build registry
