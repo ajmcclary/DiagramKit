@@ -66,7 +66,9 @@ enum StructurizrC4Export {
         // flatten to siblings with one `.warning` per dropped parent link. Empty
         // authored boundaries (no direct shape members) are dropped with a `.warning`.
         for boundary in authoredBoundaries {
-            if !boundary.parentBoundary.isEmpty && boundary.parentBoundary != "global" {
+            let hasAuthoredParent = !boundary.parentBoundary.isEmpty
+                && boundary.parentBoundary != "global"
+            if hasAuthoredParent {
                 diagnostics.append(.lossyTransform(
                     .boundaryFlatten,
                     message: "Structurizr `group` is non-nestable; flattening boundary '\(boundary.alias)' (parent: '\(boundary.parentBoundary)') to top-level"
@@ -79,10 +81,18 @@ enum StructurizrC4Export {
                     .boundaryFlatten,
                     message: "Empty group '\(boundary.label)' (alias '\(boundary.alias)') has no direct shapes after Structurizr flattening; dropping"
                 ))
+                lines.append("    group \"\(escape(boundary.label))\" {")
+                if hasAuthoredParent {
+                    lines.append("      # diagramkit:boundary-parent=\(boundary.parentBoundary)")
+                }
+                lines.append("    }")
                 continue
             }
 
             lines.append("    group \"\(escape(boundary.label))\" {")
+            if hasAuthoredParent {
+                lines.append("      # diagramkit:boundary-parent=\(boundary.parentBoundary)")
+            }
             for shape in members {
                 emitShape(shape, indent: "      ", aliasMap: aliasMap, into: &lines, diagnostics: &diagnostics)
             }

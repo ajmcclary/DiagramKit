@@ -37,16 +37,28 @@ public struct StructurizrMapper: Sendable {
         )
 
         var recoveredTagsByAlias: [String: [String]] = [:]
+        var recoveredParentByGroupLabel: [String: String] = [:]
         for marker in scan.markers {
-            guard case .elementTag(let value) = marker.kind else { continue }
-            var bestDecl: StructurizrPreLexerScanResult.ElementDeclaration?
-            for decl in scan.elementDeclarations where decl.line < marker.lineNumber {
-                if bestDecl == nil || decl.line > bestDecl!.line {
-                    bestDecl = decl
+            switch marker.kind {
+            case .elementTag(let value):
+                var bestDecl: StructurizrPreLexerScanResult.ElementDeclaration?
+                for decl in scan.elementDeclarations where decl.line < marker.lineNumber {
+                    if bestDecl == nil || decl.line > bestDecl!.line {
+                        bestDecl = decl
+                    }
                 }
+                guard let decl = bestDecl else { continue }
+                recoveredTagsByAlias[decl.alias, default: []].append(value)
+            case .boundaryParent(let parentId):
+                var bestGroup: StructurizrPreLexerScanResult.GroupDeclaration?
+                for decl in scan.groupDeclarations where decl.line < marker.lineNumber {
+                    if bestGroup == nil || decl.line > bestGroup!.line {
+                        bestGroup = decl
+                    }
+                }
+                guard let group = bestGroup else { continue }
+                recoveredParentByGroupLabel[group.label] = parentId
             }
-            guard let decl = bestDecl else { continue }
-            recoveredTagsByAlias[decl.alias, default: []].append(value)
         }
 
         // Build a stable alias for each unique group label encountered in the model.
@@ -151,7 +163,7 @@ public struct StructurizrMapper: Sendable {
 
         // Map shapes
         var c4Shapes: [C4Shape] = []
-        for alias in shapeAliases {
+        for alias in shapeAliases.sorted() {
             guard let element = registry.element(for: alias) else { continue }
 
             let shapeType = c4ShapeType(for: element.kind)
@@ -220,17 +232,32 @@ public struct StructurizrMapper: Sendable {
         // Authored boundaries from `group "..." { ... }` (appended first so
         // .authored entries precede .viewScopeSynthesized entries in the
         // resulting C4Diagram.boundaries list).
-        for (label, alias) in groupAliasMap {
+        let aliasToLabel = Dictionary(uniqueKeysWithValues: groupAliasMap.map { ($0.value, $0.key) })
+        var visited: Set<String> = []
+        var sortedGroupLabels: [String] = []
+        func visit(_ label: String) {
+            if visited.contains(label) { return }
+            visited.insert(label)
+            if let parentAlias = recoveredParentByGroupLabel[label],
+               let parentLabel = aliasToLabel[parentAlias] {
+                visit(parentLabel)
+            }
+            sortedGroupLabels.append(label)
+        }
+        for label in groupAliasMap.keys.sorted() { visit(label) }
+        for label in sortedGroupLabels {
+            guard let alias = groupAliasMap[label] else { continue }
+            let parentBoundary = recoveredParentByGroupLabel[label] ?? "global"
             c4Boundaries.append(C4Boundary(
                 alias: alias,
                 label: label,
                 type: "group",
-                parentBoundary: "global",
+                parentBoundary: parentBoundary,
                 origin: .authored
             ))
         }
 
-        for alias in boundaryAliases {
+        for alias in boundaryAliases.sorted() {
             guard let element = registry.element(for: alias) else { continue }
 
             let boundary = C4Boundary(

@@ -77,6 +77,18 @@ func diffC4Diagram(_ a: C4Diagram, _ b: C4Diagram) -> [RoundTripDelta] {
             detail: "lhs=\(aBoundaries.count) rhs=\(bBoundaries.count)"
         ))
     }
+    let aBoundariesByAlias = Dictionary(uniqueKeysWithValues: aBoundaries.map { ($0.alias, $0) })
+    let bBoundariesByAlias = Dictionary(uniqueKeysWithValues: bBoundaries.map { ($0.alias, $0) })
+    for (alias, aBoundary) in aBoundariesByAlias {
+        guard alias != "global" else { continue }
+        guard let bBoundary = bBoundariesByAlias[alias] else { continue }
+        if aBoundary.parentBoundary != bBoundary.parentBoundary {
+            deltas.append(.unexpected(
+                path: "boundaries[\(alias)].parentBoundary",
+                detail: "lhs=\(aBoundary.parentBoundary) rhs=\(bBoundary.parentBoundary)"
+            ))
+        }
+    }
 
     // 3) Relationships — positional after canonical sort.
     let aRels = a.relationships.sorted(by: c4RelOrder)

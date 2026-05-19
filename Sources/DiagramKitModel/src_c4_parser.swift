@@ -258,25 +258,25 @@ public func parseC4Diagram(
         case "Boundary":
             let alias = positional.safe(0) ?? ""
             let effectiveParent = _resolveParentBoundary(named: named, lexical: currentBoundaryParse, key: "parent", macroName: "Boundary", alias: alias, diagnostics: &diagnostics)
-            _addBoundary(alias: alias, label: positional.safe(1) ?? "", type: positional.safe(2) ?? "system", tags: positional.safe(3), named: named, nodeType: nil, boundaries: &boundaries, currentBoundary: &currentBoundaryParse, parentBoundary: &parentBoundaryParse, stack: &boundaryParseStack, wrap: wrapEnabled)
+            _addBoundary(alias: alias, label: positional.safe(1) ?? "", type: positional.safe(2) ?? "system", tags: positional.safe(3), named: named, nodeType: nil, boundaries: &boundaries, currentBoundary: &currentBoundaryParse, parentBoundary: &parentBoundaryParse, stack: &boundaryParseStack, wrap: wrapEnabled, pushScope: hasBrace)
             if let idx = boundaries.firstIndex(where: { $0.alias == alias }) { boundaries[idx].parentBoundary = effectiveParent }
             if hasBrace { if braceLine != nil { i += 1 } }
         case "Enterprise_Boundary":
             let alias = positional.safe(0) ?? ""
             let effectiveParent = _resolveParentBoundary(named: named, lexical: currentBoundaryParse, key: "parent", macroName: "Enterprise_Boundary", alias: alias, diagnostics: &diagnostics)
-            _addBoundary(alias: alias, label: positional.safe(1) ?? "", type: "ENTERPRISE", tags: positional.safe(2), named: named, nodeType: nil, boundaries: &boundaries, currentBoundary: &currentBoundaryParse, parentBoundary: &parentBoundaryParse, stack: &boundaryParseStack, wrap: wrapEnabled)
+            _addBoundary(alias: alias, label: positional.safe(1) ?? "", type: "ENTERPRISE", tags: positional.safe(2), named: named, nodeType: nil, boundaries: &boundaries, currentBoundary: &currentBoundaryParse, parentBoundary: &parentBoundaryParse, stack: &boundaryParseStack, wrap: wrapEnabled, pushScope: hasBrace)
             if let idx = boundaries.firstIndex(where: { $0.alias == alias }) { boundaries[idx].parentBoundary = effectiveParent }
             if hasBrace { if braceLine != nil { i += 1 } }
         case "System_Boundary":
             let alias = positional.safe(0) ?? ""
             let effectiveParent = _resolveParentBoundary(named: named, lexical: currentBoundaryParse, key: "parent", macroName: "System_Boundary", alias: alias, diagnostics: &diagnostics)
-            _addBoundary(alias: alias, label: positional.safe(1) ?? "", type: "SYSTEM", tags: positional.safe(2), named: named, nodeType: nil, boundaries: &boundaries, currentBoundary: &currentBoundaryParse, parentBoundary: &parentBoundaryParse, stack: &boundaryParseStack, wrap: wrapEnabled)
+            _addBoundary(alias: alias, label: positional.safe(1) ?? "", type: "SYSTEM", tags: positional.safe(2), named: named, nodeType: nil, boundaries: &boundaries, currentBoundary: &currentBoundaryParse, parentBoundary: &parentBoundaryParse, stack: &boundaryParseStack, wrap: wrapEnabled, pushScope: hasBrace)
             if let idx = boundaries.firstIndex(where: { $0.alias == alias }) { boundaries[idx].parentBoundary = effectiveParent }
             if hasBrace { if braceLine != nil { i += 1 } }
         case "Container_Boundary":
             let alias = positional.safe(0) ?? ""
             let effectiveParent = _resolveParentBoundary(named: named, lexical: currentBoundaryParse, key: "parent", macroName: "Container_Boundary", alias: alias, diagnostics: &diagnostics)
-            _addBoundary(alias: alias, label: positional.safe(1) ?? "", type: "CONTAINER", tags: positional.safe(2), named: named, nodeType: nil, boundaries: &boundaries, currentBoundary: &currentBoundaryParse, parentBoundary: &parentBoundaryParse, stack: &boundaryParseStack, wrap: wrapEnabled)
+            _addBoundary(alias: alias, label: positional.safe(1) ?? "", type: "CONTAINER", tags: positional.safe(2), named: named, nodeType: nil, boundaries: &boundaries, currentBoundary: &currentBoundaryParse, parentBoundary: &parentBoundaryParse, stack: &boundaryParseStack, wrap: wrapEnabled, pushScope: hasBrace)
             if let idx = boundaries.firstIndex(where: { $0.alias == alias }) { boundaries[idx].parentBoundary = effectiveParent }
             if hasBrace { if braceLine != nil { i += 1 } }
 
@@ -284,25 +284,25 @@ public func parseC4Diagram(
         case "Deployment_Node":
             let alias = positional.safe(0) ?? ""
             let effectiveParent = _resolveParentBoundary(named: named, lexical: currentBoundaryParse, key: "parent", macroName: "Deployment_Node", alias: alias, diagnostics: &diagnostics)
-            _addDeploymentNode(nodeType: "node", alias: alias, label: positional.safe(1) ?? "", type: positional.safe(2), descr: positional.safe(3), sprite: positional.safe(4), tags: positional.safe(5), named: named, boundaries: &boundaries, currentBoundary: &currentBoundaryParse, parentBoundary: &parentBoundaryParse, stack: &boundaryParseStack, wrap: wrapEnabled)
+            _addDeploymentNode(nodeType: "node", alias: alias, label: positional.safe(1) ?? "", type: positional.safe(2), descr: positional.safe(3), sprite: positional.safe(4), tags: positional.safe(5), named: named, boundaries: &boundaries, currentBoundary: &currentBoundaryParse, parentBoundary: &parentBoundaryParse, stack: &boundaryParseStack, wrap: wrapEnabled, pushScope: hasBrace)
             if let idx = boundaries.firstIndex(where: { $0.alias == alias }) { boundaries[idx].parentBoundary = effectiveParent }
             if hasBrace { if braceLine != nil { i += 1 } }
         case "Node":
             let alias = positional.safe(0) ?? ""
             let effectiveParent = _resolveParentBoundary(named: named, lexical: currentBoundaryParse, key: "parent", macroName: "Node", alias: alias, diagnostics: &diagnostics)
-            _addDeploymentNode(nodeType: "node", alias: alias, label: positional.safe(1) ?? "", type: positional.safe(2), descr: positional.safe(3), sprite: positional.safe(4), tags: positional.safe(5), named: named, boundaries: &boundaries, currentBoundary: &currentBoundaryParse, parentBoundary: &parentBoundaryParse, stack: &boundaryParseStack, wrap: wrapEnabled)
+            _addDeploymentNode(nodeType: "node", alias: alias, label: positional.safe(1) ?? "", type: positional.safe(2), descr: positional.safe(3), sprite: positional.safe(4), tags: positional.safe(5), named: named, boundaries: &boundaries, currentBoundary: &currentBoundaryParse, parentBoundary: &parentBoundaryParse, stack: &boundaryParseStack, wrap: wrapEnabled, pushScope: hasBrace)
             if let idx = boundaries.firstIndex(where: { $0.alias == alias }) { boundaries[idx].parentBoundary = effectiveParent }
             if hasBrace { if braceLine != nil { i += 1 } }
         case "Node_L":
             let alias = positional.safe(0) ?? ""
             let effectiveParent = _resolveParentBoundary(named: named, lexical: currentBoundaryParse, key: "parent", macroName: "Node_L", alias: alias, diagnostics: &diagnostics)
-            _addDeploymentNode(nodeType: "nodeL", alias: alias, label: positional.safe(1) ?? "", type: positional.safe(2), descr: positional.safe(3), sprite: positional.safe(4), tags: positional.safe(5), named: named, boundaries: &boundaries, currentBoundary: &currentBoundaryParse, parentBoundary: &parentBoundaryParse, stack: &boundaryParseStack, wrap: wrapEnabled)
+            _addDeploymentNode(nodeType: "nodeL", alias: alias, label: positional.safe(1) ?? "", type: positional.safe(2), descr: positional.safe(3), sprite: positional.safe(4), tags: positional.safe(5), named: named, boundaries: &boundaries, currentBoundary: &currentBoundaryParse, parentBoundary: &parentBoundaryParse, stack: &boundaryParseStack, wrap: wrapEnabled, pushScope: hasBrace)
             if let idx = boundaries.firstIndex(where: { $0.alias == alias }) { boundaries[idx].parentBoundary = effectiveParent }
             if hasBrace { if braceLine != nil { i += 1 } }
         case "Node_R":
             let alias = positional.safe(0) ?? ""
             let effectiveParent = _resolveParentBoundary(named: named, lexical: currentBoundaryParse, key: "parent", macroName: "Node_R", alias: alias, diagnostics: &diagnostics)
-            _addDeploymentNode(nodeType: "nodeR", alias: alias, label: positional.safe(1) ?? "", type: positional.safe(2), descr: positional.safe(3), sprite: positional.safe(4), tags: positional.safe(5), named: named, boundaries: &boundaries, currentBoundary: &currentBoundaryParse, parentBoundary: &parentBoundaryParse, stack: &boundaryParseStack, wrap: wrapEnabled)
+            _addDeploymentNode(nodeType: "nodeR", alias: alias, label: positional.safe(1) ?? "", type: positional.safe(2), descr: positional.safe(3), sprite: positional.safe(4), tags: positional.safe(5), named: named, boundaries: &boundaries, currentBoundary: &currentBoundaryParse, parentBoundary: &parentBoundaryParse, stack: &boundaryParseStack, wrap: wrapEnabled, pushScope: hasBrace)
             if let idx = boundaries.firstIndex(where: { $0.alias == alias }) { boundaries[idx].parentBoundary = effectiveParent }
             if hasBrace { if braceLine != nil { i += 1 } }
 
@@ -715,7 +715,8 @@ private func _addBoundary(
     currentBoundary: inout String,
     parentBoundary: inout String,
     stack: inout [String],
-    wrap: Bool
+    wrap: Bool,
+    pushScope: Bool = true
 ) {
     guard !alias.isEmpty else { return }
     guard !label.isEmpty else { return }
@@ -745,9 +746,11 @@ private func _addBoundary(
         ))
     }
 
-    parentBoundary = currentBoundary
-    currentBoundary = alias
-    stack.append(parentBoundary)
+    if pushScope {
+        parentBoundary = currentBoundary
+        currentBoundary = alias
+        stack.append(parentBoundary)
+    }
 }
 
 private func _addDeploymentNode(
@@ -763,7 +766,8 @@ private func _addDeploymentNode(
     currentBoundary: inout String,
     parentBoundary: inout String,
     stack: inout [String],
-    wrap: Bool
+    wrap: Bool,
+    pushScope: Bool = true
 ) {
     guard !alias.isEmpty else { return }
     guard !label.isEmpty else { return }
@@ -797,9 +801,11 @@ private func _addDeploymentNode(
         ))
     }
 
-    parentBoundary = currentBoundary
-    currentBoundary = alias
-    stack.append(parentBoundary)
+    if pushScope {
+        parentBoundary = currentBoundary
+        currentBoundary = alias
+        stack.append(parentBoundary)
+    }
 }
 
 private func _addRel(
