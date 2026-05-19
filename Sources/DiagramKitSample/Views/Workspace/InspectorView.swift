@@ -31,7 +31,7 @@ struct InspectorView: View {
                 .padding(PlaygroundSpacing.md)
             }
         }
-        .frame(width: 300)
+        .frame(width: 350)
         .background(tokens.palette.bgApp)
     }
 
