@@ -59,6 +59,12 @@ func diffC4Diagram(_ a: C4Diagram, _ b: C4Diagram) -> [RoundTripDelta] {
                 detail: "lhs=\(aShape.parentBoundary) rhs=\(bShape.parentBoundary)"
             ))
         }
+        if aShape.tags != bShape.tags {
+            deltas.append(.unexpected(
+                path: "shapes[\(alias)].tags",
+                detail: "lhs=\(aShape.tags ?? "nil") rhs=\(bShape.tags ?? "nil")"
+            ))
+        }
     }
 
     // 2) Boundaries — only authored boundaries should appear in both sides

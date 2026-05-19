@@ -1,4 +1,6 @@
 import Testing
+import DiagramKitImport
+import DiagramKitModel
 @testable import DiagramKitStructurizr
 
 @Suite("StructurizrRecoveryMarkerTests")
@@ -99,6 +101,36 @@ struct StructurizrRecoveryMarkerTests {
         #expect(scan.elementDeclarations[0].line == 3)
         #expect(scan.elementDeclarations[1].alias == "banking")
         #expect(scan.elementDeclarations[1].line == 4)
+    }
+
+    @Test("importer recovers element tags from markers")
+    func importerRecoversTags() throws {
+        let source = """
+        workspace {
+            model {
+                customer = person "Customer"
+                # diagramkit:tag=external
+                banking = softwareSystem "Banking System"
+                # diagramkit:tag=core
+                customer -> banking "Uses"
+            }
+            views {
+                systemContext banking "SystemContext" {
+                    include *
+                }
+            }
+        }
+        """
+        let importer = StructurizrImporter()
+        let result = try importer.parse(source)
+        guard case .c4(let diagram) = result.document.payload else {
+            Issue.record("expected c4 payload")
+            return
+        }
+        let customer = diagram.shapes.first { $0.alias == "customer" }
+        let banking = diagram.shapes.first { $0.alias == "banking" }
+        #expect(customer?.tags == "external")
+        #expect(banking?.tags == "core")
     }
 
     @Test("pre-lexer scan indexes group declarations")

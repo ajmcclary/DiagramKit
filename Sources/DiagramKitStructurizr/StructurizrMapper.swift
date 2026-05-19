@@ -20,7 +20,6 @@ public struct StructurizrMapper: Sendable {
         _ workspace: StructurizrWorkspace,
         scan: StructurizrPreLexerScanResult = .empty
     ) -> (diagram: C4Diagram, diagnostics: [DiagramDiagnostic]) {
-        _ = scan
         var diagnostics: [DiagramDiagnostic] = []
 
         // Build registry
@@ -36,6 +35,19 @@ public struct StructurizrMapper: Sendable {
             elements: model.elements,
             relationships: model.relationships
         )
+
+        var recoveredTagsByAlias: [String: [String]] = [:]
+        for marker in scan.markers {
+            guard case .elementTag(let value) = marker.kind else { continue }
+            var bestDecl: StructurizrPreLexerScanResult.ElementDeclaration?
+            for decl in scan.elementDeclarations where decl.line < marker.lineNumber {
+                if bestDecl == nil || decl.line > bestDecl!.line {
+                    bestDecl = decl
+                }
+            }
+            guard let decl = bestDecl else { continue }
+            recoveredTagsByAlias[decl.alias, default: []].append(value)
+        }
 
         // Build a stable alias for each unique group label encountered in the model.
         var groupAliasMap: [String: String] = [:]
@@ -176,12 +188,15 @@ public struct StructurizrMapper: Sendable {
                 effectiveBoundary = groupAlias
             }
 
+            let recoveredTags = recoveredTagsByAlias[element.alias]
+                .map { $0.joined(separator: ",") }
             let shape = C4Shape(
                 alias: element.alias,
                 label: element.name,
                 typeC4Shape: shapeType,
                 technology: element.technology,
                 description: element.description,
+                tags: recoveredTags,
                 parentBoundary: effectiveBoundary
             )
             c4Shapes.append(shape)

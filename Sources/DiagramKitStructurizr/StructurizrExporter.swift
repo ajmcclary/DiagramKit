@@ -167,6 +167,23 @@ enum StructurizrC4Export {
         }
 
         if let tags = shape.tags, !tags.isEmpty {
+            let components = tags.split(separator: ",").map { component -> String in
+                var trimmed = String(component)
+                while let first = trimmed.first, first == " " || first == "\t" {
+                    trimmed.removeFirst()
+                }
+                while let last = trimmed.last, last == " " || last == "\t" {
+                    trimmed.removeLast()
+                }
+                return trimmed
+            }
+            for component in components where !component.isEmpty {
+                let sanitized = component
+                    .replacingOccurrences(of: "\n", with: " ")
+                    .replacingOccurrences(of: "\r", with: " ")
+                    .replacingOccurrences(of: "\"", with: " ")
+                lines.append("\(indent)# diagramkit:tag=\(sanitized)")
+            }
             diagnostics.append(.featureDropped(
                 .diagramFamilyUnsupported,
                 message: "Structurizr parser does not currently support element-scoped tags; dropping `tags \"\(tags)\"` for alias '\(shape.alias)'"
