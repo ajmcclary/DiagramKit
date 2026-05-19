@@ -38,11 +38,12 @@ import DiagramKitPlantUML
 
     // MARK: - DOT exporter
 
-    @Test("DOT exporter supports flowchart and classDiagram")
+    @Test("DOT exporter supports flowchart, classDiagram, stateDiagram")
     func dotExporterSupportedTypes() {
         let exporter = DOTExporter()
         #expect(exporter.supportedDiagramTypes.contains(.flowchart))
         #expect(exporter.supportedDiagramTypes.contains(.classDiagram))
+        #expect(exporter.supportedDiagramTypes.contains(.stateDiagram))
         #expect(!exporter.supportedDiagramTypes.contains(.sequenceDiagram))
     }
 

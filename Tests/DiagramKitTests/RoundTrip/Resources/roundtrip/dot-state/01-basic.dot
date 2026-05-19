@@ -1,0 +1,9 @@
+digraph StateMachine {
+  _start [shape=point, style=filled, fillcolor=black];
+  _end [shape=doublecircle, style=filled, fillcolor=black];
+
+  _start -> Idle;
+  Idle -> Active [label="trigger"];
+  Active -> Done [label="complete"];
+  Done -> _end;
+}

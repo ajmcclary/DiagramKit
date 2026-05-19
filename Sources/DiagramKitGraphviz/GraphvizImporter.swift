@@ -15,6 +15,7 @@ public struct GraphvizImporter: DiagramSourceImporter {
     public let supportedDiagramTypes: Set<DiagramType> = [
         .flowchart,
         .classDiagram,
+        .stateDiagram,
     ]
 
     public init() {}
@@ -36,6 +37,15 @@ public struct GraphvizImporter: DiagramSourceImporter {
             return DiagramImportResult(
                 document: document,
                 diagnostics: parseDiagnostics + classDiagnostics
+            )
+        }
+
+        if DOTStateProbe.detectsStateDiagram(dotDoc) {
+            let (graph, stateDiagnostics) = DOTStateMapper().map(dotDoc)
+            let document = DiagramDocument(payload: .stateDiagram(graph))
+            return DiagramImportResult(
+                document: document,
+                diagnostics: parseDiagnostics + stateDiagnostics
             )
         }
 
