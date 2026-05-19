@@ -1,0 +1,11 @@
+@startuml
+:Customer: as customer
+:Admin: as admin
+(Login) as UC1
+(View Profile) as UC2
+(Edit Profile) as UC3
+
+customer --> UC1
+customer --> UC2
+admin --> UC3
+@enduml
