@@ -57,7 +57,7 @@ struct StructurizrExporterGroupTests {
         #expect(!result.diagnostics.contains { $0.message.contains("group") })
     }
 
-    @Test("Nested authored boundary flattens with one .warning")
+    @Test("Nested authored boundary emits flat with boundary-parent recovery marker")
     func nestedAuthoredFlattens() throws {
         let model = makeDiagram(
             shapes: [
@@ -72,12 +72,13 @@ struct StructurizrExporterGroupTests {
         let result = try emit(model)
         #expect(result.source.contains("group \"Outer\" {"))
         #expect(result.source.contains("group \"Inner\" {"))
+        #expect(result.source.contains("# diagramkit:boundary-parent=Outer"))
         let warnings = result.diagnostics.filter { $0.severity == .warning && $0.message.contains("non-nestable") }
-        #expect(warnings.count == 1)
+        #expect(warnings.isEmpty)
     }
 
-    @Test("Empty authored boundary warns and is dropped")
-    func emptyAuthoredDropped() throws {
+    @Test("Empty authored boundary emits a group block")
+    func emptyAuthoredEmitsBlock() throws {
         let model = makeDiagram(
             shapes: [],
             boundaries: [
@@ -85,9 +86,9 @@ struct StructurizrExporterGroupTests {
             ]
         )
         let result = try emit(model)
-        #expect(!result.source.contains("group \"Empty Group\""))
+        #expect(result.source.contains("group \"Empty Group\" {"))
         let warnings = result.diagnostics.filter { $0.severity == .warning && $0.message.contains("Empty group") }
-        #expect(warnings.count == 1)
+        #expect(warnings.isEmpty)
     }
 
     @Test("Multiple authored boundaries emit in order")

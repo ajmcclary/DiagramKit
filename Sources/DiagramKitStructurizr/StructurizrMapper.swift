@@ -232,14 +232,13 @@ public struct StructurizrMapper: Sendable {
         // Authored boundaries from `group "..." { ... }` (appended first so
         // .authored entries precede .viewScopeSynthesized entries in the
         // resulting C4Diagram.boundaries list).
-        let aliasToLabel = Dictionary(uniqueKeysWithValues: groupAliasMap.map { ($0.value, $0.key) })
         var visited: Set<String> = []
         var sortedGroupLabels: [String] = []
         func visit(_ label: String) {
             if visited.contains(label) { return }
             visited.insert(label)
-            if let parentAlias = recoveredParentByGroupLabel[label],
-               let parentLabel = aliasToLabel[parentAlias] {
+            if let parentLabel = recoveredParentByGroupLabel[label],
+               groupAliasMap[parentLabel] != nil {
                 visit(parentLabel)
             }
             sortedGroupLabels.append(label)
@@ -247,7 +246,13 @@ public struct StructurizrMapper: Sendable {
         for label in groupAliasMap.keys.sorted() { visit(label) }
         for label in sortedGroupLabels {
             guard let alias = groupAliasMap[label] else { continue }
-            let parentBoundary = recoveredParentByGroupLabel[label] ?? "global"
+            let parentBoundary: String
+            if let recoveredParentLabel = recoveredParentByGroupLabel[label],
+               let resolvedAlias = groupAliasMap[recoveredParentLabel] {
+                parentBoundary = resolvedAlias
+            } else {
+                parentBoundary = "global"
+            }
             c4Boundaries.append(C4Boundary(
                 alias: alias,
                 label: label,

@@ -16,12 +16,12 @@ enum RoundTripCrossRegistry {
     static let dotD2Flowchart: Set<RoundTripLossKind> = [.subgraphFlatten, .styleDrop, .shapeDowngrade]
 
     // C4 pairs
-    static let mermaidStructurizrC4: Set<RoundTripLossKind> = [.idSanitization, .boundaryFlatten, .c4SlotDrop, .configDrop]
-    static let structurizrMermaidC4: Set<RoundTripLossKind> = [.idSanitization, .boundaryFlatten, .c4SlotDrop, .configDrop]
+    static let mermaidStructurizrC4: Set<RoundTripLossKind> = [.idSanitization, .c4SlotDrop, .configDrop]
+    static let structurizrMermaidC4: Set<RoundTripLossKind> = [.idSanitization, .c4SlotDrop, .configDrop]
     static let mermaidPlantumlC4: Set<RoundTripLossKind> = [.idSanitization, .c4SlotDrop, .configDrop]
     static let plantumlMermaidC4: Set<RoundTripLossKind> = [.idSanitization, .c4SlotDrop, .configDrop]
-    static let plantumlStructurizrC4: Set<RoundTripLossKind> = [.idSanitization, .boundaryFlatten, .c4SlotDrop]
-    static let structurizrPlantumlC4: Set<RoundTripLossKind> = [.idSanitization, .boundaryFlatten, .c4SlotDrop]
+    static let plantumlStructurizrC4: Set<RoundTripLossKind> = [.idSanitization, .c4SlotDrop]
+    static let structurizrPlantumlC4: Set<RoundTripLossKind> = [.idSanitization, .c4SlotDrop]
 
     // Sequence pair
     static let mermaidPlantumlSequence: Set<RoundTripLossKind> = [.idSanitization, .configDrop]

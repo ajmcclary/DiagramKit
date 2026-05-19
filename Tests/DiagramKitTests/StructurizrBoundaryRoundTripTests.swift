@@ -85,7 +85,12 @@ struct StructurizrBoundaryRoundTripTests {
         let flattenWarnings = exportResult.diagnostics.filter {
             $0.severity == .warning && $0.message.contains("non-nestable")
         }
-        #expect(flattenWarnings.count == 1)
+        #expect(flattenWarnings.isEmpty)
+
+        // Wave 3: the flattened inner boundary carries a
+        // `# diagramkit:boundary-parent=` recovery marker so its parentage
+        // round-trips losslessly.
+        #expect(second.boundaries.first { $0.label == "Inner" }?.parentBoundary == outerAlias)
     }
 
     /// Pinned by the `// SILENT-DROP(...)` marker at

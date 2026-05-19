@@ -272,7 +272,7 @@ enum RoundTripCellRegistry {
         importer: StructurizrImporter(),
         exporter: StructurizrExporter(),
         family: DiagramType.c4,
-        allowedLosses: [.idSanitization, .boundaryFlatten, .c4SlotDrop]
+        allowedLosses: [.idSanitization, .c4SlotDrop]
     )
 
     static let plantumlSequence = RoundTripCell(

@@ -65,33 +65,17 @@ enum StructurizrC4Export {
         // Authored boundaries → `group "label" { ... }`. Nested authored boundaries
         // flatten to siblings with one `.warning` per dropped parent link. Empty
         // authored boundaries (no direct shape members) are dropped with a `.warning`.
+        let labelByAuthoredAlias: [String: String] = Dictionary(
+            uniqueKeysWithValues: authoredBoundaries.map { ($0.alias, $0.label) }
+        )
         for boundary in authoredBoundaries {
             let hasAuthoredParent = !boundary.parentBoundary.isEmpty
                 && boundary.parentBoundary != "global"
-            if hasAuthoredParent {
-                diagnostics.append(.lossyTransform(
-                    .boundaryFlatten,
-                    message: "Structurizr `group` is non-nestable; flattening boundary '\(boundary.alias)' (parent: '\(boundary.parentBoundary)') to top-level"
-                ))
-            }
-
             let members = shapesByBoundary[boundary.alias] ?? []
-            if members.isEmpty {
-                diagnostics.append(.lossyTransform(
-                    .boundaryFlatten,
-                    message: "Empty group '\(boundary.label)' (alias '\(boundary.alias)') has no direct shapes after Structurizr flattening; dropping"
-                ))
-                lines.append("    group \"\(escape(boundary.label))\" {")
-                if hasAuthoredParent {
-                    lines.append("      # diagramkit:boundary-parent=\(boundary.parentBoundary)")
-                }
-                lines.append("    }")
-                continue
-            }
-
             lines.append("    group \"\(escape(boundary.label))\" {")
             if hasAuthoredParent {
-                lines.append("      # diagramkit:boundary-parent=\(boundary.parentBoundary)")
+                let parentLabel = labelByAuthoredAlias[boundary.parentBoundary] ?? boundary.parentBoundary
+                lines.append("      # diagramkit:boundary-parent=\(parentLabel)")
             }
             for shape in members {
                 emitShape(shape, indent: "      ", aliasMap: aliasMap, into: &lines, diagnostics: &diagnostics)
