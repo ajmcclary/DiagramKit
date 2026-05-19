@@ -25,6 +25,9 @@ public struct PlantUMLImporter: DiagramSourceImporter {
         .mindmap,
         .gantt,
         .c4,
+        .flowchart,
+        .erDiagram,
+        .architecture,
     ]
 
     public init() {}
@@ -48,12 +51,17 @@ public struct PlantUMLImporter: DiagramSourceImporter {
         // Family routing order — narrow markers first so generic `@startuml`
         // sources only fall through to Sequence after explicit families have
         // had a chance to claim them:
-        //   1. Gantt   (`@startgantt`)
-        //   2. Mindmap (`@startmindmap`)
-        //   3. C4      (C4-specific keywords inside `@startuml`)
-        //   4. State / Activity (`state`/`activity` headers)
-        //   5. Class   (class shape syntax)
-        //   6. Sequence (fallback)
+        //   1. Gantt    (`@startgantt`)
+        //   2. Mindmap  (`@startmindmap` / `@startwbs`)
+        //   3. C4       (C4-specific keywords inside `@startuml`)
+        //   4. Activity (`start`/`stop`/`:text;`/`partition`)
+        //   5. State    (`state` keyword / `[*]` pseudostate)
+        //   6. ER       (`entity` keyword / IE arrows `||--o{`)
+        //   7. UseCase  (`(usecase)` / `:actor:` / `usecase` / `actor` keywords)
+        //   8. Object   (`object X` declaration)
+        //   9. Component (`[component]` token / `interface` keyword)
+        //  10. Class    (class shape syntax)
+        //  11. Sequence (fallback)
         if startKind == "gantt" {
             let ast = PlantUMLGanttParser().parse(body)
             let (model, diagnostics) = PlantUMLGanttMapper().map(ast)
@@ -70,12 +78,6 @@ public struct PlantUMLImporter: DiagramSourceImporter {
                 diagnostics: diagnostics
             )
         }
-
-        // For @startuml bodies, probe family-specific content.
-        // Slice 6A: all @startuml bodies with sequence content route to sequence.
-        // Non-sequence bodies in @startuml throw notYetImplemented for now.
-
-        // Check C4 first (narrowest)
         if isPlantUMLC4Body(body) {
             let ast = PlantUMLC4Parser().parse(body)
             let (model, diagnostics) = PlantUMLC4Mapper().map(ast)
@@ -84,8 +86,9 @@ public struct PlantUMLImporter: DiagramSourceImporter {
                 diagnostics: diagnostics
             )
         }
-
-        // Check State/Activity
+        if isPlantUMLActivityBody(body) {
+            fatalError("Wave 1 Task 2 implements PlantUMLActivityParser")
+        }
         if isPlantUMLStateBody(body) {
             let ast = PlantUMLStateParser().parse(body)
             let (graph, diagnostics) = PlantUMLStateMapper().map(ast)
@@ -94,8 +97,18 @@ public struct PlantUMLImporter: DiagramSourceImporter {
                 diagnostics: diagnostics
             )
         }
-
-        // Check Class
+        if isPlantUMLERBody(body) {
+            fatalError("Wave 1 Task 3 implements PlantUMLERParser")
+        }
+        if isPlantUMLUseCaseBody(body) {
+            fatalError("Wave 1 Task 4 implements PlantUMLUseCaseParser")
+        }
+        if isPlantUMLObjectBody(body) {
+            fatalError("Wave 1 Task 5 implements PlantUMLObjectParser")
+        }
+        if isPlantUMLComponentBody(body) {
+            fatalError("Wave 1 Task 6 implements PlantUMLComponentParser")
+        }
         if isPlantUMLClassBody(body) {
             let ast = PlantUMLClassParser().parse(body)
             let (model, diagnostics) = PlantUMLClassMapper().map(ast)
@@ -104,25 +117,15 @@ public struct PlantUMLImporter: DiagramSourceImporter {
                 diagnostics: diagnostics
             )
         }
-
-        // Sequence: broadest fallback within PlantUML
         if isPlantUMLSequenceBody(body) {
             let parser = PlantUMLSequenceParser()
             let ast = parser.parse(body)
-
             let mapper = PlantUMLSequenceMapper()
             let (diagram, mapDiagnostics) = mapper.map(ast)
-
             let payload = DiagramPayload.sequenceDiagram(diagram)
             let document = DiagramDocument(payload: payload)
-
             return DiagramImportResult(document: document, diagnostics: mapDiagnostics)
         }
-
-        // No family matched. All major PlantUML families are implemented
-        // (sequence/class/state/mindmap/gantt/C4); a body that matches
-        // none of them is malformed for our purposes — we cannot parse
-        // it. (`.notYetImplemented` would be misleading here.)
         throw DiagramError.malformedSource(
             message: "PlantUML body did not match any supported family probe"
         )

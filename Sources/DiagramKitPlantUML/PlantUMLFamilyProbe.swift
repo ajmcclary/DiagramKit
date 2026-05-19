@@ -23,18 +23,87 @@ public func isPlantUMLMindmap(startKind: String, _ body: String) -> Bool {
     startKind == "mindmap" || startKind == "wbs"
 }
 
-/// Returns `true` when body contains state/activity syntax.
+/// Returns `true` when body contains pure state diagram syntax.
+/// Activity markers (start/stop/:text;/partition) are NOT matched here —
+/// they belong to `isPlantUMLActivityBody`. Activity must be probed
+/// BEFORE state in the cascade.
 public func isPlantUMLStateBody(_ body: String) -> Bool {
     let lines = body.split(separator: "\n", omittingEmptySubsequences: true)
     for line in lines {
         let trimmed = line.trimmingCharacters(in: .whitespaces)
-        if trimmed.hasPrefix("state ") || trimmed.hasPrefix("[*]") { return true }
-        if trimmed.hasPrefix("partition") { return true }
-        // Activity syntax: start/stop keywords (but not bare "end",
-        // which is also a block closer in sequence/class diagrams)
-        if trimmed == "start" || trimmed == "stop" { return true }
-        // Activity action syntax: `:text;`
+        if trimmed.hasPrefix("state ") { return true }
+        if trimmed.hasPrefix("[*]") { return true }
+    }
+    return false
+}
+
+/// Returns `true` when body contains activity syntax.
+/// Must be probed BEFORE `isPlantUMLStateBody` in the cascade.
+public func isPlantUMLActivityBody(_ body: String) -> Bool {
+    let lines = body.split(separator: "\n", omittingEmptySubsequences: true)
+    for line in lines {
+        let trimmed = line.trimmingCharacters(in: .whitespaces)
+        if trimmed == "start" || trimmed == "stop" || trimmed == "end" { return true }
+        if trimmed.hasPrefix("partition ") { return true }
         if trimmed.hasPrefix(":") && trimmed.hasSuffix(";") { return true }
+        if trimmed.hasPrefix("if ") && trimmed.contains("then") { return true }
+    }
+    return false
+}
+
+/// Returns `true` when body contains PlantUML Information Engineering ER syntax.
+public func isPlantUMLERBody(_ body: String) -> Bool {
+    let lines = body.split(separator: "\n", omittingEmptySubsequences: true)
+    for line in lines {
+        let trimmed = line.trimmingCharacters(in: .whitespaces)
+        if trimmed.hasPrefix("entity ") { return true }
+        if trimmed.range(
+            of: #"[|}o]+(--|\.\.)[|{o]+"#,
+            options: .regularExpression
+        ) != nil {
+            return true
+        }
+    }
+    return false
+}
+
+/// Returns `true` when body contains PlantUML use-case syntax.
+public func isPlantUMLUseCaseBody(_ body: String) -> Bool {
+    let lines = body.split(separator: "\n", omittingEmptySubsequences: true)
+    for line in lines {
+        let trimmed = line.trimmingCharacters(in: .whitespaces)
+        if trimmed.hasPrefix("usecase ") || trimmed.hasPrefix("actor ") {
+            return true
+        }
+        if trimmed.hasPrefix("(") && trimmed.contains(")") { return true }
+        if trimmed.hasPrefix(":") && !trimmed.hasSuffix(";") {
+            let rest = trimmed.dropFirst()
+            if rest.contains(":") { return true }
+        }
+    }
+    return false
+}
+
+/// Returns `true` when body contains PlantUML object diagram syntax.
+public func isPlantUMLObjectBody(_ body: String) -> Bool {
+    let lines = body.split(separator: "\n", omittingEmptySubsequences: true)
+    for line in lines {
+        let trimmed = line.trimmingCharacters(in: .whitespaces)
+        if trimmed.hasPrefix("object ") { return true }
+    }
+    return false
+}
+
+/// Returns `true` when body contains PlantUML component diagram syntax.
+/// Requires a component-distinctive token (`[Bracketed]` or `component`
+/// keyword); bare `interface` alone routes to class.
+public func isPlantUMLComponentBody(_ body: String) -> Bool {
+    let lines = body.split(separator: "\n", omittingEmptySubsequences: true)
+    for line in lines {
+        let trimmed = line.trimmingCharacters(in: .whitespaces)
+        if trimmed.hasPrefix("[") && trimmed.contains("]") { return true }
+        if trimmed.contains("] --") || trimmed.contains("] ->") { return true }
+        if trimmed.hasPrefix("component ") { return true }
     }
     return false
 }
