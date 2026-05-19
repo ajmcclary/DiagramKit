@@ -40,6 +40,7 @@ public struct MermaidExporter: DiagramExporter {
         .zenuml,          // wave 2
         .eventModeling,   // wave 2
         .block,           // wave 3
+        .architecture,    // wave 3
     ]
 
     public init() {}
@@ -99,6 +100,8 @@ public struct MermaidExporter: DiagramExporter {
             result = try MermaidEventModelingExport.emit(model)
         case .block(let model):
             result = try MermaidBlockExport.emit(model)
+        case .architecture(let model):
+            result = try MermaidArchitectureExport.emit(model)
         default:
             return .unsupportedDiagram(formatName: name, type: document.type)
         }
