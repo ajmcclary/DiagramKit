@@ -17,6 +17,9 @@ public enum RoundTripLoss: Hashable, Sendable, CustomStringConvertible {
     case accessibilityDrop(field: AccessibilityField)
     case anonymousSubgraphRename(old: String, new: String)
     case d2DuplicateOverride(nodeID: String, attribute: String)
+    case classStereotypeDrop(classID: String, stereotype: String)
+    case stateActionDrop(stateID: String, phase: StateActionPhase)
+    case cardinalityDrop(relationshipID: String, side: CardinalitySide)
 
     public var kind: RoundTripLossKind {
         switch self {
@@ -31,6 +34,9 @@ public enum RoundTripLoss: Hashable, Sendable, CustomStringConvertible {
         case .accessibilityDrop: return .accessibilityDrop
         case .anonymousSubgraphRename: return .anonymousSubgraphRename
         case .d2DuplicateOverride: return .d2DuplicateOverride
+        case .classStereotypeDrop: return .classStereotypeDrop
+        case .stateActionDrop: return .stateActionDrop
+        case .cardinalityDrop: return .cardinalityDrop
         }
     }
 
@@ -58,6 +64,12 @@ public enum RoundTripLoss: Hashable, Sendable, CustomStringConvertible {
             return "anonymousSubgraphRename(old: \(old), new: \(new))"
         case .d2DuplicateOverride(let nodeID, let attribute):
             return "d2DuplicateOverride(nodeID: \(nodeID), attribute: \(attribute))"
+        case .classStereotypeDrop(let classID, let stereotype):
+            return "classStereotypeDrop(classID: \(classID), stereotype: \(stereotype))"
+        case .stateActionDrop(let stateID, let phase):
+            return "stateActionDrop(stateID: \(stateID), phase: \(phase.rawValue))"
+        case .cardinalityDrop(let relationshipID, let side):
+            return "cardinalityDrop(relationshipID: \(relationshipID), side: \(side.rawValue))"
         }
     }
 }
@@ -69,6 +81,19 @@ public enum RoundTripLossKind: String, Hashable, Sendable, CaseIterable, Codable
     case idSanitization, shapeDowngrade, subgraphFlatten, boundaryFlatten
     case c4SlotDrop, titleDrop, configDrop, styleDrop
     case accessibilityDrop, anonymousSubgraphRename, d2DuplicateOverride
+    case classStereotypeDrop, stateActionDrop, cardinalityDrop
+}
+
+/// State entry/exit action phase identifier — used by
+/// `RoundTripLoss.stateActionDrop`.
+public enum StateActionPhase: String, Hashable, Sendable, Codable {
+    case entry, exit
+}
+
+/// ER relationship side identifier — used by
+/// `RoundTripLoss.cardinalityDrop`.
+public enum CardinalitySide: String, Hashable, Sendable, Codable {
+    case source, target
 }
 
 /// C4 shape slot identifier — used by `RoundTripLoss.c4SlotDrop`. The

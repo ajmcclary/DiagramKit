@@ -22,6 +22,9 @@ extension RoundTripLossKind {
         case .accessibilityDrop:       return .accessibilityDrop
         case .anonymousSubgraphRename: return .anonymousSubgraphRename
         case .d2DuplicateOverride:     return .d2DuplicateOverride
+        case .classStereotypeDrop:     return .classStereotypeDrop
+        case .stateActionDrop:         return .stateActionDrop
+        case .cardinalityDrop:         return .cardinalityDrop
         }
     }
 }

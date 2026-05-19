@@ -18,7 +18,10 @@ struct RoundTripLossTests {
             (.styleDrop(target: "x", attribute: "fill"), .styleDrop),
             (.accessibilityDrop(field: .title), .accessibilityDrop),
             (.anonymousSubgraphRename(old: "subgraph_0", new: "subgraph_1"), .anonymousSubgraphRename),
-            (.d2DuplicateOverride(nodeID: "x", attribute: "label"), .d2DuplicateOverride)
+            (.d2DuplicateOverride(nodeID: "x", attribute: "label"), .d2DuplicateOverride),
+            (.classStereotypeDrop(classID: "Foo", stereotype: "interface"), .classStereotypeDrop),
+            (.stateActionDrop(stateID: "Idle", phase: .entry), .stateActionDrop),
+            (.cardinalityDrop(relationshipID: "Order_Customer", side: .source), .cardinalityDrop)
         ]
         for (loss, expectedKind) in cases {
             #expect(loss.kind == expectedKind)
