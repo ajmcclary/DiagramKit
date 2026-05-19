@@ -336,6 +336,72 @@ struct SameFormatRoundTripTests {
     }
 
     @Test(
+        "D2 class round-trip",
+        arguments: try fixtures(for: "d2-class", fromRoot: roundTripResourcesRoot())
+    )
+    func d2Class(fixture: RoundTripFixture) throws {
+        try runSameFormatRoundTrip(
+            cell: RoundTripCellRegistry.d2Class,
+            fixture: fixture
+        )
+    }
+
+    @Test(
+        "D2 state round-trip",
+        arguments: try fixtures(for: "d2-state", fromRoot: roundTripResourcesRoot())
+    )
+    func d2State(fixture: RoundTripFixture) throws {
+        try runSameFormatRoundTrip(
+            cell: RoundTripCellRegistry.d2State,
+            fixture: fixture
+        )
+    }
+
+    @Test(
+        "D2 ER round-trip",
+        arguments: try fixtures(for: "d2-er", fromRoot: roundTripResourcesRoot())
+    )
+    func d2Er(fixture: RoundTripFixture) throws {
+        try runSameFormatRoundTrip(
+            cell: RoundTripCellRegistry.d2Er,
+            fixture: fixture
+        )
+    }
+
+    @Test(
+        "DOT class round-trip",
+        arguments: try fixtures(for: "dot-class", fromRoot: roundTripResourcesRoot())
+    )
+    func dotClass(fixture: RoundTripFixture) throws {
+        try runSameFormatRoundTrip(
+            cell: RoundTripCellRegistry.dotClass,
+            fixture: fixture
+        )
+    }
+
+    @Test(
+        "DOT state round-trip",
+        arguments: try fixtures(for: "dot-state", fromRoot: roundTripResourcesRoot())
+    )
+    func dotState(fixture: RoundTripFixture) throws {
+        try runSameFormatRoundTrip(
+            cell: RoundTripCellRegistry.dotState,
+            fixture: fixture
+        )
+    }
+
+    @Test(
+        "DOT ER round-trip",
+        arguments: try fixtures(for: "dot-er", fromRoot: roundTripResourcesRoot())
+    )
+    func dotEr(fixture: RoundTripFixture) throws {
+        try runSameFormatRoundTrip(
+            cell: RoundTripCellRegistry.dotEr,
+            fixture: fixture
+        )
+    }
+
+    @Test(
         "Structurizr C4 round-trip",
         arguments: try fixtures(for: "structurizr-c4", fromRoot: roundTripResourcesRoot())
     )

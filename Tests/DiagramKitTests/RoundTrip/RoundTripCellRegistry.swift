@@ -226,6 +226,48 @@ enum RoundTripCellRegistry {
         allowedLosses: [.subgraphFlatten, .styleDrop, .shapeDowngrade, .idSanitization]
     )
 
+    static let d2Class = RoundTripCell(
+        importer: D2Importer(),
+        exporter: D2Exporter(),
+        family: DiagramType.classDiagram,
+        allowedLosses: [.classStereotypeDrop, .styleDrop]
+    )
+
+    static let d2State = RoundTripCell(
+        importer: D2Importer(),
+        exporter: D2Exporter(),
+        family: DiagramType.stateDiagram,
+        allowedLosses: [.stateActionDrop]
+    )
+
+    static let d2Er = RoundTripCell(
+        importer: D2Importer(),
+        exporter: D2Exporter(),
+        family: DiagramType.erDiagram,
+        allowedLosses: [.cardinalityDrop]
+    )
+
+    static let dotClass = RoundTripCell(
+        importer: GraphvizImporter(),
+        exporter: DOTExporter(),
+        family: DiagramType.classDiagram,
+        allowedLosses: [.classStereotypeDrop, .styleDrop]
+    )
+
+    static let dotState = RoundTripCell(
+        importer: GraphvizImporter(),
+        exporter: DOTExporter(),
+        family: DiagramType.stateDiagram,
+        allowedLosses: [.stateActionDrop]
+    )
+
+    static let dotEr = RoundTripCell(
+        importer: GraphvizImporter(),
+        exporter: DOTExporter(),
+        family: DiagramType.erDiagram,
+        allowedLosses: [.cardinalityDrop]
+    )
+
     static let structurizrC4 = RoundTripCell(
         importer: StructurizrImporter(),
         exporter: StructurizrExporter(),
