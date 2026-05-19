@@ -156,6 +156,38 @@ enum MermaidExportHelpers {
         return ("\"\(inner)\"", diagnostics)
     }
 
+    // MARK: - Indent-based tree emission
+
+    /// Emit a tree (or forest) as indented lines. For each node, the
+    /// caller's `emitNode` closure returns the line content(s) with
+    /// no indent; this helper prepends `indentUnit` repeated `depth`
+    /// times. `childrenOf` returns the node's children.
+    ///
+    /// Used by mindmap and treemap (Wave 1) and slated for treeView
+    /// and block (Wave 3).
+    static func emitIndentedTree<Node>(
+        roots: [Node],
+        indentUnit: String,
+        startDepth: Int = 0,
+        childrenOf: (Node) -> [Node],
+        emitNode: (Node, Int) -> [String]
+    ) -> [String] {
+        var lines: [String] = []
+        func walk(_ node: Node, _ depth: Int) {
+            let indent = String(repeating: indentUnit, count: depth)
+            for line in emitNode(node, depth) {
+                lines.append("\(indent)\(line)")
+            }
+            for child in childrenOf(node) {
+                walk(child, depth + 1)
+            }
+        }
+        for root in roots {
+            walk(root, startDepth)
+        }
+        return lines
+    }
+
     // MARK: - Sectioned item emission
 
     /// Emit a sequence of items grouped under section transitions. The

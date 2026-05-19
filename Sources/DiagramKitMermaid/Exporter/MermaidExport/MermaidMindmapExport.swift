@@ -19,22 +19,17 @@ enum MermaidMindmapExport {
             return DiagramExportResult(source: source, diagnostics: diagnostics)
         }
 
-        emitNode(root, indentLevel: 1, lines: &lines)
+        let treeLines = MermaidExportHelpers.emitIndentedTree(
+            roots: [root],
+            indentUnit: "  ",
+            startDepth: 1,
+            childrenOf: { $0.children },
+            emitNode: { node, _ in [formatNodeLabel(node)] }
+        )
+        lines.append(contentsOf: treeLines)
 
         let source = lines.joined(separator: "\n") + "\n"
         return DiagramExportResult(source: source, diagnostics: diagnostics)
-    }
-
-    private static func emitNode(
-        _ node: MindmapNode,
-        indentLevel: Int,
-        lines: inout [String]
-    ) {
-        let indent = String(repeating: " ", count: indentLevel * 2)
-        lines.append("\(indent)\(formatNodeLabel(node))")
-        for child in node.children {
-            emitNode(child, indentLevel: indentLevel + 1, lines: &lines)
-        }
     }
 
     private static func formatNodeLabel(_ node: MindmapNode) -> String {
