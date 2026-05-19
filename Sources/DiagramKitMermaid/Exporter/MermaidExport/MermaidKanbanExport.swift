@@ -22,15 +22,9 @@ enum MermaidKanbanExport {
             lines.append("    accTitle: \(singleLine(accTitle))")
         }
         if let accDescr = model.accDescr, !accDescr.isEmpty {
-            if accDescr.contains("\n") {
-                lines.append("    accDescr: {")
-                for sub in accDescr.split(separator: "\n", omittingEmptySubsequences: false) {
-                    lines.append("        \(sub)")
-                }
-                lines.append("    }")
-            } else {
-                lines.append("    accDescr: \(accDescr)")
-            }
+            // The kanban parser does not accept the block accDescr
+            // form; collapse newlines so re-parse stays in sync.
+            lines.append("    accDescr: \(singleLine(accDescr))")
         }
 
         for section in model.sections {

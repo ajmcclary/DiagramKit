@@ -16,14 +16,14 @@ enum MermaidGitGraphExport {
         let diagnostics: [DiagramDiagnostic] = []
 
         var header = "gitGraph"
+        // The parser defaults a bare `gitGraph` header to LR, so
+        // always emit the direction explicitly to preserve round-trip
+        // fidelity for TB and BT diagrams.
         switch model.direction {
         case .LR:
             header += " LR:"
         case .TB:
-            // TB is the implicit default; only emit a direction
-            // marker when it diverges. Mermaid accepts the bare
-            // `gitGraph` header as TB.
-            break
+            header += " TB:"
         case .BT:
             header += " BT:"
         }
@@ -36,15 +36,9 @@ enum MermaidGitGraphExport {
             lines.append("    accTitle: \(singleLine(accTitle))")
         }
         if let accDescr = model.accDescr, !accDescr.isEmpty {
-            if accDescr.contains("\n") {
-                lines.append("    accDescr: {")
-                for sub in accDescr.split(separator: "\n", omittingEmptySubsequences: false) {
-                    lines.append("        \(sub)")
-                }
-                lines.append("    }")
-            } else {
-                lines.append("    accDescr: \(accDescr)")
-            }
+            // The gitGraph parser does not accept the block accDescr
+            // form; collapse newlines so re-parse stays in sync.
+            lines.append("    accDescr: \(singleLine(accDescr))")
         }
 
         for stmt in model.statements {
