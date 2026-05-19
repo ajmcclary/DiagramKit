@@ -100,6 +100,13 @@ enum RoundTripCellRegistry {
         allowedLosses: []
     )
 
+    static let mermaidKanban = RoundTripCell(
+        importer: MermaidImporter(),
+        exporter: MermaidExporter(),
+        family: DiagramType.kanban,
+        allowedLosses: []
+    )
+
     static let d2Flowchart = RoundTripCell(
         importer: D2Importer(),
         exporter: D2Exporter(),
