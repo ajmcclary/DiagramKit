@@ -1,0 +1,5 @@
+journey
+    title My day
+    section Morning
+      Wake up: 5: Me
+      Coffee: 3: Me
