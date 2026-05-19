@@ -1,0 +1,5 @@
+digraph G {
+  Animal [shape=record, label="{Animal|+ name: string\n|}"];
+  Dog [shape=record, label="{Dog|+ breed: string\n|}"];
+  Dog -> Animal;
+}

@@ -285,5 +285,256 @@ struct CrossFormatRoundTripTests {
         )
     }
 
+    // MARK: Mermaid ↔ D2 (class) — Wave 2
+
+    @Test(
+        "Mermaid → D2 → Mermaid (class)",
+        arguments: try fixtures(for: "cross-mermaid-d2-class", fromRoot: roundTripResourcesRoot())
+    )
+    func mermaidD2Class(fixture: RoundTripFixture) throws {
+        try runCrossFormatRoundTrip(
+            legA: RoundTripCellRegistry.mermaidClass,
+            legB: RoundTripCellRegistry.d2Class,
+            additionalAllowedLosses: RoundTripCrossRegistry.mermaidD2Class,
+            fixture: fixture
+        )
+    }
+
+    @Test(
+        "D2 → Mermaid → D2 (class)",
+        arguments: try fixtures(for: "cross-d2-mermaid-class", fromRoot: roundTripResourcesRoot())
+    )
+    func d2MermaidClass(fixture: RoundTripFixture) throws {
+        try runCrossFormatRoundTrip(
+            legA: RoundTripCellRegistry.d2Class,
+            legB: RoundTripCellRegistry.mermaidClass,
+            additionalAllowedLosses: RoundTripCrossRegistry.d2MermaidClass,
+            fixture: fixture
+        )
+    }
+
+    // MARK: Mermaid ↔ DOT (class) — Wave 2
+
+    @Test(
+        "Mermaid → DOT → Mermaid (class)",
+        arguments: try fixtures(for: "cross-mermaid-dot-class", fromRoot: roundTripResourcesRoot())
+    )
+    func mermaidDotClass(fixture: RoundTripFixture) throws {
+        try runCrossFormatRoundTrip(
+            legA: RoundTripCellRegistry.mermaidClass,
+            legB: RoundTripCellRegistry.dotClass,
+            additionalAllowedLosses: RoundTripCrossRegistry.mermaidDotClass,
+            fixture: fixture
+        )
+    }
+
+    @Test(
+        "DOT → Mermaid → DOT (class)",
+        arguments: try fixtures(for: "cross-dot-mermaid-class", fromRoot: roundTripResourcesRoot())
+    )
+    func dotMermaidClass(fixture: RoundTripFixture) throws {
+        try runCrossFormatRoundTrip(
+            legA: RoundTripCellRegistry.dotClass,
+            legB: RoundTripCellRegistry.mermaidClass,
+            additionalAllowedLosses: RoundTripCrossRegistry.dotMermaidClass,
+            fixture: fixture
+        )
+    }
+
+    // MARK: D2 ↔ DOT (class) — Wave 2
+
+    @Test(
+        "D2 → DOT → D2 (class)",
+        arguments: try fixtures(for: "cross-d2-dot-class", fromRoot: roundTripResourcesRoot())
+    )
+    func d2DotClass(fixture: RoundTripFixture) throws {
+        try runCrossFormatRoundTrip(
+            legA: RoundTripCellRegistry.d2Class,
+            legB: RoundTripCellRegistry.dotClass,
+            additionalAllowedLosses: RoundTripCrossRegistry.d2DotClass,
+            fixture: fixture
+        )
+    }
+
+    @Test(
+        "DOT → D2 → DOT (class)",
+        arguments: try fixtures(for: "cross-dot-d2-class", fromRoot: roundTripResourcesRoot())
+    )
+    func dotD2Class(fixture: RoundTripFixture) throws {
+        try runCrossFormatRoundTrip(
+            legA: RoundTripCellRegistry.dotClass,
+            legB: RoundTripCellRegistry.d2Class,
+            additionalAllowedLosses: RoundTripCrossRegistry.dotD2Class,
+            fixture: fixture
+        )
+    }
+
+    // MARK: Mermaid ↔ D2 (state) — Wave 2
+
+    @Test(
+        "Mermaid → D2 → Mermaid (state)",
+        arguments: try fixtures(for: "cross-mermaid-d2-state", fromRoot: roundTripResourcesRoot())
+    )
+    func mermaidD2State(fixture: RoundTripFixture) throws {
+        try runCrossFormatRoundTrip(
+            legA: RoundTripCellRegistry.mermaidState,
+            legB: RoundTripCellRegistry.d2State,
+            additionalAllowedLosses: RoundTripCrossRegistry.mermaidD2State,
+            fixture: fixture
+        )
+    }
+
+    @Test(
+        "D2 → Mermaid → D2 (state)",
+        arguments: try fixtures(for: "cross-d2-mermaid-state", fromRoot: roundTripResourcesRoot())
+    )
+    func d2MermaidState(fixture: RoundTripFixture) throws {
+        try runCrossFormatRoundTrip(
+            legA: RoundTripCellRegistry.d2State,
+            legB: RoundTripCellRegistry.mermaidState,
+            additionalAllowedLosses: RoundTripCrossRegistry.d2MermaidState,
+            fixture: fixture
+        )
+    }
+
+    // MARK: Mermaid ↔ DOT (state) — Wave 2
+
+    @Test(
+        "Mermaid → DOT → Mermaid (state)",
+        arguments: try fixtures(for: "cross-mermaid-dot-state", fromRoot: roundTripResourcesRoot())
+    )
+    func mermaidDotState(fixture: RoundTripFixture) throws {
+        try runCrossFormatRoundTrip(
+            legA: RoundTripCellRegistry.mermaidState,
+            legB: RoundTripCellRegistry.dotState,
+            additionalAllowedLosses: RoundTripCrossRegistry.mermaidDotState,
+            fixture: fixture
+        )
+    }
+
+    @Test(
+        "DOT → Mermaid → DOT (state)",
+        arguments: try fixtures(for: "cross-dot-mermaid-state", fromRoot: roundTripResourcesRoot())
+    )
+    func dotMermaidState(fixture: RoundTripFixture) throws {
+        try runCrossFormatRoundTrip(
+            legA: RoundTripCellRegistry.dotState,
+            legB: RoundTripCellRegistry.mermaidState,
+            additionalAllowedLosses: RoundTripCrossRegistry.dotMermaidState,
+            fixture: fixture
+        )
+    }
+
+    // MARK: D2 ↔ DOT (state) — Wave 2
+
+    @Test(
+        "D2 → DOT → D2 (state)",
+        arguments: try fixtures(for: "cross-d2-dot-state", fromRoot: roundTripResourcesRoot())
+    )
+    func d2DotState(fixture: RoundTripFixture) throws {
+        try runCrossFormatRoundTrip(
+            legA: RoundTripCellRegistry.d2State,
+            legB: RoundTripCellRegistry.dotState,
+            additionalAllowedLosses: RoundTripCrossRegistry.d2DotState,
+            fixture: fixture
+        )
+    }
+
+    @Test(
+        "DOT → D2 → DOT (state)",
+        arguments: try fixtures(for: "cross-dot-d2-state", fromRoot: roundTripResourcesRoot())
+    )
+    func dotD2State(fixture: RoundTripFixture) throws {
+        try runCrossFormatRoundTrip(
+            legA: RoundTripCellRegistry.dotState,
+            legB: RoundTripCellRegistry.d2State,
+            additionalAllowedLosses: RoundTripCrossRegistry.dotD2State,
+            fixture: fixture
+        )
+    }
+
+    // MARK: Mermaid ↔ D2 (ER) — Wave 2
+
+    @Test(
+        "Mermaid → D2 → Mermaid (ER)",
+        arguments: try fixtures(for: "cross-mermaid-d2-er", fromRoot: roundTripResourcesRoot())
+    )
+    func mermaidD2Er(fixture: RoundTripFixture) throws {
+        try runCrossFormatRoundTrip(
+            legA: RoundTripCellRegistry.mermaidEr,
+            legB: RoundTripCellRegistry.d2Er,
+            additionalAllowedLosses: RoundTripCrossRegistry.mermaidD2Er,
+            fixture: fixture
+        )
+    }
+
+    @Test(
+        "D2 → Mermaid → D2 (ER)",
+        arguments: try fixtures(for: "cross-d2-mermaid-er", fromRoot: roundTripResourcesRoot())
+    )
+    func d2MermaidEr(fixture: RoundTripFixture) throws {
+        try runCrossFormatRoundTrip(
+            legA: RoundTripCellRegistry.d2Er,
+            legB: RoundTripCellRegistry.mermaidEr,
+            additionalAllowedLosses: RoundTripCrossRegistry.d2MermaidEr,
+            fixture: fixture
+        )
+    }
+
+    // MARK: Mermaid ↔ DOT (ER) — Wave 2
+
+    @Test(
+        "Mermaid → DOT → Mermaid (ER)",
+        arguments: try fixtures(for: "cross-mermaid-dot-er", fromRoot: roundTripResourcesRoot())
+    )
+    func mermaidDotEr(fixture: RoundTripFixture) throws {
+        try runCrossFormatRoundTrip(
+            legA: RoundTripCellRegistry.mermaidEr,
+            legB: RoundTripCellRegistry.dotEr,
+            additionalAllowedLosses: RoundTripCrossRegistry.mermaidDotEr,
+            fixture: fixture
+        )
+    }
+
+    @Test(
+        "DOT → Mermaid → DOT (ER)",
+        arguments: try fixtures(for: "cross-dot-mermaid-er", fromRoot: roundTripResourcesRoot())
+    )
+    func dotMermaidEr(fixture: RoundTripFixture) throws {
+        try runCrossFormatRoundTrip(
+            legA: RoundTripCellRegistry.dotEr,
+            legB: RoundTripCellRegistry.mermaidEr,
+            additionalAllowedLosses: RoundTripCrossRegistry.dotMermaidEr,
+            fixture: fixture
+        )
+    }
+
+    // MARK: D2 ↔ DOT (ER) — Wave 2
+
+    @Test(
+        "D2 → DOT → D2 (ER)",
+        arguments: try fixtures(for: "cross-d2-dot-er", fromRoot: roundTripResourcesRoot())
+    )
+    func d2DotEr(fixture: RoundTripFixture) throws {
+        try runCrossFormatRoundTrip(
+            legA: RoundTripCellRegistry.d2Er,
+            legB: RoundTripCellRegistry.dotEr,
+            additionalAllowedLosses: RoundTripCrossRegistry.d2DotEr,
+            fixture: fixture
+        )
+    }
+
+    @Test(
+        "DOT → D2 → DOT (ER)",
+        arguments: try fixtures(for: "cross-dot-d2-er", fromRoot: roundTripResourcesRoot())
+    )
+    func dotD2Er(fixture: RoundTripFixture) throws {
+        try runCrossFormatRoundTrip(
+            legA: RoundTripCellRegistry.dotEr,
+            legB: RoundTripCellRegistry.d2Er,
+            additionalAllowedLosses: RoundTripCrossRegistry.dotD2Er,
+            fixture: fixture
+        )
+    }
 }
 

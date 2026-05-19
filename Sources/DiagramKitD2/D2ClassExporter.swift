@@ -198,17 +198,15 @@ enum D2ClassExport {
             lines.append("\(D2ClassExport.sanitizeID(c.id)): {")
             lines.append("  shape: class")
             for attr in c.attributes {
-                let marker = attr.visibility.isEmpty ? "" : attr.visibility
-                let prefix = marker.isEmpty ? "" : marker
-                let typeSuffix = attr.returnType.isEmpty ? "" : ": \(attr.returnType)"
-                lines.append("  \(prefix)\(attr.id)\(typeSuffix)")
+                let prefix = attr.visibility
+                let typeValue = attr.returnType.isEmpty ? "\"\"" : attr.returnType
+                lines.append("  \(prefix)\(attr.id): \(typeValue)")
             }
             for method in c.methods {
-                let marker = method.visibility.isEmpty ? "" : method.visibility
-                let prefix = marker.isEmpty ? "" : marker
+                let prefix = method.visibility
                 let params = method.parameters
-                let returnSuffix = method.returnType.isEmpty ? "" : ": \(method.returnType)"
-                lines.append("  \(prefix)\(method.id)(\(params))\(returnSuffix)")
+                let returnValue = method.returnType.isEmpty ? "\"\"" : method.returnType
+                lines.append("  \(prefix)\(method.id)(\(params)): \(returnValue)")
             }
             lines.append("}")
             lines.append("")

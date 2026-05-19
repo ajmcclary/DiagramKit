@@ -1,0 +1,10 @@
+_start: {
+  shape: circle
+}
+_end: {
+  shape: circle
+}
+_start -> Idle
+Idle -> Active: trigger
+Active -> Done: complete
+Done -> _end

@@ -1,0 +1,7 @@
+digraph G {
+  _start [shape=point];
+  _end [shape=doublecircle];
+  _start -> Idle;
+  Idle -> Active [label="trigger"];
+  Done -> _end;
+}

@@ -115,22 +115,24 @@ enum DOTStateExport {
             lines.append("  label=\(DOTClassExport.quoted(DOTClassExport.singleLineTitle(title)));")
         }
 
+        var nameRewrite: [String: String] = [:]
         for entry in graph.nodesInOrder {
             let id = entry.id
-            let sanitizedId = DOTClassExport.sanitizeDOTID(id)
             switch entry.node.shape {
             case .stateStart:
-                lines.append("  \(sanitizedId) [shape=point, style=filled, fillcolor=black];")
+                nameRewrite[id] = "_start"
+                lines.append("  _start [shape=point, style=filled, fillcolor=black];")
             case .stateEnd:
-                lines.append("  \(sanitizedId) [shape=doublecircle, style=filled, fillcolor=black];")
+                nameRewrite[id] = "_end"
+                lines.append("  _end [shape=doublecircle, style=filled, fillcolor=black];")
             default:
                 break
             }
         }
 
         for edge in graph.edges {
-            let src = DOTClassExport.sanitizeDOTID(edge.source)
-            let tgt = DOTClassExport.sanitizeDOTID(edge.target)
+            let src = nameRewrite[edge.source] ?? DOTClassExport.sanitizeDOTID(edge.source)
+            let tgt = nameRewrite[edge.target] ?? DOTClassExport.sanitizeDOTID(edge.target)
             if let label = edge.label, !label.isEmpty {
                 lines.append("  \(src) -> \(tgt) [label=\(DOTClassExport.quoted(label))];")
             } else {
