@@ -411,4 +411,59 @@ struct SameFormatRoundTripTests {
             fixture: fixture
         )
     }
+
+    @Test(
+        "PlantUML activity round-trip",
+        arguments: try fixtures(for: "plantuml-activity", fromRoot: roundTripResourcesRoot())
+    )
+    func plantumlActivity(fixture: RoundTripFixture) throws {
+        try runSameFormatRoundTrip(
+            cell: RoundTripCellRegistry.plantumlActivity,
+            fixture: fixture
+        )
+    }
+
+    @Test(
+        "PlantUML ER round-trip",
+        arguments: try fixtures(for: "plantuml-er", fromRoot: roundTripResourcesRoot())
+    )
+    func plantumlEr(fixture: RoundTripFixture) throws {
+        try runSameFormatRoundTrip(
+            cell: RoundTripCellRegistry.plantumlEr,
+            fixture: fixture
+        )
+    }
+
+    @Test(
+        "PlantUML useCase round-trip",
+        arguments: try fixtures(for: "plantuml-usecase", fromRoot: roundTripResourcesRoot())
+    )
+    func plantumlUseCase(fixture: RoundTripFixture) throws {
+        try runSameFormatRoundTrip(
+            cell: RoundTripCellRegistry.plantumlUseCase,
+            fixture: fixture
+        )
+    }
+
+    @Test(
+        "PlantUML object round-trip",
+        arguments: try fixtures(for: "plantuml-object", fromRoot: roundTripResourcesRoot())
+    )
+    func plantumlObject(fixture: RoundTripFixture) throws {
+        try runSameFormatRoundTrip(
+            cell: RoundTripCellRegistry.plantumlObject,
+            fixture: fixture
+        )
+    }
+
+    @Test(
+        "PlantUML component round-trip",
+        arguments: try fixtures(for: "plantuml-component", fromRoot: roundTripResourcesRoot())
+    )
+    func plantumlComponent(fixture: RoundTripFixture) throws {
+        try runSameFormatRoundTrip(
+            cell: RoundTripCellRegistry.plantumlComponent,
+            fixture: fixture
+        )
+    }
 }

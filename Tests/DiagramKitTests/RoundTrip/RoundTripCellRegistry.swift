@@ -274,4 +274,39 @@ enum RoundTripCellRegistry {
         family: DiagramType.c4,
         allowedLosses: [.idSanitization, .boundaryFlatten, .c4SlotDrop]
     )
+
+    static let plantumlActivity = RoundTripCell(
+        importer: PlantUMLImporter(),
+        exporter: PlantUMLExporter(),
+        family: DiagramType.flowchart,
+        allowedLosses: [.idSanitization, .subgraphFlatten]
+    )
+
+    static let plantumlEr = RoundTripCell(
+        importer: PlantUMLImporter(),
+        exporter: PlantUMLExporter(),
+        family: DiagramType.erDiagram,
+        allowedLosses: [.idSanitization]
+    )
+
+    static let plantumlUseCase = RoundTripCell(
+        importer: PlantUMLImporter(),
+        exporter: PlantUMLUseCaseExporter(),
+        family: DiagramType.flowchart,
+        allowedLosses: [.idSanitization]
+    )
+
+    static let plantumlObject = RoundTripCell(
+        importer: PlantUMLImporter(),
+        exporter: PlantUMLObjectExporter(),
+        family: DiagramType.classDiagram,
+        allowedLosses: [.idSanitization]
+    )
+
+    static let plantumlComponent = RoundTripCell(
+        importer: PlantUMLImporter(),
+        exporter: PlantUMLExporter(),
+        family: DiagramType.architecture,
+        allowedLosses: [.idSanitization]
+    )
 }
