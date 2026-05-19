@@ -12,9 +12,9 @@ public struct D2Exporter: DiagramExporter {
     public let name = "D2"
     public let formatID = DiagramFormatID.d2
 
-    /// Flowchart only — matches D2Importer's current coverage.
     public let supportedDiagramTypes: Set<DiagramType> = [
         .flowchart,
+        .classDiagram,
     ]
 
     public init() {}
@@ -23,6 +23,8 @@ public struct D2Exporter: DiagramExporter {
         switch document.payload {
         case .flowchart(let model):
             return try D2FlowchartExport.emit(model, title: document.title)
+        case .classDiagram(let model):
+            return try D2ClassExport.emit(model, title: document.title)
         default:
             return .unsupportedDiagram(formatName: name, type: document.type)
         }

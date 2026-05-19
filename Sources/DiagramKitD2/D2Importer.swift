@@ -12,7 +12,10 @@ public struct D2Importer: DiagramSourceImporter {
 
     public let name = "D2"
     public let formatID = DiagramFormatID.d2
-    public let supportedDiagramTypes: Set<DiagramType> = [.flowchart]
+    public let supportedDiagramTypes: Set<DiagramType> = [
+        .flowchart,
+        .classDiagram,
+    ]
 
     public init() {}
 
@@ -23,6 +26,16 @@ public struct D2Importer: DiagramSourceImporter {
     public func parse(_ source: String) throws -> DiagramImportResult {
         let parser = D2Parser()
         let (d2Doc, parseDiagnostics) = try parser.parse(source)
+
+        if D2ClassProbe.detectsClassDiagram(d2Doc) {
+            let (cd, classDiagnostics) = D2ClassMapper().map(d2Doc)
+            var document = DiagramDocument(payload: .classDiagram(cd))
+            document.title = Self.documentTitleMetadata(in: source)
+            return DiagramImportResult(
+                document: document,
+                diagnostics: parseDiagnostics + classDiagnostics
+            )
+        }
 
         let mapper = D2Mapper()
         let (graph, mapDiagnostics) = mapper.map(d2Doc)

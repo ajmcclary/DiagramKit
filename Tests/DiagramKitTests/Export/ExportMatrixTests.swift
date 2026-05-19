@@ -26,11 +26,11 @@ import DiagramKitPlantUML
 
     // MARK: - D2 exporter
 
-    @Test("D2 exporter supports flowchart only")
+    @Test("D2 exporter supports flowchart and classDiagram")
     func d2ExporterSupportedTypes() {
         let exporter = D2Exporter()
         #expect(exporter.supportedDiagramTypes.contains(.flowchart))
-        #expect(!exporter.supportedDiagramTypes.contains(.erDiagram))
+        #expect(exporter.supportedDiagramTypes.contains(.classDiagram))
         #expect(!exporter.supportedDiagramTypes.contains(.architecture))
         #expect(!exporter.supportedDiagramTypes.contains(.sequenceDiagram))
     }
@@ -57,7 +57,7 @@ import DiagramKitPlantUML
 
     // MARK: - PlantUML exporter
 
-    @Test("PlantUML exporter supports the full Phase 6 family set (sequence + class + state + mindmap + gantt + c4)")
+    @Test("PlantUML exporter covers Phase 6 base + Wave 1 expansions (activity → flowchart, ER, architecture)")
     func plantUMLExporterSupportedTypes() {
         let exporter = PlantUMLExporter()
         #expect(exporter.supportedDiagramTypes.contains(.sequenceDiagram))
@@ -66,7 +66,9 @@ import DiagramKitPlantUML
         #expect(exporter.supportedDiagramTypes.contains(.mindmap))
         #expect(exporter.supportedDiagramTypes.contains(.gantt))
         #expect(exporter.supportedDiagramTypes.contains(.c4))
-        #expect(!exporter.supportedDiagramTypes.contains(.flowchart))
+        #expect(exporter.supportedDiagramTypes.contains(.flowchart))
+        #expect(exporter.supportedDiagramTypes.contains(.erDiagram))
+        #expect(exporter.supportedDiagramTypes.contains(.architecture))
     }
 
     // MARK: - Unsupported type diagnostic
