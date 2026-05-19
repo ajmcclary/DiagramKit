@@ -76,6 +76,8 @@ public func compare(_ a: DiagramDocument, _ b: DiagramDocument) -> [RoundTripDel
         deltas.append(contentsOf: diffZenUMLDiagram(lhs, rhs))
     case (.eventModeling(let lhs), .eventModeling(let rhs)):
         deltas.append(contentsOf: diffEventModelingDiagram(lhs, rhs))
+    case (.block(let lhs), .block(let rhs)):
+        deltas.append(contentsOf: diffBlockDiagram(lhs, rhs))
     default:
         deltas.append(.unexpected(
             path: "payload.type",

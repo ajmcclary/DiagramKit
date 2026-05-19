@@ -39,8 +39,7 @@ public struct MermaidExporter: DiagramExporter {
         .treeView,        // wave 2
         .zenuml,          // wave 2
         .eventModeling,   // wave 2
-        // .mindmap       — added in 7A-P1
-        // ... remaining families in 7A-P2 / Phase 10
+        .block,           // wave 3
     ]
 
     public init() {}
@@ -98,6 +97,8 @@ public struct MermaidExporter: DiagramExporter {
             result = try MermaidZenUMLExport.emit(model)
         case .eventModeling(let model):
             result = try MermaidEventModelingExport.emit(model)
+        case .block(let model):
+            result = try MermaidBlockExport.emit(model)
         default:
             return .unsupportedDiagram(formatName: name, type: document.type)
         }
