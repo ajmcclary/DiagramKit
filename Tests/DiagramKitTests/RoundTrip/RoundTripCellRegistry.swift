@@ -177,6 +177,13 @@ enum RoundTripCellRegistry {
         allowedLosses: []
     )
 
+    static let mermaidZenUML = RoundTripCell(
+        importer: MermaidImporter(),
+        exporter: MermaidExporter(),
+        family: DiagramType.zenuml,
+        allowedLosses: []
+    )
+
     static let d2Flowchart = RoundTripCell(
         importer: D2Importer(),
         exporter: D2Exporter(),
