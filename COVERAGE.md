@@ -22,10 +22,10 @@ Where" for slice paths and [BASELINES.md](BASELINES.md) for corpus counts.
 | Family            | Mermaid | D2 | DOT | Structurizr | PlantUML |
 |-------------------|:-------:|:--:|:---:|:-----------:|:--------:|
 | flowchart         |   ★    | ✓ | ✓  |     —      |    ⚠    |
-| stateDiagram      |   ★    | — | —  |     —      |    ✓    |
+| stateDiagram      |   ★    | ⚠ | ⚠  |     —      |    ✓    |
 | sequenceDiagram   |   ★    | — | —  |     —      |    ✓    |
-| classDiagram      |   ★    | — | —  |     —      |    ⚠    |
-| erDiagram         |   ★    | — | —  |     —      |    ✓    |
+| classDiagram      |   ★    | ⚠ | ⚠  |     —      |    ⚠    |
+| erDiagram         |   ★    | ⚠ | ⚠  |     —      |    ✓    |
 | xyChart           |   ★    | — | —  |     —      |    —    |
 | pie               |   ★    | — | —  |     —      |    —    |
 | journey           |   ★    | — | —  |     —      |    —    |
@@ -49,17 +49,17 @@ Where" for slice paths and [BASELINES.md](BASELINES.md) for corpus counts.
 | wardleyBeta       |   ★    | — | —  |     —      |    —    |
 | c4                |   ★    | — | —  |     ✓      |    ✓    |
 | zenuml            |   ★    | — | —  |     —      |    —    |
-| **Totals**        | 28/28  | 1/28 | 1/28 | 1/28      | 9/28    |
+| **Totals**        | 28/28  | 4/28 | 4/28 | 1/28      | 9/28    |
 
 ## Export coverage
 
 | Family            | Mermaid | D2 | DOT | Structurizr | PlantUML |
 |-------------------|:-------:|:--:|:---:|:-----------:|:--------:|
 | flowchart         |   ✓    | ✓ | ✓  |     —      |    ⚠    |
-| stateDiagram      |   ✓    | — | —  |     —      |    ✓    |
+| stateDiagram      |   ✓    | ⚠ | ⚠  |     —      |    ✓    |
 | sequenceDiagram   |   ✓    | — | —  |     —      |    ⚠    |
-| classDiagram      |   ✓    | — | —  |     —      |    ⚠    |
-| erDiagram         |   ✓    | — | —  |     —      |    ✓    |
+| classDiagram      |   ✓    | ⚠ | ⚠  |     —      |    ⚠    |
+| erDiagram         |   ✓    | ⚠ | ⚠  |     —      |    ✓    |
 | xyChart           |   ✓    | — | —  |     —      |    —    |
 | pie               |   ✓    | — | —  |     —      |    —    |
 | journey           |   ✓    | — | —  |     —      |    —    |
@@ -83,17 +83,17 @@ Where" for slice paths and [BASELINES.md](BASELINES.md) for corpus counts.
 | wardleyBeta       |   ✓    | — | —  |     —      |    —    |
 | c4                |   ✓    | — | —  |     ⚠      |    ✓    |
 | zenuml            |   ✓    | — | —  |     —      |    —    |
-| **Totals**        | 28/28  | 1/28 | 1/28 | 1/28      | 9/28    |
+| **Totals**        | 28/28  | 4/28 | 4/28 | 1/28      | 9/28    |
 
 ## Round-trip discipline
 
-`Tests/DiagramKitTests/RoundTrip/Resources/roundtrip/` currently holds **21
-same-format fixtures** and **20 cross-format directed pairs** (10 unordered).
+`Tests/DiagramKitTests/RoundTrip/Resources/roundtrip/` currently holds **27
+same-format fixtures** and **38 cross-format directed pairs** (19 unordered).
 
 | Layer | Coverage |
 |-------|----------|
-| Same-format | mermaid {flowchart, sequence, class, er, gantt, state, c4}, d2 {flowchart}, dot {flowchart}, plantuml {sequence, class, state, gantt, mindmap, c4, activity, er, useCase, object, component}, structurizr {c4} |
-| Cross-format pairs | flowchart × {mermaid↔d2, mermaid↔dot, d2↔dot, mermaid↔plantuml}; sequence × {mermaid↔plantuml}; class × {mermaid↔plantuml}; er × {mermaid↔plantuml}; c4 × {mermaid↔plantuml, mermaid↔structurizr, plantuml↔structurizr} |
+| Same-format | mermaid {flowchart, sequence, class, er, gantt, state, c4}, d2 {flowchart, class, state, er}, dot {flowchart, class, state, er}, plantuml {sequence, class, state, gantt, mindmap, c4, activity, er, useCase, object, component}, structurizr {c4} |
+| Cross-format pairs | flowchart × {mermaid↔d2, mermaid↔dot, d2↔dot, mermaid↔plantuml}; sequence × {mermaid↔plantuml}; class × {mermaid↔plantuml, mermaid↔d2, mermaid↔dot, d2↔dot}; state × {mermaid↔d2, mermaid↔dot, d2↔dot}; er × {mermaid↔plantuml, mermaid↔d2, mermaid↔dot, d2↔dot}; c4 × {mermaid↔plantuml, mermaid↔structurizr, plantuml↔structurizr} |
 
 Every supported import × export intersection that produces a non-empty result
 has a round-trip fixture. There are no missing pairs given today's supported
@@ -186,11 +186,11 @@ No new family rows should appear in the Structurizr column.
 
 Ordered by impact:
 
-1. **PlantUML: activity, erDiagram, useCase, object, component (5 families,
-   import + export each).** Real-world PlantUML corpora hit these constantly.
-2. **D2 + DOT: classDiagram, stateDiagram, erDiagram (3 families each, both
-   directions, with documented lossy diagnostics).** Closes the most common
-   "render this Mermaid in D2/Graphviz" requests.
+1. ~~**PlantUML: activity, erDiagram, useCase, object, component (5 families,
+   import + export each).**~~ Closed by Wave 1 of the coverage-expansion spec.
+2. ~~**D2 + DOT: classDiagram, stateDiagram, erDiagram (3 families each, both
+   directions, with documented lossy diagnostics).**~~ Closed by Wave 2 of the
+   coverage-expansion spec (closing commit on the Wave 2 closer).
 3. **Structurizr: tag/boundary lossy export + multi-view import.** Lifts the
    existing `⚠` to `✓` and extends single-view fidelity.
 

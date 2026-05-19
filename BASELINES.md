@@ -2,6 +2,34 @@
 
 Last updated: 2026-05-19
 
+## Coverage expansion — Wave 2 (D2 + DOT)
+
+- **2026-05-19 — Coverage Wave 2 (D2 + DOT, 3 families each):** D2 and
+  DOT import + export columns in [COVERAGE.md](COVERAGE.md) each move
+  from 1/28 to **4/28**, picking up `classDiagram`, `stateDiagram`, and
+  `erDiagram` in both directions. Each new cell lands at **⚠** with
+  typed `.lossyTransform(.<category>, …)` diagnostics. Three new
+  `DiagnosticCategory` warning cases — `classStereotypeDrop`,
+  `stateActionDrop`, `cardinalityDrop` — and three paired
+  `RoundTripLoss` cases with `expectedCategory` entries wire the
+  harness pairing. New files: `D2ClassExporter.swift`,
+  `D2StateExporter.swift`, `D2ERExporter.swift` plus
+  `DOTClassExport.swift`, `DOTStateExport.swift`, `DOTERExport.swift`
+  (each carries probe + mapper + exporter). `D2Importer` and
+  `GraphvizImporter` dispatch in probe order class → state → ER →
+  flowchart. `DOTLexer`'s `\l` escape behavior pushed class/ER
+  record-row separators to `\n` (real newline) — see commit log on
+  Task 8. `diffErDiagram` now emits `.loss(.cardinalityDrop)` (one per
+  side) instead of `.unexpected` for cardinality mismatches, so the
+  harness can pair the loss to the exporter's diagnostic by category.
+  Same-format round-trip suite grows from 21 to **27** family arms
+  (+ d2-class, d2-state, d2-er, dot-class, dot-state, dot-er).
+  Cross-format directed-pair count grows from 20 to **38**
+  (19 unordered): three families × three unordered pairs ×
+  bidirectional = 18 new directed pairs. No corpus growth, no snapshot
+  baseline changes. Spec
+  [docs/superpowers/specs/2026-05-19-coverage-expansion-design.md](docs/superpowers/specs/2026-05-19-coverage-expansion-design.md).
+
 ## Coverage expansion — Wave 1 (PlantUML)
 
 - **2026-05-19 — Coverage Wave 1 (PlantUML, 5 new idioms):** PlantUML
