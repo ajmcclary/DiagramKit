@@ -30,4 +30,13 @@ enum RoundTripCrossRegistry {
     // Class pair
     static let mermaidPlantumlClass: Set<RoundTripLossKind> = [.idSanitization]
     static let plantumlMermaidClass: Set<RoundTripLossKind> = [.idSanitization]
+
+    // ER pair (Wave 1 — PlantUML expansion)
+    static let mermaidPlantumlEr: Set<RoundTripLossKind> = [.idSanitization, .accessibilityDrop]
+    static let plantumlMermaidEr: Set<RoundTripLossKind> = [.idSanitization, .accessibilityDrop]
+
+    // Flowchart pair via PlantUML activity default (Wave 1)
+    static let mermaidPlantumlFlowchart: Set<RoundTripLossKind> = [.idSanitization, .subgraphFlatten, .styleDrop, .shapeDowngrade]
+    static let plantumlMermaidFlowchart: Set<RoundTripLossKind> = [.idSanitization, .subgraphFlatten, .styleDrop, .shapeDowngrade]
+
 }

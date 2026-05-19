@@ -10,6 +10,7 @@ enum PlantUMLActivityExport {
 
     static func emit(_ model: ParsedGraphModel) throws -> DiagramExportResult {
         var lines: [String] = []
+        var diagnostics: [DiagramDiagnostic] = []
         lines.append("@startuml")
         if let title = model.accTitle, !title.isEmpty {
             lines.append("title \(singleLine(title))")
@@ -22,10 +23,22 @@ enum PlantUMLActivityExport {
                 lines.append("stop")
             } else {
                 lines.append(":\(escape(node.label));")
+                if !isSyntheticActivityID(node.id) {
+                    diagnostics.append(.lossyTransform(
+                        .idSanitization,
+                        message: "PlantUML activity syntax has no explicit node-id form; '\(node.id)' becomes a synthetic id on re-parse"
+                    ))
+                }
             }
         }
         lines.append("@enduml")
-        return DiagramExportResult(source: lines.joined(separator: "\n") + "\n", diagnostics: [])
+        return DiagramExportResult(source: lines.joined(separator: "\n") + "\n", diagnostics: diagnostics)
+    }
+
+    private static func isSyntheticActivityID(_ id: String) -> Bool {
+        guard id.hasPrefix("n_") else { return false }
+        let tail = id.dropFirst(2)
+        return !tail.isEmpty && tail.allSatisfy(\.isNumber)
     }
 
     private static func singleLine(_ s: String) -> String {

@@ -228,5 +228,62 @@ struct CrossFormatRoundTripTests {
             fixture: fixture
         )
     }
+
+    // MARK: Mermaid ↔ PlantUML (ER) — Wave 1
+
+    @Test(
+        "Mermaid → PlantUML → Mermaid (ER)",
+        arguments: try fixtures(for: "cross-mermaid-plantuml-er", fromRoot: roundTripResourcesRoot())
+    )
+    func mermaidPlantumlEr(fixture: RoundTripFixture) throws {
+        try runCrossFormatRoundTrip(
+            legA: RoundTripCellRegistry.mermaidEr,
+            legB: RoundTripCellRegistry.plantumlEr,
+            additionalAllowedLosses: RoundTripCrossRegistry.mermaidPlantumlEr,
+            fixture: fixture
+        )
+    }
+
+    @Test(
+        "PlantUML → Mermaid → PlantUML (ER)",
+        arguments: try fixtures(for: "cross-plantuml-mermaid-er", fromRoot: roundTripResourcesRoot())
+    )
+    func plantumlMermaidEr(fixture: RoundTripFixture) throws {
+        try runCrossFormatRoundTrip(
+            legA: RoundTripCellRegistry.plantumlEr,
+            legB: RoundTripCellRegistry.mermaidEr,
+            additionalAllowedLosses: RoundTripCrossRegistry.plantumlMermaidEr,
+            fixture: fixture
+        )
+    }
+
+    // MARK: Mermaid ↔ PlantUML (flowchart, default→activity) — Wave 1
+
+    @Test(
+        "Mermaid → PlantUML → Mermaid (flowchart)",
+        arguments: try fixtures(for: "cross-mermaid-plantuml-flowchart", fromRoot: roundTripResourcesRoot())
+    )
+    func mermaidPlantumlFlowchart(fixture: RoundTripFixture) throws {
+        try runCrossFormatRoundTrip(
+            legA: RoundTripCellRegistry.mermaidFlowchart,
+            legB: RoundTripCellRegistry.plantumlActivity,
+            additionalAllowedLosses: RoundTripCrossRegistry.mermaidPlantumlFlowchart,
+            fixture: fixture
+        )
+    }
+
+    @Test(
+        "PlantUML → Mermaid → PlantUML (flowchart)",
+        arguments: try fixtures(for: "cross-plantuml-mermaid-flowchart", fromRoot: roundTripResourcesRoot())
+    )
+    func plantumlMermaidFlowchart(fixture: RoundTripFixture) throws {
+        try runCrossFormatRoundTrip(
+            legA: RoundTripCellRegistry.plantumlActivity,
+            legB: RoundTripCellRegistry.mermaidFlowchart,
+            additionalAllowedLosses: RoundTripCrossRegistry.plantumlMermaidFlowchart,
+            fixture: fixture
+        )
+    }
+
 }
 
