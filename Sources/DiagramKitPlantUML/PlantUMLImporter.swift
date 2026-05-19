@@ -127,7 +127,12 @@ public struct PlantUMLImporter: DiagramSourceImporter {
             )
         }
         if isPlantUMLComponentBody(body) {
-            fatalError("Wave 1 Task 6 implements PlantUMLComponentParser")
+            let ast = PlantUMLComponentParser().parse(body)
+            let (model, diagnostics) = PlantUMLComponentMapper().map(ast)
+            return DiagramImportResult(
+                document: DiagramDocument(payload: .architecture(model)),
+                diagnostics: diagnostics
+            )
         }
         if isPlantUMLClassBody(body) {
             let ast = PlantUMLClassParser().parse(body)

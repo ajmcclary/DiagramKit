@@ -1,0 +1,5 @@
+@startuml
+[Web] --> [API]
+interface HTTP
+[API] --> HTTP
+@enduml

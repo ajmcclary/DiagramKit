@@ -24,6 +24,7 @@ public struct PlantUMLExporter: DiagramExporter {
         .c4,
         .flowchart,
         .erDiagram,
+        .architecture,
     ]
 
     public init() {}
@@ -46,6 +47,8 @@ public struct PlantUMLExporter: DiagramExporter {
             return try PlantUMLActivityExport.emit(model)
         case .erDiagram(let model):
             return try PlantUMLERExport.emit(model)
+        case .architecture(let model):
+            return try PlantUMLComponentExport.emit(model)
         default:
             return .unsupportedDiagram(formatName: name, type: document.type)
         }
