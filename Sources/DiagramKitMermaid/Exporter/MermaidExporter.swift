@@ -41,6 +41,7 @@ public struct MermaidExporter: DiagramExporter {
         .eventModeling,   // wave 2
         .block,           // wave 3
         .architecture,    // wave 3
+        .wardleyBeta,     // wave 3
     ]
 
     public init() {}
@@ -102,6 +103,8 @@ public struct MermaidExporter: DiagramExporter {
             result = try MermaidBlockExport.emit(model)
         case .architecture(let model):
             result = try MermaidArchitectureExport.emit(model)
+        case .wardleyBeta(let model):
+            result = try MermaidWardleyExport.emit(model)
         default:
             return .unsupportedDiagram(formatName: name, type: document.type)
         }

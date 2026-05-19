@@ -80,6 +80,8 @@ public func compare(_ a: DiagramDocument, _ b: DiagramDocument) -> [RoundTripDel
         deltas.append(contentsOf: diffBlockDiagram(lhs, rhs))
     case (.architecture(let lhs), .architecture(let rhs)):
         deltas.append(contentsOf: diffArchitectureDiagram(lhs, rhs))
+    case (.wardleyBeta(let lhs), .wardleyBeta(let rhs)):
+        deltas.append(contentsOf: diffWardleyMapDiagram(lhs, rhs))
     default:
         deltas.append(.unexpected(
             path: "payload.type",
