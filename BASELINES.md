@@ -2,6 +2,27 @@
 
 Last updated: 2026-05-19
 
+## Coverage expansion — Wave 1 (PlantUML)
+
+- **2026-05-19 — Coverage Wave 1 (PlantUML, 5 new idioms):** PlantUML
+  import + export columns in [COVERAGE.md](COVERAGE.md) move from
+  6/28 to **9/28** (the 5 new idioms collapse onto 3 new payload rows
+  — flowchart, erDiagram, architecture — because activity+useCase
+  share `.flowchart` and object is an alt-idiom on the existing
+  `.classDiagram` cell). New PlantUML slices under
+  `Sources/DiagramKitPlantUML/{Activity,ER,UseCase,Object,Component}/`
+  plus their exporters under `Exporter/`. `PlantUMLFamilyProbe` adds
+  5 new probes; `isPlantUMLStateBody` split to remove the activity
+  marker overlap. Same-format round-trip suite gains 5 new arms
+  (plantuml-activity, plantuml-er, plantuml-usecase, plantuml-object,
+  plantuml-component) and grows from 16 to 21 same-format fixtures.
+  Cross-format Mermaid ↔ PlantUML for ER + flowchart adds 4 directed
+  pairs, growing the cross-format directed-pair count from 16 to 20
+  (10 unordered). Architecture and alt-idiom cross-format pairs
+  remain deferred — they require new RoundTripLoss kinds outside
+  Wave 1's "no new categories" constraint. Spec
+  [docs/superpowers/specs/2026-05-19-coverage-expansion-design.md](docs/superpowers/specs/2026-05-19-coverage-expansion-design.md).
+
 For the closed Critical-finding/commit map, the 2026-05-14 rebaseline
 event log, and the post-remediation feature-work table, see
 [docs/archive/BASELINES-history.md](docs/archive/BASELINES-history.md).

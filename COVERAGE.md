@@ -21,11 +21,11 @@ Where" for slice paths and [BASELINES.md](BASELINES.md) for corpus counts.
 
 | Family            | Mermaid | D2 | DOT | Structurizr | PlantUML |
 |-------------------|:-------:|:--:|:---:|:-----------:|:--------:|
-| flowchart         |   ★    | ✓ | ✓  |     —      |    —    |
+| flowchart         |   ★    | ✓ | ✓  |     —      |    ⚠    |
 | stateDiagram      |   ★    | — | —  |     —      |    ✓    |
 | sequenceDiagram   |   ★    | — | —  |     —      |    ✓    |
-| classDiagram      |   ★    | — | —  |     —      |    ✓    |
-| erDiagram         |   ★    | — | —  |     —      |    —    |
+| classDiagram      |   ★    | — | —  |     —      |    ⚠    |
+| erDiagram         |   ★    | — | —  |     —      |    ✓    |
 | xyChart           |   ★    | — | —  |     —      |    —    |
 | pie               |   ★    | — | —  |     —      |    —    |
 | journey           |   ★    | — | —  |     —      |    —    |
@@ -39,7 +39,7 @@ Where" for slice paths and [BASELINES.md](BASELINES.md) for corpus counts.
 | block             |   ★    | — | —  |     —      |    —    |
 | packet            |   ★    | — | —  |     —      |    —    |
 | kanban            |   ★    | — | —  |     —      |    —    |
-| architecture      |   ★    | — | —  |     —      |    —    |
+| architecture      |   ★    | — | —  |     —      |    ⚠    |
 | radar             |   ★    | — | —  |     —      |    —    |
 | treemap           |   ★    | — | —  |     —      |    —    |
 | venn              |   ★    | — | —  |     —      |    —    |
@@ -49,17 +49,17 @@ Where" for slice paths and [BASELINES.md](BASELINES.md) for corpus counts.
 | wardleyBeta       |   ★    | — | —  |     —      |    —    |
 | c4                |   ★    | — | —  |     ✓      |    ✓    |
 | zenuml            |   ★    | — | —  |     —      |    —    |
-| **Totals**        | 28/28  | 1/28 | 1/28 | 1/28      | 6/28    |
+| **Totals**        | 28/28  | 1/28 | 1/28 | 1/28      | 9/28    |
 
 ## Export coverage
 
 | Family            | Mermaid | D2 | DOT | Structurizr | PlantUML |
 |-------------------|:-------:|:--:|:---:|:-----------:|:--------:|
-| flowchart         |   ✓    | ✓ | ✓  |     —      |    —    |
+| flowchart         |   ✓    | ✓ | ✓  |     —      |    ⚠    |
 | stateDiagram      |   ✓    | — | —  |     —      |    ✓    |
 | sequenceDiagram   |   ✓    | — | —  |     —      |    ⚠    |
-| classDiagram      |   ✓    | — | —  |     —      |    ✓    |
-| erDiagram         |   ✓    | — | —  |     —      |    —    |
+| classDiagram      |   ✓    | — | —  |     —      |    ⚠    |
+| erDiagram         |   ✓    | — | —  |     —      |    ✓    |
 | xyChart           |   ✓    | — | —  |     —      |    —    |
 | pie               |   ✓    | — | —  |     —      |    —    |
 | journey           |   ✓    | — | —  |     —      |    —    |
@@ -73,7 +73,7 @@ Where" for slice paths and [BASELINES.md](BASELINES.md) for corpus counts.
 | block             |   ✓    | — | —  |     —      |    —    |
 | packet            |   ✓    | — | —  |     —      |    —    |
 | kanban            |   ✓    | — | —  |     —      |    —    |
-| architecture      |   ✓    | — | —  |     —      |    —    |
+| architecture      |   ✓    | — | —  |     —      |    ⚠    |
 | radar             |   ✓    | — | —  |     —      |    —    |
 | treemap           |   ✓    | — | —  |     —      |    —    |
 | venn              |   ✓    | — | —  |     —      |    —    |
@@ -83,17 +83,17 @@ Where" for slice paths and [BASELINES.md](BASELINES.md) for corpus counts.
 | wardleyBeta       |   ✓    | — | —  |     —      |    —    |
 | c4                |   ✓    | — | —  |     ⚠      |    ✓    |
 | zenuml            |   ✓    | — | —  |     —      |    —    |
-| **Totals**        | 28/28  | 1/28 | 1/28 | 1/28      | 6/28    |
+| **Totals**        | 28/28  | 1/28 | 1/28 | 1/28      | 9/28    |
 
 ## Round-trip discipline
 
-`Tests/DiagramKitTests/RoundTrip/Resources/roundtrip/` currently holds **16
-same-format fixtures** and **16 cross-format directed pairs** (8 unordered).
+`Tests/DiagramKitTests/RoundTrip/Resources/roundtrip/` currently holds **21
+same-format fixtures** and **20 cross-format directed pairs** (10 unordered).
 
 | Layer | Coverage |
 |-------|----------|
-| Same-format | mermaid {flowchart, sequence, class, er, gantt, state, c4}, d2 {flowchart}, dot {flowchart}, plantuml {sequence, class, state, gantt, mindmap, c4}, structurizr {c4} |
-| Cross-format pairs | flowchart × {mermaid↔d2, mermaid↔dot, d2↔dot}; sequence × {mermaid↔plantuml}; class × {mermaid↔plantuml}; c4 × {mermaid↔plantuml, mermaid↔structurizr, plantuml↔structurizr} |
+| Same-format | mermaid {flowchart, sequence, class, er, gantt, state, c4}, d2 {flowchart}, dot {flowchart}, plantuml {sequence, class, state, gantt, mindmap, c4, activity, er, useCase, object, component}, structurizr {c4} |
+| Cross-format pairs | flowchart × {mermaid↔d2, mermaid↔dot, d2↔dot, mermaid↔plantuml}; sequence × {mermaid↔plantuml}; class × {mermaid↔plantuml}; er × {mermaid↔plantuml}; c4 × {mermaid↔plantuml, mermaid↔structurizr, plantuml↔structurizr} |
 
 Every supported import × export intersection that produces a non-empty result
 has a round-trip fixture. There are no missing pairs given today's supported
