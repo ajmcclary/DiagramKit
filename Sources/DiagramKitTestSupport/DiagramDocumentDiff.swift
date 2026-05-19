@@ -60,6 +60,8 @@ public func compare(_ a: DiagramDocument, _ b: DiagramDocument) -> [RoundTripDel
         deltas.append(contentsOf: diffGanttDiagram(lhs, rhs))
     case (.xyChart(let lhs), .xyChart(let rhs)):
         deltas.append(contentsOf: diffXYChart(lhs, rhs))
+    case (.quadrantChart(let lhs), .quadrantChart(let rhs)):
+        deltas.append(contentsOf: diffQuadrantChart(lhs, rhs))
     default:
         deltas.append(.unexpected(
             path: "payload.type",
