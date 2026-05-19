@@ -184,6 +184,13 @@ enum RoundTripCellRegistry {
         allowedLosses: []
     )
 
+    static let mermaidEventModeling = RoundTripCell(
+        importer: MermaidImporter(),
+        exporter: MermaidExporter(),
+        family: DiagramType.eventModeling,
+        allowedLosses: []
+    )
+
     static let d2Flowchart = RoundTripCell(
         importer: D2Importer(),
         exporter: D2Exporter(),

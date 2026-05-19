@@ -270,6 +270,17 @@ struct SameFormatRoundTripTests {
     }
 
     @Test(
+        "Mermaid eventmodeling round-trip",
+        arguments: try fixtures(for: "mermaid-eventmodeling", fromRoot: roundTripResourcesRoot())
+    )
+    func mermaidEventModeling(fixture: RoundTripFixture) throws {
+        try runSameFormatRoundTrip(
+            cell: RoundTripCellRegistry.mermaidEventModeling,
+            fixture: fixture
+        )
+    }
+
+    @Test(
         "D2 flowchart round-trip",
         arguments: try fixtures(for: "d2-flowchart", fromRoot: roundTripResourcesRoot())
     )
