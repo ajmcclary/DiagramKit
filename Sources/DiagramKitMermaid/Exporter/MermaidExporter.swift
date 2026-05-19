@@ -33,6 +33,7 @@ public struct MermaidExporter: DiagramExporter {
         .xyChart,         // wave 2
         .quadrantChart,   // wave 2
         .requirement,     // wave 2
+        .radar,           // wave 2
         // .mindmap       — added in 7A-P1
         // ... remaining families in 7A-P2 / Phase 10
     ]
@@ -80,6 +81,8 @@ public struct MermaidExporter: DiagramExporter {
             result = try MermaidQuadrantExport.emit(model)
         case .requirement(let model):
             result = try MermaidRequirementExport.emit(model)
+        case .radar(let model):
+            result = try MermaidRadarExport.emit(model)
         default:
             return .unsupportedDiagram(formatName: name, type: document.type)
         }
