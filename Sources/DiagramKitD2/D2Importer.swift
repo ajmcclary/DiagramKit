@@ -16,6 +16,7 @@ public struct D2Importer: DiagramSourceImporter {
         .flowchart,
         .classDiagram,
         .stateDiagram,
+        .erDiagram,
     ]
 
     public init() {}
@@ -35,6 +36,16 @@ public struct D2Importer: DiagramSourceImporter {
             return DiagramImportResult(
                 document: document,
                 diagnostics: parseDiagnostics + classDiagnostics
+            )
+        }
+
+        if D2ERProbe.detectsERDiagram(d2Doc) {
+            let (er, erDiagnostics) = D2ERMapper().map(d2Doc)
+            var document = DiagramDocument(payload: .erDiagram(er))
+            document.title = Self.documentTitleMetadata(in: source)
+            return DiagramImportResult(
+                document: document,
+                diagnostics: parseDiagnostics + erDiagnostics
             )
         }
 

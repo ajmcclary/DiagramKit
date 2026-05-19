@@ -52,11 +52,12 @@ func diffErDiagram(_ a: ErDiagram, _ b: ErDiagram) -> [RoundTripDelta] {
                     detail: "lhs=\(ar.label) rhs=\(br.label)"
                 ))
             }
-            if ar.cardinality1 != br.cardinality1 || ar.cardinality2 != br.cardinality2 {
-                deltas.append(.unexpected(
-                    path: "relationships[\(i)].cardinality",
-                    detail: "lhs=\(ar.cardinality1)/\(ar.cardinality2) rhs=\(br.cardinality1)/\(br.cardinality2)"
-                ))
+            let relID = "\(ar.entity1)_\(ar.entity2)"
+            if ar.cardinality1 != br.cardinality1 {
+                deltas.append(.loss(.cardinalityDrop(relationshipID: relID, side: .target)))
+            }
+            if ar.cardinality2 != br.cardinality2 {
+                deltas.append(.loss(.cardinalityDrop(relationshipID: relID, side: .source)))
             }
         }
     }

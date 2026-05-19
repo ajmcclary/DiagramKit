@@ -1,0 +1,15 @@
+Customer: {
+  shape: sql_table
+  id: number
+  name: text
+  email: text
+}
+
+Order: {
+  shape: sql_table
+  id: number
+  customer_id: number
+  total: number
+}
+
+Customer -> Order
