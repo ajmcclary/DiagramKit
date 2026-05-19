@@ -100,17 +100,6 @@ struct PreviewCanvas: View {
                     idleOverlay
                 }
 
-                // v2.1 canvas top toolbar — three pills clustered left.
-                VStack {
-                    HStack {
-                        CanvasTopToolbar(store: store)
-                            .padding(.leading, 12)
-                            .padding(.top, 12)
-                        Spacer()
-                    }
-                    Spacer()
-                }
-
                 // Zoom toolbar (only meaningful in diagram mode)
                 if previewMode == .diagram {
                     VStack {

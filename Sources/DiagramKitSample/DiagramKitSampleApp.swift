@@ -144,7 +144,7 @@ struct DiagramKitSampleApp: App {
                 }
         }
         #if os(macOS)
-        .windowStyle(.titleBar)
+        .windowStyle(.hiddenTitleBar)
         .windowToolbarStyle(.unified)
         .defaultSize(width: 1200, height: 800)
         .commands {

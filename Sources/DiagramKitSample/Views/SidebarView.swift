@@ -19,9 +19,6 @@ struct SidebarView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: PlaygroundSpacing.md) {
-            brandRow
-            searchField
-            formatChips
             browseSection
             Divider()
                 .overlay(tokens.palette.borderHairline)
@@ -32,114 +29,6 @@ struct SidebarView: View {
         .padding(.horizontal, PlaygroundSpacing.md)
         .padding(.top, PlaygroundSpacing.md)
         .background(tokens.palette.bgApp)
-    }
-
-    // MARK: - Brand row
-
-    private var brandRow: some View {
-        HStack(spacing: PlaygroundSpacing.sm) {
-            brandMark
-            VStack(alignment: .leading, spacing: 1) {
-                Text("DiagramKit")
-                    .font(PlaygroundFont.title)
-                    .foregroundStyle(tokens.palette.fg1)
-                Text("v\(DiagramEngine.version) · \(DiagramEngine.supportedDiagramTypes.count) families")
-                    .font(PlaygroundFont.badge)
-                    .foregroundStyle(tokens.palette.fg2)
-            }
-            Spacer()
-        }
-    }
-
-    private var brandMark: some View {
-        // 4×4 grid mark from the design.
-        VStack(spacing: 2) {
-            ForEach(0..<2) { _ in
-                HStack(spacing: 2) {
-                    ForEach(0..<2) { _ in
-                        RoundedRectangle(cornerRadius: 1, style: .continuous)
-                            .fill(tokens.palette.accent)
-                            .frame(width: 5, height: 5)
-                    }
-                }
-            }
-        }
-        .frame(width: 18, height: 18)
-        .padding(2)
-        .background(
-            RoundedRectangle(cornerRadius: PlaygroundRadius.sm, style: .continuous)
-                .fill(tokens.palette.accent15)
-        )
-    }
-
-    // MARK: - Search
-
-    private var searchField: some View {
-        FieldInput(
-            placeholder: "Search · format · family · diagnostic state",
-            text: $store.state.sidebarSearch,
-            systemImage: "magnifyingglass",
-            trailingHint: "⌘K"
-        )
-        .a11yIdentifier(A11yID.Sidebar.search)
-    }
-
-    // MARK: - Format chips
-
-    private var formatChips: some View {
-        ScrollView(.horizontal, showsIndicators: false) {
-            HStack(spacing: 4) {
-                ForEach(SourceFormat.allCases) { format in
-                    chip(for: format)
-                }
-            }
-        }
-    }
-
-    private func chip(for format: SourceFormat) -> some View {
-        let isOn = store.state.sidebarFormatFilter == format
-        return Button {
-            store.state.sidebarFormatFilter = isOn ? nil : format
-        } label: {
-            HStack(spacing: 5) {
-                Circle()
-                    .fill(formatDotColor(format))
-                    .frame(width: 6, height: 6)
-                Text(format.shortName)
-                    .font(PlaygroundFont.label)
-            }
-            .padding(.horizontal, 9)
-            .padding(.vertical, 4)
-            .foregroundStyle(isOn ? tokens.palette.fg1 : tokens.palette.fg2)
-            .background(
-                Capsule()
-                    .fill(isOn ? tokens.palette.rowSelected : Color.clear)
-                    .overlay(
-                        Capsule()
-                            .stroke(
-                                isOn ? tokens.palette.accent.opacity(0.4) : tokens.palette.borderHairline,
-                                lineWidth: 0.5
-                            )
-                    )
-            )
-        }
-        .buttonStyle(.plain)
-        .a11yToggle(
-            label: LocalizedStringKey(format.displayName),
-            isOn: isOn,
-            id: A11yID.Sidebar.formatChip(format.rawValue)
-        )
-    }
-
-    // Per-format accent dot matching the design palette.
-    private func formatDotColor(_ format: SourceFormat) -> Color {
-        switch format {
-        case .mermaid:    return tokens.palette.statusInfo
-        case .d2:         return Color(hex: 0x5E5CE6)
-        case .graphviz:   return Color(hex: 0xBF5AF2)
-        case .structurizr: return Color(hex: 0x64D2FF)
-        case .plantuml:   return Color(hex: 0xFF9F0A)
-        }
     }
 
     // MARK: - Browse section

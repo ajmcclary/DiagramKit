@@ -46,8 +46,6 @@ struct PlaygroundShell: View {
                     DiagnosticsDrawer(store: store)
                         .transition(.move(edge: .bottom).combined(with: .opacity))
                 }
-                Divider()
-                StatusbarView(store: store)
             }
             .animation(.easeInOut(duration: 0.18), value: store.state.diagDrawer.isOpen)
             .onChange(of: store.state.inspectorOpen) { _, newValue in

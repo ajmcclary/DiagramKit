@@ -42,15 +42,6 @@ struct InspectorView: View {
                 .tracking(0.6)
                 .foregroundStyle(tokens.palette.fg2)
             Spacer()
-            Text(store.state.sourceFormat.shortName)
-                .font(PlaygroundFont.codeChip)
-                .foregroundStyle(tokens.palette.fg2)
-                .padding(.horizontal, 6)
-                .padding(.vertical, 1)
-                .background(
-                    Capsule()
-                        .stroke(tokens.palette.borderHairline, lineWidth: 0.5)
-                )
         }
         .padding(.horizontal, PlaygroundSpacing.md)
         .padding(.vertical, PlaygroundSpacing.sm)

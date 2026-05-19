@@ -31,8 +31,7 @@ struct WorkspaceModePicker: View {
         Button {
             store.setWorkspaceMode(mode)
         } label: {
-            Label(mode.label, systemImage: mode.sfSymbol)
-                .labelStyle(.titleAndIcon)
+            Text(mode.label)
                 .font(.system(size: 12, weight: .medium))
                 .padding(.horizontal, 10)
                 .padding(.vertical, 5)

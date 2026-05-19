@@ -19,7 +19,7 @@ public enum WorkspaceMode: String, CaseIterable, Codable, Sendable, Hashable {
     public var label: String {
         switch self {
         case .code:   return "Code"
-        case .visual: return "Visual"
+        case .visual: return "Editor"
         case .split:  return "Split"
         }
     }

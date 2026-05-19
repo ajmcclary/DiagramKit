@@ -25,37 +25,16 @@ struct LiveEditorToolbar: ToolbarContent {
     @SwiftUI.State private var showingTheme = false
     @SwiftUI.State private var showingView = false
     @SwiftUI.State private var showingActions = false
-    @SwiftUI.State private var showingVersionInfo = false
     @SwiftUI.State private var showingFullWindowPreview = false
 
     var body: some ToolbarContent {
-        // Leading: navigation / mode controls
-        ToolbarItemGroup(placement: .navigation) {
-            // Auto / Manual segmented control
-            UpdateModePicker(updateMode: $store.state.updateMode, theme: store.theme)
-
-            // Render button (visible only in manual mode)
-            if store.state.updateMode == .manual {
-                renderButton
-            }
-        }
-
-        // Principal: file title + workspace mode picker (replaces the
-        // sunset custom TitlebarView on macOS).
+        // Principal: workspace mode picker.
         ToolbarItem(placement: .principal) {
-            HStack(spacing: 12) {
-                Text(titleText)
-                    .font(.system(size: 13, weight: .medium))
-                    .lineLimit(1)
-                    .truncationMode(.middle)
-                    .frame(maxWidth: 260, alignment: .leading)
-                WorkspaceModePicker(store: store)
-            }
+            WorkspaceModePicker(store: store)
         }
 
-        // Primary actions: theme, view, actions, info
+        // Primary actions: theme, view, actions, inspector toggle.
         ToolbarItemGroup(placement: .primaryAction) {
-            // Theme button
             Button {
                 showingTheme.toggle()
             } label: {
@@ -69,7 +48,6 @@ struct LiveEditorToolbar: ToolbarContent {
             .help("Theme")
             .a11yIdentifier(A11yID.Toolbar.theme)
 
-            // View button
             Button {
                 showingView.toggle()
             } label: {
@@ -83,7 +61,6 @@ struct LiveEditorToolbar: ToolbarContent {
             .help("View options")
             .a11yIdentifier(A11yID.Toolbar.view)
 
-            // Actions button
             Button {
                 showingActions.toggle()
             } label: {
@@ -96,26 +73,10 @@ struct LiveEditorToolbar: ToolbarContent {
             .help("Export, copy, and share")
             .a11yIdentifier(A11yID.Toolbar.actions)
 
-            // Version / Security button
-            Button {
-                showingVersionInfo.toggle()
-            } label: {
-                Label("Info", systemImage: "info.circle")
-            }
-            .popover(isPresented: $showingVersionInfo) {
-                VersionSecurityPanel()
-                    .frame(width: 320, height: 280)
-            }
-            .help("Version and security information")
-            .a11yIdentifier(A11yID.Toolbar.info)
-
-            // Inspector toggle (Cmd-I)
             Button {
                 store.toggleInspector()
             } label: {
-                Image(systemName: store.state.inspectorOpen
-                    ? "slider.horizontal.below.rectangle.fill"
-                    : "slider.horizontal.below.rectangle")
+                Image(systemName: "sidebar.right")
             }
             .help("Inspector (⌘I)")
             .a11yToggle(
@@ -126,35 +87,6 @@ struct LiveEditorToolbar: ToolbarContent {
             )
             .keyboardShortcut("i", modifiers: [.command])
         }
-    }
-
-    // MARK: - Render button (manual mode)
-
-    private var renderButton: some View {
-        Button {
-            store.renderNow()
-        } label: {
-            HStack(spacing: 4) {
-                Image(systemName: "play.fill")
-                    .font(.system(size: 10, weight: .bold))
-                Text("Render")
-            }
-        }
-        .disabled(!store.isDirty)
-        .help("Render the current diagram")
-        .a11yIdentifier(A11yID.Toolbar.render)
-    }
-
-    // MARK: - Title
-
-    private var titleText: String {
-        let firstLine = store.state.source
-            .split(separator: "\n", omittingEmptySubsequences: true)
-            .first
-            .map(String.init)?
-            .trimmingCharacters(in: .whitespaces) ?? ""
-        let preview = firstLine.isEmpty ? "untitled" : firstLine
-        return "\(store.state.sourceFormat.displayName) · \(preview)"
     }
 }
 
@@ -175,14 +107,12 @@ struct LiveEditorToolbar: ToolbarContent {
     @SwiftUI.State private var showingTheme = false
     @SwiftUI.State private var showingView = false
     @SwiftUI.State private var showingActions = false
-    @SwiftUI.State private var showingVersionInfo = false
     @SwiftUI.State private var showingFullWindowPreview = false
 
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
 
     var body: some ToolbarContent {
         ToolbarItemGroup(placement: .topBarTrailing) {
-            // Theme button
             Button {
                 showingTheme = true
             } label: {
@@ -190,7 +120,6 @@ struct LiveEditorToolbar: ToolbarContent {
             }
             .a11y(label: "Theme", id: A11yID.Toolbar.theme)
 
-            // View button
             Button {
                 showingView = true
             } label: {
@@ -198,7 +127,6 @@ struct LiveEditorToolbar: ToolbarContent {
             }
             .a11y(label: "View options", id: A11yID.Toolbar.view)
 
-            // Actions button
             Button {
                 showingActions = true
             } label: {
@@ -206,21 +134,10 @@ struct LiveEditorToolbar: ToolbarContent {
             }
             .a11y(label: "Actions", hint: "Export, copy, share, history", id: A11yID.Toolbar.actions)
 
-            // Info button
-            Button {
-                showingVersionInfo = true
-            } label: {
-                Image(systemName: "info.circle")
-            }
-            .a11y(label: "Version and security info", id: A11yID.Toolbar.info)
-
-            // Inspector toggle (Cmd-I on hardware keyboards)
             Button {
                 store.toggleInspector()
             } label: {
-                Image(systemName: store.state.inspectorOpen
-                    ? "slider.horizontal.below.rectangle.fill"
-                    : "slider.horizontal.below.rectangle")
+                Image(systemName: "sidebar.right")
             }
             .a11yToggle(
                 label: "Inspector",
@@ -278,55 +195,10 @@ struct LiveEditorToolbar: ToolbarContent {
                     }
             }
         }
-        // Version info
-        .sheet(isPresented: $showingVersionInfo) {
-            NavigationStack {
-                VersionSecurityPanel()
-                    .navigationTitle("Info")
-                    .navigationBarTitleDisplayMode(.inline)
-                    .toolbar {
-                        ToolbarItem(placement: .confirmationAction) {
-                            Button("Done") { showingVersionInfo = false }
-                                .a11yIdentifier(A11yID.Panels.versionInfoDone)
-                        }
-                    }
-            }
-        }
     }
 }
 
 #endif
-
-// MARK: - Update Mode Picker
-
-/// Segmented control for Auto / Manual update mode.
-struct UpdateModePicker: View {
-    @Binding var updateMode: UpdateMode
-    let theme: DiagramTheme
-
-    var body: some View {
-        Picker("Update Mode", selection: $updateMode) {
-            ForEach(UpdateMode.allCases, id: \.self) { mode in
-                Text(mode.pickerLabel).tag(mode)
-            }
-        }
-        .pickerStyle(.segmented)
-        .frame(width: 120)
-        .help(updateMode == .auto
-            ? "Render automatically on changes"
-            : "Render only when you click Render")
-        .a11yIdentifier(A11yID.Toolbar.updateMode)
-    }
-}
-
-extension UpdateMode {
-    var pickerLabel: String {
-        switch self {
-        case .auto: return "Auto"
-        case .manual: return "Manual"
-        }
-    }
-}
 
 // MARK: - View Options Panel
 
@@ -349,10 +221,3 @@ struct ViewOptionsPanel: View {
     }
 }
 
-#if DEBUG && !DIAGRAMKIT_SWIFTPM
-#Preview("UpdateModePicker") {
-    @Previewable @SwiftUI.State var mode: UpdateMode = .auto
-    UpdateModePicker(updateMode: $mode, theme: .default)
-        .padding()
-}
-#endif

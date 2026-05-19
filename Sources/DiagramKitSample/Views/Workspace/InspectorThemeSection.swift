@@ -31,11 +31,7 @@ struct InspectorThemeSection: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: PlaygroundSpacing.sm) {
-            SectionHeader("Theme", systemImage: "paintpalette") {
-                Text("%%{init:{theme}}%%")
-                    .font(PlaygroundFont.codeChip)
-                    .foregroundStyle(tokens.palette.fg3)
-            }
+            SectionHeader("Theme", systemImage: "paintpalette")
             Surface(.card, padding: PlaygroundSpacing.md) {
                 VStack(alignment: .leading, spacing: PlaygroundSpacing.md) {
                     chromeTiles
