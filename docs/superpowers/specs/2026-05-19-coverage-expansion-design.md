@@ -105,13 +105,31 @@ Three waves, one per [COVERAGE.md](../../../COVERAGE.md) backlog item:
 
 ### Wave 1 — PlantUML (`Sources/DiagramKitPlantUML/`)
 
+Follows the established slice convention: one **per-family subdirectory**
+(matching `C4/`, `Class/`, `Sequence/`, `State/`, `Mindmap/`, `Gantt/`) each
+holding AST + Parser + Mapper, and one shared `Exporter/` directory:
+
 ```
-Parser/
-  PlantUMLActivityParser.swift         → flowchart payload
-  PlantUMLERParser.swift               → erDiagram payload
-  PlantUMLUseCaseParser.swift          → flowchart payload
-  PlantUMLObjectParser.swift           → classDiagram payload
-  PlantUMLComponentParser.swift        → architecture payload
+Activity/
+  PlantUMLActivityAST.swift           — token/line struct types
+  PlantUMLActivityParser.swift        — body → AST
+  PlantUMLActivityMapper.swift        — AST → flowchart payload + diagnostics
+ER/
+  PlantUMLERAST.swift
+  PlantUMLERParser.swift
+  PlantUMLERMapper.swift              — AST → erDiagram payload + diagnostics
+UseCase/
+  PlantUMLUseCaseAST.swift
+  PlantUMLUseCaseParser.swift
+  PlantUMLUseCaseMapper.swift         — AST → flowchart payload + diagnostics
+Object/
+  PlantUMLObjectAST.swift
+  PlantUMLObjectParser.swift
+  PlantUMLObjectMapper.swift          — AST → classDiagram payload + diagnostics
+Component/
+  PlantUMLComponentAST.swift
+  PlantUMLComponentParser.swift
+  PlantUMLComponentMapper.swift       — AST → architecture payload + diagnostics
 Exporter/
   PlantUMLActivityExporter.swift
   PlantUMLERExporter.swift
@@ -119,6 +137,9 @@ Exporter/
   PlantUMLObjectExporter.swift
   PlantUMLComponentExporter.swift
 ```
+
+`PlantUMLFamilyProbe.swift` and `PlantUMLImporter.swift:36-129` gain new
+probes and dispatch branches for the five new families.
 
 - `PlantUMLImporter.swift:36-129` cascade gains five new header-keyword
   branches; family disambiguation runs through `PlantUMLFamilyProbe.swift`
