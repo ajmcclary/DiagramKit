@@ -81,14 +81,14 @@ Where" for slice paths and [BASELINES.md](BASELINES.md) for corpus counts.
 | treeView          |   ✓    | — | —  |     —      |    —    |
 | eventModeling     |   ✓    | — | —  |     —      |    —    |
 | wardleyBeta       |   ✓    | — | —  |     —      |    —    |
-| c4                |   ✓    | — | —  |     ⚠      |    ✓    |
+| c4                |   ✓    | — | —  |     ✓      |    ✓    |
 | zenuml            |   ✓    | — | —  |     —      |    —    |
 | **Totals**        | 28/28  | 4/28 | 4/28 | 1/28      | 9/28    |
 
 ## Round-trip discipline
 
-`Tests/DiagramKitTests/RoundTrip/Resources/roundtrip/` currently holds **27
-same-format fixtures** and **38 cross-format directed pairs** (19 unordered).
+`Tests/DiagramKitTests/RoundTrip/Resources/roundtrip/` currently holds **30
+same-format fixtures** and **40 cross-format directed pairs** (20 unordered).
 
 | Layer | Coverage |
 |-------|----------|
@@ -101,14 +101,8 @@ families — the gaps in the matrix above are the gaps to close.
 
 ## Partial-support detail
 
-The two `⚠` cells are real:
+The remaining `⚠` cell is real:
 
-- **Structurizr × c4 (export)** — `StructurizrExporter` emits
-  `.featureDropped(.styling, ...)` for element-scoped tags
-  (`Sources/DiagramKitStructurizr/StructurizrExporter.swift:170`) and
-  `.lossyTransform(.structure, ...)` for nested-boundary flattening and
-  empty-group elision (lines 70–82). Alias rewriting at lines 226–246 is silent
-  but does not change semantics.
 - **PlantUML × sequenceDiagram (export)** — `PlantUMLSequenceExporter` emits
   an informational diagnostic for dropped link/properties/detail features
   (`Sources/DiagramKitPlantUML/Exporter/PlantUMLSequenceExporter.swift:126`).
@@ -170,17 +164,12 @@ and round-trip fixtures.
 
 ### 3. Structurizr scope
 
-Structurizr is purpose-built for C4. The only credible extension is to enrich
-the existing C4 importer/exporter rather than add new families:
-
-- Resolve the two `⚠` diagnostics on the export side by negotiating the
-  upstream Structurizr parser's tag/boundary semantics, or by encoding the
-  dropped data into comments (currently structurally lost).
-- Add support for additional Structurizr view types beyond the first view
-  (`StructurizrImporter.swift` currently parses workspace model + first view
-  only; lines 24-39).
-
-No new family rows should appear in the Structurizr column.
+Structurizr is purpose-built for C4. Wave 3 of the coverage-expansion spec
+(closed 2026-05-19) landed comment-encoded recovery for tags and nested
+boundaries plus a multi-view import loop. The `⚠` cell moved to `✓`; the
+`first-view-only` diagnostic is gone. No further work is currently scoped
+for the Structurizr slice; new family rows require a concrete user need
+(per the spec's Out of Scope).
 
 ## Backlog summary
 
@@ -191,8 +180,8 @@ Ordered by impact:
 2. ~~**D2 + DOT: classDiagram, stateDiagram, erDiagram (3 families each, both
    directions, with documented lossy diagnostics).**~~ Closed by Wave 2 of the
    coverage-expansion spec (closing commit on the Wave 2 closer).
-3. **Structurizr: tag/boundary lossy export + multi-view import.** Lifts the
-   existing `⚠` to `✓` and extends single-view fidelity.
+3. ~~**Structurizr: tag/boundary lossy export + multi-view import.**~~ Closed
+   by Wave 3 of the coverage-expansion spec (closed 2026-05-19).
 
 Anything outside this list (Wardley, Sankey, Packet, Treemap, etc. in non-native
 formats) is a deliberate `—` and should not be added without a concrete user

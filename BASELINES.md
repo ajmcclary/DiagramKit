@@ -2,6 +2,46 @@
 
 Last updated: 2026-05-19
 
+## Coverage expansion — Wave 3 (Structurizr)
+
+- **2026-05-19 — Coverage Wave 3 (Structurizr):** Structurizr × c4
+  export column moves from `⚠` to `✓`. Comment-encoded recovery via
+  `# diagramkit:tag=<tag>` and `# diagramkit:boundary-parent=<label>`
+  markers round-trips element-scoped tags and flattened nested-boundary
+  parentage losslessly. Two `.lossyTransform(.boundaryFlatten, ...)`
+  emissions at the nested-parent flattening and empty-group elision
+  sites, plus one `.featureDropped(.diagramFamilyUnsupported, ...)` for
+  element-scoped tags, are removed (recovery comments eliminate the
+  loss). `StructurizrMapper.map(_:scan:)` now loops over every view in
+  the workspace via a private `mapSingleView` helper; first view stays
+  the rendered output for back-compat with every existing Structurizr
+  snapshot and round-trip. The `"only the first view is imported in
+  this release"` placeholder diagnostic is removed. Boundary-parent
+  markers encode the parent's *label* (not alias) so cross-format
+  imports that derive aliases from labels resolve to the correct
+  parent. Two parser-side fixes support the cross-format Mermaid leg:
+  (1) `MermaidC4Parser._addBoundary` / `_addDeploymentNode` only push
+  lexical scope when the boundary line ends in `{`; flat
+  `Boundary(...) $parent=...` lines no longer corrupt downstream
+  scope; (2) the `StructurizrMapper` topologically sorts
+  c4Boundaries (parents first) and sorts `shapeAliases` /
+  `boundaryAliases` so the Mermaid C4 exporter emits boundaries
+  parent-first and the view-scope choice is deterministic.
+  `diffC4Diagram` now compares `C4Shape.tags` and authored
+  `C4Boundary.parentBoundary` (the `global` sentinel is excluded).
+  3 new same-format fixtures (`04-tags.dsl`, `05-nested-boundary.dsl`,
+  `06-multi-view.dsl`) + 2 new cross-format directed fixtures
+  (`cross-{mermaid-structurizr,structurizr-mermaid}-c4/02-boundary.*`).
+  Same-format round-trip fixture count grows from 27 to **30**;
+  cross-format directed fixture count grows from 38 to **40**
+  (19 unordered → 20 unordered). `structurizrC4` cell allow-list
+  shrinks from `{.idSanitization, .boundaryFlatten, .c4SlotDrop}` to
+  `{.idSanitization, .c4SlotDrop}`. The four cross-cells
+  `mermaidStructurizrC4`, `structurizrMermaidC4`, `plantumlStructurizrC4`,
+  `structurizrPlantumlC4` each remove `.boundaryFlatten`. Spec
+  [docs/superpowers/specs/2026-05-19-coverage-expansion-design.md](docs/superpowers/specs/2026-05-19-coverage-expansion-design.md)
+  Wave 3 row is closed.
+
 ## Coverage expansion — Wave 2 (D2 + DOT)
 
 - **2026-05-19 — Coverage Wave 2 (D2 + DOT, 3 families each):** D2 and

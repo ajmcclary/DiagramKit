@@ -144,6 +144,10 @@ These will drift over time. **Snapshot tests catch divergence** — every diagra
 
 When changing geometry, label measurement, or arrow routing for a diagram family, **change both renderers in the same commit and re-record both snapshot baselines**. A drift in either direction is silent until the corpus run flags it.
 
+## Structurizr recovery comments — drift hazard
+
+The Structurizr exporter encodes element-scoped tags and flattened nested-boundary parentage in `# diagramkit:tag=<tag>` and `# diagramkit:boundary-parent=<label>` line-comment markers placed adjacent to the element/group they augment. A pre-lexer scan (`scanStructurizrPreLexer` in `Sources/DiagramKitStructurizr/StructurizrRecoveryMarker.swift`) harvests those markers before `StructurizrLexer.preprocess(_:)` strips `#` line comments at `StructurizrLexer.swift:84-93`. **Do not strip `# diagramkit:` recovery comments upstream of the importer.** A generic comment-cleanup step that removes them silently re-introduces a structural round-trip loss that the harness cannot pair to a diagnostic. The shrunken `structurizrC4` round-trip allow-list (no `.boundaryFlatten`) acts as the regression bar.
+
 ## Cross-platform shim
 
 `Sources/DiagramKitModel/CrossPlatform.swift` defines `BMColor`, `BMFont`, `BMImage`, `BMBezierPath`, `BMView` typealiases via `#if canImport(UIKit)` / `#if canImport(AppKit)`. AppKit's `NSBezierPath` doesn't expose `cgPath`, so a custom `bm_cgPath` converter walks element-by-element including `.cubicCurveTo` / `.quadraticCurveTo`.
