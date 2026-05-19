@@ -15,6 +15,10 @@ import AppKit
 
 @main
 struct DiagramKitSampleApp: App {
+    #if os(macOS)
+    @NSApplicationDelegateAdaptor(DiagramKitSampleAppDelegate.self) private var appDelegate
+    #endif
+
     @SwiftUI.State private var store = LiveEditorStore()
 
     init() {
