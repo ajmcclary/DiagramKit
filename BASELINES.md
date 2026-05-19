@@ -1,6 +1,6 @@
 # BASELINES.md
 
-Last updated: 2026-05-16
+Last updated: 2026-05-19
 
 For the closed Critical-finding/commit map, the 2026-05-14 rebaseline
 event log, and the post-remediation feature-work table, see
@@ -66,6 +66,28 @@ extension; image snapshots are `.png`. The split below is by snapshot
 - `Scripts/bootstrap-smoke-check.sh`: aggregating gates pass; Xcode
   platform builds are skipped in the headless workspace and recorded
   as environment skips by `run_build`.
+
+## Mermaid exporter coverage
+
+- **2026-05-19 — Wave 1 (9 families):** Mermaid Export column in
+  [COVERAGE.md](COVERAGE.md) moves from 7/28 to 16/28. New
+  exporters: `pie`, `sankey`, `packet`, `journey`, `timeline`,
+  `kanban`, `mindmap`, `treemap`, `gitGraph`. Shared scaffolding
+  additions: `MermaidExportHelpers.emitSectionedItems` (used by
+  journey + timeline) and `MermaidExportHelpers.emitIndentedTree`
+  (used by mindmap + treemap). 18 new round-trip fixture files
+  under `Tests/DiagramKitTests/RoundTrip/Resources/roundtrip/`.
+  Same-format round-trip suite grows from 16 to 25 family arms.
+  New `CorpusRoundTripTests` walks every Mermaid corpus entry in
+  the supported set through `parse → export → parse →
+  assertStructurallyEqual`; pre-existing exporter divergences in
+  non-Wave-1 families (flowchart, state, sequence, class, ER) are
+  tracked in `CorpusRoundTripTests.knownFailures` for drain via
+  later waves. Wave 2 (`xyChart`, `quadrantChart`, `requirement`,
+  `radar`, `venn`, `ishikawa`, `zenuml`, `treeView`,
+  `eventModeling`) and Wave 3 (`block`, `architecture`,
+  `wardleyBeta`) plans land in
+  `docs/superpowers/plans/`.
 
 ## Open deferrals
 
