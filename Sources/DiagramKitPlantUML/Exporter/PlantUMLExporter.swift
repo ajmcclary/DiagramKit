@@ -22,6 +22,7 @@ public struct PlantUMLExporter: DiagramExporter {
         .mindmap,
         .gantt,
         .c4,
+        .flowchart,
     ]
 
     public init() {}
@@ -40,6 +41,8 @@ public struct PlantUMLExporter: DiagramExporter {
             return try PlantUMLGanttExport.emit(model)
         case .c4(let model):
             return try PlantUMLC4Export.emit(model)
+        case .flowchart(let model):
+            return try PlantUMLActivityExport.emit(model)
         default:
             return .unsupportedDiagram(formatName: name, type: document.type)
         }

@@ -87,7 +87,12 @@ public struct PlantUMLImporter: DiagramSourceImporter {
             )
         }
         if isPlantUMLActivityBody(body) {
-            fatalError("Wave 1 Task 2 implements PlantUMLActivityParser")
+            let ast = PlantUMLActivityParser().parse(body)
+            let (model, diagnostics) = PlantUMLActivityMapper().map(ast)
+            return DiagramImportResult(
+                document: DiagramDocument(payload: .flowchart(model)),
+                diagnostics: diagnostics
+            )
         }
         if isPlantUMLStateBody(body) {
             let ast = PlantUMLStateParser().parse(body)

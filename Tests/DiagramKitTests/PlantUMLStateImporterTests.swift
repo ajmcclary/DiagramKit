@@ -71,7 +71,7 @@ import DiagramKitPlantUML
         #expect(outer?.nodeIds.contains("Inner2") == true)
     }
 
-    @Test("Activity syntax maps start/stop/action to state nodes")
+    @Test("Activity syntax now routes to flowchart payload (Wave 1)")
     func activityShortForm() throws {
         let source = """
         @startuml
@@ -82,17 +82,14 @@ import DiagramKitPlantUML
         @enduml
         """
         let result = try PlantUMLImporter().parse(source)
-        guard case .stateDiagram(let graph) = result.document.payload else {
-            Issue.record("Expected stateDiagram payload, got \(result.document.payload)"); return
+        guard case .flowchart(let graph) = result.document.payload else {
+            Issue.record("Expected flowchart payload, got \(result.document.payload)"); return
         }
-        // Activity actions become state nodes whose labels carry the action text
         let labels = graph.nodesInOrder.map(\.node.label)
         #expect(labels.contains(where: { $0.contains("Do step 1") }))
         #expect(labels.contains(where: { $0.contains("Do step 2") }))
-        // start/stop become stateStart/stateEnd pseudostates
-        #expect(graph.nodesInOrder.contains(where: { $0.node.shape == .stateStart }))
-        #expect(graph.nodesInOrder.contains(where: { $0.node.shape == .stateEnd }))
-        // Sequential edges connect them
+        #expect(labels.contains("start"))
+        #expect(labels.contains("stop"))
         #expect(graph.edges.count >= 3)
     }
 }

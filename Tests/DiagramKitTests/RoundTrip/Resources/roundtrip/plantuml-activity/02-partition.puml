@@ -1,0 +1,8 @@
+@startuml
+start
+partition "Backend" {
+  :Validate;
+  :Process;
+}
+stop
+@enduml

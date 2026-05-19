@@ -1,0 +1,7 @@
+@startuml
+start
+:Receive request;
+:Validate;
+:Process;
+stop
+@enduml
