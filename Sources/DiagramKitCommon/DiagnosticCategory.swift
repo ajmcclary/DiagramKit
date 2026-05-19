@@ -23,6 +23,9 @@ public enum DiagnosticCategory: String, Sendable, Hashable, CaseIterable {
     case d2DuplicateOverride
     case labelNewlineEscape           // promoted from .info per spec §1
     case d2InlineCommentStripped      // was silent per spec §1
+    case classStereotypeDrop
+    case stateActionDrop
+    case cardinalityDrop
 
     // MARK: - .unsupported — feature not available in target format
     case diagramFamilyUnsupported
@@ -40,7 +43,8 @@ public enum DiagnosticCategory: String, Sendable, Hashable, CaseIterable {
         case .idSanitization, .shapeDowngrade, .subgraphFlatten, .boundaryFlatten,
              .c4SlotDrop, .titleDrop, .configDrop, .styleDrop, .accessibilityDrop,
              .anonymousSubgraphRename, .d2DuplicateOverride,
-             .labelNewlineEscape, .d2InlineCommentStripped:
+             .labelNewlineEscape, .d2InlineCommentStripped,
+             .classStereotypeDrop, .stateActionDrop, .cardinalityDrop:
             return .warning
         case .diagramFamilyUnsupported, .slotUnsupported,
              .boundaryTypeUnsupported, .c4ShapeUnsupported:

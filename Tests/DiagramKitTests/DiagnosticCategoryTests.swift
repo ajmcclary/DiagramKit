@@ -43,6 +43,15 @@ struct DiagnosticCategoryTests {
     @Test("d2InlineCommentStripped is .warning")
     func d2InlineCommentStripped() { #expect(DiagnosticCategory.d2InlineCommentStripped.severity == .warning) }
 
+    @Test("classStereotypeDrop is .warning")
+    func classStereotypeDrop() { #expect(DiagnosticCategory.classStereotypeDrop.severity == .warning) }
+
+    @Test("stateActionDrop is .warning")
+    func stateActionDrop() { #expect(DiagnosticCategory.stateActionDrop.severity == .warning) }
+
+    @Test("cardinalityDrop is .warning")
+    func cardinalityDrop() { #expect(DiagnosticCategory.cardinalityDrop.severity == .warning) }
+
     @Test("diagramFamilyUnsupported is .unsupported")
     func diagramFamilyUnsupported() { #expect(DiagnosticCategory.diagramFamilyUnsupported.severity == .unsupported) }
 
@@ -65,7 +74,7 @@ struct DiagnosticCategoryTests {
     func allCasesCovered() {
         // This catches the case where someone adds a new DiagnosticCategory case
         // but forgets to write a @Test pinning its severity.
-        let expectedCount = 19
+        let expectedCount = 22
         #expect(DiagnosticCategory.allCases.count == expectedCount,
                 "Add a @Test for any new category and bump expectedCount.")
     }
