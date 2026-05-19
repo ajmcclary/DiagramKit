@@ -54,6 +54,8 @@ public func compare(_ a: DiagramDocument, _ b: DiagramDocument) -> [RoundTripDel
         deltas.append(contentsOf: diffKanbanDiagram(lhs, rhs))
     case (.treemap(let lhs), .treemap(let rhs)):
         deltas.append(contentsOf: diffTreemapDiagram(lhs, rhs))
+    case (.gitGraph(let lhs), .gitGraph(let rhs)):
+        deltas.append(contentsOf: diffGitGraphDiagram(lhs, rhs))
     case (.gantt(let lhs), .gantt(let rhs)):
         deltas.append(contentsOf: diffGanttDiagram(lhs, rhs))
     default:
