@@ -39,12 +39,26 @@ enum MermaidTreeViewExport {
 
     private static func renderLine(_ node: TreeViewNode) -> String {
         let label = singleLine(node.name)
+        let suffix: String
         switch node.nodeType {
         case .directory:
-            return label.hasSuffix("/") ? label : "\(label)/"
+            suffix = label.hasSuffix("/") ? "" : "/"
         case .file:
-            return label
+            suffix = ""
         }
+        let head = "\(label)\(suffix)"
+
+        // Emit an explicit `icon(...)` directive when the stored
+        // iconId disagrees with `resolveIcon(name:, nodeType:)`.
+        // Without this, suppressed-icon entries like `icon(none)`
+        // would resolve back to the default `folder`/`file` icon on
+        // re-parse.
+        if let stored = node.iconId,
+           stored != resolveIcon(name: node.name, nodeType: node.nodeType) {
+            let directive = stored == "none" ? "icon(none)" : "icon(\(stored))"
+            return "\(head) \(directive)"
+        }
+        return head
     }
 
     private static func singleLine(_ text: String) -> String {

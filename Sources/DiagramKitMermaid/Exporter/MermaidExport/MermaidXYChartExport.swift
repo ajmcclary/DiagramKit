@@ -40,7 +40,17 @@ enum MermaidXYChartExport {
                 line += " \"\(escape(singleLine(t)))\""
             }
             if !xCats.isEmpty {
-                let joined = xCats.map { escape(singleLine($0)) }.joined(separator: ", ")
+                let joined = xCats.map { cat -> String in
+                    let s = singleLine(cat)
+                    // Quote when the category contains characters that
+                    // would otherwise split the bracketed list (spaces,
+                    // commas, brackets) so re-parse preserves the
+                    // original token boundaries.
+                    if s.contains(" ") || s.contains(",") || s.contains("[") || s.contains("]") || s.contains("\"") {
+                        return "\"\(escape(s))\""
+                    }
+                    return escape(s)
+                }.joined(separator: ", ")
                 line += " [\(joined)]"
             }
             lines.append(line)

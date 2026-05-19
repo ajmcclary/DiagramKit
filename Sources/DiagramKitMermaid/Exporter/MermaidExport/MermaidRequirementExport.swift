@@ -28,6 +28,11 @@ enum MermaidRequirementExport {
             lines.append("accDescr: \(singleLine(accDescr))")
         }
 
+        if model.direction != .TB {
+            lines.append("")
+            lines.append("direction \(model.direction.rawValue)")
+        }
+
         for req in model.requirements.sorted(by: { $0.sourceOrder < $1.sourceOrder }) {
             lines.append("")
             lines.append("\(typeKeyword(req.type)) \(req.name) {")
@@ -57,7 +62,11 @@ enum MermaidRequirementExport {
         if !model.relationships.isEmpty { lines.append("") }
         for rel in model.relationships {
             if rel.isReversed {
-                lines.append("\(rel.sourceName) <- \(rel.type.rawValue) - \(rel.destinationName)")
+                // Reverse syntax is `dst <- type - src` per the
+                // requirement parser: the left operand is the model's
+                // `destinationName` and the right operand is the
+                // `sourceName`.
+                lines.append("\(rel.destinationName) <- \(rel.type.rawValue) - \(rel.sourceName)")
             } else {
                 lines.append("\(rel.sourceName) - \(rel.type.rawValue) -> \(rel.destinationName)")
             }

@@ -33,10 +33,11 @@ enum MermaidVennExport {
             } else {
                 labelSuffix = ""
             }
-            if sets.count == 1 {
-                lines.append("  set \(sets[0])\(labelSuffix)")
+            let quotedSets = sets.map(quoteSetIfNeeded)
+            if quotedSets.count == 1 {
+                lines.append("  set \(quotedSets[0])\(labelSuffix)")
             } else {
-                lines.append("  union \(sets.joined(separator: ","))\(labelSuffix)")
+                lines.append("  union \(quotedSets.joined(separator: ","))\(labelSuffix)")
             }
         }
 
@@ -55,5 +56,16 @@ enum MermaidVennExport {
         text
             .replacingOccurrences(of: "\\", with: "\\\\")
             .replacingOccurrences(of: "\"", with: "\\\"")
+    }
+
+    /// Wrap a set identifier in double quotes when it contains a
+    /// character (space, comma, bracket, quote) that would otherwise
+    /// split the parser's identifier token.
+    private static func quoteSetIfNeeded(_ name: String) -> String {
+        let s = singleLine(name)
+        if s.contains(" ") || s.contains(",") || s.contains("[") || s.contains("]") || s.contains("\"") {
+            return "\"\(escape(s))\""
+        }
+        return s
     }
 }

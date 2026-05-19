@@ -75,19 +75,29 @@ enum MermaidZenUMLExport {
                 ? "\(indent)->\(to): \(content ?? "")"
                 : "\(indent)\(prefix)->\(to): \(content ?? "")"
             return [head]
-        case let .creation(assignee, type, construct, to, params, _, _):
-            let lhs = [assignee, type].compactMap { $0 }.joined(separator: " ")
+        case let .creation(assignee, type, construct, _, params, _, _):
+            // ZenUML stores `to = assignee ?? construct` derivatively;
+            // the surface syntax is just `new <construct>(args)` (with
+            // optional `<type> assignee =` or `assignee =` prefix).
             let argList: String
-            if let params, !params.isEmpty {
+            if let params {
                 argList = "(\(params.joined(separator: ", ")))"
             } else {
-                argList = "()"
+                argList = ""
             }
+            let lhs = [type, assignee].compactMap { $0 }.joined(separator: " ")
             if lhs.isEmpty {
-                return ["\(indent)new \(to).\(construct)\(argList)"]
+                return ["\(indent)new \(construct)\(argList)"]
             }
-            return ["\(indent)\(lhs) = new \(to).\(construct)\(argList)"]
-        case let .return(_, _, value, _):
+            return ["\(indent)\(lhs) = new \(construct)\(argList)"]
+        case let .return(from, to, value, _):
+            // If from/to are concrete participants, prefer the return-
+            // arrow surface form `from --> to: value`. Bare `return value`
+            // re-parses with from/to defaulting to the starter, which
+            // loses identity for cases where the parser captured them.
+            if from != "_STARTER_", to != "_STARTER_" {
+                return ["\(indent)\(from) --> \(to): \(value ?? "")"]
+            }
             return ["\(indent)return \(value ?? "")"]
         case let .fragment(kind, condition, sections):
             var out: [String] = []
@@ -98,7 +108,12 @@ enum MermaidZenUMLExport {
             case .opt:
                 head = "opt"
             case .loop:
-                head = "while (\(condition ?? ""))"
+                // The loop fragment stores its original keyword
+                // (`loop`, `while`, `for`, `foreach`) as the first
+                // section's label. Re-emit the same keyword so the
+                // re-parsed AST matches the original.
+                let kw = sections.first.map { $0.label.isEmpty ? "loop" : $0.label } ?? "loop"
+                head = "\(kw) (\(condition ?? ""))"
             case .par:
                 head = "par"
             case .critical:
@@ -133,7 +148,11 @@ enum MermaidZenUMLExport {
             out.append("\(indent)}")
             return out
         case let .divider(label):
-            return ["\(indent)== \(label) =="]
+            // The divider tokenizer collects everything after the
+            // leading `==` until newline, so any trailing `==` is part
+            // of the label string. Emitting an extra closing `==`
+            // would corrupt the label on re-parse.
+            return ["\(indent)== \(label)"]
         case let .comment(text):
             return ["\(indent)// \(text)"]
         }
