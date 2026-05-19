@@ -1,0 +1,17 @@
+@startuml
+entity Customer {
+  * id : number
+  --
+  name : text
+  email : text
+}
+
+entity Order {
+  * id : number
+  --
+  customer_id : number
+  total : number
+}
+
+Customer ||--o{ Order
+@enduml

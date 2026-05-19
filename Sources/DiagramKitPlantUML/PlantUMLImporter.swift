@@ -103,7 +103,12 @@ public struct PlantUMLImporter: DiagramSourceImporter {
             )
         }
         if isPlantUMLERBody(body) {
-            fatalError("Wave 1 Task 3 implements PlantUMLERParser")
+            let ast = PlantUMLERParser().parse(body)
+            let (model, diagnostics) = PlantUMLERMapper().map(ast)
+            return DiagramImportResult(
+                document: DiagramDocument(payload: .erDiagram(model)),
+                diagnostics: diagnostics
+            )
         }
         if isPlantUMLUseCaseBody(body) {
             fatalError("Wave 1 Task 4 implements PlantUMLUseCaseParser")
