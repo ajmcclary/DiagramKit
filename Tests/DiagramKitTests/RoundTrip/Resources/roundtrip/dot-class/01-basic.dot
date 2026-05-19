@@ -1,0 +1,5 @@
+digraph ClassExample {
+  Animal [shape=record, label="{Animal|+ name: string\l+ age: int\l|+ sound(): void\l}"];
+  Dog [shape=record, label="{Dog|+ breed: string\l|+ bark(): void\l}"];
+  Dog -> Animal;
+}

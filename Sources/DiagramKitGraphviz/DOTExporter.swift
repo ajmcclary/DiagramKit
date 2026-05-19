@@ -12,7 +12,10 @@ import DiagramKitExport
 public struct DOTExporter: DiagramExporter {
     public let name = "Graphviz"
     public let formatID = DiagramFormatID.graphviz
-    public let supportedDiagramTypes: Set<DiagramType> = [.flowchart]
+    public let supportedDiagramTypes: Set<DiagramType> = [
+        .flowchart,
+        .classDiagram,
+    ]
 
     public init() {}
 
@@ -20,6 +23,8 @@ public struct DOTExporter: DiagramExporter {
         switch document.payload {
         case .flowchart(let model):
             return try DOTFlowchartExport.emit(model, title: document.title)
+        case .classDiagram(let model):
+            return try DOTClassExport.emit(model, title: document.title)
         default:
             return .unsupportedDiagram(formatName: name, type: document.type)
         }

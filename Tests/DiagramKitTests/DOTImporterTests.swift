@@ -64,10 +64,10 @@ import DiagramKitGraphviz
 
     // MARK: - Basic properties
 
-    @Test("supportedDiagramTypes is [.flowchart]")
+    @Test("supportedDiagramTypes covers flowchart and classDiagram")
     func supportedDiagramTypesIsFlowchart() {
         let importer = GraphvizImporter()
-        #expect(importer.supportedDiagramTypes == [.flowchart])
+        #expect(importer.supportedDiagramTypes == [.flowchart, .classDiagram])
     }
 
     @Test("name is Graphviz")

@@ -12,7 +12,10 @@ public struct GraphvizImporter: DiagramSourceImporter {
 
     public let name = "Graphviz"
     public let formatID = DiagramFormatID.graphviz
-    public let supportedDiagramTypes: Set<DiagramType> = [.flowchart]
+    public let supportedDiagramTypes: Set<DiagramType> = [
+        .flowchart,
+        .classDiagram,
+    ]
 
     public init() {}
 
@@ -26,6 +29,15 @@ public struct GraphvizImporter: DiagramSourceImporter {
 
         let parser = DOTParser()
         let (dotDoc, parseDiagnostics) = try parser.parse(tokens)
+
+        if DOTClassProbe.detectsClassDiagram(dotDoc) {
+            let (cd, classDiagnostics) = DOTClassMapper().map(dotDoc)
+            let document = DiagramDocument(payload: .classDiagram(cd))
+            return DiagramImportResult(
+                document: document,
+                diagnostics: parseDiagnostics + classDiagnostics
+            )
+        }
 
         let mapper = DOTMapper()
         let (graph, mapDiagnostics) = mapper.map(dotDoc)
