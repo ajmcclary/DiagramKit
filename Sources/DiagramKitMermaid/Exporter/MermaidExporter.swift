@@ -30,6 +30,7 @@ public struct MermaidExporter: DiagramExporter {
         .mindmap,         // wave 1
         .treemap,         // wave 1
         .gitGraph,        // wave 1
+        .xyChart,         // wave 2
         // .mindmap       — added in 7A-P1
         // ... remaining families in 7A-P2 / Phase 10
     ]
@@ -71,6 +72,8 @@ public struct MermaidExporter: DiagramExporter {
             result = try MermaidTreemapExport.emit(model)
         case .gitGraph(let model):
             result = try MermaidGitGraphExport.emit(model)
+        case .xyChart(let model):
+            result = try MermaidXYChartExport.emit(model)
         default:
             return .unsupportedDiagram(formatName: name, type: document.type)
         }

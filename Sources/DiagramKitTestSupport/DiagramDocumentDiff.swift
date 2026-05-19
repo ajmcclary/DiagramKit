@@ -58,6 +58,8 @@ public func compare(_ a: DiagramDocument, _ b: DiagramDocument) -> [RoundTripDel
         deltas.append(contentsOf: diffGitGraphDiagram(lhs, rhs))
     case (.gantt(let lhs), .gantt(let rhs)):
         deltas.append(contentsOf: diffGanttDiagram(lhs, rhs))
+    case (.xyChart(let lhs), .xyChart(let rhs)):
+        deltas.append(contentsOf: diffXYChart(lhs, rhs))
     default:
         deltas.append(.unexpected(
             path: "payload.type",
