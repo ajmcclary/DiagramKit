@@ -69,6 +69,18 @@ extension; image snapshots are `.png`. The split below is by snapshot
 
 ## Mermaid exporter coverage
 
+- **2026-05-19 — Wave 2 (9 families):** Mermaid Export column moves
+  from 16/28 to 25/28. New exporters: `xyChart`, `quadrantChart`,
+  `requirement`, `radar`, `venn`, `ishikawa`, `treeView`, `zenuml`,
+  `eventModeling`. `ishikawa` and `treeView` reuse Wave 1's
+  `emitIndentedTree`; no new helpers were extracted. 18 new
+  round-trip fixture files under
+  `Tests/DiagramKitTests/RoundTrip/Resources/roundtrip/`. Same-format
+  round-trip suite grows from 25 to 34 family arms. The
+  `CorpusRoundTripTests` suite passes for every Mermaid corpus entry
+  in the post-Wave-2 supported set with no additions to
+  `knownFailures`. The `default: .unsupportedDiagram` arm in
+  `MermaidExporter.export(_:)` stays for Wave 3.
 - **2026-05-19 — Wave 1 (9 families):** Mermaid Export column in
   [COVERAGE.md](COVERAGE.md) moves from 7/28 to 16/28. New
   exporters: `pie`, `sankey`, `packet`, `journey`, `timeline`,
