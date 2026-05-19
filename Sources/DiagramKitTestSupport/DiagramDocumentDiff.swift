@@ -42,6 +42,8 @@ public func compare(_ a: DiagramDocument, _ b: DiagramDocument) -> [RoundTripDel
         deltas.append(contentsOf: diffMindmapDiagram(lhs, rhs))
     case (.pie(let lhs), .pie(let rhs)):
         deltas.append(contentsOf: diffPieChart(lhs, rhs))
+    case (.sankey(let lhs), .sankey(let rhs)):
+        deltas.append(contentsOf: diffSankeyDiagram(lhs, rhs))
     case (.gantt(let lhs), .gantt(let rhs)):
         deltas.append(contentsOf: diffGanttDiagram(lhs, rhs))
     default:

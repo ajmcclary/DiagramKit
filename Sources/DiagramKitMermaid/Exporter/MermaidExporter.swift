@@ -22,6 +22,7 @@ public struct MermaidExporter: DiagramExporter {
         .gantt,           // 7A-P1 / Interactive Gantt resize
         .stateDiagram,    // REVIEW.md Medium #9
         .pie,             // wave 1
+        .sankey,          // wave 1
         // .mindmap       — added in 7A-P1
         // ... remaining families in 7A-P2 / Phase 10
     ]
@@ -47,6 +48,8 @@ public struct MermaidExporter: DiagramExporter {
             result = try MermaidStateExport.emit(model)
         case .pie(let model):
             result = try MermaidPieExport.emit(model)
+        case .sankey(let model):
+            result = try MermaidSankeyExport.emit(model)
         default:
             return .unsupportedDiagram(formatName: name, type: document.type)
         }
