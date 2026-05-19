@@ -48,6 +48,8 @@ public func compare(_ a: DiagramDocument, _ b: DiagramDocument) -> [RoundTripDel
         deltas.append(contentsOf: diffPacketDiagram(lhs, rhs))
     case (.journey(let lhs), .journey(let rhs)):
         deltas.append(contentsOf: diffJourneyDiagram(lhs, rhs))
+    case (.timeline(let lhs), .timeline(let rhs)):
+        deltas.append(contentsOf: diffTimelineDiagram(lhs, rhs))
     case (.gantt(let lhs), .gantt(let rhs)):
         deltas.append(contentsOf: diffGanttDiagram(lhs, rhs))
     default:

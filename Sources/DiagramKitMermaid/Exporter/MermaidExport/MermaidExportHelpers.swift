@@ -155,4 +155,36 @@ enum MermaidExportHelpers {
         }
         return ("\"\(inner)\"", diagnostics)
     }
+
+    // MARK: - Sectioned item emission
+
+    /// Emit a sequence of items grouped under section transitions. The
+    /// section name is read from each item; whenever it differs from the
+    /// previous item's section, a `<sectionIndent><sectionKeyword> <name>`
+    /// line is emitted. Empty section names (`""`) suppress the section
+    /// header but still reset the tracked section.
+    ///
+    /// Used by journey and timeline (Wave 1) and slated for kanban and
+    /// eventModeling.
+    static func emitSectionedItems<Item>(
+        _ items: [Item],
+        sectionOf: (Item) -> String,
+        sectionIndent: String,
+        sectionKeyword: String = "section",
+        emitItem: (Item) -> String
+    ) -> [String] {
+        var lines: [String] = []
+        var currentSection: String? = nil
+        for item in items {
+            let section = sectionOf(item)
+            if section != currentSection {
+                if !section.isEmpty {
+                    lines.append("\(sectionIndent)\(sectionKeyword) \(section)")
+                }
+                currentSection = section
+            }
+            lines.append(emitItem(item))
+        }
+        return lines
+    }
 }

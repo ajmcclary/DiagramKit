@@ -25,6 +25,7 @@ public struct MermaidExporter: DiagramExporter {
         .sankey,          // wave 1
         .packet,          // wave 1
         .journey,         // wave 1
+        .timeline,        // wave 1
         // .mindmap       — added in 7A-P1
         // ... remaining families in 7A-P2 / Phase 10
     ]
@@ -56,6 +57,8 @@ public struct MermaidExporter: DiagramExporter {
             result = try MermaidPacketExport.emit(model)
         case .journey(let model):
             result = try MermaidJourneyExport.emit(model)
+        case .timeline(let model):
+            result = try MermaidTimelineExport.emit(model)
         default:
             return .unsupportedDiagram(formatName: name, type: document.type)
         }
