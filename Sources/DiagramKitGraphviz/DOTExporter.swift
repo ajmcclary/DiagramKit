@@ -16,6 +16,7 @@ public struct DOTExporter: DiagramExporter {
         .flowchart,
         .classDiagram,
         .stateDiagram,
+        .erDiagram,
     ]
 
     public init() {}
@@ -28,6 +29,8 @@ public struct DOTExporter: DiagramExporter {
             return try DOTClassExport.emit(model, title: document.title)
         case .stateDiagram(let graph):
             return try DOTStateExport.emit(graph, title: document.title)
+        case .erDiagram(let model):
+            return try DOTERExport.emit(model, title: document.title)
         default:
             return .unsupportedDiagram(formatName: name, type: document.type)
         }

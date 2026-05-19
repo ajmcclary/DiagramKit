@@ -1,0 +1,5 @@
+digraph EREXample {
+  Customer [shape=record, label="{Customer|id: number\nname: text\nemail: text\n}"];
+  Order [shape=record, label="{Order|id: number\ncustomer_id: number\ntotal: number\n}"];
+  Customer -> Order;
+}

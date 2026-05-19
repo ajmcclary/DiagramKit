@@ -12,8 +12,8 @@ struct DOTClassRoundTripTests {
     @Test func basicClassRoundTripsThroughDOT() throws {
         let source = """
         digraph ClassExample {
-          Animal [shape=record, label="{Animal|+ name: string\\l+ age: int\\l|+ sound(): void\\l}"];
-          Dog [shape=record, label="{Dog|+ breed: string\\l|+ bark(): void\\l}"];
+          Animal [shape=record, label="{Animal|+ name: string\\n+ age: int\\n|+ sound(): void\\n}"];
+          Dog [shape=record, label="{Dog|+ breed: string\\n|+ bark(): void\\n}"];
           Dog -> Animal;
         }
         """
@@ -32,7 +32,7 @@ struct DOTClassRoundTripTests {
     @Test func importerClassifiesAsClassDiagram() throws {
         let source = """
         digraph G {
-          Animal [shape=record, label="{Animal|+ name: string\\l|}"];
+          Animal [shape=record, label="{Animal|+ name: string\\n|}"];
         }
         """
         let result = try GraphvizImporter().parse(source)

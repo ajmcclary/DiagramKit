@@ -51,7 +51,7 @@ enum DOTClassProbe {
     }
 
     private static func splitRecordSection(_ s: String) -> [String] {
-        s.replacingOccurrences(of: "\\l", with: "\n")
+        s.replacingOccurrences(of: "\\n", with: "\n")
          .replacingOccurrences(of: "\\n", with: "\n")
          .split(separator: "\n")
          .map { $0.trimmingCharacters(in: .whitespaces) }
@@ -198,8 +198,8 @@ enum DOTClassExport {
             let attrLines = c.attributes.map { renderMember($0, isMethod: false) }
             let methodLines = c.methods.map { renderMember($0, isMethod: true) }
             let header = c.label.isEmpty ? c.id : c.label
-            let attrsSection = attrLines.joined(separator: "\\l") + (attrLines.isEmpty ? "" : "\\l")
-            let methodsSection = methodLines.joined(separator: "\\l") + (methodLines.isEmpty ? "" : "\\l")
+            let attrsSection = attrLines.joined(separator: "\\n") + (attrLines.isEmpty ? "" : "\\n")
+            let methodsSection = methodLines.joined(separator: "\\n") + (methodLines.isEmpty ? "" : "\\n")
             let labelBody = "{\(header)|\(attrsSection)|\(methodsSection)}"
             lines.append("  \(sanitizeDOTID(c.id)) [shape=record, label=\(quoted(labelBody))];")
         }

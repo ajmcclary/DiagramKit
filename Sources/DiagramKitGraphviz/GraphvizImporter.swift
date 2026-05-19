@@ -16,6 +16,7 @@ public struct GraphvizImporter: DiagramSourceImporter {
         .flowchart,
         .classDiagram,
         .stateDiagram,
+        .erDiagram,
     ]
 
     public init() {}
@@ -46,6 +47,15 @@ public struct GraphvizImporter: DiagramSourceImporter {
             return DiagramImportResult(
                 document: document,
                 diagnostics: parseDiagnostics + stateDiagnostics
+            )
+        }
+
+        if DOTERProbe.detectsERDiagram(dotDoc) {
+            let (er, erDiagnostics) = DOTERMapper().map(dotDoc)
+            let document = DiagramDocument(payload: .erDiagram(er))
+            return DiagramImportResult(
+                document: document,
+                diagnostics: parseDiagnostics + erDiagnostics
             )
         }
 
