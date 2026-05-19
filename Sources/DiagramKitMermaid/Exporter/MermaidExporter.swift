@@ -105,8 +105,6 @@ public struct MermaidExporter: DiagramExporter {
             result = try MermaidArchitectureExport.emit(model)
         case .wardleyBeta(let model):
             result = try MermaidWardleyExport.emit(model)
-        default:
-            return .unsupportedDiagram(formatName: name, type: document.type)
         }
         return Self.prependingDocumentTitle(document.title, to: result)
     }

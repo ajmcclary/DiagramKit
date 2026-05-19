@@ -60,30 +60,30 @@ Where" for slice paths and [BASELINES.md](BASELINES.md) for corpus counts.
 | sequenceDiagram   |   ✓    | — | —  |     —      |    ⚠    |
 | classDiagram      |   ✓    | — | —  |     —      |    ✓    |
 | erDiagram         |   ✓    | — | —  |     —      |    —    |
-| xyChart           |   —    | — | —  |     —      |    —    |
-| pie               |   —    | — | —  |     —      |    —    |
-| journey           |   —    | — | —  |     —      |    —    |
+| xyChart           |   ✓    | — | —  |     —      |    —    |
+| pie               |   ✓    | — | —  |     —      |    —    |
+| journey           |   ✓    | — | —  |     —      |    —    |
 | gantt             |   ✓    | — | —  |     —      |    ✓    |
-| quadrantChart     |   —    | — | —  |     —      |    —    |
-| requirement       |   —    | — | —  |     —      |    —    |
-| gitGraph          |   —    | — | —  |     —      |    —    |
-| mindmap           |   —    | — | —  |     —      |    ✓    |
-| timeline          |   —    | — | —  |     —      |    —    |
-| sankey            |   —    | — | —  |     —      |    —    |
-| block             |   —    | — | —  |     —      |    —    |
-| packet            |   —    | — | —  |     —      |    —    |
-| kanban            |   —    | — | —  |     —      |    —    |
-| architecture      |   —    | — | —  |     —      |    —    |
-| radar             |   —    | — | —  |     —      |    —    |
-| treemap           |   —    | — | —  |     —      |    —    |
-| venn              |   —    | — | —  |     —      |    —    |
-| ishikawa          |   —    | — | —  |     —      |    —    |
-| treeView          |   —    | — | —  |     —      |    —    |
-| eventModeling     |   —    | — | —  |     —      |    —    |
-| wardleyBeta       |   —    | — | —  |     —      |    —    |
+| quadrantChart     |   ✓    | — | —  |     —      |    —    |
+| requirement       |   ✓    | — | —  |     —      |    —    |
+| gitGraph          |   ✓    | — | —  |     —      |    —    |
+| mindmap           |   ✓    | — | —  |     —      |    ✓    |
+| timeline          |   ✓    | — | —  |     —      |    —    |
+| sankey            |   ✓    | — | —  |     —      |    —    |
+| block             |   ✓    | — | —  |     —      |    —    |
+| packet            |   ✓    | — | —  |     —      |    —    |
+| kanban            |   ✓    | — | —  |     —      |    —    |
+| architecture      |   ✓    | — | —  |     —      |    —    |
+| radar             |   ✓    | — | —  |     —      |    —    |
+| treemap           |   ✓    | — | —  |     —      |    —    |
+| venn              |   ✓    | — | —  |     —      |    —    |
+| ishikawa          |   ✓    | — | —  |     —      |    —    |
+| treeView          |   ✓    | — | —  |     —      |    —    |
+| eventModeling     |   ✓    | — | —  |     —      |    —    |
+| wardleyBeta       |   ✓    | — | —  |     —      |    —    |
 | c4                |   ✓    | — | —  |     ⚠      |    ✓    |
-| zenuml            |   —    | — | —  |     —      |    —    |
-| **Totals**        | 7/28   | 1/28 | 1/28 | 1/28      | 6/28    |
+| zenuml            |   ✓    | — | —  |     —      |    —    |
+| **Totals**        | 28/28  | 1/28 | 1/28 | 1/28      | 6/28    |
 
 ## Round-trip discipline
 
@@ -126,32 +126,7 @@ unimplemented cells are syntactically out-of-scope for the foreign format
 (e.g. a Sankey in PlantUML, a Gantt in DOT) — those are documented below so the
 backlog stays honest about which gaps are real candidates.
 
-### 1. Mermaid exporter completion (21 missing families)
-
-Highest payoff. Mermaid is the canonical format; every parsed `DiagramDocument`
-should round-trip back through `MermaidExporter`. Today 21 of 28 families fall
-through to `.unsupportedDiagram` at
-`Sources/DiagramKitMermaid/Exporter/MermaidExporter.swift:33-51`:
-
-xyChart, pie, journey, quadrantChart, requirement, gitGraph, mindmap,
-timeline, sankey, block, packet, kanban, architecture, radar, treemap, venn,
-ishikawa, treeView, eventModeling, wardleyBeta, zenuml.
-
-Each requires:
-- A `MermaidExport/Mermaid<Family>Export.swift` file mirroring the existing
-  seven (e.g. `MermaidFlowchartExport.swift`).
-- A switch arm in `MermaidExporter.export(_:options:)`.
-- A `mermaid-<family>` same-format round-trip fixture under
-  `Tests/DiagramKitTests/RoundTrip/Resources/roundtrip/`.
-- A diagnostic policy per family (most are lossless because Mermaid is the
-  source dialect; exporters that re-emit normalised whitespace/quoting should
-  document that explicitly per
-  [docs/diagnostic-severity-discipline.md](docs/diagnostic-severity-discipline.md)).
-
-This is bounded, mechanical work — the model is already in hand and the SVG
-renderer/parser pair pins the semantics.
-
-### 2. PlantUML expansion (natural-fit families only)
+### 1. PlantUML expansion (natural-fit families only)
 
 PlantUML upstream supports diagram dialects beyond the six DiagramKit covers.
 The natural additions are:
@@ -170,7 +145,7 @@ Files to add live under `Sources/DiagramKitPlantUML/` (parser + mapper) and
 `Sources/DiagramKitPlantUML/PlantUMLImporter.swift:36-129` already cascades by
 header keyword and is the dispatch site to extend.
 
-### 3. D2 and DOT expansion (mostly mismatch, narrow opportunities)
+### 2. D2 and DOT expansion (mostly mismatch, narrow opportunities)
 
 D2 and DOT are general directed-graph formats. The vast majority of DiagramKit
 families don't translate: pie charts, gantt timelines, sankey flows, radar
@@ -193,7 +168,7 @@ The remaining 18+ families have no defensible D2/DOT projection and should stay
 [docs/diagnostic-severity-discipline.md](docs/diagnostic-severity-discipline.md)
 and round-trip fixtures.
 
-### 4. Structurizr scope
+### 3. Structurizr scope
 
 Structurizr is purpose-built for C4. The only credible extension is to enrich
 the existing C4 importer/exporter rather than add new families:
@@ -211,14 +186,12 @@ No new family rows should appear in the Structurizr column.
 
 Ordered by impact:
 
-1. **Mermaid exporter: 21 families.** Bounded, lossless, unblocks every
-   document → Mermaid round-trip and the "edit in Mermaid" sample-app flow.
-2. **PlantUML: activity, erDiagram, useCase, object, component (5 families,
+1. **PlantUML: activity, erDiagram, useCase, object, component (5 families,
    import + export each).** Real-world PlantUML corpora hit these constantly.
-3. **D2 + DOT: classDiagram, stateDiagram, erDiagram (3 families each, both
+2. **D2 + DOT: classDiagram, stateDiagram, erDiagram (3 families each, both
    directions, with documented lossy diagnostics).** Closes the most common
    "render this Mermaid in D2/Graphviz" requests.
-4. **Structurizr: tag/boundary lossy export + multi-view import.** Lifts the
+3. **Structurizr: tag/boundary lossy export + multi-view import.** Lifts the
    existing `⚠` to `✓` and extends single-view fidelity.
 
 Anything outside this list (Wardley, Sankey, Packet, Treemap, etc. in non-native

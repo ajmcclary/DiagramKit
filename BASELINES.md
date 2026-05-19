@@ -69,6 +69,22 @@ extension; image snapshots are `.png`. The split below is by snapshot
 
 ## Mermaid exporter coverage
 
+- **2026-05-19 — Wave 3 (3 families, closing wave):** Mermaid Export
+  column moves from 25/28 to 28/28. New exporters: `block`,
+  `architecture`, `wardleyBeta`. `block` reuses Wave 1's
+  `emitIndentedTree` (5th caller after mindmap, treemap, treeView,
+  ishikawa); `architecture` and `wardleyBeta` emit linearly with no
+  helper reuse. 6 new round-trip fixture files under
+  `Tests/DiagramKitTests/RoundTrip/Resources/roundtrip/`. Same-format
+  round-trip suite grows from 34 to 37 family arms. The
+  `MermaidExporter.export(_:)` switch is now **exhaustive at 28/28**;
+  the `default: .unsupportedDiagram` fall-through is removed. The
+  Swift compiler's exhaustiveness check is the compile-time
+  invariant. `CorpusRoundTripTests` passes for every Mermaid corpus
+  entry in the now-fully-supported set with no additions to
+  `knownFailures`. Spec
+  [docs/superpowers/specs/2026-05-19-mermaid-exporter-completion-design.md](docs/superpowers/specs/2026-05-19-mermaid-exporter-completion-design.md)
+  is closed.
 - **2026-05-19 — Wave 2 (9 families):** Mermaid Export column moves
   from 16/28 to 25/28. New exporters: `xyChart`, `quadrantChart`,
   `requirement`, `radar`, `venn`, `ishikawa`, `treeView`, `zenuml`,
