@@ -35,6 +35,7 @@ public struct MermaidExporter: DiagramExporter {
         .requirement,     // wave 2
         .radar,           // wave 2
         .venn,            // wave 2
+        .ishikawa,        // wave 2
         // .mindmap       — added in 7A-P1
         // ... remaining families in 7A-P2 / Phase 10
     ]
@@ -86,6 +87,8 @@ public struct MermaidExporter: DiagramExporter {
             result = try MermaidRadarExport.emit(model)
         case .venn(let model):
             result = try MermaidVennExport.emit(model)
+        case .ishikawa(let model):
+            result = try MermaidIshikawaExport.emit(model)
         default:
             return .unsupportedDiagram(formatName: name, type: document.type)
         }

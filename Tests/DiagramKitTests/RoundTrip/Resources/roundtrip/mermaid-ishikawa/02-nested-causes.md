@@ -1,0 +1,6 @@
+ishikawa-beta
+Effect
+    Cause A
+        Sub A1
+            SubSub A1a
+                Leaf
