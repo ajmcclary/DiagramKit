@@ -1,0 +1,13 @@
+digraph G {
+  rankdir=TB;
+  _start [shape=point];
+  _end [shape=doublecircle];
+  _start -> Idle;
+  Idle -> Active;
+  subgraph cluster_Active {
+    label="Active";
+    Loading -> Ready;
+  }
+  Active -> Done;
+  Done -> _end;
+}
