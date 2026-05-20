@@ -20,6 +20,7 @@ public struct GraphvizImporter: DiagramSourceImporter {
         .erDiagram,
         .architecture,
         .mindmap,
+        .treeView,
     ]
 
     public init() {}
@@ -86,6 +87,17 @@ public struct GraphvizImporter: DiagramSourceImporter {
                 return DiagramImportResult(
                     document: document,
                     diagnostics: parseDiagnostics + mmDiagnostics
+                )
+            }
+        }
+
+        if markerFamily == "treeView" {
+            let (maybeTree, tvDiagnostics) = DOTTreeViewMapper().map(dotDoc, markers: markerScan.markers)
+            if let tree = maybeTree {
+                let document = DiagramDocument(payload: .treeView(tree))
+                return DiagramImportResult(
+                    document: document,
+                    diagnostics: parseDiagnostics + tvDiagnostics
                 )
             }
         }

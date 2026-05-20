@@ -19,6 +19,7 @@ public struct DOTExporter: DiagramExporter {
         .erDiagram,
         .architecture,
         .mindmap,
+        .treeView,
     ]
 
     public init() {}
@@ -37,6 +38,8 @@ public struct DOTExporter: DiagramExporter {
             return try DOTArchitectureExport.emit(arch, title: document.title)
         case .mindmap(let mindmap):
             return try DOTMindmapExport.emit(mindmap, title: document.title)
+        case .treeView(let tree):
+            return try DOTTreeViewExport.emit(tree, title: document.title)
         default:
             return .unsupportedDiagram(formatName: name, type: document.type)
         }

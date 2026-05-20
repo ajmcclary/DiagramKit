@@ -457,6 +457,17 @@ struct SameFormatRoundTripTests {
     }
 
     @Test(
+        "DOT treeView round-trip",
+        arguments: try fixtures(for: "dot-treeView", fromRoot: roundTripResourcesRoot())
+    )
+    func dotTreeView(fixture: RoundTripFixture) throws {
+        try runSameFormatRoundTrip(
+            cell: RoundTripCellRegistry.dotTreeView,
+            fixture: fixture
+        )
+    }
+
+    @Test(
         "Structurizr C4 round-trip",
         arguments: try fixtures(for: "structurizr-c4", fromRoot: roundTripResourcesRoot())
     )
