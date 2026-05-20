@@ -211,4 +211,56 @@ struct PlantUMLDeploymentParserTests {
         #expect(edge.label == "uses")
         #expect(edge.stereotype == "calls")
     }
+
+    @Test func parsesShapeStereotype() throws {
+        let body = #"node "Worker" as worker <<router>>"#
+        let ast = try PlantUMLDeploymentParser().parse(body)
+        if case let .shape(shape) = ast.roots.first {
+            #expect(shape.stereotype == "router")
+        }
+    }
+
+    @Test func parsesShapeColor() throws {
+        let body = #"database "DB" as db #FF6600"#
+        let ast = try PlantUMLDeploymentParser().parse(body)
+        if case let .shape(shape) = ast.roots.first {
+            #expect(shape.color == "#FF6600")
+        }
+    }
+
+    @Test func parsesNoteRightOf() throws {
+        let body = #"""
+        node "Worker" as worker
+        note right of worker
+        This node handles all incoming traffic.
+        end note
+        """#
+        let ast = try PlantUMLDeploymentParser().parse(body)
+        #expect(ast.notes.count == 1)
+        #expect(ast.notes[0].serviceId == "worker")
+        #expect(ast.notes[0].position == "right")
+        #expect(ast.notes[0].body == "This node handles all incoming traffic.")
+    }
+
+    @Test func parsesLegendBlock() throws {
+        let body = #"""
+        legend
+        Requires VPN access
+        endlegend
+        """#
+        let ast = try PlantUMLDeploymentParser().parse(body)
+        #expect(ast.legend == "Requires VPN access")
+    }
+
+    @Test func parsesGroupStereotypeAndColor() throws {
+        let body = #"""
+        cloud "AWS" as aws <<public>> #ADD8E6 {
+        }
+        """#
+        let ast = try PlantUMLDeploymentParser().parse(body)
+        if case let .group(group) = ast.roots.first {
+            #expect(group.stereotype == "public")
+            #expect(group.color == "#ADD8E6")
+        }
+    }
 }

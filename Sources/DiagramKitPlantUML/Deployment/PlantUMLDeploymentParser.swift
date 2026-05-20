@@ -31,12 +31,56 @@ public struct PlantUMLDeploymentParser {
         var rootContainer: [PlantUMLDeploymentAST.Node] = []
         var groupStack: [(group: PlantUMLDeploymentAST.Group, children: [PlantUMLDeploymentAST.Node])] = []
         var edges: [PlantUMLDeploymentAST.Edge] = []
+        var notes: [PlantUMLDeploymentAST.NoteAttachment] = []
+        var legend: String? = nil
+        var pendingNote: (serviceId: String, position: String, lines: [String])? = nil
+        var pendingLegendLines: [String]? = nil
 
         for rawLine in body.split(separator: "\n", omittingEmptySubsequences: true) {
             let line = rawLine.trimmingCharacters(in: .whitespaces)
             if line.isEmpty { continue }
             if line.hasPrefix("'") { continue }
             if line.hasPrefix("@") { continue }
+
+            // Multi-line block accumulation (note, legend) takes priority
+            if pendingNote != nil {
+                if line == "end note" {
+                    let p = pendingNote!
+                    notes.append(.init(
+                        serviceId: p.serviceId,
+                        position: p.position,
+                        body: p.lines.joined(separator: "\n")
+                    ))
+                    pendingNote = nil
+                } else {
+                    pendingNote!.lines.append(line)
+                }
+                continue
+            }
+            if pendingLegendLines != nil {
+                if line == "endlegend" {
+                    legend = pendingLegendLines!.joined(separator: "\n")
+                    pendingLegendLines = nil
+                } else {
+                    pendingLegendLines!.append(line)
+                }
+                continue
+            }
+            if line == "legend" {
+                pendingLegendLines = []
+                continue
+            }
+            if line.hasPrefix("note ") {
+                let tokens = line.split(separator: " ")
+                if tokens.count >= 4, tokens[2] == "of" {
+                    pendingNote = (
+                        serviceId: String(tokens[3]),
+                        position: String(tokens[1]),
+                        lines: []
+                    )
+                    continue
+                }
+            }
 
             if line == "}" {
                 guard let top = groupStack.popLast() else {
@@ -75,7 +119,10 @@ public struct PlantUMLDeploymentParser {
             }
         }
 
-        return PlantUMLDeploymentAST(roots: rootContainer, edges: edges)
+        return PlantUMLDeploymentAST(
+            roots: rootContainer, edges: edges,
+            notes: notes, legend: legend
+        )
     }
 
     private func parseEdgeLine(_ line: String) -> PlantUMLDeploymentAST.Edge? {
@@ -150,6 +197,7 @@ public struct PlantUMLDeploymentParser {
             let aliasStart = cursor.index(cursor.startIndex, offsetBy: 3)
             let aliasEnd = cursor[aliasStart...].firstIndex(where: { $0 == " " }) ?? cursor.endIndex
             id = String(cursor[aliasStart..<aliasEnd])
+            cursor = cursor[aliasEnd...].drop(while: { $0 == " " })
         } else if let lbl = label {
             id = lbl.lowercased()
                 .map { $0.isLetter || $0.isNumber ? $0 : "_" }
@@ -158,10 +206,31 @@ public struct PlantUMLDeploymentParser {
             return nil
         }
 
+        // Trailing decorations: <<stereotype>> and #color, either order.
+        var stereotype: String? = nil
+        var color: String? = nil
+        let remainder = String(cursor).trimmingCharacters(in: .whitespaces)
+        if let stereoStart = remainder.range(of: "<<"),
+           let stereoEnd = remainder.range(of: ">>", range: stereoStart.upperBound..<remainder.endIndex) {
+            stereotype = String(remainder[stereoStart.upperBound..<stereoEnd.lowerBound])
+        }
+        if let hashIdx = remainder.firstIndex(of: "#") {
+            let after = remainder[remainder.index(after: hashIdx)...]
+            let runEnd = after.firstIndex(where: { !($0.isLetter || $0.isNumber) }) ?? after.endIndex
+            let hex = remainder[hashIdx..<runEnd]
+            if hex.count > 1 { color = String(hex) }
+        }
+
         if opensBlock {
-            return .openGroup(.init(id: id, label: label, kind: kind))
+            return .openGroup(.init(
+                id: id, label: label, kind: kind,
+                stereotype: stereotype, color: color
+            ))
         } else {
-            return .shape(.init(id: id, label: label, kind: kind))
+            return .shape(.init(
+                id: id, label: label, kind: kind,
+                stereotype: stereotype, color: color
+            ))
         }
     }
 }
