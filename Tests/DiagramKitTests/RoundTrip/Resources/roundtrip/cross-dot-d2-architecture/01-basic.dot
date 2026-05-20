@@ -1,0 +1,7 @@
+digraph G {
+  api [label="API", shape=box];
+  db [shape=cylinder];
+  cache [shape=cylinder];
+  api -> db;
+  api -> cache;
+}

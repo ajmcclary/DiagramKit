@@ -1,0 +1,6 @@
+architecture-beta
+    service api(server)[API]
+    service db(database)[Database]
+    service cache(database)[Cache]
+    api:R --> L:db
+    api:R --> L:cache

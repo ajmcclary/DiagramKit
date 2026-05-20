@@ -11,9 +11,12 @@ import DiagramKitModel
 /// that escape hatch is enforced by `GraphvizImporter`, not here.
 public enum DOTArchitectureProbe {
     public static func detectsArchitecture(_ doc: DOTDocument) -> Bool {
+        // Distinctive architecture-only shapes. `circle`, `hexagon`,
+        // `oval` are intentionally excluded — they also appear as
+        // flowchart shape downgrades and would misclassify generic
+        // graphs (see Wave E spec, architecture probe risk).
         let archShapes: Set<String> = [
-            "cylinder", "component", "note", "folder",
-            "box3d", "circle", "hexagon", "oval"
+            "cylinder", "component", "note", "folder", "box3d"
         ]
         var hits = 0
         for stmt in doc.statements {
@@ -73,11 +76,13 @@ public struct DOTArchitectureMapper {
             case .nodeStatement(let n):
                 let shape = n.attributes.first(where: { $0.key == "shape" })?.value
                 let label = n.attributes.first(where: { $0.key == "label" })?.value
+                let kind = Self.kind(for: shape)
                 services.append(ArchitectureService(
                     id: n.id,
+                    icon: Self.iconForKind(kind),
                     title: label ?? n.id,
                     parentGroupId: parentGroup,
-                    kind: Self.kind(for: shape)
+                    kind: kind
                 ))
             case .edgeStatement(let e):
                 let label = e.attributes.first(where: { $0.key == "label" })?.value
@@ -133,6 +138,40 @@ public struct DOTArchitectureMapper {
         case "hexagon":   return .component
         case "note":      return .artifact
         default:          return .service
+        }
+    }
+
+    /// Returns a canonical Mermaid icon name for a kind. Used so that
+    /// `mermaid → dot → mermaid` round-trip preserves shape identity
+    /// (Mermaid stores arch shape info on `icon`; DOT stores it on
+    /// `kind`).
+    static func iconForKind(_ kind: ArchitectureServiceKind) -> String? {
+        switch kind {
+        case .service:   return nil
+        case .database:  return "database"
+        case .cloud:     return "cloud"
+        case .queue:     return "queue"
+        case .storage:   return "disk"
+        case .interface: return "interface"
+        case .component: return "component"
+        case .node, .artifact, .frame, .folder, .package, .card,
+             .stack, .agent, .actor, .boundary:
+            return kind.rawValue
+        }
+    }
+
+    /// Inverse of `iconForKind` for the exporter's cross-format hint.
+    static func kindForIcon(_ icon: String?) -> ArchitectureServiceKind? {
+        guard let icon else { return nil }
+        switch icon {
+        case "database", "cylinder":    return .database
+        case "cloud":                    return .cloud
+        case "queue", "message-queue":   return .queue
+        case "disk", "storage":          return .storage
+        case "interface":                return .interface
+        case "component":                return .component
+        default:
+            return ArchitectureServiceKind(rawValue: icon)
         }
     }
 

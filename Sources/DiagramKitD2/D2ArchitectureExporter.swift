@@ -89,8 +89,16 @@ enum D2ArchitectureExport {
         diagnostics: inout [DiagramDiagnostic]
     ) {
         let id = sanitize(service.id)
-        let shape = d2ShapeAttr(for: service.kind)
-        let needsMarker = shape == nil && service.kind != .service
+        // Cross-format hint: when kind=.service but icon is a known
+        // architecture kind (Mermaid stores shape info in `icon`),
+        // promote the icon to drive the shape selection. Preserves
+        // shape identity across `mermaid ↔ d2` round-trips.
+        let effectiveKind: ArchitectureServiceKind = {
+            if service.kind != .service { return service.kind }
+            return D2ArchitectureMapper.kindForIcon(service.icon) ?? .service
+        }()
+        let shape = d2ShapeAttr(for: effectiveKind)
+        let needsMarker = shape == nil && effectiveKind != .service
         let hasDistinctTitle = service.title.map { !$0.isEmpty && $0 != service.id } ?? false
 
         // Always emit at least one statement that establishes the id so
@@ -106,10 +114,10 @@ enum D2ArchitectureExport {
             lines.append("\(indent)\(id).shape: \(shape)")
         } else if needsMarker {
             lines.append("\(indent)\(id): \"\(escape(service.id))\"")
-            lines.append("\(indent)\(D2RecoveryMarker.emitArchIcon(serviceID: service.id, kindRawValue: service.kind.rawValue))")
+            lines.append("\(indent)\(D2RecoveryMarker.emitArchIcon(serviceID: service.id, kindRawValue: effectiveKind.rawValue))")
             diagnostics.append(.lossyTransform(
                 .shapeDowngrade,
-                message: "Service '\(service.id)' kind '\(service.kind.rawValue)' has no native D2 shape; recovery marker carries kind for round-trip"
+                message: "Service '\(service.id)' kind '\(effectiveKind.rawValue)' has no native D2 shape; recovery marker carries kind for round-trip"
             ))
         }
     }

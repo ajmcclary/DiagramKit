@@ -80,7 +80,14 @@ enum DOTArchitectureExport {
         diagnostics: inout [DiagramDiagnostic]
     ) {
         let id = sanitize(service.id)
-        let mapped = shapeAttr(for: service.kind)
+        // Cross-format hint: when kind=.service but icon is a known
+        // architecture kind (Mermaid stores shape info in `icon`),
+        // promote the icon to drive the DOT shape selection.
+        let effectiveKind: ArchitectureServiceKind = {
+            if service.kind != .service { return service.kind }
+            return DOTArchitectureMapper.kindForIcon(service.icon) ?? .service
+        }()
+        let mapped = shapeAttr(for: effectiveKind)
         var attrs: [String] = []
         if let title = service.title, !title.isEmpty, title != service.id {
             attrs.append("label=\"\(escape(title))\"")
@@ -97,11 +104,11 @@ enum DOTArchitectureExport {
             lines.append("\(indent)\(id) [\(attrs.joined(separator: ", "))];")
         }
 
-        if !mapped.native && service.kind != .service {
-            lines.append("\(indent)\(DOTRecoveryMarker.emitArchIcon(serviceID: service.id, kindRawValue: service.kind.rawValue))")
+        if !mapped.native && effectiveKind != .service {
+            lines.append("\(indent)\(DOTRecoveryMarker.emitArchIcon(serviceID: service.id, kindRawValue: effectiveKind.rawValue))")
             diagnostics.append(.lossyTransform(
                 .shapeDowngrade,
-                message: "Service '\(service.id)' kind '\(service.kind.rawValue)' approximated to DOT shape '\(mapped.shape ?? "box")'; recovery marker preserves kind"
+                message: "Service '\(service.id)' kind '\(effectiveKind.rawValue)' approximated to DOT shape '\(mapped.shape ?? "box")'; recovery marker preserves kind"
             ))
         }
     }

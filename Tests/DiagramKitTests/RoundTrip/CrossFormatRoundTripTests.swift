@@ -536,5 +536,89 @@ struct CrossFormatRoundTripTests {
             fixture: fixture
         )
     }
+
+    // MARK: Mermaid ↔ D2 (architecture)
+
+    @Test(
+        "Mermaid → D2 → Mermaid (architecture)",
+        arguments: try fixtures(for: "cross-mermaid-d2-architecture", fromRoot: roundTripResourcesRoot())
+    )
+    func mermaidD2Architecture(fixture: RoundTripFixture) throws {
+        try runCrossFormatRoundTrip(
+            legA: RoundTripCellRegistry.mermaidArchitecture,
+            legB: RoundTripCellRegistry.d2Architecture,
+            additionalAllowedLosses: RoundTripCrossRegistry.mermaidD2Architecture,
+            fixture: fixture
+        )
+    }
+
+    @Test(
+        "D2 → Mermaid → D2 (architecture)",
+        arguments: try fixtures(for: "cross-d2-mermaid-architecture", fromRoot: roundTripResourcesRoot())
+    )
+    func d2MermaidArchitecture(fixture: RoundTripFixture) throws {
+        try runCrossFormatRoundTrip(
+            legA: RoundTripCellRegistry.d2Architecture,
+            legB: RoundTripCellRegistry.mermaidArchitecture,
+            additionalAllowedLosses: RoundTripCrossRegistry.d2MermaidArchitecture,
+            fixture: fixture
+        )
+    }
+
+    // MARK: Mermaid ↔ DOT (architecture)
+
+    @Test(
+        "Mermaid → DOT → Mermaid (architecture)",
+        arguments: try fixtures(for: "cross-mermaid-dot-architecture", fromRoot: roundTripResourcesRoot())
+    )
+    func mermaidDotArchitecture(fixture: RoundTripFixture) throws {
+        try runCrossFormatRoundTrip(
+            legA: RoundTripCellRegistry.mermaidArchitecture,
+            legB: RoundTripCellRegistry.dotArchitecture,
+            additionalAllowedLosses: RoundTripCrossRegistry.mermaidDotArchitecture,
+            fixture: fixture
+        )
+    }
+
+    @Test(
+        "DOT → Mermaid → DOT (architecture)",
+        arguments: try fixtures(for: "cross-dot-mermaid-architecture", fromRoot: roundTripResourcesRoot())
+    )
+    func dotMermaidArchitecture(fixture: RoundTripFixture) throws {
+        try runCrossFormatRoundTrip(
+            legA: RoundTripCellRegistry.dotArchitecture,
+            legB: RoundTripCellRegistry.mermaidArchitecture,
+            additionalAllowedLosses: RoundTripCrossRegistry.dotMermaidArchitecture,
+            fixture: fixture
+        )
+    }
+
+    // MARK: D2 ↔ DOT (architecture)
+
+    @Test(
+        "D2 → DOT → D2 (architecture)",
+        arguments: try fixtures(for: "cross-d2-dot-architecture", fromRoot: roundTripResourcesRoot())
+    )
+    func d2DotArchitecture(fixture: RoundTripFixture) throws {
+        try runCrossFormatRoundTrip(
+            legA: RoundTripCellRegistry.d2Architecture,
+            legB: RoundTripCellRegistry.dotArchitecture,
+            additionalAllowedLosses: RoundTripCrossRegistry.d2DotArchitecture,
+            fixture: fixture
+        )
+    }
+
+    @Test(
+        "DOT → D2 → DOT (architecture)",
+        arguments: try fixtures(for: "cross-dot-d2-architecture", fromRoot: roundTripResourcesRoot())
+    )
+    func dotD2Architecture(fixture: RoundTripFixture) throws {
+        try runCrossFormatRoundTrip(
+            legA: RoundTripCellRegistry.dotArchitecture,
+            legB: RoundTripCellRegistry.d2Architecture,
+            additionalAllowedLosses: RoundTripCrossRegistry.dotD2Architecture,
+            fixture: fixture
+        )
+    }
 }
 
