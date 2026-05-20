@@ -207,6 +207,20 @@ struct ImportDiagnosticAbsenceTests {
         #expect(rest?.kind == .interface, "REST kind = \(String(describing: rest?.kind))")
     }
 
+    @Test func plantUMLActivityWithPartition() throws {
+        let source = try loadFixture("plantuml-activity/02-partition.puml")
+        let result = try PlantUMLImporter().parse(source)
+        #expect(result.diagnostics.isEmpty,
+                "Expected zero import diagnostics, got: \(result.diagnostics)")
+        guard case .flowchart(let graph) = result.document.payload else {
+            Issue.record("Expected flowchart, got \(result.document.payload.type)")
+            return
+        }
+        let labels = Set(graph.subgraphs.map { $0.label })
+        #expect(labels.contains("Backend"),
+                "Expected partition 'Backend' to surface as subgraph; got labels \(labels)")
+    }
+
     // MARK: - Helpers
 
     private func loadFixture(_ relativePath: String) throws -> String {

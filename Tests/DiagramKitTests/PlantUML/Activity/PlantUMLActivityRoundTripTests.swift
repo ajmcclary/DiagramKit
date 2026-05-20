@@ -50,7 +50,7 @@ struct PlantUMLActivityRoundTripTests {
         try runSameFormatRoundTrip(cell: cell, fixture: fixture)
     }
 
-    @Test func partitionEmitsSubgraphFlattenDiagnostic() throws {
+    @Test func partitionSurfacesAsSubgraph() throws {
         let source = """
         @startuml
         start
@@ -62,9 +62,14 @@ struct PlantUMLActivityRoundTripTests {
         @enduml
         """
         let result = try PlantUMLImporter().parse(source)
-        guard case .flowchart = result.document.payload else {
+        guard case .flowchart(let graph) = result.document.payload else {
             Issue.record("Expected flowchart payload"); return
         }
-        #expect(result.diagnostics.contains(where: { $0.category == .subgraphFlatten }))
+        // Partitions now lift into MermaidSubgraph entries instead of
+        // dropping with a subgraphFlatten diagnostic.
+        #expect(!result.diagnostics.contains(where: { $0.category == .subgraphFlatten }),
+                "subgraphFlatten diagnostic should no longer fire; got \(result.diagnostics)")
+        #expect(graph.subgraphs.contains(where: { $0.label == "Backend" }),
+                "Expected `Backend` partition to surface as a subgraph; got \(graph.subgraphs.map { $0.label })")
     }
 }

@@ -5,7 +5,7 @@ import DiagramKitModel
 struct PlantUMLActivityMapper {
 
     func map(_ ast: PlantUMLActivityAST) -> (ParsedGraphModel, [DiagramDiagnostic]) {
-        var diagnostics: [DiagramDiagnostic] = []
+        let diagnostics: [DiagramDiagnostic] = []
         var nodesInOrder: [(id: String, node: original_src_types.MermaidNode)] = []
         var edges: [original_src_types.MermaidEdge] = []
 
@@ -27,18 +27,26 @@ struct PlantUMLActivityMapper {
             ))
         }
 
+        // PlantUML `partition "Name" { … }` blocks surface as flowchart
+        // subgraphs. Member node ids were collected by the parser; the
+        // subgraph's label is the partition's display label. The
+        // activity-partition recovery marker (Wave C 2026-05-20) still
+        // round-trips the `partition` keyword on export.
+        var subgraphs: [original_src_types.MermaidSubgraph] = []
+        for partition in ast.partitions {
+            subgraphs.append(original_src_types.MermaidSubgraph(
+                id: partition.id,
+                label: partition.label,
+                nodeIds: partition.memberNodeIDs
+            ))
+        }
+
         let graph = ParsedGraphModel(
             direction: .TB,
             nodesInOrder: nodesInOrder,
-            edges: edges
+            edges: edges,
+            subgraphs: subgraphs
         )
-
-        for partition in ast.partitions {
-            diagnostics.append(.lossyTransform(
-                .subgraphFlatten,
-                message: "PlantUML partition '\(partition.label)' flattened into flowchart payload; swimlane structure lost (members: \(partition.memberNodeIDs.joined(separator: ", ")))"
-            ))
-        }
 
         return (graph, diagnostics)
     }

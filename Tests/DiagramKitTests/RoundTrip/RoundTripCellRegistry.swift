@@ -321,7 +321,7 @@ enum RoundTripCellRegistry {
         importer: PlantUMLImporter(),
         exporter: PlantUMLExporter(),
         family: DiagramType.flowchart,
-        allowedLosses: [.idSanitization, .subgraphFlatten]
+        allowedLosses: [.idSanitization]
     )
 
     static let plantumlEr = RoundTripCell(
