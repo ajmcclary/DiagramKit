@@ -94,4 +94,71 @@ struct PlantUMLDeploymentParserTests {
             #expect(shape.label == "Thing\(i)")
         }
     }
+
+    @Test func parsesSingleGroup() throws {
+        let body = #"""
+        cloud "AWS" as aws {
+        }
+        """#
+        let ast = try PlantUMLDeploymentParser().parse(body)
+        #expect(ast.roots.count == 1)
+        if case let .group(group) = ast.roots[0] {
+            #expect(group.id == "aws")
+            #expect(group.label == "AWS")
+            #expect(group.kind == .cloud)
+            #expect(group.children.isEmpty)
+        } else {
+            Issue.record("Expected .group, got \(ast.roots[0])")
+        }
+    }
+
+    @Test func parsesNestedGroupWithShape() throws {
+        let body = #"""
+        cloud "AWS" as aws {
+          node "EC2" as ec2
+        }
+        """#
+        let ast = try PlantUMLDeploymentParser().parse(body)
+        guard case let .group(group) = ast.roots.first else {
+            Issue.record("Expected group root"); return
+        }
+        #expect(group.children.count == 1)
+        if case let .shape(child) = group.children[0] {
+            #expect(child.id == "ec2")
+            #expect(child.kind == .node)
+        } else {
+            Issue.record("Expected child shape, got \(group.children[0])")
+        }
+    }
+
+    @Test func parsesThreeLevelNesting() throws {
+        let body = #"""
+        cloud "AWS" as aws {
+          node "EC2" as ec2 {
+            artifact "worker.jar" as worker
+          }
+        }
+        """#
+        let ast = try PlantUMLDeploymentParser().parse(body)
+        guard case let .group(top) = ast.roots.first else {
+            Issue.record("Expected top group"); return
+        }
+        #expect(top.id == "aws")
+        guard case let .group(mid) = top.children.first else {
+            Issue.record("Expected nested group"); return
+        }
+        #expect(mid.id == "ec2")
+        guard case let .shape(leaf) = mid.children.first else {
+            Issue.record("Expected leaf shape"); return
+        }
+        #expect(leaf.id == "worker")
+        #expect(leaf.kind == .artifact)
+    }
+
+    @Test func throwsOnUnmatchedBlockClose() {
+        let body = "}"
+        #expect(throws: PlantUMLDeploymentParser.Error.unmatchedBlockClose(line: "}")) {
+            _ = try PlantUMLDeploymentParser().parse(body)
+        }
+    }
 }

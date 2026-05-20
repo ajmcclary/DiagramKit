@@ -22,30 +22,69 @@ public struct PlantUMLDeploymentParser {
         "component": .component, "interface": .interface
     ]
 
+    private enum ParsedLine {
+        case openGroup(PlantUMLDeploymentAST.Group)
+        case shape(PlantUMLDeploymentAST.Shape)
+    }
+
     public func parse(_ body: String) throws -> PlantUMLDeploymentAST {
-        var roots: [PlantUMLDeploymentAST.Node] = []
+        var rootContainer: [PlantUMLDeploymentAST.Node] = []
+        var groupStack: [(group: PlantUMLDeploymentAST.Group, children: [PlantUMLDeploymentAST.Node])] = []
+
         for rawLine in body.split(separator: "\n", omittingEmptySubsequences: true) {
             let line = rawLine.trimmingCharacters(in: .whitespaces)
             if line.isEmpty { continue }
             if line.hasPrefix("'") { continue }
             if line.hasPrefix("@") { continue }
-            if let shape = try parseShapeLine(line) {
-                roots.append(.shape(shape))
+
+            if line == "}" {
+                guard let top = groupStack.popLast() else {
+                    throw Error.unmatchedBlockClose(line: line)
+                }
+                let completed = PlantUMLDeploymentAST.Group(
+                    id: top.group.id, label: top.group.label, kind: top.group.kind,
+                    stereotype: top.group.stereotype, color: top.group.color,
+                    children: top.children
+                )
+                if !groupStack.isEmpty {
+                    groupStack[groupStack.count - 1].children.append(.group(completed))
+                } else {
+                    rootContainer.append(.group(completed))
+                }
                 continue
             }
+
+            if let parsed = try parseShapeOrGroupLine(line) {
+                switch parsed {
+                case .openGroup(let group):
+                    groupStack.append((group, []))
+                case .shape(let shape):
+                    if !groupStack.isEmpty {
+                        groupStack[groupStack.count - 1].children.append(.shape(shape))
+                    } else {
+                        rootContainer.append(.shape(shape))
+                    }
+                }
+            }
         }
-        return PlantUMLDeploymentAST(roots: roots)
+
+        return PlantUMLDeploymentAST(roots: rootContainer)
     }
 
-    private func parseShapeLine(_ line: String) throws -> PlantUMLDeploymentAST.Shape? {
+    private func parseShapeOrGroupLine(_ line: String) throws -> ParsedLine? {
         guard let space = line.firstIndex(of: " ") else { return nil }
         let keyword = String(line[..<space])
         guard let kind = Self.keywordToKind[keyword] else { return nil }
         let rest = line[line.index(after: space)...].trimmingCharacters(in: .whitespaces)
 
+        let opensBlock = rest.hasSuffix("{")
+        let body = opensBlock
+            ? String(rest.dropLast()).trimmingCharacters(in: .whitespaces)
+            : rest
+
         var label: String? = nil
         var id: String = ""
-        var cursor = Substring(rest)
+        var cursor = Substring(body)
 
         if cursor.first == "\"" {
             let afterOpen = cursor.index(after: cursor.startIndex)
@@ -58,7 +97,7 @@ public struct PlantUMLDeploymentParser {
 
         if cursor.hasPrefix("as ") {
             let aliasStart = cursor.index(cursor.startIndex, offsetBy: 3)
-            let aliasEnd = cursor[aliasStart...].firstIndex(where: { $0 == " " || $0 == "{" }) ?? cursor.endIndex
+            let aliasEnd = cursor[aliasStart...].firstIndex(where: { $0 == " " }) ?? cursor.endIndex
             id = String(cursor[aliasStart..<aliasEnd])
         } else if let lbl = label {
             id = lbl.lowercased()
@@ -68,6 +107,10 @@ public struct PlantUMLDeploymentParser {
             return nil
         }
 
-        return .init(id: id, label: label, kind: kind)
+        if opensBlock {
+            return .openGroup(.init(id: id, label: label, kind: kind))
+        } else {
+            return .shape(.init(id: id, label: label, kind: kind))
+        }
     }
 }
