@@ -6,6 +6,9 @@ public enum DOTRecoveryMarker {
     public enum Kind: Sendable, Equatable {
         case classStereotype(className: String, stereotype: String)
         case erCardinality(relationshipId: String, source: String, target: String)
+        case archIcon(serviceID: String, kindRawValue: String)
+        case archGroup(groupID: String, parentGroupID: String)
+        case family(name: String)
     }
 
     public static let scanner = RecoveryMarkerScanner<Kind>(commentPrefix: "#") { rest in
@@ -25,6 +28,19 @@ public enum DOTRecoveryMarker {
             guard fields.count == 3 else { return nil }
             return .erCardinality(relationshipId: String(fields[0]), source: String(fields[1]), target: String(fields[2]))
         }
+        if let args = stripPrefix("arch-icon=", rest) {
+            let fields = args.split(separator: ",", maxSplits: 1, omittingEmptySubsequences: false)
+            guard fields.count == 2 else { return nil }
+            return .archIcon(serviceID: String(fields[0]), kindRawValue: String(fields[1]))
+        }
+        if let args = stripPrefix("arch-group=", rest) {
+            let fields = args.split(separator: ",", maxSplits: 1, omittingEmptySubsequences: false)
+            guard fields.count == 2 else { return nil }
+            return .archGroup(groupID: String(fields[0]), parentGroupID: String(fields[1]))
+        }
+        if let args = stripPrefix("family=", rest) {
+            return .family(name: args)
+        }
         return nil
     }
 
@@ -41,6 +57,18 @@ public enum DOTRecoveryMarker {
 
     public static func emitERCardinality(relationshipId: String, source: String, target: String) -> String {
         "# diagramkit:er-cardinality=\(sanitize(relationshipId)),\(sanitize(source)),\(sanitize(target))"
+    }
+
+    public static func emitArchIcon(serviceID: String, kindRawValue: String) -> String {
+        "# diagramkit:arch-icon=\(sanitize(serviceID)),\(sanitize(kindRawValue))"
+    }
+
+    public static func emitArchGroup(groupID: String, parentGroupID: String) -> String {
+        "# diagramkit:arch-group=\(sanitize(groupID)),\(sanitize(parentGroupID))"
+    }
+
+    public static func emitFamily(_ name: String) -> String {
+        "# diagramkit:family=\(name)"
     }
 
     private static func sanitize(_ value: String) -> String {
