@@ -42,7 +42,8 @@ public struct D2Importer: DiagramSourceImporter {
         }
 
         if D2ERProbe.detectsERDiagram(d2Doc) {
-            let (er, erDiagnostics) = D2ERMapper().map(d2Doc)
+            var (er, erDiagnostics) = D2ERMapper().map(d2Doc)
+            applyERCardinalityMarkers(&er, markers: markerScan.markers)
             var document = DiagramDocument(payload: .erDiagram(er))
             document.title = Self.documentTitleMetadata(in: source)
             return DiagramImportResult(
@@ -88,6 +89,29 @@ public struct D2Importer: DiagramSourceImporter {
             }
         }
         cd.classMap = Dictionary(uniqueKeysWithValues: cd.classes.map { ($0.id, $0) })
+    }
+
+    /// Apply er-cardinality recovery markers to the built `ErDiagram`. Each
+    /// marker overwrites the `relSpec.cardA` / `cardB` of the relationship
+    /// whose synthesized id `"\(entity1)_\(entity2)"` matches the marker's
+    /// `relationshipId`. Silent drop when no relationship matches.
+    private func applyERCardinalityMarkers(
+        _ ed: inout ErDiagram,
+        markers: [RecoveryMarker<D2RecoveryMarker.Kind>]
+    ) {
+        for marker in markers {
+            guard case .erCardinality(let relationshipId, let sourceCard, let targetCard) = marker.kind else { continue }
+            guard let idx = ed.relationships.firstIndex(where: {
+                "\($0.entity1)_\($0.entity2)" == relationshipId
+            }) else { continue }
+            guard let cardA = ErCardinality(rawValue: sourceCard),
+                  let cardB = ErCardinality(rawValue: targetCard) else { continue }
+            ed.relationships[idx].relSpec = ErRelSpec(
+                cardA: cardA,
+                cardB: cardB,
+                relType: ed.relationships[idx].relSpec.relType
+            )
+        }
     }
 
     private static func documentTitleMetadata(in source: String) -> String? {

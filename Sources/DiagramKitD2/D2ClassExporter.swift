@@ -182,19 +182,13 @@ enum D2ClassExport {
 
     static func emit(_ diagram: ClassDiagram, title: String? = nil) throws -> DiagramExportResult {
         var lines: [String] = []
-        var diagnostics: [DiagramDiagnostic] = []
+        let diagnostics: [DiagramDiagnostic] = []
 
         if let title = title, !title.isEmpty {
             lines.append("# title: \(title.replacingOccurrences(of: "\n", with: " "))")
         }
 
         for c in diagram.classes {
-            for stereotype in c.annotations where !stereotype.isEmpty {
-                diagnostics.append(.lossyTransform(
-                    .classStereotypeDrop,
-                    message: "D2 has no native stereotype concept; dropping '<<\(stereotype)>>' on class '\(c.id)'"
-                ))
-            }
             lines.append("\(D2ClassExport.sanitizeID(c.id)): {")
             lines.append("  shape: class")
             for attr in c.attributes {
@@ -209,6 +203,9 @@ enum D2ClassExport {
                 lines.append("  \(prefix)\(method.id)(\(params)): \(returnValue)")
             }
             lines.append("}")
+            for stereotype in c.annotations where !stereotype.isEmpty {
+                lines.append(D2RecoveryMarker.emitClassStereotype(className: c.id, stereotype: stereotype))
+            }
             lines.append("")
         }
 

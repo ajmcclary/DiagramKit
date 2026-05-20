@@ -121,7 +121,7 @@ enum D2ERExport {
 
     static func emit(_ diagram: ErDiagram, title: String? = nil) throws -> DiagramExportResult {
         var lines: [String] = []
-        var diagnostics: [DiagramDiagnostic] = []
+        let diagnostics: [DiagramDiagnostic] = []
 
         if let title = title, !title.isEmpty {
             lines.append("# title: \(title.replacingOccurrences(of: "\n", with: " "))")
@@ -140,14 +140,6 @@ enum D2ERExport {
 
         for rel in diagram.relationships {
             let relID = "\(rel.entity1)_\(rel.entity2)"
-            diagnostics.append(.lossyTransform(
-                .cardinalityDrop,
-                message: "D2 has no native ER cardinality syntax; dropping source cardinality '\(rel.cardinality2)' on \(rel.entity1)→\(rel.entity2)"
-            ))
-            diagnostics.append(.lossyTransform(
-                .cardinalityDrop,
-                message: "D2 has no native ER cardinality syntax; dropping target cardinality '\(rel.cardinality1)' on \(rel.entity1)→\(rel.entity2)"
-            ))
             let src = sanitizeID(rel.entity1)
             let tgt = sanitizeID(rel.entity2)
             if !rel.label.isEmpty {
@@ -155,7 +147,11 @@ enum D2ERExport {
             } else {
                 lines.append("\(src) -> \(tgt)")
             }
-            _ = relID
+            lines.append(D2RecoveryMarker.emitERCardinality(
+                relationshipId: relID,
+                source: rel.relSpec.cardA.rawValue,
+                target: rel.relSpec.cardB.rawValue
+            ))
         }
 
         return DiagramExportResult(
