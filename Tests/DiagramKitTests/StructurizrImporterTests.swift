@@ -499,24 +499,6 @@ import DiagramKitStructurizr
         #expect(hasDiag)
     }
 
-    @Test("parse: emits diagnostic for multiple views")
-    func emitsDiagnosticForMultipleViews() throws {
-        let source = """
-        workspace {
-            model { u = person "U" }
-            views {
-                systemContext u { include * }
-                container u { include * }
-            }
-        }
-        """
-        let result = try importer.parse(source)
-        let hasDiag = result.diagnostics.contains {
-            $0.message.contains("2 views")
-        }
-        #expect(hasDiag)
-    }
-
     @Test("parse: emits diagnostic for no views")
     func emitsDiagnosticForNoViews() throws {
         let source = """

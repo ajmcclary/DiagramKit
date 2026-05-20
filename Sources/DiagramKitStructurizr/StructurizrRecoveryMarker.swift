@@ -1,4 +1,5 @@
 import Foundation
+import DiagramKitCommon
 
 public struct StructurizrRecoveryMarker: Sendable, Equatable {
     public enum Kind: Sendable, Equatable {
@@ -55,51 +56,33 @@ public struct StructurizrPreLexerScanResult: Sendable, Equatable {
     )
 }
 
-public func scanStructurizrRecoveryMarkers(_ source: String) -> [StructurizrRecoveryMarker] {
-    var markers: [StructurizrRecoveryMarker] = []
-    let tagPrefix = "diagramkit:tag="
-    let boundaryParentPrefix = "diagramkit:boundary-parent="
-    var lineNumber = 0
-    for rawLine in source.components(separatedBy: "\n") {
-        lineNumber += 1
-        var trimmed = rawLine
-        while let first = trimmed.first, first == " " || first == "\t" {
-            trimmed.removeFirst()
-        }
-        guard trimmed.first == "#" else { continue }
-        trimmed.removeFirst()
-        while let first = trimmed.first, first == " " || first == "\t" {
-            trimmed.removeFirst()
-        }
-        if trimmed.hasPrefix(tagPrefix) {
-            var value = String(trimmed.dropFirst(tagPrefix.count))
-            while let last = value.last, last == " " || last == "\t" || last == "\r" {
-                value.removeLast()
-            }
-            markers.append(StructurizrRecoveryMarker(
-                lineNumber: lineNumber,
-                kind: .elementTag(value: value)
-            ))
-        } else if trimmed.hasPrefix(boundaryParentPrefix) {
-            var value = String(trimmed.dropFirst(boundaryParentPrefix.count))
-            while let last = value.last, last == " " || last == "\t" || last == "\r" {
-                value.removeLast()
-            }
-            markers.append(StructurizrRecoveryMarker(
-                lineNumber: lineNumber,
-                kind: .boundaryParent(id: value)
-            ))
-        }
+// MARK: - Shared-scaffold scanner
+
+private let tagPrefix = "tag="
+private let boundaryParentPrefix = "boundary-parent="
+
+private let structurizrScanner = RecoveryMarkerScanner<StructurizrRecoveryMarker.Kind>(
+    commentPrefix: "#"
+) { rest in
+    if rest.hasPrefix(tagPrefix) {
+        return .elementTag(value: String(rest.dropFirst(tagPrefix.count)))
     }
-    return markers
+    if rest.hasPrefix(boundaryParentPrefix) {
+        return .boundaryParent(id: String(rest.dropFirst(boundaryParentPrefix.count)))
+    }
+    return nil
+}
+
+public func scanStructurizrRecoveryMarkers(_ source: String) -> [StructurizrRecoveryMarker] {
+    structurizrScanner.scan(source: source).markers.map {
+        StructurizrRecoveryMarker(lineNumber: $0.lineNumber, kind: $0.kind)
+    }
 }
 
 public func scanStructurizrPreLexer(_ source: String) -> StructurizrPreLexerScanResult {
-    var markers: [StructurizrRecoveryMarker] = []
+    let markers = scanStructurizrRecoveryMarkers(source)
     var elementDeclarations: [StructurizrPreLexerScanResult.ElementDeclaration] = []
     var groupDeclarations: [StructurizrPreLexerScanResult.GroupDeclaration] = []
-    let tagPrefix = "diagramkit:tag="
-    let boundaryParentPrefix = "diagramkit:boundary-parent="
     var lineNumber = 0
     for rawLine in source.components(separatedBy: "\n") {
         lineNumber += 1
@@ -107,32 +90,7 @@ public func scanStructurizrPreLexer(_ source: String) -> StructurizrPreLexerScan
         while let first = trimmed.first, first == " " || first == "\t" {
             trimmed.removeFirst()
         }
-        if trimmed.first == "#" {
-            trimmed.removeFirst()
-            while let first = trimmed.first, first == " " || first == "\t" {
-                trimmed.removeFirst()
-            }
-            if trimmed.hasPrefix(tagPrefix) {
-                var value = String(trimmed.dropFirst(tagPrefix.count))
-                while let last = value.last, last == " " || last == "\t" || last == "\r" {
-                    value.removeLast()
-                }
-                markers.append(StructurizrRecoveryMarker(
-                    lineNumber: lineNumber,
-                    kind: .elementTag(value: value)
-                ))
-            } else if trimmed.hasPrefix(boundaryParentPrefix) {
-                var value = String(trimmed.dropFirst(boundaryParentPrefix.count))
-                while let last = value.last, last == " " || last == "\t" || last == "\r" {
-                    value.removeLast()
-                }
-                markers.append(StructurizrRecoveryMarker(
-                    lineNumber: lineNumber,
-                    kind: .boundaryParent(id: value)
-                ))
-            }
-            continue
-        }
+        if trimmed.first == "#" { continue }
         if let alias = parseElementDeclarationAlias(trimmed) {
             elementDeclarations.append(.init(alias: alias, line: lineNumber))
         } else if let label = parseGroupDeclarationLabel(trimmed) {
@@ -145,6 +103,8 @@ public func scanStructurizrPreLexer(_ source: String) -> StructurizrPreLexerScan
         groupDeclarations: groupDeclarations
     )
 }
+
+// MARK: - Declaration parsers (unchanged from Wave 3 implementation)
 
 private func parseElementDeclarationAlias(_ line: String) -> String? {
     var stripped = line
