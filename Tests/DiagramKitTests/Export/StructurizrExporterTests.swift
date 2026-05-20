@@ -150,8 +150,8 @@ import DiagramKitStructurizr
 
     // MARK: - Review Critical 7: drop parser-incompatible syntax
 
-    @Test("Structurizr export drops alias tags and reports diagnostic")
-    func dropsTagsAndReportsDiagnostic() throws {
+    @Test("Structurizr export preserves alias tags via recovery marker")
+    func preservesTagsViaRecoveryMarker() throws {
         let c4 = C4Diagram(
             kind: .context,
             shapes: [
@@ -165,14 +165,23 @@ import DiagramKitStructurizr
         )
         let result = try StructurizrExporter().export(DiagramDocument(payload: .c4(c4)))
 
-        #expect(!result.source.contains("tags"))
-        #expect(result.diagnostics.contains {
-            $0.severity == .unsupported && $0.message.contains("element-scoped tags")
-        })
+        // Native `tags` statement is not emitted (Structurizr DSL has no
+        // element-scoped tags), but a `# diagramkit:tag=External` recovery
+        // marker preserves it for re-import. Wave 3 Task 4 (`4d46a19b`)
+        // removed the `.featureDropped` diagnostic this test previously
+        // asserted; the loss is now closed by the marker.
+        #expect(result.diagnostics.isEmpty,
+                "expected no diagnostics; got: \(result.diagnostics)")
+        #expect(result.source.contains("# diagramkit:tag=External"))
 
         // Re-import should not surface any diagnostics from the parser
-        // about orphan `tags` statements.
-        _ = try StructurizrImporter().parse(result.source)
+        // about orphan `tags` statements, and the tag should round-trip.
+        let reimported = try StructurizrImporter().parse(result.source)
+        guard case .c4(let recoveredC4) = reimported.document.payload else {
+            Issue.record("expected c4 payload on re-import")
+            return
+        }
+        #expect(recoveredC4.shapes.first?.tags == "External")
     }
 
     @Test("Structurizr export emits `group` block for authored boundaries; bare elements round-trip")
