@@ -10,25 +10,32 @@ enum PlantUMLActivityExport {
 
     static func emit(_ model: ParsedGraphModel) throws -> DiagramExportResult {
         var lines: [String] = []
-        var diagnostics: [DiagramDiagnostic] = []
+        let diagnostics: [DiagramDiagnostic] = []
         lines.append("@startuml")
         if let title = model.accTitle, !title.isEmpty {
             lines.append("title \(singleLine(title))")
         }
+        // PlantUML activity parses every node into synthetic ids `n_<index>`
+        // (start/stop/`:...;` all consume one index). To round-trip
+        // non-synthetic ids the exporter emits an `activity-original-id`
+        // marker line directly after the node it describes.
+        var nodeIndex = 0
         for entry in model.nodesInOrder {
             let node = entry.node
+            let syntheticId = "n_\(nodeIndex)"
+            nodeIndex += 1
             if node.shape == .stadium && node.label == "start" {
                 lines.append("start")
             } else if node.shape == .stadium && node.label == "stop" {
                 lines.append("stop")
             } else {
                 lines.append(":\(escape(node.label));")
-                if !isSyntheticActivityID(node.id) {
-                    diagnostics.append(.lossyTransform(
-                        .idSanitization,
-                        message: "PlantUML activity syntax has no explicit node-id form; '\(node.id)' becomes a synthetic id on re-parse"
-                    ))
-                }
+            }
+            if node.id != syntheticId {
+                lines.append(PlantUMLRecoveryMarker.emitActivityOriginalId(
+                    syntheticId: syntheticId,
+                    originalId: node.id
+                ))
             }
         }
         lines.append("@enduml")

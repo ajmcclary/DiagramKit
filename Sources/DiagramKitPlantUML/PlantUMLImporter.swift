@@ -88,7 +88,10 @@ public struct PlantUMLImporter: DiagramSourceImporter {
         }
         if isPlantUMLActivityBody(body) {
             let ast = PlantUMLActivityParser().parse(body)
-            let (model, diagnostics) = PlantUMLActivityMapper().map(ast)
+            var (model, diagnostics) = PlantUMLActivityMapper().map(ast)
+            // Apply activity-original-id recovery markers from the source.
+            let markerScan = PlantUMLRecoveryMarker.scanner.scan(source: source)
+            Self.applyActivityOriginalIdMarkers(&model, markers: markerScan.markers)
             return DiagramImportResult(
                 document: DiagramDocument(payload: .flowchart(model)),
                 diagnostics: diagnostics
@@ -154,5 +157,37 @@ public struct PlantUMLImporter: DiagramSourceImporter {
         throw DiagramError.malformedSource(
             message: "PlantUML body did not match any supported family probe"
         )
+    }
+
+    /// Apply activity-original-id markers to recover non-synthetic node ids
+    /// that were sanitized through the activity export. Rewrites
+    /// `nodesInOrder[i].id` and any edge endpoints referencing the synthetic
+    /// id. Silent drop when no node matches the marker's syntheticId.
+    private static func applyActivityOriginalIdMarkers(
+        _ model: inout ParsedGraphModel,
+        markers: [RecoveryMarker<PlantUMLRecoveryMarker.Kind>]
+    ) {
+        // Build rename map first so edge endpoints stay consistent.
+        var renames: [String: String] = [:]
+        for marker in markers {
+            guard case .activityOriginalId(let syntheticId, let originalId) = marker.kind else { continue }
+            renames[syntheticId] = originalId
+        }
+        guard !renames.isEmpty else { return }
+
+        for i in model.nodesInOrder.indices {
+            if let original = renames[model.nodesInOrder[i].id] {
+                model.nodesInOrder[i].id = original
+                model.nodesInOrder[i].node.id = original
+            }
+        }
+        for i in model.edges.indices {
+            if let original = renames[model.edges[i].source] {
+                model.edges[i].source = original
+            }
+            if let original = renames[model.edges[i].target] {
+                model.edges[i].target = original
+            }
+        }
     }
 }
