@@ -1,0 +1,21 @@
+@startuml
+cloud "Public Cloud" as cloud_1 {
+  node "Application Server" as appserver {
+    artifact "app.war" as app
+  }
+  database "Postgres" as db
+}
+queue "Message Bus" as bus
+storage "Object Store" as store
+agent "Scheduler" as sched
+boundary "Edge" as edge
+frame "Internal" as int_frame {
+  folder "logs" as logs
+  package "auth" as auth
+  card "monitoring" as monitor
+  stack "metrics" as metrics
+  actor "Operator" as operator
+}
+appserver --> db : reads
+bus ..> store : depends
+@enduml

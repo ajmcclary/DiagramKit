@@ -351,4 +351,11 @@ enum RoundTripCellRegistry {
         family: DiagramType.architecture,
         allowedLosses: [.idSanitization]
     )
+
+    static let plantumlDeployment = RoundTripCell(
+        importer: PlantUMLImporter(),
+        exporter: PlantUMLExporter(),
+        family: DiagramType.architecture,
+        allowedLosses: [.idSanitization]
+    )
 }

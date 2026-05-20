@@ -137,20 +137,20 @@ public struct PlantUMLImporter: DiagramSourceImporter {
                 diagnostics: diagnostics
             )
         }
-        if isPlantUMLDeploymentBody(body) {
-            let (ast, parseDiagnostics) = try PlantUMLDeploymentParser().parse(body)
-            let (model, mapDiagnostics) = PlantUMLDeploymentMapper().map(ast)
-            return DiagramImportResult(
-                document: DiagramDocument(payload: .architecture(model)),
-                diagnostics: parseDiagnostics + mapDiagnostics
-            )
-        }
         if isPlantUMLClassBody(body) {
             let ast = PlantUMLClassParser().parse(body)
             let (model, diagnostics) = PlantUMLClassMapper().map(ast)
             return DiagramImportResult(
                 document: DiagramDocument(payload: .classDiagram(model)),
                 diagnostics: diagnostics
+            )
+        }
+        if isPlantUMLDeploymentBody(body) {
+            let (ast, parseDiagnostics) = try PlantUMLDeploymentParser().parse(body)
+            let (model, mapDiagnostics) = PlantUMLDeploymentMapper().map(ast)
+            return DiagramImportResult(
+                document: DiagramDocument(payload: .architecture(model)),
+                diagnostics: parseDiagnostics + mapDiagnostics
             )
         }
         if isPlantUMLSequenceBody(body) {
