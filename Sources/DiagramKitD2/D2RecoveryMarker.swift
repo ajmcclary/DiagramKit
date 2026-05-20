@@ -11,6 +11,9 @@ public enum D2RecoveryMarker {
         case classStereotype(className: String, stereotype: String)
         case stateAction(ownerStateId: String, phase: StateActionPhase, label: String)
         case erCardinality(relationshipId: String, source: String, target: String)
+        case archIcon(serviceID: String, kindRawValue: String)
+        case archGroup(groupID: String, parentGroupID: String)
+        case family(name: String)
     }
 
     public static let scanner = RecoveryMarkerScanner<Kind>(commentPrefix: "#") { rest in
