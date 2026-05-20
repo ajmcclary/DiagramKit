@@ -402,6 +402,17 @@ struct SameFormatRoundTripTests {
     }
 
     @Test(
+        "D2 architecture round-trip",
+        arguments: try fixtures(for: "d2-architecture", fromRoot: roundTripResourcesRoot())
+    )
+    func d2Architecture(fixture: RoundTripFixture) throws {
+        try runSameFormatRoundTrip(
+            cell: RoundTripCellRegistry.d2Architecture,
+            fixture: fixture
+        )
+    }
+
+    @Test(
         "Structurizr C4 round-trip",
         arguments: try fixtures(for: "structurizr-c4", fromRoot: roundTripResourcesRoot())
     )

@@ -89,14 +89,23 @@ enum D2ArchitectureExport {
         diagnostics: inout [DiagramDiagnostic]
     ) {
         let id = sanitize(service.id)
-        if let title = service.title, !title.isEmpty, title != service.id {
-            lines.append("\(indent)\(id): \"\(escape(title))\"")
-        } else {
-            lines.append("\(indent)\(id)")
+        let shape = d2ShapeAttr(for: service.kind)
+        let needsMarker = shape == nil && service.kind != .service
+        let hasDistinctTitle = service.title.map { !$0.isEmpty && $0 != service.id } ?? false
+
+        // Always emit at least one statement that establishes the id so
+        // the D2 parser can re-parse our output. If we'd otherwise emit
+        // no statement (default kind + no distinct title), emit the
+        // explicit `id: "id"` form.
+        if hasDistinctTitle {
+            lines.append("\(indent)\(id): \"\(escape(service.title ?? service.id))\"")
+        } else if shape == nil && !needsMarker {
+            lines.append("\(indent)\(id): \"\(escape(service.id))\"")
         }
-        if let shape = d2ShapeAttr(for: service.kind) {
+        if let shape {
             lines.append("\(indent)\(id).shape: \(shape)")
-        } else if service.kind != .service {
+        } else if needsMarker {
+            lines.append("\(indent)\(id): \"\(escape(service.id))\"")
             lines.append("\(indent)\(D2RecoveryMarker.emitArchIcon(serviceID: service.id, kindRawValue: service.kind.rawValue))")
             diagnostics.append(.lossyTransform(
                 .shapeDowngrade,

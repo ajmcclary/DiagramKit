@@ -1,0 +1,7 @@
+backend: "Backend" {
+  api: "API"
+  db.shape: cylinder
+  queue1.shape: queue
+  api -> db
+  api -> queue1
+}

@@ -268,6 +268,20 @@ enum RoundTripCellRegistry {
         allowedLosses: [.cardinalityDrop]
     )
 
+    static let d2Architecture = RoundTripCell(
+        importer: D2Importer(),
+        exporter: D2Exporter(),
+        family: DiagramType.architecture,
+        allowedLosses: [.idSanitization]
+    )
+
+    static let dotArchitecture = RoundTripCell(
+        importer: GraphvizImporter(),
+        exporter: DOTExporter(),
+        family: DiagramType.architecture,
+        allowedLosses: [.idSanitization]
+    )
+
     static let structurizrC4 = RoundTripCell(
         importer: StructurizrImporter(),
         exporter: StructurizrExporter(),
