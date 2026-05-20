@@ -62,10 +62,10 @@ Where" for slice paths and [BASELINES.md](BASELINES.md) for corpus counts.
 | Family            | Mermaid | D2 | DOT | Structurizr | PlantUML |
 |-------------------|:-------:|:--:|:---:|:-----------:|:--------:|
 | flowchart         |   ✓    | ✓ | ✓  |     —      |    ⚠    |
-| stateDiagram      |   ✓    | ⚠ | ⚠  |     —      |    ✓    |
+| stateDiagram      |   ✓    | ✓ | ✓  |     —      |    ✓    |
 | sequenceDiagram   |   ✓    | — | —  |     —      |    ⚠    |
-| classDiagram      |   ✓    | ⚠ | ⚠  |     —      |    ✓    |
-| erDiagram         |   ✓    | ⚠ | ⚠  |     —      |    ✓    |
+| classDiagram      |   ✓    | ✓ | ✓  |     —      |    ✓    |
+| erDiagram         |   ✓    | ✓ | ✓  |     —      |    ✓    |
 | xyChart           |   ✓    | — | —  |     —      |    —    |
 | pie               |   ✓    | — | —  |     —      |    —    |
 | journey           |   ✓    | — | —  |     —      |    —    |

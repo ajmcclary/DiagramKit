@@ -2,6 +2,42 @@
 
 Last updated: 2026-05-20
 
+## Coverage marker recovery — Wave B (D2 + DOT recovery markers)
+
+- **2026-05-20 — Wave B:** Generalize Wave A's shared `RecoveryMarkerScanner`
+  to D2 and DOT. Six export cells flip `⚠ → ✓` in COVERAGE.md:
+  `classDiagram × {D2, DOT}`, `stateDiagram × {D2, DOT}`, `erDiagram × {D2, DOT}`.
+  - **D2RecoveryMarker** + **DOTRecoveryMarker** with `classStereotype` and
+    `erCardinality` Kind cases. `D2ClassExport` / `DOTClassExport` emit
+    per-class `# diagramkit:class-stereotype=...` markers and drop the
+    `.classStereotypeDrop` diagnostic. `D2ERExport` / `DOTERExport` emit
+    per-relationship `# diagramkit:er-cardinality=...` markers and drop both
+    `.cardinalityDrop` diagnostics.
+  - `D2Importer` / `GraphvizImporter` apply markers post-mapper to recover
+    `ClassNode.annotations` and `ErRelationship.relSpec.cardA/cardB`.
+  - `stateDiagram × {D2, DOT}` export cells were stale `⚠` — both exporters
+    already emit zero diagnostics (`.stateActionDrop` only fires in the
+    import-side mapper for foreign-native entry/exit pseudo-states). Plan
+    amendment `fe42f44` captured this; state-action recovery is deferred to
+    a Future Work item (needs Mermaid payload-model surgery for an action
+    slot, which is out of scope per the spec's "Mermaid landing slot"
+    exclusion).
+  - Round-trip discipline: `D2ClassRoundTripTests`, `DOTClassRoundTripTests`,
+    `DOTERRoundTripTests`, and the `RoundTripCrossRegistry` class-pair entries
+    drop `.classStereotypeDrop` / `.cardinalityDrop` from their allowed-loss
+    sets (markers now close the round-trip lossage). `RoundTripLoss` enum
+    cases stay (used by other test infrastructure); category deletion deferred.
+  - Pre-existing-failure cleanup: stale "multiple views" Structurizr test
+    (Wave 3 closer deleted the diagnostic), `allCases.count == 11`
+    RoundTripLossExpectedCategoryTests sweep (now 14), PlantUML probe-order
+    bug (sequence input misclassified as use-case when `actor` was present;
+    use-case probe tightened, activity probe no longer matches standalone
+    `end`), `PlantUMLExporterTests.unsupportedType` (test used `.flowchart`
+    which is now exported via activity; switched to `.xyChart`).
+  - 166 round-trip tests + 107 PlantUML tests + 100 D2 tests + 90 DOT tests
+    pass. `Scripts/check-diagnostic-discipline.sh` and
+    `Scripts/check-file-sizes.sh` remain green.
+
 ## Coverage marker recovery — Wave A (shared scaffold + matrix reconciliation)
 
 - **2026-05-20 — Wave A:** Generic `RecoveryMarkerScanner<Kind>` +
