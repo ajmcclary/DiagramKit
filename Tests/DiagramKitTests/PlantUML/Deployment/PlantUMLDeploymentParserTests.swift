@@ -1,4 +1,5 @@
 import Testing
+import DiagramKitCommon
 import DiagramKitModel
 @testable import DiagramKitPlantUML
 
@@ -54,7 +55,7 @@ struct PlantUMLDeploymentParserTests {
     }
 
     @Test func parsesSingleNodeWithQuotedLabelAndAlias() throws {
-        let ast = try PlantUMLDeploymentParser().parse(#"node "Web Server" as web"#)
+        let (ast, _) = try PlantUMLDeploymentParser().parse(#"node "Web Server" as web"#)
         #expect(ast.roots.count == 1)
         if case let .shape(shape) = ast.roots[0] {
             #expect(shape.id == "web")
@@ -66,7 +67,7 @@ struct PlantUMLDeploymentParserTests {
     }
 
     @Test func parsesShapeWithoutAliasUsesLabelAsId() throws {
-        let ast = try PlantUMLDeploymentParser().parse(#"database "Postgres""#)
+        let (ast, _) = try PlantUMLDeploymentParser().parse(#"database "Postgres""#)
         #expect(ast.roots.count == 1)
         if case let .shape(shape) = ast.roots[0] {
             #expect(shape.id == "postgres")
@@ -85,7 +86,7 @@ struct PlantUMLDeploymentParserTests {
         ]
         for (i, entry) in kinds.enumerated() {
             let body = "\(entry.keyword) \"Thing\(i)\" as t\(i)"
-            let ast = try PlantUMLDeploymentParser().parse(body)
+            let (ast, _) = try PlantUMLDeploymentParser().parse(body)
             guard case let .shape(shape) = ast.roots.first else {
                 Issue.record("\(entry.keyword): no shape parsed"); continue
             }
@@ -100,7 +101,7 @@ struct PlantUMLDeploymentParserTests {
         cloud "AWS" as aws {
         }
         """#
-        let ast = try PlantUMLDeploymentParser().parse(body)
+        let (ast, _) = try PlantUMLDeploymentParser().parse(body)
         #expect(ast.roots.count == 1)
         if case let .group(group) = ast.roots[0] {
             #expect(group.id == "aws")
@@ -118,7 +119,7 @@ struct PlantUMLDeploymentParserTests {
           node "EC2" as ec2
         }
         """#
-        let ast = try PlantUMLDeploymentParser().parse(body)
+        let (ast, _) = try PlantUMLDeploymentParser().parse(body)
         guard case let .group(group) = ast.roots.first else {
             Issue.record("Expected group root"); return
         }
@@ -139,7 +140,7 @@ struct PlantUMLDeploymentParserTests {
           }
         }
         """#
-        let ast = try PlantUMLDeploymentParser().parse(body)
+        let (ast, _) = try PlantUMLDeploymentParser().parse(body)
         guard case let .group(top) = ast.roots.first else {
             Issue.record("Expected top group"); return
         }
@@ -168,7 +169,7 @@ struct PlantUMLDeploymentParserTests {
         node "B" as b
         a --> b
         """#
-        let ast = try PlantUMLDeploymentParser().parse(body)
+        let (ast, _) = try PlantUMLDeploymentParser().parse(body)
         #expect(ast.edges.count == 1)
         let edge = ast.edges[0]
         #expect(edge.lhsId == "a")
@@ -180,13 +181,13 @@ struct PlantUMLDeploymentParserTests {
 
     @Test func parsesLabeledEdge() throws {
         let body = #"a --> b : writes"#
-        let ast = try PlantUMLDeploymentParser().parse(body)
+        let (ast, _) = try PlantUMLDeploymentParser().parse(body)
         #expect(ast.edges.first?.label == "writes")
     }
 
     @Test func parsesDashedDependencyEdge() throws {
         let body = #"a ..> b : depends"#
-        let ast = try PlantUMLDeploymentParser().parse(body)
+        let (ast, _) = try PlantUMLDeploymentParser().parse(body)
         guard let edge = ast.edges.first else { Issue.record("no edge"); return }
         #expect(edge.style == .dashed)
         #expect(edge.label == "depends")
@@ -194,19 +195,19 @@ struct PlantUMLDeploymentParserTests {
 
     @Test func parsesBidirectionalEdge() throws {
         let body = #"a <--> b"#
-        let ast = try PlantUMLDeploymentParser().parse(body)
+        let (ast, _) = try PlantUMLDeploymentParser().parse(body)
         #expect(ast.edges.first?.direction == .both)
     }
 
     @Test func parsesBackwardEdge() throws {
         let body = #"a <-- b"#
-        let ast = try PlantUMLDeploymentParser().parse(body)
+        let (ast, _) = try PlantUMLDeploymentParser().parse(body)
         #expect(ast.edges.first?.direction == .backward)
     }
 
     @Test func parsesEdgeStereotype() throws {
         let body = #"a --> b : uses <<calls>>"#
-        let ast = try PlantUMLDeploymentParser().parse(body)
+        let (ast, _) = try PlantUMLDeploymentParser().parse(body)
         guard let edge = ast.edges.first else { Issue.record("no edge"); return }
         #expect(edge.label == "uses")
         #expect(edge.stereotype == "calls")
@@ -214,7 +215,7 @@ struct PlantUMLDeploymentParserTests {
 
     @Test func parsesShapeStereotype() throws {
         let body = #"node "Worker" as worker <<router>>"#
-        let ast = try PlantUMLDeploymentParser().parse(body)
+        let (ast, _) = try PlantUMLDeploymentParser().parse(body)
         if case let .shape(shape) = ast.roots.first {
             #expect(shape.stereotype == "router")
         }
@@ -222,7 +223,7 @@ struct PlantUMLDeploymentParserTests {
 
     @Test func parsesShapeColor() throws {
         let body = #"database "DB" as db #FF6600"#
-        let ast = try PlantUMLDeploymentParser().parse(body)
+        let (ast, _) = try PlantUMLDeploymentParser().parse(body)
         if case let .shape(shape) = ast.roots.first {
             #expect(shape.color == "#FF6600")
         }
@@ -235,7 +236,7 @@ struct PlantUMLDeploymentParserTests {
         This node handles all incoming traffic.
         end note
         """#
-        let ast = try PlantUMLDeploymentParser().parse(body)
+        let (ast, _) = try PlantUMLDeploymentParser().parse(body)
         #expect(ast.notes.count == 1)
         #expect(ast.notes[0].serviceId == "worker")
         #expect(ast.notes[0].position == "right")
@@ -248,7 +249,7 @@ struct PlantUMLDeploymentParserTests {
         Requires VPN access
         endlegend
         """#
-        let ast = try PlantUMLDeploymentParser().parse(body)
+        let (ast, _) = try PlantUMLDeploymentParser().parse(body)
         #expect(ast.legend == "Requires VPN access")
     }
 
@@ -257,10 +258,35 @@ struct PlantUMLDeploymentParserTests {
         cloud "AWS" as aws <<public>> #ADD8E6 {
         }
         """#
-        let ast = try PlantUMLDeploymentParser().parse(body)
+        let (ast, _) = try PlantUMLDeploymentParser().parse(body)
         if case let .group(group) = ast.roots.first {
             #expect(group.stereotype == "public")
             #expect(group.color == "#ADD8E6")
         }
+    }
+
+    @Test func skinparamEmitsSlotUnsupported() throws {
+        let body = "skinparam nodesep 50"
+        let (_, diagnostics) = try PlantUMLDeploymentParser().parse(body)
+        let drops = diagnostics.filter { $0.category == .slotUnsupported }
+        #expect(drops.count == 1)
+    }
+
+    @Test func togetherBlockEmitsSlotUnsupported() throws {
+        let body = #"""
+        together {
+          node "A" as a
+        }
+        """#
+        let (_, diagnostics) = try PlantUMLDeploymentParser().parse(body)
+        let drops = diagnostics.filter { $0.category == .slotUnsupported }
+        #expect(drops.count >= 1)
+    }
+
+    @Test func leftToRightDirectionEmitsSlotUnsupported() throws {
+        let body = "left to right direction"
+        let (_, diagnostics) = try PlantUMLDeploymentParser().parse(body)
+        let drops = diagnostics.filter { $0.category == .slotUnsupported }
+        #expect(drops.count == 1)
     }
 }

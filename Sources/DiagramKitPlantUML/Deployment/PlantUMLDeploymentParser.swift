@@ -27,7 +27,7 @@ public struct PlantUMLDeploymentParser {
         case shape(PlantUMLDeploymentAST.Shape)
     }
 
-    public func parse(_ body: String) throws -> PlantUMLDeploymentAST {
+    public func parse(_ body: String) throws -> (ast: PlantUMLDeploymentAST, diagnostics: [DiagramDiagnostic]) {
         var rootContainer: [PlantUMLDeploymentAST.Node] = []
         var groupStack: [(group: PlantUMLDeploymentAST.Group, children: [PlantUMLDeploymentAST.Node])] = []
         var edges: [PlantUMLDeploymentAST.Edge] = []
@@ -35,12 +35,39 @@ public struct PlantUMLDeploymentParser {
         var legend: String? = nil
         var pendingNote: (serviceId: String, position: String, lines: [String])? = nil
         var pendingLegendLines: [String]? = nil
+        var diagnostics: [DiagramDiagnostic] = []
+        var togetherDepth = 0
 
         for rawLine in body.split(separator: "\n", omittingEmptySubsequences: true) {
             let line = rawLine.trimmingCharacters(in: .whitespaces)
             if line.isEmpty { continue }
             if line.hasPrefix("'") { continue }
             if line.hasPrefix("@") { continue }
+
+            if line.hasPrefix("skinparam ") {
+                diagnostics.append(.featureDropped(
+                    .slotUnsupported,
+                    message: "PlantUML layout hint dropped: \(line)"
+                ))
+                continue
+            }
+            if line == "left to right direction" || line == "top to bottom direction" {
+                diagnostics.append(.featureDropped(
+                    .slotUnsupported,
+                    message: "PlantUML layout hint dropped: \(line)"
+                ))
+                continue
+            }
+            if line.hasPrefix("together ") || line == "together {" {
+                diagnostics.append(.featureDropped(
+                    .slotUnsupported,
+                    message: "PlantUML `together {…}` block not preserved"
+                ))
+                if line.hasSuffix("{") {
+                    togetherDepth += 1
+                }
+                continue
+            }
 
             // Multi-line block accumulation (note, legend) takes priority
             if pendingNote != nil {
@@ -83,6 +110,10 @@ public struct PlantUMLDeploymentParser {
             }
 
             if line == "}" {
+                if togetherDepth > 0 {
+                    togetherDepth -= 1
+                    continue
+                }
                 guard let top = groupStack.popLast() else {
                     throw Error.unmatchedBlockClose(line: line)
                 }
@@ -119,9 +150,12 @@ public struct PlantUMLDeploymentParser {
             }
         }
 
-        return PlantUMLDeploymentAST(
-            roots: rootContainer, edges: edges,
-            notes: notes, legend: legend
+        return (
+            PlantUMLDeploymentAST(
+                roots: rootContainer, edges: edges,
+                notes: notes, legend: legend
+            ),
+            diagnostics
         )
     }
 
