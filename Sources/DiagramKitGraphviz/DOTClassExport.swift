@@ -179,7 +179,7 @@ enum DOTClassExport {
 
     static func emit(_ diagram: ClassDiagram, title: String? = nil) throws -> DiagramExportResult {
         var lines: [String] = []
-        var diagnostics: [DiagramDiagnostic] = []
+        let diagnostics: [DiagramDiagnostic] = []
 
         let graphName = title.flatMap { sanitizeDOTID($0) } ?? "ClassDiagram"
         lines.append("digraph \(graphName) {")
@@ -189,12 +189,6 @@ enum DOTClassExport {
         }
 
         for c in diagram.classes {
-            for stereotype in c.annotations where !stereotype.isEmpty {
-                diagnostics.append(.lossyTransform(
-                    .classStereotypeDrop,
-                    message: "DOT record form has no native stereotype slot; dropping '<<\(stereotype)>>' on class '\(c.id)'"
-                ))
-            }
             let attrLines = c.attributes.map { renderMember($0, isMethod: false) }
             let methodLines = c.methods.map { renderMember($0, isMethod: true) }
             let header = c.label.isEmpty ? c.id : c.label
@@ -202,6 +196,9 @@ enum DOTClassExport {
             let methodsSection = methodLines.joined(separator: "\\n") + (methodLines.isEmpty ? "" : "\\n")
             let labelBody = "{\(header)|\(attrsSection)|\(methodsSection)}"
             lines.append("  \(sanitizeDOTID(c.id)) [shape=record, label=\(quoted(labelBody))];")
+            for stereotype in c.annotations where !stereotype.isEmpty {
+                lines.append("  " + DOTRecoveryMarker.emitClassStereotype(className: c.id, stereotype: stereotype))
+            }
         }
 
         for rel in diagram.relationships {

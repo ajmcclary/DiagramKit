@@ -2,6 +2,7 @@ import Foundation
 import DiagramKitCommon
 import DiagramKitModel
 import DiagramKitImport
+import DiagramKitExport
 
 /// Graphviz DOT source-format importer.
 ///
@@ -31,9 +32,11 @@ public struct GraphvizImporter: DiagramSourceImporter {
 
         let parser = DOTParser()
         let (dotDoc, parseDiagnostics) = try parser.parse(tokens)
+        let markerScan = DOTRecoveryMarker.scanner.scan(source: source)
 
         if DOTClassProbe.detectsClassDiagram(dotDoc) {
-            let (cd, classDiagnostics) = DOTClassMapper().map(dotDoc)
+            var (cd, classDiagnostics) = DOTClassMapper().map(dotDoc)
+            Self.applyClassStereotypeMarkers(&cd, markers: markerScan.markers)
             let document = DiagramDocument(payload: .classDiagram(cd))
             return DiagramImportResult(
                 document: document,
@@ -51,7 +54,8 @@ public struct GraphvizImporter: DiagramSourceImporter {
         }
 
         if DOTERProbe.detectsERDiagram(dotDoc) {
-            let (er, erDiagnostics) = DOTERMapper().map(dotDoc)
+            var (er, erDiagnostics) = DOTERMapper().map(dotDoc)
+            Self.applyERCardinalityMarkers(&er, markers: markerScan.markers)
             let document = DiagramDocument(payload: .erDiagram(er))
             return DiagramImportResult(
                 document: document,
@@ -67,5 +71,40 @@ public struct GraphvizImporter: DiagramSourceImporter {
         let document = DiagramDocument(payload: payload)
 
         return DiagramImportResult(document: document, diagnostics: allDiagnostics)
+    }
+
+    /// Apply class-stereotype recovery markers to a built `ClassDiagram`.
+    private static func applyClassStereotypeMarkers(
+        _ cd: inout ClassDiagram,
+        markers: [RecoveryMarker<DOTRecoveryMarker.Kind>]
+    ) {
+        for marker in markers {
+            guard case .classStereotype(let className, let stereotype) = marker.kind else { continue }
+            guard let idx = cd.classes.firstIndex(where: { $0.id == className }) else { continue }
+            if !cd.classes[idx].annotations.contains(stereotype) {
+                cd.classes[idx].annotations.append(stereotype)
+            }
+        }
+        cd.classMap = Dictionary(uniqueKeysWithValues: cd.classes.map { ($0.id, $0) })
+    }
+
+    /// Apply er-cardinality recovery markers to a built `ErDiagram`.
+    private static func applyERCardinalityMarkers(
+        _ ed: inout ErDiagram,
+        markers: [RecoveryMarker<DOTRecoveryMarker.Kind>]
+    ) {
+        for marker in markers {
+            guard case .erCardinality(let relationshipId, let sourceCard, let targetCard) = marker.kind else { continue }
+            guard let idx = ed.relationships.firstIndex(where: {
+                "\($0.entity1)_\($0.entity2)" == relationshipId
+            }) else { continue }
+            guard let cardA = ErCardinality(rawValue: sourceCard),
+                  let cardB = ErCardinality(rawValue: targetCard) else { continue }
+            ed.relationships[idx].relSpec = ErRelSpec(
+                cardA: cardA,
+                cardB: cardB,
+                relType: ed.relationships[idx].relSpec.relType
+            )
+        }
     }
 }

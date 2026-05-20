@@ -106,7 +106,7 @@ enum DOTERExport {
 
     static func emit(_ diagram: ErDiagram, title: String? = nil) throws -> DiagramExportResult {
         var lines: [String] = []
-        var diagnostics: [DiagramDiagnostic] = []
+        let diagnostics: [DiagramDiagnostic] = []
 
         let graphName = title.flatMap { DOTClassExport.sanitizeDOTID($0) } ?? "ERDiagram"
         lines.append("digraph \(graphName) {")
@@ -129,14 +129,7 @@ enum DOTERExport {
         }
 
         for rel in diagram.relationships {
-            diagnostics.append(.lossyTransform(
-                .cardinalityDrop,
-                message: "DOT record form has no native ER cardinality syntax; dropping source cardinality '\(rel.cardinality2)' on \(rel.entity1)→\(rel.entity2)"
-            ))
-            diagnostics.append(.lossyTransform(
-                .cardinalityDrop,
-                message: "DOT record form has no native ER cardinality syntax; dropping target cardinality '\(rel.cardinality1)' on \(rel.entity1)→\(rel.entity2)"
-            ))
+            let relID = "\(rel.entity1)_\(rel.entity2)"
             let src = DOTClassExport.sanitizeDOTID(rel.entity1)
             let tgt = DOTClassExport.sanitizeDOTID(rel.entity2)
             if !rel.label.isEmpty {
@@ -144,6 +137,11 @@ enum DOTERExport {
             } else {
                 lines.append("  \(src) -> \(tgt);")
             }
+            lines.append("  " + DOTRecoveryMarker.emitERCardinality(
+                relationshipId: relID,
+                source: rel.relSpec.cardA.rawValue,
+                target: rel.relSpec.cardB.rawValue
+            ))
         }
 
         lines.append("}")
