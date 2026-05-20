@@ -14,6 +14,8 @@ public enum D2RecoveryMarker {
         case archIcon(serviceID: String, kindRawValue: String)
         case archGroup(groupID: String, parentGroupID: String)
         case family(name: String)
+        case treeRoot(rootID: String)
+        case mindmapIcon(nodeID: String, iconKey: String)
     }
 
     public static let scanner = RecoveryMarkerScanner<Kind>(commentPrefix: "#") { rest in
@@ -51,6 +53,14 @@ public enum D2RecoveryMarker {
         if let args = stripPrefix("family=", rest) {
             return .family(name: args)
         }
+        if let args = stripPrefix("tree-root=", rest) {
+            return .treeRoot(rootID: args)
+        }
+        if let args = stripPrefix("mindmap-icon=", rest) {
+            let fields = args.split(separator: ",", maxSplits: 1, omittingEmptySubsequences: false)
+            guard fields.count == 2 else { return nil }
+            return .mindmapIcon(nodeID: String(fields[0]), iconKey: String(fields[1]))
+        }
         return nil
     }
 
@@ -83,6 +93,14 @@ public enum D2RecoveryMarker {
 
     public static func emitFamily(_ name: String) -> String {
         "# diagramkit:family=\(name)"
+    }
+
+    public static func emitTreeRoot(_ id: String) -> String {
+        "# diagramkit:tree-root=\(sanitize(id))"
+    }
+
+    public static func emitMindmapIcon(nodeID: String, iconKey: String) -> String {
+        "# diagramkit:mindmap-icon=\(sanitize(nodeID)),\(sanitize(iconKey))"
     }
 
     /// Replace newline/quote/CR with space-replacements to keep the

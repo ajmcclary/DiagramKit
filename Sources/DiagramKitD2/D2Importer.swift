@@ -18,6 +18,7 @@ public struct D2Importer: DiagramSourceImporter {
         .stateDiagram,
         .erDiagram,
         .architecture,
+        .mindmap,
     ]
 
     public init() {}
@@ -76,6 +77,19 @@ public struct D2Importer: DiagramSourceImporter {
                 document: document,
                 diagnostics: parseDiagnostics + archDiagnostics
             )
+        }
+
+        if markerFamily == "mindmap" {
+            let (maybeMindmap, mmDiagnostics) = D2MindmapMapper().map(d2Doc, markers: markerScan.markers)
+            if let mindmap = maybeMindmap {
+                var document = DiagramDocument(payload: .mindmap(mindmap))
+                document.title = Self.documentTitleMetadata(in: source)
+                return DiagramImportResult(
+                    document: document,
+                    diagnostics: parseDiagnostics + mmDiagnostics
+                )
+            }
+            // Fall through to flowchart on multi-root mindmap input.
         }
 
         let mapper = D2Mapper()

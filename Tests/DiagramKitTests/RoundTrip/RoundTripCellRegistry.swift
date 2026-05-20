@@ -282,6 +282,20 @@ enum RoundTripCellRegistry {
         allowedLosses: [.idSanitization]
     )
 
+    static let d2Mindmap = RoundTripCell(
+        importer: D2Importer(),
+        exporter: D2Exporter(),
+        family: DiagramType.mindmap,
+        allowedLosses: [.idSanitization]
+    )
+
+    static let dotMindmap = RoundTripCell(
+        importer: GraphvizImporter(),
+        exporter: DOTExporter(),
+        family: DiagramType.mindmap,
+        allowedLosses: [.idSanitization]
+    )
+
     static let structurizrC4 = RoundTripCell(
         importer: StructurizrImporter(),
         exporter: StructurizrExporter(),
