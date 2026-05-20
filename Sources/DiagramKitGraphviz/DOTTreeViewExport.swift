@@ -67,7 +67,15 @@ enum DOTTreeViewExport {
             default: break
             }
         }
-        return out.isEmpty ? "node" : out
+        // DOT reserves `node`/`edge`/`graph`/`subgraph` as keywords;
+        // synthesize `n0` for inputs that sanitize empty (e.g. "/").
+        if out.isEmpty { return "n0" }
+        switch out {
+        case "node", "edge", "graph", "subgraph", "digraph", "strict":
+            return "_\(out)"
+        default:
+            return out
+        }
     }
 
     private static func escape(_ s: String) -> String {

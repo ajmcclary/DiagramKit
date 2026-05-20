@@ -704,5 +704,89 @@ struct CrossFormatRoundTripTests {
             fixture: fixture
         )
     }
+
+    // MARK: Mermaid ↔ D2 (treeView)
+
+    @Test(
+        "Mermaid → D2 → Mermaid (treeView)",
+        arguments: try fixtures(for: "cross-mermaid-d2-treeView", fromRoot: roundTripResourcesRoot())
+    )
+    func mermaidD2TreeView(fixture: RoundTripFixture) throws {
+        try runCrossFormatRoundTrip(
+            legA: RoundTripCellRegistry.mermaidTreeView,
+            legB: RoundTripCellRegistry.d2TreeView,
+            additionalAllowedLosses: RoundTripCrossRegistry.mermaidD2TreeView,
+            fixture: fixture
+        )
+    }
+
+    @Test(
+        "D2 → Mermaid → D2 (treeView)",
+        arguments: try fixtures(for: "cross-d2-mermaid-treeView", fromRoot: roundTripResourcesRoot())
+    )
+    func d2MermaidTreeView(fixture: RoundTripFixture) throws {
+        try runCrossFormatRoundTrip(
+            legA: RoundTripCellRegistry.d2TreeView,
+            legB: RoundTripCellRegistry.mermaidTreeView,
+            additionalAllowedLosses: RoundTripCrossRegistry.d2MermaidTreeView,
+            fixture: fixture
+        )
+    }
+
+    // MARK: Mermaid ↔ DOT (treeView)
+
+    @Test(
+        "Mermaid → DOT → Mermaid (treeView)",
+        arguments: try fixtures(for: "cross-mermaid-dot-treeView", fromRoot: roundTripResourcesRoot())
+    )
+    func mermaidDotTreeView(fixture: RoundTripFixture) throws {
+        try runCrossFormatRoundTrip(
+            legA: RoundTripCellRegistry.mermaidTreeView,
+            legB: RoundTripCellRegistry.dotTreeView,
+            additionalAllowedLosses: RoundTripCrossRegistry.mermaidDotTreeView,
+            fixture: fixture
+        )
+    }
+
+    @Test(
+        "DOT → Mermaid → DOT (treeView)",
+        arguments: try fixtures(for: "cross-dot-mermaid-treeView", fromRoot: roundTripResourcesRoot())
+    )
+    func dotMermaidTreeView(fixture: RoundTripFixture) throws {
+        try runCrossFormatRoundTrip(
+            legA: RoundTripCellRegistry.dotTreeView,
+            legB: RoundTripCellRegistry.mermaidTreeView,
+            additionalAllowedLosses: RoundTripCrossRegistry.dotMermaidTreeView,
+            fixture: fixture
+        )
+    }
+
+    // MARK: D2 ↔ DOT (treeView)
+
+    @Test(
+        "D2 → DOT → D2 (treeView)",
+        arguments: try fixtures(for: "cross-d2-dot-treeView", fromRoot: roundTripResourcesRoot())
+    )
+    func d2DotTreeView(fixture: RoundTripFixture) throws {
+        try runCrossFormatRoundTrip(
+            legA: RoundTripCellRegistry.d2TreeView,
+            legB: RoundTripCellRegistry.dotTreeView,
+            additionalAllowedLosses: RoundTripCrossRegistry.d2DotTreeView,
+            fixture: fixture
+        )
+    }
+
+    @Test(
+        "DOT → D2 → DOT (treeView)",
+        arguments: try fixtures(for: "cross-dot-d2-treeView", fromRoot: roundTripResourcesRoot())
+    )
+    func dotD2TreeView(fixture: RoundTripFixture) throws {
+        try runCrossFormatRoundTrip(
+            legA: RoundTripCellRegistry.dotTreeView,
+            legB: RoundTripCellRegistry.d2TreeView,
+            additionalAllowedLosses: RoundTripCrossRegistry.dotD2TreeView,
+            fixture: fixture
+        )
+    }
 }
 
