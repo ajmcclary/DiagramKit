@@ -16,15 +16,19 @@ Where" for slice paths and [BASELINES.md](BASELINES.md) for corpus counts.
   `.featureDropped` / informational diagnostics
 - `—` — not implemented: dispatch falls through to `.unsupportedDiagram` (export)
   or family never appears in payload union (import)
-- `⚠` in the **import table** for PlantUML × {flowchart, architecture}
-  reflects activity `partition` losses and component-vs-interface styling.
-  Wave 3 of the 2026-05-20-residuals spec closes these remaining cells.
+- The import and export tables both reach zero `⚠` for every covered
+  (family × format) intersection after the 2026-05-20-residuals spec.
+  Foreign-native features that have no Mermaid landing slot (D2 `vars`,
+  `layers`, `style` blocks, DOT `splines`/`rank`/layout engine attrs,
+  etc.) continue to emit `slotUnsupported` and stay documented `—` in
+  the matrix below; they are out of scope for the canonical
+  Mermaid-equivalent payload model.
 
 ## Import coverage
 
 | Family            | Mermaid | D2 | DOT | Structurizr | PlantUML |
 |-------------------|:-------:|:--:|:---:|:-----------:|:--------:|
-| flowchart         |   ★    | ✓ | ✓  |     —      |    ⚠    |
+| flowchart         |   ★    | ✓ | ✓  |     —      |    ✓    |
 | stateDiagram      |   ★    | ✓ | ✓  |     —      |    ✓    |
 | sequenceDiagram   |   ★    | — | —  |     —      |    ✓    |
 | classDiagram      |   ★    | ✓ | ✓  |     —      |    ✓    |
@@ -42,7 +46,7 @@ Where" for slice paths and [BASELINES.md](BASELINES.md) for corpus counts.
 | block             |   ★    | — | —  |     —      |    —    |
 | packet            |   ★    | — | —  |     —      |    —    |
 | kanban            |   ★    | — | —  |     —      |    —    |
-| architecture      |   ★    | — | —  |     —      |    ⚠    |
+| architecture      |   ★    | — | —  |     —      |    ✓    |
 | radar             |   ★    | — | —  |     —      |    —    |
 | treemap           |   ★    | — | —  |     —      |    —    |
 | venn              |   ★    | — | —  |     —      |    —    |
@@ -104,26 +108,37 @@ families — the gaps in the matrix above are the gaps to close.
 
 ## Partial-support detail
 
-The export table has **zero `⚠` cells** for any covered (family × format)
-intersection. Closure landed across three waves of the coverage-marker-
-recovery spec
-([docs/superpowers/specs/2026-05-20-coverage-marker-recovery-design.md](docs/superpowers/specs/2026-05-20-coverage-marker-recovery-design.md)):
+**Both the import and export tables now have zero `⚠` cells** for every
+covered (family × format) intersection. Closure landed across four waves
+of two specs:
 
-- **Wave A** flipped two stale `⚠` cells (`classDiagram × PlantUML`,
-  `architecture × PlantUML`) to `✓` after verifying both exporters emit no
-  diagnostics on supported input.
-- **Wave B** closed six cells via D2/DOT comment-encoded recovery markers:
-  `classDiagram × {D2, DOT}` (class-stereotype marker), `erDiagram × {D2, DOT}`
-  (er-cardinality marker), and `stateDiagram × {D2, DOT}` (already
-  diagnostic-free; state-action loss is import-side only).
-- **Wave C** closed two cells via PlantUML recovery markers:
-  `flowchart × PlantUML` (activity-original-id marker drops `.idSanitization`)
-  and `sequenceDiagram × PlantUML` (link/links/properties/details markers
-  drop the `.informational(.identifierEscape)` emission).
+- **Waves A/B/C** of
+  [docs/superpowers/specs/2026-05-20-coverage-marker-recovery-design.md](docs/superpowers/specs/2026-05-20-coverage-marker-recovery-design.md)
+  closed every export-side `⚠` via the comment-encoded recovery-marker
+  pattern (Structurizr-style pre-lexer scan + positional correlation).
+- **Wave D** of
+  [docs/superpowers/specs/2026-05-20-import-coverage-residuals-design.md](docs/superpowers/specs/2026-05-20-import-coverage-residuals-design.md)
+  closed every import-side `⚠`:
+  - Class-family residuals (3 cells): D2/DOT class `link`/`tooltip`/`style`
+    routed into `ClassNode.link`/`.tooltip`/`.styles`; PlantUML
+    `<<stereotype>>` lifted into `ClassNode.annotations`, `package` blocks
+    surfaced as `ClassNamespace` with `ClassNode.parent` populated.
+  - State + ER family residuals (4 cells): D2/DOT composite-state
+    containers lifted into `MermaidSubgraph`; D2 `{lo..hi}` and DOT
+    crow's-foot arrow tokens (`tee`/`crow`/`odot`/`crowodot`) mapped to
+    `ErCardinality`.
+  - PlantUML flowchart + architecture residuals (2 cells): activity
+    `partition "Name" { … }` blocks lifted into `MermaidSubgraph`;
+    component dialect `[component]` / `interface ()` mapped to a new
+    `ArchitectureService.kind: ArchitectureServiceKind` field. The
+    activity exporter emits matching `partition` blocks around subgraph
+    members on round-trip.
 
-The import table retains `⚠` cells for foreign-native features that have
-no Mermaid landing slot (see legend footnote). Closing these requires
-Mermaid payload-model surgery and is tracked as deferred follow-on work.
+The only new public surface across Wave D is the
+`ArchitectureServiceKind` enum (`service` / `component` / `interface`)
+plus a defaulted `kind` field on `ArchitectureService`/
+`PositionedArchitectureService`. A public memberwise `init` was added to
+`ClassNamespace` so foreign importers can construct one.
 
 ## Gaps and the work to close them
 
@@ -195,6 +210,10 @@ Ordered by impact:
    coverage-expansion spec (closing commit on the Wave 2 closer).
 3. ~~**Structurizr: tag/boundary lossy export + multi-view import.**~~ Closed
    by Wave 3 of the coverage-expansion spec (closed 2026-05-19).
+4. ~~**Recovery-marker generalization to D2/DOT/PlantUML for export-side `⚠`
+   closure.**~~ Closed by the 2026-05-20 coverage-marker-recovery spec.
+5. ~~**Import-side residual `⚠` cells (9 cells) via Mermaid payload wiring.**~~
+   Closed by the 2026-05-20 import-coverage-residuals spec.
 
 Anything outside this list (Wardley, Sankey, Packet, Treemap, etc. in non-native
 formats) is a deliberate `—` and should not be added without a concrete user

@@ -88,6 +88,13 @@ struct D2StateMapper {
                 guard !subgraphStack.isEmpty else { break }
                 let closed = subgraphStack.removeLast()
                 closed.subgraph.nodeIds = closed.nodeIds
+                // Skip empty containers (e.g. `_start: { shape: circle }`
+                // which only carry shape decoration, no inner states).
+                // They roundtrip through D2 export as the same shape syntax
+                // on the matching node, not as a subgraph.
+                if closed.nodeIds.isEmpty && closed.subgraph.children.isEmpty {
+                    break
+                }
                 if subgraphStack.isEmpty {
                     subgraphs.append(closed.subgraph)
                 } else {
@@ -110,6 +117,12 @@ struct D2StateMapper {
                         .stateActionDrop,
                         message: "D2 has no native state \(phase.rawValue) action slot; dropping '\(def.id): \(def.label ?? "")' on state '\(outerStateID)'"
                     ))
+                    continue
+                }
+                // `shape: <kind>` inside a state container describes the
+                // container's appearance, not a child state. Consume it
+                // silently — _start / _end shape derives from id naming.
+                if def.id.lowercased() == "shape" && !subgraphStack.isEmpty {
                     continue
                 }
                 ensureNode(def.id)
@@ -190,14 +203,48 @@ enum D2StateExport {
             lines.append("")
         }
 
-        for edge in graph.edges {
+        // Composite states surface as `Container: { … }` blocks built
+        // from MermaidSubgraph.nodeIds. D2 doesn't accept bare identifier
+        // declarations inside containers; instead we emit the inner edges
+        // (where both endpoints are container members) inside the block so
+        // D2's lexical-scope rules implicitly declare the contained nodes.
+        // Edges that cross the container boundary (one endpoint outside)
+        // emit at the outer scope. The container's own node is implicit
+        // in D2 — the block header declares it.
+        var edgesEmittedInsideSubgraph: Set<Int> = []
+        let edgeIndices = graph.edges.enumerated().map { (idx: $0.offset, edge: $0.element) }
+
+        func emitEdge(_ edge: original_src_types.MermaidEdge, indent: String) {
             let src = nameRewrite[edge.source] ?? sanitizeID(edge.source)
             let tgt = nameRewrite[edge.target] ?? sanitizeID(edge.target)
             if let label = edge.label, !label.isEmpty {
-                lines.append("\(src) -> \(tgt): \(label)")
+                lines.append("\(indent)\(src) -> \(tgt): \(label)")
             } else {
-                lines.append("\(src) -> \(tgt)")
+                lines.append("\(indent)\(src) -> \(tgt)")
             }
+        }
+
+        for sub in graph.subgraphs {
+            let memberSet = Set(sub.nodeIds)
+            // Edges fully inside the subgraph go inside the block.
+            let insideEdges = edgeIndices.filter { idx, edge in
+                memberSet.contains(edge.source) && memberSet.contains(edge.target)
+            }
+            // Members that have no edges (isolated) would emit as bare
+            // identifiers, which D2 rejects. Skip subgraphs that would
+            // collapse to nothing — the recovery marker still preserves
+            // the relationship for round-trip identity.
+            guard !insideEdges.isEmpty else { continue }
+            lines.append("\(sanitizeID(sub.id)): {")
+            for (idx, edge) in insideEdges {
+                emitEdge(edge, indent: "  ")
+                edgesEmittedInsideSubgraph.insert(idx)
+            }
+            lines.append("}")
+        }
+
+        for (idx, edge) in edgeIndices where !edgesEmittedInsideSubgraph.contains(idx) {
+            emitEdge(edge, indent: "")
         }
 
         return DiagramExportResult(

@@ -2,6 +2,63 @@
 
 Last updated: 2026-05-20
 
+## Import coverage residuals — Wave D (Mermaid payload wiring)
+
+- **2026-05-20 — Wave D:** Closes the nine residual import-side `⚠`
+  cells in COVERAGE.md, driving the **import table** to zero `⚠`. Lands
+  via three sub-waves, each closing its cells through surgical wiring
+  rather than payload-model surgery. Only new public surface is the
+  `ArchitectureServiceKind` enum (+ defaulted `kind` field on
+  `ArchitectureService`/`PositionedArchitectureService`) and a public
+  memberwise `init` on `ClassNamespace`.
+  - **Sub-wave D.1 (class family):** D2 `link`/`tooltip`/`style` blocks
+    route into `ClassNode.link`/`.tooltip`/`.styles` via a new
+    attribute-vs-member distinction in `D2ClassMapper.PartialClass`
+    (`classAttributeKeys` set, `inStyleBlock` flag, `appendAttribute` /
+    `appendStyleAttribute`). DOT class records read `URL`/`href`/
+    `tooltip`/`style`/`color`/`fillcolor`/`fontcolor` via
+    `DOTClassMapper.routeClassAttributes(_:)`. PlantUML class parser
+    pre-extracts `<<stereotype>>` markers (multiple join with comma-
+    space) and recognizes `package "name" { … }` blocks, lifting them
+    into `ClassNode.annotations` + `ClassNode.parent` + `ClassNamespace`.
+    Three commits, three cells flipped.
+  - **Sub-wave D.2 (state + er families):** `D2StateMapper` lifts
+    container nesting into `MermaidSubgraph` with populated `nodeIds`
+    (also restores inner states to `nodeOrder` — previously they were
+    silently dropped). `DOTStateMapper` mirrors with
+    `subgraph cluster_X { … }` → `MermaidSubgraph` (cluster_ prefix
+    stripped, label from inline `label="…"` or bare id). `D2ERMapper`
+    parses `{lo..hi}` cardinality grammar (`{0..1}`/`{0..N}`/`{1..1}`/
+    `{1..N}` with `N`/`n`/`*` as upper-bound aliases) → `ErRelSpec.cardA`/
+    `.cardB`. `DOTERMapper` maps crow's-foot arrow tokens (`tee`/`crow`/
+    `odot`/`crowodot`) on `arrowtail`/`arrowhead` to the same slots.
+    Four commits, four cells flipped.
+  - **Sub-wave D.3 (PlantUML flowchart + architecture):** Introduces
+    `ArchitectureServiceKind` enum and threads it through the layout +
+    SVG renderer (component → boxed rectangle + small header rect,
+    interface → lollipop circle). `PlantUMLComponentMapper` maps the
+    AST's component/interface kind directly into the new field, dropping
+    its previous `styleDrop` diagnostic. `PlantUMLActivityMapper` lifts
+    `partition "Name" { … }` blocks into `MermaidSubgraph`, dropping the
+    `subgraphFlatten` diagnostic. `PlantUMLActivityExport` groups nodes
+    by their first containing subgraph and emits matching `partition`
+    blocks on round-trip. Three commits, two cells flipped + payload
+    addition.
+  - Wave A/B/C recovery markers stay live as round-trip-identity
+    fallback for syntax outside the natively-parsed surface.
+  - 11 new tests in `ImportDiagnosticAbsenceTests` cover the nine cells +
+    two architecture-kind defaults. Existing PlantUML component +
+    activity round-trip tests updated to assert the new kind/subgraph
+    behavior instead of the deleted diagnostics. Two existing tests
+    (`partitionEmitsSubgraphFlattenDiagnostic`,
+    `basicComponentParsesToArchitecture`'s `interfaceDiagnostics` arm)
+    were updated in the same line of work (per the project's "fix
+    pre-existing failures, don't document" practice).
+  - Spec:
+    [docs/superpowers/specs/2026-05-20-import-coverage-residuals-design.md](docs/superpowers/specs/2026-05-20-import-coverage-residuals-design.md).
+    Plan:
+    [docs/superpowers/plans/2026-05-20-import-coverage-residuals-plan.md](docs/superpowers/plans/2026-05-20-import-coverage-residuals-plan.md).
+
 ## Coverage marker recovery — Wave C (PlantUML recovery markers)
 
 - **2026-05-20 — Wave C:** Generalize the recovery-marker pattern to

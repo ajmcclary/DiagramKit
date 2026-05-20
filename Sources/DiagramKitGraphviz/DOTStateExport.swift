@@ -263,6 +263,23 @@ enum DOTStateExport {
             }
         }
 
+        // Composite states surface as `subgraph cluster_<id> { … }` blocks.
+        // Membership comes from MermaidSubgraph.nodeIds. Each member node
+        // is declared inside the cluster body so re-import can recover the
+        // parent relationship; nodes that the cluster references but
+        // weren't yet declared get a bare declaration line.
+        var declaredInCluster: Set<String> = []
+        for sub in graph.subgraphs {
+            lines.append("  subgraph cluster_\(DOTClassExport.sanitizeDOTID(sub.id)) {")
+            lines.append("    label=\(DOTClassExport.quoted(sub.label));")
+            for nid in sub.nodeIds {
+                let canonical = nameRewrite[nid] ?? DOTClassExport.sanitizeDOTID(nid)
+                lines.append("    \(canonical);")
+                declaredInCluster.insert(nid)
+            }
+            lines.append("  }")
+        }
+
         for edge in graph.edges {
             let src = nameRewrite[edge.source] ?? DOTClassExport.sanitizeDOTID(edge.source)
             let tgt = nameRewrite[edge.target] ?? DOTClassExport.sanitizeDOTID(edge.target)
