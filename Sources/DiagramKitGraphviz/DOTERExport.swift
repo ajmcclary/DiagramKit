@@ -79,9 +79,16 @@ struct DOTERMapper {
             if case .edgeStatement(let edge) = stmt {
                 guard erNodeIDs.contains(edge.source), erNodeIDs.contains(edge.target) else { continue }
                 let attrs = Dictionary(uniqueKeysWithValues: edge.attributes.map { ($0.key, $0.value) })
+                // DOT's UML-ish ER convention encodes cardinality on the
+                // arrowtail/arrowhead attributes (`tee`/`crow`/`odot`/etc.).
+                // When present, lift them into ErRelSpec.cardA/.cardB so the
+                // cardinality survives import; the typed enum drops the
+                // arrow attrs implicitly.
+                let cardA = Self.cardinalityFromArrowToken(attrs["arrowtail"]) ?? .zeroOrMore
+                let cardB = Self.cardinalityFromArrowToken(attrs["arrowhead"]) ?? .zeroOrMore
                 let relSpec = ErRelSpec(
-                    cardA: .zeroOrMore,
-                    cardB: .zeroOrMore,
+                    cardA: cardA,
+                    cardB: cardB,
                     relType: .nonIdentifying
                 )
                 relationships.append(ErRelationship(
@@ -96,6 +103,19 @@ struct DOTERMapper {
         }
 
         return (ErDiagram(entities: entities, relationships: relationships), diagnostics)
+    }
+
+    /// Maps DOT crow's-foot arrow tokens to `ErCardinality`. Returns nil for
+    /// any token outside the closed mapping so callers fall back to default
+    /// cardinality.
+    static func cardinalityFromArrowToken(_ raw: String?) -> ErCardinality? {
+        switch raw?.lowercased() {
+        case "tee":      return .onlyOne     // |  (single bar)
+        case "odot":     return .zeroOrOne   // ○ (open dot)
+        case "crow":     return .oneOrMore   // crow's foot
+        case "crowodot": return .zeroOrMore  // crow's foot + open dot
+        default:         return nil
+        }
     }
 }
 

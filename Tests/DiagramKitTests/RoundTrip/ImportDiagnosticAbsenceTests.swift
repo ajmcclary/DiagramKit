@@ -159,6 +159,26 @@ struct ImportDiagnosticAbsenceTests {
                 "Cardinality label should be consumed, got roleA=\(rel.roleA)")
     }
 
+    @Test func dotERWithCrowsFoot() throws {
+        let source = try loadFixture("dot-er/02-cardinality.dot")
+        let result = try GraphvizImporter().parse(source)
+        #expect(result.diagnostics.isEmpty,
+                "Expected zero import diagnostics, got: \(result.diagnostics)")
+        guard case .erDiagram(let er) = result.document.payload else {
+            Issue.record("Expected erDiagram, got \(result.document.payload.type)")
+            return
+        }
+        guard let rel = er.relationships.first else {
+            Issue.record("Expected a relationship")
+            return
+        }
+        // arrowtail=tee → cardA=onlyOne; arrowhead=crow → cardB=oneOrMore
+        #expect(rel.relSpec.cardA == .onlyOne,
+                "Expected cardA = onlyOne, got \(rel.relSpec.cardA)")
+        #expect(rel.relSpec.cardB == .oneOrMore,
+                "Expected cardB = oneOrMore, got \(rel.relSpec.cardB)")
+    }
+
     // MARK: - Helpers
 
     private func loadFixture(_ relativePath: String) throws -> String {

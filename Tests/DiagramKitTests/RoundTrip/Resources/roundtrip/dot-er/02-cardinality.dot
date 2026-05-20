@@ -1,0 +1,5 @@
+digraph G {
+  Customer [shape=record, label="{Customer|id|email}"];
+  Order [shape=record, label="{Order|id|customer_id}"];
+  Customer -> Order [arrowtail=tee, arrowhead=crow, dir=both];
+}
