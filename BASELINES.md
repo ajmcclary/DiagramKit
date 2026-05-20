@@ -2,6 +2,37 @@
 
 Last updated: 2026-05-20
 
+## Coverage marker recovery — Wave C (PlantUML recovery markers)
+
+- **2026-05-20 — Wave C:** Generalize the recovery-marker pattern to
+  PlantUML (comment prefix `'`, not `#`). Two export cells flip
+  `⚠ → ✓` in COVERAGE.md: `flowchart × PlantUML` (activity idiom) and
+  `sequenceDiagram × PlantUML`. The export table now has **zero `⚠`
+  cells** for any covered (family × format) intersection.
+  - **PlantUMLRecoveryMarker** with five Kind cases: `activityPartition`,
+    `activityOriginalId`, `sequenceParticipantLink`, `sequenceParticipantLinks`,
+    `sequenceParticipantProperties`, `sequenceParticipantDetails`. Sequence
+    payloads with free-form JSON content (`.links`, `.properties`) use base64
+    to round-trip past the marker sanitizer.
+  - `PlantUMLActivityExport` emits `' diagramkit:activity-original-id=<n_i>,<orig>`
+    markers for non-synthetic node ids and drops the `.lossyTransform(.idSanitization)`
+    emission. `PlantUMLImporter` scans markers and applies a rename map to
+    `nodesInOrder[i].id` and edge endpoints.
+  - `PlantUMLSequenceExporter` emits one of four typed markers per
+    `.link`/`.links`/`.properties`/`.details` `SequenceItem` case and drops
+    the `.informational(.identifierEscape)` emission.
+  - **Out of scope per Future Work:** import-side `⚠` for
+    `flowchart × PlantUML` (`.subgraphFlatten` for partition flattening),
+    `classDiagram × PlantUML` (`.diagramFamilyUnsupported` for stereotypes/
+    packages), and `architecture × PlantUML` (`.styleDrop` for
+    component-vs-interface). All three are foreign-native features without
+    a Mermaid landing slot — closing requires Mermaid payload-model
+    surgery and is tracked as deferred follow-on work alongside the D2/DOT
+    `slotUnsupported` and `.stateActionDrop` cases.
+  - 117 PlantUML tests + 166 round-trip tests pass.
+    `Scripts/check-diagnostic-discipline.sh` and
+    `Scripts/check-file-sizes.sh` remain green.
+
 ## Coverage marker recovery — Wave B (D2 + DOT recovery markers)
 
 - **2026-05-20 — Wave B:** Generalize Wave A's shared `RecoveryMarkerScanner`

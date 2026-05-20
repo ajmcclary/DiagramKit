@@ -61,9 +61,9 @@ Where" for slice paths and [BASELINES.md](BASELINES.md) for corpus counts.
 
 | Family            | Mermaid | D2 | DOT | Structurizr | PlantUML |
 |-------------------|:-------:|:--:|:---:|:-----------:|:--------:|
-| flowchart         |   ✓    | ✓ | ✓  |     —      |    ⚠    |
+| flowchart         |   ✓    | ✓ | ✓  |     —      |    ✓    |
 | stateDiagram      |   ✓    | ✓ | ✓  |     —      |    ✓    |
-| sequenceDiagram   |   ✓    | — | —  |     —      |    ⚠    |
+| sequenceDiagram   |   ✓    | — | —  |     —      |    ✓    |
 | classDiagram      |   ✓    | ✓ | ✓  |     —      |    ✓    |
 | erDiagram         |   ✓    | ✓ | ✓  |     —      |    ✓    |
 | xyChart           |   ✓    | — | —  |     —      |    —    |
@@ -107,18 +107,26 @@ families — the gaps in the matrix above are the gaps to close.
 
 ## Partial-support detail
 
-Export-side `⚠` cells are being closed via comment-encoded recovery markers
-per [docs/superpowers/specs/2026-05-20-coverage-marker-recovery-design.md](docs/superpowers/specs/2026-05-20-coverage-marker-recovery-design.md).
-Two stale `⚠` cells (`classDiagram × PlantUML export`, `architecture × PlantUML export`)
-flipped to `✓` in Wave A after verifying the corresponding exporters emit no
-diagnostics on supported input.
+The export table has **zero `⚠` cells** for any covered (family × format)
+intersection. Closure landed across three waves of the coverage-marker-
+recovery spec
+([docs/superpowers/specs/2026-05-20-coverage-marker-recovery-design.md](docs/superpowers/specs/2026-05-20-coverage-marker-recovery-design.md)):
 
-The remaining real `⚠` cell on the export side is:
+- **Wave A** flipped two stale `⚠` cells (`classDiagram × PlantUML`,
+  `architecture × PlantUML`) to `✓` after verifying both exporters emit no
+  diagnostics on supported input.
+- **Wave B** closed six cells via D2/DOT comment-encoded recovery markers:
+  `classDiagram × {D2, DOT}` (class-stereotype marker), `erDiagram × {D2, DOT}`
+  (er-cardinality marker), and `stateDiagram × {D2, DOT}` (already
+  diagnostic-free; state-action loss is import-side only).
+- **Wave C** closed two cells via PlantUML recovery markers:
+  `flowchart × PlantUML` (activity-original-id marker drops `.idSanitization`)
+  and `sequenceDiagram × PlantUML` (link/links/properties/details markers
+  drop the `.informational(.identifierEscape)` emission).
 
-- **PlantUML × sequenceDiagram (export)** — `PlantUMLSequenceExporter` emits
-  an informational diagnostic for dropped link/properties/detail features
-  (`Sources/DiagramKitPlantUML/Exporter/PlantUMLSequenceExporter.swift:127`).
-  Tracked for Wave C of the coverage-marker-recovery spec.
+The import table retains `⚠` cells for foreign-native features that have
+no Mermaid landing slot (see legend footnote). Closing these requires
+Mermaid payload-model surgery and is tracked as deferred follow-on work.
 
 ## Gaps and the work to close them
 
