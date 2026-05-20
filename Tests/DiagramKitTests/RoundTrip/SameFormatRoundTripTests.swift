@@ -435,6 +435,17 @@ struct SameFormatRoundTripTests {
     }
 
     @Test(
+        "DOT mindmap round-trip",
+        arguments: try fixtures(for: "dot-mindmap", fromRoot: roundTripResourcesRoot())
+    )
+    func dotMindmap(fixture: RoundTripFixture) throws {
+        try runSameFormatRoundTrip(
+            cell: RoundTripCellRegistry.dotMindmap,
+            fixture: fixture
+        )
+    }
+
+    @Test(
         "Structurizr C4 round-trip",
         arguments: try fixtures(for: "structurizr-c4", fromRoot: roundTripResourcesRoot())
     )

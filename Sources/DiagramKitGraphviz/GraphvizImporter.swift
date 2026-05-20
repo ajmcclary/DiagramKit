@@ -19,6 +19,7 @@ public struct GraphvizImporter: DiagramSourceImporter {
         .stateDiagram,
         .erDiagram,
         .architecture,
+        .mindmap,
     ]
 
     public init() {}
@@ -76,6 +77,17 @@ public struct GraphvizImporter: DiagramSourceImporter {
                 document: document,
                 diagnostics: parseDiagnostics + archDiagnostics
             )
+        }
+
+        if markerFamily == "mindmap" {
+            let (maybeMindmap, mmDiagnostics) = DOTMindmapMapper().map(dotDoc, markers: markerScan.markers)
+            if let mindmap = maybeMindmap {
+                let document = DiagramDocument(payload: .mindmap(mindmap))
+                return DiagramImportResult(
+                    document: document,
+                    diagnostics: parseDiagnostics + mmDiagnostics
+                )
+            }
         }
 
         let mapper = DOTMapper()

@@ -1,0 +1,9 @@
+digraph G {
+  # diagramkit:family=mindmap
+  # diagramkit:tree-root=root
+  root [label="Root", shape=oval];
+  # diagramkit:mindmap-icon=root,bang
+  c [label="Cloud", shape=oval, style=dashed];
+  # diagramkit:mindmap-icon=c,cloud
+  root -> c;
+}
