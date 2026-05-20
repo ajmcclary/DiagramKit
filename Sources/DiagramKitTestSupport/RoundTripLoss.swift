@@ -20,6 +20,9 @@ public enum RoundTripLoss: Hashable, Sendable, CustomStringConvertible {
     case classStereotypeDrop(classID: String, stereotype: String)
     case stateActionDrop(stateID: String, phase: StateActionPhase)
     case cardinalityDrop(relationshipID: String, side: CardinalitySide)
+    case deploymentShapeFlattened(serviceID: String, kindRawValue: String)
+    case deploymentDecorationDropped(serviceID: String, decoration: String)
+    case deploymentLegendDropped
 
     public var kind: RoundTripLossKind {
         switch self {
@@ -37,6 +40,9 @@ public enum RoundTripLoss: Hashable, Sendable, CustomStringConvertible {
         case .classStereotypeDrop: return .classStereotypeDrop
         case .stateActionDrop: return .stateActionDrop
         case .cardinalityDrop: return .cardinalityDrop
+        case .deploymentShapeFlattened: return .deploymentShapeFlattened
+        case .deploymentDecorationDropped: return .deploymentDecorationDropped
+        case .deploymentLegendDropped: return .deploymentLegendDropped
         }
     }
 
@@ -70,6 +76,12 @@ public enum RoundTripLoss: Hashable, Sendable, CustomStringConvertible {
             return "stateActionDrop(stateID: \(stateID), phase: \(phase.rawValue))"
         case .cardinalityDrop(let relationshipID, let side):
             return "cardinalityDrop(relationshipID: \(relationshipID), side: \(side.rawValue))"
+        case .deploymentShapeFlattened(let serviceID, let raw):
+            return "deploymentShapeFlattened(serviceID: \(serviceID), kind: \(raw))"
+        case .deploymentDecorationDropped(let serviceID, let decoration):
+            return "deploymentDecorationDropped(serviceID: \(serviceID), decoration: \(decoration))"
+        case .deploymentLegendDropped:
+            return "deploymentLegendDropped"
         }
     }
 }
@@ -82,6 +94,7 @@ public enum RoundTripLossKind: String, Hashable, Sendable, CaseIterable, Codable
     case c4SlotDrop, titleDrop, configDrop, styleDrop
     case accessibilityDrop, anonymousSubgraphRename, d2DuplicateOverride
     case classStereotypeDrop, stateActionDrop, cardinalityDrop
+    case deploymentShapeFlattened, deploymentDecorationDropped, deploymentLegendDropped
 }
 
 /// State entry/exit action phase identifier — used by

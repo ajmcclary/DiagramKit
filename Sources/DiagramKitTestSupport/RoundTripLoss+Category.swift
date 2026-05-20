@@ -25,6 +25,9 @@ extension RoundTripLossKind {
         case .classStereotypeDrop:     return .classStereotypeDrop
         case .stateActionDrop:         return .stateActionDrop
         case .cardinalityDrop:         return .cardinalityDrop
+        case .deploymentShapeFlattened:    return .shapeDowngrade
+        case .deploymentDecorationDropped: return .slotUnsupported
+        case .deploymentLegendDropped:     return .slotUnsupported
         }
     }
 }
