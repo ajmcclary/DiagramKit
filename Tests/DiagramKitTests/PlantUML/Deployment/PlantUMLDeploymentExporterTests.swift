@@ -1,4 +1,5 @@
 import Testing
+import DiagramKitCommon
 import DiagramKitModel
 import DiagramKitExport
 @testable import DiagramKitPlantUML
@@ -74,6 +75,16 @@ struct PlantUMLDeploymentExporterTests {
         )
         let result = try PlantUMLDeploymentExport.emit(diagram)
         #expect(result.source.contains("a --> b : writes"))
+    }
+
+    @Test func componentExportFlagsDeploymentKindAsShapeDowngrade() throws {
+        let diagram = ArchitectureDiagram(
+            services: [.init(id: "db", title: "Postgres", parentGroupId: nil, kind: .database)]
+        )
+        let result = try PlantUMLComponentExport.emit(diagram)
+        #expect(result.source.contains("[db]"))
+        let downgrades = result.diagnostics.filter { $0.category == .shapeDowngrade }
+        #expect(downgrades.count == 1)
     }
 
     @Test func roundTripsThroughImporter() throws {

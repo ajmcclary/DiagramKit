@@ -10,11 +10,23 @@ enum PlantUMLComponentExport {
 
     static func emit(_ diagram: ArchitectureDiagram) throws -> DiagramExportResult {
         var lines: [String] = []
+        var diagnostics: [DiagramDiagnostic] = []
         lines.append("@startuml")
         if let title = diagram.diagramTitle, !title.isEmpty {
             lines.append("title \(singleLine(title))")
         }
+        let deploymentKinds: Set<ArchitectureServiceKind> = [
+            .node, .artifact, .database, .cloud, .frame, .folder,
+            .package, .card, .queue, .stack, .storage, .agent,
+            .actor, .boundary
+        ]
         for service in diagram.services {
+            if deploymentKinds.contains(service.kind) {
+                diagnostics.append(.lossyTransform(
+                    .shapeDowngrade,
+                    message: "kind=\(service.kind.rawValue) downgraded to component for PlantUML component dialect"
+                ))
+            }
             lines.append("[\(service.id)]")
         }
         for edge in diagram.edges {
@@ -25,7 +37,7 @@ enum PlantUMLComponentExport {
             }
         }
         lines.append("@enduml")
-        return DiagramExportResult(source: lines.joined(separator: "\n") + "\n", diagnostics: [])
+        return DiagramExportResult(source: lines.joined(separator: "\n") + "\n", diagnostics: diagnostics)
     }
 
     private static func singleLine(_ s: String) -> String {
