@@ -52,4 +52,46 @@ struct PlantUMLDeploymentParserTests {
         #expect(allDeploymentCases.count == 14)
         #expect(ArchitectureServiceKind.allCases.count == 17) // 3 existing + 14
     }
+
+    @Test func parsesSingleNodeWithQuotedLabelAndAlias() throws {
+        let ast = try PlantUMLDeploymentParser().parse(#"node "Web Server" as web"#)
+        #expect(ast.roots.count == 1)
+        if case let .shape(shape) = ast.roots[0] {
+            #expect(shape.id == "web")
+            #expect(shape.label == "Web Server")
+            #expect(shape.kind == .node)
+        } else {
+            Issue.record("Expected .shape root, got \(ast.roots[0])")
+        }
+    }
+
+    @Test func parsesShapeWithoutAliasUsesLabelAsId() throws {
+        let ast = try PlantUMLDeploymentParser().parse(#"database "Postgres""#)
+        #expect(ast.roots.count == 1)
+        if case let .shape(shape) = ast.roots[0] {
+            #expect(shape.id == "postgres")
+            #expect(shape.label == "Postgres")
+            #expect(shape.kind == .database)
+        }
+    }
+
+    @Test func parsesAllFourteenShapeKinds() throws {
+        let kinds: [(keyword: String, kind: ArchitectureServiceKind)] = [
+            ("node", .node), ("artifact", .artifact), ("database", .database),
+            ("cloud", .cloud), ("frame", .frame), ("folder", .folder),
+            ("package", .package), ("card", .card), ("queue", .queue),
+            ("stack", .stack), ("storage", .storage), ("agent", .agent),
+            ("actor", .actor), ("boundary", .boundary)
+        ]
+        for (i, entry) in kinds.enumerated() {
+            let body = "\(entry.keyword) \"Thing\(i)\" as t\(i)"
+            let ast = try PlantUMLDeploymentParser().parse(body)
+            guard case let .shape(shape) = ast.roots.first else {
+                Issue.record("\(entry.keyword): no shape parsed"); continue
+            }
+            #expect(shape.kind == entry.kind, "\(entry.keyword) → \(shape.kind), expected \(entry.kind)")
+            #expect(shape.id == "t\(i)")
+            #expect(shape.label == "Thing\(i)")
+        }
+    }
 }
