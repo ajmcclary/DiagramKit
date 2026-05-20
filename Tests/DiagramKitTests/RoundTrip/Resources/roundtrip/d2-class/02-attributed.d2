@@ -1,0 +1,19 @@
+Animal: {
+  shape: class
+  link: https://example.com/animal
+  tooltip: "Base class"
+  style: {
+    stroke: blue
+    fill: lightyellow
+  }
+  +name: string
+  +sound(): void
+}
+
+Dog: {
+  shape: class
+  +breed: string
+  +bark(): void
+}
+
+Dog -> Animal

@@ -53,10 +53,24 @@ struct D2ClassMapper {
         for stmt in document.statements {
             switch stmt {
             case .containerOpen(let open):
+                // D2 idiom: `style: { ... }` nested inside a class block describes
+                // node styling, not a nested class. Mark the parent's style-block
+                // mode and route inner node definitions through `appendAttribute`.
+                if let topIdx = stack.indices.last,
+                   stack[topIdx].isClass,
+                   open.id.lowercased() == "style" {
+                    stack[topIdx].inStyleBlock = true
+                    continue
+                }
                 stack.append(PartialClass(id: open.id, label: open.label ?? open.id))
 
             case .containerClose:
                 guard !stack.isEmpty else { break }
+                let topIdx = stack.count - 1
+                if stack[topIdx].inStyleBlock {
+                    stack[topIdx].inStyleBlock = false
+                    continue
+                }
                 let partial = stack.removeLast()
                 if partial.isClass {
                     let node = partial.makeClassNode()
@@ -72,6 +86,14 @@ struct D2ClassMapper {
                         continue
                     }
                     if stack[topIdx].isClass {
+                        if stack[topIdx].inStyleBlock {
+                            stack[topIdx].appendStyleAttribute(key: def.id, value: def.label ?? "")
+                            continue
+                        }
+                        if PartialClass.isClassAttributeKey(def.id) {
+                            stack[topIdx].appendAttribute(key: def.id, value: def.label ?? "")
+                            continue
+                        }
                         stack[topIdx].appendMember(rawKey: def.id, rawValue: def.label)
                         continue
                     }
@@ -118,6 +140,46 @@ private struct PartialClass {
     var isClass: Bool = false
     var attributes: [ClassMember] = []
     var methods: [ClassMember] = []
+    // D2 class-applicable attributes route into typed ClassNode slots rather
+    // than being misclassified as members.
+    var link: String?
+    var tooltip: String?
+    var styles: [String] = []
+    var inStyleBlock: Bool = false
+
+    /// D2 attribute keys that should NOT be treated as class members.
+    /// `shape` is consumed earlier in the mapper switch.
+    static let classAttributeKeys: Set<String> = ["link", "url", "href", "tooltip"]
+
+    static func isClassAttributeKey(_ rawKey: String) -> Bool {
+        classAttributeKeys.contains(rawKey.lowercased())
+    }
+
+    mutating func appendAttribute(key: String, value: String) {
+        let unquoted = unquoteValue(value)
+        switch key.lowercased() {
+        case "link", "url", "href":
+            link = unquoted
+        case "tooltip":
+            tooltip = unquoted
+        default:
+            break
+        }
+    }
+
+    mutating func appendStyleAttribute(key: String, value: String) {
+        let unquoted = unquoteValue(value)
+        guard !unquoted.isEmpty else { return }
+        styles.append("\(key.lowercased()):\(unquoted)")
+    }
+
+    private func unquoteValue(_ raw: String) -> String {
+        let trimmed = raw.trimmingCharacters(in: .whitespaces)
+        if trimmed.hasPrefix("\"") && trimmed.hasSuffix("\"") && trimmed.count >= 2 {
+            return String(trimmed.dropFirst().dropLast())
+        }
+        return trimmed
+    }
 
     mutating func appendMember(rawKey: String, rawValue: String?) {
         let (visibility, body) = stripVisibility(rawKey)
@@ -158,7 +220,10 @@ private struct PartialClass {
             id: id,
             label: label,
             attributes: attributes,
-            methods: methods
+            methods: methods,
+            styles: styles,
+            link: link,
+            tooltip: tooltip
         )
     }
 
