@@ -7,7 +7,7 @@ import DiagramKitExport
 /// Emits PlantUML deployment-diagram syntax from an `ArchitectureDiagram`.
 /// Used by `PlantUMLExporter` when the document contains deployment-kind
 /// services. Same-format round-trip is lossless via comment-encoded
-/// recovery markers (wired in Task 13).
+/// recovery markers stored on `ArchitectureDiagram.recoveryMarkers`.
 enum PlantUMLDeploymentExport {
 
     static func emit(_ diagram: ArchitectureDiagram) throws -> DiagramExportResult {
@@ -16,10 +16,29 @@ enum PlantUMLDeploymentExport {
         if let title = diagram.diagramTitle, !title.isEmpty {
             lines.append("title \(singleLine(title))")
         }
+
+        // Re-emit markers verbatim before the body so the importer's
+        // pre-pass picks them up.
+        for raw in diagram.recoveryMarkers {
+            lines.append(raw)
+        }
+
+        // Build a group-kind lookup from markers so groups emit with their
+        // original keyword (cloud/node/etc.) rather than defaulting to node.
+        let parsedMarkers = diagram.recoveryMarkers.flatMap {
+            PlantUMLRecoveryMarker.scanner.scan(source: $0).markers
+        }
+        let groupKindByID: [String: String] = parsedMarkers.reduce(into: [:]) { dict, marker in
+            if case let .deploymentGroupKind(id, rawValue) = marker.kind {
+                dict[id] = rawValue
+            }
+        }
+
         let rootGroups = diagram.groups.filter { $0.parentGroupId == nil }
         let rootServices = diagram.services.filter { $0.parentGroupId == nil }
         for group in rootGroups {
-            emitGroup(group, depth: 0, diagram: diagram, lines: &lines)
+            emitGroup(group, depth: 0, diagram: diagram,
+                      groupKindByID: groupKindByID, lines: &lines)
         }
         for service in rootServices {
             lines.append(serviceLine(service, indent: ""))
@@ -34,17 +53,17 @@ enum PlantUMLDeploymentExport {
     private static func emitGroup(
         _ group: ArchitectureGroup, depth: Int,
         diagram: ArchitectureDiagram,
+        groupKindByID: [String: String],
         lines: inout [String]
     ) {
         let indent = String(repeating: "  ", count: depth)
-        // Group keyword defaults to `node` for now. Task 13 reads a
-        // deployment-group-kind recovery marker to restore the original.
-        let keyword = "node"
+        let keyword = groupKindByID[group.id] ?? "node"
         let label = group.title.map { " \"\($0)\" " } ?? " "
         lines.append("\(indent)\(keyword)\(label)as \(group.id) {")
         let childGroups = diagram.groups.filter { $0.parentGroupId == group.id }
         for child in childGroups {
-            emitGroup(child, depth: depth + 1, diagram: diagram, lines: &lines)
+            emitGroup(child, depth: depth + 1, diagram: diagram,
+                      groupKindByID: groupKindByID, lines: &lines)
         }
         let childServices = diagram.services.filter { $0.parentGroupId == group.id }
         let childIndent = String(repeating: "  ", count: depth + 1)
