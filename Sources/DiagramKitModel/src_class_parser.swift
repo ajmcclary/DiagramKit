@@ -292,6 +292,26 @@ public struct ClassNamespace: Sendable {
     public var children: [ClassNamespace]
     public var parent: String?
     public var explicit: Bool
+
+    public init(
+        id: String,
+        label: String,
+        domId: String = "",
+        classIds: [String] = [],
+        noteIds: [String] = [],
+        children: [ClassNamespace] = [],
+        parent: String? = nil,
+        explicit: Bool = true
+    ) {
+        self.id = id
+        self.label = label
+        self.domId = domId
+        self.classIds = classIds
+        self.noteIds = noteIds
+        self.children = children
+        self.parent = parent
+        self.explicit = explicit
+    }
 }
 
 // MARK: - Positioned types (Phase 2.7)

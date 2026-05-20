@@ -16,7 +16,7 @@ public struct PlantUMLClassMapper {
 
         for decl in ast.classes {
             let displayLabel = decl.label ?? decl.name
-            let annotations = annotations(for: decl.kind)
+            let annotations = annotations(for: decl)
             var attributes: [ClassMember] = []
             var methods: [ClassMember] = []
             for member in decl.members {
@@ -31,7 +31,8 @@ public struct PlantUMLClassMapper {
                 label: displayLabel,
                 attributes: attributes,
                 methods: methods,
-                annotations: annotations
+                annotations: annotations,
+                parent: decl.packageName
             )
             classes.append(node)
             classMap[decl.name] = node
@@ -75,24 +76,48 @@ public struct PlantUMLClassMapper {
             ))
         }
 
+        var namespaces: [ClassNamespace] = []
+        var namespaceMap: [String: ClassNamespace] = [:]
+        for pkg in ast.packages {
+            let ns = ClassNamespace(
+                id: pkg.name,
+                label: pkg.displayName ?? pkg.name,
+                domId: "",
+                classIds: pkg.classIds,
+                noteIds: [],
+                children: [],
+                parent: nil,
+                explicit: true
+            )
+            namespaces.append(ns)
+            namespaceMap[pkg.name] = ns
+        }
+
         let model = ClassDiagram(
             classes: classes,
             classMap: classMap,
             relationships: relationships,
+            namespaces: namespaces,
+            namespaceMap: namespaceMap,
             notes: notes,
             noteMap: noteMap
         )
         return (model, diagnostics)
     }
 
-    private func annotations(for kind: PlantUMLClassDecl.Kind) -> [String] {
-        switch kind {
-        case .classDecl: return []
-        case .interfaceDecl: return ["Interface"]
-        case .abstractDecl: return ["Abstract"]
-        case .enumDecl: return ["Enumeration"]
-        case .annotationDecl: return ["Annotation"]
+    private func annotations(for decl: PlantUMLClassDecl) -> [String] {
+        var result: [String] = []
+        switch decl.kind {
+        case .classDecl: break
+        case .interfaceDecl: result.append("Interface")
+        case .abstractDecl: result.append("Abstract")
+        case .enumDecl: result.append("Enumeration")
+        case .annotationDecl: result.append("Annotation")
         }
+        if let stereotype = decl.stereotype, !stereotype.isEmpty {
+            result.append(stereotype)
+        }
+        return result
     }
 
     private func mapMember(_ member: PlantUMLClassMember) -> ClassMember {

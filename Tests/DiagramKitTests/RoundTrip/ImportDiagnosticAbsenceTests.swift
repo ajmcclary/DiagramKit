@@ -68,6 +68,29 @@ struct ImportDiagnosticAbsenceTests {
                 "Expected fill entry, got \(animal.styles)")
     }
 
+    @Test func plantUMLClassWithStereotypeAndPackage() throws {
+        let source = try loadFixture("plantuml-class/04-stereotype-package.puml")
+        let result = try PlantUMLImporter().parse(source)
+        #expect(result.diagnostics.isEmpty,
+                "Expected zero import diagnostics, got: \(result.diagnostics)")
+        guard case .classDiagram(let cd) = result.document.payload else {
+            Issue.record("Expected classDiagram, got \(result.document.payload.type)")
+            return
+        }
+        guard let animal = cd.classes.first(where: { $0.id == "Animal" }) else {
+            Issue.record("Animal class missing")
+            return
+        }
+        #expect(animal.annotations.contains("entity"),
+                "Stereotype <<entity>> must surface in annotations, got \(animal.annotations)")
+        #expect(cd.namespaces.contains(where: { $0.id == "model" }),
+                "Package `model` must surface as ClassNamespace")
+        if let model = cd.namespaces.first(where: { $0.id == "model" }) {
+            #expect(model.classIds.contains("Animal"))
+            #expect(model.classIds.contains("Dog"))
+        }
+    }
+
     // MARK: - Helpers
 
     private func loadFixture(_ relativePath: String) throws -> String {

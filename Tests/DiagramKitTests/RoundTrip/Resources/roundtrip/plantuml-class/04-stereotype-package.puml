@@ -1,0 +1,18 @@
+@startuml
+package "model" {
+  class Animal <<entity>> {
+    +name: String
+    +sound(): void
+  }
+  class Dog <<entity>> {
+    +breed: String
+  }
+}
+
+interface Sound {
+  +play(): void
+}
+
+Dog --|> Animal
+Animal ..|> Sound
+@enduml

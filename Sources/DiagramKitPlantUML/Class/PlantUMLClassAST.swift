@@ -12,18 +12,33 @@ public struct PlantUMLClassAST: Sendable {
     public var classes: [PlantUMLClassDecl]
     public var relationships: [PlantUMLClassRelationship]
     public var notes: [PlantUMLClassNote]
+    public var packages: [PlantUMLPackageDecl]
     public var unsupportedLines: [String]
 
     public init(
         classes: [PlantUMLClassDecl] = [],
         relationships: [PlantUMLClassRelationship] = [],
         notes: [PlantUMLClassNote] = [],
+        packages: [PlantUMLPackageDecl] = [],
         unsupportedLines: [String] = []
     ) {
         self.classes = classes
         self.relationships = relationships
         self.notes = notes
+        self.packages = packages
         self.unsupportedLines = unsupportedLines
+    }
+}
+
+public struct PlantUMLPackageDecl: Sendable, Equatable {
+    public var name: String
+    public var displayName: String?
+    public var classIds: [String]
+
+    public init(name: String, displayName: String? = nil, classIds: [String] = []) {
+        self.name = name
+        self.displayName = displayName
+        self.classIds = classIds
     }
 }
 
@@ -39,12 +54,27 @@ public struct PlantUMLClassDecl: Sendable {
     public var name: String
     /// Optional display label (PlantUML supports `class "Display" as Alias`).
     public var label: String?
+    /// Free-form stereotype text from `<<stereotype>>` decoration. Multiple
+    /// stereotype markers join with a comma-space separator.
+    public var stereotype: String?
+    /// Name of the enclosing `package` block, if the class declaration
+    /// appeared inside one.
+    public var packageName: String?
     public var members: [PlantUMLClassMember]
 
-    public init(kind: Kind, name: String, label: String? = nil, members: [PlantUMLClassMember] = []) {
+    public init(
+        kind: Kind,
+        name: String,
+        label: String? = nil,
+        stereotype: String? = nil,
+        packageName: String? = nil,
+        members: [PlantUMLClassMember] = []
+    ) {
         self.kind = kind
         self.name = name
         self.label = label
+        self.stereotype = stereotype
+        self.packageName = packageName
         self.members = members
     }
 }

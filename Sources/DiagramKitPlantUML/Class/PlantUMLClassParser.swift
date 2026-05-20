@@ -20,6 +20,10 @@ public struct PlantUMLClassParser {
 
         var iterator = lines.makeIterator()
         var inBlockComment = false
+        // Stack of open package contexts. `name` becomes ClassNamespace.id;
+        // `displayName` becomes its label. The top of the stack is the
+        // enclosing package for any class declaration parsed below.
+        var packageStack: [PlantUMLPackageDecl] = []
         while let raw = iterator.next() {
             let trimmed = raw.trimmingCharacters(in: .whitespaces)
             if inBlockComment {
@@ -50,15 +54,35 @@ public struct PlantUMLClassParser {
                 continue
             }
 
-            if let decl = parseClassDeclarationOpen(trimmed) {
-                let (members, _) = consumeMemberBlock(iterator: &iterator)
-                var withMembers = decl
-                withMembers.members = members
-                ast.classes.append(withMembers)
+            // `package "name" { ... }` opens a package block. Classes
+            // declared inside annotate `packageName`; the package itself
+            // surfaces as a `PlantUMLPackageDecl` in `ast.packages`.
+            if let pkg = parsePackageOpen(trimmed) {
+                packageStack.append(pkg)
                 continue
             }
 
-            if let decl = parseClassDeclarationSimple(trimmed) {
+            if trimmed == "}", !packageStack.isEmpty {
+                ast.packages.append(packageStack.removeLast())
+                continue
+            }
+
+            if var decl = parseClassDeclarationOpen(trimmed) {
+                let (members, _) = consumeMemberBlock(iterator: &iterator)
+                decl.members = members
+                if let topIdx = packageStack.indices.last {
+                    decl.packageName = packageStack[topIdx].name
+                    packageStack[topIdx].classIds.append(decl.name)
+                }
+                ast.classes.append(decl)
+                continue
+            }
+
+            if var decl = parseClassDeclarationSimple(trimmed) {
+                if let topIdx = packageStack.indices.last {
+                    decl.packageName = packageStack[topIdx].name
+                    packageStack[topIdx].classIds.append(decl.name)
+                }
                 ast.classes.append(decl)
                 continue
             }
@@ -83,7 +107,35 @@ public struct PlantUMLClassParser {
 
             ast.unsupportedLines.append(trimmed)
         }
+        // Flush any unbalanced open packages (defensive — well-formed
+        // PlantUML closes every block).
+        while let leftover = packageStack.popLast() {
+            ast.packages.append(leftover)
+        }
         return ast
+    }
+
+    /// Parses a leading `package "Name" {` / `package Name {` line. Returns
+    /// nil if `line` is not a package open. The closing `}` is matched in
+    /// `parse(_:)`'s main loop.
+    private func parsePackageOpen(_ line: String) -> PlantUMLPackageDecl? {
+        guard line.lowercased().hasPrefix("package ") else { return nil }
+        guard line.hasSuffix("{") else { return nil }
+        let inner = String(line.dropFirst("package ".count).dropLast())
+            .trimmingCharacters(in: .whitespaces)
+        // `"Display Name"` (with optional `as alias`)
+        if inner.hasPrefix("\"") {
+            if let closingQuote = inner.dropFirst().firstIndex(of: "\"") {
+                let display = String(inner[inner.index(after: inner.startIndex)..<closingQuote])
+                let after = inner[inner.index(after: closingQuote)...].trimmingCharacters(in: .whitespaces)
+                if after.lowercased().hasPrefix("as ") {
+                    let alias = after.dropFirst(3).trimmingCharacters(in: .whitespaces)
+                    return PlantUMLPackageDecl(name: alias, displayName: display)
+                }
+                return PlantUMLPackageDecl(name: display, displayName: display)
+            }
+        }
+        return PlantUMLPackageDecl(name: inner)
     }
 
     // MARK: - Declarations
@@ -103,28 +155,45 @@ public struct PlantUMLClassParser {
     }
 
     private func parseDeclarationHead(_ head: String) -> PlantUMLClassDecl? {
-        let lower = head.lowercased()
+        // Pre-extract `<<stereotype>>` markers from anywhere in the head so
+        // they don't pollute the kind / name / alias tokenization below.
+        // Multiple stereotypes join with a comma-space separator.
+        var working = head
+        var stereotypes: [String] = []
+        while let openRange = working.range(of: "<<"),
+              let closeRange = working.range(of: ">>", range: openRange.upperBound..<working.endIndex) {
+            let inside = working[openRange.upperBound..<closeRange.lowerBound]
+                .trimmingCharacters(in: .whitespaces)
+            if !inside.isEmpty {
+                stereotypes.append(inside)
+            }
+            working.removeSubrange(openRange.lowerBound..<closeRange.upperBound)
+        }
+        working = working.trimmingCharacters(in: .whitespaces)
+        let stereotype = stereotypes.isEmpty ? nil : stereotypes.joined(separator: ", ")
+
+        let lower = working.lowercased()
         let kind: PlantUMLClassDecl.Kind
         let rest: String
 
         if lower.hasPrefix("abstract class ") {
             kind = .abstractDecl
-            rest = String(head.dropFirst("abstract class ".count)).trimmingCharacters(in: .whitespaces)
+            rest = String(working.dropFirst("abstract class ".count)).trimmingCharacters(in: .whitespaces)
         } else if lower.hasPrefix("abstract ") {
             kind = .abstractDecl
-            rest = String(head.dropFirst("abstract ".count)).trimmingCharacters(in: .whitespaces)
+            rest = String(working.dropFirst("abstract ".count)).trimmingCharacters(in: .whitespaces)
         } else if lower.hasPrefix("class ") {
             kind = .classDecl
-            rest = String(head.dropFirst("class ".count)).trimmingCharacters(in: .whitespaces)
+            rest = String(working.dropFirst("class ".count)).trimmingCharacters(in: .whitespaces)
         } else if lower.hasPrefix("interface ") {
             kind = .interfaceDecl
-            rest = String(head.dropFirst("interface ".count)).trimmingCharacters(in: .whitespaces)
+            rest = String(working.dropFirst("interface ".count)).trimmingCharacters(in: .whitespaces)
         } else if lower.hasPrefix("enum ") {
             kind = .enumDecl
-            rest = String(head.dropFirst("enum ".count)).trimmingCharacters(in: .whitespaces)
+            rest = String(working.dropFirst("enum ".count)).trimmingCharacters(in: .whitespaces)
         } else if lower.hasPrefix("annotation ") {
             kind = .annotationDecl
-            rest = String(head.dropFirst("annotation ".count)).trimmingCharacters(in: .whitespaces)
+            rest = String(working.dropFirst("annotation ".count)).trimmingCharacters(in: .whitespaces)
         } else {
             return nil
         }
@@ -141,18 +210,18 @@ public struct PlantUMLClassParser {
                 let after = rest[rest.index(after: closingQuote)...].trimmingCharacters(in: .whitespaces)
                 if after.lowercased().hasPrefix("as ") {
                     let alias = after.dropFirst(3).trimmingCharacters(in: .whitespaces)
-                    return PlantUMLClassDecl(kind: kind, name: alias, label: display)
+                    return PlantUMLClassDecl(kind: kind, name: alias, label: display, stereotype: stereotype)
                 }
-                return PlantUMLClassDecl(kind: kind, name: display, label: display)
+                return PlantUMLClassDecl(kind: kind, name: display, label: display, stereotype: stereotype)
             }
         }
 
         let parts = rest.split(separator: " ", omittingEmptySubsequences: true).map(String.init)
         if parts.count >= 3, parts[1].lowercased() == "as" {
-            return PlantUMLClassDecl(kind: kind, name: parts[2], label: parts[0])
+            return PlantUMLClassDecl(kind: kind, name: parts[2], label: parts[0], stereotype: stereotype)
         }
         if let first = parts.first {
-            return PlantUMLClassDecl(kind: kind, name: first)
+            return PlantUMLClassDecl(kind: kind, name: first, stereotype: stereotype)
         }
         return nil
     }
