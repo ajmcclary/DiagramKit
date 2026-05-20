@@ -60,6 +60,18 @@ public enum D2RecoveryMarker {
         "# diagramkit:er-cardinality=\(sanitize(relationshipId)),\(sanitize(source)),\(sanitize(target))"
     }
 
+    public static func emitArchIcon(serviceID: String, kindRawValue: String) -> String {
+        "# diagramkit:arch-icon=\(sanitize(serviceID)),\(sanitize(kindRawValue))"
+    }
+
+    public static func emitArchGroup(groupID: String, parentGroupID: String) -> String {
+        "# diagramkit:arch-group=\(sanitize(groupID)),\(sanitize(parentGroupID))"
+    }
+
+    public static func emitFamily(_ name: String) -> String {
+        "# diagramkit:family=\(name)"
+    }
+
     /// Replace newline/quote/CR with space-replacements to keep the
     /// comma-separated arg grammar parseable. Mirrors Wave 3 Structurizr.
     private static func sanitize(_ value: String) -> String {
