@@ -91,6 +91,7 @@ public func layoutArchitectureDiagram(_ diagram: ArchitectureDiagram) -> Positio
             iconText: service.iconText,
             title: service.title,
             parentGroupId: service.parentGroupId,
+            kind: service.kind,
             x: pos.x,
             y: pos.y,
             width: nodeSize,

@@ -138,10 +138,34 @@ public func renderArchitectureSvg(
     for service in positioned.services {
         let serviceId = "\(diagramId)-service-\(service.id)"
         let nodeId = "\(diagramId)-node-\(service.id)"
-        svg += "<g id=\"\(SVG.escapeAttribute(serviceId))\" class=\"architecture-service\">\n"
+        let serviceClass: String
+        switch service.kind {
+        case .service:   serviceClass = "architecture-service"
+        case .component: serviceClass = "architecture-service architecture-component"
+        case .interface: serviceClass = "architecture-service architecture-interface"
+        }
+        svg += "<g id=\"\(SVG.escapeAttribute(serviceId))\" class=\"\(serviceClass)\">\n"
         svg += "<g id=\"\(SVG.escapeAttribute(nodeId))\" style=\"color: \(fgColor)\">\n"
-        svg += "<rect x=\"\(_fmt(service.x - service.width / 2))\" y=\"\(_fmt(service.y - service.height / 2))\" width=\"\(_fmt(service.width))\" height=\"\(_fmt(service.height))\" fill=\"none\" stroke=\"\(fgColor)\" stroke-width=\"1\"/>\n"
-        svg += _iconSvg(for: service.icon, iconText: service.iconText, cx: service.x, cy: service.y, size: positioned.config.iconSize, iconSize: iconSize)
+        switch service.kind {
+        case .service:
+            svg += "<rect x=\"\(_fmt(service.x - service.width / 2))\" y=\"\(_fmt(service.y - service.height / 2))\" width=\"\(_fmt(service.width))\" height=\"\(_fmt(service.height))\" fill=\"none\" stroke=\"\(fgColor)\" stroke-width=\"1\"/>\n"
+            svg += _iconSvg(for: service.icon, iconText: service.iconText, cx: service.x, cy: service.y, size: positioned.config.iconSize, iconSize: iconSize)
+        case .component:
+            // Boxed rectangle with a smaller "header" rectangle on the top-
+            // left, matching the PlantUML component glyph convention.
+            svg += "<rect x=\"\(_fmt(service.x - service.width / 2))\" y=\"\(_fmt(service.y - service.height / 2))\" width=\"\(_fmt(service.width))\" height=\"\(_fmt(service.height))\" fill=\"none\" stroke=\"\(fgColor)\" stroke-width=\"1\"/>\n"
+            let headerW = service.width * 0.18
+            let headerH = service.height * 0.22
+            let headerX = service.x - service.width / 2 - headerW / 2
+            let headerY = service.y - service.height / 2 + service.height * 0.15 - headerH / 2
+            svg += "<rect x=\"\(_fmt(headerX))\" y=\"\(_fmt(headerY))\" width=\"\(_fmt(headerW))\" height=\"\(_fmt(headerH))\" fill=\"\(bgColor)\" stroke=\"\(fgColor)\" stroke-width=\"1\"/>\n"
+            svg += _iconSvg(for: service.icon, iconText: service.iconText, cx: service.x, cy: service.y, size: positioned.config.iconSize, iconSize: iconSize)
+        case .interface:
+            // Lollipop circle. Radius is half the smaller dimension so the
+            // glyph fits inside the service bounds the layout reserved.
+            let radius = min(service.width, service.height) / 2
+            svg += "<circle cx=\"\(_fmt(service.x))\" cy=\"\(_fmt(service.y))\" r=\"\(_fmt(radius))\" fill=\"none\" stroke=\"\(fgColor)\" stroke-width=\"1\"/>\n"
+        }
         svg += "</g>\n"
         if let title = service.title, !title.isEmpty {
             svg += "<text x=\"\(_fmt(service.x))\" y=\"\(_fmt(service.y + service.height / 2 + fontSize + 4))\" class=\"arch-service-label\">\(SVG.escapeText(title))</text>\n"

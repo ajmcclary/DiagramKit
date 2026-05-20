@@ -4,21 +4,40 @@ public enum ArchitectureDirection: String, Sendable, Equatable, CaseIterable {
     case L, R, T, B
 }
 
+/// Discriminates how an `ArchitectureService` should render. Defaults to
+/// `.service` for back-compat with sources that don't carry a shape token.
+/// `.component` / `.interface` are populated by PlantUML's component dialect
+/// (`[Foo]` → component, `interface () X` → interface).
+public enum ArchitectureServiceKind: String, Sendable, Equatable, CaseIterable {
+    case service
+    case component
+    case interface
+}
+
 public struct ArchitectureService: Sendable, Equatable {
     public var id: String
     public var icon: String?
     public var iconText: String?
     public var title: String?
     public var parentGroupId: String?
+    public var kind: ArchitectureServiceKind
     public var width: Double = 0
     public var height: Double = 0
 
-    public init(id: String, icon: String? = nil, iconText: String? = nil, title: String? = nil, parentGroupId: String? = nil) {
+    public init(
+        id: String,
+        icon: String? = nil,
+        iconText: String? = nil,
+        title: String? = nil,
+        parentGroupId: String? = nil,
+        kind: ArchitectureServiceKind = .service
+    ) {
         self.id = id
         self.icon = icon
         self.iconText = iconText
         self.title = title
         self.parentGroupId = parentGroupId
+        self.kind = kind
     }
 }
 
@@ -172,17 +191,30 @@ public struct PositionedArchitectureService: Sendable {
     public var iconText: String?
     public var title: String?
     public var parentGroupId: String?
+    public var kind: ArchitectureServiceKind
     public var x: Double
     public var y: Double
     public var width: Double
     public var height: Double
 
-    public init(id: String, icon: String? = nil, iconText: String? = nil, title: String? = nil, parentGroupId: String? = nil, x: Double = 0, y: Double = 0, width: Double = 0, height: Double = 0) {
+    public init(
+        id: String,
+        icon: String? = nil,
+        iconText: String? = nil,
+        title: String? = nil,
+        parentGroupId: String? = nil,
+        kind: ArchitectureServiceKind = .service,
+        x: Double = 0,
+        y: Double = 0,
+        width: Double = 0,
+        height: Double = 0
+    ) {
         self.id = id
         self.icon = icon
         self.iconText = iconText
         self.title = title
         self.parentGroupId = parentGroupId
+        self.kind = kind
         self.x = x
         self.y = y
         self.width = width

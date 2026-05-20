@@ -179,6 +179,17 @@ struct ImportDiagnosticAbsenceTests {
                 "Expected cardB = oneOrMore, got \(rel.relSpec.cardB)")
     }
 
+    @Test func architectureServiceKindDefaultsToService() {
+        let s = ArchitectureService(id: "Foo")
+        #expect(s.kind == .service,
+                "Default kind must be .service for back-compat; got \(s.kind)")
+    }
+
+    @Test func architectureServiceKindRoundTripsExplicitValue() {
+        let s = ArchitectureService(id: "Bar", kind: .component)
+        #expect(s.kind == .component)
+    }
+
     // MARK: - Helpers
 
     private func loadFixture(_ relativePath: String) throws -> String {
