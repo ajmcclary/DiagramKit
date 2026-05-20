@@ -5,7 +5,7 @@ ships: Mermaid, D2, Graphviz DOT, Structurizr, PlantUML. The corpus carries 28
 diagram families. Mermaid is the canonical model surface — every other format
 imports/exports a subset by projecting into a Mermaid-equivalent payload.
 
-Last audited: 2026-05-19. Cross-reference [CLAUDE.md](CLAUDE.md) "What Lives
+Last audited: 2026-05-20. Cross-reference [CLAUDE.md](CLAUDE.md) "What Lives
 Where" for slice paths and [BASELINES.md](BASELINES.md) for corpus counts.
 
 ## Legend
@@ -16,12 +16,12 @@ Where" for slice paths and [BASELINES.md](BASELINES.md) for corpus counts.
   `.featureDropped` / informational diagnostics
 - `—` — not implemented: dispatch falls through to `.unsupportedDiagram` (export)
   or family never appears in payload union (import)
-- `⚠` in the **import table** for D2/DOT × {flowchart, class, state, er}
-  reflects diagnostics on D2/DOT-native features that have no Mermaid landing
-  slot (`direction`, `icon`, `tooltip`, `link`). `⚠` for PlantUML ×
-  {architecture, class} import has the same shape (component-vs-interface
-  styling, stereotypes/packages). Closing these requires extending the
-  Mermaid payload model and is tracked as deferred follow-on work.
+- `⚠` in the **import table** for D2/DOT × {state, er} reflects diagnostics
+  on D2/DOT-native composite-state container nesting and ER cardinality
+  decoration that today's mappers route through recovery markers rather than
+  Mermaid payload slots. `⚠` for PlantUML × {flowchart, architecture} import
+  reflects activity `partition` losses and component-vs-interface styling.
+  Waves 2 and 3 of the 2026-05-20-residuals spec close these remaining cells.
 
 ## Import coverage
 
@@ -30,7 +30,7 @@ Where" for slice paths and [BASELINES.md](BASELINES.md) for corpus counts.
 | flowchart         |   ★    | ✓ | ✓  |     —      |    ⚠    |
 | stateDiagram      |   ★    | ⚠ | ⚠  |     —      |    ✓    |
 | sequenceDiagram   |   ★    | — | —  |     —      |    ✓    |
-| classDiagram      |   ★    | ⚠ | ⚠  |     —      |    ⚠    |
+| classDiagram      |   ★    | ✓ | ✓  |     —      |    ✓    |
 | erDiagram         |   ★    | ⚠ | ⚠  |     —      |    ✓    |
 | xyChart           |   ★    | — | —  |     —      |    —    |
 | pie               |   ★    | — | —  |     —      |    —    |
