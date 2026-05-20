@@ -186,7 +186,10 @@ import DiagramKitPlantUML
 
     @Test("PlantUML export unsupported type returns diagnostic")
     func unsupportedType() throws {
-        let doc = DiagramDocument(type: .flowchart)
+        // PlantUML now exports flowchart via the activity idiom (Wave 1
+        // coverage-expansion). Pick a payload that genuinely has no
+        // PlantUML target: `xyChart`.
+        let doc = DiagramDocument(type: .xyChart)
         let result = try PlantUMLExporter().export(doc)
         #expect(result.source.isEmpty)
         #expect(result.diagnostics.contains { $0.severity == .unsupported })

@@ -43,7 +43,9 @@ public func isPlantUMLActivityBody(_ body: String) -> Bool {
     let lines = body.split(separator: "\n", omittingEmptySubsequences: true)
     for line in lines {
         let trimmed = line.trimmingCharacters(in: .whitespaces)
-        if trimmed == "start" || trimmed == "stop" || trimmed == "end" { return true }
+        // `end` is intentionally excluded — it also closes sequence `alt`/`loop`
+        // blocks. Activity uses `stop` to terminate.
+        if trimmed == "start" || trimmed == "stop" { return true }
         if trimmed.hasPrefix("partition ") { return true }
         if trimmed.hasPrefix(":") && trimmed.hasSuffix(";") { return true }
         if trimmed.hasPrefix("if ") && trimmed.contains("then") { return true }
@@ -68,11 +70,14 @@ public func isPlantUMLERBody(_ body: String) -> Bool {
 }
 
 /// Returns `true` when body contains PlantUML use-case syntax.
+/// Requires use-case-specific markers (`usecase` keyword or `(name)` form).
+/// Bare `actor ` alone is ambiguous with sequence diagrams and is intentionally
+/// not matched here — the sequence-probe fallback catches that case.
 public func isPlantUMLUseCaseBody(_ body: String) -> Bool {
     let lines = body.split(separator: "\n", omittingEmptySubsequences: true)
     for line in lines {
         let trimmed = line.trimmingCharacters(in: .whitespaces)
-        if trimmed.hasPrefix("usecase ") || trimmed.hasPrefix("actor ") {
+        if trimmed.hasPrefix("usecase ") {
             return true
         }
         if trimmed.hasPrefix("(") && trimmed.contains(")") { return true }
