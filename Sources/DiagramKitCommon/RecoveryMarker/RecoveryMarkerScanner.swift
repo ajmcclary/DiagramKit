@@ -72,3 +72,44 @@ public struct RecoveryMarkerScanner<Kind: Sendable & Equatable>: Sendable {
         return RecoveryMarkerScanResult(markers: markers, lines: lines)
     }
 }
+
+extension RecoveryMarkerScanner {
+    /// Scan and additionally emit `.recoveryMarkerMalformed(.warning)` for
+    /// any line beginning with the comment prefix + sentinel whose remainder
+    /// fails `parseKind`. Used by importer call sites that want to surface
+    /// malformed marker comments rather than drop them silently.
+    public func scanWithDiagnostics(
+        source: String
+    ) -> (result: RecoveryMarkerScanResult<Kind>, diagnostics: [DiagramDiagnostic]) {
+        var markers: [RecoveryMarker<Kind>] = []
+        var diagnostics: [DiagramDiagnostic] = []
+        let lines = source.components(separatedBy: "\n")
+        for (index, rawLine) in lines.enumerated() {
+            let lineNumber = index + 1
+            var trimmed = rawLine
+            while let first = trimmed.first, first == " " || first == "\t" {
+                trimmed.removeFirst()
+            }
+            guard trimmed.hasPrefix(commentPrefix) else { continue }
+            trimmed.removeFirst(commentPrefix.count)
+            while let first = trimmed.first, first == " " || first == "\t" {
+                trimmed.removeFirst()
+            }
+            guard trimmed.hasPrefix(sentinel) else { continue }
+            var rest = String(trimmed.dropFirst(sentinel.count))
+            while let last = rest.last, last == " " || last == "\t" || last == "\r" {
+                rest.removeLast()
+            }
+            if let kind = parseKind(rest) {
+                markers.append(RecoveryMarker(lineNumber: lineNumber, kind: kind))
+            } else {
+                diagnostics.append(.lossyTransform(
+                    .recoveryMarkerMalformed,
+                    message: "malformed recovery marker at line \(lineNumber): \(rest)"
+                ))
+            }
+        }
+        let result = RecoveryMarkerScanResult(markers: markers, lines: lines)
+        return (result, diagnostics)
+    }
+}
