@@ -64,4 +64,39 @@ struct PlantUMLDeploymentProbeTests {
         """#
         #expect(isPlantUMLDeploymentBody(body))
     }
+
+    @Test func importerRoutesDeploymentBodyThroughDeploymentMapper() throws {
+        let source = #"""
+        @startuml
+        cloud "AWS" as aws {
+          node "EC2" as ec2
+        }
+        database "Postgres" as db
+        ec2 --> db : writes
+        @enduml
+        """#
+        let result = try PlantUMLImporter().parse(source)
+        guard case .architecture(let arch) = result.document.payload else {
+            Issue.record("Expected architecture payload, got \(result.document.payload)"); return
+        }
+        #expect(arch.services.contains { $0.id == "ec2" && $0.kind == .node })
+        #expect(arch.services.contains { $0.id == "db" && $0.kind == .database })
+        #expect(arch.groups.contains { $0.id == "aws" })
+    }
+
+    @Test func importerStillRoutesComponentBodyThroughComponentMapper() throws {
+        let source = #"""
+        @startuml
+        [Web] --> [API]
+        interface HTTP
+        [API] --> HTTP
+        @enduml
+        """#
+        let result = try PlantUMLImporter().parse(source)
+        guard case .architecture(let arch) = result.document.payload else {
+            Issue.record("Expected architecture, got \(result.document.payload)"); return
+        }
+        let kinds = Set(arch.services.map(\.kind))
+        #expect(kinds.isSubset(of: [.component, .interface]))
+    }
 }

@@ -137,6 +137,14 @@ public struct PlantUMLImporter: DiagramSourceImporter {
                 diagnostics: diagnostics
             )
         }
+        if isPlantUMLDeploymentBody(body) {
+            let ast = try PlantUMLDeploymentParser().parse(body)
+            let (model, diagnostics) = PlantUMLDeploymentMapper().map(ast)
+            return DiagramImportResult(
+                document: DiagramDocument(payload: .architecture(model)),
+                diagnostics: diagnostics
+            )
+        }
         if isPlantUMLClassBody(body) {
             let ast = PlantUMLClassParser().parse(body)
             let (model, diagnostics) = PlantUMLClassMapper().map(ast)
