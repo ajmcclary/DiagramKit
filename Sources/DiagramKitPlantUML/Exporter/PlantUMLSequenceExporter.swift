@@ -8,7 +8,7 @@ enum PlantUMLSequenceExport {
 
     static func emit(_ model: SequenceDiagram) throws -> DiagramExportResult {
         var lines: [String] = []
-        var diagnostics: [DiagramDiagnostic] = []
+        let diagnostics: [DiagramDiagnostic] = []
 
         lines.append("@startuml")
 
