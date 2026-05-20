@@ -26,6 +26,7 @@ public enum DiagnosticCategory: String, Sendable, Hashable, CaseIterable {
     case classStereotypeDrop
     case stateActionDrop
     case cardinalityDrop
+    case recoveryMarkerMalformed
 
     // MARK: - .unsupported — feature not available in target format
     case diagramFamilyUnsupported
@@ -44,7 +45,8 @@ public enum DiagnosticCategory: String, Sendable, Hashable, CaseIterable {
              .c4SlotDrop, .titleDrop, .configDrop, .styleDrop, .accessibilityDrop,
              .anonymousSubgraphRename, .d2DuplicateOverride,
              .labelNewlineEscape, .d2InlineCommentStripped,
-             .classStereotypeDrop, .stateActionDrop, .cardinalityDrop:
+             .classStereotypeDrop, .stateActionDrop, .cardinalityDrop,
+             .recoveryMarkerMalformed:
             return .warning
         case .diagramFamilyUnsupported, .slotUnsupported,
              .boundaryTypeUnsupported, .c4ShapeUnsupported:
