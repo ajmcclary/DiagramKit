@@ -5,19 +5,19 @@ import DiagramKitModel
 struct PlantUMLComponentMapper {
 
     func map(_ ast: PlantUMLComponentAST) -> (ArchitectureDiagram, [DiagramDiagnostic]) {
-        var diagnostics: [DiagramDiagnostic] = []
+        let diagnostics: [DiagramDiagnostic] = []
         var services: [ArchitectureService] = []
         for component in ast.components {
+            let kind: ArchitectureServiceKind
+            switch component.kind {
+            case .component: kind = .component
+            case .interface: kind = .interface
+            }
             services.append(ArchitectureService(
                 id: component.id,
-                title: component.label
+                title: component.label,
+                kind: kind
             ))
-            if component.kind == .interface {
-                diagnostics.append(.lossyTransform(
-                    .styleDrop,
-                    message: "PlantUML interface '\(component.id)' projected as architecture service; interface-vs-component styling lost"
-                ))
-            }
         }
 
         var edges: [ArchitectureEdge] = []

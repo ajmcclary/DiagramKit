@@ -24,8 +24,17 @@ struct PlantUMLComponentRoundTripTests {
         let ids = arch.services.map(\.id).sorted()
         #expect(ids == ["API", "HTTP", "Web"])
         #expect(arch.edges.count == 2)
+        // Interface vs component now flows through ArchitectureService.kind
+        // instead of dropping with a styleDrop diagnostic.
         let interfaceDiagnostics = result.diagnostics.filter { $0.category == .styleDrop }
-        #expect(interfaceDiagnostics.count == 1)
+        #expect(interfaceDiagnostics.isEmpty,
+                "interface-vs-component now lives on kind, no styleDrop expected; got \(interfaceDiagnostics)")
+        let http = arch.services.first { $0.id == "HTTP" }
+        #expect(http?.kind == .interface)
+        let web = arch.services.first { $0.id == "Web" }
+        let api = arch.services.first { $0.id == "API" }
+        #expect(web?.kind == .component)
+        #expect(api?.kind == .component)
     }
 
     @Test func basicComponentRoundTripsThroughExporter() throws {

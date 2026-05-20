@@ -1,0 +1,8 @@
+@startuml
+[Database]
+[API]
+interface REST
+
+API --> Database
+REST -- API
+@enduml

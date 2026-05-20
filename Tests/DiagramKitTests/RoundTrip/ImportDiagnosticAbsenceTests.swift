@@ -190,6 +190,23 @@ struct ImportDiagnosticAbsenceTests {
         #expect(s.kind == .component)
     }
 
+    @Test func plantUMLComponentWithInterface() throws {
+        let source = try loadFixture("plantuml-component/02-interface.puml")
+        let result = try PlantUMLImporter().parse(source)
+        #expect(result.diagnostics.isEmpty,
+                "Expected zero import diagnostics, got: \(result.diagnostics)")
+        guard case .architecture(let arch) = result.document.payload else {
+            Issue.record("Expected architecture, got \(result.document.payload.type)")
+            return
+        }
+        let database = arch.services.first { $0.id == "Database" }
+        let api = arch.services.first { $0.id == "API" }
+        let rest = arch.services.first { $0.id == "REST" }
+        #expect(database?.kind == .component, "Database kind = \(String(describing: database?.kind))")
+        #expect(api?.kind == .component, "API kind = \(String(describing: api?.kind))")
+        #expect(rest?.kind == .interface, "REST kind = \(String(describing: rest?.kind))")
+    }
+
     // MARK: - Helpers
 
     private func loadFixture(_ relativePath: String) throws -> String {
