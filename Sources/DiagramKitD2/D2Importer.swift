@@ -28,9 +28,11 @@ public struct D2Importer: DiagramSourceImporter {
     public func parse(_ source: String) throws -> DiagramImportResult {
         let parser = D2Parser()
         let (d2Doc, parseDiagnostics) = try parser.parse(source)
+        let markerScan = D2RecoveryMarker.scanner.scan(source: source)
 
         if D2ClassProbe.detectsClassDiagram(d2Doc) {
-            let (cd, classDiagnostics) = D2ClassMapper().map(d2Doc)
+            var (cd, classDiagnostics) = D2ClassMapper().map(d2Doc)
+            applyClassStereotypeMarkers(&cd, markers: markerScan.markers)
             var document = DiagramDocument(payload: .classDiagram(cd))
             document.title = Self.documentTitleMetadata(in: source)
             return DiagramImportResult(
@@ -68,6 +70,24 @@ public struct D2Importer: DiagramSourceImporter {
         document.title = Self.documentTitleMetadata(in: source)
 
         return DiagramImportResult(document: document, diagnostics: allDiagnostics)
+    }
+
+    /// Apply class-stereotype recovery markers to the built `ClassDiagram`.
+    /// Each marker appends its stereotype to the matching `ClassNode.annotations`.
+    /// Mirrors Structurizr Wave 3 semantics: silent drop when the named class
+    /// is not present in the document.
+    private func applyClassStereotypeMarkers(
+        _ cd: inout ClassDiagram,
+        markers: [RecoveryMarker<D2RecoveryMarker.Kind>]
+    ) {
+        for marker in markers {
+            guard case .classStereotype(let className, let stereotype) = marker.kind else { continue }
+            guard let idx = cd.classes.firstIndex(where: { $0.id == className }) else { continue }
+            if !cd.classes[idx].annotations.contains(stereotype) {
+                cd.classes[idx].annotations.append(stereotype)
+            }
+        }
+        cd.classMap = Dictionary(uniqueKeysWithValues: cd.classes.map { ($0.id, $0) })
     }
 
     private static func documentTitleMetadata(in source: String) -> String? {
