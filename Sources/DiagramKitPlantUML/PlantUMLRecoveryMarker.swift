@@ -6,9 +6,10 @@ public enum PlantUMLRecoveryMarker {
     public enum Kind: Sendable, Equatable {
         case activityPartition(originalId: String, partition: String)
         case activityOriginalId(syntheticId: String, originalId: String)
-        case sequenceParticipantLink(participantId: String, url: String)
-        case sequenceParticipantProperty(participantId: String, key: String, value: String)
-        case sequenceParticipantDetails(participantId: String, base64: String)
+        case sequenceParticipantLink(participantId: String, label: String, url: String)
+        case sequenceParticipantLinks(participantId: String, base64Json: String)
+        case sequenceParticipantProperties(participantId: String, base64Json: String)
+        case sequenceParticipantDetails(participantId: String, elementId: String)
     }
 
     /// PlantUML uses `'` for line comments, not `#`. Markers are line-form
@@ -33,19 +34,28 @@ public enum PlantUMLRecoveryMarker {
             return .activityOriginalId(syntheticId: String(fields[0]), originalId: String(fields[1]))
         }
         if let args = stripPrefix("sequence-participant-link=", rest) {
-            let fields = args.split(separator: ",", maxSplits: 1, omittingEmptySubsequences: false)
-            guard fields.count == 2 else { return nil }
-            return .sequenceParticipantLink(participantId: String(fields[0]), url: String(fields[1]))
-        }
-        if let args = stripPrefix("sequence-participant-property=", rest) {
             let fields = args.split(separator: ",", maxSplits: 2, omittingEmptySubsequences: false)
             guard fields.count == 3 else { return nil }
-            return .sequenceParticipantProperty(participantId: String(fields[0]), key: String(fields[1]), value: String(fields[2]))
+            return .sequenceParticipantLink(
+                participantId: String(fields[0]),
+                label: String(fields[1]),
+                url: String(fields[2])
+            )
+        }
+        if let args = stripPrefix("sequence-participant-links=", rest) {
+            let fields = args.split(separator: ",", maxSplits: 1, omittingEmptySubsequences: false)
+            guard fields.count == 2, fields[1].hasPrefix("b64:") else { return nil }
+            return .sequenceParticipantLinks(participantId: String(fields[0]), base64Json: String(fields[1].dropFirst(4)))
+        }
+        if let args = stripPrefix("sequence-participant-properties=", rest) {
+            let fields = args.split(separator: ",", maxSplits: 1, omittingEmptySubsequences: false)
+            guard fields.count == 2, fields[1].hasPrefix("b64:") else { return nil }
+            return .sequenceParticipantProperties(participantId: String(fields[0]), base64Json: String(fields[1].dropFirst(4)))
         }
         if let args = stripPrefix("sequence-participant-details=", rest) {
             let fields = args.split(separator: ",", maxSplits: 1, omittingEmptySubsequences: false)
-            guard fields.count == 2, fields[1].hasPrefix("b64:") else { return nil }
-            return .sequenceParticipantDetails(participantId: String(fields[0]), base64: String(fields[1].dropFirst(4)))
+            guard fields.count == 2 else { return nil }
+            return .sequenceParticipantDetails(participantId: String(fields[0]), elementId: String(fields[1]))
         }
         return nil
     }
@@ -65,17 +75,22 @@ public enum PlantUMLRecoveryMarker {
         "' diagramkit:activity-original-id=\(sanitize(syntheticId)),\(sanitize(originalId))"
     }
 
-    public static func emitSequenceParticipantLink(participantId: String, url: String) -> String {
-        "' diagramkit:sequence-participant-link=\(sanitize(participantId)),\(sanitize(url))"
+    public static func emitSequenceParticipantLink(participantId: String, label: String, url: String) -> String {
+        "' diagramkit:sequence-participant-link=\(sanitize(participantId)),\(sanitize(label)),\(sanitize(url))"
     }
 
-    public static func emitSequenceParticipantProperty(participantId: String, key: String, value: String) -> String {
-        "' diagramkit:sequence-participant-property=\(sanitize(participantId)),\(sanitize(key)),\(sanitize(value))"
+    public static func emitSequenceParticipantLinks(participantId: String, json: String) -> String {
+        let base64 = Data(json.utf8).base64EncodedString()
+        return "' diagramkit:sequence-participant-links=\(sanitize(participantId)),b64:\(base64)"
     }
 
-    public static func emitSequenceParticipantDetails(participantId: String, details: String) -> String {
-        let base64 = Data(details.utf8).base64EncodedString()
-        return "' diagramkit:sequence-participant-details=\(sanitize(participantId)),b64:\(base64)"
+    public static func emitSequenceParticipantProperties(participantId: String, json: String) -> String {
+        let base64 = Data(json.utf8).base64EncodedString()
+        return "' diagramkit:sequence-participant-properties=\(sanitize(participantId)),b64:\(base64)"
+    }
+
+    public static func emitSequenceParticipantDetails(participantId: String, elementId: String) -> String {
+        "' diagramkit:sequence-participant-details=\(sanitize(participantId)),\(sanitize(elementId))"
     }
 
     private static func sanitize(_ value: String) -> String {

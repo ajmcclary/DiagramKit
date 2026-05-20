@@ -118,14 +118,24 @@ enum PlantUMLSequenceExport {
             case .destroyParticipant(let actorId):
                 lines.append("destroy \(participantAlias(actorId))")
 
-            case .link, .links, .properties, .details:
-                // Not directly translatable to PlantUML; skip with diagnostic.
-                // Severity preserved as .info from pre-migration; a future
-                // recategorization pass may promote to .unsupported since the
-                // sequence item is genuinely dropped.
-                diagnostics.append(.informational(
-                    .identifierEscape,
-                    message: "PlantUML export: link/properties/detail not directly supported in sequence diagram"
+            case .link(let actorId, let label, let url):
+                lines.append(PlantUMLRecoveryMarker.emitSequenceParticipantLink(
+                    participantId: actorId, label: label, url: url
+                ))
+
+            case .links(let actorId, let json):
+                lines.append(PlantUMLRecoveryMarker.emitSequenceParticipantLinks(
+                    participantId: actorId, json: json
+                ))
+
+            case .properties(let actorId, let json):
+                lines.append(PlantUMLRecoveryMarker.emitSequenceParticipantProperties(
+                    participantId: actorId, json: json
+                ))
+
+            case .details(let actorId, let elementId):
+                lines.append(PlantUMLRecoveryMarker.emitSequenceParticipantDetails(
+                    participantId: actorId, elementId: elementId
                 ))
             }
         }
