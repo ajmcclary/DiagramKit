@@ -16,6 +16,12 @@ Where" for slice paths and [BASELINES.md](BASELINES.md) for corpus counts.
   `.featureDropped` / informational diagnostics
 - `—` — not implemented: dispatch falls through to `.unsupportedDiagram` (export)
   or family never appears in payload union (import)
+- `⚠` in the **import table** for D2/DOT × {flowchart, class, state, er}
+  reflects diagnostics on D2/DOT-native features that have no Mermaid landing
+  slot (`direction`, `icon`, `tooltip`, `link`). `⚠` for PlantUML ×
+  {architecture, class} import has the same shape (component-vs-interface
+  styling, stereotypes/packages). Closing these requires extending the
+  Mermaid payload model and is tracked as deferred follow-on work.
 
 ## Import coverage
 
@@ -58,7 +64,7 @@ Where" for slice paths and [BASELINES.md](BASELINES.md) for corpus counts.
 | flowchart         |   ✓    | ✓ | ✓  |     —      |    ⚠    |
 | stateDiagram      |   ✓    | ⚠ | ⚠  |     —      |    ✓    |
 | sequenceDiagram   |   ✓    | — | —  |     —      |    ⚠    |
-| classDiagram      |   ✓    | ⚠ | ⚠  |     —      |    ⚠    |
+| classDiagram      |   ✓    | ⚠ | ⚠  |     —      |    ✓    |
 | erDiagram         |   ✓    | ⚠ | ⚠  |     —      |    ✓    |
 | xyChart           |   ✓    | — | —  |     —      |    —    |
 | pie               |   ✓    | — | —  |     —      |    —    |
@@ -73,7 +79,7 @@ Where" for slice paths and [BASELINES.md](BASELINES.md) for corpus counts.
 | block             |   ✓    | — | —  |     —      |    —    |
 | packet            |   ✓    | — | —  |     —      |    —    |
 | kanban            |   ✓    | — | —  |     —      |    —    |
-| architecture      |   ✓    | — | —  |     —      |    ⚠    |
+| architecture      |   ✓    | — | —  |     —      |    ✓    |
 | radar             |   ✓    | — | —  |     —      |    —    |
 | treemap           |   ✓    | — | —  |     —      |    —    |
 | venn              |   ✓    | — | —  |     —      |    —    |
@@ -101,16 +107,18 @@ families — the gaps in the matrix above are the gaps to close.
 
 ## Partial-support detail
 
-The remaining `⚠` cell is real:
+Export-side `⚠` cells are being closed via comment-encoded recovery markers
+per [docs/superpowers/specs/2026-05-20-coverage-marker-recovery-design.md](docs/superpowers/specs/2026-05-20-coverage-marker-recovery-design.md).
+Two stale `⚠` cells (`classDiagram × PlantUML export`, `architecture × PlantUML export`)
+flipped to `✓` in Wave A after verifying the corresponding exporters emit no
+diagnostics on supported input.
+
+The remaining real `⚠` cell on the export side is:
 
 - **PlantUML × sequenceDiagram (export)** — `PlantUMLSequenceExporter` emits
   an informational diagnostic for dropped link/properties/detail features
-  (`Sources/DiagramKitPlantUML/Exporter/PlantUMLSequenceExporter.swift:126`).
-
-All other PlantUML exporters (class, state, mindmap, gantt, c4) produce
-diagnostic-free output. The orange-triangle indicators in some external UI
-visualisations for PlantUML × {class, gantt, mindmap, c4} do **not** match the
-code: those exports are `✓`, not `⚠`.
+  (`Sources/DiagramKitPlantUML/Exporter/PlantUMLSequenceExporter.swift:127`).
+  Tracked for Wave C of the coverage-marker-recovery spec.
 
 ## Gaps and the work to close them
 
