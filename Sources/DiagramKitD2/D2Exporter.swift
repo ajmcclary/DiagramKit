@@ -19,6 +19,7 @@ public struct D2Exporter: DiagramExporter {
         .erDiagram,
         .architecture,
         .mindmap,
+        .treeView,
     ]
 
     public init() {}
@@ -37,6 +38,8 @@ public struct D2Exporter: DiagramExporter {
             return try D2ArchitectureExport.emit(arch, title: document.title)
         case .mindmap(let mindmap):
             return try D2MindmapExport.emit(mindmap, title: document.title)
+        case .treeView(let tree):
+            return try D2TreeViewExport.emit(tree, title: document.title)
         default:
             return .unsupportedDiagram(formatName: name, type: document.type)
         }

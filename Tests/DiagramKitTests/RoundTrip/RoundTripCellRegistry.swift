@@ -296,6 +296,20 @@ enum RoundTripCellRegistry {
         allowedLosses: [.idSanitization]
     )
 
+    static let d2TreeView = RoundTripCell(
+        importer: D2Importer(),
+        exporter: D2Exporter(),
+        family: DiagramType.treeView,
+        allowedLosses: [.idSanitization]
+    )
+
+    static let dotTreeView = RoundTripCell(
+        importer: GraphvizImporter(),
+        exporter: DOTExporter(),
+        family: DiagramType.treeView,
+        allowedLosses: [.idSanitization]
+    )
+
     static let structurizrC4 = RoundTripCell(
         importer: StructurizrImporter(),
         exporter: StructurizrExporter(),

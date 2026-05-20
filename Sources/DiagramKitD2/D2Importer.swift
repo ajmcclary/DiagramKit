@@ -19,6 +19,7 @@ public struct D2Importer: DiagramSourceImporter {
         .erDiagram,
         .architecture,
         .mindmap,
+        .treeView,
     ]
 
     public init() {}
@@ -90,6 +91,18 @@ public struct D2Importer: DiagramSourceImporter {
                 )
             }
             // Fall through to flowchart on multi-root mindmap input.
+        }
+
+        if markerFamily == "treeView" {
+            let (maybeTree, tvDiagnostics) = D2TreeViewMapper().map(d2Doc, markers: markerScan.markers)
+            if let tree = maybeTree {
+                var document = DiagramDocument(payload: .treeView(tree))
+                document.title = Self.documentTitleMetadata(in: source)
+                return DiagramImportResult(
+                    document: document,
+                    diagnostics: parseDiagnostics + tvDiagnostics
+                )
+            }
         }
 
         let mapper = D2Mapper()
