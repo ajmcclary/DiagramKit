@@ -1,0 +1,8 @@
+digraph G {
+  # diagramkit:family=architecture
+  c1 [shape=oval, style=dashed];
+  # diagramkit:arch-icon=c1,cloud
+  c2 [shape=oval, style=dashed];
+  # diagramkit:arch-icon=c2,cloud
+  c1 -> c2;
+}
