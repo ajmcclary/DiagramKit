@@ -45,6 +45,29 @@ struct ImportDiagnosticAbsenceTests {
                 "Expected fill style in ClassNode.styles, got \(animal.styles)")
     }
 
+    @Test func dotClassWithUrlTooltipStyle() throws {
+        let source = try loadFixture("dot-class/02-attributed.dot")
+        let result = try GraphvizImporter().parse(source)
+        #expect(result.diagnostics.isEmpty,
+                "Expected zero import diagnostics, got: \(result.diagnostics)")
+        guard case .classDiagram(let cd) = result.document.payload else {
+            Issue.record("Expected classDiagram, got \(result.document.payload.type)")
+            return
+        }
+        guard let animal = cd.classes.first(where: { $0.id == "Animal" }) else {
+            Issue.record("Animal class missing")
+            return
+        }
+        #expect(animal.link == "https://example.com/animal")
+        #expect(animal.tooltip == "Base class")
+        #expect(animal.styles.contains(where: { $0.contains("style") || $0.contains("filled") }),
+                "Expected style entry, got \(animal.styles)")
+        #expect(animal.styles.contains(where: { $0.contains("stroke") || $0.contains("color") }),
+                "Expected color entry, got \(animal.styles)")
+        #expect(animal.styles.contains(where: { $0.contains("fill") || $0.contains("yellow") }),
+                "Expected fill entry, got \(animal.styles)")
+    }
+
     // MARK: - Helpers
 
     private func loadFixture(_ relativePath: String) throws -> String {

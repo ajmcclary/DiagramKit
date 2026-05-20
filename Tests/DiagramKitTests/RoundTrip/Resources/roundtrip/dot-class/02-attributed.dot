@@ -1,0 +1,7 @@
+digraph G {
+  Animal [shape=record, label="{Animal|+name : string\l|+sound() : void\l}",
+          URL="https://example.com/animal", tooltip="Base class",
+          style=filled, fillcolor=lightyellow, color=blue];
+  Dog [shape=record, label="{Dog|+breed : string\l|+bark() : void\l}"];
+  Dog -> Animal;
+}

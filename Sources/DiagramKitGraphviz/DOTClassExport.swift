@@ -87,11 +87,15 @@ struct DOTClassMapper {
                 let attributes = parsed.attributes.map { makeMember($0, isMethod: false) }
                 let methods = parsed.methods.map { makeMember($0, isMethod: true) }
                 let displayLabel = parsed.header.isEmpty ? node.id : parsed.header
+                let routed = Self.routeClassAttributes(attrs)
                 classes.append(ClassNode(
                     id: node.id,
                     label: displayLabel,
                     attributes: attributes,
-                    methods: methods
+                    methods: methods,
+                    styles: routed.styles,
+                    link: routed.link,
+                    tooltip: routed.tooltip
                 ))
 
             case .edgeStatement(let edge):
@@ -124,6 +128,43 @@ struct DOTClassMapper {
             ClassDiagram(classes: classes, classMap: classMap, relationships: relationships),
             diagnostics
         )
+    }
+
+    /// Routes node-level attributes that have typed Mermaid landing slots
+    /// (`URL`/`href` → link, `tooltip` → tooltip, `style`/`color`/`fillcolor`/
+    /// `fontcolor` → styles[]) so they don't drop silently.
+    static func routeClassAttributes(_ attrs: [String: String]) -> (link: String?, tooltip: String?, styles: [String]) {
+        var link: String?
+        var tooltip: String?
+        var styles: [String] = []
+        for (key, value) in attrs {
+            let unquoted = stripQuotes(value)
+            switch key.lowercased() {
+            case "url", "href":
+                link = unquoted
+            case "tooltip":
+                tooltip = unquoted
+            case "style":
+                styles.append("style:\(unquoted)")
+            case "color":
+                styles.append("stroke:\(unquoted)")
+            case "fillcolor":
+                styles.append("fill:\(unquoted)")
+            case "fontcolor":
+                styles.append("color:\(unquoted)")
+            default:
+                break
+            }
+        }
+        return (link, tooltip, styles)
+    }
+
+    private static func stripQuotes(_ raw: String) -> String {
+        let trimmed = raw.trimmingCharacters(in: .whitespaces)
+        if trimmed.hasPrefix("\"") && trimmed.hasSuffix("\"") && trimmed.count >= 2 {
+            return String(trimmed.dropFirst().dropLast())
+        }
+        return trimmed
     }
 
     private func makeMember(_ raw: String, isMethod: Bool) -> ClassMember {
