@@ -17,6 +17,7 @@ public struct D2Exporter: DiagramExporter {
         .classDiagram,
         .stateDiagram,
         .erDiagram,
+        .architecture,
     ]
 
     public init() {}
@@ -31,6 +32,8 @@ public struct D2Exporter: DiagramExporter {
             return try D2StateExport.emit(graph, title: document.title)
         case .erDiagram(let model):
             return try D2ERExport.emit(model, title: document.title)
+        case .architecture(let arch):
+            return try D2ArchitectureExport.emit(arch, title: document.title)
         default:
             return .unsupportedDiagram(formatName: name, type: document.type)
         }

@@ -38,6 +38,19 @@ public enum D2RecoveryMarker {
             guard fields.count == 3 else { return nil }
             return .erCardinality(relationshipId: String(fields[0]), source: String(fields[1]), target: String(fields[2]))
         }
+        if let args = stripPrefix("arch-icon=", rest) {
+            let fields = args.split(separator: ",", maxSplits: 1, omittingEmptySubsequences: false)
+            guard fields.count == 2 else { return nil }
+            return .archIcon(serviceID: String(fields[0]), kindRawValue: String(fields[1]))
+        }
+        if let args = stripPrefix("arch-group=", rest) {
+            let fields = args.split(separator: ",", maxSplits: 1, omittingEmptySubsequences: false)
+            guard fields.count == 2 else { return nil }
+            return .archGroup(groupID: String(fields[0]), parentGroupID: String(fields[1]))
+        }
+        if let args = stripPrefix("family=", rest) {
+            return .family(name: args)
+        }
         return nil
     }
 

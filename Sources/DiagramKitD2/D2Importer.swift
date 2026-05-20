@@ -17,6 +17,7 @@ public struct D2Importer: DiagramSourceImporter {
         .classDiagram,
         .stateDiagram,
         .erDiagram,
+        .architecture,
     ]
 
     public init() {}
@@ -59,6 +60,21 @@ public struct D2Importer: DiagramSourceImporter {
             return DiagramImportResult(
                 document: document,
                 diagnostics: parseDiagnostics + stateDiagnostics
+            )
+        }
+
+        // Marker-forced family takes precedence over structural probes.
+        let markerFamily = markerScan.markers.compactMap { marker -> String? in
+            if case .family(let name) = marker.kind { return name } else { return nil }
+        }.first
+
+        if markerFamily == "architecture" || D2ArchitectureProbe.detectsArchitecture(d2Doc) {
+            let (arch, archDiagnostics) = D2ArchitectureMapper().map(d2Doc, markers: markerScan.markers)
+            var document = DiagramDocument(payload: .architecture(arch))
+            document.title = Self.documentTitleMetadata(in: source)
+            return DiagramImportResult(
+                document: document,
+                diagnostics: parseDiagnostics + archDiagnostics
             )
         }
 
