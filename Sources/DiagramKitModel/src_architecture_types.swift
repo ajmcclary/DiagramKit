@@ -6,12 +6,26 @@ public enum ArchitectureDirection: String, Sendable, Equatable, CaseIterable {
 
 /// Discriminates how an `ArchitectureService` should render. Defaults to
 /// `.service` for back-compat with sources that don't carry a shape token.
-/// `.component` / `.interface` are populated by PlantUML's component dialect
-/// (`[Foo]` → component, `interface () X` → interface).
+/// `.component` / `.interface` come from PlantUML's component dialect.
+/// The remaining cases come from PlantUML's deployment dialect.
 public enum ArchitectureServiceKind: String, Sendable, Equatable, CaseIterable {
     case service
     case component
     case interface
+    case node
+    case artifact
+    case database
+    case cloud
+    case frame
+    case folder
+    case package
+    case card
+    case queue
+    case stack
+    case storage
+    case agent
+    case actor
+    case boundary
 }
 
 public struct ArchitectureService: Sendable, Equatable {

@@ -143,6 +143,12 @@ public func renderArchitectureSvg(
         case .service:   serviceClass = "architecture-service"
         case .component: serviceClass = "architecture-service architecture-component"
         case .interface: serviceClass = "architecture-service architecture-interface"
+        case .node, .artifact, .database, .cloud, .frame, .folder,
+             .package, .card, .queue, .stack, .storage, .agent,
+             .actor, .boundary:
+            // PlantUML deployment kinds render as plain rectangles; the
+            // class string carries the kind so CSS can re-style if needed.
+            serviceClass = "architecture-service architecture-\(service.kind.rawValue)"
         }
         svg += "<g id=\"\(SVG.escapeAttribute(serviceId))\" class=\"\(serviceClass)\">\n"
         svg += "<g id=\"\(SVG.escapeAttribute(nodeId))\" style=\"color: \(fgColor)\">\n"
@@ -165,6 +171,13 @@ public func renderArchitectureSvg(
             // glyph fits inside the service bounds the layout reserved.
             let radius = min(service.width, service.height) / 2
             svg += "<circle cx=\"\(_fmt(service.x))\" cy=\"\(_fmt(service.y))\" r=\"\(_fmt(radius))\" fill=\"none\" stroke=\"\(fgColor)\" stroke-width=\"1\"/>\n"
+        case .node, .artifact, .database, .cloud, .frame, .folder,
+             .package, .card, .queue, .stack, .storage, .agent,
+             .actor, .boundary:
+            // PlantUML deployment kinds: plain rectangle glyph for now;
+            // shape-specific rendering can be added later if needed.
+            svg += "<rect x=\"\(_fmt(service.x - service.width / 2))\" y=\"\(_fmt(service.y - service.height / 2))\" width=\"\(_fmt(service.width))\" height=\"\(_fmt(service.height))\" fill=\"none\" stroke=\"\(fgColor)\" stroke-width=\"1\"/>\n"
+            svg += _iconSvg(for: service.icon, iconText: service.iconText, cx: service.x, cy: service.y, size: positioned.config.iconSize, iconSize: iconSize)
         }
         svg += "</g>\n"
         if let title = service.title, !title.isEmpty {
