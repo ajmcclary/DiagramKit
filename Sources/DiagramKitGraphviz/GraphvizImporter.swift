@@ -18,6 +18,7 @@ public struct GraphvizImporter: DiagramSourceImporter {
         .classDiagram,
         .stateDiagram,
         .erDiagram,
+        .architecture,
     ]
 
     public init() {}
@@ -60,6 +61,20 @@ public struct GraphvizImporter: DiagramSourceImporter {
             return DiagramImportResult(
                 document: document,
                 diagnostics: parseDiagnostics + erDiagnostics
+            )
+        }
+
+        // Marker-forced family takes precedence over structural probes.
+        let markerFamily = markerScan.markers.compactMap { marker -> String? in
+            if case .family(let name) = marker.kind { return name } else { return nil }
+        }.first
+
+        if markerFamily == "architecture" || DOTArchitectureProbe.detectsArchitecture(dotDoc) {
+            let (arch, archDiagnostics) = DOTArchitectureMapper().map(dotDoc, markers: markerScan.markers)
+            let document = DiagramDocument(payload: .architecture(arch))
+            return DiagramImportResult(
+                document: document,
+                diagnostics: parseDiagnostics + archDiagnostics
             )
         }
 
