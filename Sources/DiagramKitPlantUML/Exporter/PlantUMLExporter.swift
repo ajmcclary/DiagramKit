@@ -48,9 +48,22 @@ public struct PlantUMLExporter: DiagramExporter {
         case .erDiagram(let model):
             return try PlantUMLERExport.emit(model)
         case .architecture(let model):
+            if Self.requiresDeploymentDialect(model) {
+                return try PlantUMLDeploymentExport.emit(model)
+            }
             return try PlantUMLComponentExport.emit(model)
         default:
             return .unsupportedDiagram(formatName: name, type: document.type)
         }
+    }
+
+    private static let deploymentKinds: Set<ArchitectureServiceKind> = [
+        .node, .artifact, .database, .cloud, .frame, .folder,
+        .package, .card, .queue, .stack, .storage, .agent,
+        .actor, .boundary
+    ]
+
+    private static func requiresDeploymentDialect(_ diagram: ArchitectureDiagram) -> Bool {
+        diagram.services.contains { deploymentKinds.contains($0.kind) }
     }
 }
