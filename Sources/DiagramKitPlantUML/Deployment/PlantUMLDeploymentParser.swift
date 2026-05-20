@@ -30,6 +30,7 @@ public struct PlantUMLDeploymentParser {
     public func parse(_ body: String) throws -> PlantUMLDeploymentAST {
         var rootContainer: [PlantUMLDeploymentAST.Node] = []
         var groupStack: [(group: PlantUMLDeploymentAST.Group, children: [PlantUMLDeploymentAST.Node])] = []
+        var edges: [PlantUMLDeploymentAST.Edge] = []
 
         for rawLine in body.split(separator: "\n", omittingEmptySubsequences: true) {
             let line = rawLine.trimmingCharacters(in: .whitespaces)
@@ -65,10 +66,60 @@ public struct PlantUMLDeploymentParser {
                         rootContainer.append(.shape(shape))
                     }
                 }
+                continue
+            }
+
+            if let edge = parseEdgeLine(line) {
+                edges.append(edge)
+                continue
             }
         }
 
-        return PlantUMLDeploymentAST(roots: rootContainer)
+        return PlantUMLDeploymentAST(roots: rootContainer, edges: edges)
+    }
+
+    private func parseEdgeLine(_ line: String) -> PlantUMLDeploymentAST.Edge? {
+        // Longest-match-first arrow detection
+        let arrowCandidates: [(token: String, direction: PlantUMLDeploymentAST.EdgeDirection, style: PlantUMLDeploymentAST.EdgeStyle)] = [
+            ("<-->", .both, .solid),
+            ("..>", .forward, .dashed),
+            ("<..", .backward, .dashed),
+            ("-->", .forward, .solid),
+            ("<--", .backward, .solid)
+        ]
+        for candidate in arrowCandidates {
+            if let arrowRange = line.range(of: candidate.token) {
+                let lhs = line[..<arrowRange.lowerBound].trimmingCharacters(in: .whitespaces)
+                let rhsAndExtra = line[arrowRange.upperBound...].trimmingCharacters(in: .whitespaces)
+                var label: String? = nil
+                var stereotype: String? = nil
+
+                if let colonIdx = rhsAndExtra.firstIndex(of: ":") {
+                    let rhsId = rhsAndExtra[..<colonIdx].trimmingCharacters(in: .whitespaces)
+                    var afterColon = String(rhsAndExtra[rhsAndExtra.index(after: colonIdx)...])
+                        .trimmingCharacters(in: .whitespaces)
+                    if let stereoStart = afterColon.range(of: "<<"),
+                       let stereoEnd = afterColon.range(of: ">>", range: stereoStart.upperBound..<afterColon.endIndex) {
+                        stereotype = String(afterColon[stereoStart.upperBound..<stereoEnd.lowerBound])
+                        afterColon = String(afterColon[..<stereoStart.lowerBound]).trimmingCharacters(in: .whitespaces)
+                    }
+                    label = afterColon.isEmpty ? nil : afterColon
+                    return .init(
+                        lhsId: lhs, rhsId: rhsId,
+                        direction: candidate.direction, style: candidate.style,
+                        label: label, stereotype: stereotype
+                    )
+                } else {
+                    let rhsId = rhsAndExtra
+                    return .init(
+                        lhsId: lhs, rhsId: rhsId,
+                        direction: candidate.direction, style: candidate.style,
+                        label: nil, stereotype: nil
+                    )
+                }
+            }
+        }
+        return nil
     }
 
     private func parseShapeOrGroupLine(_ line: String) throws -> ParsedLine? {

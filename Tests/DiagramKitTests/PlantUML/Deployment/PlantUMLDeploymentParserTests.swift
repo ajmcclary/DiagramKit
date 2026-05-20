@@ -161,4 +161,54 @@ struct PlantUMLDeploymentParserTests {
             _ = try PlantUMLDeploymentParser().parse(body)
         }
     }
+
+    @Test func parsesSolidForwardEdge() throws {
+        let body = #"""
+        node "A" as a
+        node "B" as b
+        a --> b
+        """#
+        let ast = try PlantUMLDeploymentParser().parse(body)
+        #expect(ast.edges.count == 1)
+        let edge = ast.edges[0]
+        #expect(edge.lhsId == "a")
+        #expect(edge.rhsId == "b")
+        #expect(edge.direction == .forward)
+        #expect(edge.style == .solid)
+        #expect(edge.label == nil)
+    }
+
+    @Test func parsesLabeledEdge() throws {
+        let body = #"a --> b : writes"#
+        let ast = try PlantUMLDeploymentParser().parse(body)
+        #expect(ast.edges.first?.label == "writes")
+    }
+
+    @Test func parsesDashedDependencyEdge() throws {
+        let body = #"a ..> b : depends"#
+        let ast = try PlantUMLDeploymentParser().parse(body)
+        guard let edge = ast.edges.first else { Issue.record("no edge"); return }
+        #expect(edge.style == .dashed)
+        #expect(edge.label == "depends")
+    }
+
+    @Test func parsesBidirectionalEdge() throws {
+        let body = #"a <--> b"#
+        let ast = try PlantUMLDeploymentParser().parse(body)
+        #expect(ast.edges.first?.direction == .both)
+    }
+
+    @Test func parsesBackwardEdge() throws {
+        let body = #"a <-- b"#
+        let ast = try PlantUMLDeploymentParser().parse(body)
+        #expect(ast.edges.first?.direction == .backward)
+    }
+
+    @Test func parsesEdgeStereotype() throws {
+        let body = #"a --> b : uses <<calls>>"#
+        let ast = try PlantUMLDeploymentParser().parse(body)
+        guard let edge = ast.edges.first else { Issue.record("no edge"); return }
+        #expect(edge.label == "uses")
+        #expect(edge.stereotype == "calls")
+    }
 }
