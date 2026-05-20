@@ -113,6 +113,30 @@ public func isPlantUMLComponentBody(_ body: String) -> Bool {
     return false
 }
 
+/// Returns `true` when body contains PlantUML deployment-diagram syntax.
+/// Triggered by deployment-exclusive shape keywords (`node`, `artifact`,
+/// `cloud`, `database`, `frame`, `folder`, `package`, `card`, `queue`,
+/// `stack`, `storage`, `agent`, `boundary`) declaring a labeled shape
+/// or opening a nested block. `actor`/`interface`/`component` are
+/// intentionally excluded — they overlap with sequence/use-case/class
+/// or are already claimed by the component dialect.
+public func isPlantUMLDeploymentBody(_ body: String) -> Bool {
+    let deploymentKeywords: Set<String> = [
+        "node", "artifact", "database", "cloud", "frame", "folder",
+        "package", "card", "queue", "stack", "storage", "agent",
+        "boundary"
+    ]
+    for line in body.split(separator: "\n", omittingEmptySubsequences: true) {
+        let trimmed = line.trimmingCharacters(in: .whitespaces)
+        guard let firstToken = trimmed.split(separator: " ", maxSplits: 1).first else { continue }
+        if deploymentKeywords.contains(String(firstToken)),
+           trimmed.contains("\"") || trimmed.hasSuffix("{") {
+            return true
+        }
+    }
+    return false
+}
+
 /// Returns `true` when body contains class diagram syntax.
 public func isPlantUMLClassBody(_ body: String) -> Bool {
     let lines = body.split(separator: "\n", omittingEmptySubsequences: true)
