@@ -203,7 +203,10 @@ outside the defining module.
 
 - `Sources/DiagramKitCommon/` - Linux-portable foundations: `SVG`,
   `IssueReportingSupport`, `StableID`, text metrics, themes, Font Awesome /
-  HTML-entity tables, multiline utilities, and styles.
+  HTML-entity tables, multiline utilities, styles, and
+  `RecoveryMarker/` (shared `RecoveryMarkerScanner<Kind>` + `DeclarationIndex`
+  scaffolding for the comment-encoded recovery-marker pattern used by D2,
+  DOT, PlantUML, and Structurizr importers/exporters).
 - `Sources/DiagramKitModel/` - JS-ported parsers, layouts, SVG renderers, ASCII
   renderers, payload models, render options/tokens, cross-platform shims,
   frontmatter binding, source preprocessing, `DiagramColorParser`, and

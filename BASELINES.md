@@ -1,6 +1,25 @@
 # BASELINES.md
 
-Last updated: 2026-05-19
+Last updated: 2026-05-20
+
+## Coverage marker recovery — Wave A (shared scaffold + matrix reconciliation)
+
+- **2026-05-20 — Wave A:** Generic `RecoveryMarkerScanner<Kind>` +
+  `DeclarationIndex` + `HasLineNumber` protocol land in
+  `Sources/DiagramKitCommon/RecoveryMarker/`. `StructurizrRecoveryMarker.swift`
+  is refit onto the shared scaffold without behavior change (existing
+  Structurizr suite stays green). New diagnostic category
+  `.recoveryMarkerMalformed` (severity `.warning`) registers in
+  `DiagnosticCategory` + `DiagnosticCategoryTests`. Two stale `⚠` matrix
+  entries flip to `✓` after corpus verification:
+  `classDiagram × PlantUML export` and `architecture × PlantUML export`.
+  COVERAGE.md legend gains a footnote distinguishing import-side foreign-
+  native losses (deferred) from export-side losses closed by recovery
+  markers. Wave A also removes one stale test
+  (`StructurizrImporterTests: parse: emits diagnostic for multiple views`)
+  that asserted a diagnostic removed by Wave 3 closer (`1dc03750`).
+  `Scripts/check-diagnostic-discipline.sh` and
+  `Scripts/check-file-sizes.sh` remain green.
 
 ## Coverage expansion — Wave 3 (Structurizr)
 
