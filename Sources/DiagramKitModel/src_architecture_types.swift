@@ -126,6 +126,13 @@ public struct ArchitectureDiagram: Sendable, Equatable {
     public var config: ArchitectureDiagramConfig
     public var theme: ArchitectureThemeConfig?
 
+    /// Format-specific recovery markers preserved across round-trip.
+    /// Currently used only by the PlantUML deployment exporter to carry
+    /// decoration metadata (group kind, stereotypes, colors, notes,
+    /// legend, edge style) that has no slot on the typed payload. Other
+    /// consumers should ignore this field.
+    public var recoveryMarkers: [String]
+
     public init(
         groups: [ArchitectureGroup] = [],
         services: [ArchitectureService] = [],
@@ -135,7 +142,8 @@ public struct ArchitectureDiagram: Sendable, Equatable {
         accTitle: String? = nil,
         accDescr: String? = nil,
         config: ArchitectureDiagramConfig = .default,
-        theme: ArchitectureThemeConfig? = nil
+        theme: ArchitectureThemeConfig? = nil,
+        recoveryMarkers: [String] = []
     ) {
         self.groups = groups
         self.services = services
@@ -146,6 +154,7 @@ public struct ArchitectureDiagram: Sendable, Equatable {
         self.accDescr = accDescr
         self.config = config
         self.theme = theme
+        self.recoveryMarkers = recoveryMarkers
     }
 
     public static let empty = ArchitectureDiagram()
