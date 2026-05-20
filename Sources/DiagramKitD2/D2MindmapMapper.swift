@@ -27,7 +27,15 @@ public struct D2MindmapMapper {
         for stmt in doc.statements {
             switch stmt {
             case .nodeDefinition(let nodeDef):
-                labels[nodeDef.id] = nodeDef.label ?? nodeDef.id
+                // Only set a label when the statement actually provides
+                // one — D2 sources commonly use a separate `id.shape: …`
+                // statement that has no label and would otherwise
+                // overwrite a previous `id: "Label"` declaration.
+                if let label = nodeDef.label {
+                    labels[nodeDef.id] = label
+                } else if labels[nodeDef.id] == nil {
+                    labels[nodeDef.id] = nodeDef.id
+                }
                 if let s = nodeDef.shape { shapes[nodeDef.id] = s }
                 allNodes.insert(nodeDef.id)
             case .edgeDefinition(let edgeDef):

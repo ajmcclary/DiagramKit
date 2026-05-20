@@ -620,5 +620,89 @@ struct CrossFormatRoundTripTests {
             fixture: fixture
         )
     }
+
+    // MARK: Mermaid ↔ D2 (mindmap)
+
+    @Test(
+        "Mermaid → D2 → Mermaid (mindmap)",
+        arguments: try fixtures(for: "cross-mermaid-d2-mindmap", fromRoot: roundTripResourcesRoot())
+    )
+    func mermaidD2Mindmap(fixture: RoundTripFixture) throws {
+        try runCrossFormatRoundTrip(
+            legA: RoundTripCellRegistry.mermaidMindmap,
+            legB: RoundTripCellRegistry.d2Mindmap,
+            additionalAllowedLosses: RoundTripCrossRegistry.mermaidD2Mindmap,
+            fixture: fixture
+        )
+    }
+
+    @Test(
+        "D2 → Mermaid → D2 (mindmap)",
+        arguments: try fixtures(for: "cross-d2-mermaid-mindmap", fromRoot: roundTripResourcesRoot())
+    )
+    func d2MermaidMindmap(fixture: RoundTripFixture) throws {
+        try runCrossFormatRoundTrip(
+            legA: RoundTripCellRegistry.d2Mindmap,
+            legB: RoundTripCellRegistry.mermaidMindmap,
+            additionalAllowedLosses: RoundTripCrossRegistry.d2MermaidMindmap,
+            fixture: fixture
+        )
+    }
+
+    // MARK: Mermaid ↔ DOT (mindmap)
+
+    @Test(
+        "Mermaid → DOT → Mermaid (mindmap)",
+        arguments: try fixtures(for: "cross-mermaid-dot-mindmap", fromRoot: roundTripResourcesRoot())
+    )
+    func mermaidDotMindmap(fixture: RoundTripFixture) throws {
+        try runCrossFormatRoundTrip(
+            legA: RoundTripCellRegistry.mermaidMindmap,
+            legB: RoundTripCellRegistry.dotMindmap,
+            additionalAllowedLosses: RoundTripCrossRegistry.mermaidDotMindmap,
+            fixture: fixture
+        )
+    }
+
+    @Test(
+        "DOT → Mermaid → DOT (mindmap)",
+        arguments: try fixtures(for: "cross-dot-mermaid-mindmap", fromRoot: roundTripResourcesRoot())
+    )
+    func dotMermaidMindmap(fixture: RoundTripFixture) throws {
+        try runCrossFormatRoundTrip(
+            legA: RoundTripCellRegistry.dotMindmap,
+            legB: RoundTripCellRegistry.mermaidMindmap,
+            additionalAllowedLosses: RoundTripCrossRegistry.dotMermaidMindmap,
+            fixture: fixture
+        )
+    }
+
+    // MARK: D2 ↔ DOT (mindmap)
+
+    @Test(
+        "D2 → DOT → D2 (mindmap)",
+        arguments: try fixtures(for: "cross-d2-dot-mindmap", fromRoot: roundTripResourcesRoot())
+    )
+    func d2DotMindmap(fixture: RoundTripFixture) throws {
+        try runCrossFormatRoundTrip(
+            legA: RoundTripCellRegistry.d2Mindmap,
+            legB: RoundTripCellRegistry.dotMindmap,
+            additionalAllowedLosses: RoundTripCrossRegistry.d2DotMindmap,
+            fixture: fixture
+        )
+    }
+
+    @Test(
+        "DOT → D2 → DOT (mindmap)",
+        arguments: try fixtures(for: "cross-dot-d2-mindmap", fromRoot: roundTripResourcesRoot())
+    )
+    func dotD2Mindmap(fixture: RoundTripFixture) throws {
+        try runCrossFormatRoundTrip(
+            legA: RoundTripCellRegistry.dotMindmap,
+            legB: RoundTripCellRegistry.d2Mindmap,
+            additionalAllowedLosses: RoundTripCrossRegistry.dotD2Mindmap,
+            fixture: fixture
+        )
+    }
 }
 

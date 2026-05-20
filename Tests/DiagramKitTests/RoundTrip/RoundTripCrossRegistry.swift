@@ -70,4 +70,12 @@ enum RoundTripCrossRegistry {
     static let dotMermaidArchitecture: Set<RoundTripLossKind> = [.idSanitization, .shapeDowngrade, .styleDrop, .titleDrop]
     static let d2DotArchitecture: Set<RoundTripLossKind> = [.idSanitization, .shapeDowngrade, .styleDrop, .titleDrop]
     static let dotD2Architecture: Set<RoundTripLossKind> = [.idSanitization, .shapeDowngrade, .styleDrop, .titleDrop]
+
+    // Wave E — mindmap cross-format pairs
+    static let mermaidD2Mindmap: Set<RoundTripLossKind> = [.idSanitization, .shapeDowngrade, .titleDrop]
+    static let d2MermaidMindmap: Set<RoundTripLossKind> = [.idSanitization, .shapeDowngrade, .titleDrop]
+    static let mermaidDotMindmap: Set<RoundTripLossKind> = [.idSanitization, .shapeDowngrade, .titleDrop]
+    static let dotMermaidMindmap: Set<RoundTripLossKind> = [.idSanitization, .shapeDowngrade, .titleDrop]
+    static let d2DotMindmap: Set<RoundTripLossKind> = [.idSanitization, .shapeDowngrade, .titleDrop]
+    static let dotD2Mindmap: Set<RoundTripLossKind> = [.idSanitization, .shapeDowngrade, .titleDrop]
 }
