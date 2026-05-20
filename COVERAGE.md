@@ -16,22 +16,19 @@ Where" for slice paths and [BASELINES.md](BASELINES.md) for corpus counts.
   `.featureDropped` / informational diagnostics
 - `—` — not implemented: dispatch falls through to `.unsupportedDiagram` (export)
   or family never appears in payload union (import)
-- `⚠` in the **import table** for D2/DOT × {state, er} reflects diagnostics
-  on D2/DOT-native composite-state container nesting and ER cardinality
-  decoration that today's mappers route through recovery markers rather than
-  Mermaid payload slots. `⚠` for PlantUML × {flowchart, architecture} import
+- `⚠` in the **import table** for PlantUML × {flowchart, architecture}
   reflects activity `partition` losses and component-vs-interface styling.
-  Waves 2 and 3 of the 2026-05-20-residuals spec close these remaining cells.
+  Wave 3 of the 2026-05-20-residuals spec closes these remaining cells.
 
 ## Import coverage
 
 | Family            | Mermaid | D2 | DOT | Structurizr | PlantUML |
 |-------------------|:-------:|:--:|:---:|:-----------:|:--------:|
 | flowchart         |   ★    | ✓ | ✓  |     —      |    ⚠    |
-| stateDiagram      |   ★    | ⚠ | ⚠  |     —      |    ✓    |
+| stateDiagram      |   ★    | ✓ | ✓  |     —      |    ✓    |
 | sequenceDiagram   |   ★    | — | —  |     —      |    ✓    |
 | classDiagram      |   ★    | ✓ | ✓  |     —      |    ✓    |
-| erDiagram         |   ★    | ⚠ | ⚠  |     —      |    ✓    |
+| erDiagram         |   ★    | ✓ | ✓  |     —      |    ✓    |
 | xyChart           |   ★    | — | —  |     —      |    —    |
 | pie               |   ★    | — | —  |     —      |    —    |
 | journey           |   ★    | — | —  |     —      |    —    |
