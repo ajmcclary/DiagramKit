@@ -137,6 +137,28 @@ struct ImportDiagnosticAbsenceTests {
         }
     }
 
+    @Test func d2ERWithCardinality() throws {
+        let source = try loadFixture("d2-er/02-cardinality.d2")
+        let result = try D2Importer().parse(source)
+        #expect(result.diagnostics.isEmpty,
+                "Expected zero import diagnostics, got: \(result.diagnostics)")
+        guard case .erDiagram(let er) = result.document.payload else {
+            Issue.record("Expected erDiagram, got \(result.document.payload.type)")
+            return
+        }
+        guard let rel = er.relationships.first else {
+            Issue.record("Expected a relationship")
+            return
+        }
+        #expect(rel.relSpec.cardA == .onlyOne,
+                "Expected cardA = onlyOne, got \(rel.relSpec.cardA)")
+        #expect(rel.relSpec.cardB == .oneOrMore,
+                "Expected cardB = oneOrMore, got \(rel.relSpec.cardB)")
+        // Recognized cardinality should not also surface as a relationship label
+        #expect(rel.roleA.isEmpty || !rel.roleA.contains("{"),
+                "Cardinality label should be consumed, got roleA=\(rel.roleA)")
+    }
+
     // MARK: - Helpers
 
     private func loadFixture(_ relativePath: String) throws -> String {

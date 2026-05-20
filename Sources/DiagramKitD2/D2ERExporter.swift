@@ -73,9 +73,17 @@ struct D2ERMapper {
             case .edgeDefinition(let edge):
                 let source = edge.source.split(separator: ".").first.map(String.init) ?? edge.source
                 let target = edge.target.split(separator: ".").first.map(String.init) ?? edge.target
+                // Try to recognize a `{lo..hi}` cardinality marker in the
+                // edge label. When recognized, the label is consumed; when
+                // not, the original label survives as the relationship's
+                // roleA text (preserving D2's free-form label semantics).
+                let parsed = Self.parseCardinalityLabel(edge.label)
+                let cardA: ErCardinality = parsed?.cardA ?? .zeroOrMore
+                let cardB: ErCardinality = parsed?.cardB ?? .zeroOrMore
+                let label: String = parsed == nil ? (edge.label ?? "") : ""
                 let relSpec = ErRelSpec(
-                    cardA: .zeroOrMore,
-                    cardB: .zeroOrMore,
+                    cardA: cardA,
+                    cardB: cardB,
                     relType: .nonIdentifying
                 )
                 relationships.append(ErRelationship(
@@ -83,7 +91,7 @@ struct D2ERMapper {
                     entity2: target,
                     entityAId: "entity-\(source)-0",
                     entityBId: "entity-\(target)-0",
-                    roleA: edge.label ?? "",
+                    roleA: label,
                     relSpec: relSpec
                 ))
             default:
@@ -92,6 +100,39 @@ struct D2ERMapper {
         }
 
         return (ErDiagram(entities: entities, relationships: relationships), diagnostics)
+    }
+
+    /// Parses a D2 edge label like `"{1..N}"`, `"{0..1}"`, `"{0..N}"`, `"{1..1}"`
+    /// into a `(cardA, cardB)` pair. Returns nil for any label that does
+    /// not match the closed grammar; conservative recognition avoids
+    /// consuming user-authored free-form labels.
+    ///
+    /// Mapping:
+    /// - `{0..1}` → (zeroOrOne, zeroOrOne)
+    /// - `{0..N}` / `{0..n}` / `{0..*}` → (zeroOrOne, zeroOrMore)
+    /// - `{1..1}` → (onlyOne, onlyOne)
+    /// - `{1..N}` / `{1..n}` / `{1..*}` → (onlyOne, oneOrMore)
+    static func parseCardinalityLabel(_ raw: String?) -> (cardA: ErCardinality, cardB: ErCardinality)? {
+        guard let raw = raw else { return nil }
+        var s = raw.trimmingCharacters(in: .whitespaces)
+        // Strip wrapping quotes if present.
+        if s.hasPrefix("\"") && s.hasSuffix("\"") && s.count >= 2 {
+            s = String(s.dropFirst().dropLast())
+        }
+        s = s.trimmingCharacters(in: .whitespaces)
+        guard s.hasPrefix("{") && s.hasSuffix("}") && s.count >= 5 else { return nil }
+        let inner = String(s.dropFirst().dropLast()).trimmingCharacters(in: .whitespaces)
+        let parts = inner.components(separatedBy: "..")
+        guard parts.count == 2 else { return nil }
+        let lo = parts[0].trimmingCharacters(in: .whitespaces)
+        let hi = parts[1].trimmingCharacters(in: .whitespaces)
+        switch (lo, hi.lowercased()) {
+        case ("0", "1"): return (.zeroOrOne, .zeroOrOne)
+        case ("0", "n"), ("0", "*"): return (.zeroOrOne, .zeroOrMore)
+        case ("1", "1"): return (.onlyOne, .onlyOne)
+        case ("1", "n"), ("1", "*"): return (.onlyOne, .oneOrMore)
+        default: return nil
+        }
     }
 }
 

@@ -1,0 +1,13 @@
+Customer: {
+  shape: sql_table
+  id: int
+  email: string
+}
+
+Order: {
+  shape: sql_table
+  id: int
+  customer_id: int
+}
+
+Customer -> Order: "{1..N}"
