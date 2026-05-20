@@ -133,6 +133,17 @@ of two specs:
     `ArchitectureService.kind: ArchitectureServiceKind` field. The
     activity exporter emits matching `partition` blocks around subgraph
     members on round-trip.
+- **PlantUML deployment dialect (no matrix cell change).** PlantUML's
+  deployment syntax (`node`, `artifact`, `cloud`, `database`, `queue`,
+  `storage`, etc. — 14 shape kinds) now imports and exports through the
+  `architecture` payload as a peer to the Wave-3 component dialect.
+  Decorations (stereotypes, color tags, notes, legend, group kind,
+  edge style) round-trip losslessly via comment-encoded recovery
+  markers (`' diagramkit:deployment-*`). Cross-format export to
+  Mermaid architecture emits `.lossyTransform(.shapeDowngrade, …)`
+  per non-`.service` kind. No new `DiagnosticCategory` cases; reuses
+  `.shapeDowngrade` / `.slotUnsupported`. Closes
+  [`docs/superpowers/specs/2026-05-20-plantuml-deployment-design.md`](docs/superpowers/specs/2026-05-20-plantuml-deployment-design.md).
 
 The only new public surface across Wave D is the
 `ArchitectureServiceKind` enum (`service` / `component` / `interface`)
