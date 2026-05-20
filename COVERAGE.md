@@ -5,8 +5,9 @@ ships: Mermaid, D2, Graphviz DOT, Structurizr, PlantUML. The corpus carries 28
 diagram families. Mermaid is the canonical model surface — every other format
 imports/exports a subset by projecting into a Mermaid-equivalent payload.
 
-Last audited: 2026-05-20. Cross-reference [CLAUDE.md](CLAUDE.md) "What Lives
-Where" for slice paths and [BASELINES.md](BASELINES.md) for corpus counts.
+Last audited: 2026-05-20 (Wave E). Cross-reference [CLAUDE.md](CLAUDE.md)
+"What Lives Where" for slice paths and [BASELINES.md](BASELINES.md) for
+corpus counts.
 
 ## Legend
 
@@ -40,23 +41,23 @@ Where" for slice paths and [BASELINES.md](BASELINES.md) for corpus counts.
 | quadrantChart     |   ★    | — | —  |     —      |    —    |
 | requirement       |   ★    | — | —  |     —      |    —    |
 | gitGraph          |   ★    | — | —  |     —      |    —    |
-| mindmap           |   ★    | — | —  |     —      |    ✓    |
+| mindmap           |   ★    | ✓ | ✓  |     —      |    ✓    |
 | timeline          |   ★    | — | —  |     —      |    —    |
 | sankey            |   ★    | — | —  |     —      |    —    |
 | block             |   ★    | — | —  |     —      |    —    |
 | packet            |   ★    | — | —  |     —      |    —    |
 | kanban            |   ★    | — | —  |     —      |    —    |
-| architecture      |   ★    | — | —  |     —      |    ✓    |
+| architecture      |   ★    | ✓ | ✓  |     —      |    ✓    |
 | radar             |   ★    | — | —  |     —      |    —    |
 | treemap           |   ★    | — | —  |     —      |    —    |
 | venn              |   ★    | — | —  |     —      |    —    |
 | ishikawa          |   ★    | — | —  |     —      |    —    |
-| treeView          |   ★    | — | —  |     —      |    —    |
+| treeView          |   ★    | ✓ | ✓  |     —      |    —    |
 | eventModeling     |   ★    | — | —  |     —      |    —    |
 | wardleyBeta       |   ★    | — | —  |     —      |    —    |
 | c4                |   ★    | — | —  |     ✓      |    ✓    |
 | zenuml            |   ★    | — | —  |     —      |    —    |
-| **Totals**        | 28/28  | 4/28 | 4/28 | 1/28      | 9/28    |
+| **Totals**        | 28/28  | 7/28 | 7/28 | 1/28      | 9/28    |
 
 ## Export coverage
 
@@ -74,33 +75,33 @@ Where" for slice paths and [BASELINES.md](BASELINES.md) for corpus counts.
 | quadrantChart     |   ✓    | — | —  |     —      |    —    |
 | requirement       |   ✓    | — | —  |     —      |    —    |
 | gitGraph          |   ✓    | — | —  |     —      |    —    |
-| mindmap           |   ✓    | — | —  |     —      |    ✓    |
+| mindmap           |   ✓    | ✓ | ✓  |     —      |    ✓    |
 | timeline          |   ✓    | — | —  |     —      |    —    |
 | sankey            |   ✓    | — | —  |     —      |    —    |
 | block             |   ✓    | — | —  |     —      |    —    |
 | packet            |   ✓    | — | —  |     —      |    —    |
 | kanban            |   ✓    | — | —  |     —      |    —    |
-| architecture      |   ✓    | — | —  |     —      |    ✓    |
+| architecture      |   ✓    | ✓ | ✓  |     —      |    ✓    |
 | radar             |   ✓    | — | —  |     —      |    —    |
 | treemap           |   ✓    | — | —  |     —      |    —    |
 | venn              |   ✓    | — | —  |     —      |    —    |
 | ishikawa          |   ✓    | — | —  |     —      |    —    |
-| treeView          |   ✓    | — | —  |     —      |    —    |
+| treeView          |   ✓    | ✓ | ✓  |     —      |    —    |
 | eventModeling     |   ✓    | — | —  |     —      |    —    |
 | wardleyBeta       |   ✓    | — | —  |     —      |    —    |
 | c4                |   ✓    | — | —  |     ✓      |    ✓    |
 | zenuml            |   ✓    | — | —  |     —      |    —    |
-| **Totals**        | 28/28  | 4/28 | 4/28 | 1/28      | 9/28    |
+| **Totals**        | 28/28  | 7/28 | 7/28 | 1/28      | 9/28    |
 
 ## Round-trip discipline
 
-`Tests/DiagramKitTests/RoundTrip/Resources/roundtrip/` currently holds **30
-same-format fixtures** and **40 cross-format directed pairs** (20 unordered).
+`Tests/DiagramKitTests/RoundTrip/Resources/roundtrip/` currently holds **36
+same-format fixtures** and **58 cross-format directed pairs** (29 unordered).
 
 | Layer | Coverage |
 |-------|----------|
-| Same-format | mermaid {flowchart, sequence, class, er, gantt, state, c4}, d2 {flowchart, class, state, er}, dot {flowchart, class, state, er}, plantuml {sequence, class, state, gantt, mindmap, c4, activity, er, useCase, object, component}, structurizr {c4} |
-| Cross-format pairs | flowchart × {mermaid↔d2, mermaid↔dot, d2↔dot, mermaid↔plantuml}; sequence × {mermaid↔plantuml}; class × {mermaid↔plantuml, mermaid↔d2, mermaid↔dot, d2↔dot}; state × {mermaid↔d2, mermaid↔dot, d2↔dot}; er × {mermaid↔plantuml, mermaid↔d2, mermaid↔dot, d2↔dot}; c4 × {mermaid↔plantuml, mermaid↔structurizr, plantuml↔structurizr} |
+| Same-format | mermaid {flowchart, sequence, class, er, gantt, state, c4}, d2 {flowchart, class, state, er, architecture, mindmap, treeView}, dot {flowchart, class, state, er, architecture, mindmap, treeView}, plantuml {sequence, class, state, gantt, mindmap, c4, activity, er, useCase, object, component}, structurizr {c4} |
+| Cross-format pairs | flowchart × {mermaid↔d2, mermaid↔dot, d2↔dot, mermaid↔plantuml}; sequence × {mermaid↔plantuml}; class × {mermaid↔plantuml, mermaid↔d2, mermaid↔dot, d2↔dot}; state × {mermaid↔d2, mermaid↔dot, d2↔dot}; er × {mermaid↔plantuml, mermaid↔d2, mermaid↔dot, d2↔dot}; architecture × {mermaid↔d2, mermaid↔dot, d2↔dot}; mindmap × {mermaid↔d2, mermaid↔dot, d2↔dot}; treeView × {mermaid↔d2, mermaid↔dot, d2↔dot}; c4 × {mermaid↔plantuml, mermaid↔structurizr, plantuml↔structurizr} |
 
 Every supported import × export intersection that produces a non-empty result
 has a round-trip fixture. There are no missing pairs given today's supported
@@ -110,7 +111,7 @@ families — the gaps in the matrix above are the gaps to close.
 
 **Both the import and export tables now have zero `⚠` cells** for every
 covered (family × format) intersection. Closure landed across four waves
-of two specs:
+of two specs (plus PlantUML deployment dialect and Wave E):
 
 - **Waves A/B/C** of
   [docs/superpowers/specs/2026-05-20-coverage-marker-recovery-design.md](docs/superpowers/specs/2026-05-20-coverage-marker-recovery-design.md)
@@ -144,6 +145,22 @@ of two specs:
   per non-`.service` kind. No new `DiagnosticCategory` cases; reuses
   `.shapeDowngrade` / `.slotUnsupported`. Closes
   [`docs/superpowers/specs/2026-05-20-plantuml-deployment-design.md`](docs/superpowers/specs/2026-05-20-plantuml-deployment-design.md).
+- **Wave E — D2 + DOT architecture / mindmap / treeView.** D2 and
+  DOT each gain three families (no matrix `⚠` involved; all three
+  were `—`). Detection: structural probe for architecture (≥2
+  distinctive arch shapes — `cylinder`, `cloud`, `queue`, `page` for
+  D2; `cylinder`, `component`, `note`, `folder`, `box3d` for DOT —
+  `circle`/`hexagon`/`oval` excluded to avoid misclassifying common
+  flowchart downgrades), marker-only for mindmap/treeView. Six new
+  recovery-marker kinds (`family`, `arch-icon`, `arch-group`,
+  `tree-root`, `mindmap-icon`; no `tree-collapsed` — `TreeViewNode`
+  has no collapsed slot) preserve shape kinds across same-format
+  round-trip. Cross-format `mermaid ↔ d2/dot` paths bridge Mermaid's
+  icon-based shape encoding (`service.icon: String`) with D2/DOT's
+  kind-based encoding via reciprocal `iconForKind`/`kindForIcon`
+  helpers on both mappers. No new `DiagnosticCategory` cases; reuses
+  `.shapeDowngrade` / `.slotUnsupported` / `.idSanitization`. Closes
+  [`docs/superpowers/specs/2026-05-20-d2-dot-coverage-wave-e-design.md`](docs/superpowers/specs/2026-05-20-d2-dot-coverage-wave-e-design.md).
 
 The only new public surface across Wave D is the
 `ArchitectureServiceKind` enum (`service` / `component` / `interface`)
@@ -225,6 +242,9 @@ Ordered by impact:
    closure.**~~ Closed by the 2026-05-20 coverage-marker-recovery spec.
 5. ~~**Import-side residual `⚠` cells (9 cells) via Mermaid payload wiring.**~~
    Closed by the 2026-05-20 import-coverage-residuals spec.
+6. ~~**D2 + DOT expansion: architecture, mindmap, treeView (3 families × 2
+   formats × both directions, marker-recovered round-trip).**~~ Closed by
+   Wave E (2026-05-20-d2-dot-coverage-wave-e spec).
 
 Anything outside this list (Wardley, Sankey, Packet, Treemap, etc. in non-native
 formats) is a deliberate `—` and should not be added without a concrete user

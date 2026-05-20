@@ -21,7 +21,10 @@ struct RoundTripLossTests {
             (.d2DuplicateOverride(nodeID: "x", attribute: "label"), .d2DuplicateOverride),
             (.classStereotypeDrop(classID: "Foo", stereotype: "interface"), .classStereotypeDrop),
             (.stateActionDrop(stateID: "Idle", phase: .entry), .stateActionDrop),
-            (.cardinalityDrop(relationshipID: "Order_Customer", side: .source), .cardinalityDrop)
+            (.cardinalityDrop(relationshipID: "Order_Customer", side: .source), .cardinalityDrop),
+            (.deploymentShapeFlattened(serviceID: "s", kindRawValue: "node"), .deploymentShapeFlattened),
+            (.deploymentDecorationDropped(serviceID: "s", decoration: "color"), .deploymentDecorationDropped),
+            (.deploymentLegendDropped, .deploymentLegendDropped),
         ]
         for (loss, expectedKind) in cases {
             #expect(loss.kind == expectedKind)
