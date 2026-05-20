@@ -42,7 +42,11 @@ struct D2StateMapper {
         var nodeOrder: [String] = []
         var edges: [original_src_types.MermaidEdge] = []
         var diagnostics: [DiagramDiagnostic] = []
-        var depthInContainer = 0
+        var subgraphs: [original_src_types.MermaidSubgraph] = []
+        // Per-container nodeId collectors. `subgraph` is the partial we'll
+        // emit on close; `nodeIds` accumulates ids declared/referenced inside
+        // this container so the subgraph's nodeIds end up populated.
+        var subgraphStack: [(subgraph: original_src_types.MermaidSubgraph, nodeIds: [String])] = []
 
         func ensureNode(_ id: String) {
             guard nodesById[id] == nil else { return }
@@ -58,29 +62,63 @@ struct D2StateMapper {
             nodeOrder.append(id)
         }
 
+        func appendUnique(_ id: String, to list: inout [String]) {
+            if !list.contains(id) { list.append(id) }
+        }
+
+        func recordInCurrentSubgraph(_ id: String) {
+            guard !subgraphStack.isEmpty else { return }
+            let idx = subgraphStack.count - 1
+            appendUnique(id, to: &subgraphStack[idx].nodeIds)
+        }
+
         for stmt in document.statements {
             switch stmt {
             case .containerOpen(let open):
-                depthInContainer += 1
+                // The container itself surfaces as a composite-state node so
+                // outer edges can target it (e.g. `Idle -> Active`).
                 ensureNode(open.id)
+                let subgraph = original_src_types.MermaidSubgraph(
+                    id: open.id,
+                    label: open.label ?? open.id,
+                    nodeIds: []
+                )
+                subgraphStack.append((subgraph: subgraph, nodeIds: []))
             case .containerClose:
-                depthInContainer = max(0, depthInContainer - 1)
-            case .nodeDefinition(let def):
-                if depthInContainer > 0 {
-                    if def.id.lowercased().hasPrefix("entry") || def.id.lowercased().hasPrefix("exit") {
-                        let phase: StateActionPhaseLabel = def.id.lowercased().hasPrefix("entry") ? .entry : .exit
-                        let outerStateID = nodeOrder.last ?? "unknown"
-                        diagnostics.append(.lossyTransform(
-                            .stateActionDrop,
-                            message: "D2 has no native state \(phase.rawValue) action slot; dropping '\(def.id): \(def.label ?? "")' on state '\(outerStateID)'"
-                        ))
+                guard !subgraphStack.isEmpty else { break }
+                let closed = subgraphStack.removeLast()
+                closed.subgraph.nodeIds = closed.nodeIds
+                if subgraphStack.isEmpty {
+                    subgraphs.append(closed.subgraph)
+                } else {
+                    let parentIdx = subgraphStack.count - 1
+                    subgraphStack[parentIdx].subgraph.children.append(closed.subgraph)
+                    // The nested subgraph's contents also belong to the
+                    // outer container's nodeIds for layout purposes.
+                    for nodeId in closed.nodeIds {
+                        appendUnique(nodeId, to: &subgraphStack[parentIdx].nodeIds)
                     }
+                }
+            case .nodeDefinition(let def):
+                if def.id.lowercased().hasPrefix("entry") || def.id.lowercased().hasPrefix("exit") {
+                    // entry: / exit: lines inside a state container describe
+                    // PlantUML-style state actions; D2 has no equivalent slot
+                    // and Mermaid state v1 dropped them. Surface as a loss.
+                    let phase: StateActionPhaseLabel = def.id.lowercased().hasPrefix("entry") ? .entry : .exit
+                    let outerStateID = subgraphStack.last?.subgraph.id ?? nodeOrder.last ?? "unknown"
+                    diagnostics.append(.lossyTransform(
+                        .stateActionDrop,
+                        message: "D2 has no native state \(phase.rawValue) action slot; dropping '\(def.id): \(def.label ?? "")' on state '\(outerStateID)'"
+                    ))
                     continue
                 }
                 ensureNode(def.id)
+                recordInCurrentSubgraph(def.id)
             case .edgeDefinition(let edge):
                 ensureNode(edge.source)
                 ensureNode(edge.target)
+                recordInCurrentSubgraph(edge.source)
+                recordInCurrentSubgraph(edge.target)
                 edges.append(original_src_types.MermaidEdge(
                     source: edge.source,
                     target: edge.target,
@@ -102,7 +140,8 @@ struct D2StateMapper {
         let graph = original_src_types.MermaidGraph(
             direction: .TD,
             nodesInOrder: nodesInOrder,
-            edges: edges
+            edges: edges,
+            subgraphs: subgraphs
         )
         return (graph, diagnostics)
     }

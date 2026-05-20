@@ -91,6 +91,31 @@ struct ImportDiagnosticAbsenceTests {
         }
     }
 
+    @Test func d2StateWithNestedComposite() throws {
+        let source = try loadFixture("d2-state/02-nested-composite.d2")
+        let result = try D2Importer().parse(source)
+        #expect(result.diagnostics.isEmpty,
+                "Expected zero import diagnostics, got: \(result.diagnostics)")
+        guard case .stateDiagram(let graph) = result.document.payload else {
+            Issue.record("Expected stateDiagram, got \(result.document.payload.type)")
+            return
+        }
+        // Inner states should be present as nodes.
+        let nodeIds = Set(graph.nodesInOrder.map { $0.id })
+        #expect(nodeIds.contains("Loading"),
+                "Inner state `Loading` missing from graph nodes; got \(nodeIds)")
+        #expect(nodeIds.contains("Ready"),
+                "Inner state `Ready` missing from graph nodes; got \(nodeIds)")
+        // The container should surface as a subgraph holding Loading and Ready.
+        let active = graph.subgraphs.first(where: { $0.id == "Active" })
+        #expect(active != nil,
+                "Expected `Active` to surface as MermaidSubgraph; got subgraphs \(graph.subgraphs.map { $0.id })")
+        if let active = active {
+            #expect(active.nodeIds.contains("Loading"))
+            #expect(active.nodeIds.contains("Ready"))
+        }
+    }
+
     // MARK: - Helpers
 
     private func loadFixture(_ relativePath: String) throws -> String {
