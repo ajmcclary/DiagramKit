@@ -17,7 +17,23 @@ enum MermaidArchitectureExport {
 
     static func emit(_ model: ArchitectureDiagram) throws -> DiagramExportResult {
         var lines: [String] = ["architecture-beta"]
-        let diagnostics: [DiagramDiagnostic] = []
+        var diagnostics: [DiagramDiagnostic] = []
+
+        // Cross-format shape-flattening: Mermaid architecture has no shape
+        // vocabulary; any non-.service kind flattens to `service` with a
+        // typed .shapeDowngrade diagnostic per affected entity.
+        let nonServiceKinds: Set<ArchitectureServiceKind> = [
+            .component, .interface,
+            .node, .artifact, .database, .cloud, .frame, .folder,
+            .package, .card, .queue, .stack, .storage, .agent,
+            .actor, .boundary
+        ]
+        for service in model.services where nonServiceKinds.contains(service.kind) {
+            diagnostics.append(.lossyTransform(
+                .shapeDowngrade,
+                message: "kind=\(service.kind.rawValue) downgraded to service for mermaid architecture"
+            ))
+        }
 
         if let title = model.diagramTitle, !title.isEmpty {
             lines.append("    title \(singleLine(title))")

@@ -2,6 +2,7 @@ import Testing
 import DiagramKitCommon
 import DiagramKitModel
 import DiagramKitExport
+@testable import DiagramKitMermaid
 @testable import DiagramKitPlantUML
 
 @Suite("PlantUMLDeploymentExporterTests")
@@ -75,6 +76,27 @@ struct PlantUMLDeploymentExporterTests {
         )
         let result = try PlantUMLDeploymentExport.emit(diagram)
         #expect(result.source.contains("a --> b : writes"))
+    }
+
+    @Test func mermaidArchitectureExportFlagsDeploymentKindAsShapeDowngrade() throws {
+        let diagram = ArchitectureDiagram(
+            services: [
+                .init(id: "db", title: "Postgres", parentGroupId: nil, kind: .database),
+                .init(id: "queue", title: "MQ", parentGroupId: nil, kind: .queue)
+            ]
+        )
+        let result = try MermaidArchitectureExport.emit(diagram)
+        let downgrades = result.diagnostics.filter { $0.category == .shapeDowngrade }
+        #expect(downgrades.count == 2)
+    }
+
+    @Test func mermaidArchitectureExportSilentForPlainServiceKind() throws {
+        let diagram = ArchitectureDiagram(
+            services: [.init(id: "x", title: "X", parentGroupId: nil, kind: .service)]
+        )
+        let result = try MermaidArchitectureExport.emit(diagram)
+        let downgrades = result.diagnostics.filter { $0.category == .shapeDowngrade }
+        #expect(downgrades.isEmpty)
     }
 
     @Test func componentExportFlagsDeploymentKindAsShapeDowngrade() throws {
