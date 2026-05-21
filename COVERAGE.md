@@ -5,7 +5,7 @@ ships: Mermaid, D2, Graphviz DOT, Structurizr, PlantUML. The corpus carries 28
 diagram families. Mermaid is the canonical model surface — every other format
 imports/exports a subset by projecting into a Mermaid-equivalent payload.
 
-Last audited: 2026-05-21 (Wave I). Cross-reference [CLAUDE.md](CLAUDE.md)
+Last audited: 2026-05-21 (Wave J). Cross-reference [CLAUDE.md](CLAUDE.md)
 "What Lives Where" for slice paths and [BASELINES.md](BASELINES.md) for
 corpus counts.
 
@@ -44,7 +44,7 @@ corpus counts.
 | mindmap           |   ★    | ✓ | ✓  |     —      |    ✓    |
 | timeline          |   ★    | — | —  |     —      |    —    |
 | sankey            |   ★    | — | —  |     —      |    —    |
-| block             |   ★    | — | —  |     —      |    —    |
+| block             |   ★    | ✓ | ✓  |     —      |    —    |
 | packet            |   ★    | — | —  |     —      |    —    |
 | kanban            |   ★    | — | —  |     —      |    —    |
 | architecture      |   ★    | ✓ | ✓  |     —      |    ✓    |
@@ -57,7 +57,7 @@ corpus counts.
 | wardleyBeta       |   ★    | — | —  |     —      |    —    |
 | c4                |   ★    | ✓ | ✓  |     ✓      |    ✓    |
 | zenuml            |   ★    | — | —  |     —      |    —    |
-| **Totals**        | 28/28  | 9/28 | 8/28 | 1/28      | 10/28   |
+| **Totals**        | 28/28  | 10/28 | 9/28 | 1/28      | 10/28   |
 
 ## Export coverage
 
@@ -78,7 +78,7 @@ corpus counts.
 | mindmap           |   ✓    | ✓ | ✓  |     —      |    ✓    |
 | timeline          |   ✓    | — | —  |     —      |    —    |
 | sankey            |   ✓    | — | —  |     —      |    —    |
-| block             |   ✓    | — | —  |     —      |    —    |
+| block             |   ✓    | ✓ | ✓  |     —      |    —    |
 | packet            |   ✓    | — | —  |     —      |    —    |
 | kanban            |   ✓    | — | —  |     —      |    —    |
 | architecture      |   ✓    | ✓ | ✓  |     —      |    ✓    |
@@ -91,21 +91,19 @@ corpus counts.
 | wardleyBeta       |   ✓    | — | —  |     —      |    —    |
 | c4                |   ✓    | ✓ | ✓  |     ✓      |    ✓    |
 | zenuml            |   ✓    | — | —  |     —      |    —    |
-| **Totals**        | 28/28  | 9/28 | 8/28 | 1/28      | 10/28   |
+| **Totals**        | 28/28  | 10/28 | 9/28 | 1/28      | 10/28   |
 
 ## Round-trip discipline
 
-`Tests/DiagramKitTests/RoundTrip/Resources/roundtrip/` currently holds **45
-same-format fixtures** (+2 D2/DOT treeView multi-root fixtures in Wave I) and
-**82 cross-format directed pairs** (41 unordered; +2 directed /
-+1 unordered treeView × {mermaid↔plantuml} pair added in Wave I along with
-+2 directed multi-root Mermaid → {d2,dot} fixtures and +2 renames unblocking
-the silent skip).
+`Tests/DiagramKitTests/RoundTrip/Resources/roundtrip/` currently holds **47
+same-format fixtures** (+2 D2/DOT block fixtures in Wave J) and **86
+cross-format directed pairs** (43 unordered; +4 directed Mermaid ↔ {d2,dot}
+block fixtures in Wave J).
 
 | Layer | Coverage |
 |-------|----------|
-| Same-format | mermaid {flowchart, sequence, class, er, gantt, state, c4}, d2 {flowchart, class, state, er, architecture, mindmap, treeView, sequence, c4}, dot {flowchart, class, state, er, architecture, mindmap, treeView, c4}, plantuml {sequence, class, state, gantt, mindmap, c4, activity, er, useCase, object, component, treeView}, structurizr {c4} |
-| Cross-format pairs | flowchart × {mermaid↔d2, mermaid↔dot, d2↔dot, mermaid↔plantuml}; sequence × {mermaid↔plantuml, mermaid↔d2, plantuml↔d2}; class × {mermaid↔plantuml, mermaid↔d2, mermaid↔dot, d2↔dot}; state × {mermaid↔d2, mermaid↔dot, d2↔dot}; er × {mermaid↔plantuml, mermaid↔d2, mermaid↔dot, d2↔dot}; architecture × {mermaid↔d2, mermaid↔dot, d2↔dot}; mindmap × {mermaid↔d2, mermaid↔dot, d2↔dot}; treeView × {mermaid↔d2, mermaid↔dot, d2↔dot, d2↔plantuml, dot↔plantuml, mermaid↔plantuml}; c4 × {mermaid↔plantuml, mermaid↔structurizr, plantuml↔structurizr, mermaid↔d2, mermaid↔dot, plantuml↔d2, plantuml↔dot, structurizr↔d2, structurizr↔dot, d2↔dot} |
+| Same-format | mermaid {flowchart, sequence, class, er, gantt, state, c4}, d2 {flowchart, class, state, er, architecture, mindmap, treeView, sequence, c4, block}, dot {flowchart, class, state, er, architecture, mindmap, treeView, c4, block}, plantuml {sequence, class, state, gantt, mindmap, c4, activity, er, useCase, object, component, treeView}, structurizr {c4} |
+| Cross-format pairs | flowchart × {mermaid↔d2, mermaid↔dot, d2↔dot, mermaid↔plantuml}; sequence × {mermaid↔plantuml, mermaid↔d2, plantuml↔d2}; class × {mermaid↔plantuml, mermaid↔d2, mermaid↔dot, d2↔dot}; state × {mermaid↔d2, mermaid↔dot, d2↔dot}; er × {mermaid↔plantuml, mermaid↔d2, mermaid↔dot, d2↔dot}; architecture × {mermaid↔d2, mermaid↔dot, d2↔dot}; mindmap × {mermaid↔d2, mermaid↔dot, d2↔dot}; treeView × {mermaid↔d2, mermaid↔dot, d2↔dot, d2↔plantuml, dot↔plantuml, mermaid↔plantuml}; c4 × {mermaid↔plantuml, mermaid↔structurizr, plantuml↔structurizr, mermaid↔d2, mermaid↔dot, plantuml↔d2, plantuml↔dot, structurizr↔d2, structurizr↔dot, d2↔dot}; block × {mermaid↔d2, mermaid↔dot} |
 
 Every supported import × export intersection that produces a non-empty result
 has a round-trip fixture. There are no missing pairs given today's supported
@@ -236,6 +234,28 @@ of two specs (plus PlantUML deployment dialect and Wave E):
   `.idSanitization` / `.accessibilityDrop`. No new `RoundTripLoss`
   cases. Closes
   [`docs/superpowers/specs/2026-05-21-plantuml-treeview-design.md`](docs/superpowers/specs/2026-05-21-plantuml-treeview-design.md).
+- **Wave J — D2 + DOT block.** D2 and DOT each gain one family (no
+  matrix `⚠` involved; both cells were `—`). Detection: marker-forced
+  via `# diagramkit:family=block`, or marker-presence structural
+  fallback on any `block-*` recovery marker (D2/DOT have no native
+  block representation — `grid-rows`/`grid-columns` get dropped at
+  parse time with `.slotUnsupported`, so the AST never surfaces a
+  block-distinctive signal without markers). Eleven new shared
+  recovery-marker kinds (`blockCols`, `blockWidth`,
+  `blockShapeFallback`, `blockArrowDir`, `blockSpace`,
+  `blockEdgeAttrs`, `blockClassDef`, `blockClassApply`, `blockStyle`,
+  `blockAccTitle`, `blockAccDescr`) preserve grid columns, span widths,
+  the 23 `BlockNodeType` shape kinds, `blockArrow` direction sets,
+  space cells, edge thickness/pattern/arrow variants, classDef/class
+  apply tables, inline styles, and accessibility metadata across
+  same-format round-trip. Cross-format paths `mermaid ↔ d2` and
+  `mermaid ↔ dot` (2 unordered, 4 directed) bridge through the
+  canonical `BlockDiagram` payload; `d2 ↔ dot` is deferred (both
+  formats use the same marker set, so the conversion would shuffle
+  markers without exercising new logic). No new `DiagnosticCategory`
+  cases; reuses `.shapeDowngrade` / `.styleDrop` / `.slotUnsupported`
+  / `.idSanitization`. No new `RoundTripLoss` cases. Closes
+  [`docs/superpowers/specs/2026-05-21-d2-dot-block-design.md`](docs/superpowers/specs/2026-05-21-d2-dot-block-design.md).
 - **Wave I — treeView synthetic-root bridge.** Mermaid ↔ {D2, DOT,
   PlantUML} treeView cross-format paths gain bidirectional convention
   bridging (no matrix `⚠` involved; the convention mismatch had been
@@ -352,6 +372,10 @@ Ordered by impact:
     the silently-skipping Mermaid ↔ D2/DOT treeView fixtures present
     since Wave E and closes the Wave H Mermaid ↔ PlantUML treeView
     deferral.
+11. ~~**D2 + DOT expansion: block (one family × two formats × both
+    directions, marker-recovered round-trip + 2 new cross-format
+    pairs against Mermaid).**~~ Closed by Wave J
+    (2026-05-21-d2-dot-block spec).
 
 Anything outside this list (Wardley, Sankey, Packet, Treemap, etc. in non-native
 formats) is a deliberate `—` and should not be added without a concrete user

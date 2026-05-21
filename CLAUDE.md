@@ -266,9 +266,9 @@ outside the defining module.
 
 - Current test source count: 301 Swift files (299 under `Tests/DiagramKitTests`, 2 under `Tests/DiagramKitLinuxTests`). The 15-file XCUI accessibility bundle was removed alongside the 2026-05-18 sample-app relocation; the Xcode-side accessibility audit is no longer gated.
 - The corpus is `Sources/DiagramKitSample/Resources/test-diagrams.json` with
-  424 entries (397 Mermaid-only + 27 multi-format: D2, DOT, Structurizr, PlantUML).
+  426 entries (397 Mermaid-only + 29 multi-format: D2, DOT, Structurizr, PlantUML).
 - Corpus baselines under `Tests/DiagramKitTests/__Snapshots__/` track
-  437 SVG, 437 image, and 424 ASCII snapshots (1298 total; stored on
+  439 SVG, 439 image, and 426 ASCII snapshots (1304 total; stored on
   disk as 437 PNG + 861 `.txt` — `swift-snapshot-testing` writes SVG
   and ASCII to `.txt`).
 - Image snapshots use `precision: 0.99, perceptualPrecision: 0.98` to tolerate
