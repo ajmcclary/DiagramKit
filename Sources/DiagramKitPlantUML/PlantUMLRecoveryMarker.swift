@@ -19,6 +19,9 @@ public enum PlantUMLRecoveryMarker {
         case deploymentEdgeStereotype(edgeIndex: Int, stereotype: String)
         case deploymentNote(serviceId: String, position: String, base64Body: String)
         case deploymentLegend(base64Body: String)
+        case treeViewNodeDescription(nodeId: Int, base64Body: String)
+        case treeViewNodeIcon(nodeId: Int, iconId: String)
+        case treeViewNodeCssClass(nodeId: Int, cssClass: String)
     }
 
     /// PlantUML uses `'` for line comments, not `#`. Markers are line-form
@@ -114,6 +117,26 @@ public enum PlantUMLRecoveryMarker {
             guard args.hasPrefix("b64:") else { return nil }
             return .deploymentLegend(base64Body: String(args.dropFirst(4)))
         }
+        if let args = stripPrefix("treeview-node-description=", rest) {
+            let fields = args.split(separator: ",", maxSplits: 1, omittingEmptySubsequences: false)
+            guard fields.count == 2,
+                  let nodeId = Int(fields[0]),
+                  fields[1].hasPrefix("b64:") else { return nil }
+            return .treeViewNodeDescription(
+                nodeId: nodeId,
+                base64Body: String(fields[1].dropFirst(4))
+            )
+        }
+        if let args = stripPrefix("treeview-node-icon=", rest) {
+            let fields = args.split(separator: ",", maxSplits: 1, omittingEmptySubsequences: false)
+            guard fields.count == 2, let nodeId = Int(fields[0]) else { return nil }
+            return .treeViewNodeIcon(nodeId: nodeId, iconId: String(fields[1]))
+        }
+        if let args = stripPrefix("treeview-node-cssclass=", rest) {
+            let fields = args.split(separator: ",", maxSplits: 1, omittingEmptySubsequences: false)
+            guard fields.count == 2, let nodeId = Int(fields[0]) else { return nil }
+            return .treeViewNodeCssClass(nodeId: nodeId, cssClass: String(fields[1]))
+        }
         return nil
     }
 
@@ -186,6 +209,19 @@ public enum PlantUMLRecoveryMarker {
     public static func emitDeploymentLegend(body: String) -> String {
         let base64 = Data(body.utf8).base64EncodedString()
         return "' diagramkit:deployment-legend=b64:\(base64)"
+    }
+
+    public static func emitTreeViewNodeDescription(nodeId: Int, body: String) -> String {
+        let base64 = Data(body.utf8).base64EncodedString()
+        return "' diagramkit:treeview-node-description=\(nodeId),b64:\(base64)"
+    }
+
+    public static func emitTreeViewNodeIcon(nodeId: Int, iconId: String) -> String {
+        "' diagramkit:treeview-node-icon=\(nodeId),\(sanitize(iconId))"
+    }
+
+    public static func emitTreeViewNodeCssClass(nodeId: Int, cssClass: String) -> String {
+        "' diagramkit:treeview-node-cssclass=\(nodeId),\(sanitize(cssClass))"
     }
 
     private static func sanitize(_ value: String) -> String {
