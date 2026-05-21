@@ -236,16 +236,18 @@ control characters (matching the existing `deploymentNote` /
 `deploymentLegend` pattern). Icon and cssClass payloads use the standard
 `sanitize(...)` helper since they are identifier-safe strings.
 
-**Marker keying.** `nodeId` is `TreeViewNode.id`, assigned in DFS pre-order
-during parse. All three new mappers (WBS / JSON / YAML) follow the same
-pre-order convention so cross-format imports produce matching id sequences.
-This invariant is documented in each mapper file's doc-comment.
+**Marker keying.** `nodeId` is `TreeViewNode.id`. All three new mappers
+(WBS / JSON / YAML) assign id in **DFS pre-order during parse**. Cross-format
+marker recovery depends on the same DFS pre-order being used by the existing
+Mermaid / D2 / DOT treeView mappers; the implementation plan's step 1
+verifies this and adds alignment tasks if any mapper diverges. Markers
+referencing unknown ids are silently dropped (matches existing
+`applyActivityOriginalIdMarkers` behavior).
 
 **Application order.** `PlantUMLImporter` runs the existing
 `PlantUMLRecoveryMarker.scanner.scan(source:)` after parse + map for any
 `@startwbs` body. Description / icon / cssClass markers apply to nodes by
-DFS pre-order id. Markers referencing unknown ids are silently dropped
-(matches existing `applyActivityOriginalIdMarkers` behavior).
+DFS pre-order id (the keying convention above).
 
 ## `PlantUMLTreeViewExporter`
 
@@ -288,9 +290,10 @@ gains a `case .treeView(let diagram):` branch delegating to
 `PlantUMLTreeViewExporter().export(diagram)`.
 
 **Error behavior.** `PlantUMLTreeViewExporter` never throws — every
-`TreeViewDiagram` produces a valid `@startwbs … @endwbs` block. Empty
-diagrams (no nodes) produce an empty body with just `@startwbs` / `@endwbs`
-plus optional title.
+`TreeViewDiagram` produces a valid `@startwbs … @endwbs` block.
+`TreeViewDiagram.root` is non-optional, so the minimal output always
+contains at least a single `* <root.name>` line (plus optional `title` and
+any markers).
 
 ## Diagnostics and `RoundTripLoss` allowances
 
