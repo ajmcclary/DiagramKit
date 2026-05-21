@@ -832,6 +832,70 @@ struct CrossFormatRoundTripTests {
         )
     }
 
+    // MARK: D2 ↔ PlantUML (treeView) — Wave H
+    //
+    // Mermaid ↔ PlantUML treeView is deliberately omitted: Mermaid uses a
+    // synthetic "/" root convention (src_treeview_parser.swift:80) that
+    // D2 / DOT / PlantUML don't share. The existing Mermaid ↔ D2 and
+    // Mermaid ↔ DOT treeView fixtures have been silently skipping since
+    // Wave E (`.mermaid` extension not in RoundTripFixtureLoader's set),
+    // masking the same convention mismatch. Bridging that convention is
+    // out of scope for Wave H.
+
+    @Test(
+        "D2 → PlantUML → D2 (treeView)",
+        arguments: try fixtures(for: "cross-d2-plantuml-treeView", fromRoot: roundTripResourcesRoot())
+    )
+    func d2PlantumlTreeView(fixture: RoundTripFixture) throws {
+        try runCrossFormatRoundTrip(
+            legA: RoundTripCellRegistry.d2TreeView,
+            legB: RoundTripCellRegistry.plantumlTreeView,
+            additionalAllowedLosses: RoundTripCrossRegistry.d2PlantumlTreeView,
+            fixture: fixture
+        )
+    }
+
+    @Test(
+        "PlantUML → D2 → PlantUML (treeView)",
+        arguments: try fixtures(for: "cross-plantuml-d2-treeView", fromRoot: roundTripResourcesRoot())
+    )
+    func plantumlD2TreeView(fixture: RoundTripFixture) throws {
+        try runCrossFormatRoundTrip(
+            legA: RoundTripCellRegistry.plantumlTreeView,
+            legB: RoundTripCellRegistry.d2TreeView,
+            additionalAllowedLosses: RoundTripCrossRegistry.plantumlD2TreeView,
+            fixture: fixture
+        )
+    }
+
+    // MARK: DOT ↔ PlantUML (treeView) — Wave H
+
+    @Test(
+        "DOT → PlantUML → DOT (treeView)",
+        arguments: try fixtures(for: "cross-dot-plantuml-treeView", fromRoot: roundTripResourcesRoot())
+    )
+    func dotPlantumlTreeView(fixture: RoundTripFixture) throws {
+        try runCrossFormatRoundTrip(
+            legA: RoundTripCellRegistry.dotTreeView,
+            legB: RoundTripCellRegistry.plantumlTreeView,
+            additionalAllowedLosses: RoundTripCrossRegistry.dotPlantumlTreeView,
+            fixture: fixture
+        )
+    }
+
+    @Test(
+        "PlantUML → DOT → PlantUML (treeView)",
+        arguments: try fixtures(for: "cross-plantuml-dot-treeView", fromRoot: roundTripResourcesRoot())
+    )
+    func plantumlDotTreeView(fixture: RoundTripFixture) throws {
+        try runCrossFormatRoundTrip(
+            legA: RoundTripCellRegistry.plantumlTreeView,
+            legB: RoundTripCellRegistry.dotTreeView,
+            additionalAllowedLosses: RoundTripCrossRegistry.plantumlDotTreeView,
+            fixture: fixture
+        )
+    }
+
     @Test(
         "DOT → D2 → DOT (treeView)",
         arguments: try fixtures(for: "cross-dot-d2-treeView", fromRoot: roundTripResourcesRoot())
