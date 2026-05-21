@@ -126,4 +126,10 @@ enum RoundTripCrossRegistry {
     static let dotStructurizrC4: Set<RoundTripLossKind> = [.idSanitization, .c4SlotDrop, .configDrop, .boundaryFlatten]
     static let d2DotC4: Set<RoundTripLossKind>         = [.idSanitization, .c4SlotDrop, .configDrop, .boundaryFlatten]
     static let dotD2C4: Set<RoundTripLossKind>         = [.idSanitization, .c4SlotDrop, .configDrop, .boundaryFlatten]
+
+    // Wave J — block cross-format pairs (Mermaid ↔ D2/DOT)
+    static let mermaidD2Block: Set<RoundTripLossKind>  = [.idSanitization, .shapeDowngrade, .styleDrop, .titleDrop]
+    static let d2MermaidBlock: Set<RoundTripLossKind>  = [.idSanitization, .shapeDowngrade, .styleDrop, .titleDrop]
+    static let mermaidDotBlock: Set<RoundTripLossKind> = [.idSanitization, .shapeDowngrade, .styleDrop, .titleDrop]
+    static let dotMermaidBlock: Set<RoundTripLossKind> = [.idSanitization, .shapeDowngrade, .styleDrop, .titleDrop]
 }

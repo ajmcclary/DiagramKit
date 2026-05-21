@@ -1,0 +1,20 @@
+# diagramkit:family=block
+frontend: "Frontend" {
+  webapp: "Web App"
+  mobile: "Mobile App"
+}
+# diagramkit:block-cols=frontend,1
+backend: "Backend" {
+  api: "API"
+  worker: "Worker"
+}
+# diagramkit:block-cols=backend,1
+data: "Data" {
+  db: "DB"
+  cache: "Cache"
+}
+# diagramkit:block-cols=data,1
+frontend -> backend: "calls"
+# diagramkit:block-edge-attrs=0,normal,solid,arrow_open,
+backend -> data: "reads"
+# diagramkit:block-edge-attrs=1,normal,solid,arrow_open,

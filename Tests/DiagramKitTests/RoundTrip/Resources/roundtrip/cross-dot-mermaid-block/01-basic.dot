@@ -1,0 +1,25 @@
+digraph G {
+  # diagramkit:family=block
+  subgraph cluster_frontend {
+    label="Frontend";
+    webapp [label="Web App"];
+    mobile [label="Mobile App"];
+  }
+  # diagramkit:block-cols=frontend,1
+  subgraph cluster_backend {
+    label="Backend";
+    api [label="API"];
+    worker [label="Worker"];
+  }
+  # diagramkit:block-cols=backend,1
+  subgraph cluster_data {
+    label="Data";
+    db [label="DB"];
+    cache [label="Cache"];
+  }
+  # diagramkit:block-cols=data,1
+  frontend -> backend [label="calls"];
+  # diagramkit:block-edge-attrs=0,normal,solid,arrow_open,
+  backend -> data [label="reads"];
+  # diagramkit:block-edge-attrs=1,normal,solid,arrow_open,
+}

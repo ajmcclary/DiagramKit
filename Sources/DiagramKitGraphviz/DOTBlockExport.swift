@@ -33,6 +33,12 @@ enum DOTBlockExport {
             diagnostics: &diagnostics
         )
 
+        // Preserve root-level columns via marker.
+        if let rootCols = block.blockDatabase[block.rootId]?.columns,
+           rootCols >= 1 {
+            lines.append("  \(DOTRecoveryMarker.emitBlockCols(containerID: block.rootId, columns: rootCols))")
+        }
+
         for (idx, edge) in block.edges.enumerated() {
             emit(edge: edge, index: idx, indent: "  ", into: &lines, diagnostics: &diagnostics)
         }

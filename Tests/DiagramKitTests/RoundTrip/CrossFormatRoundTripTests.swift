@@ -1124,5 +1124,61 @@ struct CrossFormatRoundTripTests {
             fixture: fixture
         )
     }
+
+    // MARK: Wave J — Mermaid ↔ D2 (block)
+
+    @Test(
+        "Mermaid → D2 → Mermaid (block)",
+        arguments: try fixtures(for: "cross-mermaid-d2-block", fromRoot: roundTripResourcesRoot())
+    )
+    func mermaidD2Block(fixture: RoundTripFixture) throws {
+        try runCrossFormatRoundTrip(
+            legA: RoundTripCellRegistry.mermaidBlock,
+            legB: RoundTripCellRegistry.d2Block,
+            additionalAllowedLosses: RoundTripCrossRegistry.mermaidD2Block,
+            fixture: fixture
+        )
+    }
+
+    @Test(
+        "D2 → Mermaid → D2 (block)",
+        arguments: try fixtures(for: "cross-d2-mermaid-block", fromRoot: roundTripResourcesRoot())
+    )
+    func d2MermaidBlock(fixture: RoundTripFixture) throws {
+        try runCrossFormatRoundTrip(
+            legA: RoundTripCellRegistry.d2Block,
+            legB: RoundTripCellRegistry.mermaidBlock,
+            additionalAllowedLosses: RoundTripCrossRegistry.d2MermaidBlock,
+            fixture: fixture
+        )
+    }
+
+    // MARK: Wave J — Mermaid ↔ DOT (block)
+
+    @Test(
+        "Mermaid → DOT → Mermaid (block)",
+        arguments: try fixtures(for: "cross-mermaid-dot-block", fromRoot: roundTripResourcesRoot())
+    )
+    func mermaidDotBlock(fixture: RoundTripFixture) throws {
+        try runCrossFormatRoundTrip(
+            legA: RoundTripCellRegistry.mermaidBlock,
+            legB: RoundTripCellRegistry.dotBlock,
+            additionalAllowedLosses: RoundTripCrossRegistry.mermaidDotBlock,
+            fixture: fixture
+        )
+    }
+
+    @Test(
+        "DOT → Mermaid → DOT (block)",
+        arguments: try fixtures(for: "cross-dot-mermaid-block", fromRoot: roundTripResourcesRoot())
+    )
+    func dotMermaidBlock(fixture: RoundTripFixture) throws {
+        try runCrossFormatRoundTrip(
+            legA: RoundTripCellRegistry.dotBlock,
+            legB: RoundTripCellRegistry.mermaidBlock,
+            additionalAllowedLosses: RoundTripCrossRegistry.dotMermaidBlock,
+            fixture: fixture
+        )
+    }
 }
 

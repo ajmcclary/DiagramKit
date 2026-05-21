@@ -30,6 +30,17 @@ public enum D2BlockExporter {
             diagnostics: &diagnostics
         )
 
+        // Preserve a root-level columns setting (block-beta's
+        // `columns N`) via marker — the root container itself is not
+        // emitted as a native D2 statement.
+        if let rootCols = block.blockDatabase[block.rootId]?.columns,
+           rootCols >= 1 {
+            lines.append(D2RecoveryMarker.emitBlockCols(
+                containerID: block.rootId,
+                columns: rootCols
+            ))
+        }
+
         // Emit edges with paired marker per index.
         for (idx, edge) in block.edges.enumerated() {
             emit(edge: edge, index: idx, into: &lines, diagnostics: &diagnostics)
