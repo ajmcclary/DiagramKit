@@ -229,6 +229,34 @@ struct CrossFormatRoundTripTests {
         )
     }
 
+    // MARK: PlantUML ↔ D2 (sequence) — Wave F
+
+    @Test(
+        "PlantUML → D2 → PlantUML (sequence)",
+        arguments: try fixtures(for: "cross-plantuml-d2-sequence", fromRoot: roundTripResourcesRoot())
+    )
+    func plantumlD2Sequence(fixture: RoundTripFixture) throws {
+        try runCrossFormatRoundTrip(
+            legA: RoundTripCellRegistry.plantumlSequence,
+            legB: RoundTripCellRegistry.d2Sequence,
+            additionalAllowedLosses: RoundTripCrossRegistry.plantumlD2Sequence,
+            fixture: fixture
+        )
+    }
+
+    @Test(
+        "D2 → PlantUML → D2 (sequence)",
+        arguments: try fixtures(for: "cross-d2-plantuml-sequence", fromRoot: roundTripResourcesRoot())
+    )
+    func d2PlantumlSequence(fixture: RoundTripFixture) throws {
+        try runCrossFormatRoundTrip(
+            legA: RoundTripCellRegistry.d2Sequence,
+            legB: RoundTripCellRegistry.plantumlSequence,
+            additionalAllowedLosses: RoundTripCrossRegistry.d2PlantumlSequence,
+            fixture: fixture
+        )
+    }
+
     // MARK: Mermaid ↔ PlantUML (class)
 
     @Test(
