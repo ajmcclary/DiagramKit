@@ -5,7 +5,7 @@ ships: Mermaid, D2, Graphviz DOT, Structurizr, PlantUML. The corpus carries 28
 diagram families. Mermaid is the canonical model surface — every other format
 imports/exports a subset by projecting into a Mermaid-equivalent payload.
 
-Last audited: 2026-05-21 (Wave H). Cross-reference [CLAUDE.md](CLAUDE.md)
+Last audited: 2026-05-21 (Wave I). Cross-reference [CLAUDE.md](CLAUDE.md)
 "What Lives Where" for slice paths and [BASELINES.md](BASELINES.md) for
 corpus counts.
 
@@ -95,16 +95,17 @@ corpus counts.
 
 ## Round-trip discipline
 
-`Tests/DiagramKitTests/RoundTrip/Resources/roundtrip/` currently holds **43
-same-format fixtures** (+3 PlantUML treeView WBS/JSON/YAML in Wave H) and
-**80 cross-format directed pairs** (40 unordered; +4 directed /
-+2 unordered treeView × {d2↔plantuml, dot↔plantuml} pairs added in
-Wave H).
+`Tests/DiagramKitTests/RoundTrip/Resources/roundtrip/` currently holds **45
+same-format fixtures** (+2 D2/DOT treeView multi-root fixtures in Wave I) and
+**82 cross-format directed pairs** (41 unordered; +2 directed /
++1 unordered treeView × {mermaid↔plantuml} pair added in Wave I along with
++2 directed multi-root Mermaid → {d2,dot} fixtures and +2 renames unblocking
+the silent skip).
 
 | Layer | Coverage |
 |-------|----------|
 | Same-format | mermaid {flowchart, sequence, class, er, gantt, state, c4}, d2 {flowchart, class, state, er, architecture, mindmap, treeView, sequence, c4}, dot {flowchart, class, state, er, architecture, mindmap, treeView, c4}, plantuml {sequence, class, state, gantt, mindmap, c4, activity, er, useCase, object, component, treeView}, structurizr {c4} |
-| Cross-format pairs | flowchart × {mermaid↔d2, mermaid↔dot, d2↔dot, mermaid↔plantuml}; sequence × {mermaid↔plantuml, mermaid↔d2, plantuml↔d2}; class × {mermaid↔plantuml, mermaid↔d2, mermaid↔dot, d2↔dot}; state × {mermaid↔d2, mermaid↔dot, d2↔dot}; er × {mermaid↔plantuml, mermaid↔d2, mermaid↔dot, d2↔dot}; architecture × {mermaid↔d2, mermaid↔dot, d2↔dot}; mindmap × {mermaid↔d2, mermaid↔dot, d2↔dot}; treeView × {mermaid↔d2, mermaid↔dot, d2↔dot, d2↔plantuml, dot↔plantuml}; c4 × {mermaid↔plantuml, mermaid↔structurizr, plantuml↔structurizr, mermaid↔d2, mermaid↔dot, plantuml↔d2, plantuml↔dot, structurizr↔d2, structurizr↔dot, d2↔dot} |
+| Cross-format pairs | flowchart × {mermaid↔d2, mermaid↔dot, d2↔dot, mermaid↔plantuml}; sequence × {mermaid↔plantuml, mermaid↔d2, plantuml↔d2}; class × {mermaid↔plantuml, mermaid↔d2, mermaid↔dot, d2↔dot}; state × {mermaid↔d2, mermaid↔dot, d2↔dot}; er × {mermaid↔plantuml, mermaid↔d2, mermaid↔dot, d2↔dot}; architecture × {mermaid↔d2, mermaid↔dot, d2↔dot}; mindmap × {mermaid↔d2, mermaid↔dot, d2↔dot}; treeView × {mermaid↔d2, mermaid↔dot, d2↔dot, d2↔plantuml, dot↔plantuml, mermaid↔plantuml}; c4 × {mermaid↔plantuml, mermaid↔structurizr, plantuml↔structurizr, mermaid↔d2, mermaid↔dot, plantuml↔d2, plantuml↔dot, structurizr↔d2, structurizr↔dot, d2↔dot} |
 
 Every supported import × export intersection that produces a non-empty result
 has a round-trip fixture. There are no missing pairs given today's supported
@@ -235,6 +236,20 @@ of two specs (plus PlantUML deployment dialect and Wave E):
   `.idSanitization` / `.accessibilityDrop`. No new `RoundTripLoss`
   cases. Closes
   [`docs/superpowers/specs/2026-05-21-plantuml-treeview-design.md`](docs/superpowers/specs/2026-05-21-plantuml-treeview-design.md).
+- **Wave I — treeView synthetic-root bridge.** Mermaid ↔ {D2, DOT,
+  PlantUML} treeView cross-format paths gain bidirectional convention
+  bridging (no matrix `⚠` involved; the convention mismatch had been
+  blocked by silently-skipping Wave E fixtures and the Wave H PlantUML
+  deferral). `TreeViewDiagram.root` now carries a documented canonical
+  convention: a `root` with `name == "/"` AND `level == -1` is the
+  Mermaid parser's synthetic multi-root container. The four cross-format
+  exporters (Mermaid, D2, DOT, PlantUML) detect the convention on entry
+  and adapt; D2/DOT importers gain a structural multi-root branch that
+  synthesizes the same container so forest round-trips bridge cleanly.
+  One new `RoundTripLoss.syntheticRootFlattened` case (PlantUML-only
+  trigger — D2/DOT preserve forests losslessly). No new
+  `DiagnosticCategory` cases (reuses `.slotUnsupported`). Closes
+  [`docs/superpowers/specs/2026-05-21-treeview-synthetic-root-bridge-design.md`](docs/superpowers/specs/2026-05-21-treeview-synthetic-root-bridge-design.md).
 
 The only new public surface across Wave D is the
 `ArchitectureServiceKind` enum (`service` / `component` / `interface`)
@@ -328,10 +343,15 @@ Ordered by impact:
 9. ~~**PlantUML expansion: treeView (one family × three import
    dialects + one canonical export encoding, marker-recovered
    round-trip + 2 new cross-format pairs against D2/DOT).**~~ Closed
-   by Wave H (2026-05-21-plantuml-treeview spec). Mermaid ↔ PlantUML
-   treeView is deferred pending a synthetic-root convention bridge
-   that also unblocks the silently-skipped Mermaid ↔ D2/DOT treeView
-   fixtures.
+   by Wave H (2026-05-21-plantuml-treeview spec).
+10. ~~**Mermaid ↔ {D2, DOT, PlantUML} treeView synthetic-root bridge.**~~
+    Closed by Wave I
+    (2026-05-21-treeview-synthetic-root-bridge spec). Documents the
+    canonical `TreeViewDiagram.root` convention and extends D2/DOT
+    importers + all four cross-format exporters to honor it. Unblocks
+    the silently-skipping Mermaid ↔ D2/DOT treeView fixtures present
+    since Wave E and closes the Wave H Mermaid ↔ PlantUML treeView
+    deferral.
 
 Anything outside this list (Wardley, Sankey, Packet, Treemap, etc. in non-native
 formats) is a deliberate `—` and should not be added without a concrete user
