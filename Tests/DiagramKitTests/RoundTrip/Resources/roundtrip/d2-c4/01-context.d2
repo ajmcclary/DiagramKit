@@ -1,0 +1,25 @@
+# diagramkit:family=c4
+# diagramkit:c4-diagram-kind=C4Container
+
+ent: "Enterprise" {
+    web: "Web App" {
+        shape: rectangle
+    }
+    # diagramkit:c4-shape-kind=web,container
+    # diagramkit:c4-technology=web,Swift 6
+
+    db: "Database" {
+        shape: cylinder
+    }
+    # diagramkit:c4-shape-kind=db,container_db
+    # diagramkit:c4-technology=db,PostgreSQL 16
+}
+# diagramkit:c4-boundary-kind=ent,enterprise
+
+user: "User" {
+    shape: person
+}
+
+user -> web: "uses"
+web -> db: "reads/writes"
+# diagramkit:c4-rel-kind=1,rel_d
