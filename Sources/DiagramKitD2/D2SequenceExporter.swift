@@ -32,21 +32,27 @@ enum D2SequenceExport {
             ))
         }
 
-        // Actors and messages walk the canonical items timeline.
+        // Walk the canonical items timeline with stack-tracked container
+        // state so blocks and boxes nest correctly and divider indices
+        // are stable.
         var msgIdx = -1
+        var indent = ""
+        let indentUnit = "  "
+        var pendingActivate = false
+
+        struct OpenBlock { var label: String; var dividers: Int }
+        var blockStack: [OpenBlock] = []
+        var boxCounter = 0
 
         for item in seq.items {
             switch item {
             case .actor(let actor):
                 let sanitizedId = sanitizeID(actor.id, &diagnostics)
-                lines.append("\(sanitizedId): \"\(escape(actor.label))\"")
+                lines.append("\(indent)\(sanitizedId): \"\(escape(actor.label))\"")
                 if actor.type != .participant {
-                    lines.append(D2RecoveryMarker.emitSeqActorKind(
-                        actorID: sanitizedId,
-                        participantType: actor.type.rawValue
-                    ))
+                    lines.append("\(indent)\(D2RecoveryMarker.emitSeqActorKind(actorID: sanitizedId, participantType: actor.type.rawValue))")
                     if let shape = shape(for: actor.type) {
-                        lines.append("\(sanitizedId).shape: \(shape)")
+                        lines.append("\(indent)\(sanitizedId).shape: \(shape)")
                     }
                 }
 
@@ -56,29 +62,71 @@ enum D2SequenceExport {
                 let to = sanitizeID(msg.to, &diagnostics)
                 let arrow = arrowToken(for: msg.arrowType)
                 if msg.label.isEmpty {
-                    lines.append("\(from) \(arrow) \(to)")
+                    lines.append("\(indent)\(from) \(arrow) \(to)")
                 } else {
-                    lines.append("\(from) \(arrow) \(to): \"\(escape(msg.label))\"")
+                    lines.append("\(indent)\(from) \(arrow) \(to): \"\(escape(msg.label))\"")
                 }
-                lines.append(D2RecoveryMarker.emitSeqArrowType(
-                    messageIndex: msgIdx,
-                    rawValue: msg.arrowType.rawValue
-                ))
-                if msg.activate {
-                    lines.append(D2RecoveryMarker.emitSeqMessageAttr(messageIndex: msgIdx, attr: "activate"))
+                lines.append("\(indent)\(D2RecoveryMarker.emitSeqArrowType(messageIndex: msgIdx, rawValue: msg.arrowType.rawValue))")
+                if msg.activate || pendingActivate {
+                    lines.append("\(indent)\(D2RecoveryMarker.emitSeqMessageAttr(messageIndex: msgIdx, attr: "activate"))")
                 }
                 if msg.deactivate {
-                    lines.append(D2RecoveryMarker.emitSeqMessageAttr(messageIndex: msgIdx, attr: "deactivate"))
+                    lines.append("\(indent)\(D2RecoveryMarker.emitSeqMessageAttr(messageIndex: msgIdx, attr: "deactivate"))")
                 }
+                pendingActivate = false
                 if msg.wrap == true {
-                    lines.append(D2RecoveryMarker.emitSeqMessageAttr(messageIndex: msgIdx, attr: "wrap"))
+                    lines.append("\(indent)\(D2RecoveryMarker.emitSeqMessageAttr(messageIndex: msgIdx, attr: "wrap"))")
                 }
                 if let n = msg.sequenceNumber, msg.sequenceVisible {
-                    lines.append(D2RecoveryMarker.emitSeqMessageAttr(messageIndex: msgIdx, attr: "seqNum=\(n)"))
+                    lines.append("\(indent)\(D2RecoveryMarker.emitSeqMessageAttr(messageIndex: msgIdx, attr: "seqNum=\(n)"))")
                 }
 
-            // Block / box / note / activation / create-destroy / link items
-            // are handled in later tasks.
+            case .blockStart(let type, let label):
+                lines.append("\(indent)\(D2RecoveryMarker.emitSeqBlockType(containerLabel: label, blockType: type))")
+                lines.append("\(indent)\(label): {")
+                indent += indentUnit
+                blockStack.append(OpenBlock(label: label, dividers: 0))
+
+            case .blockDivider(_, let label):
+                guard var top = blockStack.popLast() else { break }
+                lines.append("\(indent)\(D2RecoveryMarker.emitSeqBlockDivider(containerLabel: top.label, dividerIndex: top.dividers + 1, label: label))")
+                top.dividers += 1
+                blockStack.append(top)
+
+            case .blockEnd:
+                indent = String(indent.dropLast(indentUnit.count))
+                lines.append("\(indent)}")
+                _ = blockStack.popLast()
+
+            case .boxStart(let fill, let title, let wrap):
+                boxCounter += 1
+                let label = "box_\(boxCounter)"
+                lines.append("\(indent)\(D2RecoveryMarker.emitSeqBox(containerLabel: label, fill: fill, wrap: wrap, name: title ?? label))")
+                let displayTitle = title ?? label
+                lines.append("\(indent)\(label): \"\(escape(displayTitle))\" {")
+                indent += indentUnit
+                lines.append("\(indent)shape: sequence_diagram")
+
+            case .boxEnd:
+                indent = String(indent.dropLast(indentUnit.count))
+                lines.append("\(indent)}")
+
+            case .activationStart:
+                pendingActivate = true
+
+            case .activationEnd:
+                // Attach to the most recently emitted message (msgIdx).
+                // If no message has been emitted yet, drop silently.
+                if msgIdx >= 0 {
+                    lines.append("\(indent)\(D2RecoveryMarker.emitSeqMessageAttr(messageIndex: msgIdx, attr: "deactivate"))")
+                }
+
+            case .autonumberEvent, .title, .accTitle, .accDescr:
+                // Already emitted as top-level markers before the items walk.
+                break
+
+            // .note, .createParticipant, .destroyParticipant,
+            // .link/.links/.properties/.details handled in Task 8.
             default:
                 break
             }

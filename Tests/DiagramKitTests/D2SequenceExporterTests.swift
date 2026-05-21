@@ -60,4 +60,73 @@ struct D2SequenceExporterTests {
     func exporterAdvertisesSequence() {
         #expect(D2Exporter().supportedDiagramTypes.contains(.sequenceDiagram))
     }
+
+    @Test("Block start/end emits container with seq-block-type marker")
+    func emitsBlockContainer() throws {
+        let doc = DiagramDocument(payload: .sequenceDiagram(SequenceDiagram(items: [
+            .actor(SequenceActor(id: "alice", label: "Alice")),
+            .actor(SequenceActor(id: "bob", label: "Bob")),
+            .message(SequenceMessage(from: "alice", to: "bob", label: "ask")),
+            .blockStart(type: "alt", label: "alt_1"),
+            .message(SequenceMessage(from: "bob", to: "alice", label: "yes")),
+            .blockDivider(type: "alt", label: "no path"),
+            .message(SequenceMessage(from: "bob", to: "alice", label: "no")),
+            .blockEnd(type: "alt"),
+        ])))
+        let out = try D2Exporter().export(doc)
+        #expect(out.source.contains("alt_1: {"))
+        #expect(out.source.contains("# diagramkit:seq-block-type=alt_1,alt"))
+        #expect(out.source.contains("# diagramkit:seq-block-divider=alt_1,1,no path"))
+    }
+
+    @Test("Box start/end emits nested shape: sequence_diagram container with seq-box marker")
+    func emitsBoxContainer() throws {
+        let doc = DiagramDocument(payload: .sequenceDiagram(SequenceDiagram(items: [
+            .boxStart(fill: "#ECECFF", title: "Customer side", wrap: true),
+            .actor(SequenceActor(id: "alice", label: "Alice")),
+            .boxEnd,
+        ])))
+        let out = try D2Exporter().export(doc)
+        #expect(out.source.contains("# diagramkit:seq-box="))
+        // Outer dispatch + inner box marker both emit "shape: sequence_diagram"
+        let occurrences = out.source.components(separatedBy: "shape: sequence_diagram").count - 1
+        #expect(occurrences >= 2)
+    }
+
+    @Test("activation/deactivation lifted into seq-message-attr on adjacent message")
+    func liftsActivations() throws {
+        let doc = DiagramDocument(payload: .sequenceDiagram(SequenceDiagram(items: [
+            .actor(SequenceActor(id: "alice", label: "Alice")),
+            .actor(SequenceActor(id: "bob", label: "Bob")),
+            .activationStart(actorId: "bob"),
+            .message(SequenceMessage(from: "alice", to: "bob", label: "ping")),
+            .activationEnd(actorId: "bob"),
+        ])))
+        let out = try D2Exporter().export(doc)
+        #expect(out.source.contains("# diagramkit:seq-message-attr=0,activate"))
+        #expect(out.source.contains("# diagramkit:seq-message-attr=0,deactivate"))
+    }
+
+    @Test("Full block/divider round-trip preserves type, label, and divider")
+    func blockBoxRoundTrip() throws {
+        let original = DiagramDocument(payload: .sequenceDiagram(SequenceDiagram(items: [
+            .actor(SequenceActor(id: "alice", label: "Alice")),
+            .actor(SequenceActor(id: "bob", label: "Bob")),
+            .message(SequenceMessage(from: "alice", to: "bob", label: "ask")),
+            .blockStart(type: "alt", label: "alt_1"),
+            .message(SequenceMessage(from: "bob", to: "alice", label: "yes")),
+            .blockDivider(type: "alt", label: "no path"),
+            .message(SequenceMessage(from: "bob", to: "alice", label: "no")),
+            .blockEnd(type: "alt"),
+        ])))
+        let exported = try D2Exporter().export(original)
+        let reimported = try D2Importer().parse(exported.source)
+        guard case .sequenceDiagram(let seq) = reimported.document.payload else {
+            Issue.record("not sequence"); return
+        }
+        let block = try #require(seq.blocks.first)
+        #expect(block.type == "alt")
+        #expect(block.label == "alt_1")
+        #expect(block.dividers.first?.label == "no path")
+    }
 }
