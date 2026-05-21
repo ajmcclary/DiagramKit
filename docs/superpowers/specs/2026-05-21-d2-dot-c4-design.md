@@ -131,6 +131,16 @@ Totals after Wave G:
   `.idSanitization`.
 - **New `RoundTripLoss` cases.** All observed losses map to the
   existing enum.
+- **`C4Shape` extra slots** (`shadowing`, `shapeOverride`, `techn`,
+  `legendText`, `legendSprite`) and `C4Diagram.accDescr` round-trip
+  via Mermaid's native syntax but are silently dropped on D2/DOT
+  emission. No `c4-*` marker is allocated for these; they fall under
+  the existing `.styleDrop` silent policy. Could be added in a
+  follow-up wave if a user need surfaces.
+- **`parentBoundary == "global"` is the sentinel** for "outside all
+  authored boundaries" on both `C4Shape` and `C4Boundary`. The D2/DOT
+  exporters treat `"global"` and `""` identically when deciding
+  whether a shape is a root-level shape.
 
 ## File layout
 
@@ -176,16 +186,16 @@ markers for tier disambiguation.
 
 | C4 type | D2 native | DOT native | Marker(s) |
 |---------|-----------|------------|-----------|
-| `person`, `external_person` | `shape: person` | `shape: oval` | `c4ShapeKind: person` (DOT); `c4External` for `_ext` (both) |
-| `system`, `system_ext` | `shape: rectangle` | `shape: box` | `c4External` for `_ext` |
-| `system_db`, `system_db_ext` | `shape: cylinder` | `shape: cylinder` | `c4External` for `_ext` |
-| `system_queue`, `system_queue_ext` | `shape: queue` | `shape: box` + marker | `c4ShapeKind: system_queue` (DOT); `c4External` for `_ext` |
-| `container`, `container_ext` | `shape: rectangle` + marker | `shape: box` + marker | `c4ShapeKind: container` (both — distinguishes tier); `c4External` |
-| `container_db`, `container_db_ext` | `shape: cylinder` + marker | `shape: cylinder` + marker | `c4ShapeKind: container_db`; `c4External` |
-| `container_queue`, `container_queue_ext` | `shape: queue` + marker | `shape: box` + marker | `c4ShapeKind: container_queue`; `c4External` |
-| `component`, `component_ext` | `shape: hexagon` | `shape: component` | `c4External` for `_ext` |
-| `component_db`, `component_db_ext` | `shape: cylinder` + marker | `shape: cylinder` + marker | `c4ShapeKind: component_db`; `c4External` |
-| `component_queue`, `component_queue_ext` | `shape: queue` + marker | `shape: box` + marker | `c4ShapeKind: component_queue`; `c4External` |
+| `person`, `external_person` | `shape: person` | `shape: oval` | `c4ShapeKind: person` (DOT); `c4External` for `external_` variant (both) |
+| `system`, `external_system` | `shape: rectangle` | `shape: box` | `c4External` for `external_` variant |
+| `system_db`, `external_system_db` | `shape: cylinder` | `shape: cylinder` | `c4External` for `external_` variant |
+| `system_queue`, `external_system_queue` | `shape: queue` | `shape: box` + marker | `c4ShapeKind: system_queue` (DOT); `c4External` for `external_` |
+| `container`, `external_container` | `shape: rectangle` + marker | `shape: box` + marker | `c4ShapeKind: container` (both — distinguishes tier); `c4External` |
+| `container_db`, `external_container_db` | `shape: cylinder` + marker | `shape: cylinder` + marker | `c4ShapeKind: container_db`; `c4External` |
+| `container_queue`, `external_container_queue` | `shape: queue` + marker | `shape: box` + marker | `c4ShapeKind: container_queue`; `c4External` |
+| `component`, `external_component` | `shape: hexagon` | `shape: component` | `c4External` for `external_` |
+| `component_db`, `external_component_db` | `shape: cylinder` + marker | `shape: cylinder` + marker | `c4ShapeKind: component_db`; `c4External` |
+| `component_queue`, `external_component_queue` | `shape: queue` + marker | `shape: box` + marker | `c4ShapeKind: component_queue`; `c4External` |
 
 The `c4ShapeKind` marker is what disambiguates the **system / container
 / component tier** when natural shapes collide (cylinder is reused by
@@ -229,8 +239,11 @@ representation in D2/DOT syntax. Emitted as a top-of-file marker:
 
 ```
 # diagramkit:family=c4
-# diagramkit:c4-diagram-kind=container
+# diagramkit:c4-diagram-kind=C4Container
 ```
+
+The payload uses `C4DiagramKind.rawValue` directly (`"C4Context"`,
+`"C4Container"`, `"C4Component"`, `"C4Dynamic"`, `"C4Deployment"`).
 
 The probe uses the `family=c4` marker as the marker-forced override;
 the `c4DiagramKind` marker carries the kind through round-trip. If
@@ -246,11 +259,11 @@ to `.context` and emits `informational(.shapeDowngrade, …)`:
 |------|---------|-------------|-------|
 | `c4DiagramKind` | `String` (raw `C4DiagramKind`) | top-of-file | Required for kind round-trip. |
 | `c4ShapeKind` | `String` (raw `C4ShapeType`) | shape declaration | Disambiguates tier-vs-kind collisions. |
-| `c4External` | (presence-only) | shape declaration | Marks `_ext` variant. |
+| `c4External` | (presence-only) | shape declaration | Marks `external_*` variant. |
 | `c4Technology` | `String` | shape or edge declaration | Tech slot on Container/Component shapes + relationships. |
 | `c4Description` | `String` | shape, boundary, or edge declaration | Description slot. |
 | `c4Sprite` | `String` | shape declaration | Sprite name (PlantUML iconography). |
-| `c4Tag` | `String` (repeated for multi-tag) | shape, boundary, or edge declaration | Tag set; multiple markers per declaration aggregate. |
+| `c4Tag` | `String` (single payload — `tags` is `String?` on shape/boundary/relationship) | shape, boundary, or edge declaration | One marker per declaration carrying the full `tags` string. |
 | `c4Link` | `String` (URL) | shape, boundary, or edge declaration | Link slot. |
 | `c4BoundaryKind` | `String` (raw boundary type) | boundary declaration | Boundary type. |
 | `c4RelKind` | `String` (raw `C4RelationshipKind`) | edge declaration | Distinguishes `rel_u`/`rel_d`/etc. from plain `rel`. |
