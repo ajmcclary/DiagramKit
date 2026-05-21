@@ -21,6 +21,7 @@ public struct GraphvizImporter: DiagramSourceImporter {
         .architecture,
         .mindmap,
         .treeView,
+        .c4,
     ]
 
     public init() {}
@@ -30,6 +31,14 @@ public struct GraphvizImporter: DiagramSourceImporter {
     }
 
     public func parse(_ source: String) throws -> DiagramImportResult {
+        // c4 detection runs first because the c4 mapper walks the source
+        // directly and does not need the DOT AST. Putting it before the
+        // DOTParser call avoids structural probes matching on c4-shaped
+        // input that happens to satisfy other family heuristics.
+        if DOTC4Probe.detectsC4(source) {
+            return DOTC4Mapper.map(source: source)
+        }
+
         let lexer = DOTLexer()
         let tokens = try lexer.tokenize(source)
 
