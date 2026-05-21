@@ -38,6 +38,23 @@ public enum D2RecoveryMarker {
         case c4BoundaryKind(targetID: String, rawValue: String)
         case c4RelKind(edgeIndex: Int, rawValue: String)
         case c4Color(targetID: String, packed: String)
+        case blockCols(containerID: String, columns: Int)
+        case blockWidth(nodeID: String, widthInColumns: Int)
+        case blockShapeFallback(nodeID: String, rawValue: String)
+        case blockArrowDir(nodeID: String, directionsCsv: String)
+        case blockSpace(parentID: String, columnIndex: Int)
+        case blockEdgeAttrs(
+            edgeIndex: Int,
+            thickness: String,
+            pattern: String,
+            arrowStart: String,
+            arrowEnd: String
+        )
+        case blockClassDef(className: String, stylesCsv: String)
+        case blockClassApply(nodeID: String, className: String)
+        case blockStyle(nodeID: String, stylesCsv: String)
+        case blockAccTitle(text: String)
+        case blockAccDescr(text: String)
     }
 
     public static let scanner = RecoveryMarkerScanner<Kind>(commentPrefix: "#") { rest in
@@ -190,6 +207,63 @@ public enum D2RecoveryMarker {
             guard fields.count == 2 else { return nil }
             return .c4Color(targetID: String(fields[0]), packed: String(fields[1]))
         }
+        if let args = stripPrefix("block-cols=", rest) {
+            let fields = args.split(separator: ",", maxSplits: 1, omittingEmptySubsequences: false)
+            guard fields.count == 2, let n = Int(fields[1]) else { return nil }
+            return .blockCols(containerID: String(fields[0]), columns: n)
+        }
+        if let args = stripPrefix("block-width=", rest) {
+            let fields = args.split(separator: ",", maxSplits: 1, omittingEmptySubsequences: false)
+            guard fields.count == 2, let span = Int(fields[1]) else { return nil }
+            return .blockWidth(nodeID: String(fields[0]), widthInColumns: span)
+        }
+        if let args = stripPrefix("block-shape-fallback=", rest) {
+            let fields = args.split(separator: ",", maxSplits: 1, omittingEmptySubsequences: false)
+            guard fields.count == 2 else { return nil }
+            return .blockShapeFallback(nodeID: String(fields[0]), rawValue: String(fields[1]))
+        }
+        if let args = stripPrefix("block-arrow-dir=", rest) {
+            let fields = args.split(separator: ",", maxSplits: 1, omittingEmptySubsequences: false)
+            guard fields.count == 2 else { return nil }
+            return .blockArrowDir(nodeID: String(fields[0]), directionsCsv: String(fields[1]))
+        }
+        if let args = stripPrefix("block-space=", rest) {
+            let fields = args.split(separator: ",", maxSplits: 1, omittingEmptySubsequences: false)
+            guard fields.count == 2, let idx = Int(fields[1]) else { return nil }
+            return .blockSpace(parentID: String(fields[0]), columnIndex: idx)
+        }
+        if let args = stripPrefix("block-edge-attrs=", rest) {
+            let fields = args.split(separator: ",", maxSplits: 4, omittingEmptySubsequences: false)
+            guard fields.count == 5, let idx = Int(fields[0]) else { return nil }
+            return .blockEdgeAttrs(
+                edgeIndex: idx,
+                thickness: String(fields[1]),
+                pattern: String(fields[2]),
+                arrowStart: String(fields[3]),
+                arrowEnd: String(fields[4])
+            )
+        }
+        if let args = stripPrefix("block-classdef=", rest) {
+            let fields = args.split(separator: ",", maxSplits: 1, omittingEmptySubsequences: false)
+            guard fields.count == 2 else { return nil }
+            return .blockClassDef(className: String(fields[0]), stylesCsv: String(fields[1]))
+        }
+        if let args = stripPrefix("block-class-apply=", rest) {
+            let fields = args.split(separator: ",", maxSplits: 1, omittingEmptySubsequences: false)
+            guard fields.count == 2 else { return nil }
+            return .blockClassApply(nodeID: String(fields[0]), className: String(fields[1]))
+        }
+        if let args = stripPrefix("block-style=", rest) {
+            let fields = args.split(separator: ",", maxSplits: 1, omittingEmptySubsequences: false)
+            guard fields.count == 2 else { return nil }
+            return .blockStyle(nodeID: String(fields[0]), stylesCsv: String(fields[1]))
+        }
+        if let args = stripPrefix("block-acc-title=", rest) {
+            return .blockAccTitle(text: args)
+        }
+        if let args = stripPrefix("block-acc-descr=", rest) {
+            return .blockAccDescr(text: args)
+        }
         return nil
     }
 
@@ -318,6 +392,56 @@ public enum D2RecoveryMarker {
 
     public static func emitC4Color(targetID: String, packed: String) -> String {
         "# diagramkit:c4-color=\(sanitize(targetID)),\(sanitize(packed))"
+    }
+
+    public static func emitBlockCols(containerID: String, columns: Int) -> String {
+        "# diagramkit:block-cols=\(sanitize(containerID)),\(columns)"
+    }
+
+    public static func emitBlockWidth(nodeID: String, widthInColumns: Int) -> String {
+        "# diagramkit:block-width=\(sanitize(nodeID)),\(widthInColumns)"
+    }
+
+    public static func emitBlockShapeFallback(nodeID: String, rawValue: String) -> String {
+        "# diagramkit:block-shape-fallback=\(sanitize(nodeID)),\(sanitize(rawValue))"
+    }
+
+    public static func emitBlockArrowDir(nodeID: String, directionsCsv: String) -> String {
+        "# diagramkit:block-arrow-dir=\(sanitize(nodeID)),\(directionsCsv)"
+    }
+
+    public static func emitBlockSpace(parentID: String, columnIndex: Int) -> String {
+        "# diagramkit:block-space=\(sanitize(parentID)),\(columnIndex)"
+    }
+
+    public static func emitBlockEdgeAttrs(
+        edgeIndex: Int,
+        thickness: String,
+        pattern: String,
+        arrowStart: String,
+        arrowEnd: String
+    ) -> String {
+        "# diagramkit:block-edge-attrs=\(edgeIndex),\(sanitize(thickness)),\(sanitize(pattern)),\(sanitize(arrowStart)),\(sanitize(arrowEnd))"
+    }
+
+    public static func emitBlockClassDef(className: String, stylesCsv: String) -> String {
+        "# diagramkit:block-classdef=\(sanitize(className)),\(stylesCsv)"
+    }
+
+    public static func emitBlockClassApply(nodeID: String, className: String) -> String {
+        "# diagramkit:block-class-apply=\(sanitize(nodeID)),\(sanitize(className))"
+    }
+
+    public static func emitBlockStyle(nodeID: String, stylesCsv: String) -> String {
+        "# diagramkit:block-style=\(sanitize(nodeID)),\(stylesCsv)"
+    }
+
+    public static func emitBlockAccTitle(_ text: String) -> String {
+        "# diagramkit:block-acc-title=\(sanitize(text))"
+    }
+
+    public static func emitBlockAccDescr(_ text: String) -> String {
+        "# diagramkit:block-acc-descr=\(sanitize(text))"
     }
 
     /// Replace newline/quote/CR with space-replacements to keep the
