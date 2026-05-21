@@ -46,16 +46,6 @@ public struct DOTTreeViewMapper {
             if case .treeRoot(let id) = marker.kind { rootMarker = id }
         }
         let roots = allNodes.subtracting(hasIncoming)
-        let rootID: String
-        if let pinned = rootMarker, allNodes.contains(pinned) { rootID = pinned }
-        else if roots.count == 1 { rootID = roots.first! }
-        else {
-            diagnostics.append(.featureDropped(
-                .slotUnsupported,
-                message: "TreeView requires a single root; found \(roots.count). Falling back to flowchart."
-            ))
-            return (nil, diagnostics)
-        }
 
         var allBuilt: [TreeViewNode] = []
         var nextID = 0
@@ -73,7 +63,40 @@ public struct DOTTreeViewMapper {
             allBuilt.append(node)
             return node
         }
-        let root = build(rootID, level: 0)
-        return (TreeViewDiagram(root: root, nodes: allBuilt), diagnostics)
+
+        // Branch order matters. See D2TreeViewMapper for rationale; this
+        // is the parallel implementation for DOT.
+        if roots.count > 1 {
+            var orderedRoots = roots.sorted()
+            if let pinned = rootMarker,
+               roots.contains(pinned),
+               let idx = orderedRoots.firstIndex(of: pinned) {
+                orderedRoots.remove(at: idx)
+                orderedRoots.insert(pinned, at: 0)
+            }
+            let synthChildren = orderedRoots.map { build($0, level: 0) }
+            let syntheticRoot = TreeViewNode(
+                id: nextID, level: -1, name: "/", nodeType: .directory,
+                children: synthChildren
+            )
+            nextID += 1
+            allBuilt.append(syntheticRoot)
+            return (TreeViewDiagram(root: syntheticRoot, nodes: allBuilt), diagnostics)
+        }
+
+        if let pinned = rootMarker, allNodes.contains(pinned) {
+            let root = build(pinned, level: 0)
+            return (TreeViewDiagram(root: root, nodes: allBuilt), diagnostics)
+        }
+        if roots.count == 1 {
+            let root = build(roots.first!, level: 0)
+            return (TreeViewDiagram(root: root, nodes: allBuilt), diagnostics)
+        }
+
+        diagnostics.append(.featureDropped(
+            .slotUnsupported,
+            message: "TreeView requires at least one root; found 0. Falling back to flowchart."
+        ))
+        return (nil, diagnostics)
     }
 }
