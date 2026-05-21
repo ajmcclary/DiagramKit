@@ -28,6 +28,7 @@ extension RoundTripLossKind {
         case .deploymentShapeFlattened:    return .shapeDowngrade
         case .deploymentDecorationDropped: return .slotUnsupported
         case .deploymentLegendDropped:     return .slotUnsupported
+        case .syntheticRootFlattened:      return .slotUnsupported
         }
     }
 }

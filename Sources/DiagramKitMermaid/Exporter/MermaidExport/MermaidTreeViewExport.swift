@@ -25,8 +25,17 @@ enum MermaidTreeViewExport {
         _ = model.accTitle
         _ = model.accDescr
 
+        // Convention detection: synthetic `/` at level -1 means "Mermaid
+        // multi-root container" — emit children as top-level entries. A
+        // real root at level 0 (D2/DOT/PlantUML payloads) emits the root
+        // itself as the first top-level entry. See TreeViewDiagram docs.
+        let isSyntheticRoot = (model.root.name == "/" && model.root.level == -1)
+        let topLevelRoots: [TreeViewNode] = isSyntheticRoot
+            ? model.root.children
+            : [model.root]
+
         let treeLines = MermaidExportHelpers.emitIndentedTree(
-            roots: model.root.children,
+            roots: topLevelRoots,
             indentUnit: "    ",
             childrenOf: { $0.children },
             emitNode: { node, _ in [renderLine(node)] }
