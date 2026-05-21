@@ -17,10 +17,22 @@ enum DOTTreeViewExport {
         if let t = title, !t.isEmpty {
             lines.append("  // title: \(singleLine(t))")
         }
-        lines.append("  \(DOTRecoveryMarker.emitTreeRoot(tree.root.name))")
 
-        emitNode(tree.root, indent: "  ", lines: &lines, diagnostics: &diagnostics)
-        emitEdges(parent: tree.root, indent: "  ", lines: &lines)
+        // Convention detection: synthetic `/` at level -1 means "Mermaid
+        // multi-root container". Emit each child as a top-level forest
+        // declaration; DOT supports multiple zero-in-degree nodes natively.
+        // The tree-root marker fires on the FIRST child only (ordering
+        // hint for the importer; see DOTTreeViewMapper multi-root path).
+        let isSyntheticRoot = (tree.root.name == "/" && tree.root.level == -1)
+        let topLevelRoots: [TreeViewNode] = isSyntheticRoot ? tree.root.children : [tree.root]
+
+        if let first = topLevelRoots.first {
+            lines.append("  \(DOTRecoveryMarker.emitTreeRoot(first.name))")
+        }
+        for root in topLevelRoots {
+            emitNode(root, indent: "  ", lines: &lines, diagnostics: &diagnostics)
+            emitEdges(parent: root, indent: "  ", lines: &lines)
+        }
 
         lines.append("}")
         return DiagramExportResult(
