@@ -888,6 +888,34 @@ struct CrossFormatRoundTripTests {
         )
     }
 
+    // MARK: Mermaid ↔ PlantUML (treeView) — Wave I
+
+    @Test(
+        "Mermaid → PlantUML → Mermaid (treeView)",
+        arguments: try fixtures(for: "cross-mermaid-plantuml-treeView", fromRoot: roundTripResourcesRoot())
+    )
+    func mermaidPlantumlTreeView(fixture: RoundTripFixture) throws {
+        try runCrossFormatRoundTrip(
+            legA: RoundTripCellRegistry.mermaidTreeView,
+            legB: RoundTripCellRegistry.plantumlTreeView,
+            additionalAllowedLosses: RoundTripCrossRegistry.mermaidPlantumlTreeView,
+            fixture: fixture
+        )
+    }
+
+    @Test(
+        "PlantUML → Mermaid → PlantUML (treeView)",
+        arguments: try fixtures(for: "cross-plantuml-mermaid-treeView", fromRoot: roundTripResourcesRoot())
+    )
+    func plantumlMermaidTreeView(fixture: RoundTripFixture) throws {
+        try runCrossFormatRoundTrip(
+            legA: RoundTripCellRegistry.plantumlTreeView,
+            legB: RoundTripCellRegistry.mermaidTreeView,
+            additionalAllowedLosses: RoundTripCrossRegistry.plantumlMermaidTreeView,
+            fixture: fixture
+        )
+    }
+
     @Test(
         "DOT → D2 → DOT (treeView)",
         arguments: try fixtures(for: "cross-dot-d2-treeView", fromRoot: roundTripResourcesRoot())

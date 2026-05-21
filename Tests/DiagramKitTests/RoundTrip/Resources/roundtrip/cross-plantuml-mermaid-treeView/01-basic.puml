@@ -1,0 +1,7 @@
+@startwbs
+* project
+** src
+*** app
+*** index
+** readme
+@endwbs

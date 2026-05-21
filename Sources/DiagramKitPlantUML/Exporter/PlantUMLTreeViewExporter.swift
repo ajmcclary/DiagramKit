@@ -69,7 +69,17 @@ public struct PlantUMLTreeViewExporter {
                     descMarkers.append((node.id,
                         PlantUMLRecoveryMarker.emitTreeViewNodeDescription(nodeId: node.id, body: d)))
                 }
-                if let icon = node.iconId, !icon.isEmpty {
+                if let icon = node.iconId,
+                   !icon.isEmpty,
+                   icon != resolveIcon(name: node.name, nodeType: node.nodeType) {
+                    // Skip markers for default-resolved icons — Mermaid's
+                    // parser auto-fills `iconId` via `resolveIcon`, so a
+                    // marker carrying that same value re-applies via the
+                    // PlantUML importer's ID-keyed map and collides with
+                    // an off-by-one ID assignment when crossing the
+                    // synthetic-root convention. Emitting only non-default
+                    // icons mirrors the same discipline `renderLine` uses
+                    // in `MermaidTreeViewExport`.
                     iconMarkers.append((node.id,
                         PlantUMLRecoveryMarker.emitTreeViewNodeIcon(nodeId: node.id, iconId: icon)))
                 }

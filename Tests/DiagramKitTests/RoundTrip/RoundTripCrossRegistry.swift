@@ -104,6 +104,13 @@ enum RoundTripCrossRegistry {
     static let dotPlantumlTreeView: Set<RoundTripLossKind> = [.idSanitization, .titleDrop]
     static let plantumlDotTreeView: Set<RoundTripLossKind> = [.idSanitization, .titleDrop]
 
+    // Wave I — Mermaid ↔ PlantUML treeView (closes Wave H deferral).
+    // Single-root inputs are lossless modulo idSanitization / titleDrop.
+    // Multi-root Mermaid input admits .syntheticRootFlattened via per-
+    // fixture sidecar (see cross-mermaid-plantuml-treeView/02-multi-root.json).
+    static let mermaidPlantumlTreeView: Set<RoundTripLossKind> = [.idSanitization, .titleDrop]
+    static let plantumlMermaidTreeView: Set<RoundTripLossKind> = [.idSanitization, .titleDrop]
+
     // Wave G — c4 cross-format pairs (D2 + DOT × mermaid / plantuml / structurizr; d2 ↔ dot)
     static let mermaidD2C4: Set<RoundTripLossKind>     = [.idSanitization, .c4SlotDrop, .configDrop, .boundaryFlatten]
     static let d2MermaidC4: Set<RoundTripLossKind>     = [.idSanitization, .c4SlotDrop, .configDrop, .boundaryFlatten]

@@ -1,0 +1,4 @@
+{
+  "additionalAllowedLosses": ["syntheticRootFlattened"],
+  "note": "Multi-root Mermaid treeView cannot round-trip through PlantUML WBS (single-root grammar); two of three roots drop with .featureDropped(.slotUnsupported)."
+}
