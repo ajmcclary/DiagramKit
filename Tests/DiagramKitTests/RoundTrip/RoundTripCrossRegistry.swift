@@ -27,6 +27,12 @@ enum RoundTripCrossRegistry {
     static let mermaidPlantumlSequence: Set<RoundTripLossKind> = [.idSanitization, .configDrop]
     static let plantumlMermaidSequence: Set<RoundTripLossKind> = [.idSanitization, .configDrop]
 
+    // Wave F — sequence cross-format pairs (D2)
+    static let mermaidD2Sequence: Set<RoundTripLossKind> = [.idSanitization, .configDrop, .styleDrop, .titleDrop]
+    static let d2MermaidSequence: Set<RoundTripLossKind> = [.idSanitization, .configDrop, .styleDrop, .titleDrop]
+    static let plantumlD2Sequence: Set<RoundTripLossKind> = [.idSanitization, .configDrop, .styleDrop, .titleDrop]
+    static let d2PlantumlSequence: Set<RoundTripLossKind> = [.idSanitization, .configDrop, .styleDrop, .titleDrop]
+
     // Class pair
     static let mermaidPlantumlClass: Set<RoundTripLossKind> = [.idSanitization]
     static let plantumlMermaidClass: Set<RoundTripLossKind> = [.idSanitization]
