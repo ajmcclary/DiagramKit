@@ -10,6 +10,11 @@ import DiagramKitModel
 /// from `items` via the existing `SequenceDiagram` computed properties.
 struct D2SequenceMapper {
 
+    private enum ContainerFrame {
+        case block(label: String)
+        case box(label: String)
+    }
+
     func map(
         _ document: D2Document,
         markers: [RecoveryMarker<D2RecoveryMarker.Kind>]
@@ -17,6 +22,7 @@ struct D2SequenceMapper {
         var items: [SequenceItem] = []
         var diagnostics: [DiagramDiagnostic] = []
         var seenActorIDs: Set<String> = []
+        var containerStack: [ContainerFrame] = []
 
         func registerActor(_ id: String, label: String, type: ParticipantType, isExplicit: Bool) {
             guard !seenActorIDs.contains(id) else { return }
@@ -24,11 +30,39 @@ struct D2SequenceMapper {
             seenActorIDs.insert(id)
         }
 
+        func inferBlockType(label: String) -> (type: String, inferred: Bool) {
+            for prefix in ["alt_", "opt_", "loop_", "par_", "critical_", "break_", "rect_"] {
+                if label.hasPrefix(prefix) {
+                    return (String(prefix.dropLast()), false)
+                }
+            }
+            return ("opt", true)
+        }
+
+        func explicitBlockType(for label: String) -> String? {
+            for marker in markers {
+                if case .seqBlockType(let l, let type) = marker.kind, l == label {
+                    return type
+                }
+            }
+            return nil
+        }
+
+        func boxMetadata(for label: String) -> (fill: String, wrap: Bool, name: String)? {
+            for marker in markers {
+                if case .seqBox(let l, let fill, let wrap, let name) = marker.kind, l == label {
+                    return (fill, wrap, name)
+                }
+            }
+            return nil
+        }
+
         for stmt in document.statements {
             switch stmt {
             case .nodeDefinition(let def):
                 // Skip the dispatch-signal node itself
-                // (`shape: sequence_diagram` at top level).
+                // (`shape: sequence_diagram` at top level or as nested
+                // box-marker line — for a box the box marker handles it).
                 if def.id == "shape" && def.label == "sequence_diagram" { continue }
                 let label = def.label ?? def.id
                 let type = D2SequenceMapper.participantType(forShape: def.shape) ?? .participant
@@ -56,16 +90,52 @@ struct D2SequenceMapper {
                     arrowType: arrow
                 )))
 
+            case .containerOpen(let open):
+                if let box = boxMetadata(for: open.id) {
+                    items.append(.boxStart(fill: box.fill, title: box.name, wrap: box.wrap))
+                    containerStack.append(.box(label: open.id))
+                } else {
+                    let blockType: String
+                    if let pinned = explicitBlockType(for: open.id) {
+                        blockType = pinned
+                    } else {
+                        let inferred = inferBlockType(label: open.id)
+                        blockType = inferred.type
+                        if inferred.inferred {
+                            diagnostics.append(.lossyTransform(
+                                .styleDrop,
+                                message: "D2 sequence container '\(open.id)' assumed block type 'opt'; no seq-block-type marker found"
+                            ))
+                        }
+                    }
+                    items.append(.blockStart(type: blockType, label: open.id))
+                    containerStack.append(.block(label: open.id))
+                }
+
+            case .containerClose:
+                guard let frame = containerStack.popLast() else { continue }
+                switch frame {
+                case .block(let label):
+                    let resolvedType: String = {
+                        for item in items.reversed() {
+                            if case .blockStart(let t, let l) = item, l == label { return t }
+                        }
+                        return "opt"
+                    }()
+                    items.append(.blockEnd(type: resolvedType))
+                case .box:
+                    items.append(.boxEnd)
+                }
+
             default:
                 break
             }
         }
 
-        // Marker recovery — Task 3 only honors actor-kind and arrow-type.
-        // Tasks 4–5 expand this to blocks, boxes, notes, etc.
         var working = items
         applyActorKindMarkers(&working, markers: markers)
         applyArrowTypeMarkers(&working, markers: markers)
+        applyBlockDividerMarkers(&working, markers: markers)
 
         return (SequenceDiagram(items: working), diagnostics)
     }
@@ -104,6 +174,70 @@ struct D2SequenceMapper {
                 }
                 items[idx] = .message(msg)
             }
+        }
+    }
+
+    /// Insert `.blockDivider` items at the message-index position
+    /// indicated by each `seq-block-divider` marker. Multiple dividers
+    /// for the same block land in ascending `dividerIndex` order; insert
+    /// back-to-front so earlier indices stay valid.
+    private func applyBlockDividerMarkers(
+        _ items: inout [SequenceItem],
+        markers: [RecoveryMarker<D2RecoveryMarker.Kind>]
+    ) {
+        struct DividerSpec {
+            let containerLabel: String
+            let dividerIndex: Int
+            let label: String
+        }
+        let specs: [DividerSpec] = markers.compactMap { m in
+            if case .seqBlockDivider(let label, let idx, let text) = m.kind {
+                return DividerSpec(containerLabel: label, dividerIndex: idx, label: text)
+            }
+            return nil
+        }.sorted { $0.dividerIndex > $1.dividerIndex }
+
+        for spec in specs {
+            guard let startIdx = items.firstIndex(where: {
+                if case .blockStart(_, let l) = $0, l == spec.containerLabel { return true }
+                return false
+            }) else { continue }
+
+            var msgsInside = 0
+            var insertAt = startIdx + 1
+            var depth = 1
+            var cursor = startIdx + 1
+            while cursor < items.count, depth > 0 {
+                switch items[cursor] {
+                case .blockStart:
+                    depth += 1
+                case .blockEnd:
+                    depth -= 1
+                    if depth == 0 {
+                        insertAt = cursor
+                        cursor = items.count
+                        continue
+                    }
+                case .message:
+                    if depth == 1 {
+                        if msgsInside == spec.dividerIndex {
+                            insertAt = cursor
+                            cursor = items.count
+                            continue
+                        }
+                        msgsInside += 1
+                    }
+                default:
+                    break
+                }
+                cursor += 1
+            }
+
+            let blockType: String = {
+                if case .blockStart(let t, _) = items[startIdx] { return t }
+                return "alt"
+            }()
+            items.insert(.blockDivider(type: blockType, label: spec.label), at: insertAt)
         }
     }
 
