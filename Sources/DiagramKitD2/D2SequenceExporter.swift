@@ -39,6 +39,7 @@ enum D2SequenceExport {
         var indent = ""
         let indentUnit = "  "
         var pendingActivate = false
+        var pendingCreate = false
 
         struct OpenBlock { var label: String; var dividers: Int }
         var blockStack: [OpenBlock] = []
@@ -67,6 +68,10 @@ enum D2SequenceExport {
                     lines.append("\(indent)\(from) \(arrow) \(to): \"\(escape(msg.label))\"")
                 }
                 lines.append("\(indent)\(D2RecoveryMarker.emitSeqArrowType(messageIndex: msgIdx, rawValue: msg.arrowType.rawValue))")
+                if pendingCreate {
+                    lines.append("\(indent)\(D2RecoveryMarker.emitSeqMessageAttr(messageIndex: msgIdx, attr: "create"))")
+                    pendingCreate = false
+                }
                 if msg.activate || pendingActivate {
                     lines.append("\(indent)\(D2RecoveryMarker.emitSeqMessageAttr(messageIndex: msgIdx, attr: "activate"))")
                 }
@@ -125,10 +130,41 @@ enum D2SequenceExport {
                 // Already emitted as top-level markers before the items walk.
                 break
 
-            // .note, .createParticipant, .destroyParticipant,
-            // .link/.links/.properties/.details handled in Task 8.
-            default:
-                break
+            case .note(let n):
+                // Anchor the note at the most recently emitted message
+                // (msgIdx). If no messages have been emitted yet, anchor
+                // at 0 so the importer still finds a valid afterMessageIndex.
+                let after = max(0, msgIdx)
+                let actorsCsv = n.actorIds.joined(separator: ",")
+                lines.append("\(indent)\(D2RecoveryMarker.emitSeqNote(afterMessageIndex: after, position: n.position, actorIDsCsv: actorsCsv, text: n.text))")
+                let actorsForDisplay = n.actorIds.joined(separator: ",")
+                lines.append("\(indent)# Note (\(n.position) \(actorsForDisplay)): \(escape(n.text))")
+
+            case .createParticipant(let actor):
+                let sanitizedId = sanitizeID(actor.id, &diagnostics)
+                lines.append("\(indent)\(sanitizedId): \"\(escape(actor.label))\"")
+                if actor.type != .participant {
+                    lines.append("\(indent)\(D2RecoveryMarker.emitSeqActorKind(actorID: sanitizedId, participantType: actor.type.rawValue))")
+                    if let shape = shape(for: actor.type) {
+                        lines.append("\(indent)\(sanitizedId).shape: \(shape)")
+                    }
+                }
+                // `create` is attached to the next message that lands.
+                pendingCreate = true
+
+            case .destroyParticipant:
+                if msgIdx >= 0 {
+                    lines.append("\(indent)\(D2RecoveryMarker.emitSeqMessageAttr(messageIndex: msgIdx, attr: "destroy"))")
+                }
+
+            case .link(let actorId, _, _),
+                 .links(let actorId, _),
+                 .properties(let actorId, _),
+                 .details(let actorId, _):
+                diagnostics.append(.featureDropped(
+                    .slotUnsupported,
+                    message: "Sequence item for actor '\(actorId)' dropped: D2 has no equivalent"
+                ))
             }
         }
 

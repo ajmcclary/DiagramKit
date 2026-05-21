@@ -107,6 +107,53 @@ struct D2SequenceExporterTests {
         #expect(out.source.contains("# diagramkit:seq-message-attr=0,deactivate"))
     }
 
+    @Test("Note emitted as comment + seq-note marker referencing afterMessageIndex")
+    func notesEmitted() throws {
+        let doc = DiagramDocument(payload: .sequenceDiagram(SequenceDiagram(items: [
+            .actor(SequenceActor(id: "alice", label: "Alice")),
+            .actor(SequenceActor(id: "bob", label: "Bob")),
+            .message(SequenceMessage(from: "alice", to: "bob", label: "ping")),
+            .note(SequenceNote(actorIds: ["bob"], text: "Thinking...", position: "right of")),
+        ])))
+        let out = try D2Exporter().export(doc)
+        #expect(out.source.contains("# diagramkit:seq-note=0,right of,bob,Thinking..."))
+        #expect(out.source.contains("# Note (right of bob): Thinking..."))
+    }
+
+    @Test("Note round-trips through importer")
+    func noteRoundTrip() throws {
+        let original = DiagramDocument(payload: .sequenceDiagram(SequenceDiagram(items: [
+            .actor(SequenceActor(id: "alice", label: "Alice")),
+            .actor(SequenceActor(id: "bob", label: "Bob")),
+            .message(SequenceMessage(from: "alice", to: "bob", label: "ping")),
+            .note(SequenceNote(actorIds: ["bob"], text: "Thinking...", position: "right of")),
+        ])))
+        let exported = try D2Exporter().export(original)
+        let reimported = try D2Importer().parse(exported.source)
+        guard case .sequenceDiagram(let seq) = reimported.document.payload else {
+            Issue.record("not sequence"); return
+        }
+        let note = try #require(seq.notes.first)
+        #expect(note.actorIds == ["bob"])
+        #expect(note.position == "right of")
+        #expect(note.text == "Thinking...")
+    }
+
+    @Test(".link / .properties / .details items dropped with featureDropped diagnostic")
+    func metadataDropped() throws {
+        let doc = DiagramDocument(payload: .sequenceDiagram(SequenceDiagram(items: [
+            .actor(SequenceActor(id: "alice", label: "Alice")),
+            .link("alice", label: "docs", url: "https://example.com"),
+            .properties("alice", json: "{\"role\":\"admin\"}"),
+            .details("alice", elementId: "elem1"),
+        ])))
+        let out = try D2Exporter().export(doc)
+        let dropped = out.diagnostics.filter {
+            $0.severity == .unsupported && $0.category == .slotUnsupported
+        }
+        #expect(dropped.count == 3)
+    }
+
     @Test("Full block/divider round-trip preserves type, label, and divider")
     func blockBoxRoundTrip() throws {
         let original = DiagramDocument(payload: .sequenceDiagram(SequenceDiagram(items: [
