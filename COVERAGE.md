@@ -5,7 +5,7 @@ ships: Mermaid, D2, Graphviz DOT, Structurizr, PlantUML. The corpus carries 28
 diagram families. Mermaid is the canonical model surface — every other format
 imports/exports a subset by projecting into a Mermaid-equivalent payload.
 
-Last audited: 2026-05-20 (Wave E). Cross-reference [CLAUDE.md](CLAUDE.md)
+Last audited: 2026-05-21 (Wave F). Cross-reference [CLAUDE.md](CLAUDE.md)
 "What Lives Where" for slice paths and [BASELINES.md](BASELINES.md) for
 corpus counts.
 
@@ -31,7 +31,7 @@ corpus counts.
 |-------------------|:-------:|:--:|:---:|:-----------:|:--------:|
 | flowchart         |   ★    | ✓ | ✓  |     —      |    ✓    |
 | stateDiagram      |   ★    | ✓ | ✓  |     —      |    ✓    |
-| sequenceDiagram   |   ★    | — | —  |     —      |    ✓    |
+| sequenceDiagram   |   ★    | ✓ | —  |     —      |    ✓    |
 | classDiagram      |   ★    | ✓ | ✓  |     —      |    ✓    |
 | erDiagram         |   ★    | ✓ | ✓  |     —      |    ✓    |
 | xyChart           |   ★    | — | —  |     —      |    —    |
@@ -57,7 +57,7 @@ corpus counts.
 | wardleyBeta       |   ★    | — | —  |     —      |    —    |
 | c4                |   ★    | — | —  |     ✓      |    ✓    |
 | zenuml            |   ★    | — | —  |     —      |    —    |
-| **Totals**        | 28/28  | 7/28 | 7/28 | 1/28      | 9/28    |
+| **Totals**        | 28/28  | 8/28 | 7/28 | 1/28      | 9/28    |
 
 ## Export coverage
 
@@ -65,7 +65,7 @@ corpus counts.
 |-------------------|:-------:|:--:|:---:|:-----------:|:--------:|
 | flowchart         |   ✓    | ✓ | ✓  |     —      |    ✓    |
 | stateDiagram      |   ✓    | ✓ | ✓  |     —      |    ✓    |
-| sequenceDiagram   |   ✓    | — | —  |     —      |    ✓    |
+| sequenceDiagram   |   ✓    | ✓ | —  |     —      |    ✓    |
 | classDiagram      |   ✓    | ✓ | ✓  |     —      |    ✓    |
 | erDiagram         |   ✓    | ✓ | ✓  |     —      |    ✓    |
 | xyChart           |   ✓    | — | —  |     —      |    —    |
@@ -91,17 +91,18 @@ corpus counts.
 | wardleyBeta       |   ✓    | — | —  |     —      |    —    |
 | c4                |   ✓    | — | —  |     ✓      |    ✓    |
 | zenuml            |   ✓    | — | —  |     —      |    —    |
-| **Totals**        | 28/28  | 7/28 | 7/28 | 1/28      | 9/28    |
+| **Totals**        | 28/28  | 8/28 | 7/28 | 1/28      | 9/28    |
 
 ## Round-trip discipline
 
-`Tests/DiagramKitTests/RoundTrip/Resources/roundtrip/` currently holds **36
-same-format fixtures** and **58 cross-format directed pairs** (29 unordered).
+`Tests/DiagramKitTests/RoundTrip/Resources/roundtrip/` currently holds **38
+same-format fixtures** (2 new D2 sequence fixtures) and **62 cross-format
+directed pairs** (31 unordered).
 
 | Layer | Coverage |
 |-------|----------|
-| Same-format | mermaid {flowchart, sequence, class, er, gantt, state, c4}, d2 {flowchart, class, state, er, architecture, mindmap, treeView}, dot {flowchart, class, state, er, architecture, mindmap, treeView}, plantuml {sequence, class, state, gantt, mindmap, c4, activity, er, useCase, object, component}, structurizr {c4} |
-| Cross-format pairs | flowchart × {mermaid↔d2, mermaid↔dot, d2↔dot, mermaid↔plantuml}; sequence × {mermaid↔plantuml}; class × {mermaid↔plantuml, mermaid↔d2, mermaid↔dot, d2↔dot}; state × {mermaid↔d2, mermaid↔dot, d2↔dot}; er × {mermaid↔plantuml, mermaid↔d2, mermaid↔dot, d2↔dot}; architecture × {mermaid↔d2, mermaid↔dot, d2↔dot}; mindmap × {mermaid↔d2, mermaid↔dot, d2↔dot}; treeView × {mermaid↔d2, mermaid↔dot, d2↔dot}; c4 × {mermaid↔plantuml, mermaid↔structurizr, plantuml↔structurizr} |
+| Same-format | mermaid {flowchart, sequence, class, er, gantt, state, c4}, d2 {flowchart, class, state, er, architecture, mindmap, treeView, sequence}, dot {flowchart, class, state, er, architecture, mindmap, treeView}, plantuml {sequence, class, state, gantt, mindmap, c4, activity, er, useCase, object, component}, structurizr {c4} |
+| Cross-format pairs | flowchart × {mermaid↔d2, mermaid↔dot, d2↔dot, mermaid↔plantuml}; sequence × {mermaid↔plantuml, mermaid↔d2, plantuml↔d2}; class × {mermaid↔plantuml, mermaid↔d2, mermaid↔dot, d2↔dot}; state × {mermaid↔d2, mermaid↔dot, d2↔dot}; er × {mermaid↔plantuml, mermaid↔d2, mermaid↔dot, d2↔dot}; architecture × {mermaid↔d2, mermaid↔dot, d2↔dot}; mindmap × {mermaid↔d2, mermaid↔dot, d2↔dot}; treeView × {mermaid↔d2, mermaid↔dot, d2↔dot}; c4 × {mermaid↔plantuml, mermaid↔structurizr, plantuml↔structurizr} |
 
 Every supported import × export intersection that produces a non-empty result
 has a round-trip fixture. There are no missing pairs given today's supported
@@ -161,6 +162,26 @@ of two specs (plus PlantUML deployment dialect and Wave E):
   helpers on both mappers. No new `DiagnosticCategory` cases; reuses
   `.shapeDowngrade` / `.slotUnsupported` / `.idSanitization`. Closes
   [`docs/superpowers/specs/2026-05-20-d2-dot-coverage-wave-e-design.md`](docs/superpowers/specs/2026-05-20-d2-dot-coverage-wave-e-design.md).
+- **Wave F — D2 sequenceDiagram.** D2 gains one family (no matrix `⚠`
+  involved; the cell was `—`). Detection: structural probe for a
+  top-level `shape: sequence_diagram` declaration plus marker-forced
+  family override (`# diagramkit:family=sequence`). Eleven new
+  recovery-marker kinds (`seq-actor-kind`, `seq-arrow-type`,
+  `seq-message-attr`, `seq-block-type`, `seq-block-divider`,
+  `seq-note`, `seq-box`, `seq-autonumber`, `seq-title`,
+  `seq-acc-title`, `seq-acc-descr`) preserve participant types,
+  arrow types (all 26 `SequenceArrowType` values), block types,
+  block dividers, notes, boxes, autonumber, and accessibility
+  metadata across same-format round-trip. D2 only supports `->`,
+  `<->`, and `--` natively; the exporter always emits `->` for
+  non-bidirectional flavors and the paired `seq-arrow-type` marker
+  carries the exact arrow type. Cross-format `mermaid ↔ d2` and
+  `plantuml ↔ d2` paths bridge via the natural shared subset
+  (participants, three arrow flavors, alt/opt/loop blocks, notes,
+  autonumber, title). No new `DiagnosticCategory` cases; reuses
+  `.shapeDowngrade` / `.styleDrop` / `.idSanitization` /
+  `.slotUnsupported`. No new `RoundTripLoss` cases. Closes
+  [`docs/superpowers/specs/2026-05-21-d2-sequence-design.md`](docs/superpowers/specs/2026-05-21-d2-sequence-design.md).
 
 The only new public surface across Wave D is the
 `ArchitectureServiceKind` enum (`service` / `component` / `interface`)
@@ -245,6 +266,9 @@ Ordered by impact:
 6. ~~**D2 + DOT expansion: architecture, mindmap, treeView (3 families × 2
    formats × both directions, marker-recovered round-trip).**~~ Closed by
    Wave E (2026-05-20-d2-dot-coverage-wave-e spec).
+7. ~~**D2 expansion: sequenceDiagram (one family × both directions,
+   marker-recovered round-trip).**~~ Closed by Wave F
+   (2026-05-21-d2-sequence spec).
 
 Anything outside this list (Wardley, Sankey, Packet, Treemap, etc. in non-native
 formats) is a deliberate `—` and should not be added without a concrete user
