@@ -45,16 +45,6 @@ public struct D2TreeViewMapper {
             if case .treeRoot(let id) = marker.kind { rootMarker = id }
         }
         let roots = allNodes.subtracting(hasIncoming)
-        let rootID: String
-        if let pinned = rootMarker, allNodes.contains(pinned) { rootID = pinned }
-        else if roots.count == 1 { rootID = roots.first! }
-        else {
-            diagnostics.append(.featureDropped(
-                .slotUnsupported,
-                message: "TreeView requires a single root; found \(roots.count). Falling back to flowchart."
-            ))
-            return (nil, diagnostics)
-        }
 
         var allBuilt: [TreeViewNode] = []
         var nextID = 0
@@ -72,7 +62,46 @@ public struct D2TreeViewMapper {
             allBuilt.append(node)
             return node
         }
-        let root = build(rootID, level: 0)
-        return (TreeViewDiagram(root: root, nodes: allBuilt), diagnostics)
+
+        // Branch order matters. Structural multi-root takes precedence over
+        // the marker: forest exports emit a tree-root marker pinning the
+        // first child as an ordering hint, NOT as a single-root assertion.
+        // Honoring `roots.count > 1` first means forest round-trips
+        // synthesize the canonical `/` container, and the pre-existing
+        // marker-pinned-with-orphans silent-drop bug closes naturally.
+        if roots.count > 1 {
+            var orderedRoots = roots.sorted()
+            if let pinned = rootMarker,
+               roots.contains(pinned),
+               let idx = orderedRoots.firstIndex(of: pinned) {
+                orderedRoots.remove(at: idx)
+                orderedRoots.insert(pinned, at: 0)
+            }
+            let synthChildren = orderedRoots.map { build($0, level: 0) }
+            let syntheticRoot = TreeViewNode(
+                id: nextID, level: -1, name: "/", nodeType: .directory,
+                children: synthChildren
+            )
+            nextID += 1
+            allBuilt.append(syntheticRoot)
+            return (TreeViewDiagram(root: syntheticRoot, nodes: allBuilt), diagnostics)
+        }
+
+        // Single-root paths below — byte-identical to pre-Wave-I behavior.
+        if let pinned = rootMarker, allNodes.contains(pinned) {
+            let root = build(pinned, level: 0)
+            return (TreeViewDiagram(root: root, nodes: allBuilt), diagnostics)
+        }
+        if roots.count == 1 {
+            let root = build(roots.first!, level: 0)
+            return (TreeViewDiagram(root: root, nodes: allBuilt), diagnostics)
+        }
+
+        // roots.isEmpty: cycles or empty graph — fall back to flowchart.
+        diagnostics.append(.featureDropped(
+            .slotUnsupported,
+            message: "TreeView requires at least one root; found 0. Falling back to flowchart."
+        ))
+        return (nil, diagnostics)
     }
 }
