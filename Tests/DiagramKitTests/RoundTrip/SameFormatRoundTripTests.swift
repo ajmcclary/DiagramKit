@@ -468,6 +468,17 @@ struct SameFormatRoundTripTests {
     }
 
     @Test(
+        "PlantUML treeView round-trip",
+        arguments: try fixtures(for: "plantuml-treeView", fromRoot: roundTripResourcesRoot())
+    )
+    func plantumlTreeView(fixture: RoundTripFixture) throws {
+        try runSameFormatRoundTrip(
+            cell: RoundTripCellRegistry.plantumlTreeView,
+            fixture: fixture
+        )
+    }
+
+    @Test(
         "D2 sequence round-trip",
         arguments: try fixtures(for: "d2-sequence", fromRoot: roundTripResourcesRoot())
     )

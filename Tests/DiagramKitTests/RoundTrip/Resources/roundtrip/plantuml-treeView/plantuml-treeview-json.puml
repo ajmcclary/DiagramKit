@@ -1,0 +1,13 @@
+@startjson
+{
+  "name": "demo",
+  "version": "1.0",
+  "active": true,
+  "count": 42,
+  "missing": null,
+  "tags": ["a", "b"],
+  "nested": {
+    "deep": "value"
+  }
+}
+@endjson

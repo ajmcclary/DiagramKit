@@ -1,0 +1,9 @@
+@startyaml
+name: demo
+version: "1.0"
+nested:
+  deep: value
+list:
+  - alpha
+  - beta
+@endyaml

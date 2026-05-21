@@ -1,0 +1,9 @@
+@startwbs
+title Project Breakdown
+* Project
+** Phase 1
+*** Task A
+*** Task B
+** Phase 2
+*** Task C
+@endwbs

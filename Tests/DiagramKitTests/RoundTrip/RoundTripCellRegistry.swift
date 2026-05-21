@@ -331,6 +331,13 @@ enum RoundTripCellRegistry {
         allowedLosses: [.idSanitization]
     )
 
+    static let plantumlTreeView = RoundTripCell(
+        importer: PlantUMLImporter(),
+        exporter: PlantUMLExporter(),
+        family: DiagramType.treeView,
+        allowedLosses: []
+    )
+
     static let structurizrC4 = RoundTripCell(
         importer: StructurizrImporter(),
         exporter: StructurizrExporter(),
