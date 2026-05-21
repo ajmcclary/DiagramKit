@@ -1,0 +1,22 @@
+digraph G {
+    # diagramkit:family=c4
+    # diagramkit:c4-diagram-kind=C4Container
+
+    subgraph cluster_ent {
+        label = "Enterprise";
+        web [shape=box, label="Web App"];
+        # diagramkit:c4-shape-kind=web,container
+        # diagramkit:c4-technology=web,Swift 6
+        db [shape=cylinder, label="Database"];
+        # diagramkit:c4-shape-kind=db,container_db
+        # diagramkit:c4-technology=db,PostgreSQL 16
+    }
+    # diagramkit:c4-boundary-kind=ent,enterprise
+
+    user [shape=oval, label="User"];
+    # diagramkit:c4-shape-kind=user,person
+
+    user -> web [label="uses"];
+    web -> db [label="reads/writes"];
+    # diagramkit:c4-rel-kind=1,rel_d
+}

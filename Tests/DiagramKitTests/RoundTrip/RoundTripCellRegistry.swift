@@ -58,6 +58,13 @@ enum RoundTripCellRegistry {
         allowedLosses: [.idSanitization, .boundaryFlatten, .c4SlotDrop]
     )
 
+    static let dotC4 = RoundTripCell(
+        importer: GraphvizImporter(),
+        exporter: DOTExporter(),
+        family: DiagramType.c4,
+        allowedLosses: [.idSanitization, .boundaryFlatten, .c4SlotDrop]
+    )
+
     static let mermaidGantt = RoundTripCell(
         importer: MermaidImporter(),
         exporter: MermaidExporter(),
