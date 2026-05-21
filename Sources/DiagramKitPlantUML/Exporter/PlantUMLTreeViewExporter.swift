@@ -42,22 +42,41 @@ public struct PlantUMLTreeViewExporter {
             ))
         }
 
-        // Collect descriptions/icons/cssClasses in ascending id order.
+        // Convention detection: pick the effective root (the user-visible
+        // subtree the `*` root represents) and the dropped-siblings list.
+        // PlantUML WBS supports exactly one `*` root per @startwbs block.
+        let isSyntheticRoot = (diagram.root.name == "/" && diagram.root.level == -1)
+        let effectiveRoot: TreeViewNode?
+        let droppedSiblings: [TreeViewNode]
+        if isSyntheticRoot {
+            let children = diagram.root.children
+            effectiveRoot = children.first
+            droppedSiblings = Array(children.dropFirst())
+        } else {
+            effectiveRoot = diagram.root
+            droppedSiblings = []
+        }
+
+        // Collect descriptions/icons/cssClasses in ascending id order
+        // — walk only the effective root (markers for dropped siblings
+        // would be orphaned).
         var descMarkers: [(id: Int, line: String)] = []
         var iconMarkers: [(id: Int, line: String)] = []
         var cssMarkers: [(id: Int, line: String)] = []
-        walk(diagram.root) { node in
-            if let d = node.description, !d.isEmpty {
-                descMarkers.append((node.id,
-                    PlantUMLRecoveryMarker.emitTreeViewNodeDescription(nodeId: node.id, body: d)))
-            }
-            if let icon = node.iconId, !icon.isEmpty {
-                iconMarkers.append((node.id,
-                    PlantUMLRecoveryMarker.emitTreeViewNodeIcon(nodeId: node.id, iconId: icon)))
-            }
-            if let css = node.cssClass, !css.isEmpty {
-                cssMarkers.append((node.id,
-                    PlantUMLRecoveryMarker.emitTreeViewNodeCssClass(nodeId: node.id, cssClass: css)))
+        if let root = effectiveRoot {
+            walk(root) { node in
+                if let d = node.description, !d.isEmpty {
+                    descMarkers.append((node.id,
+                        PlantUMLRecoveryMarker.emitTreeViewNodeDescription(nodeId: node.id, body: d)))
+                }
+                if let icon = node.iconId, !icon.isEmpty {
+                    iconMarkers.append((node.id,
+                        PlantUMLRecoveryMarker.emitTreeViewNodeIcon(nodeId: node.id, iconId: icon)))
+                }
+                if let css = node.cssClass, !css.isEmpty {
+                    cssMarkers.append((node.id,
+                        PlantUMLRecoveryMarker.emitTreeViewNodeCssClass(nodeId: node.id, cssClass: css)))
+                }
             }
         }
         descMarkers.sort { $0.id < $1.id }
@@ -67,7 +86,24 @@ public struct PlantUMLTreeViewExporter {
         lines.append(contentsOf: iconMarkers.map { $0.line })
         lines.append(contentsOf: cssMarkers.map { $0.line })
 
-        emitNode(diagram.root, lines: &lines, diagnostics: &diagnostics)
+        // Emit the WBS root. If the synthetic container is empty we emit
+        // a bare @startwbs/@endwbs (degenerate; matches "empty tree"
+        // behavior on the parser side). The unchanged `node.level + 1`
+        // mapping in `emitNode` yields the correct WBS depth: the
+        // effective root is always at level 0 (whether that's a real
+        // root or a synthetic-root child), giving depth 1 = `*`.
+        if let root = effectiveRoot {
+            emitNode(root, lines: &lines, diagnostics: &diagnostics)
+        }
+
+        // Emit one diagnostic per dropped sibling (in declaration order).
+        for sibling in droppedSiblings {
+            diagnostics.append(.featureDropped(
+                .slotUnsupported,
+                message: "additional WBS root '\(sibling.name)' dropped " +
+                         "(@startwbs supports a single root)"
+            ))
+        }
 
         lines.append("@endwbs")
         return DiagramExportResult(source: lines.joined(separator: "\n") + "\n", diagnostics: diagnostics)
