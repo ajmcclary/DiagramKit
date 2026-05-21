@@ -833,14 +833,6 @@ struct CrossFormatRoundTripTests {
     }
 
     // MARK: D2 ↔ PlantUML (treeView) — Wave H
-    //
-    // Mermaid ↔ PlantUML treeView is deliberately omitted: Mermaid uses a
-    // synthetic "/" root convention (src_treeview_parser.swift:80) that
-    // D2 / DOT / PlantUML don't share. The existing Mermaid ↔ D2 and
-    // Mermaid ↔ DOT treeView fixtures have been silently skipping since
-    // Wave E (`.mermaid` extension not in RoundTripFixtureLoader's set),
-    // masking the same convention mismatch. Bridging that convention is
-    // out of scope for Wave H.
 
     @Test(
         "D2 → PlantUML → D2 (treeView)",

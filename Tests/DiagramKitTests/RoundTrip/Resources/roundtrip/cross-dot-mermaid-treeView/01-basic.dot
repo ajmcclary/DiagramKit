@@ -1,7 +1,7 @@
 digraph G {
   # diagramkit:family=treeView
   # diagramkit:tree-root=root
-  root [label="/"];
+  root [label="root"];
   a [label="A"];
   b [label="B"];
   root -> a;

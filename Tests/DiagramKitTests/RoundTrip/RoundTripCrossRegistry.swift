@@ -93,14 +93,12 @@ enum RoundTripCrossRegistry {
     static let d2DotTreeView: Set<RoundTripLossKind> = [.idSanitization, .titleDrop]
     static let dotD2TreeView: Set<RoundTripLossKind> = [.idSanitization, .titleDrop]
 
-    // Wave H — treeView cross-format pairs (PlantUML ↔ d2/dot only).
-    // Mermaid ↔ PlantUML is deliberately omitted: Mermaid treeView uses
-    // a synthetic "/" root container at level -1 (see
-    // src_treeview_parser.swift:80) while PlantUML / D2 / DOT use the
-    // actual user-visible node as the root. The pre-existing Mermaid
-    // ↔ D2 and Mermaid ↔ DOT treeView fixtures use the unrecognized
-    // `.mermaid` extension and have been silently skipping since Wave E,
-    // masking the same convention mismatch.
+    // Wave H + I — treeView cross-format pairs. PlantUML ↔ d2/dot landed
+    // in Wave H; Mermaid ↔ PlantUML lands in Wave I along with the
+    // synthetic-root convention bridge. The Mermaid ↔ D2 and Mermaid
+    // ↔ DOT pairs (declared at the Wave-E methods) now run after Wave I
+    // renamed their `.mermaid` fixtures to `.mmd` and the D2/DOT mappers
+    // gained the multi-root synthesizing branch.
     static let d2PlantumlTreeView: Set<RoundTripLossKind> = [.idSanitization, .titleDrop]
     static let plantumlD2TreeView: Set<RoundTripLossKind> = [.idSanitization, .titleDrop]
     static let dotPlantumlTreeView: Set<RoundTripLossKind> = [.idSanitization, .titleDrop]
