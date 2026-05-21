@@ -303,6 +303,13 @@ enum RoundTripCellRegistry {
         allowedLosses: [.idSanitization]
     )
 
+    static let d2Sequence = RoundTripCell(
+        importer: D2Importer(),
+        exporter: D2Exporter(),
+        family: DiagramType.sequenceDiagram,
+        allowedLosses: [.idSanitization]
+    )
+
     static let dotTreeView = RoundTripCell(
         importer: GraphvizImporter(),
         exporter: DOTExporter(),

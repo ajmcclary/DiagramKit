@@ -177,16 +177,13 @@ enum D2SequenceExport {
     // MARK: helpers
 
     static func arrowToken(for arrow: SequenceArrowType) -> String {
+        // D2 supports only `->`, `<->`, `--` natively. Dotted/cross/open
+        // and the 26 SequenceArrowType variants are carried by the
+        // companion seq-arrow-type marker, so we always emit `->` for
+        // non-bidirectional flavors.
         switch arrow {
         case .bidirectionalSolid, .bidirectionalDotted: return "<->"
-        case .dotted, .dottedCross, .dottedOpen, .dottedPoint,
-             .solidArrowTopDotted, .solidArrowBottomDotted,
-             .stickArrowTopDotted, .stickArrowBottomDotted,
-             .solidArrowTopReverseDotted, .solidArrowBottomReverseDotted,
-             .stickArrowTopReverseDotted, .stickArrowBottomReverseDotted:
-            return "-->"
-        default:
-            return "->"
+        default: return "->"
         }
     }
 

@@ -1,0 +1,31 @@
+# diagramkit:family=sequence
+shape: sequence_diagram
+
+# diagramkit:seq-title=Login flow
+# title: Login flow
+
+alice: "Alice"
+# diagramkit:seq-actor-kind=alice,actor
+alice.shape: person
+
+bob: "Bob"
+
+alice -> bob: "ask"
+# diagramkit:seq-arrow-type=0,0
+# diagramkit:seq-message-attr=0,activate
+
+bob -> alice: "ack"
+# diagramkit:seq-arrow-type=1,1
+# diagramkit:seq-message-attr=1,deactivate
+
+# diagramkit:seq-note=1,right of,bob,Thinking...
+# Note (right of bob): Thinking...
+
+# diagramkit:seq-block-type=alt_1,alt
+alt_1: {
+  bob -> alice: "yes"
+  # diagramkit:seq-arrow-type=2,0
+  # diagramkit:seq-block-divider=alt_1,1,no path
+  bob -> alice: "no"
+  # diagramkit:seq-arrow-type=3,0
+}

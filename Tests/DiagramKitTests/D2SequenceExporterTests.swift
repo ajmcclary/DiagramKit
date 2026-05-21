@@ -32,7 +32,8 @@ struct D2SequenceExporterTests {
         ])))
         let out = try D2Exporter().export(doc)
         #expect(out.source.contains("alice -> bob: \"Hello\""))
-        #expect(out.source.contains("bob --> alice: \"Hi\""))
+        // Dotted arrow uses `->` token (D2 has no `-->`); seq-arrow-type marker carries the truth.
+        #expect(out.source.contains("bob -> alice: \"Hi\""))
         #expect(out.source.contains("alice <-> bob: \"Sync\""))
         #expect(out.source.contains("# diagramkit:seq-arrow-type=0,0"))
         #expect(out.source.contains("# diagramkit:seq-arrow-type=1,1"))
