@@ -22,6 +22,7 @@ public struct GraphvizImporter: DiagramSourceImporter {
         .mindmap,
         .treeView,
         .c4,
+        .block,
     ]
 
     public init() {}
@@ -86,6 +87,15 @@ public struct GraphvizImporter: DiagramSourceImporter {
             return DiagramImportResult(
                 document: document,
                 diagnostics: parseDiagnostics + archDiagnostics
+            )
+        }
+
+        if markerFamily == "block" || DOTBlockProbe.detectsBlock(markers: markerScan.markers) {
+            let (block, blockDiagnostics) = DOTBlockMapper().map(dotDoc, markers: markerScan.markers)
+            let document = DiagramDocument(payload: .block(block))
+            return DiagramImportResult(
+                document: document,
+                diagnostics: parseDiagnostics + blockDiagnostics
             )
         }
 

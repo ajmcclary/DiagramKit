@@ -21,6 +21,7 @@ public struct DOTExporter: DiagramExporter {
         .mindmap,
         .treeView,
         .c4,
+        .block,
     ]
 
     public init() {}
@@ -43,6 +44,8 @@ public struct DOTExporter: DiagramExporter {
             return try DOTTreeViewExport.emit(tree, title: document.title)
         case .c4(let diagram):
             return DiagramExportResult(source: DOTC4Export.export(diagram), diagnostics: [])
+        case .block(let diagram):
+            return try DOTBlockExport.emit(diagram, title: document.title)
         default:
             return .unsupportedDiagram(formatName: name, type: document.type)
         }
