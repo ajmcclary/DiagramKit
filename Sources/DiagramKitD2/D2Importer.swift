@@ -17,6 +17,7 @@ public struct D2Importer: DiagramSourceImporter {
         .classDiagram,
         .stateDiagram,
         .erDiagram,
+        .sequenceDiagram,
         .architecture,
         .mindmap,
         .treeView,
@@ -65,10 +66,30 @@ public struct D2Importer: DiagramSourceImporter {
             )
         }
 
+        if D2SequenceProbe.detectsSequence(d2Doc) {
+            let (seq, seqDiagnostics) = D2SequenceMapper().map(d2Doc, markers: markerScan.markers)
+            var document = DiagramDocument(payload: .sequenceDiagram(seq))
+            document.title = Self.documentTitleMetadata(in: source)
+            return DiagramImportResult(
+                document: document,
+                diagnostics: parseDiagnostics + seqDiagnostics
+            )
+        }
+
         // Marker-forced family takes precedence over structural probes.
         let markerFamily = markerScan.markers.compactMap { marker -> String? in
             if case .family(let name) = marker.kind { return name } else { return nil }
         }.first
+
+        if markerFamily == "sequence" {
+            let (seq, seqDiagnostics) = D2SequenceMapper().map(d2Doc, markers: markerScan.markers)
+            var document = DiagramDocument(payload: .sequenceDiagram(seq))
+            document.title = Self.documentTitleMetadata(in: source)
+            return DiagramImportResult(
+                document: document,
+                diagnostics: parseDiagnostics + seqDiagnostics
+            )
+        }
 
         if markerFamily == "architecture" || D2ArchitectureProbe.detectsArchitecture(d2Doc) {
             let (arch, archDiagnostics) = D2ArchitectureMapper().map(d2Doc, markers: markerScan.markers)
