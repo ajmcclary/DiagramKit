@@ -21,6 +21,6 @@ struct RoundTripLossExpectedCategoryTests {
         for kind in RoundTripLossKind.allCases {
             _ = kind.expectedCategory  // exhaustive switch in production catches new cases at compile time
         }
-        #expect(RoundTripLossKind.allCases.count == 17)
+        #expect(RoundTripLossKind.allCases.count == 18)
     }
 }

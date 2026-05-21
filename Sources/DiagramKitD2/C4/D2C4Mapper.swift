@@ -58,7 +58,7 @@ enum D2C4Mapper {
                 if let nc = nextContent, let nativeShape = parseShapeAttr(nc.trimmed) {
                     // Shape
                     let nominal = inferShapeType(native: nativeShape, diagramKind: ctx.preliminaryDiagramKind(from: markers))
-                    var shape = C4Shape(
+                    let shape = C4Shape(
                         alias: block.alias,
                         label: block.label,
                         typeC4Shape: nominal,

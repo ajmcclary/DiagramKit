@@ -25,6 +25,7 @@ struct RoundTripLossTests {
             (.deploymentShapeFlattened(serviceID: "s", kindRawValue: "node"), .deploymentShapeFlattened),
             (.deploymentDecorationDropped(serviceID: "s", decoration: "color"), .deploymentDecorationDropped),
             (.deploymentLegendDropped, .deploymentLegendDropped),
+            (.syntheticRootFlattened, .syntheticRootFlattened),
         ]
         for (loss, expectedKind) in cases {
             #expect(loss.kind == expectedKind)

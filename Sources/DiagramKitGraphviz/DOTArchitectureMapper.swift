@@ -46,7 +46,7 @@ public struct DOTArchitectureMapper {
         var services: [ArchitectureService] = []
         var groups: [ArchitectureGroup] = []
         var edges: [ArchitectureEdge] = []
-        var diagnostics: [DiagramDiagnostic] = []
+        let diagnostics: [DiagramDiagnostic] = []
 
         walk(
             statements: doc.statements,
