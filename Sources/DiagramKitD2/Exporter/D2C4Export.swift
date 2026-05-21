@@ -13,10 +13,15 @@ public enum D2C4Export {
         }
         lines.append("")
 
-        let authoredBoundaries = diagram.boundaries.filter { $0.origin != .viewScopeSynthesized }
+        // Skip the implicit `global` boundary — D2/DOT importers synthesize
+        // one on parse to match Mermaid's c4 importer.
+        let authoredBoundaries = diagram.boundaries.filter {
+            $0.origin != .viewScopeSynthesized && $0.alias != "global"
+        }
         let rootBoundaries = authoredBoundaries.filter { isRoot($0.parentBoundary) }
         let childrenByParent = Dictionary(grouping: authoredBoundaries.filter { !isRoot($0.parentBoundary) }, by: \.parentBoundary)
         let shapesByBoundary = Dictionary(grouping: diagram.shapes, by: \.parentBoundary)
+        let authoredBoundaryAliases = Set(authoredBoundaries.map(\.alias))
 
         for boundary in rootBoundaries {
             emitBoundary(
@@ -27,7 +32,12 @@ public enum D2C4Export {
                 into: &lines
             )
         }
-        for shape in diagram.shapes where isRoot(shape.parentBoundary) {
+        // Emit shapes whose parentBoundary doesn't reference an authored
+        // boundary alias — i.e., truly top-level shapes. Shapes with
+        // parentBoundary matching an authored boundary alias were already
+        // emitted nested inside that boundary above.
+        for shape in diagram.shapes
+            where isRoot(shape.parentBoundary) && !authoredBoundaryAliases.contains(shape.parentBoundary) {
             emitShape(shape, indent: "", into: &lines)
         }
 

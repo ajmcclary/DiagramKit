@@ -125,11 +125,23 @@ enum D2C4Mapper {
 
         ctx.applyMarkers(markers)
 
+        // Synthesize the implicit `global` boundary that Mermaid's c4
+        // importer auto-creates, so cross-format round-trips through
+        // Mermaid keep matching authored-boundary counts.
+        let hasGlobalBoundary = ctx.boundaries.contains { $0.alias == "global" }
+        var boundaries = ctx.boundaries
+        if !hasGlobalBoundary {
+            boundaries.insert(
+                C4Boundary(alias: "global", label: "global", parentBoundary: ""),
+                at: 0
+            )
+        }
+
         let diagram = C4Diagram(
             kind: diagramKind,
             title: ctx.title,
             shapes: ctx.shapes,
-            boundaries: ctx.boundaries,
+            boundaries: boundaries,
             relationships: ctx.relationships,
             config: C4DiagramConfig()
         )

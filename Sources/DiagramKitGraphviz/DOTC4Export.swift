@@ -14,10 +14,13 @@ public enum DOTC4Export {
         }
         lines.append("")
 
-        let authoredBoundaries = diagram.boundaries.filter { $0.origin != .viewScopeSynthesized }
+        let authoredBoundaries = diagram.boundaries.filter {
+            $0.origin != .viewScopeSynthesized && $0.alias != "global"
+        }
         let rootBoundaries = authoredBoundaries.filter { isRoot($0.parentBoundary) }
         let childrenByParent = Dictionary(grouping: authoredBoundaries.filter { !isRoot($0.parentBoundary) }, by: \.parentBoundary)
         let shapesByBoundary = Dictionary(grouping: diagram.shapes, by: \.parentBoundary)
+        let authoredBoundaryAliases = Set(authoredBoundaries.map(\.alias))
 
         for boundary in rootBoundaries {
             emitBoundary(
@@ -28,7 +31,8 @@ public enum DOTC4Export {
                 into: &lines
             )
         }
-        for shape in diagram.shapes where isRoot(shape.parentBoundary) {
+        for shape in diagram.shapes
+            where isRoot(shape.parentBoundary) && !authoredBoundaryAliases.contains(shape.parentBoundary) {
             emitShape(shape, indent: "    ", into: &lines)
         }
 

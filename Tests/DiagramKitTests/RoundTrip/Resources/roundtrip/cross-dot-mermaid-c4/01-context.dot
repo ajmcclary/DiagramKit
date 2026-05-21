@@ -1,0 +1,10 @@
+digraph G {
+    # diagramkit:family=c4
+    # diagramkit:c4-diagram-kind=C4Context
+
+    customer [shape=oval, label="Customer"];
+    # diagramkit:c4-shape-kind=customer,person
+    banking [shape=box, label="Banking System"];
+
+    customer -> banking [label="Uses"];
+}

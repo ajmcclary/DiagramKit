@@ -92,4 +92,20 @@ enum RoundTripCrossRegistry {
     static let dotMermaidTreeView: Set<RoundTripLossKind> = [.idSanitization, .titleDrop]
     static let d2DotTreeView: Set<RoundTripLossKind> = [.idSanitization, .titleDrop]
     static let dotD2TreeView: Set<RoundTripLossKind> = [.idSanitization, .titleDrop]
+
+    // Wave G — c4 cross-format pairs (D2 + DOT × mermaid / plantuml / structurizr; d2 ↔ dot)
+    static let mermaidD2C4: Set<RoundTripLossKind>     = [.idSanitization, .c4SlotDrop, .configDrop, .boundaryFlatten]
+    static let d2MermaidC4: Set<RoundTripLossKind>     = [.idSanitization, .c4SlotDrop, .configDrop, .boundaryFlatten]
+    static let mermaidDotC4: Set<RoundTripLossKind>    = [.idSanitization, .c4SlotDrop, .configDrop, .boundaryFlatten]
+    static let dotMermaidC4: Set<RoundTripLossKind>    = [.idSanitization, .c4SlotDrop, .configDrop, .boundaryFlatten]
+    static let plantumlD2C4: Set<RoundTripLossKind>    = [.idSanitization, .c4SlotDrop, .configDrop, .boundaryFlatten]
+    static let d2PlantumlC4: Set<RoundTripLossKind>    = [.idSanitization, .c4SlotDrop, .configDrop, .boundaryFlatten]
+    static let plantumlDotC4: Set<RoundTripLossKind>   = [.idSanitization, .c4SlotDrop, .configDrop, .boundaryFlatten]
+    static let dotPlantumlC4: Set<RoundTripLossKind>   = [.idSanitization, .c4SlotDrop, .configDrop, .boundaryFlatten]
+    static let structurizrD2C4: Set<RoundTripLossKind> = [.idSanitization, .c4SlotDrop, .configDrop, .boundaryFlatten]
+    static let d2StructurizrC4: Set<RoundTripLossKind> = [.idSanitization, .c4SlotDrop, .configDrop, .boundaryFlatten]
+    static let structurizrDotC4: Set<RoundTripLossKind> = [.idSanitization, .c4SlotDrop, .configDrop, .boundaryFlatten]
+    static let dotStructurizrC4: Set<RoundTripLossKind> = [.idSanitization, .c4SlotDrop, .configDrop, .boundaryFlatten]
+    static let d2DotC4: Set<RoundTripLossKind>         = [.idSanitization, .c4SlotDrop, .configDrop, .boundaryFlatten]
+    static let dotD2C4: Set<RoundTripLossKind>         = [.idSanitization, .c4SlotDrop, .configDrop, .boundaryFlatten]
 }
