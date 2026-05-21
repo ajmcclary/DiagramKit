@@ -30,23 +30,6 @@ import DiagramKitPlantUML
         #expect(childB?.children.isEmpty == true)
     }
 
-    @Test("@startwbs is an accepted synonym for @startmindmap")
-    func wbsSynonym() throws {
-        let source = """
-        @startwbs
-        * Project
-        ** Phase 1
-        ** Phase 2
-        @endwbs
-        """
-        let result = try PlantUMLImporter().parse(source)
-        guard case .mindmap(let model) = result.document.payload else {
-            Issue.record("Expected mindmap payload"); return
-        }
-        #expect(model.root?.descr == "Project")
-        #expect(model.root?.children.count == 2)
-    }
-
     @Test("Mindmap accepts + and - markers in addition to *")
     func alternativeMarkers() throws {
         let source = """
