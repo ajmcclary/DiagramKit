@@ -5,7 +5,7 @@ ships: Mermaid, D2, Graphviz DOT, Structurizr, PlantUML. The corpus carries 28
 diagram families. Mermaid is the canonical model surface — every other format
 imports/exports a subset by projecting into a Mermaid-equivalent payload.
 
-Last audited: 2026-05-21 (Wave F). Cross-reference [CLAUDE.md](CLAUDE.md)
+Last audited: 2026-05-21 (Wave G). Cross-reference [CLAUDE.md](CLAUDE.md)
 "What Lives Where" for slice paths and [BASELINES.md](BASELINES.md) for
 corpus counts.
 
@@ -55,9 +55,9 @@ corpus counts.
 | treeView          |   ★    | ✓ | ✓  |     —      |    —    |
 | eventModeling     |   ★    | — | —  |     —      |    —    |
 | wardleyBeta       |   ★    | — | —  |     —      |    —    |
-| c4                |   ★    | — | —  |     ✓      |    ✓    |
+| c4                |   ★    | ✓ | ✓  |     ✓      |    ✓    |
 | zenuml            |   ★    | — | —  |     —      |    —    |
-| **Totals**        | 28/28  | 8/28 | 7/28 | 1/28      | 9/28    |
+| **Totals**        | 28/28  | 9/28 | 8/28 | 1/28      | 9/28    |
 
 ## Export coverage
 
@@ -89,20 +89,21 @@ corpus counts.
 | treeView          |   ✓    | ✓ | ✓  |     —      |    —    |
 | eventModeling     |   ✓    | — | —  |     —      |    —    |
 | wardleyBeta       |   ✓    | — | —  |     —      |    —    |
-| c4                |   ✓    | — | —  |     ✓      |    ✓    |
+| c4                |   ✓    | ✓ | ✓  |     ✓      |    ✓    |
 | zenuml            |   ✓    | — | —  |     —      |    —    |
-| **Totals**        | 28/28  | 8/28 | 7/28 | 1/28      | 9/28    |
+| **Totals**        | 28/28  | 9/28 | 8/28 | 1/28      | 9/28    |
 
 ## Round-trip discipline
 
-`Tests/DiagramKitTests/RoundTrip/Resources/roundtrip/` currently holds **38
-same-format fixtures** (2 new D2 sequence fixtures) and **62 cross-format
-directed pairs** (31 unordered).
+`Tests/DiagramKitTests/RoundTrip/Resources/roundtrip/` currently holds **40
+same-format fixtures** (2 new D2 + DOT c4 fixtures since Wave F) and
+**76 cross-format directed pairs** (38 unordered; +14 directed / +7
+unordered c4 pairs added in Wave G).
 
 | Layer | Coverage |
 |-------|----------|
-| Same-format | mermaid {flowchart, sequence, class, er, gantt, state, c4}, d2 {flowchart, class, state, er, architecture, mindmap, treeView, sequence}, dot {flowchart, class, state, er, architecture, mindmap, treeView}, plantuml {sequence, class, state, gantt, mindmap, c4, activity, er, useCase, object, component}, structurizr {c4} |
-| Cross-format pairs | flowchart × {mermaid↔d2, mermaid↔dot, d2↔dot, mermaid↔plantuml}; sequence × {mermaid↔plantuml, mermaid↔d2, plantuml↔d2}; class × {mermaid↔plantuml, mermaid↔d2, mermaid↔dot, d2↔dot}; state × {mermaid↔d2, mermaid↔dot, d2↔dot}; er × {mermaid↔plantuml, mermaid↔d2, mermaid↔dot, d2↔dot}; architecture × {mermaid↔d2, mermaid↔dot, d2↔dot}; mindmap × {mermaid↔d2, mermaid↔dot, d2↔dot}; treeView × {mermaid↔d2, mermaid↔dot, d2↔dot}; c4 × {mermaid↔plantuml, mermaid↔structurizr, plantuml↔structurizr} |
+| Same-format | mermaid {flowchart, sequence, class, er, gantt, state, c4}, d2 {flowchart, class, state, er, architecture, mindmap, treeView, sequence, c4}, dot {flowchart, class, state, er, architecture, mindmap, treeView, c4}, plantuml {sequence, class, state, gantt, mindmap, c4, activity, er, useCase, object, component}, structurizr {c4} |
+| Cross-format pairs | flowchart × {mermaid↔d2, mermaid↔dot, d2↔dot, mermaid↔plantuml}; sequence × {mermaid↔plantuml, mermaid↔d2, plantuml↔d2}; class × {mermaid↔plantuml, mermaid↔d2, mermaid↔dot, d2↔dot}; state × {mermaid↔d2, mermaid↔dot, d2↔dot}; er × {mermaid↔plantuml, mermaid↔d2, mermaid↔dot, d2↔dot}; architecture × {mermaid↔d2, mermaid↔dot, d2↔dot}; mindmap × {mermaid↔d2, mermaid↔dot, d2↔dot}; treeView × {mermaid↔d2, mermaid↔dot, d2↔dot}; c4 × {mermaid↔plantuml, mermaid↔structurizr, plantuml↔structurizr, mermaid↔d2, mermaid↔dot, plantuml↔d2, plantuml↔dot, structurizr↔d2, structurizr↔dot, d2↔dot} |
 
 Every supported import × export intersection that produces a non-empty result
 has a round-trip fixture. There are no missing pairs given today's supported
@@ -162,6 +163,26 @@ of two specs (plus PlantUML deployment dialect and Wave E):
   helpers on both mappers. No new `DiagnosticCategory` cases; reuses
   `.shapeDowngrade` / `.slotUnsupported` / `.idSanitization`. Closes
   [`docs/superpowers/specs/2026-05-20-d2-dot-coverage-wave-e-design.md`](docs/superpowers/specs/2026-05-20-d2-dot-coverage-wave-e-design.md).
+- **Wave G — D2 + DOT c4.** D2 and DOT each gain one family (no matrix
+  `⚠` involved; all four cells were `—`). Detection: marker-forced
+  (`# diagramkit:family=c4`) or presence-of-any-c4-marker structural
+  fallback. Eleven new shared recovery-marker kinds (`c4DiagramKind`,
+  `c4ShapeKind`, `c4External`, `c4Technology`, `c4Description`,
+  `c4Sprite`, `c4Tag`, `c4Link`, `c4BoundaryKind`, `c4RelKind`,
+  `c4Color`) preserve all 22 `C4ShapeType` variants, all 5
+  `C4DiagramKind` values, all 7 `C4RelationshipKind` flavors, boundary
+  nesting + kind, technology / description / sprite / tag / link
+  metadata, and packed shape / relationship colors. D2/DOT exporters
+  skip the implicit `global` boundary; D2/DOT importers synthesize
+  it on parse, matching Mermaid's c4 importer behaviour so
+  cross-format round-trips stay clean. Cross-format paths
+  `mermaid ↔ d2/dot`, `plantuml ↔ d2/dot`, `structurizr ↔ d2/dot`,
+  `d2 ↔ dot` (7 unordered, 14 directed) bridge through the canonical
+  `C4Diagram` payload — no format-specific shortcut paths. No new
+  `DiagnosticCategory` cases; reuses `.shapeDowngrade` /
+  `.styleDrop` / `.slotUnsupported` / `.idSanitization`. No new
+  `RoundTripLoss` cases. Closes
+  [`docs/superpowers/specs/2026-05-21-d2-dot-c4-design.md`](docs/superpowers/specs/2026-05-21-d2-dot-c4-design.md).
 - **Wave F — D2 sequenceDiagram.** D2 gains one family (no matrix `⚠`
   involved; the cell was `—`). Detection: structural probe for a
   top-level `shape: sequence_diagram` declaration plus marker-forced
@@ -231,7 +252,6 @@ Realistic candidates:
 | stateDiagram | possible | possible | Maps to general digraph with start/end pseudo-states. DOT idiom is well-established. |
 | erDiagram | possible | possible | DOT `record`/HTML labels are the classic representation. |
 | architecture | possible | weak | D2 has containers; DOT has clusters. |
-| c4 | maps via flowchart | maps via flowchart | Both formats can express containment graphs but lose the C4 view-type metadata; would need `.lossyTransform` diagnostics. |
 | treeView / mindmap | possible | possible | Both reduce to directed trees. Output would be readable but not idiomatic. |
 
 The remaining 18+ families have no defensible D2/DOT projection and should stay
@@ -269,6 +289,10 @@ Ordered by impact:
 7. ~~**D2 expansion: sequenceDiagram (one family × both directions,
    marker-recovered round-trip).**~~ Closed by Wave F
    (2026-05-21-d2-sequence spec).
+8. ~~**D2 + DOT expansion: c4 (one family × two formats × both
+   directions, marker-recovered round-trip + 7 new cross-format
+   pairs).**~~ Closed by Wave G
+   (2026-05-21-d2-dot-c4 spec).
 
 Anything outside this list (Wardley, Sankey, Packet, Treemap, etc. in non-native
 formats) is a deliberate `—` and should not be added without a concrete user
