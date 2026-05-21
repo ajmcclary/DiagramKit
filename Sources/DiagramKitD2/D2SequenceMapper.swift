@@ -136,8 +136,97 @@ struct D2SequenceMapper {
         applyActorKindMarkers(&working, markers: markers)
         applyArrowTypeMarkers(&working, markers: markers)
         applyBlockDividerMarkers(&working, markers: markers)
+        applyMessageAttrMarkers(&working, markers: markers)
+        applyNoteMarkers(&working, markers: markers)
+        applyAutonumberMarkers(&working, markers: markers)
+        applyTitleMarkers(&working, markers: markers)
 
         return (SequenceDiagram(items: working), diagnostics)
+    }
+
+    private func applyMessageAttrMarkers(
+        _ items: inout [SequenceItem],
+        markers: [RecoveryMarker<D2RecoveryMarker.Kind>]
+    ) {
+        var msgIdx = -1
+        for idx in items.indices {
+            guard case .message(var msg) = items[idx] else { continue }
+            msgIdx += 1
+            let captured = msgIdx
+            for marker in markers {
+                guard case .seqMessageAttr(let mIdx, let attr) = marker.kind, mIdx == captured else { continue }
+                switch attr {
+                case "activate":   msg.activate = true
+                case "deactivate": msg.deactivate = true
+                case "wrap":       msg.wrap = true
+                case "create", "destroy":
+                    break
+                default:
+                    if attr.hasPrefix("seqNum=") {
+                        if let n = Double(attr.dropFirst("seqNum=".count)) {
+                            msg.sequenceNumber = n
+                            msg.sequenceVisible = true
+                        }
+                    }
+                }
+            }
+            items[idx] = .message(msg)
+        }
+    }
+
+    private func applyNoteMarkers(
+        _ items: inout [SequenceItem],
+        markers: [RecoveryMarker<D2RecoveryMarker.Kind>]
+    ) {
+        var messagePositions: [Int] = []
+        for (idx, item) in items.enumerated() {
+            if case .message = item { messagePositions.append(idx) }
+        }
+        var insertions: [(targetIndex: Int, note: SequenceNote)] = []
+        for marker in markers {
+            guard case .seqNote(let after, let position, let csv, let text) = marker.kind,
+                  after >= 0,
+                  after < messagePositions.count
+            else { continue }
+            let targetIndex = messagePositions[after] + 1
+            let actorIDs = csv.split(separator: ",").map { String($0).trimmingCharacters(in: .whitespaces) }
+                .filter { !$0.isEmpty }
+            let note = SequenceNote(
+                actorIds: actorIDs,
+                text: text,
+                position: position,
+                afterItemIndex: targetIndex
+            )
+            insertions.append((targetIndex, note))
+        }
+        for (targetIndex, note) in insertions.sorted(by: { $0.targetIndex > $1.targetIndex }) {
+            items.insert(.note(note), at: targetIndex)
+        }
+    }
+
+    private func applyAutonumberMarkers(
+        _ items: inout [SequenceItem],
+        markers: [RecoveryMarker<D2RecoveryMarker.Kind>]
+    ) {
+        for marker in markers {
+            guard case .seqAutonumber(let start, let step, let visible) = marker.kind else { continue }
+            items.insert(.autonumberEvent(start: start, step: step, visible: visible), at: 0)
+            return
+        }
+    }
+
+    private func applyTitleMarkers(
+        _ items: inout [SequenceItem],
+        markers: [RecoveryMarker<D2RecoveryMarker.Kind>]
+    ) {
+        for marker in markers {
+            switch marker.kind {
+            case .seqTitle(let t):     items.insert(.title(t), at: 0)
+            case .seqAccTitle(let t):  items.insert(.accTitle(t), at: 0)
+            case .seqAccDescr(let d):  items.insert(.accDescr(d), at: 0)
+            default: break
+            }
+        }
     }
 
     private func applyActorKindMarkers(

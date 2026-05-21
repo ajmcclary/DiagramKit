@@ -169,4 +169,69 @@ struct D2SequenceMapperTests {
         let block = try #require(seq.blocks.first)
         #expect(block.dividers.first?.label == "no path")
     }
+
+    @Test("seq-note marker creates a SequenceNote at the right position")
+    func noteFromMarker() throws {
+        let source = """
+        # diagramkit:seq-note=0,right of,bob,Thinking...
+        shape: sequence_diagram
+        alice -> bob: ping
+        """
+        let result = try D2Importer().parse(source)
+        guard case .sequenceDiagram(let seq) = result.document.payload else {
+            Issue.record("not sequence"); return
+        }
+        let note = try #require(seq.notes.first)
+        #expect(note.position == "right of")
+        #expect(note.actorIds == ["bob"])
+        #expect(note.text == "Thinking...")
+    }
+
+    @Test("seq-message-attr=<n>,activate sets activate flag")
+    func activateFromMarker() throws {
+        let source = """
+        # diagramkit:seq-message-attr=0,activate
+        shape: sequence_diagram
+        alice -> bob: ping
+        """
+        let result = try D2Importer().parse(source)
+        guard case .sequenceDiagram(let seq) = result.document.payload else {
+            Issue.record("not sequence"); return
+        }
+        #expect(seq.messages.first?.activate == true)
+    }
+
+    @Test("seq-autonumber recovers (start, step, visible)")
+    func autonumberMarker() throws {
+        let source = """
+        # diagramkit:seq-autonumber=5.0,10.0,true
+        shape: sequence_diagram
+        alice -> bob: ping
+        """
+        let result = try D2Importer().parse(source)
+        guard case .sequenceDiagram(let seq) = result.document.payload else {
+            Issue.record("not sequence"); return
+        }
+        #expect(seq.autonumberEnabled == true)
+        #expect(seq.autonumberStart == 5.0)
+        #expect(seq.autonumberStep == 10.0)
+    }
+
+    @Test("seq-title / seq-acc-title / seq-acc-descr recovered onto SequenceDiagram")
+    func titleMarkers() throws {
+        let source = """
+        # diagramkit:seq-title=Login flow
+        # diagramkit:seq-acc-title=Login
+        # diagramkit:seq-acc-descr=Validates OAuth
+        shape: sequence_diagram
+        alice -> bob: auth
+        """
+        let result = try D2Importer().parse(source)
+        guard case .sequenceDiagram(let seq) = result.document.payload else {
+            Issue.record("not sequence"); return
+        }
+        #expect(seq.title == "Login flow")
+        #expect(seq.accTitle == "Login")
+        #expect(seq.accDescr == "Validates OAuth")
+    }
 }
