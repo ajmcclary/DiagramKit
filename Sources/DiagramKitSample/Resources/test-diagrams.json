@@ -2863,6 +2863,34 @@
       "skipSnapshots": [
         "structurizr"
       ]
+    },
+    {
+      "id": "d2-block-1",
+      "category": "block",
+      "name": "D2: Block diagram (Wave J)",
+      "source": "block-beta\n  columns 3\n  block:frontend[\"Frontend\"]\n    columns 1\n    webapp[\"Web App\"]\n    mobile[\"Mobile App\"]\n  end\n  block:backend[\"Backend\"]\n    columns 1\n    api[\"API\"]\n    worker[\"Worker\"]\n  end\n  frontend --> backend",
+      "sources": {
+        "mermaid": "block-beta\n  columns 3\n  block:frontend[\"Frontend\"]\n    columns 1\n    webapp[\"Web App\"]\n    mobile[\"Mobile App\"]\n  end\n  block:backend[\"Backend\"]\n    columns 1\n    api[\"API\"]\n    worker[\"Worker\"]\n  end\n  frontend --> backend",
+        "d2": "# diagramkit:family=block\nfrontend: \"Frontend\" {\n  webapp: \"Web App\"\n  mobile: \"Mobile App\"\n}\n# diagramkit:block-cols=frontend,1\nbackend: \"Backend\" {\n  api: \"API\"\n  worker: \"Worker\"\n}\n# diagramkit:block-cols=backend,1\nfrontend -> backend\n# diagramkit:block-edge-attrs=0,normal,solid,arrow_open,\n"
+      },
+      "expectedImporters": {
+        "mermaid": "mermaid",
+        "d2": "d2"
+      }
+    },
+    {
+      "id": "dot-block-1",
+      "category": "block",
+      "name": "DOT: Block diagram (Wave J)",
+      "source": "block-beta\n  columns 3\n  block:frontend[\"Frontend\"]\n    columns 1\n    webapp[\"Web App\"]\n    mobile[\"Mobile App\"]\n  end\n  block:backend[\"Backend\"]\n    columns 1\n    api[\"API\"]\n    worker[\"Worker\"]\n  end\n  frontend --> backend",
+      "sources": {
+        "mermaid": "block-beta\n  columns 3\n  block:frontend[\"Frontend\"]\n    columns 1\n    webapp[\"Web App\"]\n    mobile[\"Mobile App\"]\n  end\n  block:backend[\"Backend\"]\n    columns 1\n    api[\"API\"]\n    worker[\"Worker\"]\n  end\n  frontend --> backend",
+        "graphviz": "digraph G {\n  # diagramkit:family=block\n  subgraph cluster_frontend {\n    label=\"Frontend\";\n    webapp [label=\"Web App\"];\n    mobile [label=\"Mobile App\"];\n  }\n  # diagramkit:block-cols=frontend,1\n  subgraph cluster_backend {\n    label=\"Backend\";\n    api [label=\"API\"];\n    worker [label=\"Worker\"];\n  }\n  # diagramkit:block-cols=backend,1\n  frontend -> backend;\n  # diagramkit:block-edge-attrs=0,normal,solid,arrow_open,\n}\n"
+      },
+      "expectedImporters": {
+        "mermaid": "mermaid",
+        "graphviz": "graphviz"
+      }
     }
   ],
   "metadata": {
@@ -2882,7 +2910,7 @@
       "mindmap": 9,
       "timeline": 13,
       "sankey": 10,
-      "block": 12,
+      "block": 14,
       "packet": 5,
       "kanban": 4,
       "architecture": 9,
@@ -2899,7 +2927,7 @@
   },
   "_counts": {
     "architecture": 9,
-    "block": 12,
+    "block": 14,
     "c4": 10,
     "class": 61,
     "er": 25,
@@ -2926,6 +2954,6 @@
     "wardleyBeta": 12,
     "xychart": 27,
     "zenuml": 15,
-    "totalDiagrams": 424
+    "totalDiagrams": 426
   }
 }

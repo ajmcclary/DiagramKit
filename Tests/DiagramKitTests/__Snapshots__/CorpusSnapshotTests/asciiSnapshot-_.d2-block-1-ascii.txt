@@ -1,0 +1,8 @@
+[Frontend]
+  [Web App]
+  [Mobile App]
+[Backend]
+  [API]
+  [Worker]
+
+frontend → backend

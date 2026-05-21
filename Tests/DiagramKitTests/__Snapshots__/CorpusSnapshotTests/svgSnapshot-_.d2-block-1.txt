@@ -1,0 +1,86 @@
+<svg role="graphics-document" aria-roledescription="diagram" id="36D347B4-5BA9-B193-3CFA-F5DADD809BA5" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="-85 -67 170 135" width="180" height="135" style="--bg:#FFFFFF;--fg:#27272A;--line:#939394;--accent:#27272A;--muted:#A9A9AA;--surface:#F9F9F9;--border:#D4D4D4;background:#FFFFFF">
+<rect width="100%" height="100%" fill="#FFFFFF"/><style>
+.label {
+    font-family: Inter;
+    color: #27272A;
+}
+.cluster-label text {
+    fill: #27272A;
+}
+.cluster-label span,p {
+    color: #27272A;
+}
+.label text,span,p {
+    fill: #27272A;
+    color: #27272A;
+}
+.node rect,
+.node circle,
+.node ellipse,
+.node polygon,
+.node path {
+    fill: #F9F9F9;
+    stroke: #D4D4D4;
+    stroke-width: 1px;
+}
+.flowchart-label text {
+    text-anchor: middle;
+}
+.node .label {
+    text-align: center;
+}
+.node.clickable {
+    cursor: pointer;
+}
+.arrowheadPath {
+    fill: #939394;
+}
+.edgePath .path {
+    stroke: #939394;
+    stroke-width: 2.0px;
+}
+.flowchart-link {
+    stroke: #939394;
+    fill: none;
+}
+.edgeLabel {
+    background-color: #F9F9F9;
+    text-align: center;
+}
+.edgeLabel rect {
+    opacity: 0.5;
+    background-color: #F9F9F9;
+    fill: #F9F9F9;
+}
+.labelBkg {
+    background-color: #F9F9F9;
+}
+.node .cluster {
+    fill: #F9F9F9;
+    stroke: #D4D4D4;
+    stroke-width: 1px;
+}
+.cluster text {
+    fill: #27272A;
+}
+.flowchartTitleText {
+    text-anchor: middle;
+    font-size: 18px;
+    fill: #27272A;
+}
+</style><defs>
+<marker id="36D347B4-5BA9-B193-3CFA-F5DADD809BA5-block-point" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+  <path d="M 0 0 L 10 5 L 0 10 z" fill="#939394"/>
+</marker>
+<marker id="36D347B4-5BA9-B193-3CFA-F5DADD809BA5-block-circle" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+  <circle cx="5" cy="5" r="4" fill="none" stroke="#939394" stroke-width="1"/>
+</marker>
+<marker id="36D347B4-5BA9-B193-3CFA-F5DADD809BA5-block-cross" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+  <path d="M 1 1 L 9 9 M 9 1 L 1 9" stroke="#939394" stroke-width="1.5"/>
+</marker>
+</defs><g class="block"><g class="cluster" id="block-frontend">
+  <rect x="-80.0" y="-42.0" width="76.0" height="104.0" rx="2" ry="2" fill="#F9F9F9" stroke="#D4D4D4" stroke-width="1.5"/>
+  <text x="-42.0" y="-50.0" text-anchor="middle" font-family="Inter" font-size="14" font-weight="bold" fill="#27272A">Frontend</text><g class="node default flowchart-label" id="block-webapp">  <path d="M -72.0 -34.0 L -12.0 -34.0 L -12.0 6.0 L -72.0 6.0 Z" fill="#F9F9F9" stroke="#D4D4D4" stroke-width="1.5"/>  <text x="-42.0" y="-14.0" text-anchor="middle" dominant-baseline="central" font-family="Inter" font-size="12" fill="#27272A">Web App</text></g><g class="node default flowchart-label" id="block-mobile">  <path d="M -72.0 14.0 L -12.0 14.0 L -12.0 54.0 L -72.0 54.0 Z" fill="#F9F9F9" stroke="#D4D4D4" stroke-width="1.5"/>  <text x="-42.0" y="34.0" text-anchor="middle" dominant-baseline="central" font-family="Inter" font-size="12" fill="#27272A">Mobile App</text></g></g><g class="cluster" id="block-backend">
+  <rect x="4.0" y="-42.0" width="76.0" height="104.0" rx="2" ry="2" fill="#F9F9F9" stroke="#D4D4D4" stroke-width="1.5"/>
+  <text x="42.0" y="-50.0" text-anchor="middle" font-family="Inter" font-size="14" font-weight="bold" fill="#27272A">Backend</text><g class="node default flowchart-label" id="block-api">  <path d="M 12.0 -34.0 L 72.0 -34.0 L 72.0 6.0 L 12.0 6.0 Z" fill="#F9F9F9" stroke="#D4D4D4" stroke-width="1.5"/>  <text x="42.0" y="-14.0" text-anchor="middle" dominant-baseline="central" font-family="Inter" font-size="12" fill="#27272A">API</text></g><g class="node default flowchart-label" id="block-worker">  <path d="M 12.0 14.0 L 72.0 14.0 L 72.0 54.0 L 12.0 54.0 Z" fill="#F9F9F9" stroke="#D4D4D4" stroke-width="1.5"/>  <text x="42.0" y="34.0" text-anchor="middle" dominant-baseline="central" font-family="Inter" font-size="12" fill="#27272A">Worker</text></g></g><g class="edgePath edge-thickness-normal edge-pattern-solid flowchart-link">
+  <path class="path" d="M -4.0,0.0 L 0.0,0.0 L 4.0,0.0" fill="none" stroke="#939394" stroke-width="1.5" style="" marker-end="url(#36D347B4-5BA9-B193-3CFA-F5DADD809BA5-block-point)"/></g></g></svg>
