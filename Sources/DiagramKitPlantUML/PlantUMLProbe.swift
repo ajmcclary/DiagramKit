@@ -13,10 +13,11 @@ public func isPlantUMLSource(_ source: String) -> Bool {
 }
 
 /// Extract the body between @startxxx and @endxxx tags.
-/// Returns (body, startTagKind) where startTagKind is "uml", "mindmap", "gantt", or "wbs".
+/// Returns (body, startTagKind) where startTagKind is "uml", "mindmap",
+/// "gantt", "wbs", "json", or "yaml".
 public func extractPlantUMLBody(_ source: String) -> (body: String, startKind: String)? {
     let pattern = try? NSRegularExpression(
-        pattern: "@start(uml|mindmap|gantt|wbs)(.*?)@end(uml|mindmap|gantt|wbs)",
+        pattern: "@start(uml|mindmap|gantt|wbs|json|yaml)(.*?)@end(uml|mindmap|gantt|wbs|json|yaml)",
         options: [.dotMatchesLineSeparators]
     )
     let nsRange = NSRange(source.startIndex..<source.endIndex, in: source)

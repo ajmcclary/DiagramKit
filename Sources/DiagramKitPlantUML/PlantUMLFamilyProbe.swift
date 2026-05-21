@@ -18,9 +18,28 @@ public func isPlantUMLGantt(startKind: String, _ body: String) -> Bool {
     startKind == "gantt"
 }
 
-/// Returns `true` when body is from an explicit @startmindmap or @startwbs header.
+/// Returns `true` when body is from an explicit @startmindmap header.
+/// `@startwbs` no longer routes here — see `isPlantUMLWBS` below. Mindmap
+/// keeps its own dispatch branch in `PlantUMLImporter`.
 public func isPlantUMLMindmap(startKind: String, _ body: String) -> Bool {
-    startKind == "mindmap" || startKind == "wbs"
+    startKind == "mindmap"
+}
+
+/// Returns `true` when body is from an explicit @startwbs header.
+/// Routes to the WBS parser which produces a `TreeViewDiagram` payload
+/// (not `MindmapDiagram`).
+public func isPlantUMLWBS(startKind: String, _ body: String) -> Bool {
+    startKind == "wbs"
+}
+
+/// Returns `true` when body is from an explicit @startjson header.
+public func isPlantUMLJSON(startKind: String, _ body: String) -> Bool {
+    startKind == "json"
+}
+
+/// Returns `true` when body is from an explicit @startyaml header.
+public func isPlantUMLYAML(startKind: String, _ body: String) -> Bool {
+    startKind == "yaml"
 }
 
 /// Returns `true` when body contains pure state diagram syntax.
