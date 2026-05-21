@@ -68,7 +68,8 @@ struct D2C4MapperTests {
         """
         let result = try D2Importer().parse(source)
         let diagram = try requireC4(result)
-        #expect(diagram.boundaries.first?.type == "enterprise")
+        let ent = diagram.boundaries.first { $0.alias == "ent" }
+        #expect(ent?.type == "enterprise")
         #expect(diagram.shapes.first?.parentBoundary == "ent")
         #expect(diagram.shapes.first?.typeC4Shape == .container)
     }

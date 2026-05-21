@@ -71,8 +71,9 @@ struct DOTC4MapperTests {
         """
         let result = try GraphvizImporter().parse(source)
         let diagram = try requireC4(result)
-        #expect(diagram.boundaries.first?.label == "Enterprise")
-        #expect(diagram.boundaries.first?.type == "enterprise")
+        let ent = diagram.boundaries.first { $0.alias == "ent" }
+        #expect(ent?.label == "Enterprise")
+        #expect(ent?.type == "enterprise")
         #expect(diagram.shapes.first?.parentBoundary == "ent")
         #expect(diagram.shapes.first?.typeC4Shape == .container)
     }
