@@ -21,6 +21,7 @@ public struct D2Importer: DiagramSourceImporter {
         .architecture,
         .mindmap,
         .treeView,
+        .c4,
     ]
 
     public init() {}
@@ -30,6 +31,20 @@ public struct D2Importer: DiagramSourceImporter {
     }
 
     public func parse(_ source: String) throws -> DiagramImportResult {
+        // c4 detection runs first because the c4 mapper walks the source
+        // text directly and does not need the D2 AST. Putting it before the
+        // D2Parser call also avoids structural probes matching on c4-shaped
+        // input that happens to satisfy other family heuristics.
+        if D2C4Probe.detectsC4(source) {
+            var result = D2C4Mapper.map(source: source)
+            if let title = Self.documentTitleMetadata(in: source) {
+                var doc = result.document
+                doc.title = title
+                result = DiagramImportResult(document: doc, diagnostics: result.diagnostics)
+            }
+            return result
+        }
+
         let parser = D2Parser()
         let (d2Doc, parseDiagnostics) = try parser.parse(source)
         let markerScan = D2RecoveryMarker.scanner.scan(source: source)

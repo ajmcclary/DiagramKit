@@ -286,8 +286,8 @@ All reuse existing `DiagnosticCategory` cases. No new categories.
 
 | Situation | Diagnostic | Tier |
 |-----------|------------|------|
-| Import: c4 source missing `c4-diagram-kind` marker | `informational(.shapeDowngrade, …)` | parse |
-| Import: shape with no `c4-shape-kind` marker but ambiguous native shape (e.g., DOT `cylinder` could be system_db / container_db / component_db) | `informational(.shapeDowngrade, …)` defaulting to system tier | parse |
+| Import: c4 source missing `c4-diagram-kind` marker | `lossyTransform(.shapeDowngrade, …)` | parse |
+| Import: shape with no `c4-shape-kind` marker but ambiguous native shape (e.g., DOT `cylinder` could be system_db / container_db / component_db) | `lossyTransform(.shapeDowngrade, …)` defaulting to system tier | parse |
 | Cross-format export of a shape kind with no native (e.g., `system_queue` on DOT) | `lossyTransform(.shapeDowngrade, …)` paired with the marker that recovers it | export |
 | Cross-format export of `dynamic` kind drops ordering | `lossyTransform(.slotUnsupported, …)` per dropped sequence index | export |
 | D2 `vars` / `style` / DOT `splines` / `rank` on c4 input | `featureDropped(.slotUnsupported, …)` | parse |
