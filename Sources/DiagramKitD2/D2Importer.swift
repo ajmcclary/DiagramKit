@@ -22,6 +22,7 @@ public struct D2Importer: DiagramSourceImporter {
         .mindmap,
         .treeView,
         .c4,
+        .block,
     ]
 
     public init() {}
@@ -113,6 +114,16 @@ public struct D2Importer: DiagramSourceImporter {
             return DiagramImportResult(
                 document: document,
                 diagnostics: parseDiagnostics + archDiagnostics
+            )
+        }
+
+        if markerFamily == "block" || D2BlockProbe.detectsBlock(markers: markerScan.markers) {
+            let (block, blockDiagnostics) = D2BlockMapper().map(d2Doc, markers: markerScan.markers)
+            var document = DiagramDocument(payload: .block(block))
+            document.title = Self.documentTitleMetadata(in: source)
+            return DiagramImportResult(
+                document: document,
+                diagnostics: parseDiagnostics + blockDiagnostics
             )
         }
 

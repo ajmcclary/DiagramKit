@@ -22,6 +22,7 @@ public struct D2Exporter: DiagramExporter {
         .mindmap,
         .treeView,
         .c4,
+        .block,
     ]
 
     public init() {}
@@ -46,6 +47,8 @@ public struct D2Exporter: DiagramExporter {
             return D2SequenceExport.emit(seq, title: document.title)
         case .c4(let diagram):
             return DiagramExportResult(source: D2C4Export.export(diagram), diagnostics: [])
+        case .block(let diagram):
+            return D2BlockExporter.emit(diagram, title: document.title)
         default:
             return .unsupportedDiagram(formatName: name, type: document.type)
         }
