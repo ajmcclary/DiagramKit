@@ -218,3 +218,82 @@ struct D2C4ExportRelationshipsTests {
         return D2C4Export.export(diagram)
     }
 }
+
+@Suite("D2C4Export metadata markers")
+struct D2C4ExportMetadataTests {
+
+    @Test func shapeMetadataEmitsAllMarkers() {
+        let shape = C4Shape(
+            alias: "svc",
+            label: "Service",
+            typeC4Shape: .container,
+            technology: "Swift 6",
+            description: "Auth API",
+            sprite: "lock",
+            tags: "internal,v2",
+            link: "https://example.com",
+            parentBoundary: "global",
+            bgColor: "#fff",
+            fontColor: "#000",
+            borderColor: "#888"
+        )
+        let diagram = C4Diagram(
+            kind: .container, title: nil,
+            shapes: [shape], boundaries: [], relationships: [],
+            config: C4DiagramConfig()
+        )
+        let source = D2C4Export.export(diagram)
+        #expect(source.contains("# diagramkit:c4-technology=svc,Swift 6"))
+        #expect(source.contains("# diagramkit:c4-description=svc,Auth API"))
+        #expect(source.contains("# diagramkit:c4-sprite=svc,lock"))
+        #expect(source.contains("# diagramkit:c4-tag=svc,internal,v2"))
+        #expect(source.contains("# diagramkit:c4-link=svc,https://example.com"))
+        #expect(source.contains("# diagramkit:c4-color=svc,bg=#fff;font=#000;border=#888"))
+    }
+
+    @Test func relationshipMetadataEmitsMarkers() {
+        let rel = C4Relationship(
+            kind: .rel, from: "a", to: "b", label: "uses",
+            technology: "HTTPS", description: "REST",
+            sprite: nil, tags: "sync", link: nil,
+            textColor: "#222", lineColor: "#444"
+        )
+        let diagram = C4Diagram(
+            kind: .context, title: nil,
+            shapes: [
+                C4Shape(alias: "a", label: "A", typeC4Shape: .system, parentBoundary: "global"),
+                C4Shape(alias: "b", label: "B", typeC4Shape: .system, parentBoundary: "global")
+            ],
+            boundaries: [], relationships: [rel],
+            config: C4DiagramConfig()
+        )
+        let source = D2C4Export.export(diagram)
+        #expect(source.contains("# diagramkit:c4-technology=0,HTTPS"))
+        #expect(source.contains("# diagramkit:c4-description=0,REST"))
+        #expect(source.contains("# diagramkit:c4-tag=0,sync"))
+        #expect(source.contains("# diagramkit:c4-color=0,text=#222;line=#444"))
+    }
+
+    @Test func boundaryMetadataEmitsMarkers() {
+        let boundary = C4Boundary(
+            alias: "ent",
+            label: "Enterprise",
+            type: "enterprise",
+            description: "Top scope",
+            tags: "regulated",
+            link: "https://example.com/ent",
+            parentBoundary: "",
+            bgColor: "#eef"
+        )
+        let diagram = C4Diagram(
+            kind: .container, title: nil,
+            shapes: [], boundaries: [boundary], relationships: [],
+            config: C4DiagramConfig()
+        )
+        let source = D2C4Export.export(diagram)
+        #expect(source.contains("# diagramkit:c4-description=ent,Top scope"))
+        #expect(source.contains("# diagramkit:c4-tag=ent,regulated"))
+        #expect(source.contains("# diagramkit:c4-link=ent,https://example.com/ent"))
+        #expect(source.contains("# diagramkit:c4-color=ent,bg=#eef"))
+    }
+}

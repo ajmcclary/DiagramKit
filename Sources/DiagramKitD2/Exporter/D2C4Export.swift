@@ -35,11 +35,30 @@ public enum D2C4Export {
             let arrow = (rel.kind == .birel) ? "<->" : "->"
             let labelSuffix = rel.label.isEmpty ? "" : ": \"\(escape(rel.label))\""
             lines.append("\(rel.from) \(arrow) \(rel.to)\(labelSuffix)")
+            let edgeID = "\(index)"
             if rel.kind != .rel {
                 lines.append(D2RecoveryMarker.emitC4RelKind(
                     edgeIndex: index,
                     rawValue: rel.kind.rawValue
                 ))
+            }
+            if let tech = rel.technology, !tech.isEmpty {
+                lines.append(D2RecoveryMarker.emitC4Technology(targetID: edgeID, value: tech))
+            }
+            if let descr = rel.description, !descr.isEmpty {
+                lines.append(D2RecoveryMarker.emitC4Description(targetID: edgeID, value: descr))
+            }
+            if let sprite = rel.sprite, !sprite.isEmpty {
+                lines.append(D2RecoveryMarker.emitC4Sprite(targetID: edgeID, value: sprite))
+            }
+            if let tags = rel.tags, !tags.isEmpty {
+                lines.append(D2RecoveryMarker.emitC4Tag(targetID: edgeID, value: tags))
+            }
+            if let link = rel.link, !link.isEmpty {
+                lines.append(D2RecoveryMarker.emitC4Link(targetID: edgeID, value: link))
+            }
+            if let packed = packRelColors(rel) {
+                lines.append(D2RecoveryMarker.emitC4Color(targetID: edgeID, packed: packed))
             }
         }
 
@@ -70,6 +89,41 @@ public enum D2C4Export {
         if let kind = boundary.type, !kind.isEmpty {
             lines.append(D2RecoveryMarker.emitC4BoundaryKind(targetID: boundary.alias, rawValue: kind))
         }
+        if let descr = boundary.description, !descr.isEmpty {
+            lines.append(D2RecoveryMarker.emitC4Description(targetID: boundary.alias, value: descr))
+        }
+        if let tags = boundary.tags, !tags.isEmpty {
+            lines.append(D2RecoveryMarker.emitC4Tag(targetID: boundary.alias, value: tags))
+        }
+        if let link = boundary.link, !link.isEmpty {
+            lines.append(D2RecoveryMarker.emitC4Link(targetID: boundary.alias, value: link))
+        }
+        if let packed = packBoundaryColors(boundary) {
+            lines.append(D2RecoveryMarker.emitC4Color(targetID: boundary.alias, packed: packed))
+        }
+    }
+
+    private static func packShapeColors(_ shape: C4Shape) -> String? {
+        var parts: [String] = []
+        if let bg = shape.bgColor, !bg.isEmpty { parts.append("bg=\(bg)") }
+        if let font = shape.fontColor, !font.isEmpty { parts.append("font=\(font)") }
+        if let border = shape.borderColor, !border.isEmpty { parts.append("border=\(border)") }
+        return parts.isEmpty ? nil : parts.joined(separator: ";")
+    }
+
+    private static func packBoundaryColors(_ boundary: C4Boundary) -> String? {
+        var parts: [String] = []
+        if let bg = boundary.bgColor, !bg.isEmpty { parts.append("bg=\(bg)") }
+        if let font = boundary.fontColor, !font.isEmpty { parts.append("font=\(font)") }
+        if let border = boundary.borderColor, !border.isEmpty { parts.append("border=\(border)") }
+        return parts.isEmpty ? nil : parts.joined(separator: ";")
+    }
+
+    private static func packRelColors(_ rel: C4Relationship) -> String? {
+        var parts: [String] = []
+        if let text = rel.textColor, !text.isEmpty { parts.append("text=\(text)") }
+        if let line = rel.lineColor, !line.isEmpty { parts.append("line=\(line)") }
+        return parts.isEmpty ? nil : parts.joined(separator: ";")
     }
 
     static func emitShape(_ shape: C4Shape, indent: String, into lines: inout [String]) {
@@ -85,6 +139,24 @@ public enum D2C4Export {
         }
         if shape.typeC4Shape.isExternal {
             lines.append(D2RecoveryMarker.emitC4External(targetID: shape.alias))
+        }
+        if let tech = shape.technology, !tech.isEmpty {
+            lines.append(D2RecoveryMarker.emitC4Technology(targetID: shape.alias, value: tech))
+        }
+        if let descr = shape.description, !descr.isEmpty {
+            lines.append(D2RecoveryMarker.emitC4Description(targetID: shape.alias, value: descr))
+        }
+        if let sprite = shape.sprite, !sprite.isEmpty {
+            lines.append(D2RecoveryMarker.emitC4Sprite(targetID: shape.alias, value: sprite))
+        }
+        if let tags = shape.tags, !tags.isEmpty {
+            lines.append(D2RecoveryMarker.emitC4Tag(targetID: shape.alias, value: tags))
+        }
+        if let link = shape.link, !link.isEmpty {
+            lines.append(D2RecoveryMarker.emitC4Link(targetID: shape.alias, value: link))
+        }
+        if let packed = packShapeColors(shape) {
+            lines.append(D2RecoveryMarker.emitC4Color(targetID: shape.alias, packed: packed))
         }
     }
 
