@@ -20,10 +20,22 @@ enum D2TreeViewExport {
         if let t = title, !t.isEmpty {
             lines.append("# title: \(singleLine(t))")
         }
-        lines.append(D2RecoveryMarker.emitTreeRoot(tree.root.name))
 
-        emitNode(tree.root, lines: &lines, diagnostics: &diagnostics)
-        emitEdges(parent: tree.root, lines: &lines)
+        // Convention detection: synthetic `/` at level -1 means "Mermaid
+        // multi-root container". Emit each child as a top-level forest
+        // declaration; D2 supports multiple zero-in-degree nodes natively.
+        // The tree-root marker fires on the FIRST child only (ordering
+        // hint for the importer; see D2TreeViewMapper multi-root path).
+        let isSyntheticRoot = (tree.root.name == "/" && tree.root.level == -1)
+        let topLevelRoots: [TreeViewNode] = isSyntheticRoot ? tree.root.children : [tree.root]
+
+        if let first = topLevelRoots.first {
+            lines.append(D2RecoveryMarker.emitTreeRoot(first.name))
+        }
+        for root in topLevelRoots {
+            emitNode(root, lines: &lines, diagnostics: &diagnostics)
+            emitEdges(parent: root, lines: &lines)
+        }
 
         return DiagramExportResult(
             source: lines.joined(separator: "\n") + "\n",
