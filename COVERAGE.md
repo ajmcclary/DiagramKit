@@ -5,7 +5,7 @@ ships: Mermaid, D2, Graphviz DOT, Structurizr, PlantUML. The corpus carries 28
 diagram families. Mermaid is the canonical model surface — every other format
 imports/exports a subset by projecting into a Mermaid-equivalent payload.
 
-Last audited: 2026-05-21 (Wave G). Cross-reference [CLAUDE.md](CLAUDE.md)
+Last audited: 2026-05-21 (Wave H). Cross-reference [CLAUDE.md](CLAUDE.md)
 "What Lives Where" for slice paths and [BASELINES.md](BASELINES.md) for
 corpus counts.
 
@@ -52,12 +52,12 @@ corpus counts.
 | treemap           |   ★    | — | —  |     —      |    —    |
 | venn              |   ★    | — | —  |     —      |    —    |
 | ishikawa          |   ★    | — | —  |     —      |    —    |
-| treeView          |   ★    | ✓ | ✓  |     —      |    —    |
+| treeView          |   ★    | ✓ | ✓  |     —      |    ✓    |
 | eventModeling     |   ★    | — | —  |     —      |    —    |
 | wardleyBeta       |   ★    | — | —  |     —      |    —    |
 | c4                |   ★    | ✓ | ✓  |     ✓      |    ✓    |
 | zenuml            |   ★    | — | —  |     —      |    —    |
-| **Totals**        | 28/28  | 9/28 | 8/28 | 1/28      | 9/28    |
+| **Totals**        | 28/28  | 9/28 | 8/28 | 1/28      | 10/28   |
 
 ## Export coverage
 
@@ -86,24 +86,25 @@ corpus counts.
 | treemap           |   ✓    | — | —  |     —      |    —    |
 | venn              |   ✓    | — | —  |     —      |    —    |
 | ishikawa          |   ✓    | — | —  |     —      |    —    |
-| treeView          |   ✓    | ✓ | ✓  |     —      |    —    |
+| treeView          |   ✓    | ✓ | ✓  |     —      |    ✓    |
 | eventModeling     |   ✓    | — | —  |     —      |    —    |
 | wardleyBeta       |   ✓    | — | —  |     —      |    —    |
 | c4                |   ✓    | ✓ | ✓  |     ✓      |    ✓    |
 | zenuml            |   ✓    | — | —  |     —      |    —    |
-| **Totals**        | 28/28  | 9/28 | 8/28 | 1/28      | 9/28    |
+| **Totals**        | 28/28  | 9/28 | 8/28 | 1/28      | 10/28   |
 
 ## Round-trip discipline
 
-`Tests/DiagramKitTests/RoundTrip/Resources/roundtrip/` currently holds **40
-same-format fixtures** (2 new D2 + DOT c4 fixtures since Wave F) and
-**76 cross-format directed pairs** (38 unordered; +14 directed / +7
-unordered c4 pairs added in Wave G).
+`Tests/DiagramKitTests/RoundTrip/Resources/roundtrip/` currently holds **43
+same-format fixtures** (+3 PlantUML treeView WBS/JSON/YAML in Wave H) and
+**80 cross-format directed pairs** (40 unordered; +4 directed /
++2 unordered treeView × {d2↔plantuml, dot↔plantuml} pairs added in
+Wave H).
 
 | Layer | Coverage |
 |-------|----------|
-| Same-format | mermaid {flowchart, sequence, class, er, gantt, state, c4}, d2 {flowchart, class, state, er, architecture, mindmap, treeView, sequence, c4}, dot {flowchart, class, state, er, architecture, mindmap, treeView, c4}, plantuml {sequence, class, state, gantt, mindmap, c4, activity, er, useCase, object, component}, structurizr {c4} |
-| Cross-format pairs | flowchart × {mermaid↔d2, mermaid↔dot, d2↔dot, mermaid↔plantuml}; sequence × {mermaid↔plantuml, mermaid↔d2, plantuml↔d2}; class × {mermaid↔plantuml, mermaid↔d2, mermaid↔dot, d2↔dot}; state × {mermaid↔d2, mermaid↔dot, d2↔dot}; er × {mermaid↔plantuml, mermaid↔d2, mermaid↔dot, d2↔dot}; architecture × {mermaid↔d2, mermaid↔dot, d2↔dot}; mindmap × {mermaid↔d2, mermaid↔dot, d2↔dot}; treeView × {mermaid↔d2, mermaid↔dot, d2↔dot}; c4 × {mermaid↔plantuml, mermaid↔structurizr, plantuml↔structurizr, mermaid↔d2, mermaid↔dot, plantuml↔d2, plantuml↔dot, structurizr↔d2, structurizr↔dot, d2↔dot} |
+| Same-format | mermaid {flowchart, sequence, class, er, gantt, state, c4}, d2 {flowchart, class, state, er, architecture, mindmap, treeView, sequence, c4}, dot {flowchart, class, state, er, architecture, mindmap, treeView, c4}, plantuml {sequence, class, state, gantt, mindmap, c4, activity, er, useCase, object, component, treeView}, structurizr {c4} |
+| Cross-format pairs | flowchart × {mermaid↔d2, mermaid↔dot, d2↔dot, mermaid↔plantuml}; sequence × {mermaid↔plantuml, mermaid↔d2, plantuml↔d2}; class × {mermaid↔plantuml, mermaid↔d2, mermaid↔dot, d2↔dot}; state × {mermaid↔d2, mermaid↔dot, d2↔dot}; er × {mermaid↔plantuml, mermaid↔d2, mermaid↔dot, d2↔dot}; architecture × {mermaid↔d2, mermaid↔dot, d2↔dot}; mindmap × {mermaid↔d2, mermaid↔dot, d2↔dot}; treeView × {mermaid↔d2, mermaid↔dot, d2↔dot, d2↔plantuml, dot↔plantuml}; c4 × {mermaid↔plantuml, mermaid↔structurizr, plantuml↔structurizr, mermaid↔d2, mermaid↔dot, plantuml↔d2, plantuml↔dot, structurizr↔d2, structurizr↔dot, d2↔dot} |
 
 Every supported import × export intersection that produces a non-empty result
 has a round-trip fixture. There are no missing pairs given today's supported
@@ -203,6 +204,37 @@ of two specs (plus PlantUML deployment dialect and Wave E):
   `.shapeDowngrade` / `.styleDrop` / `.idSanitization` /
   `.slotUnsupported`. No new `RoundTripLoss` cases. Closes
   [`docs/superpowers/specs/2026-05-21-d2-sequence-design.md`](docs/superpowers/specs/2026-05-21-d2-sequence-design.md).
+- **Wave H — PlantUML treeView (WBS + JSON + YAML).** PlantUML gains
+  one family (no matrix `⚠` involved; the cell was `—`). Detection:
+  marker-forced via outer-probe start keywords (`@startwbs`,
+  `@startjson`, `@startyaml`); body-content probes unchanged. Three
+  new shared recovery-marker kinds (`treeViewNodeDescription`,
+  `treeViewNodeIcon`, `treeViewNodeCssClass`) preserve
+  `TreeViewNode.description` (where JSON/YAML primitive values land),
+  `TreeViewNode.iconId`, and `TreeViewNode.cssClass` across same-format
+  and cross-format round-trip. PlantUML treeView export emits a single
+  canonical encoding (`@startwbs` + markers); JSON and YAML are
+  import-only entry points that converge to WBS on export.
+  **Behavior change**: `@startwbs` previously routed to
+  `PlantUMLMindmapParser` and produced a `MindmapDiagram` payload; this
+  spec retargets it to `PlantUMLWBSParser` → `TreeViewDiagram`.
+  WBS-specific shape variants (`<<arrow>>`, `<<separator>>`, `<<box>>`)
+  and color suffixes (`#color`) are lossy-dropped on import via
+  `.featureDropped(.slotUnsupported, …)` with no marker preservation.
+  Cross-format paths `d2 ↔ plantuml` and `dot ↔ plantuml` (2
+  unordered, 4 directed) bridge through the canonical
+  `TreeViewDiagram` payload. **Mermaid ↔ PlantUML treeView is
+  deliberately deferred**: Mermaid treeView uses a synthetic `/` root
+  container at level -1 (`Sources/DiagramKitModel/src_treeview_parser.swift:80`)
+  while D2 / DOT / PlantUML use the actual user-visible node as the
+  root. The pre-existing Mermaid ↔ D2 and Mermaid ↔ DOT treeView
+  fixtures use the unrecognized `.mermaid` extension and have been
+  silently skipping since Wave E, masking the same convention
+  mismatch. Bridging that convention is out of scope for Wave H. No
+  new `DiagnosticCategory` cases; reuses `.slotUnsupported` /
+  `.idSanitization` / `.accessibilityDrop`. No new `RoundTripLoss`
+  cases. Closes
+  [`docs/superpowers/specs/2026-05-21-plantuml-treeview-design.md`](docs/superpowers/specs/2026-05-21-plantuml-treeview-design.md).
 
 The only new public surface across Wave D is the
 `ArchitectureServiceKind` enum (`service` / `component` / `interface`)
@@ -293,6 +325,13 @@ Ordered by impact:
    directions, marker-recovered round-trip + 7 new cross-format
    pairs).**~~ Closed by Wave G
    (2026-05-21-d2-dot-c4 spec).
+9. ~~**PlantUML expansion: treeView (one family × three import
+   dialects + one canonical export encoding, marker-recovered
+   round-trip + 2 new cross-format pairs against D2/DOT).**~~ Closed
+   by Wave H (2026-05-21-plantuml-treeview spec). Mermaid ↔ PlantUML
+   treeView is deferred pending a synthetic-root convention bridge
+   that also unblocks the silently-skipped Mermaid ↔ D2/DOT treeView
+   fixtures.
 
 Anything outside this list (Wardley, Sankey, Packet, Treemap, etc. in non-native
 formats) is a deliberate `—` and should not be added without a concrete user
