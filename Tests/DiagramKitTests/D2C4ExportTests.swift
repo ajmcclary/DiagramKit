@@ -103,3 +103,72 @@ struct D2C4ExportShapesTests {
         )
     }
 }
+
+@Suite("D2C4Export boundaries")
+struct D2C4ExportBoundariesTests {
+
+    @Test func boundaryEmitsBlockWithKindMarker() {
+        let diagram = C4Diagram(
+            kind: .container,
+            title: nil,
+            shapes: [
+                C4Shape(alias: "svc", label: "Service", typeC4Shape: .container, parentBoundary: "ent")
+            ],
+            boundaries: [
+                C4Boundary(alias: "ent", label: "Enterprise", type: "enterprise", parentBoundary: "")
+            ],
+            relationships: [],
+            config: C4DiagramConfig()
+        )
+        let source = D2C4Export.export(diagram)
+        #expect(source.contains("ent: \"Enterprise\" {"))
+        #expect(source.contains("svc: \"Service\" {"))
+        #expect(source.contains("# diagramkit:c4-boundary-kind=ent,enterprise"))
+    }
+
+    @Test func nestedBoundariesEmitNestedBlocks() {
+        let diagram = C4Diagram(
+            kind: .container,
+            title: nil,
+            shapes: [
+                C4Shape(alias: "svc", label: "Service", typeC4Shape: .container, parentBoundary: "team")
+            ],
+            boundaries: [
+                C4Boundary(alias: "ent", label: "Enterprise", type: "enterprise", parentBoundary: ""),
+                C4Boundary(alias: "team", label: "Team", type: "system", parentBoundary: "ent")
+            ],
+            relationships: [],
+            config: C4DiagramConfig()
+        )
+        let source = D2C4Export.export(diagram)
+        let entRange = source.range(of: "ent:")
+        let teamRange = source.range(of: "team:")
+        let svcRange = source.range(of: "svc:")
+        #expect(entRange != nil && teamRange != nil && svcRange != nil)
+        if let e = entRange, let t = teamRange, let s = svcRange {
+            #expect(e.lowerBound < t.lowerBound)
+            #expect(t.lowerBound < s.lowerBound)
+        }
+    }
+
+    @Test func synthesizedBoundariesAreNotEmitted() {
+        let diagram = C4Diagram(
+            kind: .container,
+            title: nil,
+            shapes: [],
+            boundaries: [
+                C4Boundary(
+                    alias: "synth",
+                    label: "Synth",
+                    type: "system",
+                    parentBoundary: "",
+                    origin: .viewScopeSynthesized
+                )
+            ],
+            relationships: [],
+            config: C4DiagramConfig()
+        )
+        let source = D2C4Export.export(diagram)
+        #expect(!source.contains("synth"))
+    }
+}

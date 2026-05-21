@@ -13,11 +13,51 @@ public enum D2C4Export {
         }
         lines.append("")
 
+        let authoredBoundaries = diagram.boundaries.filter { $0.origin != .viewScopeSynthesized }
+        let rootBoundaries = authoredBoundaries.filter { isRoot($0.parentBoundary) }
+        let childrenByParent = Dictionary(grouping: authoredBoundaries.filter { !isRoot($0.parentBoundary) }, by: \.parentBoundary)
+        let shapesByBoundary = Dictionary(grouping: diagram.shapes, by: \.parentBoundary)
+
+        for boundary in rootBoundaries {
+            emitBoundary(
+                boundary,
+                childrenByParent: childrenByParent,
+                shapesByBoundary: shapesByBoundary,
+                indent: "",
+                into: &lines
+            )
+        }
         for shape in diagram.shapes where isRoot(shape.parentBoundary) {
             emitShape(shape, indent: "", into: &lines)
         }
 
         return lines.joined(separator: "\n") + "\n"
+    }
+
+    private static func emitBoundary(
+        _ boundary: C4Boundary,
+        childrenByParent: [String: [C4Boundary]],
+        shapesByBoundary: [String: [C4Shape]],
+        indent: String,
+        into lines: inout [String]
+    ) {
+        lines.append("\(indent)\(boundary.alias): \"\(escape(boundary.label))\" {")
+        for child in childrenByParent[boundary.alias] ?? [] {
+            emitBoundary(
+                child,
+                childrenByParent: childrenByParent,
+                shapesByBoundary: shapesByBoundary,
+                indent: indent + "    ",
+                into: &lines
+            )
+        }
+        for shape in shapesByBoundary[boundary.alias] ?? [] {
+            emitShape(shape, indent: indent + "    ", into: &lines)
+        }
+        lines.append("\(indent)}")
+        if let kind = boundary.type, !kind.isEmpty {
+            lines.append(D2RecoveryMarker.emitC4BoundaryKind(targetID: boundary.alias, rawValue: kind))
+        }
     }
 
     static func emitShape(_ shape: C4Shape, indent: String, into lines: inout [String]) {
