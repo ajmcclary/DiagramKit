@@ -7,6 +7,13 @@ public enum TreeViewNodeType: String, Sendable, Equatable {
     case directory
 }
 
+/// One node in a `TreeViewDiagram`.
+///
+/// `level` is the depth at which the node appears: real user-visible nodes
+/// start at `0` and increment with nesting. The single exception is the
+/// **synthetic-root sentinel** described on `TreeViewDiagram` — a
+/// `TreeViewNode` with `name == "/"` AND `level == -1` is the Mermaid
+/// parser's multi-root container and has no source counterpart.
 public struct TreeViewNode: Sendable, Equatable {
     public var id: Int
     public var level: Int
@@ -55,6 +62,26 @@ public struct TreeViewBBox: Sendable, Equatable {
     }
 }
 
+/// Canonical payload for treeView diagrams across every importer.
+///
+/// `root` represents the user-visible root structure with one sentinel:
+///
+/// > A `root` whose `name == "/"` AND `level == -1` is a **synthetic
+/// > multi-root container** introduced by the Mermaid treeView parser to
+/// > host two or more sibling roots declared at level 0. Its children are
+/// > the user-visible roots; the container itself has no source counterpart.
+///
+/// All other importers (D2, DOT, PlantUML) produce a `TreeViewDiagram`
+/// whose `root` is the actual user-visible root at level 0 — no synthetic
+/// container.
+///
+/// Exporters detect the convention on entry and adapt:
+/// - `MermaidTreeViewExport` accepts both shapes.
+/// - `D2TreeViewExport` / `DOTTreeViewExport` strip the synthetic root and
+///   emit children as a top-level forest (lossless).
+/// - `PlantUMLTreeViewExporter` emits the first child as the WBS `*` root
+///   and drops additional siblings with `.featureDropped(.slotUnsupported,
+///   …)` per drop.
 public struct TreeViewDiagram: Sendable, Equatable {
     public var root: TreeViewNode
     public var nodes: [TreeViewNode]
