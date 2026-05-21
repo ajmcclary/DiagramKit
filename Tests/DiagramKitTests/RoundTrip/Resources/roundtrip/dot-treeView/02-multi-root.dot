@@ -1,0 +1,10 @@
+digraph G {
+  # diagramkit:family=treeView
+  alpha [label="alpha"];
+  beta [label="beta"];
+  gamma [label="gamma"];
+  a_leaf [label="a_leaf"];
+  b_leaf [label="b_leaf"];
+  alpha -> a_leaf;
+  beta -> b_leaf;
+}
