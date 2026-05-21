@@ -31,6 +31,18 @@ public enum D2C4Export {
             emitShape(shape, indent: "", into: &lines)
         }
 
+        for (index, rel) in diagram.relationships.enumerated() {
+            let arrow = (rel.kind == .birel) ? "<->" : "->"
+            let labelSuffix = rel.label.isEmpty ? "" : ": \"\(escape(rel.label))\""
+            lines.append("\(rel.from) \(arrow) \(rel.to)\(labelSuffix)")
+            if rel.kind != .rel {
+                lines.append(D2RecoveryMarker.emitC4RelKind(
+                    edgeIndex: index,
+                    rawValue: rel.kind.rawValue
+                ))
+            }
+        }
+
         return lines.joined(separator: "\n") + "\n"
     }
 

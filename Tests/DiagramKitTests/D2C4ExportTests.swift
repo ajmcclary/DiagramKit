@@ -172,3 +172,49 @@ struct D2C4ExportBoundariesTests {
         #expect(!source.contains("synth"))
     }
 }
+
+@Suite("D2C4Export relationships")
+struct D2C4ExportRelationshipsTests {
+
+    @Test func relUsesArrowAndNoMarker() {
+        let source = exportRel(.rel)
+        #expect(source.contains("a -> b"))
+        #expect(!source.contains("c4-rel-kind"))
+    }
+
+    @Test func birelUsesDoubleArrow() {
+        let source = exportRel(.birel)
+        #expect(source.contains("a <-> b"))
+        #expect(source.contains("# diagramkit:c4-rel-kind=0,birel"))
+    }
+
+    @Test(arguments: [
+        (C4RelationshipKind.rel_u, "rel_u"),
+        (C4RelationshipKind.rel_d, "rel_d"),
+        (C4RelationshipKind.rel_l, "rel_l"),
+        (C4RelationshipKind.rel_r, "rel_r"),
+        (C4RelationshipKind.rel_b, "rel_b")
+    ])
+    func directionalRelEmitsKindMarker(kind: C4RelationshipKind, raw: String) {
+        let source = exportRel(kind)
+        #expect(source.contains("a -> b"))
+        #expect(source.contains("# diagramkit:c4-rel-kind=0,\(raw)"))
+    }
+
+    private func exportRel(_ kind: C4RelationshipKind) -> String {
+        let diagram = C4Diagram(
+            kind: .context,
+            title: nil,
+            shapes: [
+                C4Shape(alias: "a", label: "A", typeC4Shape: .system, parentBoundary: "global"),
+                C4Shape(alias: "b", label: "B", typeC4Shape: .system, parentBoundary: "global")
+            ],
+            boundaries: [],
+            relationships: [
+                C4Relationship(kind: kind, from: "a", to: "b", label: "uses")
+            ],
+            config: C4DiagramConfig()
+        )
+        return D2C4Export.export(diagram)
+    }
+}
