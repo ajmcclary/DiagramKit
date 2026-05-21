@@ -23,6 +23,11 @@ public enum RoundTripLoss: Hashable, Sendable, CustomStringConvertible {
     case deploymentShapeFlattened(serviceID: String, kindRawValue: String)
     case deploymentDecorationDropped(serviceID: String, decoration: String)
     case deploymentLegendDropped
+    /// Mermaid multi-root treeView input (synthetic `/` container with 2+
+    /// children) was flattened on export to a format that cannot represent
+    /// multi-root payloads (currently only PlantUML WBS), dropping all but
+    /// the first sibling.
+    case syntheticRootFlattened
 
     public var kind: RoundTripLossKind {
         switch self {
@@ -43,6 +48,7 @@ public enum RoundTripLoss: Hashable, Sendable, CustomStringConvertible {
         case .deploymentShapeFlattened: return .deploymentShapeFlattened
         case .deploymentDecorationDropped: return .deploymentDecorationDropped
         case .deploymentLegendDropped: return .deploymentLegendDropped
+        case .syntheticRootFlattened: return .syntheticRootFlattened
         }
     }
 
@@ -82,6 +88,8 @@ public enum RoundTripLoss: Hashable, Sendable, CustomStringConvertible {
             return "deploymentDecorationDropped(serviceID: \(serviceID), decoration: \(decoration))"
         case .deploymentLegendDropped:
             return "deploymentLegendDropped"
+        case .syntheticRootFlattened:
+            return "syntheticRootFlattened"
         }
     }
 }
@@ -95,6 +103,7 @@ public enum RoundTripLossKind: String, Hashable, Sendable, CaseIterable, Codable
     case accessibilityDrop, anonymousSubgraphRename, d2DuplicateOverride
     case classStereotypeDrop, stateActionDrop, cardinalityDrop
     case deploymentShapeFlattened, deploymentDecorationDropped, deploymentLegendDropped
+    case syntheticRootFlattened
 }
 
 /// State entry/exit action phase identifier — used by
