@@ -1,0 +1,30 @@
+digraph G {
+  # diagramkit:family=block
+  label="Wave J DOT block";
+  subgraph cluster_frontend {
+    label="Frontend";
+    webapp [label="Web App"];
+    mobile [label="Mobile App"];
+  }
+  # diagramkit:block-cols=frontend,2
+  subgraph cluster_backend {
+    label="Backend";
+    api [label="API"];
+    worker [label="Worker"];
+  }
+  # diagramkit:block-cols=backend,1
+  wide [label="Wide cell"];
+  # diagramkit:block-width=wide,2
+  leaning [label="Leaning", shape=parallelogram];
+  # diagramkit:block-shape-fallback=leaning,lean_left
+  arrow1 [label="Sync"];
+  # diagramkit:block-shape-fallback=arrow1,block_arrow
+  # diagramkit:block-arrow-dir=arrow1,right,up
+  frontend -> backend [label="calls"];
+  # diagramkit:block-edge-attrs=0,thick,dashed,arrow_open,arrow
+  # diagramkit:block-classdef=blue,fill:#6cf;stroke:#333
+  # diagramkit:block-class-apply=arrow1,blue
+  # diagramkit:block-style=wide,fill:#f00
+  # diagramkit:block-acc-title=Wave J DOT block fixture
+  # diagramkit:block-acc-descr=Comprehensive dot block round-trip
+}

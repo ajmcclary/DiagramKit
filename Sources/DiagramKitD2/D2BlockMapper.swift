@@ -50,6 +50,24 @@ public struct D2BlockMapper {
                 if !containerStack.isEmpty { containerStack.removeLast() }
 
             case .nodeDefinition(let nodeDef):
+                // Skip `title:` which is the diagram-level metadata
+                // emitted by D2BlockExporter, not a real block node.
+                if nodeDef.id == "title" { continue }
+
+                if var existing = diagram.blockDatabase[nodeDef.id] {
+                    // Subsequent statement for the same id (e.g.
+                    // `<id>.shape: …`) — merge in attributes without
+                    // re-inserting in the parent's children.
+                    if let shape = nodeDef.shape {
+                        existing.type = Self.blockType(for: shape)
+                    }
+                    if let label = nodeDef.label, !label.isEmpty {
+                        existing.label = label
+                    }
+                    diagram.blockDatabase[nodeDef.id] = existing
+                    continue
+                }
+
                 let type = Self.blockType(for: nodeDef.shape)
                 let node = BlockNode(
                     id: nodeDef.id,

@@ -512,6 +512,28 @@ struct SameFormatRoundTripTests {
     }
 
     @Test(
+        "D2 block round-trip",
+        arguments: try fixtures(for: "d2-block", fromRoot: roundTripResourcesRoot())
+    )
+    func d2Block(fixture: RoundTripFixture) throws {
+        try runSameFormatRoundTrip(
+            cell: RoundTripCellRegistry.d2Block,
+            fixture: fixture
+        )
+    }
+
+    @Test(
+        "DOT block round-trip",
+        arguments: try fixtures(for: "dot-block", fromRoot: roundTripResourcesRoot())
+    )
+    func dotBlock(fixture: RoundTripFixture) throws {
+        try runSameFormatRoundTrip(
+            cell: RoundTripCellRegistry.dotBlock,
+            fixture: fixture
+        )
+    }
+
+    @Test(
         "Structurizr C4 round-trip",
         arguments: try fixtures(for: "structurizr-c4", fromRoot: roundTripResourcesRoot())
     )
