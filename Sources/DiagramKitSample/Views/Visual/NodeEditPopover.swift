@@ -120,7 +120,6 @@ struct NodeEditPopover: View {
                 }
                 .buttonStyle(.borderedProminent)
                 .keyboardShortcut(.defaultAction)
-                .disabled(labelDraft.isEmpty)
             }
         }
         .padding(14)
@@ -201,13 +200,17 @@ struct NodeEditPopover: View {
     }
 
     private func commit() {
-        guard let selection = store.editor?.selection, let editor = store.editor else { return }
+        guard let selection = store.editor?.selection else { return }
         let labelChanged = labelDraft != initialLabel
         let shapeChanged = shapeAlias != initialShapeAlias
         let spec = draftSpec()
         Task {
+            // Resolve the editor at execution time and open the undo group on
+            // the live instance; if a queued re-seed swaps it out mid-flight,
+            // the store's mutation path reinstalls the mutated instance, so
+            // close the group on whatever is current.
+            guard let editor = store.editor else { return }
             editor.beginUndoGrouping()
-            defer { editor.endUndoGrouping() }
             if labelChanged {
                 try? await store.performMutation(.setLabel(of: selection, to: labelDraft))
             }
@@ -226,8 +229,10 @@ struct NodeEditPopover: View {
                 )
                 try? await store.performFlowchartMutation(.setNodeIcon(of: selection, to: iconSpec))
             }
+            (store.editor ?? editor).endUndoGrouping()
+            // Advance the stage only after the mutations have committed.
+            store.setVisualStage(.nodeSelected)
         }
-        store.setVisualStage(.nodeSelected)
     }
 
     private func clearStyling() {

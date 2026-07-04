@@ -365,7 +365,10 @@ struct FlowchartEditCanvas: View {
         let type = editorType
         let from = DiagramSelection(diagramType: type, elementID: sourceID)
         let to = DiagramSelection(diagramType: type, elementID: targetID)
-        let id = "e_\(sourceID)_\(targetID)_\(Int(Date().timeIntervalSince1970))"
+        // Short UUID suffix, not a 1-second-resolution timestamp: two
+        // connectors drawn between the same pair within one second would
+        // otherwise collide on the edge id.
+        let id = "e_\(sourceID)_\(targetID)_\(UUID().uuidString.prefix(8))"
         Task {
             do {
                 try await store.performFlowchartMutation(

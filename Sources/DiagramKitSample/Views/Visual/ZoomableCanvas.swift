@@ -19,7 +19,9 @@ struct ZoomableCanvas<Content: View>: View {
     @ViewBuilder var content: () -> Content
 
     @SwiftUI.State private var gestureBaseZoomScale: CGFloat?
-    @SwiftUI.State private var activePanTranslation: CGSize = .zero
+    // `@GestureState` auto-resets to `.zero` when the pan gesture ends or is
+    // cancelled, so an interrupted pan can't leave the canvas stuck offset.
+    @GestureState private var activePanTranslation: CGSize = .zero
 
     private var currentZoomScale: CGFloat {
         CanvasTransform.clampScale(store.state.visualZoomScale ?? 1)
@@ -58,12 +60,11 @@ struct ZoomableCanvas<Content: View>: View {
 
     private var panGesture: some Gesture {
         DragGesture()
-            .onChanged { value in activePanTranslation = value.translation }
+            .updating($activePanTranslation) { value, state, _ in state = value.translation }
             .onEnded { value in
                 let base = store.state.visualPanOffset ?? .zero
                 store.setVisualPanOffset(CGSize(width: base.width + value.translation.width,
                                                 height: base.height + value.translation.height))
-                activePanTranslation = .zero
             }
     }
 

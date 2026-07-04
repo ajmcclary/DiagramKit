@@ -17,8 +17,19 @@ import DiagramKitInteractive
 struct GanttEditCanvas: View {
     @Bindable var store: LiveEditorStore
 
-    @SwiftUI.State private var draggingTaskID: String?
-    @SwiftUI.State private var dragDeltaWeeks: Int = 0
+    /// Live resize state. `@GestureState` auto-resets to nil when the gesture
+    /// ends *or is cancelled* (system gesture, window resize, tool switch),
+    /// so an interrupted drag can't leave a bar stuck mid-resize.
+    @GestureState private var ganttDrag: GanttDragState?
+
+    private struct GanttDragState: Equatable {
+        let taskID: String
+        let deltaWeeks: Int
+    }
+
+    /// Minimum task duration a resize may produce (1 day), so dragging the
+    /// end handle left past the start can't commit a negative-length task.
+    private let minTaskDuration: TimeInterval = 86400
 
     var body: some View {
         ZoomableCanvas(store: store) {
@@ -129,31 +140,39 @@ struct GanttEditCanvas: View {
         rowHeight: CGFloat,
         width: CGFloat
     ) -> some View {
-        ZStack(alignment: .topLeading) {
-            ForEach(Array(sections.enumerated()), id: \.element.id) { index, section in
-                let bandY = topInset + rowHeight * CGFloat(taskIndex(of: section, in: tasks))
-                let bandHeight = rowHeight * CGFloat(taskCount(of: section, in: tasks))
-                if bandHeight > 0 {
-                    let isAlt = index % 2 == 1
+        // Tint each task row by its section's parity, and label a section at
+        // its first task row. Row-based rather than a single band per section
+        // so the shading stays aligned even if a section's tasks are not
+        // contiguous in `tasks` (a single band would then span/overlap the
+        // wrong rows).
+        var sectionOrder: [String: Int] = [:]
+        for (index, section) in sections.enumerated() { sectionOrder[section.name] = index }
+
+        return ZStack(alignment: .topLeading) {
+            ForEach(Array(tasks.enumerated()), id: \.element.id) { index, task in
+                let parity = (sectionOrder[task.section] ?? 0) % 2
+                if parity == 1 {
                     Rectangle()
-                        .fill(isAlt ? Color.gray.opacity(0.06) : Color.clear)
-                        .frame(width: width, height: bandHeight)
-                        .position(x: width / 2, y: bandY + bandHeight / 2)
+                        .fill(Color.gray.opacity(0.06))
+                        .frame(width: width, height: rowHeight)
+                        .position(
+                            x: width / 2,
+                            y: topInset + rowHeight * CGFloat(index) + rowHeight / 2
+                        )
+                }
+            }
+            ForEach(Array(sections.enumerated()), id: \.element.id) { _, section in
+                if let first = tasks.firstIndex(where: { $0.section == section.name }) {
                     Text(section.name)
                         .font(.system(size: 10, weight: .semibold))
                         .foregroundStyle(.secondary)
-                        .position(x: leftInset / 2, y: bandY + bandHeight / 2)
+                        .position(
+                            x: leftInset / 2,
+                            y: topInset + rowHeight * CGFloat(first) + rowHeight / 2
+                        )
                 }
             }
         }
-    }
-
-    private func taskIndex(of section: GanttSection, in tasks: [GanttTask]) -> Int {
-        tasks.firstIndex(where: { $0.section == section.name }) ?? 0
-    }
-
-    private func taskCount(of section: GanttSection, in tasks: [GanttTask]) -> Int {
-        tasks.filter { $0.section == section.name }.count
     }
 
     private func weekTicks(
@@ -220,7 +239,8 @@ struct GanttEditCanvas: View {
     ) -> some View {
         let xStart = leftInset + CGFloat(task.startTime.timeIntervalSince(earliest)) * pxPerSecond
         let renderEnd = task.renderEndTime ?? task.endTime
-        let visualEndDelta = draggingTaskID == task.id ? CGFloat(dragDeltaWeeks) * 7 * 86400 * pxPerSecond : 0
+        let activeDelta = ganttDrag?.taskID == task.id ? (ganttDrag?.deltaWeeks ?? 0) : 0
+        let visualEndDelta = CGFloat(activeDelta) * 7 * 86400 * pxPerSecond
         let xEnd = leftInset + CGFloat(renderEnd.timeIntervalSince(earliest)) * pxPerSecond + visualEndDelta
         let width = max(xEnd - xStart, 6)
         let y = topInset + rowHeight * CGFloat(index) + rowHeight / 2
@@ -246,36 +266,38 @@ struct GanttEditCanvas: View {
                 .position(x: width - 6, y: (rowHeight - 8) / 2)
                 .gesture(
                     DragGesture()
-                        .onChanged { value in
-                            draggingTaskID = task.id
-                            dragDeltaWeeks = Int(round(value.translation.width / (pxPerSecond * 7 * 86400)))
-                            store.setVisualStage(.edgeDrag)
+                        .updating($ganttDrag) { value, state, _ in
+                            state = GanttDragState(
+                                taskID: task.id,
+                                deltaWeeks: Int(round(value.translation.width / (pxPerSecond * 7 * 86400)))
+                            )
                         }
-                        .onEnded { _ in
-                            let committedDelta = dragDeltaWeeks
+                        .onEnded { value in
+                            let committedDelta = Int(round(value.translation.width / (pxPerSecond * 7 * 86400)))
+                            guard committedDelta != 0 else { return }
                             let committedTaskId = task.id
-                            let committedEnd = task.endTime.addingTimeInterval(
+                            let rawEnd = task.endTime.addingTimeInterval(
                                 Double(committedDelta) * 7 * 86400
                             )
-                            draggingTaskID = nil
-                            dragDeltaWeeks = 0
-                            store.setVisualStage(.idle)
-                            if committedDelta != 0 {
-                                Task {
-                                    try? await store.performGanttMutation(
-                                        .resizeTask(
-                                            taskId: committedTaskId,
-                                            newEndTime: committedEnd
-                                        )
+                            // Never commit an end at/before the start.
+                            let committedEnd = max(
+                                rawEnd,
+                                task.startTime.addingTimeInterval(minTaskDuration)
+                            )
+                            Task {
+                                try? await store.performGanttMutation(
+                                    .resizeTask(
+                                        taskId: committedTaskId,
+                                        newEndTime: committedEnd
                                     )
-                                }
+                                )
                             }
                         }
                 )
 
-            if draggingTaskID == task.id, dragDeltaWeeks != 0 {
-                let prefix = dragDeltaWeeks > 0 ? "+" : ""
-                Text("\(prefix)\(dragDeltaWeeks)w")
+            if ganttDrag?.taskID == task.id, let delta = ganttDrag?.deltaWeeks, delta != 0 {
+                let prefix = delta > 0 ? "+" : ""
+                Text("\(prefix)\(delta)w")
                     .font(.system(size: 10, weight: .semibold).monospacedDigit())
                     .padding(.horizontal, 6)
                     .padding(.vertical, 2)

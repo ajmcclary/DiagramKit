@@ -16,8 +16,19 @@ import DiagramKitModel
 struct SequenceEditCanvas: View {
     @Bindable var store: LiveEditorStore
 
-    @SwiftUI.State private var draggingIndex: Int?
-    @SwiftUI.State private var dragOffsetY: CGFloat = 0
+    /// Live drag state. `@GestureState` auto-resets when the gesture ends or
+    /// is cancelled, so an interrupted drag can't leave a row stuck.
+    @GestureState private var seqDrag: SeqDragState?
+
+    /// True while a reorder mutation is in flight. Prevents a second drag
+    /// from committing indices computed against the pre-reorder message order
+    /// (which would move the wrong message).
+    @SwiftUI.State private var isReordering = false
+
+    private struct SeqDragState: Equatable {
+        let index: Int
+        let offsetY: CGFloat
+    }
 
     var body: some View {
         ZoomableCanvas(store: store) {
@@ -72,7 +83,9 @@ struct SequenceEditCanvas: View {
 
             // Messages
             ForEach(Array(messages.enumerated()), id: \.offset) { index, message in
-                let y = topInset + rowHeight * CGFloat(index) + (draggingIndex == index ? dragOffsetY : 0)
+                let isDragging = seqDrag?.index == index
+                let offset = isDragging ? (seqDrag?.offsetY ?? 0) : 0
+                let y = topInset + rowHeight * CGFloat(index) + offset
                 messageRow(
                     message: message,
                     actors: actors,
@@ -80,13 +93,13 @@ struct SequenceEditCanvas: View {
                     columnSpacing: columnSpacing,
                     y: y,
                     rowHeight: rowHeight,
-                    isDragging: draggingIndex == index
+                    isDragging: isDragging
                 )
-                .gesture(rowDragGesture(index: index, rowHeight: rowHeight))
+                .gesture(rowDragGesture(index: index, rowHeight: rowHeight, messageCount: messages.count))
             }
 
-            if let dragging = draggingIndex {
-                let target = max(0, min(messages.count - 1, dragging + Int(round(dragOffsetY / rowHeight))))
+            if let drag = seqDrag {
+                let target = max(0, min(messages.count - 1, drag.index + Int(round(drag.offsetY / rowHeight))))
                 let y = topInset + rowHeight * CGFloat(target)
                 Path { p in
                     p.move(to: CGPoint(x: leftInset, y: y))
@@ -99,32 +112,23 @@ struct SequenceEditCanvas: View {
         .frame(width: size.width, height: size.height, alignment: .topLeading)
     }
 
-    private func rowDragGesture(index: Int, rowHeight: CGFloat) -> some Gesture {
+    private func rowDragGesture(index: Int, rowHeight: CGFloat, messageCount: Int) -> some Gesture {
         DragGesture()
-            .onChanged { value in
-                draggingIndex = index
-                dragOffsetY = value.translation.height
-                store.setVisualStage(.edgeDrag) // reuse for drag-feedback
+            .updating($seqDrag) { value, state, _ in
+                state = SeqDragState(index: index, offsetY: value.translation.height)
             }
-            .onEnded { _ in
-                guard let dragging = draggingIndex,
-                      let diagram = sequenceDiagram else {
-                    draggingIndex = nil
-                    dragOffsetY = 0
-                    store.setVisualStage(.idle)
-                    return
-                }
-                let messageCount = diagram.messages.count
-                let target = max(0, min(messageCount - 1, dragging + Int(round(dragOffsetY / rowHeight))))
-                draggingIndex = nil
-                dragOffsetY = 0
-                store.setVisualStage(.idle)
-                if target != dragging {
-                    Task {
-                        try? await store.performSequenceMutation(
-                            .moveMessage(at: dragging, to: target)
-                        )
-                    }
+            .onEnded { value in
+                // Drop the commit if a previous reorder hasn't landed yet —
+                // its indices would be computed against a stale order.
+                guard !isReordering else { return }
+                let target = max(0, min(messageCount - 1, index + Int(round(value.translation.height / rowHeight))))
+                guard target != index else { return }
+                isReordering = true
+                Task {
+                    try? await store.performSequenceMutation(
+                        .moveMessage(at: index, to: target)
+                    )
+                    isReordering = false
                 }
             }
     }
@@ -151,6 +155,7 @@ struct SequenceEditCanvas: View {
         .accessibilityIdentifier("visual.sequence.lifeline.\(actor.id)")
     }
 
+    @ViewBuilder
     private func messageRow(
         message: SequenceMessage,
         actors: [SequenceActor],
@@ -160,11 +165,37 @@ struct SequenceEditCanvas: View {
         rowHeight: CGFloat,
         isDragging: Bool
     ) -> some View {
-        let fromIndex = actors.firstIndex(where: { $0.id == message.from }) ?? 0
-        let toIndex = actors.firstIndex(where: { $0.id == message.to }) ?? 0
-        let fromX = leftInset + columnSpacing * (CGFloat(fromIndex) + 0.5)
-        let toX = leftInset + columnSpacing * (CGFloat(toIndex) + 0.5)
-        return ZStack {
+        if let fromIndex = actors.firstIndex(where: { $0.id == message.from }),
+           let toIndex = actors.firstIndex(where: { $0.id == message.to }) {
+            resolvedMessageRow(
+                message: message,
+                fromX: leftInset + columnSpacing * (CGFloat(fromIndex) + 0.5),
+                toX: leftInset + columnSpacing * (CGFloat(toIndex) + 0.5),
+                y: y,
+                rowHeight: rowHeight,
+                isDragging: isDragging
+            )
+        } else {
+            // A participant the message references isn't in `actors` — surface
+            // the mismatch instead of drawing a zero-length arrow pinned to
+            // the first lifeline.
+            Text("⚠ \(message.label)")
+                .font(.system(size: 10, weight: .medium))
+                .foregroundStyle(.orange)
+                .frame(height: rowHeight, alignment: .top)
+                .position(x: leftInset + columnSpacing * 0.5, y: y)
+        }
+    }
+
+    private func resolvedMessageRow(
+        message: SequenceMessage,
+        fromX: CGFloat,
+        toX: CGFloat,
+        y: CGFloat,
+        rowHeight: CGFloat,
+        isDragging: Bool
+    ) -> some View {
+        ZStack {
             Path { p in
                 p.move(to: CGPoint(x: fromX, y: y))
                 p.addLine(to: CGPoint(x: toX, y: y))
