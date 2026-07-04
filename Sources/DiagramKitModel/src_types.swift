@@ -12,7 +12,7 @@ open class original_src_types {
         case RL
     }
 
-    public enum NodeShape: String, Sendable {
+    public enum NodeShape: String, Sendable, CaseIterable {
         case rectangle
         case rounded
         case diamond
@@ -117,7 +117,7 @@ open class original_src_types {
             case "delay", "half-rounded-rectangle": return .delay
             case "horizontal-cylinder", "h-cyl", "das": return .horizontalCylinder
             case "lined-cylinder", "lin-cyl", "disk": return .linedCylinder
-            case "curbed-trapezoid", "curv-trap", "display": return .curvedTrapezoid
+            case "curbed-trapezoid", "curved-trapezoid", "curv-trap", "display": return .curvedTrapezoid
             case "divided-rectangle", "div-rect", "div-proc", "divided-process": return .dividedRectangle
             case "triangle", "tri", "extract": return .triangle
             case "internal-storage", "win-pane", "window-pane": return .windowPane
@@ -142,6 +142,8 @@ open class original_src_types {
             case "choice": return .choice
             case "note": return .note
             case "state-note": return .stateNote
+            case "state-start": return .stateStart
+            case "state-end": return .stateEnd
             case "state-divider": return .stateDivider
             case "rounded-with-title": return .roundedWithTitle
             case "rect-with-title": return .rectWithTitle

@@ -49,20 +49,29 @@ enum MermaidFlowchartExport {
                 diagnostics.append(contentsOf: idDiags)
                 aliasMap[nodeId] = sanitizedId
 
-                let shape = shapeMarker(for: node.shape)
-                if shape.lossy {
-                    diagnostics.append(.lossyTransform(
-                        .shapeDowngrade,
-                        message: "Mermaid flowchart has no native marker for shape '\(node.shape)'; emitted with fallback marker (node '\(nodeId)')"
-                    ))
-                }
+                let emission = shapeEmission(for: node.shape)
                 var nodeLine: String
-                if node.label.isEmpty || node.label == nodeId {
-                    nodeLine = "  \(sanitizedId)\(shape.open)\(shape.close)"
-                } else {
-                    let (escaped, escDiags) = MermaidExportHelpers.escapeBracketLabel(node.label)
-                    diagnostics.append(contentsOf: escDiags)
-                    nodeLine = "  \(sanitizedId)\(shape.open)\(escaped)\(shape.close)"
+                switch emission {
+                case .marker(let open, let close):
+                    if node.label.isEmpty || node.label == nodeId {
+                        nodeLine = "  \(sanitizedId)\(open)\(close)"
+                    } else {
+                        let (escaped, escDiags) = MermaidExportHelpers.escapeBracketLabel(node.label)
+                        diagnostics.append(contentsOf: escDiags)
+                        nodeLine = "  \(sanitizedId)\(open)\(escaped)\(close)"
+                    }
+                case .metadata:
+                    if node.label.isEmpty || node.label == nodeId {
+                        nodeLine = "  \(sanitizedId)"
+                    } else {
+                        let (escaped, escDiags) = MermaidExportHelpers.escapeBracketLabel(node.label)
+                        diagnostics.append(contentsOf: escDiags)
+                        nodeLine = "  \(sanitizedId)[\(escaped)]"
+                    }
+                }
+                let pairs = metadataPairs(for: node, emission: emission)
+                if !pairs.isEmpty {
+                    nodeLine += "@{ \(pairs.joined(separator: ", ")) }"
                 }
                 lines.append(nodeLine)
 
@@ -188,87 +197,63 @@ enum MermaidFlowchartExport {
         lines.append("\(pad)end")
     }
 
-    // MARK: - Shape markers
+    // MARK: - Shape emission
 
-    /// Mermaid open/close wrappers for each `NodeShape`, plus a `lossy`
-    /// flag indicating whether the chosen marker drops fidelity.
-    /// Canonical flowchart shapes (`rectangle`, `rounded`, `stadium`,
-    /// `subroutine`, `cylinder`, `diamond`, `hexagon`, `circle`,
-    /// `doublecircle`, `trapezoid`/`trapezoidAlt`, `asymmetric`,
-    /// `ellipse`, `parallelogram`/`parallelogramAlt`) are emitted as-is.
-    /// Shapes from other diagram families (state, mindmap, v11 icon
-    /// shapes, etc.) have no flowchart marker and fall back to a
-    /// nearest-equivalent — the caller emits a `.warning` diagnostic.
-    private static func shapeMarker(for shape: original_src_types.NodeShape) -> (open: String, close: String, lossy: Bool) {
+    /// Emission form for a `NodeShape`: the 15 classic flowchart
+    /// shapes use their native bracket markers; every other shape is
+    /// emitted as v11 `@{ shape: <rawValue> }` metadata, which the
+    /// parser resolves back losslessly (`resolve(alias:)` accepts
+    /// every rawValue).
+    private enum ShapeEmission {
+        case marker(open: String, close: String)
+        case metadata(shapeName: String)
+    }
+
+    private static func shapeEmission(for shape: original_src_types.NodeShape) -> ShapeEmission {
         switch shape {
-        case .rectangle: return ("[", "]", false)
-        case .rounded: return ("(", ")", false)
-        case .stadium: return ("([", "])", false)
-        case .subroutine: return ("[[", "]]", false)
-        case .cylinder: return ("[(", ")]", false)
-        case .diamond: return ("{", "}", false)
-        case .hexagon: return ("{{", "}}", false)
-        case .circle: return ("((", "))", false)
-        case .doublecircle: return ("(((", ")))", false)
-        case .trapezoid: return ("[/", "/]", false)
-        case .trapezoidAlt: return ("[\\", "\\]", false)
-        case .asymmetric: return (">", "]", false)
-        case .ellipse: return ("(-", "-)", false)
-        case .parallelogram: return ("[/", "\\]", false)
-        case .parallelogramAlt: return ("[\\", "/]", false)
-        case .bang: return (">", "]", true)
-        case .cloud: return ("[", "]", true)
-        case .dataStore: return ("[", "]", true)
-        case .text: return ("[", "]", true)
-        case .notchedRectangle: return ("[", "]", true)
-        case .linedRectangle: return ("[", "]", true)
-        case .smallCircle: return ("((", "))", true)
-        case .framedCircle: return ("((", "))", true)
-        case .fork: return ("{", "}", true)
-        case .join: return ("{", "}", true)
-        case .hourglass: return ("{", "}", true)
-        case .braceL: return ("{", "}", true)
-        case .braceR: return ("{", "}", true)
-        case .braces: return ("{", "}", true)
-        case .lightningBolt: return ("[", "]", true)
-        case .document: return ("[", "]", true)
-        case .delay: return ("[", "]", true)
-        case .horizontalCylinder: return ("[", "]", true)
-        case .linedCylinder: return ("[", "]", true)
-        case .curvedTrapezoid: return ("[", "]", true)
-        case .dividedRectangle: return ("[", "]", true)
-        case .triangle: return ("[", "]", true)
-        case .windowPane: return ("[", "]", true)
-        case .filledCircle: return ("((", "))", true)
-        case .linedDocument: return ("[", "]", true)
-        case .notchedPentagon: return ("[", "]", true)
-        case .flippedTriangle: return ("[", "]", true)
-        case .slopedRectangle: return ("[", "]", true)
-        case .stackedDocument: return ("[", "]", true)
-        case .stackedRectangle: return ("[", "]", true)
-        case .flag: return ("[", "]", true)
-        case .bowTieRectangle: return ("[", "]", true)
-        case .crossedCircle: return ("((", "))", true)
-        case .taggedDocument: return ("[", "]", true)
-        case .taggedRectangle: return ("[", "]", true)
-        case .iconSquare: return ("[", "]", true)
-        case .iconCircle: return ("((", "))", true)
-        case .icon: return ("[", "]", true)
-        case .iconRounded: return ("(", ")", true)
-        case .imageSquare: return ("[", "]", true)
-        case .state: return ("[", "]", true)
-        case .choice: return ("{", "}", true)
-        case .note: return ("[", "]", true)
-        case .stateStart: return ("([", "])", true)
-        case .stateEnd: return ("([", "])", true)
-        case .stateDivider: return ("[", "]", true)
-        case .stateNote: return ("[", "]", true)
-        case .roundedWithTitle: return ("(", ")", true)
-        case .rectWithTitle: return ("[", "]", true)
-        case .labelRect: return ("[", "]", true)
-        case .anchor: return ("[", "]", true)
-        case .invisible: return ("[", "]", true)
+        case .rectangle: return .marker(open: "[", close: "]")
+        case .rounded: return .marker(open: "(", close: ")")
+        case .stadium: return .marker(open: "([", close: "])")
+        case .subroutine: return .marker(open: "[[", close: "]]")
+        case .cylinder: return .marker(open: "[(", close: ")]")
+        case .diamond: return .marker(open: "{", close: "}")
+        case .hexagon: return .marker(open: "{{", close: "}}")
+        case .circle: return .marker(open: "((", close: "))")
+        case .doublecircle: return .marker(open: "(((", close: ")))")
+        case .trapezoid: return .marker(open: "[/", close: "/]")
+        case .trapezoidAlt: return .marker(open: "[\\", close: "\\]")
+        case .asymmetric: return .marker(open: ">", close: "]")
+        case .ellipse: return .marker(open: "(-", close: "-)")
+        case .parallelogram: return .marker(open: "[/", close: "\\]")
+        case .parallelogramAlt: return .marker(open: "[\\", close: "/]")
+        default: return .metadata(shapeName: shape.rawValue)
         }
+    }
+
+    /// Metadata pairs for a node's `@{ … }` block: the shape (when
+    /// emission is metadata-form) plus any parser-visible
+    /// `NodeProperties`. `properties.shape` and `.label` are skipped —
+    /// shape comes from `node.shape`, the label from the bracket text.
+    private static func metadataPairs(
+        for node: original_src_types.MermaidNode,
+        emission: ShapeEmission
+    ) -> [String] {
+        var pairs: [String] = []
+        if case .metadata(let shapeName) = emission {
+            pairs.append("shape: \(shapeName)")
+        }
+        guard let props = node.properties else { return pairs }
+        if let icon = props.icon { pairs.append("icon: \"\(icon)\"") }
+        if let form = props.form { pairs.append("form: \"\(form)\"") }
+        if let pos = props.pos { pairs.append("pos: \"\(pos)\"") }
+        if let img = props.img { pairs.append("img: \"\(img)\"") }
+        if let w = props.w { pairs.append("w: \(formatNumber(w))") }
+        if let h = props.h { pairs.append("h: \(formatNumber(h))") }
+        return pairs
+    }
+
+    private static func formatNumber(_ value: Double) -> String {
+        value == value.rounded() ? String(Int(value)) : String(value)
     }
 
     // MARK: - Arrow string

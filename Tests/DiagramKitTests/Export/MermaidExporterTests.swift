@@ -22,17 +22,22 @@ import DiagramKit
         #expect(exporter.supportedDiagramTypes.contains(.c4))
     }
 
-    // MARK: - Unsupported type returns diagnostic
+    // MARK: - Full family coverage
 
-    @Test("Exporting unsupported type returns diagnostic")
-    func unsupportedTypeDiagnostic() throws {
+    // The exporter went 28/28 in 3f0880ae ("Close Mermaid exporter
+    // completion"); there is no unsupported family left. Pin that.
+    @Test("MermaidExporter supports every diagram family")
+    func fullFamilyCoverage() throws {
         let exporter = MermaidExporter()
-        // Mindmap export is still pending (7A-P1).
-        let doc = DiagramDocument(type: .mindmap)
-        let result = try exporter.export(doc)
-        #expect(result.source.isEmpty)
-        #expect(!result.diagnostics.isEmpty)
-        #expect(result.diagnostics.contains { $0.severity == .unsupported })
+        for family in DiagramType.allCases {
+            #expect(
+                exporter.supportedDiagramTypes.contains(family),
+                "family \(family.rawValue) missing from supportedDiagramTypes"
+            )
+        }
+        // Formerly-pending mindmap now exports real source.
+        let result = try exporter.export(DiagramDocument(type: .mindmap))
+        #expect(!result.source.isEmpty)
     }
 
     // MARK: - Flowchart

@@ -14,12 +14,12 @@ import DiagramKitPlantUML
 @Suite("Loss pairing")
 struct LossPairingTests {
 
-    @Test("Mermaid flowchart export emits a shape-downgrade warning for non-flowchart node shapes")
-    func mermaidShapeDowngradePaired() throws {
-        // Build a ParsedGraphModel with a state-family node shape inside the
-        // .flowchart payload. MermaidFlowchartExport.shapeMarker returns
-        // lossy: true for state shapes; the exporter loop appends one
-        // .warning per lossy node.
+    @Test("Mermaid flowchart export emits non-flowchart node shapes faithfully via @{ shape: } metadata")
+    func mermaidShapeMetadataFaithful() throws {
+        // Non-classic shapes used to downgrade with a paired
+        // .shapeDowngrade warning. Since the visual-editor exporter
+        // change they are emitted as v11 `@{ shape: … }` metadata and
+        // round-trip losslessly — no loss, no diagnostic.
         let stateNode = original_src_types.MermaidNode(
             id: "x",
             label: "X",
@@ -32,13 +32,8 @@ struct LossPairingTests {
         )
         let doc = DiagramDocument(payload: .flowchart(model))
         let result = try MermaidExporter().export(doc)
-        let loss = RoundTripLoss.shapeDowngrade(
-            nodeID: "x",
-            from: original_src_types.NodeShape.state,
-            to: original_src_types.NodeShape.rectangle
-        )
-        #expect(diagnosticsCover(loss: loss, in: result.diagnostics),
-                "diagnostics did not cover shapeDowngrade loss: \(result.diagnostics)")
+        #expect(result.source.contains("@{ shape: state }"))
+        #expect(!result.diagnostics.contains { $0.category == .shapeDowngrade })
     }
 
     @Test("D2 flowchart export emits a subgraph-flatten warning when input has subgraphs")
@@ -73,14 +68,11 @@ struct LossPairingTests {
 
     @Test("PlantUML exporter rejects unsupported types with a .unsupported diagnostic")
     func plantUMLUnsupportedTypePaired() throws {
-        // PlantUML doesn't support flowchart; the export must emit a
-        // .unsupported diagnostic rather than silently emit empty source.
-        let model = ParsedGraphModel(
-            direction: original_src_types.Direction.TD,
-            nodesInOrder: [],
-            edges: []
-        )
-        let doc = DiagramDocument(payload: .flowchart(model))
+        // Flowchart gained an activity-syntax export in the PlantUML
+        // family-coverage phases; .pie remains genuinely unsupported.
+        // The export must emit a .unsupported diagnostic rather than
+        // silently emit empty source.
+        let doc = DiagramDocument(type: .pie)
         let result = try PlantUMLExporter().export(doc)
         #expect(result.source.isEmpty)
         #expect(result.diagnostics.contains { $0.severity == .unsupported })
