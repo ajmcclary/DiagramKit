@@ -662,6 +662,8 @@ public final class LiveEditorStore {
         case .setLabel:      return .setLabel
         case .setTitle:      return .setTitle
         case .noop:          return .noop
+        case .setTheme:      return .setTitle
+        case .setLayoutPreset: return .setTitle
         }
     }
 
@@ -671,6 +673,8 @@ public final class LiveEditorStore {
         case .setLabel(let sel, let lbl): return "Label \(sel.elementID) → \(lbl)"
         case .setTitle(let title):        return "Title → \(title ?? "—")"
         case .noop:                       return "No-op"
+        case .setTheme(let name):         return "Theme → \(name ?? "default")"
+        case .setLayoutPreset(let preset): return "Layout → \(preset.rawValue)"
         }
     }
 

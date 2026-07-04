@@ -43,6 +43,9 @@ public enum DiagramEditorError: Error, LocalizedError, Sendable {
     /// `setNodeImage` received a URL that is not http/https with a host.
     case invalidImageURL(url: String)
 
+    /// `setTheme` received a name absent from the DiagramTheme catalog.
+    case unknownThemeName(name: String)
+
     public var errorDescription: String? {
         switch self {
         case .elementNotFound(let id, let kind):
@@ -67,6 +70,8 @@ public enum DiagramEditorError: Error, LocalizedError, Sendable {
             return "Unknown icon name '\(name)'"
         case .invalidImageURL(let url):
             return "Invalid image URL '\(url)' (http/https with a host required)"
+        case .unknownThemeName(let name):
+            return "Unknown theme name '\(name)'"
         }
     }
 }

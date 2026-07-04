@@ -138,6 +138,10 @@ extension DiagramEditor {
             return _setTitle(title, in: document)
         case .noop:
             return document
+        case .setTheme(let name):
+            return try _setTheme(name, in: document)
+        case .setLayoutPreset(let preset):
+            return _setLayoutPreset(preset, in: document)
         }
     }
 
@@ -245,6 +249,25 @@ extension DiagramEditor {
     func _setTitle(_ title: String?, in document: DiagramDocument) -> DiagramDocument {
         var doc = document
         doc.title = title
+        return doc
+    }
+
+    func _setTheme(_ name: String?, in document: DiagramDocument) throws -> DiagramDocument {
+        if let name, DiagramTheme.theme(named: name) == nil {
+            throw DiagramEditorError.unknownThemeName(name: name)
+        }
+        var doc = document
+        var fm = doc.frontmatter ?? DiagramDocumentFrontmatter()
+        fm.theme = name
+        doc.frontmatter = fm.isEmpty ? nil : fm
+        return doc
+    }
+
+    func _setLayoutPreset(_ preset: LayoutPreset, in document: DiagramDocument) -> DiagramDocument {
+        var doc = document
+        var fm = doc.frontmatter ?? DiagramDocumentFrontmatter()
+        fm.layout = preset == .adaptive ? LayoutPreset.adaptive.rawValue : nil
+        doc.frontmatter = fm.isEmpty ? nil : fm
         return doc
     }
 

@@ -24,6 +24,22 @@ public enum DiagramMutation: Sendable {
 
     /// A no-op mutation used as a sentinel for undo grouping boundaries.
     case noop
+
+    /// Set (or clear, with nil) the frontmatter theme. Names are
+    /// validated against DiagramTheme.theme(named:).
+    case setTheme(String?)
+
+    /// Choose the layout preset. `.hierarchical` is the default and
+    /// clears the frontmatter layout key; `.adaptive` persists it.
+    case setLayoutPreset(LayoutPreset)
+}
+
+/// Flowchart layout presets (visual editor plan 6). Hierarchical is
+/// the ELK layered default; adaptive relaxes model order, routes
+/// edges as splines, and widens spacing for connection-dense flows.
+public enum LayoutPreset: String, Sendable, CaseIterable, Hashable {
+    case hierarchical
+    case adaptive
 }
 
 // MARK: - Undo action names
@@ -40,6 +56,10 @@ extension DiagramMutation {
             return "Set Title"
         case .noop:
             return ""
+        case .setTheme:
+            return "Set Theme"
+        case .setLayoutPreset:
+            return "Set Layout"
         }
     }
 }
@@ -57,6 +77,10 @@ extension DiagramMutation: Equatable, Hashable {
             return a == b
         case (.noop, .noop):
             return true
+        case (.setTheme(let a), .setTheme(let b)):
+            return a == b
+        case (.setLayoutPreset(let a), .setLayoutPreset(let b)):
+            return a == b
         default:
             return false
         }
@@ -76,6 +100,12 @@ extension DiagramMutation: Equatable, Hashable {
             hasher.combine(title)
         case .noop:
             hasher.combine(3)
+        case .setTheme(let name):
+            hasher.combine(4)
+            hasher.combine(name)
+        case .setLayoutPreset(let preset):
+            hasher.combine(5)
+            hasher.combine(preset)
         }
     }
 }
