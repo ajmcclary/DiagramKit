@@ -41,6 +41,28 @@ struct FlowNodeSizerIconTests {
         #expect(wide.height == narrow.height)
     }
 
+    @Test("imageSquare sizes to declared w/h with padding")
+    func imageDeclaredSize() {
+        let node = original_src_types.MermaidNode(
+            id: "m", label: "Pic", shape: .imageSquare,
+            properties: original_src_types.NodeProperties(img: "https://example.com/x.png", w: 200, h: 150)
+        )
+        let size = _nodeSize(node)
+        #expect(size.width == 216)   // 200 + 16
+        #expect(size.height == 166)  // 150 + 16
+    }
+
+    @Test("imageSquare defaults to 120x90 when w/h absent")
+    func imageDefaultSize() {
+        let node = original_src_types.MermaidNode(
+            id: "m", label: "Pic", shape: .imageSquare,
+            properties: original_src_types.NodeProperties(img: "https://example.com/x.png")
+        )
+        let size = _nodeSize(node)
+        #expect(size.width == 136)   // 120 + 16
+        #expect(size.height == 106)  // 90 + 16
+    }
+
     @Test("non-icon shapes are unaffected")
     func rectangleUnchanged() {
         let node = original_src_types.MermaidNode(id: "r", label: "Label", shape: .rectangle)

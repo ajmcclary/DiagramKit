@@ -84,6 +84,12 @@ public func _nodeSize(
         width += 10; height += 10
     case .text:
         width += 4; height += 4
+    case .imageSquare:
+        // Image nodes honor the declared display size (default 120×90)
+        // + 16pt padding; labels don't drive the box, but keep the
+        // node label-wide so titles don't clip.
+        height = (node.properties?.h ?? 90) + 16
+        width = max((node.properties?.w ?? 120) + 16, metrics.width + 16)
     case .icon, .iconCircle, .iconRounded, .iconSquare:
         // Icon nodes are an h-driven box (default 48pt glyph area +
         // 16pt padding). The label renders inside or at pos t/b; keep
