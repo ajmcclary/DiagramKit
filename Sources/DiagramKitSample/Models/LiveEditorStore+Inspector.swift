@@ -78,12 +78,7 @@ extension LiveEditorStore {
         zoomScale: CGFloat,
         panOffset: CGSize
     ) -> CGPoint {
-        let scaledWidth = diagramBounds.width * zoomScale
-        let scaledHeight = diagramBounds.height * zoomScale
-        let centerX = (viewSize.width - scaledWidth) / 2 + panOffset.width
-        let centerY = (viewSize.height - scaledHeight) / 2 + panOffset.height
-        let localX = (viewPoint.x - centerX) / zoomScale
-        let localY = (viewPoint.y - centerY) / zoomScale
-        return CGPoint(x: localX, y: localY)
+        CanvasTransform(scale: zoomScale, offset: panOffset)
+            .diagramPoint(fromViewPoint: viewPoint, diagramBounds: diagramBounds, viewSize: viewSize)
     }
 }
