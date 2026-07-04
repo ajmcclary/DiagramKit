@@ -89,6 +89,7 @@ extension LiveEditorStore {
         do {
             try await editor.performSequence(mutation)
             _setLastMutationError(nil)
+            _reinstallEditorIfSwapped(editor)
             if let source = editor.source, source != state.source {
                 setSource(source, origin: .mutation)
             }
@@ -107,6 +108,7 @@ extension LiveEditorStore {
         do {
             try await editor.performGantt(mutation)
             _setLastMutationError(nil)
+            _reinstallEditorIfSwapped(editor)
             if let source = editor.source, source != state.source {
                 setSource(source, origin: .mutation)
             }

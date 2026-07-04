@@ -399,12 +399,20 @@ public final class LiveEditorStore {
     private func seedEditorFromSource() {
         Task { [weak self] in
             guard let self else { return }
+            // Capture the source this seed is for. A structural mutation
+            // (or a newer edit) can land while the async parse runs; a
+            // stale seed applying over it would clobber the mutated
+            // document and its frontmatter. Discard the seed when the
+            // committed source has moved on — the newer render cycle
+            // seeds again from the fresh source.
+            let seededSource = self.state.source
             do {
                 let document = try await DiagramEngine.parse(
-                    self.state.source,
+                    seededSource,
                     as: self.state.sourceFormat.formatID
                 )
-                await self.applySeededEditor(document: document)
+                guard self.state.source == seededSource else { return }
+                await self.applySeededEditor(document: document, seededSource: seededSource)
             } catch {
                 // Parse failures are already surfaced via parseError; leave
                 // the existing editor in place so structural undo state isn't
@@ -414,7 +422,11 @@ public final class LiveEditorStore {
     }
 
     /// Apply a freshly-parsed document to the persistent editor.
-    private func applySeededEditor(document: DiagramDocument) async {
+    /// `seededSource` is the committed source this document was parsed
+    /// from; the assignment is re-guarded after the `syncSource()`
+    /// suspension so a mutation landing mid-flight can't be clobbered
+    /// by a stale seed.
+    private func applySeededEditor(document: DiagramDocument, seededSource: String) async {
         let previousSelection = editor?.selection
         let formatID = state.sourceFormat.formatID
 
@@ -424,6 +436,8 @@ public final class LiveEditorStore {
             exportRegistry: DiagramPipeline.defaultExportRegistry
         )
         try? await newEditor.syncSource()
+
+        guard state.source == seededSource else { return }
 
         // Best-effort selection restore. If a lookup is current, validate the
         // element still exists. Otherwise, preserve the same DiagramSelection
@@ -629,11 +643,23 @@ public final class LiveEditorStore {
     ///
     /// No-ops silently when `editor` is nil — the pane gates buttons on
     /// `store.editor != nil`, so this only protects against races.
+    /// Reinstall `mutated` as the live editor when a queued render
+    /// seed swapped it out mid-mutation. The mutated instance carries
+    /// the user's change and the undo stack; the seed was built from
+    /// the pre-mutation source and is stale.
+    func _reinstallEditorIfSwapped(_ mutated: DiagramEditor) {
+        if editor !== mutated { editor = mutated }
+    }
+
     public func performMutation(_ mutation: DiagramMutation) async throws {
         guard let editor else { return }
         do {
             try await editor.perform(mutation)
             lastMutationError = nil
+            // A queued render seed can swap `self.editor` while the
+            // mutation is in flight; the mutated instance (with its
+            // undo stack and fresh document) is authoritative.
+            if self.editor !== editor { self.editor = editor }
             if let source = editor.source, source != state.source {
                 setSource(source, origin: .mutation)
             }
@@ -652,6 +678,8 @@ public final class LiveEditorStore {
         do {
             try await editor.performFlowchart(mutation)
             lastMutationError = nil
+            // See performMutation: reinstall if a seed swapped us out.
+            if self.editor !== editor { self.editor = editor }
             if let source = editor.source, source != state.source {
                 setSource(source, origin: .mutation)
             }

@@ -2852,6 +2852,12 @@
       "source": "flowchart TD\n  P[\"Photo\"]@{ img: \"https://example.com/pic.png\", w: 160, h: 120 }\n  P --> A[Next]"
     },
     {
+      "id": "flow-31-frontmatter-theme-layout",
+      "category": "flowchart",
+      "name": "Frontmatter Theme + Adaptive Layout",
+      "source": "---\ntitle: Pinned\nconfig:\n  theme: nord\n  layout: adaptive\n---\ngraph TD\n  A --> B\n  A --> C\n  B --> D\n  C --> D"
+    },
+    {
       "id": "structurizr-5-unsupported",
       "category": "c4",
       "name": "Structurizr: Unsupported Constructs",
@@ -2913,7 +2919,7 @@
   ],
   "metadata": {
     "counts": {
-      "flowchart": 53,
+      "flowchart": 54,
       "state": 12,
       "sequence": 29,
       "class": 61,
@@ -2950,7 +2956,7 @@
     "class": 61,
     "er": 25,
     "eventmodeling": 12,
-    "flowchart": 45,
+    "flowchart": 46,
     "gantt": 7,
     "gitGraph": 18,
     "ishikawa": 7,
