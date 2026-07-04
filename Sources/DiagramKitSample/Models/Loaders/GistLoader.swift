@@ -69,16 +69,25 @@ public enum GistLoader {
 
         // gist.github.com/{id}
         if components.count == 1 {
-            return components[0].count >= 10 ? components[0] : nil
+            return isValidGistID(components[0]) ? components[0] : nil
         }
 
         // gist.github.com/{user}/{id}[/revision]
         if components.count >= 2 {
             let gistID = components[1]
-            return gistID.count >= 10 ? gistID : nil
+            return isValidGistID(gistID) ? gistID : nil
         }
 
         return nil
+    }
+
+    /// A gist ID is a hex hash; require ≥10 alphanumeric characters. This
+    /// also rejects path segments containing spaces or `/` (which arrive
+    /// percent-decoded from `pathComponents`) so they can never be spliced
+    /// into the API URL — the old `count >= 10` check let those through and
+    /// crashed the force-unwrapped `URL(string:)`.
+    private static func isValidGistID(_ id: String) -> Bool {
+        id.count >= 10 && id.allSatisfy { $0.isLetter || $0.isNumber }
     }
 
     /// Load diagram source and config from a Gist URL.
@@ -97,7 +106,9 @@ public enum GistLoader {
             throw LoadError.invalidURL(url)
         }
 
-        let apiURL = URL(string: "https://api.github.com/gists/\(gistID)")!
+        guard let apiURL = URL(string: "https://api.github.com/gists/\(gistID)") else {
+            throw LoadError.invalidURL(url)
+        }
         let response = try await fetchGistAPI(url: apiURL, gistID: gistID)
 
         // Find source file
@@ -191,12 +202,16 @@ public enum GistLoader {
         return file.content ?? ""
     }
 
-    /// Fetch the Gist API response.
+    /// Fetch the Gist API response. The host is the hard-coded, trusted
+    /// GitHub API endpoint, so scheme validation is redundant but the size
+    /// cap still applies.
     private static func fetchGistAPI(url: URL, gistID: String) async throws -> GistResponse {
-        let (data, response) = try await URLSession.shared.data(from: url)
-
-        guard let httpResponse = response as? HTTPURLResponse else {
-            throw LoadError.networkError("Invalid response type")
+        let data: Data
+        let httpResponse: HTTPURLResponse
+        do {
+            (data, httpResponse) = try await RemoteFetch.boundedData(from: url)
+        } catch let fetchError as RemoteFetch.FetchError {
+            throw LoadError.networkError(RemoteFetch.describe(fetchError))
         }
 
         switch httpResponse.statusCode {
@@ -219,16 +234,26 @@ public enum GistLoader {
         }
     }
 
-    /// Fetch plain text from a URL.
+    /// Fetch plain text from a gist `raw_url`, bounded by the size cap.
     private static func fetchText(from url: URL) async throws -> String {
-        let (data, response) = try await URLSession.shared.data(from: url)
-
-        guard let httpResponse = response as? HTTPURLResponse,
-              (200...299).contains(httpResponse.statusCode) else {
-            throw LoadError.networkError("Failed to fetch \(url.absoluteString)")
+        let data: Data
+        let httpResponse: HTTPURLResponse
+        do {
+            (data, httpResponse) = try await RemoteFetch.boundedData(from: url)
+        } catch let fetchError as RemoteFetch.FetchError {
+            throw LoadError.networkError(RemoteFetch.describe(fetchError))
         }
 
-        return String(data: data, encoding: .utf8) ?? ""
+        guard (200...299).contains(httpResponse.statusCode) else {
+            throw LoadError.networkError("Failed to fetch \(url.absoluteString) (HTTP \(httpResponse.statusCode))")
+        }
+
+        // Surface a decode failure rather than silently returning "" — an
+        // empty source with a success toast is a confusing outcome.
+        guard let text = String(data: data, encoding: .utf8) else {
+            throw LoadError.invalidResponse("Content at \(url.absoluteString) is not UTF-8 text.")
+        }
+        return text
     }
 }
 

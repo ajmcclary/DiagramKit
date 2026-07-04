@@ -120,12 +120,20 @@ public enum RawFileLoader {
 
     // MARK: - Private helpers
 
-    /// Fetch UTF-8 text from a URL.
+    /// Fetch UTF-8 text from a user-supplied URL, with scheme/host
+    /// validation and a download size cap (see ``RemoteFetch``).
     private static func fetchText(from url: URL) async throws -> String {
-        let (data, response) = try await URLSession.shared.data(from: url)
-
-        guard let httpResponse = response as? HTTPURLResponse else {
-            throw LoadError.networkError("Invalid response type from \(url.absoluteString)")
+        let data: Data
+        let httpResponse: HTTPURLResponse
+        do {
+            (data, httpResponse) = try await RemoteFetch.boundedData(from: url)
+        } catch let fetchError as RemoteFetch.FetchError {
+            switch fetchError {
+            case .invalidScheme, .disallowedHost:
+                throw LoadError.invalidURL(RemoteFetch.describe(fetchError))
+            case .tooLarge, .notHTTP:
+                throw LoadError.networkError(RemoteFetch.describe(fetchError))
+            }
         }
 
         guard (200...299).contains(httpResponse.statusCode) else {

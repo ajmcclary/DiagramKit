@@ -28,7 +28,21 @@ public indirect enum JSONValue: Sendable, Equatable {
 // MARK: - Codable
 
 extension JSONValue: Codable {
+    /// Maximum nesting depth accepted while decoding. Untrusted config
+    /// (remote loaders, pasted share strings) is decoded through this type;
+    /// without a bound, a deeply-nested `[[[…]]]` payload overflows the
+    /// decode stack and crashes the process. Real configs are shallow.
+    public static let maxDecodingDepth = 256
+
     public init(from decoder: Decoder) throws {
+        // `codingPath` grows one entry per nesting level, so its length is a
+        // cheap proxy for current decode depth.
+        if decoder.codingPath.count > JSONValue.maxDecodingDepth {
+            throw DecodingError.dataCorrupted(DecodingError.Context(
+                codingPath: decoder.codingPath,
+                debugDescription: "JSON nesting exceeds \(JSONValue.maxDecodingDepth) levels"
+            ))
+        }
         let container = try decoder.singleValueContainer()
         if let stringValue = try? container.decode(String.self) {
             self = .string(stringValue)
