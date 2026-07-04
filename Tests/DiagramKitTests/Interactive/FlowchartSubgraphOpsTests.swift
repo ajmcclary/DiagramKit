@@ -91,4 +91,49 @@ struct FlowchartSubgraphOpsTests {
         let svg = try await source.renderDiagramSVG()
         #expect(svg.contains("<svg"))
     }
+
+    // MARK: - moveToSubgraph
+
+    @Test("moveToSubgraph adds a root node to the target subgraph")
+    func moveIntoGroup() async throws {
+        let editor = makeEditor(groupedDoc())
+        try await editor.performFlowchart(.moveToSubgraph(selections: [node("C")], target: "g1"))
+        #expect(subgraphs(editor).first?.nodeIds == ["A", "B", "C"])
+    }
+
+    @Test("moveToSubgraph with nil target moves a member to root")
+    func moveToRoot() async throws {
+        let editor = makeEditor(groupedDoc())
+        try await editor.performFlowchart(.moveToSubgraph(selections: [node("A")], target: nil))
+        #expect(subgraphs(editor).first?.nodeIds == ["B"])
+    }
+
+    @Test("moveToSubgraph between groups removes from the old group")
+    func moveBetweenGroups() async throws {
+        let editor = makeEditor(groupedDoc())
+        try await editor.performFlowchart(.insertSubgraph(title: "Second"))
+        let secondID = subgraphs(editor).first { $0.label == "Second" }!.id
+        try await editor.performFlowchart(.moveToSubgraph(selections: [node("A")], target: secondID))
+        let subs = subgraphs(editor)
+        #expect(subs.first { $0.id == "g1" }?.nodeIds == ["B"])
+        #expect(subs.first { $0.id == secondID }?.nodeIds == ["A"])
+    }
+
+    @Test("moveToSubgraph unknown target throws elementNotFound")
+    func moveUnknownTarget() async {
+        let editor = makeEditor(groupedDoc())
+        await #expect(throws: DiagramEditorError.self) {
+            try await editor.performFlowchart(.moveToSubgraph(selections: [node("C")], target: "nope"))
+        }
+    }
+
+    @Test("moveToSubgraph undo restores previous membership (deep-copy pin)")
+    func moveUndoRestoresMembership() async throws {
+        let editor = makeEditor(groupedDoc())
+        try await editor.performFlowchart(.moveToSubgraph(selections: [node("A")], target: nil))
+        editor.undoManager.undo()
+        // Fails if the mutation edited the shared MermaidSubgraph
+        // instance instead of a deep copy.
+        #expect(subgraphs(editor).first?.nodeIds == ["A", "B"])
+    }
 }

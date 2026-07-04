@@ -40,6 +40,58 @@ extension DiagramEditor {
         return nil
     }
 
+    // MARK: - moveToSubgraph
+
+    static func _removeNodeIDs(
+        _ ids: Set<String>,
+        from subs: [original_src_types.MermaidSubgraph]
+    ) {
+        for sub in subs {
+            sub.nodeIds.removeAll { ids.contains($0) }
+            _removeNodeIDs(ids, from: sub.children)
+        }
+    }
+
+    func _moveToSubgraph(
+        selections: [DiagramSelection],
+        target: String?,
+        into document: DiagramDocument
+    ) throws -> DiagramDocument {
+        guard !selections.isEmpty else {
+            throw DiagramEditorError.invalidSubgraphSelection(reason: "selection is empty")
+        }
+        var doc = document
+        guard case .flowchart(var model) = doc.payload else {
+            throw DiagramEditorError.notAFlowchart
+        }
+        var nodeIDs: [String] = []
+        for sel in selections {
+            try _validateSelection(sel, matches: document)
+            guard sel.elementID.hasPrefix("node:") else {
+                throw DiagramEditorError.invalidSubgraphSelection(
+                    reason: "selection '\(sel.elementID)' is not a node"
+                )
+            }
+            let id = String(sel.elementID.dropFirst(5))
+            guard model.nodesInOrder.contains(where: { $0.id == id }) else {
+                throw DiagramEditorError.elementNotFound(id: id, kind: "node")
+            }
+            nodeIDs.append(id)
+        }
+
+        let forest = Self._copySubgraphForest(model.subgraphs)
+        if let target, Self._findSubgraph(target, in: forest) == nil {
+            throw DiagramEditorError.elementNotFound(id: target, kind: "subgraph")
+        }
+        Self._removeNodeIDs(Set(nodeIDs), from: forest)
+        if let target, let destination = Self._findSubgraph(target, in: forest) {
+            destination.nodeIds.append(contentsOf: nodeIDs)
+        }
+        model.subgraphs = forest
+        doc.payload = .flowchart(model)
+        return doc
+    }
+
     // MARK: - insertSubgraph
 
     func _insertSubgraph(

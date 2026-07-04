@@ -683,6 +683,7 @@ public final class LiveEditorStore {
         case .setNodeShape:      return .setLabel
         case .setNodeStyle:      return .setLabel
         case .insertSubgraph:    return .groupIntoSubgraph
+        case .moveToSubgraph:    return .setLabel
         }
     }
 
@@ -702,6 +703,8 @@ public final class LiveEditorStore {
             return "Style \(sel.elementID)"
         case .insertSubgraph(let title):
             return "Insert subgraph \(title)"
+        case .moveToSubgraph(let selections, let target):
+            return "Move \(selections.count) node(s) → \(target ?? "root")"
         }
     }
 
