@@ -84,6 +84,14 @@ public func _nodeSize(
         width += 10; height += 10
     case .text:
         width += 4; height += 4
+    case .icon, .iconCircle, .iconRounded, .iconSquare:
+        // Icon nodes are an h-driven box (default 48pt glyph area +
+        // 16pt padding). The label renders inside or at pos t/b; keep
+        // the node at least label-wide so offset labels don't clip,
+        // but the height is the icon box, not the text extent.
+        let box = (node.properties?.h ?? 48) + 16
+        height = box
+        width = max(box, metrics.width + 16)
     default: break
     }
 
