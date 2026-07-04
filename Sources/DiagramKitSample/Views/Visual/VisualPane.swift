@@ -38,6 +38,11 @@ struct VisualPane: View {
                     StateStepper(store: store)
                         .padding(.bottom, 8)
                 }
+                if let editor = store.visualEditor,
+                   editor.document.type == .flowchart || editor.document.type == .stateDiagram {
+                    CanvasCenterToolbar(store: store)
+                        .padding(.bottom, 8)
+                }
                 UndoTimelineView(store: store)
                     .padding(.bottom, 8)
             }

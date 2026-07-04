@@ -158,6 +158,11 @@ public enum A11yID {
         public static let groupCommitButton = "visual.subgraph.commit"
         public static let subgraphOverlay = "visual.subgraphOverlay"
         public static let subgraphToast = "visual.subgraphToast"
+        public static let centerToolbar = "visual.centerToolbar"
+        public static let shapesButton = "visual.centerToolbar.shapes"
+        public static let shapeCatalog = "visual.shapeCatalog"
+        public static let shapeCatalogSearch = "visual.shapeCatalog.search"
+        public static func shapeCell(_ alias: String) -> String { "visual.shapeCatalog.cell.\(alias)" }
     }
 }
 
