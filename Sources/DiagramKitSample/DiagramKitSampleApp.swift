@@ -162,6 +162,10 @@ struct DiagramKitSampleApp: App {
                 Button("Redo") { performScopedRedo(store: store) }
                     .keyboardShortcut("z", modifiers: [.command, .shift])
             }
+            CommandGroup(replacing: .appSettings) {
+                Button("Settings…") { store.presentSettings() }
+                    .keyboardShortcut(",", modifiers: .command)
+            }
         }
         #endif
     }

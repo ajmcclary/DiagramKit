@@ -15,6 +15,8 @@ struct PlaygroundShell: View {
 
     @AppStorage("playground.shell.sidebarVisible") private var sidebarVisible = true
 
+    @Environment(\.playgroundTokens) private var tokens
+
     /// Inspector visibility is driven by `store.state.inspectorOpen` so the
     /// toolbar toggle button and the `⌘I` shortcut stay in lockstep with
     /// the shell layout.
@@ -97,7 +99,21 @@ struct PlaygroundShell: View {
 
             // Source-citation overlay (Phase 10 / Task 10.5)
             CitationOverlay(store: store)
+
+            // Settings sheet (redesign) — dimmed/blurred backdrop + centered sheet.
+            if store.state.settingsPresented {
+                ZStack {
+                    tokens.palette.bgWindow.opacity(0.62)
+                        .background(.ultraThinMaterial)
+                        .ignoresSafeArea()
+                        .onTapGesture { store.dismissSettings() }
+                    SettingsSheet(store: store)
+                }
+                .transition(.opacity)
+                .zIndex(10)
+            }
         }
+        .animation(.easeInOut(duration: 0.15), value: store.state.settingsPresented)
         #if os(macOS)
         .frame(minWidth: 900, minHeight: 600)
         #endif

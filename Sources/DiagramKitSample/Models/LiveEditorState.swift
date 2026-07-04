@@ -75,6 +75,12 @@ public struct LiveEditorState: Codable, Equatable, Sendable {
     /// Whether the floating Inspector drawer is currently open.
     public var inspectorOpen: Bool
 
+    /// Whether the redesign Settings sheet (⌘,) is presented.
+    public var settingsPresented: Bool
+
+    /// Which tab the Settings sheet currently shows.
+    public var settingsTab: SettingsTab
+
     // MARK: - v2 Workspace shell
 
     /// Active workspace mode (Code / Visual / Split). Drives the
@@ -162,6 +168,8 @@ public struct LiveEditorState: Codable, Equatable, Sendable {
         visualPanOffset: CGSize? = nil,
         updateMode: UpdateMode = .auto,
         inspectorOpen: Bool = false,
+        settingsPresented: Bool = false,
+        settingsTab: SettingsTab = .general,
         workspaceMode: WorkspaceMode = .default,
         showCitations: Bool = false,
         sidebarSearch: String = "",
@@ -195,6 +203,8 @@ public struct LiveEditorState: Codable, Equatable, Sendable {
         self.visualPanOffset = visualPanOffset
         self.updateMode = updateMode
         self.inspectorOpen = inspectorOpen
+        self.settingsPresented = settingsPresented
+        self.settingsTab = settingsTab
         self.workspaceMode = workspaceMode
         self.showCitations = showCitations
         self.sidebarSearch = sidebarSearch
@@ -232,6 +242,8 @@ public struct LiveEditorState: Codable, Equatable, Sendable {
         case visualPanOffset
         case updateMode
         case inspectorOpen
+        case settingsPresented
+        case settingsTab
         case workspaceMode
         case showCitations
         case sidebarSearch
@@ -266,6 +278,8 @@ public struct LiveEditorState: Codable, Equatable, Sendable {
         self.visualPanOffset = try c.decodeIfPresent(CGSize.self, forKey: .visualPanOffset)
         self.updateMode = try c.decodeIfPresent(UpdateMode.self, forKey: .updateMode) ?? .auto
         self.inspectorOpen = try c.decodeIfPresent(Bool.self, forKey: .inspectorOpen) ?? false
+        self.settingsPresented = try c.decodeIfPresent(Bool.self, forKey: .settingsPresented) ?? false
+        self.settingsTab = try c.decodeIfPresent(SettingsTab.self, forKey: .settingsTab) ?? .general
         self.workspaceMode = try c.decodeIfPresent(WorkspaceMode.self, forKey: .workspaceMode) ?? .default
         self.showCitations = try c.decodeIfPresent(Bool.self, forKey: .showCitations) ?? false
         self.sidebarSearch = try c.decodeIfPresent(String.self, forKey: .sidebarSearch) ?? ""
