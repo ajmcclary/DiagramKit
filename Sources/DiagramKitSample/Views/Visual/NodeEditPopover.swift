@@ -26,6 +26,11 @@ struct NodeEditPopover: View {
     @SwiftUI.State private var styleDirty: Bool = false
     @SwiftUI.State private var hadStyle: Bool = false
     @SwiftUI.State private var showShapeCatalog: Bool = false
+    @SwiftUI.State private var iconName: String?
+    @SwiftUI.State private var iconSize: IconSpec.Size = .medium
+    @SwiftUI.State private var iconBackground: IconSpec.BackgroundShape = .circle
+    @SwiftUI.State private var iconLabelPosition: IconSpec.LabelPosition?
+    @SwiftUI.State private var iconDirty: Bool = false
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
@@ -80,6 +85,15 @@ struct NodeEditPopover: View {
                 textColor: $textColor,
                 styleDirty: $styleDirty
             )
+
+            if iconName != nil {
+                IconControls(
+                    size: $iconSize,
+                    background: $iconBackground,
+                    labelPosition: $iconLabelPosition,
+                    iconDirty: $iconDirty
+                )
+            }
 
             if hadStyle {
                 Button("Clear styling", action: clearStyling)
@@ -161,6 +175,20 @@ struct NodeEditPopover: View {
         if let stroke = spec.stroke, let color = Color(hexRGB: stroke) { strokeColor = color }
         if let text = spec.textColor, let color = Color(hexRGB: text) { textColor = color }
         styleDirty = false
+
+        if let icon = node.properties?.icon {
+            iconName = icon.hasPrefix("fa:") ? String(icon.dropFirst(3)) : icon
+            iconBackground = IconSpec.BackgroundShape(rawValue: node.shape.rawValue) ?? .circle
+            switch node.properties?.h {
+            case 32: iconSize = .small
+            case 64: iconSize = .large
+            default: iconSize = .medium
+            }
+            iconLabelPosition = node.properties?.pos.flatMap(IconSpec.LabelPosition.init(rawValue:))
+        } else {
+            iconName = nil
+        }
+        iconDirty = false
     }
 
     private func draftSpec() -> NodeStyleSpec {
@@ -183,11 +211,20 @@ struct NodeEditPopover: View {
             if labelChanged {
                 try? await store.performMutation(.setLabel(of: selection, to: labelDraft))
             }
-            if shapeChanged {
+            if shapeChanged && !iconDirty {
                 try? await store.performFlowchartMutation(.setNodeShape(of: selection, toShape: shapeAlias))
             }
             if styleDirty {
                 try? await store.performFlowchartMutation(.setNodeStyle(of: selection, to: spec))
+            }
+            if iconDirty, let iconName {
+                let iconSpec = IconSpec(
+                    name: iconName,
+                    background: iconBackground,
+                    size: iconSize,
+                    labelPosition: iconLabelPosition
+                )
+                try? await store.performFlowchartMutation(.setNodeIcon(of: selection, to: iconSpec))
             }
         }
         store.setVisualStage(.nodeSelected)
