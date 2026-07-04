@@ -1,16 +1,17 @@
 //
-//  PreviewToolbar.swift
+//  CanvasZoomToolbar.swift
 //  DiagramPlayground
 //
-//  Floating toolbar for preview controls: fit-to-view, zoom in/out,
-//  actual size, percent readout, pan/grid toggles, full-window.
+//  Floating zoom control cluster shared by the preview canvas and the
+//  visual editor canvases: fit, zoom in/out, percent readout, actual size,
+//  and (preview only) pan/grid toggles + full-window.
 //
 
 import SwiftUI
 import DiagramKit
 import DiagramKitModel
 
-struct PreviewToolbar: View {
+struct CanvasZoomToolbar: View {
     let theme: DiagramTheme
     @Binding var zoomScale: CGFloat
     @Binding var gridEnabled: Bool
@@ -21,6 +22,8 @@ struct PreviewToolbar: View {
     let onFitToView: () -> Void
     let onActualSize: () -> Void
     let onFullWindowPreview: (() -> Void)?
+    /// When false, the grid toggle is omitted (visual editor has no grid).
+    var showsGrid: Bool = true
 
     var body: some View {
         HStack(spacing: 2) {
@@ -33,7 +36,9 @@ struct PreviewToolbar: View {
             actualSizeButton
             divider
             panZoomToggleButton
-            gridToggleButton
+            if showsGrid {
+                gridToggleButton
+            }
             if onFullWindowPreview != nil {
                 divider
                 fullWindowButton

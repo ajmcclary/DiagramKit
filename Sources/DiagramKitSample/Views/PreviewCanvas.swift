@@ -106,7 +106,7 @@ struct PreviewCanvas: View {
                         Spacer()
                         HStack {
                             Spacer()
-                            PreviewToolbar(
+                            CanvasZoomToolbar(
                                 theme: store.previewTheme,
                                 zoomScale: zoomScaleBinding,
                                 gridEnabled: $store.state.gridEnabled,
@@ -239,12 +239,7 @@ struct PreviewCanvas: View {
                     gestureBaseZoomScale = currentZoomScale
                 }
                 let baseScale = gestureBaseZoomScale ?? currentZoomScale
-                setZoomScale(Self.zoomScale(
-                    forGestureValue: value,
-                    baseScale: baseScale,
-                    minZoom: minZoom,
-                    maxZoom: maxZoom
-                ))
+                setZoomScale(CanvasTransform.gestureScale(base: baseScale, value: value))
             }
             .onEnded { _ in
                 gestureBaseZoomScale = nil
@@ -275,15 +270,6 @@ struct PreviewCanvas: View {
         } else {
             content
         }
-    }
-
-    static func zoomScale(
-        forGestureValue value: CGFloat,
-        baseScale: CGFloat,
-        minZoom: CGFloat,
-        maxZoom: CGFloat
-    ) -> CGFloat {
-        min(max(baseScale * value, minZoom), maxZoom)
     }
 
     // MARK: - Persisted preview transform
