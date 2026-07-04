@@ -314,6 +314,21 @@ extension DiagramRenderer {
     }
 
     func _drawIconOrImage(props: original_src_types.NodeProperties, bounds: CGRect, in context: CGContext, contentHeight ch: CGFloat) {
+        if let img = props.img, !img.isEmpty {
+            // Deterministic offline placeholder: framed rect + photo
+            // glyph. The real bitmap is composited by the host view
+            // layer (sample app RemoteImageCache) — the core pipeline
+            // never touches the network.
+            let frame = bounds.insetBy(dx: 4, dy: 4)
+            context.saveGState()
+            context.setStrokeColor(theme.nodeTextColor(for: [:]).withAlphaComponent(0.35).cgColor)
+            context.setLineWidth(1)
+            context.setLineDash(phase: 0, lengths: [4, 3])
+            context.stroke(frame)
+            context.restoreGState()
+            _drawSFIcon("photo", bounds: frame.insetBy(dx: frame.width * 0.3, dy: frame.height * 0.3), in: context, contentHeight: ch)
+            return
+        }
         if let iconName = props.icon, !iconName.isEmpty {
             let faName = iconName.hasPrefix("fa:") ? String(iconName.dropFirst(3)) : iconName
             if let sfName = FontAwesomeMap.sfSymbolName(for: faName) {
