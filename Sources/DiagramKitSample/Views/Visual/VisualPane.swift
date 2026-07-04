@@ -97,8 +97,13 @@ struct VisualPane: View {
         case .labelEdited:
             VStack {
                 Spacer()
-                NodeEditPopover(store: store)
-                    .padding(.bottom, 60)
+                if store.editor?.selection?.elementID.hasPrefix("edge:") == true {
+                    EdgeEditPopover(store: store)
+                        .padding(.bottom, 60)
+                } else {
+                    NodeEditPopover(store: store)
+                        .padding(.bottom, 60)
+                }
             }
         default:
             EmptyView()

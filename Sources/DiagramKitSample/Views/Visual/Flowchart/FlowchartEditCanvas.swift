@@ -39,6 +39,10 @@ struct FlowchartEditCanvas: View {
     @SwiftUI.State private var nodeDragCurrent: CGPoint?
     @SwiftUI.State private var dropTargetGroupID: String?
 
+    // Visual editor plan 3 — right-click needs a position; SwiftUI's
+    // contextMenu doesn't provide one, so track the last hover point.
+    @SwiftUI.State private var hoverPoint: CGPoint?
+
     var body: some View {
         GeometryReader { geometry in
             ZStack(alignment: .topLeading) {
@@ -90,6 +94,14 @@ struct FlowchartEditCanvas: View {
             .gesture(dragGesture(in: geometry))
             .simultaneousGesture(tapGesture(in: geometry))
             .simultaneousGesture(doubleTapGesture(in: geometry))
+            .onContinuousHover { phase in
+                if case .active(let point) = phase {
+                    hoverPoint = point
+                }
+            }
+            .contextMenu {
+                CanvasContextMenu(store: store, element: elementAtHover(in: geometry.size))
+            }
             .onChange(of: liveDiagramBounds) { _, _ in
                 store.boundsLookup = liveBoundsLookup
             }
@@ -219,6 +231,11 @@ struct FlowchartEditCanvas: View {
             store.editor?.selection = element
             store.setVisualStage(.labelEdited)
         }
+    }
+
+    private func elementAtHover(in viewSize: CGSize) -> DiagramSelection? {
+        guard let hoverPoint, let lookup = liveBoundsLookup else { return nil }
+        return lookup.element(at: diagramPoint(from: hoverPoint, viewSize: viewSize))
     }
 
     private func diagramPoint(from viewPoint: CGPoint, viewSize: CGSize) -> DiagramPoint {
