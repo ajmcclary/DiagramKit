@@ -61,6 +61,10 @@ struct FlowchartEditCanvas: View {
                 .frame(width: max(liveDiagramBounds.width, 1), height: max(liveDiagramBounds.height, 1))
                 .position(centerPoint(in: geometry.size))
 
+                ForEach(imageNodeOverlays(in: geometry.size), id: \.id) { item in
+                    ImageNodeOverlayItem(urlString: item.url, rect: item.rect)
+                }
+
                 selectionOverlay(in: geometry)
 
                 if !store.state.marqueeSelection.isEmpty {
@@ -236,6 +240,20 @@ struct FlowchartEditCanvas: View {
     private func elementAtHover(in viewSize: CGSize) -> DiagramSelection? {
         guard let hoverPoint, let lookup = liveBoundsLookup else { return nil }
         return lookup.element(at: diagramPoint(from: hoverPoint, viewSize: viewSize))
+    }
+
+    /// (nodeID, url, viewRect) for every image node the lookup can place.
+    private func imageNodeOverlays(in viewSize: CGSize) -> [(id: String, url: String, rect: CGRect)] {
+        guard
+            let lookup = liveBoundsLookup,
+            case .flowchart(let graph) = store.editor?.document.payload
+        else { return [] }
+        return graph.nodesInOrder.compactMap { entry in
+            guard let url = entry.node.properties?.img, !url.isEmpty else { return nil }
+            let sel = DiagramSelection(diagramType: editorType, elementID: "node:\(entry.id)")
+            guard let bounds = lookup.bounds(of: sel) else { return nil }
+            return (id: entry.id, url: url, rect: viewRect(for: bounds, in: viewSize))
+        }
     }
 
     private func diagramPoint(from viewPoint: CGPoint, viewSize: CGSize) -> DiagramPoint {
