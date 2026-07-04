@@ -12,6 +12,13 @@ private func _mapDirection(_ direction: original_src_types.Direction) -> String 
     ElkLayoutOptions.mapDirection(direction)
 }
 
+/// Resolve the ELK layout preset from the parsed graph's config
+/// (frontmatter `config.layout: adaptive`; anything else falls back
+/// to the hierarchical default). Visual editor plan 6.
+private func _layoutPreset(for graph: _ParsedGraph) -> ElkLayoutOptions.Preset {
+    graph.config?.layoutPreset == ElkLayoutOptions.Preset.adaptive.rawValue ? .adaptive : .hierarchical
+}
+
 /// Builds the measured `[ElkGraphLabel]` ELK uses for an edge label.
 /// Returns `[]` when the label is nil or empty so callers can pass the result
 /// directly into `ElkGraphEdge(labels:)` without conditional wrapping.
@@ -81,7 +88,7 @@ func _buildElkGraph(_ graph: _ParsedGraph, diagnostics: _LayoutDiagnostics? = ni
             id: "root",
             children: children,
             edges: edges,
-            layoutOptions: ElkLayoutOptions.root(direction: graph.direction, hierarchy: .includeChildren)
+            layoutOptions: ElkLayoutOptions.root(direction: graph.direction, hierarchy: .includeChildren, preset: _layoutPreset(for: graph))
         )
     }
 
@@ -183,7 +190,7 @@ func _buildElkGraph(_ graph: _ParsedGraph, diagnostics: _LayoutDiagnostics? = ni
         id: "root",
         children: rootChildren,
         edges: rootEdges,
-        layoutOptions: ElkLayoutOptions.root(direction: graph.direction, hierarchy: .separate)
+        layoutOptions: ElkLayoutOptions.root(direction: graph.direction, hierarchy: .separate, preset: _layoutPreset(for: graph))
     )
 }
 
@@ -354,7 +361,7 @@ func _buildElkGraphNoCrossEdges(_ graph: _ParsedGraph, diagnostics: _LayoutDiagn
         id: "root",
         children: rootChildren,
         edges: rootEdges,
-        layoutOptions: ElkLayoutOptions.root(direction: graph.direction, hierarchy: .includeChildren)
+        layoutOptions: ElkLayoutOptions.root(direction: graph.direction, hierarchy: .includeChildren, preset: _layoutPreset(for: graph))
     )
 }
 
@@ -372,6 +379,6 @@ func _buildFlatElkGraph(_ graph: _ParsedGraph, diagnostics: _LayoutDiagnostics? 
         id: "root",
         children: children,
         edges: edges,
-        layoutOptions: ElkLayoutOptions.flatRoot(direction: graph.direction)
+        layoutOptions: ElkLayoutOptions.flatRoot(direction: graph.direction, preset: _layoutPreset(for: graph))
     )
 }

@@ -20,6 +20,33 @@ public enum ElkLayoutOptions {
         case separate = "SEPARATE"
     }
 
+    /// Layout presets (visual editor plan 6). Hierarchical is the
+    /// classic layered default; adaptive relaxes model-order
+    /// constraints, routes edges as splines, and widens spacing so
+    /// connection-dense flows arrange by connectivity.
+    public enum Preset: String, Sendable {
+        case hierarchical
+        case adaptive
+    }
+
+    /// Adaptive-preset overrides applied on top of the default dicts.
+    private static func applyPreset(
+        _ preset: Preset,
+        to options: [String: String]
+    ) -> [String: String] {
+        guard preset == .adaptive else { return options }
+        var options = options
+        options["elk.layered.considerModelOrder.strategy"] = "NONE"
+        options["elk.edgeRouting"] = "SPLINES"
+        options["elk.spacing.nodeNode"] = "40"
+        options["elk.layered.spacing.nodeNodeBetweenLayers"] = "64"
+        // Marker consumed by the layout runner: LayoutConfig re-patches
+        // the spacing keys after the builders run, so the runner needs
+        // to know the preset survived to scale its values.
+        options["diagramkit.layoutPreset"] = Preset.adaptive.rawValue
+        return options
+    }
+
     /// Map a parsed graph direction to ELK's `elk.direction` value.
     public static func mapDirection(_ direction: original_src_types.Direction) -> String {
         switch direction {
@@ -35,9 +62,10 @@ public enum ElkLayoutOptions {
     /// hierarchical path) and by `_buildElkGraphNoCrossEdges`.
     public static func root(
         direction: original_src_types.Direction,
-        hierarchy: HierarchyMode
+        hierarchy: HierarchyMode,
+        preset: Preset = .hierarchical
     ) -> [String: String] {
-        [
+        applyPreset(preset, to: [
             "elk.algorithm": "layered",
             "elk.direction": mapDirection(direction),
             "elk.spacing.nodeNode": "28",
@@ -56,16 +84,17 @@ public enum ElkLayoutOptions {
             "elk.layered.highDegreeNodes.threshold": "8",
             "elk.layered.wrapping.strategy": "OFF",
             "elk.hierarchyHandling": hierarchy.rawValue
-        ]
+        ])
     }
 
     /// Root layout options for `_buildFlatElkGraph`. Drops the hierarchy
     /// handling and wrapping strategy (the flat path has neither), and adds
     /// the deterministic `randomSeed` the fallback relies on.
     public static func flatRoot(
-        direction: original_src_types.Direction
+        direction: original_src_types.Direction,
+        preset: Preset = .hierarchical
     ) -> [String: String] {
-        [
+        applyPreset(preset, to: [
             "elk.algorithm": "layered",
             "elk.direction": mapDirection(direction),
             "elk.spacing.nodeNode": "28",
@@ -83,7 +112,7 @@ public enum ElkLayoutOptions {
             "elk.layered.highDegreeNodes.treatment": "true",
             "elk.layered.highDegreeNodes.threshold": "8",
             "elk.randomSeed": "1"
-        ]
+        ])
     }
 
     /// Compound-node layout options for subgraph children. `direction` is

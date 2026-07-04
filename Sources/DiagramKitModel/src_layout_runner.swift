@@ -51,10 +51,15 @@ func _layoutGraphSyncWithConfig(
 }
 
 /// Patch ELK layout options on a built graph with LayoutConfig values.
+/// The adaptive layout preset (visual editor plan 6) survives this
+/// patch as a spacing scale so `config.layout: adaptive` frontmatter
+/// visibly loosens the arrangement while LayoutConfig stays authoritative.
 private func _applyLayoutConfig(_ config: LayoutConfig, to elkGraph: inout ElkGraphNode) {
     let p = Int(config.padding)
-    elkGraph.layoutOptions["elk.spacing.nodeNode"] = "\(Int(config.nodeSpacing))"
-    elkGraph.layoutOptions["elk.layered.spacing.nodeNodeBetweenLayers"] = "\(Int(config.layerSpacing))"
+    let adaptive = elkGraph.layoutOptions["diagramkit.layoutPreset"] == ElkLayoutOptions.Preset.adaptive.rawValue
+    let spacingScale = adaptive ? 1.4 : 1.0
+    elkGraph.layoutOptions["elk.spacing.nodeNode"] = "\(Int(config.nodeSpacing * spacingScale))"
+    elkGraph.layoutOptions["elk.layered.spacing.nodeNodeBetweenLayers"] = "\(Int(config.layerSpacing * spacingScale))"
     elkGraph.layoutOptions["elk.padding"] = "[top=\(p),left=\(p),bottom=\(p),right=\(p)]"
     elkGraph.layoutOptions["elk.spacing.componentComponent"] = "\(Int(config.componentSpacing))"
 }

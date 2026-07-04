@@ -421,6 +421,9 @@ open class original_src_types {
         public var width: Int?
         public var inheritDir: Bool?
         public var securityLevel: String?
+        /// Layout preset name from frontmatter ("adaptive"; nil =
+        /// hierarchical default). Visual editor plan 6.
+        public var layoutPreset: String?
 
         public init(
             curve: String? = nil,
@@ -428,7 +431,8 @@ open class original_src_types {
             markdownAutoWrap: Bool? = nil,
             width: Int? = nil,
             inheritDir: Bool? = nil,
-            securityLevel: String? = nil
+            securityLevel: String? = nil,
+            layoutPreset: String? = nil
         ) {
             self.curve = curve
             self.htmlLabels = htmlLabels
@@ -436,6 +440,7 @@ open class original_src_types {
             self.width = width
             self.inheritDir = inheritDir
             self.securityLevel = securityLevel
+            self.layoutPreset = layoutPreset
         }
     }
 

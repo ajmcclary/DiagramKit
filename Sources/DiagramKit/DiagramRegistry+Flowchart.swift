@@ -15,7 +15,16 @@ extension DiagramRegistry {
         type: .flowchart,
         matches: { _ in true },
         parse: { source, frontmatter in
-            let (parsed, diagnostics) = try parseMermaid(source, config: frontmatter?.perDiagram.flowchart.config, stateConfig: frontmatter?.perDiagram.state.config)
+            // Copy the shared frontmatter layout key onto the flowchart
+            // config so the layout factory can pick the ELK preset
+            // (visual editor plan 6).
+            var flowConfig = frontmatter?.perDiagram.flowchart.config
+            if let layout = frontmatter?.shared.layout {
+                var cfg = flowConfig ?? original_src_types.FlowchartConfig()
+                cfg.layoutPreset = layout
+                flowConfig = cfg
+            }
+            let (parsed, diagnostics) = try parseMermaid(source, config: flowConfig, stateConfig: frontmatter?.perDiagram.state.config)
             let document: DiagramDocument
             switch parsed.payload {
             case .flowchart(let model), .stateDiagram(let model):
