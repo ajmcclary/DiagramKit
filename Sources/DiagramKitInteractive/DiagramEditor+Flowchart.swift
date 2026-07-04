@@ -49,6 +49,11 @@ public enum FlowchartMutation: Sendable {
     /// classDef (`vsN`), deduplicated across nodes; an empty spec
     /// clears the node's generated styling.
     case setNodeStyle(of: DiagramSelection, to: NodeStyleSpec)
+
+    /// Insert a fresh empty subgraph titled `title`. The id is the
+    /// deterministic slug+hash of the title, salted on collision so
+    /// repeated inserts with the same title stay distinct.
+    case insertSubgraph(title: String)
 }
 
 /// Subset of `original_src_types.EdgeStyle` exposed through the
@@ -89,6 +94,8 @@ extension FlowchartMutation {
             return "Change Node Shape"
         case .setNodeStyle:
             return "Style Node"
+        case .insertSubgraph:
+            return "Insert Subgraph"
         }
     }
 }
@@ -112,6 +119,8 @@ extension FlowchartMutation: Equatable, Hashable {
             return aSel == bSel && aShape == bShape
         case (.setNodeStyle(let aSel, let aSpec), .setNodeStyle(let bSel, let bSpec)):
             return aSel == bSel && aSpec == bSpec
+        case (.insertSubgraph(let a), .insertSubgraph(let b)):
+            return a == b
         default:
             return false
         }
@@ -148,6 +157,9 @@ extension FlowchartMutation: Equatable, Hashable {
             hasher.combine(5)
             hasher.combine(sel)
             hasher.combine(spec)
+        case .insertSubgraph(let title):
+            hasher.combine(6)
+            hasher.combine(title)
         }
     }
 }
@@ -219,6 +231,8 @@ extension DiagramEditor {
             return (try _setFlowchartNodeShape(of: selection, toAlias: alias, into: document), [])
         case .setNodeStyle(let selection, let spec):
             return try _setFlowchartNodeStyle(of: selection, to: spec, into: document)
+        case .insertSubgraph(let title):
+            return try _insertSubgraph(title: title, into: document)
         }
     }
 

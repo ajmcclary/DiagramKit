@@ -682,6 +682,7 @@ public final class LiveEditorStore {
         case .setEdgeStyle:      return .setLabel
         case .setNodeShape:      return .setLabel
         case .setNodeStyle:      return .setLabel
+        case .insertSubgraph:    return .groupIntoSubgraph
         }
     }
 
@@ -699,6 +700,8 @@ public final class LiveEditorStore {
             return "Shape \(sel.elementID) → \(shape)"
         case .setNodeStyle(let sel, _):
             return "Style \(sel.elementID)"
+        case .insertSubgraph(let title):
+            return "Insert subgraph \(title)"
         }
     }
 
