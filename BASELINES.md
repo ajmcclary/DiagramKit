@@ -255,12 +255,12 @@ event log, and the post-remediation feature-work table, see
   execution for recording. The known signal-10 hang on a full corpus
   run is unchanged from `main`.
 - `swift test --filter CorpusMultiFormatSnapshotTests`: ~0.15s
-  (427 test cases per test).
+  (428 test cases per test).
 
 ## Corpus
 
 - `Sources/DiagramKitSample/Resources/test-diagrams.json`:
-  **427 entries** (398 Mermaid-only + 29 multi-format: D2, DOT,
+  **428 entries** (399 Mermaid-only + 29 multi-format: D2, DOT,
   Structurizr, PlantUML).
 - Multi-format entries carry `sources`, `expectedImporters`, and
   (where needed) `skipSnapshots`.
@@ -275,12 +275,12 @@ event log, and the post-remediation feature-work table, see
 extension; image snapshots are `.png`. The split below is by snapshot
 *kind*, not file extension.
 
-- SVG: **440** (427 Mermaid corpus + 13 multi-format).
-- Image: **440** (427 Mermaid corpus + 13 multi-format).
-- ASCII: **427** (one per corpus entry — Phases 7–11 added renderers
+- SVG: **441** (428 Mermaid corpus + 13 multi-format).
+- Image: **441** (428 Mermaid corpus + 13 multi-format).
+- ASCII: **428** (one per corpus entry — Phases 7–11 added renderers
   for the remaining 23 families).
-- Total tracked corpus baselines: **1,307** files
-  (440 PNG + 867 `.txt`).
+- Total tracked corpus baselines: **1,310** files
+  (441 PNG + 869 `.txt`).
 
 ## Gate status
 

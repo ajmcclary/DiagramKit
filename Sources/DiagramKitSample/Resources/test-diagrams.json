@@ -2840,6 +2840,12 @@
       "source": "graph TD\n  A[Start]:::vs1 --> B{Decide}:::vs2\n  B --> C[Files]@{ shape: stacked-document }\n  C --> D[Done]:::vs1\n  classDef vs1 fill:#e8f5e9,stroke:#2e7d32,color:#1b5e20\n  classDef vs2 fill:#fff3e0,stroke:#ef6c00,stroke-dasharray:5 5"
     },
     {
+      "id": "flow-29-icon-nodes",
+      "category": "flowchart",
+      "name": "Icon Nodes (FA / SF)",
+      "source": "flowchart TD\n  U[\"User\"]@{ icon: \"fa:user\", h: 48, pos: \"b\" }\n  D[\"Store\"]@{ icon: \"fa:database\", h: 64 }\n  U --> D"
+    },
+    {
       "id": "structurizr-5-unsupported",
       "category": "c4",
       "name": "Structurizr: Unsupported Constructs",
@@ -2901,7 +2907,7 @@
   ],
   "metadata": {
     "counts": {
-      "flowchart": 51,
+      "flowchart": 52,
       "state": 12,
       "sequence": 29,
       "class": 61,
@@ -2938,7 +2944,7 @@
     "class": 61,
     "er": 25,
     "eventmodeling": 12,
-    "flowchart": 43,
+    "flowchart": 44,
     "gantt": 7,
     "gitGraph": 18,
     "ishikawa": 7,
