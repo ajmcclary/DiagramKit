@@ -57,6 +57,14 @@ public struct LiveEditorState: Codable, Equatable, Sendable {
     /// Last user-set pan offset.
     public var panOffset: CGSize?
 
+    /// Last user-set zoom scale for the visual editor canvas (nil = fit-to-view).
+    /// Independent from `zoomScale`, which drives the preview canvas.
+    public var visualZoomScale: CGFloat?
+
+    /// Last user-set pan offset for the visual editor canvas. Independent
+    /// from `panOffset`, which drives the preview canvas.
+    public var visualPanOffset: CGSize?
+
     // MARK: - Update behavior (Phase 2)
 
     /// Auto (render on every change) or manual (render only on command).
@@ -150,6 +158,8 @@ public struct LiveEditorState: Codable, Equatable, Sendable {
         panZoomEnabled: Bool = true,
         zoomScale: CGFloat? = nil,
         panOffset: CGSize? = nil,
+        visualZoomScale: CGFloat? = nil,
+        visualPanOffset: CGSize? = nil,
         updateMode: UpdateMode = .auto,
         inspectorOpen: Bool = false,
         workspaceMode: WorkspaceMode = .default,
@@ -181,6 +191,8 @@ public struct LiveEditorState: Codable, Equatable, Sendable {
         self.panZoomEnabled = panZoomEnabled
         self.zoomScale = zoomScale
         self.panOffset = panOffset
+        self.visualZoomScale = visualZoomScale
+        self.visualPanOffset = visualPanOffset
         self.updateMode = updateMode
         self.inspectorOpen = inspectorOpen
         self.workspaceMode = workspaceMode
@@ -216,6 +228,8 @@ public struct LiveEditorState: Codable, Equatable, Sendable {
         case panZoomEnabled
         case zoomScale
         case panOffset
+        case visualZoomScale
+        case visualPanOffset
         case updateMode
         case inspectorOpen
         case workspaceMode
@@ -248,6 +262,8 @@ public struct LiveEditorState: Codable, Equatable, Sendable {
         self.panZoomEnabled = try c.decodeIfPresent(Bool.self, forKey: .panZoomEnabled) ?? true
         self.zoomScale = try c.decodeIfPresent(CGFloat.self, forKey: .zoomScale)
         self.panOffset = try c.decodeIfPresent(CGSize.self, forKey: .panOffset)
+        self.visualZoomScale = try c.decodeIfPresent(CGFloat.self, forKey: .visualZoomScale)
+        self.visualPanOffset = try c.decodeIfPresent(CGSize.self, forKey: .visualPanOffset)
         self.updateMode = try c.decodeIfPresent(UpdateMode.self, forKey: .updateMode) ?? .auto
         self.inspectorOpen = try c.decodeIfPresent(Bool.self, forKey: .inspectorOpen) ?? false
         self.workspaceMode = try c.decodeIfPresent(WorkspaceMode.self, forKey: .workspaceMode) ?? .default

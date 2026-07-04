@@ -469,6 +469,16 @@ public final class LiveEditorStore {
         state.panOffset = offset
     }
 
+    /// Persist the current visual-editor zoom scale.
+    public func setVisualZoomScale(_ scale: CGFloat?) {
+        state.visualZoomScale = scale
+    }
+
+    /// Persist the current visual-editor pan offset.
+    public func setVisualPanOffset(_ offset: CGSize?) {
+        state.visualPanOffset = offset
+    }
+
     // MARK: - Share state (Phase 4)
     //
     // Export, format conversion, and clipboard helpers live in
