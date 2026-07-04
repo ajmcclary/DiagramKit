@@ -14,6 +14,8 @@ struct CanvasCenterToolbar: View {
 
     @SwiftUI.State private var showShapeCatalog = false
     @SwiftUI.State private var showIconBrowser = false
+    @SwiftUI.State private var showRearrange = false
+    @SwiftUI.State private var showThemePicker = false
 
     var body: some View {
         HStack(spacing: 4) {
@@ -76,6 +78,36 @@ struct CanvasCenterToolbar: View {
             .buttonStyle(.plain)
             .help("Add an image node from a URL")
             .accessibilityIdentifier(A11yID.Visual.imageButton)
+
+            Button {
+                showRearrange.toggle()
+            } label: {
+                Label("Rearrange", systemImage: "arrow.triangle.2.circlepath")
+                    .font(.system(size: 12, weight: .medium))
+                    .padding(.horizontal, 10)
+                    .padding(.vertical, 6)
+            }
+            .buttonStyle(.plain)
+            .help("Auto-arrange the diagram")
+            .accessibilityIdentifier(A11yID.Visual.rearrangeButton)
+            .popover(isPresented: $showRearrange, arrowEdge: .top) {
+                RearrangePopover(store: store) { showRearrange = false }
+            }
+
+            Button {
+                showThemePicker.toggle()
+            } label: {
+                Label("Theme", systemImage: "paintpalette")
+                    .font(.system(size: 12, weight: .medium))
+                    .padding(.horizontal, 10)
+                    .padding(.vertical, 6)
+            }
+            .buttonStyle(.plain)
+            .help("Apply a theme (saved into the source)")
+            .accessibilityIdentifier(A11yID.Visual.themeButton)
+            .popover(isPresented: $showThemePicker, arrowEdge: .top) {
+                ThemeSwatchPicker(store: store) { showThemePicker = false }
+            }
         }
         .padding(4)
         .background(

@@ -171,6 +171,11 @@ public enum A11yID {
         public static let imageButton = "visual.centerToolbar.image"
         public static let imageURLField = "visual.imageSheet.url"
         public static let imageCommitButton = "visual.imageSheet.commit"
+        public static let rearrangeButton = "visual.centerToolbar.rearrange"
+        public static func rearrangeOption(_ name: String) -> String { "visual.rearrange.\(name)" }
+        public static let themeButton = "visual.centerToolbar.theme"
+        public static let themePicker = "visual.themePicker"
+        public static func themeSwatch(_ name: String) -> String { "visual.themePicker.\(name)" }
     }
 }
 

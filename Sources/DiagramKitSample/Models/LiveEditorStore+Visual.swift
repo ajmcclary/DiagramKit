@@ -221,6 +221,32 @@ extension LiveEditorStore {
         setVisualStage(.nodeSelected)
     }
 
+    // MARK: - Theme / layout toolbar (visual editor plan 6)
+
+    /// Theme name pinned in the diagram source's frontmatter, if any.
+    public var sourcePinnedThemeName: String? {
+        editor?.document.frontmatter?.theme
+    }
+
+    /// Apply (or clear, with nil) a theme from the visual toolbar.
+    /// Writes frontmatter through the mutation path so it round-trips.
+    public func applyThemeFromToolbar(named name: String?) async {
+        do {
+            try await performMutation(.setTheme(name))
+        } catch {
+            // performMutation already recorded the error.
+        }
+    }
+
+    /// Apply a layout preset from the Rearrange popover.
+    public func applyLayoutPreset(_ preset: LayoutPreset) async {
+        do {
+            try await performMutation(.setLayoutPreset(preset))
+        } catch {
+            // performMutation already recorded the error.
+        }
+    }
+
     // MARK: - Subgraph toolbar / rename / membership (visual editor plan 3)
 
     public func openEmptySubgraphPrompt() {

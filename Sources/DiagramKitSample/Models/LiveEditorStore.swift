@@ -151,9 +151,15 @@ public final class LiveEditorStore {
     }
 
     /// Resolved theme for the committed preview snapshot.
-    /// ThemeBuilder overrides apply here too so the preview repaints
-    /// the instant the user toggles a swatch.
+    /// A theme pinned in the diagram source's frontmatter wins over
+    /// the app-level picker (visual editor plan 6); ThemeBuilder
+    /// overrides apply either way so the preview repaints the instant
+    /// the user toggles a swatch.
     public var previewTheme: DiagramTheme {
+        if let pinned = editor?.document.frontmatter?.theme,
+           let pinnedTheme = DiagramTheme.theme(named: pinned) {
+            return applyingThemeOverrides(to: pinnedTheme)
+        }
         let base = DiagramTheme.theme(named: previewThemeName) ?? .default
         return applyingThemeOverrides(to: base)
     }

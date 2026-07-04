@@ -18,6 +18,15 @@ struct ThemePicker: View {
 
     var body: some View {
         VStack(spacing: 8) {
+            // Source-pinned indicator (visual editor plan 6): a theme
+            // in the diagram source's frontmatter overrides this picker.
+            if let pinned = store.sourcePinnedThemeName {
+                Text("Source-pinned: \(pinned)")
+                    .font(.system(size: 9))
+                    .foregroundStyle(.secondary)
+                    .help("The diagram source's frontmatter pins this theme; it overrides the app theme.")
+            }
+
             // Quick-access theme buttons
             HStack(spacing: 6) {
                 ForEach(quickAccessThemes, id: \.self) { themeName in
