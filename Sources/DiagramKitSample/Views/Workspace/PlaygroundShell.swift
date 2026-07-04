@@ -30,10 +30,11 @@ struct PlaygroundShell: View {
                 Divider()
                 #endif
                 HStack(spacing: 0) {
+                    // Redesign: activity rail + switchable side panel replace the
+                    // old SidebarView. `sidebarVisible` now toggles the panel.
+                    ActivityRail(store: store)
                     if sidebarVisible {
-                        SidebarView(store: store)
-                            .frame(width: 220)
-                        Divider()
+                        ActivityPanel(store: store)
                     }
                     bodyForMode
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -48,6 +49,7 @@ struct PlaygroundShell: View {
                     DiagnosticsDrawer(store: store)
                         .transition(.move(edge: .bottom).combined(with: .opacity))
                 }
+                StatusbarView(store: store)
             }
             .animation(.easeInOut(duration: 0.18), value: store.state.diagDrawer.isOpen)
             .onChange(of: store.state.inspectorOpen) { _, newValue in
