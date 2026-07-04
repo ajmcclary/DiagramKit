@@ -15,12 +15,12 @@ struct UndoTimelineView: View {
     var body: some View {
         let entries = store.undoEntries
         HStack(spacing: 6) {
-            Text("Undo")
+            Image(systemName: "clock.arrow.circlepath")
                 .font(.system(size: 10, weight: .medium))
                 .foregroundStyle(.secondary)
 
             if entries.isEmpty {
-                Text("no history yet")
+                Text("No history yet")
                     .font(.system(size: 10))
                     .foregroundStyle(.tertiary)
             } else {
@@ -31,13 +31,20 @@ struct UndoTimelineView: View {
                         }
                     }
                 }
+                .frame(maxWidth: 240)
             }
-            Spacer()
         }
-        .padding(.horizontal, 12)
-        .padding(.vertical, 4)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(.thinMaterial)
+        .padding(.horizontal, 10)
+        .padding(.vertical, 5)
+        .background(
+            RoundedRectangle(cornerRadius: 8)
+                .fill(.thinMaterial)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 8)
+                        .stroke(Color.primary.opacity(0.08), lineWidth: 0.5)
+                )
+        )
+        .shadow(color: .black.opacity(0.08), radius: 4, x: 0, y: 1)
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier(A11yID.Visual.undoTimeline)
     }

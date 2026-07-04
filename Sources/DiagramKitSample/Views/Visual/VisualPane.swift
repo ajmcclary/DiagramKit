@@ -43,8 +43,12 @@ struct VisualPane: View {
                     CanvasCenterToolbar(store: store)
                         .padding(.bottom, 8)
                 }
-                UndoTimelineView(store: store)
-                    .padding(.bottom, 8)
+                HStack {
+                    UndoTimelineView(store: store)
+                    Spacer()
+                }
+                .padding(.horizontal, 12)
+                .padding(.bottom, 12)
             }
 
             stageBanner
