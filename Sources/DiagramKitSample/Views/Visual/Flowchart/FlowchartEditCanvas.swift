@@ -43,6 +43,15 @@ struct FlowchartEditCanvas: View {
     // contextMenu doesn't provide one, so track the last hover point.
     @SwiftUI.State private var hoverPoint: CGPoint?
 
+    /// Committed zoom/pan for the visual editor, resolved to a `CanvasTransform`.
+    /// Task 6 adds live gesture translation on top of this.
+    private var transform: CanvasTransform {
+        CanvasTransform(
+            scale: store.state.visualZoomScale ?? 1,
+            offset: store.state.visualPanOffset ?? .zero
+        )
+    }
+
     var body: some View {
         GeometryReader { geometry in
             ZStack(alignment: .topLeading) {
@@ -58,8 +67,11 @@ struct FlowchartEditCanvas: View {
                     diagramBounds: $liveDiagramBounds,
                     boundsLookup: $liveBoundsLookup
                 )
-                .frame(width: max(liveDiagramBounds.width, 1), height: max(liveDiagramBounds.height, 1))
-                .position(centerPoint(in: geometry.size))
+                .frame(
+                    width: max(liveDiagramBounds.width * transform.scale, 1),
+                    height: max(liveDiagramBounds.height * transform.scale, 1)
+                )
+                .position(diagramCenter(in: geometry.size))
 
                 ForEach(imageNodeOverlays(in: geometry.size), id: \.id) { item in
                     ImageNodeOverlayItem(urlString: item.url, rect: item.rect)
@@ -75,7 +87,8 @@ struct FlowchartEditCanvas: View {
                     store: store,
                     viewSize: geometry.size,
                     liveDiagramBounds: liveDiagramBounds,
-                    liveBoundsLookup: liveBoundsLookup
+                    liveBoundsLookup: liveBoundsLookup,
+                    transform: transform
                 )
 
                 if let start = marqueeStart, let current = marqueeCurrent {
@@ -115,8 +128,12 @@ struct FlowchartEditCanvas: View {
 
     // MARK: - Coordinate helpers
 
-    private func centerPoint(in viewSize: CGSize) -> CGPoint {
-        CGPoint(x: viewSize.width / 2, y: viewSize.height / 2)
+    private func diagramCenter(in viewSize: CGSize) -> CGPoint {
+        let o = transform.origin(diagramBounds: liveDiagramBounds, viewSize: viewSize)
+        return CGPoint(
+            x: o.x + liveDiagramBounds.width * transform.scale / 2,
+            y: o.y + liveDiagramBounds.height * transform.scale / 2
+        )
     }
 
     private var parseErrorBinding: Binding<Error?> {
@@ -128,13 +145,13 @@ struct FlowchartEditCanvas: View {
     /// handles line up with the live diagram even when the diagram is
     /// smaller than the host view (it's centered).
     private func viewRect(for diagramBounds: DiagramRect, in viewSize: CGSize) -> CGRect {
-        let centerX = (viewSize.width - liveDiagramBounds.width) / 2
-        let centerY = (viewSize.height - liveDiagramBounds.height) / 2
-        return CGRect(
-            x: centerX + CGFloat(diagramBounds.minX),
-            y: centerY + CGFloat(diagramBounds.minY),
-            width: CGFloat(diagramBounds.width),
-            height: CGFloat(diagramBounds.height)
+        transform.viewRect(
+            forDiagramBounds: CGRect(
+                x: CGFloat(diagramBounds.minX), y: CGFloat(diagramBounds.minY),
+                width: CGFloat(diagramBounds.width), height: CGFloat(diagramBounds.height)
+            ),
+            diagramBounds: liveDiagramBounds,
+            viewSize: viewSize
         )
     }
 
@@ -257,12 +274,10 @@ struct FlowchartEditCanvas: View {
     }
 
     private func diagramPoint(from viewPoint: CGPoint, viewSize: CGSize) -> DiagramPoint {
-        let centerX = (viewSize.width - liveDiagramBounds.width) / 2
-        let centerY = (viewSize.height - liveDiagramBounds.height) / 2
-        return DiagramPoint(
-            x: Double(viewPoint.x - centerX),
-            y: Double(viewPoint.y - centerY)
+        let p = transform.diagramPoint(
+            fromViewPoint: viewPoint, diagramBounds: liveDiagramBounds, viewSize: viewSize
         )
+        return DiagramPoint(x: Double(p.x), y: Double(p.y))
     }
 
     // MARK: - Drag gestures (Phase 3 / Task 3.4)

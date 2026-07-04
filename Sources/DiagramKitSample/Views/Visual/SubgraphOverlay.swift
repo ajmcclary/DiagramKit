@@ -17,6 +17,7 @@ struct SubgraphOverlay: View {
     let viewSize: CGSize
     let liveDiagramBounds: CGRect
     let liveBoundsLookup: DiagramBoundsLookup?
+    let transform: CanvasTransform
 
     var body: some View {
         ZStack(alignment: .topLeading) {
@@ -56,15 +57,14 @@ struct SubgraphOverlay: View {
             }
         }
         guard let union else { return nil }
-        let centerX = (viewSize.width - liveDiagramBounds.width) / 2
-        let centerY = (viewSize.height - liveDiagramBounds.height) / 2
+        let o = transform.origin(diagramBounds: liveDiagramBounds, viewSize: viewSize)
+        let scale = transform.scale
         let padding: CGFloat = 12
-        return CGRect(
-            x: centerX + CGFloat(union.minX) - padding,
-            y: centerY + CGFloat(union.minY) - padding,
-            width: CGFloat(union.width) + padding * 2,
-            height: CGFloat(union.height) + padding * 2
-        )
+        let x = o.x + CGFloat(union.minX) * scale - padding
+        let y = o.y + CGFloat(union.minY) * scale - padding
+        let width = CGFloat(union.width) * scale + padding * 2
+        let height = CGFloat(union.height) * scale + padding * 2
+        return CGRect(x: x, y: y, width: width, height: height)
     }
 
     // MARK: - View
