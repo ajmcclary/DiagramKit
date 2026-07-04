@@ -92,6 +92,69 @@ extension DiagramEditor {
         return doc
     }
 
+    // MARK: - ungroupSubgraph
+
+    func _ungroupSubgraph(
+        id: String,
+        into document: DiagramDocument
+    ) throws -> DiagramDocument {
+        var doc = document
+        guard case .flowchart(var model) = doc.payload else {
+            throw DiagramEditorError.notAFlowchart
+        }
+        var forest = Self._copySubgraphForest(model.subgraphs)
+
+        if let idx = forest.firstIndex(where: { $0.id == id }) {
+            // Root-level: children float up to root; member nodes
+            // simply lose group membership (they stay in nodesInOrder).
+            let sub = forest.remove(at: idx)
+            forest.insert(contentsOf: sub.children, at: idx)
+        } else if let parent = Self._findParent(of: id, in: forest) {
+            let idx = parent.children.firstIndex { $0.id == id }!
+            let sub = parent.children.remove(at: idx)
+            parent.children.insert(contentsOf: sub.children, at: idx)
+            parent.nodeIds.append(contentsOf: sub.nodeIds)
+        } else {
+            throw DiagramEditorError.elementNotFound(id: id, kind: "subgraph")
+        }
+
+        model.subgraphs = forest
+        doc.payload = .flowchart(model)
+        return doc
+    }
+
+    static func _findParent(
+        of id: String,
+        in subs: [original_src_types.MermaidSubgraph]
+    ) -> original_src_types.MermaidSubgraph? {
+        for sub in subs {
+            if sub.children.contains(where: { $0.id == id }) { return sub }
+            if let hit = _findParent(of: id, in: sub.children) { return hit }
+        }
+        return nil
+    }
+
+    // MARK: - renameSubgraph
+
+    func _renameSubgraph(
+        id: String,
+        title: String,
+        into document: DiagramDocument
+    ) throws -> DiagramDocument {
+        var doc = document
+        guard case .flowchart(var model) = doc.payload else {
+            throw DiagramEditorError.notAFlowchart
+        }
+        let forest = Self._copySubgraphForest(model.subgraphs)
+        guard let sub = Self._findSubgraph(id, in: forest) else {
+            throw DiagramEditorError.elementNotFound(id: id, kind: "subgraph")
+        }
+        sub.label = title
+        model.subgraphs = forest
+        doc.payload = .flowchart(model)
+        return doc
+    }
+
     // MARK: - insertSubgraph
 
     func _insertSubgraph(

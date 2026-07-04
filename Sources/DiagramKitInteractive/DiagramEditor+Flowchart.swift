@@ -57,6 +57,13 @@ public enum FlowchartMutation: Sendable {
 
     /// Re-parent node membership; `nil` target = move to root.
     case moveToSubgraph(selections: [DiagramSelection], target: String?)
+
+    /// Dissolve a subgraph, promoting members and children to its
+    /// parent scope.
+    case ungroupSubgraph(id: String)
+
+    /// Retitle; the stable id is preserved.
+    case renameSubgraph(id: String, title: String)
 }
 
 /// Subset of `original_src_types.EdgeStyle` exposed through the
@@ -101,6 +108,10 @@ extension FlowchartMutation {
             return "Insert Subgraph"
         case .moveToSubgraph:
             return "Move To Subgraph"
+        case .ungroupSubgraph:
+            return "Ungroup Subgraph"
+        case .renameSubgraph:
+            return "Rename Subgraph"
         }
     }
 }
@@ -128,6 +139,10 @@ extension FlowchartMutation: Equatable, Hashable {
             return a == b
         case (.moveToSubgraph(let aS, let aT), .moveToSubgraph(let bS, let bT)):
             return aS == bS && aT == bT
+        case (.ungroupSubgraph(let a), .ungroupSubgraph(let b)):
+            return a == b
+        case (.renameSubgraph(let aId, let aTitle), .renameSubgraph(let bId, let bTitle)):
+            return aId == bId && aTitle == bTitle
         default:
             return false
         }
@@ -171,6 +186,13 @@ extension FlowchartMutation: Equatable, Hashable {
             hasher.combine(7)
             hasher.combine(selections)
             hasher.combine(target)
+        case .ungroupSubgraph(let id):
+            hasher.combine(8)
+            hasher.combine(id)
+        case .renameSubgraph(let id, let title):
+            hasher.combine(9)
+            hasher.combine(id)
+            hasher.combine(title)
         }
     }
 }
@@ -246,6 +268,10 @@ extension DiagramEditor {
             return try _insertSubgraph(title: title, into: document)
         case .moveToSubgraph(let selections, let target):
             return (try _moveToSubgraph(selections: selections, target: target, into: document), [])
+        case .ungroupSubgraph(let id):
+            return (try _ungroupSubgraph(id: id, into: document), [])
+        case .renameSubgraph(let id, let title):
+            return (try _renameSubgraph(id: id, title: title, into: document), [])
         }
     }
 

@@ -136,4 +136,84 @@ struct FlowchartSubgraphOpsTests {
         // instance instead of a deep copy.
         #expect(subgraphs(editor).first?.nodeIds == ["A", "B"])
     }
+
+    // MARK: - ungroupSubgraph
+
+    @Test("ungroupSubgraph removes the group, keeps nodes and edges")
+    func ungroupRoot() async throws {
+        let editor = makeEditor(groupedDoc())
+        try await editor.performFlowchart(.ungroupSubgraph(id: "g1"))
+        #expect(subgraphs(editor).isEmpty)
+        guard case .flowchart(let model) = editor.document.payload else {
+            #expect(Bool(false)); return
+        }
+        #expect(model.nodesInOrder.count == 3)
+        #expect(model.edges.count == 1)
+    }
+
+    @Test("ungroup nested subgraph promotes members and children to parent")
+    func ungroupNested() async throws {
+        let inner = original_src_types.MermaidSubgraph(id: "inner", label: "Inner", nodeIds: ["B"])
+        let outer = original_src_types.MermaidSubgraph(
+            id: "outer", label: "Outer", nodeIds: ["A"], children: [inner]
+        )
+        let nodes = ["A", "B"].map {
+            (id: $0, node: original_src_types.MermaidNode(id: $0, label: $0, shape: .rectangle))
+        }
+        let model = original_src_types.MermaidGraph(
+            direction: .TD, nodesInOrder: nodes, edges: [], subgraphs: [outer]
+        )
+        let editor = makeEditor(DiagramDocument(payload: .flowchart(model)))
+
+        try await editor.performFlowchart(.ungroupSubgraph(id: "inner"))
+
+        let subs = subgraphs(editor)
+        #expect(subs.count == 1)
+        #expect(subs.first?.id == "outer")
+        #expect(Set(subs.first?.nodeIds ?? []) == Set(["A", "B"]))
+        #expect(subs.first?.children.isEmpty == true)
+    }
+
+    @Test("ungroup unknown id throws")
+    func ungroupUnknown() async {
+        let editor = makeEditor(groupedDoc())
+        await #expect(throws: DiagramEditorError.self) {
+            try await editor.performFlowchart(.ungroupSubgraph(id: "nope"))
+        }
+    }
+
+    @Test("ungroup undo restores the group (deep-copy pin)")
+    func ungroupUndo() async throws {
+        let editor = makeEditor(groupedDoc())
+        try await editor.performFlowchart(.ungroupSubgraph(id: "g1"))
+        editor.undoManager.undo()
+        #expect(subgraphs(editor).count == 1)
+        #expect(subgraphs(editor).first?.nodeIds == ["A", "B"])
+    }
+
+    // MARK: - renameSubgraph
+
+    @Test("renameSubgraph changes the label and keeps the id")
+    func rename() async throws {
+        let editor = makeEditor(groupedDoc())
+        try await editor.performFlowchart(.renameSubgraph(id: "g1", title: "Renamed"))
+        #expect(subgraphs(editor).first?.label == "Renamed")
+        #expect(subgraphs(editor).first?.id == "g1")
+    }
+
+    @Test("rename unknown id throws")
+    func renameUnknown() async {
+        let editor = makeEditor(groupedDoc())
+        await #expect(throws: DiagramEditorError.self) {
+            try await editor.performFlowchart(.renameSubgraph(id: "nope", title: "X"))
+        }
+    }
+
+    @Test("rename undo restores the old label (deep-copy pin)")
+    func renameUndo() async throws {
+        let editor = makeEditor(groupedDoc())
+        try await editor.performFlowchart(.renameSubgraph(id: "g1", title: "Renamed"))
+        editor.undoManager.undo()
+        #expect(subgraphs(editor).first?.label == "Group One")
+    }
 }

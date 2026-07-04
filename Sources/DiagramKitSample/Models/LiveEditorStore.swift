@@ -684,6 +684,8 @@ public final class LiveEditorStore {
         case .setNodeStyle:      return .setLabel
         case .insertSubgraph:    return .groupIntoSubgraph
         case .moveToSubgraph:    return .setLabel
+        case .ungroupSubgraph:   return .setLabel
+        case .renameSubgraph:    return .setLabel
         }
     }
 
@@ -705,6 +707,10 @@ public final class LiveEditorStore {
             return "Insert subgraph \(title)"
         case .moveToSubgraph(let selections, let target):
             return "Move \(selections.count) node(s) → \(target ?? "root")"
+        case .ungroupSubgraph(let id):
+            return "Ungroup \(id)"
+        case .renameSubgraph(let id, let title):
+            return "Rename \(id) → \(title)"
         }
     }
 
