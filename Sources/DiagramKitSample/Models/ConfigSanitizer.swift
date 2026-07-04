@@ -95,14 +95,19 @@ public enum ConfigSanitizer {
         // Check audited keys
         for entry in auditedKeys {
             if let value = tree[entry.keyPath] {
-                let valueString = String(describing: value)
+                // Compare against the *unwrapped* scalar, not
+                // `String(describing:)` — `JSONValue`'s description wraps
+                // strings in quotes (`"strict"`), so the raw description
+                // would never match the bare `defaultValues` entries and
+                // every safe default would spuriously warn.
+                let comparableValue = value.stringValue ?? String(describing: value)
                 // Skip if value matches a safe default
-                if entry.defaultValues.contains(valueString) { continue }
+                if entry.defaultValues.contains(comparableValue) { continue }
                 // Special case: htmlLabels = false is safe
                 if entry.keyPath == ["htmlLabels"], case .bool(false) = value { continue }
                 warnings.append(Warning(
                     keyPath: entry.keyPath.joined(separator: "."),
-                    value: valueString,
+                    value: comparableValue,
                     level: entry.level,
                     message: entry.message
                 ))
@@ -184,13 +189,22 @@ public enum ConfigSanitizer {
         var result: [String: JSONValue] = [:]
         for (key, value) in dict {
             if key.hasPrefix("__") { continue }
-            if case .object(let subDict) = value {
-                result[key] = .object(stripProtoKeys(from: subDict))
-            } else {
-                result[key] = value
-            }
+            result[key] = stripProtoKeys(fromValue: value)
         }
         return result
+    }
+
+    /// Recurse through objects *and arrays* so a `__proto__` key nested
+    /// inside an array element is stripped too.
+    private static func stripProtoKeys(fromValue value: JSONValue) -> JSONValue {
+        switch value {
+        case .object(let subDict):
+            return .object(stripProtoKeys(from: subDict))
+        case .array(let items):
+            return .array(items.map { stripProtoKeys(fromValue: $0) })
+        default:
+            return value
+        }
     }
 }
 

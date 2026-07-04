@@ -207,6 +207,12 @@ public struct LiveEditorConfig: Sendable, Equatable {
             .replacingOccurrences(of: "_", with: "")
             .replacingOccurrences(of: " ", with: "")
 
+        // Require a meaningful token before substring-matching. An empty or
+        // one-character `fuzzy` matches (`contains`) almost every theme name,
+        // so `{"theme":""}` or `{"theme":"a"}` would silently hijack the
+        // user's chosen theme. Leave those as unresolved (unknown key).
+        guard fuzzy.count >= 2 else { return nil }
+
         for (name, _) in DiagramTheme.allThemes {
             let nameFuzzy = name.lowercased()
                 .replacingOccurrences(of: "-", with: "")

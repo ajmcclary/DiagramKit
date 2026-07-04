@@ -137,8 +137,12 @@ extension LiveEditorStore {
     public func commitSubgraph(title: String) async {
         let ids = state.marqueeSelection
         guard !ids.isEmpty else { return }
+        // `marqueeSelection` already stores fully-qualified element IDs
+        // (flowchart nodes are `"node:<id>"`, per `stableElementID`). Do
+        // NOT re-prefix here — doing so produces `"node:node:<id>"`, which
+        // the subgraph mutation fails to resolve (elementNotFound).
         let selections = ids.map { id in
-            DiagramSelection(diagramType: .flowchart, elementID: "node:\(id)")
+            DiagramSelection(diagramType: .flowchart, elementID: id)
         }
         do {
             try await performFlowchartMutation(

@@ -267,6 +267,15 @@ public final class LiveEditorStore {
     public func setSourceFormat(_ format: SourceFormat) {
         guard state.sourceFormat != format else { return }
         state.sourceFormat = format
+
+        // Honor the manual-update contract: like every other source/theme
+        // setter, a format switch in manual mode marks the editor dirty
+        // rather than forcing an out-of-band re-parse of half-edited source.
+        if state.updateMode == .manual {
+            isDirty = true
+            return
+        }
+
         // Re-render: the same text is now parsed through the selected format.
         requestRender(reason: .sourceChanged)
     }
@@ -512,38 +521,40 @@ public final class LiveEditorStore {
     /// - Throws: `LiveEditorStateCodec.CodecError` if the string is malformed.
     public func restoreFromSerializedState(_ string: String) throws {
         let restored = try LiveEditorStateCodec.decode(string)
+        applyRestoredState(restored)
+    }
 
-        // Apply all fields, using .system origin to bypass manual-mode guard
-        var applied = false
+    /// Apply a wholesale state snapshot from share-restore or history.
+    ///
+    /// Assigns the *entire* decoded `LiveEditorState` so render-affecting
+    /// fields (ThemeBuilder overrides, render backend, workspace mode,
+    /// visual zoom/pan) survive the round-trip instead of dropping to
+    /// defaults. Transient modal/prompt surfaces are forced closed so a
+    /// snapshot captured mid-sheet doesn't reopen it. `lastSourceOrigin`
+    /// is reset to `.history` — otherwise a prior `.mutation` origin would
+    /// make `didCompleteRender` skip the re-seed and leave `editor` on the
+    /// pre-restore document.
+    private func applyRestoredState(_ restored: LiveEditorState) {
+        let sourceChanged = restored.source != state.source
+        let formatChanged = restored.sourceFormat != state.sourceFormat
+        let themeChanged = restored.selectedThemeName != state.selectedThemeName
+        let configChanged = restored.configJSON != state.configJSON
 
-        if restored.source != state.source {
-            state.source = restored.source
-            applied = true
-        }
-        if restored.sourceFormat != state.sourceFormat {
-            state.sourceFormat = restored.sourceFormat
-            applied = true
-        }
-        if restored.selectedThemeName != state.selectedThemeName {
-            state.selectedThemeName = restored.selectedThemeName
-            applied = true
-        }
-        if restored.configJSON != state.configJSON {
-            state.configJSON = restored.configJSON
-            parseConfig()
-            applied = true
-        }
+        state = restored
 
-        state.editorMode = restored.editorMode
-        state.gridEnabled = restored.gridEnabled
-        state.panZoomEnabled = restored.panZoomEnabled
-        state.zoomScale = restored.zoomScale
-        state.panOffset = restored.panOffset
-        state.updateMode = restored.updateMode
+        // Don't resurrect transient UI surfaces from the snapshot.
+        state.settingsPresented = false
+        state.exportSheet = .default
+        state.convertSheet = .default
+        state.fullScreen = .none
 
+        if configChanged { parseConfig() }
+
+        lastSourceOrigin = .history
         isDirty = false
 
-        if applied {
+        if sourceChanged || formatChanged || themeChanged || configChanged {
+            seedEditorFromSource()
             requestRender(reason: .sourceChanged)
         }
     }
@@ -565,40 +576,7 @@ public final class LiveEditorStore {
     ///
     /// - Parameter entry: The history entry to restore from.
     public func restoreFromHistory(_ entry: LiveHistoryEntry) {
-        let restored = historyStore.restore(entry)
-
-        var applied = false
-
-        if restored.source != state.source {
-            state.source = restored.source
-            applied = true
-        }
-        if restored.sourceFormat != state.sourceFormat {
-            state.sourceFormat = restored.sourceFormat
-            applied = true
-        }
-        if restored.selectedThemeName != state.selectedThemeName {
-            state.selectedThemeName = restored.selectedThemeName
-            applied = true
-        }
-        if restored.configJSON != state.configJSON {
-            state.configJSON = restored.configJSON
-            parseConfig()
-            applied = true
-        }
-
-        state.editorMode = restored.editorMode
-        state.gridEnabled = restored.gridEnabled
-        state.panZoomEnabled = restored.panZoomEnabled
-        state.zoomScale = restored.zoomScale
-        state.panOffset = restored.panOffset
-        state.updateMode = restored.updateMode
-
-        isDirty = false
-
-        if applied {
-            requestRender(reason: .sourceChanged)
-        }
+        applyRestoredState(historyStore.restore(entry))
     }
 
     // MARK: - Loader actions (Phase 5)
