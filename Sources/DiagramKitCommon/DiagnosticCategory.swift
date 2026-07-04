@@ -37,6 +37,7 @@ public enum DiagnosticCategory: String, Sendable, Hashable, CaseIterable {
     // MARK: - .info — encoding-level transforms; round-trip stable
     case identifierEscape
     case commentPreserved
+    case styleClassMigration
 
     /// The severity this category implies. Factories `precondition` on this.
     public var severity: DiagramDiagnostic.Severity {
@@ -51,7 +52,7 @@ public enum DiagnosticCategory: String, Sendable, Hashable, CaseIterable {
         case .diagramFamilyUnsupported, .slotUnsupported,
              .boundaryTypeUnsupported, .c4ShapeUnsupported:
             return .unsupported
-        case .identifierEscape, .commentPreserved:
+        case .identifierEscape, .commentPreserved, .styleClassMigration:
             return .info
         }
     }

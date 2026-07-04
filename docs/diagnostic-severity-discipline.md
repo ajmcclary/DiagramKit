@@ -52,6 +52,7 @@ Did the operation fail outright (cannot produce any meaningful output)?
 | `c4ShapeUnsupported` | `.unsupported` | PlantUML/C4 stereotype with no Mermaid equivalent. |
 | `identifierEscape` | `.info` | Quoting/escaping at the character level; round-trip stable. |
 | `commentPreserved` | `.info` | Block/inline comment skipped, but the structural intent survives. |
+| `styleClassMigration` | `.info` | Inline `style` statement migrated to a generated classDef by a visual-editor mutation. Round-trip stable. |
 
 ## How to emit
 
