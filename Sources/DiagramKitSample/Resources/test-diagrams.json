@@ -2834,6 +2834,12 @@
       ]
     },
     {
+      "id": "flow-28-visual-styles",
+      "category": "flowchart",
+      "name": "Visual Editor Generated Styles",
+      "source": "graph TD\n  A[Start]:::vs1 --> B{Decide}:::vs2\n  B --> C[Files]@{ shape: stacked-document }\n  C --> D[Done]:::vs1\n  classDef vs1 fill:#e8f5e9,stroke:#2e7d32,color:#1b5e20\n  classDef vs2 fill:#fff3e0,stroke:#ef6c00,stroke-dasharray:5 5"
+    },
+    {
       "id": "structurizr-5-unsupported",
       "category": "c4",
       "name": "Structurizr: Unsupported Constructs",
@@ -2895,7 +2901,7 @@
   ],
   "metadata": {
     "counts": {
-      "flowchart": 50,
+      "flowchart": 51,
       "state": 12,
       "sequence": 29,
       "class": 61,
@@ -2932,7 +2938,7 @@
     "class": 61,
     "er": 25,
     "eventmodeling": 12,
-    "flowchart": 42,
+    "flowchart": 43,
     "gantt": 7,
     "gitGraph": 18,
     "ishikawa": 7,

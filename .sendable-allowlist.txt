@@ -13,4 +13,4 @@ Sources/DiagramKitModel/src_ascii_converter.swift:125:yellow:2027-06-30
 Sources/DiagramKitModel/src_ascii_converter.swift:171:yellow:2027-06-30
 Sources/DiagramKitModel/src_ascii_converter.swift:243:yellow:2027-06-30
 Sources/DiagramKitModel/src_treeview_parser.swift:4:yellow:2027-06-30
-Sources/DiagramKitModel/src_types.swift:302:yellow:2027-06-30
+Sources/DiagramKitModel/src_types.swift:304:yellow:2027-06-30

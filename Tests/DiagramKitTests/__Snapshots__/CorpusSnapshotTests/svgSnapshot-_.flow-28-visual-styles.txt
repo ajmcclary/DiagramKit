@@ -1,0 +1,79 @@
+<svg role="graphics-document" aria-roledescription="diagram" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 187.446 452.14599999999996" width="187.446" height="452.14599999999996" style="--bg:#FFFFFF;--fg:#27272A;--line:#939394;--accent:#27272A;--muted:#A9A9AA;--surface:#F9F9F9;--border:#D4D4D4;background:#FFFFFF">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap');
+  text { font-family: 'Inter', system-ui, sans-serif; }
+  svg {    /* Derived from --bg and --fg (overridable via --line, --accent, etc.) */
+    --_text:          #27272A;
+    --_text-sec:      #A9A9AA;
+    --_text-muted:    #A9A9AA;
+    --_text-faint:    #666666;
+    --_line:          #939394;
+    --_arrow:         #27272A;
+    --_node-fill:     #F9F9F9;
+    --_node-stroke:   #D4D4D4;
+    --_group-fill:    #FFFFFF;
+    --_group-hdr:     #666666;
+    --_inner-stroke:  #666666;
+    --_key-badge:     #666666;
+    --_note-bkg:      #F5F0C8;
+    --_note-border:   #E0DEB5;
+  }
+</style>
+<defs>
+  <marker id="arrowhead" markerWidth="8.0" markerHeight="5.0" refX="7.0" refY="2.5" orient="auto">
+    <polygon points="0 0, 8.0 2.5, 0 5.0" fill="#27272A" stroke="#27272A" stroke-width="0.75" stroke-linejoin="round" />
+  </marker>
+  <marker id="arrowhead-start" markerWidth="8.0" markerHeight="5.0" refX="1" refY="2.5" orient="auto-start-reverse">
+    <polygon points="8.0 0, 0 2.5, 8.0 5.0" fill="#27272A" stroke="#27272A" stroke-width="0.75" stroke-linejoin="round" />
+  </marker>
+  <marker id="circlehead" markerWidth="5.5" markerHeight="3.5" refX="2.75" refY="1.75" orient="auto">
+    <circle cx="1.75" cy="1.75" r="1.25" fill="#27272A" stroke="#27272A" stroke-width="0.75" stroke-linejoin="round" />
+  </marker>
+  <marker id="circlehead-start" markerWidth="5.5" markerHeight="3.5" refX="0.75" refY="1.75" orient="auto-start-reverse">
+    <circle cx="1.75" cy="1.75" r="1.25" fill="#27272A" stroke="#27272A" stroke-width="0.75" stroke-linejoin="round" />
+  </marker>
+  <marker id="crosshead" markerWidth="3.0" markerHeight="3.0" refX="1.5" refY="1.5" orient="auto">
+    <line x1="0" y1="0" x2="3.0" y2="3.0" stroke="#27272A" stroke-width="1.5" />
+    <line x1="3.0" y1="0" x2="0" y2="3.0" stroke="#27272A" stroke-width="1.5" />
+  </marker>
+  <marker id="crosshead-start" markerWidth="3.0" markerHeight="3.0" refX="1.5" refY="1.5" orient="auto-start-reverse">
+    <line x1="0" y1="0" x2="3.0" y2="3.0" stroke="#27272A" stroke-width="1.5" />
+    <line x1="3.0" y1="0" x2="0" y2="3.0" stroke="#27272A" stroke-width="1.5" />
+  </marker>
+  <marker id="diamondhead" markerWidth="9.6" markerHeight="5.0" refX="8.0" refY="2.5" orient="auto">
+    <polygon points="0 2.5, 4.8 0, 9.6 2.5, 4.8 5.0" fill="#27272A" stroke="#27272A" stroke-width="0.75" stroke-linejoin="round" />
+  </marker>
+  <marker id="diamondhead-start" markerWidth="9.6" markerHeight="5.0" refX="1.6" refY="2.5" orient="auto-start-reverse">
+    <polygon points="4.8 2.5, 0 0, 9.6 2.5, 0 5.0" fill="#27272A" stroke="#27272A" stroke-width="0.75" stroke-linejoin="round" />
+  </marker>
+</defs>
+<style>
+.edge-animated {
+  animation: edge-dash 1.5s linear infinite;
+  stroke-dasharray: 8 4;
+}
+@keyframes edge-dash {
+  to { stroke-dashoffset: -24; }
+}
+</style>
+<polyline data-from="A" data-to="B" data-style="solid" data-arrow-start="false" data-arrow-end="true" class="edge" points="75.054,76.9 75.054,100.9 93.723,100.9 93.723,124.89999999999999" fill="none" stroke="#939394" stroke-width="1.0" marker-end="url(#arrowhead)" />
+<polyline data-from="B" data-to="C" data-style="solid" data-arrow-start="false" data-arrow-end="true" class="edge" points="93.723,232.346 93.723,256.346 75.795,256.346 75.795,280.346" fill="none" stroke="#939394" stroke-width="1.0" marker-end="url(#arrowhead)" />
+<polyline data-from="C" data-to="D" data-style="solid" data-arrow-start="false" data-arrow-end="true" class="edge" points="75.795,327.246 75.795,351.246 76.536,351.246 76.536,375.246" fill="none" stroke="#939394" stroke-width="1.0" marker-end="url(#arrowhead)" />
+<g class="node" data-id="A" data-label="Start" data-shape="rectangle">
+  <path d="M 40.0 40.0 L 110.108 40.0 L 110.108 76.9 L 40.0 76.9 Z" fill="#e8f5e9" stroke="#2e7d32" stroke-width="0.75" />
+  <text x="75.054" y="58.45" text-anchor="middle" font-size="13.0" font-weight="500" fill="#1b5e20" dy="4.55">Start</text>
+</g>
+<g class="node" data-id="B" data-label="Decide" data-shape="diamond">
+  <path d="M 93.723 124.9 L 147.446 178.623 L 93.723 232.346 L 40.0 178.623 Z" fill="#fff3e0" stroke="#ef6c00" stroke-width="0.75" />
+  <text x="93.723" y="178.623" text-anchor="middle" font-size="13.0" font-weight="500" fill="#27272A" dy="4.55">Decide</text>
+</g>
+<g class="node" data-id="C" data-label="Files" data-shape="stacked-document">
+  <path d="M 40 280.35 L 111.59 280.35 L 111.59 320.21 C 108.01 334.28, 100.85 316.69, 97.27 320.21 C 93.69 320.21, 86.53 316.69, 82.95 320.21 C 79.37 334.28, 72.22 316.69, 68.64 320.21 C 65.06 320.21, 57.90 316.69, 54.32 320.21 C 50.74 334.28, 43.58 316.69, 40 320.21 L 40 320.21 Z" fill="#F9F9F9" stroke="#D4D4D4" stroke-width="0.75" />
+  <path d="M 36 276.35 L 107.59 276.35 L 107.59 316.21 C 104.01 330.28, 96.85 312.69, 93.27 316.21 C 89.69 316.21, 82.53 312.69, 78.95 316.21 C 75.37 330.28, 68.22 312.69, 64.64 316.21 C 61.06 316.21, 53.90 312.69, 50.32 316.21 C 46.74 330.28, 39.58 312.69, 36 316.21 L 36 316.21 Z" fill="none" stroke="#D4D4D4" stroke-width="0.75" opacity="0.4" />
+  <text x="75.795" y="303.796" text-anchor="middle" font-size="13.0" font-weight="500" fill="#27272A" dy="4.55">Files</text>
+</g>
+<g class="node" data-id="D" data-label="Done" data-shape="rectangle">
+  <path d="M 40.0 375.246 L 113.072 375.246 L 113.072 412.14599999999996 L 40.0 412.14599999999996 Z" fill="#e8f5e9" stroke="#2e7d32" stroke-width="0.75" />
+  <text x="76.536" y="393.69599999999997" text-anchor="middle" font-size="13.0" font-weight="500" fill="#1b5e20" dy="4.55">Done</text>
+</g>
+</svg>
