@@ -192,10 +192,13 @@ struct PlaygroundTokens: Equatable, Sendable {
     var appearance: PlaygroundAppearance
     var palette: PlaygroundPalette
 
-    static let dark    = PlaygroundTokens(appearance: .dark,    palette: .dark)
-    static let light   = PlaygroundTokens(appearance: .light,   palette: .light)
-    static let forest  = PlaygroundTokens(appearance: .forest,  palette: .forest)
-    static let neutral = PlaygroundTokens(appearance: .neutral, palette: .neutral)
+    // Legacy appearances map their redesign fields onto their own base tokens
+    // (via `legacyRedesignFields()`) so they stay coherent instead of inheriting
+    // the LCARS-flavoured struct defaults.
+    static let dark    = PlaygroundTokens(appearance: .dark,    palette: PlaygroundPalette.dark.legacyRedesignFields())
+    static let light   = PlaygroundTokens(appearance: .light,   palette: PlaygroundPalette.light.legacyRedesignFields())
+    static let forest  = PlaygroundTokens(appearance: .forest,  palette: PlaygroundPalette.forest.legacyRedesignFields())
+    static let neutral = PlaygroundTokens(appearance: .neutral, palette: PlaygroundPalette.neutral.legacyRedesignFields())
     static let zedTrekDark  = PlaygroundTokens(appearance: .zedTrekDark,  palette: .zedTrekDark)
     static let zedTrekLight = PlaygroundTokens(appearance: .zedTrekLight, palette: .zedTrekLight)
     static let federation   = PlaygroundTokens(appearance: .federation,   palette: .federation)

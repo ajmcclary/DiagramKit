@@ -76,6 +76,25 @@ extension PlaygroundPalette {
         accent: 0x39FF57, secondary: 0x4EE6A6, cyan: 0xA8FF60, mint: 0x4EE6A6, purple: 0xA8FF60,
         onAccent: 0x05120A, borderWarm: 0x244F32, borderInner: 0x1C3A26, scheme: .dark)
 
+    /// Map the redesign fields onto this palette's own legacy tokens, so the four
+    /// pre-redesign appearances (dark/light/forest/neutral) render redesign chrome
+    /// coherently in their own accent and light/dark base — instead of inheriting
+    /// the LCARS-flavoured struct defaults.
+    func legacyRedesignFields() -> PlaygroundPalette {
+        var p = self
+        p.bgWindow = bgApp; p.bgRail = bgApp; p.bgSidebarNav = bgApp
+        p.bgField = bgSunken; p.bgTrack = bgSunken
+        p.bgPanel = bgSurface; p.bgSheet = bgSurface
+        p.bgChrome = bgElevated; p.bgCard = bgElevated
+        p.borderWarm = borderSubtle; p.borderFaint = borderHairline; p.borderSwatch = borderStrong
+        p.borderDestructive = statusError.opacity(0.45)
+        p.textFaint = fg3; p.gutter = fg3; p.textFaintest = fg3
+        p.onAccent = .white
+        p.accentSecondary = accent; p.accentPeach = accent
+        p.catCyan = statusInfo; p.catMint = statusSuccess; p.catPurple = accent
+        return p
+    }
+
     /// Clone this palette, overriding only the fields a theme respecifies, so every
     /// preset stays a complete palette regardless of which fields it names.
     func recolored(
