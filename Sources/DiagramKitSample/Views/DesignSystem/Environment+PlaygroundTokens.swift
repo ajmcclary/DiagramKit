@@ -8,8 +8,8 @@
 
 import SwiftUI
 
-private struct PlaygroundTokensKey: EnvironmentKey {
-    static let defaultValue: PlaygroundTokens = .dark
+struct PlaygroundTokensKey: EnvironmentKey {
+    static let defaultValue: PlaygroundTokens = .zedTrekDark
 }
 
 extension EnvironmentValues {

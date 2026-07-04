@@ -53,13 +53,12 @@ struct SwatchTile: View {
         .buttonStyle(.plain)
     }
 
-    // Simple contrast: light backgrounds get fg1 in dark; dark backgrounds get fg1 in light.
+    // Simple contrast: light backgrounds get dark text; dark backgrounds get light text.
     private func textColor(on background: Color) -> Color {
-        // Approximation: use white over visibly dark backgrounds.
-        // For the four built-in themes this is correct.
-        switch tokens.appearance {
-        case .light, .neutral: return .black.opacity(0.85)
-        case .dark, .forest: return .white.opacity(0.9)
+        switch tokens.appearance.preferredColorScheme {
+        case .light: return .black.opacity(0.85)
+        case .dark: return .white.opacity(0.9)
+        @unknown default: return .white.opacity(0.9)
         }
     }
 }

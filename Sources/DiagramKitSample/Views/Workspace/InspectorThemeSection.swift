@@ -18,7 +18,7 @@ struct InspectorThemeSection: View {
     @Bindable var store: LiveEditorStore
 
     @AppStorage(PlaygroundChromePersistence.appearanceKey)
-    private var chromeAppearanceRaw: String = PlaygroundAppearance.dark.rawValue
+    private var chromeAppearanceRaw: String = PlaygroundAppearance.zedTrekDark.rawValue
 
     @SwiftUI.State private var showDiagramPalette = false
     @SwiftUI.State private var showThemeBuilder = false
@@ -26,7 +26,7 @@ struct InspectorThemeSection: View {
     @Environment(\.playgroundTokens) private var tokens
 
     private var chromeAppearance: PlaygroundAppearance {
-        PlaygroundAppearance(rawValue: chromeAppearanceRaw) ?? .dark
+        PlaygroundAppearance(rawValue: chromeAppearanceRaw) ?? .zedTrekDark
     }
 
     var body: some View {

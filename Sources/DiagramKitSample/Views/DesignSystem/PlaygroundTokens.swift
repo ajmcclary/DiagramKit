@@ -20,6 +20,13 @@ enum PlaygroundAppearance: String, CaseIterable, Hashable, Codable, Sendable {
     case light
     case forest
     case neutral
+    // Zed Trek family (redesign) — the six variants shown in the Theme tab.
+    case zedTrekDark
+    case zedTrekLight
+    case federation
+    case redAlert
+    case sickBay
+    case borgCube
 
     var displayName: String {
         switch self {
@@ -27,15 +34,27 @@ enum PlaygroundAppearance: String, CaseIterable, Hashable, Codable, Sendable {
         case .light: return "Light"
         case .forest: return "Forest"
         case .neutral: return "Neutral"
+        case .zedTrekDark: return "LCARS Dark"
+        case .zedTrekLight: return "LCARS Light"
+        case .federation: return "Federation"
+        case .redAlert: return "Red Alert"
+        case .sickBay: return "Sick Bay"
+        case .borgCube: return "Borg Cube"
         }
     }
 
     var preferredColorScheme: ColorScheme {
         switch self {
-        case .dark, .forest: return .dark
-        case .light, .neutral: return .light
+        case .dark, .forest, .zedTrekDark, .federation, .redAlert, .sickBay, .borgCube:
+            return .dark
+        case .light, .neutral, .zedTrekLight:
+            return .light
         }
     }
+
+    /// The six comp themes shown in the Theme tab grid (transcription §5.4).
+    static let zedTrekFamily: [PlaygroundAppearance] =
+        [.zedTrekDark, .zedTrekLight, .federation, .redAlert, .sickBay, .borgCube]
 }
 
 // MARK: - Palette
@@ -66,10 +85,50 @@ struct PlaygroundPalette: Equatable, Sendable {
 
     var glassBg: Color
 
+    // --- Redesign additions (layered surfaces / roles from the Zed Trek comp).
+    // Defaulted so the four legacy presets (dark/light/forest/neutral) compile
+    // unchanged via the memberwise init; the six Zed Trek presets set them all
+    // explicitly. Legacy appearances therefore render redesign chrome with these
+    // dark defaults — acceptable since Zed Trek Dark is the default appearance.
+    var bgWindow: Color = Color(hex: 0x05060A)       // outermost window / rail
+    var bgRail: Color = Color(hex: 0x05060A)
+    var bgPanel: Color = Color(hex: 0x0C111B)        // side panel / inspector
+    var bgSheet: Color = Color(hex: 0x0E1421)        // settings sheet
+    var bgSidebarNav: Color = Color(hex: 0x0B0F18)   // settings nav / info callout
+    var bgChrome: Color = Color(hex: 0x0D1018)       // title / status bar / zoom control
+    var bgCard: Color = Color(hex: 0x111827)         // cards, node fill
+    var bgTrack: Color = Color(hex: 0x151A24)        // segmented track, pill, chip
+    var bgField: Color = Color(hex: 0x080A0F)        // search / input / code bg
+
+    var borderWarm: Color = Color(hex: 0x2A2030)     // warm outer panel border
+    var borderFaint: Color = Color(hex: 0x1C2432)    // faint table row divider
+    var borderSwatch: Color = Color(hex: 0x3A4250)   // color-swatch border
+    var borderDestructive: Color = Color(hex: 0x3A2626)
+
+    var textFaint: Color = Color(hex: 0x687282)      // placeholder / faint mono
+    var gutter: Color = Color(hex: 0x6F7888)         // code gutter
+    var textFaintest: Color = Color(hex: 0x4F5868)   // dashes / faint ids
+
+    var onAccent: Color = Color(hex: 0x1A1205)       // text/icon drawn ON accent
+    var accentSecondary: Color = Color(hex: 0xFFCC66) // amber/gold
+    var accentPeach: Color = Color(hex: 0xFFD8B0)    // pencil icons
+
+    var catCyan: Color = Color(hex: 0x7EC8DE)
+    var catMint: Color = Color(hex: 0x4EE6A6)
+    var catPurple: Color = Color(hex: 0xCC99FF)
+
+    var trafficRed: Color = Color(hex: 0xFF5D57)
+    var trafficYellow: Color = Color(hex: 0xFEBC2E)
+    var trafficGreen: Color = Color(hex: 0x28C840)
+
     // Derived accents (color-mix in the CSS, opacity here).
     var accent10: Color { accent.opacity(0.10) }
     var accent15: Color { accent.opacity(0.15) }
     var accent20: Color { accent.opacity(0.20) }
+    // Redesign accent tints from the comp.
+    var accentTint16: Color { accent.opacity(0.16) }
+    var accentTint14: Color { accent.opacity(0.14) }
+    var accentTint08: Color { accent.opacity(0.08) }
 }
 
 // MARK: - Typography
@@ -137,13 +196,25 @@ struct PlaygroundTokens: Equatable, Sendable {
     static let light   = PlaygroundTokens(appearance: .light,   palette: .light)
     static let forest  = PlaygroundTokens(appearance: .forest,  palette: .forest)
     static let neutral = PlaygroundTokens(appearance: .neutral, palette: .neutral)
+    static let zedTrekDark  = PlaygroundTokens(appearance: .zedTrekDark,  palette: .zedTrekDark)
+    static let zedTrekLight = PlaygroundTokens(appearance: .zedTrekLight, palette: .zedTrekLight)
+    static let federation   = PlaygroundTokens(appearance: .federation,   palette: .federation)
+    static let redAlert     = PlaygroundTokens(appearance: .redAlert,     palette: .redAlert)
+    static let sickBay      = PlaygroundTokens(appearance: .sickBay,      palette: .sickBay)
+    static let borgCube     = PlaygroundTokens(appearance: .borgCube,     palette: .borgCube)
 
     static func tokens(for appearance: PlaygroundAppearance) -> PlaygroundTokens {
         switch appearance {
-        case .dark:    return .dark
-        case .light:   return .light
-        case .forest:  return .forest
-        case .neutral: return .neutral
+        case .dark:         return .dark
+        case .light:        return .light
+        case .forest:       return .forest
+        case .neutral:      return .neutral
+        case .zedTrekDark:  return .zedTrekDark
+        case .zedTrekLight: return .zedTrekLight
+        case .federation:   return .federation
+        case .redAlert:     return .redAlert
+        case .sickBay:      return .sickBay
+        case .borgCube:     return .borgCube
         }
     }
 }

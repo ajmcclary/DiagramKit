@@ -18,12 +18,12 @@ struct LiveEditorView: View {
     @SwiftUI.State private var nonInspectorMode: CompactMode = .edit
 
     @AppStorage(PlaygroundChromePersistence.appearanceKey)
-    private var chromeAppearanceRaw: String = PlaygroundAppearance.dark.rawValue
+    private var chromeAppearanceRaw: String = PlaygroundAppearance.zedTrekDark.rawValue
 
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
 
     private var chromeAppearance: PlaygroundAppearance {
-        PlaygroundAppearance(rawValue: chromeAppearanceRaw) ?? .dark
+        PlaygroundAppearance(rawValue: chromeAppearanceRaw) ?? .zedTrekDark
     }
 
     // Bridges the iPhone compact-layout picker to `store.state.inspectorOpen`
