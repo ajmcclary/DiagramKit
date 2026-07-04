@@ -11,6 +11,7 @@ import SwiftUI
 
 struct WorkspaceModePicker: View {
     @Bindable var store: LiveEditorStore
+    @Environment(\.playgroundTokens) private var tokens
 
     var body: some View {
         HStack(spacing: 2) {
@@ -21,7 +22,11 @@ struct WorkspaceModePicker: View {
         .padding(2)
         .background(
             RoundedRectangle(cornerRadius: 8, style: .continuous)
-                .fill(.thinMaterial)
+                .fill(tokens.palette.bgTrack)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 8, style: .continuous)
+                        .stroke(tokens.palette.borderHairline, lineWidth: 0.5)
+                )
         )
     }
 
@@ -32,12 +37,13 @@ struct WorkspaceModePicker: View {
             store.setWorkspaceMode(mode)
         } label: {
             Text(mode.label)
-                .font(.system(size: 12, weight: .medium))
-                .padding(.horizontal, 10)
-                .padding(.vertical, 5)
+                .font(.system(size: 12, weight: isSelected ? .semibold : .medium))
+                .foregroundStyle(isSelected ? tokens.palette.onAccent : tokens.palette.fg3)
+                .padding(.horizontal, 14)
+                .padding(.vertical, 4)
                 .background {
                     RoundedRectangle(cornerRadius: 6, style: .continuous)
-                        .fill(isSelected ? Color.accentColor.opacity(0.18) : .clear)
+                        .fill(isSelected ? tokens.palette.accent : .clear)
                 }
         }
         .buttonStyle(.plain)
