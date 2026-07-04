@@ -44,4 +44,35 @@ import Foundation
     private func flatIDs(_ nodes: [OutlineNode]) -> [String] {
         nodes.flatMap { [$0.id] + flatIDs($0.children) }
     }
+
+    /// Search (via OutlineElements) and the inspector (via graph.nodesById) read
+    /// the same editor.document, so they track a reseeded document too.
+    @Test func searchAndInspectorSeeReseededDocument() async throws {
+        let store = LiveEditorStore()
+        store.setSource("flowchart TB\n A[Start] --> B[Process]", origin: .system)
+        for _ in 0..<20 where OutlineElements.from(store).nodes.isEmpty { try await Task.sleep(nanoseconds: 100_000_000) }
+
+        store.setSource("flowchart TB\n X[Deploy] --> Y[Verify]", origin: .system)
+        var els = OutlineElements.from(store)
+        for _ in 0..<30 {
+            els = OutlineElements.from(store)
+            if els.nodes.contains(where: { $0.id == "X" }) { break }
+            try await Task.sleep(nanoseconds: 100_000_000)
+        }
+
+        // Search panel data reflects the new document.
+        let ids = Set(els.nodes.map(\.id))
+        #expect(ids.contains("X"))
+        #expect(ids.contains("Y"))
+        #expect(!ids.contains("A"), "stale node A still present in Search data: \(ids)")
+
+        // Inspector resolves the selected node against the reseeded document
+        // (mirrors InspectorView.currentNode: strip "node:" prefix, look up in graph).
+        store.setSelection(DiagramSelection(diagramType: .flowchart, elementID: "node:X"))
+        guard case .flowchart(let model) = store.editor?.document.payload else {
+            Issue.record("expected flowchart payload")
+            return
+        }
+        #expect(model.nodesById["X"]?.label == "Deploy")
+    }
 }

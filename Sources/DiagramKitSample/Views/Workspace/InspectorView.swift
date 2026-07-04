@@ -42,7 +42,12 @@ struct InspectorView: View {
         .frame(width: 312)
         .background(tokens.palette.bgPanel)
         .overlay(Rectangle().fill(tokens.palette.borderWarm).frame(width: 0.5), alignment: .leading)
-        .task(id: store.editor?.selection?.elementID) { labelDraft = currentNode()?.label ?? "" }
+        // Re-seed the label draft when the selection OR the underlying document
+        // changes — keying on the source too keeps the field fresh after a new
+        // diagram loads even if the selected element id happens to be unchanged.
+        .task(id: [store.state.source, store.editor?.selection?.elementID ?? ""]) {
+            labelDraft = currentNode()?.label ?? ""
+        }
     }
 
     // MARK: - Header
