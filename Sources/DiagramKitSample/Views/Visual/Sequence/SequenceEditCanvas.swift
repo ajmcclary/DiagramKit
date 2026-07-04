@@ -20,10 +20,7 @@ struct SequenceEditCanvas: View {
     @SwiftUI.State private var dragOffsetY: CGFloat = 0
 
     var body: some View {
-        ZStack(alignment: .topLeading) {
-            Color(store.previewTheme.background)
-                .ignoresSafeArea()
-
+        ZoomableCanvas(store: store) {
             if let diagram = sequenceDiagram {
                 let actors = diagram.actors
                 let msgs = orderedMessages(in: diagram)
@@ -37,7 +34,6 @@ struct SequenceEditCanvas: View {
             } else {
                 missingDocumentPlaceholder
             }
-
         }
         .accessibilityIdentifier(A11yID.Visual.canvas)
     }

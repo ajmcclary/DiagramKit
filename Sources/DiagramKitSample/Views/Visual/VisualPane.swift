@@ -146,15 +146,10 @@ struct VisualPane: View {
                 unsupportedFamily(editor.document.type)
             }
         } else {
-            // No editor yet (parse not run). Surface DiagramView as a
-            // read-only fallback so the user sees something during the
-            // first render.
-            DiagramView(
-                source: store.previewSource,
-                theme: store.previewTheme,
-                layoutConfig: store.previewLayoutConfig,
-                sourceFormat: store.state.sourceFormat.formatID
-            )
+            // No editor yet (parse not run). Reuse the preview surface, which
+            // already carries the full zoom/pan/toolbar stack, so Editor mode
+            // always supports zoom/pan even before the editor is populated.
+            PreviewCanvas(store: store, onFullWindowPreview: nil)
         }
     }
 
