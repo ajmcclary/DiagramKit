@@ -316,6 +316,22 @@ extension DiagramTheme {
         muted: BMColor(hex: "#a89984")
     )
 
+    /// Zed Trek Dark — the editor-redesign canvas palette (near-black navy
+    /// canvas, dark node fills, warm-orange accent, parchment text).
+    public static let zedTrekDark = DiagramTheme(
+        background: BMColor(hex: "#080A0F"),
+        foreground: BMColor(hex: "#F2E7D8"),
+        line: BMColor(hex: "#5A6472"),
+        accent: BMColor(hex: "#FF9933"),
+        muted: BMColor(hex: "#8B93A1"),
+        surface: BMColor(hex: "#111827"),
+        border: BMColor(hex: "#252B36"),
+        noteBkg: BMColor(hex: "#0C111B"),
+        noteBorder: BMColor(hex: "#252B36"),
+        lineWidth: 1,
+        cornerRadius: 8
+    )
+
     public static let `default` = zincLight
 
     public static let allThemes: [(name: String, theme: DiagramTheme)] = [
@@ -335,7 +351,8 @@ extension DiagramTheme {
         ("Solarized Dark", solarizedDark),
         ("One Dark", oneDark),
         ("Gruvbox Dark", gruvboxDark),
-        ("Gruvbox Light", gruvboxLight)
+        ("Gruvbox Light", gruvboxLight),
+        ("Zed Trek Dark", zedTrekDark)
     ]
 
     public static func theme(named name: String) -> DiagramTheme? {

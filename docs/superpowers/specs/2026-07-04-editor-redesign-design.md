@@ -33,7 +33,7 @@ still work and it adapts light↔dark.
 | --- | --- |
 | Scope | **Everything, sequenced** — all three turns (editor shell, four rail panels, seven-tab settings sheet). |
 | Integration | **Replace + token-driven.** Restructure the shell; add Zed Trek as a new `PlaygroundAppearance` and make it the default; drive **all** colors through `PlaygroundTokens` so `dark/light/forest/neutral` still work and it adapts light↔dark. The old `SidebarView` globals and inspector-global sections are **superseded**; affected tests are updated, not deleted. |
-| Zed Trek themes | **Make them real.** The six named cards (LCARS Dark default, LCARS Light, Federation, Red Alert, Sick Bay, Borg Cube) become real selectable `PlaygroundAppearance` presets that re-skin the whole app. The Theme tab's "Diagram palette" row wires to the existing 17 `DiagramTheme`s. |
+| Zed Trek themes | **Make them real.** The six named cards (LCARS Dark default, LCARS Light, Federation, Red Alert, Sick Bay, Borg Cube) become real selectable `PlaygroundAppearance` presets that re-skin the whole app. The Theme tab's "Diagram palette" row wires to the existing diagram themes. |
 | macOS window chrome | The rounded window + traffic lights are the **real** OS window chrome; we match the comp's *inner* chrome and keep the native unified toolbar. iOS gets the drawn title bar. |
 | Settings presentation | Reuse the app's existing **dimmed/blurred overlay** pattern (already used for Export/Convert sheets) to match the comp's scrim + `blur(3px)`. |
 | Inspector sections not in the comp | Diagnostics stays in the existing bottom `DiagnosticsDrawer`; History stays reachable via the undo timeline; the Citations toggle moves into **General** settings. |
@@ -70,7 +70,7 @@ From the codebase map (all paths under `Sources/DiagramKitSample/`):
   (`workspaceMode`, `renderBackend`, `selectedThemeName`, grid/zoom, …),
   mutation routing (`performMutation`/`performFlowchartMutation`), corpus
   loading (`SampleDiagramPanel`, `TestDiagrams`, `CorpusIndex`).
-- **Themes:** `DiagramKitModel/Theme.swift` — 17 named `DiagramTheme`s.
+- **Themes:** `DiagramKitModel/Theme.swift` — 18 named `DiagramTheme`s (incl. Zed Trek Dark, the sample default).
 - **Platforms:** macOS 26 + iOS 26; `#if os()` splits in app entry, shell,
   toolbar, `DiagramView`.
 - **Run/verify:** `swift run DiagramKitSample`; logic/state tests in
@@ -190,7 +190,7 @@ pattern. Tabs and wiring:
 4. **Theme** — `ThemeGrid` of 6 `ThemeSwatchCard`s bound to
    `@AppStorage("playground.chromeAppearance")` (the real Zed Trek presets;
    active card shows the check + 1.5px accent border) + `MenuRow` Appearance
-   (Match system) + Diagram palette (→ 17 `DiagramTheme`s, current
+   (Match system) + Diagram palette (→ the named `DiagramTheme`s, current
    `selectedThemeName`) + Edit theme… → existing `ThemeBuilder`.
 5. **Platform Parity** — `ParityTable` (FEATURE / macOS / iOS / Linux) populated
    from real capability data (`DiagramDescriptor.linuxSupport`, renderer
