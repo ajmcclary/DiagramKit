@@ -13,6 +13,7 @@ struct CanvasCenterToolbar: View {
     @Bindable var store: LiveEditorStore
 
     @SwiftUI.State private var showShapeCatalog = false
+    @SwiftUI.State private var showIconBrowser = false
 
     var body: some View {
         HStack(spacing: 4) {
@@ -45,6 +46,24 @@ struct CanvasCenterToolbar: View {
             .buttonStyle(.plain)
             .help("Add a labeled group to the canvas")
             .accessibilityIdentifier(A11yID.Visual.subgraphButton)
+
+            Button {
+                showIconBrowser.toggle()
+            } label: {
+                Label("Icon", systemImage: "star.circle")
+                    .font(.system(size: 12, weight: .medium))
+                    .padding(.horizontal, 10)
+                    .padding(.vertical, 6)
+            }
+            .buttonStyle(.plain)
+            .help("Search and add an icon node")
+            .accessibilityIdentifier(A11yID.Visual.iconButton)
+            .popover(isPresented: $showIconBrowser, arrowEdge: .top) {
+                IconBrowserView { faName in
+                    showIconBrowser = false
+                    Task { await store.insertIconFromBrowser(faName: faName) }
+                }
+            }
         }
         .padding(4)
         .background(

@@ -158,6 +158,28 @@ extension LiveEditorStore {
         lastSubgraphCommit = nil
     }
 
+    /// Icon-browser click: insert an icon-circle node with the chosen
+    /// Font Awesome icon (medium size), select it, and open the label
+    /// editor. Insert + configure land as one undo step.
+    public func insertIconFromBrowser(faName: String) async {
+        guard let editor, let id = nextFlowchartNodeID() else { return }
+        let selection = DiagramSelection(diagramType: .flowchart, elementID: "node:\(id)")
+        editor.beginUndoGrouping()
+        do {
+            try await performFlowchartMutation(
+                .insertNode(id: id, label: "New icon", type: "icon-circle")
+            )
+            try await performFlowchartMutation(
+                .setNodeIcon(of: selection, to: IconSpec(name: faName))
+            )
+        } catch {
+            // performFlowchartMutation already recorded the error.
+        }
+        editor.endUndoGrouping()
+        setSelection(selection)
+        setVisualStage(.labelEdited)
+    }
+
     // MARK: - Subgraph toolbar / rename / membership (visual editor plan 3)
 
     public func openEmptySubgraphPrompt() {
