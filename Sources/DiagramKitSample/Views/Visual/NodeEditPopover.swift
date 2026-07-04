@@ -25,17 +25,7 @@ struct NodeEditPopover: View {
     @SwiftUI.State private var textColor: Color = Color(hexRGB: "#18181b") ?? .black
     @SwiftUI.State private var styleDirty: Bool = false
     @SwiftUI.State private var hadStyle: Bool = false
-
-    /// Classic flowchart shapes offered until the plan-2 catalog
-    /// replaces this picker. Aliases resolve via NodeShape.resolve.
-    private static let shapeChoices: [(alias: String, label: String)] = [
-        ("rectangle", "Rectangle"), ("rounded", "Rounded"), ("stadium", "Stadium"),
-        ("subroutine", "Subroutine"), ("cylinder", "Cylinder"), ("diamond", "Diamond"),
-        ("hexagon", "Hexagon"), ("circle", "Circle"), ("doublecircle", "Double Circle"),
-        ("trapezoid", "Trapezoid"), ("trapezoid-alt", "Trapezoid Alt"),
-        ("asymmetric", "Asymmetric"), ("ellipse", "Ellipse"),
-        ("parallelogram", "Parallelogram"), ("parallelogram-alt", "Parallelogram Alt"),
-    ]
+    @SwiftUI.State private var showShapeCatalog: Bool = false
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
@@ -54,12 +44,34 @@ struct NodeEditPopover: View {
                 .textFieldStyle(.roundedBorder)
                 .font(.system(size: 12))
 
-            Picker("Shape", selection: $shapeAlias) {
-                ForEach(currentShapeChoices, id: \.alias) { choice in
-                    Text(choice.label).tag(choice.alias)
+            HStack {
+                Text("Shape")
+                    .font(.system(size: 11))
+                Spacer()
+                Button {
+                    showShapeCatalog.toggle()
+                } label: {
+                    HStack(spacing: 6) {
+                        ShapeThumbnail(alias: shapeAlias, theme: store.previewTheme)
+                            .frame(width: 30, height: 22)
+                        Text(currentShapeName)
+                            .font(.system(size: 11))
+                    }
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 3)
+                    .background(
+                        RoundedRectangle(cornerRadius: 6, style: .continuous)
+                            .fill(Color.gray.opacity(0.08))
+                    )
+                }
+                .buttonStyle(.plain)
+                .popover(isPresented: $showShapeCatalog, arrowEdge: .trailing) {
+                    ShapeCatalogView(theme: store.previewTheme) { alias in
+                        shapeAlias = alias
+                        showShapeCatalog = false
+                    }
                 }
             }
-            .font(.system(size: 11))
 
             NodeStyleControls(
                 borderStyle: $borderStyle,
@@ -110,14 +122,8 @@ struct NodeEditPopover: View {
         }
     }
 
-    /// The classic list, plus the node's current shape when it is
-    /// not classic (so opening + committing never clobbers a v11
-    /// shape the user set in source).
-    private var currentShapeChoices: [(alias: String, label: String)] {
-        if Self.shapeChoices.contains(where: { $0.alias == shapeAlias }) {
-            return Self.shapeChoices
-        }
-        return Self.shapeChoices + [(alias: shapeAlias, label: shapeAlias)]
+    private var currentShapeName: String {
+        ShapeCatalog.all.first(where: { $0.alias == shapeAlias })?.name ?? shapeAlias
     }
 
     private func currentNode() -> original_src_types.MermaidNode? {
@@ -139,6 +145,10 @@ struct NodeEditPopover: View {
         if let label = store.boundsLookup?.label(for: selection) {
             labelDraft = label
             initialLabel = label
+        }
+        if labelDraft.isEmpty, let node = currentNode() {
+            labelDraft = node.label
+            initialLabel = node.label
         }
         guard let node = currentNode(), let graph = currentGraph() else { return }
         shapeAlias = node.shape.rawValue
