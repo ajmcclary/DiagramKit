@@ -2846,6 +2846,12 @@
       "source": "flowchart TD\n  U[\"User\"]@{ icon: \"fa:user\", h: 48, pos: \"b\" }\n  D[\"Store\"]@{ icon: \"fa:database\", h: 64 }\n  U --> D"
     },
     {
+      "id": "flow-30-image-node",
+      "category": "flowchart",
+      "name": "Image Node (Deterministic Placeholder)",
+      "source": "flowchart TD\n  P[\"Photo\"]@{ img: \"https://example.com/pic.png\", w: 160, h: 120 }\n  P --> A[Next]"
+    },
+    {
       "id": "structurizr-5-unsupported",
       "category": "c4",
       "name": "Structurizr: Unsupported Constructs",
@@ -2907,7 +2913,7 @@
   ],
   "metadata": {
     "counts": {
-      "flowchart": 52,
+      "flowchart": 53,
       "state": 12,
       "sequence": 29,
       "class": 61,
@@ -2944,7 +2950,7 @@
     "class": 61,
     "er": 25,
     "eventmodeling": 12,
-    "flowchart": 44,
+    "flowchart": 45,
     "gantt": 7,
     "gitGraph": 18,
     "ishikawa": 7,
