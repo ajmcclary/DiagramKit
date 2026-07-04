@@ -364,6 +364,10 @@ struct HistoryView: View {
     /// ISO date stamp for export filename.
     private var dateStamp: String {
         let formatter = DateFormatter()
+        // Fixed locale/calendar so the fixed `yyyy-MM-dd` pattern always
+        // emits Gregorian ASCII digits regardless of the user's locale.
+        formatter.locale = Locale(identifier: "en_US_POSIX")
+        formatter.calendar = Calendar(identifier: .gregorian)
         formatter.dateFormat = "yyyy-MM-dd"
         return formatter.string(from: Date())
     }

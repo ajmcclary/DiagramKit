@@ -58,6 +58,12 @@ public final class LiveHistoryStore: @unchecked Sendable {
     /// Maximum number of auto entries to retain.
     private let maxAutoEntries = 30
 
+    /// Maximum number of manual entries to retain (oldest evicted).
+    private let maxManualEntries = 100
+
+    /// Maximum number of loader entries to retain (oldest evicted).
+    private let maxLoaderEntries = 50
+
     /// Minimum interval between auto saves, in seconds.
     private let autoSaveInterval: TimeInterval = 60
 
@@ -92,7 +98,7 @@ public final class LiveHistoryStore: @unchecked Sendable {
         // Set lastAutoSaveTime from the most recent auto entry, if any
         if let latestAuto = autoEntries.first {
             lastAutoSaveTime = latestAuto.timestamp
-            lastAutoSaveStateKey = Self.serializedKey(for: latestAuto.state)
+            lastAutoSaveStateKey = Self.contentKey(for: latestAuto.state)
         }
     }
 
@@ -112,6 +118,7 @@ public final class LiveHistoryStore: @unchecked Sendable {
             state: state
         )
         entries.insert(entry, at: 0)
+        evictEntries(origin: .manual, max: maxManualEntries)
         persist()
         return entry
     }
@@ -137,8 +144,11 @@ public final class LiveHistoryStore: @unchecked Sendable {
             return
         }
 
-        // Dedup: don't save if state is identical to the last auto entry
-        let stateKey = Self.serializedKey(for: state)
+        // Dedup on *content* (source/format/theme/config/theme-overrides)
+        // only. Keying on the whole serialized state let transient UI churn
+        // (opening the inspector, toggling the grid) mint content-identical
+        // "Auto" snapshots.
+        let stateKey = Self.contentKey(for: state)
         if lastAutoSaveStateKey == stateKey {
             return
         }
@@ -156,7 +166,7 @@ public final class LiveHistoryStore: @unchecked Sendable {
         lastAutoSaveStateKey = stateKey
 
         // Evict oldest auto entries if over cap
-        evictOldAutoEntries()
+        evictEntries(origin: .auto, max: maxAutoEntries)
 
         persist()
     }
@@ -195,6 +205,7 @@ public final class LiveHistoryStore: @unchecked Sendable {
             sourceURL: sourceURL
         )
         entries.insert(entry, at: 0)
+        evictEntries(origin: .loader, max: maxLoaderEntries)
         persist()
         return entry
     }
@@ -250,6 +261,16 @@ public final class LiveHistoryStore: @unchecked Sendable {
         if !newEntries.isEmpty {
             entries = (entries + newEntries)
                 .sorted { $0.timestamp > $1.timestamp }
+            // Imported entries are subject to the same per-origin caps as
+            // live saves, and the auto-save tracking must follow the newest
+            // imported auto entry so dedup/debounce stay coherent.
+            evictEntries(origin: .auto, max: maxAutoEntries)
+            evictEntries(origin: .manual, max: maxManualEntries)
+            evictEntries(origin: .loader, max: maxLoaderEntries)
+            if let latestAuto = autoEntries.first {
+                lastAutoSaveTime = latestAuto.timestamp
+                lastAutoSaveStateKey = Self.contentKey(for: latestAuto.state)
+            }
             persist()
         }
 
@@ -259,17 +280,63 @@ public final class LiveHistoryStore: @unchecked Sendable {
     // MARK: - Persistence
 
     /// Load entries from the JSON file on disk.
+    ///
+    /// Resilient by design: a single corrupt entry, or one written by a
+    /// newer build with an unknown enum case, must not discard the whole
+    /// timeline. We first try a strict decode, then fall back to salvaging
+    /// individual entries. On total failure the file is *quarantined* (moved
+    /// aside) rather than left in place, so the next `persist()` doesn't
+    /// silently overwrite a possibly-recoverable file with an empty array.
     private func loadFromDisk() {
         guard FileManager.default.fileExists(atPath: storageURL.path) else { return }
 
-        do {
-            let data = try Data(contentsOf: storageURL)
-            let decoder = JSONDecoder()
-            decoder.dateDecodingStrategy = .iso8601
-            entries = try decoder.decode([LiveHistoryEntry].self, from: data)
-                .sorted { $0.timestamp > $1.timestamp }
-        } catch {
-            reportIssue(error, "Failed to load history from \(storageURL.path)")
+        let decoder = JSONDecoder()
+        decoder.dateDecodingStrategy = .iso8601
+
+        guard let data = try? Data(contentsOf: storageURL) else {
+            quarantineCorruptFile(reason: "unreadable history file")
+            return
+        }
+
+        if let strict = try? decoder.decode([LiveHistoryEntry].self, from: data) {
+            entries = strict.sorted { $0.timestamp > $1.timestamp }
+            return
+        }
+
+        // Salvage: decode element-by-element, keeping the entries that
+        // survive and dropping the ones that don't.
+        if let lenient = try? decoder.decode([ResilientEntry].self, from: data) {
+            let salvaged = lenient.compactMap(\.entry).sorted { $0.timestamp > $1.timestamp }
+            quarantineCorruptFile(
+                reason: "recovered \(salvaged.count) of \(lenient.count) entries"
+            )
+            entries = salvaged
+            return
+        }
+
+        quarantineCorruptFile(reason: "history file is not decodable")
+    }
+
+    /// Move a corrupt history file aside so it isn't overwritten by the next
+    /// write, preserving a chance at manual recovery.
+    private func quarantineCorruptFile(reason: String) {
+        let fm = FileManager.default
+        guard fm.fileExists(atPath: storageURL.path) else { return }
+        let backup = storageURL
+            .deletingPathExtension()
+            .appendingPathExtension("corrupt-\(Int(Date().timeIntervalSince1970)).json")
+        try? fm.removeItem(at: backup)
+        try? fm.moveItem(at: storageURL, to: backup)
+        reportIssue("Quarantined corrupt history to \(backup.lastPathComponent): \(reason)")
+    }
+
+    /// Decodes a single entry leniently: yields `nil` instead of throwing
+    /// when the element can't be decoded, so a bad entry doesn't abort the
+    /// whole array decode.
+    private struct ResilientEntry: Decodable {
+        let entry: LiveHistoryEntry?
+        init(from decoder: Decoder) throws {
+            entry = try? LiveHistoryEntry(from: decoder)
         }
     }
 
@@ -278,9 +345,11 @@ public final class LiveHistoryStore: @unchecked Sendable {
         let snapshot = entries
         let url = storageURL
 
-        writeQueue.async { [weak self] in
-            guard self != nil else { return }
-
+        // The closure captures only the immutable `snapshot` + `url` and never
+        // touches `self`, so it must NOT be `[weak self]`-guarded — doing so
+        // would silently drop the final write (e.g. right after `clearAll()`)
+        // if the store deallocated.
+        writeQueue.async {
             // Ensure directory exists
             let directory = url.deletingLastPathComponent()
             try? FileManager.default.createDirectory(
@@ -302,24 +371,37 @@ public final class LiveHistoryStore: @unchecked Sendable {
         }
     }
 
-    /// Remove oldest auto entries until the count is within `maxAutoEntries`.
-    private func evictOldAutoEntries() {
-        let autoIndices = entries.indices.filter { entries[$0].origin == .auto }
-        let excess = autoIndices.count - maxAutoEntries
+    /// Remove oldest entries of `origin` until the count is within `max`.
+    /// `entries` is newest-first, so the oldest are at the highest indices.
+    private func evictEntries(origin: LiveHistoryOrigin, max: Int) {
+        let matching = entries.indices.filter { entries[$0].origin == origin }
+        let excess = matching.count - max
         guard excess > 0 else { return }
-
-        // Remove the oldest entries (highest indices, since array is newest-first)
-        let toRemove = autoIndices.suffix(excess)
-        for index in toRemove.sorted(by: >) {
+        for index in matching.suffix(excess).sorted(by: >) {
             entries.remove(at: index)
         }
     }
 
     // MARK: - Helpers
 
-    /// Compute a stable serialized key for dedup comparison.
-    private static func serializedKey(for state: LiveEditorState) -> String {
-        LiveEditorStateCodec.encode(state)
+    /// Content-only dedup key: the fields that actually change the rendered
+    /// diagram (format, theme, config, source, theme-builder overrides),
+    /// deliberately excluding transient UI so cosmetic toggles don't mint
+    /// content-identical auto snapshots. Never collapses to `""` for a
+    /// non-empty source (which is the only state auto-save persists).
+    private static func contentKey(for state: LiveEditorState) -> String {
+        let sep = "\u{1F}"
+        var key = [
+            state.sourceFormat.rawValue,
+            state.selectedThemeName,
+            state.configJSON,
+            state.source
+        ].joined(separator: sep)
+        if let data = try? JSONEncoder().encode(state.themeBuilder),
+           let overrides = String(data: data, encoding: .utf8) {
+            key += sep + overrides
+        }
+        return key
     }
 
     /// Default storage location in Application Support.
@@ -339,10 +421,15 @@ public final class LiveHistoryStore: @unchecked Sendable {
     }
 
     private static func appSupportURL() -> URL {
-        FileManager.default.urls(
+        if let url = FileManager.default.urls(
             for: .applicationSupportDirectory,
             in: .userDomainMask
-        ).first!
+        ).first {
+            return url
+        }
+        // Effectively never happens on Apple platforms, but degrade to a
+        // temp dir rather than crashing app startup with a force-unwrap.
+        return FileManager.default.temporaryDirectory
     }
 
     /// If a legacy MermaidPlayground/History/history.json exists and the new
