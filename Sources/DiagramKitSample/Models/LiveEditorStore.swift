@@ -686,6 +686,7 @@ public final class LiveEditorStore {
         case .moveToSubgraph:    return .setLabel
         case .ungroupSubgraph:   return .setLabel
         case .renameSubgraph:    return .setLabel
+        case .setNodeIcon:       return .setLabel
         }
     }
 
@@ -711,6 +712,8 @@ public final class LiveEditorStore {
             return "Ungroup \(id)"
         case .renameSubgraph(let id, let title):
             return "Rename \(id) → \(title)"
+        case .setNodeIcon(let sel, let spec):
+            return "Icon \(sel.elementID) → \(spec?.name ?? "cleared")"
         }
     }
 

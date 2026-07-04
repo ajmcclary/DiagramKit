@@ -64,6 +64,10 @@ public enum FlowchartMutation: Sendable {
 
     /// Retitle; the stable id is preserved.
     case renameSubgraph(id: String, title: String)
+
+    /// Configure a node as an icon node (nil clears back to
+    /// rectangle). Name is validated against FontAwesomeMap.
+    case setNodeIcon(of: DiagramSelection, to: IconSpec?)
 }
 
 /// Subset of `original_src_types.EdgeStyle` exposed through the
@@ -112,6 +116,8 @@ extension FlowchartMutation {
             return "Ungroup Subgraph"
         case .renameSubgraph:
             return "Rename Subgraph"
+        case .setNodeIcon:
+            return "Set Node Icon"
         }
     }
 }
@@ -143,6 +149,8 @@ extension FlowchartMutation: Equatable, Hashable {
             return a == b
         case (.renameSubgraph(let aId, let aTitle), .renameSubgraph(let bId, let bTitle)):
             return aId == bId && aTitle == bTitle
+        case (.setNodeIcon(let aSel, let aSpec), .setNodeIcon(let bSel, let bSpec)):
+            return aSel == bSel && aSpec == bSpec
         default:
             return false
         }
@@ -193,6 +201,10 @@ extension FlowchartMutation: Equatable, Hashable {
             hasher.combine(9)
             hasher.combine(id)
             hasher.combine(title)
+        case .setNodeIcon(let sel, let spec):
+            hasher.combine(10)
+            hasher.combine(sel)
+            hasher.combine(spec)
         }
     }
 }
@@ -272,6 +284,8 @@ extension DiagramEditor {
             return (try _ungroupSubgraph(id: id, into: document), [])
         case .renameSubgraph(let id, let title):
             return (try _renameSubgraph(id: id, title: title, into: document), [])
+        case .setNodeIcon(let selection, let spec):
+            return (try _setNodeIcon(of: selection, to: spec, into: document), [])
         }
     }
 

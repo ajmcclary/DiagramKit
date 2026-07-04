@@ -36,6 +36,10 @@ public enum DiagramEditorError: Error, LocalizedError, Sendable {
     /// not recognize.
     case unknownShapeAlias(alias: String)
 
+    /// `setNodeIcon` received a name absent from the bundled
+    /// Font Awesome table.
+    case unknownIconName(name: String)
+
     public var errorDescription: String? {
         switch self {
         case .elementNotFound(let id, let kind):
@@ -56,6 +60,8 @@ public enum DiagramEditorError: Error, LocalizedError, Sendable {
             return "Invalid subgraph selection: \(reason)"
         case .unknownShapeAlias(let alias):
             return "Unknown node shape alias '\(alias)'"
+        case .unknownIconName(let name):
+            return "Unknown icon name '\(name)'"
         }
     }
 }
