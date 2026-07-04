@@ -94,6 +94,11 @@ public final class DiagramSyntaxHighlighter: Sendable {
         // Mermaid keywords (standalone words)
         let keywords: Set<String>
 
+        // Single precompiled alternation of all keywords (`\b(kw1|kw2|…)\b`).
+        // Replaces compiling ~100 regexes and running ~100 full-document
+        // scans on every rehighlight.
+        let keywordPattern: NSRegularExpression
+
         // Transition / arrow operators
         let transitionPattern: NSRegularExpression
 
@@ -187,6 +192,17 @@ public final class DiagramSyntaxHighlighter: Sendable {
                 "RelIndex",
             ])
 
+            // Longest-first so the alternation prefers multi-word keywords
+            // (`left of`) over their prefixes (`left`). Case-sensitive to
+            // match the previous per-keyword behavior.
+            let kwAlt = keywords
+                .sorted { $0.count > $1.count }
+                .map { NSRegularExpression.escapedPattern(for: $0) }
+                .joined(separator: "|")
+            keywordPattern = try! NSRegularExpression(
+                pattern: #"\b(?:"# + kwAlt + #")\b"#
+            )
+
             transitionPattern = try! NSRegularExpression(
                 pattern: #"--+\>|--+x|--+[)o]|==+\>|[ox]\-{2,}>|[ox]=+>|-\.-+>|-->>|->>|[ox]\-+|\-{3,}|={3,}|\.\-\.|\.\.\>"#
             )
@@ -252,16 +268,25 @@ public final class DiagramSyntaxHighlighter: Sendable {
         theme: DiagramTheme
     ) async {
         let tokens = await tokenize(source)
+
+        // The tokenize hop is async; if the user edited during it, the token
+        // ranges are stale and would miscolor. Bail — a fresh highlight pass
+        // for the current text is already scheduled. (iOS guards the same way.)
+        guard Self.shouldApplyHighlight(
+            capturedSource: source,
+            currentText: textView.string
+        ) else {
+            return
+        }
+
         let colors = colorMap(for: theme)
 
-        // Clear previous temporary attributes
+        // Clear previous temporary attributes (one whole-range removal).
         let fullRange = NSRange(location: 0, length: textView.string.utf16.count)
-        for _ in TokenCategory.allCases {
-            textView.layoutManager?.removeTemporaryAttribute(
-                .foregroundColor,
-                forCharacterRange: fullRange
-            )
-        }
+        textView.layoutManager?.removeTemporaryAttribute(
+            .foregroundColor,
+            forCharacterRange: fullRange
+        )
 
         // Apply new attributes
         for token in tokens {
@@ -369,17 +394,33 @@ public final class DiagramSyntaxHighlighter: Sendable {
         // 7. Delimiters
         _addMatches(p.delimiterPattern, in: nsSource, category: .delimiter, to: &tokens)
 
-        // 8. Keywords (word-boundary check)
-        for keyword in p.keywords {
-            let escaped = NSRegularExpression.escapedPattern(for: keyword)
-            guard let regex = try? NSRegularExpression(pattern: #"\b\#(escaped)\b"#) else { continue }
-            _addMatches(regex, in: nsSource, category: .keyword, to: &tokens)
-        }
+        // 8. Keywords (single precompiled word-boundary alternation)
+        _addMatches(p.keywordPattern, in: nsSource, category: .keyword, to: &tokens)
+
+        // Drop keyword/number/delimiter/transition tokens that fall inside a
+        // comment or string, so they don't repaint over the enclosing color
+        // when tokens are applied in location order.
+        tokens = _suppressOverlaps(tokens)
 
         // Sort by location
         tokens.sort { $0.range.location < $1.range.location }
 
         return tokens
+    }
+
+    /// Remove non-protective tokens that intersect a comment / string /
+    /// annotation span. Applied to Mermaid only — JSON deliberately overlays
+    /// its `.keyword` (key) token on top of the `.string` span.
+    private nonisolated static func _suppressOverlaps(_ tokens: [HighlightToken]) -> [HighlightToken] {
+        let protective: Set<TokenCategory> = [.comment, .string, .annotation]
+        let spans = tokens.filter { protective.contains($0.category) }
+        guard !spans.isEmpty else { return tokens }
+        return tokens.filter { token in
+            if protective.contains(token.category) || token.category == .diagramType {
+                return true
+            }
+            return !spans.contains { NSIntersectionRange($0.range, token.range).length > 0 }
+        }
     }
 
     // MARK: - JSON tokenizer

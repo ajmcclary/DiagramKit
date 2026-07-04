@@ -97,8 +97,11 @@ struct NativeCodeEditor: NSViewRepresentable {
             coordinator.applyExternalUpdate(expectedText, to: textView)
         }
 
-        // Update highlighter reference
+        // Update highlighter reference and paint the first pass — makeNSView
+        // sets `.string` directly and never kicks a highlight, so without this
+        // a freshly loaded document renders uncolored until the first keystroke.
         coordinator.highlighter = highlighter
+        coordinator.highlightIfNeeded(textView)
     }
 
     private func applyTheme(to textView: NSTextView, scrollView: NSScrollView, theme: DiagramTheme) {
@@ -121,6 +124,7 @@ struct NativeCodeEditor: NSViewRepresentable {
         /// Whether the user is actively typing (suppresses external updates).
         fileprivate(set) var isUserTyping = false
         private var debounceTask: Task<Void, Never>?
+        private var didInitialHighlight = false
 
         init(store: LiveEditorStore, mode: EditorMode) {
             self.store = store
@@ -135,6 +139,13 @@ struct NativeCodeEditor: NSViewRepresentable {
             }
         }
 
+        /// Paint the first highlight pass once a highlighter is available.
+        func highlightIfNeeded(_ textView: NSTextView) {
+            guard !didInitialHighlight, highlighter != nil else { return }
+            didInitialHighlight = true
+            scheduleHighlight(for: textView)
+        }
+
         /// Apply an external source change while preserving cursor/scroll.
         func applyExternalUpdate(_ newText: String, to textView: NSTextView) {
             guard textView.string != newText else { return }
@@ -145,13 +156,19 @@ struct NativeCodeEditor: NSViewRepresentable {
 
             textView.string = newText
 
+            // An external re-seed is a new editing baseline. Setting `.string`
+            // directly bypasses the undo machinery, so drop actions recorded
+            // against the previous buffer — otherwise a later Cmd-Z reverses
+            // an edit against an inconsistent range (or raises NSRangeException).
+            textView.undoManager?.removeAllActions()
+
             // Restore cursor at same line if possible
             let newLineCount = _lineCount(in: newText as NSString)
             let targetLine = min(oldLine, newLineCount)
             if let newRange = _characterRange(forLine: targetLine, in: newText as NSString) {
                 textView.setSelectedRange(NSRange(location: newRange.location, length: 0))
-            } else if oldSelected.location <= newText.utf16.count {
-                textView.setSelectedRange(oldSelected)
+            } else {
+                textView.setSelectedRange(_clampRange(oldSelected, toLength: newText.utf16.count))
             }
 
             // Restore scroll
@@ -160,6 +177,16 @@ struct NativeCodeEditor: NSViewRepresentable {
             }
 
             updateRulerLine(textView)
+            scheduleHighlight(for: textView)
+        }
+
+        /// Clamp both the location and length of a selection so it can never
+        /// exceed the new text — `NSTextView.setSelectedRange` raises an
+        /// exception on an over-long range (UIKit clamps, AppKit doesn't).
+        private func _clampRange(_ range: NSRange, toLength length: Int) -> NSRange {
+            let location = min(max(range.location, 0), length)
+            let maxLength = max(0, length - location)
+            return NSRange(location: location, length: min(range.length, maxLength))
         }
 
         // MARK: - NSTextViewDelegate
@@ -350,6 +377,7 @@ struct NativeCodeEditor: UIViewRepresentable {
         }
 
         coordinator.highlighter = highlighter
+        coordinator.highlightIfNeeded(textView)
     }
 
     private func applyTheme(to textView: UITextView, ruler: LineNumberRulerView, theme: DiagramTheme) {
@@ -371,6 +399,7 @@ struct NativeCodeEditor: UIViewRepresentable {
 
         fileprivate(set) var isUserTyping = false
         private var debounceTask: Task<Void, Never>?
+        private var didInitialHighlight = false
 
         init(store: LiveEditorStore, mode: EditorMode) {
             self.store = store
@@ -385,6 +414,13 @@ struct NativeCodeEditor: UIViewRepresentable {
             }
         }
 
+        /// Paint the first highlight pass once a highlighter is available.
+        func highlightIfNeeded(_ textView: UITextView) {
+            guard !didInitialHighlight, highlighter != nil else { return }
+            didInitialHighlight = true
+            scheduleHighlight(for: textView)
+        }
+
         func applyExternalUpdate(_ newText: String, to textView: UITextView) {
             guard textView.text != newText else { return }
 
@@ -393,15 +429,40 @@ struct NativeCodeEditor: UIViewRepresentable {
 
             textView.text = newText
 
+            // New editing baseline — clear undo actions recorded against the
+            // old buffer (see the macOS note).
+            textView.undoManager?.removeAllActions()
+
             let newLineCount = _lineCount(in: newText as NSString)
             let targetLine = min(oldLine, newLineCount)
             if let newRange = _characterRange(forLine: targetLine, in: newText as NSString) {
-                textView.selectedRange = newRange
-            } else if oldSelected.location <= newText.utf16.count {
-                textView.selectedRange = oldSelected
+                // Collapse to a caret at the line start — matching macOS —
+                // rather than leaving the whole line selected (which would let
+                // the next keystroke replace the line).
+                textView.selectedRange = NSRange(location: newRange.location, length: 0)
+            } else {
+                textView.selectedRange = _clampRange(oldSelected, toLength: newText.utf16.count)
             }
 
             lineNumberRuler?.currentLine = _currentLine(in: textView)
+            scheduleHighlight(for: textView)
+        }
+
+        /// Clamp a selection to the new text length (UITextView clamps for us,
+        /// but keep parity with the macOS path and avoid surprises).
+        private func _clampRange(_ range: NSRange, toLength length: Int) -> NSRange {
+            let location = min(max(range.location, 0), length)
+            let maxLength = max(0, length - location)
+            return NSRange(location: location, length: min(range.length, maxLength))
+        }
+
+        // MARK: - UIScrollViewDelegate
+
+        /// The iOS ruler is a static sibling view, so it must be told to
+        /// repaint whenever the text scrolls (macOS's NSRulerView is wired to
+        /// the scroll view and repaints automatically).
+        func scrollViewDidScroll(_ scrollView: UIScrollView) {
+            lineNumberRuler?.setNeedsDisplay()
         }
 
         // MARK: - UITextViewDelegate

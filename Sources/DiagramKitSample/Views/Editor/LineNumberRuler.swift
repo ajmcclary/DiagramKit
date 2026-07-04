@@ -87,13 +87,27 @@ final class LineNumberRulerView: NSRulerView {
         // Draw each visible line
         let glyphRange = layoutManager.glyphRange(forBoundingRect: visibleRect, in: textContainer)
 
+        // Track the line number incrementally across visible fragments — the
+        // first fragment costs one O(charIndex) scan, subsequent fragments
+        // only count newlines since the previous fragment. Avoids the old
+        // O(visibleLines × documentLength) prefix rescans.
+        var runningLine: Int?
+        var lastCharLocation = 0
+
         var glyphIndex = glyphRange.location
         while glyphIndex < NSMaxRange(glyphRange) {
             var effectiveRange = NSRange(location: 0, length: 0)
             let lineRect = layoutManager.lineFragmentRect(forGlyphAt: glyphIndex, effectiveRange: &effectiveRange)
             let charRange = layoutManager.characterRange(forGlyphRange: effectiveRange, actualGlyphRange: nil)
 
-            let lineNumber = _lineNumber(for: charRange.location, in: content)
+            let lineNumber: Int
+            if let running = runningLine {
+                lineNumber = running + _newlineCount(in: content, from: lastCharLocation, to: charRange.location)
+            } else {
+                lineNumber = _lineNumber(for: charRange.location, in: content)
+            }
+            runningLine = lineNumber
+            lastCharLocation = charRange.location
             let isCurrent = lineNumber == currentLine
             let y = lineRect.minY
             let rulerWidth = bounds.width
@@ -153,11 +167,17 @@ final class LineNumberRulerView: NSRulerView {
 
     private func _lineNumber(for charIndex: Int, in string: NSString) -> Int {
         guard charIndex < string.length else { return _lineCount(in: string) }
-        let prefix = string.substring(to: charIndex)
         var count = 1
-        for ch in prefix.utf16 {
-            if ch == 0x0A { count += 1 }
-        }
+        for i in 0..<charIndex where string.character(at: i) == 0x0A { count += 1 }
+        return count
+    }
+
+    /// Count newlines in `[from, to)` — used to advance the running line
+    /// number between consecutive visible fragments.
+    private func _newlineCount(in string: NSString, from: Int, to: Int) -> Int {
+        guard from < to else { return 0 }
+        var count = 0
+        for i in from..<min(to, string.length) where string.character(at: i) == 0x0A { count += 1 }
         return count
     }
 
@@ -218,19 +238,41 @@ final class LineNumberRulerView: UIView {
         theme.background.setFill()
         UIRectFill(rect)
 
-        let visibleRect = textView.convert(textView.bounds, to: self)
+        // The ruler is a static sibling view (not scrolled with the text), so
+        // line-fragment Y positions (in text-container space) must be shifted
+        // by the scroll offset and the container inset to land on screen.
+        let offsetY = textView.contentOffset.y
+        let insetTop = textView.textContainerInset.top
 
-        let glyphRange = layoutManager.glyphRange(forBoundingRect: visibleRect, in: textContainer)
+        // Visible region expressed in text-container coordinates.
+        let visibleContainerRect = CGRect(
+            x: 0,
+            y: offsetY - insetTop,
+            width: textView.bounds.width,
+            height: textView.bounds.height
+        )
+        let glyphRange = layoutManager.glyphRange(forBoundingRect: visibleContainerRect, in: textContainer)
+
+        var runningLine: Int?
+        var lastCharLocation = 0
         var glyphIndex = glyphRange.location
 
         while glyphIndex < NSMaxRange(glyphRange) {
             var effectiveRange = NSRange(location: 0, length: 0)
             let lineRect = layoutManager.lineFragmentRect(forGlyphAt: glyphIndex, effectiveRange: &effectiveRange)
             let charRange = layoutManager.characterRange(forGlyphRange: effectiveRange, actualGlyphRange: nil)
-            let lineNumber = _lineNumber(for: charRange.location, in: content)
+            let lineNumber: Int
+            if let running = runningLine {
+                lineNumber = running + _newlineCount(in: content, from: lastCharLocation, to: charRange.location)
+            } else {
+                lineNumber = _lineNumber(for: charRange.location, in: content)
+            }
+            runningLine = lineNumber
+            lastCharLocation = charRange.location
             let isCurrent = lineNumber == currentLine
 
-            let y = lineRect.minY
+            // Convert the fragment's container-space Y to on-screen ruler Y.
+            let y = lineRect.minY + insetTop - offsetY
             let rulerWidth = bounds.width
 
             // Current line highlight
@@ -276,11 +318,17 @@ final class LineNumberRulerView: UIView {
 
     private func _lineNumber(for charIndex: Int, in string: NSString) -> Int {
         guard charIndex < string.length else { return _lineCount(in: string) }
-        let prefix = string.substring(to: charIndex)
         var count = 1
-        for ch in prefix.utf16 {
-            if ch == 0x0A { count += 1 }
-        }
+        for i in 0..<charIndex where string.character(at: i) == 0x0A { count += 1 }
+        return count
+    }
+
+    /// Count newlines in `[from, to)` — advances the running line number
+    /// between consecutive visible fragments.
+    private func _newlineCount(in string: NSString, from: Int, to: Int) -> Int {
+        guard from < to else { return 0 }
+        var count = 0
+        for i in from..<min(to, string.length) where string.character(at: i) == 0x0A { count += 1 }
         return count
     }
 
