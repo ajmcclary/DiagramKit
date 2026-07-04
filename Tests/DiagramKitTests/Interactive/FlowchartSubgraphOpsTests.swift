@@ -216,4 +216,42 @@ struct FlowchartSubgraphOpsTests {
         editor.undoManager.undo()
         #expect(subgraphs(editor).first?.label == "Group One")
     }
+
+    // MARK: - deleteElement(group:)
+
+    @Test("deleteElement on a group removes subgraph, member nodes, and incident edges")
+    func deleteGroup() async throws {
+        let editor = makeEditor(groupedDoc())
+        let sel = DiagramSelection(diagramType: .flowchart, elementID: "group:g1")
+        try await editor.perform(.deleteElement(sel))
+        guard case .flowchart(let model) = editor.document.payload else {
+            #expect(Bool(false)); return
+        }
+        #expect(model.subgraphs.isEmpty)
+        #expect(model.nodesInOrder.map(\.id) == ["C"])
+        #expect(model.edges.isEmpty)  // A→C died with A
+    }
+
+    @Test("deleteElement on unknown group throws")
+    func deleteUnknownGroup() async {
+        let editor = makeEditor(groupedDoc())
+        let sel = DiagramSelection(diagramType: .flowchart, elementID: "group:nope")
+        await #expect(throws: DiagramEditorError.self) {
+            try await editor.perform(.deleteElement(sel))
+        }
+    }
+
+    @Test("deleteElement group undo restores everything (deep-copy pin)")
+    func deleteGroupUndo() async throws {
+        let editor = makeEditor(groupedDoc())
+        let sel = DiagramSelection(diagramType: .flowchart, elementID: "group:g1")
+        try await editor.perform(.deleteElement(sel))
+        editor.undoManager.undo()
+        guard case .flowchart(let model) = editor.document.payload else {
+            #expect(Bool(false)); return
+        }
+        #expect(model.subgraphs.count == 1)
+        #expect(model.nodesInOrder.count == 3)
+        #expect(model.edges.count == 1)
+    }
 }

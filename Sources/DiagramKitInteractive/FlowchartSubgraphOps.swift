@@ -155,6 +155,37 @@ extension DiagramEditor {
         return doc
     }
 
+    // MARK: - Group deletion support
+
+    /// Remove and return the subgraph with `id` from a (copied)
+    /// forest, searching recursively. Returns nil when absent.
+    static func _extractSubgraph(
+        _ id: String,
+        from forest: inout [original_src_types.MermaidSubgraph]
+    ) -> original_src_types.MermaidSubgraph? {
+        if let idx = forest.firstIndex(where: { $0.id == id }) {
+            return forest.remove(at: idx)
+        }
+        for sub in forest {
+            var children = sub.children
+            if let hit = _extractSubgraph(id, from: &children) {
+                sub.children = children
+                return hit
+            }
+        }
+        return nil
+    }
+
+    /// All node ids transitively contained in `sub` (its own plus
+    /// every descendant subgraph's).
+    static func _allMemberNodeIDs(in sub: original_src_types.MermaidSubgraph) -> Set<String> {
+        var ids = Set(sub.nodeIds)
+        for child in sub.children {
+            ids.formUnion(_allMemberNodeIDs(in: child))
+        }
+        return ids
+    }
+
     // MARK: - insertSubgraph
 
     func _insertSubgraph(
