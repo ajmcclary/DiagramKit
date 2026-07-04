@@ -11,6 +11,7 @@ import SwiftUI
 
 struct CanvasCenterToolbar: View {
     @Bindable var store: LiveEditorStore
+    @Environment(\.playgroundTokens) private var tokens
 
     @SwiftUI.State private var showShapeCatalog = false
     @SwiftUI.State private var showIconBrowser = false
@@ -109,11 +110,16 @@ struct CanvasCenterToolbar: View {
                 ThemeSwatchPicker(store: store) { showThemePicker = false }
             }
         }
+        .foregroundStyle(tokens.palette.fg2)
         .padding(4)
         .background(
-            RoundedRectangle(cornerRadius: 10, style: .continuous)
-                .fill(.regularMaterial)
-                .shadow(color: .black.opacity(0.18), radius: 8, x: 0, y: 4)
+            RoundedRectangle(cornerRadius: 12, style: .continuous)
+                .fill(tokens.palette.bgChrome.opacity(0.92))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 12, style: .continuous)
+                        .stroke(tokens.palette.borderHairline, lineWidth: 0.5)
+                )
+                .shadow(color: .black.opacity(0.35), radius: 8, x: 0, y: 4)
         )
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier(A11yID.Visual.centerToolbar)

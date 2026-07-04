@@ -13,6 +13,7 @@ import DiagramKitModel
 
 struct CanvasZoomToolbar: View {
     let theme: DiagramTheme
+    @Environment(\.playgroundTokens) private var tokens
     @Binding var zoomScale: CGFloat
     @Binding var gridEnabled: Bool
     @Binding var panZoomEnabled: Bool
@@ -45,18 +46,18 @@ struct CanvasZoomToolbar: View {
             }
         }
         .font(.system(size: 13))
-        .foregroundColor(Color(theme.foreground))
+        .foregroundColor(tokens.palette.fg2)
         .padding(.horizontal, 6)
         .padding(.vertical, 4)
         .background(
-            RoundedRectangle(cornerRadius: 8)
-                .fill(.regularMaterial)
+            RoundedRectangle(cornerRadius: 10)
+                .fill(tokens.palette.bgChrome.opacity(0.92))
                 .overlay(
-                    RoundedRectangle(cornerRadius: 8)
-                        .stroke(Color(theme.effectiveLine()).opacity(0.2), lineWidth: 0.5)
+                    RoundedRectangle(cornerRadius: 10)
+                        .stroke(tokens.palette.borderHairline, lineWidth: 0.5)
                 )
         )
-        .shadow(color: .black.opacity(0.12), radius: 6, x: 0, y: 2)
+        .shadow(color: .black.opacity(0.35), radius: 6, x: 0, y: 2)
     }
 
     // MARK: - Buttons
@@ -74,12 +75,12 @@ struct CanvasZoomToolbar: View {
             .background(
                 RoundedRectangle(cornerRadius: 5)
                     .fill(isAtAutomaticFit
-                        ? Color(theme.effectiveAccent()).opacity(0.15)
+                        ? tokens.palette.accent.opacity(0.15)
                         : Color.clear)
             )
             .foregroundColor(isAtAutomaticFit
-                ? Color(theme.effectiveAccent())
-                : Color(theme.foreground))
+                ? tokens.palette.accent
+                : tokens.palette.fg2)
         }
         .buttonStyle(.plain)
         .help("Fit diagram to view")
@@ -138,8 +139,8 @@ struct CanvasZoomToolbar: View {
         }
         .buttonStyle(.plain)
         .foregroundColor(panZoomEnabled
-            ? Color(theme.effectiveAccent())
-            : Color(theme.foreground))
+            ? tokens.palette.accent
+            : tokens.palette.fg2)
         .help(panZoomEnabled ? "Disable pan and zoom" : "Enable pan and zoom")
         .a11yToggle(
             label: "Pan and zoom",
@@ -158,8 +159,8 @@ struct CanvasZoomToolbar: View {
         }
         .buttonStyle(.plain)
         .foregroundColor(gridEnabled
-            ? Color(theme.effectiveAccent())
-            : Color(theme.foreground))
+            ? tokens.palette.accent
+            : tokens.palette.fg2)
         .help(gridEnabled ? "Hide grid" : "Show grid")
         .a11yToggle(
             label: "Grid overlay",
@@ -183,8 +184,8 @@ struct CanvasZoomToolbar: View {
         Text(isAtAutomaticFit ? "Fit" : "\(Int(round(zoomScale * 100)))%")
             .font(.system(size: 11, weight: .medium, design: .monospaced))
             .foregroundColor(isAtAutomaticFit
-                ? Color(theme.effectiveMuted())
-                : Color(theme.foreground))
+                ? tokens.palette.fg3
+                : tokens.palette.fg2)
             .frame(width: 42)
     }
 

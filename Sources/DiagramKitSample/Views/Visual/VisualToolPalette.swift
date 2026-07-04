@@ -11,6 +11,7 @@ import SwiftUI
 
 struct VisualToolPalette: View {
     @Bindable var store: LiveEditorStore
+    @Environment(\.playgroundTokens) private var tokens
 
     var body: some View {
         VStack(spacing: 4) {
@@ -31,9 +32,13 @@ struct VisualToolPalette: View {
         }
         .padding(6)
         .background(
-            RoundedRectangle(cornerRadius: 10, style: .continuous)
-                .fill(.regularMaterial)
-                .shadow(color: .black.opacity(0.18), radius: 8, x: 0, y: 4)
+            RoundedRectangle(cornerRadius: 12, style: .continuous)
+                .fill(tokens.palette.bgChrome.opacity(0.92))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 12, style: .continuous)
+                        .stroke(tokens.palette.borderHairline, lineWidth: 0.5)
+                )
+                .shadow(color: .black.opacity(0.35), radius: 8, x: 0, y: 4)
         )
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier(A11yID.Visual.toolPalette)
@@ -47,10 +52,10 @@ struct VisualToolPalette: View {
             Image(systemName: tool.sfSymbol)
                 .font(.system(size: 14, weight: .medium))
                 .frame(width: 30, height: 30)
-                .foregroundStyle(isOn ? Color.accentColor : .primary)
+                .foregroundStyle(isOn ? tokens.palette.accent : tokens.palette.fg2)
                 .background(
                     RoundedRectangle(cornerRadius: 7, style: .continuous)
-                        .fill(isOn ? Color.accentColor.opacity(0.18) : Color.clear)
+                        .fill(isOn ? tokens.palette.accentTint16 : Color.clear)
                 )
         }
         .buttonStyle(.plain)
@@ -70,6 +75,7 @@ struct VisualToolPalette: View {
         } label: {
             Image(systemName: "arrow.uturn.backward")
                 .frame(width: 30, height: 30)
+                .foregroundStyle(tokens.palette.fg2)
         }
         .buttonStyle(.plain)
         .disabled(!canUndo)
@@ -85,6 +91,7 @@ struct VisualToolPalette: View {
         } label: {
             Image(systemName: "arrow.uturn.forward")
                 .frame(width: 30, height: 30)
+                .foregroundStyle(tokens.palette.fg2)
         }
         .buttonStyle(.plain)
         .disabled(!canRedo)
@@ -99,7 +106,7 @@ struct VisualToolPalette: View {
         } label: {
             Image(systemName: "rectangle.stack.badge.plus")
                 .frame(width: 30, height: 30)
-                .foregroundStyle(Color.accentColor)
+                .foregroundStyle(tokens.palette.accent)
         }
         .buttonStyle(.plain)
         .help("Group selected nodes into a subgraph")
