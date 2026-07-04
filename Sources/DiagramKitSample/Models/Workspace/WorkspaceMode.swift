@@ -2,9 +2,9 @@
 //  WorkspaceMode.swift
 //  DiagramPlayground
 //
-//  Drives the v2 Titlebar mode picker (Code / Visual / Split).
-//  Default is `.split` per the design — Phase 1 only enables `.code`,
-//  Phase 3+ unlocks `.visual` and `.split` once the visual canvases land.
+//  Drives the v2 Titlebar mode picker (Code / Editor / Split).
+//  Default is `.visual` (the Editor canvas) so a fresh launch lands on
+//  the visual editor.
 //
 
 import Foundation
@@ -14,7 +14,7 @@ public enum WorkspaceMode: String, CaseIterable, Codable, Sendable, Hashable {
     case visual
     case split
 
-    public static let `default`: WorkspaceMode = .split
+    public static let `default`: WorkspaceMode = .visual
 
     public var label: String {
         switch self {
