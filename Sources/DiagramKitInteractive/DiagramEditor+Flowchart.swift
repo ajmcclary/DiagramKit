@@ -37,6 +37,12 @@ public enum FlowchartMutation: Sendable {
     /// provided, then by source+target identity. Throws
     /// `.elementNotFound` if neither match locates the edge.
     case setEdgeStyle(edgeId: String?, source: String, target: String, to: FlowchartEdgeStyle)
+
+    /// Change the shape of an existing node. `toShape` is a Mermaid
+    /// shape alias (same vocabulary as `insertNode(type:)`), resolved
+    /// via `NodeShape.resolve(alias:)`. Throws `.unknownShapeAlias`
+    /// for unrecognized aliases.
+    case setNodeShape(of: DiagramSelection, toShape: String)
 }
 
 /// Subset of `original_src_types.EdgeStyle` exposed through the
@@ -73,6 +79,8 @@ extension FlowchartMutation {
             return "Group Into Subgraph"
         case .setEdgeStyle:
             return "Set Edge Style"
+        case .setNodeShape:
+            return "Change Node Shape"
         }
     }
 }
@@ -92,6 +100,8 @@ extension FlowchartMutation: Equatable, Hashable {
         case (.setEdgeStyle(let aId, let aSrc, let aTgt, let aStyle),
               .setEdgeStyle(let bId, let bSrc, let bTgt, let bStyle)):
             return aId == bId && aSrc == bSrc && aTgt == bTgt && aStyle == bStyle
+        case (.setNodeShape(let aSel, let aShape), .setNodeShape(let bSel, let bShape)):
+            return aSel == bSel && aShape == bShape
         default:
             return false
         }
@@ -120,6 +130,10 @@ extension FlowchartMutation: Equatable, Hashable {
             hasher.combine(src)
             hasher.combine(tgt)
             hasher.combine(style)
+        case .setNodeShape(let sel, let shape):
+            hasher.combine(4)
+            hasher.combine(sel)
+            hasher.combine(shape)
         }
     }
 }
@@ -187,6 +201,8 @@ extension DiagramEditor {
                 edgeId: edgeId, source: source, target: target,
                 style: style.internalStyle, into: document
             ), [])
+        case .setNodeShape(let selection, let alias):
+            return (try _setFlowchartNodeShape(of: selection, toAlias: alias, into: document), [])
         }
     }
 
@@ -215,6 +231,36 @@ extension DiagramEditor {
             throw DiagramEditorError.elementNotFound(id: descriptor, kind: "edge")
         }
         model.edges[index].style = style
+        doc.payload = .flowchart(model)
+        return doc
+    }
+
+    func _setFlowchartNodeShape(
+        of selection: DiagramSelection,
+        toAlias alias: String,
+        into document: DiagramDocument
+    ) throws -> DiagramDocument {
+        try _validateSelection(selection, matches: document)
+        var doc = document
+        guard case .flowchart(var model) = doc.payload else {
+            throw DiagramEditorError.notAFlowchart
+        }
+        guard selection.elementID.hasPrefix("node:") else {
+            throw DiagramEditorError.unknownElementKind(id: selection.elementID)
+        }
+        let nodeID = String(selection.elementID.dropFirst(5))
+        guard model.nodesInOrder.contains(where: { $0.id == nodeID }) else {
+            throw DiagramEditorError.elementNotFound(id: nodeID, kind: "node")
+        }
+        guard let shape = original_src_types.NodeShape.resolve(alias: alias) else {
+            throw DiagramEditorError.unknownShapeAlias(alias: alias)
+        }
+        model.nodesInOrder = model.nodesInOrder.map { entry in
+            guard entry.id == nodeID else { return entry }
+            var node = entry.node
+            node.shape = shape
+            return (id: entry.id, node: node)
+        }
         doc.payload = .flowchart(model)
         return doc
     }

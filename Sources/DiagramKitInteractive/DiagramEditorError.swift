@@ -32,6 +32,10 @@ public enum DiagramEditorError: Error, LocalizedError, Sendable {
     /// in the document.
     case invalidSubgraphSelection(reason: String)
 
+    /// `setNodeShape` received an alias that `NodeShape.resolve` does
+    /// not recognize.
+    case unknownShapeAlias(alias: String)
+
     public var errorDescription: String? {
         switch self {
         case .elementNotFound(let id, let kind):
@@ -50,6 +54,8 @@ public enum DiagramEditorError: Error, LocalizedError, Sendable {
             return "Source sync failed: \(underlying)"
         case .invalidSubgraphSelection(let reason):
             return "Invalid subgraph selection: \(reason)"
+        case .unknownShapeAlias(let alias):
+            return "Unknown node shape alias '\(alias)'"
         }
     }
 }
