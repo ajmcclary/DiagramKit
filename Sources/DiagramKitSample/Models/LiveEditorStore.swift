@@ -249,6 +249,13 @@ public final class LiveEditorStore {
             return
         }
 
+        // Keep `editor` — the source of truth for Organize / Search / the
+        // inspector — in sync with the committed source in ALL workspace modes.
+        // The visual (Editor) canvas paints from `previewSource` and never routes
+        // through `didCompleteRender`, so relying on that callback alone leaves
+        // `editor.document` stale in Editor mode. Skip `.mutation` (the editor
+        // was already updated in place and re-seeding would drop its undo stack).
+        if origin != .mutation { seedEditorFromSource() }
         requestRender(reason: .sourceChanged)
     }
 
@@ -293,6 +300,9 @@ public final class LiveEditorStore {
             return
         }
 
+        // See the note in `setSource(_:origin:)`: keep `editor` synced with the
+        // committed source in every mode. Skip `.mutation` (already updated).
+        if origin != .mutation { seedEditorFromSource() }
         requestRender(reason: .sourceChanged)
     }
 
