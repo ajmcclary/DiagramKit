@@ -42,6 +42,43 @@ extension LiveEditorStore {
         state.demoStepperVisible = flag
     }
 
+    // MARK: - Shape catalog insert flow (visual editor plan 2)
+
+    /// Next free node id of the form `<prefix>N` against the current
+    /// flowchart payload. Returns nil when there is no editor or the
+    /// payload is not a flow graph.
+    public func nextFlowchartNodeID(prefix: String = "n") -> String? {
+        guard let payload = editor?.document.payload else { return nil }
+        let existing: Set<String>
+        switch payload {
+        case .flowchart(let graph), .stateDiagram(let graph):
+            existing = Set(graph.nodesInOrder.map(\.id))
+        default:
+            return nil
+        }
+        var n = 1
+        while existing.contains("\(prefix)\(n)") { n += 1 }
+        return "\(prefix)\(n)"
+    }
+
+    /// Catalog click: insert a node with the next free id and a
+    /// placeholder label, select it, and open the label editor so the
+    /// user can immediately type its name. Errors are surfaced by
+    /// `performFlowchartMutation` via `lastMutationError`.
+    public func insertShapeFromCatalog(alias: String) async {
+        guard let id = nextFlowchartNodeID() else { return }
+        do {
+            try await performFlowchartMutation(
+                .insertNode(id: id, label: "New node", type: alias)
+            )
+            let selection = DiagramSelection(diagramType: .flowchart, elementID: "node:\(id)")
+            setSelection(selection)
+            setVisualStage(.labelEdited)
+        } catch {
+            // performFlowchartMutation already recorded the error.
+        }
+    }
+
     /// Apply a sequence-diagram mutation through the persistent editor
     /// and push the exported source back onto the store (origin
     /// `.mutation` so the post-render seed step skips re-creating the
