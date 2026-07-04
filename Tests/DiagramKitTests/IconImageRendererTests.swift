@@ -45,21 +45,35 @@ final class IconImageRendererTests: XCTestCase {
     }
 
     func testIconNodeWithPOSLabelAbove() async throws {
-        let source = """
-        graph LR
-          A@{ icon: "fa:check", form: "square", label: "OK", pos: "t" }
-        """
-        let svg = try await DiagramEngine.renderSVG(source: source)
-        XCTAssertTrue(svg.contains("<svg"))
+        // pos:"t" must place the label above the centered position
+        // (visual editor plan 4 — SVG parity with the CG renderer).
+        let topY = try await labelY(pos: "t")
+        let centeredY = try await labelY(pos: nil)
+        XCTAssertLessThan(topY, centeredY, "pos:t label must sit above the centered label")
     }
 
     func testIconNodeWithPOSLabelBelow() async throws {
-        let source = """
-        graph LR
-          A@{ icon: "fa:check", form: "square", label: "OK", pos: "b" }
-        """
+        let bottomY = try await labelY(pos: "b")
+        let centeredY = try await labelY(pos: nil)
+        XCTAssertGreaterThan(bottomY, centeredY, "pos:b label must sit below the centered label")
+    }
+
+    /// Render a one-icon-node diagram and extract the y coordinate of
+    /// its "Me" label text element.
+    private func labelY(pos: String?) async throws -> Double {
+        let posPart = pos.map { ", pos: \"\($0)\"" } ?? ""
+        let source = "graph LR\n  A[\"Me\"]@{ icon: \"fa:user\", shape: icon-square, h: 48\(posPart) }\n"
         let svg = try await DiagramEngine.renderSVG(source: source)
-        XCTAssertTrue(svg.contains("<svg"))
+        let pattern = #"y="([0-9.\-]+)"[^>]*>(?:<tspan[^>]*>)?Me"#
+        let regex = try NSRegularExpression(pattern: pattern)
+        let range = NSRange(svg.startIndex..., in: svg)
+        guard let match = regex.firstMatch(in: svg, range: range),
+              let yRange = Range(match.range(at: 1), in: svg),
+              let y = Double(svg[yRange]) else {
+            XCTFail("label y not found in SVG output for pos=\(pos ?? "nil")")
+            return .nan
+        }
+        return y
     }
 
     // MARK: - CG rendering (CG context not compatible with NSImage draw in test runner)

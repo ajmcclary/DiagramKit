@@ -22,6 +22,7 @@ private struct _SvgNode {
     var interaction: original_src_types.NodeInteraction?
     var icon: String?
     var img: String?
+    var pos: String?
     var securityLevel: String?
 }
 
@@ -971,8 +972,16 @@ private func _renderNodeLabel(_ node: _SvgNode, _ font: String) -> String {
     }
 
     let cx = node.x + node.width / 2
-    let cy = node.y + node.height / 2
+    var cy = node.y + node.height / 2
     let textColor = SVG.escapeAttribute(node.inlineStyle["color"] ?? "var(--_text)")
+
+    // pos t/b places the label above/below the node (±12, matching
+    // the CG renderer's _labelCenterForNode offsets).
+    switch node.pos {
+    case "t": cy = node.y - 12
+    case "b": cy = node.y + node.height + 12
+    default: break
+    }
 
     if node.shape == "rect-with-title", node.descriptions.count > 1 {
         let titleY = node.y + 12
@@ -1026,6 +1035,7 @@ private extension _SvgNode {
             interaction: node.interaction,
             icon: node.properties?.icon,
             img: node.properties?.img,
+            pos: node.properties?.pos,
             securityLevel: securityLevel
         )
     }
