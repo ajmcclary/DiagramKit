@@ -43,6 +43,12 @@ public enum FlowchartMutation: Sendable {
     /// via `NodeShape.resolve(alias:)`. Throws `.unknownShapeAlias`
     /// for unrecognized aliases.
     case setNodeShape(of: DiagramSelection, toShape: String)
+
+    /// Set the visual style of an existing node. Routed through
+    /// `StyleClassManager`: the style lands as a shared generated
+    /// classDef (`vsN`), deduplicated across nodes; an empty spec
+    /// clears the node's generated styling.
+    case setNodeStyle(of: DiagramSelection, to: NodeStyleSpec)
 }
 
 /// Subset of `original_src_types.EdgeStyle` exposed through the
@@ -81,6 +87,8 @@ extension FlowchartMutation {
             return "Set Edge Style"
         case .setNodeShape:
             return "Change Node Shape"
+        case .setNodeStyle:
+            return "Style Node"
         }
     }
 }
@@ -102,6 +110,8 @@ extension FlowchartMutation: Equatable, Hashable {
             return aId == bId && aSrc == bSrc && aTgt == bTgt && aStyle == bStyle
         case (.setNodeShape(let aSel, let aShape), .setNodeShape(let bSel, let bShape)):
             return aSel == bSel && aShape == bShape
+        case (.setNodeStyle(let aSel, let aSpec), .setNodeStyle(let bSel, let bSpec)):
+            return aSel == bSel && aSpec == bSpec
         default:
             return false
         }
@@ -134,6 +144,10 @@ extension FlowchartMutation: Equatable, Hashable {
             hasher.combine(4)
             hasher.combine(sel)
             hasher.combine(shape)
+        case .setNodeStyle(let sel, let spec):
+            hasher.combine(5)
+            hasher.combine(sel)
+            hasher.combine(spec)
         }
     }
 }
@@ -203,6 +217,8 @@ extension DiagramEditor {
             ), [])
         case .setNodeShape(let selection, let alias):
             return (try _setFlowchartNodeShape(of: selection, toAlias: alias, into: document), [])
+        case .setNodeStyle(let selection, let spec):
+            return try _setFlowchartNodeStyle(of: selection, to: spec, into: document)
         }
     }
 
@@ -263,6 +279,28 @@ extension DiagramEditor {
         }
         doc.payload = .flowchart(model)
         return doc
+    }
+
+    func _setFlowchartNodeStyle(
+        of selection: DiagramSelection,
+        to spec: NodeStyleSpec,
+        into document: DiagramDocument
+    ) throws -> (DiagramDocument, [DiagramDiagnostic]) {
+        try _validateSelection(selection, matches: document)
+        var doc = document
+        guard case .flowchart(let model) = doc.payload else {
+            throw DiagramEditorError.notAFlowchart
+        }
+        guard selection.elementID.hasPrefix("node:") else {
+            throw DiagramEditorError.unknownElementKind(id: selection.elementID)
+        }
+        let nodeID = String(selection.elementID.dropFirst(5))
+        guard model.nodesInOrder.contains(where: { $0.id == nodeID }) else {
+            throw DiagramEditorError.elementNotFound(id: nodeID, kind: "node")
+        }
+        let (updated, diagnostics) = StyleClassManager.applyStyle(spec, toNode: nodeID, in: model)
+        doc.payload = .flowchart(updated)
+        return (doc, diagnostics)
     }
 
     // MARK: - Flowchart insertion implementations
