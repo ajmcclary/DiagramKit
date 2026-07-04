@@ -68,6 +68,10 @@ public enum FlowchartMutation: Sendable {
     /// Configure a node as an icon node (nil clears back to
     /// rectangle). Name is validated against FontAwesomeMap.
     case setNodeIcon(of: DiagramSelection, to: IconSpec?)
+
+    /// Configure a node as an image node (nil clears back to
+    /// rectangle). URL is validated for shape only — never fetched.
+    case setNodeImage(of: DiagramSelection, to: ImageSpec?)
 }
 
 /// Subset of `original_src_types.EdgeStyle` exposed through the
@@ -118,6 +122,8 @@ extension FlowchartMutation {
             return "Rename Subgraph"
         case .setNodeIcon:
             return "Set Node Icon"
+        case .setNodeImage:
+            return "Set Node Image"
         }
     }
 }
@@ -150,6 +156,8 @@ extension FlowchartMutation: Equatable, Hashable {
         case (.renameSubgraph(let aId, let aTitle), .renameSubgraph(let bId, let bTitle)):
             return aId == bId && aTitle == bTitle
         case (.setNodeIcon(let aSel, let aSpec), .setNodeIcon(let bSel, let bSpec)):
+            return aSel == bSel && aSpec == bSpec
+        case (.setNodeImage(let aSel, let aSpec), .setNodeImage(let bSel, let bSpec)):
             return aSel == bSel && aSpec == bSpec
         default:
             return false
@@ -203,6 +211,10 @@ extension FlowchartMutation: Equatable, Hashable {
             hasher.combine(title)
         case .setNodeIcon(let sel, let spec):
             hasher.combine(10)
+            hasher.combine(sel)
+            hasher.combine(spec)
+        case .setNodeImage(let sel, let spec):
+            hasher.combine(11)
             hasher.combine(sel)
             hasher.combine(spec)
         }
@@ -286,6 +298,8 @@ extension DiagramEditor {
             return (try _renameSubgraph(id: id, title: title, into: document), [])
         case .setNodeIcon(let selection, let spec):
             return (try _setNodeIcon(of: selection, to: spec, into: document), [])
+        case .setNodeImage(let selection, let spec):
+            return (try _setNodeImage(of: selection, to: spec, into: document), [])
         }
     }
 

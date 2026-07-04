@@ -40,6 +40,9 @@ public enum DiagramEditorError: Error, LocalizedError, Sendable {
     /// Font Awesome table.
     case unknownIconName(name: String)
 
+    /// `setNodeImage` received a URL that is not http/https with a host.
+    case invalidImageURL(url: String)
+
     public var errorDescription: String? {
         switch self {
         case .elementNotFound(let id, let kind):
@@ -62,6 +65,8 @@ public enum DiagramEditorError: Error, LocalizedError, Sendable {
             return "Unknown node shape alias '\(alias)'"
         case .unknownIconName(let name):
             return "Unknown icon name '\(name)'"
+        case .invalidImageURL(let url):
+            return "Invalid image URL '\(url)' (http/https with a host required)"
         }
     }
 }
