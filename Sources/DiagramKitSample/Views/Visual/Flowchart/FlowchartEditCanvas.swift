@@ -34,6 +34,11 @@ struct FlowchartEditCanvas: View {
     @SwiftUI.State private var edgeDragCurrent: CGPoint?
     @SwiftUI.State private var edgeDragSourceID: String?
 
+    // Visual editor plan 3 — drag-to-join (select tool).
+    @SwiftUI.State private var nodeDragElementID: String?
+    @SwiftUI.State private var nodeDragCurrent: CGPoint?
+    @SwiftUI.State private var dropTargetGroupID: String?
+
     var body: some View {
         GeometryReader { geometry in
             ZStack(alignment: .topLeading) {
@@ -71,6 +76,13 @@ struct FlowchartEditCanvas: View {
 
                 if let start = edgeDragStart, let current = edgeDragCurrent {
                     edgeRubberBand(start: start, current: current)
+                }
+
+                if let current = nodeDragCurrent, let elementID = nodeDragElementID {
+                    nodeDragGhost(at: current, elementID: elementID, in: geometry)
+                }
+                if let targetID = dropTargetGroupID {
+                    dropTargetHighlight(groupID: targetID, in: geometry)
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -245,8 +257,20 @@ struct FlowchartEditCanvas: View {
                 store.setVisualStage(.edgeDrag)
             }
             edgeDragCurrent = value.location
-        case .select, .pan:
-            // Phase 3.3 reserves these for click + pan; drag is a no-op.
+        case .select:
+            // Visual editor plan 3 — drag-to-join. Only drags that
+            // start on a node become membership drags; empty-canvas
+            // drags stay no-ops.
+            if nodeDragElementID == nil {
+                guard
+                    let elementID = nodeID(at: value.startLocation, in: viewSize),
+                    elementID.hasPrefix("node:")
+                else { break }
+                nodeDragElementID = elementID
+            }
+            nodeDragCurrent = value.location
+            dropTargetGroupID = groupID(at: value.location, in: viewSize)
+        case .pan:
             break
         }
     }
@@ -258,13 +282,18 @@ struct FlowchartEditCanvas: View {
             edgeDragStart = nil
             edgeDragCurrent = nil
             edgeDragSourceID = nil
+            nodeDragElementID = nil
+            nodeDragCurrent = nil
+            dropTargetGroupID = nil
         }
         switch store.state.visualTool {
         case .marquee:
             commitMarquee(start: value.startLocation, end: value.location, viewSize: viewSize)
         case .connector:
             commitEdgeDrag(end: value.location, viewSize: viewSize)
-        case .select, .pan:
+        case .select:
+            commitNodeDrag(end: value.location, viewSize: viewSize)
+        case .pan:
             break
         }
     }
@@ -317,6 +346,42 @@ struct FlowchartEditCanvas: View {
         return lookup.element(at: local)?.elementID
     }
 
+    /// Deepest (smallest-area) subgraph whose bounds contain the view
+    /// point. Returns the bare subgraph id (no "group:" prefix).
+    private func groupID(at viewPoint: CGPoint, in viewSize: CGSize) -> String? {
+        guard let lookup = liveBoundsLookup else { return nil }
+        let p = diagramPoint(from: viewPoint, viewSize: viewSize)
+        var best: (id: String, area: Double)?
+        for elementID in lookup.allElementIDs where elementID.hasPrefix("group:") {
+            guard
+                let sel = lookup.selection(for: elementID),
+                let b = lookup.bounds(of: sel),
+                b.contains(p)
+            else { continue }
+            let area = b.width * b.height
+            if best == nil || area < best!.area {
+                best = (String(elementID.dropFirst(6)), area)
+            }
+        }
+        return best?.id
+    }
+
+    // MARK: - Drag-to-join commit (visual editor plan 3)
+
+    private func commitNodeDrag(end: CGPoint, viewSize: CGSize) {
+        guard let elementID = nodeDragElementID else { return }
+        let nodeID = String(elementID.dropFirst(5))
+        let target = groupID(at: end, in: viewSize)
+        let current = store.subgraphID(containing: nodeID)
+        guard target != current else { return }  // unchanged → no mutation
+        let sel = DiagramSelection(diagramType: editorType, elementID: elementID)
+        Task {
+            try? await store.performFlowchartMutation(
+                .moveToSubgraph(selections: [sel], target: target)
+            )
+        }
+    }
+
     // MARK: - Drag overlays
 
     private func marqueeRect(start: CGPoint, current: CGPoint) -> some View {
@@ -332,6 +397,41 @@ struct FlowchartEditCanvas: View {
             .frame(width: rect.width, height: rect.height)
             .position(x: rect.midX, y: rect.midY)
             .allowsHitTesting(false)
+    }
+
+    // MARK: - Drag-to-join overlays
+
+    @ViewBuilder
+    private func nodeDragGhost(at point: CGPoint, elementID: String, in geometry: GeometryProxy) -> some View {
+        let sel = DiagramSelection(diagramType: editorType, elementID: elementID)
+        let size: CGSize = {
+            if let b = liveBoundsLookup?.bounds(of: sel) {
+                return CGSize(width: CGFloat(b.width), height: CGFloat(b.height))
+            }
+            return CGSize(width: 80, height: 36)
+        }()
+        RoundedRectangle(cornerRadius: 6)
+            .fill(Color.accentColor.opacity(0.15))
+            .overlay(
+                RoundedRectangle(cornerRadius: 6)
+                    .stroke(Color.accentColor, style: StrokeStyle(lineWidth: 1.5, dash: [5, 3]))
+            )
+            .frame(width: size.width, height: size.height)
+            .position(point)
+            .allowsHitTesting(false)
+    }
+
+    @ViewBuilder
+    private func dropTargetHighlight(groupID: String, in geometry: GeometryProxy) -> some View {
+        let sel = DiagramSelection(diagramType: editorType, elementID: "group:\(groupID)")
+        if let bounds = liveBoundsLookup?.bounds(of: sel) {
+            let rect = viewRect(for: bounds, in: geometry.size)
+            RoundedRectangle(cornerRadius: 8)
+                .stroke(Color.green.opacity(0.85), lineWidth: 2.5)
+                .frame(width: rect.width, height: rect.height)
+                .position(x: rect.midX, y: rect.midY)
+                .allowsHitTesting(false)
+        }
     }
 
     private func edgeRubberBand(start: CGPoint, current: CGPoint) -> some View {
