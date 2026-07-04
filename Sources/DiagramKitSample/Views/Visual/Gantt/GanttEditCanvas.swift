@@ -21,10 +21,7 @@ struct GanttEditCanvas: View {
     @SwiftUI.State private var dragDeltaWeeks: Int = 0
 
     var body: some View {
-        ZStack(alignment: .topLeading) {
-            Color(store.previewTheme.background)
-                .ignoresSafeArea()
-
+        ZoomableCanvas(store: store) {
             if let diagram = ganttDiagram {
                 GeometryReader { geo in
                     canvas(diagram: diagram, size: geo.size)
