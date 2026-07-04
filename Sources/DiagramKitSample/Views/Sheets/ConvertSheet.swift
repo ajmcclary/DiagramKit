@@ -233,10 +233,13 @@ struct ConvertSheet: View {
     @MainActor
     private func refresh() async {
         let target = store.state.convertSheet.target
-        guard let result = await store.exportSourcePreview(to: target) else {
+        let result: DiagramExportResult
+        do {
+            result = try await store.exportSourcePreview(to: target)
+        } catch {
             convertedSource = ""
             diagnostics = []
-            lastError = "Conversion failed"
+            lastError = "Conversion failed · \(error.localizedDescription)"
             return
         }
         convertedSource = result.source

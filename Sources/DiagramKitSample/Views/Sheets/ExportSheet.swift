@@ -259,7 +259,7 @@ struct ExportSheet: View {
             sourceDiagnostics = []
         case .mermaid, .d2, .dot, .structurizr, .plantuml:
             if let format = target.sourceFormat,
-               let result = await store.exportSourcePreview(to: format) {
+               let result = try? await store.exportSourcePreview(to: format) {
                 sourcePreview = result.source
                 sourceDiagnostics = result.diagnostics
             } else {
@@ -285,8 +285,14 @@ struct ExportSheet: View {
             rtSummary = RoundTripSummary(lossCount: 0, categories: [], tone: .green, label: "Render target — no round-trip")
             return
         }
-        guard let result = await store.exportSourcePreview(to: format) else {
-            rtSummary = RoundTripSummary(lossCount: 0, categories: [], tone: .red, label: "Export failed")
+        let result: DiagramExportResult
+        do {
+            result = try await store.exportSourcePreview(to: format)
+        } catch {
+            rtSummary = RoundTripSummary(
+                lossCount: 0, categories: [], tone: .red,
+                label: "Export failed · \(error.localizedDescription)"
+            )
             return
         }
         let categories = result.diagnostics.compactMap(\.category).map(\.rawValue)
@@ -334,9 +340,17 @@ struct ExportSheet: View {
     private func save() async {
         let target = store.state.exportSheet.target
         do {
-            let payload = try await buildPayload(for: target)
+            let (payload, diagnostics) = try await buildPayload(for: target)
             try writePayload(payload, target: target)
-            flashSave(.success("Saved · \(target.fileExtension.uppercased())"))
+            let ext = target.fileExtension.uppercased()
+            if diagnostics.isEmpty {
+                flashSave(.success("Saved · \(ext)"))
+            } else {
+                // The file was written but the exporter reported lossy /
+                // unsupported diagnostics — say so rather than a bare success.
+                let n = diagnostics.count
+                flashSave(.success("Saved · \(ext) — \(n) diagnostic\(n == 1 ? "" : "s")"))
+            }
         } catch SaveError.cancelled {
             // User dismissed the panel — no feedback.
             return
@@ -352,26 +366,44 @@ struct ExportSheet: View {
         case data(Data)
     }
 
-    private enum SaveError: Swift.Error {
+    private enum SaveError: Swift.Error, LocalizedError {
         case cancelled
         case noWindow
         case writeFailed
         case unsupportedPlatform
+        case emptyExport(String)
+
+        var errorDescription: String? {
+            switch self {
+            case .cancelled:          return "Save cancelled."
+            case .noWindow:           return "No window available to present the save panel."
+            case .writeFailed:        return "Could not write the file."
+            case .unsupportedPlatform: return "Export is not supported on this platform."
+            case .emptyExport(let detail): return detail
+            }
+        }
     }
 
+    /// Build the bytes to write plus any exporter diagnostics the caller
+    /// should surface. Throws `.emptyExport` when a format conversion yields
+    /// nothing — writing a 0-byte file and reporting "Saved" hides the fact
+    /// that the target can't represent this diagram family.
     @MainActor
-    private func buildPayload(for target: ExportTarget) async throws -> Payload {
+    private func buildPayload(for target: ExportTarget) async throws -> (Payload, [DiagramDiagnostic]) {
         switch target {
         case .svg:
-            return .text(try await store.exportSVG())
+            return (.text(try await store.exportSVG()), [])
         case .ascii:
-            return .text(try await store.exportASCII())
+            return (.text(try await store.exportASCII()), [])
         case .mermaid, .d2, .dot, .structurizr, .plantuml:
-            if let format = target.sourceFormat {
-                let result = try await store.exportSource(to: format)
-                return .text(result.source)
+            guard let format = target.sourceFormat else { return (.text(""), []) }
+            let result = try await store.exportSource(to: format)
+            if result.source.isEmpty {
+                let detail = result.diagnostics.first?.message
+                    ?? "The \(target.fileExtension.uppercased()) exporter can't represent this diagram."
+                throw SaveError.emptyExport(detail)
             }
-            return .text("")
+            return (.text(result.source), result.diagnostics)
         case .png1x, .png2x, .png3x:
             let scale: CGFloat = {
                 switch target {
@@ -381,8 +413,7 @@ struct ExportSheet: View {
                 }
             }()
             let options = ExportOptions(sizing: store.exportOptions.sizing, scale: scale)
-            let url = try await store.exportPNG(options: options)
-            return .data(try Data(contentsOf: url))
+            return (.data(try await store.exportPNGData(options: options)), [])
         }
     }
 

@@ -45,13 +45,10 @@ extension LiveEditorStore {
     }
 
     /// One-shot source export against the current document for the
-    /// Convert + Export sheets. Returns the exporter's source +
-    /// diagnostics, or nil when the format isn't a source target.
-    public func exportSourcePreview(to target: SourceFormat) async -> DiagramExportResult? {
-        do {
-            return try await exportSource(to: target)
-        } catch {
-            return nil
-        }
+    /// Convert + Export sheets. Rethrows the underlying parse/export error
+    /// (with its diagnostic message/location) instead of collapsing it to a
+    /// generic failure, so callers can surface something actionable.
+    public func exportSourcePreview(to target: SourceFormat) async throws -> DiagramExportResult {
+        try await exportSource(to: target)
     }
 }

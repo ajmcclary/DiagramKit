@@ -484,7 +484,6 @@ struct AsciiPreviewView: View {
     @SwiftUI.State private var ascii: String = ""
     @SwiftUI.State private var errorMessage: String?
     @SwiftUI.State private var isLoading: Bool = false
-    @SwiftUI.State private var renderTask: Task<Void, Never>?
 
     var body: some View {
         Group {
@@ -525,8 +524,12 @@ struct AsciiPreviewView: View {
     }
 
     /// Combined key so the task fires when source or theme/format changes.
+    ///
+    /// Uses the source text itself, not its `hashValue`: two distinct sources
+    /// that hash-collide within the process would otherwise leave the ASCII
+    /// pane showing the previous diagram's output.
     private var previewKey: String {
-        "\(store.previewSource.hashValue)|\(store.previewThemeName)|\(store.state.sourceFormat.rawValue)"
+        "\(store.previewSource)|\(store.previewThemeName)|\(store.state.sourceFormat.rawValue)"
     }
 
     private func refreshAscii() async {

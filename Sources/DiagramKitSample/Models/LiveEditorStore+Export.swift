@@ -29,6 +29,25 @@ extension LiveEditorStore {
     /// - Throws: Rendering or file I/O errors.
     /// - Returns: The URL of the temporary PNG file (caller cleans up).
     public func exportPNG(options: ExportOptions) async throws -> URL {
+        let pngData = try await exportPNGData(options: options)
+
+        let tempDir = FileManager.default.temporaryDirectory
+        // UUID filename: a second-resolution timestamp collided when two
+        // exports landed in the same wall-clock second, silently overwriting
+        // the first before its caller consumed it.
+        let fileName = "diagram-\(UUID().uuidString).png"
+        let tempURL = tempDir.appendingPathComponent(fileName)
+        try pngData.write(to: tempURL)
+
+        return tempURL
+    }
+
+    /// Render the current diagram to PNG data without touching disk.
+    ///
+    /// Preferred over ``exportPNG(options:)`` when the caller just needs the
+    /// bytes — it avoids the temp-file round-trip (and the leak of never
+    /// cleaning that file up).
+    public func exportPNGData(options: ExportOptions) async throws -> Data {
         let renderer = DiagramImageRenderer(theme: theme)
         renderer.layoutConfig = layoutConfig
         renderer.sourceFormat = state.sourceFormat.formatID
@@ -49,12 +68,7 @@ extension LiveEditorStore {
             throw ExportError.pngConversionFailed
         }
 
-        let tempDir = FileManager.default.temporaryDirectory
-        let fileName = "diagram-\(Int(Date().timeIntervalSince1970)).png"
-        let tempURL = tempDir.appendingPathComponent(fileName)
-        try pngData.write(to: tempURL)
-
-        return tempURL
+        return pngData
     }
 
     /// Export the current diagram as an SVG string.
