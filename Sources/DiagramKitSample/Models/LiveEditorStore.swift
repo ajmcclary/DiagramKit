@@ -737,6 +737,9 @@ public final class LiveEditorStore {
     /// Active subgraph title prompt (empty-insert or rename), or nil.
     public var subgraphTitlePrompt: SubgraphTitlePrompt?
 
+    /// True while the toolbar's image-URL sheet is on screen.
+    public var isImageSheetOpen: Bool = false
+
     /// Diagnostic row currently feeding the Explain popover, or nil
     /// when no popover is on screen. Transient — not codec-persisted.
     public var diagnosticExplainTarget: DrawerDiagnostic?

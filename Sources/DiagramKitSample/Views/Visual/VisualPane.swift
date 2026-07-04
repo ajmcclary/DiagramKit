@@ -89,6 +89,16 @@ struct VisualPane: View {
                 SubgraphTitleSheet(store: store, prompt: prompt)
             }
         }
+
+        // Image-URL sheet.
+        if store.isImageSheetOpen {
+            ZStack {
+                Color.black.opacity(0.3)
+                    .ignoresSafeArea()
+                    .onTapGesture { store.cancelImageSheet() }
+                ImageURLSheet(store: store)
+            }
+        }
     }
 
     @ViewBuilder

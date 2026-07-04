@@ -180,6 +180,47 @@ extension LiveEditorStore {
         setVisualStage(.labelEdited)
     }
 
+    // MARK: - Image sheet (visual editor plan 5)
+
+    public func openImageSheet() {
+        isImageSheetOpen = true
+    }
+
+    public func cancelImageSheet() {
+        isImageSheetOpen = false
+    }
+
+    /// Image-sheet commit: validate the URL up front (cheap, offline),
+    /// then insert + configure as one undo step. On an invalid URL the
+    /// sheet stays open with lastMutationError set.
+    public func insertImageFromSheet(
+        urlString: String, width: Double, height: Double, title: String?
+    ) async {
+        guard let editor, let id = nextFlowchartNodeID() else { return }
+        guard ImageSpec.validateURL(urlString) else {
+            _setLastMutationError("Invalid image URL '\(urlString)' (http/https required)")
+            return
+        }
+        let selection = DiagramSelection(diagramType: .flowchart, elementID: "node:\(id)")
+        editor.beginUndoGrouping()
+        do {
+            try await performFlowchartMutation(
+                .insertNode(id: id, label: title ?? "Image", type: "image-square")
+            )
+            try await performFlowchartMutation(
+                .setNodeImage(of: selection, to: ImageSpec(
+                    urlString: urlString, width: width, height: height, title: title
+                ))
+            )
+        } catch {
+            // performFlowchartMutation already recorded the error.
+        }
+        editor.endUndoGrouping()
+        isImageSheetOpen = false
+        setSelection(selection)
+        setVisualStage(.nodeSelected)
+    }
+
     // MARK: - Subgraph toolbar / rename / membership (visual editor plan 3)
 
     public func openEmptySubgraphPrompt() {

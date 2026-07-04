@@ -168,6 +168,9 @@ public enum A11yID {
         public static let iconBrowser = "visual.iconBrowser"
         public static let iconBrowserSearch = "visual.iconBrowser.search"
         public static func iconCell(_ name: String) -> String { "visual.iconBrowser.cell.\(name)" }
+        public static let imageButton = "visual.centerToolbar.image"
+        public static let imageURLField = "visual.imageSheet.url"
+        public static let imageCommitButton = "visual.imageSheet.commit"
     }
 }
 

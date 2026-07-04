@@ -64,6 +64,18 @@ struct CanvasCenterToolbar: View {
                     Task { await store.insertIconFromBrowser(faName: faName) }
                 }
             }
+
+            Button {
+                store.openImageSheet()
+            } label: {
+                Label("Image", systemImage: "photo")
+                    .font(.system(size: 12, weight: .medium))
+                    .padding(.horizontal, 10)
+                    .padding(.vertical, 6)
+            }
+            .buttonStyle(.plain)
+            .help("Add an image node from a URL")
+            .accessibilityIdentifier(A11yID.Visual.imageButton)
         }
         .padding(4)
         .background(
