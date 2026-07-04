@@ -21,31 +21,46 @@ final class RemoteImageCache {
 
     static let shared = RemoteImageCache()
     private var cache: [String: Entry] = [:]
-    private var inFlight: Set<String> = []
+    /// In-flight fetches keyed by URL, so concurrent requests for the same
+    /// image share one download instead of the second caller getting a
+    /// premature `.failed` (which showed a spurious badge on a duplicate node).
+    private var inFlight: [String: Task<Entry, Never>] = [:]
+    /// Cap on cached entries so a document that references many image URLs
+    /// can't grow the cache without bound for the life of the process.
+    private let maxEntries = 64
 
     func entry(for urlString: String) -> Entry? { cache[urlString] }
 
     func load(_ urlString: String) async -> Entry {
         if let hit = cache[urlString] { return hit }
-        guard !inFlight.contains(urlString), let url = URL(string: urlString) else {
-            return cache[urlString] ?? .failed
-        }
-        inFlight.insert(urlString)
-        defer { inFlight.remove(urlString) }
-        do {
-            let (data, response) = try await URLSession.shared.data(from: url)
-            guard
-                let http = response as? HTTPURLResponse, (200..<300).contains(http.statusCode),
-                let image = BMImage(data: data)
-            else {
-                cache[urlString] = .failed
+        if let existing = inFlight[urlString] { return await existing.value }
+
+        let task = Task<Entry, Never> {
+            guard let url = URL(string: urlString) else { return .failed }
+            do {
+                // Bounded + scheme/host-validated fetch (see RemoteFetch).
+                let (data, http) = try await RemoteFetch.boundedData(from: url)
+                guard (200..<300).contains(http.statusCode),
+                      let image = BMImage(data: data) else {
+                    return .failed
+                }
+                return .loaded(image)
+            } catch {
                 return .failed
             }
-            cache[urlString] = .loaded(image)
-            return .loaded(image)
-        } catch {
-            cache[urlString] = .failed
-            return .failed
+        }
+        inFlight[urlString] = task
+        let result = await task.value
+        inFlight[urlString] = nil
+        cache[urlString] = result
+        evictIfNeeded()
+        return result
+    }
+
+    private func evictIfNeeded() {
+        guard cache.count > maxEntries else { return }
+        for key in cache.keys.prefix(cache.count - maxEntries) {
+            cache.removeValue(forKey: key)
         }
     }
 }
