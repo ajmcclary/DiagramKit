@@ -33,6 +33,18 @@ struct CanvasCenterToolbar: View {
                     Task { await store.insertShapeFromCatalog(alias: alias) }
                 }
             }
+
+            Button {
+                store.openEmptySubgraphPrompt()
+            } label: {
+                Label("Subgraph", systemImage: "rectangle.3.group")
+                    .font(.system(size: 12, weight: .medium))
+                    .padding(.horizontal, 10)
+                    .padding(.vertical, 6)
+            }
+            .buttonStyle(.plain)
+            .help("Add a labeled group to the canvas")
+            .accessibilityIdentifier(A11yID.Visual.subgraphButton)
         }
         .padding(4)
         .background(

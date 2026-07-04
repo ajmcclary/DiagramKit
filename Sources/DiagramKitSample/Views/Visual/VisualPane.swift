@@ -79,6 +79,16 @@ struct VisualPane: View {
                 SubgraphPromptSheet(store: store)
             }
         }
+
+        // Title prompt (empty-subgraph insert / rename).
+        if let prompt = store.subgraphTitlePrompt {
+            ZStack {
+                Color.black.opacity(0.3)
+                    .ignoresSafeArea()
+                    .onTapGesture { store.cancelTitlePrompt() }
+                SubgraphTitleSheet(store: store, prompt: prompt)
+            }
+        }
     }
 
     @ViewBuilder

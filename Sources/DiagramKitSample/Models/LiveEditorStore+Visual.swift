@@ -157,6 +157,99 @@ extension LiveEditorStore {
     public func dismissSubgraphToast() {
         lastSubgraphCommit = nil
     }
+
+    // MARK: - Subgraph toolbar / rename / membership (visual editor plan 3)
+
+    public func openEmptySubgraphPrompt() {
+        subgraphTitlePrompt = .insertEmpty
+    }
+
+    public func openRenamePrompt(subgraphID: String) {
+        let title = flowchartSubgraphs.first { $0.id == subgraphID }?.label ?? subgraphID
+        subgraphTitlePrompt = .rename(id: subgraphID, currentTitle: title)
+    }
+
+    public func cancelTitlePrompt() {
+        subgraphTitlePrompt = nil
+    }
+
+    public func commitTitlePrompt(title: String) async {
+        guard let prompt = subgraphTitlePrompt else { return }
+        defer { subgraphTitlePrompt = nil }
+        do {
+            switch prompt {
+            case .insertEmpty:
+                try await performFlowchartMutation(.insertSubgraph(title: title))
+            case .rename(let id, _):
+                try await performFlowchartMutation(.renameSubgraph(id: id, title: title))
+            }
+        } catch {
+            // performFlowchartMutation already recorded the error.
+        }
+    }
+
+    /// Flattened subgraph forest, depth-first (parents before children).
+    public var flowchartSubgraphs: [(id: String, label: String)] {
+        guard let payload = editor?.document.payload else { return [] }
+        let roots: [original_src_types.MermaidSubgraph]
+        switch payload {
+        case .flowchart(let graph), .stateDiagram(let graph):
+            roots = graph.subgraphs
+        default:
+            return []
+        }
+        var out: [(id: String, label: String)] = []
+        func walk(_ subs: [original_src_types.MermaidSubgraph]) {
+            for sub in subs {
+                out.append((id: sub.id, label: sub.label))
+                walk(sub.children)
+            }
+        }
+        walk(roots)
+        return out
+    }
+
+    /// Deepest subgraph directly containing `nodeID`, or nil at root.
+    public func subgraphID(containing nodeID: String) -> String? {
+        guard let payload = editor?.document.payload else { return nil }
+        let roots: [original_src_types.MermaidSubgraph]
+        switch payload {
+        case .flowchart(let graph), .stateDiagram(let graph):
+            roots = graph.subgraphs
+        default:
+            return nil
+        }
+        func walk(_ subs: [original_src_types.MermaidSubgraph]) -> String? {
+            for sub in subs {
+                if let deeper = walk(sub.children) { return deeper }
+                if sub.nodeIds.contains(nodeID) { return sub.id }
+            }
+            return nil
+        }
+        return walk(roots)
+    }
+
+    /// Delete every marquee-selected element as one undo step.
+    public func deleteMarqueeSelection() async {
+        guard let editor, !state.marqueeSelection.isEmpty else { return }
+        let type = editor.document.type
+        editor.beginUndoGrouping()
+        for id in state.marqueeSelection.sorted() {
+            let sel = DiagramSelection(diagramType: type, elementID: id)
+            try? await performMutation(.deleteElement(sel))
+        }
+        editor.endUndoGrouping()
+        setMarqueeSelection([])
+        setVisualStage(.idle)
+    }
+}
+
+// MARK: - SubgraphTitlePrompt
+
+/// Which flavor of subgraph title prompt is open.
+public enum SubgraphTitlePrompt: Equatable, Sendable {
+    case insertEmpty
+    case rename(id: String, currentTitle: String)
 }
 
 // MARK: - SubgraphCommit

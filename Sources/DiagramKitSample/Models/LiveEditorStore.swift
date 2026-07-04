@@ -728,6 +728,9 @@ public final class LiveEditorStore {
     /// ~2.5s via the view's task modifier.
     public var lastSubgraphCommit: SubgraphCommit?
 
+    /// Active subgraph title prompt (empty-insert or rename), or nil.
+    public var subgraphTitlePrompt: SubgraphTitlePrompt?
+
     /// Diagnostic row currently feeding the Explain popover, or nil
     /// when no popover is on screen. Transient — not codec-persisted.
     public var diagnosticExplainTarget: DrawerDiagnostic?

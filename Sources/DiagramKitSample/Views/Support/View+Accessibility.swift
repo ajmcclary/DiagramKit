@@ -163,6 +163,7 @@ public enum A11yID {
         public static let shapeCatalog = "visual.shapeCatalog"
         public static let shapeCatalogSearch = "visual.shapeCatalog.search"
         public static func shapeCell(_ alias: String) -> String { "visual.shapeCatalog.cell.\(alias)" }
+        public static let subgraphButton = "visual.centerToolbar.subgraph"
     }
 }
 
