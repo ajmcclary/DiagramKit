@@ -23,7 +23,7 @@ import DiagramKitInteractive
 struct FlowchartEditCanvas: View {
     @Bindable var store: LiveEditorStore
 
-    @SwiftUI.State private var liveDiagramBounds: CGRect = .zero
+    @SwiftUI.State var liveDiagramBounds: CGRect = .zero
     @SwiftUI.State private var liveBoundsLookup: DiagramBoundsLookup?
     @SwiftUI.State private var liveParseError: Error?
 
@@ -43,14 +43,13 @@ struct FlowchartEditCanvas: View {
     // contextMenu doesn't provide one, so track the last hover point.
     @SwiftUI.State private var hoverPoint: CGPoint?
 
-    /// Committed zoom/pan for the visual editor, resolved to a `CanvasTransform`.
-    /// Task 6 adds live gesture translation on top of this.
-    private var transform: CanvasTransform {
-        CanvasTransform(
-            scale: store.state.visualZoomScale ?? 1,
-            offset: store.state.visualPanOffset ?? .zero
-        )
-    }
+    // Zoom / pan gesture state (visual editor — canvas zoom). The resolved
+    // `transform`, gestures, and toolbar live in FlowchartEditCanvas+Zoom.swift.
+    @SwiftUI.State var automaticZoomScale: CGFloat = 1.0
+    @SwiftUI.State var gestureBaseZoomScale: CGFloat?
+    @SwiftUI.State var activePanTranslation: CGSize = .zero
+    let minZoom: CGFloat = CanvasTransform.minScale
+    let maxZoom: CGFloat = CanvasTransform.maxScale
 
     var body: some View {
         GeometryReader { geometry in
@@ -111,6 +110,7 @@ struct FlowchartEditCanvas: View {
             .gesture(dragGesture(in: geometry))
             .simultaneousGesture(tapGesture(in: geometry))
             .simultaneousGesture(doubleTapGesture(in: geometry))
+            .simultaneousGesture(magnificationGesture)
             .onContinuousHover { phase in
                 if case .active(let point) = phase {
                     hoverPoint = point
@@ -119,22 +119,21 @@ struct FlowchartEditCanvas: View {
             .contextMenu {
                 CanvasContextMenu(store: store, element: elementAtHover(in: geometry.size))
             }
-            .onChange(of: liveDiagramBounds) { _, _ in
+            .onChange(of: liveDiagramBounds) { _, newBounds in
                 store.boundsLookup = liveBoundsLookup
+                refreshAutomaticFit(bounds: newBounds, viewSize: geometry.size)
+            }
+            .onChange(of: geometry.size) { _, newSize in
+                refreshAutomaticFit(bounds: liveDiagramBounds, viewSize: newSize)
+            }
+            .overlay(alignment: .bottomTrailing) {
+                zoomToolbarOverlay
             }
         }
         .accessibilityIdentifier(A11yID.Visual.canvas)
     }
 
     // MARK: - Coordinate helpers
-
-    private func diagramCenter(in viewSize: CGSize) -> CGPoint {
-        let o = transform.origin(diagramBounds: liveDiagramBounds, viewSize: viewSize)
-        return CGPoint(
-            x: o.x + liveDiagramBounds.width * transform.scale / 2,
-            y: o.y + liveDiagramBounds.height * transform.scale / 2
-        )
-    }
 
     private var parseErrorBinding: Binding<Error?> {
         Binding(get: { liveParseError }, set: { liveParseError = $0 })
@@ -144,17 +143,6 @@ struct FlowchartEditCanvas: View {
     /// the math in PreviewCanvas's selectionOverlay so the corner
     /// handles line up with the live diagram even when the diagram is
     /// smaller than the host view (it's centered).
-    private func viewRect(for diagramBounds: DiagramRect, in viewSize: CGSize) -> CGRect {
-        transform.viewRect(
-            forDiagramBounds: CGRect(
-                x: CGFloat(diagramBounds.minX), y: CGFloat(diagramBounds.minY),
-                width: CGFloat(diagramBounds.width), height: CGFloat(diagramBounds.height)
-            ),
-            diagramBounds: liveDiagramBounds,
-            viewSize: viewSize
-        )
-    }
-
     // MARK: - Selection overlay
 
     @ViewBuilder
@@ -273,13 +261,6 @@ struct FlowchartEditCanvas: View {
         }
     }
 
-    private func diagramPoint(from viewPoint: CGPoint, viewSize: CGSize) -> DiagramPoint {
-        let p = transform.diagramPoint(
-            fromViewPoint: viewPoint, diagramBounds: liveDiagramBounds, viewSize: viewSize
-        )
-        return DiagramPoint(x: Double(p.x), y: Double(p.y))
-    }
-
     // MARK: - Drag gestures (Phase 3 / Task 3.4)
 
     private func dragGesture(in geometry: GeometryProxy) -> some Gesture {
@@ -308,20 +289,23 @@ struct FlowchartEditCanvas: View {
             }
             edgeDragCurrent = value.location
         case .select:
-            // Visual editor plan 3 — drag-to-join. Only drags that
-            // start on a node become membership drags; empty-canvas
-            // drags stay no-ops.
+            // Visual editor plan 3 — drag-to-join. Drags that start on a
+            // node become membership drags; drags starting on empty canvas
+            // pan the view.
             if nodeDragElementID == nil {
                 guard
                     let elementID = nodeID(at: value.startLocation, in: viewSize),
                     elementID.hasPrefix("node:")
-                else { break }
+                else {
+                    activePanTranslation = value.translation
+                    break
+                }
                 nodeDragElementID = elementID
             }
             nodeDragCurrent = value.location
             dropTargetGroupID = groupID(at: value.location, in: viewSize)
         case .pan:
-            break
+            activePanTranslation = value.translation
         }
     }
 
@@ -342,9 +326,13 @@ struct FlowchartEditCanvas: View {
         case .connector:
             commitEdgeDrag(end: value.location, viewSize: viewSize)
         case .select:
-            commitNodeDrag(end: value.location, viewSize: viewSize)
+            if nodeDragElementID != nil {
+                commitNodeDrag(end: value.location, viewSize: viewSize)
+            } else {
+                commitPan(value.translation)
+            }
         case .pan:
-            break
+            commitPan(value.translation)
         }
     }
 
