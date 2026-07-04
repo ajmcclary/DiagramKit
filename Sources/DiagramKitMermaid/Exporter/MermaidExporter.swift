@@ -106,18 +106,36 @@ public struct MermaidExporter: DiagramExporter {
         case .wardleyBeta(let model):
             result = try MermaidWardleyExport.emit(model)
         }
-        return Self.prependingDocumentTitle(document.title, to: result)
+        return Self.prependingFrontmatter(document, to: result)
     }
 
-    private static func prependingDocumentTitle(
-        _ title: String?,
+    /// Prefix the exported source with a YAML frontmatter block
+    /// carrying the document title and presentation settings (theme /
+    /// layout). Emits nothing when all are absent. Key spelling
+    /// matches what the frontmatter parser reads back (round-trip
+    /// pinned by FrontmatterDocumentFieldTests).
+    private static func prependingFrontmatter(
+        _ document: DiagramDocument,
         to result: DiagramExportResult
     ) -> DiagramExportResult {
-        guard let title, !title.isEmpty, !result.source.isEmpty else {
-            return result
+        guard !result.source.isEmpty else { return result }
+        var lines: [String] = []
+        if let title = document.title, !title.isEmpty {
+            lines.append("title: \(singleLineTitle(title))")
         }
-        let normalizedTitle = singleLineTitle(title)
-        let frontmatter = "---\ntitle: \(normalizedTitle)\n---\n"
+        var configLines: [String] = []
+        if let theme = document.frontmatter?.theme, !theme.isEmpty {
+            configLines.append("  theme: \(theme)")
+        }
+        if let layout = document.frontmatter?.layout, !layout.isEmpty {
+            configLines.append("  layout: \(layout)")
+        }
+        if !configLines.isEmpty {
+            lines.append("config:")
+            lines.append(contentsOf: configLines)
+        }
+        guard !lines.isEmpty else { return result }
+        let frontmatter = "---\n" + lines.joined(separator: "\n") + "\n---\n"
         return DiagramExportResult(
             source: frontmatter + result.source,
             diagnostics: result.diagnostics

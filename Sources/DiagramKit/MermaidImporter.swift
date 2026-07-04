@@ -45,6 +45,11 @@ public struct MermaidImporter: DiagramSourceImporter {
         if let title = frontmatter?.shared.diagramTitle ?? frontmatter?.shared.title, !title.isEmpty {
             document.title = title
         }
+        let fmTheme = frontmatter?.shared.theme
+        let fmLayout = frontmatter?.shared.layout
+        if fmTheme != nil || fmLayout != nil {
+            document.frontmatter = DiagramDocumentFrontmatter(theme: fmTheme, layout: fmLayout)
+        }
 
         return DiagramImportResult(document: document, diagnostics: diagnostics)
     }

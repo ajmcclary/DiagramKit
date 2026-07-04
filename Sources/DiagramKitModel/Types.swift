@@ -131,6 +131,23 @@ public enum DiagramPayload: Sendable {
     }
 }
 
+/// Diagram-level presentation settings carried in YAML frontmatter
+/// (visual editor plan 6). Round-trips through the Mermaid importer
+/// and exporter alongside `title`.
+public struct DiagramDocumentFrontmatter: Sendable, Equatable, Hashable {
+    /// Theme name (resolved via `DiagramTheme.theme(named:)` by hosts).
+    public var theme: String?
+    /// Layout preset name ("adaptive"; nil/absent = hierarchical default).
+    public var layout: String?
+
+    public init(theme: String? = nil, layout: String? = nil) {
+        self.theme = theme
+        self.layout = layout
+    }
+
+    public var isEmpty: Bool { theme == nil && layout == nil }
+}
+
 public struct DiagramDocument: Sendable {
     public var payload: DiagramPayload
 
@@ -138,6 +155,10 @@ public struct DiagramDocument: Sendable {
     /// Set via `DiagramEditor.perform(.setTitle(...))`; exported by format
     /// exporters that support a top-level title.
     public var title: String?
+
+    /// Frontmatter presentation settings (theme / layout preset), or
+    /// nil when the source carried none.
+    public var frontmatter: DiagramDocumentFrontmatter?
 
     public var type: DiagramType {
         payload.type
