@@ -17,20 +17,33 @@ struct LiveEditorView: View {
     @SwiftUI.State private var showingFullWindowPreview = false
     @SwiftUI.State private var nonInspectorMode: CompactMode = .edit
 
-    @AppStorage(PlaygroundChromePersistence.appearanceKey)
-    private var chromeAppearanceRaw: String = PlaygroundAppearance.zedTrekDark.rawValue
+    @AppStorage(PlaygroundChromePersistence.themeKey)
+    private var familyRaw = ZedTrekTheme.lcars.rawValue
+    @AppStorage(PlaygroundChromePersistence.modeKey)
+    private var modeRaw = ThemeMode.dark.rawValue
+    @AppStorage(PlaygroundChromePersistence.canvasFollowsKey)
+    private var canvasFollows = true
+
+    /// The resolved light/dark scheme, reported by `PlaygroundThemeHost` (so
+    /// `.system` mode reflects the live OS appearance). Drives the toolbar
+    /// background and the diagram canvas-follow sync.
+    @SwiftUI.State private var effectiveScheme: ColorScheme = .dark
 
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
 
-    private var chromeAppearance: PlaygroundAppearance {
-        PlaygroundAppearance(rawValue: chromeAppearanceRaw) ?? .zedTrekDark
+    private var chromeFamily: ZedTrekTheme { ZedTrekTheme(rawValue: familyRaw) ?? .lcars }
+    private var chromeMode: ThemeMode { ThemeMode(rawValue: modeRaw) ?? .dark }
+
+    /// Chrome background for the current theme. Used to paint the window toolbar
+    /// so its full-screen background matches the app body instead of falling
+    /// back to the default system material band.
+    private var chromeBackground: Color {
+        PlaygroundTokens(family: chromeFamily, scheme: effectiveScheme).palette.bgApp
     }
 
-    /// Chrome background for the current appearance. Used to paint the
-    /// window toolbar so its full-screen background matches the app body
-    /// instead of falling back to the default system material band.
-    private var chromeBackground: Color {
-        PlaygroundTokens.tokens(for: chromeAppearance).palette.bgApp
+    private func syncCanvasIfFollowing() {
+        guard canvasFollows else { return }
+        store.syncCanvasToApp(family: chromeFamily, isDark: effectiveScheme == .dark)
     }
 
     // Bridges the iPhone compact-layout picker to `store.state.inspectorOpen`
@@ -76,7 +89,12 @@ struct LiveEditorView: View {
             regularLayout
             #endif
         }
-        .playgroundAppearance(chromeAppearance)
+        .playgroundTheme(family: chromeFamily, mode: chromeMode) { newScheme in
+            effectiveScheme = newScheme
+            syncCanvasIfFollowing()
+        }
+        .onChange(of: familyRaw) { _, _ in syncCanvasIfFollowing() }
+        .onChange(of: canvasFollows) { _, _ in syncCanvasIfFollowing() }
         #if os(macOS)
         .toolbarBackground(chromeBackground, for: .windowToolbar)
         #endif

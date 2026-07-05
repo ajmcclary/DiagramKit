@@ -2,8 +2,8 @@
 //  SettingsThemeTab.swift
 //  DiagramPlayground
 //
-//  Settings ▸ Theme — the six real Zed Trek appearances + diagram palette +
-//  theme builder (transcription §5.4).
+//  Settings ▸ Theme — the 10 Zed Trek families (light/dark specimens) + a
+//  Light/Dark/System mode control, plus the diagram palette + theme builder.
 //
 
 import SwiftUI
@@ -11,35 +11,55 @@ import DiagramKit
 
 struct SettingsThemeTab: View {
     @Bindable var store: LiveEditorStore
-    @AppStorage(PlaygroundChromePersistence.appearanceKey)
-    private var chromeAppearanceRaw = PlaygroundAppearance.zedTrekDark.rawValue
+
+    @AppStorage(PlaygroundChromePersistence.themeKey)
+    private var familyRaw = ZedTrekTheme.lcars.rawValue
+    @AppStorage(PlaygroundChromePersistence.modeKey)
+    private var modeRaw = ThemeMode.dark.rawValue
+    @AppStorage(PlaygroundChromePersistence.canvasFollowsKey)
+    private var canvasFollows = true
+
     @State private var showThemeBuilder = false
     @Environment(\.playgroundTokens) private var tokens
+    @Environment(\.colorScheme) private var scheme
 
-    private var chromeAppearance: PlaygroundAppearance {
-        PlaygroundAppearance(rawValue: chromeAppearanceRaw) ?? .zedTrekDark
+    private var family: ZedTrekTheme { ZedTrekTheme(rawValue: familyRaw) ?? .lcars }
+    private var mode: ThemeMode { ThemeMode(rawValue: modeRaw) ?? .dark }
+
+    private var modeBinding: Binding<ThemeMode> {
+        Binding(get: { mode }, set: { modeRaw = $0.rawValue })
     }
+
+    private let columns = Array(repeating: GridItem(.flexible(), spacing: 12), count: 3)
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             SettingsTabHeader(title: "Theme",
-                subtitle: "Zed Trek — \(PlaygroundAppearance.zedTrekFamily.count) variants. \(chromeAppearance.displayName) is active.")
-            LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 12), count: 3), spacing: 12) {
-                ForEach(PlaygroundAppearance.zedTrekFamily, id: \.self) { appearance in
-                    let p = PlaygroundTokens.tokens(for: appearance).palette
-                    ThemeSwatchCard(name: appearance.displayName, background: p.bgWindow,
-                                    bars: [p.accent, p.catCyan, p.accentSecondary],
-                                    isActive: appearance == chromeAppearance) {
-                        chromeAppearanceRaw = appearance.rawValue
+                subtitle: "Zed Trek — \(ZedTrekTheme.allCases.count) themes. \(family.displayName) · \(mode.displayName).")
+
+            SegmentedFormatControl(segments: [
+                .init(value: ThemeMode.system, label: "System", systemImage: "circle.lefthalf.filled"),
+                .init(value: ThemeMode.light, label: "Light", systemImage: "sun.max"),
+                .init(value: ThemeMode.dark, label: "Dark", systemImage: "moon"),
+            ], selection: modeBinding)
+            .padding(.bottom, 14)
+
+            LazyVGrid(columns: columns, spacing: 12) {
+                ForEach(ZedTrekTheme.allCases, id: \.self) { theme in
+                    ThemeSwatchCard(name: theme.displayName,
+                                    specimen: theme.specimen(for: scheme),
+                                    isStarred: theme.isStarred,
+                                    isActive: theme == family) {
+                        familyRaw = theme.rawValue
                     }
                 }
-            }.padding(.bottom, 18)
+            }
+            .padding(.bottom, 18)
+
             SettingsGroupCard {
-                MenuRow(title: "Appearance", value: "Match system") {
-                    Button("Match system") {}
-                    Button("Always dark") {}
-                    Button("Always light") {}
-                }
+                ToggleRow(title: "Match app theme",
+                          description: "Recolor the diagram canvas to the selected theme",
+                          isOn: $canvasFollows)
                 MenuRow(title: "Diagram palette", value: store.state.selectedThemeName,
                         leadingSwatch: AnyView(
                             RoundedRectangle(cornerRadius: 3)
@@ -50,6 +70,8 @@ struct SettingsThemeTab: View {
                         Button(theme.name) { store.setTheme(named: theme.name) }
                     }
                 }
+                .disabled(canvasFollows)
+                .opacity(canvasFollows ? 0.5 : 1)
                 Button { showThemeBuilder = true } label: {
                     HStack {
                         Text("Edit theme…").font(PlaygroundFont.body).foregroundStyle(tokens.palette.fg1)

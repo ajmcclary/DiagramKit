@@ -332,6 +332,13 @@ public final class LiveEditorStore {
         requestRender(reason: .themeChanged)
     }
 
+    /// Point the diagram canvas at the Zed Trek theme matching the current app
+    /// family + light/dark mode. Used when "Match app theme" is enabled so the
+    /// rendered diagram recolors with the app chrome. No-op if already matching.
+    func syncCanvasToApp(family: ZedTrekTheme, isDark: Bool) {
+        setTheme(named: "\(family.displayName) \(isDark ? "Dark" : "Light")")
+    }
+
     /// Update the config JSON and re-parse.
     ///
     /// Called by ``ConfigEditor`` on debounced changes.

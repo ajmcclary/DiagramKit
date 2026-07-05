@@ -17,24 +17,35 @@ import SwiftUI
 struct InspectorThemeSection: View {
     @Bindable var store: LiveEditorStore
 
-    @AppStorage(PlaygroundChromePersistence.appearanceKey)
-    private var chromeAppearanceRaw: String = PlaygroundAppearance.zedTrekDark.rawValue
+    @AppStorage(PlaygroundChromePersistence.themeKey)
+    private var familyRaw = ZedTrekTheme.lcars.rawValue
+    @AppStorage(PlaygroundChromePersistence.modeKey)
+    private var modeRaw = ThemeMode.dark.rawValue
+    @AppStorage(PlaygroundChromePersistence.canvasFollowsKey)
+    private var canvasFollows = true
 
     @SwiftUI.State private var showDiagramPalette = false
     @SwiftUI.State private var showThemeBuilder = false
 
     @Environment(\.playgroundTokens) private var tokens
+    @Environment(\.colorScheme) private var scheme
 
-    private var chromeAppearance: PlaygroundAppearance {
-        PlaygroundAppearance(rawValue: chromeAppearanceRaw) ?? .zedTrekDark
+    private var family: ZedTrekTheme { ZedTrekTheme(rawValue: familyRaw) ?? .lcars }
+    private var mode: ThemeMode { ThemeMode(rawValue: modeRaw) ?? .dark }
+    private var modeBinding: Binding<ThemeMode> {
+        Binding(get: { mode }, set: { modeRaw = $0.rawValue })
     }
+
+    private let tileColumns = [GridItem(.adaptive(minimum: 72), spacing: PlaygroundSpacing.sm)]
 
     var body: some View {
         VStack(alignment: .leading, spacing: PlaygroundSpacing.sm) {
             SectionHeader("Theme", systemImage: "paintpalette")
             Surface(.card, padding: PlaygroundSpacing.md) {
                 VStack(alignment: .leading, spacing: PlaygroundSpacing.md) {
+                    modeControl
                     chromeTiles
+                    matchAppThemeToggle
                     Divider().overlay(tokens.palette.borderHairline)
                     diagramPaletteDisclosure
                     themeBuilderDisclosure
@@ -45,19 +56,35 @@ struct InspectorThemeSection: View {
         .accessibilityElement(children: .contain)
     }
 
+    private var modeControl: some View {
+        SegmentedFormatControl(segments: [
+            .init(value: ThemeMode.system, label: "System", systemImage: "circle.lefthalf.filled"),
+            .init(value: ThemeMode.light, label: "Light", systemImage: "sun.max"),
+            .init(value: ThemeMode.dark, label: "Dark", systemImage: "moon"),
+        ], selection: modeBinding)
+    }
+
     private var chromeTiles: some View {
-        HStack(spacing: PlaygroundSpacing.sm) {
-            ForEach(PlaygroundAppearance.allCases, id: \.self) { appearance in
-                let palette = PlaygroundTokens.tokens(for: appearance).palette
+        LazyVGrid(columns: tileColumns, spacing: PlaygroundSpacing.sm) {
+            ForEach(ZedTrekTheme.allCases, id: \.self) { theme in
+                let specimen = theme.specimen(for: scheme)
                 SwatchTile(
-                    title: appearance.displayName,
-                    background: palette.bgApp,
-                    swatches: [palette.accent, palette.bgSurface, palette.fg2],
-                    isSelected: appearance == chromeAppearance
+                    title: theme.displayName,
+                    background: specimen.cardBackground,
+                    swatches: Array(specimen.accents.prefix(3)),
+                    isSelected: theme == family
                 ) {
-                    chromeAppearanceRaw = appearance.rawValue
+                    familyRaw = theme.rawValue
                 }
             }
+        }
+    }
+
+    private var matchAppThemeToggle: some View {
+        HStack {
+            Text("Match app theme").font(PlaygroundFont.body).foregroundStyle(tokens.palette.fg1)
+            Spacer()
+            PillSwitch(isOn: $canvasFollows)
         }
     }
 
