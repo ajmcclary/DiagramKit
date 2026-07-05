@@ -315,7 +315,7 @@ public final class DiagramSyntaxHighlighter: Sendable {
         // Build attributed string with highlighted ranges
         let attributed = NSMutableAttributedString(string: source)
         let defaultAttrs: [NSAttributedString.Key: Any] = [
-            .foregroundColor: UIColor(theme.foreground),
+            .foregroundColor: theme.foreground,
             .font: textView.font ?? .monospacedSystemFont(ofSize: 13, weight: .regular),
         ]
         attributed.setAttributes(defaultAttrs, range: NSRange(location: 0, length: source.utf16.count))

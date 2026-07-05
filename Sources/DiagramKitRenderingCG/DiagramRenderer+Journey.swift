@@ -226,8 +226,12 @@ extension DiagramRenderer {
                 let titleFontSize = _journeyResolvedCGFontSize(config.titleFontSize, baseFontSize: config.taskFontSize, fallback: 18)
                 let titleFont = self.fontResolver.proportionalFont(size: titleFontSize, weight: .bold)
                 let titleColor: BMColor
-                if !config.titleColor.isEmpty, let cg = DiagramColorParser.cgHex(config.titleColor), let nsColor = BMColor(cgColor: cg) {
-                    titleColor = nsColor
+                if !config.titleColor.isEmpty, let cg = DiagramColorParser.cgHex(config.titleColor) {
+                    // BMColor(cgColor:) is optional on macOS (NSColor) but
+                    // non-optional on iOS (UIColor), so bind the CGColor and
+                    // coalesce the color — matching the pattern used across the
+                    // other renderers (e.g. DiagramRenderer+ER.swift).
+                    titleColor = BMColor(cgColor: cg) ?? self.theme.foreground
                 } else {
                     titleColor = self.theme.foreground
                 }

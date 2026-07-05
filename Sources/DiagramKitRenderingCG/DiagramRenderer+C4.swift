@@ -137,12 +137,12 @@ extension DiagramRenderer {
             context.setLineDash(phase: 0, lengths: [7, 7])
         }
 
-        if fillColor.alpha > 0 || fillColor != CGColor.clear {
+        if fillColor.alpha > 0 || fillColor != BMColor.clear.cgColor {
             context.setFillColor(fillColor)
             context.addPath(bezierPath)
             context.fillPath()
         } else {
-            context.setFillColor(CGColor.clear)
+            context.setFillColor(BMColor.clear.cgColor)
         }
 
         context.addPath(bezierPath)

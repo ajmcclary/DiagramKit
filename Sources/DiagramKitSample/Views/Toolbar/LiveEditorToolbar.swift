@@ -146,11 +146,11 @@ struct LiveEditorToolbar: ToolbarContent {
                 id: A11yID.Toolbar.inspectorToggle
             )
             .keyboardShortcut("i", modifiers: [.command])
-        }
 
-        // Panels as sheets/popovers
-        // Theme
-        .sheet(isPresented: $showingTheme) {
+            // Panels as sheets. `ToolbarContent` has no `.sheet`, so these attach
+            // to the group's last button (a View) rather than the toolbar body,
+            // keeping the sheet state local to this toolbar.
+            .sheet(isPresented: $showingTheme) {
             NavigationStack {
                 ThemePicker(store: store)
                     .padding(16)
@@ -194,6 +194,7 @@ struct LiveEditorToolbar: ToolbarContent {
                         }
                     }
             }
+        }
         }
     }
 }

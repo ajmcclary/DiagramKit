@@ -16,7 +16,7 @@ extension DiagramRenderer {
             // Title
             if let title = diagram.diagramTitle, !title.isEmpty {
                 let attr = MarkdownLabelRenderer.render(title, config: MarkdownLabelRenderer.Config(fontSize: 16, textColor: self.theme.foreground))
-                let bounding = attr.boundingRect(with: CGSize(width: 300, height: CGFloat.greatestFiniteMagnitude), options: [.usesLineFragmentOrigin, .usesFontLeading])
+                let bounding = attr.boundingRect(with: CGSize(width: 300, height: CGFloat.greatestFiniteMagnitude), options: [.usesLineFragmentOrigin, .usesFontLeading], context: nil)
                 let drawRect = CGRect(
                     x: diagram.width / 2 - bounding.width / 2,
                     y: 15 - bounding.height / 2,
@@ -67,7 +67,7 @@ extension DiagramRenderer {
                 ctx.addPath(bgPath.bm_cgPath)
                 ctx.strokePath()
                 let attr = MarkdownLabelRenderer.render(edge.labelText, config: MarkdownLabelRenderer.Config(fontSize: config.fontSizeEdgeLabel, textColor: self.theme.effectiveMuted()))
-                let bnds = attr.boundingRect(with: CGSize(width: 500, height: CGFloat.greatestFiniteMagnitude), options: [.usesLineFragmentOrigin, .usesFontLeading])
+                let bnds = attr.boundingRect(with: CGSize(width: 500, height: CGFloat.greatestFiniteMagnitude), options: [.usesLineFragmentOrigin, .usesFontLeading], context: nil)
                 let dr = CGRect(x: lp.x - bnds.width / 2, y: lp.y - bnds.height / 2, width: bnds.width, height: bnds.height)
                 #if os(macOS)
                 attr.draw(in: dr)
@@ -109,7 +109,7 @@ extension DiagramRenderer {
                     }
                     mutable.setAttributes(newAttrs, range: range)
                 }
-                let nameBounds = mutable.boundingRect(with: CGSize(width: node.width - 10, height: CGFloat.greatestFiniteMagnitude), options: [.usesLineFragmentOrigin, .usesFontLeading])
+                let nameBounds = mutable.boundingRect(with: CGSize(width: node.width - 10, height: CGFloat.greatestFiniteMagnitude), options: [.usesLineFragmentOrigin, .usesFontLeading], context: nil)
                 let nameRect = CGRect(
                     x: node.x + node.width / 2 - nameBounds.width / 2,
                     y: nameY - nameBounds.height / 2,
@@ -135,7 +135,7 @@ extension DiagramRenderer {
                     for (idx, line) in bodyLines.enumerated() {
                         let rowY = bodyStartY + Double(idx) * 18
                         let bodyAttr = MarkdownLabelRenderer.render(line, config: MarkdownLabelRenderer.Config(fontSize: 11, textColor: self.theme.effectiveTextSecondary()))
-                        let bnds = bodyAttr.boundingRect(with: CGSize(width: node.width - 10, height: CGFloat.greatestFiniteMagnitude), options: [.usesLineFragmentOrigin, .usesFontLeading])
+                        let bnds = bodyAttr.boundingRect(with: CGSize(width: node.width - 10, height: CGFloat.greatestFiniteMagnitude), options: [.usesLineFragmentOrigin, .usesFontLeading], context: nil)
                         let dr = CGRect(
                             x: node.x + node.width / 2 - bnds.width / 2,
                             y: rowY - bnds.height / 2,

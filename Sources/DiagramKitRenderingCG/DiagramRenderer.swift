@@ -117,7 +117,8 @@ public final class DiagramRenderer {
     ) {
         guard attrStr.length > 0 else { return }
         let bounding = attrStr.boundingRect(with: CGSize(width: rect.width, height: .greatestFiniteMagnitude),
-                                            options: [.usesLineFragmentOrigin, .usesFontLeading])
+                                            options: [.usesLineFragmentOrigin, .usesFontLeading],
+                                            context: nil)
         var drawRect = rect
         drawRect.size.height = bounding.height
         drawRect.origin.y = rect.midY - bounding.height / 2
