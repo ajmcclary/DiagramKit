@@ -301,7 +301,7 @@ struct GanttEditCanvas: View {
                     .font(.system(size: 10, weight: .semibold).monospacedDigit())
                     .padding(.horizontal, 6)
                     .padding(.vertical, 2)
-                    .background(Capsule().fill(.regularMaterial))
+                    .glassChrome(.hud, in: Capsule())
                     .foregroundStyle(Color.accentColor)
                     .offset(x: width + 6, y: 0)
             }

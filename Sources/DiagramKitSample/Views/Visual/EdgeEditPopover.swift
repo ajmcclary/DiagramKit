@@ -86,11 +86,7 @@ struct EdgeEditPopover: View {
         }
         .padding(14)
         .frame(width: 300)
-        .background(
-            RoundedRectangle(cornerRadius: 12, style: .continuous)
-                .fill(.regularMaterial)
-                .shadow(color: .black.opacity(0.2), radius: 12, x: 0, y: 6)
-        )
+        .glassChrome(.popoverCard, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
         .accessibilityIdentifier(A11yID.Visual.edgePopover)
     }
 

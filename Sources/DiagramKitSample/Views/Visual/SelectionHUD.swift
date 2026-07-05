@@ -21,7 +21,7 @@ struct SelectionHUD: View {
             }
             .padding(.horizontal, 10)
             .padding(.vertical, 4)
-            .background(Capsule().fill(Color.accentColor.opacity(0.18)))
+            .glassChrome(.hud, in: Capsule())
             .foregroundStyle(Color.accentColor)
             .accessibilityIdentifier(A11yID.Visual.selectionHUD)
             .accessibilityLabel("Selection: \(label)")

@@ -169,7 +169,7 @@ struct VisualPane: View {
                         .font(.system(size: 11, weight: .semibold))
                         .padding(.horizontal, 10)
                         .padding(.vertical, 4)
-                        .background(Capsule().fill(.regularMaterial))
+                        .glassChrome(.hud, in: Capsule())
                         .foregroundStyle(.secondary)
                         .accessibilityIdentifier(A11yID.Visual.stateBanner(stage.rawValue))
                     Spacer()

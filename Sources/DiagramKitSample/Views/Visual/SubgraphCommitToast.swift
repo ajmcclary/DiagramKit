@@ -26,11 +26,7 @@ struct SubgraphCommitToast: View {
         }
         .padding(.horizontal, 12)
         .padding(.vertical, 8)
-        .background(
-            RoundedRectangle(cornerRadius: 10, style: .continuous)
-                .fill(.regularMaterial)
-                .shadow(color: .black.opacity(0.15), radius: 8, x: 0, y: 4)
-        )
+        .glassChrome(.hud, in: RoundedRectangle(cornerRadius: 10, style: .continuous))
         .accessibilityIdentifier(A11yID.Visual.subgraphToast)
         .task(id: commit) {
             try? await Task.sleep(nanoseconds: 2_500_000_000)

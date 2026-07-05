@@ -57,11 +57,7 @@ struct CitationOverlay: View {
         }
         .padding(12)
         .frame(width: 320)
-        .background(
-            RoundedRectangle(cornerRadius: 10, style: .continuous)
-                .fill(.regularMaterial)
-                .shadow(color: .black.opacity(0.18), radius: 10, x: 0, y: 4)
-        )
+        .glassChrome(.popoverCard, in: RoundedRectangle(cornerRadius: 10, style: .continuous))
     }
 
     private func pinRow(_ pin: CitationPin) -> some View {

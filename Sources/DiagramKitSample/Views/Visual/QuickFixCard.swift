@@ -45,11 +45,7 @@ struct QuickFixCard: View {
             }
             .padding(12)
             .frame(width: 280)
-            .background(
-                RoundedRectangle(cornerRadius: 12, style: .continuous)
-                    .fill(.regularMaterial)
-                    .shadow(color: .black.opacity(0.18), radius: 8, x: 0, y: 4)
-            )
+            .glassChrome(.popoverCard, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
             .accessibilityIdentifier(A11yID.Visual.quickFixCard)
         }
     }
