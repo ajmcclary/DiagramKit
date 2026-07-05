@@ -39,9 +39,10 @@ struct InspectorView: View {
                 .padding(.bottom, 18)
             }
         }
-        .frame(width: 312)
+        // Width, resize handle, and the leading divider are owned by the
+        // `.inspector` column now — InspectorView must not pin its own width
+        // or draw its own border (Task 2.2 completion).
         .background(tokens.palette.bgPanel)
-        .overlay(Rectangle().fill(tokens.palette.borderWarm).frame(width: 0.5), alignment: .leading)
         // Re-seed the label draft when the selection OR the underlying document
         // changes — keying on the source too keeps the field fresh after a new
         // diagram loads even if the selected element id happens to be unchanged.
