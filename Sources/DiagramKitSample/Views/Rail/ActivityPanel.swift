@@ -21,9 +21,7 @@ struct ActivityPanel: View {
             case .source: SourcePanel(store: store)
             }
         }
-        .frame(width: 236)
-        .frame(maxHeight: .infinity, alignment: .top)
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
         .background(tokens.palette.bgPanel)
-        .overlay(Rectangle().fill(tokens.palette.borderWarm).frame(width: 0.5), alignment: .trailing)
     }
 }

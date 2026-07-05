@@ -17,10 +17,12 @@ struct PlaygroundShell: View {
 
     @Environment(\.playgroundTokens) private var tokens
 
-    /// Inspector visibility is driven by `store.state.inspectorOpen` so the
-    /// toolbar toggle button and the `⌘I` shortcut stay in lockstep with
-    /// the shell layout.
-    private var inspectorVisible: Bool { store.state.inspectorOpen }
+    /// Panel (sidebar) column visibility for the NavigationSplitView, mirrored
+    /// to the persisted `sidebarVisible` so it survives relaunch. The activity
+    /// rail stays fixed outside the split; only the switchable panel collapses.
+    /// The inspector is driven separately by `store.state.inspectorOpen` so the
+    /// toolbar toggle and `⌘I` stay in lockstep.
+    @State private var columnVisibility: NavigationSplitViewVisibility = .all
 
     var body: some View {
         ZStack(alignment: .bottom) {
@@ -30,18 +32,27 @@ struct PlaygroundShell: View {
                 Divider()
                 #endif
                 HStack(spacing: 0) {
-                    // Redesign: activity rail + switchable side panel replace the
-                    // old SidebarView. `sidebarVisible` now toggles the panel.
+                    // The activity rail is a fixed leading strip (section
+                    // switcher) outside the split; the switchable panel is the
+                    // split's sidebar, and the inspector is the trailing
+                    // `.inspector` column. This restores native collapse,
+                    // drag-to-resize, and adaptive column behavior (esp. iPad).
                     ActivityRail(store: store)
-                    if sidebarVisible {
+                    NavigationSplitView(columnVisibility: $columnVisibility) {
                         ActivityPanel(store: store)
+                            .navigationSplitViewColumnWidth(min: 220, ideal: 236, max: 320)
+                    } detail: {
+                        bodyForMode
+                            .frame(maxWidth: .infinity, maxHeight: .infinity)
+                            .inspector(isPresented: Binding(
+                                get: { store.state.inspectorOpen },
+                                set: { store.state.inspectorOpen = $0 }
+                            )) {
+                                InspectorView(store: store)
+                                    .inspectorColumnWidth(min: 280, ideal: 312, max: 380)
+                            }
                     }
-                    bodyForMode
-                        .frame(maxWidth: .infinity, maxHeight: .infinity)
-                    if inspectorVisible {
-                        Divider()
-                        InspectorView(store: store)
-                    }
+                    .navigationSplitViewStyle(.balanced)
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 if store.state.diagDrawer.isOpen {
@@ -54,6 +65,10 @@ struct PlaygroundShell: View {
             .animation(.easeInOut(duration: 0.18), value: store.state.diagDrawer.isOpen)
             .onChange(of: store.state.inspectorOpen) { _, newValue in
                 UserDefaults.standard.set(newValue, forKey: "playground.shell.inspectorVisible")
+            }
+            .onAppear { columnVisibility = sidebarVisible ? .all : .detailOnly }
+            .onChange(of: columnVisibility) { _, newValue in
+                sidebarVisible = (newValue != .detailOnly)
             }
 
             // Explain popover overlays the entire shell.

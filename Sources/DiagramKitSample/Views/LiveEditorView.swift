@@ -80,16 +80,13 @@ struct LiveEditorView: View {
                         }
                 }
             } else {
-                // iPad-regular: PlaygroundShell has no navigation container of
-                // its own, so the `.toolbar` items need a NavigationStack host
-                // or they silently don't render (B1). Phase 2 replaces this with
-                // a NavigationSplitView inside PlaygroundShell.
-                NavigationStack {
-                    regularLayout
-                        .toolbar {
-                            LiveEditorToolbar(store: store)
-                        }
-                }
+                // iPad-regular: PlaygroundShell now hosts its own
+                // NavigationSplitView, which is the toolbar host (supersedes the
+                // Phase 0 interim NavigationStack wrap for B1).
+                regularLayout
+                    .toolbar {
+                        LiveEditorToolbar(store: store)
+                    }
             }
             #else
             regularLayout
