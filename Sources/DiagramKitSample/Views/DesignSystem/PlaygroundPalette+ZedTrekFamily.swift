@@ -6,7 +6,7 @@
 //  design project's `themes/zed-trek.json` semantic tokens via the spec §5
 //  rules (docs/superpowers/specs/2026-07-05-zed-trek-theme-family-design.md).
 //  Generated deterministically and verified against the JSON — do not hand-edit
-//  individual hexes; re-run scratchpad/gen_zedtrek.py against the source.
+//  individual hexes; re-run Scripts/gen_zedtrek.py against the source.
 //
 //  LCARS Dark is pinned to the comp-exact legacy `zedTrekDark` values so the
 //  default appearance is byte-identical to the pre-family build.

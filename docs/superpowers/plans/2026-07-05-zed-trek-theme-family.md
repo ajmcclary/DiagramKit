@@ -20,9 +20,10 @@
 
 ## Data Inputs
 
-- **`zed-trek.json`** — authoritative 20-theme token file. Saved locally at
-  `/Users/ajmcclary/.claude/projects/-Users-ajmcclary-Dev-Research-DiagramKit-mermaid-swift/a1ca5cf4-9e7e-4277-88ec-c54b201eb168/tool-results/toolu_01GpAQr6vd4kUU3BpKQPwbF3.txt`
-  (escaped-JSON wrapper; the `content` field is the theme JSON). Re-fetchable via `DesignSync get_file themes/zed-trek.json` on project `50c9c2ef-8ed4-445e-870e-0273e3d082fc`.
+- **`Scripts/zed-trek.json`** — authoritative 20-theme token file, committed to
+  the repo. Re-fetchable via `DesignSync get_file themes/zed-trek.json` on project
+  `50c9c2ef-8ed4-445e-870e-0273e3d082fc`. Regenerate the Swift literals with
+  `Scripts/gen_zedtrek.py` (prints chrome + canvas Swift to stdout).
 - **Spec §5** — chrome mapping table (`zed-trek.json` → `PlaygroundPalette`) + fallbacks.
 - **Spec §6** — the 20 picker specimens, pinned verbatim (card bg / text / name / 5 accents).
 - **Spec §7** — canvas mapping (`zed-trek.json` → `DiagramTheme`).

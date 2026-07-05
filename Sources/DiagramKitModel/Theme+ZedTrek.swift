@@ -13,7 +13,7 @@ import AppKit
 // the design project's `themes/zed-trek.json` editor tokens via spec §7
 // (docs/superpowers/specs/2026-07-05-zed-trek-theme-family-design.md). These
 // let the rendered diagram recolor to match the app-chrome theme. Generated
-// deterministically from the source — regenerate via scratchpad/gen_zedtrek.py.
+// deterministically from the source — regenerate via Scripts/gen_zedtrek.py.
 //
 // `zedTrekLCARSDark` reuses the comp-exact `zedTrekDark` value so the default
 // canvas is byte-identical to the pre-family build.
