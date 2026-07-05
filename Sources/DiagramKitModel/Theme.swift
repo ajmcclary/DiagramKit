@@ -352,8 +352,7 @@ extension DiagramTheme {
         ("One Dark", oneDark),
         ("Gruvbox Dark", gruvboxDark),
         ("Gruvbox Light", gruvboxLight),
-        ("Zed Trek Dark", zedTrekDark)
-    ]
+    ] + zedTrekFamilyThemes   // 20 Zed Trek family canvas themes (Theme+ZedTrek.swift)
 
     public static func theme(named name: String) -> DiagramTheme? {
         let normalized = name.lowercased().replacingOccurrences(of: " ", with: "-")

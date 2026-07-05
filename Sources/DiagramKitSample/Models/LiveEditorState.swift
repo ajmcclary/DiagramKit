@@ -315,7 +315,7 @@ public struct LiveEditorState: Codable, Equatable, Sendable {
       A[Start] --> B[Process] --> C[End]
     """
 
-    public static let defaultThemeName = "Zed Trek Dark"
+    public static let defaultThemeName = "LCARS Dark"
 
     /// Initial tab set surfaced by the v2 PlaygroundShell. Picks one
     /// each from the flowchart / timeline / gantt families so the
