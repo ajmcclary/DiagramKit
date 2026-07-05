@@ -15,8 +15,6 @@ struct PlaygroundShell: View {
 
     @AppStorage("playground.shell.sidebarVisible") private var sidebarVisible = true
 
-    @Environment(\.playgroundTokens) private var tokens
-
     /// Panel (sidebar) column visibility for the NavigationSplitView, mirrored
     /// to the persisted `sidebarVisible` so it survives relaunch. The activity
     /// rail stays fixed outside the split; only the switchable panel collapses.
@@ -70,6 +68,30 @@ struct PlaygroundShell: View {
             .onChange(of: columnVisibility) { _, newValue in
                 sidebarVisible = (newValue != .detailOnly)
             }
+            // Native modality for the panels (Escape/focus/VoiceOver). Fitted
+            // sizing keeps the wide desktop cards content-sized instead of
+            // clipping inside an iPad form sheet.
+            .sheet(isPresented: Binding(
+                get: { store.state.exportSheet.isOpen },
+                set: { if !$0 { store.closeExportSheet() } }
+            )) {
+                ExportSheet(store: store)
+                    .presentationSizing(.fitted)
+            }
+            .sheet(isPresented: Binding(
+                get: { store.state.convertSheet.isOpen },
+                set: { if !$0 { store.closeConvertSheet() } }
+            )) {
+                ConvertSheet(store: store)
+                    .presentationSizing(.fitted)
+            }
+            .sheet(isPresented: Binding(
+                get: { store.state.settingsPresented },
+                set: { if !$0 { store.dismissSettings() } }
+            )) {
+                SettingsSheet(store: store)
+                    .presentationSizing(.fitted)
+            }
 
             // Explain popover overlays the entire shell.
             if let target = store.diagnosticExplainTarget {
@@ -78,26 +100,6 @@ struct PlaygroundShell: View {
                         .ignoresSafeArea()
                         .onTapGesture { store.dismissExplain() }
                     DiagnosticExplainPopover(store: store, row: target)
-                }
-            }
-
-            // Export sheet (Phase 7 / Task 7.1)
-            if store.state.exportSheet.isOpen {
-                ZStack {
-                    Color.black.opacity(0.35)
-                        .ignoresSafeArea()
-                        .onTapGesture { store.closeExportSheet() }
-                    ExportSheet(store: store)
-                }
-            }
-
-            // Convert sheet (Phase 7 / Task 7.2)
-            if store.state.convertSheet.isOpen {
-                ZStack {
-                    Color.black.opacity(0.35)
-                        .ignoresSafeArea()
-                        .onTapGesture { store.closeConvertSheet() }
-                    ConvertSheet(store: store)
                 }
             }
 
@@ -116,21 +118,7 @@ struct PlaygroundShell: View {
 
             // Source-citation overlay (Phase 10 / Task 10.5)
             CitationOverlay(store: store)
-
-            // Settings sheet (redesign) — dimmed/blurred backdrop + centered sheet.
-            if store.state.settingsPresented {
-                ZStack {
-                    tokens.palette.bgWindow.opacity(0.62)
-                        .background(.ultraThinMaterial)
-                        .ignoresSafeArea()
-                        .onTapGesture { store.dismissSettings() }
-                    SettingsSheet(store: store)
-                }
-                .transition(.opacity)
-                .zIndex(10)
-            }
         }
-        .animation(.easeInOut(duration: 0.15), value: store.state.settingsPresented)
         #if os(macOS)
         .frame(minWidth: 900, minHeight: 600)
         #endif

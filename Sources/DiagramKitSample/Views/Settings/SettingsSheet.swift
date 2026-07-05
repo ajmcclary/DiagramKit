@@ -42,9 +42,8 @@ struct SettingsSheet: View {
         }
         .frame(width: 748, height: 520)
         .background(tokens.palette.bgSheet)
-        .clipShape(RoundedRectangle(cornerRadius: 20))
-        .overlay(RoundedRectangle(cornerRadius: 20).stroke(tokens.palette.borderWarm, lineWidth: 0.5))
-        .shadow(color: .black.opacity(0.55), radius: 35, y: 30)
+        // Card chrome (clip / stroke / shadow) is now supplied by the enclosing
+        // `.sheet`; framedBody just provides the sized two-column content.
     }
 
     /// Single-column layout for iPhone-compact: the two-column nav/content of
@@ -73,8 +72,7 @@ struct SettingsSheet: View {
 
     private var header: some View {
         HStack(spacing: 12) {
-            Circle().fill(tokens.palette.trafficRed).frame(width: 11, height: 11)
-                .onTapGesture { store.dismissSettings() }
+            HeaderCloseButton { store.dismissSettings() }
             Text("Settings").font(PlaygroundFont.sans(14, weight: .semibold)).foregroundStyle(tokens.palette.fg1)
             Spacer()
             HStack(spacing: 7) {
