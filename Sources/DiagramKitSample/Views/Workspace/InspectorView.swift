@@ -93,7 +93,7 @@ struct InspectorView: View {
                 .onSubmit(commitLabel)
 
             HStack {
-                Text("Shape").font(PlaygroundFont.sans(12.5)).foregroundStyle(tokens.palette.fg3)
+                Text("Shape").font(PlaygroundFont.label).foregroundStyle(tokens.palette.fg3)
                 Spacer()
                 Menu {
                     ForEach(ShapeCatalog.all, id: \.alias) { shape in
@@ -101,7 +101,7 @@ struct InspectorView: View {
                     }
                 } label: {
                     HStack(spacing: 6) {
-                        Text(currentShapeName).font(PlaygroundFont.sans(12)).foregroundStyle(tokens.palette.fg1)
+                        Text(currentShapeName).font(PlaygroundFont.body).foregroundStyle(tokens.palette.fg1)
                         Image(systemName: "chevron.down").font(.system(size: 9, weight: .semibold)).foregroundStyle(tokens.palette.fg3)
                     }
                     .padding(.horizontal, 8).frame(height: 28)
@@ -119,7 +119,7 @@ struct InspectorView: View {
             ], selection: Binding(get: { currentSpec().borderStyle ?? .solid }, set: { setBorder($0) }))
 
             HStack {
-                Text("Color").font(PlaygroundFont.sans(12.5)).foregroundStyle(tokens.palette.fg3)
+                Text("Color").font(PlaygroundFont.label).foregroundStyle(tokens.palette.fg3)
                 Spacer()
                 ColorDotPicker(colors: dotHexes.map { Color(hexRGB: $0) ?? .gray },
                                selectedIndex: Binding(get: { selectedDotIndex }, set: { if let i = $0 { setFill(dotHexes[i]) } }))
@@ -137,7 +137,6 @@ struct InspectorView: View {
                 .disabled(true)
         }
         .padding(.horizontal, 16).padding(.bottom, 14)
-        .overlay(Rectangle().fill(tokens.palette.borderHairline).frame(height: 0.5), alignment: .top)
         .padding(.top, 4)
     }
 
@@ -157,7 +156,6 @@ struct InspectorView: View {
             .disabled(true)
         }
         .padding(.horizontal, 16).padding(.bottom, 14)
-        .overlay(Rectangle().fill(tokens.palette.borderHairline).frame(height: 0.5), alignment: .top)
         .padding(.top, 4)
     }
 
@@ -176,7 +174,6 @@ struct InspectorView: View {
             }
         }
         .padding(.horizontal, 16).padding(.bottom, 14)
-        .overlay(Rectangle().fill(tokens.palette.borderHairline).frame(height: 0.5), alignment: .top)
         .padding(.top, 4)
     }
 
@@ -184,7 +181,7 @@ struct InspectorView: View {
         Button(action: action) {
             HStack(spacing: 8) {
                 Image(systemName: icon).font(.system(size: 13)).foregroundStyle(color)
-                Text(title).font(PlaygroundFont.sans(12.5)).foregroundStyle(tokens.palette.fg1)
+                Text(title).font(PlaygroundFont.label).foregroundStyle(tokens.palette.fg1)
                 Spacer(minLength: 0)
             }
             .padding(.horizontal, 11).frame(height: 36)
@@ -197,7 +194,7 @@ struct InspectorView: View {
     // MARK: - Helpers
 
     private func caption(_ text: String) -> some View {
-        Text(text.uppercased()).font(PlaygroundFont.sans(10, weight: .bold)).tracking(0.6)
+        Text(text.uppercased()).font(PlaygroundFont.sans(11, weight: .bold)).tracking(0.6)
             .foregroundStyle(tokens.palette.fg3).padding(.top, 14).padding(.bottom, 6)
     }
 
