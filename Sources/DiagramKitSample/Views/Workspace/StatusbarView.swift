@@ -2,13 +2,10 @@
 //  StatusbarView.swift
 //  DiagramPlayground
 //
-//  Bottom chrome of the v2 PlaygroundShell. Matches the 10-segment
-//  footer in Diagrams/v2-1.jsx: engine + worker + Swift + fonts on
-//  the left, backend + last-render + snapshot + corpus + active
-//  sample on the right.
-//
-//  Some readouts (fonts list, last render ms, snapshot count) are
-//  placeholders until Phase 4 lands the corresponding DiagramKit SPI.
+//  Bottom chrome of the v2 PlaygroundShell: engine + worker + Swift +
+//  fonts + diagnostics on the left, backend + corpus + active sample on
+//  the right. Only real signals are shown — placeholder readouts (fake
+//  last-render ms / snapshot count) were removed rather than stubbed.
 //
 
 import SwiftUI
@@ -34,10 +31,6 @@ struct StatusbarView: View {
             Spacer(minLength: PlaygroundSpacing.md)
 
             backendSegment
-            divider
-            lastRenderSegment
-            divider
-            snapshotsSegment
             divider
             corpusSegment
             divider
@@ -99,27 +92,6 @@ struct StatusbarView: View {
             isOn: true,
             id: A11yID.Statusbar.backend
         )
-    }
-
-    private var lastRenderSegment: some View {
-        // Phase 4: real value from PreparedDiagram.paintDuration.
-        labeledMetric(key: "last render", value: lastRenderText)
-    }
-
-    private var snapshotsSegment: some View {
-        HStack(spacing: 5) {
-            Text("snapshots")
-                .font(PlaygroundFont.caption)
-            Text("\(snapshotCount)")
-                .font(PlaygroundFont.metric)
-                .foregroundStyle(tokens.palette.fg1)
-            Circle()
-                .fill(tokens.palette.statusSuccess)
-                .frame(width: 6, height: 6)
-            Text("pass")
-                .font(PlaygroundFont.caption)
-                .foregroundStyle(tokens.palette.statusSuccess)
-        }
     }
 
     private var corpusSegment: some View {
@@ -217,15 +189,4 @@ struct StatusbarView: View {
         #endif
     }
 
-    private var lastRenderText: String {
-        // Phase 4 will replace this with a real ms readout from
-        // PreparedDiagram. Until then, mirror the design's em dash.
-        "—"
-    }
-
-    private var snapshotCount: String {
-        // Phase 4 may inject build-time metadata; for now mirror the
-        // mockup's static "1044" so the segment lines up visually.
-        "1044"
-    }
 }
