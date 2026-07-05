@@ -34,4 +34,22 @@ import SwiftUI
         #expect(p.bgSheet == Color(hex: 0x0E1421))
         #expect(p.fg1 == Color(hex: 0xF2E7D8))
     }
+
+    // MARK: - Zed Trek family (theme × mode) — Task 1
+
+    @Test func zedTrekThemeRoster() {
+        #expect(ZedTrekTheme.allCases.count == 10)
+        #expect(ZedTrekTheme.allCases.first == .lcars)
+        #expect(ZedTrekTheme.lcars.isStarred)
+        #expect(!ZedTrekTheme.command.isStarred)
+        #expect(ZedTrekTheme.blackAlert.displayName == "Black Alert")
+        #expect(ZedTrekTheme.missionControl.displayName == "Mission Control")
+    }
+
+    @Test func themeModeResolution() {
+        #expect(ThemeMode.system.scheme(system: .dark) == .dark)
+        #expect(ThemeMode.system.scheme(system: .light) == .light)
+        #expect(ThemeMode.light.scheme(system: .dark) == .light)
+        #expect(ThemeMode.dark.scheme(system: .light) == .dark)
+    }
 }
