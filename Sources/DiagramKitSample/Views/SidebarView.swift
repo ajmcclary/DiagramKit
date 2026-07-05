@@ -15,6 +15,11 @@ import UniformTypeIdentifiers
 struct SidebarView: View {
     @Bindable var store: LiveEditorStore
 
+    /// When set, a Settings row is shown (used on iPhone-compact where there is
+    /// no activity rail / ⌘, to reach Settings). The closure is responsible for
+    /// dismissing the controls sheet before presenting Settings.
+    var onOpenSettings: (() -> Void)? = nil
+
     @Environment(\.playgroundTokens) private var tokens
 
     var body: some View {
@@ -42,7 +47,29 @@ struct SidebarView: View {
             link(.crossFormat, label: "Cross-format", trailing: nil, icon: "rectangle.split.3x1")
             link(.probe, label: "Importer probe", trailing: nil, icon: "magnifyingglass.circle")
             link(.snippets, label: "Snippets library", trailing: nil, icon: "doc.text")
+            if let onOpenSettings {
+                settingsRow(onOpenSettings)
+            }
         }
+    }
+
+    private func settingsRow(_ action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            HStack(spacing: PlaygroundSpacing.sm) {
+                Image(systemName: "gearshape")
+                    .font(.system(size: 11, weight: .medium))
+                    .frame(width: 16)
+                    .foregroundStyle(tokens.palette.fg2)
+                Text("Settings")
+                    .font(PlaygroundFont.body)
+                    .foregroundStyle(tokens.palette.fg1)
+                Spacer(minLength: PlaygroundSpacing.xs)
+            }
+            .padding(.horizontal, PlaygroundSpacing.xs)
+            .padding(.vertical, 4)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
     }
 
     private func link(

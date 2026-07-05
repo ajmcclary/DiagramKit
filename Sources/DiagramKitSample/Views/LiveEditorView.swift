@@ -80,10 +80,16 @@ struct LiveEditorView: View {
                         }
                 }
             } else {
-                regularLayout
-                    .toolbar {
-                        LiveEditorToolbar(store: store)
-                    }
+                // iPad-regular: PlaygroundShell has no navigation container of
+                // its own, so the `.toolbar` items need a NavigationStack host
+                // or they silently don't render (B1). Phase 2 replaces this with
+                // a NavigationSplitView inside PlaygroundShell.
+                NavigationStack {
+                    regularLayout
+                        .toolbar {
+                            LiveEditorToolbar(store: store)
+                        }
+                }
             }
             #else
             regularLayout
@@ -147,7 +153,13 @@ struct LiveEditorView: View {
         }
         .sheet(isPresented: $showingControls) {
             NavigationStack {
-                SidebarView(store: store)
+                SidebarView(store: store, onOpenSettings: {
+                    // Dismiss the controls sheet first, then present Settings so
+                    // the two sheets don't conflict (B2: Settings is otherwise
+                    // unreachable on iPhone).
+                    showingControls = false
+                    store.presentSettings()
+                })
                     .navigationTitle("Samples")
                     .navigationBarTitleDisplayMode(.inline)
                     .toolbarBackground(Color(store.theme.background), for: .navigationBar)
@@ -163,6 +175,21 @@ struct LiveEditorView: View {
             .presentationDetents([.height(80), .medium, .large])
             .presentationDragIndicator(.visible)
             .presentationBackgroundInteraction(.enabled(upThrough: .medium))
+        }
+        .sheet(isPresented: Binding(
+            get: { store.state.settingsPresented },
+            set: { if !$0 { store.dismissSettings() } }
+        )) {
+            NavigationStack {
+                SettingsSheet(store: store)
+                    .navigationTitle("Settings")
+                    .navigationBarTitleDisplayMode(.inline)
+                    .toolbar {
+                        ToolbarItem(placement: .confirmationAction) {
+                            Button("Done") { store.dismissSettings() }
+                        }
+                    }
+            }
         }
     }
     #endif

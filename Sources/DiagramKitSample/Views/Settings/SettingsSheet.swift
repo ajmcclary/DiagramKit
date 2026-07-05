@@ -12,8 +12,25 @@ struct SettingsSheet: View {
     @Bindable var store: LiveEditorStore
     @State private var searchText = ""
     @Environment(\.playgroundTokens) private var tokens
+    #if os(iOS)
+    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
+    #endif
 
     var body: some View {
+        #if os(iOS)
+        if horizontalSizeClass == .compact {
+            compactBody
+        } else {
+            framedBody
+        }
+        #else
+        framedBody
+        #endif
+    }
+
+    /// Fixed 748×520 window-chrome layout used on macOS and iPad-regular, where
+    /// SettingsSheet is presented as a centered overlay/sheet.
+    private var framedBody: some View {
         VStack(spacing: 0) {
             header
             Rectangle().fill(tokens.palette.borderHairline).frame(height: 0.5)
@@ -28,6 +45,30 @@ struct SettingsSheet: View {
         .clipShape(RoundedRectangle(cornerRadius: 20))
         .overlay(RoundedRectangle(cornerRadius: 20).stroke(tokens.palette.borderWarm, lineWidth: 0.5))
         .shadow(color: .black.opacity(0.55), radius: 35, y: 30)
+    }
+
+    /// Single-column layout for iPhone-compact: the two-column nav/content of
+    /// `framedBody` won't fit a phone width, so the section list collapses into a
+    /// menu picker above the content. The enclosing `.sheet` supplies the chrome
+    /// and the Done button, so no fixed frame / traffic-light close here.
+    private var compactBody: some View {
+        VStack(spacing: 0) {
+            Picker("Section", selection: Binding(
+                get: { store.state.settingsTab },
+                set: { store.setSettingsTab($0) }
+            )) {
+                ForEach(SettingsTab.allCases, id: \.self) { tab in
+                    Text(tab.displayName).tag(tab)
+                }
+            }
+            .pickerStyle(.menu)
+            .padding(.horizontal, 16)
+            .padding(.vertical, 8)
+            Rectangle().fill(tokens.palette.borderHairline).frame(height: 0.5)
+            content
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(tokens.palette.bgSheet)
     }
 
     private var header: some View {
