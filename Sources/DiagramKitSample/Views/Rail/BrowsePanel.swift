@@ -28,7 +28,7 @@ struct BrowsePanel: View {
                     Button { store.setFullScreen(link.0) } label: {
                         HStack(spacing: 9) {
                             Image(systemName: link.2).font(.system(size: 13)).foregroundStyle(tokens.palette.fg3).frame(width: 15)
-                            Text(link.1).font(PlaygroundFont.sans(12.5)).foregroundStyle(tokens.palette.fg1)
+                            Text(link.1).font(PlaygroundFont.body).foregroundStyle(tokens.palette.fg1)
                             Spacer(minLength: 4)
                             if let count = link.3 {
                                 Text(count).font(PlaygroundFont.mono(10.5)).foregroundStyle(tokens.palette.textFaintest)

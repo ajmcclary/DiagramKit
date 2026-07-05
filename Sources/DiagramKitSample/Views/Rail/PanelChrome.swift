@@ -41,7 +41,7 @@ struct PanelFilterField: View {
             Image(systemName: "magnifyingglass").font(.system(size: 12))
                 .foregroundStyle(focused ? tokens.palette.accent : tokens.palette.textFaint)
             TextField(placeholder, text: $text).textFieldStyle(.plain)
-                .font(PlaygroundFont.sans(12)).foregroundStyle(tokens.palette.fg1)
+                .font(PlaygroundFont.body).foregroundStyle(tokens.palette.fg1)
         }
         .padding(.horizontal, 10).frame(height: 28)
         .background(tokens.palette.bgField)

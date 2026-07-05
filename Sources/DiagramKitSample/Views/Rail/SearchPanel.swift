@@ -31,14 +31,14 @@ struct SearchPanel: View {
                 VStack(alignment: .leading, spacing: 10) {
                     if query.isEmpty {
                         Text("Type to search nodes, edges, and labels.")
-                            .font(PlaygroundFont.sans(12)).foregroundStyle(tokens.palette.textFaint).padding(12)
+                            .font(PlaygroundFont.caption).foregroundStyle(tokens.palette.textFaint).padding(12)
                     } else {
                         if !nodeMatches.isEmpty { section("Nodes", nodeMatches.map { ($0.display, "node:\($0.id)", "rectangle", tokens.palette.accentSecondary) }) }
                         if !edgeMatches.isEmpty {
                             section("Labels", edgeMatches.map { (($0.label ?? ""), "\($0.from)→\($0.to)", "arrow.right", tokens.palette.catCyan) })
                         }
                         if nodeMatches.isEmpty && edgeMatches.isEmpty {
-                            Text("No matches for “\(query)”.").font(PlaygroundFont.sans(12))
+                            Text("No matches for “\(query)”.").font(PlaygroundFont.caption)
                                 .foregroundStyle(tokens.palette.textFaint).padding(12)
                         }
                     }
@@ -50,12 +50,12 @@ struct SearchPanel: View {
 
     private func section(_ title: String, _ rows: [(String, String, String, Color)]) -> some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text(title.uppercased()).font(PlaygroundFont.sans(10, weight: .bold)).tracking(0.6)
+            Text(title.uppercased()).font(PlaygroundFont.sans(11, weight: .bold)).tracking(0.6)
                 .foregroundStyle(tokens.palette.fg3).padding(.horizontal, 4).padding(.top, 4)
             ForEach(Array(rows.enumerated()), id: \.offset) { _, r in
                 HStack(spacing: 9) {
                     Image(systemName: r.2).font(.system(size: 13)).foregroundStyle(r.3).frame(width: 16)
-                    Text(r.0).font(PlaygroundFont.sans(12)).foregroundStyle(tokens.palette.fg1).lineLimit(1)
+                    Text(r.0).font(PlaygroundFont.body).foregroundStyle(tokens.palette.fg1).lineLimit(1)
                     Spacer(minLength: 4)
                     Text(r.1).font(PlaygroundFont.mono(10.5)).foregroundStyle(tokens.palette.textFaintest)
                 }

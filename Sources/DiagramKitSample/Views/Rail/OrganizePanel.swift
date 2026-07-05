@@ -31,7 +31,7 @@ struct OrganizePanel: View {
                     ForEach(rows) { row in rowView(row) }
                     if filter.isEmpty && !tree.edges.isEmpty { edgesSection }
                     if tree.roots.isEmpty {
-                        Text("No flowchart elements").font(PlaygroundFont.sans(12))
+                        Text("No flowchart elements").font(PlaygroundFont.caption)
                             .foregroundStyle(tokens.palette.textFaint).padding(12)
                     }
                 }
@@ -84,7 +84,7 @@ struct OrganizePanel: View {
                 Image(systemName: isCollapsed ? "chevron.right" : "chevron.down")
                     .font(.system(size: 9, weight: .semibold)).foregroundStyle(tokens.palette.fg3).frame(width: 10)
                 Image(systemName: "curlybraces").font(.system(size: 12)).foregroundStyle(tokens.palette.accentSecondary)
-                Text(row.node.display).font(PlaygroundFont.sans(12.5, weight: .semibold))
+                Text(row.node.display).font(PlaygroundFont.sans(13, weight: .semibold))
                     .foregroundStyle(tokens.palette.fg1).lineLimit(1)
                 Spacer(minLength: 4)
                 Text(row.node.id).font(PlaygroundFont.mono(10.5)).foregroundStyle(tokens.palette.textFaintest)
@@ -103,7 +103,7 @@ struct OrganizePanel: View {
                 RoundedRectangle(cornerRadius: 2)
                     .fill(isSelected ? tokens.palette.accent : tokens.palette.fg3.opacity(0.55))
                     .frame(width: 11, height: 8)
-                Text(row.node.display).font(PlaygroundFont.sans(12.5))
+                Text(row.node.display).font(PlaygroundFont.body)
                     .foregroundStyle(isSelected ? tokens.palette.accentSecondary : tokens.palette.fg1).lineLimit(1)
                 Spacer(minLength: 4)
                 Text(row.node.id).font(PlaygroundFont.mono(10.5))
@@ -129,7 +129,7 @@ struct OrganizePanel: View {
                     Image(systemName: edgesCollapsed ? "chevron.right" : "chevron.down")
                         .font(.system(size: 9, weight: .semibold)).foregroundStyle(tokens.palette.fg3).frame(width: 10)
                     Image(systemName: "arrow.right").font(.system(size: 11)).foregroundStyle(tokens.palette.catCyan)
-                    Text("EDGES").font(PlaygroundFont.sans(10, weight: .bold)).tracking(0.6).foregroundStyle(tokens.palette.fg3)
+                    Text("EDGES").font(PlaygroundFont.sans(11, weight: .bold)).tracking(0.6).foregroundStyle(tokens.palette.fg3)
                     Spacer(minLength: 4)
                     Text("\(tree.edges.count)").font(PlaygroundFont.mono(10.5)).foregroundStyle(tokens.palette.textFaintest)
                 }
