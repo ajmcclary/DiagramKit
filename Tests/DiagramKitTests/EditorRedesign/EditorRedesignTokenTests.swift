@@ -52,4 +52,38 @@ import SwiftUI
         #expect(ThemeMode.light.scheme(system: .dark) == .light)
         #expect(ThemeMode.dark.scheme(system: .light) == .dark)
     }
+
+    // MARK: - Chrome palettes (Task 3)
+
+    @Test func everyFamilyModeResolvesCompletePalette() {
+        for family in ZedTrekTheme.allCases {
+            for scheme in [ColorScheme.dark, .light] {
+                let p = family.palette(for: scheme)
+                #expect(p.accent != p.bgWindow)
+                #expect(p.onAccent != p.accent)
+                #expect(p.bgCard != p.accent)
+                #expect(p.fg1 != p.bgApp)
+            }
+        }
+    }
+
+    @Test func pinnedChromePaletteValues() {
+        // LCARS dark keeps the comp-exact values (default appearance).
+        let lcarsDark = ZedTrekTheme.lcars.palette(for: .dark)
+        #expect(lcarsDark.bgWindow == Color(hex: 0x05060A))
+        #expect(lcarsDark.accent == Color(hex: 0xFF9933))
+        #expect(lcarsDark.fg1 == Color(hex: 0xF2E7D8))
+        #expect(lcarsDark.bgSheet == Color(hex: 0x0E1421))
+
+        // LCARS light keeps its brand (orange) accent, not the focus-ring blue.
+        #expect(ZedTrekTheme.lcars.palette(for: .light).accent == Color(hex: 0xC16E1D))
+
+        // Black Alert dark — mapped from zed-trek.json (spec §5).
+        let blackDark = ZedTrekTheme.blackAlert.palette(for: .dark)
+        #expect(blackDark.bgApp == Color(hex: 0x020204))      // background
+        #expect(blackDark.bgField == Color(hex: 0x010204))    // editor.background
+        #expect(blackDark.accent == Color(hex: 0x7EC8DE))     // brand accent
+        #expect(blackDark.fg1 == Color(hex: 0xDFE7F1))        // text
+        #expect(blackDark.statusError == Color(hex: 0xFF7373))// error
+    }
 }
