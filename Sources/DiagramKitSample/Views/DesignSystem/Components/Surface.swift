@@ -13,7 +13,9 @@ enum SurfaceStyle {
     case card       // flat surface used inside inspector sections
     case elevated   // popover-style with shadow
     case sunken     // depressed background, e.g. code editor frame
-    case glass      // translucent blur, used for floating toolbars
+    // Floating-toolbar glass now lives in `.glassChrome` (real Liquid Glass);
+    // the old `.glass` Surface case (a solid `glassBg` fill) was unused and
+    // removed with the `glassBg` token.
 }
 
 struct Surface<Content: View>: View {
@@ -61,9 +63,6 @@ struct Surface<Content: View>: View {
             shape.fill(tokens.palette.bgElevated)
         case .sunken:
             shape.fill(tokens.palette.bgSunken)
-        case .glass:
-            shape.fill(tokens.palette.glassBg)
-                .background(.ultraThinMaterial, in: shape)
         }
     }
 }
@@ -83,11 +82,6 @@ private struct SurfaceShadow: ViewModifier {
                            radius: PlaygroundShadow.elevated.radius,
                            x: PlaygroundShadow.elevated.x,
                            y: PlaygroundShadow.elevated.y)
-        case .glass:
-            content.shadow(color: PlaygroundShadow.dropdown.color,
-                           radius: PlaygroundShadow.dropdown.radius,
-                           x: PlaygroundShadow.dropdown.x,
-                           y: PlaygroundShadow.dropdown.y)
         case .sunken:
             content
         }

@@ -44,8 +44,6 @@ struct PlaygroundPalette: Equatable, Sendable {
     var rowHover: Color
     var rowSelected: Color
 
-    var glassBg: Color
-
     // --- Redesign additions (layered surfaces / roles from the Zed Trek comp).
     // Defaulted so the four legacy presets (dark/light/forest/neutral) compile
     // unchanged via the memberwise init; the six Zed Trek presets set them all

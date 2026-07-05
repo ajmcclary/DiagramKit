@@ -49,7 +49,6 @@ extension PlaygroundPalette {
             statusError: Color(hex: error), statusInfo: Color(hex: info),
             rowHover: Color(hex: accent).opacity(0.08),
             rowSelected: Color(hex: accent).opacity(0.16),
-            glassBg: Color(hex: titleBg).opacity(0.90),
             bgWindow: Color(hex: background), bgRail: Color(hex: background),
             bgPanel: Color(hex: panelBg), bgSheet: Color(hex: elevatedBg),
             bgSidebarNav: Color(hex: panelBg), bgChrome: Color(hex: titleBg),
@@ -85,8 +84,7 @@ extension PlaygroundPalette {
         statusError:    Color(hex: 0xEF5A5A),
         statusInfo:     Color(hex: 0x7EC8DE),
         rowHover:       Color(hex: 0xFF9933).opacity(0.08),
-        rowSelected:    Color(hex: 0xFF9933).opacity(0.16),
-        glassBg:        Color(hex: 0x0D1018).opacity(0.90)
+        rowSelected:    Color(hex: 0xFF9933).opacity(0.16)
     )
 }
 

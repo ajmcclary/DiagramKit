@@ -51,12 +51,6 @@ struct ToolbarPill: View {
         }
         .padding(.horizontal, 10)
         .padding(.vertical, 5)
-        .background(
-            Capsule()
-                .fill(tokens.palette.glassBg)
-                .overlay(
-                    Capsule().stroke(tokens.palette.borderHairline, lineWidth: 0.5)
-                )
-        )
+        .glassChrome(.toolbar, in: Capsule())
     }
 }
