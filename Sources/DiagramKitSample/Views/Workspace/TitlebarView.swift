@@ -29,6 +29,7 @@ struct TitlebarView: View {
             store.openConvertSheet()
         } label: {
             Image(systemName: "arrow.left.arrow.right")
+                .touchTarget()
         }
         .keyboardShortcut("k", modifiers: [.command, .shift])
         .a11y(label: "Convert", id: "titlebar.convert")
@@ -39,6 +40,7 @@ struct TitlebarView: View {
             store.openExportSheet()
         } label: {
             Image(systemName: "square.and.arrow.up")
+                .touchTarget()
         }
         .keyboardShortcut("e", modifiers: .command)
         .a11y(label: "Export", id: A11yID.Titlebar.export)

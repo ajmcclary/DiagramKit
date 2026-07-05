@@ -131,8 +131,9 @@ struct InspectorView: View {
 
     private var arrangeSection: some View {
         VStack(alignment: .leading, spacing: 10) {
-            caption("Arrange")
+            previewOnlyCaption("Arrange")
             AlignButtonRow()
+                .disabled(true)
         }
         .padding(.horizontal, 16).padding(.bottom, 14)
         .overlay(Rectangle().fill(tokens.palette.borderHairline).frame(height: 0.5), alignment: .top)
@@ -143,14 +144,16 @@ struct InspectorView: View {
 
     private var diagramSection: some View {
         VStack(alignment: .leading, spacing: 12) {
-            caption("Diagram")
+            previewOnlyCaption("Diagram")
             SegmentedFormatControl(segments: [
                 .init(value: "TB", label: "TB", monospaced: true),
                 .init(value: "LR", label: "LR", monospaced: true),
                 .init(value: "BT", label: "BT", monospaced: true),
                 .init(value: "RL", label: "RL", monospaced: true),
             ], selection: .constant(directionCode))
+            .disabled(true)
             SliderRow(title: "Node spacing", value: $nodeSpacing, range: 16...96)
+            .disabled(true)
         }
         .padding(.horizontal, 16).padding(.bottom, 14)
         .overlay(Rectangle().fill(tokens.palette.borderHairline).frame(height: 0.5), alignment: .top)
@@ -195,6 +198,20 @@ struct InspectorView: View {
     private func caption(_ text: String) -> some View {
         Text(text.uppercased()).font(PlaygroundFont.sans(10, weight: .bold)).tracking(0.6)
             .foregroundStyle(tokens.palette.fg3).padding(.top, 14).padding(.bottom, 6)
+    }
+
+    /// Section caption tagged as non-functional, so users don't try to operate
+    /// controls that intentionally drive no mutation this cycle (B4).
+    private func previewOnlyCaption(_ text: String) -> some View {
+        HStack(spacing: 6) {
+            caption(text)
+            Text("preview only")
+                .font(PlaygroundFont.badge)
+                .foregroundStyle(tokens.palette.textFaint)
+                .padding(.horizontal, 5).padding(.vertical, 1)
+                .background(Capsule().fill(tokens.palette.bgTrack))
+                .padding(.top, 8)
+        }
     }
 
     private var directionCode: String {
