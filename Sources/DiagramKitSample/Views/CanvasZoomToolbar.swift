@@ -49,15 +49,7 @@ struct CanvasZoomToolbar: View {
         .foregroundColor(tokens.palette.fg2)
         .padding(.horizontal, 6)
         .padding(.vertical, 4)
-        .background(
-            RoundedRectangle(cornerRadius: 10)
-                .fill(tokens.palette.bgChrome.opacity(0.92))
-                .overlay(
-                    RoundedRectangle(cornerRadius: 10)
-                        .stroke(tokens.palette.borderHairline, lineWidth: 0.5)
-                )
-        )
-        .shadow(color: .black.opacity(0.35), radius: 6, x: 0, y: 2)
+        .glassChrome(.toolbar, in: RoundedRectangle(cornerRadius: 10, style: .continuous))
     }
 
     // MARK: - Buttons

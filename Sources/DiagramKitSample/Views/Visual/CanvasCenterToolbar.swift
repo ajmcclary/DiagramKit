@@ -112,15 +112,7 @@ struct CanvasCenterToolbar: View {
         }
         .foregroundStyle(tokens.palette.fg2)
         .padding(4)
-        .background(
-            RoundedRectangle(cornerRadius: 12, style: .continuous)
-                .fill(tokens.palette.bgChrome.opacity(0.92))
-                .overlay(
-                    RoundedRectangle(cornerRadius: 12, style: .continuous)
-                        .stroke(tokens.palette.borderHairline, lineWidth: 0.5)
-                )
-                .shadow(color: .black.opacity(0.35), radius: 8, x: 0, y: 4)
-        )
+        .glassChrome(.toolbar, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier(A11yID.Visual.centerToolbar)
     }
