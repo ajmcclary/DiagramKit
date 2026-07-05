@@ -14,13 +14,14 @@ struct ActivityRailItem: View {
     let help: String
     let action: () -> Void
     @Environment(\.playgroundTokens) private var tokens
+    @State private var isHovering = false
 
     var body: some View {
         Button(action: action) {
             Image(systemName: systemImage).font(.system(size: 18))
                 .foregroundStyle(isActive ? tokens.palette.accent : tokens.palette.fg3)
                 .frame(width: 38, height: 38)
-                .background(isActive ? tokens.palette.accentTint16 : .clear)
+                .background(tileBackground)
                 .clipShape(RoundedRectangle(cornerRadius: 9))
                 .overlay(alignment: .leading) {
                     if isActive {
@@ -28,6 +29,18 @@ struct ActivityRailItem: View {
                             .frame(width: 2.5).padding(.vertical, 9).offset(x: -10)
                     }
                 }
-        }.buttonStyle(.plain).help(help)
+        }
+        .buttonStyle(.playground)
+        .onHover { isHovering = $0 }
+        #if os(iOS)
+        .hoverEffect(.highlight)
+        #endif
+        .help(help)
+    }
+
+    private var tileBackground: Color {
+        if isActive { return tokens.palette.accentTint16 }
+        if isHovering { return tokens.palette.rowHover }
+        return .clear
     }
 }
