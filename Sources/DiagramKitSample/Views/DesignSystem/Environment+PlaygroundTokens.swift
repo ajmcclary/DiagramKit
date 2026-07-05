@@ -9,7 +9,7 @@
 import SwiftUI
 
 struct PlaygroundTokensKey: EnvironmentKey {
-    static let defaultValue: PlaygroundTokens = .zedTrekDark
+    static let defaultValue = PlaygroundTokens(family: .lcars, scheme: .dark)
 }
 
 extension EnvironmentValues {
@@ -20,18 +20,6 @@ extension EnvironmentValues {
 }
 
 extension View {
-    /// Install chrome tokens + matching color scheme so descendants
-    /// can read `@Environment(\.playgroundTokens)`.
-    func playgroundTokens(_ tokens: PlaygroundTokens) -> some View {
-        environment(\.playgroundTokens, tokens)
-            .preferredColorScheme(tokens.appearance.preferredColorScheme)
-    }
-
-    /// Convenience: install tokens for a named appearance.
-    func playgroundAppearance(_ appearance: PlaygroundAppearance) -> some View {
-        playgroundTokens(.tokens(for: appearance))
-    }
-
     /// Install Zed Trek chrome tokens for a (family, mode) pair. In `.system`
     /// mode the palette follows the OS color scheme; otherwise the scheme is
     /// forced. `onEffectiveScheme` fires with the resolved scheme (used to keep
