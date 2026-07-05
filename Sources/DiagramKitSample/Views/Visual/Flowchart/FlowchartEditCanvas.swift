@@ -42,6 +42,9 @@ struct FlowchartEditCanvas: View {
     // Visual editor plan 3 — right-click needs a position; SwiftUI's
     // contextMenu doesn't provide one, so track the last hover point.
     @SwiftUI.State private var hoverPoint: CGPoint?
+    // Whether the pointer is currently over the canvas. Drives the hover ring
+    // without clearing `hoverPoint` (which the context menu still needs).
+    @SwiftUI.State private var hoverActive = false
 
     // Zoom / pan gesture state (visual editor — canvas zoom). The resolved
     // `transform`, gestures, and toolbar live in FlowchartEditCanvas+Zoom.swift.
@@ -76,6 +79,7 @@ struct FlowchartEditCanvas: View {
                     ImageNodeOverlayItem(urlString: item.url, rect: item.rect)
                 }
 
+                hoverOverlay(in: geometry)
                 selectionOverlay(in: geometry)
 
                 if !store.state.marqueeSelection.isEmpty {
@@ -112,8 +116,12 @@ struct FlowchartEditCanvas: View {
             .simultaneousGesture(doubleTapGesture(in: geometry))
             .simultaneousGesture(magnificationGesture)
             .onContinuousHover { phase in
-                if case .active(let point) = phase {
+                switch phase {
+                case .active(let point):
                     hoverPoint = point
+                    hoverActive = true
+                case .ended:
+                    hoverActive = false
                 }
             }
             .contextMenu {
@@ -166,6 +174,24 @@ struct FlowchartEditCanvas: View {
                         .allowsHitTesting(false)
                 }
             }
+        }
+    }
+
+    /// Pre-selection hover ring: highlights the element under the pointer so the
+    /// click target is clear before committing. Pointer-only — `hoverPoint` stays
+    /// nil on touch. Skips the already-selected element (it has its own ring).
+    @ViewBuilder
+    private func hoverOverlay(in geometry: GeometryProxy) -> some View {
+        if hoverActive,
+           let hovered = elementAtHover(in: geometry.size),
+           hovered != store.editor?.selection,
+           let bounds = liveBoundsLookup?.bounds(of: hovered) {
+            let rect = viewRect(for: bounds, in: geometry.size)
+            RoundedRectangle(cornerRadius: 4)
+                .stroke(Color.accentColor.opacity(0.4), lineWidth: 1.5)
+                .frame(width: rect.width, height: rect.height)
+                .position(x: rect.midX, y: rect.midY)
+                .allowsHitTesting(false)
         }
     }
 
