@@ -36,7 +36,7 @@ struct SegmentedFormatControl<Value: Hashable>: View {
                     .frame(maxWidth: .infinity).padding(.vertical, 8)
                     .background(active ? tokens.palette.accent : .clear)
                     .clipShape(RoundedRectangle(cornerRadius: 6))
-                }.buttonStyle(.plain)
+                }.buttonStyle(.playground)
             }
         }
         .padding(3).background(tokens.palette.bgTrack)

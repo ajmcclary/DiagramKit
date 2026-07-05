@@ -28,7 +28,7 @@ struct CanvasCenterToolbar: View {
                     .padding(.horizontal, 10)
                     .padding(.vertical, 6)
             }
-            .buttonStyle(.plain)
+            .buttonStyle(.playground)
             .help("Browse and add shapes")
             .accessibilityIdentifier(A11yID.Visual.shapesButton)
             .popover(isPresented: $showShapeCatalog, arrowEdge: .top) {
@@ -46,7 +46,7 @@ struct CanvasCenterToolbar: View {
                     .padding(.horizontal, 10)
                     .padding(.vertical, 6)
             }
-            .buttonStyle(.plain)
+            .buttonStyle(.playground)
             .help("Add a labeled group to the canvas")
             .accessibilityIdentifier(A11yID.Visual.subgraphButton)
 
@@ -58,7 +58,7 @@ struct CanvasCenterToolbar: View {
                     .padding(.horizontal, 10)
                     .padding(.vertical, 6)
             }
-            .buttonStyle(.plain)
+            .buttonStyle(.playground)
             .help("Search and add an icon node")
             .accessibilityIdentifier(A11yID.Visual.iconButton)
             .popover(isPresented: $showIconBrowser, arrowEdge: .top) {
@@ -76,7 +76,7 @@ struct CanvasCenterToolbar: View {
                     .padding(.horizontal, 10)
                     .padding(.vertical, 6)
             }
-            .buttonStyle(.plain)
+            .buttonStyle(.playground)
             .help("Add an image node from a URL")
             .accessibilityIdentifier(A11yID.Visual.imageButton)
 
@@ -88,7 +88,7 @@ struct CanvasCenterToolbar: View {
                     .padding(.horizontal, 10)
                     .padding(.vertical, 6)
             }
-            .buttonStyle(.plain)
+            .buttonStyle(.playground)
             .help("Auto-arrange the diagram")
             .accessibilityIdentifier(A11yID.Visual.rearrangeButton)
             .popover(isPresented: $showRearrange, arrowEdge: .top) {
@@ -103,7 +103,7 @@ struct CanvasCenterToolbar: View {
                     .padding(.horizontal, 10)
                     .padding(.vertical, 6)
             }
-            .buttonStyle(.plain)
+            .buttonStyle(.playground)
             .help("Apply a theme (saved into the source)")
             .accessibilityIdentifier(A11yID.Visual.themeButton)
             .popover(isPresented: $showThemePicker, arrowEdge: .top) {

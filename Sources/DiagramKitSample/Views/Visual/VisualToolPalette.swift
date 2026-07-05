@@ -58,7 +58,7 @@ struct VisualToolPalette: View {
                         .fill(isOn ? tokens.palette.accentTint16 : Color.clear)
                 )
         }
-        .buttonStyle(.plain)
+        .buttonStyle(.playground)
         .help(tool.label)
         .a11yToggle(
             label: LocalizedStringKey(tool.label),
@@ -77,7 +77,7 @@ struct VisualToolPalette: View {
                 .frame(width: 30, height: 30)
                 .foregroundStyle(tokens.palette.fg2)
         }
-        .buttonStyle(.plain)
+        .buttonStyle(.playground)
         .disabled(!canUndo)
         .opacity(canUndo ? 1 : 0.35)
         .help(store.editor?.undoActionName ?? "Undo")
@@ -93,7 +93,7 @@ struct VisualToolPalette: View {
                 .frame(width: 30, height: 30)
                 .foregroundStyle(tokens.palette.fg2)
         }
-        .buttonStyle(.plain)
+        .buttonStyle(.playground)
         .disabled(!canRedo)
         .opacity(canRedo ? 1 : 0.35)
         .help(store.editor?.redoActionName ?? "Redo")
@@ -108,7 +108,7 @@ struct VisualToolPalette: View {
                 .frame(width: 30, height: 30)
                 .foregroundStyle(tokens.palette.accent)
         }
-        .buttonStyle(.plain)
+        .buttonStyle(.playground)
         .help("Group selected nodes into a subgraph")
         .a11y(label: "Group selection", id: A11yID.Visual.groupButton)
     }

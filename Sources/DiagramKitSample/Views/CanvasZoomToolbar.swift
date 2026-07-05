@@ -82,7 +82,7 @@ struct CanvasZoomToolbar: View {
                 ? tokens.palette.accent
                 : tokens.palette.fg2)
         }
-        .buttonStyle(.plain)
+        .buttonStyle(.playground)
         .help("Fit diagram to view")
         .keyboardShortcut("0", modifiers: .command)
         .a11yIdentifier(A11yID.Preview.fit)
@@ -95,9 +95,8 @@ struct CanvasZoomToolbar: View {
             Image(systemName: "minus")
                 .frame(width: 26, height: 26)
         }
-        .buttonStyle(.plain)
+        .buttonStyle(.playground)
         .disabled(!panZoomEnabled || zoomScale <= minZoom)
-        .opacity(!panZoomEnabled || zoomScale <= minZoom ? 0.35 : 1.0)
         .help("Zoom out")
         .keyboardShortcut("-", modifiers: .command)
         .a11y(label: "Zoom out", id: A11yID.Preview.zoomOut)
@@ -110,9 +109,8 @@ struct CanvasZoomToolbar: View {
             Image(systemName: "plus")
                 .frame(width: 26, height: 26)
         }
-        .buttonStyle(.plain)
+        .buttonStyle(.playground)
         .disabled(!panZoomEnabled || zoomScale >= maxZoom)
-        .opacity(!panZoomEnabled || zoomScale >= maxZoom ? 0.35 : 1.0)
         .help("Zoom in")
         .keyboardShortcut("=", modifiers: .command)
         .a11y(label: "Zoom in", id: A11yID.Preview.zoomIn)
@@ -124,7 +122,7 @@ struct CanvasZoomToolbar: View {
                 .font(.system(size: 11, weight: .medium, design: .monospaced))
                 .frame(width: 28, height: 26)
         }
-        .buttonStyle(.plain)
+        .buttonStyle(.playground)
         .help("Actual size (100%)")
         .keyboardShortcut("1", modifiers: .command)
         .a11yIdentifier(A11yID.Preview.actualSize)
@@ -137,7 +135,7 @@ struct CanvasZoomToolbar: View {
             Image(systemName: panZoomEnabled ? "hand.draw.fill" : "hand.draw")
                 .frame(width: 26, height: 26)
         }
-        .buttonStyle(.plain)
+        .buttonStyle(.playground)
         .foregroundColor(panZoomEnabled
             ? tokens.palette.accent
             : tokens.palette.fg2)
@@ -157,7 +155,7 @@ struct CanvasZoomToolbar: View {
             Image(systemName: "grid")
                 .frame(width: 26, height: 26)
         }
-        .buttonStyle(.plain)
+        .buttonStyle(.playground)
         .foregroundColor(gridEnabled
             ? tokens.palette.accent
             : tokens.palette.fg2)
@@ -175,7 +173,7 @@ struct CanvasZoomToolbar: View {
             Image(systemName: "rectangle.inset.filled")
                 .frame(width: 26, height: 26)
         }
-        .buttonStyle(.plain)
+        .buttonStyle(.playground)
         .help("Full-window preview")
         .a11y(label: "Full-window preview", id: A11yID.Preview.fullWindow)
     }

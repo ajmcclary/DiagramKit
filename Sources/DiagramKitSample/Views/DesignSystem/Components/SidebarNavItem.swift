@@ -28,6 +28,6 @@ struct SidebarNavItem: View {
             .background(isActive ? tokens.palette.accentTint16 : .clear)
             .clipShape(RoundedRectangle(cornerRadius: 7))
             .contentShape(Rectangle())
-        }.buttonStyle(.plain)
+        }.buttonStyle(.playground)
     }
 }

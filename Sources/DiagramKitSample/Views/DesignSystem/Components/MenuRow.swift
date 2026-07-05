@@ -34,7 +34,7 @@ struct MenuRow<Menu: View>: View {
                         .foregroundStyle(tokens.palette.fg3)
                 }
             }
-            .menuStyle(.button).buttonStyle(.plain).fixedSize()
+            .menuStyle(.button).buttonStyle(.playground).fixedSize()
         }
         .padding(.horizontal, 14).padding(.vertical, 12)
     }

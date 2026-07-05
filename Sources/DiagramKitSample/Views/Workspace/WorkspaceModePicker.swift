@@ -53,7 +53,7 @@ struct WorkspaceModePicker: View {
                 }
                 .contentShape(Rectangle())
         }
-        .buttonStyle(.plain)
+        .buttonStyle(.playground)
         .a11yToggle(
             label: LocalizedStringKey(mode.label),
             isOn: isSelected,

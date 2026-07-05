@@ -50,7 +50,7 @@ struct SwatchTile: View {
             .frame(width: 72, height: 48)
             .contentShape(Rectangle())
         }
-        .buttonStyle(.plain)
+        .buttonStyle(.playground)
     }
 
     // Simple contrast: light backgrounds get dark text; dark backgrounds get

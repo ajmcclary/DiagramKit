@@ -31,7 +31,7 @@ struct DotPicker: View {
                         )
                         .contentShape(Circle())
                 }
-                .buttonStyle(.plain)
+                .buttonStyle(.playground)
             }
         }
     }

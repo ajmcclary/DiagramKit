@@ -90,7 +90,7 @@ struct ChipGroup<Value: Hashable>: View {
             )
             .contentShape(Rectangle())
         }
-        .buttonStyle(.plain)
+        .buttonStyle(.playground)
     }
 
     private func toggle(_ value: Value) {
