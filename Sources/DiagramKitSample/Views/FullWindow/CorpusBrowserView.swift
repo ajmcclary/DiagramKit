@@ -222,14 +222,11 @@ struct CorpusBrowserView: View {
     private func grid(filtered: [CorpusEntry]) -> some View {
         ScrollView {
             if filtered.isEmpty {
-                VStack(spacing: 8) {
-                    Image(systemName: "magnifyingglass.circle")
-                        .font(.system(size: 28))
-                        .foregroundStyle(.secondary)
-                    Text("No corpus entries match the current filters")
-                        .font(.system(size: 12))
-                        .foregroundStyle(.secondary)
-                }
+                ContentUnavailableView(
+                    "No Matches",
+                    systemImage: "magnifyingglass",
+                    description: Text("No corpus entries match the current filters")
+                )
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .padding(40)
             } else {

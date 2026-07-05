@@ -142,21 +142,11 @@ struct HistoryView: View {
     // MARK: - Empty state
 
     private var emptyState: some View {
-        VStack(spacing: 12) {
-            Image(systemName: "clock.arrow.circlepath")
-                .font(.system(size: 36))
-                .foregroundColor(Color(store.theme.effectiveMuted()).opacity(0.5))
-
-            Text("No history entries")
-                .font(.system(size: 14, weight: .medium))
-                .foregroundColor(Color(store.theme.effectiveMuted()))
-
-            Text("Manual saves, auto timeline snapshots, and loaded diagrams will appear here.")
-                .font(.system(size: 12))
-                .foregroundColor(Color(store.theme.effectiveMuted()).opacity(0.7))
-                .multilineTextAlignment(.center)
-                .padding(.horizontal, 32)
-        }
+        ContentUnavailableView(
+            "No history entries",
+            systemImage: "clock.arrow.circlepath",
+            description: Text("Manual saves, auto timeline snapshots, and loaded diagrams will appear here.")
+        )
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 

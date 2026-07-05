@@ -55,6 +55,7 @@ struct PreviewCanvas: View {
                 // Main content — diagram or ASCII
                 if previewMode == .diagram {
                     diagramContent(in: geometry)
+                        .opacity(store.renderStatus == .rendering ? 0.6 : 1.0)
                 } else {
                     AsciiPreviewView(store: store)
                 }
@@ -98,6 +99,24 @@ struct PreviewCanvas: View {
                 // Empty state
                 if store.renderStatus == .idle {
                     idleOverlay
+                }
+
+                // Rendering indicator. The canvas stays mounted across renders,
+                // so this shows the stale (dimmed) diagram plus a spinner while a
+                // large diagram re-renders on the worker thread.
+                if store.renderStatus == .rendering {
+                    VStack {
+                        Spacer()
+                        HStack {
+                            Spacer()
+                            ProgressView()
+                                .controlSize(.small)
+                                .padding(8)
+                                .background(.thinMaterial, in: Capsule())
+                                .padding(12)
+                        }
+                    }
+                    .allowsHitTesting(false)
                 }
 
                 // Zoom toolbar (only meaningful in diagram mode)

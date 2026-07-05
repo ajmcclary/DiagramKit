@@ -110,14 +110,11 @@ struct SnippetsLibraryView: View {
     private func grid(snippets: [Snippet]) -> some View {
         ScrollView {
             if snippets.isEmpty {
-                VStack(spacing: 8) {
-                    Image(systemName: "magnifyingglass.circle")
-                        .font(.system(size: 28))
-                        .foregroundStyle(.secondary)
-                    Text("No snippets match the search")
-                        .font(.system(size: 12))
-                        .foregroundStyle(.secondary)
-                }
+                ContentUnavailableView(
+                    "No Snippets",
+                    systemImage: "magnifyingglass",
+                    description: Text("No snippets match the search")
+                )
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .padding(40)
             } else {
