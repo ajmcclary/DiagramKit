@@ -23,6 +23,10 @@ enum PlaygroundSettingsKeys {
         confirmBeforeDelete, sendAnonymousDiagnostics, restoreLastDocument,
         showConnectionHandles, gridSize, keyboardNudge, defaultNodeShape,
         defaultEdgeStyle, uiTextSize,
+        PlaygroundChromePersistence.themeKey,
+        PlaygroundChromePersistence.modeKey,
+        PlaygroundChromePersistence.canvasFollowsKey,
+        PlaygroundChromePersistence.appearanceKey,
     ]
 
     @MainActor static func resetAll() {

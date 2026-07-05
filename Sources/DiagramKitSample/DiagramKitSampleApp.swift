@@ -23,6 +23,8 @@ struct DiagramKitSampleApp: App {
 
     init() {
         DiagramEngine.bootstrap()
+        // Migrate any pre-family `chromeAppearance` pref to the (family, mode) model.
+        PlaygroundChromePersistence.migrateLegacyIfNeeded()
         // First-launch UX: surface the inspector. Remembered across sessions
         // via the legacy "playground.shell.inspectorVisible" key (now mirrored
         // into `state.inspectorOpen` so the toolbar toggle is the single

@@ -125,5 +125,35 @@ struct InspectorThemeSection: View {
 // MARK: - Shared persistence keys
 
 enum PlaygroundChromePersistence {
+    /// Legacy single-key appearance (migration source only).
     static let appearanceKey = "playground.chromeAppearance"
+    /// Selected Zed Trek family (rawValue), default `lcars`.
+    static let themeKey = "playground.zedTrekTheme"
+    /// Selected light/dark/system mode (rawValue), default `dark`.
+    static let modeKey = "playground.themeMode"
+    /// Whether the diagram canvas follows the app theme. Default `true`.
+    static let canvasFollowsKey = "playground.canvasFollowsAppTheme"
+
+    /// Map a legacy `chromeAppearance` value onto the (family, mode) model.
+    static func migratedSelection(fromLegacy raw: String?) -> (theme: ZedTrekTheme, mode: ThemeMode) {
+        switch raw {
+        case "zedTrekDark", "dark", "forest":     return (.lcars, .dark)
+        case "zedTrekLight", "light", "neutral":  return (.lcars, .light)
+        case "federation":                        return (.federation, .dark)
+        case "redAlert":                          return (.redAlert, .dark)
+        case "sickBay":                           return (.sickBay, .dark)
+        case "borgCube":                          return (.borgCube, .dark)
+        default:                                  return (.lcars, .dark)
+        }
+    }
+
+    /// One-time migration: if the new theme key is unset but a legacy appearance
+    /// exists, seed the (family, mode) keys from it. Idempotent.
+    static func migrateLegacyIfNeeded(defaults: UserDefaults = .standard) {
+        guard defaults.string(forKey: themeKey) == nil,
+              let legacy = defaults.string(forKey: appearanceKey) else { return }
+        let (theme, mode) = migratedSelection(fromLegacy: legacy)
+        defaults.set(theme.rawValue, forKey: themeKey)
+        defaults.set(mode.rawValue, forKey: modeKey)
+    }
 }

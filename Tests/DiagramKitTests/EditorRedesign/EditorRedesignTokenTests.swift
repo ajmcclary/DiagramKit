@@ -86,4 +86,20 @@ import SwiftUI
         #expect(blackDark.fg1 == Color(hex: 0xDFE7F1))        // text
         #expect(blackDark.statusError == Color(hex: 0xFF7373))// error
     }
+
+    // MARK: - Legacy migration (Task 5)
+
+    @Test func legacyMigrationTable() {
+        typealias P = PlaygroundChromePersistence
+        #expect(P.migratedSelection(fromLegacy: "zedTrekDark") == (.lcars, .dark))
+        #expect(P.migratedSelection(fromLegacy: "zedTrekLight") == (.lcars, .light))
+        #expect(P.migratedSelection(fromLegacy: "federation") == (.federation, .dark))
+        #expect(P.migratedSelection(fromLegacy: "redAlert") == (.redAlert, .dark))
+        #expect(P.migratedSelection(fromLegacy: "sickBay") == (.sickBay, .dark))
+        #expect(P.migratedSelection(fromLegacy: "borgCube") == (.borgCube, .dark))
+        #expect(P.migratedSelection(fromLegacy: "light") == (.lcars, .light))
+        #expect(P.migratedSelection(fromLegacy: "forest") == (.lcars, .dark))
+        #expect(P.migratedSelection(fromLegacy: nil) == (.lcars, .dark))
+        #expect(P.migratedSelection(fromLegacy: "garbage") == (.lcars, .dark))
+    }
 }
