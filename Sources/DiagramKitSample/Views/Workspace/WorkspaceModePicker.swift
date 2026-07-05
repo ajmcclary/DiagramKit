@@ -13,12 +13,18 @@ struct WorkspaceModePicker: View {
     @Bindable var store: LiveEditorStore
     @Environment(\.playgroundTokens) private var tokens
 
+    /// Height of the selectable pills. The track wraps this with a 2pt
+    /// inset, so the pills fill the track instead of floating shorter than
+    /// its background.
+    private let pillHeight: CGFloat = 22
+
     var body: some View {
         HStack(spacing: 2) {
             ForEach(WorkspaceMode.allCases, id: \.self) { mode in
                 button(for: mode)
             }
         }
+        .frame(height: pillHeight)
         .padding(2)
         .background(
             RoundedRectangle(cornerRadius: 8, style: .continuous)
@@ -40,11 +46,12 @@ struct WorkspaceModePicker: View {
                 .font(.system(size: 12, weight: isSelected ? .semibold : .medium))
                 .foregroundStyle(isSelected ? tokens.palette.onAccent : tokens.palette.fg3)
                 .padding(.horizontal, 14)
-                .padding(.vertical, 4)
+                .frame(maxHeight: .infinity)
                 .background {
                     RoundedRectangle(cornerRadius: 6, style: .continuous)
                         .fill(isSelected ? tokens.palette.accent : .clear)
                 }
+                .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
         .a11yToggle(

@@ -26,6 +26,13 @@ struct LiveEditorView: View {
         PlaygroundAppearance(rawValue: chromeAppearanceRaw) ?? .zedTrekDark
     }
 
+    /// Chrome background for the current appearance. Used to paint the
+    /// window toolbar so its full-screen background matches the app body
+    /// instead of falling back to the default system material band.
+    private var chromeBackground: Color {
+        PlaygroundTokens.tokens(for: chromeAppearance).palette.bgApp
+    }
+
     // Bridges the iPhone compact-layout picker to `store.state.inspectorOpen`
     // so the Cmd-I shortcut (which flips `inspectorOpen` via `toggleInspector`)
     // and the segmented picker stay in lockstep. Picking `.inspector` opens
@@ -70,6 +77,9 @@ struct LiveEditorView: View {
             #endif
         }
         .playgroundAppearance(chromeAppearance)
+        #if os(macOS)
+        .toolbarBackground(chromeBackground, for: .windowToolbar)
+        #endif
     }
 
     // MARK: - Compact Layout (iPhone)
