@@ -53,12 +53,9 @@ struct SwatchTile: View {
         .buttonStyle(.plain)
     }
 
-    // Simple contrast: light backgrounds get dark text; dark backgrounds get light text.
+    // Simple contrast: light backgrounds get dark text; dark backgrounds get
+    // light text, judged from the tile's own background luminance.
     private func textColor(on background: Color) -> Color {
-        switch tokens.appearance.preferredColorScheme {
-        case .light: return .black.opacity(0.85)
-        case .dark: return .white.opacity(0.9)
-        @unknown default: return .white.opacity(0.9)
-        }
+        background.isLightSwatch ? .black.opacity(0.85) : .white.opacity(0.9)
     }
 }

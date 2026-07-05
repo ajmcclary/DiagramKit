@@ -12,6 +12,11 @@
 //
 
 import SwiftUI
+#if canImport(UIKit)
+import UIKit
+#elseif canImport(AppKit)
+import AppKit
+#endif
 
 // MARK: - Appearance
 
@@ -222,6 +227,15 @@ struct PlaygroundTokens: Equatable, Sendable {
     }
 }
 
+extension PlaygroundTokens {
+    /// Resolve chrome tokens for a Zed Trek family in the given scheme. This is
+    /// the primary resolution path (theme × mode). `appearance` is a legacy
+    /// placeholder removed once the flat enum path is retired.
+    init(family: ZedTrekTheme, scheme: ColorScheme) {
+        self.init(appearance: .zedTrekDark, palette: family.palette(for: scheme))
+    }
+}
+
 // MARK: - Palette presets
 
 extension PlaygroundPalette {
@@ -321,5 +335,21 @@ extension Color {
         let g = Double((hex >> 8) & 0xFF) / 255
         let b = Double(hex & 0xFF) / 255
         self.init(red: r, green: g, blue: b, opacity: opacity)
+    }
+
+    /// True when the color reads as "light" (relative luminance ≥ 0.6), for
+    /// choosing contrasting text on a swatch. Falls back to `false` if the
+    /// channels can't be resolved.
+    var isLightSwatch: Bool {
+        #if canImport(UIKit)
+        var r: CGFloat = 0, g: CGFloat = 0, b: CGFloat = 0, a: CGFloat = 0
+        guard UIColor(self).getRed(&r, green: &g, blue: &b, alpha: &a) else { return false }
+        return (0.2126 * r + 0.7152 * g + 0.0722 * b) >= 0.6
+        #elseif canImport(AppKit)
+        guard let c = NSColor(self).usingColorSpace(.deviceRGB) else { return false }
+        return (0.2126 * c.redComponent + 0.7152 * c.greenComponent + 0.0722 * c.blueComponent) >= 0.6
+        #else
+        return false
+        #endif
     }
 }
