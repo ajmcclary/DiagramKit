@@ -9,77 +9,56 @@
 
 import SwiftUI
 import DiagramKitModel
+import DiagramKitSampleDesignSystem
 
 struct CorpusThumbnail: View {
     let entry: CorpusEntry
+    @Environment(\.dsEnvironment) private var environment
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 6) {
+        VStack(alignment: .leading, spacing: DSTokens.Spacing.xs) {
             ZStack {
-                RoundedRectangle(cornerRadius: 8, style: .continuous)
-                    .fill(tint.opacity(0.16))
-                Image(systemName: glyph)
-                    .font(.system(size: 26, weight: .medium))
-                    .foregroundStyle(tint)
+                RoundedRectangle(cornerRadius: DSTokens.Radius.md, style: .continuous)
+                    .fill(tint.opacity(DSTokens.Opacity.glassBorder))
+                DSIconView(.diagram, size: DSTokens.Icon.md)
             }
             .frame(height: 96)
 
             Text(entry.name)
-                .font(.system(size: 11, weight: .semibold))
+                .dsFont(.headline)
+                .foregroundStyle(environment.theme.colors.textPrimary.color)
                 .lineLimit(2)
                 .multilineTextAlignment(.leading)
                 .frame(maxWidth: .infinity, alignment: .leading)
 
-            HStack(spacing: 4) {
+            HStack(spacing: DSTokens.Spacing.xxs) {
                 Text(entry.id)
-                    .font(.system(size: 9, design: .monospaced))
-                    .foregroundStyle(.secondary)
+                    .dsFont(.code)
+                    .foregroundStyle(environment.theme.colors.textSecondary.color)
                     .lineLimit(1)
                     .truncationMode(.middle)
                 Spacer()
                 facetChip
             }
         }
-        .padding(8)
-        .background(
-            RoundedRectangle(cornerRadius: 10, style: .continuous)
-                .fill(Color.gray.opacity(0.05))
-                .overlay(
-                    RoundedRectangle(cornerRadius: 10, style: .continuous)
-                        .stroke(Color.gray.opacity(0.18), lineWidth: 0.5)
-                )
-        )
+        .padding(DSTokens.Spacing.sm)
+        .background { DSSurface(role: .card) { Color.clear } }
         .accessibilityIdentifier("corpus.thumbnail.\(entry.id)")
     }
 
     // MARK: - Helpers
 
-    private var familyType: DiagramType? {
-        DiagramType(rawValue: entry.category)
-    }
-
-    private var glyph: String {
-        if let family = familyType {
-            return CoverageMatrixSeed.glyph(for: family)
-        }
-        return "doc"
-    }
-
     private var tint: Color {
+        environment.theme.colors.accents[accentIndex].color
+    }
+
+    private var accentIndex: Int {
         switch entry.category.lowercased() {
-        case "flowchart":  return .blue
-        case "sequence":   return .pink
-        case "class":      return .green
-        case "state":      return .orange
-        case "er":         return .purple
-        case "timeline":   return .teal
-        case "gantt":      return .red
-        case "mindmap":    return .indigo
-        case "c4":         return .brown
-        case "pie":        return .yellow
-        case "kanban":     return .mint
-        case "block":      return .cyan
-        default:           return .gray
+        case "flowchart", "timeline", "kanban": 0
+        case "sequence", "state", "gantt": 1
+        case "class", "er", "mindmap": 2
+        case "c4", "pie", "block": 3
+        default: 4
         }
     }
 
@@ -87,13 +66,9 @@ struct CorpusThumbnail: View {
     private var facetChip: some View {
         switch entry.diagnosticFacet {
         case .clean:
-            Image(systemName: "checkmark.seal.fill")
-                .foregroundStyle(.green)
-                .font(.system(size: 10))
+            DSIconView(.success, size: DSTokens.Icon.micro, colorRole: .success)
         case .warn:
-            Image(systemName: "exclamationmark.triangle.fill")
-                .foregroundStyle(.orange)
-                .font(.system(size: 10))
+            DSIconView(.warning, size: DSTokens.Icon.micro, colorRole: .warning)
         }
     }
 }

@@ -11,9 +11,11 @@
 
 import SwiftUI
 import DiagramKitModel
+import DiagramKitSampleDesignSystem
 
 struct CorpusBrowserView: View {
     @Bindable var store: LiveEditorStore
+    @Environment(\.dsEnvironment) private var environment
 
     private let columns: [GridItem] = [
         GridItem(.adaptive(minimum: 180), spacing: 12)
@@ -30,14 +32,14 @@ struct CorpusBrowserView: View {
         )
         VStack(spacing: 0) {
             header(index: index)
-            Divider()
+            separator
             searchField
             facetRows(index: index)
-            Divider()
+            separator
             grid(filtered: filtered)
                 .frame(maxHeight: .infinity)
         }
-        .background(Color(store.theme.background))
+        .background(environment.theme.colors.windowBackground.color)
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier("corpus.browser.grid")
     }
@@ -45,28 +47,25 @@ struct CorpusBrowserView: View {
     // MARK: - Header
 
     private func header(index: CorpusIndex) -> some View {
-        HStack(spacing: 8) {
-            Image(systemName: "books.vertical")
-                .foregroundStyle(.tint)
+        HStack(spacing: DSTokens.Spacing.sm) {
+            DSIconView(.diagram)
             Text("Corpus")
-                .font(.system(size: 13, weight: .semibold))
+                .dsFont(.headline)
             Text("· \(index.entries.count) entries · \(index.categoryCounts.keys.count) families")
-                .font(.system(size: 11))
-                .foregroundStyle(.secondary)
+                .dsFont(.caption2)
+                .foregroundStyle(environment.theme.colors.textSecondary.color)
             Spacer()
             HeaderCloseButton { store.dismissFullScreen() }
         }
-        .padding(.horizontal, 14)
-        .padding(.vertical, 8)
+        .padding(.horizontal, DSTokens.Spacing.lg)
+        .padding(.vertical, DSTokens.Spacing.sm)
     }
 
     // MARK: - Search
 
     private var searchField: some View {
-        HStack(spacing: 6) {
-            Image(systemName: "magnifyingglass")
-                .foregroundStyle(.secondary)
-                .accessibilityHidden(true)
+        HStack(spacing: DSTokens.Spacing.xs) {
+            DSIconView(.search, size: DSTokens.Icon.micro, colorRole: .muted)
             TextField("Filter corpus by id, name, or category", text: Binding(
                 get: { store.corpusSearch },
                 set: { store.setCorpusSearch($0) }
@@ -74,23 +73,16 @@ struct CorpusBrowserView: View {
             .textFieldStyle(.plain)
             .accessibilityIdentifier("corpus.browser.search")
             if !store.corpusSearch.isEmpty {
-                Button {
+                DSIconButton(.close, label: "Clear corpus search") {
                     store.setCorpusSearch("")
-                } label: {
-                    Image(systemName: "xmark.circle.fill")
-                        .foregroundStyle(.secondary)
                 }
-                .buttonStyle(.plain)
             }
         }
-        .padding(.horizontal, 8)
-        .padding(.vertical, 5)
-        .background(
-            RoundedRectangle(cornerRadius: 6, style: .continuous)
-                .fill(Color.gray.opacity(0.08))
-        )
-        .padding(.horizontal, 14)
-        .padding(.vertical, 6)
+        .padding(.horizontal, DSTokens.Spacing.sm)
+        .padding(.vertical, DSTokens.Spacing.xs)
+        .background(environment.theme.colors.element.color, in: RoundedRectangle(cornerRadius: DSTokens.Radius.sm))
+        .padding(.horizontal, DSTokens.Spacing.lg)
+        .padding(.vertical, DSTokens.Spacing.xs)
     }
 
     // MARK: - Facet rows
@@ -162,49 +154,33 @@ struct CorpusBrowserView: View {
                 }
             }
         }
-        .padding(.horizontal, 14)
-        .padding(.bottom, 8)
+        .padding(.horizontal, DSTokens.Spacing.lg)
+        .padding(.bottom, DSTokens.Spacing.sm)
     }
 
     @ViewBuilder
     private func facetRow<Chips: View>(label: String, @ViewBuilder chips: () -> Chips) -> some View {
-        HStack(alignment: .center, spacing: 8) {
+        HStack(alignment: .center, spacing: DSTokens.Spacing.sm) {
             Text(label)
-                .font(.system(size: 10, weight: .semibold))
-                .foregroundStyle(.secondary)
+                .dsFont(.overline)
+                .foregroundStyle(environment.theme.colors.textSecondary.color)
                 .frame(width: 48, alignment: .leading)
             ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: 4) { chips() }
+                HStack(spacing: DSTokens.Spacing.xxs) { chips() }
             }
         }
     }
 
     private func allChip(isOn: Bool, action: @escaping () -> Void) -> some View {
-        Button(action: action) {
-            Text("All")
-                .font(.system(size: 10, weight: .medium))
-                .padding(.horizontal, 8)
-                .padding(.vertical, 3)
-                .background(
-                    Capsule().fill(isOn ? Color.accentColor.opacity(0.22) : Color.gray.opacity(0.12))
-                )
-                .foregroundStyle(isOn ? Color.accentColor : .primary)
+        DSChip(isSelected: isOn, action: action) {
+            Text("All").dsFont(.badge)
         }
-        .buttonStyle(.plain)
     }
 
     private func chip(text: String, isOn: Bool, id: String, action: @escaping () -> Void) -> some View {
-        Button(action: action) {
-            Text(text)
-                .font(.system(size: 10, weight: .medium))
-                .padding(.horizontal, 8)
-                .padding(.vertical, 3)
-                .background(
-                    Capsule().fill(isOn ? Color.accentColor.opacity(0.22) : Color.gray.opacity(0.12))
-                )
-                .foregroundStyle(isOn ? Color.accentColor : .primary)
+        DSChip(isSelected: isOn, action: action) {
+            Text(text).dsFont(.badge)
         }
-        .buttonStyle(.plain)
         .a11yToggle(label: LocalizedStringKey(text), isOn: isOn, id: id)
     }
 
@@ -222,11 +198,11 @@ struct CorpusBrowserView: View {
     private func grid(filtered: [CorpusEntry]) -> some View {
         ScrollView {
             if filtered.isEmpty {
-                ContentUnavailableView(
-                    "No Matches",
-                    systemImage: "magnifyingglass",
-                    description: Text("No corpus entries match the current filters")
-                )
+                ContentUnavailableView {
+                    Label { Text("No Matches") } icon: { DSIconView(.search) }
+                } description: {
+                    Text("Adjust or clear the corpus filters to see diagrams.")
+                }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .padding(40)
             } else {
@@ -237,11 +213,17 @@ struct CorpusBrowserView: View {
                         } label: {
                             CorpusThumbnail(entry: entry)
                         }
-                        .buttonStyle(.plain)
+                        .buttonStyle(.ds(role: .ghost, size: .compact))
                     }
                 }
                 .padding(14)
             }
         }
+    }
+
+    private var separator: some View {
+        Rectangle()
+            .fill(environment.theme.colors.borderVariant.color)
+            .frame(height: DSTokens.Stroke.hairline)
     }
 }

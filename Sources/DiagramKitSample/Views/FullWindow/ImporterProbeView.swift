@@ -9,9 +9,11 @@
 //
 
 import SwiftUI
+import DiagramKitSampleDesignSystem
 
 struct ImporterProbeView: View {
     @Bindable var store: LiveEditorStore
+    @Environment(\.dsEnvironment) private var environment
 
     private let runner = ImporterProbeRunner()
 
@@ -22,17 +24,17 @@ struct ImporterProbeView: View {
 
         VStack(spacing: 0) {
             header(outcome: outcome)
-            Divider()
+            separator
             HStack(spacing: 0) {
                 samplePicker(samples: samples)
                     .frame(width: 220)
-                Divider()
+                Rectangle().fill(environment.theme.colors.borderVariant.color).frame(width: DSTokens.Stroke.hairline)
                 pipeline(source: active.source, outcome: outcome)
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
             .frame(maxHeight: .infinity)
         }
-        .background(Color(store.theme.background))
+        .background(environment.theme.colors.windowBackground.color)
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier("probe.view")
     }
@@ -40,24 +42,23 @@ struct ImporterProbeView: View {
     // MARK: - Header
 
     private func header(outcome: ImporterProbeRunner.ProbeOutcome) -> some View {
-        HStack(spacing: 8) {
-            Image(systemName: "magnifyingglass.circle")
-                .foregroundStyle(.tint)
+        HStack(spacing: DSTokens.Spacing.sm) {
+            DSIconView(.search)
             Text("Importer probe")
-                .font(.system(size: 13, weight: .semibold))
+                .dsFont(.headline)
             Text("· \(runner.registry.importers.count) registered")
-                .font(.system(size: 11))
-                .foregroundStyle(.secondary)
+                .dsFont(.caption2)
+                .foregroundStyle(environment.theme.colors.textSecondary.color)
             Spacer()
             if let winner = outcome.winnerName {
-                KPill(text: "resolved · \(winner)", systemImage: "checkmark.seal.fill", tone: .ok)
+                HStack { DSIconView(.success, colorRole: .success); DSCodeBadge("resolved · \(winner)") }
             } else {
-                KPill(text: "unresolved", systemImage: "xmark.octagon.fill", tone: .warn)
+                HStack { DSIconView(.error, colorRole: .error); DSCodeBadge("unresolved") }
             }
             HeaderCloseButton { store.dismissFullScreen() }
         }
-        .padding(.horizontal, 14)
-        .padding(.vertical, 8)
+        .padding(.horizontal, DSTokens.Spacing.lg)
+        .padding(.vertical, DSTokens.Spacing.sm)
     }
 
     // MARK: - Sample picker
@@ -65,12 +66,12 @@ struct ImporterProbeView: View {
     private func samplePicker(samples: [(label: String, source: String)]) -> some View {
         VStack(alignment: .leading, spacing: 0) {
             Text("Samples")
-                .font(.system(size: 10, weight: .semibold))
-                .foregroundStyle(.secondary)
-                .padding(.horizontal, 12)
-                .padding(.vertical, 6)
+                .dsFont(.overline)
+                .foregroundStyle(environment.theme.colors.textSecondary.color)
+                .padding(.horizontal, DSTokens.Spacing.md)
+                .padding(.vertical, DSTokens.Spacing.xs)
                 .frame(maxWidth: .infinity, alignment: .leading)
-                .background(Color.gray.opacity(0.06))
+                .background(environment.theme.colors.element.color)
             ScrollView {
                 VStack(alignment: .leading, spacing: 0) {
                     ForEach(Array(samples.enumerated()), id: \.offset) { index, sample in
@@ -89,18 +90,16 @@ struct ImporterProbeView: View {
         } label: {
             HStack {
                 Text("\(index + 1).")
-                    .font(.system(size: 10, weight: .semibold).monospacedDigit())
-                    .foregroundStyle(.secondary)
+                    .dsFont(.metric)
+                    .foregroundStyle(environment.theme.colors.textSecondary.color)
                 Text(label)
-                    .font(.system(size: 11, weight: isOn ? .semibold : .regular))
+                    .dsFont(.caption2)
                 Spacer()
             }
-            .padding(.horizontal, 12)
-            .padding(.vertical, 4)
-            .background(isOn ? Color.accentColor.opacity(0.16) : Color.clear)
+            .padding(.horizontal, DSTokens.Spacing.md)
             .contentShape(Rectangle())
         }
-        .buttonStyle(.plain)
+        .buttonStyle(.ds(role: isOn ? .secondary : .ghost, size: .compact))
         .a11yToggle(label: LocalizedStringKey(label), isOn: isOn, id: "probe.sample.\(index)")
     }
 
@@ -111,14 +110,12 @@ struct ImporterProbeView: View {
             VStack(alignment: .leading, spacing: 12) {
                 section(title: "Source") {
                     Text(source)
-                        .font(.system(size: 11, design: .monospaced))
+                        .dsFont(.code)
+                        .foregroundStyle(environment.theme.colors.editorForeground.color)
                         .textSelection(.enabled)
                         .frame(maxWidth: .infinity, alignment: .topLeading)
-                        .padding(10)
-                        .background(
-                            RoundedRectangle(cornerRadius: 6, style: .continuous)
-                                .fill(Color.gray.opacity(0.06))
-                        )
+                        .padding(DSTokens.Spacing.smMd)
+                        .background(environment.theme.colors.editorBackground.color, in: RoundedRectangle(cornerRadius: DSTokens.Radius.sm))
                 }
                 section(title: "Probe sequence") {
                     VStack(spacing: 4) {
@@ -129,81 +126,82 @@ struct ImporterProbeView: View {
                 }
                 section(title: "Result") {
                     if let winner = outcome.winnerName {
-                        HStack(spacing: 6) {
-                            Image(systemName: "checkmark.seal.fill")
-                                .foregroundStyle(.green)
+                        HStack(spacing: DSTokens.Spacing.xs) {
+                            DSIconView(.success, colorRole: .success)
                             Text("Routed to ")
-                                .font(.system(size: 11))
+                                .dsFont(.caption2)
                             Text(winner)
-                                .font(.system(size: 11, weight: .semibold))
+                                .dsFont(.headline)
                         }
                     } else {
                         Text("No importer claimed the source.")
-                            .font(.system(size: 11))
-                            .foregroundStyle(.red)
+                            .dsFont(.caption2)
+                            .foregroundStyle(environment.theme.colors.error.color)
                     }
                 }
             }
-            .padding(14)
+            .padding(DSTokens.Spacing.lg)
         }
     }
 
     private func section<Body: View>(title: String, @ViewBuilder body: () -> Body) -> some View {
-        VStack(alignment: .leading, spacing: 6) {
-            Text(title)
-                .font(.system(size: 10, weight: .semibold))
-                .foregroundStyle(.secondary)
-                .textCase(.uppercase)
+        VStack(alignment: .leading, spacing: DSTokens.Spacing.xs) {
+            DSSectionHeader(title)
             body()
         }
     }
 
     private func stepRow(_ step: ImporterProbeRunner.ProbeStep) -> some View {
         let tint = tintFor(step.verdict)
-        return HStack(spacing: 6) {
-            Image(systemName: iconFor(step.verdict))
-                .foregroundStyle(tint)
-                .font(.system(size: 11, weight: .semibold))
+        return HStack(spacing: DSTokens.Spacing.xs) {
+            DSIconView(iconFor(step.verdict), size: DSTokens.Icon.micro, colorRole: roleFor(step.verdict))
             Text(step.importerName)
-                .font(.system(size: 11, weight: .semibold))
+                .dsFont(.headline)
             Text(".\(step.formatID)")
-                .font(.system(size: 10, design: .monospaced))
-                .foregroundStyle(.secondary)
+                .dsFont(.code)
+                .foregroundStyle(environment.theme.colors.textSecondary.color)
             if step.isFallback {
-                Text("fallback")
-                    .font(.system(size: 9, weight: .semibold))
-                    .padding(.horizontal, 4)
-                    .padding(.vertical, 1)
-                    .background(Capsule().fill(Color.gray.opacity(0.18)))
-                    .foregroundStyle(.secondary)
+                DSCodeBadge("fallback")
             }
             Spacer()
             Text(step.verdict.label)
-                .font(.system(size: 10, weight: .medium))
+                .dsFont(.badge)
                 .foregroundStyle(tint)
         }
-        .padding(.horizontal, 8)
-        .padding(.vertical, 4)
+        .padding(.horizontal, DSTokens.Spacing.sm)
+        .padding(.vertical, DSTokens.Spacing.xxs)
         .background(
-            RoundedRectangle(cornerRadius: 5, style: .continuous)
-                .fill(tint.opacity(0.10))
+            RoundedRectangle(cornerRadius: DSTokens.Radius.sm, style: .continuous)
+                .fill(tint.opacity(DSTokens.Opacity.tint))
         )
         .accessibilityIdentifier("probe.step.\(step.id)")
     }
 
-    private func iconFor(_ v: ImporterProbeRunner.Verdict) -> String {
+    private func iconFor(_ v: ImporterProbeRunner.Verdict) -> DSIcon {
         switch v {
-        case .match:      return "checkmark.circle.fill"
-        case .skip:       return "minus.circle.fill"
-        case .notReached: return "circle"
+        case .match:      return .success
+        case .skip:       return .remove
+        case .notReached: return .info
         }
     }
 
     private func tintFor(_ v: ImporterProbeRunner.Verdict) -> Color {
         switch v {
-        case .match:      return .green
-        case .skip:       return .secondary
-        case .notReached: return .gray
+        case .match:      return environment.theme.colors.success.color
+        case .skip:       return environment.theme.colors.iconMuted.color
+        case .notReached: return environment.theme.colors.iconDisabled.color
         }
+    }
+
+    private func roleFor(_ verdict: ImporterProbeRunner.Verdict) -> DSIconColorRole {
+        switch verdict {
+        case .match: .success
+        case .skip: .muted
+        case .notReached: .disabled
+        }
+    }
+
+    private var separator: some View {
+        Rectangle().fill(environment.theme.colors.borderVariant.color).frame(height: DSTokens.Stroke.hairline)
     }
 }

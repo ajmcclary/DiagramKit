@@ -11,9 +11,11 @@
 
 import SwiftUI
 import DiagramKitModel
+import DiagramKitSampleDesignSystem
 
 struct SnippetsLibraryView: View {
     @Bindable var store: LiveEditorStore
+    @Environment(\.dsEnvironment) private var environment
 
     @FocusState private var searchFocused: Bool
 
@@ -25,13 +27,13 @@ struct SnippetsLibraryView: View {
         let snippets = SnippetLibrary.filtered(store.snippetSearch)
         VStack(spacing: 0) {
             header
-            Divider()
+            separator
             searchField
-            Divider()
+            separator
             grid(snippets: snippets)
                 .frame(maxHeight: .infinity)
         }
-        .background(Color(store.theme.background))
+        .background(environment.theme.colors.windowBackground.color)
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier("snippets.view")
     }
@@ -39,36 +41,28 @@ struct SnippetsLibraryView: View {
     // MARK: - Header
 
     private var header: some View {
-        HStack(spacing: 8) {
-            Image(systemName: "text.book.closed")
-                .foregroundStyle(.tint)
+        HStack(spacing: DSTokens.Spacing.sm) {
+            DSIconView(.code)
             Text("Snippets")
-                .font(.system(size: 13, weight: .semibold))
+                .dsFont(.headline)
             Text("· \(SnippetLibrary.all.count) patterns")
-                .font(.system(size: 11))
-                .foregroundStyle(.secondary)
+                .dsFont(.caption2)
+                .foregroundStyle(environment.theme.colors.textSecondary.color)
             Spacer()
-            Button {
+            DSIconButton(.close, label: "Close snippets") {
                 store.dismissFullScreen()
-            } label: {
-                Image(systemName: "xmark")
-                    .font(.system(size: 11, weight: .semibold))
-                    .foregroundStyle(.secondary)
             }
-            .buttonStyle(.plain)
             .keyboardShortcut(.cancelAction)
         }
-        .padding(.horizontal, 14)
-        .padding(.vertical, 8)
+        .padding(.horizontal, DSTokens.Spacing.lg)
+        .padding(.vertical, DSTokens.Spacing.sm)
     }
 
     // MARK: - Search
 
     private var searchField: some View {
-        HStack(spacing: 6) {
-            Image(systemName: "magnifyingglass")
-                .foregroundStyle(.secondary)
-                .accessibilityHidden(true)
+        HStack(spacing: DSTokens.Spacing.xs) {
+            DSIconView(.search, size: DSTokens.Icon.micro, colorRole: .muted)
             TextField("Find a snippet (⌘K)", text: Binding(
                 get: { store.snippetSearch },
                 set: { store.setSnippetSearch($0) }
@@ -77,23 +71,16 @@ struct SnippetsLibraryView: View {
             .focused($searchFocused)
             .accessibilityIdentifier("snippets.search")
             if !store.snippetSearch.isEmpty {
-                Button {
+                DSIconButton(.close, label: "Clear snippet search") {
                     store.setSnippetSearch("")
-                } label: {
-                    Image(systemName: "xmark.circle.fill")
-                        .foregroundStyle(.secondary)
                 }
-                .buttonStyle(.plain)
             }
         }
-        .padding(.horizontal, 8)
-        .padding(.vertical, 5)
-        .background(
-            RoundedRectangle(cornerRadius: 6, style: .continuous)
-                .fill(Color.gray.opacity(0.08))
-        )
-        .padding(.horizontal, 14)
-        .padding(.vertical, 6)
+        .padding(.horizontal, DSTokens.Spacing.sm)
+        .padding(.vertical, DSTokens.Spacing.xs)
+        .background(environment.theme.colors.element.color, in: RoundedRectangle(cornerRadius: DSTokens.Radius.sm))
+        .padding(.horizontal, DSTokens.Spacing.lg)
+        .padding(.vertical, DSTokens.Spacing.xs)
         .onAppear { searchFocused = true }
         .background(
             // Hidden ⌘K handler — TextField swallows the shortcut
@@ -110,11 +97,11 @@ struct SnippetsLibraryView: View {
     private func grid(snippets: [Snippet]) -> some View {
         ScrollView {
             if snippets.isEmpty {
-                ContentUnavailableView(
-                    "No Snippets",
-                    systemImage: "magnifyingglass",
-                    description: Text("No snippets match the search")
-                )
+                ContentUnavailableView {
+                    Label { Text("No Snippets") } icon: { DSIconView(.search) }
+                } description: {
+                    Text("Clear or revise the search to find a reusable pattern.")
+                }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .padding(40)
             } else {
@@ -129,48 +116,41 @@ struct SnippetsLibraryView: View {
     }
 
     private func snippetCard(_ snippet: Snippet) -> some View {
-        VStack(alignment: .leading, spacing: 6) {
-            HStack(spacing: 6) {
-                Image(systemName: CoverageMatrixSeed.glyph(for: snippet.family))
-                    .foregroundStyle(.tint)
+        DSSurface(role: .card) {
+        VStack(alignment: .leading, spacing: DSTokens.Spacing.xs) {
+            HStack(spacing: DSTokens.Spacing.xs) {
+                DSIconView(.diagram, size: DSTokens.Icon.micro)
                 Text(snippet.title)
-                    .font(.system(size: 12, weight: .semibold))
+                    .dsFont(.headline)
                 Spacer()
                 Text(snippet.family.rawValue)
-                    .font(.system(size: 9, design: .monospaced))
-                    .foregroundStyle(.secondary)
+                    .dsFont(.code)
+                    .foregroundStyle(environment.theme.colors.textSecondary.color)
             }
             Text(snippet.body)
-                .font(.system(size: 10, design: .monospaced))
+                .dsFont(.code)
+                .foregroundStyle(environment.theme.colors.editorForeground.color)
                 .lineLimit(6)
                 .frame(maxWidth: .infinity, alignment: .topLeading)
-                .padding(8)
-                .background(
-                    RoundedRectangle(cornerRadius: 6, style: .continuous)
-                        .fill(Color.gray.opacity(0.08))
-                )
+                .padding(DSTokens.Spacing.sm)
+                .background(environment.theme.colors.editorBackground.color, in: RoundedRectangle(cornerRadius: DSTokens.Radius.sm))
             HStack {
                 Spacer()
                 Button {
                     store.insertSnippet(snippet)
                 } label: {
-                    Label("Insert", systemImage: "return")
-                        .font(.system(size: 11, weight: .medium))
+                    HStack { DSIconView(.add, size: DSTokens.Icon.micro); Text("Insert") }
                 }
-                .buttonStyle(.borderedProminent)
-                .controlSize(.small)
+                .buttonStyle(.ds(role: .primary, size: .compact))
                 .a11y(label: "Insert snippet", id: "snippets.insert.\(snippet.id)")
             }
         }
-        .padding(10)
-        .background(
-            RoundedRectangle(cornerRadius: 10, style: .continuous)
-                .fill(Color.gray.opacity(0.05))
-                .overlay(
-                    RoundedRectangle(cornerRadius: 10, style: .continuous)
-                        .stroke(Color.gray.opacity(0.18), lineWidth: 0.5)
-                )
-        )
+        .padding(DSTokens.Spacing.smMd)
+        }
         .accessibilityIdentifier("snippets.card.\(snippet.id)")
+    }
+
+    private var separator: some View {
+        Rectangle().fill(environment.theme.colors.borderVariant.color).frame(height: DSTokens.Stroke.hairline)
     }
 }

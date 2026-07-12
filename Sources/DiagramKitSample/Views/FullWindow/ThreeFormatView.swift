@@ -14,9 +14,11 @@ import DiagramKit
 import DiagramKitCommon
 import DiagramKitExport
 import DiagramKitModel
+import DiagramKitSampleDesignSystem
 
 struct ThreeFormatView: View {
     @Bindable var store: LiveEditorStore
+    @Environment(\.dsEnvironment) private var environment
 
     @SwiftUI.State private var columns: [FormatPane] = []
 
@@ -32,13 +34,13 @@ struct ThreeFormatView: View {
     var body: some View {
         VStack(spacing: 0) {
             header
-            Divider()
+            separator
             triptych
                 .frame(maxHeight: .infinity)
-            Divider()
+            separator
             footer
         }
-        .background(Color(store.theme.background))
+        .background(environment.theme.colors.windowBackground.color)
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier("crossformat.view")
         .task(id: refreshKey) { await refresh() }
@@ -52,28 +54,22 @@ struct ThreeFormatView: View {
     // MARK: - Header
 
     private var header: some View {
-        HStack(spacing: 8) {
-            Image(systemName: "rectangle.split.3x1")
-                .foregroundStyle(.tint)
+        HStack(spacing: DSTokens.Spacing.sm) {
+            DSIconView(.convert)
             Text("Cross-format")
-                .font(.system(size: 13, weight: .semibold))
+                .dsFont(.headline)
             Text("· Mermaid / D2 / DOT")
-                .font(.system(size: 11))
-                .foregroundStyle(.secondary)
+                .dsFont(.caption2)
+                .foregroundStyle(environment.theme.colors.textSecondary.color)
             Spacer()
-            KPill(text: "parse → export · paired ✓", systemImage: "checkmark.seal.fill", tone: .ok)
-            Button {
+            HStack { DSIconView(.success, colorRole: .success); DSCodeBadge("parse → export · paired") }
+            DSIconButton(.close, label: "Close cross-format view") {
                 store.dismissFullScreen()
-            } label: {
-                Image(systemName: "xmark")
-                    .font(.system(size: 11, weight: .semibold))
-                    .foregroundStyle(.secondary)
             }
-            .buttonStyle(.plain)
             .keyboardShortcut(.cancelAction)
         }
-        .padding(.horizontal, 14)
-        .padding(.vertical, 8)
+        .padding(.horizontal, DSTokens.Spacing.lg)
+        .padding(.vertical, DSTokens.Spacing.sm)
     }
 
     // MARK: - Triptych
@@ -83,7 +79,7 @@ struct ThreeFormatView: View {
             ForEach(Array(columns.enumerated()), id: \.element.id) { index, pane in
                 column(pane)
                 if index < columns.count - 1 {
-                    Divider()
+                    Rectangle().fill(environment.theme.colors.borderVariant.color).frame(width: DSTokens.Stroke.hairline)
                 }
             }
         }
@@ -91,32 +87,28 @@ struct ThreeFormatView: View {
 
     private func column(_ pane: FormatPane) -> some View {
         VStack(alignment: .leading, spacing: 0) {
-            HStack(spacing: 6) {
-                Text(pane.format.shortName)
-                    .font(.system(size: 11, weight: .semibold))
-                    .padding(.horizontal, 6)
-                    .padding(.vertical, 2)
-                    .background(Capsule().fill(Color.accentColor.opacity(0.18)))
-                    .foregroundStyle(Color.accentColor)
+            HStack(spacing: DSTokens.Spacing.xs) {
+                DSCodeBadge(pane.format.shortName)
                 Text(".\(pane.format.fileExtension)")
-                    .font(.system(size: 10, design: .monospaced))
-                    .foregroundStyle(.secondary)
+                    .dsFont(.code)
+                    .foregroundStyle(environment.theme.colors.textSecondary.color)
                 Spacer()
             }
-            .padding(.horizontal, 10)
-            .padding(.vertical, 6)
-            .background(Color.gray.opacity(0.06))
+            .padding(.horizontal, DSTokens.Spacing.smMd)
+            .padding(.vertical, DSTokens.Spacing.xs)
+            .background(environment.theme.colors.element.color)
 
             ScrollView([.horizontal, .vertical]) {
                 Text(textPayload(for: pane))
-                    .font(.system(size: 11, design: .monospaced))
+                    .dsFont(.code)
+                    .foregroundStyle(environment.theme.colors.editorForeground.color)
                     .textSelection(.enabled)
-                    .padding(10)
+                    .padding(DSTokens.Spacing.smMd)
                     .frame(maxWidth: .infinity, alignment: .topLeading)
             }
-            .background(Color(store.theme.background))
+            .background(environment.theme.colors.editorBackground.color)
 
-            Divider()
+            separator
 
             diagnosticsList(for: pane)
                 .frame(height: 96)
@@ -137,15 +129,15 @@ struct ThreeFormatView: View {
 
     private func diagnosticsList(for pane: FormatPane) -> some View {
         let diags = pane.result?.diagnostics ?? []
-        return VStack(alignment: .leading, spacing: 2) {
+        return VStack(alignment: .leading, spacing: DSTokens.Spacing.xxxs) {
             HStack {
                 Text("Diagnostics")
-                    .font(.system(size: 9, weight: .semibold))
-                    .foregroundStyle(.secondary)
+                    .dsFont(.overline)
+                    .foregroundStyle(environment.theme.colors.textSecondary.color)
                 if !diags.isEmpty {
                     Text("· \(diags.count)")
-                        .font(.system(size: 9, weight: .medium).monospacedDigit())
-                        .foregroundStyle(.secondary)
+                        .dsFont(.metric)
+                        .foregroundStyle(environment.theme.colors.textSecondary.color)
                 }
                 Spacer()
             }
@@ -153,26 +145,23 @@ struct ThreeFormatView: View {
             .padding(.top, 4)
             ScrollView {
                 if diags.isEmpty {
-                    Text("✓ No typed losses")
-                        .font(.system(size: 10))
-                        .foregroundStyle(.green)
-                        .padding(.horizontal, 10)
-                        .padding(.vertical, 2)
+                    HStack { DSIconView(.success, size: DSTokens.Icon.micro, colorRole: .success); Text("No typed losses").dsFont(.caption2) }
+                        .foregroundStyle(environment.theme.colors.success.color)
+                        .padding(.horizontal, DSTokens.Spacing.smMd)
+                        .padding(.vertical, DSTokens.Spacing.xxxs)
                         .frame(maxWidth: .infinity, alignment: .leading)
                 } else {
-                    VStack(alignment: .leading, spacing: 2) {
+                    VStack(alignment: .leading, spacing: DSTokens.Spacing.xxxs) {
                         ForEach(Array(diags.enumerated()), id: \.offset) { _, d in
-                            HStack(spacing: 4) {
-                                Image(systemName: severityIcon(d))
-                                    .foregroundStyle(severityColor(d))
-                                    .font(.system(size: 8, weight: .semibold))
+                            HStack(spacing: DSTokens.Spacing.xxs) {
+                                DSIconView(severityIcon(d), size: DSTokens.Icon.micro, colorRole: severityRole(d))
                                 if let cat = d.category {
                                     Text(".\(cat.rawValue)")
-                                        .font(.system(size: 9, design: .monospaced))
-                                        .foregroundStyle(Color.accentColor)
+                                        .dsFont(.code)
+                                        .foregroundStyle(environment.theme.colors.accent.color)
                                 }
                                 Text(d.message)
-                                    .font(.system(size: 10))
+                                    .dsFont(.caption2)
                                     .lineLimit(2)
                             }
                             .padding(.horizontal, 10)
@@ -181,22 +170,22 @@ struct ThreeFormatView: View {
                 }
             }
         }
-        .background(Color.gray.opacity(0.04))
+        .background(environment.theme.colors.panelBackground.color)
     }
 
-    private func severityIcon(_ d: DiagramDiagnostic) -> String {
+    private func severityIcon(_ d: DiagramDiagnostic) -> DSIcon {
         switch d.severity {
-        case .warning:     return "exclamationmark.triangle.fill"
-        case .info:        return "info.circle.fill"
-        case .unsupported: return "xmark.octagon.fill"
+        case .warning:     return .warning
+        case .info:        return .info
+        case .unsupported: return .error
         }
     }
 
-    private func severityColor(_ d: DiagramDiagnostic) -> Color {
+    private func severityRole(_ d: DiagramDiagnostic) -> DSIconColorRole {
         switch d.severity {
-        case .warning:     return .orange
-        case .info:        return .blue
-        case .unsupported: return .red
+        case .warning:     return .warning
+        case .info:        return .info
+        case .unsupported: return .error
         }
     }
 
@@ -218,17 +207,17 @@ struct ThreeFormatView: View {
         let totalLosses = totalLossCount
         return HStack {
             if totalLosses == 0 {
-                KPill(text: "round-trip · paired ✓", systemImage: "checkmark.seal.fill", tone: .ok)
+                HStack { DSIconView(.success, colorRole: .success); DSCodeBadge("round-trip · paired") }
             } else {
-                KPill(text: "round-trip · ▲ \(totalLosses) typed losses", systemImage: "exclamationmark.triangle.fill", tone: .warn)
+                HStack { DSIconView(.warning, colorRole: .warning); DSCodeBadge("round-trip · \(totalLosses) typed losses") }
             }
             Spacer()
             Text("Source format: \(store.state.sourceFormat.shortName)")
-                .font(.system(size: 11))
-                .foregroundStyle(.secondary)
+                .dsFont(.caption2)
+                .foregroundStyle(environment.theme.colors.textSecondary.color)
         }
-        .padding(.horizontal, 14)
-        .padding(.vertical, 6)
+        .padding(.horizontal, DSTokens.Spacing.lg)
+        .padding(.vertical, DSTokens.Spacing.xs)
     }
 
     // MARK: - Refresh
@@ -245,5 +234,9 @@ struct ThreeFormatView: View {
             }
         }
         columns = built
+    }
+
+    private var separator: some View {
+        Rectangle().fill(environment.theme.colors.borderVariant.color).frame(height: DSTokens.Stroke.hairline)
     }
 }
