@@ -2,7 +2,7 @@
 //  ThemeSwatchCard.swift
 //  DiagramPlayground
 //
-//  Theme-picker card for the Zed Trek family, rendered from a ZedTrekSpecimen so
+//  Theme-picker card for the Zed Trek family, rendered from a DSThemeSpecimen so
 //  it matches the design project's theme-family preview exactly: the theme name
 //  in its signature color, a row of five accent swatches, and a `let n = 42`
 //  mono sample — all over the theme's own background. Self-contained: it paints
@@ -14,7 +14,7 @@ import DiagramKitSampleDesignSystem
 
 struct ThemeSwatchCard: View {
     let name: String
-    let specimen: ZedTrekSpecimen
+    let specimen: DSThemeSpecimen
     var isStarred: Bool = false
     let isActive: Bool
     let action: () -> Void

@@ -5,14 +5,12 @@ import DiagramKitSampleDesignSystem
 
 @Suite struct EditorRedesignTokenTests {
     @Test func lcarsDarkIsTheDefault() {
-        // The environment default resolves to LCARS dark (comp-exact values).
-        let p = PlaygroundTokensKey.defaultValue.palette
-        #expect(p.accent == Color(hex: 0xFF9933))
-        #expect(p.bgWindow == Color(hex: 0x05060A))
-        #expect(p.bgSheet == Color(hex: 0x111827))
-        #expect(p.fg1 == Color(hex: 0xF2E7D8))
-        // Same as resolving the LCARS family in the dark scheme.
-        #expect(PlaygroundTokensKey.defaultValue == PlaygroundTokens(dsTheme: .lcarsDark))
+        let theme = DSTheme.lcarsDark
+        #expect(theme.colors.accent.hex == "#FF9933")
+        #expect(theme.colors.windowBackground.hex == "#05060A")
+        #expect(theme.colors.elevatedSurfaceBackground.hex == "#111827")
+        #expect(theme.colors.textPrimary.hex == "#F2E7D8")
+        #expect(theme == DSTheme.theme(family: .lcars, mode: .dark))
     }
 
     // MARK: - Zed Trek family (theme × mode) — Task 1
@@ -50,41 +48,39 @@ import DiagramKitSampleDesignSystem
         #expect(DSTheme.theme(family: .lcars, mode: .dark) == .lcarsDark)
     }
 
-    // MARK: - Chrome palettes (Task 3)
+    // MARK: - Generated theme colors (Task 3)
 
-    @Test func everyFamilyModeResolvesCompletePalette() {
+    @Test func everyFamilyModeResolvesCompleteTheme() {
         for family in ZedTrekTheme.allCases {
             for scheme in [ColorScheme.dark, .light] {
                 let mode: DSThemeMode = scheme == .dark ? .dark : .light
-                let p = PlaygroundTokens(
-                    dsTheme: DSTheme.theme(family: family.dsFamily, mode: mode)
-                ).palette
-                #expect(p.accent != p.bgWindow)
-                #expect(p.onAccent != p.accent)
-                #expect(p.bgCard != p.accent)
-                #expect(p.fg1 != p.bgApp)
+                let colors = DSTheme.theme(family: family.dsFamily, mode: mode).colors
+                #expect(colors.accent != colors.windowBackground)
+                #expect(colors.onAccent != colors.accent)
+                #expect(colors.surfaceBackground != colors.accent)
+                #expect(colors.textPrimary != colors.windowBackground)
             }
         }
     }
 
-    @Test func pinnedChromePaletteValues() {
+    @Test func pinnedGeneratedThemeValues() {
         // LCARS dark keeps the comp-exact values (default appearance).
-        let lcarsDark = PlaygroundTokens(dsTheme: .lcarsDark).palette
-        #expect(lcarsDark.bgWindow == Color(hex: 0x05060A))
-        #expect(lcarsDark.accent == Color(hex: 0xFF9933))
-        #expect(lcarsDark.fg1 == Color(hex: 0xF2E7D8))
-        #expect(lcarsDark.bgSheet == Color(hex: 0x111827))
+        let lcarsDark = DSTheme.lcarsDark.colors
+        #expect(lcarsDark.windowBackground.hex == "#05060A")
+        #expect(lcarsDark.accent.hex == "#FF9933")
+        #expect(lcarsDark.textPrimary.hex == "#F2E7D8")
+        #expect(lcarsDark.elevatedSurfaceBackground.hex == "#111827")
 
         // LCARS light keeps its brand (orange) accent, not the focus-ring blue.
-        #expect(PlaygroundTokens(dsTheme: .lcarsLight).palette.accent == Color(hex: 0xE06600))
+        #expect(DSTheme.lcarsLight.colors.accent.hex == "#E06600")
 
         // Black Alert dark — mapped from zed-trek.json (spec §5).
-        let blackDark = PlaygroundTokens(dsTheme: .blackAlertDark).palette
-        #expect(blackDark.bgApp == Color(hex: 0x020204))      // background
-        #expect(blackDark.bgField == Color(hex: 0x010204))    // editor.background
-        #expect(blackDark.accent == Color(hex: 0x7EC8DE))     // brand accent
-        #expect(blackDark.fg1 == Color(hex: 0xDFE7F1))        // text
-        #expect(blackDark.statusError == Color(hex: 0xFF7373))// error
+        let blackDark = DSTheme.blackAlertDark.colors
+        #expect(blackDark.windowBackground.hex == "#020204")
+        #expect(blackDark.editorBackground.hex == "#010204")
+        #expect(blackDark.accent.hex == "#7EC8DE")
+        #expect(blackDark.textPrimary.hex == "#DFE7F1")
+        #expect(blackDark.error.hex == "#FF7373")
     }
 
     // MARK: - Legacy migration (Task 5)

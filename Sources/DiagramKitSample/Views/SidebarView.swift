@@ -3,8 +3,8 @@
 //  DiagramPlayground
 //
 //  v2 PlaygroundShell sidebar — brand row, search, format chips, and
-//  the categorized SampleDiagramPanel as the tree. Adopts the v2.1
-//  design tokens + primitives (Surface, SectionHeader, FieldInput).
+//  the categorized SampleDiagramPanel as the tree. Uses the generated
+//  design-system tokens and primitives.
 //
 
 import SwiftUI

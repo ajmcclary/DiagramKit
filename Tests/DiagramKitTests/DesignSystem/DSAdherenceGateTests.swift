@@ -12,8 +12,21 @@ struct DSAdherenceGateTests {
         defer { try? FileManager.default.removeItem(at: temporary) }
 
         let compliant = temporary.appending(path: "Compliant.swift")
-        try "import DiagramKitSampleDesignSystem\nlet spacing = DSTokens.Spacing.sm\n"
+        try """
+        import DiagramKitSampleDesignSystem
+        let spacing = DSTokens.Spacing.sm
+        let hitArea = Color.white.opacity(0.001) // hit-testable transparent
+        """
             .write(to: compliant, atomically: true, encoding: .utf8)
+
+        let zoomDirectory = temporary.appending(path: "Views/Visual")
+        try FileManager.default.createDirectory(at: zoomDirectory, withIntermediateDirectories: true)
+        try "let zoomed = view.scaleEffect(zoom)\n"
+            .write(
+                to: zoomDirectory.appending(path: "ZoomableCanvas.swift"),
+                atomically: true,
+                encoding: .utf8
+            )
 
         let violating = temporary.appending(path: "Violating.swift")
         try """
@@ -28,6 +41,14 @@ struct DSAdherenceGateTests {
         let switched = view.onTapGesture { isOn.toggle() }
         let tiny = view.frame(width: 20, height: 20)
         let plain = button.buttonStyle(.plain)
+        let palette = PlaygroundPalette()
+        let tokens = PlaygroundTokens()
+        let font = PlaygroundFont.body
+        let spacing = PlaygroundSpacing.sm
+        let radius = PlaygroundRadius.md
+        let style = PlaygroundButtonStyle()
+        let toggle = PillSwitch(isOn: .constant(true))
+        let legacyGlass = view.glassChrome(.toolbar)
         """.write(to: violating, atomically: true, encoding: .utf8)
 
         let result = try run(
@@ -39,6 +60,7 @@ struct DSAdherenceGateTests {
             "literal-color", "system-font", "numeric-radius", "direct-icon",
             "shadow", "material", "literal-animation", "scale-effect",
             "gesture-switch", "undersized-target", "plain-button",
+            "legacy-symbol",
         ] {
             #expect(result.output.contains("Violating.swift:"))
             #expect(result.output.contains(": \(rule)"), "missing \(rule) in \(result.output)")

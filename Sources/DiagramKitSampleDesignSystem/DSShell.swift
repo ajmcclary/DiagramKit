@@ -4,6 +4,16 @@ public enum DSShellWidth: CaseIterable, Equatable, Sendable {
     case compact
     case regular
     case wide
+
+    public static func resolve(platform: DSPlatform, viewportWidth: CGFloat) -> Self {
+        if viewportWidth < 600 {
+            return .compact
+        }
+        if viewportWidth < 1_100 || platform == .iOS {
+            return .regular
+        }
+        return .wide
+    }
 }
 
 public enum DSShellLayout: Equatable, Sendable {

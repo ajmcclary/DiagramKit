@@ -218,6 +218,7 @@ let package = Package(
             ],
             exclude: [
                 "__Snapshots__",
+                "DesignSystem/__Snapshots__",
                 // RoundTrip fixtures are loaded directly from the source tree
                 // via `#filePath`, not from the test bundle. Excluding them
                 // here avoids SwiftPM's "unhandled file" warnings for the

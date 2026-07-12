@@ -55,7 +55,8 @@ struct ImporterProbeView: View {
             } else {
                 HStack { DSIconView(.error, colorRole: .error); DSCodeBadge("unresolved") }
             }
-            HeaderCloseButton { store.dismissFullScreen() }
+            DSIconButton(.close, label: "Close") { store.dismissFullScreen() }
+                .keyboardShortcut(.cancelAction)
         }
         .padding(.horizontal, DSTokens.Spacing.lg)
         .padding(.vertical, DSTokens.Spacing.sm)

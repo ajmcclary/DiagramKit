@@ -10,9 +10,11 @@
 //
 
 import SwiftUI
+import DiagramKitSampleDesignSystem
 
 struct CitationOverlay: View {
     @Bindable var store: LiveEditorStore
+    @Environment(\.dsEnvironment) private var environment
 
     var body: some View {
         if store.state.showCitations {
@@ -32,47 +34,44 @@ struct CitationOverlay: View {
 
     private var panel: some View {
         let pins = CitationSet.pins(for: activeSurface)
-        return VStack(alignment: .leading, spacing: 6) {
-            HStack(spacing: 6) {
-                Image(systemName: "quote.bubble.fill")
-                    .foregroundStyle(.tint)
-                Text("Sources")
-                    .font(.system(size: 12, weight: .semibold))
-                Spacer()
-                Text(activeSurface.label)
-                    .font(.system(size: 10, weight: .medium))
-                    .foregroundStyle(.secondary)
-                Button {
-                    store.setShowCitations(false)
-                } label: {
-                    Image(systemName: "xmark")
-                        .font(.system(size: 10, weight: .semibold))
-                        .foregroundStyle(.secondary)
+        return DSGlassSurface(role: .popover) {
+            VStack(alignment: .leading, spacing: DSTokens.Spacing.xs) {
+                HStack(spacing: DSTokens.Spacing.xs) {
+                    DSIconView(.info, size: DSTokens.Icon.xs, colorRole: .info)
+                    Text("Sources")
+                        .dsFont(.headline)
+                        .foregroundStyle(environment.theme.colors.textPrimary.color)
+                    Spacer()
+                    Text(activeSurface.label)
+                        .dsFont(.badge)
+                        .foregroundStyle(environment.theme.colors.textSecondary.color)
+                    DSIconButton(.close, label: "Hide sources") {
+                        store.setShowCitations(false)
+                    }
                 }
-                .buttonStyle(.plain)
+                ForEach(pins) { pin in
+                    pinRow(pin)
+                }
             }
-            ForEach(pins) { pin in
-                pinRow(pin)
-            }
+            .padding(DSTokens.Spacing.md)
+            .frame(width: 320)
         }
-        .padding(12)
-        .frame(width: 320)
-        .glassChrome(.popoverCard, in: RoundedRectangle(cornerRadius: 10, style: .continuous))
     }
 
     private func pinRow(_ pin: CitationPin) -> some View {
-        HStack(alignment: .top, spacing: 6) {
+        HStack(alignment: .top, spacing: DSTokens.Spacing.xs) {
             Text("\(pin.id)")
-                .font(.system(size: 10, weight: .bold).monospacedDigit())
+                .dsFont(.metric)
                 .frame(width: 22, height: 22)
-                .background(Circle().fill(Color.accentColor))
-                .foregroundStyle(.white)
-            VStack(alignment: .leading, spacing: 2) {
+                .background(Circle().fill(environment.theme.colors.accent.color))
+                .foregroundStyle(environment.theme.colors.onAccent.color)
+            VStack(alignment: .leading, spacing: DSTokens.Spacing.xxxs) {
                 Text(pin.label)
-                    .font(.system(size: 11, weight: .semibold))
+                    .dsFont(.badge)
+                    .foregroundStyle(environment.theme.colors.textPrimary.color)
                 Text(pin.path)
-                    .font(.system(size: 10, design: .monospaced))
-                    .foregroundStyle(.secondary)
+                    .dsFont(.code)
+                    .foregroundStyle(environment.theme.colors.textSecondary.color)
                     .lineLimit(2)
                     .textSelection(.enabled)
             }

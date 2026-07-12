@@ -19,15 +19,22 @@ struct SettingsRenderBackendTab: View {
                 Text(backend.label)
             }
             .padding(.bottom, DSTokens.Spacing.lg)
-            SettingsGroupCard {
+            DSSettingGroup {
                 StatusRow(title: "Renderer", value: rendererText, valueColor: environment.theme.colors.accent.color, monospaced: true)
                 MenuRow(title: "ID policy", value: "Stable") {
                     Button("Stable") {}
                     Button("Random per render") {}
                 }
-                ToggleRow(title: "Render on every keystroke", description: "auto vs manual",
-                          isOn: Binding(get: { store.state.updateMode == .auto },
-                                        set: { store.state.updateMode = $0 ? .auto : .manual }))
+                DSSettingRow("Render on every keystroke", detail: "auto vs manual") {
+                    Toggle("Render on every keystroke", isOn: Binding(
+                        get: { store.state.updateMode == .auto },
+                        set: { store.state.updateMode = $0 ? .auto : .manual }
+                    ))
+                    .labelsHidden()
+                    .toggleStyle(.ds)
+                }
+                .padding(.horizontal, DSTokens.Spacing.lg)
+                .contentShape(Rectangle())
                 StatusRow(title: "Worker thread", description: "8 MB stack · fresh per call", value: "on",
                           valueColor: environment.theme.colors.success.color, dotColor: environment.theme.colors.success.color, monospaced: true)
             }

@@ -25,7 +25,7 @@ struct LiveEditorView: View {
     @AppStorage(PlaygroundChromePersistence.canvasFollowsKey)
     private var canvasFollows = true
 
-    /// The resolved light/dark scheme, reported by `PlaygroundThemeHost` (so
+    /// The resolved light/dark scheme, reported by the design-system host (so
     /// `.system` mode reflects the live OS appearance). Drives the toolbar
     /// background and the diagram canvas-follow sync.
     @SwiftUI.State private var effectiveScheme: ColorScheme = .dark
@@ -99,11 +99,10 @@ struct LiveEditorView: View {
             regularLayout
             #endif
         }
-        .playgroundCompatibilityTheme(family: chromeFamily, mode: chromeMode) { newScheme in
+        .dsThemeSelection(family: chromeFamily, mode: chromeMode) { newScheme in
             effectiveScheme = newScheme
             syncCanvasIfFollowing()
         }
-        .dsTheme(family: chromeFamily.dsFamily, mode: chromeMode.dsMode)
         .onChange(of: familyRaw) { _, _ in syncCanvasIfFollowing() }
         .onChange(of: canvasFollows) { _, _ in syncCanvasIfFollowing() }
         #if os(macOS)
@@ -139,7 +138,7 @@ struct LiveEditorView: View {
         }
         .overlay(alignment: .topTrailing) {
             DSGlassSurface(role: .popover) {
-                DSIconButton(.settings, label: "Open sample controls") {
+                DSIconButton(.diagram, label: "Open sample controls") {
                     showingControls = true
                 }
                 .padding(DSTokens.Spacing.xxs)

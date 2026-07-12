@@ -17,6 +17,7 @@
 import SwiftUI
 import DiagramKit
 import DiagramKitModel
+import DiagramKitSampleDesignSystem
 
 @MainActor
 final class ShapeThumbnailCache {
@@ -39,6 +40,7 @@ struct ShapeThumbnail: View {
     let theme: DiagramTheme
 
     @SwiftUI.State private var image: BMImage?
+    @Environment(\.dsEnvironment) private var environment
 
     var body: some View {
         Group {
@@ -53,8 +55,8 @@ struct ShapeThumbnail: View {
                     .aspectRatio(contentMode: .fit)
                 #endif
             } else {
-                RoundedRectangle(cornerRadius: 4)
-                    .fill(Color.gray.opacity(0.08))
+                RoundedRectangle(cornerRadius: DSTokens.Radius.xs)
+                    .fill(environment.theme.colors.element.color.opacity(DSTokens.Opacity.soft))
             }
         }
         .frame(width: 44, height: 32)

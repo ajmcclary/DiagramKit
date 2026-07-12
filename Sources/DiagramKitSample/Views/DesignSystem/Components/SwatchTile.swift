@@ -57,6 +57,6 @@ struct SwatchTile: View {
     // Simple contrast: light backgrounds get dark text; dark backgrounds get
     // light text, judged from the tile's own background luminance.
     private func textColor(on background: Color) -> Color {
-        background.isLightSwatch ? .black.opacity(0.85) : .white.opacity(0.9)
+        background.dsIsLightSwatch ? .black.opacity(0.85) : .white.opacity(0.9)
     }
 }

@@ -109,40 +109,55 @@ struct LiveEditorToolbar: ToolbarContent {
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
 
     var body: some ToolbarContent {
-        ToolbarItemGroup(placement: .topBarTrailing) {
-            DSIconButton(.theme, label: "Theme") {
-                showingTheme = true
-            }
-            .a11y(label: "Theme", id: A11yID.Toolbar.theme)
+        ToolbarItem(placement: .topBarTrailing) {
+            actionHost
+        }
+    }
 
-            DSIconButton(.image, label: "View options") {
-                showingView = true
+    @ViewBuilder
+    private var actionHost: some View {
+        Group {
+            if horizontalSizeClass == .compact {
+                Menu {
+                    Button("Theme") { showingTheme = true }
+                    Button("View options") { showingView = true }
+                    Button("Export, copy, and share") { showingActions = true }
+                    Button(store.state.inspectorOpen ? "Hide inspector" : "Show inspector") {
+                        store.toggleInspector()
+                    }
+                } label: {
+                    DSIconView(.settings)
+                }
+                .menuStyle(.button)
+                .frame(minWidth: DSTokens.Touch.iOS, minHeight: DSTokens.Touch.iOS)
+                .a11y(label: "More actions", id: A11yID.Toolbar.actions)
+            } else {
+                HStack(spacing: DSTokens.Spacing.xxs) {
+                    DSIconButton(.theme, label: "Theme") { showingTheme = true }
+                        .a11y(label: "Theme", id: A11yID.Toolbar.theme)
+                    DSIconButton(.image, label: "View options") { showingView = true }
+                        .a11y(label: "View options", id: A11yID.Toolbar.view)
+                    DSIconButton(.export, label: "Actions") { showingActions = true }
+                        .a11y(
+                            label: "Actions",
+                            hint: "Export, copy, share, history",
+                            id: A11yID.Toolbar.actions
+                        )
+                    DSIconButton(.settings, label: "Inspector") { store.toggleInspector() }
+                        .a11yToggle(
+                            label: "Inspector",
+                            isOn: store.state.inspectorOpen,
+                            hint: "Shows the editing controls panel",
+                            id: A11yID.Toolbar.inspectorToggle
+                        )
+                        .keyboardShortcut("i", modifiers: [.command])
+                }
             }
-            .a11y(label: "View options", id: A11yID.Toolbar.view)
-
-            DSIconButton(.export, label: "Actions") {
-                showingActions = true
-            }
-            .a11y(label: "Actions", hint: "Export, copy, share, history", id: A11yID.Toolbar.actions)
-
-            DSIconButton(.settings, label: "Inspector") {
-                store.toggleInspector()
-            }
-            .a11yToggle(
-                label: "Inspector",
-                isOn: store.state.inspectorOpen,
-                hint: "Shows the editing controls panel",
-                id: A11yID.Toolbar.inspectorToggle
-            )
-            .keyboardShortcut("i", modifiers: [.command])
-
-            // Panels as sheets. `ToolbarContent` has no `.sheet`, so these attach
-            // to the group's last button (a View) rather than the toolbar body,
-            // keeping the sheet state local to this toolbar.
-            .sheet(isPresented: $showingTheme) {
+        }
+        .sheet(isPresented: $showingTheme) {
             NavigationStack {
                 ThemePicker(store: store)
-                    .padding(16)
+                    .padding(DSTokens.Spacing.xl)
                     .navigationTitle("Theme")
                     .navigationBarTitleDisplayMode(.inline)
                     .toolbar {
@@ -154,11 +169,10 @@ struct LiveEditorToolbar: ToolbarContent {
             }
             .presentationDetents([.medium])
         }
-        // View options
         .sheet(isPresented: $showingView) {
             NavigationStack {
                 ViewOptionsPanel(store: store)
-                    .padding(16)
+                    .padding(DSTokens.Spacing.xl)
                     .navigationTitle("View")
                     .navigationBarTitleDisplayMode(.inline)
                     .toolbar {
@@ -170,7 +184,6 @@ struct LiveEditorToolbar: ToolbarContent {
             }
             .presentationDetents([.medium])
         }
-        // Actions
         .sheet(isPresented: $showingActions) {
             NavigationStack {
                 ActionsPanel(store: store, showingFullWindowPreview: $showingFullWindowPreview)
@@ -180,12 +193,11 @@ struct LiveEditorToolbar: ToolbarContent {
                         ToolbarItem(placement: .confirmationAction) {
                             Button("Done") { showingActions = false }
                                 .a11yIdentifier(A11yID.Panels.actionsShareDone)
-                        }
-                    }
+                }
             }
         }
-        }
     }
+}
 }
 
 #endif

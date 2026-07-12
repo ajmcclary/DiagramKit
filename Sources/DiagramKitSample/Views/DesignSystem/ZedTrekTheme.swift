@@ -5,8 +5,7 @@
 //  The Zed Trek theme family (claude.ai design project 50c9c2ef…): 10 named
 //  themes, each resolvable in light or dark. Replaces the flat
 //  PlaygroundAppearance. The per-family chrome palette lives in
-//  PlaygroundPalette+ZedTrekFamily.swift; the picker specimen in
-//  ZedTrekSpecimen.swift; the matching diagram canvas in DiagramTheme.
+//  DSThemeSpecimen data; the matching diagram canvas lives in DiagramTheme.
 //
 
 import SwiftUI

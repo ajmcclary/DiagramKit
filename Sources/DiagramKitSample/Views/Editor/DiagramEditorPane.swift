@@ -124,6 +124,7 @@ struct DiagramEditorPane: View {
 private struct TitleSection: View {
     @Bindable var store: LiveEditorStore
     let editor: DiagramEditor
+    @Environment(\.dsEnvironment) private var environment
 
     @SwiftUI.State private var draft: String = ""
 
@@ -133,21 +134,23 @@ private struct TitleSection: View {
             HStack(spacing: 6) {
                 TextField("Untitled", text: $draft)
                     .textFieldStyle(.roundedBorder)
-                    .font(.system(size: 12))
+                    .dsFont(.caption)
                 Button("Set") {
                     Task { try? await store.performMutation(.setTitle(draft.isEmpty ? nil : draft)) }
                 }
+                .buttonStyle(.ds(role: .primary, size: .compact))
                 .disabled(editor.isExporting)
                 .a11yIdentifier(A11yID.Editor.titleSet)
                 Button("Clear") {
                     Task { try? await store.performMutation(.setTitle(nil)) }
                 }
+                .buttonStyle(.ds(role: .ghost, size: .compact))
                 .disabled(editor.isExporting || editor.document.title == nil)
                 .a11yIdentifier(A11yID.Editor.titleClear)
             }
             Text("Currently: \(editor.document.title ?? "—")")
-                .font(.system(size: 10))
-                .foregroundColor(Color(store.theme.effectiveMuted()))
+                .dsFont(.caption2)
+                .foregroundStyle(environment.theme.colors.textSecondary.color)
         }
         .onAppear {
             draft = editor.document.title ?? ""
@@ -163,6 +166,7 @@ private struct TitleSection: View {
 private struct SelectionSection: View {
     @Bindable var store: LiveEditorStore
     let editor: DiagramEditor
+    @Environment(\.dsEnvironment) private var environment
 
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
@@ -186,8 +190,8 @@ private struct SelectionSection: View {
                 .a11yIdentifier(A11yID.Editor.selectionPicker)
             } else {
                 Text("No selectable elements in this diagram.")
-                    .font(.system(size: 11))
-                    .foregroundColor(Color(store.theme.effectiveMuted()))
+                    .dsFont(.caption2)
+                    .foregroundStyle(environment.theme.colors.textSecondary.color)
             }
         }
     }
@@ -236,11 +240,12 @@ private struct LabelSection: View {
             HStack(spacing: 6) {
                 TextField("Label…", text: $draft)
                     .textFieldStyle(.roundedBorder)
-                    .font(.system(size: 12))
+                    .dsFont(.caption)
                 Button("Rename") {
                     guard let selection = editor.selection else { return }
                     Task { try? await store.performMutation(.setLabel(of: selection, to: draft)) }
                 }
+                .buttonStyle(.ds(role: .primary, size: .compact))
                 .disabled(editor.selection == nil || editor.isExporting)
                 .a11yIdentifier(A11yID.Editor.labelRename)
             }
@@ -286,11 +291,11 @@ private struct InsertNodeSection: View {
             HStack(spacing: 6) {
                 TextField("ID (e.g. n3)", text: $idDraft)
                     .textFieldStyle(.roundedBorder)
-                    .font(.system(size: 12))
+                    .dsFont(.caption)
                     .frame(maxWidth: 80)
                 TextField("Label", text: $labelDraft)
                     .textFieldStyle(.roundedBorder)
-                    .font(.system(size: 12))
+                    .dsFont(.caption)
             }
             HStack(spacing: 6) {
                 Picker("Shape", selection: $shape) {
@@ -306,6 +311,7 @@ private struct InsertNodeSection: View {
                 Button("Insert") {
                     insert()
                 }
+                .buttonStyle(.ds(role: .primary, size: .compact))
                 .disabled(labelDraft.trimmingCharacters(in: .whitespaces).isEmpty || editor.isExporting)
                 .a11yIdentifier(A11yID.Editor.insertNodeButton)
             }
@@ -353,23 +359,21 @@ private struct InsertEdgeSection: View {
             DSSectionHeader("Insert edge")
             HStack(spacing: 6) {
                 fromPicker
-                Image(systemName: "arrow.right")
-                    .font(.system(size: 11))
-                    .foregroundColor(Color(store.theme.effectiveMuted()))
-                    .accessibilityHidden(true)
+                DSIconView(.disclosureRight, size: DSTokens.Icon.micro, colorRole: .muted)
                 toPicker
             }
             HStack(spacing: 6) {
                 TextField("Label (optional)", text: $labelDraft)
                     .textFieldStyle(.roundedBorder)
-                    .font(.system(size: 12))
+                    .dsFont(.caption)
                 TextField("Edge ID (optional)", text: $idDraft)
                     .textFieldStyle(.roundedBorder)
-                    .font(.system(size: 12))
+                    .dsFont(.caption)
                     .frame(maxWidth: 100)
                 Button("Insert") {
                     insert()
                 }
+                .buttonStyle(.ds(role: .primary, size: .compact))
                 .disabled(fromID == nil || toID == nil || editor.isExporting)
                 .a11yIdentifier(A11yID.Editor.insertEdgeButton)
             }
@@ -459,6 +463,7 @@ private struct DeleteSection: View {
                 guard let selection = editor.selection else { return }
                 Task { try? await store.performMutation(.deleteElement(selection)) }
             }
+            .buttonStyle(.ds(role: .destructive, size: .compact))
             .disabled(editor.selection == nil || editor.isExporting)
             .a11yIdentifier(A11yID.Editor.deleteSelected)
             Spacer(minLength: 0)
@@ -471,14 +476,16 @@ private struct DeleteSection: View {
 private struct UndoRedoFooter: View {
     @Bindable var store: LiveEditorStore
     let editor: DiagramEditor
+    @Environment(\.dsEnvironment) private var environment
 
     var body: some View {
         HStack(spacing: 8) {
             Button {
                 store.undoStructural()
             } label: {
-                Label("Undo", systemImage: "arrow.uturn.backward")
+                Text("Undo")
             }
+            .buttonStyle(.ds(role: .ghost, size: .compact))
             .disabled(!(store.editor?.canUndo ?? false))
             .a11yToggle(
                 label: "Undo",
@@ -490,8 +497,9 @@ private struct UndoRedoFooter: View {
             Button {
                 store.redoStructural()
             } label: {
-                Label("Redo", systemImage: "arrow.uturn.forward")
+                Text("Redo")
             }
+            .buttonStyle(.ds(role: .ghost, size: .compact))
             .disabled(!(store.editor?.canRedo ?? false))
             .a11yToggle(
                 label: "Redo",
@@ -504,8 +512,8 @@ private struct UndoRedoFooter: View {
 
             if let actionName = store.editor?.undoActionName, !actionName.isEmpty {
                 Text("Last: \(actionName)")
-                    .font(.system(size: 10))
-                    .foregroundColor(Color(store.theme.effectiveMuted()))
+                    .dsFont(.caption2)
+                    .foregroundStyle(environment.theme.colors.textSecondary.color)
             }
         }
     }
@@ -516,36 +524,31 @@ private struct UndoRedoFooter: View {
 private struct CorpusMetadataBanner: View {
     let metadata: CorpusMetadata
     let store: LiveEditorStore
+    @Environment(\.dsEnvironment) private var environment
 
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
             if let note = metadata.unsupportedNote, !note.isEmpty {
                 HStack(alignment: .top, spacing: 6) {
-                    Image(systemName: "minus.circle")
-                        .font(.system(size: 11))
-                        .foregroundColor(Color(store.theme.effectiveMuted()))
-                        .accessibilityHidden(true)
+                    DSIconView(.remove, size: DSTokens.Icon.micro, colorRole: .muted)
                     Text(note)
-                        .font(.system(size: 11))
-                        .foregroundColor(Color(store.theme.effectiveMuted()))
+                        .dsFont(.caption2)
+                        .foregroundStyle(environment.theme.colors.textSecondary.color)
                         .fixedSize(horizontal: false, vertical: true)
                 }
             }
             if let diagnostics = metadata.expectedDiagnostics, !diagnostics.isEmpty {
                 HStack(alignment: .top, spacing: 6) {
-                    Image(systemName: "exclamationmark.bubble")
-                        .font(.system(size: 11))
-                        .foregroundColor(Color(store.theme.effectiveAccent()))
-                        .accessibilityHidden(true)
+                    DSIconView(.diagnostics, size: DSTokens.Icon.micro, colorRole: .info)
                     VStack(alignment: .leading, spacing: 2) {
                         Text("Expected diagnostics from corpus (\(diagnostics.count)):")
-                            .font(.system(size: 11, weight: .medium))
-                            .foregroundColor(Color(store.theme.effectiveAccent()))
+                            .dsFont(.badge)
+                            .foregroundStyle(environment.theme.colors.accent.color)
                         ForEach(diagnostics.indices, id: \.self) { idx in
                             let d = diagnostics[idx]
                             Text("• \(d.severity)\(d.messageContains.map { ": \($0)" } ?? "")")
-                                .font(.system(size: 10))
-                                .foregroundColor(Color(store.theme.effectiveMuted()))
+                                .dsFont(.caption2)
+                                .foregroundStyle(environment.theme.colors.textSecondary.color)
                                 .fixedSize(horizontal: false, vertical: true)
                         }
                     }
@@ -555,8 +558,8 @@ private struct CorpusMetadataBanner: View {
         .padding(8)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(
-            RoundedRectangle(cornerRadius: 6)
-                .fill(Color(store.theme.effectiveAccent()).opacity(0.06))
+            RoundedRectangle(cornerRadius: DSTokens.Radius.sm)
+                .fill(environment.theme.colors.accent.color.opacity(DSTokens.Opacity.mist))
         )
     }
 }

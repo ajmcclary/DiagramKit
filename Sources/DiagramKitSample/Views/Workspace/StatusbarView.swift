@@ -18,6 +18,20 @@ struct StatusbarView: View {
     @Environment(\.dsEnvironment) private var environment
 
     var body: some View {
+        ViewThatFits(in: .horizontal) {
+            fullStatus
+                .fixedSize(horizontal: true, vertical: false)
+            compactStatus
+        }
+        .padding(.horizontal, DSTokens.Spacing.md)
+        .frame(minHeight: DSTokens.Control.statusBar)
+        .background {
+            DSSurface(role: .statusBar) { Color.clear }
+        }
+        .foregroundStyle(environment.theme.colors.textSecondary.color)
+    }
+
+    private var fullStatus: some View {
         HStack(spacing: DSTokens.Spacing.md) {
             engineSegment
             divider
@@ -37,12 +51,17 @@ struct StatusbarView: View {
             divider
             activeSampleBadge
         }
-        .padding(.horizontal, DSTokens.Spacing.md)
-        .frame(minHeight: DSTokens.Control.statusBar)
-        .background {
-            DSSurface(role: .statusBar) { Color.clear }
+    }
+
+    private var compactStatus: some View {
+        HStack(spacing: DSTokens.Spacing.sm) {
+            engineSegment
+            Spacer(minLength: DSTokens.Spacing.sm)
+            diagnosticsButton
+            backendSegment
+            activeSampleBadge
         }
-        .foregroundStyle(environment.theme.colors.textSecondary.color)
+        .lineLimit(1)
     }
 
     // MARK: - Segments

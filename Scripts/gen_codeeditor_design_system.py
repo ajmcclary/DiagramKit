@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+import colorsys
 import hashlib
 import json
 from pathlib import Path
@@ -215,6 +216,55 @@ def normalized_color(source: str) -> tuple[str, float]:
     return source[:7].upper(), alpha
 
 
+def rgb_components(source: str) -> tuple[float, float, float]:
+    hex_value, _ = normalized_color(source)
+    return tuple(int(hex_value[index:index + 2], 16) / 255 for index in (1, 3, 5))
+
+
+def relative_luminance(source: str) -> float:
+    def linear(component: float) -> float:
+        return component / 12.92 if component <= 0.04045 else ((component + 0.055) / 1.055) ** 2.4
+
+    red, green, blue = rgb_components(source)
+    return 0.2126 * linear(red) + 0.7152 * linear(green) + 0.0722 * linear(blue)
+
+
+def contrast_ratio(foreground: str, background: str) -> float:
+    foreground_luminance = relative_luminance(foreground)
+    background_luminance = relative_luminance(background)
+    return (max(foreground_luminance, background_luminance) + 0.05) / (
+        min(foreground_luminance, background_luminance) + 0.05
+    )
+
+
+def color_hex(red: float, green: float, blue: float) -> str:
+    channels = [round(max(0, min(1, component)) * 255) for component in (red, green, blue)]
+    return "#" + "".join(f"{channel:02X}" for channel in channels)
+
+
+def hardened_foreground(source: str, background: str, minimum: float) -> str:
+    """Preserve hue and saturation while moving HLS lightness just enough to pass."""
+    source_hex, source_alpha = normalized_color(source)
+    background_hex, background_alpha = normalized_color(background)
+    if source_alpha != 1 or background_alpha != 1:
+        fail("contrast foregrounds and backgrounds must be opaque")
+    if contrast_ratio(source_hex, background_hex) >= minimum:
+        return source_hex
+
+    red, green, blue = rgb_components(source_hex)
+    hue, lightness, saturation = colorsys.rgb_to_hls(red, green, blue)
+    endpoint = 0.0 if relative_luminance(background_hex) > 0.5 else 1.0
+
+    # Sampling at 1/4096 lightness increments is deterministic and, after
+    # 8-bit quantization, selects the closest passing color to the source.
+    for step in range(1, 4097):
+        candidate_lightness = lightness + (endpoint - lightness) * step / 4096
+        candidate = color_hex(*colorsys.hls_to_rgb(hue, candidate_lightness, saturation))
+        if contrast_ratio(candidate, background_hex) >= minimum:
+            return candidate
+    fail(f"could not harden {source_hex} against {background_hex} to {minimum}:1")
+
+
 def swift_color(source: str) -> str:
     hex_value, alpha = normalized_color(source)
     return (
@@ -415,6 +465,20 @@ def render_themes(document: dict[str, Any]) -> str:
             "    }",
             "}",
             "",
+            "public struct DSContrastAdjustment: Equatable, Sendable {",
+            "    public let role: String",
+            "    public let original: DSColorValue",
+            "    public let hardened: DSColorValue",
+            "    public let minimumRatio: Double",
+            "",
+            "    public init(role: String, original: DSColorValue, hardened: DSColorValue, minimumRatio: Double) {",
+            "        self.role = role",
+            "        self.original = original",
+            "        self.hardened = hardened",
+            "        self.minimumRatio = minimumRatio",
+            "    }",
+            "}",
+            "",
             "public struct DSThemeColors: Equatable, Sendable {",
             "    public let accents: [DSColorValue]",
             "    public let values: [String: DSColorValue]",
@@ -472,13 +536,15 @@ def render_themes(document: dict[str, Any]) -> str:
             "    public let mode: DSThemeMode",
             "    public let colors: DSThemeColors",
             "    public let isHighContrast: Bool",
+            "    public let contrastAdjustments: [DSContrastAdjustment]",
             "",
-            "    public init(name: String, family: DSThemeFamily, mode: DSThemeMode, colors: DSThemeColors, isHighContrast: Bool = false) {",
+            "    public init(name: String, family: DSThemeFamily, mode: DSThemeMode, colors: DSThemeColors, isHighContrast: Bool = false, contrastAdjustments: [DSContrastAdjustment] = []) {",
             "        self.name = name",
             "        self.family = family",
             "        self.mode = mode",
             "        self.colors = colors",
             "        self.isHighContrast = isHighContrast",
+            "        self.contrastAdjustments = contrastAdjustments",
             "    }",
             "",
             "    public static func theme(family: DSThemeFamily, mode: DSThemeMode) -> DSTheme {",
@@ -496,6 +562,15 @@ def render_themes(document: dict[str, Any]) -> str:
     for variant in variants:
         theme = variant["theme"]
         style: dict[str, Any] = theme["style"]
+        adjustments: list[tuple[str, str, str, float]] = []
+
+        def harden(role: str, source: str, background: str, minimum: float) -> str:
+            hardened = hardened_foreground(source, background, minimum)
+            original, _ = normalized_color(source)
+            if hardened != original:
+                adjustments.append((role, original, hardened, minimum))
+            return hardened
+
         accents = ", ".join(swift_color(color) for color in style["accents"])
         flat_colors = {
             key: value
@@ -504,11 +579,12 @@ def render_themes(document: dict[str, Any]) -> str:
         }
         flat_colors["design.accent"] = style["icon.accent"]
         accent_hex, _ = normalized_color(style["icon.accent"])
-        red = int(accent_hex[1:3], 16) / 255
-        green = int(accent_hex[3:5], 16) / 255
-        blue = int(accent_hex[5:7], 16) / 255
-        luminance = 0.2126 * red + 0.7152 * green + 0.0722 * blue
-        flat_colors["design.onAccent"] = "#000000" if luminance > 0.55 else "#FFFFFF"
+        on_accent = max(("#000000", "#FFFFFF"), key=lambda color: contrast_ratio(color, accent_hex))
+        flat_colors["design.onAccent"] = on_accent
+        flat_colors["text"] = harden("text", style["text"], style["background"], 4.5)
+        flat_colors["border.focused"] = harden(
+            "border.focused", style["border.focused"], style["background"], 3.0
+        )
         values = ", ".join(
             f"{swift_string(key)}: {swift_color(value)}"
             for key, value in sorted(flat_colors.items())
@@ -516,6 +592,9 @@ def render_themes(document: dict[str, Any]) -> str:
         syntax_parts = []
         for key, syntax in sorted(style["syntax"].items()):
             foreground = syntax.get("color", style["editor.foreground"])
+            foreground = harden(
+                f"syntax.{key}", foreground, style["editor.background"], 4.5
+            )
             background = syntax.get("background_color")
             background_expression = swift_color(background) if background else "nil"
             weight = syntax.get("font_weight")
@@ -527,6 +606,13 @@ def render_themes(document: dict[str, Any]) -> str:
                 f"isItalic: {italic})"
             )
         syntax_values = ", ".join(syntax_parts)
+        adjustment_values = ", ".join(
+            "DSContrastAdjustment("
+            f"role: {swift_string(role)}, original: {swift_color(original)}, "
+            f"hardened: {swift_color(hardened)}, minimumRatio: {swift_number(minimum)}"
+            ")"
+            for role, original, hardened, minimum in adjustments
+        )
         lines.extend(
             [
                 f"        .{variant['case']}: DSTheme(",
@@ -535,7 +621,8 @@ def render_themes(document: dict[str, Any]) -> str:
                 f"                accents: [{accents}],",
                 f"                values: [{values}],",
                 f"                syntax: [{syntax_values}]",
-                "            )",
+                "            ),",
+                f"            contrastAdjustments: [{adjustment_values}]",
                 "        ),",
             ]
         )

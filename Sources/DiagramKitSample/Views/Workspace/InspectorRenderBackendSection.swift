@@ -2,7 +2,7 @@
 //  InspectorRenderBackendSection.swift
 //  DiagramPlayground
 //
-//  RENDER BACKEND section of the v2.1 inspector. ChipGroup picker for
+//  RENDER BACKEND section of the v2.1 inspector. Segmented picker for
 //  SVG / Image / ASCII, plus backend-specific KV readouts and the
 //  render-on-keystroke / worker-thread toggles.
 //

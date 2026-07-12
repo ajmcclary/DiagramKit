@@ -26,7 +26,7 @@ struct CanvasTopToolbar: View {
     }
 
     private var familyPill: some View {
-        ToolbarPill(
+        toolbarPill(
             label: "\(store.state.sourceFormat.shortName.lowercased()) · \(workspaceLabel)",
             dotColor: environment.theme.colors.info.color
         )
@@ -34,11 +34,31 @@ struct CanvasTopToolbar: View {
 
     private var sceneGraphPill: some View {
         // Phase 4 fills in real counts from PreparedDiagram.
-        ToolbarPill(
+        toolbarPill(
             label: "scene graph",
             dotColor: environment.theme.colors.iconMuted.color,
             trailing: sceneGraphMetric
         )
+    }
+
+    private func toolbarPill(label: String, dotColor: Color, trailing: String? = nil) -> some View {
+        DSGlassSurface(role: .popover) {
+            HStack(spacing: DSTokens.Spacing.xs) {
+                Circle()
+                    .fill(dotColor)
+                    .frame(width: DSTokens.Icon.indicator, height: DSTokens.Icon.indicator)
+                Text(label)
+                    .dsFont(.badge)
+                    .foregroundStyle(environment.theme.colors.textPrimary.color)
+                if let trailing {
+                    Text(trailing)
+                        .dsFont(.metric)
+                        .foregroundStyle(environment.theme.colors.textSecondary.color)
+                }
+            }
+            .padding(.horizontal, DSTokens.Spacing.smMd)
+            .padding(.vertical, DSTokens.Spacing.xs)
+        }
     }
 
     @ViewBuilder

@@ -124,11 +124,12 @@ struct InspectorView: View {
                 .menuStyle(.button).buttonStyle(.ds(role: .ghost, size: .compact)).fixedSize()
             }
 
-            SegmentedFormatControl(segments: [
-                .init(value: FlowchartBorderStyle.solid, label: "Solid"),
-                .init(value: FlowchartBorderStyle.dashed, label: "Dashed"),
-                .init(value: FlowchartBorderStyle.thick, label: "Thick"),
-            ], selection: Binding(get: { currentSpec().borderStyle ?? .solid }, set: { setBorder($0) }))
+            DSSegmentedControl(
+                [FlowchartBorderStyle.solid, .dashed, .thick],
+                selection: Binding(get: { currentSpec().borderStyle ?? .solid }, set: { setBorder($0) })
+            ) { style in
+                Text(style.rawValue.capitalized)
+            }
 
             HStack {
                 Text("Color").dsFont(.caption).foregroundStyle(environment.theme.colors.textSecondary.color)
@@ -157,12 +158,9 @@ struct InspectorView: View {
     private var diagramSection: some View {
         VStack(alignment: .leading, spacing: 12) {
             previewOnlyCaption("Diagram")
-            SegmentedFormatControl(segments: [
-                .init(value: "TB", label: "TB", monospaced: true),
-                .init(value: "LR", label: "LR", monospaced: true),
-                .init(value: "BT", label: "BT", monospaced: true),
-                .init(value: "RL", label: "RL", monospaced: true),
-            ], selection: .constant(directionCode))
+            DSSegmentedControl(["TB", "LR", "BT", "RL"], selection: .constant(directionCode)) { direction in
+                Text(direction)
+            }
             .disabled(true)
             SliderRow(title: "Node spacing", value: $nodeSpacing, range: 16...96)
             .disabled(true)

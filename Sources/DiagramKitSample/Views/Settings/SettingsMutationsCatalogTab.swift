@@ -21,7 +21,7 @@ struct SettingsMutationsCatalogTab: View {
                 if !entries.isEmpty {
                     DSSectionHeader(group.label)
                         .padding(.top, DSTokens.Spacing.xs).padding(.bottom, DSTokens.Spacing.sm)
-                    SettingsGroupCard {
+                    DSSettingGroup {
                         ForEach(entries) { entry in
                             HStack(spacing: DSTokens.Spacing.smMd) {
                                 DSIconView(icon(for: entry), size: DSTokens.Icon.micro, colorRole: group == .edge ? .info : .primary)

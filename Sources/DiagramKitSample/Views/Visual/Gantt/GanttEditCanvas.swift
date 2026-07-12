@@ -221,13 +221,13 @@ struct GanttEditCanvas: View {
                     p.move(to: CGPoint(x: x, y: topInset))
                     p.addLine(to: CGPoint(x: x, y: topInset + height))
                 }
-                .stroke(Color.red, style: StrokeStyle(lineWidth: 1.5, dash: [3, 2]))
+                .stroke(environment.theme.colors.error.color, style: StrokeStyle(lineWidth: DSTokens.Stroke.mediumLight, dash: [3, 2]))
                 Text("TODAY")
                     .dsFont(.overline)
                     .padding(.horizontal, DSTokens.Spacing.xxs)
                     .padding(.vertical, DSTokens.Stroke.thin)
-                    .background(Capsule().fill(Color.red))
-                    .foregroundStyle(.white)
+                    .background(Capsule().fill(environment.theme.colors.error.color))
+                    .foregroundStyle(environment.theme.colors.textPrimary.color)
                     .position(x: x, y: topInset / 2 + 12)
             }
         }

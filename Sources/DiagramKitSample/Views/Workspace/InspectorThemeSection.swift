@@ -5,7 +5,7 @@
 //  THEME section of the v2.1 inspector. The four chrome appearances
 //  (Dark / Light / Forest / Neutral) render as SwatchTiles and write
 //  to a shared @AppStorage that LiveEditorView reads to apply the
-//  global PlaygroundTokens.
+//  global generated design-system theme.
 //
 //  The existing ThemePicker (diagram-side palette) and ThemeBuilder
 //  card stay available behind disclosures so the 17 DiagramTheme
@@ -67,7 +67,7 @@ struct InspectorThemeSection: View {
     private var chromeTiles: some View {
         LazyVGrid(columns: tileColumns, spacing: DSTokens.Spacing.sm) {
             ForEach(ZedTrekTheme.allCases, id: \.self) { theme in
-                let specimen = theme.specimen(for: scheme)
+                let specimen = theme.dsSpecimen(for: scheme)
                 SwatchTile(
                     title: theme.displayName,
                     background: specimen.cardBackground,

@@ -10,9 +10,11 @@
 //
 
 import SwiftUI
+import DiagramKitSampleDesignSystem
 
 struct EditorMinimap: View {
     @Bindable var store: LiveEditorStore
+    @Environment(\.dsEnvironment) private var environment
 
     var body: some View {
         let lines = sourceLines
@@ -37,14 +39,14 @@ struct EditorMinimap: View {
                     height: barHeight
                 )
                 let color = highlightedLine == index
-                    ? Color.accentColor
-                    : Color.secondary.opacity(0.55)
+                    ? environment.theme.colors.accent.color
+                    : environment.theme.colors.iconMuted.color.opacity(DSTokens.Opacity.medium)
                 ctx.fill(Path(rect), with: .color(color))
             }
         }
         .frame(width: 64)
         .padding(.vertical, 6)
-        .background(Color.secondary.opacity(0.05))
+        .background(environment.theme.colors.editorGutterBackground.color)
         .accessibilityHidden(true)
     }
 

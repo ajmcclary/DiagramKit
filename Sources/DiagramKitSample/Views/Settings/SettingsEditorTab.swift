@@ -8,6 +8,7 @@
 //
 
 import SwiftUI
+import DiagramKitSampleDesignSystem
 
 struct SettingsEditorTab: View {
     @Bindable var store: LiveEditorStore
@@ -20,10 +21,10 @@ struct SettingsEditorTab: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             SettingsTabHeader(title: "Editor", subtitle: "Canvas and interaction.")
-            SettingsGroupCard {
-                ToggleRow(title: "Snap to grid", isOn: $store.state.gridEnabled)
+            DSSettingGroup {
+                settingsToggleRow("Snap to grid", isOn: $store.state.gridEnabled)
                 StepperRow(title: "Grid size", value: $gridSize, range: 8...64, step: 2, unit: "px")
-                ToggleRow(title: "Show connection handles", isOn: $showHandles)
+                settingsToggleRow("Show connection handles", isOn: $showHandles)
                 MenuRow(title: "Default node shape", value: nodeShape) {
                     ForEach(["Rectangle", "Rounded", "Stadium", "Circle", "Diamond"], id: \.self) { s in
                         Button(s) { nodeShape = s }
@@ -38,5 +39,19 @@ struct SettingsEditorTab: View {
             }
             Spacer(minLength: 0)
         }
+    }
+
+    private func settingsToggleRow(
+        _ title: String,
+        detail: String? = nil,
+        isOn: Binding<Bool>
+    ) -> some View {
+        DSSettingRow(title, detail: detail) {
+            Toggle(title, isOn: isOn)
+                .labelsHidden()
+                .toggleStyle(.ds)
+        }
+        .padding(.horizontal, DSTokens.Spacing.lg)
+        .contentShape(Rectangle())
     }
 }

@@ -58,7 +58,8 @@ struct ExportSheet: View {
                 .dsFont(.headline)
                 .foregroundStyle(environment.theme.colors.textPrimary.color)
             Spacer()
-            HeaderCloseButton { store.closeExportSheet() }
+            DSIconButton(.close, label: "Close") { store.closeExportSheet() }
+                .keyboardShortcut(.cancelAction)
         }
         .padding(.horizontal, DSTokens.Spacing.lg)
         .padding(.vertical, DSTokens.Spacing.sm)

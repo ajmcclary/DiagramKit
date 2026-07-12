@@ -46,7 +46,7 @@ struct SettingsThemeTab: View {
             LazyVGrid(columns: columns, spacing: DSTokens.Spacing.md) {
                 ForEach(ZedTrekTheme.allCases, id: \.self) { theme in
                     ThemeSwatchCard(name: theme.displayName,
-                                    specimen: theme.specimen(for: scheme),
+                                    specimen: theme.dsSpecimen(for: scheme),
                                     isStarred: theme.isStarred,
                                     isActive: theme == family) {
                         familyRaw = theme.rawValue
@@ -55,10 +55,17 @@ struct SettingsThemeTab: View {
             }
             .padding(.bottom, DSTokens.Spacing.xl)
 
-            SettingsGroupCard {
-                ToggleRow(title: "Match app theme",
-                          description: "Recolor the diagram canvas to the selected theme",
-                          isOn: $canvasFollows)
+            DSSettingGroup {
+                DSSettingRow(
+                    "Match app theme",
+                    detail: "Recolor the diagram canvas to the selected theme"
+                ) {
+                    Toggle("Match app theme", isOn: $canvasFollows)
+                        .labelsHidden()
+                        .toggleStyle(.ds)
+                }
+                .padding(.horizontal, DSTokens.Spacing.lg)
+                .contentShape(Rectangle())
                 MenuRow(title: "Diagram palette", value: store.state.selectedThemeName,
                         leadingSwatch: AnyView(
                             RoundedRectangle(cornerRadius: DSTokens.Radius.xs)

@@ -20,11 +20,16 @@ violations="$temporary/violations"
 is_allowed() {
   local file="$1"
   local rule="$2"
+  local source_line="${3:-}"
   case "$file:$rule" in
     */Sources/DiagramKitSampleDesignSystem/Generated/*) return 0 ;;
     */NativeCodeEditor.swift:literal-color|*/NativeCodeEditor.swift:system-font) return 0 ;;
     */LineNumberRuler.swift:literal-color|*/LineNumberRuler.swift:system-font) return 0 ;;
+    */Views/Visual/ZoomableCanvas.swift:scale-effect) return 0 ;;
   esac
+  if [[ "$rule" == "literal-color" && "$source_line" == *"hit-testable transparent"* ]]; then
+    return 0
+  fi
   return 1
 }
 
@@ -34,9 +39,9 @@ scan_rule() {
   local matches="$temporary/$rule"
   : > "$matches"
   rg --pcre2 -nH --glob '*.swift' "$pattern" "${roots[@]}" > "$matches" 2>/dev/null || true
-  while IFS=: read -r file line _; do
+  while IFS=: read -r file line source_line; do
     [[ -n "$file" && -n "$line" ]] || continue
-    if ! is_allowed "$file" "$rule"; then
+    if ! is_allowed "$file" "$rule" "$source_line"; then
       printf '%s:%s: %s\n' "$file" "$line" "$rule" >> "$violations"
     fi
   done < "$matches"
@@ -53,6 +58,7 @@ scan_rule scale-effect '\.scaleEffect\((?!1(?:\.0)?\b)'
 scan_rule gesture-switch '\.onTapGesture[^\n]*(?:\.toggle\(\)|toggle\(\))'
 scan_rule undersized-target '\b(?:button|control|view)\.frame\([^\n]*(?:width|height):\s*(?:[0-2]?[0-9]|3[0-9])\b'
 scan_rule plain-button '\.buttonStyle\(\.plain\)'
+scan_rule legacy-symbol '\b(?:PlaygroundPalette|PlaygroundTokens|PlaygroundFont|PlaygroundSpacing|PlaygroundRadius|PlaygroundButtonStyle|PillSwitch)\b|\.glassChrome\b'
 
 if [[ -s "$violations" ]]; then
   sort -u "$violations"

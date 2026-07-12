@@ -8,6 +8,7 @@
 //
 
 import SwiftUI
+import DiagramKitSampleDesignSystem
 
 enum RenderHealthState {
     case ok(layoutMs: Int, paintMs: Int)
@@ -18,20 +19,21 @@ enum RenderHealthState {
 struct RenderHealthPill: View {
     let state: RenderHealthState
 
-    @Environment(\.playgroundTokens) private var tokens
+    @Environment(\.dsEnvironment) private var environment
 
     var body: some View {
-        HStack(spacing: 5) {
-            Circle()
-                .fill(tint)
-                .frame(width: 7, height: 7)
-            Text(label)
-                .font(PlaygroundFont.metric)
-                .foregroundStyle(tokens.palette.fg1)
+        DSGlassSurface(role: .toolbar) {
+            HStack(spacing: DSTokens.Spacing.xs) {
+                Circle()
+                    .fill(tint)
+                    .frame(width: DSTokens.Icon.indicator, height: DSTokens.Icon.indicator)
+                Text(label)
+                    .dsFont(.metric)
+                    .foregroundStyle(environment.theme.colors.textPrimary.color)
+            }
+            .padding(.horizontal, DSTokens.Spacing.smMd)
+            .padding(.vertical, DSTokens.Spacing.xs)
         }
-        .padding(.horizontal, 10)
-        .padding(.vertical, 5)
-        .glassChrome(.toolbar, in: Capsule())
         .accessibilityIdentifier("preview.renderHealth")
     }
 
@@ -48,9 +50,9 @@ struct RenderHealthPill: View {
 
     private var tint: Color {
         switch state {
-        case .ok:     return tokens.palette.statusSuccess
-        case .slow:   return tokens.palette.statusWarning
-        case .failed: return tokens.palette.statusError
+        case .ok:     return environment.theme.colors.success.color
+        case .slow:   return environment.theme.colors.warning.color
+        case .failed: return environment.theme.colors.error.color
         }
     }
 }
