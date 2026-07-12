@@ -53,6 +53,11 @@ run_build() {
   printf '%s\n' "$output"
 }
 
+# Cheap deterministic design gates run before compilation so generated drift
+# and sample UI regressions fail fast.
+run_gate "check_codeeditor_design_system.sh" "$ROOT/Scripts/check_codeeditor_design_system.sh"
+run_gate "check-sample-design-adherence.sh" "$ROOT/Scripts/check-sample-design-adherence.sh"
+
 run_gate "swift package dump-package" swift package dump-package
 # Catch undeclared-module-dep regressions that incremental builds mask. Each
 # format-slice target compiles in isolation against only its declared
