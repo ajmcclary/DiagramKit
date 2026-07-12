@@ -9,6 +9,7 @@
 
 import SwiftUI
 import DiagramKit
+import DiagramKitSampleDesignSystem
 
 struct LiveEditorView: View {
     @Bindable var store: LiveEditorStore
@@ -38,7 +39,9 @@ struct LiveEditorView: View {
     /// so its full-screen background matches the app body instead of falling
     /// back to the default system material band.
     private var chromeBackground: Color {
-        PlaygroundTokens(family: chromeFamily, scheme: effectiveScheme).palette.bgApp
+        let mode: DSThemeMode = effectiveScheme == .dark ? .dark : .light
+        return DSTheme.theme(family: chromeFamily.dsFamily, mode: mode)
+            .colors.windowBackground.color
     }
 
     private func syncCanvasIfFollowing() {
@@ -92,10 +95,11 @@ struct LiveEditorView: View {
             regularLayout
             #endif
         }
-        .playgroundTheme(family: chromeFamily, mode: chromeMode) { newScheme in
+        .playgroundCompatibilityTheme(family: chromeFamily, mode: chromeMode) { newScheme in
             effectiveScheme = newScheme
             syncCanvasIfFollowing()
         }
+        .dsTheme(family: chromeFamily.dsFamily, mode: chromeMode.dsMode)
         .onChange(of: familyRaw) { _, _ in syncCanvasIfFollowing() }
         .onChange(of: canvasFollows) { _, _ in syncCanvasIfFollowing() }
         #if os(macOS)

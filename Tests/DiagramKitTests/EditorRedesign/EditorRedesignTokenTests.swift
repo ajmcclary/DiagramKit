@@ -1,5 +1,6 @@
 import Testing
 import SwiftUI
+import DiagramKitSampleDesignSystem
 @testable import DiagramKitSample
 
 @Suite struct EditorRedesignTokenTests {
@@ -8,10 +9,10 @@ import SwiftUI
         let p = PlaygroundTokensKey.defaultValue.palette
         #expect(p.accent == Color(hex: 0xFF9933))
         #expect(p.bgWindow == Color(hex: 0x05060A))
-        #expect(p.bgSheet == Color(hex: 0x0E1421))
+        #expect(p.bgSheet == Color(hex: 0x111827))
         #expect(p.fg1 == Color(hex: 0xF2E7D8))
         // Same as resolving the LCARS family in the dark scheme.
-        #expect(PlaygroundTokensKey.defaultValue == PlaygroundTokens(family: .lcars, scheme: .dark))
+        #expect(PlaygroundTokensKey.defaultValue == PlaygroundTokens(dsTheme: .lcarsDark))
     }
 
     // MARK: - Zed Trek family (theme × mode) — Task 1
@@ -32,12 +33,32 @@ import SwiftUI
         #expect(ThemeMode.dark.scheme(system: .light) == .dark)
     }
 
+    @Test func persistedThemesMapOneToOneToGeneratedFamilies() {
+        let mapped = ZedTrekTheme.allCases.map(\.dsFamily.rawValue).sorted()
+        let generated = DSThemeFamily.allCases.map(\.rawValue).sorted()
+
+        #expect(mapped == generated)
+        #expect(ZedTrekTheme.lcars.dsFamily == .lcars)
+        #expect(ZedTrekTheme.blackAlert.dsFamily == .blackAlert)
+        #expect(ZedTrekTheme.missionControl.dsFamily == .missionControl)
+    }
+
+    @Test func persistedModesMapToGeneratedModes() {
+        #expect(ThemeMode.system.dsMode == .system)
+        #expect(ThemeMode.light.dsMode == .light)
+        #expect(ThemeMode.dark.dsMode == .dark)
+        #expect(DSTheme.theme(family: .lcars, mode: .dark) == .lcarsDark)
+    }
+
     // MARK: - Chrome palettes (Task 3)
 
     @Test func everyFamilyModeResolvesCompletePalette() {
         for family in ZedTrekTheme.allCases {
             for scheme in [ColorScheme.dark, .light] {
-                let p = family.palette(for: scheme)
+                let mode: DSThemeMode = scheme == .dark ? .dark : .light
+                let p = PlaygroundTokens(
+                    dsTheme: DSTheme.theme(family: family.dsFamily, mode: mode)
+                ).palette
                 #expect(p.accent != p.bgWindow)
                 #expect(p.onAccent != p.accent)
                 #expect(p.bgCard != p.accent)
@@ -48,17 +69,17 @@ import SwiftUI
 
     @Test func pinnedChromePaletteValues() {
         // LCARS dark keeps the comp-exact values (default appearance).
-        let lcarsDark = ZedTrekTheme.lcars.palette(for: .dark)
+        let lcarsDark = PlaygroundTokens(dsTheme: .lcarsDark).palette
         #expect(lcarsDark.bgWindow == Color(hex: 0x05060A))
         #expect(lcarsDark.accent == Color(hex: 0xFF9933))
         #expect(lcarsDark.fg1 == Color(hex: 0xF2E7D8))
-        #expect(lcarsDark.bgSheet == Color(hex: 0x0E1421))
+        #expect(lcarsDark.bgSheet == Color(hex: 0x111827))
 
         // LCARS light keeps its brand (orange) accent, not the focus-ring blue.
-        #expect(ZedTrekTheme.lcars.palette(for: .light).accent == Color(hex: 0xC16E1D))
+        #expect(PlaygroundTokens(dsTheme: .lcarsLight).palette.accent == Color(hex: 0xE06600))
 
         // Black Alert dark — mapped from zed-trek.json (spec §5).
-        let blackDark = ZedTrekTheme.blackAlert.palette(for: .dark)
+        let blackDark = PlaygroundTokens(dsTheme: .blackAlertDark).palette
         #expect(blackDark.bgApp == Color(hex: 0x020204))      // background
         #expect(blackDark.bgField == Color(hex: 0x010204))    // editor.background
         #expect(blackDark.accent == Color(hex: 0x7EC8DE))     // brand accent

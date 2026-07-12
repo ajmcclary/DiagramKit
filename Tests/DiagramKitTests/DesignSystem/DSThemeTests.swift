@@ -9,6 +9,7 @@ struct DSThemeTests {
         #expect(DSThemeVariant.allCases.count == 20)
         #expect(DSTheme.lcarsDark.name == "LCARS Dark")
         #expect(DSTheme.lcarsDark.colors.accent.hex == "#FF9933")
+        #expect(DSTheme.blackAlertDark.colors.accent.hex == "#7EC8DE")
         #expect(DSThemeFamily.blackAlert.rawValue == "Black Alert")
         #expect(DSThemeVariant.lcarsDark.rawValue == "LCARS Dark")
     }

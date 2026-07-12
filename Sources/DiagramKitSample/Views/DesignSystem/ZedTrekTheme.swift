@@ -10,6 +10,7 @@
 //
 
 import SwiftUI
+import DiagramKitSampleDesignSystem
 
 enum ZedTrekTheme: String, CaseIterable, Hashable, Codable, Sendable {
     case lcars, blackAlert, borgCube, command, federation
@@ -32,6 +33,21 @@ enum ZedTrekTheme: String, CaseIterable, Hashable, Codable, Sendable {
 
     /// LCARS is the flagship (★ in the design).
     var isStarred: Bool { self == .lcars }
+
+    var dsFamily: DSThemeFamily {
+        switch self {
+        case .lcars: .lcars
+        case .blackAlert: .blackAlert
+        case .borgCube: .borgCube
+        case .command: .command
+        case .federation: .federation
+        case .redAlert: .redAlert
+        case .yellowAlert: .yellowAlert
+        case .sickBay: .sickBay
+        case .missionControl: .missionControl
+        case .readyRoom: .readyRoom
+        }
+    }
 }
 
 enum ThemeMode: String, CaseIterable, Hashable, Codable, Sendable {
@@ -51,6 +67,14 @@ enum ThemeMode: String, CaseIterable, Hashable, Codable, Sendable {
         case .system: return system
         case .light:  return .light
         case .dark:   return .dark
+        }
+    }
+
+    var dsMode: DSThemeMode {
+        switch self {
+        case .system: .system
+        case .light: .light
+        case .dark: .dark
         }
     }
 }

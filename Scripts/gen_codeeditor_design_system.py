@@ -427,7 +427,7 @@ def render_themes(document: dict[str, Any]) -> str:
             "    }",
             "",
             "    public func value(_ role: String) -> DSColorValue { values[role]! }",
-            "    public var accent: DSColorValue { accents[0] }",
+            "    public var accent: DSColorValue { value(\"design.accent\") }",
             "    public var onAccent: DSColorValue { value(\"design.onAccent\") }",
             "    public var windowBackground: DSColorValue { value(\"background\") }",
             "    public var surfaceBackground: DSColorValue { value(\"surface.background\") }",
@@ -502,7 +502,8 @@ def render_themes(document: dict[str, Any]) -> str:
             for key, value in style.items()
             if isinstance(value, str) and value.startswith("#")
         }
-        accent_hex, _ = normalized_color(style["accents"][0])
+        flat_colors["design.accent"] = style["icon.accent"]
+        accent_hex, _ = normalized_color(style["icon.accent"])
         red = int(accent_hex[1:3], 16) / 255
         green = int(accent_hex[3:5], 16) / 255
         blue = int(accent_hex[5:7], 16) / 255
