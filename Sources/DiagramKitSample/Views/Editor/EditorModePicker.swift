@@ -9,6 +9,7 @@
 import SwiftUI
 import DiagramKit
 import DiagramKitModel
+import DiagramKitSampleDesignSystem
 
 /// Segmented picker for switching between Code and Config editor modes.
 ///
@@ -16,32 +17,11 @@ import DiagramKitModel
 /// navigation contexts.
 struct EditorModePicker: View {
     @Binding var editorMode: EditorMode
-    let theme: DiagramTheme
 
     var body: some View {
-        HStack(spacing: 0) {
-            ForEach(EditorMode.allCases, id: \.self) { mode in
-                Button {
-                    editorMode = mode
-                } label: {
-                    Text(mode.tabLabel)
-                        .font(.system(size: 12, weight: .medium))
-                        .padding(.horizontal, 16)
-                        .padding(.vertical, 6)
-                }
-                .buttonStyle(.plain)
-                .foregroundColor(
-                    editorMode == mode
-                        ? Color(theme.foreground)
-                        : Color(theme.effectiveMuted())
-                )
-                .background(
-                    editorMode == mode
-                        ? Color(theme.foreground).opacity(0.08)
-                        : Color.clear
-                )
+        DSSegmentedControl(EditorMode.allCases, selection: $editorMode) { mode in
+            Text(mode.tabLabel)
                 .accessibilityAddTraits(editorMode == mode ? .isSelected : [])
-            }
         }
         .accessibilityElement(children: .contain)
         .a11y(label: "Editor mode", id: A11yID.Pickers.editorMode)
@@ -60,12 +40,8 @@ extension EditorMode {
 #if DEBUG && !DIAGRAMKIT_SWIFTPM
 #Preview {
     @Previewable @SwiftUI.State var mode: EditorMode = .code
-    let previewTheme = DiagramTheme.default
-    EditorModePicker(
-        editorMode: $mode,
-        theme: previewTheme
-    )
+    EditorModePicker(editorMode: $mode)
     .padding()
-    .background(Color(previewTheme.background))
+    .dsTheme(family: .lcars, mode: .dark)
 }
 #endif

@@ -70,6 +70,7 @@ struct DSPrimitiveTests {
     func elevation() {
         #expect(DSSurfaceRole.card.elevation == .none)
         #expect(DSSurfaceRole.panel.elevation == .none)
+        #expect(DSSurfaceRole.tabBar.elevation == .none)
         #expect(DSSurfaceRole.popover.elevation == .popover)
     }
 

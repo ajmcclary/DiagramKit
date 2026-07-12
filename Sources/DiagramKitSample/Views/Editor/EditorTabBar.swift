@@ -8,59 +8,56 @@
 //
 
 import SwiftUI
+import DiagramKitSampleDesignSystem
 
 struct EditorTabBar: View {
     @Bindable var store: LiveEditorStore
+    @Environment(\.dsEnvironment) private var environment
 
     var body: some View {
-        HStack(spacing: 4) {
-            ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: 4) {
-                    ForEach(store.state.openTabs, id: \.self) { tabId in
-                        tabPill(for: tabId)
+        DSSurface(role: .tabBar) {
+            HStack(spacing: DSTokens.Spacing.xxs) {
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: DSTokens.Spacing.xxs) {
+                        ForEach(store.state.openTabs, id: \.self) { tabId in
+                            tabPill(for: tabId)
+                        }
                     }
+                    .padding(.horizontal, DSTokens.Stroke.medium)
                 }
-                .padding(.horizontal, 2)
+                addMenu
             }
-            addMenu
+            .padding(.horizontal, DSTokens.Spacing.xs)
+            .frame(
+                height: max(DSTokens.Control.tabStrip, environment.minimumTarget)
+            )
         }
-        .padding(.horizontal, 6)
-        .padding(.vertical, 4)
-        .background(Color(store.theme.foreground).opacity(0.04))
     }
 
     private func tabPill(for tabId: String) -> some View {
         let isActive = store.state.activeTabId == tabId
-        return HStack(spacing: 4) {
-            Circle()
-                .fill(formatColor(for: tabId))
-                .frame(width: 6, height: 6)
-                .accessibilityHidden(true)
+        return HStack(spacing: DSTokens.Spacing.xxs) {
             Button {
                 store.activateTab(tabId)
             } label: {
-                Text(displayName(for: tabId))
-                    .font(.system(size: 11, weight: isActive ? .semibold : .regular))
-                    .lineLimit(1)
-                    .truncationMode(.middle)
+                HStack(spacing: DSTokens.Spacing.xxs) {
+                    DSIconView(.code, size: DSTokens.Icon.micro, colorRole: .muted)
+                    Text(displayName(for: tabId))
+                        .lineLimit(1)
+                        .truncationMode(.middle)
+                    if environment.preferences.differentiateWithoutColor {
+                        Text(categoryName(for: tabId))
+                            .dsFont(.caption2)
+                    }
+                }
             }
-            .buttonStyle(.plain)
-            Button {
+            .buttonStyle(.ds(role: isActive ? .secondary : .ghost, size: .compact))
+            DSIconButton(.close, label: "Close tab") {
                 store.closeTab(tabId)
-            } label: {
-                Image(systemName: "xmark")
-                    .font(.system(size: 8, weight: .medium))
-                    .foregroundStyle(.secondary)
             }
-            .buttonStyle(.plain)
+            .fixedSize()
             .a11y(label: "Close tab", id: "editor.tab.close.\(tabId)")
         }
-        .padding(.horizontal, 8)
-        .padding(.vertical, 4)
-        .background(
-            RoundedRectangle(cornerRadius: 5, style: .continuous)
-                .fill(isActive ? Color.accentColor.opacity(0.18) : Color.gray.opacity(0.08))
-        )
         .accessibilityIdentifier("editor.tab.\(tabId)")
     }
 
@@ -72,11 +69,11 @@ struct EditorTabBar: View {
                 }
             }
         } label: {
-            Image(systemName: "plus")
-                .font(.system(size: 11, weight: .semibold))
-                .foregroundStyle(.secondary)
-                .padding(.horizontal, 6)
-                .padding(.vertical, 4)
+            DSIconView(.add, size: DSTokens.Icon.xs, colorRole: .muted)
+                .frame(
+                    minWidth: environment.minimumTarget,
+                    minHeight: environment.minimumTarget
+                )
         }
         .menuStyle(.borderlessButton)
         .menuIndicator(.hidden)
@@ -92,24 +89,7 @@ struct EditorTabBar: View {
         TestDiagrams.all.first(where: { $0.id == tabId })?.name ?? tabId
     }
 
-    private func formatColor(for tabId: String) -> Color {
-        guard let entry = TestDiagrams.all.first(where: { $0.id == tabId }) else {
-            return .secondary
-        }
-        return categoryColor(entry.category)
-    }
-
-    private func categoryColor(_ category: String) -> Color {
-        switch category.lowercased() {
-        case "flowchart": return .blue
-        case "sequence":  return .pink
-        case "class":     return .green
-        case "state":     return .orange
-        case "er":        return .purple
-        case "timeline":  return .teal
-        case "gantt":     return .red
-        case "mindmap":   return .indigo
-        default:          return .gray
-        }
+    private func categoryName(for tabId: String) -> String {
+        TestDiagrams.all.first(where: { $0.id == tabId })?.category ?? "Diagram"
     }
 }

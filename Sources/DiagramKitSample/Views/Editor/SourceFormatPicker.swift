@@ -9,11 +9,12 @@
 
 import SwiftUI
 import DiagramKit
+import DiagramKitSampleDesignSystem
 
 struct SourceFormatPicker: View {
     @Binding var sourceFormat: SourceFormat
-    let theme: DiagramTheme
     let onChange: (SourceFormat) -> Void
+    @Environment(\.dsEnvironment) private var environment
 
     var body: some View {
         Menu {
@@ -25,29 +26,24 @@ struct SourceFormatPicker: View {
                         Text(format.displayName)
                         if format == sourceFormat {
                             Spacer()
-                            Image(systemName: "checkmark")
-                                .accessibilityHidden(true)
+                            DSIconView(.success, size: DSTokens.Icon.micro, colorRole: .success)
                         }
                     }
                 }
             }
         } label: {
             HStack(spacing: 4) {
-                Image(systemName: "doc.text")
-                    .font(.system(size: 10, weight: .medium))
-                    .accessibilityHidden(true)
+                DSIconView(.code, size: DSTokens.Icon.micro, colorRole: .muted)
                 Text(sourceFormat.shortName)
-                    .font(.system(size: 12, weight: .medium))
-                Image(systemName: "chevron.down")
-                    .font(.system(size: 8, weight: .bold))
-                    .accessibilityHidden(true)
+                    .dsFont(.badge)
+                DSIconView(.disclosureDown, size: DSTokens.Icon.indicator, colorRole: .muted)
             }
-            .padding(.horizontal, 8)
-            .padding(.vertical, 4)
-            .foregroundColor(Color(theme.foreground))
+            .padding(.horizontal, DSTokens.Spacing.sm)
+            .frame(minHeight: environment.minimumTarget)
+            .foregroundStyle(environment.theme.colors.textPrimary.color)
             .background(
-                RoundedRectangle(cornerRadius: 4)
-                    .fill(Color(theme.foreground).opacity(0.08))
+                RoundedRectangle(cornerRadius: DSTokens.Radius.xs)
+                    .fill(environment.theme.colors.element.color)
             )
         }
         .menuStyle(.borderlessButton)
@@ -67,9 +63,9 @@ struct SourceFormatPicker: View {
     @Previewable @SwiftUI.State var format: SourceFormat = .mermaid
     SourceFormatPicker(
         sourceFormat: $format,
-        theme: .default,
         onChange: { format = $0 }
     )
     .padding()
+    .dsTheme(family: .lcars, mode: .dark)
 }
 #endif

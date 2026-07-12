@@ -13,6 +13,7 @@ import Foundation
 import XCTest
 import DiagramKit
 import DiagramKitModel
+import DiagramKitSampleDesignSystem
 @testable import DiagramKitSample
 #if canImport(AppKit)
 import AppKit
@@ -109,7 +110,11 @@ final class DiagramPlaygroundStoreRegressionTests: XCTestCase {
                 configJSON: originalConfig
             )
         )
-        let coordinator = NativeCodeEditor.Coordinator(store: store, mode: .code)
+        let coordinator = NativeCodeEditor.Coordinator(
+            store: store,
+            mode: .code,
+            theme: .lcarsDark
+        )
         let textView = NSTextView()
         textView.string = editedSource
         coordinator.textView = textView
@@ -262,7 +267,7 @@ final class DiagramPlaygroundSyntaxHighlighterRegressionTests: XCTestCase {
                 source,
                 in: textView,
                 visibleRect: .zero,
-                theme: .default
+                theme: .lcarsDark
             )
 
             let color = textView.layoutManager?.temporaryAttribute(

@@ -10,13 +10,18 @@
 import SwiftUI
 import DiagramKit
 import DiagramKitModel
+import DiagramKitSampleDesignSystem
 
 struct EditorPane: View {
     @Bindable var store: LiveEditorStore
 
     @State private var mermaidHighlighter = DiagramSyntaxHighlighter(mode: .mermaid)
+    @State private var d2Highlighter = DiagramSyntaxHighlighter(mode: .d2)
+    @State private var dotHighlighter = DiagramSyntaxHighlighter(mode: .dot)
+    @State private var structurizrHighlighter = DiagramSyntaxHighlighter(mode: .structurizr)
+    @State private var plantUMLHighlighter = DiagramSyntaxHighlighter(mode: .plantUML)
     @State private var jsonHighlighter = DiagramSyntaxHighlighter(mode: .json)
-    @State private var plainHighlighter = DiagramSyntaxHighlighter(mode: .plain)
+    @Environment(\.dsEnvironment) private var dsEnvironment
 
     var body: some View {
         VStack(spacing: 0) {
@@ -26,21 +31,19 @@ struct EditorPane: View {
             // Tab bar with format picker on the trailing edge
             HStack(spacing: 8) {
                 EditorModePicker(
-                    editorMode: $store.state.editorMode,
-                    theme: store.theme
+                    editorMode: $store.state.editorMode
                 )
                 Spacer(minLength: 0)
                 if store.state.editorMode == .code {
                     SourceFormatPicker(
                         sourceFormat: $store.state.sourceFormat,
-                        theme: store.theme,
                         onChange: { store.setSourceFormat($0) }
                     )
                 }
             }
             .padding(.horizontal, 8)
             .padding(.top, 4)
-            .background(Color(store.theme.background))
+            .background(dsEnvironment.theme.colors.tabBarBackground.color)
 
             // Config validation header (config mode only)
             if store.state.editorMode == .config {
@@ -52,7 +55,7 @@ struct EditorPane: View {
                 NativeCodeEditor(
                     store: store,
                     mode: store.state.editorMode,
-                    theme: store.theme,
+                    theme: dsEnvironment.theme,
                     diagnostics: store.diagnostics,
                     highlighter: currentHighlighter
                 )
@@ -62,7 +65,7 @@ struct EditorPane: View {
                 }
             }
         }
-        .background(Color(store.theme.background))
+        .background(dsEnvironment.theme.colors.editorBackground.color)
     }
 
     // MARK: - Highlighter selection
@@ -70,11 +73,13 @@ struct EditorPane: View {
     private var currentHighlighter: DiagramSyntaxHighlighter? {
         switch store.state.editorMode {
         case .code:
-            // The token tables are Mermaid-specific (Mermaid arrows, `%%`
-            // comments, Mermaid diagram-type keywords). Non-Mermaid
-            // formats fall through to the plain highlighter so they
-            // don't get miscolored as Mermaid.
-            return store.state.sourceFormat == .mermaid ? mermaidHighlighter : plainHighlighter
+            return switch store.state.sourceFormat {
+            case .mermaid: mermaidHighlighter
+            case .d2: d2Highlighter
+            case .graphviz: dotHighlighter
+            case .structurizr: structurizrHighlighter
+            case .plantuml: plantUMLHighlighter
+            }
         case .config:
             return jsonHighlighter
         }

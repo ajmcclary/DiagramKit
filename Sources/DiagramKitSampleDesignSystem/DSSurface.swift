@@ -9,6 +9,7 @@ public enum DSSurfaceRole: Equatable, Sendable {
     case card
     case panel
     case sunken
+    case tabBar
     case popover
 
     public var elevation: DSElevation {
@@ -61,7 +62,10 @@ public struct DSSurface<Content: View>: View {
     }
 
     private var shape: RoundedRectangle {
-        RoundedRectangle(cornerRadius: DSTokens.Radius.md, style: .continuous)
+        RoundedRectangle(
+            cornerRadius: role == .tabBar ? 0 : DSTokens.Radius.md,
+            style: .continuous
+        )
     }
 
     private var backgroundColor: Color {
@@ -69,6 +73,7 @@ public struct DSSurface<Content: View>: View {
         case .card: environment.theme.colors.surfaceBackground.color
         case .panel: environment.theme.colors.panelBackground.color
         case .sunken: environment.theme.colors.editorBackground.color
+        case .tabBar: environment.theme.colors.tabBarBackground.color
         case .popover: environment.theme.colors.elevatedSurfaceBackground.color
         }
     }
@@ -128,7 +133,10 @@ public struct DSGlassSurface<Content: View>: View {
     }
 
     private var shape: RoundedRectangle {
-        RoundedRectangle(cornerRadius: DSTokens.Radius.md, style: .continuous)
+        RoundedRectangle(
+            cornerRadius: role == .tabBar ? 0 : DSTokens.Radius.md,
+            style: .continuous
+        )
     }
 
     private var opaqueBackground: Color {
@@ -136,6 +144,7 @@ public struct DSGlassSurface<Content: View>: View {
         case .card: environment.theme.colors.surfaceBackground.color
         case .panel: environment.theme.colors.panelBackground.color
         case .sunken: environment.theme.colors.editorBackground.color
+        case .tabBar: environment.theme.colors.tabBarBackground.color
         case .popover: environment.theme.colors.elevatedSurfaceBackground.color
         }
     }

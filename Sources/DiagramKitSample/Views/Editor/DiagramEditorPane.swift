@@ -11,9 +11,11 @@ import SwiftUI
 import DiagramKit
 import DiagramKitInteractive
 import DiagramKitModel
+import DiagramKitSampleDesignSystem
 
 struct DiagramEditorPane: View {
     @Bindable var store: LiveEditorStore
+    @Environment(\.dsEnvironment) private var environment
 
     var body: some View {
         VStack(spacing: 0) {
@@ -21,41 +23,39 @@ struct DiagramEditorPane: View {
             Divider()
             ScrollView {
                 content
-                    .padding(16)
+                    .padding(DSTokens.Spacing.lg)
             }
         }
         .frame(minWidth: 320, idealWidth: 360)
-        .background(.regularMaterial)
+        .background(environment.theme.colors.panelBackground.color)
         .overlay(
-            RoundedRectangle(cornerRadius: 10)
-                .stroke(Color(store.theme.effectiveLine()).opacity(0.25), lineWidth: 0.5)
+            RoundedRectangle(cornerRadius: DSTokens.Radius.md)
+                .stroke(
+                    environment.theme.colors.borderVariant.color,
+                    lineWidth: DSTokens.Stroke.hairline
+                )
         )
-        .shadow(color: .black.opacity(0.18), radius: 10, x: -2, y: 0)
     }
 
     private var header: some View {
-        HStack(spacing: 8) {
+        HStack(spacing: DSTokens.Spacing.sm) {
             Text("Inspector")
-                .font(.system(size: 14, weight: .semibold))
-                .foregroundColor(Color(store.theme.foreground))
+                .dsFont(.headline)
+                .foregroundStyle(environment.theme.colors.textPrimary.color)
             Spacer(minLength: 0)
-            Button {
+            DSIconButton(.close, label: "Close inspector") {
                 store.toggleInspector()
-            } label: {
-                Image(systemName: "xmark")
-                    .font(.system(size: 12, weight: .medium))
             }
-            .buttonStyle(.plain)
             // Cmd-I lives on the toolbar button (Task 24) — keep this button
             // shortcut-free to avoid duplicate shortcut warnings.
             .a11y(label: "Close inspector", id: A11yID.Editor.titleClose)
         }
-        .padding(12)
+        .padding(DSTokens.Spacing.md)
     }
 
     @ViewBuilder
     private var content: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: DSTokens.Spacing.md) {
             if let metadata = store.loadedCorpusMetadata {
                 CorpusMetadataBanner(metadata: metadata, store: store)
             }
@@ -67,12 +67,12 @@ struct DiagramEditorPane: View {
     private var primaryContent: some View {
         if store.editor == nil {
             disabledBanner(
-                icon: "doc.text",
+                icon: .code,
                 message: "Parse the source to enable interactive editing."
             )
         } else if let editor = store.editor, editor.document.type != .flowchart {
             disabledBanner(
-                icon: "exclamationmark.triangle",
+                icon: .warning,
                 message: "Interactive editing is not yet available for \(editor.document.type.rawValue) diagrams."
             )
         } else if let editor = store.editor {
@@ -91,34 +91,30 @@ struct DiagramEditorPane: View {
                 Divider()
                 UndoRedoFooter(store: store, editor: editor)
                 if let message = store.lastMutationError {
-                    Text(message)
-                        .font(.system(size: 11))
-                        .foregroundColor(.orange)
+                    DSStatusIndicator(.error, label: message)
                 }
                 if !editor.lastExportDiagnostics.isEmpty {
                     ForEach(editor.lastExportDiagnostics.indices, id: \.self) { idx in
                         let d = editor.lastExportDiagnostics[idx]
-                        Text("\(String(describing: d.severity)): \(d.message)")
-                            .font(.system(size: 10))
-                            .foregroundColor(.orange)
+                        DSStatusIndicator(
+                            d.severity == .unsupported ? .unsupported : .warning,
+                            label: d.message
+                        )
                     }
                 }
             }
         }
     }
 
-    private func disabledBanner(icon: String, message: String) -> some View {
-        VStack(spacing: 8) {
-            Image(systemName: icon)
-                .font(.system(size: 24))
-                .foregroundColor(Color(store.theme.effectiveMuted()))
-                .accessibilityHidden(true)
+    private func disabledBanner(icon: DSIcon, message: String) -> some View {
+        VStack(spacing: DSTokens.Spacing.sm) {
+            DSIconView(icon, size: DSTokens.Icon.md, colorRole: .muted)
             Text(message)
-                .font(.system(size: 12))
+                .dsFont(.caption)
                 .multilineTextAlignment(.center)
-                .foregroundColor(Color(store.theme.effectiveMuted()))
+                .foregroundStyle(environment.theme.colors.textSecondary.color)
         }
-        .padding(24)
+        .padding(DSTokens.Spacing.xxl)
         .frame(maxWidth: .infinity)
     }
 }
@@ -133,7 +129,7 @@ private struct TitleSection: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
-            sectionLabel("Document title", store: store)
+            DSSectionHeader("Document title")
             HStack(spacing: 6) {
                 TextField("Untitled", text: $draft)
                     .textFieldStyle(.roundedBorder)
@@ -162,14 +158,6 @@ private struct TitleSection: View {
     }
 }
 
-@MainActor
-private func sectionLabel(_ text: String, store: LiveEditorStore) -> some View {
-    Text(text)
-        .font(.system(size: 10, weight: .semibold))
-        .foregroundColor(Color(store.theme.effectiveMuted()))
-        .textCase(.uppercase)
-}
-
 // MARK: - Selection section
 
 private struct SelectionSection: View {
@@ -178,7 +166,7 @@ private struct SelectionSection: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
-            sectionLabel("Selection", store: store)
+            DSSectionHeader("Selection")
             if let lookup = store.boundsLookup, !lookup.allElementIDs.isEmpty {
                 Picker("Selected element", selection: pickerBinding(lookup: lookup)) {
                     Text("None").tag(String?.none)
@@ -244,7 +232,7 @@ private struct LabelSection: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
-            sectionLabel("Label", store: store)
+            DSSectionHeader("Label")
             HStack(spacing: 6) {
                 TextField("Label…", text: $draft)
                     .textFieldStyle(.roundedBorder)
@@ -294,7 +282,7 @@ private struct InsertNodeSection: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
-            sectionLabel("Insert node", store: store)
+            DSSectionHeader("Insert node")
             HStack(spacing: 6) {
                 TextField("ID (e.g. n3)", text: $idDraft)
                     .textFieldStyle(.roundedBorder)
@@ -362,7 +350,7 @@ private struct InsertEdgeSection: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
-            sectionLabel("Insert edge", store: store)
+            DSSectionHeader("Insert edge")
             HStack(spacing: 6) {
                 fromPicker
                 Image(systemName: "arrow.right")

@@ -11,6 +11,7 @@
 import Foundation
 import DiagramKit
 import DiagramKitModel
+import DiagramKitSampleDesignSystem
 
 #if canImport(AppKit)
 import AppKit
@@ -68,6 +69,10 @@ public final class DiagramSyntaxHighlighter: Sendable {
     public enum Mode: Sendable {
         /// Mermaid keyword/operator/string tokenization.
         case mermaid
+        case d2
+        case dot
+        case structurizr
+        case plantUML
         /// JSON key/value tokenization for the config tab.
         case json
         /// No tokenization — emits zero tokens so a previous mode's
@@ -123,7 +128,25 @@ public final class DiagramSyntaxHighlighter: Sendable {
         // JSON specific: key before colon
         let jsonKeyPattern: NSRegularExpression
 
+        let d2KeywordPattern: NSRegularExpression
+        let dotKeywordPattern: NSRegularExpression
+        let structurizrKeywordPattern: NSRegularExpression
+        let plantUMLKeywordPattern: NSRegularExpression
+        let genericCommentPattern: NSRegularExpression
+        let genericTransitionPattern: NSRegularExpression
+
         init() {
+            func keywordExpression(_ keywords: [String]) -> NSRegularExpression {
+                let alternation = keywords
+                    .sorted { $0.count > $1.count }
+                    .map { NSRegularExpression.escapedPattern(for: $0) }
+                    .joined(separator: "|")
+                return try! NSRegularExpression(
+                    pattern: #"\b(?:"# + alternation + #")\b"#,
+                    options: [.caseInsensitive]
+                )
+            }
+
             // Diagram type keywords (first-line only)
             let dtPatterns = [
                 "flowchart", "flowchart-v2", "flowchart-elk", "graph",
@@ -235,6 +258,32 @@ public final class DiagramSyntaxHighlighter: Sendable {
             jsonKeyPattern = try! NSRegularExpression(
                 pattern: #""(?:[^"\\]|\\.)*"\s*:"#
             )
+
+            d2KeywordPattern = keywordExpression([
+                "direction", "shape", "style", "class", "classes", "near",
+                "label", "tooltip", "link", "icon", "width", "height",
+            ])
+            dotKeywordPattern = keywordExpression([
+                "strict", "graph", "digraph", "subgraph", "node", "edge",
+                "label", "color", "shape", "style", "rankdir", "fontname",
+            ])
+            structurizrKeywordPattern = keywordExpression([
+                "workspace", "model", "views", "person", "softwareSystem",
+                "container", "component", "deploymentEnvironment",
+                "systemContext", "containerView", "dynamicView", "styles",
+                "element", "relationship", "include", "description",
+            ])
+            plantUMLKeywordPattern = keywordExpression([
+                "startuml", "enduml", "class", "interface", "enum", "actor",
+                "participant", "state", "activity", "mindmap", "gantt",
+                "title", "package", "note", "as", "skinparam",
+            ])
+            genericCommentPattern = try! NSRegularExpression(
+                pattern: #"(?m)(?://|#|').*$"#
+            )
+            genericTransitionPattern = try! NSRegularExpression(
+                pattern: #"<->|->|<-|--|=>|:"#
+            )
         }
     }
 
@@ -265,7 +314,7 @@ public final class DiagramSyntaxHighlighter: Sendable {
         _ source: String,
         in textView: NSTextView,
         visibleRect: NSRect,
-        theme: DiagramTheme
+        theme: DSTheme
     ) async {
         let tokens = await tokenize(source)
 
@@ -279,7 +328,7 @@ public final class DiagramSyntaxHighlighter: Sendable {
             return
         }
 
-        let colors = colorMap(for: theme)
+        let colors = Self.colorMap(for: theme).mapValues { NSColor($0.color) }
 
         // Clear previous temporary attributes (one whole-range removal).
         let fullRange = NSRange(location: 0, length: textView.string.utf16.count)
@@ -307,15 +356,15 @@ public final class DiagramSyntaxHighlighter: Sendable {
         _ source: String,
         in textView: UITextView,
         visibleRect: CGRect,
-        theme: DiagramTheme
+        theme: DSTheme
     ) async {
         let tokens = await tokenize(source)
-        let colors = colorMap(for: theme)
+        let colors = Self.colorMap(for: theme).mapValues { UIColor($0.color) }
 
         // Build attributed string with highlighted ranges
         let attributed = NSMutableAttributedString(string: source)
         let defaultAttrs: [NSAttributedString.Key: Any] = [
-            .foregroundColor: theme.foreground,
+            .foregroundColor: UIColor(theme.colors.editorForeground.color),
             .font: textView.font ?? .monospacedSystemFont(ofSize: 13, weight: .regular),
         ]
         attributed.setAttributes(defaultAttrs, range: NSRange(location: 0, length: source.utf16.count))
@@ -343,12 +392,20 @@ public final class DiagramSyntaxHighlighter: Sendable {
     // MARK: - Tokenization
 
     /// Tokenize the source on a background thread.
-    private func tokenize(_ source: String) async -> [HighlightToken] {
+    public func tokenize(_ source: String) async -> [HighlightToken] {
         switch mode {
         case .mermaid:
             return await Task.detached(priority: .utility) {
                 Self._tokenizeMermaid(source)
             }.value
+        case .d2:
+            return await Self._tokenizeGeneric(source, keywords: Self.patterns.d2KeywordPattern)
+        case .dot:
+            return await Self._tokenizeGeneric(source, keywords: Self.patterns.dotKeywordPattern)
+        case .structurizr:
+            return await Self._tokenizeGeneric(source, keywords: Self.patterns.structurizrKeywordPattern)
+        case .plantUML:
+            return await Self._tokenizeGeneric(source, keywords: Self.patterns.plantUMLKeywordPattern)
         case .json:
             return await Task.detached(priority: .utility) {
                 Self._tokenizeJSON(source)
@@ -356,6 +413,26 @@ public final class DiagramSyntaxHighlighter: Sendable {
         case .plain:
             return []
         }
+    }
+
+    private nonisolated static func _tokenizeGeneric(
+        _ source: String,
+        keywords: NSRegularExpression
+    ) async -> [HighlightToken] {
+        await Task.detached(priority: .utility) {
+            let sourceString = source as NSString
+            var tokens: [HighlightToken] = []
+            _addMatches(patterns.genericCommentPattern, in: sourceString, category: .comment, to: &tokens)
+            _addMatches(patterns.dqStringPattern, in: sourceString, category: .string, to: &tokens)
+            _addMatches(patterns.btStringPattern, in: sourceString, category: .string, to: &tokens)
+            _addMatches(patterns.numberPattern, in: sourceString, category: .number, to: &tokens)
+            _addMatches(patterns.delimiterPattern, in: sourceString, category: .delimiter, to: &tokens)
+            _addMatches(patterns.genericTransitionPattern, in: sourceString, category: .transition, to: &tokens)
+            _addMatches(keywords, in: sourceString, category: .keyword, to: &tokens)
+            tokens = _suppressOverlaps(tokens)
+            tokens.sort { $0.range.location < $1.range.location }
+            return tokens
+        }.value
     }
 
     // MARK: - Mermaid tokenizer
@@ -487,38 +564,22 @@ public final class DiagramSyntaxHighlighter: Sendable {
 
     // MARK: - Color mapping
 
-    #if canImport(AppKit)
-    private typealias PlatformColor = NSColor
-    #elseif canImport(UIKit)
-    private typealias PlatformColor = UIColor
-    #endif
-
-    private func colorMap(for theme: DiagramTheme) -> [TokenCategory: PlatformColor] {
-        #if canImport(AppKit)
-        let fg = theme.foreground
-        return [
-            .diagramType: NSColor(red: 0.588, green: 0.314, blue: 0.784, alpha: 1), // #9650C8
-            .keyword: NSColor(red: 0.392, green: 0.588, blue: 0.588, alpha: 1),     // #649696
-            .string: NSColor(red: 0.667, green: 0.522, blue: 0.0, alpha: 1),         // #AA8500
-            .comment: theme.effectiveMuted(),
-            .transition: NSColor(red: 0.0, green: 0.533, blue: 0.0, alpha: 1),       // #008800
-            .number: NSColor(red: 0.294, green: 0.294, blue: 0.588, alpha: 1),       // #4B4B96
-            .delimiter: fg,
-            .annotation: NSColor(red: 0.635, green: 0.141, blue: 0.537, alpha: 1),   // #A22889
-            .variable: fg,
-        ]
-        #elseif canImport(UIKit)
-        return [
-            .diagramType: UIColor(red: 0.588, green: 0.314, blue: 0.784, alpha: 1),
-            .keyword: UIColor(red: 0.392, green: 0.588, blue: 0.588, alpha: 1),
-            .string: UIColor(red: 0.667, green: 0.522, blue: 0.0, alpha: 1),
-            .comment: theme.effectiveMuted(),
-            .transition: UIColor(red: 0.0, green: 0.533, blue: 0.0, alpha: 1),
-            .number: UIColor(red: 0.294, green: 0.294, blue: 0.588, alpha: 1),
-            .delimiter: theme.foreground,
-            .annotation: UIColor(red: 0.635, green: 0.141, blue: 0.537, alpha: 1),
-            .variable: theme.foreground,
-        ]
-        #endif
+    public nonisolated static func colorMap(
+        for theme: DSTheme
+    ) -> [TokenCategory: DSColorValue] {
+        Dictionary(uniqueKeysWithValues: TokenCategory.allCases.map { category in
+            let syntaxRole: String = switch category {
+            case .diagramType: "type"
+            case .keyword: "keyword"
+            case .transition: "operator"
+            case .string: "string"
+            case .comment: "comment"
+            case .number: "number"
+            case .delimiter: "punctuation"
+            case .annotation: "attribute"
+            case .variable: "variable"
+            }
+            return (category, theme.colors.syntax[syntaxRole]!.foreground)
+        })
     }
 }

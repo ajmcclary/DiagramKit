@@ -9,6 +9,7 @@
 import SwiftUI
 import DiagramKit
 import DiagramKitModel
+import DiagramKitSampleDesignSystem
 
 #if canImport(AppKit)
 import AppKit
@@ -22,7 +23,7 @@ final class LineNumberRulerView: NSRulerView {
 
     // MARK: - Configuration
 
-    var theme: DiagramTheme = .default {
+    var theme: DSTheme = .lcarsDark {
         didSet { needsDisplay = true }
     }
 
@@ -40,17 +41,20 @@ final class LineNumberRulerView: NSRulerView {
 
     // MARK: - Metrics
 
-    private let font = NSFont.monospacedDigitSystemFont(ofSize: 11, weight: .regular)
+    private let font = NSFont.monospacedDigitSystemFont(
+        ofSize: DSTokens.Typography.caption2,
+        weight: .regular
+    )
     private let diagnosticDotRadius: CGFloat = 3.5
 
     private var lineNumberAttributes: [NSAttributedString.Key: Any] {
         [.font: font as Any,
-         .foregroundColor: theme.effectiveMuted()]
+         .foregroundColor: NSColor(theme.colors.value("editor.line_number").color)]
     }
 
     private var currentLineAttributes: [NSAttributedString.Key: Any] {
         [.font: font as Any,
-         .foregroundColor: theme.foreground]
+         .foregroundColor: NSColor(theme.colors.value("editor.active_line_number").color)]
     }
 
     // MARK: - Init
@@ -77,7 +81,7 @@ final class LineNumberRulerView: NSRulerView {
         let content = textView.string as NSString
 
         // Background
-        theme.background.setFill()
+        NSColor(theme.colors.editorGutterBackground.color).setFill()
         bounds.fill()
 
         let visibleRect = self.convert(rect, from: scrollView?.contentView)
@@ -119,7 +123,7 @@ final class LineNumberRulerView: NSRulerView {
                     width: rulerWidth,
                     height: lineRect.height
                 )
-                theme.foreground.withAlphaComponent(0.06).setFill()
+                NSColor(theme.colors.value("editor.active_line.background").color).setFill()
                 highlightRect.fill()
             }
 
@@ -183,9 +187,9 @@ final class LineNumberRulerView: NSRulerView {
 
     private func _colorForSeverity(_ severity: EditorDiagnostic.Severity) -> NSColor {
         switch severity {
-        case .error: return .systemRed
-        case .warning: return .systemOrange
-        case .info: return .systemBlue
+        case .error: return NSColor(theme.colors.error.color)
+        case .warning: return NSColor(theme.colors.warning.color)
+        case .info: return NSColor(theme.colors.info.color)
         }
     }
 }
@@ -199,7 +203,7 @@ import UIKit
 @MainActor
 final class LineNumberRulerView: UIView {
 
-    var theme: DiagramTheme = .default {
+    var theme: DSTheme = .lcarsDark {
         didSet { setNeedsDisplay() }
     }
 
@@ -216,7 +220,10 @@ final class LineNumberRulerView: UIView {
     /// Weak reference to the paired text view for layout queries.
     weak var textView: UITextView?
 
-    private let font = UIFont.monospacedDigitSystemFont(ofSize: 11, weight: .regular)
+    private let font = UIFont.monospacedDigitSystemFont(
+        ofSize: DSTokens.Typography.caption2,
+        weight: .regular
+    )
     private let diagnosticDotRadius: CGFloat = 3.0
 
     override init(frame: CGRect) {
@@ -235,7 +242,7 @@ final class LineNumberRulerView: UIView {
         let textContainer = textView.textContainer
 
         // Background
-        theme.background.setFill()
+        UIColor(theme.colors.editorGutterBackground.color).setFill()
         UIRectFill(rect)
 
         // The ruler is a static sibling view (not scrolled with the text), so
@@ -278,7 +285,7 @@ final class LineNumberRulerView: UIView {
             // Current line highlight
             if isCurrent {
                 let highlightRect = CGRect(x: 0, y: y, width: rulerWidth, height: lineRect.height)
-                theme.foreground.withAlphaComponent(0.06).setFill()
+                UIColor(theme.colors.value("editor.active_line.background").color).setFill()
                 UIRectFill(highlightRect)
             }
 
@@ -301,8 +308,8 @@ final class LineNumberRulerView: UIView {
             let attrs: [NSAttributedString.Key: Any] = [
                 .font: font,
                 .foregroundColor: isCurrent
-                    ? theme.foreground
-                    : theme.effectiveMuted()
+                    ? UIColor(theme.colors.value("editor.active_line_number").color)
+                    : UIColor(theme.colors.value("editor.line_number").color)
             ]
             let size = numberText.size(withAttributes: attrs)
             let numberX = rulerWidth - 30 - size.width
@@ -342,9 +349,9 @@ final class LineNumberRulerView: UIView {
 
     private func _uiColorForSeverity(_ severity: EditorDiagnostic.Severity) -> UIColor {
         switch severity {
-        case .error: return .systemRed
-        case .warning: return .systemOrange
-        case .info: return .systemBlue
+        case .error: return UIColor(theme.colors.error.color)
+        case .warning: return UIColor(theme.colors.warning.color)
+        case .info: return UIColor(theme.colors.info.color)
         }
     }
 }

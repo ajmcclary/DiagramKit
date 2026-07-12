@@ -10,6 +10,7 @@
 import SwiftUI
 import DiagramKit
 import DiagramKitModel
+import DiagramKitSampleDesignSystem
 
 #if canImport(AppKit)
 import AppKit
@@ -19,12 +20,12 @@ import AppKit
 struct NativeCodeEditor: NSViewRepresentable {
     let store: LiveEditorStore
     let mode: EditorMode
-    let theme: DiagramTheme
+    let theme: DSTheme
     var diagnostics: [EditorDiagnostic] = []
     var highlighter: DiagramSyntaxHighlighter? = nil
 
     func makeCoordinator() -> Coordinator {
-        Coordinator(store: store, mode: mode)
+        Coordinator(store: store, mode: mode, theme: theme)
     }
 
     func makeNSView(context: Context) -> NSScrollView {
@@ -46,7 +47,10 @@ struct NativeCodeEditor: NSViewRepresentable {
         textView.isAutomaticDashSubstitutionEnabled = false
         textView.isAutomaticTextReplacementEnabled = false
         textView.isAutomaticSpellingCorrectionEnabled = false
-        textView.font = .monospacedSystemFont(ofSize: 13, weight: .regular)
+        textView.font = .monospacedSystemFont(
+            ofSize: DSTokens.Typography.footnote,
+            weight: .regular
+        )
         textView.textContainerInset = NSSize(width: 8, height: 12)
         textView.textContainer?.widthTracksTextView = true
         textView.delegate = context.coordinator
@@ -73,6 +77,7 @@ struct NativeCodeEditor: NSViewRepresentable {
     func updateNSView(_ scrollView: NSScrollView, context: Context) {
         guard let textView = scrollView.documentView as? NSTextView else { return }
         let coordinator = context.coordinator
+        coordinator.theme = theme
 
         // Update mode if changed
         if coordinator.mode != mode {
@@ -104,11 +109,17 @@ struct NativeCodeEditor: NSViewRepresentable {
         coordinator.highlightIfNeeded(textView)
     }
 
-    private func applyTheme(to textView: NSTextView, scrollView: NSScrollView, theme: DiagramTheme) {
-        textView.backgroundColor = theme.background
-        textView.textColor = theme.foreground
-        textView.insertionPointColor = theme.effectiveAccent()
-        scrollView.backgroundColor = theme.background
+    private func applyTheme(to textView: NSTextView, scrollView: NSScrollView, theme: DSTheme) {
+        let colors = theme.colors
+        textView.backgroundColor = NSColor(colors.editorBackground.color)
+        textView.textColor = NSColor(colors.editorForeground.color)
+        textView.insertionPointColor = NSColor(colors.accent.color)
+        textView.selectedTextAttributes = [
+            .backgroundColor: NSColor(
+                colors.value("editor.document_highlight.read_background").color
+            )
+        ]
+        scrollView.backgroundColor = NSColor(colors.editorBackground.color)
     }
 
     // MARK: - Coordinator
@@ -117,6 +128,7 @@ struct NativeCodeEditor: NSViewRepresentable {
     final class Coordinator: NSObject, NSTextViewDelegate {
         let store: LiveEditorStore
         var mode: EditorMode
+        var theme: DSTheme
         weak var textView: NSTextView?
         weak var lineNumberRuler: LineNumberRulerView?
         var highlighter: DiagramSyntaxHighlighter?
@@ -126,9 +138,10 @@ struct NativeCodeEditor: NSViewRepresentable {
         private var debounceTask: Task<Void, Never>?
         private var didInitialHighlight = false
 
-        init(store: LiveEditorStore, mode: EditorMode) {
+        init(store: LiveEditorStore, mode: EditorMode, theme: DSTheme) {
             self.store = store
             self.mode = mode
+            self.theme = theme
             super.init()
         }
 
@@ -245,7 +258,7 @@ struct NativeCodeEditor: NSViewRepresentable {
                 guard self?.isUserTyping == false else { return }
                 let source = textView.string
                 let visible = textView.visibleRect
-                let theme = self?.store.theme ?? .default
+                guard let theme = self?.theme else { return }
                 await hl.highlight(source, in: textView, visibleRect: visible, theme: theme)
             }
         }
@@ -300,12 +313,12 @@ import UIKit
 struct NativeCodeEditor: UIViewRepresentable {
     let store: LiveEditorStore
     let mode: EditorMode
-    let theme: DiagramTheme
+    let theme: DSTheme
     var diagnostics: [EditorDiagnostic] = []
     var highlighter: DiagramSyntaxHighlighter? = nil
 
     func makeCoordinator() -> Coordinator {
-        Coordinator(store: store, mode: mode)
+        Coordinator(store: store, mode: mode, theme: theme)
     }
 
     func makeUIView(context: Context) -> UIView {
@@ -319,7 +332,12 @@ struct NativeCodeEditor: UIViewRepresentable {
         let textView = UITextView()
         textView.isEditable = true
         textView.isSelectable = true
-        textView.font = .monospacedSystemFont(ofSize: 13, weight: .regular)
+        let baseFont = UIFont.monospacedSystemFont(
+            ofSize: DSTokens.Typography.body,
+            weight: .regular
+        )
+        textView.font = UIFontMetrics(forTextStyle: .body).scaledFont(for: baseFont)
+        textView.adjustsFontForContentSizeCategory = true
         textView.autocorrectionType = .no
         textView.autocapitalizationType = .none
         textView.smartQuotesType = .no
@@ -361,6 +379,7 @@ struct NativeCodeEditor: UIViewRepresentable {
               let ruler = container.subviews.compactMap({ $0 as? LineNumberRulerView }).first
         else { return }
         let coordinator = context.coordinator
+        coordinator.theme = theme
 
         if coordinator.mode != mode {
             coordinator.mode = mode
@@ -380,10 +399,11 @@ struct NativeCodeEditor: UIViewRepresentable {
         coordinator.highlightIfNeeded(textView)
     }
 
-    private func applyTheme(to textView: UITextView, ruler: LineNumberRulerView, theme: DiagramTheme) {
-        textView.backgroundColor = theme.background
-        textView.textColor = theme.foreground
-        textView.tintColor = theme.effectiveAccent()
+    private func applyTheme(to textView: UITextView, ruler: LineNumberRulerView, theme: DSTheme) {
+        let colors = theme.colors
+        textView.backgroundColor = UIColor(colors.editorBackground.color)
+        textView.textColor = UIColor(colors.editorForeground.color)
+        textView.tintColor = UIColor(colors.accent.color)
         ruler.theme = theme
     }
 
@@ -393,6 +413,7 @@ struct NativeCodeEditor: UIViewRepresentable {
     final class Coordinator: NSObject, UITextViewDelegate {
         let store: LiveEditorStore
         var mode: EditorMode
+        var theme: DSTheme
         weak var textView: UITextView?
         weak var lineNumberRuler: LineNumberRulerView?
         var highlighter: DiagramSyntaxHighlighter?
@@ -401,9 +422,10 @@ struct NativeCodeEditor: UIViewRepresentable {
         private var debounceTask: Task<Void, Never>?
         private var didInitialHighlight = false
 
-        init(store: LiveEditorStore, mode: EditorMode) {
+        init(store: LiveEditorStore, mode: EditorMode, theme: DSTheme) {
             self.store = store
             self.mode = mode
+            self.theme = theme
             super.init()
         }
 
@@ -514,7 +536,7 @@ struct NativeCodeEditor: UIViewRepresentable {
                 guard self?.isUserTyping == false else { return }
                 let source = textView.text ?? ""
                 let visible = textView.bounds
-                let theme = self?.store.theme ?? .default
+                guard let theme = self?.theme else { return }
                 await hl.highlight(source, in: textView, visibleRect: visible, theme: theme)
             }
         }
