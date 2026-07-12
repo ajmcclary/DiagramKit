@@ -8,6 +8,7 @@
 //
 
 import SwiftUI
+import DiagramKitSampleDesignSystem
 
 struct SubgraphTitleSheet: View {
     @Bindable var store: LiveEditorStore
@@ -30,17 +31,17 @@ struct SubgraphTitleSheet: View {
     }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        DSGlassSurface(role: .popover) {
+        VStack(alignment: .leading, spacing: DSTokens.Spacing.md) {
             Text(heading)
-                .font(.system(size: 13, weight: .semibold))
-            TextField("Subgraph title", text: $titleDraft)
-                .textFieldStyle(.roundedBorder)
+                .dsFont(.headline)
+            DSField("Subgraph title", text: $titleDraft)
             HStack {
                 Button("Cancel") {
                     store.cancelTitlePrompt()
                 }
                 .keyboardShortcut(.cancelAction)
-                .buttonStyle(.plain)
+                .buttonStyle(.ds(role: .ghost, size: .compact))
                 Spacer()
                 Button(commitLabel) {
                     let title = titleDraft.trimmingCharacters(in: .whitespaces)
@@ -48,17 +49,13 @@ struct SubgraphTitleSheet: View {
                     Task { await store.commitTitlePrompt(title: title) }
                 }
                 .keyboardShortcut(.defaultAction)
-                .buttonStyle(.borderedProminent)
+                .buttonStyle(.ds(role: .primary, size: .compact))
                 .disabled(titleDraft.trimmingCharacters(in: .whitespaces).isEmpty)
             }
         }
-        .padding(16)
+        .padding(DSTokens.Spacing.lg)
+        }
         .frame(width: 320)
-        .background(
-            RoundedRectangle(cornerRadius: 12, style: .continuous)
-                .fill(.regularMaterial)
-                .shadow(color: .black.opacity(0.2), radius: 12, x: 0, y: 6)
-        )
         .onAppear {
             if case .rename(_, let current) = prompt {
                 titleDraft = current

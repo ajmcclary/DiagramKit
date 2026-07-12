@@ -7,45 +7,58 @@
 //
 
 import SwiftUI
+import DiagramKitSampleDesignSystem
 
 struct SourcePanel: View {
     @Bindable var store: LiveEditorStore
-    @Environment(\.playgroundTokens) private var tokens
+    @Environment(\.dsEnvironment) private var environment
 
     private var lines: [String] { store.state.source.components(separatedBy: "\n") }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             PanelHeader("Source · \(store.state.sourceFormat.rawValue.uppercased())") {
-                Image(systemName: "doc.on.doc").font(.system(size: 12)).foregroundStyle(tokens.palette.fg3)
+                DSIconView(.copy, size: DSTokens.Icon.micro, colorRole: .muted)
             }
-            ScrollView {
-                VStack(alignment: .leading, spacing: 0) {
-                    ForEach(Array(lines.enumerated()), id: \.offset) { i, line in
-                        HStack(alignment: .top, spacing: 0) {
-                            Text("\(i + 1)").font(PlaygroundFont.mono(12)).foregroundStyle(tokens.palette.gutter)
-                                .frame(width: 30, alignment: .trailing).padding(.trailing, 10)
-                            Text(line.isEmpty ? " " : line).font(PlaygroundFont.mono(12))
-                                .foregroundStyle(tokens.palette.fg2)
-                                .textSelection(.enabled)
-                                .frame(maxWidth: .infinity, alignment: .leading)
+            DSSurface(role: .sunken) {
+                ScrollView {
+                    VStack(alignment: .leading, spacing: 0) {
+                        ForEach(Array(lines.enumerated()), id: \.offset) { i, line in
+                            HStack(alignment: .top, spacing: 0) {
+                                Text("\(i + 1)")
+                                    .dsFont(.code)
+                                    .foregroundStyle(environment.theme.colors.textDisabled.color)
+                                    .frame(width: DSTokens.Spacing.xxxl, alignment: .trailing)
+                                    .padding(.trailing, DSTokens.Spacing.smMd)
+                                Text(line.isEmpty ? " " : line)
+                                    .dsFont(.code)
+                                    .foregroundStyle(environment.theme.colors.editorForeground.color)
+                                    .textSelection(.enabled)
+                                    .frame(maxWidth: .infinity, alignment: .leading)
+                            }
+                            .padding(.vertical, DSTokens.Stroke.mediumLight)
+                            .background(
+                                store.state.biSelLine == i + 1
+                                    ? environment.theme.colors.elementSelected.color
+                                    : .clear
+                            )
                         }
-                        .padding(.vertical, 1.5)
-                        .background((store.state.biSelLine == i + 1) ? tokens.palette.accentTint08 : .clear)
+                    }
+                    .padding(.vertical, DSTokens.Spacing.sm)
+                }
+                .safeAreaInset(edge: .bottom, spacing: 0) {
+                    DSSurface(role: .statusBar) {
+                        HStack(spacing: DSTokens.Spacing.sm) {
+                            DSStatusIndicator(.success, label: "Source synced")
+                            Text("synced · \(lines.count) lines")
+                                .dsFont(.code)
+                                .foregroundStyle(environment.theme.colors.textSecondary.color)
+                            Spacer()
+                        }
+                        .padding(.horizontal, DSTokens.Spacing.lg)
+                        .frame(minHeight: DSTokens.Control.statusBar)
                     }
                 }
-                .padding(.vertical, 8)
-            }
-            .background(tokens.palette.bgField)
-            .overlay(alignment: .bottom) {
-                HStack(spacing: 8) {
-                    Circle().fill(tokens.palette.statusSuccess).frame(width: 6, height: 6)
-                    Text("synced · \(lines.count) lines").font(PlaygroundFont.mono(11)).foregroundStyle(tokens.palette.textFaint)
-                    Spacer()
-                }
-                .padding(.horizontal, 15).frame(height: 30)
-                .background(tokens.palette.bgPanel)
-                .overlay(Rectangle().fill(tokens.palette.borderHairline).frame(height: 0.5), alignment: .top)
             }
         }
     }

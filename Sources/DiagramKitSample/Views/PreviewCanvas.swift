@@ -9,10 +9,12 @@
 import SwiftUI
 import DiagramKit
 import DiagramKitModel
+import DiagramKitSampleDesignSystem
 
 struct PreviewCanvas: View {
     @Bindable var store: LiveEditorStore
     let onFullWindowPreview: (() -> Void)?
+    @Environment(\.dsEnvironment) private var environment
 
     @SwiftUI.State private var automaticZoomScale: CGFloat = 1.0
     @SwiftUI.State private var gestureBaseZoomScale: CGFloat?
@@ -63,7 +65,7 @@ struct PreviewCanvas: View {
                 // Dim overlay on render failure
                 if store.renderStatus == .failed {
                     Rectangle()
-                        .fill(Color(store.previewTheme.background).opacity(0.35))
+                        .fill(environment.theme.colors.windowBackground.color.opacity(DSTokens.Opacity.disabled))
                         .allowsHitTesting(false)
                 }
 
@@ -78,7 +80,7 @@ struct PreviewCanvas: View {
                         Spacer()
                         HStack {
                             configWarningsOverlay
-                                .padding(12)
+                                .padding(DSTokens.Spacing.md)
                             Spacer()
                         }
                     }
@@ -90,7 +92,7 @@ struct PreviewCanvas: View {
                         HStack {
                             Spacer()
                             dirtyBadge
-                                .padding(12)
+                                .padding(DSTokens.Spacing.md)
                         }
                         Spacer()
                     }
@@ -109,11 +111,18 @@ struct PreviewCanvas: View {
                         Spacer()
                         HStack {
                             Spacer()
-                            ProgressView()
-                                .controlSize(.small)
-                                .padding(8)
-                                .background(.thinMaterial, in: Capsule())
-                                .padding(12)
+                            DSGlassSurface(role: .popover) {
+                                HStack(spacing: DSTokens.Spacing.xs) {
+                                    ProgressView()
+                                        .controlSize(.small)
+                                        .tint(environment.theme.colors.info.color)
+                                    Text("Rendering")
+                                        .dsFont(.badge)
+                                        .foregroundStyle(environment.theme.colors.textPrimary.color)
+                                }
+                                .padding(DSTokens.Spacing.sm)
+                            }
+                            .padding(DSTokens.Spacing.md)
                         }
                     }
                     .allowsHitTesting(false)
@@ -126,7 +135,6 @@ struct PreviewCanvas: View {
                         HStack {
                             Spacer()
                             CanvasZoomToolbar(
-                                theme: store.previewTheme,
                                 zoomScale: zoomScaleBinding,
                                 gridEnabled: $store.state.gridEnabled,
                                 panZoomEnabled: $store.state.panZoomEnabled,
@@ -148,7 +156,7 @@ struct PreviewCanvas: View {
                                 },
                                 onFullWindowPreview: onFullWindowPreview
                             )
-                            .padding(12)
+                            .padding(DSTokens.Spacing.md)
                         }
                     }
                 }
@@ -220,8 +228,11 @@ struct PreviewCanvas: View {
             let width = CGFloat(bounds.width) * zoom
             let height = CGFloat(bounds.height) * zoom
 
-            RoundedRectangle(cornerRadius: 4)
-                .stroke(Color(store.previewTheme.effectiveAccent()), lineWidth: 2)
+            RoundedRectangle(cornerRadius: DSTokens.Radius.xs)
+                .stroke(
+                    Color(store.previewTheme.effectiveAccent()),
+                    lineWidth: DSTokens.Stroke.medium
+                )
                 .frame(width: width, height: height)
                 .position(x: originX + width / 2, y: originY + height / 2)
                 .allowsHitTesting(false)
@@ -379,89 +390,79 @@ struct PreviewCanvas: View {
     // MARK: - Dirty badge
 
     private var dirtyBadge: some View {
-        HStack(spacing: 6) {
-            Circle()
-                .fill(Color.orange)
-                .frame(width: 8, height: 8)
-            Text("Unsaved changes")
-                .font(.system(size: 11, weight: .medium))
-                .foregroundColor(Color.orange)
+        DSGlassSurface(role: .popover) {
+            HStack(spacing: DSTokens.Spacing.xs) {
+                DSStatusIndicator(.warning, label: "Unsaved changes")
+                Text("Unsaved changes")
+                    .dsFont(.badge)
+                    .foregroundStyle(environment.theme.colors.warning.color)
+            }
+            .padding(.horizontal, DSTokens.Spacing.smMd)
+            .padding(.vertical, DSTokens.Spacing.xs)
         }
-        .padding(.horizontal, 10)
-        .padding(.vertical, 5)
-        .background(
-            RoundedRectangle(cornerRadius: 6)
-                .fill(Color(store.previewTheme.background).opacity(0.85))
-                .shadow(color: .black.opacity(0.15), radius: 4, x: 0, y: 2)
-        )
     }
 
     // MARK: - Overlays
 
     private var configWarningsOverlay: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            ForEach(store.configWarnings) { warning in
-                HStack(spacing: 6) {
-                    Image(systemName: warning.level.iconName)
-                        .font(.system(size: 10))
-                        .foregroundColor(warning.level.color)
-                        .accessibilityHidden(true)
+        DSGlassSurface(role: .popover) {
+            VStack(alignment: .leading, spacing: DSTokens.Spacing.xxs) {
+                ForEach(store.configWarnings) { warning in
+                    HStack(alignment: .top, spacing: DSTokens.Spacing.xs) {
+                        DSStatusIndicator(warningStatusKind(warning.level), label: warning.message)
 
-                    VStack(alignment: .leading, spacing: 1) {
-                        Text(warning.keyPath)
-                            .font(.system(size: 10, weight: .semibold, design: .monospaced))
-                        Text(warning.message)
-                            .font(.system(size: 10))
-                            .lineLimit(2)
+                        VStack(alignment: .leading, spacing: DSTokens.Spacing.xxxs) {
+                            Text(warning.keyPath)
+                                .dsFont(.metric)
+                                .foregroundStyle(environment.theme.colors.textPrimary.color)
+                            Text(warning.message)
+                                .dsFont(.caption2)
+                                .foregroundStyle(environment.theme.colors.textSecondary.color)
+                                .lineLimit(2)
+                        }
+
+                        Spacer()
                     }
-
-                    Spacer()
+                    .padding(.horizontal, DSTokens.Spacing.sm)
+                    .padding(.vertical, DSTokens.Spacing.xxs)
                 }
-                .padding(.horizontal, 8)
-                .padding(.vertical, 4)
             }
+            .padding(DSTokens.Spacing.sm)
         }
-        .padding(8)
-        .background(
-            RoundedRectangle(cornerRadius: 6)
-                .fill(Color(store.previewTheme.background).opacity(0.88))
-                .shadow(color: .black.opacity(0.12), radius: 3, x: 0, y: 1)
-        )
         .frame(maxWidth: 320)
     }
 
     private func errorOverlay(_ error: Error) -> some View {
-        VStack(spacing: 8) {
-            Image(systemName: "exclamationmark.triangle.fill")
-                .font(.system(size: 28))
-                .foregroundColor(.red)
-                .accessibilityHidden(true)
-            Text("Parse Error")
-                .font(.headline)
-                .foregroundColor(.red)
-            Text(error.localizedDescription)
-                .font(.body)
-                .foregroundColor(.red)
-                .multilineTextAlignment(.center)
-                .padding(.horizontal, 24)
+        DSGlassSurface(role: .popover) {
+            VStack(spacing: DSTokens.Spacing.sm) {
+                DSIconView(.error, size: DSTokens.Icon.md, colorRole: .error)
+                Text("Parse Error")
+                    .dsFont(.headline)
+                    .foregroundStyle(environment.theme.colors.error.color)
+                Text(error.localizedDescription)
+                    .dsFont(.body)
+                    .foregroundStyle(environment.theme.colors.error.color)
+                    .multilineTextAlignment(.center)
+                    .padding(.horizontal, DSTokens.Spacing.xxl)
+            }
+            .padding(DSTokens.Spacing.xl)
         }
-        .padding(20)
-        .background(
-            RoundedRectangle(cornerRadius: 12)
-                .fill(Color(store.previewTheme.background).opacity(0.92))
-                .shadow(color: .black.opacity(0.2), radius: 8, x: 0, y: 4)
-        )
     }
 
     private var idleOverlay: some View {
-        VStack(spacing: 12) {
-            Image(systemName: "doc.text")
-                .font(.system(size: 36))
-                .foregroundColor(Color(store.previewTheme.effectiveMuted()))
-                .accessibilityHidden(true)
+        VStack(spacing: DSTokens.Spacing.md) {
+            DSIconView(.diagram, size: DSTokens.Icon.lg, colorRole: .muted)
             Text("Enter \(store.state.sourceFormat.displayName) syntax to preview")
-                .font(.body)
-                .foregroundColor(Color(store.previewTheme.effectiveMuted()))
+                .dsFont(.body)
+                .foregroundStyle(environment.theme.colors.textSecondary.color)
+        }
+    }
+
+    private func warningStatusKind(_ level: ConfigSanitizer.Warning.Level) -> DSStatusKind {
+        switch level {
+        case .unsupported: .unsupported
+        case .caution: .warning
+        case .info: .info
         }
     }
 }
@@ -480,10 +481,10 @@ enum PreviewMode: CaseIterable, Hashable {
         }
     }
 
-    var iconName: String {
+    var icon: DSIcon {
         switch self {
-        case .diagram: return "rectangle.on.rectangle"
-        case .ascii:   return "text.alignleft"
+        case .diagram: return .diagram
+        case .ascii:   return .code
         }
     }
 }
@@ -499,6 +500,7 @@ enum PreviewMode: CaseIterable, Hashable {
 /// inline message.
 struct AsciiPreviewView: View {
     @Bindable var store: LiveEditorStore
+    @Environment(\.dsEnvironment) private var environment
 
     @SwiftUI.State private var ascii: String = ""
     @SwiftUI.State private var errorMessage: String?
@@ -507,30 +509,33 @@ struct AsciiPreviewView: View {
     var body: some View {
         Group {
             if isLoading && ascii.isEmpty {
-                ProgressView()
+                VStack(spacing: DSTokens.Spacing.sm) {
+                    ProgressView()
+                        .tint(environment.theme.colors.info.color)
+                    Text("Rendering ASCII")
+                        .dsFont(.badge)
+                        .foregroundStyle(environment.theme.colors.textSecondary.color)
+                }
             } else if let errorMessage {
-                VStack(spacing: 12) {
-                    Image(systemName: "text.badge.xmark")
-                        .font(.system(size: 28))
-                        .foregroundColor(Color(store.previewTheme.effectiveMuted()))
-                        .accessibilityHidden(true)
+                VStack(spacing: DSTokens.Spacing.md) {
+                    DSIconView(.error, size: DSTokens.Icon.md, colorRole: .error)
                     Text(errorMessage)
-                        .font(.body)
+                        .dsFont(.body)
                         .multilineTextAlignment(.center)
-                        .foregroundColor(Color(store.previewTheme.effectiveMuted()))
-                        .padding(.horizontal, 24)
+                        .foregroundStyle(environment.theme.colors.error.color)
+                        .padding(.horizontal, DSTokens.Spacing.xxl)
                 }
             } else if ascii.isEmpty {
                 Text("ASCII rendering is not available for this diagram type.")
-                    .font(.body)
-                    .foregroundColor(Color(store.previewTheme.effectiveMuted()))
-                    .padding(24)
+                    .dsFont(.body)
+                    .foregroundStyle(environment.theme.colors.textSecondary.color)
+                    .padding(DSTokens.Spacing.xxl)
             } else {
                 ScrollView([.horizontal, .vertical]) {
                     Text(ascii)
-                        .font(.system(size: 12, design: .monospaced))
+                        .dsFont(.code)
                         .foregroundColor(Color(store.previewTheme.foreground))
-                        .padding(16)
+                        .padding(DSTokens.Spacing.lg)
                         .textSelection(.enabled)
                 }
                 .background(Color(store.previewTheme.background))

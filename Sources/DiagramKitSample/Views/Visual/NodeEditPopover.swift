@@ -11,9 +11,11 @@
 import SwiftUI
 import DiagramKitInteractive
 import DiagramKitModel
+import DiagramKitSampleDesignSystem
 
 struct NodeEditPopover: View {
     @Bindable var store: LiveEditorStore
+    @Environment(\.dsEnvironment) private var environment
 
     @SwiftUI.State private var labelDraft: String = ""
     @SwiftUI.State private var initialLabel: String = ""
@@ -33,43 +35,42 @@ struct NodeEditPopover: View {
     @SwiftUI.State private var iconDirty: Bool = false
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
+        DSSurface(role: .popover) {
+        VStack(alignment: .leading, spacing: DSTokens.Spacing.smMd) {
             HStack {
                 Text("Edit node")
-                    .font(.system(size: 12, weight: .semibold))
+                    .dsFont(.headline)
                 Spacer()
                 if let selection = store.editor?.selection {
                     Text(selection.elementID)
-                        .font(.system(size: 10, design: .monospaced))
-                        .foregroundStyle(.secondary)
+                        .dsFont(.code)
+                        .foregroundStyle(environment.theme.colors.textSecondary.color)
                 }
             }
 
-            TextField("Label", text: $labelDraft)
-                .textFieldStyle(.roundedBorder)
-                .font(.system(size: 12))
+            DSField("Label", text: $labelDraft)
 
             HStack {
                 Text("Shape")
-                    .font(.system(size: 11))
+                    .dsFont(.caption2)
                 Spacer()
                 Button {
                     showShapeCatalog.toggle()
                 } label: {
-                    HStack(spacing: 6) {
+                    HStack(spacing: DSTokens.Spacing.xs) {
                         ShapeThumbnail(alias: shapeAlias, theme: store.previewTheme)
                             .frame(width: 30, height: 22)
                         Text(currentShapeName)
-                            .font(.system(size: 11))
+                            .dsFont(.caption2)
                     }
-                    .padding(.horizontal, 8)
-                    .padding(.vertical, 3)
+                    .padding(.horizontal, DSTokens.Spacing.sm)
+                    .padding(.vertical, DSTokens.Spacing.xxxs)
                     .background(
-                        RoundedRectangle(cornerRadius: 6, style: .continuous)
-                            .fill(Color.gray.opacity(0.08))
+                        RoundedRectangle(cornerRadius: DSTokens.Radius.sm, style: .continuous)
+                            .fill(environment.theme.colors.element.color)
                     )
                 }
-                .buttonStyle(.plain)
+                .buttonStyle(.ds(role: .ghost, size: .compact))
                 .popover(isPresented: $showShapeCatalog, arrowEdge: .trailing) {
                     ShapeCatalogView(theme: store.previewTheme) { alias in
                         shapeAlias = alias
@@ -97,34 +98,31 @@ struct NodeEditPopover: View {
 
             if hadStyle {
                 Button("Clear styling", action: clearStyling)
-                    .buttonStyle(.plain)
-                    .font(.system(size: 10))
-                    .foregroundStyle(.secondary)
+                    .buttonStyle(.ds(role: .ghost, size: .compact))
             }
 
             HStack {
                 Button(role: .destructive, action: deleteSelected) {
                     Label("Delete", systemImage: "trash")
-                        .font(.system(size: 11, weight: .medium))
+                        .dsFont(.badge)
                 }
-                .buttonStyle(.plain)
-                .foregroundStyle(.red)
+                .buttonStyle(.ds(role: .destructive, size: .compact))
                 Spacer()
                 Button("Cancel") {
                     store.setVisualStage(.nodeSelected)
                 }
-                .buttonStyle(.plain)
+                .buttonStyle(.ds(role: .ghost, size: .compact))
                 .keyboardShortcut(.cancelAction)
                 Button("Commit") {
                     commit()
                 }
-                .buttonStyle(.borderedProminent)
+                .buttonStyle(.ds(role: .primary, size: .compact))
                 .keyboardShortcut(.defaultAction)
             }
         }
-        .padding(14)
+        .padding(DSTokens.Spacing.lg)
+        }
         .frame(width: 320)
-        .glassChrome(.popoverCard, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
         .accessibilityIdentifier(A11yID.Visual.nodePopover)
         .onAppear {
             seedDraftFromSelection()

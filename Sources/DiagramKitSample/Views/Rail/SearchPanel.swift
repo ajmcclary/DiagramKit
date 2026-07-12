@@ -7,11 +7,12 @@
 //
 
 import SwiftUI
+import DiagramKitSampleDesignSystem
 
 struct SearchPanel: View {
     @Bindable var store: LiveEditorStore
     @State private var query = ""
-    @Environment(\.playgroundTokens) private var tokens
+    @Environment(\.dsEnvironment) private var environment
 
     private var elements: OutlineElements { OutlineElements.from(store) }
     private var nodeMatches: [OutlineItem] {
@@ -28,41 +29,56 @@ struct SearchPanel: View {
             PanelHeader("Search")
             PanelFilterField(placeholder: "Search nodes & labels…", text: $query, focused: !query.isEmpty)
             ScrollView {
-                VStack(alignment: .leading, spacing: 10) {
+                VStack(alignment: .leading, spacing: DSTokens.Spacing.smMd) {
                     if query.isEmpty {
                         Text("Type to search nodes, edges, and labels.")
-                            .font(PlaygroundFont.caption).foregroundStyle(tokens.palette.textFaint).padding(12)
+                            .dsFont(.caption)
+                            .foregroundStyle(environment.theme.colors.textSecondary.color)
+                            .padding(DSTokens.Spacing.md)
                     } else {
-                        if !nodeMatches.isEmpty { section("Nodes", nodeMatches.map { ($0.display, "node:\($0.id)", "rectangle", tokens.palette.accentSecondary) }) }
+                        if !nodeMatches.isEmpty {
+                            section("Nodes", nodeMatches.map { ($0.display, "node:\($0.id)", DSIcon.node, DSIconColorRole.primary) })
+                        }
                         if !edgeMatches.isEmpty {
-                            section("Labels", edgeMatches.map { (($0.label ?? ""), "\($0.from)→\($0.to)", "arrow.right", tokens.palette.catCyan) })
+                            section("Labels", edgeMatches.map { (($0.label ?? ""), "\($0.from)→\($0.to)", DSIcon.convert, DSIconColorRole.info) })
                         }
                         if nodeMatches.isEmpty && edgeMatches.isEmpty {
-                            Text("No matches for “\(query)”.").font(PlaygroundFont.caption)
-                                .foregroundStyle(tokens.palette.textFaint).padding(12)
+                            Text("No matches for “\(query)”.")
+                                .dsFont(.caption)
+                                .foregroundStyle(environment.theme.colors.textSecondary.color)
+                                .padding(DSTokens.Spacing.md)
                         }
                     }
                 }
-                .padding(.horizontal, 10).padding(.bottom, 12)
+                .padding(.horizontal, DSTokens.Spacing.smMd)
+                .padding(.bottom, DSTokens.Spacing.md)
             }
         }
     }
 
-    private func section(_ title: String, _ rows: [(String, String, String, Color)]) -> some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text(title.uppercased()).font(PlaygroundFont.sans(11, weight: .bold)).tracking(0.6)
-                .foregroundStyle(tokens.palette.fg3).padding(.horizontal, 4).padding(.top, 4)
+    private func section(
+        _ title: String,
+        _ rows: [(String, String, DSIcon, DSIconColorRole)]
+    ) -> some View {
+        VStack(alignment: .leading, spacing: DSTokens.Spacing.sm) {
+            DSSectionHeader(title)
+                .padding(.horizontal, DSTokens.Spacing.xxs)
+                .padding(.top, DSTokens.Spacing.xxs)
             ForEach(Array(rows.enumerated()), id: \.offset) { _, r in
-                HStack(spacing: 9) {
-                    Image(systemName: r.2).font(.system(size: 13)).foregroundStyle(r.3).frame(width: 16)
-                    Text(r.0).font(PlaygroundFont.body).foregroundStyle(tokens.palette.fg1).lineLimit(1)
-                    Spacer(minLength: 4)
-                    Text(r.1).font(PlaygroundFont.mono(10.5)).foregroundStyle(tokens.palette.textFaintest)
+                DSSurface(role: .card) {
+                    HStack(spacing: DSTokens.Spacing.smMd) {
+                        DSIconView(r.2, size: DSTokens.Icon.micro, colorRole: r.3)
+                        Text(r.0)
+                            .dsFont(.caption)
+                            .foregroundStyle(environment.theme.colors.textPrimary.color)
+                            .lineLimit(1)
+                        Spacer(minLength: DSTokens.Spacing.xxs)
+                        Text(r.1)
+                            .dsFont(.code)
+                            .foregroundStyle(environment.theme.colors.textDisabled.color)
+                    }
+                    .padding(DSTokens.Spacing.smMd)
                 }
-                .padding(9)
-                .background(tokens.palette.bgCard)
-                .overlay(RoundedRectangle(cornerRadius: 9).stroke(tokens.palette.borderHairline, lineWidth: 0.5))
-                .clipShape(RoundedRectangle(cornerRadius: 9))
             }
         }
     }

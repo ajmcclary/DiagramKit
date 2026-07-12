@@ -10,31 +10,33 @@
 //
 
 import SwiftUI
+import DiagramKitSampleDesignSystem
 
 struct RenderFailedSheet: View {
     @Bindable var store: LiveEditorStore
+    @Environment(\.dsEnvironment) private var environment
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            HStack(spacing: 6) {
-                Image(systemName: "xmark.octagon.fill")
-                    .foregroundStyle(.red)
+        DSGlassSurface(role: .popover) {
+        VStack(alignment: .leading, spacing: DSTokens.Spacing.smMd) {
+            HStack(spacing: DSTokens.Spacing.xs) {
+                DSIconView(.error, colorRole: .error)
                 Text("Render failed")
-                    .font(.system(size: 13, weight: .semibold))
+                    .dsFont(.headline)
                 Spacer()
             }
             Text(message)
-                .font(.system(size: 11, design: .monospaced))
-                .foregroundStyle(.primary)
-                .padding(8)
+                .dsFont(.code)
+                .foregroundStyle(environment.theme.colors.textPrimary.color)
+                .padding(DSTokens.Spacing.sm)
                 .frame(maxWidth: .infinity, alignment: .topLeading)
                 .background(
-                    RoundedRectangle(cornerRadius: 6, style: .continuous)
-                        .fill(Color.red.opacity(0.10))
+                    RoundedRectangle(cornerRadius: DSTokens.Radius.sm, style: .continuous)
+                        .fill(environment.theme.colors.error.color.opacity(DSTokens.Opacity.tint))
                 )
             Text("Worker contract: every render runs on a fresh 8 MB-stack Thread per CLAUDE.md. Retrying re-arms the same canonical path.")
-                .font(.system(size: 10))
-                .foregroundStyle(.secondary)
+                .dsFont(.caption2)
+                .foregroundStyle(environment.theme.colors.textSecondary.color)
                 .fixedSize(horizontal: false, vertical: true)
             HStack {
                 Spacer()
@@ -42,19 +44,15 @@ struct RenderFailedSheet: View {
                     store.requestRender(reason: .manual)
                 } label: {
                     Label("Run on worker · 8 MB stack", systemImage: "arrow.clockwise")
-                        .font(.system(size: 11, weight: .medium))
+                        .dsFont(.badge)
                 }
-                .buttonStyle(.borderedProminent)
+                .buttonStyle(.ds(role: .primary, size: .compact))
                 .a11y(label: "Retry render", id: "renderFailed.retry")
             }
         }
-        .padding(14)
+        .padding(DSTokens.Spacing.lg)
+        }
         .frame(width: 380)
-        .background(
-            RoundedRectangle(cornerRadius: 12, style: .continuous)
-                .fill(.regularMaterial)
-                .shadow(color: .black.opacity(0.2), radius: 12, x: 0, y: 6)
-        )
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier("renderFailed.sheet")
     }

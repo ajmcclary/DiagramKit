@@ -8,11 +8,12 @@
 
 import SwiftUI
 import DiagramKit
+import DiagramKitSampleDesignSystem
 
 struct PanelHeader<Trailing: View>: View {
     let title: String
     @ViewBuilder var trailing: () -> Trailing
-    @Environment(\.playgroundTokens) private var tokens
+    @Environment(\.dsEnvironment) private var environment
 
     init(_ title: String, @ViewBuilder trailing: @escaping () -> Trailing = { EmptyView() }) {
         self.title = title
@@ -21,12 +22,14 @@ struct PanelHeader<Trailing: View>: View {
 
     var body: some View {
         HStack {
-            Text(title.uppercased()).font(PlaygroundFont.sans(11, weight: .bold)).tracking(0.6)
-                .foregroundStyle(tokens.palette.fg1)
+            DSSectionHeader(title)
             Spacer()
             trailing()
         }
-        .padding(.horizontal, 15).padding(.top, 14).padding(.bottom, 8)
+        .foregroundStyle(environment.theme.colors.textPrimary.color)
+        .padding(.horizontal, DSTokens.Spacing.lg)
+        .padding(.top, DSTokens.Spacing.md)
+        .padding(.bottom, DSTokens.Spacing.sm)
     }
 }
 
@@ -34,20 +37,29 @@ struct PanelFilterField: View {
     let placeholder: String
     @Binding var text: String
     var focused: Bool = false
-    @Environment(\.playgroundTokens) private var tokens
+    @Environment(\.dsEnvironment) private var environment
 
     var body: some View {
-        HStack(spacing: 7) {
-            Image(systemName: "magnifyingglass").font(.system(size: 12))
-                .foregroundStyle(focused ? tokens.palette.accent : tokens.palette.textFaint)
-            TextField(placeholder, text: $text).textFieldStyle(.plain)
-                .font(PlaygroundFont.body).foregroundStyle(tokens.palette.fg1)
+        HStack(spacing: DSTokens.Spacing.xs) {
+            DSIconView(.search, size: DSTokens.Icon.micro, colorRole: focused ? .primary : .muted)
+            TextField(placeholder, text: $text)
+                .textFieldStyle(.plain)
+                .dsFont(.caption)
+                .foregroundStyle(environment.theme.colors.textPrimary.color)
         }
-        .padding(.horizontal, 10).frame(height: 28)
-        .background(tokens.palette.bgField)
-        .overlay(RoundedRectangle(cornerRadius: 7).stroke(focused ? tokens.palette.accent : tokens.palette.borderWarm, lineWidth: 0.5))
-        .clipShape(RoundedRectangle(cornerRadius: 7))
-        .padding(.horizontal, 12).padding(.bottom, 8)
+        .padding(.horizontal, DSTokens.Spacing.smMd)
+        .frame(minHeight: DSTokens.Control.rowCompact)
+        .background(environment.theme.colors.element.color)
+        .overlay(
+            RoundedRectangle(cornerRadius: DSTokens.Radius.sm)
+                .stroke(
+                    focused ? environment.theme.colors.borderFocused.color : environment.theme.colors.borderVariant.color,
+                    lineWidth: DSTokens.Stroke.thin
+                )
+        )
+        .clipShape(RoundedRectangle(cornerRadius: DSTokens.Radius.sm))
+        .padding(.horizontal, DSTokens.Spacing.md)
+        .padding(.bottom, DSTokens.Spacing.sm)
     }
 }
 

@@ -7,26 +7,28 @@
 //
 
 import SwiftUI
+import DiagramKitSampleDesignSystem
 
 struct SubgraphCommitToast: View {
     @Bindable var store: LiveEditorStore
     let commit: SubgraphCommit
+    @Environment(\.dsEnvironment) private var environment
 
     var body: some View {
-        HStack(spacing: 8) {
-            Image(systemName: "rectangle.stack.fill.badge.plus")
-                .foregroundStyle(Color.accentColor)
-            VStack(alignment: .leading, spacing: 1) {
+        DSGlassSurface(role: .popover) {
+        HStack(spacing: DSTokens.Spacing.sm) {
+            DSIconView(.subgraph, colorRole: .info)
+            VStack(alignment: .leading, spacing: DSTokens.Stroke.thin) {
                 Text("Grouped \(commit.memberIDs.count) nodes into “\(commit.title)”")
-                    .font(.system(size: 11, weight: .semibold))
+                    .dsFont(.headline)
                 Text("⌘Z to undo")
-                    .font(.system(size: 10, weight: .medium))
-                    .foregroundStyle(.secondary)
+                    .dsFont(.caption2)
+                    .foregroundStyle(environment.theme.colors.textSecondary.color)
             }
         }
-        .padding(.horizontal, 12)
-        .padding(.vertical, 8)
-        .glassChrome(.hud, in: RoundedRectangle(cornerRadius: 10, style: .continuous))
+        .padding(.horizontal, DSTokens.Spacing.md)
+        .padding(.vertical, DSTokens.Spacing.sm)
+        }
         .accessibilityIdentifier(A11yID.Visual.subgraphToast)
         .task(id: commit) {
             try? await Task.sleep(nanoseconds: 2_500_000_000)

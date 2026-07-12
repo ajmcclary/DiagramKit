@@ -106,7 +106,6 @@ extension FlowchartEditCanvas {
     @ViewBuilder
     var zoomToolbarOverlay: some View {
         CanvasZoomToolbar(
-            theme: store.previewTheme,
             zoomScale: zoomToolbarBinding,
             gridEnabled: .constant(false),
             panZoomEnabled: .constant(true),

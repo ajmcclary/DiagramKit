@@ -8,6 +8,7 @@
 
 import SwiftUI
 import DiagramKitInteractive
+import DiagramKitSampleDesignSystem
 
 struct NodeStyleControls: View {
     @Binding var borderStyle: FlowchartBorderStyle
@@ -27,7 +28,7 @@ struct NodeStyleControls: View {
     ]
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
+        VStack(alignment: .leading, spacing: DSTokens.Spacing.sm) {
             Picker("Border", selection: $borderStyle) {
                 ForEach(FlowchartBorderStyle.allCases, id: \.self) { style in
                     Text(style.rawValue.capitalized).tag(style)
@@ -36,19 +37,19 @@ struct NodeStyleControls: View {
             .pickerStyle(.segmented)
             .onChange(of: borderStyle) { styleDirty = true }
 
-            Grid(alignment: .leading, verticalSpacing: 6) {
+            Grid(alignment: .leading, verticalSpacing: DSTokens.Spacing.xs) {
                 GridRow {
-                    Text("Background").font(.system(size: 11))
+                    Text("Background").dsFont(.caption2)
                     ColorPicker("", selection: $fillColor, supportsOpacity: false)
                         .labelsHidden()
                 }
                 GridRow {
-                    Text("Border color").font(.system(size: 11))
+                    Text("Border color").dsFont(.caption2)
                     ColorPicker("", selection: $strokeColor, supportsOpacity: false)
                         .labelsHidden()
                 }
                 GridRow {
-                    Text("Text color").font(.system(size: 11))
+                    Text("Text color").dsFont(.caption2)
                     ColorPicker("", selection: $textColor, supportsOpacity: false)
                         .labelsHidden()
                 }
@@ -57,7 +58,7 @@ struct NodeStyleControls: View {
             .onChange(of: strokeColor) { styleDirty = true }
             .onChange(of: textColor) { styleDirty = true }
 
-            HStack(spacing: 6) {
+            HStack(spacing: DSTokens.Spacing.xs) {
                 ForEach(Self.presets, id: \.fill) { preset in
                     Button {
                         fillColor = Color(hexRGB: preset.fill) ?? fillColor
@@ -67,10 +68,10 @@ struct NodeStyleControls: View {
                     } label: {
                         Circle()
                             .fill(Color(hexRGB: preset.fill) ?? .gray)
-                            .stroke(Color(hexRGB: preset.stroke) ?? .gray, lineWidth: 2)
-                            .frame(width: 18, height: 18)
+                            .stroke(Color(hexRGB: preset.stroke) ?? .gray, lineWidth: DSTokens.Stroke.medium)
+                            .frame(width: DSTokens.Icon.sm, height: DSTokens.Icon.sm)
                     }
-                    .buttonStyle(.plain)
+                    .buttonStyle(.ds(role: .ghost, size: .compact))
                     .help("Preset \(preset.fill)")
                 }
             }

@@ -8,16 +8,17 @@
 //
 
 import SwiftUI
+import DiagramKitSampleDesignSystem
 
 struct StateStepper: View {
     @Bindable var store: LiveEditorStore
+    @Environment(\.dsEnvironment) private var environment
 
     var body: some View {
-        HStack(spacing: 6) {
-            Button(action: previousStage) {
-                Image(systemName: "chevron.left")
-            }
-            .buttonStyle(.plain)
+        DSGlassSurface(role: .popover) {
+        HStack(spacing: DSTokens.Spacing.xs) {
+            DSIconButton(.disclosureRight, label: "Previous stage", action: previousStage)
+                .rotationEffect(.degrees(180))
             .a11y(label: "Previous stage", id: A11yID.Visual.tool("stage.prev"))
 
             ForEach(Array(VisualEditorState.Stage.allCases.enumerated()), id: \.offset) { index, stage in
@@ -26,14 +27,22 @@ struct StateStepper: View {
                     store.setVisualStage(stage)
                 } label: {
                     Text("\(index + 1)")
-                        .font(.system(size: 11, weight: .semibold).monospacedDigit())
-                        .frame(width: 22, height: 22)
+                        .dsFont(.metric)
+                        .frame(width: DSTokens.Control.chip, height: DSTokens.Control.chip)
                         .background(
-                            Circle().fill(isActive ? Color.accentColor : Color.gray.opacity(0.18))
+                            Circle().fill(
+                                isActive
+                                    ? environment.theme.colors.accent.color
+                                    : environment.theme.colors.element.color
+                            )
                         )
-                        .foregroundStyle(isActive ? Color.white : Color.primary)
+                        .foregroundStyle(
+                            isActive
+                                ? environment.theme.colors.onAccent.color
+                                : environment.theme.colors.textPrimary.color
+                        )
                 }
-                .buttonStyle(.plain)
+                .buttonStyle(.ds(role: isActive ? .secondary : .ghost, size: .compact))
                 .help(stage.label)
                 .a11y(
                     label: LocalizedStringKey(stage.label),
@@ -41,17 +50,11 @@ struct StateStepper: View {
                 )
             }
 
-            Button(action: nextStage) {
-                Image(systemName: "chevron.right")
-            }
-            .buttonStyle(.plain)
+            DSIconButton(.disclosureRight, label: "Next stage", action: nextStage)
             .a11y(label: "Next stage", id: A11yID.Visual.tool("stage.next"))
         }
-        .padding(8)
-        .background(
-            RoundedRectangle(cornerRadius: 10, style: .continuous)
-                .fill(.regularMaterial)
-        )
+        .padding(DSTokens.Spacing.sm)
+        }
         .accessibilityIdentifier(A11yID.Visual.stateStepper)
     }
 

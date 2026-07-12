@@ -12,6 +12,7 @@
 import SwiftUI
 import DiagramKit
 import DiagramKitModel
+import DiagramKitSampleDesignSystem
 import UniformTypeIdentifiers
 import IssueReporting
 
@@ -34,15 +35,17 @@ struct ActionsPanel: View {
     @SwiftUI.State private var showingHistory = false
 
     var body: some View {
-        ActionsView(
-            store: store,
-            onExportPNG: { Task { await exportPNG() } },
-            onExportSVG: { Task { await exportSVGToFile() } },
-            onFullWindowPreview: { showingFullWindowPreview = true },
-            onShareState: { showingShareSheet = true },
-            onShowHistory: { showingHistory = true },
-            onConvertSource: { target in Task { await convertSource(to: target) } }
-        )
+        DSSurface(role: .panel) {
+            ActionsView(
+                store: store,
+                onExportPNG: { Task { await exportPNG() } },
+                onExportSVG: { Task { await exportSVGToFile() } },
+                onFullWindowPreview: { showingFullWindowPreview = true },
+                onShareState: { showingShareSheet = true },
+                onShowHistory: { showingHistory = true },
+                onConvertSource: { target in Task { await convertSource(to: target) } }
+            )
+        }
         .alert("Export Failed", isPresented: $showExportError) {
             Button("OK", role: .cancel) {}
         } message: {

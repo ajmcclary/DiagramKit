@@ -9,20 +9,20 @@
 
 import SwiftUI
 import DiagramKitModel
+import DiagramKitSampleDesignSystem
 
 struct ShapeCatalogView: View {
     let theme: DiagramTheme
     let onSelect: (String) -> Void
 
     @SwiftUI.State private var query: String = ""
+    @Environment(\.dsEnvironment) private var environment
 
-    private let columns = [GridItem(.adaptive(minimum: 76), spacing: 8)]
+    private let columns = [GridItem(.adaptive(minimum: 76), spacing: DSTokens.Spacing.sm)]
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            TextField("Search shapes", text: $query)
-                .textFieldStyle(.roundedBorder)
-                .font(.system(size: 12))
+        VStack(alignment: .leading, spacing: DSTokens.Spacing.sm) {
+            DSField("Search shapes", text: $query)
                 .accessibilityIdentifier(A11yID.Visual.shapeCatalogSearch)
 
             ScrollView {
@@ -34,17 +34,17 @@ struct ShapeCatalogView: View {
                     let hits = ShapeCatalog.search(query)
                     if hits.isEmpty {
                         Text("No shapes match “\(query)”")
-                            .font(.system(size: 11))
-                            .foregroundStyle(.secondary)
+                            .dsFont(.caption2)
+                            .foregroundStyle(environment.theme.colors.textSecondary.color)
                             .frame(maxWidth: .infinity, alignment: .center)
-                            .padding(.top, 24)
+                            .padding(.top, DSTokens.Spacing.xxl)
                     } else {
                         section(title: "Results", items: hits)
                     }
                 }
             }
         }
-        .padding(12)
+        .padding(DSTokens.Spacing.md)
         .frame(width: 380, height: 420)
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier(A11yID.Visual.shapeCatalog)
@@ -52,12 +52,12 @@ struct ShapeCatalogView: View {
 
     @ViewBuilder
     private func section(title: String, items: [ShapeCatalogItem]) -> some View {
-        VStack(alignment: .leading, spacing: 6) {
+        VStack(alignment: .leading, spacing: DSTokens.Spacing.xs) {
             Text(title)
-                .font(.system(size: 11, weight: .semibold))
-                .foregroundStyle(.secondary)
-                .padding(.top, 6)
-            LazyVGrid(columns: columns, spacing: 8) {
+                .dsFont(.overline)
+                .foregroundStyle(environment.theme.colors.textSecondary.color)
+                .padding(.top, DSTokens.Spacing.xs)
+            LazyVGrid(columns: columns, spacing: DSTokens.Spacing.sm) {
                 ForEach(items) { item in
                     cell(for: item)
                 }
@@ -69,20 +69,20 @@ struct ShapeCatalogView: View {
         Button {
             onSelect(item.alias)
         } label: {
-            VStack(spacing: 4) {
+            VStack(spacing: DSTokens.Spacing.xxs) {
                 ShapeThumbnail(alias: item.alias, theme: theme)
                 Text(item.name)
-                    .font(.system(size: 9))
+                    .dsFont(.caption2)
                     .lineLimit(1)
                     .truncationMode(.tail)
             }
             .frame(width: 76, height: 56)
             .background(
-                RoundedRectangle(cornerRadius: 8, style: .continuous)
-                    .fill(Color.gray.opacity(0.06))
+                RoundedRectangle(cornerRadius: DSTokens.Radius.sm, style: .continuous)
+                    .fill(environment.theme.colors.element.color)
             )
         }
-        .buttonStyle(.plain)
+        .buttonStyle(.ds(role: .ghost, size: .compact))
         .help("\(item.name) (\(item.alias))")
         .accessibilityIdentifier(A11yID.Visual.shapeCell(item.alias))
     }

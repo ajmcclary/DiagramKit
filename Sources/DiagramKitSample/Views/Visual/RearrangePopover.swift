@@ -8,19 +8,21 @@
 
 import SwiftUI
 import DiagramKitInteractive
+import DiagramKitSampleDesignSystem
 
 struct RearrangePopover: View {
     @Bindable var store: LiveEditorStore
     let dismiss: () -> Void
+    @Environment(\.dsEnvironment) private var environment
 
     private var current: LayoutPreset {
         store.editor?.document.frontmatter?.layout == "adaptive" ? .adaptive : .hierarchical
     }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
+        VStack(alignment: .leading, spacing: DSTokens.Spacing.smMd) {
             Text("Rearrange layout")
-                .font(.system(size: 12, weight: .semibold))
+                .dsFont(.headline)
             card(
                 preset: .hierarchical,
                 title: "Hierarchical",
@@ -43,26 +45,33 @@ struct RearrangePopover: View {
             dismiss()
             Task { await store.applyLayoutPreset(preset) }
         } label: {
-            HStack(spacing: 10) {
-                Image(systemName: symbol)
-                    .font(.system(size: 18))
-                    .frame(width: 28)
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(title).font(.system(size: 12, weight: .medium))
-                    Text(detail).font(.system(size: 10)).foregroundStyle(.secondary)
+            HStack(spacing: DSTokens.Spacing.smMd) {
+                Label(title, systemImage: symbol)
+                    .labelStyle(.iconOnly)
+                    .dsFont(.headline)
+                    .frame(width: DSTokens.Control.rowCompact)
+                VStack(alignment: .leading, spacing: DSTokens.Spacing.xxxs) {
+                    Text(title).dsFont(.body)
+                    Text(detail)
+                        .dsFont(.caption2)
+                        .foregroundStyle(environment.theme.colors.textSecondary.color)
                 }
                 Spacer()
                 if current == preset {
-                    Image(systemName: "checkmark").font(.system(size: 11, weight: .semibold))
+                    DSIconView(.success, size: DSTokens.Icon.micro, colorRole: .success)
                 }
             }
-            .padding(8)
+            .padding(DSTokens.Spacing.sm)
             .background(
-                RoundedRectangle(cornerRadius: 8, style: .continuous)
-                    .fill(current == preset ? Color.accentColor.opacity(0.12) : Color.gray.opacity(0.06))
+                RoundedRectangle(cornerRadius: DSTokens.Radius.sm, style: .continuous)
+                    .fill(
+                        current == preset
+                            ? environment.theme.colors.elementSelected.color
+                            : environment.theme.colors.element.color
+                    )
             )
         }
-        .buttonStyle(.plain)
+        .buttonStyle(.ds(role: current == preset ? .secondary : .ghost, size: .compact))
         .accessibilityIdentifier(A11yID.Visual.rearrangeOption(preset.rawValue))
     }
 }

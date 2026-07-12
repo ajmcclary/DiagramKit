@@ -10,14 +10,15 @@
 import SwiftUI
 import DiagramKit
 import DiagramKitModel
+import DiagramKitSampleDesignSystem
 
 struct CanvasTopToolbar: View {
     @Bindable var store: LiveEditorStore
 
-    @Environment(\.playgroundTokens) private var tokens
+    @Environment(\.dsEnvironment) private var environment
 
     var body: some View {
-        HStack(spacing: PlaygroundSpacing.xs) {
+        HStack(spacing: DSTokens.Spacing.xs) {
             familyPill
             sceneGraphPill
             renderHealthPill
@@ -27,7 +28,7 @@ struct CanvasTopToolbar: View {
     private var familyPill: some View {
         ToolbarPill(
             label: "\(store.state.sourceFormat.shortName.lowercased()) · \(workspaceLabel)",
-            dotColor: tokens.palette.statusInfo
+            dotColor: environment.theme.colors.info.color
         )
     }
 
@@ -35,7 +36,7 @@ struct CanvasTopToolbar: View {
         // Phase 4 fills in real counts from PreparedDiagram.
         ToolbarPill(
             label: "scene graph",
-            dotColor: tokens.palette.fg3,
+            dotColor: environment.theme.colors.iconMuted.color,
             trailing: sceneGraphMetric
         )
     }
@@ -44,16 +45,30 @@ struct CanvasTopToolbar: View {
     private var renderHealthPill: some View {
         switch store.renderStatus {
         case .rendered:
-            RenderHealthPill(state: .ok(layoutMs: 0, paintMs: 0))
+            renderStatusPill(kind: .success, label: "ok · L 0ms · P 0ms")
         case .failed:
-            RenderHealthPill(state: .failed(error: failureMessage))
+            renderStatusPill(kind: .error, label: "failed · \(failureMessage)")
                 .help(failureMessage)
         case .pending, .rendering:
-            RenderHealthPill(state: .slow(layoutMs: 0, paintMs: 0))
+            renderStatusPill(kind: .info, label: "rendering · worker · 8 MB")
                 .help("Render in flight on the worker · 8 MB stack")
         case .idle:
             EmptyView()
         }
+    }
+
+    private func renderStatusPill(kind: DSStatusKind, label: String) -> some View {
+        DSGlassSurface(role: .popover) {
+            HStack(spacing: DSTokens.Spacing.xs) {
+                DSStatusIndicator(kind, label: label)
+                Text(label)
+                    .dsFont(.metric)
+                    .foregroundStyle(environment.theme.colors.textPrimary.color)
+            }
+            .padding(.horizontal, DSTokens.Spacing.smMd)
+            .padding(.vertical, DSTokens.Spacing.xs)
+        }
+        .accessibilityIdentifier("preview.renderHealth")
     }
 
     private var workspaceLabel: String {

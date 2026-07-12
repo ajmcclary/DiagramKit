@@ -12,9 +12,11 @@
 import SwiftUI
 import DiagramKitInteractive
 import DiagramKitModel
+import DiagramKitSampleDesignSystem
 
 struct SequenceEditCanvas: View {
     @Bindable var store: LiveEditorStore
+    @Environment(\.dsEnvironment) private var environment
 
     /// Live drag state. `@GestureState` auto-resets when the gesture ends or
     /// is cancelled, so an interrupted drag can't leave a row stuck.
@@ -105,7 +107,13 @@ struct SequenceEditCanvas: View {
                     p.move(to: CGPoint(x: leftInset, y: y))
                     p.addLine(to: CGPoint(x: size.width - rightInset, y: y))
                 }
-                .stroke(Color.accentColor, style: StrokeStyle(lineWidth: 2, dash: [4, 3]))
+                .stroke(
+                    environment.theme.colors.accent.color,
+                    style: StrokeStyle(
+                        lineWidth: DSTokens.Stroke.medium,
+                        dash: [DSTokens.Spacing.xxs, DSTokens.Spacing.xxxs + DSTokens.Stroke.thin]
+                    )
+                )
                 .allowsHitTesting(false)
             }
         }
@@ -134,21 +142,27 @@ struct SequenceEditCanvas: View {
     }
 
     private func lifeline(actor: SequenceActor, x: CGFloat, height: CGFloat, topInset: CGFloat) -> some View {
-        VStack(spacing: 4) {
+        VStack(spacing: DSTokens.Spacing.xxs) {
             Text(actor.label)
-                .font(.system(size: 11, weight: .semibold))
-                .padding(.horizontal, 8)
-                .padding(.vertical, 4)
+                .dsFont(.badge)
+                .padding(.horizontal, DSTokens.Spacing.sm)
+                .padding(.vertical, DSTokens.Spacing.xxs)
                 .background(
-                    RoundedRectangle(cornerRadius: 6)
-                        .fill(Color.accentColor.opacity(0.18))
+                    RoundedRectangle(cornerRadius: DSTokens.Radius.sm)
+                        .fill(environment.theme.colors.elementSelected.color)
                 )
-                .foregroundStyle(Color.accentColor)
+                .foregroundStyle(environment.theme.colors.accent.color)
             Path { p in
                 p.move(to: CGPoint(x: 0, y: 0))
                 p.addLine(to: CGPoint(x: 0, y: height))
             }
-            .stroke(Color.secondary.opacity(0.35), style: StrokeStyle(lineWidth: 1, dash: [2, 2]))
+            .stroke(
+                environment.theme.colors.borderVariant.color.opacity(DSTokens.Opacity.disabled),
+                style: StrokeStyle(
+                    lineWidth: DSTokens.Stroke.thin,
+                    dash: [DSTokens.Spacing.xxxs, DSTokens.Spacing.xxxs]
+                )
+            )
             .frame(height: height)
         }
         .position(x: x, y: topInset / 2 + height / 2)
@@ -179,9 +193,10 @@ struct SequenceEditCanvas: View {
             // A participant the message references isn't in `actors` — surface
             // the mismatch instead of drawing a zero-length arrow pinned to
             // the first lifeline.
-            Text("⚠ \(message.label)")
-                .font(.system(size: 10, weight: .medium))
-                .foregroundStyle(.orange)
+            HStack(spacing: DSTokens.Spacing.xxs) {
+                DSIconView(.warning, size: DSTokens.Icon.micro, colorRole: .warning)
+                Text(message.label).dsFont(.caption2)
+            }
                 .frame(height: rowHeight, alignment: .top)
                 .position(x: leftInset + columnSpacing * 0.5, y: y)
         }
@@ -201,9 +216,11 @@ struct SequenceEditCanvas: View {
                 p.addLine(to: CGPoint(x: toX, y: y))
             }
             .stroke(
-                isDragging ? Color.accentColor : Color.primary.opacity(0.7),
+                isDragging
+                    ? environment.theme.colors.accent.color
+                    : environment.theme.colors.textPrimary.color.opacity(DSTokens.Opacity.strong),
                 style: StrokeStyle(
-                    lineWidth: isDragging ? 2 : 1.2,
+                    lineWidth: isDragging ? DSTokens.Stroke.medium : DSTokens.Stroke.mediumLight,
                     dash: message.lineStyle == "dashed" ? [4, 3] : []
                 )
             )
@@ -216,29 +233,32 @@ struct SequenceEditCanvas: View {
                 p.move(to: CGPoint(x: toX, y: y))
                 p.addLine(to: CGPoint(x: toX - 6 * dir, y: y + 4))
             }
-            .stroke(isDragging ? Color.accentColor : Color.primary, lineWidth: 1.5)
+            .stroke(
+                isDragging
+                    ? environment.theme.colors.accent.color
+                    : environment.theme.colors.textPrimary.color,
+                lineWidth: DSTokens.Stroke.mediumLight
+            )
 
             // Label centered between endpoints, slightly above the line
             Text(message.label)
-                .font(.system(size: 10))
-                .padding(.horizontal, 4)
+                .dsFont(.caption2)
+                .padding(.horizontal, DSTokens.Spacing.xxs)
                 .background(Capsule().fill(Color(store.previewTheme.background)))
-                .foregroundStyle(.primary)
+                .foregroundStyle(environment.theme.colors.textPrimary.color)
                 .position(x: (fromX + toX) / 2, y: y - 8)
         }
         .frame(height: rowHeight, alignment: .top)
         .contentShape(Rectangle())
-        .opacity(isDragging ? 0.55 : 1)
+        .opacity(isDragging ? DSTokens.Opacity.medium : 1)
     }
 
     private var missingDocumentPlaceholder: some View {
-        VStack(spacing: 6) {
-            Image(systemName: "rectangle.compress.vertical")
-                .font(.system(size: 28))
-                .foregroundStyle(.secondary)
+        VStack(spacing: DSTokens.Spacing.xs) {
+            DSIconView(.diagram, size: DSTokens.Icon.lg, colorRole: .muted)
             Text("Switch to a sequence diagram source to use this canvas.")
-                .font(.system(size: 12))
-                .foregroundStyle(.secondary)
+                .dsFont(.caption)
+                .foregroundStyle(environment.theme.colors.textSecondary.color)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }

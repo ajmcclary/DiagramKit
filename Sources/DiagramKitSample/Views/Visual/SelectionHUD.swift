@@ -7,22 +7,22 @@
 //
 
 import SwiftUI
+import DiagramKitSampleDesignSystem
 
 struct SelectionHUD: View {
     @Bindable var store: LiveEditorStore
 
     var body: some View {
         if let label = summary {
-            HStack(spacing: 5) {
-                Image(systemName: "selection.pin.in.out")
-                    .font(.system(size: 10, weight: .semibold))
+            DSGlassSurface(role: .popover) {
+            HStack(spacing: DSTokens.Spacing.xxs) {
+                DSIconView(.node, size: DSTokens.Icon.micro, colorRole: .info)
                 Text(label)
-                    .font(.system(size: 11, weight: .semibold))
+                    .dsFont(.badge)
             }
-            .padding(.horizontal, 10)
-            .padding(.vertical, 4)
-            .glassChrome(.hud, in: Capsule())
-            .foregroundStyle(Color.accentColor)
+            .padding(.horizontal, DSTokens.Spacing.smMd)
+            .padding(.vertical, DSTokens.Spacing.xxs)
+            }
             .accessibilityIdentifier(A11yID.Visual.selectionHUD)
             .accessibilityLabel("Selection: \(label)")
         }

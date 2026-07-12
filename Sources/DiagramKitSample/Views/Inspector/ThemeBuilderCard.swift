@@ -9,70 +9,64 @@
 //
 
 import SwiftUI
+import DiagramKitSampleDesignSystem
 
 struct ThemeBuilderCard: View {
     @Bindable var store: LiveEditorStore
+    @Environment(\.dsEnvironment) private var environment
 
     var body: some View {
         InspectorSectionHeader(title: "Theme builder", systemImage: "paintbrush.pointed")
             .padding(.bottom, 4)
-        VStack(alignment: .leading, spacing: 8) {
+        VStack(alignment: .leading, spacing: DSTokens.Spacing.sm) {
             ForEach(ThemeBuilderState.Token.allCases, id: \.self) { token in
                 row(for: token)
             }
             footer
         }
-        .padding(8)
-        .background(
-            RoundedRectangle(cornerRadius: 8, style: .continuous)
-                .fill(Color.gray.opacity(0.06))
-        )
+        .padding(DSTokens.Spacing.sm)
+        .background { DSSurface(role: .card) { Color.clear } }
         .accessibilityIdentifier("inspector.themeBuilder")
         .accessibilityElement(children: .contain)
     }
 
     private func row(for token: ThemeBuilderState.Token) -> some View {
         let hex = store.state.themeBuilder.override(for: token) ?? defaultHex(for: token)
-        return HStack(spacing: 6) {
+        return HStack(spacing: DSTokens.Spacing.xs) {
             Text(token.label)
-                .font(.system(size: 11, weight: .medium))
+                .dsFont(.badge)
                 .frame(width: 90, alignment: .leading)
             if token.isSemantic {
-                Text("sem")
-                    .font(.system(size: 9, weight: .semibold))
-                    .padding(.horizontal, 4)
-                    .padding(.vertical, 1)
-                    .background(Capsule().fill(Color.gray.opacity(0.18)))
-                    .foregroundStyle(.secondary)
+                DSCodeBadge("sem")
             }
-            RoundedRectangle(cornerRadius: 4)
+            RoundedRectangle(cornerRadius: DSTokens.Radius.xs)
                 .fill(Color(hex: hex) ?? .gray)
                 .frame(width: 20, height: 20)
                 .overlay(
-                    RoundedRectangle(cornerRadius: 4)
-                        .stroke(Color.gray.opacity(0.35), lineWidth: 0.5)
+                    RoundedRectangle(cornerRadius: DSTokens.Radius.xs)
+                        .stroke(
+                            environment.theme.colors.borderVariant.color,
+                            lineWidth: DSTokens.Stroke.hairline
+                        )
                 )
-            TextField("hex", text: Binding(
+            DSField("hex", text: Binding(
                 get: { hex },
                 set: { newValue in
                     store.setThemeOverride(token, hex: newValue.isEmpty ? nil : newValue)
                 }
             ))
-            .textFieldStyle(.roundedBorder)
-            .font(.system(size: 11, design: .monospaced))
             .frame(width: 70)
             .accessibilityIdentifier("themebuilder.token.\(token.rawValue)")
             Spacer(minLength: 0)
-            Button {
+            DSIconButton(.reset, label: "Reset \(token.label)") {
                 store.setThemeOverride(token, hex: nil)
-            } label: {
-                Image(systemName: "arrow.counterclockwise")
-                    .font(.system(size: 10, weight: .medium))
-                    .foregroundStyle(.secondary)
             }
-            .buttonStyle(.plain)
             .disabled(store.state.themeBuilder.override(for: token) == nil)
-            .opacity(store.state.themeBuilder.override(for: token) == nil ? 0.35 : 1)
+            .opacity(
+                store.state.themeBuilder.override(for: token) == nil
+                    ? DSTokens.Opacity.disabled
+                    : 1
+            )
             .help("Reset \(token.label)")
             .a11y(label: "Reset \(token.label)", id: "themebuilder.reset.\(token.rawValue)")
         }
@@ -81,24 +75,34 @@ struct ThemeBuilderCard: View {
     private var footer: some View {
         HStack {
             if store.state.themeBuilder.dirty {
-                Text("\(store.state.themeBuilder.overrides.count) override\(store.state.themeBuilder.overrides.count == 1 ? "" : "s")")
-                    .font(.system(size: 10, weight: .medium))
-                    .foregroundStyle(Color.orange)
+                HStack(spacing: DSTokens.Spacing.xs) {
+                    DSStatusIndicator(.warning, label: overrideCountLabel)
+                    Text(overrideCountLabel)
+                        .dsFont(.caption2)
+                        .foregroundStyle(environment.theme.colors.warning.color)
+                }
             } else {
-                Text("Using theme defaults")
-                    .font(.system(size: 10, weight: .medium))
-                    .foregroundStyle(.secondary)
+                HStack(spacing: DSTokens.Spacing.xs) {
+                    DSStatusIndicator(.info, label: "Using theme defaults")
+                    Text("Using theme defaults")
+                        .dsFont(.caption2)
+                        .foregroundStyle(environment.theme.colors.textSecondary.color)
+                }
             }
             Spacer()
             Button("Reset all") {
                 store.resetThemeOverrides()
             }
-            .buttonStyle(.bordered)
-            .controlSize(.mini)
+            .buttonStyle(.ds(role: .secondary, size: .compact))
             .disabled(!store.state.themeBuilder.dirty)
             .a11y(label: "Reset all theme overrides", id: "themebuilder.resetAll")
         }
-        .padding(.top, 4)
+        .padding(.top, DSTokens.Spacing.xxs)
+    }
+
+    private var overrideCountLabel: String {
+        let count = store.state.themeBuilder.overrides.count
+        return "\(count) override\(count == 1 ? "" : "s")"
     }
 
     private func defaultHex(for token: ThemeBuilderState.Token) -> String {

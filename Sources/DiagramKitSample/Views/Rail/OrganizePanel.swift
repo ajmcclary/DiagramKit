@@ -10,32 +10,36 @@
 
 import SwiftUI
 import DiagramKit
+import DiagramKitSampleDesignSystem
 
 struct OrganizePanel: View {
     @Bindable var store: LiveEditorStore
     @SwiftUI.State private var filter = ""
     @SwiftUI.State private var collapsed: Set<String> = []
     @SwiftUI.State private var edgesCollapsed = false
-    @Environment(\.playgroundTokens) private var tokens
+    @Environment(\.dsEnvironment) private var environment
 
     private var tree: OutlineTree { OutlineTree.from(store) }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             PanelHeader("Organize") {
-                Image(systemName: "plus").font(.system(size: 12)).foregroundStyle(tokens.palette.fg3)
+                DSIconView(.add, size: DSTokens.Icon.micro, colorRole: .muted)
             }
             PanelFilterField(placeholder: "Filter nodes…", text: $filter)
             ScrollView {
-                VStack(alignment: .leading, spacing: 1) {
+                VStack(alignment: .leading, spacing: DSTokens.Stroke.thin) {
                     ForEach(rows) { row in rowView(row) }
                     if filter.isEmpty && !tree.edges.isEmpty { edgesSection }
                     if tree.roots.isEmpty {
-                        Text("No flowchart elements").font(PlaygroundFont.caption)
-                            .foregroundStyle(tokens.palette.textFaint).padding(12)
+                        Text("No flowchart elements")
+                            .dsFont(.caption)
+                            .foregroundStyle(environment.theme.colors.textSecondary.color)
+                            .padding(DSTokens.Spacing.md)
                     }
                 }
-                .padding(.horizontal, 8).padding(.bottom, 12)
+                .padding(.horizontal, DSTokens.Spacing.sm)
+                .padding(.bottom, DSTokens.Spacing.md)
             }
         }
     }
@@ -80,18 +84,28 @@ struct OrganizePanel: View {
         return Button {
             if isCollapsed { collapsed.remove(row.node.id) } else { collapsed.insert(row.node.id) }
         } label: {
-            HStack(spacing: 6) {
-                Image(systemName: isCollapsed ? "chevron.right" : "chevron.down")
-                    .font(.system(size: 9, weight: .semibold)).foregroundStyle(tokens.palette.fg3).frame(width: 10)
-                Image(systemName: "curlybraces").font(.system(size: 12)).foregroundStyle(tokens.palette.accentSecondary)
-                Text(row.node.display).font(PlaygroundFont.sans(13, weight: .semibold))
-                    .foregroundStyle(tokens.palette.fg1).lineLimit(1)
-                Spacer(minLength: 4)
-                Text(row.node.id).font(PlaygroundFont.mono(10.5)).foregroundStyle(tokens.palette.textFaintest)
+            HStack(spacing: DSTokens.Spacing.xs) {
+                DSIconView(
+                    isCollapsed ? .disclosureRight : .disclosureDown,
+                    size: DSTokens.Icon.indicator,
+                    colorRole: .muted
+                )
+                DSIconView(.subgraph, size: DSTokens.Icon.micro)
+                Text(row.node.display)
+                    .dsFont(.footnote)
+                    .foregroundStyle(environment.theme.colors.textPrimary.color)
+                    .lineLimit(1)
+                Spacer(minLength: DSTokens.Spacing.xxs)
+                Text(row.node.id)
+                    .dsFont(.code)
+                    .foregroundStyle(environment.theme.colors.textDisabled.color)
             }
-            .padding(.leading, 8 + CGFloat(row.depth) * 14).padding(.trailing, 8).padding(.vertical, 4)
+            .padding(.leading, DSTokens.Spacing.sm + CGFloat(row.depth) * DSTokens.Spacing.lg)
+            .padding(.trailing, DSTokens.Spacing.sm)
+            .padding(.vertical, DSTokens.Spacing.xxs)
             .contentShape(Rectangle())
-        }.buttonStyle(.plain)
+        }
+        .buttonStyle(.ds(role: .ghost, size: .compact))
     }
 
     private func nodeRow(_ row: FlatRow) -> some View {
@@ -99,48 +113,77 @@ struct OrganizePanel: View {
         return Button {
             selectNode(row.node.id)
         } label: {
-            HStack(spacing: 8) {
-                RoundedRectangle(cornerRadius: 2)
-                    .fill(isSelected ? tokens.palette.accent : tokens.palette.fg3.opacity(0.55))
-                    .frame(width: 11, height: 8)
-                Text(row.node.display).font(PlaygroundFont.body)
-                    .foregroundStyle(isSelected ? tokens.palette.accentSecondary : tokens.palette.fg1).lineLimit(1)
-                Spacer(minLength: 4)
-                Text(row.node.id).font(PlaygroundFont.mono(10.5))
-                    .foregroundStyle(isSelected ? tokens.palette.accentSecondary : tokens.palette.textFaintest)
+            HStack(spacing: DSTokens.Spacing.sm) {
+                DSIconView(
+                    .node,
+                    size: DSTokens.Icon.indicator,
+                    colorRole: isSelected ? .primary : .muted
+                )
+                Text(row.node.display)
+                    .dsFont(.caption)
+                    .foregroundStyle(
+                        isSelected
+                            ? environment.theme.colors.accent.color
+                            : environment.theme.colors.textPrimary.color
+                    )
+                    .lineLimit(1)
+                Spacer(minLength: DSTokens.Spacing.xxs)
+                Text(row.node.id)
+                    .dsFont(.code)
+                    .foregroundStyle(
+                        isSelected
+                            ? environment.theme.colors.accent.color
+                            : environment.theme.colors.textDisabled.color
+                    )
             }
-            .padding(.leading, 8 + CGFloat(row.depth) * 14 + 16).padding(.trailing, 8).padding(.vertical, 4)
-            .background(isSelected ? tokens.palette.accentTint16 : .clear)
+            .padding(.leading, DSTokens.Spacing.xxl + CGFloat(row.depth) * DSTokens.Spacing.lg)
+            .padding(.trailing, DSTokens.Spacing.sm)
+            .padding(.vertical, DSTokens.Spacing.xxs)
+            .background(isSelected ? environment.theme.colors.elementSelected.color : .clear)
             .overlay(alignment: .leading) {
                 if isSelected {
-                    Rectangle().fill(tokens.palette.accent).frame(width: 2)
-                        .padding(.leading, CGFloat(row.depth) * 14)
+                    Rectangle()
+                        .fill(environment.theme.colors.accent.color)
+                        .frame(width: DSTokens.Control.accentBar)
+                        .padding(.leading, CGFloat(row.depth) * DSTokens.Spacing.lg)
                 }
             }
-            .clipShape(RoundedRectangle(cornerRadius: 5))
+            .clipShape(RoundedRectangle(cornerRadius: DSTokens.Radius.xs))
             .contentShape(Rectangle())
-        }.buttonStyle(.plain)
+        }
+        .buttonStyle(.ds(role: isSelected ? .secondary : .ghost, size: .compact))
     }
 
     private var edgesSection: some View {
-        VStack(alignment: .leading, spacing: 1) {
+        VStack(alignment: .leading, spacing: DSTokens.Stroke.thin) {
             Button { edgesCollapsed.toggle() } label: {
-                HStack(spacing: 6) {
-                    Image(systemName: edgesCollapsed ? "chevron.right" : "chevron.down")
-                        .font(.system(size: 9, weight: .semibold)).foregroundStyle(tokens.palette.fg3).frame(width: 10)
-                    Image(systemName: "arrow.right").font(.system(size: 11)).foregroundStyle(tokens.palette.catCyan)
-                    Text("EDGES").font(PlaygroundFont.sans(11, weight: .bold)).tracking(0.6).foregroundStyle(tokens.palette.fg3)
-                    Spacer(minLength: 4)
-                    Text("\(tree.edges.count)").font(PlaygroundFont.mono(10.5)).foregroundStyle(tokens.palette.textFaintest)
+                HStack(spacing: DSTokens.Spacing.xs) {
+                    DSIconView(
+                        edgesCollapsed ? .disclosureRight : .disclosureDown,
+                        size: DSTokens.Icon.indicator,
+                        colorRole: .muted
+                    )
+                    DSIconView(.convert, size: DSTokens.Icon.micro, colorRole: .info)
+                    DSSectionHeader("Edges")
+                    Spacer(minLength: DSTokens.Spacing.xxs)
+                    Text("\(tree.edges.count)")
+                        .dsFont(.code)
+                        .foregroundStyle(environment.theme.colors.textDisabled.color)
                 }
-                .padding(.leading, 8).padding(.trailing, 8).padding(.top, 10).padding(.bottom, 4)
+                .padding(.leading, DSTokens.Spacing.sm)
+                .padding(.trailing, DSTokens.Spacing.sm)
+                .padding(.top, DSTokens.Spacing.smMd)
+                .padding(.bottom, DSTokens.Spacing.xxs)
                 .contentShape(Rectangle())
-            }.buttonStyle(.plain)
+            }
+            .buttonStyle(.ds(role: .ghost, size: .compact))
             if !edgesCollapsed {
                 ForEach(tree.edges) { e in
-                    Text("\(e.from) → \(e.to)").font(PlaygroundFont.mono(12))
-                        .foregroundStyle(tokens.palette.fg3)
-                        .padding(.leading, 28).padding(.vertical, 3)
+                    Text("\(e.from) → \(e.to)")
+                        .dsFont(.code)
+                        .foregroundStyle(environment.theme.colors.textSecondary.color)
+                        .padding(.leading, DSTokens.Control.rowCompact)
+                        .padding(.vertical, DSTokens.Stroke.thick)
                 }
             }
         }

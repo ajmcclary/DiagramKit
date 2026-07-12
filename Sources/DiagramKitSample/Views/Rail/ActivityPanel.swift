@@ -7,21 +7,22 @@
 //
 
 import SwiftUI
+import DiagramKitSampleDesignSystem
 
 struct ActivityPanel: View {
     @Bindable var store: LiveEditorStore
-    @Environment(\.playgroundTokens) private var tokens
 
     var body: some View {
-        Group {
-            switch store.state.activeRailTab {
-            case .organize: OrganizePanel(store: store)
-            case .browse: BrowsePanel(store: store)
-            case .search: SearchPanel(store: store)
-            case .source: SourcePanel(store: store)
+        DSSurface(role: .panel) {
+            Group {
+                switch store.state.activeRailTab {
+                case .organize: OrganizePanel(store: store)
+                case .browse: BrowsePanel(store: store)
+                case .search: SearchPanel(store: store)
+                case .source: SourcePanel(store: store)
+                }
             }
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
-        .background(tokens.palette.bgPanel)
     }
 }

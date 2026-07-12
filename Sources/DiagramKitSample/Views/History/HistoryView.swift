@@ -8,6 +8,7 @@
 
 import SwiftUI
 import DiagramKit
+import DiagramKitSampleDesignSystem
 import UniformTypeIdentifiers
 
 struct HistoryView: View {
@@ -19,14 +20,16 @@ struct HistoryView: View {
     @SwiftUI.State private var showingImportSheet = false
     @SwiftUI.State private var exportedData: Data?
     @SwiftUI.State private var importResult: String?
+    @Environment(\.dsEnvironment) private var environment
 
     var body: some View {
-        VStack(spacing: 0) {
+        DSSurface(role: .panel) {
+            VStack(spacing: 0) {
             // Filter segmented control
             filterBar
-                .padding(.horizontal, 12)
-                .padding(.top, 12)
-                .padding(.bottom, 8)
+                .padding(.horizontal, DSTokens.Spacing.md)
+                .padding(.top, DSTokens.Spacing.md)
+                .padding(.bottom, DSTokens.Spacing.sm)
 
             // Entry list
             if filteredEntries.isEmpty {
@@ -37,13 +40,11 @@ struct HistoryView: View {
 
             // Bottom bar
             bottomBar
-                .padding(.horizontal, 12)
-                .padding(.vertical, 8)
-                .background(
-                    Color(store.theme.foreground).opacity(0.03)
-                )
+                .padding(.horizontal, DSTokens.Spacing.md)
+                .padding(.vertical, DSTokens.Spacing.sm)
+                .background { DSSurface(role: .statusBar) { Color.clear } }
+            }
         }
-        .background(Color(store.theme.background))
         .alert("Clear All History", isPresented: $showingClearConfirmation) {
             Button("Cancel", role: .cancel) {}
             Button("Clear All", role: .destructive) {
@@ -99,7 +100,7 @@ struct HistoryView: View {
     // MARK: - Filter bar
 
     private var filterBar: some View {
-        HStack(spacing: 0) {
+        HStack(spacing: DSTokens.Stroke.thin) {
             ForEach(filterOptions, id: \.0) { label, origin in
                 Button {
                     withAnimation(.easeOut(duration: 0.15)) {
@@ -107,27 +108,16 @@ struct HistoryView: View {
                     }
                 } label: {
                     Text(label)
-                        .font(.system(size: 11, weight: .medium))
-                        .foregroundColor(filterOrigin == origin
-                            ? .white
-                            : Color(store.theme.effectiveMuted()))
-                        .padding(.vertical, 5)
-                        .padding(.horizontal, 10)
-                        .background(
-                            RoundedRectangle(cornerRadius: 6)
-                                .fill(filterOrigin == origin
-                                    ? Color(store.theme.effectiveAccent())
-                                    : Color.clear)
-                        )
+                        .dsFont(.badge)
                 }
-                .buttonStyle(.plain)
+                .buttonStyle(.ds(
+                    role: filterOrigin == origin ? .secondary : .ghost,
+                    size: .compact
+                ))
             }
         }
-        .padding(2)
-        .background(
-            RoundedRectangle(cornerRadius: 8)
-                .fill(Color(store.theme.foreground).opacity(0.06))
-        )
+        .padding(DSTokens.Stroke.medium)
+        .background { DSSurface(role: .sunken) { Color.clear } }
     }
 
     private var filterOptions: [(String, LiveHistoryOrigin?)] {
@@ -142,11 +132,16 @@ struct HistoryView: View {
     // MARK: - Empty state
 
     private var emptyState: some View {
-        ContentUnavailableView(
-            "No history entries",
-            systemImage: "clock.arrow.circlepath",
-            description: Text("Manual saves, auto timeline snapshots, and loaded diagrams will appear here.")
-        )
+        VStack(spacing: DSTokens.Spacing.sm) {
+            DSIconView(.history, size: DSTokens.Icon.lg, colorRole: .muted)
+            Text("No history entries")
+                .dsFont(.headline)
+            Text("Manual saves, auto timeline snapshots, and loaded diagrams will appear here.")
+                .dsFont(.caption)
+                .foregroundStyle(environment.theme.colors.textSecondary.color)
+                .multilineTextAlignment(.center)
+        }
+        .padding(DSTokens.Spacing.xxl)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 
@@ -154,135 +149,116 @@ struct HistoryView: View {
 
     private var entryList: some View {
         ScrollView {
-            LazyVStack(spacing: 2) {
+            LazyVStack(spacing: DSTokens.Spacing.xxxs) {
                 ForEach(filteredEntries) { entry in
                     entryRow(entry)
                 }
             }
-            .padding(.horizontal, 12)
-            .padding(.bottom, 8)
+            .padding(.horizontal, DSTokens.Spacing.md)
+            .padding(.bottom, DSTokens.Spacing.sm)
         }
     }
 
     private func entryRow(_ entry: LiveHistoryEntry) -> some View {
         HStack(spacing: 0) {
             // Content
-            VStack(alignment: .leading, spacing: 4) {
-                HStack(spacing: 6) {
+            VStack(alignment: .leading, spacing: DSTokens.Spacing.xxs) {
+                HStack(spacing: DSTokens.Spacing.xs) {
                     // Origin icon
-                    Image(systemName: entry.origin.iconName)
-                        .font(.system(size: 10))
-                        .foregroundColor(entry.origin.color)
+                    DSIconView(
+                        entry.origin.dsIcon,
+                        size: DSTokens.Icon.indicator,
+                        colorRole: entry.origin.dsIconColorRole
+                    )
 
                     // Label
                     Text(entry.displayLabel)
-                        .font(.system(size: 12, weight: .semibold))
-                        .foregroundColor(Color(store.theme.foreground))
+                        .dsFont(.badge)
+                        .foregroundStyle(environment.theme.colors.textPrimary.color)
                         .lineLimit(1)
 
                     Spacer()
 
                     // Theme chip
-                    Text(entry.state.selectedThemeName)
-                        .font(.system(size: 9, weight: .medium))
-                        .foregroundColor(Color(store.theme.effectiveMuted()))
-                        .padding(.horizontal, 6)
-                        .padding(.vertical, 2)
-                        .background(
-                            RoundedRectangle(cornerRadius: 3)
-                                .fill(Color(store.theme.foreground).opacity(0.06))
-                        )
+                    DSCodeBadge(entry.state.selectedThemeName)
                 }
 
                 // Source preview
                 Text(sourcePreview(entry.state.source))
-                    .font(.system(size: 10, design: .monospaced))
-                    .foregroundColor(Color(store.theme.effectiveMuted()))
+                    .dsFont(.code)
+                    .foregroundStyle(environment.theme.colors.textSecondary.color)
                     .lineLimit(2)
 
                 // Timestamp + URL
-                HStack(spacing: 6) {
+                HStack(spacing: DSTokens.Spacing.xs) {
                     Text(entry.timestamp.formatted(date: .abbreviated, time: .shortened))
-                        .font(.system(size: 10))
-                        .foregroundColor(Color(store.theme.effectiveMuted()).opacity(0.7))
+                        .dsFont(.caption2)
+                        .foregroundStyle(environment.theme.colors.textDisabled.color)
 
                     if let sourceURL = entry.sourceURL {
                         Text("•")
-                            .foregroundColor(Color(store.theme.effectiveMuted()).opacity(0.4))
+                            .foregroundStyle(environment.theme.colors.textDisabled.color)
                         Text(sourceURL.absoluteString)
-                            .font(.system(size: 10))
-                            .foregroundColor(Color(store.theme.effectiveMuted()).opacity(0.7))
+                            .dsFont(.caption2)
+                            .foregroundStyle(environment.theme.colors.textDisabled.color)
                             .lineLimit(1)
                     }
                 }
             }
-            .padding(.vertical, 8)
-            .padding(.leading, 10)
+            .padding(.vertical, DSTokens.Spacing.sm)
+            .padding(.leading, DSTokens.Spacing.smMd)
 
             // Actions
-            HStack(spacing: 4) {
+            HStack(spacing: DSTokens.Spacing.xxs) {
                 // Restore
-                Button {
+                DSIconButton(.history, label: "Restore this state") {
                     store.restoreFromHistory(entry)
-                } label: {
-                    Image(systemName: "arrow.uturn.backward")
-                        .font(.system(size: 12, weight: .medium))
-                        .foregroundColor(Color(store.theme.effectiveAccent()))
-                        .frame(width: 28, height: 28)
                 }
-                .buttonStyle(.plain)
                 .help("Restore this state")
 
                 // Delete (only for non-read-only entries)
                 if !entry.isReadOnly {
-                    Button {
+                    DSIconButton(
+                        .remove,
+                        label: "Delete this entry",
+                        role: .destructive
+                    ) {
                         withAnimation(.easeOut(duration: 0.2)) {
                             store.historyStore.delete(entry)
                         }
-                    } label: {
-                        Image(systemName: "trash")
-                            .font(.system(size: 12))
-                            .foregroundColor(.red.opacity(0.7))
-                            .frame(width: 28, height: 28)
                     }
-                    .buttonStyle(.plain)
                     .help("Delete this entry")
                 }
             }
-            .padding(.trailing, 6)
+            .padding(.trailing, DSTokens.Spacing.xs)
         }
-        .background(
-            RoundedRectangle(cornerRadius: 6)
-                .fill(Color(store.theme.foreground).opacity(0.02))
-        )
+        .background { DSSurface(role: .card) { Color.clear } }
         .contentShape(Rectangle())
     }
 
     // MARK: - Bottom bar
 
     private var bottomBar: some View {
-        HStack(spacing: 8) {
+        HStack(spacing: DSTokens.Spacing.sm) {
             // Import
             Button {
                 showingImportSheet = true
             } label: {
-                HStack(spacing: 4) {
-                    Image(systemName: "square.and.arrow.down")
-                        .font(.system(size: 11))
+                HStack(spacing: DSTokens.Spacing.xxs) {
+                    DSIconView(.copy, size: DSTokens.Icon.micro, colorRole: .muted)
                     Text("Import")
-                        .font(.system(size: 11, weight: .medium))
+                        .dsFont(.badge)
                 }
-                .foregroundColor(Color(store.theme.effectiveMuted()))
             }
-            .buttonStyle(.plain)
+            .buttonStyle(.ds(role: .ghost, size: .compact))
             .help("Import history from JSON file")
 
             Spacer()
 
             // Entry count
             Text("\(filteredEntries.count) \(filteredEntries.count == 1 ? "entry" : "entries")")
-                .font(.system(size: 10))
-                .foregroundColor(Color(store.theme.effectiveMuted()).opacity(0.6))
+                .dsFont(.caption2)
+                .foregroundStyle(environment.theme.colors.textSecondary.color)
 
             Spacer()
 
@@ -295,27 +271,20 @@ struct HistoryView: View {
                     importResult = "Export failed: \(error.localizedDescription)"
                 }
             } label: {
-                HStack(spacing: 4) {
-                    Image(systemName: "square.and.arrow.up")
-                        .font(.system(size: 11))
+                HStack(spacing: DSTokens.Spacing.xxs) {
+                    DSIconView(.export, size: DSTokens.Icon.micro, colorRole: .muted)
                     Text("Export")
-                        .font(.system(size: 11, weight: .medium))
+                        .dsFont(.badge)
                 }
-                .foregroundColor(Color(store.theme.effectiveMuted()))
             }
-            .buttonStyle(.plain)
+            .buttonStyle(.ds(role: .ghost, size: .compact))
             .disabled(store.historyStore.entries.isEmpty)
             .help("Export history as JSON file")
 
             // Clear all
-            Button {
+            DSIconButton(.remove, label: "Clear all history", role: .destructive) {
                 showingClearConfirmation = true
-            } label: {
-                Image(systemName: "trash")
-                    .font(.system(size: 11))
-                    .foregroundColor(.red.opacity(0.6))
             }
-            .buttonStyle(.plain)
             .disabled(store.historyStore.entries.isEmpty)
             .help("Clear all history")
         }
@@ -365,17 +334,20 @@ struct HistoryView: View {
     // MARK: - Toast
 
     private func resultToast(_ message: String) -> some View {
-        Text(message)
-            .font(.system(size: 12, weight: .medium))
-            .foregroundColor(.white)
-            .padding(.horizontal, 14)
-            .padding(.vertical, 8)
-            .background(
-                RoundedRectangle(cornerRadius: 8)
-                    .fill(message.hasPrefix("Import") || message.hasPrefix("Export")
-                        ? Color.orange.opacity(0.9)
-                        : Color.green.opacity(0.9))
-            )
+        DSGlassSurface(role: .popover) {
+            HStack(spacing: DSTokens.Spacing.sm) {
+                DSStatusIndicator(
+                    message.hasPrefix("Import") || message.hasPrefix("Export")
+                        ? .warning
+                        : .success,
+                    label: message
+                )
+                Text(message)
+                    .dsFont(.badge)
+            }
+            .padding(.horizontal, DSTokens.Spacing.lg)
+            .padding(.vertical, DSTokens.Spacing.sm)
+        }
     }
 }
 
@@ -403,19 +375,19 @@ private struct HistoryDocument: FileDocument {
 // MARK: - Origin UI helpers
 
 extension LiveHistoryOrigin {
-    var iconName: String {
+    var dsIcon: DSIcon {
         switch self {
-        case .manual: return "bookmark.fill"
-        case .auto: return "clock.fill"
-        case .loader: return "icloud.and.arrow.down.fill"
+        case .manual: .favorite
+        case .auto: .history
+        case .loader: .copy
         }
     }
 
-    var color: Color {
+    var dsIconColorRole: DSIconColorRole {
         switch self {
-        case .manual: return .blue
-        case .auto: return .gray
-        case .loader: return .green
+        case .manual: .info
+        case .auto: .muted
+        case .loader: .success
         }
     }
 }

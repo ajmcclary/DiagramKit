@@ -10,43 +10,41 @@
 
 import SwiftUI
 import DiagramKitModel
+import DiagramKitSampleDesignSystem
 
 struct PlatformRow: View {
     @Bindable var store: LiveEditorStore
+    @Environment(\.dsEnvironment) private var environment
 
     var body: some View {
         InspectorSectionHeader(title: "Platform parity", systemImage: "laptopcomputer")
             .padding(.bottom, 4)
-        VStack(alignment: .leading, spacing: 4) {
-            HStack(spacing: 6) {
-                Circle()
-                    .fill(isApproximate ? Color.orange : Color.green)
-                    .frame(width: 8, height: 8)
-                Text(isApproximate ? "⚠ approximate · char-count fallback" : "✓ full parity")
-                    .font(.system(size: 11, weight: .medium))
+        VStack(alignment: .leading, spacing: DSTokens.Spacing.xxs) {
+            HStack(spacing: DSTokens.Spacing.xs) {
+                DSStatusIndicator(
+                    isApproximate ? .warning : .success,
+                    label: isApproximate ? "Approximate parity" : "Full parity"
+                )
+                Text(isApproximate ? "approximate · char-count fallback" : "full parity")
+                    .dsFont(.badge)
                 Spacer()
             }
-            HStack(spacing: 4) {
-                Image(systemName: "doc.text.below.ecg")
-                    .font(.system(size: 9, weight: .semibold))
-                    .foregroundStyle(.secondary)
+            HStack(spacing: DSTokens.Spacing.xxs) {
+                DSIconView(.code, size: DSTokens.Icon.indicator, colorRole: .muted)
                 Text("Sources/DiagramKitCommon/src_text_metrics.swift")
-                    .font(.system(size: 10, design: .monospaced))
-                    .foregroundStyle(.secondary)
+                    .dsFont(.code)
+                    .foregroundStyle(environment.theme.colors.textSecondary.color)
                     .textSelection(.enabled)
             }
             if isApproximate {
                 Text("\(currentFamily?.rawValue ?? "this family") falls back to char-count text width on Linux per CLAUDE.md; geometry is valid but not pixel-equivalent to Apple's CoreText measurement.")
-                    .font(.system(size: 10))
-                    .foregroundStyle(.secondary)
+                    .dsFont(.caption2)
+                    .foregroundStyle(environment.theme.colors.textSecondary.color)
                     .fixedSize(horizontal: false, vertical: true)
             }
         }
-        .padding(8)
-        .background(
-            RoundedRectangle(cornerRadius: 8, style: .continuous)
-                .fill(Color.gray.opacity(0.06))
-        )
+        .padding(DSTokens.Spacing.sm)
+        .background { DSSurface(role: .card) { Color.clear } }
         .accessibilityIdentifier("inspector.platformRow")
         .accessibilityElement(children: .contain)
     }

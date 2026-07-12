@@ -9,9 +9,11 @@
 
 import SwiftUI
 import DiagramKit
+import DiagramKitSampleDesignSystem
 
 struct VersionSecurityPanel: View {
     @SwiftUI.State private var showingPrivacySheet = false
+    @Environment(\.dsEnvironment) private var environment
 
     /// The DiagramKit version string reported by the public renderer API.
     nonisolated static var diagramKitVersion: String {
@@ -23,41 +25,39 @@ struct VersionSecurityPanel: View {
     }
 
     var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 16) {
+        DSSurface(role: .panel) {
+            ScrollView {
+            VStack(alignment: .leading, spacing: DSTokens.Spacing.lg) {
                 // Header
-                HStack(spacing: 10) {
-                    Image(systemName: "chart.bar.doc.horizontal")
-                        .font(.system(size: 28))
-                        .foregroundColor(.accentColor)
-                        .accessibilityHidden(true)
-                    VStack(alignment: .leading, spacing: 2) {
+                HStack(spacing: DSTokens.Spacing.smMd) {
+                    DSIconView(.diagram, size: DSTokens.Icon.md)
+                    VStack(alignment: .leading, spacing: DSTokens.Spacing.xxxs) {
                         Text("DiagramKit Playground")
-                            .font(.system(size: 15, weight: .semibold))
+                            .dsFont(.subheadline)
                         Text("Native multi-format diagram editor")
-                            .font(.system(size: 12))
-                            .foregroundColor(.secondary)
+                            .dsFont(.caption)
+                            .foregroundStyle(environment.theme.colors.textSecondary.color)
                     }
                 }
-                .padding(.bottom, 4)
+                .padding(.bottom, DSTokens.Spacing.xxs)
 
                 Divider()
 
                 // Version
                 infoRow(
-                    icon: "number",
+                    icon: .info,
                     label: "Version",
                     value: diagramKitVersion
                 )
 
                 infoRow(
-                    icon: "cpu",
+                    icon: .settings,
                     label: "Platform",
                     value: platformDescription
                 )
 
                 infoRow(
-                    icon: "swift",
+                    icon: .code,
                     label: "Language",
                     value: "Swift 6"
                 )
@@ -72,7 +72,8 @@ struct VersionSecurityPanel: View {
                 // Links
                 linksSection
             }
-            .padding(16)
+            .padding(DSTokens.Spacing.lg)
+            }
         }
         .sheet(isPresented: $showingPrivacySheet) {
             privacyDetailSheet
@@ -81,22 +82,19 @@ struct VersionSecurityPanel: View {
 
     // MARK: - Info row
 
-    private func infoRow(icon: String, label: String, value: String) -> some View {
-        HStack(spacing: 10) {
-            Image(systemName: icon)
-                .font(.system(size: 14))
-                .foregroundColor(.secondary)
-                .frame(width: 20)
-                .accessibilityHidden(true)
+    private func infoRow(icon: DSIcon, label: String, value: String) -> some View {
+        HStack(spacing: DSTokens.Spacing.smMd) {
+            DSIconView(icon, size: DSTokens.Icon.micro, colorRole: .muted)
+                .frame(width: DSTokens.Spacing.xl)
 
             Text(label)
-                .font(.system(size: 13, weight: .medium))
+                .dsFont(.footnote)
 
             Spacer()
 
             Text(value)
-                .font(.system(size: 12))
-                .foregroundColor(.secondary)
+                .dsFont(.caption)
+                .foregroundStyle(environment.theme.colors.textSecondary.color)
                 .multilineTextAlignment(.trailing)
         }
     }
@@ -116,31 +114,28 @@ struct VersionSecurityPanel: View {
     // MARK: - Privacy section
 
     private var privacySection: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            HStack(spacing: 10) {
-                Image(systemName: "lock.shield")
-                    .font(.system(size: 14))
-                    .foregroundColor(.green)
-                    .frame(width: 20)
-                    .accessibilityHidden(true)
+        VStack(alignment: .leading, spacing: DSTokens.Spacing.sm) {
+            HStack(spacing: DSTokens.Spacing.smMd) {
+                DSIconView(.success, size: DSTokens.Icon.micro, colorRole: .success)
+                    .frame(width: DSTokens.Spacing.xl)
 
                 Text("Privacy & Security")
-                    .font(.system(size: 13, weight: .semibold))
+                    .dsFont(.footnote)
             }
 
             Text("This app runs entirely on your device. No diagram content, configuration, or usage data is collected, transmitted, or stored externally. Rendering, parsing, and layout are performed natively using the DiagramKit engine — no JavaScript, no remote servers, no telemetry.")
-                .font(.system(size: 12))
-                .foregroundColor(.secondary)
-                .lineSpacing(2)
+                .dsFont(.caption)
+                .foregroundStyle(environment.theme.colors.textSecondary.color)
+                .lineSpacing(DSTokens.Spacing.xxxs)
 
             Button {
                 showingPrivacySheet = true
             } label: {
                 Text("Learn more about privacy...")
-                    .font(.system(size: 12, weight: .medium))
-                    .foregroundColor(.accentColor)
+                    .dsFont(.badge)
+                    .foregroundStyle(environment.theme.colors.accent.color)
             }
-            .buttonStyle(.plain)
+            .buttonStyle(.ds(role: .ghost, size: .compact))
         }
     }
 
@@ -149,7 +144,7 @@ struct VersionSecurityPanel: View {
     private var privacyDetailSheet: some View {
         NavigationStack {
             ScrollView {
-                VStack(alignment: .leading, spacing: 16) {
+                VStack(alignment: .leading, spacing: DSTokens.Spacing.lg) {
                     privacyBullet(
                         title: "100% Local Execution",
                         detail: "All diagram parsing, layout, and rendering happens on your device using native Swift code. No source text ever leaves your machine."
@@ -175,7 +170,7 @@ struct VersionSecurityPanel: View {
                         detail: "This playground app exercises the \(diagramKitVersion) release of the DiagramKit Swift package. All rendering paths are exercised through the public API."
                     )
                 }
-                .padding(16)
+                .padding(DSTokens.Spacing.lg)
             }
             .navigationTitle("Privacy & Security")
             #if os(iOS)
@@ -193,51 +188,44 @@ struct VersionSecurityPanel: View {
     }
 
     private func privacyBullet(title: String, detail: String) -> some View {
-        VStack(alignment: .leading, spacing: 4) {
+        VStack(alignment: .leading, spacing: DSTokens.Spacing.xxs) {
             Text(title)
-                .font(.system(size: 14, weight: .semibold))
+                .dsFont(.headline)
             Text(detail)
-                .font(.system(size: 12))
-                .foregroundColor(.secondary)
-                .lineSpacing(2)
+                .dsFont(.caption)
+                .foregroundStyle(environment.theme.colors.textSecondary.color)
+                .lineSpacing(DSTokens.Spacing.xxxs)
         }
     }
 
     // MARK: - Links section
 
     private var linksSection: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            HStack(spacing: 10) {
-                Image(systemName: "link")
-                    .font(.system(size: 14))
-                    .foregroundColor(.secondary)
-                    .frame(width: 20)
-                    .accessibilityHidden(true)
+        VStack(alignment: .leading, spacing: DSTokens.Spacing.sm) {
+            HStack(spacing: DSTokens.Spacing.smMd) {
+                DSIconView(.copy, size: DSTokens.Icon.micro, colorRole: .muted)
+                    .frame(width: DSTokens.Spacing.xl)
 
                 Text("Links")
-                    .font(.system(size: 13, weight: .semibold))
+                    .dsFont(.footnote)
             }
 
             Link(destination: URL(string: "https://github.com/ajmcclary/mermaid-swift")!) {
                 HStack {
-                    Image(systemName: "arrow.up.right")
-                        .font(.system(size: 10))
-                        .accessibilityHidden(true)
+                    DSIconView(.export, size: DSTokens.Icon.indicator)
                     Text("DiagramKit on GitHub")
-                        .font(.system(size: 12))
+                        .dsFont(.caption)
                 }
-                .foregroundColor(.accentColor)
+                .foregroundStyle(environment.theme.colors.accent.color)
             }
 
             Link(destination: URL(string: "https://mermaid.js.org")!) {
                 HStack {
-                    Image(systemName: "arrow.up.right")
-                        .font(.system(size: 10))
-                        .accessibilityHidden(true)
+                    DSIconView(.export, size: DSTokens.Icon.indicator)
                     Text("Mermaid.js Documentation")
-                        .font(.system(size: 12))
+                        .dsFont(.caption)
                 }
-                .foregroundColor(.accentColor)
+                .foregroundStyle(environment.theme.colors.accent.color)
             }
         }
     }

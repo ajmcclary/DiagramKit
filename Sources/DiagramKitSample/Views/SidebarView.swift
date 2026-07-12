@@ -10,6 +10,7 @@
 import SwiftUI
 import DiagramKit
 import DiagramKitModel
+import DiagramKitSampleDesignSystem
 import UniformTypeIdentifiers
 
 struct SidebarView: View {
@@ -20,33 +21,34 @@ struct SidebarView: View {
     /// dismissing the controls sheet before presenting Settings.
     var onOpenSettings: (() -> Void)? = nil
 
-    @Environment(\.playgroundTokens) private var tokens
+    @Environment(\.dsEnvironment) private var environment
 
     var body: some View {
-        VStack(alignment: .leading, spacing: PlaygroundSpacing.md) {
+        VStack(alignment: .leading, spacing: DSTokens.Spacing.md) {
             browseSection
-            Divider()
-                .overlay(tokens.palette.borderHairline)
-                .padding(.horizontal, -PlaygroundSpacing.sm)
+            Rectangle()
+                .fill(environment.theme.colors.borderVariant.color)
+                .frame(height: DSTokens.Stroke.hairline)
+                .padding(.horizontal, -DSTokens.Spacing.sm)
             SampleDiagramPanel(store: store)
                 .frame(maxHeight: .infinity)
         }
-        .padding(.horizontal, PlaygroundSpacing.md)
-        .padding(.top, PlaygroundSpacing.md)
-        .background(tokens.palette.bgApp)
+        .padding(.horizontal, DSTokens.Spacing.md)
+        .padding(.top, DSTokens.Spacing.md)
+        .background(environment.theme.colors.panelBackground.color)
     }
 
     // MARK: - Browse section
 
     private var browseSection: some View {
         VStack(alignment: .leading, spacing: 2) {
-            SectionHeader("Browse")
-                .padding(.top, 2)
-            link(.coverage, label: "Coverage matrix", trailing: "28×5", icon: "square.grid.3x3")
-            link(.corpus, label: "Corpus", trailing: "\(TestDiagrams.all.count)", icon: "tray.full")
-            link(.crossFormat, label: "Cross-format", trailing: nil, icon: "rectangle.split.3x1")
-            link(.probe, label: "Importer probe", trailing: nil, icon: "magnifyingglass.circle")
-            link(.snippets, label: "Snippets library", trailing: nil, icon: "doc.text")
+            DSSectionHeader("Browse")
+                .padding(.top, DSTokens.Spacing.xxxs)
+            link(.coverage, label: "Coverage matrix", trailing: "28×5", icon: .diagram)
+            link(.corpus, label: "Corpus", trailing: "\(TestDiagrams.all.count)", icon: .image)
+            link(.crossFormat, label: "Cross-format", trailing: nil, icon: .convert)
+            link(.probe, label: "Importer probe", trailing: nil, icon: .search)
+            link(.snippets, label: "Snippets library", trailing: nil, icon: .code)
             if let onOpenSettings {
                 settingsRow(onOpenSettings)
             }
@@ -55,57 +57,49 @@ struct SidebarView: View {
 
     private func settingsRow(_ action: @escaping () -> Void) -> some View {
         Button(action: action) {
-            HStack(spacing: PlaygroundSpacing.sm) {
-                Image(systemName: "gearshape")
-                    .font(.system(size: 11, weight: .medium))
-                    .frame(width: 16)
-                    .foregroundStyle(tokens.palette.fg2)
+            HStack(spacing: DSTokens.Spacing.sm) {
+                DSIconView(.settings, size: DSTokens.Icon.micro, colorRole: .muted)
                 Text("Settings")
-                    .font(PlaygroundFont.body)
-                    .foregroundStyle(tokens.palette.fg1)
-                Spacer(minLength: PlaygroundSpacing.xs)
+                    .dsFont(.body)
+                    .foregroundStyle(environment.theme.colors.textPrimary.color)
+                Spacer(minLength: DSTokens.Spacing.xs)
             }
-            .padding(.horizontal, PlaygroundSpacing.xs)
-            .padding(.vertical, 4)
+            .frame(maxWidth: .infinity, alignment: .leading)
             .contentShape(Rectangle())
         }
-        .buttonStyle(.plain)
+        .buttonStyle(.ds(role: .ghost, size: .compact))
     }
 
     private func link(
         _ surface: FullScreenSurface,
         label: String,
         trailing: String?,
-        icon: String
+        icon: DSIcon
     ) -> some View {
         let isOn = store.state.fullScreen == surface
         return Button {
             store.setFullScreen(isOn ? .none : surface)
         } label: {
-            HStack(spacing: PlaygroundSpacing.sm) {
-                Image(systemName: icon)
-                    .font(.system(size: 11, weight: .medium))
-                    .frame(width: 16)
-                    .foregroundStyle(isOn ? tokens.palette.accent : tokens.palette.fg2)
+            HStack(spacing: DSTokens.Spacing.sm) {
+                DSIconView(
+                    icon,
+                    size: DSTokens.Icon.micro,
+                    colorRole: isOn ? .primary : .muted
+                )
                 Text(label)
-                    .font(PlaygroundFont.body)
-                    .foregroundStyle(isOn ? tokens.palette.fg1 : tokens.palette.fg1)
-                Spacer(minLength: PlaygroundSpacing.xs)
+                    .dsFont(.body)
+                    .foregroundStyle(environment.theme.colors.textPrimary.color)
+                Spacer(minLength: DSTokens.Spacing.xs)
                 if let trailing {
                     Text(trailing)
-                        .font(PlaygroundFont.badge)
-                        .foregroundStyle(tokens.palette.fg3)
+                        .dsFont(.badge)
+                        .foregroundStyle(environment.theme.colors.textSecondary.color)
                 }
             }
-            .padding(.horizontal, PlaygroundSpacing.xs)
-            .padding(.vertical, 4)
-            .background(
-                RoundedRectangle(cornerRadius: PlaygroundRadius.sm, style: .continuous)
-                    .fill(isOn ? tokens.palette.rowSelected : Color.clear)
-            )
+            .frame(maxWidth: .infinity, alignment: .leading)
             .contentShape(Rectangle())
         }
-        .buttonStyle(.plain)
+        .buttonStyle(.ds(role: isOn ? .secondary : .ghost, size: .compact))
         .a11yToggle(
             label: LocalizedStringKey(label),
             isOn: isOn,

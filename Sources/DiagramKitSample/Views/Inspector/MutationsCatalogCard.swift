@@ -9,6 +9,7 @@
 //
 
 import SwiftUI
+import DiagramKitSampleDesignSystem
 
 struct MutationsCatalogCard: View {
     @Bindable var store: LiveEditorStore
@@ -22,11 +23,10 @@ struct MutationsCatalogCard: View {
                 set: { store.setDemoStepperVisible($0) }
             )) {
                 Text("Show demo state stepper")
-                    .font(.system(size: 11, weight: .medium))
+                    .dsFont(.badge)
             }
-            .toggleStyle(.switch)
-            .controlSize(.mini)
-            .padding(.bottom, 4)
+            .toggleStyle(.ds)
+            .padding(.bottom, DSTokens.Spacing.xxs)
             ForEach(MutationCatalogEntry.Group.allCases, id: \.self) { group in
                 let entries = MutationCatalog.all.filter { $0.group == group }
                 if !entries.isEmpty {
@@ -34,22 +34,16 @@ struct MutationsCatalogCard: View {
                 }
             }
         }
-        .padding(8)
-        .background(
-            RoundedRectangle(cornerRadius: 8, style: .continuous)
-                .fill(Color.gray.opacity(0.06))
-        )
+        .padding(DSTokens.Spacing.sm)
+        .background { DSSurface(role: .card) { Color.clear } }
         .accessibilityIdentifier("inspector.mutations")
         .accessibilityElement(children: .contain)
     }
 
     private func section(title: String, entries: [MutationCatalogEntry]) -> some View {
-        VStack(alignment: .leading, spacing: 2) {
-            Text(title)
-                .font(.system(size: 10, weight: .semibold))
-                .foregroundStyle(.secondary)
-                .textCase(.uppercase)
-                .padding(.top, 2)
+        VStack(alignment: .leading, spacing: DSTokens.Spacing.xxxs) {
+            DSSectionHeader(title)
+                .padding(.top, DSTokens.Spacing.xxxs)
             ForEach(entries) { entry in
                 row(entry)
             }
@@ -57,24 +51,18 @@ struct MutationsCatalogCard: View {
     }
 
     private func row(_ entry: MutationCatalogEntry) -> some View {
-        HStack(alignment: .top, spacing: 6) {
-            VStack(alignment: .leading, spacing: 2) {
-                HStack(spacing: 4) {
+        HStack(alignment: .top, spacing: DSTokens.Spacing.xs) {
+            VStack(alignment: .leading, spacing: DSTokens.Spacing.xxxs) {
+                HStack(spacing: DSTokens.Spacing.xxs) {
                     Text(entry.label)
-                        .font(.system(size: 11, weight: .medium, design: .monospaced))
+                        .dsFont(.code)
                         .lineLimit(1)
                     if entry.wasFiction {
-                        Text("landed Phase 5")
-                            .font(.system(size: 9, weight: .semibold))
-                            .padding(.horizontal, 4)
-                            .padding(.vertical, 1)
-                            .background(Capsule().fill(Color.green.opacity(0.18)))
-                            .foregroundStyle(.green)
+                        DSCodeBadge("landed Phase 5")
                     }
                 }
                 Text(entry.rationale)
-                    .font(.system(size: 10))
-                    .foregroundStyle(.secondary)
+                    .dsFont(.caption2)
                     .lineLimit(3)
             }
             Spacer()
@@ -83,10 +71,9 @@ struct MutationsCatalogCard: View {
                 store.setVisualStage(entry.demoStage)
                 store.setWorkspaceMode(.visual)
             }
-            .buttonStyle(.bordered)
-            .controlSize(.mini)
+            .buttonStyle(.ds(role: .secondary, size: .compact))
             .a11y(label: "Demo \(entry.id)", id: "mutations.demo.\(entry.id)")
         }
-        .padding(.vertical, 3)
+        .padding(.vertical, DSTokens.Stroke.thick)
     }
 }

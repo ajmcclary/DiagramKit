@@ -7,29 +7,36 @@
 //
 
 import SwiftUI
+import DiagramKitSampleDesignSystem
 
 struct ActivityRail: View {
     @Bindable var store: LiveEditorStore
-    @Environment(\.playgroundTokens) private var tokens
+    @Environment(\.dsEnvironment) private var environment
 
     var body: some View {
-        VStack(spacing: 4) {
-            ForEach(ActivityRailTab.allCases, id: \.self) { tab in
-                ActivityRailItem(systemImage: tab.systemImage,
-                                 isActive: store.state.activeRailTab == tab,
-                                 help: tab.title) {
-                    store.setActiveRailTab(tab)
+        DSSurface(role: .titleBar) {
+            VStack(spacing: DSTokens.Spacing.xxs) {
+                ForEach(ActivityRailTab.allCases, id: \.self) { tab in
+                    ActivityRailItem(systemImage: tab.systemImage,
+                                     isActive: store.state.activeRailTab == tab,
+                                     help: tab.title) {
+                        store.setActiveRailTab(tab)
+                    }
+                }
+                Spacer()
+                ActivityRailItem(systemImage: "slider.horizontal.3", isActive: false, help: "Settings (⌘,)") {
+                    store.presentSettings()
                 }
             }
-            Spacer()
-            ActivityRailItem(systemImage: "slider.horizontal.3", isActive: false, help: "Settings (⌘,)") {
-                store.presentSettings()
-            }
+            .padding(.vertical, DSTokens.Spacing.smMd)
+            .frame(width: 52)
+            .frame(maxHeight: .infinity)
         }
-        .padding(.vertical, 10)
-        .frame(width: 52)
-        .frame(maxHeight: .infinity)
-        .background(tokens.palette.bgRail)
-        .overlay(Rectangle().fill(tokens.palette.borderWarm).frame(width: 0.5), alignment: .trailing)
+        .overlay(
+            Rectangle()
+                .fill(environment.theme.colors.borderVariant.color)
+                .frame(width: DSTokens.Stroke.hairline),
+            alignment: .trailing
+        )
     }
 }

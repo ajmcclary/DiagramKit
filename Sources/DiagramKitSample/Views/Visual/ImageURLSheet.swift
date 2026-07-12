@@ -7,9 +7,11 @@
 //
 
 import SwiftUI
+import DiagramKitSampleDesignSystem
 
 struct ImageURLSheet: View {
     @Bindable var store: LiveEditorStore
+    @Environment(\.dsEnvironment) private var environment
 
     @SwiftUI.State private var urlDraft: String = ""
     @SwiftUI.State private var widthDraft: String = "120"
@@ -17,35 +19,28 @@ struct ImageURLSheet: View {
     @SwiftUI.State private var titleDraft: String = ""
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        DSGlassSurface(role: .popover) {
+        VStack(alignment: .leading, spacing: DSTokens.Spacing.md) {
             Text("Add image from URL")
-                .font(.system(size: 13, weight: .semibold))
-            TextField("https://example.com/image.png", text: $urlDraft)
-                .textFieldStyle(.roundedBorder)
+                .dsFont(.headline)
+            DSField("Image URL", text: $urlDraft, prompt: "https://example.com/image.png")
                 .accessibilityIdentifier(A11yID.Visual.imageURLField)
-            HStack(spacing: 8) {
-                TextField("Width", text: $widthDraft)
-                    .textFieldStyle(.roundedBorder)
+            HStack(spacing: DSTokens.Spacing.sm) {
+                DSField("Width", text: $widthDraft)
                     .frame(width: 70)
-                Text("×").foregroundStyle(.secondary)
-                TextField("Height", text: $heightDraft)
-                    .textFieldStyle(.roundedBorder)
+                Text("×").foregroundStyle(environment.theme.colors.textSecondary.color)
+                DSField("Height", text: $heightDraft)
                     .frame(width: 70)
                 Spacer()
             }
-            .font(.system(size: 11))
-            TextField("Title (optional)", text: $titleDraft)
-                .textFieldStyle(.roundedBorder)
-                .font(.system(size: 11))
+            DSField("Title", text: $titleDraft, prompt: "Optional")
             if let error = store.lastMutationError {
-                Text(error)
-                    .font(.system(size: 10))
-                    .foregroundStyle(.red)
+                DSStatusIndicator(.error, label: error)
             }
             HStack {
                 Button("Cancel") { store.cancelImageSheet() }
                     .keyboardShortcut(.cancelAction)
-                    .buttonStyle(.plain)
+                    .buttonStyle(.ds(role: .ghost, size: .compact))
                 Spacer()
                 Button("Add") {
                     let title = titleDraft.trimmingCharacters(in: .whitespaces)
@@ -59,17 +54,13 @@ struct ImageURLSheet: View {
                     }
                 }
                 .keyboardShortcut(.defaultAction)
-                .buttonStyle(.borderedProminent)
+                .buttonStyle(.ds(role: .primary, size: .compact))
                 .disabled(urlDraft.trimmingCharacters(in: .whitespaces).isEmpty)
                 .accessibilityIdentifier(A11yID.Visual.imageCommitButton)
             }
         }
-        .padding(16)
+        .padding(DSTokens.Spacing.lg)
+        }
         .frame(width: 360)
-        .background(
-            RoundedRectangle(cornerRadius: 12, style: .continuous)
-                .fill(.regularMaterial)
-                .shadow(color: .black.opacity(0.2), radius: 12, x: 0, y: 6)
-        )
     }
 }

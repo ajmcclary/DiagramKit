@@ -11,6 +11,7 @@
 import SwiftUI
 import DiagramKit
 import DiagramKitModel
+import DiagramKitSampleDesignSystem
 
 @MainActor
 final class RemoteImageCache {
@@ -86,11 +87,9 @@ struct ImageNodeOverlayItem: View {
                     .aspectRatio(contentMode: .fit)
                 #endif
             case .failed:
-                Image(systemName: "exclamationmark.triangle")
-                    .font(.system(size: 11))
-                    .foregroundStyle(.orange)
+                DSIconView(.warning, size: DSTokens.Icon.micro, colorRole: .warning)
                     .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topTrailing)
-                    .padding(4)
+                    .padding(DSTokens.Spacing.xxs)
             case nil:
                 Color.clear
             }

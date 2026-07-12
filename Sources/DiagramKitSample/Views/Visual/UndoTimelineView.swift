@@ -8,24 +8,25 @@
 //
 
 import SwiftUI
+import DiagramKitSampleDesignSystem
 
 struct UndoTimelineView: View {
     @Bindable var store: LiveEditorStore
+    @Environment(\.dsEnvironment) private var environment
 
     var body: some View {
         let entries = store.undoEntries
-        HStack(spacing: 6) {
-            Image(systemName: "clock.arrow.circlepath")
-                .font(.system(size: 10, weight: .medium))
-                .foregroundStyle(.secondary)
+        DSGlassSurface(role: .popover) {
+        HStack(spacing: DSTokens.Spacing.xs) {
+            DSIconView(.history, size: DSTokens.Icon.micro, colorRole: .muted)
 
             if entries.isEmpty {
                 Text("No history yet")
-                    .font(.system(size: 10))
-                    .foregroundStyle(.tertiary)
+                    .dsFont(.caption2)
+                    .foregroundStyle(environment.theme.colors.textSecondary.color)
             } else {
                 ScrollView(.horizontal, showsIndicators: false) {
-                    HStack(spacing: 4) {
+                    HStack(spacing: DSTokens.Spacing.xxs) {
                         ForEach(Array(entries.enumerated()), id: \.offset) { _, entry in
                             chip(for: entry)
                         }
@@ -34,44 +35,46 @@ struct UndoTimelineView: View {
                 .frame(maxWidth: 240)
             }
         }
-        .padding(.horizontal, 10)
-        .padding(.vertical, 5)
-        .background(
-            RoundedRectangle(cornerRadius: 8)
-                .fill(.thinMaterial)
-                .overlay(
-                    RoundedRectangle(cornerRadius: 8)
-                        .stroke(Color.primary.opacity(0.08), lineWidth: 0.5)
-                )
-        )
-        .shadow(color: .black.opacity(0.08), radius: 4, x: 0, y: 1)
+        .padding(.horizontal, DSTokens.Spacing.smMd)
+        .padding(.vertical, DSTokens.Spacing.xxs)
+        }
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier(A11yID.Visual.undoTimeline)
     }
 
     private func chip(for entry: UndoEntry) -> some View {
         let tint = chipTint(for: entry)
-        return HStack(spacing: 4) {
-            Image(systemName: chipIcon(for: entry.kind))
-                .font(.system(size: 8, weight: .semibold))
+        return HStack(spacing: DSTokens.Spacing.xxs) {
+            Label(entry.displayLabel, systemImage: chipIcon(for: entry.kind))
+                .labelStyle(.iconOnly)
+                .dsFont(.badge)
             Text(entry.displayLabel)
-                .font(.system(size: 10, weight: entry.isCurrent ? .semibold : .regular).monospacedDigit())
+                .dsFont(entry.isCurrent ? .metric : .caption2)
         }
-        .padding(.horizontal, 6)
-        .padding(.vertical, 2)
+        .padding(.horizontal, DSTokens.Spacing.xs)
+        .padding(.vertical, DSTokens.Spacing.xxxs)
         .background(Capsule().fill(tint.background))
         .foregroundStyle(tint.foreground)
-        .opacity(entry.isFuture ? 0.5 : 1)
+        .opacity(entry.isFuture ? DSTokens.Opacity.medium : 1)
     }
 
     private func chipTint(for entry: UndoEntry) -> (background: Color, foreground: Color) {
         if entry.isCurrent {
-            return (Color.accentColor.opacity(0.22), Color.accentColor)
+            return (
+                environment.theme.colors.elementSelected.color,
+                environment.theme.colors.accent.color
+            )
         }
         if entry.isFuture {
-            return (Color.gray.opacity(0.10), .secondary)
+            return (
+                environment.theme.colors.element.color,
+                environment.theme.colors.textSecondary.color
+            )
         }
-        return (Color.gray.opacity(0.18), .primary)
+        return (
+            environment.theme.colors.elementHover.color,
+            environment.theme.colors.textPrimary.color
+        )
     }
 
     private func chipIcon(for kind: UndoEntry.Kind) -> String {

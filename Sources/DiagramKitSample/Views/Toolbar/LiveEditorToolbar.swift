@@ -11,6 +11,7 @@
 import SwiftUI
 import DiagramKit
 import DiagramKitModel
+import DiagramKitSampleDesignSystem
 
 // MARK: - macOS Toolbar
 
@@ -35,36 +36,34 @@ struct LiveEditorToolbar: ToolbarContent {
 
         // Primary actions: theme, view, actions, inspector toggle.
         ToolbarItemGroup(placement: .primaryAction) {
-            Button {
+            DSIconButton(.theme, label: "Theme") {
                 showingTheme.toggle()
-            } label: {
-                Label("Theme", systemImage: "paintpalette")
             }
             .popover(isPresented: $showingTheme) {
-                ThemePicker(store: store)
-                    .padding(16)
-                    .frame(width: 280)
+                DSGlassSurface(role: .popover) {
+                    ThemePicker(store: store)
+                        .padding(DSTokens.Spacing.lg)
+                        .frame(width: 280)
+                }
             }
             .help("Theme")
             .a11yIdentifier(A11yID.Toolbar.theme)
 
-            Button {
+            DSIconButton(.image, label: "View options") {
                 showingView.toggle()
-            } label: {
-                Label("View", systemImage: "eye")
             }
             .popover(isPresented: $showingView) {
-                ViewOptionsPanel(store: store)
-                    .padding(16)
-                    .frame(width: 220)
+                DSGlassSurface(role: .popover) {
+                    ViewOptionsPanel(store: store)
+                        .padding(DSTokens.Spacing.lg)
+                        .frame(width: 220)
+                }
             }
             .help("View options")
             .a11yIdentifier(A11yID.Toolbar.view)
 
-            Button {
+            DSIconButton(.export, label: "Actions") {
                 showingActions.toggle()
-            } label: {
-                Label("Actions", systemImage: "square.and.arrow.up")
             }
             .popover(isPresented: $showingActions) {
                 ActionsPanel(store: store, showingFullWindowPreview: $showingFullWindowPreview)
@@ -73,10 +72,8 @@ struct LiveEditorToolbar: ToolbarContent {
             .help("Export, copy, and share")
             .a11yIdentifier(A11yID.Toolbar.actions)
 
-            Button {
+            DSIconButton(.settings, label: "Inspector") {
                 store.toggleInspector()
-            } label: {
-                Image(systemName: "sidebar.right")
             }
             .help("Inspector (⌘I)")
             .a11yToggle(
@@ -113,31 +110,23 @@ struct LiveEditorToolbar: ToolbarContent {
 
     var body: some ToolbarContent {
         ToolbarItemGroup(placement: .topBarTrailing) {
-            Button {
+            DSIconButton(.theme, label: "Theme") {
                 showingTheme = true
-            } label: {
-                Image(systemName: "paintpalette")
             }
             .a11y(label: "Theme", id: A11yID.Toolbar.theme)
 
-            Button {
+            DSIconButton(.image, label: "View options") {
                 showingView = true
-            } label: {
-                Image(systemName: "eye")
             }
             .a11y(label: "View options", id: A11yID.Toolbar.view)
 
-            Button {
+            DSIconButton(.export, label: "Actions") {
                 showingActions = true
-            } label: {
-                Image(systemName: "square.and.arrow.up")
             }
             .a11y(label: "Actions", hint: "Export, copy, share, history", id: A11yID.Toolbar.actions)
 
-            Button {
+            DSIconButton(.settings, label: "Inspector") {
                 store.toggleInspector()
-            } label: {
-                Image(systemName: "sidebar.right")
             }
             .a11yToggle(
                 label: "Inspector",
@@ -208,17 +197,19 @@ struct ViewOptionsPanel: View {
     @Bindable var store: LiveEditorStore
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        DSSurface(role: .panel) {
+            VStack(alignment: .leading, spacing: DSTokens.Spacing.md) {
             Toggle(isOn: $store.state.gridEnabled) {
-                Label("Grid overlay", systemImage: "square.grid.3x3")
-                    .labelStyle(.titleAndIcon)
+                Text("Grid overlay")
             }
+            .toggleStyle(.ds)
             Toggle(isOn: $store.state.panZoomEnabled) {
-                Label("Pan & zoom", systemImage: "hand.draw")
-                    .labelStyle(.titleAndIcon)
+                Text("Pan & zoom")
             }
+            .toggleStyle(.ds)
+            }
+            .padding(DSTokens.Spacing.md)
+            .frame(maxWidth: .infinity, alignment: .leading)
         }
-        .frame(maxWidth: .infinity, alignment: .leading)
     }
 }
-

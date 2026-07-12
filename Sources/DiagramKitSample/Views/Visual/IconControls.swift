@@ -9,6 +9,7 @@
 
 import SwiftUI
 import DiagramKitInteractive
+import DiagramKitSampleDesignSystem
 
 struct IconControls: View {
     @Binding var size: IconSpec.Size
@@ -17,7 +18,7 @@ struct IconControls: View {
     @Binding var iconDirty: Bool
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
+        VStack(alignment: .leading, spacing: DSTokens.Spacing.sm) {
             Picker("Icon size", selection: $size) {
                 Text("S").tag(IconSpec.Size.small)
                 Text("M").tag(IconSpec.Size.medium)
@@ -43,6 +44,6 @@ struct IconControls: View {
             .pickerStyle(.segmented)
             .onChange(of: labelPosition) { iconDirty = true }
         }
-        .font(.system(size: 11))
+        .dsFont(.caption2)
     }
 }

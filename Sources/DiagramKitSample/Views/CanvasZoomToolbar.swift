@@ -8,12 +8,10 @@
 //
 
 import SwiftUI
-import DiagramKit
-import DiagramKitModel
+import DiagramKitSampleDesignSystem
 
 struct CanvasZoomToolbar: View {
-    let theme: DiagramTheme
-    @Environment(\.playgroundTokens) private var tokens
+    @Environment(\.dsEnvironment) private var environment
     @Binding var zoomScale: CGFloat
     @Binding var gridEnabled: Bool
     @Binding var panZoomEnabled: Bool
@@ -27,54 +25,41 @@ struct CanvasZoomToolbar: View {
     var showsGrid: Bool = true
 
     var body: some View {
-        HStack(spacing: 2) {
-            fitButton
-            divider
-            zoomOutButton
-            zoomLabel
-            zoomInButton
-            divider
-            actualSizeButton
-            divider
-            panZoomToggleButton
-            if showsGrid {
-                gridToggleButton
-            }
-            if onFullWindowPreview != nil {
+        DSGlassSurface(role: .popover) {
+            HStack(spacing: DSTokens.Stroke.medium) {
+                fitButton
                 divider
-                fullWindowButton
+                zoomOutButton
+                zoomLabel
+                zoomInButton
+                divider
+                actualSizeButton
+                divider
+                panZoomToggleButton
+                if showsGrid {
+                    gridToggleButton
+                }
+                if onFullWindowPreview != nil {
+                    divider
+                    fullWindowButton
+                }
             }
+            .padding(.horizontal, DSTokens.Spacing.xs)
+            .padding(.vertical, DSTokens.Spacing.xxs)
         }
-        .font(.system(size: 13))
-        .foregroundColor(tokens.palette.fg2)
-        .padding(.horizontal, 6)
-        .padding(.vertical, 4)
-        .glassChrome(.toolbar, in: RoundedRectangle(cornerRadius: 10, style: .continuous))
     }
 
     // MARK: - Buttons
 
     private var fitButton: some View {
         Button(action: onFitToView) {
-            HStack(spacing: 4) {
-                Image(systemName: "arrow.up.left.and.arrow.down.right")
-                    .font(.system(size: 11, weight: .medium))
+            HStack(spacing: DSTokens.Spacing.xxs) {
+                DSIconView(.rearrange, size: DSTokens.Icon.micro)
                 Text("Fit")
-                    .font(.system(size: 11, weight: .medium))
+                    .dsFont(.badge)
             }
-            .padding(.horizontal, 8)
-            .frame(height: 26)
-            .background(
-                RoundedRectangle(cornerRadius: 5)
-                    .fill(isAtAutomaticFit
-                        ? tokens.palette.accent.opacity(0.15)
-                        : Color.clear)
-            )
-            .foregroundColor(isAtAutomaticFit
-                ? tokens.palette.accent
-                : tokens.palette.fg2)
         }
-        .buttonStyle(.playground)
+        .buttonStyle(.ds(role: isAtAutomaticFit ? .secondary : .ghost, size: .compact))
         .help("Fit diagram to view")
         .keyboardShortcut("0", modifiers: .command)
         .a11yIdentifier(A11yID.Preview.fit)
@@ -84,10 +69,9 @@ struct CanvasZoomToolbar: View {
         Button {
             zoomScale = max(zoomScale / 1.25, minZoom)
         } label: {
-            Image(systemName: "minus")
-                .frame(width: 26, height: 26)
+            DSIconView(.remove, size: DSTokens.Icon.micro)
         }
-        .buttonStyle(.playground)
+        .buttonStyle(.ds(role: .ghost, size: .compact))
         .disabled(!panZoomEnabled || zoomScale <= minZoom)
         .help("Zoom out")
         .keyboardShortcut("-", modifiers: .command)
@@ -98,10 +82,9 @@ struct CanvasZoomToolbar: View {
         Button {
             zoomScale = min(zoomScale * 1.25, maxZoom)
         } label: {
-            Image(systemName: "plus")
-                .frame(width: 26, height: 26)
+            DSIconView(.add, size: DSTokens.Icon.micro)
         }
-        .buttonStyle(.playground)
+        .buttonStyle(.ds(role: .ghost, size: .compact))
         .disabled(!panZoomEnabled || zoomScale >= maxZoom)
         .help("Zoom in")
         .keyboardShortcut("=", modifiers: .command)
@@ -111,10 +94,10 @@ struct CanvasZoomToolbar: View {
     private var actualSizeButton: some View {
         Button(action: onActualSize) {
             Text("1:1")
-                .font(.system(size: 11, weight: .medium, design: .monospaced))
-                .frame(width: 28, height: 26)
+                .dsFont(.metric)
+                .frame(minWidth: DSTokens.Control.chip)
         }
-        .buttonStyle(.playground)
+        .buttonStyle(.ds(role: .ghost, size: .compact))
         .help("Actual size (100%)")
         .keyboardShortcut("1", modifiers: .command)
         .a11yIdentifier(A11yID.Preview.actualSize)
@@ -124,13 +107,9 @@ struct CanvasZoomToolbar: View {
         Button {
             panZoomEnabled.toggle()
         } label: {
-            Image(systemName: panZoomEnabled ? "hand.draw.fill" : "hand.draw")
-                .frame(width: 26, height: 26)
+            DSIconView(.rearrange, size: DSTokens.Icon.micro)
         }
-        .buttonStyle(.playground)
-        .foregroundColor(panZoomEnabled
-            ? tokens.palette.accent
-            : tokens.palette.fg2)
+        .buttonStyle(.ds(role: panZoomEnabled ? .secondary : .ghost, size: .compact))
         .help(panZoomEnabled ? "Disable pan and zoom" : "Enable pan and zoom")
         .a11yToggle(
             label: "Pan and zoom",
@@ -144,13 +123,9 @@ struct CanvasZoomToolbar: View {
         Button {
             gridEnabled.toggle()
         } label: {
-            Image(systemName: "grid")
-                .frame(width: 26, height: 26)
+            DSIconView(.diagram, size: DSTokens.Icon.micro)
         }
-        .buttonStyle(.playground)
-        .foregroundColor(gridEnabled
-            ? tokens.palette.accent
-            : tokens.palette.fg2)
+        .buttonStyle(.ds(role: gridEnabled ? .secondary : .ghost, size: .compact))
         .help(gridEnabled ? "Hide grid" : "Show grid")
         .a11yToggle(
             label: "Grid overlay",
@@ -162,26 +137,28 @@ struct CanvasZoomToolbar: View {
 
     private var fullWindowButton: some View {
         Button(action: { onFullWindowPreview?() }) {
-            Image(systemName: "rectangle.inset.filled")
-                .frame(width: 26, height: 26)
+            DSIconView(.diagram, size: DSTokens.Icon.micro)
         }
-        .buttonStyle(.playground)
+        .buttonStyle(.ds(role: .ghost, size: .compact))
         .help("Full-window preview")
         .a11y(label: "Full-window preview", id: A11yID.Preview.fullWindow)
     }
 
     private var zoomLabel: some View {
         Text(isAtAutomaticFit ? "Fit" : "\(Int(round(zoomScale * 100)))%")
-            .font(.system(size: 11, weight: .medium, design: .monospaced))
-            .foregroundColor(isAtAutomaticFit
-                ? tokens.palette.fg3
-                : tokens.palette.fg2)
+            .dsFont(.metric)
+            .foregroundStyle(
+                isAtAutomaticFit
+                    ? environment.theme.colors.textSecondary.color
+                    : environment.theme.colors.textPrimary.color
+            )
             .frame(width: 42)
     }
 
     private var divider: some View {
-        Divider()
-            .frame(height: 16)
-            .opacity(0.6)
+        Rectangle()
+            .fill(environment.theme.colors.borderVariant.color)
+            .frame(width: DSTokens.Stroke.hairline, height: DSTokens.Spacing.lg)
+            .accessibilityHidden(true)
     }
 }

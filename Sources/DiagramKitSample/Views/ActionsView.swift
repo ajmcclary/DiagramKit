@@ -10,9 +10,11 @@
 import SwiftUI
 import DiagramKit
 import DiagramKitModel
+import DiagramKitSampleDesignSystem
 
 struct ActionsView: View {
     @Bindable var store: LiveEditorStore
+    @Environment(\.dsEnvironment) private var environment
 
     /// Called when the user taps "Export PNG" (parent triggers fileExporter).
     let onExportPNG: () -> Void
@@ -42,42 +44,42 @@ struct ActionsView: View {
 
     var body: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: 20) {
+            VStack(alignment: .leading, spacing: DSTokens.Spacing.xl) {
                 // Export section
                 sectionHeader("Export")
                 exportSection
 
-                Divider()
+                divider
 
                 // Convert section
                 sectionHeader("Convert Source")
                 convertSection
 
-                Divider()
+                divider
 
                 // Copy section
                 sectionHeader("Copy to Clipboard")
                 copySection
 
-                Divider()
+                divider
 
                 // View section
                 sectionHeader("View")
                 viewSection
 
-                Divider()
+                divider
 
                 // Share section
                 sectionHeader("Share")
                 shareSection
 
-                Divider()
+                divider
 
                 // History section
                 sectionHeader("History")
                 historySection
 
-                Divider()
+                divider
 
                 // Load section
                 sectionHeader("Load")
@@ -85,42 +87,40 @@ struct ActionsView: View {
 
                 // Copy feedback toast
                 if showingCopyFeedback {
-                    Text(copyFeedbackMessage)
-                        .font(.system(size: 12, weight: .medium))
-                        .foregroundColor(.white)
-                        .padding(.horizontal, 12)
-                        .padding(.vertical, 6)
-                        .background(
-                            RoundedRectangle(cornerRadius: 6)
-                                .fill(Color.green.opacity(0.85))
-                        )
-                        .transition(.opacity.combined(with: .scale))
+                    DSGlassSurface(role: .popover) {
+                        HStack(spacing: DSTokens.Spacing.xs) {
+                            DSIconView(.success, size: DSTokens.Icon.micro, colorRole: .success)
+                            Text(copyFeedbackMessage)
+                                .dsFont(.badge)
+                                .foregroundStyle(environment.theme.colors.textPrimary.color)
+                        }
+                        .padding(.horizontal, DSTokens.Spacing.md)
+                        .padding(.vertical, DSTokens.Spacing.xs)
+                    }
+                    .transition(.opacity.combined(with: .scale))
                 }
             }
-            .padding(16)
+            .padding(DSTokens.Spacing.lg)
         }
-        .background(Color(store.theme.background))
+        .background(environment.theme.colors.panelBackground.color)
     }
 
     // MARK: - Section header
 
     private func sectionHeader(_ title: String) -> some View {
-        Text(title)
-            .font(.system(size: 11, weight: .semibold))
-            .foregroundColor(Color(store.theme.effectiveMuted()))
-            .textCase(.uppercase)
+        DSSectionHeader(title)
     }
 
     // MARK: - Export section
 
     private var exportSection: some View {
-        VStack(spacing: 6) {
+        VStack(spacing: DSTokens.Spacing.xs) {
             // PNG sizing picker
             pngSizingPicker
 
             actionButton(
                 label: "Export PNG",
-                icon: "photo",
+                icon: .image,
                 subtitle: pngSubtitle
             ) {
                 onExportPNG()
@@ -128,7 +128,7 @@ struct ActionsView: View {
 
             actionButton(
                 label: "Export SVG",
-                icon: "doc.text",
+                icon: .export,
                 subtitle: "Vector graphics"
             ) {
                 onExportSVG()
@@ -137,7 +137,7 @@ struct ActionsView: View {
     }
 
     private var pngSizingPicker: some View {
-        HStack(spacing: 8) {
+        HStack(spacing: DSTokens.Spacing.sm) {
             Picker("Sizing", selection: Binding(
                 get: { store.exportOptions.sizing },
                 set: { store.exportOptions.sizing = $0 }
@@ -152,10 +152,10 @@ struct ActionsView: View {
             .frame(maxWidth: 140)
 
             if case .fixed = store.exportOptions.sizing {
-                HStack(spacing: 4) {
+                HStack(spacing: DSTokens.Spacing.xxs) {
                     Text("W:")
-                        .font(.system(size: 10))
-                        .foregroundColor(Color(store.theme.effectiveMuted()))
+                        .dsFont(.caption2)
+                        .foregroundStyle(environment.theme.colors.textSecondary.color)
                     TextField("Width", value: Binding(
                         get: { Double(store.exportOptions.sizing.fixedSize?.width ?? 800) },
                         set: { w in
@@ -165,11 +165,11 @@ struct ActionsView: View {
                     ), format: .number)
                     .textFieldStyle(.roundedBorder)
                     .frame(width: 60)
-                    .font(.system(size: 11))
+                    .dsFont(.caption2)
 
                     Text("H:")
-                        .font(.system(size: 10))
-                        .foregroundColor(Color(store.theme.effectiveMuted()))
+                        .dsFont(.caption2)
+                        .foregroundStyle(environment.theme.colors.textSecondary.color)
                     TextField("Height", value: Binding(
                         get: { Double(store.exportOptions.sizing.fixedSize?.height ?? 600) },
                         set: { h in
@@ -179,15 +179,15 @@ struct ActionsView: View {
                     ), format: .number)
                     .textFieldStyle(.roundedBorder)
                     .frame(width: 60)
-                    .font(.system(size: 11))
+                    .dsFont(.caption2)
                 }
             }
 
             if case .auto = store.exportOptions.sizing {
-                HStack(spacing: 4) {
+                HStack(spacing: DSTokens.Spacing.xxs) {
                     Text("Scale:")
-                        .font(.system(size: 10))
-                        .foregroundColor(Color(store.theme.effectiveMuted()))
+                        .dsFont(.caption2)
+                        .foregroundStyle(environment.theme.colors.textSecondary.color)
                     Picker("", selection: Binding(
                         get: { store.exportOptions.scale },
                         set: { store.exportOptions.scale = $0 }
@@ -201,12 +201,9 @@ struct ActionsView: View {
                 }
             }
         }
-        .padding(.vertical, 4)
-        .padding(.horizontal, 10)
-        .background(
-            RoundedRectangle(cornerRadius: 6)
-                .fill(Color(store.theme.foreground).opacity(0.04))
-        )
+        .padding(.vertical, DSTokens.Spacing.xxs)
+        .padding(.horizontal, DSTokens.Spacing.smMd)
+        .background { DSSurface(role: .card) { Color.clear } }
     }
 
     private var pngSubtitle: String {
@@ -225,11 +222,11 @@ struct ActionsView: View {
     /// for a given target surface as `.unsupported` diagnostics in the
     /// returned `DiagramExportResult` rather than being gated up-front.
     private var convertSection: some View {
-        VStack(spacing: 6) {
+        VStack(spacing: DSTokens.Spacing.xs) {
             ForEach(SourceFormat.allCases.filter { $0 != store.state.sourceFormat }) { target in
                 actionButton(
                     label: "Convert to \(target.displayName)",
-                    icon: "arrow.left.arrow.right",
+                    icon: .convert,
                     subtitle: "Re-export current diagram as \(target.shortName)"
                 ) {
                     onConvertSource(target)
@@ -241,10 +238,10 @@ struct ActionsView: View {
     // MARK: - Copy section
 
     private var copySection: some View {
-        VStack(spacing: 6) {
+        VStack(spacing: DSTokens.Spacing.xs) {
             actionButton(
                 label: "Copy Source",
-                icon: "doc.on.clipboard",
+                icon: .copy,
                 subtitle: "\(store.state.sourceFormat.displayName) source text"
             ) {
                 if store.copySource() {
@@ -254,7 +251,7 @@ struct ActionsView: View {
 
             actionButton(
                 label: "Copy Config",
-                icon: "gearshape",
+                icon: .settings,
                 subtitle: "Config JSON"
             ) {
                 if store.copyConfig() {
@@ -264,7 +261,7 @@ struct ActionsView: View {
 
             actionButton(
                 label: "Copy SVG",
-                icon: "doc.richtext",
+                icon: .copy,
                 subtitle: "Vector markup"
             ) {
                 Task {
@@ -279,7 +276,7 @@ struct ActionsView: View {
 
             actionButton(
                 label: "Copy PNG Image",
-                icon: "photo.on.rectangle",
+                icon: .image,
                 subtitle: "Raster image"
             ) {
                 Task {
@@ -297,10 +294,10 @@ struct ActionsView: View {
     // MARK: - View section
 
     private var viewSection: some View {
-        VStack(spacing: 6) {
+        VStack(spacing: DSTokens.Spacing.xs) {
             actionButton(
                 label: "Full-Window Preview",
-                icon: "rectangle.inset.filled",
+                icon: .diagram,
                 subtitle: "Preview-only window"
             ) {
                 onFullWindowPreview()
@@ -311,10 +308,10 @@ struct ActionsView: View {
     // MARK: - Share section
 
     private var shareSection: some View {
-        VStack(spacing: 6) {
+        VStack(spacing: DSTokens.Spacing.xs) {
             actionButton(
                 label: "Share State",
-                icon: "square.and.arrow.up",
+                icon: .export,
                 subtitle: "Copy serialized editor state"
             ) {
                 onShareState()
@@ -325,39 +322,20 @@ struct ActionsView: View {
     // MARK: - History section
 
     private var historySection: some View {
-        VStack(spacing: 6) {
+        VStack(spacing: DSTokens.Spacing.xs) {
             // Save State with inline label field
-            HStack(spacing: 6) {
-                TextField("Snapshot name...", text: $saveLabel)
-                    .textFieldStyle(.roundedBorder)
-                    .font(.system(size: 12))
-                    .foregroundColor(Color(store.theme.foreground))
+            HStack(spacing: DSTokens.Spacing.xs) {
+                DSField("Snapshot name", text: $saveLabel, prompt: "Snapshot name…")
 
-                Button {
-                    let label = saveLabel.trimmingCharacters(in: .whitespaces)
-                    guard !label.isEmpty else { return }
-                    store.saveHistoryEntry(label: label)
-                    saveLabel = ""
-                    showCopyFeedback("Saved: \(label)")
-                } label: {
-                    Text("Save")
-                        .font(.system(size: 11, weight: .medium))
-                        .foregroundColor(.white)
-                        .padding(.horizontal, 10)
-                        .padding(.vertical, 4)
-                        .background(
-                            RoundedRectangle(cornerRadius: 4)
-                                .fill(Color(store.theme.effectiveAccent()))
-                        )
-                }
-                .disabled(saveLabel.trimmingCharacters(in: .whitespaces).isEmpty)
-                .buttonStyle(.plain)
+                Button("Save", action: saveButtonTapped)
+                    .disabled(saveLabel.trimmingCharacters(in: .whitespaces).isEmpty)
+                    .buttonStyle(.ds(role: .primary, size: .compact))
             }
-            .padding(.vertical, 2)
+            .padding(.vertical, DSTokens.Spacing.xxxs)
 
             actionButton(
                 label: "View History",
-                icon: "clock.arrow.circlepath",
+                icon: .history,
                 subtitle: "Browse saved states (\(store.historyStore.entries.count))"
             ) {
                 onShowHistory()
@@ -368,95 +346,83 @@ struct ActionsView: View {
     // MARK: - Load section
 
     private var loadSection: some View {
-        VStack(spacing: 8) {
-            // Gist URL field
-            VStack(alignment: .leading, spacing: 4) {
-                Text("Load from Gist")
-                    .font(.system(size: 11, weight: .medium))
-                    .foregroundColor(Color(store.theme.effectiveMuted()))
+        DSSurface(role: .card) {
+            VStack(spacing: DSTokens.Spacing.sm) {
+                // Gist URL field
+                VStack(alignment: .leading, spacing: DSTokens.Spacing.xxs) {
+                    Text("Load from Gist")
+                        .dsFont(.badge)
+                        .foregroundStyle(environment.theme.colors.textSecondary.color)
 
-                HStack(spacing: 6) {
-                    TextField("https://gist.github.com/...", text: $gistURLString)
-                        .textFieldStyle(.roundedBorder)
-                        .font(.system(size: 11))
-                        .foregroundColor(Color(store.theme.foreground))
+                    HStack(spacing: DSTokens.Spacing.xs) {
+                        DSField("Gist URL", text: $gistURLString, prompt: "https://gist.github.com/…")
 
-                    Button {
-                        loadFromGist()
-                    } label: {
-                        if isLoading {
-                            ProgressView()
-                                .scaleEffect(0.7)
-                                .frame(width: 20, height: 20)
-                        } else {
-                            Text("Load")
-                                .font(.system(size: 11, weight: .medium))
+                        Button {
+                            loadFromGist()
+                        } label: {
+                            if isLoading {
+                                ProgressView()
+                                    .controlSize(.small)
+                                    .tint(environment.theme.colors.accent.color)
+                            } else {
+                                Text("Load")
+                            }
                         }
+                        .disabled(gistURLString.trimmingCharacters(in: .whitespaces).isEmpty || isLoading)
+                        .buttonStyle(.ds(role: .secondary, size: .compact))
                     }
-                    .disabled(gistURLString.trimmingCharacters(in: .whitespaces).isEmpty || isLoading)
-                    .buttonStyle(.plain)
-                    .foregroundColor(Color(store.theme.effectiveAccent()))
                 }
-            }
 
-            // Raw URL fields
-            VStack(alignment: .leading, spacing: 4) {
-                Text("Load from URL")
-                    .font(.system(size: 11, weight: .medium))
-                    .foregroundColor(Color(store.theme.effectiveMuted()))
+                // Raw URL fields
+                VStack(alignment: .leading, spacing: DSTokens.Spacing.xxs) {
+                    Text("Load from URL")
+                        .dsFont(.badge)
+                        .foregroundStyle(environment.theme.colors.textSecondary.color)
 
-                TextField("Code URL (e.g. raw .mmd file)", text: $codeURLString)
-                    .textFieldStyle(.roundedBorder)
-                    .font(.system(size: 11))
-                    .foregroundColor(Color(store.theme.foreground))
+                    DSField("Code URL", text: $codeURLString, prompt: "Raw diagram URL")
 
-                TextField("Config URL (optional JSON)", text: $configURLString)
-                    .textFieldStyle(.roundedBorder)
-                    .font(.system(size: 11))
-                    .foregroundColor(Color(store.theme.foreground))
+                    DSField("Config URL", text: $configURLString, prompt: "Optional JSON config URL")
 
-                HStack {
-                    Spacer()
+                    HStack {
+                        Spacer()
 
-                    Button {
-                        loadFromRawURL()
-                    } label: {
-                        if isLoading {
-                            ProgressView()
-                                .scaleEffect(0.7)
-                                .frame(width: 20, height: 20)
-                        } else {
-                            Text("Load")
-                                .font(.system(size: 11, weight: .medium))
+                        Button {
+                            loadFromRawURL()
+                        } label: {
+                            if isLoading {
+                                ProgressView()
+                                    .controlSize(.small)
+                                    .tint(environment.theme.colors.accent.color)
+                            } else {
+                                Text("Load")
+                            }
                         }
+                        .disabled(Self.isRawURLLoadDisabled(
+                            codeURLString: codeURLString,
+                            configURLString: configURLString,
+                            isLoading: isLoading
+                        ))
+                        .buttonStyle(.ds(role: .secondary, size: .compact))
                     }
-                    .disabled(Self.isRawURLLoadDisabled(
-                        codeURLString: codeURLString,
-                        configURLString: configURLString,
-                        isLoading: isLoading
-                    ))
-                    .buttonStyle(.plain)
-                    .foregroundColor(Color(store.theme.effectiveAccent()))
                 }
-            }
 
-            // Loader error display
-            if let loaderError {
-                Text(loaderError)
-                    .font(.system(size: 11))
-                    .foregroundColor(.red)
-                    .padding(8)
+                // Loader error display
+                if let loaderError {
+                    HStack(alignment: .top, spacing: DSTokens.Spacing.xs) {
+                        DSStatusIndicator(.error, label: "Load failed")
+                        Text(loaderError)
+                            .dsFont(.caption)
+                            .foregroundStyle(environment.theme.colors.error.color)
+                    }
+                    .padding(DSTokens.Spacing.sm)
                     .background(
-                        RoundedRectangle(cornerRadius: 6)
-                            .fill(Color.red.opacity(0.08))
+                        environment.theme.colors.value("error.background").color,
+                        in: RoundedRectangle(cornerRadius: DSTokens.Radius.sm, style: .continuous)
                     )
+                }
             }
+            .padding(DSTokens.Spacing.sm)
         }
-        .padding(8)
-        .background(
-            RoundedRectangle(cornerRadius: 8)
-                .fill(Color(store.theme.foreground).opacity(0.02))
-        )
     }
 
     // MARK: - Loader actions
@@ -519,6 +485,14 @@ struct ActionsView: View {
         }
     }
 
+    private func saveButtonTapped() {
+        let label = saveLabel.trimmingCharacters(in: .whitespaces)
+        guard !label.isEmpty else { return }
+        store.saveHistoryEntry(label: label)
+        saveLabel = ""
+        showCopyFeedback("Saved: \(label)")
+    }
+
     nonisolated static func isRawURLLoadDisabled(
         codeURLString: String,
         configURLString: String,
@@ -533,53 +507,61 @@ struct ActionsView: View {
 
     private func actionButton(
         label: String,
-        icon: String,
+        icon: DSIcon,
         subtitle: String,
         action: @escaping () -> Void
     ) -> some View {
         Button(action: action) {
-            HStack(spacing: 10) {
-                Image(systemName: icon)
-                    .font(.system(size: 16))
-                    .frame(width: 24)
-                    .foregroundColor(Color(store.theme.effectiveAccent()))
+            HStack(spacing: DSTokens.Spacing.smMd) {
+                DSIconView(icon, size: DSTokens.Icon.xs)
 
-                VStack(alignment: .leading, spacing: 2) {
+                VStack(alignment: .leading, spacing: DSTokens.Spacing.xxxs) {
                     Text(label)
-                        .font(.system(size: 13, weight: .medium))
-                        .foregroundColor(Color(store.theme.foreground))
+                        .dsFont(.badge)
+                        .foregroundStyle(environment.theme.colors.textPrimary.color)
                     Text(subtitle)
-                        .font(.system(size: 11))
-                        .foregroundColor(Color(store.theme.effectiveMuted()))
+                        .dsFont(.caption2)
+                        .foregroundStyle(environment.theme.colors.textSecondary.color)
                 }
 
                 Spacer()
             }
-            .padding(.vertical, 8)
-            .padding(.horizontal, 10)
-            .background(
-                RoundedRectangle(cornerRadius: 6)
-                    .fill(Color(store.theme.foreground).opacity(0.04))
-            )
+            .frame(maxWidth: .infinity, alignment: .leading)
         }
-        .buttonStyle(.plain)
+        .buttonStyle(.ds(role: .secondary, size: .regular))
     }
 
     // MARK: - Feedback
 
     private func showCopyFeedback(_ message: String) {
         copyFeedbackMessage = message
-        withAnimation(.easeOut(duration: 0.2)) {
+        withAnimation(feedbackAnimation) {
             showingCopyFeedback = true
         }
         Task {
             try? await Task.sleep(for: .seconds(2))
             await MainActor.run {
-                withAnimation(.easeOut(duration: 0.2)) {
+                withAnimation(feedbackAnimation) {
                     showingCopyFeedback = false
                 }
             }
         }
+    }
+
+    private var feedbackAnimation: Animation? {
+        guard environment.motion == .standard else { return nil }
+        return .easeOut(
+            duration: environment.motion.duration(
+                milliseconds: DSTokens.DurationMilliseconds.quick
+            )
+        )
+    }
+
+    private var divider: some View {
+        Rectangle()
+            .fill(environment.theme.colors.borderVariant.color)
+            .frame(height: DSTokens.Stroke.hairline)
+            .accessibilityHidden(true)
     }
 }
 

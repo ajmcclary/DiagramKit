@@ -9,6 +9,7 @@
 
 import SwiftUI
 import DiagramKit
+import DiagramKitSampleDesignSystem
 
 struct SampleDiagramPanel: View {
     @Bindable var store: LiveEditorStore
@@ -16,14 +17,16 @@ struct SampleDiagramPanel: View {
     @SwiftUI.State private var searchText: String = ""
     @SwiftUI.State private var expandedCategories: Set<String> = []
     @SwiftUI.State private var selectedDiagramID: String?
+    @Environment(\.dsEnvironment) private var environment
 
     var body: some View {
-        VStack(spacing: 0) {
+        DSSurface(role: .panel) {
+            VStack(spacing: 0) {
             // Search field
             searchField
-                .padding(.horizontal, 12)
-                .padding(.top, 12)
-                .padding(.bottom, 8)
+                .padding(.horizontal, DSTokens.Spacing.md)
+                .padding(.top, DSTokens.Spacing.md)
+                .padding(.bottom, DSTokens.Spacing.sm)
 
             // Diagram list
             ScrollView {
@@ -36,11 +39,11 @@ struct SampleDiagramPanel: View {
                         searchResults
                     }
                 }
-                .padding(.horizontal, 12)
-                .padding(.bottom, 12)
+                .padding(.horizontal, DSTokens.Spacing.md)
+                .padding(.bottom, DSTokens.Spacing.md)
+            }
             }
         }
-        .background(Color(store.theme.background))
         .onAppear {
             // Auto-expand first few categories
             let firstCategories = TestDiagrams.orderedCategories.prefix(4)
@@ -51,35 +54,24 @@ struct SampleDiagramPanel: View {
     // MARK: - Search field
 
     private var searchField: some View {
-        HStack(spacing: 8) {
-            Image(systemName: "magnifyingglass")
-                .foregroundColor(Color(store.theme.effectiveMuted()))
-                .font(.system(size: 14))
-                .accessibilityHidden(true)
+        HStack(spacing: DSTokens.Spacing.sm) {
+            DSIconView(.search, size: DSTokens.Icon.micro, colorRole: .muted)
 
             TextField("Search samples...", text: $searchText)
                 .textFieldStyle(.plain)
-                .font(.system(size: 13))
-                .foregroundColor(Color(store.theme.foreground))
+                .dsFont(.footnote)
+                .foregroundStyle(environment.theme.colors.textPrimary.color)
                 .a11yIdentifier(A11yID.Pickers.sampleSearch)
 
             if !searchText.isEmpty {
-                Button {
+                DSIconButton(.close, label: "Clear search") {
                     searchText = ""
-                } label: {
-                    Image(systemName: "xmark.circle.fill")
-                        .foregroundColor(Color(store.theme.effectiveMuted()))
-                        .font(.system(size: 14))
                 }
-                .buttonStyle(.plain)
                 .a11y(label: "Clear search", id: A11yID.Pickers.sampleSearchClear)
             }
         }
-        .padding(8)
-        .background(
-            RoundedRectangle(cornerRadius: 8)
-                .fill(Color(store.theme.foreground).opacity(0.06))
-        )
+        .padding(DSTokens.Spacing.sm)
+        .background { DSSurface(role: .sunken) { Color.clear } }
     }
 
     // MARK: - Category list
@@ -106,38 +98,39 @@ struct SampleDiagramPanel: View {
                     expandedCategories.insert(category.id)
                 }
             } label: {
-                HStack(spacing: 6) {
-                    Image(systemName: expandedCategories.contains(category.id)
-                        ? "chevron.down"
-                        : "chevron.right")
-                        .font(.system(size: 10, weight: .medium))
-                        .foregroundColor(Color(store.theme.effectiveMuted()))
-                        .accessibilityHidden(true)
+                HStack(spacing: DSTokens.Spacing.xs) {
+                    DSIconView(
+                        expandedCategories.contains(category.id)
+                            ? .disclosureDown
+                            : .disclosureRight,
+                        size: DSTokens.Icon.indicator,
+                        colorRole: .muted
+                    )
 
                     Text(category.title)
-                        .font(.system(size: 12, weight: .semibold))
-                        .foregroundColor(Color(store.theme.foreground))
+                        .dsFont(.badge)
+                        .foregroundStyle(environment.theme.colors.textPrimary.color)
 
                     Text("(\(diagrams.count))")
-                        .font(.system(size: 11))
-                        .foregroundColor(Color(store.theme.effectiveMuted()))
+                        .dsFont(.caption2)
+                        .foregroundStyle(environment.theme.colors.textSecondary.color)
 
                     Spacer()
                 }
-                .padding(.vertical, 6)
+                .padding(.vertical, DSTokens.Spacing.xs)
                 .contentShape(Rectangle())
             }
-            .buttonStyle(.plain)
+            .buttonStyle(.ds(role: .ghost, size: .compact))
 
             // Diagram items
             if expandedCategories.contains(category.id) {
-                VStack(spacing: 2) {
+                VStack(spacing: DSTokens.Spacing.xxxs) {
                     ForEach(diagrams) { diagram in
                         diagramRow(diagram)
                     }
                 }
-                .padding(.leading, 16)
-                .padding(.bottom, 6)
+                .padding(.leading, DSTokens.Spacing.lg)
+                .padding(.bottom, DSTokens.Spacing.xs)
             }
         }
     }
@@ -147,43 +140,40 @@ struct SampleDiagramPanel: View {
         let alternateFormats = Self.alternateFormats(for: diagram)
         let badges = Self.statusBadges(for: diagram)
 
-        return VStack(alignment: .leading, spacing: 4) {
+        return VStack(alignment: .leading, spacing: DSTokens.Spacing.xxs) {
             Button {
                 loadDiagram(diagram, format: .mermaid)
             } label: {
-                HStack(spacing: 8) {
+                HStack(spacing: DSTokens.Spacing.sm) {
                     Text(diagram.name)
-                        .font(.system(size: 13))
-                        .foregroundColor(
+                        .dsFont(.footnote)
+                        .foregroundStyle(
                             isSelected
-                                ? Color(store.theme.effectiveAccent())
-                                : Color(store.theme.foreground)
+                                ? environment.theme.colors.accent.color
+                                : environment.theme.colors.textPrimary.color
                         )
                         .lineLimit(1)
 
                     Spacer()
 
                     if isSelected {
-                        Image(systemName: "checkmark")
-                            .font(.system(size: 11, weight: .medium))
-                            .foregroundColor(Color(store.theme.effectiveAccent()))
-                            .accessibilityHidden(true)
+                        DSIconView(.success, size: DSTokens.Icon.micro, colorRole: .success)
                     }
                 }
-                .padding(.vertical, 4)
-                .padding(.horizontal, 8)
+                .padding(.vertical, DSTokens.Spacing.xxs)
+                .padding(.horizontal, DSTokens.Spacing.sm)
                 .background(
-                    RoundedRectangle(cornerRadius: 4)
+                    RoundedRectangle(cornerRadius: DSTokens.Radius.xs)
                         .fill(isSelected
-                            ? Color(store.theme.effectiveAccent()).opacity(0.08)
+                            ? environment.theme.colors.elementSelected.color
                             : Color.clear)
                 )
                 .contentShape(Rectangle())
             }
-            .buttonStyle(.plain)
+            .buttonStyle(.ds(role: isSelected ? .secondary : .ghost, size: .compact))
 
             if !alternateFormats.isEmpty || !badges.isEmpty {
-                HStack(spacing: 4) {
+                HStack(spacing: DSTokens.Spacing.xxs) {
                     ForEach(alternateFormats, id: \.self) { format in
                         formatChip(diagram: diagram, format: format)
                     }
@@ -192,44 +182,39 @@ struct SampleDiagramPanel: View {
                     }
                     Spacer(minLength: 0)
                 }
-                .padding(.leading, 12)
+                .padding(.leading, DSTokens.Spacing.md)
             }
         }
     }
 
     private func statusChip(_ badge: SampleStatusBadge) -> some View {
-        HStack(spacing: 3) {
-            Image(systemName: badge.systemImage)
-                .font(.system(size: 9, weight: .medium))
-                .accessibilityHidden(true)
+        HStack(spacing: DSTokens.Stroke.thick) {
+            DSIconView(
+                badge.role.icon,
+                size: DSTokens.Icon.indicator,
+                colorRole: badge.role.iconColorRole
+            )
             Text(badge.text)
-                .font(.system(size: 10, weight: .medium))
+                .dsFont(.badge)
         }
-        .padding(.horizontal, 6)
-        .padding(.vertical, 2)
-        .foregroundColor(badge.role.foreground)
+        .padding(.horizontal, DSTokens.Spacing.xs)
+        .padding(.vertical, DSTokens.Spacing.xxxs)
+        .foregroundStyle(badge.role.color(in: environment.theme))
         .background(
-            RoundedRectangle(cornerRadius: 4)
-                .fill(badge.role.background)
+            RoundedRectangle(cornerRadius: DSTokens.Radius.xs)
+                .fill(environment.theme.colors.element.color)
         )
         .help(badge.tooltip)
     }
 
     private func formatChip(diagram: TestDiagram, format: SourceFormat) -> some View {
-        Button {
+        DSChip {
             loadDiagram(diagram, format: format)
         } label: {
             Text(format.shortName)
-                .font(.system(size: 10, weight: .medium))
-                .foregroundColor(Color(store.theme.effectiveAccent()))
-                .padding(.horizontal, 6)
-                .padding(.vertical, 2)
-                .background(
-                    RoundedRectangle(cornerRadius: 4)
-                        .fill(Color(store.theme.effectiveAccent()).opacity(0.12))
-                )
+                .dsFont(.badge)
+                .foregroundStyle(environment.theme.colors.accent.color)
         }
-        .buttonStyle(.plain)
     }
 
     private func loadDiagram(_ diagram: TestDiagram, format: SourceFormat) {
@@ -265,7 +250,6 @@ struct SampleDiagramPanel: View {
         if let skips = diagram.skipSnapshots, !skips.isEmpty {
             badges.append(SampleStatusBadge(
                 text: "no \(skips.joined(separator: "/"))",
-                systemImage: "camera.metering.unknown",
                 role: .warning,
                 tooltip: "Snapshot baselines skipped for: \(skips.joined(separator: ", "))"
             ))
@@ -274,7 +258,6 @@ struct SampleDiagramPanel: View {
         if let diagnostics = diagram.expectedDiagnostics, !diagnostics.isEmpty {
             badges.append(SampleStatusBadge(
                 text: "\(diagnostics.count) diag",
-                systemImage: "exclamationmark.bubble",
                 role: .info,
                 tooltip: "Expected importer diagnostics: \(diagnostics.count)"
             ))
@@ -283,7 +266,6 @@ struct SampleDiagramPanel: View {
         if diagram.unsupportedNote != nil {
             badges.append(SampleStatusBadge(
                 text: "unsupported",
-                systemImage: "minus.circle",
                 role: .muted,
                 tooltip: diagram.unsupportedNote ?? "Partially supported by importers"
             ))
@@ -304,17 +286,14 @@ struct SampleDiagramPanel: View {
 
         return Group {
             if results.isEmpty {
-                VStack(spacing: 8) {
-                    Image(systemName: "magnifyingglass")
-                        .font(.system(size: 24))
-                        .foregroundColor(Color(store.theme.effectiveMuted()))
-                        .accessibilityHidden(true)
+                VStack(spacing: DSTokens.Spacing.sm) {
+                    DSIconView(.search, size: DSTokens.Icon.md, colorRole: .muted)
                     Text("No samples match \"\(searchText)\"")
-                        .font(.system(size: 13))
-                        .foregroundColor(Color(store.theme.effectiveMuted()))
+                        .dsFont(.footnote)
+                        .foregroundStyle(environment.theme.colors.textSecondary.color)
                 }
                 .frame(maxWidth: .infinity)
-                .padding(.vertical, 32)
+                .padding(.vertical, DSTokens.Spacing.xxxl)
             } else {
                 ForEach(results) { diagram in
                     diagramRow(diagram)
@@ -329,7 +308,6 @@ struct SampleDiagramPanel: View {
 /// Small chip metadata for the corpus indicators next to each sample row.
 struct SampleStatusBadge {
     let text: String
-    let systemImage: String
     let role: Role
     let tooltip: String
 
@@ -338,19 +316,27 @@ struct SampleStatusBadge {
         case info
         case muted
 
-        var foreground: Color {
+        var icon: DSIcon {
             switch self {
-            case .warning: return .orange
-            case .info:    return .blue
-            case .muted:   return .gray
+            case .warning: .warning
+            case .info: .diagnostics
+            case .muted: .remove
             }
         }
 
-        var background: Color {
+        var iconColorRole: DSIconColorRole {
             switch self {
-            case .warning: return .orange.opacity(0.12)
-            case .info:    return .blue.opacity(0.12)
-            case .muted:   return .gray.opacity(0.12)
+            case .warning: .warning
+            case .info: .info
+            case .muted: .muted
+            }
+        }
+
+        func color(in theme: DSTheme) -> Color {
+            switch self {
+            case .warning: theme.colors.warning.color
+            case .info: theme.colors.info.color
+            case .muted: theme.colors.textSecondary.color
             }
         }
     }

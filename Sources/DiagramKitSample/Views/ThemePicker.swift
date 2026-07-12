@@ -9,33 +9,34 @@
 import SwiftUI
 import DiagramKit
 import DiagramKitModel
+import DiagramKitSampleDesignSystem
 
 struct ThemePicker: View {
     let store: LiveEditorStore
+    @Environment(\.dsEnvironment) private var environment
 
     /// Quick-access theme names (shown as separate buttons)
     private let quickAccessThemes = ["Zinc Light", "Dracula", "Solarized Light"]
 
     var body: some View {
-        VStack(spacing: 8) {
+        VStack(spacing: DSTokens.Spacing.sm) {
             // Source-pinned indicator (visual editor plan 6): a theme
             // in the diagram source's frontmatter overrides this picker.
             if let pinned = store.sourcePinnedThemeName {
                 Text("Source-pinned: \(pinned)")
-                    .font(.system(size: 9))
-                    .foregroundStyle(.secondary)
+                    .dsFont(.caption2)
+                    .foregroundStyle(environment.theme.colors.textSecondary.color)
                     .help("The diagram source's frontmatter pins this theme; it overrides the app theme.")
             }
 
             // Quick-access theme buttons
-            HStack(spacing: 6) {
+            HStack(spacing: DSTokens.Spacing.xs) {
                 ForEach(quickAccessThemes, id: \.self) { themeName in
                     if let theme = DiagramTheme.theme(named: themeName) {
                         QuickThemeButton(
                             themeName: themeName,
                             theme: theme,
-                            isSelected: isThemeSelected(themeName),
-                            currentTheme: store.theme
+                            isSelected: isThemeSelected(themeName)
                         ) {
                             store.setTheme(named: themeName)
                         }
@@ -54,37 +55,24 @@ struct ThemePicker: View {
                             Text(name)
                             if isThemeSelected(name) {
                                 Spacer()
-                                Image(systemName: "checkmark")
-                                    .accessibilityHidden(true)
+                                DSIconView(.success, size: DSTokens.Icon.micro, colorRole: .success)
                             }
                         }
                     }
                 }
             } label: {
-                HStack(spacing: 6) {
-                    Image(systemName: "paintpalette")
-                        .font(.system(size: 11, weight: .medium))
-                        .foregroundColor(Color(store.theme.effectiveMuted()))
-                        .accessibilityHidden(true)
+                HStack(spacing: DSTokens.Spacing.xs) {
+                    DSIconView(.theme, size: DSTokens.Icon.micro, colorRole: .muted)
                     Text("All \(DiagramTheme.allThemes.count) themes")
-                        .font(.system(size: 12, weight: .medium))
-                    Spacer(minLength: 4)
-                    Image(systemName: "chevron.up.chevron.down")
-                        .font(.system(size: 9, weight: .semibold))
-                        .foregroundColor(Color(store.theme.effectiveMuted()))
-                        .accessibilityHidden(true)
+                        .dsFont(.badge)
+                    Spacer(minLength: DSTokens.Spacing.xxs)
+                    DSIconView(.disclosureDown, size: DSTokens.Icon.indicator, colorRole: .muted)
                 }
-                .padding(.vertical, 8)
-                .padding(.horizontal, 12)
                 .frame(maxWidth: .infinity, alignment: .leading)
-                .background(
-                    RoundedRectangle(cornerRadius: 8)
-                        .stroke(Color(store.theme.effectiveLine()).opacity(0.35), lineWidth: 0.5)
-                )
                 .contentShape(Rectangle())
             }
-            .buttonStyle(.plain)
-            .foregroundColor(Color(store.theme.foreground))
+            .buttonStyle(.ds(role: .secondary, size: .regular))
+            .foregroundStyle(environment.theme.colors.textPrimary.color)
             .a11y(
                 label: "All themes",
                 hint: "Opens the full theme list",
@@ -102,37 +90,20 @@ struct QuickThemeButton: View {
     let themeName: String
     let theme: DiagramTheme
     let isSelected: Bool
-    let currentTheme: DiagramTheme
     let action: () -> Void
 
     var body: some View {
         Button(action: action) {
-            HStack(spacing: 5) {
+            HStack(spacing: DSTokens.Spacing.xs) {
                 ThemeCircle(theme: theme, size: 14)
                 Text(shortThemeName)
-                    .font(.system(size: 11, weight: .medium))
+                    .dsFont(.badge)
                     .lineLimit(1)
                     .minimumScaleFactor(0.85)
             }
             .frame(maxWidth: .infinity)
-            .padding(.vertical, 7)
-            .padding(.horizontal, 8)
-            .background(
-                RoundedRectangle(cornerRadius: 7)
-                    .fill(isSelected
-                        ? Color(currentTheme.effectiveAccent()).opacity(0.12)
-                        : Color(currentTheme.foreground).opacity(0.04))
-            )
-            .overlay(
-                RoundedRectangle(cornerRadius: 7)
-                    .stroke(
-                        Color(currentTheme.effectiveLine()).opacity(isSelected ? 0.7 : 0.25),
-                        lineWidth: 0.5
-                    )
-            )
         }
-        .buttonStyle(.plain)
-        .foregroundColor(Color(currentTheme.foreground))
+        .buttonStyle(.ds(role: isSelected ? .secondary : .ghost, size: .compact))
         .help(themeName)
     }
 
@@ -148,6 +119,7 @@ struct QuickThemeButton: View {
 struct ThemeCircle: View {
     let theme: DiagramTheme
     let size: CGFloat
+    @Environment(\.dsEnvironment) private var environment
 
     var body: some View {
         Circle()
@@ -155,7 +127,10 @@ struct ThemeCircle: View {
             .frame(width: size - 2, height: size - 2)
             .overlay(
                 Circle()
-                    .stroke(Color.secondary.opacity(0.5), lineWidth: 1)
+                    .stroke(
+                        environment.theme.colors.borderVariant.color,
+                        lineWidth: DSTokens.Stroke.thin
+                    )
             )
     }
 }

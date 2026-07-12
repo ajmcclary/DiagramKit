@@ -10,42 +10,44 @@
 //
 
 import SwiftUI
+import DiagramKitSampleDesignSystem
 
 struct QuickFixCard: View {
     @Bindable var store: LiveEditorStore
+    @Environment(\.dsEnvironment) private var environment
 
     var body: some View {
         if let line = store.state.biSelLine,
            let diagnostic = matching(line: line) {
-            VStack(alignment: .leading, spacing: 6) {
-                HStack(spacing: 6) {
-                    Image(systemName: "wand.and.rays")
-                        .foregroundStyle(Color.accentColor)
+            DSSurface(role: .popover) {
+            VStack(alignment: .leading, spacing: DSTokens.Spacing.xs) {
+                HStack(spacing: DSTokens.Spacing.xs) {
+                    DSIconView(.success, size: DSTokens.Icon.xs, colorRole: .info)
                     Text("Quick fix")
-                        .font(.system(size: 12, weight: .semibold))
+                        .dsFont(.headline)
                     Spacer()
                     Text("line \(line + 1)")
-                        .font(.system(size: 10, weight: .medium).monospacedDigit())
-                        .foregroundStyle(.secondary)
+                        .dsFont(.metric)
+                        .foregroundStyle(environment.theme.colors.textSecondary.color)
                 }
                 Text(diagnostic.message)
-                    .font(.system(size: 11))
-                    .foregroundStyle(.primary)
+                    .dsFont(.caption2)
+                    .foregroundStyle(environment.theme.colors.textPrimary.color)
                     .lineLimit(3)
-                HStack(spacing: 6) {
+                HStack(spacing: DSTokens.Spacing.xs) {
                     Button("Rename label") {
                         store.setVisualStage(.labelEdited)
                     }
-                    .buttonStyle(.bordered)
+                    .buttonStyle(.ds(role: .secondary, size: .compact))
                     Button("Wrap text") {
                         wrapTextAtCurrentLine(line)
                     }
-                    .buttonStyle(.bordered)
+                    .buttonStyle(.ds(role: .secondary, size: .compact))
                 }
             }
-            .padding(12)
+            .padding(DSTokens.Spacing.md)
+            }
             .frame(width: 280)
-            .glassChrome(.popoverCard, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
             .accessibilityIdentifier(A11yID.Visual.quickFixCard)
         }
     }

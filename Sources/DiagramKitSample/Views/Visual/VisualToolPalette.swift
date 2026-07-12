@@ -8,30 +8,32 @@
 //
 
 import SwiftUI
+import DiagramKitSampleDesignSystem
 
 struct VisualToolPalette: View {
     @Bindable var store: LiveEditorStore
-    @Environment(\.playgroundTokens) private var tokens
+    @Environment(\.dsEnvironment) private var environment
 
     var body: some View {
-        VStack(spacing: 4) {
+        DSGlassSurface(role: .toolbar) {
+        VStack(spacing: DSTokens.Spacing.xxs) {
             ForEach(VisualEditorState.Tool.allCases, id: \.self) { tool in
                 toolButton(for: tool)
             }
             Divider()
                 .frame(width: 22)
-                .padding(.vertical, 2)
+                .padding(.vertical, DSTokens.Spacing.xxxs)
             undoButton
             redoButton
             if !store.state.marqueeSelection.isEmpty {
                 Divider()
                     .frame(width: 22)
-                    .padding(.vertical, 2)
+                    .padding(.vertical, DSTokens.Spacing.xxxs)
                 groupButton
             }
         }
-        .padding(6)
-        .glassChrome(.toolbar, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+        .padding(DSTokens.Spacing.xs)
+        }
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier(A11yID.Visual.toolPalette)
     }
@@ -41,16 +43,22 @@ struct VisualToolPalette: View {
         return Button {
             store.setVisualTool(tool)
         } label: {
-            Image(systemName: tool.sfSymbol)
-                .font(.system(size: 14, weight: .medium))
-                .frame(width: 30, height: 30)
-                .foregroundStyle(isOn ? tokens.palette.accent : tokens.palette.fg2)
+            DSIconView(
+                icon(for: tool),
+                size: DSTokens.Icon.xs,
+                colorRole: isOn ? .onAccent : .muted
+            )
+                .frame(width: DSTokens.Control.button, height: DSTokens.Control.button)
                 .background(
-                    RoundedRectangle(cornerRadius: 7, style: .continuous)
-                        .fill(isOn ? tokens.palette.accentTint16 : Color.clear)
+                    RoundedRectangle(cornerRadius: DSTokens.Radius.sm, style: .continuous)
+                        .fill(
+                            isOn
+                                ? environment.theme.colors.accent.color
+                                : environment.theme.colors.element.color
+                        )
                 )
         }
-        .buttonStyle(.playground)
+        .buttonStyle(.ds(role: isOn ? .secondary : .ghost, size: .compact))
         .help(tool.label)
         .a11yToggle(
             label: LocalizedStringKey(tool.label),
@@ -65,13 +73,12 @@ struct VisualToolPalette: View {
             store.undoStructural()
             store.setVisualStage(.undone)
         } label: {
-            Image(systemName: "arrow.uturn.backward")
-                .frame(width: 30, height: 30)
-                .foregroundStyle(tokens.palette.fg2)
+            DSIconView(.history, colorRole: .muted)
+                .frame(width: DSTokens.Control.button, height: DSTokens.Control.button)
         }
-        .buttonStyle(.playground)
+        .buttonStyle(.ds(role: .ghost, size: .compact))
         .disabled(!canUndo)
-        .opacity(canUndo ? 1 : 0.35)
+        .opacity(canUndo ? 1 : DSTokens.Opacity.disabled)
         .help(store.editor?.undoActionName ?? "Undo")
         .a11y(label: "Undo", id: A11yID.Visual.tool("undo"))
     }
@@ -81,13 +88,12 @@ struct VisualToolPalette: View {
         return Button {
             store.redoStructural()
         } label: {
-            Image(systemName: "arrow.uturn.forward")
-                .frame(width: 30, height: 30)
-                .foregroundStyle(tokens.palette.fg2)
+            DSIconView(.reset, colorRole: .muted)
+                .frame(width: DSTokens.Control.button, height: DSTokens.Control.button)
         }
-        .buttonStyle(.playground)
+        .buttonStyle(.ds(role: .ghost, size: .compact))
         .disabled(!canRedo)
-        .opacity(canRedo ? 1 : 0.35)
+        .opacity(canRedo ? 1 : DSTokens.Opacity.disabled)
         .help(store.editor?.redoActionName ?? "Redo")
         .a11y(label: "Redo", id: A11yID.Visual.tool("redo"))
     }
@@ -96,12 +102,20 @@ struct VisualToolPalette: View {
         Button {
             store.openSubgraphPrompt()
         } label: {
-            Image(systemName: "rectangle.stack.badge.plus")
-                .frame(width: 30, height: 30)
-                .foregroundStyle(tokens.palette.accent)
+            DSIconView(.subgraph, colorRole: .info)
+                .frame(width: DSTokens.Control.button, height: DSTokens.Control.button)
         }
-        .buttonStyle(.playground)
+        .buttonStyle(.ds(role: .ghost, size: .compact))
         .help("Group selected nodes into a subgraph")
         .a11y(label: "Group selection", id: A11yID.Visual.groupButton)
+    }
+
+    private func icon(for tool: VisualEditorState.Tool) -> DSIcon {
+        switch tool {
+        case .select: .node
+        case .pan: .rearrange
+        case .marquee: .diagram
+        case .connector: .convert
+        }
     }
 }

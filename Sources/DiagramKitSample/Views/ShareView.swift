@@ -9,9 +9,11 @@
 import SwiftUI
 import DiagramKit
 import DiagramKitModel
+import DiagramKitSampleDesignSystem
 
 struct ShareView: View {
     @Bindable var store: LiveEditorStore
+    @Environment(\.dsEnvironment) private var environment
 
     @SwiftUI.State private var serializedString: String = ""
     @SwiftUI.State private var pasteInput: String = ""
@@ -21,12 +23,12 @@ struct ShareView: View {
 
     var body: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: 20) {
+            VStack(alignment: .leading, spacing: DSTokens.Spacing.xl) {
                 // Share section
                 sectionHeader("Share Current State")
                 shareCurrentState
 
-                Divider()
+                divider
 
                 // Restore section
                 sectionHeader("Restore State")
@@ -34,21 +36,22 @@ struct ShareView: View {
 
                 // Copy feedback toast
                 if showingCopyFeedback {
-                    Text("Copied to clipboard")
-                        .font(.system(size: 12, weight: .medium))
-                        .foregroundColor(.white)
-                        .padding(.horizontal, 12)
-                        .padding(.vertical, 6)
-                        .background(
-                            RoundedRectangle(cornerRadius: 6)
-                                .fill(Color.green.opacity(0.85))
-                        )
-                        .transition(.opacity.combined(with: .scale))
+                    DSGlassSurface(role: .popover) {
+                        HStack(spacing: DSTokens.Spacing.xs) {
+                            DSIconView(.success, size: DSTokens.Icon.micro, colorRole: .success)
+                            Text("Copied to clipboard")
+                                .dsFont(.badge)
+                                .foregroundStyle(environment.theme.colors.textPrimary.color)
+                        }
+                        .padding(.horizontal, DSTokens.Spacing.md)
+                        .padding(.vertical, DSTokens.Spacing.xs)
+                    }
+                    .transition(.opacity.combined(with: .scale))
                 }
             }
-            .padding(16)
+            .padding(DSTokens.Spacing.lg)
         }
-        .background(Color(store.theme.background))
+        .background(environment.theme.colors.panelBackground.color)
         .onAppear {
             serializedString = store.serializedState()
         }
@@ -57,37 +60,31 @@ struct ShareView: View {
     // MARK: - Section header
 
     private func sectionHeader(_ title: String) -> some View {
-        Text(title)
-            .font(.system(size: 11, weight: .semibold))
-            .foregroundColor(Color(store.theme.effectiveMuted()))
-            .textCase(.uppercase)
+        DSSectionHeader(title)
     }
 
     // MARK: - Share current state
 
     private var shareCurrentState: some View {
-        VStack(alignment: .leading, spacing: 8) {
+        VStack(alignment: .leading, spacing: DSTokens.Spacing.sm) {
             Text("Copy the string below to share your editor state. Paste it into another instance to restore the diagram, theme, config, and view settings.")
-                .font(.system(size: 12))
-                .foregroundColor(Color(store.theme.effectiveMuted()))
+                .dsFont(.caption)
+                .foregroundStyle(environment.theme.colors.textSecondary.color)
                 .fixedSize(horizontal: false, vertical: true)
 
             // Serialized string display
             Text(serializedString.isEmpty ? "(empty state)" : serializedString)
-                .font(.system(size: 10, design: .monospaced))
-                .foregroundColor(Color(store.theme.foreground))
-                .padding(10)
+                .dsFont(.code)
+                .foregroundStyle(environment.theme.colors.editorForeground.color)
+                .padding(DSTokens.Spacing.smMd)
                 .frame(maxWidth: .infinity, alignment: .leading)
-                .background(
-                    RoundedRectangle(cornerRadius: 6)
-                        .fill(Color(store.theme.foreground).opacity(0.06))
-                )
+                .background { DSSurface(role: .sunken) { Color.clear } }
                 .textSelection(.enabled)
 
             // Character count
             Text("\(serializedString.count) characters")
-                .font(.system(size: 10))
-                .foregroundColor(Color(store.theme.effectiveMuted()))
+                .dsFont(.caption2)
+                .foregroundStyle(environment.theme.colors.textSecondary.color)
 
             // Copy button
             Button {
@@ -99,54 +96,47 @@ struct ShareView: View {
                 #endif
                 showCopyFeedback()
             } label: {
-                HStack {
-                    Image(systemName: "doc.on.doc")
+                HStack(spacing: DSTokens.Spacing.xs) {
+                    DSIconView(.copy, size: DSTokens.Icon.micro)
                     Text("Copy Share String")
                 }
-                .font(.system(size: 13, weight: .medium))
-                .foregroundColor(Color(store.theme.effectiveAccent()))
-                .padding(.vertical, 8)
-                .padding(.horizontal, 12)
-                .background(
-                    RoundedRectangle(cornerRadius: 6)
-                        .stroke(Color(store.theme.effectiveAccent()).opacity(0.4), lineWidth: 1)
-                )
             }
-            .buttonStyle(.plain)
+            .buttonStyle(.ds(role: .secondary, size: .regular))
         }
     }
 
     // MARK: - Restore state
 
     private var restoreState: some View {
-        VStack(alignment: .leading, spacing: 8) {
+        VStack(alignment: .leading, spacing: DSTokens.Spacing.sm) {
             Text("Paste a previously copied share string here to restore the editor state.")
-                .font(.system(size: 12))
-                .foregroundColor(Color(store.theme.effectiveMuted()))
+                .dsFont(.caption)
+                .foregroundStyle(environment.theme.colors.textSecondary.color)
                 .fixedSize(horizontal: false, vertical: true)
 
             // Paste input field
             TextEditor(text: $pasteInput)
-                .font(.system(size: 10, design: .monospaced))
+                .dsFont(.code)
+                .foregroundStyle(environment.theme.colors.editorForeground.color)
+                .scrollContentBackground(.hidden)
                 .frame(minHeight: 80)
-                .padding(4)
-                .background(
-                    RoundedRectangle(cornerRadius: 6)
-                        .fill(Color(store.theme.foreground).opacity(0.06))
-                )
-                .overlay(
-                    RoundedRectangle(cornerRadius: 6)
-                        .stroke(Color(store.theme.effectiveLine()).opacity(0.3), lineWidth: 1)
-                )
+                .padding(DSTokens.Spacing.xxs)
+                .background { DSSurface(role: .sunken) { Color.clear } }
 
             // Restore message
             if let message = restoreMessage {
-                HStack(spacing: 6) {
-                    Image(systemName: restoreIsError ? "xmark.circle.fill" : "checkmark.circle.fill")
-                        .foregroundColor(restoreIsError ? .red : .green)
+                HStack(spacing: DSTokens.Spacing.xs) {
+                    DSStatusIndicator(
+                        restoreIsError ? .error : .success,
+                        label: restoreIsError ? "Restore failed" : "Restore succeeded"
+                    )
                     Text(message)
-                        .font(.system(size: 12))
-                        .foregroundColor(restoreIsError ? .red : .green)
+                        .dsFont(.caption)
+                        .foregroundStyle(
+                            restoreIsError
+                                ? environment.theme.colors.error.color
+                                : environment.theme.colors.success.color
+                        )
                 }
                 .transition(.opacity)
             }
@@ -155,20 +145,12 @@ struct ShareView: View {
             Button {
                 restoreFromPasted()
             } label: {
-                HStack {
-                    Image(systemName: "arrow.triangle.2.circlepath")
+                HStack(spacing: DSTokens.Spacing.xs) {
+                    DSIconView(.rearrange, size: DSTokens.Icon.micro, colorRole: .onAccent)
                     Text("Restore State")
                 }
-                .font(.system(size: 13, weight: .medium))
-                .foregroundColor(.white)
-                .padding(.vertical, 8)
-                .padding(.horizontal, 16)
-                .background(
-                    RoundedRectangle(cornerRadius: 6)
-                        .fill(Color(store.theme.effectiveAccent()))
-                )
             }
-            .buttonStyle(.plain)
+            .buttonStyle(.ds(role: .primary, size: .regular))
             .disabled(pasteInput.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
         }
     }
@@ -181,12 +163,12 @@ struct ShareView: View {
 
         do {
             try store.restoreFromSerializedState(trimmed)
-            withAnimation {
+            withAnimation(feedbackAnimation) {
                 restoreMessage = "State restored successfully."
                 restoreIsError = false
             }
         } catch {
-            withAnimation {
+            withAnimation(feedbackAnimation) {
                 restoreMessage = error.localizedDescription
                 restoreIsError = true
             }
@@ -194,17 +176,33 @@ struct ShareView: View {
     }
 
     private func showCopyFeedback() {
-        withAnimation(.easeOut(duration: 0.2)) {
+        withAnimation(feedbackAnimation) {
             showingCopyFeedback = true
         }
         Task {
             try? await Task.sleep(for: .seconds(2))
             await MainActor.run {
-                withAnimation(.easeOut(duration: 0.2)) {
+                withAnimation(feedbackAnimation) {
                     showingCopyFeedback = false
                 }
             }
         }
+    }
+
+    private var feedbackAnimation: Animation? {
+        guard environment.motion == .standard else { return nil }
+        return .easeOut(
+            duration: environment.motion.duration(
+                milliseconds: DSTokens.DurationMilliseconds.quick
+            )
+        )
+    }
+
+    private var divider: some View {
+        Rectangle()
+            .fill(environment.theme.colors.borderVariant.color)
+            .frame(height: DSTokens.Stroke.hairline)
+            .accessibilityHidden(true)
     }
 }
 

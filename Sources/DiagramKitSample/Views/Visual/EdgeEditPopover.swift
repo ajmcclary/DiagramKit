@@ -10,9 +10,11 @@
 //
 
 import SwiftUI
+import DiagramKitSampleDesignSystem
 
 struct EdgeEditPopover: View {
     @Bindable var store: LiveEditorStore
+    @Environment(\.dsEnvironment) private var environment
 
     enum LineStyle: String, CaseIterable, Identifiable {
         case solid, dashed, dotted
@@ -36,15 +38,16 @@ struct EdgeEditPopover: View {
     @SwiftUI.State private var arrowStyle: ArrowStyle = .forward
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
+        DSSurface(role: .popover) {
+        VStack(alignment: .leading, spacing: DSTokens.Spacing.smMd) {
             HStack {
                 Text("Edit edge")
-                    .font(.system(size: 12, weight: .semibold))
+                    .dsFont(.headline)
                 Spacer()
                 if let selection = store.editor?.selection {
                     Text(selection.elementID)
-                        .font(.system(size: 10, design: .monospaced))
-                        .foregroundStyle(.secondary)
+                        .dsFont(.code)
+                        .foregroundStyle(environment.theme.colors.textSecondary.color)
                 }
             }
 
@@ -66,27 +69,26 @@ struct EdgeEditPopover: View {
                 // so the user sees feedback.
                 store.setVisualStage(.idle)
             }
-            .buttonStyle(.bordered)
+            .buttonStyle(.ds(role: .secondary, size: .compact))
 
             HStack {
                 Button(role: .destructive) {
                     deleteEdge()
                 } label: {
                     Label("Delete", systemImage: "trash")
-                        .font(.system(size: 11, weight: .medium))
+                        .dsFont(.badge)
                 }
-                .buttonStyle(.plain)
-                .foregroundStyle(.red)
+                .buttonStyle(.ds(role: .destructive, size: .compact))
                 Spacer()
                 Button("Done") {
                     store.setVisualStage(.idle)
                 }
-                .buttonStyle(.borderedProminent)
+                .buttonStyle(.ds(role: .primary, size: .compact))
             }
         }
-        .padding(14)
+        .padding(DSTokens.Spacing.lg)
+        }
         .frame(width: 300)
-        .glassChrome(.popoverCard, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
         .accessibilityIdentifier(A11yID.Visual.edgePopover)
     }
 

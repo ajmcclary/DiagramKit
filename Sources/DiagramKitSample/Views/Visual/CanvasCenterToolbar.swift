@@ -8,10 +8,11 @@
 //
 
 import SwiftUI
+import DiagramKitSampleDesignSystem
 
 struct CanvasCenterToolbar: View {
     @Bindable var store: LiveEditorStore
-    @Environment(\.playgroundTokens) private var tokens
+    @Environment(\.dsEnvironment) private var environment
 
     @SwiftUI.State private var showShapeCatalog = false
     @SwiftUI.State private var showIconBrowser = false
@@ -19,16 +20,15 @@ struct CanvasCenterToolbar: View {
     @SwiftUI.State private var showThemePicker = false
 
     var body: some View {
-        HStack(spacing: 4) {
+        DSGlassSurface(role: .toolbar) {
+        HStack(spacing: DSTokens.Spacing.xxs) {
             Button {
                 showShapeCatalog.toggle()
             } label: {
                 Label("Shapes", systemImage: "square.on.circle")
-                    .font(.system(size: 12, weight: .medium))
-                    .padding(.horizontal, 10)
-                    .padding(.vertical, 6)
+                    .dsFont(.badge)
             }
-            .buttonStyle(.playground)
+            .buttonStyle(.ds(role: .ghost, size: .compact))
             .help("Browse and add shapes")
             .accessibilityIdentifier(A11yID.Visual.shapesButton)
             .popover(isPresented: $showShapeCatalog, arrowEdge: .top) {
@@ -42,11 +42,9 @@ struct CanvasCenterToolbar: View {
                 store.openEmptySubgraphPrompt()
             } label: {
                 Label("Subgraph", systemImage: "rectangle.3.group")
-                    .font(.system(size: 12, weight: .medium))
-                    .padding(.horizontal, 10)
-                    .padding(.vertical, 6)
+                    .dsFont(.badge)
             }
-            .buttonStyle(.playground)
+            .buttonStyle(.ds(role: .ghost, size: .compact))
             .help("Add a labeled group to the canvas")
             .accessibilityIdentifier(A11yID.Visual.subgraphButton)
 
@@ -54,11 +52,9 @@ struct CanvasCenterToolbar: View {
                 showIconBrowser.toggle()
             } label: {
                 Label("Icon", systemImage: "star.circle")
-                    .font(.system(size: 12, weight: .medium))
-                    .padding(.horizontal, 10)
-                    .padding(.vertical, 6)
+                    .dsFont(.badge)
             }
-            .buttonStyle(.playground)
+            .buttonStyle(.ds(role: .ghost, size: .compact))
             .help("Search and add an icon node")
             .accessibilityIdentifier(A11yID.Visual.iconButton)
             .popover(isPresented: $showIconBrowser, arrowEdge: .top) {
@@ -72,11 +68,9 @@ struct CanvasCenterToolbar: View {
                 store.openImageSheet()
             } label: {
                 Label("Image", systemImage: "photo")
-                    .font(.system(size: 12, weight: .medium))
-                    .padding(.horizontal, 10)
-                    .padding(.vertical, 6)
+                    .dsFont(.badge)
             }
-            .buttonStyle(.playground)
+            .buttonStyle(.ds(role: .ghost, size: .compact))
             .help("Add an image node from a URL")
             .accessibilityIdentifier(A11yID.Visual.imageButton)
 
@@ -84,11 +78,9 @@ struct CanvasCenterToolbar: View {
                 showRearrange.toggle()
             } label: {
                 Label("Rearrange", systemImage: "arrow.triangle.2.circlepath")
-                    .font(.system(size: 12, weight: .medium))
-                    .padding(.horizontal, 10)
-                    .padding(.vertical, 6)
+                    .dsFont(.badge)
             }
-            .buttonStyle(.playground)
+            .buttonStyle(.ds(role: .ghost, size: .compact))
             .help("Auto-arrange the diagram")
             .accessibilityIdentifier(A11yID.Visual.rearrangeButton)
             .popover(isPresented: $showRearrange, arrowEdge: .top) {
@@ -99,20 +91,18 @@ struct CanvasCenterToolbar: View {
                 showThemePicker.toggle()
             } label: {
                 Label("Theme", systemImage: "paintpalette")
-                    .font(.system(size: 12, weight: .medium))
-                    .padding(.horizontal, 10)
-                    .padding(.vertical, 6)
+                    .dsFont(.badge)
             }
-            .buttonStyle(.playground)
+            .buttonStyle(.ds(role: .ghost, size: .compact))
             .help("Apply a theme (saved into the source)")
             .accessibilityIdentifier(A11yID.Visual.themeButton)
             .popover(isPresented: $showThemePicker, arrowEdge: .top) {
                 ThemeSwatchPicker(store: store) { showThemePicker = false }
             }
         }
-        .foregroundStyle(tokens.palette.fg2)
-        .padding(4)
-        .glassChrome(.toolbar, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+        .foregroundStyle(environment.theme.colors.textSecondary.color)
+        .padding(DSTokens.Spacing.xxs)
+        }
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier(A11yID.Visual.centerToolbar)
     }

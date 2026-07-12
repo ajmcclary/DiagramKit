@@ -70,7 +70,6 @@ struct ZoomableCanvas<Content: View>: View {
 
     private var toolbar: some View {
         CanvasZoomToolbar(
-            theme: store.previewTheme,
             zoomScale: Binding(
                 get: { currentZoomScale },
                 set: { store.setVisualZoomScale(CanvasTransform.clampScale($0)) }
