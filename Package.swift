@@ -168,9 +168,15 @@ let package = Package(
             swiftSettings: strictConcurrencySettings
         ),
 
+        .target(
+            name: "DiagramKitSampleDesignSystem",
+            swiftSettings: strictConcurrencySettings
+        ),
+
         .executableTarget(
             name: "DiagramKitSample",
             dependencies: [
+                "DiagramKitSampleDesignSystem",
                 "DiagramKit",
                 "DiagramKitD2",
                 "DiagramKitGraphviz",
@@ -201,6 +207,7 @@ let package = Package(
                 "DiagramKitInteractive",
                 "DiagramKitTestSupport",
                 "DiagramKitSample",
+                "DiagramKitSampleDesignSystem",
                 "DiagramKitD2",
                 "DiagramKitGraphviz",
                 "DiagramKitStructurizr",
