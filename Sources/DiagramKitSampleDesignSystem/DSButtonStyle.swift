@@ -33,6 +33,7 @@ public enum DSButtonFillRole: Equatable, Sendable {
     case element
     case elementHover
     case elementActive
+    case elementSelected
     case ghost
     case ghostHover
     case ghostActive
@@ -198,6 +199,7 @@ private extension DSButtonFillRole {
         case .element: theme.colors.element.color
         case .elementHover: theme.colors.elementHover.color
         case .elementActive: theme.colors.elementActive.color
+        case .elementSelected: theme.colors.elementSelected.color
         case .ghost: theme.colors.ghostElement.color
         case .ghostHover: theme.colors.ghostElementHover.color
         case .ghostActive: theme.colors.ghostElementActive.color
