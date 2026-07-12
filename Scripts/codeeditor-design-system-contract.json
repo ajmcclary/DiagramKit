@@ -138,6 +138,12 @@
     "copy": "doc.on.doc",
     "history": "clock.arrow.circlepath",
     "theme": "paintpalette",
-    "code": "chevron.left.slash.chevron.right"
+    "code": "chevron.left.slash.chevron.right",
+    "node": "rectangle",
+    "diagram": "square.on.square",
+    "subgraph": "square.on.square",
+    "favorite": "star",
+    "image": "photo",
+    "rearrange": "arrow.triangle.2.circlepath"
   }
 }

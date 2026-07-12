@@ -8,18 +8,20 @@
 //
 
 import SwiftUI
+import DiagramKitSampleDesignSystem
 
 struct InspectorDiagnosticsSection: View {
     @Bindable var store: LiveEditorStore
+    @Environment(\.dsEnvironment) private var environment
 
     var body: some View {
-        InspectorSectionHeader(title: "Diagnostics", systemImage: "exclamationmark.bubble")
-            .padding(.bottom, 4)
-        VStack(alignment: .leading, spacing: 6) {
+        DSSectionHeader("Diagnostics")
+            .padding(.bottom, DSTokens.Spacing.xxs)
+        VStack(alignment: .leading, spacing: DSTokens.Spacing.xs) {
             if store.diagnostics.isEmpty {
                 Text("No diagnostics")
-                    .font(.system(size: 11))
-                    .foregroundStyle(.secondary)
+                    .dsFont(.caption2)
+                    .foregroundStyle(environment.theme.colors.textSecondary.color)
             } else {
                 ForEach(store.diagnostics) { diagnostic in
                     row(diagnostic)
@@ -27,47 +29,43 @@ struct InspectorDiagnosticsSection: View {
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(8)
-        .background(
-            RoundedRectangle(cornerRadius: 8, style: .continuous)
-                .fill(Color.gray.opacity(0.06))
-        )
+        .padding(DSTokens.Spacing.sm)
+        .background { DSSurface(role: .card) { Color.clear } }
         .accessibilityIdentifier(A11yID.Inspector.diagnosticsSection)
         .accessibilityElement(children: .contain)
     }
 
     private func row(_ d: EditorDiagnostic) -> some View {
-        HStack(alignment: .top, spacing: 6) {
-            Image(systemName: severityIcon(d.severity))
-                .foregroundStyle(severityColor(d.severity))
-                .font(.system(size: 11, weight: .semibold))
-            VStack(alignment: .leading, spacing: 2) {
+        HStack(alignment: .top, spacing: DSTokens.Spacing.xs) {
+            DSIconView(severityIcon(d.severity), size: DSTokens.Icon.micro, colorRole: severityRole(d.severity))
+            VStack(alignment: .leading, spacing: DSTokens.Spacing.xxxs) {
                 Text(d.message)
-                    .font(.system(size: 11))
+                    .dsFont(.caption2)
+                    .foregroundStyle(environment.theme.colors.textPrimary.color)
                     .lineLimit(3)
                 if let line = d.line {
                     Text("line \(line)")
-                        .font(.system(size: 10, weight: .medium).monospacedDigit())
-                        .foregroundStyle(.secondary)
+                        .dsFont(.metric)
+                        .foregroundStyle(environment.theme.colors.textSecondary.color)
                 }
             }
             Spacer()
         }
     }
 
-    private func severityIcon(_ s: EditorDiagnostic.Severity) -> String {
+    private func severityIcon(_ s: EditorDiagnostic.Severity) -> DSIcon {
         switch s {
-        case .error:   return "xmark.octagon.fill"
-        case .warning: return "exclamationmark.triangle.fill"
-        case .info:    return "info.circle.fill"
+        case .error:   return .error
+        case .warning: return .warning
+        case .info:    return .info
         }
     }
 
-    private func severityColor(_ s: EditorDiagnostic.Severity) -> Color {
+    private func severityRole(_ s: EditorDiagnostic.Severity) -> DSIconColorRole {
         switch s {
-        case .error:   return .red
-        case .warning: return .orange
-        case .info:    return .blue
+        case .error:   return .error
+        case .warning: return .warning
+        case .info:    return .info
         }
     }
 }

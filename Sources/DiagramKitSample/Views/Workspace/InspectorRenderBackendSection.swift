@@ -8,26 +8,28 @@
 //
 
 import SwiftUI
+import DiagramKitSampleDesignSystem
 
 struct InspectorRenderBackendSection: View {
     @Bindable var store: LiveEditorStore
 
-    @Environment(\.playgroundTokens) private var tokens
+    @Environment(\.dsEnvironment) private var environment
 
     var body: some View {
-        VStack(alignment: .leading, spacing: PlaygroundSpacing.sm) {
-            SectionHeader("Render backend", systemImage: "rectangle.on.rectangle")
-            Surface(.card, padding: PlaygroundSpacing.md) {
-                VStack(alignment: .leading, spacing: PlaygroundSpacing.sm) {
+        VStack(alignment: .leading, spacing: DSTokens.Spacing.sm) {
+            DSSectionHeader("Render backend")
+            DSSurface(role: .card) {
+                VStack(alignment: .leading, spacing: DSTokens.Spacing.sm) {
                     backendChips
-                    Divider().overlay(tokens.palette.borderHairline)
+                    separator
                     KeyValueRow("renderer", value: rendererText)
                     KeyValueRow("size", value: sizeText)
                     KeyValueRow("viewBox", value: viewBoxText)
-                    Divider().overlay(tokens.palette.borderHairline)
+                    separator
                     autoRenderToggle
                     workerThreadRow
                 }
+                .padding(DSTokens.Spacing.md)
             }
         }
         .accessibilityIdentifier(A11yID.Inspector.renderBackendSection)
@@ -35,10 +37,9 @@ struct InspectorRenderBackendSection: View {
     }
 
     private var backendChips: some View {
-        let items = RenderBackend.allCases.map { backend in
-            ChipItem(value: backend, label: backend.label, systemImage: backend.sfSymbol)
+        DSSegmentedControl(RenderBackend.allCases, selection: $store.state.renderBackend) { backend in
+            Text(backend.label)
         }
-        return ChipGroup(items: items, selection: $store.state.renderBackend)
     }
 
     private var rendererText: String {
@@ -73,35 +74,40 @@ struct InspectorRenderBackendSection: View {
         )) {
             VStack(alignment: .leading, spacing: 0) {
                 Text("Render on every keystroke")
-                    .font(PlaygroundFont.body)
-                    .foregroundStyle(tokens.palette.fg1)
+                    .dsFont(.body)
+                    .foregroundStyle(environment.theme.colors.textPrimary.color)
                 Text("auto vs manual")
-                    .font(PlaygroundFont.badge)
-                    .foregroundStyle(tokens.palette.fg3)
+                    .dsFont(.badge)
+                    .foregroundStyle(environment.theme.colors.textSecondary.color)
             }
         }
-        .toggleStyle(.switch)
-        .controlSize(.mini)
-        .tint(tokens.palette.accent)
+        .toggleStyle(.ds)
     }
 
     private var workerThreadRow: some View {
         HStack(alignment: .firstTextBaseline) {
             VStack(alignment: .leading, spacing: 0) {
                 Text("Worker thread")
-                    .font(PlaygroundFont.body)
-                    .foregroundStyle(tokens.palette.fg1)
+                    .dsFont(.body)
+                    .foregroundStyle(environment.theme.colors.textPrimary.color)
                 Text("8 MB stack · fresh per call")
-                    .font(PlaygroundFont.badge)
-                    .foregroundStyle(tokens.palette.fg3)
+                    .dsFont(.badge)
+                    .foregroundStyle(environment.theme.colors.textSecondary.color)
             }
             Spacer()
             Circle()
-                .fill(tokens.palette.statusSuccess)
-                .frame(width: 7, height: 7)
+                .fill(environment.theme.colors.success.color)
+                .frame(width: DSTokens.Icon.indicator, height: DSTokens.Icon.indicator)
             Text("on")
-                .font(PlaygroundFont.metric)
-                .foregroundStyle(tokens.palette.statusSuccess)
+                .dsFont(.metric)
+                .foregroundStyle(environment.theme.colors.success.color)
         }
+    }
+
+    private var separator: some View {
+        Rectangle()
+            .fill(environment.theme.colors.borderVariant.color)
+            .frame(height: DSTokens.Stroke.hairline)
+            .accessibilityHidden(true)
     }
 }

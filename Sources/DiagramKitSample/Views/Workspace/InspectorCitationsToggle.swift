@@ -7,21 +7,19 @@
 //
 
 import SwiftUI
+import DiagramKitSampleDesignSystem
 
 struct InspectorCitationsToggle: View {
     @Bindable var store: LiveEditorStore
 
     var body: some View {
         Toggle(isOn: $store.state.showCitations) {
-            Label("Show citations", systemImage: "quote.bubble")
-                .font(.system(size: 12, weight: .medium))
+            Text("Show citations")
+                .dsFont(.caption)
         }
-        .toggleStyle(.switch)
-        .padding(8)
-        .background(
-            RoundedRectangle(cornerRadius: 8, style: .continuous)
-                .fill(Color.gray.opacity(0.06))
-        )
+        .toggleStyle(.ds)
+        .padding(DSTokens.Spacing.sm)
+        .background { DSSurface(role: .card) { Color.clear } }
         .a11yToggle(
             label: "Show citations",
             isOn: store.state.showCitations,

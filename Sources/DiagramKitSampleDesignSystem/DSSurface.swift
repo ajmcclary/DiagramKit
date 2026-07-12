@@ -10,6 +10,9 @@ public enum DSSurfaceRole: Equatable, Sendable {
     case panel
     case sunken
     case tabBar
+    case titleBar
+    case toolbar
+    case statusBar
     case popover
 
     public var elevation: DSElevation {
@@ -63,7 +66,7 @@ public struct DSSurface<Content: View>: View {
 
     private var shape: RoundedRectangle {
         RoundedRectangle(
-            cornerRadius: role == .tabBar ? 0 : DSTokens.Radius.md,
+            cornerRadius: role.isChrome ? 0 : DSTokens.Radius.md,
             style: .continuous
         )
     }
@@ -74,6 +77,9 @@ public struct DSSurface<Content: View>: View {
         case .panel: environment.theme.colors.panelBackground.color
         case .sunken: environment.theme.colors.editorBackground.color
         case .tabBar: environment.theme.colors.tabBarBackground.color
+        case .titleBar: environment.theme.colors.titleBarBackground.color
+        case .toolbar: environment.theme.colors.toolbarBackground.color
+        case .statusBar: environment.theme.colors.statusBarBackground.color
         case .popover: environment.theme.colors.elevatedSurfaceBackground.color
         }
     }
@@ -134,7 +140,7 @@ public struct DSGlassSurface<Content: View>: View {
 
     private var shape: RoundedRectangle {
         RoundedRectangle(
-            cornerRadius: role == .tabBar ? 0 : DSTokens.Radius.md,
+            cornerRadius: role.isChrome ? 0 : DSTokens.Radius.md,
             style: .continuous
         )
     }
@@ -145,7 +151,19 @@ public struct DSGlassSurface<Content: View>: View {
         case .panel: environment.theme.colors.panelBackground.color
         case .sunken: environment.theme.colors.editorBackground.color
         case .tabBar: environment.theme.colors.tabBarBackground.color
+        case .titleBar: environment.theme.colors.titleBarBackground.color
+        case .toolbar: environment.theme.colors.toolbarBackground.color
+        case .statusBar: environment.theme.colors.statusBarBackground.color
         case .popover: environment.theme.colors.elevatedSurfaceBackground.color
+        }
+    }
+}
+
+private extension DSSurfaceRole {
+    var isChrome: Bool {
+        switch self {
+        case .tabBar, .titleBar, .toolbar, .statusBar: true
+        case .card, .panel, .sunken, .popover: false
         }
     }
 }

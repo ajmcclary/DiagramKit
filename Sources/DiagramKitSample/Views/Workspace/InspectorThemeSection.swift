@@ -13,6 +13,7 @@
 //
 
 import SwiftUI
+import DiagramKitSampleDesignSystem
 
 struct InspectorThemeSection: View {
     @Bindable var store: LiveEditorStore
@@ -27,7 +28,7 @@ struct InspectorThemeSection: View {
     @SwiftUI.State private var showDiagramPalette = false
     @SwiftUI.State private var showThemeBuilder = false
 
-    @Environment(\.playgroundTokens) private var tokens
+    @Environment(\.dsEnvironment) private var environment
     @Environment(\.colorScheme) private var scheme
 
     private var family: ZedTrekTheme { ZedTrekTheme(rawValue: familyRaw) ?? .lcars }
@@ -36,20 +37,21 @@ struct InspectorThemeSection: View {
         Binding(get: { mode }, set: { modeRaw = $0.rawValue })
     }
 
-    private let tileColumns = [GridItem(.adaptive(minimum: 72), spacing: PlaygroundSpacing.sm)]
+    private let tileColumns = [GridItem(.adaptive(minimum: 72), spacing: DSTokens.Spacing.sm)]
 
     var body: some View {
-        VStack(alignment: .leading, spacing: PlaygroundSpacing.sm) {
-            SectionHeader("Theme", systemImage: "paintpalette")
-            Surface(.card, padding: PlaygroundSpacing.md) {
-                VStack(alignment: .leading, spacing: PlaygroundSpacing.md) {
+        VStack(alignment: .leading, spacing: DSTokens.Spacing.sm) {
+            DSSectionHeader("Theme")
+            DSSurface(role: .card) {
+                VStack(alignment: .leading, spacing: DSTokens.Spacing.md) {
                     modeControl
                     chromeTiles
                     matchAppThemeToggle
-                    Divider().overlay(tokens.palette.borderHairline)
+                    separator
                     diagramPaletteDisclosure
                     themeBuilderDisclosure
                 }
+                .padding(DSTokens.Spacing.md)
             }
         }
         .accessibilityIdentifier(A11yID.Inspector.themeSection)
@@ -57,15 +59,13 @@ struct InspectorThemeSection: View {
     }
 
     private var modeControl: some View {
-        SegmentedFormatControl(segments: [
-            .init(value: ThemeMode.system, label: "System", systemImage: "circle.lefthalf.filled"),
-            .init(value: ThemeMode.light, label: "Light", systemImage: "sun.max"),
-            .init(value: ThemeMode.dark, label: "Dark", systemImage: "moon"),
-        ], selection: modeBinding)
+        DSSegmentedControl(ThemeMode.allCases, selection: modeBinding) { mode in
+            Text(mode.displayName)
+        }
     }
 
     private var chromeTiles: some View {
-        LazyVGrid(columns: tileColumns, spacing: PlaygroundSpacing.sm) {
+        LazyVGrid(columns: tileColumns, spacing: DSTokens.Spacing.sm) {
             ForEach(ZedTrekTheme.allCases, id: \.self) { theme in
                 let specimen = theme.specimen(for: scheme)
                 SwatchTile(
@@ -82,70 +82,82 @@ struct InspectorThemeSection: View {
 
     private var matchAppThemeToggle: some View {
         HStack {
-            Text("Match app theme").font(PlaygroundFont.body).foregroundStyle(tokens.palette.fg1)
+            Text("Match app theme").dsFont(.body).foregroundStyle(environment.theme.colors.textPrimary.color)
             Spacer()
-            PillSwitch(isOn: $canvasFollows)
+            Toggle("Match app theme", isOn: $canvasFollows)
+                .labelsHidden()
+                .toggleStyle(.ds)
         }
     }
 
     @ViewBuilder
     private var diagramPaletteDisclosure: some View {
         Button {
-            withAnimation(.easeInOut(duration: 0.15)) {
+            withAnimation(disclosureAnimation) {
                 showDiagramPalette.toggle()
             }
         } label: {
             HStack {
-                Image(systemName: showDiagramPalette ? "chevron.down" : "chevron.right")
-                    .font(.system(size: 9, weight: .semibold))
-                    .foregroundStyle(tokens.palette.fg2)
-                    .frame(width: 14)
+                DSIconView(showDiagramPalette ? .disclosureDown : .disclosureRight, size: DSTokens.Icon.micro, colorRole: .muted)
                 Text("Diagram palette")
-                    .font(PlaygroundFont.body)
-                    .foregroundStyle(tokens.palette.fg1)
+                    .dsFont(.body)
+                    .foregroundStyle(environment.theme.colors.textPrimary.color)
                 Spacer()
                 Text(store.state.selectedThemeName)
-                    .font(PlaygroundFont.badge)
-                    .foregroundStyle(tokens.palette.fg3)
+                    .dsFont(.badge)
+                    .foregroundStyle(environment.theme.colors.textSecondary.color)
             }
             .contentShape(Rectangle())
         }
-        .buttonStyle(.plain)
+        .buttonStyle(.ds(role: .ghost, size: .compact))
 
         if showDiagramPalette {
             ThemePicker(store: store)
-                .padding(.leading, 16)
+                .padding(.leading, DSTokens.Spacing.lg)
         }
     }
 
     @ViewBuilder
     private var themeBuilderDisclosure: some View {
         Button {
-            withAnimation(.easeInOut(duration: 0.15)) {
+            withAnimation(disclosureAnimation) {
                 showThemeBuilder.toggle()
             }
         } label: {
             HStack {
-                Image(systemName: showThemeBuilder ? "chevron.down" : "chevron.right")
-                    .font(.system(size: 9, weight: .semibold))
-                    .foregroundStyle(tokens.palette.fg2)
-                    .frame(width: 14)
+                DSIconView(showThemeBuilder ? .disclosureDown : .disclosureRight, size: DSTokens.Icon.micro, colorRole: .muted)
                 Text("Edit theme")
-                    .font(PlaygroundFont.body)
-                    .foregroundStyle(tokens.palette.fg1)
+                    .dsFont(.body)
+                    .foregroundStyle(environment.theme.colors.textPrimary.color)
                 Spacer()
                 Text("DiagramColors")
-                    .font(PlaygroundFont.codeChip)
-                    .foregroundStyle(tokens.palette.fg3)
+                    .dsFont(.code)
+                    .foregroundStyle(environment.theme.colors.textSecondary.color)
             }
             .contentShape(Rectangle())
         }
-        .buttonStyle(.plain)
+        .buttonStyle(.ds(role: .ghost, size: .compact))
 
         if showThemeBuilder {
             ThemeBuilderCard(store: store)
-                .padding(.leading, 16)
+                .padding(.leading, DSTokens.Spacing.lg)
         }
+    }
+
+    private var separator: some View {
+        Rectangle()
+            .fill(environment.theme.colors.borderVariant.color)
+            .frame(height: DSTokens.Stroke.hairline)
+            .accessibilityHidden(true)
+    }
+
+    private var disclosureAnimation: Animation? {
+        guard environment.motion == .standard else { return nil }
+        return .easeInOut(
+            duration: environment.motion.duration(
+                milliseconds: DSTokens.DurationMilliseconds.fast
+            )
+        )
     }
 }
 

@@ -9,6 +9,7 @@
 //
 
 import SwiftUI
+import DiagramKitSampleDesignSystem
 
 struct PlaygroundShell: View {
     @Bindable var store: LiveEditorStore
@@ -21,13 +22,14 @@ struct PlaygroundShell: View {
     /// The inspector is driven separately by `store.state.inspectorOpen` so the
     /// toolbar toggle and `⌘I` stay in lockstep.
     @State private var columnVisibility: NavigationSplitViewVisibility = .all
+    @Environment(\.dsEnvironment) private var environment
 
     var body: some View {
         ZStack(alignment: .bottom) {
             VStack(spacing: 0) {
                 #if !os(macOS)
                 TitlebarView(store: store)
-                Divider()
+                separator
                 #endif
                 HStack(spacing: 0) {
                     // The activity rail is a fixed leading strip (section
@@ -54,13 +56,13 @@ struct PlaygroundShell: View {
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 if store.state.diagDrawer.isOpen {
-                    Divider()
+                    separator
                     DiagnosticsDrawer(store: store)
                         .transition(.move(edge: .bottom).combined(with: .opacity))
                 }
                 StatusbarView(store: store)
             }
-            .animation(.easeInOut(duration: 0.18), value: store.state.diagDrawer.isOpen)
+            .animation(drawerAnimation, value: store.state.diagDrawer.isOpen)
             .onChange(of: store.state.inspectorOpen) { _, newValue in
                 UserDefaults.standard.set(newValue, forKey: "playground.shell.inspectorVisible")
             }
@@ -96,7 +98,8 @@ struct PlaygroundShell: View {
             // Explain popover overlays the entire shell.
             if let target = store.diagnosticExplainTarget {
                 ZStack {
-                    Color.black.opacity(0.25)
+                    environment.theme.colors.windowBackground.color
+                        .opacity(DSTokens.Opacity.disabled)
                         .ignoresSafeArea()
                         .onTapGesture { store.dismissExplain() }
                     DiagnosticExplainPopover(store: store, row: target)
@@ -110,8 +113,8 @@ struct PlaygroundShell: View {
                     HStack {
                         Spacer()
                         RenderFailedSheet(store: store)
-                            .padding(.trailing, 18)
-                            .padding(.bottom, 70)
+                            .padding(.trailing, DSTokens.Spacing.xl)
+                            .padding(.bottom, DSTokens.Spacing.xxxl * 2)
                     }
                 }
             }
@@ -119,6 +122,7 @@ struct PlaygroundShell: View {
             // Source-citation overlay (Phase 10 / Task 10.5)
             CitationOverlay(store: store)
         }
+        .background(environment.theme.colors.windowBackground.color)
         #if os(macOS)
         .frame(minWidth: 900, minHeight: 600)
         #endif
@@ -136,7 +140,7 @@ struct PlaygroundShell: View {
                 HStack(spacing: 0) {
                     EditorPane(store: store)
                         .frame(minWidth: 260)
-                    Divider()
+                    verticalSeparator
                     PreviewCanvas(store: store, onFullWindowPreview: nil)
                         .frame(minWidth: 260)
                 }
@@ -162,6 +166,29 @@ struct PlaygroundShell: View {
         case .snippets:
             SnippetsLibraryView(store: store)
         }
+    }
+
+    private var separator: some View {
+        Rectangle()
+            .fill(environment.theme.colors.borderVariant.color)
+            .frame(height: DSTokens.Stroke.hairline)
+            .accessibilityHidden(true)
+    }
+
+    private var verticalSeparator: some View {
+        Rectangle()
+            .fill(environment.theme.colors.borderVariant.color)
+            .frame(width: DSTokens.Stroke.hairline)
+            .accessibilityHidden(true)
+    }
+
+    private var drawerAnimation: Animation? {
+        guard environment.motion == .standard else { return nil }
+        return .easeInOut(
+            duration: environment.motion.duration(
+                milliseconds: DSTokens.DurationMilliseconds.drawer
+            )
+        )
     }
 
 }

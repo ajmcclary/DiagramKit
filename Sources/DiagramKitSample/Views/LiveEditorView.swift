@@ -34,14 +34,18 @@ struct LiveEditorView: View {
 
     private var chromeFamily: ZedTrekTheme { ZedTrekTheme(rawValue: familyRaw) ?? .lcars }
     private var chromeMode: ThemeMode { ThemeMode(rawValue: modeRaw) ?? .dark }
+    private var chromeTheme: DSTheme {
+        DSTheme.theme(
+            family: chromeFamily.dsFamily,
+            mode: effectiveScheme == .dark ? .dark : .light
+        )
+    }
 
     /// Chrome background for the current theme. Used to paint the window toolbar
     /// so its full-screen background matches the app body instead of falling
     /// back to the default system material band.
     private var chromeBackground: Color {
-        let mode: DSThemeMode = effectiveScheme == .dark ? .dark : .light
-        return DSTheme.theme(family: chromeFamily.dsFamily, mode: mode)
-            .colors.windowBackground.color
+        chromeTheme.colors.windowBackground.color
     }
 
     private func syncCanvasIfFollowing() {
@@ -76,8 +80,8 @@ struct LiveEditorView: View {
                     compactLayout
                         .navigationTitle("Diagram")
                         .navigationBarTitleDisplayMode(.inline)
-                        .toolbarBackground(Color(store.theme.background), for: .navigationBar)
-                        .toolbarColorScheme(store.theme.background.isLight ? .light : .dark, for: .navigationBar)
+                        .toolbarBackground(chromeTheme.colors.titleBarBackground.color, for: .navigationBar)
+                        .toolbarColorScheme(chromeTheme.mode == .light ? .light : .dark, for: .navigationBar)
                         .toolbar {
                             LiveEditorToolbar(store: store)
                         }
@@ -112,16 +116,13 @@ struct LiveEditorView: View {
     #if os(iOS)
     private var compactLayout: some View {
         VStack(spacing: 0) {
-            // Edit / View segmented toggle
-            Picker("Mode", selection: compactMode) {
-                ForEach(CompactMode.allCases, id: \.self) { mode in
-                    Text(mode.label).tag(mode)
+            DSSurface(role: .toolbar) {
+                DSSegmentedControl(CompactMode.allCases, selection: compactMode) { mode in
+                    Text(mode.label)
                 }
+                .padding(.horizontal, DSTokens.Spacing.lg)
+                .padding(.vertical, DSTokens.Spacing.sm)
             }
-            .pickerStyle(.segmented)
-            .padding(.horizontal, 16)
-            .padding(.vertical, 8)
-            .background(Color(store.theme.background))
 
             // Main content
             Group {
@@ -137,20 +138,13 @@ struct LiveEditorView: View {
             .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
         .overlay(alignment: .topTrailing) {
-            Button {
-                showingControls = true
-            } label: {
-                Image(systemName: "slider.horizontal.3")
-                    .font(.system(size: 20, weight: .medium))
-                    .foregroundColor(Color(store.theme.foreground))
-                    .padding(12)
-                    .background(
-                        Circle()
-                            .fill(Color(store.theme.background).opacity(0.9))
-                            .shadow(color: .black.opacity(0.2), radius: 4, x: 0, y: 2)
-                    )
+            DSGlassSurface(role: .popover) {
+                DSIconButton(.settings, label: "Open sample controls") {
+                    showingControls = true
+                }
+                .padding(DSTokens.Spacing.xxs)
             }
-            .padding()
+            .padding(DSTokens.Spacing.lg)
         }
         .sheet(isPresented: $showingControls) {
             NavigationStack {
@@ -163,13 +157,14 @@ struct LiveEditorView: View {
                 })
                     .navigationTitle("Samples")
                     .navigationBarTitleDisplayMode(.inline)
-                    .toolbarBackground(Color(store.theme.background), for: .navigationBar)
-                    .toolbarColorScheme(store.theme.background.isLight ? .light : .dark, for: .navigationBar)
+                    .toolbarBackground(chromeTheme.colors.titleBarBackground.color, for: .navigationBar)
+                    .toolbarColorScheme(chromeTheme.mode == .light ? .light : .dark, for: .navigationBar)
                     .toolbar {
                         ToolbarItem(placement: .confirmationAction) {
                             Button("Done") {
                                 showingControls = false
                             }
+                            .buttonStyle(.ds(role: .ghost, size: .compact))
                         }
                     }
             }
@@ -188,6 +183,7 @@ struct LiveEditorView: View {
                     .toolbar {
                         ToolbarItem(placement: .confirmationAction) {
                             Button("Done") { store.dismissSettings() }
+                                .buttonStyle(.ds(role: .ghost, size: .compact))
                         }
                     }
             }
@@ -218,10 +214,12 @@ struct LiveEditorView: View {
                         Button("Done") {
                             showingFullWindowPreview = false
                         }
+                        .buttonStyle(.ds(role: .ghost, size: .compact))
                     }
                 }
             #if os(iOS)
-                .toolbarBackground(Color(store.theme.background), for: .navigationBar)
+                .toolbarBackground(chromeTheme.colors.titleBarBackground.color, for: .navigationBar)
+                .toolbarColorScheme(chromeTheme.mode == .light ? .light : .dark, for: .navigationBar)
             #endif
         }
     }
@@ -229,7 +227,7 @@ struct LiveEditorView: View {
 
 // MARK: - Compact mode
 
-private enum CompactMode: CaseIterable {
+private enum CompactMode: CaseIterable, Hashable {
     case edit
     case view
     case inspector

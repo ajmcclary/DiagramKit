@@ -71,6 +71,9 @@ struct DSPrimitiveTests {
         #expect(DSSurfaceRole.card.elevation == .none)
         #expect(DSSurfaceRole.panel.elevation == .none)
         #expect(DSSurfaceRole.tabBar.elevation == .none)
+        #expect(DSSurfaceRole.titleBar.elevation == .none)
+        #expect(DSSurfaceRole.toolbar.elevation == .none)
+        #expect(DSSurfaceRole.statusBar.elevation == .none)
         #expect(DSSurfaceRole.popover.elevation == .popover)
     }
 

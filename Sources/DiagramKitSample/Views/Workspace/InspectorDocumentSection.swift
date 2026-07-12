@@ -9,17 +9,16 @@
 //
 
 import SwiftUI
+import DiagramKitSampleDesignSystem
 
 struct InspectorDocumentSection: View {
     @Bindable var store: LiveEditorStore
 
-    @Environment(\.playgroundTokens) private var tokens
-
     var body: some View {
-        VStack(alignment: .leading, spacing: PlaygroundSpacing.sm) {
-            SectionHeader("Document", systemImage: "doc.text")
-            Surface(.card, padding: PlaygroundSpacing.md) {
-                VStack(spacing: 4) {
+        VStack(alignment: .leading, spacing: DSTokens.Spacing.sm) {
+            DSSectionHeader("Document")
+            DSSurface(role: .card) {
+                VStack(spacing: DSTokens.Spacing.xxs) {
                     KeyValueRow("File", value: fileLabel, copyable: false)
                     KeyValueRow("Family", value: store.state.sourceFormat.displayName)
                     KeyValueRow("Format", value: store.state.sourceFormat.shortName)
@@ -31,6 +30,7 @@ struct InspectorDocumentSection: View {
                     KeyValueRow("Characters", value: "\(store.state.source.count)")
                     KeyValueRow("Bundled fonts", value: bundledFontsText)
                 }
+                .padding(DSTokens.Spacing.md)
             }
         }
         .accessibilityIdentifier(A11yID.Inspector.documentSection)
@@ -53,13 +53,12 @@ struct InspectorDocumentSection: View {
     private var bundledFontsText: String { "Noto Sans · Mono" }
 }
 
-/// Bridge for legacy sections still calling `InspectorSectionHeader`.
-/// New code should use `SectionHeader` directly.
+/// Bridge for older sections while they move to the generated design system.
 struct InspectorSectionHeader: View {
     let title: String
     let systemImage: String
 
     var body: some View {
-        SectionHeader(title, systemImage: systemImage)
+        DSSectionHeader(title)
     }
 }

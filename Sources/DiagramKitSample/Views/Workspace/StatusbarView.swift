@@ -10,14 +10,15 @@
 
 import SwiftUI
 import DiagramKit
+import DiagramKitSampleDesignSystem
 
 struct StatusbarView: View {
     @Bindable var store: LiveEditorStore
 
-    @Environment(\.playgroundTokens) private var tokens
+    @Environment(\.dsEnvironment) private var environment
 
     var body: some View {
-        HStack(spacing: PlaygroundSpacing.md) {
+        HStack(spacing: DSTokens.Spacing.md) {
             engineSegment
             divider
             workerSegment
@@ -28,7 +29,7 @@ struct StatusbarView: View {
             divider
             diagnosticsButton
 
-            Spacer(minLength: PlaygroundSpacing.md)
+            Spacer(minLength: DSTokens.Spacing.md)
 
             backendSegment
             divider
@@ -36,18 +37,12 @@ struct StatusbarView: View {
             divider
             activeSampleBadge
         }
-        .padding(.horizontal, PlaygroundSpacing.md)
-        .padding(.vertical, 6)
-        .background(
-            Rectangle()
-                .fill(tokens.palette.bgApp)
-                .overlay(alignment: .top) {
-                    Rectangle()
-                        .fill(tokens.palette.borderHairline)
-                        .frame(height: 0.5)
-                }
-        )
-        .foregroundStyle(tokens.palette.fg2)
+        .padding(.horizontal, DSTokens.Spacing.md)
+        .frame(minHeight: DSTokens.Control.statusBar)
+        .background {
+            DSSurface(role: .statusBar) { Color.clear }
+        }
+        .foregroundStyle(environment.theme.colors.textSecondary.color)
     }
 
     // MARK: - Segments
@@ -58,10 +53,10 @@ struct StatusbarView: View {
                 .fill(statusColor)
                 .frame(width: 7, height: 7)
             Text("DiagramEngine")
-                .font(PlaygroundFont.label)
-                .foregroundStyle(tokens.palette.fg1)
+                .dsFont(.badge)
+                .foregroundStyle(environment.theme.colors.textPrimary.color)
             Text("· \(statusText)")
-                .font(PlaygroundFont.caption)
+                .dsFont(.caption2)
         }
     }
 
@@ -82,10 +77,10 @@ struct StatusbarView: View {
     private var backendSegment: some View {
         HStack(spacing: 5) {
             Text("backend")
-                .font(PlaygroundFont.caption)
+                .dsFont(.caption2)
             Text(store.state.renderBackend.label.lowercased())
-                .font(PlaygroundFont.metric)
-                .foregroundStyle(tokens.palette.accent)
+                .dsFont(.metric)
+                .foregroundStyle(environment.theme.colors.accent.color)
         }
         .a11yToggle(
             label: "Render backend",
@@ -101,19 +96,11 @@ struct StatusbarView: View {
     @ViewBuilder
     private var activeSampleBadge: some View {
         if let id = store.state.activeTabId, !id.isEmpty {
-            Text(id)
-                .font(PlaygroundFont.codeChip)
-                .foregroundStyle(tokens.palette.fg2)
-                .padding(.horizontal, 6)
-                .padding(.vertical, 1)
-                .background(
-                    RoundedRectangle(cornerRadius: PlaygroundRadius.xs, style: .continuous)
-                        .stroke(tokens.palette.borderHairline, lineWidth: 0.5)
-                )
+            DSCodeBadge(id)
         } else {
             Text("—")
-                .font(PlaygroundFont.codeChip)
-                .foregroundStyle(tokens.palette.fg3)
+                .dsFont(.badge)
+                .foregroundStyle(environment.theme.colors.textDisabled.color)
         }
     }
 
@@ -121,17 +108,20 @@ struct StatusbarView: View {
 
     private var diagnosticsButton: some View {
         let count = store.allDiagnostics.count
-        let tone: KPillTone = count > 0 ? .warn : .neutral
         return Button {
             store.toggleDiagnosticsDrawer()
         } label: {
-            KPill(
-                text: "Diagnostics · \(count)",
-                systemImage: "exclamationmark.bubble",
-                tone: tone
-            )
+            HStack(spacing: DSTokens.Spacing.xs) {
+                DSIconView(
+                    .diagnostics,
+                    size: DSTokens.Icon.micro,
+                    colorRole: count > 0 ? .warning : .muted
+                )
+                Text("Diagnostics · \(count)")
+                    .dsFont(.badge)
+            }
         }
-        .buttonStyle(.plain)
+        .buttonStyle(.ds(role: .ghost, size: .compact))
         .a11yToggle(
             label: "Diagnostics drawer",
             isOn: store.state.diagDrawer.isOpen,
@@ -145,17 +135,17 @@ struct StatusbarView: View {
     private func labeledMetric(key: String, value: String, monospace: Bool = true) -> some View {
         HStack(spacing: 5) {
             Text(key)
-                .font(PlaygroundFont.caption)
+                .dsFont(.caption2)
             Text(value)
-                .font(monospace ? PlaygroundFont.metric : PlaygroundFont.label)
-                .foregroundStyle(tokens.palette.fg1)
+                .dsFont(monospace ? .metric : .badge)
+                .foregroundStyle(environment.theme.colors.textPrimary.color)
         }
     }
 
     private var divider: some View {
         Rectangle()
-            .fill(tokens.palette.borderHairline)
-            .frame(width: 1, height: 10)
+            .fill(environment.theme.colors.borderVariant.color)
+            .frame(width: DSTokens.Stroke.hairline, height: DSTokens.Spacing.smMd)
             .accessibilityHidden(true)
     }
 
@@ -171,11 +161,11 @@ struct StatusbarView: View {
 
     private var statusColor: Color {
         switch store.renderStatus {
-        case .idle:      return tokens.palette.fg3
-        case .pending:   return tokens.palette.statusWarning
-        case .rendering: return tokens.palette.statusInfo
-        case .rendered:  return tokens.palette.statusSuccess
-        case .failed:    return tokens.palette.statusError
+        case .idle:      return environment.theme.colors.iconMuted.color
+        case .pending:   return environment.theme.colors.warning.color
+        case .rendering: return environment.theme.colors.info.color
+        case .rendered:  return environment.theme.colors.success.color
+        case .failed:    return environment.theme.colors.error.color
         }
     }
 

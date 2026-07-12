@@ -8,30 +8,33 @@
 //
 
 import SwiftUI
+import DiagramKitSampleDesignSystem
 
 struct TitlebarView: View {
     @Bindable var store: LiveEditorStore
 
     var body: some View {
-        HStack(spacing: 12) {
+        HStack(spacing: DSTokens.Spacing.md) {
             WorkspaceModePicker(store: store)
             Spacer()
             convertButton
             exportButton
         }
-        .padding(.horizontal, 14)
-        .padding(.vertical, 8)
-        .background(.bar)
+        .padding(.horizontal, DSTokens.Spacing.lg)
+        .frame(minHeight: DSTokens.Control.titleBar)
+        .background {
+            DSSurface(role: .titleBar) { Color.clear }
+        }
     }
 
     private var convertButton: some View {
         Button {
             store.openConvertSheet()
         } label: {
-            Image(systemName: "arrow.left.arrow.right")
-                .touchTarget()
+            DSIconView(.convert)
         }
         .keyboardShortcut("k", modifiers: [.command, .shift])
+        .buttonStyle(.ds(role: .ghost, size: .compact))
         .a11y(label: "Convert", id: "titlebar.convert")
     }
 
@@ -39,10 +42,10 @@ struct TitlebarView: View {
         Button {
             store.openExportSheet()
         } label: {
-            Image(systemName: "square.and.arrow.up")
-                .touchTarget()
+            DSIconView(.export)
         }
         .keyboardShortcut("e", modifiers: .command)
+        .buttonStyle(.ds(role: .ghost, size: .compact))
         .a11y(label: "Export", id: A11yID.Titlebar.export)
     }
 }

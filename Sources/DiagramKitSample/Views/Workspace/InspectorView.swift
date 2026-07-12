@@ -13,10 +13,11 @@
 import SwiftUI
 import DiagramKitInteractive
 import DiagramKitModel
+import DiagramKitSampleDesignSystem
 
 struct InspectorView: View {
     @Bindable var store: LiveEditorStore
-    @Environment(\.playgroundTokens) private var tokens
+    @Environment(\.dsEnvironment) private var environment
 
     @SwiftUI.State private var labelDraft = ""
     @SwiftUI.State private var nodeSpacing: Double = 48
@@ -36,13 +37,13 @@ struct InspectorView: View {
                     diagramSection
                     insertSection
                 }
-                .padding(.bottom, 18)
+                .padding(.bottom, DSTokens.Spacing.xl)
             }
         }
         // Width, resize handle, and the leading divider are owned by the
         // `.inspector` column now — InspectorView must not pin its own width
         // or draw its own border (Task 2.2 completion).
-        .background(tokens.palette.bgPanel)
+        .background(environment.theme.colors.panelBackground.color)
         // Re-seed the label draft when the selection OR the underlying document
         // changes — keying on the source too keeps the field fresh after a new
         // diagram loads even if the selected element id happens to be unchanged.
@@ -54,19 +55,32 @@ struct InspectorView: View {
     // MARK: - Header
 
     private var header: some View {
-        HStack(spacing: 8) {
-            RoundedRectangle(cornerRadius: 6).fill(tokens.palette.accentTint16)
-                .frame(width: 24, height: 24)
-                .overlay(Image(systemName: currentNode() != nil ? "rectangle" : "square.on.square")
-                    .font(.system(size: 12)).foregroundStyle(tokens.palette.accent))
-            VStack(alignment: .leading, spacing: 1) {
-                Text(headerTitle).font(PlaygroundFont.sans(13, weight: .semibold)).foregroundStyle(tokens.palette.fg1).lineLimit(1)
-                Text(headerSubtitle).font(PlaygroundFont.mono(10.5)).foregroundStyle(tokens.palette.textFaint).lineLimit(1)
+        HStack(spacing: DSTokens.Spacing.sm) {
+            RoundedRectangle(cornerRadius: DSTokens.Radius.sm)
+                .fill(environment.theme.colors.accent.color.opacity(DSTokens.Opacity.glassBorder))
+                .frame(width: DSTokens.Icon.md, height: DSTokens.Icon.md)
+                .overlay(
+                    DSIconView(
+                        currentNode() != nil ? .node : .diagram,
+                        size: DSTokens.Icon.micro,
+                        colorRole: .primary
+                    )
+                )
+            VStack(alignment: .leading, spacing: DSTokens.Spacing.xxxs) {
+                Text(headerTitle).dsFont(.headline).foregroundStyle(environment.theme.colors.textPrimary.color).lineLimit(1)
+                Text(headerSubtitle).dsFont(.code).foregroundStyle(environment.theme.colors.textPlaceholder.color).lineLimit(1)
             }
             Spacer(minLength: 0)
         }
-        .padding(.horizontal, 16).padding(.top, 12).padding(.bottom, 10)
-        .overlay(Rectangle().fill(tokens.palette.borderHairline).frame(height: 0.5), alignment: .bottom)
+        .padding(.horizontal, DSTokens.Spacing.lg)
+        .padding(.top, DSTokens.Spacing.md)
+        .padding(.bottom, DSTokens.Spacing.smMd)
+        .overlay(
+            Rectangle()
+                .fill(environment.theme.colors.borderVariant.color)
+                .frame(height: DSTokens.Stroke.hairline),
+            alignment: .bottom
+        )
     }
 
     private var headerTitle: String {
@@ -81,19 +95,13 @@ struct InspectorView: View {
     // MARK: - EDIT NODE
 
     private var editNodeSection: some View {
-        VStack(alignment: .leading, spacing: 11) {
+        VStack(alignment: .leading, spacing: DSTokens.Spacing.smMd) {
             caption("Edit node")
-            TextField("Label", text: $labelDraft)
-                .textFieldStyle(.plain)
-                .font(PlaygroundFont.sans(13)).foregroundStyle(tokens.palette.fg1)
-                .padding(.horizontal, 11).frame(height: 32)
-                .background(tokens.palette.bgField)
-                .overlay(RoundedRectangle(cornerRadius: 7).stroke(tokens.palette.borderWarm, lineWidth: 0.5))
-                .clipShape(RoundedRectangle(cornerRadius: 7))
+            DSField("Label", text: $labelDraft)
                 .onSubmit(commitLabel)
 
             HStack {
-                Text("Shape").font(PlaygroundFont.label).foregroundStyle(tokens.palette.fg3)
+                Text("Shape").dsFont(.caption).foregroundStyle(environment.theme.colors.textSecondary.color)
                 Spacer()
                 Menu {
                     ForEach(ShapeCatalog.all, id: \.alias) { shape in
@@ -101,15 +109,19 @@ struct InspectorView: View {
                     }
                 } label: {
                     HStack(spacing: 6) {
-                        Text(currentShapeName).font(PlaygroundFont.body).foregroundStyle(tokens.palette.fg1)
-                        Image(systemName: "chevron.down").font(.system(size: 9, weight: .semibold)).foregroundStyle(tokens.palette.fg3)
+                        Text(currentShapeName).dsFont(.body).foregroundStyle(environment.theme.colors.textPrimary.color)
+                        DSIconView(.disclosureDown, size: DSTokens.Icon.micro, colorRole: .muted)
                     }
-                    .padding(.horizontal, 8).frame(height: 28)
-                    .background(tokens.palette.bgTrack)
-                    .overlay(RoundedRectangle(cornerRadius: 7).stroke(tokens.palette.borderHairline, lineWidth: 0.5))
-                    .clipShape(RoundedRectangle(cornerRadius: 7))
+                    .padding(.horizontal, DSTokens.Spacing.sm)
+                    .frame(minHeight: max(DSTokens.Control.rowCompact, environment.minimumTarget))
+                    .background(environment.theme.colors.element.color)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: DSTokens.Radius.sm)
+                            .stroke(environment.theme.colors.borderVariant.color, lineWidth: DSTokens.Stroke.thin)
+                    )
+                    .clipShape(RoundedRectangle(cornerRadius: DSTokens.Radius.sm))
                 }
-                .menuStyle(.button).buttonStyle(.plain).fixedSize()
+                .menuStyle(.button).buttonStyle(.ds(role: .ghost, size: .compact)).fixedSize()
             }
 
             SegmentedFormatControl(segments: [
@@ -119,13 +131,13 @@ struct InspectorView: View {
             ], selection: Binding(get: { currentSpec().borderStyle ?? .solid }, set: { setBorder($0) }))
 
             HStack {
-                Text("Color").font(PlaygroundFont.label).foregroundStyle(tokens.palette.fg3)
+                Text("Color").dsFont(.caption).foregroundStyle(environment.theme.colors.textSecondary.color)
                 Spacer()
                 ColorDotPicker(colors: dotHexes.map { Color(hexRGB: $0) ?? .gray },
                                selectedIndex: Binding(get: { selectedDotIndex }, set: { if let i = $0 { setFill(dotHexes[i]) } }))
             }
         }
-        .padding(.horizontal, 16).padding(.bottom, 14)
+        .padding(.horizontal, DSTokens.Spacing.lg).padding(.bottom, DSTokens.Spacing.lg)
     }
 
     // MARK: - ARRANGE (presentational)
@@ -136,8 +148,8 @@ struct InspectorView: View {
             AlignButtonRow()
                 .disabled(true)
         }
-        .padding(.horizontal, 16).padding(.bottom, 14)
-        .padding(.top, 4)
+        .padding(.horizontal, DSTokens.Spacing.lg).padding(.bottom, DSTokens.Spacing.lg)
+        .padding(.top, DSTokens.Spacing.xxs)
     }
 
     // MARK: - DIAGRAM
@@ -155,47 +167,45 @@ struct InspectorView: View {
             SliderRow(title: "Node spacing", value: $nodeSpacing, range: 16...96)
             .disabled(true)
         }
-        .padding(.horizontal, 16).padding(.bottom, 14)
-        .padding(.top, 4)
+        .padding(.horizontal, DSTokens.Spacing.lg).padding(.bottom, DSTokens.Spacing.lg)
+        .padding(.top, DSTokens.Spacing.xxs)
     }
 
     // MARK: - INSERT
 
     private var insertSection: some View {
-        VStack(alignment: .leading, spacing: 10) {
+        VStack(alignment: .leading, spacing: DSTokens.Spacing.smMd) {
             caption("Insert")
-            LazyVGrid(columns: [GridItem(.flexible(), spacing: 8), GridItem(.flexible(), spacing: 8)], spacing: 8) {
-                insertButton("Subgraph", "square.on.square", tokens.palette.accentSecondary) { store.openEmptySubgraphPrompt() }
-                insertButton("Icon", "star", tokens.palette.catPurple) { store.setVisualStage(.nodeSelected) }
-                insertButton("Image", "photo", tokens.palette.catCyan) { store.openImageSheet() }
-                insertButton("Rearrange", "arrow.triangle.2.circlepath", tokens.palette.catMint) {
+            LazyVGrid(columns: [GridItem(.flexible(), spacing: DSTokens.Spacing.sm), GridItem(.flexible(), spacing: DSTokens.Spacing.sm)], spacing: DSTokens.Spacing.sm) {
+                insertButton("Subgraph", .subgraph, .primary) { store.openEmptySubgraphPrompt() }
+                insertButton("Icon", .favorite, .muted) { store.setVisualStage(.nodeSelected) }
+                insertButton("Image", .image, .info) { store.openImageSheet() }
+                insertButton("Rearrange", .rearrange, .success) {
                     Task { try? await store.performMutation(.setLayoutPreset(.adaptive)) }
                 }
             }
         }
-        .padding(.horizontal, 16).padding(.bottom, 14)
-        .padding(.top, 4)
+        .padding(.horizontal, DSTokens.Spacing.lg).padding(.bottom, DSTokens.Spacing.lg)
+        .padding(.top, DSTokens.Spacing.xxs)
     }
 
-    private func insertButton(_ title: String, _ icon: String, _ color: Color, _ action: @escaping () -> Void) -> some View {
+    private func insertButton(_ title: String, _ icon: DSIcon, _ colorRole: DSIconColorRole, _ action: @escaping () -> Void) -> some View {
         Button(action: action) {
-            HStack(spacing: 8) {
-                Image(systemName: icon).font(.system(size: 13)).foregroundStyle(color)
-                Text(title).font(PlaygroundFont.label).foregroundStyle(tokens.palette.fg1)
+            HStack(spacing: DSTokens.Spacing.sm) {
+                DSIconView(icon, size: DSTokens.Icon.micro, colorRole: colorRole)
+                Text(title).dsFont(.caption).foregroundStyle(environment.theme.colors.textPrimary.color)
                 Spacer(minLength: 0)
             }
-            .padding(.horizontal, 11).frame(height: 36)
-            .background(tokens.palette.bgTrack)
-            .overlay(RoundedRectangle(cornerRadius: 8).stroke(tokens.palette.borderHairline, lineWidth: 0.5))
-            .clipShape(RoundedRectangle(cornerRadius: 8))
-        }.buttonStyle(.plain)
+            .padding(.horizontal, DSTokens.Spacing.smMd)
+        }.buttonStyle(.ds(role: .secondary, size: .regular))
     }
 
     // MARK: - Helpers
 
     private func caption(_ text: String) -> some View {
-        Text(text.uppercased()).font(PlaygroundFont.sans(11, weight: .bold)).tracking(0.6)
-            .foregroundStyle(tokens.palette.fg3).padding(.top, 14).padding(.bottom, 6)
+        DSSectionHeader(text)
+            .padding(.top, DSTokens.Spacing.lg)
+            .padding(.bottom, DSTokens.Spacing.xs)
     }
 
     /// Section caption tagged as non-functional, so users don't try to operate
@@ -203,12 +213,8 @@ struct InspectorView: View {
     private func previewOnlyCaption(_ text: String) -> some View {
         HStack(spacing: 6) {
             caption(text)
-            Text("preview only")
-                .font(PlaygroundFont.badge)
-                .foregroundStyle(tokens.palette.textFaint)
-                .padding(.horizontal, 5).padding(.vertical, 1)
-                .background(Capsule().fill(tokens.palette.bgTrack))
-                .padding(.top, 8)
+            DSCodeBadge("preview only")
+                .padding(.top, DSTokens.Spacing.sm)
         }
     }
 
