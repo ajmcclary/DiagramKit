@@ -6,6 +6,8 @@ set -euo pipefail
 #
 # Runs `swift build` under Swift 6 mode + `-strict-concurrency=complete` and
 # asserts no error or warning originates from anything inside `Sources/`.
+# Do not pass global `-warnings-as-errors`: SwiftPM forwards it to dependencies,
+# and Swift 6.3 rejects dependencies that intentionally use `-suppress-warnings`.
 # Errors from third-party transitive dependencies are tolerated — those are
 # out of our control and tracked separately.
 
@@ -21,7 +23,6 @@ set +e
 swift build \
   -Xswiftc -swift-version -Xswiftc 6 \
   -Xswiftc -strict-concurrency=complete \
-  -Xswiftc -warnings-as-errors \
   >"$LOG" 2>&1
 BUILD_EXIT=$?
 set -e
