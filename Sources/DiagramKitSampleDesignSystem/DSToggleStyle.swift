@@ -15,22 +15,31 @@ public enum DSToggleMetrics {
 }
 
 public struct DSToggleStyle: ToggleStyle {
+    /// When true, only the switch renders. `.labelsHidden()` cannot suppress
+    /// `configuration.label` in a custom style, so rows that draw their own
+    /// title (e.g. `DSSettingRow`) opt out here to avoid a duplicate label.
+    private let labelHidden: Bool
+
     @Environment(\.dsEnvironment) private var environment
     @Environment(\.isEnabled) private var isEnabled
     @Environment(\.isFocused) private var isFocused
     @State private var isHovered = false
 
-    public init() {}
+    public init(labelHidden: Bool = false) {
+        self.labelHidden = labelHidden
+    }
 
     public func makeBody(configuration: Configuration) -> some View {
         Button {
             configuration.isOn.toggle()
         } label: {
             HStack(spacing: DSTokens.Spacing.sm) {
-                configuration.label
-                    .dsFont(.body)
-                    .foregroundStyle(environment.theme.colors.textPrimary.color)
-                Spacer(minLength: DSTokens.Spacing.sm)
+                if !labelHidden {
+                    configuration.label
+                        .dsFont(.body)
+                        .foregroundStyle(environment.theme.colors.textPrimary.color)
+                    Spacer(minLength: DSTokens.Spacing.sm)
+                }
                 track(isOn: configuration.isOn)
             }
             .frame(minHeight: environment.minimumTarget)
@@ -54,12 +63,12 @@ public struct DSToggleStyle: ToggleStyle {
         }
         .frame(width: DSToggleMetrics.track.width, height: DSToggleMetrics.track.height)
         .overlay {
-            Capsule().stroke(
-                isFocused
-                    ? environment.theme.colors.borderFocused.color
-                    : environment.theme.colors.borderVariant.color,
-                lineWidth: isFocused ? DSTokens.Stroke.medium : DSTokens.Stroke.thin
-            )
+            if isFocused {
+                Capsule().stroke(
+                    environment.theme.colors.borderFocused.color,
+                    lineWidth: DSTokens.Stroke.medium
+                )
+            }
         }
     }
 
@@ -87,4 +96,5 @@ public struct DSToggleStyle: ToggleStyle {
 
 public extension ToggleStyle where Self == DSToggleStyle {
     static var ds: DSToggleStyle { DSToggleStyle() }
+    static var dsSwitchOnly: DSToggleStyle { DSToggleStyle(labelHidden: true) }
 }

@@ -31,7 +31,7 @@ struct SettingsRenderBackendTab: View {
                         set: { store.state.updateMode = $0 ? .auto : .manual }
                     ))
                     .labelsHidden()
-                    .toggleStyle(.ds)
+                    .toggleStyle(.dsSwitchOnly)
                 }
                 .padding(.horizontal, DSTokens.Spacing.lg)
                 .contentShape(Rectangle())

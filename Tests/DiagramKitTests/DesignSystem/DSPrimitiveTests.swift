@@ -70,7 +70,7 @@ struct DSPrimitiveTests {
         #expect(DSToggleMetrics.onKnobRole == .onAccent)
     }
 
-    @Test("selected segments use the selected element role")
+    @Test("selected segments use the accent role")
     func selectedSegment() {
         let state = DSSegmentVisualState.resolve(
             isSelected: true,
@@ -78,7 +78,7 @@ struct DSPrimitiveTests {
             isEnabled: true
         )
 
-        #expect(state.fillRole == .elementSelected)
+        #expect(state.fillRole == .accent)
         #expect(state.opacity == 1)
     }
 

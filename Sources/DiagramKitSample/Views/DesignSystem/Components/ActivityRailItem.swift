@@ -10,24 +10,23 @@ import SwiftUI
 import DiagramKitSampleDesignSystem
 
 struct ActivityRailItem: View {
-    let systemImage: String
+    let icon: DSIcon
     let isActive: Bool
     let help: String
     let action: () -> Void
     var body: some View {
         Button(action: action) {
-            DSIconView(icon, size: DSTokens.Icon.sm, colorRole: isActive ? .primary : .muted)
-                .overlay(alignment: .leading) {
+            DSIconView(icon, size: DSTokens.Icon.sm, colorRole: isActive ? .accent : .muted)
+                .frame(width: DSTokens.Icon.sm + DSTokens.Spacing.sm, height: DSTokens.Icon.sm + DSTokens.Spacing.sm)
+                .background {
                     if isActive {
-                        RoundedRectangle(cornerRadius: DSTokens.Radius.xs)
-                            .fill(environment.theme.colors.accent.color)
-                            .frame(width: DSTokens.Control.accentBar)
-                            .padding(.vertical, DSTokens.Spacing.sm)
-                            .offset(x: -DSTokens.Spacing.md)
+                        RoundedRectangle(cornerRadius: DSTokens.Radius.sm, style: .continuous)
+                            .fill(environment.theme.colors.accent.color.opacity(DSTokens.Opacity.light))
+                            .padding(-DSTokens.Spacing.xxs)
                     }
                 }
         }
-        .buttonStyle(.ds(role: isActive ? .secondary : .ghost, size: .regular))
+        .buttonStyle(.ds(role: .ghost, size: .regular))
         #if os(iOS)
         .hoverEffect(.highlight)
         #endif
@@ -35,14 +34,4 @@ struct ActivityRailItem: View {
     }
 
     @Environment(\.dsEnvironment) private var environment
-
-    private var icon: DSIcon {
-        switch systemImage {
-        case "magnifyingglass": .search
-        case "chevron.left.forwardslash.chevron.right": .code
-        case "slider.horizontal.3": .settings
-        case "list.bullet.indent": .rearrange
-        default: .diagram
-        }
-    }
 }

@@ -52,10 +52,12 @@ public struct DSSurface<Content: View>: View {
         content
             .background(backgroundColor, in: shape)
             .overlay {
-                shape.stroke(
-                    environment.theme.colors.borderVariant.color,
-                    lineWidth: DSTokens.Stroke.thin
-                )
+                if role.hasOutline {
+                    shape.stroke(
+                        environment.theme.colors.borderVariant.color,
+                        lineWidth: DSTokens.Stroke.thin
+                    )
+                }
             }
             .shadow(
                 color: shadowColor,
@@ -66,7 +68,7 @@ public struct DSSurface<Content: View>: View {
 
     private var shape: RoundedRectangle {
         RoundedRectangle(
-            cornerRadius: role.isChrome ? 0 : DSTokens.Radius.md,
+            cornerRadius: role.isEdgeToEdge ? 0 : DSTokens.Radius.md,
             style: .continuous
         )
     }
@@ -91,6 +93,9 @@ public struct DSSurface<Content: View>: View {
     }
 }
 
+/// A floating glass container (tool palettes, canvas pills, HUDs). Always
+/// rounded and softly elevated — glass surfaces float over the canvas, so
+/// they never render edge-to-edge like `DSSurface` chrome roles.
 public struct DSGlassSurface<Content: View>: View {
     private let role: DSSurfaceRole
     private let content: Content
@@ -122,6 +127,7 @@ public struct DSGlassSurface<Content: View>: View {
                 content.background(opaqueBackground, in: shape)
             }
         }
+        .clipShape(shape)
         .overlay {
             shape.stroke(
                 environment.theme.colors.borderVariant.color
@@ -130,19 +136,14 @@ public struct DSGlassSurface<Content: View>: View {
             )
         }
         .shadow(
-            color: resolution.elevation == .popover
-                ? Color.black.opacity(DSTokens.Opacity.light)
-                : .clear,
-            radius: resolution.elevation == .popover ? DSTokens.Radius.md : 0,
-            y: resolution.elevation == .popover ? DSTokens.Spacing.xs : 0
+            color: Color.black.opacity(DSTokens.Opacity.light),
+            radius: DSTokens.Radius.md,
+            y: DSTokens.Spacing.xxs
         )
     }
 
     private var shape: RoundedRectangle {
-        RoundedRectangle(
-            cornerRadius: role.isChrome ? 0 : DSTokens.Radius.md,
-            style: .continuous
-        )
+        RoundedRectangle(cornerRadius: DSTokens.Radius.md, style: .continuous)
     }
 
     private var opaqueBackground: Color {
@@ -160,10 +161,15 @@ public struct DSGlassSurface<Content: View>: View {
 }
 
 private extension DSSurfaceRole {
-    var isChrome: Bool {
+    /// Chrome bars and side panels run edge-to-edge: square corners, no
+    /// perimeter stroke. Their edges are hairline separators drawn by the
+    /// shell, not by the surface itself.
+    var isEdgeToEdge: Bool {
         switch self {
-        case .tabBar, .titleBar, .toolbar, .statusBar: true
-        case .card, .panel, .sunken, .popover: false
+        case .tabBar, .titleBar, .toolbar, .statusBar, .panel, .sunken: true
+        case .card, .popover: false
         }
     }
+
+    var hasOutline: Bool { !isEdgeToEdge }
 }

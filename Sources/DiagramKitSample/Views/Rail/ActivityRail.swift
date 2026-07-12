@@ -17,14 +17,14 @@ struct ActivityRail: View {
         DSSurface(role: .titleBar) {
             VStack(spacing: DSTokens.Spacing.xxs) {
                 ForEach(ActivityRailTab.allCases, id: \.self) { tab in
-                    ActivityRailItem(systemImage: tab.systemImage,
+                    ActivityRailItem(icon: tab.icon,
                                      isActive: store.state.activeRailTab == tab,
                                      help: tab.title) {
                         store.setActiveRailTab(tab)
                     }
                 }
                 Spacer()
-                ActivityRailItem(systemImage: "slider.horizontal.3", isActive: false, help: "Settings (⌘,)") {
+                ActivityRailItem(icon: .settings, isActive: false, help: "Settings (⌘,)") {
                     store.presentSettings()
                 }
             }

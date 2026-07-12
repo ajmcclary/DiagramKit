@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import DiagramKitSampleDesignSystem
 
 public enum SettingsTab: String, CaseIterable, Codable, Sendable, Hashable {
     case general
@@ -28,15 +29,15 @@ public enum SettingsTab: String, CaseIterable, Codable, Sendable, Hashable {
         }
     }
 
-    public var systemImage: String {
+    public var icon: DSIcon {
         switch self {
-        case .general: return "gearshape"
-        case .editor: return "chevron.left.forwardslash.chevron.right"
-        case .renderBackend: return "rectangle.on.rectangle"
-        case .theme: return "paintpalette"
-        case .platformParity: return "rectangle.split.2x1"
-        case .mutationsCatalog: return "number"
-        case .fonts: return "textformat"
+        case .general: return .general
+        case .editor: return .code
+        case .renderBackend: return .renderBackend
+        case .theme: return .theme
+        case .platformParity: return .platformParity
+        case .mutationsCatalog: return .mutations
+        case .fonts: return .fonts
         }
     }
 }

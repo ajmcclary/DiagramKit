@@ -13,7 +13,7 @@ public struct DSSegmentVisualState: Equatable, Sendable {
             return Self(fillRole: .element, opacity: DSTokens.Opacity.disabled)
         }
         return Self(
-            fillRole: isSelected ? .elementSelected : isHovered ? .elementHover : .element,
+            fillRole: isSelected ? .accent : isHovered ? .elementHover : .element,
             opacity: 1
         )
     }
@@ -23,6 +23,7 @@ public enum DSIconColorRole: Sendable {
     case primary
     case muted
     case disabled
+    case accent
     case onAccent
     case success
     case warning
@@ -109,18 +110,12 @@ public struct DSSegmentedControl<Option: Hashable, Label: View>: View {
         }
         .padding(DSTokens.Stroke.medium)
         .background(environment.theme.colors.element.color, in: containerShape)
-        .overlay {
-            containerShape.stroke(
-                environment.theme.colors.borderVariant.color,
-                lineWidth: DSTokens.Stroke.thin
-            )
-        }
     }
 
     @Environment(\.dsEnvironment) private var environment
 
     private var containerShape: RoundedRectangle {
-        RoundedRectangle(cornerRadius: DSTokens.Radius.sm, style: .continuous)
+        RoundedRectangle(cornerRadius: DSTokens.Radius.chip, style: .continuous)
     }
 }
 
@@ -147,8 +142,12 @@ fileprivate struct DSSegmentButton<Label: View>: View {
         Button(action: action) {
             label()
                 .dsFont(.badge)
-                .foregroundStyle(environment.theme.colors.textPrimary.color)
-                .padding(.horizontal, DSTokens.Spacing.sm)
+                .foregroundStyle(
+                    isSelected
+                        ? environment.theme.colors.onAccent.color
+                        : environment.theme.colors.textSecondary.color
+                )
+                .padding(.horizontal, DSTokens.Spacing.smMd)
                 .frame(minHeight: max(DSTokens.Control.chip, environment.minimumTarget))
                 .background(fillColor(state.fillRole), in: shape)
                 .opacity(state.opacity)
@@ -158,14 +157,14 @@ fileprivate struct DSSegmentButton<Label: View>: View {
     }
 
     private var shape: RoundedRectangle {
-        RoundedRectangle(cornerRadius: DSTokens.Radius.xs, style: .continuous)
+        RoundedRectangle(cornerRadius: DSTokens.Radius.sm, style: .continuous)
     }
 
     private func fillColor(_ role: DSButtonFillRole) -> Color {
         switch role {
-        case .elementSelected: environment.theme.colors.elementSelected.color
+        case .accent: environment.theme.colors.accent.color
         case .elementHover: environment.theme.colors.elementHover.color
-        default: environment.theme.colors.element.color
+        default: .clear
         }
     }
 }
@@ -246,6 +245,7 @@ private extension DSIconColorRole {
         case .primary: theme.colors.iconPrimary.color
         case .muted: theme.colors.iconMuted.color
         case .disabled: theme.colors.iconDisabled.color
+        case .accent: theme.colors.accent.color
         case .onAccent: theme.colors.onAccent.color
         case .success: theme.colors.success.color
         case .warning: theme.colors.warning.color

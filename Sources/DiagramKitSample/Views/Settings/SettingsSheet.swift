@@ -104,7 +104,7 @@ struct SettingsSheet: View {
                 let isActive = store.state.settingsTab == tab
                 Button { store.setSettingsTab(tab) } label: {
                     HStack(spacing: DSTokens.Spacing.sm) {
-                        DSIconView(navIcon(for: tab), size: DSTokens.Icon.micro, colorRole: isActive ? .primary : .muted)
+                        DSIconView(tab.icon, size: DSTokens.Icon.micro, colorRole: isActive ? .primary : .muted)
                         Text(tab.displayName).dsFont(.caption)
                         Spacer(minLength: 0)
                     }
@@ -117,17 +117,6 @@ struct SettingsSheet: View {
         }
         .padding(.horizontal, DSTokens.Spacing.smMd).padding(.vertical, DSTokens.Spacing.md).frame(width: 196)
         .background(environment.theme.colors.panelBackground.color)
-    }
-
-    private func navIcon(for tab: SettingsTab) -> DSIcon {
-        switch tab.systemImage {
-        case "chevron.left.forwardslash.chevron.right": .code
-        case "paintpalette": .theme
-        case "rectangle.on.rectangle", "rectangle.split.2x1": .diagram
-        case "textformat": .info
-        case "number": .rearrange
-        default: .settings
-        }
     }
 
     private var content: some View {

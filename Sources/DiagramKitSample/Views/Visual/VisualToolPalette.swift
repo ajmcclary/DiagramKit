@@ -54,11 +54,11 @@ struct VisualToolPalette: View {
                         .fill(
                             isOn
                                 ? environment.theme.colors.accent.color
-                                : environment.theme.colors.element.color
+                                : Color.clear
                         )
                 )
         }
-        .buttonStyle(.ds(role: isOn ? .secondary : .ghost, size: .compact))
+        .buttonStyle(.ds(role: .ghost, size: .compact))
         .help(tool.label)
         .a11yToggle(
             label: LocalizedStringKey(tool.label),
@@ -73,7 +73,7 @@ struct VisualToolPalette: View {
             store.undoStructural()
             store.setVisualStage(.undone)
         } label: {
-            DSIconView(.history, colorRole: .muted)
+            DSIconView(.undo, colorRole: .muted)
                 .frame(width: DSTokens.Control.button, height: DSTokens.Control.button)
         }
         .buttonStyle(.ds(role: .ghost, size: .compact))
@@ -88,7 +88,7 @@ struct VisualToolPalette: View {
         return Button {
             store.redoStructural()
         } label: {
-            DSIconView(.reset, colorRole: .muted)
+            DSIconView(.redo, colorRole: .muted)
                 .frame(width: DSTokens.Control.button, height: DSTokens.Control.button)
         }
         .buttonStyle(.ds(role: .ghost, size: .compact))
@@ -112,10 +112,10 @@ struct VisualToolPalette: View {
 
     private func icon(for tool: VisualEditorState.Tool) -> DSIcon {
         switch tool {
-        case .select: .node
-        case .pan: .rearrange
-        case .marquee: .diagram
-        case .connector: .convert
+        case .select: .cursor
+        case .pan: .pan
+        case .marquee: .marquee
+        case .connector: .connector
         }
     }
 }

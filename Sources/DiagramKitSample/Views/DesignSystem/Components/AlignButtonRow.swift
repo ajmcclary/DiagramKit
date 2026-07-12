@@ -11,8 +11,8 @@ import SwiftUI
 import DiagramKitSampleDesignSystem
 
 struct AlignButtonRow: View {
-    private let leading = ["align.horizontal.left.fill", "align.horizontal.center.fill", "align.horizontal.right.fill"]
-    private let trailing = ["align.vertical.top.fill", "align.vertical.center.fill", "align.vertical.bottom.fill"]
+    private let leading: [DSIcon] = [.alignLeading, .alignCenterHorizontal, .alignTrailing]
+    private let trailing: [DSIcon] = [.alignTop, .alignCenterVertical, .alignBottom]
 
     var body: some View {
         HStack(spacing: DSTokens.Spacing.xs) {
@@ -23,11 +23,10 @@ struct AlignButtonRow: View {
         }
     }
 
-    private func alignButton(_ symbol: String) -> some View {
-        DSIconView(.rearrange, size: DSTokens.Icon.micro, colorRole: .disabled)
+    private func alignButton(_ icon: DSIcon) -> some View {
+        DSIconView(icon, size: DSTokens.Icon.micro, colorRole: .disabled)
             .frame(minWidth: DSTokens.Control.row, minHeight: DSTokens.Control.rowCompact)
             .background(environment.theme.colors.element.color)
-            .overlay(RoundedRectangle(cornerRadius: DSTokens.Radius.sm).stroke(environment.theme.colors.borderVariant.color, lineWidth: DSTokens.Stroke.thin))
             .clipShape(RoundedRectangle(cornerRadius: DSTokens.Radius.sm))
             .help("Alignment is presentational for auto-laid-out diagrams")
     }

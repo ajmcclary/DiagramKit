@@ -53,11 +53,8 @@ struct CanvasZoomToolbar: View {
 
     private var fitButton: some View {
         Button(action: onFitToView) {
-            HStack(spacing: DSTokens.Spacing.xxs) {
-                DSIconView(.rearrange, size: DSTokens.Icon.micro)
-                Text("Fit")
-                    .dsFont(.badge)
-            }
+            Text("Fit")
+                .dsFont(.badge)
         }
         .buttonStyle(.ds(role: isAtAutomaticFit ? .secondary : .ghost, size: .compact))
         .help("Fit diagram to view")
@@ -95,6 +92,7 @@ struct CanvasZoomToolbar: View {
         Button(action: onActualSize) {
             Text("1:1")
                 .dsFont(.metric)
+                .fixedSize()
                 .frame(minWidth: DSTokens.Control.chip)
         }
         .buttonStyle(.ds(role: .ghost, size: .compact))
@@ -107,7 +105,7 @@ struct CanvasZoomToolbar: View {
         Button {
             panZoomEnabled.toggle()
         } label: {
-            DSIconView(.rearrange, size: DSTokens.Icon.micro)
+            DSIconView(.panZoom, size: DSTokens.Icon.micro)
         }
         .buttonStyle(.ds(role: panZoomEnabled ? .secondary : .ghost, size: .compact))
         .help(panZoomEnabled ? "Disable pan and zoom" : "Enable pan and zoom")
@@ -123,7 +121,7 @@ struct CanvasZoomToolbar: View {
         Button {
             gridEnabled.toggle()
         } label: {
-            DSIconView(.diagram, size: DSTokens.Icon.micro)
+            DSIconView(.grid, size: DSTokens.Icon.micro)
         }
         .buttonStyle(.ds(role: gridEnabled ? .secondary : .ghost, size: .compact))
         .help(gridEnabled ? "Hide grid" : "Show grid")
@@ -137,7 +135,7 @@ struct CanvasZoomToolbar: View {
 
     private var fullWindowButton: some View {
         Button(action: { onFullWindowPreview?() }) {
-            DSIconView(.diagram, size: DSTokens.Icon.micro)
+            DSIconView(.expand, size: DSTokens.Icon.micro)
         }
         .buttonStyle(.ds(role: .ghost, size: .compact))
         .help("Full-window preview")
@@ -145,14 +143,16 @@ struct CanvasZoomToolbar: View {
     }
 
     private var zoomLabel: some View {
-        Text(isAtAutomaticFit ? "Fit" : "\(Int(round(zoomScale * 100)))%")
+        Text("\(Int(round(zoomScale * 100)))%")
             .dsFont(.metric)
             .foregroundStyle(
                 isAtAutomaticFit
                     ? environment.theme.colors.textSecondary.color
                     : environment.theme.colors.textPrimary.color
             )
-            .frame(width: 42)
+            .lineLimit(1)
+            .fixedSize()
+            .frame(minWidth: 42)
     }
 
     private var divider: some View {

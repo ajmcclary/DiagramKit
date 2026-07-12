@@ -131,7 +131,7 @@ public enum DSTokens {
 
 public enum DSGeneratedMetadata {
     public static let schemaVersion = 1
-    public static let contractSHA256 = "ddea5188ec18e9c6d2b4e17530470ae88541376545fb727c3513b721e4fe16dd"
+    public static let contractSHA256 = "9565cc68bd2f7fdeea438e280b490e67396b7813560b4f9fac9ffefc35db0a16"
     public static let themesSHA256 = "80bcef46addbdf33e260a0232027e57b94dc589e804825c431492cdeb3584176"
     public static let upstreamName = "CodeEditorPlugin Design System"
     public static let snapshotDate = "2026-07-12"

@@ -115,14 +115,18 @@ public struct DSButtonStyle: ButtonStyle {
             .frame(minHeight: max(size.height, environment.minimumTarget))
             .background(state.fillRole.color(in: environment.theme), in: shape)
             .overlay {
-                shape.stroke(
-                    state.showsFocusRing
-                        ? environment.theme.colors.borderFocused.color
-                        : environment.theme.colors.borderVariant.color,
-                    lineWidth: state.showsFocusRing
-                        ? DSTokens.Stroke.medium
-                        : DSTokens.Stroke.thin
-                )
+                if state.showsFocusRing {
+                    shape.stroke(
+                        environment.theme.colors.borderFocused.color,
+                        lineWidth: DSTokens.Stroke.medium
+                    )
+                } else if role == .destructive {
+                    shape.stroke(
+                        environment.theme.colors.error.color
+                            .opacity(DSTokens.Opacity.medium),
+                        lineWidth: DSTokens.Stroke.thin
+                    )
+                }
             }
             .contentShape(shape)
             .opacity(state.opacity)

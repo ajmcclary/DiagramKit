@@ -29,12 +29,9 @@ struct NodeStyleControls: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: DSTokens.Spacing.sm) {
-            Picker("Border", selection: $borderStyle) {
-                ForEach(FlowchartBorderStyle.allCases, id: \.self) { style in
-                    Text(style.rawValue.capitalized).tag(style)
-                }
+            DSSegmentedControl(FlowchartBorderStyle.allCases, selection: $borderStyle) { style in
+                Text(style.rawValue.capitalized)
             }
-            .pickerStyle(.segmented)
             .onChange(of: borderStyle) { styleDirty = true }
 
             Grid(alignment: .leading, verticalSpacing: DSTokens.Spacing.xs) {

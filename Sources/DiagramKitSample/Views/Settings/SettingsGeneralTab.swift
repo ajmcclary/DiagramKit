@@ -62,7 +62,7 @@ struct SettingsGeneralTab: View {
         DSSettingRow(title, detail: detail) {
             Toggle(title, isOn: isOn)
                 .labelsHidden()
-                .toggleStyle(.ds)
+                .toggleStyle(.dsSwitchOnly)
         }
         .padding(.horizontal, DSTokens.Spacing.lg)
         .contentShape(Rectangle())

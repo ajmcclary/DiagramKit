@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import DiagramKitSampleDesignSystem
 
 public enum ActivityRailTab: String, CaseIterable, Codable, Sendable, Hashable {
     case organize
@@ -22,12 +23,12 @@ public enum ActivityRailTab: String, CaseIterable, Codable, Sendable, Hashable {
         }
     }
 
-    public var systemImage: String {
+    public var icon: DSIcon {
         switch self {
-        case .organize: return "list.bullet.indent"
-        case .browse: return "folder"
-        case .search: return "magnifyingglass"
-        case .source: return "chevron.left.forwardslash.chevron.right"
+        case .organize: return .organize
+        case .browse: return .browse
+        case .search: return .search
+        case .source: return .code
         }
     }
 }
