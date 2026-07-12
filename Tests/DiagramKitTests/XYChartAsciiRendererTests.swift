@@ -30,13 +30,14 @@ struct XYChartAsciiRendererTests {
         // `"XY Chart parse error: ..."` as the rendered text. Post-fix:
         // the function throws; `DiagramPipeline.renderASCII` re-throws
         // through `_withDiagramIssueReporting` (which records an
-        // expected issue captured by `withKnownIssue`).
+        // expected issue. The reporter is suppressed here because Xcode 27's
+        // beta Swift Testing bridge crashes while reflecting the current test.
         let source = """
         xychart-beta
         this is not a valid xychart body
         """
         var didThrow = false
-        withKnownIssue {
+        withIssueReporters([]) {
             do {
                 _ = try DiagramPipeline.renderASCII(source: source)
             } catch {

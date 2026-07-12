@@ -15,13 +15,13 @@ final class WorkspaceModeTests: XCTestCase {
         XCTAssertEqual(WorkspaceMode.allCases, [.code, .visual, .split])
     }
 
-    func test_defaultIsSplit() {
-        XCTAssertEqual(WorkspaceMode.default, .split)
+    func test_defaultIsVisualEditor() {
+        XCTAssertEqual(WorkspaceMode.default, .visual)
     }
 
     func test_labelsMatchDesign() {
         XCTAssertEqual(WorkspaceMode.code.label, "Code")
-        XCTAssertEqual(WorkspaceMode.visual.label, "Visual")
+        XCTAssertEqual(WorkspaceMode.visual.label, "Editor")
         XCTAssertEqual(WorkspaceMode.split.label, "Split")
     }
 

@@ -70,6 +70,9 @@ struct DiagnosticCategoryTests {
     @Test("commentPreserved is .info")
     func commentPreserved() { #expect(DiagnosticCategory.commentPreserved.severity == .info) }
 
+    @Test("styleClassMigration is .info")
+    func styleClassMigration() { #expect(DiagnosticCategory.styleClassMigration.severity == .info) }
+
     @Test("recoveryMarkerMalformed is .warning")
     func recoveryMarkerMalformed() { #expect(DiagnosticCategory.recoveryMarkerMalformed.severity == .warning) }
 
@@ -77,7 +80,7 @@ struct DiagnosticCategoryTests {
     func allCasesCovered() {
         // This catches the case where someone adds a new DiagnosticCategory case
         // but forgets to write a @Test pinning its severity.
-        let expectedCount = 23
+        let expectedCount = 24
         #expect(DiagnosticCategory.allCases.count == expectedCount,
                 "Add a @Test for any new category and bump expectedCount.")
     }

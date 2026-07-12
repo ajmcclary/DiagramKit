@@ -1080,7 +1080,7 @@
       "id": "xychart-27-full-config",
       "category": "xychart",
       "name": "Full Config + Theme",
-      "source": "---\nconfig:\n  xyChart:\n    width: 800\n    height: 550\n    showTitle: true\n    showDataLabel: true\n    titleFontSize: 24\n    xAxis:\n      showAxisLine: true\n      showTick: true\n      labelFontSize: 16\n      titleFontSize: 18\n---\nconfig:\n  themeVariables:\n    xyChart:\n      backgroundColor: \"#f8f8f8\"\n      titleColor: \"#2c3e50\"\n      xAxisLabelColor: \"#7f8c8d\"\n      yAxisLabelColor: \"#7f8c8d\"\n      plotColorPalette: \"#3498db, #e74c3c\"\n---\nxychart\n    accTitle: Full Config Demo\n    accDescr: Demonstrating all XY Chart config options\n    title \"Full Configuration Demo\"\n    x-axis \"Quarter\" [Q1, Q2, Q3, Q4]\n    y-axis \"Revenue (USD)\" 0 --> 100\n    bar [30, 50, 70, 90]\n    line [35, 55, 65, 85]"
+      "source": "---\nconfig:\n  xyChart:\n    width: 800\n    height: 550\n    showTitle: true\n    showDataLabel: true\n    titleFontSize: 24\n    xAxis:\n      showAxisLine: true\n      showTick: true\n      labelFontSize: 16\n      titleFontSize: 18\n  themeVariables:\n    xyChart:\n      backgroundColor: \"#f8f8f8\"\n      titleColor: \"#2c3e50\"\n      xAxisLabelColor: \"#7f8c8d\"\n      yAxisLabelColor: \"#7f8c8d\"\n      plotColorPalette: \"#3498db, #e74c3c\"\n---\nxychart\n    accTitle: Full Config Demo\n    accDescr: Demonstrating all XY Chart config options\n    title \"Full Configuration Demo\"\n    x-axis \"Quarter\" [Q1, Q2, Q3, Q4]\n    y-axis \"Revenue (USD)\" 0 --> 100\n    bar [30, 50, 70, 90]\n    line [35, 55, 65, 85]"
     },
     {
       "id": "journey-1",

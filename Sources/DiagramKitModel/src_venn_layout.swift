@@ -277,7 +277,11 @@ private func optimizeCircleCenters(
     func loss(_ coords: [Double]) -> Double {
         var totalError: Double = 0
         for (indices, targetArea) in sortedTargetAreas {
-            let actual = computeMultiCircleOverlapArea(indices: Array(indices), coords: coords, radii: radii)
+            let actual = computeMultiCircleOverlapArea(
+                indices: indices.sorted(),
+                coords: coords,
+                radii: radii
+            )
             let err = actual - targetArea
             let weight = indices.count == 2 ? 1.0 : 2.0
             totalError += weight * err * err

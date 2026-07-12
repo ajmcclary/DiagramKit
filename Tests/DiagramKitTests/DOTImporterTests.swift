@@ -64,10 +64,13 @@ import DiagramKitGraphviz
 
     // MARK: - Basic properties
 
-    @Test("supportedDiagramTypes covers flowchart, classDiagram, stateDiagram, erDiagram, architecture, mindmap, treeView")
+    @Test("supportedDiagramTypes covers every shipped Graphviz family")
     func supportedDiagramTypesIsFlowchart() {
         let importer = GraphvizImporter()
-        #expect(importer.supportedDiagramTypes == [.flowchart, .classDiagram, .stateDiagram, .erDiagram, .architecture, .mindmap, .treeView])
+        #expect(importer.supportedDiagramTypes == [
+            .flowchart, .classDiagram, .stateDiagram, .erDiagram,
+            .architecture, .mindmap, .treeView, .c4, .block,
+        ])
     }
 
     @Test("name is Graphviz")

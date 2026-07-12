@@ -3,32 +3,32 @@
 <text class="venn-title" x="50%" y="16" text-anchor="middle" dominant-baseline="middle" font-family="Inter" font-size="16px" fill="#27272A">Three overlapping sets</text>
 <g transform="translate(0, 24)">
 <g class="venn-circle venn-set-0">
-<circle cx="403.73" cy="112.85" r="141.10" fill="#ff6b6b" fill-opacity="0.100" stroke="#ff6b6b" stroke-width="2.50" stroke-opacity="0.950" />
-<text x="403.73" y="112.85" font-size="24px" fill="#994040" text-anchor="middle" dominant-baseline="middle" font-family="Inter">A</text>
+<circle cx="399.56" cy="112.96" r="141.10" fill="#ff6b6b" fill-opacity="0.100" stroke="#ff6b6b" stroke-width="2.50" stroke-opacity="0.950" />
+<text x="399.56" y="112.96" font-size="24px" fill="#994040" text-anchor="middle" dominant-baseline="middle" font-family="Inter">A</text>
 </g>
 <g class="venn-circle venn-set-1">
-<circle cx="489.40" cy="266.26" r="141.10" fill="#4ecdc4" fill-opacity="0.100" stroke="#4ecdc4" stroke-width="2.50" stroke-opacity="0.950" />
-<text x="489.40" y="266.26" font-size="24px" fill="#2E7B75" text-anchor="middle" dominant-baseline="middle" font-family="Inter">B</text>
+<circle cx="490.37" cy="263.39" r="141.10" fill="#4ecdc4" fill-opacity="0.100" stroke="#4ecdc4" stroke-width="2.50" stroke-opacity="0.950" />
+<text x="490.37" y="263.39" font-size="24px" fill="#2E7B75" text-anchor="middle" dominant-baseline="middle" font-family="Inter">B</text>
 </g>
 <g class="venn-circle venn-set-2">
-<circle cx="313.70" cy="263.75" r="141.10" fill="#45b7d1" fill-opacity="0.100" stroke="#45b7d1" stroke-width="2.50" stroke-opacity="0.950" />
-<text x="313.70" y="263.75" font-size="24px" fill="#296D7D" text-anchor="middle" dominant-baseline="middle" font-family="Inter">C</text>
+<circle cx="314.69" cy="266.81" r="141.10" fill="#45b7d1" fill-opacity="0.100" stroke="#45b7d1" stroke-width="2.50" stroke-opacity="0.950" />
+<text x="314.69" y="266.81" font-size="24px" fill="#296D7D" text-anchor="middle" dominant-baseline="middle" font-family="Inter">C</text>
 </g>
 <g class="venn-intersection">
-<path d="M 350.164 243.386 A 141.100 141.100 0 0 0 542.961 135.723 A 141.100 141.100 0 0 1 350.164 243.386 Z" fill="#96ceb4" fill-opacity="0.000" stroke="#96ceb4" stroke-width="2.50" />
-<text x="446.56" y="189.55" font-size="24px" fill="#5A7B6C" text-anchor="middle" dominant-baseline="middle" font-family="Inter">AB</text>
+<path d="M 350.441 245.231 A 141.100 141.100 0 0 0 539.490 131.116 A 141.100 141.100 0 0 1 350.441 245.231 Z" fill="#96ceb4" fill-opacity="0.000" stroke="#96ceb4" stroke-width="2.50" />
+<text x="444.97" y="188.17" font-size="24px" fill="#5A7B6C" text-anchor="middle" dominant-baseline="middle" font-family="Inter">AB</text>
 </g>
 <g class="venn-intersection">
-<path d="M 403.130 154.605 A 141.100 141.100 0 1 0 399.970 375.403 A 141.100 141.100 0 0 1 403.130 154.605 Z" fill="#ffeaa7" fill-opacity="0.000" stroke="#ffeaa7" stroke-width="2.50" />
-<text x="401.55" y="265.00" font-size="24px" fill="#998C64" text-anchor="middle" dominant-baseline="middle" font-family="Inter">BC</text>
+<path d="M 400.377 154.711 A 141.100 141.100 0 1 0 404.678 375.490 A 141.100 141.100 0 0 1 400.377 154.711 Z" fill="#ffeaa7" fill-opacity="0.000" stroke="#ffeaa7" stroke-width="2.50" />
+<text x="402.53" y="265.10" font-size="24px" fill="#998C64" text-anchor="middle" dominant-baseline="middle" font-family="Inter">BC</text>
 </g>
 <g class="venn-intersection">
-<path d="M 263.896 131.730 A 141.100 141.100 0 0 0 453.533 244.865 A 141.100 141.100 0 0 1 263.896 131.730 Z" fill="#dfe6e9" fill-opacity="0.000" stroke="#dfe6e9" stroke-width="2.50" />
-<text x="358.71" y="188.30" font-size="24px" fill="#858A8B" text-anchor="middle" dominant-baseline="middle" font-family="Inter">AC</text>
+<path d="M 260.450 136.553 A 141.100 141.100 0 0 0 453.801 243.217 A 141.100 141.100 0 0 1 260.450 136.553 Z" fill="#dfe6e9" fill-opacity="0.000" stroke="#dfe6e9" stroke-width="2.50" />
+<text x="357.13" y="189.88" font-size="24px" fill="#858A8B" text-anchor="middle" dominant-baseline="middle" font-family="Inter">AC</text>
 </g>
 <g class="venn-intersection">
-<path d="M 403.130 154.605 L 453.533 244.865 L 350.164 243.386 Z" fill="#a29bfe" fill-opacity="0.000" stroke="#a29bfe" stroke-width="2.50" />
-<text x="402.28" y="214.29" font-size="24px" fill="#615D98" text-anchor="middle" dominant-baseline="middle" font-family="Inter">ABC</text>
+<path d="M 400.377 154.711 L 453.801 243.217 L 350.441 245.231 Z" fill="#a29bfe" fill-opacity="0.000" stroke="#a29bfe" stroke-width="2.50" />
+<text x="401.54" y="214.39" font-size="24px" fill="#615D98" text-anchor="middle" dominant-baseline="middle" font-family="Inter">ABC</text>
 </g>
 </g>
 <style>#EBB7EEAC-A8E7-9885-8DA9-7C144DCF9562 { max-width: 100%; }</style>

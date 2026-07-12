@@ -11,7 +11,7 @@ import DiagramKitD2
         #expect(exporter.name == "D2")
         #expect(exporter.formatID == .d2)
         #expect(exporter.supportedDiagramTypes.contains(.flowchart))
-        #expect(!exporter.supportedDiagramTypes.contains(.sequenceDiagram))
+        #expect(exporter.supportedDiagramTypes.contains(.sequenceDiagram))
     }
 
     @Test("D2 flowchart export produces valid D2 source")
@@ -82,7 +82,7 @@ import DiagramKitD2
 
     @Test("D2 export unsupported type returns diagnostic")
     func unsupportedType() throws {
-        let doc = DiagramDocument(type: .sequenceDiagram)
+        let doc = DiagramDocument(type: .gantt)
         let result = try D2Exporter().export(doc)
         #expect(result.source.isEmpty)
         #expect(result.diagnostics.contains { $0.severity == .unsupported })

@@ -635,7 +635,7 @@ struct RadarParserTests {
     }
 
     @Test("Init directive frontmatter parsing preserves radar config and theme")
-    func initDirectiveFrontmatterParsing() throws {
+    func initDirectiveFrontmatterParsing() async throws {
         let source = """
         %%{init: {'radar': {'marginTop': 80, 'axisLabelFactor': 1.25}, 'theme': 'base', 'themeVariables': {'fontSize': 10, 'cScale0': '#123456', 'radar': {'axisColor': '#FF0000'}}}}%%
         radar-beta
@@ -643,7 +643,9 @@ struct RadarParserTests {
           curve mycurve{1,2,3}
         """
 
-        let (processed, frontmatter) = _parseFrontMatterAndStripped(source)
+        let (processed, frontmatter) = try await DiagramEngine._runOnWorker {
+            _parseFrontMatterAndStripped(source)
+        }
         #expect(processed.trimmingCharacters(in: .whitespacesAndNewlines).hasPrefix("radar-beta"))
         let parsedFrontmatter = try #require(frontmatter)
         let radarConfig = try #require(parsedFrontmatter.perDiagram.radar.config)

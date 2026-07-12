@@ -22,7 +22,7 @@ import DiagramKitTestSupport
 /// ```bash
 /// swift test --filter CorpusSnapshotTests
 /// ```
-@Suite("Diagram corpus snapshots")
+@Suite("Diagram corpus snapshots", .serialized)
 struct CorpusSnapshotTests {
 
     // MARK: - Helpers
@@ -75,7 +75,10 @@ struct CorpusSnapshotTests {
         let image = try #require(await DiagramEngine.renderImage(source: diagram.source))
         assertSnapshot(
             of: image,
-            as: .image(precision: 0.99, perceptualPrecision: 0.98),
+            as: .image(
+                precision: snapshotPixelPrecision(),
+                perceptualPrecision: snapshotPerceptualPrecision()
+            ),
             named: diagram.id
         )
     }
@@ -106,7 +109,7 @@ struct CorpusSnapshotTests {
 /// SNAPSHOT_DIAGRAM_IDS=<id1,id2,...> SNAPSHOT_TESTING_RECORD=true \
 ///   swift test --filter CorpusMultiFormatSnapshotTests/multiFormatImageSnapshot
 /// ```
-@Suite("Multi-format corpus snapshots")
+@Suite("Multi-format corpus snapshots", .serialized)
 struct CorpusMultiFormatSnapshotTests {
 
     private static func loadDiagrams() throws -> [CorpusEntry] {
@@ -137,7 +140,10 @@ struct CorpusMultiFormatSnapshotTests {
             let image = try #require(await DiagramEngine.renderImage(source: source))
             assertSnapshot(
                 of: image,
-                as: .image(precision: 0.99, perceptualPrecision: 0.98),
+                as: .image(
+                    precision: snapshotPixelPrecision(),
+                    perceptualPrecision: snapshotPerceptualPrecision()
+                ),
                 named: "\(diagram.id)-\(format)"
             )
         }

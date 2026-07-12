@@ -64,9 +64,8 @@ run_gate "swift package dump-package" swift package dump-package
 # dependencies; a stray `import` of a non-dep module fails here loudly.
 run_gate "swift build (clean, DiagramKitMermaid)" \
   bash -c "swift package clean && swift build --target DiagramKitMermaid"
-# Corpus parameterized snapshot suites are run separately below so a known
-# swift-testing + swift-snapshot-testing signal-10 in the parameterized harness
-# does not abort the whole gate (see CLAUDE.md "Testing And Snapshots").
+# Corpus snapshot suites are run separately below so their serialized render
+# passes remain easy to diagnose and re-record independently.
 run_gate "swift test (non-corpus)" \
   swift test \
   --skip "CorpusSnapshotTests" \

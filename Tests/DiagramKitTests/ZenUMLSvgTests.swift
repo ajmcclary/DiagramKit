@@ -21,8 +21,8 @@ struct ZenUMLSvgTests {
     }
 
     @Test("SVG useMaxWidth true emits responsive width")
-    func useMaxWidthTrue() throws {
-        let svg = try DiagramPipeline.renderSVG(source: """
+    func useMaxWidthTrue() async throws {
+        let svg = try await DiagramEngine.renderSVG(source: """
         %%{init: {"sequence": {"useMaxWidth": true}}}%%
         zenuml
         A->B: async
@@ -34,8 +34,8 @@ struct ZenUMLSvgTests {
     }
 
     @Test("SVG useMaxWidth false emits absolute dimensions")
-    func useMaxWidthFalse() throws {
-        let svg = try DiagramPipeline.renderSVG(source: """
+    func useMaxWidthFalse() async throws {
+        let svg = try await DiagramEngine.renderSVG(source: """
         %%{init: {"sequence": {"useMaxWidth": false}}}%%
         zenuml
         A->B: async

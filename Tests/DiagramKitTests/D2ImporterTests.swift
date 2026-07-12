@@ -46,10 +46,13 @@ import DiagramKitD2
 
     // MARK: - Basic properties
 
-    @Test("supportedDiagramTypes covers flowchart, classDiagram, stateDiagram, erDiagram, architecture, mindmap, treeView")
+    @Test("supportedDiagramTypes covers every shipped D2 family")
     func supportedDiagramTypesIsFlowchart() {
         let d2 = D2Importer()
-        #expect(d2.supportedDiagramTypes == [.flowchart, .classDiagram, .stateDiagram, .erDiagram, .architecture, .mindmap, .treeView])
+        #expect(d2.supportedDiagramTypes == [
+            .flowchart, .classDiagram, .stateDiagram, .erDiagram,
+            .sequenceDiagram, .architecture, .mindmap, .treeView, .c4, .block,
+        ])
     }
 
     @Test("name is \"D2\"")

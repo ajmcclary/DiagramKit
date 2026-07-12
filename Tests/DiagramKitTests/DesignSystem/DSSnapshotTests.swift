@@ -44,7 +44,10 @@ struct DSSnapshotTests {
         hosting.layoutSubtreeIfNeeded()
         assertSnapshot(
             of: hosting,
-            as: .image(precision: 0.99, perceptualPrecision: 0.98),
+            as: .image(
+                precision: snapshotPixelPrecision(),
+                perceptualPrecision: snapshotPerceptualPrecision()
+            ),
             named: name
         )
     }

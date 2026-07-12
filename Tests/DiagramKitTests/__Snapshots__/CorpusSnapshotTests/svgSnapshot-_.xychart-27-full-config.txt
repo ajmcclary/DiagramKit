@@ -1,4 +1,4 @@
-<svg data-xychart-colors="1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 800 550" width="800" height="550" style="--bg:#FFFFFF;--fg:#27272A;--line:#939394;--accent:#27272A;--muted:#A9A9AA;--surface:#F9F9F9;--border:#D4D4D4;background:#FFFFFF">
+<svg role="graphics-document" aria-roledescription="diagram" data-xychart-colors="1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 800 550" width="800" height="550" style="--bg:#FFFFFF;--fg:#27272A;--line:#939394;--accent:#27272A;--muted:#A9A9AA;--surface:#F9F9F9;--border:#D4D4D4;background:#FFFFFF">
 <title>Full Config Demo</title>
 <desc>Demonstrating all XY Chart config options</desc>
 <style>
@@ -6,13 +6,13 @@
   text { font-family: 'Inter', system-ui, sans-serif; }
   svg {    /* Derived from --bg and --fg (overridable via --line, --accent, etc.) */
     --_text:          #27272A;
-    --_text-sec:      #A9A9AA 60%, #FFFFFF));
-    --_text-muted:    #A9A9AA 40%, #FFFFFF));
+    --_text-sec:      #A9A9AA;
+    --_text-muted:    #A9A9AA;
     --_text-faint:    #666666;
-    --_line:          #939394 50%, #FFFFFF));
-    --_arrow:         #27272A 85%, #FFFFFF));
-    --_node-fill:     #F9F9F9 3%, #FFFFFF));
-    --_node-stroke:   #D4D4D4 20%, #FFFFFF));
+    --_line:          #939394;
+    --_arrow:         #27272A;
+    --_node-fill:     #F9F9F9;
+    --_node-stroke:   #D4D4D4;
     --_group-fill:    #FFFFFF;
     --_group-hdr:     #666666;
     --_inner-stroke:  #666666;
@@ -59,18 +59,18 @@
 <rect x="675.6" y="126.6" width="40" height="329.4" fill="#3498db" class="xychart-bar-rect xychart-color-0" data-value="90.0" data-label="Q4"/>
 <text x="695.625" y="291.29999999999995" text-anchor="middle" font-size="16.0" dy="0.35em" fill="#27272A" class="xychart-data-label">90</text>
 <path d="M201.4,327.9 L366.1,254.7 L530.9,218.1 L695.6,144.9" class="xychart-line xychart-color-1" fill="none" stroke="#e74c3c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-<line x1="119" y1="456" x2="778" y2="456" stroke="#A9A9AA 40%, #FFFFFF))" stroke-width="2.0" class="xychart-axis-line"/>
-<line x1="119" y1="90" x2="119" y2="456" stroke="#A9A9AA 40%, #FFFFFF))" stroke-width="2.0" class="xychart-axis-line"/>
-<line x1="201.4" y1="461" x2="201.4" y2="456" stroke="#A9A9AA 40%, #FFFFFF))" stroke-width="2.0" class="xychart-tick"/>
-<line x1="366.1" y1="461" x2="366.1" y2="456" stroke="#A9A9AA 40%, #FFFFFF))" stroke-width="2.0" class="xychart-tick"/>
-<line x1="530.9" y1="461" x2="530.9" y2="456" stroke="#A9A9AA 40%, #FFFFFF))" stroke-width="2.0" class="xychart-tick"/>
-<line x1="695.6" y1="461" x2="695.6" y2="456" stroke="#A9A9AA 40%, #FFFFFF))" stroke-width="2.0" class="xychart-tick"/>
-<line x1="114" y1="456" x2="119" y2="456" stroke="#A9A9AA 40%, #FFFFFF))" stroke-width="2.0" class="xychart-tick"/>
-<line x1="114" y1="382.8" x2="119" y2="382.8" stroke="#A9A9AA 40%, #FFFFFF))" stroke-width="2.0" class="xychart-tick"/>
-<line x1="114" y1="309.6" x2="119" y2="309.6" stroke="#A9A9AA 40%, #FFFFFF))" stroke-width="2.0" class="xychart-tick"/>
-<line x1="114" y1="236.4" x2="119" y2="236.4" stroke="#A9A9AA 40%, #FFFFFF))" stroke-width="2.0" class="xychart-tick"/>
-<line x1="114" y1="163.2" x2="119" y2="163.2" stroke="#A9A9AA 40%, #FFFFFF))" stroke-width="2.0" class="xychart-tick"/>
-<line x1="114" y1="90" x2="119" y2="90" stroke="#A9A9AA 40%, #FFFFFF))" stroke-width="2.0" class="xychart-tick"/>
+<line x1="119" y1="456" x2="778" y2="456" stroke="#A9A9AA" stroke-width="2.0" class="xychart-axis-line"/>
+<line x1="119" y1="90" x2="119" y2="456" stroke="#A9A9AA" stroke-width="2.0" class="xychart-axis-line"/>
+<line x1="201.4" y1="461" x2="201.4" y2="456" stroke="#A9A9AA" stroke-width="2.0" class="xychart-tick"/>
+<line x1="366.1" y1="461" x2="366.1" y2="456" stroke="#A9A9AA" stroke-width="2.0" class="xychart-tick"/>
+<line x1="530.9" y1="461" x2="530.9" y2="456" stroke="#A9A9AA" stroke-width="2.0" class="xychart-tick"/>
+<line x1="695.6" y1="461" x2="695.6" y2="456" stroke="#A9A9AA" stroke-width="2.0" class="xychart-tick"/>
+<line x1="114" y1="456" x2="119" y2="456" stroke="#A9A9AA" stroke-width="2.0" class="xychart-tick"/>
+<line x1="114" y1="382.8" x2="119" y2="382.8" stroke="#A9A9AA" stroke-width="2.0" class="xychart-tick"/>
+<line x1="114" y1="309.6" x2="119" y2="309.6" stroke="#A9A9AA" stroke-width="2.0" class="xychart-tick"/>
+<line x1="114" y1="236.4" x2="119" y2="236.4" stroke="#A9A9AA" stroke-width="2.0" class="xychart-tick"/>
+<line x1="114" y1="163.2" x2="119" y2="163.2" stroke="#A9A9AA" stroke-width="2.0" class="xychart-tick"/>
+<line x1="114" y1="90" x2="119" y2="90" stroke="#A9A9AA" stroke-width="2.0" class="xychart-tick"/>
 <text x="201.375" y="474.0" text-anchor="middle" font-size="16" font-weight="400" fill="#7f8c8d" dy="0.35em" class="xychart-label">Q1</text>
 <text x="366.125" y="474.0" text-anchor="middle" font-size="16" font-weight="400" fill="#7f8c8d" dy="0.35em" class="xychart-label">Q2</text>
 <text x="530.875" y="474.0" text-anchor="middle" font-size="16" font-weight="400" fill="#7f8c8d" dy="0.35em" class="xychart-label">Q3</text>
@@ -81,7 +81,7 @@
 <text x="101.0" y="236.4" text-anchor="end" font-size="14" font-weight="400" fill="#7f8c8d" dy="0.35em" class="xychart-label">60</text>
 <text x="101.0" y="163.2" text-anchor="end" font-size="14" font-weight="400" fill="#7f8c8d" dy="0.35em" class="xychart-label">80</text>
 <text x="101.0" y="90.0" text-anchor="end" font-size="14" font-weight="400" fill="#7f8c8d" dy="0.35em" class="xychart-label">100</text>
-<text x="448.5" y="528.0" text-anchor="middle" font-size="18" font-weight="500" fill="#A9A9AA 60%, #FFFFFF))" dy="0.35em" class="xychart-axis-title">Quarter</text>
-<text x="26.0" y="273.0" text-anchor="middle" transform="rotate(-90.0,26.0,273.0)" font-size="16" font-weight="500" fill="#A9A9AA 60%, #FFFFFF))" dy="0.35em" class="xychart-axis-title">Revenue (USD)</text>
+<text x="448.5" y="528.0" text-anchor="middle" font-size="18" font-weight="500" fill="#A9A9AA" dy="0.35em" class="xychart-axis-title">Quarter</text>
+<text x="26.0" y="273.0" text-anchor="middle" transform="rotate(-90.0,26.0,273.0)" font-size="16" font-weight="500" fill="#A9A9AA" dy="0.35em" class="xychart-axis-title">Revenue (USD)</text>
 <text x="400.0" y="46.0" text-anchor="middle" font-size="24" font-weight="600" fill="#2c3e50" dy="0.35em" class="xychart-title">Full Configuration Demo</text>
 </svg>
