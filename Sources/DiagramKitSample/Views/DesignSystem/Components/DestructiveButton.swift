@@ -6,24 +6,18 @@
 //
 
 import SwiftUI
+import DiagramKitSampleDesignSystem
 
 struct DestructiveButton: View {
     let title: String
     var systemImage: String = "arrow.counterclockwise"
     let action: () -> Void
-    @Environment(\.playgroundTokens) private var tokens
-
     var body: some View {
         Button(action: action) {
-            HStack(spacing: 8) {
-                Image(systemName: systemImage).font(.system(size: 13, weight: .medium))
-                Text(title).font(PlaygroundFont.sans(12.5))
+            HStack(spacing: DSTokens.Spacing.sm) {
+                DSIconView(.reset, size: DSTokens.Icon.micro, colorRole: .error)
+                Text(title).dsFont(.caption)
             }
-            .foregroundStyle(tokens.palette.statusError)
-            .padding(.horizontal, 14).frame(height: 34)
-            .background(tokens.palette.bgTrack)
-            .overlay(RoundedRectangle(cornerRadius: 8).stroke(tokens.palette.borderDestructive, lineWidth: 0.5))
-            .clipShape(RoundedRectangle(cornerRadius: 8))
-        }.buttonStyle(.plain)
+        }.buttonStyle(.ds(role: .destructive, size: .regular))
     }
 }

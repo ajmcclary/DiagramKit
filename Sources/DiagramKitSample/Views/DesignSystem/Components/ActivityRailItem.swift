@@ -7,40 +7,42 @@
 //
 
 import SwiftUI
+import DiagramKitSampleDesignSystem
 
 struct ActivityRailItem: View {
     let systemImage: String
     let isActive: Bool
     let help: String
     let action: () -> Void
-    @Environment(\.playgroundTokens) private var tokens
-    @State private var isHovering = false
-
     var body: some View {
         Button(action: action) {
-            Image(systemName: systemImage).font(.system(size: 18))
-                .foregroundStyle(isActive ? tokens.palette.accent : tokens.palette.fg3)
-                .frame(width: 38, height: 38)
-                .background(tileBackground)
-                .clipShape(RoundedRectangle(cornerRadius: 9))
+            DSIconView(icon, size: DSTokens.Icon.sm, colorRole: isActive ? .primary : .muted)
                 .overlay(alignment: .leading) {
                     if isActive {
-                        RoundedRectangle(cornerRadius: 2).fill(tokens.palette.accent)
-                            .frame(width: 2.5).padding(.vertical, 9).offset(x: -10)
+                        RoundedRectangle(cornerRadius: DSTokens.Radius.xs)
+                            .fill(environment.theme.colors.accent.color)
+                            .frame(width: DSTokens.Control.accentBar)
+                            .padding(.vertical, DSTokens.Spacing.sm)
+                            .offset(x: -DSTokens.Spacing.md)
                     }
                 }
         }
-        .buttonStyle(.playground)
-        .onHover { isHovering = $0 }
+        .buttonStyle(.ds(role: isActive ? .secondary : .ghost, size: .regular))
         #if os(iOS)
         .hoverEffect(.highlight)
         #endif
         .help(help)
     }
 
-    private var tileBackground: Color {
-        if isActive { return tokens.palette.accentTint16 }
-        if isHovering { return tokens.palette.rowHover }
-        return .clear
+    @Environment(\.dsEnvironment) private var environment
+
+    private var icon: DSIcon {
+        switch systemImage {
+        case "magnifyingglass": .search
+        case "chevron.left.forwardslash.chevron.right": .code
+        case "slider.horizontal.3": .settings
+        case "list.bullet.indent": .rearrange
+        default: .diagram
+        }
     }
 }

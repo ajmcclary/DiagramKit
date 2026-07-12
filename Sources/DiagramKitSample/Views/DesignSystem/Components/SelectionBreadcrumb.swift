@@ -6,21 +6,22 @@
 //
 
 import SwiftUI
+import DiagramKitSampleDesignSystem
 
 struct SelectionBreadcrumb: View {
     let text: String
     var systemImage: String = "rectangle"
-    @Environment(\.playgroundTokens) private var tokens
+    @Environment(\.dsEnvironment) private var environment
 
     var body: some View {
-        HStack(spacing: 6) {
-            Image(systemName: systemImage).font(.system(size: 11))
-            Text(text).font(PlaygroundFont.mono(12))
+        HStack(spacing: DSTokens.Spacing.xs) {
+            DSIconView(.node, size: DSTokens.Icon.micro)
+            Text(text).dsFont(.code)
         }
-        .foregroundStyle(tokens.palette.accentSecondary)
-        .padding(.horizontal, 11).padding(.vertical, 5)
-        .background(tokens.palette.accentTint14)
-        .overlay(RoundedRectangle(cornerRadius: 8).stroke(tokens.palette.accent.opacity(0.4), lineWidth: 0.5))
-        .clipShape(RoundedRectangle(cornerRadius: 8))
+        .foregroundStyle(environment.theme.colors.accent.color)
+        .padding(.horizontal, DSTokens.Spacing.smMd).padding(.vertical, DSTokens.Spacing.xs)
+        .background(environment.theme.colors.elementSelected.color)
+        .overlay(RoundedRectangle(cornerRadius: DSTokens.Radius.chip).stroke(environment.theme.colors.borderSelected.color, lineWidth: DSTokens.Stroke.hairline))
+        .clipShape(RoundedRectangle(cornerRadius: DSTokens.Radius.chip))
     }
 }

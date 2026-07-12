@@ -6,22 +6,21 @@
 //
 
 import SwiftUI
+import DiagramKitSampleDesignSystem
 
 struct InfoCallout: View {
     let text: String
     var systemImage: String = "info.circle"
-    @Environment(\.playgroundTokens) private var tokens
+    @Environment(\.dsEnvironment) private var environment
 
     var body: some View {
-        HStack(alignment: .top, spacing: 9) {
-            Image(systemName: systemImage).font(.system(size: 14, weight: .medium))
-                .foregroundStyle(tokens.palette.catCyan)
-            Text(text).font(PlaygroundFont.sans(11.5)).lineSpacing(3).foregroundStyle(tokens.palette.fg3)
+        HStack(alignment: .top, spacing: DSTokens.Spacing.sm) {
+            DSIconView(.info, colorRole: .info)
+            Text(text).dsFont(.caption2).lineSpacing(DSTokens.Spacing.xxxs)
+                .foregroundStyle(environment.theme.colors.textSecondary.color)
             Spacer(minLength: 0)
         }
-        .padding(.horizontal, 14).padding(.vertical, 12)
-        .background(tokens.palette.bgSidebarNav)
-        .overlay(RoundedRectangle(cornerRadius: PlaygroundRadius.md).stroke(tokens.palette.borderHairline, lineWidth: 0.5))
-        .clipShape(RoundedRectangle(cornerRadius: PlaygroundRadius.md))
+        .padding(.horizontal, DSTokens.Spacing.lg).padding(.vertical, DSTokens.Spacing.md)
+        .background { DSSurface(role: .panel) { Color.clear } }
     }
 }

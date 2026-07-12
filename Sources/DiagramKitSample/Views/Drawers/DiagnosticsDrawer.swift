@@ -11,20 +11,22 @@
 
 import SwiftUI
 import DiagramKitCommon
+import DiagramKitSampleDesignSystem
 
 struct DiagnosticsDrawer: View {
     @Bindable var store: LiveEditorStore
+    @Environment(\.dsEnvironment) private var environment
 
     var body: some View {
         VStack(spacing: 0) {
             header
-            Divider()
+            separator
             facetRows
-            Divider()
+            separator
             body2col
         }
         .frame(height: 360)
-        .background(.regularMaterial)
+        .background(environment.theme.colors.panelBackground.color)
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier(A11yID.Diagnostics.drawer)
     }
@@ -33,32 +35,27 @@ struct DiagnosticsDrawer: View {
 
     private var header: some View {
         HStack {
-            Image(systemName: "exclamationmark.bubble")
-                .foregroundStyle(.tint)
+            DSIconView(.diagnostics)
             Text("Diagnostics")
-                .font(.system(size: 12, weight: .semibold))
+                .dsFont(.headline)
+                .foregroundStyle(environment.theme.colors.textPrimary.color)
             Text("· \(store.allDiagnostics.count)")
-                .font(.system(size: 11, weight: .regular).monospacedDigit())
-                .foregroundStyle(.secondary)
+                .dsFont(.metric)
+                .foregroundStyle(environment.theme.colors.textSecondary.color)
             Spacer()
-            Button {
+            DSIconButton(.disclosureDown, label: "Close diagnostics") {
                 store.setDiagnosticsDrawerOpen(false)
-            } label: {
-                Image(systemName: "chevron.down")
-                    .font(.system(size: 11, weight: .semibold))
-                    .foregroundStyle(.secondary)
             }
-            .buttonStyle(.plain)
             .keyboardShortcut(.cancelAction)
         }
-        .padding(.horizontal, 12)
-        .padding(.vertical, 6)
+        .padding(.horizontal, DSTokens.Spacing.md)
+        .padding(.vertical, DSTokens.Spacing.xs)
     }
 
     // MARK: - Facet rows
 
     private var facetRows: some View {
-        VStack(alignment: .leading, spacing: 4) {
+        VStack(alignment: .leading, spacing: DSTokens.Spacing.xxs) {
             facetRow(label: "Severity") {
                 ForEach(DiagnosticsDrawerState.SeverityFilter.allCases, id: \.self) { value in
                     chip(
@@ -93,35 +90,27 @@ struct DiagnosticsDrawer: View {
                 }
             }
         }
-        .padding(.horizontal, 12)
-        .padding(.vertical, 6)
+        .padding(.horizontal, DSTokens.Spacing.md)
+        .padding(.vertical, DSTokens.Spacing.xs)
     }
 
     @ViewBuilder
     private func facetRow<Chips: View>(label: String, @ViewBuilder chips: () -> Chips) -> some View {
-        HStack(spacing: 8) {
+        HStack(spacing: DSTokens.Spacing.sm) {
             Text(label)
-                .font(.system(size: 10, weight: .semibold))
-                .foregroundStyle(.secondary)
+                .dsFont(.overline)
+                .foregroundStyle(environment.theme.colors.textSecondary.color)
                 .frame(width: 56, alignment: .leading)
             ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: 4) { chips() }
+                HStack(spacing: DSTokens.Spacing.xxs) { chips() }
             }
         }
     }
 
     private func chip(text: String, isOn: Bool, id: String, action: @escaping () -> Void) -> some View {
-        Button(action: action) {
-            Text(text)
-                .font(.system(size: 10, weight: .medium))
-                .padding(.horizontal, 8)
-                .padding(.vertical, 3)
-                .background(
-                    Capsule().fill(isOn ? Color.accentColor.opacity(0.22) : Color.gray.opacity(0.12))
-                )
-                .foregroundStyle(isOn ? Color.accentColor : .primary)
+        DSChip(isSelected: isOn, action: action) {
+            Text(text).dsFont(.badge)
         }
-        .buttonStyle(.plain)
         .a11yToggle(label: LocalizedStringKey(text), isOn: isOn, id: id)
     }
 
@@ -131,7 +120,7 @@ struct DiagnosticsDrawer: View {
         HStack(spacing: 0) {
             categoryList
                 .frame(width: 200)
-            Divider()
+            verticalSeparator
             rowList
         }
     }
@@ -145,7 +134,7 @@ struct DiagnosticsDrawer: View {
                 section(title: "Feature dropped (.unsupported)", categories: unsupportedCategories)
                 section(title: "Informational (.info)", categories: infoCategories)
             }
-            .padding(.vertical, 6)
+            .padding(.vertical, DSTokens.Spacing.xs)
         }
         .accessibilityIdentifier(A11yID.Diagnostics.categoryList)
     }
@@ -165,12 +154,12 @@ struct DiagnosticsDrawer: View {
     private func section(title: String, categories: [DiagnosticCategory]) -> some View {
         VStack(alignment: .leading, spacing: 2) {
             Text(title)
-                .font(.system(size: 10, weight: .semibold))
-                .foregroundStyle(.secondary)
-                .padding(.horizontal, 8)
-                .padding(.vertical, 4)
+                .dsFont(.overline)
+                .foregroundStyle(environment.theme.colors.textSecondary.color)
+                .padding(.horizontal, DSTokens.Spacing.sm)
+                .padding(.vertical, DSTokens.Spacing.xxs)
                 .frame(maxWidth: .infinity, alignment: .leading)
-                .background(Color.gray.opacity(0.08))
+                .background(environment.theme.colors.element.color)
             ForEach(categories, id: \.self) { cat in
                 categoryButton(cat)
             }
@@ -184,18 +173,16 @@ struct DiagnosticsDrawer: View {
         } label: {
             HStack {
                 Text(cat.rawValue)
-                    .font(.system(size: 11, weight: isOn ? .semibold : .regular))
+                    .dsFont(.caption2)
                 Spacer()
                 Text("\(count(for: cat))")
-                    .font(.system(size: 10, weight: .medium).monospacedDigit())
-                    .foregroundStyle(.secondary)
+                    .dsFont(.metric)
+                    .foregroundStyle(environment.theme.colors.textSecondary.color)
             }
-            .padding(.horizontal, 8)
-            .padding(.vertical, 3)
-            .background(isOn ? Color.accentColor.opacity(0.16) : Color.clear)
+            .padding(.horizontal, DSTokens.Spacing.sm)
             .contentShape(Rectangle())
         }
-        .buttonStyle(.plain)
+        .buttonStyle(.ds(role: isOn ? .secondary : .ghost, size: .compact))
         .a11yToggle(
             label: LocalizedStringKey(cat.rawValue),
             isOn: isOn,
@@ -215,9 +202,9 @@ struct DiagnosticsDrawer: View {
                 let rows = store.filteredDrawerDiagnostics
                 if rows.isEmpty {
                     Text("No diagnostics match the current filters")
-                        .font(.system(size: 11))
-                        .foregroundStyle(.secondary)
-                        .padding(12)
+                        .dsFont(.caption2)
+                        .foregroundStyle(environment.theme.colors.textSecondary.color)
+                        .padding(DSTokens.Spacing.md)
                 } else {
                     ForEach(rows) { row in
                         rowView(row)
@@ -229,29 +216,28 @@ struct DiagnosticsDrawer: View {
     }
 
     private func rowView(_ row: DrawerDiagnostic) -> some View {
-        HStack(alignment: .top, spacing: 8) {
-            Image(systemName: severityIcon(row.editor.severity))
-                .foregroundStyle(severityColor(row.editor.severity))
-                .font(.system(size: 11, weight: .semibold))
-            VStack(alignment: .leading, spacing: 2) {
+        HStack(alignment: .top, spacing: DSTokens.Spacing.sm) {
+            DSIconView(
+                row.editor.severity.dsIcon,
+                size: DSTokens.Icon.micro,
+                colorRole: row.editor.severity.dsIconColorRole
+            )
+            VStack(alignment: .leading, spacing: DSTokens.Spacing.xxxs) {
                 Text(row.editor.message)
-                    .font(.system(size: 11))
+                    .dsFont(.caption2)
+                    .foregroundStyle(environment.theme.colors.textPrimary.color)
                     .lineLimit(2)
-                HStack(spacing: 6) {
-                    Text(row.tier.label)
-                        .font(.system(size: 9, weight: .medium))
-                        .padding(.horizontal, 5)
-                        .padding(.vertical, 1)
-                        .background(Capsule().fill(Color.gray.opacity(0.15)))
+                HStack(spacing: DSTokens.Spacing.xs) {
+                    DSCodeBadge(row.tier.label)
                     if let line = row.editor.line {
                         Text("line \(line)")
-                            .font(.system(size: 9, weight: .medium).monospacedDigit())
-                            .foregroundStyle(.secondary)
+                            .dsFont(.metric)
+                            .foregroundStyle(environment.theme.colors.textSecondary.color)
                     }
                     if let cat = row.category {
                         Text(cat.rawValue)
-                            .font(.system(size: 9, weight: .medium))
-                            .foregroundStyle(Color.accentColor)
+                            .dsFont(.badge)
+                            .foregroundStyle(environment.theme.colors.accent.color)
                     }
                 }
             }
@@ -259,29 +245,23 @@ struct DiagnosticsDrawer: View {
             Button("Explain") {
                 store.presentExplain(for: row)
             }
-            .buttonStyle(.bordered)
-            .controlSize(.mini)
+            .buttonStyle(.ds(role: .secondary, size: .compact))
             .a11y(label: "Explain diagnostic", id: A11yID.Diagnostics.explainButton(forRow: row.id.uuidString))
         }
-        .padding(.horizontal, 10)
-        .padding(.vertical, 6)
+        .padding(.horizontal, DSTokens.Spacing.smMd)
+        .padding(.vertical, DSTokens.Spacing.xs)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(Color.clear)
     }
 
-    private func severityIcon(_ s: EditorDiagnostic.Severity) -> String {
-        switch s {
-        case .error:   return "xmark.octagon.fill"
-        case .warning: return "exclamationmark.triangle.fill"
-        case .info:    return "info.circle.fill"
-        }
+    private var separator: some View {
+        Rectangle()
+            .fill(environment.theme.colors.borderVariant.color)
+            .frame(height: DSTokens.Stroke.hairline)
     }
 
-    private func severityColor(_ s: EditorDiagnostic.Severity) -> Color {
-        switch s {
-        case .error:   return .red
-        case .warning: return .orange
-        case .info:    return .blue
-        }
+    private var verticalSeparator: some View {
+        Rectangle()
+            .fill(environment.theme.colors.borderVariant.color)
+            .frame(width: DSTokens.Stroke.hairline)
     }
 }

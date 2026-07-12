@@ -8,27 +8,29 @@
 //
 
 import SwiftUI
+import DiagramKitSampleDesignSystem
 
 struct AlignButtonRow: View {
-    @Environment(\.playgroundTokens) private var tokens
     private let leading = ["align.horizontal.left.fill", "align.horizontal.center.fill", "align.horizontal.right.fill"]
     private let trailing = ["align.vertical.top.fill", "align.vertical.center.fill", "align.vertical.bottom.fill"]
 
     var body: some View {
-        HStack(spacing: 6) {
+        HStack(spacing: DSTokens.Spacing.xs) {
             ForEach(leading, id: \.self) { alignButton($0) }
-            Rectangle().fill(tokens.palette.borderHairline).frame(width: 0.5, height: 20)
+            Rectangle().fill(environment.theme.colors.borderVariant.color)
+                .frame(width: DSTokens.Stroke.hairline, height: DSTokens.Spacing.xl)
             ForEach(trailing, id: \.self) { alignButton($0) }
         }
     }
 
     private func alignButton(_ symbol: String) -> some View {
-        Image(systemName: symbol).font(.system(size: 13))
-            .foregroundStyle(tokens.palette.fg2.opacity(0.5))
-            .frame(width: 34, height: 30)
-            .background(tokens.palette.bgTrack)
-            .overlay(RoundedRectangle(cornerRadius: 7).stroke(tokens.palette.borderHairline, lineWidth: 0.5))
-            .clipShape(RoundedRectangle(cornerRadius: 7))
+        DSIconView(.rearrange, size: DSTokens.Icon.micro, colorRole: .disabled)
+            .frame(minWidth: DSTokens.Control.row, minHeight: DSTokens.Control.rowCompact)
+            .background(environment.theme.colors.element.color)
+            .overlay(RoundedRectangle(cornerRadius: DSTokens.Radius.sm).stroke(environment.theme.colors.borderVariant.color, lineWidth: DSTokens.Stroke.thin))
+            .clipShape(RoundedRectangle(cornerRadius: DSTokens.Radius.sm))
             .help("Alignment is presentational for auto-laid-out diagrams")
     }
+
+    @Environment(\.dsEnvironment) private var environment
 }

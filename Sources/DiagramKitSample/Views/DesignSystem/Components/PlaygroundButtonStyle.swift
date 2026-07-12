@@ -9,6 +9,7 @@
 //
 
 import SwiftUI
+import DiagramKitSampleDesignSystem
 
 /// Resolved visual state for an interactive button.
 struct ButtonVisualState: Equatable {
@@ -19,8 +20,8 @@ struct ButtonVisualState: Equatable {
 /// Pure mapping from interaction inputs to visual state. Disabled dimming
 /// takes precedence over the pressed dip.
 func playgroundButtonVisualState(isPressed: Bool, isEnabled: Bool) -> ButtonVisualState {
-    if !isEnabled { return ButtonVisualState(opacity: 0.4, scale: 1.0) }
-    if isPressed  { return ButtonVisualState(opacity: 0.6, scale: 0.97) }
+    if !isEnabled { return ButtonVisualState(opacity: DSTokens.Opacity.disabled, scale: 1.0) }
+    if isPressed  { return ButtonVisualState(opacity: DSTokens.Opacity.heavy, scale: 1.0) }
     return ButtonVisualState(opacity: 1.0, scale: 1.0)
 }
 
@@ -33,7 +34,7 @@ struct PlaygroundButtonStyle: ButtonStyle {
             .opacity(s.opacity)
             .scaleEffect(s.scale)
             .contentShape(Rectangle())
-            .animation(.easeOut(duration: 0.12), value: configuration.isPressed)
+            .animation(.easeOut(duration: 0.15), value: configuration.isPressed)
             #if os(macOS)
             .pointerStyle(.link)
             #endif

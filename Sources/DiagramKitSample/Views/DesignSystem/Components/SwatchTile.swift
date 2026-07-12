@@ -7,6 +7,7 @@
 //
 
 import SwiftUI
+import DiagramKitSampleDesignSystem
 
 struct SwatchTile: View {
     var title: String
@@ -15,42 +16,42 @@ struct SwatchTile: View {
     var isSelected: Bool
     var action: () -> Void
 
-    @Environment(\.playgroundTokens) private var tokens
+    @Environment(\.dsEnvironment) private var environment
 
     var body: some View {
         Button(action: action) {
             ZStack(alignment: .bottomLeading) {
-                RoundedRectangle(cornerRadius: PlaygroundRadius.md, style: .continuous)
+                RoundedRectangle(cornerRadius: DSTokens.Radius.md, style: .continuous)
                     .fill(background)
                     .overlay(
-                        RoundedRectangle(cornerRadius: PlaygroundRadius.md, style: .continuous)
+                        RoundedRectangle(cornerRadius: DSTokens.Radius.md, style: .continuous)
                             .stroke(
-                                isSelected ? tokens.palette.accent : tokens.palette.borderHairline,
-                                lineWidth: isSelected ? 1.5 : 0.5
+                                isSelected ? environment.theme.colors.borderSelected.color : environment.theme.colors.borderVariant.color,
+                                lineWidth: isSelected ? DSTokens.Stroke.mediumLight : DSTokens.Stroke.hairline
                             )
                     )
 
                 Text(title)
-                    .font(PlaygroundFont.label)
+                    .dsFont(.badge)
                     .foregroundStyle(textColor(on: background))
-                    .padding(.leading, 8)
-                    .padding(.bottom, 6)
+                    .padding(.leading, DSTokens.Spacing.sm)
+                    .padding(.bottom, DSTokens.Spacing.xs)
 
-                VStack(spacing: 3) {
+                VStack(spacing: DSTokens.Spacing.xxxs) {
                     ForEach(Array(swatches.enumerated()), id: \.offset) { _, swatch in
-                        RoundedRectangle(cornerRadius: 2, style: .continuous)
+                        RoundedRectangle(cornerRadius: DSTokens.Radius.xs, style: .continuous)
                             .fill(swatch)
                             .frame(width: 12, height: 6)
                     }
                 }
-                .padding(.trailing, 8)
-                .padding(.top, 8)
+                .padding(.trailing, DSTokens.Spacing.sm)
+                .padding(.top, DSTokens.Spacing.sm)
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topTrailing)
             }
             .frame(width: 72, height: 48)
             .contentShape(Rectangle())
         }
-        .buttonStyle(.playground)
+        .buttonStyle(.ds(role: isSelected ? .secondary : .ghost, size: .compact))
     }
 
     // Simple contrast: light backgrounds get dark text; dark backgrounds get

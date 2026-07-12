@@ -7,15 +7,16 @@
 //
 
 import SwiftUI
+import DiagramKitSampleDesignSystem
 
 struct DotPicker: View {
     var options: [Color]
     @Binding var selection: Color
 
-    @Environment(\.playgroundTokens) private var tokens
+    @Environment(\.dsEnvironment) private var environment
 
     var body: some View {
-        HStack(spacing: PlaygroundSpacing.sm) {
+        HStack(spacing: DSTokens.Spacing.sm) {
             ForEach(Array(options.enumerated()), id: \.offset) { _, color in
                 let isSelected = sameColor(color, selection)
                 Button {
@@ -23,15 +24,15 @@ struct DotPicker: View {
                 } label: {
                     Circle()
                         .fill(color)
-                        .frame(width: 18, height: 18)
+                        .frame(width: DSTokens.Icon.sm, height: DSTokens.Icon.sm)
                         .overlay(
                             Circle()
-                                .stroke(isSelected ? tokens.palette.fg1 : .clear, lineWidth: 1.5)
-                                .padding(-3)
+                                .stroke(isSelected ? environment.theme.colors.borderSelected.color : .clear, lineWidth: DSTokens.Stroke.mediumLight)
+                                .padding(-DSTokens.Spacing.xxxs)
                         )
                         .contentShape(Circle())
                 }
-                .buttonStyle(.playground)
+                .buttonStyle(.ds(role: .ghost, size: .compact))
             }
         }
     }

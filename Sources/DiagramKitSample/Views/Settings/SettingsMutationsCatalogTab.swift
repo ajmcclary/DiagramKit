@@ -7,9 +7,10 @@
 //
 
 import SwiftUI
+import DiagramKitSampleDesignSystem
 
 struct SettingsMutationsCatalogTab: View {
-    @Environment(\.playgroundTokens) private var tokens
+    @Environment(\.dsEnvironment) private var environment
     private let groups: [MutationCatalogEntry.Group] = [.node, .edge, .subgraph]
 
     var body: some View {
@@ -18,30 +19,22 @@ struct SettingsMutationsCatalogTab: View {
             ForEach(groups, id: \.self) { group in
                 let entries = MutationCatalog.all.filter { $0.group == group }
                 if !entries.isEmpty {
-                    Text(group.label.uppercased()).font(PlaygroundFont.sans(10, weight: .bold)).tracking(0.6)
-                        .foregroundStyle(color(for: group)).padding(.top, 6).padding(.bottom, 8)
+                    DSSectionHeader(group.label)
+                        .padding(.top, DSTokens.Spacing.xs).padding(.bottom, DSTokens.Spacing.sm)
                     SettingsGroupCard {
                         ForEach(entries) { entry in
-                            HStack(spacing: 10) {
-                                Image(systemName: icon(for: entry)).font(.system(size: 13))
-                                    .foregroundStyle(color(for: group)).frame(width: 16)
-                                Text(displayName(entry)).font(PlaygroundFont.sans(12.5)).foregroundStyle(tokens.palette.fg1)
+                            HStack(spacing: DSTokens.Spacing.smMd) {
+                                DSIconView(icon(for: entry), size: DSTokens.Icon.micro, colorRole: group == .edge ? .info : .primary)
+                                Text(displayName(entry)).dsFont(.caption).foregroundStyle(environment.theme.colors.textPrimary.color)
                                 Spacer()
-                                Text(entry.label).font(PlaygroundFont.mono(11.5)).foregroundStyle(tokens.palette.catCyan)
+                                Text(entry.label).dsFont(.code).foregroundStyle(environment.theme.colors.info.color)
                             }
-                            .padding(.horizontal, 14).padding(.vertical, 9)
+                            .padding(.horizontal, DSTokens.Spacing.lg).padding(.vertical, DSTokens.Spacing.sm)
                         }
                     }.padding(.bottom, 12)
                 }
             }
             Spacer(minLength: 0)
-        }
-    }
-
-    private func color(for group: MutationCatalogEntry.Group) -> Color {
-        switch group {
-        case .edge: return tokens.palette.catCyan
-        default: return tokens.palette.accentSecondary
         }
     }
 
@@ -56,13 +49,13 @@ struct SettingsMutationsCatalogTab: View {
         }
     }
 
-    private func icon(for e: MutationCatalogEntry) -> String {
+    private func icon(for e: MutationCatalogEntry) -> DSIcon {
         switch e.id {
-        case "insertNode", "insertEdge": return "plus.circle"
-        case "deleteElement": return "minus.circle"
-        case "setLabel": return "pencil"
-        case "groupIntoSubgraph": return "square.on.square"
-        default: return "circle"
+        case "insertNode", "insertEdge": return .add
+        case "deleteElement": return .remove
+        case "setLabel": return .node
+        case "groupIntoSubgraph": return .subgraph
+        default: return .diagram
         }
     }
 }

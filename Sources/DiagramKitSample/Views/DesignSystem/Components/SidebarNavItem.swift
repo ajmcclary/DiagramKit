@@ -6,28 +6,33 @@
 //
 
 import SwiftUI
+import DiagramKitSampleDesignSystem
 
 struct SidebarNavItem: View {
     let title: String
     let systemImage: String
     let isActive: Bool
     let action: () -> Void
-    @Environment(\.playgroundTokens) private var tokens
-
     var body: some View {
         Button(action: action) {
-            HStack(spacing: 9) {
-                Image(systemName: systemImage).font(.system(size: 13, weight: .medium))
-                    .foregroundStyle(isActive ? tokens.palette.accent : tokens.palette.fg3)
-                    .frame(width: 15)
-                Text(title).font(PlaygroundFont.sans(12.5, weight: isActive ? .semibold : .regular))
-                    .foregroundStyle(isActive ? tokens.palette.accentSecondary : tokens.palette.fg2)
+            HStack(spacing: DSTokens.Spacing.sm) {
+                DSIconView(icon, size: DSTokens.Icon.micro, colorRole: isActive ? .primary : .muted)
+                Text(title).dsFont(.caption)
                 Spacer(minLength: 0)
             }
-            .padding(.horizontal, 10).frame(height: 32)
-            .background(isActive ? tokens.palette.accentTint16 : .clear)
-            .clipShape(RoundedRectangle(cornerRadius: 7))
+            .padding(.horizontal, DSTokens.Spacing.smMd)
             .contentShape(Rectangle())
-        }.buttonStyle(.playground)
+        }.buttonStyle(.ds(role: isActive ? .secondary : .ghost, size: .regular))
+    }
+
+    private var icon: DSIcon {
+        switch systemImage {
+        case "chevron.left.forwardslash.chevron.right": .code
+        case "paintpalette": .theme
+        case "rectangle.on.rectangle", "rectangle.split.2x1": .diagram
+        case "textformat": .info
+        case "number": .rearrange
+        default: .settings
+        }
     }
 }

@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import DiagramKitSampleDesignSystem
 
 struct MenuRow<Menu: View>: View {
     let title: String
@@ -13,29 +14,28 @@ struct MenuRow<Menu: View>: View {
     let value: String
     var leadingSwatch: AnyView? = nil
     @ViewBuilder var content: () -> Menu
-    @Environment(\.playgroundTokens) private var tokens
+    @Environment(\.dsEnvironment) private var environment
 
     var body: some View {
         HStack {
-            VStack(alignment: .leading, spacing: 2) {
-                Text(title).font(PlaygroundFont.body).foregroundStyle(tokens.palette.fg1)
+            VStack(alignment: .leading, spacing: DSTokens.Spacing.xxxs) {
+                Text(title).dsFont(.body).foregroundStyle(environment.theme.colors.textPrimary.color)
                 if let description {
-                    Text(description).font(PlaygroundFont.caption).foregroundStyle(tokens.palette.textFaint)
+                    Text(description).dsFont(.caption).foregroundStyle(environment.theme.colors.textSecondary.color)
                 }
             }
-            Spacer(minLength: PlaygroundSpacing.md)
+            Spacer(minLength: DSTokens.Spacing.md)
             SwiftUI.Menu {
                 content()
             } label: {
-                HStack(spacing: 6) {
+                HStack(spacing: DSTokens.Spacing.xs) {
                     if let leadingSwatch { leadingSwatch }
-                    Text(value).font(PlaygroundFont.sans(12)).foregroundStyle(tokens.palette.fg2)
-                    Image(systemName: "chevron.down").font(.system(size: 9, weight: .semibold))
-                        .foregroundStyle(tokens.palette.fg3)
+                    Text(value).dsFont(.caption).foregroundStyle(environment.theme.colors.textSecondary.color)
+                    DSIconView(.disclosureDown, size: DSTokens.Icon.micro, colorRole: .muted)
                 }
             }
-            .menuStyle(.button).buttonStyle(.playground).fixedSize()
+            .menuStyle(.button).buttonStyle(.ds(role: .ghost, size: .compact)).fixedSize()
         }
-        .padding(.horizontal, 14).padding(.vertical, 12)
+        .padding(.horizontal, DSTokens.Spacing.lg).padding(.vertical, DSTokens.Spacing.md)
     }
 }

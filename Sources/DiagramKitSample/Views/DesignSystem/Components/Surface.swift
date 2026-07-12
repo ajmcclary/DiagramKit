@@ -8,6 +8,7 @@
 //
 
 import SwiftUI
+import DiagramKitSampleDesignSystem
 
 enum SurfaceStyle {
     case card       // flat surface used inside inspector sections
@@ -25,11 +26,9 @@ struct Surface<Content: View>: View {
     var stroke: Bool
     @ViewBuilder var content: () -> Content
 
-    @Environment(\.playgroundTokens) private var tokens
-
     init(
         _ style: SurfaceStyle = .card,
-        radius: CGFloat = PlaygroundRadius.lg,
+        radius: CGFloat = DSTokens.Radius.lg,
         padding: CGFloat? = nil,
         stroke: Bool = true,
         @ViewBuilder content: @escaping () -> Content
@@ -42,48 +41,17 @@ struct Surface<Content: View>: View {
     }
 
     var body: some View {
-        let shape = RoundedRectangle(cornerRadius: radius, style: .continuous)
-        content()
-            .padding(padding ?? PlaygroundSpacing.md)
-            .background(background(in: shape))
-            .overlay {
-                if stroke {
-                    shape.stroke(tokens.palette.borderHairline, lineWidth: 0.5)
-                }
-            }
-            .modifier(SurfaceShadow(style: style))
-    }
-
-    @ViewBuilder
-    private func background(in shape: RoundedRectangle) -> some View {
-        switch style {
-        case .card:
-            shape.fill(tokens.palette.bgSurface)
-        case .elevated:
-            shape.fill(tokens.palette.bgElevated)
-        case .sunken:
-            shape.fill(tokens.palette.bgSunken)
+        DSSurface(role: role) {
+            content()
+                .padding(padding ?? DSTokens.Spacing.md)
         }
     }
-}
 
-private struct SurfaceShadow: ViewModifier {
-    var style: SurfaceStyle
-
-    func body(content: Content) -> some View {
+    private var role: DSSurfaceRole {
         switch style {
-        case .card:
-            content.shadow(color: PlaygroundShadow.card.color,
-                           radius: PlaygroundShadow.card.radius,
-                           x: PlaygroundShadow.card.x,
-                           y: PlaygroundShadow.card.y)
-        case .elevated:
-            content.shadow(color: PlaygroundShadow.elevated.color,
-                           radius: PlaygroundShadow.elevated.radius,
-                           x: PlaygroundShadow.elevated.x,
-                           y: PlaygroundShadow.elevated.y)
-        case .sunken:
-            content
+        case .card: .card
+        case .elevated: .popover
+        case .sunken: .sunken
         }
     }
 }

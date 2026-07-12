@@ -8,73 +8,68 @@
 
 import SwiftUI
 import DiagramKitCommon
+import DiagramKitSampleDesignSystem
 
 struct DiagnosticExplainPopover: View {
     @Bindable var store: LiveEditorStore
     let row: DrawerDiagnostic
+    @Environment(\.dsEnvironment) private var environment
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            HStack(spacing: 8) {
-                Image(systemName: severityIcon)
-                    .foregroundStyle(severityColor)
+        DSSurface(role: .popover) {
+            VStack(alignment: .leading, spacing: DSTokens.Spacing.smMd) {
+            HStack(spacing: DSTokens.Spacing.sm) {
+                DSIconView(
+                    row.editor.severity.dsIcon,
+                    colorRole: row.editor.severity.dsIconColorRole
+                )
                 Text(headline)
-                    .font(.system(size: 13, weight: .semibold))
+                    .dsFont(.headline)
+                    .foregroundStyle(environment.theme.colors.textPrimary.color)
                     .lineLimit(2)
                 Spacer()
-                Button {
+                DSIconButton(.close, label: "Close explanation") {
                     store.dismissExplain()
-                } label: {
-                    Image(systemName: "xmark")
-                        .font(.system(size: 10, weight: .medium))
-                        .foregroundStyle(.secondary)
                 }
-                .buttonStyle(.plain)
                 .keyboardShortcut(.cancelAction)
             }
 
             if let cat = row.category {
-                HStack(spacing: 6) {
-                    Text(cat.rawValue)
-                        .font(.system(size: 10, weight: .medium))
-                        .padding(.horizontal, 6)
-                        .padding(.vertical, 2)
-                        .background(Capsule().fill(Color.gray.opacity(0.18)))
+                HStack(spacing: DSTokens.Spacing.xs) {
+                    DSCodeBadge(cat.rawValue)
                     Text(severityCopy(cat.severity))
-                        .font(.system(size: 10, weight: .medium))
-                        .foregroundStyle(.secondary)
+                        .dsFont(.badge)
+                        .foregroundStyle(environment.theme.colors.textSecondary.color)
                 }
             }
 
             Text(rationale)
-                .font(.system(size: 11))
-                .foregroundStyle(.primary)
+                .dsFont(.caption2)
+                .foregroundStyle(environment.theme.colors.textPrimary.color)
                 .fixedSize(horizontal: false, vertical: true)
 
             Text("See `docs/diagnostic-severity-discipline.md §1` for the decision tree.")
-                .font(.system(size: 10))
-                .foregroundStyle(.secondary)
+                .dsFont(.caption2)
+                .foregroundStyle(environment.theme.colors.textSecondary.color)
                 .fixedSize(horizontal: false, vertical: true)
 
-            Divider()
+            Rectangle()
+                .fill(environment.theme.colors.borderVariant.color)
+                .frame(height: DSTokens.Stroke.hairline)
 
-            HStack(spacing: 6) {
+            HStack(spacing: DSTokens.Spacing.xs) {
                 Button("Rename label") { applyRenameLabel() }
-                    .buttonStyle(.bordered)
+                    .buttonStyle(.ds(role: .secondary, size: .compact))
                 Button("Wrap with <br/>") { applyWrap() }
-                    .buttonStyle(.bordered)
+                    .buttonStyle(.ds(role: .secondary, size: .compact))
                 Spacer()
                 Button("Open in source") { jumpToSource() }
-                    .buttonStyle(.bordered)
+                    .buttonStyle(.ds(role: .primary, size: .compact))
             }
+            }
+            .padding(DSTokens.Spacing.lg)
         }
-        .padding(14)
         .frame(width: 340)
-        .background(
-            RoundedRectangle(cornerRadius: 12, style: .continuous)
-                .fill(.regularMaterial)
-                .shadow(color: .black.opacity(0.2), radius: 12, x: 0, y: 6)
-        )
         .accessibilityIdentifier(A11yID.Diagnostics.explainPopover)
     }
 
@@ -95,22 +90,6 @@ struct DiagnosticExplainPopover: View {
             return "Feature dropped — the target format doesn't model this construct. The import proceeded without it; round-trip won't reintroduce the original."
         case .info:
             return "Informational — encoding-level transform that's round-trip stable (e.g. identifier escapes, comment preservation)."
-        }
-    }
-
-    private var severityIcon: String {
-        switch row.editor.severity {
-        case .error:   return "xmark.octagon.fill"
-        case .warning: return "exclamationmark.triangle.fill"
-        case .info:    return "info.circle.fill"
-        }
-    }
-
-    private var severityColor: Color {
-        switch row.editor.severity {
-        case .error:   return .red
-        case .warning: return .orange
-        case .info:    return .blue
         }
     }
 

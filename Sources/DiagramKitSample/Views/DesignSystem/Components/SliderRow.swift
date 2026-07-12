@@ -6,21 +6,22 @@
 //
 
 import SwiftUI
+import DiagramKitSampleDesignSystem
 
 struct SliderRow: View {
     let title: String
     @Binding var value: Double
     var range: ClosedRange<Double> = 0...100
-    @Environment(\.playgroundTokens) private var tokens
+    @Environment(\.dsEnvironment) private var environment
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
+        VStack(alignment: .leading, spacing: DSTokens.Spacing.sm) {
             HStack {
-                Text(title).font(PlaygroundFont.sans(12.5)).foregroundStyle(tokens.palette.fg3)
+                Text(title).dsFont(.caption).foregroundStyle(environment.theme.colors.textSecondary.color)
                 Spacer()
-                Text("\(Int(value))").font(PlaygroundFont.mono(12)).foregroundStyle(tokens.palette.accentSecondary)
+                Text("\(Int(value))").dsFont(.metric).foregroundStyle(environment.theme.colors.accent.color)
             }
-            Slider(value: $value, in: range).tint(tokens.palette.accent)
+            Slider(value: $value, in: range).tint(environment.theme.colors.accent.color)
         }
     }
 }

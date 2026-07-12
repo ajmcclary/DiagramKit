@@ -7,11 +7,12 @@
 //
 
 import SwiftUI
+import DiagramKitSampleDesignSystem
 
 struct SettingsSheet: View {
     @Bindable var store: LiveEditorStore
     @State private var searchText = ""
-    @Environment(\.playgroundTokens) private var tokens
+    @Environment(\.dsEnvironment) private var environment
     #if os(iOS)
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
     #endif
@@ -33,15 +34,15 @@ struct SettingsSheet: View {
     private var framedBody: some View {
         VStack(spacing: 0) {
             header
-            Rectangle().fill(tokens.palette.borderHairline).frame(height: 0.5)
+            separator
             HStack(spacing: 0) {
                 nav
-                Rectangle().fill(tokens.palette.borderHairline).frame(width: 0.5)
+                verticalSeparator
                 content
             }
         }
         .frame(width: 748, height: 520)
-        .background(tokens.palette.bgSheet)
+        .background(environment.theme.colors.surfaceBackground.color)
         // Card chrome (clip / stroke / shadow) is now supplied by the enclosing
         // `.sheet`; framedBody just provides the sized two-column content.
     }
@@ -61,31 +62,39 @@ struct SettingsSheet: View {
                 }
             }
             .pickerStyle(.menu)
-            .padding(.horizontal, 16)
-            .padding(.vertical, 8)
-            Rectangle().fill(tokens.palette.borderHairline).frame(height: 0.5)
+            .padding(.horizontal, DSTokens.Spacing.lg)
+            .padding(.vertical, DSTokens.Spacing.sm)
+            separator
             content
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(tokens.palette.bgSheet)
+        .background(environment.theme.colors.surfaceBackground.color)
     }
 
     private var header: some View {
-        HStack(spacing: 12) {
+        HStack(spacing: DSTokens.Spacing.md) {
             HeaderCloseButton { store.dismissSettings() }
-            Text("Settings").font(PlaygroundFont.sans(14, weight: .semibold)).foregroundStyle(tokens.palette.fg1)
+            Text("Settings")
+                .dsFont(.headline)
+                .foregroundStyle(environment.theme.colors.textPrimary.color)
             Spacer()
-            HStack(spacing: 7) {
-                Image(systemName: "magnifyingglass").font(.system(size: 12)).foregroundStyle(tokens.palette.textFaint)
+            HStack(spacing: DSTokens.Spacing.xs) {
+                DSIconView(.search, size: DSTokens.Icon.micro, colorRole: .muted)
                 TextField("Search settings…", text: $searchText).textFieldStyle(.plain)
-                    .font(PlaygroundFont.sans(12)).foregroundStyle(tokens.palette.fg1)
+                    .dsFont(.caption)
+                    .foregroundStyle(environment.theme.colors.textPrimary.color)
             }
-            .padding(.horizontal, 10).frame(width: 180, height: 30)
-            .background(tokens.palette.bgField)
-            .overlay(RoundedRectangle(cornerRadius: 8).stroke(tokens.palette.borderWarm, lineWidth: 0.5))
-            .clipShape(RoundedRectangle(cornerRadius: 8))
+            .padding(.horizontal, DSTokens.Spacing.smMd)
+            .frame(width: 180)
+            .frame(minHeight: max(DSTokens.Control.rowCompact, environment.minimumTarget))
+            .background(environment.theme.colors.element.color)
+            .overlay(
+                RoundedRectangle(cornerRadius: DSTokens.Radius.sm)
+                    .stroke(environment.theme.colors.borderVariant.color, lineWidth: DSTokens.Stroke.thin)
+            )
+            .clipShape(RoundedRectangle(cornerRadius: DSTokens.Radius.sm))
         }
-        .padding(.horizontal, 16).frame(height: 52)
+        .padding(.horizontal, DSTokens.Spacing.lg).frame(minHeight: 52)
     }
 
     private var nav: some View {
@@ -96,8 +105,8 @@ struct SettingsSheet: View {
             }
             Spacer()
         }
-        .padding(.horizontal, 10).padding(.vertical, 12).frame(width: 196)
-        .background(tokens.palette.bgSidebarNav)
+        .padding(.horizontal, DSTokens.Spacing.smMd).padding(.vertical, DSTokens.Spacing.md).frame(width: 196)
+        .background(environment.theme.colors.panelBackground.color)
     }
 
     private var content: some View {
@@ -113,9 +122,21 @@ struct SettingsSheet: View {
                 case .fonts: SettingsFontsTab()
                 }
             }
-            .padding(.horizontal, 22).padding(.vertical, 20)
+            .padding(.horizontal, DSTokens.Spacing.xxl).padding(.vertical, DSTokens.Spacing.xl)
             .frame(maxWidth: .infinity, alignment: .leading)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
+    }
+
+    private var separator: some View {
+        Rectangle()
+            .fill(environment.theme.colors.borderVariant.color)
+            .frame(height: DSTokens.Stroke.hairline)
+    }
+
+    private var verticalSeparator: some View {
+        Rectangle()
+            .fill(environment.theme.colors.borderVariant.color)
+            .frame(width: DSTokens.Stroke.hairline)
     }
 }

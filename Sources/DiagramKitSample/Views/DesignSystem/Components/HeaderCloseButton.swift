@@ -9,18 +9,13 @@
 //
 
 import SwiftUI
+import DiagramKitSampleDesignSystem
 
 struct HeaderCloseButton: View {
     let action: () -> Void
 
     var body: some View {
-        Button(action: action) {
-            Image(systemName: "xmark")
-                .font(.system(size: 11, weight: .semibold))
-                .foregroundStyle(.secondary)
-        }
-        .buttonStyle(.plain)
+        DSIconButton(.close, label: "Close", action: action)
         .keyboardShortcut(.cancelAction)
-        .accessibilityLabel("Close")
     }
 }

@@ -13,6 +13,7 @@ import SwiftUI
 import DiagramKit
 import DiagramKitCommon
 import DiagramKitExport
+import DiagramKitSampleDesignSystem
 
 struct ConvertSheet: View {
     @Bindable var store: LiveEditorStore
@@ -20,21 +21,22 @@ struct ConvertSheet: View {
     @SwiftUI.State private var convertedSource: String = ""
     @SwiftUI.State private var diagnostics: [DiagramDiagnostic] = []
     @SwiftUI.State private var lastError: String?
+    @Environment(\.dsEnvironment) private var environment
 
     var body: some View {
         VStack(spacing: 0) {
             header
-            Divider()
+            separator
             chips
-            Divider()
+            separator
             twoPane
                 .frame(maxHeight: .infinity)
-            Divider()
+            separator
             lossList
                 .frame(height: 132)
         }
         .frame(width: 880, height: 580)
-        .background(.regularMaterial)
+        .background(environment.theme.colors.surfaceBackground.color)
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier(A11yID.Sheets.convertSheet)
         .task(id: store.state.convertSheet.target) { await refresh() }
@@ -43,60 +45,47 @@ struct ConvertSheet: View {
     // MARK: - Header
 
     private var header: some View {
-        HStack(spacing: 8) {
-            Image(systemName: "arrow.left.arrow.right")
-                .foregroundStyle(.tint)
+        HStack(spacing: DSTokens.Spacing.sm) {
+            DSIconView(.convert)
             Text("Convert")
-                .font(.system(size: 13, weight: .semibold))
+                .dsFont(.headline)
+                .foregroundStyle(environment.theme.colors.textPrimary.color)
             Text("· \(store.state.sourceFormat.shortName) → \(store.state.convertSheet.target.shortName)")
-                .font(.system(size: 11, weight: .regular))
-                .foregroundStyle(.secondary)
+                .dsFont(.caption2)
+                .foregroundStyle(environment.theme.colors.textSecondary.color)
             Spacer()
-            Button {
+            DSIconButton(.close, label: "Close conversion") {
                 store.closeConvertSheet()
-            } label: {
-                Image(systemName: "xmark")
-                    .font(.system(size: 11, weight: .semibold))
-                    .foregroundStyle(.secondary)
             }
-            .buttonStyle(.plain)
             .keyboardShortcut(.cancelAction)
         }
-        .padding(.horizontal, 14)
-        .padding(.vertical, 8)
+        .padding(.horizontal, DSTokens.Spacing.lg)
+        .padding(.vertical, DSTokens.Spacing.sm)
     }
 
     // MARK: - Chips
 
     private var chips: some View {
-        HStack(spacing: 6) {
+        HStack(spacing: DSTokens.Spacing.xs) {
             Text("Target")
-                .font(.system(size: 10, weight: .semibold))
-                .foregroundStyle(.secondary)
+                .dsFont(.overline)
+                .foregroundStyle(environment.theme.colors.textSecondary.color)
             ForEach(SourceFormat.allCases) { format in
                 chip(format)
             }
             Spacer()
         }
-        .padding(.horizontal, 14)
-        .padding(.vertical, 6)
+        .padding(.horizontal, DSTokens.Spacing.lg)
+        .padding(.vertical, DSTokens.Spacing.xs)
     }
 
     private func chip(_ format: SourceFormat) -> some View {
         let isOn = store.state.convertSheet.target == format
-        return Button {
+        return DSChip(isSelected: isOn) {
             store.setConvertTarget(format)
         } label: {
-            Text(format.shortName)
-                .font(.system(size: 10, weight: .medium))
-                .padding(.horizontal, 8)
-                .padding(.vertical, 3)
-                .background(
-                    Capsule().fill(isOn ? Color.accentColor.opacity(0.22) : Color.gray.opacity(0.12))
-                )
-                .foregroundStyle(isOn ? Color.accentColor : .primary)
+            Text(format.shortName).dsFont(.badge)
         }
-        .buttonStyle(.plain)
         .a11yToggle(
             label: LocalizedStringKey(format.displayName),
             isOn: isOn,
@@ -111,33 +100,34 @@ struct ConvertSheet: View {
             paneColumn(
                 title: "Source · \(store.state.sourceFormat.shortName)",
                 content: store.state.source,
-                accent: .secondary
+                tone: .muted
             )
             Divider()
             paneColumn(
                 title: "Converted · \(store.state.convertSheet.target.shortName)",
                 content: convertedSource.isEmpty ? (lastError ?? "(generating …)") : convertedSource,
-                accent: convertedSource.isEmpty ? .red : Color.accentColor
+                tone: convertedSource.isEmpty ? .error : .accent
             )
         }
     }
 
-    private func paneColumn(title: String, content: String, accent: Color) -> some View {
+    private func paneColumn(title: String, content: String, tone: PaneTone) -> some View {
         VStack(alignment: .leading, spacing: 0) {
             HStack {
                 Text(title)
-                    .font(.system(size: 10, weight: .semibold))
-                    .foregroundStyle(accent)
+                    .dsFont(.overline)
+                    .foregroundStyle(tone.color(in: environment.theme))
                 Spacer()
             }
-            .padding(.horizontal, 12)
-            .padding(.vertical, 4)
-            .background(Color.gray.opacity(0.06))
+            .padding(.horizontal, DSTokens.Spacing.md)
+            .padding(.vertical, DSTokens.Spacing.xxs)
+            .background(environment.theme.colors.element.color)
             ScrollView([.horizontal, .vertical]) {
                 Text(content)
-                    .font(.system(size: 11, design: .monospaced))
+                    .dsFont(.code)
+                    .foregroundStyle(environment.theme.colors.editorForeground.color)
                     .textSelection(.enabled)
-                    .padding(12)
+                    .padding(DSTokens.Spacing.md)
                     .frame(maxWidth: .infinity, alignment: .topLeading)
             }
         }
@@ -146,40 +136,43 @@ struct ConvertSheet: View {
     // MARK: - Loss list
 
     private var lossList: some View {
-        VStack(alignment: .leading, spacing: 6) {
+        VStack(alignment: .leading, spacing: DSTokens.Spacing.xs) {
             HStack {
                 Text("Losses")
-                    .font(.system(size: 10, weight: .semibold))
-                    .foregroundStyle(.secondary)
+                    .dsFont(.overline)
+                    .foregroundStyle(environment.theme.colors.textSecondary.color)
                 if !losses.isEmpty {
                     Text("· \(losses.count)")
-                        .font(.system(size: 10, weight: .medium).monospacedDigit())
-                        .foregroundStyle(.secondary)
+                        .dsFont(.metric)
+                        .foregroundStyle(environment.theme.colors.textSecondary.color)
                 }
                 Spacer()
             }
-            .padding(.horizontal, 12)
-            .padding(.top, 6)
+            .padding(.horizontal, DSTokens.Spacing.md)
+            .padding(.top, DSTokens.Spacing.xs)
 
             ScrollView {
-                VStack(alignment: .leading, spacing: 4) {
+                VStack(alignment: .leading, spacing: DSTokens.Spacing.xxs) {
                     if losses.isEmpty {
-                        Text("✓ No typed losses recorded for this conversion")
-                            .font(.system(size: 11))
-                            .foregroundStyle(Color.green)
-                            .padding(.horizontal, 12)
-                            .padding(.vertical, 4)
+                        HStack(spacing: DSTokens.Spacing.xs) {
+                            DSIconView(.success, size: DSTokens.Icon.micro, colorRole: .success)
+                            Text("No typed losses recorded for this conversion")
+                                .dsFont(.caption2)
+                                .foregroundStyle(environment.theme.colors.success.color)
+                        }
+                        .padding(.horizontal, DSTokens.Spacing.md)
+                        .padding(.vertical, DSTokens.Spacing.xxs)
                     } else {
                         ForEach(Array(losses.enumerated()), id: \.offset) { _, loss in
                             lossRow(loss)
                         }
                     }
                 }
-                .padding(.bottom, 6)
+                .padding(.bottom, DSTokens.Spacing.xs)
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(Color.gray.opacity(0.04))
+        .background(environment.theme.colors.panelBackground.color)
         .accessibilityIdentifier(A11yID.Sheets.convertLossList)
     }
 
@@ -188,44 +181,49 @@ struct ConvertSheet: View {
     }
 
     private func lossRow(_ d: DiagramDiagnostic) -> some View {
-        HStack(alignment: .top, spacing: 8) {
-            Image(systemName: severityIcon(d))
-                .foregroundStyle(severityColor(d))
-                .font(.system(size: 10, weight: .semibold))
-            VStack(alignment: .leading, spacing: 2) {
+        HStack(alignment: .top, spacing: DSTokens.Spacing.sm) {
+            DSIconView(severityIcon(d), size: DSTokens.Icon.micro, colorRole: severityRole(d))
+            VStack(alignment: .leading, spacing: DSTokens.Spacing.xxxs) {
                 if let cat = d.category {
                     Text(".\(cat.rawValue)")
-                        .font(.system(size: 10, weight: .semibold, design: .monospaced))
-                        .foregroundStyle(Color.accentColor)
+                        .dsFont(.code)
+                        .foregroundStyle(environment.theme.colors.accent.color)
                 }
                 Text(d.message)
-                    .font(.system(size: 11))
+                    .dsFont(.caption2)
+                    .foregroundStyle(environment.theme.colors.textPrimary.color)
                 if let line = d.location?.line {
                     Text("source line \(line)")
-                        .font(.system(size: 9, weight: .medium).monospacedDigit())
-                        .foregroundStyle(.secondary)
+                        .dsFont(.metric)
+                        .foregroundStyle(environment.theme.colors.textSecondary.color)
                 }
             }
             Spacer()
         }
-        .padding(.horizontal, 12)
-        .padding(.vertical, 4)
+        .padding(.horizontal, DSTokens.Spacing.md)
+        .padding(.vertical, DSTokens.Spacing.xxs)
     }
 
-    private func severityIcon(_ d: DiagramDiagnostic) -> String {
+    private func severityIcon(_ d: DiagramDiagnostic) -> DSIcon {
         switch d.severity {
-        case .warning:     return "exclamationmark.triangle.fill"
-        case .info:        return "info.circle.fill"
-        case .unsupported: return "xmark.octagon.fill"
+        case .warning:     return .warning
+        case .info:        return .info
+        case .unsupported: return .error
         }
     }
 
-    private func severityColor(_ d: DiagramDiagnostic) -> Color {
+    private func severityRole(_ d: DiagramDiagnostic) -> DSIconColorRole {
         switch d.severity {
-        case .warning:     return .orange
-        case .info:        return .blue
-        case .unsupported: return .red
+        case .warning:     return .warning
+        case .info:        return .info
+        case .unsupported: return .error
         }
+    }
+
+    private var separator: some View {
+        Rectangle()
+            .fill(environment.theme.colors.borderVariant.color)
+            .frame(height: DSTokens.Stroke.hairline)
     }
 
     // MARK: - Refresh
@@ -245,5 +243,19 @@ struct ConvertSheet: View {
         convertedSource = result.source
         diagnostics = result.diagnostics
         lastError = result.source.isEmpty ? "Empty output — target may not support this family" : nil
+    }
+}
+
+private enum PaneTone {
+    case muted
+    case accent
+    case error
+
+    func color(in theme: DSTheme) -> Color {
+        switch self {
+        case .muted: theme.colors.textSecondary.color
+        case .accent: theme.colors.accent.color
+        case .error: theme.colors.error.color
+        }
     }
 }

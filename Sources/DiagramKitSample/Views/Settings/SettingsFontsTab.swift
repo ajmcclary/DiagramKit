@@ -7,10 +7,11 @@
 
 import SwiftUI
 import DiagramKit
+import DiagramKitSampleDesignSystem
 
 struct SettingsFontsTab: View {
     @AppStorage(PlaygroundSettingsKeys.uiTextSize) private var uiTextSize = 13
-    @Environment(\.playgroundTokens) private var tokens
+    @Environment(\.dsEnvironment) private var environment
     private var diagramFonts: [String] { DiagramFontRegistry.registeredFontNames }
 
     var body: some View {
@@ -22,7 +23,7 @@ struct SettingsFontsTab: View {
                 bundledRow(title: "Diagram font", value: diagramFonts.first ?? "Noto Sans")
                 bundledRow(title: "Diagram mono", value: diagramFonts.count > 1 ? diagramFonts[1] : "Noto Sans Mono", mono: true)
                 StepperRow(title: "UI text size", value: $uiTextSize, range: 10...20, unit: "pt")
-            }.padding(.bottom, 16)
+            }.padding(.bottom, DSTokens.Spacing.lg)
             InfoCallout(text: "Bundled Noto fonts neutralize system-font drift — the same source renders the same glyph positions across macOS and iOS versions.")
             Spacer(minLength: 0)
         }
@@ -30,14 +31,14 @@ struct SettingsFontsTab: View {
 
     private func bundledRow(title: String, value: String, mono: Bool = false) -> some View {
         HStack {
-            Text(title).font(PlaygroundFont.body).foregroundStyle(tokens.palette.fg1)
+            Text(title).dsFont(.body).foregroundStyle(environment.theme.colors.textPrimary.color)
             Spacer()
-            HStack(spacing: 6) {
-                Image(systemName: "checkmark.seal.fill").font(.system(size: 11)).foregroundStyle(tokens.palette.statusSuccess)
-                Text("Bundled").font(PlaygroundFont.sans(11)).foregroundStyle(tokens.palette.statusSuccess)
-                Text(value).font(mono ? PlaygroundFont.mono(12) : PlaygroundFont.sans(12)).foregroundStyle(tokens.palette.fg2)
+            HStack(spacing: DSTokens.Spacing.xs) {
+                DSIconView(.success, size: DSTokens.Icon.micro, colorRole: .success)
+                Text("Bundled").dsFont(.badge).foregroundStyle(environment.theme.colors.success.color)
+                Text(value).dsFont(mono ? .code : .caption).foregroundStyle(environment.theme.colors.textSecondary.color)
             }
         }
-        .padding(.horizontal, 14).padding(.vertical, 12)
+        .padding(.horizontal, DSTokens.Spacing.lg).padding(.vertical, DSTokens.Spacing.md)
     }
 }

@@ -10,6 +10,7 @@
 //
 
 import SwiftUI
+import DiagramKitSampleDesignSystem
 
 struct ThemeSwatchCard: View {
     let name: String
@@ -20,49 +21,45 @@ struct ThemeSwatchCard: View {
 
     var body: some View {
         Button(action: action) {
-            VStack(alignment: .leading, spacing: 6) {
-                HStack(spacing: 4) {
+            VStack(alignment: .leading, spacing: DSTokens.Spacing.xs) {
+                HStack(spacing: DSTokens.Spacing.xxs) {
                     Text(name)
-                        .font(PlaygroundFont.sans(11.5, weight: .bold))
+                        .dsFont(.badge)
                         .foregroundStyle(specimen.nameColor)
                     if isStarred {
-                        Image(systemName: "star.fill")
-                            .font(.system(size: 8.5, weight: .bold))
-                            .foregroundStyle(specimen.nameColor)
+                        DSIconView(.favorite, size: DSTokens.Icon.micro)
                     }
                     Spacer(minLength: 0)
                     if isActive {
-                        Image(systemName: "checkmark")
-                            .font(.system(size: 10, weight: .bold))
-                            .foregroundStyle(specimen.accents.first ?? specimen.nameColor)
+                        DSIconView(.success, size: DSTokens.Icon.micro, colorRole: .success)
                     }
                 }
-                HStack(spacing: 4) {
+                HStack(spacing: DSTokens.Spacing.xxs) {
                     ForEach(Array(specimen.accents.enumerated()), id: \.offset) { _, c in
-                        RoundedRectangle(cornerRadius: 3, style: .continuous)
+                        RoundedRectangle(cornerRadius: DSTokens.Radius.xs, style: .continuous)
                             .fill(c)
                             .frame(width: 14, height: 14)
-                            .overlay(RoundedRectangle(cornerRadius: 3, style: .continuous)
-                                .stroke(specimen.textColor.opacity(0.10), lineWidth: 0.5))
+                            .overlay(RoundedRectangle(cornerRadius: DSTokens.Radius.xs, style: .continuous)
+                                .stroke(specimen.textColor.opacity(DSTokens.Opacity.tint), lineWidth: DSTokens.Stroke.hairline))
                     }
                 }
                 Text("let n = 42")
-                    .font(PlaygroundFont.mono(10))
+                    .dsFont(.code)
                     .foregroundStyle(specimen.textColor.opacity(0.85))
             }
             .frame(maxWidth: .infinity, alignment: .leading)
-            .padding(.horizontal, 12).padding(.vertical, 10)
+            .padding(.horizontal, DSTokens.Spacing.md).padding(.vertical, DSTokens.Spacing.smMd)
             .frame(minHeight: 82, alignment: .top)
             .background(specimen.cardBackground)
-            .clipShape(RoundedRectangle(cornerRadius: PlaygroundRadius.md, style: .continuous))
+            .clipShape(RoundedRectangle(cornerRadius: DSTokens.Radius.md, style: .continuous))
             .overlay(
-                RoundedRectangle(cornerRadius: PlaygroundRadius.md, style: .continuous)
+                RoundedRectangle(cornerRadius: DSTokens.Radius.md, style: .continuous)
                     .stroke(isActive ? (specimen.accents.first ?? specimen.nameColor)
                                      : specimen.textColor.opacity(0.14),
-                            lineWidth: isActive ? 1.5 : 0.5)
+                            lineWidth: isActive ? DSTokens.Stroke.mediumLight : DSTokens.Stroke.hairline)
             )
         }
-        .buttonStyle(.plain)
+        .buttonStyle(.ds(role: isActive ? .secondary : .ghost, size: .compact))
         .accessibilityLabel(Text(name))
         .accessibilityAddTraits(isActive ? [.isButton, .isSelected] : .isButton)
     }

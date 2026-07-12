@@ -8,14 +8,13 @@
 //
 
 import SwiftUI
+import DiagramKitSampleDesignSystem
 
 struct ChipGroup<Value: Hashable>: View {
     var items: [ChipItem<Value>]
     @Binding var selection: Set<Value>
     var allowsMultipleSelection: Bool
     var allowsDeselection: Bool
-
-    @Environment(\.playgroundTokens) private var tokens
 
     init(
         items: [ChipItem<Value>],
@@ -46,51 +45,30 @@ struct ChipGroup<Value: Hashable>: View {
     }
 
     var body: some View {
-        HStack(spacing: 4) {
+        DSChipGroup {
             ForEach(items, id: \.value) { item in
                 chip(for: item)
             }
         }
-        .padding(3)
-        .background(
-            RoundedRectangle(cornerRadius: PlaygroundRadius.chip + 3, style: .continuous)
-                .fill(tokens.palette.bgSurface.opacity(0.5))
-                .overlay(
-                    RoundedRectangle(cornerRadius: PlaygroundRadius.chip + 3, style: .continuous)
-                        .stroke(tokens.palette.borderHairline, lineWidth: 0.5)
-                )
-        )
     }
 
     @ViewBuilder
     private func chip(for item: ChipItem<Value>) -> some View {
         let isSelected = selection.contains(item.value)
-        Button {
+        DSChip(isSelected: isSelected) {
             toggle(item.value)
         } label: {
-            HStack(spacing: 4) {
+            HStack(spacing: DSTokens.Spacing.xxs) {
                 if let leadingDotColor = item.dotColor {
                     Circle()
                         .fill(leadingDotColor)
-                        .frame(width: 6, height: 6)
-                }
-                if let systemImage = item.systemImage {
-                    Image(systemName: systemImage)
-                        .font(.system(size: 10, weight: .semibold))
+                        .frame(width: DSTokens.Icon.indicator, height: DSTokens.Icon.indicator)
                 }
                 Text(item.label)
-                    .font(PlaygroundFont.label)
+                    .dsFont(.badge)
             }
-            .padding(.horizontal, 9)
-            .padding(.vertical, 4)
-            .foregroundStyle(isSelected ? tokens.palette.fg1 : tokens.palette.fg2)
-            .background(
-                RoundedRectangle(cornerRadius: PlaygroundRadius.chip, style: .continuous)
-                    .fill(isSelected ? tokens.palette.rowSelected : Color.clear)
-            )
             .contentShape(Rectangle())
         }
-        .buttonStyle(.playground)
     }
 
     private func toggle(_ value: Value) {

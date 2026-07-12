@@ -7,13 +7,14 @@
 //
 
 import SwiftUI
+import DiagramKitSampleDesignSystem
 
 struct KeyValueRow<Value: View>: View {
     var key: String
     var copyableValue: String?
     @ViewBuilder var value: () -> Value
 
-    @Environment(\.playgroundTokens) private var tokens
+    @Environment(\.dsEnvironment) private var environment
     @SwiftUI.State private var didCopy = false
 
     init(
@@ -27,14 +28,14 @@ struct KeyValueRow<Value: View>: View {
     }
 
     var body: some View {
-        HStack(alignment: .firstTextBaseline, spacing: PlaygroundSpacing.sm) {
+        HStack(alignment: .firstTextBaseline, spacing: DSTokens.Spacing.sm) {
             Text(key)
-                .font(PlaygroundFont.caption)
-                .foregroundStyle(tokens.palette.fg2)
-            Spacer(minLength: PlaygroundSpacing.sm)
+                .dsFont(.caption)
+                .foregroundStyle(environment.theme.colors.textSecondary.color)
+            Spacer(minLength: DSTokens.Spacing.sm)
             value()
-                .font(PlaygroundFont.metric)
-                .foregroundStyle(tokens.palette.fg1)
+                .dsFont(.metric)
+                .foregroundStyle(environment.theme.colors.textPrimary.color)
                 .multilineTextAlignment(.trailing)
                 .lineLimit(1)
                 .truncationMode(.middle)
@@ -51,11 +52,13 @@ struct KeyValueRow<Value: View>: View {
             Button {
                 copy(value)
             } label: {
-                Image(systemName: didCopy ? "checkmark" : "doc.on.doc")
-                    .font(.system(size: 9, weight: .semibold))
-                    .foregroundStyle(didCopy ? tokens.palette.statusSuccess : tokens.palette.fg3)
+                DSIconView(
+                    didCopy ? .success : .copy,
+                    size: DSTokens.Icon.micro,
+                    colorRole: didCopy ? .success : .muted
+                )
             }
-            .buttonStyle(.plain)
+            .buttonStyle(.ds(role: .ghost, size: .compact))
             .help("Copy")
         }
     }

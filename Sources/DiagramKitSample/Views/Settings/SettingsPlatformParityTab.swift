@@ -6,36 +6,39 @@
 //
 
 import SwiftUI
+import DiagramKitSampleDesignSystem
 
 struct SettingsPlatformParityTab: View {
-    @Environment(\.playgroundTokens) private var tokens
+    @Environment(\.dsEnvironment) private var environment
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             SettingsTabHeader(title: "Platform Parity", subtitle: "Feature coverage across build targets.")
-            ParityTable(columns: PlatformParityMatrix.columns, rows: PlatformParityMatrix.rows).padding(.bottom, 14)
+            ParityTable(columns: PlatformParityMatrix.columns, rows: PlatformParityMatrix.rows).padding(.bottom, DSTokens.Spacing.lg)
             legend
             Spacer(minLength: 0)
         }
     }
 
     private var legend: some View {
-        HStack(spacing: 16) {
-            HStack(spacing: 5) {
-                Image(systemName: "checkmark").font(.system(size: 11, weight: .bold)).foregroundStyle(tokens.palette.statusSuccess)
+        HStack(spacing: DSTokens.Spacing.lg) {
+            HStack(spacing: DSTokens.Spacing.xs) {
+                DSIconView(.success, size: DSTokens.Icon.micro, colorRole: .success)
                 Text("Full")
             }
-            HStack(spacing: 5) {
-                Circle().fill(tokens.palette.statusWarning).frame(width: 8, height: 8)
+            HStack(spacing: DSTokens.Spacing.xs) {
+                DSIconView(.warning, size: DSTokens.Icon.micro, colorRole: .warning)
                 Text("Partial")
             }
-            HStack(spacing: 5) {
-                Text("—").foregroundStyle(tokens.palette.textFaintest)
+            HStack(spacing: DSTokens.Spacing.xs) {
+                DSIconView(.error, size: DSTokens.Icon.micro, colorRole: .disabled)
                 Text("Unsupported")
             }
             Spacer()
-            Text("src_text_metrics.swift").font(PlaygroundFont.mono(11)).foregroundStyle(tokens.palette.textFaint)
+            Text("src_text_metrics.swift").dsFont(.code).foregroundStyle(environment.theme.colors.textPlaceholder.color)
         }
-        .font(PlaygroundFont.sans(11)).foregroundStyle(tokens.palette.textFaint).padding(.horizontal, 2)
+        .dsFont(.caption2)
+        .foregroundStyle(environment.theme.colors.textSecondary.color)
+        .padding(.horizontal, DSTokens.Spacing.xxxs)
     }
 }

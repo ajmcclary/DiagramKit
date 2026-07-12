@@ -7,21 +7,17 @@
 //
 
 import SwiftUI
+import DiagramKitSampleDesignSystem
 
 struct SettingsGroupCard<Content: View>: View {
     @ViewBuilder var content: () -> Content
-    @Environment(\.playgroundTokens) private var tokens
+    @Environment(\.dsEnvironment) private var environment
 
     var body: some View {
-        _VariadicView.Tree(DividedRows(divider: tokens.palette.borderHairline)) {
+        _VariadicView.Tree(DividedRows(divider: environment.theme.colors.borderVariant.color)) {
             content()
         }
-        .background(tokens.palette.bgCard)
-        .clipShape(RoundedRectangle(cornerRadius: PlaygroundRadius.md))
-        .overlay(
-            RoundedRectangle(cornerRadius: PlaygroundRadius.md)
-                .stroke(tokens.palette.borderHairline, lineWidth: 0.5)
-        )
+        .background { DSSurface(role: .card) { Color.clear } }
     }
 }
 
@@ -33,7 +29,7 @@ private struct DividedRows: _VariadicView_MultiViewRoot {
             ForEach(children) { child in
                 child
                 if child.id != last {
-                    Rectangle().fill(divider).frame(height: 0.5)
+                    Rectangle().fill(divider).frame(height: DSTokens.Stroke.hairline)
                 }
             }
         }

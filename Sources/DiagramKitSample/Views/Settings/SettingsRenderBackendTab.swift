@@ -6,22 +6,21 @@
 //
 
 import SwiftUI
+import DiagramKitSampleDesignSystem
 
 struct SettingsRenderBackendTab: View {
     @Bindable var store: LiveEditorStore
-    @Environment(\.playgroundTokens) private var tokens
+    @Environment(\.dsEnvironment) private var environment
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             SettingsTabHeader(title: "Render Backend", subtitle: "How diagrams are rasterized and rendered.")
-            SegmentedFormatControl(segments: [
-                .init(value: RenderBackend.svg, label: "SVG", systemImage: "doc.text"),
-                .init(value: RenderBackend.image, label: "Image", systemImage: "photo"),
-                .init(value: RenderBackend.ascii, label: "ASCII", monospaced: true),
-            ], selection: $store.state.renderBackend)
-            .padding(.bottom, 16)
+            DSSegmentedControl(RenderBackend.allCases, selection: $store.state.renderBackend) { backend in
+                Text(backend.label)
+            }
+            .padding(.bottom, DSTokens.Spacing.lg)
             SettingsGroupCard {
-                StatusRow(title: "Renderer", value: rendererText, valueColor: tokens.palette.accentSecondary, monospaced: true)
+                StatusRow(title: "Renderer", value: rendererText, valueColor: environment.theme.colors.accent.color, monospaced: true)
                 MenuRow(title: "ID policy", value: "Stable") {
                     Button("Stable") {}
                     Button("Random per render") {}
@@ -30,7 +29,7 @@ struct SettingsRenderBackendTab: View {
                           isOn: Binding(get: { store.state.updateMode == .auto },
                                         set: { store.state.updateMode = $0 ? .auto : .manual }))
                 StatusRow(title: "Worker thread", description: "8 MB stack · fresh per call", value: "on",
-                          valueColor: tokens.palette.statusSuccess, dotColor: tokens.palette.statusSuccess, monospaced: true)
+                          valueColor: environment.theme.colors.success.color, dotColor: environment.theme.colors.success.color, monospaced: true)
             }
             Spacer(minLength: 0)
         }

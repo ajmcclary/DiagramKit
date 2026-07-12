@@ -7,6 +7,7 @@
 //
 
 import SwiftUI
+import DiagramKitSampleDesignSystem
 
 struct ToolbarPill: View {
     var label: String
@@ -14,7 +15,7 @@ struct ToolbarPill: View {
     var systemImage: String?
     var trailing: String?
 
-    @Environment(\.playgroundTokens) private var tokens
+    @Environment(\.dsEnvironment) private var environment
 
     init(
         label: String,
@@ -29,28 +30,27 @@ struct ToolbarPill: View {
     }
 
     var body: some View {
-        HStack(spacing: 6) {
+        DSGlassSurface(role: .popover) {
+        HStack(spacing: DSTokens.Spacing.xs) {
             if let dotColor {
                 Circle()
                     .fill(dotColor)
-                    .frame(width: 6, height: 6)
+                    .frame(width: DSTokens.Icon.indicator, height: DSTokens.Icon.indicator)
             }
             if let systemImage {
-                Image(systemName: systemImage)
-                    .font(.system(size: 10, weight: .medium))
-                    .foregroundStyle(tokens.palette.fg2)
+                DSIconView(systemImage == "magnifyingglass" ? .search : .info, size: DSTokens.Icon.micro, colorRole: .muted)
             }
             Text(label)
-                .font(PlaygroundFont.label)
-                .foregroundStyle(tokens.palette.fg1)
+                .dsFont(.badge)
+                .foregroundStyle(environment.theme.colors.textPrimary.color)
             if let trailing {
                 Text(trailing)
-                    .font(PlaygroundFont.metric)
-                    .foregroundStyle(tokens.palette.fg2)
+                    .dsFont(.metric)
+                    .foregroundStyle(environment.theme.colors.textSecondary.color)
             }
         }
-        .padding(.horizontal, 10)
-        .padding(.vertical, 5)
-        .glassChrome(.toolbar, in: Capsule())
+        .padding(.horizontal, DSTokens.Spacing.smMd)
+        .padding(.vertical, DSTokens.Spacing.xs)
+        }
     }
 }

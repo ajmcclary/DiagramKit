@@ -6,22 +6,26 @@
 //
 
 import SwiftUI
+import DiagramKitSampleDesignSystem
 
 struct ColorDotPicker: View {
     let colors: [Color]
     @Binding var selectedIndex: Int?
-    @Environment(\.playgroundTokens) private var tokens
+    @Environment(\.dsEnvironment) private var environment
 
     var body: some View {
-        HStack(spacing: 9) {
+        HStack(spacing: DSTokens.Spacing.sm) {
             ForEach(Array(colors.enumerated()), id: \.offset) { i, color in
-                Circle().fill(color).frame(width: 26, height: 26)
+                Button { selectedIndex = i } label: {
+                Circle().fill(color).frame(width: DSTokens.Control.chip, height: DSTokens.Control.chip)
                     .overlay {
                         if selectedIndex == i {
-                            Circle().stroke(tokens.palette.accent, lineWidth: 2).padding(-3.5)
+                            Circle().stroke(environment.theme.colors.borderSelected.color, lineWidth: DSTokens.Stroke.medium)
+                                .padding(-DSTokens.Spacing.xxs)
                         }
                     }
-                    .onTapGesture { selectedIndex = i }
+                }
+                .buttonStyle(.ds(role: .ghost, size: .compact))
             }
         }
     }

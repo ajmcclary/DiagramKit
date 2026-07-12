@@ -8,13 +8,12 @@
 //
 
 import SwiftUI
+import DiagramKitSampleDesignSystem
 
 struct SectionHeader<Trailing: View>: View {
     var title: String
     var systemImage: String?
     @ViewBuilder var trailing: () -> Trailing
-
-    @Environment(\.playgroundTokens) private var tokens
 
     init(
         _ title: String,
@@ -27,20 +26,12 @@ struct SectionHeader<Trailing: View>: View {
     }
 
     var body: some View {
-        HStack(spacing: PlaygroundSpacing.xs) {
-            if let systemImage {
-                Image(systemName: systemImage)
-                    .font(.system(size: 10, weight: .semibold))
-                    .foregroundStyle(tokens.palette.fg2)
-            }
-            Text(title.uppercased())
-                .font(PlaygroundFont.overline)
-                .tracking(0.4)
-                .foregroundStyle(tokens.palette.fg2)
-            Spacer(minLength: PlaygroundSpacing.xs)
+        HStack(spacing: DSTokens.Spacing.xs) {
+            DSSectionHeader(title)
+            Spacer(minLength: DSTokens.Spacing.xs)
             trailing()
         }
-        .padding(.bottom, 2)
+        .padding(.bottom, DSTokens.Spacing.xxxs)
     }
 }
 

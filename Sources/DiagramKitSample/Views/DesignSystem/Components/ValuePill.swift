@@ -6,26 +6,19 @@
 //
 
 import SwiftUI
+import DiagramKitSampleDesignSystem
 
 struct ValuePill: View {
     let label: String
     var systemImage: String? = nil
     let action: () -> Void
-    @Environment(\.playgroundTokens) private var tokens
-
     var body: some View {
         Button(action: action) {
-            HStack(spacing: 6) {
-                if let img = systemImage { Image(systemName: img).font(.system(size: 11)) }
-                Text(label).font(PlaygroundFont.sans(12))
-                Image(systemName: "chevron.down").font(.system(size: 9, weight: .semibold))
-                    .foregroundStyle(tokens.palette.fg3)
+            HStack(spacing: DSTokens.Spacing.xs) {
+                if systemImage != nil { DSIconView(.node, size: DSTokens.Icon.micro) }
+                Text(label).dsFont(.caption)
+                DSIconView(.disclosureDown, size: DSTokens.Icon.micro, colorRole: .muted)
             }
-            .foregroundStyle(tokens.palette.fg1)
-            .padding(.horizontal, 8).frame(height: 28)
-            .background(tokens.palette.bgTrack)
-            .overlay(RoundedRectangle(cornerRadius: 7).stroke(tokens.palette.borderHairline, lineWidth: 0.5))
-            .clipShape(RoundedRectangle(cornerRadius: 7))
-        }.buttonStyle(.plain)
+        }.buttonStyle(.ds(role: .secondary, size: .compact))
     }
 }

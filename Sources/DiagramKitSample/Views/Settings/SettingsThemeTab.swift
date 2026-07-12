@@ -8,6 +8,7 @@
 
 import SwiftUI
 import DiagramKit
+import DiagramKitSampleDesignSystem
 
 struct SettingsThemeTab: View {
     @Bindable var store: LiveEditorStore
@@ -20,7 +21,7 @@ struct SettingsThemeTab: View {
     private var canvasFollows = true
 
     @State private var showThemeBuilder = false
-    @Environment(\.playgroundTokens) private var tokens
+    @Environment(\.dsEnvironment) private var environment
     @Environment(\.colorScheme) private var scheme
 
     private var family: ZedTrekTheme { ZedTrekTheme(rawValue: familyRaw) ?? .lcars }
@@ -30,21 +31,19 @@ struct SettingsThemeTab: View {
         Binding(get: { mode }, set: { modeRaw = $0.rawValue })
     }
 
-    private let columns = Array(repeating: GridItem(.flexible(), spacing: 12), count: 3)
+    private let columns = Array(repeating: GridItem(.flexible(), spacing: DSTokens.Spacing.md), count: 3)
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             SettingsTabHeader(title: "Theme",
                 subtitle: "Zed Trek — \(ZedTrekTheme.allCases.count) themes. \(family.displayName) · \(mode.displayName).")
 
-            SegmentedFormatControl(segments: [
-                .init(value: ThemeMode.system, label: "System", systemImage: "circle.lefthalf.filled"),
-                .init(value: ThemeMode.light, label: "Light", systemImage: "sun.max"),
-                .init(value: ThemeMode.dark, label: "Dark", systemImage: "moon"),
-            ], selection: modeBinding)
-            .padding(.bottom, 14)
+            DSSegmentedControl(ThemeMode.allCases, selection: modeBinding) { mode in
+                Text(mode.displayName)
+            }
+            .padding(.bottom, DSTokens.Spacing.lg)
 
-            LazyVGrid(columns: columns, spacing: 12) {
+            LazyVGrid(columns: columns, spacing: DSTokens.Spacing.md) {
                 ForEach(ZedTrekTheme.allCases, id: \.self) { theme in
                     ThemeSwatchCard(name: theme.displayName,
                                     specimen: theme.specimen(for: scheme),
@@ -54,7 +53,7 @@ struct SettingsThemeTab: View {
                     }
                 }
             }
-            .padding(.bottom, 18)
+            .padding(.bottom, DSTokens.Spacing.xl)
 
             SettingsGroupCard {
                 ToggleRow(title: "Match app theme",
@@ -62,8 +61,8 @@ struct SettingsThemeTab: View {
                           isOn: $canvasFollows)
                 MenuRow(title: "Diagram palette", value: store.state.selectedThemeName,
                         leadingSwatch: AnyView(
-                            RoundedRectangle(cornerRadius: 3)
-                                .fill(LinearGradient(colors: [tokens.palette.fg1, tokens.palette.fg3],
+                            RoundedRectangle(cornerRadius: DSTokens.Radius.xs)
+                                .fill(LinearGradient(colors: [environment.theme.colors.textPrimary.color, environment.theme.colors.textSecondary.color],
                                                      startPoint: .topLeading, endPoint: .bottomTrailing))
                                 .frame(width: 12, height: 12))) {
                     ForEach(DiagramTheme.allThemes, id: \.name) { theme in
@@ -74,13 +73,12 @@ struct SettingsThemeTab: View {
                 .opacity(canvasFollows ? 0.5 : 1)
                 Button { showThemeBuilder = true } label: {
                     HStack {
-                        Text("Edit theme…").font(PlaygroundFont.body).foregroundStyle(tokens.palette.fg1)
+                        Text("Edit theme…").dsFont(.body).foregroundStyle(environment.theme.colors.textPrimary.color)
                         Spacer()
-                        Image(systemName: "chevron.right").font(.system(size: 11, weight: .semibold))
-                            .foregroundStyle(tokens.palette.fg3)
+                        DSIconView(.disclosureRight, size: DSTokens.Icon.micro, colorRole: .muted)
                     }
-                    .padding(.horizontal, 14).padding(.vertical, 12).contentShape(Rectangle())
-                }.buttonStyle(.plain)
+                    .padding(.horizontal, DSTokens.Spacing.lg).contentShape(Rectangle())
+                }.buttonStyle(.ds(role: .ghost, size: .regular))
             }
             Spacer(minLength: 0)
         }
