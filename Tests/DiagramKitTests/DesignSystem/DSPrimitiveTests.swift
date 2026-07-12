@@ -1,8 +1,24 @@
 import DiagramKitSampleDesignSystem
+import Foundation
 import Testing
 
 @Suite("Design-system primitives")
 struct DSPrimitiveTests {
+    @Test("segmented helper declares an initializer callable by its sibling")
+    func segmentedHelperInitializer() throws {
+        let root = URL(fileURLWithPath: #filePath)
+            .deletingLastPathComponent()
+            .deletingLastPathComponent()
+            .deletingLastPathComponent()
+            .deletingLastPathComponent()
+        let source = try String(
+            contentsOf: root.appending(path: "Sources/DiagramKitSampleDesignSystem/DSControls.swift"),
+            encoding: .utf8
+        )
+        #expect(source.contains("fileprivate struct DSSegmentButton"))
+        #expect(source.contains("init(isSelected: Bool, action:"))
+    }
+
     @Test("pressed state changes fill without scaling")
     func pressedButton() {
         let state = DSButtonVisualState.resolve(

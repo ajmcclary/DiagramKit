@@ -124,13 +124,19 @@ public struct DSSegmentedControl<Option: Hashable, Label: View>: View {
     }
 }
 
-private struct DSSegmentButton<Label: View>: View {
+fileprivate struct DSSegmentButton<Label: View>: View {
     let isSelected: Bool
     let action: () -> Void
     @ViewBuilder let label: () -> Label
     @Environment(\.dsEnvironment) private var environment
     @Environment(\.isEnabled) private var isEnabled
     @State private var isHovered = false
+
+    init(isSelected: Bool, action: @escaping () -> Void, @ViewBuilder label: @escaping () -> Label) {
+        self.isSelected = isSelected
+        self.action = action
+        self.label = label
+    }
 
     var body: some View {
         let state = DSSegmentVisualState.resolve(
