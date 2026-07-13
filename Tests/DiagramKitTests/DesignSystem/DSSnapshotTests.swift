@@ -1,21 +1,48 @@
 #if os(macOS)
 import AppKit
 import DesignKitThemes
+@testable import DiagramKitSample
 import SnapshotTesting
 import SwiftUI
 import Testing
+
+/// Replaces the retired generated `DSThemeVariant`: same 20 variants
+/// (10 Zed Trek families × dark/light), same snapshot names.
+struct SnapshotVariant: Sendable, Hashable, CustomStringConvertible {
+    let family: Theme.Family
+    let appearance: Theme.Appearance
+
+    var theme: Theme { family.theme(for: appearance) }
+    var mode: DSThemeMode { appearance == .dark ? .dark : .light }
+    var rawValue: String { theme.name }
+    var description: String { theme.name }
+
+    static let lcarsDark = SnapshotVariant(family: .lcars, appearance: .dark)
+    static let lcarsLight = SnapshotVariant(family: .lcars, appearance: .light)
+    static let blackAlertDark = SnapshotVariant(family: .blackAlert, appearance: .dark)
+    static let redAlertDark = SnapshotVariant(family: .redAlert, appearance: .dark)
+    static let borgCubeDark = SnapshotVariant(family: .borgCube, appearance: .dark)
+
+    static var allCases: [SnapshotVariant] {
+        ZedTrekTheme.allCases.flatMap { zed in
+            [Theme.Appearance.dark, .light].map {
+                SnapshotVariant(family: zed.dsFamily, appearance: $0)
+            }
+        }
+    }
+}
 
 @Suite("Design-system SwiftUI snapshots")
 @MainActor
 struct DSSnapshotTests {
     @Test("representative application surfaces", arguments: [
-        DSThemeVariant.lcarsDark,
+        SnapshotVariant.lcarsDark,
         .lcarsLight,
         .blackAlertDark,
         .redAlertDark,
         .borgCubeDark,
     ])
-    func applicationSurface(variant: DSThemeVariant) {
+    func applicationSurface(variant: SnapshotVariant) {
         assertViewSnapshot(
             DSApplicationSurfaceBoard(theme: variant.theme)
                 .dsTheme(family: variant.family, mode: variant.mode),
@@ -24,8 +51,8 @@ struct DSSnapshotTests {
         )
     }
 
-    @Test("all theme specimen cards", arguments: DSThemeVariant.allCases)
-    func themeSpecimen(variant: DSThemeVariant) {
+    @Test("all theme specimen cards", arguments: SnapshotVariant.allCases)
+    func themeSpecimen(variant: SnapshotVariant) {
         assertViewSnapshot(
             DSThemeSpecimenCard(theme: variant.theme)
                 .dsTheme(family: variant.family, mode: variant.mode),
@@ -52,38 +79,38 @@ struct DSSnapshotTests {
         )
     }
 
-    private func snapshotName(_ variant: DSThemeVariant) -> String {
+    private func snapshotName(_ variant: SnapshotVariant) -> String {
         variant.rawValue.lowercased().replacingOccurrences(of: " ", with: "-")
     }
 }
 
 @MainActor
 private struct DSApplicationSurfaceBoard: View {
-    let theme: DSTheme
+    let theme: Theme
 
     var body: some View {
         VStack(spacing: 0) {
             chromeHeader
-            HStack(spacing: DSTokens.Spacing.md) {
-                VStack(spacing: DSTokens.Spacing.md) {
+            HStack(spacing: Tokens.Spacing.md) {
+                VStack(spacing: Tokens.Spacing.md) {
                     panel("Editor tabs", icon: .code) { editorTabs }
                     panel("Diagnostics", icon: .diagnostics) { diagnostics }
                     panel("Visual overlay", icon: .node) { visualOverlay }
                 }
-                VStack(spacing: DSTokens.Spacing.md) {
+                VStack(spacing: Tokens.Spacing.md) {
                     panel("Export", icon: .export) { exportPanel }
                     panel("Settings", icon: .settings) { settings }
                 }
                 panel("Corpus", icon: .diagram) { corpus }
             }
-            .padding(DSTokens.Spacing.lg)
+            .padding(Tokens.Spacing.lg)
         }
         .background(theme.colors.windowBackground.color)
     }
 
     private var chromeHeader: some View {
         DSSurface(role: .titleBar) {
-            HStack(spacing: DSTokens.Spacing.sm) {
+            HStack(spacing: Tokens.Spacing.sm) {
                 DSIconView(.diagram)
                 Text("DiagramKit Sample")
                     .dsFont(.headline)
@@ -92,13 +119,13 @@ private struct DSApplicationSurfaceBoard: View {
                 DSIconButton(.search, label: "Search") {}
                 DSIconButton(.settings, label: "Settings") {}
             }
-            .padding(.horizontal, DSTokens.Spacing.lg)
-            .frame(height: DSTokens.Control.titleBar)
+            .padding(.horizontal, Tokens.Spacing.lg)
+            .frame(height: Tokens.Size.Control.titleBar)
         }
     }
 
     private var editorTabs: some View {
-        HStack(spacing: DSTokens.Spacing.xxs) {
+        HStack(spacing: Tokens.Spacing.xxs) {
             DSChip(isSelected: true, action: {}) { Text("Flowchart") }
             DSChip(action: {}) { Text("Sequence") }
             DSIconButton(.add, label: "New tab") {}
@@ -106,7 +133,7 @@ private struct DSApplicationSurfaceBoard: View {
     }
 
     private var diagnostics: some View {
-        VStack(alignment: .leading, spacing: DSTokens.Spacing.sm) {
+        VStack(alignment: .leading, spacing: Tokens.Spacing.sm) {
             statusRow(.warning, "Unsupported arrow style")
             statusRow(.error, "Line 8: missing node")
             statusRow(.info, "Converted with one note")
@@ -114,7 +141,7 @@ private struct DSApplicationSurfaceBoard: View {
     }
 
     private func statusRow(_ kind: DSStatusKind, _ label: String) -> some View {
-        HStack(spacing: DSTokens.Spacing.xs) {
+        HStack(spacing: Tokens.Spacing.xs) {
             DSStatusIndicator(kind, label: label)
             Text(label).dsFont(.caption)
         }
@@ -122,21 +149,21 @@ private struct DSApplicationSurfaceBoard: View {
 
     private var visualOverlay: some View {
         DSGlassSurface(role: .popover) {
-            HStack(spacing: DSTokens.Spacing.xs) {
+            HStack(spacing: Tokens.Spacing.xs) {
                 DSIconView(.node, colorRole: .info)
-                VStack(alignment: .leading, spacing: DSTokens.Spacing.xxxs) {
+                VStack(alignment: .leading, spacing: Tokens.Spacing.xxxs) {
                     Text("node: Checkout")
                         .dsFont(.badge)
                     Text("3 connected edges")
                         .dsFont(.caption2)
                 }
             }
-            .padding(DSTokens.Spacing.sm)
+            .padding(Tokens.Spacing.sm)
         }
     }
 
     private var exportPanel: some View {
-        VStack(alignment: .leading, spacing: DSTokens.Spacing.sm) {
+        VStack(alignment: .leading, spacing: Tokens.Spacing.sm) {
             DSChipGroup {
                 DSChip(isSelected: true, action: {}) { Text("SVG") }
                 DSChip(action: {}) { Text("PNG") }
@@ -159,7 +186,7 @@ private struct DSApplicationSurfaceBoard: View {
     }
 
     private var corpus: some View {
-        VStack(alignment: .leading, spacing: DSTokens.Spacing.sm) {
+        VStack(alignment: .leading, spacing: Tokens.Spacing.sm) {
             DSField("Search corpus", text: .constant("flowchart"))
             ForEach(["Basic flow", "Subgraph", "Decision tree"], id: \.self) { title in
                 DSSurface(role: .sunken) {
@@ -171,7 +198,7 @@ private struct DSApplicationSurfaceBoard: View {
                         }
                         Spacer()
                     }
-                    .padding(DSTokens.Spacing.sm)
+                    .padding(Tokens.Spacing.sm)
                 }
             }
             Spacer()
@@ -184,15 +211,15 @@ private struct DSApplicationSurfaceBoard: View {
         @ViewBuilder content: () -> Content
     ) -> some View {
         DSSurface(role: .panel) {
-            VStack(alignment: .leading, spacing: DSTokens.Spacing.sm) {
-                HStack(spacing: DSTokens.Spacing.xs) {
-                    DSIconView(icon, size: DSTokens.Icon.xs, colorRole: .muted)
+            VStack(alignment: .leading, spacing: Tokens.Spacing.sm) {
+                HStack(spacing: Tokens.Spacing.xs) {
+                    DSIconView(icon, size: Tokens.Size.Icon.xs, colorRole: .muted)
                     DSSectionHeader(title)
                 }
                 content()
                 Spacer(minLength: 0)
             }
-            .padding(DSTokens.Spacing.md)
+            .padding(Tokens.Spacing.md)
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
         }
     }
@@ -200,22 +227,30 @@ private struct DSApplicationSurfaceBoard: View {
 
 @MainActor
 private struct DSThemeSpecimenCard: View {
-    let theme: DSTheme
+    let theme: Theme
+
+    /// Family display name (theme name minus the appearance suffix) — keeps
+    /// the card label identical to the retired DSThemeVariant rendering.
+    private var familyName: String {
+        theme.name
+            .replacingOccurrences(of: " Dark", with: "")
+            .replacingOccurrences(of: " Light", with: "")
+    }
 
     var body: some View {
         DSSurface(role: .card) {
-            VStack(alignment: .leading, spacing: DSTokens.Spacing.md) {
+            VStack(alignment: .leading, spacing: Tokens.Spacing.md) {
                 HStack {
-                    VStack(alignment: .leading, spacing: DSTokens.Spacing.xxxs) {
+                    VStack(alignment: .leading, spacing: Tokens.Spacing.xxxs) {
                         Text(theme.name).dsFont(.title)
-                        Text("\(theme.family.displayName) · \(theme.mode.rawValue)")
+                        Text("\(familyName) · \(theme.appearance.rawValue)")
                             .dsFont(.caption)
                             .foregroundStyle(theme.colors.textSecondary.color)
                     }
                     Spacer()
                     DSIconView(.theme, colorRole: .info)
                 }
-                HStack(spacing: DSTokens.Spacing.xs) {
+                HStack(spacing: Tokens.Spacing.xs) {
                     color(theme.colors.accent)
                     color(theme.colors.success)
                     color(theme.colors.warning)
@@ -232,17 +267,17 @@ private struct DSThemeSpecimenCard: View {
                     Button("Continue", action: {}).buttonStyle(.ds(role: .primary, size: .compact))
                 }
             }
-            .padding(DSTokens.Spacing.lg)
+            .padding(Tokens.Spacing.lg)
         }
-        .padding(DSTokens.Spacing.lg)
+        .padding(Tokens.Spacing.lg)
         .background(theme.colors.windowBackground.color)
     }
 
-    private func color(_ value: DSColorValue) -> some View {
+    private func color(_ value: Tokens.Color) -> some View {
         value.color
             .frame(maxWidth: .infinity)
-            .frame(height: DSTokens.Spacing.lg)
-            .clipShape(RoundedRectangle(cornerRadius: DSTokens.Radius.xs))
+            .frame(height: Tokens.Spacing.lg)
+            .clipShape(RoundedRectangle(cornerRadius: Tokens.Shape.radiusXS))
     }
 }
 #endif

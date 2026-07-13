@@ -26,7 +26,7 @@ struct DSEditorThemeTests {
 
     @Test("every category resolves through generated syntax roles")
     func colorRoles() {
-        for theme in [DSTheme.lcarsDark, .lcarsLight] {
+        for theme in [Theme.lcarsDark, .lcarsLight] {
             let colors = DiagramSyntaxHighlighter.colorMap(for: theme)
             #expect(colors.count == TokenCategory.allCases.count)
             for category in TokenCategory.allCases {

@@ -1,4 +1,5 @@
 import DesignKitThemes
+@testable import DiagramKitSample
 import Foundation
 import Testing
 
@@ -18,8 +19,7 @@ struct DSResponsiveLayoutTests {
             viewportWidth: viewport.width
         )
         let shell = DSShellChromeResolution.resolve(theme: .lcarsDark, width: width)
-        let environment = DSResolvedEnvironment.resolve(
-            theme: .lcarsDark,
+        let environment = DSContext.resolve(
             platform: viewport.platform,
             preferences: .init()
         )

@@ -12,7 +12,10 @@ public extension Tokens.Color {
 public struct DSColors {
     let theme: Theme
 
-    public var accent: Tokens.Color { theme.style.text.accent }
+    /// The old generated `design.accent` equals `icon.accent` in all 20
+    /// shipped themes (verified against the retired tables) — NOT
+    /// `text.accent`, which is a lighter tint in several families.
+    public var accent: Tokens.Color { theme.style.icon.accent }
     public var onAccent: Tokens.Color { theme.glass.onAccent }
     public var windowBackground: Tokens.Color { theme.style.background }
     public var surfaceBackground: Tokens.Color { theme.style.chrome.surfaceBackground }

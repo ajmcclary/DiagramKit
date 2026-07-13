@@ -23,13 +23,11 @@ struct DSVisualSurfaceTests {
 
     @Test("differentiate without color adds text without changing status meaning")
     func differentiatedStatusPresentation() {
-        let colorEnvironment = DSResolvedEnvironment.resolve(
-            theme: .lcarsDark,
+        let colorEnvironment = DSContext.resolve(
             platform: .iOS,
             preferences: .init()
         )
-        let differentiatedEnvironment = DSResolvedEnvironment.resolve(
-            theme: .lcarsDark,
+        let differentiatedEnvironment = DSContext.resolve(
             platform: .iOS,
             preferences: .init(differentiateWithoutColor: true)
         )

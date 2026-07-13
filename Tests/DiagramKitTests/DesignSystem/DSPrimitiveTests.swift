@@ -1,4 +1,5 @@
 import DesignKitThemes
+@testable import DiagramKitSample
 import Foundation
 import Testing
 
@@ -12,7 +13,7 @@ struct DSPrimitiveTests {
             .deletingLastPathComponent()
             .deletingLastPathComponent()
         let source = try String(
-            contentsOf: root.appending(path: "Sources/DiagramKitSampleDesignSystem/DSControls.swift"),
+            contentsOf: root.appending(path: "Sources/DiagramKitSample/DesignSystem/DSControls.swift"),
             encoding: .utf8
         )
         #expect(source.contains("fileprivate struct DSSegmentButton"))
@@ -95,8 +96,7 @@ struct DSPrimitiveTests {
 
     @Test("reduce transparency resolves glass to opaque")
     func opaqueGlass() {
-        let environment = DSResolvedEnvironment.resolve(
-            theme: .lcarsDark,
+        let environment = DSContext.resolve(
             platform: .macOS,
             preferences: .init(reduceTransparency: true)
         )
@@ -111,8 +111,7 @@ struct DSPrimitiveTests {
 
     @Test("differentiate without color adds status text")
     func differentiatedStatus() {
-        let environment = DSResolvedEnvironment.resolve(
-            theme: .lcarsDark,
+        let environment = DSContext.resolve(
             platform: .iOS,
             preferences: .init(differentiateWithoutColor: true)
         )

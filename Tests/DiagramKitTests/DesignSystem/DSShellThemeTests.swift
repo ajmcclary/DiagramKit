@@ -1,4 +1,5 @@
 import DesignKitThemes
+@testable import DiagramKitSample
 import Testing
 
 @Suite("Design-system shell theming")
@@ -14,11 +15,11 @@ struct DSShellThemeTests {
             width: .compact
         )
 
-        #expect(dark.navigation == DSTheme.blackAlertDark.colors.titleBarBackground)
-        #expect(dark.toolbar == DSTheme.blackAlertDark.colors.toolbarBackground)
-        #expect(dark.panel == DSTheme.blackAlertDark.colors.panelBackground)
-        #expect(dark.status == DSTheme.blackAlertDark.colors.statusBarBackground)
-        #expect(dark.sheet == DSTheme.blackAlertDark.colors.surfaceBackground)
+        #expect(dark.navigation == Theme.blackAlertDark.colors.titleBarBackground)
+        #expect(dark.toolbar == Theme.blackAlertDark.colors.toolbarBackground)
+        #expect(dark.panel == Theme.blackAlertDark.colors.panelBackground)
+        #expect(dark.status == Theme.blackAlertDark.colors.statusBarBackground)
+        #expect(dark.sheet == Theme.blackAlertDark.colors.surfaceBackground)
         #expect(dark != light)
     }
 

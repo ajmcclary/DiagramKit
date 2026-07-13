@@ -5,12 +5,14 @@ import DesignKitThemes
 
 @Suite struct EditorRedesignTokenTests {
     @Test func lcarsDarkIsTheDefault() {
-        let theme = DSTheme.lcarsDark
-        #expect(theme.colors.accent.hex == "#FF9933")
-        #expect(theme.colors.windowBackground.hex == "#05060A")
-        #expect(theme.colors.elevatedSurfaceBackground.hex == "#111827")
-        #expect(theme.colors.textPrimary.hex == "#F2E7D8")
-        #expect(theme == DSTheme.theme(family: .lcars, mode: .dark))
+        let theme = Theme.lcarsDark
+        #expect(theme.colors.accent.hexString == "#FF9933")
+        #expect(theme.colors.windowBackground.hexString == "#05060A")
+        // Canonical (CodeEditorPlugin zed-trek.json) value; DiagramKit's
+        // drifted copy had #111827.
+        #expect(theme.colors.elevatedSurfaceBackground.hexString == "#1D2A43")
+        #expect(theme.colors.textPrimary.hexString == "#F2E7D8")
+        #expect(theme == Theme.Family.lcars.theme(for: .dark))
     }
 
     // MARK: - Zed Trek family (theme × mode) — Task 1
@@ -32,10 +34,11 @@ import DesignKitThemes
     }
 
     @Test func persistedThemesMapOneToOneToGeneratedFamilies() {
-        let mapped = ZedTrekTheme.allCases.map(\.dsFamily.rawValue).sorted()
-        let generated = DSThemeFamily.allCases.map(\.rawValue).sorted()
-
-        #expect(mapped == generated)
+        // DesignKit carries 12 families (adds classic + lcarsHighContrast);
+        // the picker's 10 Zed Trek families must map into them 1:1.
+        let mapped = ZedTrekTheme.allCases.map(\.dsFamily)
+        #expect(Set(mapped).count == ZedTrekTheme.allCases.count)
+        #expect(Set(mapped).isSubset(of: Set(Theme.Family.allCases)))
         #expect(ZedTrekTheme.lcars.dsFamily == .lcars)
         #expect(ZedTrekTheme.blackAlert.dsFamily == .blackAlert)
         #expect(ZedTrekTheme.missionControl.dsFamily == .missionControl)
@@ -45,7 +48,7 @@ import DesignKitThemes
         #expect(ThemeMode.system.dsMode == .system)
         #expect(ThemeMode.light.dsMode == .light)
         #expect(ThemeMode.dark.dsMode == .dark)
-        #expect(DSTheme.theme(family: .lcars, mode: .dark) == .lcarsDark)
+        #expect(Theme.Family.lcars.theme(for: .dark) == .lcarsDark)
     }
 
     // MARK: - Generated theme colors (Task 3)
@@ -53,8 +56,8 @@ import DesignKitThemes
     @Test func everyFamilyModeResolvesCompleteTheme() {
         for family in ZedTrekTheme.allCases {
             for scheme in [ColorScheme.dark, .light] {
-                let mode: DSThemeMode = scheme == .dark ? .dark : .light
-                let colors = DSTheme.theme(family: family.dsFamily, mode: mode).colors
+                let appearance: Theme.Appearance = scheme == .dark ? .dark : .light
+                let colors = family.dsFamily.theme(for: appearance).colors
                 #expect(colors.accent != colors.windowBackground)
                 #expect(colors.onAccent != colors.accent)
                 #expect(colors.surfaceBackground != colors.accent)
@@ -65,22 +68,22 @@ import DesignKitThemes
 
     @Test func pinnedGeneratedThemeValues() {
         // LCARS dark keeps the comp-exact values (default appearance).
-        let lcarsDark = DSTheme.lcarsDark.colors
-        #expect(lcarsDark.windowBackground.hex == "#05060A")
-        #expect(lcarsDark.accent.hex == "#FF9933")
-        #expect(lcarsDark.textPrimary.hex == "#F2E7D8")
-        #expect(lcarsDark.elevatedSurfaceBackground.hex == "#111827")
+        let lcarsDark = Theme.lcarsDark.colors
+        #expect(lcarsDark.windowBackground.hexString == "#05060A")
+        #expect(lcarsDark.accent.hexString == "#FF9933")
+        #expect(lcarsDark.textPrimary.hexString == "#F2E7D8")
+        #expect(lcarsDark.elevatedSurfaceBackground.hexString == "#1D2A43")  // canonical; was #111827 in the drifted copy
 
         // LCARS light keeps its brand (orange) accent, not the focus-ring blue.
-        #expect(DSTheme.lcarsLight.colors.accent.hex == "#E06600")
+        #expect(Theme.lcarsLight.colors.accent.hexString == "#C16E1D")  // canonical; was #E06600 in the drifted copy
 
         // Black Alert dark — mapped from zed-trek.json (spec §5).
-        let blackDark = DSTheme.blackAlertDark.colors
-        #expect(blackDark.windowBackground.hex == "#020204")
-        #expect(blackDark.editorBackground.hex == "#010204")
-        #expect(blackDark.accent.hex == "#7EC8DE")
-        #expect(blackDark.textPrimary.hex == "#DFE7F1")
-        #expect(blackDark.error.hex == "#FF7373")
+        let blackDark = Theme.blackAlertDark.colors
+        #expect(blackDark.windowBackground.hexString == "#020204")
+        #expect(blackDark.editorBackground.hexString == "#010204")
+        #expect(blackDark.accent.hexString == "#7EC8DE")
+        #expect(blackDark.textPrimary.hexString == "#DFE7F1")
+        #expect(blackDark.error.hexString == "#FF7373")
     }
 
     // MARK: - Legacy migration (Task 5)

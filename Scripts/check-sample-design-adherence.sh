@@ -22,7 +22,7 @@ is_allowed() {
   local rule="$2"
   local source_line="${3:-}"
   case "$file:$rule" in
-    */Sources/DiagramKitSampleDesignSystem/Generated/*) return 0 ;;
+    */Sources/DiagramKitSample/DesignSystem/*) return 0 ;;
     */NativeCodeEditor.swift:literal-color|*/NativeCodeEditor.swift:system-font) return 0 ;;
     */LineNumberRuler.swift:literal-color|*/LineNumberRuler.swift:system-font) return 0 ;;
     */Views/Visual/ZoomableCanvas.swift:scale-effect) return 0 ;;
