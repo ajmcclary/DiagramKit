@@ -51,16 +51,14 @@ let package = Package(
         // DiagramKitCommon Linux-portable for `StableID.derive(...)`, we
         // import `Crypto` from this package when CryptoKit is unavailable.
         .package(url: "https://github.com/apple/swift-crypto", from: "3.0.0"),
-        // TEMP: pinned to the fork at `ajmcclary/swift-snapshot-testing` (branch
-        // `fix-swift-6.3-attachable`), which carries pointfreeco/swift-snapshot-testing#1090
-        // for the Swift 6.3 `Attachable` cross-import-overlay break. `Data: Attachable`
-        // and `NSImage: AttachableAsImage` live in the `_Testing_Foundation` /
-        // `_Testing_AppKit` overlays, which SwiftPM only enables for test targets — the
-        // SnapshotTesting *library* target can't see those conformances on the
-        // open-source `swift-6.3-RELEASE` toolchain. Once #1090 lands in a tagged
-        // upstream release (likely 1.19.3+), switch back to:
-        //   .package(url: "https://github.com/pointfreeco/swift-snapshot-testing", from: "1.19.x")
-        .package(url: "https://github.com/ajmcclary/swift-snapshot-testing", branch: "fix-swift-6.3-attachable")
+        // Test-only dependency. Upstream 1.19.3 builds cleanly under the Apple
+        // Swift 6.4 / Xcode 27 toolchain this workspace targets; the former
+        // `ajmcclary/swift-snapshot-testing@fix-swift-6.3-attachable` fork was
+        // only required on the open-source `swift-6.3-RELEASE` toolchain, where
+        // the cross-import-overlay `Attachable` conformances aren't visible to
+        // the SnapshotTesting library target. Version-pinned so DiagramKit stays
+        // consumable by stable-version dependents.
+        .package(url: "https://github.com/pointfreeco/swift-snapshot-testing", from: "1.19.3")
     ],
     targets: [
         .target(
