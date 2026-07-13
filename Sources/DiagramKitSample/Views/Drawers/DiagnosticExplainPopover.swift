@@ -8,7 +8,7 @@
 
 import SwiftUI
 import DiagramKitCommon
-import DiagramKitSampleDesignSystem
+import DesignKitThemes
 
 struct DiagnosticExplainPopover: View {
     @Bindable var store: LiveEditorStore

@@ -38,7 +38,7 @@ struct DSResidualSurfaceTests {
 
         for file in files {
             let source = try String(contentsOf: root.appending(path: file), encoding: .utf8)
-            if !source.contains("import DiagramKitSampleDesignSystem") {
+            if !source.contains("import DesignKitThemes") {
                 violations.append("\(file): missing design-system import")
             }
             for pattern in banned where source.contains(pattern) {

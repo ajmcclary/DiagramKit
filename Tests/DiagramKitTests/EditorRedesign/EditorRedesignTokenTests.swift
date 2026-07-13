@@ -1,6 +1,6 @@
 import Testing
 import SwiftUI
-import DiagramKitSampleDesignSystem
+import DesignKitThemes
 @testable import DiagramKitSample
 
 @Suite struct EditorRedesignTokenTests {

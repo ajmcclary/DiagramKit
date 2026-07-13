@@ -9,7 +9,7 @@
 //
 
 import SwiftUI
-import DiagramKitSampleDesignSystem
+import DesignKitThemes
 
 struct ThemeBuilderCard: View {
     @Bindable var store: LiveEditorStore

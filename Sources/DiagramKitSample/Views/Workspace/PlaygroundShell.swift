@@ -9,7 +9,7 @@
 //
 
 import SwiftUI
-import DiagramKitSampleDesignSystem
+import DesignKitThemes
 
 struct PlaygroundShell: View {
     @Bindable var store: LiveEditorStore

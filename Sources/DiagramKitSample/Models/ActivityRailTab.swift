@@ -6,7 +6,7 @@
 //
 
 import Foundation
-import DiagramKitSampleDesignSystem
+import DesignKitThemes
 
 public enum ActivityRailTab: String, CaseIterable, Codable, Sendable, Hashable {
     case organize

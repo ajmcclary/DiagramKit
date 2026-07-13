@@ -11,7 +11,7 @@
 import SwiftUI
 import DiagramKitInteractive
 import DiagramKitModel
-import DiagramKitSampleDesignSystem
+import DesignKitThemes
 
 struct NodeEditPopover: View {
     @Bindable var store: LiveEditorStore

@@ -7,7 +7,7 @@
 //
 
 import SwiftUI
-import DiagramKitSampleDesignSystem
+import DesignKitThemes
 
 struct SelectionHUD: View {
     @Bindable var store: LiveEditorStore

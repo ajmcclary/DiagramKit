@@ -12,7 +12,7 @@
 import SwiftUI
 import DiagramKit
 import DiagramKitModel
-import DiagramKitSampleDesignSystem
+import DesignKitThemes
 import UniformTypeIdentifiers
 import IssueReporting
 

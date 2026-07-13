@@ -7,7 +7,7 @@
 
 import SwiftUI
 import DiagramKit
-import DiagramKitSampleDesignSystem
+import DesignKitThemes
 
 struct SettingsFontsTab: View {
     @AppStorage(PlaygroundSettingsKeys.uiTextSize) private var uiTextSize = 13

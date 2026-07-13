@@ -1,4 +1,4 @@
-import DiagramKitSampleDesignSystem
+import DesignKitThemes
 
 extension EditorDiagnostic.Severity {
     var dsStatusKind: DSStatusKind {

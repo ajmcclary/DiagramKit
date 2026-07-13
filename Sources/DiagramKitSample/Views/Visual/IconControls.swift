@@ -9,7 +9,7 @@
 
 import SwiftUI
 import DiagramKitInteractive
-import DiagramKitSampleDesignSystem
+import DesignKitThemes
 
 struct IconControls: View {
     @Binding var size: IconSpec.Size

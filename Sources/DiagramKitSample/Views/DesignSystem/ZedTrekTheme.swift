@@ -9,7 +9,7 @@
 //
 
 import SwiftUI
-import DiagramKitSampleDesignSystem
+import DesignKitThemes
 
 enum ZedTrekTheme: String, CaseIterable, Hashable, Codable, Sendable {
     case lcars, blackAlert, borgCube, command, federation

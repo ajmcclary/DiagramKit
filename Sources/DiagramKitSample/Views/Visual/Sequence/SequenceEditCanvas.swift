@@ -12,7 +12,7 @@
 import SwiftUI
 import DiagramKitInteractive
 import DiagramKitModel
-import DiagramKitSampleDesignSystem
+import DesignKitThemes
 
 struct SequenceEditCanvas: View {
     @Bindable var store: LiveEditorStore

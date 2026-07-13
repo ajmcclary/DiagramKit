@@ -8,7 +8,7 @@
 
 import SwiftUI
 import DiagramKit
-import DiagramKitSampleDesignSystem
+import DesignKitThemes
 import UniformTypeIdentifiers
 
 struct HistoryView: View {

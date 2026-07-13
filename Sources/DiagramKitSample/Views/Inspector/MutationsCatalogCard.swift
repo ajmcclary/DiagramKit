@@ -9,7 +9,7 @@
 //
 
 import SwiftUI
-import DiagramKitSampleDesignSystem
+import DesignKitThemes
 
 struct MutationsCatalogCard: View {
     @Bindable var store: LiveEditorStore

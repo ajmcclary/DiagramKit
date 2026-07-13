@@ -9,7 +9,7 @@
 import SwiftUI
 import DiagramKit
 import DiagramKitModel
-import DiagramKitSampleDesignSystem
+import DesignKitThemes
 
 struct ThemePicker: View {
     let store: LiveEditorStore

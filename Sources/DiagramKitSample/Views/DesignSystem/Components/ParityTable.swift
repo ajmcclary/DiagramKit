@@ -7,7 +7,7 @@
 //
 
 import SwiftUI
-import DiagramKitSampleDesignSystem
+import DesignKitThemes
 
 struct ParityTable: View {
     enum Cell: Equatable { case full, partial, unsupported }

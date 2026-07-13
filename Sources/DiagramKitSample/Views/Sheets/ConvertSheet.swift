@@ -13,7 +13,7 @@ import SwiftUI
 import DiagramKit
 import DiagramKitCommon
 import DiagramKitExport
-import DiagramKitSampleDesignSystem
+import DesignKitThemes
 
 struct ConvertSheet: View {
     @Bindable var store: LiveEditorStore

@@ -10,7 +10,7 @@
 
 import SwiftUI
 import DiagramKitModel
-import DiagramKitSampleDesignSystem
+import DesignKitThemes
 
 struct PlatformRow: View {
     @Bindable var store: LiveEditorStore

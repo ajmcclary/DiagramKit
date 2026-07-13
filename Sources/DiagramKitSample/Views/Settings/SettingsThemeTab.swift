@@ -8,7 +8,7 @@
 
 import SwiftUI
 import DiagramKit
-import DiagramKitSampleDesignSystem
+import DesignKitThemes
 
 struct SettingsThemeTab: View {
     @Bindable var store: LiveEditorStore

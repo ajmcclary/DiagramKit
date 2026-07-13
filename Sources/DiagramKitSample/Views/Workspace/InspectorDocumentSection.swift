@@ -9,7 +9,7 @@
 //
 
 import SwiftUI
-import DiagramKitSampleDesignSystem
+import DesignKitThemes
 
 struct InspectorDocumentSection: View {
     @Bindable var store: LiveEditorStore

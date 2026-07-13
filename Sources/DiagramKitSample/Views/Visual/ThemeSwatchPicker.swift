@@ -9,7 +9,7 @@
 
 import SwiftUI
 import DiagramKitModel
-import DiagramKitSampleDesignSystem
+import DesignKitThemes
 
 struct ThemeSwatchPicker: View {
     @Bindable var store: LiveEditorStore

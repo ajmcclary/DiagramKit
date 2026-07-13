@@ -6,7 +6,7 @@
 //
 
 import SwiftUI
-import DiagramKitSampleDesignSystem
+import DesignKitThemes
 
 struct StepperRow: View {
     let title: String

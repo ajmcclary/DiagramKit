@@ -9,7 +9,7 @@
 
 import SwiftUI
 import DiagramKitModel
-import DiagramKitSampleDesignSystem
+import DesignKitThemes
 
 struct CorpusThumbnail: View {
     let entry: CorpusEntry

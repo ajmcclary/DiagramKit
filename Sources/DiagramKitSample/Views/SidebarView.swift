@@ -10,7 +10,7 @@
 import SwiftUI
 import DiagramKit
 import DiagramKitModel
-import DiagramKitSampleDesignSystem
+import DesignKitThemes
 import UniformTypeIdentifiers
 
 struct SidebarView: View {

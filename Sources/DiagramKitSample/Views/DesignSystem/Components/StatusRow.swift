@@ -7,7 +7,7 @@
 //
 
 import SwiftUI
-import DiagramKitSampleDesignSystem
+import DesignKitThemes
 
 struct StatusRow: View {
     let title: String

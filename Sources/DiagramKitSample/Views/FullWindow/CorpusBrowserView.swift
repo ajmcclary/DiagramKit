@@ -11,7 +11,7 @@
 
 import SwiftUI
 import DiagramKitModel
-import DiagramKitSampleDesignSystem
+import DesignKitThemes
 
 struct CorpusBrowserView: View {
     @Bindable var store: LiveEditorStore

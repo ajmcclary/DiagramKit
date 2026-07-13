@@ -10,7 +10,7 @@
 //
 
 import SwiftUI
-import DiagramKitSampleDesignSystem
+import DesignKitThemes
 
 struct RenderFailedSheet: View {
     @Bindable var store: LiveEditorStore

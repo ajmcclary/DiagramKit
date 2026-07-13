@@ -7,7 +7,7 @@
 //
 
 import SwiftUI
-import DiagramKitSampleDesignSystem
+import DesignKitThemes
 
 struct ActivityRailItem: View {
     let icon: DSIcon

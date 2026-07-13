@@ -7,7 +7,7 @@
 //
 
 import SwiftUI
-import DiagramKitSampleDesignSystem
+import DesignKitThemes
 
 struct ActivityPanel: View {
     @Bindable var store: LiveEditorStore

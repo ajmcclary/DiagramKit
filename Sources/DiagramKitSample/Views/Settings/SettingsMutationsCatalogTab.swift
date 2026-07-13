@@ -7,7 +7,7 @@
 //
 
 import SwiftUI
-import DiagramKitSampleDesignSystem
+import DesignKitThemes
 
 struct SettingsMutationsCatalogTab: View {
     @Environment(\.dsEnvironment) private var environment

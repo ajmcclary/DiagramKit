@@ -9,7 +9,7 @@
 
 import SwiftUI
 import DiagramKit
-import DiagramKitSampleDesignSystem
+import DesignKitThemes
 
 struct SampleDiagramPanel: View {
     @Bindable var store: LiveEditorStore

@@ -9,7 +9,7 @@
 
 import SwiftUI
 import DiagramKitModel
-import DiagramKitSampleDesignSystem
+import DesignKitThemes
 
 struct ShapeCatalogView: View {
     let theme: DiagramTheme

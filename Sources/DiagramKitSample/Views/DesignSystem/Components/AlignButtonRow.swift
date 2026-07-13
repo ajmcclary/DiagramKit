@@ -8,7 +8,7 @@
 //
 
 import SwiftUI
-import DiagramKitSampleDesignSystem
+import DesignKitThemes
 
 struct AlignButtonRow: View {
     private let leading: [DSIcon] = [.alignLeading, .alignCenterHorizontal, .alignTrailing]

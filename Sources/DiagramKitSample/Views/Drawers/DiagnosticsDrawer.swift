@@ -11,7 +11,7 @@
 
 import SwiftUI
 import DiagramKitCommon
-import DiagramKitSampleDesignSystem
+import DesignKitThemes
 
 struct DiagnosticsDrawer: View {
     @Bindable var store: LiveEditorStore

@@ -7,7 +7,7 @@
 //
 
 import SwiftUI
-import DiagramKitSampleDesignSystem
+import DesignKitThemes
 
 struct InspectorCitationsToggle: View {
     @Bindable var store: LiveEditorStore

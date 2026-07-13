@@ -19,7 +19,7 @@ import SwiftUI
 import DiagramKit
 import DiagramKitModel
 import DiagramKitInteractive
-import DiagramKitSampleDesignSystem
+import DesignKitThemes
 
 struct FlowchartEditCanvas: View {
     @Bindable var store: LiveEditorStore

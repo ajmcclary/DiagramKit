@@ -6,7 +6,7 @@
 //
 
 import SwiftUI
-import DiagramKitSampleDesignSystem
+import DesignKitThemes
 
 struct SettingsRenderBackendTab: View {
     @Bindable var store: LiveEditorStore

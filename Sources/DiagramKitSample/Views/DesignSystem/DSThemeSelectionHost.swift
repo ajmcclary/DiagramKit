@@ -1,5 +1,5 @@
 import SwiftUI
-import DiagramKitSampleDesignSystem
+import DesignKitThemes
 
 extension View {
     /// Installs the generated design-system theme while preserving the sample's

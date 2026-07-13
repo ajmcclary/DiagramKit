@@ -8,7 +8,7 @@
 
 import SwiftUI
 import DiagramKit
-import DiagramKitSampleDesignSystem
+import DesignKitThemes
 
 struct PanelHeader<Trailing: View>: View {
     let title: String

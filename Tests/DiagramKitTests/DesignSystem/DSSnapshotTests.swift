@@ -1,6 +1,6 @@
 #if os(macOS)
 import AppKit
-import DiagramKitSampleDesignSystem
+import DesignKitThemes
 import SnapshotTesting
 import SwiftUI
 import Testing

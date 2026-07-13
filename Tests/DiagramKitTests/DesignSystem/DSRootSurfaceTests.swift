@@ -40,7 +40,7 @@ struct DSRootSurfaceTests {
         for file in files {
             let url = sourceDirectory.appending(path: file)
             let source = try String(contentsOf: url, encoding: .utf8)
-            if !source.contains("import DiagramKitSampleDesignSystem") {
+            if !source.contains("import DesignKitThemes") {
                 violations.append("\(file): missing design-system import")
             }
             for pattern in banned where source.contains(pattern) {

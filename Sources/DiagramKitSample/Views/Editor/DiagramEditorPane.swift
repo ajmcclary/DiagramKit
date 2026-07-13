@@ -11,7 +11,7 @@ import SwiftUI
 import DiagramKit
 import DiagramKitInteractive
 import DiagramKitModel
-import DiagramKitSampleDesignSystem
+import DesignKitThemes
 
 struct DiagramEditorPane: View {
     @Bindable var store: LiveEditorStore

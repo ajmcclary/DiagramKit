@@ -10,7 +10,7 @@
 //
 
 import SwiftUI
-import DiagramKitSampleDesignSystem
+import DesignKitThemes
 
 struct ThemeSwatchCard: View {
     let name: String

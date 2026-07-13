@@ -11,7 +11,7 @@
 
 import SwiftUI
 import DiagramKitModel
-import DiagramKitSampleDesignSystem
+import DesignKitThemes
 
 struct CoverageMatrixView: View {
     @Bindable var store: LiveEditorStore

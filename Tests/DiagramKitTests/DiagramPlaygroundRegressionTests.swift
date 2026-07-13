@@ -13,7 +13,7 @@ import Foundation
 import XCTest
 import DiagramKit
 import DiagramKitModel
-import DiagramKitSampleDesignSystem
+import DesignKitThemes
 @testable import DiagramKitSample
 #if canImport(AppKit)
 import AppKit

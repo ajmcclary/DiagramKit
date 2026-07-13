@@ -1,4 +1,4 @@
-import DiagramKitSampleDesignSystem
+import DesignKitThemes
 
 struct RoundTripSummary: Equatable {
     let lossCount: Int

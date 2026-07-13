@@ -8,7 +8,7 @@
 
 import SwiftUI
 import DiagramKitInteractive
-import DiagramKitSampleDesignSystem
+import DesignKitThemes
 
 struct RearrangePopover: View {
     @Bindable var store: LiveEditorStore

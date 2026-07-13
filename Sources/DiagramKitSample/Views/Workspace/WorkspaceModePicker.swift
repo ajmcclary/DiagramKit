@@ -8,7 +8,7 @@
 //
 
 import SwiftUI
-import DiagramKitSampleDesignSystem
+import DesignKitThemes
 
 struct WorkspaceModePicker: View {
     @Bindable var store: LiveEditorStore

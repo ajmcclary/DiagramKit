@@ -9,7 +9,7 @@
 import SwiftUI
 import DiagramKit
 import DiagramKitModel
-import DiagramKitSampleDesignSystem
+import DesignKitThemes
 
 /// Segmented picker for switching between Code and Config editor modes.
 ///

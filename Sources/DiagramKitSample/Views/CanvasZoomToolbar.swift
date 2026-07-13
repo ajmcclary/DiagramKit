@@ -8,7 +8,7 @@
 //
 
 import SwiftUI
-import DiagramKitSampleDesignSystem
+import DesignKitThemes
 
 struct CanvasZoomToolbar: View {
     @Environment(\.dsEnvironment) private var environment

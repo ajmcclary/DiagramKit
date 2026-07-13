@@ -6,7 +6,7 @@
 //
 
 import SwiftUI
-import DiagramKitSampleDesignSystem
+import DesignKitThemes
 
 struct SettingsPlatformParityTab: View {
     @Environment(\.dsEnvironment) private var environment

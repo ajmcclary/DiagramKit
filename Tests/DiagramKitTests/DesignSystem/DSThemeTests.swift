@@ -1,4 +1,4 @@
-import DiagramKitSampleDesignSystem
+import DesignKitThemes
 import Testing
 
 @Suite("Generated design-system API")

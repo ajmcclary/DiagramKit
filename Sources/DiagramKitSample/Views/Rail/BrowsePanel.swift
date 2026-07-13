@@ -7,7 +7,7 @@
 //
 
 import SwiftUI
-import DiagramKitSampleDesignSystem
+import DesignKitThemes
 
 struct BrowsePanel: View {
     @Bindable var store: LiveEditorStore

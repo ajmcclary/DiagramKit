@@ -14,7 +14,7 @@ import DiagramKit
 import DiagramKitCommon
 import DiagramKitExport
 import DiagramKitModel
-import DiagramKitSampleDesignSystem
+import DesignKitThemes
 
 struct ThreeFormatView: View {
     @Bindable var store: LiveEditorStore

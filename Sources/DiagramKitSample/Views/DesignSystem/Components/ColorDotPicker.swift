@@ -6,7 +6,7 @@
 //
 
 import SwiftUI
-import DiagramKitSampleDesignSystem
+import DesignKitThemes
 
 struct ColorDotPicker: View {
     let colors: [Color]

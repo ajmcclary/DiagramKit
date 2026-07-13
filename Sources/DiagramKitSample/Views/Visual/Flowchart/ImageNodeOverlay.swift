@@ -11,7 +11,7 @@
 import SwiftUI
 import DiagramKit
 import DiagramKitModel
-import DiagramKitSampleDesignSystem
+import DesignKitThemes
 
 @MainActor
 final class RemoteImageCache {

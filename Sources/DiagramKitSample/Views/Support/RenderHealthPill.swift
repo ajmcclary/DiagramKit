@@ -8,7 +8,7 @@
 //
 
 import SwiftUI
-import DiagramKitSampleDesignSystem
+import DesignKitThemes
 
 enum RenderHealthState {
     case ok(layoutMs: Int, paintMs: Int)

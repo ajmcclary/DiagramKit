@@ -9,7 +9,7 @@
 
 import SwiftUI
 import DiagramKit
-import DiagramKitSampleDesignSystem
+import DesignKitThemes
 
 struct VersionSecurityPanel: View {
     @SwiftUI.State private var showingPrivacySheet = false

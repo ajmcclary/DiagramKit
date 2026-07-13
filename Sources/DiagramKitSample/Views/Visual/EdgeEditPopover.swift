@@ -10,7 +10,7 @@
 //
 
 import SwiftUI
-import DiagramKitSampleDesignSystem
+import DesignKitThemes
 
 struct EdgeEditPopover: View {
     @Bindable var store: LiveEditorStore

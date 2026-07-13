@@ -13,7 +13,7 @@
 import SwiftUI
 import DiagramKitModel
 import DiagramKitInteractive
-import DiagramKitSampleDesignSystem
+import DesignKitThemes
 
 struct GanttEditCanvas: View {
     @Bindable var store: LiveEditorStore

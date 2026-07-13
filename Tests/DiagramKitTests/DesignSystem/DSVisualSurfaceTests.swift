@@ -1,4 +1,4 @@
-import DiagramKitSampleDesignSystem
+import DesignKitThemes
 import Foundation
 import Testing
 @testable import DiagramKitSample

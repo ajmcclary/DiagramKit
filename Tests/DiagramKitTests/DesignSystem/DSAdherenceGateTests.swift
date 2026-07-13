@@ -13,7 +13,7 @@ struct DSAdherenceGateTests {
 
         let compliant = temporary.appending(path: "Compliant.swift")
         try """
-        import DiagramKitSampleDesignSystem
+        import DesignKitThemes
         let spacing = DSTokens.Spacing.sm
         let hitArea = Color.white.opacity(0.001) // hit-testable transparent
         """

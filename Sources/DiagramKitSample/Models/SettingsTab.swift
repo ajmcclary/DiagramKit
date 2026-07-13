@@ -6,7 +6,7 @@
 //
 
 import Foundation
-import DiagramKitSampleDesignSystem
+import DesignKitThemes
 
 public enum SettingsTab: String, CaseIterable, Codable, Sendable, Hashable {
     case general

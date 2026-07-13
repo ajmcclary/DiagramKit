@@ -13,7 +13,7 @@ import DiagramKit
 import DiagramKitCommon
 import DiagramKitModel
 import DiagramKitExport
-import DiagramKitSampleDesignSystem
+import DesignKitThemes
 import UniformTypeIdentifiers
 
 struct ExportSheet: View {
