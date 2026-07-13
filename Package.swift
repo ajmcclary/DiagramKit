@@ -38,7 +38,7 @@ let package = Package(
         .executable(name: "DiagramKitSample", targets: ["DiagramKitSample"])
     ],
     dependencies: [
-        .package(url: "https://github.com/ajmcclary/DesignKit.git", from: "1.0.0"),
+        .package(url: "https://github.com/ajmcclary/DesignKit.git", from: "1.1.0"),
         .package(url: "https://github.com/pointfreeco/swift-custom-dump", from: "1.0.0"),
         .package(url: "https://github.com/pointfreeco/xctest-dynamic-overlay", from: "1.0.0"),
         // swift-crypto provides the CryptoKit API surface on Linux. On Apple
