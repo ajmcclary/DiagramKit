@@ -306,7 +306,7 @@ Image snapshots use `precision: 0.99, perceptualPrecision: 0.98`.
 ## Quality and verification
 
 ```bash
-swift build                           # library + sample app
+swift build                           # library only (sample app is external: apps/DiagramStudio)
 swift build --build-tests             # compile test suite
 swift test                            # full suite (298 test files under Tests/DiagramKitTests)
 swift test --filter <NameOrPattern>   # narrow run
