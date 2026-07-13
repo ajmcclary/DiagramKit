@@ -4,7 +4,7 @@
 //
 //  Phase 2 / Task 2.3 — exercises the heuristic SourceMap +
 //  store.hoverEditorLine / store.hoverPreviewNode pair. The actual
-//  pointer-hover wiring inside NativeCodeEditor lands in a later
+//  pointer-hover wiring inside the code editor lands in a later
 //  phase; this suite locks in the data-layer contract today.
 //
 

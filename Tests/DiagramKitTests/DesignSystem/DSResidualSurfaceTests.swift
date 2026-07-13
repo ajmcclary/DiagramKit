@@ -13,7 +13,6 @@ struct DSResidualSurfaceTests {
         let files = [
             "Sources/DiagramKitSample/Views/EditorPane.swift",
             "Sources/DiagramKitSample/Views/Editor/DiagramEditorPane.swift",
-            "Sources/DiagramKitSample/Views/Editor/EditorMinimap.swift",
             "Sources/DiagramKitSample/Views/Workspace/CitationOverlay.swift",
             "Sources/DiagramKitSample/Views/Workspace/KPill.swift",
         ]

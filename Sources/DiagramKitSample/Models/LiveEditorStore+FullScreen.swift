@@ -75,7 +75,7 @@ extension LiveEditorStore {
 
     /// Insert a snippet into the workspace. Phase 9 replaces the
     /// source wholesale — Code-mode cursor insertion would require
-    /// NativeCodeEditor selection plumbing not in scope here. After
+    /// code-editor selection plumbing not in scope here. After
     /// insert: dismisses the snippets surface and bounces to .split.
     public func insertSnippet(_ snippet: Snippet) {
         setSource(snippet.body, format: snippet.format, origin: .system)

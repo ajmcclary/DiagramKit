@@ -13,8 +13,10 @@ let strictConcurrencySettings: [SwiftSetting] = [
 let package = Package(
     name: "DiagramKit",
     platforms: [
-        .macOS(.v26),
-        .iOS(.v26)
+        // 26.3 floor inherited from CodeEditorPlugin (the sample app's code
+        // editor); SwiftPM requires the consumer's floor to meet it.
+        .macOS("26.3"),
+        .iOS("26.3")
     ],
     products: [
         .library(name: "DiagramKit", targets: ["DiagramKit"]),
@@ -39,6 +41,11 @@ let package = Package(
     ],
     dependencies: [
         .package(url: "https://github.com/ajmcclary/DesignKit.git", from: "1.1.0"),
+        // The sample app's code editor (diagram-DSL languages
+        // mermaid/d2/dot/structurizr/plantuml live there). Tracked by branch
+        // because CodeEditorPlugin has no semver tags yet; switch to
+        // `from: "x.y.z"` once a release is tagged.
+        .package(url: "https://github.com/ajmcclary/CodeEditorPlugin.git", branch: "main"),
         .package(url: "https://github.com/pointfreeco/swift-custom-dump", from: "1.0.0"),
         .package(url: "https://github.com/pointfreeco/xctest-dynamic-overlay", from: "1.0.0"),
         // swift-crypto provides the CryptoKit API surface on Linux. On Apple
@@ -174,6 +181,8 @@ let package = Package(
             name: "DiagramKitSample",
             dependencies: [
                 .product(name: "DesignKitThemes", package: "DesignKit"),
+                .product(name: "CodeEditorPlugin", package: "CodeEditorPlugin"),
+                .product(name: "CodeEditorAnnotations", package: "CodeEditorPlugin"),
                 "DiagramKit",
                 "DiagramKitD2",
                 "DiagramKitGraphviz",

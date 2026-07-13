@@ -2,25 +2,22 @@
 //  EditorPane.swift
 //  DiagramPlayground
 //
-//  Editor pane with Code/Config tab bar and the native code editor.
-//  Uses NativeCodeEditor (NSTextView/UITextView wrapper) with line numbers,
-//  syntax highlighting, and inline diagnostics.
+//  Editor pane with Code/Config tab bar hosting CodeEditorPlugin's
+//  CodeEditor (syntax highlighting, line numbers, minimap) with
+//  diagnostics surfaced as line annotations.
 //
 
 import SwiftUI
 import DiagramKit
 import DiagramKitModel
 import DesignKitThemes
+import CodeEditorPlugin
+import CodeEditorAnnotations
 
 struct EditorPane: View {
     @Bindable var store: LiveEditorStore
 
-    @State private var mermaidHighlighter = DiagramSyntaxHighlighter(mode: .mermaid)
-    @State private var d2Highlighter = DiagramSyntaxHighlighter(mode: .d2)
-    @State private var dotHighlighter = DiagramSyntaxHighlighter(mode: .dot)
-    @State private var structurizrHighlighter = DiagramSyntaxHighlighter(mode: .structurizr)
-    @State private var plantUMLHighlighter = DiagramSyntaxHighlighter(mode: .plantUML)
-    @State private var jsonHighlighter = DiagramSyntaxHighlighter(mode: .json)
+    @State private var editorController = EditorController()
     @Environment(\.designTheme) private var theme
 
     var body: some View {
@@ -50,39 +47,119 @@ struct EditorPane: View {
                 configValidationHeader
             }
 
-            // Native code editor (+ optional minimap rail on the trailing edge)
-            HStack(spacing: 0) {
-                NativeCodeEditor(
-                    store: store,
-                    mode: store.state.editorMode,
-                    theme: theme,
-                    diagnostics: store.diagnostics,
-                    highlighter: currentHighlighter
-                )
+            // CodeEditorPlugin editor. The 300 ms debounce matches the old
+            // NativeCodeEditor's store-commit cadence; the binding write is
+            // what re-parses the diagram, so keystrokes must not commit raw.
+            CodeEditor(text: editorText, debounceInterval: .milliseconds(300))
+                .codeLanguage(currentLanguage)
+                .lineNumbers(true)
+                .isSelectedLineHighlighted(true)
+                .isMinimapVisible(store.state.showMinimap && store.state.editorMode == .code)
+                .codeFontSize(Tokens.Typography.Size.bodySM)
+                .editorController(editorController)
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
-                if store.state.showMinimap && store.state.editorMode == .code {
-                    EditorMinimap(store: store)
-                }
-            }
         }
         .background(theme.colors.editorBackground.color)
+        .onChange(of: store.diagnostics) { _, _ in syncDiagnosticAnnotations() }
+        .onChange(of: store.state.editorMode) { _, _ in syncDiagnosticAnnotations() }
+        .onAppear { syncDiagnosticAnnotations() }
     }
 
-    // MARK: - Highlighter selection
+    // MARK: - Text binding
 
-    private var currentHighlighter: DiagramSyntaxHighlighter? {
-        switch store.state.editorMode {
-        case .code:
-            return switch store.state.sourceFormat {
-            case .mermaid: mermaidHighlighter
-            case .d2: d2Highlighter
-            case .graphviz: dotHighlighter
-            case .structurizr: structurizrHighlighter
-            case .plantuml: plantUMLHighlighter
+    /// Routes the editor buffer to the store's source (code mode) or
+    /// config JSON (config mode). Writes arrive debounced from the editor
+    /// and commit through the store's canonical setters.
+    private var editorText: Binding<String> {
+        Binding(
+            get: {
+                switch store.state.editorMode {
+                case .code: store.state.source
+                case .config: store.state.configJSON
+                }
+            },
+            set: { newValue in
+                switch store.state.editorMode {
+                case .code: store.setSource(newValue, origin: .user)
+                case .config: store.setConfigJSON(newValue)
+                }
             }
+        )
+    }
+
+    // MARK: - Language selection
+
+    private var currentLanguage: Language {
+        switch store.state.editorMode {
         case .config:
-            return jsonHighlighter
+            return .json
+        case .code:
+            switch store.state.sourceFormat {
+            case .mermaid: return .mermaid
+            case .d2: return .d2
+            case .graphviz: return .dot
+            case .structurizr: return .structurizr
+            case .plantuml: return .plantuml
+            }
         }
+    }
+
+    // MARK: - Diagnostics → annotations
+
+    /// Mirrors `store.diagnostics` into editor line annotations (the
+    /// replacement for the old gutter dots). Config mode has its own
+    /// validation header, so annotations only show in code mode.
+    private func syncDiagnosticAnnotations() {
+        editorController.removeAllAnnotations()
+        guard store.state.editorMode == .code else { return }
+
+        let source = store.state.source as NSString
+        for diagnostic in store.diagnostics {
+            guard let line = diagnostic.line,
+                  let range = Self.characterRange(forLine: line, in: source)
+            else { continue }
+            editorController.addAnnotation(
+                Annotation(
+                    range: range,
+                    content: diagnostic.message,
+                    id: diagnostic.id.uuidString,
+                    kind: annotationKind(for: diagnostic.severity)
+                )
+            )
+        }
+    }
+
+    private func annotationKind(for severity: EditorDiagnostic.Severity) -> AnnotationKind {
+        switch severity {
+        case .error: .error
+        case .warning: .warning
+        case .info: .info
+        }
+    }
+
+    /// UTF-16 character range of a 1-based line in `string`, or nil when the
+    /// line is out of bounds (e.g. a stale diagnostic after an edit).
+    private static func characterRange(forLine targetLine: Int, in string: NSString) -> NSRange? {
+        guard targetLine >= 1 else { return nil }
+        var line = 1
+        var index = 0
+        while index < string.length {
+            if line == targetLine {
+                var end = index
+                while end < string.length && string.character(at: end) != 0x0A {
+                    end += 1
+                }
+                return NSRange(location: index, length: end - index)
+            }
+            if string.character(at: index) == 0x0A {
+                line += 1
+            }
+            index += 1
+        }
+        if line == targetLine {
+            return NSRange(location: string.length, length: 0)
+        }
+        return nil
     }
 
     // MARK: - Config validation header

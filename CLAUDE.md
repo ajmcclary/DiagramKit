@@ -82,7 +82,8 @@ DiagramKit                 (umbrella)       - public API + re-exports (DiagramKi
 ```
 
 `DiagramKit` re-exports the lower targets through `ReExports.swift`. The
-package-wide `platforms:` floor is macOS 26 + iOS 26; Apple-only targets like
+package-wide `platforms:` floor is macOS 26.3 + iOS 26.3 (raised to match
+CodeEditorPlugin, the sample app's code editor); Apple-only targets like
 `DiagramKitRenderingCG`, `DiagramKitViews`, and `DiagramKitInteractive` are
 gated at the source level with `#if canImport(UIKit) || canImport(AppKit)` /
 `#if canImport(CoreGraphics)` and compile to empty on Linux.
@@ -255,7 +256,11 @@ outside the defining module.
   `DiagramKitSample`) and the current `test-diagrams.json` corpus source.
   App chrome consumes the external DesignKit package (`DesignKitTokens`/
   `DesignKitThemes`); app-private design-system components live in
-  `Sources/DiagramKitSample/DesignSystem/`. Diagram/canvas theming
+  `Sources/DiagramKitSample/DesignSystem/`. The code editor in `EditorPane`
+  is CodeEditorPlugin's `CodeEditor` (URL dependency tracking `main` until
+  that repo tags a release; diagram-DSL languages
+  mermaid/d2/dot/structurizr/plantuml live there). The old NativeCodeEditor/LineNumberRuler/EditorMinimap/
+  DiagramSyntaxHighlighter were removed in the 2026-07-13 migration. Diagram/canvas theming
   (`DiagramTheme`, `Theme+ZedTrek.swift`) is independent of DesignKit;
   canvas-follows-chrome syncs by theme display name (contract-tested).
 - `Tests/DiagramKitTests/` - XCTest and swift-testing suites plus corpus

@@ -100,40 +100,6 @@ final class DiagramPlaygroundStoreRegressionTests: XCTestCase {
         XCTAssertEqual(importStore.restore(saved), state)
     }
 
-    func testDebouncedCodeEditCommitsToOriginalEditorModeAfterModeSwitch() async throws {
-        #if canImport(AppKit)
-        let originalConfig = #"{"theme":"dark"}"#
-        let editedSource = "sequenceDiagram\n  Alice->>Bob: Hi"
-        let store = LiveEditorStore(
-            state: LiveEditorState(
-                source: "graph TD\n  A --> B",
-                configJSON: originalConfig
-            )
-        )
-        let coordinator = NativeCodeEditor.Coordinator(
-            store: store,
-            mode: .code,
-            theme: .lcarsDark
-        )
-        let textView = NSTextView()
-        textView.string = editedSource
-        coordinator.textView = textView
-
-        coordinator.textDidChange(Notification(name: NSText.didChangeNotification, object: textView))
-        coordinator.mode = .config
-        // The debounce in NativeCodeEditor.Coordinator is 300ms. Poll for the
-        // expected commit until it lands or a generous ceiling expires —
-        // exits as soon as the condition holds so the test is not pinned to
-        // a sleep duration that becomes flaky on a slow runner.
-        let deadline = Date().addingTimeInterval(2.0)
-        while Date() < deadline, store.state.source != editedSource {
-            try await Task.sleep(for: .milliseconds(50))
-        }
-
-        XCTAssertEqual(store.state.source, editedSource)
-        XCTAssertEqual(store.state.configJSON, originalConfig)
-        #endif
-    }
 }
 
 @available(iOS 26.0, macOS 26.0, *)
@@ -237,47 +203,6 @@ final class DiagramPlaygroundActionsRegressionTests: XCTestCase {
 final class DiagramPlaygroundVersionRegressionTests: XCTestCase {
     func testVersionSecurityPanelReportsRendererVersion() {
         XCTAssertEqual(VersionSecurityPanel.diagramKitVersion, DiagramEngine.version)
-    }
-}
-
-@available(iOS 26.0, macOS 26.0, *)
-@MainActor
-final class DiagramPlaygroundSyntaxHighlighterRegressionTests: XCTestCase {
-    func testStaleHighlightPayloadsAreRejected() {
-        XCTAssertTrue(DiagramSyntaxHighlighter.shouldApplyHighlight(
-            capturedSource: "graph TD\nA --> B",
-            currentText: "graph TD\nA --> B"
-        ))
-        XCTAssertFalse(DiagramSyntaxHighlighter.shouldApplyHighlight(
-            capturedSource: "graph TD\nA --> B",
-            currentText: "graph TD\nA --> C"
-        ))
-    }
-
-    func testHighlightsCurrentRegistryHeaders() async throws {
-        #if canImport(AppKit)
-        let headers = ["venn-beta", "wardley-beta", "ishikawa", "treeView-beta"]
-
-        for header in headers {
-            let source = "\(header)\n  Root"
-            let textView = NSTextView()
-            textView.string = source
-
-            await DiagramSyntaxHighlighter().highlight(
-                source,
-                in: textView,
-                visibleRect: .zero,
-                theme: .lcarsDark
-            )
-
-            let color = textView.layoutManager?.temporaryAttribute(
-                .foregroundColor,
-                atCharacterIndex: 0,
-                effectiveRange: nil
-            )
-            XCTAssertNotNil(color, "Expected \(header) to be highlighted as a diagram type")
-        }
-        #endif
     }
 }
 #endif

@@ -60,8 +60,8 @@ public enum CitationSet {
         CitationPin(id: 1, label: "PlaygroundShell", path: "Sources/DiagramKitSample/Views/Workspace/PlaygroundShell.swift"),
         CitationPin(id: 2, label: "EditorPane + multi-tab",
                     path: "Sources/DiagramKitSample/Views/EditorPane.swift"),
-        CitationPin(id: 3, label: "EditorMinimap",
-                    path: "Sources/DiagramKitSample/Views/Editor/EditorMinimap.swift"),
+        CitationPin(id: 3, label: "EditorTabBar",
+                    path: "Sources/DiagramKitSample/Views/Editor/EditorTabBar.swift"),
         CitationPin(id: 4, label: "InspectorView accordion",
                     path: "Sources/DiagramKitSample/Views/Workspace/InspectorView.swift")
     ]

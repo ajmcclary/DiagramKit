@@ -2,7 +2,7 @@
 //  EditorTabBar.swift
 //  DiagramPlayground
 //
-//  Phase 2 / Task 2.1 — chrome above NativeCodeEditor. One pill per
+//  Phase 2 / Task 2.1 — chrome above the code editor. One pill per
 //  open tab; a trailing `+` opens a sample picker. Wired to
 //  LiveEditorStore.openTab / activateTab / closeTab.
 //
