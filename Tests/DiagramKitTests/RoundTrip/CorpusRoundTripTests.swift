@@ -124,7 +124,7 @@ final class CorpusRoundTripTests: XCTestCase {
             let package = url.appendingPathComponent("Package.swift")
             if FileManager.default.fileExists(atPath: package.path) {
                 let jsonURL = url.appendingPathComponent(
-                    "Sources/DiagramKitSample/Resources/test-diagrams.json"
+                    "Tests/DiagramKitTests/Resources/test-diagrams.json"
                 )
                 let data = try Data(contentsOf: jsonURL)
                 let file = try JSONDecoder().decode(CorpusFile.self, from: data)

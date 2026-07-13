@@ -13,8 +13,12 @@ let strictConcurrencySettings: [SwiftSetting] = [
 let package = Package(
     name: "DiagramKit",
     platforms: [
-        // 26.3 floor inherited from CodeEditorPlugin (the sample app's code
-        // editor); SwiftPM requires the consumer's floor to meet it.
+        // 26.3 floor: previously inherited from an in-package sample app's
+        // external code-editor dependency. That sample was extracted to
+        // apps/DiagramStudio in the workspace reorganization (see git
+        // history), but the floor itself is retained here unchanged —
+        // lowering it is a separate, deliberate decision outside the scope
+        // of that extraction.
         .macOS("26.3"),
         .iOS("26.3")
     ],
@@ -32,20 +36,9 @@ let package = Package(
         .library(name: "DiagramKitPlantUML", targets: ["DiagramKitPlantUML"]),
         .library(name: "DiagramKitExport", targets: ["DiagramKitExport"]),
         .library(name: "DiagramKitMermaid", targets: ["DiagramKitMermaid"]),
-        .library(name: "DiagramKitInteractive", targets: ["DiagramKitInteractive"]),
-        // Library products and the sample share the same macOS 26 / iOS 26 floor
-        // declared above. The Xcode project that previously bundled the sample
-        // (along with its UI test bundle and xcodegen project.yml) has been
-        // removed in favor of pure SwiftPM (see commit history 2026-05-18).
-        .executable(name: "DiagramKitSample", targets: ["DiagramKitSample"])
+        .library(name: "DiagramKitInteractive", targets: ["DiagramKitInteractive"])
     ],
     dependencies: [
-        .package(url: "https://github.com/ajmcclary/DesignKit.git", from: "1.1.0"),
-        // The sample app's code editor (diagram-DSL languages
-        // mermaid/d2/dot/structurizr/plantuml live there). Tracked by branch
-        // because CodeEditorPlugin has no semver tags yet; switch to
-        // `from: "x.y.z"` once a release is tagged.
-        .package(url: "https://github.com/ajmcclary/CodeEditorPlugin.git", branch: "main"),
         .package(url: "https://github.com/pointfreeco/swift-custom-dump", from: "1.0.0"),
         .package(url: "https://github.com/pointfreeco/xctest-dynamic-overlay", from: "1.0.0"),
         // swift-crypto provides the CryptoKit API surface on Linux. On Apple
@@ -177,31 +170,6 @@ let package = Package(
         ),
 
 
-        .executableTarget(
-            name: "DiagramKitSample",
-            dependencies: [
-                .product(name: "DesignKitThemes", package: "DesignKit"),
-                .product(name: "CodeEditorPlugin", package: "CodeEditorPlugin"),
-                .product(name: "CodeEditorAnnotations", package: "CodeEditorPlugin"),
-                "DiagramKit",
-                "DiagramKitD2",
-                "DiagramKitGraphviz",
-                "DiagramKitStructurizr",
-                "DiagramKitPlantUML",
-                "DiagramKitInteractive",
-                .product(name: "IssueReporting", package: "xctest-dynamic-overlay")
-            ],
-            // No `path:` — SwiftPM's default Sources/<TargetName>/ convention applies.
-            resources: [
-                .process("Resources")
-            ],
-            swiftSettings: strictConcurrencySettings + [
-                // SwiftPM debug builds define DEBUG and expand SwiftUI
-                // #Preview macros, but the preview macro plugin is only
-                // available in the Xcode app-preview build path.
-                .define("DIAGRAMKIT_SWIFTPM")
-            ]
-        ),
         .testTarget(
             name: "DiagramKitTests",
             dependencies: [
@@ -212,8 +180,6 @@ let package = Package(
                 "DiagramKitMermaid",
                 "DiagramKitInteractive",
                 "DiagramKitTestSupport",
-                "DiagramKitSample",
-                .product(name: "DesignKitThemes", package: "DesignKit"),
                 "DiagramKitD2",
                 "DiagramKitGraphviz",
                 "DiagramKitStructurizr",
@@ -224,12 +190,21 @@ let package = Package(
             ],
             exclude: [
                 "__Snapshots__",
-                "DesignSystem/__Snapshots__",
                 // RoundTrip fixtures are loaded directly from the source tree
                 // via `#filePath`, not from the test bundle. Excluding them
                 // here avoids SwiftPM's "unhandled file" warnings for the
                 // `.md` / `.puml` / `.d2` / `.dot` / `.dsl` corpus files.
-                "RoundTrip/Resources"
+                "RoundTrip/Resources",
+                // The diagram corpus fixture (test-diagrams.json, ~430
+                // entries) is loaded directly from the source tree via
+                // `#filePath` by several corpus-driven suites (e.g.
+                // CorpusSnapshotTests, RoundTrip/CorpusRoundTripTests), not
+                // through SwiftPM's resource bundle. It's duplicated here
+                // (rather than left only under the sample app) so DiagramKit
+                // stays buildable and testable standalone after the sample's
+                // extraction to apps/DiagramStudio; keep the two copies in
+                // sync when the corpus changes.
+                "Resources"
             ],
             swiftSettings: strictConcurrencySettings
         ),

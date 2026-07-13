@@ -21,7 +21,7 @@ final class WardleyMapEndToEndTests: XCTestCase {
             .deletingLastPathComponent()  // Tests/DiagramKitTests/
             .deletingLastPathComponent()  // Tests/
             .deletingLastPathComponent()  // repo root
-            .appendingPathComponent("Sources/DiagramKitSample/Resources/test-diagrams.json")
+            .appendingPathComponent("Tests/DiagramKitTests/Resources/test-diagrams.json")
         let data = try Data(contentsOf: url)
         let file = try JSONDecoder().decode(DiagramFile.self, from: data)
         let wardleyExamples = file.diagrams.filter { $0.category == "wardleyBeta" }
