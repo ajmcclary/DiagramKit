@@ -83,8 +83,8 @@ The entire package compiles under `swiftLanguageModes: [.v6]` with the `StrictCo
 | Component | Minimum |
 |---|---|
 | Swift tools | 6.3 |
-| macOS | 26 |
-| iOS | 26 |
+| macOS | 14 |
+| iOS | 17 |
 | Linux | `swift:6.3.1-noble` (parse + layout + SVG/ASCII rendering; no CG image output) |
 
 ---

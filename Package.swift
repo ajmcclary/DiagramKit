@@ -13,14 +13,19 @@ let strictConcurrencySettings: [SwiftSetting] = [
 let package = Package(
     name: "DiagramKit",
     platforms: [
-        // 26.3 floor: previously inherited from an in-package sample app's
-        // external code-editor dependency. That sample was extracted to
-        // apps/DiagramStudio in the workspace reorganization (see git
-        // history), but the floor itself is retained here unchanged —
-        // lowering it is a separate, deliberate decision outside the scope
-        // of that extraction.
-        .macOS("26.3"),
-        .iOS("26.3")
+        // Floor: macOS 14 / iOS 17 — the deployment target of the Observation
+        // framework's `@Observable` macro, applied to `DiagramEditor` in
+        // `DiagramKitInteractive`. That is the highest OS requirement any
+        // first-party API in the package genuinely imposes: the package builds
+        // and its full test suite passes at this floor, and drops to a hard
+        // `'Observable()' is only available in macOS 14.0 or newer` error at
+        // macOS 13 / iOS 16. The previous macOS 26.3 / iOS 26.3 floor was
+        // inherited from the former in-package sample app's external
+        // code-editor dependency (the sample was extracted to
+        // apps/DiagramStudio in the workspace reorganization) and was never a
+        // real API requirement of DiagramKit itself.
+        .macOS(.v14),
+        .iOS(.v17)
     ],
     products: [
         .library(name: "DiagramKit", targets: ["DiagramKit"]),

@@ -2,6 +2,19 @@
 
 All notable changes to DiagramKit are documented in this file.
 
+## [Unreleased]
+
+### Changed
+
+- Lowered the package platform floor from macOS 26.3 / iOS 26.3 to
+  macOS 14 / iOS 17. The old floor was inherited from the former in-package
+  sample app's external code-editor dependency (the sample now lives at
+  `apps/DiagramStudio` in the workspace superproject) and was never a real
+  API requirement. macOS 14 / iOS 17 is the genuine minimum: the Observation
+  framework's `@Observable` macro on `DiagramEditor` (`DiagramKitInteractive`)
+  is the highest-versioned first-party API in the package, and the full build
+  and test suite pass at that floor.
+
 ## [0.1.0-beta.1] - 2026-07-13
 
 First documented prerelease.
