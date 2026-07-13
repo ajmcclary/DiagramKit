@@ -391,4 +391,4 @@ need.
 | Structurizr | `Sources/DiagramKitStructurizr/StructurizrImporter.swift` (+ parser/mapper) | `Sources/DiagramKitStructurizr/StructurizrExporter.swift` |
 | PlantUML | `Sources/DiagramKitPlantUML/PlantUMLImporter.swift` (+ per-family parsers, `PlantUMLFamilyProbe.swift`) | `Sources/DiagramKitPlantUML/Exporter/PlantUMLExporter.swift` + per-family exporters |
 | Round-trip fixtures | — | `Tests/DiagramKitTests/RoundTrip/Resources/roundtrip/` |
-| Corpus | — | `Sources/DiagramKitSample/Resources/test-diagrams.json` (424 entries: 397 Mermaid + 27 multi-format) |
+| Corpus | — | `Tests/DiagramKitTests/Resources/test-diagrams.json` (424 entries: 397 Mermaid + 27 multi-format) |

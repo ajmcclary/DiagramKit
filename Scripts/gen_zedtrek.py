@@ -5,8 +5,11 @@ Reads the Zed theme file `zed-trek.json` (the design project
 50c9c2ef-8ed4-445e-870e-0273e3d082fc, `themes/zed-trek.json` — 20 entries,
 10 families × light/dark) and emits, to stdout:
 
-  1. CHROME dark/light dict entries → paste into
-     Sources/DiagramKitSample/Views/DesignSystem/PlaygroundPalette+ZedTrekFamily.swift
+  1. CHROME dark/light dict entries — historically pasted into the sample
+     app's PlaygroundPalette+ZedTrekFamily.swift. That file was retired in
+     the DesignKit migration (chrome palettes now come from the external
+     DesignKit package), and the sample app itself now lives outside this
+     repo at apps/DiagramStudio in the workspace superproject.
   2. CANVAS `DiagramTheme` statics + `allThemes` rows → paste into
      Sources/DiagramKitModel/Theme+ZedTrek.swift
 

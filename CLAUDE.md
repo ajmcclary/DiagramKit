@@ -38,12 +38,13 @@ overlap, preserve the constraints here and use the other docs for detail.
 ## Commands
 
 ```bash
-swift build                                         # library + playground
+swift build                                         # library targets
 swift build --build-tests                           # also compile tests
 swift test --filter <NameOrPattern>                 # one suite/test
 swift test --filter CorpusSnapshotTests             # corpus snapshots (~5 min; see caveats)
 SNAPSHOT_DIAGRAM_IDS=block-1-simple,block-2-columns swift test --filter CorpusSnapshotTests/imageSnapshot
-swift run DiagramKitSample                          # SwiftUI sample app
+# Sample app: external to this repo — apps/DiagramStudio in the workspace
+# superproject (cd apps/DiagramStudio && swift run DiagramStudio).
 
 # Rebaseline snapshots after a renderer change (chunked to avoid signal-10):
 Scripts/rebaseline-snapshots.sh                     # all SVG + image
@@ -82,8 +83,10 @@ DiagramKit                 (umbrella)       - public API + re-exports (DiagramKi
 ```
 
 `DiagramKit` re-exports the lower targets through `ReExports.swift`. The
-package-wide `platforms:` floor is macOS 26.3 + iOS 26.3 (raised to match
-CodeEditorPlugin, the sample app's code editor); Apple-only targets like
+package-wide `platforms:` floor is macOS 26.3 + iOS 26.3 (historically
+raised to match the now-extracted sample app's external code-editor
+dependency; retained unchanged after the sample moved to
+`apps/DiagramStudio` in the workspace superproject); Apple-only targets like
 `DiagramKitRenderingCG`, `DiagramKitViews`, and `DiagramKitInteractive` are
 gated at the source level with `#if canImport(UIKit) || canImport(AppKit)` /
 `#if canImport(CoreGraphics)` and compile to empty on Linux.
@@ -136,9 +139,10 @@ gated at the source level with `#if canImport(UIKit) || canImport(AppKit)` /
   layouts. Scope: this invariant applies to `Sources/DiagramKit*/` production
   code on the parse/layout/render path. Test suites
   (`MermaidPipelineConcurrencyTests` exercises the engine under
-  `withThrowingTaskGroup` to validate determinism) and the
-  `DiagramKitSample` sample app (`Task.detached`, `async let` for UI
-  loading) are explicitly out of scope. Narrow `DispatchQueue` caches
+  `withThrowingTaskGroup` to validate determinism) and the sample app
+  (formerly the in-package `DiagramKitSample` target, now external at
+  `apps/DiagramStudio` in the workspace superproject; `Task.detached`,
+  `async let` for UI loading) are explicitly out of scope. Narrow `DispatchQueue` caches
   serializing a single regex/formatter cache inside a parser
   (e.g. `_dateFormatterCacheQueue`, `_reqRegexCacheQueue`) are not
   pools and are allowed.
@@ -252,17 +256,17 @@ outside the defining module.
 - `Sources/DiagramKitInteractive/` - Apple-only `DiagramEditor` plus
   mutation/undo support.
 - `Sources/DiagramKitTestSupport/` - Linux-portable test helpers.
-- `Sources/DiagramKitSample/` - SwiftUI sample app (executable target
-  `DiagramKitSample`) and the current `test-diagrams.json` corpus source.
-  App chrome consumes the external DesignKit package (`DesignKitTokens`/
-  `DesignKitThemes`); app-private design-system components live in
-  `Sources/DiagramKitSample/DesignSystem/`. The code editor in `EditorPane`
-  is CodeEditorPlugin's `CodeEditor` (URL dependency tracking `main` until
-  that repo tags a release; diagram-DSL languages
-  mermaid/d2/dot/structurizr/plantuml live there). The old NativeCodeEditor/LineNumberRuler/EditorMinimap/
-  DiagramSyntaxHighlighter were removed in the 2026-07-13 migration. Diagram/canvas theming
-  (`DiagramTheme`, `Theme+ZedTrek.swift`) is independent of DesignKit;
-  canvas-follows-chrome syncs by theme display name (contract-tested).
+- The SwiftUI sample app (formerly `Sources/DiagramKitSample/`, executable
+  target `DiagramKitSample`) is **external to this repo**: it lives at
+  `apps/DiagramStudio` in the workspace superproject and consumes DiagramKit
+  via a path dependency. Its `test-diagrams.json` copy mirrors this repo's
+  `Tests/DiagramKitTests/Resources/test-diagrams.json` (keep in sync). App
+  chrome consumes the external DesignKit package (`DesignKitTokens`/
+  `DesignKitThemes`); the code editor is CodeEditorPlugin's `CodeEditor`
+  (diagram-DSL languages mermaid/d2/dot/structurizr/plantuml live there).
+  Diagram/canvas theming (`DiagramTheme`, `Theme+ZedTrek.swift`) stays in
+  this repo and is independent of DesignKit; canvas-follows-chrome syncs by
+  theme display name (contract-tested in the app's test suite).
 - `Tests/DiagramKitTests/` - XCTest and swift-testing suites plus corpus
   snapshots.
 - `Tests/DiagramKitLinuxTests/` - Linux-portable swift-testing suite that
@@ -275,7 +279,7 @@ outside the defining module.
 ## Testing And Snapshots
 
 - Current test source count: 299 Swift files (297 under `Tests/DiagramKitTests`, 2 under `Tests/DiagramKitLinuxTests`). The 15-file XCUI accessibility bundle was removed alongside the 2026-05-18 sample-app relocation; the Xcode-side accessibility audit is no longer gated.
-- The corpus is `Sources/DiagramKitSample/Resources/test-diagrams.json` with
+- The corpus is `Tests/DiagramKitTests/Resources/test-diagrams.json` with
   430 entries (401 Mermaid-only + 29 multi-format: D2, DOT, Structurizr, PlantUML).
 - Corpus baselines under `Tests/DiagramKitTests/__Snapshots__/` track
   443 SVG, 443 image, and 430 ASCII snapshots (1316 total; stored on

@@ -277,7 +277,7 @@ For the full architectural breakdown — the three-stage pipeline, the worker-th
 
 ## Corpus and snapshot testing
 
-The test corpus at `Sources/DiagramKitSample/Resources/test-diagrams.json` contains **424 entries** (397 Mermaid-only + 27 multi-format with D2, DOT, Structurizr, and PlantUML sources). Snapshot baselines live under `Tests/DiagramKitTests/__Snapshots__/`:
+The test corpus at `Tests/DiagramKitTests/Resources/test-diagrams.json` contains **424 entries** (397 Mermaid-only + 27 multi-format with D2, DOT, Structurizr, and PlantUML sources). Snapshot baselines live under `Tests/DiagramKitTests/__Snapshots__/`:
 
 | Kind | Count | Description |
 |---|---|---|
@@ -362,13 +362,13 @@ All public entry points use Diagram-prefixed names. Mermaid-prefixed compatibili
 
 ---
 
-## Running the sample app
+## Sample app
+
+The SwiftUI sample/playground app formerly bundled here as the `DiagramKitSample` executable now lives outside this repo, at `apps/DiagramStudio` in the workspace superproject. It exercises every diagram family and renderer and serves as the live-editing front-end for the test corpus. Run it from the superproject:
 
 ```bash
-swift run DiagramKitSample
+cd apps/DiagramStudio && swift run DiagramStudio
 ```
-
-The SwiftUI sample app in `Sources/DiagramKitSample/` exercises every diagram family and renderer, and serves as the live-editing front-end for the test corpus.
 
 ---
 

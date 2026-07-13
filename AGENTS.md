@@ -32,12 +32,13 @@ Apple-only edges to `DiagramKitRenderingCG`, `DiagramKitViews`, and
 ## Commands
 
 ```bash
-swift build                                         # library + playground
+swift build                                         # library targets
 swift build --build-tests                           # compile tests
 swift test --filter <NameOrPattern>                 # one suite/test
 swift test --filter CorpusSnapshotTests             # corpus snapshots (~5 min; see caveats)
 SNAPSHOT_DIAGRAM_IDS=block-1-simple,block-2-columns swift test --filter CorpusSnapshotTests/imageSnapshot
-swift run DiagramKitSample                          # SwiftUI sample app
+# Sample app: external to this repo — apps/DiagramStudio in the workspace
+# superproject (cd apps/DiagramStudio && swift run DiagramStudio).
 
 # Record/refresh snapshot baselines:
 SNAPSHOT_TESTING_RECORD=true swift test --filter CorpusSnapshotTests
@@ -113,7 +114,7 @@ empty; the completed roadmap lives in [docs/archive/PHASES.md](docs/archive/PHAS
 - Test sources: 299 Swift files under `Tests/DiagramKitTests`
   (301 total incl. `Tests/DiagramKitLinuxTests`). The XCUI bundle was
   removed alongside the 2026-05-18 sample-app relocation.
-- Corpus: `Sources/DiagramKitSample/Resources/test-diagrams.json`
+- Corpus: `Tests/DiagramKitTests/Resources/test-diagrams.json`
   (424 entries: 397 Mermaid-only + 27 multi-format with D2, DOT, Structurizr, PlantUML sources).
 - Snapshot baselines:
   - SVG: 437 (424 Mermaid corpus + 13 non-Mermaid multi-format)

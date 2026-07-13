@@ -110,7 +110,7 @@ Emission sites use the typed `DiagramDiagnostic.lossyTransform(.<category>, ...)
 Scope. This invariant covers `Sources/DiagramKit*/` parse/layout/render code. It does **not** cover:
 
 - **Tests** — `Tests/DiagramKitTests/MermaidPipelineConcurrencyTests.swift` deliberately drives `DiagramEngine` from `withThrowingTaskGroup` to validate determinism under concurrent callers.
-- **The `DiagramKitSample` sample app** — UI work uses `Task.detached`, `async let`, and `DispatchQueue.main.async` for syntax highlighting, history persistence, and file loading.
+- **The sample app** (formerly the in-package `DiagramKitSample` target, now external at `apps/DiagramStudio` in the workspace superproject) — UI work uses `Task.detached`, `async let`, and `DispatchQueue.main.async` for syntax highlighting, history persistence, and file loading.
 - **Narrow per-parser caches** — `_dateFormatterCacheQueue` (`src_gantt_parser.swift`) and `_reqRegexCacheQueue` (`src_requirement_parser.swift`) are single-element `DispatchQueue` serializers around `DateFormatter` / `NSRegularExpression` reuse, not pools.
 
 Grep audits that surface `TaskGroup` / `Task.detached` / `DispatchQueue` should consult this scope before flagging hits as policy violations.
