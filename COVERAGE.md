@@ -116,11 +116,11 @@ covered (family × format) intersection. Closure landed across four waves
 of two specs (plus PlantUML deployment dialect and Wave E):
 
 - **Waves A/B/C** of
-  [docs/superpowers/specs/2026-05-20-coverage-marker-recovery-design.md](docs/superpowers/specs/2026-05-20-coverage-marker-recovery-design.md)
+  [docs/archive/package/DiagramKit/superpowers/specs/2026-05-20-coverage-marker-recovery-design.md](docs/archive/package/DiagramKit/superpowers/specs/2026-05-20-coverage-marker-recovery-design.md)
   closed every export-side `⚠` via the comment-encoded recovery-marker
   pattern (Structurizr-style pre-lexer scan + positional correlation).
 - **Wave D** of
-  [docs/superpowers/specs/2026-05-20-import-coverage-residuals-design.md](docs/superpowers/specs/2026-05-20-import-coverage-residuals-design.md)
+  [docs/archive/package/DiagramKit/superpowers/specs/2026-05-20-import-coverage-residuals-design.md](docs/archive/package/DiagramKit/superpowers/specs/2026-05-20-import-coverage-residuals-design.md)
   closed every import-side `⚠`:
   - Class-family residuals (3 cells): D2/DOT class `link`/`tooltip`/`style`
     routed into `ClassNode.link`/`.tooltip`/`.styles`; PlantUML
@@ -146,7 +146,7 @@ of two specs (plus PlantUML deployment dialect and Wave E):
   Mermaid architecture emits `.lossyTransform(.shapeDowngrade, …)`
   per non-`.service` kind. No new `DiagnosticCategory` cases; reuses
   `.shapeDowngrade` / `.slotUnsupported`. Closes
-  [`docs/superpowers/specs/2026-05-20-plantuml-deployment-design.md`](docs/superpowers/specs/2026-05-20-plantuml-deployment-design.md).
+  [`docs/archive/package/DiagramKit/superpowers/specs/2026-05-20-plantuml-deployment-design.md`](docs/archive/package/DiagramKit/superpowers/specs/2026-05-20-plantuml-deployment-design.md).
 - **Wave E — D2 + DOT architecture / mindmap / treeView.** D2 and
   DOT each gain three families (no matrix `⚠` involved; all three
   were `—`). Detection: structural probe for architecture (≥2
@@ -162,7 +162,7 @@ of two specs (plus PlantUML deployment dialect and Wave E):
   kind-based encoding via reciprocal `iconForKind`/`kindForIcon`
   helpers on both mappers. No new `DiagnosticCategory` cases; reuses
   `.shapeDowngrade` / `.slotUnsupported` / `.idSanitization`. Closes
-  [`docs/superpowers/specs/2026-05-20-d2-dot-coverage-wave-e-design.md`](docs/superpowers/specs/2026-05-20-d2-dot-coverage-wave-e-design.md).
+  [`docs/archive/package/DiagramKit/superpowers/specs/2026-05-20-d2-dot-coverage-wave-e-design.md`](docs/archive/package/DiagramKit/superpowers/specs/2026-05-20-d2-dot-coverage-wave-e-design.md).
 - **Wave G — D2 + DOT c4.** D2 and DOT each gain one family (no matrix
   `⚠` involved; all four cells were `—`). Detection: marker-forced
   (`# diagramkit:family=c4`) or presence-of-any-c4-marker structural
@@ -182,7 +182,7 @@ of two specs (plus PlantUML deployment dialect and Wave E):
   `DiagnosticCategory` cases; reuses `.shapeDowngrade` /
   `.styleDrop` / `.slotUnsupported` / `.idSanitization`. No new
   `RoundTripLoss` cases. Closes
-  [`docs/superpowers/specs/2026-05-21-d2-dot-c4-design.md`](docs/superpowers/specs/2026-05-21-d2-dot-c4-design.md).
+  [`docs/archive/package/DiagramKit/superpowers/specs/2026-05-21-d2-dot-c4-design.md`](docs/archive/package/DiagramKit/superpowers/specs/2026-05-21-d2-dot-c4-design.md).
 - **Wave F — D2 sequenceDiagram.** D2 gains one family (no matrix `⚠`
   involved; the cell was `—`). Detection: structural probe for a
   top-level `shape: sequence_diagram` declaration plus marker-forced
@@ -202,7 +202,7 @@ of two specs (plus PlantUML deployment dialect and Wave E):
   autonumber, title). No new `DiagnosticCategory` cases; reuses
   `.shapeDowngrade` / `.styleDrop` / `.idSanitization` /
   `.slotUnsupported`. No new `RoundTripLoss` cases. Closes
-  [`docs/superpowers/specs/2026-05-21-d2-sequence-design.md`](docs/superpowers/specs/2026-05-21-d2-sequence-design.md).
+  [`docs/archive/package/DiagramKit/superpowers/specs/2026-05-21-d2-sequence-design.md`](docs/archive/package/DiagramKit/superpowers/specs/2026-05-21-d2-sequence-design.md).
 - **Wave H — PlantUML treeView (WBS + JSON + YAML).** PlantUML gains
   one family (no matrix `⚠` involved; the cell was `—`). Detection:
   marker-forced via outer-probe start keywords (`@startwbs`,
@@ -233,7 +233,7 @@ of two specs (plus PlantUML deployment dialect and Wave E):
   new `DiagnosticCategory` cases; reuses `.slotUnsupported` /
   `.idSanitization` / `.accessibilityDrop`. No new `RoundTripLoss`
   cases. Closes
-  [`docs/superpowers/specs/2026-05-21-plantuml-treeview-design.md`](docs/superpowers/specs/2026-05-21-plantuml-treeview-design.md).
+  [`docs/archive/package/DiagramKit/superpowers/specs/2026-05-21-plantuml-treeview-design.md`](docs/archive/package/DiagramKit/superpowers/specs/2026-05-21-plantuml-treeview-design.md).
 - **Wave J — D2 + DOT block.** D2 and DOT each gain one family (no
   matrix `⚠` involved; both cells were `—`). Detection: marker-forced
   via `# diagramkit:family=block`, or marker-presence structural
@@ -255,7 +255,7 @@ of two specs (plus PlantUML deployment dialect and Wave E):
   markers without exercising new logic). No new `DiagnosticCategory`
   cases; reuses `.shapeDowngrade` / `.styleDrop` / `.slotUnsupported`
   / `.idSanitization`. No new `RoundTripLoss` cases. Closes
-  [`docs/superpowers/specs/2026-05-21-d2-dot-block-design.md`](docs/superpowers/specs/2026-05-21-d2-dot-block-design.md).
+  [`docs/archive/package/DiagramKit/superpowers/specs/2026-05-21-d2-dot-block-design.md`](docs/archive/package/DiagramKit/superpowers/specs/2026-05-21-d2-dot-block-design.md).
 - **Wave I — treeView synthetic-root bridge.** Mermaid ↔ {D2, DOT,
   PlantUML} treeView cross-format paths gain bidirectional convention
   bridging (no matrix `⚠` involved; the convention mismatch had been
@@ -269,7 +269,7 @@ of two specs (plus PlantUML deployment dialect and Wave E):
   One new `RoundTripLoss.syntheticRootFlattened` case (PlantUML-only
   trigger — D2/DOT preserve forests losslessly). No new
   `DiagnosticCategory` cases (reuses `.slotUnsupported`). Closes
-  [`docs/superpowers/specs/2026-05-21-treeview-synthetic-root-bridge-design.md`](docs/superpowers/specs/2026-05-21-treeview-synthetic-root-bridge-design.md).
+  [`docs/archive/package/DiagramKit/superpowers/specs/2026-05-21-treeview-synthetic-root-bridge-design.md`](docs/archive/package/DiagramKit/superpowers/specs/2026-05-21-treeview-synthetic-root-bridge-design.md).
 
 The only new public surface across Wave D is the
 `ArchitectureServiceKind` enum (`service` / `component` / `interface`)

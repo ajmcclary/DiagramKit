@@ -55,9 +55,9 @@ Last updated: 2026-05-20
     were updated in the same line of work (per the project's "fix
     pre-existing failures, don't document" practice).
   - Spec:
-    [docs/superpowers/specs/2026-05-20-import-coverage-residuals-design.md](docs/superpowers/specs/2026-05-20-import-coverage-residuals-design.md).
+    [docs/archive/package/DiagramKit/superpowers/specs/2026-05-20-import-coverage-residuals-design.md](docs/archive/package/DiagramKit/superpowers/specs/2026-05-20-import-coverage-residuals-design.md).
     Plan:
-    [docs/superpowers/plans/2026-05-20-import-coverage-residuals-plan.md](docs/superpowers/plans/2026-05-20-import-coverage-residuals-plan.md).
+    [docs/archive/package/DiagramKit/superpowers/plans/2026-05-20-import-coverage-residuals-plan.md](docs/archive/package/DiagramKit/superpowers/plans/2026-05-20-import-coverage-residuals-plan.md).
 
 ## Coverage marker recovery — Wave C (PlantUML recovery markers)
 
@@ -182,7 +182,7 @@ Last updated: 2026-05-20
   `{.idSanitization, .c4SlotDrop}`. The four cross-cells
   `mermaidStructurizrC4`, `structurizrMermaidC4`, `plantumlStructurizrC4`,
   `structurizrPlantumlC4` each remove `.boundaryFlatten`. Spec
-  [docs/superpowers/specs/2026-05-19-coverage-expansion-design.md](docs/superpowers/specs/2026-05-19-coverage-expansion-design.md)
+  [docs/archive/package/DiagramKit/superpowers/specs/2026-05-19-coverage-expansion-design.md](docs/archive/package/DiagramKit/superpowers/specs/2026-05-19-coverage-expansion-design.md)
   Wave 3 row is closed.
 
 ## Coverage expansion — Wave 2 (D2 + DOT)
@@ -211,7 +211,7 @@ Last updated: 2026-05-20
   (19 unordered): three families × three unordered pairs ×
   bidirectional = 18 new directed pairs. No corpus growth, no snapshot
   baseline changes. Spec
-  [docs/superpowers/specs/2026-05-19-coverage-expansion-design.md](docs/superpowers/specs/2026-05-19-coverage-expansion-design.md).
+  [docs/archive/package/DiagramKit/superpowers/specs/2026-05-19-coverage-expansion-design.md](docs/archive/package/DiagramKit/superpowers/specs/2026-05-19-coverage-expansion-design.md).
 
 ## Coverage expansion — Wave 1 (PlantUML)
 
@@ -232,7 +232,7 @@ Last updated: 2026-05-20
   (10 unordered). Architecture and alt-idiom cross-format pairs
   remain deferred — they require new RoundTripLoss kinds outside
   Wave 1's "no new categories" constraint. Spec
-  [docs/superpowers/specs/2026-05-19-coverage-expansion-design.md](docs/superpowers/specs/2026-05-19-coverage-expansion-design.md).
+  [docs/archive/package/DiagramKit/superpowers/specs/2026-05-19-coverage-expansion-design.md](docs/archive/package/DiagramKit/superpowers/specs/2026-05-19-coverage-expansion-design.md).
 
 For the closed Critical-finding/commit map, the 2026-05-14 rebaseline
 event log, and the post-remediation feature-work table, see
@@ -317,7 +317,7 @@ extension; image snapshots are `.png`. The split below is by snapshot
   invariant. `CorpusRoundTripTests` passes for every Mermaid corpus
   entry in the now-fully-supported set with no additions to
   `knownFailures`. Spec
-  [docs/superpowers/specs/2026-05-19-mermaid-exporter-completion-design.md](docs/superpowers/specs/2026-05-19-mermaid-exporter-completion-design.md)
+  [docs/archive/package/DiagramKit/superpowers/specs/2026-05-19-mermaid-exporter-completion-design.md](docs/archive/package/DiagramKit/superpowers/specs/2026-05-19-mermaid-exporter-completion-design.md)
   is closed.
 - **2026-05-19 — Wave 2 (9 families):** Mermaid Export column moves
   from 16/28 to 25/28. New exporters: `xyChart`, `quadrantChart`,
@@ -349,7 +349,7 @@ extension; image snapshots are `.png`. The split below is by snapshot
   `radar`, `venn`, `ishikawa`, `zenuml`, `treeView`,
   `eventModeling`) and Wave 3 (`block`, `architecture`,
   `wardleyBeta`) plans land in
-  `docs/superpowers/plans/`.
+  `docs/archive/package/DiagramKit/superpowers/plans/`.
 
 ## Open deferrals
 

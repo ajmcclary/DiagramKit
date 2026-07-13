@@ -111,5 +111,5 @@ Exporters specifically must NOT throw `DiagramError.malformedSource` — emit
 - Self-test driver: `Scripts/check-diagnostic-discipline-tests/run.sh`
 - Allowlist: `.diagnostic-discipline-allowlist.txt`
 - Round-trip pairing: `RoundTripHarness.diagnosticsCover` in `Sources/DiagramKitTestSupport/`
-- Spec: `docs/superpowers/specs/2026-05-15-diagnostic-severity-discipline-design.md`
-- Plan: `docs/superpowers/plans/2026-05-15-diagnostic-severity-discipline.md`
+- Spec: `docs/archive/package/DiagramKit/superpowers/specs/2026-05-15-diagnostic-severity-discipline-design.md`
+- Plan: `docs/archive/package/DiagramKit/superpowers/plans/2026-05-15-diagnostic-severity-discipline.md`
