@@ -13,14 +13,14 @@ import DesignKitThemes
 struct RearrangePopover: View {
     @Bindable var store: LiveEditorStore
     let dismiss: () -> Void
-    @Environment(\.dsEnvironment) private var environment
+    @Environment(\.designTheme) private var theme
 
     private var current: LayoutPreset {
         store.editor?.document.frontmatter?.layout == "adaptive" ? .adaptive : .hierarchical
     }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: DSTokens.Spacing.smMd) {
+        VStack(alignment: .leading, spacing: Tokens.Spacing.smMd) {
             Text("Rearrange layout")
                 .dsFont(.headline)
             card(
@@ -45,29 +45,29 @@ struct RearrangePopover: View {
             dismiss()
             Task { await store.applyLayoutPreset(preset) }
         } label: {
-            HStack(spacing: DSTokens.Spacing.smMd) {
+            HStack(spacing: Tokens.Spacing.smMd) {
                 Label(title, systemImage: symbol)
                     .labelStyle(.iconOnly)
                     .dsFont(.headline)
-                    .frame(width: DSTokens.Control.rowCompact)
-                VStack(alignment: .leading, spacing: DSTokens.Spacing.xxxs) {
+                    .frame(width: Tokens.Size.Control.rowCompact)
+                VStack(alignment: .leading, spacing: Tokens.Spacing.xxxs) {
                     Text(title).dsFont(.body)
                     Text(detail)
                         .dsFont(.caption2)
-                        .foregroundStyle(environment.theme.colors.textSecondary.color)
+                        .foregroundStyle(theme.colors.textSecondary.color)
                 }
                 Spacer()
                 if current == preset {
-                    DSIconView(.success, size: DSTokens.Icon.micro, colorRole: .success)
+                    DSIconView(.success, size: Tokens.Size.Icon.micro, colorRole: .success)
                 }
             }
-            .padding(DSTokens.Spacing.sm)
+            .padding(Tokens.Spacing.sm)
             .background(
-                RoundedRectangle(cornerRadius: DSTokens.Radius.sm, style: .continuous)
+                RoundedRectangle(cornerRadius: Tokens.Shape.radiusSM, style: .continuous)
                     .fill(
                         current == preset
-                            ? environment.theme.colors.elementSelected.color
-                            : environment.theme.colors.element.color
+                            ? theme.colors.elementSelected.color
+                            : theme.colors.element.color
                     )
             )
         }

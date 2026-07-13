@@ -42,7 +42,7 @@ struct LiveEditorToolbar: ToolbarContent {
             .popover(isPresented: $showingTheme) {
                 DSGlassSurface(role: .popover) {
                     ThemePicker(store: store)
-                        .padding(DSTokens.Spacing.lg)
+                        .padding(Tokens.Spacing.lg)
                         .frame(width: 280)
                 }
             }
@@ -55,7 +55,7 @@ struct LiveEditorToolbar: ToolbarContent {
             .popover(isPresented: $showingView) {
                 DSGlassSurface(role: .popover) {
                     ViewOptionsPanel(store: store)
-                        .padding(DSTokens.Spacing.lg)
+                        .padding(Tokens.Spacing.lg)
                         .frame(width: 220)
                 }
             }
@@ -129,10 +129,10 @@ struct LiveEditorToolbar: ToolbarContent {
                     DSIconView(.settings)
                 }
                 .menuStyle(.button)
-                .frame(minWidth: DSTokens.Touch.iOS, minHeight: DSTokens.Touch.iOS)
+                .frame(minWidth: Tokens.Size.Touch.min, minHeight: Tokens.Size.Touch.min)
                 .a11y(label: "More actions", id: A11yID.Toolbar.actions)
             } else {
-                HStack(spacing: DSTokens.Spacing.xxs) {
+                HStack(spacing: Tokens.Spacing.xxs) {
                     DSIconButton(.theme, label: "Theme") { showingTheme = true }
                         .a11y(label: "Theme", id: A11yID.Toolbar.theme)
                     DSIconButton(.image, label: "View options") { showingView = true }
@@ -157,7 +157,7 @@ struct LiveEditorToolbar: ToolbarContent {
         .sheet(isPresented: $showingTheme) {
             NavigationStack {
                 ThemePicker(store: store)
-                    .padding(DSTokens.Spacing.xl)
+                    .padding(Tokens.Spacing.xl)
                     .navigationTitle("Theme")
                     .navigationBarTitleDisplayMode(.inline)
                     .toolbar {
@@ -172,7 +172,7 @@ struct LiveEditorToolbar: ToolbarContent {
         .sheet(isPresented: $showingView) {
             NavigationStack {
                 ViewOptionsPanel(store: store)
-                    .padding(DSTokens.Spacing.xl)
+                    .padding(Tokens.Spacing.xl)
                     .navigationTitle("View")
                     .navigationBarTitleDisplayMode(.inline)
                     .toolbar {
@@ -210,7 +210,7 @@ struct ViewOptionsPanel: View {
 
     var body: some View {
         DSSurface(role: .panel) {
-            VStack(alignment: .leading, spacing: DSTokens.Spacing.md) {
+            VStack(alignment: .leading, spacing: Tokens.Spacing.md) {
             Toggle(isOn: $store.state.gridEnabled) {
                 Text("Grid overlay")
             }
@@ -220,7 +220,7 @@ struct ViewOptionsPanel: View {
             }
             .toggleStyle(.ds)
             }
-            .padding(DSTokens.Spacing.md)
+            .padding(Tokens.Spacing.md)
             .frame(maxWidth: .infinity, alignment: .leading)
         }
     }

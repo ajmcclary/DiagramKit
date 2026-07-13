@@ -14,27 +14,27 @@ import DesignKitThemes
 
 struct QuickFixCard: View {
     @Bindable var store: LiveEditorStore
-    @Environment(\.dsEnvironment) private var environment
+    @Environment(\.designTheme) private var theme
 
     var body: some View {
         if let line = store.state.biSelLine,
            let diagnostic = matching(line: line) {
             DSSurface(role: .popover) {
-            VStack(alignment: .leading, spacing: DSTokens.Spacing.xs) {
-                HStack(spacing: DSTokens.Spacing.xs) {
-                    DSIconView(.success, size: DSTokens.Icon.xs, colorRole: .info)
+            VStack(alignment: .leading, spacing: Tokens.Spacing.xs) {
+                HStack(spacing: Tokens.Spacing.xs) {
+                    DSIconView(.success, size: Tokens.Size.Icon.xs, colorRole: .info)
                     Text("Quick fix")
                         .dsFont(.headline)
                     Spacer()
                     Text("line \(line + 1)")
                         .dsFont(.metric)
-                        .foregroundStyle(environment.theme.colors.textSecondary.color)
+                        .foregroundStyle(theme.colors.textSecondary.color)
                 }
                 Text(diagnostic.message)
                     .dsFont(.caption2)
-                    .foregroundStyle(environment.theme.colors.textPrimary.color)
+                    .foregroundStyle(theme.colors.textPrimary.color)
                     .lineLimit(3)
-                HStack(spacing: DSTokens.Spacing.xs) {
+                HStack(spacing: Tokens.Spacing.xs) {
                     Button("Rename label") {
                         store.setVisualStage(.labelEdited)
                     }
@@ -45,7 +45,7 @@ struct QuickFixCard: View {
                     .buttonStyle(.ds(role: .secondary, size: .compact))
                 }
             }
-            .padding(DSTokens.Spacing.md)
+            .padding(Tokens.Spacing.md)
             }
             .frame(width: 280)
             .accessibilityIdentifier(A11yID.Visual.quickFixCard)

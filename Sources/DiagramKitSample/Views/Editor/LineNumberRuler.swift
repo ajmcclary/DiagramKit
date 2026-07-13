@@ -23,7 +23,7 @@ final class LineNumberRulerView: NSRulerView {
 
     // MARK: - Configuration
 
-    var theme: DSTheme = .lcarsDark {
+    var theme: Theme = .lcarsDark {
         didSet { needsDisplay = true }
     }
 
@@ -42,7 +42,7 @@ final class LineNumberRulerView: NSRulerView {
     // MARK: - Metrics
 
     private let font = NSFont.monospacedDigitSystemFont(
-        ofSize: DSTokens.Typography.caption2,
+        ofSize: Tokens.Typography.Size.captionMD,
         weight: .regular
     )
     private let diagnosticDotRadius: CGFloat = 3.5
@@ -203,7 +203,7 @@ import UIKit
 @MainActor
 final class LineNumberRulerView: UIView {
 
-    var theme: DSTheme = .lcarsDark {
+    var theme: Theme = .lcarsDark {
         didSet { setNeedsDisplay() }
     }
 
@@ -221,7 +221,7 @@ final class LineNumberRulerView: UIView {
     weak var textView: UITextView?
 
     private let font = UIFont.monospacedDigitSystemFont(
-        ofSize: DSTokens.Typography.caption2,
+        ofSize: Tokens.Typography.Size.captionMD,
         weight: .regular
     )
     private let diagnosticDotRadius: CGFloat = 3.0

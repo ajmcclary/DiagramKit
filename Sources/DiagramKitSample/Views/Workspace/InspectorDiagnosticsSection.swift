@@ -12,16 +12,16 @@ import DesignKitThemes
 
 struct InspectorDiagnosticsSection: View {
     @Bindable var store: LiveEditorStore
-    @Environment(\.dsEnvironment) private var environment
+    @Environment(\.designTheme) private var theme
 
     var body: some View {
         DSSectionHeader("Diagnostics")
-            .padding(.bottom, DSTokens.Spacing.xxs)
-        VStack(alignment: .leading, spacing: DSTokens.Spacing.xs) {
+            .padding(.bottom, Tokens.Spacing.xxs)
+        VStack(alignment: .leading, spacing: Tokens.Spacing.xs) {
             if store.diagnostics.isEmpty {
                 Text("No diagnostics")
                     .dsFont(.caption2)
-                    .foregroundStyle(environment.theme.colors.textSecondary.color)
+                    .foregroundStyle(theme.colors.textSecondary.color)
             } else {
                 ForEach(store.diagnostics) { diagnostic in
                     row(diagnostic)
@@ -29,24 +29,24 @@ struct InspectorDiagnosticsSection: View {
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(DSTokens.Spacing.sm)
+        .padding(Tokens.Spacing.sm)
         .background { DSSurface(role: .card) { Color.clear } }
         .accessibilityIdentifier(A11yID.Inspector.diagnosticsSection)
         .accessibilityElement(children: .contain)
     }
 
     private func row(_ d: EditorDiagnostic) -> some View {
-        HStack(alignment: .top, spacing: DSTokens.Spacing.xs) {
-            DSIconView(severityIcon(d.severity), size: DSTokens.Icon.micro, colorRole: severityRole(d.severity))
-            VStack(alignment: .leading, spacing: DSTokens.Spacing.xxxs) {
+        HStack(alignment: .top, spacing: Tokens.Spacing.xs) {
+            DSIconView(severityIcon(d.severity), size: Tokens.Size.Icon.micro, colorRole: severityRole(d.severity))
+            VStack(alignment: .leading, spacing: Tokens.Spacing.xxxs) {
                 Text(d.message)
                     .dsFont(.caption2)
-                    .foregroundStyle(environment.theme.colors.textPrimary.color)
+                    .foregroundStyle(theme.colors.textPrimary.color)
                     .lineLimit(3)
                 if let line = d.line {
                     Text("line \(line)")
                         .dsFont(.metric)
-                        .foregroundStyle(environment.theme.colors.textSecondary.color)
+                        .foregroundStyle(theme.colors.textSecondary.color)
                 }
             }
             Spacer()

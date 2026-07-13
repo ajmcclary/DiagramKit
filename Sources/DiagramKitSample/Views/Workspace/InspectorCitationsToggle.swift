@@ -18,7 +18,7 @@ struct InspectorCitationsToggle: View {
                 .dsFont(.caption)
         }
         .toggleStyle(.ds)
-        .padding(DSTokens.Spacing.sm)
+        .padding(Tokens.Spacing.sm)
         .background { DSSurface(role: .card) { Color.clear } }
         .a11yToggle(
             label: "Show citations",

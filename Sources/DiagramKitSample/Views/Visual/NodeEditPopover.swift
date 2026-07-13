@@ -15,7 +15,7 @@ import DesignKitThemes
 
 struct NodeEditPopover: View {
     @Bindable var store: LiveEditorStore
-    @Environment(\.dsEnvironment) private var environment
+    @Environment(\.designTheme) private var theme
 
     @SwiftUI.State private var labelDraft: String = ""
     @SwiftUI.State private var initialLabel: String = ""
@@ -36,7 +36,7 @@ struct NodeEditPopover: View {
 
     var body: some View {
         DSSurface(role: .popover) {
-        VStack(alignment: .leading, spacing: DSTokens.Spacing.smMd) {
+        VStack(alignment: .leading, spacing: Tokens.Spacing.smMd) {
             HStack {
                 Text("Edit node")
                     .dsFont(.headline)
@@ -44,7 +44,7 @@ struct NodeEditPopover: View {
                 if let selection = store.editor?.selection {
                     Text(selection.elementID)
                         .dsFont(.code)
-                        .foregroundStyle(environment.theme.colors.textSecondary.color)
+                        .foregroundStyle(theme.colors.textSecondary.color)
                 }
             }
 
@@ -57,17 +57,17 @@ struct NodeEditPopover: View {
                 Button {
                     showShapeCatalog.toggle()
                 } label: {
-                    HStack(spacing: DSTokens.Spacing.xs) {
+                    HStack(spacing: Tokens.Spacing.xs) {
                         ShapeThumbnail(alias: shapeAlias, theme: store.previewTheme)
                             .frame(width: 30, height: 22)
                         Text(currentShapeName)
                             .dsFont(.caption2)
                     }
-                    .padding(.horizontal, DSTokens.Spacing.sm)
-                    .padding(.vertical, DSTokens.Spacing.xxxs)
+                    .padding(.horizontal, Tokens.Spacing.sm)
+                    .padding(.vertical, Tokens.Spacing.xxxs)
                     .background(
-                        RoundedRectangle(cornerRadius: DSTokens.Radius.sm, style: .continuous)
-                            .fill(environment.theme.colors.element.color)
+                        RoundedRectangle(cornerRadius: Tokens.Shape.radiusSM, style: .continuous)
+                            .fill(theme.colors.element.color)
                     )
                 }
                 .buttonStyle(.ds(role: .ghost, size: .compact))
@@ -120,7 +120,7 @@ struct NodeEditPopover: View {
                 .keyboardShortcut(.defaultAction)
             }
         }
-        .padding(DSTokens.Spacing.lg)
+        .padding(Tokens.Spacing.lg)
         }
         .frame(width: 320)
         .accessibilityIdentifier(A11yID.Visual.nodePopover)

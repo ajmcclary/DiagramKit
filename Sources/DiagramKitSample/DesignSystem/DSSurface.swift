@@ -1,3 +1,4 @@
+import DesignKitThemes
 import SwiftUI
 
 public enum DSElevation: Equatable, Sendable {
@@ -26,10 +27,10 @@ public struct DSGlassResolution: Equatable, Sendable {
 
     public static func resolve(
         role: DSSurfaceRole,
-        environment: DSResolvedEnvironment
+        environment context: DSContext
     ) -> Self {
         Self(
-            usesMaterial: !environment.usesOpaqueChrome,
+            usesMaterial: !context.usesOpaqueChrome,
             elevation: role.elevation
         )
     }
@@ -38,7 +39,8 @@ public struct DSGlassResolution: Equatable, Sendable {
 public struct DSSurface<Content: View>: View {
     private let role: DSSurfaceRole
     private let content: Content
-    @Environment(\.dsEnvironment) private var environment
+    @Environment(\.designTheme) private var theme
+    @Environment(\.dsContext) private var context
 
     public init(
         role: DSSurfaceRole = .card,
@@ -54,41 +56,41 @@ public struct DSSurface<Content: View>: View {
             .overlay {
                 if role.hasOutline {
                     shape.stroke(
-                        environment.theme.colors.borderVariant.color,
-                        lineWidth: DSTokens.Stroke.thin
+                        theme.colors.borderVariant.color,
+                        lineWidth: Tokens.Shape.strokeThin
                     )
                 }
             }
             .shadow(
                 color: shadowColor,
-                radius: role.elevation == .popover ? DSTokens.Radius.md : 0,
-                y: role.elevation == .popover ? DSTokens.Spacing.xs : 0
+                radius: role.elevation == .popover ? Tokens.Shape.radiusMD : 0,
+                y: role.elevation == .popover ? Tokens.Spacing.xs : 0
             )
     }
 
     private var shape: RoundedRectangle {
         RoundedRectangle(
-            cornerRadius: role.isEdgeToEdge ? 0 : DSTokens.Radius.md,
+            cornerRadius: role.isEdgeToEdge ? 0 : Tokens.Shape.radiusMD,
             style: .continuous
         )
     }
 
     private var backgroundColor: Color {
         switch role {
-        case .card: environment.theme.colors.surfaceBackground.color
-        case .panel: environment.theme.colors.panelBackground.color
-        case .sunken: environment.theme.colors.editorBackground.color
-        case .tabBar: environment.theme.colors.tabBarBackground.color
-        case .titleBar: environment.theme.colors.titleBarBackground.color
-        case .toolbar: environment.theme.colors.toolbarBackground.color
-        case .statusBar: environment.theme.colors.statusBarBackground.color
-        case .popover: environment.theme.colors.elevatedSurfaceBackground.color
+        case .card: theme.colors.surfaceBackground.color
+        case .panel: theme.colors.panelBackground.color
+        case .sunken: theme.colors.editorBackground.color
+        case .tabBar: theme.colors.tabBarBackground.color
+        case .titleBar: theme.colors.titleBarBackground.color
+        case .toolbar: theme.colors.toolbarBackground.color
+        case .statusBar: theme.colors.statusBarBackground.color
+        case .popover: theme.colors.elevatedSurfaceBackground.color
         }
     }
 
     private var shadowColor: Color {
         role.elevation == .popover
-            ? Color.black.opacity(DSTokens.Opacity.light)
+            ? Color.black.opacity(Tokens.Opacity.light)
             : .clear
     }
 }
@@ -99,7 +101,8 @@ public struct DSSurface<Content: View>: View {
 public struct DSGlassSurface<Content: View>: View {
     private let role: DSSurfaceRole
     private let content: Content
-    @Environment(\.dsEnvironment) private var environment
+    @Environment(\.designTheme) private var theme
+    @Environment(\.dsContext) private var context
 
     public init(
         role: DSSurfaceRole = .popover,
@@ -112,15 +115,15 @@ public struct DSGlassSurface<Content: View>: View {
     public var body: some View {
         let resolution = DSGlassResolution.resolve(
             role: role,
-            environment: environment
+            environment: context
         )
         Group {
             if resolution.usesMaterial {
                 content
                     .background(.ultraThinMaterial, in: shape)
                     .background(
-                        environment.theme.colors.elevatedSurfaceBackground.color
-                            .opacity(DSTokens.Opacity.glassFill),
+                        theme.colors.elevatedSurfaceBackground.color
+                            .opacity(Tokens.Opacity.glassFill),
                         in: shape
                     )
             } else {
@@ -130,32 +133,32 @@ public struct DSGlassSurface<Content: View>: View {
         .clipShape(shape)
         .overlay {
             shape.stroke(
-                environment.theme.colors.borderVariant.color
-                    .opacity(DSTokens.Opacity.heavy),
-                lineWidth: DSTokens.Stroke.thin
+                theme.colors.borderVariant.color
+                    .opacity(Tokens.Opacity.heavy),
+                lineWidth: Tokens.Shape.strokeThin
             )
         }
         .shadow(
-            color: Color.black.opacity(DSTokens.Opacity.light),
-            radius: DSTokens.Radius.md,
-            y: DSTokens.Spacing.xxs
+            color: Color.black.opacity(Tokens.Opacity.light),
+            radius: Tokens.Shape.radiusMD,
+            y: Tokens.Spacing.xxs
         )
     }
 
     private var shape: RoundedRectangle {
-        RoundedRectangle(cornerRadius: DSTokens.Radius.md, style: .continuous)
+        RoundedRectangle(cornerRadius: Tokens.Shape.radiusMD, style: .continuous)
     }
 
     private var opaqueBackground: Color {
         switch role {
-        case .card: environment.theme.colors.surfaceBackground.color
-        case .panel: environment.theme.colors.panelBackground.color
-        case .sunken: environment.theme.colors.editorBackground.color
-        case .tabBar: environment.theme.colors.tabBarBackground.color
-        case .titleBar: environment.theme.colors.titleBarBackground.color
-        case .toolbar: environment.theme.colors.toolbarBackground.color
-        case .statusBar: environment.theme.colors.statusBarBackground.color
-        case .popover: environment.theme.colors.elevatedSurfaceBackground.color
+        case .card: theme.colors.surfaceBackground.color
+        case .panel: theme.colors.panelBackground.color
+        case .sunken: theme.colors.editorBackground.color
+        case .tabBar: theme.colors.tabBarBackground.color
+        case .titleBar: theme.colors.titleBarBackground.color
+        case .toolbar: theme.colors.toolbarBackground.color
+        case .statusBar: theme.colors.statusBarBackground.color
+        case .popover: theme.colors.elevatedSurfaceBackground.color
         }
     }
 }

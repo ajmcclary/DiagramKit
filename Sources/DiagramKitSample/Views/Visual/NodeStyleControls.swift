@@ -28,13 +28,13 @@ struct NodeStyleControls: View {
     ]
 
     var body: some View {
-        VStack(alignment: .leading, spacing: DSTokens.Spacing.sm) {
+        VStack(alignment: .leading, spacing: Tokens.Spacing.sm) {
             DSSegmentedControl(FlowchartBorderStyle.allCases, selection: $borderStyle) { style in
                 Text(style.rawValue.capitalized)
             }
             .onChange(of: borderStyle) { styleDirty = true }
 
-            Grid(alignment: .leading, verticalSpacing: DSTokens.Spacing.xs) {
+            Grid(alignment: .leading, verticalSpacing: Tokens.Spacing.xs) {
                 GridRow {
                     Text("Background").dsFont(.caption2)
                     ColorPicker("", selection: $fillColor, supportsOpacity: false)
@@ -55,7 +55,7 @@ struct NodeStyleControls: View {
             .onChange(of: strokeColor) { styleDirty = true }
             .onChange(of: textColor) { styleDirty = true }
 
-            HStack(spacing: DSTokens.Spacing.xs) {
+            HStack(spacing: Tokens.Spacing.xs) {
                 ForEach(Self.presets, id: \.fill) { preset in
                     Button {
                         fillColor = Color(hexRGB: preset.fill) ?? fillColor
@@ -65,8 +65,8 @@ struct NodeStyleControls: View {
                     } label: {
                         Circle()
                             .fill(Color(hexRGB: preset.fill) ?? .gray)
-                            .stroke(Color(hexRGB: preset.stroke) ?? .gray, lineWidth: DSTokens.Stroke.medium)
-                            .frame(width: DSTokens.Icon.sm, height: DSTokens.Icon.sm)
+                            .stroke(Color(hexRGB: preset.stroke) ?? .gray, lineWidth: Tokens.Shape.strokeMedium)
+                            .frame(width: Tokens.Size.Icon.sm, height: Tokens.Size.Icon.sm)
                     }
                     .buttonStyle(.ds(role: .ghost, size: .compact))
                     .help("Preset \(preset.fill)")

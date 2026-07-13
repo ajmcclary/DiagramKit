@@ -87,9 +87,9 @@ struct ImageNodeOverlayItem: View {
                     .aspectRatio(contentMode: .fit)
                 #endif
             case .failed:
-                DSIconView(.warning, size: DSTokens.Icon.micro, colorRole: .warning)
+                DSIconView(.warning, size: Tokens.Size.Icon.micro, colorRole: .warning)
                     .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topTrailing)
-                    .padding(DSTokens.Spacing.xxs)
+                    .padding(Tokens.Spacing.xxs)
             case nil:
                 Color.clear
             }

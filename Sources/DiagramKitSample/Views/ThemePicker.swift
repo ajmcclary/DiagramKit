@@ -13,24 +13,24 @@ import DesignKitThemes
 
 struct ThemePicker: View {
     let store: LiveEditorStore
-    @Environment(\.dsEnvironment) private var environment
+    @Environment(\.designTheme) private var theme
 
     /// Quick-access theme names (shown as separate buttons)
     private let quickAccessThemes = ["Zinc Light", "Dracula", "Solarized Light"]
 
     var body: some View {
-        VStack(spacing: DSTokens.Spacing.sm) {
+        VStack(spacing: Tokens.Spacing.sm) {
             // Source-pinned indicator (visual editor plan 6): a theme
             // in the diagram source's frontmatter overrides this picker.
             if let pinned = store.sourcePinnedThemeName {
                 Text("Source-pinned: \(pinned)")
                     .dsFont(.caption2)
-                    .foregroundStyle(environment.theme.colors.textSecondary.color)
+                    .foregroundStyle(theme.colors.textSecondary.color)
                     .help("The diagram source's frontmatter pins this theme; it overrides the app theme.")
             }
 
             // Quick-access theme buttons
-            HStack(spacing: DSTokens.Spacing.xs) {
+            HStack(spacing: Tokens.Spacing.xs) {
                 ForEach(quickAccessThemes, id: \.self) { themeName in
                     if let theme = DiagramTheme.theme(named: themeName) {
                         QuickThemeButton(
@@ -55,24 +55,24 @@ struct ThemePicker: View {
                             Text(name)
                             if isThemeSelected(name) {
                                 Spacer()
-                                DSIconView(.success, size: DSTokens.Icon.micro, colorRole: .success)
+                                DSIconView(.success, size: Tokens.Size.Icon.micro, colorRole: .success)
                             }
                         }
                     }
                 }
             } label: {
-                HStack(spacing: DSTokens.Spacing.xs) {
-                    DSIconView(.theme, size: DSTokens.Icon.micro, colorRole: .muted)
+                HStack(spacing: Tokens.Spacing.xs) {
+                    DSIconView(.theme, size: Tokens.Size.Icon.micro, colorRole: .muted)
                     Text("All \(DiagramTheme.allThemes.count) themes")
                         .dsFont(.badge)
-                    Spacer(minLength: DSTokens.Spacing.xxs)
-                    DSIconView(.disclosureDown, size: DSTokens.Icon.indicator, colorRole: .muted)
+                    Spacer(minLength: Tokens.Spacing.xxs)
+                    DSIconView(.disclosureDown, size: Tokens.Size.Icon.indicator, colorRole: .muted)
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .contentShape(Rectangle())
             }
             .buttonStyle(.ds(role: .secondary, size: .regular))
-            .foregroundStyle(environment.theme.colors.textPrimary.color)
+            .foregroundStyle(theme.colors.textPrimary.color)
             .a11y(
                 label: "All themes",
                 hint: "Opens the full theme list",
@@ -94,7 +94,7 @@ struct QuickThemeButton: View {
 
     var body: some View {
         Button(action: action) {
-            HStack(spacing: DSTokens.Spacing.xs) {
+            HStack(spacing: Tokens.Spacing.xs) {
                 ThemeCircle(theme: theme, size: 14)
                 Text(shortThemeName)
                     .dsFont(.badge)
@@ -119,7 +119,7 @@ struct QuickThemeButton: View {
 struct ThemeCircle: View {
     let theme: DiagramTheme
     let size: CGFloat
-    @Environment(\.dsEnvironment) private var environment
+    @Environment(\.designTheme) private var appTheme
 
     var body: some View {
         Circle()
@@ -128,8 +128,8 @@ struct ThemeCircle: View {
             .overlay(
                 Circle()
                     .stroke(
-                        environment.theme.colors.borderVariant.color,
-                        lineWidth: DSTokens.Stroke.thin
+                        appTheme.colors.borderVariant.color,
+                        lineWidth: Tokens.Shape.strokeThin
                     )
             )
     }

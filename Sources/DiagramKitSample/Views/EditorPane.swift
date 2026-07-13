@@ -21,7 +21,7 @@ struct EditorPane: View {
     @State private var structurizrHighlighter = DiagramSyntaxHighlighter(mode: .structurizr)
     @State private var plantUMLHighlighter = DiagramSyntaxHighlighter(mode: .plantUML)
     @State private var jsonHighlighter = DiagramSyntaxHighlighter(mode: .json)
-    @Environment(\.dsEnvironment) private var dsEnvironment
+    @Environment(\.designTheme) private var theme
 
     var body: some View {
         VStack(spacing: 0) {
@@ -29,7 +29,7 @@ struct EditorPane: View {
             EditorTabBar(store: store)
 
             // Tab bar with format picker on the trailing edge
-            HStack(spacing: DSTokens.Spacing.sm) {
+            HStack(spacing: Tokens.Spacing.sm) {
                 EditorModePicker(
                     editorMode: $store.state.editorMode
                 )
@@ -41,9 +41,9 @@ struct EditorPane: View {
                     )
                 }
             }
-            .padding(.horizontal, DSTokens.Spacing.sm)
-            .padding(.top, DSTokens.Spacing.xxs)
-            .background(dsEnvironment.theme.colors.tabBarBackground.color)
+            .padding(.horizontal, Tokens.Spacing.sm)
+            .padding(.top, Tokens.Spacing.xxs)
+            .background(theme.colors.tabBarBackground.color)
 
             // Config validation header (config mode only)
             if store.state.editorMode == .config {
@@ -55,7 +55,7 @@ struct EditorPane: View {
                 NativeCodeEditor(
                     store: store,
                     mode: store.state.editorMode,
-                    theme: dsEnvironment.theme,
+                    theme: theme,
                     diagnostics: store.diagnostics,
                     highlighter: currentHighlighter
                 )
@@ -65,7 +65,7 @@ struct EditorPane: View {
                 }
             }
         }
-        .background(dsEnvironment.theme.colors.editorBackground.color)
+        .background(theme.colors.editorBackground.color)
     }
 
     // MARK: - Highlighter selection
@@ -92,69 +92,69 @@ struct EditorPane: View {
     private var configValidationHeader: some View {
         VStack(spacing: 0) {
             // Syntax validity indicator
-            HStack(spacing: DSTokens.Spacing.xs) {
+            HStack(spacing: Tokens.Spacing.xs) {
                 Circle()
                     .fill(configIsValid
-                        ? dsEnvironment.theme.colors.success.color
-                        : dsEnvironment.theme.colors.error.color)
-                    .frame(width: DSTokens.Spacing.sm, height: DSTokens.Spacing.sm)
+                        ? theme.colors.success.color
+                        : theme.colors.error.color)
+                    .frame(width: Tokens.Spacing.sm, height: Tokens.Spacing.sm)
 
                 Text(configIsValid ? "Valid JSON" : "Invalid JSON")
                     .dsFont(.badge)
                     .foregroundStyle(configIsValid
-                        ? dsEnvironment.theme.colors.success.color
-                        : dsEnvironment.theme.colors.error.color)
+                        ? theme.colors.success.color
+                        : theme.colors.error.color)
 
                 Spacer()
 
                 Text("Config")
                     .dsFont(.caption2)
-                    .foregroundStyle(dsEnvironment.theme.colors.textSecondary.color)
+                    .foregroundStyle(theme.colors.textSecondary.color)
             }
-            .padding(.horizontal, DSTokens.Spacing.md)
-            .padding(.vertical, DSTokens.Spacing.xxs)
-            .background(dsEnvironment.theme.colors.editorGutterBackground.color)
+            .padding(.horizontal, Tokens.Spacing.md)
+            .padding(.vertical, Tokens.Spacing.xxs)
+            .background(theme.colors.editorGutterBackground.color)
 
             // Mapping summary
             if let config = store.parsedConfig {
-                HStack(spacing: DSTokens.Spacing.xs) {
+                HStack(spacing: Tokens.Spacing.xs) {
                     if config.recognizedKeyCount > 0 {
                         Text("\(config.recognizedKeyCount) recognized")
                             .dsFont(.caption2)
-                            .foregroundStyle(dsEnvironment.theme.colors.success.color)
+                            .foregroundStyle(theme.colors.success.color)
                     }
                     if config.unknownKeyCount > 0 {
                         if config.recognizedKeyCount > 0 {
                             Text("·")
                                 .dsFont(.caption2)
-                                .foregroundStyle(dsEnvironment.theme.colors.textSecondary.color)
+                                .foregroundStyle(theme.colors.textSecondary.color)
                         }
                         Text("\(config.unknownKeyCount) unknown")
                             .dsFont(.caption2)
-                            .foregroundStyle(dsEnvironment.theme.colors.warning.color)
+                            .foregroundStyle(theme.colors.warning.color)
                     }
 
                     Spacer()
 
                     // Theme indicator
                     if let themeName = config.themeName {
-                        HStack(spacing: DSTokens.Spacing.xxxs) {
-                            DSIconView(.theme, size: DSTokens.Icon.indicator, colorRole: .info)
+                        HStack(spacing: Tokens.Spacing.xxxs) {
+                            DSIconView(.theme, size: Tokens.Size.Icon.indicator, colorRole: .info)
                             Text(themeName)
                                 .dsFont(.badge)
                         }
-                        .foregroundStyle(dsEnvironment.theme.colors.accent.color)
-                        .padding(.horizontal, DSTokens.Spacing.xs)
-                        .padding(.vertical, DSTokens.Spacing.xxxs)
+                        .foregroundStyle(theme.colors.accent.color)
+                        .padding(.horizontal, Tokens.Spacing.xs)
+                        .padding(.vertical, Tokens.Spacing.xxxs)
                         .background(
-                            RoundedRectangle(cornerRadius: DSTokens.Radius.xs)
-                                .fill(dsEnvironment.theme.colors.accent.color.opacity(DSTokens.Opacity.tint))
+                            RoundedRectangle(cornerRadius: Tokens.Shape.radiusXS)
+                                .fill(theme.colors.accent.color.opacity(Tokens.Opacity.tint))
                         )
                     }
                 }
-                .padding(.horizontal, DSTokens.Spacing.md)
-                .padding(.vertical, DSTokens.Spacing.xxxs)
-                .background(dsEnvironment.theme.colors.editorBackground.color)
+                .padding(.horizontal, Tokens.Spacing.md)
+                .padding(.vertical, Tokens.Spacing.xxxs)
+                .background(theme.colors.editorBackground.color)
             }
         }
     }

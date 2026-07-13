@@ -14,7 +14,7 @@ import DesignKitThemes
 
 struct CitationOverlay: View {
     @Bindable var store: LiveEditorStore
-    @Environment(\.dsEnvironment) private var environment
+    @Environment(\.designTheme) private var theme
 
     var body: some View {
         if store.state.showCitations {
@@ -35,16 +35,16 @@ struct CitationOverlay: View {
     private var panel: some View {
         let pins = CitationSet.pins(for: activeSurface)
         return DSGlassSurface(role: .popover) {
-            VStack(alignment: .leading, spacing: DSTokens.Spacing.xs) {
-                HStack(spacing: DSTokens.Spacing.xs) {
-                    DSIconView(.info, size: DSTokens.Icon.xs, colorRole: .info)
+            VStack(alignment: .leading, spacing: Tokens.Spacing.xs) {
+                HStack(spacing: Tokens.Spacing.xs) {
+                    DSIconView(.info, size: Tokens.Size.Icon.xs, colorRole: .info)
                     Text("Sources")
                         .dsFont(.headline)
-                        .foregroundStyle(environment.theme.colors.textPrimary.color)
+                        .foregroundStyle(theme.colors.textPrimary.color)
                     Spacer()
                     Text(activeSurface.label)
                         .dsFont(.badge)
-                        .foregroundStyle(environment.theme.colors.textSecondary.color)
+                        .foregroundStyle(theme.colors.textSecondary.color)
                     DSIconButton(.close, label: "Hide sources") {
                         store.setShowCitations(false)
                     }
@@ -53,25 +53,25 @@ struct CitationOverlay: View {
                     pinRow(pin)
                 }
             }
-            .padding(DSTokens.Spacing.md)
+            .padding(Tokens.Spacing.md)
             .frame(width: 320)
         }
     }
 
     private func pinRow(_ pin: CitationPin) -> some View {
-        HStack(alignment: .top, spacing: DSTokens.Spacing.xs) {
+        HStack(alignment: .top, spacing: Tokens.Spacing.xs) {
             Text("\(pin.id)")
                 .dsFont(.metric)
                 .frame(width: 22, height: 22)
-                .background(Circle().fill(environment.theme.colors.accent.color))
-                .foregroundStyle(environment.theme.colors.onAccent.color)
-            VStack(alignment: .leading, spacing: DSTokens.Spacing.xxxs) {
+                .background(Circle().fill(theme.colors.accent.color))
+                .foregroundStyle(theme.colors.onAccent.color)
+            VStack(alignment: .leading, spacing: Tokens.Spacing.xxxs) {
                 Text(pin.label)
                     .dsFont(.badge)
-                    .foregroundStyle(environment.theme.colors.textPrimary.color)
+                    .foregroundStyle(theme.colors.textPrimary.color)
                 Text(pin.path)
                     .dsFont(.code)
-                    .foregroundStyle(environment.theme.colors.textSecondary.color)
+                    .foregroundStyle(theme.colors.textSecondary.color)
                     .lineLimit(2)
                     .textSelection(.enabled)
             }

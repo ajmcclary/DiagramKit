@@ -13,13 +13,13 @@ import DesignKitThemes
 struct InspectorRenderBackendSection: View {
     @Bindable var store: LiveEditorStore
 
-    @Environment(\.dsEnvironment) private var environment
+    @Environment(\.designTheme) private var theme
 
     var body: some View {
-        VStack(alignment: .leading, spacing: DSTokens.Spacing.sm) {
+        VStack(alignment: .leading, spacing: Tokens.Spacing.sm) {
             DSSectionHeader("Render backend")
             DSSurface(role: .card) {
-                VStack(alignment: .leading, spacing: DSTokens.Spacing.sm) {
+                VStack(alignment: .leading, spacing: Tokens.Spacing.sm) {
                     backendChips
                     separator
                     KeyValueRow("renderer", value: rendererText)
@@ -29,7 +29,7 @@ struct InspectorRenderBackendSection: View {
                     autoRenderToggle
                     workerThreadRow
                 }
-                .padding(DSTokens.Spacing.md)
+                .padding(Tokens.Spacing.md)
             }
         }
         .accessibilityIdentifier(A11yID.Inspector.renderBackendSection)
@@ -75,10 +75,10 @@ struct InspectorRenderBackendSection: View {
             VStack(alignment: .leading, spacing: 0) {
                 Text("Render on every keystroke")
                     .dsFont(.body)
-                    .foregroundStyle(environment.theme.colors.textPrimary.color)
+                    .foregroundStyle(theme.colors.textPrimary.color)
                 Text("auto vs manual")
                     .dsFont(.badge)
-                    .foregroundStyle(environment.theme.colors.textSecondary.color)
+                    .foregroundStyle(theme.colors.textSecondary.color)
             }
         }
         .toggleStyle(.ds)
@@ -89,25 +89,25 @@ struct InspectorRenderBackendSection: View {
             VStack(alignment: .leading, spacing: 0) {
                 Text("Worker thread")
                     .dsFont(.body)
-                    .foregroundStyle(environment.theme.colors.textPrimary.color)
+                    .foregroundStyle(theme.colors.textPrimary.color)
                 Text("8 MB stack · fresh per call")
                     .dsFont(.badge)
-                    .foregroundStyle(environment.theme.colors.textSecondary.color)
+                    .foregroundStyle(theme.colors.textSecondary.color)
             }
             Spacer()
             Circle()
-                .fill(environment.theme.colors.success.color)
-                .frame(width: DSTokens.Icon.indicator, height: DSTokens.Icon.indicator)
+                .fill(theme.colors.success.color)
+                .frame(width: Tokens.Size.Icon.indicator, height: Tokens.Size.Icon.indicator)
             Text("on")
                 .dsFont(.metric)
-                .foregroundStyle(environment.theme.colors.success.color)
+                .foregroundStyle(theme.colors.success.color)
         }
     }
 
     private var separator: some View {
         Rectangle()
-            .fill(environment.theme.colors.borderVariant.color)
-            .frame(height: DSTokens.Stroke.hairline)
+            .fill(theme.colors.borderVariant.color)
+            .frame(height: Tokens.Shape.strokeHairline)
             .accessibilityHidden(true)
     }
 }

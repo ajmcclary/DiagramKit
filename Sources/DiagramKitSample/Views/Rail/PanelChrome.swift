@@ -13,7 +13,7 @@ import DesignKitThemes
 struct PanelHeader<Trailing: View>: View {
     let title: String
     @ViewBuilder var trailing: () -> Trailing
-    @Environment(\.dsEnvironment) private var environment
+    @Environment(\.designTheme) private var theme
 
     init(_ title: String, @ViewBuilder trailing: @escaping () -> Trailing = { EmptyView() }) {
         self.title = title
@@ -26,10 +26,10 @@ struct PanelHeader<Trailing: View>: View {
             Spacer()
             trailing()
         }
-        .foregroundStyle(environment.theme.colors.textPrimary.color)
-        .padding(.horizontal, DSTokens.Spacing.lg)
-        .padding(.top, DSTokens.Spacing.md)
-        .padding(.bottom, DSTokens.Spacing.sm)
+        .foregroundStyle(theme.colors.textPrimary.color)
+        .padding(.horizontal, Tokens.Spacing.lg)
+        .padding(.top, Tokens.Spacing.md)
+        .padding(.bottom, Tokens.Spacing.sm)
     }
 }
 
@@ -37,29 +37,29 @@ struct PanelFilterField: View {
     let placeholder: String
     @Binding var text: String
     var focused: Bool = false
-    @Environment(\.dsEnvironment) private var environment
+    @Environment(\.designTheme) private var theme
 
     var body: some View {
-        HStack(spacing: DSTokens.Spacing.xs) {
-            DSIconView(.search, size: DSTokens.Icon.micro, colorRole: focused ? .primary : .muted)
+        HStack(spacing: Tokens.Spacing.xs) {
+            DSIconView(.search, size: Tokens.Size.Icon.micro, colorRole: focused ? .primary : .muted)
             TextField(placeholder, text: $text)
                 .textFieldStyle(.plain)
                 .dsFont(.caption)
-                .foregroundStyle(environment.theme.colors.textPrimary.color)
+                .foregroundStyle(theme.colors.textPrimary.color)
         }
-        .padding(.horizontal, DSTokens.Spacing.smMd)
-        .frame(minHeight: DSTokens.Control.rowCompact)
-        .background(environment.theme.colors.element.color)
+        .padding(.horizontal, Tokens.Spacing.smMd)
+        .frame(minHeight: Tokens.Size.Control.rowCompact)
+        .background(theme.colors.element.color)
         .overlay(
-            RoundedRectangle(cornerRadius: DSTokens.Radius.sm)
+            RoundedRectangle(cornerRadius: Tokens.Shape.radiusSM)
                 .stroke(
-                    focused ? environment.theme.colors.borderFocused.color : environment.theme.colors.borderVariant.color,
-                    lineWidth: DSTokens.Stroke.thin
+                    focused ? theme.colors.borderFocused.color : theme.colors.borderVariant.color,
+                    lineWidth: Tokens.Shape.strokeThin
                 )
         )
-        .clipShape(RoundedRectangle(cornerRadius: DSTokens.Radius.sm))
-        .padding(.horizontal, DSTokens.Spacing.md)
-        .padding(.bottom, DSTokens.Spacing.sm)
+        .clipShape(RoundedRectangle(cornerRadius: Tokens.Shape.radiusSM))
+        .padding(.horizontal, Tokens.Spacing.md)
+        .padding(.bottom, Tokens.Spacing.sm)
     }
 }
 

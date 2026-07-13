@@ -15,7 +15,7 @@ import DesignKitThemes
 
 struct DiagnosticsDrawer: View {
     @Bindable var store: LiveEditorStore
-    @Environment(\.dsEnvironment) private var environment
+    @Environment(\.designTheme) private var theme
 
     var body: some View {
         VStack(spacing: 0) {
@@ -26,7 +26,7 @@ struct DiagnosticsDrawer: View {
             body2col
         }
         .frame(height: 360)
-        .background(environment.theme.colors.panelBackground.color)
+        .background(theme.colors.panelBackground.color)
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier(A11yID.Diagnostics.drawer)
     }
@@ -38,24 +38,24 @@ struct DiagnosticsDrawer: View {
             DSIconView(.diagnostics)
             Text("Diagnostics")
                 .dsFont(.headline)
-                .foregroundStyle(environment.theme.colors.textPrimary.color)
+                .foregroundStyle(theme.colors.textPrimary.color)
             Text("· \(store.allDiagnostics.count)")
                 .dsFont(.metric)
-                .foregroundStyle(environment.theme.colors.textSecondary.color)
+                .foregroundStyle(theme.colors.textSecondary.color)
             Spacer()
             DSIconButton(.disclosureDown, label: "Close diagnostics") {
                 store.setDiagnosticsDrawerOpen(false)
             }
             .keyboardShortcut(.cancelAction)
         }
-        .padding(.horizontal, DSTokens.Spacing.md)
-        .padding(.vertical, DSTokens.Spacing.xs)
+        .padding(.horizontal, Tokens.Spacing.md)
+        .padding(.vertical, Tokens.Spacing.xs)
     }
 
     // MARK: - Facet rows
 
     private var facetRows: some View {
-        VStack(alignment: .leading, spacing: DSTokens.Spacing.xxs) {
+        VStack(alignment: .leading, spacing: Tokens.Spacing.xxs) {
             facetRow(label: "Severity") {
                 ForEach(DiagnosticsDrawerState.SeverityFilter.allCases, id: \.self) { value in
                     chip(
@@ -90,19 +90,19 @@ struct DiagnosticsDrawer: View {
                 }
             }
         }
-        .padding(.horizontal, DSTokens.Spacing.md)
-        .padding(.vertical, DSTokens.Spacing.xs)
+        .padding(.horizontal, Tokens.Spacing.md)
+        .padding(.vertical, Tokens.Spacing.xs)
     }
 
     @ViewBuilder
     private func facetRow<Chips: View>(label: String, @ViewBuilder chips: () -> Chips) -> some View {
-        HStack(spacing: DSTokens.Spacing.sm) {
+        HStack(spacing: Tokens.Spacing.sm) {
             Text(label)
                 .dsFont(.overline)
-                .foregroundStyle(environment.theme.colors.textSecondary.color)
+                .foregroundStyle(theme.colors.textSecondary.color)
                 .frame(width: 56, alignment: .leading)
             ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: DSTokens.Spacing.xxs) { chips() }
+                HStack(spacing: Tokens.Spacing.xxs) { chips() }
             }
         }
     }
@@ -134,7 +134,7 @@ struct DiagnosticsDrawer: View {
                 section(title: "Feature dropped (.unsupported)", categories: unsupportedCategories)
                 section(title: "Informational (.info)", categories: infoCategories)
             }
-            .padding(.vertical, DSTokens.Spacing.xs)
+            .padding(.vertical, Tokens.Spacing.xs)
         }
         .accessibilityIdentifier(A11yID.Diagnostics.categoryList)
     }
@@ -155,11 +155,11 @@ struct DiagnosticsDrawer: View {
         VStack(alignment: .leading, spacing: 2) {
             Text(title)
                 .dsFont(.overline)
-                .foregroundStyle(environment.theme.colors.textSecondary.color)
-                .padding(.horizontal, DSTokens.Spacing.sm)
-                .padding(.vertical, DSTokens.Spacing.xxs)
+                .foregroundStyle(theme.colors.textSecondary.color)
+                .padding(.horizontal, Tokens.Spacing.sm)
+                .padding(.vertical, Tokens.Spacing.xxs)
                 .frame(maxWidth: .infinity, alignment: .leading)
-                .background(environment.theme.colors.element.color)
+                .background(theme.colors.element.color)
             ForEach(categories, id: \.self) { cat in
                 categoryButton(cat)
             }
@@ -177,9 +177,9 @@ struct DiagnosticsDrawer: View {
                 Spacer()
                 Text("\(count(for: cat))")
                     .dsFont(.metric)
-                    .foregroundStyle(environment.theme.colors.textSecondary.color)
+                    .foregroundStyle(theme.colors.textSecondary.color)
             }
-            .padding(.horizontal, DSTokens.Spacing.sm)
+            .padding(.horizontal, Tokens.Spacing.sm)
             .contentShape(Rectangle())
         }
         .buttonStyle(.ds(role: isOn ? .secondary : .ghost, size: .compact))
@@ -203,8 +203,8 @@ struct DiagnosticsDrawer: View {
                 if rows.isEmpty {
                     Text("No diagnostics match the current filters")
                         .dsFont(.caption2)
-                        .foregroundStyle(environment.theme.colors.textSecondary.color)
-                        .padding(DSTokens.Spacing.md)
+                        .foregroundStyle(theme.colors.textSecondary.color)
+                        .padding(Tokens.Spacing.md)
                 } else {
                     ForEach(rows) { row in
                         rowView(row)
@@ -216,28 +216,28 @@ struct DiagnosticsDrawer: View {
     }
 
     private func rowView(_ row: DrawerDiagnostic) -> some View {
-        HStack(alignment: .top, spacing: DSTokens.Spacing.sm) {
+        HStack(alignment: .top, spacing: Tokens.Spacing.sm) {
             DSIconView(
                 row.editor.severity.dsIcon,
-                size: DSTokens.Icon.micro,
+                size: Tokens.Size.Icon.micro,
                 colorRole: row.editor.severity.dsIconColorRole
             )
-            VStack(alignment: .leading, spacing: DSTokens.Spacing.xxxs) {
+            VStack(alignment: .leading, spacing: Tokens.Spacing.xxxs) {
                 Text(row.editor.message)
                     .dsFont(.caption2)
-                    .foregroundStyle(environment.theme.colors.textPrimary.color)
+                    .foregroundStyle(theme.colors.textPrimary.color)
                     .lineLimit(2)
-                HStack(spacing: DSTokens.Spacing.xs) {
+                HStack(spacing: Tokens.Spacing.xs) {
                     DSCodeBadge(row.tier.label)
                     if let line = row.editor.line {
                         Text("line \(line)")
                             .dsFont(.metric)
-                            .foregroundStyle(environment.theme.colors.textSecondary.color)
+                            .foregroundStyle(theme.colors.textSecondary.color)
                     }
                     if let cat = row.category {
                         Text(cat.rawValue)
                             .dsFont(.badge)
-                            .foregroundStyle(environment.theme.colors.accent.color)
+                            .foregroundStyle(theme.colors.accent.color)
                     }
                 }
             }
@@ -248,20 +248,20 @@ struct DiagnosticsDrawer: View {
             .buttonStyle(.ds(role: .secondary, size: .compact))
             .a11y(label: "Explain diagnostic", id: A11yID.Diagnostics.explainButton(forRow: row.id.uuidString))
         }
-        .padding(.horizontal, DSTokens.Spacing.smMd)
-        .padding(.vertical, DSTokens.Spacing.xs)
+        .padding(.horizontal, Tokens.Spacing.smMd)
+        .padding(.vertical, Tokens.Spacing.xs)
         .frame(maxWidth: .infinity, alignment: .leading)
     }
 
     private var separator: some View {
         Rectangle()
-            .fill(environment.theme.colors.borderVariant.color)
-            .frame(height: DSTokens.Stroke.hairline)
+            .fill(theme.colors.borderVariant.color)
+            .frame(height: Tokens.Shape.strokeHairline)
     }
 
     private var verticalSeparator: some View {
         Rectangle()
-            .fill(environment.theme.colors.borderVariant.color)
-            .frame(width: DSTokens.Stroke.hairline)
+            .fill(theme.colors.borderVariant.color)
+            .frame(width: Tokens.Shape.strokeHairline)
     }
 }

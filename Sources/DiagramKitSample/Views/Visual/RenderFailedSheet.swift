@@ -14,12 +14,12 @@ import DesignKitThemes
 
 struct RenderFailedSheet: View {
     @Bindable var store: LiveEditorStore
-    @Environment(\.dsEnvironment) private var environment
+    @Environment(\.designTheme) private var theme
 
     var body: some View {
         DSGlassSurface(role: .popover) {
-        VStack(alignment: .leading, spacing: DSTokens.Spacing.smMd) {
-            HStack(spacing: DSTokens.Spacing.xs) {
+        VStack(alignment: .leading, spacing: Tokens.Spacing.smMd) {
+            HStack(spacing: Tokens.Spacing.xs) {
                 DSIconView(.error, colorRole: .error)
                 Text("Render failed")
                     .dsFont(.headline)
@@ -27,16 +27,16 @@ struct RenderFailedSheet: View {
             }
             Text(message)
                 .dsFont(.code)
-                .foregroundStyle(environment.theme.colors.textPrimary.color)
-                .padding(DSTokens.Spacing.sm)
+                .foregroundStyle(theme.colors.textPrimary.color)
+                .padding(Tokens.Spacing.sm)
                 .frame(maxWidth: .infinity, alignment: .topLeading)
                 .background(
-                    RoundedRectangle(cornerRadius: DSTokens.Radius.sm, style: .continuous)
-                        .fill(environment.theme.colors.error.color.opacity(DSTokens.Opacity.tint))
+                    RoundedRectangle(cornerRadius: Tokens.Shape.radiusSM, style: .continuous)
+                        .fill(theme.colors.error.color.opacity(Tokens.Opacity.tint))
                 )
             Text("Worker contract: every render runs on a fresh 8 MB-stack Thread per CLAUDE.md. Retrying re-arms the same canonical path.")
                 .dsFont(.caption2)
-                .foregroundStyle(environment.theme.colors.textSecondary.color)
+                .foregroundStyle(theme.colors.textSecondary.color)
                 .fixedSize(horizontal: false, vertical: true)
             HStack {
                 Spacer()
@@ -50,7 +50,7 @@ struct RenderFailedSheet: View {
                 .a11y(label: "Retry render", id: "renderFailed.retry")
             }
         }
-        .padding(DSTokens.Spacing.lg)
+        .padding(Tokens.Spacing.lg)
         }
         .frame(width: 380)
         .accessibilityElement(children: .contain)

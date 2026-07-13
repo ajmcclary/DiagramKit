@@ -12,22 +12,22 @@ import DesignKitThemes
 struct SubgraphCommitToast: View {
     @Bindable var store: LiveEditorStore
     let commit: SubgraphCommit
-    @Environment(\.dsEnvironment) private var environment
+    @Environment(\.designTheme) private var theme
 
     var body: some View {
         DSGlassSurface(role: .popover) {
-        HStack(spacing: DSTokens.Spacing.sm) {
+        HStack(spacing: Tokens.Spacing.sm) {
             DSIconView(.subgraph, colorRole: .info)
-            VStack(alignment: .leading, spacing: DSTokens.Stroke.thin) {
+            VStack(alignment: .leading, spacing: Tokens.Shape.strokeThin) {
                 Text("Grouped \(commit.memberIDs.count) nodes into “\(commit.title)”")
                     .dsFont(.headline)
                 Text("⌘Z to undo")
                     .dsFont(.caption2)
-                    .foregroundStyle(environment.theme.colors.textSecondary.color)
+                    .foregroundStyle(theme.colors.textSecondary.color)
             }
         }
-        .padding(.horizontal, DSTokens.Spacing.md)
-        .padding(.vertical, DSTokens.Spacing.sm)
+        .padding(.horizontal, Tokens.Spacing.md)
+        .padding(.vertical, Tokens.Spacing.sm)
         }
         .accessibilityIdentifier(A11yID.Visual.subgraphToast)
         .task(id: commit) {

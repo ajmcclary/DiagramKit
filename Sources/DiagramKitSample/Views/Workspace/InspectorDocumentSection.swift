@@ -15,10 +15,10 @@ struct InspectorDocumentSection: View {
     @Bindable var store: LiveEditorStore
 
     var body: some View {
-        VStack(alignment: .leading, spacing: DSTokens.Spacing.sm) {
+        VStack(alignment: .leading, spacing: Tokens.Spacing.sm) {
             DSSectionHeader("Document")
             DSSurface(role: .card) {
-                VStack(spacing: DSTokens.Spacing.xxs) {
+                VStack(spacing: Tokens.Spacing.xxs) {
                     KeyValueRow("File", value: fileLabel, copyable: false)
                     KeyValueRow("Family", value: store.state.sourceFormat.displayName)
                     KeyValueRow("Format", value: store.state.sourceFormat.shortName)
@@ -30,7 +30,7 @@ struct InspectorDocumentSection: View {
                     KeyValueRow("Characters", value: "\(store.state.source.count)")
                     KeyValueRow("Bundled fonts", value: bundledFontsText)
                 }
-                .padding(DSTokens.Spacing.md)
+                .padding(Tokens.Spacing.md)
             }
         }
         .accessibilityIdentifier(A11yID.Inspector.documentSection)

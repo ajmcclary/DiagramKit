@@ -21,7 +21,7 @@ struct SettingsThemeTab: View {
     private var canvasFollows = true
 
     @State private var showThemeBuilder = false
-    @Environment(\.dsEnvironment) private var environment
+    @Environment(\.designTheme) private var theme
     @Environment(\.colorScheme) private var scheme
 
     private var family: ZedTrekTheme { ZedTrekTheme(rawValue: familyRaw) ?? .lcars }
@@ -31,7 +31,7 @@ struct SettingsThemeTab: View {
         Binding(get: { mode }, set: { modeRaw = $0.rawValue })
     }
 
-    private let columns = Array(repeating: GridItem(.flexible(), spacing: DSTokens.Spacing.md), count: 3)
+    private let columns = Array(repeating: GridItem(.flexible(), spacing: Tokens.Spacing.md), count: 3)
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
@@ -41,9 +41,9 @@ struct SettingsThemeTab: View {
             DSSegmentedControl(ThemeMode.allCases, selection: modeBinding) { mode in
                 Text(mode.displayName)
             }
-            .padding(.bottom, DSTokens.Spacing.lg)
+            .padding(.bottom, Tokens.Spacing.lg)
 
-            LazyVGrid(columns: columns, spacing: DSTokens.Spacing.md) {
+            LazyVGrid(columns: columns, spacing: Tokens.Spacing.md) {
                 ForEach(ZedTrekTheme.allCases, id: \.self) { theme in
                     ThemeSwatchCard(name: theme.displayName,
                                     specimen: theme.dsSpecimen(for: scheme),
@@ -53,7 +53,7 @@ struct SettingsThemeTab: View {
                     }
                 }
             }
-            .padding(.bottom, DSTokens.Spacing.xl)
+            .padding(.bottom, Tokens.Spacing.xl)
 
             DSSettingGroup {
                 DSSettingRow(
@@ -64,12 +64,12 @@ struct SettingsThemeTab: View {
                         .labelsHidden()
                         .toggleStyle(.dsSwitchOnly)
                 }
-                .padding(.horizontal, DSTokens.Spacing.lg)
+                .padding(.horizontal, Tokens.Spacing.lg)
                 .contentShape(Rectangle())
                 MenuRow(title: "Diagram palette", value: store.state.selectedThemeName,
                         leadingSwatch: AnyView(
-                            RoundedRectangle(cornerRadius: DSTokens.Radius.xs)
-                                .fill(LinearGradient(colors: [environment.theme.colors.textPrimary.color, environment.theme.colors.textSecondary.color],
+                            RoundedRectangle(cornerRadius: Tokens.Shape.radiusXS)
+                                .fill(LinearGradient(colors: [theme.colors.textPrimary.color, theme.colors.textSecondary.color],
                                                      startPoint: .topLeading, endPoint: .bottomTrailing))
                                 .frame(width: 12, height: 12))) {
                     ForEach(DiagramTheme.allThemes, id: \.name) { theme in
@@ -80,11 +80,11 @@ struct SettingsThemeTab: View {
                 .opacity(canvasFollows ? 0.5 : 1)
                 Button { showThemeBuilder = true } label: {
                     HStack {
-                        Text("Edit theme…").dsFont(.body).foregroundStyle(environment.theme.colors.textPrimary.color)
+                        Text("Edit theme…").dsFont(.body).foregroundStyle(theme.colors.textPrimary.color)
                         Spacer()
-                        DSIconView(.disclosureRight, size: DSTokens.Icon.micro, colorRole: .muted)
+                        DSIconView(.disclosureRight, size: Tokens.Size.Icon.micro, colorRole: .muted)
                     }
-                    .padding(.horizontal, DSTokens.Spacing.lg).contentShape(Rectangle())
+                    .padding(.horizontal, Tokens.Spacing.lg).contentShape(Rectangle())
                 }.buttonStyle(.ds(role: .ghost, size: .regular))
             }
             Spacer(minLength: 0)

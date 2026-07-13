@@ -17,7 +17,7 @@ import DesignKitThemes
 
 struct VisualPane: View {
     @Bindable var store: LiveEditorStore
-    @Environment(\.dsEnvironment) private var environment
+    @Environment(\.designTheme) private var theme
 
     var body: some View {
         ZStack(alignment: .topLeading) {
@@ -28,29 +28,29 @@ struct VisualPane: View {
             VStack {
                 HStack(alignment: .top) {
                     VisualToolPalette(store: store)
-                        .padding(.leading, DSTokens.Spacing.md)
-                        .padding(.top, DSTokens.Spacing.md)
+                        .padding(.leading, Tokens.Spacing.md)
+                        .padding(.top, Tokens.Spacing.md)
                     Spacer()
                     SelectionHUD(store: store)
-                        .padding(.trailing, DSTokens.Spacing.md)
-                        .padding(.top, DSTokens.Spacing.md)
+                        .padding(.trailing, Tokens.Spacing.md)
+                        .padding(.top, Tokens.Spacing.md)
                 }
                 Spacer()
                 if store.state.demoStepperVisible {
                     StateStepper(store: store)
-                        .padding(.bottom, DSTokens.Spacing.sm)
+                        .padding(.bottom, Tokens.Spacing.sm)
                 }
                 if let editor = store.visualEditor,
                    editor.document.type == .flowchart || editor.document.type == .stateDiagram {
                     CanvasCenterToolbar(store: store)
-                        .padding(.bottom, DSTokens.Spacing.sm)
+                        .padding(.bottom, Tokens.Spacing.sm)
                 }
                 HStack {
                     UndoTimelineView(store: store)
                     Spacer()
                 }
-                .padding(.horizontal, DSTokens.Spacing.md)
-                .padding(.bottom, DSTokens.Spacing.md)
+                .padding(.horizontal, Tokens.Spacing.md)
+                .padding(.bottom, Tokens.Spacing.md)
             }
 
             stageBanner
@@ -70,7 +70,7 @@ struct VisualPane: View {
                 HStack {
                     Spacer()
                     SubgraphCommitToast(store: store, commit: commit)
-                        .padding(.trailing, DSTokens.Spacing.md)
+                        .padding(.trailing, Tokens.Spacing.md)
                         .padding(.bottom, 60)
                 }
             }
@@ -79,7 +79,7 @@ struct VisualPane: View {
         // Centered prompt sheet.
         if store.isSubgraphPromptOpen {
             ZStack {
-                environment.theme.colors.surfaceBackground.color.opacity(DSTokens.Opacity.strong)
+                theme.colors.surfaceBackground.color.opacity(Tokens.Opacity.strong)
                     .ignoresSafeArea()
                     .onTapGesture { store.cancelSubgraphPrompt() }
                 SubgraphPromptSheet(store: store)
@@ -89,7 +89,7 @@ struct VisualPane: View {
         // Title prompt (empty-subgraph insert / rename).
         if let prompt = store.subgraphTitlePrompt {
             ZStack {
-                environment.theme.colors.surfaceBackground.color.opacity(DSTokens.Opacity.strong)
+                theme.colors.surfaceBackground.color.opacity(Tokens.Opacity.strong)
                     .ignoresSafeArea()
                     .onTapGesture { store.cancelTitlePrompt() }
                 SubgraphTitleSheet(store: store, prompt: prompt)
@@ -99,7 +99,7 @@ struct VisualPane: View {
         // Image-URL sheet.
         if store.isImageSheetOpen {
             ZStack {
-                environment.theme.colors.surfaceBackground.color.opacity(DSTokens.Opacity.strong)
+                theme.colors.surfaceBackground.color.opacity(Tokens.Opacity.strong)
                     .ignoresSafeArea()
                     .onTapGesture { store.cancelImageSheet() }
                 ImageURLSheet(store: store)
@@ -131,7 +131,7 @@ struct VisualPane: View {
                 HStack {
                     Spacer()
                     QuickFixCard(store: store)
-                        .padding(.trailing, DSTokens.Spacing.md)
+                        .padding(.trailing, Tokens.Spacing.md)
                         .padding(.bottom, 60)
                 }
             }
@@ -170,14 +170,14 @@ struct VisualPane: View {
                     DSGlassSurface(role: .popover) {
                         Text(label)
                             .dsFont(.badge)
-                            .padding(.horizontal, DSTokens.Spacing.smMd)
-                            .padding(.vertical, DSTokens.Spacing.xxs)
-                            .foregroundStyle(environment.theme.colors.textSecondary.color)
+                            .padding(.horizontal, Tokens.Spacing.smMd)
+                            .padding(.vertical, Tokens.Spacing.xxs)
+                            .foregroundStyle(theme.colors.textSecondary.color)
                     }
                         .accessibilityIdentifier(A11yID.Visual.stateBanner(stage.rawValue))
                     Spacer()
                 }
-                .padding(.top, DSTokens.Icon.xxl + DSTokens.Spacing.sm)
+                .padding(.top, Tokens.Size.Icon.xxl + Tokens.Spacing.sm)
                 Spacer()
             }
         }
@@ -185,11 +185,11 @@ struct VisualPane: View {
 
     @ViewBuilder
     private func unsupportedFamily(_ type: DiagramType) -> some View {
-        VStack(spacing: DSTokens.Spacing.sm) {
-            DSIconView(.diagram, size: DSTokens.Icon.lg, colorRole: .muted)
+        VStack(spacing: Tokens.Spacing.sm) {
+            DSIconView(.diagram, size: Tokens.Size.Icon.lg, colorRole: .muted)
             Text("Visual mode for \(type.rawValue) is coming in Phase 4.")
                 .dsFont(.caption)
-                .foregroundStyle(environment.theme.colors.textSecondary.color)
+                .foregroundStyle(theme.colors.textSecondary.color)
                 .multilineTextAlignment(.center)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)

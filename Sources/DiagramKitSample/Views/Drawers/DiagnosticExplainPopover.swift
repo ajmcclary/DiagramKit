@@ -13,19 +13,19 @@ import DesignKitThemes
 struct DiagnosticExplainPopover: View {
     @Bindable var store: LiveEditorStore
     let row: DrawerDiagnostic
-    @Environment(\.dsEnvironment) private var environment
+    @Environment(\.designTheme) private var theme
 
     var body: some View {
         DSSurface(role: .popover) {
-            VStack(alignment: .leading, spacing: DSTokens.Spacing.smMd) {
-            HStack(spacing: DSTokens.Spacing.sm) {
+            VStack(alignment: .leading, spacing: Tokens.Spacing.smMd) {
+            HStack(spacing: Tokens.Spacing.sm) {
                 DSIconView(
                     row.editor.severity.dsIcon,
                     colorRole: row.editor.severity.dsIconColorRole
                 )
                 Text(headline)
                     .dsFont(.headline)
-                    .foregroundStyle(environment.theme.colors.textPrimary.color)
+                    .foregroundStyle(theme.colors.textPrimary.color)
                     .lineLimit(2)
                 Spacer()
                 DSIconButton(.close, label: "Close explanation") {
@@ -35,29 +35,29 @@ struct DiagnosticExplainPopover: View {
             }
 
             if let cat = row.category {
-                HStack(spacing: DSTokens.Spacing.xs) {
+                HStack(spacing: Tokens.Spacing.xs) {
                     DSCodeBadge(cat.rawValue)
                     Text(severityCopy(cat.severity))
                         .dsFont(.badge)
-                        .foregroundStyle(environment.theme.colors.textSecondary.color)
+                        .foregroundStyle(theme.colors.textSecondary.color)
                 }
             }
 
             Text(rationale)
                 .dsFont(.caption2)
-                .foregroundStyle(environment.theme.colors.textPrimary.color)
+                .foregroundStyle(theme.colors.textPrimary.color)
                 .fixedSize(horizontal: false, vertical: true)
 
             Text("See `docs/diagnostic-severity-discipline.md §1` for the decision tree.")
                 .dsFont(.caption2)
-                .foregroundStyle(environment.theme.colors.textSecondary.color)
+                .foregroundStyle(theme.colors.textSecondary.color)
                 .fixedSize(horizontal: false, vertical: true)
 
             Rectangle()
-                .fill(environment.theme.colors.borderVariant.color)
-                .frame(height: DSTokens.Stroke.hairline)
+                .fill(theme.colors.borderVariant.color)
+                .frame(height: Tokens.Shape.strokeHairline)
 
-            HStack(spacing: DSTokens.Spacing.xs) {
+            HStack(spacing: Tokens.Spacing.xs) {
                 Button("Rename label") { applyRenameLabel() }
                     .buttonStyle(.ds(role: .secondary, size: .compact))
                 Button("Wrap with <br/>") { applyWrap() }
@@ -67,7 +67,7 @@ struct DiagnosticExplainPopover: View {
                     .buttonStyle(.ds(role: .primary, size: .compact))
             }
             }
-            .padding(DSTokens.Spacing.lg)
+            .padding(Tokens.Spacing.lg)
         }
         .frame(width: 340)
         .accessibilityIdentifier(A11yID.Diagnostics.explainPopover)

@@ -12,40 +12,41 @@ import DesignKitThemes
 
 struct EditorTabBar: View {
     @Bindable var store: LiveEditorStore
-    @Environment(\.dsEnvironment) private var environment
+    @Environment(\.designTheme) private var theme
+    @Environment(\.dsContext) private var context
 
     var body: some View {
         DSSurface(role: .tabBar) {
-            HStack(spacing: DSTokens.Spacing.xxs) {
+            HStack(spacing: Tokens.Spacing.xxs) {
                 ScrollView(.horizontal, showsIndicators: false) {
-                    HStack(spacing: DSTokens.Spacing.xxs) {
+                    HStack(spacing: Tokens.Spacing.xxs) {
                         ForEach(store.state.openTabs, id: \.self) { tabId in
                             tabPill(for: tabId)
                         }
                     }
-                    .padding(.horizontal, DSTokens.Stroke.medium)
+                    .padding(.horizontal, Tokens.Shape.strokeMedium)
                 }
                 addMenu
             }
-            .padding(.horizontal, DSTokens.Spacing.xs)
+            .padding(.horizontal, Tokens.Spacing.xs)
             .frame(
-                height: max(DSTokens.Control.tabStrip, environment.minimumTarget)
+                height: max(Tokens.Size.Control.tabStrip, context.minimumTarget)
             )
         }
     }
 
     private func tabPill(for tabId: String) -> some View {
         let isActive = store.state.activeTabId == tabId
-        return HStack(spacing: DSTokens.Spacing.xxs) {
+        return HStack(spacing: Tokens.Spacing.xxs) {
             Button {
                 store.activateTab(tabId)
             } label: {
-                HStack(spacing: DSTokens.Spacing.xxs) {
-                    DSIconView(.code, size: DSTokens.Icon.micro, colorRole: .muted)
+                HStack(spacing: Tokens.Spacing.xxs) {
+                    DSIconView(.code, size: Tokens.Size.Icon.micro, colorRole: .muted)
                     Text(displayName(for: tabId))
                         .lineLimit(1)
                         .truncationMode(.middle)
-                    if environment.preferences.differentiateWithoutColor {
+                    if context.preferences.differentiateWithoutColor {
                         Text(categoryName(for: tabId))
                             .dsFont(.caption2)
                     }
@@ -69,10 +70,10 @@ struct EditorTabBar: View {
                 }
             }
         } label: {
-            DSIconView(.add, size: DSTokens.Icon.xs, colorRole: .muted)
+            DSIconView(.add, size: Tokens.Size.Icon.xs, colorRole: .muted)
                 .frame(
-                    minWidth: environment.minimumTarget,
-                    minHeight: environment.minimumTarget
+                    minWidth: context.minimumTarget,
+                    minHeight: context.minimumTarget
                 )
         }
         .menuStyle(.borderlessButton)

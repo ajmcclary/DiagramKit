@@ -21,21 +21,21 @@ struct SidebarView: View {
     /// dismissing the controls sheet before presenting Settings.
     var onOpenSettings: (() -> Void)? = nil
 
-    @Environment(\.dsEnvironment) private var environment
+    @Environment(\.designTheme) private var theme
 
     var body: some View {
-        VStack(alignment: .leading, spacing: DSTokens.Spacing.md) {
+        VStack(alignment: .leading, spacing: Tokens.Spacing.md) {
             browseSection
             Rectangle()
-                .fill(environment.theme.colors.borderVariant.color)
-                .frame(height: DSTokens.Stroke.hairline)
-                .padding(.horizontal, -DSTokens.Spacing.sm)
+                .fill(theme.colors.borderVariant.color)
+                .frame(height: Tokens.Shape.strokeHairline)
+                .padding(.horizontal, -Tokens.Spacing.sm)
             SampleDiagramPanel(store: store)
                 .frame(maxHeight: .infinity)
         }
-        .padding(.horizontal, DSTokens.Spacing.md)
-        .padding(.top, DSTokens.Spacing.md)
-        .background(environment.theme.colors.panelBackground.color)
+        .padding(.horizontal, Tokens.Spacing.md)
+        .padding(.top, Tokens.Spacing.md)
+        .background(theme.colors.panelBackground.color)
     }
 
     // MARK: - Browse section
@@ -43,7 +43,7 @@ struct SidebarView: View {
     private var browseSection: some View {
         VStack(alignment: .leading, spacing: 2) {
             DSSectionHeader("Browse")
-                .padding(.top, DSTokens.Spacing.xxxs)
+                .padding(.top, Tokens.Spacing.xxxs)
             link(.coverage, label: "Coverage matrix", trailing: "28×5", icon: .diagram)
             link(.corpus, label: "Corpus", trailing: "\(TestDiagrams.all.count)", icon: .image)
             link(.crossFormat, label: "Cross-format", trailing: nil, icon: .convert)
@@ -57,12 +57,12 @@ struct SidebarView: View {
 
     private func settingsRow(_ action: @escaping () -> Void) -> some View {
         Button(action: action) {
-            HStack(spacing: DSTokens.Spacing.sm) {
-                DSIconView(.settings, size: DSTokens.Icon.micro, colorRole: .muted)
+            HStack(spacing: Tokens.Spacing.sm) {
+                DSIconView(.settings, size: Tokens.Size.Icon.micro, colorRole: .muted)
                 Text("Settings")
                     .dsFont(.body)
-                    .foregroundStyle(environment.theme.colors.textPrimary.color)
-                Spacer(minLength: DSTokens.Spacing.xs)
+                    .foregroundStyle(theme.colors.textPrimary.color)
+                Spacer(minLength: Tokens.Spacing.xs)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
             .contentShape(Rectangle())
@@ -80,20 +80,20 @@ struct SidebarView: View {
         return Button {
             store.setFullScreen(isOn ? .none : surface)
         } label: {
-            HStack(spacing: DSTokens.Spacing.sm) {
+            HStack(spacing: Tokens.Spacing.sm) {
                 DSIconView(
                     icon,
-                    size: DSTokens.Icon.micro,
+                    size: Tokens.Size.Icon.micro,
                     colorRole: isOn ? .primary : .muted
                 )
                 Text(label)
                     .dsFont(.body)
-                    .foregroundStyle(environment.theme.colors.textPrimary.color)
-                Spacer(minLength: DSTokens.Spacing.xs)
+                    .foregroundStyle(theme.colors.textPrimary.color)
+                Spacer(minLength: Tokens.Spacing.xs)
                 if let trailing {
                     Text(trailing)
                         .dsFont(.badge)
-                        .foregroundStyle(environment.theme.colors.textSecondary.color)
+                        .foregroundStyle(theme.colors.textSecondary.color)
                 }
             }
             .frame(maxWidth: .infinity, alignment: .leading)

@@ -17,7 +17,7 @@ import DesignKitThemes
 
 struct GanttEditCanvas: View {
     @Bindable var store: LiveEditorStore
-    @Environment(\.dsEnvironment) private var environment
+    @Environment(\.designTheme) private var theme
 
     /// Live resize state. `@GestureState` auto-resets to nil when the gesture
     /// ends *or is cancelled* (system gesture, window resize, tool switch),
@@ -155,7 +155,7 @@ struct GanttEditCanvas: View {
                 let parity = (sectionOrder[task.section] ?? 0) % 2
                 if parity == 1 {
                     Rectangle()
-                        .fill(environment.theme.colors.element.color.opacity(DSTokens.Opacity.mist))
+                        .fill(theme.colors.element.color.opacity(Tokens.Opacity.mist))
                         .frame(width: width, height: rowHeight)
                         .position(
                             x: width / 2,
@@ -167,7 +167,7 @@ struct GanttEditCanvas: View {
                 if let first = tasks.firstIndex(where: { $0.section == section.name }) {
                     Text(section.name)
                         .dsFont(.overline)
-                        .foregroundStyle(environment.theme.colors.textSecondary.color)
+                        .foregroundStyle(theme.colors.textSecondary.color)
                         .position(
                             x: leftInset / 2,
                             y: topInset + rowHeight * CGFloat(first) + rowHeight / 2
@@ -195,12 +195,12 @@ struct GanttEditCanvas: View {
                     p.addLine(to: CGPoint(x: x, y: topInset + height))
                 }
                 .stroke(
-                    environment.theme.colors.borderVariant.color.opacity(DSTokens.Opacity.light),
-                    lineWidth: DSTokens.Stroke.hairline
+                    theme.colors.borderVariant.color.opacity(Tokens.Opacity.light),
+                    lineWidth: Tokens.Shape.strokeHairline
                 )
                 Text("w\(week + 1)")
                     .dsFont(.metric)
-                    .foregroundStyle(environment.theme.colors.textSecondary.color)
+                    .foregroundStyle(theme.colors.textSecondary.color)
                     .position(x: x + 12, y: topInset / 2)
             }
         }
@@ -221,13 +221,13 @@ struct GanttEditCanvas: View {
                     p.move(to: CGPoint(x: x, y: topInset))
                     p.addLine(to: CGPoint(x: x, y: topInset + height))
                 }
-                .stroke(environment.theme.colors.error.color, style: StrokeStyle(lineWidth: DSTokens.Stroke.mediumLight, dash: [3, 2]))
+                .stroke(theme.colors.error.color, style: StrokeStyle(lineWidth: Tokens.Shape.strokeMedLight, dash: [3, 2]))
                 Text("TODAY")
                     .dsFont(.overline)
-                    .padding(.horizontal, DSTokens.Spacing.xxs)
-                    .padding(.vertical, DSTokens.Stroke.thin)
-                    .background(Capsule().fill(environment.theme.colors.error.color))
-                    .foregroundStyle(environment.theme.colors.textPrimary.color)
+                    .padding(.horizontal, Tokens.Spacing.xxs)
+                    .padding(.vertical, Tokens.Shape.strokeThin)
+                    .background(Capsule().fill(theme.colors.error.color))
+                    .foregroundStyle(theme.colors.textPrimary.color)
                     .position(x: x, y: topInset / 2 + 12)
             }
         }
@@ -305,9 +305,9 @@ struct GanttEditCanvas: View {
                 DSGlassSurface(role: .popover) {
                     Text("\(prefix)\(delta)w")
                         .dsFont(.metric)
-                        .padding(.horizontal, DSTokens.Spacing.xs)
-                        .padding(.vertical, DSTokens.Spacing.xxxs)
-                        .foregroundStyle(environment.theme.colors.accent.color)
+                        .padding(.horizontal, Tokens.Spacing.xs)
+                        .padding(.vertical, Tokens.Spacing.xxxs)
+                        .foregroundStyle(theme.colors.accent.color)
                 }
                     .offset(x: width + 6, y: 0)
             }
@@ -327,11 +327,11 @@ struct GanttEditCanvas: View {
     // MARK: - Stubs
 
     private var missingDocumentPlaceholder: some View {
-        VStack(spacing: DSTokens.Spacing.xs) {
-            DSIconView(.diagram, size: DSTokens.Icon.lg, colorRole: .muted)
+        VStack(spacing: Tokens.Spacing.xs) {
+            DSIconView(.diagram, size: Tokens.Size.Icon.lg, colorRole: .muted)
             Text("Switch to a gantt source to use this canvas.")
                 .dsFont(.caption)
-                .foregroundStyle(environment.theme.colors.textSecondary.color)
+                .foregroundStyle(theme.colors.textSecondary.color)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }

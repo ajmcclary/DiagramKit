@@ -13,7 +13,7 @@ import DesignKitThemes
 
 struct VersionSecurityPanel: View {
     @SwiftUI.State private var showingPrivacySheet = false
-    @Environment(\.dsEnvironment) private var environment
+    @Environment(\.designTheme) private var theme
 
     /// The DiagramKit version string reported by the public renderer API.
     nonisolated static var diagramKitVersion: String {
@@ -27,19 +27,19 @@ struct VersionSecurityPanel: View {
     var body: some View {
         DSSurface(role: .panel) {
             ScrollView {
-            VStack(alignment: .leading, spacing: DSTokens.Spacing.lg) {
+            VStack(alignment: .leading, spacing: Tokens.Spacing.lg) {
                 // Header
-                HStack(spacing: DSTokens.Spacing.smMd) {
-                    DSIconView(.diagram, size: DSTokens.Icon.md)
-                    VStack(alignment: .leading, spacing: DSTokens.Spacing.xxxs) {
+                HStack(spacing: Tokens.Spacing.smMd) {
+                    DSIconView(.diagram, size: Tokens.Size.Icon.md)
+                    VStack(alignment: .leading, spacing: Tokens.Spacing.xxxs) {
                         Text("DiagramKit Playground")
                             .dsFont(.subheadline)
                         Text("Native multi-format diagram editor")
                             .dsFont(.caption)
-                            .foregroundStyle(environment.theme.colors.textSecondary.color)
+                            .foregroundStyle(theme.colors.textSecondary.color)
                     }
                 }
-                .padding(.bottom, DSTokens.Spacing.xxs)
+                .padding(.bottom, Tokens.Spacing.xxs)
 
                 Divider()
 
@@ -72,7 +72,7 @@ struct VersionSecurityPanel: View {
                 // Links
                 linksSection
             }
-            .padding(DSTokens.Spacing.lg)
+            .padding(Tokens.Spacing.lg)
             }
         }
         .sheet(isPresented: $showingPrivacySheet) {
@@ -83,9 +83,9 @@ struct VersionSecurityPanel: View {
     // MARK: - Info row
 
     private func infoRow(icon: DSIcon, label: String, value: String) -> some View {
-        HStack(spacing: DSTokens.Spacing.smMd) {
-            DSIconView(icon, size: DSTokens.Icon.micro, colorRole: .muted)
-                .frame(width: DSTokens.Spacing.xl)
+        HStack(spacing: Tokens.Spacing.smMd) {
+            DSIconView(icon, size: Tokens.Size.Icon.micro, colorRole: .muted)
+                .frame(width: Tokens.Spacing.xl)
 
             Text(label)
                 .dsFont(.footnote)
@@ -94,7 +94,7 @@ struct VersionSecurityPanel: View {
 
             Text(value)
                 .dsFont(.caption)
-                .foregroundStyle(environment.theme.colors.textSecondary.color)
+                .foregroundStyle(theme.colors.textSecondary.color)
                 .multilineTextAlignment(.trailing)
         }
     }
@@ -114,10 +114,10 @@ struct VersionSecurityPanel: View {
     // MARK: - Privacy section
 
     private var privacySection: some View {
-        VStack(alignment: .leading, spacing: DSTokens.Spacing.sm) {
-            HStack(spacing: DSTokens.Spacing.smMd) {
-                DSIconView(.success, size: DSTokens.Icon.micro, colorRole: .success)
-                    .frame(width: DSTokens.Spacing.xl)
+        VStack(alignment: .leading, spacing: Tokens.Spacing.sm) {
+            HStack(spacing: Tokens.Spacing.smMd) {
+                DSIconView(.success, size: Tokens.Size.Icon.micro, colorRole: .success)
+                    .frame(width: Tokens.Spacing.xl)
 
                 Text("Privacy & Security")
                     .dsFont(.footnote)
@@ -125,15 +125,15 @@ struct VersionSecurityPanel: View {
 
             Text("This app runs entirely on your device. No diagram content, configuration, or usage data is collected, transmitted, or stored externally. Rendering, parsing, and layout are performed natively using the DiagramKit engine — no JavaScript, no remote servers, no telemetry.")
                 .dsFont(.caption)
-                .foregroundStyle(environment.theme.colors.textSecondary.color)
-                .lineSpacing(DSTokens.Spacing.xxxs)
+                .foregroundStyle(theme.colors.textSecondary.color)
+                .lineSpacing(Tokens.Spacing.xxxs)
 
             Button {
                 showingPrivacySheet = true
             } label: {
                 Text("Learn more about privacy...")
                     .dsFont(.badge)
-                    .foregroundStyle(environment.theme.colors.accent.color)
+                    .foregroundStyle(theme.colors.accent.color)
             }
             .buttonStyle(.ds(role: .ghost, size: .compact))
         }
@@ -144,7 +144,7 @@ struct VersionSecurityPanel: View {
     private var privacyDetailSheet: some View {
         NavigationStack {
             ScrollView {
-                VStack(alignment: .leading, spacing: DSTokens.Spacing.lg) {
+                VStack(alignment: .leading, spacing: Tokens.Spacing.lg) {
                     privacyBullet(
                         title: "100% Local Execution",
                         detail: "All diagram parsing, layout, and rendering happens on your device using native Swift code. No source text ever leaves your machine."
@@ -170,7 +170,7 @@ struct VersionSecurityPanel: View {
                         detail: "This playground app exercises the \(diagramKitVersion) release of the DiagramKit Swift package. All rendering paths are exercised through the public API."
                     )
                 }
-                .padding(DSTokens.Spacing.lg)
+                .padding(Tokens.Spacing.lg)
             }
             .navigationTitle("Privacy & Security")
             #if os(iOS)
@@ -188,23 +188,23 @@ struct VersionSecurityPanel: View {
     }
 
     private func privacyBullet(title: String, detail: String) -> some View {
-        VStack(alignment: .leading, spacing: DSTokens.Spacing.xxs) {
+        VStack(alignment: .leading, spacing: Tokens.Spacing.xxs) {
             Text(title)
                 .dsFont(.headline)
             Text(detail)
                 .dsFont(.caption)
-                .foregroundStyle(environment.theme.colors.textSecondary.color)
-                .lineSpacing(DSTokens.Spacing.xxxs)
+                .foregroundStyle(theme.colors.textSecondary.color)
+                .lineSpacing(Tokens.Spacing.xxxs)
         }
     }
 
     // MARK: - Links section
 
     private var linksSection: some View {
-        VStack(alignment: .leading, spacing: DSTokens.Spacing.sm) {
-            HStack(spacing: DSTokens.Spacing.smMd) {
-                DSIconView(.copy, size: DSTokens.Icon.micro, colorRole: .muted)
-                    .frame(width: DSTokens.Spacing.xl)
+        VStack(alignment: .leading, spacing: Tokens.Spacing.sm) {
+            HStack(spacing: Tokens.Spacing.smMd) {
+                DSIconView(.copy, size: Tokens.Size.Icon.micro, colorRole: .muted)
+                    .frame(width: Tokens.Spacing.xl)
 
                 Text("Links")
                     .dsFont(.footnote)
@@ -212,20 +212,20 @@ struct VersionSecurityPanel: View {
 
             Link(destination: URL(string: "https://github.com/ajmcclary/mermaid-swift")!) {
                 HStack {
-                    DSIconView(.export, size: DSTokens.Icon.indicator)
+                    DSIconView(.export, size: Tokens.Size.Icon.indicator)
                     Text("DiagramKit on GitHub")
                         .dsFont(.caption)
                 }
-                .foregroundStyle(environment.theme.colors.accent.color)
+                .foregroundStyle(theme.colors.accent.color)
             }
 
             Link(destination: URL(string: "https://mermaid.js.org")!) {
                 HStack {
-                    DSIconView(.export, size: DSTokens.Icon.indicator)
+                    DSIconView(.export, size: Tokens.Size.Icon.indicator)
                     Text("Mermaid.js Documentation")
                         .dsFont(.caption)
                 }
-                .foregroundStyle(environment.theme.colors.accent.color)
+                .foregroundStyle(theme.colors.accent.color)
             }
         }
     }

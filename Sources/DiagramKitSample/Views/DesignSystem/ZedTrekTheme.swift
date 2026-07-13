@@ -33,7 +33,7 @@ enum ZedTrekTheme: String, CaseIterable, Hashable, Codable, Sendable {
     /// LCARS is the flagship (★ in the design).
     var isStarred: Bool { self == .lcars }
 
-    var dsFamily: DSThemeFamily {
+    var dsFamily: Theme.Family {
         switch self {
         case .lcars: .lcars
         case .blackAlert: .blackAlert

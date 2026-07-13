@@ -1,3 +1,4 @@
+import DesignKitThemes
 import Foundation
 
 public enum DSPlatform: Equatable, Sendable {
@@ -22,6 +23,16 @@ public struct DSAccessibilityPreferences: Equatable, Sendable {
         self.differentiateWithoutColor = differentiateWithoutColor
         self.reduceTransparency = reduceTransparency
     }
+
+    /// DesignKit equivalent — color hardening and opaque-chrome resolution
+    /// happen inside `Theme.resolved(for:)`.
+    var designKitPreferences: AccessibilityPreferences {
+        AccessibilityPreferences(
+            increaseContrast: increasedContrast,
+            reduceTransparency: reduceTransparency,
+            reduceMotion: reduceMotion
+        )
+    }
 }
 
 public enum DSMotionMode: Equatable, Sendable {
@@ -31,6 +42,13 @@ public enum DSMotionMode: Equatable, Sendable {
     public func duration(milliseconds: CGFloat) -> TimeInterval {
         self == .reduced ? 0 : TimeInterval(milliseconds / 1_000)
     }
+
+    /// Duration-token overload (DesignKit durations are `Duration` values).
+    public func duration(_ duration: Duration) -> TimeInterval {
+        guard self == .standard else { return 0 }
+        return TimeInterval(duration.components.seconds)
+            + TimeInterval(duration.components.attoseconds) / 1e18
+    }
 }
 
 public enum DSStatusPresentation: Equatable, Sendable {
@@ -38,8 +56,10 @@ public enum DSStatusPresentation: Equatable, Sendable {
     case iconAndText
 }
 
-public struct DSResolvedEnvironment: Equatable, Sendable {
-    public let theme: DSTheme
+/// Platform + accessibility context that accompanies the DesignKit theme.
+/// The theme itself travels in `\.designTheme` (already hardened by
+/// `Theme.resolved(for:)`); this carries everything that isn't a color.
+public struct DSContext: Equatable, Sendable {
     public let platform: DSPlatform
     public let preferences: DSAccessibilityPreferences
     public let minimumTarget: CGFloat
@@ -48,15 +68,15 @@ public struct DSResolvedEnvironment: Equatable, Sendable {
     public let statusPresentation: DSStatusPresentation
 
     public static func resolve(
-        theme: DSTheme,
         platform: DSPlatform,
         preferences: DSAccessibilityPreferences
     ) -> Self {
         Self(
-            theme: preferences.increasedContrast ? theme.increasedContrast : theme,
             platform: platform,
             preferences: preferences,
-            minimumTarget: platform == .iOS ? DSTokens.Touch.iOS : DSTokens.Touch.macOS,
+            minimumTarget: platform == .iOS
+                ? CGFloat(Tokens.Size.Touch.min)
+                : CGFloat(Tokens.Size.Touch.minimumMacOS),
             motion: preferences.reduceMotion ? .reduced : .standard,
             usesOpaqueChrome: preferences.reduceTransparency,
             statusPresentation: preferences.differentiateWithoutColor ? .iconAndText : .colorAndIcon
@@ -65,27 +85,5 @@ public struct DSResolvedEnvironment: Equatable, Sendable {
 
     public func font(_ role: DSFontRole) -> DSResolvedFont {
         DSTypography.resolve(role, platform: platform)
-    }
-}
-
-private extension DSTheme {
-    var increasedContrast: DSTheme {
-        var values = colors.values
-        values["border"] = colors.borderFocused
-        values["border.variant"] = colors.borderFocused
-        values["text.muted"] = colors.textPrimary
-        values["icon.muted"] = colors.iconPrimary
-        let colors = DSThemeColors(
-            accents: colors.accents,
-            values: values,
-            syntax: colors.syntax
-        )
-        return DSTheme(
-            name: name,
-            family: family,
-            mode: mode,
-            colors: colors,
-            isHighContrast: true
-        )
     }
 }

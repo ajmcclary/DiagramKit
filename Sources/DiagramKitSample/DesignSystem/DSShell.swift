@@ -1,3 +1,4 @@
+import DesignKitThemes
 import Foundation
 
 public enum DSShellWidth: CaseIterable, Equatable, Sendable {
@@ -32,17 +33,17 @@ public enum DSShellAction: CaseIterable, Hashable, Sendable {
 /// deliberately absent from this API so content styling cannot leak into the
 /// navigation, toolbar, panel, sheet, or status surfaces.
 public struct DSShellChromeResolution: Equatable, Sendable {
-    public let navigation: DSColorValue
-    public let toolbar: DSColorValue
-    public let panel: DSColorValue
-    public let status: DSColorValue
-    public let sheet: DSColorValue
-    public let separator: DSColorValue
+    public let navigation: Tokens.Color
+    public let toolbar: Tokens.Color
+    public let panel: Tokens.Color
+    public let status: Tokens.Color
+    public let sheet: Tokens.Color
+    public let separator: Tokens.Color
     public let layout: DSShellLayout
     public let showsInspectorColumn: Bool
     public let reachableActions: Set<DSShellAction>
 
-    public static func resolve(theme: DSTheme, width: DSShellWidth) -> Self {
+    public static func resolve(theme: Theme, width: DSShellWidth) -> Self {
         let usesColumns = width != .compact
         return Self(
             navigation: theme.colors.titleBarBackground,

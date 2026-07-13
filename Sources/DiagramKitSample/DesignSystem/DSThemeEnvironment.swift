@@ -1,22 +1,28 @@
+import DesignKitThemes
 import SwiftUI
 
-private struct DSResolvedEnvironmentKey: EnvironmentKey {
-    static let defaultValue = DSResolvedEnvironment.resolve(
-        theme: .lcarsDark,
-        platform: .macOS,
-        preferences: .init()
-    )
+/// Light/dark selection for `.dsTheme`; `.system` follows `\.colorScheme`.
+public enum DSThemeMode: String, CaseIterable, Hashable, Codable, Sendable {
+    case system
+    case dark
+    case light
+}
+
+private struct DSContextKey: EnvironmentKey {
+    static let defaultValue = DSContext.resolve(platform: .macOS, preferences: .init())
 }
 
 public extension EnvironmentValues {
-    var dsEnvironment: DSResolvedEnvironment {
-        get { self[DSResolvedEnvironmentKey.self] }
-        set { self[DSResolvedEnvironmentKey.self] = newValue }
+    /// Platform + accessibility context. The theme itself lives in
+    /// `\.designTheme` (DesignKit).
+    var dsContext: DSContext {
+        get { self[DSContextKey.self] }
+        set { self[DSContextKey.self] = newValue }
     }
 }
 
 public extension View {
-    func dsTheme(family: DSThemeFamily, mode: DSThemeMode) -> some View {
+    func dsTheme(family: Theme.Family, mode: DSThemeMode) -> some View {
         modifier(DSThemeEnvironmentModifier(family: family, mode: mode))
     }
 
@@ -25,21 +31,8 @@ public extension View {
     }
 }
 
-public extension DSColorValue {
-    var color: Color {
-        let value = UInt64(hex.dropFirst(), radix: 16) ?? 0
-        return Color(
-            .sRGB,
-            red: Double((value >> 16) & 0xFF) / 255,
-            green: Double((value >> 8) & 0xFF) / 255,
-            blue: Double(value & 0xFF) / 255,
-            opacity: alpha
-        )
-    }
-}
-
 private struct DSThemeEnvironmentModifier: ViewModifier {
-    let family: DSThemeFamily
+    let family: Theme.Family
     let mode: DSThemeMode
 
     @Environment(\.colorScheme) private var colorScheme
@@ -50,8 +43,7 @@ private struct DSThemeEnvironmentModifier: ViewModifier {
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
     func body(content: Content) -> some View {
-        let environment = DSResolvedEnvironment.resolve(
-            theme: DSTheme.theme(family: family, mode: resolvedMode),
+        let context = DSContext.resolve(
             platform: platform,
             preferences: DSAccessibilityPreferences(
                 increasedContrast: colorSchemeContrast == .increased,
@@ -61,18 +53,23 @@ private struct DSThemeEnvironmentModifier: ViewModifier {
             )
         )
         content
-            .environment(\.dsEnvironment, environment)
-            .tint(environment.theme.colors.accent.color)
+            // `.designTheme` folds the same accessibility environment into
+            // the theme (hardened colors, opaque glass) and sets `.tint`.
+            .designTheme(family.theme(for: appearance))
+            .environment(\.dsContext, context)
             .dynamicTypeSize(dynamicTypeSize)
     }
 
-    private var resolvedMode: DSThemeMode {
-        guard mode == .system else { return mode }
-        return colorScheme == .dark ? .dark : .light
+    private var appearance: Theme.Appearance {
+        switch mode {
+        case .dark: .dark
+        case .light: .light
+        case .system: colorScheme == .dark ? .dark : .light
+        }
     }
 
     private var platform: DSPlatform {
-        #if os(iOS)
+        #if canImport(UIKit)
         .iOS
         #else
         .macOS
@@ -82,10 +79,10 @@ private struct DSThemeEnvironmentModifier: ViewModifier {
 
 private struct DSFontModifier: ViewModifier {
     let role: DSFontRole
-    @Environment(\.dsEnvironment) private var environment
+    @Environment(\.dsContext) private var context
 
     func body(content: Content) -> some View {
-        let font = environment.font(role)
+        let font = context.font(role)
         content
             .font(font.swiftUIFont)
             .tracking(font.tracking)

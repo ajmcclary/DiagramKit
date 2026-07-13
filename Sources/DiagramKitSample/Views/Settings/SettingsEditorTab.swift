@@ -51,7 +51,7 @@ struct SettingsEditorTab: View {
                 .labelsHidden()
                 .toggleStyle(.dsSwitchOnly)
         }
-        .padding(.horizontal, DSTokens.Spacing.lg)
+        .padding(.horizontal, Tokens.Spacing.lg)
         .contentShape(Rectangle())
     }
 }

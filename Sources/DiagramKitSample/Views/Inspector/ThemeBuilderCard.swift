@@ -13,18 +13,18 @@ import DesignKitThemes
 
 struct ThemeBuilderCard: View {
     @Bindable var store: LiveEditorStore
-    @Environment(\.dsEnvironment) private var environment
+    @Environment(\.designTheme) private var theme
 
     var body: some View {
         InspectorSectionHeader(title: "Theme builder", systemImage: "paintbrush.pointed")
             .padding(.bottom, 4)
-        VStack(alignment: .leading, spacing: DSTokens.Spacing.sm) {
+        VStack(alignment: .leading, spacing: Tokens.Spacing.sm) {
             ForEach(ThemeBuilderState.Token.allCases, id: \.self) { token in
                 row(for: token)
             }
             footer
         }
-        .padding(DSTokens.Spacing.sm)
+        .padding(Tokens.Spacing.sm)
         .background { DSSurface(role: .card) { Color.clear } }
         .accessibilityIdentifier("inspector.themeBuilder")
         .accessibilityElement(children: .contain)
@@ -32,21 +32,21 @@ struct ThemeBuilderCard: View {
 
     private func row(for token: ThemeBuilderState.Token) -> some View {
         let hex = store.state.themeBuilder.override(for: token) ?? defaultHex(for: token)
-        return HStack(spacing: DSTokens.Spacing.xs) {
+        return HStack(spacing: Tokens.Spacing.xs) {
             Text(token.label)
                 .dsFont(.badge)
                 .frame(width: 90, alignment: .leading)
             if token.isSemantic {
                 DSCodeBadge("sem")
             }
-            RoundedRectangle(cornerRadius: DSTokens.Radius.xs)
+            RoundedRectangle(cornerRadius: Tokens.Shape.radiusXS)
                 .fill(Color(hex: hex) ?? .gray)
                 .frame(width: 20, height: 20)
                 .overlay(
-                    RoundedRectangle(cornerRadius: DSTokens.Radius.xs)
+                    RoundedRectangle(cornerRadius: Tokens.Shape.radiusXS)
                         .stroke(
-                            environment.theme.colors.borderVariant.color,
-                            lineWidth: DSTokens.Stroke.hairline
+                            theme.colors.borderVariant.color,
+                            lineWidth: Tokens.Shape.strokeHairline
                         )
                 )
             DSField("hex", text: Binding(
@@ -64,7 +64,7 @@ struct ThemeBuilderCard: View {
             .disabled(store.state.themeBuilder.override(for: token) == nil)
             .opacity(
                 store.state.themeBuilder.override(for: token) == nil
-                    ? DSTokens.Opacity.disabled
+                    ? Tokens.Opacity.disabled
                     : 1
             )
             .help("Reset \(token.label)")
@@ -75,18 +75,18 @@ struct ThemeBuilderCard: View {
     private var footer: some View {
         HStack {
             if store.state.themeBuilder.dirty {
-                HStack(spacing: DSTokens.Spacing.xs) {
+                HStack(spacing: Tokens.Spacing.xs) {
                     DSStatusIndicator(.warning, label: overrideCountLabel)
                     Text(overrideCountLabel)
                         .dsFont(.caption2)
-                        .foregroundStyle(environment.theme.colors.warning.color)
+                        .foregroundStyle(theme.colors.warning.color)
                 }
             } else {
-                HStack(spacing: DSTokens.Spacing.xs) {
+                HStack(spacing: Tokens.Spacing.xs) {
                     DSStatusIndicator(.info, label: "Using theme defaults")
                     Text("Using theme defaults")
                         .dsFont(.caption2)
-                        .foregroundStyle(environment.theme.colors.textSecondary.color)
+                        .foregroundStyle(theme.colors.textSecondary.color)
                 }
             }
             Spacer()
@@ -97,7 +97,7 @@ struct ThemeBuilderCard: View {
             .disabled(!store.state.themeBuilder.dirty)
             .a11y(label: "Reset all theme overrides", id: "themebuilder.resetAll")
         }
-        .padding(.top, DSTokens.Spacing.xxs)
+        .padding(.top, Tokens.Spacing.xxs)
     }
 
     private var overrideCountLabel: String {

@@ -13,7 +13,7 @@ import DesignKitThemes
 
 struct ImporterProbeView: View {
     @Bindable var store: LiveEditorStore
-    @Environment(\.dsEnvironment) private var environment
+    @Environment(\.designTheme) private var theme
 
     private let runner = ImporterProbeRunner()
 
@@ -28,13 +28,13 @@ struct ImporterProbeView: View {
             HStack(spacing: 0) {
                 samplePicker(samples: samples)
                     .frame(width: 220)
-                Rectangle().fill(environment.theme.colors.borderVariant.color).frame(width: DSTokens.Stroke.hairline)
+                Rectangle().fill(theme.colors.borderVariant.color).frame(width: Tokens.Shape.strokeHairline)
                 pipeline(source: active.source, outcome: outcome)
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
             .frame(maxHeight: .infinity)
         }
-        .background(environment.theme.colors.windowBackground.color)
+        .background(theme.colors.windowBackground.color)
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier("probe.view")
     }
@@ -42,13 +42,13 @@ struct ImporterProbeView: View {
     // MARK: - Header
 
     private func header(outcome: ImporterProbeRunner.ProbeOutcome) -> some View {
-        HStack(spacing: DSTokens.Spacing.sm) {
+        HStack(spacing: Tokens.Spacing.sm) {
             DSIconView(.search)
             Text("Importer probe")
                 .dsFont(.headline)
             Text("· \(runner.registry.importers.count) registered")
                 .dsFont(.caption2)
-                .foregroundStyle(environment.theme.colors.textSecondary.color)
+                .foregroundStyle(theme.colors.textSecondary.color)
             Spacer()
             if let winner = outcome.winnerName {
                 HStack { DSIconView(.success, colorRole: .success); DSCodeBadge("resolved · \(winner)") }
@@ -58,8 +58,8 @@ struct ImporterProbeView: View {
             DSIconButton(.close, label: "Close") { store.dismissFullScreen() }
                 .keyboardShortcut(.cancelAction)
         }
-        .padding(.horizontal, DSTokens.Spacing.lg)
-        .padding(.vertical, DSTokens.Spacing.sm)
+        .padding(.horizontal, Tokens.Spacing.lg)
+        .padding(.vertical, Tokens.Spacing.sm)
     }
 
     // MARK: - Sample picker
@@ -68,11 +68,11 @@ struct ImporterProbeView: View {
         VStack(alignment: .leading, spacing: 0) {
             Text("Samples")
                 .dsFont(.overline)
-                .foregroundStyle(environment.theme.colors.textSecondary.color)
-                .padding(.horizontal, DSTokens.Spacing.md)
-                .padding(.vertical, DSTokens.Spacing.xs)
+                .foregroundStyle(theme.colors.textSecondary.color)
+                .padding(.horizontal, Tokens.Spacing.md)
+                .padding(.vertical, Tokens.Spacing.xs)
                 .frame(maxWidth: .infinity, alignment: .leading)
-                .background(environment.theme.colors.element.color)
+                .background(theme.colors.element.color)
             ScrollView {
                 VStack(alignment: .leading, spacing: 0) {
                     ForEach(Array(samples.enumerated()), id: \.offset) { index, sample in
@@ -92,12 +92,12 @@ struct ImporterProbeView: View {
             HStack {
                 Text("\(index + 1).")
                     .dsFont(.metric)
-                    .foregroundStyle(environment.theme.colors.textSecondary.color)
+                    .foregroundStyle(theme.colors.textSecondary.color)
                 Text(label)
                     .dsFont(.caption2)
                 Spacer()
             }
-            .padding(.horizontal, DSTokens.Spacing.md)
+            .padding(.horizontal, Tokens.Spacing.md)
             .contentShape(Rectangle())
         }
         .buttonStyle(.ds(role: isOn ? .secondary : .ghost, size: .compact))
@@ -112,11 +112,11 @@ struct ImporterProbeView: View {
                 section(title: "Source") {
                     Text(source)
                         .dsFont(.code)
-                        .foregroundStyle(environment.theme.colors.editorForeground.color)
+                        .foregroundStyle(theme.colors.editorForeground.color)
                         .textSelection(.enabled)
                         .frame(maxWidth: .infinity, alignment: .topLeading)
-                        .padding(DSTokens.Spacing.smMd)
-                        .background(environment.theme.colors.editorBackground.color, in: RoundedRectangle(cornerRadius: DSTokens.Radius.sm))
+                        .padding(Tokens.Spacing.smMd)
+                        .background(theme.colors.editorBackground.color, in: RoundedRectangle(cornerRadius: Tokens.Shape.radiusSM))
                 }
                 section(title: "Probe sequence") {
                     VStack(spacing: 4) {
@@ -127,7 +127,7 @@ struct ImporterProbeView: View {
                 }
                 section(title: "Result") {
                     if let winner = outcome.winnerName {
-                        HStack(spacing: DSTokens.Spacing.xs) {
+                        HStack(spacing: Tokens.Spacing.xs) {
                             DSIconView(.success, colorRole: .success)
                             Text("Routed to ")
                                 .dsFont(.caption2)
@@ -137,16 +137,16 @@ struct ImporterProbeView: View {
                     } else {
                         Text("No importer claimed the source.")
                             .dsFont(.caption2)
-                            .foregroundStyle(environment.theme.colors.error.color)
+                            .foregroundStyle(theme.colors.error.color)
                     }
                 }
             }
-            .padding(DSTokens.Spacing.lg)
+            .padding(Tokens.Spacing.lg)
         }
     }
 
     private func section<Body: View>(title: String, @ViewBuilder body: () -> Body) -> some View {
-        VStack(alignment: .leading, spacing: DSTokens.Spacing.xs) {
+        VStack(alignment: .leading, spacing: Tokens.Spacing.xs) {
             DSSectionHeader(title)
             body()
         }
@@ -154,13 +154,13 @@ struct ImporterProbeView: View {
 
     private func stepRow(_ step: ImporterProbeRunner.ProbeStep) -> some View {
         let tint = tintFor(step.verdict)
-        return HStack(spacing: DSTokens.Spacing.xs) {
-            DSIconView(iconFor(step.verdict), size: DSTokens.Icon.micro, colorRole: roleFor(step.verdict))
+        return HStack(spacing: Tokens.Spacing.xs) {
+            DSIconView(iconFor(step.verdict), size: Tokens.Size.Icon.micro, colorRole: roleFor(step.verdict))
             Text(step.importerName)
                 .dsFont(.headline)
             Text(".\(step.formatID)")
                 .dsFont(.code)
-                .foregroundStyle(environment.theme.colors.textSecondary.color)
+                .foregroundStyle(theme.colors.textSecondary.color)
             if step.isFallback {
                 DSCodeBadge("fallback")
             }
@@ -169,11 +169,11 @@ struct ImporterProbeView: View {
                 .dsFont(.badge)
                 .foregroundStyle(tint)
         }
-        .padding(.horizontal, DSTokens.Spacing.sm)
-        .padding(.vertical, DSTokens.Spacing.xxs)
+        .padding(.horizontal, Tokens.Spacing.sm)
+        .padding(.vertical, Tokens.Spacing.xxs)
         .background(
-            RoundedRectangle(cornerRadius: DSTokens.Radius.sm, style: .continuous)
-                .fill(tint.opacity(DSTokens.Opacity.tint))
+            RoundedRectangle(cornerRadius: Tokens.Shape.radiusSM, style: .continuous)
+                .fill(tint.opacity(Tokens.Opacity.tint))
         )
         .accessibilityIdentifier("probe.step.\(step.id)")
     }
@@ -188,9 +188,9 @@ struct ImporterProbeView: View {
 
     private func tintFor(_ v: ImporterProbeRunner.Verdict) -> Color {
         switch v {
-        case .match:      return environment.theme.colors.success.color
-        case .skip:       return environment.theme.colors.iconMuted.color
-        case .notReached: return environment.theme.colors.iconDisabled.color
+        case .match:      return theme.colors.success.color
+        case .skip:       return theme.colors.iconMuted.color
+        case .notReached: return theme.colors.iconDisabled.color
         }
     }
 
@@ -203,6 +203,6 @@ struct ImporterProbeView: View {
     }
 
     private var separator: some View {
-        Rectangle().fill(environment.theme.colors.borderVariant.color).frame(height: DSTokens.Stroke.hairline)
+        Rectangle().fill(theme.colors.borderVariant.color).frame(height: Tokens.Shape.strokeHairline)
     }
 }

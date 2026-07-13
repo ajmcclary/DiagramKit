@@ -11,17 +11,17 @@ import DesignKitThemes
 struct ColorDotPicker: View {
     let colors: [Color]
     @Binding var selectedIndex: Int?
-    @Environment(\.dsEnvironment) private var environment
+    @Environment(\.designTheme) private var theme
 
     var body: some View {
-        HStack(spacing: DSTokens.Spacing.sm) {
+        HStack(spacing: Tokens.Spacing.sm) {
             ForEach(Array(colors.enumerated()), id: \.offset) { i, color in
                 Button { selectedIndex = i } label: {
-                Circle().fill(color).frame(width: DSTokens.Control.chip, height: DSTokens.Control.chip)
+                Circle().fill(color).frame(width: Tokens.Size.Control.chip, height: Tokens.Size.Control.chip)
                     .overlay {
                         if selectedIndex == i {
-                            Circle().stroke(environment.theme.colors.borderSelected.color, lineWidth: DSTokens.Stroke.medium)
-                                .padding(-DSTokens.Spacing.xxs)
+                            Circle().stroke(theme.colors.borderSelected.color, lineWidth: Tokens.Shape.strokeMedium)
+                                .padding(-Tokens.Spacing.xxs)
                         }
                     }
                 }

@@ -14,12 +14,12 @@ import DesignKitThemes
 struct ThemeSwatchPicker: View {
     @Bindable var store: LiveEditorStore
     let dismiss: () -> Void
-    @Environment(\.dsEnvironment) private var environment
+    @Environment(\.designTheme) private var appTheme
 
-    private let columns = [GridItem(.adaptive(minimum: 88), spacing: DSTokens.Spacing.sm)]
+    private let columns = [GridItem(.adaptive(minimum: 88), spacing: Tokens.Spacing.sm)]
 
     var body: some View {
-        VStack(alignment: .leading, spacing: DSTokens.Spacing.sm) {
+        VStack(alignment: .leading, spacing: Tokens.Spacing.sm) {
             HStack {
                 Text("Theme (saved in source)")
                     .dsFont(.headline)
@@ -31,14 +31,14 @@ struct ThemeSwatchPicker: View {
                 .buttonStyle(.ds(role: .ghost, size: .compact))
             }
             ScrollView {
-                LazyVGrid(columns: columns, spacing: DSTokens.Spacing.sm) {
+                LazyVGrid(columns: columns, spacing: Tokens.Spacing.sm) {
                     ForEach(DiagramTheme.allThemes, id: \.name) { entry in
                         swatch(name: entry.name, theme: entry.theme)
                     }
                 }
             }
         }
-        .padding(DSTokens.Spacing.md)
+        .padding(Tokens.Spacing.md)
         .frame(width: 320, height: 360)
         .accessibilityIdentifier(A11yID.Visual.themePicker)
     }
@@ -49,21 +49,21 @@ struct ThemeSwatchPicker: View {
             dismiss()
             Task { await store.applyThemeFromToolbar(named: name) }
         } label: {
-            VStack(spacing: DSTokens.Spacing.xxs) {
-                HStack(spacing: DSTokens.Spacing.xxxs) {
+            VStack(spacing: Tokens.Spacing.xxs) {
+                HStack(spacing: Tokens.Spacing.xxxs) {
                     Color(theme.background)
                     Color(theme.foreground)
                     Color(theme.effectiveAccent())
                 }
                 .frame(height: 22)
-                .clipShape(RoundedRectangle(cornerRadius: DSTokens.Radius.xs))
+                .clipShape(RoundedRectangle(cornerRadius: Tokens.Shape.radiusXS))
                 .overlay(
-                    RoundedRectangle(cornerRadius: DSTokens.Radius.xs)
+                    RoundedRectangle(cornerRadius: Tokens.Shape.radiusXS)
                         .stroke(
                             isPinned
-                                ? environment.theme.colors.borderFocused.color
-                                : environment.theme.colors.borderVariant.color,
-                            lineWidth: isPinned ? DSTokens.Stroke.medium : DSTokens.Stroke.thin
+                                ? appTheme.colors.borderFocused.color
+                                : appTheme.colors.borderVariant.color,
+                            lineWidth: isPinned ? Tokens.Shape.strokeMedium : Tokens.Shape.strokeThin
                         )
                 )
                 Text(name)

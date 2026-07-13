@@ -18,7 +18,7 @@ import DesignKitThemes
 
 struct ThreeFormatView: View {
     @Bindable var store: LiveEditorStore
-    @Environment(\.dsEnvironment) private var environment
+    @Environment(\.designTheme) private var theme
 
     @SwiftUI.State private var columns: [FormatPane] = []
 
@@ -40,7 +40,7 @@ struct ThreeFormatView: View {
             separator
             footer
         }
-        .background(environment.theme.colors.windowBackground.color)
+        .background(theme.colors.windowBackground.color)
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier("crossformat.view")
         .task(id: refreshKey) { await refresh() }
@@ -54,13 +54,13 @@ struct ThreeFormatView: View {
     // MARK: - Header
 
     private var header: some View {
-        HStack(spacing: DSTokens.Spacing.sm) {
+        HStack(spacing: Tokens.Spacing.sm) {
             DSIconView(.convert)
             Text("Cross-format")
                 .dsFont(.headline)
             Text("· Mermaid / D2 / DOT")
                 .dsFont(.caption2)
-                .foregroundStyle(environment.theme.colors.textSecondary.color)
+                .foregroundStyle(theme.colors.textSecondary.color)
             Spacer()
             HStack { DSIconView(.success, colorRole: .success); DSCodeBadge("parse → export · paired") }
             DSIconButton(.close, label: "Close cross-format view") {
@@ -68,8 +68,8 @@ struct ThreeFormatView: View {
             }
             .keyboardShortcut(.cancelAction)
         }
-        .padding(.horizontal, DSTokens.Spacing.lg)
-        .padding(.vertical, DSTokens.Spacing.sm)
+        .padding(.horizontal, Tokens.Spacing.lg)
+        .padding(.vertical, Tokens.Spacing.sm)
     }
 
     // MARK: - Triptych
@@ -79,7 +79,7 @@ struct ThreeFormatView: View {
             ForEach(Array(columns.enumerated()), id: \.element.id) { index, pane in
                 column(pane)
                 if index < columns.count - 1 {
-                    Rectangle().fill(environment.theme.colors.borderVariant.color).frame(width: DSTokens.Stroke.hairline)
+                    Rectangle().fill(theme.colors.borderVariant.color).frame(width: Tokens.Shape.strokeHairline)
                 }
             }
         }
@@ -87,26 +87,26 @@ struct ThreeFormatView: View {
 
     private func column(_ pane: FormatPane) -> some View {
         VStack(alignment: .leading, spacing: 0) {
-            HStack(spacing: DSTokens.Spacing.xs) {
+            HStack(spacing: Tokens.Spacing.xs) {
                 DSCodeBadge(pane.format.shortName)
                 Text(".\(pane.format.fileExtension)")
                     .dsFont(.code)
-                    .foregroundStyle(environment.theme.colors.textSecondary.color)
+                    .foregroundStyle(theme.colors.textSecondary.color)
                 Spacer()
             }
-            .padding(.horizontal, DSTokens.Spacing.smMd)
-            .padding(.vertical, DSTokens.Spacing.xs)
-            .background(environment.theme.colors.element.color)
+            .padding(.horizontal, Tokens.Spacing.smMd)
+            .padding(.vertical, Tokens.Spacing.xs)
+            .background(theme.colors.element.color)
 
             ScrollView([.horizontal, .vertical]) {
                 Text(textPayload(for: pane))
                     .dsFont(.code)
-                    .foregroundStyle(environment.theme.colors.editorForeground.color)
+                    .foregroundStyle(theme.colors.editorForeground.color)
                     .textSelection(.enabled)
-                    .padding(DSTokens.Spacing.smMd)
+                    .padding(Tokens.Spacing.smMd)
                     .frame(maxWidth: .infinity, alignment: .topLeading)
             }
-            .background(environment.theme.colors.editorBackground.color)
+            .background(theme.colors.editorBackground.color)
 
             separator
 
@@ -129,15 +129,15 @@ struct ThreeFormatView: View {
 
     private func diagnosticsList(for pane: FormatPane) -> some View {
         let diags = pane.result?.diagnostics ?? []
-        return VStack(alignment: .leading, spacing: DSTokens.Spacing.xxxs) {
+        return VStack(alignment: .leading, spacing: Tokens.Spacing.xxxs) {
             HStack {
                 Text("Diagnostics")
                     .dsFont(.overline)
-                    .foregroundStyle(environment.theme.colors.textSecondary.color)
+                    .foregroundStyle(theme.colors.textSecondary.color)
                 if !diags.isEmpty {
                     Text("· \(diags.count)")
                         .dsFont(.metric)
-                        .foregroundStyle(environment.theme.colors.textSecondary.color)
+                        .foregroundStyle(theme.colors.textSecondary.color)
                 }
                 Spacer()
             }
@@ -145,20 +145,20 @@ struct ThreeFormatView: View {
             .padding(.top, 4)
             ScrollView {
                 if diags.isEmpty {
-                    HStack { DSIconView(.success, size: DSTokens.Icon.micro, colorRole: .success); Text("No typed losses").dsFont(.caption2) }
-                        .foregroundStyle(environment.theme.colors.success.color)
-                        .padding(.horizontal, DSTokens.Spacing.smMd)
-                        .padding(.vertical, DSTokens.Spacing.xxxs)
+                    HStack { DSIconView(.success, size: Tokens.Size.Icon.micro, colorRole: .success); Text("No typed losses").dsFont(.caption2) }
+                        .foregroundStyle(theme.colors.success.color)
+                        .padding(.horizontal, Tokens.Spacing.smMd)
+                        .padding(.vertical, Tokens.Spacing.xxxs)
                         .frame(maxWidth: .infinity, alignment: .leading)
                 } else {
-                    VStack(alignment: .leading, spacing: DSTokens.Spacing.xxxs) {
+                    VStack(alignment: .leading, spacing: Tokens.Spacing.xxxs) {
                         ForEach(Array(diags.enumerated()), id: \.offset) { _, d in
-                            HStack(spacing: DSTokens.Spacing.xxs) {
-                                DSIconView(severityIcon(d), size: DSTokens.Icon.micro, colorRole: severityRole(d))
+                            HStack(spacing: Tokens.Spacing.xxs) {
+                                DSIconView(severityIcon(d), size: Tokens.Size.Icon.micro, colorRole: severityRole(d))
                                 if let cat = d.category {
                                     Text(".\(cat.rawValue)")
                                         .dsFont(.code)
-                                        .foregroundStyle(environment.theme.colors.accent.color)
+                                        .foregroundStyle(theme.colors.accent.color)
                                 }
                                 Text(d.message)
                                     .dsFont(.caption2)
@@ -170,7 +170,7 @@ struct ThreeFormatView: View {
                 }
             }
         }
-        .background(environment.theme.colors.panelBackground.color)
+        .background(theme.colors.panelBackground.color)
     }
 
     private func severityIcon(_ d: DiagramDiagnostic) -> DSIcon {
@@ -214,10 +214,10 @@ struct ThreeFormatView: View {
             Spacer()
             Text("Source format: \(store.state.sourceFormat.shortName)")
                 .dsFont(.caption2)
-                .foregroundStyle(environment.theme.colors.textSecondary.color)
+                .foregroundStyle(theme.colors.textSecondary.color)
         }
-        .padding(.horizontal, DSTokens.Spacing.lg)
-        .padding(.vertical, DSTokens.Spacing.xs)
+        .padding(.horizontal, Tokens.Spacing.lg)
+        .padding(.vertical, Tokens.Spacing.xs)
     }
 
     // MARK: - Refresh
@@ -237,6 +237,6 @@ struct ThreeFormatView: View {
     }
 
     private var separator: some View {
-        Rectangle().fill(environment.theme.colors.borderVariant.color).frame(height: DSTokens.Stroke.hairline)
+        Rectangle().fill(theme.colors.borderVariant.color).frame(height: Tokens.Shape.strokeHairline)
     }
 }

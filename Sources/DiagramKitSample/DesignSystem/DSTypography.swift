@@ -1,3 +1,4 @@
+import DesignKitThemes
 import SwiftUI
 
 public enum DSFontRole: String, CaseIterable, Sendable {
@@ -72,7 +73,7 @@ public struct DSResolvedFont: Equatable, Sendable {
             return .system(textStyle.swiftUI, design: design).weight(weight.swiftUI)
         }
         return .system(
-            size: pointSize ?? DSTokens.Typography.body,
+            size: pointSize ?? Tokens.Typography.Size.bodyLG,
             weight: weight.swiftUI,
             design: design
         )
@@ -103,46 +104,46 @@ enum DSTypography {
     private static func descriptor(for role: DSFontRole) -> DSResolvedFont {
         switch role {
         case .display:
-            DSResolvedFont(family: .systemSans, weight: .bold, textStyle: .largeTitle, pointSize: DSTokens.Typography.largeTitle)
+            DSResolvedFont(family: .systemSans, weight: .bold, textStyle: .largeTitle, pointSize: Tokens.Typography.Size.titleXL)
         case .title:
-            DSResolvedFont(family: .systemSans, weight: .semibold, textStyle: .title2, pointSize: DSTokens.Typography.title2)
+            DSResolvedFont(family: .systemSans, weight: .semibold, textStyle: .title2, pointSize: Tokens.Typography.Size.titleMD)
         case .headline:
-            DSResolvedFont(family: .systemSans, weight: .semibold, textStyle: .headline, pointSize: DSTokens.Typography.headline)
+            DSResolvedFont(family: .systemSans, weight: .semibold, textStyle: .headline, pointSize: Tokens.Typography.Size.headingLG)
         case .body:
-            DSResolvedFont(family: .systemSans, weight: .regular, textStyle: .body, pointSize: DSTokens.Typography.body)
+            DSResolvedFont(family: .systemSans, weight: .regular, textStyle: .body, pointSize: Tokens.Typography.Size.bodyLG)
         case .callout:
-            DSResolvedFont(family: .systemSans, weight: .regular, textStyle: .callout, pointSize: DSTokens.Typography.callout)
+            DSResolvedFont(family: .systemSans, weight: .regular, textStyle: .callout, pointSize: Tokens.Typography.Size.bodyMD)
         case .subheadline:
-            DSResolvedFont(family: .systemSans, weight: .regular, textStyle: .subheadline, pointSize: DSTokens.Typography.subheadline)
+            DSResolvedFont(family: .systemSans, weight: .regular, textStyle: .subheadline, pointSize: Tokens.Typography.Size.headingMD)
         case .footnote:
-            DSResolvedFont(family: .systemSans, weight: .regular, textStyle: .footnote, pointSize: DSTokens.Typography.footnote)
+            DSResolvedFont(family: .systemSans, weight: .regular, textStyle: .footnote, pointSize: Tokens.Typography.Size.bodySM)
         case .caption:
-            DSResolvedFont(family: .systemSans, weight: .regular, textStyle: .caption, pointSize: DSTokens.Typography.caption)
+            DSResolvedFont(family: .systemSans, weight: .regular, textStyle: .caption, pointSize: Tokens.Typography.Size.captionLG)
         case .caption2:
-            DSResolvedFont(family: .systemSans, weight: .regular, textStyle: .caption2, pointSize: DSTokens.Typography.caption2)
+            DSResolvedFont(family: .systemSans, weight: .regular, textStyle: .caption2, pointSize: Tokens.Typography.Size.captionMD)
         case .code:
             DSResolvedFont(
                 family: .systemMonospaced,
                 weight: .regular,
                 textStyle: .body,
-                pointSize: DSTokens.Typography.body
+                pointSize: Tokens.Typography.Size.bodyLG
             )
         case .metric:
             DSResolvedFont(
                 family: .systemMonospaced,
                 weight: .semibold,
                 textStyle: .headline,
-                pointSize: DSTokens.Typography.headline
+                pointSize: Tokens.Typography.Size.headingLG
             )
         case .badge:
-            DSResolvedFont(family: .systemSans, weight: .medium, textStyle: .caption2, pointSize: DSTokens.Typography.caption2)
+            DSResolvedFont(family: .systemSans, weight: .medium, textStyle: .caption2, pointSize: Tokens.Typography.Size.captionMD)
         case .overline:
             DSResolvedFont(
                 family: .systemSans,
                 weight: .semibold,
                 textStyle: .caption2,
-                pointSize: DSTokens.Typography.caption2,
-                tracking: DSTokens.Typography.overlineTracking
+                pointSize: Tokens.Typography.Size.captionMD,
+                tracking: Tokens.Typography.Tracking.caps
             )
         }
     }

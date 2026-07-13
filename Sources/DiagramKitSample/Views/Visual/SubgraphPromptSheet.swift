@@ -12,18 +12,18 @@ import DesignKitThemes
 
 struct SubgraphPromptSheet: View {
     @Bindable var store: LiveEditorStore
-    @Environment(\.dsEnvironment) private var environment
+    @Environment(\.designTheme) private var theme
 
     @SwiftUI.State private var titleDraft: String = ""
 
     var body: some View {
         DSGlassSurface(role: .popover) {
-        VStack(alignment: .leading, spacing: DSTokens.Spacing.md) {
+        VStack(alignment: .leading, spacing: Tokens.Spacing.md) {
             Text("Name this subgraph")
                 .dsFont(.headline)
             Text("\(store.state.marqueeSelection.count) nodes will be wrapped in a new subgraph block.")
                 .dsFont(.caption2)
-                .foregroundStyle(environment.theme.colors.textSecondary.color)
+                .foregroundStyle(theme.colors.textSecondary.color)
             DSField("Subgraph title", text: $titleDraft, prompt: "e.g. renderers")
                 .accessibilityIdentifier(A11yID.Visual.groupNameField)
             HStack {
@@ -44,7 +44,7 @@ struct SubgraphPromptSheet: View {
                 .accessibilityIdentifier(A11yID.Visual.groupCommitButton)
             }
         }
-        .padding(DSTokens.Spacing.lg)
+        .padding(Tokens.Spacing.lg)
         }
         .frame(width: 320)
     }

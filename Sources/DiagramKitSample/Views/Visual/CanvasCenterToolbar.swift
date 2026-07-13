@@ -12,7 +12,7 @@ import DesignKitThemes
 
 struct CanvasCenterToolbar: View {
     @Bindable var store: LiveEditorStore
-    @Environment(\.dsEnvironment) private var environment
+    @Environment(\.designTheme) private var theme
 
     @SwiftUI.State private var showShapeCatalog = false
     @SwiftUI.State private var showIconBrowser = false
@@ -21,7 +21,7 @@ struct CanvasCenterToolbar: View {
 
     var body: some View {
         DSGlassSurface(role: .toolbar) {
-        HStack(spacing: DSTokens.Spacing.xxs) {
+        HStack(spacing: Tokens.Spacing.xxs) {
             Button {
                 showShapeCatalog.toggle()
             } label: {
@@ -100,8 +100,8 @@ struct CanvasCenterToolbar: View {
                 ThemeSwatchPicker(store: store) { showThemePicker = false }
             }
         }
-        .foregroundStyle(environment.theme.colors.textSecondary.color)
-        .padding(DSTokens.Spacing.xxs)
+        .foregroundStyle(theme.colors.textSecondary.color)
+        .padding(Tokens.Spacing.xxs)
         }
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier(A11yID.Visual.centerToolbar)

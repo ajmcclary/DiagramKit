@@ -11,7 +11,7 @@ import SwiftUI
 import DesignKitThemes
 
 struct CanvasZoomToolbar: View {
-    @Environment(\.dsEnvironment) private var environment
+    @Environment(\.designTheme) private var theme
     @Binding var zoomScale: CGFloat
     @Binding var gridEnabled: Bool
     @Binding var panZoomEnabled: Bool
@@ -26,7 +26,7 @@ struct CanvasZoomToolbar: View {
 
     var body: some View {
         DSGlassSurface(role: .popover) {
-            HStack(spacing: DSTokens.Stroke.medium) {
+            HStack(spacing: Tokens.Shape.strokeMedium) {
                 fitButton
                 divider
                 zoomOutButton
@@ -44,8 +44,8 @@ struct CanvasZoomToolbar: View {
                     fullWindowButton
                 }
             }
-            .padding(.horizontal, DSTokens.Spacing.xs)
-            .padding(.vertical, DSTokens.Spacing.xxs)
+            .padding(.horizontal, Tokens.Spacing.xs)
+            .padding(.vertical, Tokens.Spacing.xxs)
         }
     }
 
@@ -66,7 +66,7 @@ struct CanvasZoomToolbar: View {
         Button {
             zoomScale = max(zoomScale / 1.25, minZoom)
         } label: {
-            DSIconView(.remove, size: DSTokens.Icon.micro)
+            DSIconView(.remove, size: Tokens.Size.Icon.micro)
         }
         .buttonStyle(.ds(role: .ghost, size: .compact))
         .disabled(!panZoomEnabled || zoomScale <= minZoom)
@@ -79,7 +79,7 @@ struct CanvasZoomToolbar: View {
         Button {
             zoomScale = min(zoomScale * 1.25, maxZoom)
         } label: {
-            DSIconView(.add, size: DSTokens.Icon.micro)
+            DSIconView(.add, size: Tokens.Size.Icon.micro)
         }
         .buttonStyle(.ds(role: .ghost, size: .compact))
         .disabled(!panZoomEnabled || zoomScale >= maxZoom)
@@ -93,7 +93,7 @@ struct CanvasZoomToolbar: View {
             Text("1:1")
                 .dsFont(.metric)
                 .fixedSize()
-                .frame(minWidth: DSTokens.Control.chip)
+                .frame(minWidth: Tokens.Size.Control.chip)
         }
         .buttonStyle(.ds(role: .ghost, size: .compact))
         .help("Actual size (100%)")
@@ -105,7 +105,7 @@ struct CanvasZoomToolbar: View {
         Button {
             panZoomEnabled.toggle()
         } label: {
-            DSIconView(.panZoom, size: DSTokens.Icon.micro)
+            DSIconView(.panZoom, size: Tokens.Size.Icon.micro)
         }
         .buttonStyle(.ds(role: panZoomEnabled ? .secondary : .ghost, size: .compact))
         .help(panZoomEnabled ? "Disable pan and zoom" : "Enable pan and zoom")
@@ -121,7 +121,7 @@ struct CanvasZoomToolbar: View {
         Button {
             gridEnabled.toggle()
         } label: {
-            DSIconView(.grid, size: DSTokens.Icon.micro)
+            DSIconView(.grid, size: Tokens.Size.Icon.micro)
         }
         .buttonStyle(.ds(role: gridEnabled ? .secondary : .ghost, size: .compact))
         .help(gridEnabled ? "Hide grid" : "Show grid")
@@ -135,7 +135,7 @@ struct CanvasZoomToolbar: View {
 
     private var fullWindowButton: some View {
         Button(action: { onFullWindowPreview?() }) {
-            DSIconView(.expand, size: DSTokens.Icon.micro)
+            DSIconView(.expand, size: Tokens.Size.Icon.micro)
         }
         .buttonStyle(.ds(role: .ghost, size: .compact))
         .help("Full-window preview")
@@ -147,8 +147,8 @@ struct CanvasZoomToolbar: View {
             .dsFont(.metric)
             .foregroundStyle(
                 isAtAutomaticFit
-                    ? environment.theme.colors.textSecondary.color
-                    : environment.theme.colors.textPrimary.color
+                    ? theme.colors.textSecondary.color
+                    : theme.colors.textPrimary.color
             )
             .lineLimit(1)
             .fixedSize()
@@ -157,8 +157,8 @@ struct CanvasZoomToolbar: View {
 
     private var divider: some View {
         Rectangle()
-            .fill(environment.theme.colors.borderVariant.color)
-            .frame(width: DSTokens.Stroke.hairline, height: DSTokens.Spacing.lg)
+            .fill(theme.colors.borderVariant.color)
+            .frame(width: Tokens.Shape.strokeHairline, height: Tokens.Spacing.lg)
             .accessibilityHidden(true)
     }
 }

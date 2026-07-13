@@ -20,16 +20,16 @@ struct HistoryView: View {
     @SwiftUI.State private var showingImportSheet = false
     @SwiftUI.State private var exportedData: Data?
     @SwiftUI.State private var importResult: String?
-    @Environment(\.dsEnvironment) private var environment
+    @Environment(\.designTheme) private var theme
 
     var body: some View {
         DSSurface(role: .panel) {
             VStack(spacing: 0) {
             // Filter segmented control
             filterBar
-                .padding(.horizontal, DSTokens.Spacing.md)
-                .padding(.top, DSTokens.Spacing.md)
-                .padding(.bottom, DSTokens.Spacing.sm)
+                .padding(.horizontal, Tokens.Spacing.md)
+                .padding(.top, Tokens.Spacing.md)
+                .padding(.bottom, Tokens.Spacing.sm)
 
             // Entry list
             if filteredEntries.isEmpty {
@@ -40,8 +40,8 @@ struct HistoryView: View {
 
             // Bottom bar
             bottomBar
-                .padding(.horizontal, DSTokens.Spacing.md)
-                .padding(.vertical, DSTokens.Spacing.sm)
+                .padding(.horizontal, Tokens.Spacing.md)
+                .padding(.vertical, Tokens.Spacing.sm)
                 .background { DSSurface(role: .statusBar) { Color.clear } }
             }
         }
@@ -100,7 +100,7 @@ struct HistoryView: View {
     // MARK: - Filter bar
 
     private var filterBar: some View {
-        HStack(spacing: DSTokens.Stroke.thin) {
+        HStack(spacing: Tokens.Shape.strokeThin) {
             ForEach(filterOptions, id: \.0) { label, origin in
                 Button {
                     withAnimation(.easeOut(duration: 0.15)) {
@@ -116,7 +116,7 @@ struct HistoryView: View {
                 ))
             }
         }
-        .padding(DSTokens.Stroke.medium)
+        .padding(Tokens.Shape.strokeMedium)
         .background { DSSurface(role: .sunken) { Color.clear } }
     }
 
@@ -132,16 +132,16 @@ struct HistoryView: View {
     // MARK: - Empty state
 
     private var emptyState: some View {
-        VStack(spacing: DSTokens.Spacing.sm) {
-            DSIconView(.history, size: DSTokens.Icon.lg, colorRole: .muted)
+        VStack(spacing: Tokens.Spacing.sm) {
+            DSIconView(.history, size: Tokens.Size.Icon.lg, colorRole: .muted)
             Text("No history entries")
                 .dsFont(.headline)
             Text("Manual saves, auto timeline snapshots, and loaded diagrams will appear here.")
                 .dsFont(.caption)
-                .foregroundStyle(environment.theme.colors.textSecondary.color)
+                .foregroundStyle(theme.colors.textSecondary.color)
                 .multilineTextAlignment(.center)
         }
-        .padding(DSTokens.Spacing.xxl)
+        .padding(Tokens.Spacing.xxl)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 
@@ -149,32 +149,32 @@ struct HistoryView: View {
 
     private var entryList: some View {
         ScrollView {
-            LazyVStack(spacing: DSTokens.Spacing.xxxs) {
+            LazyVStack(spacing: Tokens.Spacing.xxxs) {
                 ForEach(filteredEntries) { entry in
                     entryRow(entry)
                 }
             }
-            .padding(.horizontal, DSTokens.Spacing.md)
-            .padding(.bottom, DSTokens.Spacing.sm)
+            .padding(.horizontal, Tokens.Spacing.md)
+            .padding(.bottom, Tokens.Spacing.sm)
         }
     }
 
     private func entryRow(_ entry: LiveHistoryEntry) -> some View {
         HStack(spacing: 0) {
             // Content
-            VStack(alignment: .leading, spacing: DSTokens.Spacing.xxs) {
-                HStack(spacing: DSTokens.Spacing.xs) {
+            VStack(alignment: .leading, spacing: Tokens.Spacing.xxs) {
+                HStack(spacing: Tokens.Spacing.xs) {
                     // Origin icon
                     DSIconView(
                         entry.origin.dsIcon,
-                        size: DSTokens.Icon.indicator,
+                        size: Tokens.Size.Icon.indicator,
                         colorRole: entry.origin.dsIconColorRole
                     )
 
                     // Label
                     Text(entry.displayLabel)
                         .dsFont(.badge)
-                        .foregroundStyle(environment.theme.colors.textPrimary.color)
+                        .foregroundStyle(theme.colors.textPrimary.color)
                         .lineLimit(1)
 
                     Spacer()
@@ -186,30 +186,30 @@ struct HistoryView: View {
                 // Source preview
                 Text(sourcePreview(entry.state.source))
                     .dsFont(.code)
-                    .foregroundStyle(environment.theme.colors.textSecondary.color)
+                    .foregroundStyle(theme.colors.textSecondary.color)
                     .lineLimit(2)
 
                 // Timestamp + URL
-                HStack(spacing: DSTokens.Spacing.xs) {
+                HStack(spacing: Tokens.Spacing.xs) {
                     Text(entry.timestamp.formatted(date: .abbreviated, time: .shortened))
                         .dsFont(.caption2)
-                        .foregroundStyle(environment.theme.colors.textDisabled.color)
+                        .foregroundStyle(theme.colors.textDisabled.color)
 
                     if let sourceURL = entry.sourceURL {
                         Text("•")
-                            .foregroundStyle(environment.theme.colors.textDisabled.color)
+                            .foregroundStyle(theme.colors.textDisabled.color)
                         Text(sourceURL.absoluteString)
                             .dsFont(.caption2)
-                            .foregroundStyle(environment.theme.colors.textDisabled.color)
+                            .foregroundStyle(theme.colors.textDisabled.color)
                             .lineLimit(1)
                     }
                 }
             }
-            .padding(.vertical, DSTokens.Spacing.sm)
-            .padding(.leading, DSTokens.Spacing.smMd)
+            .padding(.vertical, Tokens.Spacing.sm)
+            .padding(.leading, Tokens.Spacing.smMd)
 
             // Actions
-            HStack(spacing: DSTokens.Spacing.xxs) {
+            HStack(spacing: Tokens.Spacing.xxs) {
                 // Restore
                 DSIconButton(.history, label: "Restore this state") {
                     store.restoreFromHistory(entry)
@@ -230,7 +230,7 @@ struct HistoryView: View {
                     .help("Delete this entry")
                 }
             }
-            .padding(.trailing, DSTokens.Spacing.xs)
+            .padding(.trailing, Tokens.Spacing.xs)
         }
         .background { DSSurface(role: .card) { Color.clear } }
         .contentShape(Rectangle())
@@ -239,13 +239,13 @@ struct HistoryView: View {
     // MARK: - Bottom bar
 
     private var bottomBar: some View {
-        HStack(spacing: DSTokens.Spacing.sm) {
+        HStack(spacing: Tokens.Spacing.sm) {
             // Import
             Button {
                 showingImportSheet = true
             } label: {
-                HStack(spacing: DSTokens.Spacing.xxs) {
-                    DSIconView(.copy, size: DSTokens.Icon.micro, colorRole: .muted)
+                HStack(spacing: Tokens.Spacing.xxs) {
+                    DSIconView(.copy, size: Tokens.Size.Icon.micro, colorRole: .muted)
                     Text("Import")
                         .dsFont(.badge)
                 }
@@ -258,7 +258,7 @@ struct HistoryView: View {
             // Entry count
             Text("\(filteredEntries.count) \(filteredEntries.count == 1 ? "entry" : "entries")")
                 .dsFont(.caption2)
-                .foregroundStyle(environment.theme.colors.textSecondary.color)
+                .foregroundStyle(theme.colors.textSecondary.color)
 
             Spacer()
 
@@ -271,8 +271,8 @@ struct HistoryView: View {
                     importResult = "Export failed: \(error.localizedDescription)"
                 }
             } label: {
-                HStack(spacing: DSTokens.Spacing.xxs) {
-                    DSIconView(.export, size: DSTokens.Icon.micro, colorRole: .muted)
+                HStack(spacing: Tokens.Spacing.xxs) {
+                    DSIconView(.export, size: Tokens.Size.Icon.micro, colorRole: .muted)
                     Text("Export")
                         .dsFont(.badge)
                 }
@@ -335,7 +335,7 @@ struct HistoryView: View {
 
     private func resultToast(_ message: String) -> some View {
         DSGlassSurface(role: .popover) {
-            HStack(spacing: DSTokens.Spacing.sm) {
+            HStack(spacing: Tokens.Spacing.sm) {
                 DSStatusIndicator(
                     message.hasPrefix("Import") || message.hasPrefix("Export")
                         ? .warning
@@ -345,8 +345,8 @@ struct HistoryView: View {
                 Text(message)
                     .dsFont(.badge)
             }
-            .padding(.horizontal, DSTokens.Spacing.lg)
-            .padding(.vertical, DSTokens.Spacing.sm)
+            .padding(.horizontal, Tokens.Spacing.lg)
+            .padding(.vertical, Tokens.Spacing.sm)
         }
     }
 }

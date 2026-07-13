@@ -40,7 +40,7 @@ struct ShapeThumbnail: View {
     let theme: DiagramTheme
 
     @SwiftUI.State private var image: BMImage?
-    @Environment(\.dsEnvironment) private var environment
+    @Environment(\.designTheme) private var appTheme
 
     var body: some View {
         Group {
@@ -55,8 +55,8 @@ struct ShapeThumbnail: View {
                     .aspectRatio(contentMode: .fit)
                 #endif
             } else {
-                RoundedRectangle(cornerRadius: DSTokens.Radius.xs)
-                    .fill(environment.theme.colors.element.color.opacity(DSTokens.Opacity.soft))
+                RoundedRectangle(cornerRadius: Tokens.Shape.radiusXS)
+                    .fill(appTheme.colors.element.color.opacity(Tokens.Opacity.soft))
             }
         }
         .frame(width: 44, height: 32)

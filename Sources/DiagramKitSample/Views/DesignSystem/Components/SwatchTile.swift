@@ -16,36 +16,36 @@ struct SwatchTile: View {
     var isSelected: Bool
     var action: () -> Void
 
-    @Environment(\.dsEnvironment) private var environment
+    @Environment(\.designTheme) private var theme
 
     var body: some View {
         Button(action: action) {
             ZStack(alignment: .bottomLeading) {
-                RoundedRectangle(cornerRadius: DSTokens.Radius.md, style: .continuous)
+                RoundedRectangle(cornerRadius: Tokens.Shape.radiusMD, style: .continuous)
                     .fill(background)
                     .overlay(
-                        RoundedRectangle(cornerRadius: DSTokens.Radius.md, style: .continuous)
+                        RoundedRectangle(cornerRadius: Tokens.Shape.radiusMD, style: .continuous)
                             .stroke(
-                                isSelected ? environment.theme.colors.borderSelected.color : environment.theme.colors.borderVariant.color,
-                                lineWidth: isSelected ? DSTokens.Stroke.mediumLight : DSTokens.Stroke.hairline
+                                isSelected ? theme.colors.borderSelected.color : theme.colors.borderVariant.color,
+                                lineWidth: isSelected ? Tokens.Shape.strokeMedLight : Tokens.Shape.strokeHairline
                             )
                     )
 
                 Text(title)
                     .dsFont(.badge)
                     .foregroundStyle(textColor(on: background))
-                    .padding(.leading, DSTokens.Spacing.sm)
-                    .padding(.bottom, DSTokens.Spacing.xs)
+                    .padding(.leading, Tokens.Spacing.sm)
+                    .padding(.bottom, Tokens.Spacing.xs)
 
-                VStack(spacing: DSTokens.Spacing.xxxs) {
+                VStack(spacing: Tokens.Spacing.xxxs) {
                     ForEach(Array(swatches.enumerated()), id: \.offset) { _, swatch in
-                        RoundedRectangle(cornerRadius: DSTokens.Radius.xs, style: .continuous)
+                        RoundedRectangle(cornerRadius: Tokens.Shape.radiusXS, style: .continuous)
                             .fill(swatch)
                             .frame(width: 12, height: 6)
                     }
                 }
-                .padding(.trailing, DSTokens.Spacing.sm)
-                .padding(.top, DSTokens.Spacing.sm)
+                .padding(.trailing, Tokens.Spacing.sm)
+                .padding(.top, Tokens.Spacing.sm)
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topTrailing)
             }
             .frame(width: 72, height: 48)

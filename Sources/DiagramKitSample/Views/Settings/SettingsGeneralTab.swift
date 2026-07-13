@@ -44,8 +44,8 @@ struct SettingsGeneralTab: View {
             Button {
                 PlaygroundSettingsKeys.resetAll()
             } label: {
-                HStack(spacing: DSTokens.Spacing.sm) {
-                    DSIconView(.reset, size: DSTokens.Icon.micro, colorRole: .error)
+                HStack(spacing: Tokens.Spacing.sm) {
+                    DSIconView(.reset, size: Tokens.Size.Icon.micro, colorRole: .error)
                     Text("Reset All Settings").dsFont(.caption)
                 }
             }
@@ -64,7 +64,7 @@ struct SettingsGeneralTab: View {
                 .labelsHidden()
                 .toggleStyle(.dsSwitchOnly)
         }
-        .padding(.horizontal, DSTokens.Spacing.lg)
+        .padding(.horizontal, Tokens.Spacing.lg)
         .contentShape(Rectangle())
     }
 }

@@ -14,7 +14,7 @@ struct KeyValueRow<Value: View>: View {
     var copyableValue: String?
     @ViewBuilder var value: () -> Value
 
-    @Environment(\.dsEnvironment) private var environment
+    @Environment(\.designTheme) private var theme
     @SwiftUI.State private var didCopy = false
 
     init(
@@ -28,14 +28,14 @@ struct KeyValueRow<Value: View>: View {
     }
 
     var body: some View {
-        HStack(alignment: .firstTextBaseline, spacing: DSTokens.Spacing.sm) {
+        HStack(alignment: .firstTextBaseline, spacing: Tokens.Spacing.sm) {
             Text(key)
                 .dsFont(.caption)
-                .foregroundStyle(environment.theme.colors.textSecondary.color)
-            Spacer(minLength: DSTokens.Spacing.sm)
+                .foregroundStyle(theme.colors.textSecondary.color)
+            Spacer(minLength: Tokens.Spacing.sm)
             value()
                 .dsFont(.metric)
-                .foregroundStyle(environment.theme.colors.textPrimary.color)
+                .foregroundStyle(theme.colors.textPrimary.color)
                 .multilineTextAlignment(.trailing)
                 .lineLimit(1)
                 .truncationMode(.middle)
@@ -54,7 +54,7 @@ struct KeyValueRow<Value: View>: View {
             } label: {
                 DSIconView(
                     didCopy ? .success : .copy,
-                    size: DSTokens.Icon.micro,
+                    size: Tokens.Size.Icon.micro,
                     colorRole: didCopy ? .success : .muted
                 )
             }

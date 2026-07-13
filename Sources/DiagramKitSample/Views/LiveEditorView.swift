@@ -34,10 +34,9 @@ struct LiveEditorView: View {
 
     private var chromeFamily: ZedTrekTheme { ZedTrekTheme(rawValue: familyRaw) ?? .lcars }
     private var chromeMode: ThemeMode { ThemeMode(rawValue: modeRaw) ?? .dark }
-    private var chromeTheme: DSTheme {
-        DSTheme.theme(
-            family: chromeFamily.dsFamily,
-            mode: effectiveScheme == .dark ? .dark : .light
+    private var chromeTheme: Theme {
+        chromeFamily.dsFamily.theme(
+            for: effectiveScheme == .dark ? .dark : .light
         )
     }
 
@@ -119,8 +118,8 @@ struct LiveEditorView: View {
                 DSSegmentedControl(CompactMode.allCases, selection: compactMode) { mode in
                     Text(mode.label)
                 }
-                .padding(.horizontal, DSTokens.Spacing.lg)
-                .padding(.vertical, DSTokens.Spacing.sm)
+                .padding(.horizontal, Tokens.Spacing.lg)
+                .padding(.vertical, Tokens.Spacing.sm)
             }
 
             // Main content
@@ -141,9 +140,9 @@ struct LiveEditorView: View {
                 DSIconButton(.diagram, label: "Open sample controls") {
                     showingControls = true
                 }
-                .padding(DSTokens.Spacing.xxs)
+                .padding(Tokens.Spacing.xxs)
             }
-            .padding(DSTokens.Spacing.lg)
+            .padding(Tokens.Spacing.lg)
         }
         .sheet(isPresented: $showingControls) {
             NavigationStack {

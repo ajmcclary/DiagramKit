@@ -22,7 +22,8 @@ struct PlaygroundShell: View {
     /// The inspector is driven separately by `store.state.inspectorOpen` so the
     /// toolbar toggle and `⌘I` stay in lockstep.
     @State private var columnVisibility: NavigationSplitViewVisibility = .all
-    @Environment(\.dsEnvironment) private var environment
+    @Environment(\.designTheme) private var theme
+    @Environment(\.dsContext) private var context
 
     var body: some View {
         ZStack(alignment: .bottom) {
@@ -98,8 +99,8 @@ struct PlaygroundShell: View {
             // Explain popover overlays the entire shell.
             if let target = store.diagnosticExplainTarget {
                 ZStack {
-                    environment.theme.colors.windowBackground.color
-                        .opacity(DSTokens.Opacity.disabled)
+                    theme.colors.windowBackground.color
+                        .opacity(Tokens.Opacity.disabled)
                         .ignoresSafeArea()
                         .onTapGesture { store.dismissExplain() }
                     DiagnosticExplainPopover(store: store, row: target)
@@ -113,8 +114,8 @@ struct PlaygroundShell: View {
                     HStack {
                         Spacer()
                         RenderFailedSheet(store: store)
-                            .padding(.trailing, DSTokens.Spacing.xl)
-                            .padding(.bottom, DSTokens.Spacing.xxxl * 2)
+                            .padding(.trailing, Tokens.Spacing.xl)
+                            .padding(.bottom, Tokens.Spacing.xxxl * 2)
                     }
                 }
             }
@@ -122,7 +123,7 @@ struct PlaygroundShell: View {
             // Source-citation overlay (Phase 10 / Task 10.5)
             CitationOverlay(store: store)
         }
-        .background(environment.theme.colors.windowBackground.color)
+        .background(theme.colors.windowBackground.color)
         #if os(macOS)
         .frame(minWidth: 900, minHeight: 600)
         #endif
@@ -170,24 +171,22 @@ struct PlaygroundShell: View {
 
     private var separator: some View {
         Rectangle()
-            .fill(environment.theme.colors.borderVariant.color)
-            .frame(height: DSTokens.Stroke.hairline)
+            .fill(theme.colors.borderVariant.color)
+            .frame(height: Tokens.Shape.strokeHairline)
             .accessibilityHidden(true)
     }
 
     private var verticalSeparator: some View {
         Rectangle()
-            .fill(environment.theme.colors.borderVariant.color)
-            .frame(width: DSTokens.Stroke.hairline)
+            .fill(theme.colors.borderVariant.color)
+            .frame(width: Tokens.Shape.strokeHairline)
             .accessibilityHidden(true)
     }
 
     private var drawerAnimation: Animation? {
-        guard environment.motion == .standard else { return nil }
+        guard context.motion == .standard else { return nil }
         return .easeInOut(
-            duration: environment.motion.duration(
-                milliseconds: DSTokens.DurationMilliseconds.drawer
-            )
+            duration: context.motion.duration(Tokens.Animation.durDrawer)
         )
     }
 

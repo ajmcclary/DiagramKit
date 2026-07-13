@@ -14,28 +14,28 @@ struct MenuRow<Menu: View>: View {
     let value: String
     var leadingSwatch: AnyView? = nil
     @ViewBuilder var content: () -> Menu
-    @Environment(\.dsEnvironment) private var environment
+    @Environment(\.designTheme) private var theme
 
     var body: some View {
         HStack {
-            VStack(alignment: .leading, spacing: DSTokens.Spacing.xxxs) {
-                Text(title).dsFont(.body).foregroundStyle(environment.theme.colors.textPrimary.color)
+            VStack(alignment: .leading, spacing: Tokens.Spacing.xxxs) {
+                Text(title).dsFont(.body).foregroundStyle(theme.colors.textPrimary.color)
                 if let description {
-                    Text(description).dsFont(.caption).foregroundStyle(environment.theme.colors.textSecondary.color)
+                    Text(description).dsFont(.caption).foregroundStyle(theme.colors.textSecondary.color)
                 }
             }
-            Spacer(minLength: DSTokens.Spacing.md)
+            Spacer(minLength: Tokens.Spacing.md)
             SwiftUI.Menu {
                 content()
             } label: {
-                HStack(spacing: DSTokens.Spacing.xs) {
+                HStack(spacing: Tokens.Spacing.xs) {
                     if let leadingSwatch { leadingSwatch }
-                    Text(value).dsFont(.caption).foregroundStyle(environment.theme.colors.textSecondary.color)
-                    DSIconView(.disclosureDown, size: DSTokens.Icon.micro, colorRole: .muted)
+                    Text(value).dsFont(.caption).foregroundStyle(theme.colors.textSecondary.color)
+                    DSIconView(.disclosureDown, size: Tokens.Size.Icon.micro, colorRole: .muted)
                 }
             }
             .menuStyle(.button).buttonStyle(.ds(role: .ghost, size: .compact)).fixedSize()
         }
-        .padding(.horizontal, DSTokens.Spacing.lg).padding(.vertical, DSTokens.Spacing.md)
+        .padding(.horizontal, Tokens.Spacing.lg).padding(.vertical, Tokens.Spacing.md)
     }
 }

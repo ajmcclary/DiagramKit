@@ -11,11 +11,11 @@ import DesignKitThemes
 
 struct ActivityRail: View {
     @Bindable var store: LiveEditorStore
-    @Environment(\.dsEnvironment) private var environment
+    @Environment(\.designTheme) private var theme
 
     var body: some View {
         DSSurface(role: .titleBar) {
-            VStack(spacing: DSTokens.Spacing.xxs) {
+            VStack(spacing: Tokens.Spacing.xxs) {
                 ForEach(ActivityRailTab.allCases, id: \.self) { tab in
                     ActivityRailItem(icon: tab.icon,
                                      isActive: store.state.activeRailTab == tab,
@@ -28,14 +28,14 @@ struct ActivityRail: View {
                     store.presentSettings()
                 }
             }
-            .padding(.vertical, DSTokens.Spacing.smMd)
+            .padding(.vertical, Tokens.Spacing.smMd)
             .frame(width: 52)
             .frame(maxHeight: .infinity)
         }
         .overlay(
             Rectangle()
-                .fill(environment.theme.colors.borderVariant.color)
-                .frame(width: DSTokens.Stroke.hairline),
+                .fill(theme.colors.borderVariant.color)
+                .frame(width: Tokens.Shape.strokeHairline),
             alignment: .trailing
         )
     }

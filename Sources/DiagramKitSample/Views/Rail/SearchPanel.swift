@@ -12,7 +12,7 @@ import DesignKitThemes
 struct SearchPanel: View {
     @Bindable var store: LiveEditorStore
     @State private var query = ""
-    @Environment(\.dsEnvironment) private var environment
+    @Environment(\.designTheme) private var theme
 
     private var elements: OutlineElements { OutlineElements.from(store) }
     private var nodeMatches: [OutlineItem] {
@@ -29,12 +29,12 @@ struct SearchPanel: View {
             PanelHeader("Search")
             PanelFilterField(placeholder: "Search nodes & labels…", text: $query, focused: !query.isEmpty)
             ScrollView {
-                VStack(alignment: .leading, spacing: DSTokens.Spacing.smMd) {
+                VStack(alignment: .leading, spacing: Tokens.Spacing.smMd) {
                     if query.isEmpty {
                         Text("Type to search nodes, edges, and labels.")
                             .dsFont(.caption)
-                            .foregroundStyle(environment.theme.colors.textSecondary.color)
-                            .padding(DSTokens.Spacing.md)
+                            .foregroundStyle(theme.colors.textSecondary.color)
+                            .padding(Tokens.Spacing.md)
                     } else {
                         if !nodeMatches.isEmpty {
                             section("Nodes", nodeMatches.map { ($0.display, "node:\($0.id)", DSIcon.node, DSIconColorRole.primary) })
@@ -45,13 +45,13 @@ struct SearchPanel: View {
                         if nodeMatches.isEmpty && edgeMatches.isEmpty {
                             Text("No matches for “\(query)”.")
                                 .dsFont(.caption)
-                                .foregroundStyle(environment.theme.colors.textSecondary.color)
-                                .padding(DSTokens.Spacing.md)
+                                .foregroundStyle(theme.colors.textSecondary.color)
+                                .padding(Tokens.Spacing.md)
                         }
                     }
                 }
-                .padding(.horizontal, DSTokens.Spacing.smMd)
-                .padding(.bottom, DSTokens.Spacing.md)
+                .padding(.horizontal, Tokens.Spacing.smMd)
+                .padding(.bottom, Tokens.Spacing.md)
             }
         }
     }
@@ -60,24 +60,24 @@ struct SearchPanel: View {
         _ title: String,
         _ rows: [(String, String, DSIcon, DSIconColorRole)]
     ) -> some View {
-        VStack(alignment: .leading, spacing: DSTokens.Spacing.sm) {
+        VStack(alignment: .leading, spacing: Tokens.Spacing.sm) {
             DSSectionHeader(title)
-                .padding(.horizontal, DSTokens.Spacing.xxs)
-                .padding(.top, DSTokens.Spacing.xxs)
+                .padding(.horizontal, Tokens.Spacing.xxs)
+                .padding(.top, Tokens.Spacing.xxs)
             ForEach(Array(rows.enumerated()), id: \.offset) { _, r in
                 DSSurface(role: .card) {
-                    HStack(spacing: DSTokens.Spacing.smMd) {
-                        DSIconView(r.2, size: DSTokens.Icon.micro, colorRole: r.3)
+                    HStack(spacing: Tokens.Spacing.smMd) {
+                        DSIconView(r.2, size: Tokens.Size.Icon.micro, colorRole: r.3)
                         Text(r.0)
                             .dsFont(.caption)
-                            .foregroundStyle(environment.theme.colors.textPrimary.color)
+                            .foregroundStyle(theme.colors.textPrimary.color)
                             .lineLimit(1)
-                        Spacer(minLength: DSTokens.Spacing.xxs)
+                        Spacer(minLength: Tokens.Spacing.xxs)
                         Text(r.1)
                             .dsFont(.code)
-                            .foregroundStyle(environment.theme.colors.textDisabled.color)
+                            .foregroundStyle(theme.colors.textDisabled.color)
                     }
-                    .padding(DSTokens.Spacing.smMd)
+                    .padding(Tokens.Spacing.smMd)
                 }
             }
         }

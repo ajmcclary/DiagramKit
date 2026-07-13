@@ -14,7 +14,8 @@ import DesignKitThemes
 
 struct ActionsView: View {
     @Bindable var store: LiveEditorStore
-    @Environment(\.dsEnvironment) private var environment
+    @Environment(\.designTheme) private var theme
+    @Environment(\.dsContext) private var context
 
     /// Called when the user taps "Export PNG" (parent triggers fileExporter).
     let onExportPNG: () -> Void
@@ -44,7 +45,7 @@ struct ActionsView: View {
 
     var body: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: DSTokens.Spacing.xl) {
+            VStack(alignment: .leading, spacing: Tokens.Spacing.xl) {
                 // Export section
                 sectionHeader("Export")
                 exportSection
@@ -88,21 +89,21 @@ struct ActionsView: View {
                 // Copy feedback toast
                 if showingCopyFeedback {
                     DSGlassSurface(role: .popover) {
-                        HStack(spacing: DSTokens.Spacing.xs) {
-                            DSIconView(.success, size: DSTokens.Icon.micro, colorRole: .success)
+                        HStack(spacing: Tokens.Spacing.xs) {
+                            DSIconView(.success, size: Tokens.Size.Icon.micro, colorRole: .success)
                             Text(copyFeedbackMessage)
                                 .dsFont(.badge)
-                                .foregroundStyle(environment.theme.colors.textPrimary.color)
+                                .foregroundStyle(theme.colors.textPrimary.color)
                         }
-                        .padding(.horizontal, DSTokens.Spacing.md)
-                        .padding(.vertical, DSTokens.Spacing.xs)
+                        .padding(.horizontal, Tokens.Spacing.md)
+                        .padding(.vertical, Tokens.Spacing.xs)
                     }
                     .transition(.opacity.combined(with: .scale))
                 }
             }
-            .padding(DSTokens.Spacing.lg)
+            .padding(Tokens.Spacing.lg)
         }
-        .background(environment.theme.colors.panelBackground.color)
+        .background(theme.colors.panelBackground.color)
     }
 
     // MARK: - Section header
@@ -114,7 +115,7 @@ struct ActionsView: View {
     // MARK: - Export section
 
     private var exportSection: some View {
-        VStack(spacing: DSTokens.Spacing.xs) {
+        VStack(spacing: Tokens.Spacing.xs) {
             // PNG sizing picker
             pngSizingPicker
 
@@ -137,7 +138,7 @@ struct ActionsView: View {
     }
 
     private var pngSizingPicker: some View {
-        HStack(spacing: DSTokens.Spacing.sm) {
+        HStack(spacing: Tokens.Spacing.sm) {
             Picker("Sizing", selection: Binding(
                 get: { store.exportOptions.sizing },
                 set: { store.exportOptions.sizing = $0 }
@@ -152,10 +153,10 @@ struct ActionsView: View {
             .frame(maxWidth: 140)
 
             if case .fixed = store.exportOptions.sizing {
-                HStack(spacing: DSTokens.Spacing.xxs) {
+                HStack(spacing: Tokens.Spacing.xxs) {
                     Text("W:")
                         .dsFont(.caption2)
-                        .foregroundStyle(environment.theme.colors.textSecondary.color)
+                        .foregroundStyle(theme.colors.textSecondary.color)
                     TextField("Width", value: Binding(
                         get: { Double(store.exportOptions.sizing.fixedSize?.width ?? 800) },
                         set: { w in
@@ -169,7 +170,7 @@ struct ActionsView: View {
 
                     Text("H:")
                         .dsFont(.caption2)
-                        .foregroundStyle(environment.theme.colors.textSecondary.color)
+                        .foregroundStyle(theme.colors.textSecondary.color)
                     TextField("Height", value: Binding(
                         get: { Double(store.exportOptions.sizing.fixedSize?.height ?? 600) },
                         set: { h in
@@ -184,10 +185,10 @@ struct ActionsView: View {
             }
 
             if case .auto = store.exportOptions.sizing {
-                HStack(spacing: DSTokens.Spacing.xxs) {
+                HStack(spacing: Tokens.Spacing.xxs) {
                     Text("Scale:")
                         .dsFont(.caption2)
-                        .foregroundStyle(environment.theme.colors.textSecondary.color)
+                        .foregroundStyle(theme.colors.textSecondary.color)
                     Picker("", selection: Binding(
                         get: { store.exportOptions.scale },
                         set: { store.exportOptions.scale = $0 }
@@ -201,8 +202,8 @@ struct ActionsView: View {
                 }
             }
         }
-        .padding(.vertical, DSTokens.Spacing.xxs)
-        .padding(.horizontal, DSTokens.Spacing.smMd)
+        .padding(.vertical, Tokens.Spacing.xxs)
+        .padding(.horizontal, Tokens.Spacing.smMd)
         .background { DSSurface(role: .card) { Color.clear } }
     }
 
@@ -222,7 +223,7 @@ struct ActionsView: View {
     /// for a given target surface as `.unsupported` diagnostics in the
     /// returned `DiagramExportResult` rather than being gated up-front.
     private var convertSection: some View {
-        VStack(spacing: DSTokens.Spacing.xs) {
+        VStack(spacing: Tokens.Spacing.xs) {
             ForEach(SourceFormat.allCases.filter { $0 != store.state.sourceFormat }) { target in
                 actionButton(
                     label: "Convert to \(target.displayName)",
@@ -238,7 +239,7 @@ struct ActionsView: View {
     // MARK: - Copy section
 
     private var copySection: some View {
-        VStack(spacing: DSTokens.Spacing.xs) {
+        VStack(spacing: Tokens.Spacing.xs) {
             actionButton(
                 label: "Copy Source",
                 icon: .copy,
@@ -294,7 +295,7 @@ struct ActionsView: View {
     // MARK: - View section
 
     private var viewSection: some View {
-        VStack(spacing: DSTokens.Spacing.xs) {
+        VStack(spacing: Tokens.Spacing.xs) {
             actionButton(
                 label: "Full-Window Preview",
                 icon: .diagram,
@@ -308,7 +309,7 @@ struct ActionsView: View {
     // MARK: - Share section
 
     private var shareSection: some View {
-        VStack(spacing: DSTokens.Spacing.xs) {
+        VStack(spacing: Tokens.Spacing.xs) {
             actionButton(
                 label: "Share State",
                 icon: .export,
@@ -322,16 +323,16 @@ struct ActionsView: View {
     // MARK: - History section
 
     private var historySection: some View {
-        VStack(spacing: DSTokens.Spacing.xs) {
+        VStack(spacing: Tokens.Spacing.xs) {
             // Save State with inline label field
-            HStack(spacing: DSTokens.Spacing.xs) {
+            HStack(spacing: Tokens.Spacing.xs) {
                 DSField("Snapshot name", text: $saveLabel, prompt: "Snapshot name…")
 
                 Button("Save", action: saveButtonTapped)
                     .disabled(saveLabel.trimmingCharacters(in: .whitespaces).isEmpty)
                     .buttonStyle(.ds(role: .primary, size: .compact))
             }
-            .padding(.vertical, DSTokens.Spacing.xxxs)
+            .padding(.vertical, Tokens.Spacing.xxxs)
 
             actionButton(
                 label: "View History",
@@ -347,14 +348,14 @@ struct ActionsView: View {
 
     private var loadSection: some View {
         DSSurface(role: .card) {
-            VStack(spacing: DSTokens.Spacing.sm) {
+            VStack(spacing: Tokens.Spacing.sm) {
                 // Gist URL field
-                VStack(alignment: .leading, spacing: DSTokens.Spacing.xxs) {
+                VStack(alignment: .leading, spacing: Tokens.Spacing.xxs) {
                     Text("Load from Gist")
                         .dsFont(.badge)
-                        .foregroundStyle(environment.theme.colors.textSecondary.color)
+                        .foregroundStyle(theme.colors.textSecondary.color)
 
-                    HStack(spacing: DSTokens.Spacing.xs) {
+                    HStack(spacing: Tokens.Spacing.xs) {
                         DSField("Gist URL", text: $gistURLString, prompt: "https://gist.github.com/…")
 
                         Button {
@@ -363,7 +364,7 @@ struct ActionsView: View {
                             if isLoading {
                                 ProgressView()
                                     .controlSize(.small)
-                                    .tint(environment.theme.colors.accent.color)
+                                    .tint(theme.colors.accent.color)
                             } else {
                                 Text("Load")
                             }
@@ -374,10 +375,10 @@ struct ActionsView: View {
                 }
 
                 // Raw URL fields
-                VStack(alignment: .leading, spacing: DSTokens.Spacing.xxs) {
+                VStack(alignment: .leading, spacing: Tokens.Spacing.xxs) {
                     Text("Load from URL")
                         .dsFont(.badge)
-                        .foregroundStyle(environment.theme.colors.textSecondary.color)
+                        .foregroundStyle(theme.colors.textSecondary.color)
 
                     DSField("Code URL", text: $codeURLString, prompt: "Raw diagram URL")
 
@@ -392,7 +393,7 @@ struct ActionsView: View {
                             if isLoading {
                                 ProgressView()
                                     .controlSize(.small)
-                                    .tint(environment.theme.colors.accent.color)
+                                    .tint(theme.colors.accent.color)
                             } else {
                                 Text("Load")
                             }
@@ -408,20 +409,20 @@ struct ActionsView: View {
 
                 // Loader error display
                 if let loaderError {
-                    HStack(alignment: .top, spacing: DSTokens.Spacing.xs) {
+                    HStack(alignment: .top, spacing: Tokens.Spacing.xs) {
                         DSStatusIndicator(.error, label: "Load failed")
                         Text(loaderError)
                             .dsFont(.caption)
-                            .foregroundStyle(environment.theme.colors.error.color)
+                            .foregroundStyle(theme.colors.error.color)
                     }
-                    .padding(DSTokens.Spacing.sm)
+                    .padding(Tokens.Spacing.sm)
                     .background(
-                        environment.theme.colors.value("error.background").color,
-                        in: RoundedRectangle(cornerRadius: DSTokens.Radius.sm, style: .continuous)
+                        theme.colors.value("error.background").color,
+                        in: RoundedRectangle(cornerRadius: Tokens.Shape.radiusSM, style: .continuous)
                     )
                 }
             }
-            .padding(DSTokens.Spacing.sm)
+            .padding(Tokens.Spacing.sm)
         }
     }
 
@@ -512,16 +513,16 @@ struct ActionsView: View {
         action: @escaping () -> Void
     ) -> some View {
         Button(action: action) {
-            HStack(spacing: DSTokens.Spacing.smMd) {
-                DSIconView(icon, size: DSTokens.Icon.xs)
+            HStack(spacing: Tokens.Spacing.smMd) {
+                DSIconView(icon, size: Tokens.Size.Icon.xs)
 
-                VStack(alignment: .leading, spacing: DSTokens.Spacing.xxxs) {
+                VStack(alignment: .leading, spacing: Tokens.Spacing.xxxs) {
                     Text(label)
                         .dsFont(.badge)
-                        .foregroundStyle(environment.theme.colors.textPrimary.color)
+                        .foregroundStyle(theme.colors.textPrimary.color)
                     Text(subtitle)
                         .dsFont(.caption2)
-                        .foregroundStyle(environment.theme.colors.textSecondary.color)
+                        .foregroundStyle(theme.colors.textSecondary.color)
                 }
 
                 Spacer()
@@ -549,18 +550,16 @@ struct ActionsView: View {
     }
 
     private var feedbackAnimation: Animation? {
-        guard environment.motion == .standard else { return nil }
+        guard context.motion == .standard else { return nil }
         return .easeOut(
-            duration: environment.motion.duration(
-                milliseconds: DSTokens.DurationMilliseconds.quick
-            )
+            duration: context.motion.duration(Tokens.Animation.durQuick)
         )
     }
 
     private var divider: some View {
         Rectangle()
-            .fill(environment.theme.colors.borderVariant.color)
-            .frame(height: DSTokens.Stroke.hairline)
+            .fill(theme.colors.borderVariant.color)
+            .frame(height: Tokens.Shape.strokeHairline)
             .accessibilityHidden(true)
     }
 }

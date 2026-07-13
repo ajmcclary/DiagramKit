@@ -19,20 +19,20 @@ enum RenderHealthState {
 struct RenderHealthPill: View {
     let state: RenderHealthState
 
-    @Environment(\.dsEnvironment) private var environment
+    @Environment(\.designTheme) private var theme
 
     var body: some View {
         DSGlassSurface(role: .toolbar) {
-            HStack(spacing: DSTokens.Spacing.xs) {
+            HStack(spacing: Tokens.Spacing.xs) {
                 Circle()
                     .fill(tint)
-                    .frame(width: DSTokens.Icon.indicator, height: DSTokens.Icon.indicator)
+                    .frame(width: Tokens.Size.Icon.indicator, height: Tokens.Size.Icon.indicator)
                 Text(label)
                     .dsFont(.metric)
-                    .foregroundStyle(environment.theme.colors.textPrimary.color)
+                    .foregroundStyle(theme.colors.textPrimary.color)
             }
-            .padding(.horizontal, DSTokens.Spacing.smMd)
-            .padding(.vertical, DSTokens.Spacing.xs)
+            .padding(.horizontal, Tokens.Spacing.smMd)
+            .padding(.vertical, Tokens.Spacing.xs)
         }
         .accessibilityIdentifier("preview.renderHealth")
     }
@@ -50,9 +50,9 @@ struct RenderHealthPill: View {
 
     private var tint: Color {
         switch state {
-        case .ok:     return environment.theme.colors.success.color
-        case .slow:   return environment.theme.colors.warning.color
-        case .failed: return environment.theme.colors.error.color
+        case .ok:     return theme.colors.success.color
+        case .slow:   return theme.colors.warning.color
+        case .failed: return theme.colors.error.color
         }
     }
 }

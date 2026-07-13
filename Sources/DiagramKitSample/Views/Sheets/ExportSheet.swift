@@ -24,7 +24,7 @@ struct ExportSheet: View {
     @SwiftUI.State private var rtSummary: RoundTripSummary?
     @SwiftUI.State private var copyFeedback = false
     @SwiftUI.State private var saveFeedback: SaveFeedback?
-    @Environment(\.dsEnvironment) private var environment
+    @Environment(\.designTheme) private var theme
 
     var body: some View {
         VStack(spacing: 0) {
@@ -42,7 +42,7 @@ struct ExportSheet: View {
             footer
         }
         .frame(width: 820, height: 540)
-        .background(environment.theme.colors.surfaceBackground.color)
+        .background(theme.colors.surfaceBackground.color)
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier(A11yID.Sheets.exportSheet)
         .task(id: store.state.exportSheet.target) { await refreshPreview() }
@@ -52,17 +52,17 @@ struct ExportSheet: View {
     // MARK: - Header
 
     private var header: some View {
-        HStack(spacing: DSTokens.Spacing.sm) {
+        HStack(spacing: Tokens.Spacing.sm) {
             DSIconView(.export)
             Text("Export")
                 .dsFont(.headline)
-                .foregroundStyle(environment.theme.colors.textPrimary.color)
+                .foregroundStyle(theme.colors.textPrimary.color)
             Spacer()
             DSIconButton(.close, label: "Close") { store.closeExportSheet() }
                 .keyboardShortcut(.cancelAction)
         }
-        .padding(.horizontal, DSTokens.Spacing.lg)
-        .padding(.vertical, DSTokens.Spacing.sm)
+        .padding(.horizontal, Tokens.Spacing.lg)
+        .padding(.vertical, Tokens.Spacing.sm)
     }
 
     // MARK: - Target list
@@ -73,19 +73,19 @@ struct ExportSheet: View {
                 section(title: "Render", targets: ExportTarget.allCases.filter { $0.groupLabel == "Render" })
                 section(title: "Source", targets: ExportTarget.allCases.filter { $0.groupLabel == "Source" })
             }
-            .padding(.vertical, DSTokens.Spacing.xs)
+            .padding(.vertical, Tokens.Spacing.xs)
         }
     }
 
     private func section(title: String, targets: [ExportTarget]) -> some View {
-        VStack(alignment: .leading, spacing: DSTokens.Spacing.xxxs) {
+        VStack(alignment: .leading, spacing: Tokens.Spacing.xxxs) {
             Text(title)
                 .dsFont(.overline)
-                .foregroundStyle(environment.theme.colors.textSecondary.color)
-                .padding(.horizontal, DSTokens.Spacing.md)
-                .padding(.vertical, DSTokens.Spacing.xxs)
+                .foregroundStyle(theme.colors.textSecondary.color)
+                .padding(.horizontal, Tokens.Spacing.md)
+                .padding(.vertical, Tokens.Spacing.xxs)
                 .frame(maxWidth: .infinity, alignment: .leading)
-                .background(environment.theme.colors.element.color)
+                .background(theme.colors.element.color)
             ForEach(targets) { target in
                 targetButton(target)
             }
@@ -97,13 +97,13 @@ struct ExportSheet: View {
         return Button {
             store.setExportTarget(target)
         } label: {
-            HStack(spacing: DSTokens.Spacing.sm) {
-                DSIconView(icon(for: target), size: DSTokens.Icon.xs, colorRole: isOn ? .primary : .muted)
+            HStack(spacing: Tokens.Spacing.sm) {
+                DSIconView(icon(for: target), size: Tokens.Size.Icon.xs, colorRole: isOn ? .primary : .muted)
                 Text(target.label)
                     .dsFont(.caption)
                 Spacer()
             }
-            .padding(.horizontal, DSTokens.Spacing.md)
+            .padding(.horizontal, Tokens.Spacing.md)
             .contentShape(Rectangle())
         }
         .buttonStyle(.ds(role: isOn ? .secondary : .ghost, size: .compact))
@@ -133,41 +133,41 @@ struct ExportSheet: View {
         ScrollView([.horizontal, .vertical]) {
             Text(sourcePreview.isEmpty ? "(rendering …)" : sourcePreview)
                 .dsFont(.code)
-                .foregroundStyle(environment.theme.colors.editorForeground.color)
-                .padding(DSTokens.Spacing.md)
+                .foregroundStyle(theme.colors.editorForeground.color)
+                .padding(Tokens.Spacing.md)
                 .frame(maxWidth: .infinity, alignment: .topLeading)
         }
-        .background(environment.theme.colors.editorBackground.color)
+        .background(theme.colors.editorBackground.color)
     }
 
     private var sourcePreviewView: some View {
         ScrollView([.horizontal, .vertical]) {
-            VStack(alignment: .leading, spacing: DSTokens.Spacing.sm) {
+            VStack(alignment: .leading, spacing: Tokens.Spacing.sm) {
                 Text(sourcePreview.isEmpty ? "(generating …)" : sourcePreview)
                     .dsFont(.code)
-                    .foregroundStyle(environment.theme.colors.editorForeground.color)
+                    .foregroundStyle(theme.colors.editorForeground.color)
                     .textSelection(.enabled)
                 if !sourceDiagnostics.isEmpty {
                     diagnosticsList
                 }
             }
-            .padding(DSTokens.Spacing.md)
+            .padding(Tokens.Spacing.md)
             .frame(maxWidth: .infinity, alignment: .topLeading)
         }
-        .background(environment.theme.colors.editorBackground.color)
+        .background(theme.colors.editorBackground.color)
     }
 
     private var diagnosticsList: some View {
-        VStack(alignment: .leading, spacing: DSTokens.Spacing.xxs) {
+        VStack(alignment: .leading, spacing: Tokens.Spacing.xxs) {
             Text("Export diagnostics")
                 .dsFont(.overline)
-                .foregroundStyle(environment.theme.colors.textSecondary.color)
+                .foregroundStyle(theme.colors.textSecondary.color)
             ForEach(Array(sourceDiagnostics.enumerated()), id: \.offset) { _, d in
-                HStack(spacing: DSTokens.Spacing.xxs) {
-                    DSIconView(severityIcon(d), size: DSTokens.Icon.micro, colorRole: severityRole(d))
+                HStack(spacing: Tokens.Spacing.xxs) {
+                    DSIconView(severityIcon(d), size: Tokens.Size.Icon.micro, colorRole: severityRole(d))
                     Text(d.message)
                         .dsFont(.caption2)
-                        .foregroundStyle(environment.theme.colors.textPrimary.color)
+                        .foregroundStyle(theme.colors.textPrimary.color)
                 }
             }
         }
@@ -192,7 +192,7 @@ struct ExportSheet: View {
     // MARK: - Footer
 
     private var footer: some View {
-        HStack(spacing: DSTokens.Spacing.md) {
+        HStack(spacing: Tokens.Spacing.md) {
             Toggle("Round-trip check", isOn: Binding(
                 get: { store.state.exportSheet.rtCheck },
                 set: { store.setExportRoundTripCheck($0) }
@@ -218,7 +218,7 @@ struct ExportSheet: View {
             if copyFeedback {
                 Text("Copied")
                     .dsFont(.badge)
-                    .foregroundStyle(environment.theme.colors.success.color)
+                    .foregroundStyle(theme.colors.success.color)
                     .transition(.opacity)
             }
 
@@ -229,23 +229,23 @@ struct ExportSheet: View {
                     .transition(.opacity)
             }
         }
-        .padding(.horizontal, DSTokens.Spacing.lg)
-        .padding(.vertical, DSTokens.Spacing.sm)
+        .padding(.horizontal, Tokens.Spacing.lg)
+        .padding(.vertical, Tokens.Spacing.sm)
     }
 
     private func rtBadge(_ summary: RoundTripSummary) -> some View {
-        HStack(spacing: DSTokens.Spacing.xxs) {
+        HStack(spacing: Tokens.Spacing.xxs) {
             DSIconView(
                 summary.lossCount == 0 ? .success : .warning,
-                size: DSTokens.Icon.micro,
+                size: Tokens.Size.Icon.micro,
                 colorRole: summary.lossCount == 0 ? .success : .warning
             )
             Text(summary.label)
                 .dsFont(.badge)
         }
-        .padding(.horizontal, DSTokens.Spacing.sm)
-        .padding(.vertical, DSTokens.Spacing.xxxs)
-        .background(statusColor(summary.status).opacity(DSTokens.Opacity.light), in: Capsule())
+        .padding(.horizontal, Tokens.Spacing.sm)
+        .padding(.vertical, Tokens.Spacing.xxxs)
+        .background(statusColor(summary.status).opacity(Tokens.Opacity.light), in: Capsule())
         .foregroundStyle(statusColor(summary.status))
         .accessibilityIdentifier(A11yID.Sheets.exportRoundTripFooter)
     }
@@ -476,22 +476,22 @@ struct ExportSheet: View {
 
     private func statusColor(_ status: DSStatusKind) -> Color {
         switch status {
-        case .success: environment.theme.colors.success.color
-        case .warning, .unsupported: environment.theme.colors.warning.color
-        case .error: environment.theme.colors.error.color
-        case .info: environment.theme.colors.info.color
+        case .success: theme.colors.success.color
+        case .warning, .unsupported: theme.colors.warning.color
+        case .error: theme.colors.error.color
+        case .info: theme.colors.info.color
         }
     }
 
     private var separator: some View {
         Rectangle()
-            .fill(environment.theme.colors.borderVariant.color)
-            .frame(height: DSTokens.Stroke.hairline)
+            .fill(theme.colors.borderVariant.color)
+            .frame(height: Tokens.Shape.strokeHairline)
     }
 
     private var verticalSeparator: some View {
         Rectangle()
-            .fill(environment.theme.colors.borderVariant.color)
-            .frame(width: DSTokens.Stroke.hairline)
+            .fill(theme.colors.borderVariant.color)
+            .frame(width: Tokens.Shape.strokeHairline)
     }
 }

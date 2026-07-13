@@ -15,7 +15,7 @@ import DesignKitThemes
 
 struct DiagramEditorPane: View {
     @Bindable var store: LiveEditorStore
-    @Environment(\.dsEnvironment) private var environment
+    @Environment(\.designTheme) private var theme
 
     var body: some View {
         VStack(spacing: 0) {
@@ -23,25 +23,25 @@ struct DiagramEditorPane: View {
             Divider()
             ScrollView {
                 content
-                    .padding(DSTokens.Spacing.lg)
+                    .padding(Tokens.Spacing.lg)
             }
         }
         .frame(minWidth: 320, idealWidth: 360)
-        .background(environment.theme.colors.panelBackground.color)
+        .background(theme.colors.panelBackground.color)
         .overlay(
-            RoundedRectangle(cornerRadius: DSTokens.Radius.md)
+            RoundedRectangle(cornerRadius: Tokens.Shape.radiusMD)
                 .stroke(
-                    environment.theme.colors.borderVariant.color,
-                    lineWidth: DSTokens.Stroke.hairline
+                    theme.colors.borderVariant.color,
+                    lineWidth: Tokens.Shape.strokeHairline
                 )
         )
     }
 
     private var header: some View {
-        HStack(spacing: DSTokens.Spacing.sm) {
+        HStack(spacing: Tokens.Spacing.sm) {
             Text("Inspector")
                 .dsFont(.headline)
-                .foregroundStyle(environment.theme.colors.textPrimary.color)
+                .foregroundStyle(theme.colors.textPrimary.color)
             Spacer(minLength: 0)
             DSIconButton(.close, label: "Close inspector") {
                 store.toggleInspector()
@@ -50,12 +50,12 @@ struct DiagramEditorPane: View {
             // shortcut-free to avoid duplicate shortcut warnings.
             .a11y(label: "Close inspector", id: A11yID.Editor.titleClose)
         }
-        .padding(DSTokens.Spacing.md)
+        .padding(Tokens.Spacing.md)
     }
 
     @ViewBuilder
     private var content: some View {
-        VStack(alignment: .leading, spacing: DSTokens.Spacing.md) {
+        VStack(alignment: .leading, spacing: Tokens.Spacing.md) {
             if let metadata = store.loadedCorpusMetadata {
                 CorpusMetadataBanner(metadata: metadata, store: store)
             }
@@ -107,14 +107,14 @@ struct DiagramEditorPane: View {
     }
 
     private func disabledBanner(icon: DSIcon, message: String) -> some View {
-        VStack(spacing: DSTokens.Spacing.sm) {
-            DSIconView(icon, size: DSTokens.Icon.md, colorRole: .muted)
+        VStack(spacing: Tokens.Spacing.sm) {
+            DSIconView(icon, size: Tokens.Size.Icon.md, colorRole: .muted)
             Text(message)
                 .dsFont(.caption)
                 .multilineTextAlignment(.center)
-                .foregroundStyle(environment.theme.colors.textSecondary.color)
+                .foregroundStyle(theme.colors.textSecondary.color)
         }
-        .padding(DSTokens.Spacing.xxl)
+        .padding(Tokens.Spacing.xxl)
         .frame(maxWidth: .infinity)
     }
 }
@@ -124,7 +124,7 @@ struct DiagramEditorPane: View {
 private struct TitleSection: View {
     @Bindable var store: LiveEditorStore
     let editor: DiagramEditor
-    @Environment(\.dsEnvironment) private var environment
+    @Environment(\.designTheme) private var theme
 
     @SwiftUI.State private var draft: String = ""
 
@@ -150,7 +150,7 @@ private struct TitleSection: View {
             }
             Text("Currently: \(editor.document.title ?? "—")")
                 .dsFont(.caption2)
-                .foregroundStyle(environment.theme.colors.textSecondary.color)
+                .foregroundStyle(theme.colors.textSecondary.color)
         }
         .onAppear {
             draft = editor.document.title ?? ""
@@ -166,7 +166,7 @@ private struct TitleSection: View {
 private struct SelectionSection: View {
     @Bindable var store: LiveEditorStore
     let editor: DiagramEditor
-    @Environment(\.dsEnvironment) private var environment
+    @Environment(\.designTheme) private var theme
 
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
@@ -191,7 +191,7 @@ private struct SelectionSection: View {
             } else {
                 Text("No selectable elements in this diagram.")
                     .dsFont(.caption2)
-                    .foregroundStyle(environment.theme.colors.textSecondary.color)
+                    .foregroundStyle(theme.colors.textSecondary.color)
             }
         }
     }
@@ -359,7 +359,7 @@ private struct InsertEdgeSection: View {
             DSSectionHeader("Insert edge")
             HStack(spacing: 6) {
                 fromPicker
-                DSIconView(.disclosureRight, size: DSTokens.Icon.micro, colorRole: .muted)
+                DSIconView(.disclosureRight, size: Tokens.Size.Icon.micro, colorRole: .muted)
                 toPicker
             }
             HStack(spacing: 6) {
@@ -476,7 +476,7 @@ private struct DeleteSection: View {
 private struct UndoRedoFooter: View {
     @Bindable var store: LiveEditorStore
     let editor: DiagramEditor
-    @Environment(\.dsEnvironment) private var environment
+    @Environment(\.designTheme) private var theme
 
     var body: some View {
         HStack(spacing: 8) {
@@ -513,7 +513,7 @@ private struct UndoRedoFooter: View {
             if let actionName = store.editor?.undoActionName, !actionName.isEmpty {
                 Text("Last: \(actionName)")
                     .dsFont(.caption2)
-                    .foregroundStyle(environment.theme.colors.textSecondary.color)
+                    .foregroundStyle(theme.colors.textSecondary.color)
             }
         }
     }
@@ -524,31 +524,31 @@ private struct UndoRedoFooter: View {
 private struct CorpusMetadataBanner: View {
     let metadata: CorpusMetadata
     let store: LiveEditorStore
-    @Environment(\.dsEnvironment) private var environment
+    @Environment(\.designTheme) private var theme
 
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
             if let note = metadata.unsupportedNote, !note.isEmpty {
                 HStack(alignment: .top, spacing: 6) {
-                    DSIconView(.remove, size: DSTokens.Icon.micro, colorRole: .muted)
+                    DSIconView(.remove, size: Tokens.Size.Icon.micro, colorRole: .muted)
                     Text(note)
                         .dsFont(.caption2)
-                        .foregroundStyle(environment.theme.colors.textSecondary.color)
+                        .foregroundStyle(theme.colors.textSecondary.color)
                         .fixedSize(horizontal: false, vertical: true)
                 }
             }
             if let diagnostics = metadata.expectedDiagnostics, !diagnostics.isEmpty {
                 HStack(alignment: .top, spacing: 6) {
-                    DSIconView(.diagnostics, size: DSTokens.Icon.micro, colorRole: .info)
+                    DSIconView(.diagnostics, size: Tokens.Size.Icon.micro, colorRole: .info)
                     VStack(alignment: .leading, spacing: 2) {
                         Text("Expected diagnostics from corpus (\(diagnostics.count)):")
                             .dsFont(.badge)
-                            .foregroundStyle(environment.theme.colors.accent.color)
+                            .foregroundStyle(theme.colors.accent.color)
                         ForEach(diagnostics.indices, id: \.self) { idx in
                             let d = diagnostics[idx]
                             Text("• \(d.severity)\(d.messageContains.map { ": \($0)" } ?? "")")
                                 .dsFont(.caption2)
-                                .foregroundStyle(environment.theme.colors.textSecondary.color)
+                                .foregroundStyle(theme.colors.textSecondary.color)
                                 .fixedSize(horizontal: false, vertical: true)
                         }
                     }
@@ -558,8 +558,8 @@ private struct CorpusMetadataBanner: View {
         .padding(8)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(
-            RoundedRectangle(cornerRadius: DSTokens.Radius.sm)
-                .fill(environment.theme.colors.accent.color.opacity(DSTokens.Opacity.mist))
+            RoundedRectangle(cornerRadius: Tokens.Shape.radiusSM)
+                .fill(theme.colors.accent.color.opacity(Tokens.Opacity.mist))
         )
     }
 }

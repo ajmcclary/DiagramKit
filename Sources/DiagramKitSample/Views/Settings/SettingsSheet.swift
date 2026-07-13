@@ -12,7 +12,8 @@ import DesignKitThemes
 struct SettingsSheet: View {
     @Bindable var store: LiveEditorStore
     @State private var searchText = ""
-    @Environment(\.dsEnvironment) private var environment
+    @Environment(\.designTheme) private var theme
+    @Environment(\.dsContext) private var context
     #if os(iOS)
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
     #endif
@@ -42,7 +43,7 @@ struct SettingsSheet: View {
             }
         }
         .frame(width: 748, height: 520)
-        .background(environment.theme.colors.surfaceBackground.color)
+        .background(theme.colors.surfaceBackground.color)
         // Card chrome (clip / stroke / shadow) is now supplied by the enclosing
         // `.sheet`; framedBody just provides the sized two-column content.
     }
@@ -62,40 +63,40 @@ struct SettingsSheet: View {
                 }
             }
             .pickerStyle(.menu)
-            .padding(.horizontal, DSTokens.Spacing.lg)
-            .padding(.vertical, DSTokens.Spacing.sm)
+            .padding(.horizontal, Tokens.Spacing.lg)
+            .padding(.vertical, Tokens.Spacing.sm)
             separator
             content
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(environment.theme.colors.surfaceBackground.color)
+        .background(theme.colors.surfaceBackground.color)
     }
 
     private var header: some View {
-        HStack(spacing: DSTokens.Spacing.md) {
+        HStack(spacing: Tokens.Spacing.md) {
             DSIconButton(.close, label: "Close") { store.dismissSettings() }
                 .keyboardShortcut(.cancelAction)
             Text("Settings")
                 .dsFont(.headline)
-                .foregroundStyle(environment.theme.colors.textPrimary.color)
+                .foregroundStyle(theme.colors.textPrimary.color)
             Spacer()
-            HStack(spacing: DSTokens.Spacing.xs) {
-                DSIconView(.search, size: DSTokens.Icon.micro, colorRole: .muted)
+            HStack(spacing: Tokens.Spacing.xs) {
+                DSIconView(.search, size: Tokens.Size.Icon.micro, colorRole: .muted)
                 TextField("Search settings…", text: $searchText).textFieldStyle(.plain)
                     .dsFont(.caption)
-                    .foregroundStyle(environment.theme.colors.textPrimary.color)
+                    .foregroundStyle(theme.colors.textPrimary.color)
             }
-            .padding(.horizontal, DSTokens.Spacing.smMd)
+            .padding(.horizontal, Tokens.Spacing.smMd)
             .frame(width: 180)
-            .frame(minHeight: max(DSTokens.Control.rowCompact, environment.minimumTarget))
-            .background(environment.theme.colors.element.color)
+            .frame(minHeight: max(Tokens.Size.Control.rowCompact, context.minimumTarget))
+            .background(theme.colors.element.color)
             .overlay(
-                RoundedRectangle(cornerRadius: DSTokens.Radius.sm)
-                    .stroke(environment.theme.colors.borderVariant.color, lineWidth: DSTokens.Stroke.thin)
+                RoundedRectangle(cornerRadius: Tokens.Shape.radiusSM)
+                    .stroke(theme.colors.borderVariant.color, lineWidth: Tokens.Shape.strokeThin)
             )
-            .clipShape(RoundedRectangle(cornerRadius: DSTokens.Radius.sm))
+            .clipShape(RoundedRectangle(cornerRadius: Tokens.Shape.radiusSM))
         }
-        .padding(.horizontal, DSTokens.Spacing.lg).frame(minHeight: 52)
+        .padding(.horizontal, Tokens.Spacing.lg).frame(minHeight: 52)
     }
 
     private var nav: some View {
@@ -103,20 +104,20 @@ struct SettingsSheet: View {
             ForEach(SettingsTab.allCases, id: \.self) { tab in
                 let isActive = store.state.settingsTab == tab
                 Button { store.setSettingsTab(tab) } label: {
-                    HStack(spacing: DSTokens.Spacing.sm) {
-                        DSIconView(tab.icon, size: DSTokens.Icon.micro, colorRole: isActive ? .primary : .muted)
+                    HStack(spacing: Tokens.Spacing.sm) {
+                        DSIconView(tab.icon, size: Tokens.Size.Icon.micro, colorRole: isActive ? .primary : .muted)
                         Text(tab.displayName).dsFont(.caption)
                         Spacer(minLength: 0)
                     }
-                    .padding(.horizontal, DSTokens.Spacing.smMd)
+                    .padding(.horizontal, Tokens.Spacing.smMd)
                     .contentShape(Rectangle())
                 }
                 .buttonStyle(.ds(role: isActive ? .secondary : .ghost, size: .regular))
             }
             Spacer()
         }
-        .padding(.horizontal, DSTokens.Spacing.smMd).padding(.vertical, DSTokens.Spacing.md).frame(width: 196)
-        .background(environment.theme.colors.panelBackground.color)
+        .padding(.horizontal, Tokens.Spacing.smMd).padding(.vertical, Tokens.Spacing.md).frame(width: 196)
+        .background(theme.colors.panelBackground.color)
     }
 
     private var content: some View {
@@ -132,7 +133,7 @@ struct SettingsSheet: View {
                 case .fonts: SettingsFontsTab()
                 }
             }
-            .padding(.horizontal, DSTokens.Spacing.xxl).padding(.vertical, DSTokens.Spacing.xl)
+            .padding(.horizontal, Tokens.Spacing.xxl).padding(.vertical, Tokens.Spacing.xl)
             .frame(maxWidth: .infinity, alignment: .leading)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -140,13 +141,13 @@ struct SettingsSheet: View {
 
     private var separator: some View {
         Rectangle()
-            .fill(environment.theme.colors.borderVariant.color)
-            .frame(height: DSTokens.Stroke.hairline)
+            .fill(theme.colors.borderVariant.color)
+            .frame(height: Tokens.Shape.strokeHairline)
     }
 
     private var verticalSeparator: some View {
         Rectangle()
-            .fill(environment.theme.colors.borderVariant.color)
-            .frame(width: DSTokens.Stroke.hairline)
+            .fill(theme.colors.borderVariant.color)
+            .frame(width: Tokens.Shape.strokeHairline)
     }
 }

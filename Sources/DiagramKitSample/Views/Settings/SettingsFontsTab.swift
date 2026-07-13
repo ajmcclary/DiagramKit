@@ -11,7 +11,7 @@ import DesignKitThemes
 
 struct SettingsFontsTab: View {
     @AppStorage(PlaygroundSettingsKeys.uiTextSize) private var uiTextSize = 13
-    @Environment(\.dsEnvironment) private var environment
+    @Environment(\.designTheme) private var theme
     private var diagramFonts: [String] { DiagramFontRegistry.registeredFontNames }
 
     var body: some View {
@@ -23,7 +23,7 @@ struct SettingsFontsTab: View {
                 bundledRow(title: "Diagram font", value: diagramFonts.first ?? "Noto Sans")
                 bundledRow(title: "Diagram mono", value: diagramFonts.count > 1 ? diagramFonts[1] : "Noto Sans Mono", mono: true)
                 StepperRow(title: "UI text size", value: $uiTextSize, range: 10...20, unit: "pt")
-            }.padding(.bottom, DSTokens.Spacing.lg)
+            }.padding(.bottom, Tokens.Spacing.lg)
             infoCallout
             Spacer(minLength: 0)
         }
@@ -31,29 +31,29 @@ struct SettingsFontsTab: View {
 
     private var infoCallout: some View {
         DSSurface(role: .panel) {
-            HStack(alignment: .top, spacing: DSTokens.Spacing.sm) {
+            HStack(alignment: .top, spacing: Tokens.Spacing.sm) {
                 DSIconView(.info, colorRole: .info)
                 Text("Bundled Noto fonts neutralize system-font drift — the same source renders the same glyph positions across macOS and iOS versions.")
                     .dsFont(.caption2)
-                    .lineSpacing(DSTokens.Spacing.xxxs)
-                    .foregroundStyle(environment.theme.colors.textSecondary.color)
+                    .lineSpacing(Tokens.Spacing.xxxs)
+                    .foregroundStyle(theme.colors.textSecondary.color)
                 Spacer(minLength: 0)
             }
-            .padding(.horizontal, DSTokens.Spacing.lg)
-            .padding(.vertical, DSTokens.Spacing.md)
+            .padding(.horizontal, Tokens.Spacing.lg)
+            .padding(.vertical, Tokens.Spacing.md)
         }
     }
 
     private func bundledRow(title: String, value: String, mono: Bool = false) -> some View {
         HStack {
-            Text(title).dsFont(.body).foregroundStyle(environment.theme.colors.textPrimary.color)
+            Text(title).dsFont(.body).foregroundStyle(theme.colors.textPrimary.color)
             Spacer()
-            HStack(spacing: DSTokens.Spacing.xs) {
-                DSIconView(.success, size: DSTokens.Icon.micro, colorRole: .success)
-                Text("Bundled").dsFont(.badge).foregroundStyle(environment.theme.colors.success.color)
-                Text(value).dsFont(mono ? .code : .caption).foregroundStyle(environment.theme.colors.textSecondary.color)
+            HStack(spacing: Tokens.Spacing.xs) {
+                DSIconView(.success, size: Tokens.Size.Icon.micro, colorRole: .success)
+                Text("Bundled").dsFont(.badge).foregroundStyle(theme.colors.success.color)
+                Text(value).dsFont(mono ? .code : .caption).foregroundStyle(theme.colors.textSecondary.color)
             }
         }
-        .padding(.horizontal, DSTokens.Spacing.lg).padding(.vertical, DSTokens.Spacing.md)
+        .padding(.horizontal, Tokens.Spacing.lg).padding(.vertical, Tokens.Spacing.md)
     }
 }

@@ -12,21 +12,21 @@ import DesignKitThemes
 
 struct UndoTimelineView: View {
     @Bindable var store: LiveEditorStore
-    @Environment(\.dsEnvironment) private var environment
+    @Environment(\.designTheme) private var theme
 
     var body: some View {
         let entries = store.undoEntries
         DSGlassSurface(role: .popover) {
-        HStack(spacing: DSTokens.Spacing.xs) {
-            DSIconView(.history, size: DSTokens.Icon.micro, colorRole: .muted)
+        HStack(spacing: Tokens.Spacing.xs) {
+            DSIconView(.history, size: Tokens.Size.Icon.micro, colorRole: .muted)
 
             if entries.isEmpty {
                 Text("No history yet")
                     .dsFont(.caption2)
-                    .foregroundStyle(environment.theme.colors.textSecondary.color)
+                    .foregroundStyle(theme.colors.textSecondary.color)
             } else {
                 ScrollView(.horizontal, showsIndicators: false) {
-                    HStack(spacing: DSTokens.Spacing.xxs) {
+                    HStack(spacing: Tokens.Spacing.xxs) {
                         ForEach(Array(entries.enumerated()), id: \.offset) { _, entry in
                             chip(for: entry)
                         }
@@ -35,8 +35,8 @@ struct UndoTimelineView: View {
                 .frame(maxWidth: 240)
             }
         }
-        .padding(.horizontal, DSTokens.Spacing.smMd)
-        .padding(.vertical, DSTokens.Spacing.xxs)
+        .padding(.horizontal, Tokens.Spacing.smMd)
+        .padding(.vertical, Tokens.Spacing.xxs)
         }
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier(A11yID.Visual.undoTimeline)
@@ -44,36 +44,36 @@ struct UndoTimelineView: View {
 
     private func chip(for entry: UndoEntry) -> some View {
         let tint = chipTint(for: entry)
-        return HStack(spacing: DSTokens.Spacing.xxs) {
+        return HStack(spacing: Tokens.Spacing.xxs) {
             Label(entry.displayLabel, systemImage: chipIcon(for: entry.kind))
                 .labelStyle(.iconOnly)
                 .dsFont(.badge)
             Text(entry.displayLabel)
                 .dsFont(entry.isCurrent ? .metric : .caption2)
         }
-        .padding(.horizontal, DSTokens.Spacing.xs)
-        .padding(.vertical, DSTokens.Spacing.xxxs)
+        .padding(.horizontal, Tokens.Spacing.xs)
+        .padding(.vertical, Tokens.Spacing.xxxs)
         .background(Capsule().fill(tint.background))
         .foregroundStyle(tint.foreground)
-        .opacity(entry.isFuture ? DSTokens.Opacity.medium : 1)
+        .opacity(entry.isFuture ? Tokens.Opacity.medium : 1)
     }
 
     private func chipTint(for entry: UndoEntry) -> (background: Color, foreground: Color) {
         if entry.isCurrent {
             return (
-                environment.theme.colors.elementSelected.color,
-                environment.theme.colors.accent.color
+                theme.colors.elementSelected.color,
+                theme.colors.accent.color
             )
         }
         if entry.isFuture {
             return (
-                environment.theme.colors.element.color,
-                environment.theme.colors.textSecondary.color
+                theme.colors.element.color,
+                theme.colors.textSecondary.color
             )
         }
         return (
-            environment.theme.colors.elementHover.color,
-            environment.theme.colors.textPrimary.color
+            theme.colors.elementHover.color,
+            theme.colors.textPrimary.color
         )
     }
 

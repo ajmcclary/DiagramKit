@@ -1,3 +1,4 @@
+import DesignKitThemes
 import SwiftUI
 
 public struct DSSegmentVisualState: Equatable, Sendable {
@@ -10,7 +11,7 @@ public struct DSSegmentVisualState: Equatable, Sendable {
         isEnabled: Bool
     ) -> Self {
         guard isEnabled else {
-            return Self(fillRole: .element, opacity: DSTokens.Opacity.disabled)
+            return Self(fillRole: .element, opacity: Tokens.Opacity.disabled)
         }
         return Self(
             fillRole: isSelected ? .accent : isHovered ? .elementHover : .element,
@@ -35,11 +36,12 @@ public struct DSIconView: View {
     private let icon: DSIcon
     private let size: CGFloat
     private let colorRole: DSIconColorRole
-    @Environment(\.dsEnvironment) private var environment
+    @Environment(\.designTheme) private var theme
+    @Environment(\.dsContext) private var context
 
     public init(
         _ icon: DSIcon,
-        size: CGFloat = DSTokens.Icon.sm,
+        size: CGFloat = Tokens.Size.Icon.sm,
         colorRole: DSIconColorRole = .primary
     ) {
         self.icon = icon
@@ -50,7 +52,7 @@ public struct DSIconView: View {
     public var body: some View {
         Image(systemName: icon.systemName)
             .font(.system(size: size, weight: .medium))
-            .foregroundStyle(colorRole.color(in: environment.theme))
+            .foregroundStyle(colorRole.color(in: theme))
             .frame(width: size, height: size)
             .accessibilityHidden(true)
     }
@@ -99,7 +101,7 @@ public struct DSSegmentedControl<Option: Hashable, Label: View>: View {
     }
 
     public var body: some View {
-        HStack(spacing: DSTokens.Stroke.thin) {
+        HStack(spacing: Tokens.Shape.strokeThin) {
             ForEach(options, id: \.self) { option in
                 DSSegmentButton(
                     isSelected: selection == option,
@@ -108,14 +110,15 @@ public struct DSSegmentedControl<Option: Hashable, Label: View>: View {
                 )
             }
         }
-        .padding(DSTokens.Stroke.medium)
-        .background(environment.theme.colors.element.color, in: containerShape)
+        .padding(Tokens.Shape.strokeMedium)
+        .background(theme.colors.element.color, in: containerShape)
     }
 
-    @Environment(\.dsEnvironment) private var environment
+    @Environment(\.designTheme) private var theme
+    @Environment(\.dsContext) private var context
 
     private var containerShape: RoundedRectangle {
-        RoundedRectangle(cornerRadius: DSTokens.Radius.chip, style: .continuous)
+        RoundedRectangle(cornerRadius: Tokens.Shape.radiusChip, style: .continuous)
     }
 }
 
@@ -123,7 +126,8 @@ fileprivate struct DSSegmentButton<Label: View>: View {
     let isSelected: Bool
     let action: () -> Void
     @ViewBuilder let label: () -> Label
-    @Environment(\.dsEnvironment) private var environment
+    @Environment(\.designTheme) private var theme
+    @Environment(\.dsContext) private var context
     @Environment(\.isEnabled) private var isEnabled
     @State private var isHovered = false
 
@@ -144,11 +148,11 @@ fileprivate struct DSSegmentButton<Label: View>: View {
                 .dsFont(.badge)
                 .foregroundStyle(
                     isSelected
-                        ? environment.theme.colors.onAccent.color
-                        : environment.theme.colors.textSecondary.color
+                        ? theme.colors.onAccent.color
+                        : theme.colors.textSecondary.color
                 )
-                .padding(.horizontal, DSTokens.Spacing.smMd)
-                .frame(minHeight: max(DSTokens.Control.chip, environment.minimumTarget))
+                .padding(.horizontal, Tokens.Spacing.smMd)
+                .frame(minHeight: max(Tokens.Size.Control.chip, context.minimumTarget))
                 .background(fillColor(state.fillRole), in: shape)
                 .opacity(state.opacity)
         }
@@ -157,13 +161,13 @@ fileprivate struct DSSegmentButton<Label: View>: View {
     }
 
     private var shape: RoundedRectangle {
-        RoundedRectangle(cornerRadius: DSTokens.Radius.sm, style: .continuous)
+        RoundedRectangle(cornerRadius: Tokens.Shape.radiusSM, style: .continuous)
     }
 
     private func fillColor(_ role: DSButtonFillRole) -> Color {
         switch role {
-        case .accent: environment.theme.colors.accent.color
-        case .elementHover: environment.theme.colors.elementHover.color
+        case .accent: theme.colors.accent.color
+        case .elementHover: theme.colors.elementHover.color
         default: .clear
         }
     }
@@ -198,7 +202,7 @@ public struct DSChipGroup<Content: View>: View {
     }
 
     public var body: some View {
-        HStack(spacing: DSTokens.Spacing.xs) { content }
+        HStack(spacing: Tokens.Spacing.xs) { content }
     }
 }
 
@@ -206,7 +210,8 @@ public struct DSField: View {
     private let label: String
     private let prompt: String?
     @Binding private var text: String
-    @Environment(\.dsEnvironment) private var environment
+    @Environment(\.designTheme) private var theme
+    @Environment(\.dsContext) private var context
 
     public init(
         _ label: String,
@@ -222,25 +227,25 @@ public struct DSField: View {
         TextField(label, text: $text, prompt: prompt.map(Text.init))
             .textFieldStyle(.plain)
             .dsFont(.body)
-            .foregroundStyle(environment.theme.colors.textPrimary.color)
-            .padding(.horizontal, DSTokens.Spacing.sm)
-            .frame(minHeight: max(DSTokens.Control.row, environment.minimumTarget))
-            .background(environment.theme.colors.element.color, in: shape)
+            .foregroundStyle(theme.colors.textPrimary.color)
+            .padding(.horizontal, Tokens.Spacing.sm)
+            .frame(minHeight: max(Tokens.Size.Control.row, context.minimumTarget))
+            .background(theme.colors.element.color, in: shape)
             .overlay {
                 shape.stroke(
-                    environment.theme.colors.borderVariant.color,
-                    lineWidth: DSTokens.Stroke.thin
+                    theme.colors.borderVariant.color,
+                    lineWidth: Tokens.Shape.strokeThin
                 )
             }
     }
 
     private var shape: RoundedRectangle {
-        RoundedRectangle(cornerRadius: DSTokens.Radius.sm, style: .continuous)
+        RoundedRectangle(cornerRadius: Tokens.Shape.radiusSM, style: .continuous)
     }
 }
 
 private extension DSIconColorRole {
-    func color(in theme: DSTheme) -> Color {
+    func color(in theme: Theme) -> Color {
         switch self {
         case .primary: theme.colors.iconPrimary.color
         case .muted: theme.colors.iconMuted.color

@@ -14,7 +14,7 @@ import DesignKitThemes
 
 struct EditorMinimap: View {
     @Bindable var store: LiveEditorStore
-    @Environment(\.dsEnvironment) private var environment
+    @Environment(\.designTheme) private var theme
 
     var body: some View {
         let lines = sourceLines
@@ -39,14 +39,14 @@ struct EditorMinimap: View {
                     height: barHeight
                 )
                 let color = highlightedLine == index
-                    ? environment.theme.colors.accent.color
-                    : environment.theme.colors.iconMuted.color.opacity(DSTokens.Opacity.medium)
+                    ? theme.colors.accent.color
+                    : theme.colors.iconMuted.color.opacity(Tokens.Opacity.medium)
                 ctx.fill(Path(rect), with: .color(color))
             }
         }
         .frame(width: 64)
         .padding(.vertical, 6)
-        .background(environment.theme.colors.editorGutterBackground.color)
+        .background(theme.colors.editorGutterBackground.color)
         .accessibilityHidden(true)
     }
 

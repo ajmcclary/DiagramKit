@@ -13,12 +13,12 @@ struct IconBrowserView: View {
     let onSelect: (String) -> Void
 
     @SwiftUI.State private var query: String = ""
-    @Environment(\.dsEnvironment) private var environment
+    @Environment(\.designTheme) private var theme
 
-    private let columns = [GridItem(.adaptive(minimum: 64), spacing: DSTokens.Spacing.sm)]
+    private let columns = [GridItem(.adaptive(minimum: 64), spacing: Tokens.Spacing.sm)]
 
     var body: some View {
-        VStack(alignment: .leading, spacing: DSTokens.Spacing.sm) {
+        VStack(alignment: .leading, spacing: Tokens.Spacing.sm) {
             DSField("Search icons", text: $query)
                 .accessibilityIdentifier(A11yID.Visual.iconBrowserSearch)
 
@@ -27,20 +27,20 @@ struct IconBrowserView: View {
                 if hits.isEmpty {
                     Text("No icons match “\(query)”")
                         .dsFont(.caption2)
-                        .foregroundStyle(environment.theme.colors.textSecondary.color)
+                        .foregroundStyle(theme.colors.textSecondary.color)
                         .frame(maxWidth: .infinity, alignment: .center)
-                        .padding(.top, DSTokens.Spacing.xxl)
+                        .padding(.top, Tokens.Spacing.xxl)
                 } else {
-                    LazyVGrid(columns: columns, spacing: DSTokens.Spacing.sm) {
+                    LazyVGrid(columns: columns, spacing: Tokens.Spacing.sm) {
                         ForEach(hits) { item in
                             Button {
                                 onSelect(item.faName)
                             } label: {
-                                VStack(spacing: DSTokens.Spacing.xxs) {
+                                VStack(spacing: Tokens.Spacing.xxs) {
                                     Label(item.faName, systemImage: item.sfSymbol)
                                         .labelStyle(.iconOnly)
                                         .dsFont(.headline)
-                                        .frame(height: DSTokens.Icon.md)
+                                        .frame(height: Tokens.Size.Icon.md)
                                     Text(item.faName)
                                         .dsFont(.caption2)
                                         .lineLimit(1)
@@ -48,8 +48,8 @@ struct IconBrowserView: View {
                                 }
                                 .frame(width: 64, height: 48)
                                 .background(
-                                    RoundedRectangle(cornerRadius: DSTokens.Radius.sm, style: .continuous)
-                                        .fill(environment.theme.colors.element.color)
+                                    RoundedRectangle(cornerRadius: Tokens.Shape.radiusSM, style: .continuous)
+                                        .fill(theme.colors.element.color)
                                 )
                             }
                             .buttonStyle(.ds(role: .ghost, size: .compact))
@@ -60,7 +60,7 @@ struct IconBrowserView: View {
                 }
             }
         }
-        .padding(DSTokens.Spacing.md)
+        .padding(Tokens.Spacing.md)
         .frame(width: 340, height: 400)
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier(A11yID.Visual.iconBrowser)

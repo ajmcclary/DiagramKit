@@ -11,7 +11,7 @@ import DesignKitThemes
 
 struct ImageURLSheet: View {
     @Bindable var store: LiveEditorStore
-    @Environment(\.dsEnvironment) private var environment
+    @Environment(\.designTheme) private var theme
 
     @SwiftUI.State private var urlDraft: String = ""
     @SwiftUI.State private var widthDraft: String = "120"
@@ -20,15 +20,15 @@ struct ImageURLSheet: View {
 
     var body: some View {
         DSGlassSurface(role: .popover) {
-        VStack(alignment: .leading, spacing: DSTokens.Spacing.md) {
+        VStack(alignment: .leading, spacing: Tokens.Spacing.md) {
             Text("Add image from URL")
                 .dsFont(.headline)
             DSField("Image URL", text: $urlDraft, prompt: "https://example.com/image.png")
                 .accessibilityIdentifier(A11yID.Visual.imageURLField)
-            HStack(spacing: DSTokens.Spacing.sm) {
+            HStack(spacing: Tokens.Spacing.sm) {
                 DSField("Width", text: $widthDraft)
                     .frame(width: 70)
-                Text("×").foregroundStyle(environment.theme.colors.textSecondary.color)
+                Text("×").foregroundStyle(theme.colors.textSecondary.color)
                 DSField("Height", text: $heightDraft)
                     .frame(width: 70)
                 Spacer()
@@ -59,7 +59,7 @@ struct ImageURLSheet: View {
                 .accessibilityIdentifier(A11yID.Visual.imageCommitButton)
             }
         }
-        .padding(DSTokens.Spacing.lg)
+        .padding(Tokens.Spacing.lg)
         }
         .frame(width: 360)
     }

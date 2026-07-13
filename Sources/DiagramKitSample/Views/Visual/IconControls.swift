@@ -18,7 +18,7 @@ struct IconControls: View {
     @Binding var iconDirty: Bool
 
     var body: some View {
-        VStack(alignment: .leading, spacing: DSTokens.Spacing.sm) {
+        VStack(alignment: .leading, spacing: Tokens.Spacing.sm) {
             Picker("Icon size", selection: $size) {
                 Text("S").tag(IconSpec.Size.small)
                 Text("M").tag(IconSpec.Size.medium)

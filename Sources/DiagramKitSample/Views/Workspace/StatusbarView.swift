@@ -15,7 +15,7 @@ import DesignKitThemes
 struct StatusbarView: View {
     @Bindable var store: LiveEditorStore
 
-    @Environment(\.dsEnvironment) private var environment
+    @Environment(\.designTheme) private var theme
 
     var body: some View {
         ViewThatFits(in: .horizontal) {
@@ -23,16 +23,16 @@ struct StatusbarView: View {
                 .fixedSize(horizontal: true, vertical: false)
             compactStatus
         }
-        .padding(.horizontal, DSTokens.Spacing.md)
-        .frame(minHeight: DSTokens.Control.statusBar)
+        .padding(.horizontal, Tokens.Spacing.md)
+        .frame(minHeight: Tokens.Size.Control.statusBar)
         .background {
             DSSurface(role: .statusBar) { Color.clear }
         }
-        .foregroundStyle(environment.theme.colors.textSecondary.color)
+        .foregroundStyle(theme.colors.textSecondary.color)
     }
 
     private var fullStatus: some View {
-        HStack(spacing: DSTokens.Spacing.md) {
+        HStack(spacing: Tokens.Spacing.md) {
             engineSegment
             divider
             workerSegment
@@ -43,7 +43,7 @@ struct StatusbarView: View {
             divider
             diagnosticsButton
 
-            Spacer(minLength: DSTokens.Spacing.md)
+            Spacer(minLength: Tokens.Spacing.md)
 
             backendSegment
             divider
@@ -54,9 +54,9 @@ struct StatusbarView: View {
     }
 
     private var compactStatus: some View {
-        HStack(spacing: DSTokens.Spacing.sm) {
+        HStack(spacing: Tokens.Spacing.sm) {
             engineSegment
-            Spacer(minLength: DSTokens.Spacing.sm)
+            Spacer(minLength: Tokens.Spacing.sm)
             diagnosticsButton
             backendSegment
             activeSampleBadge
@@ -73,7 +73,7 @@ struct StatusbarView: View {
                 .frame(width: 7, height: 7)
             Text("DiagramEngine")
                 .dsFont(.badge)
-                .foregroundStyle(environment.theme.colors.textPrimary.color)
+                .foregroundStyle(theme.colors.textPrimary.color)
             Text("· \(statusText)")
                 .dsFont(.caption2)
         }
@@ -99,7 +99,7 @@ struct StatusbarView: View {
                 .dsFont(.caption2)
             Text(store.state.renderBackend.label.lowercased())
                 .dsFont(.metric)
-                .foregroundStyle(environment.theme.colors.accent.color)
+                .foregroundStyle(theme.colors.accent.color)
         }
         .a11yToggle(
             label: "Render backend",
@@ -119,7 +119,7 @@ struct StatusbarView: View {
         } else {
             Text("—")
                 .dsFont(.badge)
-                .foregroundStyle(environment.theme.colors.textDisabled.color)
+                .foregroundStyle(theme.colors.textDisabled.color)
         }
     }
 
@@ -130,10 +130,10 @@ struct StatusbarView: View {
         return Button {
             store.toggleDiagnosticsDrawer()
         } label: {
-            HStack(spacing: DSTokens.Spacing.xs) {
+            HStack(spacing: Tokens.Spacing.xs) {
                 DSIconView(
                     .diagnostics,
-                    size: DSTokens.Icon.micro,
+                    size: Tokens.Size.Icon.micro,
                     colorRole: count > 0 ? .warning : .muted
                 )
                 Text("Diagnostics · \(count)")
@@ -157,14 +157,14 @@ struct StatusbarView: View {
                 .dsFont(.caption2)
             Text(value)
                 .dsFont(monospace ? .metric : .badge)
-                .foregroundStyle(environment.theme.colors.textPrimary.color)
+                .foregroundStyle(theme.colors.textPrimary.color)
         }
     }
 
     private var divider: some View {
         Rectangle()
-            .fill(environment.theme.colors.borderVariant.color)
-            .frame(width: DSTokens.Stroke.hairline, height: DSTokens.Spacing.smMd)
+            .fill(theme.colors.borderVariant.color)
+            .frame(width: Tokens.Shape.strokeHairline, height: Tokens.Spacing.smMd)
             .accessibilityHidden(true)
     }
 
@@ -180,11 +180,11 @@ struct StatusbarView: View {
 
     private var statusColor: Color {
         switch store.renderStatus {
-        case .idle:      return environment.theme.colors.iconMuted.color
-        case .pending:   return environment.theme.colors.warning.color
-        case .rendering: return environment.theme.colors.info.color
-        case .rendered:  return environment.theme.colors.success.color
-        case .failed:    return environment.theme.colors.error.color
+        case .idle:      return theme.colors.iconMuted.color
+        case .pending:   return theme.colors.warning.color
+        case .rendering: return theme.colors.info.color
+        case .rendered:  return theme.colors.success.color
+        case .failed:    return theme.colors.error.color
         }
     }
 

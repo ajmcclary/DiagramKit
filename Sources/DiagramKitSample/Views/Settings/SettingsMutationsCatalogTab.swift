@@ -10,7 +10,7 @@ import SwiftUI
 import DesignKitThemes
 
 struct SettingsMutationsCatalogTab: View {
-    @Environment(\.dsEnvironment) private var environment
+    @Environment(\.designTheme) private var theme
     private let groups: [MutationCatalogEntry.Group] = [.node, .edge, .subgraph]
 
     var body: some View {
@@ -20,16 +20,16 @@ struct SettingsMutationsCatalogTab: View {
                 let entries = MutationCatalog.all.filter { $0.group == group }
                 if !entries.isEmpty {
                     DSSectionHeader(group.label)
-                        .padding(.top, DSTokens.Spacing.xs).padding(.bottom, DSTokens.Spacing.sm)
+                        .padding(.top, Tokens.Spacing.xs).padding(.bottom, Tokens.Spacing.sm)
                     DSSettingGroup {
                         ForEach(entries) { entry in
-                            HStack(spacing: DSTokens.Spacing.smMd) {
-                                DSIconView(icon(for: entry), size: DSTokens.Icon.micro, colorRole: group == .edge ? .info : .primary)
-                                Text(displayName(entry)).dsFont(.caption).foregroundStyle(environment.theme.colors.textPrimary.color)
+                            HStack(spacing: Tokens.Spacing.smMd) {
+                                DSIconView(icon(for: entry), size: Tokens.Size.Icon.micro, colorRole: group == .edge ? .info : .primary)
+                                Text(displayName(entry)).dsFont(.caption).foregroundStyle(theme.colors.textPrimary.color)
                                 Spacer()
-                                Text(entry.label).dsFont(.code).foregroundStyle(environment.theme.colors.info.color)
+                                Text(entry.label).dsFont(.code).foregroundStyle(theme.colors.info.color)
                             }
-                            .padding(.horizontal, DSTokens.Spacing.lg).padding(.vertical, DSTokens.Spacing.sm)
+                            .padding(.horizontal, Tokens.Spacing.lg).padding(.vertical, Tokens.Spacing.sm)
                         }
                     }.padding(.bottom, 12)
                 }

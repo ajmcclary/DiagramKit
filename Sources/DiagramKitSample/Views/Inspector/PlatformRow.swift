@@ -14,13 +14,13 @@ import DesignKitThemes
 
 struct PlatformRow: View {
     @Bindable var store: LiveEditorStore
-    @Environment(\.dsEnvironment) private var environment
+    @Environment(\.designTheme) private var theme
 
     var body: some View {
         InspectorSectionHeader(title: "Platform parity", systemImage: "laptopcomputer")
             .padding(.bottom, 4)
-        VStack(alignment: .leading, spacing: DSTokens.Spacing.xxs) {
-            HStack(spacing: DSTokens.Spacing.xs) {
+        VStack(alignment: .leading, spacing: Tokens.Spacing.xxs) {
+            HStack(spacing: Tokens.Spacing.xs) {
                 DSStatusIndicator(
                     isApproximate ? .warning : .success,
                     label: isApproximate ? "Approximate parity" : "Full parity"
@@ -29,21 +29,21 @@ struct PlatformRow: View {
                     .dsFont(.badge)
                 Spacer()
             }
-            HStack(spacing: DSTokens.Spacing.xxs) {
-                DSIconView(.code, size: DSTokens.Icon.indicator, colorRole: .muted)
+            HStack(spacing: Tokens.Spacing.xxs) {
+                DSIconView(.code, size: Tokens.Size.Icon.indicator, colorRole: .muted)
                 Text("Sources/DiagramKitCommon/src_text_metrics.swift")
                     .dsFont(.code)
-                    .foregroundStyle(environment.theme.colors.textSecondary.color)
+                    .foregroundStyle(theme.colors.textSecondary.color)
                     .textSelection(.enabled)
             }
             if isApproximate {
                 Text("\(currentFamily?.rawValue ?? "this family") falls back to char-count text width on Linux per CLAUDE.md; geometry is valid but not pixel-equivalent to Apple's CoreText measurement.")
                     .dsFont(.caption2)
-                    .foregroundStyle(environment.theme.colors.textSecondary.color)
+                    .foregroundStyle(theme.colors.textSecondary.color)
                     .fixedSize(horizontal: false, vertical: true)
             }
         }
-        .padding(DSTokens.Spacing.sm)
+        .padding(Tokens.Spacing.sm)
         .background { DSSurface(role: .card) { Color.clear } }
         .accessibilityIdentifier("inspector.platformRow")
         .accessibilityElement(children: .contain)

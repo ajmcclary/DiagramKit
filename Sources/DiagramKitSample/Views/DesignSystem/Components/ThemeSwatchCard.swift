@@ -21,26 +21,26 @@ struct ThemeSwatchCard: View {
 
     var body: some View {
         Button(action: action) {
-            VStack(alignment: .leading, spacing: DSTokens.Spacing.xs) {
-                HStack(spacing: DSTokens.Spacing.xxs) {
+            VStack(alignment: .leading, spacing: Tokens.Spacing.xs) {
+                HStack(spacing: Tokens.Spacing.xxs) {
                     Text(name)
                         .dsFont(.badge)
                         .foregroundStyle(specimen.nameColor)
                     if isStarred {
-                        DSIconView(.favorite, size: DSTokens.Icon.micro)
+                        DSIconView(.favorite, size: Tokens.Size.Icon.micro)
                     }
                     Spacer(minLength: 0)
                     if isActive {
-                        DSIconView(.success, size: DSTokens.Icon.micro, colorRole: .success)
+                        DSIconView(.success, size: Tokens.Size.Icon.micro, colorRole: .success)
                     }
                 }
-                HStack(spacing: DSTokens.Spacing.xxs) {
+                HStack(spacing: Tokens.Spacing.xxs) {
                     ForEach(Array(specimen.accents.enumerated()), id: \.offset) { _, c in
-                        RoundedRectangle(cornerRadius: DSTokens.Radius.xs, style: .continuous)
+                        RoundedRectangle(cornerRadius: Tokens.Shape.radiusXS, style: .continuous)
                             .fill(c)
                             .frame(width: 14, height: 14)
-                            .overlay(RoundedRectangle(cornerRadius: DSTokens.Radius.xs, style: .continuous)
-                                .stroke(specimen.textColor.opacity(DSTokens.Opacity.tint), lineWidth: DSTokens.Stroke.hairline))
+                            .overlay(RoundedRectangle(cornerRadius: Tokens.Shape.radiusXS, style: .continuous)
+                                .stroke(specimen.textColor.opacity(Tokens.Opacity.tint), lineWidth: Tokens.Shape.strokeHairline))
                     }
                 }
                 Text("let n = 42")
@@ -48,15 +48,15 @@ struct ThemeSwatchCard: View {
                     .foregroundStyle(specimen.textColor.opacity(0.85))
             }
             .frame(maxWidth: .infinity, alignment: .leading)
-            .padding(.horizontal, DSTokens.Spacing.md).padding(.vertical, DSTokens.Spacing.smMd)
+            .padding(.horizontal, Tokens.Spacing.md).padding(.vertical, Tokens.Spacing.smMd)
             .frame(minHeight: 82, alignment: .top)
             .background(specimen.cardBackground)
-            .clipShape(RoundedRectangle(cornerRadius: DSTokens.Radius.md, style: .continuous))
+            .clipShape(RoundedRectangle(cornerRadius: Tokens.Shape.radiusMD, style: .continuous))
             .overlay(
-                RoundedRectangle(cornerRadius: DSTokens.Radius.md, style: .continuous)
+                RoundedRectangle(cornerRadius: Tokens.Shape.radiusMD, style: .continuous)
                     .stroke(isActive ? (specimen.accents.first ?? specimen.nameColor)
                                      : specimen.textColor.opacity(0.14),
-                            lineWidth: isActive ? DSTokens.Stroke.mediumLight : DSTokens.Stroke.hairline)
+                            lineWidth: isActive ? Tokens.Shape.strokeMedLight : Tokens.Shape.strokeHairline)
             )
         }
         .buttonStyle(.ds(role: isActive ? .secondary : .ghost, size: .compact))

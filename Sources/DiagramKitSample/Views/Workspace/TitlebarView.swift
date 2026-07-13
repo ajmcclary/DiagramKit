@@ -14,14 +14,14 @@ struct TitlebarView: View {
     @Bindable var store: LiveEditorStore
 
     var body: some View {
-        HStack(spacing: DSTokens.Spacing.md) {
+        HStack(spacing: Tokens.Spacing.md) {
             WorkspaceModePicker(store: store)
             Spacer()
             convertButton
             exportButton
         }
-        .padding(.horizontal, DSTokens.Spacing.lg)
-        .frame(minHeight: DSTokens.Control.titleBar)
+        .padding(.horizontal, Tokens.Spacing.lg)
+        .frame(minHeight: Tokens.Size.Control.titleBar)
         .background {
             DSSurface(role: .titleBar) { Color.clear }
         }

@@ -28,7 +28,8 @@ struct InspectorThemeSection: View {
     @SwiftUI.State private var showDiagramPalette = false
     @SwiftUI.State private var showThemeBuilder = false
 
-    @Environment(\.dsEnvironment) private var environment
+    @Environment(\.designTheme) private var theme
+    @Environment(\.dsContext) private var context
     @Environment(\.colorScheme) private var scheme
 
     private var family: ZedTrekTheme { ZedTrekTheme(rawValue: familyRaw) ?? .lcars }
@@ -37,13 +38,13 @@ struct InspectorThemeSection: View {
         Binding(get: { mode }, set: { modeRaw = $0.rawValue })
     }
 
-    private let tileColumns = [GridItem(.adaptive(minimum: 72), spacing: DSTokens.Spacing.sm)]
+    private let tileColumns = [GridItem(.adaptive(minimum: 72), spacing: Tokens.Spacing.sm)]
 
     var body: some View {
-        VStack(alignment: .leading, spacing: DSTokens.Spacing.sm) {
+        VStack(alignment: .leading, spacing: Tokens.Spacing.sm) {
             DSSectionHeader("Theme")
             DSSurface(role: .card) {
-                VStack(alignment: .leading, spacing: DSTokens.Spacing.md) {
+                VStack(alignment: .leading, spacing: Tokens.Spacing.md) {
                     modeControl
                     chromeTiles
                     matchAppThemeToggle
@@ -51,7 +52,7 @@ struct InspectorThemeSection: View {
                     diagramPaletteDisclosure
                     themeBuilderDisclosure
                 }
-                .padding(DSTokens.Spacing.md)
+                .padding(Tokens.Spacing.md)
             }
         }
         .accessibilityIdentifier(A11yID.Inspector.themeSection)
@@ -65,7 +66,7 @@ struct InspectorThemeSection: View {
     }
 
     private var chromeTiles: some View {
-        LazyVGrid(columns: tileColumns, spacing: DSTokens.Spacing.sm) {
+        LazyVGrid(columns: tileColumns, spacing: Tokens.Spacing.sm) {
             ForEach(ZedTrekTheme.allCases, id: \.self) { theme in
                 let specimen = theme.dsSpecimen(for: scheme)
                 SwatchTile(
@@ -82,7 +83,7 @@ struct InspectorThemeSection: View {
 
     private var matchAppThemeToggle: some View {
         HStack {
-            Text("Match app theme").dsFont(.body).foregroundStyle(environment.theme.colors.textPrimary.color)
+            Text("Match app theme").dsFont(.body).foregroundStyle(theme.colors.textPrimary.color)
             Spacer()
             Toggle("Match app theme", isOn: $canvasFollows)
                 .labelsHidden()
@@ -98,14 +99,14 @@ struct InspectorThemeSection: View {
             }
         } label: {
             HStack {
-                DSIconView(showDiagramPalette ? .disclosureDown : .disclosureRight, size: DSTokens.Icon.micro, colorRole: .muted)
+                DSIconView(showDiagramPalette ? .disclosureDown : .disclosureRight, size: Tokens.Size.Icon.micro, colorRole: .muted)
                 Text("Diagram palette")
                     .dsFont(.body)
-                    .foregroundStyle(environment.theme.colors.textPrimary.color)
+                    .foregroundStyle(theme.colors.textPrimary.color)
                 Spacer()
                 Text(store.state.selectedThemeName)
                     .dsFont(.badge)
-                    .foregroundStyle(environment.theme.colors.textSecondary.color)
+                    .foregroundStyle(theme.colors.textSecondary.color)
             }
             .contentShape(Rectangle())
         }
@@ -113,7 +114,7 @@ struct InspectorThemeSection: View {
 
         if showDiagramPalette {
             ThemePicker(store: store)
-                .padding(.leading, DSTokens.Spacing.lg)
+                .padding(.leading, Tokens.Spacing.lg)
         }
     }
 
@@ -125,14 +126,14 @@ struct InspectorThemeSection: View {
             }
         } label: {
             HStack {
-                DSIconView(showThemeBuilder ? .disclosureDown : .disclosureRight, size: DSTokens.Icon.micro, colorRole: .muted)
+                DSIconView(showThemeBuilder ? .disclosureDown : .disclosureRight, size: Tokens.Size.Icon.micro, colorRole: .muted)
                 Text("Edit theme")
                     .dsFont(.body)
-                    .foregroundStyle(environment.theme.colors.textPrimary.color)
+                    .foregroundStyle(theme.colors.textPrimary.color)
                 Spacer()
                 Text("DiagramColors")
                     .dsFont(.code)
-                    .foregroundStyle(environment.theme.colors.textSecondary.color)
+                    .foregroundStyle(theme.colors.textSecondary.color)
             }
             .contentShape(Rectangle())
         }
@@ -140,23 +141,21 @@ struct InspectorThemeSection: View {
 
         if showThemeBuilder {
             ThemeBuilderCard(store: store)
-                .padding(.leading, DSTokens.Spacing.lg)
+                .padding(.leading, Tokens.Spacing.lg)
         }
     }
 
     private var separator: some View {
         Rectangle()
-            .fill(environment.theme.colors.borderVariant.color)
-            .frame(height: DSTokens.Stroke.hairline)
+            .fill(theme.colors.borderVariant.color)
+            .frame(height: Tokens.Shape.strokeHairline)
             .accessibilityHidden(true)
     }
 
     private var disclosureAnimation: Animation? {
-        guard environment.motion == .standard else { return nil }
+        guard context.motion == .standard else { return nil }
         return .easeInOut(
-            duration: environment.motion.duration(
-                milliseconds: DSTokens.DurationMilliseconds.fast
-            )
+            duration: context.motion.duration(Tokens.Animation.durFast)
         )
     }
 }

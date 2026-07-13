@@ -10,7 +10,7 @@ import DesignKitThemes
 
 struct SettingsRenderBackendTab: View {
     @Bindable var store: LiveEditorStore
-    @Environment(\.dsEnvironment) private var environment
+    @Environment(\.designTheme) private var theme
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
@@ -18,9 +18,9 @@ struct SettingsRenderBackendTab: View {
             DSSegmentedControl(RenderBackend.allCases, selection: $store.state.renderBackend) { backend in
                 Text(backend.label)
             }
-            .padding(.bottom, DSTokens.Spacing.lg)
+            .padding(.bottom, Tokens.Spacing.lg)
             DSSettingGroup {
-                StatusRow(title: "Renderer", value: rendererText, valueColor: environment.theme.colors.accent.color, monospaced: true)
+                StatusRow(title: "Renderer", value: rendererText, valueColor: theme.colors.accent.color, monospaced: true)
                 MenuRow(title: "ID policy", value: "Stable") {
                     Button("Stable") {}
                     Button("Random per render") {}
@@ -33,10 +33,10 @@ struct SettingsRenderBackendTab: View {
                     .labelsHidden()
                     .toggleStyle(.dsSwitchOnly)
                 }
-                .padding(.horizontal, DSTokens.Spacing.lg)
+                .padding(.horizontal, Tokens.Spacing.lg)
                 .contentShape(Rectangle())
                 StatusRow(title: "Worker thread", description: "8 MB stack · fresh per call", value: "on",
-                          valueColor: environment.theme.colors.success.color, dotColor: environment.theme.colors.success.color, monospaced: true)
+                          valueColor: theme.colors.success.color, dotColor: theme.colors.success.color, monospaced: true)
             }
             Spacer(minLength: 0)
         }

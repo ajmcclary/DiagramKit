@@ -1,3 +1,4 @@
+import DesignKitThemes
 import SwiftUI
 
 public enum DSContentColorRole: Equatable, Sendable {
@@ -7,10 +8,10 @@ public enum DSContentColorRole: Equatable, Sendable {
 
 public enum DSToggleMetrics {
     public static let track = CGSize(
-        width: DSTokens.Control.switchWidth,
-        height: DSTokens.Control.switchHeight
+        width: Tokens.Size.Control.switchWidth,
+        height: Tokens.Size.Control.switchHeight
     )
-    public static let knob = DSTokens.Control.switchKnob
+    public static let knob = Tokens.Size.Control.switchKnob
     public static let onKnobRole = DSContentColorRole.onAccent
 }
 
@@ -20,7 +21,8 @@ public struct DSToggleStyle: ToggleStyle {
     /// title (e.g. `DSSettingRow`) opt out here to avoid a duplicate label.
     private let labelHidden: Bool
 
-    @Environment(\.dsEnvironment) private var environment
+    @Environment(\.designTheme) private var theme
+    @Environment(\.dsContext) private var context
     @Environment(\.isEnabled) private var isEnabled
     @Environment(\.isFocused) private var isFocused
     @State private var isHovered = false
@@ -33,21 +35,21 @@ public struct DSToggleStyle: ToggleStyle {
         Button {
             configuration.isOn.toggle()
         } label: {
-            HStack(spacing: DSTokens.Spacing.sm) {
+            HStack(spacing: Tokens.Spacing.sm) {
                 if !labelHidden {
                     configuration.label
                         .dsFont(.body)
-                        .foregroundStyle(environment.theme.colors.textPrimary.color)
-                    Spacer(minLength: DSTokens.Spacing.sm)
+                        .foregroundStyle(theme.colors.textPrimary.color)
+                    Spacer(minLength: Tokens.Spacing.sm)
                 }
                 track(isOn: configuration.isOn)
             }
-            .frame(minHeight: environment.minimumTarget)
+            .frame(minHeight: context.minimumTarget)
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
         .disabled(!isEnabled)
-        .opacity(isEnabled ? 1 : DSTokens.Opacity.disabled)
+        .opacity(isEnabled ? 1 : Tokens.Opacity.disabled)
         .animation(animation, value: configuration.isOn)
         .onHover { isHovered = $0 }
     }
@@ -59,37 +61,35 @@ public struct DSToggleStyle: ToggleStyle {
             Circle()
                 .fill(knobColor(isOn: isOn))
                 .frame(width: DSToggleMetrics.knob, height: DSToggleMetrics.knob)
-                .padding(DSTokens.Stroke.medium)
+                .padding(Tokens.Shape.strokeMedium)
         }
         .frame(width: DSToggleMetrics.track.width, height: DSToggleMetrics.track.height)
         .overlay {
             if isFocused {
                 Capsule().stroke(
-                    environment.theme.colors.borderFocused.color,
-                    lineWidth: DSTokens.Stroke.medium
+                    theme.colors.borderFocused.color,
+                    lineWidth: Tokens.Shape.strokeMedium
                 )
             }
         }
     }
 
     private func trackColor(isOn: Bool) -> Color {
-        if isOn { return environment.theme.colors.accent.color }
-        if isHovered { return environment.theme.colors.elementHover.color }
-        return environment.theme.colors.element.color
+        if isOn { return theme.colors.accent.color }
+        if isHovered { return theme.colors.elementHover.color }
+        return theme.colors.element.color
     }
 
     private func knobColor(isOn: Bool) -> Color {
         isOn
-            ? environment.theme.colors.onAccent.color
-            : environment.theme.colors.iconPrimary.color
+            ? theme.colors.onAccent.color
+            : theme.colors.iconPrimary.color
     }
 
     private var animation: Animation? {
-        guard environment.motion == .standard else { return nil }
+        guard context.motion == .standard else { return nil }
         return .easeInOut(
-            duration: environment.motion.duration(
-                milliseconds: DSTokens.DurationMilliseconds.control
-            )
+            duration: context.motion.duration(Tokens.Animation.durControl)
         )
     }
 }

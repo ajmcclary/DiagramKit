@@ -14,7 +14,7 @@ import DesignKitThemes
 
 struct EdgeEditPopover: View {
     @Bindable var store: LiveEditorStore
-    @Environment(\.dsEnvironment) private var environment
+    @Environment(\.designTheme) private var theme
 
     enum LineStyle: String, CaseIterable, Identifiable {
         case solid, dashed, dotted
@@ -39,7 +39,7 @@ struct EdgeEditPopover: View {
 
     var body: some View {
         DSSurface(role: .popover) {
-        VStack(alignment: .leading, spacing: DSTokens.Spacing.smMd) {
+        VStack(alignment: .leading, spacing: Tokens.Spacing.smMd) {
             HStack {
                 Text("Edit edge")
                     .dsFont(.headline)
@@ -47,7 +47,7 @@ struct EdgeEditPopover: View {
                 if let selection = store.editor?.selection {
                     Text(selection.elementID)
                         .dsFont(.code)
-                        .foregroundStyle(environment.theme.colors.textSecondary.color)
+                        .foregroundStyle(theme.colors.textSecondary.color)
                 }
             }
 
@@ -86,7 +86,7 @@ struct EdgeEditPopover: View {
                 .buttonStyle(.ds(role: .primary, size: .compact))
             }
         }
-        .padding(DSTokens.Spacing.lg)
+        .padding(Tokens.Spacing.lg)
         }
         .frame(width: 300)
         .accessibilityIdentifier(A11yID.Visual.edgePopover)

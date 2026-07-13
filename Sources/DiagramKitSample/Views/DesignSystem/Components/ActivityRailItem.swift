@@ -16,13 +16,13 @@ struct ActivityRailItem: View {
     let action: () -> Void
     var body: some View {
         Button(action: action) {
-            DSIconView(icon, size: DSTokens.Icon.sm, colorRole: isActive ? .accent : .muted)
-                .frame(width: DSTokens.Icon.sm + DSTokens.Spacing.sm, height: DSTokens.Icon.sm + DSTokens.Spacing.sm)
+            DSIconView(icon, size: Tokens.Size.Icon.sm, colorRole: isActive ? .accent : .muted)
+                .frame(width: Tokens.Size.Icon.sm + Tokens.Spacing.sm, height: Tokens.Size.Icon.sm + Tokens.Spacing.sm)
                 .background {
                     if isActive {
-                        RoundedRectangle(cornerRadius: DSTokens.Radius.sm, style: .continuous)
-                            .fill(environment.theme.colors.accent.color.opacity(DSTokens.Opacity.light))
-                            .padding(-DSTokens.Spacing.xxs)
+                        RoundedRectangle(cornerRadius: Tokens.Shape.radiusSM, style: .continuous)
+                            .fill(theme.colors.accent.color.opacity(Tokens.Opacity.light))
+                            .padding(-Tokens.Spacing.xxs)
                     }
                 }
         }
@@ -33,5 +33,5 @@ struct ActivityRailItem: View {
         .help(help)
     }
 
-    @Environment(\.dsEnvironment) private var environment
+    @Environment(\.designTheme) private var theme
 }

@@ -32,7 +32,7 @@ struct SubgraphTitleSheet: View {
 
     var body: some View {
         DSGlassSurface(role: .popover) {
-        VStack(alignment: .leading, spacing: DSTokens.Spacing.md) {
+        VStack(alignment: .leading, spacing: Tokens.Spacing.md) {
             Text(heading)
                 .dsFont(.headline)
             DSField("Subgraph title", text: $titleDraft)
@@ -53,7 +53,7 @@ struct SubgraphTitleSheet: View {
                 .disabled(titleDraft.trimmingCharacters(in: .whitespaces).isEmpty)
             }
         }
-        .padding(DSTokens.Spacing.lg)
+        .padding(Tokens.Spacing.lg)
         }
         .frame(width: 320)
         .onAppear {

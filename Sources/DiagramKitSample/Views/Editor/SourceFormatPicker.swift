@@ -14,7 +14,8 @@ import DesignKitThemes
 struct SourceFormatPicker: View {
     @Binding var sourceFormat: SourceFormat
     let onChange: (SourceFormat) -> Void
-    @Environment(\.dsEnvironment) private var environment
+    @Environment(\.designTheme) private var theme
+    @Environment(\.dsContext) private var context
 
     var body: some View {
         Menu {
@@ -26,24 +27,24 @@ struct SourceFormatPicker: View {
                         Text(format.displayName)
                         if format == sourceFormat {
                             Spacer()
-                            DSIconView(.success, size: DSTokens.Icon.micro, colorRole: .success)
+                            DSIconView(.success, size: Tokens.Size.Icon.micro, colorRole: .success)
                         }
                     }
                 }
             }
         } label: {
             HStack(spacing: 4) {
-                DSIconView(.code, size: DSTokens.Icon.micro, colorRole: .muted)
+                DSIconView(.code, size: Tokens.Size.Icon.micro, colorRole: .muted)
                 Text(sourceFormat.shortName)
                     .dsFont(.badge)
-                DSIconView(.disclosureDown, size: DSTokens.Icon.indicator, colorRole: .muted)
+                DSIconView(.disclosureDown, size: Tokens.Size.Icon.indicator, colorRole: .muted)
             }
-            .padding(.horizontal, DSTokens.Spacing.sm)
-            .frame(minHeight: environment.minimumTarget)
-            .foregroundStyle(environment.theme.colors.textPrimary.color)
+            .padding(.horizontal, Tokens.Spacing.sm)
+            .frame(minHeight: context.minimumTarget)
+            .foregroundStyle(theme.colors.textPrimary.color)
             .background(
-                RoundedRectangle(cornerRadius: DSTokens.Radius.xs)
-                    .fill(environment.theme.colors.element.color)
+                RoundedRectangle(cornerRadius: Tokens.Shape.radiusXS)
+                    .fill(theme.colors.element.color)
             )
         }
         .menuStyle(.borderlessButton)

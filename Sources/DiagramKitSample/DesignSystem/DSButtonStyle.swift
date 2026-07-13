@@ -1,4 +1,12 @@
+import DesignKitThemes
 import SwiftUI
+
+/// Interaction constants formerly generated as `DSTokens.Interaction`
+/// (DiagramKit-local extras, not upstream design tokens).
+enum DSButtonMetrics {
+    static let pressedScale: CGFloat = 1
+    static let focusGlow: CGFloat = 1.5
+}
 
 public enum DSButtonRole: Sendable {
     case primary
@@ -13,15 +21,15 @@ public enum DSButtonSize: Sendable {
 
     var height: CGFloat {
         switch self {
-        case .regular: DSTokens.Control.button
-        case .compact: DSTokens.Control.buttonCompact
+        case .regular: Tokens.Size.Control.height
+        case .compact: Tokens.Size.Control.heightCompact
         }
     }
 
     var horizontalPadding: CGFloat {
         switch self {
-        case .regular: DSTokens.Spacing.md
-        case .compact: DSTokens.Spacing.sm
+        case .regular: Tokens.Spacing.md
+        case .compact: Tokens.Spacing.sm
         }
     }
 }
@@ -64,8 +72,8 @@ public struct DSButtonVisualState: Equatable, Sendable {
         guard isEnabled else {
             return Self(
                 fillRole: role.idleFill,
-                opacity: DSTokens.Opacity.disabled,
-                scale: DSTokens.Interaction.pressedScale,
+                opacity: Tokens.Opacity.disabled,
+                scale: DSButtonMetrics.pressedScale,
                 showsFocusRing: false
             )
         }
@@ -79,7 +87,7 @@ public struct DSButtonVisualState: Equatable, Sendable {
         return Self(
             fillRole: fillRole,
             opacity: 1,
-            scale: DSTokens.Interaction.pressedScale,
+            scale: DSButtonMetrics.pressedScale,
             showsFocusRing: isFocused
         )
     }
@@ -89,7 +97,8 @@ public struct DSButtonStyle: ButtonStyle {
     let role: DSButtonRole
     let size: DSButtonSize
 
-    @Environment(\.dsEnvironment) private var environment
+    @Environment(\.designTheme) private var theme
+    @Environment(\.dsContext) private var context
     @Environment(\.isEnabled) private var isEnabled
     @Environment(\.isFocused) private var isFocused
     @State private var isHovered = false
@@ -107,24 +116,24 @@ public struct DSButtonStyle: ButtonStyle {
             isFocused: isFocused,
             isEnabled: isEnabled
         )
-        let shape = RoundedRectangle(cornerRadius: DSTokens.Radius.sm, style: .continuous)
+        let shape = RoundedRectangle(cornerRadius: Tokens.Shape.radiusSM, style: .continuous)
         configuration.label
             .dsFont(.badge)
-            .foregroundStyle(role.foreground.color(in: environment.theme))
+            .foregroundStyle(role.foreground.color(in: theme))
             .padding(.horizontal, size.horizontalPadding)
-            .frame(minHeight: max(size.height, environment.minimumTarget))
-            .background(state.fillRole.color(in: environment.theme), in: shape)
+            .frame(minHeight: max(size.height, context.minimumTarget))
+            .background(state.fillRole.color(in: theme), in: shape)
             .overlay {
                 if state.showsFocusRing {
                     shape.stroke(
-                        environment.theme.colors.borderFocused.color,
-                        lineWidth: DSTokens.Stroke.medium
+                        theme.colors.borderFocused.color,
+                        lineWidth: Tokens.Shape.strokeMedium
                     )
                 } else if role == .destructive {
                     shape.stroke(
-                        environment.theme.colors.error.color
-                            .opacity(DSTokens.Opacity.medium),
-                        lineWidth: DSTokens.Stroke.thin
+                        theme.colors.error.color
+                            .opacity(Tokens.Opacity.medium),
+                        lineWidth: Tokens.Shape.strokeThin
                     )
                 }
             }
@@ -139,11 +148,9 @@ public struct DSButtonStyle: ButtonStyle {
     }
 
     private var animation: Animation? {
-        guard environment.motion == .standard else { return nil }
+        guard context.motion == .standard else { return nil }
         return .easeOut(
-            duration: environment.motion.duration(
-                milliseconds: DSTokens.DurationMilliseconds.fast
-            )
+            duration: context.motion.duration(Tokens.Animation.durFast)
         )
     }
 }
@@ -195,7 +202,7 @@ private extension DSButtonRole {
 }
 
 private extension DSButtonFillRole {
-    func color(in theme: DSTheme) -> Color {
+    func color(in theme: Theme) -> Color {
         switch self {
         case .accent: theme.colors.accent.color
         case .accentHover: theme.colors.accents[1].color
@@ -208,14 +215,14 @@ private extension DSButtonFillRole {
         case .ghostHover: theme.colors.ghostElementHover.color
         case .ghostActive: theme.colors.ghostElementActive.color
         case .destructive: theme.colors.value("error.background").color
-        case .destructiveHover: theme.colors.error.color.opacity(DSTokens.Opacity.light)
-        case .destructiveActive: theme.colors.error.color.opacity(DSTokens.Opacity.disabled)
+        case .destructiveHover: theme.colors.error.color.opacity(Tokens.Opacity.light)
+        case .destructiveActive: theme.colors.error.color.opacity(Tokens.Opacity.disabled)
         }
     }
 }
 
 private extension DSButtonForegroundRole {
-    func color(in theme: DSTheme) -> Color {
+    func color(in theme: Theme) -> Color {
         switch self {
         case .onAccent: theme.colors.onAccent.color
         case .primary: theme.colors.textPrimary.color

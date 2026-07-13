@@ -23,7 +23,7 @@ import DesignKitThemes
 
 struct FlowchartEditCanvas: View {
     @Bindable var store: LiveEditorStore
-    @Environment(\.dsEnvironment) private var environment
+    @Environment(\.designTheme) private var theme
 
     @SwiftUI.State var liveDiagramBounds: CGRect = .zero
     @SwiftUI.State private var liveBoundsLookup: DiagramBoundsLookup?
@@ -161,17 +161,17 @@ struct FlowchartEditCanvas: View {
            let bounds = liveBoundsLookup?.bounds(of: selection) {
             let rect = viewRect(for: bounds, in: geometry.size)
             ZStack {
-                RoundedRectangle(cornerRadius: DSTokens.Radius.xs)
-                    .stroke(environment.theme.colors.accent.color, lineWidth: DSTokens.Stroke.medium)
+                RoundedRectangle(cornerRadius: Tokens.Shape.radiusXS)
+                    .stroke(theme.colors.accent.color, lineWidth: Tokens.Shape.strokeMedium)
                     .frame(width: rect.width, height: rect.height)
                     .position(x: rect.midX, y: rect.midY)
                     .allowsHitTesting(false)
 
                 ForEach(handlePositions(rect), id: \.self) { point in
                     Circle()
-                        .fill(environment.theme.colors.onAccent.color)
-                        .frame(width: DSTokens.Spacing.sm, height: DSTokens.Spacing.sm)
-                        .overlay(Circle().stroke(environment.theme.colors.accent.color, lineWidth: DSTokens.Stroke.mediumLight))
+                        .fill(theme.colors.onAccent.color)
+                        .frame(width: Tokens.Spacing.sm, height: Tokens.Spacing.sm)
+                        .overlay(Circle().stroke(theme.colors.accent.color, lineWidth: Tokens.Shape.strokeMedLight))
                         .position(point)
                         .allowsHitTesting(false)
                 }
@@ -189,8 +189,8 @@ struct FlowchartEditCanvas: View {
            hovered != store.editor?.selection,
            let bounds = liveBoundsLookup?.bounds(of: hovered) {
             let rect = viewRect(for: bounds, in: geometry.size)
-            RoundedRectangle(cornerRadius: DSTokens.Radius.xs)
-                .stroke(environment.theme.colors.accent.color.opacity(DSTokens.Opacity.medium), lineWidth: DSTokens.Stroke.mediumLight)
+            RoundedRectangle(cornerRadius: Tokens.Shape.radiusXS)
+                .stroke(theme.colors.accent.color.opacity(Tokens.Opacity.medium), lineWidth: Tokens.Shape.strokeMedLight)
                 .frame(width: rect.width, height: rect.height)
                 .position(x: rect.midX, y: rect.midY)
                 .allowsHitTesting(false)
@@ -218,8 +218,8 @@ struct FlowchartEditCanvas: View {
                 let sel = DiagramSelection(diagramType: editorType, elementID: id)
                 if let bounds = lookup.bounds(of: sel) {
                     let rect = viewRect(for: bounds, in: geometry.size)
-                    RoundedRectangle(cornerRadius: DSTokens.Radius.xs)
-                        .stroke(environment.theme.colors.accent.color.opacity(DSTokens.Opacity.strong), style: StrokeStyle(lineWidth: DSTokens.Stroke.mediumLight, dash: [4, 3]))
+                    RoundedRectangle(cornerRadius: Tokens.Shape.radiusXS)
+                        .stroke(theme.colors.accent.color.opacity(Tokens.Opacity.strong), style: StrokeStyle(lineWidth: Tokens.Shape.strokeMedLight, dash: [4, 3]))
                         .frame(width: rect.width, height: rect.height)
                         .position(x: rect.midX, y: rect.midY)
                         .allowsHitTesting(false)
@@ -461,8 +461,8 @@ struct FlowchartEditCanvas: View {
             height: abs(current.y - start.y)
         )
         return Rectangle()
-            .stroke(environment.theme.colors.accent.color, style: StrokeStyle(lineWidth: DSTokens.Stroke.thin, dash: [4, 3]))
-            .background(Rectangle().fill(environment.theme.colors.accent.color.opacity(DSTokens.Opacity.soft)))
+            .stroke(theme.colors.accent.color, style: StrokeStyle(lineWidth: Tokens.Shape.strokeThin, dash: [4, 3]))
+            .background(Rectangle().fill(theme.colors.accent.color.opacity(Tokens.Opacity.soft)))
             .frame(width: rect.width, height: rect.height)
             .position(x: rect.midX, y: rect.midY)
             .allowsHitTesting(false)
@@ -479,11 +479,11 @@ struct FlowchartEditCanvas: View {
             }
             return CGSize(width: 80, height: 36)
         }()
-        RoundedRectangle(cornerRadius: DSTokens.Radius.sm)
-            .fill(environment.theme.colors.accent.color.opacity(DSTokens.Opacity.glassHighlight))
+        RoundedRectangle(cornerRadius: Tokens.Shape.radiusSM)
+            .fill(theme.colors.accent.color.opacity(Tokens.Opacity.glassHighlight))
             .overlay(
-                RoundedRectangle(cornerRadius: DSTokens.Radius.sm)
-                    .stroke(environment.theme.colors.accent.color, style: StrokeStyle(lineWidth: DSTokens.Stroke.mediumLight, dash: [5, 3]))
+                RoundedRectangle(cornerRadius: Tokens.Shape.radiusSM)
+                    .stroke(theme.colors.accent.color, style: StrokeStyle(lineWidth: Tokens.Shape.strokeMedLight, dash: [5, 3]))
             )
             .frame(width: size.width, height: size.height)
             .position(point)
@@ -495,8 +495,8 @@ struct FlowchartEditCanvas: View {
         let sel = DiagramSelection(diagramType: editorType, elementID: "group:\(groupID)")
         if let bounds = liveBoundsLookup?.bounds(of: sel) {
             let rect = viewRect(for: bounds, in: geometry.size)
-            RoundedRectangle(cornerRadius: DSTokens.Radius.chip)
-                .stroke(environment.theme.colors.success.color.opacity(DSTokens.Opacity.near), lineWidth: DSTokens.Stroke.thick)
+            RoundedRectangle(cornerRadius: Tokens.Shape.radiusChip)
+                .stroke(theme.colors.success.color.opacity(Tokens.Opacity.near), lineWidth: Tokens.Shape.strokeThick)
                 .frame(width: rect.width, height: rect.height)
                 .position(x: rect.midX, y: rect.midY)
                 .allowsHitTesting(false)
@@ -508,7 +508,7 @@ struct FlowchartEditCanvas: View {
             p.move(to: start)
             p.addLine(to: current)
         }
-        .stroke(environment.theme.colors.accent.color, style: StrokeStyle(lineWidth: DSTokens.Stroke.medium, dash: [6, 3]))
+        .stroke(theme.colors.accent.color, style: StrokeStyle(lineWidth: Tokens.Shape.strokeMedium, dash: [6, 3]))
         .allowsHitTesting(false)
     }
 }

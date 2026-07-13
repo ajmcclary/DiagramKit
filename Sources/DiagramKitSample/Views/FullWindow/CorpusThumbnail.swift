@@ -13,35 +13,35 @@ import DesignKitThemes
 
 struct CorpusThumbnail: View {
     let entry: CorpusEntry
-    @Environment(\.dsEnvironment) private var environment
+    @Environment(\.designTheme) private var theme
 
     var body: some View {
-        VStack(alignment: .leading, spacing: DSTokens.Spacing.xs) {
+        VStack(alignment: .leading, spacing: Tokens.Spacing.xs) {
             ZStack {
-                RoundedRectangle(cornerRadius: DSTokens.Radius.md, style: .continuous)
-                    .fill(tint.opacity(DSTokens.Opacity.glassBorder))
-                DSIconView(.diagram, size: DSTokens.Icon.md)
+                RoundedRectangle(cornerRadius: Tokens.Shape.radiusMD, style: .continuous)
+                    .fill(tint.opacity(Tokens.Opacity.glassBorder))
+                DSIconView(.diagram, size: Tokens.Size.Icon.md)
             }
             .frame(height: 96)
 
             Text(entry.name)
                 .dsFont(.headline)
-                .foregroundStyle(environment.theme.colors.textPrimary.color)
+                .foregroundStyle(theme.colors.textPrimary.color)
                 .lineLimit(2)
                 .multilineTextAlignment(.leading)
                 .frame(maxWidth: .infinity, alignment: .leading)
 
-            HStack(spacing: DSTokens.Spacing.xxs) {
+            HStack(spacing: Tokens.Spacing.xxs) {
                 Text(entry.id)
                     .dsFont(.code)
-                    .foregroundStyle(environment.theme.colors.textSecondary.color)
+                    .foregroundStyle(theme.colors.textSecondary.color)
                     .lineLimit(1)
                     .truncationMode(.middle)
                 Spacer()
                 facetChip
             }
         }
-        .padding(DSTokens.Spacing.sm)
+        .padding(Tokens.Spacing.sm)
         .background { DSSurface(role: .card) { Color.clear } }
         .accessibilityIdentifier("corpus.thumbnail.\(entry.id)")
     }
@@ -49,7 +49,7 @@ struct CorpusThumbnail: View {
     // MARK: - Helpers
 
     private var tint: Color {
-        environment.theme.colors.accents[accentIndex].color
+        theme.colors.accents[accentIndex].color
     }
 
     private var accentIndex: Int {
@@ -66,9 +66,9 @@ struct CorpusThumbnail: View {
     private var facetChip: some View {
         switch entry.diagnosticFacet {
         case .clean:
-            DSIconView(.success, size: DSTokens.Icon.micro, colorRole: .success)
+            DSIconView(.success, size: Tokens.Size.Icon.micro, colorRole: .success)
         case .warn:
-            DSIconView(.warning, size: DSTokens.Icon.micro, colorRole: .warning)
+            DSIconView(.warning, size: Tokens.Size.Icon.micro, colorRole: .warning)
         }
     }
 }

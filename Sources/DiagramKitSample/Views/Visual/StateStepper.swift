@@ -12,11 +12,11 @@ import DesignKitThemes
 
 struct StateStepper: View {
     @Bindable var store: LiveEditorStore
-    @Environment(\.dsEnvironment) private var environment
+    @Environment(\.designTheme) private var theme
 
     var body: some View {
         DSGlassSurface(role: .popover) {
-        HStack(spacing: DSTokens.Spacing.xs) {
+        HStack(spacing: Tokens.Spacing.xs) {
             DSIconButton(.disclosureRight, label: "Previous stage", action: previousStage)
                 .rotationEffect(.degrees(180))
             .a11y(label: "Previous stage", id: A11yID.Visual.tool("stage.prev"))
@@ -28,18 +28,18 @@ struct StateStepper: View {
                 } label: {
                     Text("\(index + 1)")
                         .dsFont(.metric)
-                        .frame(width: DSTokens.Control.chip, height: DSTokens.Control.chip)
+                        .frame(width: Tokens.Size.Control.chip, height: Tokens.Size.Control.chip)
                         .background(
                             Circle().fill(
                                 isActive
-                                    ? environment.theme.colors.accent.color
-                                    : environment.theme.colors.element.color
+                                    ? theme.colors.accent.color
+                                    : theme.colors.element.color
                             )
                         )
                         .foregroundStyle(
                             isActive
-                                ? environment.theme.colors.onAccent.color
-                                : environment.theme.colors.textPrimary.color
+                                ? theme.colors.onAccent.color
+                                : theme.colors.textPrimary.color
                         )
                 }
                 .buttonStyle(.ds(role: isActive ? .secondary : .ghost, size: .compact))
@@ -53,7 +53,7 @@ struct StateStepper: View {
             DSIconButton(.disclosureRight, label: "Next stage", action: nextStage)
             .a11y(label: "Next stage", id: A11yID.Visual.tool("stage.next"))
         }
-        .padding(DSTokens.Spacing.sm)
+        .padding(Tokens.Spacing.sm)
         }
         .accessibilityIdentifier(A11yID.Visual.stateStepper)
     }

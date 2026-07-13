@@ -20,7 +20,7 @@ import AppKit
 struct NativeCodeEditor: NSViewRepresentable {
     let store: LiveEditorStore
     let mode: EditorMode
-    let theme: DSTheme
+    let theme: Theme
     var diagnostics: [EditorDiagnostic] = []
     var highlighter: DiagramSyntaxHighlighter? = nil
 
@@ -48,7 +48,7 @@ struct NativeCodeEditor: NSViewRepresentable {
         textView.isAutomaticTextReplacementEnabled = false
         textView.isAutomaticSpellingCorrectionEnabled = false
         textView.font = .monospacedSystemFont(
-            ofSize: DSTokens.Typography.footnote,
+            ofSize: Tokens.Typography.Size.bodySM,
             weight: .regular
         )
         textView.textContainerInset = NSSize(width: 8, height: 12)
@@ -109,7 +109,7 @@ struct NativeCodeEditor: NSViewRepresentable {
         coordinator.highlightIfNeeded(textView)
     }
 
-    private func applyTheme(to textView: NSTextView, scrollView: NSScrollView, theme: DSTheme) {
+    private func applyTheme(to textView: NSTextView, scrollView: NSScrollView, theme: Theme) {
         let colors = theme.colors
         textView.backgroundColor = NSColor(colors.editorBackground.color)
         textView.textColor = NSColor(colors.editorForeground.color)
@@ -128,7 +128,7 @@ struct NativeCodeEditor: NSViewRepresentable {
     final class Coordinator: NSObject, NSTextViewDelegate {
         let store: LiveEditorStore
         var mode: EditorMode
-        var theme: DSTheme
+        var theme: Theme
         weak var textView: NSTextView?
         weak var lineNumberRuler: LineNumberRulerView?
         var highlighter: DiagramSyntaxHighlighter?
@@ -138,7 +138,7 @@ struct NativeCodeEditor: NSViewRepresentable {
         private var debounceTask: Task<Void, Never>?
         private var didInitialHighlight = false
 
-        init(store: LiveEditorStore, mode: EditorMode, theme: DSTheme) {
+        init(store: LiveEditorStore, mode: EditorMode, theme: Theme) {
             self.store = store
             self.mode = mode
             self.theme = theme
@@ -313,7 +313,7 @@ import UIKit
 struct NativeCodeEditor: UIViewRepresentable {
     let store: LiveEditorStore
     let mode: EditorMode
-    let theme: DSTheme
+    let theme: Theme
     var diagnostics: [EditorDiagnostic] = []
     var highlighter: DiagramSyntaxHighlighter? = nil
 
@@ -333,7 +333,7 @@ struct NativeCodeEditor: UIViewRepresentable {
         textView.isEditable = true
         textView.isSelectable = true
         let baseFont = UIFont.monospacedSystemFont(
-            ofSize: DSTokens.Typography.body,
+            ofSize: Tokens.Typography.Size.bodyLG,
             weight: .regular
         )
         textView.font = UIFontMetrics(forTextStyle: .body).scaledFont(for: baseFont)
@@ -399,7 +399,7 @@ struct NativeCodeEditor: UIViewRepresentable {
         coordinator.highlightIfNeeded(textView)
     }
 
-    private func applyTheme(to textView: UITextView, ruler: LineNumberRulerView, theme: DSTheme) {
+    private func applyTheme(to textView: UITextView, ruler: LineNumberRulerView, theme: Theme) {
         let colors = theme.colors
         textView.backgroundColor = UIColor(colors.editorBackground.color)
         textView.textColor = UIColor(colors.editorForeground.color)
@@ -413,7 +413,7 @@ struct NativeCodeEditor: UIViewRepresentable {
     final class Coordinator: NSObject, UITextViewDelegate {
         let store: LiveEditorStore
         var mode: EditorMode
-        var theme: DSTheme
+        var theme: Theme
         weak var textView: UITextView?
         weak var lineNumberRuler: LineNumberRulerView?
         var highlighter: DiagramSyntaxHighlighter?
@@ -422,7 +422,7 @@ struct NativeCodeEditor: UIViewRepresentable {
         private var debounceTask: Task<Void, Never>?
         private var didInitialHighlight = false
 
-        init(store: LiveEditorStore, mode: EditorMode, theme: DSTheme) {
+        init(store: LiveEditorStore, mode: EditorMode, theme: Theme) {
             self.store = store
             self.mode = mode
             self.theme = theme

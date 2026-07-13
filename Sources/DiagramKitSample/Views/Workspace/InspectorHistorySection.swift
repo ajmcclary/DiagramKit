@@ -11,27 +11,27 @@ import DesignKitThemes
 
 struct InspectorHistorySection: View {
     @Bindable var store: LiveEditorStore
-    @Environment(\.dsEnvironment) private var environment
+    @Environment(\.designTheme) private var theme
 
     var body: some View {
         DSSectionHeader("History")
-            .padding(.bottom, DSTokens.Spacing.xxs)
-        VStack(alignment: .leading, spacing: DSTokens.Spacing.xxs) {
+            .padding(.bottom, Tokens.Spacing.xxs)
+        VStack(alignment: .leading, spacing: Tokens.Spacing.xxs) {
             let entries = recentEntries
             if entries.isEmpty {
                 Text("No history yet")
                     .dsFont(.caption2)
-                    .foregroundStyle(environment.theme.colors.textSecondary.color)
+                    .foregroundStyle(theme.colors.textSecondary.color)
             } else {
                 ForEach(entries) { entry in
                     Button {
                         store.restoreFromHistory(entry)
                     } label: {
                         HStack {
-                            DSIconView(.history, size: DSTokens.Icon.micro, colorRole: .muted)
+                            DSIconView(.history, size: Tokens.Size.Icon.micro, colorRole: .muted)
                             Text(entry.displayLabel)
                                 .dsFont(.caption2)
-                                .foregroundStyle(environment.theme.colors.textPrimary.color)
+                                .foregroundStyle(theme.colors.textPrimary.color)
                                 .lineLimit(1)
                                 .truncationMode(.middle)
                             Spacer()
@@ -43,7 +43,7 @@ struct InspectorHistorySection: View {
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(DSTokens.Spacing.sm)
+        .padding(Tokens.Spacing.sm)
         .background { DSSurface(role: .card) { Color.clear } }
         .accessibilityIdentifier(A11yID.Inspector.historySection)
         .accessibilityElement(children: .contain)

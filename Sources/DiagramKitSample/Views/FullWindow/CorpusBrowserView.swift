@@ -15,7 +15,7 @@ import DesignKitThemes
 
 struct CorpusBrowserView: View {
     @Bindable var store: LiveEditorStore
-    @Environment(\.dsEnvironment) private var environment
+    @Environment(\.designTheme) private var theme
 
     private let columns: [GridItem] = [
         GridItem(.adaptive(minimum: 180), spacing: 12)
@@ -39,7 +39,7 @@ struct CorpusBrowserView: View {
             grid(filtered: filtered)
                 .frame(maxHeight: .infinity)
         }
-        .background(environment.theme.colors.windowBackground.color)
+        .background(theme.colors.windowBackground.color)
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier("corpus.browser.grid")
     }
@@ -47,26 +47,26 @@ struct CorpusBrowserView: View {
     // MARK: - Header
 
     private func header(index: CorpusIndex) -> some View {
-        HStack(spacing: DSTokens.Spacing.sm) {
+        HStack(spacing: Tokens.Spacing.sm) {
             DSIconView(.diagram)
             Text("Corpus")
                 .dsFont(.headline)
             Text("· \(index.entries.count) entries · \(index.categoryCounts.keys.count) families")
                 .dsFont(.caption2)
-                .foregroundStyle(environment.theme.colors.textSecondary.color)
+                .foregroundStyle(theme.colors.textSecondary.color)
             Spacer()
             DSIconButton(.close, label: "Close") { store.dismissFullScreen() }
                 .keyboardShortcut(.cancelAction)
         }
-        .padding(.horizontal, DSTokens.Spacing.lg)
-        .padding(.vertical, DSTokens.Spacing.sm)
+        .padding(.horizontal, Tokens.Spacing.lg)
+        .padding(.vertical, Tokens.Spacing.sm)
     }
 
     // MARK: - Search
 
     private var searchField: some View {
-        HStack(spacing: DSTokens.Spacing.xs) {
-            DSIconView(.search, size: DSTokens.Icon.micro, colorRole: .muted)
+        HStack(spacing: Tokens.Spacing.xs) {
+            DSIconView(.search, size: Tokens.Size.Icon.micro, colorRole: .muted)
             TextField("Filter corpus by id, name, or category", text: Binding(
                 get: { store.corpusSearch },
                 set: { store.setCorpusSearch($0) }
@@ -79,11 +79,11 @@ struct CorpusBrowserView: View {
                 }
             }
         }
-        .padding(.horizontal, DSTokens.Spacing.sm)
-        .padding(.vertical, DSTokens.Spacing.xs)
-        .background(environment.theme.colors.element.color, in: RoundedRectangle(cornerRadius: DSTokens.Radius.sm))
-        .padding(.horizontal, DSTokens.Spacing.lg)
-        .padding(.vertical, DSTokens.Spacing.xs)
+        .padding(.horizontal, Tokens.Spacing.sm)
+        .padding(.vertical, Tokens.Spacing.xs)
+        .background(theme.colors.element.color, in: RoundedRectangle(cornerRadius: Tokens.Shape.radiusSM))
+        .padding(.horizontal, Tokens.Spacing.lg)
+        .padding(.vertical, Tokens.Spacing.xs)
     }
 
     // MARK: - Facet rows
@@ -155,19 +155,19 @@ struct CorpusBrowserView: View {
                 }
             }
         }
-        .padding(.horizontal, DSTokens.Spacing.lg)
-        .padding(.bottom, DSTokens.Spacing.sm)
+        .padding(.horizontal, Tokens.Spacing.lg)
+        .padding(.bottom, Tokens.Spacing.sm)
     }
 
     @ViewBuilder
     private func facetRow<Chips: View>(label: String, @ViewBuilder chips: () -> Chips) -> some View {
-        HStack(alignment: .center, spacing: DSTokens.Spacing.sm) {
+        HStack(alignment: .center, spacing: Tokens.Spacing.sm) {
             Text(label)
                 .dsFont(.overline)
-                .foregroundStyle(environment.theme.colors.textSecondary.color)
+                .foregroundStyle(theme.colors.textSecondary.color)
                 .frame(width: 48, alignment: .leading)
             ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: DSTokens.Spacing.xxs) { chips() }
+                HStack(spacing: Tokens.Spacing.xxs) { chips() }
             }
         }
     }
@@ -224,7 +224,7 @@ struct CorpusBrowserView: View {
 
     private var separator: some View {
         Rectangle()
-            .fill(environment.theme.colors.borderVariant.color)
-            .frame(height: DSTokens.Stroke.hairline)
+            .fill(theme.colors.borderVariant.color)
+            .frame(height: Tokens.Shape.strokeHairline)
     }
 }

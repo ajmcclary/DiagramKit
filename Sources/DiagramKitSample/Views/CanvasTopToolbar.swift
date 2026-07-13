@@ -15,10 +15,10 @@ import DesignKitThemes
 struct CanvasTopToolbar: View {
     @Bindable var store: LiveEditorStore
 
-    @Environment(\.dsEnvironment) private var environment
+    @Environment(\.designTheme) private var theme
 
     var body: some View {
-        HStack(spacing: DSTokens.Spacing.xs) {
+        HStack(spacing: Tokens.Spacing.xs) {
             familyPill
             sceneGraphPill
             renderHealthPill
@@ -28,7 +28,7 @@ struct CanvasTopToolbar: View {
     private var familyPill: some View {
         toolbarPill(
             label: "\(store.state.sourceFormat.shortName.lowercased()) · \(workspaceLabel)",
-            dotColor: environment.theme.colors.info.color
+            dotColor: theme.colors.info.color
         )
     }
 
@@ -36,28 +36,28 @@ struct CanvasTopToolbar: View {
         // Phase 4 fills in real counts from PreparedDiagram.
         toolbarPill(
             label: "scene graph",
-            dotColor: environment.theme.colors.iconMuted.color,
+            dotColor: theme.colors.iconMuted.color,
             trailing: sceneGraphMetric
         )
     }
 
     private func toolbarPill(label: String, dotColor: Color, trailing: String? = nil) -> some View {
         DSGlassSurface(role: .popover) {
-            HStack(spacing: DSTokens.Spacing.xs) {
+            HStack(spacing: Tokens.Spacing.xs) {
                 Circle()
                     .fill(dotColor)
-                    .frame(width: DSTokens.Icon.indicator, height: DSTokens.Icon.indicator)
+                    .frame(width: Tokens.Size.Icon.indicator, height: Tokens.Size.Icon.indicator)
                 Text(label)
                     .dsFont(.badge)
-                    .foregroundStyle(environment.theme.colors.textPrimary.color)
+                    .foregroundStyle(theme.colors.textPrimary.color)
                 if let trailing {
                     Text(trailing)
                         .dsFont(.metric)
-                        .foregroundStyle(environment.theme.colors.textSecondary.color)
+                        .foregroundStyle(theme.colors.textSecondary.color)
                 }
             }
-            .padding(.horizontal, DSTokens.Spacing.smMd)
-            .padding(.vertical, DSTokens.Spacing.xs)
+            .padding(.horizontal, Tokens.Spacing.smMd)
+            .padding(.vertical, Tokens.Spacing.xs)
         }
     }
 
@@ -79,14 +79,14 @@ struct CanvasTopToolbar: View {
 
     private func renderStatusPill(kind: DSStatusKind, label: String) -> some View {
         DSGlassSurface(role: .popover) {
-            HStack(spacing: DSTokens.Spacing.xs) {
+            HStack(spacing: Tokens.Spacing.xs) {
                 DSStatusIndicator(kind, label: label)
                 Text(label)
                     .dsFont(.metric)
-                    .foregroundStyle(environment.theme.colors.textPrimary.color)
+                    .foregroundStyle(theme.colors.textPrimary.color)
             }
-            .padding(.horizontal, DSTokens.Spacing.smMd)
-            .padding(.vertical, DSTokens.Spacing.xs)
+            .padding(.horizontal, Tokens.Spacing.smMd)
+            .padding(.vertical, Tokens.Spacing.xs)
         }
         .accessibilityIdentifier("preview.renderHealth")
     }

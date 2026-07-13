@@ -19,7 +19,7 @@ struct SubgraphOverlay: View {
     let liveDiagramBounds: CGRect
     let liveBoundsLookup: DiagramBoundsLookup?
     let transform: CanvasTransform
-    @Environment(\.dsEnvironment) private var environment
+    @Environment(\.designTheme) private var theme
 
     var body: some View {
         ZStack(alignment: .topLeading) {
@@ -61,7 +61,7 @@ struct SubgraphOverlay: View {
         guard let union else { return nil }
         let o = transform.origin(diagramBounds: liveDiagramBounds, viewSize: viewSize)
         let scale = transform.scale
-        let padding = DSTokens.Spacing.md
+        let padding = Tokens.Spacing.md
         let x = o.x + CGFloat(union.minX) * scale - padding
         let y = o.y + CGFloat(union.minY) * scale - padding
         let width = CGFloat(union.width) * scale + padding * 2
@@ -73,12 +73,12 @@ struct SubgraphOverlay: View {
 
     private func overlay(for subgraph: original_src_types.MermaidSubgraph, rect: CGRect) -> some View {
         ZStack(alignment: .topLeading) {
-            RoundedRectangle(cornerRadius: DSTokens.Radius.sm)
+            RoundedRectangle(cornerRadius: Tokens.Shape.radiusSM)
                 .stroke(
-                    environment.theme.colors.accent.color.opacity(DSTokens.Opacity.strong),
+                    theme.colors.accent.color.opacity(Tokens.Opacity.strong),
                     style: StrokeStyle(
-                        lineWidth: DSTokens.Stroke.mediumLight,
-                        dash: [DSTokens.Spacing.xxs + DSTokens.Stroke.thin, DSTokens.Spacing.xxxs + DSTokens.Stroke.thin]
+                        lineWidth: Tokens.Shape.strokeMedLight,
+                        dash: [Tokens.Spacing.xxs + Tokens.Shape.strokeThin, Tokens.Spacing.xxxs + Tokens.Shape.strokeThin]
                     )
                 )
                 .frame(width: rect.width, height: rect.height)
@@ -87,11 +87,11 @@ struct SubgraphOverlay: View {
 
             Text(subgraph.label)
                 .dsFont(.badge)
-                .padding(.horizontal, DSTokens.Spacing.xs)
-                .padding(.vertical, DSTokens.Spacing.xxxs)
-                .background(Capsule().fill(environment.theme.colors.accent.color))
-                .foregroundStyle(environment.theme.colors.onAccent.color)
-                .position(x: rect.minX + DSTokens.Spacing.xxl, y: rect.minY)
+                .padding(.horizontal, Tokens.Spacing.xs)
+                .padding(.vertical, Tokens.Spacing.xxxs)
+                .background(Capsule().fill(theme.colors.accent.color))
+                .foregroundStyle(theme.colors.onAccent.color)
+                .position(x: rect.minX + Tokens.Spacing.xxl, y: rect.minY)
                 .allowsHitTesting(false)
         }
     }

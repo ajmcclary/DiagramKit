@@ -15,21 +15,21 @@ struct AlignButtonRow: View {
     private let trailing: [DSIcon] = [.alignTop, .alignCenterVertical, .alignBottom]
 
     var body: some View {
-        HStack(spacing: DSTokens.Spacing.xs) {
+        HStack(spacing: Tokens.Spacing.xs) {
             ForEach(leading, id: \.self) { alignButton($0) }
-            Rectangle().fill(environment.theme.colors.borderVariant.color)
-                .frame(width: DSTokens.Stroke.hairline, height: DSTokens.Spacing.xl)
+            Rectangle().fill(theme.colors.borderVariant.color)
+                .frame(width: Tokens.Shape.strokeHairline, height: Tokens.Spacing.xl)
             ForEach(trailing, id: \.self) { alignButton($0) }
         }
     }
 
     private func alignButton(_ icon: DSIcon) -> some View {
-        DSIconView(icon, size: DSTokens.Icon.micro, colorRole: .disabled)
-            .frame(minWidth: DSTokens.Control.row, minHeight: DSTokens.Control.rowCompact)
-            .background(environment.theme.colors.element.color)
-            .clipShape(RoundedRectangle(cornerRadius: DSTokens.Radius.sm))
+        DSIconView(icon, size: Tokens.Size.Icon.micro, colorRole: .disabled)
+            .frame(minWidth: Tokens.Size.Control.row, minHeight: Tokens.Size.Control.rowCompact)
+            .background(theme.colors.element.color)
+            .clipShape(RoundedRectangle(cornerRadius: Tokens.Shape.radiusSM))
             .help("Alignment is presentational for auto-laid-out diagrams")
     }
 
-    @Environment(\.dsEnvironment) private var environment
+    @Environment(\.designTheme) private var theme
 }

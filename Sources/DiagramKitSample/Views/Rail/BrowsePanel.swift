@@ -11,7 +11,7 @@ import DesignKitThemes
 
 struct BrowsePanel: View {
     @Bindable var store: LiveEditorStore
-    @Environment(\.dsEnvironment) private var environment
+    @Environment(\.designTheme) private var theme
 
     private let navLinks: [(FullScreenSurface, String, DSIcon, String?)] = [
         (.coverage, "Coverage matrix", .diagram, "28×5"),
@@ -24,35 +24,35 @@ struct BrowsePanel: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             PanelHeader("Browse")
-            VStack(spacing: DSTokens.Stroke.thin) {
+            VStack(spacing: Tokens.Shape.strokeThin) {
                 ForEach(Array(navLinks.enumerated()), id: \.offset) { _, link in
                     Button { store.setFullScreen(link.0) } label: {
-                        HStack(spacing: DSTokens.Spacing.smMd) {
-                            DSIconView(link.2, size: DSTokens.Icon.micro, colorRole: .muted)
+                        HStack(spacing: Tokens.Spacing.smMd) {
+                            DSIconView(link.2, size: Tokens.Size.Icon.micro, colorRole: .muted)
                             Text(link.1)
                                 .dsFont(.caption)
-                                .foregroundStyle(environment.theme.colors.textPrimary.color)
-                            Spacer(minLength: DSTokens.Spacing.xxs)
+                                .foregroundStyle(theme.colors.textPrimary.color)
+                            Spacer(minLength: Tokens.Spacing.xxs)
                             if let count = link.3 {
                                 Text(count)
                                     .dsFont(.code)
-                                    .foregroundStyle(environment.theme.colors.textDisabled.color)
+                                    .foregroundStyle(theme.colors.textDisabled.color)
                             }
                         }
-                        .padding(.horizontal, DSTokens.Spacing.sm)
-                        .frame(minHeight: DSTokens.Control.rowCompact)
+                        .padding(.horizontal, Tokens.Spacing.sm)
+                        .frame(minHeight: Tokens.Size.Control.rowCompact)
                         .contentShape(Rectangle())
                     }
                     .buttonStyle(.ds(role: .ghost, size: .compact))
                 }
             }
-            .padding(.horizontal, DSTokens.Spacing.sm)
-            .padding(.bottom, DSTokens.Spacing.xs)
+            .padding(.horizontal, Tokens.Spacing.sm)
+            .padding(.bottom, Tokens.Spacing.xs)
             Rectangle()
-                .fill(environment.theme.colors.borderVariant.color)
-                .frame(height: DSTokens.Stroke.hairline)
-                .padding(.horizontal, DSTokens.Spacing.md)
-                .padding(.vertical, DSTokens.Spacing.xxs)
+                .fill(theme.colors.borderVariant.color)
+                .frame(height: Tokens.Shape.strokeHairline)
+                .padding(.horizontal, Tokens.Spacing.md)
+                .padding(.vertical, Tokens.Spacing.xxs)
             // The categorized, searchable sample library.
             SampleDiagramPanel(store: store)
                 .frame(maxHeight: .infinity)

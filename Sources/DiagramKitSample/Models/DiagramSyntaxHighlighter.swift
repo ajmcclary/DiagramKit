@@ -314,7 +314,7 @@ public final class DiagramSyntaxHighlighter: Sendable {
         _ source: String,
         in textView: NSTextView,
         visibleRect: NSRect,
-        theme: DSTheme
+        theme: Theme
     ) async {
         let tokens = await tokenize(source)
 
@@ -356,7 +356,7 @@ public final class DiagramSyntaxHighlighter: Sendable {
         _ source: String,
         in textView: UITextView,
         visibleRect: CGRect,
-        theme: DSTheme
+        theme: Theme
     ) async {
         let tokens = await tokenize(source)
         let colors = Self.colorMap(for: theme).mapValues { UIColor($0.color) }
@@ -565,8 +565,8 @@ public final class DiagramSyntaxHighlighter: Sendable {
     // MARK: - Color mapping
 
     public nonisolated static func colorMap(
-        for theme: DSTheme
-    ) -> [TokenCategory: DSColorValue] {
+        for theme: Theme
+    ) -> [TokenCategory: Tokens.Color] {
         Dictionary(uniqueKeysWithValues: TokenCategory.allCases.map { category in
             let syntaxRole: String = switch category {
             case .diagramType: "type"
@@ -579,7 +579,7 @@ public final class DiagramSyntaxHighlighter: Sendable {
             case .annotation: "attribute"
             case .variable: "variable"
             }
-            return (category, theme.colors.syntax[syntaxRole]!.foreground)
+            return (category, theme.resolveSyntaxColor(for: syntaxRole))
         })
     }
 }

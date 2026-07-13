@@ -26,7 +26,7 @@ struct MutationsCatalogCard: View {
                     .dsFont(.badge)
             }
             .toggleStyle(.ds)
-            .padding(.bottom, DSTokens.Spacing.xxs)
+            .padding(.bottom, Tokens.Spacing.xxs)
             ForEach(MutationCatalogEntry.Group.allCases, id: \.self) { group in
                 let entries = MutationCatalog.all.filter { $0.group == group }
                 if !entries.isEmpty {
@@ -34,16 +34,16 @@ struct MutationsCatalogCard: View {
                 }
             }
         }
-        .padding(DSTokens.Spacing.sm)
+        .padding(Tokens.Spacing.sm)
         .background { DSSurface(role: .card) { Color.clear } }
         .accessibilityIdentifier("inspector.mutations")
         .accessibilityElement(children: .contain)
     }
 
     private func section(title: String, entries: [MutationCatalogEntry]) -> some View {
-        VStack(alignment: .leading, spacing: DSTokens.Spacing.xxxs) {
+        VStack(alignment: .leading, spacing: Tokens.Spacing.xxxs) {
             DSSectionHeader(title)
-                .padding(.top, DSTokens.Spacing.xxxs)
+                .padding(.top, Tokens.Spacing.xxxs)
             ForEach(entries) { entry in
                 row(entry)
             }
@@ -51,9 +51,9 @@ struct MutationsCatalogCard: View {
     }
 
     private func row(_ entry: MutationCatalogEntry) -> some View {
-        HStack(alignment: .top, spacing: DSTokens.Spacing.xs) {
-            VStack(alignment: .leading, spacing: DSTokens.Spacing.xxxs) {
-                HStack(spacing: DSTokens.Spacing.xxs) {
+        HStack(alignment: .top, spacing: Tokens.Spacing.xs) {
+            VStack(alignment: .leading, spacing: Tokens.Spacing.xxxs) {
+                HStack(spacing: Tokens.Spacing.xxs) {
                     Text(entry.label)
                         .dsFont(.code)
                         .lineLimit(1)
@@ -74,6 +74,6 @@ struct MutationsCatalogCard: View {
             .buttonStyle(.ds(role: .secondary, size: .compact))
             .a11y(label: "Demo \(entry.id)", id: "mutations.demo.\(entry.id)")
         }
-        .padding(.vertical, DSTokens.Stroke.thick)
+        .padding(.vertical, Tokens.Shape.strokeThick)
     }
 }

@@ -4,7 +4,7 @@
 //
 //  Minimal pill primitive used by the v2 Inspector, Statusbar, and
 //  floating health/diagnostic surfaces. Colors come from the chrome
-//  semantic theme roles (`@Environment(\.dsEnvironment)`) so every pill follows
+//  semantic theme roles (`@Environment(\.designTheme)`) so every pill follows
 //  the current appearance.
 //
 
@@ -21,44 +21,44 @@ struct KPill: View {
     var dot: Bool = false
     var tone: KPillTone = .neutral
 
-    @Environment(\.dsEnvironment) private var environment
+    @Environment(\.designTheme) private var theme
 
     var body: some View {
-        HStack(spacing: DSTokens.Spacing.xxs) {
+        HStack(spacing: Tokens.Spacing.xxs) {
             if dot {
                 Circle()
                     .fill(foreground)
-                    .frame(width: DSTokens.Radius.sm, height: DSTokens.Radius.sm)
+                    .frame(width: Tokens.Shape.radiusSM, height: Tokens.Shape.radiusSM)
             }
             if let icon {
-                DSIconView(icon, size: DSTokens.Icon.indicator, colorRole: iconColorRole)
+                DSIconView(icon, size: Tokens.Size.Icon.indicator, colorRole: iconColorRole)
             }
             Text(text)
                 .dsFont(.badge)
         }
-        .padding(.horizontal, DSTokens.Spacing.xs)
-        .padding(.vertical, DSTokens.Stroke.medium)
+        .padding(.horizontal, Tokens.Spacing.xs)
+        .padding(.vertical, Tokens.Shape.strokeMedium)
         .background(Capsule().fill(background))
         .foregroundStyle(foreground)
     }
 
     private var foreground: Color {
         switch tone {
-        case .ok:      return environment.theme.colors.success.color
-        case .warn:    return environment.theme.colors.warning.color
-        case .info:    return environment.theme.colors.info.color
-        case .accent:  return environment.theme.colors.accent.color
-        case .neutral: return environment.theme.colors.textSecondary.color
+        case .ok:      return theme.colors.success.color
+        case .warn:    return theme.colors.warning.color
+        case .info:    return theme.colors.info.color
+        case .accent:  return theme.colors.accent.color
+        case .neutral: return theme.colors.textSecondary.color
         }
     }
 
     private var background: Color {
         switch tone {
-        case .ok:      return environment.theme.colors.value("success.background").color
-        case .warn:    return environment.theme.colors.value("warning.background").color
-        case .info:    return environment.theme.colors.value("info.background").color
-        case .accent:  return environment.theme.colors.accent.color.opacity(DSTokens.Opacity.glassHighlight)
-        case .neutral: return environment.theme.colors.surfaceBackground.color.opacity(DSTokens.Opacity.strong)
+        case .ok:      return theme.colors.value("success.background").color
+        case .warn:    return theme.colors.value("warning.background").color
+        case .info:    return theme.colors.value("info.background").color
+        case .accent:  return theme.colors.accent.color.opacity(Tokens.Opacity.glassHighlight)
+        case .neutral: return theme.colors.surfaceBackground.color.opacity(Tokens.Opacity.strong)
         }
     }
 

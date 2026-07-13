@@ -15,13 +15,13 @@ struct SelectionHUD: View {
     var body: some View {
         if let label = summary {
             DSGlassSurface(role: .popover) {
-            HStack(spacing: DSTokens.Spacing.xxs) {
-                DSIconView(.node, size: DSTokens.Icon.micro, colorRole: .info)
+            HStack(spacing: Tokens.Spacing.xxs) {
+                DSIconView(.node, size: Tokens.Size.Icon.micro, colorRole: .info)
                 Text(label)
                     .dsFont(.badge)
             }
-            .padding(.horizontal, DSTokens.Spacing.smMd)
-            .padding(.vertical, DSTokens.Spacing.xxs)
+            .padding(.horizontal, Tokens.Spacing.smMd)
+            .padding(.vertical, Tokens.Spacing.xxs)
             }
             .accessibilityIdentifier(A11yID.Visual.selectionHUD)
             .accessibilityLabel("Selection: \(label)")

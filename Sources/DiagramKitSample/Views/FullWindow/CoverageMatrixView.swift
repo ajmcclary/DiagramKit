@@ -15,7 +15,7 @@ import DesignKitThemes
 
 struct CoverageMatrixView: View {
     @Bindable var store: LiveEditorStore
-    @Environment(\.dsEnvironment) private var environment
+    @Environment(\.designTheme) private var theme
 
     @SwiftUI.State private var hoveredCell: CoverageCell?
 
@@ -35,7 +35,7 @@ struct CoverageMatrixView: View {
             separator
             footer(provider: provider)
         }
-        .background(environment.theme.colors.windowBackground.color)
+        .background(theme.colors.windowBackground.color)
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier("coverage.matrix.grid")
     }
@@ -43,21 +43,21 @@ struct CoverageMatrixView: View {
     // MARK: - Header
 
     private func header(provider: CoverageMatrixProvider) -> some View {
-        HStack(spacing: DSTokens.Spacing.sm) {
+        HStack(spacing: Tokens.Spacing.sm) {
             DSIconView(.diagram)
             Text("Coverage matrix")
                 .dsFont(.headline)
             Text("· 28 families × 5 formats = 140 cells")
                 .dsFont(.caption2)
-                .foregroundStyle(environment.theme.colors.textSecondary.color)
+                .foregroundStyle(theme.colors.textSecondary.color)
             Spacer()
             DSIconButton(.close, label: "Close coverage matrix") {
                 store.dismissFullScreen()
             }
             .keyboardShortcut(.cancelAction)
         }
-        .padding(.horizontal, DSTokens.Spacing.lg)
-        .padding(.vertical, DSTokens.Spacing.sm)
+        .padding(.horizontal, Tokens.Spacing.lg)
+        .padding(.vertical, Tokens.Spacing.sm)
     }
 
     // MARK: - Grid
@@ -68,18 +68,18 @@ struct CoverageMatrixView: View {
             HStack(spacing: 0) {
                 Text("Family")
                     .dsFont(.overline)
-                    .foregroundStyle(environment.theme.colors.textSecondary.color)
+                    .foregroundStyle(theme.colors.textSecondary.color)
                     .frame(width: leadingWidth, alignment: .leading)
                     .padding(.leading, 12)
                 ForEach(provider.formats) { format in
                     Text(format.shortName)
                         .dsFont(.overline)
-                        .foregroundStyle(environment.theme.colors.textSecondary.color)
+                        .foregroundStyle(theme.colors.textSecondary.color)
                         .frame(width: columnWidth)
                 }
             }
             .frame(height: 24)
-            .background(environment.theme.colors.element.color)
+            .background(theme.colors.element.color)
 
             // Body rows
             ForEach(provider.families, id: \.self) { family in
@@ -90,15 +90,15 @@ struct CoverageMatrixView: View {
 
     private func row(family: DiagramType, provider: CoverageMatrixProvider) -> some View {
         HStack(spacing: 0) {
-            HStack(spacing: DSTokens.Spacing.xs) {
-                DSIconView(.diagram, size: DSTokens.Icon.micro)
+            HStack(spacing: Tokens.Spacing.xs) {
+                DSIconView(.diagram, size: Tokens.Size.Icon.micro)
                 Text(CoverageMatrixSeed.displayName(for: family))
                     .dsFont(.caption2)
-                    .foregroundStyle(environment.theme.colors.textPrimary.color)
+                    .foregroundStyle(theme.colors.textPrimary.color)
                     .lineLimit(1)
                 Text("(\(family.rawValue))")
                     .dsFont(.code)
-                    .foregroundStyle(environment.theme.colors.textSecondary.color)
+                    .foregroundStyle(theme.colors.textSecondary.color)
                 Spacer()
             }
             .frame(width: leadingWidth, alignment: .leading)
@@ -117,11 +117,11 @@ struct CoverageMatrixView: View {
     ) -> some View {
         let cell = CoverageCell(family: family, format: format, state: provider.state(family: family, format: format))
         let tint = color(for: cell.state)
-        return DSIconView(icon(for: cell.state), size: DSTokens.Icon.micro, colorRole: iconRole(for: cell.state))
+        return DSIconView(icon(for: cell.state), size: Tokens.Size.Icon.micro, colorRole: iconRole(for: cell.state))
             .frame(width: columnWidth, height: rowHeight)
             .background(
                 Rectangle()
-                    .fill(hoveredCell == cell ? tint.opacity(DSTokens.Opacity.light) : .clear)
+                    .fill(hoveredCell == cell ? tint.opacity(Tokens.Opacity.light) : .clear)
             )
             .contentShape(Rectangle())
             .onHover { isHover in
@@ -133,22 +133,22 @@ struct CoverageMatrixView: View {
 
     private func color(for state: CoverageCellState) -> Color {
         switch state {
-        case .ok:          return environment.theme.colors.success.color
-        case .lossy:       return environment.theme.colors.warning.color
-        case .unsupported: return environment.theme.colors.iconDisabled.color
-        case .partial:     return environment.theme.colors.warning.color
-        case .host:        return environment.theme.colors.accent.color
+        case .ok:          return theme.colors.success.color
+        case .lossy:       return theme.colors.warning.color
+        case .unsupported: return theme.colors.iconDisabled.color
+        case .partial:     return theme.colors.warning.color
+        case .host:        return theme.colors.accent.color
         }
     }
 
     // MARK: - Footer
 
     private func footer(provider: CoverageMatrixProvider) -> some View {
-        HStack(spacing: DSTokens.Spacing.sm) {
+        HStack(spacing: Tokens.Spacing.sm) {
             ForEach(CoverageCellState.allCases, id: \.self) { state in
                 let count = provider.counts[state] ?? 0
-                HStack(spacing: DSTokens.Spacing.xxs) {
-                    DSIconView(icon(for: state), size: DSTokens.Icon.micro, colorRole: iconRole(for: state))
+                HStack(spacing: Tokens.Spacing.xxs) {
+                    DSIconView(icon(for: state), size: Tokens.Size.Icon.micro, colorRole: iconRole(for: state))
                     Text("\(state.label) · \(count)").dsFont(.badge)
                 }
             }
@@ -157,8 +157,8 @@ struct CoverageMatrixView: View {
                 tip(for: hovered)
             }
         }
-        .padding(.horizontal, DSTokens.Spacing.lg)
-        .padding(.vertical, DSTokens.Spacing.xs)
+        .padding(.horizontal, Tokens.Spacing.lg)
+        .padding(.vertical, Tokens.Spacing.xs)
     }
 
     private func icon(for state: CoverageCellState) -> DSIcon {
@@ -180,14 +180,14 @@ struct CoverageMatrixView: View {
     }
 
     private func tip(for cell: CoverageCell) -> some View {
-        HStack(spacing: DSTokens.Spacing.xxs) {
+        HStack(spacing: Tokens.Spacing.xxs) {
             Text("\(CoverageMatrixSeed.displayName(for: cell.family)) → \(cell.format.shortName)")
                 .dsFont(.headline)
             Text("·")
-                .foregroundStyle(environment.theme.colors.textSecondary.color)
+                .foregroundStyle(theme.colors.textSecondary.color)
             Text(blurb(for: cell.state))
                 .dsFont(.caption2)
-                .foregroundStyle(environment.theme.colors.textSecondary.color)
+                .foregroundStyle(theme.colors.textSecondary.color)
         }
     }
 
@@ -203,7 +203,7 @@ struct CoverageMatrixView: View {
 
     private var separator: some View {
         Rectangle()
-            .fill(environment.theme.colors.borderVariant.color)
-            .frame(height: DSTokens.Stroke.hairline)
+            .fill(theme.colors.borderVariant.color)
+            .frame(height: Tokens.Shape.strokeHairline)
     }
 }

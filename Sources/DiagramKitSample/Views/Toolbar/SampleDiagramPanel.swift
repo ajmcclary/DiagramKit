@@ -17,16 +17,16 @@ struct SampleDiagramPanel: View {
     @SwiftUI.State private var searchText: String = ""
     @SwiftUI.State private var expandedCategories: Set<String> = []
     @SwiftUI.State private var selectedDiagramID: String?
-    @Environment(\.dsEnvironment) private var environment
+    @Environment(\.designTheme) private var theme
 
     var body: some View {
         DSSurface(role: .panel) {
             VStack(spacing: 0) {
             // Search field
             searchField
-                .padding(.horizontal, DSTokens.Spacing.md)
-                .padding(.top, DSTokens.Spacing.md)
-                .padding(.bottom, DSTokens.Spacing.sm)
+                .padding(.horizontal, Tokens.Spacing.md)
+                .padding(.top, Tokens.Spacing.md)
+                .padding(.bottom, Tokens.Spacing.sm)
 
             // Diagram list
             ScrollView {
@@ -39,8 +39,8 @@ struct SampleDiagramPanel: View {
                         searchResults
                     }
                 }
-                .padding(.horizontal, DSTokens.Spacing.md)
-                .padding(.bottom, DSTokens.Spacing.md)
+                .padding(.horizontal, Tokens.Spacing.md)
+                .padding(.bottom, Tokens.Spacing.md)
             }
             }
         }
@@ -54,13 +54,13 @@ struct SampleDiagramPanel: View {
     // MARK: - Search field
 
     private var searchField: some View {
-        HStack(spacing: DSTokens.Spacing.sm) {
-            DSIconView(.search, size: DSTokens.Icon.micro, colorRole: .muted)
+        HStack(spacing: Tokens.Spacing.sm) {
+            DSIconView(.search, size: Tokens.Size.Icon.micro, colorRole: .muted)
 
             TextField("Search samples...", text: $searchText)
                 .textFieldStyle(.plain)
                 .dsFont(.footnote)
-                .foregroundStyle(environment.theme.colors.textPrimary.color)
+                .foregroundStyle(theme.colors.textPrimary.color)
                 .a11yIdentifier(A11yID.Pickers.sampleSearch)
 
             if !searchText.isEmpty {
@@ -70,7 +70,7 @@ struct SampleDiagramPanel: View {
                 .a11y(label: "Clear search", id: A11yID.Pickers.sampleSearchClear)
             }
         }
-        .padding(DSTokens.Spacing.sm)
+        .padding(Tokens.Spacing.sm)
         .background { DSSurface(role: .sunken) { Color.clear } }
     }
 
@@ -98,39 +98,39 @@ struct SampleDiagramPanel: View {
                     expandedCategories.insert(category.id)
                 }
             } label: {
-                HStack(spacing: DSTokens.Spacing.xs) {
+                HStack(spacing: Tokens.Spacing.xs) {
                     DSIconView(
                         expandedCategories.contains(category.id)
                             ? .disclosureDown
                             : .disclosureRight,
-                        size: DSTokens.Icon.indicator,
+                        size: Tokens.Size.Icon.indicator,
                         colorRole: .muted
                     )
 
                     Text(category.title)
                         .dsFont(.badge)
-                        .foregroundStyle(environment.theme.colors.textPrimary.color)
+                        .foregroundStyle(theme.colors.textPrimary.color)
 
                     Text("(\(diagrams.count))")
                         .dsFont(.caption2)
-                        .foregroundStyle(environment.theme.colors.textSecondary.color)
+                        .foregroundStyle(theme.colors.textSecondary.color)
 
                     Spacer()
                 }
-                .padding(.vertical, DSTokens.Spacing.xs)
+                .padding(.vertical, Tokens.Spacing.xs)
                 .contentShape(Rectangle())
             }
             .buttonStyle(.ds(role: .ghost, size: .compact))
 
             // Diagram items
             if expandedCategories.contains(category.id) {
-                VStack(spacing: DSTokens.Spacing.xxxs) {
+                VStack(spacing: Tokens.Spacing.xxxs) {
                     ForEach(diagrams) { diagram in
                         diagramRow(diagram)
                     }
                 }
-                .padding(.leading, DSTokens.Spacing.lg)
-                .padding(.bottom, DSTokens.Spacing.xs)
+                .padding(.leading, Tokens.Spacing.lg)
+                .padding(.bottom, Tokens.Spacing.xs)
             }
         }
     }
@@ -140,32 +140,32 @@ struct SampleDiagramPanel: View {
         let alternateFormats = Self.alternateFormats(for: diagram)
         let badges = Self.statusBadges(for: diagram)
 
-        return VStack(alignment: .leading, spacing: DSTokens.Spacing.xxs) {
+        return VStack(alignment: .leading, spacing: Tokens.Spacing.xxs) {
             Button {
                 loadDiagram(diagram, format: .mermaid)
             } label: {
-                HStack(spacing: DSTokens.Spacing.sm) {
+                HStack(spacing: Tokens.Spacing.sm) {
                     Text(diagram.name)
                         .dsFont(.footnote)
                         .foregroundStyle(
                             isSelected
-                                ? environment.theme.colors.accent.color
-                                : environment.theme.colors.textPrimary.color
+                                ? theme.colors.accent.color
+                                : theme.colors.textPrimary.color
                         )
                         .lineLimit(1)
 
                     Spacer()
 
                     if isSelected {
-                        DSIconView(.success, size: DSTokens.Icon.micro, colorRole: .success)
+                        DSIconView(.success, size: Tokens.Size.Icon.micro, colorRole: .success)
                     }
                 }
-                .padding(.vertical, DSTokens.Spacing.xxs)
-                .padding(.horizontal, DSTokens.Spacing.sm)
+                .padding(.vertical, Tokens.Spacing.xxs)
+                .padding(.horizontal, Tokens.Spacing.sm)
                 .background(
-                    RoundedRectangle(cornerRadius: DSTokens.Radius.xs)
+                    RoundedRectangle(cornerRadius: Tokens.Shape.radiusXS)
                         .fill(isSelected
-                            ? environment.theme.colors.elementSelected.color
+                            ? theme.colors.elementSelected.color
                             : Color.clear)
                 )
                 .contentShape(Rectangle())
@@ -173,7 +173,7 @@ struct SampleDiagramPanel: View {
             .buttonStyle(.ds(role: isSelected ? .secondary : .ghost, size: .compact))
 
             if !alternateFormats.isEmpty || !badges.isEmpty {
-                HStack(spacing: DSTokens.Spacing.xxs) {
+                HStack(spacing: Tokens.Spacing.xxs) {
                     ForEach(alternateFormats, id: \.self) { format in
                         formatChip(diagram: diagram, format: format)
                     }
@@ -182,27 +182,27 @@ struct SampleDiagramPanel: View {
                     }
                     Spacer(minLength: 0)
                 }
-                .padding(.leading, DSTokens.Spacing.md)
+                .padding(.leading, Tokens.Spacing.md)
             }
         }
     }
 
     private func statusChip(_ badge: SampleStatusBadge) -> some View {
-        HStack(spacing: DSTokens.Stroke.thick) {
+        HStack(spacing: Tokens.Shape.strokeThick) {
             DSIconView(
                 badge.role.icon,
-                size: DSTokens.Icon.indicator,
+                size: Tokens.Size.Icon.indicator,
                 colorRole: badge.role.iconColorRole
             )
             Text(badge.text)
                 .dsFont(.badge)
         }
-        .padding(.horizontal, DSTokens.Spacing.xs)
-        .padding(.vertical, DSTokens.Spacing.xxxs)
-        .foregroundStyle(badge.role.color(in: environment.theme))
+        .padding(.horizontal, Tokens.Spacing.xs)
+        .padding(.vertical, Tokens.Spacing.xxxs)
+        .foregroundStyle(badge.role.color(in: theme))
         .background(
-            RoundedRectangle(cornerRadius: DSTokens.Radius.xs)
-                .fill(environment.theme.colors.element.color)
+            RoundedRectangle(cornerRadius: Tokens.Shape.radiusXS)
+                .fill(theme.colors.element.color)
         )
         .help(badge.tooltip)
     }
@@ -213,7 +213,7 @@ struct SampleDiagramPanel: View {
         } label: {
             Text(format.shortName)
                 .dsFont(.badge)
-                .foregroundStyle(environment.theme.colors.accent.color)
+                .foregroundStyle(theme.colors.accent.color)
         }
     }
 
@@ -286,14 +286,14 @@ struct SampleDiagramPanel: View {
 
         return Group {
             if results.isEmpty {
-                VStack(spacing: DSTokens.Spacing.sm) {
-                    DSIconView(.search, size: DSTokens.Icon.md, colorRole: .muted)
+                VStack(spacing: Tokens.Spacing.sm) {
+                    DSIconView(.search, size: Tokens.Size.Icon.md, colorRole: .muted)
                     Text("No samples match \"\(searchText)\"")
                         .dsFont(.footnote)
-                        .foregroundStyle(environment.theme.colors.textSecondary.color)
+                        .foregroundStyle(theme.colors.textSecondary.color)
                 }
                 .frame(maxWidth: .infinity)
-                .padding(.vertical, DSTokens.Spacing.xxxl)
+                .padding(.vertical, Tokens.Spacing.xxxl)
             } else {
                 ForEach(results) { diagram in
                     diagramRow(diagram)
@@ -332,7 +332,7 @@ struct SampleStatusBadge {
             }
         }
 
-        func color(in theme: DSTheme) -> Color {
+        func color(in theme: Theme) -> Color {
             switch self {
             case .warning: theme.colors.warning.color
             case .info: theme.colors.info.color
