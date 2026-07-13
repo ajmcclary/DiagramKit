@@ -91,10 +91,12 @@ The entire package compiles under `swiftLanguageModes: [.v6]` with the `StrictCo
 
 ## Installation
 
-Add DiagramKit as a SwiftPM dependency:
+Add DiagramKit as a SwiftPM dependency. `0.1.0-beta.1` is a prerelease
+version identifier, so pin it exactly (`exact:`) rather than using a
+`from:`/`upToNextMinor` range — see [CHANGELOG.md](CHANGELOG.md):
 
 ```swift
-.package(url: "https://github.com/<owner>/mermaid-swift", branch: "main")
+.package(url: "https://github.com/ajmcclary/DiagramKit.git", exact: "0.1.0-beta.1")
 ```
 
 Then depend on the umbrella product (which re-exports everything you'll typically need):
@@ -103,7 +105,7 @@ Then depend on the umbrella product (which re-exports everything you'll typicall
 .target(
     name: "MyApp",
     dependencies: [
-        .product(name: "DiagramKit", package: "mermaid-swift")
+        .product(name: "DiagramKit", package: "DiagramKit")
     ]
 )
 ```
