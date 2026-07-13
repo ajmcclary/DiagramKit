@@ -54,9 +54,10 @@ run_build() {
 }
 
 # Cheap deterministic design gates run before compilation so generated drift
-# and sample UI regressions fail fast.
+# fails fast. The sample-app UI adherence gate moved with the sample to
+# apps/DiagramStudio/Scripts/check-sample-design-adherence.sh in the
+# workspace reorganization.
 run_gate "check_codeeditor_design_system.sh" "$ROOT/Scripts/check_codeeditor_design_system.sh"
-run_gate "check-sample-design-adherence.sh" "$ROOT/Scripts/check-sample-design-adherence.sh"
 
 run_gate "swift package dump-package" swift package dump-package
 # Catch undeclared-module-dep regressions that incremental builds mask. Each
