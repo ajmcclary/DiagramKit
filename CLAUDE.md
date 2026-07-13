@@ -253,6 +253,11 @@ outside the defining module.
 - `Sources/DiagramKitTestSupport/` - Linux-portable test helpers.
 - `Sources/DiagramKitSample/` - SwiftUI sample app (executable target
   `DiagramKitSample`) and the current `test-diagrams.json` corpus source.
+  App chrome consumes the external DesignKit package (`DesignKitTokens`/
+  `DesignKitThemes`); app-private design-system components live in
+  `Sources/DiagramKitSample/DesignSystem/`. Diagram/canvas theming
+  (`DiagramTheme`, `Theme+ZedTrek.swift`) is independent of DesignKit;
+  canvas-follows-chrome syncs by theme display name (contract-tested).
 - `Tests/DiagramKitTests/` - XCTest and swift-testing suites plus corpus
   snapshots.
 - `Tests/DiagramKitLinuxTests/` - Linux-portable swift-testing suite that
@@ -264,7 +269,7 @@ outside the defining module.
 
 ## Testing And Snapshots
 
-- Current test source count: 301 Swift files (299 under `Tests/DiagramKitTests`, 2 under `Tests/DiagramKitLinuxTests`). The 15-file XCUI accessibility bundle was removed alongside the 2026-05-18 sample-app relocation; the Xcode-side accessibility audit is no longer gated.
+- Current test source count: 299 Swift files (297 under `Tests/DiagramKitTests`, 2 under `Tests/DiagramKitLinuxTests`). The 15-file XCUI accessibility bundle was removed alongside the 2026-05-18 sample-app relocation; the Xcode-side accessibility audit is no longer gated.
 - The corpus is `Sources/DiagramKitSample/Resources/test-diagrams.json` with
   430 entries (401 Mermaid-only + 29 multi-format: D2, DOT, Structurizr, PlantUML).
 - Corpus baselines under `Tests/DiagramKitTests/__Snapshots__/` track
