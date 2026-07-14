@@ -136,7 +136,8 @@ empty; the completed roadmap lives in [docs/archive/PHASES.md](docs/archive/PHAS
 
 - `swift-custom-dump` and `xctest-dynamic-overlay` (IssueReporting) are upstream
   pointfreeco releases.
-- `swift-snapshot-testing` is pinned to
-  `ajmcclary/swift-snapshot-testing`, branch `fix-swift-6.3-attachable`, while
-  pointfreeco PR #1090 awaits an upstream tagged release.
+- `swift-snapshot-testing` is consumed from upstream pointfreeco by version
+  (`from: "1.19.3"`). The former `ajmcclary/swift-snapshot-testing`
+  `fix-swift-6.3-attachable` branch pin was only needed on the open-source
+  swift-6.3-RELEASE toolchain and was dropped 2026-07-14.
 - `swiftLanguageModes: [.v6]` is enforced; public types are `Sendable`.
