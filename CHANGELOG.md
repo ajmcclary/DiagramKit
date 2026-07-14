@@ -2,7 +2,7 @@
 
 All notable changes to DiagramKit are documented in this file.
 
-## [Unreleased]
+## [0.1.0-beta.2] - 2026-07-14
 
 ### Added
 

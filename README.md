@@ -91,12 +91,12 @@ The entire package compiles under `swiftLanguageModes: [.v6]` with the `StrictCo
 
 ## Installation
 
-Add DiagramKit as a SwiftPM dependency. `0.1.0-beta.1` is a prerelease
+Add DiagramKit as a SwiftPM dependency. `0.1.0-beta.2` is a prerelease
 version identifier, so pin it exactly (`exact:`) rather than using a
 `from:`/`upToNextMinor` range — see [CHANGELOG.md](CHANGELOG.md):
 
 ```swift
-.package(url: "https://github.com/ajmcclary/DiagramKit.git", exact: "0.1.0-beta.1")
+.package(url: "https://github.com/ajmcclary/DiagramKit.git", exact: "0.1.0-beta.2")
 ```
 
 Then depend on the umbrella product (which re-exports everything you'll typically need):
