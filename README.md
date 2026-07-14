@@ -376,4 +376,4 @@ cd apps/DiagramStudio && swift run DiagramStudio
 
 ## License
 
-DiagramKit's own source is released under the same terms as the rest of the `mermaid-swift` repository. Bundled assets are licensed separately as documented in [THIRD_PARTY_LICENSES.md](THIRD_PARTY_LICENSES.md). Upstream `mermaid-js` is MIT — see [ATTRIBUTION.md](ATTRIBUTION.md) for lineage and license citation.
+DiagramKit's own source is MIT licensed — see [LICENSE](LICENSE). Bundled assets are licensed separately as documented in [THIRD_PARTY_LICENSES.md](THIRD_PARTY_LICENSES.md). Upstream `mermaid-js` is MIT — see [ATTRIBUTION.md](ATTRIBUTION.md) for lineage and license citation.
