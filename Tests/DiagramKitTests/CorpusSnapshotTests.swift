@@ -45,18 +45,15 @@ struct CorpusSnapshotTests {
         // `_ganttReferenceToday()` in `src_gantt_layout.swift`.
         setenv("DIAGRAMKIT_GANTT_TODAY", "2024-06-15", 1)
 
-        let jsonURL = projectRoot()
-            .appendingPathComponent("Tests/DiagramKitTests/Resources/test-diagrams.json")
-        let data = try Data(contentsOf: jsonURL)
-        let file = try JSONDecoder().decode(CorpusFile.self, from: data)
-        for entry in file.diagrams {
+        let diagrams = try DiagramCorpus.load()
+        for entry in diagrams {
             try entry.validate()
         }
         guard let rawIds = ProcessInfo.processInfo.environment["SNAPSHOT_DIAGRAM_IDS"], !rawIds.isEmpty else {
-            return file.diagrams
+            return diagrams
         }
         let ids = Set(rawIds.split(separator: ",").map { $0.trimmingCharacters(in: .whitespacesAndNewlines) })
-        return file.diagrams.filter { ids.contains($0.id) }
+        return diagrams.filter { ids.contains($0.id) }
     }
 
     // MARK: - SVG snapshots

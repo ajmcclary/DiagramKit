@@ -1,4 +1,5 @@
 import XCTest
+import DiagramKitCorpus
 @testable import DiagramKit
 @testable import DiagramKitCommon
 @testable import DiagramKitModel
@@ -17,12 +18,7 @@ final class WardleyMapEndToEndTests: XCTestCase {
     }
 
     func testPlaygroundWardleyExamplesParseLayoutAndRenderSvg() throws {
-        let url = URL(fileURLWithPath: #filePath)
-            .deletingLastPathComponent()  // Tests/DiagramKitTests/
-            .deletingLastPathComponent()  // Tests/
-            .deletingLastPathComponent()  // repo root
-            .appendingPathComponent("Tests/DiagramKitTests/Resources/test-diagrams.json")
-        let data = try Data(contentsOf: url)
+        let data = try DiagramCorpus.data()
         let file = try JSONDecoder().decode(DiagramFile.self, from: data)
         let wardleyExamples = file.diagrams.filter { $0.category == "wardleyBeta" }
 

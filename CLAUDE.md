@@ -64,7 +64,9 @@ discipline gates below.
 
 ## Target Layout
 
-The package ships 14 layered SwiftPM library products. Imports flow only
+The package ships 14 layered SwiftPM library products, plus the internal
+`DiagramKitCorpus` test/tooling product (corpus schema + canonical
+`test-diagrams.json`; not intended for external reuse). Imports flow only
 downward; importers/exporters and the `DiagramKitMermaid` slice sit
 beside `DiagramKitModel` so they can be consumed without the umbrella.
 
@@ -260,11 +262,20 @@ outside the defining module.
 - `Sources/DiagramKitInteractive/` - Apple-only `DiagramEditor` plus
   mutation/undo support.
 - `Sources/DiagramKitTestSupport/` - Linux-portable test helpers.
+  `CorpusEntry`/`CorpusFile` and the canonical `test-diagrams.json` moved to
+  `Sources/DiagramKitCorpus/`; this target re-exports `DiagramKitCorpus` so
+  existing `import DiagramKitTestSupport` call sites still see the corpus types.
+- `Sources/DiagramKitCorpus/` - internal (not-for-external-reuse) corpus
+  target: the corpus schema (`CorpusEntry`/`CorpusFile`, `ExpectedDiagnostic`,
+  `CorpusEntryError`) plus the **single canonical** `test-diagrams.json`
+  bundled as a SwiftPM resource, reached through `DiagramCorpus.load()` /
+  `DiagramCorpus.resourceURL`. Both this package's corpus suites and
+  `apps/DiagramStudio` consume it — there is no longer a second copy to sync.
 - The SwiftUI sample app (formerly `Sources/DiagramKitSample/`, executable
   target `DiagramKitSample`) is **external to this repo**: it lives at
   `apps/DiagramStudio` in the workspace superproject and consumes DiagramKit
-  via a path dependency. Its `test-diagrams.json` copy mirrors this repo's
-  `Tests/DiagramKitTests/Resources/test-diagrams.json` (keep in sync). App
+  via a path dependency. It imports `DiagramKitCorpus` for the corpus fixture
+  (no local `test-diagrams.json` copy). App
   chrome consumes the external DesignKit package (`DesignKitTokens`/
   `DesignKitThemes`); the code editor is CodeEditorPlugin's `CodeEditor`
   (diagram-DSL languages mermaid/d2/dot/structurizr/plantuml live there).

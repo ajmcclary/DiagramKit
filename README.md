@@ -2,7 +2,7 @@
 
 **DiagramKit** is a native Swift diagramming toolkit that parses, lays out, and renders diagrams across five source formats — Mermaid, D2, Graphviz DOT, Structurizr, and PlantUML — from a single engine. It covers 28 diagram families, ships three independent render backends (Core Graphics images, SVG, and ASCII), and exposes SwiftUI, UIKit, and AppKit view wrappers for drop-in display on Apple platforms. A Linux-portable parse-and-layout core keeps non-rendering workflows cross-platform.
 
-> **Status:** feature-complete. 14 SwiftPM library products. 1,298 snapshot baselines (437 image + 437 SVG + 424 ASCII) across 424 corpus entries. The closing-commit map for every Critical review finding and follow-on feature is in [docs/archive/BASELINES-history.md](docs/archive/BASELINES-history.md); archived plans live at [docs/archive/PLAN.md](docs/archive/PLAN.md) and [docs/archive/PLAN-followup.md](docs/archive/PLAN-followup.md).
+> **Status:** feature-complete. 14 SwiftPM library products (plus the internal `DiagramKitCorpus` test/tooling product). 1,298 snapshot baselines (437 image + 437 SVG + 424 ASCII) across 424 corpus entries. The closing-commit map for every Critical review finding and follow-on feature is in [docs/archive/BASELINES-history.md](docs/archive/BASELINES-history.md); archived plans live at [docs/archive/PLAN.md](docs/archive/PLAN.md) and [docs/archive/PLAN-followup.md](docs/archive/PLAN-followup.md).
 
 ---
 
@@ -129,7 +129,13 @@ For smaller dependency footprints, depend on individual products:
 | `DiagramKitRenderingCG` | Core Graphics renderer + bundled fonts (Apple only) |
 | `DiagramKitViews` | `DiagramView`, `DiagramNativeView`, `DiagramLayer`, `DiagramViewModel` (Apple only) |
 | `DiagramKitInteractive` | `DiagramEditor`, `DiagramMutation`, undo/redo (Apple only) |
-| `DiagramKitTestSupport` | Test harnesses, round-trip utilities, corpus fixtures |
+| `DiagramKitTestSupport` | Test harnesses, round-trip utilities, corpus helpers |
+
+Internal test/tooling product (not intended for external reuse; shipped as a product only so the workspace's path-dependency app can consume it):
+
+| Product | What it provides |
+|---|---|
+| `DiagramKitCorpus` | Corpus schema (`CorpusEntry`/`CorpusFile`) + the canonical `test-diagrams.json`, via `DiagramCorpus.load()` |
 
 ---
 

@@ -22,11 +22,7 @@ struct MultiFormatBackwardCompatibilityTests {
     }
 
     private static func loadRealCorpus() throws -> [CorpusEntry] {
-        let jsonURL = projectRoot()
-            .appendingPathComponent("Tests/DiagramKitTests/Resources/test-diagrams.json")
-        let data = try Data(contentsOf: jsonURL)
-        let file = try JSONDecoder().decode(CorpusFile.self, from: data)
-        return file.diagrams
+        try DiagramCorpus.load()
     }
 
     @Test("All 396 Mermaid entries decode")

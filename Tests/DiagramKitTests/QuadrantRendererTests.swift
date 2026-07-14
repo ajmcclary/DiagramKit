@@ -1,5 +1,6 @@
 import XCTest
 import CoreGraphics
+import DiagramKitCorpus
 @testable import DiagramKit
 @testable import DiagramKitCommon
 @testable import DiagramKitModel
@@ -537,13 +538,7 @@ final class QuadrantRendererTests: XCTestCase {
     func testRenderAllQuadrantPlaygroundExamplesWithoutCrash() async throws {
         try requireMermaidExporterTestsEnabled()
 
-        let projectRoot = findProjectRoot()
-        let jsonPath = (projectRoot as NSString).appendingPathComponent(
-            "Tests/DiagramKitTests/Resources/test-diagrams.json"
-        )
-        try requireFixtureExists(atPath: jsonPath)
-
-        let data = try Data(contentsOf: URL(fileURLWithPath: jsonPath))
+        let data = try DiagramCorpus.data()
         let decoded = try JSONDecoder().decode(QuadrantSnapshotsFile.self, from: data)
 
         let quadrantExamples = decoded.diagrams.filter { $0.id.hasPrefix("quadrant-") }

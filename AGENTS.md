@@ -8,7 +8,9 @@ and conventions, read `CLAUDE.md` first. For architecture details, read
 plans, and the shipped review-remediation cycle), see
 [docs/archive/](docs/archive/).
 
-The package ships **14 layered SwiftPM library products**. Imports flow
+The package ships **14 layered SwiftPM library products** (plus the internal
+`DiagramKitCorpus` test/tooling product — corpus schema + canonical
+`test-diagrams.json`, not for external reuse). Imports flow
 strictly downward:
 
 ```text

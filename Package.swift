@@ -35,6 +35,9 @@ let package = Package(
         .library(name: "DiagramKitRenderingCG", targets: ["DiagramKitRenderingCG"]),
         .library(name: "DiagramKitViews", targets: ["DiagramKitViews"]),
         .library(name: "DiagramKitTestSupport", targets: ["DiagramKitTestSupport"]),
+        // Internal test/tooling corpus (not advertised for external reuse);
+        // shipped as a product only so the path-dependency app can import it.
+        .library(name: "DiagramKitCorpus", targets: ["DiagramKitCorpus"]),
         .library(name: "DiagramKitD2", targets: ["DiagramKitD2"]),
         .library(name: "DiagramKitGraphviz", targets: ["DiagramKitGraphviz"]),
         .library(name: "DiagramKitStructurizr", targets: ["DiagramKitStructurizr"]),
@@ -144,12 +147,21 @@ let package = Package(
             swiftSettings: strictConcurrencySettings
         ),
         .target(
+            name: "DiagramKitCorpus",
+            dependencies: ["DiagramKitCommon"],
+            resources: [
+                .process("Resources")
+            ],
+            swiftSettings: strictConcurrencySettings
+        ),
+        .target(
             name: "DiagramKitTestSupport",
             dependencies: [
                 "DiagramKitCommon",
                 "DiagramKitModel",
                 "DiagramKitImport",
-                "DiagramKitExport"
+                "DiagramKitExport",
+                "DiagramKitCorpus"
             ],
             swiftSettings: strictConcurrencySettings
         ),
@@ -183,6 +195,7 @@ let package = Package(
                 "DiagramKitMermaid",
                 "DiagramKitInteractive",
                 "DiagramKitTestSupport",
+                "DiagramKitCorpus",
                 "DiagramKitD2",
                 "DiagramKitGraphviz",
                 "DiagramKitStructurizr",
@@ -198,16 +211,6 @@ let package = Package(
                 // here avoids SwiftPM's "unhandled file" warnings for the
                 // `.md` / `.puml` / `.d2` / `.dot` / `.dsl` corpus files.
                 "RoundTrip/Resources",
-                // The diagram corpus fixture (test-diagrams.json, ~430
-                // entries) is loaded directly from the source tree via
-                // `#filePath` by several corpus-driven suites (e.g.
-                // CorpusSnapshotTests, RoundTrip/CorpusRoundTripTests), not
-                // through SwiftPM's resource bundle. It's duplicated here
-                // (rather than left only under the sample app) so DiagramKit
-                // stays buildable and testable standalone after the sample's
-                // extraction to apps/DiagramStudio; keep the two copies in
-                // sync when the corpus changes.
-                "Resources"
             ],
             swiftSettings: strictConcurrencySettings
         ),

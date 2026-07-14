@@ -119,20 +119,8 @@ final class CorpusRoundTripTests: XCTestCase {
     }
 
     static func loadCorpusEntries() throws -> [CorpusEntry] {
-        var url = URL(fileURLWithPath: #file).deletingLastPathComponent()
-        while url.path != "/" {
-            let package = url.appendingPathComponent("Package.swift")
-            if FileManager.default.fileExists(atPath: package.path) {
-                let jsonURL = url.appendingPathComponent(
-                    "Tests/DiagramKitTests/Resources/test-diagrams.json"
-                )
-                let data = try Data(contentsOf: jsonURL)
-                let file = try JSONDecoder().decode(CorpusFile.self, from: data)
-                for entry in file.diagrams { try entry.validate() }
-                return file.diagrams
-            }
-            url.deleteLastPathComponent()
-        }
-        return []
+        let diagrams = try DiagramCorpus.load()
+        for entry in diagrams { try entry.validate() }
+        return diagrams
     }
 }

@@ -1,4 +1,5 @@
 import XCTest
+import DiagramKitCorpus
 @testable import DiagramKit
 @testable import DiagramKitCommon
 @testable import DiagramKitModel
@@ -42,13 +43,8 @@ final class VisualReportGenerator: XCTestCase {
         try requireMermaidExporterTestsEnabled()
 
         let projectRoot = Self.findProjectRoot()
-        let jsonPath = (projectRoot as NSString).appendingPathComponent(
-            "Tests/DiagramKitTests/Resources/test-diagrams.json"
-        )
 
-        try requireFixtureExists(atPath: jsonPath)
-
-        let data = try Data(contentsOf: URL(fileURLWithPath: jsonPath))
+        let data = try DiagramCorpus.data()
         let file = try JSONDecoder().decode(DiagramsFile.self, from: data)
 
         var results: [(diagram: DiagramEntry, base64Png: String?, success: Bool, error: String?)] = []

@@ -1,5 +1,6 @@
 import Foundation
 import XCTest
+import DiagramKitCorpus
 @testable import DiagramKit
 @testable import DiagramKitCommon
 @testable import DiagramKitModel
@@ -39,10 +40,7 @@ final class GitGraphReviewRegressionTests: XCTestCase {
     }
 
     func testPlaygroundFixtureJsonIsValidAndContainsGitGraphExamples() throws {
-        let path = (Self.projectRoot() as NSString).appendingPathComponent(
-            "Tests/DiagramKitTests/Resources/test-diagrams.json"
-        )
-        let data = try Data(contentsOf: URL(fileURLWithPath: path))
+        let data = try DiagramCorpus.data()
         let fixture = try JSONDecoder().decode(PlaygroundFixture.self, from: data)
         let gitGraphs = fixture.diagrams.filter { $0.category == "gitGraph" }
 

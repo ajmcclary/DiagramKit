@@ -4,8 +4,24 @@ All notable changes to DiagramKit are documented in this file.
 
 ## [Unreleased]
 
+### Added
+
+- New internal `DiagramKitCorpus` library product/target: it owns the corpus
+  schema (`CorpusEntry`/`CorpusFile`) and the single canonical
+  `test-diagrams.json` (bundled as a SwiftPM resource, reached via
+  `DiagramCorpus.load()` / `DiagramCorpus.resourceURL`). It is not intended for
+  external reuse; it ships as a product only so the workspace's path-dependency
+  app (`apps/DiagramStudio`) can consume the same fixture.
+
 ### Changed
 
+- Single-sourced the diagram corpus. The schema types moved from
+  `DiagramKitTestSupport` to `DiagramKitCorpus`, and `test-diagrams.json` moved
+  from `Tests/DiagramKitTests/Resources/` into the new target
+  (byte-identical). `DiagramKitTestSupport` re-exports `DiagramKitCorpus`, so
+  existing `import DiagramKitTestSupport` call sites are unaffected. The corpus
+  suites now load through `DiagramCorpus`, eliminating the parallel copy that
+  `apps/DiagramStudio` previously had to keep in sync.
 - Lowered the package platform floor from macOS 26.3 / iOS 26.3 to
   macOS 14 / iOS 17. The old floor was inherited from the former in-package
   sample app's external code-editor dependency (the sample now lives at
