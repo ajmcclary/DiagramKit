@@ -277,7 +277,7 @@ outside the defining module.
   via a path dependency. It imports `DiagramKitCorpus` for the corpus fixture
   (no local `test-diagrams.json` copy). App
   chrome consumes the external DesignKit package (`DesignKitTokens`/
-  `DesignKitThemes`); the code editor is CodeEditorPlugin's `CodeEditor`
+  `DesignKitThemes`); the code editor is CodeEditorKit's `CodeEditor`
   (diagram-DSL languages mermaid/d2/dot/structurizr/plantuml live there).
   Diagram/canvas theming (`DiagramTheme`, `Theme+ZedTrek.swift`) stays in
   this repo and is independent of DesignKit; canvas-follows-chrome syncs by
