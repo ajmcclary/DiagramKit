@@ -85,14 +85,14 @@ DiagramKit                 (umbrella)       - public API + re-exports (DiagramKi
 ```
 
 `DiagramKit` re-exports the lower targets through `ReExports.swift`. The
-package-wide `platforms:` floor is macOS 14 + iOS 17 — the Observation
-framework's `@Observable` deployment target, applied to `DiagramEditor` in
-`DiagramKitInteractive` (the highest OS requirement any first-party API in
-the package imposes; verified by build/test at that floor). The former
-macOS 26.3 + iOS 26.3 floor was inherited from the now-extracted sample
-app's external code-editor dependency and was never a real API requirement;
-it was lowered after the sample moved to `apps/DiagramStudio` in the
-workspace superproject. Apple-only targets like
+package-wide `platforms:` floor is **macOS 27 + iOS 27**, declared with the
+string form (`.macOS("27.0")` / `.iOS("27.0")`) — the workspace-standard
+floor, not an API-derived one. The only API requirement the package itself
+imposes is the Observation framework's `@Observable` (macOS 14 / iOS 17),
+applied to `DiagramEditor` in `DiagramKitInteractive`; the declared floor
+sits well above it. Both platforms are proven: `swift build`/`swift test`
+for macOS, and `xcodebuild -destination 'generic/platform=iOS'` against
+`iPhoneOS27.0.sdk` for iOS. Apple-only targets like
 `DiagramKitRenderingCG`, `DiagramKitViews`, and `DiagramKitInteractive` are
 gated at the source level with `#if canImport(UIKit) || canImport(AppKit)` /
 `#if canImport(CoreGraphics)` and compile to empty on Linux.
@@ -346,10 +346,13 @@ no keyword matching.
 If Docker/Podman is not running locally, record `linux-check.sh` as skipped due
 to environment. Do not treat that as a source failure.
 
-`Package.swift` applies `strictConcurrencySettings` using the `StrictConcurrency`
-upcoming feature. `InferSendableFromCaptures` is intentionally omitted because it
-is already default in Swift 6 mode and emits "already enabled" warnings when
-re-enabled.
+`Package.swift` applies a `swiftSettings` constant — `.swiftLanguageMode(.v6)`
+plus `.enableExperimentalFeature("StrictConcurrency")` — to **every** Swift
+target and test target, so the language-mode policy is checkable per target;
+the package-level `swiftLanguageModes: [.v6]` is kept alongside it as an
+explicit (redundant) declaration. `InferSendableFromCaptures` is intentionally
+omitted because it is already default in Swift 6 mode and emits "already
+enabled" warnings when re-enabled.
 
 ## Linux Portability
 

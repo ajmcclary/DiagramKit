@@ -184,8 +184,8 @@ Files in `DiagramKitModel` cannot `import DiagramKitRenderingCG`. Files in `Diag
 
 ## Concurrency model
 
-- `swiftLanguageModes: [.v6]` is enforced package-wide.
-- `strictConcurrencySettings` (the `StrictConcurrency` upcoming feature) is applied per target via the constant in [Package.swift](Package.swift). `InferSendableFromCaptures` is intentionally omitted — it's already default in Swift 6 mode and emits a per-file warning when re-enabled.
+- `swiftLanguageModes: [.v6]` is enforced package-wide, and the per-target `swiftSettings` constant in [Package.swift](Package.swift) restates it with `.swiftLanguageMode(.v6)` on every Swift target and test target so the policy is checkable target-by-target.
+- `.enableExperimentalFeature("StrictConcurrency")` rides in the same constant. `InferSendableFromCaptures` is intentionally omitted — it's already default in Swift 6 mode and emits a per-file warning when re-enabled.
 - Public types implement `Sendable` explicitly: `DiagramType`, `DiagramPayload`, `DiagramDocument`, `PositionedContent`, `PositionedGraph`, `LayoutConfig`, `EdgeStyle`.
 - `async throws` is the public default. `@MainActor` is reserved for methods that produce or consume native UI types (`BMImage`, `CGContext`); `renderSVG` / `renderASCII` are intentionally **not** main-actor.
 - Errors flow through `_withDiagramIssueReporting(operation:)` at every public boundary so test-time observers see uncategorised failures without obstructing flow.

@@ -1,31 +1,29 @@
 // swift-tools-version: 6.3
 import PackageDescription
 
-// `InferSendableFromCaptures` is already on by default in Swift 6 mode;
-// re-enabling it via `.enableUpcomingFeature` emits a "feature is already
-// enabled" warning per source file (one per compile job). We keep
-// `StrictConcurrency` for documented intent and forward-compat against
-// future toolchain shifts — it's silent under Swift 6.
-let strictConcurrencySettings: [SwiftSetting] = [
-    .enableUpcomingFeature("StrictConcurrency")
+// Workspace-standard Swift 6 settings, applied per target so the policy is
+// checkable target-by-target (the package-level `swiftLanguageModes: [.v6]`
+// below is kept as well — redundant but explicit).
+//
+// `InferSendableFromCaptures` is deliberately NOT listed: it is already on by
+// default in Swift 6 mode, and re-enabling it emits a "feature is already
+// enabled" warning per compile job. `StrictConcurrency` is kept for documented
+// intent and forward-compat against future toolchain shifts — it is silent
+// under Swift 6.
+let swiftSettings: [SwiftSetting] = [
+    .swiftLanguageMode(.v6),
+    .enableExperimentalFeature("StrictConcurrency")
 ]
 
 let package = Package(
     name: "DiagramKit",
+    // Workspace-standard floor. String form (`"27.0"`) rather than `.v27`:
+    // the enum case requires `_PackageDescription 6.4`, while the string form
+    // parses at every tools-version used in this workspace. iOS is retained —
+    // the package builds clean for `generic/platform=iOS`.
     platforms: [
-        // Floor: macOS 14 / iOS 17 — the deployment target of the Observation
-        // framework's `@Observable` macro, applied to `DiagramEditor` in
-        // `DiagramKitInteractive`. That is the highest OS requirement any
-        // first-party API in the package genuinely imposes: the package builds
-        // and its full test suite passes at this floor, and drops to a hard
-        // `'Observable()' is only available in macOS 14.0 or newer` error at
-        // macOS 13 / iOS 16. The previous macOS 26.3 / iOS 26.3 floor was
-        // inherited from the former in-package sample app's external
-        // code-editor dependency (the sample was extracted to
-        // apps/DiagramStudio in the workspace reorganization) and was never a
-        // real API requirement of DiagramKit itself.
-        .macOS(.v14),
-        .iOS(.v17)
+        .macOS("27.0"),
+        .iOS("27.0")
     ],
     products: [
         .library(name: "DiagramKit", targets: ["DiagramKit"]),
@@ -73,47 +71,47 @@ let package = Package(
             resources: [
                 .process("Resources")
             ],
-            swiftSettings: strictConcurrencySettings
+            swiftSettings: swiftSettings
         ),
         .target(
             name: "DiagramKitModel",
             dependencies: ["DiagramKitCommon"],
-            swiftSettings: strictConcurrencySettings
+            swiftSettings: swiftSettings
         ),
         .target(
             name: "DiagramKitImport",
             dependencies: ["DiagramKitModel"],
-            swiftSettings: strictConcurrencySettings
+            swiftSettings: swiftSettings
         ),
         .target(
             name: "DiagramKitD2",
             dependencies: ["DiagramKitModel", "DiagramKitImport", "DiagramKitExport"],
-            swiftSettings: strictConcurrencySettings
+            swiftSettings: swiftSettings
         ),
         .target(
             name: "DiagramKitGraphviz",
             dependencies: ["DiagramKitModel", "DiagramKitImport", "DiagramKitExport"],
-            swiftSettings: strictConcurrencySettings
+            swiftSettings: swiftSettings
         ),
         .target(
             name: "DiagramKitStructurizr",
             dependencies: ["DiagramKitModel", "DiagramKitImport", "DiagramKitExport"],
-            swiftSettings: strictConcurrencySettings
+            swiftSettings: swiftSettings
         ),
         .target(
             name: "DiagramKitPlantUML",
             dependencies: ["DiagramKitModel", "DiagramKitImport", "DiagramKitExport"],
-            swiftSettings: strictConcurrencySettings
+            swiftSettings: swiftSettings
         ),
         .target(
             name: "DiagramKitExport",
             dependencies: ["DiagramKitCommon", "DiagramKitModel"],
-            swiftSettings: strictConcurrencySettings
+            swiftSettings: swiftSettings
         ),
         .target(
             name: "DiagramKitMermaid",
             dependencies: ["DiagramKitCommon", "DiagramKitModel", "DiagramKitExport"],
-            swiftSettings: strictConcurrencySettings
+            swiftSettings: swiftSettings
         ),
         .target(
             name: "DiagramKitInteractive",
@@ -124,7 +122,7 @@ let package = Package(
                 "DiagramKitExport",
                 "DiagramKitRenderingCG"
             ],
-            swiftSettings: strictConcurrencySettings
+            swiftSettings: swiftSettings
         ),
         .target(
             name: "DiagramKitRenderingCG",
@@ -135,7 +133,7 @@ let package = Package(
             resources: [
                 .process("Resources")
             ],
-            swiftSettings: strictConcurrencySettings
+            swiftSettings: swiftSettings
         ),
         .target(
             name: "DiagramKitViews",
@@ -144,7 +142,7 @@ let package = Package(
                 "DiagramKitModel",
                 "DiagramKitRenderingCG"
             ],
-            swiftSettings: strictConcurrencySettings
+            swiftSettings: swiftSettings
         ),
         .target(
             name: "DiagramKitCorpus",
@@ -152,7 +150,7 @@ let package = Package(
             resources: [
                 .process("Resources")
             ],
-            swiftSettings: strictConcurrencySettings
+            swiftSettings: swiftSettings
         ),
         .target(
             name: "DiagramKitTestSupport",
@@ -163,7 +161,7 @@ let package = Package(
                 "DiagramKitExport",
                 "DiagramKitCorpus"
             ],
-            swiftSettings: strictConcurrencySettings
+            swiftSettings: swiftSettings
         ),
         .target(
             name: "DiagramKit",
@@ -181,7 +179,7 @@ let package = Package(
                 "DiagramKitRenderingCG",
                 "DiagramKitViews"
             ],
-            swiftSettings: strictConcurrencySettings
+            swiftSettings: swiftSettings
         ),
 
 
@@ -212,7 +210,7 @@ let package = Package(
                 // `.md` / `.puml` / `.d2` / `.dot` / `.dsl` corpus files.
                 "RoundTrip/Resources",
             ],
-            swiftSettings: strictConcurrencySettings
+            swiftSettings: swiftSettings
         ),
         .testTarget(
             name: "DiagramKitLinuxTests",
@@ -222,7 +220,7 @@ let package = Package(
                 "DiagramKitModel",
                 "DiagramKitTestSupport",
             ],
-            swiftSettings: strictConcurrencySettings
+            swiftSettings: swiftSettings
         )
     ],
     swiftLanguageModes: [.v6]

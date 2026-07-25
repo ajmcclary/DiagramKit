@@ -74,7 +74,7 @@ The parse and layout stages have no Core Graphics, Core Text, UIKit, or AppKit d
 
 ### Strict Swift 6 concurrency
 
-The entire package compiles under `swiftLanguageModes: [.v6]` with the `StrictConcurrency` upcoming feature applied per target. Public entry points use `async throws`; `@MainActor` is reserved for methods that produce or consume native UI types (`BMImage`, `CGContext`).
+The entire package compiles under Swift 6 language mode — `swiftLanguageModes: [.v6]` package-wide, plus `.swiftLanguageMode(.v6)` and `.enableExperimentalFeature("StrictConcurrency")` applied per target. Public entry points use `async throws`; `@MainActor` is reserved for methods that produce or consume native UI types (`BMImage`, `CGContext`).
 
 ---
 
