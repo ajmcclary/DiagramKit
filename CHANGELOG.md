@@ -2,6 +2,51 @@
 
 All notable changes to DiagramKit are documented in this file.
 
+## [0.1.0-beta.5] - 2026-10-08
+
+### Added
+
+- **Linux support for the whole `DiagramEngine` SVG/ASCII surface.** Every
+  target now builds on Linux (swift:6.3.1) and the full portable test suite
+  passes there, including the new `CorpusRenderTests`, which renders every
+  corpus diagram (all 28 families, all source formats) to SVG and ASCII. The
+  umbrella target had never compiled on Linux before. Flowchart, state,
+  ZenUML and mindmap now render on Linux (mindmap measures text with
+  `TextMetrics` there, like the other Linux-portable layouts).
+- `PortableRenderSupport.swift`: on Linux only, `DiagramTheme` (colours as
+  the new `DiagramThemeColor`) and `RenderConfig` (numeric shape metrics).
+  Apple's types are unchanged.
+- `RenderMetricDefaults`, the single source for literal shape metrics (Apple
+  `RenderTokens` reads it; values unchanged), and `DiagramSVGFontFamily`
+  (`proportional`, `proportionalChain`).
+- Public underscore-SPI `_ganttCalendar`, `_ganttTimeZone`,
+  `_ganttDateFormatter()`.
+
+### Fixed
+
+- **Gantt output no longer depends on the host time zone or locale.** All
+  Gantt date parsing, arithmetic and formatting (parser, layout, Mermaid
+  exporter) use one Gregorian/UTC/POSIX calendar; the today-marker is the
+  user's wall-clock date on that timeline. Previously the same chart
+  rendered differently per machine and weekday-name excludes depended on the
+  user's language. *Behavior change:* for Unix-timestamp date formats, axis
+  labels now show UTC times.
+- Class-diagram ASCII layout and edge bundling iterate in declaration order
+  (as the mermaid-js original's JS `Set`/`Map` do); cyclic class diagrams no
+  longer lay out differently from run to run.
+- The Linux-portable targets had stopped building on Linux after several
+  May refactors (SVG font default, shape fallbacks, CGPoint bridging, an
+  ungated `DiagramKitInteractive`).
+
+### Changed
+
+- `Dockerfile.linux-check` fails the build when any target fails (it used
+  to record the FAIL and continue) and runs the full portable `swift test`.
+- Test suite: image snapshots compare native pixels (`.nativePixels`), so
+  they no longer depend on the display scale of the recording Mac; 52
+  references were re-recorded at their native size. 51 Apple-only test files
+  are whole-file gated for Linux.
+
 ## [0.1.0-beta.4] - 2026-10-08
 
 ### Changed
